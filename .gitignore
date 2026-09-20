@@ -23,6 +23,7 @@
 !README.md
 !README_PyPl.md
 !pyproject.toml
+!generated_output_files.md
 # Tracked so CI can `uv sync --locked` and get byte-identical dependencies.
 !uv.lock
 # Runs the CI gates locally; kept beside the workflow it mirrors.

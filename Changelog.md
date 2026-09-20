@@ -2,28 +2,27 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.0.4] 18-Sep-2026
+## [14.0.5] ??-Sep-2026  # FIX
 
 ### Added
 
-- Added: A __Run On Android__ button in the Edit Task dialog and beside Edit Task/Add Task in the Specific Name tab runs the Task on your Android device, with optional %par1/%par2 values, and shows what it returned or why it failed.  You can test a Task straight from MapTasker, but it runs the version already on the device, so use 'Save To Android' first to test your edits.
-- Added: __Put Helper Tasks in "MapTasker" Project__ button in the 'GET XML FROM ANDROID DEVICE' panel saves every helper Task that MapTasker uses as one Project, 'MapTasker.prj.xml', in /Tasker/projects for you to import in Tasker.  This project will not successfully import if prior MapTasker helper Tasks already exist in Tasker...you must delete them manually first.  Having the helper Tasks in the MapTasker Project allows you to delete them all, as you desire, by deleting this single Project.
-- Added: __List Helper Tasks__ lists the MapTasker helper Tasks that are leftover from previous sessions in the Base project.  Because Tasker cannot delete Tasks remotely, this identifies those that must be removed before you can successfully import the MapTasker project created by the __Put Helper Tasks in "MapTasker" Project__ button.
+- Added:
 
 ### Changed
 
-- Changed: Ensure the use of the proper timezone in all date and time operations.
-- Changed: All Tasker helper Tasks (i.e. named 'MapTasker ...') can now be collectively kept in the 'MapTasker' project.
+- Changed: The Map no longer draws more than two blank lines in a row between its sections, and the box around a Task label or a TaskerNet description no longer adds blank lines of its own.  The Map view, the saved HTML file and the Map exports all get the same tighter spacing.
+- Changed: The Map's HTML is now well formed, with every tag opened and closed where it belongs, so the saved file and its Markdown, JSON and PDF exports can be read by other tools rather than only displayed by a browser.  Nothing about how the Map looks has changed.
+- Changed: A Project's 'Properties...' line now follows the Project's own line after a single blank line, the same as a Profile's and a Task's do.
 
 ### Fixed
 
-- Fixed: Tasks and Profiles whose names contain characters such as $, (, + or ? (for example '$Taskaroo') were reported as missing from the Android device even when Tasker had them, because Tasker's HTTP server reads those names as search patterns.  MapTasker now asks Tasker directly for such names through a small helper Task, and 'Run On Android' runs those Tasks through another.
-- Fixed: 'Save To Android' no longer reports a Task whose name contains characters such as $, (, + or ? (for example '$Taskaroo') as missing after saving it, which could import it a second time and then offer 'Open with'.  MapTasker now confirms such a Task with its object-list helper Task, because Tasker's HTTP server never lists those names.
-- Fixed: Settings such as the selected Task and the Android TCP/IP address are now saved when MapTasker is stopped with Ctrl-C in the terminal, not only when it is closed with the Exit button.  A selected Task also no longer turns into its Profile when the window is reloaded, which had caused the wrong selection to be saved and restored next time.
-- Fixed: An Android TCP/IP address entered in 'Run On Android' (or any other Android dialog) is no longer put back to the old one on exit when MapTasker is open in more than one browser tab.  The same applies to the other settings saved as soon as they change: the Save To Android checkboxes, the Health Check categories and the local XML folder.
-- Fixed: A changed Android TCP/IP address or port is now kept even if you close the dialog or panel without running, fetching or saving anything.  It used to be kept only once something had used it, so changing the address and then clicking 'Close' lost the change.
-- Fixed: Windows bug - picking a local XML file no longer fails with "No module named 'win32api'".  The file picker now lists your drives without needing the separate pywin32 package, and starts on the drive you are browsing.
-- Fixed: Closing the 'import screen is open' notice before an Import Into Tasker finished no longer prints an 'element has been deleted but is still being used' warning with a stack trace in the terminal.
+- Fixed: A directory entry in the Map is now plain text rather than a hotlink when the view limit has cut the item it points to out of the Map.  Clicking such an entry previously did nothing.
+- Fixed: Speed up 'Display Help' results by only displaying the previous 5, rather than 10, change logs (history).
+- Fixed: A Project's or a Profile's TaskerNet description is no longer shown twice in the Map.
+- Fixed: The Map view no longer draws the blank lines that the saved HTML file does not.  It was showing the file's own line endings as blank lines, which is why a heading or a 'Properties...' line sat three or four blank lines below what came before it there while the same file looked right in a browser.
+- Fixed: 'Upgrade To New Version' fails on Windows with a 'the process cannot access the file because it is being used by another process' error.
+- Fixed: 'Upgrade To New Version' no longer crashes while saving the change log on Windows, and an upgrade that does not go through now reports what went wrong instead of announcing success and restarting the same version.
+- Fixed: 'Upgrade To New Version' now always upgrades the copy of MapTasker you are running.  If you have 'uv' installed, it could previously upgrade a different Python environment, or none at all, when MapTasker was started from its own command rather than an activated environment.
 
 ### Known Issues
 
@@ -42,6 +41,21 @@ For each PID listed in the output from the above terminal command, issue the fol
 
 
 ## Older History Logs
+
+## [14.0.4] 18-Sep-2026
+
+- Added: A __Run On Android__ button in the Edit Task dialog and beside Edit Task/Add Task in the Specific Name tab runs the Task on your Android device, with optional %par1/%par2 values, and shows what it returned or why it failed.  You can test a Task straight from MapTasker, but it runs the version already on the device, so use 'Save To Android' first to test your edits.
+- Added: __Put Helper Tasks in "MapTasker" Project__ button in the 'GET XML FROM ANDROID DEVICE' panel saves every helper Task that MapTasker uses as one Project, 'MapTasker.prj.xml', in /Tasker/projects for you to import in Tasker.  This project will not successfully import if prior MapTasker helper Tasks already exist in Tasker...you must delete them manually first.  Having the helper Tasks in the MapTasker Project allows you to delete them all, as you desire, by deleting this single Project.
+- Added: __List Helper Tasks__ lists the MapTasker helper Tasks that are leftover from previous sessions in the Base project.  Because Tasker cannot delete Tasks remotely, this identifies those that must be removed before you can successfully import the MapTasker project created by the __Put Helper Tasks in "MapTasker" Project__ button.
+- Changed: Ensure the use of the proper timezone in all date and time operations.
+- Changed: All Tasker helper Tasks (i.e. named 'MapTasker ...') can now be collectively kept in the 'MapTasker' project.
+- Fixed: Tasks and Profiles whose names contain characters such as $, (, + or ? (for example '$Taskaroo') were reported as missing from the Android device even when Tasker had them, because Tasker's HTTP server reads those names as search patterns.  MapTasker now asks Tasker directly for such names through a small helper Task, and 'Run On Android' runs those Tasks through another.
+- Fixed: 'Save To Android' no longer reports a Task whose name contains characters such as $, (, + or ? (for example '$Taskaroo') as missing after saving it, which could import it a second time and then offer 'Open with'.  MapTasker now confirms such a Task with its object-list helper Task, because Tasker's HTTP server never lists those names.
+- Fixed: Settings such as the selected Task and the Android TCP/IP address are now saved when MapTasker is stopped with Ctrl-C in the terminal, not only when it is closed with the Exit button.  A selected Task also no longer turns into its Profile when the window is reloaded, which had caused the wrong selection to be saved and restored next time.
+- Fixed: An Android TCP/IP address entered in 'Run On Android' (or any other Android dialog) is no longer put back to the old one on exit when MapTasker is open in more than one browser tab.  The same applies to the other settings saved as soon as they change: the Save To Android checkboxes, the Health Check categories and the local XML folder.
+- Fixed: A changed Android TCP/IP address or port is now kept even if you close the dialog or panel without running, fetching or saving anything.  It used to be kept only once something had used it, so changing the address and then clicking 'Close' lost the change.
+- Fixed: Windows bug - picking a local XML file no longer fails with "No module named 'win32api'".  The file picker now lists your drives without needing the separate pywin32 package, and starts on the drive you are browsing.
+- Fixed: Closing the 'import screen is open' notice before an Import Into Tasker finished no longer prints an 'element has been deleted but is still being used' warning with a stack trace in the terminal.
 
 ## [14.0.2-14.0.3] 17-Sep-2026
 

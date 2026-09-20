@@ -1431,13 +1431,13 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
 
     # Handle Ai Response and display it
     if os.path.isfile(ANALYSIS_FILE):
-        with open(ANALYSIS_FILE) as analysis_file:
+        with open(ANALYSIS_FILE, encoding="utf-8", errors="replace") as analysis_file:
             analysis_response = analysis_file.read()
             gui.display_ai_response(analysis_response)
 
     # See if we have any error messages from the AI analysis.
     elif os.path.isfile(ERROR_FILE):
-        with open(ERROR_FILE) as error_file:
+        with open(ERROR_FILE, encoding="utf-8", errors="replace") as error_file:
             error_msg = error_file.read()
 
             # Some other message.  Just display it in the message box and break it up if needed.
@@ -1471,10 +1471,19 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
 # Write out the changelog defined in guiutils after updating the app from pypi.
 def create_changelog() -> None:
     """Create changelog file."""
-    changes = get_changelog_file(CHANGELOG_URL, "##", 11)
-    with open(CHANGELOG_FILE, "w") as changelog_file:
-        for change in changes:
-            changelog_file.write(f"{change}\n")
+    changes = get_changelog_file(CHANGELOG_URL, "##", 6)
+    # utf-8 explicitly, on this write and on the read in check_for_changelog: the change
+    # log is written on GitHub and is full of characters (arrows, bullets, quotes) that
+    # Windows' default cp1252 cannot encode, and an unhandled UnicodeEncodeError here
+    # kills the upgrade before it can restart the program.
+    try:
+        with open(CHANGELOG_FILE, "w", encoding="utf-8") as changelog_file:
+            for change in changes:
+                changelog_file.write(f"{change}\n")
+    except OSError as e:
+        # Nothing to show afterwards is a disappointment, not a reason to strand the
+        # user in a half-finished upgrade.
+        rutroh_error(f"Unable to write the change log file: {e}")
 
 
 def selected_tab_name(gui: object) -> str | None:
@@ -1731,7 +1740,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
 
     self.message = "\n\n"
     if os.path.isfile(CHANGELOG_FILE):
-        with open(CHANGELOG_FILE) as changelog_file:
+        with open(CHANGELOG_FILE, encoding="utf-8", errors="replace") as changelog_file:
             for line in changelog_file:
                 self.message = f"{self.message}{line}"
         os.remove(CHANGELOG_FILE)

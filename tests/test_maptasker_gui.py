@@ -202,18 +202,48 @@ def gui_with_selection():
 # ==========================================
 # 1. UI COMPONENT & REGEX PARSING TESTS
 # ==========================================
+def _optimized(raw_html: str) -> str:
+    """The Map view's own pass over the file it reads, as process_data runs it."""
+    from maptasker.src.guiwins import HTML_OPTIMIZE_PATTERN, optimize_html  # noqa: PLC0415
+
+    return HTML_OPTIMIZE_PATTERN.sub(optimize_html, raw_html)
+
+
 def test_html_optimize_pattern_substitution():
     """Validates module-level O(N) single-pass regex compilation constraints."""
-    from maptasker.src.guiwins import HTML_OPTIMIZE_PATTERN, HTML_REPLACEMENT_MAP  # noqa: PLC0415
-
     raw_html = '<h2>MapTasker</h2>\n\n<h2><span class="normtab"></span>Directory</h2>'
-    optimized = HTML_OPTIMIZE_PATTERN.sub(
-        lambda match: HTML_REPLACEMENT_MAP[match.group(0)],
-        raw_html,
-    )
+    optimized = _optimized(raw_html)
 
     assert '<a id="the_top"></a><h5>MapTasker</h5>' in optimized
     assert '<h6><span class="normtab"></span>Directory</h6>' in optimized
+
+
+def test_the_files_own_newlines_are_not_drawn():
+    """This view shows the Map as preformatted text, where a newline is a line break.
+
+    The file carries one after every <br> and one between the tags of each line, none of
+    which a browser opening that same file draws.  Drawn here, each one is an extra line,
+    and a blank one wherever the Map had already ended the line -- which is what put three
+    blank lines between a Project and its properties where the file shows one.
+    """
+    project_and_its_properties = (
+        'Go to top</a><br>\n<a id="mt-project-Home-eproperties" class="mt-anchor"></a>\n'
+        '<a id="projects_Home"></a>\n<span class="project_color projtab"><br>\nProject: Properties...'
+    )
+    assert _optimized(project_and_its_properties) == (
+        'Go to top</a><br><a id="mt-project-Home-eproperties" class="mt-anchor"></a>'
+        '<a id="projects_Home"></a><span class="project_color projtab"><br>Project: Properties...'
+    )
+
+
+def test_a_newline_the_author_wrote_is_kept():
+    """A Tasker value written over several lines still reads as several lines."""
+    assert _optimized("Text=Parking\nSpot<br>\n") == "Text=Parking\nSpot<br>"
+
+
+def test_a_run_of_written_newlines_is_one_line_break():
+    """However many blank lines a description carries, they draw as a single break."""
+    assert _optimized("first\n\n\nsecond") == "first\nsecond"
 
 
 @pytest.fixture

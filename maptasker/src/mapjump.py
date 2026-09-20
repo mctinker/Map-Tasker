@@ -737,14 +737,12 @@ def anchor_html(target: Target) -> str:
 def anchor_attribute(target: Target) -> str:
     """This object's anchor as a bare id="..." attribute, for a line with no room for an element.
 
-    Task actions are anchored this way and nothing else is.  lineout.handle_action wraps
-    each action in a deliberately unclosed '<div ' and lets the browser fold the following
-    '<span class="action_color actiontab"' into that div's own attribute list -- which is
-    how the div ends up carrying the action's colour and indentation.  An <a> element
-    written into that gap is swallowed the same way and never becomes an element at all;
-    worse, it hands the div its own class and hides every action line.  An id, being an
-    attribute already, is absorbed exactly as intended: the div keeps its colour and gains
-    the id, and the jump lands on the div, which is the whole action line.
+    Task actions are anchored this way and nothing else is.  lineout.action_div builds the
+    <div> that holds an action out of the line's own opening span, so there is no element
+    of its own to write an <a> into: an anchor element put at the front of that line would
+    land inside the div's attributes rather than in the page.  An id, being an attribute
+    already, goes exactly where it is wanted -- onto the div, which is the whole action
+    line and so is what a jump should land on.
 
     Returns a trailing space with the attribute, and "" for an object already anchored in
     this run -- see anchor_html for why.

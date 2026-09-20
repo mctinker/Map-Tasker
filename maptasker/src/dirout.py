@@ -15,6 +15,7 @@ This module contains functions to create and manage the directory output queue.
 from __future__ import annotations
 
 import math
+import re
 from typing import TYPE_CHECKING
 
 from maptasker.src.primitem import PrimeItems
@@ -31,6 +32,82 @@ if TYPE_CHECKING:
     from maptasker.src.runcfg import RunConfig
 
 period = "."
+
+# The id of an anchor the directory can point at: the per-item anchors written by
+# lineout.add_directory_link and proclist.add_task_hyperlink (<a id="tasks_My_Task"></a>)
+# and the two the Trailing Information entries go to.  Deliberately narrower than "any
+# id": the Map is full of other anchors (mapjump's "mt-" ones, for instance) that no
+# directory entry ever refers to, and there is no point collecting them.
+ANCHOR_ID_PATTERN = re.compile(
+    r'id="((?:projects|profiles|tasks|scenes)_[^"]*|grand_totals|unreferenced_variables)"',
+)
+
+
+# Every directory anchor id found in the given output lines.
+def collect_anchor_ids(output_lines: list) -> set:
+    """
+    Gather the ids of the directory's anchors in the given output lines.
+        Args:
+            output_lines (list): output lines to scan
+
+        Returns:
+            set: the anchor ids found in them
+    """
+    anchor_ids = set()
+    for item in output_lines:
+        # Legacy entries can still be [level, line] rather than a bare line (see format.format_line).
+        line = item[1] if isinstance(item, list) else item
+        # Most lines carry no anchor at all, and this check is a good deal cheaper than
+        # running the pattern over every one of them.
+        if 'id="' in line:
+            anchor_ids.update(ANCHOR_ID_PATTERN.findall(line))
+    return anchor_ids
+
+
+# Anchor ids that the view limit's cut drops from the output file.
+def unreachable_anchors(output_lines: list, view_limit: int) -> set:
+    """
+    Determine which anchors the view limit keeps out of the output file.
+
+    bildhtml.write_out_the_file stops writing once it gets past the view limit, so an
+    anchor beyond that point never reaches the file and a directory hyperlink aimed at it
+    would take the user nowhere.  Only ids found solely past the cut are returned: an id
+    that also appears within the limit is still reachable, and one we cannot find at all
+    is left alone, so an entry is only ever demoted to plain text when its target is
+    known to have been dropped.
+
+        Args:
+            output_lines (list): the full output queue, before the directory is inserted
+            view_limit (int): the last output line number that gets written
+
+        Returns:
+            set: the anchor ids that are not in the written output
+    """
+    # Everything fits: nothing is cut and every hyperlink still lands somewhere.
+    if len(output_lines) <= view_limit + 1:
+        return set()
+    within_limit = collect_anchor_ids(output_lines[: view_limit + 1])
+    return collect_anchor_ids(output_lines[view_limit + 1 :]) - within_limit
+
+
+# Build a single directory entry: a hyperlink, or plain text if it can't be reached.
+def directory_entry(href: str, anchor: str, display_name: str, dropped_anchors: set) -> str:
+    """
+    Build the directory's cell for one item.
+
+        Args:
+            href (str): the hyperlink target, minus the leading "#"
+            anchor (str): the id of the anchor the hyperlink lands on
+            display_name (str): the name to show the user
+            dropped_anchors (set): anchor ids the view limit kept out of the output
+
+        Returns:
+            str: the hyperlink, or just the name as plain text if the view limit cut the
+                item it points to out of the output.
+    """
+    if anchor in dropped_anchors:
+        return display_name
+    return f'<a href=#{href} style="{HOTLINK_STYLE}">{display_name}</a>'
 
 
 # Search a list of lists for a given string.  Return True if found.
@@ -148,7 +225,9 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
     The function takes a data dictionary and converts it into an HTML table format.
 
     Args:
-        data (dict): A dictionary containing the data for the table.
+        data (dict): A dictionary containing the data for the table, already in the order
+            it is to appear in.  Sorting is the caller's, since an entry the view limit
+            reduced to plain text no longer sorts alongside the hyperlinks.
         rows: number of rows for table
         columns: number of columns for table
 
@@ -175,7 +254,6 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
     html = f'{TABLE_BORDER}<table style="width:100%;margin-left: 20;text-align:left;background-color:\
     {TABLE_BACKGROUND_COLOR};">\n'
     index = 0
-    data.sort()  # Sort the directory by name
 
     # Build our table
     for _ in range(rows):
@@ -195,12 +273,15 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
 #######################################################################################
 # Output directory for information at the bottom of the output
 #######################################################################################
-def do_trailing_matters(config: RunConfig) -> None:
+def do_trailing_matters(config: RunConfig, dropped_anchors: set) -> None:
     """
     Create a hyperlinks for key items that are at the bottom of the output
 
     Args:
         config (RunConfig): the run's settings, for the detail level.
+        dropped_anchors (set): anchor ids the view limit kept out of the output.  These
+            items sit at the very bottom, so they are the first to go when the output is
+            cut short, and they are listed as plain text when they do.
 
     Returns:
         None
@@ -215,13 +296,19 @@ def do_trailing_matters(config: RunConfig) -> None:
     # Do the Configuration Variables
     if config.display_detail_level == 4:
         trailing_matter.append(
-            f'<a href=#unreferenced_variables style="{HOTLINK_STYLE}">Unreferenced Global Variables</a>',
+            directory_entry(
+                "unreferenced_variables",
+                "unreferenced_variables",
+                "Unreferenced Global Variables",
+                dropped_anchors,
+            ),
         )
 
     # Add Grand Totals.
-    trailing_matter.append(f'<a href=#grand_totals style="{HOTLINK_STYLE}">Grand Totals</a>')
+    trailing_matter.append(directory_entry("grand_totals", "grand_totals", "Grand Totals", dropped_anchors))
 
     # Output the table
+    trailing_matter.sort()
     output_table(trailing_matter, 4)
 
 
@@ -446,7 +533,7 @@ def check_item(name: str, item: str, config: RunConfig) -> bool:
 #######################################################################################
 # Output table for specific Tasker element: Projects, Profiles, Tasks, Scenes
 #######################################################################################
-def do_tasker_element(name: str, config: RunConfig) -> None:
+def do_tasker_element(name: str, config: RunConfig, dropped_anchors: set) -> None:
     """
     Build an html table and output it for the given Tasker element: Project, Profile,
         Scene or Task.  DO this by traversing the entire xml trees.
@@ -458,6 +545,9 @@ def do_tasker_element(name: str, config: RunConfig) -> None:
         name: element name: directory we are doing:
                 "projects", "profiles", "tasks", "scenes"
         config (RunConfig): the run's settings, for the single-item selection.
+        dropped_anchors (set): anchor ids the view limit kept out of the output.  An item
+            whose anchor is among them is listed as plain text rather than as a hyperlink
+            that would go nowhere.
 
     Returns:
         None
@@ -473,14 +563,29 @@ def do_tasker_element(name: str, config: RunConfig) -> None:
             if _check_item(name, item, config):
                 # Directory item is valid for this name.
                 # Get the name and display name for this item
-                hyperlink_name = item[0].replace(">", "&gt;").replace("<", "&lt;").replace("_(Scene)", "")
+                item_name = item[0].replace("_(Scene)", "")
+                hyperlink_name = item_name.replace(">", "&gt;").replace("<", "&lt;")
                 display_name = item[1].replace(">", "&gt;").replace("<", "&lt;")
-                # Append our hyperlink to this Project to the list
+                # Append our hyperlink to this Project to the list.  The anchor itself is
+                # written with the name as-is (lineout.add_directory_link), so it is the
+                # unescaped name that has to be matched against the dropped anchors.
                 directory_hyperlinks.append(
-                    f'<a href=#{name}_{hyperlink_name} style="{HOTLINK_STYLE}">{display_name}</a>',
+                    (
+                        f"{name}_{hyperlink_name}",
+                        directory_entry(
+                            f"{name}_{hyperlink_name}",
+                            f"{name}_{item_name}",
+                            display_name,
+                            dropped_anchors,
+                        ),
+                    ),
                 )
 
         if directory_hyperlinks:
+            # Sort by the item's name here rather than leaving it to the table, which
+            # would otherwise sort the plain-text entries apart from the hyperlinks.
+            directory_hyperlinks.sort()
+            directory_hyperlinks = [entry for _, entry in directory_hyperlinks]
             # Output the name title: Project, Profile, Task, Scene
             PrimeItems.output_lines.add_line_to_output(
                 5,
@@ -495,16 +600,22 @@ def do_tasker_element(name: str, config: RunConfig) -> None:
 #######################################################################################
 # Output directory by appending it to our output queue
 #######################################################################################
-def output_directory(config: RunConfig) -> None:
+def output_directory(config: RunConfig, dropped_anchors: set | None = None) -> None:
     """
     Writes the directory to the output queue.
 
     Args:
         config (RunConfig): the run's settings, threaded down to the per-item filters.
+        dropped_anchors (set): anchor ids the view limit kept out of the output, from
+            unreachable_anchors().  Entries pointing at one of them are listed as plain
+            text instead of as a hyperlink that would go nowhere.  None/empty means the
+            whole output was written and every entry gets its hyperlink.
 
     Returns:
         None
     """
+    if dropped_anchors is None:
+        dropped_anchors = set()
 
     # Add heading
     PrimeItems.output_lines.add_line_to_output(
@@ -515,13 +626,13 @@ def output_directory(config: RunConfig) -> None:
     # Ok, run through the Tasker key elements and output the directory for each
     # Only do Projects and Profiles if not looking for a single Project or Profile
     if not (config.single_profile_name or config.single_task_name):
-        do_tasker_element("projects", config)
-    do_tasker_element("profiles", config)
+        do_tasker_element("projects", config, dropped_anchors)
+    do_tasker_element("profiles", config, dropped_anchors)
     if config.display_detail_level != 0:
-        do_tasker_element("tasks", config)
-    do_tasker_element("scenes", config)
+        do_tasker_element("tasks", config, dropped_anchors)
+    do_tasker_element("scenes", config, dropped_anchors)
 
-    do_trailing_matters(config)
+    do_trailing_matters(config, dropped_anchors)
 
     # Add final rule and break
     PrimeItems.output_lines.add_line_to_output(

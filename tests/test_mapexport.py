@@ -2,8 +2,10 @@
 
 An export is read back out of what its view was drawn from -- MapTasker.html for the Map,
 the Diagram's text file and model for the Diagram -- so the fixture here is written in the
-Map's own markup, including the parts of it that are not well-formed ("<div <span ...>",
-a <DIV> left open), since that is what the reader has to get through.
+Map's own markup.  One action line is left in the shape the Map used to write, a "<div "
+holding the line's own "<span class=..." inside its attributes, because the file an export
+reads may have been written by an earlier version and the reader still has to get through
+it; so is a <DIV> left open, which the Map's own markup no longer contains either.
 
 The PDF is checked the way a viewer reads one: through its cross-reference table.  An
 offset that is a byte out opens as a damaged file, and nothing else would notice.
@@ -43,16 +45,16 @@ _MAP_HTML = """<span class="normtab"></span><!doctype html>
 <hr><br><br>
 <a id="mt-project-Home" class="mt-anchor"></a>
 <br><span class="project_color projtab"><span class="hover-tooltip" data-tooltip="Profiles: a &gt; b">Project:</span> <em>Home</em></span> &nbsp;&nbsp;<a href='#the_top'>Go to top</a><br>
-<br><div <span class="profile_color proftab"><span class="hover-tooltip" data-tooltip="Project: Home">Profile:</span> <em>*Battery Full</em> </span> <span class="profile_condition_color"><br>&nbsp;&nbsp;&nbsp;(State: Battery Level  From=80<br>&nbsp;&nbsp;&nbsp;&nbsp;To=80  )</span>&nbsp;&nbsp;<a href='#the_top'>Go to top</a><br></span></div>
+<br><div class="profile_color proftab"><span class="hover-tooltip" data-tooltip="Project: Home">Profile:</span> <em>*Battery Full</em>  <span class="profile_condition_color"><br>&nbsp;&nbsp;&nbsp;(State: Battery Level  From=80<br>&nbsp;&nbsp;&nbsp;&nbsp;To=80  )</span>&nbsp;&nbsp;<a href='#the_top'>Go to top</a><br></span></div>
 <div><span class="task_color tasktab"><span class="hover-tooltip" data-tooltip="Profile: *Battery Full">Task:</span>&nbsp;<em>Alert</em>&nbsp;&nbsp;&nbsp;&#11013; Entry Task&nbsp;<br>&nbsp;&nbsp;[Priority: 6]&nbsp;<a href='#the_top'>Go to top</a><br></span></div>
 <span class="taskernet_color tasktab"></span><div class="text-box"><p><br><span class="h6-text">TaskerNet description: Battery full.</span></p></div>
-<span class="normtab"></span><br><div id="mt-task-18-a1" <span class="action_color actiontab">01:</span> <span class="action_name_color">If</span><span class="action_color"> (%LEVEL &gt; 79)</span></div><br>
-<div id="mt-task-18-a2" <span class="action_color actiontab">02:</span> <span class="action_name_color">&nbsp;&nbsp;&nbsp;&nbsp;Say</span><span class="action_color">&nbsp;&nbsp;Text=Full<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Engine=default</span></div><br>
+<span class="normtab"></span><br><div id="mt-task-18-a1" class="action_color actiontab">01: <span class="action_name_color">If</span><span class="action_color"> (%LEVEL &gt; 79)</span></div><br>
+<div id="mt-task-18-a2" class="action_color actiontab">02: <span class="action_name_color">&nbsp;&nbsp;&nbsp;&nbsp;Say</span><span class="action_color">&nbsp;&nbsp;Text=Full<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Engine=default</span></div><br>
 <div id="mt-task-18-a3" <span class="action_color actiontab">03:</span> <span class="action_name_color">End If</span></span></div><br>
 <span class="normtab"></span><span class="task_color"><br>&nbsp;&nbsp;&nbsp;The following Tasks in Project 'Home' are not in any Profile...</span><br>
 <div><span class="task_color tasktab"><span class="hover-tooltip" data-tooltip="Project: Home">Task:</span>&nbsp;<em>Loose</em>&nbsp;<br></span></div>
 <div><span class="task_color tasktab"><span class="task_color"><br>Task: Properties...Keep Device Awake:true<br></span></span></div>
-<div id="mt-task-9-a1" <span class="action_color actiontab">01:</span> <span class="action_name_color">Beep</span></div><br>
+<div id="mt-task-9-a1" class="action_color actiontab">01: <span class="action_name_color">Beep</span></div><br>
 <br><div><div><span class="scene_color scenetab"><span class="hover-tooltip" data-tooltip="Project: Home">Scene:</span>&nbsp;<em>Popup</em>&nbsp;<a href='#the_top'>Go to top</a><br></span></div>
 </div><span class="normtab"></span><span class="scene_color">&nbsp;&nbsp;Width/Height: 300 X 500<br></span>
 <br><span class="normtab"></span><br><span class="project_color"><br><span class="normtab"></span>Project Global Variables</span>
@@ -64,7 +66,7 @@ _MAP_HTML = """<span class="normtab"></span><!doctype html>
 </tr>
 <tr id="mt-variable-%25Level"><td style="color:White">%Level</td><td style="color:White">80</td></tr>
 </table><br>
-<span class="project_color"><DIV <span class="normtab"></span><br>Project Home has a total of 1 Profiles and 1 Scenes</DIV><br><br></span>
+<span class="project_color"><div class="normtab"><br>Project Home has a total of 1 Profiles and 1 Scenes</div><br><br></span>
 <hr>
 <a id="grand_totals"></a>
 <span class="trailing_comments_color"><br><hr><span class="normtab"></span>Tasker Displayed Totals...<br>Total number of Projects: 1</span><br>

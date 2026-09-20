@@ -244,7 +244,6 @@ pattern3 = re.compile("<")
 pattern4 = re.compile(">")
 
 pattern8 = re.compile("<br>")
-pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
 pattern11 = re.compile(".*[A-Z].*")
 pattern12 = re.compile(r"[%]\w+")  # matches any word-constituent character.
@@ -308,6 +307,11 @@ DISPLAY_DETAIL_LEVEL_everything: int = 5
 
 # Use the normal tab in output.
 NORMAL_TAB = '<span class="normtab"></span>'
+
+# What an object's "...Properties..." line says after its "Project:"/"Profile:"/"Task:"
+# tag (see property.get_properties).  lineout matches on it to tell such a line from the
+# object's own heading, which is a new object and so wants a blank line before it.
+PROPERTIES_TAG = " Properties..."
 
 # Disabled Profile and Task indicator
 DISABLED = " [&#9940;&nbsp;DISABLED]"  # &#9940 = "⛔"

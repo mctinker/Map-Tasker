@@ -163,7 +163,7 @@ def record_response(response: str, ai_object: str, item: str) -> None:
     The ERROR_FILE will be read and displayed in the GUI on ReRun, with the response handled in
     'display_messages_from_last_run' and 'display_ai_response'
     """
-    with open(ANALYSIS_FILE, "w") as response_file:
+    with open(ANALYSIS_FILE, "w", encoding="utf-8") as response_file:
         response_file.write(
             f'{PrimeItems.program_arguments["ai_name"]} AI Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} "{item}":\n\n{response}',
         )
@@ -297,7 +297,7 @@ def process_error(error: str, ai_object: str, item: str) -> None:
 
     # Write the error to the error file, which will be read in by guiutils and displayed in GUI text box.
     # Note: "Ai Response" must be a part of the message for it to be recognized by guiutils.
-    with open(ERROR_FILE, "w") as error_file:
+    with open(ERROR_FILE, "w", encoding="utf-8") as error_file:
         error_file.write(
             f"'{PrimeItems.program_arguments['ai_name']} AI Response using model {PrimeItems.program_arguments['ai_model']} for {ai_object} {item}:\n\n{output_error}",
         )
@@ -406,7 +406,7 @@ def process_ai_query_and_response(
         # hierarchies -- handle_ai_error exists precisely to turn any of them into a
         # sentence, so enumerating them here would duplicate that and go stale faster.
         error_message = handle_ai_error(e)  # Pass the exception object directly
-        with open(ERROR_FILE, "w") as response_file:
+        with open(ERROR_FILE, "w", encoding="utf-8") as response_file:
             response_file.write(error_message)
 
 

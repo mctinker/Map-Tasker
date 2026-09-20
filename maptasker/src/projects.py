@@ -532,12 +532,12 @@ def summary_counts(project_name: str, profile_count: int) -> None:
     PrimeItems.output_lines.add_line_to_output(
         5,
         (
-            f"<DIV {NORMAL_TAB}<br>Project {project_name} has a total of {profile_count} Profiles,"
+            f'<div class="normtab"><br>Project {project_name} has a total of {profile_count} Profiles,'
             f" {task_count_for_profile}  Tasks called by Profiles,"
             f" {task_count_unnamed} unnamed Tasks, {task_count_no_profile} Tasks"
             f" not in any Profile, {named_task_count_total} named Tasks out of"
             f" {task_count_unnamed + named_task_count_total} total Tasks,"
-            f" and {scene_count} Scenes</DIV><br><br>"
+            f" and {scene_count} Scenes</div><br><br>"
         ),
         ["", "project_color", FormatLine.add_end_span],
     )

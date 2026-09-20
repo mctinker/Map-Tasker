@@ -8,9 +8,9 @@ import webbrowser
 import maptasker.src.taskuniq as special_tasks
 from maptasker.src import console, projects
 from maptasker.src.caveats import display_caveats
-from maptasker.src.dirout import output_directory
+from maptasker.src.dirout import output_directory, unreachable_anchors
 from maptasker.src.error import error_handler, exit_program, rutroh_error
-from maptasker.src.format import format_line
+from maptasker.src.format import BlankLineLimiter, SpanBalancer, format_line
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -169,6 +169,14 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
     # Clear any stale message from a previous run -- only set again below if this run also hits the limit.
     PrimeItems.view_limit_msg = ""
     with open(output_file, "w", encoding="utf-8") as out_file:
+        # Everything below writes through these two rather than straight to the file, because
+        # this is the only point that sees the whole document: the limiter is the only place
+        # that sees one gap between sections whole, and so the only place that can keep the
+        # blank lines in it down to what a reader wants, and the balancer the only place that
+        # knows which <span>s are open, and so the only place that can write them down the way
+        # the browser reads them.
+        balanced_file = SpanBalancer(out_file)
+        map_file = BlankLineLimiter(balanced_file)
         # Output the rest that is in our output queue
         _output_directory = output_directory  # Localize for speed
         _format_line = format_line  # Localize for speed
@@ -190,7 +198,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
                 # message -- wrapped so it always wraps/constrains to the container's width
                 # without hardcoding white-space, so it still respects the Toggle Wrap setting
                 # like every other line.
-                out_file.write(
+                map_file.write(
                     "</span></td></tr></table></details>"
                     f'<div style="max-width: 100%; overflow-wrap: anywhere; word-break: break-word;">{msg_text}</div>'
                     "</body></html>",
@@ -206,14 +214,19 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
             if "maptasker_directory" in item:
                 # Temporarily save our output lines
                 temp_lines_out = PrimeItems.output_lines.output_lines
+                # Work out which of the directory's targets the view limit drops before
+                # swapping the output queue out: an entry whose target never makes it
+                # into the file is listed as plain text rather than as a hyperlink that
+                # would take the user nowhere.
+                dropped_anchors = unreachable_anchors(temp_lines_out, PrimeItems.view_limit)
                 PrimeItems.output_lines.output_lines = []  # Create a new output queue
 
                 # Do the directory output
                 if config.directory:
-                    _output_directory(config)
+                    _output_directory(config, dropped_anchors)
                 # Output the directory line
                 for output_line in PrimeItems.output_lines.output_lines:
-                    out_file.write(output_line)
+                    map_file.write(output_line)
                 # Restore our regular output
                 PrimeItems.output_lines.output_lines = temp_lines_out
                 continue
@@ -228,18 +241,19 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
             # Parse twisty <details>...yield result
             with contextlib.suppress(ValueError):
                 details_position = output_line.index("<details>")
-                out_file.write(f" {output_line[:details_position]}")
-                out_file.write("<details>\r")
+                map_file.write(f" {output_line[:details_position]}")
+                map_file.write("<details>\r")
                 output_line = f"    {output_line[details_position + 9 :]}"
 
             # Write the actual final line out as html
             if output_line.strip():  # Write out if not blank
                 logger.info(f"Writing: {output_line}")
-                out_file.write(output_line)
+                map_file.write(output_line)
             if debug_out:
                 logger.debug(f"mapit output line:{output_line}")
                 logger.info("Function Exit: write_out_the_file")
 
+        balanced_file.finish()  # Close anything the output left open
         os.fsync(out_file)  # Force write to disk
 
 

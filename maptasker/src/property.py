@@ -13,7 +13,7 @@ from maptasker.src import objprops
 from maptasker.src.error import rutroh_error
 from maptasker.src.mapjump import PROPERTIES_PART, Target, anchor_html
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import FormatLine
+from maptasker.src.sysconst import PROPERTIES_TAG, FormatLine
 
 # The Profile-only settings this module reports beyond <cldm>, named by their
 # objprops.PropField key rather than by their tag.
@@ -327,7 +327,7 @@ def get_properties(property_tag: str, header: defusedxml.ElementTree, where: Tar
         PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     # Ok, output the properties as a single line.
-    out_string = f"<br>{property_tag} Properties..." + separator.join(properties) + "<br>"
+    out_string = f"<br>{property_tag}{PROPERTIES_TAG}" + separator.join(properties) + "<br>"
     PrimeItems.output_lines.add_line_to_output(
         2,
         out_string,

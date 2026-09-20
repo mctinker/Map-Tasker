@@ -9,7 +9,7 @@ from PIL import ImageColor
 
 from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import HOTLINK_STYLE, logger, pattern2, pattern8, pattern9, pattern10, pattern15
+from maptasker.src.sysconst import HOTLINK_STYLE, logger, pattern2, pattern8, pattern10, pattern15
 
 
 # Given a line in the output queue, reformat it before writing to file
@@ -60,16 +60,28 @@ def format_line(item: str) -> str:
 
     # # Format the html...add a number of blanks if some sort of list.
     if "DOCTYPE" in item:  # If imbedded html (e.g. Scene WebElement), add a break and some spacing.
-        output_line = pattern15.sub(f"<br>{space * 30}", output_line)
+        # From the document onwards, and no earlier.  The newlines inside it are the
+        # author's, and breaking them out is what makes an embedded document readable as
+        # the source it is; the ones before it are the Map's own -- the newline after a
+        # directory anchor, say -- and turning those into breaks put a blank line and
+        # thirty spaces into the middle of a line that had asked for neither.
+        document_start = max(output_line.find("DOCTYPE"), 0)
+        output_line = output_line[:document_start] + pattern15.sub(
+            f"<br>{space * 30}",
+            output_line[document_start:],
+        )
 
     # Add a carriage return if this is a break: replace("<br>" with "<br>\r"
     output_line = pattern8.sub("<br>\r", output_line)
     # Get rid of trailing blank
     output_line = pattern2.sub("", output_line)  # Get space-commas: " ,"
 
-    # Get rid of extraneous html code (double-/span) that somehow got in to the output
-    output_line = pattern9.sub("</span>", output_line)
-
+    # "</span></span>" used to be folded down to one here, on the grounds that the second
+    # was extraneous.  Once it was: format_html put an end tag on every line whether or not
+    # the line had asked for one, and this swept some of them up.  With that fixed at the
+    # source, a pair of end tags is two spans genuinely closing, and folding them left the
+    # outer one open -- thousands of them across a Map -- for the browser to guess at.
+    #
     # Replace double paragraph with single paragraph
     return pattern10.sub("</p>", output_line)
 
@@ -89,6 +101,15 @@ def format_html(
         :param end_span: True=add </span> at end, False=don't add </span> at end
         :return: string with text formatted with color and font
     """
+    # Worth knowing before changing anything here: most callers pass a FormatLine member
+    # rather than a bool, and an Enum member is true whichever value it carries -- so
+    # "FormatLine.dont_add_end_span" reads as "do add one" and the </span> goes on anyway.
+    # That has been the behavior for as long as there has been output, and the strings this
+    # builds are taken apart again further on (finalize_action_details splits an action at
+    # its newlines), so what looks like a one-line fix moves text about as well as tags.
+    # The spare end tags it leaves are dealt with where they do no harm: SpanBalancer drops
+    # the ones that close nothing as the file is written.
+    #
     # Determine and get the color to use.
     # Return completed HTML with color, font and text with text after
     if text_after:
@@ -1398,8 +1419,8 @@ class HTMLTextFormatter(HTMLParser):
         this end tag belongs to rather than assuming it is on top.  Everything above it was
         left open inside the element and closes with it, whatever the markup says -- dropping
         those entries stops them being matched later by some unrelated end tag.  An end tag
-        with no entry at all (a stray </span>, of which the output has had a few -- see
-        pattern9 in format_line) changed nothing, so there is nothing to put back.
+        with no entry at all (a stray </span>, of which a label's own html may hold a few)
+        changed nothing, so there is nothing to put back.
 
             :param tag: tag name of the element being closed
         """
@@ -1630,6 +1651,43 @@ def contains_html(text_string: str) -> bool:
     return parser.found_html_tags
 
 
+# Segments that are markup rather than words.  parse_html_to_text_segments passes a label's
+# own list, table and block tags through as segments of their own, and the loop below wraps
+# every segment it is given in a <span> of the label's color.  A tag wrapped that way crosses
+# the tags around it -- the <li> ends up inside one span and its </li> inside the next -- so
+# these are written as they stand, with the spans left to the words between them.
+STRUCTURAL_SEGMENTS = frozenset(
+    {
+        "<blockquote>",
+        "</blockquote>",
+        "<big>",
+        "</big>",
+        "<li>",
+        "</li>",
+        "<ol>",
+        "</ol>",
+        "<p>",
+        "</p>",
+        "<pre>",
+        "</pre>",
+        "<small>",
+        "</small>",
+        "<table>",
+        "</table>",
+        "<tbody>",
+        "</tbody>",
+        "<td>",
+        "</td>",
+        "<thead>",
+        "</thead>",
+        "<tr>",
+        "</tr>",
+        "<ul>",
+        "</ul>",
+    },
+)
+
+
 def format_label(lbl: str) -> str:
     """
     Formats a given label string, potentially containing HTML, into an HTML-formatted
@@ -1677,7 +1735,6 @@ def format_label(lbl: str) -> str:
 
         # Parse the HTML string
         formatted_lbl = parse_html_to_text_segments(lbl)
-        num_items = len(formatted_lbl)
 
         # Go through each item in the formatted list and break it into html.
         have_paren = False
@@ -1685,10 +1742,7 @@ def format_label(lbl: str) -> str:
         previous_text = ""
 
         # Go through the lines in this formatted html
-        for num, action_label in enumerate(formatted_lbl):
-            # Add end-of-label flag as a commented flag to the last piece of the label.
-            label_end = '<data-flag=":lblend">' if num + 1 == num_items else ""
-
+        for action_label in formatted_lbl:
             # Get the label verbage
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
 
@@ -1748,16 +1802,11 @@ def format_label(lbl: str) -> str:
 
             # If we have back-to-back headings, then force a new line.
             if (lbl_heading > 0 and previous_heading > 0) and (lbl_heading != previous_heading):
-                # Concatenate a newline.
-                task_label = (
-                    task_label
-                    + '<span style="color:'
-                    + lbl_color
-                    + css_styles
-                    + '" class="h0-text">'
-                    + "<p>"
-                    + "</span>"
-                )
+                # Start the next paragraph.  The <p> used to be written inside a <span> of
+                # its own, which put a block inside an inline element and left the span with
+                # no end tag of its own; a paragraph needs neither, since one <p> ends the
+                # one before it.
+                task_label = task_label + "<p>"
             # If we have a color, then format it accordingly.
             if lbl_color:
                 if not have_paren:
@@ -1788,14 +1837,17 @@ def format_label(lbl: str) -> str:
                     # Ignore breaks within table entries.
                     if lbl_text == "<br>":
                         continue
-                    task_label = task_label + "\r" + f"{lbl_text}{label_end}"
+                    task_label = task_label + "\r" + lbl_text
+                elif lbl_text.strip() in STRUCTURAL_SEGMENTS:
+                    # Markup rather than words: in as it stands, outside any span.
+                    task_label = task_label + lbl_text
                 else:
                     # Concatenate all of the text lines with the color.
                     # Use the combined css_styles string and data_href_attribute
                     task_label = (
                         task_label
                         + f'<span style="color:{lbl_color}{css_styles}" class="h{lbl_heading}-text">'
-                        + f"{lbl_text}{label_end}"
+                        + lbl_text
                         + "</span>"
                     )
                 have_paren = True
@@ -1804,7 +1856,7 @@ def format_label(lbl: str) -> str:
 
             # No color
             else:
-                task_label = task_label + f"{blank * lbl_heading}" + f"{lbl_text}{label_end}"
+                task_label = task_label + f"{blank * lbl_heading}" + lbl_text
 
         if have_paren:
             task_label = task_label + "</p></div>"
@@ -1853,3 +1905,254 @@ def count_trailing_blanks(text_string: str, position: int) -> int:
             break
 
     return blank_count
+
+# The most blank lines the Map is allowed to draw in a row.
+MAX_BLANK_LINES = 2
+
+# Tags that draw nothing of their own and do not end the line they are on.  A <br> on
+# either side of one of these is still part of the same gap.
+INLINE_TAGS = frozenset(
+    {"a", "b", "big", "code", "em", "font", "i", "small", "span", "strong", "sub", "sup", "u"},
+)
+
+# Elements that are something to look at in their own right, and take a line plus the
+# white space around them to do it in: the gap after one starts again from that line.
+VISIBLE_TAGS = frozenset({"canvas", "hr", "iframe", "img", "input", "svg", "video"})
+
+# Blocks the browser puts white space above and below of its own accord, whatever the
+# Map asks for -- a heading, a table and a paragraph each read as a blank line's worth.
+SPACED_TAGS = frozenset({"blockquote", "dl", "h1", "h2", "h3", "h4", "h5", "h6", "ol", "p", "pre", "table", "ul"})
+
+# A tag, and only a tag: a "<" that starts no name is text (a browser reads "a < b" as
+# text too), and a ">" inside a quoted attribute value -- a tooltip's own text, say --
+# does not end one.
+HTML_TAG = re.compile(r"""<[a-zA-Z!/](?:[^>"']|"[^"]*"|'[^']*')*>""")
+HTML_BREAK = re.compile(r"<br\s*/?>", re.IGNORECASE)
+HTML_TAG_NAME = re.compile(r"</?\s*([a-zA-Z][a-zA-Z0-9]*)")
+# The indentation spans (normtab, proftab, actiontab and the rest of addcss's family) are
+# inline blocks, so one of them sitting between two <br>s is on a line of its own.
+HTML_INDENT_CLASS = re.compile(r'class\s*=\s*"[^"]*?[a-z]*tab\d*\s*"', re.IGNORECASE)
+# Whitespace and non-breaking spaces alike: a line holding nothing else still looks blank.
+NOTHING_TO_SEE = re.compile(r"^(?:\s|&nbsp;|&#160;)*$")
+
+
+class BlankLineLimiter:
+    """Stand in front of the Map's output file and cap how many blank lines it may write.
+
+    The Map is written a piece at a time by many different places, none of which can see
+    what the one before it left behind, so the gaps between sections used to pile up: a
+    section's trailing <br>s, then the heading's own, then the leading ones of whatever
+    came next, drawing anything up to half a screen of nothing.  Every piece of the file
+    passes through here, which makes this the one place that sees a gap whole.
+
+    It counts line endings rather than <br>s, because they are not the same thing.  The
+    first <br> after some text only ends that text's line.  A heading, a table or a rule
+    has already ended the line it sat on before the next <br> arrives, and the browser
+    sets its own white space around those -- a blank line's worth, near enough -- with no
+    <br> involved at all.  An indentation span is an inline block, so it too holds a line
+    open.  Only the <br>s that would draw one blank line too many are dropped; everything
+    else, every tag and every space, is written through exactly as it came in.
+    """
+
+    def __init__(self, out_file: object, max_blank_lines: int = MAX_BLANK_LINES) -> None:
+        """
+        Wrap the file the Map is being written to.
+            :param out_file: the open file to write through to
+            :param max_blank_lines: the most blank lines in a row to let through
+        """
+        self.out_file = out_file
+        # One line ending is the end of a line of text; each one after that is a blank line.
+        self.max_endings = max_blank_lines + 1
+        # The file starts on a fresh line, so leading <br>s are blank lines from the first one.
+        self.endings = 1
+
+    def write(self, text: str) -> None:
+        """
+        Write a piece of the Map, minus any <br> that would draw one blank line too many.
+            :param text: the html to write
+            :return: nothing
+        """
+        if not text:
+            return
+
+        pieces = []
+        position = 0
+        for tag in HTML_TAG.finditer(text):
+            # Text between the tags.  Anything there is to see puts us back on a line with
+            # something on it; spaces and non-breaking spaces alone still read as blank.
+            between = text[position : tag.start()]
+            if between and not NOTHING_TO_SEE.match(between):
+                self.endings = 0
+            pieces.append(between)
+            position = tag.end()
+
+            markup = tag.group(0)
+            if HTML_BREAK.fullmatch(markup):
+                self.endings += 1
+                if self.endings > self.max_endings:
+                    self.endings = self.max_endings
+                    continue  # One blank line too many -- leave this <br> out.
+            else:
+                self.count_tag(markup)
+            pieces.append(markup)
+
+        trailing = text[position:]
+        if trailing and not NOTHING_TO_SEE.match(trailing):
+            self.endings = 0
+        pieces.append(trailing)
+
+        self.out_file.write("".join(pieces))
+
+    def count_tag(self, markup: str) -> None:
+        """
+        Note how much of the gap a tag other than <br> has already taken up itself.
+            :param markup: the tag, as it will be written
+            :return: nothing
+        """
+        name = HTML_TAG_NAME.match(markup)
+        tag_name = name.group(1).lower() if name else ""
+        if tag_name in INLINE_TAGS:
+            # An indentation span is an inline block and so occupies the line it is on;
+            # anything else inline draws nothing and the gap carries on through it.
+            if HTML_INDENT_CLASS.search(markup):
+                self.endings = 0
+        elif tag_name in VISIBLE_TAGS:
+            # Something to see, on a line of its own, with its own white space around it.
+            self.endings = 2
+        elif tag_name in SPACED_TAGS:
+            self.endings = max(self.endings, 2)
+        else:
+            # A plain block (a division, a row, a twisty).  It ends the line it is on, but
+            # adds no blank one of its own to a gap that is already open.
+            self.endings = max(self.endings, 1)
+
+
+# The elements a browser treats as containers: meeting one of their end tags closes
+# whatever <span>s were opened inside them, whether the markup said so or not.
+BLOCK_TAGS = frozenset(
+    {
+        "blockquote",
+        "body",
+        "details",
+        "div",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "html",
+        "li",
+        "ol",
+        "p",
+        "pre",
+        "section",
+        "summary",
+        "table",
+        "tbody",
+        "td",
+        "th",
+        "thead",
+        "tr",
+        "ul",
+    },
+)
+
+
+class SpanBalancer:
+    """Write the Map's html with its <span>s opened and closed in step.
+
+    The Map's colors are <span>s, and which of them is open at any point is worked out
+    between a dozen different places, none of which can see what the others left behind.
+    They do not always agree: some lines close a span that was never opened, and some open
+    one and leave it, and both of those have been in the file for as long as there has been
+    a file.  A browser is forgiving about it -- it ignores an end tag that closes nothing,
+    and closes what is still open when the block around it ends -- so the Map has always
+    looked right, and anything reading it as markup rather than displaying it (the exports,
+    the PDF, a validator) has had to be as forgiving.
+
+    This writes what the browser would have made of it: an end tag that closes nothing is
+    dropped, and a span still open when its block ends is closed there, in the place the
+    browser would have closed it.  Nothing else changes, and nothing about how the Map
+    looks changes -- the same DOM is reached either way, just written down properly.
+    """
+
+    def __init__(self, out_file: object) -> None:
+        """
+        Wrap the file the Map is being written to.
+            :param out_file: the open file to write through to
+        """
+        self.out_file = out_file
+        self.blocks: list[str] = []  # the containers we are inside, outermost first
+        self.spans: list[int] = [0]  # spans opened inside each of them, plus the file itself
+
+    def write(self, text: str) -> None:
+        """
+        Write a piece of the Map with its spans brought into step.
+            :param text: the html to write
+            :return: nothing
+        """
+        if not text:
+            return
+
+        pieces = []
+        position = 0
+        for tag in HTML_TAG.finditer(text):
+            pieces.append(text[position : tag.start()])
+            position = tag.end()
+            markup = tag.group(0)
+            name = HTML_TAG_NAME.match(markup)
+            tag_name = name.group(1).lower() if name else ""
+            closing = markup.startswith("</")
+
+            if tag_name == "span":
+                if not closing:
+                    self.spans[-1] += 1
+                elif self.spans[-1] == 0:
+                    continue  # Closes nothing: the browser ignores it, and so does the file.
+                else:
+                    self.spans[-1] -= 1
+            elif tag_name in BLOCK_TAGS and not markup.endswith("/>"):
+                if closing:
+                    pieces.append(self.close_block(tag_name))
+                    if not self.blocks or tag_name not in self.blocks:
+                        continue  # An end tag for a block that was never opened.
+                    self.open_block_end(tag_name)
+                else:
+                    self.blocks.append(tag_name)
+                    self.spans.append(0)
+            pieces.append(markup)
+
+        pieces.append(text[position:])
+        self.out_file.write("".join(pieces))
+
+    def close_block(self, tag_name: str) -> str:
+        """
+        The end tags for every span still open inside the block now ending.
+            :param tag_name: the block being closed
+            :return: the "</span>"s to write before its own end tag
+        """
+        if tag_name not in self.blocks:
+            return ""
+        depth = len(self.blocks) - 1 - self.blocks[::-1].index(tag_name)
+        return "</span>" * sum(self.spans[depth + 1 :])
+
+    def open_block_end(self, tag_name: str) -> None:
+        """
+        Step back out to whatever contained the block now ending.
+            :param tag_name: the block being closed
+            :return: nothing
+        """
+        depth = len(self.blocks) - 1 - self.blocks[::-1].index(tag_name)
+        del self.blocks[depth:]
+        del self.spans[depth + 1 :]
+
+    def finish(self) -> None:
+        """
+        Close whatever the file still has open, once there is nothing more to write.
+            :return: nothing
+        """
+        still_open = sum(self.spans)
+        if still_open:
+            self.out_file.write("</span>" * still_open)
+            self.spans = [0] * len(self.spans)

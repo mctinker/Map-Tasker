@@ -42,7 +42,7 @@ def error_handler(error_message: str, exit_code: int) -> None:
         # If coming from GUI, set error info. and return to GUI.
         if PrimeItems.program_arguments and PrimeItems.program_arguments["gui"]:
             # Write the rror to file for use by userinter (e.g. on rerun), so userintr can display error on entry.
-            with open(ERROR_FILE, "w") as error_file:
+            with open(ERROR_FILE, "w", encoding="utf-8") as error_file:
                 error_file.write(f"{error_message}\n")
                 error_file.write(f"{exit_code}\n")
             # Set error info. for GUI to display.

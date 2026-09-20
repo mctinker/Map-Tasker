@@ -99,8 +99,9 @@ _ROW = re.compile(r"<tr\b[^>]*>(.*?)</tr\s*>", re.IGNORECASE | re.DOTALL)
 _TAG_BODY = r"(?:[^>\"']|\"[^\"]*\"|'[^']*')*>"
 _CELL = re.compile(rf"<t[dh]\b{_TAG_BODY}(.*?)</t[dh]\s*>", re.IGNORECASE | re.DOTALL)
 _TAG = re.compile(rf"<{_TAG_BODY}")
-# The tags that end a line where they stand.  The Map writes some of these unclosed and
-# with a second tag inside them ("<div <span class=...>"), which _TAG_BODY takes as one tag.
+# The tags that end a line where they stand.  A Map written by an earlier version has some
+# of these unclosed and with a second tag inside them ("<div <span class=...>"), which
+# _TAG_BODY takes as one tag -- the file being read here is whatever the last run left.
 _BREAK = re.compile(rf"<(?:br|hr|/?div|/?p|/?h[1-6]|/?li)\b{_TAG_BODY}", re.IGNORECASE)
 
 # The class an object's heading or an action is drawn with.  Matched as the whole class

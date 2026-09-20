@@ -3565,23 +3565,48 @@ def build_delete_project_dialog(
 # ==========================================
 # Pre-compile the regex pattern at the module level for maximum execution performance.
 # This scans the HTML string and hits all target replacements in a single pass O(N).
+#
+# Most of what it does is about newlines, because this view shows the Map as preformatted
+# text (see the wrap classes in build_ui) and a browser draws every newline in
+# preformatted text as a line break.  A browser opening the saved file draws none of them:
+# they are the file's own formatting, one after every <br> and one between the tags of
+# each line, and there are tens of thousands.  Drawn, each one is an extra line -- and a
+# blank line wherever the Map had already ended that line with a <br>, which is why a
+# section heading in this view sat three and four blank lines below the section above it
+# while the same file opened in a browser showed one.
+#
+# So a newline that touches a tag goes: it is the file's formatting, not the Map's.  A
+# newline with text on both sides is the author's -- a Tasker value written over several
+# lines -- and stays, as the one line break it asks for.  What this no longer does is
+# throw <br>s away: it used to fold "<br><br>" down to one, from the days when the file
+# arrived with gap after gap of blank lines in it.  bildhtml now writes that file through
+# format.BlankLineLimiter, which keeps every gap to MAX_BLANK_LINES, so a second squeeze
+# here only fought the first.
 HTML_OPTIMIZE_PATTERN = re.compile(
-    r"(\n\n\n|\n\n|<br>\n<br><br>|\n<br><br>|<br>\n|<br><br>|<br></span>|\n<br>|<h2>MapTasker</h2>|<h2><span class=\"normtab\"></span>Directory</h2>)",
+    r"(?P<formatting>(?<=>)[ \t]*[\r\n]+|[\r\n]+[ \t]*(?=<))"
+    r"|(?P<written>[\r\n]{2,})"
+    r"|(?P<heading><h2>MapTasker</h2>|<h2><span class=\"normtab\"></span>Directory</h2>)",
 )
 
 # Map the targeted string matches directly to their optimized counterparts.
 HTML_REPLACEMENT_MAP = {
-    "\n\n\n": "",
-    "\n\n": "",
-    "<br>\n<br><br>": "",
-    "\n<br><br>": "<br>",
-    "<br>\n": "<br>",
-    "<br><br>": "<br>",
-    "<br></span>": "</span>",
-    "\n<br>": "<br>",
     "<h2>MapTasker</h2>": '<a id="the_top"></a><h5>MapTasker</h5>',
     '<h2><span class="normtab"></span>Directory</h2>': '<h6><span class="normtab"></span>Directory</h6>',
 }
+
+
+def optimize_html(match: re.Match) -> str:
+    """
+    What one match of HTML_OPTIMIZE_PATTERN becomes -- see the note above it.
+
+        :param match: the matched formatting, written newlines, or heading
+        :return: what to put in its place
+    """
+    if match.lastgroup == "formatting":
+        return ""  # The file's own line endings, which this view would otherwise draw.
+    if match.lastgroup == "written":
+        return "\n"  # The author's own, and one line break is all they asked for.
+    return HTML_REPLACEMENT_MAP[match.group(0)]
 
 # How long to wait for the browser to finish a view search (see search_event).  NiceGUI's
 # own default is 1 second, which is a reasonable wait for a one-line snippet but far too
@@ -5428,10 +5453,7 @@ class NiceGuiTextView:
                 # clicking a connector highlights the right one -- so skip the HTML-specific/blank-line
                 # collapsing optimizations here; they aren't meaningful for plain text anyway.
                 if not is_diagram:
-                    final_html = HTML_OPTIMIZE_PATTERN.sub(
-                        lambda match: HTML_REPLACEMENT_MAP[match.group(0)],
-                        final_html,
-                    )
+                    final_html = HTML_OPTIMIZE_PATTERN.sub(optimize_html, final_html)
 
             # Render in whatever font the file we just read was actually generated with,
             # rather than overriding it with the GUI's current selection.

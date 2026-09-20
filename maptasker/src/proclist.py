@@ -536,11 +536,14 @@ def process_item(
         if PrimeItems.program_arguments["display_detail_level"] > 0:
             remove_twisty()
         else:
-            # End list if doing twisty and displaying level 0
+            # End list if doing twisty and displaying level 0.  dont_format_line, not
+            # dont_add_end_span: the third argument says whether the line needs formatting
+            # at all, and the wrong member of the two sent add_line_to_output looking for a
+            # color inside an enum member.
             PrimeItems.output_lines.add_line_to_output(
                 3,
                 "",
-                FormatLine.dont_add_end_span,
+                FormatLine.dont_format_line,
             )
 
     return

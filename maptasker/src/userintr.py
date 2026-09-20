@@ -1961,7 +1961,29 @@ class MapTaskerEventHandlers(
             type="positive",
             timeout=5.0,
         )
-        update_maptasker()
+        updated, complaint = update_maptasker()
+
+        # The update did not happen: say so, say what went wrong, and stay where we are.
+        # Restarting would just bring back the same version, but wearing a "Program
+        # updated" message.
+        if not updated:
+            # Only the tail of it: the installers print a wall of progress before the
+            # sentence that matters.
+            last_lines = "\n".join(complaint.splitlines()[-3:]) if complaint else ""
+            the_view.display_message_box(
+                translate_string("The update failed and MapTasker is still on the version you were running."),
+                "Red",
+            )
+            if last_lines:
+                the_view.display_message_box(last_lines, "Red")
+            the_view.display_message_box(
+                translate_string(
+                    "Exit MapTasker and update it from the command line: 'pip install --upgrade maptasker'.",
+                ),
+                "Red",
+            )
+            return
+
         the_view.display_message_box(translate_string("Program updated.  Restarting..."), "Green")
         # Create the Change Log file to be read and displayed after a program update.
         create_changelog()

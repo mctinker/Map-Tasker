@@ -72,17 +72,24 @@ def add_css(config: RunConfig) -> None:
         box_background, box_border = "#2c3138", "#8a8f98"
     else:
         box_background, box_border = "#f9f9f9", "#333"
+    # The vertical spacing is deliberately tight.  The box already stands out by its border
+    # and its background, and a paragraph's own margin inside it -- a full line top and
+    # bottom, on top of the box's margin and padding -- used to leave three and four blank
+    # lines around every Task label and TaskerNet description in the Map.
     box = f"""
 <style>
 .text-box {{
     border: 2px solid {box_border};
     padding-left: 10px;    /* Keeps the existing left padding */
     padding-right: 10px;   /* Keeps the existing right padding */
-    padding-top: 0px;     /* Increases the space at the top */
-    padding-bottom: 10px;  /* Increases the space at the bottom */
-    margin: 10px;
+    padding-top: 0px;      /* No space at the top */
+    padding-bottom: 4px;   /* Just enough space at the bottom */
+    margin: 4px 10px;
     width: 100%;
     background-color: {box_background};
+}}
+.text-box p {{
+    margin: 0;             /* The box's own padding is the spacing; a paragraph adds none */
 }}
 </style>
     """

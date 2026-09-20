@@ -32,7 +32,7 @@ from maptasker.src.format import format_html
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, reset_attributes
 from maptasker.src.runcfg import current_config
-from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine, debug_out, logger
+from maptasker.src.sysconst import PROPERTIES_TAG, UNNAMED_ITEM, FormatLine, debug_out, logger
 from maptasker.src.xmldata import remove_html_tags
 
 # build_tooltip_span() (format.py) wraps a "Task:"/"Profile:"/etc. label in
@@ -43,6 +43,12 @@ from maptasker.src.xmldata import remove_html_tags
 # line can get misrouted to handle_project() just because its tooltip mentions a Project.
 # Strip the wrapper before dispatch matching so the checks only ever see the real label.
 _HOVER_TOOLTIP_SPAN_RE = re.compile(r'<span class="hover-tooltip" data-tooltip="[^"]*">(.*?)</span>')
+
+# An action line as handle_action() receives it: mapjump's anchor (anchor_attribute), if the
+# action has one, and then the span carrying the action's color and indentation.
+_ACTION_ANCHOR_RE = re.compile(r'^id="[^"]*"\s*')
+_ACTION_SPAN_RE = re.compile(r"^<span\s+([^>]*)>")
+_SPAN_TAG_RE = re.compile(r"<span\b[^>]*>|</span\s*>", re.IGNORECASE)
 
 
 # Class definition for our output lines
@@ -148,7 +154,7 @@ class LineOut:
 
         elif style_details["is_taskernet"]:
             line_with_style = (
-                f'<p class="{style_details["tab"]} {style_details["color"]}>{style_details["element"]}</p><br>\n'
+                f'<p class="{style_details["tab"]} {style_details["color"]}">{style_details["element"]}</p><br>\n'
             )
             line_with_style = line_with_style.replace("<span></span>", "")
 
@@ -205,6 +211,12 @@ class LineOut:
 
         """
         color_pos = element.find('_color"')
+        # Nothing to add the tab to.  A line that has already been through here says
+        # 'class="..._color proftab"' rather than 'class="..._color"', and splicing at
+        # find()'s -1 used to take the line apart and leave tags such as "<br_color ...>"
+        # in the Map.
+        if color_pos == -1:
+            return element
         return f'{element[0:color_pos]}_color {tab}"{element[(color_pos + 7) :]}'
 
     # Add "Go to top" hyperlink to the element
@@ -274,7 +286,13 @@ class LineOut:
         """
         element = self.add_gototop_link(element)
         element = self.add_tab("projtab", element)
-        return self.add_directory_link("<br>", element, "\n")
+        # The <br> is what separates one Project from whatever was above it.  A Project's
+        # own "...Properties..." line comes through here too, and that one belongs to the
+        # Project it follows rather than starting anything, so it goes without: the line
+        # brings a break of its own (see property.get_properties), and the two together
+        # left two blank lines between a Project and its properties where one is wanted.
+        separator = "" if f"Project:{PROPERTIES_TAG}" in element else "<br>"
+        return self.add_directory_link(separator, element, "\n")
 
     # Handles profile element by adding directory link
     def handle_profile(self, element: str) -> None:
@@ -289,8 +307,8 @@ class LineOut:
         element = self.add_gototop_link(element)
         element = self.add_tab("proftab", element)
         # Add the directory link to the Profile line.
-        # Add <div </div> to ensure line wrap breaks at proftab (Profile spacing)
-        return self.add_directory_link("<br><div ", element, "</div><br>\n")
+        # The <div> is what makes a line that wraps break at the Profile's own indent.
+        return self.add_directory_link("<br>", self.line_div(element), "<br>\n")
 
     # Handle styling for a task element
     def handle_task(self, element: str, font: str) -> str:
@@ -426,7 +444,68 @@ class LineOut:
         element = self.add_tab("actiontab", element)
 
         # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
-        return f"<div {element}</span></div><br>\n"
+        return f"{self.line_div(element)}<br>\n"
+
+    def line_div(self, element: str) -> str:
+        """
+        Put one line of the Map in a <div> of its own, carrying its color and indentation.
+
+        The div is what keeps a long line wrapping inside its own block instead of back at
+        the left margin, and it has to carry the line's "..._color ...tab" class for the
+        wrapped text to line up under the first line.
+
+        That class used to get there by a trick: an action and a Profile were each written
+        as a "<div " left deliberately open, so that the line's own '<span class="..."'
+        would be swallowed by the browser as part of the div's attribute list.  It renders,
+        but only a browser's error recovery makes it render -- every action in the Map was
+        invalid markup, as was the '</span>' that used to be written after an action to
+        close a span that had never been opened.  Everything else that has to read the Map
+        rather than merely display it (the Markdown, JSON and PDF exports among them) had
+        to be taught to expect it.  The class is moved onto the div here instead, and the
+        span it came from, which now says nothing the div does not, goes with its end tag.
+
+        The id in front, when there is one, is the anchor mapjump puts on a Task action.
+        It stays at the front of the div's attributes, before the class, because that is
+        where the export's reader looks for the action number.
+
+            :param element: the line, anchor and opening span and all
+            :return: the line wrapped in a well-formed <div>
+        """
+        anchor = ""
+        found_anchor = _ACTION_ANCHOR_RE.match(element)
+        if found_anchor:
+            anchor = found_anchor.group(0)
+            element = element[found_anchor.end() :]
+
+        # No opening span to take the class from: keep the line in a plain div rather than
+        # invent markup for it.  Nothing in the Map takes this branch today.
+        opening_span = _ACTION_SPAN_RE.match(element)
+        if opening_span is None:
+            return f"<div {anchor}>{element}</div>" if anchor else f"<div>{element}</div>"
+
+        inside = element[opening_span.end() :]
+        end_of_span = self.matching_span_end(inside)
+        if end_of_span != -1:
+            inside = inside[:end_of_span] + inside[inside.index(">", end_of_span) + 1 :]
+        return f"<div {anchor}{opening_span.group(1).strip()}>{inside}</div>"
+
+    @staticmethod
+    def matching_span_end(text: str) -> int:
+        """
+        Find the "</span>" that closes a span already opened before this text begins.
+
+            :param text: what follows the opening tag of the span being matched
+            :return: the position of its end tag, or -1 if the span is never closed
+        """
+        depth = 0
+        for tag in _SPAN_TAG_RE.finditer(text):
+            if tag.group(0).startswith("</"):
+                if depth == 0:
+                    return tag.start()
+                depth -= 1
+            else:
+                depth += 1
+        return -1
 
     # Handle taskernet
     def handle_taskernet(self, element: str) -> str:

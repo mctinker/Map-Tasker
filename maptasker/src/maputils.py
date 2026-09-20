@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import ipaddress
 import os
 import re
@@ -18,6 +19,7 @@ import sys
 import threading
 import time
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import (
     ZoneInfo,
     ZoneInfoNotFoundError,
@@ -80,9 +82,75 @@ def validate_port(address: str, port_number: int) -> bool:
     return 0
 
 
+# The commands our own install puts in the environment's script directory.  Reinstalling
+# MapTasker overwrites them, which is the step that fails on Windows while one of them is
+# the very process doing the upgrading (see move_locked_scripts_aside).
+CONSOLE_SCRIPTS = ("maptasker.exe",)
+# What a moved-aside script is renamed to.  It stays locked until we exit, so it is cleared
+# away on the next upgrade rather than during this one.
+STASHED_SCRIPT_SUFFIX = ".mtold"
+
+
+def move_locked_scripts_aside() -> list[tuple[Path, Path]]:
+    """Rename our console scripts so the installer has a free name to write them to.
+
+    Windows will not let anything overwrite a running .exe, so reinstalling while MapTasker
+    was started from its own 'maptasker' command dies with 'WinError 32 ... being used by
+    another process' and nothing is upgraded at all.  Windows does allow a running .exe to
+    be *renamed*, which is the standard way out: move it out of the way first and the
+    installer writes a fresh one beside it, while this process keeps running from the file
+    it already has open.
+
+    Does nothing anywhere else -- every other platform happily replaces a running program's
+    file.
+
+    :return: the (original, renamed) pairs, so a failed install can put them back.
+    """
+    if sys.platform != "win32":
+        return []
+
+    script_dir = Path(sys.executable).parent  # ...\venv\Scripts, where python.exe lives
+    moved = []
+    for name in CONSOLE_SCRIPTS:
+        script = script_dir / name
+        if not script.is_file():
+            continue
+        stashed = script.with_name(f"{name}{STASHED_SCRIPT_SUFFIX}")
+        # Left over from an earlier upgrade: by now nothing is running from it.
+        with contextlib.suppress(OSError):
+            stashed.unlink(missing_ok=True)
+        try:
+            script.rename(stashed)
+        except OSError as e:
+            # Out of our hands: let the installer run and report whatever it hits.
+            logger.debug(f"Unable to move {script} aside before upgrading: {e}")
+            continue
+        moved.append((script, stashed))
+    return moved
+
+
+def restore_locked_scripts(moved: list[tuple[Path, Path]]) -> None:
+    """Put back the console scripts move_locked_scripts_aside renamed, after a failed install.
+
+    A script the installer did manage to write is left alone -- that one is the new version.
+
+    :param moved: the (original, renamed) pairs returned by move_locked_scripts_aside.
+    """
+    for script, stashed in moved:
+        if script.exists():
+            continue
+        with contextlib.suppress(OSError):
+            stashed.rename(script)
+
+
 # Auto Update our code
-def update_maptasker() -> None:
-    """Update this package using uv if available, otherwise fall back to pip."""
+def update_maptasker() -> tuple[bool, str]:
+    """Update this package using uv if available, otherwise fall back to pip.
+
+    :return: (True, "") when the install succeeded, otherwise (False, what the installer
+        said went wrong).  The caller must not restart into a version that was never
+        installed, so a failure has to be reported rather than assumed away.
+    """
     version = get_pypi_version()  # Assuming this is defined elsewhere in your code
     packageversion = "maptasker" + version
 
@@ -90,15 +158,34 @@ def update_maptasker() -> None:
     if shutil.which("uv"):
         # Build the command for uv
         # uv uses the syntax: uv pip install <package>
-        command = ["uv", "pip", "install", packageversion, "--upgrade"]
+        # --python: uv installs into the environment it discovers (VIRTUAL_ENV, or a .venv in
+        # the current directory), and neither is necessarily ours -- MapTasker started from
+        # its own 'maptasker' command runs without VIRTUAL_ENV set.  Naming our interpreter
+        # upgrades the copy we are actually running, rather than failing for want of an
+        # environment or quietly upgrading somebody else's.
+        command = ["uv", "pip", "install", "--python", sys.executable, packageversion, "--upgrade"]
         console.say("Updating with uv...")
     else:
         # Build the fallback command for pip
         command = [sys.executable, "-m", "pip", "install", packageversion, "--upgrade"]
         console.say("Updating with pip...")
 
-    # 2. Execute the chosen command
-    subprocess.call(command)  # noqa: S603
+    # 2. Execute the chosen command, keeping what it said in case it fails.  errors="replace"
+    # because an installer's progress output is not necessarily in the console's encoding,
+    # and a failed upgrade must not turn into a crash while reading the complaint about it.
+    moved = move_locked_scripts_aside()
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, errors="replace", check=False)  # noqa: S603
+    except OSError as e:
+        restore_locked_scripts(moved)
+        return False, str(e)
+
+    if result.returncode == 0:
+        return True, ""
+
+    restore_locked_scripts(moved)
+    complaint = (result.stderr or "").strip() or (result.stdout or "").strip()
+    return False, complaint or f"the installer stopped with return code {result.returncode}"
 
 
 # How long the version check waits on PyPI: the same as the timezone lookup above, since both
