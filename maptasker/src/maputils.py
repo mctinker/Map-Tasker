@@ -31,6 +31,7 @@ from maptasker.src import clock, console
 from maptasker.src.error import rutroh_error
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
+from maptasker.src.mapjump import TASK, Target
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems, clear_single_items
 from maptasker.src.sysconst import HOTLINK_STYLE, FormatLine, logger
@@ -315,14 +316,23 @@ def display_task_warnings() -> None:
         ),
     ]
     # Go through the warnings and add to our output list.
-    _fix_hyperlink_name = fix_hyperlink_name
     for task_name, value in PrimeItems.task_action_warnings.items():
-        # Build the hotlink to the Task.
-        href_name = _fix_hyperlink_name(task_name)
+        # Build the hotlink to the Task, aimed at the anchor mapjump gives every Task by
+        # its id rather than at the directory's anchor for its name.
+        #
+        # With the directory on, an unnamed Task is deliberately left out of it (dirout.
+        # add_directory_item), and the name-keyed anchor goes with it -- so every warning
+        # about an unnamed Task pointed at an anchor that was never written, and clicking
+        # it did nothing.  On this repo's reference backup that was 19 of the 84 warnings.
+        #
+        # The id-keyed anchor is emitted for every Task whatever the settings (see
+        # mapjump.anchor_html), and it identifies the Task rather than its name, so it
+        # also reaches the right one of two Tasks that share a name.
+        target = Target(TASK, value["id"], task_name)
         # Build the hyperelink reference.  The explicit color/underline is needed because this
         # link sits inside a "trailing_comments_color" span -- see sysconst.HOTLINK_STYLE for
         # why an unstyled <a> disappears into its surroundings in the Map view.
-        href = f'<a href=#tasks_{href_name} style="{HOTLINK_STYLE}">{task_name}</a>'
+        href = f'<a href=#{target.anchor} style="{HOTLINK_STYLE}">{task_name}</a>'
 
         # Add the warning to the list.
         warnings.append(f"{task_translated} {href} {has_translated} {value['count']} {actions_translated}")
@@ -344,13 +354,27 @@ def fix_hyperlink_name(name: str) -> str:
     """
     Fix the hyperlink name so it doesn't screw up the html output.
 
+    A name is the user's own text, and it goes into an attribute -- the id of an anchor,
+    and the hyperlink that looks for it.  Every character that can end that attribute
+    early has to go, or the tag stops where the name does and the rest of it is drawn in
+    the Map as text, with everything below it laid out as though the tag were still open:
+
+        <   >   a Task called "System >> Say Response", or an unnamed one named after an
+                action, such as "If %new_val > %limit"
+        "       an unnamed Task named after an Anchor action: 'Anchor "NOTE: ..."'
+
+    The same name is escaped for both sides of the link, so the two go on matching -- a
+    browser reads "&gt;" and "&quot;" in an attribute as the characters they stand for.
+
     Args:
         name (str): The name to fix.
 
     Returns:
         str: The fixed name.
     """
-    return name.replace(" ", "_").replace(">", "&gt;").replace("<", "&lt;")
+    return (
+        name.replace(" ", "_").replace(">", "&gt;").replace("<", "&lt;").replace('"', "&quot;")
+    )
 
 
 def get_value_if_match(

@@ -782,6 +782,30 @@ REVEAL_ANCESTORS_JS = """
             }
 """
 
+# What a jump should actually land on, given the anchor it was aimed at.
+#
+# Most of the Map's anchors are empty markers carrying ANCHOR_CLASS, which is styled
+# "display: none" -- they have no box at all, and scrolling to something with no box does
+# nothing whatever.  The line such a marker stands for is the next thing after it with
+# something in it, and not simply the next element: the output pipeline leaves a <br>, and
+# sometimes an empty wrapper, between an anchor and the line it belongs to (see
+# lineout.handle_project and handle_profile).
+#
+# Defined here rather than where it is used because two different things now need it: the
+# jump a clicked report finding asks for (below), and the Map's own hyperlinks, which the
+# view takes over so that they can reach a line the browser has not laid out yet (see
+# guiwins.NiceGuiTextView._enable_in_page_links).
+RESOLVE_TARGET_JS = f"""
+            function mtJumpTarget(anchor) {{
+                if (!anchor || !anchor.classList.contains({ANCHOR_CLASS!r})) return anchor;
+                let target = anchor.nextElementSibling;
+                while (target && !target.textContent.trim()) {{
+                    target = target.nextElementSibling;
+                }}
+                return target || anchor.parentElement;
+            }}
+"""
+
 
 _RAISE_MAP_WINDOW_JS = """
         (() => {
@@ -1089,6 +1113,7 @@ def jump_js(anchor_id: str) -> str:
     return f"""
         return (() => {{
 {REVEAL_ANCESTORS_JS}
+{RESOLVE_TARGET_JS}
             const anchor = document.getElementById({json.dumps(anchor_id)});
             if (!anchor) return false;
             mtRevealAncestors(anchor);
@@ -1102,21 +1127,9 @@ def jump_js(anchor_id: str) -> str:
             }}
 
             // An empty marker highlights what follows it; anything else (a variable's own
-            // table row) IS the target.
-            //
-            // "What follows it" is the next element with something in it, not simply the
-            // next element: the output pipeline puts a <br>, and sometimes an empty
-            // wrapper, between an anchor and the line it belongs to (see
-            // lineout.handle_project and handle_profile).  Highlighting a line break draws
-            // an outline around nothing, which reads as the jump having failed.
-            let target = anchor;
-            if (anchor.classList.contains({ANCHOR_CLASS!r})) {{
-                target = anchor.nextElementSibling;
-                while (target && !target.textContent.trim()) {{
-                    target = target.nextElementSibling;
-                }}
-                target = target || anchor.parentElement;
-            }}
+            // table row) IS the target.  Highlighting a line break draws an outline around
+            // nothing, which reads as the jump having failed -- see mtJumpTarget.
+            const target = mtJumpTarget(anchor);
             if (!target) return false;
 
             document.querySelectorAll('.{HIGHLIGHT_CLASS}').forEach(

@@ -246,6 +246,118 @@ def test_a_run_of_written_newlines_is_one_line_break():
     assert _optimized("first\n\n\nsecond") == "first\nsecond"
 
 
+# ==========================================
+# 1b. CUTTING THE MAP UP FOR THE BROWSER (split_for_streaming)
+# ==========================================
+def _split(html: str, budget: int) -> list:
+    """The view's own splitter."""
+    from maptasker.src.guiwins import split_for_streaming  # noqa: PLC0415
+
+    return split_for_streaming(html, budget)
+
+
+def _rendered_text(pieces: list) -> str:
+    """What the pieces say, with the markup taken out -- what the reader ends up seeing."""
+    import re  # noqa: PLC0415
+
+    return re.sub(r"<[^>]*>", "", "".join(pieces))
+
+
+def test_a_map_with_nothing_open_is_cut_where_it_falls():
+    """The simple case: pieces that need nothing re-stated join back up exactly."""
+    html = "".join(f"<div>line {number}</div>" for number in range(40))
+
+    pieces = _split(html, 100)
+
+    assert len(pieces) > 1, "a document well over the budget was left in one piece"
+    assert "".join(pieces) == html
+
+
+def test_a_cut_inside_a_span_closes_it_and_opens_it_again():
+    """The Map's colours span many lines, so most cuts land inside one."""
+    html = '<span class="task_color">' + "x" * 300 + "<br>" + "y" * 300 + "</span>"
+
+    pieces = _split(html, 200)
+
+    assert len(pieces) > 1
+    assert pieces[0].endswith("</span>"), "what was open was not closed at the cut"
+    assert pieces[1].startswith('<span class="task_color">'), "what was open was not opened again"
+    assert _rendered_text(pieces) == _rendered_text([html]), "the words on the page changed"
+
+
+def test_an_anchor_is_not_repeated_when_its_element_is_re_stated():
+    """A Task action's anchor names one place in the Map, and must keep doing so.
+
+    The element carrying it is re-stated after a cut like any other, but with the id
+    dropped: two elements with the same id is markup a jump cannot rely on.
+    """
+    html = (
+        '<div id="mt-task-85-a1" class="action_color">'
+        + "".join(f"action line {number}<br>" for number in range(40))
+        + "</div>"
+    )
+
+    pieces = _split(html, 150)
+
+    assert pieces[0].count('id="mt-task-85-a1"') == 1
+    assert all('id="mt-task-85-a1"' not in piece for piece in pieces[1:])
+    assert 'class="action_color"' in pieces[1], "the element itself still has to be re-stated"
+
+
+def test_nesting_is_re_stated_from_the_outside_in():
+    """Several elements open at a cut come back in the order that rebuilds the same tree.
+
+    A cut can only fall where one tag ends and the next begins, so the content here is
+    the shape the Map actually has: tags all the way through it.
+    """
+    html = "<div><span><b>" + "".join(f"word {number}<br>" for number in range(40)) + "</b></span></div>"
+
+    pieces = _split(html, 100)
+
+    assert len(pieces) > 1
+    assert pieces[0].endswith("</b></span></div>"), "the open elements were not closed at the cut"
+    assert pieces[1].startswith("<div><span><b>"), "they did not come back outermost first"
+
+
+def test_the_frame_of_the_page_is_never_re_stated():
+    """<html>, <head> and <body> have no end tag in what the view is handed."""
+    html = "<html><head></head><body><div>" + "w" * 400 + "</div></body></html>"
+
+    pieces = _split(html, 120)
+
+    assert all("<body" not in piece for piece in pieces[1:])
+    assert all("<html" not in piece for piece in pieces[1:])
+
+
+def test_a_void_element_leaves_nothing_open():
+    """A <br> is most of what the Map is made of; it must not be treated as a container."""
+    html = "<br>" * 200
+
+    pieces = _split(html, 100)
+
+    assert "".join(pieces) == html, "something was closed and reopened around a <br>"
+
+
+def test_a_small_map_is_left_in_one_piece():
+    """Nothing to gain by cutting up a Map that the browser can swallow whole."""
+    html = "<div>a small map</div>"
+
+    assert _split(html, 262144) == [html]
+
+
+def test_an_unclosed_paragraph_does_not_swallow_the_rest_of_the_map():
+    """A TaskerNet description writes <p> and leaves it; the next block closes it.
+
+    Getting that wrong leaves <p> on the open list for the rest of the document, and
+    every piece from there on re-states a paragraph that the browser had already closed.
+    """
+    html = "<div class='text-box'><p>a description</div>" + "".join(f"<div>line {n}</div>" for n in range(40))
+
+    pieces = _split(html, 100)
+
+    assert all("<p>" not in piece for piece in pieces[1:]), "an open <p> was carried past the block that closed it"
+
+
 @pytest.fixture
 def font_extractor():
     """extract_first_font_name bound to a stub, so it can be exercised standalone."""

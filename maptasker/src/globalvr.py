@@ -19,25 +19,34 @@ from maptasker.src.sysconst import NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BOR
 from maptasker.src.taskervars import tasker_global_variables
 
 # The where-used counts for the table below, built once per run and reused for every
-# Project's table.  Cleared by get_variables, which runs once at the start of a Map.
+# Project's table.  Kept or dropped by get_variables, which runs once at the start of a Map.
 #
 # Cached rather than recomputed because varxref.build_index walks every Task action,
 # Profile and Scene in the file: cheap once, but this table is emitted once per Project
 # plus once for the unreferenced list, and doing that walk eighty times over would be the
 # slowest thing in the Map.
 _cross_reference: dict | None = None
+# Which configuration the counts above were worked out from (see get_variables).
+_cross_reference_key: str = ""
 
 
 # Read in the variables and save them for now.
-def get_variables() -> None:
+def get_variables(configuration: str = "") -> None:
     """
     Read in and save the Tasker variables.
-        Args:
-
+        :param configuration: a digest of the configuration these variables are being
+            read from (mapcache.configuration_digest()), or "" when the caller cannot
+            say.  The where-used counts are kept only while that stays the same.
     """
-    # A new file is being read, so anything worked out about the last one is stale.
-    global _cross_reference  # noqa: PLW0603
-    _cross_reference = None
+    # The counts describe one configuration.  A Map built again from that same
+    # configuration -- the display detail level changed, a colour changed, a Project
+    # picked out of the whole -- can have them as they stand rather than walking every
+    # Task action in the file for a second time to arrive at the same numbers.  Anything
+    # else, including a caller that cannot say what it is looking at, starts again.
+    global _cross_reference, _cross_reference_key  # noqa: PLW0603
+    if not configuration or configuration != _cross_reference_key:
+        _cross_reference = None
+        _cross_reference_key = configuration
 
     # Get all of the Tasker variables
     if not (global_variables := PrimeItems.xml_root.findall("Variable")):

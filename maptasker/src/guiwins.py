@@ -3640,6 +3640,91 @@ def optimize_html(match: re.Match) -> str:
         return "\n"  # The author's own, and one line break is all they asked for.
     return HTML_REPLACEMENT_MAP[match.group(0)]
 
+
+# How the Map is cut up for the browser (see split_for_streaming).
+#
+# 256KB a piece, which on a large configuration is of the order of a hundred pieces: small
+# enough that the browser can put the top of the Map on screen while the rest is still
+# arriving, and few enough that the per-piece cost -- an element, a websocket message and
+# the tags re-stated across the cut -- stays in the noise.
+STREAM_CHUNK_BYTES = 262144
+HTML_ELEMENT = re.compile(r"<(/?)([a-zA-Z][a-zA-Z0-9-]*)[^>]*?(/?)>")
+# Elements with no end tag of their own; nothing is left open by one.
+VOID_ELEMENTS = frozenset(
+    {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"},
+)
+# The page's own frame, which the view never sees the end of and must not try to re-state.
+FRAME_ELEMENTS = frozenset({"html", "head", "body"})
+# Starting one of these closes an open <p>, which is a thing a browser does and the Map's
+# html relies on: a TaskerNet description writes "<p>" and leaves it to the next block.
+CLOSE_AN_OPEN_PARAGRAPH = frozenset(
+    {
+        "address", "article", "aside", "blockquote", "details", "div", "dl", "fieldset", "figure", "footer",
+        "form", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr", "main", "nav", "ol", "p", "pre",
+        "section", "table", "ul",
+    },
+)
+# An id belongs to the element where it opened.  Where a cut re-states that element in the
+# next piece, the id is dropped, so that a Task action's anchor stays the one place in the
+# document it names (see split_for_streaming).
+ELEMENT_ID = re.compile(r'\s+id="[^"]*"')
+
+
+def split_for_streaming(html: str, budget: int = STREAM_CHUNK_BYTES) -> list[str]:
+    """Cut the Map into pieces the browser can render one at a time.
+
+    WHY THIS IS NOT A SPLIT ON LINES.  It was, and the line it split on had already been
+    taken out.  The view splits the file after HTML_OPTIMIZE_PATTERN has run over it, and
+    what that pattern removes is precisely the newline between one tag and the next -- so
+    a Map of twenty megabytes arrived here as a couple of hundred "lines" and left as a
+    single piece.  One element holding the whole Map is the worst shape it could be in:
+    the browser parses all of it before it shows any of it, lays out every one of its two
+    hundred thousand elements because "content-visibility: auto" can only skip an element
+    whole, and it all crosses the socket in one message.  That is the wait.
+
+    WHAT A CUT COSTS.  The Map's colours are <span>s that are opened on one line and
+    closed several lines later, so at most points in the document something is open.  A
+    piece therefore ends by closing what is open and the next begins by opening it again,
+    which is why this returns pieces that do not concatenate back into the original text
+    -- they render as it, which is the thing that has to be true.  On a large Map the
+    re-stated tags come to well under a tenth of its size.
+
+    :param html: the whole Map, as the view has optimized it
+    :param budget: how many bytes to aim for in a piece
+    :return: the pieces, in order
+    """
+    open_elements: list[tuple[str, str]] = []  # (tag name, the markup that opened it)
+    pieces: list[str] = []
+    start = 0
+    carried = ""  # the tags this piece has to re-state because a cut fell inside them
+
+    for element in HTML_ELEMENT.finditer(html):
+        closing, name, self_closing = element.group(1), element.group(2).lower(), element.group(3)
+        if name in FRAME_ELEMENTS or name in VOID_ELEMENTS or self_closing:
+            pass
+        elif closing:
+            # Everything opened inside the element being closed is closed with it, which
+            # is what the browser does with markup that never closed it explicitly.
+            for index in range(len(open_elements) - 1, -1, -1):
+                if open_elements[index][0] == name:
+                    del open_elements[index:]
+                    break
+        else:
+            if open_elements and open_elements[-1][0] == "p" and name in CLOSE_AN_OPEN_PARAGRAPH:
+                open_elements.pop()
+            open_elements.append((name, element.group(0)))
+
+        if element.end() - start >= budget:
+            closers = "".join(f"</{tag}>" for tag, _ in reversed(open_elements))
+            pieces.append(f"{carried}{html[start : element.end()]}{closers}")
+            carried = "".join(ELEMENT_ID.sub("", markup, count=1) for _, markup in open_elements)
+            start = element.end()
+
+    if start < len(html):
+        pieces.append(f"{carried}{html[start:]}")
+    return pieces
+
+
 # How long to wait for the browser to finish a view search (see search_event).  NiceGUI's
 # own default is 1 second, which is a reasonable wait for a one-line snippet but far too
 # short for the search crawl: it walks every text node of the rendered view, and a Map or
@@ -5181,6 +5266,71 @@ class NiceGuiTextView:
         # progress banner can be taken down without having to remember each of them.
         self._hide_loading()
 
+    async def _enable_in_page_links(self) -> None:
+        """Make the Map's own hyperlinks land on what they name.
+
+        The directory at the top of the Map, the "Go to top" links and every Task name that
+        points at its own entry are plain '<a href="#...">' links, which the browser follows
+        by itself.  That works only while the browser knows where the target is -- and the
+        Map arrives as pieces marked "content-visibility: auto", which is what lets it skip
+        the layout of everything off screen (see split_for_streaming).  A piece it has
+        skipped has never been laid out, so a link into one lands at that piece's ESTIMATED
+        position rather than its real one, which on a large Map is thousands of lines out.
+
+        So the click is taken over here: the piece holding the target is asked to lay itself
+        out for real, and only then is the target scrolled to.  Exactly what a clicked report
+        finding and a search result already do (mapjump.REVEAL_ANCESTORS_JS), now that an
+        ordinary hyperlink needs it too.
+
+        Inside the view's own slot, as _deliver_jump runs its jump: ui.run_javascript needs
+        a client to send to, and it raises rather than guesses when it is called from a
+        background task with no slot in context -- which the rest of this method's work
+        then never happens inside.
+        """
+        with self.scroll_area:
+            try:
+                await self._wire_in_page_links()
+            except (TimeoutError, RuntimeError):
+                # The page went away, or never finished connecting, while the content was
+                # still arriving.  The links then fall back to what the browser does with
+                # them, which is right for everything it has already laid out.
+                logger.debug("Map view: the in-page link handler was not installed.")
+
+    async def _wire_in_page_links(self) -> None:
+        """Install the click handler described by _enable_in_page_links."""
+        await ui.run_javascript(
+            f"""
+            (() => {{
+                const container = document.getElementById("c{self.scroll_area.id}");
+                if (!container || container.dataset.mtLinksWired) return;
+                container.dataset.mtLinksWired = "1";
+{mapjump.REVEAL_ANCESTORS_JS}
+{mapjump.RESOLVE_TARGET_JS}
+                container.addEventListener("click", (event) => {{
+                    const link = event.target.closest('a[href^="#"]');
+                    if (!link || !container.contains(link)) return;
+                    const name = decodeURIComponent(link.getAttribute("href").slice(1));
+                    const anchor = name ? document.getElementById(name) : null;
+                    if (!anchor) return;   // Nothing of that name here: leave the browser to it.
+                    // The anchor is often an empty marker with no box of its own, so what
+                    // gets scrolled to is the line it stands in front of (see mtJumpTarget).
+                    mtRevealAncestors(anchor);
+                    const target = mtJumpTarget(anchor);
+                    if (!target) return;
+                    event.preventDefault();
+                    mtRevealAncestors(target);
+                    // With the "twisty" option on, the target can be inside a collapsed
+                    // <details>, and scrolling to something not being displayed does nothing.
+                    for (let box = target.closest("details"); box; box = box.parentElement?.closest("details")) {{
+                        box.open = true;
+                    }}
+                    target.scrollIntoView({{ behavior: "auto", block: "start" }});
+                }});
+            }})()
+            """,
+            timeout=SEARCH_JAVASCRIPT_TIMEOUT,
+        )
+
     async def _deliver_jump(self) -> None:
         """Take this freshly built Map to the object a clicked report finding asked for.
 
@@ -5543,30 +5693,46 @@ class NiceGuiTextView:
             # than for Diagram's plain monospace text, since long lines there can word-wrap
             # (word-break: break-word, set above) into more than one visual line -- a minor
             # scrollbar jitter, not a correctness issue.
-            chunk_size = 150 if is_diagram else 2000
             # text-sm is 14px; at the Diagram view's tightened line-height (1.2, set in build_ui)
             # that's ~17px per line instead of Tailwind's default ~20px.
             approx_px_per_line = 17 if is_diagram else 20
 
-            with self.scroll_area:
-                for i in range(0, len(html_lines), chunk_size):
-                    chunk_lines = html_lines[i : i + chunk_size]
-                    if is_diagram:
-                        # No separator: each line carries its own newline, hidden inside the
-                        # element that can be folded away with it (see _wrap_diagram_line).
-                        chunk_content = "".join(
+            # The Diagram is a drawing made of lines, and every one of them has to keep its
+            # own number for a connector click to land on it, so it is still cut into pieces
+            # of 150 lines.  The Map is not: by the time it reaches here the newlines
+            # between its tags have been optimized away, so cutting it by lines left the
+            # whole Map in one piece however big it was (see split_for_streaming).
+            if is_diagram:
+                chunks = [
+                    (
+                        "".join(
                             _wrap_diagram_line(
-                                i + offset,
+                                start + offset,
                                 line,
                                 connectors_by_line or {},
                                 nodes_by_line,
                                 folds_by_line,
                             )
-                            for offset, line in enumerate(chunk_lines)
-                        )
-                    else:
-                        chunk_content = "\n".join(chunk_lines)
-                    chunk_height = len(chunk_lines) * approx_px_per_line
+                            for offset, line in enumerate(html_lines[start : start + 150])
+                        ),
+                        len(html_lines[start : start + 150]),
+                    )
+                    for start in range(0, len(html_lines), 150)
+                ]
+            else:
+                # Joined back exactly as the chunks used to be written, so that what the
+                # browser is given is the same text it was given before -- only cut up
+                # differently.  How tall a piece is, near enough to reserve scrollbar space
+                # for: every line of the Map ends in a <br>, so counting those counts lines.
+                chunks = [
+                    (piece, piece.count("<br>") or 1) for piece in split_for_streaming("\n".join(html_lines))
+                ]
+
+            delivered = 0
+            total_size = sum(len(content) for content, _ in chunks) or 1
+            with self.scroll_area:
+                for number, (chunk_content, chunk_lines) in enumerate(chunks):
+                    chunk_height = chunk_lines * approx_px_per_line
                     chunk_style = (
                         html_style + f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
                     )
@@ -5575,16 +5741,20 @@ class NiceGuiTextView:
                     # right amount of scrollbar space for it while it is still unrendered --
                     # the height above was worked out against the unzoomed line height.
                     if is_diagram:
-                        chunk.props(f"data-lines={len(chunk_lines)}")
+                        chunk.props(f"data-lines={chunk_lines}")
                     # How far along, on the banner _show_loading put up.  Content arrives
                     # top-down so there is something to look at almost at once, but on a
                     # large configuration it goes on arriving for a while after that, and
                     # a percentage is the difference between "still working" and "stuck".
+                    delivered += len(chunk_content)
                     self._set_loading_text(
-                        f"{translate_string('Building the view')} ... "
-                        f"{min(100, round(100 * (i + len(chunk_lines)) / len(html_lines)))}%",
+                        f"{translate_string('Building the view')} ... {min(100, round(100 * delivered / total_size))}%",
                     )
-                    await asyncio.sleep(0.01)  # Yields loop to keep WebSocket alive
+                    # Yields the loop to keep the WebSocket alive.  Not after every piece:
+                    # the Map is now cut into far more of them, and a hundredth of a second
+                    # each would put a wait of its own in front of the user.
+                    if number % 4 == 0:
+                        await asyncio.sleep(0.01)
 
             if connectors_by_line:
                 self._enable_connector_highlighting()
@@ -5604,6 +5774,7 @@ class NiceGuiTextView:
             # another name (see NiceGuiTextView.build_ui).
             if PrimeItems.diagram_limit_msg and hasattr(self, "diagram_message_label"):
                 self.diagram_message_label.set_text(PrimeItems.diagram_limit_msg)
+            await self._enable_in_page_links()
             self._mark_content_ready()
             # Everything is on the page now, so a report finding that asked for this Map can
             # finally be taken to.  Last, deliberately: the anchor it wants may be in the

@@ -1536,8 +1536,10 @@ class MapTaskerEventHandlers(
                     clear_error()
                     return
 
-                # Now process the data for display in the gui
-                output_length = len(PrimeItems.output_lines.output_lines)
+                # Now process the data for display in the gui.  How big the Map is comes
+                # from the build rather than from output_lines, which holds nothing at all
+                # when the Map that was already on disk was shown again (see mapcache).
+                output_length = PrimeItems.map_output_line_count
 
                 # Clear out our inline data to free up memory for the GUI display, since we no longer need it.
                 PrimeItems.output_lines.output_lines.clear()

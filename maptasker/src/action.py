@@ -29,6 +29,12 @@ from maptasker.src.sysconst import (
     DISPLAY_DETAIL_LEVEL_all_tasks,
 )
 
+# The children of an <Action> that get_label_disabled_condition reports on.  Named here so
+# that it collects them in one pass over the action rather than searching it once per tag.
+WANTED_ACTION_ELEMENTS = frozenset(
+    ("code", "label", "on", "ConditionList", "remoteDevice", "remoteTimeout"),
+)
+
 
 # Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
 #  This is only called if the action code is not already in our master dictionary
@@ -259,16 +265,26 @@ def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
     remote_execution = ""
     remote_timeout = ""
 
+    # The six elements this function asks about, picked up in a single pass over the
+    # action's children rather than with a find() each (and a second find() to read the
+    # text of the ones that are there).  find() walks the children itself, so asking it
+    # six times walked a large Task's actions six times over -- the single heaviest source
+    # of xml lookups in the Map build, at better than a hundred thousand of them on an
+    # ordinary configuration.  First one wins, which is the element find() would return.
+    elements = {}
+    for element in child:
+        if element.tag in WANTED_ACTION_ELEMENTS and element.tag not in elements:
+            elements[element.tag] = element
+
     # If no code found, bail.
-    if child.find("code") is not None:
-        the_action_code = child.find("code").text
-    else:
+    action_code_element = elements.get("code")
+    if action_code_element is None:
         return ""
+    the_action_code = action_code_element.text
 
     # Get the label, if any
-    if child.find("label") is not None:
-        lbl = child.find("label").text
-        task_label = format_label(lbl)
+    if (label_element := elements.get("label")) is not None:
+        task_label = format_label(label_element.text)
 
     # See if Action is disabled
     action_disabled = (
@@ -278,11 +294,11 @@ def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
             DISABLED,
             True,
         )
-        if child.find("on") is not None
+        if "on" in elements
         else ""
     )
     # Look for any conditions:  <ConditionList sr="if">
-    if child.find("ConditionList") is not None:  # If condition on Action?
+    if "ConditionList" in elements:  # If condition on Action?
         task_conditions = get_conditions(child, the_action_code)
 
     # Format conditions if any
@@ -295,14 +311,13 @@ def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
         )
 
     # See if this is a remote action
-    if child.find("remoteDevice") is not None:
+    if "remoteDevice" in elements:
         # remote_execution = format_html("action_condition_color", "", ", Remote Device/Execution", True)
         remote_execution = ", Remote Device/Execution"
 
     # See if this is a remote timeout value
-    if child.find("remoteTimeout") is not None:
-        timout = child.find("remoteTimeout").text
-        remote_timeout = ", Remote Timeout (Seconds): " + timout + "\n"
+    if (timeout_element := elements.get("remoteTimeout")) is not None:
+        remote_timeout = ", Remote Timeout (Seconds): " + timeout_element.text + "\n"
 
     # Return the lot
     return f"{task_conditions}{action_disabled}{task_label}{remote_execution}{remote_timeout}"

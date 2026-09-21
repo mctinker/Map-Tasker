@@ -89,9 +89,16 @@ def extract_integer(
         str: The result of the integer evaluation.
     """
 
-    # Find the first matching <Int> element with the desired 'sr' attribute
-    # Use an XPath expression to find the exact matching <Int> element directly in C
-    int_element = code_action.find(f"./Int[@sr='{the_arg}']")
+    # Find the first matching <Int> element with the desired 'sr' attribute.
+    #
+    # By hand rather than through find("./Int[@sr='...']"): a path with a predicate in it
+    # is parsed, compiled and then walked by ElementTree's own Python code, and this is
+    # asked for once per argument of every action in the configuration.  Walking the
+    # action's children here is the same search without any of that.
+    int_element = next(
+        (child for child in code_action if child.tag == "Int" and child.get("sr") == the_arg),
+        None,
+    )
 
     if int_element is None:
         return ""
@@ -160,9 +167,12 @@ def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> st
         str: Extracted string with prefix or an empty string.
     """
 
-    # Find the first matching <Str> element with the desired 'sr' attribute
+    # Find the first matching <Str> element with the desired 'sr' attribute.  Walks the
+    # action's children directly rather than building the list of every <Str> first --
+    # the match is usually found long before the end of it, and this runs once per
+    # argument of every action in the configuration.
     str_element = next(
-        (child for child in action.findall("Str") if child.attrib.get("sr") == arg),
+        (child for child in action if child.tag == "Str" and child.get("sr") == arg),
         None,
     )
 

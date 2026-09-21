@@ -6,11 +6,11 @@ import os
 import webbrowser
 
 import maptasker.src.taskuniq as special_tasks
-from maptasker.src import console, projects
+from maptasker.src import console, mapcache, projects
 from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import output_directory, unreachable_anchors
 from maptasker.src.error import error_handler, exit_program, rutroh_error
-from maptasker.src.format import BlankLineLimiter, SpanBalancer, format_line
+from maptasker.src.format import MapWriter, format_line
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -37,6 +37,10 @@ from maptasker.src.sysconst import (
     debug_out,
     logger,
 )
+
+# Where display_back_matter wrote the Map, for build_html to record once the run is done
+# with the settings.  "" when this run has not written one.
+_map_just_written = ""
 
 
 def build_html(file_to_get: str) -> int:
@@ -84,9 +88,29 @@ def build_html(file_to_get: str) -> int:
     if file_to_get:
         PrimeItems.file_to_get = file_to_get
 
-    # Get all Tasker variables
+    # The Map that would come out of the work below may already be sitting on disk from
+    # earlier in this session -- closing the view and opening it again, coming back from
+    # the Diagram, and every report finding that builds a Map purely so it can jump to a
+    # line in it.  If neither the configuration nor a single setting has changed since it
+    # was written, that file IS this build's answer, and building it again would cost the
+    # user the longest wait in the program to arrive at the same bytes.
+    #
+    # Not while analyzing with AI: that path does not want the file, it wants the output
+    # lines in memory, and those are produced by doing the work.
+    building_from = mapcache.digests()
+    doing_ai_analysis = PrimeItems.program_arguments["ai_analyze"]
+    if not doing_ai_analysis and mapcache.is_current(
+        f"{os.getcwd()}{PrimeItems.slash}MapTasker.html",
+        building_from,
+    ):
+        PrimeItems.map_output_line_count = mapcache.output_lines()
+        logger.debug("build_html: the Map on disk is current; it was not built again.")
+        return 0
+
+    # Get all Tasker variables.  The configuration digest goes with them so that the
+    # where-used counts survive a rebuild that only changed how the Map is displayed.
     if PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
-        get_variables()
+        get_variables(building_from[0])
 
     # Process all Projects and their Profiles
     found_tasks = []
@@ -111,6 +135,15 @@ def build_html(file_to_get: str) -> int:
             PrimeItems.colors_to_use,
             to_save=True,
         )
+
+    # Take a note of what the Map just written was built from, so that asking for the same
+    # one again is answered with that file rather than by building it a second time.  Last,
+    # after the settings have been saved: saving edits them, and the note has to describe
+    # the settings as the next run will find them, not as they were mid-build.
+    global _map_just_written  # noqa: PLW0603
+    if _map_just_written and not doing_ai_analysis:
+        mapcache.remember(_map_just_written, PrimeItems.map_output_line_count, building_from)
+        _map_just_written = ""
 
     # Rerun this program if "Rerun" was selected from GUI
     # First get the filename as a string.
@@ -169,14 +202,13 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
     # Clear any stale message from a previous run -- only set again below if this run also hits the limit.
     PrimeItems.view_limit_msg = ""
     with open(output_file, "w", encoding="utf-8") as out_file:
-        # Everything below writes through these two rather than straight to the file, because
-        # this is the only point that sees the whole document: the limiter is the only place
-        # that sees one gap between sections whole, and so the only place that can keep the
-        # blank lines in it down to what a reader wants, and the balancer the only place that
-        # knows which <span>s are open, and so the only place that can write them down the way
-        # the browser reads them.
-        balanced_file = SpanBalancer(out_file)
-        map_file = BlankLineLimiter(balanced_file)
+        # Everything below writes through this rather than straight to the file, because
+        # this is the only point that sees the whole document: it is the only place that
+        # sees one gap between sections whole, and so the only place that can keep the
+        # blank lines in it down to what a reader wants, and the only place that knows
+        # which <span>s are open, and so the only place that can write them down the way
+        # the browser reads them.  Both rules, one pass over the html (see MapWriter).
+        map_file = MapWriter(out_file)
         # Output the rest that is in our output queue
         _output_directory = output_directory  # Localize for speed
         _format_line = format_line  # Localize for speed
@@ -253,7 +285,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
                 logger.debug(f"mapit output line:{output_line}")
                 logger.info("Function Exit: write_out_the_file")
 
-        balanced_file.finish()  # Close anything the output left open
+        map_file.finish()  # Close anything the output left open
         os.fsync(out_file)  # Force write to disk
 
 
@@ -401,7 +433,15 @@ def display_back_matter() -> None:
 
     # Finally, write out all of the output that is queued up.
     my_file_name = f"{PrimeItems.slash}MapTasker.html"
+    PrimeItems.map_output_line_count = len(PrimeItems.output_lines.output_lines)
     write_out_the_file(my_output_dir, my_file_name)
+
+    # Where the Map landed, for build_html to take its note of afterwards.  Recorded here
+    # rather than acted on here because the note has to be taken once the run is finished
+    # with the settings -- saving them is the last thing build_html does, and it edits
+    # them on the way through (see the call to save_restore_args).
+    global _map_just_written  # noqa: PLW0603
+    _map_just_written = f"{my_output_dir}{my_file_name}"
 
     # Display the final results in the default web browser
     display_output(my_output_dir, my_file_name)

@@ -178,6 +178,12 @@ class PrimeItems:
     # view_limit_msg so a truncated Map cannot leave its message showing on an untruncated
     # Diagram (the two views are built from separate runs).
     diagram_limit_msg = ""
+    # How many output lines went into the Map now on disk.  Set by bildhtml wherever that
+    # file comes from -- the build that wrote it, or mapcache when an unchanged Map is
+    # shown again -- and read by the GUI to say whether the view limit cut it short.  The
+    # count cannot be taken from output_lines at that point: those are emptied after every
+    # build, and a Map that was not rebuilt never filled them in the first place.
+    map_output_line_count = 0
     found_named_items: ClassVar[dict] = initial_found_named_items()
     grand_totals: ClassVar[dict] = initial_grand_totals()
     directory_items: ClassVar[dict] = initial_directory_items()

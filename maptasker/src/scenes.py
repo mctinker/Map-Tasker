@@ -493,11 +493,7 @@ def format_and_output_arguments(
 
     # Put the colour back for whatever the Map writes next -- see the note above.
     if unclosed:
-        PrimeItems.output_lines.add_line_to_output(
-            5,
-            '<span class="scene_color">',
-            FormatLine.dont_format_line,
-        )
+        carry_the_scene_colour()
 
     # If the element is a ListElementItem, get it's Task Action (in Properties) and output it.
     if element_type == "ListElementItem":
@@ -505,6 +501,51 @@ def format_and_output_arguments(
 
     # Handle sub-elements
     process_sub_elements(child, indentation, anchors)
+
+
+# Whether a Scene colour span is being held open to colour what the Map writes next.
+#
+# One of these is opened after any element whose arguments swallowed the colour (see
+# process_arguments), so that the lines which follow -- above all the names of the Tasks a
+# Scene's elements fire -- keep the colour they have always had rather than setting one of
+# their own.
+#
+# It used to be opened and never closed, one per element.  Each one therefore landed
+# inside the last, and a browser nests what follows inside the lot: on this repo's
+# reference backup the Map was 531 <span>s deep two thirds of the way down, every one of
+# them the same colour.  Nothing about that is visible -- a colour inside the same colour
+# looks like the colour -- but the browser lays out and paints that whole tower for every
+# line under it, and nothing can be cut into pieces at a point where hundreds of elements
+# are open (see guiwins.split_for_streaming).
+#
+# So there is at most one at a time now: opening the next closes the last, and the Scene
+# closes the final one on its way out (get_details).  What is inside which changes; what
+# colour anything is does not.
+_carrying_scene_colour = False
+
+
+def carry_the_scene_colour() -> None:
+    """Hold the Scene colour open for the lines that follow, closing any already held.
+
+    Both tags on one line, so that taking over from the last one costs the output no
+    extra line of its own -- there is nothing between them to put on a line anyway.
+    """
+    global _carrying_scene_colour  # noqa: PLW0603
+    closing = "</span>" if _carrying_scene_colour else ""
+    PrimeItems.output_lines.add_line_to_output(
+        5,
+        f'{closing}<span class="scene_color">',
+        FormatLine.dont_format_line,
+    )
+    _carrying_scene_colour = True
+
+
+def drop_the_scene_colour() -> None:
+    """Close the Scene colour being held open, if one is."""
+    global _carrying_scene_colour  # noqa: PLW0603
+    if _carrying_scene_colour:
+        PrimeItems.output_lines.add_line_to_output(5, "</span>", FormatLine.dont_format_line)
+        _carrying_scene_colour = False
 
 
 # Break down the UI aspects and output them based on it's arguments.
@@ -764,6 +805,11 @@ def get_details(
 
             # Process any Tasks as part of this Scene
             _process_tasks(child, tasks_found)
+
+    # The Scene's elements are done, so the colour being held open for them is done too.
+    # Before the break below rather than after it, so that the span closes inside the
+    # Scene it belongs to and nothing after this Scene is written inside it.
+    drop_the_scene_colour()
 
     # Add a break if end of Scene elements (but not doing a Properties element)
     if PrimeItems.program_arguments["display_detail_level"] != 2 and element_type != "PropertiesElement":

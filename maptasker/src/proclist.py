@@ -17,7 +17,7 @@ from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import build_tooltip_span, format_html
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.mapjump import SCENE, TASK, Target, anchor_html
-from maptasker.src.maputils import find_owning_project_for_scene
+from maptasker.src.maputils import find_owning_project_for_scene, fix_hyperlink_name
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
@@ -297,7 +297,15 @@ def add_task_hyperlink(task_name: str, display_name: bool, blank: str) -> None:
     Returns:
         None
     """
-    hyperlink_name = task_name.replace(" ", "_")
+    # Through fix_hyperlink_name rather than a plain swap of spaces for underscores: a
+    # Task can be called "System >> Say Response", and an unnamed one is named after its
+    # first action, which is regularly something like "If %new_val > %limit".  Written
+    # into the id attribute as it stands, the ">" ends the tag where it sits -- the rest
+    # of the name and the closing quote then appear in the Map as text, and everything
+    # after them is laid out as though that line were still open.  It is also what the
+    # hyperlinks pointing here are built with (globalvr, maputils), so before this they
+    # could not reach such a Task either.
+    hyperlink_name = fix_hyperlink_name(task_name)
     name = f"{blank * 8}{task_name}" if display_name else ""
     # Add hyperlink html (<a id="tasks_Task_Name"><br>Task Name</a>) to the output
     PrimeItems.output_lines.add_line_to_output(

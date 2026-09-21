@@ -453,10 +453,6 @@ def action_args(
 
     # Go through each <arg> in list of args
     for num, arg in enumerate(our_action_args):
-        # Find the location for this arg in dictionary key "types' since they can be
-        # non-sequential (e.g. '1', '3', '4', '6')
-        index = num if arg == "if" else our_action_args.index(arg)
-
         # If this is just a string, use Tasker's argument 'name'.  Otherwise, use the evalarg value in the argument.
         argeval = (arg[2] if arg[2] and isinstance(arg[4], str) else arg[4]) if len(arg) > 4 else arg[2]
 
@@ -470,6 +466,11 @@ def action_args(
                 return evaluated_results
             argtype = PrimeItems.tasker_arg_specs[arg[3]]
         except IndexError:
+            # Where this arg sits in the "types" key, which can be non-sequential (e.g.
+            # '1', '3', '4', '6').  Worked out here rather than for every arg on the way
+            # in: the search is linear, this is the only thing that reads it, and an
+            # action code missing an argument spec is the rare case.
+            index = num if arg == "if" else our_action_args.index(arg)
             argtype = handle_missing_code(the_action_code_plus, index)
 
         # Get the Action arguments

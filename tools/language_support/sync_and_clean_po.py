@@ -253,7 +253,7 @@ def google_translate_with_retry(translator: GoogleTranslator, text: str) -> str 
 
         except TooManyRequests:
             wait = THROTTLE_BACKOFF_SECONDS * attempt
-            print(f"    [Throttled] waiting {wait}s before retry {attempt}/{MAX_ATTEMPTS}")
+            print(f"    [Throttled] waiting {wait}s before retry {attempt}/{MAX_ATTEMPTS}")  # noqa: T201
             time.sleep(wait)
 
         except (TimeoutError, requests.exceptions.RequestException, OSError) as e:

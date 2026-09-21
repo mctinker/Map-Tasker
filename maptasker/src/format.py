@@ -2,8 +2,10 @@
 
 import html
 import re
+from functools import lru_cache
 from html.parser import HTMLParser
 from itertools import zip_longest
+from typing import NamedTuple
 
 from PIL import ImageColor
 
@@ -1935,6 +1937,57 @@ HTML_INDENT_CLASS = re.compile(r'class\s*=\s*"[^"]*?[a-z]*tab\d*\s*"', re.IGNORE
 # Whitespace and non-breaking spaces alike: a line holding nothing else still looks blank.
 NOTHING_TO_SEE = re.compile(r"^(?:\s|&nbsp;|&#160;)*$")
 
+# How much of a gap between sections a tag takes up by itself -- what count_tag acts on,
+# worked out once per distinct piece of markup rather than every time one turns up.
+GAP_DRAWS_NOTHING = 0  # inline, draws nothing: <span>, <b>, <a> ...
+GAP_HOLDS_THE_LINE = 1  # an indentation span: inline, but an inline BLOCK
+GAP_OWN_LINE = 2  # <img>, <hr>: a line of its own, and white space around it
+GAP_SPACED_BLOCK = 3  # <h2>, <table>, <ul>: the browser spaces these itself
+GAP_PLAIN_BLOCK = 4  # <div>, <tr>, <details>: ends its line, adds no blank one
+
+
+class TagFacts(NamedTuple):
+    """Everything the Map's writers need to know about one tag, read off it once."""
+
+    is_break: bool  # a <br> in any of its spellings
+    name: str  # "span", "div", "" for markup with no name at all
+    closing: bool  # an end tag
+    self_closing: bool  # written as <tag/>
+    gap: int  # one of the GAP_ values above
+
+
+@lru_cache(maxsize=4096)
+def tag_facts(markup: str) -> TagFacts:
+    """What one tag is, worked out once and then remembered.
+
+    The Map is written with the same handful of tags over and over -- one configuration
+    puts out ninety-odd thousand of them between fewer than two thousand distinct pieces
+    of markup, half of them "<br>" and "</span>" -- and reading each one meant running
+    two or three regular expressions over it every time.  Reading it once per distinct
+    piece of markup and remembering the answer turns nearly all of that into a lookup.
+
+    Bounded rather than unbounded: an attribute can carry text of its own (a tooltip
+    naming a Task), so the number of distinct tags rises with the size of the
+    configuration, and the least useful entries are better dropped than kept for ever.
+    """
+    name_match = HTML_TAG_NAME.match(markup)
+    name = name_match.group(1).lower() if name_match else ""
+    if name in INLINE_TAGS:
+        gap = GAP_HOLDS_THE_LINE if HTML_INDENT_CLASS.search(markup) else GAP_DRAWS_NOTHING
+    elif name in VISIBLE_TAGS:
+        gap = GAP_OWN_LINE
+    elif name in SPACED_TAGS:
+        gap = GAP_SPACED_BLOCK
+    else:
+        gap = GAP_PLAIN_BLOCK
+    return TagFacts(
+        is_break=bool(HTML_BREAK.fullmatch(markup)),
+        name=name,
+        closing=markup.startswith("</"),
+        self_closing=markup.endswith("/>"),
+        gap=gap,
+    )
+
 
 class BlankLineLimiter:
     """Stand in front of the Map's output file and cap how many blank lines it may write.
@@ -1978,30 +2031,46 @@ class BlankLineLimiter:
         pieces = []
         position = 0
         for tag in HTML_TAG.finditer(text):
-            # Text between the tags.  Anything there is to see puts us back on a line with
-            # something on it; spaces and non-breaking spaces alone still read as blank.
             between = text[position : tag.start()]
-            if between and not NOTHING_TO_SEE.match(between):
-                self.endings = 0
+            self.saw_text(between)
             pieces.append(between)
             position = tag.end()
 
             markup = tag.group(0)
-            if HTML_BREAK.fullmatch(markup):
-                self.endings += 1
-                if self.endings > self.max_endings:
-                    self.endings = self.max_endings
-                    continue  # One blank line too many -- leave this <br> out.
-            else:
-                self.count_tag(markup)
-            pieces.append(markup)
+            if self.keep_tag(markup):
+                pieces.append(markup)
 
         trailing = text[position:]
-        if trailing and not NOTHING_TO_SEE.match(trailing):
-            self.endings = 0
+        self.saw_text(trailing)
         pieces.append(trailing)
 
         self.out_file.write("".join(pieces))
+
+    def saw_text(self, between: str) -> None:
+        """
+        Take account of the text between two tags.
+            :param between: the text, which may be empty
+            :return: nothing
+        """
+        # Anything there is to see puts us back on a line with something on it; spaces and
+        # non-breaking spaces alone still read as blank.
+        if between and not NOTHING_TO_SEE.match(between):
+            self.endings = 0
+
+    def keep_tag(self, markup: str) -> bool:
+        """
+        Take account of one tag, and say whether it is to be written at all.
+            :param markup: the tag, as it stands in the output
+            :return: False for a <br> that would draw one blank line too many, else True
+        """
+        if tag_facts(markup).is_break:
+            self.endings += 1
+            if self.endings > self.max_endings:
+                self.endings = self.max_endings
+                return False  # One blank line too many -- leave this <br> out.
+        else:
+            self.count_tag(markup)
+        return True
 
     def count_tag(self, markup: str) -> None:
         """
@@ -2009,17 +2078,17 @@ class BlankLineLimiter:
             :param markup: the tag, as it will be written
             :return: nothing
         """
-        name = HTML_TAG_NAME.match(markup)
-        tag_name = name.group(1).lower() if name else ""
-        if tag_name in INLINE_TAGS:
-            # An indentation span is an inline block and so occupies the line it is on;
-            # anything else inline draws nothing and the gap carries on through it.
-            if HTML_INDENT_CLASS.search(markup):
-                self.endings = 0
-        elif tag_name in VISIBLE_TAGS:
+        gap = tag_facts(markup).gap
+        if gap == GAP_DRAWS_NOTHING:
+            # Inline and draws nothing: the gap carries on through it.
+            return
+        if gap == GAP_HOLDS_THE_LINE:
+            # An indentation span is an inline block, so it occupies the line it is on.
+            self.endings = 0
+        elif gap == GAP_OWN_LINE:
             # Something to see, on a line of its own, with its own white space around it.
             self.endings = 2
-        elif tag_name in SPACED_TAGS:
+        elif gap == GAP_SPACED_BLOCK:
             self.endings = max(self.endings, 2)
         else:
             # A plain block (a division, a row, a twisty).  It ends the line it is on, but
@@ -2100,31 +2169,39 @@ class SpanBalancer:
         for tag in HTML_TAG.finditer(text):
             pieces.append(text[position : tag.start()])
             position = tag.end()
-            markup = tag.group(0)
-            name = HTML_TAG_NAME.match(markup)
-            tag_name = name.group(1).lower() if name else ""
-            closing = markup.startswith("</")
-
-            if tag_name == "span":
-                if not closing:
-                    self.spans[-1] += 1
-                elif self.spans[-1] == 0:
-                    continue  # Closes nothing: the browser ignores it, and so does the file.
-                else:
-                    self.spans[-1] -= 1
-            elif tag_name in BLOCK_TAGS and not markup.endswith("/>"):
-                if closing:
-                    pieces.append(self.close_block(tag_name))
-                    if not self.blocks or tag_name not in self.blocks:
-                        continue  # An end tag for a block that was never opened.
-                    self.open_block_end(tag_name)
-                else:
-                    self.blocks.append(tag_name)
-                    self.spans.append(0)
-            pieces.append(markup)
+            pieces.append(self.balanced(tag.group(0)))
 
         pieces.append(text[position:])
         self.out_file.write("".join(pieces))
+
+    def balanced(self, markup: str) -> str:
+        """
+        One tag as the browser would have it, with the spans around it brought into step.
+            :param markup: the tag, as it stands in the output
+            :return: what to write in its place -- "" for a tag that closes nothing, and
+                the tag with any "</span>"s that its block owes written in front of it
+        """
+        facts = tag_facts(markup)
+        tag_name = facts.name
+        closing = facts.closing
+
+        if tag_name == "span":
+            if not closing:
+                self.spans[-1] += 1
+            elif self.spans[-1] == 0:
+                return ""  # Closes nothing: the browser ignores it, and so does the file.
+            else:
+                self.spans[-1] -= 1
+        elif tag_name in BLOCK_TAGS and not facts.self_closing:
+            if closing:
+                owed = self.close_block(tag_name)
+                if not self.blocks or tag_name not in self.blocks:
+                    return owed  # An end tag for a block that was never opened.
+                self.open_block_end(tag_name)
+                return f"{owed}{markup}"
+            self.blocks.append(tag_name)
+            self.spans.append(0)
+        return markup
 
     def close_block(self, tag_name: str) -> str:
         """
@@ -2156,3 +2233,67 @@ class SpanBalancer:
         if still_open:
             self.out_file.write("</span>" * still_open)
             self.spans = [0] * len(self.spans)
+
+
+class MapWriter:
+    """Both of the Map's writing rules, applied in one pass over the html.
+
+    The Map used to be written through a BlankLineLimiter standing in front of a
+    SpanBalancer, which is the honest way to say what happens to it -- and meant every
+    tag in a document of several million characters was found by a regular expression
+    twice and had its name taken twice, once by each of them.  On a large configuration
+    that was the single most expensive thing in the build after the Map's own content.
+
+    So the scan happens once here, and each tag is put to both rules in the order the two
+    writers stood in: the limiter first, because a <br> it drops never reached the
+    balancer either; then the balancer, whose own "</span>"s were never seen by the
+    limiter and still are not.  Both classes keep their own write() for everything else
+    that uses them, and both keep the rules themselves -- this drives them, it does not
+    restate them.
+    """
+
+    def __init__(self, out_file: object, max_blank_lines: int = MAX_BLANK_LINES) -> None:
+        """
+        Wrap the file the Map is being written to.
+            :param out_file: the open file to write through to
+            :param max_blank_lines: the most blank lines in a row to let through
+        """
+        self.out_file = out_file
+        self.limiter = BlankLineLimiter(out_file, max_blank_lines)
+        self.balancer = SpanBalancer(out_file)
+
+    def write(self, text: str) -> None:
+        """
+        Write a piece of the Map: blank lines capped, spans balanced.
+            :param text: the html to write
+            :return: nothing
+        """
+        if not text:
+            return
+
+        limiter = self.limiter
+        balancer = self.balancer
+        pieces = []
+        position = 0
+        for tag in HTML_TAG.finditer(text):
+            between = text[position : tag.start()]
+            limiter.saw_text(between)
+            pieces.append(between)
+            position = tag.end()
+
+            markup = tag.group(0)
+            if limiter.keep_tag(markup):
+                pieces.append(balancer.balanced(markup))
+
+        trailing = text[position:]
+        limiter.saw_text(trailing)
+        pieces.append(trailing)
+
+        self.out_file.write("".join(pieces))
+
+    def finish(self) -> None:
+        """
+        Close whatever the file still has open, once there is nothing more to write.
+            :return: nothing
+        """
+        self.balancer.finish()

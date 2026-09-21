@@ -18,6 +18,7 @@ import math
 import re
 from typing import TYPE_CHECKING
 
+from maptasker.src.maputils import fix_hyperlink_name
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     HOTLINK_STYLE,
@@ -144,7 +145,12 @@ def add_directory_item(key: str, name: str) -> None:
     # name = name.replace(" (Scene)", "")
     # Only set values if we haven't already done this named item
     if not search_lists(name, PrimeItems.directory_items[key]) and name != UNNAMED_ITEM:
-        hyperlink_name = name.replace(" ", "_")
+        # fix_hyperlink_name rather than a plain swap of spaces for underscores, for the
+        # reason proclist.add_task_hyperlink gives: a name is the user's own text and can
+        # hold a "<" or a ">" -- "System >> Say Response" -- which ends the tag it is
+        # written into.  This one name becomes both the anchor and the hyperlink that
+        # looks for it, so escaping it here keeps the two of them saying the same thing.
+        hyperlink_name = fix_hyperlink_name(name)
         PrimeItems.directory_items["current_item"] = f"{key}_{hyperlink_name}"
         PrimeItems.directory_items[key].append([hyperlink_name, name])
     else:

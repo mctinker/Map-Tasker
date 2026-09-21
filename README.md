@@ -121,6 +121,8 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 
 ## Program Output
 
+MapTasker generates a number of output files, both on the desktop and on the Android device.
+
 Refer to the [wiki](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output) for a complete list of the MapTasker generated output.
 
 

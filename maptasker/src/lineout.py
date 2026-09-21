@@ -30,6 +30,7 @@ import re
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import format_html
 from maptasker.src.frontmtr import output_the_front_matter
+from maptasker.src.maputils import fix_hyperlink_name
 from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, reset_attributes
 from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import PROPERTIES_TAG, UNNAMED_ITEM, FormatLine, debug_out, logger
@@ -374,7 +375,10 @@ class LineOut:
             ):
                 scene_name = remove_html_tags(scene_name, "")
 
-            directory = f'<a id="{scene_name.replace(" ", "_")}"></a>\n'
+            # Escaped like every other anchor built from a name the user chose: a "<" or
+            # a ">" in it would otherwise end this tag where it stands (see
+            # proclist.add_task_hyperlink).
+            directory = f'<a id="{fix_hyperlink_name(scene_name)}"></a>\n'
         element = self.add_gototop_link(element)
         style_details = {
             "tab": "scenetab",
