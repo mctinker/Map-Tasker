@@ -2454,3 +2454,7 @@ msgid "Exit MapTasker and update it from the command line: 'pip install --upgrad
 msgstr "使用 `pip install --upgrade maptasker` 命令從命令行更新 Maptasker。"
 msgid "The update failed and MapTasker is still on the version you were running."
 msgstr "更新失敗，MapTasker 仍然停留在您之前使用的版本。"
+msgid "Flags"
+msgstr "旗幟"
+msgid "Not visible until a Task shows it"
+msgstr "只有當任務顯示時，才會出現"

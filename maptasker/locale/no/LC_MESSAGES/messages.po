@@ -2545,3 +2545,7 @@ msgid "Exit MapTasker and update it from the command line: 'pip install --upgrad
 msgstr "Kart-app: Installer og oppdater den fra kommandolinjen: 'pip install --upgrade maptasker'."
 msgid "The update failed and MapTasker is still on the version you were running."
 msgstr "Oppdateringen mislyktes, og MapTasker kjører fortsatt på den versjonen du brukte."
+msgid "Flags"
+msgstr "Flagg"
+msgid "Not visible until a Task shows it"
+msgstr "Ikke synlig før en oppgave viser det"

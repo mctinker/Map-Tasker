@@ -1908,6 +1908,7 @@ def count_trailing_blanks(text_string: str, position: int) -> int:
 
     return blank_count
 
+
 # The most blank lines the Map is allowed to draw in a row.
 MAX_BLANK_LINES = 2
 

@@ -336,13 +336,13 @@ def do_trailing_matters(config: RunConfig, dropped_anchors: set) -> None:
 def project_owning(items_tag: str, item_to_match: str) -> str:
     """Find the Project that claims a Profile, Task or Scene.
 
-        Args:
-            items_tag (str): the Project element holding the list to search: "pids" for
-                Profile ids, "tids" for Task ids, "scenes" for Scene names.
-            item_to_match (str): the Profile id, Task id or Scene name to look for.
+    Args:
+        items_tag (str): the Project element holding the list to search: "pids" for
+            Profile ids, "tids" for Task ids, "scenes" for Scene names.
+        item_to_match (str): the Profile id, Task id or Scene name to look for.
 
-        Returns:
-            str: the name of the Project that lists it, or "" when none does.
+    Returns:
+        str: the name of the Project that lists it, or "" when none does.
     """
     if not item_to_match:
         return ""
@@ -356,14 +356,14 @@ def project_owning(items_tag: str, item_to_match: str) -> str:
 def belongs_to(items_tag: str, item_to_match: str, project_name: str) -> bool:
     """Is this Profile, Task or Scene one that the given Project owns?
 
-        Args:
-            items_tag (str): "pids", "tids" or "scenes" -- see project_owning.
-            item_to_match (str): the Profile id, Task id or Scene name to place.
-            project_name (str): the name of the Project it has to belong to.
+    Args:
+        items_tag (str): "pids", "tids" or "scenes" -- see project_owning.
+        item_to_match (str): the Profile id, Task id or Scene name to place.
+        project_name (str): the name of the Project it has to belong to.
 
-        Returns:
-            bool: True unless another Project claims it (see this section's note on the
-                items no Project claims at all).
+    Returns:
+        bool: True unless another Project claims it (see this section's note on the
+            items no Project claims at all).
     """
     owner = project_owning(items_tag, item_to_match)
     return owner in ("", project_name)
@@ -372,12 +372,12 @@ def belongs_to(items_tag: str, item_to_match: str, project_name: str) -> bool:
 def profile_id(profile_name: str) -> str:
     """Get the id of the Profile with this name, or "" if there is no such Profile.
 
-        Args:
-            profile_name (str): the Profile's name, as the directory holds it -- which for
-                an unnamed Profile is the name MapTasker gave it (see profiles.py).
+    Args:
+        profile_name (str): the Profile's name, as the directory holds it -- which for
+            an unnamed Profile is the name MapTasker gave it (see profiles.py).
 
-        Returns:
-            str: the Profile's id.
+    Returns:
+        str: the Profile's id.
     """
     for this_id, profile in PrimeItems.tasker_root_elements.get("all_profiles", {}).items():
         if profile.get("name") == profile_name:
@@ -388,12 +388,12 @@ def profile_id(profile_name: str) -> str:
 def task_id(task_name: str) -> str:
     """Get the id of the Task with this name, or "" if there is no such Task.
 
-        Args:
-            task_name (str): the Task's name, without the " (Scene)" the directory appends
-                to a Task that belongs to a Scene.
+    Args:
+        task_name (str): the Task's name, without the " (Scene)" the directory appends
+            to a Task that belongs to a Scene.
 
-        Returns:
-            str: the Task's id.
+    Returns:
+        str: the Task's id.
     """
     return PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}).get(task_name, {}).get("id", "")
 

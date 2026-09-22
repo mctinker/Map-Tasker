@@ -2555,3 +2555,7 @@ msgid "Exit MapTasker and update it from the command line: 'pip install --upgrad
 msgstr "Fungua programu Maptasker na upata sasisho kutoka kwa orodha: 'pip install --upgrade maptasker'."
 msgid "The update failed and MapTasker is still on the version you were running."
 msgstr "Mwishaji haukamilika, na MapTasker bado ina toleo ambapo ulipo."
+msgid "Flags"
+msgstr "Bendera"
+msgid "Not visible until a Task shows it"
+msgstr "Si inaonekana hadi kazi iliyofanyiwa itashuhudia"

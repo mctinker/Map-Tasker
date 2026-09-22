@@ -2563,3 +2563,7 @@ msgid "Exit MapTasker and update it from the command line: 'pip install --upgrad
 msgstr "ఎగ్జిట్ మ్యాప్ట్యాస్కర్ మరియు కమాండ్ లైన్ నుండి దాన్ని నవీకరించండి: 'pip install --upgrade maptasker'."
 msgid "The update failed and MapTasker is still on the version you were running."
 msgstr "నవీకరణ విఫలమైంది, మరియు మీరు ఇంతకు ముందు ఉపయోగిస్తున్న వెర్షన్‌లోనే MapTasker ఇంకా ఉంది."
+msgid "Flags"
+msgstr "గుర్తులు"
+msgid "Not visible until a Task shows it"
+msgstr "ఒక టాస్క్ దాన్ని చూపిస్తున్నంత వరకు ఇది కనిపించదు."

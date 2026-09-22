@@ -34,7 +34,7 @@ _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
   <Profile sr="prof5"><id>5</id><mid0>10</mid0><mid1>11</mid1><nme>Morning</nme></Profile>
   <Profile sr="prof6"><id>6</id><mid0>10</mid0><Time sr="con0"><fh>8</fh><fm>0</fm></Time></Profile>
   <Profile sr="prof7"><id>7</id><mid0>10</mid0><nme>Disabled One</nme><limit>true</limit></Profile>
-  <Profile sr="prof8"><id>8</id><mid0>10</mid0><nme>Named At Eight</nme><Time sr="con0"><fh>8</fh><fm>0</fm></Time></Profile>
+  <Profile sr="prof8"><id>8</id><mid0>10</mid0><nme>Named At Eight</nme><flags>43</flags><Time sr="con0"><fh>8</fh><fm>0</fm></Time></Profile>
   <Task sr="task10"><id>10</id><nme>Entry Task</nme></Task>
   <Task sr="task11"><id>11</id><nme>Exit Task</nme></Task>
 </TaskerData>"""
@@ -165,6 +165,20 @@ def test_profile_label_has_no_tooltip_when_there_is_nothing_to_say() -> None:
     """An empty tooltip is worse than none: it shows an empty box on hover."""
     with_html, _ = profiles.get_profile_name(_profile("5"))
     assert "hover-tooltip" not in with_html
+
+
+def test_debug_mode_decodes_the_profile_flags() -> None:
+    """<flags> is a bitmask, and the number on its own tells a reader nothing -- 43 is Hide In
+    Notification, Collapsed, Ignore Settings and Run Exit Task On Startup, which is what debug
+    mode is for.  The names come from objprops, so this line cannot disagree with the
+    Properties editor about what a bit means.
+    """
+    PrimeItems.program_arguments["debug"] = True
+    profiles.build_profile_line(_profile("8"))
+    line = PrimeItems.output_lines.output_lines[-1]
+
+    assert "flags: 43" in line
+    assert "Hide In Notification, Collapsed, Ignore Settings, Run Exit Task On Startup" in line
 
 
 def test_debug_mode_shows_the_profile_id() -> None:

@@ -372,9 +372,7 @@ def fix_hyperlink_name(name: str) -> str:
     Returns:
         str: The fixed name.
     """
-    return (
-        name.replace(" ", "_").replace(">", "&gt;").replace("<", "&lt;").replace('"', "&quot;")
-    )
+    return name.replace(" ", "_").replace(">", "&gt;").replace("<", "&lt;").replace('"', "&quot;")
 
 
 def get_value_if_match(

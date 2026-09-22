@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.0.5] ??-Sep-2026  # FIX
+## [14.0.5] 22-Sep-2026
 
 ### Added
 
-- Added:
+- Added: The Profile Properties editor now has 'Restore Settings', 'Delete After Disable' and 'Run Exit Task On Startup', three settings Tasker keeps in a Profile's flags that MapTasker could neither show nor change.  All three also appear on a Profile's 'Properties...' line in the Map once they are set -- 'Restore Settings' only when it has been switched on, since Tasker leaves it off on every profile it creates.
 
 ### Changed
 
@@ -15,9 +15,17 @@ All notable changes to this project will be documented in this file!
 - Changed: The Map no longer draws more than two blank lines in a row between its sections, and the box around a Task label or a TaskerNet description no longer adds blank lines of its own.  The Map view, the saved HTML file and the Map exports all get the same tighter spacing.
 - Changed: The Map's HTML is now well formed, with every tag opened and closed where it belongs, so the saved file and its Markdown, JSON and PDF exports can be read by other tools rather than only displayed by a browser.  Nothing about how the Map looks has changed.
 - Changed: A Project's 'Properties...' line now follows the Project's own line after a single blank line, the same as a Profile's and a Task's do.
+- Changed: An Application condition in the Map now says when it matches running services rather than the foreground app it matches by default.  Nothing else in the Map showed which of the two a condition was asking about.
+- Changed: The Scene preview now dims an element that Tasker keeps hidden until a Task makes it visible, rather than drawing it as though it were on screen.  Hovering any element also names its flags: whether it is fixed in place, sits behind the others, is visible, and whether it takes the initial focus.
+- Changed: With '-debug' on, a Profile's line in the Map now spells out what its flags value means -- 'flags: 43 (Hide In Notification, Collapsed, Ignore Settings, Run Exit Task On Startup)' -- instead of showing the bare number.
+
+### Removed
+
+- Removed: 'Limit Repeats' is gone from the Profile Properties editor, because Tasker has no such setting to write: limiting a Profile's repeats is done by giving 'Remaining Repeats' a count, and the checkbox was switching an unrelated setting on instead.
 
 ### Fixed
 
+- Fixed: Ticking 'Show In Notification' or 'Enforce Task Order' in a Profile's Properties now changes that setting and nothing else.  The two were stored in each other's places, so switching one on told Tasker to ignore the Profile's task order, and the Map could report a Profile as kept out of the Running Profiles notification when its owner had never asked for that.
 - Fixed: The hotlinks in 'Tasks With Too Many Actions' at the foot of the Map now reach the Task they name, including an unnamed one.  They pointed at the anchor the directory writes for a Task's name, which an unnamed Task never gets because the directory leaves unnamed items out; they now point at the Task itself, which also reaches the right one of two Tasks sharing a name.
 - Fixed: A Project, Profile, Task or Scene whose name holds a '<', a '>' or a quotation mark -- 'System >> Say Response', or an unnamed Task named after an action such as 'If %new_val > %limit' or 'Anchor "NOTE: ..."' -- no longer breaks the Map from that point on.  The name was written into a hyperlink's target as it stood, where the bracket ended the tag early, so the rest of the name appeared on the page as text and everything below it was laid out wrongly; those hyperlinks also now reach the object they name.
 - Fixed: The Map no longer nests a Scene's colour inside itself once per element, which on a large configuration left the markup hundreds of levels deep by the middle of the Map and made the browser do that much more work for every line below it.  The colour still carries on exactly as it did over a Scene's elements and the Tasks they fire, and now stops when the Scene does.

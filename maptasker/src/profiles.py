@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from maptasker.src import condition, tasks
+from maptasker.src import condition, objprops, tasks
 from maptasker.src.actione import fix_json
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import build_tooltip_span, format_html
@@ -410,10 +410,18 @@ def build_profile_line(
     launcher_xml = profile.find("ProfileVariable")
     launcher = launcher_task_html if launcher_xml is not None else ""
 
-    # Display flags for debug mode
+    # Display flags for debug mode, decoded: <flags> is a bitmask, and "flags: 43" tells a
+    # reader nothing that "flags: 43 (Hide In Notification, Collapsed, Ignore Settings, Run
+    # Exit Task On Startup)" does not.  The names come from objprops, which owns the bit
+    # layout, so this line and the Properties editor cannot disagree about what a value means.
     if PrimeItems.program_arguments["debug"]:
         flags = profile.find("flags")
-        flags = format_html("launcher_task_color", "", f" flags: {flags.text}", True) if flags is not None else ""
+        if flags is not None:
+            names = objprops.describe_flags(objprops.flag_bits(profile), objprops.PROFILE_FLAG_NAMES)
+            decoded = f" flags: {flags.text}" + (f" ({', '.join(names)})" if names else "")
+            flags = format_html("launcher_task_color", "", decoded, True)
+        else:
+            flags = ""
 
     # Get the Profile name
     profile_name_with_html, profile_name = get_profile_name(profile, project_name, task_names)

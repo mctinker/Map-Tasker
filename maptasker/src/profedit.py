@@ -45,7 +45,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import appinv, editcommon, piiscan, sessundo, taskedit
+from maptasker.src import appinv, editcommon, objprops, piiscan, sessundo, taskedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.editcommon import touch_project_mdate
@@ -78,9 +78,11 @@ _CONDITION_TAGS = ("Time", "Day", "State", "Event", "App", "Loc")
 # two in the skip list, a Share or limit element appearing *after* a real
 # condition in a given backup could get miscounted as one there).
 _PROFILE_METADATA_TAGS = {"cdate", "edate", "flags", "id", "ProfileVariable", "nme", "pri", "Share", "limit"}
-# <flags> value given to a Profile created by Add Profile -- see create_new_profile
-# for the evidence behind 10 (bits 1+3) and what bit 1 means.
-NEW_PROFILE_FLAGS = "10"
+# <flags> value given to a Profile created by Add Profile: Collapsed plus Ignore Settings,
+# which is 10 -- the value Tasker itself gives the overwhelming majority of Profiles.  Built
+# from objprops' bit names rather than written as 10 so it says which two settings it is
+# turning on; see create_new_profile for why those two.
+NEW_PROFILE_FLAGS = str((1 << objprops.PROFILE_COLLAPSED_BIT) | (1 << objprops.PROFILE_IGNORE_SETTINGS_BIT))
 
 # 1=Sunday..7=Saturday, matching condition.py's own condition_day -- index 0 is
 # unused (the day numbers are 1-based) so the GUI can index this directly by day number.
@@ -180,19 +182,20 @@ def create_new_profile(name: str) -> EditableProfile | str:
     backup's existing Profile ids -- see that function's docstring for why a
     new Profile and a new Task must draw from one shared counter.
 
-    <flags> is a bitfield every real Tasker Profile carries; 10 (bits 1+3) is
-    the overwhelming default -- 74% of the 1,565 Profiles across this repo's
-    sample backups, with the next most common (2) at 14%. Bit 1 specifically
-    marks a Profile as part of the live, installed configuration: comparing
+    <flags> is a bitfield every real Tasker Profile carries, and objprops holds
+    what each of its six bits means. 10 -- Collapsed (mask 2) plus Ignore
+    Settings (mask 8) -- is the overwhelming default, on 4,009 of the 5,586
+    sample Profiles that have a <flags> at all, with the next most common (2)
+    at 583. Mask 2 is the one this app can see Tasker maintaining: comparing
     the same Profile between a full backup and a standalone .prj.xml/.prf.xml
     export shows the two differing by exactly that bit (set in the backup,
     cleared in the export) in 53 of the 54 Profiles whose flags differ at all,
-    across 120 file-pair comparisons with no contradictions. Tasker omits the
-    element entirely when the value would be 0, which is why an exported
-    Profile whose live value was 2 has no <flags> at all. Bits 0/3/4/5 are
-    stable per-Profile settings with no other XML representation, so there's
-    nothing to derive them from -- hence a fixed sensible default rather than
-    anything computed.
+    across 120 file-pair comparisons with no contradictions -- which is what
+    "stripped on export" means for a Profile's collapsed-in-the-list state.
+    Tasker omits the element entirely when the value would be 0, which is why
+    an exported Profile whose live value was 2 has no <flags> at all. The other
+    four bits are per-Profile settings with nothing to derive them from, so a
+    new Profile gets this fixed pair rather than anything computed.
 
     Child order matches real Profiles, whose metadata children are
     alphabetical (cdate, edate, flags, id, limit, mid0, nme) before the
@@ -363,8 +366,12 @@ def add_condition_to_profile(edited_profile: EditableProfile, cond_type: str) ->
             child.text = "0"
             condition_element.append(child)
     elif cond_type == "App":
-        flags_child = element_cls("flags")
-        flags_child.text = "2"
+        # An App context's own <flags> bitmask: mask 2, match the foreground app, which is
+        # Tasker's default and the value all 162 App conditions in the sample backups hold.
+        # Named rather than written as 2 -- objprops holds what the bits mean (the other is
+        # "match running services"), and a bare literal here said neither.
+        flags_child = element_cls(objprops.PROFILE_FLAGS_TAG)
+        flags_child.text = str(1 << objprops.APP_MATCH_FOREGROUND_APP_BIT)
         condition_element.append(flags_child)
     elif cond_type == "Loc":
         for tag in ("lat", "long", "rad"):

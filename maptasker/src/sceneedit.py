@@ -3695,7 +3695,9 @@ def revert_session(
 # 2,186 elements), what Tasker names a new one (LEGACY_DEFAULT_NAME), and that an Img-typed
 # argument is always written even when it holds no image.  <flags> is deliberately NOT
 # written: 75 real elements carry a <geom> and no <flags> at all, so its absence is a state
-# Tasker itself produces, and this app does not know what its bits mean (see sceneview).
+# Tasker itself produces -- and absence is not the same as 0, which would mark the new
+# element invisible (objprops' SCENE_ELEMENT_VISIBLE_BIT, and sceneview.element_is_hidden on
+# why the two cases are read differently).
 # --------------------------------------------------------------------------------------
 
 # The ve attribute a new element of each type carries.  Every type in the sample data is

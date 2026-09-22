@@ -464,24 +464,26 @@ def test_a_profile_priority_outside_the_slider_range_is_refused() -> None:
 
 
 # --------------------------------------------------------------------------------------
-# Profile: the repeat group, and the three settings Tasker keeps in <flags>
+# Profile: the repeat group, and the four settings Tasker keeps in <flags>
 #
-# NONE OF THESE FIVE APPEARS IN ANY OF THE 3,526 PROFILES IN XML/, so the sample data cannot
-# check this half and these tests are the only thing holding it.  The mapping was measured
-# from five exports of one Profile made with Tasker 6.7.6, one setting at a time:
+# THE BIT LAYOUT IS TASKER'S OWN, TRANSCRIBED IN objprops, NOT MEASURED.  None of these five
+# settings appears in any of the 5,627 Profiles in XML/, so the sample data cannot check this
+# half and these tests are the only thing holding it:
 #
-#   ticked                                    <flags>  bits   other children
-#   Limit Repeats                                 8    3      <limit>
-#   Enforce Task Order                            9    0,3    --
-#   Show In Notification                         24    3,4    --
-#   Limit Repeats, Remaining 5, Delete On 0      12    2,3    <repeats> <dod> <limit>
-#   the same, plus Enforce Task Order            13    0,2,3  <repeats> <dod> <limit>
+#   mask 1    Hide In Notification        Show In Notification, INVERTED
+#   mask 2    Collapsed                   Tasker's list state -- no field, carried through
+#   mask 4    Delete After Disable
+#   mask 8    Ignore Settings             Restore Settings, INVERTED -- and SET on a new
+#                                         Profile, so its tasker_default is "off"
+#   mask 16   Ignore Task Order           Enforce Task Order, INVERTED
+#   mask 32   Run Exit Task On Startup
 #
-# Bit 3 is the standalone-export baseline and belongs to none of them; subtract it and each
-# export names one bit -- 0 Enforce Task Order, 2 Limit Repeats, 4 Show In Notification, the
-# last of these NOT inverted.  The first export is the odd one out (Limit Repeats ticked, no
-# bit 2, a <limit> that was not there before): ticking it with no repeats remaining leaves
-# the Profile nothing to run, and <limit> is how Tasker marks one disabled.
+# The five exports of one Profile made with Tasker 6.7.6 -- 8 and <limit> for Limit Repeats,
+# 9 for "Enforce Task Order", 24 for "Show In Notification", 12 with <repeats> <dod> <limit>
+# for Limit Repeats with a count of 5 and Delete On 0, 13 for that plus "Enforce Task Order"
+# -- had the last two of those labels the wrong way round, which is how mask 16 came to be
+# written when a user ticked Show In Notification.  What they do still establish is the tags:
+# <repeats> holds the count, and <dod> is an older twin of mask 4 that this form leaves alone.
 #
 # <limit> IS THE DISABLED MARKER AND NOTHING ELSE.  It belongs to the Edit Profile dialog's
 # Enabled switch, and test_the_editor_never_touches_the_disabled_marker is what keeps this
@@ -512,73 +514,108 @@ def _profile_values(profile: ET.Element) -> tuple[objprops.EditableProperties, d
     return props, dict(objprops.scalar_values(props))
 
 
-def test_the_five_profile_settings_read_off_the_export_tasker_wrote() -> None:
-    """The fourth export in the table: Limit Repeats with a count of 5 and Delete On Zero
-    Repeats, and neither of the other two <flags> settings.
+def test_the_profile_settings_read_off_the_export_tasker_wrote() -> None:
+    """<flags>12</flags> is mask 4 plus mask 8: Delete After Disable on, Ignore Settings on,
+    and neither of the two inverted bits -- so the two settings they invert read as ON, which
+    is what a Profile that has never had them touched is.
     """
     _props, values = _profile_values(_atest_profile())
 
-    assert values["limit_repeats"] == "true"  # bit 2
     assert values["repeats"] == "5"
-    assert values["dod"] == "true"
-    assert values["enforce_task_order"] == "false"  # bit 0, added by the fifth export
-    assert values["profile_showinnot"] == "false"  # bit 4, never set on this Profile
+    assert values["delete_after_disable"] == "true"  # mask 4
+    assert values["restore_settings"] == "false"  # mask 8 set = settings ignored
+    assert values["run_exit_task_on_startup"] == "false"  # mask 32, clear
+    assert values["enforce_task_order"] == "true"  # mask 16 clear = not ignored
+    assert values["profile_showinnot"] == "true"  # mask 1 clear = not hidden
 
 
-def test_each_setting_reads_off_the_export_that_isolates_it() -> None:
-    """One bit per export, which is what makes the mapping a measurement rather than a guess.
-    The <flags> values are the ones Tasker wrote with exactly that box ticked.
+_FLAGS_FIELDS = (
+    "delete_after_disable",
+    "restore_settings",
+    "run_exit_task_on_startup",
+    "enforce_task_order",
+    "profile_showinnot",
+)
+# The value each field reads when its bit is CLEAR -- spec.default, which is what the stored
+# form turns on, NOT the value an untouched Profile has (see _RESTORE_SETTINGS.tasker_default).
+_FLAGS_DEFAULTS = {"delete_after_disable": "false", "restore_settings": "true",
+                   "run_exit_task_on_startup": "false", "enforce_task_order": "true",
+                   "profile_showinnot": "true"}  # fmt: skip
+
+
+def test_each_flags_bit_reads_as_the_one_setting_it_holds() -> None:
+    """One bit at a time, against Tasker's own values.  A bit landing on the wrong field is
+    exactly the fault this table replaced -- ticking Show In Notification used to set mask 16,
+    Ignore Task Order -- so each value is checked to move ONE field and leave the rest alone.
     """
     for flags, expected in (
-        ("9", "enforce_task_order"),
-        ("24", "profile_showinnot"),
-        ("12", "limit_repeats"),
+        ("1", "profile_showinnot"),
+        ("4", "delete_after_disable"),
+        ("8", "restore_settings"),
+        ("16", "enforce_task_order"),
+        ("32", "run_exit_task_on_startup"),
     ):
         profile = _atest_profile()
         profile.find("flags").text = flags
         _props, values = _profile_values(profile)
-        on = {key for key in ("limit_repeats", "enforce_task_order", "profile_showinnot") if values[key] == "true"}
-        assert on == {expected}, f"<flags>{flags}</flags> should mean {expected} and nothing else"
+        changed = {key for key in _FLAGS_FIELDS if values[key] != _FLAGS_DEFAULTS[key]}
+        assert changed == {expected}, f"<flags>{flags}</flags> should mean {expected} and nothing else"
 
 
-def test_show_in_notification_is_not_inverted_on_a_profile() -> None:
-    """Unlike a Task's <showinnot>, which is written only when the setting is switched OFF.
-    Bit 4 is set in the export where the box was ticked, so a Profile with no bit is one with
-    the box unticked -- getting this backwards would report every Profile in a backup as
-    showing in the notification.
+def test_show_in_notification_is_inverted_because_the_bit_says_hide() -> None:
+    """Mask 1 is "hide in notification", so the bit is written when the box is UNticked -- the
+    same shape a Task's <showinnot> has.  Getting this backwards would report every Profile in
+    a backup as kept out of the notification, and would write the bit onto Profiles whose
+    owner had never touched it.
     """
     profile = _atest_profile()
     props, values = _profile_values(profile)
-    assert values["profile_showinnot"] == "false"
+    assert values["profile_showinnot"] == "true"
 
-    values["profile_showinnot"] = "true"
+    values["profile_showinnot"] = "false"
     assert objprops.apply_properties(props, values) == []
-    assert profile.findtext("flags") == "28"  # 12 + bit 4
+    assert profile.findtext("flags") == "13"  # 12 + mask 1
 
-    assert objprops.scalar_values(props)["profile_showinnot"] == "true"
+    assert objprops.scalar_values(props)["profile_showinnot"] == "false"
 
 
-def test_enforce_task_order_is_flags_bit_0() -> None:
-    """The fifth export is the fourth plus this one setting, and it is 13 rather than 12."""
+def test_enforce_task_order_is_inverted_because_the_bit_says_ignore() -> None:
+    """Mask 16 is "ignore task order", so enforcing it CLEARS the bit and switching it off
+    sets one.
+    """
     profile = _atest_profile()
+    profile.find("flags").text = "28"  # 12 + mask 16
     props, values = _profile_values(profile)
+    assert values["enforce_task_order"] == "false"
+
     values["enforce_task_order"] = "true"
-
     assert objprops.apply_properties(props, values) == []
-    assert profile.findtext("flags") == "13"
+    assert profile.findtext("flags") == "12"
 
 
-def test_limit_repeats_is_flags_bit_2_and_not_the_limit_tag() -> None:
-    """The correction this mapping needed: <limit> identifies a DISABLED Profile, and the
-    setting Tasker's Properties screen calls Limit Repeats is bit 2 of <flags>.
+def test_delete_after_disable_is_mask_4_and_leaves_an_older_dod_alone() -> None:
+    """Mask 4 is where the setting lives; <dod> is the older twin the one sample Profile that
+    has one carries alongside the bit.  This form reads and writes the bit and does not touch
+    the tag, so a file that has both keeps both.
     """
     profile = _atest_profile()
     props, values = _profile_values(profile)
-    values["limit_repeats"] = "false"
+    values["delete_after_disable"] = "false"
 
     assert objprops.apply_properties(props, values) == []
     assert profile.findtext("flags") == "8"
+    assert profile.findtext("dod") == "true", "an older <dod> is not this form's to rewrite"
     assert profile.findtext("limit") == "true", "the disabled marker is not this form's to clear"
+
+
+def test_limit_repeats_is_not_a_field_at_all() -> None:
+    """It has no bit -- mask 4 is Delete After Disable -- and the exports that ticked it wrote
+    <repeats> and <limit> instead.  A checkbox for it was writing mask 4, so the count in
+    Remaining Repeats is the whole of what this form offers.
+    """
+    _props, values = _profile_values(_atest_profile())
+    assert "limit_repeats" not in values
+    assert "repeats" in values
 
 
 def test_the_editor_never_touches_the_disabled_marker() -> None:
@@ -593,31 +630,83 @@ def test_the_editor_never_touches_the_disabled_marker() -> None:
         props, values = _profile_values(profile)
         assert "limit" not in values, "no field may be bound to the disabled marker"
 
-        values.update({key: "true" for key in ("limit_repeats", "enforce_task_order", "profile_showinnot")})
-        values["dod"] = "false"
+        values.update({key: "true" for key in _FLAGS_FIELDS})
+        values["delete_after_disable"] = "false"
         assert objprops.apply_properties(props, values) == []
         assert profile.findtext("limit") == start
 
 
-def test_the_flags_bits_this_build_does_not_know_are_carried_through() -> None:
-    """Bit 1 marks a Profile as part of the live configuration and bit 3 is the baseline every
-    export carries (profedit.create_new_profile).  A rewrite that dropped them would change
-    behaviour on a real device, so the value is read-modified-written rather than built from
-    the three fields this dialog shows.
+def test_restore_settings_is_inverted_because_the_bit_says_ignore() -> None:
+    """Mask 8 is "ignore settings", so ticking Restore Settings CLEARS it.  The fixture has
+    the bit, which is the state Tasker leaves a new Profile in.
     """
     profile = _atest_profile()
-    profile.find("flags").text = "42"  # bits 1, 3 and 5, none of them ours
+    props, values = _profile_values(profile)
+    assert values["restore_settings"] == "false"
+
+    values["restore_settings"] = "true"
+    assert objprops.apply_properties(props, values) == []
+    assert profile.findtext("flags") == "4"  # 12 - mask 8
+
+    assert objprops.scalar_values(props)["restore_settings"] == "true"
+
+
+def test_restore_settings_switched_off_is_not_a_property_a_profile_has() -> None:
+    """THE REASON tasker_default EXISTS.  Tasker sets mask 8 on every Profile it creates --
+    4,892 of the 5,627 samples carry it -- so "off" is Tasker's choice, not the user's, and
+    counting it would have almost every Profile in a backup claim properties it has not got.
+    Switched ON is the state worth noticing, and 735 sample Profiles are in it.
+    """
+    profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    ET.SubElement(profile, "flags").text = "10"  # mask 2 + mask 8, Tasker's new-Profile value
+    assert objprops.has_properties(objprops.KIND_PROFILE, profile) is False
+
+    profile.find("flags").text = "2"  # mask 8 cleared: the user has switched it on
+    assert objprops.has_properties(objprops.KIND_PROFILE, profile) is True
+
+
+def test_an_unreadable_flags_value_claims_no_bit_backed_property() -> None:
+    """An unparseable value reads as every bit clear, which for Restore Settings is "switched
+    on" -- so without objprops.bitfield_is_readable a Profile whose <flags> nobody can read
+    would claim a property off the back of it.
+    """
+    profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    ET.SubElement(profile, "flags").text = "not a number"
+    assert objprops.has_properties(objprops.KIND_PROFILE, profile) is False
+
+
+def test_the_flags_bits_no_field_owns_are_carried_through() -> None:
+    """Mask 2, Tasker's collapsed-in-the-list state, is the one bit no field owns.  A rewrite
+    that dropped it would collapse Profiles on a real device, so the value is
+    read-modified-written rather than built from the fields this dialog shows.
+    """
+    profile = _atest_profile()
+    profile.find("flags").text = "42"  # masks 2, 8 and 32 -- mask 2 is the one with no field
 
     props, values = _profile_values(profile)
-    assert values["enforce_task_order"] == "false"
-    values["enforce_task_order"] = "true"
+    assert values["run_exit_task_on_startup"] == "true"
+    values["profile_showinnot"] = "false"
     assert objprops.apply_properties(props, values) == []
-    assert profile.findtext("flags") == "43"  # 42 + bit 0
+    assert profile.findtext("flags") == "43"  # 42 + mask 1
 
     values = dict(objprops.scalar_values(props))
-    values["enforce_task_order"] = "false"
+    values["profile_showinnot"] = "true"
     assert objprops.apply_properties(props, values) == []
     assert profile.findtext("flags") == "42"
+
+
+def test_a_bit_from_a_newer_tasker_is_carried_through_too() -> None:
+    """The same rule, for a bit this table has never heard of: nothing above mask 32 is named,
+    and none of the 5,586 sample values exceeds 63, but a value that does is Tasker's to
+    define and ours to preserve.
+    """
+    profile = _atest_profile()
+    profile.find("flags").text = "76"  # mask 64 (unknown) + mask 8 + mask 4
+
+    props, values = _profile_values(profile)
+    values["delete_after_disable"] = "false"
+    assert objprops.apply_properties(props, values) == []
+    assert profile.findtext("flags") == "72", "the unknown bit survives an edit to a known one"
 
 
 def test_flags_is_removed_when_its_last_bit_is_cleared() -> None:
@@ -625,22 +714,28 @@ def test_flags_is_removed_when_its_last_bit_is_cleared() -> None:
     value would be 0 has no <flags> at all (profedit.create_new_profile).
     """
     profile = _atest_profile()
-    profile.find("flags").text = "4"  # nothing set but Limit Repeats
+    profile.find("flags").text = "4"  # nothing set but Delete After Disable
 
     props, values = _profile_values(profile)
-    values["limit_repeats"] = "false"
+    values["delete_after_disable"] = "false"
 
     assert objprops.apply_properties(props, values) == []
     assert profile.find("flags") is None
 
 
 def test_flags_is_not_created_by_a_profile_that_has_none() -> None:
-    """The other end of the same rule: a Profile at every default must not gain a <flags>0>."""
+    """The other end of the same rule: a Profile at every default must not gain a <flags>0>.
+    The two inverted bits are what make this worth a test -- both fields read "true" here, and
+    a build that took "true" for "write the bit" would stamp <flags>25</flags> onto the 41
+    sample Profiles that have no <flags> at all.
+    """
     profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
     props, values = _profile_values(profile)
-    assert values["limit_repeats"] == "false"
-    assert values["enforce_task_order"] == "false"
-    assert values["profile_showinnot"] == "false"
+    assert values["delete_after_disable"] == "false"
+    assert values["run_exit_task_on_startup"] == "false"
+    assert values["restore_settings"] == "true"
+    assert values["enforce_task_order"] == "true"
+    assert values["profile_showinnot"] == "true"
 
     assert objprops.apply_properties(props, values) == []
     assert profile.find("flags") is None
@@ -662,11 +757,11 @@ def test_the_repeat_group_is_cleared_by_removing_its_tags() -> None:
     """Same rule as every other property: the default is stored by leaving the tag out."""
     profile = _atest_profile()
     props, values = _profile_values(profile)
-    values.update({"repeats": "", "dod": "false"})
+    values["repeats"] = ""
 
     assert objprops.apply_properties(props, values) == []
-    for tag in ("repeats", "dod"):
-        assert profile.find(tag) is None, f"<{tag}> should have been removed at its default"
+    assert profile.find("repeats") is None, "<repeats> should have been removed at its default"
+    assert profile.findtext("dod") == "true", "<dod> belongs to no field and is not cleared with it"
 
 
 def test_a_remaining_repeat_count_must_be_a_number() -> None:
@@ -679,18 +774,17 @@ def test_a_remaining_repeat_count_must_be_a_number() -> None:
 
 
 def test_the_repeat_group_lands_in_taskers_child_order() -> None:
-    """<dod>, <repeats> and <flags> are new tags on an object that had none of them, so they
-    are placed rather than appended -- alphabetically among the lowercase children and ahead
-    of every condition, which is what keeps condition.py from counting one as a context.
+    """<repeats> and <flags> are new tags on an object that had neither, so they are placed
+    rather than appended -- alphabetically among the lowercase children and ahead of every
+    condition, which is what keeps condition.py from counting one as a context.
     """
     profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
     props, values = _profile_values(profile)
-    values.update({"limit_repeats": "true", "repeats": "3", "dod": "true"})
+    values.update({"repeats": "3", "delete_after_disable": "true"})
 
     assert objprops.apply_properties(props, values) == []
     assert [child.tag for child in profile] == [
         "cdate",
-        "dod",
         "edate",
         "flags",
         "id",
@@ -705,14 +799,17 @@ def test_the_repeat_group_lands_in_taskers_child_order() -> None:
 def test_a_flags_bit_on_its_own_counts_as_having_properties() -> None:
     """The button reads "Edit Properties" for an object that has some.  A bitfield tag holds
     several settings at once, so its presence proves nothing -- only the one bit does, or
-    every Profile with a <flags> (3,485 of the 3,526 samples) would claim properties it has
-    not got.
+    every Profile with a <flags> (5,586 of the 5,627 samples) would claim properties it has
+    not got, 4,009 of them for the value Tasker gives a brand-new Profile.
     """
     profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
-    ET.SubElement(profile, "flags").text = "10"  # bits 1 and 3: neither of them ours
+    # 10 is Tasker's own new-Profile value: mask 2, which no field owns, plus mask 8, which
+    # Restore Settings owns and reads as the state Tasker leaves (see its tasker_default).
+    ET.SubElement(profile, "flags").text = "10"
+
     assert objprops.has_properties(objprops.KIND_PROFILE, profile) is False
 
-    profile.find("flags").text = "11"  # + bit 0: Enforce Task Order switched on
+    profile.find("flags").text = "11"  # + mask 1: Show In Notification switched off
     assert objprops.has_properties(objprops.KIND_PROFILE, profile) is True
 
 

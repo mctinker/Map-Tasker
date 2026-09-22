@@ -3659,9 +3659,33 @@ FRAME_ELEMENTS = frozenset({"html", "head", "body"})
 # html relies on: a TaskerNet description writes "<p>" and leaves it to the next block.
 CLOSE_AN_OPEN_PARAGRAPH = frozenset(
     {
-        "address", "article", "aside", "blockquote", "details", "div", "dl", "fieldset", "figure", "footer",
-        "form", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr", "main", "nav", "ol", "p", "pre",
-        "section", "table", "ul",
+        "address",
+        "article",
+        "aside",
+        "blockquote",
+        "details",
+        "div",
+        "dl",
+        "fieldset",
+        "figure",
+        "footer",
+        "form",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "header",
+        "hr",
+        "main",
+        "nav",
+        "ol",
+        "p",
+        "pre",
+        "section",
+        "table",
+        "ul",
     },
 )
 # An id belongs to the element where it opened.  Where a cut re-states that element in the
@@ -5724,9 +5748,7 @@ class NiceGuiTextView:
                 # browser is given is the same text it was given before -- only cut up
                 # differently.  How tall a piece is, near enough to reserve scrollbar space
                 # for: every line of the Map ends in a <br>, so counting those counts lines.
-                chunks = [
-                    (piece, piece.count("<br>") or 1) for piece in split_for_streaming("\n".join(html_lines))
-                ]
+                chunks = [(piece, piece.count("<br>") or 1) for piece in split_for_streaming("\n".join(html_lines))]
 
             delivered = 0
             total_size = sum(len(content) for content, _ in chunks) or 1

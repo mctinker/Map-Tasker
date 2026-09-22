@@ -299,7 +299,19 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Natural Language 'Find'
 
-- [ ] Configuration Timeline
+- [x] Configuration Timeline
+
+- [ ] One-click Fixes For Health Check Findings
+
+- [ ] Restore From History
+
+- [ ] Java Scriptlets and Sheel Actions Checker
+
+- [ ] What Fires When Report
+
+- [ ] Readiness Check
+
+- [ ] Command Line Reports
 
 - [ ] Support additional plugins
 

@@ -67,10 +67,16 @@ where the editor's schema lists width/height, and a "Clickable" modifier the sch
 heard of.  Both are handled here.  This renderer must not be the thing that decides a real
 Scene is malformed.
 
-Anything whose meaning is unknown is not drawn.  <flags> is the Legacy example: every element
-has one, nothing in this app decodes it, and a guess would be a guess painted at full
-confidence.  A V2 modifier or component type this app has never seen is listed in the
-component's tooltip and drawn as a labelled box, so it is visible without being invented.
+Anything whose meaning is unknown is not drawn.  A V2 modifier or component type this app has
+never seen is listed in the component's tooltip and drawn as a labelled box, so it is visible
+without being invented.
+
+A Legacy element's <flags> used to be in that category and no longer is: objprops holds
+Tasker's own values for its four bits, so an element Tasker would not show (mask 4 clear) is
+dimmed here rather than drawn as though it were on screen, and all four bits are named in the
+tooltip.  What is still NOT inferred from them is the paint order, which comes from the sr
+number and is left alone -- mask 2 marks a background element, but the z-order the sample
+Scenes actually paint in is the one paint_order already uses.
 """
 
 from __future__ import annotations
@@ -82,6 +88,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
+from maptasker.src import objprops
 from maptasker.src.actiont import lookup_values
 from maptasker.src.maputil2 import is_html_colour, tasker_icon_name, translate_string
 from maptasker.src.primitem import PrimeItems
@@ -417,6 +424,37 @@ def element_name(element: defusedxml.ElementTree.Element) -> str:
     return ElementArgs(element).text(0)
 
 
+def element_flag_names(element: defusedxml.ElementTree.Element) -> list[str]:
+    """This element's <flags> bits, named -- Fixed position, Background element, Visible,
+    Initial focus -- and [] for an element with no <flags> at all.
+
+    The names are objprops', which is where Tasker's own values for the bitmask live.  They
+    go in the tooltip rather than into the drawing: three of the four say something about how
+    Tasker treats the element that no amount of geometry shows, and the fourth (Visible) is
+    the one this module does draw -- see element_is_hidden.
+    """
+    if element.find(objprops.SCENE_ELEMENT_FLAGS_TAG) is None:
+        return []
+    return objprops.describe_flags(objprops.flag_bits(element), objprops.SCENE_ELEMENT_FLAG_NAMES)
+
+
+def element_is_hidden(element: defusedxml.ElementTree.Element) -> bool:
+    """Would Tasker draw this element when the Scene is shown?
+
+    Mask 4 is Visible, so an element whose <flags> has it CLEAR is one Tasker hides until a
+    Task makes it visible -- 172 of the sample data's elements, mostly Images and Texts.
+
+    AN ELEMENT WITH NO <flags> AT ALL IS NOT HIDDEN.  1,507 have none, a state Tasker itself
+    produces, so absence means "nothing said" and such an element is drawn as normal.  Taking
+    it as 0 would hide a fifth of every Scene in the preview, including every
+    <PropertiesElement>.  A value that will not parse is the same answer for the same reason:
+    the tag is Tasker's, and "I cannot read this" is not grounds for leaving the element out
+    of the picture.
+    """
+    value = (element.findtext(objprops.SCENE_ELEMENT_FLAGS_TAG) or "").strip()
+    return value.isdigit() and not (int(value) & (1 << objprops.SCENE_ELEMENT_VISIBLE_BIT))
+
+
 def paint_order(scene_element: defusedxml.ElementTree.Element) -> list:
     """The Scene's drawable elements, bottom one first.
 
@@ -651,9 +689,17 @@ def _draw_element(
     x, y, width, height = box
     args = ElementArgs(element)
 
+    # An element Tasker hides is DIMMED, not left out.  It is part of the Scene and a Task can
+    # make it visible at any time, so a preview that dropped it would be hiding the designer's
+    # own work; drawn at full strength it would claim to be on screen when it is not.  The
+    # tooltip names the bit, so the dimming has somewhere to be explained.
+    hidden = element_is_hidden(element)
+
     frame = ui.element("div").style(
         f"position: absolute; left: {x}px; top: {y}px; width: {width}px; height: {height}px;"
-        "box-sizing: border-box; overflow: hidden;" + ("cursor: move;" if editing else ""),
+        "box-sizing: border-box; overflow: hidden;"
+        + ("opacity: 0.35;" if hidden else "")
+        + ("cursor: move;" if editing else ""),
     )
     if editing:
         frame.classes("mt-el").props(
@@ -733,6 +779,14 @@ def _attach_tooltip(
     variables = sorted({value for index in range(9) for value in (args.text(index),) if value.startswith("%")})
     if variables:
         lines.append(f"{translate_string('Variables')}: {', '.join(variables)}")
+    # <flags> says whether Tasker shows this element at all, whether it is fixed in place
+    # rather than scrolling with the Scene, whether it sits behind the others and whether it
+    # takes the initial focus -- none of which the drawing can carry, and the first of which
+    # is the reason a dimmed element is dimmed (see _draw_element).
+    if flag_names := element_flag_names(element):
+        lines.append(f"{translate_string('Flags')}: {', '.join(flag_names)}")
+        if element_is_hidden(element):
+            lines.append(translate_string("Not visible until a Task shows it"))
     lines.extend(f"{label} → {task_name}" for label, task_name in element_tasks(element))
     with frame:
         ui.tooltip("\n".join(lines)).style("white-space: pre-wrap")

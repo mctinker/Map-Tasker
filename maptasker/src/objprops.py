@@ -153,13 +153,89 @@ _VARIABLE_NAME_PATTERN = re.compile(r"%[A-Za-z0-9_]+")
 # same list the same way on the read side.
 COLLISION_CHOICES: tuple[str, ...] = ("Abort New Task", "Abort Existing Task", "Run Both Together")
 
-# The Profile bitfield, and which bit each of the three settings that live in it occupies
-# -- see the evidence block above OBJECT_PROPERTIES.  Named constants rather than literals
-# because profedit.create_new_profile reasons about the same tag's other bits.
+# --------------------------------------------------------------------------------------
+# <flags>: THE THREE BITFIELDS IN A TASKER BACKUP, FROM TASKER'S OWN VALUES
+# --------------------------------------------------------------------------------------
+# Three unrelated things in a backup all name their bitfield <flags> -- a Profile, an App
+# context (a Profile's <App> condition) and a Legacy Scene element -- and each one's bits
+# mean something different.  All three tables below are TRANSCRIBED FROM TASKER'S
+# AUTHORITATIVE VALUES, not inferred, which is what makes them the one place to read and
+# the reason every other module imports them from here instead of keeping a copy.
+#
+# THEY REPLACE A MEASUREMENT THAT HAD TWO OF THE PROFILE BITS IN THE WRONG PLACE.  Before
+# this, a Profile's Show In Notification was taken to be mask 16 and Enforce Task Order
+# mask 1, both read off two exports of one Profile made a setting at a time; the
+# authoritative values have them the other way round AND worded as their negatives (mask 1
+# is "hide", mask 16 is "ignore"), so each of those exports was an UNticked box rather than
+# a ticked one.  Ticking Show In Notification in the Properties editor was therefore
+# setting "ignore task order" on the Profile -- a wrong bit written to a real
+# configuration, which is why nothing here is measured any more.
+#
+# The full distribution of the 5,586 sample Profiles that carry a <flags> supports the
+# table as transcribed: 10 (collapsed + ignore settings, 4,009 -- Tasker's own value for a
+# new Profile, NEW_PROFILE_FLAGS), 2 (583), 8 (351), 42 (120), 43 (112), 11 (89), 40 (81),
+# 26 (61), 34 (55), 27 (46), 3 (38), 18 (17), 9 (11), 24 (6), 58 (3), 56 (2), 31 and 38
+# (1 each).  Not one exceeds 63, which is the six bits below and no seventh.
+#
+# EVERY BIT NOT NAMED BY A PropField IS STILL CARRIED THROUGH UNTOUCHED.  Collapsed is the
+# one left: Tasker's own list state, nothing a user would set from here.  So
+# _apply_flag_bits read-modify-writes the value that is there rather than building a new one
+# out of the fields it knows -- which also covers a bit from a Tasker newer than this table.
+
 PROFILE_FLAGS_TAG = "flags"
-PROFILE_ENFORCE_TASK_ORDER_BIT = 0
-PROFILE_LIMIT_REPEATS_BIT = 2
-PROFILE_SHOW_IN_NOTIFICATION_BIT = 4
+
+# A Profile's <flags>, by bit number.  Two are worded as the NEGATIVE of the setting
+# Tasker's Properties screen shows, which is exactly what PropField.default is for: those
+# two carry a default of "true" and so are written when the box is UNticked.
+PROFILE_HIDE_IN_NOTIFICATION_BIT = 0  # mask 1
+PROFILE_COLLAPSED_BIT = 1  # mask 2 -- collapsed in Tasker's own list; stripped on export
+PROFILE_DELETE_AFTER_DISABLE_BIT = 2  # mask 4
+PROFILE_IGNORE_SETTINGS_BIT = 3  # mask 8 -- Restore Settings OFF, and SET on a new Profile
+PROFILE_IGNORE_TASK_ORDER_BIT = 4  # mask 16
+PROFILE_RUN_EXIT_TASK_ON_STARTUP_BIT = 5  # mask 32 -- if the Profile is not active
+
+# What to call each bit where a raw <flags> is being REPORTED rather than edited (the Map's
+# debug line).  Worded as the bit is worded, negatives and all: this decodes the number in
+# the file, and calling mask 1 "Show In Notification" would invert its meaning.
+PROFILE_FLAG_NAMES: dict[int, str] = {
+    PROFILE_HIDE_IN_NOTIFICATION_BIT: "Hide In Notification",
+    PROFILE_COLLAPSED_BIT: "Collapsed",
+    PROFILE_DELETE_AFTER_DISABLE_BIT: "Delete After Disable",
+    PROFILE_IGNORE_SETTINGS_BIT: "Ignore Settings",
+    PROFILE_IGNORE_TASK_ORDER_BIT: "Ignore Task Order",
+    PROFILE_RUN_EXIT_TASK_ON_STARTUP_BIT: "Run Exit Task On Startup",
+}
+
+# An App context's <flags> -- the <App> child of a Profile, which is the Application
+# condition.  All 162 App conditions in the sample backups hold 2, the default, so only a
+# value that is not 2 says anything a reader does not already assume (condition_app).
+APP_MATCH_RUNNING_SERVICES_BIT = 0  # mask 1
+APP_MATCH_FOREGROUND_APP_BIT = 1  # mask 2 -- the default
+APP_FLAG_NAMES: dict[int, str] = {
+    APP_MATCH_RUNNING_SERVICES_BIT: "matching running services",
+    APP_MATCH_FOREGROUND_APP_BIT: "matching the foreground app",
+}
+
+# A Legacy Scene element's <flags>.  The sample data's 7,302 elements carry seven distinct
+# values and these four bits explain all of them: 4 visible (4,823), 5 visible and fixed
+# (573), 6 visible and behind (182), 1 fixed and NOT visible (172), 13 and 12 initial focus
+# (24 and 21 -- 24 of the 13s are EditTextElements, which is where an initial focus goes).
+#
+# AN ELEMENT WITH NO <flags> AT ALL IS NOT AN INVISIBLE ELEMENT.  1,507 have none,
+# including every one of the 862 <PropertiesElement>s, and Tasker itself produces that
+# state (sceneedit's LEGACY_VE_BY_TYPE block) -- so absence means "nothing said" and is
+# drawn as normal, and only a <flags> that IS there and has mask 4 clear is hidden.
+SCENE_ELEMENT_FLAGS_TAG = "flags"
+SCENE_ELEMENT_FIXED_POSITION_BIT = 0  # mask 1
+SCENE_ELEMENT_BACKGROUND_BIT = 1  # mask 2
+SCENE_ELEMENT_VISIBLE_BIT = 2  # mask 4
+SCENE_ELEMENT_INITIAL_FOCUS_BIT = 3  # mask 8
+SCENE_ELEMENT_FLAG_NAMES: dict[int, str] = {
+    SCENE_ELEMENT_FIXED_POSITION_BIT: "Fixed position",
+    SCENE_ELEMENT_BACKGROUND_BIT: "Background element",
+    SCENE_ELEMENT_VISIBLE_BIT: "Visible",
+    SCENE_ELEMENT_INITIAL_FOCUS_BIT: "Initial focus",
+}
 
 SECONDS_PER_MINUTE = 60
 SECONDS_PER_HOUR = 3600
@@ -196,13 +272,25 @@ class PropField:
     written only when switched OFF.  Getting that pair backwards would stamp
     <showinnot>false</showinnot> onto the 9,187 Tasks that have never had one.
 
+    `tasker_default` is for the ONE case where `default` is not also the state an untouched
+    object is in: Restore Settings.  Its bit records the NEGATIVE (mask 8 is "ignore
+    settings"), and Tasker SETS that bit on every Profile it creates -- 4,892 of the 5,627
+    sample Profiles carry it, including the 4,009 at Tasker's own new-Profile value of 10.
+    So `default` has to stay "true" (the bit is cleared when the box is ticked, and a Profile
+    with no <flags> at all reads as ticked), while the value that means "nobody has touched
+    this" is "false".  Everything that WRITES uses `default`; everything that asks whether a
+    setting is worth REPORTING -- has_properties, the Map's Properties line -- uses
+    noteworthy_default, or 4,892 Profiles would announce a setting Tasker chose for them.
+
     `bit` is for the properties Tasker keeps in a BITFIELD instead of in a tag of their
-    own -- a Profile's Limit Repeats, Enforce Task Order and Show In Notification, all three
-    inside <flags>.  The same `default` rule carries over unchanged: the bit is SET when the
-    value differs from the default and CLEAR when it equals it, so an inverted one (a bit
-    that records the OFF state, the shape a Task's <showinnot> has) would need nothing here
-    but a default of "true".  Every other bit of the tag is left exactly as it was -- see
-    _apply_flag_bits.
+    own -- five of a Profile's, all inside <flags>.  The same `default` rule carries over
+    unchanged: the bit is SET when the value differs from the default and CLEAR when it
+    equals it, which is all an INVERTED bit needs.  Two of the four are inverted, because
+    Tasker words them as the negative of the setting it shows: mask 1 is "hide in
+    notification" and mask 16 is "ignore task order", so Show In Notification and Enforce
+    Task Order both carry a default of "true" and write their bit when UNticked -- the shape
+    a Task's <showinnot> has.  Every other bit of the tag, named here or not, is left
+    exactly as it was -- see _apply_flag_bits.
     """
 
     key: str  # field_refs key, unique within the dialog
@@ -214,6 +302,7 @@ class PropField:
     tooltip: str = ""
     maximum: int = 0  # slider only
     bit: int | None = None  # bitfield properties only: which bit of `tag` holds this one
+    tasker_default: str = ""  # only when an untouched object is NOT at `default` -- see above
 
 
 _COMMENTS = PropField("pc", "pc", "Comments", "text", "")
@@ -282,9 +371,12 @@ _COOLDOWN = PropField(
     ),
 )
 
-# THE FIVE PROFILE SETTINGS TASKER'S OWN PROPERTIES SCREEN HAS AND THE SAMPLE DATA DOES NOT.
-# None of them appears in any of the 3,526 Profiles in XML/, so where each lives was settled
-# by measurement: five exports of one Profile made with Tasker 6.7.6, one setting at a time.
+# THE PROFILE SETTINGS TASKER'S OWN PROPERTIES SCREEN HAS AND THE SAMPLE DATA DOES NOT.
+# None of them appears in any of the 5,627 Profiles in XML/, so each was hunted down by
+# measurement -- five exports of one Profile made with Tasker 6.7.6, a setting at a time --
+# until Tasker's authoritative <flags> values arrived.  THE VALUES WIN WHERE THEY DISAGREE,
+# and they disagree in three places; the exports are kept here because two of them are the
+# only evidence about the tags that are NOT bits.
 #
 #   export     what was ticked                        <flags>  bits  other children
 #   Atest1     Limit Repeats                              8    3     <limit>
@@ -293,61 +385,75 @@ _COOLDOWN = PropField(
 #   Atest2     Limit Repeats, Remaining 5, Delete On 0    12    2,3   <repeats> <dod> <limit>
 #   Atest2(2)  the same, plus Enforce Task Order          13    0,2,3 <repeats> <dod> <limit>
 #
-# Bit 3 is in all five and is not one of these: it is the standalone-export baseline, on
-# 3,051 of the 3,485 sample Profiles that have a <flags> (bit 1, which marks a Profile as
-# part of the live configuration, is what the export clears -- profedit.create_new_profile).
-# Subtract it and each export names exactly one bit:
+# Bit 3 (mask 8) is in all five and is Ignore Settings, not a baseline: it is Restore Settings
+# switched off, which is the state Tasker leaves a new Profile in -- hence the field's
+# tasker_default, and hence its being in all five exports without the tester touching it.
+# Reading the rest against the real values:
 #
-#   bit 0 (1)   Enforce Task Order      the only bit Atest1-1 adds, and the only one added
-#                                       between the two Atest2 exports
-#   bit 2 (4)   Limit Repeats           the only bit Atest2 adds -- the export where the
-#                                       setting has a live repeat count behind it
-#   bit 4 (16)  Show In Notification    the only bit Atest1-2 adds.  NOT inverted, unlike a
-#                                       Task's <showinnot>: a Profile with the bit clear is
-#                                       one with the box UNTICKED, so off is the default
-#   <repeats>   Remaining Repeats       a tag no sample Profile carries
-#   <dod>       Delete On Zero Repeats  likewise
+#   mask 1    Hide In Notification    Atest1-2's "Show In Notification" export is a box
+#             (bit 0)                 UNTICKED, not ticked -- so the field below defaults to
+#                                     "true" and the bit is written when it is turned off,
+#                                     the same shape a Task's <showinnot> has after all
+#   mask 16   Ignore Task Order       likewise Atest1-1, and likewise inverted.  The two
+#             (bit 4)                 exports had these two settings the wrong way round,
+#                                     which is what made ticking Show In Notification write
+#                                     mask 16 -- Ignore Task Order -- until now
+#   mask 4    Delete After Disable    what Atest2's "Delete On 0" actually set.  The one
+#             (bit 2)                 sample Profile with a <dod> has this bit as well, and
+#                                     one other has the bit and no <dod>, so the BIT is
+#                                     where the setting lives and <dod> is its older twin:
+#                                     read and written through the bit, and a <dod> already
+#                                     in a file is left exactly as it is
+#   <repeats> Remaining Repeats       10 sample Profiles carry one
 #
-# THE ONE EXPORT THAT DOES NOT FIT is Atest1: Limit Repeats ticked, bit 2 clear, and a
-# <limit>true</limit> that was not there before.  Read as Tasker's own behaviour rather than
-# as a second encoding -- ticking Limit Repeats with no repeats remaining leaves the Profile
-# with nothing left to run, and <limit> is how a disabled Profile is marked.  Atest2 is the
-# same setting with a count of 5 behind it, and there the bit is where the other four
-# exports put it.
+# LIMIT REPEATS IS NOT A FIELD ANY MORE.  It has no bit of its own -- mask 4 belongs to
+# Delete After Disable -- and the two exports that ticked it wrote <repeats> and <limit>
+# instead, so the checkbox had nowhere honest to put itself and was writing mask 4.  Giving
+# Remaining Repeats a count is what limits a Profile's repeats, and that field owns it.
 #
 # <limit> IS NOT ONE OF THESE FIELDS AND MUST NOT BECOME ONE.  It identifies a disabled
 # Tasker object and nothing else -- profiles.py greys the Profile out in the Map, healthck.py
 # reports DISABLED-PROFILE, and profedit.set_profile_enabled writes and removes it for the
 # Edit Profile dialog's Enabled switch, which is the one control that owns it.
-_LIMIT_REPEATS = PropField(
-    "limit_repeats",
-    PROFILE_FLAGS_TAG,
-    "Limit Repeats",
-    "checkbox",
-    "false",
-    bit=PROFILE_LIMIT_REPEATS_BIT,
-    tooltip=(
-        "Whether to limit the number of times the profile can become active e.g If its enter "
-        "task should only be run once."
-    ),
-)
-
 _REMAINING_REPEATS = PropField(
     "repeats",
     "repeats",
     "Remaining Repeats",
     "number",
     "",
-    tooltip="The number of times remaining before the profile becomes disabled.",
+    tooltip=(
+        "The number of times remaining before the profile becomes disabled.  Giving a count "
+        "here is how a profile's repeats are limited e.g. if its enter task should only be "
+        "run once."
+    ),
 )
 
-_DELETE_ON_ZERO_REPEATS = PropField(
-    "dod",
-    "dod",
-    "Delete On Zero Repeats",
+_DELETE_AFTER_DISABLE = PropField(
+    "delete_after_disable",
+    PROFILE_FLAGS_TAG,
+    "Delete After Disable",
     "checkbox",
     "false",
-    tooltip="Whether this profile should be deleted when the repeat count gets to 0.",
+    bit=PROFILE_DELETE_AFTER_DISABLE_BIT,
+    tooltip=(
+        "Whether this profile should be deleted once it becomes disabled, which is what "
+        "happens when its repeat count gets to 0."
+    ),
+)
+
+_RESTORE_SETTINGS = PropField(
+    "restore_settings",
+    PROFILE_FLAGS_TAG,
+    "Restore Settings",
+    "checkbox",
+    "true",
+    bit=PROFILE_IGNORE_SETTINGS_BIT,
+    tasker_default="false",
+    tooltip=(
+        "Whether to restore any settings that this profile's tasks changed when the profile "
+        "becomes inactive.  Tasker leaves this off on a profile it creates, which is why a "
+        "profile is only reported as having it when it has been switched ON."
+    ),
 )
 
 _ENFORCE_TASK_ORDER = PropField(
@@ -355,12 +461,22 @@ _ENFORCE_TASK_ORDER = PropField(
     PROFILE_FLAGS_TAG,
     "Enforce Task Order",
     "checkbox",
-    "false",
-    bit=PROFILE_ENFORCE_TASK_ORDER_BIT,
+    "true",
+    bit=PROFILE_IGNORE_TASK_ORDER_BIT,
     tooltip=(
         "Ensure that tasks resulting from the profile activation or deactivation remain "
         "queued until previous tasks from this profile are complete."
     ),
+)
+
+_RUN_EXIT_TASK_ON_STARTUP = PropField(
+    "run_exit_task_on_startup",
+    PROFILE_FLAGS_TAG,
+    "Run Exit Task On Startup",
+    "checkbox",
+    "false",
+    bit=PROFILE_RUN_EXIT_TASK_ON_STARTUP_BIT,
+    tooltip=("Whether to run this profile's exit task when Tasker starts up and the profile is not active."),
 )
 
 _PROFILE_SHOW_IN_NOTIFICATION = PropField(
@@ -368,8 +484,8 @@ _PROFILE_SHOW_IN_NOTIFICATION = PropField(
     PROFILE_FLAGS_TAG,
     "Show In Notification",
     "checkbox",
-    "false",
-    bit=PROFILE_SHOW_IN_NOTIFICATION_BIT,
+    "true",
+    bit=PROFILE_HIDE_IN_NOTIFICATION_BIT,
     tooltip=(
         "Whether to include this profile in the Running Profiles notification that updates "
         "every time a profile is started or stopped."
@@ -382,10 +498,11 @@ OBJECT_PROPERTIES: dict[str, tuple[PropField, ...]] = {
     KIND_PROFILE: (
         _LAUNCH_PRIORITY,
         _COOLDOWN,
-        _LIMIT_REPEATS,
         _REMAINING_REPEATS,
-        _DELETE_ON_ZERO_REPEATS,
+        _DELETE_AFTER_DISABLE,
+        _RESTORE_SETTINGS,
         _ENFORCE_TASK_ORDER,
+        _RUN_EXIT_TASK_ON_STARTUP,
         _PROFILE_SHOW_IN_NOTIFICATION,
         _COMMENTS,
     ),
@@ -437,23 +554,64 @@ def flag_bits(element: defusedxml.ElementTree.Element, tag: str = PROFILE_FLAGS_
     return int(text) if text.isdigit() else 0
 
 
+def describe_flags(value: int, names: dict[int, str]) -> list[str]:
+    """The set bits of a <flags> value, named, lowest bit first -- for the places that
+    REPORT a bitfield rather than edit one (the Map's debug line, a Scene element's
+    tooltip, an App condition).
+
+    A bit with no entry in `names` is reported as "bit N" rather than dropped: a value
+    from a Tasker newer than the table is still worth showing as a number the reader can
+    look up, and silently omitting it would claim the tag held less than it does.
+    """
+    return [names.get(bit, f"bit {bit}") for bit in range(value.bit_length()) if value & (1 << bit)]
+
+
+def bitfield_is_readable(element: defusedxml.ElementTree.Element, tag: str = PROFILE_FLAGS_TAG) -> bool:
+    """Can this object's bitfield tag be believed?  True when it is absent (which is a real
+    state, and reads as every bit clear) or holds a number, and False for a value this build
+    cannot parse.
+
+    WORTH ASKING BECAUSE "EVERY BIT CLEAR" IS NOT A SAFE FALLBACK ANY MORE.  It used to be:
+    every bit-backed field read as switched off, which is what an unparseable value should
+    say.  Restore Settings changed that -- its bit records the negative, so bits-all-clear
+    reads as that setting switched ON, and reporting it off the back of a value nobody can
+    read would be inventing a setting.  So the places that REPORT bits ask this first, while
+    the places that write them do not need to: _apply_flag_bits leaves an unreadable value
+    exactly as it found it (see flag_bits).
+    """
+    text = (element.findtext(tag) or "").strip()
+    return text == "" or text.isdigit()
+
+
 def _bit_value(spec: PropField, element: defusedxml.ElementTree.Element) -> str:
     """A bit-backed property as the "true"/"false" the dialog deals in.
 
-    The bit being SET means "not the default", which is the one rule that makes Enforce
-    Task Order (default off) and Show In Notification (default on) the same code -- see
-    PropField.
+    The bit being SET means "not the default", which is the one rule that makes Delete
+    After Disable (a bit that records the setting) and Enforce Task Order (a bit that
+    records its negative) the same code -- see PropField.
     """
     return _NEGATED[spec.default] if flag_bits(element, spec.tag) & (1 << spec.bit) else spec.default
+
+
+def noteworthy_default(spec: PropField) -> str:
+    """The value that means "nobody has touched this setting" -- which is `default` for every
+    field but Restore Settings, whose bit Tasker sets itself (see PropField).
+
+    Separate from `default` because the two questions are different: `default` is how the
+    value is STORED (which state leaves the tag or bit out), and this is whether the value is
+    worth SAYING.  Conflating them would either report a setting on 4,892 of the 5,627 sample
+    Profiles or write the bit the wrong way round.
+    """
+    return spec.tasker_default or spec.default
 
 
 def has_properties(kind: str, element: defusedxml.ElementTree.Element) -> bool:
     """Does this object have any properties set?  Decides whether the button in the
     Add/Edit dialog reads "Add Properties" or "Edit Properties".
 
-    A tag holding its own default does not count -- that is the state Tasker would have
-    written nothing for, so offering "Edit" for it would be claiming properties the
-    object does not have.
+    A tag holding the value an untouched object has does not count -- that is the state
+    Tasker itself would have left, so offering "Edit" for it would be claiming properties
+    the object does not have.
 
     A Scene is the odd one out and is answered entirely by whether it has a
     <PropertiesElement>: its properties are that element's arguments rather than the
@@ -467,11 +625,11 @@ def has_properties(kind: str, element: defusedxml.ElementTree.Element) -> bool:
     if element.find("ProfileVariable") is not None:
         return True
     return any(
-        _bit_value(spec, element) != spec.default
+        _bit_value(spec, element) != noteworthy_default(spec) and bitfield_is_readable(element, spec.tag)
         if spec.bit is not None
         # A bitfield tag holds several properties at once, so its mere presence says
         # nothing -- only the one bit does.  Every other tag is its own answer.
-        else (element.findtext(spec.tag) or "") not in ("", spec.default)
+        else (element.findtext(spec.tag) or "") not in ("", noteworthy_default(spec))
         for spec in OBJECT_PROPERTIES.get(kind, ())
     )
 
@@ -730,15 +888,14 @@ def apply_properties(props: EditableProperties, values: dict[str, str]) -> list[
 def _apply_flag_bits(props: EditableProperties, values: dict[str, str]) -> None:
     """Write every bit-backed property of this kind into its bitfield tag, in one pass.
 
-    ONE PASS BECAUSE THEY SHARE A TAG.  Enforce Task Order and Show In Notification are both
+    ONE PASS BECAUSE THEY SHARE A TAG.  All five of a Profile's bit-backed properties are
     <flags>, so writing them the way a scalar is written -- tag by tag, each rewriting the
-    whole text -- would have the second overwrite the first.
+    whole text -- would have the last overwrite the rest.
 
-    BITS THIS BUILD KNOWS NOTHING ABOUT ARE CARRIED THROUGH.  Bit 1 marks a Profile as part
-    of the live configuration and bits 3/4/5 are further per-Profile settings with no other
-    XML representation (profedit.create_new_profile has the evidence), so a rewrite that
-    dropped them would change behaviour on a real device.  Hence read-modify-write of the
-    value that is there, never a value built from the two fields alone.
+    BITS NO FIELD OWNS ARE CARRIED THROUGH.  Mask 2 is Tasker's own "collapsed in the list"
+    state, and a rewrite that dropped it would collapse Profiles on a real device.  Hence
+    read-modify-write of the value that is there, never a value built from the fields alone
+    -- and that also covers a bit from a Tasker newer than this table.
 
     The tag is REMOVED when every bit ends up clear, which is what Tasker does -- it omits
     <flags> entirely rather than writing a 0 -- and an unchanged value is left exactly as it

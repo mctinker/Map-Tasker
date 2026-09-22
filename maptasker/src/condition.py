@@ -12,6 +12,7 @@ from maptasker.src.actargs import extract_condition
 # action_codes: Master dictionary of Task action and Profile condition codes
 from maptasker.src.actionc import action_codes
 from maptasker.src.debug import not_in_dictionary
+from maptasker.src.objprops import APP_FLAG_NAMES, APP_MATCH_FOREGROUND_APP_BIT, describe_flags, flag_bits
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.taskflag import get_priority
@@ -261,7 +262,19 @@ def condition_app(item: defusedxml.ElementTree, condition: str) -> str:
     for apps in item:
         if "label" in apps.tag:
             the_apps = f"{the_apps} {apps.text}"
-    return f"{condition}Application:{the_apps}"
+
+    # An App context carries its own <flags> bitmask saying WHICH app it matches against.
+    # Only a value other than the plain default -- mask 2, the foreground app, which is what
+    # all 162 App conditions in the sample backups hold -- is worth a word here: it is what
+    # the reader already assumes, and saying it every time would pad every Application
+    # condition in the Map to no purpose.
+    match = flag_bits(item)
+    matching = (
+        f" ({' and '.join(describe_flags(match, APP_FLAG_NAMES))})"
+        if match and match != 1 << APP_MATCH_FOREGROUND_APP_BIT
+        else ""
+    )
+    return f"{condition}Application:{the_apps}{matching}"
 
 
 # Profile condition: Loc (location)

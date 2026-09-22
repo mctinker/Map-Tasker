@@ -2542,3 +2542,7 @@ msgid "Exit MapTasker and update it from the command line: 'pip install --upgrad
 msgstr "मैपटैस्कर को बंद करें और कमांड लाइन से अपडेट करें: 'pip install --upgrade maptasker'।"
 msgid "The update failed and MapTasker is still on the version you were running."
 msgstr "अपडेट विफल रहा और MapTasker अभी भी उसी संस्करण पर है जिसे आप उपयोग कर रहे थे।"
+msgid "Flags"
+msgstr "ध्वज"
+msgid "Not visible until a Task shows it"
+msgstr "जब तक कोई कार्य इसे प्रदर्शित नहीं करता, तब तक यह दिखाई नहीं देगा।"
