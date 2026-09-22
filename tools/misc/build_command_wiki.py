@@ -47,12 +47,14 @@ import ast
 import datetime
 import json
 import re
-import subprocess
 import sys
-import tempfile
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field, replace
 from pathlib import Path
+
+# Publishing lives in its own module, shared with build_generated_files_doc.py, so the
+# wiki is only ever spoken to from one place.  Both tools sit in this directory.
+from wikipub import add_publish_arguments, publish
 
 # ##################################################################################
 # Configuration
@@ -61,8 +63,6 @@ HERE = Path(__file__).resolve().parent
 PACKAGE_SOURCE = Path("maptasker") / "src"
 DEFAULT_PAGE_NAME = "Command-Reference"
 DEFAULT_LOG_NAME = "no_description.log"
-WIKI_URL = "https://github.com/mctinker/Map-Tasker/wiki"
-WIKI_REPO = "https://github.com/mctinker/Map-Tasker.wiki.git"
 
 # The widget kinds worth documenting, and how each is labelled on the page.
 COMMAND_KINDS = {"button": "Command", "menu_item": "Menu item"}
@@ -1475,60 +1475,6 @@ def write_no_description_log(path: Path, model: CommandModel, version: str) -> i
 
 
 # ##################################################################################
-# Publishing
-# ##################################################################################
-def run_git(arguments: list[str], cwd: Path) -> subprocess.CompletedProcess:
-    """One git command, with its output kept for reporting."""
-    return subprocess.run(  # noqa: S603
-        ["git", *arguments],  # noqa: S607
-        cwd=cwd,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-
-def publish(page: Path, page_name: str, repo: str, dry_run: bool) -> int:
-    """Clones the wiki, replaces the one page, and pushes it back.
-
-    Only <page_name>.md is written; every other wiki page is left as it is.  With
-    dry_run the clone and the write still happen so the diff can be shown, but
-    nothing is committed or pushed.
-    """
-    with tempfile.TemporaryDirectory(prefix="maptasker-wiki-") as workspace:
-        clone = Path(workspace) / "wiki"
-        print(f"Cloning {repo} ...")
-        result = run_git(["clone", "--depth", "1", repo, str(clone)], cwd=Path(workspace))
-        if result.returncode != 0:
-            print(result.stderr.strip(), file=sys.stderr)
-            print(
-                "Could not clone the wiki.  The wiki has to have at least one page already "
-                "(create it once at " + WIKI_URL + "), and git needs push access to it.",
-                file=sys.stderr,
-            )
-            return 1
-        target = clone / f"{page_name}.md"
-        target.write_text(page.read_text(encoding="utf-8"), encoding="utf-8")
-        status = run_git(["status", "--porcelain"], cwd=clone)
-        if not status.stdout.strip():
-            print(f"'{page_name}' is already up to date -- nothing to push.")
-            return 0
-        diff = run_git(["diff", "--stat"], cwd=clone)
-        print(diff.stdout.strip() or f"{page_name}.md is new.")
-        if dry_run:
-            print("--dry-run: not committing or pushing.")
-            return 0
-        message = f"Update {page_name} from build_command_wiki.py"
-        for arguments in (["add", target.name], ["commit", "-m", message], ["push"]):
-            result = run_git(arguments, cwd=clone)
-            if result.returncode != 0:
-                print(result.stderr.strip() or result.stdout.strip(), file=sys.stderr)
-                return 1
-        print(f"Pushed '{page_name}' to {WIKI_URL}/{page_name}")
-    return 0
-
-
-# ##################################################################################
 # Entry point
 # ##################################################################################
 def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
@@ -1557,9 +1503,7 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
         help=f"Where to list the commands with no description (default: {DEFAULT_LOG_NAME} beside the page).",
     )
     parser.add_argument("--stats", action="store_true", help="Report what was found, and what could not be named.")
-    parser.add_argument("--publish", action="store_true", help="Push the page to the GitHub wiki.")
-    parser.add_argument("--dry-run", action="store_true", help="With --publish: show the change, push nothing.")
-    parser.add_argument("--wiki-repo", default=WIKI_REPO, help="Wiki git repository to publish to.")
+    add_publish_arguments(parser)
     return parser.parse_args(argv)
 
 
@@ -1627,7 +1571,7 @@ def main(argv: list[str] | None = None) -> int:
         report(model, nodes)
 
     if options.publish:
-        return publish(out, options.page_name, options.wiki_repo, options.dry_run)
+        return publish(out, options.page_name, options.wiki_repo, options.dry_run, tool="build_command_wiki.py")
     return 0
 
 

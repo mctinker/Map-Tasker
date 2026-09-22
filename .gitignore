@@ -32,6 +32,8 @@
 !uv.lock
 # Runs the CI gates locally; kept beside the workflow it mirrors.
 !run-ci.sh
+# Rebuilds the generated wiki pages and pushes them; kept beside run-ci.sh.
+!publish-wikis.sh
 !maptasker
 !tests
 dmg_builder

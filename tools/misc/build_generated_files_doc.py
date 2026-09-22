@@ -44,6 +44,12 @@ run from::
     python tools/misc/build_generated_files_doc.py --check   # don't write; fail if stale
     python tools/misc/build_generated_files_doc.py --print   # write nothing, show the page
 
+    python tools/misc/build_generated_files_doc.py --publish  # ... and push it to the wiki
+
+Publishing replaces <wiki>/Generated-Output and nothing else, using whatever
+credentials git already has for the Map-Tasker repository -- see 'wikipub.py'.  Use
+'--publish --dry-run' to see exactly what would be pushed first.
+
 '--check' rebuilds the page in memory and compares it with the one on disk, exiting
 non-zero if they differ.  That is the form for a CI job: it fails when someone adds
 an output file and does not rerun this.
@@ -57,6 +63,10 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# Publishing lives in its own module, shared with build_command_wiki.py, so the wiki
+# is only ever spoken to from one place.  Both tools sit in this directory.
+from wikipub import add_publish_arguments, publish
+
 # ##################################################################################
 # Configuration
 # ##################################################################################
@@ -66,6 +76,8 @@ SOURCE_DIR = PROJECT_ROOT / "maptasker" / "src"
 SYSCONST = SOURCE_DIR / "sysconst.py"
 DEVICE_MODULE = SOURCE_DIR / "deviceinv.py"
 OUTPUT_PAGE = HERE / "generated_output_files.md"
+# The wiki page the above is published as: <wiki>/Generated-Output.
+DEFAULT_PAGE_NAME = "Generated-Output"
 
 # The helper that turns 'MapTasker_Find.txt' into 'MapTasker_Find_date_time.txt', and
 # the suffix it is given here to show that on the page.
@@ -725,7 +737,11 @@ def main() -> int:
     parser.add_argument("--stats", action="store_true", help="report what was found in the source")
     parser.add_argument("--check", action="store_true", help="write nothing; fail if the page on disk is out of date")
     parser.add_argument("--print", dest="to_stdout", action="store_true", help="write nothing; print the page")
+    parser.add_argument("--page-name", default=DEFAULT_PAGE_NAME, help=f"Wiki page name (default: {DEFAULT_PAGE_NAME}).")
+    add_publish_arguments(parser)
     arguments = parser.parse_args()
+    if arguments.publish and (arguments.to_stdout or arguments.check):
+        parser.error("--publish pushes the page on disk, so it cannot be used with --print or --check.")
 
     if not SYSCONST.is_file():
         print(f"Cannot find the source at {SOURCE_DIR}", file=sys.stderr)
@@ -767,6 +783,15 @@ def main() -> int:
         print(f"\n{len(stale)} description(s) for files the source no longer names:", file=sys.stderr)
         for name in stale:
             print(f"  {name}", file=sys.stderr)
+
+    if arguments.publish:
+        return publish(
+            OUTPUT_PAGE,
+            arguments.page_name,
+            arguments.wiki_repo,
+            arguments.dry_run,
+            tool="build_generated_files_doc.py",
+        )
 
     return 0
 
