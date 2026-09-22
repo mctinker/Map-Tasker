@@ -1245,11 +1245,15 @@ def build_reference_index() -> ReferenceIndex:
     return index
 
 
-def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
-    """Scan the loaded configuration and return (report rows, counts by severity).
+def collect_findings(skip: Collection[str] = ()) -> ReferenceIndex:
+    """Run every pass the skip set leaves standing and return the index they filled.
 
-    Rows rather than finished text: the caller saves them as plain text and shows them as
-    HTML, and the two have to be the same report (see _build_report).
+    Split out of run_health_check for build_reference_index's reason, one level up: the
+    report is not the only thing worth asking of a scan.  mapfix asks which of the findings
+    it knows how to repair, and answering that from a parse of the rendered report -- the
+    only thing run_health_check used to hand back -- would mean reading prose that is
+    translated around the tag and then guessing which object each line names, which is the
+    very problem Finding.target exists to have solved already.
 
     skip is the set of category tags to leave out -- what the chooser panel's unticked
     boxes come to.  Stated as what to LEAVE OUT rather than what to include so that a
@@ -1257,15 +1261,12 @@ def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
     would silently hide every check written after the day it was saved, and a report that
     quietly stopped looking for something is worse than one that asks an extra question.
 
-    The categories left out are named at the end of the report, so a reader can tell a
-    check that found nothing from a check that never ran.
-
     Findings are dropped after the passes run, EXCEPT for the four folded-in ones, each of
     which is a separate walk over the whole configuration and is skipped outright when
-    every category it can raise has been unticked.
+    every category it can raise has been unticked.  A caller wanting only a few categories
+    therefore pays only for the walks those categories need.
 
-    Safe to call with nothing loaded -- the tables are empty and the report says so --
-    but the GUI checks first so it can say something more useful than "0 Projects".
+    Safe to call with nothing loaded: every pass iterates tables that are empty.
     """
     skip = frozenset(skip)
     index = build_reference_index()
@@ -1287,6 +1288,23 @@ def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
         # explaining findings that are no longer in the report.
         index.findings = [item for item in index.findings if item.tag not in skip]
 
+    return index
+
+
+def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
+    """Scan the loaded configuration and return (report rows, counts by severity).
+
+    Rows rather than finished text: the caller saves them as plain text and shows them as
+    HTML, and the two have to be the same report (see _build_report).
+
+    skip is collect_findings' -- the categories to leave out.  They are named at the end of
+    the report, so a reader can tell a check that found nothing from a check that never ran.
+
+    Safe to call with nothing loaded -- the tables are empty and the report says so --
+    but the GUI checks first so it can say something more useful than "0 Projects".
+    """
+    skip = frozenset(skip)
+    index = collect_findings(skip)
     return _build_report(index, clock.now(), skip), _counts(index.findings)
 
 

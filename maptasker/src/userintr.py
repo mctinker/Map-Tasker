@@ -71,6 +71,7 @@ from maptasker.src.guiwins import (
     opening_view_in_a_new_window,
     restore_appearance_mode,
 )
+from maptasker.src.guiwins_fix import build_fix_dialog
 from maptasker.src.guiwins_refactor import build_refactor_dialog
 from maptasker.src.maputil2 import (
     log_startup_values,
@@ -1792,6 +1793,66 @@ class MapTaskerEventHandlers(
             return
         self.gui.refactor_dialog = dialog
         dialog.open()
+
+    def fix_findings_event(self: "MapTaskerEventHandlers") -> None:
+        """Open the Fix Findings dialog: the Health Check's findings, with a repair for each.
+
+        Lives beside the Health Check button rather than inside its report, because the
+        report is one escaped blob of text in a <pre> and a tick box is not something that
+        can be put into one.  Pressing it runs a scan of its own -- a much smaller one than
+        the check's, since mapfix leaves out every category it cannot repair -- so this does
+        not depend on a Health Check having been run first, and does not go stale when one
+        was run an hour ago.
+
+        Rebuilt on every press rather than kept, for the reason maprefac gives about its
+        Plan and refactor_event repeats: it closes over live elements, and holding one
+        across a reopen is precisely the stale-handle case mapfix.apply's attachment check
+        exists to catch.
+        """
+        self._dismiss_fix_dialog()
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
+            """One row's click: open what it names in a window of its own.
+
+            The new window is what keeps this dialog up -- see refactor_event's own copy of
+            this, and guiwins.opening_view_in_a_new_window for the whole of why.  It matters
+            more here than there: the list holds ticks and decisions the user has been
+            making, and going to look at one of the Tasks must not cost them the lot.
+            """
+
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        async def refresh_after_apply() -> None:
+            """What to bring up to date once repairs have been made.
+
+            The pulldowns, and only the pulldowns.  A repair can delete a Task, so an option
+            list built before one offers names that no longer resolve -- the same reason Undo
+            and Redo refresh them.  No view is rebuilt: there may not be one, and if there is
+            it is a separate window the user can refresh when they want to look at it.
+            """
+            refresh_tasker_object_pulldowns(self.gui)
+
+        dialog = build_fix_dialog("", make_jump, refresh_after_apply)
+        if dialog is None:
+            return
+        self.gui.fix_dialog = dialog
+        dialog.open()
+
+    def _dismiss_fix_dialog(self: "MapTaskerEventHandlers") -> None:
+        """Take down the Fix Findings dialog if one is still up.
+
+        Deleted rather than closed, for _dismiss_refactor_dialog's reason: a fresh dialog is
+        built per press, and a closed-but-undeleted one is a stack that grows with the page.
+        """
+        dialog = getattr(self.gui, "fix_dialog", None)
+        self.gui.fix_dialog = None
+        if dialog is not None:
+            with contextlib.suppress(Exception):
+                dialog.delete()
 
     def _dismiss_refactor_dialog(self: "MapTaskerEventHandlers") -> None:
         """Take down the Refactor dialog if one is still up.

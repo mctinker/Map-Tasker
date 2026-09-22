@@ -914,7 +914,7 @@ def _swap_note(
     return "Drops: " + ", ".join(dropped)
 
 
-def _order_children(action_element: defusedxml.ElementTree.Element) -> None:
+def order_action_children(action_element: defusedxml.ElementTree.Element) -> None:
     """Put an action's children back in the order Tasker writes them: non-argument children
     first in the order they already had, then the arguments sorted by their 'sr' as a
     STRING -- which is why the sample data reads arg0, arg1, arg10, arg11 ... arg2, and not
@@ -1028,8 +1028,8 @@ def _swap_one_action(
         if tag and f"arg{arg.arg_id}" not in present:
             action_element.append(element_cls(tag, {"sr": f"arg{arg.arg_id}"}))
 
-    # 7.  Back into the order Tasker writes them.  See _order_children.
-    _order_children(action_element)
+    # 7.  Back into the order Tasker writes them.  See order_action_children.
+    order_action_children(action_element)
 
 
 # ##################################################################################
@@ -1592,7 +1592,7 @@ def _order_condition_children(condition_element: defusedxml.ElementTree.Element)
     """Put a context's children in the order Tasker writes them: the non-argument ones in
     alphabetical order, then the arguments by their 'sr' as a string.
 
-    _order_children's counterpart for a Profile context, and it differs in the first half
+    order_action_children's counterpart for a Profile context, and it differs in the first half
     because the XML does.  An <Action> keeps its non-argument children in the order they
     were already in; a context's are alphabetical, and the sample XML is unambiguous about
     it -- Time reads fh, fm, rep, repval, th, tm; State reads cname, code, ConditionList;
@@ -1600,7 +1600,7 @@ def _order_condition_children(condition_element: defusedxml.ElementTree.Element)
     plain case-insensitive string sort with the numbered families falling where they fall.
     Event reads code, pri and then its arguments, which is the same rule again.
 
-    For the diff, exactly as _order_children is: a context rebuilt in an order Tasker would
+    For the diff, exactly as order_action_children is: a context rebuilt in an order Tasker would
     not have written is a screenful of moved lines in xmldiff and in whatever the user keeps
     their backups in, hiding the one line that is the change they made.
     """
@@ -2449,8 +2449,8 @@ def _create_argument(site: Site, value: str) -> None:
         element.set("val", value)
     else:
         element.text = value
-    # In the order Tasker writes them, rather than appended at the end.  See _order_children.
-    _order_children(site.element)
+    # In the order Tasker writes them, rather than appended at the end.  See order_action_children.
+    order_action_children(site.element)
 
 
 def _rewrite_site(site: Site, pattern: re.Pattern | None = None, new_name: str = "") -> tuple[str, str]:

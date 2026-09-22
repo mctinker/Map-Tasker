@@ -46,6 +46,11 @@ FIND_FILE = "MapTasker_Find.txt"
 SWAP_FILE = "MapTasker_Replace.txt"
 # The preview a refactoring operation was applied from, or declined -- see maprefac.py.
 REFACTOR_FILE = "MapTasker_Refactor.txt"
+# The preview of the repairs offered for Health Check findings -- see mapfix.py.  Its own
+# file rather than an addition to HEALTHCHECK_FILE: the check's report says what is wrong
+# and this one says what was done about it, and the second is worth keeping next to the
+# first rather than folded into it.
+FIX_FILE = "MapTasker_Fix.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
 # What the Map and Diagram views' 'Export' button writes, with ".md", ".json" or ".pdf" added
 # -- see mapexport.py.  "_Export" on both, since DIAGRAM_FILE above already has the Diagram

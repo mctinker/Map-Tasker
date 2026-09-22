@@ -14,6 +14,10 @@
 !**/tests/*.py
 !docs/
 !.github/
+# Referenced by README.md.  GitHub serves the README's images out of the
+# repository, so they have to be tracked -- when they are not, every image
+# on the project page 404s.
+!documentation_images/
 
 # unignore files: files and folders to not ignore
 !.gitignore
@@ -63,6 +67,7 @@ MapTasker_Map.txt
 MapTasker_Apps.json
 MapTasker_Apps.jsontemp
 MapTasker_HealthCheck_*.txt
+MapTasker_Fix_*.txt
 MapTasker_VarXref_*.txt
 MapTasker_TaskFlow_*.txt
 MapTasker_Flowchart_*.txt

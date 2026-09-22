@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./documentation_images/maptasker_logo_dark.png">
-    <img src="./documentation_images/maptasker_logo_light.png">
+    <img src="./documentation_images/maptasker_logo_light.png" alt="MapTasker">
   </picture>
 </p>
 
@@ -15,7 +15,7 @@
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-black-000000.svg)](https://docs.astral.sh/ruff/formatter/)
-[!["Buy Me A Coffee"](/documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
+[!["Buy Me A Coffee"](./documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
 
@@ -26,10 +26,10 @@
 ## Display/Edit/Analyze the Tasker Project(s), Profile(s), Task(s), and Scene(s) in your (MAC/Windows11/Linux) desktop browser based on Tasker's backup or exported XML file
 
 Configuration Map...
-![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
+![MapTasker configuration map: a project, its profiles and its tasks as a color-coded indented outline, with each task's numbered actions and their settings listed beneath it](./documentation_images/intro.png)
 
 Diagram Map...
-![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/Introd.png)
+![MapTasker diagram map: a project and its profiles drawn as boxes with their tasks below, and lines tracing which task calls which, with one call path highlighted](./documentation_images/Introd.png)
 
 [[More Samples]](<https://github.com/mctinker/Map-Tasker/wiki#sample-output>)
 
@@ -387,4 +387,4 @@ We appreciate your help in making MapTasker better!
 
 [NiceGui](https://nicegui.io/)
 
-[!["Buy Me A Coffee"](/documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
+[!["Buy Me A Coffee"](./documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)

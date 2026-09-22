@@ -8781,6 +8781,33 @@ def initialize_screen(self: MyGui) -> None:
                 ),
             ).style("white-space: pre-wrap")
 
+        # Directly under Health Check, because it is the answer to the report that button
+        # produces and is useless anywhere else.  Its own button rather than something inside
+        # the report: the report is displayed as one escaped blob of text in a <pre> (see
+        # userintr_reports.health_check_event on why), and a tick box cannot be put into one.
+        self.fix_findings_button = (
+            ui.button(
+                translate_string("Fix Findings"),
+                color="teal",
+                on_click=self.event_handlers.fix_findings_event,
+                icon="build",
+            )
+            .classes("w-full justify-center")
+            .style("margin-top:-6px")
+        )
+        with self.fix_findings_button:
+            ui.tooltip(
+                translate_string(
+                    "Repair the Health Check findings that have an obvious fix: set a long Task's "
+                    "collision handling, give a blocking action a timeout, close an 'If' that is never "
+                    "closed, point a broken 'Goto' at a label that exists, delete a Task nothing "
+                    "runs.\n\nEverything is shown before anything is done, you tick what you want, and "
+                    "the whole lot is one press of Undo afterwards.\n\nMost kinds of finding are not "
+                    "offered here -- a broken 'Perform Task' or a password written into an action is a "
+                    "decision only you can make.",
+                ),
+            ).style("white-space: pre-wrap")
+
         # Full width and coloured through "color" for the same two reasons the Health Check
         # button above is: the drawer is w-80 and this label is longer still, and Quasar's own
         # bg-primary beats a Tailwind bg-* class added here.

@@ -776,8 +776,12 @@ def _check_frequent_triggers(problems: list[Problem]) -> None:
 # ##################################################################################
 # Tasks: polling loops, monitors left running, collisions and blocking waits.
 # ##################################################################################
-def _timeout_arguments() -> dict[str, str]:
+def timeout_arguments() -> dict[str, str]:
     """{action code: arg id} for every blocking action that takes a timeout.
+
+    Public because mapfix writes the timeout this reports missing, and it has to write it
+    into the same argument this read it out of -- a second derivation of "which argument is
+    the timeout" would be free to drift from this one and put a number in the wrong slot.
 
     Derived from the action table the way _switch_actions is, so a new Tasker action with
     a timeout is covered without this module being touched.  Matched on the argument's name
@@ -957,7 +961,7 @@ def _check_task_hygiene(problems: list[Problem]) -> None:
     for the same answers.
     """
     owners = _project_owners("tids")
-    timeouts = _timeout_arguments()
+    timeouts = timeout_arguments()
     triggers = _profile_triggers()
     location_stopped = _location_is_stopped()
 

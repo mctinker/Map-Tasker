@@ -491,8 +491,8 @@ def _control_flow_codes(actions: list) -> set[str]:
 #
 # The order is arg0, arg1, arg10, arg2 ... arg9, which looks like a mistake and is not:
 # Tasker sorts an action's argument children by their 'sr' as TEXT.  Written in that order
-# for the reason mapswap._order_children gives -- an action built in a different order than
-# Tasker would have written it is a screenful of moved lines in any diff of the backup, all
+# for the reason mapswap.order_action_children gives -- an action built in a different
+# order than Tasker would have written it is a screenful of moved lines in any diff, all
 # of it noise around the one line that is the actual change.
 _PERFORM_TASK_TEMPLATE = (
     ("Int", "arg10", "1"),
