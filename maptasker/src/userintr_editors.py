@@ -403,7 +403,7 @@ def _notify_if_plugin_needs_configuration(element: object, name: str) -> None:
         ui.notify(warning, type="warning", multi_line=True, timeout=8000)
 
 
-def _reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool, str]:
+def reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool, str]:
     """After Save To Current File writes a new, timestamped copy of the backup
     (see maputil2.write_full_backup_to_current_file -- the original file it
     was loaded from is never touched), switches the app over to that copy so
@@ -412,6 +412,12 @@ def _reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool
     open_and_get_backup_xml_file uses (open() the file, then
     taskerd.get_the_xml_data()), updates the Current File display, and
     refreshes the Project/Profile/Task pulldowns from the freshly loaded data.
+
+    Public because the Fix Findings dialog saves the same way the four Edit
+    dialogs do (see userintr.fix_findings_event).  It is the same two steps in
+    the same order there; what differs is only what each caller does between
+    them and afterwards, which is why this is shared and the sequence around
+    it is not.
 
     Returns (True, "") on success, or (False, error_message) if the reload
     itself fails -- the copy was still written to disk either way; only the
@@ -1168,7 +1174,7 @@ class EditorEventHandlers:
         Ok), then writes the *entire* current backup -- not just this Task --
         out to a new, timestamped copy of whatever file it was loaded from
         (see maputil2.write_full_backup_to_current_file) and switches the app
-        over to that copy (see _reload_saved_copy_and_refresh) -- the original
+        over to that copy (see reload_saved_copy_and_refresh) -- the original
         file is left untouched. Backs the "Save To Current File" button.
         Dialog stays open on any error so the user's in-progress edits aren't
         lost.
@@ -1185,7 +1191,7 @@ class EditorEventHandlers:
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
-        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
@@ -1444,7 +1450,7 @@ class EditorEventHandlers:
         Rename), then writes the *entire* current backup -- not just this
         Project -- out to a new, timestamped copy of whatever file it was
         loaded from (see maputil2.write_full_backup_to_current_file) and
-        switches the app over to that copy (see _reload_saved_copy_and_refresh)
+        switches the app over to that copy (see reload_saved_copy_and_refresh)
         -- the original file is left untouched. Mirrors
         save_edited_profile_to_current_file_event/
         save_edited_task_to_current_file_event. Backs the "Save To Current
@@ -1455,7 +1461,7 @@ class EditorEventHandlers:
         (_select_renamed_item), so the Project stays selected under its new
         name -- but only after the reload, never before: this path replaces
         every table wholesale by re-parsing the file it just wrote (see
-        _reload_saved_copy_and_refresh), so a selection made beforehand would
+        reload_saved_copy_and_refresh), so a selection made beforehand would
         be pointing at state that no longer exists a moment later. Re-selecting
         matters most here of the three: a Project's identity is its name (see
         rename_project_in_live_tree), so a rename through this button would
@@ -1486,7 +1492,7 @@ class EditorEventHandlers:
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
-        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
@@ -1874,7 +1880,7 @@ class EditorEventHandlers:
         whatever file it was loaded from (see
         maputil2.write_full_backup_to_current_file, whose reconciliation now
         covers Scenes too) and switches the app over to that copy (see
-        _reload_saved_copy_and_refresh) -- the original file is left untouched.
+        reload_saved_copy_and_refresh) -- the original file is left untouched.
         Mirrors save_project_to_current_file_event.  Dialog stays open on any
         error so the user's in-progress edit isn't lost.
 
@@ -1894,7 +1900,7 @@ class EditorEventHandlers:
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
-        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
@@ -2322,7 +2328,7 @@ class EditorEventHandlers:
         Ok), then writes the *entire* current backup -- not just this Profile
         -- out to a new, timestamped copy of whatever file it was loaded from
         (see maputil2.write_full_backup_to_current_file) and switches the app
-        over to that copy (see _reload_saved_copy_and_refresh) -- the original
+        over to that copy (see reload_saved_copy_and_refresh) -- the original
         file is left untouched. Backs the "Save To Current File" button.
         Dialog stays open on any error so the user's in-progress edits aren't
         lost.
@@ -2337,7 +2343,7 @@ class EditorEventHandlers:
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
-        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
@@ -2418,7 +2424,7 @@ class EditorEventHandlers:
         it to its Project, then writes the *entire* current backup out to a
         new, timestamped copy of whatever file it was loaded from (see
         maputil2.write_full_backup_to_current_file) and switches the app over
-        to that copy (see _reload_saved_copy_and_refresh) -- the original file
+        to that copy (see reload_saved_copy_and_refresh) -- the original file
         is left untouched -- unlike Save, which exports just this one Profile
         as a standalone file. Backs the "Save To Current File" button. Dialog
         stays open on any error so the user's in-progress work isn't lost; a
@@ -2435,7 +2441,7 @@ class EditorEventHandlers:
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
-        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
@@ -2738,7 +2744,7 @@ class EditorEventHandlers:
         current backup out to a new, timestamped copy of whatever file it was
         loaded from (see maputil2.write_full_backup_to_current_file) and
         switches the app over to that copy (see
-        _reload_saved_copy_and_refresh) -- the original file is left
+        reload_saved_copy_and_refresh) -- the original file is left
         untouched -- unlike Save, which exports just this one Task as a
         standalone file. Backs the "Save To Current File" button. Dialog
         stays open on any error so the user's in-progress work isn't lost; a
@@ -2756,7 +2762,7 @@ class EditorEventHandlers:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
 
-        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return

@@ -76,6 +76,7 @@ from maptasker.src.guiwins_refactor import build_refactor_dialog
 from maptasker.src.maputil2 import (
     log_startup_values,
     translate_string,
+    write_full_backup_to_current_file,
 )
 from maptasker.src.maputils import (
     append_to_filename,
@@ -124,7 +125,7 @@ from maptasker.src.userhelp import (
 )
 from maptasker.src.userintr_ai import AIEventHandlers
 from maptasker.src.userintr_android import AndroidEventHandlers
-from maptasker.src.userintr_editors import EditorEventHandlers
+from maptasker.src.userintr_editors import EditorEventHandlers, reload_saved_copy_and_refresh
 from maptasker.src.userintr_loading import LoadingEventHandlers
 from maptasker.src.userintr_reports import ReportEventHandlers
 from maptasker.src.userintr_settings import SettingsEventHandlers
@@ -1836,7 +1837,56 @@ class MapTaskerEventHandlers(
             """
             refresh_tasker_object_pulldowns(self.gui)
 
-        dialog = build_fix_dialog("", make_jump, refresh_after_apply)
+        def save_configuration() -> bool:
+            """The dialog's 'Save To Current File'.  True when the list must be rebuilt.
+
+            The same two steps, in the same order, as every Edit dialog's button of that name
+            (see userintr_editors.save_edited_task_to_current_file_event): write the WHOLE
+            configuration to a new timestamped copy of the loaded file, then switch the app
+            over to that copy.  The original file is never written to.
+
+            Here rather than in guiwins_fix for the reason make_jump is: that module builds
+            widgets and knows nothing about what a backup is, and reaching back into this one
+            for the save path would be a circular import.
+
+            Reported here rather than returned as a message, because the three outcomes are
+            three different things to say and only one of them is an error:
+
+              SAVED AND SWITCHED.  The ordinary case.  The list has to be rebuilt afterwards
+              -- the reload replaces every lookup table, so the plan is holding elements that
+              are no longer in the configuration, which is exactly what mapfix.apply's
+              attachment check would refuse on.
+
+              SAVED, BUT THE COPY WOULD NOT LOAD.  The file is on disk and the work is safe;
+              what failed is the switch to it.  Rebuilt anyway, because the tables may have
+              been part-replaced -- the same reading the Edit dialogs take of this case.
+
+              NOT SAVED.  Nothing was written and nothing changed, so there is nothing to
+              rebuild and the list is left exactly as it was.
+            """
+            saved, result = write_full_backup_to_current_file()
+            if not saved:
+                ui.notify(f"{translate_string('Could not save to current file:')} {result}", type="negative")
+                return False
+
+            loaded, error = reload_saved_copy_and_refresh(self.gui, result)
+            if not loaded:
+                ui.notify(
+                    f"{translate_string('Saved a copy to')} {result}, "
+                    f"{translate_string('but it could not be loaded:')} {error}",
+                    type="warning",
+                )
+                return True
+
+            ui.notify(
+                f"{translate_string('Saved a copy to')} {result} "
+                f"{translate_string('and loaded it.  The original file was left unchanged.')}",
+                type="positive",
+                position="top",
+            )
+            return True
+
+        dialog = build_fix_dialog("", make_jump, refresh_after_apply, save_configuration)
         if dialog is None:
             return
         self.gui.fix_dialog = dialog

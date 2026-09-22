@@ -6,7 +6,8 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: A new 'Fix Findings' button beside 'Health Check' repairs the findings that have an obvious fix -- setting a long-running Task's collision handling, giving a blocking action a timeout, closing an 'If' or 'For' that is never closed, pointing a broken 'Goto' at a label the Task carries, and deleting a Task nothing runs.  Everything is listed with what it would change before anything happens, you tick only what you want, and however many repairs you make, the whole lot is a single Undo.
+- Added: A new __Fix Finding__ button beside 'Health Check' repairs the findings that have an obvious fix -- setting a long-running Task's collision handling, giving a blocking action a timeout, closing an 'If' or 'For' that is never closed, pointing a broken 'Goto' at a label the Task carries, and deleting a Task nothing runs.  Everything is listed with what it would change before anything happens, you tick only what you want, and however many repairs you make, the whole lot is a single Undo.
+- Added: The __Fix Findings__ window now has its own 'Save To Current File', so repairs can be written to disk without opening an editor on some unrelated object first.  It saves the whole configuration -- these repairs and every other edit made this session -- to a new timestamped copy, leaving the file you loaded untouched.
 - Added:
 
 ### Changed

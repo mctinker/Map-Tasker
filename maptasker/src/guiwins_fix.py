@@ -101,14 +101,20 @@ def build_fix_dialog(
     title: str,
     make_jump: Callable,
     rebuild_after_apply: Callable[[], Coroutine],
+    save_configuration: Callable[[], bool],
 ) -> ui.dialog | None:
     """Build and return the Fix Findings dialog, or None if there is nothing loaded to scan.
 
-    Takes the three things it needs from the view and nothing else -- what the view is
-    called, how to follow a row to the object it names, and how to bring the rest of the
-    window up to date once something has changed.  Passed in rather than imported, for
-    guiwins_refactor's reason: this module is reached FROM guiwins, and reaching back into
-    it for go_to_target would be a circular import for two functions' worth of behaviour.
+    Takes the four things it needs from the view and nothing else -- what the view is called,
+    how to follow a row to the object it names, how to bring the rest of the window up to
+    date once something has changed, and how to write the configuration to a file.  Passed
+    in rather than imported, for guiwins_refactor's reason: this module is reached FROM
+    guiwins, and reaching back into it would be a circular import for four functions' worth
+    of behaviour.
+
+    `save_configuration` returns whether the list has to be rebuilt afterwards; it reports
+    its own outcome to the user, because what there is to say about a save is not something
+    this module knows (see userintr.fix_findings_event, which has all three answers).
     """
     if not PrimeItems.tasker_root_elements.get("all_tasks"):
         ui.notify(translate_string("No XML file has been loaded.  Get an XML file first."), type="warning")
@@ -255,21 +261,22 @@ def build_fix_dialog(
             # repair that has already been tried and did not work.
             scan()
 
-        def save_preview() -> None:
-            """Write the list to a file, exactly as it stands.
+        def do_save() -> None:
+            """The Save button: write the repairs -- and every other edit this session -- to a file.
 
-            Worth having for the repairs the user decides NOT to make as much as the ones
-            they do: a skip names what has to be done by hand before the repair can be
-            offered at all, and that work list does not survive closing this window.
+            HERE BECAUSE THE REPAIRS ARE IN MEMORY AND NOTHING ELSE ON THIS SCREEN SAYS SO.
+            Apply changes the loaded configuration and no file, the same way every Edit dialog's
+            Ok does; without this the only way to get eight ticked repairs onto disk was to open
+            an editor on some unrelated object and press its own Save To Current File, which is
+            a strange place to have to go for the result of a press made here.
+
+            The list is rebuilt when the save reports it should be, and it must be: the switch
+            to the saved copy reloads the whole configuration, so every element the plan is
+            holding belongs to a tree nothing renders from any more.  Ticks and choices are
+            carried across by identity, so repairs decided and not yet applied survive it.
             """
-            plan = held["plan"]
-            if plan is None:
-                return
-            file_name = mapfix.write_fix_report(mapfix.report_rows(plan))
-            if file_name:
-                ui.notify(f"{translate_string('Fix preview saved as')} {file_name}", type="positive")
-            else:
-                ui.notify(translate_string("Fix preview could not be saved."), type="negative")
+            if save_configuration():
+                scan(restore=True)
 
         _build_buttons(
             dialog,
@@ -278,7 +285,8 @@ def build_fix_dialog(
                 "tick_none": lambda: set_all(ticked=False),
                 "rescan": lambda: scan(restore=True),
                 "apply": do_apply,
-                "save": save_preview,
+                "save_file": do_save,
+                "save": lambda: _save_preview(held["plan"]),
             },
         )
 
@@ -444,6 +452,27 @@ def _draw_choice(
         select.tooltip(translate_string(_UNDECIDED_TIP))
 
 
+def _save_preview(plan: mapfix.Plan | None) -> None:
+    """Write the list to a text file, exactly as it stands.
+
+    Worth having for the repairs the user decides NOT to make as much as the ones they do: a
+    skip names what has to be done by hand before the repair can be offered at all, and that
+    work list does not survive closing this window.
+
+    NOT the same button as Save To Current File, which is why that one is coloured apart from
+    every other button here: this writes a REPORT about the configuration, that writes the
+    configuration, and two buttons beginning "Save" sitting side by side had better not read
+    as a pair.
+    """
+    if plan is None:
+        return
+    file_name = mapfix.write_fix_report(mapfix.report_rows(plan))
+    if file_name:
+        ui.notify(f"{translate_string('Fix preview saved as')} {file_name}", type="positive")
+    else:
+        ui.notify(translate_string("Fix preview could not be saved."), type="negative")
+
+
 # ##################################################################################
 # The button row.
 # ##################################################################################
@@ -478,6 +507,25 @@ def _build_buttons(dialog: ui.dialog, handlers: dict) -> None:
             "However many there are, the whole lot is one press of Undo afterwards.\n\n"
             "The list is scanned again straight away, so what is left in front of you is what is still "
             "wrong.\n\n",
+        )
+        _tip(
+            # Coloured through the "color" prop rather than a bg-* class, for the reason the
+            # drawer's own Health Check button gives: Quasar puts bg-primary on every button
+            # and that beats a Tailwind bg-* added here, so a bg-green-700 renders plain blue.
+            # It is the one button on this row that writes the configuration, and the only one
+            # whose effect outlives the session, so it is the one that does not look like the
+            # rest -- in particular not like "Save Preview" beside it.
+            ui.button(translate_string("Save To Current File"), color="green", on_click=handlers["save_file"]).classes(
+                "text-white px-4",
+            ),
+            "Write the whole configuration -- these repairs and every other edit made this session -- "
+            "to a file.\n\n"
+            "It goes to a new, timestamped copy of the file you loaded: backup.xml becomes "
+            "backup_20260728_143005.xml.  The file you loaded is never written to, so it is left "
+            "exactly as it was.\n\n"
+            "The app then switches to the copy, and this list is scanned again against it.  Your "
+            "ticks and choices are kept.\n\n"
+            "Until you press this, the repairs exist only in memory and are lost on exit.\n\n",
         )
         _tip(
             ui.button(translate_string("Save Preview"), on_click=handlers["save"]).classes(
