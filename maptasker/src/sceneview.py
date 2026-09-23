@@ -1064,10 +1064,10 @@ def _draw_inline_html(source: str, width: int, height: int, options: PreviewOpti
 def _draw_text(
     element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
+    _width: int,
     height: int,
     options: PreviewOptions,
-    depth: int,  # noqa: ARG001
+    _depth: int,
 ) -> None:
     """TextElement: 1 Text, 2 Text Size, 3 Width Scale %, 4 Colour, 5 Font, 6 Position,
     7 Vertical Fit Mode, 8 Text Format.
@@ -1086,10 +1086,10 @@ def _draw_text(
 def _draw_button(
     element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
+    _width: int,
     height: int,
     options: PreviewOptions,
-    depth: int,  # noqa: ARG001
+    _depth: int,
 ) -> None:
     """ButtonElement: 1 Label, 2 Label Size, 3 Width Scale %, 4 Label Colour, 5 Font,
     6 Position, 7 Icon.
@@ -1114,10 +1114,10 @@ def _draw_button(
 def _draw_edit_text(
     element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
+    _width: int,
     height: int,
     options: PreviewOptions,
-    depth: int,  # noqa: ARG001
+    _depth: int,
 ) -> None:
     """EditTextElement: 1 Text, 2 Text Size, 3 Width Scale %, 4 Colour, 5 Font, 6 Position,
     7 Input Type, 8 Maximum Characters (1000 means unlimited).
@@ -1135,24 +1135,24 @@ def _draw_edit_text(
 
 
 def _draw_rect(
-    element: defusedxml.ElementTree.Element,  # noqa: ARG001
+    _element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
-    height: int,  # noqa: ARG001
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _width: int,
+    _height: int,
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """RectElement -- see _rect_style for the arguments."""
     ui.element("div").style(f"position: absolute; inset: 0; box-sizing: border-box; {_rect_style(args)}")
 
 
 def _draw_oval(
-    element: defusedxml.ElementTree.Element,  # noqa: ARG001
+    _element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
-    height: int,  # noqa: ARG001
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _width: int,
+    _height: int,
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """OvalElement: the same as a Rect minus the corner arguments -- 1 Shader, 2 Colour,
     3 End Colour, 4 Border Width, 5 Border Colour.  Its shape is the ellipse of its box.
@@ -1163,12 +1163,12 @@ def _draw_oval(
 
 
 def _draw_image(
-    element: defusedxml.ElementTree.Element,  # noqa: ARG001
+    _element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
-    height: int,  # noqa: ARG001
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _width: int,
+    _height: int,
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """ImageElement: 1 Image, 2 Alpha (0-255).
 
@@ -1193,8 +1193,8 @@ def _draw_check_box(
     args: ElementArgs,
     width: int,
     height: int,
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """CheckBoxElement: 1 Checked."""
     _draw_toggle_glyph(element, args, width, height, "check_box", "check_box_outline_blank")
@@ -1205,8 +1205,8 @@ def _draw_switch(
     args: ElementArgs,
     width: int,
     height: int,
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """SwitchElement: 1 Checked."""
     _draw_toggle_glyph(element, args, width, height, "toggle_on", "toggle_off")
@@ -1235,12 +1235,12 @@ def _draw_toggle_glyph(
 
 
 def _draw_slider(
-    element: defusedxml.ElementTree.Element,  # noqa: ARG001
+    _element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
+    _width: int,
     height: int,
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """SliderElement: 1 Orientation, 2 Min, 3 Max, 4 Default, 5 Show Indicators, 6 Icon.
 
@@ -1271,12 +1271,12 @@ def _draw_slider(
 
 
 def _draw_toggle(
-    element: defusedxml.ElementTree.Element,  # noqa: ARG001
+    _element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
+    _width: int,
     height: int,
     options: PreviewOptions,
-    depth: int,  # noqa: ARG001
+    _depth: int,
 ) -> None:
     """ToggleElement: 1 On, 2 Off Label, 3 On Label, 4 Label Size, 5 Width Scale %,
     6 Label Colour.
@@ -1304,12 +1304,12 @@ def _draw_toggle(
 
 
 def _draw_web(
-    element: defusedxml.ElementTree.Element,  # noqa: ARG001
+    _element: defusedxml.ElementTree.Element,
     args: ElementArgs,
     width: int,
     height: int,
     options: PreviewOptions,
-    depth: int,  # noqa: ARG001
+    _depth: int,
 ) -> None:
     """WebElement: 1 Mode (URL / File / Direct), 2 Source.
 
@@ -1333,12 +1333,12 @@ def _draw_web(
 
 
 def _draw_video(
-    element: defusedxml.ElementTree.Element,  # noqa: ARG001
+    _element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
-    height: int,  # noqa: ARG001
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _width: int,
+    _height: int,
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """VideoElement.  MapTasker has no argument table for this one (it is absent from
     actionc.action_codes), so nothing beyond arg0's name is claimed about it -- see this
@@ -1348,12 +1348,12 @@ def _draw_video(
 
 
 def _draw_doodle(
-    element: defusedxml.ElementTree.Element,  # noqa: ARG001
+    _element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
-    height: int,  # noqa: ARG001
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _width: int,
+    _height: int,
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """DoodleElement: 1 Doodle (a bitmap cached on the device), 2 Alpha."""
     _, path = args.image(1)
@@ -1361,12 +1361,12 @@ def _draw_doodle(
 
 
 def _draw_map(
-    element: defusedxml.ElementTree.Element,  # noqa: ARG001
+    _element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
-    height: int,  # noqa: ARG001
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _width: int,
+    _height: int,
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """SceneElement -- Tasker's Map element, despite the tag: 1 Lat/Long, 2 Zoom,
     3 Show Traffic, 4 Show Satellite, 5 Show Roads.
@@ -1377,10 +1377,10 @@ def _draw_map(
 def _draw_picker(
     element: defusedxml.ElementTree.Element,
     args: ElementArgs,
-    width: int,  # noqa: ARG001
+    _width: int,
     height: int,
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """PickerElement: 1 Min, 2 Max, 3 Default, 4 Wrap Around, 5 Format.  Drawn as the
     number spinner it is -- chevrons above and below the default value.
@@ -1483,11 +1483,11 @@ def _draw_item_layout(
 
 def _draw_unknown(
     element: defusedxml.ElementTree.Element,
-    args: ElementArgs,  # noqa: ARG001
-    width: int,  # noqa: ARG001
-    height: int,  # noqa: ARG001
-    options: PreviewOptions,  # noqa: ARG001
-    depth: int,  # noqa: ARG001
+    _args: ElementArgs,
+    _width: int,
+    _height: int,
+    _options: PreviewOptions,
+    _depth: int,
 ) -> None:
     """An element type this app has no argument table for -- a newer Tasker's, most likely.
 
@@ -2182,7 +2182,7 @@ def _v2_weight(modifier: dict) -> str:
         numeric = int(float(amount))
     except ValueError:
         return ""
-    return f"font-weight: {numeric};" if 100 <= numeric <= 900 else ""  # noqa: PLR2004
+    return f"font-weight: {numeric};" if 100 <= numeric <= 900 else ""
 
 
 def _v2_fraction(modifier: dict) -> str:
@@ -2891,7 +2891,7 @@ def _v2_draw_navigation_bar(node: dict, options: PreviewOptions, depth: int) -> 
             _v2_draw_node(marked, options, depth + 1)
 
 
-def _v2_draw_navigation_item(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_navigation_item(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """NavigationItem: an icon over a label, tinted when it is the selected one."""
     is_selected = str(node.get("selected", "")).lower() == "true"
     colour = V2_MATERIAL_PALETTE["onSecondaryContainer" if is_selected else "onSurfaceVariant"]
@@ -2904,7 +2904,7 @@ def _v2_draw_navigation_item(node: dict, options: PreviewOptions, depth: int) ->
         _v2_text(node.get("label"), f"font-size: 12px; line-height: 1.2; color: {colour};")
 
 
-def _v2_draw_text(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_text(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Text: the component real Scenes are mostly made of."""
     if _v2_is_html(node):
         _v2_html_text(node, _v2_text_style(node))
@@ -2912,7 +2912,7 @@ def _v2_draw_text(node: dict, options: PreviewOptions, depth: int) -> None:  # n
     _v2_text(node.get("text"), _v2_text_style(node))
 
 
-def _v2_draw_button(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_button(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Button: text, buttonColor behind it, textColor on it -- Material's filled button when
     the Scene does not say otherwise.
     """
@@ -2930,7 +2930,7 @@ def _v2_draw_button(node: dict, options: PreviewOptions, depth: int) -> None:  #
         )
 
 
-def _v2_draw_icon_button(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_icon_button(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """IconButton: a 48dp target with the icon in the middle.  These draw as the real icon --
     "icon:Close" is Material's own name for it, so the browser has the same glyph Android does.
     """
@@ -2956,7 +2956,7 @@ def _v2_draw_fab(node: dict, options: PreviewOptions, depth: int) -> None:
             _v2_icon_or_placeholder(node.get("icon") or "icon:Add", 24, V2_MATERIAL_PALETTE["onPrimaryContainer"])
 
 
-def _v2_draw_text_input(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_text_input(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """TextInput: an outlined field showing its label.  What it writes into is on its badge
     (see _v2_binding_lines) -- for a text field that is the interesting half.
     """
@@ -2970,12 +2970,12 @@ def _v2_draw_text_input(node: dict, options: PreviewOptions, depth: int) -> None
         )
 
 
-def _v2_draw_switch(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_switch(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Switch: on or off, from `checked`."""
     _v2_draw_toggle(node, "toggle_on", "toggle_off")
 
 
-def _v2_draw_checkbox(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_checkbox(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Checkbox: ticked or not, from `checked`."""
     _v2_draw_toggle(node, "check_box", "check_box_outline_blank")
 
@@ -2994,7 +2994,7 @@ def _v2_draw_toggle(node: dict, on_icon: str, off_icon: str) -> None:
             _v2_text(raw, "font-size: 11px; line-height: 1.2;")
 
 
-def _v2_draw_slider(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_slider(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Slider: the thumb where `value` falls between min and max."""
     minimum = _v2_float(node.get("min"), 0.0)
     maximum = _v2_float(node.get("max"), 100.0)
@@ -3004,7 +3004,7 @@ def _v2_draw_slider(node: dict, options: PreviewOptions, depth: int) -> None:  #
     _v2_draw_track([fraction])
 
 
-def _v2_draw_range_slider(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_range_slider(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """RangeSlider: two thumbs, at `start` and `end`, on a 0-1 scale of its own."""
     _v2_draw_track(
         [
@@ -3037,7 +3037,7 @@ def _v2_draw_track(fractions: list[float]) -> None:
                 )
 
 
-def _v2_draw_progress(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_progress(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """ProgressBar: minProgress is where it starts, and its colour is its own property."""
     colour = v2_colour(node.get("color"), fallback=V2_MATERIAL_PALETTE["primary"])
     fraction = max(0.0, min(1.0, _v2_float(node.get("minProgress"), 0.0)))
@@ -3065,7 +3065,7 @@ def _v2_draw_segmented_row(node: dict, options: PreviewOptions, depth: int) -> N
             _v2_draw_node(marked, options, depth + 1)
 
 
-def _v2_draw_segmented_item(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_segmented_item(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """SegmentedButtonItem: one segment of that control."""
     is_selected = str(node.get("selected", "")).lower() == "true"
     with ui.element("div").style(
@@ -3123,7 +3123,7 @@ def _v2_draw_arrays_template(node: dict, options: PreviewOptions, depth: int) ->
             _v2_draw_node(child, options, depth + 1)
 
 
-def _v2_draw_variable(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_variable(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Variable: declares a Scene variable and draws nothing at all in Tasker.
 
     Drawn here as a marker, because "nothing" and "not there" look identical on screen and
@@ -3140,20 +3140,20 @@ def _v2_draw_variable(node: dict, options: PreviewOptions, depth: int) -> None: 
         )
 
 
-def _v2_draw_spacer(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_spacer(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Spacer: empty space of a fixed size."""
     height = _v2_number(node, "height") or "16px"
     width = _v2_number(node, "width")
     ui.element("div").style(f"height: {height};{f'width: {width};' if width else 'width: 100%;'} flex: none;")
 
 
-def _v2_draw_divider(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_divider(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Divider: a rule across its container."""
     colour = v2_colour(node.get("color"), fallback=V2_MATERIAL_PALETTE["outlineVariant"])
     ui.element("div").style(f"width: 100%; height: 1px; background: {colour.css}; flex: none;")
 
 
-def _v2_draw_image(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_image(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Image: a named icon, or a URL that is deliberately not fetched.
 
     An icon: reference draws as the real icon.  A URL does not: previewing a Scene should not
@@ -3181,7 +3181,7 @@ def _v2_draw_image(node: dict, options: PreviewOptions, depth: int) -> None:  # 
         _placeholder("image", "Image", url.rsplit("/", 1)[-1] if url else "")
 
 
-def _v2_draw_web_view(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_web_view(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """WebView: an embedded page, or HTML held in a variable.
 
     Inline HTML is drawn, in the same sandboxed frame the Legacy WebElement uses -- see
@@ -3201,7 +3201,7 @@ def _v2_draw_web_view(node: dict, options: PreviewOptions, depth: int) -> None: 
             _placeholder("public", "WebView", content.splitlines()[0][:60] if content else "")
 
 
-def _v2_draw_video(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_video(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Video: source, and whether it starts itself and loops."""
     flags = [name for name in ("autoPlay", "loop") if str(node.get(name, "")).lower() == "true"]
     caption = f"Video ({', '.join(flags)})" if flags else "Video"
@@ -3210,13 +3210,13 @@ def _v2_draw_video(node: dict, options: PreviewOptions, depth: int) -> None:  # 
         _placeholder("movie", caption, detail.rsplit("/", 1)[-1])
 
 
-def _v2_draw_camera(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_camera(node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Camera: a live preview from one of the device's lenses."""
     with ui.element("div").style("position: relative; width: 100%; height: 140px; flex: none;"):
         _placeholder("photo_camera", "Camera", str(node.get("lens", "")))
 
 
-def _v2_draw_placeholder(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
+def _v2_draw_placeholder(_node: dict, _options: PreviewOptions, _depth: int) -> None:
     """Placeholder: Tasker's own blank stand-in, for reserving space while building."""
     with ui.element("div").style("position: relative; width: 100%; height: 48px; flex: none;"):
         _placeholder("crop_free", "Placeholder")

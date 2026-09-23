@@ -175,12 +175,12 @@ def original_of(file_path: str) -> str:
     """
     if not file_path:
         return ""
-    base_path, extension = os.path.splitext(file_path)  # noqa: PTH122
+    base_path, extension = os.path.splitext(file_path)
     stripped = TIMESTAMP_SUFFIX_RE.sub("", base_path)
     if stripped == base_path:
         return ""
     original = f"{stripped}{extension}"
-    return original if os.path.isfile(original) else ""  # noqa: PTH113
+    return original if os.path.isfile(original) else ""
 
 
 def write_comparison_report(report: str, base_name: str = COMPARE_FILE) -> str:
@@ -205,8 +205,8 @@ def write_comparison_report(report: str, base_name: str = COMPARE_FILE) -> str:
     if not file_name:
         return ""
     try:
-        report_path = os.path.join(os.getcwd(), file_name)  # noqa: PTH109, PTH118
-        with open(report_path, "w", encoding="utf-8") as output_file:  # noqa: PTH123
+        report_path = os.path.join(os.getcwd(), file_name)
+        with open(report_path, "w", encoding="utf-8") as output_file:
             output_file.write(report)
     except OSError as error:
         logger.error(f"Comparison report could not be written: {error}")
@@ -300,7 +300,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
         # went wrong.
         try:
             scratch = _scratch_copy(file_path)
-            opened = open(scratch)  # noqa: SIM115, PTH123  (closed in the finally below)
+            opened = open(scratch)  # Closed in the finally below.
             PrimeItems.file_to_get = opened
             PrimeItems.tasker_root_elements = initial_tasker_root_elements()
             clear_error()
@@ -337,7 +337,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
             # missing_ok: the parse may have replaced it (see rewrite_xml above), which
             # is exactly what the copy is here to absorb.
             with contextlib.suppress(OSError):
-                os.unlink(scratch)  # noqa: PTH108
+                os.unlink(scratch)
 
         for name, value in saved.items():
             setattr(PrimeItems, name, value)
@@ -379,7 +379,7 @@ def _read_error_file() -> bytes | None:
     their own configuration had failed.
     """
     try:
-        with open(ERROR_FILE, "rb") as error_file:  # noqa: PTH123
+        with open(ERROR_FILE, "rb") as error_file:
             return error_file.read()
     except OSError:
         return None
@@ -389,10 +389,10 @@ def _restore_error_file(contents: bytes | None) -> None:
     """Put the error file back as it was -- rewritten, or removed if there was none."""
     try:
         if contents is None:
-            if os.path.exists(ERROR_FILE):  # noqa: PTH110
-                os.unlink(ERROR_FILE)  # noqa: PTH108
+            if os.path.exists(ERROR_FILE):
+                os.unlink(ERROR_FILE)
         else:
-            with open(ERROR_FILE, "wb") as error_file:  # noqa: PTH123
+            with open(ERROR_FILE, "wb") as error_file:
                 error_file.write(contents)
     except OSError as error:
         logger.error(f"Error file could not be restored after a comparison: {error}")

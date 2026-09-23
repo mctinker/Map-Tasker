@@ -174,7 +174,7 @@ def check_models(model: str, silence_output: bool) -> str | None:
                 console.say(str(chunk))
             console.say(f"'{model}' downloaded, starting processes.")
         return model
-    except Exception as e:  # noqa: BLE001  ollama.pull raises its own hierarchy; any of it means "no model".
+    except Exception as e:  # ollama.pull raises its own hierarchy; any of it means "no model".
         console.error(str(e))
         # Model not found!
         PrimeItems.error_code = 1
@@ -325,7 +325,7 @@ class Model(Cria, ContextDecorator):
         if not run_attached:
             llm_stdout = subprocess.PIPE if capture_output else subprocess.DEVNULL
             llm_stderr = subprocess.PIPE if capture_output else subprocess.DEVNULL
-            self.llm = subprocess.Popen(["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr)  # noqa: S603, S607
+            self.llm = subprocess.Popen(["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr)
         else:
             self.llm = find_process(["ollama", "run", self.model])
 
@@ -334,7 +334,7 @@ class Model(Cria, ContextDecorator):
 
             llm_stdout = subprocess.PIPE if capture_output else subprocess.DEVNULL
             llm_stderr = subprocess.PIPE if capture_output else subprocess.DEVNULL
-            self.llm = subprocess.Popen(["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr)  # noqa: S603, S607
+            self.llm = subprocess.Popen(["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr)
 
         if close_on_exit:
             atexit.register(lambda: self.llm.kill())

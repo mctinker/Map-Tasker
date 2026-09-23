@@ -170,9 +170,7 @@ def build_fix_dialog(
                 # arrives as 60.0.  Canonicalised on the way in so that what is stored, what
                 # the line below says, and what gets written are one number -- see
                 # mapfix.whole_seconds, which is tolerant of it either way.
-                plan.chosen[position] = (
-                    mapfix.whole_seconds(str(raw)) if isinstance(raw, (int, float)) else str(raw)
-                )
+                plan.chosen[position] = mapfix.whole_seconds(str(raw)) if isinstance(raw, (int, float)) else str(raw)
                 if plan.is_ready(position):
                     box.enable()
                 else:

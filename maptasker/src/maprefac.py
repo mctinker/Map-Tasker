@@ -1342,20 +1342,25 @@ def _move_profile_warnings(shared: dict[str, list[str]], to_project: str) -> lis
 _SCENE_NAME_CODES = {"46": "0", "47": "0", "48": "0", "49": "0"}
 
 
-def _unique_name(base: str, taken: set[str]) -> str:
+def unique_name(base: str, taken: set[str], suffix: str = "copy") -> str:
     """`base` if nothing has it, else 'base (copy)', 'base (copy 2)' and so on.
 
     Used for the children of a deep copy, whose names the user never chose.  Uniqueness is
     not cosmetic for a Task: Perform Task resolves a call by name across the whole file, so
     two Tasks sharing a name make every call to either of them ambiguous -- which is why
     healthck reports duplicate names as a finding of its own.
+
+    Public, with the word in brackets a parameter, because maprestore has the same problem
+    for the same reason: an object brought back from the history whose name has since been
+    given to something else.  There it reads 'base (restored)', which says what happened
+    where "(copy)" would say something that did not.
     """
     if base not in taken:
         return base
-    candidate = f"{base} (copy)"
+    candidate = f"{base} ({suffix})"
     counter = 2
     while candidate in taken:
-        candidate = f"{base} (copy {counter})"
+        candidate = f"{base} ({suffix} {counter})"
         counter += 1
     return candidate
 
@@ -1455,7 +1460,7 @@ def _plan_duplicate_task(task_id: str, new_name: str) -> Plan:
         return _blocked(DUPLICATE, "Duplicate a Task", Block("NO-TASK", "That Task is not in this file."))
 
     task_name = entry.get("name", "") or task_id
-    new_name = new_name or _unique_name(task_name, set(_table("all_tasks_by_name")))
+    new_name = new_name or unique_name(task_name, set(_table("all_tasks_by_name")))
     what = f"Duplicate Task '{task_name}' as '{new_name}'"
     where = _task_target(task_id)
 
@@ -1507,7 +1512,7 @@ def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
 
     profile_element = entry["xml"]
     profile_name = entry.get("name", "") or profile_id
-    new_name = new_name or _unique_name(profile_name, set(_table("all_profiles_by_name")))
+    new_name = new_name or unique_name(profile_name, set(_table("all_profiles_by_name")))
     what = f"Duplicate Profile '{profile_name}' as '{new_name}'"
     where = _profile_target(profile_id)
 
@@ -1520,7 +1525,7 @@ def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
     task_names = {}
     for task_id in task_ids:
         original = _table("all_tasks").get(task_id, {}).get("name", "") or task_id
-        task_names[task_id] = _unique_name(original, taken)
+        task_names[task_id] = unique_name(original, taken)
         taken.add(task_names[task_id])
 
     plan = Plan(kind=DUPLICATE, what=what, elements=(profile_element,))
@@ -1603,7 +1608,7 @@ def _plan_duplicate_scene(scene_name: str, new_name: str) -> Plan:
     if entry is None:
         return _blocked(DUPLICATE, "Duplicate a Scene", Block("NO-SCENE", "That Scene is not in this file."))
 
-    new_name = new_name or _unique_name(scene_name, set(_table("all_scenes")))
+    new_name = new_name or unique_name(scene_name, set(_table("all_scenes")))
     what = f"Duplicate Scene '{scene_name}' as '{new_name}'"
     where = Target(kind=SCENE, key=scene_name, name=scene_name, project=_display_project("scenes", scene_name))
 
@@ -1724,18 +1729,18 @@ def _plan_project_copy(project_element: defusedxml.ElementTree.Element) -> _Proj
     task_names, taken_tasks = {}, set(_table("all_tasks_by_name"))
     for task_id in _members(project_element, "tids"):
         original = _table("all_tasks").get(task_id, {}).get("name", "") or task_id
-        task_names[task_id] = _unique_name(original, taken_tasks)
+        task_names[task_id] = unique_name(original, taken_tasks)
         taken_tasks.add(task_names[task_id])
 
     profile_names, taken_profiles = {}, set(_table("all_profiles_by_name"))
     for profile_id in _members(project_element, "pids"):
         original = _table("all_profiles").get(profile_id, {}).get("name", "") or profile_id
-        profile_names[profile_id] = _unique_name(original, taken_profiles)
+        profile_names[profile_id] = unique_name(original, taken_profiles)
         taken_profiles.add(profile_names[profile_id])
 
     scene_names, taken_scenes = {}, set(_table("all_scenes"))
     for scene_name in _members(project_element, "scenes"):
-        scene_names[scene_name] = _unique_name(scene_name, taken_scenes)
+        scene_names[scene_name] = unique_name(scene_name, taken_scenes)
         taken_scenes.add(scene_names[scene_name])
 
     return _ProjectCopy(task_names=task_names, profile_names=profile_names, scene_names=scene_names)
@@ -1748,7 +1753,7 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
         return _blocked(DUPLICATE, "Duplicate a Project", Block("NO-PROJECT", "That Project is not in this file."))
 
     project_element = entry["xml"]
-    new_name = new_name or _unique_name(project_name, set(_table("all_projects")))
+    new_name = new_name or unique_name(project_name, set(_table("all_projects")))
     what = f"Duplicate Project '{project_name}' as '{new_name}'"
     where = Target(kind=PROJECT, key=project_name, name=project_name)
 

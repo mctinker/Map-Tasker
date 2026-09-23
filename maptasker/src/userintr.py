@@ -73,6 +73,7 @@ from maptasker.src.guiwins import (
 )
 from maptasker.src.guiwins_fix import build_fix_dialog
 from maptasker.src.guiwins_refactor import build_refactor_dialog
+from maptasker.src.guiwins_restore import build_restore_dialog
 from maptasker.src.maputil2 import (
     log_startup_values,
     translate_string,
@@ -1837,60 +1838,102 @@ class MapTaskerEventHandlers(
             """
             refresh_tasker_object_pulldowns(self.gui)
 
-        def save_configuration() -> bool:
-            """The dialog's 'Save To Current File'.  True when the list must be rebuilt.
-
-            The same two steps, in the same order, as every Edit dialog's button of that name
-            (see userintr_editors.save_edited_task_to_current_file_event): write the WHOLE
-            configuration to a new timestamped copy of the loaded file, then switch the app
-            over to that copy.  The original file is never written to.
-
-            Here rather than in guiwins_fix for the reason make_jump is: that module builds
-            widgets and knows nothing about what a backup is, and reaching back into this one
-            for the save path would be a circular import.
-
-            Reported here rather than returned as a message, because the three outcomes are
-            three different things to say and only one of them is an error:
-
-              SAVED AND SWITCHED.  The ordinary case.  The list has to be rebuilt afterwards
-              -- the reload replaces every lookup table, so the plan is holding elements that
-              are no longer in the configuration, which is exactly what mapfix.apply's
-              attachment check would refuse on.
-
-              SAVED, BUT THE COPY WOULD NOT LOAD.  The file is on disk and the work is safe;
-              what failed is the switch to it.  Rebuilt anyway, because the tables may have
-              been part-replaced -- the same reading the Edit dialogs take of this case.
-
-              NOT SAVED.  Nothing was written and nothing changed, so there is nothing to
-              rebuild and the list is left exactly as it was.
-            """
-            saved, result = write_full_backup_to_current_file()
-            if not saved:
-                ui.notify(f"{translate_string('Could not save to current file:')} {result}", type="negative")
-                return False
-
-            loaded, error = reload_saved_copy_and_refresh(self.gui, result)
-            if not loaded:
-                ui.notify(
-                    f"{translate_string('Saved a copy to')} {result}, "
-                    f"{translate_string('but it could not be loaded:')} {error}",
-                    type="warning",
-                )
-                return True
-
-            ui.notify(
-                f"{translate_string('Saved a copy to')} {result} "
-                f"{translate_string('and loaded it.  The original file was left unchanged.')}",
-                type="positive",
-                position="top",
-            )
-            return True
-
-        dialog = build_fix_dialog("", make_jump, refresh_after_apply, save_configuration)
+        dialog = build_fix_dialog("", make_jump, refresh_after_apply, self.save_whole_configuration)
         if dialog is None:
             return
         self.gui.fix_dialog = dialog
         dialog.open()
+
+    def save_whole_configuration(self: "MapTaskerEventHandlers") -> bool:
+        """The Fix Findings and Restore dialogs' 'Save To Current File'.  True when their list must be rebuilt.
+
+        The same two steps, in the same order, as every Edit dialog's button of that name
+        (see userintr_editors.save_edited_task_to_current_file_event): write the WHOLE
+        configuration to a new timestamped copy of the loaded file, then switch the app
+        over to that copy.  The original file is never written to.
+
+        Here rather than in guiwins_fix or guiwins_restore for the reason make_jump is: those
+        modules build widgets and know nothing about what a backup is, and reaching back into
+        this one for the save path would be a circular import.  A method rather than a closure
+        in each dialog's event because the two dialogs need exactly the same three answers.
+
+        Reported here rather than returned as a message, because the three outcomes are
+        three different things to say and only one of them is an error:
+
+          SAVED AND SWITCHED.  The ordinary case.  The list has to be rebuilt afterwards
+          -- the reload replaces every lookup table, so the plan is holding elements that
+          are no longer in the configuration, which is exactly what mapfix.apply's
+          and maprefac.apply's attachment checks would refuse on.
+
+          SAVED, BUT THE COPY WOULD NOT LOAD.  The file is on disk and the work is safe;
+          what failed is the switch to it.  Rebuilt anyway, because the tables may have
+          been part-replaced -- the same reading the Edit dialogs take of this case.
+
+          NOT SAVED.  Nothing was written and nothing changed, so there is nothing to
+          rebuild and the list is left exactly as it was.
+        """
+        saved, result = write_full_backup_to_current_file()
+        if not saved:
+            ui.notify(f"{translate_string('Could not save to current file:')} {result}", type="negative")
+            return False
+
+        loaded, error = reload_saved_copy_and_refresh(self.gui, result)
+        if not loaded:
+            ui.notify(
+                f"{translate_string('Saved a copy to')} {result}, "
+                f"{translate_string('but it could not be loaded:')} {error}",
+                type="warning",
+            )
+            return True
+
+        ui.notify(
+            f"{translate_string('Saved a copy to')} {result} "
+            f"{translate_string('and loaded it.  The original file was left unchanged.')}",
+            type="positive",
+            position="top",
+        )
+        return True
+
+    def restore_history_event(self: "MapTaskerEventHandlers") -> None:
+        """Open the Restore From History dialog: bring a deleted object back, or undo an edit.
+
+        Beside Changes Since because it is the other half of that report -- the report says
+        what was deleted or changed since a configuration in the history, and this is where
+        one of those rows can be put back.  One object at a time, never a merge; see
+        maprestore's header.
+
+        Rebuilt on every press, for fix_findings_event's reason: a preview closes over live
+        elements, and holding one across a reopen is the stale-handle case maprefac.apply's
+        attachment check exists to catch.
+        """
+        self._dismiss_restore_dialog()
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
+            """One row's click: open what it names in a window of its own, keeping this one up."""
+
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        async def refresh_after_apply() -> None:
+            """The pulldowns: a restore adds whole objects, so an option list built before one is short."""
+            refresh_tasker_object_pulldowns(self.gui)
+
+        dialog = build_restore_dialog(make_jump, refresh_after_apply, self.save_whole_configuration)
+        if dialog is None:
+            return
+        self.gui.restore_dialog = dialog
+        dialog.open()
+
+    def _dismiss_restore_dialog(self: "MapTaskerEventHandlers") -> None:
+        """Take down the Restore dialog if one is still up -- see _dismiss_fix_dialog."""
+        dialog = getattr(self.gui, "restore_dialog", None)
+        self.gui.restore_dialog = None
+        if dialog is not None:
+            with contextlib.suppress(Exception):
+                dialog.delete()
 
     def _dismiss_fix_dialog(self: "MapTaskerEventHandlers") -> None:
         """Take down the Fix Findings dialog if one is still up.

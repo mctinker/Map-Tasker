@@ -7,7 +7,7 @@
 #                                                                                      #
 import re
 
-import defusedxml.ElementTree as ET  # noqa: N817
+import defusedxml.ElementTree as ET
 
 from maptasker.src import condition, sessundo, timeline
 from maptasker.src.actionc import load_arg_specs

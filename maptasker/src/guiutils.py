@@ -101,7 +101,7 @@ def update_analysis_button_color(gui: "MyGui") -> None:
     button.props(f"color={'green' if ready else 'red'}")
 
 
-def display_model_pulldown(gui_arg: any, *args: dict, **kwargs) -> None:  # noqa: ANN003, ARG001
+def display_model_pulldown(gui_arg: any, *_args: dict, **_kwargs: object) -> None:
     """Displays the AI model selection dropdown list.
 
     Normalizes `gui_arg` whether it's passed a direct MyGui instance,

@@ -8858,6 +8858,31 @@ def initialize_screen(self: MyGui) -> None:
                 ),
             ).style("white-space: pre-wrap")
 
+        # Directly under Changes Since, because it is that report's other half: the report says
+        # what was deleted or changed since a configuration in the history, and this puts one
+        # of those objects back.  Same width and colouring as the buttons around it, for their
+        # reasons (see the Health Check button).
+        self.restore_history_button = (
+            ui.button(
+                translate_string("Restore From History"),
+                color="teal",
+                on_click=self.event_handlers.restore_history_event,
+                icon="restore",
+            )
+            .classes("w-full justify-center")
+            .style("margin-top:-6px")
+        )
+        with self.restore_history_button:
+            ui.tooltip(
+                translate_string(
+                    "Bring back a Task, Profile or Scene that has been deleted, or put one back as it "
+                    "was before it was edited -- from any configuration kept in the history that "
+                    "'Changes Since...' reads.\n\nOne object at a time, never a merge: every restore "
+                    "is shown before anything happens, says what it leaves for you to do (a Profile "
+                    "to relink, say), and is one press of Undo afterwards.",
+                ),
+            ).style("white-space: pre-wrap")
+
         # Full width and coloured through "color" for the same two reasons the two buttons
         # above are: the drawer is w-80 and this label will not fit beside another, and
         # Quasar's own bg-primary beats a Tailwind bg-* class added here.

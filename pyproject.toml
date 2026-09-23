@@ -93,6 +93,7 @@ test = [
 dev = [
     "ai-translator>=0.1.0",
     "deep-translator>=1.11.4",
+    "matchify>=0.3.0",
     "ollama>=0.6.2",
     "pip-autoremove>=0.10.0",
     "pytest>=9.1.1",
@@ -201,6 +202,8 @@ max-complexity = 20
 # https://docs.astral.sh/ruff/rules/
 '__init__.py' = ['F401','F403','F405',]
 'tests/*' = ['ANN', 'ARG', 'INP001', 'S101',]
+# scripts/ holds maintainer command-line tools, not a package, and they report by printing.
+'scripts/*' = ['INP001', 'T201']
 
 # ---------------------------------------------------------------------------
 # Deliberate, not debt. These stay.
@@ -232,12 +235,11 @@ max-complexity = 20
 'maptasker/src/clip.py' = ['PGH004']
 'maptasker/src/colors.py' = ['D100', 'PLR1722']
 'maptasker/src/condition.py' = ['RET504']
-'maptasker/src/cria.py' = ['ANN401', 'B904', 'BLE001', 'D101', 'D102', 'D103', 'D105', 'D107', 'EM101', 'PLW0108', 'RET504', 'RUF100', 'S603', 'S607', 'SIM210', 'TRY003', 'TRY300']
+'maptasker/src/cria.py' = ['ANN401', 'B904', 'BLE001', 'D101', 'D102', 'D103', 'D105', 'D107', 'EM101', 'PLW0108', 'RET504', 'S603', 'S607', 'SIM210', 'TRY003', 'TRY300']
 'maptasker/src/deprecate.py' = ['D100']
-'maptasker/src/deviceinv.py' = ['ANN201', 'F811', 'RUF100']
+'maptasker/src/deviceinv.py' = ['ANN201', 'F811']
 'maptasker/src/diagintr.py' = ['PLW2901']
-'maptasker/src/diagram.py' = ['PLW2901', 'RUF100']
-'maptasker/src/diffload.py' = ['RUF100']
+'maptasker/src/diagram.py' = ['PLW2901']
 'maptasker/src/format.py' = ['ARG002', 'C901', 'PLR0912', 'S105']
 'maptasker/src/getfile.py' = ['ANN201', 'ANN202', 'D101', 'D102', 'N801', 'PLC0415']
 'maptasker/src/getputer.py' = ['PERF403']
@@ -256,19 +258,18 @@ max-complexity = 20
 'maptasker/src/mapjump.py' = ['I001']
 'maptasker/src/mapswap.py' = ['C901', 'PLR0912']
 'maptasker/src/maputil2.py' = ['A004']
-'maptasker/src/outline.py' = ['PLW2901', 'RUF100', 'SIM102']
+'maptasker/src/outline.py' = ['PLW2901', 'SIM102']
 'maptasker/src/prefers.py' = ['ISC001']
 'maptasker/src/profiles.py' = ['ARG001', 'PLC0415']
 'maptasker/src/projects.py' = ['ISC004']
 'maptasker/src/projedit.py' = ['ISC004']
-'maptasker/src/roundtrip.py' = ['D105', 'RUF100']
+'maptasker/src/roundtrip.py' = ['D105']
 'maptasker/src/sceneedit.py' = ['ARG001', 'D102', 'D105', 'D107', 'I001']
-'maptasker/src/sceneview.py' = ['D102', 'D107', 'F541', 'ISC001', 'RUF001', 'RUF100', 'SIM117']
+'maptasker/src/sceneview.py' = ['D102', 'D107', 'F541', 'ISC001', 'RUF001', 'SIM117']
 'maptasker/src/servicec.py' = ['D100']
-'maptasker/src/sessundo.py' = ['RUF100']
 'maptasker/src/shelsort.py' = ['D100']
 'maptasker/src/taskedit.py' = ['ANN001', 'ARG001', 'SIM108', 'TC003']
-'maptasker/src/taskerd.py' = ['PLC0415', 'RUF100']
+'maptasker/src/taskerd.py' = ['PLC0415']
 'maptasker/src/taskflag.py' = ['D100']
 # userintr.py's two entries moved with the Android handlers they belong to (see the guiwins
 # note above): userintr.py itself no longer violates either rule, so it has no line.

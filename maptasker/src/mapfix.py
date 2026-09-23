@@ -141,6 +141,7 @@ _COLLISION_OPTIONS: tuple[tuple[str, str], ...] = (
 # milliseconds (Flash, Wait For Scene v2 Result) are both dialogs, which it excludes.
 DEFAULT_TIMEOUT_SECONDS = "60"
 
+
 def whole_seconds(value: str) -> str:
     """A timeout as Tasker stores it -- the digits alone -- or "" when it is not one.
 
@@ -331,9 +332,7 @@ class Plan:
             position: values[fix.identity] for position, fix in enumerate(self.fixes) if fix.identity in values
         }
         self.selected = {
-            position
-            for position, fix in enumerate(self.fixes)
-            if fix.identity in ticks and self.is_ready(position)
+            position for position, fix in enumerate(self.fixes) if fix.identity in ticks and self.is_ready(position)
         }
 
 
@@ -677,7 +676,7 @@ def _plan_goto(where: Target) -> Fix | Skip:
         tag=GOTO_MISSING_LABEL,
         where=where,
         before=f"'Goto' names label '{wanted}', which nothing carries" if wanted else "'Goto' names no label at all",
-        describe=lambda value: (f"Point this 'Goto' at '{choice.label_of(value)}'" if value else "Choose a label"),
+        describe=lambda value: f"Point this 'Goto' at '{choice.label_of(value)}'" if value else "Choose a label",
         choice=choice,
         elements=(task, action),
         run=run,

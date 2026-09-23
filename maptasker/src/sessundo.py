@@ -68,11 +68,11 @@ from __future__ import annotations
 
 import contextlib
 import gzip
-import xml.etree.ElementTree as ETW  # noqa: ICN001, N814  (stdlib "ET Write" -- only to wrap a root)
+import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- only to wrap a root
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import defusedxml.ElementTree as ET  # noqa: N817
+import defusedxml.ElementTree as ET
 
 from maptasker.src import clock
 from maptasker.src.primitem import PrimeItems

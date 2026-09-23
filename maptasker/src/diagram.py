@@ -1333,8 +1333,8 @@ def mark_tasks_not_found(output_lines: list) -> None:
             track_task_name = []
             for called_task_name in called_task_names:
                 # Get the called Task name.
-                called_task_name = called_task_name.lstrip()  # noqa: PLW2901
-                called_task_name = called_task_name.split("]")  # noqa: PLW2901
+                called_task_name = called_task_name.lstrip()
+                called_task_name = called_task_name.split("]")
                 # Track the number of instances of the called Task.
                 called_name = called_task_name[0].replace("]", "")
                 called_name_no_delimeter = called_name.replace(task_delimeter, "")
@@ -1380,7 +1380,7 @@ def mark_tasks_not_found(output_lines: list) -> None:
                         + not_found
                         + output_lines[caller_line_num][end_of_called_task_position:]
                     )
-                    line = output_lines[caller_line_num]  # noqa: PLW2901
+                    line = output_lines[caller_line_num]
 
 
 def mysizeof(my_dict: list) -> int:

@@ -280,7 +280,7 @@ def _add_paired_label_actions(add: Callable[[str, dict[str, str]], str]) -> str:
     )
 
 
-def build_helper_task(task_name: str = HELPER_TASK_NAME):  # noqa: ANN201
+def build_helper_task(task_name: str = HELPER_TASK_NAME):
     """Build the helper Task, out of taskedit's own Add-Task machinery.
 
     Returns an EditableTask, or an error message string if it could not be built (the same
@@ -500,7 +500,7 @@ def task_return_value(response: object) -> str:
     return "" if text.strip() in (_UNSET_RETURN, _RUN_TASK_RESULT_VARIABLE) else text
 
 
-def build_run_task_helper(task_name: str = RUN_TASK_HELPER_NAME):  # noqa: ANN201
+def build_run_task_helper(task_name: str = RUN_TASK_HELPER_NAME):
     """Build the Task that runs another Task by name and returns what it returned.
 
     Returns an EditableTask, or an error message string, like every other builder here.
@@ -926,7 +926,7 @@ _LIST_FILES_UNSET_PREFIX = "%lfp_"
 _FILE_LIST_POLL_ATTEMPTS = 15
 
 
-def build_file_list_task(task_name: str = FILE_LIST_TASK_NAME, directory: str = FILE_LIST_DIRECTORY):  # noqa: ANN201
+def build_file_list_task(task_name: str = FILE_LIST_TASK_NAME, directory: str = FILE_LIST_DIRECTORY):
     """Build the file-listing helper Task.  Returns an EditableTask, or an error message.
 
     Three actions: 'List Files' over `directory`, 'Variable Join' to collapse the array of
@@ -1242,7 +1242,7 @@ def build_import_profile_task(
     task_name: str = IMPORT_PROFILE_TASK_NAME,
     import_type: str = IMPORT_TYPE_CONFIGURATION,
     source_index: str = _IMPORT_SOURCE_INDEX,
-):  # noqa: ANN201
+):
     """Build the Profile-importing helper Task.  Returns an EditableTask, or an error message.
 
     Three kinds of action: 'Read File' to pull the staged .prf.xml into a variable, 'Import
@@ -1839,7 +1839,7 @@ def build_open_file_task(
     result_write_path: str = "",
     header: str = "",
     mime_type: str = _OPEN_WITH_MIME_TYPE,
-):  # noqa: ANN201
+):
     """Build the Task that puts Android's "Open with..." chooser up for the staged file.
 
     'Open File' on the staged path, then the four writes that say it ran.
@@ -1883,7 +1883,7 @@ def build_send_intent_task(
     mime_type: str = _SEND_INTENT_MIME_TYPE,
     package: str = _TASKER_PACKAGE,
     activity_class: str = _TASKER_MAIN_ACTIVITY,
-):  # noqa: ANN201
+):
     """Build the Task that sends Tasker an explicit ACTION_VIEW for the staged file.
 
     The same job build_open_file_task does, addressed rather than broadcast -- see the
@@ -2116,7 +2116,7 @@ _LAUNCH_READ_PATH = f"/{_LAUNCH_WRITE_PATH}"
 _LAUNCH_HEADER = "MAPTASKER-LAUNCH-TASKER 1"
 
 
-def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME):  # noqa: ANN201
+def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME):
     """Build the Task that brings Tasker to the foreground.  Returns an EditableTask, or an
     error message string, like every other builder here.
 
@@ -3026,7 +3026,7 @@ _NAME_TAGS = {"Project": "name", "Profile": "nme", "Task": "nme", "Scene": "nme"
 _NAMES_SHOWN = 8
 
 
-def build_object_list_task(task_name: str = OBJECT_LIST_TASK_NAME):  # noqa: ANN201
+def build_object_list_task(task_name: str = OBJECT_LIST_TASK_NAME):
     """Build the Tasker-object-listing helper Task.  Returns an EditableTask, or an error message.
 
     Per kind in _OBJECT_LISTS, 'Test Tasker' into that kind's array and 'Variable Join' to make it
@@ -3187,7 +3187,7 @@ def names_in_export(xml: str | bytes) -> dict[str, list[str]]:
 
 def _parse_tasker_xml(xml: str | bytes) -> defusedxml.ElementTree.Element | None:
     """A TaskerData document's root, or None if it does not parse."""
-    import defusedxml.ElementTree as DefusedET  # noqa: PLC0415, N814
+    import defusedxml.ElementTree as DefusedET  # noqa: PLC0415
 
     try:
         return DefusedET.fromstring(xml)
@@ -3356,7 +3356,7 @@ _ID_CHECK_POLL_ATTEMPTS = 30
 _TASK_PROFILE_IDS = "Task/Profile"
 
 
-def build_id_check_task(task_name: str = ID_CHECK_TASK_NAME):  # noqa: ANN201
+def build_id_check_task(task_name: str = ID_CHECK_TASK_NAME):
     """Build the backup-taking helper Task.  Returns an EditableTask, or an error message.
 
     'Data Backup' can fail (canfail), and a failed action stops the Task -- so the payload's

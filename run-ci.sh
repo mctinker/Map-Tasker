@@ -84,6 +84,8 @@ run_gate "uv sync --locked" uv sync --locked --group dev
 
 run_gate "ruff check" uv run --no-sync ruff check
 
+run_gate "noqa ratchet" uv run --no-sync python scripts/noqa_ratchet.py
+
 run_gate "ruff format --check" uv run --no-sync ruff format --check
 
 if [ "$QUICK" -eq 1 ]; then

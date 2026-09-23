@@ -75,7 +75,7 @@ import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to seriali
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-import defusedxml.ElementTree as ET  # noqa: N817
+import defusedxml.ElementTree as ET
 
 from maptasker.src import profedit, projedit, sceneedit, taskedit
 from maptasker.src.primitem import PrimeItems
@@ -355,7 +355,7 @@ def verify_rendered(
         # ParseError is a SyntaxError; defusedxml's own DefusedXmlException is a ValueError.
         # Both mean the same thing here -- the text that was about to be written is not XML
         # this program would accept back -- so both end the check the same way.
-        reparsed = ET.fromstring(rendered)  # noqa: S314  (defusedxml -- the hardened parser)
+        reparsed = ET.fromstring(rendered)  # defusedxml -- the hardened parser
     except (ET.ParseError, ValueError) as parse_error:
         logger.error(f"Round-trip verify: the rendered XML will not parse: {parse_error}")
         return RoundTripReport(error=f"the XML that was rendered will not parse back in ({parse_error})")

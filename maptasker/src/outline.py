@@ -329,7 +329,7 @@ def do_profile_tasks(
             arrow_to_use = arrow_to_use.replace("├", "└")
 
         # Get just the name
-        task_line = task_line.split("&nbsp;")  # noqa: PLW2901
+        task_line = task_line.split("&nbsp;")
 
         # Add any/all "Perform Task" indicators
         call_task = ""

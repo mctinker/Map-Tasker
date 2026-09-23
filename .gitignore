@@ -41,6 +41,9 @@ dmg_builder
 # 'scripts/', which [tool.ruff] lints, because these are one-off tools written to
 # no particular standard and linting them would only add noise.
 !tools
+# Maintainer tools held to the project's lint rules, such as the noqa ratchet the
+# CI lint job runs.  Unlike 'tools/', CI depends on these being in the repository.
+!scripts
 
 
 # recursively re-ignore

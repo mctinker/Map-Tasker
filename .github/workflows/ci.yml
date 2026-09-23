@@ -88,6 +88,12 @@ jobs:
       - name: ruff check
         run: uv run --no-sync ruff check --output-format=github
 
+      # The per-file ignores above only shrink; this does the same for inline noqa
+      # comments. It fails if any rule's count rises above scripts/noqa_baseline.json,
+      # and if a count falls without the baseline being lowered to match (--update).
+      - name: noqa ratchet
+        run: uv run --no-sync python scripts/noqa_ratchet.py
+
       # Enforced as of the format sweep. [tool.ruff.format] uses ruff's stable
       # style (preview = false), which only changes on a major release, so this
       # gate stays reproducible without pinning the ruff version.

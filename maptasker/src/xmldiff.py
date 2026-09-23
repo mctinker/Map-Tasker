@@ -135,6 +135,12 @@ class Entry:
     category: str
     where: str
     details: list[str] = field(default_factory=list)
+    # The object's identity as the tables key it -- a Task's or Profile's id, a Scene's
+    # name, a Project's <id> -- or "" for a global Variable or Setting, which is not an
+    # object.  The report never prints it; it is here so that a caller can do something
+    # about an entry rather than only read it (see maprestore, which brings a REMOVED
+    # object back and reverts a CHANGED one, and must know exactly which).
+    key: str = ""
 
     @property
     def tag(self) -> str:
@@ -745,10 +751,10 @@ def _compare_kind(kind: str, older: _Side, newer: _Side, entries: list[Entry]) -
             removed.add(key)
 
     entries.extend(
-        Entry(kind, ADDED, _where(kind, newer, key), _summary_for(kind, newer, key)) for key in sorted(added)
+        Entry(kind, ADDED, _where(kind, newer, key), _summary_for(kind, newer, key), key) for key in sorted(added)
     )
     entries.extend(
-        Entry(kind, REMOVED, _where(kind, older, key), _summary_for(kind, older, key)) for key in sorted(removed)
+        Entry(kind, REMOVED, _where(kind, older, key), _summary_for(kind, older, key), key) for key in sorted(removed)
     )
     return collisions
 
@@ -759,7 +765,7 @@ def _compare_one(kind: str, older: _Side, newer: _Side, key: str, entries: list[
     where = _where(kind, newer, key)
 
     if old_name != new_name:
-        entries.append(Entry(kind, RENAMED, where, [f"'{old_name}' -> '{new_name}'"]))
+        entries.append(Entry(kind, RENAMED, where, [f"'{old_name}' -> '{new_name}'"], key))
 
     before = _canonical(older.objects[kind][key], is_object_root=True)
     after = _canonical(newer.objects[kind][key], is_object_root=True)
@@ -771,7 +777,7 @@ def _compare_one(kind: str, older: _Side, newer: _Side, key: str, entries: list[
     # twice: once as the rename, and once as a change with nothing to say.
     if not details and old_name != new_name:
         return
-    entries.append(Entry(kind, CHANGED, where, details or ["Changed."]))
+    entries.append(Entry(kind, CHANGED, where, details or ["Changed."], key))
 
 
 def _compare_named_values(kind: str, was: dict[str, str], now: dict[str, str], entries: list[Entry]) -> None:
@@ -899,7 +905,24 @@ def compare(older: Configuration, newer: Configuration) -> tuple[str, dict]:
     either way, so a wrong guess is visible rather than misleading.
     """
     older_side, newer_side = _index(older), _index(newer)
+    entries, collisions = _entries(older_side, newer_side)
+    report = _build_report(older, newer, older_side, newer_side, entries, collisions, clock.now())
+    return report, _counts(entries)
 
+
+def differences(older: Configuration, newer: Configuration) -> list[Entry]:
+    """Every difference between two configurations, as entries rather than a report.
+
+    The same entries compare() prints, from the same walk, so the two cannot disagree about
+    what changed -- a caller offering to act on an entry is acting on exactly the line the
+    report showed.  Each carries its object's key (see Entry.key).
+    """
+    entries, _ = _entries(_index(older), _index(newer))
+    return entries
+
+
+def _entries(older_side: _Side, newer_side: _Side) -> tuple[list[Entry], int]:
+    """(every difference, how many id collisions) between two indexed configurations."""
     entries: list[Entry] = []
     collisions = 0
     for kind, _, _, _ in _KINDS:
@@ -907,6 +930,4 @@ def compare(older: Configuration, newer: Configuration) -> tuple[str, dict]:
 
     _compare_named_values("Variable", older_side.variables, newer_side.variables, entries)
     _compare_named_values("Setting", older_side.settings, newer_side.settings, entries)
-
-    report = _build_report(older, newer, older_side, newer_side, entries, collisions, clock.now())
-    return report, _counts(entries)
+    return entries, collisions
