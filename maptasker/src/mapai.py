@@ -4,6 +4,7 @@ The response will be saved as a file, which will then be read in by userintr and
 upon reinvocation of the application.
 """
 
+import html
 import importlib.util
 import re
 import sys
@@ -25,7 +26,12 @@ from maptasker.src.sysconst import (
 )
 from maptasker.src.xmldata import remove_html_tags
 
-ai_role = "You are a Tasker programmer on Android"
+ai_role = (
+    "You are reviewing part of a Tasker configuration for the person who built it.  Tasker is an "
+    "Android automation app: a Profile's contexts (events, states, times, apps) trigger Tasks, which "
+    "are lists of actions, and Projects group Profiles, Tasks and Scenes.  The data is MapTasker's plain-"
+    "text rendering of one Project, Profile, Task or Scene."
+)
 
 
 # Validate OpenAI API key
@@ -139,7 +145,11 @@ def cleanup_output() -> list:
             if "Tasks not in any Profile," in line:
                 break
             temp_line = line.replace("&nbsp;", " ")
-            temp_line = remove_html_tags(temp_line, "")
+            # The model is sent text, not html: "&#11013;" is the arrow it stands for.
+            temp_line = html.unescape(remove_html_tags(temp_line, "")).strip("\n")
+            # The Map's line breaks, left behind with nothing on them.
+            if not temp_line.strip():
+                continue
             temp_output.append(temp_line)
 
     return temp_output
@@ -323,15 +333,16 @@ def _process_openai_response(client: object, query: str) -> str:
 
 def _process_anthropic_response(client: object, query: str) -> str:
     """Helper function to process Anthropic (Claude) responses."""
-    role = ai_role
     message = client.messages.create(
         model=PrimeItems.program_arguments.ai_model,
-        max_tokens=1024,
-        messages=[
-            {"role": "user", "content": f"{role} {query}"},
-        ],
+        # Room for the model's thinking as well as the analysis: on models that think by
+        # default, thinking counts toward this limit.
+        max_tokens=16000,
+        system=ai_role,
+        messages=[{"role": "user", "content": query}],
     )
-    return message.content[0].text
+    # A model that thinks puts a thinking block ahead of its text, so content[0] is not the reply.
+    return "".join(block.text for block in message.content if block.type == "text")
 
 
 def _process_deepseek_response(client: object, query: str) -> str:
@@ -360,7 +371,7 @@ def _process_gemini_response(client: object, query: str) -> str:
     # response1 = message.generate_content(role + query)
     response = client.models.generate_content(
         model=model,
-        contents=f"{role}.  {query}",
+        contents=f"{role}  {query}",
         # NOTE: Need to add logic to determine specific model eligability for the following option.
         # config=types.GenerateContentConfig(thinking_config=types.ThinkingConfig(thinking_level="low")),
     )

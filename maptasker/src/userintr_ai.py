@@ -13,19 +13,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from nicegui import ui
+from nicegui import run, ui
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.apikeys import fallback_file, save_api_keys
+from maptasker.src.bildhtml import build_html
 from maptasker.src.config import AI_PROMPT
+from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getputer import save_restore_args
-from maptasker.src.guistate import gui_settings
+from maptasker.src.guistate import capture_gui_state, gui_settings
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     display_analyze_button,
     display_error_file_and_ai_response,
     display_model_pulldown,
     display_selected_object_labels,
+    get_extended_ai_model_list,
     list_tasker_objects,
     set_ai_key,
     update_analysis_button_color,
@@ -33,13 +36,54 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.mtexcept import MapTaskerError
+from maptasker.src.primitem import (
+    MAP_OUTPUT_ATTRIBUTES,
+    PrimeItems,
+    clear_error,
+    initial_found_named_items,
+    reset_attributes,
+)
+from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
     from nicegui import Event
 
     from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
+
+
+async def build_analysis_lines(gui: MyGui) -> bool:
+    """Build the Map of the selected object into PrimeItems.output_lines, which is what the
+    analysis query is made from (see mapai.cleanup_output).
+
+    Nothing else leaves it there: a Map view empties output_lines once the Map is on screen,
+    so an analysis run without its own build sent the prompt with no Tasker data after it.
+    The settings and resets are the ones the Map button uses before building.
+
+        :param gui: the window, holding the selected object and every other setting
+        :return: True if the lines are ready, False if the build failed (and has said why)
+    """
+    PrimeItems.view_limit = getattr(gui, "view_limit", PrimeItems.view_limit)
+    capture_gui_state(gui, {})
+    # Also what keeps build_html from answering with the Map already on disk (see mapcache).
+    PrimeItems.program_arguments.ai_analyze = True
+    PrimeItems.found_named_items = initial_found_named_items()
+    reset_attributes(*MAP_OUTPUT_ATTRIBUTES)
+    clear_error()
+
+    PrimeItems.output_lines.output_lines.clear()
+    output_the_front_matter(current_config())
+    try:
+        await run.io_bound(build_html, "")
+    except MapTaskerError as error:
+        gui.display_message_box(f"Analysis halted building the Map (code {error.exit_code}).", "Red")
+        return False
+    if getattr(PrimeItems, "error_code", 0) > 0:
+        gui.display_message_box(f"Analysis halted building the Map: {PrimeItems.error_msg}", "Orange")
+        clear_error()
+        return False
+    return True
 
 
 class AIEventHandlers:
@@ -178,16 +222,16 @@ class AIEventHandlers:
         # Updates NiceGUI visual rendering colors reactively
         update_analysis_button_color(the_view)
 
-    def extended_models_event(self) -> None:
+    async def extended_models_event(self) -> None:
         """
-        Get input to display names in bold and put message
-        Args:
-            self: The class instance
-        Returns:
-            None: No value is returned
-        - Get input value from bold_checkbox attribute
-        - Put message "Display Names in Bold" based on input
-        - No return value, function updates attribute on class instance"""
+        Switch the model pulldown between the default and the extended list of AI models.
+
+        Fetching the extended list asks every provider for its models (and can install their
+        packages first), which takes seconds.  Done on the event loop, it froze the whole window
+        -- the checkbox itself included, which stayed unticked until the fetch was over, so a
+        second click to "make it take" switched it straight back off.  So it is fetched in a
+        worker thread, and the checkbox shows its new state at once.
+        """
         the_view = self.gui
 
         # Re-display pulldown list.
@@ -196,8 +240,24 @@ class AIEventHandlers:
             "Display The Extended List of AI Models",
         )
 
+        extended_models = None
+        if (
+            the_view.ai_model_extended_list
+            and not the_view.initialization
+            and not PrimeItems.language_set
+            and not the_view.displaying_extended_list
+        ):
+            the_view.aimodel_extend_checkbox.disable()  # One fetch at a time.
+            try:
+                extended_models = await run.io_bound(get_extended_ai_model_list)
+            finally:
+                the_view.aimodel_extend_checkbox.enable()
+            # Unticked again while the list was on its way: the default list stays.
+            if not the_view.aimodel_extend_checkbox.value:
+                return
+
         # Display the model pulldown list.
-        display_model_pulldown(self)
+        display_model_pulldown(self, extended_models=extended_models)
 
     # Kickoff the AI analysis
     async def ai_analyze_event(self) -> None:
@@ -264,6 +324,11 @@ class AIEventHandlers:
 
             # Do the analysis.  First save our windows and settings.
             _, _ = save_restore_args(gui_settings(gui), gui.color_lookup, to_save=True)
+
+            # The analysis is of the selected object's Map, so build it first.
+            if not await build_analysis_lines(gui):
+                gui.ai_analyze = False
+                return
 
             # Now make certain we have the api key set for the model we are using.
             PrimeItems.program_arguments.ai_apikey = gui.ai_apikey

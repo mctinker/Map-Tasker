@@ -1689,6 +1689,37 @@ STRUCTURAL_SEGMENTS = frozenset(
     },
 )
 
+# The markup of those passed-through tags an author can leave open, and which has to be
+# closed before the box around the label is -- a description is downloaded from TaskerNet
+# and is often sloppy HTML.  Left open, it does not stay in the box.  <small> and <big> are
+# formatting elements, which a browser reopens after the block they were left open in, so
+# a description with an unclosed <small> drew every line of the Map after it at four-fifths
+# the size.  And a <table>, list or <pre> left open swallows the box's own </div>, pulling
+# the rest of the Map inside it.  <p> is not here: a paragraph ends where the next block
+# starts, and an extra </p> would draw an empty paragraph of its own.
+LEFT_OPEN_TAG = re.compile(
+    r"<(/?)(big|blockquote|li|ol|pre|small|table|tbody|td|tfoot|th|thead|tr|ul)\b[^>]*>",
+    re.IGNORECASE,
+)
+
+
+def close_left_open_tags(label_html: str) -> str:
+    """
+    The end tags for whatever passed-through markup a formatted label leaves open.
+
+        :param label_html: the label as format_label has built it so far
+        :return: the end tags, innermost first, or "" if everything is closed
+    """
+    still_open: list[str] = []
+    for tag in LEFT_OPEN_TAG.finditer(label_html):
+        name = tag.group(2).lower()
+        if not tag.group(1):
+            still_open.append(name)
+        elif name in still_open:
+            # Closing an element closes everything opened inside it, as the browser does.
+            del still_open[len(still_open) - 1 - still_open[::-1].index(name) :]
+    return "".join(f"</{name}>" for name in reversed(still_open))
+
 
 def format_label(lbl: str) -> str:
     """
@@ -1860,6 +1891,8 @@ def format_label(lbl: str) -> str:
             else:
                 task_label = task_label + f"{blank * lbl_heading}" + lbl_text
 
+        # Nothing the author left open may outlast the label (see LEFT_OPEN_TAG).
+        task_label = task_label + close_left_open_tags(task_label)
         if have_paren:
             task_label = task_label + "</p></div>"
 

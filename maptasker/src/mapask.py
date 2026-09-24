@@ -90,6 +90,28 @@ MAX_CHOICES = 400
 # A reply is one small JSON object.  Generous, so a model that explains itself first is
 # not cut off before it gets to the object.
 MAX_REPLY_TOKENS = 1024
+# Claude's limit counts its thinking as well as the reply, and current Claude models think by
+# default -- so 1024 can be spent before the object is written.
+ANTHROPIC_MAX_TOKENS = 16000
+
+# The reply's shape, which Claude models that support structured output are held to exactly.
+# Other models (and other providers) are left to the prompt and to _reply_object.
+STRUCTURED_OUTPUT_MODELS = (
+    "claude-fable-5",
+    "claude-opus-5",
+    "claude-opus-4-8",
+    "claude-opus-4-5",
+    "claude-sonnet-5",
+    "claude-haiku-4-5",
+)
+REPLY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        key: {"type": "string"} for key in ("action", "trigger", "app", "scene", "text", "project", "unexpressed")
+    },
+    "required": ["action", "trigger", "app", "scene", "text", "project", "unexpressed"],
+    "additionalProperties": False,
+}
 
 # A reasoning model's working, which can hold braces of its own and is never the answer.
 _THINKING = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
@@ -373,12 +395,16 @@ async def _ask_deepseek(settings: ModelSettings, system: str, user: str) -> str:
 
 
 async def _ask_anthropic(settings: ModelSettings, system: str, user: str) -> str:
+    extra = {}
+    if settings.model.startswith(STRUCTURED_OUTPUT_MODELS):
+        extra["output_config"] = {"format": {"type": "json_schema", "schema": REPLY_SCHEMA}}
     async with _library("anthropic", "anthropic").AsyncAnthropic(api_key=settings.api_key) as client:
         message = await client.messages.create(
             model=settings.model,
-            max_tokens=MAX_REPLY_TOKENS,
+            max_tokens=ANTHROPIC_MAX_TOKENS,
             system=system,
             messages=[{"role": "user", "content": user}],
+            **extra,
         )
     return "".join(getattr(block, "text", "") for block in message.content)
 

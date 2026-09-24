@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file!
 
 ### Removed
 
+- Removed: 'claude-3-5-haiku-latest' is no longer offered in the AI model list, because Anthropic has retired it and every request to it failed.
 - Removed:
 
 ### Fixed
@@ -24,6 +25,12 @@ All notable changes to this project will be documented in this file!
 - Fixed: The logo and screenshots on the MapTasker page at GitHub display again.  The images had dropped out of the repository, so every one of them showed as a broken image.
 - Fixed: When the chosen AI model turns out not to support chat, AI analysis is now switched off as intended.  The setting was misspelled at that point, so the switch-off was stored where nothing read it.
 - Fixed: The runtime settings listed at the top of the Map now show the values of 'AI Model Extended List', 'Close Tabs on Exit' and 'Open View In New Window' instead of 'Error...not found!'.
+- Fixed: The Map no longer shrinks everything that follows a TaskerNet description or Task label that leaves small text or a table unclosed.  Whatever the author left open is now closed inside the description's box, so the rest of the Map keeps its normal font size and layout.
+- Fixed: 'Analyze' with a current Claude model (such as Claude Fable 5 or Claude Opus 5) now returns the analysis instead of an error, and long analyses are no longer cut short.  The Find dialog's 'Ask' also leaves Claude room to finish its answer, so it no longer fails with 'did not reply with a search' on larger configurations.
+- Fixed: The 'Extended' checkbox on the AI Analysis panel now ticks as soon as it is clicked, and the rest of the window stays usable while the extended list of models is fetched.  The window used to freeze for several seconds with the box still unticked, so it looked as if it could not be checked, and a second click switched it back off.
+- Fixed: 'Run Analysis' now sends the AI model the Project, Profile, Task or Scene you selected.  It was sending only the prompt, so the model replied that no Tasker data had come through.
+- Fixed: Claude Fable 5.1 in the AI model list now works.  It was listed as 'claude-fable-5.1' rather than 'claude-fable-5-1', a name Anthropic does not recognize, so every analysis with it failed.
+- Fixed: Switching between the default and extended AI model lists no longer blanks the model you had chosen, as long as that model is in the new list.
 - Fixed:
 
 ### Known Issues

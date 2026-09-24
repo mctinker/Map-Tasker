@@ -173,3 +173,25 @@ def test_a_list_in_a_label_keeps_its_tags_outside_the_colour_spans() -> None:
     assert '<span style="color:' not in label.split("<li>")[0].split("<ul>")[-1]
     for fragment in ("<span><li>", "<li></span>", "<span></li>"):
         assert fragment not in label
+
+
+@pytest.mark.usefixtures("_colors")
+def test_a_small_left_open_in_a_description_is_closed_inside_its_box() -> None:
+    """A browser reopens an unclosed <small> after the box, shrinking the rest of the Map."""
+    label = format_label("<h6>TaskerNet description: Version 2<br><small>by someone")
+    assert label.endswith("</small></p></div>")
+
+
+@pytest.mark.usefixtures("_colors")
+def test_a_table_left_open_in_a_description_is_closed_inside_its_box() -> None:
+    """An open <table> swallows the box's </div>, pulling what follows into the table."""
+    label = format_label("<h6>TaskerNet description: <table><tr><td>cell</td>")
+    assert label.endswith("</td></tr></table></p></div>")
+
+
+@pytest.mark.usefixtures("_colors")
+def test_markup_the_author_closed_is_not_closed_again() -> None:
+    """Only what is still open gets an end tag."""
+    label = format_label("<h6>TaskerNet description: <small>fine print</small> and <big>more</big>")
+    assert label.count("</small>") == 1
+    assert label.count("</big>") == 1

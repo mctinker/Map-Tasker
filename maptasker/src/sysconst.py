@@ -394,7 +394,7 @@ LLAMA_MODELS = [
     "tinyllama",
 ]
 ANTHROPIC_MODELS = [
-    "claude-fable-5.1",
+    "claude-fable-5-1",
     "claude-haiku-4-5",
     "claude-opus-5",
     "claude-sonnet-5",

@@ -101,11 +101,19 @@ def update_analysis_button_color(gui: "MyGui") -> None:
     button.props(f"color={'green' if ready else 'red'}")
 
 
-def display_model_pulldown(gui_arg: any, *_args: dict, **_kwargs: object) -> None:
+def display_model_pulldown(
+    gui_arg: any,
+    *_args: dict,
+    extended_models: list[str] | None = None,
+    **_kwargs: object,
+) -> None:
     """Displays the AI model selection dropdown list.
 
     Normalizes `gui_arg` whether it's passed a direct MyGui instance,
     a NiceGUI event object, or a MapTaskerEventHandlers instance.
+
+    `extended_models` is the extended list already fetched (see extended_models_event, which
+    fetches it off the event loop); None fetches it here when it is wanted.
     """
     # 1. Normalize the argument to find the true MyGui instance context
     if hasattr(gui_arg, "gui") and gui_arg.gui.__class__.__name__ == "MyGui":
@@ -125,17 +133,12 @@ def display_model_pulldown(gui_arg: any, *_args: dict, **_kwargs: object) -> Non
     if gui_instance.ai_model_extended_list and not gui_instance.initialization:
         if gui_instance.displaying_extended_list is not None and gui_instance.displaying_extended_list:
             return  # Return if we are already displaying it.
-        # Destroy the old window if it is last to be displayed and get the extended list...only if we are not in the
-        # middle of setting/changing the language.
+        # Get the extended list...only if we are not in the middle of setting/changing the language.
         if not PrimeItems.language_set:
-            with contextlib.suppress(AttributeError):
-                gui_instance.ai_model_option.destroy()
-            display_models = get_extended_ai_model_list()
+            display_models = extended_models if extended_models is not None else get_extended_ai_model_list()
             gui_instance.displaying_extended_list = True
         else:
             # Not a request to build the extended, or we are in the middle of changing the language.
-            with contextlib.suppress(AttributeError):
-                gui_instance.ai_model_option.destroy()
             display_models = sorted(
                 model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
             )
@@ -144,10 +147,6 @@ def display_model_pulldown(gui_arg: any, *_args: dict, **_kwargs: object) -> Non
     else:
         if gui_instance.displaying_extended_list is not None and not gui_instance.displaying_extended_list:
             return  # Return if we are already displaying it.
-        # Destroy the old window if it is last to be displayed.
-        if gui_instance.displaying_extended_list is not None:
-            with contextlib.suppress(AttributeError):
-                gui_instance.ai_model_option.destroy()
         display_models = sorted(
             model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
         )
@@ -156,6 +155,7 @@ def display_model_pulldown(gui_arg: any, *_args: dict, **_kwargs: object) -> Non
     # If the select dropdown already exists on the GUI instance, just update its options
     if hasattr(gui_instance, "ai_model_option") and gui_instance.ai_model_option:
         gui_instance.ai_model_option.options = display_models
+        keep_selected_model(gui_instance, display_models)
         gui_instance.ai_model_option.update()
     else:
         # Otherwise, if we are building it for the first time
@@ -175,6 +175,31 @@ def display_model_pulldown(gui_arg: any, *_args: dict, **_kwargs: object) -> Non
 
         # Updates NiceGUI visual rendering colors reactively
         update_analysis_button_color(gui_instance)
+
+
+def keep_selected_model(gui_instance: "MyGui", display_models: list[str]) -> None:
+    """Point the model pulldown back at the selected model once its options are replaced.
+
+    The two lists spell a model differently -- the extended one marks an installed Ollama model
+    " (installed)" -- and a select whose value is not among its new options is left blank, which
+    looked as if switching lists had thrown the chosen model away.
+    """
+    model = (getattr(gui_instance, "ai_model", "") or "").replace(" (installed)", "").strip()
+    match = next(
+        (
+            option
+            for option in display_models
+            if option.split(": ", 1)[-1].replace(" (installed)", "").strip() == model
+        ),
+        None,
+    )
+    if match is None:
+        return
+    try:
+        gui_instance.is_updating = True  # Not a new choice, so ai_model_selected_event has nothing to do.
+        gui_instance.ai_model_option.value = match
+    finally:
+        gui_instance.is_updating = False
 
 
 def prefix_and_sort(strings: list[str], name: str) -> list[str]:

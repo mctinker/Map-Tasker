@@ -226,7 +226,6 @@ def get_anthropic_models() -> list:
         "claude-opus-4-6",
         "claude-sonnet-4-5",
         "claude-sonnet-4-6",
-        "claude-3-5-haiku-latest",  # alias
         "claude-haiku-4-5",
         "claude-sonnet-4-5",
     ]
