@@ -132,7 +132,7 @@ def configuration_digest() -> str:
 def settings_digest() -> str:
     """What was asked for: every runtime setting and every colour, left uncurated."""
     digest = hashlib.blake2b(digest_size=16)
-    for name, value in sorted((PrimeItems.program_arguments or {}).items()):
+    for name, value in sorted(PrimeItems.program_arguments.items()):
         digest.update(f"{name}={value!r}".encode())
         digest.update(SEPARATOR)
     colors = PrimeItems.colors_to_use

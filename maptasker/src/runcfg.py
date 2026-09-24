@@ -48,13 +48,12 @@
 from __future__ import annotations
 
 import contextlib
-from dataclasses import dataclass, field, fields, replace
+from dataclasses import FrozenInstanceError, dataclass, field, replace
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING
 
-from maptasker.src.config import ANDROID_FILE, ANDROID_IPADDR, ANDROID_PORT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
+from maptasker.src.initparg import ArgumentFields, ProgramArguments
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import DIAGRAM_PROFILES_PER_LINE, NOTIFY_TIMEOUT_DEFAULT, VIEW_LIMIT_DEFAULT
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
@@ -65,94 +64,24 @@ if TYPE_CHECKING:
 NO_COLORS: Mapping[str, str] = MappingProxyType({})
 
 
-@dataclass(frozen=True)
-class RunConfig:
+@dataclass(slots=True)
+class RunConfig(ArgumentFields):
     """
     The settings for one run: the colors to draw with, and the runtime arguments the
     user asked for.  Frozen -- derive a changed copy with with_changes() instead of
     assigning.
 
-    The argument fields mirror initparg.initialize_runtime_arguments() exactly, one
-    field per key, with the same defaults; test_runcfg.py fails if the two drift apart.
-    Field access is therefore checked -- config.display_detail_level is a typo away from
-    an AttributeError, where program_arguments["dispaly_detail_level"] was a silent
-    KeyError at best and a silently-ignored write at worst.
+    The argument fields are ArgumentFields' (initparg.py), the same ones ProgramArguments
+    has, so they are declared once for both.  Frozen by hand rather than with
+    @dataclass(frozen=True), which dataclasses refuse for a class whose base is not
+    frozen: __post_init__ seals the instance, and from then on any assignment -- to a
+    field or through any method -- raises dataclasses.FrozenInstanceError.
     """
-
-    # --- What to show ----------------------------------------------------------------
-    display_detail_level: int = DEFAULT_DISPLAY_DETAIL_LEVEL  # How much Task/Profile detail to display, 0-5
-    conditions: bool = False  # Display Profile and Task conditions
-    directory: bool = False  # Display the directory of hyperlinks
-    list_unnamed_items: bool = False  # List unnamed items in the directory
-    preferences: bool = False  # Display Tasker's preferences
-    runtime: bool = False  # Display the runtime arguments/settings
-    taskernet: bool = False  # Display TaskerNet information
-    twisty: bool = False  # Add clickable "▶︎" twisties for Task details
-    pretty: bool = False  # Pretty up the output (uses many more lines)
-    view_limit: int = VIEW_LIMIT_DEFAULT  # Map view line limit
-    task_action_warning_limit: int = 100  # Task action count that triggers a warning
-
-    # --- How to draw it --------------------------------------------------------------
-    appearance_mode: str = "system"  # "system", "dark" or "light"
-    font: str = OUTPUT_FONT  # Font to use in the output
-    bold: bool = False  # Names in bold
-    highlight: bool = False  # Names highlighted
-    italicize: bool = False  # Names italicized
-    underline: bool = False  # Names underlined
-    indent: int = 4  # Indentation for if/then/else nesting
-    icon_alignement: bool = True  # Align the Diagram view with icons
-    profiles_per_line: int = DIAGRAM_PROFILES_PER_LINE  # Diagram Profiles per line
-    language: str = "English"  # Language for the output and GUI
-
-    # --- The one item to show, if the user asked for just one ------------------------
-    single_profile_name: str = ""
-    single_project_name: str = ""
-    single_scene_name: str = ""
-    single_task_name: str = ""
-
-    # --- Where the XML comes from ----------------------------------------------------
-    file: str = ""  # The backup file to re-use, if re-running
-    android_file: str = ANDROID_FILE  # File location on the Android device
-    android_ipaddr: str = ANDROID_IPADDR  # IP address of the Android device
-    android_port: str = ANDROID_PORT  # Port of the Android device
-    android_last_ipaddr: str = ""  # IP address last entered in any Android dialog
-    android_last_port: str = ""  # Port last entered in any Android dialog
-    android_check_ids: bool = False  # Save To Android: check IDs against a fresh device backup first
-    android_verify: bool = False  # Save To Android: read the XML back before sending it
-    fetched_backup_from_android: bool = False  # XML came off an Android device
-    local_xml_directory: str = ""  # Where the last local XML file came from
-
-    # --- AI analysis -----------------------------------------------------------------
-    ai_analyze: bool = False  # Do AI processing
-    ai_apikey: str = ""  # AI API key
-    ai_model: str = ""  # AI model
-    ai_name: str = ""  # AI name
-    ai_prompt: str = ""  # AI prompt
-
-    # --- What the Health Check reports -----------------------------------------------
-    # The categories the user unticked in the Health Check panel, by tag.  Stored as what
-    # to LEAVE OUT so a category added in a later release arrives reported rather than
-    # silently hidden -- see healthck.CATEGORIES.  A list rather than a tuple because that
-    # is what it is in program_arguments and what a TOML settings file reads back as, and
-    # the two are compared field for field (see the tests); default_factory because a
-    # dataclass will not take a mutable default written outright.
-    health_check_skip: list[str] = field(default_factory=list)
-
-    # --- How we were invoked ---------------------------------------------------------
-    gui: bool = False  # Use the GUI for the runtime and color options
-    guiview: bool = False  # Use the GUI to get the view (Map, Diagram, Tree)
-    doing_diagram: bool = False  # Use the GUI to get the diagram view
-    rerun: bool = False  # This is a GUI re-run
-    reset: bool = False  # Reset settings to their default values
-    debug: bool = False  # Run in debug mode (create a log file)
-    tab_to_use: str | None = None  # Default GUI tab to start on
-    notify_timeout: int = NOTIFY_TIMEOUT_DEFAULT  # How long a notification stays up (ms)
 
     # --- The colors ------------------------------------------------------------------
     # A read-only {color argument name: color} table -- "project_color": "White" and so
     # on, as built by colrmode.set_color_mode.  Kept as a mapping rather than a field per
     # color because the user can add color arguments of their own from the command line.
-    # (A mapping is not hashable, so neither is a RunConfig; compare them with == .)
     #
     # default_factory rather than `= NO_COLORS`, and NOT a tidy-up to undo: on Python 3.11
     # dataclasses rejects any default whose type is unhashable, and MappingProxyType only
@@ -161,22 +90,41 @@ class RunConfig:
     # the project supports (pyproject: requires-python = ">=3.11"), before anything runs.
     colors: Mapping[str, str] = field(default_factory=lambda: NO_COLORS)
 
-    # The argument field names, in declaration order, with "colors" left out: everything
-    # here corresponds one-for-one to a program_arguments key.  Filled in just below the
-    # class, once the fields exist, and then never again -- as_arguments() and get() run
-    # per call and should not be walking dataclasses.fields() each time.
-    ARGUMENT_NAMES: ClassVar[tuple[str, ...]] = ()
+    # Set once __post_init__ has run; see __setattr__.  Not a setting, so kept out of the
+    # constructor, the repr and comparisons.
+    _sealed: bool = field(default=False, init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         """
-        Take the colors table over: copy it, and make the copy read-only.
+        Take the colors table and the list over, then seal the instance.
 
-        Copying is what stops the dictionary that was passed in from staying a back door
-        into a frozen config; making it read-only is what stops code that is handed the
-        config from writing through it.  Done here rather than in the constructors so it
-        holds however a RunConfig was built -- including by dataclasses.replace.
+        Copying is what stops what was passed in from staying a back door into a frozen
+        config; making the colors read-only is what stops code that is handed the config
+        from writing through them.  Done here rather than in the constructors so it holds
+        however a RunConfig was built -- including by dataclasses.replace.
         """
         object.__setattr__(self, "colors", MappingProxyType(dict(self.colors or {})))
+        object.__setattr__(self, "health_check_skip", list(self.health_check_skip))
+        object.__setattr__(self, "_sealed", True)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        """Refuse every assignment once sealed; __init__ runs before that."""
+        if getattr(self, "_sealed", False):
+            msg = f"cannot assign to field {name!r}"
+            raise FrozenInstanceError(msg)
+        object.__setattr__(self, name, value)
+
+    def __delattr__(self, name: str) -> None:
+        """Refuse every deletion."""
+        msg = f"cannot delete field {name!r}"
+        raise FrozenInstanceError(msg)
+
+    def __deepcopy__(self, memo: dict) -> RunConfig:
+        """
+        A copy built through the constructor.  The default copy would put the fields
+        back one by one after _sealed, and __setattr__ would refuse them.
+        """
+        return replace(self)
 
     # ---------------------------------------------------------------------------------
     # Construction
@@ -184,7 +132,7 @@ class RunConfig:
     @classmethod
     def from_dicts(
         cls,
-        program_arguments: Mapping[str, Any] | None,
+        program_arguments: Mapping[str, object] | None,
         colors_to_use: Mapping[str, str] | None = None,
     ) -> RunConfig:
         """
@@ -202,10 +150,10 @@ class RunConfig:
             Returns:
                 RunConfig: the frozen configuration.
         """
-        known = {name: value for name, value in (program_arguments or {}).items() if name in cls.ARGUMENT_NAMES}
+        known = {name: value for name, value in (program_arguments or {}).items() if name in cls.NAME_SET}
         return cls(**known, colors=colors_to_use or {})
 
-    def with_changes(self, **overrides: Any) -> RunConfig:  # noqa: ANN401
+    def with_changes(self, **overrides: object) -> RunConfig:
         """
         Return a copy of this configuration with some settings changed.
 
@@ -219,29 +167,13 @@ class RunConfig:
                 RunConfig: a new configuration.
 
             Raises:
-                TypeError: if a name is not a configuration field -- the typo that
-                    program_arguments["..."] = ... would have accepted silently.
+                TypeError: if a name is not a configuration field.
         """
         return replace(self, **overrides)
 
     # ---------------------------------------------------------------------------------
     # Access
     # ---------------------------------------------------------------------------------
-    def get(self, name: str, default: Any = None) -> Any:  # noqa: ANN401
-        """
-        Return one setting by name, for the few callers whose key is computed rather
-        than written out -- primitem's single-item selectors, for one.  Prefer plain
-        attribute access everywhere else: it is checked, and this is not.
-
-            Args:
-                name (str): the setting's name.
-                default: what to return if there is no such setting.
-
-            Returns:
-                the setting's value, or default.
-        """
-        return getattr(self, name, default) if name in self.ARGUMENT_NAMES else default
-
     def color(self, name: str, default: str = "") -> str:
         """
         Return one color by its argument name, e.g. "project_color".
@@ -256,19 +188,9 @@ class RunConfig:
         return self.colors.get(name, default) or default
 
     # ---------------------------------------------------------------------------------
-    # Interop with the dictionaries the un-converted code still reads
+    # Interop with the dictionaries the un-converted code still reads.  The arguments
+    # come out through as_dict(), from ArgumentFields.
     # ---------------------------------------------------------------------------------
-    def as_arguments(self) -> dict[str, Any]:
-        """
-        Return the runtime arguments as a plain dictionary -- the shape
-        PrimeItems.program_arguments has, and the shape the settings file is written
-        from.
-
-            Returns:
-                dict: a fresh, mutable copy of the arguments.
-        """
-        return {name: getattr(self, name) for name in self.ARGUMENT_NAMES}
-
     def as_colors(self) -> dict[str, str]:
         """
         Return the colors as a plain dictionary.
@@ -286,13 +208,8 @@ class RunConfig:
         This is the one direction that is not pure, and it exists only as long as the
         globals do.  Nothing that has been given a RunConfig should need to call it.
         """
-        PrimeItems.program_arguments = self.as_arguments()
+        PrimeItems.program_arguments = ProgramArguments(**self.as_dict())
         PrimeItems.colors_to_use = self.as_colors()
-
-
-# Fill in the argument-name list now that the fields exist.  "colors" is the one field
-# that is not a program_arguments key.
-RunConfig.ARGUMENT_NAMES = tuple(field.name for field in fields(RunConfig) if field.name != "colors")
 
 
 def current_config() -> RunConfig:
@@ -309,7 +226,7 @@ def current_config() -> RunConfig:
 
 
 @contextlib.contextmanager
-def overridden_config(**overrides: Any) -> Iterator[RunConfig]:  # noqa: ANN401
+def overridden_config(**overrides: object) -> Iterator[RunConfig]:
     """
     Run a block with some settings temporarily changed, then put them back.
 
@@ -339,12 +256,8 @@ def overridden_config(**overrides: Any) -> Iterator[RunConfig]:  # noqa: ANN401
     overridden = current_config().with_changes(**overrides)
     argument_names = [name for name in overrides if name != "colors"]
 
-    # Remember what was there, including "it wasn't there at all" -- a test that sets up
-    # a partial program_arguments must not come out of this with keys it never had.
-    saved = {
-        name: PrimeItems.program_arguments[name] for name in argument_names if name in PrimeItems.program_arguments
-    }
-    absent = [name for name in argument_names if name not in PrimeItems.program_arguments]
+    # Remember what was there.
+    saved = {name: PrimeItems.program_arguments[name] for name in argument_names}
     saved_colors = PrimeItems.colors_to_use
 
     PrimeItems.program_arguments.update({name: getattr(overridden, name) for name in argument_names})
@@ -354,7 +267,5 @@ def overridden_config(**overrides: Any) -> Iterator[RunConfig]:  # noqa: ANN401
         yield overridden
     finally:
         PrimeItems.program_arguments.update(saved)
-        for name in absent:
-            PrimeItems.program_arguments.pop(name, None)
         if "colors" in overrides:
             PrimeItems.colors_to_use = saved_colors

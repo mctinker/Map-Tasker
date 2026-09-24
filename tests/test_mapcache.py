@@ -17,6 +17,7 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import mapcache, taskerd
 from maptasker.src.primitem import PrimeItems, initial_tasker_root_elements
 
@@ -62,7 +63,7 @@ def _loaded(tmp_path, monkeypatch) -> None:
     """A loaded configuration, plain settings, and a Map file of our own to point at."""
     monkeypatch.chdir(tmp_path)
     _load(_XML)
-    PrimeItems.program_arguments = {"display_detail_level": 5, "directory": True, "font": "Courier"}
+    PrimeItems.program_arguments = ProgramArguments(display_detail_level=5, directory=True, font="Courier")
     PrimeItems.colors_to_use = {"project_color": "White"}
     mapcache.forget()
     yield
@@ -189,17 +190,30 @@ def test_a_changed_setting_is_a_different_map(tmp_path) -> None:
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests())
 
-    PrimeItems.program_arguments["display_detail_level"] = 3
+    PrimeItems.program_arguments.display_detail_level = 3
 
     assert not mapcache.is_current(path, mapcache.digests())
 
 
-def test_a_setting_nobody_thought_of_is_still_a_different_map(tmp_path) -> None:
-    """The settings are not a curated list: a new one counts without being named here."""
+def _something_else(value: object) -> object:
+    """A value of the same kind as `value` that is not equal to it."""
+    if isinstance(value, bool):
+        return not value
+    if isinstance(value, int):
+        return value + 1
+    if isinstance(value, list):
+        return [*value, "changed"]
+    return f"{value}changed"
+
+
+@pytest.mark.parametrize("name", ProgramArguments.NAMES)
+def test_every_setting_is_part_of_what_was_built(tmp_path, name) -> None:
+    """The settings are not a curated list: every one counts, including one added later,
+    without being named here."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests())
 
-    PrimeItems.program_arguments["some_setting_added_later"] = True
+    PrimeItems.program_arguments[name] = _something_else(PrimeItems.program_arguments[name])
 
     assert not mapcache.is_current(path, mapcache.digests())
 

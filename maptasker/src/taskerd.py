@@ -203,7 +203,7 @@ def get_the_xml_data() -> bool:
             _rewrite_xml(file_to_parse)
 
     if PrimeItems.xml_tree is None:
-        return 1 if not PrimeItems.program_arguments["gui"] else _handle_gui_error("Bad XML file")
+        return 1 if not PrimeItems.program_arguments.gui else _handle_gui_error("Bad XML file")
 
     PrimeItems.xml_root = PrimeItems.xml_tree.getroot()
     if PrimeItems.xml_root.tag != "TaskerData":
@@ -247,7 +247,7 @@ def get_the_xml_data() -> bool:
 
 def _handle_gui_error(message: str, code: int = 1) -> int:
     PrimeItems.output_lines.add_line_to_output(0, message, FormatLine.dont_format_line)
-    if PrimeItems.program_arguments["gui"]:
+    if PrimeItems.program_arguments.gui:
         PrimeItems.error_msg = message
     return code
 

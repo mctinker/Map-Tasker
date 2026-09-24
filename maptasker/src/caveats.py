@@ -75,7 +75,7 @@ def display_caveats(config: RunConfig) -> None:
 
     if config.display_detail_level >= 4:  # Caveat about inactive/unreferenced variables
         caveats.append(translate_string(cav10))
-    # if PrimeItems.program_arguments["taskernet"]:
+    # if PrimeItems.program_arguments.taskernet:
     # caveats.append(f"{cav11} https://www.ffmpeg.org/download.html\n")
 
     # Start the output

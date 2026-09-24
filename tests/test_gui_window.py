@@ -135,7 +135,7 @@ async def test_with_no_settings_file_the_window_opens_on_the_runs_starting_value
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """No settings file is not an error: the window comes up on the arguments the run started with."""
-    starting_level = PrimeItems.program_arguments["display_detail_level"]
+    starting_level = PrimeItems.program_arguments.display_detail_level
 
     async with _open_window() as (user, gui):
         assert gui.bold is False

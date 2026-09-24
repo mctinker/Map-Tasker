@@ -47,7 +47,7 @@ def get_kid_app(element: defusedxml.ElementTree) -> str:
         f" Version:{kid_target} {kid_features} {kid_plugins}]"
     )
 
-    if PrimeItems.program_arguments["pretty"]:
+    if PrimeItems.program_arguments.pretty:
         number_of_blanks = kid_app_info.find("Package:") - 4
         kid_app_info = kid_app_info.replace(",", f"<br>{blank * number_of_blanks}")
 

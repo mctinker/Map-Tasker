@@ -92,7 +92,7 @@ def display_debug_info(config: RunConfig) -> None:
     # print("Python version ", sys.version)
 
     # Copy our dictionary of runtime arguments and sort it alphabetically
-    arguments = config.as_arguments()
+    arguments = config.as_dict()
     mydict = ARGUMENT_NAMES.copy()
     mykeys = sorted(mydict.keys())
     mydict = {i: mydict[i] for i in mykeys}

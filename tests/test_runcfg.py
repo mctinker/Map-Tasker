@@ -20,13 +20,14 @@ Two of them are guards rather than tests of behavior:
 
 from __future__ import annotations
 
+import copy
 import dataclasses
 import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import check_profile, check_project, check_scene, check_task
-from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems, get_single_item_not_found, get_single_item_requested
@@ -66,17 +67,11 @@ def tasker_data() -> None:
 # ##################################################################################### #
 # The value itself                                                                       #
 # ##################################################################################### #
-def test_fields_match_initparg() -> None:
-    """Every runtime argument has a field of the same name and the same default."""
-    defaults = initialize_runtime_arguments()
-
-    assert set(RunConfig.ARGUMENT_NAMES) == set(defaults)
-
-    config = RunConfig()
-    mismatched = {
-        name: (defaults[name], getattr(config, name)) for name in defaults if getattr(config, name) != defaults[name]
-    }
-    assert mismatched == {}
+def test_fields_are_the_runtime_arguments() -> None:
+    """The argument fields are ProgramArguments' own, with the same defaults -- one
+    declaration (ArgumentFields) serves both."""
+    assert RunConfig.NAMES == ProgramArguments.NAMES
+    assert RunConfig().as_dict() == initialize_runtime_arguments().as_dict()
 
 
 def test_config_is_frozen() -> None:
@@ -85,8 +80,51 @@ def test_config_is_frozen() -> None:
 
     with pytest.raises(dataclasses.FrozenInstanceError):
         config.display_detail_level = 5
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        config.colors = {}
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        del config.bold
 
     assert config.display_detail_level == 3
+
+
+def test_config_has_none_of_the_ways_to_change_arguments() -> None:
+    """The writing half of ProgramArguments -- [name] = ..., update, restore -- is not
+    inherited; a RunConfig only shares the fields and the reading."""
+    config = RunConfig()
+
+    assert not isinstance(config, ProgramArguments)
+    for method in ("__setitem__", "update", "restore"):
+        assert not hasattr(config, method), method
+    assert config["bold"] is False
+
+
+def test_a_misspelled_setting_is_not_quietly_accepted() -> None:
+    """Reading by a computed name is as strict as it is on ProgramArguments."""
+    with pytest.raises(KeyError):
+        _ = RunConfig()["veiw_limit"]
+    with pytest.raises(AttributeError):
+        _ = RunConfig().veiw_limit
+
+
+def test_config_does_not_share_the_list_it_was_built_from() -> None:
+    """A snapshot of the live settings must not change when the live settings do."""
+    arguments = ProgramArguments(health_check_skip=["unused_variables"])
+    config = RunConfig.from_dicts(arguments)
+
+    arguments.health_check_skip.append("long_tasks")
+
+    assert config.health_check_skip == ["unused_variables"]
+
+
+def test_a_copy_is_still_frozen() -> None:
+    """copy.deepcopy goes through the constructor, so the copy is sealed too."""
+    config = RunConfig(bold=True, colors={"task_color": "Yellow"})
+    duplicate = copy.deepcopy(config)
+
+    assert duplicate == config
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        duplicate.bold = False
 
 
 def test_with_changes_leaves_the_original_alone() -> None:
@@ -100,8 +138,8 @@ def test_with_changes_leaves_the_original_alone() -> None:
 
 
 def test_with_changes_rejects_an_unknown_setting() -> None:
-    """A misspelled setting name fails here, where program_arguments["..."] = ... would
-    have accepted it and left the value where nothing reads it."""
+    """A misspelled setting name fails here rather than leaving the value where nothing
+    reads it."""
     with pytest.raises(TypeError):
         RunConfig().with_changes(dispaly_detail_level=5)
 
@@ -146,21 +184,21 @@ def test_from_dicts_ignores_settings_it_does_not_know() -> None:
     config = RunConfig.from_dicts({"bold": True, "an_argument_from_2021": "gone"})
 
     assert config.bold is True
-    assert config.get("an_argument_from_2021", "absent") == "absent"
-    assert "an_argument_from_2021" not in config.as_arguments()
+    assert "an_argument_from_2021" not in config
+    assert "an_argument_from_2021" not in config.as_dict()
 
 
-def test_as_arguments_round_trips() -> None:
+def test_as_dict_round_trips() -> None:
     """A config converted to the dictionary shape and back is the same config."""
     config = RunConfig(display_detail_level=2, single_task_name="Wake", colors={"task_color": "Yellow"})
 
-    assert RunConfig.from_dicts(config.as_arguments(), config.as_colors()) == config
+    assert RunConfig.from_dicts(config.as_dict(), config.as_colors()) == config
 
 
-def test_as_arguments_is_a_fresh_copy() -> None:
+def test_as_dict_is_a_fresh_copy() -> None:
     """Handing the arguments out as a dictionary does not hand out a way back in."""
     config = RunConfig(bold=True)
-    arguments = config.as_arguments()
+    arguments = config.as_dict()
     arguments["bold"] = False
 
     assert config.bold is True
@@ -175,11 +213,11 @@ def test_current_config_is_a_snapshot() -> None:
     saved_arguments, saved_colors = PrimeItems.program_arguments, PrimeItems.colors_to_use
     try:
         PrimeItems.program_arguments = initialize_runtime_arguments()
-        PrimeItems.program_arguments["display_detail_level"] = 2
+        PrimeItems.program_arguments.display_detail_level = 2
         PrimeItems.colors_to_use = {"task_color": "Yellow"}
 
         config = current_config()
-        PrimeItems.program_arguments["display_detail_level"] = 5
+        PrimeItems.program_arguments.display_detail_level = 5
         PrimeItems.colors_to_use["task_color"] = "Green"
 
         assert config.display_detail_level == 2
@@ -193,13 +231,13 @@ def test_overridden_config_restores_on_the_way_out() -> None:
     saved = PrimeItems.program_arguments
     try:
         PrimeItems.program_arguments = initialize_runtime_arguments()
-        PrimeItems.program_arguments["directory"] = True
+        PrimeItems.program_arguments.directory = True
 
         with overridden_config(directory=False) as config:
             assert config.directory is False
-            assert PrimeItems.program_arguments["directory"] is False
+            assert PrimeItems.program_arguments.directory is False
 
-        assert PrimeItems.program_arguments["directory"] is True
+        assert PrimeItems.program_arguments.directory is True
     finally:
         PrimeItems.program_arguments = saved
 
@@ -209,13 +247,13 @@ def test_overridden_config_restores_when_the_block_raises() -> None:
     saved = PrimeItems.program_arguments
     try:
         PrimeItems.program_arguments = initialize_runtime_arguments()
-        PrimeItems.program_arguments["twisty"] = True
+        PrimeItems.program_arguments.twisty = True
 
         blew_up = ValueError("boom")
         with pytest.raises(ValueError, match="boom"), overridden_config(twisty=False):
             raise blew_up
 
-        assert PrimeItems.program_arguments["twisty"] is True
+        assert PrimeItems.program_arguments.twisty is True
     finally:
         PrimeItems.program_arguments = saved
 
@@ -226,28 +264,28 @@ def test_overridden_config_keeps_other_changes_made_inside_it() -> None:
     saved = PrimeItems.program_arguments
     try:
         PrimeItems.program_arguments = initialize_runtime_arguments()
-        PrimeItems.program_arguments["directory"] = True
+        PrimeItems.program_arguments.directory = True
 
         with overridden_config(directory=False):
-            PrimeItems.program_arguments["single_project_name"] = "Home"
+            PrimeItems.program_arguments.single_project_name = "Home"
 
-        assert PrimeItems.program_arguments["directory"] is True
-        assert PrimeItems.program_arguments["single_project_name"] == "Home"
+        assert PrimeItems.program_arguments.directory is True
+        assert PrimeItems.program_arguments.single_project_name == "Home"
     finally:
         PrimeItems.program_arguments = saved
 
 
-def test_overridden_config_does_not_invent_settings() -> None:
-    """A partial program_arguments -- what most tests set up -- comes out of an override
-    with exactly the keys it went in with."""
+def test_overridden_config_puts_the_settings_back_exactly() -> None:
+    """The settings come out of an override exactly as they went in."""
     saved = PrimeItems.program_arguments
     try:
-        PrimeItems.program_arguments = {"language": "English"}
+        PrimeItems.program_arguments = ProgramArguments(language="French", twisty=True)
+        before = PrimeItems.program_arguments.copy()
 
         with overridden_config(twisty=False):
-            assert PrimeItems.program_arguments["twisty"] is False
+            assert PrimeItems.program_arguments.twisty is False
 
-        assert PrimeItems.program_arguments == {"language": "English"}
+        assert PrimeItems.program_arguments == before
     finally:
         PrimeItems.program_arguments = saved
 
@@ -280,7 +318,7 @@ def test_add_name_attribute_ignores_the_global() -> None:
     saved = PrimeItems.program_arguments
     try:
         PrimeItems.program_arguments = initialize_runtime_arguments()
-        PrimeItems.program_arguments["bold"] = True
+        PrimeItems.program_arguments.bold = True
 
         assert add_name_attribute("Wake", RunConfig(bold=False)) == "Wake"
     finally:
@@ -356,7 +394,7 @@ def test_directory_filters_ignore_the_global(tasker_data: None) -> None:
     saved = PrimeItems.program_arguments
     try:
         PrimeItems.program_arguments = initialize_runtime_arguments()
-        PrimeItems.program_arguments["single_project_name"] = "Away"
+        PrimeItems.program_arguments.single_project_name = "Away"
 
         assert check_project(("Home", "Home"), RunConfig(single_project_name="Home")) is True
         assert check_project(("Away", "Away"), RunConfig(single_project_name="Home")) is False

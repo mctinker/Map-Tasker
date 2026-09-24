@@ -165,7 +165,7 @@ def record_response(response: str, ai_object: str, item: str) -> None:
     """
     with open(ANALYSIS_FILE, "w", encoding="utf-8") as response_file:
         response_file.write(
-            f'{PrimeItems.program_arguments["ai_name"]} AI Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} "{item}":\n\n{response}',
+            f'{PrimeItems.program_arguments.ai_name} AI Response using model {PrimeItems.program_arguments.ai_model} for {ai_object} "{item}":\n\n{response}',
         )
     # Queue up the message to display in the GUI textbox.
     analysis_file_name = ANALYSIS_FILE.split(".")
@@ -223,11 +223,11 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
             return
 
     # Fix the model name
-    if PrimeItems.program_arguments["ai_model"] == "None":
+    if PrimeItems.program_arguments.ai_model == "None":
         error_handler("No model selected.", 12)
         return
 
-    console.say(f"Model: {PrimeItems.program_arguments['ai_model']}")
+    console.say(f"Model: {PrimeItems.program_arguments.ai_model}")
     # print(f"Query: {query}")
 
     # Prep the querey for the model.
@@ -243,7 +243,7 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
     ]
     response = ""
     # Make sure we don't come back if cria fails.
-    PrimeItems.program_arguments["ai_analyze"] = False
+    PrimeItems.program_arguments.ai_analyze = False
 
     # Open the model and get the response.  Cria() is inside the try because it is the call that
     # starts a server when there is none (and raises FileNotFoundError when the Ollama app is not
@@ -253,7 +253,7 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
         # Call Cria
         ai = cria.Cria()
 
-        with cria.Model(PrimeItems.program_arguments["ai_model"]) as ai:
+        with cria.Model(PrimeItems.program_arguments.ai_model) as ai:
             for chunk in ai.chat(messages=messages, prompt=prompt):
                 response = f"{response}{chunk}"
             ai.clear()
@@ -286,7 +286,7 @@ def process_error(error: str, ai_object: str, item: str) -> None:
         output_error = f"{ai_object} too large for ChatGPT or ChatGPT quota not enough!\n\n"
     elif "'Incorrect API key provided" in error:
         output_error = "Invalid ChatGPT API key provided!\n\n"
-    elif PrimeItems.program_arguments["ai_model"] in DEEPSEEK_MODELS and "Error code:" in error:
+    elif PrimeItems.program_arguments.ai_model in DEEPSEEK_MODELS and "Error code:" in error:
         if ": 401" in error:
             extra = "DeepSeek error code 401...possible invalid DeepSeek API key provided!\n\n"
         output_error = (
@@ -299,16 +299,16 @@ def process_error(error: str, ai_object: str, item: str) -> None:
     # Note: "Ai Response" must be a part of the message for it to be recognized by guiutils.
     with open(ERROR_FILE, "w", encoding="utf-8") as error_file:
         error_file.write(
-            f"'{PrimeItems.program_arguments['ai_name']} AI Response using model {PrimeItems.program_arguments['ai_model']} for {ai_object} {item}:\n\n{output_error}",
+            f"'{PrimeItems.program_arguments.ai_name} AI Response using model {PrimeItems.program_arguments.ai_model} for {ai_object} {item}:\n\n{output_error}",
         )
     error_file.close()
 
 
 def _process_openai_response(client: object, query: str) -> str:
     """Helper function to process OpenAI responses."""
-    model = PrimeItems.program_arguments["ai_model"]
+    model = PrimeItems.program_arguments.ai_model
     role = ai_role
-    roletype = "user" if "o1" in PrimeItems.program_arguments["ai_model"] else "system"
+    roletype = "user" if "o1" in PrimeItems.program_arguments.ai_model else "system"
     stream_feed = client.chat.completions.create(
         model=model,
         messages=[
@@ -325,7 +325,7 @@ def _process_anthropic_response(client: object, query: str) -> str:
     """Helper function to process Anthropic (Claude) responses."""
     role = ai_role
     message = client.messages.create(
-        model=PrimeItems.program_arguments["ai_model"],
+        model=PrimeItems.program_arguments.ai_model,
         max_tokens=1024,
         messages=[
             {"role": "user", "content": f"{role} {query}"},
@@ -336,7 +336,7 @@ def _process_anthropic_response(client: object, query: str) -> str:
 
 def _process_deepseek_response(client: object, query: str) -> str:
     """Helper function to process DeepSeek responses."""
-    model = PrimeItems.program_arguments["ai_model"]
+    model = PrimeItems.program_arguments.ai_model
     role = ai_role
     message = client.chat.completions.create(
         model=model,
@@ -353,7 +353,7 @@ def _process_deepseek_response(client: object, query: str) -> str:
 
 def _process_gemini_response(client: object, query: str) -> str:
     """Helper function to process Gemini responses."""
-    model = PrimeItems.program_arguments["ai_model"]
+    model = PrimeItems.program_arguments.ai_model
     role = ai_role
     # Suppress logging warnings
     # message = client.GenerativeModel(model)
@@ -385,7 +385,7 @@ def process_ai_query_and_response(
     Returns:
         None: This function does not return anything.
     """
-    name = PrimeItems.program_arguments["ai_name"]
+    name = PrimeItems.program_arguments.ai_name
 
     # Map AI names to their respective processing functions
     ai_processors = {
@@ -421,7 +421,7 @@ def handle_ai_error(error: Exception) -> str:
         str: The formatted error message.
     """
     # Determine the AI being used.
-    model = PrimeItems.program_arguments["ai_model"]
+    model = PrimeItems.program_arguments.ai_model
     ai = next(
         (
             name
@@ -444,9 +444,7 @@ def handle_ai_error(error: Exception) -> str:
     if ai == "OpenAI":
         return f"OpenAI failed with error: {error!s}"
     if "invalid x-api-key" in message or "API key not valid" in message:
-        return (
-            f"Invalid {ai} API key provided: key='{PrimeItems.program_arguments['ai_apikey']}' for model {model}!\n\n"
-        )
+        return f"Invalid {ai} API key provided: key='{PrimeItems.program_arguments.ai_apikey}' for model {model}!\n\n"
     if "Connection error" in message:
         return "Connection Error: Check your firewall. If this is not the issue, try another Anthropic API key.  Also check out their 'Initial Setup' steps.\n\n"
     return f"{ai} failed with error: {error!s}"
@@ -464,14 +462,14 @@ def open_ai(query: str, ai_object: str, item: str) -> None:
     Returns:
         None: This function does not return anything.
     """
-    if PrimeItems.program_arguments["ai_analyze"] and not module_is_available("openai"):
+    if PrimeItems.program_arguments.ai_analyze and not module_is_available("openai"):
         error_handler(
             "Module 'openai' not found. Please install the 'openai' module.",
             12,
         )
         return
 
-    api_key = PrimeItems.program_arguments["ai_apikey"]
+    api_key = PrimeItems.program_arguments.ai_apikey
     if api_key == "Hidden":
         # The settings file only ever holds the word "Hidden"; the key itself is saved apart.
         get_api_key()
@@ -504,7 +502,7 @@ def claude_ai(query: str, ai_object: str, item: str) -> None:
     if anthropic is None:
         error_handler("Module 'anthropic' not found. Please install the 'anthropic' module.", 12)
         return
-    client = anthropic.Anthropic(api_key=PrimeItems.program_arguments["ai_apikey"])
+    client = anthropic.Anthropic(api_key=PrimeItems.program_arguments.ai_apikey)
     process_ai_query_and_response(client, query, ai_object, item)
 
 
@@ -528,7 +526,7 @@ def deepseek_ai(query: str, ai_object: str, item: str) -> None:
     # 2. Extract the specific classes needed
     OpenAI = openai_lib.OpenAI  # noqa: N806
     client = OpenAI(
-        api_key=PrimeItems.program_arguments["ai_apikey"],
+        api_key=PrimeItems.program_arguments.ai_apikey,
         base_url="https://api.deepseek.com",
     )
     process_ai_query_and_response(client, query, ai_object, item)
@@ -550,7 +548,7 @@ def gemini_ai(query: str, ai_object: str, item: str) -> None:
     if genai is None:
         error_handler("Module 'google-genai' not found. Please install the 'google-genai' module.", 12)
         return
-    client = genai.Client(api_key=PrimeItems.program_arguments["ai_apikey"])
+    client = genai.Client(api_key=PrimeItems.program_arguments.ai_apikey)
     process_ai_query_and_response(client, query, ai_object, item)
 
 
@@ -580,7 +578,7 @@ async def _run_analysis_in_background(popup: popupwindow) -> None:
         temp_output = cleanup_output()
         ai_object, item = get_ai_object()
 
-        prompt = PrimeItems.program_arguments["ai_prompt"] if PrimeItems.program_arguments["ai_prompt"] else AI_PROMPT
+        prompt = PrimeItems.program_arguments.ai_prompt if PrimeItems.program_arguments.ai_prompt else AI_PROMPT
         if not prompt.endswith(":"):
             prompt = f"{prompt}:"
         query = f"Given the following {ai_object} in Tasker, an Android automation tool, {prompt}"
@@ -598,7 +596,7 @@ async def _run_analysis_in_background(popup: popupwindow) -> None:
             "Gemini": gemini_ai,
             "LLAMA": local_ai,
         }
-        ai_name = PrimeItems.program_arguments["ai_name"]
+        ai_name = PrimeItems.program_arguments.ai_name
 
         # Get the targeted worker function
         ai_func = name_function_map.get(
@@ -618,7 +616,7 @@ async def _run_analysis_in_background(popup: popupwindow) -> None:
 
     finally:
         # 3. Resume main thread operations securely
-        PrimeItems.program_arguments["ai_analyze"] = False
+        PrimeItems.program_arguments.ai_analyze = False
 
         # Remove the popup window using NiceGUI syntax
         if popup:

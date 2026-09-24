@@ -166,7 +166,7 @@ def print_box(name: str, title: str, indent: int) -> None:
     filler = f"{blanks * indent}"
 
     # Deal with translations
-    if PrimeItems.program_arguments["language"] not in ("Arabic", "English"):
+    if PrimeItems.program_arguments.language not in ("Arabic", "English"):
         title = translate_string(title)
 
     full_name = f"{title} {name}{adder_space_name}"
@@ -347,7 +347,7 @@ def build_box(name: str, output_lines: list) -> tuple:
 
     # Set the box line length based on the translated name length
     box_line_length = len(name)
-    if name == "No Profile" and PrimeItems.program_arguments["language"] not in ("English", "Arabic"):
+    if name == "No Profile" and PrimeItems.program_arguments.language not in ("English", "Arabic"):
         name = translate_string(name)
         box_line_length = len(name)
         adder_space_name = ""
@@ -576,7 +576,7 @@ def build_call_table(output_lines: list) -> list:
     call_table = {}
     project_text = (
         translate_string("Project:")
-        if PrimeItems.program_arguments["language"] not in ("Arabic", "English")
+        if PrimeItems.program_arguments.language not in ("Arabic", "English")
         else "Project:"
     )
     for caller_line_num, line in enumerate(output_lines):

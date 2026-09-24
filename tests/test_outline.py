@@ -10,6 +10,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import outline, profiles, taskerd
 from maptasker.src.primitem import PrimeItems
 
@@ -43,13 +44,7 @@ def test_a_task_shared_by_several_profiles_calls_once(monkeypatch: pytest.Monkey
     monkeypatch.setattr(
         PrimeItems,
         "program_arguments",
-        {
-            "debug": False,
-            "display_detail_level": 3,
-            "indent": indent,
-            "single_profile_name": "",
-            "single_task_name": "",
-        },
+        ProgramArguments(debug=False, display_detail_level=3, indent=indent, single_profile_name="", single_task_name=""),
     )
 
     for profile in tables["all_profiles"].values():

@@ -146,7 +146,7 @@ class MyGui:
     def __init__(self: "MyGui") -> None:
         """Initialize the GUI and set up all necessary state and layout."""
         # # Trace code
-        # PrimeItems.program_arguments["debug"] = True  # Set this to True to enable tracing
+        # PrimeItems.program_arguments.debug = True  # Set this to True to enable tracing
         # # Create the trace object (set trace=False to only get function names, not every line)
         # def trace_calls(frame, event, arg):
         #     if event == "call":
@@ -206,7 +206,7 @@ class MyGui:
             return
 
         # Now restore the settings and update the fields if not resetting.
-        if not PrimeItems.program_arguments["reset"]:
+        if not PrimeItems.program_arguments.reset:
             self.event_handlers.restore_settings_event()
 
             # 3. Synchronize runtime arguments
@@ -251,11 +251,11 @@ class MyGui:
 
         # CHG: FOR DEVELOPMENT ONLY
         # PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
-        # PrimeItems.program_arguments["single_project_name"] = self.single_project_name = PrimeItems.program_arguments[
+        # PrimeItems.program_arguments.single_project_name = self.single_project_name = PrimeItems.program_arguments[
         #     "single_profile_name"
-        # ] = self.single_profile_name = PrimeItems.program_arguments["single_task_name"] = self.single_task_name = "None"
-        # PrimeItems.program_arguments["single_project_name"] = self.single_project_name = "Garden Watering"
-        # PrimeItems.program_arguments["guiview"] = True
+        # ] = self.single_profile_name = PrimeItems.program_arguments.single_task_name = self.single_task_name = "None"
+        # PrimeItems.program_arguments.single_project_name = self.single_project_name = "Garden Watering"
+        # PrimeItems.program_arguments.guiview = True
         # _ = get_xml(self.debug, self.appearance_mode)
         # self.view_limit = 9999999
         # list_tasker_objects(self)
@@ -349,7 +349,7 @@ class MyGui:
         self.view_limit = VIEW_LIMIT_DEFAULT
         self.notify_timeout = NOTIFY_TIMEOUT_DEFAULT
         self.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
-        PrimeItems.program_arguments["profiles_per_line"] = DIAGRAM_PROFILES_PER_LINE
+        PrimeItems.program_arguments.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
 
         handlers = getattr(self, "event_handlers", None)
         if handlers is None:
@@ -381,10 +381,10 @@ class MyGui:
         pulldown; this only front-runs the part it needs before the layout exists.
         """
         # A reset run deliberately ignores the saved settings, so it starts out in English.
-        if PrimeItems.program_arguments.get("reset"):
+        if PrimeItems.program_arguments.reset:
             return
 
-        language = PrimeItems.program_arguments.get("language") or "English"
+        language = PrimeItems.program_arguments.language or "English"
         # The saved value is the English language name ("German"); anything else (a hand-edited
         # settings file, or a translated name written by an older version) is not something
         # set_language can resolve, so leave the default English in place.
@@ -413,10 +413,10 @@ class MyGui:
         mean every message in the app stays up until it is clicked.
         """
         # A reset run deliberately ignores the saved settings.
-        if PrimeItems.program_arguments.get("reset"):
+        if PrimeItems.program_arguments.reset:
             return
 
-        saved_duration = PrimeItems.program_arguments.get("notify_timeout")
+        saved_duration = PrimeItems.program_arguments.notify_timeout
         if saved_duration is not None:
             # The pulldown does not exist yet; notify_timeout_event skips it when it is absent.
             self.event_handlers.notify_timeout_event(saved_duration)
@@ -454,7 +454,7 @@ class MyGui:
             # We have a file identified.  We now have to read it in.
             else:
                 filename_location = self.android_file.rfind(PrimeItems.slash) + 1
-                file_to_use = PrimeItems.program_arguments["android_file"][filename_location:]
+                file_to_use = PrimeItems.program_arguments.android_file[filename_location:]
                 if not file_to_use:
                     file_to_use = self.android_file[filename_location:]
                 try:
@@ -470,7 +470,7 @@ class MyGui:
                 display_current_file(self, file_to_use)
 
                 # Get the XML
-                PrimeItems.program_arguments["gui"] = True
+                PrimeItems.program_arguments.gui = True
                 return_code = get_the_xml_data()
                 if return_code != 0:
                     return False
@@ -1558,9 +1558,7 @@ class MapTaskerEventHandlers(
                 # own.  Read here rather than remembered on PrimeItems because the popout is
                 # constructed after this call returns, by which time any overrides for this one
                 # build have been put back.
-                query = urlencode(
-                    {"goto": goto, "scope": PrimeItems.program_arguments.get("single_project_name") or ""}
-                )
+                query = urlencode({"goto": goto, "scope": PrimeItems.program_arguments.single_project_name or ""})
                 _open_popout_window(f"/popout/map?{query}", getattr(gui, "open_view_in_new_window", False))
 
                 # Check for hard stop limit and notify user if output was truncated
@@ -1692,7 +1690,7 @@ class MapTaskerEventHandlers(
         Not silently: the settings are not the user's, so the notification says which ones
         this went past.
         """
-        level = max(PrimeItems.program_arguments.get("display_detail_level", 0), mapjump.minimum_detail_level(target))
+        level = max(PrimeItems.program_arguments.display_detail_level, mapjump.minimum_detail_level(target))
         # Narrowed to the Project that owns what was clicked, rather than built whole.  A
         # click asks to be shown one thing, and a Map of one Project is both the answer to
         # that and a great deal quicker to build and to read than a Map of everything.
@@ -1716,7 +1714,7 @@ class MapTaskerEventHandlers(
         # that the Map on screen afterwards is not the one the user's own settings would have
         # produced.  Worked out by comparing the overrides against what is actually set, so
         # that a user already on this Project at this detail level is told nothing at all.
-        changed = {key for key, value in overrides.items() if PrimeItems.program_arguments.get(key, "") != value}
+        changed = {key for key, value in overrides.items() if PrimeItems.program_arguments[key] != value}
         reasons = []
         if changed & set(SELECTION_KEYS):
             reasons.append(f"{translate_string('Project')} '{scope}'" if scope else translate_string("whole file"))
@@ -1732,10 +1730,8 @@ class MapTaskerEventHandlers(
             position="top",
         )
 
-        # Put back exactly what was there, key by key -- including any key that was absent,
-        # which must go back to being absent rather than to an empty string.
-        saved = {key: PrimeItems.program_arguments[key] for key in overrides if key in PrimeItems.program_arguments}
-        absent = [key for key in overrides if key not in PrimeItems.program_arguments]
+        # Put back exactly what was there, key by key.
+        saved = {key: PrimeItems.program_arguments[key] for key in overrides}
         try:
             # held_overrides, not just the update view_event does, because the build is not
             # the only thing writing these: capture_gui_state re-copies the GUI's own
@@ -1746,8 +1742,6 @@ class MapTaskerEventHandlers(
                 await self.view_event("map", goto=target.token(), overrides=overrides)
         finally:
             PrimeItems.program_arguments.update(saved)
-            for key in absent:
-                PrimeItems.program_arguments.pop(key, None)
 
     def refactor_event(self: "MapTaskerEventHandlers") -> None:
         """Open the Refactor dialog: the structural moves, with a preview.

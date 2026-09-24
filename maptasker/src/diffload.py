@@ -281,7 +281,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
     # into an object nothing reads any more.
     saved_directory = PrimeItems.directory_items
     saved_directory_contents = copy.deepcopy(PrimeItems.directory_items)
-    saved_arguments = {key: PrimeItems.program_arguments.get(key) for key in _FORCED_ARGUMENTS}
+    saved_arguments = {key: PrimeItems.program_arguments[key] for key in _FORCED_ARGUMENTS}
     # get_the_xml_data clears the session's undo history, because a load normally means a
     # different configuration is open now.  This load does not -- see sessundo.save_history.
     saved_undo_history = sessundo.save_history()
@@ -348,11 +348,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
                 saved_directory[key][:] = value
             else:
                 saved_directory[key] = value
-        for key, value in saved_arguments.items():
-            if value is None:
-                PrimeItems.program_arguments.pop(key, None)
-            else:
-                PrimeItems.program_arguments[key] = value
+        PrimeItems.program_arguments.update(saved_arguments)
         if saved_output is not None:
             PrimeItems.output_lines.output_lines = saved_output
         _restore_error_file(saved_error_file)

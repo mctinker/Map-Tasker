@@ -139,7 +139,7 @@ def add_directory_item(key: str, name: str) -> None:
             name (str): name of the Project/Profile/Task/Scene
     """
     # If it is an unnamed task, and we are not doing the list of unnamed tasks, then skip it.
-    if UNNAMED_ITEM in name and not PrimeItems.program_arguments["list_unnamed_items"]:
+    if UNNAMED_ITEM in name and not PrimeItems.program_arguments.list_unnamed_items:
         return
     # Clean up the name
     # name = name.replace(" (Scene)", "")

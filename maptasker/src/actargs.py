@@ -43,7 +43,7 @@ def process_clean_string(
         evaluated_results["returning_something"] = False
         return
 
-    pretty_print = PrimeItems.program_arguments.get("pretty", False)
+    pretty_print = PrimeItems.program_arguments.pretty
 
     if pretty_print:
         clean_string = clean_string.replace("\n\n", "\n")

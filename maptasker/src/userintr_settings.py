@@ -77,7 +77,7 @@ class SettingsEventHandlers:
             return
 
         # The level is an int on the GUI object.  save_settings_event() writes these attributes
-        # to the settings file as-is, and every reader of program_arguments["display_detail_level"]
+        # to the settings file as-is, and every reader of program_arguments.display_detail_level
         # compares it numerically (> 2, == 4, >= DISPLAY_DETAIL_LEVEL_all_tasks ...), so a string
         # here is what wrote display_detail_level = "5" into the TOML and left capture_gui_state() (guistate.py)
         # and process_gui() (rungui.py) converting it back on every run.  The pulldown keeps a
@@ -110,7 +110,7 @@ class SettingsEventHandlers:
         # program_arguments whether it is (error reporting, XML loading, the map build), so
         # that one flag is put straight back.
         PrimeItems.program_arguments = initialize_runtime_arguments()
-        PrimeItems.program_arguments["gui"] = True
+        PrimeItems.program_arguments.gui = True
 
         # Reset the view's own settings, then the colors that follow from the appearance mode
         # it just reset.
@@ -612,7 +612,7 @@ class SettingsEventHandlers:
                 the_view.is_updating = True  # Engage the lock
                 the_view.language_optionmenu.value = language_to_use
                 the_view.language_optionmenu.update()
-                PrimeItems.program_arguments["language"] = language_to_use
+                PrimeItems.program_arguments.language = language_to_use
             finally:
                 the_view.is_updating = False  # Disengage the lock
 
@@ -1034,7 +1034,7 @@ class SettingsEventHandlers:
             if hasattr(mygui, "sidebar_detail_option") and mygui.sidebar_detail_option:
                 mygui.sidebar_detail_option.value = "3"
             mygui.display_detail_level = all_parameters_threshold
-            PrimeItems.program_arguments["display_detail_level"] = all_parameters_threshold
+            PrimeItems.program_arguments.display_detail_level = all_parameters_threshold
 
         # 3. Check to see if we are doing everything (they are mutually exclusive)
         if mygui.twisty and mygui.everything:
@@ -1092,7 +1092,7 @@ class SettingsEventHandlers:
         the Diagram view (see NiceGuiTextView._profiles_per_line_selected in guiwins.py)."""
         gui = self.gui
         gui.profiles_per_line = profiles_per_line
-        PrimeItems.program_arguments["profiles_per_line"] = profiles_per_line
+        PrimeItems.program_arguments.profiles_per_line = profiles_per_line
 
         # Nothing to check for None here: this call returns nothing, so nicegui's cancelled-wait
         # answer and its ordinary one are the same value (see nicegui.run._run).

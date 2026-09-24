@@ -49,7 +49,7 @@ def _loaded() -> None:
     # The real defaults rather than a hand-picked subset: the output path reads settings
     # the parsing code never mentions, and a missing key there is a KeyError, not a default.
     PrimeItems.program_arguments = initialize_runtime_arguments()
-    PrimeItems.program_arguments["conditions"] = True  # off by default; most of this file needs it
+    PrimeItems.program_arguments.conditions = True  # off by default; most of this file needs it
     PrimeItems.found_named_items = initial_found_named_items()
     PrimeItems.colors_to_use = set_color_mode("dark")
     PrimeItems.output_lines = LineOut()
@@ -108,11 +108,11 @@ def test_a_single_task_search_records_its_owning_profile() -> None:
     on the way past, because the output is built Project > Profile > Task and the caller
     otherwise has no way back to the Profile heading the Task belongs under.
     """
-    PrimeItems.program_arguments["single_task_name"] = "Exit Task"
+    PrimeItems.program_arguments.single_task_name = "Exit Task"
     profiles.get_profile_tasks(_profile("5"), [], [])
 
     assert PrimeItems.found_named_items["single_task_found"] is True
-    assert PrimeItems.program_arguments["single_profile_name"] == "Morning"
+    assert PrimeItems.program_arguments.single_profile_name == "Morning"
 
 
 def test_bookkeeping_tags_are_not_mistaken_for_tasks() -> None:
@@ -173,7 +173,7 @@ def test_debug_mode_decodes_the_profile_flags() -> None:
     mode is for.  The names come from objprops, so this line cannot disagree with the
     Properties editor about what a bit means.
     """
-    PrimeItems.program_arguments["debug"] = True
+    PrimeItems.program_arguments.debug = True
     profiles.build_profile_line(_profile("8"))
     line = PrimeItems.output_lines.output_lines[-1]
 
@@ -185,7 +185,7 @@ def test_debug_mode_shows_the_profile_id() -> None:
     """The id is what the tables are keyed on and what <tids> references -- it is the
     thing you need when a Profile is not where it should be, and is otherwise invisible.
     """
-    PrimeItems.program_arguments["debug"] = True
+    PrimeItems.program_arguments.debug = True
     with_html, _ = profiles.get_profile_name(_profile("5"))
     assert "ID:5" in with_html
 
@@ -210,7 +210,7 @@ def test_conditions_can_be_turned_off() -> None:
     """--conditions is off by default because the condition text is long.  When it is
     off the Profile is still listed -- only its condition is left out.
     """
-    PrimeItems.program_arguments["conditions"] = False
+    PrimeItems.program_arguments.conditions = False
     profiles.build_profile_line(_profile("8"))
     line = PrimeItems.output_lines.output_lines[-1]
     assert "8:00" not in line

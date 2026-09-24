@@ -62,31 +62,30 @@ def get_program_arguments() -> None:
     # this one immediately opened another.  It also discarded process_gui's return value,
     # unlike process_cli, which assigns it back into program_arguments and colors_to_use.
     #
-    # Setting program_arguments["gui"] here was pointless for the same reason: process_cli
+    # Setting program_arguments.gui here was pointless for the same reason: process_cli
     # begins by replacing program_arguments wholesale via initialize_runtime_arguments(),
     # so anything written before that call is discarded.  config.GUI is read there instead.
     process_cli()
 
     # Make sure we don't have too much: more than one single item specified in the saved file
-    # clears them all.  Every kind counts, Scene included -- .get, since a settings file from
-    # before single Scenes existed has no key for one.
-    if sum(bool(PrimeItems.program_arguments.get(name_key)) for name_key, _, _ in SINGLE_ITEM_SELECTORS) > 1:
+    # clears them all.  Every kind counts, Scene included.
+    if sum(bool(PrimeItems.program_arguments[name_key]) for name_key, _, _ in SINGLE_ITEM_SELECTORS) > 1:
         clear_single_items()
 
     # The Map build reads the view limit from PrimeItems.view_limit (bildhtml.write_out_the_file),
     # not from the runtime arguments, so hand the value over.  The GUI sets it again from its
     # own "View Limit" setting before each build (userintr.MapTaskerEventHandlers.view_event); this
     # gives a command-line run -- which has no GUI to do that -- the limit it asked for.
-    PrimeItems.view_limit = resolve_view_limit(PrimeItems.program_arguments.get("view_limit"))
+    PrimeItems.view_limit = resolve_view_limit(PrimeItems.program_arguments.view_limit)
 
     # Are we in development mode?  If so, override debug argument
     if DEBUG_PROGRAM:
-        PrimeItems.program_arguments["debug"] = True
+        PrimeItems.program_arguments.debug = True
 
     # If the file specified in the arguments doesn't exist, use backup.xml
     if (
         "file" in PrimeItems.program_arguments
-        and PrimeItems.program_arguments["file"]
-        and not os.path.exists(PrimeItems.program_arguments["file"])
+        and PrimeItems.program_arguments.file
+        and not os.path.exists(PrimeItems.program_arguments.file)
     ):
-        PrimeItems.program_arguments["file"] = "backup.xml"
+        PrimeItems.program_arguments.file = "backup.xml"

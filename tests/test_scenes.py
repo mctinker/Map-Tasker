@@ -226,7 +226,7 @@ def test_asking_for_one_scene_narrows_the_project_to_it() -> None:
     """--scene asks for a single Scene by name.  Its Project is still walked, so the
     other Scenes have to be filtered out here or they are all output anyway.
     """
-    PrimeItems.program_arguments["single_scene_name"] = "Dialog"
+    PrimeItems.program_arguments.single_scene_name = "Dialog"
     assert scenes.process_project_scenes(
         PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
         None,
@@ -315,7 +315,7 @@ def test_element_details_are_left_out_below_detail_level_three() -> None:
     """The element list is the bulk of a Scene's output, and the lower detail levels
     exist to leave that kind of bulk out.
     """
-    PrimeItems.program_arguments["display_detail_level"] = 2
+    PrimeItems.program_arguments.display_detail_level = 2
     scenes.get_details(_scene_with(_BUTTON + _TEXT), [], 0)
     assert "Element of type" not in _output()
 
@@ -363,7 +363,7 @@ def test_a_scene_task_is_marked_as_such_in_the_directory() -> None:
     reached by tapping something rather than by a Profile firing.
     """
     _scene_with(_BUTTON)
-    PrimeItems.program_arguments["directory"] = True
+    PrimeItems.program_arguments.directory = True
     scenes.adjust_name_and_add_to_directory("Clicked", "10", 35)
     assert any("Clicked (Scene)" in entry for entry in PrimeItems.directory_items["tasks"])
 
@@ -372,7 +372,7 @@ def test_asking_for_a_scene_this_project_does_not_have_finds_nothing() -> None:
     """The miss must not be recorded as a find: the caller uses that flag to decide
     whether to report the requested Scene as missing from the configuration.
     """
-    PrimeItems.program_arguments["single_scene_name"] = "Nonexistent"
+    PrimeItems.program_arguments.single_scene_name = "Nonexistent"
     assert not scenes.process_project_scenes(
         PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
         None,
@@ -418,7 +418,7 @@ def _render_scene(elements: str) -> None:
     """
     _scene_with(elements)
     actionc.load_arg_specs()
-    PrimeItems.program_arguments["display_detail_level"] = 5
+    PrimeItems.program_arguments.display_detail_level = 5
     scenes.process_scene("Panel", [], None, 0)
 
 
@@ -496,7 +496,7 @@ def test_an_element_is_still_anchored_where_its_arguments_are_not_shown() -> Non
     that is the line to land on -- an element with no anchor at all could not be reached.
     """
     _scene_with(_TEXT)
-    PrimeItems.program_arguments["display_detail_level"] = 3
+    PrimeItems.program_arguments.display_detail_level = 3
     scenes.process_scene("Panel", [], None, 0)
 
     output = _output()

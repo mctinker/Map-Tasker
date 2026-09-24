@@ -127,7 +127,7 @@ def process_preferences(temp_output_lines: list) -> None:
                 _process_service(service_name, service_value, temp_output_lines)
 
             # If debugging, list specific preferences which can't be identified.
-            elif PrimeItems.program_arguments["debug"]:
+            elif PrimeItems.program_arguments.debug:
                 # Add a blank line and the output details to our list of output stuff
                 # Add a blank line if this is the first unmapped item
                 if first_time:

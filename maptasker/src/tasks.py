@@ -88,7 +88,7 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
     Optimized extraction of actions from a task XML element.
     """
     tasklist = []
-    indent_size = PrimeItems.program_arguments["indent"]
+    indent_size = PrimeItems.program_arguments.indent
     blanks = f"{'&nbsp;' * indent_size}"
 
     try:
@@ -105,7 +105,7 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
 
     indentation = 0
     indentation_amount = ""
-    pretty_mode = PrimeItems.program_arguments.get("pretty")
+    pretty_mode = PrimeItems.program_arguments.pretty
     _get_action_code = action_evaluate.get_action_code
     _reformat_html = reformat_html
     _build_action = action_evaluate.build_action
@@ -164,8 +164,8 @@ def entry_or_exit_task(
         Returns:
             tuple: task_output_lines and task_name
     """
-    display_level = PrimeItems.program_arguments["display_detail_level"]
-    indent = blank * PrimeItems.program_arguments["indent"]
+    display_level = PrimeItems.program_arguments.display_detail_level
+    indent = blank * PrimeItems.program_arguments.indent
 
     def append_task_line(name: str, task_type: str) -> None:
         # Suffix is snot getting carried through to output
@@ -218,7 +218,7 @@ def get_task_name(
         tasks_that_have_been_found.append(the_task_id)
 
     # Determine if this is an "Entry" or "Exit" Task
-    extra = f"&nbsp;&nbsp;Task ID: {the_task_id}" if PrimeItems.program_arguments["debug"] else ""
+    extra = f"&nbsp;&nbsp;Task ID: {the_task_id}" if PrimeItems.program_arguments.debug else ""
     task_output_lines, task_name = entry_or_exit_task(
         task_output_lines,
         task_name,

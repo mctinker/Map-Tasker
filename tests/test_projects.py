@@ -229,7 +229,7 @@ def test_an_unclaimed_scene_is_output_rather_than_reported_missing() -> None:
     is just unclaimed.
     """
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Orphan</nme></Scene>')
-    PrimeItems.program_arguments["single_scene_name"] = "Orphan"
+    PrimeItems.program_arguments.single_scene_name = "Orphan"
 
     projects.output_orphan_single_scene()
     assert PrimeItems.found_named_items["single_scene_found"] is True
@@ -241,7 +241,7 @@ def test_a_scene_already_found_is_not_output_twice() -> None:
     output would otherwise be listed a second time and counted twice.
     """
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Panel</nme></Scene>')
-    PrimeItems.program_arguments["single_scene_name"] = "Panel"
+    PrimeItems.program_arguments.single_scene_name = "Panel"
     PrimeItems.found_named_items["single_scene_found"] = True
 
     projects.output_orphan_single_scene()
@@ -253,7 +253,7 @@ def test_a_scene_name_that_is_not_in_the_backup_is_left_alone() -> None:
     found, and marking it found here would silently swallow the user's typo.
     """
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Panel</nme></Scene>')
-    PrimeItems.program_arguments["single_scene_name"] = "Nonexistent"
+    PrimeItems.program_arguments.single_scene_name = "Nonexistent"
 
     projects.output_orphan_single_scene()
     assert PrimeItems.found_named_items["single_scene_found"] is False
@@ -277,9 +277,9 @@ def test_the_single_project_name_survives_the_walk() -> None:
         '<Profile sr="prof5"><id>5</id><mid0>10</mid0><nme>Morning</nme></Profile>'
         '<Task sr="task10"><id>10</id><nme>Alpha</nme></Task>',
     )
-    PrimeItems.program_arguments["single_project_name"] = "Home"
+    PrimeItems.program_arguments.single_project_name = "Home"
     projects.process_projects_and_their_profiles([], [])
-    assert PrimeItems.program_arguments["single_project_name"] == "Home"
+    assert PrimeItems.program_arguments.single_project_name == "Home"
 
 
 def test_found_tasks_come_back_deduplicated() -> None:

@@ -51,7 +51,7 @@ def output_orphan_single_scene() -> None:
     Returns:
         None
     """
-    single_scene_name = PrimeItems.program_arguments["single_scene_name"]
+    single_scene_name = PrimeItems.program_arguments.single_scene_name
     if (
         not single_scene_name
         or PrimeItems.found_named_items["single_scene_found"]
@@ -82,17 +82,17 @@ def process_projects_and_their_profiles(
     our_task_element = ""
 
     # Temporarily save single Project name since process_profiles may override it
-    single_project_name = PrimeItems.program_arguments["single_project_name"]
+    single_project_name = PrimeItems.program_arguments.single_project_name
 
     # Processing Tasker Objects: Single Unnamed Tasks, Projects, Profiles, Tasks or Scenes
 
     # Process unnamed Task
     if (
-        PrimeItems.program_arguments["single_task_name"] is not None
-        and UNNAMED_ITEM in PrimeItems.program_arguments["single_task_name"]
-        and PrimeItems.program_arguments["list_unnamed_items"]
+        PrimeItems.program_arguments.single_task_name is not None
+        and UNNAMED_ITEM in PrimeItems.program_arguments.single_task_name
+        and PrimeItems.program_arguments.list_unnamed_items
     ) and PrimeItems.tasker_root_elements["all_tasks_by_name"]:
-        task_name = PrimeItems.program_arguments["single_task_name"]
+        task_name = PrimeItems.program_arguments.single_task_name
         task_id = get_taskid_from_unnamed_task(task_name)
         unnamed_task = PrimeItems.tasker_root_elements["all_tasks"][task_id]
         task_list = [{"xml": unnamed_task["xml"], "name": task_name}]
@@ -161,7 +161,7 @@ def process_projects_and_their_profiles(
     elif PrimeItems.tasker_root_elements["all_scenes"]:
         scene_list = []
         found_tasks = []
-        single_scene_name = PrimeItems.program_arguments["single_scene_name"]
+        single_scene_name = PrimeItems.program_arguments.single_scene_name
         for scene in PrimeItems.tasker_root_elements["all_scenes"]:
             scene_name = PrimeItems.tasker_root_elements["all_scenes"][scene]["name"]
             # Only after a single Scene?  Skip everything else.
@@ -180,7 +180,7 @@ def process_projects_and_their_profiles(
     output_orphan_single_scene()
 
     # Restore the single Project name saved at beginning
-    PrimeItems.program_arguments["single_project_name"] = single_project_name
+    PrimeItems.program_arguments.single_project_name = single_project_name
 
     # Return a list of Tasks found thus far with duplicates remove
     # Reference: https://www.pythonmorsels.com/deduplicate-lists/
@@ -240,7 +240,7 @@ def task_not_in_profile_heading(project_name: str) -> None:
     PrimeItems.output_lines.add_line_to_output(5, "<br>", FormatLine.dont_format_line)
 
     # Add the "twisty" to hide the Task details
-    if PrimeItems.program_arguments["twisty"]:
+    if PrimeItems.program_arguments.twisty:
         add_twisty(
             "task_color",
             output_line,
@@ -279,7 +279,7 @@ def do_tasks_in_project(
 
             return: True if we have Tasks not in any Profile
     """
-    if not PrimeItems.program_arguments["single_profile_name"]:
+    if not PrimeItems.program_arguments.single_profile_name:
         PrimeItems.named_task_count_total = len(task_ids)
     _task_not_in_profile_heading = task_not_in_profile_heading
     _output_task_list = output_task_list
@@ -354,7 +354,7 @@ def tasks_not_in_profiles(
     )
 
     # End the twisty hidden lines if we have Tasks not in any Profile
-    if PrimeItems.program_arguments["twisty"]:
+    if PrimeItems.program_arguments.twisty:
         if have_tasks_not_in_profile:
             remove_twisty()
         else:
@@ -393,7 +393,7 @@ def get_extra_and_output_project(
     # See if there is a Kid app and get the Project's priority,
     # only if display level is max
     kid_app_info = priority = ""
-    if PrimeItems.program_arguments["display_detail_level"] > 2:
+    if PrimeItems.program_arguments.display_detail_level > 2:
         kid_app_info = get_kid_app(project)
         if kid_app_info:
             kid_app_info = format_html("project_color", "", kid_app_info, True)
@@ -452,7 +452,7 @@ def get_extra_and_output_project(
     final_project_line = f"{project_name_details} {launcher_task_info}{disabled}{priority}{kid_app_info}"
 
     # Pretty it up?
-    if PrimeItems.program_arguments["pretty"]:
+    if PrimeItems.program_arguments.pretty:
         indent_amt = len(project_name) + 5
         # Break at comma
         final_project_line = final_project_line.replace(
@@ -466,7 +466,7 @@ def get_extra_and_output_project(
         )
 
     # Are we looking for a specific Project?
-    if PrimeItems.program_arguments["single_project_name"]:
+    if PrimeItems.program_arguments.single_project_name:
         # We found our single Project
         PrimeItems.found_named_items["single_project_found"] = True
         # Clear the output and just put out our Project.
@@ -578,7 +578,7 @@ def finish_up(
     # Skipped when we are only after a single Scene: the Project's loose Tasks are not
     # part of the Scene, and this runs before process_project_scenes below has had a
     # chance to set the single_scene_found flag that would otherwise suppress them.
-    if not PrimeItems.program_arguments["single_scene_name"]:
+    if not PrimeItems.program_arguments.single_scene_name:
         task_ids = get_ids(False, project, project_name, [])
         tasks_not_in_profile = tasks_not_in_profiles(
             task_ids,
@@ -600,7 +600,7 @@ def finish_up(
         PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
     # Output the Project's variables
-    if PrimeItems.program_arguments["display_detail_level"] >= 4:
+    if PrimeItems.program_arguments.display_detail_level >= 4:
         output_variables("Project Global Variables", project)
 
     # Output the Project summary line
@@ -608,8 +608,8 @@ def finish_up(
 
     # If we are not inserting the twisties, then close the unordered list
     # Twisties screw with the indentation, as well as not having Scenes
-    if not PrimeItems.program_arguments["twisty"] and (
-        PrimeItems.program_arguments["display_detail_level"] > 0 or not have_scenes
+    if not PrimeItems.program_arguments.twisty and (
+        PrimeItems.program_arguments.display_detail_level > 0 or not have_scenes
     ):
         PrimeItems.output_lines.add_line_to_output(
             3,
@@ -655,9 +655,7 @@ def is_single_profile_not_found() -> bool:
     Check if a single profile is not found based on program arguments and named items.
     Return a boolean indicating whether a single profile is not found.
     """
-    return (
-        PrimeItems.program_arguments["single_profile_name"] and not PrimeItems.found_named_items["single_profile_found"]
-    )
+    return PrimeItems.program_arguments.single_profile_name and not PrimeItems.found_named_items["single_profile_found"]
 
 
 # Add a line to the output with the message "<em>Project has no Profiles</em>" and some formatting.
@@ -717,7 +715,7 @@ def get_profile_details_and_output(
         return True, profile_count, False
 
     # If doing a directory, save the project name for it
-    if PrimeItems.program_arguments["directory"]:
+    if PrimeItems.program_arguments.directory:
         add_directory_item("projects", project_name)
 
     # Get any Project launch details
@@ -732,11 +730,11 @@ def get_profile_details_and_output(
     )
 
     # Process Project Properties
-    if PrimeItems.program_arguments["display_detail_level"] > 2:
+    if PrimeItems.program_arguments.display_detail_level > 2:
         get_properties("Project:", project, Target(PROJECT, project_name, project_name))
 
     # Process TaskerNet details if requested
-    if PrimeItems.program_arguments["taskernet"]:
+    if PrimeItems.program_arguments.taskernet:
         share(project, "projtab", Target(PROJECT, project_name, project_name))
 
     return False, profile_count, have_project_wanted
@@ -816,14 +814,14 @@ def process_projects(
 
     # Doing a single Scene?  Work out which Project owns it once, up front, so the loop
     # below can skip straight past every other Project.
-    single_scene_name = PrimeItems.program_arguments["single_scene_name"]
+    single_scene_name = PrimeItems.program_arguments.single_scene_name
     scene_owning_project = find_owning_project_for_scene(single_scene_name) if single_scene_name else ""
 
     for project_name in PrimeItems.tasker_root_elements["all_projects"]:
         # Ignore this project if we are looking for a specific one and this isn't it.
         if (
-            PrimeItems.program_arguments["single_project_name"]
-            and PrimeItems.program_arguments["single_project_name"] != project_name
+            PrimeItems.program_arguments.single_project_name
+            and PrimeItems.program_arguments.single_project_name != project_name
         ):
             continue
 

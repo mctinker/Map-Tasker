@@ -25,6 +25,7 @@ from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import clock, diffload, taskerd, timeline
 from maptasker.src.lineout import LineOut
 from maptasker.src.primitem import PrimeItems, initial_tasker_root_elements
@@ -76,14 +77,7 @@ def _load_as_current(path: str) -> int:
 def _runtime(tmp_path, monkeypatch):
     """A believable runtime, and a working directory of our own for the history folder."""
     monkeypatch.chdir(tmp_path)
-    PrimeItems.program_arguments = {
-        "gui": True,
-        "debug": False,
-        "directory": False,
-        "pretty": False,
-        "display_detail_level": 3,
-        "file": "",
-    }
+    PrimeItems.program_arguments = ProgramArguments(gui=True, debug=False, directory=False, pretty=False, display_detail_level=3, file="")
     PrimeItems.error_code = 0
     PrimeItems.error_msg = ""
     PrimeItems.directory_items = {"current_item": "", "projects": [], "profiles": [], "tasks": [], "scenes": []}

@@ -58,7 +58,7 @@ class AIEventHandlers:
                 self.gui.ai_name = event_value.value.split(":")[0].strip()
             else:
                 self.gui.ai_model = event_value.value.strip()
-            PrimeItems.program_arguments["ai_name"] = self.gui.ai_name
+            PrimeItems.program_arguments.ai_name = self.gui.ai_name
         elif isinstance(event_value.value, list):
             self.gui.ai_model = event_value.value[0]
 
@@ -260,14 +260,14 @@ class AIEventHandlers:
                 else:
                     gui.ai_name = "Llama"
             else:
-                PrimeItems.program_arguments["ai_name"] = gui.ai_name
+                PrimeItems.program_arguments.ai_name = gui.ai_name
 
             # Do the analysis.  First save our windows and settings.
             _, _ = save_restore_args(gui_settings(gui), gui.color_lookup, to_save=True)
 
             # Now make certain we have the api key set for the model we are using.
-            PrimeItems.program_arguments["ai_apikey"] = gui.ai_apikey
-            PrimeItems.program_arguments["ai_model"] = gui.ai_model
+            PrimeItems.program_arguments.ai_apikey = gui.ai_apikey
+            PrimeItems.program_arguments.ai_model = gui.ai_model
             # Save the current tab
             gui.tab_to_use = "Analyze"
 

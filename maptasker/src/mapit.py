@@ -73,7 +73,7 @@ def on_crash(exctype: object, value: str, traceback: list) -> None:
     """
     if crash_debug:
         if "does not support chat" in value.error:
-            PrimeItems.program_arguments["ai_analysis"] = False
+            PrimeItems.program_arguments.ai_analyze = False
             console.error(value.error)
             return
         # sys.__excepthook__ is the default excepthook that prints the stack trace
@@ -170,18 +170,18 @@ def start_up() -> None:
     get_program_arguments()
 
     # Force GUI mode
-    PrimeItems.program_arguments["gui"] = True
+    PrimeItems.program_arguments.gui = True
 
     # Get our map of colors if we don't have them.
     if not PrimeItems.colors_to_use:
         PrimeItems.colors_to_use = setup_colors()
 
     # Display a popup window telling user we are analyzing
-    if PrimeItems.program_arguments["doing_diagram"]:
-        PrimeItems.program_arguments["doing_diagram"] = False
+    if PrimeItems.program_arguments.doing_diagram:
+        PrimeItems.program_arguments.doing_diagram = False
 
     # Get the XML data and output the front matter
-    if PrimeItems.file_to_get or PrimeItems.program_arguments["file"]:
+    if PrimeItems.file_to_get or PrimeItems.program_arguments.file:
         _ = get_data_and_output_intro(True)  # Force the front matter to be created.
 
 
@@ -198,7 +198,7 @@ def initialize_everything() -> tuple[list, list, list]:
     # Check to see if we might be coming from another program (e.g. run_test.py), and we are not generating a map view.
     # If so, re-initialize PrimeItems since it is still carrying the values from the last test/run.
     if (
-        PrimeItems.colors_to_use and (PrimeItems.program_arguments and not PrimeItems.program_arguments["guiview"])
+        PrimeItems.colors_to_use and (PrimeItems.program_arguments and not PrimeItems.program_arguments.guiview)
     ) or not PrimeItems.colors_to_use:
         PrimeItemsReset()
 
@@ -219,13 +219,13 @@ def initialize_everything() -> tuple[list, list, list]:
     # Set up to catch all crashes gracefully
     if sys.excepthook == sys.excepthook:
         global crash_debug  # noqa: PLW0603
-        if PrimeItems.program_arguments["debug"]:
+        if PrimeItems.program_arguments.debug:
             crash_debug = True
         sys.excepthook = on_crash
 
     # If debugging, force an ESC so that the full command/path is not displayed in
     #   VsCode terminal window.
-    # if PrimeItems.program_arguments["debug"]:
+    # if PrimeItems.program_arguments.debug:
     #     print("\033c")
 
     return [], [], []

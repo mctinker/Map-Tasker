@@ -31,16 +31,14 @@ def error_handler(error_message: str, exit_code: int) -> None:
         # message goes to the window instead (just below).  Either way it is recorded --
         # console.error logs what it shows, and logger.debug covers the quiet case.
         if (
-            PrimeItems.program_arguments
-            and PrimeItems.program_arguments["debug"]
-            and not PrimeItems.program_arguments["gui"]
+            PrimeItems.program_arguments and PrimeItems.program_arguments.debug and not PrimeItems.program_arguments.gui
         ) or exit_code == 5:
             console.error(final_error_message)
         else:
             logger.debug(final_error_message)
 
         # If coming from GUI, set error info. and return to GUI.
-        if PrimeItems.program_arguments and PrimeItems.program_arguments["gui"]:
+        if PrimeItems.program_arguments and PrimeItems.program_arguments.gui:
             # Write the rror to file for use by userinter (e.g. on rerun), so userintr can display error on entry.
             with open(ERROR_FILE, "w", encoding="utf-8") as error_file:
                 error_file.write(f"{error_message}\n")

@@ -59,10 +59,7 @@ def local_xml_start_directory(gui: MyGui) -> str:
         :param gui: the GUI object holding the remembered directory
         :return: directory to start the file picker in ('~' if there is nothing usable)
     """
-    saved_directory = getattr(gui, "local_xml_directory", "") or PrimeItems.program_arguments.get(
-        "local_xml_directory",
-        "",
-    )
+    saved_directory = getattr(gui, "local_xml_directory", "") or PrimeItems.program_arguments.local_xml_directory
     if saved_directory and Path(saved_directory).expanduser().is_dir():
         return saved_directory
     return "~"
@@ -334,14 +331,14 @@ class LoadingEventHandlers:
             clear_single_item_view_names(gui)
             gui.specific_name_msg = ""
             # Indicate that we have note yet gotten the file.
-            PrimeItems.program_arguments["file"] = ""
+            PrimeItems.program_arguments.file = ""
             gui.android_ipaddr = ""
             gui.android_port = ""
             gui.android_file = ""
             program_args = PrimeItems.program_arguments
-            program_args["android_file"] = ""
-            program_args["android_ipaddr"] = ""
-            program_args["android_port"] = ""
+            program_args.android_file = ""
+            program_args.android_ipaddr = ""
+            program_args.android_port = ""
 
             # Empty the pulldown menus for Project, Profile, Task and Scene selections
             reset_single_item_pulldowns(gui)
@@ -392,7 +389,7 @@ class LoadingEventHandlers:
         the_view.file = ""  # Negate any prior local computer directory file tracking pointers
 
         # Validate the target remote XML structure
-        PrimeItems.program_arguments["gui"] = True
+        PrimeItems.program_arguments.gui = True
 
         return_code, error_message = validate_xml_file(
             the_view.android_ipaddr,

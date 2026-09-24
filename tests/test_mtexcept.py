@@ -20,6 +20,7 @@ import sys
 
 import pytest
 
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import console
 from maptasker.src.mtexcept import MapTaskerError
 
@@ -182,7 +183,7 @@ def test_debug_output_is_logged_but_not_shown(capsys: pytest.CaptureFixture, cap
     """
     from maptasker.src.primitem import PrimeItems  # noqa: PLC0415
 
-    PrimeItems.program_arguments = {"debug": False}
+    PrimeItems.program_arguments = ProgramArguments(debug=False)
     with caplog.at_level(logging.DEBUG, logger="MapTasker"):
         console.debug("internal detail")
     assert capsys.readouterr().out == ""
@@ -193,7 +194,7 @@ def test_debug_output_is_shown_when_debugging(capsys: pytest.CaptureFixture) -> 
     """And it does appear for whoever asked for it."""
     from maptasker.src.primitem import PrimeItems  # noqa: PLC0415
 
-    PrimeItems.program_arguments = {"debug": True}
+    PrimeItems.program_arguments = ProgramArguments(debug=True)
     console.debug("internal detail")
     assert capsys.readouterr().out == "internal detail\n"
 

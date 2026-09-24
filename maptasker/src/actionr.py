@@ -182,7 +182,7 @@ def get_action_results(
     # display the name
     if (
         action_codes[the_action_code_plus].args
-        and program_arguments["display_detail_level"] != DISPLAY_DETAIL_LEVEL_all_tasks
+        and program_arguments.display_detail_level != DISPLAY_DETAIL_LEVEL_all_tasks
     ):
         # Process the Task action arguments
         evaluated_results = action_args(
@@ -201,7 +201,7 @@ def get_action_results(
         result = evaluated_results["error"]
 
     # Replace '\n' with ', ' if not pretty
-    if not PrimeItems.program_arguments["pretty"] and "Configuration Parameter(s):" in result:
+    if not PrimeItems.program_arguments.pretty and "Configuration Parameter(s):" in result:
         result = fix_config_parameters(result, "\n", ", ")
 
     # Clean up the rest of it.  Fix brackets, double commas, etc.
@@ -221,7 +221,7 @@ def get_action_results(
         result = f"&nbsp;&nbsp;{result}"
 
         # Process variables if display_detail_level is 4
-        if program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
+        if program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
             get_variables(result)
 
     # Return the properly formatted HTML (if Task) with the Action name and extra stuff

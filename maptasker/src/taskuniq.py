@@ -139,18 +139,18 @@ def process_solo_task_with_no_profile(
 
     # At this point, we've found the Project this Task belongs to,
     # or it doesn't belong to any Profile
-    if not have_heading and PrimeItems.program_arguments["display_detail_level"] > 2:
+    if not have_heading and PrimeItems.program_arguments.display_detail_level > 2:
         # Add the heading to the output
         have_heading = add_heading(save_twisty)
     if not unknown_task and project_name != NO_PROJECT:
-        if PrimeItems.program_arguments["debug"]:
+        if PrimeItems.program_arguments.debug:
             task_details += f" with Task ID: {task_id} ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
         else:
             task_details += f" ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
 
     # Output the Task's details
     if (not unknown_task) and (
-        PrimeItems.program_arguments["display_detail_level"] > 2
+        PrimeItems.program_arguments.display_detail_level > 2
     ):  # Only list named Tasks or if details are wanted.
         task_output_lines = [task_details]  # Return as a list.
 
@@ -209,7 +209,7 @@ def process_tasks_not_called_by_profile(
 
                 if (
                     specific_task
-                    or PrimeItems.program_arguments["single_task_name"]
+                    or PrimeItems.program_arguments.single_task_name
                     == PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
                 ):
                     PrimeItems.found_named_items["single_task_found"] = True
@@ -221,7 +221,7 @@ def process_tasks_not_called_by_profile(
 
     # Provide spacing and end list if we have Tasks
     if task_count > 0:
-        if PrimeItems.program_arguments["display_detail_level"] > 0:
+        if PrimeItems.program_arguments.display_detail_level > 0:
             PrimeItems.output_lines.add_line_to_output(
                 0,
                 "",

@@ -18,6 +18,7 @@ from __future__ import annotations
 import io
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.format import SpanBalancer, format_label
 from maptasker.src.lineout import LineOut
@@ -125,7 +126,7 @@ def test_a_tab_is_added_to_the_line_s_colour(line_out: LineOut) -> None:
 
 def test_a_project_is_separated_from_what_came_before_it(line_out: LineOut) -> None:
     """A Project heading starts something new, so a blank line goes in front of it."""
-    PrimeItems.program_arguments = {"directory": False}
+    PrimeItems.program_arguments = ProgramArguments(directory=False)
     PrimeItems.directory_items = {"current_item": ""}
     assert line_out.handle_project('<span class="project_color">Project:</span> <em>Home</em>').startswith("<br>")
 
@@ -136,7 +137,7 @@ def test_a_projects_properties_line_is_not_separated_from_the_project(line_out: 
     Both breaks together drew two blank lines between "Project: Home" and its
     "Project: Properties..." line, where the Profile's and the Task's have one.
     """
-    PrimeItems.program_arguments = {"directory": False}
+    PrimeItems.program_arguments = ProgramArguments(directory=False)
     PrimeItems.directory_items = {"current_item": ""}
     properties = '<span class="project_color"><br>Project: Properties...Comment:x<br></span>'
     assert not line_out.handle_project(properties).startswith("<br>")
@@ -160,7 +161,7 @@ def test_a_line_that_has_no_colour_to_tab_is_left_alone(line_out: LineOut) -> No
 def _colors() -> None:
     """format_label reads real colors out of colors_to_use."""
     PrimeItems.colors_to_use = set_color_mode("dark")
-    PrimeItems.program_arguments = {"pretty": False, "debug": False, "display_detail_level": 3}
+    PrimeItems.program_arguments = ProgramArguments(pretty=False, debug=False, display_detail_level=3)
 
 
 @pytest.mark.usefixtures("_colors")

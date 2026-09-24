@@ -324,7 +324,7 @@ def get_properties(property_tag: str, header: defusedxml.ElementTree, where: Tar
     # this used to do) keeps a comma belonging to the text itself -- one inside a comment or a
     # variable's value, or the one in "Structured Variable (JSON, etc.)" -- from being turned
     # into a line break.
-    if PrimeItems.program_arguments["pretty"]:
+    if PrimeItems.program_arguments.pretty:
         blank = "&nbsp;"
         number_of_blanks = 20 if property_tag == "Task:" else 23
         separator = f"<br>{blank * number_of_blanks}"

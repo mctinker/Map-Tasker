@@ -450,7 +450,7 @@ def format_and_output_arguments(
         # indentation = 0
 
     # Make pretty
-    if PrimeItems.program_arguments["pretty"]:
+    if PrimeItems.program_arguments.pretty:
         line_out = line_out.replace(", ", f"<br>{line_indentation}")
 
     # Close the colour span the arguments text opens and does not, so that this line is one
@@ -768,7 +768,7 @@ def get_details(
         if _tag_in_type(child.tag, True):  # xxxElement (e.g. RectElement)?
             element_type = child.tag
             # Display the Element details
-            if PrimeItems.program_arguments["display_detail_level"] > 2:
+            if PrimeItems.program_arguments.display_detail_level > 2:
                 # The jump anchor goes on the element's ARGUMENTS line wherever there is
                 # going to be one, because that is the line a finding about a variable is
                 # actually about -- "Text=%Notes" rather than "'Notes' Element of type
@@ -779,13 +779,11 @@ def get_details(
                 # A Version 2 Scene's <lj> is one of those types, which is how its
                 # components' anchors reach _get_scene_elements -- it writes them itself,
                 # from the layout it decodes.
-                on_heading = (
-                    PrimeItems.program_arguments["display_detail_level"] != 5 or element_type not in action_codes
-                )
+                on_heading = PrimeItems.program_arguments.display_detail_level != 5 or element_type not in action_codes
                 _get_scene_elements(child, indentation, anchors if on_heading else None)
 
             # Are we to display Scene element details?
-            if PrimeItems.program_arguments["display_detail_level"] == 5:
+            if PrimeItems.program_arguments.display_detail_level == 5:
                 # Get the element type's arguments and process them
                 _process_arguments(child, element_type, indentation, anchors)
 
@@ -812,7 +810,7 @@ def get_details(
     drop_the_scene_colour()
 
     # Add a break if end of Scene elements (but not doing a Properties element)
-    if PrimeItems.program_arguments["display_detail_level"] != 2 and element_type != "PropertiesElement":
+    if PrimeItems.program_arguments.display_detail_level != 2 and element_type != "PropertiesElement":
         PrimeItems.output_lines.output_lines.append("<br>")
 
 
@@ -873,7 +871,7 @@ def process_scene(
     )
 
     # Handle directory hyperlink
-    if PrimeItems.program_arguments["directory"]:
+    if PrimeItems.program_arguments.directory:
         add_directory_item("scenes", my_scene)
 
     # Go through all the children of the Scene looking for width/height, 'click' tasks and other details.
@@ -884,7 +882,7 @@ def process_scene(
         process_properties(scene, indentation, anchors)
 
     # If we are doing twisties, then we need to close the unordered list.
-    if PrimeItems.program_arguments["twisty"]:
+    if PrimeItems.program_arguments.twisty:
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
@@ -908,12 +906,12 @@ def process_scene_list(
     for scene_name in scene_list:
         format_item("Scene:", scene_name, scene_name, the_task)
 
-        detail_level = PrimeItems.program_arguments["display_detail_level"]
+        detail_level = PrimeItems.program_arguments.display_detail_level
         if detail_level == 0:
             continue
         if detail_level > 1:
             process_scene(scene_name, tasks_found, None, 0)
-        elif PrimeItems.program_arguments["twisty"]:
+        elif PrimeItems.program_arguments.twisty:
             remove_twisty()
 
 
@@ -940,7 +938,7 @@ def process_project_scenes(
         # Only doing a single Scene?  Narrow this Project's list down to just that one.
         # We only get here for the Project that owns it (process_projects skips the
         # rest), so a miss here means the name isn't a Scene of this Project at all.
-        if single_scene_name := PrimeItems.program_arguments["single_scene_name"]:
+        if single_scene_name := PrimeItems.program_arguments.single_scene_name:
             scene_list = [scene for scene in scene_list if scene == single_scene_name]
             if not scene_list:
                 return False
@@ -960,7 +958,7 @@ def process_project_scenes(
                 FormatLine.dont_format_line,
             )
 
-            if PrimeItems.program_arguments["display_detail_level"] == 0:
+            if PrimeItems.program_arguments.display_detail_level == 0:
                 # End list if displaying level 0
                 PrimeItems.output_lines.add_line_to_output(
                     3,

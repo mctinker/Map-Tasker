@@ -19,6 +19,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import actargs, actionc
 from maptasker.src.actionr import get_action_results
 from maptasker.src.lineout import LineOut
@@ -49,7 +50,7 @@ def _specs() -> None:
             specs[key] = "Str"
             break
     PrimeItems.tasker_arg_specs = specs
-    PrimeItems.program_arguments = {"display_detail_level": 3, "pretty": False, "debug": False}
+    PrimeItems.program_arguments = ProgramArguments(display_detail_level=3, pretty=False, debug=False)
     PrimeItems.output_lines = LineOut()
 
 

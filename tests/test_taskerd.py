@@ -22,6 +22,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import taskerd
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
@@ -44,13 +45,7 @@ def _prime_items(tmp_path, monkeypatch) -> None:
     in whatever directory the tests happened to be run from.
     """
     monkeypatch.chdir(tmp_path)
-    PrimeItems.program_arguments = {
-        "debug": False,
-        "directory": False,
-        "pretty": False,
-        "gui": False,
-        "display_detail_level": 3,
-    }
+    PrimeItems.program_arguments = ProgramArguments(debug=False, directory=False, pretty=False, gui=False, display_detail_level=3)
     PrimeItems.colors_to_use = set_color_mode("dark")
     PrimeItems.output_lines = LineOut()
     PrimeItems.error_msg = ""
@@ -311,7 +306,7 @@ def test_the_gui_is_told_why_a_file_was_refused() -> None:
     """The GUI has no console to print to: it shows error_msg, so the reason has to be
     put there or the file simply fails to load with nothing said.
     """
-    PrimeItems.program_arguments["gui"] = True
+    PrimeItems.program_arguments.gui = True
     assert _load_file("<NotTasker><something/></NotTasker>") == 3
     assert PrimeItems.error_msg == "Invalid Tasker backup XML file"
 

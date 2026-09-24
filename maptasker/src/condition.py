@@ -151,8 +151,8 @@ def condition_state(
     _extract_condition = extract_condition
 
     # 1. Hoist configurations and flags
-    is_pretty = PrimeItems.program_arguments["pretty"]
-    is_debug = PrimeItems.program_arguments["debug"]
+    is_pretty = PrimeItems.program_arguments.pretty
+    is_debug = PrimeItems.program_arguments.debug
 
     invert_node = the_item.find("pin")
     is_inverted = invert_node is not None and invert_node.text == "true"
@@ -228,7 +228,7 @@ def condition_event(
     )
 
     # If pretty text, then reformat it.
-    if "Configuration Parameter(s):" in event and PrimeItems.program_arguments["pretty"]:
+    if "Configuration Parameter(s):" in event and PrimeItems.program_arguments.pretty:
         event = reformat_html(event)
 
     # Get the event priority
@@ -244,7 +244,7 @@ def condition_event(
     # Format the Event text
     event = event.replace("\n", "<br>")
     the_output_condition = f"{the_output_condition}Event: {event}"
-    if PrimeItems.program_arguments["debug"]:  # if program_args['debug'] then add the code
+    if PrimeItems.program_arguments.debug:  # if debugging then add the code
         the_output_condition = f"{the_output_condition} (code:{the_event_code.text})"
     return the_output_condition
 

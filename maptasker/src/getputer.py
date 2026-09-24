@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 from maptasker.src import console
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
-from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.maputil2 import log_startup_values, translate_string
 from maptasker.src.maputils import reset_named_objects
 from maptasker.src.primitem import PrimeItems
@@ -116,12 +116,13 @@ def corrupted_file(program_arguments: dict, colors_to_use: dict) -> None:
 
 
 # Write out our runtime settings as a TOML file
-def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) -> None:
+def save_arguments(program_arguments: ProgramArguments | dict, colors_to_use: dict, new_file: str) -> None:
     """
     Save the program arguments, colors to use, and new file to a JSON file.
 
     Args:
-        program_arguments (dict): The program arguments.
+        program_arguments (ProgramArguments | dict): The program arguments -- the live
+            ProgramArguments, or a dictionary of them read off the GUI.
         colors_to_use (list): The colors to use.
         new_file (str): The new file to save the data to.
 
@@ -168,7 +169,7 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
             program_arguments[argument] = ""
 
         # Make sure we don't save an item name of "None" in another language
-        if PrimeItems.program_arguments["language"] != "English":
+        if PrimeItems.program_arguments.language != "English":
             if translate_string(program_arguments[argument] == "None"):
                 program_arguments[argument] = ""
             # Make sure we don't save translated prefixes
@@ -259,7 +260,7 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
                 # by a version from before that -- worth saying so rather than quietly
                 # coming up with defaults and then saving them back over the file.
                 logger.error(f"No [program_arguments] found in {new_file}.  Falling back to default settings.")
-                program_arguments = initialize_runtime_arguments()
+                program_arguments = initialize_runtime_arguments().as_dict()
             try:
                 PrimeItems.last_run = settings["last_run"]  # Get the last run date
             except KeyError:
@@ -278,32 +279,35 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
 
 # Read in the TOML runtime settings
 def read_arguments(
-    program_arguments: dict,
+    program_arguments: ProgramArguments | dict,
     colors_to_use: dict,
     new_file: str,
-) -> None:
+) -> tuple[ProgramArguments | dict, dict]:
     """
     Reads the program arguments, colors to use, old file, and new file.
 
     Parameters:
-        program_arguments (dict): A dictionary containing program arguments.
+        program_arguments (ProgramArguments | dict): Unused: replaced by what is read.
         colors_to_use (dict): A dictionary containing colors to use.
         new_file (str): The path to the new file.
 
     Returns:
-        None: This function does not return anything.
+        tuple: the arguments -- a dictionary as read from the settings file, or the live
+            PrimeItems.program_arguments if there is no file -- and the colors.
     """
     # Read the user settings TOML file
     if os.path.isfile(new_file):
         program_arguments, colors_to_use = read_toml_file(new_file)
     else:
         program_arguments = PrimeItems.program_arguments
-        colors_to_use = set_color_mode(program_arguments["appearance_mode"])
+        colors_to_use = set_color_mode(program_arguments.appearance_mode)
 
     # A run always starts out not doing any of the transient things, whatever a settings
     # file written by an older version (or edited by hand) claims.
     for argument, resting_value in TRANSIENT_ARGUMENTS.items():
-        if isinstance(program_arguments, dict) and program_arguments.get(argument) != resting_value:
+        if isinstance(program_arguments, (dict, ProgramArguments)) and (
+            argument not in program_arguments or program_arguments[argument] != resting_value
+        ):
             logger.info(f"Ignoring saved '{argument}' and starting at {resting_value}.")
             program_arguments[argument] = resting_value
 
@@ -312,10 +316,10 @@ def read_arguments(
 
 # Save and restore colors to use and program arguments
 def save_restore_args(
-    program_arguments: dict,
+    program_arguments: ProgramArguments | dict,
     colors_to_use: dict,
     to_save: bool = True,
-) -> tuple[dict, dict]:
+) -> tuple[ProgramArguments | dict, dict]:
     """
     Save and restore colors to use and program arguments
         :param program_arguments: program runtime arguments to save or restore into

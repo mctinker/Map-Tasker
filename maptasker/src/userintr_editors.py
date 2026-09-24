@@ -428,7 +428,7 @@ def reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool,
     except OSError as e:
         return False, str(e)
 
-    PrimeItems.program_arguments["file"] = new_file_path
+    PrimeItems.program_arguments.file = new_file_path
     return_code = get_the_xml_data()
     if return_code != 0:
         return False, f"Failed to load '{new_file_path}' (code {return_code})."

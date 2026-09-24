@@ -78,7 +78,7 @@ def debug_print(message: str) -> None:
     """
     filename = "buildit.log"
 
-    if PrimeItems.program_arguments["debug"]:
+    if PrimeItems.program_arguments.debug:
         console.say(message)
         try:
             # 2. Open the file in write mode ('w')

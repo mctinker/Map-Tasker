@@ -157,10 +157,10 @@ def captured_output(monkeypatch):
     sink = MagicMock()
     sink.add_line_to_output = lambda _level, text, _format: lines.append(text)
     monkeypatch.setattr(PrimeItems, "output_lines", sink)
-    monkeypatch.setitem(PrimeItems.program_arguments, "pretty", False)
+    monkeypatch.setattr(PrimeItems.program_arguments, "pretty", False)
     # parse_variable reports an unrecognised variable type through error.rutroh_error, which
     # reads this key -- a bare <ProfileVariable> in a fixture is enough to reach it.
-    monkeypatch.setitem(PrimeItems.program_arguments, "debug", False)
+    monkeypatch.setattr(PrimeItems.program_arguments, "debug", False)
     return lines
 
 

@@ -1195,7 +1195,7 @@ def _diagram_project_prefix() -> str:
     """
     from maptasker.src.maputil2 import translate_string  # noqa: PLC0415  GUI-free, but only needed here
 
-    if PrimeItems.program_arguments.get("language", "English") in ("Arabic", "English"):
+    if PrimeItems.program_arguments.language in ("Arabic", "English"):
         return "Project: "
     return f"{translate_string('Project:')} "
 

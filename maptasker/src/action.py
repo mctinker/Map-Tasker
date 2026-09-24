@@ -386,7 +386,7 @@ def get_extra_stuff(
     colors_to_use = PrimeItems.colors_to_use
 
     # Only get extras if this is a Task action (vs. a Profile condition)
-    if action_type and program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
+    if action_type and program_arguments.display_detail_level > DISPLAY_DETAIL_LEVEL_all_tasks:
         # Look for extra Task stuff: label, disabled, conditions
         extra_stuff = get_label_disabled_condition(code_action)
         # If this is an 'If' action, remove the 'IF' from the label since we already have it.
@@ -406,7 +406,7 @@ def get_extra_stuff(
     else:
         extra_stuff = ""
 
-    if program_arguments["debug"] and action_type:  # Add the code if this is an Action and in debug mode
+    if program_arguments.debug and action_type:  # Add the code if this is an Action and in debug mode
         extra_stuff = extra_stuff + format_html(
             "disabled_action_color",
             "",
@@ -415,7 +415,7 @@ def get_extra_stuff(
         )
 
     # See if Task action is to be continued after error
-    if program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
+    if program_arguments.display_detail_level > DISPLAY_DETAIL_LEVEL_all_tasks:
         child = code_action.find("se")
         if child is not None and child.text == "false":
             extra_stuff = f"{format_html('action_color', '', ' [Continue Task After Error]', True)}{extra_stuff}"
@@ -423,7 +423,7 @@ def get_extra_stuff(
     # For some reason, we're left with an empty "<span..." element.  Remove it.
     with contextlib.suppress(KeyError):
         extra_stuff = extra_stuff.replace(
-            f'<span style="color:{colors_to_use["action_color"]};{FONT_FAMILY}{program_arguments["font"]}"><span ',
+            f'<span style="color:{colors_to_use["action_color"]};{FONT_FAMILY}{program_arguments.font}"><span ',
             "<span ",
         )
 

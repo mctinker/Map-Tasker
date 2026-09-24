@@ -350,7 +350,7 @@ def _details(meta: dict) -> list[str]:
 
 def _font(text: str) -> mapfonts.EmbeddableFont | None:
     """The font a PDF of `text` is drawn in, or None to fall back on Courier."""
-    font = mapfonts.embeddable_font(text, PrimeItems.program_arguments.get("font", ""))
+    font = mapfonts.embeddable_font(text, PrimeItems.program_arguments.font)
     if font is None:
         logger.info("PDF export: no monospaced TrueType font found, so drawing characters become ASCII in Courier.")
     return font

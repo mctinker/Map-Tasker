@@ -14,7 +14,7 @@ import pathlib
 
 import pytest
 from maptasker.src import bildhtml, maputils, primitem, taskerd
-from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.primitem import (
     SESSION_ATTRIBUTES,
     SINGLE_ITEM_SELECTORS,
@@ -86,7 +86,7 @@ def test_a_reset_empties_what_a_run_filled_and_keeps_the_session() -> None:
     PrimeItems.task_count_unnamed = 3  # was never reset
     PrimeItems.named_task_count_total = 4  # was never reset
     PrimeItems.netmap_output = ["║ Wake Up ║"]  # was not declared at all
-    PrimeItems.program_arguments = {"debug": True}
+    PrimeItems.program_arguments = ProgramArguments(debug=True)
     PrimeItems.slash = "\\"
     PrimeItems.tasker_arg_specs = {"548": ["Text"]}
     PrimeItems.view_limit = 25
@@ -99,7 +99,7 @@ def test_a_reset_empties_what_a_run_filled_and_keeps_the_session() -> None:
     assert PrimeItems.task_count_unnamed == 0
     assert PrimeItems.named_task_count_total == 0
     assert PrimeItems.netmap_output == []
-    assert PrimeItems.program_arguments == {}
+    assert PrimeItems.program_arguments == ProgramArguments()
     # The session's settings are not the run's to throw away.
     assert PrimeItems.slash == "\\"
     assert PrimeItems.tasker_arg_specs == {"548": ["Text"]}
@@ -229,14 +229,14 @@ def test_clearing_the_loaded_backup_empties_every_table_where_it_stands() -> Non
 def test_a_single_task_or_profile_keeps_itself_and_clears_the_selection_it_set() -> None:
     """Asking for a Task selects its Project too; before the settings are saved, that Project is
     cleared and the Task is kept.  A Project asked for on its own is left as it is."""
-    PrimeItems.program_arguments = dict.fromkeys((name_key for name_key, _, _ in SINGLE_ITEM_SELECTORS), "")
+    PrimeItems.program_arguments = ProgramArguments()
     PrimeItems.program_arguments.update(single_task_name="Opener", single_project_name="Home")
     PrimeItems.found_named_items = {found_key: True for _, found_key, _ in SINGLE_ITEM_SELECTORS}
 
     maputils.reset_named_objects()
 
-    assert PrimeItems.program_arguments["single_task_name"] == "Opener"
-    assert PrimeItems.program_arguments["single_project_name"] == ""
+    assert PrimeItems.program_arguments.single_task_name == "Opener"
+    assert PrimeItems.program_arguments.single_project_name == ""
     assert PrimeItems.found_named_items == {
         "single_project_found": False,
         "single_profile_found": False,
@@ -246,4 +246,4 @@ def test_a_single_task_or_profile_keeps_itself_and_clears_the_selection_it_set()
 
     PrimeItems.program_arguments.update(single_task_name="", single_project_name="Home")
     maputils.reset_named_objects()
-    assert PrimeItems.program_arguments["single_project_name"] == "Home"
+    assert PrimeItems.program_arguments.single_project_name == "Home"

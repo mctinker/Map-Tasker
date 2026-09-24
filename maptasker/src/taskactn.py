@@ -101,7 +101,7 @@ def output_list_of_actions(
         # 'taction' has the Action text, including all of it's arguments.
         if taction is not None:
             # Optimize spacing if 'pretty' is enabled or if this is a label with html
-            if PrimeItems.program_arguments.get("pretty") or "text-box" in taction:
+            if PrimeItems.program_arguments.pretty or "text-box" in taction:
                 updated_action = _ensure_argument_alignment(taction)
             else:
                 updated_action = taction
@@ -130,14 +130,14 @@ def output_list_of_actions(
                 )
                 action_count += 1
             if (
-                action_count == 2 and PrimeItems.program_arguments["display_detail_level"] == 0 and UNNAMED in the_item
+                action_count == 2 and PrimeItems.program_arguments.display_detail_level == 0 and UNNAMED in the_item
             ):  # Just show first Task if unknown Task
                 break
-            if PrimeItems.program_arguments["display_detail_level"] == 1 and UNNAMED not in the_item:
+            if PrimeItems.program_arguments.display_detail_level == 1 and UNNAMED not in the_item:
                 break
 
     # Close Action list if doing straight print, no twisties
-    if not PrimeItems.program_arguments["twisty"]:
+    if not PrimeItems.program_arguments.twisty:
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
@@ -168,7 +168,7 @@ def get_task_actions_and_output(
     line_left_arrow_ascii = "&#11013;"
     line_right_arrow_ascii = "&#11157;"
     # If the Task is unnamed or we are doing more detail, find the Task.
-    if UNNAMED in the_item or PrimeItems.program_arguments["display_detail_level"] > 0:
+    if UNNAMED in the_item or PrimeItems.program_arguments.display_detail_level > 0:
         # Get the Task name so that we can get the Task xml element
         # "--Task:" denotes a Task in a Scene which we will handle below
         if UNNAMED in the_item:
@@ -230,8 +230,8 @@ def get_task_actions_and_output(
                 )
                 # Add the Task to our warning limit dictionary.
                 if (
-                    PrimeItems.program_arguments["task_action_warning_limit"] < 100
-                    and action_count > PrimeItems.program_arguments["task_action_warning_limit"]
+                    PrimeItems.program_arguments.task_action_warning_limit < 100
+                    and action_count > PrimeItems.program_arguments.task_action_warning_limit
                     and task_name not in PrimeItems.task_action_warnings
                 ):
                     PrimeItems.task_action_warnings[task_name] = {
@@ -248,10 +248,10 @@ def get_task_actions_and_output(
                 action_count = 1
 
                 # Process any <Share> information from TaskerNet
-                if PrimeItems.program_arguments["taskernet"]:
+                if PrimeItems.program_arguments.taskernet:
                     share(the_task, "tasktab", Target(TASK, task_id))
                     # Add a spacer if detail is 0
-                    if PrimeItems.program_arguments["display_detail_level"] == 0:
+                    if PrimeItems.program_arguments.display_detail_level == 0:
                         PrimeItems.output_lines.add_line_to_output(
                             0,
                             "",
@@ -266,7 +266,7 @@ def get_task_actions_and_output(
                         "",
                         FormatLine.dont_format_line,
                     )
-                    if PrimeItems.program_arguments["twisty"]:
+                    if PrimeItems.program_arguments.twisty:
                         PrimeItems.output_lines.add_line_to_output(
                             3,
                             "",

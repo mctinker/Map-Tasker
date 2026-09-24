@@ -200,7 +200,7 @@ def build_fix_dialog(
                 else {}
             )
 
-            plan = mapfix.plan_fixes(PrimeItems.program_arguments.get("health_check_skip", []) or [])
+            plan = mapfix.plan_fixes(PrimeItems.program_arguments.health_check_skip or [])
             if previous is not None:
                 plan.restore(ticks, values)
             held["plan"] = plan

@@ -16,6 +16,7 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import diagintr, diagram, guiwins, mapjump, taskerd, userintr
 from maptasker.src.mapjump import PROFILE, PROJECT, TASK, Target, diagram_placement
 from maptasker.src.primitem import PrimeItems
@@ -257,17 +258,7 @@ def _load(xml: str, calls: dict) -> dict:
     PrimeItems.xml_root = root
     PrimeItems.slash = "/"
     PrimeItems.output_lines = _Output()
-    PrimeItems.program_arguments = {
-        "language": "English",
-        "profiles_per_line": 6,
-        "debug": False,
-        "pretty": False,
-        "directory": False,
-        "guiview": False,
-        "gui": False,
-        "view_limit": 10000,
-        "display_detail_level": 3,
-    }
+    PrimeItems.program_arguments = ProgramArguments(language="English", profiles_per_line=6, debug=False, pretty=False, directory=False, guiview=False, gui=False, view_limit=10000, display_detail_level=3)
     tables = {
         "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
         "all_profiles": taskerd.move_xml_to_table(root.findall("Profile"), True, "nme"),

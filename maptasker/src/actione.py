@@ -252,7 +252,7 @@ def finalize_action_details(
     # Append as-is if there's no newline and length exceeds 80, or if pretty output is enabled
     if (
         ("\n" not in task_code_line and len(task_code_line) > 80)
-        or PrimeItems.program_arguments["pretty"]
+        or PrimeItems.program_arguments.pretty
         or "text-box" in task_code_line
     ):
         alist.append(task_code_line)
@@ -325,7 +325,7 @@ def build_action(
         task_code_line = indent_amt
 
     # Make the output align/pretty.  Don't make label html pretty if they have html.
-    if PrimeItems.program_arguments["pretty"]:
+    if PrimeItems.program_arguments.pretty:
         lbl_position = task_code_line.find("...with label:")
         temp = task_code_line.split("<div")
         just_the_action = temp[0]

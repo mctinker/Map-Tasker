@@ -237,7 +237,7 @@ def test_debug_mode_puts_the_task_id_on_the_line() -> None:
     """The id is what a Profile references and what the tables are keyed on, and it is
     otherwise nowhere in the output.
     """
-    PrimeItems.program_arguments["debug"] = True
+    PrimeItems.program_arguments.debug = True
     output: list[str] = []
     tasks.get_task_name("10", [], output, "Entry")
     assert "Task ID: 10" in output[0]

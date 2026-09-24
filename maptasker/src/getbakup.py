@@ -39,15 +39,15 @@ def write_out_backup_file(file_contents: bin) -> None:
     # We must get just the file name and type since we will be using this to save it to our local path.
     # This is the file we will do all of our processing against...the local file fetched from the Android device.
     # Get position of the last "/" in path/file
-    name_location = PrimeItems.program_arguments["android_file"].rfind(PrimeItems.slash) + 1
+    name_location = PrimeItems.program_arguments.android_file.rfind(PrimeItems.slash) + 1
     # Get the name of the file
-    my_file_name = PrimeItems.program_arguments["android_file"][name_location:]
+    my_file_name = PrimeItems.program_arguments.android_file[name_location:]
 
     # Convert the binary code to string
     output_lines = file_contents.decode("utf-8")
 
     # Set up the backup file full path
-    the_backup_file = PrimeItems.program_arguments["android_file"]
+    the_backup_file = PrimeItems.program_arguments.android_file
     put_message = f"Fetching backup file {my_file_name}: {the_backup_file}"
     logger.debug(put_message)
 
@@ -63,7 +63,7 @@ def write_out_backup_file(file_contents: bin) -> None:
             out_file.write(item)
 
     # Set flag to identify that backup file was fetched from Android device
-    PrimeItems.program_arguments["fetched_backup_from_android"] = True
+    PrimeItems.program_arguments.fetched_backup_from_android = True
 
 
 # Return the substring after the last occurance of a specific character in a string
@@ -91,21 +91,21 @@ def get_backup_file() -> str:
     """
 
     # If running from the GUI, then we have already gotten the file. Just return the name on the local drive.add
-    if PrimeItems.program_arguments["gui"]:
-        return substring_after_last(PrimeItems.program_arguments["android_file"], "/")
+    if PrimeItems.program_arguments.gui:
+        return substring_after_last(PrimeItems.program_arguments.android_file, "/")
 
     # Get the contents of the file from the Android device.
     return_code, file_contents = http_request(
-        PrimeItems.program_arguments["android_ipaddr"],
-        PrimeItems.program_arguments["android_port"],
-        PrimeItems.program_arguments["android_file"],
+        PrimeItems.program_arguments.android_ipaddr,
+        PrimeItems.program_arguments.android_port,
+        PrimeItems.program_arguments.android_file,
         "file",
         "?download=1",
     )
 
     if return_code != 0:
         logger.debug(f"return_code:{return_code}")
-        if PrimeItems.program_arguments["gui"]:
+        if PrimeItems.program_arguments.gui:
             PrimeItems.error_code = return_code
             return None
         error_handler(str(file_contents), 8)
@@ -113,7 +113,7 @@ def get_backup_file() -> str:
     # Write the XML file to local storage.
     write_out_backup_file(file_contents)
 
-    return substring_after_last(PrimeItems.program_arguments["android_file"], "/")
+    return substring_after_last(PrimeItems.program_arguments.android_file, "/")
 
 
 # Validate XML
@@ -154,7 +154,7 @@ def validate_xml(
         # Validate the file
         if return_code == 0:
             # Process the XML file
-            PrimeItems.program_arguments["android_file"] = android_file
+            PrimeItems.program_arguments.android_file = android_file
 
             # If getting file from Android device, write out the backup file first.
             if ip_address:
@@ -169,7 +169,7 @@ def validate_xml(
             # Run the XML file through the XML parser to validate it.
             try:
                 filename_location = android_file.rfind(PrimeItems.slash) + 1
-                file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
+                file_to_validate = PrimeItems.program_arguments.android_file[filename_location:]
                 xml_tree = parse_tasker_xml(file_to_validate, encoding=" iso8859_9")
                 process_file = False  # Get out of while/loop
             except ET.ParseError:  # Parsing error

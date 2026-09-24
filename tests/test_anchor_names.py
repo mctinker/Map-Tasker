@@ -135,7 +135,7 @@ def test_a_warning_points_at_the_task_by_id(monkeypatch) -> None:
     """
     from maptasker.src.maputils import display_task_warnings  # noqa: PLC0415
 
-    PrimeItems.program_arguments["task_action_warning_limit"] = 28
+    PrimeItems.program_arguments.task_action_warning_limit = 28
     monkeypatch.setattr(
         PrimeItems,
         "task_action_warnings",

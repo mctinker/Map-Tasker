@@ -17,6 +17,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import impact, taskerd
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, text_report
 from maptasker.src.primitem import PrimeItems
@@ -94,7 +95,7 @@ def _load(xml_text: str) -> None:
     root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
-    PrimeItems.program_arguments = {"task_action_warning_limit": 100}
+    PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)
 
     tables = {
         "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),

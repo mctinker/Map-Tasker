@@ -22,6 +22,7 @@ import xml.etree.ElementTree as ET
 from unittest import mock
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import healthck, piiscan, proflint, taskerd, taskflow
 from maptasker.src.healthck import (
     CATEGORIES,
@@ -182,7 +183,7 @@ def _load(xml_text: str) -> None:
     root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
-    PrimeItems.program_arguments = {"task_action_warning_limit": 100}
+    PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)
 
     tables = {
         "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
@@ -603,7 +604,7 @@ def test_large_task_respects_the_warning_limit() -> None:
     report_at_default, _ = _run()
     assert not _findings_for(report_at_default, "LARGE-TASK")
 
-    PrimeItems.program_arguments["task_action_warning_limit"] = 5
+    PrimeItems.program_arguments.task_action_warning_limit = 5
     report_at_five, _ = _run()
     findings = _findings_for(report_at_five, "LARGE-TASK")
     assert findings == ["[LARGE-TASK]  Project 'Good' > Task 'Runner' (id 20)"]

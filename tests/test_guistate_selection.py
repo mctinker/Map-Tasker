@@ -66,7 +66,7 @@ def test_address_set_in_one_window_survives_a_save_read_from_another() -> None:
 
     assert guistate.gui_settings(other_window)["android_last_ipaddr"] == "10.1.2.3"
     guistate.capture_gui_state(other_window, {})
-    assert PrimeItems.program_arguments["android_last_ipaddr"] == "10.1.2.3"
+    assert PrimeItems.program_arguments.android_last_ipaddr == "10.1.2.3"
     assert other_window.android_last_ipaddr == "10.1.2.3"
 
 

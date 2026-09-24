@@ -19,7 +19,7 @@ import argparse
 import sys
 
 import pytest
-from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.parsearg import runtime_parser, validate_view_limit
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.progargs import VIEW_LIMIT_UNLIMITED, resolve_view_limit
@@ -28,7 +28,7 @@ from maptasker.src.sysconst import VIEW_LIMIT_DEFAULT
 
 
 @pytest.fixture
-def program_arguments() -> dict:
+def program_arguments() -> ProgramArguments:
     """A fresh set of runtime arguments for the command line to be applied to."""
     saved = PrimeItems.program_arguments
     PrimeItems.program_arguments = initialize_runtime_arguments()
@@ -70,32 +70,32 @@ def test_a_limit_that_would_leave_nothing_to_read_is_refused(limit: str) -> None
 # ##################################################################################
 # What the command line does with it
 # ##################################################################################
-def test_a_limit_given_on_the_command_line_is_taken(program_arguments: dict) -> None:
+def test_a_limit_given_on_the_command_line_is_taken(program_arguments: ProgramArguments) -> None:
     """The value asked for reaches the runtime arguments."""
     run_with("-view_limit", "250")
 
-    assert program_arguments["view_limit"] == 250
+    assert program_arguments.view_limit == 250
 
 
-def test_saying_nothing_leaves_the_restored_limit_alone(program_arguments: dict) -> None:
+def test_saying_nothing_leaves_the_restored_limit_alone(program_arguments: ProgramArguments) -> None:
     """A run that does not mention the limit must not overwrite the saved one."""
-    program_arguments["view_limit"] = 3000  # As restored from the settings file.
+    program_arguments.view_limit = 3000  # As restored from the settings file.
 
     run_with()
 
-    assert program_arguments["view_limit"] == 3000
+    assert program_arguments.view_limit == 3000
 
 
-def test_a_limit_given_beats_the_restored_one(program_arguments: dict) -> None:
+def test_a_limit_given_beats_the_restored_one(program_arguments: ProgramArguments) -> None:
     """Asking for a limit is the whole point of asking for it."""
-    program_arguments["view_limit"] = 3000
+    program_arguments.view_limit = 3000
 
     run_with("-view_limit", "250")
 
-    assert program_arguments["view_limit"] == 250
+    assert program_arguments.view_limit == 250
 
 
-def test_a_bad_limit_stops_the_run(program_arguments: dict) -> None:
+def test_a_bad_limit_stops_the_run(program_arguments: ProgramArguments) -> None:
     """argparse's own refusal: the run ends rather than building to some other limit."""
     with pytest.raises(SystemExit):
         run_with("-view_limit", "none at all")

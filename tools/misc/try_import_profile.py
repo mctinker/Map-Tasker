@@ -74,7 +74,7 @@ def bootstrap(backup_path: str) -> None:
 
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.colors_to_use = set_color_mode("dark")
-    PrimeItems.program_arguments["gui"] = False
+    PrimeItems.program_arguments.gui = False
     PrimeItems.file_to_get = open(backup_path, encoding="utf-8")  # noqa: SIM115
     return_code = taskerd.get_the_xml_data()
     PrimeItems.file_to_get.close()

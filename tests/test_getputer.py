@@ -16,13 +16,13 @@ from pathlib import Path
 import pytest
 from maptasker.src import getputer
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ARGUMENT_NAMES, ARGUMENTS_FILE, LEGACY_SYSTEM_SETTINGS_FILE
 
 
 @pytest.fixture
-def program_arguments(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict:
+def program_arguments(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> ProgramArguments:
     """A fresh run's arguments, in a working directory of this test's own."""
     monkeypatch.chdir(tmp_path)
     arguments = initialize_runtime_arguments()
@@ -30,14 +30,14 @@ def program_arguments(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict:
     return arguments
 
 
-def test_saving_settings_writes_the_toml_file_and_nothing_else(program_arguments: dict, tmp_path: Path) -> None:
+def test_saving_settings_writes_the_toml_file_and_nothing_else(program_arguments: ProgramArguments, tmp_path: Path) -> None:
     """There is one settings file now."""
     getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
 
     assert sorted(path.name for path in tmp_path.glob("*Settings*")) == [ARGUMENTS_FILE]
 
 
-def test_settings_come_back_from_the_toml_file_alone(program_arguments: dict) -> None:
+def test_settings_come_back_from_the_toml_file_alone(program_arguments: ProgramArguments) -> None:
     """Every saved argument and color is restored with no second file to read."""
     colors = set_color_mode("Dark")
     getputer.save_restore_args(program_arguments, colors, to_save=True)
@@ -61,7 +61,7 @@ class _RunsCodeWhenLoaded:
 
 
 def test_an_old_system_settings_pickle_is_never_loaded_and_is_deleted_on_save(
-    program_arguments: dict,
+    program_arguments: ProgramArguments,
     tmp_path: Path,
 ) -> None:
     """Restoring ignores the old pickle; saving deletes it; nothing in it ever runs."""
@@ -77,10 +77,10 @@ def test_an_old_system_settings_pickle_is_never_loaded_and_is_deleted_on_save(
     assert not marker.exists()
 
 
-def test_a_language_saved_under_the_old_tamil_spelling_is_carried_over(program_arguments: dict) -> None:
+def test_a_language_saved_under_the_old_tamil_spelling_is_carried_over(program_arguments: ProgramArguments) -> None:
     """Tamil was listed as 'Tamali', and the language is saved by its name.  A settings file from
     before the fix has to come back as Tamil, not as a name nothing recognizes."""
-    program_arguments["language"] = "Tamali"
+    program_arguments.language = "Tamali"
     getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
 
     restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False)

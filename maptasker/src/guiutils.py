@@ -159,7 +159,7 @@ def display_model_pulldown(gui_arg: any, *_args: dict, **_kwargs: object) -> Non
         gui_instance.ai_model_option.update()
     else:
         # Otherwise, if we are building it for the first time
-        current_model = [PrimeItems.program_arguments.get("ai_model", "None")]
+        current_model = [PrimeItems.program_arguments.ai_model]
         if not current_model or current_model not in display_models:
             current_model = ["None"]
         gui_instance.ai_model_option = (
@@ -657,9 +657,9 @@ def get_xml(debug: bool, appearance_mode: str) -> int:
         - Initialize output_lines variable.
         - Return data and output intro."""
 
-    if not PrimeItems.program_arguments["debug"]:
-        PrimeItems.program_arguments["debug"] = debug
-    PrimeItems.program_arguments["gui"] = True
+    if not PrimeItems.program_arguments.debug:
+        PrimeItems.program_arguments.debug = debug
+    PrimeItems.program_arguments.gui = True
     PrimeItems.colors_to_use = set_color_mode(appearance_mode)
     PrimeItems.output_lines = LineOut()
 
@@ -1245,12 +1245,12 @@ def valid_item(
     if the_name == "None" or the_name == translate_string("None"):
         return True
     # Set our file to get the file from the local drive since it had previously been pulled from the Android device.
-    # Setting PrimeItems.program_arguments["file"] will be used in get_xml() and won't prompt for file if it exists.
+    # Setting PrimeItems.program_arguments.file will be used in get_xml() and won't prompt for file if it exists.
     filename_location = self.android_file.rfind(PrimeItems.slash) + 1
     if filename_location != 0:
-        PrimeItems.program_arguments["file"] = self.android_file[filename_location:]
+        PrimeItems.program_arguments.file = self.android_file[filename_location:]
     elif self.file:
-        PrimeItems.program_arguments["file"] = self.file
+        PrimeItems.program_arguments.file = self.file
     else:
         _ = self.prompt_and_get_file(self.debug, self.appearance_mode)
 
@@ -1260,8 +1260,8 @@ def valid_item(
         and not PrimeItems.tasker_root_elements["all_profiles"]
         and not PrimeItems.tasker_root_elements["all_tasks"]
     ):
-        PrimeItems.program_arguments["directory"] = self.directory
-        PrimeItems.program_arguments["list_unnamed_items"] = self.list_unnamed_items
+        PrimeItems.program_arguments.directory = self.directory
+        PrimeItems.program_arguments.list_unnamed_items = self.list_unnamed_items
         return_code = get_xml(debug, appearance_mode)
 
         # Did we get an error reading the backup file?
@@ -1590,13 +1590,13 @@ def android_address_defaults(gui: "MyGui") -> tuple[str, str]:
     ipaddr = (
         getattr(gui, "android_last_ipaddr", "")
         or getattr(gui, "android_ipaddr", "")
-        or PrimeItems.program_arguments.get("android_last_ipaddr", "")
+        or PrimeItems.program_arguments.android_last_ipaddr
         or DEFAULT_ANDROID_IPADDR
     )
     port = (
         getattr(gui, "android_last_port", "")
         or getattr(gui, "android_port", "")
-        or PrimeItems.program_arguments.get("android_last_port", "")
+        or PrimeItems.program_arguments.android_last_port
         or DEFAULT_ANDROID_PORT
     )
     return str(ipaddr), str(port)
@@ -1622,8 +1622,8 @@ def remember_android_address(gui: "MyGui", ipaddr: str, port: str) -> None:
     unchanged = (
         getattr(gui, "android_last_ipaddr", "") == ipaddr
         and getattr(gui, "android_last_port", "") == port
-        and PrimeItems.program_arguments.get("android_last_ipaddr") == ipaddr
-        and PrimeItems.program_arguments.get("android_last_port") == port
+        and PrimeItems.program_arguments.android_last_ipaddr == ipaddr
+        and PrimeItems.program_arguments.android_last_port == port
     )
     remember_setting(gui, "android_last_ipaddr", ipaddr)
     remember_setting(gui, "android_last_port", port)

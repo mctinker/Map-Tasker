@@ -14,8 +14,8 @@
 # Set up an initial empty dictionary of primary items used throughout this project
 #  xml_tree = main xml element of our Tasker xml tree
 #  xml_root = root xml element of our Tasker xml tree
-#  program_arguments = runtime arguments entered by user and parsed.
-#    See initparg.py for details.
+#  program_arguments = runtime arguments entered by user and parsed: a ProgramArguments.
+#    See initparg.py for every argument, its type and its default.
 #  colors_to_use = colors to use in the output
 #  tasker_root_elements = root elements for all Projects/Profiles/Tasks/Scenes
 #  output_lines = class for all lines added to output thus far
@@ -46,6 +46,7 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING, ClassVar
 
+from maptasker.src.initparg import ArgumentFields, ProgramArguments
 from maptasker.src.sysconst import (
     ANTHROPIC_MODELS,
     DEEPSEEK_MODELS,
@@ -161,7 +162,7 @@ class PrimeItems:
     }
     xml_tree = None
     xml_root = None
-    program_arguments: ClassVar[dict] = {}
+    program_arguments: ClassVar[ProgramArguments] = ProgramArguments()
     colors_to_use: ClassVar[dict] = {}
     output_lines: ClassVar = None
     file_to_get = ""
@@ -439,9 +440,9 @@ class PrimeItemsReset:
 # All three helpers below take the settings to read as an optional argument: pass a
 # RunConfig (runcfg.py) and the answer depends only on it, which is what lets a caller
 # ask "what would this run show?" without the global being set up first.  Left out, they
-# read the settings currently on PrimeItems, as they always have.  Both a RunConfig and
-# a plain program_arguments dictionary answer .get(), which is all this needs.
-def _settings(config: RunConfig | None) -> object:
+# read the settings currently on PrimeItems, as they always have.  A RunConfig and a
+# ProgramArguments share their fields (ArgumentFields), which is all this needs.
+def _settings(config: RunConfig | None) -> ArgumentFields:
     """
     Return the settings to read: the given config, or the ones on PrimeItems.
 
@@ -449,7 +450,7 @@ def _settings(config: RunConfig | None) -> object:
         config (RunConfig | None): the settings to use, or None for the current ones.
 
     Returns:
-        object: something answering .get(name) -- a RunConfig or the arguments dict.
+        ArgumentFields: the settings -- a RunConfig or a ProgramArguments -- read by attribute.
     """
     return PrimeItems.program_arguments if config is None else config
 
@@ -468,7 +469,7 @@ def get_single_item_requested(config: RunConfig | None = None) -> tuple[str, str
     """
     settings = _settings(config)
     for name_key, _, label in SINGLE_ITEM_SELECTORS:
-        if name := settings.get(name_key):
+        if name := getattr(settings, name_key):
             return label, name
     return "", ""
 
@@ -489,7 +490,7 @@ def get_single_item_not_found(config: RunConfig | None = None) -> tuple[str, str
     """
     settings = _settings(config)
     for name_key, found_key, label in SINGLE_ITEM_SELECTORS:
-        name = settings.get(name_key)
+        name = getattr(settings, name_key)
         if name and not PrimeItems.found_named_items.get(found_key):
             return label, name
     return "", ""
@@ -508,7 +509,7 @@ def is_single_item_found(config: RunConfig | None = None) -> bool:
     """
     settings = _settings(config)
     return any(
-        settings.get(name_key) and PrimeItems.found_named_items.get(found_key)
+        getattr(settings, name_key) and PrimeItems.found_named_items.get(found_key)
         for name_key, found_key, _ in SINGLE_ITEM_SELECTORS
     )
 

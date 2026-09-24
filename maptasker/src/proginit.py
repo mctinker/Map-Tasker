@@ -88,7 +88,7 @@ def prompt_for_backup_file(_dir_path: str) -> None:
 
     if PrimeItems.file_to_get is None:
         file_error = True
-    if file_error and not PrimeItems.program_arguments["gui"]:
+    if file_error and not PrimeItems.program_arguments.gui:
         error_handler("Backup file selection canceled.  Program ended.", 6)
     elif file_error:
         PrimeItems.error_code = 5
@@ -102,18 +102,18 @@ def open_and_get_backup_xml_file() -> dict:
     """
     # Fetch backup xml directly from Android device?
     if (
-        PrimeItems.program_arguments["android_ipaddr"]
-        and PrimeItems.program_arguments["android_file"]
-        and PrimeItems.program_arguments["android_port"]
+        PrimeItems.program_arguments.android_ipaddr
+        and PrimeItems.program_arguments.android_file
+        and PrimeItems.program_arguments.android_port
     ):
         backup_file_name = get_backup_file()
 
         # If no backup file and we're coming from the GUI, then return to GUI.
-        if backup_file_name is None and PrimeItems.program_arguments["gui"]:
+        if backup_file_name is None and PrimeItems.program_arguments.gui:
             return None
 
         # Make sure we automatically use the file we just fetched
-        PrimeItems.program_arguments["file"] = backup_file_name
+        PrimeItems.program_arguments.file = backup_file_name
 
     logger.info("entry")
 
@@ -133,9 +133,9 @@ def open_and_get_backup_xml_file() -> dict:
     logger.info(f"dir_path: {dir_path}")
 
     # See if we already have the file
-    if PrimeItems.program_arguments["file"]:
-        filename = isinstance(PrimeItems.program_arguments["file"], str)
-        filename = PrimeItems.program_arguments["file"].name if not filename else PrimeItems.program_arguments["file"]
+    if PrimeItems.program_arguments.file:
+        filename = isinstance(PrimeItems.program_arguments.file, str)
+        filename = PrimeItems.program_arguments.file.name if not filename else PrimeItems.program_arguments.file
 
         # We already have the file name...open it.
         try:
@@ -166,10 +166,10 @@ def setup_colors() -> dict:
 
     # Runtime argument "appearance" establishes the mode.
     # If it is not specified, then DARK_MODE from config.py sets mode.
-    if PrimeItems.program_arguments["appearance_mode"] == "system":
+    if PrimeItems.program_arguments.appearance_mode == "system":
         appearance = "dark" if DARK_MODE else "light"
     else:
-        appearance = PrimeItems.program_arguments["appearance_mode"]
+        appearance = PrimeItems.program_arguments.appearance_mode
         return set_color_mode(appearance)
 
     colors_to_use = set_color_mode(appearance)
@@ -214,8 +214,8 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
         and not tasker_root_elements["all_scenes"]
     ):
         # We don't yet have the data.  Let's get it.
-        if not PrimeItems.program_arguments["file"]:
-            PrimeItems.program_arguments["file"] = (
+        if not PrimeItems.program_arguments.file:
+            PrimeItems.program_arguments.file = (
                 PrimeItems.file_to_get if PrimeItems.file_to_use == "" else PrimeItems.file_to_use
             )
 
@@ -297,7 +297,7 @@ def rebuild_action_tables() -> None:
 
     # Every finding these report goes through valcodes.debug_print, which says nothing
     # at all unless debug is on -- so without this the rebuild runs silently.
-    PrimeItems.program_arguments["debug"] = True
+    PrimeItems.program_arguments.debug = True
 
     # Check the Event and State codes in the overlay against Tasker's own source.
     validate_states_and_events("e", EVENT_CODES_URL)

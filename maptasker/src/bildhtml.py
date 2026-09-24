@@ -98,7 +98,7 @@ def build_html(file_to_get: str) -> int:
     # Not while analyzing with AI: that path does not want the file, it wants the output
     # lines in memory, and those are produced by doing the work.
     building_from = mapcache.digests()
-    doing_ai_analysis = PrimeItems.program_arguments["ai_analyze"]
+    doing_ai_analysis = PrimeItems.program_arguments.ai_analyze
     if not doing_ai_analysis and mapcache.is_current(
         f"{os.getcwd()}{PrimeItems.slash}MapTasker.html",
         building_from,
@@ -109,7 +109,7 @@ def build_html(file_to_get: str) -> int:
 
     # Get all Tasker variables.  The configuration digest goes with them so that the
     # where-used counts survive a rebuild that only changed how the Map is displayed.
-    if PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
+    if PrimeItems.program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
         get_variables(building_from[0])
 
     # Process all Projects and their Profiles
@@ -147,7 +147,7 @@ def build_html(file_to_get: str) -> int:
 
     # Rerun this program if "Rerun" was selected from GUI
     # First get the filename as a string.
-    if PrimeItems.program_arguments["rerun"]:
+    if PrimeItems.program_arguments.rerun:
         do_rerun()
 
     return 0
@@ -295,25 +295,25 @@ def output_grand_totals() -> None:
     Output the grand totals of Projects/Profiles/Tasks/Scenes
     """
     grand_total_projects = PrimeItems.grand_totals["projects"]
-    if PrimeItems.program_arguments["single_project_name"] or PrimeItems.program_arguments["single_profile_name"]:
+    if PrimeItems.program_arguments.single_project_name or PrimeItems.program_arguments.single_profile_name:
         grand_total_projects = 1
     grand_total_profiles = PrimeItems.grand_totals["profiles"]
-    if PrimeItems.program_arguments["single_profile_name"]:
+    if PrimeItems.program_arguments.single_profile_name:
         grand_total_profiles = 1
     grand_total_unnamed_tasks = PrimeItems.grand_totals["unnamed_tasks"]
     grand_total_named_tasks = PrimeItems.grand_totals["named_tasks"]
-    if PrimeItems.program_arguments["single_task_name"]:
+    if PrimeItems.program_arguments.single_task_name:
         grand_total_named_tasks = 1
         grand_total_profiles = 1
     grand_total_scenes = PrimeItems.grand_totals["scenes"]
     # A single Scene: the one Scene, under its one owning Project, and no Profiles.
     # (An orphan Scene -- see projects.output_orphan_single_scene -- has no Project.)
-    if PrimeItems.program_arguments["single_scene_name"]:
+    if PrimeItems.program_arguments.single_scene_name:
         grand_total_projects = min(grand_total_projects, 1)
         grand_total_profiles = 0
         grand_total_scenes = 1
     # If doing a directory, then add id to hyperlink to.
-    if PrimeItems.program_arguments["directory"]:
+    if PrimeItems.program_arguments.directory:
         PrimeItems.output_lines.add_line_to_output(
             5,
             '<a id="grand_totals"></a>',
@@ -345,7 +345,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     logger.debug("MapTasker program ended normally")
 
     # Only invoke the browser if not doing a Map View from the GUI.
-    if PrimeItems.mygui is None and not PrimeItems.program_arguments["ai_analyze"]:
+    if PrimeItems.mygui is None and not PrimeItems.program_arguments.ai_analyze:
         try:
             webbrowser.open(
                 f"file:{PrimeItems.slash * 2}{my_output_dir}{my_file_name}",
@@ -385,7 +385,7 @@ def display_back_matter() -> None:
         - Display output file in browser
     """
     program_arguments = PrimeItems.program_arguments
-    if program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
+    if program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
         output_variables("Unreferenced Global Variables", "")
 
     # Get the output directory/folder path
@@ -397,7 +397,7 @@ def display_back_matter() -> None:
     # If doing a single named item and the item was not found, clean up and exit
     missing_label, missing_name = get_single_item_not_found()
     if missing_label:
-        if program_arguments["guiview"]:
+        if program_arguments.guiview:
             PrimeItems.error_code = 1
             PrimeItems.error_msg = translate_string("Error: Single item specified but not found!  Try again.")
             return
@@ -405,7 +405,7 @@ def display_back_matter() -> None:
 
     # Display warning for Task with too many actions
     if (
-        PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_tasks
+        PrimeItems.program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_tasks
         and PrimeItems.task_action_warnings
     ):
         display_task_warnings()
@@ -551,7 +551,7 @@ def check_single_item() -> None:
         name = PrimeItems.program_arguments[name_key]
         if not name or PrimeItems.found_named_items[found_key]:
             continue
-        if PrimeItems.program_arguments["gui"]:
+        if PrimeItems.program_arguments.gui:
             PrimeItems.error_code = 1
             PrimeItems.error_msg = f"{label} {name} was not found."
             return

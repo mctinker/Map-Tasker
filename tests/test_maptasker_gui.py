@@ -31,6 +31,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import clock, timeline
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
@@ -184,16 +185,15 @@ def gui_with_selection():
             FakeSelect(value, ["None", "Project: My Project"]),
         )
 
-    saved_args = dict(PrimeItems.program_arguments)
+    saved_args = PrimeItems.program_arguments.copy()
     saved_found = dict(PrimeItems.found_named_items)
-    PrimeItems.program_arguments["single_project_name"] = "My Project"
+    PrimeItems.program_arguments.single_project_name = "My Project"
     for key in ("single_profile_name", "single_task_name", "single_scene_name"):
         PrimeItems.program_arguments[key] = ""
     PrimeItems.found_named_items["single_project_found"] = True
 
     yield gui
 
-    PrimeItems.program_arguments.clear()
     PrimeItems.program_arguments.update(saved_args)
     PrimeItems.found_named_items.clear()
     PrimeItems.found_named_items.update(saved_found)
@@ -657,10 +657,10 @@ def test_set_startup_language_installs_translation_before_layout():
     Every label is translated by translate_string() at the moment it is created, so a
     language applied after initialize_screen() reaches nothing already on screen.
     """
-    saved = PrimeItems.program_arguments.get("language")
+    saved = PrimeItems.program_arguments.language
     try:
-        PrimeItems.program_arguments["language"] = "German"
-        PrimeItems.program_arguments["reset"] = False
+        PrimeItems.program_arguments.language = "German"
+        PrimeItems.program_arguments.reset = False
 
         gui = MagicMock(spec=MyGui)
         MyGui.set_startup_language(gui)
@@ -669,38 +669,38 @@ def test_set_startup_language_installs_translation_before_layout():
         assert hasattr(PrimeItems, "_"), "no translation function installed"
         assert PrimeItems._("Execution") == "Ausführung"
     finally:
-        PrimeItems.program_arguments["language"] = saved
+        PrimeItems.program_arguments.language = saved
 
 
 def test_set_startup_language_ignored_on_reset():
     """A reset run deliberately discards saved settings, so it starts out in English."""
-    saved = PrimeItems.program_arguments.get("language")
+    saved = PrimeItems.program_arguments.language
     try:
-        PrimeItems.program_arguments["language"] = "German"
-        PrimeItems.program_arguments["reset"] = True
+        PrimeItems.program_arguments.language = "German"
+        PrimeItems.program_arguments.reset = True
 
         gui = MagicMock(spec=MyGui)
         MyGui.set_startup_language(gui)
 
         assert not hasattr(PrimeItems, "_"), "reset run must not install a translation"
     finally:
-        PrimeItems.program_arguments["language"] = saved
-        PrimeItems.program_arguments["reset"] = False
+        PrimeItems.program_arguments.language = saved
+        PrimeItems.program_arguments.reset = False
 
 
 def test_set_startup_language_rejects_unknown_language():
     """An unrecognized saved value (hand-edited settings) falls back rather than throwing."""
-    saved = PrimeItems.program_arguments.get("language")
+    saved = PrimeItems.program_arguments.language
     try:
-        PrimeItems.program_arguments["language"] = "Klingon"
-        PrimeItems.program_arguments["reset"] = False
+        PrimeItems.program_arguments.language = "Klingon"
+        PrimeItems.program_arguments.reset = False
 
         gui = MagicMock(spec=MyGui)
         MyGui.set_startup_language(gui)
 
         assert not hasattr(PrimeItems, "_")
     finally:
-        PrimeItems.program_arguments["language"] = saved
+        PrimeItems.program_arguments.language = saved
 
 
 def test_document_language_declaration():
@@ -710,9 +710,9 @@ def test_document_language_declaration():
     translates it back to the reader's language -- undoing every translation MapTasker
     just applied and looking exactly like a localization failure.
     """
-    saved = PrimeItems.program_arguments.get("language")
+    saved = PrimeItems.program_arguments.language
     try:
-        PrimeItems.program_arguments["language"] = "Japanese"
+        PrimeItems.program_arguments.language = "Japanese"
         head = document_language_html()
 
         assert 'document.documentElement.lang = "ja"' in head
@@ -720,7 +720,7 @@ def test_document_language_declaration():
         assert 'classList.add("notranslate")' in head
         assert '<meta name="google" content="notranslate">' in head
     finally:
-        PrimeItems.program_arguments["language"] = saved
+        PrimeItems.program_arguments.language = saved
 
 
 def test_document_language_js_shared_by_both_paths():
@@ -730,13 +730,13 @@ def test_document_language_js_shared_by_both_paths():
     re-stamps the live lang attribute itself.  Both go through set_document_language_js
     precisely so the two can never disagree about what they set.
     """
-    saved = PrimeItems.program_arguments.get("language")
+    saved = PrimeItems.program_arguments.language
     try:
-        PrimeItems.program_arguments["language"] = "French"
+        PrimeItems.program_arguments.language = "French"
         assert set_document_language_js("fr") in document_language_html()
         assert 'document.documentElement.lang = "fr"' in set_document_language_js("fr")
     finally:
-        PrimeItems.program_arguments["language"] = saved
+        PrimeItems.program_arguments.language = saved
 
 
 # ==========================================
@@ -782,7 +782,7 @@ def test_clear_view_names_alone_leaves_the_selection_live(gui_with_selection):
 
     assert gui_with_selection.single_project_name == ""
     # Still the active filter, and still on screen:
-    assert PrimeItems.program_arguments["single_project_name"] == "My Project"
+    assert PrimeItems.program_arguments.single_project_name == "My Project"
     assert gui_with_selection.specific_project_optionmenu.value == "Project: My Project"
 
 
@@ -2185,14 +2185,17 @@ def test_a_save_to_android_panel_option_is_kept_for_the_next_session(monkeypatch
         "save_restore_args",
         lambda args, colors, to_save=False: (written.append((dict(args), to_save)), (args, colors))[1],
     )
-    monkeypatch.setattr(PrimeItems, "program_arguments", {"android_verify": False, "android_check_ids": False})
+    monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments(android_verify=False, android_check_ids=False))
     gui = MagicMock()
 
     guiwins.remember_android_panel_option(gui, "android_check_ids", True)
 
     assert gui.android_check_ids is True  # the next panel opens with it
-    assert PrimeItems.program_arguments["android_check_ids"] is True
-    assert written == [({"android_verify": False, "android_check_ids": True}, True)]
+    assert PrimeItems.program_arguments.android_check_ids is True
+    panel_options = ("android_verify", "android_check_ids")
+    assert [({name: args[name] for name in panel_options}, to_save) for args, to_save in written] == [
+        ({"android_verify": False, "android_check_ids": True}, True),
+    ]
 
 
 def test_the_save_to_android_panel_options_are_saved_settings() -> None:
@@ -2217,19 +2220,22 @@ def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch) ->
         "save_restore_args",
         lambda args, colors, to_save=False: (written.append((dict(args), to_save)), (args, colors))[1],
     )
-    monkeypatch.setattr(PrimeItems, "program_arguments", {})
+    monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments())
     gui = MagicMock(android_ipaddr="", android_port="", android_last_ipaddr="", android_last_port="")
 
     guiutils.remember_android_address(gui, " 10.0.0.7 ", "1822")
     guiutils.remember_android_address(gui, "10.0.0.7", "1822")  # unchanged: no second write
 
-    assert written == [({"android_last_ipaddr": "10.0.0.7", "android_last_port": "1822"}, True)]
+    last_address = ("android_last_ipaddr", "android_last_port")
+    assert [({name: args[name] for name in last_address}, to_save) for args, to_save in written] == [
+        ({"android_last_ipaddr": "10.0.0.7", "android_last_port": "1822"}, True),
+    ]
     gui.android_ipaddr = gui.android_port = ""  # what loading a local XML file does
     assert guiutils.android_address_defaults(gui) == ("10.0.0.7", "1822")
 
     # Nothing entered yet anywhere: the defaults.
     fresh = MagicMock(android_ipaddr="", android_port="", android_last_ipaddr="", android_last_port="")
-    monkeypatch.setattr(PrimeItems, "program_arguments", {})
+    monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments())
     assert guiutils.android_address_defaults(fresh) == ("192.168.0.210", "1821")
 
 

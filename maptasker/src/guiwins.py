@@ -3182,7 +3182,7 @@ def build_health_check_dialog(
     so what is ticked is never lost to a Cancel or an exit.  The caller does the running and
     the saving: this module builds windows and knows nothing about what a health check is.
     """
-    skip = set(PrimeItems.program_arguments.get("health_check_skip", []) or [])
+    skip = set(PrimeItems.program_arguments.health_check_skip or [])
     boxes: dict[str, ui.checkbox] = {}
     # Select All and Deselect All set every box in turn, and each of those would otherwise
     # save the settings file on its own: forty-five writes for one click.
@@ -5596,7 +5596,7 @@ class NiceGuiTextView:
                     # reconciles against the file it actually reads. Deliberately not
                     # master_gui.font -- see the note there on why that can be stale.
                     f"width: 100%; max-width: 100%; "
-                    f"font-family: '{PrimeItems.program_arguments['font']}', monospace;"
+                    f"font-family: '{PrimeItems.program_arguments.font}', monospace;"
                     f"{line_height_style}{background_style}",
                 )
             )
@@ -5621,7 +5621,7 @@ class NiceGuiTextView:
         # Starting point, used as-is by the Misc and Task Flow views (neither of which has a
         # generated file behind it).  The file-backed views replace this below with the font
         # their file actually carries.
-        html_style = f"width: 100%; max-width: 100%; font-family: '{PrimeItems.program_arguments['font']}', monospace;"
+        html_style = f"width: 100%; max-width: 100%; font-family: '{PrimeItems.program_arguments.font}', monospace;"
         if not (is_diagram or is_flow):
             html_style += " word-break: break-word;"
 
@@ -5677,9 +5677,7 @@ class NiceGuiTextView:
             # Diagram file is plain text with no CSS of its own, hence the fallback to the
             # font that generated this run.
             extracted_font = self.extract_first_font_name(final_html)
-            view_font = (
-                extracted_font if extracted_font != "Font name not found" else PrimeItems.program_arguments["font"]
-            )
+            view_font = extracted_font if extracted_font != "Font name not found" else PrimeItems.program_arguments.font
             html_style = f"width: 100%; max-width: 100%; font-family: '{view_font}', monospace;"
             if not is_diagram:
                 html_style += " word-break: break-word;"
@@ -7697,7 +7695,7 @@ class NiceGuiTextView:
         # "font-family:<font>, monospace;" and the view styles below build the same shape --
         # so a pattern that had to reach a ';' or '}' without crossing a comma matched none
         # of them.  This returned "Font name not found" for all real output, and the caller
-        # fell back to program_arguments["font"] every single time: exactly the stale-font
+        # fell back to program_arguments.font every single time: exactly the stale-font
         # behaviour that reading the font back out of the file is meant to avoid.
         pattern = re.compile(r"font-family\s*:\s*([^,;{}]+)")
 
@@ -7951,7 +7949,7 @@ def initialize_gui(self: MyGui) -> None:
 
 def _initialize_gui_settings(self: MyGui) -> None:
     """Initializes GUI-related appearance and display settings."""
-    PrimeItems.program_arguments["gui"] = True
+    PrimeItems.program_arguments.gui = True
     self.gui = True
     self.guiview = False
     self.appearance_mode = None
@@ -8078,7 +8076,7 @@ def document_language_html() -> str:
     rebuilds the layout but not the document, so language_set_event() updates the live
     attributes itself -- see set_document_language_js().
     """
-    lang_code = PrimeItems.languages.get(PrimeItems.program_arguments.get("language") or "English", "en")
+    lang_code = PrimeItems.languages.get(PrimeItems.program_arguments.language or "English", "en")
     return f'<meta name="google" content="notranslate"><script>{set_document_language_js(lang_code)}</script>'
 
 

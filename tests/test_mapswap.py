@@ -21,6 +21,7 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import mapfind, mapjump, mapswap, taskerd, varxref
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK
 from maptasker.src.primitem import PrimeItems
@@ -146,7 +147,7 @@ def _load(xml_text: str) -> None:
     root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
-    PrimeItems.program_arguments = {"task_action_warning_limit": 100, "language": "English"}
+    PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
 
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
     with open(specs_file) as handle:
@@ -1023,7 +1024,7 @@ def test_no_selection_reaches_the_whole_configuration(loaded, _no_selection) -> 
 
 def test_a_selected_task_scopes_the_swap_to_itself(loaded, _no_selection) -> None:
     """Selecting the Task that has no Flash leaves nothing for a Flash swap to do."""
-    PrimeItems.program_arguments["single_task_name"] = "Quiet"
+    PrimeItems.program_arguments.single_task_name = "Quiet"
     scope = mapjump.current_scope()
     assert not scope.is_everything
     assert scope.phrase == "Task 'Quiet'"
@@ -1035,7 +1036,7 @@ def test_a_selected_task_scopes_the_swap_to_itself(loaded, _no_selection) -> Non
 
 def test_a_selected_task_still_finds_what_is_inside_it(loaded, _no_selection) -> None:
     """...and selecting the Task that does have them finds exactly those."""
-    PrimeItems.program_arguments["single_task_name"] = "Noisy"
+    PrimeItems.program_arguments.single_task_name = "Noisy"
     plan = mapswap.plan_action_swap(FLASH, NOTIFY)
     assert len(plan.changes) == 2
     assert {change.site.where.name for change in plan.changes} == {"Noisy"}
@@ -1047,7 +1048,7 @@ def test_the_pulldown_counts_agree_with_the_scoped_answer(loaded, _no_selection)
     A pulldown offering 'Flash (2)' over a scope that would only change one is the
     disagreement mapfind's own design notes exist to prevent.
     """
-    PrimeItems.program_arguments["single_task_name"] = "Noisy"
+    PrimeItems.program_arguments.single_task_name = "Noisy"
     index = mapfind.build_index()
     offered = dict(index.catalog[mapfind.ACTION]).get("Flash", 0)
     assert offered == len(mapswap.plan_action_swap(FLASH, NOTIFY).changes)
@@ -1055,7 +1056,7 @@ def test_the_pulldown_counts_agree_with_the_scoped_answer(loaded, _no_selection)
 
 def test_a_selected_project_pulls_in_what_it_contains(variables, _no_selection) -> None:
     """A Project's scope is its Profiles, Tasks and Scenes, not just its own name."""
-    PrimeItems.program_arguments["single_project_name"] = "Home"
+    PrimeItems.program_arguments.single_project_name = "Home"
     scope = mapjump.current_scope()
     assert scope.projects == frozenset({"Home"})
     assert scope.profiles == frozenset({"10"})
@@ -1070,7 +1071,7 @@ def test_a_selection_that_names_nothing_scopes_to_nothing(loaded, _no_selection)
     Replace from one Task to the whole configuration -- the one direction this must never
     fail in.
     """
-    PrimeItems.program_arguments["single_project_name"] = "No Such Project"
+    PrimeItems.program_arguments.single_project_name = "No Such Project"
     scope = mapjump.current_scope()
     assert not scope.is_everything
     assert scope.tasks == frozenset()
@@ -1084,7 +1085,7 @@ def test_a_rename_is_confined_to_the_selected_object(variables, _no_selection) -
     everywhere = mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum")
     assert {change.site.where.kind for change in everywhere.changes} >= {TASK, PROFILE, SCENE}
 
-    PrimeItems.program_arguments["single_task_name"] = "Adder"
+    PrimeItems.program_arguments.single_task_name = "Adder"
     scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope()), "%Total", "", "%Sum")
     assert {change.site.where.kind for change in scoped.changes} == {TASK}
     assert {change.site.where.key for change in scoped.changes} == {"30"}
@@ -1100,21 +1101,21 @@ def test_a_scoped_rename_leaves_the_variables_tab_declaration_alone(variables, _
     assert any(change.site.kind == mapswap.DECLARATION for change in
                mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum").changes)
 
-    PrimeItems.program_arguments["single_task_name"] = "Adder"
+    PrimeItems.program_arguments.single_task_name = "Adder"
     scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope()), "%Total", "", "%Sum")
     assert not any(change.site.kind == mapswap.DECLARATION for change in scoped.changes)
 
 
 def test_a_scoped_rename_warns_that_it_leaves_the_rest_alone(variables, _no_selection) -> None:
     """A half-renamed global is a broken configuration, not a partly-done job."""
-    PrimeItems.program_arguments["single_task_name"] = "Adder"
+    PrimeItems.program_arguments.single_task_name = "Adder"
     plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope()), "%Total", "", "%Sum")
     assert any("keep the old name" in warning for warning in plan.warnings)
 
 
 def test_the_scope_reaches_the_saved_reports(loaded, _no_selection) -> None:
     """An empty answer has to say it was scoped, or it reads as "there are none"."""
-    PrimeItems.program_arguments["single_task_name"] = "Quiet"
+    PrimeItems.program_arguments.single_task_name = "Quiet"
     rows = mapfind.report_rows(mapfind.Query(action="Flash"), [], 0, mapfind.build_index())
     assert any("Limited to Task 'Quiet'" in row.text for row in rows)
 
@@ -1128,7 +1129,7 @@ def test_varxref_is_whole_file_unless_a_scope_is_asked_for(loaded, _no_selection
     into a false alarm there.  Only the rename asks for a scope, because only the rename
     writes.
     """
-    PrimeItems.program_arguments["single_task_name"] = "Quiet"
+    PrimeItems.program_arguments.single_task_name = "Quiet"
 
     assert varxref.build_index().scope.is_everything
     assert not varxref.build_index(mapjump.current_scope()).scope.is_everything
@@ -1153,7 +1154,7 @@ def test_a_scoped_substitution_changes_only_the_selected_object(variables, _no_s
     """The two halves of this feature together: every occurrence inside the object, and
     nothing outside it.
     """
-    PrimeItems.program_arguments["single_task_name"] = "Adder"
+    PrimeItems.program_arguments.single_task_name = "Adder"
     plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope()), "%Total", "", "%Totals")
     changed, errors = mapswap.apply(plan)
     assert errors == []
@@ -1172,7 +1173,7 @@ def test_a_scoped_substitution_changes_only_the_selected_object(variables, _no_s
 
     # Outside: the Profile context, the Scene binding and the two configure-on-import
     # declarations (the Project's and the Profile's) still name it, untouched.
-    PrimeItems.program_arguments["single_task_name"] = ""
+    PrimeItems.program_arguments.single_task_name = ""
     whole = varxref.build_index()
     remaining = whole.variables[("%Total", "")]
     assert {reference.target.kind for reference in remaining.sets + remaining.reads} == {PROJECT, PROFILE, SCENE}
@@ -1351,11 +1352,11 @@ def test_a_scope_leaves_nothing_for_the_project_narrowing_to_narrow(loaded, _no_
     """
     assert mapfind.build_index().projects == ["Home"]
 
-    PrimeItems.program_arguments["single_task_name"] = "Noisy"
+    PrimeItems.program_arguments.single_task_name = "Noisy"
     assert mapfind.build_index().projects == []
 
-    PrimeItems.program_arguments["single_task_name"] = ""
-    PrimeItems.program_arguments["single_project_name"] = "Home"
+    PrimeItems.program_arguments.single_task_name = ""
+    PrimeItems.program_arguments.single_project_name = "Home"
     assert mapfind.build_index().projects == ["Home"]
 
 

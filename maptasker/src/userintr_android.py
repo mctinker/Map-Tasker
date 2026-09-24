@@ -222,7 +222,7 @@ async def validate_or_filelist_xml(
 
         # Validate the XML syntax structure
         if return_code == 0:
-            PrimeItems.program_arguments["gui"] = True
+            PrimeItems.program_arguments.gui = True
             validated = await run.io_bound(
                 validate_xml_file,
                 android_ipaddr,

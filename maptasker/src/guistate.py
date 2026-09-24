@@ -53,7 +53,7 @@ def live_selection() -> tuple[str, str]:
     and the specific_<x>_optionmenu attribute names both use.
     """
     for key in SELECTION_KEYS:
-        name = PrimeItems.program_arguments.get(key, "")
+        name = PrimeItems.program_arguments[key]
         if name and name != "None":
             return key.removeprefix("single_").removesuffix("_name").capitalize(), name
     return "", ""
@@ -104,7 +104,7 @@ def do_colors(user_input: MyGui) -> dict:
         for key, value in color_lookup.items():
             colormap[key] = value
 
-    PrimeItems.program_arguments["gui"] = True  # Set flag to indicate we are using GUI
+    PrimeItems.program_arguments.gui = True  # Set flag to indicate we are using GUI
 
     return colormap
 
@@ -218,7 +218,7 @@ def capture_gui_state(user_input: MyGui, data: dict) -> None:
     """
     # Check to see if it is a specific entry:
     if data and "Prettier" in get_first_text_entry(data):
-        PrimeItems.program_arguments["pretty"] = user_input.pretty
+        PrimeItems.program_arguments.pretty = user_input.pretty
 
     # Do the entire enchillada if it is not a specific entry:
     else:
@@ -229,10 +229,10 @@ def capture_gui_state(user_input: MyGui, data: dict) -> None:
                 logger.info(
                     f"GUI arg: {value} set to: {PrimeItems.program_arguments[value]}",
                 )
-        PrimeItems.program_arguments["display_detail_level"] = int(
-            PrimeItems.program_arguments["display_detail_level"],
+        PrimeItems.program_arguments.display_detail_level = int(
+            PrimeItems.program_arguments.display_detail_level,
         )
-        PrimeItems.program_arguments["indent"] = int(PrimeItems.program_arguments.get("indent", 4))
+        PrimeItems.program_arguments.indent = int(PrimeItems.program_arguments.indent)
         # Update colors based on the current MyGui instance
         PrimeItems.colors_to_use = do_colors(user_input)
 

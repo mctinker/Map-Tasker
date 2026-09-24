@@ -17,7 +17,7 @@ WHY THESE ARE SKIPPED BY DEFAULT
 --------------------------------
 mapit_all() reaches get_program_arguments() (progargs.py), whose `if GUI: process_gui(True)`
 starts the NiceGUI web server and blocks until the window is closed -- config.GUI is True,
-and runcli.process_cli additionally forces program_arguments["gui"] True on its own, so the
+and runcli.process_cli additionally forces program_arguments.gui True on its own, so the
 command-line branch below it is unreachable.  There is therefore no headless path for these
 runs to take: collected normally they would hang `pytest tests/` rather than fail it.
 

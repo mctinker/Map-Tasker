@@ -392,8 +392,8 @@ def outline_profiles_tasks_scenes(
 
         # Doing all Projects or single Project and this is our Project...
         if (
-            not PrimeItems.program_arguments["single_profile_name"]
-            or PrimeItems.program_arguments["single_profile_name"] == profile_name
+            not PrimeItems.program_arguments.single_profile_name
+            or PrimeItems.program_arguments.single_profile_name == profile_name
         ):
             # Add Profile to our network
             profile_line = f"{blank * 5}{arrow}{blank * 2}Profile: {profile_name}"
@@ -428,7 +428,7 @@ def outline_profiles_tasks_scenes(
             all_profiles_tasks.extend(tasks_in_profile)
 
     # List the Tasks not in any Profile for this Project
-    if not PrimeItems.program_arguments["single_profile_name"]:
+    if not PrimeItems.program_arguments.single_profile_name:
         tasks_not_in_profile(all_profiles_tasks, tasks_in_project)
 
     # Get the Scenes for this Project
@@ -488,8 +488,8 @@ def do_the_outline(network: dict) -> None:
 
         # Doing all Projects or single Project and this is our Project...
         if (
-            not PrimeItems.program_arguments["single_project_name"]
-            or PrimeItems.program_arguments["single_project_name"] == project_name
+            not PrimeItems.program_arguments.single_project_name
+            or PrimeItems.program_arguments.single_project_name == project_name
         ):
             # Add Project to our network
             network[project_name] = {}
@@ -556,7 +556,7 @@ def check_for_single_name(root: dict, single_name: str, do_pids: bool) -> bool:
                 item_ids = get_ids(do_pids, value["xml"], single_name, [])
                 # Is our single named object in this project?
                 if item_id in item_ids:
-                    PrimeItems.program_arguments["single_project_name"] = key
+                    PrimeItems.program_arguments.single_project_name = key
                     return True
     return False
 
@@ -566,7 +566,7 @@ def fix_project_name_for_single_name() -> None:
     """
     Set the project name for a single profile/task name.
 
-    This function checks if the single profile name is valid by calling the `check_for_single_name` function with the `single_profile_name` parameter set to `PrimeItems.program_arguments["single_profile_name"]` and the `do_pids` parameter set to `True`. If the single profile name is not valid, it calls the `check_for_single_name` function again with the `single_task_name` parameter set to `PrimeItems.program_arguments["single_task_name"]` and the `do_pids` parameter set to `False`.
+    This function checks if the single profile name is valid by calling the `check_for_single_name` function with the `single_profile_name` parameter set to `PrimeItems.program_arguments.single_profile_name` and the `do_pids` parameter set to `True`. If the single profile name is not valid, it calls the `check_for_single_name` function again with the `single_task_name` parameter set to `PrimeItems.program_arguments.single_task_name` and the `do_pids` parameter set to `False`.
 
     A single Scene can't go through check_for_single_name at all: Scenes are not in a
     Project's <pids>/<tids>, so there is nothing for get_ids to match.  Its owning
@@ -581,15 +581,15 @@ def fix_project_name_for_single_name() -> None:
     """
     if not check_for_single_name(
         PrimeItems.tasker_root_elements["all_profiles"],
-        PrimeItems.program_arguments["single_profile_name"],
+        PrimeItems.program_arguments.single_profile_name,
         do_pids=True,
     ) and not check_for_single_name(
         PrimeItems.tasker_root_elements["all_tasks"],
-        PrimeItems.program_arguments["single_task_name"],
+        PrimeItems.program_arguments.single_task_name,
         do_pids=False,
     ):
-        if scene_name := PrimeItems.program_arguments["single_scene_name"]:
-            PrimeItems.program_arguments["single_project_name"] = find_owning_project_for_scene(scene_name)
+        if scene_name := PrimeItems.program_arguments.single_scene_name:
+            PrimeItems.program_arguments.single_project_name = find_owning_project_for_scene(scene_name)
 
 
 # Outline the Tasker Configuration
@@ -610,7 +610,7 @@ def outline_the_configuration() -> None:
     fix_project_name_for_single_name()
 
     # Output the directory link
-    if PrimeItems.program_arguments["directory"]:
+    if PrimeItems.program_arguments.directory:
         PrimeItems.output_lines.add_line_to_output(
             5,
             '<a id="configuration_outline"></a>',

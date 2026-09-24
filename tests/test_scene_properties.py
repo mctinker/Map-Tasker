@@ -37,6 +37,7 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import sceneedit, taskedit
 from maptasker.src.primitem import PrimeItems
 
@@ -395,7 +396,7 @@ def _load_sample_backup(path: str) -> ET.Element:
 
     root = ET.parse(path).getroot()  # noqa: S314  (this repo's own sample data)
     PrimeItems.xml_root = root
-    PrimeItems.program_arguments = {"task_action_warning_limit": 100, "language": "English"}
+    PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
     PrimeItems.tasker_arg_specs = _load_arg_specs()
     tables = {
         "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
@@ -442,7 +443,7 @@ def sample_backup():
     """A loaded backup, put back exactly as it was afterwards."""
     saved = dict(PrimeItems.tasker_root_elements)
     saved_specs = dict(PrimeItems.tasker_arg_specs)
-    saved_args = dict(PrimeItems.program_arguments)
+    saved_args = PrimeItems.program_arguments.copy()
     yield _load_sample_backup
     PrimeItems.tasker_root_elements.clear()
     PrimeItems.tasker_root_elements.update(saved)
@@ -789,7 +790,7 @@ def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it
 
     saved = dict(PrimeItems.tasker_root_elements)
     saved_specs = dict(PrimeItems.tasker_arg_specs)
-    saved_args = dict(PrimeItems.program_arguments)
+    saved_args = PrimeItems.program_arguments.copy()
     try:
         _load_sample_backup(_SYNTHETIC_BACKUP)
         # A Task with a real name and something in it -- an empty one would prove nothing.

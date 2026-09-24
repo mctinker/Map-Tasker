@@ -99,7 +99,7 @@ class LineOut:
         """
 
         # Clear whatever is already in the output queue
-        if PrimeItems.program_arguments["ai_analyze"]:
+        if PrimeItems.program_arguments.ai_analyze:
             PrimeItems.ai["output_lines"].clear()
         self.output_lines.clear()
 
@@ -112,7 +112,7 @@ class LineOut:
         output_the_front_matter(current_config())
 
         # Re-add the directory item
-        if PrimeItems.program_arguments["directory"]:
+        if PrimeItems.program_arguments.directory:
             add_directory_item("projects", project_name)
 
         # Start Project list
@@ -180,7 +180,7 @@ class LineOut:
         """
         directory = ""
 
-        if PrimeItems.program_arguments["directory"] and PrimeItems.directory_items["current_item"]:
+        if PrimeItems.program_arguments.directory and PrimeItems.directory_items["current_item"]:
             directory_item = PrimeItems.directory_items["current_item"]
             directory = f'<a id="{directory_item}"></a>\n'
         return f"{directory}{arg1}{element}{arg3}"
@@ -240,7 +240,7 @@ class LineOut:
         :return: the formatted text to add to the output queue
         """
 
-        font = PrimeItems.program_arguments["font"]
+        font = PrimeItems.program_arguments.font
 
         # Dispatch on the label with any hover-tooltip wrapper stripped out (see
         # _HOVER_TOOLTIP_SPAN_RE above) -- otherwise a Task's tooltip mentioning its
@@ -360,7 +360,7 @@ class LineOut:
             # Returns: '<a id="scenes_1"></a>\n<style=color:scene_color;font:Arial;element:Scene:&nbsp;1;>'
         """
         directory = ""
-        if PrimeItems.program_arguments["directory"] and PrimeItems.directory_items["current_item"]:
+        if PrimeItems.program_arguments.directory and PrimeItems.directory_items["current_item"]:
             # element's "Scene:" label may be wrapped in a hover-tooltip span (build_tooltip_span()
             # in format.py), which puts a "</span>" between "Scene:" and "&nbsp;" and breaks a plain
             # split on "Scene:&nbsp;" -- strip that wrapper first so this always finds the name.
@@ -368,10 +368,10 @@ class LineOut:
             scene_name = f"scenes_{unwrapped_element.split('Scene:&nbsp;')[1]}"
             # Get rid of any name attributions
             if (
-                PrimeItems.program_arguments["bold"]
-                or PrimeItems.program_arguments["italicize"]
-                or PrimeItems.program_arguments["highlight"]
-                or PrimeItems.program_arguments["underline"]
+                PrimeItems.program_arguments.bold
+                or PrimeItems.program_arguments.italicize
+                or PrimeItems.program_arguments.highlight
+                or PrimeItems.program_arguments.underline
             ):
                 scene_name = remove_html_tags(scene_name, "")
 
@@ -574,7 +574,7 @@ class LineOut:
 
         if lvl == 2:
             # List item
-            if PrimeItems.program_arguments["twisty"] and "Scene:" in element:
+            if PrimeItems.program_arguments.twisty and "Scene:" in element:
                 return f"{self.format_line_list_item(element)}"
             return self.format_line_list_item(element)
 
@@ -617,12 +617,12 @@ class LineOut:
             )
 
         # Drop ID: nnn since we don't need it anymore
-        if "Task ID:" in out_string and PrimeItems.program_arguments["debug"] is False:
+        if "Task ID:" in out_string and PrimeItems.program_arguments.debug is False:
             temp_element = out_string.split("Task ID:")
             out_string = temp_element[0]
 
         # # Add to Ai prompt if we are doing an Ai run.  Maker sure to remove all HTML tags first.
-        # if PrimeItems.program_arguments["ai_analyze"]:
+        # if PrimeItems.program_arguments.ai_analyze:
         #     # Format the output line.
         #     PrimeItems.ai["output_lines"].append(remove_html_tags(out_string, ""))
 

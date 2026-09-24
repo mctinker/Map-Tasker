@@ -48,7 +48,7 @@ def get_profile_tasks(
     """
     keys_we_dont_want = {"cdate", "edate", "flags", "id", "limit"}
     list_of_tasks = []
-    single_task_name = PrimeItems.program_arguments.get("single_task_name")
+    single_task_name = PrimeItems.program_arguments.single_task_name
 
     _get_task_name = tasks.get_task_name
     for child in the_profile:
@@ -75,7 +75,7 @@ def get_profile_tasks(
                 PrimeItems.found_named_items["single_task_found"] = True
                 profile_name = the_profile.find("nme")
                 if profile_name is not None:
-                    PrimeItems.program_arguments["single_profile_name"] = profile_name.text
+                    PrimeItems.program_arguments.single_profile_name = profile_name.text
                 break
 
         elif tag == "nme":
@@ -134,7 +134,7 @@ def get_profile_name(
     )
 
     # If we are debugging, add the Profile ID
-    if PrimeItems.program_arguments["debug"]:
+    if PrimeItems.program_arguments.debug:
         profile_id = profile.find("id").text
         profile_name_with_html = (
             f"{profile_name_with_html} {format_html('unknown_task_color', '', f', ID:{profile_id}', True)}"
@@ -354,11 +354,11 @@ def conditions_to_name(
     PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"] = new_profile_name
 
     # Handle directory hyperlink
-    if PrimeItems.program_arguments["directory"]:
+    if PrimeItems.program_arguments.directory:
         add_directory_item("profiles", new_profile_name)
 
     # Make the conditions pretty
-    if PrimeItems.program_arguments["pretty"]:
+    if PrimeItems.program_arguments.pretty:
         # condition_length = profile_conditions.find(":")
         # Add spacing for profile name, condition name and "Profile:"
         profile_conditions = profile_conditions.replace(",", "<br>")
@@ -414,7 +414,7 @@ def build_profile_line(
     # reader nothing that "flags: 43 (Hide In Notification, Collapsed, Ignore Settings, Run
     # Exit Task On Startup)" does not.  The names come from objprops, which owns the bit
     # layout, so this line and the Properties editor cannot disagree about what a value means.
-    if PrimeItems.program_arguments["debug"]:
+    if PrimeItems.program_arguments.debug:
         flags = profile.find("flags")
         if flags is not None:
             names = objprops.describe_flags(objprops.flag_bits(profile), objprops.PROFILE_FLAG_NAMES)
@@ -428,13 +428,11 @@ def build_profile_line(
     unmodified_profile_name = profile_name
 
     # Handle directory hyperlink
-    if PrimeItems.program_arguments["directory"]:
+    if PrimeItems.program_arguments.directory:
         add_directory_item("profiles", profile_name)
 
     # Get the Profile's conditions
-    if (PrimeItems.program_arguments["conditions"]) and (
-        profile_conditions := condition.parse_profile_condition(profile)
-    ):
+    if (PrimeItems.program_arguments.conditions) and (profile_conditions := condition.parse_profile_condition(profile)):
         # Add the HTML
         condition_text = format_html(
             "profile_condition_color",
@@ -445,7 +443,7 @@ def build_profile_line(
 
     # Break it up into separate lines if we are doing pretty output
     temp = f"{condition_text} {launcher}{disabled} {flags}"
-    if PrimeItems.program_arguments["pretty"]:
+    if PrimeItems.program_arguments.pretty:
         indentation = len(unmodified_profile_name)
         indentation = 1
         # Break at comma
@@ -459,7 +457,7 @@ def build_profile_line(
     profile_info = f"{profile_name_with_html} {temp}"
 
     # Do final alignment of the HTML string...must include the Profile name.
-    if PrimeItems.program_arguments["pretty"] and condition_text:
+    if PrimeItems.program_arguments.pretty and condition_text:
         profile_info = align_html_text(profile_info)
 
     # Mark this Profile's place so a report finding can be clicked and land on it (mapjump).
@@ -507,18 +505,18 @@ def do_profile(
         - Outputs the Tasks for the current Profile.
         - Returns True if a specific Task is being searched for, False otherwise."""
     # Are we searching for a specific Profile?
-    if PrimeItems.program_arguments["single_profile_name"]:
+    if PrimeItems.program_arguments.single_profile_name:
         # Make sure this item's name is in our list of profiles.
         if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
             return False  # Not our Profile...go to next Profile ID
 
-        if PrimeItems.program_arguments["single_profile_name"] != profile_name:
+        if PrimeItems.program_arguments.single_profile_name != profile_name:
             return False  # Not our Profile...go to next Profile ID
 
         # Oh, Yeah! We found the Profile we were looking for!
         # Identify items found.
         PrimeItems.found_named_items["single_profile_found"] = True
-        PrimeItems.program_arguments["single_project_name"] = project_name
+        PrimeItems.program_arguments.single_project_name = project_name
         PrimeItems.found_named_items["single_project_found"] = True
 
         # Clear the output list to prepare for single Profile only
@@ -544,16 +542,16 @@ def do_profile(
     profile_name = build_profile_line(profile, project_name, task_names_for_tooltip)
 
     # Process Profile Properties
-    if PrimeItems.program_arguments["display_detail_level"] > 2:
+    if PrimeItems.program_arguments.display_detail_level > 2:
         get_properties("Profile:", profile, Target(PROFILE, profile.attrib.get("sr", "")[4:]))
 
     # Process any <Share> information from TaskerNet.  The Profile's identity comes from
     # its "sr" attribute the same way get_profile_name reads it -- see the anchor written
     # alongside the Profile's own line above.
-    if PrimeItems.program_arguments["taskernet"]:
+    if PrimeItems.program_arguments.taskernet:
         share(profile, "proftab", Target(PROFILE, profile.attrib.get("sr", "")[4:]))
         # Add a spacer if detail is 0
-        if PrimeItems.program_arguments["display_detail_level"] == 0:
+        if PrimeItems.program_arguments.display_detail_level == 0:
             PrimeItems.output_lines.add_line_to_output(
                 0,
                 "",
@@ -723,7 +721,7 @@ def process_profiles(
         # found speficic Profile.  No need to process any more Profiles.
         if (
             specific_task
-            and PrimeItems.program_arguments["single_task_name"]
+            and PrimeItems.program_arguments.single_task_name
             and PrimeItems.found_named_items["single_task_found"]
         ) or (
             not specific_task and PrimeItems.found_named_items["single_profile_found"]

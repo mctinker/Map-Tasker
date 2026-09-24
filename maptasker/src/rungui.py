@@ -26,7 +26,7 @@ from maptasker.src.error import error_handler, exit_program
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guistate import capture_gui_state, do_colors, live_selection, reapply_selection
 from maptasker.src.guiwins import NiceGuiTextView, inject_shared_head_styles, register_finding_clicks
-from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
@@ -119,16 +119,16 @@ def save_gui_settings(user_input: object) -> None:
     ai_apikey = getattr(user_input, "ai_apikey", None)
     if ai_apikey is not None and ai_apikey:
         PrimeItems.ai["api_key"] = ai_apikey
-        PrimeItems.program_arguments["ai_apikey"] = "HIDDEN"
+        PrimeItems.program_arguments.ai_apikey = "HIDDEN"
 
     # Convert display_detail_level to integer
-    PrimeItems.program_arguments["display_detail_level"] = convert_to_integer(
-        PrimeItems.program_arguments["display_detail_level"],
+    PrimeItems.program_arguments.display_detail_level = convert_to_integer(
+        PrimeItems.program_arguments.display_detail_level,
         DEFAULT_DISPLAY_DETAIL_LEVEL,
     )
     # Convert indent to integer
-    PrimeItems.program_arguments["indent"] = convert_to_integer(
-        PrimeItems.program_arguments["indent"],
+    PrimeItems.program_arguments.indent = convert_to_integer(
+        PrimeItems.program_arguments.indent,
         4,
     )
 
@@ -141,12 +141,12 @@ def save_gui_settings(user_input: object) -> None:
     logger.info("Settings saved on exit.")
 
 
-def process_gui(use_gui: bool) -> tuple[dict, dict]:
+def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
     # global MyGui
     """Parameters:
         - use_gui (bool): Flag to indicate whether to use GUI or not.
     Returns:
-        - tuple[dict, dict]: Tuple containing program arguments and colors to use.
+        - tuple[ProgramArguments, dict]: Tuple containing program arguments and colors to use.
     Processing Logic:
         - Import MyGui if use_gui is True.
         - Set flag to indicate GUI usage.
@@ -169,7 +169,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     if use_gui:
         from maptasker.src.userintr import MyGui  # noqa: PLC0415
 
-    PrimeItems.program_arguments["gui"] = True
+    PrimeItems.program_arguments.gui = True
 
     # 1. Create a dictionary to hold our UI instance so we can retrieve it after the server closes
     shared_state = {}

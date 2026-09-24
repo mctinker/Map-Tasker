@@ -117,7 +117,7 @@ def _usage_cell(references: list, table_definition: str) -> str:
         ),
     )
     count = len(references)
-    if not task_names or not PrimeItems.program_arguments["directory"]:
+    if not task_names or not PrimeItems.program_arguments.directory:
         return f"{table_definition}{count}</td>"
 
     # Tooltip lists every Task; the link goes to the first, which is where a reader
@@ -215,7 +215,7 @@ def output_variables(heading: str, project: defusedxml.ElementTree) -> None:
     if not PrimeItems.variables:
         return
     # Add a directory entry for variables.
-    if (project is None or project == "") and PrimeItems.program_arguments["directory"]:
+    if (project is None or project == "") and PrimeItems.program_arguments.directory:
         PrimeItems.output_lines.add_line_to_output(
             5,
             '<a id="unreferenced_variables"></a>',
@@ -251,7 +251,7 @@ def output_variables(heading: str, project: defusedxml.ElementTree) -> None:
         )
 
         # Define table
-        table_definition = f'{TABLE_BORDER}<table cellspacing="1" cellpadding="2" border="1" style="height:16px; margin-left: 20;color:{color_to_use};background-color:{TABLE_BACKGROUND_COLOR};font-family:{PrimeItems.program_arguments["font"]};text-align:left">\n<tr>\n<th>Name</th>\n<th>Value</th>\n<th>Set</th>\n<th>Read</th>\n</tr>'
+        table_definition = f'{TABLE_BORDER}<table cellspacing="1" cellpadding="2" border="1" style="height:16px; margin-left: 20;color:{color_to_use};background-color:{TABLE_BACKGROUND_COLOR};font-family:{PrimeItems.program_arguments.font};text-align:left">\n<tr>\n<th>Name</th>\n<th>Value</th>\n<th>Set</th>\n<th>Read</th>\n</tr>'
         PrimeItems.output_lines.add_line_to_output(
             5,
             table_definition,

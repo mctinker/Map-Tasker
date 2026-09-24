@@ -1001,7 +1001,7 @@ def _check_hygiene(index: ReferenceIndex) -> None:
     # Counted here rather than read from PrimeItems.task_action_warnings, which is only
     # populated while the Map output is being built (taskactn.py).  A health check run
     # straight after loading a file would otherwise silently report nothing.
-    limit = PrimeItems.program_arguments.get("task_action_warning_limit", 100)
+    limit = PrimeItems.program_arguments.task_action_warning_limit
     if limit < 100:
         for task_id, task in all_tasks.items():
             count = len(task["xml"].findall("Action"))

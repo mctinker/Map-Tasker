@@ -22,6 +22,7 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import projedit, taskerd
 from maptasker.src.primitem import PrimeItems
 
@@ -104,7 +105,7 @@ def loaded() -> None:
     root = ET.fromstring(_FIXTURE_XML)  # noqa: S314  (fixture text, defined in this file)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
-    PrimeItems.program_arguments = {"task_action_warning_limit": 100, "language": "English"}
+    PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
 
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
     with open(specs_file) as handle:

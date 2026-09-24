@@ -16,6 +16,7 @@ from __future__ import annotations
 import os
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import diffload, taskerd
 from maptasker.src.lineout import LineOut
 from maptasker.src.primitem import PrimeItems, initial_tasker_root_elements
@@ -89,8 +90,8 @@ def _snapshot() -> dict:
         "error_code": PrimeItems.error_code,
         "error_msg": PrimeItems.error_msg,
         "directory_items": PrimeItems.directory_items,
-        "gui": PrimeItems.program_arguments.get("gui"),
-        "directory": PrimeItems.program_arguments.get("directory"),
+        "gui": PrimeItems.program_arguments.gui,
+        "directory": PrimeItems.program_arguments.directory,
     }
 
 
@@ -102,14 +103,7 @@ def _runtime(tmp_path, monkeypatch):
     these tests assert on whether it is there afterwards.
     """
     monkeypatch.chdir(tmp_path)
-    PrimeItems.program_arguments = {
-        "gui": True,
-        "debug": False,
-        "directory": False,
-        "pretty": False,
-        "display_detail_level": 3,
-        "file": "",
-    }
+    PrimeItems.program_arguments = ProgramArguments(gui=True, debug=False, directory=False, pretty=False, display_detail_level=3, file="")
     PrimeItems.error_code = 0
     PrimeItems.error_msg = ""
     PrimeItems.directory_items = {"current_item": "", "projects": [], "profiles": [], "tasks": [], "scenes": []}
@@ -181,14 +175,14 @@ def test_a_malformed_file_reports_and_does_not_exit(tmp_path) -> None:
     regression is now a failed test instead of a killed test session -- but the thing
     being guarded is the same: a bad comparison file must not end the run.
     """
-    PrimeItems.program_arguments["gui"] = False
+    PrimeItems.program_arguments.gui = False
     before = _snapshot()
 
     configuration, message = diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML))
 
     assert configuration is None
     assert "bad.xml" in message
-    assert PrimeItems.program_arguments["gui"] is False
+    assert PrimeItems.program_arguments.gui is False
     for name, value in before.items():
         assert _snapshot()[name] is value, f"PrimeItems.{name} was not restored after a bad file"
 
@@ -330,13 +324,13 @@ def test_the_directory_list_is_not_polluted(tmp_path) -> None:
     The flag is forced off for the duration; the deep-copy restore is the backstop, and
     this asserts the pair of them together.
     """
-    PrimeItems.program_arguments["directory"] = True
+    PrimeItems.program_arguments.directory = True
     PrimeItems.directory_items["profiles"] = ["already here"]
 
     diffload.load_for_comparison(_write(tmp_path, "unnamed.xml", _UNNAMED_PROFILE_XML))
 
     assert PrimeItems.directory_items["profiles"] == ["already here"]
-    assert PrimeItems.program_arguments["directory"] is True
+    assert PrimeItems.program_arguments.directory is True
 
 
 def test_output_lines_are_not_polluted(tmp_path) -> None:

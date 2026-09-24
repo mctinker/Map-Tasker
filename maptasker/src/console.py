@@ -78,7 +78,7 @@ def _in_debug_mode() -> bool:
         bool: True when the "debug" runtime argument is on.
     """
     with contextlib.suppress(Exception):
-        return bool(PrimeItems.program_arguments and PrimeItems.program_arguments.get("debug"))
+        return bool(PrimeItems.program_arguments and PrimeItems.program_arguments.debug)
     return False
 
 

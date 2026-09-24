@@ -26,6 +26,7 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
+from maptasker.src.initparg import ProgramArguments
 from maptasker.src import guiwins_refactor, maprefac, sessundo, taskedit, taskerd
 from maptasker.src.guiwins import opening_view_in_a_new_window
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, actions_in_map_order
@@ -189,7 +190,7 @@ def _load(xml_text: str) -> None:
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.xml_tree = ET.ElementTree(root)
-    PrimeItems.program_arguments = {"task_action_warning_limit": 100, "language": "English"}
+    PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
 
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
     with open(specs_file) as handle:

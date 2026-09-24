@@ -21,7 +21,7 @@ import xml.etree.ElementTree as ET
 import pytest
 from maptasker.src import mapjump, piiscan, taskerd
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapjump import PROJECT, TASK, Target
 from maptasker.src.primitem import PrimeItems
@@ -145,7 +145,7 @@ def _load(xml_text: str) -> ET.Element:
     root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
-    PrimeItems.program_arguments = {"task_action_warning_limit": 100}
+    PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)
     PrimeItems.tasker_root_elements = {
         "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
         "all_profiles": taskerd.move_xml_to_table(root.findall("Profile"), True, "nme"),
@@ -476,7 +476,7 @@ def test_the_map_writes_the_anchor_that_finding_points_at(shared_problems: list)
     """
     finding = next(problem for problem in shared_problems if problem.tag == "PII-EMAIL")
     PrimeItems.program_arguments = initialize_runtime_arguments()
-    PrimeItems.program_arguments["taskernet"] = True
+    PrimeItems.program_arguments.taskernet = True
     PrimeItems.colors_to_use = set_color_mode("dark")
     PrimeItems.output_lines = LineOut()
     PrimeItems.emitted_anchors = set()
@@ -565,7 +565,7 @@ def test_the_map_writes_the_properties_anchor_a_finding_points_at(property_probl
         problem for problem in property_problems if problem.where.anchor == "mt-project-Server-eproperties"
     )
     PrimeItems.program_arguments = initialize_runtime_arguments()
-    PrimeItems.program_arguments["display_detail_level"] = mapjump.minimum_detail_level(finding.where)
+    PrimeItems.program_arguments.display_detail_level = mapjump.minimum_detail_level(finding.where)
     PrimeItems.colors_to_use = set_color_mode("dark")
     PrimeItems.output_lines = LineOut()
     PrimeItems.emitted_anchors = set()

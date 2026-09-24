@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: The logo and screenshots on the MapTasker page at GitHub display again.  The images had dropped out of the repository, so every one of them showed as a broken image.
+- Fixed: When the chosen AI model turns out not to support chat, AI analysis is now switched off as intended.  The setting was misspelled at that point, so the switch-off was stored where nothing read it.
+- Fixed: The runtime settings listed at the top of the Map now show the values of 'AI Model Extended List', 'Close Tabs on Exit' and 'Open View In New Window' instead of 'Error...not found!'.
 - Fixed:
 
 ### Known Issues

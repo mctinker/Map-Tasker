@@ -195,10 +195,10 @@ def add_dictionary_and_twisty(
 
     if "&#45;&#45;Task:" in list_type:
         temp_item, temp_list = handle_task(list_type, the_item, blank)
-        if PrimeItems.program_arguments["directory"]:
+        if PrimeItems.program_arguments.directory:
             task_name = PrimeItems.tasker_root_elements["all_tasks"][the_item]["name"]
             add_directory_item("tasks", task_name)
-    elif PrimeItems.program_arguments["directory"]:
+    elif PrimeItems.program_arguments.directory:
         handle_directory(list_type, the_item, the_task)
     elif "Task:" in list_type:
         handle_task_hyperlink(the_item, blank)
@@ -209,7 +209,7 @@ def add_dictionary_and_twisty(
     if list_type == "Scene:":
         PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
-    if PrimeItems.program_arguments["twisty"] and "Task:" in list_type:
+    if PrimeItems.program_arguments.twisty and "Task:" in list_type:
         handle_twisty(color_to_use, output_line)
 
     return temp_item, temp_list
@@ -278,7 +278,7 @@ def should_add_directory_hyperlink(list_type: str) -> bool:
         bool: True if a directory hyperlink should be added, False otherwise.
     """
     return (
-        PrimeItems.program_arguments["directory"]
+        PrimeItems.program_arguments.directory
         and PrimeItems.directory_items["current_item"]
         and "Task:" in list_type
         and "&#45;&#45;Task:" not in list_type
@@ -381,7 +381,7 @@ def debug_task_id(list_type: str) -> str:
     Returns:
         str: The modified list type with the ID location appended if in debug mode.
     """
-    if PrimeItems.program_arguments["debug"]:
+    if PrimeItems.program_arguments.debug:
         id_loc = list_type.find("ID:")
         if id_loc != -1:
             return f"{list_type}{id_loc}"
@@ -446,7 +446,7 @@ def format_item(
             profile_name (str): name of the Profile the Task belongs to (for the "Task:" tooltip)
     """
     # Log if in debug mode
-    if PrimeItems.program_arguments["debug"]:
+    if PrimeItems.program_arguments.debug:
         logger.debug(
             f"process_list  the_item:{the_item} the_list:{the_list} list_type:\
             {list_type}",
@@ -486,7 +486,7 @@ def format_item(
     if (
         the_task is not None
         and "Task:" in list_type
-        and PrimeItems.program_arguments["display_detail_level"] > 2
+        and PrimeItems.program_arguments.display_detail_level > 2
         and not PrimeItems.displaying_named_tasks_not_in_profile
     ):
         get_properties("Task:", the_task, Target(TASK, the_task.attrib.get("sr", "")[4:]))
@@ -519,7 +519,7 @@ def process_item(
     format_item(list_type, the_item, the_item, the_task, project_name, profile_name)
 
     # If just displaying basic details, get out.
-    if PrimeItems.program_arguments["display_detail_level"] == 0:
+    if PrimeItems.program_arguments.display_detail_level == 0:
         return
 
     # Output Actions for this Task...
@@ -536,12 +536,12 @@ def process_item(
         )
 
         # End the twisty hidden lines if not a Task in a Scene
-        if PrimeItems.program_arguments["twisty"]:
+        if PrimeItems.program_arguments.twisty:
             remove_twisty()
 
     # Remove twisty if not displaying level 0
-    elif PrimeItems.program_arguments["twisty"]:
-        if PrimeItems.program_arguments["display_detail_level"] > 0:
+    elif PrimeItems.program_arguments.twisty:
+        if PrimeItems.program_arguments.display_detail_level > 0:
             remove_twisty()
         else:
             # End list if doing twisty and displaying level 0.  dont_format_line, not
@@ -613,10 +613,10 @@ def do_single_task(
         None
     """
     logger.debug(
-        f"Comparing task name:{PrimeItems.program_arguments['single_task_name']} to our Task name:{our_task_name}",
+        f"Comparing task name:{PrimeItems.program_arguments.single_task_name} to our Task name:{our_task_name}",
     )
 
-    if PrimeItems.program_arguments.get("single_task_name") == our_task_name:
+    if PrimeItems.program_arguments.single_task_name == our_task_name:
         PrimeItems.found_named_items.update(
             {
                 "single_task_found": True,
@@ -626,8 +626,8 @@ def do_single_task(
         )
 
         save_project, save_profile = (
-            PrimeItems.program_arguments["single_project_name"],
-            PrimeItems.program_arguments["single_profile_name"],
+            PrimeItems.program_arguments.single_project_name,
+            PrimeItems.program_arguments.single_profile_name,
         )
         PrimeItems.program_arguments.update(
             {
@@ -642,7 +642,7 @@ def do_single_task(
             [item for item in task_list if our_task_name == item[: len(our_task_name)]] if task_list else task_list
         )
 
-        if PrimeItems.program_arguments.get("pretty") and temporary_task_list:
+        if PrimeItems.program_arguments.pretty and temporary_task_list:
             temporary_task_list[0] = temporary_task_list[0].replace("[", "<br>[")
 
         process_list(
@@ -660,7 +660,7 @@ def do_single_task(
     else:
         PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
-        if PrimeItems.program_arguments.get("pretty") and "[" not in our_task_name:
+        if PrimeItems.program_arguments.pretty and "[" not in our_task_name:
             task_list[0] = task_list[0].replace(
                 "[",
                 f"<br>{'&nbsp;' * len(our_task_name)}[",
@@ -795,7 +795,7 @@ def output_task_list(
         # fmt: on
 
         # Doing extra details?
-        if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
+        if do_extra and PrimeItems.program_arguments.display_detail_level > DISPLAY_DETAIL_LEVEL_all_tasks:
             # Get the extra details for this Task
             extra_details = _get_extra_details(
                 task_item["xml"],
@@ -816,7 +816,7 @@ def output_task_list(
         )
 
         # If only doing a single Task and we found/did it, then we are done
-        if PrimeItems.program_arguments.get("single_task_name") == task_item["name"]:
+        if PrimeItems.program_arguments.single_task_name == task_item["name"]:
             PrimeItems.found_named_items["single_task_found"] = True
             return True
 

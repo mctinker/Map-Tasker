@@ -78,9 +78,9 @@ if TYPE_CHECKING:
     import defusedxml.ElementTree
 
 try:
-    profiles_per_line = PrimeItems.program_arguments["profiles_per_line"]
+    profiles_per_line = PrimeItems.program_arguments.profiles_per_line
 except (AttributeError, KeyError):
-    PrimeItems.program_arguments["profiles_per_line"] = DIAGRAM_PROFILES_PER_LINE
+    PrimeItems.program_arguments.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
 
 
 # ##################################################################################
@@ -702,7 +702,7 @@ def do_tasks_with_no_profile(
                 tasks_not_in_profile.append(the_task)
 
     # Ok, do we have any Tasks that are not in any Profile?  If so, output them.
-    # if not PrimeItems.program_arguments["single_profile_name"] and tasks_not_in_profile:
+    # if not PrimeItems.program_arguments.single_profile_name and tasks_not_in_profile:
     # Build profile box
     if tasks_not_in_profile:
         (
@@ -1152,7 +1152,7 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
         line_to_modify1 -= 1
         line_count += 1
         if line_count > 20:
-            if PrimeItems.program_arguments["debug"]:
+            if PrimeItems.program_arguments.debug:
                 rutroh_error(
                     f"Too many iterations trying to find next blank line to modify.  Possible infinite loop.  Line to modify: {line_to_modify1}  Line: {output_lines[line_to_modify1]} Length: {len(output_lines)}",
                 )
@@ -1431,7 +1431,7 @@ def check_limit(call_table: dict, output_lines: list, _progress_bar: dict) -> No
             add_down_and_up_arrows), so the lines have to still be there while it works.
     """
     # Only the GUI's views are limited; a command-line run writes the whole thing to a file.
-    if not PrimeItems.program_arguments["guiview"]:
+    if not PrimeItems.program_arguments.guiview:
         return None, call_table
 
     # Cleared per run: a diagram that fits must not inherit the message from one that did not.
@@ -1440,7 +1440,7 @@ def check_limit(call_table: dict, output_lines: list, _progress_bar: dict) -> No
     # size = mysizeof(call_table)
     # size = getSize(call_table)
     size = mysizeof(call_table) * 67
-    view_limit = PrimeItems.program_arguments["view_limit"]
+    view_limit = PrimeItems.program_arguments.view_limit
     if size <= view_limit:
         return None, call_table
 
@@ -1865,9 +1865,7 @@ def build_profile_box(
     filler = f"{blank * 8}"
     profile_counter += 1
     # Only print the lines if we are at the profiles-per-line value.
-    if (
-        profile_counter > PrimeItems.program_arguments["profiles_per_line"]
-    ):  # profiles_per_line defined as global variable
+    if profile_counter > PrimeItems.program_arguments.profiles_per_line:  # profiles_per_line defined as global variable
         _flush_boxes(output_profile_lines)
         profile_counter = 1
         print_tasks = True
@@ -2053,7 +2051,7 @@ def build_network_map(data: dict, progress: dict) -> None:
     """
     project_text = (
         translate_string("Project:")
-        if PrimeItems.program_arguments["language"] not in ("Arabic", "English")
+        if PrimeItems.program_arguments.language not in ("Arabic", "English")
         else "Project:"
     )
 
@@ -2099,7 +2097,7 @@ def build_network_map(data: dict, progress: dict) -> None:
     PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
 
     # Translate the output lines if needed
-    if PrimeItems.program_arguments["language"] not in ("English", "Arabic"):
+    if PrimeItems.program_arguments.language not in ("English", "Arabic"):
         trans = {
             "no_proj": ("No Project", translate_string("No Project")),
             "calls": ("[Calls", f"[{translate_string('Calls')}"),
@@ -2162,7 +2160,7 @@ def network_map(network: dict) -> None:
         first_project = True
         project_translated = (
             translate_string("Project:")
-            if PrimeItems.program_arguments["language"] not in ("Arabic", "English")
+            if PrimeItems.program_arguments.language not in ("Arabic", "English")
             else "Project:"
         )
         # Collect the exact lines as they're written to DIAGRAM_FILE (spacer lines included, icons

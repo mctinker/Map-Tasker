@@ -21,9 +21,9 @@ from maptasker.src.clip import clip_figure
 from maptasker.src.colors import get_and_set_the_color, validate_color
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL, GUI
-from maptasker.src.error import error_handler, exit_program
+from maptasker.src.error import exit_program
 from maptasker.src.getputer import save_restore_args
-from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.parsearg import runtime_parser
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.rungui import process_gui
@@ -80,12 +80,13 @@ def get_and_set_booleans(args: list) -> None:
         Args:
             args (namedtuple): runtime arguments namespace
     """
-    # Program runtime boolean arguments (long form and short form per argparse.py)
+    # Program runtime boolean arguments (long form and short form per argparse.py).
+    # -e/-everything is not one of them: it is not a setting of its own but a shorthand for
+    # several, and get_the_other_arguments turns it into those (set_everything).
     boolean_arguments = {
         "conditions": "",
         "debug": "",
         "directory": "",
-        "everything": "e",
         "pretty": "",
         "preferences": "",
         "reset": "",
@@ -123,69 +124,69 @@ def get_the_other_arguments(args: list) -> None:
     detail = getattr(args, "detail")
     if detail is not None:
         if isinstance(detail, int):
-            PrimeItems.program_arguments["display_detail_level"] = detail
+            PrimeItems.program_arguments.display_detail_level = detail
         elif isinstance(detail, list):
-            PrimeItems.program_arguments["display_detail_level"] = detail[0]
+            PrimeItems.program_arguments.display_detail_level = detail[0]
 
 
-def set_everything(program_arguments: dict) -> None:
+def set_everything(program_arguments: ProgramArguments) -> None:
     """
     Establish all of the settings that covers "everything" selection.
-        program_arguments (dict): The program arguments.
+        program_arguments (ProgramArguments): The program arguments.
 
     Returns:
         None
     """
-    program_arguments["display_detail_level"] = DEFAULT_DISPLAY_DETAIL_LEVEL
-    program_arguments["conditions"] = True
-    program_arguments["preferences"] = True
-    program_arguments["directory"] = True
-    program_arguments["taskernet"] = True
-    program_arguments["runtime"] = True
-    program_arguments["pretty"] = True
+    program_arguments.display_detail_level = DEFAULT_DISPLAY_DETAIL_LEVEL
+    program_arguments.conditions = True
+    program_arguments.preferences = True
+    program_arguments.directory = True
+    program_arguments.taskernet = True
+    program_arguments.runtime = True
+    program_arguments.pretty = True
 
 
-def get_single_name(program_arguments: dict, args: list) -> None:
+def get_single_name(program_arguments: ProgramArguments, args: list) -> None:
     """
     A function that extracts single names from the provided arguments and updates the program arguments accordingly.
     Args:
-        program_arguments (dict): Dictionary to store extracted names.
+        program_arguments (ProgramArguments): Where to store extracted names.
         args (list): List of arguments to extract names from.
     Returns:
         None
     """
     the_name = getattr(args, "project")  # Display single Project
     if the_name is not None:
-        program_arguments["single_project_name"] = the_name[0]
+        program_arguments.single_project_name = the_name[0]
     the_name = getattr(args, "profile")  # Display single Profile
     if the_name is not None:
-        program_arguments["single_profile_name"] = the_name[0]
+        program_arguments.single_profile_name = the_name[0]
     the_name = getattr(args, "task")  # Display single task
     if the_name is not None:
-        program_arguments["single_task_name"] = the_name[0]
+        program_arguments.single_task_name = the_name[0]
     the_name = getattr(args, "scene")  # Display single Scene
     if the_name is not None:
-        program_arguments["single_scene_name"] = the_name[0]
+        program_arguments.single_scene_name = the_name[0]
 
 
-def get_android_settings(program_arguments: dict, args: list) -> None:
+def get_android_settings(program_arguments: ProgramArguments, args: list) -> None:
     """
     A function to get Android settings based on the provided arguments.
     Args:
-        program_arguments (dict): Dictionary to store the extracted Android settings.
+        program_arguments (ProgramArguments): Where to store the extracted Android settings.
         args (list): List of arguments to extract Android settings from.
     Returns:
         None
     """
     if value := getattr(args, "android_ipaddr"):
         if isinstance(value, list):
-            program_arguments["android_ipaddr"] = value[0]
-            program_arguments["android_port"] = getattr(args, "android_port")[0]
-            program_arguments["android_file"] = getattr(args, "android_file")[0]
+            program_arguments.android_ipaddr = value[0]
+            program_arguments.android_port = getattr(args, "android_port")[0]
+            program_arguments.android_file = getattr(args, "android_file")[0]
         else:
-            program_arguments["android_ipaddr"] = value
-            program_arguments["android_port"] = getattr(args, "android_port")
-            program_arguments["android_file"] = getattr(args, "android_file")
+            program_arguments.android_ipaddr = value
+            program_arguments.android_port = getattr(args, "android_port")
+            program_arguments.android_file = getattr(args, "android_file")
 
 
 def process_extended_arguments(args: list) -> None:
@@ -236,30 +237,30 @@ def process_extended_arguments(args: list) -> None:
 
     # Appearance
     if appearance := getattr(args, "appearance"):
-        program_arguments["appearance_mode"] = appearance
+        program_arguments.appearance_mode = appearance
 
     # Indentation amount
     if indent := get_arg_if_in_list(args, "i"):
-        program_arguments["indent"] = indent
+        program_arguments.indent = indent
 
     # Font
     if font := getattr(args, "font"):
         if isinstance(font, list):
-            program_arguments["font"] = font[0]
+            program_arguments.font = font[0]
         else:
-            program_arguments["font"] = font
+            program_arguments.font = font
 
     # File
     if file := getattr(args, "file"):
         if isinstance(file, list):
-            program_arguments["file"] = file[0]
+            program_arguments.file = file[0]
         else:
-            program_arguments["file"] = file
+            program_arguments.file = file
 
     # Map view limit.  Only when one was actually asked for: with nothing on the command
     # line the parser hands back None, and whatever the settings file restored stands.
     if getattr(args, "view_limit", None) is not None:
-        program_arguments["view_limit"] = get_arg_if_in_list(args, "view_limit")
+        program_arguments.view_limit = get_arg_if_in_list(args, "view_limit")
 
 
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
@@ -342,7 +343,7 @@ def process_arguments(args: object) -> dict:
 
     # Set the default colors first
     PrimeItems.colors_to_use = set_color_mode(
-        PrimeItems.program_arguments["appearance_mode"],
+        PrimeItems.program_arguments.appearance_mode,
     )
 
     # Alter any color specified in the settings / arguments.
@@ -373,17 +374,10 @@ def restore_arguments() -> dict:
 
     # We will get a Keyerror if the restore file does not exist
     with contextlib.suppress(KeyError):
-        for (
-            key,
-            value,
-        ) in temp_arguments.items():  # Map the prog_arg keys and values restored
-            if key is not None:
-                try:
-                    PrimeItems.program_arguments[key] = value
-                except KeyError:
-                    error_handler("Error...runcli invalid argument restored: {key}!", 0)
-                if key == "display_detail_level":
-                    PrimeItems.program_arguments["display_detail_level"] = int(value)
+        # Map the prog_arg keys and values restored.  Settings this version does not know
+        # (left by an older one, or the corrupt-file message) are skipped and logged.
+        PrimeItems.program_arguments.restore(temp_arguments)
+        PrimeItems.program_arguments.display_detail_level = int(PrimeItems.program_arguments.display_detail_level)
 
         # Map the colormap keys and values restored
         for key, value in temp_colors.items():
@@ -507,16 +501,16 @@ def validate_arguments() -> None:
             Nothing"""
     program_arguments = PrimeItems.program_arguments
     # It doesn't make sense to do twisties if notr displaying full detail.
-    if program_arguments["display_detail_level"] < 3 and program_arguments["twisty"]:
+    if program_arguments.display_detail_level < 3 and program_arguments.twisty:
         message = "Twisty disabled since the display level is not 3 or above."
         console.warn(f"{Colors.Yellow}{message}")
 
     # A single Scene below detail level 3 is just the Scene's name: scenes.get_details
     # only outputs the Scene's elements above level 2.  Bump it, as '-scene' advertises.
-    if program_arguments["display_detail_level"] < 3 and program_arguments["single_scene_name"]:
+    if program_arguments.display_detail_level < 3 and program_arguments.single_scene_name:
         message = "Display level set to 3: a single Scene needs level 3 or above to show its elements."
         console.warn(f"{Colors.Yellow}{message}")
-        program_arguments["display_detail_level"] = 3
+        program_arguments.display_detail_level = 3
 
 
 # Get the program arguments from command line or via unit test (e.g. python mapit.py -x)
@@ -536,22 +530,22 @@ def process_cli() -> None:
 
     # Intialize runtime arguments.
     try:  # Save map and diagram view flags in case we are coming from the GUI.
-        save_guiview = PrimeItems.program_arguments["guiview"]
+        save_guiview = PrimeItems.program_arguments.guiview
     except (TypeError, KeyError):
         save_guiview = False
     try:
-        save_diagram = PrimeItems.program_arguments["doing_diagram"]
+        save_diagram = PrimeItems.program_arguments.doing_diagram
     except (KeyError, TypeError):
         save_diagram = False
     PrimeItems.program_arguments = initialize_runtime_arguments()
-    PrimeItems.program_arguments["guiview"] = save_guiview
-    PrimeItems.program_arguments["doing_diagram"] = save_diagram
+    PrimeItems.program_arguments.guiview = save_guiview
+    PrimeItems.program_arguments.doing_diagram = save_diagram
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments via Parsearg.
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
 
     # Get the debug argument and startup log file if in debug mode.
-    PrimeItems.program_arguments["debug"] = getattr(args, debug_flag)
+    PrimeItems.program_arguments.debug = getattr(args, debug_flag)
 
     # Remember a view limit asked for on the command line before restore_arguments() below
     # replaces the runtime arguments with what the settings file holds.  The GUI seeds its
@@ -568,24 +562,24 @@ def process_cli() -> None:
     # replaces program_arguments wholesale with what the settings file holds -- so the
     # restored "gui" value is what stands unless something here overrides it.
     #
-    # This was previously an unconditional 'PrimeItems.program_arguments["gui"] = True',
+    # This was previously an unconditional 'PrimeItems.program_arguments.gui = True',
     # which made the elif below -- the entire command-line path -- unreachable, and
     # silently overrode both initparg's "gui": False default and the -g flag (gui_flag was
     # declared here but read nowhere, so -g did nothing at all).  config.GUI stays an
     # override so a build can force the GUI on, and -g does what its help text promises.
     if GUI or getattr(args, gui_flag, False):
-        PrimeItems.program_arguments["gui"] = True
+        PrimeItems.program_arguments.gui = True
 
     # If using the GUI and not doing a map view or version, them process the GUI.
     do_version = getattr(args, version_flag)  # See if doing version (-v)
-    if PrimeItems.program_arguments["gui"] and not do_version:
+    if PrimeItems.program_arguments.gui and not do_version:
         (
             PrimeItems.program_arguments,
             PrimeItems.colors_to_use,
         ) = process_gui(True)
 
     # Not doing the GUI or Map View.  Process commands from command line.
-    elif not PrimeItems.program_arguments["guiview"]:
+    elif not PrimeItems.program_arguments.guiview:
         process_arguments(args)
 
     # Validate arguments against each other (e.g. look for combo problems).
