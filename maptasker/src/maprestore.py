@@ -69,7 +69,7 @@ from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Target
 from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
     from maptasker.src.xmldiff import Configuration
 
@@ -284,13 +284,13 @@ def _old_table(older: Configuration, name: str) -> dict:
     return (older.tables or {}).get(name) or {}
 
 
-def _text(element: defusedxml.ElementTree.Element | None, tag: str) -> str:
+def _text(element: Element | None, tag: str) -> str:
     """A child's stripped text, or ""."""
     child = element.find(tag) if element is not None else None
     return (child.text or "").strip() if child is not None else ""
 
 
-def _members(project: defusedxml.ElementTree.Element, tag: str) -> list[str]:
+def _members(project: Element, tag: str) -> list[str]:
     """A Project's <pids>/<tids>/<scenes> as a list."""
     raw = _text(project, tag)
     return [item.strip() for item in raw.split(",") if item.strip()]
@@ -383,7 +383,7 @@ def _element_class() -> type:
     return type(root) if root is not None else ETW.Element
 
 
-def _clone(source: defusedxml.ElementTree.Element, element_cls: type) -> defusedxml.ElementTree.Element:
+def _clone(source: Element, element_cls: type) -> Element:
     """A deep copy of `source` built entirely of `element_cls` elements.
 
     Not copy.deepcopy: that keeps the source's own class, and the source is the snapshot's.
@@ -396,7 +396,7 @@ def _clone(source: defusedxml.ElementTree.Element, element_cls: type) -> defused
     return clone
 
 
-def _replace_contents(target: defusedxml.ElementTree.Element, source: defusedxml.ElementTree.Element) -> None:
+def _replace_contents(target: Element, source: Element) -> None:
     """Make `target` hold what `source` holds, in place, keeping its own sr and tail.
 
     IN PLACE, not by swapping a new element into the tables, and that is the decision this
@@ -419,7 +419,7 @@ def _replace_contents(target: defusedxml.ElementTree.Element, source: defusedxml
         target.append(child)
 
 
-def _set_link(profile: defusedxml.ElementTree.Element, tag: str, task_id: str) -> None:
+def _set_link(profile: Element, tag: str, task_id: str) -> None:
     """Point a Profile's <mid0>/<mid1> at a Task, or take the link away when `task_id` is ""."""
     existing = profile.find(tag)
     if not task_id:
@@ -443,7 +443,7 @@ class _Links:
     warnings: list[str] = field(default_factory=list)
 
 
-def _resolve_links(older: Configuration, old_profile: defusedxml.ElementTree.Element) -> _Links:
+def _resolve_links(older: Configuration, old_profile: Element) -> _Links:
     """Decide what each of a snapshot Profile's Task links becomes in the configuration now.
 
     A link is an id, and the id the snapshot holds names a Task in the snapshot.  Three
@@ -789,7 +789,7 @@ def _plan_bring_back_scene(
     return plan
 
 
-def _missing_scene_tasks(scene: defusedxml.ElementTree.Element) -> int:
+def _missing_scene_tasks(scene: Element) -> int:
     """How many of a Legacy Scene's element Task links name a Task id not here now.
 
     A Legacy element's <clickTask>, <longclickTask> and the rest hold a Task id; a negative

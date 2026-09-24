@@ -52,8 +52,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 from maptasker.src import clock
 from maptasker.src.editcommon import set_child_text as _set_child_text
@@ -139,17 +138,17 @@ class IconRef:
 # ==========================================
 
 
-def _child_text(element: defusedxml.ElementTree.Element, tag: str) -> str:
+def _child_text(element: Element, tag: str) -> str:
     child = element.find(tag)
     return (child.text or "").strip() if child is not None else ""
 
 
-def _remove_children(parent: defusedxml.ElementTree.Element, tags: tuple[str, ...]) -> None:
+def _remove_children(parent: Element, tags: tuple[str, ...]) -> None:
     for child in [c for c in parent if c.tag in tags]:
         parent.remove(child)
 
 
-def read_app_element(element: defusedxml.ElementTree.Element) -> list[AppEntry]:
+def read_app_element(element: Element) -> list[AppEntry]:
     """The apps an <App> *argument* names, in order -- its three parallel comma-joined
     lists unzipped back into triples.
 
@@ -174,7 +173,7 @@ def read_app_element(element: defusedxml.ElementTree.Element) -> list[AppEntry]:
     return entries
 
 
-def write_app_element(element: defusedxml.ElementTree.Element, entries: list[AppEntry]) -> None:
+def write_app_element(element: Element, entries: list[AppEntry]) -> None:
     """Rewrite an <App> argument's three lists from a set of entries.  All three are
     always written, even when every label or class in them is blank, so that a list left
     behind by a previous value can't survive alongside a shorter new one and re-pair the
@@ -184,7 +183,7 @@ def write_app_element(element: defusedxml.ElementTree.Element, entries: list[App
         _set_child_text(element, tag, _APP_LIST_JOINER.join(getattr(entry, field) for entry in entries))
 
 
-def read_app_condition_entries(element: defusedxml.ElementTree.Element) -> list[AppEntry]:
+def read_app_condition_entries(element: Element) -> list[AppEntry]:
     """The apps an <App> *condition* names -- the indexed clsN/labelN/pkgN form.  Read
     only for harvesting; profedit.get_app_entries owns editing them.
     """
@@ -200,7 +199,7 @@ def read_app_condition_entries(element: defusedxml.ElementTree.Element) -> list[
     ]
 
 
-def read_icon_element(element: defusedxml.ElementTree.Element) -> IconRef | None:
+def read_icon_element(element: Element) -> IconRef | None:
     """The icon an <Img> points at, or None if it points at nothing.
 
     A <var> wins over everything else: an <Img> that carries one is resolved on the phone,
@@ -221,7 +220,7 @@ def read_icon_element(element: defusedxml.ElementTree.Element) -> IconRef | None
     return None
 
 
-def write_icon_element(element: defusedxml.ElementTree.Element, icon: IconRef | None) -> None:
+def write_icon_element(element: Element, icon: IconRef | None) -> None:
     """Rewrite an <Img> to point at one icon.  Every child this module knows about is
     cleared first, so switching an icon from an app's to a built-in cannot leave the old
     <pkg> behind to be read back as an icon pack.  Anything else in there -- <tint> above
@@ -444,7 +443,7 @@ def _sorted_apps(entries: Iterable[AppEntry]) -> list[AppEntry]:
     )
 
 
-def _harvest(root: defusedxml.ElementTree.Element | None) -> tuple[list[AppEntry], list[IconRef]]:
+def _harvest(root: Element | None) -> tuple[list[AppEntry], list[IconRef]]:
     """Walk a whole configuration for its <App> and <Img> elements.
 
     Every one of them, wherever it sits -- a Task action's argument, a Profile's App

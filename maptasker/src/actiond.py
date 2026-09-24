@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 import maptasker.src.action as get_action
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 
@@ -19,7 +19,7 @@ IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 # Given a child xml element, determine if it is a boolean of condtion
 # add return if in a list
 def get_boolean_or_condition(
-    child: defusedxml.ElementTree,
+    child: Element,
     condition_list: list,
     boolean_list: list,
 ) -> tuple[list, list]:
@@ -50,7 +50,7 @@ def get_boolean_or_condition(
 # Trundle through ConditionList "If" conditions
 # Return the list of conditions and list of associated booleans
 def process_condition_list(
-    code_action: defusedxml.ElementTree,
+    code_action: Element,
 ) -> tuple[list[list[Any]], list[str]]:
     """
     Extracts conditions and their associated booleans from the <ConditionList> element.

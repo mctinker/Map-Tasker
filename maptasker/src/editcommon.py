@@ -26,14 +26,14 @@ from maptasker.src.sysconst import ILLEGAL_IN_FILENAME
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from xml.etree.ElementTree import Element
 
-    import defusedxml.ElementTree
 
 # What a failed upload's readback answers with when there is nothing to hand back.
 _NO_BYTES = b""
 
 
-def set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
+def set_child_text(parent: Element, tag: str, text: str) -> None:
     """Set (creating if need be) one child's text.
 
     Builds a new child with the parent's own class rather than ETW.SubElement: the tree
@@ -48,7 +48,7 @@ def set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) 
     child.text = text
 
 
-def touch_project_mdate(project_element: defusedxml.ElementTree.Element) -> None:
+def touch_project_mdate(project_element: Element) -> None:
     """Stamps a Project's <mdate> with the current time -- real Tasker Projects
     use <mdate> for "last modified", not <edate> the way Task/Profile do (see
     projedit.create_new_project's docstring for the confirmation). Call this from

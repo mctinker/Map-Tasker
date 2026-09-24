@@ -207,7 +207,6 @@ def test_a_projects_scenes_are_found_by_name() -> None:
     """
     assert scenes.process_project_scenes(
         PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
-        None,
         [],
     )
     assert PrimeItems.scene_count == 2
@@ -217,7 +216,6 @@ def test_a_project_with_no_scenes_reports_none() -> None:
     """Most Projects have no Scenes at all, so this is the common path."""
     assert not scenes.process_project_scenes(
         PrimeItems.tasker_root_elements["all_projects"]["Bare"]["xml"],
-        None,
         [],
     )
 
@@ -229,7 +227,6 @@ def test_asking_for_one_scene_narrows_the_project_to_it() -> None:
     PrimeItems.program_arguments.single_scene_name = "Dialog"
     assert scenes.process_project_scenes(
         PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
-        None,
         [],
     )
     assert PrimeItems.scene_count == 1
@@ -375,7 +372,6 @@ def test_asking_for_a_scene_this_project_does_not_have_finds_nothing() -> None:
     PrimeItems.program_arguments.single_scene_name = "Nonexistent"
     assert not scenes.process_project_scenes(
         PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
-        None,
         [],
     )
     assert PrimeItems.found_named_items["single_scene_found"] is False

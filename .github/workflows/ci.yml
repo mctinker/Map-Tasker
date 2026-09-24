@@ -94,6 +94,13 @@ jobs:
       - name: noqa ratchet
         run: uv run --no-sync python scripts/noqa_ratchet.py
 
+      # ruff's ANN rules require annotations; pyright ([tool.pyright] in pyproject.toml,
+      # basic mode) checks that they are right. The errors that predate it are counted per
+      # file and rule in scripts/pyright_baseline.json: this fails on any new one, and on a
+      # fixed one until the baseline is lowered to match (--update), as the noqa ratchet does.
+      - name: typecheck ratchet
+        run: uv run --no-sync python scripts/typecheck_ratchet.py
+
       # Enforced as of the format sweep. [tool.ruff.format] uses ruff's stable
       # style (preview = false), which only changes on a major release, so this
       # gate stays reproducible without pinning the ruff version.

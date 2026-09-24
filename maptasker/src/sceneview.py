@@ -95,7 +95,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import SCENE_TASK_TYPES
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 # Tasker's "this orientation has no layout of its own" (sceneedit.UNSET_DIMENSION), which
 # appears both as a Scene dimension and inside a <geom>.
@@ -313,7 +313,7 @@ class ElementArgs:
     these and reads the argument numbers actionc.py documents for that type.
     """
 
-    def __init__(self, element: defusedxml.ElementTree.Element) -> None:
+    def __init__(self, element: Element) -> None:
         self._element = element
 
     def text(self, index: int, default: str = "") -> str:
@@ -368,7 +368,7 @@ class ElementArgs:
 
 
 def scene_dimensions(
-    scene_element: defusedxml.ElementTree.Element,
+    scene_element: Element,
     landscape: bool,
 ) -> tuple[int, int] | None:
     """The canvas size for this orientation, or None when the Scene has no layout for it.
@@ -388,13 +388,13 @@ def scene_dimensions(
     return width, height
 
 
-def has_landscape_layout(scene_element: defusedxml.ElementTree.Element) -> bool:
+def has_landscape_layout(scene_element: Element) -> bool:
     """Whether the preview's Landscape toggle has anything to show."""
     return scene_dimensions(scene_element, landscape=True) is not None
 
 
 def element_geometry(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     landscape: bool,
 ) -> tuple[int, int, int, int] | None:
     """One element's (x, y, width, height) for this orientation.
@@ -419,12 +419,12 @@ def element_geometry(
     return x, y, width, height
 
 
-def element_name(element: defusedxml.ElementTree.Element) -> str:
+def element_name(element: Element) -> str:
     """The name the user gave this element in Tasker's Scene editor -- arg0 on every type."""
     return ElementArgs(element).text(0)
 
 
-def element_flag_names(element: defusedxml.ElementTree.Element) -> list[str]:
+def element_flag_names(element: Element) -> list[str]:
     """This element's <flags> bits, named -- Fixed position, Background element, Visible,
     Initial focus -- and [] for an element with no <flags> at all.
 
@@ -438,7 +438,7 @@ def element_flag_names(element: defusedxml.ElementTree.Element) -> list[str]:
     return objprops.describe_flags(objprops.flag_bits(element), objprops.SCENE_ELEMENT_FLAG_NAMES)
 
 
-def element_is_hidden(element: defusedxml.ElementTree.Element) -> bool:
+def element_is_hidden(element: Element) -> bool:
     """Would Tasker draw this element when the Scene is shown?
 
     Mask 4 is Visible, so an element whose <flags> has it CLEAR is one Tasker hides until a
@@ -455,7 +455,7 @@ def element_is_hidden(element: defusedxml.ElementTree.Element) -> bool:
     return value.isdigit() and not (int(value) & (1 << objprops.SCENE_ELEMENT_VISIBLE_BIT))
 
 
-def paint_order(scene_element: defusedxml.ElementTree.Element) -> list:
+def paint_order(scene_element: Element) -> list:
     """The Scene's drawable elements, bottom one first.
 
     Sorted by the number in the sr attribute ("elements0", "elements1", ... "elements10")
@@ -475,7 +475,7 @@ def paint_order(scene_element: defusedxml.ElementTree.Element) -> list:
         if child.tag.endswith("Element") and child.tag != "PropertiesElement" and child.find("geom") is not None
     ]
 
-    def order(element: defusedxml.ElementTree.Element) -> tuple[int, str]:
+    def order(element: Element) -> tuple[int, str]:
         sr = element.get("sr", "")
         digits = sr[len("elements") :] if sr.startswith("elements") else ""
         return (int(digits), sr) if digits.isdigit() else (1_000_000, sr)
@@ -483,7 +483,7 @@ def paint_order(scene_element: defusedxml.ElementTree.Element) -> list:
     return sorted(drawable, key=order)
 
 
-def element_tasks(element: defusedxml.ElementTree.Element) -> list[tuple[str, str]]:
+def element_tasks(element: Element) -> list[tuple[str, str]]:
     """The Tasks this element fires, as (what fires it, Task name) -- "TAP", "LONG TAP",
     "ITEM TAP" and the rest, from sysconst.SCENE_TASK_TYPES.
 
@@ -511,7 +511,7 @@ def element_tasks(element: defusedxml.ElementTree.Element) -> list[tuple[str, st
 # Drawing
 # ==========================================
 def draw_scene(
-    scene_element: defusedxml.ElementTree.Element,
+    scene_element: Element,
     width: int,
     height: int,
     options: PreviewOptions,
@@ -625,7 +625,7 @@ def _draw_selection(sr: str, box: tuple[int, int, int, int], *, handles: bool = 
             )
 
 
-def _canvas_background(scene_element: defusedxml.ElementTree.Element) -> Colour:
+def _canvas_background(scene_element: Element) -> Colour:
     """The Scene's own background colour -- <PropertiesElement> arg2 (actionc.py
     "PropertiesElement": 0 Property Type, 1 Orientation, 2 Background_Color, 3 Theme,
     4 Title, 5 Subtitle, 6 Icon, 7 Tab Labels).
@@ -640,7 +640,7 @@ def _canvas_background(scene_element: defusedxml.ElementTree.Element) -> Colour:
     return ElementArgs(properties).colour(2, fallback="#ffffff")
 
 
-def scene_properties(scene_element: defusedxml.ElementTree.Element) -> list[tuple[str, str]]:
+def scene_properties(scene_element: Element) -> list[tuple[str, str]]:
     """The Scene's <PropertiesElement> settings, as (label, value) for the preview's caption.
 
     These describe the whole Scene rather than any element in it -- how it is put on screen,
@@ -670,7 +670,7 @@ def _enum(values: list[str], index: int) -> str:
 
 
 def _draw_element(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     options: PreviewOptions,
     depth: int = 0,
     editing: CanvasEditing | None = None,
@@ -721,7 +721,7 @@ def _draw_element(
         _attach_tooltip(frame, element, args, box)
 
 
-def _draw_bounds(element: defusedxml.ElementTree.Element, width: int, height: int) -> None:
+def _draw_bounds(element: Element, width: int, height: int) -> None:
     """A hairline round every element plus its name, so overlapping and zero-content
     elements (an empty Rect used as a spacer, a Web element that draws nothing here) are
     visible at all.  Off by default for anyone who wants to see the Scene rather than its
@@ -741,7 +741,7 @@ def _draw_bounds(element: defusedxml.ElementTree.Element, width: int, height: in
         )
 
 
-def _draw_task_badges(element: defusedxml.ElementTree.Element) -> None:
+def _draw_task_badges(element: Element) -> None:
     """The Tasks this element fires, along its bottom edge.  A Scene's elements are mostly
     there to run Tasks, and which one is not visible in any amount of geometry.
     """
@@ -762,7 +762,7 @@ def _draw_task_badges(element: defusedxml.ElementTree.Element) -> None:
 
 def _attach_tooltip(
     frame: ui.element,
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     box: tuple[int, int, int, int],
 ) -> None:
@@ -795,7 +795,7 @@ def _attach_tooltip(
 # ------------------------------------------------------------------
 # Shared pieces
 # ------------------------------------------------------------------
-def _background_style(element: defusedxml.ElementTree.Element) -> str:
+def _background_style(element: Element) -> str:
     """The CSS for an element's <RectElement sr="background"> sub-element, or "".
 
     Text, Button, EditText, CheckBox, Switch, Spinner and Picker elements all carry one, and
@@ -1062,7 +1062,7 @@ def _draw_inline_html(source: str, width: int, height: int, options: PreviewOpti
 # One drawer per element type.  Argument numbers per actionc.action_codes.
 # ------------------------------------------------------------------
 def _draw_text(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     _width: int,
     height: int,
@@ -1084,7 +1084,7 @@ def _draw_text(
 
 
 def _draw_button(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     _width: int,
     height: int,
@@ -1112,7 +1112,7 @@ def _draw_button(
 
 
 def _draw_edit_text(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     _width: int,
     height: int,
@@ -1135,7 +1135,7 @@ def _draw_edit_text(
 
 
 def _draw_rect(
-    _element: defusedxml.ElementTree.Element,
+    _element: Element,
     args: ElementArgs,
     _width: int,
     _height: int,
@@ -1147,7 +1147,7 @@ def _draw_rect(
 
 
 def _draw_oval(
-    _element: defusedxml.ElementTree.Element,
+    _element: Element,
     args: ElementArgs,
     _width: int,
     _height: int,
@@ -1163,7 +1163,7 @@ def _draw_oval(
 
 
 def _draw_image(
-    _element: defusedxml.ElementTree.Element,
+    _element: Element,
     args: ElementArgs,
     _width: int,
     _height: int,
@@ -1189,7 +1189,7 @@ def _draw_image(
 
 
 def _draw_check_box(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     width: int,
     height: int,
@@ -1201,7 +1201,7 @@ def _draw_check_box(
 
 
 def _draw_switch(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     width: int,
     height: int,
@@ -1213,7 +1213,7 @@ def _draw_switch(
 
 
 def _draw_toggle_glyph(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     width: int,
     height: int,
@@ -1235,7 +1235,7 @@ def _draw_toggle_glyph(
 
 
 def _draw_slider(
-    _element: defusedxml.ElementTree.Element,
+    _element: Element,
     args: ElementArgs,
     _width: int,
     height: int,
@@ -1271,7 +1271,7 @@ def _draw_slider(
 
 
 def _draw_toggle(
-    _element: defusedxml.ElementTree.Element,
+    _element: Element,
     args: ElementArgs,
     _width: int,
     height: int,
@@ -1304,7 +1304,7 @@ def _draw_toggle(
 
 
 def _draw_web(
-    _element: defusedxml.ElementTree.Element,
+    _element: Element,
     args: ElementArgs,
     width: int,
     height: int,
@@ -1333,7 +1333,7 @@ def _draw_web(
 
 
 def _draw_video(
-    _element: defusedxml.ElementTree.Element,
+    _element: Element,
     args: ElementArgs,
     _width: int,
     _height: int,
@@ -1348,7 +1348,7 @@ def _draw_video(
 
 
 def _draw_doodle(
-    _element: defusedxml.ElementTree.Element,
+    _element: Element,
     args: ElementArgs,
     _width: int,
     _height: int,
@@ -1361,7 +1361,7 @@ def _draw_doodle(
 
 
 def _draw_map(
-    _element: defusedxml.ElementTree.Element,
+    _element: Element,
     args: ElementArgs,
     _width: int,
     _height: int,
@@ -1375,7 +1375,7 @@ def _draw_map(
 
 
 def _draw_picker(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     _width: int,
     height: int,
@@ -1400,7 +1400,7 @@ def _draw_picker(
 
 
 def _draw_list(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     width: int,
     height: int,
@@ -1414,7 +1414,7 @@ def _draw_list(
 
 
 def _draw_spinner(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     width: int,
     height: int,
@@ -1426,7 +1426,7 @@ def _draw_spinner(
 
 
 def _draw_item_layout(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     args: ElementArgs,
     slot: str,
     width: int,
@@ -1482,7 +1482,7 @@ def _draw_item_layout(
 
 
 def _draw_unknown(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     _args: ElementArgs,
     _width: int,
     _height: int,

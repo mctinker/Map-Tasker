@@ -45,7 +45,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 from maptasker.src import editcommon, objprops, piiscan, sessundo
 from maptasker.src.editcommon import set_child_text as _set_child_text
@@ -96,10 +96,10 @@ class EditableProject:
     """
 
     project_name: str
-    project_element: defusedxml.ElementTree.Element
+    project_element: Element
 
 
-def resolve_project_by_name(project_name: str) -> defusedxml.ElementTree.Element | None:
+def resolve_project_by_name(project_name: str) -> Element | None:
     """Look up a Project's live XML element by its name (also its all_projects key).
 
     Callers must not mutate the returned element directly -- go through
@@ -203,7 +203,7 @@ def apply_edits_to_project(edited_project: EditableProject, new_name: str) -> li
     return []
 
 
-def _set_child_text_in_tag_order(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
+def _set_child_text_in_tag_order(parent: Element, tag: str, text: str) -> None:
     """_set_child_text, but a child being created for the first time is inserted in
     Tasker's own child order instead of appended.
 
@@ -233,7 +233,7 @@ def _set_child_text_in_tag_order(parent: defusedxml.ElementTree.Element, tag: st
 
 
 def set_project_members(
-    project_element: defusedxml.ElementTree.Element,
+    project_element: Element,
     tag: str,
     member_ids: list[str],
 ) -> None:
@@ -395,7 +395,7 @@ def rename_project_in_live_tree(old_name: str, edited_project: EditableProject) 
         all_projects[new_name] = {"xml": edited_project.project_element, "name": new_name}
 
 
-def _project_child_ids(project_element: defusedxml.ElementTree.Element, tag: str) -> list[str]:
+def _project_child_ids(project_element: Element, tag: str) -> list[str]:
     """Reads a Project's <pids> or <tids> as a list of id strings, empty-safe."""
     child = project_element.find(tag)
     return child.text.split(",") if child is not None and child.text else []
@@ -489,7 +489,7 @@ def android_project_path(project_name: str) -> str:
 _DISPLAY_METRIC_TAG = "dmetric"
 
 
-def _project_scene_names(project_element: defusedxml.ElementTree.Element) -> list[str]:
+def _project_scene_names(project_element: Element) -> list[str]:
     """The Scenes this Project owns, by name, from its <scenes> child.
 
     Scenes are referenced by NAME here, unlike Profiles and Tasks, which <pids>/<tids>
@@ -499,7 +499,7 @@ def _project_scene_names(project_element: defusedxml.ElementTree.Element) -> lis
     return [name.strip() for name in child.text.split(",")] if child is not None and child.text else []
 
 
-def _ensure_project_identity(project_copy: defusedxml.ElementTree.Element) -> None:
+def _ensure_project_identity(project_copy: Element) -> None:
     """Give the copy an <id> and an <mdate> if it has none, in place.
 
     A safety net, not the normal path: every Project in a real backup has both, and

@@ -7,12 +7,12 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
-import defusedxml.ElementTree  # Need for type hints
+from xml.etree.ElementTree import Element
 
 
 def get_ids(
     doing_head_xml_element: bool,
-    head_xml_element: defusedxml.ElementTree,
+    head_xml_element: Element,
     head_xml_element_name: str,
     head_xml_elements_without_profiles: list,
 ) -> list:

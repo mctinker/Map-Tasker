@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file!
 
 ### Removed
 
-- Removed: 'claude-3-5-haiku-latest' is no longer offered in the AI model list, because Anthropic has retired it and every request to it failed.
+- Removed: 'claude-3-5-haiku-latest' AI model is no longer offered, because Anthropic has retired it and every request to it failed.
 - Removed:
 
 ### Fixed

@@ -86,7 +86,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FIND_FILE, logger
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree  # Need for type hints
+    from xml.etree.ElementTree import Element
 
 # The facets, as the ids the GUI keys its pulldowns by.  Strings rather than an Enum for
 # the same reason mapjump's kinds are: they are read straight out of a Query built from
@@ -248,7 +248,7 @@ class _Action:
     # elements again would be a second definition of "the actions of a Task" to keep in
     # step with this one.  Optional so that a hand-built _Action in a test need not
     # supply it.
-    element: defusedxml.ElementTree.Element | None = None
+    element: Element | None = None
 
 
 @dataclass
@@ -268,7 +268,7 @@ class _Condition:
     tag: str  # Time / Day / State / Event / App / Loc
     key: str  # the action_codes key for a coded context ("1000e", "100s"); "" for the rest
     name: str  # what the trigger facet calls it: "Event: Wifi Connected", "Time"
-    element: defusedxml.ElementTree.Element | None = None
+    element: Element | None = None
 
 
 @dataclass
@@ -331,13 +331,13 @@ class FindIndex:
 # ##################################################################################
 # Reading the XML.
 # ##################################################################################
-def _element_text(element: defusedxml.ElementTree.Element, tag: str) -> str:
+def _element_text(element: Element, tag: str) -> str:
     """The text of a child element, stripped, or "" if it is missing or empty."""
     child = element.find(tag)
     return (child.text or "").strip() if child is not None else ""
 
 
-def _split_ids(element: defusedxml.ElementTree.Element, tag: str) -> list[str]:
+def _split_ids(element: Element, tag: str) -> list[str]:
     """A Project's <pids>/<tids>/<scenes> as a list.
 
     The filter on empty items matters: Tasker writes an empty list as an empty element,
@@ -380,7 +380,7 @@ def _trigger_name(tag: str, code: str) -> str:
     return f"{tag}: {entry.name if entry else f'code {code}'}"
 
 
-def _app_labels(element: defusedxml.ElementTree.Element) -> list[str]:
+def _app_labels(element: Element) -> list[str]:
     """Every app an <App> element names, as the label Tasker shows for it.
 
     Both shapes.  A Task action's App argument holds one app in <label>/<appPkg>; a
@@ -432,7 +432,7 @@ def _scene_name_args() -> dict[str, str]:
     return codes
 
 
-def _string_arguments(action: defusedxml.ElementTree.Element) -> dict[str, str]:
+def _string_arguments(action: Element) -> dict[str, str]:
     """{arg id: text} for one action's arguments.
 
     Matched on the "sr" attribute rather than on child order, which Tasker does not
@@ -461,7 +461,7 @@ def _string_arguments(action: defusedxml.ElementTree.Element) -> dict[str, str]:
 # ##################################################################################
 def _index_action(
     index: FindIndex,
-    action_element: defusedxml.ElementTree.Element,
+    action_element: Element,
     number: int,
     scene_args: dict[str, str],
 ) -> _Action:

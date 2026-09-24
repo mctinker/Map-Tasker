@@ -29,7 +29,7 @@ from maptasker.src.sysconst import (
 )
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 
 # Given a list of positional items, return a string in the correct order based on position.
@@ -153,8 +153,8 @@ def fix_config_parameters(s: str, target: str, replacement: str) -> str:
 # Then evaluate the data against the master dictionary of actions.
 def get_action_results(
     the_action_code_plus: str,
-    action_codes: defusedxml.Element,
-    code_action: defusedxml.Element,
+    action_codes: Element,
+    code_action: Element,
     action_type: bool,
     deprecated: str = "",
 ) -> str:

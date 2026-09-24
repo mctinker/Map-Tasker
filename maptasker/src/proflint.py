@@ -52,7 +52,7 @@ from maptasker.src.mapjump import (
 from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree  # Need for type hints
+    from xml.etree.ElementTree import Element
 
 # Two of healthck's three grading words, spelled out rather than imported (see the
 # header).  ERROR is deliberately not among them: nothing here is broken.  A Profile whose
@@ -207,7 +207,7 @@ class Problem:
 # ##################################################################################
 # Reading the XML.
 # ##################################################################################
-def _argument(element: defusedxml.ElementTree.Element, arg_id: str) -> str:
+def _argument(element: Element, arg_id: str) -> str:
     """One of an action's arguments, whichever shape Tasker wrote it in.
 
     taskflow._argument, for taskflow's reason: matched on the "sr" attribute rather than
@@ -226,7 +226,7 @@ def _argument(element: defusedxml.ElementTree.Element, arg_id: str) -> str:
     return ""
 
 
-def _text(element: defusedxml.ElementTree.Element, tag: str) -> str:
+def _text(element: Element, tag: str) -> str:
     """The text of a child element, stripped, or "" if it is missing or empty."""
     child = element.find(tag)
     return (child.text or "").strip() if child is not None else ""
@@ -287,7 +287,7 @@ def _action_name(code: str, suffix: str = "t") -> str:
 # ##################################################################################
 # Trigger signatures -- what makes two Profiles watch the same thing.
 # ##################################################################################
-def _signature(element: defusedxml.ElementTree.Element, skip: frozenset[str], *, top: bool = False) -> str:
+def _signature(element: Element, skip: frozenset[str], *, top: bool = False) -> str:
     """One condition element rendered as a string two Profiles can be compared on.
 
     Recursive because a condition is not flat: an Event carries a plugin <Bundle> whose
@@ -312,7 +312,7 @@ def _signature(element: defusedxml.ElementTree.Element, skip: frozenset[str], *,
     return "".join(parts) + (f"({','.join(children)})" if children else "")
 
 
-def _conditions(profile: dict) -> list[defusedxml.ElementTree.Element]:
+def _conditions(profile: dict) -> list[Element]:
     """A Profile's condition elements, in the order Tasker wrote them."""
     return [child for child in profile["xml"] if child.tag in _CONDITION_TAGS]
 
@@ -351,7 +351,7 @@ def _switch_actions() -> dict[str, str]:
     return codes
 
 
-def _subject(action: defusedxml.ElementTree.Element, code: str, switch_arg: str) -> tuple:
+def _subject(action: Element, code: str, switch_arg: str) -> tuple:
     """What this action is switching, apart from on or off.
 
     Nearly every one of these actions switches a fixed thing -- WiFi switches Wi-Fi -- and
@@ -376,7 +376,7 @@ def _subject_label(subject: tuple) -> str:
     return f"{_action_name(code)} {named}" if named else _action_name(code)
 
 
-def _settings_set(task_element: defusedxml.ElementTree.Element, switches: dict[str, str]) -> dict[tuple, str]:
+def _settings_set(task_element: Element, switches: dict[str, str]) -> dict[tuple, str]:
     """{what this Task switches: the value it switches it to}, for the settings it always sets.
 
     Only the actions that run every time this Task runs are counted -- not one inside an
@@ -486,7 +486,7 @@ def _check_profile_conflicts(problems: list[Problem]) -> None:
             )
 
 
-def _inverted(element: defusedxml.ElementTree.Element) -> bool:
+def _inverted(element: Element) -> bool:
     """Whether this condition is the NOT of itself -- Tasker's <pin>true</pin>."""
     return _text(element, _INVERT_TAG) == "true"
 
@@ -564,7 +564,7 @@ def _impossible_pair(left: tuple[str, str], right: tuple[str, str]) -> str:
     return ""
 
 
-def _impossible_condition_list(element: defusedxml.ElementTree.Element) -> str:
+def _impossible_condition_list(element: Element) -> str:
     """Why this condition's own <ConditionList> can never be satisfied, or "".
 
     Judged only when every joiner is a plain "And".  Tasker writes the joiner between a
@@ -596,7 +596,7 @@ def _impossible_condition_list(element: defusedxml.ElementTree.Element) -> str:
     return ""
 
 
-def _impossible_day(element: defusedxml.ElementTree.Element) -> str:
+def _impossible_day(element: Element) -> str:
     """Why this <Day> condition names a date that does not exist, or "".
 
     Only the month/day-of-month pairing is judged, and only when both are given: a day of
@@ -680,7 +680,7 @@ def _check_never_fires(problems: list[Problem]) -> None:
                 break
 
 
-def _condition_label(element: defusedxml.ElementTree.Element) -> str:
+def _condition_label(element: Element) -> str:
     """A condition as a finding names it: State 'Wifi Near', Event 'Notification', Time.
 
     Named through the action table for a State or an Event, because their <code> is a
@@ -803,7 +803,7 @@ def timeout_arguments() -> dict[str, str]:
     return codes
 
 
-def _wait_seconds(action: defusedxml.ElementTree.Element) -> float | None:
+def _wait_seconds(action: Element) -> float | None:
     """How long a Wait waits, or None when a variable decides.
 
     None is not zero: a Wait of %Delay may be a millisecond or an hour, and treating it as
@@ -824,7 +824,7 @@ def _wait_seconds(action: defusedxml.ElementTree.Element) -> float | None:
     return total
 
 
-def _describe_wait(action: defusedxml.ElementTree.Element) -> str:
+def _describe_wait(action: Element) -> str:
     """A Wait's duration as a finding reads it: "2 seconds", or "" when a variable sets it."""
     seconds = _wait_seconds(action)
     if seconds is None:
@@ -867,7 +867,7 @@ def _backward_gotos(steps: list[tuple[int, str, object]]) -> dict[int, int]:
     return jumps
 
 
-def _scan_task(task_element: defusedxml.ElementTree.Element, timeouts: dict[str, str]) -> _TaskScan:
+def _scan_task(task_element: Element, timeouts: dict[str, str]) -> _TaskScan:
     """Walk one Task's actions once, collecting everything the Task checks need.
 
     Disabled actions are skipped throughout: Tasker does not run them, so a polling loop

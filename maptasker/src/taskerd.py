@@ -6,6 +6,7 @@
 # taskerd: get Tasker data from backup xml                                             #
 #                                                                                      #
 import re
+from xml.etree.ElementTree import Element
 
 import defusedxml.ElementTree as ET
 
@@ -252,12 +253,12 @@ def _handle_gui_error(message: str, code: int = 1) -> int:
     return code
 
 
-def get_first_action(task: ET) -> str:
+def get_first_action(task: Element) -> str:
     """
     Retrieve the name of the first action code from a Tasker task XML element.
 
     Args:
-        task (ET.ElementTree): The XML element representing a Tasker task.
+        task (Element): The XML element representing a Tasker task.
 
     Returns:
         str: The name of the first action's code if found, otherwise an empty string.

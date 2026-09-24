@@ -43,7 +43,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 from maptasker.src import appinv, editcommon, objprops, piiscan, sessundo, taskedit
 from maptasker.src.actionc import action_codes
@@ -119,7 +119,7 @@ class EditableCondition:
 
     cond_index: int
     cond_type: str
-    condition_element: defusedxml.ElementTree.Element
+    condition_element: Element
     args: list[taskedit.EditableArg] = field(default_factory=list)
 
 
@@ -130,7 +130,7 @@ class EditableProfile:
     """
 
     profile_id: str
-    profile_element: defusedxml.ElementTree.Element
+    profile_element: Element
     conditions: list[EditableCondition] = field(default_factory=list)
     entry_task_id: str = ""
     exit_task_id: str = ""
@@ -138,7 +138,7 @@ class EditableProfile:
 
 def resolve_profile_by_name(
     profile_name: str,
-) -> tuple[str, defusedxml.ElementTree.Element] | None:
+) -> tuple[str, Element] | None:
     """Look up a Profile's id and live XML element by its displayed name.
 
     Returns (profile_id, live_element), or None if not found. Callers must not
@@ -224,7 +224,7 @@ def create_new_profile(name: str) -> EditableProfile | str:
     return EditableProfile(profile_id=str(new_id), profile_element=profile_element, conditions=[])
 
 
-def _build_editable_conditions(profile_copy: defusedxml.ElementTree.Element) -> list[EditableCondition]:
+def _build_editable_conditions(profile_copy: Element) -> list[EditableCondition]:
     """Find the Profile's condition children (Time/Day/State/Event/App/Loc), in
     document order, skipping Profile metadata -- see _PROFILE_METADATA_TAGS and
     condition.py's parse_profile_condition, which this mirrors (built explicitly
@@ -249,7 +249,7 @@ def _build_editable_conditions(profile_copy: defusedxml.ElementTree.Element) -> 
 
 
 def _build_condition_args(
-    condition_element: defusedxml.ElementTree.Element,
+    condition_element: Element,
     cond_type: str,
 ) -> list[taskedit.EditableArg]:
     """Builds the editable-arg model for a State or Event condition's
@@ -546,7 +546,7 @@ def add_state_condition_to_profile(edited_profile: EditableProfile, state_key: s
     return _add_code_condition_to_profile(edited_profile, "State", state_key, include_pri=False)
 
 
-def _set_profile_task_link(profile_element: defusedxml.ElementTree.Element, tag: str, task_id: str) -> None:
+def _set_profile_task_link(profile_element: Element, tag: str, task_id: str) -> None:
     """Sets a Profile's mid0 (Entry Task) or mid1 (Exit Task) child to task_id,
     inserting a brand-new one in the position real Tasker backups always use --
     before <nme> -- rather than _set_child_text's default of appending at the
@@ -843,7 +843,7 @@ def _validate_time_field_values(values: dict[str, str]) -> list[str]:
 
 
 def _write_time_or_var(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     raw_value: str,
     var_tag: str,
     hour_tag: str,

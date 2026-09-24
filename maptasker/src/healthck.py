@@ -47,8 +47,7 @@ from maptasker.src.sysconst import (
 if TYPE_CHECKING:
     from collections.abc import Collection
     from datetime import datetime
-
-    import defusedxml.ElementTree  # Need for type hints
+    from xml.etree.ElementTree import Element
 
 # Severity ordering is the order findings are reported in, worst first.
 ERROR = "ERROR"
@@ -355,7 +354,7 @@ def _scene_name_args() -> dict[str, str]:
     return codes
 
 
-def _string_argument(action: defusedxml.ElementTree.Element, arg_id: str) -> str:
+def _string_argument(action: Element, arg_id: str) -> str:
     """The text of an action's <Str sr="argN">, or "" if it has none.
 
     Mirrors taskedit.py's own way of reaching an argument: match the "sr" attribute
@@ -379,13 +378,13 @@ def _is_resolvable(name: str) -> bool:
     return bool(name) and "%" not in name
 
 
-def _element_text(element: defusedxml.ElementTree.Element, tag: str) -> str:
+def _element_text(element: Element, tag: str) -> str:
     """The text of a child element, stripped, or "" if it is missing or empty."""
     child = element.find(tag)
     return (child.text or "").strip() if child is not None else ""
 
 
-def _split_ids(element: defusedxml.ElementTree.Element, tag: str) -> list[str]:
+def _split_ids(element: Element, tag: str) -> list[str]:
     """A Project's <pids>/<tids> as a list of ids.
 
     Tasker writes an empty list as an empty (or absent) element, so the filter matters:
@@ -573,7 +572,7 @@ def _index_scenes(index: ReferenceIndex) -> None:
 
 def _index_one_action(
     index: ReferenceIndex,
-    action: defusedxml.ElementTree.Element,
+    action: Element,
     number: int,
     where: Target,
     scene_args: dict[str, str],

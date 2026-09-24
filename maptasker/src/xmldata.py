@@ -9,6 +9,7 @@ import io
 import os
 import re
 import shutil
+from xml.etree.ElementTree import Element, ElementTree
 
 import defusedxml.ElementTree
 
@@ -71,7 +72,7 @@ def tag_in_type(tag: str, flag: bool) -> bool:
 
 # We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
 def extract_integer(
-    code_action: defusedxml.ElementTree,
+    code_action: Element,
     the_arg: str,
     argeval: str,
     arg: list,
@@ -154,7 +155,7 @@ def extract_integer(
 
 
 # Extracts and returns the text from the given argument as a string.
-def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> str:
+def extract_string(action: Element, arg: str, argeval: str) -> str:
     """
     Extracts a string from an XML action element.
 
@@ -297,7 +298,7 @@ def separate_attributes(xml_bytes: bytes) -> bytes:
     return _START_TAG.sub(lambda tag: _ATTRIBUTE_GAP.sub(b'" ', tag.group()), xml_bytes)
 
 
-def parse_tasker_xml(file_to_parse: str, encoding: str = "utf-8") -> defusedxml.ElementTree:
+def parse_tasker_xml(file_to_parse: str, encoding: str = "utf-8") -> ElementTree:
     """Parse a Tasker backup file, tolerating attributes with no whitespace between them.
 
     Raises ET.ParseError / UnicodeDecodeError exactly as ET.parse does when the file is

@@ -5,7 +5,8 @@
 #                                                                                      #
 # share: process TaskerNet "Share" information                                         #
 #                                                                                      #
-import defusedxml.ElementTree  # Need for type hints
+
+from xml.etree.ElementTree import Element
 
 from maptasker.src.format import format_html, format_label
 from maptasker.src.mapjump import TASKERNET_PART, Target, anchor_html
@@ -16,7 +17,7 @@ from maptasker.src.sysconst import FormatLine
 # Go through xml <Share> elements to grab and output TaskerNet description and
 # search-on lines.
 def share(
-    root_element: defusedxml.ElementTree,
+    root_element: Element,
     tab: str,
     where: Target | None = None,
 ) -> None:
@@ -29,7 +30,7 @@ def share(
             what a caller that has no Target for the object gets.
     """
     # Get the <share> element, if any
-    share_element: defusedxml.ElementTree = root_element.find("Share")
+    share_element: Element = root_element.find("Share")
     if share_element is not None:
         #  We have a <Share> .  Find the description
         description_element = share_element.find("d")
@@ -88,7 +89,7 @@ def share(
 # Process the description <d> element
 # ################################################################################
 def description_element_output(
-    description_element: defusedxml.ElementTree,
+    description_element: Element,
     tab: str,
     where: Target | None = None,
 ) -> None:

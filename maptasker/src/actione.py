@@ -16,8 +16,7 @@
 # ####################################################################################
 import contextlib
 import re
-
-import defusedxml.ElementTree  # Need for type hints
+from xml.etree.ElementTree import Element
 
 import maptasker.src.actionr as action_results
 from maptasker.src.action import get_extra_stuff
@@ -51,8 +50,8 @@ def check_for_deprecation(the_action_code_plus: str) -> str:
 
 # Given an action code, evaluate it for display.
 def get_action_code(
-    code_child: defusedxml.ElementTree,
-    code_action: defusedxml.ElementTree,
+    code_child: Element,
+    code_action: Element,
     action_type: bool,
     code_type: str,
 ) -> str:
@@ -288,7 +287,7 @@ def finalize_action_details(
 def build_action(
     alist: list,
     task_code_line: str,
-    code_element: defusedxml.ElementTree,
+    code_element: Element,
     indent: int,
     indent_amt: str,
 ) -> list:

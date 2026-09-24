@@ -6,8 +6,7 @@
 # property: get Project/Profile/Task properties and output them                        #
 #                                                                                      #
 import html
-
-import defusedxml.ElementTree  # Need for type hints
+from xml.etree.ElementTree import Element
 
 from maptasker.src import objprops
 from maptasker.src.error import rutroh_error
@@ -35,13 +34,13 @@ _PROFILE_PROPERTY_KEYS = (
 
 
 # Helper function to get text safely
-def get_text(element: defusedxml.ElementTree) -> str:
+def get_text(element: Element) -> str:
     """Return value or"""
     return element.text if element is not None else ""
 
 
 # Helper function to get text safely, as display data rather than as markup
-def get_display_text(element: defusedxml.ElementTree) -> str:
+def get_display_text(element: Element) -> str:
     """Return the element's text with any markup in it escaped so it displays as itself.
 
     A variable's name/prompt/value is data a person typed into Tasker, not markup meant to
@@ -53,7 +52,7 @@ def get_display_text(element: defusedxml.ElementTree) -> str:
     '<script>' runs in the map.  Escaping keeps the value visible as the text it is.
 
     Args:
-        element (defusedxml.ElementTree): the xml element holding the text, or None
+        element (Element): the xml element holding the text, or None
 
     Returns:
         str: the element's text, safe to embed in the output
@@ -64,7 +63,7 @@ def get_display_text(element: defusedxml.ElementTree) -> str:
 
 
 # Parse Property's variable and return its properties as a list of items
-def parse_variable(variable_header: defusedxml.ElementTree) -> list:
+def parse_variable(variable_header: Element) -> list:
     """
     Parses the variable header of a property tag and returns the properties of the variable.
     Properties are identied in the XML with the tag: <xxxxVariable>, where xxxx is Project/Profile/Task
@@ -74,7 +73,7 @@ def parse_variable(variable_header: defusedxml.ElementTree) -> list:
     lot as a single "...Properties..." line.
 
     Args:
-        variable_header (defusedxml.ElementTree): The XML element representing the variable header.
+        variable_header (Element): The XML element representing the variable header.
 
     Returns:
         list: this variable's properties, one "Name:value" item per element, in the order Tasker
@@ -184,7 +183,7 @@ def get_css_attributes(property_tag: str) -> str:
     return css_attribute
 
 
-def profile_properties(header: defusedxml.ElementTree) -> list:
+def profile_properties(header: Element) -> list:
     """A Profile's Remaining Repeats, Delete After Disable, Restore Settings, Enforce Task
     Order, Run Exit Task On Startup and Show In Notification, as "Label:value" items, and
     only the ones set to something other than the value an untouched Profile has.
@@ -206,7 +205,7 @@ def profile_properties(header: defusedxml.ElementTree) -> list:
     the Map cannot report one thing and the editor show another.
 
     Args:
-        header (defusedxml.ElementTree): the <Profile> element
+        header (Element): the <Profile> element
 
     Returns:
         list: zero to five "Label:value" items, in the order the Properties editor shows them
@@ -244,12 +243,12 @@ VARIABLE_TAG = "ProfileVariable"
 
 # Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out.
-def get_properties(property_tag: str, header: defusedxml.ElementTree, where: Target | None = None) -> None:
+def get_properties(property_tag: str, header: Element, where: Target | None = None) -> None:
     """
 
     Args:
         property_tag (str): Either "Project:", "Profile:", or "Task:"
-        header (defusedxml.ElementTree): xml header to Project/Profile/Task
+        header (Element): xml header to Project/Profile/Task
         where (Target): the object these properties belong to, so the line can be marked as
             somewhere a report finding can jump to.  None leaves it unmarked.
 

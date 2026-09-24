@@ -48,7 +48,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 KIND_PROJECT = "Project"
 KIND_PROFILE = "Profile"
@@ -523,14 +523,14 @@ class EditableProperties:
     """
 
     kind: str
-    element: defusedxml.ElementTree.Element
-    variables: list[defusedxml.ElementTree.Element] = field(default_factory=list)
+    element: Element
+    variables: list[Element] = field(default_factory=list)
 
 
 # --------------------------------------------------------------------------------------
 # Reading
 # --------------------------------------------------------------------------------------
-def load_properties(kind: str, element: defusedxml.ElementTree.Element) -> EditableProperties:
+def load_properties(kind: str, element: Element) -> EditableProperties:
     """Open an object's properties for editing.  Takes no copy: see the module docstring
     on which element the caller is expected to hand over.
     """
@@ -543,7 +543,7 @@ def load_properties(kind: str, element: defusedxml.ElementTree.Element) -> Edita
 _NEGATED = {"true": "false", "false": "true"}
 
 
-def flag_bits(element: defusedxml.ElementTree.Element, tag: str = PROFILE_FLAGS_TAG) -> int:
+def flag_bits(element: Element, tag: str = PROFILE_FLAGS_TAG) -> int:
     """The integer a bitfield tag holds, and 0 for one that is absent or unreadable.
 
     0 for unreadable rather than an error because <flags> is Tasker's, not ours: a value
@@ -566,7 +566,7 @@ def describe_flags(value: int, names: dict[int, str]) -> list[str]:
     return [names.get(bit, f"bit {bit}") for bit in range(value.bit_length()) if value & (1 << bit)]
 
 
-def bitfield_is_readable(element: defusedxml.ElementTree.Element, tag: str = PROFILE_FLAGS_TAG) -> bool:
+def bitfield_is_readable(element: Element, tag: str = PROFILE_FLAGS_TAG) -> bool:
     """Can this object's bitfield tag be believed?  True when it is absent (which is a real
     state, and reads as every bit clear) or holds a number, and False for a value this build
     cannot parse.
@@ -583,7 +583,7 @@ def bitfield_is_readable(element: defusedxml.ElementTree.Element, tag: str = PRO
     return text == "" or text.isdigit()
 
 
-def _bit_value(spec: PropField, element: defusedxml.ElementTree.Element) -> str:
+def _bit_value(spec: PropField, element: Element) -> str:
     """A bit-backed property as the "true"/"false" the dialog deals in.
 
     The bit being SET means "not the default", which is the one rule that makes Delete
@@ -605,7 +605,7 @@ def noteworthy_default(spec: PropField) -> str:
     return spec.tasker_default or spec.default
 
 
-def has_properties(kind: str, element: defusedxml.ElementTree.Element) -> bool:
+def has_properties(kind: str, element: Element) -> bool:
     """Does this object have any properties set?  Decides whether the button in the
     Add/Edit dialog reads "Add Properties" or "Edit Properties".
 
@@ -667,7 +667,7 @@ def scalar_values(props: EditableProperties) -> dict[str, str]:
     return values
 
 
-def variable_values(variable: defusedxml.ElementTree.Element) -> dict[str, str]:
+def variable_values(variable: Element) -> dict[str, str]:
     """One variable's fields, keyed as the dialog keys them.
 
     "same_as_value" is computed rather than read: Tasker has no tag for it and simply
@@ -679,7 +679,7 @@ def variable_values(variable: defusedxml.ElementTree.Element) -> dict[str, str]:
     return values
 
 
-def variable_display_name(variable: defusedxml.ElementTree.Element) -> str:
+def variable_display_name(variable: Element) -> str:
     """What to title a variable's panel with -- its name, or its display name if it has
     no name yet.
     """
@@ -795,7 +795,7 @@ def warnings(props: EditableProperties, values: dict[str, str]) -> list[str]:
 # Writing
 # --------------------------------------------------------------------------------------
 def set_child_text_in_tag_order(
-    parent: defusedxml.ElementTree.Element,
+    parent: Element,
     tag: str,
     text: str,
 ) -> None:
@@ -835,7 +835,7 @@ def set_child_text_in_tag_order(
     child.text = text
 
 
-def _remove_child(parent: defusedxml.ElementTree.Element, tag: str) -> None:
+def _remove_child(parent: Element, tag: str) -> None:
     """Take a tag away entirely -- how a property is set back to its default."""
     child = parent.find(tag)
     if child is not None:
@@ -932,7 +932,7 @@ def _apply_flag_bits(props: EditableProperties, values: dict[str, str]) -> None:
 
 def _write_variable(
     kind: str,
-    variable: defusedxml.ElementTree.Element,
+    variable: Element,
     supplied: dict[str, str],
 ) -> None:
     """Write one <ProfileVariable>'s children, in Tasker's order and with Tasker's child
@@ -978,8 +978,8 @@ def _write_variable(
 
 def mirror_properties(
     kind: str,
-    source: defusedxml.ElementTree.Element,
-    target: defusedxml.ElementTree.Element,
+    source: Element,
+    target: Element,
 ) -> None:
     """Replace `target`'s properties with `source`'s -- every scalar this kind owns, and
     the whole set of <ProfileVariable> children.
@@ -1031,7 +1031,7 @@ def _new_variable_pvid(props: EditableProperties) -> str:
     return own_id if own_id.isdigit() else _FALLBACK_PVID
 
 
-def add_variable(props: EditableProperties) -> defusedxml.ElementTree.Element:
+def add_variable(props: EditableProperties) -> Element:
     """Append a new, empty <ProfileVariable> and hand it back.
 
     Given the full child set Tasker writes, so it is a well-formed variable from the

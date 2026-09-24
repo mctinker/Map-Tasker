@@ -83,8 +83,7 @@ from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
     from maptasker.src.profedit import EditableProfile
     from maptasker.src.taskedit import EditableTask
@@ -193,7 +192,7 @@ class RoundTripReport:
         return lines
 
 
-def _identify(element: defusedxml.ElementTree.Element) -> tuple[str, str] | None:
+def _identify(element: Element) -> tuple[str, str] | None:
     """The (tag, key) pair that names one object on both sides of a re-parse.
 
     None for anything that is not an object this can track -- a <Setting>, say, which a
@@ -216,7 +215,7 @@ def _describe(identity: tuple[str, str]) -> str:
     return f"{tag} '{key}'" if key else tag
 
 
-def live_sources() -> dict[tuple[str, str], defusedxml.ElementTree.Element]:
+def live_sources() -> dict[tuple[str, str], Element]:
     """Every object in the loaded configuration, keyed the way _identify keys them.
 
     This is what the renderers deep-copy out of, so it is what a re-parsed object has to
@@ -225,7 +224,7 @@ def live_sources() -> dict[tuple[str, str], defusedxml.ElementTree.Element]:
     back elements from a tree nothing renders from any more.
     """
     tables = PrimeItems.tasker_root_elements or {}
-    sources: dict[tuple[str, str], defusedxml.ElementTree.Element] = {}
+    sources: dict[tuple[str, str], Element] = {}
 
     for table_name, tag in (
         ("all_projects", "Project"),
@@ -253,7 +252,7 @@ def live_sources() -> dict[tuple[str, str], defusedxml.ElementTree.Element]:
     return sources
 
 
-def _own_text(element: defusedxml.ElementTree.Element) -> str:
+def _own_text(element: Element) -> str:
     """An element's text with the serializer's indentation taken back out.
 
     ETW.indent only rewrites the text of an element that HAS children, and only when that
@@ -267,8 +266,8 @@ def _own_text(element: defusedxml.ElementTree.Element) -> str:
 
 
 def _differences(
-    was: defusedxml.ElementTree.Element,
-    now: defusedxml.ElementTree.Element,
+    was: Element,
+    now: Element,
     path: str,
     found: list[Difference],
 ) -> None:
@@ -305,7 +304,7 @@ def _differences(
             return
 
 
-def _reserialize(root: defusedxml.ElementTree.Element) -> str:
+def _reserialize(root: Element) -> str:
     """Write a re-parsed document back out the way every renderer writes one.
 
     Has to match them character for character -- same indent, same lack of an <?xml?>
@@ -335,7 +334,7 @@ def _first_difference(was: str, now: str) -> str:
 
 def verify_rendered(
     rendered: str,
-    overrides: dict[tuple[str, str], defusedxml.ElementTree.Element] | None = None,
+    overrides: dict[tuple[str, str], Element] | None = None,
     exempt: Iterable[tuple[str, str]] = (),
 ) -> RoundTripReport:
     """Run both checks over one rendered standalone export and report what they found.

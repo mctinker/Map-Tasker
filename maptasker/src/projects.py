@@ -32,7 +32,7 @@ from maptasker.src.tasks import get_taskid_from_unnamed_task
 from maptasker.src.twisty import add_twisty, remove_twisty
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 
 # Output a single Scene that no Project claims
@@ -61,7 +61,7 @@ def output_orphan_single_scene() -> None:
 
     PrimeItems.found_named_items["single_scene_found"] = True
     PrimeItems.grand_totals["scenes"] += 1
-    process_scene_list([single_scene_name], "", [])
+    process_scene_list([single_scene_name], [])
 
 
 # process_projects: go through all Projects Profiles...and output them
@@ -79,7 +79,6 @@ def process_projects_and_their_profiles(
         - If no Projects then process profiles if there are any.
         - If no Projects and no Scenes the process tasks if there are any.
         - If no Projects then process scenes if there are any."""
-    our_task_element = ""
 
     # Temporarily save single Project name since process_profiles may override it
     single_project_name = PrimeItems.program_arguments.single_project_name
@@ -117,7 +116,6 @@ def process_projects_and_their_profiles(
         process_projects(
             projects_without_profiles,
             found_tasks,
-            our_task_element,
         )
 
     # Only Profiles...?
@@ -172,7 +170,7 @@ def process_projects_and_their_profiles(
         if scene_list:
             if single_scene_name:
                 PrimeItems.found_named_items["single_scene_found"] = True
-            process_scene_list(scene_list, "", found_tasks)
+            process_scene_list(scene_list, found_tasks)
 
     # A single Scene that no Project lists still exists in all_scenes -- output it on
     # its own rather than reporting it as not found.  (The branch above covers a backup
@@ -191,7 +189,7 @@ def process_projects_and_their_profiles(
 # ################################################################################
 # Identify and format launcher Task for Project
 # ################################################################################
-def get_launcher_task(project: defusedxml.ElementTree, _project_name: str) -> str:
+def get_launcher_task(project: Element, _project_name: str) -> str:
     """
     If Project has a launcher Task, get it and format it for output
         :param project: xml element of Project we are processing
@@ -371,7 +369,7 @@ def tasks_not_in_profiles(
 
 # Add extra info to Project output line as appropriate and then output it.
 def get_extra_and_output_project(
-    project: defusedxml.ElementTree,
+    project: Element,
     project_name: str,
     launcher_task_info: str,
 ) -> bool:
@@ -552,10 +550,9 @@ def summary_counts(project_name: str, profile_count: int) -> None:
 
 # Output the remaining components related to the Project
 def finish_up(
-    project: defusedxml.ElementTree,
+    project: Element,
     project_name: str,
     found_tasks: list,
-    our_task_element: defusedxml.ElementTree,
     profile_count: int,
 ) -> None:
     """
@@ -563,7 +560,6 @@ def finish_up(
         :param project: Project XML element
         :param project_name: name of the Project
         :param found_tasks: list of all Tasks found so far
-        :param our_task_element: current Task xml; element
         :param profile_count: count of Profiles in this Project
         :return: nothin
     """
@@ -590,7 +586,6 @@ def finish_up(
     # ...only if not doing a single Task
     have_scenes = process_project_scenes(
         project,
-        our_task_element,
         found_tasks,
     )
 
@@ -633,7 +628,7 @@ def is_single_task_or_profile_found() -> bool:
 
 # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
 def get_profile_ids(
-    project: defusedxml.ElementTree,
+    project: Element,
     project_name: str,
     projects_without_profiles: list,
 ) -> list:
@@ -744,34 +739,31 @@ def get_profile_details_and_output(
 # Process all of the Profiles for this Project
 # ################################################################################
 def process_project_profiles(
-    project: defusedxml.ElementTree,
+    project: Element,
     project_name: str,
     projects_without_profiles: list,
     found_tasks: list,
-    our_task_element: defusedxml.ElementTree,
     profile_count: int,
-) -> tuple:
+) -> tuple[bool, int]:
     """
     Process all of the Profiles for this Project
         Args:
-            project (defusedxml.ElementTree): XML element for the Project we are doing
+            project (Element): XML element for the Project we are doing
             project_name (str): Name of the Project we are doing
             projects_without_profiles (list): List of Project XML elements that have
                     no Profiles
             found_tasks (list): list of Tasks found so far
-            our_task_element(defusedxml.ElementTree): effectivewly empty for Projects,
-                    but needed for Profile processing further down the chain of code
             profile_count(int): count of the number of Profiles for this Project
 
         Returns:
-            tuple[bool, defusedxml.ElementTree, int]: True if no Profiles found,
-                False otherwise; our Task XML element, count of Profiles in Project
+            tuple[bool, int]: True if no Profiles found, False otherwise; count of
+                Profiles in Project
     """
     # Get the Profile IDs for this Project and process them
     # True if we have Profiles for this Project
     if profile_ids := get_profile_ids(project, project_name, projects_without_profiles):
         profile_count = len(profile_ids)
-        our_task_element = process_profiles(
+        process_profiles(
             project,
             project_name,
             profile_ids,
@@ -780,27 +772,25 @@ def process_project_profiles(
 
         # Are we searching for a single Profile and it wasn't found (result=True)?
         if is_single_profile_not_found():
-            return True, our_task_element, profile_count
+            return True, profile_count
 
     else:
         # Add a line saying "No Profiles Found"
         add_no_profiles_line_to_output()
 
-    return False, our_task_element, profile_count
+    return False, profile_count
 
 
 # Go through all the Projects, get their detail and output it
 def process_projects(
     projects_without_profiles: list,
     found_tasks: list,
-    our_task_element: defusedxml.ElementTree,
 ) -> list:
     """
     Go through all the Projects, get their detail and output it
 
         :param projects_without_profiles: list of Projects with no Profiles
         :param found_tasks: list of Tasks found
-        :param our_task_element: xml element of our Task
         :return: nothing
     """
 
@@ -853,14 +843,12 @@ def process_projects(
         if not single_scene_name:
             (
                 _,
-                our_task_element,
                 profile_count,
             ) = _process_project_profiles(
                 project,
                 project_name,
                 projects_without_profiles,
                 found_tasks,
-                our_task_element,
                 profile_count,
             )
 
@@ -869,7 +857,6 @@ def process_projects(
             project,
             project_name,
             found_tasks,
-            our_task_element,
             profile_count,
         )
 

@@ -8,8 +8,7 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
 import html
-
-import defusedxml.ElementTree  # Need for type hints
+from xml.etree.ElementTree import Element
 
 from maptasker.src import varxref
 from maptasker.src.mapjump import VARIABLE, Target
@@ -148,10 +147,10 @@ def _variable_anchor(name: str, wanted: bool) -> str:
     return f' id="{Target(VARIABLE, name).anchor}"' if wanted else ""
 
 
-def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> None:
+def print_the_variables(color_to_use: str, project: Element) -> None:
     """Parameters:
         - color_to_use (str): The color to use for the table definition.
-        - project (defusedxml.ElementTree): The project to use, if applicable.
+        - project (Element): The project to use, if applicable.
     Returns:
         - None: This function does not return anything.
     Processing Logic:
@@ -204,7 +203,7 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
 
 
 # Print variables by adding them to the output.
-def output_variables(heading: str, project: defusedxml.ElementTree) -> None:
+def output_variables(heading: str, project: Element) -> None:
     """
     Print variables by adding them to the output.
         Args:

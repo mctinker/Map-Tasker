@@ -75,7 +75,7 @@ from maptasker.src.sysconst import (
 from maptasker.src.xmldata import tag_in_type
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 try:
     profiles_per_line = PrimeItems.program_arguments.profiles_per_line
@@ -453,7 +453,7 @@ def output_the_task(
 
 # Process all Tasks in the Profile
 def print_all_tasks(
-    tasks: defusedxml.ElementTree,
+    tasks: list[dict],
     position_for_anchor: int,
     output_task_lines: list,
     print_tasks: bool,
@@ -463,7 +463,7 @@ def print_all_tasks(
     Process all Tasks in the Profile.
 
     Args:
-        tasks (defusedxml.ElementTree): the Tasks in the Profile
+        tasks (list[dict]): the Tasks in the Profile
         position_for_anchor (int): the position of the anchor point for the Task
         output_task_lines (list): the output lines for the Tasks
         print_tasks (bool): True if we are printing Tasks
@@ -1839,7 +1839,7 @@ def handle_calls(output_lines: list, progress: dict) -> None:
 
 # Build the Profile box.
 def build_profile_box(
-    profile: defusedxml.ElementTree,
+    profile: Element,
     profile_counter: int,
     output_profile_lines: list,
     output_task_lines: list,

@@ -7,8 +7,7 @@
 #                                                                                      #
 
 import html
-
-import defusedxml.ElementTree  # Need for type hints
+from xml.etree.ElementTree import Element
 
 import maptasker.src.action as get_action
 from maptasker.src.actiond import process_condition_list
@@ -23,7 +22,7 @@ blank = "&nbsp;"
 
 def process_clean_string(
     clean_string: bool,
-    code_action: defusedxml.ElementTree,
+    code_action: Element,
     arg: tuple,
     evaluated_results: dict,
     blank: str,
@@ -80,7 +79,7 @@ BUNDLE_TYPE_SUFFIX = "-type"
 BUNDLE_UNSET = "<null>"
 
 
-def get_plugin_settings(vals: defusedxml.ElementTree, already_shown: str = "") -> str:
+def get_plugin_settings(vals: Element, already_shown: str = "") -> str:
     """A plugin action's own configuration, as "Name=value" lines.
 
     The blurb a plugin writes is a sentence for a person to read ("Push a note titled
@@ -119,7 +118,7 @@ def get_plugin_settings(vals: defusedxml.ElementTree, already_shown: str = "") -
 
 ## We have a <bundle>.   Process it
 def get_bundle(
-    code_action: defusedxml.ElementTree,
+    code_action: Element,
     evaluated_results: dict,
     arg: str,
 ) -> dict:
@@ -185,7 +184,7 @@ def evaluate_argument(
     arg: object,
     argeval: list,
     argtype: str,
-    code_action: defusedxml.ElementTree,
+    code_action: Element,
 ) -> dict:
     """
     Extracts action arguments from an XML code action.
@@ -195,7 +194,7 @@ def evaluate_argument(
         arg (object): Argument object.
         argeval (list): Argument evaluation criteria.
         argtype (str): Argument type.
-        code_action (defusedxml.ElementTree): XML code action.
+        code_action (Element): XML code action.
 
     Returns:
         dict: Updated evaluated results.
@@ -259,7 +258,7 @@ def evaluate_argument(
 
 
 # Get image related details from action xml
-def format_image(child: defusedxml) -> str:
+def format_image(child: Element) -> str:
     """
     The icon an <Img> points at, spelled out for the map.
 
@@ -280,7 +279,7 @@ def format_image(child: defusedxml) -> str:
     element anyway -- and maps as an empty string.
 
     Args:
-        child: defusedxml - the <Img> element
+        child: Element - the <Img> element
 
     Returns:
         str - the icon it names, or "" if it names none
@@ -304,7 +303,7 @@ def format_image(child: defusedxml) -> str:
 
 def extract_image(
     evaluated_results: dict,
-    code_action: defusedxml,
+    code_action: Element,
     argeval: str,
     arg: str,
 ) -> None:
@@ -313,7 +312,7 @@ def extract_image(
 
     Args:
         evaluated_results: dict - The dictionary containing the evaluation results
-        code_action: defusedxml - The parsed defusedxml object
+        code_action: Element - The Action's parsed XML element
         argeval: str - The argument evaluation string
         arg: str - The argument number
     Returns:
@@ -432,7 +431,7 @@ def handle_missing_code(the_action_code_plus: str, index: int) -> str:
 def action_args(
     the_action_code_plus: str,
     action_codes: list,
-    code_action: defusedxml,
+    code_action: Element,
     evaluated_results: dict,
 ) -> list:
     """

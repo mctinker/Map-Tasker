@@ -62,8 +62,7 @@ from maptasker.src.taskervars import tasker_global_variables
 
 if TYPE_CHECKING:
     from datetime import datetime
-
-    import defusedxml.ElementTree  # Need for type hints
+    from xml.etree.ElementTree import Element
 
 # A Tasker variable name begins with a letter and continues with letters, digits and
 # underscores.  The leading-letter rule is the whole reason this is not sysconst's
@@ -324,7 +323,7 @@ class Reference:
     # second definition of "everywhere a variable appears" to keep in step with this one.
     # None where there is nothing to rewrite: an output variable a plugin declares through
     # RELEVANT_VARIABLES is named nowhere in the file.
-    element: defusedxml.ElementTree.Element | None = None
+    element: Element | None = None
     # Version 2 Scenes only, whose values live inside a gzipped JSON blob rather than in
     # an element: (component path, property key), which sceneedit.v2_node_at resolves
     # against a freshly decoded layout.  `element` is the <Scene> itself for these.
@@ -448,7 +447,7 @@ def _is_low_confidence(name: str) -> bool:
 # ##################################################################################
 # Reading the XML.
 # ##################################################################################
-def _element_text(element: defusedxml.ElementTree.Element, tag: str) -> str:
+def _element_text(element: Element, tag: str) -> str:
     """The text of a child element, stripped, or "" if it is missing or empty."""
     child = element.find(tag)
     return (child.text or "").strip() if child is not None else ""
@@ -492,7 +491,7 @@ def _project_of_scene() -> dict[str, str]:
     return _project_membership("scenes")
 
 
-def _string_arguments(action: defusedxml.ElementTree.Element) -> dict[str, str]:
+def _string_arguments(action: Element) -> dict[str, str]:
     """{arg id: text} for one action's or Scene element's arguments.
 
     Matched on the "sr" attribute rather than child order, which Tasker does not
@@ -519,7 +518,7 @@ def _string_arguments(action: defusedxml.ElementTree.Element) -> dict[str, str]:
     return arguments
 
 
-def _argument_elements(node: defusedxml.ElementTree.Element) -> dict:
+def _argument_elements(node: Element) -> dict:
     """{arg id: the element whose .text holds the value} -- what _string_arguments reads.
 
     Deliberately the same two shapes, in the same precedence, as that function: these two
@@ -626,7 +625,7 @@ _IMPORT_VARIABLE_DETAIL = "Project Variable (configure on import)"
 
 def _record_import_value(
     index: VariableIndex,
-    declaration: defusedxml.ElementTree.Element,
+    declaration: Element,
     where: str,
     scope_id: str,
     place: Target,
@@ -650,7 +649,7 @@ def _record_import_value(
 
 def _scan_action(
     index: VariableIndex,
-    action: defusedxml.ElementTree.Element,
+    action: Element,
     place: Target,
     scope_id: str,
     write_arguments: dict[str, set[str]],
@@ -737,7 +736,7 @@ def _scan_action(
 # ##################################################################################
 def _scan_conditions(
     index: VariableIndex,
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     where: str,
     scope_id: str,
     place: Target | None = None,

@@ -78,7 +78,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 from maptasker.src import editcommon, piiscan, sessundo
 from maptasker.src.editcommon import set_child_text as _set_child_text
@@ -172,11 +172,11 @@ class EditableScene:
     """
 
     scene_name: str
-    scene_element: defusedxml.ElementTree.Element
+    scene_element: Element
     element_renames: list[tuple[str, str]] = field(default_factory=list)
 
 
-def is_v2_scene(scene_element: defusedxml.ElementTree.Element) -> bool:
+def is_v2_scene(scene_element: Element) -> bool:
     """Whether this is a Version 2 (Screen Builder) Scene rather than a Legacy one.
 
     The <lj> child is the whole test, and it is a reliable one in both directions:
@@ -187,7 +187,7 @@ def is_v2_scene(scene_element: defusedxml.ElementTree.Element) -> bool:
     return scene_element.find(V2_LAYOUT_TAG) is not None
 
 
-def scene_version(scene_element: defusedxml.ElementTree.Element) -> str:
+def scene_version(scene_element: Element) -> str:
     """SCENE_VERSION_V2 or SCENE_VERSION_LEGACY -- the display name of what
     is_v2_scene() decides.  Used for dialog titles and the pulldown-free "this is
     what you are editing" line in the editor body.
@@ -236,7 +236,7 @@ def decompress_gzip_json(b64_string: str) -> dict | str:
         return f"An error occurred: {e}"
 
 
-def decode_v2_layout(scene_element: defusedxml.ElementTree.Element) -> dict | None:
+def decode_v2_layout(scene_element: Element) -> dict | None:
     """The V2 Scene's component tree, decoded from <lj> into plain Python.
 
     Returns None for a Legacy Scene (no <lj>), and also for an <lj> that won't
@@ -258,7 +258,7 @@ def decode_v2_layout(scene_element: defusedxml.ElementTree.Element) -> dict | No
     return decoded if isinstance(decoded, dict) else None
 
 
-def encode_v2_layout(scene_element: defusedxml.ElementTree.Element, layout: dict) -> None:
+def encode_v2_layout(scene_element: Element, layout: dict) -> None:
     """Writes a component tree back into the Scene's <lj>, encoded the way Tasker
     itself does (see _V2_GZIP_LEVEL and the note above it -- this reproduces
     Tasker's own output byte for byte, which is what makes an edit that changes
@@ -272,7 +272,7 @@ def encode_v2_layout(scene_element: defusedxml.ElementTree.Element, layout: dict
     _set_child_text(scene_element, V2_LAYOUT_TAG, base64.b64encode(buffer.getvalue()).decode("ascii"))
 
 
-def _rename_v2_layout(scene_element: defusedxml.ElementTree.Element, new_name: str) -> None:
+def _rename_v2_layout(scene_element: Element, new_name: str) -> None:
     """Keeps a V2 Scene's embedded layout name in step with its <nme>.
 
     Tasker stores the Scene's name twice -- once as the <nme> child, once as the
@@ -2629,7 +2629,7 @@ def v2_set_binding(node: dict, slot: tuple[str, str], text: str) -> None:
     bindings[binding_key] = [part.strip() for part in text.split(",") if part.strip()]
 
 
-def resolve_scene_by_name(scene_name: str) -> defusedxml.ElementTree.Element | None:
+def resolve_scene_by_name(scene_name: str) -> Element | None:
     """Look up a Scene's live XML element by its name (also its all_scenes key).
 
     Callers must not mutate the returned element directly -- go through
@@ -2961,7 +2961,7 @@ def apply_edits_to_scene(edited_scene: EditableScene, new_name: str) -> list[str
     return []
 
 
-def touch_scene_edate(scene_element: defusedxml.ElementTree.Element) -> None:
+def touch_scene_edate(scene_element: Element) -> None:
     """Stamps a Scene's <edate> with the current time.  A Scene uses <edate> for
     "last modified", the way Task/Profile do -- not <mdate>, which is the
     Project-only spelling (see editcommon.touch_project_mdate).  Confirmed against
@@ -3030,7 +3030,7 @@ def add_scene_to_project(scene_name: str, project_name: str) -> None:
         touch_project_mdate(project_element)
 
 
-def _project_scene_names(project_element: defusedxml.ElementTree.Element) -> list[str]:
+def _project_scene_names(project_element: Element) -> list[str]:
     """Reads a Project's <scenes> as a list of Scene names, empty-safe.  The
     element is one comma-separated string; an empty or absent one is no Scenes.
     """
@@ -3060,7 +3060,7 @@ def project_owning_scene(scene_name: str) -> str:
 
 
 def _set_project_scene_names(
-    project_element: defusedxml.ElementTree.Element,
+    project_element: Element,
     scene_names: list[str],
 ) -> None:
     """Writes a Project's <scenes> back, removing the element entirely when the
@@ -3218,7 +3218,7 @@ def android_scene_path(scene_name: str) -> str:
 _DISPLAY_METRIC_TAG = "dmetric"
 
 
-def scene_task_ids(scene_element: defusedxml.ElementTree.Element) -> list[str]:
+def scene_task_ids(scene_element: Element) -> list[str]:
     """The ids of the Tasks this Scene's elements fire, in document order.
 
     A Scene element (RectElement, TextElement and the rest) hangs its handlers off children
@@ -3395,9 +3395,9 @@ LEGACY_GEOM_VALUES = 8
 
 
 def legacy_element_at(
-    scene_element: defusedxml.ElementTree.Element,
+    scene_element: Element,
     sr: str,
-) -> defusedxml.ElementTree.Element | None:
+) -> Element | None:
     """The element with this sr ("elements3"), or None.
 
     Selection is held as an sr string rather than as a reference to the element, for the
@@ -3410,7 +3410,7 @@ def legacy_element_at(
     return next((child for child in scene_element if child.get("sr") == sr), None)
 
 
-def legacy_element_label(element: defusedxml.ElementTree.Element) -> str:
+def legacy_element_label(element: Element) -> str:
     """ "Text 'Done!'" -- how an element reads in the designer's list.
 
     Its own name (arg0) if it has one, in the same quoted style v2_node_label uses, so the
@@ -3424,7 +3424,7 @@ def legacy_element_label(element: defusedxml.ElementTree.Element) -> str:
     return f"{element_type} '{name}'" if name else element_type
 
 
-def legacy_element_args(element: defusedxml.ElementTree.Element) -> list:
+def legacy_element_args(element: Element) -> list:
     """The element's editable arguments, as taskedit.EditableArg records.
 
     Empty for an element type actionc.py has no entry for -- a type from a newer Tasker.
@@ -3539,7 +3539,7 @@ def legacy_set_arg(arg: object, value: str) -> None:
     apply_arg_values([arg], lambda _arg: "value", {"value": str(value)})
 
 
-def legacy_geometry_values(element: defusedxml.ElementTree.Element) -> list[str]:
+def legacy_geometry_values(element: Element) -> list[str]:
     """The eight raw <geom> numbers, padded if the element carries fewer.
 
     Padded rather than rejected because the padding is only ever written back for an element
@@ -3554,7 +3554,7 @@ def legacy_geometry_values(element: defusedxml.ElementTree.Element) -> list[str]
 
 
 def legacy_set_geometry(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     box: tuple[int, int, int, int],
     *,
     landscape: bool = False,
@@ -3582,7 +3582,7 @@ def legacy_set_geometry(
     geom.text = ",".join(values)
 
 
-def legacy_snapshot(scene_element: defusedxml.ElementTree.Element) -> defusedxml.ElementTree.Element:
+def legacy_snapshot(scene_element: Element) -> Element:
     """A deep copy of the whole Scene, for the designer's undo stack.
 
     The whole Scene rather than the one element being changed, and for the same reason the
@@ -3595,8 +3595,8 @@ def legacy_snapshot(scene_element: defusedxml.ElementTree.Element) -> defusedxml
 
 
 def legacy_restore(
-    scene_element: defusedxml.ElementTree.Element,
-    snapshot: defusedxml.ElementTree.Element,
+    scene_element: Element,
+    snapshot: Element,
 ) -> None:
     """Put a snapshot back, in place.
 
@@ -3612,7 +3612,7 @@ def legacy_restore(
     scene_element.text = snapshot.text
 
 
-def session_snapshot(edited_scene: EditableScene) -> defusedxml.ElementTree.Element:
+def session_snapshot(edited_scene: EditableScene) -> Element:
     """The Scene as the Edit dialog found it, kept for the whole edit session so Cancel has
     something to put back.  One deep copy per dialog, taken once -- see revert_session.
     """
@@ -3621,7 +3621,7 @@ def session_snapshot(edited_scene: EditableScene) -> defusedxml.ElementTree.Elem
 
 def revert_session(
     edited_scene: EditableScene,
-    snapshot: defusedxml.ElementTree.Element,
+    snapshot: Element,
     layout: dict | None = None,
 ) -> bool:
     """Undo everything an edit session did to the Scene, and say whether there was anything
@@ -3910,7 +3910,7 @@ def _legacy_effective_args(element_type: str) -> list:
     return target.args if target is not None else action_code.args
 
 
-def legacy_element_names(scene_element: defusedxml.ElementTree.Element) -> set[str]:
+def legacy_element_names(scene_element: Element) -> set[str]:
     """Every element name currently in the Scene -- what uniqueness is checked against."""
     names = set()
     for child in scene_element:
@@ -3922,7 +3922,7 @@ def legacy_element_names(scene_element: defusedxml.ElementTree.Element) -> set[s
     return names
 
 
-def legacy_next_element_name(scene_element: defusedxml.ElementTree.Element, element_type: str) -> str:
+def legacy_next_element_name(scene_element: Element, element_type: str) -> str:
     """A free name for a new element of this type: "Text1", "Text2", ...
 
     The stem is what Tasker itself names a new one (LEGACY_DEFAULT_NAME), so a Scene built
@@ -3938,7 +3938,7 @@ def legacy_next_element_name(scene_element: defusedxml.ElementTree.Element, elem
     return f"{stem}{index}"
 
 
-def legacy_drawable_elements(scene_element: defusedxml.ElementTree.Element) -> list:
+def legacy_drawable_elements(scene_element: Element) -> list:
     """The Scene's elements in paint order, bottom first -- the same rule and the same order
     sceneview.paint_order draws them in, kept here so the model can reorder them without the
     editing half having to import the drawing half.
@@ -3949,7 +3949,7 @@ def legacy_drawable_elements(scene_element: defusedxml.ElementTree.Element) -> l
         if child.tag.endswith("Element") and child.tag != "PropertiesElement" and child.find("geom") is not None
     ]
 
-    def order(element: defusedxml.ElementTree.Element) -> tuple[int, str]:
+    def order(element: Element) -> tuple[int, str]:
         sr = element.get("sr", "")
         digits = sr[len("elements") :] if sr.startswith("elements") else ""
         return (int(digits), sr) if digits.isdigit() else (1_000_000, sr)
@@ -3957,7 +3957,7 @@ def legacy_drawable_elements(scene_element: defusedxml.ElementTree.Element) -> l
     return sorted(drawable, key=order)
 
 
-def _legacy_reindex(scene_element: defusedxml.ElementTree.Element, ordered: list) -> None:
+def _legacy_reindex(scene_element: Element, ordered: list) -> None:
     """Renumber this list of elements elements0..N-1, in place.
 
     Renumbering only.  The elements are deliberately NOT moved to match their new order in
@@ -3978,7 +3978,7 @@ def _legacy_reindex(scene_element: defusedxml.ElementTree.Element, ordered: list
         element.set("sr", f"elements{offset}")
 
 
-def _legacy_order_arg_children(element: defusedxml.ElementTree.Element) -> None:
+def _legacy_order_arg_children(element: Element) -> None:
     """Put an element's argument children back into argument order.
 
     Needed because the Img-typed arguments are written separately from the Int/Str ones (see
@@ -3989,7 +3989,7 @@ def _legacy_order_arg_children(element: defusedxml.ElementTree.Element) -> None:
     """
     args = [child for child in element if child.tag in ("Str", "Int", "Img")]
 
-    def order(child: defusedxml.ElementTree.Element) -> int:
+    def order(child: Element) -> int:
         sr = child.get("sr", "")
         digits = sr[len("arg") :] if sr.startswith("arg") else ""
         return int(digits) if digits.isdigit() else 1_000
@@ -4001,12 +4001,12 @@ def _legacy_order_arg_children(element: defusedxml.ElementTree.Element) -> None:
 
 
 def legacy_new_element(
-    scene_element: defusedxml.ElementTree.Element,
+    scene_element: Element,
     element_type: str,
     box: tuple[int, int, int, int],
     *,
     landscape: bool = False,
-) -> defusedxml.ElementTree.Element | str:
+) -> Element | str:
     """Build a new element of this type, sized and placed at `box`, ready to be inserted.
 
     Returns the element, or a reason string if the type cannot be created (legacy_can_add).
@@ -4060,8 +4060,8 @@ def legacy_new_element(
 
 
 def legacy_insert_element(
-    scene_element: defusedxml.ElementTree.Element,
-    element: defusedxml.ElementTree.Element,
+    scene_element: Element,
+    element: Element,
     at: int | None = None,
 ) -> str:
     """Put an element into the Scene and return the sr it ended up with.
@@ -4089,7 +4089,7 @@ def legacy_insert_element(
     return f"elements{position}"
 
 
-def legacy_delete_element(scene_element: defusedxml.ElementTree.Element, sr: str) -> str:
+def legacy_delete_element(scene_element: Element, sr: str) -> str:
     """Remove an element and renumber what is left.  Returns the sr to select next -- the
     element that took its place in the stack, or the new top one, or "" for an empty Scene.
 
@@ -4111,7 +4111,7 @@ def legacy_delete_element(scene_element: defusedxml.ElementTree.Element, sr: str
     return f"elements{min(position, len(ordered) - 1)}"
 
 
-def legacy_duplicate_element(scene_element: defusedxml.ElementTree.Element, sr: str) -> str:
+def legacy_duplicate_element(scene_element: Element, sr: str) -> str:
     """Copy an element, name the copy, and put it directly above the original.  Returns the
     copy's sr, or "" if there was nothing at `sr`.
 
@@ -4135,7 +4135,7 @@ def legacy_duplicate_element(scene_element: defusedxml.ElementTree.Element, sr: 
     return legacy_insert_element(scene_element, copy_of_element, ordered.index(element) + 1)
 
 
-def legacy_restack(scene_element: defusedxml.ElementTree.Element, sr: str, position: int) -> str:
+def legacy_restack(scene_element: Element, sr: str, position: int) -> str:
     """Move an element to this position in the z-order -- 0 is the bottom -- and return the
     sr it ended up with, or "" if it did not move.
 
@@ -4269,7 +4269,7 @@ class LegacyBinding:
     anonymous: bool
 
 
-def legacy_task_tags_for(element: defusedxml.ElementTree.Element) -> list[str]:
+def legacy_task_tags_for(element: Element) -> list[str]:
     """The Task-binding tags to offer for this element: the ones its type is observed to
     use, plus any it already carries that the table has not heard of.
 
@@ -4282,7 +4282,7 @@ def legacy_task_tags_for(element: defusedxml.ElementTree.Element) -> list[str]:
     return known + present
 
 
-def legacy_task_bindings(element: defusedxml.ElementTree.Element) -> list[LegacyBinding]:
+def legacy_task_bindings(element: Element) -> list[LegacyBinding]:
     """Every Task this element currently fires, resolved to names where it can be.
 
     A binding whose id is not in the loaded backup is reported under its id rather than
@@ -4316,8 +4316,8 @@ def legacy_task_bindings(element: defusedxml.ElementTree.Element) -> list[Legacy
 
 
 def _legacy_insert_ordered_child(
-    element: defusedxml.ElementTree.Element,
-    child: defusedxml.ElementTree.Element,
+    element: Element,
+    child: Element,
 ) -> None:
     """Put a lowercase-tagged child (a Task binding, <geom>, <flags>) where Tasker puts it.
 
@@ -4334,7 +4334,7 @@ def _legacy_insert_ordered_child(
 
 
 def legacy_set_task_binding(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     tag: str,
     task_id: str,
 ) -> None:
@@ -4348,7 +4348,7 @@ def legacy_set_task_binding(
     _legacy_insert_ordered_child(element, child)
 
 
-def legacy_clear_task_binding(element: defusedxml.ElementTree.Element, tag: str) -> None:
+def legacy_clear_task_binding(element: Element, tag: str) -> None:
     """Stop this element firing anything on this event."""
     child = element.find(tag)
     if child is not None:
@@ -4372,12 +4372,12 @@ def legacy_task_id_for_name(task_name: str) -> str:
     return str(entry["id"]) if entry else ""
 
 
-def legacy_background(element: defusedxml.ElementTree.Element) -> defusedxml.ElementTree.Element | None:
+def legacy_background(element: Element) -> Element | None:
     """The element's <RectElement sr="background">, or None."""
     return element.find("RectElement[@sr='background']")
 
 
-def legacy_can_have_background(element: defusedxml.ElementTree.Element) -> bool:
+def legacy_can_have_background(element: Element) -> bool:
     """Whether Tasker gives this element type a background sub-element (see
     LEGACY_BACKGROUND_TYPES).  A Button, a Rect and an Oval draw their own fill through their
     own arguments and never carry one.
@@ -4385,7 +4385,7 @@ def legacy_can_have_background(element: defusedxml.ElementTree.Element) -> bool:
     return element.tag in LEGACY_BACKGROUND_TYPES
 
 
-def legacy_add_background(element: defusedxml.ElementTree.Element) -> defusedxml.ElementTree.Element | None:
+def legacy_add_background(element: Element) -> Element | None:
     """Give this element a background sub-element, shaped the way Tasker writes one.
 
     Its <geom> is -1,-1,-1,-1,-1,-1,-1,-1 in every sample: a background has no geometry of
@@ -4410,7 +4410,7 @@ def legacy_add_background(element: defusedxml.ElementTree.Element) -> defusedxml
     return background
 
 
-def legacy_remove_background(element: defusedxml.ElementTree.Element) -> None:
+def legacy_remove_background(element: Element) -> None:
     """Take the background away again."""
     background = legacy_background(element)
     if background is not None:
@@ -4418,15 +4418,15 @@ def legacy_remove_background(element: defusedxml.ElementTree.Element) -> None:
 
 
 def legacy_scene_properties(
-    scene_element: defusedxml.ElementTree.Element,
-) -> defusedxml.ElementTree.Element | None:
+    scene_element: Element,
+) -> Element | None:
     """The Scene's own <PropertiesElement>, or None -- 66 of 366 sample Scenes have none."""
     return scene_element.find("PropertiesElement")
 
 
 def legacy_add_scene_properties(
-    scene_element: defusedxml.ElementTree.Element,
-) -> defusedxml.ElementTree.Element:
+    scene_element: Element,
+) -> Element:
     """Give the Scene a <PropertiesElement>, at the end where Tasker keeps it."""
     existing = legacy_scene_properties(scene_element)
     if existing is not None:
@@ -4441,8 +4441,8 @@ def legacy_add_scene_properties(
 
 
 def legacy_properties_snapshot(
-    scene_element: defusedxml.ElementTree.Element,
-) -> defusedxml.ElementTree.Element | None:
+    scene_element: Element,
+) -> Element | None:
     """The Scene's <PropertiesElement> as the Properties dialog found it, kept so that
     dialog's Cancel has something to put back.  None when the Scene has none -- which is a
     state to restore like any other (see legacy_properties_restore), not a failure.
@@ -4460,8 +4460,8 @@ def legacy_properties_snapshot(
 
 
 def legacy_properties_restore(
-    scene_element: defusedxml.ElementTree.Element,
-    snapshot: defusedxml.ElementTree.Element | None,
+    scene_element: Element,
+    snapshot: Element | None,
 ) -> bool:
     """Put a legacy_properties_snapshot back, and say whether there was anything to put back.
 
@@ -4523,8 +4523,8 @@ LEGACY_STOP_EVENT_TRUE = "true"
 
 
 def legacy_link_click_filter(
-    element: defusedxml.ElementTree.Element,
-) -> defusedxml.ElementTree.Element | None:
+    element: Element,
+) -> Element | None:
     """The element's <LinkClickFilter>, or None.
 
     Matched by tag rather than by sr="filter0" so a file that numbers it differently is
@@ -4534,7 +4534,7 @@ def legacy_link_click_filter(
     return element.find(LEGACY_LINK_CLICK_FILTER_TAG)
 
 
-def legacy_stop_event(element: defusedxml.ElementTree.Element) -> bool:
+def legacy_stop_event(element: Element) -> bool:
     """Whether this element swallows the key press instead of passing it on.
 
     Anything other than the word "true" reads as off, which covers both the absent
@@ -4546,7 +4546,7 @@ def legacy_stop_event(element: defusedxml.ElementTree.Element) -> bool:
     return (link_filter.findtext(LEGACY_STOP_EVENT_TAG) or "").strip().lower() == LEGACY_STOP_EVENT_TRUE
 
 
-def legacy_set_stop_event(element: defusedxml.ElementTree.Element, *, enabled: bool) -> None:
+def legacy_set_stop_event(element: Element, *, enabled: bool) -> None:
     """Turn Stop Event on or off, creating and disposing of the <LinkClickFilter> around it.
 
     Off removes the <stopEvent> child rather than writing "false", because that is the only
@@ -4703,7 +4703,7 @@ LEGACY_SCENE_EVENTS: tuple[LegacySceneEvent, ...] = (
 )
 
 
-def legacy_scene_type(properties: defusedxml.ElementTree.Element) -> str:
+def legacy_scene_type(properties: Element) -> str:
     """The Scene's Property Type as its arg0 index -- "0" Overlay, "1" Dialog, "2" Activity.
 
     Defaults to Overlay, which is what arg0 holds when Tasker writes a Scene that has never
@@ -4716,7 +4716,7 @@ def legacy_scene_type(properties: defusedxml.ElementTree.Element) -> str:
     return value if value in LEGACY_SCENE_TYPES else LEGACY_SCENE_TYPE_OVERLAY
 
 
-def _legacy_arg_is_set(properties: defusedxml.ElementTree.Element, arg_id: str) -> bool:
+def _legacy_arg_is_set(properties: Element, arg_id: str) -> bool:
     """Whether a UI-tab argument slot has anything in it.
 
     Tasker writes every one of the eight slots whether or not it is used, so presence proves
@@ -4734,7 +4734,7 @@ def _legacy_arg_is_set(properties: defusedxml.ElementTree.Element, arg_id: str) 
 
 
 def legacy_scene_event_availability(
-    properties: defusedxml.ElementTree.Element,
+    properties: Element,
     event: LegacySceneEvent,
 ) -> str:
     """ "" if Tasker offers this event for this Scene, otherwise why it does not.
@@ -4757,7 +4757,7 @@ def legacy_scene_event_availability(
 LEGACY_KEY_FILTER_TAG = "urlMatch"
 
 
-def legacy_key_filter(properties: defusedxml.ElementTree.Element) -> str:
+def legacy_key_filter(properties: Element) -> str:
     """The Keys filter -- the slash-separated list of keys the Scene handles, "" for all.
 
     Stored in the same <LinkClickFilter> Stop Event lives in; see legacy_set_stop_event.
@@ -4768,7 +4768,7 @@ def legacy_key_filter(properties: defusedxml.ElementTree.Element) -> str:
     return (link_filter.findtext(LEGACY_KEY_FILTER_TAG) or "").strip()
 
 
-def legacy_set_key_filter(properties: defusedxml.ElementTree.Element, keys: str) -> None:
+def legacy_set_key_filter(properties: Element, keys: str) -> None:
     """Set which keys the Scene handles; "" (or blank) means all of them.
 
     Disposes of an emptied <LinkClickFilter> on the same terms legacy_set_stop_event does,
@@ -4840,7 +4840,7 @@ class LegacyActionItem:
         return LEGACY_ACTION_ITEM_PLACEMENTS[(bool(self.icon), bool(self.label))]
 
 
-def legacy_action_items(properties: defusedxml.ElementTree.Element) -> list[LegacyActionItem]:
+def legacy_action_items(properties: Element) -> list[LegacyActionItem]:
     """The Scene's action-bar items, in the order Tasker shows them.
 
     Document order, not sr order: Tasker writes item0..itemN in order and renumbers them on
@@ -4940,7 +4940,7 @@ def legacy_set_action_item_icon(item: LegacyActionItem, value: str) -> None:
     appinv.write_icon_element(image, icon)
 
 
-def legacy_renumber_action_items(properties: defusedxml.ElementTree.Element) -> None:
+def legacy_renumber_action_items(properties: Element) -> None:
     """Put the items' sr back in document order -- item0, item1, ... -- after one has been
     added, removed or moved.  Tasker's own files are always numbered that way.
     """
@@ -4949,7 +4949,7 @@ def legacy_renumber_action_items(properties: defusedxml.ElementTree.Element) -> 
 
 
 def legacy_add_action_item(
-    properties: defusedxml.ElementTree.Element,
+    properties: Element,
     action_key: str,
 ) -> LegacyActionItem | list[str]:
     """Add an action-bar item running a brand-new action of this type, or return why not.
@@ -4995,7 +4995,7 @@ def legacy_add_action_item(
     return legacy_action_items(properties)[-1]
 
 
-def legacy_remove_action_item(properties: defusedxml.ElementTree.Element, sr: str) -> None:
+def legacy_remove_action_item(properties: Element, sr: str) -> None:
     """Take one action-bar item away, and renumber what is left."""
     element = next(
         (child for child in properties.findall(LEGACY_ACTION_ITEM_TAG) if child.get("sr") == sr),
@@ -5007,7 +5007,7 @@ def legacy_remove_action_item(properties: defusedxml.ElementTree.Element, sr: st
     legacy_renumber_action_items(properties)
 
 
-def legacy_move_action_item(properties: defusedxml.ElementTree.Element, sr: str, offset: int) -> None:
+def legacy_move_action_item(properties: Element, sr: str, offset: int) -> None:
     """Move an item up (-1) or down (+1) the action bar, and renumber.
 
     A no-op at either end rather than an error: the buttons that drive it are disabled
@@ -5085,7 +5085,7 @@ def apply_element_renames_to_tasks(scene_name: str, renames: list[tuple[str, str
 
 
 def legacy_rename_element(
-    scene_element: defusedxml.ElementTree.Element,
+    scene_element: Element,
     sr: str,
     new_name: str,
 ) -> list[str]:
@@ -5144,8 +5144,8 @@ LEGACY_ITEM_LAYOUT_SLOT: dict[str, str] = {
 
 
 def legacy_item_layout(
-    element: defusedxml.ElementTree.Element,
-) -> defusedxml.ElementTree.Element | None:
+    element: Element,
+) -> Element | None:
     """The nested <Scene sr="val"> holding this element's row layout, or None.
 
     None covers both "this type never has one" and "this one has not been given one", and
@@ -5157,7 +5157,7 @@ def legacy_item_layout(
     return element.find(f"Scene[@sr='{slot}']/Scene[@sr='val']")
 
 
-def legacy_item_layout_name(element: defusedxml.ElementTree.Element) -> str:
+def legacy_item_layout_name(element: Element) -> str:
     """What the item layout calls itself -- "Builtin Item Layout" for a List, "spinner" for
     a Spinner, in every sample.  For the nested dialog's title, so it says which layout is
     being edited rather than just "Scene".

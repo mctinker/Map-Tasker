@@ -53,7 +53,7 @@ from maptasker.src.sysconst import (
 )
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree  # Need for type hints
+    from xml.etree.ElementTree import Element
 
 # The same two words healthck grades by, spelled out again rather than imported: healthck
 # imports this module to fold these findings in, so importing it back would be a cycle.
@@ -277,7 +277,7 @@ def _project_of_task() -> dict[str, str]:
     return owners
 
 
-def _argument(action: defusedxml.ElementTree.Element, arg_id: str) -> str:
+def _argument(action: Element, arg_id: str) -> str:
     """One of an action's arguments, whichever shape Tasker wrote it in.
 
     Matched on the "sr" attribute rather than child order, which Tasker does not guarantee
@@ -302,7 +302,7 @@ def _argument(action: defusedxml.ElementTree.Element, arg_id: str) -> str:
     return ""
 
 
-def _condition_text(action: defusedxml.ElementTree.Element) -> str:
+def _condition_text(action: Element) -> str:
     """An action's <ConditionList sr="if"> as one short line, or "" when it has none.
 
     Covers the per-action "If" Tasker allows on any action AND the If/Else actions
@@ -357,7 +357,7 @@ def _goto_detail(goto: tuple[str, str, str]) -> str:
     return _GOTO_PHRASES.get(goto_type, "?")
 
 
-def _detail(code: str, action: defusedxml.ElementTree.Element, goto: tuple[str, str, str] | None) -> str:
+def _detail(code: str, action: Element, goto: tuple[str, str, str] | None) -> str:
     """The arguments worth putting in a flowchart node, which is very few of them.
 
     A flowchart answers "what runs next", so only the arguments that decide that earn a
@@ -375,7 +375,7 @@ def _detail(code: str, action: defusedxml.ElementTree.Element, goto: tuple[str, 
     return ""
 
 
-def _terminates(code: str, action: defusedxml.ElementTree.Element, task_name: str) -> bool:
+def _terminates(code: str, action: Element, task_name: str) -> bool:
     """Whether this action ends THIS Task's flow where it stands.
 
     A Stop with its Task argument left blank stops the Task it is written in, which is what
@@ -396,7 +396,7 @@ def _terminates(code: str, action: defusedxml.ElementTree.Element, task_name: st
     return not named or named == task_name
 
 
-def _steps(task_element: defusedxml.ElementTree.Element, task_name: str = "") -> list[Step]:
+def _steps(task_element: Element, task_name: str = "") -> list[Step]:
     """A Task's actions, in the order the Map numbers them, read for their control flow."""
     steps = []
     for number, action in enumerate(actions_in_map_order(task_element), start=1):

@@ -4,8 +4,8 @@ import asyncio
 import contextlib
 import os
 from typing import TYPE_CHECKING
+from xml.etree.ElementTree import Element
 
-import defusedxml
 from nicegui import app, run, ui
 
 from maptasker.src import clock, console
@@ -186,11 +186,7 @@ def keep_selected_model(gui_instance: "MyGui", display_models: list[str]) -> Non
     """
     model = (getattr(gui_instance, "ai_model", "") or "").replace(" (installed)", "").strip()
     match = next(
-        (
-            option
-            for option in display_models
-            if option.split(": ", 1)[-1].replace(" (installed)", "").strip() == model
-        ),
+        (option for option in display_models if option.split(": ", 1)[-1].replace(" (installed)", "").strip() == model),
         None,
     )
     if match is None:
@@ -743,12 +739,12 @@ def clear_android_buttons(self: "MyGui") -> None:
 def build_profiles(
     root: dict,
     profile_ids: list,
-    project: defusedxml.ElementTree,
+    project: Element,
 ) -> list:
     """Parameters:
         - root (dict): Dictionary containing all profiles and their tasks.
         - profile_ids (list): List of profile IDs to be processed.
-        - project (defusedxml.ElementTree): The project xml element.
+        - project (Element): The project xml element.
     Returns:
         - list: List of dictionaries containing profile names and their corresponding tasks.
     Processing Logic:

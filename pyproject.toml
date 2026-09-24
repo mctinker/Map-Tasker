@@ -96,6 +96,7 @@ dev = [
     "matchify>=0.3.0",
     "ollama>=0.6.2",
     "pip-autoremove>=0.10.0",
+    "pyright[nodejs]>=1.1.414",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.0.0",
@@ -350,3 +351,16 @@ exclude_also = [
     "if __name__ == .__main__.:",
     "@(abc\\.)?abstractmethod",
 ]
+
+# Checks that the annotations ruff's ANN rules require are actually right.  Enforced by
+# scripts/typecheck_ratchet.py against scripts/pyright_baseline.json, so only new errors fail.
+[tool.pyright]
+include = ["maptasker/main.py", "maptasker/src", "scripts"]
+typeCheckingMode = "basic"
+# The oldest Python requires-python allows, so code that needs a newer one is an error.
+pythonVersion = "3.11"
+# Fixed rather than taken from the machine it runs on: platform-specific modules (winreg)
+# check differently per OS, and the baseline has to count the same on a Mac as in CI.
+pythonPlatform = "Linux"
+venvPath = "."
+venv = ".venv"

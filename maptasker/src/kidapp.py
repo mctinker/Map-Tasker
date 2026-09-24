@@ -4,12 +4,13 @@
 # kidapp: Process Kid Application details                                              #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
-import defusedxml.ElementTree  # Need for type hints
+
+from xml.etree.ElementTree import Element
 
 from maptasker.src.primitem import PrimeItems
 
 
-def get_kid_app(element: defusedxml.ElementTree) -> str:
+def get_kid_app(element: Element) -> str:
     """
     Get any associated Kid Application info and return it
         :param element: root element to search for <Kid>

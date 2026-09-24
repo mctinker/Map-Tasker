@@ -37,13 +37,13 @@ from maptasker.src.twisty import remove_twisty
 from maptasker.src.xmldata import tag_in_type
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 blank = "&nbsp;"
 
 
 # Get the Scene's geometry
-def get_geometry(scene_element: defusedxml.ElementTree) -> tuple[str, str]:
+def get_geometry(scene_element: Element) -> tuple[str, str]:
     """
     Get the Scene's geometry
         :param scene_element: xml element of the Scene <Scene sr="scene...
@@ -160,7 +160,7 @@ class SceneAnchors:
     mapjump.scene_element_parts on why they are deliberately left unanchored.
     """
 
-    def __init__(self, scene_name: str = "", scene_element: defusedxml.ElementTree | None = None) -> None:
+    def __init__(self, scene_name: str = "", scene_element: Element | None = None) -> None:
         """Take the Scene's name -- how Tasker keys it, and so how a Target names it -- and its element."""
         self.scene_name = scene_name
         self.parts = scene_element_parts(scene_element) if scene_name and scene_element is not None else {}
@@ -198,7 +198,7 @@ class SceneAnchors:
             if wanted:
                 self.component_parts[id(row.node)] = wanted
 
-    def mark(self, element: defusedxml.ElementTree) -> None:
+    def mark(self, element: Element) -> None:
         """Write a Legacy element's anchor into the output, ahead of the line it belongs to.
 
         Called from both of the lines an element can get -- its "Element of type" heading
@@ -233,13 +233,13 @@ class SceneAnchors:
 
 # Get the Scene's elements
 def get_scene_elements(
-    child: defusedxml.ElementTree,
+    child: Element,
     indentation: int,
     anchors: SceneAnchors | None = None,
 ) -> None:
     """Get_scene_elements function processes an XML element and its sub-elements to retrieve their names, geometry, and layout information if applicable.
     Parameters:
-        - child (defusedxml.ElementTree): The XML element to be processed.
+        - child (Element): The XML element to be processed.
         - indentation (int): The number of spaces to indent the output lines.
     Returns:
         - None: This function does not return any value.
@@ -297,7 +297,7 @@ def get_scene_elements(
 
 # Handle sub-lements of the element we are doing.
 def process_sub_elements(
-    child: defusedxml.ElementTree,
+    child: Element,
     indentation: int,
     anchors: SceneAnchors | None = None,
 ) -> None:
@@ -305,7 +305,7 @@ def process_sub_elements(
     Process the sub-elements of the given child ElementTree.
 
     Args:
-        child (defusedxml.ElementTree): The child ElementTree to process.
+        child (Element): The child ElementTree to process.
         indentation (int): The indentation level to use for output.
 
     Returns:
@@ -348,7 +348,7 @@ def process_sub_elements(
 
 # Process the Properties ListElementItem element.
 def process_list_element(
-    child: defusedxml.ElementTree,
+    child: Element,
     indentation: int,
     element_name: str,
 ) -> None:
@@ -356,7 +356,7 @@ def process_list_element(
     Process the list element associated with the given child element.
 
     Args:
-        child (defusedxml.ElementTree): The child element to process.
+        child (Element): The child element to process.
         indentation (int): The indentation level of the child element.
         element_name (str): The name of the element.
 
@@ -390,7 +390,7 @@ def process_list_element(
 
 # Get the xxxElement arguments, format and output them.  Recurse for more sub-elements.
 def format_and_output_arguments(
-    child: defusedxml.ElementTree,
+    child: Element,
     element_type: str,
     indentation: int,
     anchors: SceneAnchors | None = None,
@@ -550,7 +550,7 @@ def drop_the_scene_colour() -> None:
 
 # Break down the UI aspects and output them based on it's arguments.
 def process_arguments(
-    child: defusedxml.ElementTree,
+    child: Element,
     element_type: str,
     indentation: int,
     anchors: SceneAnchors | None = None,
@@ -559,7 +559,7 @@ def process_arguments(
     Process the arguments of a given child element in a scene.
 
     Args:
-        child (defusedxml.ElementTree): The child element to process.
+        child (Element): The child element to process.
         element_type (str): The type of the child element.
         indentation (int): The indentation level of the child element.
 
@@ -587,9 +587,9 @@ def process_arguments(
 
 
 # Go through Scene's XML looking for Tasks (e.g. ClickTask) and output if found
-def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
+def process_tasks(child: Element, tasks_found: list) -> None:
     """Parameters:
-        - child (defusedxml.ElementTree): The element to be processed.
+        - child (Element): The element to be processed.
         - tasks_found (list): A list of tasks that have been found.
         - indentation (int): The number of spaces to indent the output.
     Returns:
@@ -733,8 +733,8 @@ def adjust_name_and_add_to_directory(
 
 # Pull out the screen width and height
 def get_details(
-    scene: defusedxml.ElementTree,
-    tasks_found: defusedxml.ElementTree,
+    scene: Element,
+    tasks_found: list,
     indentation: int = 0,
     anchors: SceneAnchors | None = None,
 ) -> None:
@@ -742,8 +742,8 @@ def get_details(
     Go through Scene to obtain it's height and width and output.
 
     Args:
-        scene (defusedxml.ElementTree): Scene xml element to trundle through.
-        tasks_found (defusedxml.ElementTree): List of Tasks found so far.
+        scene (Element): Scene xml element to trundle through.
+        tasks_found (list): List of Tasks found so far.
         indentation (int): Indentation number of blanks to add to output lines.
         anchors (SceneAnchors): where each element's jump anchor goes; None for a Scene
             whose elements are not anchored (see SceneAnchors).
@@ -816,7 +816,7 @@ def get_details(
 
 # Process the Scene's Properties
 def process_properties(
-    scene: defusedxml.ElementTree,
+    scene: Element,
     indentation: int,
     anchors: SceneAnchors | None = None,
 ) -> None:
@@ -840,7 +840,7 @@ def process_properties(
 def process_scene(
     my_scene: str,
     tasks_found: list[str],
-    scene_xml: defusedxml.ElementTree,
+    scene_xml: Element,
     indentation: int,
 ) -> None:
     """
@@ -889,7 +889,6 @@ def process_scene(
 # Output a list of Scenes: each one's line, then its details
 def process_scene_list(
     scene_list: list[str],
-    the_task: defusedxml.ElementTree,
     tasks_found: list,
 ) -> None:
     """
@@ -900,11 +899,10 @@ def process_scene_list(
     Tasks a Scene carries go back through process_list.
 
         :param scene_list: names of the Scenes to output
-        :param the_task: xml element handed on to format_item
         :param tasks_found: list of Tasks found so far
     """
     for scene_name in scene_list:
-        format_item("Scene:", scene_name, scene_name, the_task)
+        format_item("Scene:", scene_name, scene_name, None)
 
         detail_level = PrimeItems.program_arguments.display_detail_level
         if detail_level == 0:
@@ -917,14 +915,12 @@ def process_scene_list(
 
 # Go through all Scenes for Project, get their detail and output it
 def process_project_scenes(
-    project: defusedxml.ElementTree,
-    our_task_element: defusedxml.ElementTree,
+    project: Element,
     found_tasks: list,
 ) -> bool:
     """
     Go through all Scenes for Project, get their detail and output it
         :param project: xml element of Project we are processing
-        :param our_task_element: xml element pointing to our Task
         :param found_tasks: list of Tasks found so far
         :return: True if a Scene was output, False if not
     """
@@ -949,7 +945,7 @@ def process_project_scenes(
             # Count what we are actually going to output, which is not necessarily
             # everything the Project lists -- see the single-Scene filter above.
             PrimeItems.scene_count = len(scene_list)
-            process_scene_list(scene_list, our_task_element, found_tasks)
+            process_scene_list(scene_list, found_tasks)
 
             # Force a line break
             PrimeItems.output_lines.add_line_to_output(

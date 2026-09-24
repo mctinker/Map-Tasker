@@ -9,8 +9,7 @@ MIT License   Refer to https://opensource.org/license/mit
 # proclist: process list - process a list of line items for Tasks and Scenes           #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
-import defusedxml
-import defusedxml.ElementTree
+from xml.etree.ElementTree import Element
 
 import maptasker.src.taskflag as task_flags
 from maptasker.src.dirout import add_directory_item
@@ -64,7 +63,7 @@ def adjust_name(list_type: str, the_item: str) -> str:
 
 
 # Get a simple list of the Scene's UI element names/types (e.g. for a tooltip).
-def get_scene_element_names(scene: defusedxml.ElementTree) -> list[str]:
+def get_scene_element_names(scene: Element) -> list[str]:
     """
     Build a simple list of a Scene's UI element names/types.
 
@@ -172,7 +171,7 @@ def format_task_or_scene(
 def add_dictionary_and_twisty(
     list_type: str,
     the_item: str,
-    the_task: defusedxml,
+    the_task: Element | None,
     output_line: str,
     color_to_use: str,
 ) -> tuple[str, str]:
@@ -183,7 +182,7 @@ def add_dictionary_and_twisty(
     Args:
         list_type (str): Either "Task:" or "Scene:"
         the_item (str): Task ID for Task or Scene
-        the_task (defusedxml): XML pointer to the Task being processed
+        the_task (Element): XML pointer to the Task being processed
         output_line (str): The text string containing the output
         color_to_use (str): The color to use in the output
 
@@ -234,20 +233,22 @@ def handle_task(list_type: str, the_item: str, blank: str) -> tuple[str, str]:
     return temp_item, temp_list
 
 
-def handle_directory(list_type: str, the_item: str, the_task: defusedxml) -> None:
+def handle_directory(list_type: str, the_item: str, the_task: Element | None) -> None:
     """
     Handle the directory by processing tasks or adding scene directories.
 
     Args:
         list_type (str): The type of the list.
         the_item (str): The text item to process.
-        the_task (defusedxml): The task XML element.
+        the_task (Element): The task XML element.
 
     Returns:
         None
     """
     if "Task:" in list_type:
-        process_task_directory(the_task)
+        # A Scene has no Task element; a Task always has its own (see item_anchor).
+        if the_task is not None:
+            process_task_directory(the_task)
     elif list_type == "Scene:":
         add_scene_directory(the_item)
 
@@ -315,12 +316,12 @@ def add_task_hyperlink(task_name: str, display_name: bool, blank: str) -> None:
     )
 
 
-def process_task_directory(the_task: defusedxml) -> None:
+def process_task_directory(the_task: Element) -> None:
     """
     Process the task directory by adding the task name to the directory items.
 
     Args:
-        the_task (defusedxml): The task XML element.
+        the_task (Element): The task XML element.
 
     Returns:
         None
@@ -391,7 +392,7 @@ def debug_task_id(list_type: str) -> str:
 # ################################################################################
 # The anchor that lets a report finding jump to this Task/Scene in the Map view.
 # ################################################################################
-def item_anchor(list_type: str, the_item: str, the_task: defusedxml) -> str:
+def item_anchor(list_type: str, the_item: str, the_task: Element | None) -> str:
     """The mapjump anchor for the Task or Scene about to be output, or "" if there is none.
 
     Where each identity comes from, and why not from the output line's text:
@@ -430,7 +431,7 @@ def format_item(
     list_type: str,
     the_item: str,
     the_list: list,
-    the_task: defusedxml,
+    the_task: Element | None,
     project_name: str = "",
     profile_name: str = "",
 ) -> None:
@@ -441,7 +442,7 @@ def format_item(
             list_type (str): Either "Task:" or "Scene:"
             the_item (str): The string for the above type
             the_list (list): List of Tasks or Scenes
-            the_task (defusedxml): The Task XML element
+            the_task (Element): The Task XML element
             project_name (str): name of the Project the Task belongs to (for the "Task:" tooltip)
             profile_name (str): name of the Profile the Task belongs to (for the "Task:" tooltip)
     """
@@ -496,7 +497,7 @@ def format_item(
 def process_item(
     the_item: str,
     list_type: str,
-    the_task: defusedxml.ElementTree,
+    the_task: Element,
     tasks_found: list,
     project_name: str = "",
     profile_name: str = "",
@@ -561,7 +562,7 @@ def process_item(
 def process_list(
     list_type: str,
     the_list: list,
-    the_task: defusedxml.ElementTree,
+    the_task: Element,
     tasks_found: list,
     project_name: str = "",
     profile_name: str = "",
@@ -595,7 +596,7 @@ def do_single_task(
     project_name: str,
     profile_name: str,
     task_list: list,
-    our_task_element: defusedxml.ElementTree,
+    our_task_element: Element,
     list_of_found_tasks: list,
 ) -> None:
     """
@@ -606,7 +607,7 @@ def do_single_task(
         project_name (str): The name of the Project the Task belongs to.
         profile_name (str): The name of the Profile the Task belongs to.
         task_list (list): A list of Tasks.
-        our_task_element (defusedxml.ElementTree): The XML element for this Task.
+        our_task_element (Element): The XML element for this Task.
         list_of_found_tasks (list): A list of all Tasks processed so far.
 
     Returns:
@@ -671,11 +672,11 @@ def do_single_task(
 
 
 # Search image xml element for key and return title=value
-def get_image(image: defusedxml.ElementTree, title: str, key: str) -> str:
+def get_image(image: Element, title: str, key: str) -> str:
     """Returns:
         - str: Returns a string.
     Parameters:
-        - image (defusedxml.ElementTree): An XML element tree.
+        - image (Element): An XML element tree.
         - title (str): The title of the image.
         - key (str): The key to search for in the XML element tree.
     Processing Logic:
@@ -694,11 +695,11 @@ def get_image(image: defusedxml.ElementTree, title: str, key: str) -> str:
 
 
 # If Task has an icon, get and format it in the Task output line.
-def get_icon_info(the_task: defusedxml.ElementTree) -> str:
+def get_icon_info(the_task: Element) -> str:
     """
     Gets icon information from the task XML.
     Args:
-        the_task: defusedxml.ElementTree: The task XML tree
+        the_task: Element: The task XML tree
     Returns:
         str: Formatted icon information text wrapped in brackets
     - Finds the <Img> element from the task
@@ -723,7 +724,7 @@ def get_icon_info(the_task: defusedxml.ElementTree) -> str:
 # Get additional information for this Task
 # Optimized
 def get_extra_details(
-    our_task_element: defusedxml.ElementTree,
+    our_task_element: Element,
     task_output_lines: list,
 ) -> tuple:
     """

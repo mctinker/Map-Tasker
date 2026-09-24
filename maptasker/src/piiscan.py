@@ -79,8 +79,7 @@ from maptasker.src.property import PROPERTY_TAGS, VARIABLE_TAG
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    import defusedxml.ElementTree  # Need for type hints
+    from xml.etree.ElementTree import Element
 
 # Two of healthck's three grading words, spelled out rather than imported (see the
 # header).  ERROR is deliberately not among them, and the omission is the point: nothing
@@ -488,7 +487,7 @@ _NAME_ARGUMENTS: frozenset[tuple[str, str]] = frozenset(
 )
 
 
-def _action_code(action: defusedxml.ElementTree.Element) -> str:
+def _action_code(action: Element) -> str:
     """An action's Tasker code, or "" if it has none."""
     code = action.find("code")
     return (code.text or "").strip() if code is not None else ""
@@ -592,7 +591,7 @@ def _project_owners(kind: str) -> dict[str, str]:
     return owners
 
 
-def _scannable(element: defusedxml.ElementTree.Element) -> str:
+def _scannable(element: Element) -> str:
     """The text of an element the scan is allowed to read, or "".
 
     "" for a name or a reference (see _REFERENCE_TAGS), which is how the one rule about
@@ -603,7 +602,7 @@ def _scannable(element: defusedxml.ElementTree.Element) -> str:
     return (element.text or "").strip()
 
 
-def _scan_action(collect: _Collector, where: Target, action: defusedxml.ElementTree.Element) -> None:
+def _scan_action(collect: _Collector, where: Target, action: Element) -> None:
     """One Task action: its named settings first, then whatever else it carries."""
     code = _action_code(action)
     names = _argument_names(code)
@@ -670,7 +669,7 @@ def _scan_projects(collect: _Collector) -> None:
 def _scan_properties(
     collect: _Collector,
     where: Target,
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     skip: set[int],
 ) -> None:
     """Everything on an object that is not one of its actions.
@@ -707,7 +706,7 @@ def _scan_properties(
             collect.text(where, "this object's own properties", value)
 
 
-def _properties_elements(element: defusedxml.ElementTree.Element) -> set[int]:
+def _properties_elements(element: Element) -> set[int]:
     """{id(child)} for everything the object's "...Properties..." line shows.
 
     Which tags those are is property.PROPERTY_TAGS, read from there rather than restated
@@ -819,7 +818,7 @@ def _scan_preferences(collect: _Collector) -> None:
         collect.text(where, f"the Tasker preference '{name}'", value)
 
 
-def _has_coordinates(condition: defusedxml.ElementTree.Element) -> bool:
+def _has_coordinates(condition: Element) -> bool:
     """Whether a location condition actually carries a place.
 
     Both halves, and not both zero: Tasker writes a <Loc> the moment a location condition
@@ -898,7 +897,7 @@ class Redaction:
         return ", ".join(f"{tag} x{count}" for tag, count in sorted(self.counts.items()))
 
 
-def _redact_text_element(element: defusedxml.ElementTree.Element, counts: dict[str, int]) -> None:
+def _redact_text_element(element: Element, counts: dict[str, int]) -> None:
     """Replace whatever the rules find in one element's text."""
     value = _scannable(element)
     if not value:
@@ -910,7 +909,7 @@ def _redact_text_element(element: defusedxml.ElementTree.Element, counts: dict[s
             counts[finding.rule.tag] = counts.get(finding.rule.tag, 0) + 1
 
 
-def _redact_action(action: defusedxml.ElementTree.Element, counts: dict[str, int]) -> None:
+def _redact_action(action: Element, counts: dict[str, int]) -> None:
     """One exported action: its credential fields wholesale, then everything else by rule."""
     code = _action_code(action)
     arguments = {id(child): child for child in action if str(child.attrib.get("sr", "")).startswith("arg")}
@@ -933,7 +932,7 @@ def _redact_action(action: defusedxml.ElementTree.Element, counts: dict[str, int
         _redact_text_element(element, counts)
 
 
-def _redact_location(condition: defusedxml.ElementTree.Element, counts: dict[str, int]) -> None:
+def _redact_location(condition: Element, counts: dict[str, int]) -> None:
     """Zero out a location condition's coordinates.
 
     Zeroed rather than replaced with a placeholder, and rounded off to nothing rather than
@@ -949,7 +948,7 @@ def _redact_location(condition: defusedxml.ElementTree.Element, counts: dict[str
     counts[_LOCATION_FINDING[0]] = counts.get(_LOCATION_FINDING[0], 0) + 1
 
 
-def redact_tree(root: defusedxml.ElementTree.Element) -> Redaction:
+def redact_tree(root: Element) -> Redaction:
     """Take the secrets and personal details out of an already-rendered export, in place.
 
     The redactor half of the module, and the exact counterpart of lint_problems(): the same
@@ -1029,7 +1028,7 @@ def redaction_notice(result: Redaction) -> str:
     )
 
 
-def redact_rendered(root: defusedxml.ElementTree.Element) -> str:
+def redact_rendered(root: Element) -> str:
     """Redact a rendered export in place, and return the comment to write above it.
 
     The one call the four standalone exports make, so that "redact this export" is a single

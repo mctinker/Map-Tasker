@@ -111,8 +111,7 @@ from maptasker.src.sysconst import (
 if TYPE_CHECKING:
     import collections
     from collections.abc import Callable, Coroutine, Iterator, Sequence
-
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
     from maptasker.src.userintr import MyGui
 
@@ -401,7 +400,7 @@ PENDING_CHANGES_IGNORED_FIELDS: frozenset[str] = frozenset(
 
 
 def editor_state(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     field_refs: dict,
     *extra: object,
 ) -> tuple:
@@ -1159,7 +1158,7 @@ def build_save_project_to_android_dialog(
 def _build_properties_button(
     self: MyGui,
     kind: str,
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     parent_dialog: ui.dialog,
     on_applied: Callable[[], None] | None = None,
     opener: Callable[[], None] | None = None,
@@ -1299,7 +1298,7 @@ _VARIABLE_CHECKBOXES: tuple[tuple[str, str, str], ...] = (
 def _build_variable_panel(
     props: objprops.EditableProperties,
     index: int,
-    variable: defusedxml.ElementTree.Element,
+    variable: Element,
     field_refs: dict,
     rerender: Callable[[], None],
 ) -> None:
@@ -1383,7 +1382,7 @@ def _build_variable_panel(
 def build_object_properties_dialog(
     self: MyGui,
     kind: str,
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     parent_dialog: ui.dialog,
     on_applied: Callable[[], None] | None = None,
 ) -> None:
@@ -1519,7 +1518,7 @@ _SCENE_TABS = (_SCENE_TAB_UI, _SCENE_TAB_ACTIONS, _SCENE_TAB_EVENT)
 _SCENE_EVENT_ACTION_LIST_CLASSES = "w-full h-64 border rounded p-2"
 
 
-def _scene_properties_summary(scene_element: defusedxml.ElementTree.Element) -> str:
+def _scene_properties_summary(scene_element: Element) -> str:
     """A one-line "this is what is set" for the designer's Scene Properties panel, which is
     a signpost to the form rather than the form (see render_scene_properties).
 
@@ -1769,7 +1768,7 @@ def _build_scene_properties_dialog(
 def _render_scene_ui_tab(
     args: dict,
     property_type: taskedit.EditableArg | None,
-    scene_element: defusedxml.ElementTree.Element,
+    scene_element: Element,
     field_refs: dict,
     rerender: Callable[[], None],
 ) -> None:
@@ -1826,7 +1825,7 @@ def _render_scene_ui_tab(
 
 
 def _render_scene_geometry(
-    scene_element: defusedxml.ElementTree.Element,
+    scene_element: Element,
     field_refs: dict,
 ) -> None:
     """Geometry: the pixel size the Scene is laid out at, in the Portrait/Landscape pairs
@@ -1875,7 +1874,7 @@ def _render_scene_geometry(
 
 def _render_scene_actions_tab(
     self: MyGui,
-    properties: defusedxml.ElementTree.Element,
+    properties: Element,
     rerender: Callable[[], None],
 ) -> None:
     """The Actions tab: the items on an Activity's action bar.
@@ -1977,7 +1976,7 @@ def _render_scene_actions_tab(
 
 
 def _move_scene_action_item(
-    properties: defusedxml.ElementTree.Element,
+    properties: Element,
     sr: str,
     offset: int,
     rerender: Callable[[], None],
@@ -1987,7 +1986,7 @@ def _move_scene_action_item(
 
 
 def _remove_scene_action_item(
-    properties: defusedxml.ElementTree.Element,
+    properties: Element,
     sr: str,
     rerender: Callable[[], None],
 ) -> None:
@@ -1997,7 +1996,7 @@ def _remove_scene_action_item(
 
 def _render_scene_action_item_picker(
     self: MyGui,
-    properties: defusedxml.ElementTree.Element,
+    properties: Element,
     rerender: Callable[[], None],
 ) -> None:
     """Tasker's plus button at the bottom of the Actions tab: pick the action the new item
@@ -2046,7 +2045,7 @@ def _render_scene_action_item_picker(
 
 def _render_scene_event_tab(
     self: MyGui,
-    properties: defusedxml.ElementTree.Element,
+    properties: Element,
     showing: dict,
     rerender: Callable[[], None],
     task_state: dict,
@@ -2102,7 +2101,7 @@ def _render_scene_event_tab(
 
 def _render_scene_event(
     self: MyGui,
-    properties: defusedxml.ElementTree.Element,
+    properties: Element,
     event: sceneedit.LegacySceneEvent,
     rerender: Callable[[], None],
     task_state: dict | None = None,
@@ -2250,7 +2249,7 @@ def _render_task_picker(on_pick: Callable[[str], None]) -> None:
     refresh_picker()
 
 
-def _render_scene_key_filter(properties: defusedxml.ElementTree.Element) -> None:
+def _render_scene_key_filter(properties: Element) -> None:
     """The Key event's own filter: which keys the Scene handles, and whether it swallows them.
 
     Both live in the Scene's <LinkClickFilter> -- see sceneedit.legacy_set_key_filter, which
@@ -2293,7 +2292,7 @@ def _render_scene_key_filter(properties: defusedxml.ElementTree.Element) -> None
 
 def _render_scene_event_task_actions(
     self: MyGui,
-    properties: defusedxml.ElementTree.Element,
+    properties: Element,
     event: sceneedit.LegacySceneEvent,
     task_state: dict,
     scene_name: str,
@@ -2393,7 +2392,7 @@ def _render_scene_event_task_actions(
 
 def _render_scene_event_new_task(
     self: MyGui,
-    properties: defusedxml.ElementTree.Element,
+    properties: Element,
     event: sceneedit.LegacySceneEvent,
     task_state: dict,
     scene_name: str,

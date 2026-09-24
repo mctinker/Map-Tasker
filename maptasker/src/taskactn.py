@@ -27,7 +27,7 @@ from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine
 from maptasker.src.tasks import get_taskid_from_unnamed_task
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 UNNAMED = " (Unnamed)"
 
 
@@ -143,7 +143,7 @@ def output_list_of_actions(
 
 # For this specific Task, get its Actions and output the Task and Actions
 def get_task_actions_and_output(
-    the_task: defusedxml.ElementTree,
+    the_task: Element,
     list_type: str,
     the_item: str,
     tasks_found: list[str],

@@ -28,6 +28,7 @@
 #   }
 # }
 import contextlib
+from xml.etree.ElementTree import Element
 
 import defusedxml.ElementTree  # Need for type hints
 
@@ -61,7 +62,7 @@ def bare_task_name(name: str) -> str:
 
 # Update Task with calls and called_by details
 def update_caller_and_called_tasks(
-    task: defusedxml.ElementTree,
+    task: Element,
     perform_task_name: str,
 ) -> None:
     # Find the Task xml element to which this Perform Task refers.
@@ -118,15 +119,15 @@ def update_caller_and_called_tasks(
 
 # Go through the Task's Actions looking for any Perform Task actions.
 def do_task_actions(
-    task_actions: defusedxml.ElementTree,
-    task: defusedxml.ElementTree,
+    task_actions: list[Element],
+    task: Element,
 ) -> None:
     """
     Parses task action elements and updates task call relationships.
 
     Args:
-        task_actions: defusedxml.ElementTree - Task action elements.
-        task: defusedxml.ElementTree - Task element.
+        task_actions: list[Element] - Task action elements.
+        task: Element - Task element.
 
     Returns:
         None
@@ -163,7 +164,7 @@ def get_perform_task_actions(the_tasks: list) -> None:
     If so, save the link to the other Task to be displayed in the outline.
         Args:
             primary_item (dict): Program registry.  See primitem.py for details.
-            profile (defusedxml.ElementTree): Profile that owns these Tasks
+            profile (Element): Profile that owns these Tasks
             the_tasks (list): List of Task xml elements under this Profile.
     """
     # Go through each Task to find out if this Task is calling other Tasks.
@@ -195,7 +196,7 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> No
     Find tasks not processed by any profile
     Args:
         tasks_processed: list - Tasks already processed
-        task_ids: defusedxml - All tasks in the project
+        task_ids: list - All tasks in the project
     Returns:
         None
     1. Loop through all tasks in the project

@@ -62,7 +62,7 @@ from maptasker.src.taskervars import tasker_global_variables
 from maptasker.src.varxref import _LOW_CONFIDENCE_LENGTH, VARIABLE_PATTERN
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 
 # ##################################################################################
@@ -105,7 +105,7 @@ class Site:
     """
 
     kind: str  # one of the constants above
-    element: defusedxml.ElementTree.Element
+    element: Element
     where: Target  # what the preview prints and what a click on it jumps to
     detail: str = ""  # "Flash, Text=" -- varxref._argument_label's wording, reused
     path: tuple = ()  # V2_SCENE only: the key path into the parsed layout
@@ -822,9 +822,9 @@ def _elements_of(plan: Plan) -> list:
 
 
 def _argument_element(
-    action_element: defusedxml.ElementTree.Element | None,
+    action_element: Element | None,
     arg_id: str,
-) -> defusedxml.ElementTree.Element | None:
+) -> Element | None:
     """One argument of an action, by its 'sr', or None."""
     if action_element is None:
         return None
@@ -834,7 +834,7 @@ def _argument_element(
     return None
 
 
-def _has_value(element: defusedxml.ElementTree.Element | None) -> bool:
+def _has_value(element: Element | None) -> bool:
     """Whether an argument element holds anything at all.
 
     Three shapes count as holding something: text, a val= other than the '0' Tasker writes
@@ -849,7 +849,7 @@ def _has_value(element: defusedxml.ElementTree.Element | None) -> bool:
     return len(element) > 0
 
 
-def _action_summary(action_element: defusedxml.ElementTree.Element, action_key: str) -> str:
+def _action_summary(action_element: Element, action_key: str) -> str:
     """One line describing an action as it stands -- "Flash 'Done: %n'".
 
     The first argument that holds text, which is the one the Map leads with and almost
@@ -865,7 +865,7 @@ def _action_summary(action_element: defusedxml.ElementTree.Element, action_key: 
 
 
 def _projected_summary(
-    action_element: defusedxml.ElementTree.Element,
+    action_element: Element,
     old_key: str,
     new_key: str,
     carry: dict[str, str],
@@ -890,7 +890,7 @@ def _projected_summary(
 
 
 def _swap_note(
-    action_element: defusedxml.ElementTree.Element,
+    action_element: Element,
     fidelity: str,
     carry: dict[str, str],
     old_key: str,
@@ -914,7 +914,7 @@ def _swap_note(
     return "Drops: " + ", ".join(dropped)
 
 
-def order_action_children(action_element: defusedxml.ElementTree.Element) -> None:
+def order_action_children(action_element: Element) -> None:
     """Put an action's children back in the order Tasker writes them: non-argument children
     first in the order they already had, then the arguments sorted by their 'sr' as a
     STRING -- which is why the sample data reads arg0, arg1, arg10, arg11 ... arg2, and not
@@ -941,7 +941,7 @@ def order_action_children(action_element: defusedxml.ElementTree.Element) -> Non
 
 
 def _swap_one_action(
-    action_element: defusedxml.ElementTree.Element,
+    action_element: Element,
     new_key: str,
     carry: dict[str, str],
 ) -> None:
@@ -981,7 +981,7 @@ def _swap_one_action(
     # to a numeric argument in place of a figure, an <App>'s appPkg/appClass/label, an
     # <Img>'s nme/tint.  Rule 1 only pairs arguments of the same arg_type, so the element
     # being moved is always the shape the target expects.
-    carried: dict[str, defusedxml.ElementTree.Element] = {}
+    carried: dict[str, Element] = {}
     for child in list(action_element):
         sr = child.attrib.get("sr", "")
         if sr.startswith("arg") and sr[3:] in carry:
@@ -1249,7 +1249,7 @@ def condition_targets(old_key: str) -> list[tuple[str, str, str]]:
     return choices
 
 
-def _fresh_condition(element_cls: type, new_key: str) -> defusedxml.ElementTree.Element:
+def _fresh_condition(element_cls: type, new_key: str) -> Element:
     """An empty context of this kind, built exactly as adding one by hand would build it.
 
     The flat kinds go through profedit.add_condition_to_profile -- the same call the
@@ -1321,7 +1321,7 @@ def _kept_condition_children(new_tag: str) -> tuple[str, ...]:
     return tuple(keep)
 
 
-def _has_time_window(element: defusedxml.ElementTree.Element) -> bool:
+def _has_time_window(element: Element) -> bool:
     """Whether a Time condition names a from/to time at all.
 
     Tasker writes fh/fm/th/tm as -1 for a Time that only REPEATS -- "every 12 minutes",
@@ -1336,7 +1336,7 @@ def _has_time_window(element: defusedxml.ElementTree.Element) -> bool:
     return bool(hour) and not hour.startswith("-")
 
 
-def _condition_summary(element: defusedxml.ElementTree.Element, tag: str, code_key: str = "") -> str:
+def _condition_summary(element: Element, tag: str, code_key: str = "") -> str:
     """One line describing a context as it stands -- "Time 08:00 AM to 09:30 AM".
 
     Read through profedit's own field getters rather than off the XML, so the preview says
@@ -1383,7 +1383,7 @@ def _condition_summary(element: defusedxml.ElementTree.Element, tag: str, code_k
 
 
 def _projected_condition_summary(
-    element: defusedxml.ElementTree.Element,
+    element: Element,
     old_key: str,
     new_key: str,
     carry: dict[str, str],
@@ -1588,7 +1588,7 @@ def plan_condition_replace(
     return plan
 
 
-def _order_condition_children(condition_element: defusedxml.ElementTree.Element) -> None:
+def _order_condition_children(condition_element: Element) -> None:
     """Put a context's children in the order Tasker writes them: the non-argument ones in
     alphabetical order, then the arguments by their 'sr' as a string.
 
@@ -1615,7 +1615,7 @@ def _order_condition_children(condition_element: defusedxml.ElementTree.Element)
 
 
 def _swap_one_condition(
-    condition_element: defusedxml.ElementTree.Element,
+    condition_element: Element,
     new_key: str,
     carry: dict[str, str],
 ) -> None:
@@ -1642,7 +1642,7 @@ def _swap_one_condition(
 
     # 1.  Lift what survives, deep, before the tear-down -- the arguments that carry over
     # (only ever coded-to-coded) and the children that outlive the kind.
-    carried: dict[str, defusedxml.ElementTree.Element] = {}
+    carried: dict[str, Element] = {}
     for child in list(condition_element):
         sr = child.attrib.get("sr", "")
         if carry and sr.startswith("arg") and sr[3:] in carry:
@@ -1739,7 +1739,7 @@ def argument_choices(action_key: str) -> list[tuple[str, str, str]]:
 
 
 def _argument_site(
-    action_element: defusedxml.ElementTree.Element,
+    action_element: Element,
     arg_id: str,
     where: Target,
     detail: str,
@@ -1785,7 +1785,7 @@ def _numeric_refusal(numeric: bool, value: str) -> str:
     )
 
 
-def _creatable(action_element: defusedxml.ElementTree.Element, arg_id: str) -> bool:
+def _creatable(action_element: Element, arg_id: str) -> bool:
     """Whether an argument this action does not carry could be written into it.
 
     Asked of taskedit rather than answered here, and asked by BUILDING one on a throwaway
@@ -2320,7 +2320,7 @@ def _rename_warnings(
     return warnings
 
 
-def _is_plugin_declaration(element: defusedxml.ElementTree.Element) -> bool:
+def _is_plugin_declaration(element: Element) -> bool:
     """Whether this Bundle entry is a plugin declaring its OUTPUT variables.
 
     A plugin lists what it produces in a RELEVANT_VARIABLES entry, which varxref reads to

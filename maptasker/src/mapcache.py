@@ -56,7 +56,7 @@ from typing import TYPE_CHECKING
 from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 # The four tables hold these, so walking the root's children as well would hash every one
 # of them twice -- on a large configuration that is the whole cost of this doubled.
@@ -75,7 +75,7 @@ SEPARATOR_TEXT = "\x00"
 _remembered: tuple | None = None
 
 
-def _absorb(digest: object, element: "defusedxml.ElementTree.Element | None") -> None:
+def _absorb(digest: object, element: "Element | None") -> None:
     """Fold one xml element, and everything inside it, into the digest.
 
     Gathered into one string per element and hashed in a single go rather than fed to the

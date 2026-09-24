@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 from maptasker.src import appinv, editcommon, piiscan, sessundo
 from maptasker.src.actionc import action_codes
@@ -78,7 +78,7 @@ class EditableArg:
     widget_kind: str  # "checkbox" | "dropdown" | "text" | "raw_fallback" | "app_picker" | "icon_picker" | "readonly"
     backing_tag: str  # "Int" | "Str" | "App" | "Img" | ""
     is_var: bool
-    element: defusedxml.ElementTree.Element | None
+    element: Element | None
     current_value: str
     dropdown_options: list[str] | None = None
     readonly_note: str = ""
@@ -88,7 +88,7 @@ class EditableArg:
 class EditableAction:
     """One Action element and its editable arguments, in execution order."""
 
-    action_element: defusedxml.ElementTree.Element
+    action_element: Element
     act_number: int
     code: str
     action_name: str
@@ -100,7 +100,7 @@ class EditableTask:
     """A deep-copied Task element plus its editable-action model."""
 
     task_id: str
-    task_element: defusedxml.ElementTree.Element
+    task_element: Element
     actions: list[EditableAction] = field(default_factory=list)
 
 
@@ -158,7 +158,7 @@ _IF_CONDITION_CODE_TO_INDEX = {code: i for i, (code, _label) in enumerate(IF_CON
 _IF_CONDITION_LABEL_TO_CODE = {label: code for code, label in IF_CONDITION_OPERATORS}
 
 
-def resolve_task_by_name(task_name: str) -> tuple[str, defusedxml.ElementTree.Element] | None:
+def resolve_task_by_name(task_name: str) -> tuple[str, Element] | None:
     """Look up a Task's id and live XML element by its displayed name.
 
     Returns (task_id, live_element), or None if not found. Callers must not mutate
@@ -548,7 +548,7 @@ def set_action_continue_after_error(
             action.action_element.remove(se)
 
 
-def _build_editable_action(action_element: defusedxml.ElementTree.Element, act_number: int) -> EditableAction:
+def _build_editable_action(action_element: Element, act_number: int) -> EditableAction:
     """Build a single EditableAction bound to an already-in-the-tree Action element.
 
     Shared by _build_editable_actions (initial load) and copy_action_in_task (a
@@ -588,7 +588,7 @@ def _build_editable_action(action_element: defusedxml.ElementTree.Element, act_n
     )
 
 
-def _build_editable_actions(task_copy: defusedxml.ElementTree.Element) -> list[EditableAction]:
+def _build_editable_actions(task_copy: Element) -> list[EditableAction]:
     """Find the Task's Actions, sort them into execution order, and build their arg models.
 
     Execution order is driven by the numeric suffix of sr="actN", not document order
@@ -602,7 +602,7 @@ def _build_editable_actions(task_copy: defusedxml.ElementTree.Element) -> list[E
     return [_build_editable_action(action_element, _action_number(action_element)) for action_element in actions]
 
 
-def _action_number(action_element: defusedxml.ElementTree.Element) -> int:
+def _action_number(action_element: Element) -> int:
     """Extract the numeric suffix of sr="actN" for display/sort purposes only."""
     sr = action_element.attrib.get("sr", "")
     match = re.search(r"\d+$", sr)
@@ -634,7 +634,7 @@ def reclassify_action_args(action: EditableAction) -> None:
 
 
 def build_editable_args(
-    action_element: defusedxml.ElementTree.Element,
+    action_element: Element,
     effective_args: list,
 ) -> list[EditableArg]:
     """Classify each of an action's defined arguments into a widget kind, bound to
@@ -670,16 +670,16 @@ def build_editable_args(
 
 
 def _find_int_element(
-    action_element: defusedxml.ElementTree.Element,
+    action_element: Element,
     the_arg: str,
-) -> defusedxml.ElementTree.Element | None:
+) -> Element | None:
     return action_element.find(f"./Int[@sr='{the_arg}']")
 
 
 def _find_str_element(
-    action_element: defusedxml.ElementTree.Element,
+    action_element: Element,
     the_arg: str,
-) -> defusedxml.ElementTree.Element | None:
+) -> Element | None:
     return next(
         (child for child in action_element.findall("Str") if child.attrib.get("sr") == the_arg),
         None,
@@ -714,7 +714,7 @@ def _readonly_note_arg(note: str) -> EditableArg:
     )
 
 
-def _build_if_condition_args(condition_element: defusedxml.ElementTree.Element) -> list[EditableArg]:
+def _build_if_condition_args(condition_element: Element) -> list[EditableArg]:
     """Builds the three editable fields (Target, Operator, Value) for an 'If'
     action's single Condition test, bound directly to its existing <lhs>/<op>/
     <rhs> elements -- the write-side counterpart of action.py's evaluate_condition,
@@ -768,7 +768,7 @@ def _build_if_condition_args(condition_element: defusedxml.ElementTree.Element) 
     ]
 
 
-def _build_if_action_args(action_element: defusedxml.ElementTree.Element) -> list[EditableArg]:
+def _build_if_action_args(action_element: Element) -> list[EditableArg]:
     """Builds an existing 'If' action's editable Target/Operator/Value fields from
     its <ConditionList>/<Condition>. Falls back to a single read-only note if there
     isn't exactly one Condition (no ConditionList at all, or more than one chained
@@ -793,7 +793,7 @@ def _build_if_action_args(action_element: defusedxml.ElementTree.Element) -> lis
 
 def _synthesize_if_condition(
     element_cls: type,
-    action_element: defusedxml.ElementTree.Element,
+    action_element: Element,
 ) -> list[EditableArg]:
     """Builds a brand-new, single-Condition <ConditionList sr="if"> for an 'If'
     action (code 37) and appends it to action_element -- the Add Task counterpart
@@ -898,7 +898,7 @@ def _classify_arg_widget(arg) -> tuple[str, str, list[str] | None]:
     return "readonly", "", None
 
 
-def _build_boolean_arg(action_element: defusedxml.ElementTree.Element, the_arg: str, arg) -> EditableArg:
+def _build_boolean_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
     int_element = _find_int_element(action_element, the_arg)
     if int_element is None:
         return _readonly_arg(arg, "Not present in this action's XML.")
@@ -914,7 +914,7 @@ def _build_boolean_arg(action_element: defusedxml.ElementTree.Element, the_arg: 
     )
 
 
-def _build_int_arg(action_element: defusedxml.ElementTree.Element, the_arg: str, arg) -> EditableArg:
+def _build_int_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
     int_element = _find_int_element(action_element, the_arg)
     if int_element is None:
         return _readonly_arg(arg, "Not present in this action's XML.")
@@ -984,7 +984,7 @@ def get_all_task_names() -> list[str]:
     return sorted(PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}))
 
 
-def _build_string_arg(action_element: defusedxml.ElementTree.Element, the_arg: str, arg) -> EditableArg:
+def _build_string_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
     str_element = _find_str_element(action_element, the_arg)
     if str_element is None:
         return _readonly_arg(arg, "Not present in this action's XML.")
@@ -1001,7 +1001,7 @@ def _build_string_arg(action_element: defusedxml.ElementTree.Element, the_arg: s
     )
 
 
-def _build_app_arg(action_element: defusedxml.ElementTree.Element, the_arg: str, arg) -> EditableArg:
+def _build_app_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
     """An <App sr="argN"> argument, as a field holding its package names.
 
     Read-only in two cases, both of which are what this argument did before it was
@@ -1029,7 +1029,7 @@ def _build_app_arg(action_element: defusedxml.ElementTree.Element, the_arg: str,
     )
 
 
-def _build_icon_arg(action_element: defusedxml.ElementTree.Element, the_arg: str, arg) -> EditableArg:
+def _build_icon_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
     """An <Img sr="argN"> argument, as a field holding one icon reference -- see
     appinv.format_icon_value for how the four forms of one are spelled.  Falls back to
     read-only on the same two conditions as _build_app_arg, for the same reasons.
@@ -1102,7 +1102,7 @@ def get_bundle_definition(action_key: str) -> dict | None:
     return definition.get("Bundle") if definition else None
 
 
-def needs_tasker_configuration(element: defusedxml.ElementTree.Element) -> bool:
+def needs_tasker_configuration(element: Element) -> bool:
     """Whether an Action/Event/State element carries a plugin payload <Bundle>, and
     so has to be configured inside Tasker rather than here.
 
@@ -1115,7 +1115,7 @@ def needs_tasker_configuration(element: defusedxml.ElementTree.Element) -> bool:
     return any(descendant.tag == BLURB_TAG for bundle in element.iter("Bundle") for descendant in bundle.iter())
 
 
-def tasker_configuration_warning(element: defusedxml.ElementTree.Element, name: str) -> str:
+def tasker_configuration_warning(element: Element, name: str) -> str:
     """The warning to show for a plugin Action/condition, or "" when it needs none.
 
     Shared by the Edit Task/Edit Profile dialogs (a standing warning on the item's
@@ -1151,7 +1151,7 @@ def _build_bundle_element(
     element_cls: type,
     tag: str,
     definition: dict | str,
-) -> defusedxml.ElementTree.Element:
+) -> Element:
     """Rebuild an xml element from a bundle.py definition, recursively.
 
     A definition is either a string (a leaf element's text) or a dictionary whose
@@ -1179,7 +1179,7 @@ def _build_bundle_element(
 
 def _synthesize_bundle_arg(
     element_cls: type,
-    container_element: defusedxml.ElementTree.Element,
+    container_element: Element,
     effective_args: list,
     action_key: str,
 ) -> EditableArg | None:
@@ -1255,7 +1255,7 @@ def _build_merged_plugin_arg(arg) -> EditableArg | None:
 
 def build_synthesized_args(
     element_cls: type,
-    container_element: defusedxml.ElementTree.Element,
+    container_element: Element,
     effective_args: list,
     action_key: str = "",
 ) -> list[EditableArg]:
@@ -2366,7 +2366,7 @@ def apply_edited_task_to_live_tree(edited_task: EditableTask) -> None:
         all_tasks_by_name[new_name] = {"xml": edited_task.task_element, "id": edited_task.task_id}
 
 
-def _project_task_ids(project_element: defusedxml.ElementTree.Element) -> list[str]:
+def _project_task_ids(project_element: Element) -> list[str]:
     """A Project's <tids> as a list of Task ids ([] if it owns none) -- the read
     half of profedit.add_task_to_project's append-dedup.
     """

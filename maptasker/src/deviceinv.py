@@ -28,8 +28,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
+    from xml.etree.ElementTree import Element
 
-    import defusedxml.ElementTree
 
 from maptasker.src import taskedit
 from maptasker.src.actiont import lookup_values
@@ -2779,7 +2779,7 @@ HELPER_PROJECT_NAME = "MapTasker"
 _TASKER_AUTO_BACKUP_PATH = "/Tasker/configs/user/backup.xml"
 
 
-def _highest_object_id(root: defusedxml.ElementTree.Element | None) -> int:
+def _highest_object_id(root: Element | None) -> int:
     """The highest Task or Profile id in a TaskerData document, or 0."""
     ids = [
         int(object_id)
@@ -2789,7 +2789,7 @@ def _highest_object_id(root: defusedxml.ElementTree.Element | None) -> int:
     return max(ids, default=0)
 
 
-def _project_id(root: defusedxml.ElementTree.Element | None, project_name: str) -> str:
+def _project_id(root: Element | None, project_name: str) -> str:
     """The id a Project of this name has in a TaskerData document, or ""."""
     for kind, object_id, name in _objects_in(root) if root is not None else ():
         if kind == "Project" and name == project_name and object_id:
@@ -3185,7 +3185,7 @@ def names_in_export(xml: str | bytes) -> dict[str, list[str]]:
     return _names_by_kind(root) if root is not None else {kind: [] for kind in TASKER_OBJECT_KINDS}
 
 
-def _parse_tasker_xml(xml: str | bytes) -> defusedxml.ElementTree.Element | None:
+def _parse_tasker_xml(xml: str | bytes) -> Element | None:
     """A TaskerData document's root, or None if it does not parse."""
     import defusedxml.ElementTree as DefusedET  # noqa: PLC0415
 
@@ -3195,7 +3195,7 @@ def _parse_tasker_xml(xml: str | bytes) -> defusedxml.ElementTree.Element | None
         return None
 
 
-def _objects_in(root: defusedxml.ElementTree.Element) -> Iterable[tuple[str, str, str]]:
+def _objects_in(root: Element) -> Iterable[tuple[str, str, str]]:
     """(kind, id, name) for every Project, Profile, Task and Scene directly under the root.
 
     id is "" for a Scene, which has none; name is "" for an unnamed Profile or Task.
@@ -3209,7 +3209,7 @@ def _objects_in(root: defusedxml.ElementTree.Element) -> Iterable[tuple[str, str
             )
 
 
-def _names_by_kind(root: defusedxml.ElementTree.Element) -> dict[str, list[str]]:
+def _names_by_kind(root: Element) -> dict[str, list[str]]:
     """Every kind, each with its named objects in document order, once each."""
     names: dict[str, list[str]] = {kind: [] for kind in TASKER_OBJECT_KINDS}
     for kind, _object_id, name in _objects_in(root):
@@ -3455,8 +3455,8 @@ class IdFinding:
 
 
 def compare_ids(
-    export: defusedxml.ElementTree.Element,
-    device: defusedxml.ElementTree.Element,
+    export: Element,
+    device: Element,
 ) -> list[IdFinding]:
     """Every id in the export that the device's backup disagrees with, in export order.
 

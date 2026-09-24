@@ -83,8 +83,7 @@ from maptasker.src.varxref import VARIABLE_PATTERN
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 
 # ##################################################################################
@@ -208,7 +207,7 @@ def _table(name: str) -> dict:
     return _tables().get(name) or {}
 
 
-def _members(project_element: defusedxml.ElementTree.Element, tag: str) -> list[str]:
+def _members(project_element: Element, tag: str) -> list[str]:
     """A Project's <pids>, <tids> or <scenes> as a list, [] when it holds none.
 
     A fifth copy of a three-line read that mapjump, mapfind, projedit and sceneedit each
@@ -258,7 +257,7 @@ def _profile_target(profile_id: str) -> Target:
     )
 
 
-def _actions(task_element: defusedxml.ElementTree.Element) -> list:
+def _actions(task_element: Element) -> list:
     """A Task's actions in the order Tasker runs them.
 
     mapjump's, not findall("Action")'s.  Tasker orders actions by the numeric suffix of
@@ -288,12 +287,12 @@ def _renumber(actions: list) -> None:
         action.set("sr", f"act{number}")
 
 
-def _code(action: defusedxml.ElementTree.Element) -> str:
+def _code(action: Element) -> str:
     """An action's <code>, or "" -- the one field every action has."""
     return (action.findtext("code") or "").strip()
 
 
-def _string_argument(action: defusedxml.ElementTree.Element, arg_id: str) -> str:
+def _string_argument(action: Element, arg_id: str) -> str:
     """The text of an action's <Str sr="argN">, or "".
 
     Matched on the "sr" attribute rather than on child order, the way every reader in this
@@ -306,7 +305,7 @@ def _string_argument(action: defusedxml.ElementTree.Element, arg_id: str) -> str
     return ""
 
 
-def _action_name(action: defusedxml.ElementTree.Element) -> str:
+def _action_name(action: Element) -> str:
     """What this action is called, for a preview line.  Its code, when nothing names it."""
     code = _code(action)
     entry = action_codes.get(f"{code}t")
@@ -507,7 +506,7 @@ _PERFORM_TASK_TEMPLATE = (
 )
 
 
-def _new_perform_task(element_cls: type, task_name: str) -> defusedxml.ElementTree.Element:
+def _new_perform_task(element_cls: type, task_name: str) -> Element:
     """A Perform Task action calling `task_name`, built from nothing.
 
     Built here rather than through taskedit.add_action_to_task because that route refuses:
@@ -889,7 +888,7 @@ def plan_inline(task_id: str, action_number: int) -> Plan:
 
 
 def _inline_block(
-    call: defusedxml.ElementTree.Element,
+    call: Element,
     called_name: str,
     called: dict | None,
     task_id: str,
@@ -999,7 +998,7 @@ def _inline_steps(
 
 
 def _inline_warnings(
-    call: defusedxml.ElementTree.Element,
+    call: Element,
     called_name: str,
     called_actions: list,
     kept: list,
@@ -1100,7 +1099,7 @@ def _relocate(tag: str, member: str, to_project: str, from_projects: list[str]) 
             projedit.set_project_members(entry["xml"], tag, [*existing, member])
 
 
-def _profile_task_ids(profile_element: defusedxml.ElementTree.Element) -> list[str]:
+def _profile_task_ids(profile_element: Element) -> list[str]:
     """A Profile's Entry and Exit Task ids, deduplicated, in <mid0>/<mid1> order.
 
     dict.fromkeys rather than a set: a Profile may legitimately name one Task as both its
@@ -1365,7 +1364,7 @@ def unique_name(base: str, taken: set[str], suffix: str = "copy") -> str:
     return candidate
 
 
-def _copy_task_element(task_element: defusedxml.ElementTree.Element, new_id: str, new_name: str) -> object:
+def _copy_task_element(task_element: Element, new_id: str, new_name: str) -> object:
     """A deep copy of a Task, under a new id and name, ready to register.
 
     <cdate> is left as the original's -- when this Task's actions were first written is a
@@ -1380,7 +1379,7 @@ def _copy_task_element(task_element: defusedxml.ElementTree.Element, new_id: str
     return element
 
 
-def _copy_profile_element(profile_element: defusedxml.ElementTree.Element, new_id: str, new_name: str) -> object:
+def _copy_profile_element(profile_element: Element, new_id: str, new_name: str) -> object:
     """A deep copy of a Profile, under a new id and name.  The Task links are left for the caller."""
     element = copy.deepcopy(profile_element)
     element.set("sr", f"prof{new_id}")
@@ -1389,7 +1388,7 @@ def _copy_profile_element(profile_element: defusedxml.ElementTree.Element, new_i
     return element
 
 
-def _copy_scene_element(scene_element: defusedxml.ElementTree.Element, new_name: str) -> object:
+def _copy_scene_element(scene_element: Element, new_name: str) -> object:
     """A deep copy of a Scene under a new name.
 
     A Scene's own sr is 'scene<its name>' rather than 'sceneN' -- unlike every other object
@@ -1718,7 +1717,7 @@ class _ProjectCopy:
     scene_names: dict[str, str]  # old Scene name -> the copy's name
 
 
-def _plan_project_copy(project_element: defusedxml.ElementTree.Element) -> _ProjectCopy:
+def _plan_project_copy(project_element: Element) -> _ProjectCopy:
     """Choose a free name for every child of a Project about to be duplicated.
 
     Each kind is checked against its own table AND against the names chosen earlier in this

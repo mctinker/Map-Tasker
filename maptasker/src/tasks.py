@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree  # Need for type hints
 
@@ -20,6 +21,9 @@ from maptasker.src.sysconst import (
     UNNAMED_ITEM,
     pattern14,
 )
+
+if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
 
 blank = "&nbsp;"
 
@@ -83,7 +87,7 @@ def reformat_html(html_string: str) -> str:
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
 # Optimized
-def get_actions(current_task: defusedxml.ElementTree) -> list:
+def get_actions(current_task: Element) -> list:
     """
     Optimized extraction of actions from a task XML element.
     """
@@ -235,7 +239,7 @@ def get_task_name(
 def get_project_for_solo_task(
     the_task_id: str,
     projects_with_no_tasks: list,
-) -> tuple[str, defusedxml.Element]:
+) -> tuple[str, Element]:
     """
     Find the Project belonging to the Task id passed in
     :param the_task_id: the ID of the Task

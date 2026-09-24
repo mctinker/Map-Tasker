@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 # TYPE_CHECKING is a special constant that is assumed to be True by 3rd party static type checkers. It is False at runtime.
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 import contextlib
 
@@ -46,7 +46,7 @@ WANTED_ACTION_ELEMENTS = frozenset(
 #   arg_lst: list of sorted args as numbers only (e.g. 'arg' removed from 'arg0')
 #   type_list: list of sorted types (e.g. 'Int', 'Str', etc.)
 def get_args(
-    action: defusedxml.ElementTree,
+    action: Element,
     ignore_list: list,
 ) -> tuple[list, list, list]:
     """
@@ -81,7 +81,7 @@ def get_args(
 
 
 # Evaluate the If statement and return the operation
-def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
+def evaluate_condition(child: Element) -> tuple[str, str, str]:
     """
     Evaluate the If statement and return the operation
         :param child: xml head element containing the <lhs xml element to be evaluated
@@ -174,7 +174,7 @@ def process_xml_list(
     arg_location: int,
     the_int_value: str,
     match_results: list,
-    arguments: defusedxml.ElementTree,
+    arguments: list[str],
 ) -> None:
     """
     Evaluates an argument from an XML list and adds the processed result to match_results.
@@ -201,7 +201,7 @@ def process_xml_list(
         arg_location (int): The position of the argument in the lookup table.
         the_int_value (str): The integer value found in the <argn> XML element.
         match_results (list): List to store evaluated values.
-        arguments (ElementTree): XML element containing argument definitions.
+        arguments (list[str]): the argument names (e.g. 'arg0'), used only in the error message.
 
     Returns:
         None
@@ -254,7 +254,7 @@ def process_xml_list(
 
 
 # Get Task's label, disabled flag and any conditions
-def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
+def get_label_disabled_condition(child: Element) -> str:
     """
     Get Task's label, disabled flag and any conditions
         :param child: head Action xml element
@@ -325,7 +325,7 @@ def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
 
 # Get any/all conditions associated wwith this Task.
 # Get any/all conditions associated with Action
-def get_conditions(child: defusedxml, the_action_code: str) -> str:
+def get_conditions(child: Element, the_action_code: str) -> str:
     """
     Generates conditional statements for an action.
 
@@ -362,7 +362,7 @@ def get_conditions(child: defusedxml, the_action_code: str) -> str:
 # Get the: label, whether to continue Task after error, etc.
 # Chase after relevant data after <code> Task action
 def get_extra_stuff(
-    code_action: defusedxml.ElementTree,
+    code_action: Element,
     action_type: bool,
 ) -> str:
     """
@@ -450,7 +450,7 @@ def replace_newline(string: str) -> str:
 
 
 # Get the application specifics for the given code
-def get_app_details(code_child: defusedxml.ElementTree) -> tuple[str, str, str]:
+def get_app_details(code_child: Element) -> tuple[str, str, str]:
     """
     Extracts application details from the given XML code element.
 

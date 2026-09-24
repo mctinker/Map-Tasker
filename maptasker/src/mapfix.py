@@ -72,8 +72,7 @@ from maptasker.src.sysconst import FIX_FILE, logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Collection
-
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 
 # ##################################################################################
@@ -349,13 +348,13 @@ def _table(name: str) -> dict:
     return (PrimeItems.tasker_root_elements or {}).get(name) or {}
 
 
-def _task_element(task_id: str) -> defusedxml.ElementTree.Element | None:
+def _task_element(task_id: str) -> Element | None:
     """One Task's live element, or None when the id is not in the tables."""
     entry = _table("all_tasks").get(task_id)
     return entry["xml"] if entry else None
 
 
-def _action_at(task_element: defusedxml.ElementTree.Element, number: int) -> defusedxml.ElementTree.Element | None:
+def _action_at(task_element: Element, number: int) -> Element | None:
     """The action a report calls number `number`, or None when the Task has no such action.
 
     `number` counts from 1 in RUN order, which is the only number the user has ever seen --
@@ -371,15 +370,15 @@ def _action_name(code: str) -> str:
     return entry.name if entry is not None else f"code {code}"
 
 
-def _code(action: defusedxml.ElementTree.Element) -> str:
+def _code(action: Element) -> str:
     """An action's <code>, or "" -- the one field every action has."""
     return (action.findtext("code") or "").strip()
 
 
 def _argument_element(
-    action: defusedxml.ElementTree.Element,
+    action: Element,
     arg_id: str,
-) -> defusedxml.ElementTree.Element | None:
+) -> Element | None:
     """One of an action's argument children, matched on 'sr' rather than on child order.
 
     The way every reader in this codebase reaches an argument -- Tasker does not guarantee
@@ -389,7 +388,7 @@ def _argument_element(
     return next((child for child in action if child.attrib.get("sr") == wanted), None)
 
 
-def _next_sr(task_element: defusedxml.ElementTree.Element) -> str:
+def _next_sr(task_element: Element) -> str:
     """The sr= an action appended to this Task must carry to run last.
 
     One past the highest in use, rather than the action count: Tasker orders actions by the
@@ -408,7 +407,7 @@ def _next_sr(task_element: defusedxml.ElementTree.Element) -> str:
     return f"act{highest + 1}"
 
 
-def _labels_of(task_element: defusedxml.ElementTree.Element, except_number: int = 0) -> list[tuple[str, str]]:
+def _labels_of(task_element: Element, except_number: int = 0) -> list[tuple[str, str]]:
     """Every label this Task carries, as (label, 'action 4 -- "check the total"').
 
     A Tasker label doubles as an action's comment, so most of these are prose that nothing
@@ -539,10 +538,10 @@ def _plan_timeout(where: Target, timeouts: dict[str, str]) -> Fix | Skip:
 
 
 def _create_timeout_argument(
-    action: defusedxml.ElementTree.Element,
+    action: Element,
     code: str,
     arg_id: str,
-) -> defusedxml.ElementTree.Element:
+) -> Element:
     """Write the timeout argument into an action that has never carried one.
 
     Built through taskedit.build_synthesized_args -- the same function Add Action uses and

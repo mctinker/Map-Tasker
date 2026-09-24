@@ -27,8 +27,7 @@ from maptasker.src.sysconst import MY_VERSION, SCENE_TASK_TYPES
 
 if TYPE_CHECKING:
     from datetime import datetime
-
-    import defusedxml.ElementTree
+    from xml.etree.ElementTree import Element
 
 # The four things that can happen to an object, and the order their sections appear in.
 ADDED = "ADDED"
@@ -175,7 +174,7 @@ class _Side:
 # ##################################################################################
 # Reading one side.
 # ##################################################################################
-def _text(element: defusedxml.ElementTree.Element | None, tag: str) -> str:
+def _text(element: Element | None, tag: str) -> str:
     """The stripped text of a child element, or "" when it is missing or empty."""
     if element is None:
         return ""
@@ -183,7 +182,7 @@ def _text(element: defusedxml.ElementTree.Element | None, tag: str) -> str:
     return (child.text or "").strip() if child is not None else ""
 
 
-def _split_list(element: defusedxml.ElementTree.Element, tag: str) -> set[str]:
+def _split_list(element: Element, tag: str) -> set[str]:
     """A Project's comma-separated <pids>/<tids>/<scenes>, as a SET.
 
     A set because Tasker reorders these freely and the order carries no meaning -- as a
@@ -193,7 +192,7 @@ def _split_list(element: defusedxml.ElementTree.Element, tag: str) -> set[str]:
     return {item.strip() for item in text.split(",") if item.strip()} if text else set()
 
 
-def _canonical(element: defusedxml.ElementTree.Element, *, is_object_root: bool = False) -> str:
+def _canonical(element: Element, *, is_object_root: bool = False) -> str:
     """A comparable rendering of an element: same content, same string.
 
     Two things are deliberately dropped, and the first is the difference between a usable
@@ -210,7 +209,7 @@ def _canonical(element: defusedxml.ElementTree.Element, *, is_object_root: bool 
     """
     parts: list[str] = []
 
-    def walk(node: defusedxml.ElementTree.Element, *, root: bool) -> None:
+    def walk(node: Element, *, root: bool) -> None:
         if node.tag in _VOLATILE_TAGS:
             return
         parts.append(f"<{node.tag}")
@@ -297,7 +296,7 @@ def _action_code_name(code: str) -> str:
     return entry.name if entry else f"code {code}"
 
 
-def _action_at(action: defusedxml.ElementTree.Element, position: int) -> str:
+def _action_at(action: Element, position: int) -> str:
     """ "2. Say" -- one action, numbered as the user sees it in Tasker."""
     return f"{position}. {_action_code_name(_text(action, 'code'))}"
 
@@ -312,7 +311,7 @@ def _argument_names(code: str) -> dict[str, str]:
     return {argument.arg_id: argument.arg_name for argument in (entry.args or ())} if entry else {}
 
 
-def _action_arguments(action: defusedxml.ElementTree.Element) -> dict[str, str]:
+def _action_arguments(action: Element) -> dict[str, str]:
     """{arg id: value} for one action, across whichever element types hold its arguments."""
     arguments = {}
     for child in action:
@@ -327,8 +326,8 @@ def _action_arguments(action: defusedxml.ElementTree.Element) -> dict[str, str]:
 
 
 def _action_detail(
-    before: defusedxml.ElementTree.Element,
-    after: defusedxml.ElementTree.Element,
+    before: Element,
+    after: Element,
     position: int,
 ) -> list[str]:
     """What changed inside one action that kept its place."""
@@ -417,8 +416,8 @@ def _pair_replaced_actions(
 
 
 def _task_details(
-    before: defusedxml.ElementTree.Element,
-    after: defusedxml.ElementTree.Element,
+    before: Element,
+    after: Element,
 ) -> list[str]:
     """What changed in a Task's action list.
 
@@ -462,7 +461,7 @@ def _task_details(
 # ##################################################################################
 # Profiles, Projects and Scenes.
 # ##################################################################################
-def _conditions(profile: defusedxml.ElementTree.Element) -> dict[str, list[str]]:
+def _conditions(profile: Element) -> dict[str, list[str]]:
     """{condition type: canonical text of each}, e.g. {"Event": ["<Event>...</Event>"]}.
 
     Anything a Profile carries that is not one of its own fields is a condition -- the
@@ -477,7 +476,7 @@ def _conditions(profile: defusedxml.ElementTree.Element) -> dict[str, list[str]]
     return grouped
 
 
-def _profile_summary(side: _Side, profile: defusedxml.ElementTree.Element) -> list[str]:
+def _profile_summary(side: _Side, profile: Element) -> list[str]:
     """What an added or removed Profile was, so the entry means something on its own."""
     details = []
     condition_types = sorted(_conditions(profile))
@@ -546,8 +545,8 @@ def _project_details(older: _Side, newer: _Side, key: str) -> list[str]:
 
 
 def _project_variable_details(
-    before: defusedxml.ElementTree.Element,
-    after: defusedxml.ElementTree.Element,
+    before: Element,
+    after: Element,
 ) -> list[str]:
     """Project variables added, removed or given a new value.
 
@@ -556,7 +555,7 @@ def _project_variable_details(
     backups -- accurate, and no use to anybody.
     """
 
-    def variables(project: defusedxml.ElementTree.Element) -> dict[str, str]:
+    def variables(project: Element) -> dict[str, str]:
         return {
             _text(item, "pvn"): _text(item, "pvv") for item in project.findall("ProfileVariable") if _text(item, "pvn")
         }
@@ -572,12 +571,12 @@ def _project_variable_details(
     return details
 
 
-def _children_canonical(element: defusedxml.ElementTree.Element, exclude: set[str]) -> str:
+def _children_canonical(element: Element, exclude: set[str]) -> str:
     """The canonical text of an element's children, skipping the named tags."""
     return "".join(_canonical(child) for child in element if child.tag not in exclude)
 
 
-def _scene_elements(scene: defusedxml.ElementTree.Element) -> dict[str, defusedxml.ElementTree.Element]:
+def _scene_elements(scene: Element) -> dict[str, Element]:
     """{label: element} for a Scene's drawable elements.
 
     Keyed by the label the designer shows ("Text 'Ok'") rather than by the element's sr:
@@ -587,7 +586,7 @@ def _scene_elements(scene: defusedxml.ElementTree.Element) -> dict[str, defusedx
     return {_scene_element_label(child): child for child in scene if child.tag.endswith("Element")}
 
 
-def _scene_element_label(element: defusedxml.ElementTree.Element) -> str:
+def _scene_element_label(element: Element) -> str:
     """ "Button 'Cancel'" -- a Scene element as its designer names it.
 
     The name is arg0, the same place sceneedit.legacy_element_label reads it from; it is
@@ -630,8 +629,8 @@ def _scene_element_details(
     older: _Side,
     newer: _Side,
     label: str,
-    before: defusedxml.ElementTree.Element,
-    after: defusedxml.ElementTree.Element,
+    before: Element,
+    after: Element,
 ) -> list[str]:
     """What changed about one Scene element that is on both sides."""
     if _canonical(before) == _canonical(after):
@@ -681,7 +680,7 @@ def _summary_for(kind: str, side: _Side, key: str) -> list[str]:
     return []
 
 
-def _content_signature(element: defusedxml.ElementTree.Element, name_tag: str) -> set[str]:
+def _content_signature(element: Element, name_tag: str) -> set[str]:
     """The values an object holds -- its content with the markup thrown away.
 
     Text and 'val' attributes only.  Comparing canonical XML instead does not work: two
@@ -695,7 +694,7 @@ def _content_signature(element: defusedxml.ElementTree.Element, name_tag: str) -
     """
     values: set[str] = set()
 
-    def walk(node: defusedxml.ElementTree.Element, *, root: bool) -> None:
+    def walk(node: Element, *, root: bool) -> None:
         if node.tag in _VOLATILE_TAGS or (root and node.tag == name_tag):
             return
         if node.text and node.text.strip():
