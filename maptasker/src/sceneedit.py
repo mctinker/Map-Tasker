@@ -85,7 +85,7 @@ from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.editcommon import touch_project_mdate
-from maptasker.src.sysconst import SCENE_TASK_TYPES
+from maptasker.src.sysconst import SCENE_TASK_TYPES, V2_MATERIAL_PALETTE
 from maptasker.src import appinv
 from maptasker.src.taskervars import tasker_global_variable_names, tasker_global_variables
 from maptasker.src.maputil2 import is_html_colour
@@ -652,8 +652,6 @@ def v2_is_colour(text: str) -> bool:
     inspector marks, rather than refusing to store it: it is the user's Scene, and a colour
     this app fails to recognise is still theirs to keep.
     """
-    from maptasker.src.sceneview import V2_MATERIAL_PALETTE  # noqa: PLC0415
-
     value = text.strip()
     return not value or value.startswith("%") or value in V2_MATERIAL_PALETTE or is_html_colour(value)
 

@@ -8752,21 +8752,27 @@ def initialize_screen(self: MyGui) -> None:
                         "Displays the Tree view.\n\nUse this to navigate the hierarchical structure of your Projects, Profiles, Tasks, and Scenes.",
                     ),
                 ).style("white-space: pre-wrap")
-        # Full width rather than a fourth button in the row above: the drawer is w-80, and a
-        # fourth button wraps.  The width also leaves room for the longer label this needs.
+        # Health Check and Fix Findings share a row, each taking half of it: Fix Findings is the
+        # answer to the report Health Check produces, so it sits beside it.  Not a fourth button
+        # in the row above: the drawer is w-80, and a fourth button wraps.  At half width a
+        # label beside its icon wraps ("HEALTH / CHECK"), so the icon goes above the label and
+        # the side padding is halved, which leaves each label room for one line.
         # Coloured through the "color" prop rather than a bg-* class, the way the Get XML and
         # Exit buttons are.  Quasar puts its own bg-primary on every button, and that wins over
         # a Tailwind bg-* added here -- a bg-teal-600 class renders plain blue.
-        self.health_check_button = (
-            ui.button(
-                translate_string("Health Check"),
-                color="teal",
-                on_click=self.event_handlers.health_check_event,
-                icon="health_and_safety",
+        health_row = ui.row().classes("w-full no-wrap gap-2").style("margin-top:-6px")
+        with health_row:
+            self.health_check_button = (
+                ui.button(
+                    translate_string("Health Check"),
+                    color="teal",
+                    on_click=self.event_handlers.health_check_event,
+                    icon="health_and_safety",
+                )
+                .classes("flex-1 justify-center")
+                .props("stack")
+                .style("padding-left:8px; padding-right:8px")
             )
-            .classes("w-full justify-center mt-0")
-            .style("margin-top:-6px")
-        )
         with self.health_check_button:
             ui.tooltip(
                 translate_string(
@@ -8778,20 +8784,22 @@ def initialize_screen(self: MyGui) -> None:
                 ),
             ).style("white-space: pre-wrap")
 
-        # Directly under Health Check, because it is the answer to the report that button
-        # produces and is useless anywhere else.  Its own button rather than something inside
-        # the report: the report is displayed as one escaped blob of text in a <pre> (see
+        # Beside Health Check, because it is the answer to the report that button produces and
+        # is useless anywhere else.  Its own button rather than something inside the report:
+        # the report is displayed as one escaped blob of text in a <pre> (see
         # userintr_reports.health_check_event on why), and a tick box cannot be put into one.
-        self.fix_findings_button = (
-            ui.button(
-                translate_string("Fix Findings"),
-                color="teal",
-                on_click=self.event_handlers.fix_findings_event,
-                icon="build",
+        with health_row:
+            self.fix_findings_button = (
+                ui.button(
+                    translate_string("Fix Findings"),
+                    color="teal",
+                    on_click=self.event_handlers.fix_findings_event,
+                    icon="build",
+                )
+                .classes("flex-1 justify-center")
+                .props("stack")
+                .style("padding-left:8px; padding-right:8px")
             )
-            .classes("w-full justify-center")
-            .style("margin-top:-6px")
-        )
         with self.fix_findings_button:
             ui.tooltip(
                 translate_string(
@@ -8805,9 +8813,8 @@ def initialize_screen(self: MyGui) -> None:
                 ),
             ).style("white-space: pre-wrap")
 
-        # Full width and coloured through "color" for the same two reasons the Health Check
-        # button above is: the drawer is w-80 and this label is longer still, and Quasar's own
-        # bg-primary beats a Tailwind bg-* class added here.
+        # Full width, because the drawer is w-80 and this label is too long to share a row, and
+        # coloured through "color" because Quasar's own bg-primary beats a Tailwind bg-* class.
         self.compare_files_button = (
             ui.button(
                 translate_string("Compare Files"),

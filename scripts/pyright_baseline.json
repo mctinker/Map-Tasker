@@ -31,7 +31,7 @@
   },
   "maptasker/src/aiutils.py": {
     "reportArgumentType": 2,
-    "reportAttributeAccessIssue": 9
+    "reportAttributeAccessIssue": 5
   },
   "maptasker/src/bildhtml.py": {
     "reportArgumentType": 2,
@@ -146,7 +146,7 @@
   },
   "maptasker/src/guiutils.py": {
     "reportArgumentType": 4,
-    "reportAttributeAccessIssue": 89,
+    "reportAttributeAccessIssue": 93,
     "reportGeneralTypeIssues": 1,
     "reportReturnType": 2
   },

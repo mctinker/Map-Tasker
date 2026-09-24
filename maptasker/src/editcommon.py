@@ -22,6 +22,9 @@ import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+# maputil2's upload and read-back are called through the module, not imported by name, so a
+# test that stands in for them on maputil2 is the one these calls reach.
+from maptasker.src import maputil2
 from maptasker.src.sysconst import ILLEGAL_IN_FILENAME
 
 if TYPE_CHECKING:
@@ -156,9 +159,6 @@ class EditorKind:
         deleted since the dialog opened -- is the caller's to catch, since only the
         caller knows whether its render can raise at all.
         """
-        # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-        from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
-
         ip_address = ip_address.strip()
         ip_port = ip_port.strip()
         if not ip_address or not ip_port:
@@ -168,7 +168,7 @@ class EditorKind:
         device_path = self.android_path(object_name)
         filename = device_path.rsplit("/", 1)[-1]
 
-        return_code, response = http_upload_request(
+        return_code, response = maputil2.http_upload_request(
             ip_address,
             ip_port,
             self.android_location,
@@ -183,7 +183,7 @@ class EditorKind:
         # answers 404 to a read that arrives too soon -- and failing on the first miss
         # aborts a save whose file is on the device a moment later.  See
         # maputil2.read_back_uploaded_file.
-        verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
+        verify_code, verify_content = maputil2.read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
         if verify_code != 0:
             return 8, str(verify_content), _NO_BYTES
 

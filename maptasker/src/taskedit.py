@@ -28,7 +28,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
-from maptasker.src import appinv, editcommon, piiscan, sessundo
+from maptasker.src import appinv, caches, editcommon, piiscan, sessundo
 from maptasker.src.actionc import action_codes
 from maptasker.src.actiont import lookup_values
 from maptasker.src.bundle import bundles
@@ -1408,8 +1408,9 @@ def classify_action_addability(action_key: str) -> tuple[bool, str]:
     return True, ""
 
 
-_ADDABLE_ACTIONS_CACHE: list[dict] | None = None
-_ADDABLE_ACTIONS_GENERATION = -1
+# Rebuilt when the app inventory's generation moves (see list_addable_actions), and cleared
+# with every other cache when a configuration is loaded (see caches).
+_addable_actions: caches.KeyedCache[list[dict]] = caches.KeyedCache("taskedit.addable_actions")
 
 
 def list_addable_actions() -> list[dict]:
@@ -1422,11 +1423,11 @@ def list_addable_actions() -> list[dict]:
     and rebuilds when that moves -- without it, the Add Action picker would go on showing
     'Launch App' greyed out, with a reason that stopped being true, until restart.
     """
-    global _ADDABLE_ACTIONS_CACHE, _ADDABLE_ACTIONS_GENERATION  # noqa: PLW0603
-    inventory_generation = appinv.generation()
-    if _ADDABLE_ACTIONS_CACHE is not None and inventory_generation == _ADDABLE_ACTIONS_GENERATION:
-        return _ADDABLE_ACTIONS_CACHE
+    return _addable_actions.get(appinv.generation(), _build_addable_actions)
 
+
+def _build_addable_actions() -> list[dict]:
+    """Every real numeric Task-action entry with its addability, sorted by name (see list_addable_actions)."""
     rows = []
     for key, action_code in action_codes.items():
         if not (key.endswith("t") and key[:-1].isdigit()):
@@ -1447,8 +1448,6 @@ def list_addable_actions() -> list[dict]:
             },
         )
     rows.sort(key=lambda row: row["name"])
-    _ADDABLE_ACTIONS_CACHE = rows
-    _ADDABLE_ACTIONS_GENERATION = inventory_generation
     return rows
 
 

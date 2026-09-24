@@ -1219,7 +1219,8 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     # Normally there is nothing at that name and this does nothing -- the name has this
     # second's timestamp in it.  It matters for the one case that collides: two saves
     # within the same second generate the same name, and the second would overwrite the
-    # first without it.  Lazy import to avoid a circular one (mirrors getbakup).
+    # first without it.  Imported here rather than at the top: most of the package imports
+    # maputil2, and every one of them would then depend on presave.
     from maptasker.src.presave import backup_local_file  # noqa: PLC0415
 
     backup_local_file(new_file_path)

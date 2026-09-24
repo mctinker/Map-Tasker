@@ -27,7 +27,7 @@ from zoneinfo import (
 
 import requests
 
-from maptasker.src import clock, console
+from maptasker.src import caches, clock, console
 from maptasker.src.error import rutroh_error
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
@@ -406,10 +406,14 @@ def clear_tasker_data() -> None:
 
     Each table in PrimeItems.tasker_root_elements is emptied where it stands, whatever tables
     there are.  This used to name them one at a time, and named five of the seven: the
-    Profiles by name and the Services went on holding the previous backup's objects.
+    Profiles by name and the Services went on holding the previous backup's objects.  The
+    same goes for what other modules keep about the configuration: every cache on the
+    registry is emptied with the tables (see caches), so none can go on describing the
+    backup that is being replaced.
     """
     for table in PrimeItems.tasker_root_elements.values():
         table.clear()
+    caches.clear_all()
 
 
 def count_unique_substring(string_list: list, substring: str) -> int:

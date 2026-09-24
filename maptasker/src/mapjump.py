@@ -1193,7 +1193,9 @@ def _diagram_project_prefix() -> str:
     and Arabic are left untranslated there, so translating here would look for a label the
     Diagram never wrote.
     """
-    from maptasker.src.maputil2 import translate_string  # noqa: PLC0415  GUI-free, but only needed here
+    # Kept off this module's import path: mapjump is imported almost everywhere, and only this
+    # function needs maputil2 (see tests/test_import_structure.py, _KEPT_DEFERRED).
+    from maptasker.src.maputil2 import translate_string  # noqa: PLC0415
 
     if PrimeItems.program_arguments.language in ("Arabic", "English"):
         return "Project: "

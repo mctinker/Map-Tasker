@@ -53,6 +53,7 @@ import hashlib
 import os
 from typing import TYPE_CHECKING
 
+from maptasker.src import caches
 from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
@@ -72,7 +73,7 @@ SEPARATOR_TEXT = "\x00"
 
 # What the Map now on disk was built from: (configuration digest, settings digest, file
 # path, the file's size and modification time, how many output lines went into it).
-_remembered: tuple | None = None
+_remembered: caches.Slot[tuple | None] = caches.Slot("mapcache.remembered", None)
 
 
 def _absorb(digest: object, element: "Element | None") -> None:
@@ -173,24 +174,22 @@ def remember(path: str, output_lines: int, built_from: tuple[str, str]) -> None:
     if identity is None:  # It was not written after all; nothing to stand on.
         forget()
         return
-    global _remembered  # noqa: PLW0603
-    _remembered = (built_from[0], built_from[1], path, identity, output_lines)
+    _remembered.value = (built_from[0], built_from[1], path, identity, output_lines)
 
 
 def is_current(path: str, wanted: tuple[str, str]) -> bool:
     """Is the Map at `path` the one that building `wanted` would produce?"""
-    if _remembered is None:
+    if _remembered.value is None:
         return False
-    configuration, settings, remembered_path, identity, _ = _remembered
+    configuration, settings, remembered_path, identity, _ = _remembered.value
     return path == remembered_path and (configuration, settings) == wanted and _file_identity(path) == identity
 
 
 def output_lines() -> int:
     """How many output lines went into the Map being reused (0 when nothing is held)."""
-    return _remembered[4] if _remembered else 0
+    return _remembered.value[4] if _remembered.value else 0
 
 
 def forget() -> None:
     """Drop the record, so the next Map is built from scratch."""
-    global _remembered  # noqa: PLW0603
-    _remembered = None
+    _remembered.clear()

@@ -6,7 +6,7 @@ import os
 import webbrowser
 
 import maptasker.src.taskuniq as special_tasks
-from maptasker.src import console, mapcache, projects
+from maptasker.src import caches, console, mapcache, projects
 from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import output_directory, unreachable_anchors
 from maptasker.src.error import error_handler, exit_program, rutroh_error
@@ -40,7 +40,7 @@ from maptasker.src.sysconst import (
 
 # Where display_back_matter wrote the Map, for build_html to record once the run is done
 # with the settings.  "" when this run has not written one.
-_map_just_written = ""
+_map_just_written: caches.Slot[str] = caches.Slot("bildhtml.map_just_written", "")
 
 
 def build_html(file_to_get: str) -> int:
@@ -140,10 +140,9 @@ def build_html(file_to_get: str) -> int:
     # one again is answered with that file rather than by building it a second time.  Last,
     # after the settings have been saved: saving edits them, and the note has to describe
     # the settings as the next run will find them, not as they were mid-build.
-    global _map_just_written  # noqa: PLW0603
-    if _map_just_written and not doing_ai_analysis:
-        mapcache.remember(_map_just_written, PrimeItems.map_output_line_count, building_from)
-        _map_just_written = ""
+    if _map_just_written.value and not doing_ai_analysis:
+        mapcache.remember(_map_just_written.value, PrimeItems.map_output_line_count, building_from)
+        _map_just_written.value = ""
 
     # Rerun this program if "Rerun" was selected from GUI
     # First get the filename as a string.
@@ -440,8 +439,7 @@ def display_back_matter() -> None:
     # rather than acted on here because the note has to be taken once the run is finished
     # with the settings -- saving them is the last thing build_html does, and it edits
     # them on the way through (see the call to save_restore_args).
-    global _map_just_written  # noqa: PLW0603
-    _map_just_written = f"{my_output_dir}{my_file_name}"
+    _map_just_written.value = f"{my_output_dir}{my_file_name}"
 
     # Display the final results in the default web browser
     display_output(my_output_dir, my_file_name)

@@ -93,6 +93,7 @@ test = [
 dev = [
     "ai-translator>=0.1.0",
     "deep-translator>=1.11.4",
+    "import-linter>=2.15",
     "matchify>=0.3.0",
     "ollama>=0.6.2",
     "pip-autoremove>=0.10.0",
@@ -329,22 +330,20 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-# Set from what CI measures, which is NOT what a developer machine measures. 66 tests
-# load a real backup out of XML/, and XML/ holds personal Tasker data and is not in the
-# repository -- so they skip on a fresh clone and on CI, and take about 2.4 points of
-# coverage with them. Measured: 45.8% here with XML/ present, 43.0% on CI without it.
-# The floor is a little under the CI figure, so a per-Python-version difference cannot
-# fail the build while a real regression does.
+# Set from what CI measures: a checkout with no XML/, since XML/ holds personal Tasker
+# data and is not in the repository.  Every test that reads sample data reads
+# tests/data/synthetic_backup.xml, with any backups in XML/ only as extra material, so a
+# developer machine now measures the same as CI -- 57.5% on Python 3.11, 3.12 and 3.13
+# alike, with or without XML/.  The floor is a little under that, so a per-Python-version
+# difference cannot fail the build while a real regression does.
 #
-# Raise this as coverage improves -- it is meant to ratchet upward, never down. The 44
-# it was lowered from was measured with XML/ present, which made it unreachable on the
-# only machine that enforces it; recovering those points means giving those tests a
-# fixture they can carry, not putting the backups in the repository.
+# Raise this as coverage improves -- it is meant to ratchet upward, never down.
 #
 # History: 36 at 37.58% (754 tests) -> 44 at 45.41%, when the XML-parsing core
 # (taskerd/tasks/profiles/projects/scenes/action/actargs) gained direct tests and
-# went from 43% to 75% between them -> 42, recalibrated to CI's environment.
-fail_under = 42
+# went from 43% to 75% between them -> 42, recalibrated to CI's environment while
+# tests still skipped without XML/ -> 56 at 57.5% (1847 tests), once they no longer did.
+fail_under = 56
 exclude_also = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",
@@ -364,3 +363,100 @@ pythonVersion = "3.11"
 pythonPlatform = "Linux"
 venvPath = "."
 venv = ".venv"
+
+# Import layering, checked by import-linter ('lint-imports') in CI.  Three layers, each
+# allowed to import only the ones below it:
+#   entry points  -- start the program and pick CLI or GUI
+#   GUI           -- NiceGUI windows, dialogs and their event handlers
+#   core          -- reading, analysing, editing and reporting on a Tasker configuration
+# so a GUI module cannot be pulled into the core by accident, and the core stays usable by
+# the CLI and the tests without a web server.  Every module in maptasker.src must be in
+# exactly one layer ("exhaustive"): a new module fails the check until it is placed.
+# Import cycles, and the imports deferred into functions to break them, are ratcheted
+# separately by tests/test_import_structure.py.
+[tool.importlinter]
+root_package = "maptasker"
+include_external_packages = true
+# An import under "if TYPE_CHECKING:" never runs, so it can neither pull a module in at
+# runtime nor close a cycle -- it is the sanctioned way to name a type from a module that
+# must not be imported for real.
+exclude_type_checking_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Entry points above the GUI, the GUI above the core"
+type = "layers"
+containers = ["maptasker.src"]
+exhaustive = true
+layers = [
+    """
+    mapit : progargs : runcli : rungui
+    """,
+    """
+    getfile : guistate : guiutils : guiwins :
+    guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 :
+    guiwins_fix : guiwins_impact : guiwins_profedit : guiwins_refactor :
+    guiwins_restore : guiwins_taskedit : mapai : sceneview :
+    userintr : userintr_ai : userintr_android : userintr_editors :
+    userintr_loading : userintr_reports : userintr_settings
+    """,
+    """
+    actargs : action : caches : actionc : actiond : actione : actionr :
+    actiont : addcss : aiutils : apikeys : appinv : bildhtml :
+    bldargs : bldbndle : bundle : caveats : clip : clock :
+    colors : colrmode : condition : condjoin : config : console :
+    cria : debug : deprecate : deviceinv : diagcnst : diagintr :
+    diagram : diagutil : diffload : dirout : editcommon : error :
+    format : frontmtr : getbakup : getids : getputer : globalvr :
+    guiutil2 : healthck : impact : initparg : kidapp : lineout :
+    mapask : mapcache : mapexport : mapfind : mapfix : mapfonts :
+    mapjump : mappdf : maprefac : maprestore : mapswap : maputil2 :
+    maputil3 : maputils : mtexcept : nameattr : objprops : outline :
+    parsearg : piiscan : prefers : presave : primitem : proclist :
+    profedit : profiles : proflint : proginit : projects : projedit :
+    property : roundtrip : runcfg : sceneedit : scenes : servicec :
+    sessundo : share : shelsort : sysconst : taskactn : taskedit :
+    taskerd : taskervars : taskflag : taskflow : tasks : taskuniq :
+    timeline : translator : twisty : userhelp : valcodes : varxref :
+    xmldata : xmldiff
+    """,
+]
+
+[[tool.importlinter.contracts]]
+name = "Only the GUI and the entry points import NiceGUI"
+type = "protected"
+protected_modules = ["nicegui"]
+allowed_importers = [
+    "maptasker.src.getfile",
+    "maptasker.src.guistate",
+    "maptasker.src.guiutils",
+    "maptasker.src.guiwins",
+    "maptasker.src.guiwins2",
+    "maptasker.src.guiwins_canvas",
+    "maptasker.src.guiwins_designer_legacy",
+    "maptasker.src.guiwins_designer_v2",
+    "maptasker.src.guiwins_fix",
+    "maptasker.src.guiwins_impact",
+    "maptasker.src.guiwins_profedit",
+    "maptasker.src.guiwins_refactor",
+    "maptasker.src.guiwins_restore",
+    "maptasker.src.guiwins_taskedit",
+    "maptasker.src.mapai",
+    "maptasker.src.mapit",
+    "maptasker.src.progargs",
+    "maptasker.src.runcli",
+    "maptasker.src.rungui",
+    "maptasker.src.sceneview",
+    "maptasker.src.userintr",
+    "maptasker.src.userintr_ai",
+    "maptasker.src.userintr_android",
+    "maptasker.src.userintr_editors",
+    "maptasker.src.userintr_loading",
+    "maptasker.src.userintr_reports",
+    "maptasker.src.userintr_settings",
+]
+# restart_program_subprocess stops the GUI's own server when a restart is started from a
+# button.  It imports NiceGUI only when an event loop is running -- that is, only when the
+# GUI is up -- so the core still runs without it.
+ignore_imports = [
+    "maptasker.src.maputils -> nicegui",
+]

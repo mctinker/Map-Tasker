@@ -10,7 +10,7 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING
 
-from maptasker.src import tasks
+from maptasker.src import caches, tasks
 from maptasker.src.actionc import action_codes
 from maptasker.src.actione import action_results
 from maptasker.src.dirout import add_directory_item
@@ -521,7 +521,7 @@ def format_and_output_arguments(
 # So there is at most one at a time now: opening the next closes the last, and the Scene
 # closes the final one on its way out (get_details).  What is inside which changes; what
 # colour anything is does not.
-_carrying_scene_colour = False
+_carrying_scene_colour: caches.Slot[bool] = caches.Slot("scenes.carrying_scene_colour", False)
 
 
 def carry_the_scene_colour() -> None:
@@ -530,22 +530,20 @@ def carry_the_scene_colour() -> None:
     Both tags on one line, so that taking over from the last one costs the output no
     extra line of its own -- there is nothing between them to put on a line anyway.
     """
-    global _carrying_scene_colour  # noqa: PLW0603
-    closing = "</span>" if _carrying_scene_colour else ""
+    closing = "</span>" if _carrying_scene_colour.value else ""
     PrimeItems.output_lines.add_line_to_output(
         5,
         f'{closing}<span class="scene_color">',
         FormatLine.dont_format_line,
     )
-    _carrying_scene_colour = True
+    _carrying_scene_colour.value = True
 
 
 def drop_the_scene_colour() -> None:
     """Close the Scene colour being held open, if one is."""
-    global _carrying_scene_colour  # noqa: PLW0603
-    if _carrying_scene_colour:
+    if _carrying_scene_colour.value:
         PrimeItems.output_lines.add_line_to_output(5, "</span>", FormatLine.dont_format_line)
-        _carrying_scene_colour = False
+        _carrying_scene_colour.value = False
 
 
 # Break down the UI aspects and output them based on it's arguments.

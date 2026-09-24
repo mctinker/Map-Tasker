@@ -101,6 +101,12 @@ jobs:
       - name: typecheck ratchet
         run: uv run --no-sync python scripts/typecheck_ratchet.py
 
+      # [tool.importlinter] in pyproject.toml: entry points above the GUI, the GUI above the
+      # core, and NiceGUI imported only by the GUI. Every module has to be placed in a layer,
+      # so a new one fails here until it is.
+      - name: import layers
+        run: uv run --no-sync lint-imports
+
       # Enforced as of the format sweep. [tool.ruff.format] uses ruff's stable
       # style (preview = false), which only changes on a major release, so this
       # gate stays reproducible without pinning the ruff version.

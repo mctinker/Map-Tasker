@@ -146,9 +146,8 @@ def _render() -> str | None:
     with no history entry -- which is exactly the situation every edit was in before this
     module existed.
     """
-    # Lazy import: maputil2 is imported by most of this package, and importing it at module
-    # scope here puts sessundo in the middle of that graph for no benefit (mirrors
-    # getbakup.get_backup_file()'s note on the same problem).
+    # Imported here rather than at the top: maputil2 is imported by most of this package,
+    # and a module-scope import would put sessundo in the middle of that graph for no benefit.
     from maptasker.src.maputil2 import render_full_backup_xml  # noqa: PLC0415
 
     if PrimeItems.xml_root is None:

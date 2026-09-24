@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
 
-from maptasker.src import taskedit
+from maptasker.src import maputil2, taskedit
 from maptasker.src.actiont import lookup_values
 from maptasker.src.appinv import AppEntry, _store_fetched_apps
 from maptasker.src.editcommon import sanitize_filename
@@ -1427,8 +1427,6 @@ def _stage_profile_xml(
     .prf.xml would not fail loudly here -- it would be handed to Tasker.
     save_profile_to_android reads its own upload back for exactly this reason.
     """
-    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
-
     filename, read_path, task_path = staged_paths(
         _PROFILE_STAGE_LOCATION,
         profile_name,
@@ -1436,7 +1434,9 @@ def _stage_profile_xml(
         "profile",
     )
 
-    return_code, response = http_upload_request(ip_address, ip_port, _PROFILE_STAGE_LOCATION, filename, profile_xml)
+    return_code, response = maputil2.http_upload_request(
+        ip_address, ip_port, _PROFILE_STAGE_LOCATION, filename, profile_xml
+    )
     if return_code != 0:
         return return_code, str(response)
 
@@ -1445,7 +1445,7 @@ def _stage_profile_xml(
     # un-retried GET here used to fail an import whose file was on the device a moment
     # later; see maputil2.read_back_uploaded_file, which every other upload in this program
     # already goes through.
-    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, read_path, profile_xml)
+    verify_code, verify_content = maputil2.read_back_uploaded_file(ip_address, ip_port, read_path, profile_xml)
     if verify_code != 0:
         return 8, str(verify_content)
     return 0, task_path
@@ -2383,17 +2383,15 @@ def _stage_xml(
     not fail loudly here -- it would be handed to Tasker.  save_profile_to_android reads its
     own upload back for exactly this reason.
     """
-    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
-
     filename, read_path, task_path = route.staged_file_paths(object_name)
 
-    return_code, response = http_upload_request(ip_address, ip_port, route.stage_location, filename, xml_bytes)
+    return_code, response = maputil2.http_upload_request(ip_address, ip_port, route.stage_location, filename, xml_bytes)
     if return_code != 0:
         return return_code, str(response)
 
     # Retried rather than trusted -- see maputil2.read_back_uploaded_file for the write that
     # is still settling when this arrives.
-    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, read_path, xml_bytes)
+    verify_code, verify_content = maputil2.read_back_uploaded_file(ip_address, ip_port, read_path, xml_bytes)
     if verify_code != 0:
         return 8, str(verify_content)
     return 0, task_path
@@ -2936,9 +2934,8 @@ def stage_helper_project(ip_address: str, ip_port: str) -> HelperProjectResult:
 
     # Only a help: a device with no automatic backup, or one that cannot be read, still gets a
     # Project numbered past the loaded configuration.
-    from maptasker.src.maputil2 import read_android_file  # noqa: PLC0415
 
-    exists, device_xml = read_android_file(ip_address, ip_port, _TASKER_AUTO_BACKUP_PATH)
+    exists, device_xml = maputil2.read_android_file(ip_address, ip_port, _TASKER_AUTO_BACKUP_PATH)
     try:
         project_xml = build_helper_project_xml(HELPER_PROJECT_NAME, device_xml if exists else b"")
     except ValueError as error:

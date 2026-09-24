@@ -46,6 +46,7 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING, ClassVar
 
+from maptasker.src import caches
 from maptasker.src.initparg import ArgumentFields, ProgramArguments
 from maptasker.src.sysconst import (
     ANTHROPIC_MODELS,
@@ -432,9 +433,11 @@ class PrimeItemsReset:
 
         Every attribute not in SESSION_ATTRIBUTES gets a fresh copy of the value the class body
         gives it.  The class body is the only list: this used to name each attribute a second
-        time, by hand, and that copy had drifted from it.
+        time, by hand, and that copy had drifted from it.  What other modules keep about the
+        configuration goes with it (see caches).
         """
         reset_attributes(*_RUN_DEFAULTS)
+        caches.clear_all()
 
 
 # All three helpers below take the settings to read as an optional argument: pass a

@@ -28,6 +28,7 @@ from maptasker.src.guiwins_canvas import (
 )
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.sysconst import V2_MATERIAL_PALETTE
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -561,7 +562,7 @@ def _build_material_colour_menu(field: ui.color_input) -> None:
 
     Both halves are needed to choose one: the name is what gets stored and the colour is what
     it will look like, and neither on its own tells you whether onSecondaryContainer is the
-    dark one.  The colours are Material 3's baseline (sceneview.V2_MATERIAL_PALETTE) -- what a
+    dark one.  The colours are Material 3's baseline (sysconst.V2_MATERIAL_PALETTE) -- what a
     device without Material You shows, and an indication rather than a promise on one with it.
 
     Writing through `field.value` leaves the field's own on_change to store it, so this needs
@@ -569,7 +570,7 @@ def _build_material_colour_menu(field: ui.color_input) -> None:
     keeps to.
     """
     with ui.menu().props("auto-close").classes("max-h-96"), ui.column().classes("gap-0 p-1"):
-        for name, css in sceneview.V2_MATERIAL_PALETTE.items():
+        for name, css in V2_MATERIAL_PALETTE.items():
             with ui.item(on_click=lambda _e=None, n=name: field.set_value(n)).props("dense clickable"):
                 with ui.row().classes("items-center gap-2 no-wrap"):
                     ui.element("div").style(f"{_V2_SWATCH_STYLE} background: {css};")

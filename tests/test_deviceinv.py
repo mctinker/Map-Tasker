@@ -32,7 +32,7 @@ import pytest
 from urllib.parse import parse_qs, unquote, urlparse
 
 from maptasker.src.initparg import ProgramArguments
-from maptasker.src import appinv, deviceinv, maputil2, taskedit, taskerd
+from maptasker.src import appinv, caches, deviceinv, maputil2, taskedit, taskerd
 from maptasker.src.primitem import PrimeItems
 
 LAUNCH_APP = "20t"  # App=arg0
@@ -144,14 +144,12 @@ def _isolated_inventory(monkeypatch: pytest.MonkeyPatch, tmp_path: object) -> No
     fails on that one machine and passes everywhere else.  Found exactly that way, which is
     why this is autouse rather than something each fixture remembers to ask for.
 
-    The module-level inventory state is reset for the same reason: it is global, and a test
+    The caches are emptied for the same reason: the inventory is module state, and a test
     that fetches would otherwise leave its applications sitting in the next test's picker.
     """
     monkeypatch.setattr(appinv, "cache_path", lambda: str(tmp_path / "MapTasker_Apps.json"))
     monkeypatch.setattr(maputil2, "_auth_keys", {})
-    monkeypatch.setattr(appinv, "_device_apps", [])
-    monkeypatch.setattr(appinv, "_cache_loaded", False)
-    monkeypatch.setattr(appinv, "_harvested_from", appinv._NOT_HARVESTED)  # noqa: SLF001
+    caches.clear_all()
 
 
 def _load(xml_text: str) -> None:
@@ -608,7 +606,9 @@ def test_the_helper_task_maptasker_installs_is_the_one_it_meant_to(device: _Fake
 
     # Packages and activities in bulk; labels are no longer one of them -- that is the
     # whole point of the loop.
-    list_types = [action.find("Int[@sr='arg0']").attrib["val"] for action in actions if action.findtext("code") == "815"]
+    list_types = [
+        action.find("Int[@sr='arg0']").attrib["val"] for action in actions if action.findtext("code") == "815"
+    ]
     assert list_types == ["0", "2"]  # Package, Activity
 
     assert codes.count("39") == 1  # For
@@ -1370,7 +1370,9 @@ STAGED
 MAPTASKER-END
 """
 
-_STAGED_PROFILE_XML = b'<TaskerData sr="" dvi="1" tv="6.3.13"><Profile sr="prof1"><nme>Watched</nme></Profile></TaskerData>'
+_STAGED_PROFILE_XML = (
+    b'<TaskerData sr="" dvi="1" tv="6.3.13"><Profile sr="prof1"><nme>Watched</nme></Profile></TaskerData>'
+)
 
 
 class _FakeImportRequests:
@@ -1419,9 +1421,7 @@ class _FakeImportRequests:
             query = url.split("?", 1)[1] if "?" in url else ""
             wanted = [unquote(part.split("=", 1)[1]) for part in query.split("&") if part.startswith("name=")]
             listed = [
-                {"name": name, "enabled": True, "active": False}
-                for name in wanted
-                if name in self.installed_profiles
+                {"name": name, "enabled": True, "active": False} for name in wanted if name in self.installed_profiles
             ]
             return _FakeResponse(200, json.dumps(listed).encode())
         # Every kind whose upload gets read back, '.scn.xml' included: a Scene is not staged
@@ -1957,12 +1957,16 @@ def test_a_confirmation_that_never_comes_is_not_a_success(monkeypatch: pytest.Mo
 def test_waiting_stops_as_soon_as_the_profile_appears(open_device: _FakeImportRequests) -> None:
     """The poll is for a person, so it is long -- two minutes.  It must not spend them on a
     device that already answered."""
-    return_code, message = deviceinv.await_import("192.168.0.210", "1821", ["Watched"], "Profile " + chr(39) + "Watched" + chr(39))
+    return_code, message = deviceinv.await_import(
+        "192.168.0.210", "1821", ["Watched"], "Profile " + chr(39) + "Watched" + chr(39)
+    )
     assert return_code != 0  # nothing imported yet
 
     open_device.installed_profiles = {"Watched"}
     before = len(open_device.calls)
-    return_code, message = deviceinv.await_import("192.168.0.210", "1821", ["Watched"], "Profile " + chr(39) + "Watched" + chr(39))
+    return_code, message = deviceinv.await_import(
+        "192.168.0.210", "1821", ["Watched"], "Profile " + chr(39) + "Watched" + chr(39)
+    )
 
     assert return_code == 0, message
     assert len(open_device.calls) - before == 1  # asked once, answered, stopped

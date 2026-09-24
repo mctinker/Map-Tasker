@@ -480,3 +480,68 @@ TAB_NAMES = ["Specific Name", "Colors", "Analyze", "Debug"]
 
 # Default GUI Window Dimensions: Width x Height + X_offset + Y_offset (no spaces)
 DEFAULT_GUI_WINDOW = "1129x1044+698+145"
+
+# Material 3's baseline light scheme -- what a colour named by role ("outline",
+# "onSecondaryContainer") resolves to here.
+#
+# It is a real palette rather than an invented one, but it is NOT necessarily the user's:
+# Android resolves these against the device's theme, and under Material You that theme is
+# generated from the wallpaper, so the same Scene is a different set of colours on every
+# phone.  Which is the argument for using the baseline: it is the documented default, it is
+# stated in the caption, and no other choice available here would be any more correct.
+V2_MATERIAL_PALETTE: dict[str, str] = {
+    "primary": "#6750A4",
+    "onPrimary": "#FFFFFF",
+    "primaryContainer": "#EADDFF",
+    "onPrimaryContainer": "#21005D",
+    "secondary": "#625B71",
+    "onSecondary": "#FFFFFF",
+    "secondaryContainer": "#E8DEF8",
+    "onSecondaryContainer": "#1D192B",
+    "tertiary": "#7D5260",
+    "onTertiary": "#FFFFFF",
+    "tertiaryContainer": "#FFD8E4",
+    "onTertiaryContainer": "#31111D",
+    "error": "#B3261E",
+    "onError": "#FFFFFF",
+    "errorContainer": "#F9DEDC",
+    "onErrorContainer": "#410E0B",
+    "background": "#FFFBFE",
+    "onBackground": "#1C1B1F",
+    "surface": "#FFFBFE",
+    "onSurface": "#1C1B1F",
+    "surfaceVariant": "#E7E0EC",
+    "onSurfaceVariant": "#49454F",
+    "surfaceTint": "#6750A4",
+    "inverseSurface": "#313033",
+    "inverseOnSurface": "#F4EFF4",
+    "inversePrimary": "#D0BCFF",
+    "outline": "#79747E",
+    "outlineVariant": "#CAC4D0",
+    "scrim": "#000000",
+    # The rest of Material 3's roles, at the same baseline.  The "fixed" family is the one
+    # that keeps its colour when the rest of the scheme flips between light and dark -- which
+    # is why onPrimaryFixed and onPrimaryContainer are the same swatch here and stop being the
+    # same one on a dark device -- and the surfaceContainer family is the elevation ladder
+    # that replaced Material 2's shadows.  Both are offered by Tasker's own colour picker, so
+    # a Scene can name any of them.
+    "primaryFixed": "#EADDFF",
+    "onPrimaryFixed": "#21005D",
+    "primaryFixedDim": "#D0BCFF",
+    "onPrimaryFixedVariant": "#4F378B",
+    "secondaryFixed": "#E8DEF8",
+    "onSecondaryFixed": "#1D192B",
+    "secondaryFixedDim": "#CCC2DC",
+    "onSecondaryFixedVariant": "#4A4458",
+    "tertiaryFixed": "#FFD8E4",
+    "onTertiaryFixed": "#31111D",
+    "tertiaryFixedDim": "#EFB8C8",
+    "onTertiaryFixedVariant": "#633B48",
+    "surfaceDim": "#DED8E1",
+    "surfaceBright": "#FEF7FF",
+    "surfaceContainerLowest": "#FFFFFF",
+    "surfaceContainerLow": "#F7F2FA",
+    "surfaceContainer": "#F3EDF7",
+    "surfaceContainerHigh": "#ECE6F0",
+    "surfaceContainerHighest": "#E6E0E9",
+}

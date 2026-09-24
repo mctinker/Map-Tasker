@@ -54,7 +54,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
     from xml.etree.ElementTree import Element
 
-from maptasker.src import clock
+from maptasker.src import caches, clock
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import APPS_CACHE_FILE, logger
@@ -338,23 +338,52 @@ def parse_icon_value(text: str) -> IconRef | None:
 # The inventory itself
 # ==========================================
 
-# The tree the current inventory was built from, compared by identity: loading another
-# backup replaces PrimeItems.xml_root with a new object.  The sentinel (rather than None)
-# makes the first call harvest even when nothing is loaded, so 'no configuration' is a
-# harvested empty inventory rather than a permanently-deferred one.
+# The sentinel (rather than None) for "not harvested yet", so the first call harvests even
+# when nothing is loaded: 'no configuration' is a harvested empty inventory rather than a
+# permanently-deferred one.
 _NOT_HARVESTED = object()
-_harvested_from: object = _NOT_HARVESTED
-# The other input, which moves independently of the tree: a fetch lands new Applications
-# without any backup being reloaded.  _cache_stamp is bumped by whatever changes the
-# fetched list; the inventory is rebuilt when the stamp it was built under falls behind.
-_cache_stamp = 0
-_built_at_cache_stamp = -1
-_device_apps: list[AppEntry] = []
-_cache_loaded = False
-_apps: list[AppEntry] = []
-_apps_by_package: dict[str, AppEntry] = {}
-_icons: list[IconRef] = []
-_generation = 0
+
+
+class _Inventory:
+    """The inventory, and the two inputs it was built from -- this module's whole state.
+
+    On the caches registry, so loading another configuration empties it (see caches).  It
+    also rebuilds by itself when either input moves:
+
+      * the tree it was harvested from, compared by identity -- loading another backup
+        replaces PrimeItems.xml_root with a new object;
+      * the fetched device list, which moves without any backup being reloaded: cache_stamp
+        is bumped by whatever changes it, and the inventory is rebuilt when the stamp it was
+        built under (built_at_cache_stamp) falls behind.
+    """
+
+    name = "appinv.inventory"
+
+    def __init__(self) -> None:
+        """Empty, and at generation 0."""
+        self.generation = 0
+        self.clear()
+
+    def clear(self) -> None:
+        """Forget the inventory and the device list, so the next call builds both afresh.
+
+        The generation is left alone: it only ever goes up.  The memos keyed on it
+        (taskedit, profedit) are cleared along with this, but a memo that is not, or one
+        added later, must never meet a generation it has already seen and take a stale
+        answer for a current one.
+        """
+        self.harvested_from: object = _NOT_HARVESTED
+        self.cache_stamp = 0
+        self.built_at_cache_stamp = -1
+        self.device_apps: list[AppEntry] = []
+        self.cache_loaded = False
+        self.apps: list[AppEntry] = []
+        self.apps_by_package: dict[str, AppEntry] = {}
+        self.icons: list[IconRef] = []
+
+
+_state = _Inventory()
+caches.register(_state)
 
 
 def generation() -> int:
@@ -367,19 +396,19 @@ def generation() -> int:
     would leave 'Launch App' greyed out with a stale reason until restart.
     """
     _ensure_harvested()
-    return _generation
+    return _state.generation
 
 
 def apps() -> list[AppEntry]:
     """Every Application the inventory knows, by label."""
     _ensure_harvested()
-    return _apps
+    return _state.apps
 
 
 def icons() -> list[IconRef]:
     """Every icon the inventory knows, built-ins first."""
     _ensure_harvested()
-    return _icons
+    return _state.icons
 
 
 def have_apps() -> bool:
@@ -408,7 +437,7 @@ def resolve_app(package: str) -> AppEntry:
     if is_variable_reference(package):
         return variable_app_entry(package)
     _ensure_harvested()
-    return _apps_by_package.get(package, AppEntry(pkg=package, label=package))
+    return _state.apps_by_package.get(package, AppEntry(pkg=package, label=package))
 
 
 def _merge_app(known: dict[str, AppEntry], entry: AppEntry) -> None:
@@ -484,20 +513,18 @@ def _sorted_icons(icons: Iterable[IconRef]) -> list[IconRef]:
 
 
 def _ensure_harvested() -> None:
-    global _harvested_from, _built_at_cache_stamp, _apps, _apps_by_package, _icons, _generation  # noqa: PLW0603
-
     _ensure_cache_loaded()
     root = getattr(PrimeItems, "xml_root", None)
-    if root is _harvested_from and _cache_stamp == _built_at_cache_stamp:
+    if root is _state.harvested_from and _state.cache_stamp == _state.built_at_cache_stamp:
         return
 
-    _apps, _icons = _harvest(root)
-    _apps = _merged_with_device_apps(_apps)
-    _icons = _merged_with_device_icons(_icons)
-    _apps_by_package = {entry.pkg: entry for entry in _apps}
-    _harvested_from = root
-    _built_at_cache_stamp = _cache_stamp
-    _generation += 1
+    _state.apps, _state.icons = _harvest(root)
+    _state.apps = _merged_with_device_apps(_state.apps)
+    _state.icons = _merged_with_device_icons(_state.icons)
+    _state.apps_by_package = {entry.pkg: entry for entry in _state.apps}
+    _state.harvested_from = root
+    _state.built_at_cache_stamp = _state.cache_stamp
+    _state.generation += 1
 
 
 def _merged_with_device_apps(harvested: list[AppEntry]) -> list[AppEntry]:
@@ -511,11 +538,11 @@ def _merged_with_device_apps(harvested: list[AppEntry]) -> list[AppEntry]:
     harvested value where there is one, and the fetched value otherwise, gives each package
     the best field available from either.
     """
-    if not _device_apps:
+    if not _state.device_apps:
         return harvested
 
     known: dict[str, AppEntry] = {}
-    for entry in list(harvested) + _device_apps:
+    for entry in list(harvested) + _state.device_apps:
         _merge_app(known, entry)
     return _sorted_apps(known.values())
 
@@ -534,12 +561,12 @@ def _merged_with_device_icons(harvested: list[IconRef]) -> list[IconRef]:
     launcher activity is whatever 'List Apps' reported.  Same precedence, same reason, as
     _merged_with_device_apps.
     """
-    if not _device_apps:
+    if not _state.device_apps:
         return harvested
 
     known = {(icon.kind, icon.name, icon.pkg, icon.cls): icon for icon in harvested}
     harvested_packages = {icon.pkg for icon in harvested if icon.kind == "app"}
-    for entry in _device_apps:
+    for entry in _state.device_apps:
         if not entry.pkg or entry.pkg in harvested_packages:
             continue
         icon = IconRef(kind="app", pkg=entry.pkg, cls=entry.cls)
@@ -629,8 +656,6 @@ def _store_fetched_apps(device: str, entries: list[AppEntry]) -> str:
 
 def _adopt_cache(cache: dict) -> None:
     """Rebuild the fetched half of the inventory from a cache dict, and mark it changed."""
-    global _device_apps, _cache_loaded, _cache_stamp  # noqa: PLW0603
-
     known: dict[str, AppEntry] = {}
     devices = cache.get("devices", {})
     if isinstance(devices, dict):
@@ -643,11 +668,11 @@ def _adopt_cache(cache: dict) -> None:
                         AppEntry(pkg=package, label=str(app.get("label", "")), cls=str(app.get("cls", ""))),
                     )
 
-    _device_apps = _sorted_apps(known.values())
-    _cache_loaded = True
-    _cache_stamp += 1
+    _state.device_apps = _sorted_apps(known.values())
+    _state.cache_loaded = True
+    _state.cache_stamp += 1
 
 
 def _ensure_cache_loaded() -> None:
-    if not _cache_loaded:
+    if not _state.cache_loaded:
         _adopt_cache(read_cache())

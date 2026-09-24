@@ -10,7 +10,7 @@
 import html
 from xml.etree.ElementTree import Element
 
-from maptasker.src import varxref
+from maptasker.src import caches, varxref
 from maptasker.src.mapjump import VARIABLE, Target
 from maptasker.src.maputils import fix_hyperlink_name
 from maptasker.src.primitem import PrimeItems
@@ -24,9 +24,9 @@ from maptasker.src.taskervars import tasker_global_variables
 # Profile and Scene in the file: cheap once, but this table is emitted once per Project
 # plus once for the unreferenced list, and doing that walk eighty times over would be the
 # slowest thing in the Map.
-_cross_reference: dict | None = None
+_cross_reference: caches.Slot[dict | None] = caches.Slot("globalvr.cross_reference", None)
 # Which configuration the counts above were worked out from (see get_variables).
-_cross_reference_key: str = ""
+_cross_reference_key: caches.Slot[str] = caches.Slot("globalvr.cross_reference_key", "")
 
 
 # Read in the variables and save them for now.
@@ -42,10 +42,9 @@ def get_variables(configuration: str = "") -> None:
     # picked out of the whole -- can have them as they stand rather than walking every
     # Task action in the file for a second time to arrive at the same numbers.  Anything
     # else, including a caller that cannot say what it is looking at, starts again.
-    global _cross_reference, _cross_reference_key  # noqa: PLW0603
-    if not configuration or configuration != _cross_reference_key:
-        _cross_reference = None
-        _cross_reference_key = configuration
+    if not configuration or configuration != _cross_reference_key.value:
+        _cross_reference.value = None
+        _cross_reference_key.value = configuration
 
     # Get all of the Tasker variables
     if not (global_variables := PrimeItems.xml_root.findall("Variable")):
@@ -84,13 +83,12 @@ def _get_cross_reference() -> dict:
     the file's global variables.  Built on first use rather than at import, so a Map run
     that never reaches detail level 4 never pays for it.
     """
-    global _cross_reference  # noqa: PLW0603
-    if _cross_reference is None:
+    if _cross_reference.value is None:
         index = varxref.build_index()
-        _cross_reference = {
+        _cross_reference.value = {
             variable.name: variable for (name, owner), variable in index.variables.items() if owner == ""
         }
-    return _cross_reference
+    return _cross_reference.value
 
 
 def _usage_cell(references: list, table_definition: str) -> str:

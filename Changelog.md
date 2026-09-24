@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: 'Display Help' now describes the commands it had fallen behind on: Changes Since, Restore From History, Refactor, Run On Android, Add/Edit Properties, the Save To Android choices, Ask AI and Replace in the Find/Replace window, Export, and the Diagram's zoom, fold and Rebuild controls.
+- Changed: The 'Fix Findings' button now sits beside 'Health Check' on the same row, since it acts on the findings that report produces.  Both buttons show their icon above the label so each label fits on one line.
 - Changed:
 
 ### Removed

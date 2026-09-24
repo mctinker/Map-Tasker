@@ -45,7 +45,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
-from maptasker.src import appinv, editcommon, objprops, piiscan, sessundo, taskedit
+from maptasker.src import appinv, caches, editcommon, objprops, piiscan, sessundo, taskedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.editcommon import touch_project_mdate
@@ -393,8 +393,9 @@ def add_condition_to_profile(edited_profile: EditableProfile, cond_type: str) ->
     return new_condition
 
 
-_ADDABLE_CONDITION_CODES_CACHE: dict[str, list[dict]] = {}
-_ADDABLE_CONDITION_CODES_GENERATION = -1
+# {suffix: rows}, for one app-inventory generation (see _list_addable_condition_codes), and
+# cleared with every other cache when a configuration is loaded (see caches).
+_addable_condition_codes: caches.KeyedCache[dict[str, list[dict]]] = caches.KeyedCache("profedit.addable_conditions")
 
 
 def _list_addable_condition_codes(suffix: str) -> list[dict]:
@@ -413,18 +414,12 @@ def _list_addable_condition_codes(suffix: str) -> list[dict]:
     <Bundle> is addable when bundle.py has that code's definition, since
     _add_code_condition_to_profile can then rebuild the payload from it.
     """
-    global _ADDABLE_CONDITION_CODES_GENERATION  # noqa: PLW0603
-
     # Memoized per suffix, but only for as long as addability itself holds still: an App
     # argument (five Events declare one) is addable only while deviceinv has an inventory
     # to pick from, so the memo is thrown away when that generation moves -- the same
     # reasoning, and the same counter, as taskedit.list_addable_actions.
-    inventory_generation = appinv.generation()
-    if inventory_generation != _ADDABLE_CONDITION_CODES_GENERATION:
-        _ADDABLE_CONDITION_CODES_CACHE.clear()
-        _ADDABLE_CONDITION_CODES_GENERATION = inventory_generation
-
-    cached = _ADDABLE_CONDITION_CODES_CACHE.get(suffix)
+    by_suffix = _addable_condition_codes.get(appinv.generation(), dict)
+    cached = by_suffix.get(suffix)
     if cached is not None:
         return cached
 
@@ -448,7 +443,7 @@ def _list_addable_condition_codes(suffix: str) -> list[dict]:
             },
         )
     rows.sort(key=lambda row: row["name"])
-    _ADDABLE_CONDITION_CODES_CACHE[suffix] = rows
+    by_suffix[suffix] = rows
     return rows
 
 
