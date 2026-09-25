@@ -61,7 +61,6 @@
 #
 from __future__ import annotations
 
-import os
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -82,6 +81,7 @@ from maptasker.src.mapjump import (
     text_report,
 )
 from maptasker.src.maputils import append_to_filename
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FIND_FILE, logger
 
@@ -872,19 +872,20 @@ def _limitations(index: FindIndex) -> list[str]:
 
 
 def write_find_report(rows: list[Row]) -> str:
-    """Write the results to a timestamped file in the current runtime directory.
+    """Write the results to a timestamped file in the output folder (see outdir).
 
-    Returns the file name written, or "" if the write failed -- the results are on screen
+    Returns the path written, or "" if the write failed -- the results are on screen
     either way, and a search whose save went wrong is still a search worth showing.
     """
     stamp = clock.now().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(FIND_FILE, stamp)
     if not file_name:
         return ""
+    file_path = output_path(file_name)
     try:
-        with open(os.path.join(os.getcwd(), file_name), "w", encoding="utf-8") as output_file:
+        with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))
     except OSError as error:
         logger.error(f"Find report could not be written: {error}")
         return ""
-    return file_name
+    return file_path

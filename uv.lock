@@ -1280,6 +1280,7 @@ dependencies = [
     { name = "nicegui" },
     { name = "packaging" },
     { name = "pillow" },
+    { name = "platformdirs" },
     { name = "requests" },
     { name = "tomli-w" },
 ]
@@ -1315,6 +1316,7 @@ requires-dist = [
     { name = "nicegui", specifier = ">=3.17.1" },
     { name = "packaging", specifier = ">=26.3" },
     { name = "pillow", specifier = ">=12.3.0" },
+    { name = "platformdirs", specifier = ">=4.3" },
     { name = "requests", specifier = ">=2.34.2" },
     { name = "tomli-w", specifier = ">=1.2.0" },
 ]
@@ -1859,6 +1861,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9e/d8/c6d74dc649b064d70bd7a6cb022f185f2c49d771ffb3a23d9dae57cea9ca/pip-autoremove-0.10.0.tar.gz", hash = "sha256:1328c6f6ef54b1ea51dd4dd78199d7f8b27c2344e9517fbb4f89edf3bfbb32ba", size = 4491, upload-time = "2021-09-17T07:09:39.87Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/81/33/07306f6de85b42ae5a8db4b0bf6abd447c699d3902998a7f873e6bce6c2c/pip_autoremove-0.10.0-py2.py3-none-any.whl", hash = "sha256:093c7d9d73c66c191cbaac159bf32a0b2e7cdbc108f1935dacb5d5e09bee9eca", size = 4994, upload-time = "2021-09-17T07:09:37.987Z" },
+]
+
+[[package]]
+name = "platformdirs"
+version = "4.11.14"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/72/72/2075f80b8de9992872715444e7088ec3b6eea2bc0e99521e1d6e562e382d/platformdirs-4.11.14.tar.gz", hash = "sha256:0e706ec0a73a4ec023d11496153a4b6607a672f4b5027c23c3aefa9c9288c523", size = 45301, upload-time = "2026-09-25T17:24:00.877Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dc/40/03f2c094178624d155b8d27a9b0c5ab1e39efa6cc9074b599e8c671b9db1/platformdirs-4.11.14-py3-none-any.whl", hash = "sha256:c1b1a1eab4f4d1b0eb81754593f1c38de88e84ebe6f93bf6714706a6759074b1", size = 26700, upload-time = "2026-09-25T17:23:59.443Z" },
 ]
 
 [[package]]

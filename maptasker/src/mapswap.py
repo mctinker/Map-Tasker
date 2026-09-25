@@ -46,7 +46,6 @@ from __future__ import annotations
 
 import copy
 import json
-import os
 import re
 from collections import Counter
 from dataclasses import dataclass, field
@@ -56,6 +55,7 @@ from maptasker.src import clock, mapfind, maputil2, profedit, sceneedit, sessund
 from maptasker.src.actionc import ArgumentCode, action_codes
 from maptasker.src.mapjump import PROFILE, TASK, VARIABLE, Row, Target, current_scope, text_report
 from maptasker.src.maputils import append_to_filename
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import SWAP_FILE, logger
 from maptasker.src.taskervars import tasker_global_variables
@@ -2586,13 +2586,14 @@ def write_swap_report(rows: list[Row]) -> str:
     file_name = append_to_filename(SWAP_FILE, stamp)
     if not file_name:
         return ""
+    file_path = output_path(file_name)
     try:
-        with open(os.path.join(os.getcwd(), file_name), "w", encoding="utf-8") as output_file:
+        with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))
     except OSError as error:
         logger.error(f"Replace report could not be written: {error}")
         return ""
-    return file_name
+    return file_path
 
 
 def apply(plan: Plan) -> tuple[int, list[str]]:

@@ -184,6 +184,8 @@ ARGUMENT_NAMES = {
     "list_unnamed_items": "List Unnamed Items",
     "local_xml_directory": "Default Directory For 'Get Local XML File'",
     "notify_timeout": "Notification Duration",
+    # Where reports, exports and the view files are written -- see outdir.py.
+    "output_directory": "Output Folder",
     "view_limit": "View Limit",
     "preferences": "Display Tasker Preferences",
     "pretty": "Display Prettier Output",

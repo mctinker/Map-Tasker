@@ -90,6 +90,9 @@ class ArgumentFields:
     fetched_backup_from_android: bool = False  # XML came off an Android device
     local_xml_directory: str = ""  # Where the last local XML file came from ("" = home)
 
+    # --- Where the output goes -------------------------------------------------------
+    output_directory: str = ""  # Folder for reports, exports and view files ("" = Documents/MapTasker)
+
     # --- AI analysis -----------------------------------------------------------------
     ai_analyze: bool = False  # Do AI processing
     ai_apikey: str = field(default="", repr=False)  # AI API key -- kept out of repr() and so out of logs

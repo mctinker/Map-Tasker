@@ -188,7 +188,7 @@
     "reportGeneralTypeIssues": 1
   },
   "maptasker/src/initparg.py": {
-    "reportArgumentType": 52,
+    "reportArgumentType": 53,
     "reportAttributeAccessIssue": 1,
     "reportReturnType": 1
   },
@@ -310,7 +310,7 @@
     "reportReturnType": 1
   },
   "maptasker/src/runcfg.py": {
-    "reportArgumentType": 105
+    "reportArgumentType": 107
   },
   "maptasker/src/runcli.py": {
     "reportArgumentType": 52,
@@ -423,7 +423,7 @@
   "maptasker/src/userintr_settings.py": {
     "reportArgumentType": 3,
     "reportAttributeAccessIssue": 48,
-    "reportGeneralTypeIssues": 5,
+    "reportGeneralTypeIssues": 7,
     "reportOptionalContextManager": 1,
     "reportOptionalMemberAccess": 2,
     "reportReturnType": 1

@@ -23,9 +23,9 @@ from maptasker.src.sysconst import VERSION
 from maptasker.src.translator import T
 
 # The pieces the GUI's help popups are built from, all of which the catalogs carry.
-# userhelp.COMMAND_REFERENCE_TEXT is deliberately not among them: it was added to the help
-# screen after the last catalog sync, so it is still English everywhere until
-# sync_missing_msgids.py and po_to_mo.sh are run again.
+# userhelp.COMMAND_REFERENCE_TEXT and OUTPUT_FOLDER_HELP_TEXT are deliberately not among them:
+# they were added to the help screen after the last catalog sync, so they are still English
+# everywhere until sync_missing_msgids.py and po_to_mo.sh are run again.
 TRANSLATED_HELP_PIECES = (
     "INFO_TEXT",
     "HELP_HEADING",

@@ -447,6 +447,19 @@ def runtime_parser() -> None:
         action="store_true",
         default=False,
     )
+    # Where reports, exports and the view files are written
+    parser.add_argument(
+        "-outdir",
+        help=textwrap.dedent(
+            """ \
+                        Folder to write reports, exports and the Map/Diagram files to
+                        (default = a MapTasker folder in your Documents folder).
+                            Example: -outdir ~/MapTasker_Reports
+                            """,
+        ),
+        required=False,
+        nargs=1,
+    )
     # Display Tasker preferences
     parser.add_argument(
         "-preferences",

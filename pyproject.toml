@@ -34,6 +34,7 @@ dependencies = [
     'nicegui>=3.17.1',
     'packaging>=26.3',
     'pillow>=12.3.0',
+    "platformdirs>=4.3",
     'requests>=2.34.2',
     'tomli_w>=1.2.0',
 ]
@@ -410,7 +411,7 @@ layers = [
     guiutil2 : healthck : impact : initparg : kidapp : lineout :
     mapask : mapcache : mapexport : mapfind : mapfix : mapfonts :
     mapjump : mappdf : maprefac : maprestore : mapswap : maputil2 :
-    maputil3 : maputils : mtexcept : nameattr : objprops : outline :
+    maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
     parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
     profedit : profiles : proflint : proginit : projects : projedit :
     property : roundtrip : runcfg : sceneedit : scenes : servicec :

@@ -18,6 +18,7 @@ from maptasker.src.guiwins import create_popup_window
 from maptasker.src.guiwins import create_popup_window as popupwindow
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputil3 import ensure_and_import
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import PrimeItems, get_single_item_requested
 from maptasker.src.sysconst import (
     ANALYSIS_FILE,
@@ -173,7 +174,7 @@ def record_response(response: str, ai_object: str, item: str) -> None:
     The ERROR_FILE will be read and displayed in the GUI on ReRun, with the response handled in
     'display_messages_from_last_run' and 'display_ai_response'
     """
-    with open(ANALYSIS_FILE, "w", encoding="utf-8") as response_file:
+    with open(output_path(ANALYSIS_FILE), "w", encoding="utf-8") as response_file:
         response_file.write(
             f'{PrimeItems.program_arguments.ai_name} AI Response using model {PrimeItems.program_arguments.ai_model} for {ai_object} "{item}":\n\n{response}',
         )

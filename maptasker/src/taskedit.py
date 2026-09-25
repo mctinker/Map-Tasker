@@ -2040,7 +2040,7 @@ def sanitize_filename(name: str) -> str:
 
 
 def default_save_path(task_name: str) -> str:
-    """Default standalone-export path: {current runtime directory}/{sanitized name}.tsk.xml."""
+    """Default standalone-export path: {output folder}/{sanitized name}.tsk.xml."""
     return EXPORT.default_save_path(task_name)
 
 

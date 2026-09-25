@@ -21,7 +21,7 @@ from nicegui import context, run, ui
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.getputer import save_restore_args
-from maptasker.src.guistate import gui_settings
+from maptasker.src.guistate import gui_settings, remember_setting
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     add_logo,
@@ -46,6 +46,7 @@ from maptasker.src.guiwins import (
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import clear_tasker_data, make_hex_color
+from maptasker.src.outdir import normalize_output_directory, output_directory
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ARGUMENT_NAMES, NOTIFY_TIMEOUT_DEFAULT, TYPES_OF_COLOR_NAMES, VIEW_LIMIT_DEFAULT
@@ -712,6 +713,42 @@ class SettingsEventHandlers:
                 guiview.is_updating = False
         return f"{translate_string('Notification Duration')} {translate_string('set to')} {display_value}\n"
 
+    def output_directory_event(self: MapTaskerEventHandlers, event: object = None) -> None:
+        """The 'Output Folder' box: Enter or leaving the box, and its 'Default' button (with "").
+
+        The folder is checked before it is taken -- made if it is not there, and refused with
+        a message if it cannot be -- so a typo is caught now rather than by the next report
+        quietly landing somewhere else.  Stored absolute: a relative folder would mean a
+        different place each time MapTasker is started from a different directory.  Saved at
+        once, as the Health Check categories are, because a folder chosen and then lost at
+        the next start would send reports back to where the user did not want them.
+        """
+        guiview = self.gui
+        if getattr(guiview, "is_updating", False):
+            return
+        widget = getattr(guiview, "output_directory_input", None)
+        text = event if isinstance(event, str) else (widget.value if widget else "")
+        folder, problem = normalize_output_directory(str(text or ""))
+        if problem:
+            guiview.display_message_box(problem, "Red")
+            _show_output_directory(guiview)
+            return
+        if folder != guiview.output_directory:
+            remember_setting(guiview, "output_directory", folder)
+            save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
+            guiview.display_message_box(
+                f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory()}",
+                "Green",
+            )
+        _show_output_directory(guiview)
+
+    def output_directory_restored(self: MapTaskerEventHandlers, folder: str) -> str:
+        """Put a restored 'Output Folder' into its box, and say where output will go."""
+        guiview = self.gui
+        guiview.output_directory = folder or ""
+        _show_output_directory(guiview)
+        return f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory()}\n"
+
     def viewlimit_event(self: object, view_limit: str) -> None:
         """View Limit Event handled safely without recursion."""
         guiview = self.gui
@@ -1102,3 +1139,16 @@ class SettingsEventHandlers:
         for view in live_views(gui):
             if hasattr(view, "reload_diagram"):
                 view.reload_diagram()
+
+
+def _show_output_directory(guiview: MyGui) -> None:
+    """Make the 'Output Folder' box show the setting, without that counting as an edit."""
+    widget = getattr(guiview, "output_directory_input", None)
+    if not widget:
+        return
+    try:
+        guiview.is_updating = True
+        widget.value = guiview.output_directory
+        widget.update()
+    finally:
+        guiview.is_updating = False

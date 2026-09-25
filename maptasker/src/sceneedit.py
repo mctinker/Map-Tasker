@@ -3189,7 +3189,7 @@ def sanitize_filename(name: str) -> str:
 
 
 def default_scene_save_path(scene_name: str) -> str:
-    """Default standalone-export path: {current runtime directory}/{sanitized name}.scn.xml."""
+    """Default standalone-export path: {output folder}/{sanitized name}.scn.xml."""
     return EXPORT.default_save_path(scene_name)
 
 

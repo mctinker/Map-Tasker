@@ -6,7 +6,7 @@ import os
 import webbrowser
 
 import maptasker.src.taskuniq as special_tasks
-from maptasker.src import caches, console, mapcache, projects
+from maptasker.src import caches, console, mapcache, outdir, projects
 from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import output_directory, unreachable_anchors
 from maptasker.src.error import error_handler, exit_program, rutroh_error
@@ -100,7 +100,7 @@ def build_html(file_to_get: str) -> int:
     building_from = mapcache.digests()
     doing_ai_analysis = PrimeItems.program_arguments.ai_analyze
     if not doing_ai_analysis and mapcache.is_current(
-        f"{os.getcwd()}{PrimeItems.slash}MapTasker.html",
+        outdir.output_path("MapTasker.html"),
         building_from,
     ):
         PrimeItems.map_output_line_count = mapcache.output_lines()
@@ -387,8 +387,9 @@ def display_back_matter() -> None:
     if program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
         output_variables("Unreferenced Global Variables", "")
 
-    # Get the output directory/folder path
-    my_output_dir = os.getcwd()
+    # Get the output directory/folder path -- see outdir.  (dirout's output_directory,
+    # imported above, is the Map's hyperlink directory and has nothing to do with this.)
+    my_output_dir = str(outdir.output_directory())
 
     # Output the grand total (Projects/Profiles/Tasks/Scenes)
     output_grand_totals()

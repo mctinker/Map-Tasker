@@ -1037,7 +1037,7 @@ def sanitize_filename(name: str) -> str:
 
 
 def default_save_path(profile_name: str) -> str:
-    """Default standalone-export path: {current runtime directory}/{sanitized name}.prf.xml."""
+    """Default standalone-export path: {output folder}/{sanitized name}.prf.xml."""
     return EXPORT.default_save_path(profile_name)
 
 

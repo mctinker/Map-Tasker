@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file!
 - Changed: 'Display Help' now describes the commands it had fallen behind on: Changes Since, Restore From History, Refactor, Run On Android, Add/Edit Properties, the Save To Android choices, Ask AI and Replace in the Find/Replace window, Export, and the Diagram's zoom, fold and Rebuild controls.
 - Changed: The 'Fix Findings' button now sits beside 'Health Check' on the same row, since it acts on the findings that report produces.  Both buttons show their icon above the label so each label fits on one line.
 - Changed: AutoTools, AutoInput, Join and Home Assistant actions and conditions now show their settings in the Map as labelled values, rather than as a line of raw JSON or number codes, and without repeating what the plugin's own summary already says.  The Task and Profile editors also show what a plugin is set up to do in its read-only settings box, which used to be blank.
+- Changed: Reports, view exports, standalone exports and the Map/Diagram files are now all written to one folder -- a 'MapTasker' folder in your Documents by default -- instead of whichever folder MapTasker was started from.  Choose a different one with the new __Output Folder__ setting in the settings drawer (or '-outdir' on the command line), and each "saved as" message now shows the full path.
 - Changed:
 
 ### Removed

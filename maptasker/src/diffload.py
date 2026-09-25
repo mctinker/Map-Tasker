@@ -38,6 +38,7 @@ from typing import TYPE_CHECKING, NamedTuple
 from maptasker.src import clock, sessundo, timeline
 from maptasker.src.maputil2 import TIMESTAMP_SUFFIX_RE
 from maptasker.src.maputils import append_to_filename
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import (
     LOADED_CONFIGURATION_ATTRIBUTES,
     PrimeItems,
@@ -184,9 +185,9 @@ def original_of(file_path: str) -> str:
 
 
 def write_comparison_report(report: str, base_name: str = COMPARE_FILE) -> str:
-    """Write the report to a timestamped file in the current runtime directory.
+    """Write the report to a timestamped file in the output folder (see outdir).
 
-    Returns the file name written, or "" if the write failed -- a comparison whose
+    Returns the path written, or "" if the write failed -- a comparison whose
     findings displayed fine is still worth showing when only the save went wrong.
 
     Named and stamped exactly as healthck.write_health_check_report does
@@ -204,14 +205,14 @@ def write_comparison_report(report: str, base_name: str = COMPARE_FILE) -> str:
     file_name = append_to_filename(base_name, stamp)
     if not file_name:
         return ""
+    report_path = output_path(file_name)
     try:
-        report_path = os.path.join(os.getcwd(), file_name)
         with open(report_path, "w", encoding="utf-8") as output_file:
             output_file.write(report)
     except OSError as error:
         logger.error(f"Comparison report could not be written: {error}")
         return ""
-    return file_name
+    return report_path
 
 
 def order_by_age(first: Configuration, second: Configuration) -> tuple[Configuration, Configuration]:

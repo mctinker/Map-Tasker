@@ -87,6 +87,7 @@ from maptasker.src.maputils import (
     update_maptasker,
 )
 from maptasker.src.mtexcept import MapTaskerError
+from maptasker.src.outdir import output_path
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import (
     MAP_OUTPUT_ATTRIBUTES,
@@ -165,6 +166,9 @@ class MyGui:
 
         logger.info("Starting GUI")
         self.initialization = True
+        # The 'Output Folder' box, once the layout has built it -- see
+        # guiwins._create_output_directory_section.
+        self.output_directory_input: ui.input | None = None
 
         # 1. Initialize settings and state
         initialize_gui(self)
@@ -323,6 +327,8 @@ class MyGui:
         # Directory the 'Get Local XML File' picker opens in.  Empty = the home directory,
         # until the user picks a file from somewhere else (see remember_local_xml_directory).
         self.local_xml_directory = ""
+        # Where reports, exports and the view files go.  Empty = Documents/MapTasker (outdir).
+        self.output_directory = ""
 
         self.reset_numeric_preferences()
 
@@ -928,6 +934,7 @@ class MyGui:
                 display=False,
             ),
             "notify_timeout": lambda: self.event_handlers.notify_timeout_event(value),
+            "output_directory": lambda: self.event_handlers.output_directory_restored(value),
             "view_limit": lambda: self.event_handlers.viewlimit_event(value),
             "preferences": lambda: self.select_deselect_checkbox(
                 self.preferences_checkbox,
@@ -1244,15 +1251,16 @@ class MyGui:
         # Rename ANALYSIS_FILE.
         # X Get front part of filename ANALYSIS_FILE and plug it in as the beginning.
         if new_file_name := append_to_filename(ANALYSIS_FILE, date_and_time):
-            rename_file(ANALYSIS_FILE, new_file_name)
+            new_file_path = output_path(new_file_name)
+            rename_file(output_path(ANALYSIS_FILE), new_file_path)
             text = translate_string("saved as")
             self.display_message_box(
-                f"{ANALYSIS_FILE} {text} {new_file_name}",
+                f"{ANALYSIS_FILE} {text} {new_file_path}",
                 "green",
             )
-            analysis_response = f"Analysis Response saved in file: {new_file_name}\n\n" + analysis_response.replace(
+            analysis_response = f"Analysis Response saved in file: {new_file_path}\n\n" + analysis_response.replace(
                 ANALYSIS_FILE,
-                new_file_name,
+                new_file_path,
             )
 
         # Display the analysis in the toplevel window.

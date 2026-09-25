@@ -59,7 +59,6 @@
 #
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -67,6 +66,7 @@ from maptasker.src import clock, healthck, mapswap, maputil2, objprops, proflint
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import TASK, Row, Target, actions_in_map_order, text_report
 from maptasker.src.maputils import append_to_filename
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FIX_FILE, logger
 
@@ -908,13 +908,14 @@ def write_fix_report(rows: list[Row]) -> str:
     file_name = append_to_filename(FIX_FILE, stamp)
     if not file_name:
         return ""
+    file_path = output_path(file_name)
     try:
-        with open(os.path.join(os.getcwd(), file_name), "w", encoding="utf-8") as output_file:
+        with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))
     except OSError as error:
         logger.error(f"Fix preview could not be written: {error}")
         return ""
-    return file_name
+    return file_path
 
 
 # ##################################################################################

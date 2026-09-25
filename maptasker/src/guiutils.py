@@ -28,6 +28,7 @@ from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import http_request, translate_string
 from maptasker.src.maputils import get_pypi_version, restart_program_subprocess
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems, clear_single_items
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
@@ -1495,8 +1496,9 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
     error_msg = ""
 
     # Handle Ai Response and display it
-    if os.path.isfile(ANALYSIS_FILE):
-        with open(ANALYSIS_FILE, encoding="utf-8", errors="replace") as analysis_file:
+    analysis_path = output_path(ANALYSIS_FILE)
+    if os.path.isfile(analysis_path):
+        with open(analysis_path, encoding="utf-8", errors="replace") as analysis_file:
             analysis_response = analysis_file.read()
             gui.display_ai_response(analysis_response)
 

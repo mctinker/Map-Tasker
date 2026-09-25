@@ -29,7 +29,6 @@
 #
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -44,6 +43,7 @@ from maptasker.src.mapjump import (
     text_report,
 )
 from maptasker.src.maputils import append_to_filename
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     FLOWCHART_FILE,
@@ -976,32 +976,33 @@ def _limitations() -> list[str]:
 
 
 def write_task_flow_report(rows: list[Row]) -> str:
-    """Write the control-flow report to a timestamped file in the current directory.
+    """Write the control-flow report to a timestamped file in the output folder.
 
-    Returns the file name written, or "" if the write failed -- named, stamped and handled
+    Returns the path written, or "" if the write failed -- named, stamped and handled
     exactly as healthck.write_health_check_report does, and for its reasons.
     """
     return _write(rows, TASKFLOW_FILE, "Task Flow report")
 
 
 def write_flowchart(rows: list[Row]) -> str:
-    """Write one Task's flowchart to a timestamped file.  Returns the file name, or ""."""
+    """Write one Task's flowchart to a timestamped file.  Returns the path, or ""."""
     return _write(rows, FLOWCHART_FILE, "Flowchart")
 
 
 def _write(rows: list[Row], base_name: str, what: str) -> str:
-    """Write rows as plain text to a timestamped copy of base_name in the current directory."""
+    """Write rows as plain text to a timestamped copy of base_name in the output folder."""
     stamp = clock.now().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(base_name, stamp)
     if not file_name:
         return ""
+    file_path = output_path(file_name)
     try:
-        with open(os.path.join(os.getcwd(), file_name), "w", encoding="utf-8") as output_file:
+        with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))
     except OSError as error:
         logger.error(f"{what} could not be written: {error}")
         return ""
-    return file_name
+    return file_path
 
 
 # ##################################################################################

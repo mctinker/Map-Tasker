@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING
 
 # maputil2's upload and read-back are called through the module, not imported by name, so a
 # test that stands in for them on maputil2 is the one these calls reach.
-from maptasker.src import maputil2
+from maptasker.src import maputil2, outdir
 from maptasker.src.sysconst import ILLEGAL_IN_FILENAME
 
 if TYPE_CHECKING:
@@ -107,14 +107,14 @@ class EditorKind:
         return sanitize_filename(name, self.fallback)
 
     def default_save_path(self, name: str) -> str:
-        """Default standalone-export path: {current runtime directory}/{sanitized name}{extension}.
+        """Default standalone-export path: {output folder}/{sanitized name}{extension}.
 
-        Uses os.getcwd() (the directory the app is running from) rather than the loaded
-        backup file's directory -- the backup is picked from wherever the user keeps
-        their XML (see getxml_event/local_xml_start_directory in userintr_loading.py), which
-        isn't necessarily where an exported object should land.
+        Uses the output folder (see outdir) rather than the loaded backup file's directory
+        -- the backup is picked from wherever the user keeps their XML (see
+        getxml_event/local_xml_start_directory in userintr_loading.py), which isn't
+        necessarily where an exported object should land.
         """
-        return os.path.join(os.getcwd(), f"{self.sanitize_filename(name)}{self.extension}")
+        return outdir.output_path(f"{self.sanitize_filename(name)}{self.extension}")
 
     def android_path(self, name: str) -> str:
         """The absolute path a Save To Android of this object would write to on the device.

@@ -24,6 +24,7 @@ from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL, GUI
 from maptasker.src.error import exit_program
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.outdir import normalize_output_directory
 from maptasker.src.parsearg import runtime_parser
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.rungui import process_gui
@@ -256,6 +257,16 @@ def process_extended_arguments(args: list) -> None:
             program_arguments.file = file[0]
         else:
             program_arguments.file = file
+
+    # Output folder.  Checked and made absolute here, as the GUI does, so an unusable folder
+    # is reported now rather than at the first report, and a saved setting does not change
+    # meaning when MapTasker is next started from somewhere else.
+    if outdir := getattr(args, "outdir", None):
+        folder, problem = normalize_output_directory(outdir[0] if isinstance(outdir, list) else outdir)
+        if problem:
+            console.say(f"{problem}  Using the default output folder.")
+        else:
+            program_arguments.output_directory = folder
 
     # Map view limit.  Only when one was actually asked for: with nothing on the command
     # line the parser hands back None, and whatever the settings file restored stands.

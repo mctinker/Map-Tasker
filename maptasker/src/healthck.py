@@ -16,7 +16,6 @@
 #                                                                                      #
 from __future__ import annotations
 
-import os
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -36,6 +35,7 @@ from maptasker.src.mapjump import (
     text_report,
 )
 from maptasker.src.maputils import append_to_filename
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     HEALTHCHECK_FILE,
@@ -1375,10 +1375,10 @@ def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
 
 
 def write_health_check_report(rows: list[Row]) -> str:
-    """Write the report to a timestamped file in the current runtime directory.
+    """Write the report to a timestamped file in the output folder (see outdir).
 
-    Returns the file name written, or "" if the write failed -- the caller reports the
-    file name to the user, and a health check whose findings displayed fine is still
+    Returns the path written, or "" if the write failed -- the caller reports the
+    path to the user, and a health check whose findings displayed fine is still
     worth showing when only the save went wrong.
 
     Named date-then-time (MapTasker_HealthCheck_08-17-2026_14-52-07.txt), zero padded so
@@ -1391,10 +1391,11 @@ def write_health_check_report(rows: list[Row]) -> str:
     file_name = append_to_filename(HEALTHCHECK_FILE, stamp)
     if not file_name:
         return ""
+    file_path = output_path(file_name)
     try:
-        with open(os.path.join(os.getcwd(), file_name), "w", encoding="utf-8") as output_file:
+        with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))
     except OSError as error:
         logger.error(f"Health Check report could not be written: {error}")
         return ""
-    return file_name
+    return file_path

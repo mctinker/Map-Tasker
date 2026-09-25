@@ -29,7 +29,6 @@
 #
 from __future__ import annotations
 
-import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -56,6 +55,7 @@ from maptasker.src.mapjump import (
     v2_strings,
 )
 from maptasker.src.maputils import append_to_filename
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, VARXREF_FILE, logger
 from maptasker.src.taskervars import tasker_global_variables
@@ -1716,10 +1716,10 @@ def run_variable_xref() -> tuple[list[Row], VariableIndex]:
 
 
 def write_variable_xref_report(rows: list[Row]) -> str:
-    """Write the report to a timestamped file in the current runtime directory.
+    """Write the report to a timestamped file in the output folder (see outdir).
 
-    Returns the file name written, or "" if the write failed -- the caller reports the
-    file name to the user, and an index that displayed fine is still worth showing when
+    Returns the path written, or "" if the write failed -- the caller reports the
+    path to the user, and an index that displayed fine is still worth showing when
     only the save went wrong.  Named and timestamped exactly as the Health Check report
     is, so successive runs from one day sort by when they were run.
     """
@@ -1727,10 +1727,11 @@ def write_variable_xref_report(rows: list[Row]) -> str:
     file_name = append_to_filename(VARXREF_FILE, stamp)
     if not file_name:
         return ""
+    file_path = output_path(file_name)
     try:
-        with open(os.path.join(os.getcwd(), file_name), "w", encoding="utf-8") as output_file:
+        with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))
     except OSError as error:
         logger.error(f"Variable Cross-Reference report could not be written: {error}")
         return ""
-    return file_name
+    return file_path

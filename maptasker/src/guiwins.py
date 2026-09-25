@@ -27,7 +27,6 @@ import contextlib
 import html
 import inspect
 import json
-import os
 import re
 import time
 import weakref
@@ -104,6 +103,7 @@ from maptasker.src.guiwins_taskedit import (
 )
 from maptasker.src.mapjump import PROJECT, SCENE
 from maptasker.src.maputil2 import translate_string
+from maptasker.src.outdir import default_output_directory, output_path
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
@@ -3914,7 +3914,7 @@ def _create_export_menu(view: NiceGuiTextView) -> None:
     with ui.button(translate_string("Export"), icon="file_download").classes("bg-blue-600"):
         ui.tooltip(
             translate_string(
-                "'Export' saves what this view shows to a file in the current directory:\n\n"
+                "'Export' saves what this view shows to a file in the Output Folder:\n\n"
                 "Markdown, for a wiki page, an issue or a note.\n"
                 "JSON, for a script to read.\n"
                 "PDF, for printing or sending, with searchable text and bookmarks.\n\n",
@@ -5710,9 +5710,9 @@ class NiceGuiTextView:
             html_style += " word-break: break-word;"
 
         if self.title.startswith("Map"):
-            file_to_read = os.path.join(os.getcwd(), "MapTasker.html")
+            file_to_read = output_path("MapTasker.html")
         elif is_diagram:
-            file_to_read = os.path.join(os.getcwd(), DIAGRAM_FILE)
+            file_to_read = output_path(DIAGRAM_FILE)
         elif self.title.startswith("Misc") or is_flow:
             # The Task Flow view is this renderer with the Diagram's habits: rows mapjump has
             # already made clickable, but a drawing rather than prose, so nothing may wrap
@@ -8054,6 +8054,7 @@ def _initialize_gui_settings(self: MyGui) -> None:
     self.everything = None
     self.view_limit = VIEW_LIMIT_DEFAULT
     self.notify_timeout = NOTIFY_TIMEOUT_DEFAULT
+    self.output_directory = ""
     self.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
     self.pretty = False
     self.task_action_warning_limit = 20
@@ -8315,6 +8316,7 @@ def initialize_screen(self: MyGui) -> None:
         _create_font_section(self)
         _create_view_limit_section(self)
         _create_notification_duration_section(self)
+        _create_output_directory_section(self)
 
     # =========================================================================
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
@@ -8456,7 +8458,7 @@ def initialize_screen(self: MyGui) -> None:
                     "Scenes, naming problems, Task flow, variables, behaviour on the device, and "
                     "secrets.\n\nYou choose which of those to report before it runs, and that "
                     "choice is remembered.\n\nResults are displayed here and saved to a text file "
-                    "in the current directory.",
+                    "in the Output Folder.",
                 ),
             ).style("white-space: pre-wrap")
 
@@ -8509,7 +8511,7 @@ def initialize_screen(self: MyGui) -> None:
                     "an edit changed, or what is different between two backups.\n\nIf the loaded "
                     "file came from 'Save to Current File', the file it was saved from is offered "
                     "directly.\n\nResults are displayed here and saved to a text file in the "
-                    "current directory.",
+                    "Output Folder.",
                 ),
             ).style("white-space: pre-wrap")
 
@@ -8534,7 +8536,7 @@ def initialize_screen(self: MyGui) -> None:
                     "pick -- every configuration you load is kept, compressed, in a "
                     "MapTasker_Timeline folder in the current directory, and the one from back "
                     "then is compared against what you have open now.\n\nResults are displayed "
-                    "here and saved to a text file in the current directory.",
+                    "here and saved to a text file in the Output Folder.",
                 ),
             ).style("white-space: pre-wrap")
 
@@ -8583,8 +8585,8 @@ def initialize_screen(self: MyGui) -> None:
                     "read, which are read but never set, which are set but never read, and which "
                     "near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: "
                     "Task actions and their conditions, plugin configuration, Profile contexts and "
-                    "Scenes.\n\nResults are displayed here and saved to a text file in the current "
-                    "directory.",
+                    "Scenes.\n\nResults are displayed here and saved to a text file in the Output "
+                    "Folder.",
                 ),
             ).style("white-space: pre-wrap")
 
@@ -8610,7 +8612,7 @@ def initialize_screen(self: MyGui) -> None:
                     "reach.\n\nWith a single Task chosen in the 'Specific Name' tab, that Task is "
                     "also drawn as a flowchart in its own window, with an arrow from every Goto to "
                     "the action it lands on.\n\nResults are displayed here and saved to a text file "
-                    "in the current directory.",
+                    "in the Output Folder.",
                 ),
             ).style("white-space: pre-wrap")
 
@@ -9222,6 +9224,44 @@ def _create_notification_duration_section(self: MyGui) -> None:
                     "for instance. Those keep their own timing whatever is chosen here.",
                 ),
             ).style("white-space: pre-wrap")
+
+
+def _create_output_directory_section(self: MyGui) -> None:
+    """The 'Output Folder' box in the sidebar drawer: where reports, exports and views go.
+
+    Taken on Enter or on leaving the box rather than on every keystroke -- each half-typed
+    path would otherwise be made as a folder on the way to the one the user meant.  Empty
+    means the default, which the box shows as its placeholder so the user can see where
+    that is without looking it up.
+    """
+    handlers = self.event_handlers
+    ui.label(translate_string("Output Folder:")).classes(
+        "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
+    )
+    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+        self.output_directory_input = (
+            ui.input(
+                value=getattr(self, "output_directory", ""),
+                placeholder=str(default_output_directory()),
+            )
+            .props("dense clearable")
+            .classes("flex-grow")
+            .on("keydown.enter", handlers.output_directory_event)
+            .on("blur", handlers.output_directory_event)
+        )
+        with self.output_directory_input:
+            ui.tooltip(
+                translate_string(
+                    "The folder MapTasker writes its reports (Health Check, Fix, Find, Compare and the "
+                    "rest), view exports, the Map and Diagram files, and standalone exports to.\n\n"
+                    "Leave it empty to use a MapTasker folder in your Documents folder.  The folder is "
+                    "created if it does not exist.",
+                ),
+            ).style("white-space: pre-wrap")
+        ui.button(
+            translate_string("Default"),
+            on_click=lambda: handlers.output_directory_event(""),
+        ).props("dense").classes("bg-blue-600 text-white")
 
 
 def _create_settings_buttons_section(self: MyGui) -> None:

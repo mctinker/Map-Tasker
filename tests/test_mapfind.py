@@ -353,7 +353,7 @@ def test_report_is_written_to_a_timestamped_file(index: mapfind.FindIndex, tmp_p
     os.chdir(tmp_path)
     try:
         file_name = mapfind.write_find_report(rows)
-        assert file_name.startswith("MapTasker_Find_")
+        assert os.path.basename(file_name).startswith("MapTasker_Find_")
         with open(file_name, encoding="utf-8") as written:
             assert "HTTP Request" in written.read()
     finally:

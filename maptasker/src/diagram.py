@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import contextlib
 import gc
-import os
 import re
 from bisect import bisect_left
 from typing import TYPE_CHECKING
@@ -61,6 +60,7 @@ from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Target
 # from maptasker.src.guiwins import configure_progress_bar
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import find_all_positions
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import DIAGRAM_ATTRIBUTES, PrimeItems, reset_attributes
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
@@ -2156,7 +2156,7 @@ def network_map(network: dict) -> None:
 
     # Redirect print to a file
     if PrimeItems.netmap_output:
-        output_dir = f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"
+        output_dir = output_path(DIAGRAM_FILE)
         first_project = True
         project_translated = (
             translate_string("Project:")

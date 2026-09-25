@@ -39,6 +39,7 @@ from datetime import UTC, datetime
 from maptasker.src import diagintr, mapfonts, mappdf
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK
 from maptasker.src.maputil2 import translate_string
+from maptasker.src.outdir import output_directory
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import DIAGRAM_EXPORT_FILE, DIAGRAM_FILE, MAP_EXPORT_FILE, MY_VERSION, logger
 
@@ -624,14 +625,14 @@ def _read(path: str, missing: str) -> str:
 def export_view(view: str, fmt: str) -> str:
     """Write the Map or the Diagram, as last built, in format `fmt`, and answer the path written.
 
-    Read from and written to the current directory, which is where the views are built.
+    Read from and written to the output folder, which is where the views are built (see outdir).
     Raises ExportError when the view has not been built, and lets OSError through when the
     export cannot be written.
     """
     if view not in (MAP, DIAGRAM) or fmt not in FORMATS:
         message = f"Cannot export {view!r} as {fmt!r}"
         raise ValueError(message)
-    directory = os.getcwd()
+    directory = str(output_directory())
     meta = metadata(view)
     if view == MAP:
         document = _read(os.path.join(directory, MAP_SOURCE), "There is no Map to export.  Display the Map first.")

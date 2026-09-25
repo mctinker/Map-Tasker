@@ -66,7 +66,6 @@
 from __future__ import annotations
 
 import copy
-import os
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -77,6 +76,7 @@ from maptasker.src.actionc import action_codes
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Row, Target, text_report
 from maptasker.src.maputils import append_to_filename
+from maptasker.src.outdir import output_path
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import REFACTOR_FILE, logger
 from maptasker.src.varxref import VARIABLE_PATTERN
@@ -2134,13 +2134,14 @@ def write_refactor_report(rows: list[Row]) -> str:
     file_name = append_to_filename(REFACTOR_FILE, stamp)
     if not file_name:
         return ""
+    file_path = output_path(file_name)
     try:
-        with open(os.path.join(os.getcwd(), file_name), "w", encoding="utf-8") as output_file:
+        with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))
     except OSError as error:
         logger.error(f"Refactor report could not be written: {error}")
         return ""
-    return file_name
+    return file_path
 
 
 def apply(plan: Plan) -> tuple[bool, list[str]]:

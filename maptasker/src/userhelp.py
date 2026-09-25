@@ -215,6 +215,13 @@ APIKEY_HELP_TEXT = (
 # release, so there is deliberately no constant holding the assembled screen -- see
 # build_help.
 HELP_HEADING = "Help"
+# One more of INFO_TEXT's notes, held as a piece of its own so that adding it did not change
+# INFO_TEXT's msgid and put the whole screen back into English in every catalog.
+OUTPUT_FOLDER_HELP_TEXT = (
+    "- Output Folder: Reports (Health Check, Fix, Find, Compare and the rest), view exports and the"
+    " Map/Diagram files are written to the 'Output Folder' set in the settings drawer.  Left empty,"
+    " that is a 'MapTasker' folder in your Documents folder.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -242,4 +249,7 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
         str - the assembled help screen
     """
     lookup = translate or (lambda text: text)
-    return f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(INFO_TEXT)}{lookup(COMMAND_REFERENCE_TEXT)}"
+    return (
+        f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(INFO_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(COMMAND_REFERENCE_TEXT)}"
+    )

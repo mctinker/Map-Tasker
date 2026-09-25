@@ -14,6 +14,7 @@ happen on the paths a happy-path test never reaches.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import pytest
 from maptasker.src.initparg import ProgramArguments
@@ -454,12 +455,13 @@ def test_order_by_age_keeps_the_given_order_without_timestamps() -> None:
 
 
 def test_write_comparison_report(tmp_path) -> None:
-    """The report is written to a timestamped file in the current directory."""
-    file_name = diffload.write_comparison_report("a report\n")
+    """The report is written to a timestamped file in the output folder, and its path returned."""
+    written = Path(diffload.write_comparison_report("a report\n"))
 
-    assert file_name.startswith("MapTasker_Compare_")
-    assert file_name.endswith(".txt")
-    assert (tmp_path / file_name).read_text(encoding="utf-8") == "a report\n"
+    assert written.parent == tmp_path
+    assert written.name.startswith("MapTasker_Compare_")
+    assert written.suffix == ".txt"
+    assert written.read_text(encoding="utf-8") == "a report\n"
 
 
 def test_the_two_sides_compare(tmp_path) -> None:

@@ -672,14 +672,15 @@ def test_report_is_written_to_the_runtime_directory(tmp_path: object, monkeypatc
     # same way the display does.
     rows, _ = run_health_check()
 
-    file_name = write_health_check_report(rows)
+    written = write_health_check_report(rows)
+    file_name = os.path.basename(written)
 
     # MapTasker_HealthCheck_MM-DD-YYYY_HH-MM-SS.txt
     assert re.fullmatch(
         r"MapTasker_HealthCheck_\d{2}-\d{2}-\d{4}_\d{2}-\d{2}-\d{2}\.txt",
         file_name,
     ), file_name
-    written = os.path.join(tmp_path, file_name)
+    assert os.path.dirname(written) == str(tmp_path)
     assert os.path.isfile(written)
     # Saved as the plain text it was built as -- the HTML escaping for display happens in
     # the GUI handler, on a copy, and must not reach the file.

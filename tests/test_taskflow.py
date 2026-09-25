@@ -403,8 +403,8 @@ def test_report_is_written_to_a_file(tmp_path: object, monkeypatch: pytest.Monke
     monkeypatch.chdir(tmp_path)
     rows, _ = taskflow.run_task_flow_check()
     file_name = taskflow.write_task_flow_report(rows)
-    assert file_name.startswith("MapTasker_TaskFlow")
-    with open(os.path.join(os.getcwd(), file_name), encoding="utf-8") as written:
+    assert os.path.basename(file_name).startswith("MapTasker_TaskFlow")
+    with open(file_name, encoding="utf-8") as written:
         assert written.read() == text_report(rows)
 
 

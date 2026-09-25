@@ -446,7 +446,7 @@ def sanitize_filename(name: str) -> str:
 
 
 def default_project_save_path(project_name: str) -> str:
-    """Default standalone-export path: {current runtime directory}/{sanitized name}.prj.xml."""
+    """Default standalone-export path: {output folder}/{sanitized name}.prj.xml."""
     return EXPORT.default_save_path(project_name)
 
 

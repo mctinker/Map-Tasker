@@ -16,13 +16,27 @@ env:
 
 jobs:
   test:
-    name: test (py${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    # The Ubuntu jobs keep their original names ("test (py3.11)" ...) so any branch
+    # protection rule that requires them still matches; the Windows job adds "windows, ".
+    name: test (${{ matrix.os == 'windows-latest' && 'windows, ' || '' }}py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         # pyproject requires-python = ">=3.11, <4.0"
         python-version: ["3.11", "3.12", "3.13"]
+        # One Windows job, on the newest Python: enough to catch path, drive-letter and
+        # per-user-folder differences (outdir's Documents folder, apikeys' %APPDATA%)
+        # without tripling the matrix.
+        include:
+          - os: windows-latest
+            python-version: "3.13"
+    # Git Bash on Windows, so the steps below (the coverage summary's { ... } >> redirect
+    # in particular) run the same on both systems.
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@v5
@@ -49,7 +63,7 @@ jobs:
         if: always()
         run: |
           {
-            echo "### Coverage (Python ${{ matrix.python-version }})"
+            echo "### Coverage (Python ${{ matrix.python-version }}, ${{ runner.os }})"
             echo
             # '|| true' because coverage exits 2 when below fail_under; the test
             # step above is the gate, this step only renders the report.
@@ -60,7 +74,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: reports-py${{ matrix.python-version }}
+          # Artifact names must be unique within a run, and Ubuntu and Windows both run 3.13.
+          name: reports-${{ matrix.os == 'windows-latest' && 'windows-' || '' }}py${{ matrix.python-version }}
           path: |
             coverage.xml
             junit-${{ matrix.python-version }}.xml
