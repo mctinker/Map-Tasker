@@ -157,6 +157,10 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
     (build_save_to_android_dialog), defaults from the same remembered address, and writes
     the address back on success so the next one is pre-filled.
 
+    Lists the devices already fetched, each with a Forget button.  on_fetched runs after a
+    successful fetch, and also on Cancel when a device was forgotten, since either one
+    changes the list the caller is showing.
+
     The fetch itself installs a helper Task on the device, runs it, and waits for the file
     it writes -- seconds, not milliseconds -- so it goes through run.io_bound and the
     button says what it is doing while it happens.  See deviceinv.fetch_apps_from_device.
@@ -217,10 +221,44 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
             ),
         ).classes("text-sm text-amber-700 dark:text-amber-500 mt-2")
 
-        for device, when, count in appinv.fetched_devices():
-            ui.label(f"{device}: {count} {translate_string('applications, fetched')} {when}").classes(
-                "text-xs text-gray-500 mt-1",
-            )
+        # Each list already fetched, with a way to drop it.  A device is filed under the
+        # address it answered on, so a phone that has moved address is a second entry here,
+        # and the first one's list -- apps since uninstalled and all -- stays in the pickers
+        # and in the Health Check's plugin check until it is forgotten (appinv.forget_device).
+        forgot = False
+        device_rows = ui.column().classes("w-full gap-0 mt-1")
+
+        def forget(device: str) -> None:
+            nonlocal forgot
+            error = appinv.forget_device(device)
+            forgot = True
+            show_devices()
+            if error:
+                ui.notify(f"{translate_string('Forgotten for now, but could not be saved:')} {error}", type="warning")
+            else:
+                ui.notify(f"{translate_string('Forgot the applications fetched from')} {device}", type="info")
+
+        def show_devices() -> None:
+            device_rows.clear()
+            with device_rows:
+                for device, when, count in appinv.fetched_devices():
+                    with ui.row().classes("w-full items-center justify-between no-wrap"):
+                        ui.label(f"{device}: {count} {translate_string('applications, fetched')} {when}").classes(
+                            "text-xs text-gray-500",
+                        )
+                        forget_button = ui.button(
+                            translate_string("Forget"),
+                            on_click=lambda _event, device=device: forget(device),
+                        ).props("flat dense no-caps color=negative")
+                        forget_button.tooltip(
+                            translate_string(
+                                "Remove this device's list of applications.  Do this for a device you no longer "
+                                "use, or an old address of this one, so apps that are not installed any more stop "
+                                "being offered and counted as installed.",
+                            ),
+                        )
+
+        show_devices()
 
         ip_field = ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full")
         port_field = ui.input(translate_string("Port"), value=default_port).classes("w-full")
@@ -272,8 +310,14 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
             dialog.close()
             on_fetched()
 
+        def cancel() -> None:
+            """Close without fetching -- but a forgotten device has changed the list all the same."""
+            dialog.close()
+            if forgot:
+                on_fetched()
+
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=cancel).props("outline")
             fetch_button = ui.button(translate_string("Fetch"), on_click=fetch).classes("bg-blue-600")
             fetch_button.tooltip(
                 translate_string("Fetch the full list of installed Applications from the Android device."),

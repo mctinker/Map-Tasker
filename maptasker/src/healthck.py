@@ -1187,8 +1187,8 @@ def _limitations(index: ReferenceIndex) -> list[str]:
             "-" * _REPORT_WIDTH,
             "A plugin reported not installed was missing from the app list last fetched",
             "from the device, not from the device itself: an app installed since that",
-            "fetch is not on it.  Fetch the list again ('App not listed?' in the Task or",
-            "Profile editor) before installing anything.",
+            "fetch is not on it.  Fetch the list again ('Refresh App List' in the Health",
+            "Check panel) before installing anything.",
             "",
         ]
 
@@ -1199,8 +1199,8 @@ def _limitations(index: ReferenceIndex) -> list[str]:
             "-" * _REPORT_WIDTH,
             f"This configuration uses {index.plugins_unchecked} plugin(s), and none of them was checked",
             "for being installed: no app list has been fetched from the device to check",
-            "them against.  Fetch one ('App not listed?' in the Task or Profile editor)",
-            "and run the Health Check again.",
+            "them against.  Fetch one ('Refresh App List' in the Health Check panel) and",
+            "run the Health Check again.",
             "",
         ]
 

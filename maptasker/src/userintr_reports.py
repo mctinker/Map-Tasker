@@ -120,7 +120,7 @@ class ReportEventHandlers:
             )
             return
 
-        build_health_check_dialog(self.run_health_check_for, self.save_health_check_skip)
+        build_health_check_dialog(self.run_health_check_for, self.save_health_check_skip, gui)
 
     def save_health_check_skip(self: MapTaskerEventHandlers, skip: list[str]) -> None:
         """Remember which Health Check categories to leave out, in the settings file.

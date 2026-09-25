@@ -703,6 +703,32 @@ def test_a_fetch_replaces_that_devices_previous_answer(device: _FakeRequests) ->
     assert packages == ["com.only.this.one"]
 
 
+def test_forgetting_a_device_takes_its_apps_out_of_the_inventory_and_the_cache(device: _FakeRequests) -> None:
+    """A phone that moved address is a second device, and the old list has to be removable."""
+    device.payload = "MAPTASKER-APPS 1\nPACKAGES\ncom.old.address.only\nMAPTASKER-END\n"
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    device.payload = "MAPTASKER-APPS 1\nPACKAGES\ncom.new.address.only\nMAPTASKER-END\n"
+    device.task_installed = True
+    deviceinv.fetch_apps_from_device("192.168.0.211", "1821")
+    assert "com.old.address.only" in {entry.pkg for entry in appinv.apps()}
+
+    assert appinv.forget_device("192.168.0.210:1821") == ""
+
+    assert [record[0] for record in appinv.fetched_devices()] == ["192.168.0.211:1821"]
+    cached = json.loads(pathlib.Path(appinv.cache_path()).read_text())
+    assert list(cached["devices"]) == ["192.168.0.211:1821"]
+    left = {entry.pkg for entry in appinv.apps()}
+    assert "com.new.address.only" in left
+    assert "com.old.address.only" not in left
+
+
+def test_forgetting_a_device_that_is_not_there_changes_nothing(device: _FakeRequests) -> None:
+    """A stale Forget -- the dialog open twice -- is not an error."""
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    assert appinv.forget_device("10.0.0.1:1821") == ""
+    assert [record[0] for record in appinv.fetched_devices()] == ["192.168.0.210:1821"]
+
+
 def test_an_unfinished_file_is_not_read_as_a_complete_list(device: _FakeRequests) -> None:
     """The Task writes the file a line at a time, so it is readable long before it is
     finished.  Without the terminator check, a truncated app list would be cached as though

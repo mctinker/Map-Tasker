@@ -39,6 +39,7 @@ from typing import TYPE_CHECKING
 from nicegui import Event, app, context, run, ui
 
 from maptasker.src import (
+    appinv,
     clock,
     diagintr,
     healthck,
@@ -96,6 +97,7 @@ from maptasker.src.guiwins_designer_legacy import (
 from maptasker.src.guiwins_designer_v2 import _build_v2_designer
 from maptasker.src.guiwins_impact import build_impact_panel, wire_impact_clicks
 from maptasker.src.guiwins_taskedit import (
+    _build_fetch_apps_dialog,
     _build_task_action_editor,
     _build_tasker_icon_picker_dialog,
     _render_addability_reason,
@@ -3195,9 +3197,30 @@ def build_save_scene_to_android_dialog(
     android_dialog.open()
 
 
+def _app_list_status() -> str:
+    """What the plugin check will be compared against, for the Health Check panel.
+
+    One line per fetched device, dated, because the date is the thing to judge it by: a
+    plugin installed since then is reported missing, and one uninstalled since is not.
+    """
+    devices = appinv.fetched_devices()
+    if not devices:
+        return translate_string(
+            "No app list has been fetched from the device, so plugins cannot be checked for being installed.",
+        )
+    lines = [f"{device}: {count} {translate_string('applications, fetched')} {when}" for device, when, count in devices]
+    heading = translate_string(
+        "Plugins are checked against the app list from"
+        if len(lines) == 1
+        else "Plugins are checked against the app lists from"
+    )
+    return f"{heading} {lines[0]}" if len(lines) == 1 else "\n".join([f"{heading}:", *lines])
+
+
 def build_health_check_dialog(
     on_run: Callable[[list[str]], None],
     on_save: Callable[[list[str]], None],
+    gui: MyGui,
 ) -> None:
     """Ask which categories of finding the Health Check should report, then run it.
 
@@ -3216,6 +3239,11 @@ def build_health_check_dialog(
     time a choice changes -- one box, or all of them through Select All or Deselect All --
     so what is ticked is never lost to a Cancel or an exit.  The caller does the running and
     the saving: this module builds windows and knows nothing about what a health check is.
+
+    'Refresh App List' is here because PLUGIN-NOT-INSTALLED is only as current as the list
+    it is checked against, and the only other way to fetch one is from inside an editor's
+    Application picker.  It opens the same fetch dialog those do, over this panel, and the
+    panel stays open so Run is one click away once the list is in.
     """
     skip = set(PrimeItems.program_arguments.health_check_skip or [])
     boxes: dict[str, ui.checkbox] = {}
@@ -3270,6 +3298,27 @@ def build_health_check_dialog(
             """Close the panel, then run the check for whatever is still ticked."""
             dialog.close()
             on_run(skipped())
+
+        async def refresh_apps() -> None:
+            """Fetch the app list from the device, then say what the plugins will be checked against."""
+            await _build_fetch_apps_dialog(gui, show_app_status)
+
+        def show_app_status() -> None:
+            app_status.set_text(_app_list_status())
+
+        with ui.row().classes("w-full items-center justify-between gap-2 mt-3 no-wrap"):
+            app_status = ui.label(_app_list_status()).classes("text-xs text-gray-500 whitespace-pre-line")
+            refresh_button = ui.button(
+                translate_string("Refresh App List"),
+                icon="cloud_download",
+                on_click=refresh_apps,
+            ).props("flat dense color=primary no-caps")
+            refresh_button.tooltip(
+                translate_string(
+                    "Fetch the list of installed applications from your Android device, so the check for "
+                    "plugins that are not installed is up to date.",
+                ),
+            )
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")

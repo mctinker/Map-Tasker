@@ -678,6 +678,27 @@ def _store_fetched_apps(device: str, entries: list[AppEntry]) -> str:
     return error
 
 
+def forget_device(device: str) -> str:
+    """Drop one device's fetched Applications.  Returns "" or why the change could not be saved.
+
+    A device is filed under the address it was fetched from, so a phone that moves to a new
+    address is fetched as a second device and the first one's list stays behind for ever --
+    an app since uninstalled is still offered in the pickers, and still counts as installed
+    to plugchk, which trusts a plugin found on any list.  Nothing else ever removes one.
+
+    As with a fetch, the in-memory inventory follows whether or not the file was written.
+    Forgetting a device that is not there changes nothing and is not an error.
+    """
+    cache = read_cache()
+    devices = cache.get("devices")
+    if not isinstance(devices, dict) or device not in devices:
+        return ""
+    del devices[device]
+    error = _write_cache(cache)
+    _adopt_cache(cache)
+    return error
+
+
 def _adopt_cache(cache: dict) -> None:
     """Rebuild the fetched half of the inventory from a cache dict, and mark it changed."""
     known: dict[str, AppEntry] = {}
