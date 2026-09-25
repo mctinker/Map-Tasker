@@ -28,7 +28,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
-from maptasker.src import appinv, caches, editcommon, piiscan, sessundo
+from maptasker.src import appinv, caches, editcommon, piiscan, plugset, sessundo
 from maptasker.src.actionc import action_codes
 from maptasker.src.actiont import lookup_values
 from maptasker.src.bundle import bundles
@@ -661,12 +661,33 @@ def build_editable_args(
             editable_args.append(_build_app_arg(action_element, the_arg, arg))
         elif category in _ICON_CATEGORIES:
             editable_args.append(_build_icon_arg(action_element, the_arg, arg))
+        elif category == "Bundle" and plugset.is_plugin(action_element):
+            editable_args.append(_plugin_settings_arg(action_element, arg))
         else:
             editable_args.append(
                 _readonly_arg(arg, f"'{category or arg.arg_type}' arguments are not editable in this version."),
             )
 
     return editable_args
+
+
+def _plugin_settings_arg(action_element: Element, arg) -> EditableArg:
+    """A plugin's settings, shown read-only as one line (see plugset.settings_summary).
+
+    Still not editable -- the plugin checks its own settings when Tasker hands them over --
+    but no longer a blank box: what the plugin was set up to do is the first thing anyone
+    opening the action wants to know, and the standing warning above it already says where
+    to change it (see tasker_configuration_warning).
+    """
+    return EditableArg(
+        arg_id=arg.arg_id,
+        arg_name=_display_arg_name(arg) or "Plugin Settings",
+        widget_kind="readonly",
+        backing_tag="",
+        is_var=False,
+        element=None,
+        current_value=plugset.settings_summary(action_element),
+    )
 
 
 def _find_int_element(

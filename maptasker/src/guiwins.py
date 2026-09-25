@@ -29,8 +29,10 @@ import inspect
 import json
 import os
 import re
+import time
 import weakref
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to serialize, never to parse
+from collections import deque
 from datetime import date
 from typing import TYPE_CHECKING
 
@@ -54,6 +56,7 @@ from maptasker.src import (
     taskedit,
     timeline,
     varxref,
+    webassets,
 )
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import EDIT_SCENE
@@ -190,6 +193,11 @@ def view_limit_options(current: str) -> list[str]:
 _NOTIFY_TIMEOUT = {"ms": NOTIFY_TIMEOUT_DEFAULT}
 _NOTIFY_WRAPPED = False
 
+# Every ui.notify since start-up (or the last Clear Log), oldest first, as (time, type, message).
+# Bounded so a long session cannot grow it without limit; the oldest entries fall off first.
+_NOTIFY_LOG_MAX = 500
+_NOTIFY_LOG: deque[tuple[str, str, str]] = deque(maxlen=_NOTIFY_LOG_MAX)
+
 
 def set_notification_timeout(milliseconds: int) -> None:
     """Set how long a notification stays up from now on, in milliseconds (0 = until
@@ -215,6 +223,7 @@ def install_notification_timeout() -> None:
     original = ui.notify
 
     def notify(message: object, **kwargs: object) -> None:
+        _NOTIFY_LOG.append((time.strftime("%H:%M:%S"), str(kwargs.get("type") or "info"), str(message)))
         kwargs.setdefault("timeout", _NOTIFY_TIMEOUT["ms"])
         if not kwargs["timeout"]:
             # "Until dismissed" with no way to dismiss it is a notification that covers the
@@ -225,6 +234,33 @@ def install_notification_timeout() -> None:
 
     ui.notify = notify
     _NOTIFY_WRAPPED = True
+
+
+def display_notification_log() -> None:
+    """Show every notification recorded since start-up (or the last Clear Log), newest last.
+
+    Read-only, so -- like the other read-only dialogs -- it is not persistent.  An empty log
+    is said inside the dialog rather than with a notification, since that notification would
+    itself be the log's first entry.
+    """
+    with ui.dialog() as dialog, ui.card().classes("min-w-[600px] max-w-[1000px] w-full p-4"):
+        ui.label(translate_string("Notification Log")).classes("text-xl font-bold text-blue-600")
+        if _NOTIFY_LOG:
+            log = ui.log(max_lines=_NOTIFY_LOG_MAX).classes("w-full h-[60vh] text-xs")
+            for stamp, kind, message in _NOTIFY_LOG:
+                log.push(f"{stamp}  [{kind}]  {message}")
+        else:
+            ui.label(translate_string("No notifications have been logged."))
+        ui.button(translate_string("Close"), on_click=dialog.close).classes("mt-4 bg-red-500 text-white w-full")
+    dialog.open()
+
+
+def clear_notification_log() -> None:
+    """Empty the notification log.  The confirmation goes out first so it is not left behind
+    as the only entry in a log the user just cleared.
+    """
+    ui.notify(translate_string("Notification log cleared."), type="positive")
+    _NOTIFY_LOG.clear()
 
 
 # ==========================================
@@ -5071,12 +5107,12 @@ class NiceGuiSceneView:
         here is a misplaced element in the Scene.  Scoped to this view's own wrapper class,
         because the Legacy designer has a canvas of its own on the same page.
         """
-        fixed = "null"
+        fixed = None
         if self.zoom != "Fit":
             try:
-                fixed = str(int(self.zoom.rstrip("%")) / 100)
+                fixed = int(self.zoom.rstrip("%")) / 100
             except ValueError:
-                fixed = "null"
+                fixed = None
         _emit_canvas_fit(CANVAS_PREVIEW_ROOT, width, height, fixed)
 
     def _draw_legacy_caption(self, scene_element: object, width: int, height: int) -> None:
@@ -8094,8 +8130,9 @@ def set_document_language_js(lang_code: str) -> str:
 
 
 def inject_shared_head_styles() -> None:
-    """Injects the CSS shared by every page of the app (scrollbar theming, light-mode overrides,
-    Map/Diagram/Tree table layout, and the Diagram view's click-to-highlight connector styling),
+    """Links the stylesheet and script shared by every page of the app (maptasker/assets/css and
+    maptasker/assets/js: scrollbar theming, light-mode overrides, Map/Diagram/Tree table layout,
+    the Diagram view's click-to-highlight connector styling, and the Scene canvas's handlers),
     plus the document's language declaration (see document_language_html).
 
     ui.add_head_html() only affects the page it's called from -- each NiceGUI @ui.page is its own
@@ -8109,417 +8146,7 @@ def inject_shared_head_styles() -> None:
     # browser to sniff and translate on its own.
     ui.add_head_html(document_language_html())
 
-    ui.add_head_html("""
-        <style>
-            /* Force scrollbar tracks to be visible on our target components */
-            .force-scrollbar,
-            .force-scrollbar .q-drawer__content {
-                overflow-y: scroll !important;
-                overflow-x: auto !important;
-            }
-
-            /* =========================================================================
-               NATIVE BROWSER SCROLLBARS (WebKit: Chrome, Safari, Edge) - LIGHT MODE CONTRAST
-               ========================================================================= */
-            .force-scrollbar::-webkit-scrollbar,
-            .force-scrollbar .q-drawer__content::-webkit-scrollbar {
-                display: block !important;
-                width: 10px !important;
-                height: 10px !important;
-            }
-            .force-scrollbar::-webkit-scrollbar-track,
-            .force-scrollbar .q-drawer__content::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.08) !important;
-                border-radius: 4px !important;
-            }
-            .force-scrollbar::-webkit-scrollbar-thumb,
-            .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb {
-                background: #475569 !important;
-                border-radius: 4px !important;
-                border: 1px solid #ffffff !important;
-            }
-            .force-scrollbar::-webkit-scrollbar-thumb:hover,
-            .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb:hover {
-                background: #1e293b !important;
-            }
-
-            /* =========================================================================
-               QUASAR SCROLL AREA COMPONENT (NiceGUI ui.scroll_area) - LIGHT MODE CONTRAST
-               ========================================================================= */
-            .q-scrollarea__thumb--v,
-            .q-scrollarea__thumb--h {
-                background: #475569 !important;
-                opacity: 0.95 !important;
-                border: 1px solid #ffffff !important;
-            }
-
-            .q-scrollarea__thumb--v:hover,
-            .q-scrollarea__thumb--h:hover {
-                background: #1e293b !important;
-                opacity: 1 !important;
-            }
-
-            /* =========================================================================
-               DARK MODE HIGH-CONTRAST OVERRIDES (Crisp Silver/White on Dark Backgrounds)
-
-               "body.body--dark" is how dark mode is actually marked in the DOM: NiceGUI's
-               ui.dark_mode() drives Quasar's dark plugin, which sets body--dark/body--light
-               on <body>, and NiceGUI wires Tailwind's own "dark:" variant to that same class.
-               Nothing ever puts a "dark" class on <html> -- so the ".dark ..." selectors these
-               rules used to carry never matched anything, and the "html:not(.dark) ..." ones
-               further down matched in BOTH modes, forcing white onto cards and scroll areas
-               even in dark mode. Everything else survived that only because apply_appearance_mode()
-               writes inline "!important" styles over it (an inline important declaration
-               outranks a stylesheet one); the Tree view's card and scroll area get no such
-               inline styles, which is exactly why that one container stayed white.
-               ========================================================================= */
-            body.body--dark .force-scrollbar::-webkit-scrollbar-track,
-            body.body--dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-track {
-                background: rgba(255, 255, 255, 0.1) !important;
-            }
-            body.body--dark .force-scrollbar::-webkit-scrollbar-thumb,
-            body.body--dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb,
-            body.body--dark .q-scrollarea__thumb--v,
-            body.body--dark .q-scrollarea__thumb--h {
-                background: #e2e8f0 !important;
-                border: 1px solid #1e293b !important;
-                opacity: 0.95 !important;
-            }
-            body.body--dark .force-scrollbar::-webkit-scrollbar-thumb:hover,
-            body.body--dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb:hover,
-            body.body--dark .q-scrollarea__thumb--v:hover,
-            body.body--dark .q-scrollarea__thumb--h:hover {
-                background: #ffffff !important;
-                opacity: 1 !important;
-            }
-
-            /* Firefox Engine Fallback High-Contrast */
-            .force-scrollbar,
-            .force-scrollbar .q-drawer__content {
-                scrollbar-width: auto !important;
-                scrollbar-color: #475569 rgba(0, 0, 0, 0.08) !important;
-            }
-            body.body--dark .force-scrollbar,
-            body.body--dark .force-scrollbar .q-drawer__content {
-                scrollbar-color: #e2e8f0 rgba(255, 255, 255, 0.1) !important;
-            }
-
-            /* =========================================================================
-               TARGETED LIGHT MODE OVERRIDES (Completely bypasses macOS System preferences)
-
-               Scoped to "body:not(.body--dark)" -- see the note above on why the old
-               "html:not(.dark)" scope leaked these white backgrounds into dark mode.
-               ========================================================================= */
-            body:not(.body--dark),
-            body:not(.body--dark) .q-layout,
-            body:not(.body--dark) .q-page-container,
-            body:not(.body--dark) main,
-            body:not(.body--dark) .q-drawer,
-            body:not(.body--dark) .q-tab-panels,
-            body:not(.body--dark) .q-tab-panel,
-            body:not(.body--dark) .q-card,
-            body:not(.body--dark) .q-tabs,
-            body:not(.body--dark) .q-scrollarea,
-            body:not(.body--dark) .q-scroll-area,
-            body:not(.body--dark) .q-textview,
-            body:not(.body--dark) .q-content-container,
-            body:not(.body--dark) .q-container-context,
-            body:not(.body--dark) div.nicegui-content {
-                background-color: #ffffff !important;
-                color: #000000 !important;
-            }
-
-            /* =========================================================================
-               CRITICAL FIX: FORCE TOOLBAR ROWS WHITE IN LIGHT MODE
-               ========================================================================= */
-            body:not(.body--dark) .bg-gray-200,
-            body:not(.body--dark) .dark\\:bg-gray-800,
-            body:not(.body--dark) .gap-4.mb-6 {
-                background-color: #ffffff !important;
-                color: #000000 !important;
-            }
-
-            /* =========================================================================
-               TREE VIEW: LABELS TAKE THEIR COLOUR FROM THE CARD
-
-               NiceGuiTreeView.apply_theme() puts the current mode's foreground colour on
-               the card as an inline style; Quasar otherwise colours the node rows from its
-               own theme, which is how the labels could end up light-on-light (or dark-on-
-               dark) if its idea of the mode ever disagrees with the switch's.  Inheriting
-               keeps the two in step no matter which way that disagreement goes.
-               ========================================================================= */
-            .maptasker-tree-card .q-tree,
-            .maptasker-tree-card .q-tree * {
-                color: inherit !important;
-            }
-
-            /* =========================================================================
-               GLOBAL TOOLTIP FONT SIZE ADJUSTMENT
-               ========================================================================= */
-            .q-tooltip {
-                font-size: 14px !important;
-                line-height: 1.4 !important;
-            }
-
-            /* =========================================================================
-               MAP/DIAGRAM/TREE VIEW: KEEP THE GENERATED DIRECTORY TABLES WITHIN THE
-               SCROLL AREA. The exported HTML sizes table columns to fit their widest
-               unbroken cell (Task/Profile names are often one long unbroken word), which
-               is fine in a full-width standalone browser tab but overflows this narrow
-               embedded box. Force fixed column widths and let long names wrap instead.
-               (Set here rather than injected per-render, since ui.html() sanitizes
-               dynamic content client-side via DOMPurify and strips <style> tags.)
-               ========================================================================= */
-            .q-scrollarea table {
-                table-layout: fixed !important;
-                width: 100% !important;
-            }
-            .q-scrollarea table td,
-            .q-scrollarea table th {
-                overflow-wrap: anywhere !important;
-                word-break: break-word !important;
-                white-space: normal !important;
-            }
-            /* <pre> forces its own white-space:pre in the UA stylesheet, which wins over the
-               inherited whitespace-pre-wrap Tailwind class on the scroll area itself (e.g. the
-               AI-analysis prompt text embedded in the exported HTML). Force it to wrap too. */
-            .q-scrollarea pre {
-                white-space: pre-wrap !important;
-                overflow-wrap: anywhere !important;
-                word-break: break-word !important;
-            }
-            /* Quasar's own QScrollArea stylesheet gives its internal content wrapper
-               (".q-scrollarea__content", not directly reachable via ui.scroll_area().classes())
-               "min-width: 100%" but no max-width -- so any wide-enough descendant (a table
-               whose fixed-width rule above is only 100% of THIS already-oversized box, a long
-               line that slips past a narrower fix, etc.) is free to stretch it past the visible
-               area. Quasar then just lets you scroll to it horizontally instead of clipping,
-               which is indistinguishable from "wrap isn't working". Cap it at 100% -- but only
-               while word wrap is on (the "whitespace-pre-wrap" Tailwind class toggled by Toggle
-               Wrap lives on the very same .q-scrollarea element, so it doubles as the switch
-               here): wrap-off views (Diagram's ASCII art by default) still need to grow past the
-               viewport and rely on that same horizontal scrollbar on purpose. */
-            .q-scrollarea.whitespace-pre-wrap .q-scrollarea__content {
-                max-width: 100% !important;
-            }
-
-            /* =========================================================================
-               DIAGRAM VIEW: CLICK-TO-HIGHLIGHT CONNECTOR LINES
-               ========================================================================= */
-            .connector {
-                cursor: pointer;
-            }
-            .connector-highlight {
-                background-color: #facc15 !important;
-                color: #000000 !important;
-                font-weight: bold;
-            }
-            .connector-jump-button {
-                display: none;
-                position: fixed;
-                z-index: 1000;
-                padding: 8px 14px;
-                background-color: #2563eb;
-                color: #ffffff;
-                border: none;
-                border-radius: 6px;
-                font-size: 0.875rem;
-                font-weight: 600;
-                cursor: pointer;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-            }
-            .connector-jump-button:hover {
-                background-color: #1d4ed8;
-            }
-
-            /* =========================================================================
-               DIAGRAM VIEW: THE INTERACTIVE LAYER (see diagintr.py)
-               =========================================================================
-               The rule everything here obeys: not one of these may change the width of a
-               character or the position of a column.  The diagram's boxes and the
-               connectors joining them were laid out against each other in Python, so a
-               highlight with padding, a fold arrow taking up a column, or a zoom that
-               scaled anything but the font would pull the drawing apart. */
-
-            /* Each line is its own element so that folding can take it away.  A block,
-               because the browser then breaks between lines by itself -- the newline is
-               still in the text (the search index and the jump into the Diagram both count
-               lines by counting newlines) but is never displayed, or the diagram would come
-               out double-spaced. */
-            .mt-dline {
-                display: block;
-            }
-            .mt-dnl {
-                display: none;
-            }
-            .mt-dline.mt-hidden {
-                display: none;
-            }
-
-            /* The fold arrow for a Project, drawn in the margin: absolutely positioned, so
-               it occupies no column, and pulled left into the scroll area's own padding. */
-            .mt-dline[data-fold] {
-                cursor: pointer;
-                /* So the arrow below is positioned against THIS line and nothing else.  Left
-                   to find its own containing block it would take whichever ancestor happens
-                   to be positioned -- Quasar's scroll content here, the page there -- and
-                   land somewhere different in each. */
-                position: relative;
-            }
-            .mt-dline[data-fold]::before {
-                /* The character itself, not a CSS "\\25be" escape: this block is an ordinary
-                   Python string, in which a backslash and two digits is an OCTAL escape --
-                   so the escape never reached the browser, and what did was U+0015 followed
-                   by a literal "be" sitting in the margin of every Project. */
-                content: "▾";
-                /* Out of flow, so it occupies no column: it sits over the five blanks a
-                   Project box is always indented by (diagutil.print_box), which is the only
-                   place on the line that is guaranteed to be empty.  At a fixed size for the
-                   same reason -- a control is not part of the drawing, and one measured in em
-                   would grow with the zoom until it covered the box it belongs to.  Large enough
-                to see and aim at, and centred on the line with a line-height of 1 so the
-                bigger glyph does not hang down over the line below. */
-                position: absolute;
-                left: 0;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 22px;
-                line-height: 1;
-                opacity: 0.75;
-                font-weight: bold;
-            }
-            .mt-dline[data-fold][data-fold-state="closed"]::before {
-                content: "▸";
-                opacity: 1;
-                color: #f97316;
-            }
-            .mt-dline[data-fold]:hover::before {
-                opacity: 1;
-            }
-
-            /* A clickable object name.  An underline on hover rather than a box: an outline
-               would be drawn outside the character cell and overlap the box wall next to
-               it, which reads as the diagram having moved. */
-            .mt-dnode {
-                cursor: pointer;
-            }
-            .mt-dnode:hover,
-            .mt-dnode:focus-visible {
-                text-decoration: underline;
-                text-underline-offset: 2px;
-                outline: none;
-            }
-
-            /* Following one chain of calls: the Tasks in it and the arrows between them
-               stay lit, and the rest of the diagram is greyed rather than hidden -- where a
-               chain runs is as much of the answer as which Tasks are in it.  One class on
-               the container does it, so that following a chain costs nothing on a large
-               diagram; the exemption is only for the lines the chain's Tasks are drawn on,
-               so that their "[Calls ...]" annotations stay readable.
-
-               Greyed by colour and not by opacity, which is what it was at first: opacity
-               makes a group, and nothing inside a group can be more opaque than the group
-               is -- so the chain's own arrows faded along with the diagram they were drawn
-               over.  A colour is inherited instead, and any element setting its own wins. */
-            .mt-chaining .mt-dline:not(.mt-chain-line) {
-                color: #6b7280 !important;
-            }
-            .mt-chain {
-                background-color: #22c55e !important;
-                color: #000000 !important;
-                font-weight: bold;
-            }
-            .mt-chain-connector {
-                background-color: #86efac !important;
-                color: #000000 !important;
-            }
-
-            /* The menu a right-click on a node opens.  Parented to the body, for the reason
-               the connector jump buttons are: the scroll area sets "contain: strict", which
-               would clip anything positioned inside it to the scroll box. */
-            .mt-dmenu {
-                position: fixed;
-                z-index: 1100;
-                min-width: 190px;
-                padding: 4px;
-                background-color: #1f2937;
-                color: #f9fafb;
-                border: 1px solid #4b5563;
-                border-radius: 6px;
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-                font-family: system-ui, sans-serif;
-                font-size: 0.8125rem;
-            }
-            .mt-dmenu-title {
-                padding: 4px 10px 6px;
-                font-weight: 700;
-                color: #fbbf24;
-                border-bottom: 1px solid #374151;
-                margin-bottom: 4px;
-                max-width: 320px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-            .mt-dmenu-item {
-                display: block;
-                width: 100%;
-                padding: 6px 10px;
-                text-align: left;
-                background: none;
-                border: none;
-                color: inherit;
-                font: inherit;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-            .mt-dmenu-item:hover {
-                background-color: #2563eb;
-            }
-
-            /* =========================================================================
-               MAP VIEW: WHERE A CLICKED REPORT FINDING LANDS (see mapjump.py)
-               ========================================================================= */
-            /* The anchors themselves are empty and must stay that way -- they mark a
-               position between two lines, and anything that gave them a box would push
-               the output around. */
-            .mt-anchor {
-                display: none;
-            }
-            /* An outline rather than a background: the Map's own colours are the user's,
-               picked against their chosen output background, and painting over one of
-               them would hide the very line the jump just went to the trouble of finding.
-               The pulse runs once and stops -- long enough to catch the eye on a dense
-               page, not so long that it becomes the thing you are reading around. */
-            .mt-jump-target {
-                outline: 2px solid #ff5722;
-                outline-offset: 2px;
-                border-radius: 3px;
-                animation: mt-jump-pulse 0.9s ease-out 2;
-            }
-            @keyframes mt-jump-pulse {
-                0%   { background-color: rgba(255, 87, 34, 0.35); }
-                100% { background-color: rgba(255, 87, 34, 0.00); }
-            }
-
-            /* A report row that points at something in the Map.  Dotted rather than solid
-               underline, and no colour of its own: the reports are read in a <pre> as
-               columns of tagged lines, and a row of blue links down the left would fight
-               the tags for attention.  It has to LOOK different from the rows that do
-               nothing, though -- a click that does nothing reads as a broken feature. */
-            .mt-finding {
-                cursor: pointer;
-                text-decoration: underline dotted;
-                text-underline-offset: 3px;
-            }
-            .mt-finding:hover,
-            .mt-finding:focus {
-                background-color: rgba(59, 130, 246, 0.18);
-                text-decoration: underline solid;
-                outline: none;
-            }
-        </style>
-    """)
+    ui.add_head_html(webassets.head_html())
 
 
 def initialize_screen(self: MyGui) -> None:
@@ -9261,6 +8888,9 @@ def initialize_screen(self: MyGui) -> None:
                         .bind_value(self, "runtime")
                         .classes("text-xs")
                     )
+                    with ui.row().classes("gap-2 mt-2"):
+                        ui.button(translate_string("Display Log"), on_click=display_notification_log)
+                        ui.button(translate_string("Clear Log"), on_click=clear_notification_log)
 
         self.content_container = ui.column().classes("w-full max-w-full min-w-0 p-0 m-0 mt-6")
 

@@ -35,7 +35,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src import clock, sceneedit
+from maptasker.src import clock, codelint, sceneedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.bundle import bundles
 from maptasker.src.mapjump import (
@@ -705,6 +705,18 @@ def _scan_action(
             )
         else:
             _record_reads(index, text, Reference(READ, where, detail, scope_id, place, argument_elements.get(arg_id)))
+
+    # A JavaScriptlet names Tasker variables through Tasker's own calls -- global('Name'),
+    # setLocal('name', value) -- and never with a '%', so the loop above cannot see them:
+    # a global read only by a script used to be reported as never read.
+    if code == codelint.JAVASCRIPTLET:
+        label = f"{_argument_label(code, '0')} (script)"
+        script_element = argument_elements.get("0")
+        for name, is_write in codelint.js_variable_uses(arguments.get("0", "")):
+            if is_write:
+                _record_write(index, name, Reference(SET, where, label, scope_id, place, script_element), plural=False)
+            else:
+                _record_reads(index, name, Reference(READ, where, label, scope_id, place, script_element))
 
     # A plugin action keeps its configuration in a <Bundle> rather than in <Str> arguments,
     # and 1741 actions in a real backup to hand carry one.  Every variable named in there is
@@ -1685,8 +1697,11 @@ def _limitations(index: VariableIndex, thin_rule: str) -> list[str]:
         "",
         "Nothing outside the backup is visible at all: an intent from another app, a",
         "Tasker Function, or a variable set by hand on the device leaves no trace here.",
-        "Nor does anything inside a script: a WebView Scene whose HTML sets variables from",
-        "JavaScript, or an AutoTools/Java action doing the same, is opaque to this index.",
+        "A JavaScriptlet is read for the variables it names through global(), setGlobal(),",
+        "local() and setLocal() when the name is written out as a string; a name held in a",
+        "script variable, and everything a JavaScript action does (its script is a file on",
+        "the device, not in the backup), is not.  Nor is a WebView Scene whose HTML sets",
+        "variables from JavaScript, or an AutoTools/Java action doing the same.",
         "A family of related names that are all read and never set usually means one of",
         "those, rather than a family of mistakes.",
         "",

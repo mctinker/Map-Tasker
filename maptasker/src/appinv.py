@@ -630,6 +630,30 @@ def fetched_devices() -> list[tuple[str, str, int]]:
     ]
 
 
+def fetched_packages() -> dict[str, tuple[str, frozenset[str]]]:
+    """{device: (when it was fetched, every package it reported)} for each device in the cache.
+
+    Kept per device, where the inventory merges them: 'is this installed' is a question
+    about one phone, and the merged list would answer yes for an app that is only on the
+    tablet.  See plugchk, which asks it of every plugin a configuration uses.
+    """
+    packages: dict[str, tuple[str, frozenset[str]]] = {}
+    devices = read_cache().get("devices", {})
+    for device, record in sorted(devices.items()) if isinstance(devices, dict) else []:
+        if not isinstance(record, dict):
+            continue
+        apps = record.get("apps", [])
+        packages[device] = (
+            str(record.get("fetched", "")),
+            frozenset(
+                str(app.get("pkg", "")).strip()
+                for app in (apps if isinstance(apps, list) else [])
+                if isinstance(app, dict) and str(app.get("pkg", "")).strip()
+            ),
+        )
+    return packages
+
+
 def _store_fetched_apps(device: str, entries: list[AppEntry]) -> str:
     """Record one device's fetched Applications, replacing whatever it reported last time.
 

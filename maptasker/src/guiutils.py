@@ -6,9 +6,9 @@ import os
 from typing import TYPE_CHECKING
 from xml.etree.ElementTree import Element
 
-from nicegui import app, run, ui
+from nicegui import run, ui
 
-from maptasker.src import clock, console
+from maptasker.src import clock, console, webassets
 
 # Keep your existing logic imports (e.g., from maptasker.src.aiutils import ...)
 from maptasker.src.aiutils import (
@@ -1369,10 +1369,6 @@ def valid_item(
     return any(root_element[item]["name"] == the_name for item in root_element)
 
 
-_LOGO_URL_PATH = "/assets_logos"
-_logo_static_files_mounted = False
-
-
 def add_logo(self: "MyGui", logo_name: str) -> None:
     """
     Add a logo to the screen dynamically via NiceGUI.
@@ -1380,33 +1376,26 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
     Instead of grid coordinates, layouts are handled naturally inside their parent panels
     (the sidebar drawer, the tab panel, etc.).
     """
-    global _logo_static_files_mounted  # noqa: PLW0603
-
-    # 1. Determine the path to the assets directory and serve it over HTTP.
-    # Browsers refuse to load "file://" URLs referenced from a page served over
-    # "http://", so ui.image() needs a URL NiceGUI actually serves -- mount the
-    # assets directory once (subsequent calls, e.g. once per flag, are no-ops).
-    abspath = os.path.abspath(__file__)
-    assets_dir = os.path.dirname(abspath).replace("src", "assets")
-    if not _logo_static_files_mounted:
-        app.add_static_files(_LOGO_URL_PATH, assets_dir)
-        _logo_static_files_mounted = True
+    # 1. Serve the assets directory over HTTP.  Browsers refuse to load "file://" URLs
+    # referenced from a page served over "http://", so ui.image() needs a URL NiceGUI
+    # actually serves (mounted once; later calls, e.g. once per flag, are no-ops).
+    assets_url = webassets.mount()
 
     doing_flag = logo_name.startswith("flag")
 
     if doing_flag:
         language = logo_name.split("flag_")[1]
-        img_src = f"{_LOGO_URL_PATH}/icons/{language}.png"
+        img_src = f"{assets_url}/icons/{language}.png"
         size_classes = "w-[25px] h-[16px]"
         # parent = self.gui_left_drawer  # <--- FIX: Point to NiceGUI left drawer element
         parent = self.language_label
     elif logo_name == "maptasker":
-        light_src = f"{_LOGO_URL_PATH}/maptasker_logo_light.png"
-        dark_src = f"{_LOGO_URL_PATH}/maptasker_logo_dark.png"
+        light_src = f"{assets_url}/maptasker_logo_light.png"
+        dark_src = f"{assets_url}/maptasker_logo_dark.png"
         size_classes = "w-[190px] h-[50px]"
         parent = self.gui_left_drawer  # <--- FIX: Point to NiceGUI left drawer element
     elif logo_name == "coffee":
-        img_src = f"{_LOGO_URL_PATH}/bmc-logo-no-background.png"
+        img_src = f"{assets_url}/bmc-logo-no-background.png"
         size_classes = "w-[30px] h-[48px]"
         parent = self.gui_right_drawer  # sits at the bottom of the right-hand action panel
     else:

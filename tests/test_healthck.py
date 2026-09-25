@@ -23,7 +23,7 @@ from unittest import mock
 
 import pytest
 from maptasker.src.initparg import ProgramArguments
-from maptasker.src import healthck, piiscan, proflint, taskerd, taskflow
+from maptasker.src import codelint, healthck, piiscan, plugchk, proflint, taskerd, taskflow
 from maptasker.src.healthck import (
     CATEGORIES,
     ERROR,
@@ -764,7 +764,11 @@ def test_a_layout_written_into_show_scene_v2_names_no_scene() -> None:
     """Its argument is "Name/JSON": a whole layout can be written inline instead of a name.
     That names no Scene in the file, so it is neither a reference nor a broken one.
     """
-    _load(_V2_SCENE_XML.replace('<Str sr="arg1" ve="3">Shown</Str>', '<Str sr="arg1" ve="3">{"root":{"type":"Column"}}</Str>'))
+    _load(
+        _V2_SCENE_XML.replace(
+            '<Str sr="arg1" ve="3">Shown</Str>', '<Str sr="arg1" ve="3">{"root":{"type":"Column"}}</Str>'
+        )
+    )
     text, _ = _run()
     assert not _findings_for(text, "BROKEN-SCENE-ACTION")
     assert "Shown" in "".join(_findings_for(text, "UNUSED-SCENE"))
@@ -782,11 +786,11 @@ def test_a_layout_written_into_show_scene_v2_names_no_scene() -> None:
 def test_every_tag_the_folded_in_passes_raise_is_offered(report: str) -> None:
     """The panel is built from CATEGORIES, so a tag missing from it cannot be unticked.
 
-    Checked against the four modules that declare their own tags; healthck's own are
+    Checked against the six modules that declare their own tags; healthck's own are
     literals in its index.add calls and are covered by the fixture-driven tests above.
     """
     offered = {category.tag for category in CATEGORIES}
-    declared = taskflow.TAGS | proflint.TAGS | piiscan.TAGS
+    declared = taskflow.TAGS | proflint.TAGS | piiscan.TAGS | codelint.TAGS | plugchk.TAGS
     assert declared - offered == set()
 
 
@@ -795,10 +799,21 @@ def test_every_category_offered_is_one_that_can_be_raised() -> None:
     from maptasker.src.healthck import _PASS_TAGS  # noqa: PLC0415
 
     own = {
-        "BROKEN-TID-REF", "BROKEN-PROFILE-REF", "BROKEN-SCENE-REF", "BROKEN-TASK-REF",
-        "BROKEN-SCENE-TASK", "BROKEN-PERFORM-TASK", "BROKEN-SCENE-ACTION", "ORPHAN-PROFILE",
-        "ORPHAN-SCENE", "EMPTY-PROJECT", "UNREFERENCED-TASK", "UNUSED-SCENE", "DUPLICATE-NAME",
-        "DISABLED-PROFILE", "LARGE-TASK",
+        "BROKEN-TID-REF",
+        "BROKEN-PROFILE-REF",
+        "BROKEN-SCENE-REF",
+        "BROKEN-TASK-REF",
+        "BROKEN-SCENE-TASK",
+        "BROKEN-PERFORM-TASK",
+        "BROKEN-SCENE-ACTION",
+        "ORPHAN-PROFILE",
+        "ORPHAN-SCENE",
+        "EMPTY-PROJECT",
+        "UNREFERENCED-TASK",
+        "UNUSED-SCENE",
+        "DUPLICATE-NAME",
+        "DISABLED-PROFILE",
+        "LARGE-TASK",
     }
     raisable = own.union(*_PASS_TAGS.values())
     assert {category.tag for category in CATEGORIES} - raisable == set()

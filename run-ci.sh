@@ -86,6 +86,10 @@ run_gate "ruff check" uv run --no-sync ruff check
 
 run_gate "noqa ratchet" uv run --no-sync python scripts/noqa_ratchet.py
 
+run_gate "typecheck ratchet" uv run --no-sync python scripts/typecheck_ratchet.py
+
+run_gate "import layers" uv run --no-sync lint-imports
+
 run_gate "ruff format --check" uv run --no-sync ruff format --check
 
 if [ "$QUICK" -eq 1 ]; then

@@ -13,6 +13,7 @@ import maptasker.src.action as get_action
 from maptasker.src.actiond import process_condition_list
 from maptasker.src.condjoin import join_conditions
 from maptasker.src.format import format_html
+from maptasker.src.plugset import BUNDLE_HOUSEKEEPING, BUNDLE_TYPE_SUFFIX, BUNDLE_UNSET, decode_settings, plugin_package
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.xmldata import extract_integer, extract_string
@@ -62,21 +63,8 @@ def process_clean_string(
 # process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
 
 
-# The <Vals> entries that belong to Tasker and the plugin FRAMEWORK rather than to the
-# plugin's own configuration: the blurb, the list of fields Tasker may substitute a
-# variable into, the "subbundled" flag, and the rest of the locale-plugin plumbing.  Left
-# out because none of them is a setting the user made -- they are how the two programs talk
-# to each other -- and on this repo's reference backup they are two thirds of everything a
-# <Vals> holds.
-BUNDLE_HOUSEKEEPING = ("net.dinglisch.android.tasker.", "com.twofortyfouram.locale.")
-
-# Every value in a <Vals> is written twice: the value, and a "<name>-type" beside it saying
-# what Java class it is.  The class is the plugin's business, not the reader's.
-BUNDLE_TYPE_SUFFIX = "-type"
-
-# What Tasker writes for a plugin field the user never filled in.  Shown as nothing at all
-# rather than as the word, the same rule the icon arguments follow below.
-BUNDLE_UNSET = "<null>"
+# BUNDLE_HOUSEKEEPING, BUNDLE_TYPE_SUFFIX and BUNDLE_UNSET -- what in a <Vals> is Tasker's
+# rather than the plugin's -- live in plugset, which reads the same bundles.
 
 
 def get_plugin_settings(vals: Element, already_shown: str = "") -> str:
@@ -102,6 +90,8 @@ def get_plugin_settings(vals: Element, already_shown: str = "") -> str:
     twice.  It is a parameter rather than a constant because one of the two tags a blurb
     can come from -- "Configcommand" -- is a field of the plugin's own like any other, and
     only the caller knows whether this bundle's blurb was taken from it.
+
+    The generic reading, for every plugin plugset does not know -- see get_bundle.
     """
     settings = []
     for child in vals:
@@ -161,12 +151,22 @@ def get_bundle(
         ("", ""),
     )
 
+    # Then the plugin's own settings, which the blurb does not necessarily mention at all.
+    # AutoTools, AutoInput, Join and Home Assistant are read the way the plugin itself
+    # would, labelled and without what the blurb already said; Home Assistant's blurb is
+    # nothing but the same fields again, so it is replaced rather than led with.
+    package = plugin_package(code_action)
+    decoded = decode_settings(vals, package, clean_string or "") if package else None
+    if decoded is None:
+        settings = get_plugin_settings(vals, blurb_tag)
+    else:
+        settings = "\n".join(f"{label}={value}" for label, value in decoded.lines)
+        if not decoded.keep_blurb:
+            clean_string = ""
+
     # If we have a <pref> tag, add it to the clean_string
     if pref:
         clean_string = f"Output Variables={pref}{clean_string}"
-
-    # Then the plugin's own settings, which the blurb does not necessarily mention at all.
-    settings = get_plugin_settings(vals, blurb_tag)
     if settings:
         clean_string = f"{clean_string}\n{settings}" if clean_string else settings
 

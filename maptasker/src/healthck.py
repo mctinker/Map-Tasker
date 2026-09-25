@@ -21,7 +21,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src import clock, piiscan, proflint, sceneedit, taskflow, varxref
+from maptasker.src import clock, codelint, piiscan, plugchk, proflint, sceneedit, taskflow, varxref
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import (
     PROFILE,
@@ -109,7 +109,7 @@ _WIDGET_NAME_CODES = {"152": "0", "155": "0"}
 # to stop seeing those knows the word to untick without having to learn a second vocabulary
 # of groupings.  The groups below are headings for the panel, not selections of their own.
 #
-# The four folded-in modules declare their own tags (proflint.TAGS and friends) and this
+# The six folded-in modules declare their own tags (proflint.TAGS and friends) and this
 # list is checked against them by the tests, so a category added there and not described
 # here is caught rather than quietly missing from the panel.  Whichever way that drift
 # happens, an UNKNOWN tag is SHOWN: what is stored is the set to leave out, so a check
@@ -121,6 +121,7 @@ GROUP_REACHABILITY = "Unreachable and unused"
 GROUP_NAMING = "Naming"
 GROUP_HYGIENE = "Worth knowing"
 GROUP_FLOW = "Task flow"
+GROUP_CODE = "Code in actions"
 GROUP_VARIABLES = "Variables"
 GROUP_BEHAVIOUR = "Behaviour on the device"
 GROUP_SECRETS = "Secrets and personal details"
@@ -166,6 +167,8 @@ CATEGORIES: tuple[Category, ...] = (
     Category("FLOW-GOTO-OUTSIDE-IF", GROUP_FLOW, "A 'Goto end of If' written outside any 'If'."),
     Category("FLOW-DUPLICATE-LABEL", GROUP_FLOW, "Two actions carrying the same label."),
     Category("FLOW-UNREACHABLE", GROUP_FLOW, "Actions nothing can reach."),
+    Category(codelint.JS_SYNTAX, GROUP_CODE, "A JavaScriptlet whose brackets, strings or comments do not close."),
+    Category(codelint.SHELL_SYNTAX, GROUP_CODE, "A Run Shell command with a quote or bracket left open."),
     Category("VAR-NEAR-DUPLICATE", GROUP_VARIABLES, "Two variable names differing only in spelling."),
     Category("VAR-NEVER-SET", GROUP_VARIABLES, "A variable that is read but nothing sets."),
     Category("VAR-NEVER-READ", GROUP_VARIABLES, "A variable that is set but nothing reads."),
@@ -177,6 +180,7 @@ CATEGORIES: tuple[Category, ...] = (
     Category("POLLING-LOOP", GROUP_BEHAVIOUR, "A Task looping around a short Wait."),
     Category("MISSING-COLLISION", GROUP_BEHAVIOUR, "A long-running Task left on the default collision handling."),
     Category("NO-TIMEOUT", GROUP_BEHAVIOUR, "An action that can block for ever."),
+    Category(plugchk.NOT_INSTALLED, GROUP_BEHAVIOUR, "A plugin missing from the app list fetched from the device."),
     Category("SECRET-API-KEY", GROUP_SECRETS, "An API key or access token."),
     Category("SECRET-TOKEN", GROUP_SECRETS, "A bearer token in an Authorization header."),
     Category("SECRET-PASSWORD", GROUP_SECRETS, "A password written into a value."),
@@ -193,8 +197,10 @@ CATEGORIES: tuple[Category, ...] = (
 # is the difference between "leave it out of the report" and "do not do the work at all".
 _PASS_TAGS = {
     "flow": taskflow.TAGS,
+    "code": codelint.TAGS,
     "variables": frozenset(f"VAR-{tag}" for tag in (varxref.NEAR_DUPLICATE, varxref.NEVER_SET, varxref.NEVER_READ)),
     "behaviour": proflint.TAGS,
+    "plugins": plugchk.TAGS,
     "secrets": piiscan.TAGS,
 }
 
@@ -302,6 +308,9 @@ class ReferenceIndex:
     # Scene this check cannot identify, and so a Scene it cannot rule out -- see
     # _index_one_action and the caveat _check_reachability attaches to UNUSED-SCENE.
     variable_scene_references: int = 0
+    # How many plugins the configuration uses, when there was no app list to check them
+    # against -- see _check_plugins and the note _limitations prints for it.
+    plugins_unchecked: int = 0
     findings: list[Finding] = field(default_factory=list)
 
     def add(
@@ -932,6 +941,21 @@ def _check_control_flow(index: ReferenceIndex) -> None:
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
+def _check_code(index: ReferenceIndex) -> None:
+    """Fold the check of the code inside JavaScriptlet and Run Shell actions into this report.
+
+    Folded in for _check_control_flow's reason, one level further in: that check looks at
+    how a Task's actions fit together, and this one at what is written inside the two
+    actions that carry a program of their own.  A script whose brackets do not close fails
+    every time it runs, and nothing else in this report can see it -- to every other check
+    the action is simply there, with an argument.
+
+    The severity and the tag both come from codelint unchanged, as proflint's are.
+    """
+    for problem in codelint.lint_problems():
+        index.add(problem.severity, problem.tag, problem.where, problem.detail)
+
+
 def _check_behaviour(index: ReferenceIndex) -> None:
     """Fold the behavioural lint's problems into this report.
 
@@ -954,6 +978,21 @@ def _check_behaviour(index: ReferenceIndex) -> None:
     """
     for problem in proflint.lint_problems():
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
+
+
+def _check_plugins(index: ReferenceIndex) -> None:
+    """Fold the check for plugins that are not installed into this report.
+
+    Folded in for _check_behaviour's reason: it is a question about the DEVICE, answered
+    without going to it.  The answer comes from the app list fetched from the device for
+    the editors' Application pickers, so a user who has never fetched one gets no findings
+    and a note saying why (see _limitations), rather than a clean bill of health.
+
+    The severity and the tag both come from plugchk unchanged, as proflint's are.
+    """
+    for problem in plugchk.lint_problems():
+        index.add(problem.severity, problem.tag, problem.where, problem.detail, problem.target, problem.related)
+    index.plugins_unchecked = plugchk.plugins_unchecked()
 
 
 def _check_secrets(index: ReferenceIndex) -> None:
@@ -1141,6 +1180,30 @@ def _limitations(index: ReferenceIndex) -> list[str]:
             "",
         ]
 
+    if any(item.tag in plugchk.TAGS for item in index.findings):
+        notes += [
+            "",
+            "NOTE ON PLUGINS",
+            "-" * _REPORT_WIDTH,
+            "A plugin reported not installed was missing from the app list last fetched",
+            "from the device, not from the device itself: an app installed since that",
+            "fetch is not on it.  Fetch the list again ('App not listed?' in the Task or",
+            "Profile editor) before installing anything.",
+            "",
+        ]
+
+    if index.plugins_unchecked:
+        notes += [
+            "",
+            "NOTE ON PLUGINS",
+            "-" * _REPORT_WIDTH,
+            f"This configuration uses {index.plugins_unchecked} plugin(s), and none of them was checked",
+            "for being installed: no app list has been fetched from the device to check",
+            "them against.  Fetch one ('App not listed?' in the Task or Profile editor)",
+            "and run the Health Check again.",
+            "",
+        ]
+
     if any(item.tag in piiscan.TAGS for item in index.findings):
         notes += [
             "",
@@ -1260,7 +1323,7 @@ def collect_findings(skip: Collection[str] = ()) -> ReferenceIndex:
     would silently hide every check written after the day it was saved, and a report that
     quietly stopped looking for something is worse than one that asks an extra question.
 
-    Findings are dropped after the passes run, EXCEPT for the four folded-in ones, each of
+    Findings are dropped after the passes run, EXCEPT for the six folded-in ones, each of
     which is a separate walk over the whole configuration and is skipped outright when
     every category it can raise has been unticked.  A caller wanting only a few categories
     therefore pays only for the walks those categories need.
@@ -1274,10 +1337,14 @@ def collect_findings(skip: Collection[str] = ()) -> ReferenceIndex:
     _check_hygiene(index)
     if not _PASS_TAGS["flow"] <= skip:
         _check_control_flow(index)
+    if not _PASS_TAGS["code"] <= skip:
+        _check_code(index)
     if not _PASS_TAGS["variables"] <= skip:
         _check_variables(index)
     if not _PASS_TAGS["behaviour"] <= skip:
         _check_behaviour(index)
+    if not _PASS_TAGS["plugins"] <= skip:
+        _check_plugins(index)
     if not _PASS_TAGS["secrets"] <= skip:
         _check_secrets(index)
 

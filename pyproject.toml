@@ -397,10 +397,10 @@ layers = [
     guiwins_fix : guiwins_impact : guiwins_profedit : guiwins_refactor :
     guiwins_restore : guiwins_taskedit : mapai : sceneview :
     userintr : userintr_ai : userintr_android : userintr_editors :
-    userintr_loading : userintr_reports : userintr_settings
+    userintr_loading : userintr_reports : userintr_settings : webassets
     """,
     """
-    actargs : action : caches : actionc : actiond : actione : actionr :
+    actargs : action : caches : codelint : actionc : actiond : actione : actionr :
     actiont : addcss : aiutils : apikeys : appinv : bildhtml :
     bldargs : bldbndle : bundle : caveats : clip : clock :
     colors : colrmode : condition : condjoin : config : console :
@@ -411,7 +411,7 @@ layers = [
     mapask : mapcache : mapexport : mapfind : mapfix : mapfonts :
     mapjump : mappdf : maprefac : maprestore : mapswap : maputil2 :
     maputil3 : maputils : mtexcept : nameattr : objprops : outline :
-    parsearg : piiscan : prefers : presave : primitem : proclist :
+    parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
     profedit : profiles : proflint : proginit : projects : projedit :
     property : roundtrip : runcfg : sceneedit : scenes : servicec :
     sessundo : share : shelsort : sysconst : taskactn : taskedit :
@@ -453,6 +453,7 @@ allowed_importers = [
     "maptasker.src.userintr_loading",
     "maptasker.src.userintr_reports",
     "maptasker.src.userintr_settings",
+    "maptasker.src.webassets",
 ]
 # restart_program_subprocess stops the GUI's own server when a restart is started from a
 # button.  It imports NiceGUI only when an event loop is running -- that is, only when the
