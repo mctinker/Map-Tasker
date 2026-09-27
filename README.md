@@ -301,7 +301,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Configuration Timeline
 
-- [ ] One-click Fixes For Health Check Findings
+- [x] One-click Fixes For Health Check Findings
 
 - [ ] Restore From History
 
@@ -313,7 +313,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Command Line Reports
 
-- [ ] Support additional plugins
+- [x] Support additional plugins
 
 - [ ] Map remaining Tasker preferences
 

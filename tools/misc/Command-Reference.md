@@ -1,8 +1,8 @@
 # MapTasker Command Reference
 
-Every command, option and pulldown in the MapTasker user interface: **352** entries (**282** of them commands) across **17** windows.
+Every command, option and pulldown in the MapTasker user interface: **359** entries (**289** of them commands) across **18** windows.
 
-_Generated from the MapTasker 14.1.0 source on 2026-09-22 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 14.1.0 source on 2026-09-27 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -24,6 +24,7 @@ _Generated from the MapTasker 14.1.0 source on 2026-09-22 by `build_command_wiki
 * [If Variant](#if-variant)
 * [Item Layout](#item-layout)
 * [Map / Diagram / Tree View Toolbar](#map--diagram--tree-view-toolbar)
+* [Notification Log](#notification-log)
 * [Object Properties](#object-properties)
 * [Overwrite Confirmation](#overwrite-confirmation)
 * [Render Scene](#render-scene)
@@ -51,6 +52,7 @@ _Generated from the MapTasker 14.1.0 source on 2026-09-22 by `build_command_wiki
 | [AI Model](#cmd-ai-model) | Pulldown | Main Window | Select the model belonging to the AI you wish to use. |
 | [Analyze](#cmd-analyze) | Tab | Main Window | Run the analysis for a Project, Profile, Task or Scene against an Ai model. |
 | [Apply to Task](#cmd-apply-to-task) | Command | Render Scene | Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog. |
+| [Ask AI](#cmd-find-replace-ask-ai) | Command | Map / Diagram / Tree View Toolbar &gt; Find/Replace | (in the Find/Replace window) Type the question in plain words, and the AI model selected on the Analyze tab fills in the Find boxes for you. |
 | [Bounds](#cmd-bounds) | Option | Scene Preview Window | Outline every component and name it, the way the designer's tree names it. |
 | [Cancel](#cmd-add-cancel) | Command | Item Layout &gt; Add | Closes this dialog and keeps nothing it was holding. |
 | [Cancel](#cmd-add-profile-add-task-cancel) | Command | Add Profile &gt; Add Task | Closes this dialog and keeps nothing it was holding. |
@@ -140,7 +142,8 @@ _Generated from the MapTasker 14.1.0 source on 2026-09-22 by `build_command_wiki
 | [Close](#cmd-add-task-save-to-android-save-as-file-close) | Command | Add Task &gt; Save To Android &gt; Save As File | Closes this window without changing anything. |
 | [Close](#cmd-close) | Command | Buttons | Closes this window without changing anything. |
 | [Close](#cmd-close-2) | Command | Item Layout | Stop firing anything on this event. |
-| [Close](#cmd-close-3) | Command | Render Scene | Stop firing anything on this event. |
+| [Close](#cmd-close-3) | Command | Notification Log | Closes this window without changing anything. |
+| [Close](#cmd-close-4) | Command | Render Scene | Stop firing anything on this event. |
 | [Close](#cmd-edit-history-close) | Command | Edit History | Closes this window without changing anything. |
 | [Close](#cmd-edit-profile-add-task-save-to-android-import-into-tasker-close) | Command | Edit Profile &gt; Add Task &gt; Save To Android &gt; Import Into Tasker | Closes this window without changing anything. |
 | [Close](#cmd-edit-profile-add-task-save-to-android-save-as-file-close) | Command | Edit Profile &gt; Add Task &gt; Save To Android &gt; Save As File | Closes this window without changing anything. |
@@ -161,6 +164,7 @@ _Generated from the MapTasker 14.1.0 source on 2026-09-22 by `build_command_wiki
 | [Close](#cmd-list-helper-tasks-close) | Command | Get Xml From Android &gt; List Helper Tasks | Closes this window without changing anything. |
 | [Close](#cmd-put-helper-tasks-in-maptasker-project-close) | Command | Get Xml From Android &gt; Put Helper Tasks in 'MapTasker' Project | Closes this window without changing anything. |
 | [Close](#cmd-refactor-close) | Command | Refactor | Closes this window without changing anything. |
+| [Close](#cmd-restore-from-history-close) | Command | Restore From History | Closes this window without changing anything. |
 | [Close](#cmd-run-on-android-close) | Command | Run On Android | Closes this window without changing anything. |
 | [Close Tabs On Exit](#cmd-close-tabs-on-exit) | Option | Main Window | When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened. |
 | [Collapse](#cmd-collapse) | Command | Map / Diagram / Tree View Toolbar | Collapse every Project down to its title bar. |
@@ -197,6 +201,7 @@ _Generated from the MapTasker 14.1.0 source on 2026-09-22 by `build_command_wiki
 | [Enabled](#cmd-edit-project-enabled) | Option | Edit Project | Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it. |
 | [Exit](#cmd-exit) | Command | Main Window | Exit the program (quit). |
 | [Expand](#cmd-expand) | Command | Map / Diagram / Tree View Toolbar | Expand every collapsed Project. |
+| [Export](#cmd-export) | Command | Map / Diagram / Tree View Toolbar | (Map and Diagram only) Save what the view shows to a file in the current directory, as Markdown, JSON or PDF. |
 | [Export Profile](#cmd-add-profile-export-profile) | Command | Add Profile | Saves this Profile, with all of its conditions and linked Tasks, as one standalone .prf.xml file -- the same format Tasker's own Profile export produces. |
 | [Export Profile](#cmd-edit-profile-export-profile) | Command | Edit Profile | Saves this Profile as a standalone .prf.xml file on this computer. |
 | [Export Project](#cmd-edit-project-export-project) | Command | Edit Project | Saves this Project, and everything in it -- every Profile and Task -- as one standalone file. |
@@ -287,6 +292,7 @@ _Generated from the MapTasker 14.1.0 source on 2026-09-22 by `build_command_wiki
 | [Profiles Per Line](#cmd-profiles-per-line) | Pulldown | Map / Diagram / Tree View Toolbar | (Diagram only) The number of Profiles drawn side-by-side on a single line. |
 | [Project](#cmd-project) | Pulldown | Main Window | Select a specific Project to target for display or editing. |
 | [Put Helper Tasks in 'MapTasker' Project](#cmd-put-helper-tasks-in-maptasker-project) | Command | Get Xml From Android | Puts every helper Task this version of MapTasker uses into one Project file, 'MapTasker.prj.xml', in /Tasker/projects on the device. |
+| [Rebuild](#cmd-rebuild) | Command | Map / Diagram / Tree View Toolbar | (Diagram only) Offered when the Diagram was drawn for a different selection than the one chosen now; it draws the Diagram again for the current one. |
 | [Redo](#cmd-redo) | Command | Main Window | Reapply the change most recently backed out by 'Undo'. |
 | [Refactor](#cmd-refactor) | Command | Main Window | The structural changes that Add, Edit and Delete cannot make: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object. |
 | [Rename](#cmd-add-scene-legacy-scene-rename) | Command | Add Scene &gt; Legacy Scene | Tasks address this element by name (Element Text, Element Position, ... |
@@ -309,6 +315,7 @@ _Generated from the MapTasker 14.1.0 source on 2026-09-22 by `build_command_wiki
 | [Reset](#cmd-reset) | Command | Map / Diagram / Tree View Toolbar | Back to the whole diagram: no zoom, nothing folded, nothing filtered. |
 | [Reset Options](#cmd-reset-options) | Command | Main Window | Reset all of the options to their default values, including colors, font used, and other settings. |
 | [Reset to Default Colors](#cmd-reset-to-default-colors) | Command | Main Window | Restore every color to its default value. |
+| [Restore From History](#cmd-restore-from-history) | Command | Main Window | Bring back a Task, Profile or Scene that has been deleted, or put one back as it was before it was edited -- from any configuration kept in the history that 'Changes Since...' reads. |
 | [Run Analysis](#cmd-run-analysis) | Command | Main Window | Submit the selected Project/Profile/Task and prompt to the selected model. |
 | [Run On Android](#cmd-edit-task-run-on-android) | Command | Edit Task | Runs this Task on your Android device and shows what it returned, or the error. |
 | [Run On Android](#cmd-run-on-android) | Command | Main Window | Run the selected Task on your Android device and see what it returned. |
@@ -322,10 +329,10 @@ _Generated from the MapTasker 14.1.0 source on 2026-09-22 by `build_command_wiki
 | [Save As File](#cmd-edit-scene-save-to-android-save-as-file) | Command | Edit Scene &gt; Save To Android | This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes. |
 | [Save As File](#cmd-edit-task-save-to-android-save-as-file) | Command | Edit Task &gt; Save To Android | This will write the Task as a standalone file onto the Android device, under /Tasker/tasks. |
 | [Save Results](#cmd-find-replace-save-results) | Command | Map / Diagram / Tree View Toolbar &gt; Find/Replace | Save the 'Find/Replace' results to a text file. |
-| [Save To Android](#cmd-add-profile-add-task-save-to-android) | Command | Add Profile &gt; Add Task | Write the object back to your Android device. |
+| [Save To Android](#cmd-add-profile-add-task-save-to-android) | Command | Add Profile &gt; Add Task | Write the object back to your Android device -- 'Save As File' puts it on the device as a file, and 'Import Into Tasker' hands it to Tasker itself (a Task goes straight in; a Profile, Project or Scene opens Tasker's import screen). |
 | [Save To Android](#cmd-add-profile-save-to-android) | Command | Add Profile | This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration. |
-| [Save To Android](#cmd-add-task-save-to-android) | Command | Add Task | Write the object back to your Android device. |
-| [Save To Android](#cmd-edit-profile-add-task-save-to-android) | Command | Edit Profile &gt; Add Task | Write the object back to your Android device. |
+| [Save To Android](#cmd-add-task-save-to-android) | Command | Add Task | Write the object back to your Android device -- 'Save As File' puts it on the device as a file, and 'Import Into Tasker' hands it to Tasker itself (a Task goes straight in; a Profile, Project or Scene opens Tasker's import screen). |
+| [Save To Android](#cmd-edit-profile-add-task-save-to-android) | Command | Edit Profile &gt; Add Task | Write the object back to your Android device -- 'Save As File' puts it on the device as a file, and 'Import Into Tasker' hands it to Tasker itself (a Task goes straight in; a Profile, Project or Scene opens Tasker's import screen). |
 | [Save To Android](#cmd-edit-profile-save-to-android) | Command | Edit Profile | This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration. |
 | [Save To Android](#cmd-edit-project-save-to-android) | Command | Edit Project | This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration. |
 | [Save To Android](#cmd-edit-scene-save-to-android) | Command | Edit Scene | This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration. |
@@ -338,6 +345,7 @@ _Generated from the MapTasker 14.1.0 source on 2026-09-22 by `build_command_wiki
 | [Save To Current File](#cmd-edit-project-save-to-current-file) | Command | Edit Project | Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session. |
 | [Save To Current File](#cmd-edit-scene-save-to-current-file) | Command | Edit Scene | Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session. |
 | [Save To Current File](#cmd-edit-task-save-to-current-file) | Command | Edit Task | Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep. |
+| [Save To Current File](#cmd-restore-from-history-save-to-current-file) | Command | Restore From History | Write the entire configuration to a new, timestamped file beside the loaded one. |
 | [Save To Current File](#cmd-save-to-current-file) | Command | Buttons | Write the entire configuration to a new, timestamped file beside the loaded one. |
 | [Scene](#cmd-scene) | Pulldown | Main Window | Select a specific Scene to target for display or editing. |
 | [Screen](#cmd-screen) | Pulldown | Scene Preview Window | A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at. |
@@ -418,7 +426,7 @@ The whole of a refactor is one press of Undo afterwards.
 
 Opens **Refactor**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 560</sub>
+<sub>Source: `guiwins.py` line 597</sub>
 
 <a id="cmd-refactor-preview"></a>
 #### Preview
@@ -450,7 +458,7 @@ Take back the last change made to the loaded XML -- an edit, an Add, a Delete or
 
 This changes what is loaded, not any file: nothing on disk or on the Android device is touched.
 
-<sub>Source: `guiwins.py` line 591</sub>
+<sub>Source: `guiwins.py` line 628</sub>
 
 <a id="cmd-redo"></a>
 ### Redo
@@ -460,7 +468,7 @@ This changes what is loaded, not any file: nothing on disk or on the Android dev
 
 Reapply the change most recently backed out by 'Undo'.
 
-<sub>Source: `guiwins.py` line 596</sub>
+<sub>Source: `guiwins.py` line 633</sub>
 
 <a id="cmd-edit-history"></a>
 ### Edit History
@@ -472,7 +480,7 @@ List every change made to the loaded XML this session, newest first.
 
 Opens **Edit History**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 614</sub>
+<sub>Source: `guiwins.py` line 651</sub>
 
 <a id="cmd-edit-history-close"></a>
 #### Close
@@ -482,7 +490,7 @@ Opens **Edit History**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 542</sub>
+<sub>Source: `guiwins.py` line 579</sub>
 
 <a id="cmd-dark-mode"></a>
 ### Dark Mode
@@ -492,7 +500,7 @@ Closes this window without changing anything.
 
 Switch the GUI between light and dark appearance.
 
-<sub>Source: `guiwins.py` line 8557</sub>
+<sub>Source: `guiwins.py` line 8231</sub>
 
 <a id="cmd-detail-level"></a>
 ### Detail Level
@@ -502,7 +510,7 @@ Switch the GUI between light and dark appearance.
 
 0 = least detail, 5 = most detail.
 
-<sub>Source: `guiwins.py` line 8579</sub>
+<sub>Source: `guiwins.py` line 8253</sub>
 
 <a id="cmd-just-display-everything"></a>
 ### Just Display Everything!
@@ -512,7 +520,7 @@ Switch the GUI between light and dark appearance.
 
 Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, and Prettier Output.
 
-<sub>Source: `guiwins.py` line 8591</sub>
+<sub>Source: `guiwins.py` line 8265</sub>
 
 <a id="cmd-display-conditions"></a>
 ### Display Conditions
@@ -522,7 +530,7 @@ Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, a
 
 Enables the display of Profile Conditions (e.g. State, Event, etc.) details in the output.
 
-<sub>Source: `guiwins.py` line 8600</sub>
+<sub>Source: `guiwins.py` line 8274</sub>
 
 <a id="cmd-display-taskernet-info"></a>
 ### Display TaskerNet Info
@@ -532,7 +540,7 @@ Enables the display of Profile Conditions (e.g. State, Event, etc.) details in t
 
 Enables the display of TaskerNet Descriptions in the output.
 
-<sub>Source: `guiwins.py` line 8609</sub>
+<sub>Source: `guiwins.py` line 8283</sub>
 
 <a id="cmd-display-tasker-preferences"></a>
 ### Display Tasker Preferences
@@ -542,7 +550,7 @@ Enables the display of TaskerNet Descriptions in the output.
 
 Enables the display a breakdown of the Tasker system Preferences in the output.
 
-<sub>Source: `guiwins.py` line 8614</sub>
+<sub>Source: `guiwins.py` line 8288</sub>
 
 <a id="cmd-hide-task-details-under-twisty"></a>
 ### Hide Task Details Under Twisty
@@ -552,7 +560,7 @@ Enables the display a breakdown of the Tasker system Preferences in the output.
 
 When enabled, Task details are hidden under a twisty (expand/collapse) control in the output.
 
-<sub>Source: `guiwins.py` line 8619</sub>
+<sub>Source: `guiwins.py` line 8293</sub>
 
 <a id="cmd-display-directory"></a>
 ### Display Directory
@@ -562,7 +570,7 @@ When enabled, Task details are hidden under a twisty (expand/collapse) control i
 
 Enables the display of the Project/Profile/Task/Scene Directory in the output.
 
-<sub>Source: `guiwins.py` line 8628</sub>
+<sub>Source: `guiwins.py` line 8302</sub>
 
 <a id="cmd-display-prettier-output"></a>
 ### Display Prettier Output
@@ -572,7 +580,7 @@ Enables the display of the Project/Profile/Task/Scene Directory in the output.
 
 Enables the display of aligned text in the output.
 
-<sub>Source: `guiwins.py` line 8633</sub>
+<sub>Source: `guiwins.py` line 8307</sub>
 
 <a id="cmd-get-local-xml-file"></a>
 ### Get Local XML File
@@ -586,7 +594,7 @@ The XML fetched will become the current source for MapTasker commands.
 
 Opens **Local File Picker**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8662</sub>
+<sub>Source: `guiwins.py` line 8337</sub>
 
 <a id="cmd-get-local-xml-file-cancel"></a>
 #### Cancel
@@ -616,7 +624,7 @@ Keeps what this dialog holds and closes it. Nothing is written to a file: the ch
 
 Exit the program (quit).
 
-<sub>Source: `guiwins.py` line 8675</sub>
+<sub>Source: `guiwins.py` line 8350</sub>
 
 <a id="cmd-close-tabs-on-exit"></a>
 ### Close Tabs On Exit
@@ -628,7 +636,7 @@ When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/
 
 When disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open.
 
-<sub>Source: `guiwins.py` line 8684</sub>
+<sub>Source: `guiwins.py` line 8359</sub>
 
 <a id="cmd-open-view-in-new-window"></a>
 ### Open View In New Window
@@ -642,7 +650,7 @@ When disabled, a request reuses that view's existing window/tab, replacing what'
 
 Leave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click.
 
-<sub>Source: `guiwins.py` line 8699</sub>
+<sub>Source: `guiwins.py` line 8374</sub>
 
 <a id="cmd-map"></a>
 ### Map
@@ -654,7 +662,7 @@ Displays the Map view.
 
 Use this to display the Tasker configuration of your Projects, Profiles, Tasks, and Scenes.
 
-<sub>Source: `guiwins.py` line 8725</sub>
+<sub>Source: `guiwins.py` line 8400</sub>
 
 <a id="cmd-diagram"></a>
 ### Diagram
@@ -666,7 +674,7 @@ Displays the Diagram view.
 
 Use this to visualize the relationships between your Projects, Profiles, Tasks, and Scenes.
 
-<sub>Source: `guiwins.py` line 8734</sub>
+<sub>Source: `guiwins.py` line 8409</sub>
 
 <a id="cmd-tree"></a>
 ### Tree
@@ -678,7 +686,7 @@ Displays the Tree view.
 
 Use this to navigate the hierarchical structure of your Projects, Profiles, Tasks, and Scenes.
 
-<sub>Source: `guiwins.py` line 8746</sub>
+<sub>Source: `guiwins.py` line 8421</sub>
 
 <a id="cmd-health-check"></a>
 ### Health Check
@@ -690,11 +698,11 @@ Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scen
 
 You choose which of those to report before it runs, and that choice is remembered.
 
-Results are displayed here and saved to a text file in the current directory.
+Results are displayed here and saved to a text file in the Output Folder.
 
 Opens **Health Check**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8764</sub>
+<sub>Source: `guiwins.py` line 8444</sub>
 
 <a id="cmd-health-check-cancel"></a>
 #### Cancel
@@ -704,7 +712,7 @@ Opens **Health Check**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3240</sub>
+<sub>Source: `guiwins.py` line 3324</sub>
 
 <a id="cmd-fix-findings"></a>
 ### Fix Findings
@@ -718,7 +726,7 @@ Everything is shown before anything is done, you tick what you want, and the who
 
 Most kinds of finding are not offered here -- a broken 'Perform Task' or a password written into an action is a decision only you can make.
 
-<sub>Source: `guiwins.py` line 8789</sub>
+<sub>Source: `guiwins.py` line 8471</sub>
 
 <a id="cmd-compare-files"></a>
 ### Compare Files
@@ -732,11 +740,11 @@ Use it to see what a TaskerNet import brought in, what an edit changed, or what 
 
 If the loaded file came from 'Save to Current File', the file it was saved from is offered directly.
 
-Results are displayed here and saved to a text file in the current directory.
+Results are displayed here and saved to a text file in the Output Folder.
 
 Opens **Choose Comparison File**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8815</sub>
+<sub>Source: `guiwins.py` line 8497</sub>
 
 <a id="cmd-compare-files-cancel"></a>
 #### Cancel
@@ -758,11 +766,11 @@ What has changed in your configuration since a moment you choose: today, this we
 
 No file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from back then is compared against what you have open now.
 
-Results are displayed here and saved to a text file in the current directory.
+Results are displayed here and saved to a text file in the Output Folder.
 
 Opens **Changes Since**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8840</sub>
+<sub>Source: `guiwins.py` line 8522</sub>
 
 <a id="cmd-changes-since-cancel"></a>
 #### Cancel
@@ -772,7 +780,41 @@ Opens **Changes Since**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3454</sub>
+<sub>Source: `guiwins.py` line 3538</sub>
+
+<a id="cmd-restore-from-history"></a>
+### Restore From History
+
+**Path:** Main Window &gt; Restore From History  
+**Kind:** Command
+
+Bring back a Task, Profile or Scene that has been deleted, or put one back as it was before it was edited -- from any configuration kept in the history that 'Changes Since...' reads.
+
+One object at a time, never a merge: every restore is shown before anything happens, says what it leaves for you to do (a Profile to relink, say), and is one press of Undo afterwards.
+
+Opens **Restore**, whose own commands are listed beneath this one.
+
+<sub>Source: `guiwins.py` line 8548</sub>
+
+<a id="cmd-restore-from-history-save-to-current-file"></a>
+#### Save To Current File
+
+**Path:** Main Window &gt; Restore From History &gt; Save To Current File  
+**Kind:** Command
+
+Write the entire configuration to a new, timestamped file beside the loaded one.
+
+<sub>Source: `guiwins_restore.py` line 247</sub>
+
+<a id="cmd-restore-from-history-close"></a>
+#### Close
+
+**Path:** Main Window &gt; Restore From History &gt; Close  
+**Kind:** Command
+
+Closes this window without changing anything.
+
+<sub>Source: `guiwins_restore.py` line 255</sub>
 
 <a id="cmd-variable-xref"></a>
 ### Variable Xref
@@ -784,9 +826,9 @@ Trace every %variable in the loaded XML: where each one is set, where it is read
 
 Searched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.
 
-Results are displayed here and saved to a text file in the current directory.
+Results are displayed here and saved to a text file in the Output Folder.
 
-<sub>Source: `guiwins.py` line 8865</sub>
+<sub>Source: `guiwins.py` line 8572</sub>
 
 <a id="cmd-task-flow"></a>
 ### Task Flow
@@ -798,9 +840,9 @@ Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop
 
 With a single Task chosen in the 'Specific Name' tab, that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.
 
-Results are displayed here and saved to a text file in the current directory.
+Results are displayed here and saved to a text file in the Output Folder.
 
-<sub>Source: `guiwins.py` line 8890</sub>
+<sub>Source: `guiwins.py` line 8597</sub>
 
 <a id="cmd-clear"></a>
 ### Clear
@@ -810,7 +852,7 @@ Results are displayed here and saved to a text file in the current directory.
 
 Clear the Map/Diagram/Tree view data currently held and displayed.
 
-<sub>Source: `guiwins.py` line 8912</sub>
+<sub>Source: `guiwins.py` line 8619</sub>
 
 <a id="cmd-specific-name"></a>
 ### Specific Name
@@ -820,7 +862,7 @@ Clear the Map/Diagram/Tree view data currently held and displayed.
 
 enter a single, specific named item to display...
 
-<sub>Source: `guiwins.py` line 8944</sub>
+<sub>Source: `guiwins.py` line 8651</sub>
 
 <a id="cmd-colors"></a>
 ### Colors
@@ -830,7 +872,7 @@ enter a single, specific named item to display...
 
 select colors for various elements of the display.
 
-<sub>Source: `guiwins.py` line 8949</sub>
+<sub>Source: `guiwins.py` line 8656</sub>
 
 <a id="cmd-analyze"></a>
 ### Analyze
@@ -840,7 +882,7 @@ select colors for various elements of the display.
 
 Run the analysis for a Project, Profile, Task or Scene against an Ai model.
 
-<sub>Source: `guiwins.py` line 8950</sub>
+<sub>Source: `guiwins.py` line 8657</sub>
 
 <a id="cmd-debug"></a>
 ### Debug
@@ -850,7 +892,7 @@ Run the analysis for a Project, Profile, Task or Scene against an Ai model.
 
 Display Runtime Settings option and turn on Debug mode.
 
-<sub>Source: `guiwins.py` line 8951</sub>
+<sub>Source: `guiwins.py` line 8658</sub>
 
 <a id="cmd-project"></a>
 ### Project
@@ -860,7 +902,7 @@ Display Runtime Settings option and turn on Debug mode.
 
 Select a specific Project to target for display or editing.
 
-<sub>Source: `guiwins.py` line 8969</sub>
+<sub>Source: `guiwins.py` line 8676</sub>
 
 <a id="cmd-profile"></a>
 ### Profile
@@ -870,7 +912,7 @@ Select a specific Project to target for display or editing.
 
 Select a specific Profile to target for display or editing.
 
-<sub>Source: `guiwins.py` line 8983</sub>
+<sub>Source: `guiwins.py` line 8690</sub>
 
 <a id="cmd-task"></a>
 ### Task
@@ -880,7 +922,7 @@ Select a specific Profile to target for display or editing.
 
 Select a specific Task to target for display or editing.
 
-<sub>Source: `guiwins.py` line 8997</sub>
+<sub>Source: `guiwins.py` line 8704</sub>
 
 <a id="cmd-scene"></a>
 ### Scene
@@ -890,7 +932,7 @@ Select a specific Task to target for display or editing.
 
 Select a specific Scene to target for display or editing.
 
-<sub>Source: `guiwins.py` line 9011</sub>
+<sub>Source: `guiwins.py` line 8718</sub>
 
 <a id="cmd-list-unnamed-items"></a>
 ### List Unnamed Items
@@ -900,7 +942,7 @@ Select a specific Scene to target for display or editing.
 
 Select this to include Profiles and Tasks that do not have a name in the list.
 
-<sub>Source: `guiwins.py` line 9026</sub>
+<sub>Source: `guiwins.py` line 8733</sub>
 
 <a id="cmd-edit-project"></a>
 ### Edit Project
@@ -912,7 +954,7 @@ Modify the object currently selected in the pulldowns above.
 
 Opens **Edit Project**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9063</sub>
+<sub>Source: `guiwins.py` line 8770</sub>
 
 <a id="cmd-edit-project-enabled"></a>
 #### Enabled
@@ -922,7 +964,7 @@ Opens **Edit Project**, whose own commands are listed beneath this one.
 
 Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it.
 
-<sub>Source: `guiwins.py` line 948</sub>
+<sub>Source: `guiwins.py` line 985</sub>
 
 <a id="cmd-edit-project-cancel"></a>
 #### Cancel
@@ -932,7 +974,7 @@ Disables the Project in the loaded backup, right now -- like Rename, this takes 
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 991</sub>
+<sub>Source: `guiwins.py` line 1028</sub>
 
 <a id="cmd-edit-project-rename"></a>
 #### Rename
@@ -944,7 +986,7 @@ Prompts for a new name and applies it to the loaded backup, right now. The Proje
 
 Opens **Rename**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 996</sub>
+<sub>Source: `guiwins.py` line 1033</sub>
 
 <a id="cmd-edit-project-rename-cancel"></a>
 ##### Cancel
@@ -954,7 +996,7 @@ Opens **Rename**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3527</sub>
+<sub>Source: `guiwins.py` line 3611</sub>
 
 <a id="cmd-edit-project-rename-rename"></a>
 ##### Rename
@@ -964,7 +1006,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Give the object being edited a new name.
 
-<sub>Source: `guiwins.py` line 3528</sub>
+<sub>Source: `guiwins.py` line 3612</sub>
 
 <a id="cmd-edit-project-save-to-current-file"></a>
 #### Save To Current File
@@ -974,7 +1016,7 @@ Give the object being edited a new name.
 
 Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session. It is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml. The file you loaded is never written to, so it is left exactly as it was. The app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one. This writes to this computer only -- nothing is sent to your Android device.
 
-<sub>Source: `guiwins.py` line 1007</sub>
+<sub>Source: `guiwins.py` line 1044</sub>
 
 <a id="cmd-edit-project-save-to-android"></a>
 #### Save To Android
@@ -992,7 +1034,7 @@ Watch the Android device while this runs: Tasker asks you to authorize the conne
 
 Opens **Save Project To Android**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 1028</sub>
+<sub>Source: `guiwins.py` line 1065</sub>
 
 <a id="cmd-edit-project-save-to-android-verify"></a>
 ##### Verify
@@ -1008,7 +1050,7 @@ Every object going up is compared against the one in the loaded configuration, i
 
 It costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched.
 
-<sub>Source: `guiwins.py` line 691</sub>
+<sub>Source: `guiwins.py` line 728</sub>
 
 <a id="cmd-edit-project-save-to-android-check-ids"></a>
 ##### Check IDs
@@ -1022,7 +1064,7 @@ It reports an ID Tasker has already given to a different Project, Profile or Tas
 
 It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Task on the device the first time. The backup is read into memory and deleted from the device; it is not saved on this computer.
 
-<sub>Source: `guiwins.py` line 722</sub>
+<sub>Source: `guiwins.py` line 759</sub>
 
 <a id="cmd-edit-project-save-to-android-cancel"></a>
 ##### Cancel
@@ -1032,7 +1074,7 @@ It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Tas
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 1087</sub>
+<sub>Source: `guiwins.py` line 1124</sub>
 
 <a id="cmd-edit-project-save-to-android-save-as-file"></a>
 ##### Save As File
@@ -1048,7 +1090,7 @@ Watch the Android device while this runs: Tasker asks you to authorize the conne
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 1088</sub>
+<sub>Source: `guiwins.py` line 1125</sub>
 
 <a id="cmd-edit-project-save-to-android-save-as-file-close"></a>
 ###### Close
@@ -1058,7 +1100,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-edit-project-save-to-android-import-into-tasker"></a>
 ##### Import Into Tasker
@@ -1076,7 +1118,7 @@ The device will ask you to authorize MapTasker the first time.
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 1111</sub>
+<sub>Source: `guiwins.py` line 1148</sub>
 
 <a id="cmd-edit-project-save-to-android-import-into-tasker-close"></a>
 ###### Close
@@ -1086,7 +1128,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-edit-project-export-project"></a>
 #### Export Project
@@ -1096,7 +1138,7 @@ Closes this window without changing anything.
 
 Saves this Project, and everything in it -- every Profile and Task -- as one standalone file.
 
-<sub>Source: `guiwins.py` line 1050</sub>
+<sub>Source: `guiwins.py` line 1087</sub>
 
 <a id="cmd-add-project"></a>
 ### Add Project
@@ -1108,7 +1150,7 @@ Create a new object and add it to the loaded XML.
 
 Opens **Add Project**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9071</sub>
+<sub>Source: `guiwins.py` line 8778</sub>
 
 <a id="cmd-add-project-cancel"></a>
 #### Cancel
@@ -1118,7 +1160,7 @@ Opens **Add Project**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 886</sub>
+<sub>Source: `guiwins.py` line 923</sub>
 
 <a id="cmd-add-project-ok"></a>
 #### Ok
@@ -1128,7 +1170,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Keeps what this dialog holds and closes it. Nothing is written to a file: the change is kept in the loaded configuration, for a save to write out later.
 
-<sub>Source: `guiwins.py` line 887</sub>
+<sub>Source: `guiwins.py` line 924</sub>
 
 <a id="cmd-edit-profile"></a>
 ### Edit Profile
@@ -1140,7 +1182,7 @@ Modify the object currently selected in the pulldowns above.
 
 Opens **Edit Profile**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9080</sub>
+<sub>Source: `guiwins.py` line 8787</sub>
 
 <a id="cmd-edit-profile-add-task"></a>
 #### Add Task
@@ -1174,7 +1216,7 @@ Choose from the Applications named in the loaded configuration.
 
 Opens **App Picker**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 891</sub>
+<sub>Source: `guiwins_taskedit.py` line 935</sub>
 
 <a id="cmd-edit-profile-add-task-pick-use"></a>
 ###### Use
@@ -1184,7 +1226,7 @@ Opens **App Picker**, whose own commands are listed beneath this one.
 
 Uses what is entered or selected above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 467</sub>
+<sub>Source: `guiwins_taskedit.py` line 511</sub>
 
 <a id="cmd-edit-profile-add-task-pick-cancel"></a>
 ###### Cancel
@@ -1194,7 +1236,7 @@ Uses what is entered or selected above, and closes the picker.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 575</sub>
+<sub>Source: `guiwins_taskedit.py` line 619</sub>
 
 <a id="cmd-edit-profile-add-task-pick-use-selected"></a>
 ###### Use Selected
@@ -1204,7 +1246,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Uses what is selected in the list above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 576</sub>
+<sub>Source: `guiwins_taskedit.py` line 620</sub>
 
 <a id="cmd-edit-profile-add-task-pick-icon-not-listed"></a>
 ###### Icon not listed?
@@ -1216,7 +1258,7 @@ Fetch every installed application's own icon from your Android device. What is l
 
 Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 592</sub>
+<sub>Source: `guiwins_taskedit.py` line 636</sub>
 
 <a id="cmd-edit-profile-add-task-pick-icon-not-listed-cancel"></a>
 ###### Cancel
@@ -1226,7 +1268,7 @@ Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 276</sub>
+<sub>Source: `guiwins_taskedit.py` line 320</sub>
 
 <a id="cmd-edit-profile-add-task-cancel"></a>
 ##### Cancel
@@ -1236,7 +1278,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 1782</sub>
+<sub>Source: `guiwins_taskedit.py` line 1826</sub>
 
 <a id="cmd-edit-profile-add-task-ok"></a>
 ##### Ok
@@ -1246,7 +1288,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Keeps what this dialog holds and closes it. Nothing is written to a file: the change is kept in the loaded configuration, for a save to write out later.
 
-<sub>Source: `guiwins_taskedit.py` line 1783</sub>
+<sub>Source: `guiwins_taskedit.py` line 1827</sub>
 
 <a id="cmd-edit-profile-add-task-save-to-current-file"></a>
 ##### Save To Current File
@@ -1256,7 +1298,7 @@ Keeps what this dialog holds and closes it. Nothing is written to a file: the ch
 
 Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it. It is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml. The file you loaded is never written to, so it is left exactly as it was. The app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one. This writes to this computer only -- nothing is sent to your Android device.
 
-<sub>Source: `guiwins_taskedit.py` line 1792</sub>
+<sub>Source: `guiwins_taskedit.py` line 1836</sub>
 
 <a id="cmd-edit-profile-add-task-save-to-android"></a>
 ##### Save To Android
@@ -1264,11 +1306,11 @@ Saves the entire backup -- every Project, Profile and Task in it, not just this 
 **Path:** Main Window &gt; Edit Profile &gt; Add Task &gt; Save To Android  
 **Kind:** Command
 
-Write the object back to your Android device.
+Write the object back to your Android device -- 'Save As File' puts it on the device as a file, and 'Import Into Tasker' hands it to Tasker itself (a Task goes straight in; a Profile, Project or Scene opens Tasker's import screen).
 
 Opens **Save To Android**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 1814</sub>
+<sub>Source: `guiwins_taskedit.py` line 1858</sub>
 
 <a id="cmd-edit-profile-add-task-save-to-android-verify"></a>
 ###### Verify
@@ -1284,7 +1326,7 @@ Every object going up is compared against the one in the loaded configuration, i
 
 It costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched.
 
-<sub>Source: `guiwins.py` line 691</sub>
+<sub>Source: `guiwins.py` line 728</sub>
 
 <a id="cmd-edit-profile-add-task-save-to-android-check-ids"></a>
 ###### Check IDs
@@ -1298,7 +1340,7 @@ It reports an ID Tasker has already given to a different Project, Profile or Tas
 
 It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Task on the device the first time. The backup is read into memory and deleted from the device; it is not saved on this computer.
 
-<sub>Source: `guiwins.py` line 722</sub>
+<sub>Source: `guiwins.py` line 759</sub>
 
 <a id="cmd-edit-profile-add-task-save-to-android-cancel"></a>
 ###### Cancel
@@ -1308,7 +1350,7 @@ It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Tas
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 806</sub>
+<sub>Source: `guiwins.py` line 843</sub>
 
 <a id="cmd-edit-profile-add-task-save-to-android-save-as-file"></a>
 ###### Save As File
@@ -1324,7 +1366,7 @@ Watch the Android device while this runs: Tasker asks you to authorize the conne
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 807</sub>
+<sub>Source: `guiwins.py` line 844</sub>
 
 <a id="cmd-edit-profile-add-task-save-to-android-save-as-file-close"></a>
 ###### Close
@@ -1334,7 +1376,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-edit-profile-add-task-save-to-android-import-into-tasker"></a>
 ###### Import Into Tasker
@@ -1354,7 +1396,7 @@ The device will ask you to authorize MapTasker the first time.
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 831</sub>
+<sub>Source: `guiwins.py` line 868</sub>
 
 <a id="cmd-edit-profile-add-task-save-to-android-import-into-tasker-close"></a>
 ###### Close
@@ -1364,7 +1406,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-edit-profile-add-task-export-task"></a>
 ##### Export Task
@@ -1374,7 +1416,7 @@ Closes this window without changing anything.
 
 Exports the Task as XML to a file on your computer.
 
-<sub>Source: `guiwins_taskedit.py` line 1823</sub>
+<sub>Source: `guiwins_taskedit.py` line 1867</sub>
 
 <a id="cmd-edit-profile-cancel"></a>
 #### Cancel
@@ -1428,7 +1470,7 @@ Opens **Rename**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3527</sub>
+<sub>Source: `guiwins.py` line 3611</sub>
 
 <a id="cmd-edit-profile-rename-rename"></a>
 ##### Rename
@@ -1438,7 +1480,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Give the object being edited a new name.
 
-<sub>Source: `guiwins.py` line 3528</sub>
+<sub>Source: `guiwins.py` line 3612</sub>
 
 <a id="cmd-edit-profile-ok"></a>
 #### Ok
@@ -1512,23 +1554,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
-
-<a id="cmd-edit-profile-save-to-android-verify"></a>
-##### Verify
-
-**Path:** Main Window &gt; Edit Profile &gt; Save To Android &gt; Verify  
-**Kind:** Option
-
-Reads the XML back before it is sent, and refuses the save if anything changed on the way through.
-
-What this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline. The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.
-
-Every object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit. Nothing is sent if any of them differs; you get a report saying which and where.
-
-It costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched.
-
-<sub>Source: `guiwins.py` line 691</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-edit-profile-save-to-android-import-into-tasker"></a>
 ##### Import Into Tasker
@@ -1556,7 +1582,23 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
+
+<a id="cmd-edit-profile-save-to-android-verify"></a>
+##### Verify
+
+**Path:** Main Window &gt; Edit Profile &gt; Save To Android &gt; Verify  
+**Kind:** Option
+
+Reads the XML back before it is sent, and refuses the save if anything changed on the way through.
+
+What this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline. The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.
+
+Every object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit. Nothing is sent if any of them differs; you get a report saying which and where.
+
+It costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched.
+
+<sub>Source: `guiwins.py` line 728</sub>
 
 <a id="cmd-edit-profile-save-to-android-check-ids"></a>
 ##### Check IDs
@@ -1570,7 +1612,7 @@ It reports an ID Tasker has already given to a different Project, Profile or Tas
 
 It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Task on the device the first time. The backup is read into memory and deleted from the device; it is not saved on this computer.
 
-<sub>Source: `guiwins.py` line 722</sub>
+<sub>Source: `guiwins.py` line 759</sub>
 
 <a id="cmd-edit-profile-export-profile"></a>
 #### Export Profile
@@ -1592,7 +1634,7 @@ Fill all three fields in from the loaded configuration.
 
 Opens **App Entry Picker**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 697</sub>
+<sub>Source: `guiwins_taskedit.py` line 741</sub>
 
 <a id="cmd-edit-profile-pick-use"></a>
 ##### Use
@@ -1602,7 +1644,7 @@ Opens **App Entry Picker**, whose own commands are listed beneath this one.
 
 Uses what is entered or selected above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 467</sub>
+<sub>Source: `guiwins_taskedit.py` line 511</sub>
 
 <a id="cmd-edit-profile-pick-icon-not-listed"></a>
 ##### Icon not listed?
@@ -1614,7 +1656,7 @@ Fetch every installed application's own icon from your Android device. What is l
 
 Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 592</sub>
+<sub>Source: `guiwins_taskedit.py` line 636</sub>
 
 <a id="cmd-edit-profile-pick-icon-not-listed-cancel"></a>
 ###### Cancel
@@ -1624,7 +1666,7 @@ Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 276</sub>
+<sub>Source: `guiwins_taskedit.py` line 320</sub>
 
 <a id="cmd-edit-profile-pick-cancel"></a>
 ##### Cancel
@@ -1634,7 +1676,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 670</sub>
+<sub>Source: `guiwins_taskedit.py` line 714</sub>
 
 <a id="cmd-add-profile"></a>
 ### Add Profile
@@ -1646,7 +1688,7 @@ Create a new object and add it to the loaded XML.
 
 Opens **Add Profile**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9088</sub>
+<sub>Source: `guiwins.py` line 8795</sub>
 
 <a id="cmd-add-profile-add-task"></a>
 #### Add Task
@@ -1680,7 +1722,7 @@ Choose from the Applications named in the loaded configuration.
 
 Opens **App Picker**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 891</sub>
+<sub>Source: `guiwins_taskedit.py` line 935</sub>
 
 <a id="cmd-add-profile-add-task-pick-use"></a>
 ###### Use
@@ -1690,7 +1732,7 @@ Opens **App Picker**, whose own commands are listed beneath this one.
 
 Uses what is entered or selected above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 467</sub>
+<sub>Source: `guiwins_taskedit.py` line 511</sub>
 
 <a id="cmd-add-profile-add-task-pick-cancel"></a>
 ###### Cancel
@@ -1700,7 +1742,7 @@ Uses what is entered or selected above, and closes the picker.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 575</sub>
+<sub>Source: `guiwins_taskedit.py` line 619</sub>
 
 <a id="cmd-add-profile-add-task-pick-use-selected"></a>
 ###### Use Selected
@@ -1710,7 +1752,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Uses what is selected in the list above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 576</sub>
+<sub>Source: `guiwins_taskedit.py` line 620</sub>
 
 <a id="cmd-add-profile-add-task-pick-icon-not-listed"></a>
 ###### Icon not listed?
@@ -1722,7 +1764,7 @@ Fetch every installed application's own icon from your Android device. What is l
 
 Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 592</sub>
+<sub>Source: `guiwins_taskedit.py` line 636</sub>
 
 <a id="cmd-add-profile-add-task-pick-icon-not-listed-cancel"></a>
 ###### Cancel
@@ -1732,7 +1774,7 @@ Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 276</sub>
+<sub>Source: `guiwins_taskedit.py` line 320</sub>
 
 <a id="cmd-add-profile-add-task-cancel"></a>
 ##### Cancel
@@ -1742,7 +1784,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 1782</sub>
+<sub>Source: `guiwins_taskedit.py` line 1826</sub>
 
 <a id="cmd-add-profile-add-task-ok"></a>
 ##### Ok
@@ -1752,7 +1794,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Keeps what this dialog holds and closes it. Nothing is written to a file: the change is kept in the loaded configuration, for a save to write out later.
 
-<sub>Source: `guiwins_taskedit.py` line 1783</sub>
+<sub>Source: `guiwins_taskedit.py` line 1827</sub>
 
 <a id="cmd-add-profile-add-task-save-to-current-file"></a>
 ##### Save To Current File
@@ -1762,7 +1804,7 @@ Keeps what this dialog holds and closes it. Nothing is written to a file: the ch
 
 Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it. It is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml. The file you loaded is never written to, so it is left exactly as it was. The app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one. This writes to this computer only -- nothing is sent to your Android device.
 
-<sub>Source: `guiwins_taskedit.py` line 1792</sub>
+<sub>Source: `guiwins_taskedit.py` line 1836</sub>
 
 <a id="cmd-add-profile-add-task-save-to-android"></a>
 ##### Save To Android
@@ -1770,11 +1812,11 @@ Saves the entire backup -- every Project, Profile and Task in it, not just this 
 **Path:** Main Window &gt; Add Profile &gt; Add Task &gt; Save To Android  
 **Kind:** Command
 
-Write the object back to your Android device.
+Write the object back to your Android device -- 'Save As File' puts it on the device as a file, and 'Import Into Tasker' hands it to Tasker itself (a Task goes straight in; a Profile, Project or Scene opens Tasker's import screen).
 
 Opens **Save To Android**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 1814</sub>
+<sub>Source: `guiwins_taskedit.py` line 1858</sub>
 
 <a id="cmd-add-profile-add-task-save-to-android-verify"></a>
 ###### Verify
@@ -1790,7 +1832,7 @@ Every object going up is compared against the one in the loaded configuration, i
 
 It costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched.
 
-<sub>Source: `guiwins.py` line 691</sub>
+<sub>Source: `guiwins.py` line 728</sub>
 
 <a id="cmd-add-profile-add-task-save-to-android-check-ids"></a>
 ###### Check IDs
@@ -1804,7 +1846,7 @@ It reports an ID Tasker has already given to a different Project, Profile or Tas
 
 It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Task on the device the first time. The backup is read into memory and deleted from the device; it is not saved on this computer.
 
-<sub>Source: `guiwins.py` line 722</sub>
+<sub>Source: `guiwins.py` line 759</sub>
 
 <a id="cmd-add-profile-add-task-save-to-android-cancel"></a>
 ###### Cancel
@@ -1814,7 +1856,7 @@ It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Tas
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 806</sub>
+<sub>Source: `guiwins.py` line 843</sub>
 
 <a id="cmd-add-profile-add-task-save-to-android-save-as-file"></a>
 ###### Save As File
@@ -1830,7 +1872,7 @@ Watch the Android device while this runs: Tasker asks you to authorize the conne
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 807</sub>
+<sub>Source: `guiwins.py` line 844</sub>
 
 <a id="cmd-add-profile-add-task-save-to-android-save-as-file-close"></a>
 ###### Close
@@ -1840,7 +1882,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-add-profile-add-task-save-to-android-import-into-tasker"></a>
 ###### Import Into Tasker
@@ -1860,7 +1902,7 @@ The device will ask you to authorize MapTasker the first time.
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 831</sub>
+<sub>Source: `guiwins.py` line 868</sub>
 
 <a id="cmd-add-profile-add-task-save-to-android-import-into-tasker-close"></a>
 ###### Close
@@ -1870,7 +1912,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-add-profile-add-task-export-task"></a>
 ##### Export Task
@@ -1880,7 +1922,7 @@ Closes this window without changing anything.
 
 Exports the Task as XML to a file on your computer.
 
-<sub>Source: `guiwins_taskedit.py` line 1823</sub>
+<sub>Source: `guiwins_taskedit.py` line 1867</sub>
 
 <a id="cmd-add-profile-pick"></a>
 #### Pick
@@ -1892,7 +1934,7 @@ Fill all three fields in from the loaded configuration.
 
 Opens **App Entry Picker**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 697</sub>
+<sub>Source: `guiwins_taskedit.py` line 741</sub>
 
 <a id="cmd-add-profile-pick-use"></a>
 ##### Use
@@ -1902,7 +1944,7 @@ Opens **App Entry Picker**, whose own commands are listed beneath this one.
 
 Uses what is entered or selected above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 467</sub>
+<sub>Source: `guiwins_taskedit.py` line 511</sub>
 
 <a id="cmd-add-profile-pick-icon-not-listed"></a>
 ##### Icon not listed?
@@ -1914,7 +1956,7 @@ Fetch every installed application's own icon from your Android device. What is l
 
 Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 592</sub>
+<sub>Source: `guiwins_taskedit.py` line 636</sub>
 
 <a id="cmd-add-profile-pick-icon-not-listed-cancel"></a>
 ###### Cancel
@@ -1924,7 +1966,7 @@ Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 276</sub>
+<sub>Source: `guiwins_taskedit.py` line 320</sub>
 
 <a id="cmd-add-profile-pick-cancel"></a>
 ##### Cancel
@@ -1934,7 +1976,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 670</sub>
+<sub>Source: `guiwins_taskedit.py` line 714</sub>
 
 <a id="cmd-add-profile-cancel"></a>
 #### Cancel
@@ -2018,23 +2060,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
-
-<a id="cmd-add-profile-save-to-android-verify"></a>
-##### Verify
-
-**Path:** Main Window &gt; Add Profile &gt; Save To Android &gt; Verify  
-**Kind:** Option
-
-Reads the XML back before it is sent, and refuses the save if anything changed on the way through.
-
-What this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline. The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.
-
-Every object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit. Nothing is sent if any of them differs; you get a report saying which and where.
-
-It costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched.
-
-<sub>Source: `guiwins.py` line 691</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-add-profile-save-to-android-import-into-tasker"></a>
 ##### Import Into Tasker
@@ -2062,7 +2088,23 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
+
+<a id="cmd-add-profile-save-to-android-verify"></a>
+##### Verify
+
+**Path:** Main Window &gt; Add Profile &gt; Save To Android &gt; Verify  
+**Kind:** Option
+
+Reads the XML back before it is sent, and refuses the save if anything changed on the way through.
+
+What this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline. The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.
+
+Every object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit. Nothing is sent if any of them differs; you get a report saying which and where.
+
+It costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched.
+
+<sub>Source: `guiwins.py` line 728</sub>
 
 <a id="cmd-add-profile-save-to-android-check-ids"></a>
 ##### Check IDs
@@ -2076,7 +2118,7 @@ It reports an ID Tasker has already given to a different Project, Profile or Tas
 
 It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Task on the device the first time. The backup is read into memory and deleted from the device; it is not saved on this computer.
 
-<sub>Source: `guiwins.py` line 722</sub>
+<sub>Source: `guiwins.py` line 759</sub>
 
 <a id="cmd-add-profile-export-profile"></a>
 #### Export Profile
@@ -2100,7 +2142,7 @@ Modify the object currently selected in the pulldowns above.
 
 Opens **Edit Task**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9097</sub>
+<sub>Source: `guiwins.py` line 8804</sub>
 
 <a id="cmd-edit-task-pick-a-task"></a>
 #### Pick a Task
@@ -2122,7 +2164,7 @@ Choose from the Applications named in the loaded configuration.
 
 Opens **App Picker**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 891</sub>
+<sub>Source: `guiwins_taskedit.py` line 935</sub>
 
 <a id="cmd-edit-task-pick-use"></a>
 ##### Use
@@ -2132,7 +2174,7 @@ Opens **App Picker**, whose own commands are listed beneath this one.
 
 Uses what is entered or selected above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 467</sub>
+<sub>Source: `guiwins_taskedit.py` line 511</sub>
 
 <a id="cmd-edit-task-pick-cancel"></a>
 ##### Cancel
@@ -2142,7 +2184,7 @@ Uses what is entered or selected above, and closes the picker.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 575</sub>
+<sub>Source: `guiwins_taskedit.py` line 619</sub>
 
 <a id="cmd-edit-task-pick-use-selected"></a>
 ##### Use Selected
@@ -2152,7 +2194,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Uses what is selected in the list above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 576</sub>
+<sub>Source: `guiwins_taskedit.py` line 620</sub>
 
 <a id="cmd-edit-task-pick-icon-not-listed"></a>
 ##### Icon not listed?
@@ -2164,7 +2206,7 @@ Fetch every installed application's own icon from your Android device. What is l
 
 Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 592</sub>
+<sub>Source: `guiwins_taskedit.py` line 636</sub>
 
 <a id="cmd-edit-task-pick-icon-not-listed-cancel"></a>
 ###### Cancel
@@ -2174,7 +2216,7 @@ Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 276</sub>
+<sub>Source: `guiwins_taskedit.py` line 320</sub>
 
 <a id="cmd-edit-task-delete"></a>
 #### Delete
@@ -2184,7 +2226,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Remove the object being edited from the loaded XML.
 
-<sub>Source: `guiwins_taskedit.py` line 1258</sub>
+<sub>Source: `guiwins_taskedit.py` line 1302</sub>
 
 <a id="cmd-edit-task-cancel"></a>
 #### Cancel
@@ -2194,7 +2236,7 @@ Remove the object being edited from the loaded XML.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 1411</sub>
+<sub>Source: `guiwins_taskedit.py` line 1455</sub>
 
 <a id="cmd-edit-task-delete-task"></a>
 #### Delete Task
@@ -2206,7 +2248,7 @@ Deletes this Task and every reference to it: it is removed from the Tasks of eve
 
 Opens **Delete Task**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 1412</sub>
+<sub>Source: `guiwins_taskedit.py` line 1456</sub>
 
 <a id="cmd-edit-task-delete-task-cancel"></a>
 ##### Cancel
@@ -2216,7 +2258,7 @@ Opens **Delete Task**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 1537</sub>
+<sub>Source: `guiwins_taskedit.py` line 1581</sub>
 
 <a id="cmd-edit-task-rename"></a>
 #### Rename
@@ -2228,7 +2270,7 @@ Prompts for a new name and applies just that to the loaded backup, right now. Ev
 
 Opens **Rename**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 1424</sub>
+<sub>Source: `guiwins_taskedit.py` line 1468</sub>
 
 <a id="cmd-edit-task-rename-cancel"></a>
 ##### Cancel
@@ -2238,7 +2280,7 @@ Opens **Rename**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3527</sub>
+<sub>Source: `guiwins.py` line 3611</sub>
 
 <a id="cmd-edit-task-rename-rename"></a>
 ##### Rename
@@ -2248,7 +2290,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Give the object being edited a new name.
 
-<sub>Source: `guiwins.py` line 3528</sub>
+<sub>Source: `guiwins.py` line 3612</sub>
 
 <a id="cmd-edit-task-ok"></a>
 #### Ok
@@ -2258,7 +2300,7 @@ Give the object being edited a new name.
 
 Keeps what this dialog holds and closes it. Nothing is written to a file: the change is kept in the loaded configuration, for a save to write out later.
 
-<sub>Source: `guiwins_taskedit.py` line 1436</sub>
+<sub>Source: `guiwins_taskedit.py` line 1480</sub>
 
 <a id="cmd-edit-task-save-to-current-file"></a>
 #### Save To Current File
@@ -2268,7 +2310,7 @@ Keeps what this dialog holds and closes it. Nothing is written to a file: the ch
 
 Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep. It is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml. The file you loaded is never written to, so it is left exactly as it was. The app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one. This writes to this computer only -- nothing is sent to your Android device.
 
-<sub>Source: `guiwins_taskedit.py` line 1440</sub>
+<sub>Source: `guiwins_taskedit.py` line 1484</sub>
 
 <a id="cmd-edit-task-save-to-android"></a>
 #### Save To Android
@@ -2288,7 +2330,7 @@ You must exit and restart Tasker to see an imported Task in the Tasker UI.
 
 Opens **Save To Android**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 1461</sub>
+<sub>Source: `guiwins_taskedit.py` line 1505</sub>
 
 <a id="cmd-edit-task-save-to-android-verify"></a>
 ##### Verify
@@ -2304,7 +2346,7 @@ Every object going up is compared against the one in the loaded configuration, i
 
 It costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched.
 
-<sub>Source: `guiwins.py` line 691</sub>
+<sub>Source: `guiwins.py` line 728</sub>
 
 <a id="cmd-edit-task-save-to-android-check-ids"></a>
 ##### Check IDs
@@ -2318,7 +2360,7 @@ It reports an ID Tasker has already given to a different Project, Profile or Tas
 
 It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Task on the device the first time. The backup is read into memory and deleted from the device; it is not saved on this computer.
 
-<sub>Source: `guiwins.py` line 722</sub>
+<sub>Source: `guiwins.py` line 759</sub>
 
 <a id="cmd-edit-task-save-to-android-cancel"></a>
 ##### Cancel
@@ -2328,7 +2370,7 @@ It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Tas
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 806</sub>
+<sub>Source: `guiwins.py` line 843</sub>
 
 <a id="cmd-edit-task-save-to-android-save-as-file"></a>
 ##### Save As File
@@ -2344,7 +2386,7 @@ Watch the Android device while this runs: Tasker asks you to authorize the conne
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 807</sub>
+<sub>Source: `guiwins.py` line 844</sub>
 
 <a id="cmd-edit-task-save-to-android-save-as-file-close"></a>
 ###### Close
@@ -2354,7 +2396,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-edit-task-save-to-android-import-into-tasker"></a>
 ##### Import Into Tasker
@@ -2374,7 +2416,7 @@ The device will ask you to authorize MapTasker the first time.
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 831</sub>
+<sub>Source: `guiwins.py` line 868</sub>
 
 <a id="cmd-edit-task-save-to-android-import-into-tasker-close"></a>
 ###### Close
@@ -2384,7 +2426,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-edit-task-run-on-android"></a>
 #### Run On Android
@@ -2398,7 +2440,7 @@ The device runs the Task as Tasker already has it: use 'Save To Android' first t
 
 Opens **Run Task On Android**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 1485</sub>
+<sub>Source: `guiwins_taskedit.py` line 1529</sub>
 
 <a id="cmd-edit-task-run-on-android-close"></a>
 ##### Close
@@ -2408,7 +2450,7 @@ Opens **Run Task On Android**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins_taskedit.py` line 435</sub>
+<sub>Source: `guiwins_taskedit.py` line 479</sub>
 
 <a id="cmd-edit-task-export-task"></a>
 #### Export Task
@@ -2418,7 +2460,7 @@ Closes this window without changing anything.
 
 This will save the Task directly to your current drive.
 
-<sub>Source: `guiwins_taskedit.py` line 1501</sub>
+<sub>Source: `guiwins_taskedit.py` line 1545</sub>
 
 <a id="cmd-add-task"></a>
 ### Add Task
@@ -2430,7 +2472,7 @@ Create a new object and add it to the loaded XML.
 
 Opens **Add Task**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9105</sub>
+<sub>Source: `guiwins.py` line 8812</sub>
 
 <a id="cmd-add-task-pick-a-task"></a>
 #### Pick a Task
@@ -2452,7 +2494,7 @@ Choose from the Applications named in the loaded configuration.
 
 Opens **App Picker**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 891</sub>
+<sub>Source: `guiwins_taskedit.py` line 935</sub>
 
 <a id="cmd-add-task-pick-use"></a>
 ##### Use
@@ -2462,7 +2504,7 @@ Opens **App Picker**, whose own commands are listed beneath this one.
 
 Uses what is entered or selected above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 467</sub>
+<sub>Source: `guiwins_taskedit.py` line 511</sub>
 
 <a id="cmd-add-task-pick-cancel"></a>
 ##### Cancel
@@ -2472,7 +2514,7 @@ Uses what is entered or selected above, and closes the picker.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 575</sub>
+<sub>Source: `guiwins_taskedit.py` line 619</sub>
 
 <a id="cmd-add-task-pick-use-selected"></a>
 ##### Use Selected
@@ -2482,7 +2524,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Uses what is selected in the list above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 576</sub>
+<sub>Source: `guiwins_taskedit.py` line 620</sub>
 
 <a id="cmd-add-task-pick-icon-not-listed"></a>
 ##### Icon not listed?
@@ -2494,7 +2536,7 @@ Fetch every installed application's own icon from your Android device. What is l
 
 Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 592</sub>
+<sub>Source: `guiwins_taskedit.py` line 636</sub>
 
 <a id="cmd-add-task-pick-icon-not-listed-cancel"></a>
 ###### Cancel
@@ -2504,7 +2546,7 @@ Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 276</sub>
+<sub>Source: `guiwins_taskedit.py` line 320</sub>
 
 <a id="cmd-add-task-cancel"></a>
 #### Cancel
@@ -2514,7 +2556,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 1782</sub>
+<sub>Source: `guiwins_taskedit.py` line 1826</sub>
 
 <a id="cmd-add-task-ok"></a>
 #### Ok
@@ -2524,7 +2566,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Keeps what this dialog holds and closes it. Nothing is written to a file: the change is kept in the loaded configuration, for a save to write out later.
 
-<sub>Source: `guiwins_taskedit.py` line 1783</sub>
+<sub>Source: `guiwins_taskedit.py` line 1827</sub>
 
 <a id="cmd-add-task-save-to-current-file"></a>
 #### Save To Current File
@@ -2534,7 +2576,7 @@ Keeps what this dialog holds and closes it. Nothing is written to a file: the ch
 
 Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it. It is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml. The file you loaded is never written to, so it is left exactly as it was. The app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one. This writes to this computer only -- nothing is sent to your Android device.
 
-<sub>Source: `guiwins_taskedit.py` line 1792</sub>
+<sub>Source: `guiwins_taskedit.py` line 1836</sub>
 
 <a id="cmd-add-task-save-to-android"></a>
 #### Save To Android
@@ -2542,11 +2584,11 @@ Saves the entire backup -- every Project, Profile and Task in it, not just this 
 **Path:** Main Window &gt; Add Task &gt; Save To Android  
 **Kind:** Command
 
-Write the object back to your Android device.
+Write the object back to your Android device -- 'Save As File' puts it on the device as a file, and 'Import Into Tasker' hands it to Tasker itself (a Task goes straight in; a Profile, Project or Scene opens Tasker's import screen).
 
 Opens **Save To Android**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 1814</sub>
+<sub>Source: `guiwins_taskedit.py` line 1858</sub>
 
 <a id="cmd-add-task-save-to-android-verify"></a>
 ##### Verify
@@ -2562,7 +2604,7 @@ Every object going up is compared against the one in the loaded configuration, i
 
 It costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched.
 
-<sub>Source: `guiwins.py` line 691</sub>
+<sub>Source: `guiwins.py` line 728</sub>
 
 <a id="cmd-add-task-save-to-android-check-ids"></a>
 ##### Check IDs
@@ -2576,7 +2618,7 @@ It reports an ID Tasker has already given to a different Project, Profile or Tas
 
 It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Task on the device the first time. The backup is read into memory and deleted from the device; it is not saved on this computer.
 
-<sub>Source: `guiwins.py` line 722</sub>
+<sub>Source: `guiwins.py` line 759</sub>
 
 <a id="cmd-add-task-save-to-android-cancel"></a>
 ##### Cancel
@@ -2586,7 +2628,7 @@ It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Tas
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 806</sub>
+<sub>Source: `guiwins.py` line 843</sub>
 
 <a id="cmd-add-task-save-to-android-save-as-file"></a>
 ##### Save As File
@@ -2602,7 +2644,7 @@ Watch the Android device while this runs: Tasker asks you to authorize the conne
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 807</sub>
+<sub>Source: `guiwins.py` line 844</sub>
 
 <a id="cmd-add-task-save-to-android-save-as-file-close"></a>
 ###### Close
@@ -2612,7 +2654,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-add-task-save-to-android-import-into-tasker"></a>
 ##### Import Into Tasker
@@ -2632,7 +2674,7 @@ The device will ask you to authorize MapTasker the first time.
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 831</sub>
+<sub>Source: `guiwins.py` line 868</sub>
 
 <a id="cmd-add-task-save-to-android-import-into-tasker-close"></a>
 ###### Close
@@ -2642,7 +2684,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-add-task-export-task"></a>
 #### Export Task
@@ -2652,7 +2694,7 @@ Closes this window without changing anything.
 
 Exports the Task as XML to a file on your computer.
 
-<sub>Source: `guiwins_taskedit.py` line 1823</sub>
+<sub>Source: `guiwins_taskedit.py` line 1867</sub>
 
 <a id="cmd-run-on-android"></a>
 ### Run On Android
@@ -2664,7 +2706,7 @@ Run the selected Task on your Android device and see what it returned.
 
 Opens **Run Task On Android**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9113</sub>
+<sub>Source: `guiwins.py` line 8820</sub>
 
 <a id="cmd-run-on-android-close"></a>
 #### Close
@@ -2674,7 +2716,7 @@ Opens **Run Task On Android**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins_taskedit.py` line 435</sub>
+<sub>Source: `guiwins_taskedit.py` line 479</sub>
 
 <a id="cmd-edit-scene"></a>
 ### Edit Scene
@@ -2686,7 +2728,7 @@ Modify the object currently selected in the pulldowns above.
 
 Opens **Edit Scene**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9133</sub>
+<sub>Source: `guiwins.py` line 8840</sub>
 
 <a id="cmd-edit-scene-picker"></a>
 #### Picker
@@ -2698,7 +2740,7 @@ Pick from the Scene's environment and global variables.
 
 Opens **Show When**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_designer_v2.py` line 359</sub>
+<sub>Source: `guiwins_designer_v2.py` line 360</sub>
 
 <a id="cmd-edit-scene-picker-close"></a>
 ##### Close
@@ -2708,7 +2750,7 @@ Opens **Show When**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins_designer_v2.py` line 317</sub>
+<sub>Source: `guiwins_designer_v2.py` line 318</sub>
 
 <a id="cmd-edit-scene-palette"></a>
 #### Palette
@@ -2718,7 +2760,7 @@ Closes this window without changing anything.
 
 Pick one of Material's own colour roles.
 
-<sub>Source: `guiwins_designer_v2.py` line 408</sub>
+<sub>Source: `guiwins_designer_v2.py` line 409</sub>
 
 <a id="cmd-edit-scene-pick"></a>
 #### Pick
@@ -2730,7 +2772,7 @@ Pick a Material icon.
 
 Opens **Icon**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_designer_v2.py` line 459</sub>
+<sub>Source: `guiwins_designer_v2.py` line 460</sub>
 
 <a id="cmd-edit-scene-pick-cancel"></a>
 ##### Cancel
@@ -2740,7 +2782,7 @@ Opens **Icon**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_designer_v2.py` line 554</sub>
+<sub>Source: `guiwins_designer_v2.py` line 555</sub>
 
 <a id="cmd-edit-scene-state"></a>
 #### State
@@ -2750,7 +2792,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Dynamic and Select Variable are worked out when the Scene is shown.
 
-<sub>Source: `guiwins_designer_v2.py` line 626</sub>
+<sub>Source: `guiwins_designer_v2.py` line 627</sub>
 
 <a id="cmd-edit-scene-variable"></a>
 #### Variable
@@ -2762,7 +2804,7 @@ Pick from the Scene's environment and global variables.
 
 Opens **Show When**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_designer_v2.py` line 674</sub>
+<sub>Source: `guiwins_designer_v2.py` line 675</sub>
 
 <a id="cmd-edit-scene-variable-close"></a>
 ##### Close
@@ -2772,7 +2814,7 @@ Opens **Show When**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins_designer_v2.py` line 317</sub>
+<sub>Source: `guiwins_designer_v2.py` line 318</sub>
 
 <a id="cmd-edit-scene-close"></a>
 #### Close
@@ -2794,7 +2836,7 @@ Pick from the Scene's environment and global variables.
 
 Opens **Show When**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_designer_v2.py` line 972</sub>
+<sub>Source: `guiwins_designer_v2.py` line 973</sub>
 
 <a id="cmd-edit-scene-show-when-close"></a>
 ##### Close
@@ -2804,7 +2846,7 @@ Opens **Show When**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins_designer_v2.py` line 317</sub>
+<sub>Source: `guiwins_designer_v2.py` line 318</sub>
 
 <a id="cmd-edit-scene-landscape"></a>
 #### Landscape
@@ -2924,7 +2966,7 @@ This dialog closes while the preview is up, with everything in it kept; the prev
 
 It is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders.
 
-<sub>Source: `guiwins.py` line 2562</sub>
+<sub>Source: `guiwins.py` line 2599</sub>
 
 <a id="cmd-edit-scene-cancel"></a>
 #### Cancel
@@ -2936,7 +2978,7 @@ Closes without saving, and puts this Scene back exactly as it was when this dial
 
 A Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it.
 
-<sub>Source: `guiwins.py` line 2953</sub>
+<sub>Source: `guiwins.py` line 2990</sub>
 
 <a id="cmd-edit-scene-ok"></a>
 #### Ok
@@ -2946,7 +2988,7 @@ A Rename is the one thing this cannot take back: it is applied to the loaded bac
 
 Keeps what this dialog holds and closes it. Nothing is written to a file: the change is kept in the loaded configuration, for a save to write out later.
 
-<sub>Source: `guiwins.py` line 2982</sub>
+<sub>Source: `guiwins.py` line 3019</sub>
 
 <a id="cmd-edit-scene-save-to-current-file"></a>
 #### Save To Current File
@@ -2956,7 +2998,7 @@ Keeps what this dialog holds and closes it. Nothing is written to a file: the ch
 
 Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session. It is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml. The file you loaded is never written to, so it is left exactly as it was. The app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one. This writes to this computer only -- nothing is sent to your Android device.
 
-<sub>Source: `guiwins.py` line 2986</sub>
+<sub>Source: `guiwins.py` line 3023</sub>
 
 <a id="cmd-edit-scene-save-to-android"></a>
 #### Save To Android
@@ -2974,7 +3016,7 @@ Watch the Android device while this runs: Tasker asks you to authorize the conne
 
 Opens **Save Scene To Android**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 3007</sub>
+<sub>Source: `guiwins.py` line 3044</sub>
 
 <a id="cmd-edit-scene-save-to-android-verify"></a>
 ##### Verify
@@ -2990,7 +3032,7 @@ Every object going up is compared against the one in the loaded configuration, i
 
 It costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched.
 
-<sub>Source: `guiwins.py` line 691</sub>
+<sub>Source: `guiwins.py` line 728</sub>
 
 <a id="cmd-edit-scene-save-to-android-check-ids"></a>
 ##### Check IDs
@@ -3004,7 +3046,7 @@ It reports an ID Tasker has already given to a different Project, Profile or Tas
 
 It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Task on the device the first time. The backup is read into memory and deleted from the device; it is not saved on this computer.
 
-<sub>Source: `guiwins.py` line 722</sub>
+<sub>Source: `guiwins.py` line 759</sub>
 
 <a id="cmd-edit-scene-save-to-android-cancel"></a>
 ##### Cancel
@@ -3014,7 +3056,7 @@ It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Tas
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3109</sub>
+<sub>Source: `guiwins.py` line 3146</sub>
 
 <a id="cmd-edit-scene-save-to-android-save-as-file"></a>
 ##### Save As File
@@ -3030,7 +3072,7 @@ Watch the Android device while this runs: Tasker asks you to authorize the conne
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 3110</sub>
+<sub>Source: `guiwins.py` line 3147</sub>
 
 <a id="cmd-edit-scene-save-to-android-save-as-file-close"></a>
 ###### Close
@@ -3040,7 +3082,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-edit-scene-save-to-android-import-into-tasker"></a>
 ##### Import Into Tasker
@@ -3060,7 +3102,7 @@ The device will ask you to authorize MapTasker the first time.
 
 Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 3132</sub>
+<sub>Source: `guiwins.py` line 3169</sub>
 
 <a id="cmd-edit-scene-save-to-android-import-into-tasker-close"></a>
 ###### Close
@@ -3070,7 +3112,7 @@ Opens **Round Trip Report**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 775</sub>
+<sub>Source: `guiwins.py` line 812</sub>
 
 <a id="cmd-edit-scene-export-scene"></a>
 #### Export Scene
@@ -3082,7 +3124,7 @@ Saves this Scene, with all of its elements, as one standalone .scn.xml file -- t
 
 Tasks the Scene's elements run are not included; they belong to their own Project.
 
-<sub>Source: `guiwins.py` line 3028</sub>
+<sub>Source: `guiwins.py` line 3065</sub>
 
 <a id="cmd-add-scene"></a>
 ### Add Scene
@@ -3094,7 +3136,7 @@ Create a new object and add it to the loaded XML.
 
 Opens **Add Scene Version**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9141</sub>
+<sub>Source: `guiwins.py` line 8848</sub>
 
 <a id="cmd-add-scene-legacy-scene"></a>
 #### Legacy Scene
@@ -3106,7 +3148,7 @@ A Legacy Scene has a pixel canvas and a list of UI elements. It is the original 
 
 Opens **Add Scene**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 2684</sub>
+<sub>Source: `guiwins.py` line 2721</sub>
 
 <a id="cmd-add-scene-legacy-scene-picker"></a>
 ##### Picker
@@ -3118,7 +3160,7 @@ Pick from the Scene's environment and global variables.
 
 Opens **Show When**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_designer_v2.py` line 359</sub>
+<sub>Source: `guiwins_designer_v2.py` line 360</sub>
 
 <a id="cmd-add-scene-legacy-scene-picker-close"></a>
 ###### Close
@@ -3128,7 +3170,7 @@ Opens **Show When**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins_designer_v2.py` line 317</sub>
+<sub>Source: `guiwins_designer_v2.py` line 318</sub>
 
 <a id="cmd-add-scene-legacy-scene-palette"></a>
 ##### Palette
@@ -3138,7 +3180,7 @@ Closes this window without changing anything.
 
 Pick one of Material's own colour roles.
 
-<sub>Source: `guiwins_designer_v2.py` line 408</sub>
+<sub>Source: `guiwins_designer_v2.py` line 409</sub>
 
 <a id="cmd-add-scene-legacy-scene-pick"></a>
 ##### Pick
@@ -3150,7 +3192,7 @@ Pick a Material icon.
 
 Opens **Icon**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_designer_v2.py` line 459</sub>
+<sub>Source: `guiwins_designer_v2.py` line 460</sub>
 
 <a id="cmd-add-scene-legacy-scene-pick-cancel"></a>
 ###### Cancel
@@ -3160,7 +3202,7 @@ Opens **Icon**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_designer_v2.py` line 554</sub>
+<sub>Source: `guiwins_designer_v2.py` line 555</sub>
 
 <a id="cmd-add-scene-legacy-scene-state"></a>
 ##### State
@@ -3170,7 +3212,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Dynamic and Select Variable are worked out when the Scene is shown.
 
-<sub>Source: `guiwins_designer_v2.py` line 626</sub>
+<sub>Source: `guiwins_designer_v2.py` line 627</sub>
 
 <a id="cmd-add-scene-legacy-scene-variable"></a>
 ##### Variable
@@ -3182,7 +3224,7 @@ Pick from the Scene's environment and global variables.
 
 Opens **Show When**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_designer_v2.py` line 674</sub>
+<sub>Source: `guiwins_designer_v2.py` line 675</sub>
 
 <a id="cmd-add-scene-legacy-scene-variable-close"></a>
 ###### Close
@@ -3192,7 +3234,7 @@ Opens **Show When**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins_designer_v2.py` line 317</sub>
+<sub>Source: `guiwins_designer_v2.py` line 318</sub>
 
 <a id="cmd-add-scene-legacy-scene-close"></a>
 ##### Close
@@ -3214,7 +3256,7 @@ Pick from the Scene's environment and global variables.
 
 Opens **Show When**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_designer_v2.py` line 972</sub>
+<sub>Source: `guiwins_designer_v2.py` line 973</sub>
 
 <a id="cmd-add-scene-legacy-scene-show-when-close"></a>
 ###### Close
@@ -3224,7 +3266,7 @@ Opens **Show When**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins_designer_v2.py` line 317</sub>
+<sub>Source: `guiwins_designer_v2.py` line 318</sub>
 
 <a id="cmd-add-scene-legacy-scene-landscape"></a>
 ##### Landscape
@@ -3344,7 +3386,7 @@ This dialog closes while the preview is up, with everything in it kept; the prev
 
 It is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders.
 
-<sub>Source: `guiwins.py` line 2562</sub>
+<sub>Source: `guiwins.py` line 2599</sub>
 
 <a id="cmd-add-scene-legacy-scene-cancel"></a>
 ##### Cancel
@@ -3354,7 +3396,7 @@ It is a representation, not Tasker's own renderer: %variables are named rather t
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 2769</sub>
+<sub>Source: `guiwins.py` line 2806</sub>
 
 <a id="cmd-add-scene-legacy-scene-ok"></a>
 ##### Ok
@@ -3364,7 +3406,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Keeps what this dialog holds and closes it. Nothing is written to a file: the change is kept in the loaded configuration, for a save to write out later.
 
-<sub>Source: `guiwins.py` line 2770</sub>
+<sub>Source: `guiwins.py` line 2807</sub>
 
 <a id="cmd-add-scene-cancel"></a>
 #### Cancel
@@ -3374,7 +3416,7 @@ Keeps what this dialog holds and closes it. Nothing is written to a file: the ch
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 2725</sub>
+<sub>Source: `guiwins.py` line 2762</sub>
 
 <a id="cmd-reset-to-default-colors"></a>
 ### Reset to Default Colors
@@ -3384,7 +3426,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Restore every color to its default value.
 
-<sub>Source: `guiwins.py` line 9171</sub>
+<sub>Source: `guiwins.py` line 8878</sub>
 
 <a id="cmd-cancel"></a>
 ### Cancel
@@ -3394,7 +3436,7 @@ Restore every color to its default value.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 9241</sub>
+<sub>Source: `guiwins.py` line 8951</sub>
 
 <a id="cmd-change-prompt"></a>
 ### Change Prompt
@@ -3406,7 +3448,7 @@ Modify the prompt sent to the AI model.
 
 Opens **Ai Prompt**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9278</sub>
+<sub>Source: `guiwins.py` line 8988</sub>
 
 <a id="cmd-change-prompt-cancel"></a>
 #### Cancel
@@ -3416,7 +3458,7 @@ Opens **Ai Prompt**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `userintr_ai.py` line 148</sub>
+<sub>Source: `userintr_ai.py` line 192</sub>
 
 <a id="cmd-run-analysis"></a>
 ### Run Analysis
@@ -3426,7 +3468,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Submit the selected Project/Profile/Task and prompt to the selected model.
 
-<sub>Source: `guiwins.py` line 9283</sub>
+<sub>Source: `guiwins.py` line 8993</sub>
 
 <a id="cmd-extended"></a>
 ### Extended
@@ -3442,7 +3484,7 @@ Note: Not all models have been validated and one or more may return an error on 
 
 Note: Enabling this option for the first time will force the installation of the following modules and all of their dependencies: google-genai, anthropic, openai, ollama
 
-<sub>Source: `guiwins.py` line 9302</sub>
+<sub>Source: `guiwins.py` line 9012</sub>
 
 <a id="cmd-indent-option"></a>
 ### Indent Option
@@ -3456,7 +3498,7 @@ The default is '4'.
 
 This affects how the output is formatted in the Map and Diagram views.
 
-<sub>Source: `guiwins.py` line 9409</sub>
+<sub>Source: `guiwins.py` line 9119</sub>
 
 <a id="cmd-viewlimit-optionmenu"></a>
 ### Viewlimit Optionmenu
@@ -3470,7 +3512,7 @@ Anything over this amount will stop the generation of the view as a means to thr
 
 Note: This is only for the 'Map' and 'Diagram' views, not the tree view.
 
-<sub>Source: `guiwins.py` line 9460</sub>
+<sub>Source: `guiwins.py` line 9170</sub>
 
 <a id="cmd-notify-timeout-optionmenu"></a>
 ### Notify Timeout Optionmenu
@@ -3484,7 +3526,7 @@ How long a pop-up message stays on screen before it disappears.
 
 A few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here.
 
-<sub>Source: `guiwins.py` line 9501</sub>
+<sub>Source: `guiwins.py` line 9211</sub>
 
 <a id="cmd-reset-options"></a>
 ### Reset Options
@@ -3496,7 +3538,7 @@ Reset all of the options to their default values, including colors, font used, a
 
 The currently loaded XML will be cleared out.
 
-<sub>Source: `guiwins.py` line 9525</sub>
+<sub>Source: `guiwins.py` line 9273</sub>
 
 <a id="cmd-report-issue"></a>
 ### Report Issue
@@ -3508,7 +3550,7 @@ Report any issues and/or suggestions to the developer.
 
 This will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue.
 
-<sub>Source: `guiwins.py` line 9558</sub>
+<sub>Source: `guiwins.py` line 9306</sub>
 
 <a id="cmd-font-optionmenu"></a>
 ### Font Optionmenu
@@ -3522,7 +3564,7 @@ The font selected will be used in all output.
 
 'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line.
 
-<sub>Source: `guiwins.py` line 9598</sub>
+<sub>Source: `guiwins.py` line 9346</sub>
 
 <a id="cmd-get-xml-from-android-device"></a>
 ### Get XML from Android Device
@@ -3534,7 +3576,7 @@ Fetch XML from an Android device.
 
 You must be on the same network as the Android device, and the device must be running and connected.
 
-<sub>Source: `guiwins.py` line 9627</sub>
+<sub>Source: `guiwins.py` line 9375</sub>
 
 <a id="cmd-display-help"></a>
 ### Display Help
@@ -3544,7 +3586,7 @@ You must be on the same network as the Android device, and the device must be ru
 
 Display this help text.
 
-<sub>Source: `guiwins.py` line 9658</sub>
+<sub>Source: `guiwins.py` line 9406</sub>
 
 <a id="cmd-get-android-help"></a>
 ### Get Android Help
@@ -3554,7 +3596,7 @@ Display this help text.
 
 Display the help for fetching the XML file from your Android device.
 
-<sub>Source: `guiwins.py` line 9665</sub>
+<sub>Source: `guiwins.py` line 9413</sub>
 
 ## AI API Key Entry
 
@@ -3602,7 +3644,7 @@ _Prompts for a per-action If condition (Target/Operator/Value) when the action's
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 960</sub>
+<sub>Source: `guiwins_taskedit.py` line 1004</sub>
 
 <a id="cmd-ok-2"></a>
 ### Ok
@@ -3612,7 +3654,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Keeps what this dialog holds and closes it. Nothing is written to a file: the change is kept in the loaded configuration, for a save to write out later.
 
-<sub>Source: `guiwins_taskedit.py` line 964</sub>
+<sub>Source: `guiwins_taskedit.py` line 1008</sub>
 
 ## Buttons
 
@@ -3626,7 +3668,7 @@ _The row along the bottom, with the tooltip each button needs._
 
 Write the entire configuration to a new, timestamped file beside the loaded one.
 
-<sub>Source: `guiwins_fix.py` line 518</sub>
+<sub>Source: `guiwins_fix.py` line 516</sub>
 
 <a id="cmd-close"></a>
 ### Close
@@ -3636,7 +3678,7 @@ Write the entire configuration to a new, timestamped file beside the loaded one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins_fix.py` line 539</sub>
+<sub>Source: `guiwins_fix.py` line 537</sub>
 
 ## Delete Project
 
@@ -3650,7 +3692,7 @@ _Confirms deletion of a Project, offering a choice for what happens to the Profi
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3574</sub>
+<sub>Source: `guiwins.py` line 3658</sub>
 
 ## Delete Scene
 
@@ -3664,7 +3706,7 @@ _Confirms deletion of a Scene._
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3073</sub>
+<sub>Source: `guiwins.py` line 3110</sub>
 
 ## Get Xml From Android
 
@@ -3704,7 +3746,7 @@ Opens **Helper Tasks**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 3298</sub>
+<sub>Source: `guiwins.py` line 3382</sub>
 
 <a id="cmd-put-helper-tasks-in-maptasker-project"></a>
 ### Put Helper Tasks in 'MapTasker' Project
@@ -3730,7 +3772,7 @@ Opens **Helpers In The Way**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 3340</sub>
+<sub>Source: `guiwins.py` line 3424</sub>
 
 <a id="cmd-cancel-entry"></a>
 ### Cancel Entry
@@ -3754,7 +3796,7 @@ _Prompts for how much of an If block to insert when the user picks the "If" acti
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 1079</sub>
+<sub>Source: `guiwins_taskedit.py` line 1123</sub>
 
 ## Item Layout
 
@@ -3888,6 +3930,16 @@ Give the object being edited a new name.
 
 _Builds the UI layout for the various text views, including toolbar and scrollable display area._
 
+<a id="cmd-export"></a>
+### Export
+
+**Path:** Map / Diagram / Tree View Toolbar &gt; Export  
+**Kind:** Command
+
+(Map and Diagram only) Save what the view shows to a file in the current directory, as Markdown, JSON or PDF.
+
+<sub>Source: `guiwins.py` line 3914</sub>
+
 <a id="cmd-zoom-out"></a>
 ### Zoom Out
 
@@ -3896,7 +3948,7 @@ _Builds the UI layout for the various text views, including toolbar and scrollab
 
 Zoom out. Ctrl/⌘ and the scroll wheel does the same.
 
-<sub>Source: `guiwins.py` line 3860</sub>
+<sub>Source: `guiwins.py` line 3944</sub>
 
 <a id="cmd-zoom-in"></a>
 ### Zoom In
@@ -3906,7 +3958,7 @@ Zoom out. Ctrl/⌘ and the scroll wheel does the same.
 
 Zoom in. Ctrl/⌘ and the scroll wheel does the same.
 
-<sub>Source: `guiwins.py` line 3868</sub>
+<sub>Source: `guiwins.py` line 3952</sub>
 
 <a id="cmd-collapse"></a>
 ### Collapse
@@ -3918,7 +3970,7 @@ Collapse every Project down to its title bar.
 
 One Project on its own collapses by clicking the top edge of its box.
 
-<sub>Source: `guiwins.py` line 3873</sub>
+<sub>Source: `guiwins.py` line 3957</sub>
 
 <a id="cmd-expand"></a>
 ### Expand
@@ -3928,7 +3980,7 @@ One Project on its own collapses by clicking the top edge of its box.
 
 Expand every collapsed Project.
 
-<sub>Source: `guiwins.py` line 3886</sub>
+<sub>Source: `guiwins.py` line 3970</sub>
 
 <a id="cmd-reset"></a>
 ### Reset
@@ -3938,7 +3990,7 @@ Expand every collapsed Project.
 
 Back to the whole diagram: no zoom, nothing folded, nothing filtered.
 
-<sub>Source: `guiwins.py` line 3891</sub>
+<sub>Source: `guiwins.py` line 3975</sub>
 
 <a id="cmd-help"></a>
 ### Help
@@ -3958,7 +4010,17 @@ Click the ▾ beside a Project to collapse it, and the ▸ to bring it back.
 
 Ctrl (or ⌘) and the scroll wheel zooms. Esc clears a chain.
 
-<sub>Source: `guiwins.py` line 3898</sub>
+<sub>Source: `guiwins.py` line 3982</sub>
+
+<a id="cmd-rebuild"></a>
+### Rebuild
+
+**Path:** Map / Diagram / Tree View Toolbar &gt; Rebuild  
+**Kind:** Command
+
+(Diagram only) Offered when the Diagram was drawn for a different selection than the one chosen now; it draws the Diagram again for the current one.
+
+<sub>Source: `guiwins.py` line 5522</sub>
 
 <a id="cmd-search"></a>
 ### Search
@@ -3974,7 +4036,7 @@ Click on the line number to go to that line in the text view box.
 
 The 'Clear' button will clear the search results.
 
-<sub>Source: `guiwins.py` line 5489</sub>
+<sub>Source: `guiwins.py` line 5573</sub>
 
 <a id="cmd-clear-3"></a>
 ### Clear
@@ -3984,7 +4046,7 @@ The 'Clear' button will clear the search results.
 
 Clear the Map/Diagram/Tree view data currently held and displayed.
 
-<sub>Source: `guiwins.py` line 5499</sub>
+<sub>Source: `guiwins.py` line 5583</sub>
 
 <a id="cmd-find-replace"></a>
 ### Find/Replace
@@ -4000,7 +4062,7 @@ Results come back as a list of objects; click one to be taken to it.
 
 Opens **Find / Replace**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 5508</sub>
+<sub>Source: `guiwins.py` line 5592</sub>
 
 <a id="cmd-find-replace-narrow-to-project"></a>
 #### Narrow to Project
@@ -4012,7 +4074,7 @@ _There is no tooltip on this one; this is the note written beside it in the sour
 
 Hidden under a scope, for the reason the Find tab's own gives.
 
-<sub>Source: `guiwins.py` line 6507</sub>
+<sub>Source: `guiwins.py` line 6589</sub>
 
 <a id="cmd-find-replace-only-the-matching-text"></a>
 #### Only the matching text
@@ -4024,7 +4086,7 @@ _There is no tooltip on this one; this is the note written beside it in the sour
 
 Off means the argument is SET to the new value; on means only the matched text inside it changes. Both are things people mean by "replace", and which one they meant cannot be guessed from the two boxes above -- so it is asked, in the one place where the answer is visible while the values are being typed.
 
-<sub>Source: `guiwins.py` line 6562</sub>
+<sub>Source: `guiwins.py` line 6644</sub>
 
 <a id="cmd-find-replace-add-it-where-missing"></a>
 #### Add it where missing
@@ -4036,7 +4098,7 @@ _There is no tooltip on this one; this is the note written beside it in the sour
 
 Tasker leaves out an argument nobody ever set, so this is what makes "give every Flash a Timeout" reach the Flashes that have none. Off by default: adding an argument to a hundred actions is a bigger thing than editing the ones that already have it, and the preview marks every row that is an addition rather than a change.
 
-<sub>Source: `guiwins.py` line 6568</sub>
+<sub>Source: `guiwins.py` line 6650</sub>
 
 <a id="cmd-find-replace-preview"></a>
 #### Preview
@@ -4046,7 +4108,7 @@ Tasker leaves out an argument nobody ever set, so this is what makes "give every
 
 Display the Scene being edited as it will appear.
 
-<sub>Source: `guiwins.py` line 7053</sub>
+<sub>Source: `guiwins.py` line 7135</sub>
 
 <a id="cmd-find-replace-replace"></a>
 #### Replace
@@ -4056,7 +4118,7 @@ Display the Scene being edited as it will appear.
 
 (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene. Click a result to be taken to it.
 
-<sub>Source: `guiwins.py` line 7054</sub>
+<sub>Source: `guiwins.py` line 7136</sub>
 
 <a id="cmd-find-replace-find"></a>
 #### Find
@@ -4066,7 +4128,7 @@ Display the Scene being edited as it will appear.
 
 (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene. Click a result to be taken to it.
 
-<sub>Source: `guiwins.py` line 7308</sub>
+<sub>Source: `guiwins.py` line 7390</sub>
 
 <a id="cmd-find-replace-replace-2"></a>
 #### Replace
@@ -4076,7 +4138,17 @@ Display the Scene being edited as it will appear.
 
 (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene. Click a result to be taken to it.
 
-<sub>Source: `guiwins.py` line 7309</sub>
+<sub>Source: `guiwins.py` line 7391</sub>
+
+<a id="cmd-find-replace-ask-ai"></a>
+#### Ask AI
+
+**Path:** Map / Diagram / Tree View Toolbar &gt; Find/Replace &gt; Ask AI  
+**Kind:** Command
+
+(in the Find/Replace window) Type the question in plain words, and the AI model selected on the Analyze tab fills in the Find boxes for you. The search itself runs exactly as if you had picked them.
+
+<sub>Source: `guiwins.py` line 7426</sub>
 
 <a id="cmd-find-replace-find-2"></a>
 #### Find
@@ -4086,7 +4158,7 @@ Display the Scene being edited as it will appear.
 
 (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene. Click a result to be taken to it.
 
-<sub>Source: `guiwins.py` line 7632</sub>
+<sub>Source: `guiwins.py` line 7714</sub>
 
 <a id="cmd-find-replace-save-results"></a>
 #### Save Results
@@ -4096,7 +4168,7 @@ Display the Scene being edited as it will appear.
 
 Save the 'Find/Replace' results to a text file.
 
-<sub>Source: `guiwins.py` line 7633</sub>
+<sub>Source: `guiwins.py` line 7715</sub>
 
 <a id="cmd-find-replace-close"></a>
 #### Close
@@ -4106,7 +4178,7 @@ Save the 'Find/Replace' results to a text file.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 7643</sub>
+<sub>Source: `guiwins.py` line 7725</sub>
 
 <a id="cmd-toggle-wrap"></a>
 ### Toggle Wrap
@@ -4116,7 +4188,7 @@ Closes this window without changing anything.
 
 Turn line wrapping on or off in the displayed output.
 
-<sub>Source: `guiwins.py` line 5528</sub>
+<sub>Source: `guiwins.py` line 5612</sub>
 
 <a id="cmd-profiles-per-line"></a>
 ### Profiles Per Line
@@ -4126,7 +4198,21 @@ Turn line wrapping on or off in the displayed output.
 
 (Diagram only) The number of Profiles drawn side-by-side on a single line.
 
-<sub>Source: `guiwins.py` line 5538</sub>
+<sub>Source: `guiwins.py` line 5622</sub>
+
+## Notification Log
+
+_Show every notification recorded since start-up (or the last Clear Log), newest last._
+
+<a id="cmd-close-3"></a>
+### Close
+
+**Path:** Notification Log &gt; Close  
+**Kind:** Command
+
+Closes this window without changing anything.
+
+<sub>Source: `guiwins.py` line 256</sub>
 
 ## Object Properties
 
@@ -4140,7 +4226,7 @@ _The Properties editor, shared by every Add/Edit dialog -- see the section comme
 
 Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users. You can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports. If you enable the 'Same as Value' option, the current variable value will be used when exporting.
 
-<sub>Source: `guiwins.py` line 1343</sub>
+<sub>Source: `guiwins.py` line 1380</sub>
 
 <a id="cmd-cancel-7"></a>
 ### Cancel
@@ -4150,7 +4236,7 @@ Under 'Exported Value' if you disable the 'Same as Value' option, you can custom
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 1454</sub>
+<sub>Source: `guiwins.py` line 1491</sub>
 
 <a id="cmd-ok-3"></a>
 ### Ok
@@ -4160,7 +4246,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Keeps what this dialog holds and closes it. Nothing is written to a file: the change is kept in the loaded configuration, for a save to write out later.
 
-<sub>Source: `guiwins.py` line 1458</sub>
+<sub>Source: `guiwins.py` line 1495</sub>
 
 ## Overwrite Confirmation
 
@@ -4174,7 +4260,7 @@ _Confirms overwriting something that is already there, before anything is writte
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3394</sub>
+<sub>Source: `guiwins.py` line 3478</sub>
 
 ## Render Scene
 
@@ -4200,7 +4286,7 @@ Choose from the Applications named in the loaded configuration.
 
 Opens **App Picker**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 891</sub>
+<sub>Source: `guiwins_taskedit.py` line 935</sub>
 
 <a id="cmd-pick-use"></a>
 #### Use
@@ -4210,7 +4296,7 @@ Opens **App Picker**, whose own commands are listed beneath this one.
 
 Uses what is entered or selected above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 467</sub>
+<sub>Source: `guiwins_taskedit.py` line 511</sub>
 
 <a id="cmd-pick-cancel"></a>
 #### Cancel
@@ -4220,7 +4306,7 @@ Uses what is entered or selected above, and closes the picker.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 575</sub>
+<sub>Source: `guiwins_taskedit.py` line 619</sub>
 
 <a id="cmd-pick-use-selected"></a>
 #### Use Selected
@@ -4230,7 +4316,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Uses what is selected in the list above, and closes the picker.
 
-<sub>Source: `guiwins_taskedit.py` line 576</sub>
+<sub>Source: `guiwins_taskedit.py` line 620</sub>
 
 <a id="cmd-pick-icon-not-listed"></a>
 #### Icon not listed?
@@ -4242,7 +4328,7 @@ Fetch every installed application's own icon from your Android device. What is l
 
 Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_taskedit.py` line 592</sub>
+<sub>Source: `guiwins_taskedit.py` line 636</sub>
 
 <a id="cmd-pick-icon-not-listed-cancel"></a>
 ##### Cancel
@@ -4252,7 +4338,7 @@ Opens **Fetch Apps**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins_taskedit.py` line 276</sub>
+<sub>Source: `guiwins_taskedit.py` line 320</sub>
 
 <a id="cmd-delete-2"></a>
 ### Delete
@@ -4262,9 +4348,9 @@ Closes this dialog and keeps nothing it was holding.
 
 Remove the object being edited from the loaded XML.
 
-<sub>Source: `guiwins_taskedit.py` line 1258</sub>
+<sub>Source: `guiwins_taskedit.py` line 1302</sub>
 
-<a id="cmd-close-3"></a>
+<a id="cmd-close-4"></a>
 ### Close
 
 **Path:** Render Scene &gt; Close  
@@ -4272,7 +4358,7 @@ Remove the object being edited from the loaded XML.
 
 Stop firing anything on this event.
 
-<sub>Source: `guiwins.py` line 2171</sub>
+<sub>Source: `guiwins.py` line 2208</sub>
 
 <a id="cmd-stop-event"></a>
 ### Stop Event
@@ -4282,7 +4368,7 @@ Stop firing anything on this event.
 
 Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it. Written the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it.
 
-<sub>Source: `guiwins.py` line 2277</sub>
+<sub>Source: `guiwins.py` line 2314</sub>
 
 <a id="cmd-apply-to-task"></a>
 ### Apply to Task
@@ -4292,7 +4378,7 @@ Any key handled by the scene is not passed on to the system -- how a Scene keeps
 
 Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog. Ok does it for you here too, so this is only for keeping them mid-edit. Nothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does.
 
-<sub>Source: `guiwins.py` line 2373</sub>
+<sub>Source: `guiwins.py` line 2410</sub>
 
 <a id="cmd-create-task"></a>
 ### Create Task
@@ -4302,7 +4388,7 @@ Puts these action edits into the loaded configuration now, without closing -- th
 
 Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android. Ok does it for you too, so this is only for creating it without closing. Until then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both.
 
-<sub>Source: `guiwins.py` line 2487</sub>
+<sub>Source: `guiwins.py` line 2524</sub>
 
 ## Scene Preview Window
 
@@ -4316,7 +4402,7 @@ _Toolbar, then the scroll area the canvas is drawn into._
 
 Outline every component and name it, the way the designer's tree names it.
 
-<sub>Source: `guiwins.py` line 4682</sub>
+<sub>Source: `guiwins.py` line 4766</sub>
 
 <a id="cmd-actions"></a>
 ### Actions
@@ -4326,7 +4412,7 @@ Outline every component and name it, the way the designer's tree names it.
 
 Show what each component does when tapped, and what it writes to.
 
-<sub>Source: `guiwins.py` line 4695</sub>
+<sub>Source: `guiwins.py` line 4779</sub>
 
 <a id="cmd-landscape-2"></a>
 ### Landscape
@@ -4336,7 +4422,7 @@ Show what each component does when tapped, and what it writes to.
 
 Turn the screen on its side and let the layout re-flow into it.
 
-<sub>Source: `guiwins.py` line 4736</sub>
+<sub>Source: `guiwins.py` line 4820</sub>
 
 <a id="cmd-text-density"></a>
 ### Text density
@@ -4348,7 +4434,7 @@ A Scene's element positions are stored in device pixels, but its text sizes are 
 
 So it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them.
 
-<sub>Source: `guiwins.py` line 4759</sub>
+<sub>Source: `guiwins.py` line 4843</sub>
 
 <a id="cmd-snap-2"></a>
 ### Snap
@@ -4358,7 +4444,7 @@ So it is set here. Raise it if the text looks too small for its elements, lower 
 
 Round dragged positions and sizes to this many pixels.
 
-<sub>Source: `guiwins.py` line 4792</sub>
+<sub>Source: `guiwins.py` line 4876</sub>
 
 <a id="cmd-screen"></a>
 ### Screen
@@ -4370,7 +4456,7 @@ A Version 2 Scene has no size of its own -- it lays itself out inside whatever s
 
 Change this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this.
 
-<sub>Source: `guiwins.py` line 4815</sub>
+<sub>Source: `guiwins.py` line 4899</sub>
 
 ## Scene Properties
 
@@ -4416,7 +4502,7 @@ Give the object being edited a new name.
 
 Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab. A Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back.
 
-<sub>Source: `guiwins.py` line 1745</sub>
+<sub>Source: `guiwins.py` line 1782</sub>
 
 <a id="cmd-ok-4"></a>
 ### Ok
@@ -4426,7 +4512,7 @@ Puts these properties back the way they were when this window opened, and drops 
 
 Keeps everything, including the actions of any Task edited under the Event tab. A Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back.
 
-<sub>Source: `guiwins.py` line 1755</sub>
+<sub>Source: `guiwins.py` line 1792</sub>
 
 <a id="cmd-delete-3"></a>
 ### Delete
@@ -4436,7 +4522,7 @@ Keeps everything, including the actions of any Task edited under the Event tab. 
 
 Remove the object being edited from the loaded XML.
 
-<sub>Source: `guiwins.py` line 1933</sub>
+<sub>Source: `guiwins.py` line 1970</sub>
 
 ## Upgrade If Newer
 
@@ -4450,7 +4536,7 @@ _Ask PyPI on a worker thread, then fill the upgrade slot if there is a newer ver
 
 Clicking this will launch 'pip install --upgrade maptasker' in the background, and then relaunch MapTasker.
 
-<sub>Source: `guiutils.py` line 1818</sub>
+<sub>Source: `guiutils.py` line 1885</sub>
 
 <a id="cmd-what-s-new"></a>
 ### What's New?
@@ -4460,7 +4546,7 @@ Clicking this will launch 'pip install --upgrade maptasker' in the background, a
 
 Display the changes in the new version.
 
-<sub>Source: `guiutils.py` line 1830</sub>
+<sub>Source: `guiutils.py` line 1897</sub>
 
 ## Validate Or Filelist Xml
 
@@ -4503,6 +4589,7 @@ maptasker [arguments]
 | `-i`, `-indent` |  | Number of spaces to indent Task If/Then/Else Actions (default = 4) |
 | `-names` | bold, highlight, underline, italicize | Display all Projects/Profiles/Tasks/Scenes in bold, underlined, italicized and/or highlighted text. Example: names underline italicize |
 | `-o`, `-outline` |  | Display configuration outline of Projects, Profiles, Tasks and Scenes, and display the configuraion Map (MapTasker_map.txt) in the default text editor" |
+| `-outdir` |  | Folder to write reports, exports and the Map/Diagram files to (default = a MapTasker folder in your Documents folder). Example: -outdir ~/MapTasker_Reports |
 | `-preferences` |  | Display Tasker preferences |
 | `-pretty` |  | Make output prettier (one argument/parameter per line) |
 | `-profile` |  | Display the details for a specific Profile only. |

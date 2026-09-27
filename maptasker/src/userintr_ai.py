@@ -204,6 +204,10 @@ class AIEventHandlers:
         if name_entered is None:
             the_view.display_message_box(translate_string("Prompt change canceled."), "Orange")
 
+        # Blank?  There would be nothing to ask the AI, and it would be saved that way.
+        elif not name_entered.strip():
+            the_view.display_message_box(translate_string("The prompt cannot be empty."), "Orange")
+
         # The same?
         elif name_entered == the_view.ai_prompt:
             the_view.display_message_box(translate_string("Prompt did not change."), "Orange")

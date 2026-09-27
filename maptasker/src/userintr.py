@@ -756,6 +756,11 @@ class MyGui:
         # Indicate that an extraction is in progress so we don't inadvertently change the colors already set
         # via the 'appearance_mode' setting.
         self.extract_in_progress = True
+        # A blank saved prompt means "none chosen", not "prompt with nothing": keep the default
+        # rather than leave the Analyze tab showing Prompt: '' and the 'Run Analysis' button red
+        # for a prompt the user never took away.
+        if "ai_prompt" in temp_args and not temp_args["ai_prompt"]:
+            temp_args["ai_prompt"] = AI_PROMPT
         for key, value in temp_args.items():
             if key is not None:
                 setattr(self, key, value)

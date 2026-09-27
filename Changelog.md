@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.1.0] ??-Sep-2026  # FIX
+## [14.1.0] 28-Sep-2026
 
 ### Added
 
@@ -12,7 +12,6 @@ All notable changes to this project will be documented in this file!
 - Added: The Debug tab has new __Display Log__ and __Clear Log__ buttons, so a notification that disappeared before you could read it can still be looked up.  The log keeps the most recent 500 notifications, each with the time it appeared and its kind (such as warning or error).
 - Added: Uninstalled Plugins...The Health Check now names every plugin your configuration uses that is not installed on the device, with a link to each place that uses it.  It checks against the app list fetched from the device, which the new __Refresh App List__ button in the Health Check panel brings up to date, and until one has been fetched the report says the plugins were not checked rather than passing them.
 - Added: The Fetch Applications dialog now lists each device's saved app list with a __Forget__ button beside it.  A phone that changes address is saved as a second device, so forgetting the old one stops apps you have since uninstalled from being offered in the pickers and counted as installed by the Health Check.
-- Added:
 
 ### Changed
 
@@ -20,12 +19,10 @@ All notable changes to this project will be documented in this file!
 - Changed: The 'Fix Findings' button now sits beside 'Health Check' on the same row, since it acts on the findings that report produces.  Both buttons show their icon above the label so each label fits on one line.
 - Changed: AutoTools, AutoInput, Join and Home Assistant actions and conditions now show their settings in the Map as labelled values, rather than as a line of raw JSON or number codes, and without repeating what the plugin's own summary already says.  The Task and Profile editors also show what a plugin is set up to do in its read-only settings box, which used to be blank.
 - Changed: Reports, view exports, standalone exports and the Map/Diagram files are now all written to one folder -- a 'MapTasker' folder in your Documents by default -- instead of whichever folder MapTasker was started from.  Choose a different one with the new __Output Folder__ setting in the settings drawer (or '-outdir' on the command line), and each "saved as" message now shows the full path.
-- Changed:
 
 ### Removed
 
 - Removed: 'claude-3-5-haiku-latest' AI model is no longer offered, because Anthropic has retired it and every request to it failed.
-- Removed:
 
 ### Fixed
 
@@ -39,7 +36,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: A global variable read only by a JavaScriptlet, through global('Name'), is no longer reported as never read, and one set only through setGlobal() is no longer reported as never set.  The Variables report now also lists a script as a place a variable is read or set.
 - Fixed: Claude Fable 5.1 in the AI model list now works.  It was listed as 'claude-fable-5.1' rather than 'claude-fable-5-1', a name Anthropic does not recognize, so every analysis with it failed.
 - Fixed: Switching between the default and extended AI model lists no longer blanks the model you had chosen, as long as that model is in the new list.
-- Fixed:
+- Fixed: The 'Prompt:' line on the AI Analysis tab shows the current prompt again, instead of an empty '' that also kept 'Run Analysis' red.  A blank prompt saved in your settings now falls back to the default, and 'Change Prompt' no longer accepts an empty one.
 
 ### Known Issues
 
