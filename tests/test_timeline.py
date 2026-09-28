@@ -59,9 +59,13 @@ _MALFORMED_XML = "<TaskerData><Project><name>Broken</name>"
 
 
 def _write(tmp_path: Path, name: str, text: str) -> str:
-    """Put fixture XML on disk and hand back its path."""
+    """Put fixture XML on disk and hand back its path.
+
+    newline="" so the file holds exactly these bytes: Windows would otherwise write CRLF line
+    endings, and the snapshot (which keeps the file byte for byte) would no longer match the text.
+    """
     path = tmp_path / name
-    path.write_text(text, encoding="utf-8")
+    path.write_text(text, encoding="utf-8", newline="")
     return str(path)
 
 

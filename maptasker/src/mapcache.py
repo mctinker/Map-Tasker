@@ -159,6 +159,16 @@ def digests() -> tuple[str, str]:
     return (configuration_digest(), settings_digest())
 
 
+def _same_path(path: str) -> str:
+    """The path in one spelling, so two names for the same file compare equal.
+
+    The Map is written to one spelling of its path and looked up by another, and on
+    Windows they can differ in the separator alone (a forward slash before "MapTasker.html"
+    in one, a backslash in the other) -- which would make every Map look like a new one.
+    """
+    return os.path.normcase(os.path.normpath(path))
+
+
 def _file_identity(path: str) -> tuple | None:
     """The file's size and modification time, or None if it is not there."""
     try:
@@ -174,7 +184,7 @@ def remember(path: str, output_lines: int, built_from: tuple[str, str]) -> None:
     if identity is None:  # It was not written after all; nothing to stand on.
         forget()
         return
-    _remembered.value = (built_from[0], built_from[1], path, identity, output_lines)
+    _remembered.value = (built_from[0], built_from[1], _same_path(path), identity, output_lines)
 
 
 def is_current(path: str, wanted: tuple[str, str]) -> bool:
@@ -182,7 +192,9 @@ def is_current(path: str, wanted: tuple[str, str]) -> bool:
     if _remembered.value is None:
         return False
     configuration, settings, remembered_path, identity, _ = _remembered.value
-    return path == remembered_path and (configuration, settings) == wanted and _file_identity(path) == identity
+    return (
+        _same_path(path) == remembered_path and (configuration, settings) == wanted and _file_identity(path) == identity
+    )
 
 
 def output_lines() -> int:
