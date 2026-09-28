@@ -1271,7 +1271,7 @@ wheels = [
 
 [[package]]
 name = "maptasker"
-version = "14.1.0"
+version = "14.1.0.post1"
 source = { editable = "." }
 dependencies = [
     { name = "darkdetect" },
