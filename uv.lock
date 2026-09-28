@@ -1298,6 +1298,7 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
+    { name = "rich" },
     { name = "ruff" },
     { name = "vulture" },
 ]
@@ -1334,6 +1335,7 @@ dev = [
     { name = "pytest-asyncio", specifier = ">=1.4.0" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-mock", specifier = ">=3.15.1" },
+    { name = "rich", specifier = ">=15.0.0" },
     { name = "ruff", specifier = ">=0.16.5" },
     { name = "vulture", specifier = ">=2.16" },
 ]

@@ -51,6 +51,15 @@ socket.setdefaulttimeout(20)
 import requests
 from deep_translator import GoogleTranslator
 from deep_translator.exceptions import NotValidLength, TooManyRequests
+from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    TaskID,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
 
 SRC_PATH = Path("/Users/mikrubin/MapTasker_Dev/maptasker/src")
 LOCALE_PATH = Path("/Users/mikrubin/MapTasker_Dev/maptasker/locale")
@@ -370,9 +379,18 @@ def translate_preserving_edges(translator: GoogleTranslator | None, target_lang:
     return "".join(translated_pieces)
 
 
-def sync_language(po_file: Path, lang_dir: str, wanted: set[str]) -> tuple[int, int]:
-    """Append every wanted string this catalog is missing.  Returns (added, failed)."""
-    missing = sorted(wanted - existing_msgids(po_file))
+def sync_language(
+    po_file: Path,
+    lang_dir: str,
+    missing: list[str],
+    progress: Progress,
+    overall: TaskID,
+) -> tuple[int, int]:
+    """Append every missing string to this catalog.  Returns (added, failed).
+
+    `overall` is advanced once per string, whether it translated or not, so the bar
+    measures how much of the run is behind us rather than how much succeeded.
+    """
     if not missing:
         print(f"{lang_dir}: already complete")
         return 0, 0
@@ -390,10 +408,13 @@ def sync_language(po_file: Path, lang_dir: str, wanted: set[str]) -> tuple[int, 
         print(f"  [Error] could not create GoogleTranslator for {lang_dir} (AI translator only): {e}")
 
     added = failed = 0
+    language = progress.add_task(f"  {lang_dir}", total=len(missing))
     # Hold the file open for the whole language rather than reopening per string.
     with po_file.open("a", encoding="utf-8") as out:
         for text in missing:
             translated = translate_preserving_edges(translator, target_lang, text)
+            progress.advance(language)
+            progress.advance(overall)
             if translated is None:
                 failed += 1
                 print(f"  [Failed] {text!r}")
@@ -404,6 +425,8 @@ def sync_language(po_file: Path, lang_dir: str, wanted: set[str]) -> tuple[int, 
             added += 1
             time.sleep(REQUEST_DELAY)
 
+    # Only the overall bar and the language in progress stay on screen.
+    progress.remove_task(language)
     print(f"  added {added}, failed {failed}")
     return added, failed
 
@@ -418,12 +441,28 @@ def stage_sync_missing_msgids() -> int:
         print(f"No catalogs found under {LOCALE_PATH}")
         return 8
 
+    # Work out every catalog's gap first, so the bar knows the size of the whole run.
+    missing_by_catalog = {po_file: sorted(wanted - existing_msgids(po_file)) for po_file in found}
+    total_missing = sum(len(missing) for missing in missing_by_catalog.values())
+    print(f"strings to translate across {len(found)} catalogs: {total_missing}")
+
     total_added = total_failed = 0
-    for po_file in found:
-        print(f"\nSyncing {po_file}...")
-        added, failed = sync_language(po_file, po_file.parent.parent.name, wanted)
-        total_added += added
-        total_failed += failed
+    # Progress redirects stdout, so the per-string log lines scroll above the bars.
+    with Progress(
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        MofNCompleteColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        TimeElapsedColumn(),
+        TextColumn("eta"),
+        TimeRemainingColumn(),
+    ) as progress:
+        overall = progress.add_task("All languages", total=total_missing)
+        for po_file, missing in missing_by_catalog.items():
+            print(f"\nSyncing {po_file}...")
+            added, failed = sync_language(po_file, po_file.parent.parent.name, missing, progress, overall)
+            total_added += added
+            total_failed += failed
 
     print(f"\nDone: {total_added} entries added, {total_failed} failed.")
     return 1 if total_failed else 0
