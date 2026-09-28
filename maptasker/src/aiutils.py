@@ -257,31 +257,37 @@ def get_gemini_models() -> list:
         # exception hierarchies, neither of which is worth enumerating to say "no Gemini".
         rutroh_error(f"Error initializing client: {e}")
         rutroh_error("\nPlease ensure your GOOGLE_API_KEY environment variable is set correctly.")
-        return []
-
-    # 2. Get the list of models
-    all_models = client.models.list()
-    if not all_models:
-        # print("No Gemini models found that support text generation.")
         return GEMINI_MODELS
 
-    # 3. Iterate and print the model names
-    # The models.list() returns a generator, so we iterate over it.
-    models_to_keep = []
-    model_count = 0
-    for model in all_models._page:  # noqa: SLF001
-        model_name = model.name[7:]
-        # Filter for models whose names start with 'gemini' to focus on Gemini models
-        if (
-            "gemini" in model_name
-            and "generateContent" in model.supported_actions
-            and not contains_any_substring_loop(
-                model_name,
-                bad_models,
-            )
-        ):
-            models_to_keep.append(model_name)
-            model_count += 1
+    try:
+        # 2. Get the list of models
+        all_models = client.models.list()
+        if not all_models:
+            # print("No Gemini models found that support text generation.")
+            return GEMINI_MODELS
+
+        # 3. Iterate and print the model names
+        # The models.list() returns a generator, so we iterate over it.
+        models_to_keep = []
+        model_count = 0
+        for model in all_models._page:  # noqa: SLF001
+            model_name = model.name[7:]
+            # Filter for models whose names start with 'gemini' to focus on Gemini models
+            if (
+                "gemini" in model_name
+                and "generateContent" in model.supported_actions
+                and not contains_any_substring_loop(
+                    model_name,
+                    bad_models,
+                )
+            ):
+                models_to_keep.append(model_name)
+                model_count += 1
+    except Exception as e:  # noqa: BLE001  The network (a dropped connection, a proxy, an SSL
+        # failure), the google.genai SDK's own errors, or a changed response shape: any of
+        # them means the same thing here -- fall back to the built-in model list.
+        rutroh_error(f"An error occurred trying to list Gemini models: {e}")
+        return GEMINI_MODELS
 
     if model_count == 0:
         rutroh_error("No Gemini models found. There may be a connection issue or a filter problem.")

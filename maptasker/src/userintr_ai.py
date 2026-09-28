@@ -11,7 +11,7 @@ keeps the keys.  This is only what the window's AI controls do when they are use
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import run, ui
 
@@ -48,6 +48,8 @@ from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
+    from collections.abc import Coroutine
+
     from nicegui import Event
 
     from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
@@ -225,6 +227,27 @@ class AIEventHandlers:
 
         # Updates NiceGUI visual rendering colors reactively
         update_analysis_button_color(the_view)
+
+    def extended_models_changed(self) -> Coroutine[Any, Any, None] | None:
+        """The Extended checkbox's on_change: decide now whether to fetch, and fetch later.
+
+        Restoring the saved settings at start-up ticks the checkbox, which fires this.  An
+        async handler only starts once start-up is over and `initialization` is False again,
+        so it could not tell a restore from a click, and every start-up with the box saved
+        ticked asked every AI provider for its models -- installing their packages and going
+        out to the network before anyone had asked for AI at all.  Deciding here, while the
+        restore is still in progress, keeps that to a click.  The coroutine handed back is
+        what NiceGUI then runs in the background.
+        """
+        the_view = self.gui
+        if the_view.initialization:
+            the_view.ai_model_extended_list = the_view.get_input_and_put_message(
+                the_view.aimodel_extend_checkbox,
+                "Display The Extended List of AI Models",
+            )
+            display_model_pulldown(self)  # The default list: nothing is fetched at start-up.
+            return None
+        return self.extended_models_event()
 
     async def extended_models_event(self) -> None:
         """

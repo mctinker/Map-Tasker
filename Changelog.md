@@ -37,6 +37,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: Claude Fable 5.1 in the AI model list now works.  It was listed as 'claude-fable-5.1' rather than 'claude-fable-5-1', a name Anthropic does not recognize, so every analysis with it failed.
 - Fixed: Switching between the default and extended AI model lists no longer blanks the model you had chosen, as long as that model is in the new list.
 - Fixed: The 'Prompt:' line on the AI Analysis tab shows the current prompt again, instead of an empty '' that also kept 'Run Analysis' red.  A blank prompt saved in your settings now falls back to the default, and 'Change Prompt' no longer accepts an empty one.
+- Fixed: Starting MapTasker with the 'Extended' AI model list saved as on no longer installs the OpenAI and Google AI packages and contacts every AI provider before you have asked for AI at all.  The extended list is now fetched only when you tick the box yourself.
+- Fixed: A network problem while fetching the extended list of Gemini models, such as a dropped or blocked connection, no longer ends in a long error trace.  MapTasker notes the error and offers its built-in list of Gemini models instead.
 
 ### Known Issues
 
