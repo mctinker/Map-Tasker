@@ -40,6 +40,7 @@ import pytest
 from maptasker.src.initparg import ProgramArguments
 from maptasker.src import sceneedit, taskedit
 from maptasker.src.primitem import PrimeItems
+from maptasker.src import sceneedit_legacy
 
 # The backup the Scene tests load: hand-built, in tests/data, so they run anywhere -- CI included --
 # and hold nobody's configuration (see the comment at the top of the file).  The sweeps below also
@@ -93,11 +94,11 @@ def _properties(scene_xml: str) -> ET.Element:
 # 1. READING STOP EVENT
 # ==========================================
 def test_the_word_true_is_what_reads_as_on():
-    assert sceneedit.legacy_stop_event(_properties(_SCENE_XML)) is True
+    assert sceneedit_legacy.legacy_stop_event(_properties(_SCENE_XML)) is True
 
 
 def test_no_filter_at_all_reads_as_off():
-    assert sceneedit.legacy_stop_event(_properties(_SCENE_XML_NO_FILTER)) is False
+    assert sceneedit_legacy.legacy_stop_event(_properties(_SCENE_XML_NO_FILTER)) is False
 
 
 def test_a_filter_with_no_stop_event_reads_as_off():
@@ -105,7 +106,7 @@ def test_a_filter_with_no_stop_event_reads_as_off():
     properties = _properties(_SCENE_XML)
     link_filter = properties.find("LinkClickFilter")
     link_filter.remove(link_filter.find("stopEvent"))
-    assert sceneedit.legacy_stop_event(properties) is False
+    assert sceneedit_legacy.legacy_stop_event(properties) is False
 
 
 def test_a_hand_written_false_reads_as_off():
@@ -113,7 +114,7 @@ def test_a_hand_written_false_reads_as_off():
     on just because the element is present."""
     properties = _properties(_SCENE_XML)
     properties.find("LinkClickFilter/stopEvent").text = "false"
-    assert sceneedit.legacy_stop_event(properties) is False
+    assert sceneedit_legacy.legacy_stop_event(properties) is False
 
 
 # ==========================================
@@ -121,7 +122,7 @@ def test_a_hand_written_false_reads_as_off():
 # ==========================================
 def test_ticking_it_on_a_scene_with_no_filter_builds_the_one_tasker_writes():
     properties = _properties(_SCENE_XML_NO_FILTER)
-    sceneedit.legacy_set_stop_event(properties, enabled=True)
+    sceneedit_legacy.legacy_set_stop_event(properties, enabled=True)
 
     link_filter = properties.find("LinkClickFilter")
     assert link_filter is not None
@@ -129,7 +130,7 @@ def test_ticking_it_on_a_scene_with_no_filter_builds_the_one_tasker_writes():
     assert link_filter.findtext("stopEvent") == "true"
     # Last child, which is where all 87 samples keep it -- after the Str/Int/Img arguments.
     assert list(properties)[-1] is link_filter
-    assert sceneedit.legacy_stop_event(properties) is True
+    assert sceneedit_legacy.legacy_stop_event(properties) is True
 
 
 def test_unticking_takes_the_whole_filter_away_again():
@@ -138,8 +139,8 @@ def test_unticking_takes_the_whole_filter_away_again():
     properties = _properties(_SCENE_XML_NO_FILTER)
     before = ET.tostring(properties)
 
-    sceneedit.legacy_set_stop_event(properties, enabled=True)
-    sceneedit.legacy_set_stop_event(properties, enabled=False)
+    sceneedit_legacy.legacy_set_stop_event(properties, enabled=True)
+    sceneedit_legacy.legacy_set_stop_event(properties, enabled=False)
 
     assert ET.tostring(properties) == before
     assert properties.find("LinkClickFilter") is None
@@ -148,7 +149,7 @@ def test_unticking_takes_the_whole_filter_away_again():
 def test_unticking_keeps_a_filter_that_still_says_which_keys():
     """<urlMatch> is a separate setting this checkbox does not own, so the filter stays."""
     properties = _properties(_SCENE_XML)
-    sceneedit.legacy_set_stop_event(properties, enabled=False)
+    sceneedit_legacy.legacy_set_stop_event(properties, enabled=False)
 
     link_filter = properties.find("LinkClickFilter")
     assert link_filter is not None
@@ -167,7 +168,7 @@ def test_an_already_empty_filter_is_left_where_it_is():
     link_filter.remove(link_filter.find("urlMatch"))
     before = ET.tostring(properties)
 
-    sceneedit.legacy_set_stop_event(properties, enabled=False)
+    sceneedit_legacy.legacy_set_stop_event(properties, enabled=False)
 
     assert ET.tostring(properties) == before
     assert properties.find("LinkClickFilter") is not None
@@ -175,7 +176,7 @@ def test_an_already_empty_filter_is_left_where_it_is():
 
 def test_off_is_stored_as_absence_never_as_the_word_false():
     properties = _properties(_SCENE_XML)
-    sceneedit.legacy_set_stop_event(properties, enabled=False)
+    sceneedit_legacy.legacy_set_stop_event(properties, enabled=False)
     assert b"false" not in ET.tostring(properties)
 
 
@@ -185,7 +186,7 @@ def test_stop_event_goes_ahead_of_the_url_match():
     link_filter = properties.find("LinkClickFilter")
     link_filter.remove(link_filter.find("stopEvent"))
 
-    sceneedit.legacy_set_stop_event(properties, enabled=True)
+    sceneedit_legacy.legacy_set_stop_event(properties, enabled=True)
 
     assert [child.tag for child in properties.find("LinkClickFilter")] == ["stopEvent", "urlMatch"]
 
@@ -193,14 +194,14 @@ def test_stop_event_goes_ahead_of_the_url_match():
 def test_ticking_what_is_already_ticked_changes_nothing():
     properties = _properties(_SCENE_XML)
     before = ET.tostring(properties)
-    sceneedit.legacy_set_stop_event(properties, enabled=True)
+    sceneedit_legacy.legacy_set_stop_event(properties, enabled=True)
     assert ET.tostring(properties) == before
 
 
 def test_unticking_what_was_never_ticked_changes_nothing():
     properties = _properties(_SCENE_XML_NO_FILTER)
     before = ET.tostring(properties)
-    sceneedit.legacy_set_stop_event(properties, enabled=False)
+    sceneedit_legacy.legacy_set_stop_event(properties, enabled=False)
     assert ET.tostring(properties) == before
 
 
@@ -230,7 +231,7 @@ def test_setting_stop_event_to_what_it_already_is_leaves_every_sample_byte_ident
 
     for properties in samples:
         before = ET.tostring(properties)
-        sceneedit.legacy_set_stop_event(properties, enabled=sceneedit.legacy_stop_event(properties))
+        sceneedit_legacy.legacy_set_stop_event(properties, enabled=sceneedit_legacy.legacy_stop_event(properties))
         assert ET.tostring(properties) == before
 
 
@@ -252,14 +253,14 @@ def test_every_sample_stop_event_survives_a_round_trip_through_off_and_on():
     """Turning it off and back on has to rebuild what was there, for the samples that had
     one -- the filter, its sr, and its <urlMatch> alongside.
     """
-    samples = [p for p in _sample_properties_elements() if sceneedit.legacy_stop_event(p)]
+    samples = [p for p in _sample_properties_elements() if sceneedit_legacy.legacy_stop_event(p)]
     if not samples:
         pytest.skip("no sample XML available")
 
     for properties in samples:
         before = _normalized(properties)
-        sceneedit.legacy_set_stop_event(properties, enabled=False)
-        sceneedit.legacy_set_stop_event(properties, enabled=True)
+        sceneedit_legacy.legacy_set_stop_event(properties, enabled=False)
+        sceneedit_legacy.legacy_set_stop_event(properties, enabled=True)
         assert _normalized(properties) == before
 
 
@@ -478,11 +479,11 @@ def key_event_tab(sample_backup, stub_gui):
     from maptasker.src import guiwins  # noqa: PLC0415
 
     root = sample_backup(_SYNTHETIC_BACKUP)
-    properties = _scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None)
+    properties = _scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None)
     if properties is None:
         pytest.skip("no sample Scene with a key Task")
 
-    key_event = sceneedit.LEGACY_SCENE_EVENTS[0]
+    key_event = sceneedit_legacy.LEGACY_SCENE_EVENTS[0]
     container = _render(stub_gui, properties, guiwins._render_scene_event, key_event, lambda: None)
     return container, properties, pytest.importorskip("nicegui").ui
 
@@ -512,7 +513,7 @@ def test_the_screen_has_taskers_own_three_tabs(sample_backup, stub_gui):
 
     names = [tab._props.get("name") for tab in _descendants(opened[-1]) if isinstance(tab, ui.tab)]
     assert names[:3] == ["UI", "Actions", "Event"]
-    assert names[3:] == [event.label for event in sceneedit.LEGACY_SCENE_EVENTS] == ["Key", "Home Tap", "Tab Tap"]
+    assert names[3:] == [event.label for event in sceneedit_legacy.LEGACY_SCENE_EVENTS] == ["Key", "Home Tap", "Tab Tap"]
 
 
 def test_the_key_panel_offers_the_keys_filter_and_stop_event(key_event_tab):
@@ -521,11 +522,11 @@ def test_the_key_panel_offers_the_keys_filter_and_stop_event(key_event_tab):
 
     keys = [e for e in _descendants(container) if isinstance(e, ui.input) and e._props.get("label") == "Keys"]
     assert len(keys) == 1
-    assert keys[0].value == sceneedit.legacy_key_filter(properties)
+    assert keys[0].value == sceneedit_legacy.legacy_key_filter(properties)
 
     boxes = [e for e in _descendants(container) if isinstance(e, ui.checkbox) and e.text == "Stop Event"]
     assert len(boxes) == 1
-    assert boxes[0].value is sceneedit.legacy_stop_event(properties)
+    assert boxes[0].value is sceneedit_legacy.legacy_stop_event(properties)
 
 
 def test_both_key_filter_controls_write_through_as_the_rest_of_the_dialog_does(key_event_tab):
@@ -535,11 +536,11 @@ def test_both_key_filter_controls_write_through_as_the_rest_of_the_dialog_does(k
     box = next(e for e in _descendants(container) if isinstance(e, ui.checkbox) and e.text == "Stop Event")
 
     keys.value = "back/78/a"
-    assert sceneedit.legacy_key_filter(properties) == "back/78/a"
+    assert sceneedit_legacy.legacy_key_filter(properties) == "back/78/a"
     box.value = False
-    assert sceneedit.legacy_stop_event(properties) is False
+    assert sceneedit_legacy.legacy_stop_event(properties) is False
     box.value = True
-    assert sceneedit.legacy_stop_event(properties) is True
+    assert sceneedit_legacy.legacy_stop_event(properties) is True
 
 
 def test_the_key_panel_documents_the_variables_the_guide_lists(key_event_tab):
@@ -552,7 +553,7 @@ def test_the_key_panel_documents_the_variables_the_guide_lists(key_event_tab):
 def test_the_bound_tasks_actions_are_listed_below_it(key_event_tab):
     """The bound Task's actions, in the editor the Edit Task dialog is made of."""
     container, properties, ui = key_event_tab
-    expected = taskedit.load_task_for_edit_by_id(properties.findtext(sceneedit.LEGACY_KEY_TASK_TAG))
+    expected = taskedit.load_task_for_edit_by_id(properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG))
 
     headers = [e._props.get("label", "") for e in _descendants(container) if isinstance(e, ui.expansion)]
 
@@ -579,14 +580,14 @@ def test_an_event_with_no_task_says_so_and_still_offers_the_filter(sample_backup
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
-    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
-    properties.remove(properties.find(sceneedit.LEGACY_KEY_TASK_TAG))
+    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None))
+    properties.remove(properties.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG))
 
     container = _render(
         stub_gui,
         properties,
         guiwins._render_scene_event,
-        sceneedit.LEGACY_SCENE_EVENTS[0],
+        sceneedit_legacy.LEGACY_SCENE_EVENTS[0],
         lambda: None,
     )
 
@@ -604,13 +605,13 @@ def test_an_event_the_scene_type_rules_out_still_shows_what_is_bound(sample_back
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
-    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
-    properties.find(f"Int[@sr='arg{sceneedit.LEGACY_PROPERTY_TYPE_ARG}']").set(
+    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None))
+    properties.find(f"Int[@sr='arg{sceneedit_legacy.LEGACY_PROPERTY_TYPE_ARG}']").set(
         "val",
-        sceneedit.LEGACY_SCENE_TYPE_OVERLAY,
+        sceneedit_legacy.LEGACY_SCENE_TYPE_OVERLAY,
     )
-    home_tap = sceneedit.LEGACY_SCENE_EVENTS[1]
-    sceneedit.legacy_set_task_binding(properties, home_tap.tag, properties.findtext(sceneedit.LEGACY_KEY_TASK_TAG))
+    home_tap = sceneedit_legacy.LEGACY_SCENE_EVENTS[1]
+    sceneedit_legacy.legacy_set_task_binding(properties, home_tap.tag, properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG))
 
     container = _render(stub_gui, properties, guiwins._render_scene_event, home_tap, lambda: None)
 
@@ -629,7 +630,7 @@ def actions_tab(sample_backup, stub_gui):
     from maptasker.src import guiwins  # noqa: PLC0415
 
     root = sample_backup(_SYNTHETIC_BACKUP)
-    properties = _scene_with(root, lambda p: p.find(sceneedit.LEGACY_ACTION_ITEM_TAG) is not None)
+    properties = _scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_ACTION_ITEM_TAG) is not None)
     if properties is None:
         pytest.skip("no sample Scene with action bar items")
     properties = copy.deepcopy(properties)
@@ -640,7 +641,7 @@ def actions_tab(sample_backup, stub_gui):
 
 def test_every_action_bar_item_gets_a_row(actions_tab):
     container, properties, ui = actions_tab
-    items = sceneedit.legacy_action_items(properties)
+    items = sceneedit_legacy.legacy_action_items(properties)
     headers = [e._props.get("label", "") for e in _descendants(container) if isinstance(e, ui.expansion)]
     assert len(headers) == len(items)
     for item, header in zip(items, headers, strict=True):
@@ -667,10 +668,10 @@ def test_each_row_carries_the_guides_three_controls(actions_tab):
     the item's action with its own arguments.
     """
     container, properties, ui = actions_tab
-    item = sceneedit.legacy_action_items(properties)[0]
+    item = sceneedit_legacy.legacy_action_items(properties)[0]
     labelled = _first_row_inputs(container, ui)
 
-    assert labelled["Icon"].value == sceneedit.legacy_action_item_icon(item)
+    assert labelled["Icon"].value == sceneedit_legacy.legacy_action_item_icon(item)
     assert labelled["Label"].value == item.label
     assert item.action_name in " ".join(e.text for e in _descendants(container) if isinstance(e, ui.label))
 
@@ -682,9 +683,9 @@ def test_the_icon_and_label_fields_write_through(actions_tab):
     labelled["Label"].value = "Renamed"
     labelled["Icon"].value = "mw_action_alarm"
 
-    item = sceneedit.legacy_action_items(properties)[0]
+    item = sceneedit_legacy.legacy_action_items(properties)[0]
     assert item.label == "Renamed"
-    assert sceneedit.legacy_action_item_icon(item) == "mw_action_alarm"
+    assert sceneedit_legacy.legacy_action_item_icon(item) == "mw_action_alarm"
 
 
 def test_the_tab_says_where_each_item_will_end_up(actions_tab):
@@ -693,7 +694,7 @@ def test_the_tab_says_where_each_item_will_end_up(actions_tab):
     """
     container, properties, ui = actions_tab
     labels = [e.text for e in _descendants(container) if isinstance(e, ui.label)]
-    for item in sceneedit.legacy_action_items(properties):
+    for item in sceneedit_legacy.legacy_action_items(properties):
         assert item.placement in labels
 
 
@@ -711,10 +712,10 @@ def test_a_scene_that_is_not_an_activity_is_told_so_but_keeps_its_items(sample_b
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
-    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_ACTION_ITEM_TAG) is not None))
-    properties.find(f"Int[@sr='arg{sceneedit.LEGACY_PROPERTY_TYPE_ARG}']").set(
+    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_ACTION_ITEM_TAG) is not None))
+    properties.find(f"Int[@sr='arg{sceneedit_legacy.LEGACY_PROPERTY_TYPE_ARG}']").set(
         "val",
-        sceneedit.LEGACY_SCENE_TYPE_DIALOG,
+        sceneedit_legacy.LEGACY_SCENE_TYPE_DIALOG,
     )
 
     container = _render(stub_gui, properties, guiwins._render_scene_actions_tab, lambda: None)
@@ -722,7 +723,7 @@ def test_a_scene_that_is_not_an_activity_is_told_so_but_keeps_its_items(sample_b
     labels = [e.text for e in _descendants(container) if isinstance(e, ui.label)]
     assert any("Activity only" in label for label in labels)
     assert len([e for e in _descendants(container) if isinstance(e, ui.expansion)]) == len(
-        sceneedit.legacy_action_items(properties),
+        sceneedit_legacy.legacy_action_items(properties),
     )
 
 
@@ -827,16 +828,16 @@ def test_the_keys_filter_reads_the_slash_separated_list():
     """The guide's Keys field.  It is stored in <urlMatch> -- a tag named for the Web element
     the same <LinkClickFilter> serves elsewhere -- and its sample values are key names.
     """
-    assert sceneedit.legacy_key_filter(_properties(_SCENE_XML)) == "back/home"
+    assert sceneedit_legacy.legacy_key_filter(_properties(_SCENE_XML)) == "back/home"
 
 
 def test_no_filter_means_every_key_is_handled():
-    assert sceneedit.legacy_key_filter(_properties(_SCENE_XML_NO_FILTER)) == ""
+    assert sceneedit_legacy.legacy_key_filter(_properties(_SCENE_XML_NO_FILTER)) == ""
 
 
 def test_setting_the_keys_filter_on_a_scene_with_no_filter_builds_one():
     properties = _properties(_SCENE_XML_NO_FILTER)
-    sceneedit.legacy_set_key_filter(properties, "back/78/a")
+    sceneedit_legacy.legacy_set_key_filter(properties, "back/78/a")
 
     link_filter = properties.find("LinkClickFilter")
     assert link_filter.attrib == {"sr": "filter0"}
@@ -848,8 +849,8 @@ def test_clearing_the_keys_filter_takes_an_emptied_filter_with_it():
     properties = _properties(_SCENE_XML_NO_FILTER)
     before = ET.tostring(properties)
 
-    sceneedit.legacy_set_key_filter(properties, "back")
-    sceneedit.legacy_set_key_filter(properties, "")
+    sceneedit_legacy.legacy_set_key_filter(properties, "back")
+    sceneedit_legacy.legacy_set_key_filter(properties, "")
 
     assert ET.tostring(properties) == before
 
@@ -857,9 +858,9 @@ def test_clearing_the_keys_filter_takes_an_emptied_filter_with_it():
 def test_clearing_the_keys_filter_keeps_a_filter_that_still_stops_the_event():
     """The two controls share one element and neither owns the other."""
     properties = _properties(_SCENE_XML)
-    sceneedit.legacy_set_key_filter(properties, "")
+    sceneedit_legacy.legacy_set_key_filter(properties, "")
 
-    assert sceneedit.legacy_stop_event(properties) is True
+    assert sceneedit_legacy.legacy_stop_event(properties) is True
     assert properties.find("LinkClickFilter/urlMatch") is None
 
 
@@ -867,8 +868,8 @@ def test_the_two_key_controls_are_written_in_taskers_order():
     """<stopEvent> then <urlMatch>, whichever is set first -- the order all 72 samples
     carrying both are in."""
     properties = _properties(_SCENE_XML_NO_FILTER)
-    sceneedit.legacy_set_key_filter(properties, "back")
-    sceneedit.legacy_set_stop_event(properties, enabled=True)
+    sceneedit_legacy.legacy_set_key_filter(properties, "back")
+    sceneedit_legacy.legacy_set_stop_event(properties, enabled=True)
 
     assert [child.tag for child in properties.find("LinkClickFilter")] == ["stopEvent", "urlMatch"]
 
@@ -880,7 +881,7 @@ def test_setting_the_keys_filter_to_what_it_already_is_leaves_every_sample_byte_
 
     for properties in samples:
         before = ET.tostring(properties)
-        sceneedit.legacy_set_key_filter(properties, sceneedit.legacy_key_filter(properties))
+        sceneedit_legacy.legacy_set_key_filter(properties, sceneedit_legacy.legacy_key_filter(properties))
         assert ET.tostring(properties) == before
 
 
@@ -892,44 +893,44 @@ def _typed(scene_type: str, **args) -> ET.Element:
     properties = _properties(_SCENE_XML_NO_FILTER)
     # _SCENE_XML_NO_FILTER already carries arg0; setting the one that is there is the point,
     # since legacy_scene_type reads the first match and a second would never be seen.
-    properties.find(f"Int[@sr='arg{sceneedit.LEGACY_PROPERTY_TYPE_ARG}']").set("val", scene_type)
+    properties.find(f"Int[@sr='arg{sceneedit_legacy.LEGACY_PROPERTY_TYPE_ARG}']").set("val", scene_type)
     for arg_id, value in args.items():
         ET.SubElement(properties, "Str", {"sr": f"arg{arg_id}", "ve": "3"}).text = value
     return properties
 
 
-_KEY, _HOME_TAP, _TAB_TAP = sceneedit.LEGACY_SCENE_EVENTS
+_KEY, _HOME_TAP, _TAB_TAP = sceneedit_legacy.LEGACY_SCENE_EVENTS
 
 
 def test_the_three_event_tabs_are_the_guides_three():
-    assert [event.label for event in sceneedit.LEGACY_SCENE_EVENTS] == ["Key", "Home Tap", "Tab Tap"]
+    assert [event.label for event in sceneedit_legacy.LEGACY_SCENE_EVENTS] == ["Key", "Home Tap", "Tab Tap"]
 
 
 def test_key_is_for_dialogs_and_activities_only():
     """"Available only for Dialog and Activity scenes." """
-    assert sceneedit.legacy_scene_event_availability(_typed(sceneedit.LEGACY_SCENE_TYPE_DIALOG), _KEY) == ""
-    assert sceneedit.legacy_scene_event_availability(_typed(sceneedit.LEGACY_SCENE_TYPE_ACTIVITY), _KEY) == ""
+    assert sceneedit_legacy.legacy_scene_event_availability(_typed(sceneedit_legacy.LEGACY_SCENE_TYPE_DIALOG), _KEY) == ""
+    assert sceneedit_legacy.legacy_scene_event_availability(_typed(sceneedit_legacy.LEGACY_SCENE_TYPE_ACTIVITY), _KEY) == ""
     assert (
-        sceneedit.legacy_scene_event_availability(_typed(sceneedit.LEGACY_SCENE_TYPE_OVERLAY), _KEY)
+        sceneedit_legacy.legacy_scene_event_availability(_typed(sceneedit_legacy.LEGACY_SCENE_TYPE_OVERLAY), _KEY)
         == "Available only for Dialog and Activity scenes."
     )
 
 
 def test_home_tap_needs_an_activity_and_an_icon():
     """"Available only for Activity scenes and when an Icon has been specified in the UI tab." """
-    activity = _typed(sceneedit.LEGACY_SCENE_TYPE_ACTIVITY)
+    activity = _typed(sceneedit_legacy.LEGACY_SCENE_TYPE_ACTIVITY)
     assert (
-        sceneedit.legacy_scene_event_availability(activity, _HOME_TAP)
+        sceneedit_legacy.legacy_scene_event_availability(activity, _HOME_TAP)
         == "Available only when Icon has been set in the UI tab."
     )
 
-    icon = ET.SubElement(activity, "Img", {"sr": f"arg{sceneedit.LEGACY_ICON_ARG}", "ve": "2"})
+    icon = ET.SubElement(activity, "Img", {"sr": f"arg{sceneedit_legacy.LEGACY_ICON_ARG}", "ve": "2"})
     ET.SubElement(icon, "nme").text = "mw_action_settings"
-    assert sceneedit.legacy_scene_event_availability(activity, _HOME_TAP) == ""
+    assert sceneedit_legacy.legacy_scene_event_availability(activity, _HOME_TAP) == ""
 
-    dialog = _typed(sceneedit.LEGACY_SCENE_TYPE_DIALOG)
+    dialog = _typed(sceneedit_legacy.LEGACY_SCENE_TYPE_DIALOG)
     assert (
-        sceneedit.legacy_scene_event_availability(dialog, _HOME_TAP) == "Available only for Activity scenes."
+        sceneedit_legacy.legacy_scene_event_availability(dialog, _HOME_TAP) == "Available only for Activity scenes."
     )
 
 
@@ -938,20 +939,20 @@ def test_tab_tap_needs_an_activity_and_tab_labels():
     specified in the UI tab." -- and an empty <Str sr="arg7" /> is not a Tab Label, which is
     what every Scene in the sample data that has none carries.
     """
-    activity = _typed(sceneedit.LEGACY_SCENE_TYPE_ACTIVITY, **{sceneedit.LEGACY_TAB_LABELS_ARG: ""})
+    activity = _typed(sceneedit_legacy.LEGACY_SCENE_TYPE_ACTIVITY, **{sceneedit_legacy.LEGACY_TAB_LABELS_ARG: ""})
     assert (
-        sceneedit.legacy_scene_event_availability(activity, _TAB_TAP)
+        sceneedit_legacy.legacy_scene_event_availability(activity, _TAB_TAP)
         == "Available only when Tab Labels has been set in the UI tab."
     )
 
-    activity.find(f"Str[@sr='arg{sceneedit.LEGACY_TAB_LABELS_ARG}']").text = "Call Log,Truecaller"
-    assert sceneedit.legacy_scene_event_availability(activity, _TAB_TAP) == ""
+    activity.find(f"Str[@sr='arg{sceneedit_legacy.LEGACY_TAB_LABELS_ARG}']").text = "Call Log,Truecaller"
+    assert sceneedit_legacy.legacy_scene_event_availability(activity, _TAB_TAP) == ""
 
 
 def test_the_events_carry_the_variables_the_guide_lists():
     assert [name for name, _ in _KEY.variables] == ["%key_code", "%key_name"]
     assert [name for name, _ in _TAB_TAP.variables] == ["%tap_index", "%tap_label"]
-    assert [name for name, _ in sceneedit.LEGACY_SCENE_EVENT_COMMON_VARIABLES] == ["%scene_name", "%event_type"]
+    assert [name for name, _ in sceneedit_legacy.LEGACY_SCENE_EVENT_COMMON_VARIABLES] == ["%scene_name", "%event_type"]
 
 
 def test_every_sample_event_binding_is_one_the_editor_offers():
@@ -962,7 +963,7 @@ def test_every_sample_event_binding_is_one_the_editor_offers():
     if not samples:
         pytest.skip("no sample XML available")
 
-    known = {event.tag for event in sceneedit.LEGACY_SCENE_EVENTS}
+    known = {event.tag for event in sceneedit_legacy.LEGACY_SCENE_EVENTS}
     seen = {child.tag for properties in samples for child in properties if child.tag.endswith("Task")}
     assert seen <= known, seen - known
 
@@ -979,14 +980,14 @@ def test_tab_tap_is_the_tag_every_sample_with_tab_labels_carries():
     with_labels = [
         properties
         for properties in samples
-        if (properties.findtext(f"Str[@sr='arg{sceneedit.LEGACY_TAB_LABELS_ARG}']") or "").strip()
+        if (properties.findtext(f"Str[@sr='arg{sceneedit_legacy.LEGACY_TAB_LABELS_ARG}']") or "").strip()
     ]
     if not with_labels:
         pytest.skip("no sample Scene sets Tab Labels")
 
     for properties in with_labels:
         assert properties.find(_TAB_TAP.tag) is not None
-        assert sceneedit.legacy_scene_type(properties) == sceneedit.LEGACY_SCENE_TYPE_ACTIVITY
+        assert sceneedit_legacy.legacy_scene_type(properties) == sceneedit_legacy.LEGACY_SCENE_TYPE_ACTIVITY
 
 
 # ==========================================
@@ -998,8 +999,8 @@ def sample_action_items(sample_backup):
     root = sample_backup(_SYNTHETIC_BACKUP)
     best = None
     for properties in root.iter("PropertiesElement"):
-        count = len(properties.findall(sceneedit.LEGACY_ACTION_ITEM_TAG))
-        if count and (best is None or count > len(best.findall(sceneedit.LEGACY_ACTION_ITEM_TAG))):
+        count = len(properties.findall(sceneedit_legacy.LEGACY_ACTION_ITEM_TAG))
+        if count and (best is None or count > len(best.findall(sceneedit_legacy.LEGACY_ACTION_ITEM_TAG))):
             best = properties
     if best is None:
         pytest.skip("no sample Scene with action bar items")
@@ -1007,7 +1008,7 @@ def sample_action_items(sample_backup):
 
 
 def test_the_items_read_as_the_guides_three_controls(sample_action_items):
-    items = sceneedit.legacy_action_items(sample_action_items)
+    items = sceneedit_legacy.legacy_action_items(sample_action_items)
     assert items
     for index, item in enumerate(items):
         assert item.index == index
@@ -1019,7 +1020,7 @@ def test_the_placement_follows_taskers_overflow_rules():
     """"just an icon" -> main bar; "icon and label" -> if there is room; "just a label" ->
     overflow.  Tasker stores none of this, so it is derived or it is invisible.
     """
-    make = lambda icon, label: sceneedit.LegacyActionItem(  # noqa: E731
+    make = lambda icon, label: sceneedit_legacy.LegacyActionItem(  # noqa: E731
         element=None,
         sr="item0",
         index=0,
@@ -1035,10 +1036,10 @@ def test_the_placement_follows_taskers_overflow_rules():
 
 
 def test_adding_an_item_builds_one_tasker_would_recognise(sample_action_items):
-    added = sceneedit.legacy_add_action_item(sample_action_items, "548t")  # Flash
+    added = sceneedit_legacy.legacy_add_action_item(sample_action_items, "548t")  # Flash
     assert not isinstance(added, list), added
 
-    items = sceneedit.legacy_action_items(sample_action_items)
+    items = sceneedit_legacy.legacy_action_items(sample_action_items)
     assert items[-1].sr == added.sr
     assert items[-1].action_name == "Flash"
     element = items[-1].element
@@ -1061,7 +1062,7 @@ def test_an_action_that_cannot_be_synthesized_is_refused_with_a_reason(sample_ac
         pytest.skip("every action is addable in this build")
     before = ET.tostring(sample_action_items)
 
-    result = sceneedit.legacy_add_action_item(sample_action_items, refused)
+    result = sceneedit_legacy.legacy_add_action_item(sample_action_items, refused)
 
     assert isinstance(result, list) and result
     assert result[0] == classify_action_addability(refused)[1]
@@ -1069,42 +1070,42 @@ def test_an_action_that_cannot_be_synthesized_is_refused_with_a_reason(sample_ac
 
 
 def test_items_stay_numbered_in_order_through_every_change(sample_action_items):
-    sceneedit.legacy_add_action_item(sample_action_items, "548t")
-    order = [item.label for item in sceneedit.legacy_action_items(sample_action_items)]
+    sceneedit_legacy.legacy_add_action_item(sample_action_items, "548t")
+    order = [item.label for item in sceneedit_legacy.legacy_action_items(sample_action_items)]
 
-    sceneedit.legacy_move_action_item(sample_action_items, "item1", 1)
-    moved = [item.label for item in sceneedit.legacy_action_items(sample_action_items)]
+    sceneedit_legacy.legacy_move_action_item(sample_action_items, "item1", 1)
+    moved = [item.label for item in sceneedit_legacy.legacy_action_items(sample_action_items)]
     assert moved == [order[0], order[2], order[1], *order[3:]]
 
-    sceneedit.legacy_remove_action_item(sample_action_items, "item0")
-    remaining = sceneedit.legacy_action_items(sample_action_items)
+    sceneedit_legacy.legacy_remove_action_item(sample_action_items, "item0")
+    remaining = sceneedit_legacy.legacy_action_items(sample_action_items)
     assert [item.label for item in remaining] == moved[1:]
     assert [item.sr for item in remaining] == [f"item{i}" for i in range(len(remaining))]
 
 
 def test_moving_past_either_end_does_nothing(sample_action_items):
-    before = [item.label for item in sceneedit.legacy_action_items(sample_action_items)]
+    before = [item.label for item in sceneedit_legacy.legacy_action_items(sample_action_items)]
     last = f"item{len(before) - 1}"
 
-    sceneedit.legacy_move_action_item(sample_action_items, "item0", -1)
-    sceneedit.legacy_move_action_item(sample_action_items, last, 1)
+    sceneedit_legacy.legacy_move_action_item(sample_action_items, "item0", -1)
+    sceneedit_legacy.legacy_move_action_item(sample_action_items, last, 1)
 
-    assert [item.label for item in sceneedit.legacy_action_items(sample_action_items)] == before
+    assert [item.label for item in sceneedit_legacy.legacy_action_items(sample_action_items)] == before
 
 
 def test_the_items_stay_after_everything_else_in_the_element(sample_action_items):
     """Tasker writes the bindings, then the arguments, then the filter, then the items."""
-    sceneedit.legacy_add_action_item(sample_action_items, "548t")
+    sceneedit_legacy.legacy_add_action_item(sample_action_items, "548t")
     tags = [child.tag for child in sample_action_items]
-    first_item = tags.index(sceneedit.LEGACY_ACTION_ITEM_TAG)
-    assert set(tags[first_item:]) == {sceneedit.LEGACY_ACTION_ITEM_TAG}
+    first_item = tags.index(sceneedit_legacy.LEGACY_ACTION_ITEM_TAG)
+    assert set(tags[first_item:]) == {sceneedit_legacy.LEGACY_ACTION_ITEM_TAG}
 
 
 def test_an_items_icon_round_trips_through_the_field(sample_action_items):
-    item = sceneedit.legacy_action_items(sample_action_items)[0]
+    item = sceneedit_legacy.legacy_action_items(sample_action_items)[0]
 
-    sceneedit.legacy_set_action_item_icon(item, "mw_action_alarm")
-    assert sceneedit.legacy_action_item_icon(sceneedit.legacy_action_items(sample_action_items)[0]) == (
+    sceneedit_legacy.legacy_set_action_item_icon(item, "mw_action_alarm")
+    assert sceneedit_legacy.legacy_action_item_icon(sceneedit_legacy.legacy_action_items(sample_action_items)[0]) == (
         "mw_action_alarm"
     )
 
@@ -1113,13 +1114,13 @@ def test_blanking_an_items_icon_removes_the_img_rather_than_emptying_it(sample_a
     """37 of the 42 sample items have no <Img> at all, so absence is how "no icon" is stored
     -- and it is what the guide's "just a label" placement is read from.
     """
-    item = sceneedit.legacy_action_items(sample_action_items)[0]
-    sceneedit.legacy_set_action_item_icon(item, "mw_action_alarm")
+    item = sceneedit_legacy.legacy_action_items(sample_action_items)[0]
+    sceneedit_legacy.legacy_set_action_item_icon(item, "mw_action_alarm")
 
-    sceneedit.legacy_set_action_item_icon(item, "")
+    sceneedit_legacy.legacy_set_action_item_icon(item, "")
 
     assert item.element.find("Img[@sr='icon']") is None
-    assert sceneedit.legacy_action_items(sample_action_items)[0].placement in (
+    assert sceneedit_legacy.legacy_action_items(sample_action_items)[0].placement in (
         "always in the overflow menu",
         "nowhere -- give it an icon or a label",
     )
@@ -1127,10 +1128,10 @@ def test_blanking_an_items_icon_removes_the_img_rather_than_emptying_it(sample_a
 
 def test_an_items_label_is_kept_even_when_blanked(sample_action_items):
     """Every one of the 42 samples has a <label>, and an icon-only item is a real thing."""
-    item = sceneedit.legacy_action_items(sample_action_items)[0]
-    sceneedit.legacy_set_action_item_label(item, "")
+    item = sceneedit_legacy.legacy_action_items(sample_action_items)[0]
+    sceneedit_legacy.legacy_set_action_item_label(item, "")
     assert item.element.find("label") is not None
-    assert sceneedit.legacy_action_items(sample_action_items)[0].label == ""
+    assert sceneedit_legacy.legacy_action_items(sample_action_items)[0].label == ""
 
 
 # ==========================================
@@ -1310,7 +1311,7 @@ def test_clicking_a_row_binds_that_task_to_the_event(key_event_tab):
         guiwins._render_scene_event(
             gui,
             properties,
-            sceneedit.LEGACY_SCENE_EVENTS[0],
+            sceneedit_legacy.LEGACY_SCENE_EVENTS[0],
             lambda: rerendered.append(1),
         )
 
@@ -1326,7 +1327,7 @@ def test_clicking_a_row_binds_that_task_to_the_event(key_event_tab):
 
     _click(button)
 
-    assert properties.findtext(sceneedit.LEGACY_KEY_TASK_TAG) == wanted["task_id"]
+    assert properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG) == wanted["task_id"]
     assert rerendered == [1]
 
 
@@ -1336,14 +1337,14 @@ def test_an_anonymous_binding_is_not_offered_a_picker(sample_backup, stub_gui):
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
-    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
-    properties.find(sceneedit.LEGACY_KEY_TASK_TAG).text = "-1"
+    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None))
+    properties.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG).text = "-1"
 
     container = _render(
         stub_gui,
         properties,
         guiwins._render_scene_event,
-        sceneedit.LEGACY_SCENE_EVENTS[0],
+        sceneedit_legacy.LEGACY_SCENE_EVENTS[0],
         lambda: None,
     )
 
@@ -1361,15 +1362,15 @@ def test_the_bound_task_is_named_even_when_its_entry_has_no_name(sample_backup, 
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
-    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
-    task_id = properties.findtext(sceneedit.LEGACY_KEY_TASK_TAG)
+    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None))
+    task_id = properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG)
     PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"] = ""
 
     container = _render(
         stub_gui,
         properties,
         guiwins._render_scene_event,
-        sceneedit.LEGACY_SCENE_EVENTS[0],
+        sceneedit_legacy.LEGACY_SCENE_EVENTS[0],
         lambda: None,
     )
 
@@ -1401,8 +1402,8 @@ def unbound_event(sample_backup, stub_gui, monkeypatch):
 
     root = sample_backup(_SYNTHETIC_BACKUP)
     PrimeItems.xml_root = root
-    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
-    for event in sceneedit.LEGACY_SCENE_EVENTS:
+    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None))
+    for event in sceneedit_legacy.LEGACY_SCENE_EVENTS:
         bound = properties.find(event.tag)
         if bound is not None:
             properties.remove(bound)
@@ -1451,7 +1452,7 @@ def _picker_button(container, ui, prefix: str):
     )
 
 
-@pytest.mark.parametrize("event", sceneedit.LEGACY_SCENE_EVENTS, ids=lambda e: e.label)
+@pytest.mark.parametrize("event", sceneedit_legacy.LEGACY_SCENE_EVENTS, ids=lambda e: e.label)
 def test_every_event_sub_tab_offers_an_action_editor_with_nothing_bound(unbound_event, event):
     """The reported problem: all three sub-tabs said the event fires no Task and stopped
     there, so there was no way to add actions without going out to the Add Task dialog.
@@ -1476,11 +1477,11 @@ def test_nothing_is_created_until_the_button_is_pressed(unbound_event):
     render_event, properties, _scene_name, task_state, _notified, _rerenders = unbound_event
     before = dict(PrimeItems.tasker_root_elements["all_tasks_by_name"])
 
-    container = render_event(sceneedit.LEGACY_SCENE_EVENTS[0])
+    container = render_event(sceneedit_legacy.LEGACY_SCENE_EVENTS[0])
     _click(_picker_button(container, ui, "Flash ("))
 
-    assert task_state["pending"][sceneedit.LEGACY_KEY_TASK_TAG][0].actions
-    assert properties.find(sceneedit.LEGACY_KEY_TASK_TAG) is None
+    assert task_state["pending"][sceneedit_legacy.LEGACY_KEY_TASK_TAG][0].actions
+    assert properties.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is None
     assert PrimeItems.tasker_root_elements["all_tasks_by_name"] == before
 
 
@@ -1490,12 +1491,12 @@ def test_actions_added_survive_the_panel_being_rebuilt(unbound_event):
     """
     ui = pytest.importorskip("nicegui").ui
     render_event, _properties, _scene_name, task_state, _notified, _rerenders = unbound_event
-    key = sceneedit.LEGACY_SCENE_EVENTS[0]
+    key = sceneedit_legacy.LEGACY_SCENE_EVENTS[0]
 
     container = render_event(key)
     _click(_picker_button(container, ui, "Flash ("))
     # Walk away to another sub-tab and back, which is a fresh render of both.
-    render_event(sceneedit.LEGACY_SCENE_EVENTS[1])
+    render_event(sceneedit_legacy.LEGACY_SCENE_EVENTS[1])
     again = render_event(key)
 
     assert [action.action_name for action in task_state["pending"][key.tag][0].actions] == ["Flash"]
@@ -1507,7 +1508,7 @@ def test_each_sub_tab_composes_its_own_task(unbound_event):
     """Keyed by event tag, so a Key Task and a Tab Tap Task in progress stay apart."""
     ui = pytest.importorskip("nicegui").ui
     render_event, _properties, _scene_name, task_state, _notified, _rerenders = unbound_event
-    key, _home, tab_tap = sceneedit.LEGACY_SCENE_EVENTS
+    key, _home, tab_tap = sceneedit_legacy.LEGACY_SCENE_EVENTS
 
     _click(_picker_button(render_event(key), ui, "Flash ("))
     _click(_picker_button(render_event(tab_tap), ui, "Variable Set ("))
@@ -1517,7 +1518,7 @@ def test_each_sub_tab_composes_its_own_task(unbound_event):
     assert task_state["pending"][key.tag][0].task_id != task_state["pending"][tab_tap.tag][0].task_id
 
 
-@pytest.mark.parametrize("event", sceneedit.LEGACY_SCENE_EVENTS, ids=lambda e: e.label)
+@pytest.mark.parametrize("event", sceneedit_legacy.LEGACY_SCENE_EVENTS, ids=lambda e: e.label)
 def test_creating_registers_the_task_and_points_the_event_at_it(unbound_event, event):
     ui = pytest.importorskip("nicegui").ui
     render_event, properties, scene_name, task_state, notified, rerenders = unbound_event
@@ -1542,14 +1543,14 @@ def test_the_new_task_joins_the_project_the_scene_belongs_to(unbound_event):
     ui = pytest.importorskip("nicegui").ui
     render_event, properties, scene_name, _task_state, _notified, _rerenders = unbound_event
 
-    container = render_event(sceneedit.LEGACY_SCENE_EVENTS[0])
+    container = render_event(sceneedit_legacy.LEGACY_SCENE_EVENTS[0])
     _click(_picker_button(container, ui, "Flash ("))
     _click(next(e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == "Create Task"))
 
     owner = sceneedit.project_owning_scene(scene_name)
     assert owner
     project = PrimeItems.tasker_root_elements["all_projects"][owner]["xml"]
-    assert properties.findtext(sceneedit.LEGACY_KEY_TASK_TAG) in (project.findtext("tids") or "").split(",")
+    assert properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG) in (project.findtext("tids") or "").split(",")
 
 
 def test_a_name_another_task_already_has_is_refused_and_nothing_is_lost(unbound_event):
@@ -1558,7 +1559,7 @@ def test_a_name_another_task_already_has_is_refused_and_nothing_is_lost(unbound_
     """
     ui = pytest.importorskip("nicegui").ui
     render_event, properties, _scene_name, task_state, notified, _rerenders = unbound_event
-    key = sceneedit.LEGACY_SCENE_EVENTS[0]
+    key = sceneedit_legacy.LEGACY_SCENE_EVENTS[0]
 
     container = render_event(key)
     _click(_picker_button(container, ui, "Flash ("))
@@ -1583,14 +1584,14 @@ def test_an_anonymous_binding_gets_no_editor_of_either_kind(sample_backup, stub_
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
-    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
-    properties.find(sceneedit.LEGACY_KEY_TASK_TAG).text = "-1"
+    properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None))
+    properties.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG).text = "-1"
 
     container = _render(
         stub_gui,
         properties,
         guiwins._render_scene_event,
-        sceneedit.LEGACY_SCENE_EVENTS[0],
+        sceneedit_legacy.LEGACY_SCENE_EVENTS[0],
         lambda: None,
     )
 
@@ -1608,7 +1609,7 @@ def test_creating_two_tasks_from_two_sub_tabs_keeps_them_apart(unbound_event):
     """
     ui = pytest.importorskip("nicegui").ui
     render_event, properties, _scene_name, _task_state, _notified, _rerenders = unbound_event
-    key, _home, tab_tap = sceneedit.LEGACY_SCENE_EVENTS
+    key, _home, tab_tap = sceneedit_legacy.LEGACY_SCENE_EVENTS
 
     for event, action in ((key, "Flash ("), (tab_tap, "Variable Set (")):
         container = render_event(event)
@@ -1706,7 +1707,7 @@ def scene_properties_dialog(sample_backup, stub_gui, monkeypatch):
     # One that already fires a key Task, so the bound-Task half is exercised for real; the
     # tests about composing a new one strip the bindings off it themselves.
     scene = next(
-        (s for s in root.iter("Scene") if s.find(f"PropertiesElement/{sceneedit.LEGACY_KEY_TASK_TAG}") is not None),
+        (s for s in root.iter("Scene") if s.find(f"PropertiesElement/{sceneedit_legacy.LEGACY_KEY_TASK_TAG}") is not None),
         None,
     )
     if scene is None:
@@ -1776,7 +1777,7 @@ def _live_action_count(task_id) -> int:
 def test_an_action_added_under_an_event_survives_ok(scene_properties_dialog):
     """The reported bug, exactly: add an action, press Ok, reopen -- it has to be there."""
     open_dialog, scene, _notified = scene_properties_dialog
-    task_id = scene.findtext(f"PropertiesElement/{sceneedit.LEGACY_KEY_TASK_TAG}")
+    task_id = scene.findtext(f"PropertiesElement/{sceneedit_legacy.LEGACY_KEY_TASK_TAG}")
     assert task_id
     before = _live_action_count(task_id)
 
@@ -1801,7 +1802,7 @@ def test_an_action_survives_walking_to_another_sub_tab_and_back(scene_properties
     """
     ui = pytest.importorskip("nicegui").ui
     open_dialog, scene, _notified = scene_properties_dialog
-    task_id = scene.findtext(f"PropertiesElement/{sceneedit.LEGACY_KEY_TASK_TAG}")
+    task_id = scene.findtext(f"PropertiesElement/{sceneedit_legacy.LEGACY_KEY_TASK_TAG}")
     assert task_id
     before = _live_action_count(task_id)
 
@@ -1821,7 +1822,7 @@ def test_an_argument_typed_under_an_event_survives_ok(scene_properties_dialog):
     """
     ui = pytest.importorskip("nicegui").ui
     open_dialog, scene, _notified = scene_properties_dialog
-    task_id = scene.findtext(f"PropertiesElement/{sceneedit.LEGACY_KEY_TASK_TAG}")
+    task_id = scene.findtext(f"PropertiesElement/{sceneedit_legacy.LEGACY_KEY_TASK_TAG}")
     assert task_id
 
     dialog = open_dialog()
@@ -1848,11 +1849,11 @@ def test_a_task_composed_under_an_event_is_created_by_ok(scene_properties_dialog
     """
     open_dialog, scene, _notified = scene_properties_dialog
     properties = scene.find("PropertiesElement")
-    for event in sceneedit.LEGACY_SCENE_EVENTS:
+    for event in sceneedit_legacy.LEGACY_SCENE_EVENTS:
         bound = properties.find(event.tag)
         if bound is not None:
             properties.remove(bound)
-    home_tap = sceneedit.LEGACY_SCENE_EVENTS[1]
+    home_tap = sceneedit_legacy.LEGACY_SCENE_EVENTS[1]
     before = len(PrimeItems.tasker_root_elements["all_tasks_by_name"])
 
     ui = pytest.importorskip("nicegui").ui
@@ -1875,7 +1876,7 @@ def test_opening_and_closing_without_touching_anything_creates_nothing(scene_pro
     """
     open_dialog, scene, _notified = scene_properties_dialog
     properties = scene.find("PropertiesElement")
-    for event in sceneedit.LEGACY_SCENE_EVENTS:
+    for event in sceneedit_legacy.LEGACY_SCENE_EVENTS:
         bound = properties.find(event.tag)
         if bound is not None:
             properties.remove(bound)
@@ -1885,7 +1886,7 @@ def test_opening_and_closing_without_touching_anything_creates_nothing(scene_pro
     _click(_exact_button(dialog, "Ok"))
 
     assert PrimeItems.tasker_root_elements["all_tasks_by_name"] == before
-    assert [properties.find(event.tag) for event in sceneedit.LEGACY_SCENE_EVENTS] == [None, None, None]
+    assert [properties.find(event.tag) for event in sceneedit_legacy.LEGACY_SCENE_EVENTS] == [None, None, None]
 
 
 def test_ok_keeps_the_dialog_open_when_something_is_rejected(scene_properties_dialog):
@@ -1894,7 +1895,7 @@ def test_ok_keeps_the_dialog_open_when_something_is_rejected(scene_properties_di
     """
     open_dialog, scene, notified = scene_properties_dialog
     properties = scene.find("PropertiesElement")
-    for event in sceneedit.LEGACY_SCENE_EVENTS:
+    for event in sceneedit_legacy.LEGACY_SCENE_EVENTS:
         bound = properties.find(event.tag)
         if bound is not None:
             properties.remove(bound)
@@ -1916,7 +1917,7 @@ def test_ok_keeps_the_dialog_open_when_something_is_rejected(scene_properties_di
 
     assert not closed
     assert any("already exists" in message for message, _kind in notified)
-    assert properties.find(sceneedit.LEGACY_SCENE_EVENTS[0].tag) is None
+    assert properties.find(sceneedit_legacy.LEGACY_SCENE_EVENTS[0].tag) is None
 
 
 # --------------------------------------------------------------------------------------
@@ -1926,7 +1927,7 @@ def test_ok_keeps_the_dialog_open_when_something_is_rejected(scene_properties_di
 # until Ok -- every field writes through to the Scene copy as it is typed, which is what the
 # Legacy designer does everywhere -- so Cancel cannot work by declining to apply something.
 # It works by putting the <PropertiesElement> back from a snapshot taken when the dialog
-# opened (sceneedit.legacy_properties_restore), and the geometry boxes back from a snapshot
+# opened (sceneedit_legacy.legacy_properties_restore), and the geometry boxes back from a snapshot
 # of their own, since those four are not in that element at all.
 #
 # What Cancel is NOT allowed to take back is anything already put into the loaded
@@ -1949,14 +1950,14 @@ def test_cancel_puts_a_changed_property_back(scene_properties_dialog):
     """
     open_dialog, scene, _notified = scene_properties_dialog
     properties = scene.find("PropertiesElement")
-    before = sceneedit.legacy_key_filter(properties)
+    before = sceneedit_legacy.legacy_key_filter(properties)
 
     dialog = open_dialog()
     _keys_field(dialog).value = "back/home/volume_up"
-    assert sceneedit.legacy_key_filter(properties) == "back/home/volume_up"
+    assert sceneedit_legacy.legacy_key_filter(properties) == "back/home/volume_up"
     _click(_exact_button(dialog, "Cancel"))
 
-    assert sceneedit.legacy_key_filter(properties) == before
+    assert sceneedit_legacy.legacy_key_filter(properties) == before
 
 
 def test_ok_keeps_a_changed_property(scene_properties_dialog):
@@ -1970,7 +1971,7 @@ def test_ok_keeps_a_changed_property(scene_properties_dialog):
     _keys_field(dialog).value = "back/home/volume_up"
     _click(_exact_button(dialog, "Ok"))
 
-    assert sceneedit.legacy_key_filter(properties) == "back/home/volume_up"
+    assert sceneedit_legacy.legacy_key_filter(properties) == "back/home/volume_up"
 
 
 def test_cancel_drops_an_action_added_under_an_event(scene_properties_dialog):
@@ -1978,7 +1979,7 @@ def test_cancel_drops_an_action_added_under_an_event(scene_properties_dialog):
     and the live Task is left where it was.
     """
     open_dialog, scene, _notified = scene_properties_dialog
-    task_id = scene.findtext(f"PropertiesElement/{sceneedit.LEGACY_KEY_TASK_TAG}")
+    task_id = scene.findtext(f"PropertiesElement/{sceneedit_legacy.LEGACY_KEY_TASK_TAG}")
     assert task_id
     before = _live_action_count(task_id)
 
@@ -1995,8 +1996,8 @@ def test_cancel_takes_away_a_task_binding_made_in_the_dialog(scene_properties_di
     """
     open_dialog, scene, _notified = scene_properties_dialog
     properties = scene.find("PropertiesElement")
-    home_tap = sceneedit.LEGACY_SCENE_EVENTS[1]
-    for event in sceneedit.LEGACY_SCENE_EVENTS:
+    home_tap = sceneedit_legacy.LEGACY_SCENE_EVENTS[1]
+    for event in sceneedit_legacy.LEGACY_SCENE_EVENTS:
         bound = properties.find(event.tag)
         if bound is not None and event is home_tap:
             properties.remove(bound)

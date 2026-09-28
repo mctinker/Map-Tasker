@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, ui
 
-from maptasker.src import sceneedit, sceneview, taskedit
+from maptasker.src import sceneedit, sceneedit_legacy, sceneview, taskedit
 from maptasker.src.guiwins_canvas import (
     _ACTIVE_CANVASES,
     _DESIGNER_SEQUENCE,
@@ -71,11 +71,11 @@ def _build_rename_legacy_element_dialog(
     old_name = (
         (element.find("Str[@sr='arg0']").text or "").strip() if element.find("Str[@sr='arg0']") is not None else ""
     )
-    rewritable = sceneedit.find_element_name_actions(edited_scene.scene_name, old_name)
+    rewritable = sceneedit_legacy.find_element_name_actions(edited_scene.scene_name, old_name)
     rewritable_tasks = sorted({task_name for task_name, _argument in rewritable})
-    loose_tasks = sceneedit.find_element_name_references(edited_scene.scene_name, old_name)
+    loose_tasks = sceneedit_legacy.find_element_name_references(edited_scene.scene_name, old_name)
     unmatched = [task for task in loose_tasks if task not in rewritable_tasks]
-    patterns = sceneedit.find_element_match_references(edited_scene.scene_name)
+    patterns = sceneedit_legacy.find_element_match_references(edited_scene.scene_name)
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[520px] max-w-[720px] p-6"):
         ui.label(f"{translate_string('Rename Element')}: {old_name}").classes("text-lg font-bold text-blue-600")
@@ -143,7 +143,10 @@ def _build_add_legacy_element_dialog(
         It goes on top of the stack, which the header says once.
     """
     search = {"text": ""}
-    blocked = {entry.element_type: sceneedit.legacy_can_add(entry.element_type) for entry in sceneedit.LEGACY_PALETTE}
+    blocked = {
+        entry.element_type: sceneedit_legacy.legacy_can_add(entry.element_type)
+        for entry in sceneedit_legacy.LEGACY_PALETTE
+    }
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[640px] max-w-[760px] p-6"):
         ui.label(translate_string("Add Element")).classes("text-lg font-bold text-blue-600")
@@ -151,7 +154,7 @@ def _build_add_legacy_element_dialog(
             translate_string("Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."),
         ).classes("text-sm text-gray-500 italic")
 
-        def pick(entry: sceneedit.LegacyPaletteEntry) -> None:
+        def pick(entry: sceneedit_legacy.LegacyPaletteEntry) -> None:
             reason = blocked.get(entry.element_type, "")
             if reason:
                 ui.notify(reason, type="warning", multi_line=True)
@@ -159,7 +162,7 @@ def _build_add_legacy_element_dialog(
             dialog.close()
             on_pick(entry.element_type)
 
-        def matches(entry: sceneedit.LegacyPaletteEntry) -> bool:
+        def matches(entry: sceneedit_legacy.LegacyPaletteEntry) -> bool:
             """Substring, case-insensitive, over the label, its translation and the XML tag --
             so "map" finds the Map element whose tag is SceneElement, and someone who knows
             the format can type "SceneElement" and still get there.
@@ -172,7 +175,7 @@ def _build_add_legacy_element_dialog(
                 for candidate in (entry.label, translate_string(entry.label), entry.element_type)
             )
 
-        def chip(entry: sceneedit.LegacyPaletteEntry) -> None:
+        def chip(entry: sceneedit_legacy.LegacyPaletteEntry) -> None:
             reason = blocked.get(entry.element_type, "")
             props = ["outline", "rounded", "no-caps", "dense", "icon-right=info_outline"]
             if reason:
@@ -206,8 +209,10 @@ def _build_add_legacy_element_dialog(
             results.clear()
             shown = 0
             with results:
-                for group in sceneedit.LEGACY_PALETTE_GROUPS:
-                    visible = [entry for entry in sceneedit.LEGACY_PALETTE if entry.group == group and matches(entry)]
+                for group in sceneedit_legacy.LEGACY_PALETTE_GROUPS:
+                    visible = [
+                        entry for entry in sceneedit_legacy.LEGACY_PALETTE if entry.group == group and matches(entry)
+                    ]
                     if not visible:
                         continue
                     shown += len(visible)
@@ -228,7 +233,7 @@ def _build_add_legacy_element_dialog(
             """Enter picks the search's one remaining match -- silent while several still
             match, since guessing would add the wrong element.
             """
-            hits = [entry for entry in sceneedit.LEGACY_PALETTE if matches(entry)]
+            hits = [entry for entry in sceneedit_legacy.LEGACY_PALETTE if matches(entry)]
             if len(hits) == 1:
                 pick(hits[0])
 
@@ -314,7 +319,7 @@ def _build_legacy_designer(
     down.
 
     Every structural edit renumbers every sr, so each of them re-selects by the sr the model
-    hands back rather than the one it went in with (see sceneedit._legacy_reindex).  Deleting
+    hands back rather than the one it went in with (see sceneedit_legacy._legacy_reindex).  Deleting
     warns about the Tasks that address the element by name -- it does not refuse, because the
     Task may well be the obsolete one, and Undo is right there.
 
@@ -361,7 +366,7 @@ class _LegacyDesigner:
         self.orientation: dict = {"landscape": False}
         self.history: list = []
         # Whole-Scene snapshots, as the V2 designer keeps whole-tree ones -- see
-        # sceneedit.legacy_snapshot on why an inverse per operation is not worth modelling.
+        # sceneedit_legacy.legacy_snapshot on why an inverse per operation is not worth modelling.
         self.snap = {"grid": 1}
         # Which sections are open, held on the designer because the inspector is rebuilt on every edit
         # -- without this, adding a Task binding would collapse the very section it was added in.
@@ -396,7 +401,7 @@ class _LegacyDesigner:
         self.status = ui.row().classes("w-full items-center gap-2")
 
     def snapshot(self) -> None:
-        self.history.append(sceneedit.legacy_snapshot(self.scene_element))
+        self.history.append(sceneedit_legacy.legacy_snapshot(self.scene_element))
 
     def set_selection(self, *srs: str) -> None:
         """Pick out zero or more elements, without re-rendering -- for the callers that
@@ -409,11 +414,15 @@ class _LegacyDesigner:
     def restore(self) -> None:
         if not self.history:
             return
-        sceneedit.legacy_restore(self.scene_element, self.history.pop())
+        sceneedit_legacy.legacy_restore(self.scene_element, self.history.pop())
         # Undoing an Add takes the added element away with it, so anything the restored Scene
         # no longer has is dropped rather than left selected as a key naming nothing.
         self.set_selection(
-            *(sr for sr in self.selection["srs"] if sceneedit.legacy_element_at(self.scene_element, sr) is not None)
+            *(
+                sr
+                for sr in self.selection["srs"]
+                if sceneedit_legacy.legacy_element_at(self.scene_element, sr) is not None
+            )
         )
         self.render()
 
@@ -463,7 +472,7 @@ class _LegacyDesigner:
             picked = [
                 sr
                 for sr in (str(value) for value in caught)
-                if sceneedit.legacy_element_at(self.scene_element, sr) is not None
+                if sceneedit_legacy.legacy_element_at(self.scene_element, sr) is not None
             ]
             self.select(*self.selection["srs"], *picked) if payload.get("extend") else self.select(*picked)
             return
@@ -490,7 +499,7 @@ class _LegacyDesigner:
         box = ((canvas_width - width) // 2, (canvas_height - height) // 2, width, height)
 
         self.snapshot()
-        element = sceneedit.legacy_new_element(
+        element = sceneedit_legacy.legacy_new_element(
             self.scene_element,
             element_type,
             box,
@@ -500,15 +509,15 @@ class _LegacyDesigner:
             self.history.pop()
             ui.notify(element, type="negative", multi_line=True)
             return
-        # Every structural edit renumbers every sr (see sceneedit._legacy_reindex), so each of
+        # Every structural edit renumbers every sr (see sceneedit_legacy._legacy_reindex), so each of
         # them re-selects by the sr the model hands back -- and collapses the selection to
         # that one element, rather than trying to follow a whole set through the renumbering.
-        self.set_selection(sceneedit.legacy_insert_element(self.scene_element, element))
+        self.set_selection(sceneedit_legacy.legacy_insert_element(self.scene_element, element))
         self.render()
 
     def duplicate_element(self) -> None:
         self.snapshot()
-        new_sr = sceneedit.legacy_duplicate_element(self.scene_element, self.selection["sr"])
+        new_sr = sceneedit_legacy.legacy_duplicate_element(self.scene_element, self.selection["sr"])
         if not new_sr:
             self.history.pop()
             ui.notify(translate_string("Select an element first."), type="warning")
@@ -524,18 +533,18 @@ class _LegacyDesigner:
         Tasks address by id: the Task may be the obsolete one, this app cannot know which of
         the two the user meant to keep, and Undo is one button away.
         """
-        element = sceneedit.legacy_element_at(self.scene_element, self.selection["sr"])
+        element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         if element is None:
             ui.notify(translate_string("Select an element first."), type="warning")
             return
 
-        name = sceneedit.legacy_element_label(element)
+        name = sceneedit_legacy.legacy_element_label(element)
         element_name = (element.findtext("Str[@sr='arg0']") or "").strip()
-        references = sceneedit.find_element_name_references(self.edited_scene.scene_name, element_name)
-        patterns = sceneedit.find_element_match_references(self.edited_scene.scene_name)
+        references = sceneedit_legacy.find_element_name_references(self.edited_scene.scene_name, element_name)
+        patterns = sceneedit_legacy.find_element_match_references(self.edited_scene.scene_name)
 
         self.snapshot()
-        self.set_selection(sceneedit.legacy_delete_element(self.scene_element, self.selection["sr"]))
+        self.set_selection(sceneedit_legacy.legacy_delete_element(self.scene_element, self.selection["sr"]))
         if references:
             ui.notify(
                 f"Deleted {name}. {len(references)} Task(s) address '{element_name}' by name: "
@@ -560,14 +569,14 @@ class _LegacyDesigner:
         count) and returns where it should end up, which is what makes Forward, Backward,
         To Front and To Back one operation with four callers.
         """
-        ordered = sceneedit.legacy_drawable_elements(self.scene_element)
-        element = sceneedit.legacy_element_at(self.scene_element, self.selection["sr"])
+        ordered = sceneedit_legacy.legacy_drawable_elements(self.scene_element)
+        element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         if element is None or element not in ordered:
             ui.notify(translate_string("Select an element first."), type="warning")
             return
 
         self.snapshot()
-        new_sr = sceneedit.legacy_restack(
+        new_sr = sceneedit_legacy.legacy_restack(
             self.scene_element,
             self.selection["sr"],
             position(ordered.index(element), len(ordered)),
@@ -591,7 +600,7 @@ class _LegacyDesigner:
         moves = []
         for move in payload.get("moves") or ():
             sr = str(move.get("sr", ""))
-            element = sceneedit.legacy_element_at(self.scene_element, sr)
+            element = sceneedit_legacy.legacy_element_at(self.scene_element, sr)
             if element is None:
                 continue
             try:
@@ -604,7 +613,7 @@ class _LegacyDesigner:
 
         self.snapshot()
         for element, _sr, box in moves:
-            sceneedit.legacy_set_geometry(element, box, landscape=self.orientation["landscape"])
+            sceneedit_legacy.legacy_set_geometry(element, box, landscape=self.orientation["landscape"])
         # A drag reports the elements it moved rather than assuming they were the selected
         # ones, so dragging something else selects it as a side effect -- which is what makes
         # "click to select, drag to move" work without a mode.
@@ -618,7 +627,7 @@ class _LegacyDesigner:
         delta_x, delta_y = int(payload.get("dx", 0)), int(payload.get("dy", 0))
         moves = []
         for sr in self.selection["srs"]:
-            element = sceneedit.legacy_element_at(self.scene_element, sr)
+            element = sceneedit_legacy.legacy_element_at(self.scene_element, sr)
             if element is None:
                 continue
             box = sceneview.element_geometry(element, self.orientation["landscape"])
@@ -631,7 +640,7 @@ class _LegacyDesigner:
 
         self.snapshot()
         for element, box in moves:
-            sceneedit.legacy_set_geometry(element, box, landscape=self.orientation["landscape"])
+            sceneedit_legacy.legacy_set_geometry(element, box, landscape=self.orientation["landscape"])
         self.render()
 
     def set_orientation(self, landscape: bool) -> None:
@@ -679,7 +688,7 @@ class _LegacyDesigner:
                 classes += " bg-blue-200 dark:bg-blue-900"
             else:
                 classes += " hover:bg-blue-100 dark:hover:bg-blue-900"
-            ui.label(sceneedit.legacy_element_label(element)).classes(classes).on(
+            ui.label(sceneedit_legacy.legacy_element_label(element)).classes(classes).on(
                 "click",
                 lambda event, key=sr: self.click_row(event, key),
                 # The modifiers, so a row can extend the selection the way the canvas does.
@@ -753,7 +762,7 @@ class _LegacyDesigner:
             self.snapshot()
             values = list(current)
             values[position] = number
-            sceneedit.legacy_set_geometry(element, tuple(values), landscape=self.orientation["landscape"])
+            sceneedit_legacy.legacy_set_geometry(element, tuple(values), landscape=self.orientation["landscape"])
             self.repaint()
 
         ui.number(translate_string(label), value=box[index], format="%d", on_change=commit).props(
@@ -770,7 +779,7 @@ class _LegacyDesigner:
         a group edit whose meaning the user would have to guess at.  Moving the group is what
         the canvas is for.
         """
-        element = sceneedit.legacy_element_at(self.scene_element, self.selection["sr"])
+        element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         if element is None:
             ui.label(translate_string("Select an element on the canvas or in the list.")).classes(
                 "text-sm italic text-gray-500",
@@ -779,7 +788,7 @@ class _LegacyDesigner:
 
         others = [sr for sr in self.selection["srs"] if sr != self.selection["sr"]]
         with ui.row().classes("w-full items-center gap-2 no-wrap"):
-            ui.label(sceneedit.legacy_element_label(element)).classes("text-sm font-semibold font-mono")
+            ui.label(sceneedit_legacy.legacy_element_label(element)).classes("text-sm font-semibold font-mono")
             if others:
                 ui.label(
                     f"{translate_string('editing 1 of')} {len(self.selection['srs'])} {translate_string('selected')}",
@@ -795,10 +804,10 @@ class _LegacyDesigner:
             with ui.row().classes("w-full items-center gap-2 flex-wrap"):
                 ui.label(translate_string("Also selected:")).classes("text-xs text-gray-500")
                 for other_sr in others:
-                    other = sceneedit.legacy_element_at(self.scene_element, other_sr)
+                    other = sceneedit_legacy.legacy_element_at(self.scene_element, other_sr)
                     if other is None:
                         continue
-                    ui.label(sceneedit.legacy_element_label(other)).classes(
+                    ui.label(sceneedit_legacy.legacy_element_label(other)).classes(
                         "text-xs font-mono cursor-pointer underline decoration-dotted text-blue-700 dark:text-blue-300",
                     ).on("click", lambda _e=None, key=other_sr: self.select_anchor(key)).tooltip(
                         translate_string("Edit this one's properties instead, keeping the selection."),
@@ -815,7 +824,7 @@ class _LegacyDesigner:
                 for index, label in enumerate(("X", "Y", "Width", "Height")):
                     self.geometry_input(label, index, element, box)
 
-        args = sceneedit.legacy_element_args(element)
+        args = sceneedit_legacy.legacy_element_args(element)
         if not args:
             ui.label(
                 translate_string(
@@ -840,13 +849,13 @@ class _LegacyDesigner:
         its own canvas, its own stack and its own elements, and squeezing a second canvas
         into this inspector would give it none of that.
         """
-        layout = sceneedit.legacy_item_layout(element)
+        layout = sceneedit_legacy.legacy_item_layout(element)
         if layout is None:
             return
-        rows = len(sceneedit.legacy_drawable_elements(layout))
+        rows = len(sceneedit_legacy.legacy_drawable_elements(layout))
         with ui.row().classes("w-full items-center gap-2 mt-2"):
             ui.label(
-                f"{translate_string('Item layout')}: {sceneedit.legacy_item_layout_name(element)} "
+                f"{translate_string('Item layout')}: {sceneedit_legacy.legacy_item_layout_name(element)} "
                 f"({rows} {translate_string('element(s)')})",
             ).classes("text-xs text-gray-500")
             ui.space()
@@ -857,7 +866,7 @@ class _LegacyDesigner:
             ).props("dense flat size=sm")
 
     def rename_selected(self) -> None:
-        element = sceneedit.legacy_element_at(self.scene_element, self.selection["sr"])
+        element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         if element is None:
             return
         _build_rename_legacy_element_dialog(self.edited_scene, element, self.apply_rename)
@@ -867,7 +876,7 @@ class _LegacyDesigner:
         see sceneedit.EditableScene.element_renames.
         """
         self.snapshot()
-        errors = sceneedit.legacy_rename_element(self.scene_element, self.selection["sr"], new_name)
+        errors = sceneedit_legacy.legacy_rename_element(self.scene_element, self.selection["sr"], new_name)
         if errors:
             self.history.pop()
             for error in errors:
@@ -893,8 +902,8 @@ class _LegacyDesigner:
         those inside the Scene itself and nowhere else, so replacing one destroys the only
         copy; the offer to do that would be an offer to lose work.
         """
-        bindings = sceneedit.legacy_task_bindings(element)
-        available = sceneedit.legacy_task_tags_for(element)
+        bindings = sceneedit_legacy.legacy_task_bindings(element)
+        available = sceneedit_legacy.legacy_task_tags_for(element)
         if self.pending_events["sr"] != self.selection["sr"]:
             # The pending rows belong to the element they were opened on.
             self.pending_events["sr"], self.pending_events["tags"] = self.selection["sr"], set()
@@ -909,7 +918,7 @@ class _LegacyDesigner:
             value=self.expanded["tasks"],
             on_value_change=lambda event: self.expanded.__setitem__("tasks", bool(event.value)),
         ).classes("w-full mt-2"):
-            choices = sceneedit.legacy_task_choices()
+            choices = sceneedit_legacy.legacy_task_choices()
             for binding in bindings:
                 with ui.row().classes("w-full items-center gap-1 no-wrap"):
                     ui.label(translate_string(binding.label)).classes("text-xs w-28 shrink-0")
@@ -972,25 +981,25 @@ class _LegacyDesigner:
         self.render()
 
     def set_binding(self, tag: str, task_name: str) -> None:
-        element = sceneedit.legacy_element_at(self.scene_element, self.selection["sr"])
+        element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         if element is None or not task_name:
             return
-        task_id = sceneedit.legacy_task_id_for_name(task_name)
+        task_id = sceneedit_legacy.legacy_task_id_for_name(task_name)
         if not task_id:
             ui.notify(f"No Task named '{task_name}' in this backup.", type="negative")
             return
         self.snapshot()
-        sceneedit.legacy_set_task_binding(element, tag, task_id)
+        sceneedit_legacy.legacy_set_task_binding(element, tag, task_id)
         self.pending_events["tags"].discard(tag)
         self.expanded["tasks"] = True
         self.render()
 
     def clear_binding(self, tag: str) -> None:
-        element = sceneedit.legacy_element_at(self.scene_element, self.selection["sr"])
+        element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         if element is None:
             return
         self.snapshot()
-        sceneedit.legacy_clear_task_binding(element, tag)
+        sceneedit_legacy.legacy_clear_task_binding(element, tag)
         self.expanded["tasks"] = True
         self.render()
 
@@ -998,13 +1007,13 @@ class _LegacyDesigner:
         """The element's background sub-element -- a whole RectElement inside it, and where
         most of a real Scene's colour lives.
 
-        Offered only for the types Tasker gives one to (sceneedit.LEGACY_BACKGROUND_TYPES);
+        Offered only for the types Tasker gives one to (sceneedit_legacy.LEGACY_BACKGROUND_TYPES);
         a Button, a Rect and an Oval carry their fill in their own arguments and have never
         been seen with one.
         """
-        if not sceneedit.legacy_can_have_background(element):
+        if not sceneedit_legacy.legacy_can_have_background(element):
             return
-        background = sceneedit.legacy_background(element)
+        background = sceneedit_legacy.legacy_background(element)
 
         with ui.expansion(
             translate_string("Background") + ("" if background is not None else f" ({translate_string('none')})"),
@@ -1021,27 +1030,27 @@ class _LegacyDesigner:
                 return
             # It is a RectElement, so it gets the Rect fields -- the same generated form the
             # inspector gives a real Rect, from the same table.
-            for arg in sceneedit.legacy_element_args(background):
+            for arg in sceneedit_legacy.legacy_element_args(background):
                 _render_legacy_arg(arg, self.repaint, name_editable=True)
             ui.button(translate_string("Remove background"), icon="delete", on_click=self.remove_background).props(
                 "dense flat size=sm color=negative",
             )
 
     def add_background(self) -> None:
-        element = sceneedit.legacy_element_at(self.scene_element, self.selection["sr"])
+        element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         if element is None:
             return
         self.snapshot()
-        sceneedit.legacy_add_background(element)
+        sceneedit_legacy.legacy_add_background(element)
         self.expanded["background"] = True
         self.render()
 
     def remove_background(self) -> None:
-        element = sceneedit.legacy_element_at(self.scene_element, self.selection["sr"])
+        element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         if element is None:
             return
         self.snapshot()
-        sceneedit.legacy_remove_background(element)
+        sceneedit_legacy.legacy_remove_background(element)
         self.expanded["background"] = True
         self.render()
 
@@ -1057,7 +1066,7 @@ class _LegacyDesigner:
         mean two forms over one <PropertiesElement>: edit either and the other is stale until
         something rebuilds it, which is the sort of disagreement this panel exists to avoid.
         """
-        properties = sceneedit.legacy_scene_properties(self.scene_element)
+        properties = sceneedit_legacy.legacy_scene_properties(self.scene_element)
         with ui.expansion(
             translate_string("Scene Properties") + ("" if properties is not None else f" ({translate_string('none')})"),
             icon="settings",
@@ -1240,9 +1249,9 @@ class _LegacyDesigner:
         stack rather than for the list -- Front is the top of both, but "Up" would be
         ambiguous the moment someone looks at the canvas instead of the list.
         """
-        element = sceneedit.legacy_element_at(self.scene_element, self.selection["sr"])
+        element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         single = element is not None and len(self.selection["srs"]) == 1
-        count = len(sceneedit.legacy_drawable_elements(self.scene_element))
+        count = len(sceneedit_legacy.legacy_drawable_elements(self.scene_element))
         for label, icon, position, failure in (
             ("Front", "flip_to_front", lambda _index, total: total - 1, "Already at the front."),
             ("Forward", "arrow_upward", lambda index, _total: index + 1, "Already at the front."),
@@ -1289,7 +1298,7 @@ def _build_item_layout_dialog(self: MyGui, holder: object, on_closed: Callable[[
     rewrite Tasks that address a same-named element of the outer Scene, which is a different
     element.
     """
-    layout = sceneedit.legacy_item_layout(holder)
+    layout = sceneedit_legacy.legacy_item_layout(holder)
     if layout is None:
         return
 
@@ -1301,7 +1310,7 @@ def _build_item_layout_dialog(self: MyGui, holder: object, on_closed: Callable[[
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[900px] w-full p-6"):
         ui.label(
-            f"{translate_string('Item layout')}: {sceneedit.legacy_item_layout_name(holder) or translate_string('(unnamed)')}",
+            f"{translate_string('Item layout')}: {sceneedit_legacy.legacy_item_layout_name(holder) or translate_string('(unnamed)')}",
         ).classes("text-lg font-bold text-blue-600")
         ui.label(
             translate_string(
@@ -1313,7 +1322,7 @@ def _build_item_layout_dialog(self: MyGui, holder: object, on_closed: Callable[[
         with ui.row().classes("w-full gap-2 mt-2"):
             for key, label in sceneedit.SCENE_DIMENSION_FIELDS[:2]:
                 field_refs[key] = (
-                    ui.input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
+                    ui.input(translate_string(label), value=layout.findtext(key, sceneedit_legacy.UNSET_DIMENSION))
                     .props("dense")
                     .classes("w-36")
                     .on(
@@ -1360,7 +1369,7 @@ def _apply_item_layout_size(
         int(value)
     except ValueError:
         ui.notify(translate_string("Size must be a whole number (-1 for no layout)."), type="negative")
-        widget.value = nested.scene_element.findtext(key, sceneedit.UNSET_DIMENSION)
+        widget.value = nested.scene_element.findtext(key, sceneedit_legacy.UNSET_DIMENSION)
         return
     sceneedit.set_scene_dimensions(nested, {key: value})
 
@@ -1371,7 +1380,7 @@ def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event
 
     Tasker stores #AARRGGBB and every colour picker there is speaks #RRGGBBAA, so the field
     shows the converted value and converts back before committing (see
-    sceneedit.legacy_colour_to_css, which is where that ordering is explained).  The picker
+    sceneedit_legacy.legacy_colour_to_css, which is where that ordering is explained).  The picker
     itself is put into "hexa" so it returns the alpha rather than dropping it -- a Scene's
     "#77333333" is a deliberately half-transparent grey, and a picker that answered in plain
     #RRGGBB would quietly make it opaque.
@@ -1387,19 +1396,19 @@ def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event
     def commit_colour(event: Event) -> None:
         if settling["busy"]:
             return
-        stored = sceneedit.legacy_colour_from_css(str(event.value or ""))
+        stored = sceneedit_legacy.legacy_colour_from_css(str(event.value or ""))
         event.value = stored
         commit(event)
         settling["busy"] = True
         try:
-            field.value = sceneedit.legacy_colour_to_css(stored)
+            field.value = sceneedit_legacy.legacy_colour_to_css(stored)
         finally:
             settling["busy"] = False
 
     field = (
         ui.color_input(
             label=translate_string(arg.arg_name),
-            value=sceneedit.legacy_colour_to_css(arg.current_value),
+            value=sceneedit_legacy.legacy_colour_to_css(arg.current_value),
             preview=True,
             on_change=commit_colour,
         )
@@ -1446,12 +1455,12 @@ def _render_legacy_arg(
         value = event.value
         if arg.widget_kind == "checkbox":
             value = "1" if value else "0"
-        errors = sceneedit.legacy_validate_arg(arg, str(value))
+        errors = sceneedit_legacy.legacy_validate_arg(arg, str(value))
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
             return
-        sceneedit.legacy_set_arg(arg, str(value))
+        sceneedit_legacy.legacy_set_arg(arg, str(value))
         on_applied()
 
     with ui.row().classes("w-full items-center gap-2"):
@@ -1484,7 +1493,7 @@ def _render_legacy_arg(
             ui.input(translate_string(arg.arg_name), value=arg.current_value).props("readonly dense").classes("flex-1")
             if arg.readonly_note:
                 ui.label(translate_string(arg.readonly_note)).classes("text-xs text-gray-500 italic")
-        elif sceneedit.legacy_is_colour_arg(arg):
+        elif sceneedit_legacy.legacy_is_colour_arg(arg):
             _render_legacy_colour_arg(arg, commit)
         else:  # "text" and "raw_fallback"
             # Debounced, unlike the checkbox and the dropdown above: those commit one whole

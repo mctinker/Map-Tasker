@@ -19,7 +19,7 @@ single character of what is drawn:
 
 This module turns those into one model -- nodes, regions and edges, all in the rendered
 file's own line/column coordinates -- and into the browser-side code that acts on it.  The
-view then wraps the named spans in elements (guiwins._wrap_diagram_line) and everything
+view then wraps the named spans in elements (guiwins_views._wrap_diagram_line) and everything
 else is done against the model: a click resolves to a node, a fold resolves to a region, a
 chain is walked over the edges.
 

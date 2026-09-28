@@ -1,7 +1,7 @@
 """Scene Preview: draw a Scene as a picture rather than as a list of element names.
 
 This is the drawing half of the "Preview" button on the Add/Edit Scene dialogs; the view
-that hosts it (toolbar, scroll area, theming) is guiwins.NiceGuiSceneView, and the button
+that hosts it (toolbar, scroll area, theming) is guiwins_views.NiceGuiSceneView, and the button
 itself is in guiwins._build_scene_editor_body.
 
 Both kinds of Scene are drawn, by two renderers that share nothing but their conventions,
@@ -97,7 +97,7 @@ from maptasker.src.sysconst import SCENE_TASK_TYPES, V2_MATERIAL_PALETTE
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
-# Tasker's "this orientation has no layout of its own" (sceneedit.UNSET_DIMENSION), which
+# Tasker's "this orientation has no layout of its own" (sceneedit_legacy.UNSET_DIMENSION), which
 # appears both as a Scene dimension and inside a <geom>.
 UNSET = -1
 
@@ -250,7 +250,7 @@ class V2Editing:
     surface rather than a picture, None when it is the read-only Preview.
 
     `selected` is the run of adjacent siblings currently picked out -- their paths, in the
-    form sceneedit.v2_flatten hands out.  A run rather than a single path because a drag
+    form sceneedit_v2.v2_flatten hands out.  A run rather than a single path because a drag
     moves everything selected, and the highlight is what tells the user what that is.
 
     Like CanvasEditing this holds no callbacks: the gesture is browser-side and what comes
@@ -521,7 +521,7 @@ def draw_scene(
 
     width/height are passed in rather than read off the Scene because the preview shows what
     the *dialog* currently holds, including a size the user has typed but not yet saved (see
-    guiwins.NiceGuiSceneView).
+    guiwins_views.NiceGuiSceneView).
 
     The canvas is a fixed-size element at the Scene's true pixel dimensions with every child
     absolutely positioned at its real coordinates; fitting it on screen is one CSS transform
@@ -1752,7 +1752,7 @@ def v2_encode_path(path: tuple) -> str:
 
 def v2_decode_path(encoded: str) -> tuple:
     """The tuple a v2_encode_path string names.  Index segments come back as ints, slot keys
-    as strings, which is what sceneedit.v2_node_at indexes with.
+    as strings, which is what sceneedit_v2.v2_node_at indexes with.
 
     Whatever the browser sends is a path *shape*, never a promise that it still resolves --
     the caller looks it up in the tree, which is what decides whether it means anything.
@@ -1912,7 +1912,7 @@ def v2_component_count(layout: dict) -> int:
 def _v2_slots(node: dict) -> list[tuple[str, list]]:
     """The (slot name, children) pairs under this node.
 
-    Deliberately the same rule sceneedit.v2_child_slots uses -- any list of component-shaped
+    Deliberately the same rule sceneedit_v2.v2_child_slots uses -- any list of component-shaped
     dicts is a slot -- rather than a table of slot names, so a container from a newer Tasker
     still nests here instead of being flattened into a leaf.  Imported rather than
     re-implemented would be better still, but sceneedit imports the whole GUI-editing stack;
@@ -1989,7 +1989,7 @@ def _v2_number(source: dict, *keys: str) -> str:
     of them are there or the value is a %variable, which a length cannot be.
 
     Used for both modifiers and components -- a Padding's "all" and a Spacer's "height" are
-    the same kind of value stored the same way (as a string, see sceneedit._coerce_like).
+    the same kind of value stored the same way (as a string, see sceneedit_v2._coerce_like).
     """
     for key in keys:
         value = str(source.get(key, "")).strip()
@@ -2083,9 +2083,9 @@ def _v2_alpha(modifier: dict) -> str:
         return ""
 
 
-# The weights a Weight modifier is set from (sceneedit.V2_FONT_WEIGHTS), as the numbers CSS
+# The weights a Weight modifier is set from (sceneedit_v2.V2_FONT_WEIGHTS), as the numbers CSS
 # knows them by.  Keyed without spaces or case so "ExtraLight", "Extra Light" and "extra
-# light" all arrive at the same weight -- the same looseness sceneedit.v2_state_of reads them
+# light" all arrive at the same weight -- the same looseness sceneedit_v2.v2_state_of reads them
 # with, and for the same reason: which of the two spellings Tasker writes is not in evidence.
 _V2_FONT_WEIGHT_CSS: dict[str, int] = {
     "thin": 100,
@@ -2248,7 +2248,7 @@ def _v2_handler_lines(node: dict) -> list[str]:
 
 
 def _v2_action_text(action: dict) -> str:
-    """One action, in the shape sceneedit.V2_ACTION_SCHEMA says it has.  An action type this
+    """One action, in the shape sceneedit_v2.V2_ACTION_SCHEMA says it has.  An action type this
     app has not seen is named anyway, with whatever scalar properties it carries -- better a
     slightly clumsy "DoSomething(x=1)" than silently dropping what the button does.
     """
@@ -2278,7 +2278,7 @@ def _v2_binding_lines(node: dict) -> list[str]:
     """The Tasker variables this component writes its value into.
 
     Held under a per-type state key -- textState for a TextInput, sliderValueState for a
-    Slider (sceneedit.V2_STATE_BY_TYPE) -- but found here by shape rather than by type, so a
+    Slider (sceneedit_v2.V2_STATE_BY_TYPE) -- but found here by shape rather than by type, so a
     component from a newer Tasker with its own state key still reports its bindings.
     """
     lines = []
@@ -2368,7 +2368,7 @@ def _v2_draw_node(node: dict, options: PreviewOptions, depth: int, *, fill: bool
 
 
 # The components named by one of their own properties when they carry no treeLabel, and which
-# property -- the same table sceneedit.V2_LABEL_FALLBACK holds for the designer's tree,
+# property -- the same table sceneedit_v2.V2_LABEL_FALLBACK holds for the designer's tree,
 # written out again rather than imported to keep the renderer from depending on the editor.
 # The two change together.
 _V2_NAMED_BY_PROPERTY = {"Text": "text", "Button": "text", "IconButton": "icon"}
@@ -2378,7 +2378,7 @@ def _v2_bounds_label(node: dict) -> None:
     """The component's name, the way the designer's tree says it -- so a component picked out
     of the picture can be found in the tree, and the other way round.
 
-    Which means the same order of preference sceneedit.v2_node_name uses, own property
+    Which means the same order of preference sceneedit_v2.v2_node_name uses, own property
     included: the two are written out separately rather than shared, to keep the renderer from
     importing the editor, and they have to be changed together.
     """

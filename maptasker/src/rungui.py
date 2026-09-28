@@ -25,7 +25,9 @@ from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.error import error_handler, exit_program
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guistate import capture_gui_state, do_colors, live_selection, reapply_selection
-from maptasker.src.guiwins import NiceGuiTextView, inject_shared_head_styles, register_finding_clicks
+from maptasker.src.guiwins import inject_shared_head_styles
+from maptasker.src.guiwins_nav import register_finding_clicks
+from maptasker.src.guiwins_views import NiceGuiTextView
 from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
@@ -227,7 +229,7 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
 
         'scope' is the Project the Map in this window was built for ("" for all of them),
         recorded on the view so a later clicked finding can tell whether this window can
-        show what it points at -- see guiwins.jump_map_view.
+        show what it points at -- see guiwins_nav.jump_map_view.
 
         'built_for' is the whole of what the app was displaying when this view was drawn --
         "Project 'Home'", "Task 'Wake Up'", "" for the whole configuration -- which is what

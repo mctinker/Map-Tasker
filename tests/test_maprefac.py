@@ -28,7 +28,7 @@ import xml.etree.ElementTree as ET
 import pytest
 from maptasker.src.initparg import ProgramArguments
 from maptasker.src import guiwins_refactor, maprefac, sessundo, taskedit, taskerd
-from maptasker.src.guiwins import opening_view_in_a_new_window
+from maptasker.src.guiwins_nav import opening_view_in_a_new_window
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, actions_in_map_order
 from maptasker.src.primitem import PrimeItems
 from nicegui import binding

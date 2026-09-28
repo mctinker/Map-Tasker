@@ -462,7 +462,7 @@ SCENE_TASK_TYPES = {
     # DUAL-PURPOSE, unlike the one above.  On a SpinnerElement (16 samples) this is the
     # "Item Selected" it is named for; on a <PropertiesElement> (15 samples) it is Tasker's
     # Tab Tap event.  This table cannot say both, so the Scene Properties dialog labels it
-    # from sceneedit.LEGACY_SCENE_EVENTS instead and the Spinner's meaning is kept here.
+    # from sceneedit_legacy.LEGACY_SCENE_EVENTS instead and the Spinner's meaning is kept here.
     "itemselectedTask": "Item Selected",
     "keyTask": "Key",
     "linkclickTask": "Link",

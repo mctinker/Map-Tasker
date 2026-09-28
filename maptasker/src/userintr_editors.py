@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
-from maptasker.src import objprops, profedit, projedit, sceneedit, sessundo, taskedit
+from maptasker.src import objprops, profedit, projedit, sceneedit, sceneedit_legacy, sessundo, taskedit
 from maptasker.src.guiutils import (
     clear_single_item_view_names,
     display_current_file,
@@ -36,7 +36,6 @@ from maptasker.src.guiwins import (
     PROJECT_REDACT_FIELD,
     REDACT_FIELD,
     SCENE_REDACT_FIELD,
-    NiceGuiSceneView,
     build_add_project_dialog,
     build_add_scene_dialog,
     build_add_scene_version_dialog,
@@ -47,8 +46,6 @@ from maptasker.src.guiwins import (
     build_object_properties_dialog,
     build_overwrite_confirm_dialog,
     build_rename_dialog,
-    suspend_scene_editor_session,
-    suspended_scene_editor,
 )
 from maptasker.src.guiwins_profedit import (
     build_add_profile_dialog,
@@ -61,6 +58,7 @@ from maptasker.src.guiwins_taskedit import (
     build_edit_task_dialog,
     build_run_task_on_android_dialog,
 )
+from maptasker.src.guiwins_views import NiceGuiSceneView, suspend_scene_editor_session, suspended_scene_editor
 from maptasker.src.maputil2 import translate_string, write_full_backup_to_current_file
 from maptasker.src.maputils import find_owning_project, find_owning_project_for_scene, find_owning_project_for_task
 from maptasker.src.primitem import PrimeItems
@@ -269,7 +267,7 @@ def _apply_scene_field_values(edited_scene: sceneedit.EditableScene, field_refs:
     by name.
 
     Sizes must be whole numbers; -1 is allowed and meaningful (Tasker's "this
-    orientation has no layout of its own", see sceneedit.UNSET_DIMENSION), so the
+    orientation has no layout of its own", see sceneedit_legacy.UNSET_DIMENSION), so the
     check is "integer", not "positive integer".
     """
     errors = []
@@ -1073,7 +1071,7 @@ class EditorEventHandlers:
         Every field in there writes through to the Scene copy as it is typed -- which is what
         the Legacy designer does everywhere -- so the only way for Cancel to mean anything is
         to put the snapshot taken when the dialog opened back over the top.  See
-        sceneedit.legacy_properties_restore, which also explains why the snapshot is of the
+        sceneedit_legacy.legacy_properties_restore, which also explains why the snapshot is of the
         properties alone and not of the whole Scene.
 
         The geometry is separate because it is not in that element: those four boxes drive the
@@ -1085,7 +1083,7 @@ class EditorEventHandlers:
         the copies; nothing here can reach them.  Whatever has already been put into the loaded
         configuration by "Apply to Task" or "Create Task" stays there -- Undo takes those back.
         """
-        reverted = sceneedit.legacy_properties_restore(scene_element, properties_snapshot)
+        reverted = sceneedit_legacy.legacy_properties_restore(scene_element, properties_snapshot)
         for key, value in geometry_snapshot.items():
             widget = field_refs.get(key)
             if widget is not None and str(widget.value) != value:
@@ -1778,7 +1776,7 @@ class EditorEventHandlers:
             #
             # MARKED BEFORE THE CLOSE, NOT AFTER.  Closing fires the dialog's own value-change
             # handler synchronously, and that handler repaints any preview this dialog left on
-            # screen (guiwins._scene_dialog_closed).  Marking afterwards would leave it looking
+            # screen (guiwins_views._scene_dialog_closed).  Marking afterwards would leave it looking
             # at a session that still said "not suspended", so it would take a close *on its
             # way to building a new preview* for a close that had finished with one, and
             # repaint the outgoing view into a container about to be cleared.

@@ -24,7 +24,7 @@
 # (maputil2.render_full_backup_xml), gzipped.  Not a per-operation inverse.
 #
 # The inverse-per-operation design is the one that looks efficient and is not worth
-# building here -- sceneedit.legacy_snapshot says the same thing about the designers'
+# building here -- sceneedit_legacy.legacy_snapshot says the same thing about the designers'
 # own stacks, at a much smaller scale.  There are eighteen live-tree mutators across
 # taskedit/profedit/projedit/sceneedit and several of them are one-to-many: deleting a
 # Project unlinks its Profiles, deletes their Tasks, and restamps <mdate> on whatever is

@@ -37,7 +37,7 @@ from maptasker.src.guiutils import (
     update_analysis_button_color,
     update_tasker_object_menus,
 )
-from maptasker.src.guiwins import refresh_scope_badges
+from maptasker.src.guiwins_views import refresh_scope_badges
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import clear_tasker_data
 from maptasker.src.primitem import PrimeItems

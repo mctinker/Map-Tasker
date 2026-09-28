@@ -1619,7 +1619,7 @@ class AndroidEventHandlers:
                 never retrieved" to the console and the user is left watching an import that
                 silently never happens.  Not hypothetical -- that is exactly how the missing
                 slot above went unnoticed until someone read their terminal.  The same
-                treatment guiwins._report_view_failure gives a view's rendering task.
+                treatment guiwins_nav._report_view_failure gives a view's rendering task.
                 """
                 asyncio.create_task(_offer_from_the_prompt()).add_done_callback(_report_offer_failure)
 
@@ -2005,7 +2005,7 @@ def _report_offer_failure(task: asyncio.Task) -> None:
     """Log whatever the spawned import offer raised, instead of losing it.
 
     Cancellation is ordinary -- a page that went away while the offer was in flight -- and
-    says nothing.  Mirrors guiwins._report_view_failure, which does this for a view's
+    says nothing.  Mirrors guiwins_nav._report_view_failure, which does this for a view's
     rendering task; the two exist separately only because neither module imports the other's
     private helpers.
     """

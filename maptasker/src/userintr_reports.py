@@ -30,7 +30,8 @@ from maptasker.src.diffload import (
 from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guistate import remember_setting
-from maptasker.src.guiwins import NiceGuiTextView, build_changes_since_dialog, build_health_check_dialog
+from maptasker.src.guiwins import build_changes_since_dialog, build_health_check_dialog
+from maptasker.src.guiwins_views import NiceGuiTextView
 from maptasker.src.healthck import ERROR, WARNING, run_health_check, write_health_check_report
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
@@ -156,7 +157,7 @@ class ReportEventHandlers:
         # or '&' would otherwise be read as markup rather than shown as the name it is
         # (the failure the 12.1.1 fix addressed for variable values).  It also wraps the
         # row naming each finding's location so that clicking it takes the user to that
-        # object in the Map view; guiwins.enable_finding_clicks wires the click up.
+        # object in the Map view; guiwins_nav.enable_finding_clicks wires the click up.
         self.gui.textview = NiceGuiTextView(
             gui,
             title="Misc View",

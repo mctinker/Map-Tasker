@@ -34,7 +34,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src import clock, codelint, sceneedit
+from maptasker.src import clock, codelint, sceneedit, sceneedit_legacy, sceneedit_v2
 from maptasker.src.actionc import action_codes
 from maptasker.src.bundle import bundles
 from maptasker.src.mapjump import (
@@ -325,7 +325,7 @@ class Reference:
     # RELEVANT_VARIABLES is named nowhere in the file.
     element: Element | None = None
     # Version 2 Scenes only, whose values live inside a gzipped JSON blob rather than in
-    # an element: (component path, property key), which sceneedit.v2_node_at resolves
+    # an element: (component path, property key), which sceneedit_v2.v2_node_at resolves
     # against a freshly decoded layout.  `element` is the <Scene> itself for these.
     path: tuple = ()
 
@@ -872,7 +872,6 @@ def _scan_legacy_scene(
     scene: dict,
     place: Target,
     scope_id: str,
-    sceneedit: object,
 ) -> None:
     """Record what a Legacy Scene's elements read, and what its input elements write.
 
@@ -897,7 +896,7 @@ def _scan_legacy_scene(
     for element in scene["xml"].iter():
         if not element.tag.endswith("Element"):
             continue
-        label = sceneedit.legacy_element_label(element)
+        label = sceneedit_legacy.legacy_element_label(element)
         spot = place.at_part(parts.get(id(element), ""), f"element {label}")
         where = spot.label
         value_arg = _LEGACY_VALUE_ARGS.get(element.tag)
@@ -923,7 +922,6 @@ def _scan_v2_scene(
     scene: dict,
     place: Target,
     scope_id: str,
-    sceneedit: object,
 ) -> None:
     """Record what a Version 2 Scene's components read and write.
 
@@ -944,8 +942,8 @@ def _scan_v2_scene(
     if layout is None:
         return
 
-    for row in sceneedit.v2_flatten(layout):
-        child_slots = {slot for slot, _ in sceneedit.v2_child_slots(row.node)}
+    for row in sceneedit_v2.v2_flatten(layout):
+        child_slots = {slot for slot, _ in sceneedit_v2.v2_child_slots(row.node)}
         for key, value in row.node.items():
             if key in child_slots:
                 continue
@@ -989,13 +987,7 @@ def _scan_v2_scene(
 
 
 def _scan_scenes(index: VariableIndex, write_arguments: dict, implicit_writes: dict, scope: Scope) -> None:
-    """Walk every Scene: its elements, and the anonymous Tasks living inside it.
-
-    sceneedit is imported here rather than at module scope, and passed down rather than
-    re-imported per Scene, for the reason healthck._index_scenes gives: it is the Scene
-    editor, nothing else here needs it, and keeping the dependency inside the one function
-    that uses it leaves varxref importable on its own.
-    """
+    """Walk every Scene: its elements, and the anonymous Tasks living inside it."""
 
     owners = _project_of_scene()
     for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
@@ -1008,9 +1000,9 @@ def _scan_scenes(index: VariableIndex, write_arguments: dict, implicit_writes: d
 
         # <lj> is the whole V2 test, in both directions (see sceneedit.is_v2_scene).
         if scene["xml"].find("lj") is not None:
-            _scan_v2_scene(index, scene, place, scope_id, sceneedit)
+            _scan_v2_scene(index, scene, place, scope_id)
         else:
-            _scan_legacy_scene(index, scene, place, scope_id, sceneedit)
+            _scan_legacy_scene(index, scene, place, scope_id)
 
         # A truly anonymous task -- one created inline on a Scene element -- lives inside
         # the Scene as <Action> children rather than as a top-level <Task>, so the walk

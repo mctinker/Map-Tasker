@@ -21,6 +21,7 @@ from maptasker.src import diagintr, diagram, guiwins, mapjump, taskerd, userintr
 from maptasker.src.mapjump import PROFILE, PROJECT, TASK, Target, diagram_placement
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import DIAGRAM_FILE
+from maptasker.src import guiwins_search, guiwins_views
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 _OTHER_PROFILE = Target(kind=PROFILE, key="11", name="Wind Down")
@@ -421,7 +422,7 @@ def test_neither_jump_scrolls_smoothly() -> None:
         mapjump.jump_js("mt-task-20"),
         mapjump.diagram_jump_js("c1", ["║ Wake Up ║"], (5, 2, 11), "mt-profile-10"),
         diagintr.interaction_js("c1", "c2", {"nodes": [{"anchor": "a"}], "regions": [], "edges": []}),
-        guiwins.search_jump_js("search-hit-42"),
+        guiwins_search.search_jump_js("search-hit-42"),
     )
 
     for script in scripts:
@@ -639,8 +640,8 @@ def test_a_chain_of_calls_crosses_a_project_boundary(modelled: tuple[list[str], 
 def _rendered(lines: list[str], model: dict) -> list[str]:
     """Every line of the diagram as the Diagram view writes it into the page."""
     nodes, folds = diagintr.nodes_by_line(model), diagintr.folds_by_line(model)
-    connectors = guiwins._connectors_by_line()  # noqa: SLF001
-    return [guiwins._wrap_diagram_line(num, line, connectors, nodes, folds) for num, line in enumerate(lines)]  # noqa: SLF001
+    connectors = guiwins_views._connectors_by_line()  # noqa: SLF001
+    return [guiwins_views._wrap_diagram_line(num, line, connectors, nodes, folds) for num, line in enumerate(lines)]  # noqa: SLF001
 
 
 def test_every_rendered_line_is_an_element_that_keeps_its_own_newline(
@@ -688,7 +689,7 @@ def test_a_name_and_a_connector_never_claim_the_same_character() -> None:
     line = "──── Backup ────"
     node = {"anchor": _BACKUP.anchor, "index": 0, "kind": TASK, "col": 5, "len": 6}
 
-    spans = guiwins._diagram_spans(0, line, {0: [(0, len(line), 7)]}, {0: [node]})  # noqa: SLF001
+    spans = guiwins_views._diagram_spans(0, line, {0: [(0, len(line), 7)]}, {0: [node]})  # noqa: SLF001
 
     # In column order, never overlapping, and the name's span is exactly the name.
     assert [(start, end) for start, end, _ in spans] == [(0, 5), (5, 11), (11, 16)]
@@ -829,7 +830,7 @@ def test_a_view_says_what_it_was_drawn_for() -> None:
     object, so it goes on drawing -- and hotlinking to -- the objects of the selection it was
     built for.  The badge is the only thing on screen that says so.
     """
-    drawn, changed = guiwins.scope_badge_text("Project 'Home'", "Project 'Home'")
+    drawn, changed = guiwins_views.scope_badge_text("Project 'Home'", "Project 'Home'")
 
     assert drawn == "Drawn for Project 'Home'"
     assert changed == ""  # in step: no warning, and no Rebuild button beside it
@@ -838,7 +839,7 @@ def test_a_view_says_what_it_was_drawn_for() -> None:
 def test_a_view_says_when_the_selection_has_moved_on() -> None:
     """Both halves named, because "this is out of date" without saying out of date WITH WHAT
     leaves the user to work out which of the two views to believe."""
-    _drawn, changed = guiwins.scope_badge_text("Project 'Home'", "Task 'Wake Up'")
+    _drawn, changed = guiwins_views.scope_badge_text("Project 'Home'", "Task 'Wake Up'")
 
     assert "Project 'Home'" not in changed  # the first half already said that
     assert "Task 'Wake Up'" in changed
@@ -846,12 +847,12 @@ def test_a_view_says_when_the_selection_has_moved_on() -> None:
 
 def test_the_whole_configuration_is_said_rather_than_left_blank() -> None:
     """A badge reading "Drawn for" and then nothing looks like something failed to load."""
-    drawn, changed = guiwins.scope_badge_text("", "Project 'Home'")
+    drawn, changed = guiwins_views.scope_badge_text("", "Project 'Home'")
 
     assert drawn.endswith("the whole configuration")
     assert "Project 'Home'" in changed
     # And the other way round: a selection cleared since is a change like any other.
-    assert guiwins.scope_badge_text("Project 'Home'", "")[1].endswith("the whole configuration")
+    assert guiwins_views.scope_badge_text("Project 'Home'", "")[1].endswith("the whole configuration")
 
 
 def test_clear_closes_a_map_that_a_popout_opened_for_itself() -> None:

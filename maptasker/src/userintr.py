@@ -59,22 +59,13 @@ from maptasker.src.guiutils import (
     update_analysis_button_color,
     valid_item,
 )
-from maptasker.src.guiwins import (
-    NiceGuiTextView,
-    NiceGuiTreeView,
-    create_popup_window,
-    forget_views,
-    go_to_target,
-    initialize_gui,
-    initialize_screen,
-    live_views,
-    opening_view_in_a_new_window,
-    restore_appearance_mode,
-)
+from maptasker.src.guiwins import create_popup_window, initialize_gui, initialize_screen, restore_appearance_mode
 from maptasker.src.guiwins_firesim import build_firesim_dialog
 from maptasker.src.guiwins_fix import build_fix_dialog
+from maptasker.src.guiwins_nav import forget_views, go_to_target, live_views, opening_view_in_a_new_window
 from maptasker.src.guiwins_refactor import build_refactor_dialog
 from maptasker.src.guiwins_restore import build_restore_dialog
+from maptasker.src.guiwins_views import NiceGuiTextView, NiceGuiTreeView
 from maptasker.src.maputil2 import (
     log_startup_values,
     translate_string,
@@ -1780,7 +1771,7 @@ class MapTaskerEventHandlers(
             The new window is what keeps the dialog: from here the jump has no Map to
             scroll, so go_to_target falls through to building one, and a build that reused
             the tab would take this window -- and the preview in it -- with it.  See
-            guiwins.opening_view_in_a_new_window for the whole of why.
+            guiwins_nav.opening_view_in_a_new_window for the whole of why.
             """
 
             async def go() -> None:
@@ -1827,7 +1818,7 @@ class MapTaskerEventHandlers(
             """One row's click: open what it names in a window of its own.
 
             The new window is what keeps this dialog up -- see refactor_event's own copy of
-            this, and guiwins.opening_view_in_a_new_window for the whole of why.  It matters
+            this, and guiwins_nav.opening_view_in_a_new_window for the whole of why.  It matters
             more here than there: the list holds ticks and decisions the user has been
             making, and going to look at one of the Tasks must not cost them the lot.
             """

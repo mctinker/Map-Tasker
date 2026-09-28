@@ -35,7 +35,6 @@ _SRC = pathlib.Path(__file__).resolve().parent.parent / "maptasker" / "src"
 # directly or through others, at module level.
 _BREAKS_A_LOOP = {
     ("guiwins_designer_legacy", "guiwins"),
-    ("guiwins_impact", "guiwins"),
     ("guiwins_taskedit", "guiwins"),
     ("sessundo", "taskerd"),
     ("timeline", "diffload"),

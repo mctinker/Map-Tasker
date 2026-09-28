@@ -167,7 +167,7 @@ def test_scene_element_dangling_redirect_is_left_alone() -> None:
 
     This is the one redirect that does not resolve, and it is deliberate: 'Map' is a
     display label for Tasker's Map element, whose xml tag is SceneElement, and the
-    entry carries a full set of arguments of its own.  sceneedit._legacy_effective_args
+    entry carries a full set of arguments of its own.  sceneedit_legacy._legacy_effective_args
     documents this and takes the entry at its word when the target is missing.
 
     Called out by name because a loader that validates redirects, or drops the ones it

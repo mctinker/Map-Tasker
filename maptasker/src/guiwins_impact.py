@@ -9,9 +9,9 @@ word their own sentence about them; all four now call this instead and get the s
 answer in the same shape.
 
 It imports nothing from guiwins, so all three dialog modules can import it at the top of
-their own files without closing the loop guiwins_taskedit's header describes.  Its one call
-into guiwins -- the page-level subscription behind a clicked row -- is made inside the
-function that needs it.
+their own files without closing the loop guiwins_taskedit's header describes.  The one thing
+it needs from the GUI -- the page-level subscription behind a clicked row -- comes from
+guiwins_nav, which sits below all of them.
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING
 from nicegui import ui
 
 from maptasker.src import impact, mapjump
+from maptasker.src.guiwins_nav import register_finding_clicks
 from maptasker.src.maputil2 import translate_string
 
 if TYPE_CHECKING:
@@ -56,7 +57,7 @@ def _summary_classes(analysis: impact.Impact) -> str:
 def wire_impact_clicks(self: MyGui, container: ui.element) -> None:
     """Make the impact rows under this container take the user to the place they name.
 
-    The same wiring the report views use (guiwins.enable_finding_clicks), pointed at a
+    The same wiring the report views use (guiwins_nav.enable_finding_clicks), pointed at a
     dialog instead of a scroll area: mapjump.click_wiring_js installs ONE delegated
     listener on whatever container it is given, and the Python subscription that acts on
     what it emits belongs to the page, which the dialog is on.
@@ -81,8 +82,6 @@ def wire_impact_clicks(self: MyGui, container: ui.element) -> None:
     register_finding_clicks is called for the page that never went through
     initialize_screen; on the main window it has already happened and the call is a no-op.
     """
-    from maptasker.src.guiwins import register_finding_clicks  # noqa: PLC0415
-
     register_finding_clicks(self)
     element_id = json.dumps(f"c{container.id}")
     # click_wiring_js is written as a function body -- it returns early when the container

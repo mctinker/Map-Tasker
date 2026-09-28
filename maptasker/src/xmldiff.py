@@ -589,7 +589,7 @@ def _scene_elements(scene: Element) -> dict[str, Element]:
 def _scene_element_label(element: Element) -> str:
     """ "Button 'Cancel'" -- a Scene element as its designer names it.
 
-    The name is arg0, the same place sceneedit.legacy_element_label reads it from; it is
+    The name is arg0, the same place sceneedit_legacy.legacy_element_label reads it from; it is
     reproduced here rather than imported so this module stays free of the Scene editor.
     """
     name = element.find("Str[@sr='arg0']")

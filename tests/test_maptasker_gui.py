@@ -40,11 +40,8 @@ from maptasker.src.guiutils import (
     reset_single_item_selection,
 )
 from maptasker.src import guiwins
-from maptasker.src.guiwins import (
-    NiceGuiTextView,
-    document_language_html,
-    set_document_language_js,
-)
+from maptasker.src.guiwins import document_language_html, set_document_language_js
+from maptasker.src.guiwins_views import NiceGuiTextView
 from maptasker.src.mapfonts import get_monospaced_fonts
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import TIMELINE_FILE
@@ -204,7 +201,7 @@ def gui_with_selection():
 # ==========================================
 def _optimized(raw_html: str) -> str:
     """The Map view's own pass over the file it reads, as process_data runs it."""
-    from maptasker.src.guiwins import HTML_OPTIMIZE_PATTERN, optimize_html  # noqa: PLC0415
+    from maptasker.src.guiwins_views import HTML_OPTIMIZE_PATTERN, optimize_html  # noqa: PLC0415
 
     return HTML_OPTIMIZE_PATTERN.sub(optimize_html, raw_html)
 
@@ -251,7 +248,7 @@ def test_a_run_of_written_newlines_is_one_line_break():
 # ==========================================
 def _split(html: str, budget: int) -> list:
     """The view's own splitter."""
-    from maptasker.src.guiwins import split_for_streaming  # noqa: PLC0415
+    from maptasker.src.guiwins_views import split_for_streaming  # noqa: PLC0415
 
     return split_for_streaming(html, budget)
 

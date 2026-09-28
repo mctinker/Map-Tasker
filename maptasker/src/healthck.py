@@ -20,7 +20,18 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src import clock, codelint, piiscan, plugchk, proflint, sceneedit, taskflow, varxref
+from maptasker.src import (
+    clock,
+    codelint,
+    piiscan,
+    plugchk,
+    proflint,
+    sceneedit,
+    sceneedit_legacy,
+    sceneedit_v2,
+    taskflow,
+    varxref,
+)
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import (
     PROFILE,
@@ -64,7 +75,7 @@ _SEVERITY_HEADINGS = {
 _REPORT_WIDTH = 78
 
 # A Task that fires from a Scene element and lives only inside that Scene carries a
-# negative id (see sceneedit.LEGACY_ANONYMOUS_TASK_PREFIX).  It is not in all_tasks and
+# negative id (see sceneedit_legacy.LEGACY_ANONYMOUS_TASK_PREFIX).  It is not in all_tasks and
 # never will be, so it is neither a broken reference nor an unreferenced Task.
 _ANONYMOUS_TASK_PREFIX = "-"
 
@@ -485,7 +496,7 @@ def _index_profiles(index: ReferenceIndex) -> None:
                 )
 
 
-def _index_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, sceneedit: object) -> None:
+def _index_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict) -> None:
     """Record the Tasks a Legacy Scene's elements fire, reporting any that are missing."""
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
     # project_of_scene is filled by _index_projects, which run_health_check calls first.
@@ -501,7 +512,7 @@ def _index_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, scen
         # legacy_element_label reads the element's own name from arg0 and renders it the
         # way the designer's tree does ("Button 'Cancel'"), so a finding names the element
         # by what the user will see when they go to fix it.
-        label = sceneedit.legacy_element_label(element)
+        label = sceneedit_legacy.legacy_element_label(element)
         for binding in element:
             if binding.tag not in SCENE_TASK_TYPES:
                 continue
@@ -523,7 +534,7 @@ def _index_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, scen
                 )
 
 
-def _index_v2_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, sceneedit: object) -> None:
+def _index_v2_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict) -> None:
     """Record the Tasks a Version 2 Scene's event handlers run.
 
     A V2 Scene keeps its components in a gzipped JSON blob rather than in child elements,
@@ -539,8 +550,8 @@ def _index_v2_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, s
     all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
     where = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))
 
-    for row in sceneedit.v2_flatten(layout):
-        for handler in sceneedit.v2_handlers(row.node):
+    for row in sceneedit_v2.v2_flatten(layout):
+        for handler in sceneedit_v2.v2_handlers(row.node):
             for action in handler.get("actions") or ():
                 if not isinstance(action, dict) or action.get("type") != "RunTask":
                     continue
@@ -562,21 +573,14 @@ def _index_v2_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, s
 
 
 def _index_scenes(index: ReferenceIndex) -> None:
-    """Walk every Scene, Legacy or Version 2, for the Tasks it fires.
-
-    sceneedit is imported here rather than at module scope, and passed down rather than
-    re-imported per Scene: it is the Scene editor, and nothing else in this module needs
-    it.  Keeping the dependency inside the one function that uses it leaves healthck
-    importable on its own -- which is what lets the checks be tested without the editor,
-    and keeps a future import the other way from becoming a cycle.
-    """
+    """Walk every Scene, Legacy or Version 2, for the Tasks it fires."""
 
     for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
         # <lj> is the whole V2 test, in both directions (see sceneedit.is_v2_scene).
         if scene["xml"].find("lj") is not None:
-            _index_v2_scene_tasks(index, scene_name, scene, sceneedit)
+            _index_v2_scene_tasks(index, scene_name, scene)
         else:
-            _index_scene_tasks(index, scene_name, scene, sceneedit)
+            _index_scene_tasks(index, scene_name, scene)
 
 
 def _index_one_action(

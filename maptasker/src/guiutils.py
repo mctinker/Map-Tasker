@@ -1714,7 +1714,7 @@ def remember_android_address_fields(
     is ignored (see remember_android_address), so clearing the field does not wipe the saved one.
 
     Call while the fields are being built: a listener added to an element the browser already
-    holds makes NiceGUI rebuild it (see guiwins.register_finding_clicks).
+    holds makes NiceGUI rebuild it (see guiwins_nav.register_finding_clicks).
     """
 
     def keep() -> None:
@@ -1850,7 +1850,7 @@ def check_new_version(self: "MyGui") -> None:
 
 
 def _report_version_check_failure(task: asyncio.Task) -> None:
-    """Log whatever the version check raised, instead of losing it (as guiwins._report_view_failure does).
+    """Log whatever the version check raised, instead of losing it (as guiwins_nav._report_view_failure does).
 
     Cancellation is ordinary -- a page that went away mid-check -- and says nothing.
     """

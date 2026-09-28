@@ -53,7 +53,7 @@ JSON = "json"
 PDF = "pdf"
 FORMATS = {MARKDOWN: "Markdown (.md)", JSON: "JSON (.json)", PDF: "PDF (.pdf)"}
 
-# The file the Map view is displayed from (see guiwins.NiceGuiTextView.process_data).
+# The file the Map view is displayed from (see guiwins_views.NiceGuiTextView.process_data).
 MAP_SOURCE = "MapTasker.html"
 
 # Written into every JSON export, so that a script can tell which view it was handed and

@@ -151,13 +151,11 @@
     "reportReturnType": 2
   },
   "maptasker/src/guiwins.py": {
-    "reportArgumentType": 32,
-    "reportAttributeAccessIssue": 232,
-    "reportGeneralTypeIssues": 4,
+    "reportArgumentType": 22,
+    "reportAttributeAccessIssue": 196,
+    "reportGeneralTypeIssues": 2,
     "reportIndexIssue": 2,
-    "reportOptionalContextManager": 1,
-    "reportOptionalMemberAccess": 6,
-    "reportReturnType": 1
+    "reportOptionalMemberAccess": 1
   },
   "maptasker/src/guiwins2.py": {
     "reportAttributeAccessIssue": 5
@@ -169,19 +167,32 @@
   "maptasker/src/guiwins_designer_v2.py": {
     "reportArgumentType": 10
   },
+  "maptasker/src/guiwins_nav.py": {
+    "reportArgumentType": 1,
+    "reportAttributeAccessIssue": 9
+  },
   "maptasker/src/guiwins_profedit.py": {
     "reportArgumentType": 11
   },
   "maptasker/src/guiwins_restore.py": {
     "reportArgumentType": 1
   },
+  "maptasker/src/guiwins_search.py": {
+    "reportAttributeAccessIssue": 1,
+    "reportOptionalMemberAccess": 1,
+    "reportReturnType": 1
+  },
   "maptasker/src/guiwins_taskedit.py": {
     "reportArgumentType": 16,
     "reportGeneralTypeIssues": 5,
     "reportIndexIssue": 2
   },
-  "maptasker/src/healthck.py": {
-    "reportAttributeAccessIssue": 4
+  "maptasker/src/guiwins_views.py": {
+    "reportArgumentType": 9,
+    "reportAttributeAccessIssue": 22,
+    "reportGeneralTypeIssues": 2,
+    "reportOptionalContextManager": 1,
+    "reportOptionalMemberAccess": 4
   },
   "maptasker/src/impact.py": {
     "reportAttributeAccessIssue": 1,
@@ -324,11 +335,17 @@
     "reportGeneralTypeIssues": 1
   },
   "maptasker/src/sceneedit.py": {
+    "reportCallIssue": 1,
+    "reportOptionalMemberAccess": 2
+  },
+  "maptasker/src/sceneedit_legacy.py": {
     "reportArgumentType": 4,
     "reportAttributeAccessIssue": 9,
-    "reportCallIssue": 3,
+    "reportCallIssue": 2
+  },
+  "maptasker/src/sceneedit_v2.py": {
     "reportGeneralTypeIssues": 1,
-    "reportOptionalMemberAccess": 3
+    "reportOptionalMemberAccess": 1
   },
   "maptasker/src/scenes.py": {
     "reportArgumentType": 13,
@@ -430,7 +447,6 @@
   },
   "maptasker/src/varxref.py": {
     "reportArgumentType": 2,
-    "reportAttributeAccessIssue": 4,
     "reportGeneralTypeIssues": 1,
     "reportReturnType": 2
   },

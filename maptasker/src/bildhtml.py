@@ -236,7 +236,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
                 )
                 logger.info(msg_text)
                 PrimeItems.view_limit_msg = (
-                    msg_text  # Read by the Map view's message field (see guiwins.NiceGuiTextView).
+                    msg_text  # Read by the Map view's message field (see guiwins_views.NiceGuiTextView).
                 )
                 break  # Don't output more than the view limit
 

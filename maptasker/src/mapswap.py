@@ -51,7 +51,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src import clock, mapfind, maputil2, profedit, sceneedit, sessundo, taskedit, varxref
+from maptasker.src import clock, mapfind, maputil2, profedit, sceneedit, sceneedit_v2, sessundo, taskedit, varxref
 from maptasker.src.actionc import ArgumentCode, action_codes
 from maptasker.src.mapjump import PROFILE, TASK, VARIABLE, Row, Target, current_scope, text_report
 from maptasker.src.maputils import append_to_filename
@@ -2522,7 +2522,7 @@ def _v2_layout_and_node(site: Site) -> tuple[object, dict | None, str]:
     if layout is None:
         return None, None, ""
     node_path, key = site.path
-    return layout, sceneedit.v2_node_at(layout, node_path), key
+    return layout, sceneedit_v2.v2_node_at(layout, node_path), key
 
 
 def _v2_value(site: Site) -> object:

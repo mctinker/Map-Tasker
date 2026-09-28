@@ -24,7 +24,8 @@ from maptasker.src.mapjump import (
 )
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import format_item, process_list
-from maptasker.src.sceneedit import decompress_gzip_json, v2_child_slots, v2_flatten
+from maptasker.src.sceneedit import decompress_gzip_json
+from maptasker.src.sceneedit_v2 import v2_child_slots, v2_flatten
 from maptasker.src.sysconst import (
     SCENE_TAGS_TO_IGNORE,
     SCENE_TASK_TYPES,
@@ -328,7 +329,7 @@ def process_sub_elements(
         # <urlMatch> is the KEYS filter there, not a URL: its values are Tasker's
         # slash-separated key list ("back", "back/home"), and the tag name is a leftover from
         # the Web element the same <LinkClickFilter> serves.  See
-        # sceneedit.legacy_set_key_filter, which is the write side and carries the evidence.
+        # sceneedit_legacy.legacy_set_key_filter, which is the write side and carries the evidence.
         elif subchild.tag == "LinkClickFilter":
             line_out = ""
             stopbottom_event_element = subchild.find("stopEvent")
@@ -516,7 +517,7 @@ def format_and_output_arguments(
 # them the same colour.  Nothing about that is visible -- a colour inside the same colour
 # looks like the colour -- but the browser lays out and paints that whole tower for every
 # line under it, and nothing can be cut into pieces at a point where hundreds of elements
-# are open (see guiwins.split_for_streaming).
+# are open (see guiwins_views.split_for_streaming).
 #
 # So there is at most one at a time now: opening the next closes the last, and the Scene
 # closes the final one on its way out (get_details).  What is inside which changes; what

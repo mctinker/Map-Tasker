@@ -36,13 +36,12 @@ from maptasker.src.guiutils import (
 )
 from maptasker.src.guiwins import (
     NOTIFY_TIMEOUT_CHOICES,
-    element_is_live,
     initialize_screen,
-    live_views,
     set_document_language_js,
     set_notification_timeout,
     view_limit_options,
 )
+from maptasker.src.guiwins_nav import element_is_live, live_views
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import clear_tasker_data, make_hex_color

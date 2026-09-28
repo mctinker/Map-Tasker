@@ -247,14 +247,18 @@ max-complexity = 20
 'maptasker/src/format.py' = ['ARG002', 'C901', 'PLR0912', 'S105']
 'maptasker/src/getfile.py' = ['ANN201', 'ANN202', 'D101', 'D102', 'N801', 'PLC0415']
 'maptasker/src/getputer.py' = ['PERF403']
-'maptasker/src/guiwins.py' = ['ARG001', 'C901', 'ISC004', 'SLF001']
+'maptasker/src/guiwins.py' = ['ARG001', 'ISC004']
 # guiwins.py was split by dialog family into the guiwins_* modules below. These are its
 # own backlog entries following the code out of it, not new debt -- the same oversized
 # dialog builders, now in the file they belong to. guiwins.py's own line shrank by three
 # rules in the move (PLR0912, RUF100, SIM117), and guiwins_canvas.py needs no line at all.
+# The second split, into guiwins_views/_search/_nav, took C901 and SLF001 with it: the
+# view the private attributes belong to, and the one function too complex, both went.
 'maptasker/src/guiwins_designer_v2.py' = ['C901', 'SIM117']
 'maptasker/src/guiwins_profedit.py' = ['C901', 'PLR0912', 'PLR0915']
+'maptasker/src/guiwins_search.py' = ['SLF001']
 'maptasker/src/guiwins_taskedit.py' = ['C901']
+'maptasker/src/guiwins_views.py' = ['C901', 'ISC004', 'SLF001']
 'maptasker/src/kidapp.py' = ['D100']
 'maptasker/src/mapai.py' = ['F811']
 'maptasker/src/mapit.py' = ['ANN001', 'ARG001']
@@ -267,7 +271,10 @@ max-complexity = 20
 'maptasker/src/projects.py' = ['ISC004']
 'maptasker/src/projedit.py' = ['ISC004']
 'maptasker/src/roundtrip.py' = ['D105']
-'maptasker/src/sceneedit.py' = ['ARG001', 'D102', 'D105', 'D107', 'I001']
+'maptasker/src/sceneedit.py' = ['I001']
+# sceneedit.py's own backlog entries, following the code that has them into its two halves.
+'maptasker/src/sceneedit_legacy.py' = ['ARG001']
+'maptasker/src/sceneedit_v2.py' = ['D102', 'D105', 'D107']
 'maptasker/src/sceneview.py' = ['D102', 'D107', 'F541', 'ISC001', 'RUF001', 'SIM117']
 'maptasker/src/servicec.py' = ['D100']
 'maptasker/src/shelsort.py' = ['D100']
@@ -395,8 +402,9 @@ layers = [
     """
     getfile : guistate : guiutils : guiwins :
     guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 :
-    guiwins_firesim : guiwins_fix : guiwins_impact : guiwins_profedit :
-    guiwins_refactor : guiwins_restore : guiwins_taskedit : mapai : sceneview :
+    guiwins_firesim : guiwins_fix : guiwins_impact : guiwins_nav : guiwins_profedit :
+    guiwins_refactor : guiwins_restore : guiwins_search : guiwins_taskedit :
+    guiwins_views : mapai : sceneview :
     userintr : userintr_ai : userintr_android : userintr_editors :
     userintr_loading : userintr_reports : userintr_settings : webassets
     """,
@@ -414,7 +422,7 @@ layers = [
     maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
     firesim : parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
     profedit : profiles : proflint : proginit : projects : projedit :
-    property : roundtrip : runcfg : sceneedit : scenes : servicec :
+    property : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenes : servicec :
     sessundo : share : shelsort : sysconst : taskactn : taskedit :
     taskerd : taskervars : taskflag : taskflow : tasks : taskuniq :
     timeline : translator : twisty : userhelp : valcodes : varxref :
@@ -438,10 +446,13 @@ allowed_importers = [
     "maptasker.src.guiwins_firesim",
     "maptasker.src.guiwins_fix",
     "maptasker.src.guiwins_impact",
+    "maptasker.src.guiwins_nav",
     "maptasker.src.guiwins_profedit",
     "maptasker.src.guiwins_refactor",
     "maptasker.src.guiwins_restore",
+    "maptasker.src.guiwins_search",
     "maptasker.src.guiwins_taskedit",
+    "maptasker.src.guiwins_views",
     "maptasker.src.mapai",
     "maptasker.src.mapit",
     "maptasker.src.progargs",
