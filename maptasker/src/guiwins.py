@@ -9009,7 +9009,9 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
 
             # Extra model list checkbox with chained tooltip
             self.aimodel_extend_checkbox = (
-                ui.checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_changed)
+                ui.checkbox(
+                    translate_string("Extended"), on_change=lambda: self.event_handlers.extended_models_changed(self)
+                )
                 .tooltip(
                     translate_string(
                         "Display an extended list of ALL available models.\n\n"

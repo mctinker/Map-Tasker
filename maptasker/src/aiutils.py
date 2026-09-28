@@ -243,23 +243,13 @@ def get_gemini_models() -> list:
     if not api_key:
         return GEMINI_MODELS
 
-    # 1. Initialize the Client
-    # The Client will automatically look for your API key in the GOOGLE_API_KEY
-    # environment variable.
     try:
+        # 1. Initialize the Client
         google_lib = ensure_and_import("google.genai", "google.genai")
         if google_lib is None:
             return GEMINI_MODELS
-        # genai = google_lib.genai
         client = google_lib.Client(api_key=api_key)
-    except Exception as e:  # noqa: BLE001  google.genai installs itself on demand here,
-        # so this covers both the install and the client construction -- two third-party
-        # exception hierarchies, neither of which is worth enumerating to say "no Gemini".
-        rutroh_error(f"Error initializing client: {e}")
-        rutroh_error("\nPlease ensure your GOOGLE_API_KEY environment variable is set correctly.")
-        return GEMINI_MODELS
 
-    try:
         # 2. Get the list of models
         all_models = client.models.list()
         if not all_models:
@@ -283,9 +273,10 @@ def get_gemini_models() -> list:
             ):
                 models_to_keep.append(model_name)
                 model_count += 1
-    except Exception as e:  # noqa: BLE001  The network (a dropped connection, a proxy, an SSL
-        # failure), the google.genai SDK's own errors, or a changed response shape: any of
-        # them means the same thing here -- fall back to the built-in model list.
+    except Exception as e:  # noqa: BLE001  google.genai installs itself on demand, then goes
+        # out to the network: the install, the client, a dropped connection or SSL failure,
+        # the SDK's own errors and a changed response shape all mean the same thing here --
+        # fall back to the built-in model list.
         rutroh_error(f"An error occurred trying to list Gemini models: {e}")
         return GEMINI_MODELS
 
