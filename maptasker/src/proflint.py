@@ -136,7 +136,7 @@ _ALWAYS_ON_STATES = {
 _DIALOG_CODES = frozenset({"314", "484", "548", "550", "551", "552", "595", "903", "941"})
 
 # How an on/off/toggle argument reads.  actiont.py's "switch_set" list, which is also how
-# _switch_actions below finds every action that takes one.
+# switch_actions below finds every action that takes one.
 _SWITCH_VALUES = {"0": "Off", "1": "On", "2": "Toggle"}
 _SWITCH_LOOKUP = "switch_set"
 
@@ -330,8 +330,14 @@ def _trigger_signature(profile: dict) -> tuple[str, ...]:
 
 # ##################################################################################
 # What a Task switches on and off.
+#
+# Public, all four of switch_actions, settings_set, setting_conflicts and subject_label,
+# because firesim asks the same question of Profiles that are active AT THE SAME TIME
+# rather than of Profiles sharing a trigger -- and a second reading of "what does this Task
+# always switch" would be free to drift from this one and call a pair a collision here that
+# the Health Check calls harmless.
 # ##################################################################################
-def _switch_actions() -> dict[str, str]:
+def switch_actions() -> dict[str, str]:
     """{action code: arg id} for every action that sets something to Off / On / Toggle.
 
     Derived from the action table rather than listed here, the way healthck._scene_name_args
@@ -369,14 +375,14 @@ def _subject(action: Element, code: str, switch_arg: str) -> tuple:
     return (code, others)
 
 
-def _subject_label(subject: tuple) -> str:
+def subject_label(subject: tuple) -> str:
     """The thing being switched, as a finding names it: WiFi, or Profile Status 'Night'."""
     code, others = subject
     named = ", ".join(f"'{item}'" for item in others if item and _VARIABLE_MARKER not in item)
     return f"{_action_name(code)} {named}" if named else _action_name(code)
 
 
-def _settings_set(task_element: Element, switches: dict[str, str]) -> dict[tuple, str]:
+def settings_set(task_element: Element, switches: dict[str, str]) -> dict[tuple, str]:
     """{what this Task switches: the value it switches it to}, for the settings it always sets.
 
     Only the actions that run every time this Task runs are counted -- not one inside an
@@ -412,7 +418,7 @@ def _settings_set(task_element: Element, switches: dict[str, str]) -> dict[tuple
 # ##################################################################################
 # Profiles: conflicting triggers, and triggers that can never be met.
 # ##################################################################################
-def _conflicts(first: dict[tuple, str], second: dict[tuple, str]) -> list[tuple[tuple, str, str]]:
+def setting_conflicts(first: dict[tuple, str], second: dict[tuple, str]) -> list[tuple[tuple, str, str]]:
     """Every setting these two Tasks leave in a different state, worst-named first."""
     return sorted(
         (subject, value, second[subject]) for subject, value in first.items() if second.get(subject, value) != value
@@ -437,7 +443,7 @@ def _check_profile_conflicts(problems: list[Problem]) -> None:
     """
     profiles = PrimeItems.tasker_root_elements["all_profiles"]
     profile_owners = _project_owners("pids")
-    switches = _switch_actions()
+    switches = switch_actions()
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
 
     groups: dict[tuple[str, ...], list[str]] = defaultdict(list)
@@ -452,13 +458,13 @@ def _check_profile_conflicts(problems: list[Problem]) -> None:
         if len(members) < 2:
             continue
         settings = {
-            profile_id: _settings_set(all_tasks[entry]["xml"], switches)
+            profile_id: settings_set(all_tasks[entry]["xml"], switches)
             for profile_id in members
             if (entry := _text(profiles[profile_id]["xml"], "mid0")) in all_tasks
         }
         found = False
         for first, second in combinations(sorted(members, key=int), 2):
-            for subject, mine, theirs in _conflicts(settings.get(first, {}), settings.get(second, {})):
+            for subject, mine, theirs in setting_conflicts(settings.get(first, {}), settings.get(second, {})):
                 found = True
                 problems.append(
                     Problem(
@@ -466,7 +472,7 @@ def _check_profile_conflicts(problems: list[Problem]) -> None:
                         "PROFILE-CONFLICT",
                         _profile_target(first, profiles[first], profile_owners),
                         f"Watches the same trigger as {_profile_target(second, profiles[second], profile_owners).label}"
-                        f", and their entry Tasks disagree: this one sets {_subject_label(subject)} {mine}, the other"
+                        f", and their entry Tasks disagree: this one sets {subject_label(subject)} {mine}, the other"
                         f" sets it {theirs}.  Which of them the device is left with depends on the order Tasker"
                         " happens to run the two Profiles, which is not something you can set.",
                     ),
@@ -657,7 +663,7 @@ def _check_never_fires(problems: list[Problem]) -> None:
                         WARNING,
                         "PROFILE-NEVER-FIRES",
                         where,
-                        f"Holds {_condition_label(element)} and its exact opposite, and Tasker requires every one"
+                        f"Holds {condition_label(element)} and its exact opposite, and Tasker requires every one"
                         " of a Profile's conditions to be true together -- so this Profile can never become active."
                         "  Delete one of the pair, or split them into two Profiles.",
                     ),
@@ -673,15 +679,18 @@ def _check_never_fires(problems: list[Problem]) -> None:
                         WARNING,
                         "PROFILE-NEVER-FIRES",
                         where,
-                        f"Its {_condition_label(element)} condition {reason}, so it can never be satisfied and this"
+                        f"Its {condition_label(element)} condition {reason}, so it can never be satisfied and this"
                         " Profile can never become active.",
                     ),
                 )
                 break
 
 
-def _condition_label(element: Element) -> str:
+def condition_label(element: Element) -> str:
     """A condition as a finding names it: State 'Wifi Near', Event 'Notification', Time.
+
+    Public because firesim names the conditions it weighs, and it had better name them the
+    way the Health Check's findings about the same Profile do.
 
     Named through the action table for a State or an Event, because their <code> is a
     number the user has never seen; the other four condition kinds are named by their tag,
@@ -734,7 +743,7 @@ def _check_always_on(problems: list[Problem]) -> None:
                         WARNING,
                         "ALWAYS-ON-MONITOR",
                         where,
-                        f"Watches {_condition_label(element)}, which is not a thing Android reports when it"
+                        f"Watches {condition_label(element)}, which is not a thing Android reports when it"
                         f" changes: {cost} for as long as this Profile is enabled.  Worth keeping only if the"
                         " Profile is earning it.",
                     ),
@@ -783,7 +792,7 @@ def timeout_arguments() -> dict[str, str]:
     into the same argument this read it out of -- a second derivation of "which argument is
     the timeout" would be free to drift from this one and put a number in the wrong slot.
 
-    Derived from the action table the way _switch_actions is, so a new Tasker action with
+    Derived from the action table the way switch_actions is, so a new Tasker action with
     a timeout is covered without this module being touched.  Matched on the argument's name
     beginning "Timeout", which is how the table spells all of them -- anchored at the start
     so "Last Location If Timeout", a Boolean that decides what to do AFTER one, is not

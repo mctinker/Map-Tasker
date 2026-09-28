@@ -6,39 +6,20 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: A new __Fix Finding__ button beside 'Health Check' repairs the findings that have an obvious fix -- setting a long-running Task's collision handling, giving a blocking action a timeout, closing an 'If' or 'For' that is never closed, pointing a broken 'Goto' at a label the Task carries, and deleting a Task nothing runs.  Everything is listed with what it would change before anything happens, you tick only what you want, and however many repairs you make, the whole lot is a single Undo.
-- Added: A new __Restore From History__ button beside 'Changes Since...' brings back a Task, Profile or Scene that was deleted, or puts one back as it was before an edit, from any configuration kept in the history.  One object at a time, never a merge: each restore is previewed first, keeps names and ids from colliding with what is there now, says plainly what it leaves for you to do (such as relinking a Profile), and is a single Undo.
-- Added: The Health Check now looks inside JavaScriptlet and Run Shell actions and reports code that cannot run because a bracket, quote, string or comment is never closed.  Each finding names the line it goes wrong on and takes you to the action.
-- Added: The Debug tab has new __Display Log__ and __Clear Log__ buttons, so a notification that disappeared before you could read it can still be looked up.  The log keeps the most recent 500 notifications, each with the time it appeared and its kind (such as warning or error).
-- Added: Uninstalled Plugins...The Health Check now names every plugin your configuration uses that is not installed on the device, with a link to each place that uses it.  It checks against the app list fetched from the device, which the new __Refresh App List__ button in the Health Check panel brings up to date, and until one has been fetched the report says the plugins were not checked rather than passing them.
-- Added: The Fetch Applications dialog now lists each device's saved app list with a __Forget__ button beside it.  A phone that changes address is saved as a second device, so forgetting the old one stops apps you have since uninstalled from being offered in the pickers and counted as installed by the Health Check.
+- Added: A new __What Fires When?__ button lets you pick a moment -- date and time, Wi-Fi network, app in front and battery level -- and shows which Profiles would be active, the order their Tasks would start in, and where they collide, such as two Profiles setting Wi-Fi opposite ways or one Task started twice.  Anything the inputs do not describe, such as an Event or a location, is shown as possible along with what it is waiting on, rather than guessed at.
+- Added:
 
 ### Changed
 
-- Changed: 'Display Help' now describes the commands it had fallen behind on: Changes Since, Restore From History, Refactor, Run On Android, Add/Edit Properties, the Save To Android choices, Ask AI and Replace in the Find/Replace window, Export, and the Diagram's zoom, fold and Rebuild controls.
-- Changed: The 'Fix Findings' button now sits beside 'Health Check' on the same row, since it acts on the findings that report produces.  Both buttons show their icon above the label so each label fits on one line.
-- Changed: AutoTools, AutoInput, Join and Home Assistant actions and conditions now show their settings in the Map as labelled values, rather than as a line of raw JSON or number codes, and without repeating what the plugin's own summary already says.  The Task and Profile editors also show what a plugin is set up to do in its read-only settings box, which used to be blank.
-- Changed: Reports, view exports, standalone exports and the Map/Diagram files are now all written to one folder -- a 'MapTasker' folder in your Documents by default -- instead of whichever folder MapTasker was started from.  Choose a different one with the new __Output Folder__ setting in the settings drawer (or '-outdir' on the command line), and each "saved as" message now shows the full path.
+- Changed:
 
 ### Removed
 
-- Removed: 'claude-3-5-haiku-latest' AI model is no longer offered, because Anthropic has retired it and every request to it failed.
+- Removed:
 
 ### Fixed
 
-- Fixed: The logo and screenshots on the MapTasker page at GitHub display again.  The images had dropped out of the repository, so every one of them showed as a broken image.
-- Fixed: When the chosen AI model turns out not to support chat, AI analysis is now switched off as intended.  The setting was misspelled at that point, so the switch-off was stored where nothing read it.
-- Fixed: The runtime settings listed at the top of the Map now show the values of 'AI Model Extended List', 'Close Tabs on Exit' and 'Open View In New Window' instead of 'Error...not found!'.
-- Fixed: The Map no longer shrinks everything that follows a TaskerNet description or Task label that leaves small text or a table unclosed.  Whatever the author left open is now closed inside the description's box, so the rest of the Map keeps its normal font size and layout.
-- Fixed: 'Analyze' with a current Claude model (such as Claude Fable 5 or Claude Opus 5) now returns the analysis instead of an error, and long analyses are no longer cut short.  The Find dialog's 'Ask' also leaves Claude room to finish its answer, so it no longer fails with 'did not reply with a search' on larger configurations.
-- Fixed: The 'Extended' checkbox on the AI Analysis panel now ticks as soon as it is clicked, and the rest of the window stays usable while the extended list of models is fetched.  The window used to freeze for several seconds with the box still unticked, so it looked as if it could not be checked, and a second click switched it back off.
-- Fixed: 'Run Analysis' now sends the AI model the Project, Profile, Task or Scene you selected.  It was sending only the prompt, so the model replied that no Tasker data had come through.
-- Fixed: A global variable read only by a JavaScriptlet, through global('Name'), is no longer reported as never read, and one set only through setGlobal() is no longer reported as never set.  The Variables report now also lists a script as a place a variable is read or set.
-- Fixed: Claude Fable 5.1 in the AI model list now works.  It was listed as 'claude-fable-5.1' rather than 'claude-fable-5-1', a name Anthropic does not recognize, so every analysis with it failed.
-- Fixed: Switching between the default and extended AI model lists no longer blanks the model you had chosen, as long as that model is in the new list.
-- Fixed: The 'Prompt:' line on the AI Analysis tab shows the current prompt again, instead of an empty '' that also kept 'Run Analysis' red.  A blank prompt saved in your settings now falls back to the default, and 'Change Prompt' no longer accepts an empty one.
-- Fixed: Starting MapTasker with the 'Extended' AI model list saved as on no longer installs the OpenAI and Google AI packages and contacts every AI provider before you have asked for AI at all.  The extended list is now fetched only when you tick the box yourself.
-- Fixed: A network problem while fetching the extended list of Gemini models, such as a dropped or blocked connection, no longer ends in a long error trace.  MapTasker notes the error and offers its built-in list of Gemini models instead.
+- Fixed:
 
 ### Known Issues
 
@@ -57,6 +38,32 @@ For each PID listed in the output from the above terminal command, issue the fol
 
 
 ## Older History Logs
+
+## [14.1.0] 28-Sep-2026
+- Added: A new __Fix Finding__ button beside 'Health Check' repairs the findings that have an obvious fix -- setting a long-running Task's collision handling, giving a blocking action a timeout, closing an 'If' or 'For' that is never closed, pointing a broken 'Goto' at a label the Task carries, and deleting a Task nothing runs.  Everything is listed with what it would change before anything happens, you tick only what you want, and however many repairs you make, the whole lot is a single Undo.
+- Added: A new __Restore From History__ button beside 'Changes Since...' brings back a Task, Profile or Scene that was deleted, or puts one back as it was before an edit, from any configuration kept in the history.  One object at a time, never a merge: each restore is previewed first, keeps names and ids from colliding with what is there now, says plainly what it leaves for you to do (such as relinking a Profile), and is a single Undo.
+- Added: The Health Check now looks inside JavaScriptlet and Run Shell actions and reports code that cannot run because a bracket, quote, string or comment is never closed.  Each finding names the line it goes wrong on and takes you to the action.
+- Added: The Debug tab has new __Display Log__ and __Clear Log__ buttons, so a notification that disappeared before you could read it can still be looked up.  The log keeps the most recent 500 notifications, each with the time it appeared and its kind (such as warning or error).
+- Added: Uninstalled Plugins...The Health Check now names every plugin your configuration uses that is not installed on the device, with a link to each place that uses it.  It checks against the app list fetched from the device, which the new __Refresh App List__ button in the Health Check panel brings up to date, and until one has been fetched the report says the plugins were not checked rather than passing them.
+- Added: The Fetch Applications dialog now lists each device's saved app list with a __Forget__ button beside it.  A phone that changes address is saved as a second device, so forgetting the old one stops apps you have since uninstalled from being offered in the pickers and counted as installed by the Health Check.
+- Changed: 'Display Help' now describes the commands it had fallen behind on: Changes Since, Restore From History, Refactor, Run On Android, Add/Edit Properties, the Save To Android choices, Ask AI and Replace in the Find/Replace window, Export, and the Diagram's zoom, fold and Rebuild controls.
+- Changed: The 'Fix Findings' button now sits beside 'Health Check' on the same row, since it acts on the findings that report produces.  Both buttons show their icon above the label so each label fits on one line.
+- Changed: AutoTools, AutoInput, Join and Home Assistant actions and conditions now show their settings in the Map as labelled values, rather than as a line of raw JSON or number codes, and without repeating what the plugin's own summary already says.  The Task and Profile editors also show what a plugin is set up to do in its read-only settings box, which used to be blank.
+- Changed: Reports, view exports, standalone exports and the Map/Diagram files are now all written to one folder -- a 'MapTasker' folder in your Documents by default -- instead of whichever folder MapTasker was started from.  Choose a different one with the new __Output Folder__ setting in the settings drawer (or '-outdir' on the command line), and each "saved as" message now shows the full path.
+- Removed: 'claude-3-5-haiku-latest' AI model is no longer offered, because Anthropic has retired it and every request to it failed.
+- Fixed: The logo and screenshots on the MapTasker page at GitHub display again.  The images had dropped out of the repository, so every one of them showed as a broken image.
+- Fixed: When the chosen AI model turns out not to support chat, AI analysis is now switched off as intended.  The setting was misspelled at that point, so the switch-off was stored where nothing read it.
+- Fixed: The runtime settings listed at the top of the Map now show the values of 'AI Model Extended List', 'Close Tabs on Exit' and 'Open View In New Window' instead of 'Error...not found!'.
+- Fixed: The Map no longer shrinks everything that follows a TaskerNet description or Task label that leaves small text or a table unclosed.  Whatever the author left open is now closed inside the description's box, so the rest of the Map keeps its normal font size and layout.
+- Fixed: 'Analyze' with a current Claude model (such as Claude Fable 5 or Claude Opus 5) now returns the analysis instead of an error, and long analyses are no longer cut short.  The Find dialog's 'Ask' also leaves Claude room to finish its answer, so it no longer fails with 'did not reply with a search' on larger configurations.
+- Fixed: The 'Extended' checkbox on the AI Analysis panel now ticks as soon as it is clicked, and the rest of the window stays usable while the extended list of models is fetched.  The window used to freeze for several seconds with the box still unticked, so it looked as if it could not be checked, and a second click switched it back off.
+- Fixed: 'Run Analysis' now sends the AI model the Project, Profile, Task or Scene you selected.  It was sending only the prompt, so the model replied that no Tasker data had come through.
+- Fixed: A global variable read only by a JavaScriptlet, through global('Name'), is no longer reported as never read, and one set only through setGlobal() is no longer reported as never set.  The Variables report now also lists a script as a place a variable is read or set.
+- Fixed: Claude Fable 5.1 in the AI model list now works.  It was listed as 'claude-fable-5.1' rather than 'claude-fable-5-1', a name Anthropic does not recognize, so every analysis with it failed.
+- Fixed: Switching between the default and extended AI model lists no longer blanks the model you had chosen, as long as that model is in the new list.
+- Fixed: The 'Prompt:' line on the AI Analysis tab shows the current prompt again, instead of an empty '' that also kept 'Run Analysis' red.  A blank prompt saved in your settings now falls back to the default, and 'Change Prompt' no longer accepts an empty one.
+- Fixed: Starting MapTasker with the 'Extended' AI model list saved as on no longer installs the OpenAI and Google AI packages and contacts every AI provider before you have asked for AI at all.  The extended list is now fetched only when you tick the box yourself.
+- Fixed: A network problem while fetching the extended list of Gemini models, such as a dropped or blocked connection, no longer ends in a long error trace.  MapTasker notes the error and offers its built-in list of Gemini models instead.
 
 ## [14.0.5] 22-Sep-2026
 

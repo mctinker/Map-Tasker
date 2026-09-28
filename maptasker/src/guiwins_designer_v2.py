@@ -710,31 +710,6 @@ def _build_v2_designer(
     """
     # The dict every edit lands in, and the one _apply_scene_field_values re-encodes.
     field_refs["v2_layout"] = layout
-    # What is selected: a *run* of adjacent siblings, as the path of its first component and
-    # how many of them there are.  One component is the run of one, so nothing here has a
-    # single-selection case to special-case.
-    #
-    # The invariant, which sceneedit.v2_selection_run is what enforces: every component in a
-    # run shares a parent and a slot, and their indices are consecutive.  That is what makes
-    # a run something a single splice can move, and a selection reaching across two parents
-    # something no drag could carry out -- so one is never allowed to exist.
-    selection: dict = {"path": (), "count": 1}
-    # Snapshots taken before each structural edit. Deep copies of the whole tree, which is
-    # affordable at this size (the largest Scene in this repo's backup is 13 components)
-    # and far simpler than modelling an inverse for every operation.
-    history: list[dict] = []
-    scene_name = edited_scene.scene_name
-    # Whether the Modifiers / Event handlers sections are open, kept out here because the
-    # inspector is rebuilt on every edit -- without this, adding a modifier would collapse
-    # the very section you are working in, and adding two in a row would mean re-opening it
-    # each time.
-    expanded = {"modifiers": False, "handlers": False}
-    # The tree's rendered rows, path -> (label widget, depth), rebuilt by render_tree.  Held
-    # so retitle_node_labels can reach the selected row's label without a full re-render.
-    tree_rows: dict[tuple, tuple] = {}
-    # The inspector's own heading for the selected component, held for the same reason.
-    inspector_heading: dict = {"label": None}
-
     if not sceneedit.v2_flatten(layout):
         # No root component at all -- not something Tasker writes, and there is nothing for
         # the tree to hang off, so say so rather than showing an empty designer.
@@ -743,42 +718,82 @@ def _build_v2_designer(
         ).classes("text-sm text-orange-600 mt-2")
         return
 
-    _register_canvas_events()
-    # This designer's own reorder surface -- unique for the reason _ACTIVE_CANVASES gives:
-    # ui.on subscribes app-wide, and the Preview is a second surface over this same layout.
-    tree_root = f"mt-v2-tree-{next(_DESIGNER_SEQUENCE)}"
+    _V2Designer(edited_scene, field_refs, layout).render()
 
-    header = ui.row().classes("w-full items-center gap-2 mt-2")
-    with ui.row().classes("w-full gap-3 items-start no-wrap mt-1"):
-        tree_pane = ui.column().classes(f"{tree_root} w-2/5 gap-0 p-2 border rounded max-h-80 overflow-auto")
-        inspector_pane = ui.column().classes("w-3/5 gap-2 p-2 border rounded max-h-80 overflow-auto")
-    toolbar = ui.row().classes("w-full gap-1 items-center mt-1 flex-wrap")
 
-    def snapshot() -> None:
-        history.append(copy.deepcopy(layout))
+class _V2Designer:
+    """The Version 2 Scene designer's state and panes -- see _build_v2_designer.
 
-    def restore() -> None:
-        if not history:
+    Every pane is rebuilt by render() on every change, so what is held here is only what has
+    to outlive a rebuild: the layout, the selection, the undo stack and the panes themselves.
+    """
+
+    def __init__(self, edited_scene: sceneedit.EditableScene, field_refs: dict, layout: dict) -> None:
+        self.field_refs = field_refs
+        self.layout = layout
+        # What is selected: a *run* of adjacent siblings, as the path of its first component and
+        # how many of them there are.  One component is the run of one, so nothing here has a
+        # single-selection case to special-case.
+        #
+        # The invariant, which sceneedit.v2_selection_run is what enforces: every component in a
+        # run shares a parent and a slot, and their indices are consecutive.  That is what makes
+        # a run something a single splice can move, and a selection reaching across two parents
+        # something no drag could carry out -- so one is never allowed to exist.
+        self.selection: dict = {"path": (), "count": 1}
+        # Snapshots taken before each structural edit. Deep copies of the whole tree, which is
+        # affordable at this size (the largest Scene in this repo's backup is 13 components)
+        # and far simpler than modelling an inverse for every operation.
+        self.history: list[dict] = []
+        self.scene_name = edited_scene.scene_name
+        # Whether the Modifiers / Event handlers sections are open, kept on the designer because the
+        # inspector is rebuilt on every edit -- without this, adding a modifier would collapse
+        # the very section you are working in, and adding two in a row would mean re-opening it
+        # each time.
+        self.expanded = {"modifiers": False, "handlers": False}
+        # The tree's rendered rows, path -> (label widget, depth), rebuilt by render_tree.  Held
+        # so retitle_node_labels can reach the selected row's label without a full re-render.
+        self.tree_rows: dict[tuple, tuple] = {}
+        # The inspector's own heading for the selected component, held for the same reason.
+        self.inspector_heading: dict = {"label": None}
+
+        _register_canvas_events()
+        # This designer's own reorder surface -- unique for the reason _ACTIVE_CANVASES gives:
+        # ui.on subscribes app-wide, and the Preview is a second surface over this same layout.
+        self.tree_root = f"mt-v2-tree-{next(_DESIGNER_SEQUENCE)}"
+
+        self.header = ui.row().classes("w-full items-center gap-2 mt-2")
+        with ui.row().classes("w-full gap-3 items-start no-wrap mt-1"):
+            self.tree_pane = ui.column().classes(
+                f"{self.tree_root} w-2/5 gap-0 p-2 border rounded max-h-80 overflow-auto"
+            )
+            self.inspector_pane = ui.column().classes("w-3/5 gap-2 p-2 border rounded max-h-80 overflow-auto")
+        self.toolbar = ui.row().classes("w-full gap-1 items-center mt-1 flex-wrap")
+
+    def snapshot(self) -> None:
+        self.history.append(copy.deepcopy(self.layout))
+
+    def restore(self) -> None:
+        if not self.history:
             return
-        previous = history.pop()
+        previous = self.history.pop()
         # Replace the contents rather than rebinding: field_refs and the save path hold
         # *this* dict object, so swapping in a new one would leave them on the old tree.
-        layout.clear()
-        layout.update(previous)
-        if not sceneedit.v2_run_is_valid(layout, selection["path"], selection["count"]):
-            select_only(())
-        render()
+        self.layout.clear()
+        self.layout.update(previous)
+        if not sceneedit.v2_run_is_valid(self.layout, self.selection["path"], self.selection["count"]):
+            self.select_only(())
+        self.render()
 
-    def select_only(path: tuple, count: int = 1) -> None:
+    def select_only(self, path: tuple, count: int = 1) -> None:
         """Set the selection without re-rendering -- for the callers that render anyway."""
-        selection["path"] = path
-        selection["count"] = max(1, count)
+        self.selection["path"] = path
+        self.selection["count"] = max(1, count)
 
-    def select(path: tuple, count: int = 1) -> None:
-        select_only(path, count)
-        render()
+    def select(self, path: tuple, count: int = 1) -> None:
+        self.select_only(path, count)
+        self.render()
 
-    def select_from_surface(payload: dict) -> None:
+    def select_from_surface(self, payload: dict) -> None:
         """A click on a tree row or on a component in the Preview.
 
         Shift extends the selection into a run, but only where a run is a thing that could
@@ -787,42 +802,44 @@ def _build_v2_designer(
         selecting it is the reading that gives them something.
         """
         path = sceneview.v2_decode_path(str(payload.get("path", "")))
-        if sceneedit.v2_node_at(layout, path) is None:
+        if sceneedit.v2_node_at(self.layout, path) is None:
             return
         if payload.get("extend"):
-            run = sceneedit.v2_selection_run(layout, selection["path"], path)
+            run = sceneedit.v2_selection_run(self.layout, self.selection["path"], path)
             if run is not None:
-                select(*run)
+                self.select(*run)
                 return
-        select(path)
+        self.select(path)
 
-    def reorder_from_surface(payload: dict) -> None:
+    def reorder_from_surface(self, payload: dict) -> None:
         """A run dropped in one of the gaps between its siblings, from either surface."""
         path = sceneview.v2_decode_path(str(payload.get("path", "")))
         count = max(1, int(payload.get("count", 1) or 1))
-        if not sceneedit.v2_run_is_valid(layout, path, count):
+        if not sceneedit.v2_run_is_valid(self.layout, path, count):
             return
-        snapshot()
-        new_path = sceneedit.v2_drop_run(layout, path, count, int(payload.get("before", 0) or 0))
+        self.snapshot()
+        new_path = sceneedit.v2_drop_run(self.layout, path, count, int(payload.get("before", 0) or 0))
         if new_path is None:
             # The drop landed where the run already was.  Nothing was changed and nothing is
             # said about it -- putting something back where it came from is a thing users do
             # on purpose, not a failed operation.
-            history.pop()
-            select(path, count)
+            self.history.pop()
+            self.select(path, count)
             return
-        select(new_path, count)
+        self.select(new_path, count)
 
-    def add_component(node_type: str) -> None:
-        snapshot()
-        new_path = sceneedit.v2_insert_node(layout, selection["path"], sceneedit.v2_new_node(layout, node_type))
+    def add_component(self, node_type: str) -> None:
+        self.snapshot()
+        new_path = sceneedit.v2_insert_node(
+            self.layout, self.selection["path"], sceneedit.v2_new_node(self.layout, node_type)
+        )
         if new_path is None:
-            history.pop()
+            self.history.pop()
             ui.notify(translate_string("That component can't go there."), type="warning")
             return
-        select(new_path)
+        self.select(new_path)
 
-    def structural(operation: Callable[[], tuple | None], failure: str, count: int = 1) -> None:
+    def structural(self, operation: Callable[[], tuple | None], failure: str, count: int = 1) -> None:
         """Run a move/duplicate that returns a new path, keeping the moved component
         selected -- so a run of Move Up clicks walks one component up the tree instead of
         losing it after the first.
@@ -830,22 +847,22 @@ def _build_v2_designer(
         `count` is what to re-select: the whole run for the operations that move one (Up and
         Down), one component for those that do not.
         """
-        snapshot()
+        self.snapshot()
         new_path = operation()
         if new_path is None:
-            history.pop()
+            self.history.pop()
             ui.notify(translate_string(failure), type="warning")
             return
-        select(new_path, count)
+        self.select(new_path, count)
 
-    def delete_selected() -> None:
-        node = sceneedit.v2_node_at(layout, selection["path"])
+    def delete_selected(self) -> None:
+        node = sceneedit.v2_node_at(self.layout, self.selection["path"])
         node_id = (node or {}).get("id", "")
-        references = sceneedit.find_component_id_references(scene_name, node_id)
-        snapshot()
-        errors = sceneedit.v2_delete_node(layout, selection["path"])
+        references = sceneedit.find_component_id_references(self.scene_name, node_id)
+        self.snapshot()
+        errors = sceneedit.v2_delete_node(self.layout, self.selection["path"])
         if errors:
-            history.pop()
+            self.history.pop()
             for error in errors:
                 ui.notify(error, type="negative")
             return
@@ -858,18 +875,18 @@ def _build_v2_designer(
                 multi_line=True,
                 timeout=10000,
             )
-        select_only(())
-        render()
+        self.select_only(())
+        self.render()
 
-    def render_tree() -> None:
-        tree_rows.clear()
-        rows = sceneedit.v2_flatten(layout)
+    def render_tree(self) -> None:
+        self.tree_rows.clear()
+        rows = sceneedit.v2_flatten(self.layout)
         # How many components share each slot, which is the number of gaps a drop can aim at.
         # Counted off the flattened tree rather than looked up per row: every sibling is a row
         # here, and rows that are siblings are exactly the rows whose paths agree but for
         # their last element.
         siblings = collections.Counter(row.path[:-1] for row in rows if row.path)
-        selected = sceneedit.v2_run_paths(selection["path"], selection["count"])
+        selected = sceneedit.v2_run_paths(self.selection["path"], self.selection["count"])
         for row in rows:
             classes = "mt-v2-row text-sm font-mono whitespace-pre cursor-pointer rounded px-1 py-0.5 w-full"
             classes += (
@@ -880,24 +897,24 @@ def _build_v2_designer(
             label = (
                 ui.label(f"{'  ' * row.depth}{row.label}")
                 .classes(classes)
-                .on("click", lambda _e=None, path=row.path: select(path))
+                .on("click", lambda _e=None, path=row.path: self.select(path))
             )
             # The same two attributes the Preview's components carry, so one script drags
             # both -- where this row sits, and how many gaps its slot has to drop into.
             label.props(
                 f'data-path="{sceneview.v2_encode_path(row.path)}" data-sibs="{siblings.get(row.path[:-1], 0)}"',
             )
-            tree_rows[row.path] = (label, row.depth)
-        tree_pane.props(_v2_selection_props(selection))
+            self.tree_rows[row.path] = (label, row.depth)
+        self.tree_pane.props(_v2_selection_props(self.selection))
         _emit_v2_dragging(
-            tree_root,
-            f".{tree_root}",
+            self.tree_root,
+            f".{self.tree_root}",
             "mt-v2-row",
             # The rows select themselves through NiceGUI; see guiwins_canvas._emit_v2_dragging.
             select_on_click=False,
         )
 
-    def retitle_node_labels(node: dict) -> None:
+    def retitle_node_labels(self, node: dict) -> None:
         """Keep both places a component is named by -- its tree row and the inspector's own
         heading -- reading correctly as its Tree label is typed.  Both, because they show the
         same v2_node_label and would otherwise disagree with each other until the next
@@ -906,17 +923,17 @@ def _build_v2_designer(
         A no-op for any other dict prop_input is editing: a modifier or an action can carry a
         treeLabel key of its own and names nothing in the tree.
         """
-        if node is not sceneedit.v2_node_at(layout, selection["path"]):
+        if node is not sceneedit.v2_node_at(self.layout, self.selection["path"]):
             return
         text = sceneedit.v2_node_label(node)
-        row = tree_rows.get(selection["path"])
+        row = self.tree_rows.get(self.selection["path"])
         if row is not None:
             label, depth = row
             label.set_text(f"{'  ' * depth}{text}")
-        if inspector_heading.get("label") is not None:
-            inspector_heading["label"].set_text(text)
+        if self.inspector_heading.get("label") is not None:
+            self.inspector_heading["label"].set_text(text)
 
-    def prop_input(item: dict, prop: sceneedit.V2Prop) -> None:
+    def prop_input(self, item: dict, prop: sceneedit.V2Prop) -> None:
         """One editable field for any dict the designer edits -- a component, a modifier,
         an event or an action.  They all store scalars under named keys, so they all get
         the same handful of widget kinds and the same write-through to sceneedit.v2_set_prop.
@@ -993,17 +1010,17 @@ def _build_v2_designer(
             # .on("blur") handler here, so the row would simply sit stale until the next click.
             names_node = prop.key in ("treeLabel", sceneedit.V2_LABEL_FALLBACK.get(str(item.get("type", "")), ""))
             if names_node:
-                text_input.on_value_change(lambda _e=None, d=item: retitle_node_labels(d))
+                text_input.on_value_change(lambda _e=None, d=item: self.retitle_node_labels(d))
 
-    def structural_edit(mutate: Callable[[], object]) -> None:
+    def structural_edit(self, mutate: Callable[[], object]) -> None:
         """Snapshot, mutate, re-render -- the wrapper every add/remove/reorder inside the
         inspector goes through, so all of them land on the same undo stack as the tree's.
         """
-        snapshot()
+        self.snapshot()
         mutate()
-        render()
+        self.render()
 
-    def render_binding(node: dict) -> None:
+    def render_binding(self, node: dict) -> None:
         slot = sceneedit.v2_binding_slot(node)
         if slot is None:
             return
@@ -1022,13 +1039,13 @@ def _build_v2_designer(
             ),
         )
 
-    def render_modifiers(node: dict) -> None:
+    def render_modifiers(self, node: dict) -> None:
         modifiers = sceneedit.v2_modifiers(node)
         with ui.expansion(
             f"{translate_string('Modifiers')} ({len(modifiers)})",
             icon="tune",
-            value=expanded["modifiers"],
-            on_value_change=lambda e: expanded.__setitem__("modifiers", bool(e.value)),
+            value=self.expanded["modifiers"],
+            on_value_change=lambda e: self.expanded.__setitem__("modifiers", bool(e.value)),
         ).classes("w-full mt-2"):
             ui.label(
                 translate_string("Applied in order — the one at the bottom sits on top."),
@@ -1040,19 +1057,19 @@ def _build_v2_designer(
                         ui.space()
                         ui.button(
                             icon="arrow_upward",
-                            on_click=lambda _e=None, i=index: structural_edit(
+                            on_click=lambda _e=None, i=index: self.structural_edit(
                                 lambda: sceneedit.v2_move_modifier(node, i, -1),
                             ),
                         ).props("dense flat size=sm")
                         ui.button(
                             icon="arrow_downward",
-                            on_click=lambda _e=None, i=index: structural_edit(
+                            on_click=lambda _e=None, i=index: self.structural_edit(
                                 lambda: sceneedit.v2_move_modifier(node, i, 1),
                             ),
                         ).props("dense flat size=sm")
                         ui.button(
                             icon="close",
-                            on_click=lambda _e=None, i=index: structural_edit(
+                            on_click=lambda _e=None, i=index: self.structural_edit(
                                 lambda: sceneedit.v2_delete_modifier(node, i),
                             ),
                         ).props("dense flat size=sm color=negative")
@@ -1061,24 +1078,24 @@ def _build_v2_designer(
                         modifier,
                         sceneedit.V2_MODIFIER_UNIVERSAL_PROPS,
                     ):
-                        prop_input(modifier, prop)
+                        self.prop_input(modifier, prop)
             add_modifier = ui.button(translate_string("Add modifier"), icon="add").props("dense flat")
             with add_modifier, ui.menu():
                 for modifier_type in sceneedit.V2_MODIFIER_SCHEMA:
                     ui.menu_item(
                         modifier_type,
-                        on_click=lambda _e=None, t=modifier_type: structural_edit(
+                        on_click=lambda _e=None, t=modifier_type: self.structural_edit(
                             lambda: sceneedit.v2_add_modifier(node, t),
                         ),
                     ).props("dense")
 
-    def render_handlers(node: dict) -> None:
+    def render_handlers(self, node: dict) -> None:
         handlers = sceneedit.v2_handlers(node)
         with ui.expansion(
             f"{translate_string('Event handlers')} ({len(handlers)})",
             icon="bolt",
-            value=expanded["handlers"],
-            on_value_change=lambda e: expanded.__setitem__("handlers", bool(e.value)),
+            value=self.expanded["handlers"],
+            on_value_change=lambda e: self.expanded.__setitem__("handlers", bool(e.value)),
         ).classes("w-full mt-1"):
             for index, handler in enumerate(handlers):
                 events = handler.get("events") or []
@@ -1090,13 +1107,13 @@ def _build_v2_designer(
                         ui.space()
                         ui.button(
                             icon="close",
-                            on_click=lambda _e=None, i=index: structural_edit(
+                            on_click=lambda _e=None, i=index: self.structural_edit(
                                 lambda: sceneedit.v2_delete_handler(node, i),
                             ),
                         ).props("dense flat size=sm color=negative")
                     for event in events:
                         for prop in sceneedit.v2_schema_props(sceneedit.V2_EVENT_SCHEMA, event):
-                            prop_input(event, prop)
+                            self.prop_input(event, prop)
                     # A handler-level condition gates the whole thing; the 'V2' Scene uses
                     # one to run only in portrait.
                     ui.input(
@@ -1115,31 +1132,31 @@ def _build_v2_designer(
                             ui.space()
                             ui.button(
                                 icon="arrow_upward",
-                                on_click=lambda _e=None, h=handler, a=action_index: structural_edit(
+                                on_click=lambda _e=None, h=handler, a=action_index: self.structural_edit(
                                     lambda: sceneedit.v2_move_action(h, a, -1),
                                 ),
                             ).props("dense flat size=sm")
                             ui.button(
                                 icon="arrow_downward",
-                                on_click=lambda _e=None, h=handler, a=action_index: structural_edit(
+                                on_click=lambda _e=None, h=handler, a=action_index: self.structural_edit(
                                     lambda: sceneedit.v2_move_action(h, a, 1),
                                 ),
                             ).props("dense flat size=sm")
                             ui.button(
                                 icon="close",
-                                on_click=lambda _e=None, h=handler, a=action_index: structural_edit(
+                                on_click=lambda _e=None, h=handler, a=action_index: self.structural_edit(
                                     lambda: sceneedit.v2_delete_action(h, a),
                                 ),
                             ).props("dense flat size=sm color=negative")
                         for prop in sceneedit.v2_schema_props(sceneedit.V2_ACTION_SCHEMA, action):
-                            prop_input(action, prop)
+                            self.prop_input(action, prop)
 
                     add_action = ui.button(translate_string("Add action"), icon="add").props("dense flat size=sm")
                     with add_action, ui.menu():
                         for action_type in sceneedit.V2_ACTION_TYPES:
                             ui.menu_item(
                                 action_type,
-                                on_click=lambda _e=None, h=handler, t=action_type: structural_edit(
+                                on_click=lambda _e=None, h=handler, t=action_type: self.structural_edit(
                                     lambda: sceneedit.v2_add_action(h, t),
                                 ),
                             ).props("dense")
@@ -1149,12 +1166,12 @@ def _build_v2_designer(
                 for event_type in sceneedit.V2_EVENT_TYPES:
                     ui.menu_item(
                         event_type,
-                        on_click=lambda _e=None, t=event_type: structural_edit(
+                        on_click=lambda _e=None, t=event_type: self.structural_edit(
                             lambda: sceneedit.v2_add_handler(node, t),
                         ),
                     ).props("dense")
 
-    def render_prop(node: dict, prop: sceneedit.V2Prop) -> None:
+    def render_prop(self, node: dict, prop: sceneedit.V2Prop) -> None:
         """One property of the selected component.
 
         Everything goes through prop_input except the component's own id, which is applied by
@@ -1163,19 +1180,19 @@ def _build_v2_designer(
         from a nested key that merely happens to be called "id".
         """
         if prop.key != "id" or prop.container:
-            prop_input(node, prop)
+            self.prop_input(node, prop)
             return
 
         value = node.get(prop.key, "")
         id_input = ui.input(translate_string(prop.label), value=str(value)).props("dense").classes("w-full")
-        id_input.on("blur", lambda _e=None, w=id_input, p=selection["path"]: rename_id(p, w))
-        references = sceneedit.find_component_id_references(scene_name, str(value))
+        id_input.on("blur", lambda _e=None, w=id_input, p=self.selection["path"]: self.rename_id(p, w))
+        references = sceneedit.find_component_id_references(self.scene_name, str(value))
         if references:
             ui.label(
                 f"{translate_string('Addressed by id from')}: {', '.join(references)}",
             ).classes("text-xs text-orange-600 italic")
 
-    def render_category(node: dict, name: str, props: list) -> None:
+    def render_category(self, node: dict, name: str, props: list) -> None:
         """One named section of the property sheet, for the types that have them.
 
         Open/closed is remembered in `expanded` for the same reason the Modifiers section's is:
@@ -1197,14 +1214,14 @@ def _build_v2_designer(
         closed.
         """
         key = f"category:{name}"
-        expanded.setdefault(key, name in sceneedit.V2_OPEN_CATEGORIES)
+        self.expanded.setdefault(key, name in sceneedit.V2_OPEN_CATEGORIES)
 
         def caption() -> str:
             filled = sum(1 for prop in props if str(sceneedit.v2_prop_dict(node, prop).get(prop.key, "")) != "")
             return f"{filled}/{len(props)}"
 
         def toggled(value: object) -> None:
-            expanded[key] = bool(value)
+            self.expanded[key] = bool(value)
             section.props(f'caption="{caption()}"')
 
         section = (
@@ -1212,7 +1229,7 @@ def _build_v2_designer(
                 translate_string(name),
                 icon=_V2_CATEGORY_ICONS.get(name, "tune"),
                 caption=caption(),
-                value=expanded[key],
+                value=self.expanded[key],
                 on_value_change=lambda e: toggled(e.value),
             )
             .props("dense")
@@ -1220,55 +1237,55 @@ def _build_v2_designer(
         )
         with section, ui.column().classes("w-full gap-2 pb-2"):
             for prop in props:
-                render_prop(node, prop)
+                self.render_prop(node, prop)
 
-    def render_inspector() -> None:
-        node = sceneedit.v2_node_at(layout, selection["path"])
+    def render_inspector(self) -> None:
+        node = sceneedit.v2_node_at(self.layout, self.selection["path"])
         if node is None:
             ui.label(translate_string("Select a component on the left.")).classes("text-sm italic text-gray-500")
             return
 
-        inspector_heading["label"] = ui.label(sceneedit.v2_node_label(node)).classes(
+        self.inspector_heading["label"] = ui.label(sceneedit.v2_node_label(node)).classes(
             "text-sm font-semibold font-mono",
         )
         for name, props in sceneedit.v2_property_groups(node):
             if not name:
                 # The flat list every type but Text still gets -- see v2_property_groups.
                 for prop in props:
-                    render_prop(node, prop)
+                    self.render_prop(node, prop)
                 continue
-            render_category(node, name, props)
+            self.render_category(node, name, props)
 
-        render_binding(node)
-        render_modifiers(node)
-        render_handlers(node)
+        self.render_binding(node)
+        self.render_modifiers(node)
+        self.render_handlers(node)
 
-    def rename_id(path: tuple, widget: ui.input) -> None:
+    def rename_id(self, path: tuple, widget: ui.input) -> None:
         """Applies the id field on blur rather than on every keystroke -- a partially-typed
         id would otherwise be checked for uniqueness mid-word and rejected for colliding
         with itself.
         """
-        node = sceneedit.v2_node_at(layout, path)
+        node = sceneedit.v2_node_at(self.layout, path)
         if node is None or str(widget.value).strip() == node.get("id", ""):
             return
-        snapshot()
-        errors = sceneedit.v2_rename_id(layout, path, str(widget.value))
+        self.snapshot()
+        errors = sceneedit.v2_rename_id(self.layout, path, str(widget.value))
         if errors:
-            history.pop()
+            self.history.pop()
             for error in errors:
                 ui.notify(error, type="negative")
             widget.value = node.get("id", "")
             return
-        render()
+        self.render()
 
-    def render_header() -> None:
-        rows = sceneedit.v2_flatten(layout)
+    def render_header(self) -> None:
+        rows = sceneedit.v2_flatten(self.layout)
         ui.label(f"{translate_string('Scene Components')} ({len(rows)})").classes("text-sm font-semibold")
         ui.space()
         add_button = ui.button(
             translate_string("Add"),
             icon="add",
-            on_click=lambda: _build_add_element_dialog(layout, selection["path"], add_component),
+            on_click=lambda: _build_add_element_dialog(self.layout, self.selection["path"], self.add_component),
         ).props("dense flat")
         with add_button:
             ui.tooltip(
@@ -1276,11 +1293,11 @@ def _build_v2_designer(
                     "Adds inside the selected component if it can hold children, otherwise directly after it.",
                 ),
             )
-        ui.button(translate_string("Undo"), icon="undo", on_click=restore).props("dense flat").set_enabled(
-            bool(history),
+        ui.button(translate_string("Undo"), icon="undo", on_click=self.restore).props("dense flat").set_enabled(
+            bool(self.history),
         )
 
-    def render_toolbar() -> None:
+    def render_toolbar(self) -> None:
         """The structural operations.
 
         Up and Down move the whole selected run; everything else is a one-component
@@ -1288,38 +1305,38 @@ def _build_v2_designer(
         the first of them.  Deleting three highlighted components and keeping two is the kind
         of surprise an Undo does not really undo.
         """
-        node = sceneedit.v2_node_at(layout, selection["path"])
-        is_root = not selection["path"]
-        run = selection["count"]
+        node = sceneedit.v2_node_at(self.layout, self.selection["path"])
+        is_root = not self.selection["path"]
+        run = self.selection["count"]
         for label, icon, handler, failure in (
             (
                 "Up",
                 "arrow_upward",
-                lambda: sceneedit.v2_move_run(layout, selection["path"], selection["count"], -1),
+                lambda: sceneedit.v2_move_run(self.layout, self.selection["path"], self.selection["count"], -1),
                 "Already first.",
             ),
             (
                 "Down",
                 "arrow_downward",
-                lambda: sceneedit.v2_move_run(layout, selection["path"], selection["count"], 1),
+                lambda: sceneedit.v2_move_run(self.layout, self.selection["path"], self.selection["count"], 1),
                 "Already last.",
             ),
             (
                 "Out",
                 "format_indent_decrease",
-                lambda: sceneedit.v2_outdent_node(layout, selection["path"]),
+                lambda: sceneedit.v2_outdent_node(self.layout, self.selection["path"]),
                 "Nothing to move it out to.",
             ),
             (
                 "In",
                 "format_indent_increase",
-                lambda: sceneedit.v2_indent_node(layout, selection["path"]),
+                lambda: sceneedit.v2_indent_node(self.layout, self.selection["path"]),
                 "The component above it can't hold children.",
             ),
             (
                 "Duplicate",
                 "content_copy",
-                lambda: sceneedit.v2_duplicate_node(layout, selection["path"]),
+                lambda: sceneedit.v2_duplicate_node(self.layout, self.selection["path"]),
                 "The root component can't be duplicated.",
             ),
         ):
@@ -1327,9 +1344,9 @@ def _build_v2_designer(
             ui.button(
                 translate_string(label),
                 icon=icon,
-                on_click=lambda _e=None, op=handler, f=failure, c=(run if moves_run else 1): structural(op, f, c),
+                on_click=lambda _e=None, op=handler, f=failure, c=(run if moves_run else 1): self.structural(op, f, c),
             ).props("dense flat").set_enabled(node is not None and not is_root and (moves_run or run == 1))
-        ui.button(translate_string("Delete"), icon="delete", on_click=delete_selected).props(
+        ui.button(translate_string("Delete"), icon="delete", on_click=self.delete_selected).props(
             "dense flat color=negative",
         ).set_enabled(node is not None and not is_root and run == 1)
         ui.space()
@@ -1343,10 +1360,13 @@ def _build_v2_designer(
             ),
         ).classes("text-xs text-gray-500 italic")
 
-    def render() -> None:
+    def render(self) -> None:
         # Re-registered on every render because the handlers close over nothing that changes,
         # but the table is what a re-opened dialog's surface has to be found in again.
-        _ACTIVE_CANVASES[tree_root] = {"v2select": select_from_surface, "v2reorder": reorder_from_surface}
+        _ACTIVE_CANVASES[self.tree_root] = {
+            "v2select": self.select_from_surface,
+            "v2reorder": self.reorder_from_surface,
+        }
         # What the Preview needs to be the second surface over this same layout, and why it
         # is handed these three rather than a copy of them:
         #
@@ -1363,22 +1383,20 @@ def _build_v2_designer(
         # Running this designer's handlers is also what keeps the tree from going stale while
         # it is hidden: they end in render(), so the pane the Preview is covering is rebuilt
         # as the drag lands rather than coming back showing the order from before it.
-        field_refs["v2_edit"] = {
-            "handlers": _ACTIVE_CANVASES[tree_root],
-            "selection": selection,
-            "rerender": render,
+        self.field_refs["v2_edit"] = {
+            "handlers": _ACTIVE_CANVASES[self.tree_root],
+            "selection": self.selection,
+            "rerender": self.render,
         }
-        header.clear()
-        tree_pane.clear()
-        inspector_pane.clear()
-        toolbar.clear()
-        with header:
-            render_header()
-        with tree_pane:
-            render_tree()
-        with inspector_pane:
-            render_inspector()
-        with toolbar:
-            render_toolbar()
-
-    render()
+        self.header.clear()
+        self.tree_pane.clear()
+        self.inspector_pane.clear()
+        self.toolbar.clear()
+        with self.header:
+            self.render_header()
+        with self.tree_pane:
+            self.render_tree()
+        with self.inspector_pane:
+            self.render_inspector()
+        with self.toolbar:
+            self.render_toolbar()

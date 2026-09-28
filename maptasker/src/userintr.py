@@ -71,6 +71,7 @@ from maptasker.src.guiwins import (
     opening_view_in_a_new_window,
     restore_appearance_mode,
 )
+from maptasker.src.guiwins_firesim import build_firesim_dialog
 from maptasker.src.guiwins_fix import build_fix_dialog
 from maptasker.src.guiwins_refactor import build_refactor_dialog
 from maptasker.src.guiwins_restore import build_restore_dialog
@@ -169,6 +170,8 @@ class MyGui:
         # The 'Output Folder' box, once the layout has built it -- see
         # guiwins._create_output_directory_section.
         self.output_directory_input: ui.input | None = None
+        # The What Fires When? dialog while one is up -- see fire_simulator_event.
+        self.firesim_dialog: ui.dialog | None = None
 
         # 1. Initialize settings and state
         initialize_gui(self)
@@ -1932,6 +1935,34 @@ class MapTaskerEventHandlers(
         if dialog is None:
             return
         self.gui.restore_dialog = dialog
+        dialog.open()
+
+    def fire_simulator_event(self: "MapTaskerEventHandlers") -> None:
+        """Open the What Fires When? dialog: pick a moment, see which Profiles it makes active.
+
+        Rebuilt on every press, for fix_findings_event's reason, and more simply here: the
+        Wi-Fi and app pickers are filled from the configuration loaded at the moment of the
+        press, and a dialog kept from an earlier file would offer that file's networks.
+        """
+        dialog = getattr(self.gui, "firesim_dialog", None)
+        self.gui.firesim_dialog = None
+        if dialog is not None:
+            with contextlib.suppress(Exception):
+                dialog.delete()
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
+            """One row's click: open what it names in a window of its own, keeping this one up."""
+
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        dialog = build_firesim_dialog(make_jump)
+        if dialog is None:
+            return
+        self.gui.firesim_dialog = dialog
         dialog.open()
 
     def _dismiss_restore_dialog(self: "MapTaskerEventHandlers") -> None:
