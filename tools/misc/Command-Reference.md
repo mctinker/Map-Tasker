@@ -2,7 +2,7 @@
 
 Every command, option and pulldown in the MapTasker user interface: **359** entries (**289** of them commands) across **18** windows.
 
-_Generated from the MapTasker 14.1.0 source on 2026-09-27 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 14.1.0 source on 2026-09-28 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -3458,7 +3458,7 @@ Opens **Ai Prompt**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `userintr_ai.py` line 192</sub>
+<sub>Source: `userintr_ai.py` line 194</sub>
 
 <a id="cmd-run-analysis"></a>
 ### Run Analysis
@@ -3498,7 +3498,7 @@ The default is '4'.
 
 This affects how the output is formatted in the Map and Diagram views.
 
-<sub>Source: `guiwins.py` line 9119</sub>
+<sub>Source: `guiwins.py` line 9121</sub>
 
 <a id="cmd-viewlimit-optionmenu"></a>
 ### Viewlimit Optionmenu
@@ -3512,7 +3512,7 @@ Anything over this amount will stop the generation of the view as a means to thr
 
 Note: This is only for the 'Map' and 'Diagram' views, not the tree view.
 
-<sub>Source: `guiwins.py` line 9170</sub>
+<sub>Source: `guiwins.py` line 9172</sub>
 
 <a id="cmd-notify-timeout-optionmenu"></a>
 ### Notify Timeout Optionmenu
@@ -3526,7 +3526,7 @@ How long a pop-up message stays on screen before it disappears.
 
 A few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here.
 
-<sub>Source: `guiwins.py` line 9211</sub>
+<sub>Source: `guiwins.py` line 9213</sub>
 
 <a id="cmd-reset-options"></a>
 ### Reset Options
@@ -3538,7 +3538,7 @@ Reset all of the options to their default values, including colors, font used, a
 
 The currently loaded XML will be cleared out.
 
-<sub>Source: `guiwins.py` line 9273</sub>
+<sub>Source: `guiwins.py` line 9275</sub>
 
 <a id="cmd-report-issue"></a>
 ### Report Issue
@@ -3550,7 +3550,7 @@ Report any issues and/or suggestions to the developer.
 
 This will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue.
 
-<sub>Source: `guiwins.py` line 9306</sub>
+<sub>Source: `guiwins.py` line 9308</sub>
 
 <a id="cmd-font-optionmenu"></a>
 ### Font Optionmenu
@@ -3564,7 +3564,7 @@ The font selected will be used in all output.
 
 'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line.
 
-<sub>Source: `guiwins.py` line 9346</sub>
+<sub>Source: `guiwins.py` line 9348</sub>
 
 <a id="cmd-get-xml-from-android-device"></a>
 ### Get XML from Android Device
@@ -3576,7 +3576,7 @@ Fetch XML from an Android device.
 
 You must be on the same network as the Android device, and the device must be running and connected.
 
-<sub>Source: `guiwins.py` line 9375</sub>
+<sub>Source: `guiwins.py` line 9377</sub>
 
 <a id="cmd-display-help"></a>
 ### Display Help
@@ -3586,7 +3586,7 @@ You must be on the same network as the Android device, and the device must be ru
 
 Display this help text.
 
-<sub>Source: `guiwins.py` line 9406</sub>
+<sub>Source: `guiwins.py` line 9408</sub>
 
 <a id="cmd-get-android-help"></a>
 ### Get Android Help
@@ -3596,7 +3596,7 @@ Display this help text.
 
 Display the help for fetching the XML file from your Android device.
 
-<sub>Source: `guiwins.py` line 9413</sub>
+<sub>Source: `guiwins.py` line 9415</sub>
 
 ## AI API Key Entry
 
