@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file!
 
 - Changed: In the __Restore From History__ window, a row's 'Restore this' button now turns green once its restore has been applied, and the row stays in the list so you can see what you have already brought back.  If it has nothing left to restore, the green button is greyed out so the same restore cannot be applied twice.
 - Changed: The MapTasker logo has moved from the top of the Display Options panel to the middle of the title bar, which leaves more room for the options themselves.
+- Changed: The 'Save Settings' and 'Restore Settings' buttons are now labelled 'Save' and 'Restore' and sit side by side under the Application Settings heading, instead of one above the other.
 - Changed:
 
 ### Removed

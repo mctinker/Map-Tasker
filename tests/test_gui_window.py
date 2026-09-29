@@ -100,6 +100,12 @@ def _checkbox(user: User, label: str) -> ui.checkbox:
     return checkbox
 
 
+def _button(user: User, label: str) -> ui.button:
+    """The one button labelled exactly `label` -- "Save" alone would match every Save button."""
+    (button,) = [element for element in user.find(kind=ui.button).elements if element.text == label]
+    return button
+
+
 def _click(user: User, element: ui.element) -> None:
     """Press this element, as the user would."""
     UserInteraction(user, {element}, None).click()
@@ -124,8 +130,11 @@ async def test_the_window_opens_with_its_tabs_and_main_buttons(caplog: pytest.Lo
     async with _open_window() as (user, gui):
         for tab in ("Specific Name", "Colors", "Analyze", "Debug"):
             await user.should_see(kind=ui.tab, content=tab)
-        for button in ("Get Local XML File", "Get XML from Android Device", "Map", "Diagram", "Tree", "Save Settings", "Reset Options", "Exit"):
+        for button in ("Get Local XML File", "Get XML from Android Device", "Map", "Diagram", "Tree", "Reset Options", "Exit"):
             await user.should_see(kind=ui.button, content=button)
+        # The Application Settings pair, matched exactly: their labels are substrings of others.
+        _button(user, "Save")
+        _button(user, "Restore")
         await user.should_see("Display Options")
         assert PrimeItems.mygui is gui
     _no_errors_logged(caplog)
@@ -176,12 +185,12 @@ async def test_ticking_an_option_changes_the_setting(caplog: pytest.LogCaptureFi
 
 
 async def test_save_settings_writes_what_the_window_shows(tmp_path, caplog: pytest.LogCaptureFixture) -> None:
-    """Pressing Save Settings puts the window's choices in the settings file, and says so."""
+    """Pressing Save (Application Settings) puts the window's choices in the settings file, and says so."""
     async with _open_window() as (user, gui):
         _click(user, _checkbox(user, "Italicize"))
         assert gui.italicize is True
 
-        user.find(kind=ui.button, content="Save Settings").click()
+        _click(user, _button(user, "Save"))
 
         assert user.notify.contains("Settings saved."), user.notify.messages
 

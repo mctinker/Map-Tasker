@@ -4038,7 +4038,9 @@ def _create_right_drawer(self: MyGui) -> None:
 
         _create_analysis_buttons_section(self)
 
-        ui.button(translate_string("Clear"), on_click=self.event_handlers.clear_view_event).classes("bg-blue-500")
+        ui.button(translate_string("Clear"), on_click=self.event_handlers.clear_view_event).classes(
+            "bg-blue-500"
+        ).style("margin-top:-6px")
 
         ui.label(translate_string("Application Settings")).classes(
             "text-xs font-bold uppercase text-gray-400 mt-4 self-center",
@@ -5037,26 +5039,38 @@ def _create_settings_buttons_section(self: MyGui) -> None:
             )  # Tells the web browser to render \n newlines!
 
     # 2. Main Window Buttons Layout Area
-    with ui.row().classes("w-full gap-2 mt-0 justify-center"):
+    # Save and Restore side by side, on a row of their own.  Short labels because the drawer is
+    # too narrow for "Save Settings" and "Restore Settings" in one row; the "Application
+    # Settings" heading above them says what they act on, and the tooltips say it again.
+    with ui.row().classes("w-full gap-2 mt-0 justify-center no-wrap"):
         self.save_settings_button = ui.button(
-            translate_string("Save Settings"),
+            translate_string("Save"),
             on_click=handlers.save_settings_event,
         ).classes(
             "bg-indigo-600 text-white justify-center",
         )
+        with self.save_settings_button:
+            ui.tooltip(translate_string("Save these settings for later use."))
 
         self.restore_settings_button = ui.button(
-            translate_string("Restore Settings"),
+            translate_string("Restore"),
             on_click=handlers.restore_settings_event,
         ).classes(
             "bg-indigo-600 text-white justify-center",
         )
+        with self.restore_settings_button:
+            ui.tooltip(translate_string("Restore the settings from a previously saved session."))
 
-        self.report_issue_button = ui.button(
-            translate_string("Report Issue"),
-            on_click=handlers.report_issue_event,
-        ).classes(
-            "bg-gray-600 text-white justify-center",
+    with ui.row().classes("w-full gap-2 mt-0 justify-center"):
+        self.report_issue_button = (
+            ui.button(
+                translate_string("Report Issue"),
+                on_click=handlers.report_issue_event,
+            )
+            .classes(
+                "bg-gray-600 text-white justify-center",
+            )
+            .style("margin-top:-6px")
         )
         with self.report_issue_button:
             ui.tooltip(

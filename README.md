@@ -303,11 +303,11 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] One-click Fixes For Health Check Findings
 
-- [ ] Restore From History
+- [x] Restore From History
 
-- [ ] Java Scriptlets and Sheel Actions Checker
+- [x] Java Scriptlets and Shell Actions Checker
 
-- [ ] What Fires When Report
+- [x] What Fires When Report
 
 - [ ] Readiness Check
 
