@@ -3908,9 +3908,10 @@ def initialize_screen(self: MyGui) -> None:
 
 
 def _create_header(self: MyGui) -> None:
-    """The title bar: the app's name and the Dark Mode switch."""
-    with ui.header().classes("bg-blue-900 text-white p-4 justify-between items-center"):
+    """The title bar: the app's name, the MapTasker logo and the Dark Mode switch."""
+    with ui.header().classes("bg-blue-900 text-white p-4 justify-between items-center") as self.gui_header:
         ui.label("MapTasker").classes("text-2xl font-bold")
+        add_logo(self, "maptasker")
 
         # Stated outright rather than left to ui.dark_mode()'s own default: ui.run()'s
         # dark=None (auto) is applied before Vue mounts and this element then overrides it,
@@ -3935,8 +3936,6 @@ def _create_left_drawer(self: MyGui) -> None:
             "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
         ) as self.gui_left_drawer
     ):
-        add_logo(self, "maptasker")
-
         ui.label(translate_string("Display Options")).classes("text-lg font-bold mb-2 gap-y-0 m-0 p-0 leading-none")
 
         # Detail level pulldown

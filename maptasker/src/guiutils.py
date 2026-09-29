@@ -1391,10 +1391,11 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
         # parent = self.gui_left_drawer  # <--- FIX: Point to NiceGUI left drawer element
         parent = self.language_label
     elif logo_name == "maptasker":
-        light_src = f"{assets_url}/maptasker_logo_light.png"
-        dark_src = f"{assets_url}/maptasker_logo_dark.png"
+        # Only the dark-mode logo (white lettering): the header it sits in is dark blue in both
+        # modes, so the light-mode logo's grey lettering would be unreadable there.
+        img_src = f"{assets_url}/maptasker_logo_dark.png"
         size_classes = "w-[190px] h-[50px]"
-        parent = self.gui_left_drawer  # <--- FIX: Point to NiceGUI left drawer element
+        parent = self.gui_header  # centered in the title bar, between the name and Dark Mode
     elif logo_name == "coffee":
         img_src = f"{assets_url}/bmc-logo-no-background.png"
         size_classes = "w-[30px] h-[48px]"
@@ -1407,12 +1408,12 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
     # 2. Render the images using NiceGUI context rules
     with parent:  # <--- This will now succeed perfectly!
         try:
-            # MapTasker requires handling an explicit dark mode swap swap over the web
             if logo_name == "maptasker":
-                # Render the light version (hidden when dark class is applied to html)
-                ui.image(light_src).classes(f"{size_classes} block dark:hidden object-contain")
-                # Render the dark version (hidden by default, shown when dark class is applied)
-                ui.image(dark_src).classes(f"{size_classes} hidden dark:block object-contain")
+                # Pinned to the middle of the header rather than laid out between its neighbours:
+                # the header spreads its children apart, which only centres the middle one when
+                # the name on the left and the switch on the right are the same width.
+                with ui.element("div").classes("absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"):
+                    ui.image(img_src).classes(f"{size_classes} object-contain")
             elif logo_name == "coffee":
                 # The coffee logo and its button belong side by side, so both live in the same
                 # row: logo first, button next to it, the pair centered at the bottom of the

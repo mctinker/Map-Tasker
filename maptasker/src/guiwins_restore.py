@@ -83,7 +83,18 @@ class _State:
     older: Configuration | None = None
     offer: maprestore.Offer | None = None
     plan: maprefac.Plan | None = None
+    # The row whose plan is on screen, so Apply knows which row it restored.
+    previewed: maprestore.Candidate | None = None
+    # Rows restored from this snapshot, by identity -- their buttons are drawn green.  Kept here
+    # because a restored object is usually no longer a difference, and the rescan after Apply
+    # would otherwise drop the very row that was just pressed.
+    applied: dict[tuple[str, str, str], maprestore.Candidate] = field(default_factory=dict)
     busy: bool = False
+
+    def mark_applied(self) -> None:
+        """Remember the row whose plan was just applied, so its button is drawn green."""
+        if self.previewed is not None:
+            self.applied[self.previewed.identity] = self.previewed
 
 
 def build_restore_dialog(
@@ -145,6 +156,7 @@ def build_restore_dialog(
         def clear_preview() -> None:
             """Throw the preview away and take Apply with it -- the Refactor dialog's one rule."""
             held.plan = None
+            held.previewed = None
             preview_heading.set_text("")
             preview_area.clear()
             apply_button.disable()
@@ -160,6 +172,7 @@ def build_restore_dialog(
                 return
             plan = maprestore.plan_restore(candidate, held.older, held.snapshot.described())
             held.plan = plan
+            held.previewed = candidate
             preview_heading.set_text(translate_string("Preview -- nothing has changed yet"))
             _draw_preview(preview_area, plan, make_jump)
             if plan.can_apply:
@@ -178,6 +191,8 @@ def build_restore_dialog(
             held.busy = True
             clear_preview()
             held.snapshot = held.snapshots[position]
+            # What was restored is only true of the snapshot it was restored from.
+            held.applied.clear()
             summary.set_text(translate_string("Reading that configuration..."))
             list_area.clear()
             left_out.clear()
@@ -194,7 +209,7 @@ def build_restore_dialog(
                 ui.notify(translate_string(problem), type="negative")
                 return
             held.older, held.offer = older, offer
-            _draw_list(list_area, left_out, summary, offer, make_jump, show_preview)
+            _draw_list(list_area, left_out, summary, offer, held.applied, make_jump, show_preview)
 
         async def rescan() -> None:
             """List again against the configuration as it now is -- after a restore, or a save."""
@@ -206,7 +221,7 @@ def build_restore_dialog(
             if offer is None:
                 return
             held.offer = offer
-            _draw_list(list_area, left_out, summary, offer, make_jump, show_preview)
+            _draw_list(list_area, left_out, summary, offer, held.applied, make_jump, show_preview)
 
         async def do_apply() -> None:
             """Apply exactly the plan on screen.  One press of Undo takes it back."""
@@ -219,6 +234,7 @@ def build_restore_dialog(
                 ui.notify(message, type="negative")
             if not done:
                 return
+            held.mark_applied()
             ui.notify(f"{plan.what}.  {translate_string('Undo is available.')}", type="positive", position="top")
             await rebuild_after_apply()
             await rescan()
@@ -280,10 +296,17 @@ def _draw_list(
     left_out: ui.column,
     summary: ui.label,
     offer: maprestore.Offer,
+    applied: dict[tuple[str, str, str], maprestore.Candidate],
     make_jump: Callable,
     on_restore: Callable[[maprestore.Candidate], None],
 ) -> None:
-    """The rows, each with its button, and a line for everything deliberately not offered."""
+    """The rows, each with its button, and a line for everything deliberately not offered.
+
+    Rows already restored keep their place on screen with a green button.  Those the rescan no
+    longer offers -- the usual case, since a restored object has nothing left to restore -- are
+    drawn first, and their button is disabled: pressing it again would plan the same restore
+    against a configuration that already has it.
+    """
     area.clear()
     left_out.clear()
 
@@ -301,12 +324,16 @@ def _draw_list(
                 "text-xs text-gray-500",
             )
 
+    offered = {candidate.identity for candidate in offer.candidates}
     with area, ui.column().classes("w-full gap-0 p-1"):
+        for identity, candidate in applied.items():
+            if identity not in offered:
+                _draw_row(candidate, make_jump, on_restore, applied=True, finished=True)
         if offer.is_empty:
             ui.label(translate_string(_NOTHING)).classes("text-sm text-gray-500 italic p-2")
             return
         for candidate in offer.candidates[:_ROW_LIMIT]:
-            _draw_row(candidate, make_jump, on_restore)
+            _draw_row(candidate, make_jump, on_restore, applied=candidate.identity in applied)
         if len(offer.candidates) > _ROW_LIMIT:
             ui.label(
                 f"...{len(offer.candidates) - _ROW_LIMIT} {translate_string('more.  Choose a more recent configuration.')}",
@@ -317,8 +344,15 @@ def _draw_row(
     candidate: maprestore.Candidate,
     make_jump: Callable,
     on_restore: Callable[[maprestore.Candidate], None],
+    *,
+    applied: bool = False,
+    finished: bool = False,
 ) -> None:
-    """One object: its tag, where it is (a link, when it is here to go to), and 'Restore this'."""
+    """One object: its tag, where it is (a link, when it is here to go to), and 'Restore this'.
+
+    `applied` draws the button green, for a row whose restore has been applied; `finished`
+    also disables it, for one that has nothing left to restore.
+    """
     # min-w-0 and break-all are what keep the button on screen.  A flex child will not shrink
     # below its content's width unless told it may, and a detail line holding one long unbroken
     # string -- a URL, a JSON layout -- is wider than the dialog: without these the text column
@@ -341,9 +375,12 @@ def _draw_row(
                 ui.label(
                     f"...{len(candidate.details) - _DETAIL_LINES} {translate_string('more -- the preview lists them all')}",
                 ).classes("text-xs text-gray-500 italic pl-4")
-        ui.button(translate_string("Restore this"), on_click=lambda: on_restore(candidate)).props(
-            "dense outline",
-        ).classes("shrink-0")
+        button = ui.button(translate_string("Restore this"), on_click=lambda: on_restore(candidate)).classes(
+            "shrink-0",
+        )
+        button.props("dense color=green" if applied else "dense outline")
+        if finished:
+            button.disable()
 
 
 def _draw_preview(area: ui.scroll_area, plan: maprefac.Plan, make_jump: Callable) -> None:
