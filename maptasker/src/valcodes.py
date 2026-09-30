@@ -89,9 +89,6 @@ def debug_print(message: str) -> None:
         except OSError as e:
             # 4. Handle potential I/O errors (e.g., permission issues, disk full)
             console.error(f"valcodes:Error: Could not write to file '{filename}'. Reason: {e}")
-        except Exception as e:  # noqa: BLE001  A maintainer-only trace file: OSError is
-            # handled above, and nothing else failing to be written is worth stopping for.
-            console.error(f"valcodes: An unexpected error occurred: {e}")
 
 
 def format_string(s: str) -> str:

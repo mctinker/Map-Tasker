@@ -1428,8 +1428,11 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
                 # Flags do not change based on dark mode status.
                 ui.image(img_src).classes(f"{size_classes} object-contain")
 
-        except Exception as e:  # noqa: BLE001  A logo that will not draw is cosmetic;
-            # nothing here is worth failing the window build over.
+        except Exception as e:
+            # Deliberately broad: a logo that will not draw is cosmetic, and nothing here is
+            # worth failing the window build over.  The traceback is logged so a bug in the
+            # coffee button's wiring does not pass for a missing image.
+            logger.exception("Displaying the %s logo failed", logo_name)
             if "rutroh_error" in globals():
                 rutroh_error(f"Error displaying {logo_name} logo: {e}")
 
@@ -1527,10 +1530,12 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
 
     # Display any error message from other rountines
     if PrimeItems.error_msg:
-        gui.display_message_box(
-            f"{PrimeItems.error_msg} with return code {PrimeItems.error_code}.",
-            "Red",
-        )
+        if PrimeItems.error_show_code:
+            gui.display_message_box(f"{PrimeItems.error_msg} with return code {PrimeItems.error_code}.", "Red")
+        else:
+            gui.display_message_box(PrimeItems.error_msg, "Red")
+        # The next error starts from the default: show its code.
+        PrimeItems.error_show_code = True
 
     if hasattr(gui, "tab_to_use") and hasattr(gui, "main_tabs_container"):
         gui.main_tabs_container.set_value = gui.tab_to_use
@@ -1739,24 +1744,23 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
     # 1. Define the internal network check using your app's true HTTP handshake logic.
     # This executes inside a worker thread pool, keeping NiceGUI's loop operational.
     def raw_tasker_probe() -> bool:
-        try:
-            # A plain GET on the 'file' route, which the HTTP Server Example project serves
-            # itself and which needs no API key (so this cannot make the device prompt).
-            #
-            # It used to be a GET on 'maplist', a route that project does NOT serve: it
-            # came from the separate 'MapTasker List' Profile the user had to import from
-            # TaskerNet and keep enabled.  So this probe -- the gate in front of every
-            # Android feature -- failed for anyone who had the server running perfectly
-            # well but had never imported that Profile.  Nothing needs it any more (see
-            # deviceinv.fetch_file_list_from_device), and the probe should not either.
-            return_code, _ = http_request(ipaddr, port, "/Tasker", "file", "")
-            # 0 is a 200 and 6 is a 404 -- either way the server answered, which is the
-            # whole question here.  Anything else is a connection failure, a timeout or a
-            # server error, and none of those mean 'reachable'.
-            return return_code in (0, 6)  # noqa: TRY300
-        except Exception:  # noqa: BLE001  This probe answers one question -- "did the
-            # device reply?" -- and every way of failing to reply is the same answer.
-            return False
+        # No try here: http_request already turns every way the device can fail to answer --
+        # refused, timed out, unreachable -- into a return code.
+        #
+        # A plain GET on the 'file' route, which the HTTP Server Example project serves
+        # itself and which needs no API key (so this cannot make the device prompt).
+        #
+        # It used to be a GET on 'maplist', a route that project does NOT serve: it
+        # came from the separate 'MapTasker List' Profile the user had to import from
+        # TaskerNet and keep enabled.  So this probe -- the gate in front of every
+        # Android feature -- failed for anyone who had the server running perfectly
+        # well but had never imported that Profile.  Nothing needs it any more (see
+        # deviceinv.fetch_file_list_from_device), and the probe should not either.
+        return_code, _ = http_request(ipaddr, port, "/Tasker", "file", "")
+        # 0 is a 200 and 6 is a 404 -- either way the server answered, which is the
+        # whole question here.  Anything else is a connection failure, a timeout or a
+        # server error, and none of those mean 'reachable'.
+        return return_code in (0, 6)
 
     # Show a brief non-blocking notification toast to show progress
     ui.notify(f"Connecting to Android device at {ipaddr}:{port}...", type="info", timeout=1200)
@@ -1781,8 +1785,11 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
         self.display_message_box(error_msg, "Red")
         return False  # noqa: TRY300
 
-    except Exception as e:  # noqa: BLE001  Reported to the user in the window rather than
-        # raised: an unreachable device is a normal outcome of pressing this button.
+    except Exception as e:
+        # Deliberately broad: reported to the user in the window rather than raised, since
+        # this gates every Android feature.  An unreachable device never gets here (it is a
+        # return code, above), so whatever did is a bug -- and its traceback is logged.
+        logger.exception("Pinging the Android device failed")
         self.display_message_box(f"Ping execution failure: {e!s}", "Red")
         return False
 

@@ -1405,11 +1405,12 @@ ai = [
 ]
 
 [package.dev-dependencies]
+ai-dev = [
+    { name = "maptasker", extra = ["ai"] },
+]
 dev = [
-    { name = "ai-translator" },
     { name = "deep-translator" },
     { name = "import-linter" },
-    { name = "maptasker", extra = ["ai"] },
     { name = "matchify" },
     { name = "pip-autoremove" },
     { name = "pyright", extra = ["nodejs"] },
@@ -1426,6 +1427,9 @@ test = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
+]
+translate = [
+    { name = "ai-translator" },
 ]
 
 [package.metadata]
@@ -1449,11 +1453,10 @@ requires-dist = [
 provides-extras = ["ai"]
 
 [package.metadata.requires-dev]
+ai-dev = [{ name = "maptasker", extras = ["ai"] }]
 dev = [
-    { name = "ai-translator", specifier = ">=0.1.0" },
     { name = "deep-translator", specifier = ">=1.11.4" },
     { name = "import-linter", specifier = ">=2.15" },
-    { name = "maptasker", extras = ["ai"] },
     { name = "matchify", specifier = ">=0.3.0" },
     { name = "pip-autoremove", specifier = ">=0.10.0" },
     { name = "pyright", extras = ["nodejs"], specifier = ">=1.1.414" },
@@ -1472,6 +1475,7 @@ test = [
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-mock", specifier = ">=3.15.1" },
 ]
+translate = [{ name = "ai-translator", specifier = ">=0.1.0" }]
 
 [[package]]
 name = "markdown-it-py"

@@ -402,8 +402,12 @@ ANTHROPIC_MODELS = [
     "claude-sonnet-5",
 ]
 DEEPSEEK_MODELS = ["deepseek-chat"]
+# Model names that were listed with the wrong spelling, and what Google actually calls them.  A
+# settings file saved while the wrong one was offered is carried over (see getputer).
+RENAMED_AI_MODELS = {"gemini-3.1-flash_lite": "gemini-3.1-flash-lite"}
+
 GEMINI_MODELS = [
-    "gemini-3.1-flash_lite",
+    "gemini-3.1-flash-lite",
     "gemini-3.6-flash",
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",

@@ -80,7 +80,7 @@ fi
 # Gate 0: the lockfile must already agree with pyproject.toml. CI runs
 # 'uv sync --locked', which fails outright on a stale lock -- catch that here
 # rather than after a push.
-run_gate "uv sync --locked" uv sync --locked --group dev
+run_gate "uv sync --locked" uv sync --locked --group dev --group ai-dev
 
 run_gate "ruff check" uv run --no-sync ruff check
 

@@ -314,7 +314,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
             with timeline.suppressed():
                 return_code = get_the_xml_data()
             parsed = _Parsed(return_code, PrimeItems.tasker_root_elements, PrimeItems.xml_root, scratch)
-        except Exception as error:  # noqa: BLE001
+        except Exception as error:
             # Deliberately every exception, not just OSError.  The contract this module
             # owes its caller is that picking a bad file to compare against produces a
             # message and leaves the loaded configuration alone -- so anything the parse
@@ -326,7 +326,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
             # file picked before the user has rendered anything therefore comes back as
             # an AttributeError from inside the error handler rather than as a return
             # code.  A missing file, an unreadable one and a failed copy arrive here too.
-            logger.error(f"Comparison file could not be read: {error}")
+            logger.exception("Comparison file could not be read")
             PrimeItems.error_msg = str(error)
             parsed = _Parsed(_LOAD_FAILED, initial_tasker_root_elements(), None, scratch or "")
 

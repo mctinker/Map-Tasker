@@ -94,8 +94,10 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
+      # ai-dev: the type check resolves the AI libraries cria.py imports.  A plain
+      # `uv sync` does not install them, and nothing else in this job needs them.
       - name: Install dev dependencies
-        run: uv sync --locked --group dev
+        run: uv sync --locked --group dev --group ai-dev
 
       # Enforcement is scoped by [tool.ruff.lint.per-file-ignores] in pyproject.toml:
       # the 39 files carrying pre-existing violations are exempted rule-by-rule, so

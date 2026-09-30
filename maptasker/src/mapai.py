@@ -23,6 +23,7 @@ from maptasker.src.sysconst import (
     ANALYSIS_FILE,
     DEEPSEEK_MODELS,
     ERROR_FILE,
+    logger,
 )
 from maptasker.src.xmldata import remove_html_tags
 
@@ -48,26 +49,19 @@ def valid_api_key(ai: str, api_key: str) -> bool:
         bool: True if the API key is valid, False otherwise.
     """
     if ai == "openai_key":
-        try:
-            # 1. Dynamically get the 'openai' module
-            openai_lib = import_optional("openai", "openai")
-            if openai_lib is None:
-                return False
-
-            # 2. Extract the specific classes needed
-            OpenAI = openai_lib.OpenAI  # noqa: N806
-            OpenAIError = openai_lib.OpenAIError  # noqa: N806
-            try:
-                client = OpenAI(api_key=api_key)
-                client.models.list()
-                return True  # noqa: TRY300
-            except OpenAIError:
-                return False
-        except Exception as e:  # noqa: BLE001
-            console.error(f"Error importing OpenAI: {e}")
+        # 1. Get the 'openai' module.  It reports its own absence.
+        openai_lib = import_optional("openai", "openai")
+        if openai_lib is None:
             return False
 
-    elif ai == "anthropic_key":
+        # 2. Ask for something only a valid key can see.
+        try:
+            openai_lib.OpenAI(api_key=api_key).models.list()
+        except openai_lib.OpenAIError:
+            return False
+        return True
+
+    if ai == "anthropic_key":
         try:
             anthropic = import_optional("anthropic", "anthropic")
             if anthropic is None:
@@ -204,6 +198,7 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
             f"Ollama support could not be loaded: {e}.  Install the AI libraries with: {AI_EXTRA_INSTALL_COMMAND}"
             f", and Ollama itself from '{OLLAMA_DOWNLOAD_URL}'.",
             12,
+            show_code=False,
         )
         return
 
@@ -347,6 +342,10 @@ def _process_gemini_response(client: object, query: str) -> str:
     response = client.models.generate_content(
         model=model,
         contents=f"{role}  {query}",
+        # MapTasker gives the model no tools, so there is nothing for it to call.  Left unset,
+        # the library defaults to automatic function calling and warns that using it this way
+        # is "not recommended".
+        config={"automatic_function_calling": {"disable": True}},
         # NOTE: Need to add logic to determine specific model eligability for the following option.
         # config=types.GenerateContentConfig(thinking_config=types.ThinkingConfig(thinking_level="low")),
     )
@@ -388,9 +387,12 @@ def process_ai_query_and_response(
             record_response(response, ai_object, item)
         else:
             error_handler("Invalid AI name selected.", 12)
-    except Exception as e:  # noqa: BLE001  Five AI providers, five unrelated exception
-        # hierarchies -- handle_ai_error exists precisely to turn any of them into a
-        # sentence, so enumerating them here would duplicate that and go stale faster.
+    except Exception as e:
+        # Deliberately broad: five AI providers, five unrelated exception hierarchies --
+        # handle_ai_error exists precisely to turn any of them into a sentence, so
+        # enumerating them here would duplicate that and go stale faster.  The traceback is
+        # logged so that a bug in the response handling does not pass for a provider error.
+        logger.exception("The %s request failed", name)
         error_message = handle_ai_error(e)  # Pass the exception object directly
         with open(ERROR_FILE, "w", encoding="utf-8") as response_file:
             response_file.write(error_message)
@@ -452,6 +454,7 @@ def open_ai(query: str, ai_object: str, item: str) -> None:
         error_handler(
             f"Module 'openai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}",
             12,
+            show_code=False,
         )
         return
 
@@ -486,7 +489,7 @@ def claude_ai(query: str, ai_object: str, item: str) -> None:
     """
     anthropic = import_optional("anthropic", "anthropic")
     if anthropic is None:
-        error_handler(f"Module 'anthropic' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}", 12)
+        error_handler(f"Module 'anthropic' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}", 12, show_code=False)
         return
     client = anthropic.Anthropic(api_key=PrimeItems.program_arguments.ai_apikey)
     process_ai_query_and_response(client, query, ai_object, item)
@@ -532,7 +535,9 @@ def gemini_ai(query: str, ai_object: str, item: str) -> None:
     """
     genai = import_optional("google-genai", "google.genai")
     if genai is None:
-        error_handler(f"Module 'google-genai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}", 12)
+        error_handler(
+            f"Module 'google-genai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}", 12, show_code=False
+        )
         return
     client = genai.Client(api_key=PrimeItems.program_arguments.ai_apikey)
     process_ai_query_and_response(client, query, ai_object, item)

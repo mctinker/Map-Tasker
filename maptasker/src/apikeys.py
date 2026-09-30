@@ -294,10 +294,10 @@ def _read_legacy_key_file(legacy_file: Path) -> dict[str, str] | None:
             contents = _PlainDataUnpickler(io.BytesIO(data)).load()
         else:
             contents = {"api_key": data.decode("utf-8").strip()}  # The first key files: one key, as text.
-    except Exception as error:  # noqa: BLE001  A damaged or hostile pickle fails in any number of ways; all mean "unusable".
-        logger.error(
-            "The old API key file %s could not be read, so it is left in place (%s).", legacy_file.resolve(), error
-        )
+    except Exception:
+        # Deliberately broad: a damaged or hostile pickle fails in any number of ways (the
+        # pickle docs list several and promise no more), and all of them mean "unusable".
+        logger.exception("The old API key file %s could not be read, so it is left in place.", legacy_file.resolve())
         return None
     if not isinstance(contents, dict):
         logger.error("The old API key file %s holds no keys, so it is left in place.", legacy_file.resolve())

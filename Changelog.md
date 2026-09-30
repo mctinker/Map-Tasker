@@ -14,7 +14,9 @@ All notable changes to this project will be documented in this file!
 - Changed: In the __Restore From History__ window, a row's 'Restore this' button now turns green once its restore has been applied, and the row stays in the list so you can see what you have already brought back.  If it has nothing left to restore, the green button is greyed out so the same restore cannot be applied twice.
 - Changed: The MapTasker logo has moved from the top of the Display Options panel to the middle of the title bar, which leaves more room for the options themselves.
 - Changed: The 'Save Settings' and 'Restore Settings' buttons are now labelled 'Save' and 'Restore' and sit side by side under the Application Settings heading, instead of one above the other.
+- Changed: Several places that quietly swallowed any error now catch only the failures they expect, such as a dropped connection or an unreadable font folder, so a genuine bug is reported instead of being mistaken for "Ollama is not running" or "no fonts installed".  Where a catch-all is still the right call, the full error details are now written to the debug log.
 - Changed: MapTasker no longer installs the AI libraries on its own the first time you use an AI feature; if they are missing it tells you once to install them with `pip install "maptasker[ai]"`.  This keeps MapTasker from downloading software you did not ask for.
+- Changed: The message shown when an AI library is not installed no longer ends with a confusing "with return code 12", since the instruction to install it says everything you need to know.
 - Changed:
 
 ### Removed
@@ -23,6 +25,8 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: Choosing the Gemini model 'gemini-3.1-flash_lite' for AI analysis failed with a "404 NOT_FOUND" error, because its name was misspelled with an underscore.  The name is corrected, and a setting saved with the old spelling is fixed automatically the next time it loads.
+- Fixed: Running an AI analysis with Gemini no longer prints a warning about "automatic function calling" not being recommended.  MapTasker does not use that feature, so it is now switched off.
 - Fixed:
 
 ### Known Issues

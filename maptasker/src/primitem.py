@@ -172,6 +172,9 @@ class PrimeItems:
     displaying_named_tasks_not_in_profile = False
     error_code = 0
     error_msg = ""
+    # Whether the GUI adds "with return code N" to error_msg.  False for an error whose code
+    # says nothing to the user (a library that is not installed); see error.error_handler.
+    error_show_code = True
     view_limit_msg = (
         ""  # Set by bildhtml.write_out_the_file when output hits view_limit; read by the Map view's message field.
     )
@@ -401,6 +404,7 @@ LOADED_CONFIGURATION_ATTRIBUTES = (
     "loaded_highest_object_id",
     "error_code",
     "error_msg",
+    "error_show_code",
 )
 
 
@@ -419,8 +423,8 @@ def reset_attributes(*names: str) -> None:
 
 
 def clear_error() -> None:
-    """Forget the error the last load or build recorded: error_code and error_msg."""
-    reset_attributes("error_code", "error_msg")
+    """Forget the error the last load or build recorded: error_code, error_msg and error_show_code."""
+    reset_attributes("error_code", "error_msg", "error_show_code")
 
 
 # Reset all values

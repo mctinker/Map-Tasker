@@ -16,6 +16,7 @@ from maptasker.src.mapfonts import get_font_choices as get_font_selections
 
 # Define label fonts for headings (Replaced hardcoded pixel sizes with Tailwind text classes)
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.sysconst import logger
 
 # Change-type prefixes recognized in the Changelog (see get_changelog_file)
 CHANGELOG_CHANGE_TYPES = ("Added", "Changed", "Fixed", "Removed")
@@ -167,8 +168,10 @@ def get_font_choices() -> dict[str, str]:
     """
     try:
         return get_font_selections(INCLUDE_PROPORTIONAL_FONTS)
-    except Exception as e:  # noqa: BLE001  Font discovery reads whatever the platform
-        # has installed and must never take the GUI down -- see mapfonts.get_font_selections,
-        # which guards its own enumeration for the same reason.  There is a usable fallback.
+    except Exception as e:
+        # Deliberately broad.  mapfonts already guards every file it reads and parses, so
+        # anything reaching here is a bug -- but font discovery must never take the GUI down,
+        # and there is a usable fallback.  The traceback is logged so the bug is not lost.
+        logger.exception("Listing the system fonts failed")
         rutroh_error(f"Unable to retrieve the system fonts: {e}")
         return {"Courier New": "Courier New", "Courier": "Courier"}

@@ -415,7 +415,12 @@ async def _ask_gemini(settings: ModelSettings, system: str, user: str) -> str:
         response = await client.aio.models.generate_content(
             model=settings.model,
             contents=user,
-            config={"system_instruction": system, "response_mime_type": "application/json"},
+            config={
+                "system_instruction": system,
+                "response_mime_type": "application/json",
+                # No tools are given, so nothing can be called; see mapai._process_gemini_response.
+                "automatic_function_calling": {"disable": True},
+            },
         )
     finally:
         # A google-genai release older than aclose closes its connections with the client.
@@ -431,8 +436,8 @@ async def _ask_llama(settings: ModelSettings, system: str, user: str) -> str:
     was_installed = importlib.util.find_spec("ollama") is not None
     try:
         from maptasker.src import cria  # noqa: PLC0415
-    except Exception as error:
-        # Its module-level install can fail in several ways.
+    except (ImportError, OSError) as error:
+        # The install failed, or pip itself could not be run (see mapai.local_ai).
         message = f"Ollama support could not be loaded: {error}"
         raise AskError(message) from error
     if not was_installed:

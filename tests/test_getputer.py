@@ -18,7 +18,12 @@ from maptasker.src import getputer
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import ARGUMENT_NAMES, ARGUMENTS_FILE, LEGACY_SYSTEM_SETTINGS_FILE
+from maptasker.src.sysconst import (
+    ARGUMENT_NAMES,
+    ARGUMENTS_FILE,
+    GEMINI_MODELS,
+    LEGACY_SYSTEM_SETTINGS_FILE,
+)
 
 
 @pytest.fixture
@@ -87,3 +92,29 @@ def test_a_language_saved_under_the_old_tamil_spelling_is_carried_over(program_a
 
     assert restored_arguments["language"] == "Tamil"
     assert restored_arguments["language"] in PrimeItems.languages
+
+
+def test_a_gemini_model_saved_under_the_wrong_spelling_is_carried_over(program_arguments: ProgramArguments) -> None:
+    """'gemini-3.1-flash_lite' was offered for a while; Google's name has a hyphen, and answers the
+    underscore with 404 NOT_FOUND.  A settings file saved with it has to come back as the real name."""
+    program_arguments.ai_model = "gemini-3.1-flash_lite"
+    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
+
+    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False)
+
+    assert restored_arguments["ai_model"] == "gemini-3.1-flash-lite"
+    assert restored_arguments["ai_model"] in GEMINI_MODELS
+
+
+def test_a_model_that_was_never_misspelled_is_left_alone(program_arguments: ProgramArguments) -> None:
+    program_arguments.ai_model = "gemini-3.5-flash-lite"
+    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
+
+    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False)
+
+    assert restored_arguments["ai_model"] == "gemini-3.5-flash-lite"
+
+
+def test_no_gemini_model_is_listed_with_an_underscore() -> None:
+    """Google's model names are hyphenated throughout; an underscore is a typo that 404s."""
+    assert not [model for model in GEMINI_MODELS if "_" in model]

@@ -33,6 +33,7 @@ from maptasker.src.sysconst import (
     ARGUMENTS_FILE,
     LEGACY_SYSTEM_SETTINGS_FILE,
     NOW_TIME,
+    RENAMED_AI_MODELS,
     TRANSIENT_ARGUMENTS,
     logger,
 )
@@ -251,6 +252,10 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
                 # older settings file over rather than quietly falling back to English.
                 if program_arguments.get("language") == "Tamali":
                     program_arguments["language"] = "Tamil"
+                # A model saved under a spelling that was listed wrongly (Google answers such a
+                # name with "404 NOT_FOUND"): carry it over to the real name.
+                if program_arguments.get("ai_model") in RENAMED_AI_MODELS:
+                    program_arguments["ai_model"] = RENAMED_AI_MODELS[program_arguments["ai_model"]]
                 # Start log. file if debug is on.
                 if program_arguments["debug"]:
                     log_startup_values()

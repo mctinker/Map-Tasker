@@ -1642,13 +1642,12 @@ def contains_html(text_string: str) -> bool:
     parser = HTMLTagDetector()
     try:
         parser.feed(text_string)
-    except Exception:  # noqa: BLE001
-        # If parsing itself throws an error, it's likely malformed HTML
-        # or something that resembles HTML but isn't well-formed.
-        # For the purpose of "contains HTML", we can assume it does.
+        parser.close()  # Parses whatever feed() left buffered.
+    except AssertionError:
+        # HTMLParser's only complaint about its input: a malformed '<!' declaration or
+        # marked section.  Something that resembles HTML but isn't well-formed still
+        # counts, for the purpose of "contains HTML".
         return True
-    finally:
-        parser.close()  # Ensure resources are released
 
     return parser.found_html_tags
 

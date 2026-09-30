@@ -189,7 +189,7 @@ class MyGui:
         # 3. Build the UI Layout directly!
         try:
             initialize_screen(self)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             ui.label(f"CRASH IN UI LAYOUT: {e}").classes("text-2xl text-red-500 m-8 font-mono")
             # Whatever went wrong, the label above is now the window's entire content, so
             # the user can see it.  sys.exit() used to follow, which was the worst of both

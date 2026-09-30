@@ -3,10 +3,14 @@
 #                                                                                      #
 # mapai: Ai support                                                                    #
 #                                                                                      #
+import importlib.util
 import shutil
 import subprocess
 import time
 from contextlib import suppress
+from types import ModuleType
+
+import httpx
 
 # import ollama
 # from google.genai import Client
@@ -20,6 +24,7 @@ from maptasker.src.sysconst import (
     DEEPSEEK_MODELS,
     GEMINI_MODELS,
     OPENAI_MODELS,
+    logger,
 )
 
 # How long to wait for a just-started Ollama server to begin answering, and how often to ask.
@@ -28,6 +33,24 @@ from maptasker.src.sysconst import (
 OLLAMA_STARTUP_TIMEOUT = 30  # seconds
 OLLAMA_POLL_SECONDS = 1.0
 OLLAMA_DOWNLOAD_URL = "https://ollama.com/download"
+
+
+# What an Ollama call raises when the server cannot answer it.
+def ollama_errors() -> tuple[type[Exception], ...]:
+    """The exceptions an Ollama call raises when there is no usable answer.
+
+    The client turns a refused connection into ConnectionError and an error reply into
+    ollama.ResponseError.  Anything else the transport meets -- a timeout, a connection
+    dropped mid-reply -- comes through as httpx's own HTTPError, httpx being what the
+    client talks over.
+
+    Only for use once the 'ollama' package has been imported (by import_optional): an
+    Ollama call cannot have been made before that.
+
+    Returns:
+        tuple[type[Exception], ...]: the exceptions, ready for an except clause.
+    """
+    return (ConnectionError, importlib.import_module("ollama").ResponseError, httpx.HTTPError)
 
 
 # Is there an Ollama server up and answering?
@@ -42,7 +65,7 @@ def ollama_is_responding(ollama: object) -> bool:
     """
     try:
         ollama.list()
-    except Exception:  # noqa: BLE001  Any failure at all here simply means "not answering".
+    except ollama_errors():
         return False
     return True
 
@@ -121,68 +144,57 @@ def get_openai_models() -> list:
     Requires your OpenAI API key to be set as an environment variable:
     export OPENAI_API_KEY='YOUR_API_KEY'
     """
+    # If we don't have the api key, then just use the default list of models.
+    api_key = PrimeItems.ai.get("openai_key", "")
+    if not api_key:
+        return OPENAI_MODELS
+
+    # Dynamically get the 'openai' module.
+    openai_lib = import_optional("openai", "openai")
+    if not isinstance(openai_lib, ModuleType):  # None: it is not installed.
+        return OPENAI_MODELS
+
     try:
-        # Get the API key from environment variables
-        with suppress(KeyError):
-            api_key = PrimeItems.ai["openai_key"]
-
-        # If we don't have the api key, then just use the default list of models.
-        if not api_key:
-            return OPENAI_MODELS
-        # Initialize the OpenAI client
-        # 1. Dynamically get the 'openai' module
-        openai_lib = import_optional("openai", "openai")
-        if openai_lib is None:
-            return OPENAI_MODELS
-
-        # 2. Extract the specific classes needed
-        OpenAI = openai_lib.OpenAI  # noqa: N806
-
-        client = OpenAI(api_key=api_key)
-
         # List all models
         # The .models.list() method returns a ModelsPage object, which is iterable
-        all_models = client.models.list()
-
-        if not all_models.data:
-            return OPENAI_MODELS
-
-        # Define the preferred mopdel name preficies.
-        preferred_model_prefix = [
-            "gpt",
-            "o",
-            "o",
-            "text",  # Embedding model, not for text generation but good to be aware of
-        ]
-        bad_models = [
-            "audio",
-            "transcribe",
-            "tts",
-            "moderation",
-            "embedded",
-            "embedding",
-            "image",
-            "realtime",
-            "research",
-            "instruct",
-            "codex",
-        ]
-
-        # Filter and sort models based on preference using list comprehension
-        sorted_models = [
-            model.id
-            for model in sorted(all_models.data, key=lambda m: m.id)  # Sort by model.id
-            if any(model.id.startswith(prefix) for prefix in preferred_model_prefix)
-            and not contains_any_substring_loop(model.id, bad_models)
-        ]
-
-    except Exception as e:  # noqa: BLE001  The OpenAI SDK's own hierarchy, plus whatever
-        # a changed response shape does to the comprehension above.  Any of it means the
-        # same thing here: fall back to the built-in model list.
+        all_models = openai_lib.OpenAI(api_key=api_key).models.list()
+    except openai_lib.OpenAIError as e:
+        # The SDK's whole hierarchy: a bad key, a refused or dropped connection, a timeout.
+        # Any of it means the same thing here: fall back to the built-in model list.
         rutroh_error(f"An error occurred trying to list OpenAi models: {e}")
         return OPENAI_MODELS
 
-    return sorted_models
+    if not all_models.data:
+        return OPENAI_MODELS
+
+    # Define the preferred mopdel name preficies.
+    preferred_model_prefix = [
+        "gpt",
+        "o",
+        "o",
+        "text",  # Embedding model, not for text generation but good to be aware of
+    ]
+    bad_models = [
+        "audio",
+        "transcribe",
+        "tts",
+        "moderation",
+        "embedded",
+        "embedding",
+        "image",
+        "realtime",
+        "research",
+        "instruct",
+        "codex",
+    ]
+
+    # Filter and sort models based on preference using list comprehension
+    return [
+        model.id
+        for model in sorted(all_models.data, key=lambda m: m.id)  # Sort by model.id
+        if any(model.id.startswith(prefix) for prefix in preferred_model_prefix)
+        and not contains_any_substring_loop(model.id, bad_models)
+    ]
 
 
 def contains_any_substring_loop(main_string: str, substrings: str) -> bool:
@@ -273,10 +285,13 @@ def get_gemini_models() -> list:
             ):
                 models_to_keep.append(model_name)
                 model_count += 1
-    except Exception as e:  # noqa: BLE001  google.genai installs itself on demand, then goes
-        # out to the network: the install, the client, a dropped connection or SSL failure,
-        # the SDK's own errors and a changed response shape all mean the same thing here --
-        # fall back to the built-in model list.
+    except Exception as e:
+        # Deliberately broad.  google.genai installs itself on demand, then goes out to the
+        # network: the client, a dropped connection or SSL failure, the SDK's own errors and a
+        # changed response shape (this reads a private attribute) all mean the same thing here
+        # -- fall back to the built-in model list.  The traceback is logged so that a bug in
+        # the code above does not pass for a network problem.
+        logger.exception("Listing the Gemini models failed")
         rutroh_error(f"An error occurred trying to list Gemini models: {e}")
         return GEMINI_MODELS
 
@@ -419,7 +434,7 @@ def get_llama_models() -> list:
 
     try:
         all_models = ollama.list()
-    except Exception as e:  # noqa: BLE001  Whatever it was, the list did not come back.
+    except ollama_errors() as e:
         # Nothing answering.  Start the server and ask once more -- this used to tell the user
         # to go and run 'ollama serve' themselves, and then show a list of models that took no
         # account of what they actually have installed.
@@ -430,7 +445,7 @@ def get_llama_models() -> list:
             return extended_list
         try:
             all_models = ollama.list()
-        except Exception as retry_error:  # noqa: BLE001  As above: the retry did not answer either.
+        except ollama_errors() as retry_error:
             rutroh_error(f"Error connecting to Ollama: {retry_error}")
             return extended_list
 

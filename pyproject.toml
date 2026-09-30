@@ -86,6 +86,11 @@ exclude = [
   ".claude",
 ]
 
+[tool.uv]
+# `uv sync` installs these and no others: the development tools, without the AI libraries.
+# ai-dev and translate (dependency-groups, below) are opt-in with --group.
+default-groups = ["dev"]
+
 [[tool.uv.index]]
 name = "testpypi"
 url = "https://test.pypi.org/simple"
@@ -108,9 +113,6 @@ test = [
 dev = [
     # The test group, once, rather than a second copy of it that can drift.
     {include-group = "test"},
-    # The AI libraries: the type check and the AI tests need them installed.
-    "maptasker[ai]",
-    "ai-translator>=0.1.0",
     "deep-translator>=1.11.4",
     "import-linter>=2.15",
     "matchify>=0.3.0",
@@ -122,6 +124,20 @@ dev = [
     "vulture>=2.16",
 ]
 
+# Groups that a plain `uv sync` does NOT install (see default-groups under [tool.uv]).
+# MapTasker's AI libraries are the optional "ai" extra, and nothing here should bring them
+# into an ordinary development environment.
+#
+# The AI libraries themselves, for whoever works on the AI features or runs the type check
+# (which resolves the imports in cria.py):  uv sync --group ai-dev
+ai-dev = [
+    "maptasker[ai]",
+]
+# ai-translator, which pulls in openai.  Nothing in the repository imports it.
+translate = [
+    "ai-translator>=0.1.0",
+]
+
 [tool.ruff]
 include = ["pyproject.toml", "maptasker/main.py", "maptasker/src/**/*.py", "scripts/**/*.py"]
 respect-gitignore = true
@@ -131,6 +147,10 @@ src = ['src',]
 # editor.formatOnSaveMode = "modificationsIfAvailable"
 
 [tool.ruff.lint]
+# The project's one logger lives in sysconst and is imported everywhere else.  Naming it
+# here lets ruff see that 'logger.exception(...)' records the traceback -- without it, a
+# broad except that does log its failure still trips BLE001.
+logger-objects = ["maptasker.src.sysconst.logger"]
 select = [
     'A',    # Builtins
     'ANN',  # Annotations
@@ -198,6 +218,12 @@ ignore = [
     "ICN001",   # unconventional-import-alias
     "N814",     # camelcase-imported-as-constant
     "N817",     # camelcase-imported-as-acronym
+    # The logger is written to with f-strings (100+ calls), and an EXPECTED failure --
+    # an OSError writing a report, say -- is logged as one line with logger.error, not
+    # as a traceback.  Both rules only woke up when logger-objects (above) let ruff
+    # recognise the logger at all; nothing they report was newly introduced.
+    "G004",     # logging-f-string
+    "TRY400",   # error-instead-of-exception
     # -- Formatter conflict ----------------------------------------------------
     # Ruff emits a startup warning when COM812 is selected alongside its formatter,
     # because the two disagree about trailing commas. The formatter already adds
@@ -253,7 +279,7 @@ max-complexity = 20
 'maptasker/src/clip.py' = ['PGH004']
 'maptasker/src/colors.py' = ['D100', 'PLR1722']
 'maptasker/src/condition.py' = ['RET504']
-'maptasker/src/cria.py' = ['ANN401', 'B904', 'BLE001', 'D101', 'D102', 'D103', 'D105', 'D107', 'EM101', 'PLW0108', 'RET504', 'S603', 'S607', 'SIM210', 'TRY003', 'TRY300']
+'maptasker/src/cria.py' = ['ANN401', 'B904', 'D101', 'D102', 'D103', 'D105', 'D107', 'EM101', 'PLW0108', 'RET504', 'S603', 'S607', 'SIM210', 'TRY003', 'TRY300']
 'maptasker/src/deprecate.py' = ['D100']
 'maptasker/src/deviceinv.py' = ['ANN201', 'F811']
 'maptasker/src/diagintr.py' = ['PLW2901']

@@ -10,11 +10,15 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ERROR_FILE, Colors, logger
 
 
-def error_handler(error_message: str, exit_code: int) -> None:
+def error_handler(error_message: str, exit_code: int, *, show_code: bool = True) -> None:
     """
     Error handler: print and log the error.  Exit with error code if provided
         :param error_message: text of error to print and log
         :param exit_code: error code to exit with
+        :param show_code: whether the GUI shows the code beside the message.  Pass False when
+            the message says everything there is to say -- a library that is not installed --
+            and a number would only leave the user wondering what it means.  A run from the
+            command line still ends with the code.
     """
     # Add our heading to more easily identify the problem
     if exit_code in {0, 99}:
@@ -42,10 +46,12 @@ def error_handler(error_message: str, exit_code: int) -> None:
             # Write the rror to file for use by userinter (e.g. on rerun), so userintr can display error on entry.
             with open(ERROR_FILE, "w", encoding="utf-8") as error_file:
                 error_file.write(f"{error_message}\n")
-                error_file.write(f"{exit_code}\n")
+                if show_code:
+                    error_file.write(f"{exit_code}\n")
             # Set error info. for GUI to display.
             PrimeItems.error_code = exit_code
             PrimeItems.error_msg = error_message
+            PrimeItems.error_show_code = show_code
             return
         # Not coming from GUI.  Stop the run, carrying the code with it.
         exit_program(exit_code)

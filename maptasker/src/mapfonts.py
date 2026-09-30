@@ -294,7 +294,10 @@ def _font_files() -> list[Path]:
                 [Path("/System/Library/Fonts"), Path("/Library/Fonts"), Path.home() / "Library/Fonts"],
             )
         return _linux_font_files()
-    except Exception:  # noqa: BLE001 - font discovery must never take the program down.
+    except (OSError, UnicodeDecodeError):
+        # An unreadable registry key or font directory, or fc-list output that is not text in
+        # the locale's encoding.  Font discovery must never take the program down; the
+        # fallback fonts cover an empty list.
         return []
 
 

@@ -9,7 +9,11 @@ Gemini's models came out as a traceback instead of the built-in list.
 from __future__ import annotations
 
 import asyncio
-from types import SimpleNamespace
+import sys
+from types import ModuleType, SimpleNamespace
+
+import httpx
+import pytest
 
 from maptasker.src import aiutils, userintr_ai
 from maptasker.src.primitem import PrimeItems
@@ -63,3 +67,83 @@ def test_a_dropped_connection_while_listing_gemini_gives_the_built_in_list(monke
 
     assert aiutils.get_gemini_models() == aiutils.GEMINI_MODELS
     assert any("UNEXPECTED_EOF" in message for message in reported)
+
+
+# -- Only the failures that mean "no answer" are caught ------------------------------------
+# These handlers used to catch every exception, so a bug in the code around the call came
+# back as "Ollama is not running" or as the built-in model list, and was never seen.
+
+
+def _an_ollama(error: BaseException) -> SimpleNamespace:
+    """An 'ollama' package whose list() raises the given error."""
+
+    def failing_list() -> None:
+        raise error
+
+    return SimpleNamespace(list=failing_list)
+
+
+@pytest.fixture
+def _ollama_package(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Stand in for the 'ollama' package, which only the "ai" extra installs.
+
+    ollama_errors() names ollama.ResponseError, so these tests need the module to exist -- and
+    they should not depend on the real one being installed.
+    """
+    fake = ModuleType("ollama")
+    fake.ResponseError = type("ResponseError", (Exception,), {})
+    monkeypatch.setitem(sys.modules, "ollama", fake)
+
+
+@pytest.mark.usefixtures("_ollama_package")
+def test_ollama_refusing_the_connection_is_not_answering() -> None:
+    assert aiutils.ollama_is_responding(_an_ollama(ConnectionError("refused"))) is False
+
+
+@pytest.mark.usefixtures("_ollama_package")
+def test_an_ollama_timeout_is_not_answering() -> None:
+    assert aiutils.ollama_is_responding(_an_ollama(httpx.ReadTimeout("timed out"))) is False
+
+
+@pytest.mark.usefixtures("_ollama_package")
+def test_a_bug_while_asking_ollama_is_not_mistaken_for_no_server() -> None:
+    with pytest.raises(TypeError):
+        aiutils.ollama_is_responding(_an_ollama(TypeError("a bug, not a network problem")))
+
+
+def _an_openai(error: BaseException) -> ModuleType:
+    """An 'openai' package whose model listing raises the given error."""
+
+    class _Client:
+        def __init__(self, **_kwargs) -> None:
+            self.models = self
+
+        def list(self) -> None:
+            raise error
+
+    openai_lib = ModuleType("openai")
+    openai_lib.OpenAI = _Client
+    openai_lib.OpenAIError = _OpenAIError
+    return openai_lib
+
+
+class _OpenAIError(Exception):
+    """Stands in for openai.OpenAIError, the base of everything the SDK raises."""
+
+
+def test_an_openai_error_while_listing_gives_the_built_in_list(monkeypatch) -> None:
+    monkeypatch.setitem(PrimeItems.ai, "openai_key", "a-key")
+    monkeypatch.setattr(aiutils, "import_optional", lambda *_args: _an_openai(_OpenAIError("bad key")))
+    reported = []
+    monkeypatch.setattr(aiutils, "rutroh_error", reported.append)
+
+    assert aiutils.get_openai_models() == aiutils.OPENAI_MODELS
+    assert any("bad key" in message for message in reported)
+
+
+def test_a_bug_while_listing_openai_models_is_not_hidden(monkeypatch) -> None:
+    monkeypatch.setitem(PrimeItems.ai, "openai_key", "a-key")
+    monkeypatch.setattr(aiutils, "import_optional", lambda *_args: _an_openai(TypeError("a bug")))
+
+    with pytest.raises(TypeError):
+        aiutils.get_openai_models()

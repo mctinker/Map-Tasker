@@ -12,6 +12,7 @@ from contextlib import ContextDecorator
 from typing import Any
 
 from maptasker.src import console
+from maptasker.src.aiutils import ollama_errors
 from maptasker.src.maputil3 import AI_EXTRA_INSTALL_COMMAND
 from maptasker.src.primitem import PrimeItems
 
@@ -169,7 +170,7 @@ def check_models(model: str, silence_output: bool) -> str | None:
                 console.say(str(chunk))
             console.say(f"'{model}' downloaded, starting processes.")
         return model
-    except Exception as e:  # ollama.pull raises its own hierarchy; any of it means "no model".
+    except ollama_errors() as e:  # Any of these means "no model".
         console.error(str(e))
         # Model not found!
         PrimeItems.error_code = 1
