@@ -32,7 +32,7 @@ import sys
 
 from nicegui import app
 
-from maptasker.src import console
+from maptasker.src import clireports, console
 from maptasker.src.actionc import load_arg_specs
 from maptasker.src.error import exit_program
 from maptasker.src.lineout import LineOut
@@ -256,6 +256,11 @@ def mapit_all() -> int:
 
         This will eventually call rungui or runcli.
     """
+    # A report asked for on the command line (-healthcheck, -compare ...) runs with no window
+    # and no GUI start-up, and ends with its own exit code.
+    if clireports.wants_report(sys.argv[1:]):
+        return clireports.run(sys.argv[1:])
+
     try:
         _, _, _ = initialize_everything()
     except MapTaskerError as error:

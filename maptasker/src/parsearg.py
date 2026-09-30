@@ -216,6 +216,16 @@ def runtime_parser() -> None:
                                     exit 6- no or improper filename selected
                                     exit 7- invalid option
                                     exit 8- request to Android device running server failed.  See output for error code.
+                                    exit 10- a command-line report found something (see below)
+                                    exit 11- -changes_since had no earlier configuration to compare against
+
+                                Reports that run with no window (write the report to standard output):
+                                    -healthcheck -file backup.xml        scan a backup for problems
+                                    -compare older.xml newer.xml         what differs between two backups
+                                    -changes_since week -file backup.xml what changed over a period
+                                    -export map -format md -file backup.xml    write the Map or Diagram as a file
+                                    -watch FOLDER                        record each new backup in the history
+                                Run one of them with -h for its options, e.g. 'maptasker -healthcheck -h'.
 
                                 The output HTML file is saved in your current folder/directory
                                 .

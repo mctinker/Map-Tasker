@@ -124,6 +124,37 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
      ...or if using uv to manage the virtual environment...
      ```uv run maptasker```
 
+### Reports from the command line
+
+Health Check, Compare, Changes Since, Export and a folder watch run with no window, so a nightly Tasker backup can be checked automatically (from `cron`, Task Scheduler, `launchd` or a CI job):
+
+```
+maptasker -healthcheck -file backup.xml                 # problems in a backup
+maptasker -compare older.xml newer.xml                  # what differs between two backups
+maptasker -changes_since week -file backup.xml          # what changed: today, week, month, all, a date, or 3d
+maptasker -export map -format md -file backup.xml       # the Map (or diagram) as md, json or pdf
+maptasker -watch ~/TaskerBackups                        # record each new backup in the history
+```
+
+- **`-file`** takes a backup, or a folder (the newest `.xml` in it is used).  `-outdir` chooses where files are written, and `-save` also saves the report as a file, as the window does.
+- **The report, and only the report, goes to standard output**; everything else goes to standard error, so `maptasker -healthcheck -file backup.xml > report.txt` is a clean report.
+- **Exit codes** let a script act on the result:
+
+  | Code | Meaning |
+  |---|---|
+  | 0 | Done, and there was nothing to report |
+  | 10 | The report found something: Health Check errors (`-fail_on warning` to include warnings, `-fail_on never` to ignore them), or differences |
+  | 11 | `-changes_since` had no earlier configuration to compare against (the first run starts the history) |
+  | 1 | Program error |
+  | 2 | A file could not be written (including an `-outdir` folder that cannot be used), or the output could not be built |
+  | 3 | The file is not a valid Tasker backup |
+  | 5 | The single Project, Profile or Task requested (`-project`, `-profile` or `-task`) was not found |
+  | 6 | No file was given, or the file or folder does not exist |
+  | 7 | Invalid option, such as a bad color, an unknown `-fail_on` value, or comparing a file with itself |
+  | 8 | The request to the Android device running the Tasker server failed |
+
+- **The history.**  A backup that is loaded is recorded in the configuration history, which is what `-changes_since` reads.  `-watch FOLDER` records each new, complete backup that appears in `FOLDER`, dated by the file, so the history fills up on days you never open MapTasker; `-watch FOLDER -once` looks a single time, for a scheduled job.  The history is kept in a `MapTasker_Timeline` folder in the directory MapTasker is run from, so a scheduled job should use `-history_dir` to point at the same one the window uses.
+- **Nothing else changes.**  These runs never open a browser and never rewrite the settings the window keeps.
 
 ## Program Output
 
@@ -317,7 +348,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Readiness Check
 
-- [ ] Command Line Reports
+- [x] Command Line Reports
 
 - [x] Support additional plugins
 

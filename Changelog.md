@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file!
 ### Added
 
 - Added: A new __What Fires When?__ button lets you pick a moment -- date and time, Wi-Fi network, app in front and battery level -- and shows which Profiles would be active, the order their Tasks would start in, and where they collide, such as two Profiles setting Wi-Fi opposite ways or one Task started twice.  Anything the inputs do not describe, such as an Event or a location, is shown as possible along with what it is waiting on, rather than guessed at.
+- Added: Health Check, Compare, Changes Since and Export can now be run from the command line with no window (for example `maptasker -healthcheck -file backup.xml`), and they end with an exit code a script can act on, so a nightly Tasker backup can be checked automatically.  A new `-watch FOLDER` option records each new backup that appears in a folder in the history, so it fills up even on days MapTasker is not opened.
 - Added:
 
 ### Changed
@@ -16,7 +17,6 @@ All notable changes to this project will be documented in this file!
 - Changed: The 'Save Settings' and 'Restore Settings' buttons are now labelled 'Save' and 'Restore' and sit side by side under the Application Settings heading, instead of one above the other.
 - Changed: Several places that quietly swallowed any error now catch only the failures they expect, such as a dropped connection or an unreadable font folder, so a genuine bug is reported instead of being mistaken for "Ollama is not running" or "no fonts installed".  Where a catch-all is still the right call, the full error details are now written to the debug log.
 - Changed: MapTasker no longer installs the AI libraries on its own the first time you use an AI feature; if they are missing it tells you once to install them with `pip install "maptasker[ai]"`.  This keeps MapTasker from downloading software you did not ask for.
-- Changed: The message shown when an AI library is not installed no longer ends with a confusing "with return code 12", since the instruction to install it says everything you need to know.
 - Changed:
 
 ### Removed

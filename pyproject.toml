@@ -445,7 +445,7 @@ containers = ["maptasker.src"]
 exhaustive = true
 layers = [
     """
-    mapit : progargs : runcli : rungui
+    mapit : progargs : runcli : rungui : clireports
     """,
     """
     getfile : guistate : guiutils : guiwins :
@@ -468,7 +468,7 @@ layers = [
     mapask : mapcache : mapexport : mapfind : mapfix : mapfonts :
     mapjump : mappdf : maprefac : maprestore : mapswap : maputil2 :
     maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
-    firesim : parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
+    firesim : folderwatch : parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
     profedit : profiles : proflint : proginit : projects : projedit :
     property : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenes : servicec :
     sessundo : share : shelsort : sysconst : taskactn : taskedit :

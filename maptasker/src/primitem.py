@@ -322,6 +322,11 @@ class PrimeItems:
     language_set: bool = False
     # appearance_translated: ClassVar[dict[str, str]] = {}
     mygui: ClassVar = None
+    # True for a run with no person at the keyboard: a command-line report or export (see
+    # clireports).  Such a run must not open the finished Map in a web browser, and must not
+    # rewrite the settings file the GUI keeps -- what it was asked to do is not a change of
+    # settings.
+    headless: bool = False
 
 
 # What a reset leaves alone: the session's own settings and the look-up tables loaded once for
@@ -335,6 +340,7 @@ SESSION_ATTRIBUTES = frozenset(
         "language_set",  # whether the GUI has switched language yet
         "last_run",  # when MapTasker last ran, from the settings file
         "mygui",  # the running GUI
+        "headless",  # whether this is a command-line report or export, set once at startup (clireports)
         "slash",  # the OS's path separator, set at startup (proginit)
         "windows_system",  # likewise
         "tasker_arg_specs",  # Tasker's action argument specs, loaded once (actionc.load_arg_specs)

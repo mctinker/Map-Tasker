@@ -129,12 +129,17 @@ def build_html(file_to_get: str) -> int:
     # given (hiding the API key, resetting the transient arguments, clearing a single
     # Project name that was only set because a single Task was asked for) and the rest of
     # the run expects to see those edits.
-    with overridden_config(rerun=False):
-        _, _ = save_restore_args(
-            PrimeItems.program_arguments,
-            PrimeItems.colors_to_use,
-            to_save=True,
-        )
+    #
+    # Not for a headless run: a command-line export was asked to build something, not to
+    # change the settings the GUI keeps, and its own arguments (the detail level it was
+    # given, the file it was pointed at) would replace whatever the person last chose there.
+    if not PrimeItems.headless:
+        with overridden_config(rerun=False):
+            _, _ = save_restore_args(
+                PrimeItems.program_arguments,
+                PrimeItems.colors_to_use,
+                to_save=True,
+            )
 
     # Take a note of what the Map just written was built from, so that asking for the same
     # one again is answered with that file rather than by building it a second time.  Last,
@@ -343,8 +348,9 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     """
     logger.debug("MapTasker program ended normally")
 
-    # Only invoke the browser if not doing a Map View from the GUI.
-    if PrimeItems.mygui is None and not PrimeItems.program_arguments.ai_analyze:
+    # Only invoke the browser if not doing a Map View from the GUI, and if someone is there to
+    # look at it: a command-line report or export (headless) has nobody to show it to.
+    if PrimeItems.mygui is None and not PrimeItems.headless and not PrimeItems.program_arguments.ai_analyze:
         try:
             webbrowser.open(
                 f"file:{PrimeItems.slash * 2}{my_output_dir}{my_file_name}",

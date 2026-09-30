@@ -93,6 +93,17 @@ _DIGEST_LENGTH = 12
 # every load, including the one at startup.
 _CHUNK = 1 << 20
 
+# Where the history lives when it is not in the current directory: set by use_history_folder,
+# for a run that is not started from the folder the GUI is (a scheduled report, a folder watch).
+# The history is otherwise found by the current directory, so two runs started from different
+# places each keep -- and each read -- a history of their own.
+#
+# A one-item dict rather than a variable assigned with 'global': a run-level setting, not
+# something derived from the configuration, so it is not a caches.Slot either -- those are
+# emptied whenever the loaded tables are (maputils), and that must not undo a folder the run
+# was told to use.
+_history_override: dict[str, Path | None] = {"folder": None}
+
 # See suppressed().  A plain module flag rather than a parameter because the caller that
 # has to suppress it (diffload) and the caller that does the recording (taskerd, from
 # inside get_the_xml_data) do not speak to each other -- there is no argument to thread
@@ -145,6 +156,17 @@ def suppressed() -> None:
         recording_suppressed = previous
 
 
+def use_history_folder(folder: str | Path | None) -> None:
+    """Keep and read the history in `folder` instead of in the current directory.
+
+    None goes back to the current directory.  The folder is the history itself -- what would
+    otherwise be MapTasker_Timeline -- and is made, parents and all, when the first snapshot
+    is written.  For the run that is not started from where the GUI is, so that it fills and
+    reads the same history the GUI does.
+    """
+    _history_override["folder"] = Path(folder).expanduser().resolve() if folder else None
+
+
 def _history_folder(*, create: bool) -> Path | None:
     """The history folder, made if asked for and if it can be.  None when it cannot.
 
@@ -152,10 +174,10 @@ def _history_folder(*, create: bool) -> Path | None:
     not a load that fails.  The same reasoning as presave's -- see its module header on
     why a failed safety copy does not stop the save.
     """
-    folder = Path.cwd() / HISTORY_FOLDER
+    folder = _history_override["folder"] or Path.cwd() / HISTORY_FOLDER
     if create:
         try:
-            folder.mkdir(exist_ok=True)
+            folder.mkdir(parents=True, exist_ok=True)
         except OSError as error:
             logger.error(f"Timeline history folder could not be created: {error}")
             return None
