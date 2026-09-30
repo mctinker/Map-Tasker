@@ -458,7 +458,7 @@ class MyGui:
                 if not file_to_use:
                     file_to_use = self.android_file[filename_location:]
                 try:
-                    PrimeItems.file_to_get = open(file_to_use)
+                    PrimeItems.file_to_get = open(file_to_use, encoding="utf-8")
                 except FileNotFoundError:
                     # self.display_message_box(
                     #     f"XML file {file_to_use} not found.",

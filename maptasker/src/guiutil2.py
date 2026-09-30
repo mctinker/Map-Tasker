@@ -108,7 +108,7 @@ def my_trace_function(frame, event, arg) -> None:  # noqa: ANN001
         )
 
     if log_message:
-        with open(TRACE_LOG_FILE, "a") as f:
+        with open(TRACE_LOG_FILE, "a", encoding="utf-8") as f:
             f.write(log_message + "\n")
 
     # Important: The trace function must return itself (or another trace function)

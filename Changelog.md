@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: Choosing the Gemini model 'gemini-3.1-flash_lite' for AI analysis failed with a "404 NOT_FOUND" error, because its name was misspelled with an underscore.  The name is corrected, and a setting saved with the old spelling is fixed automatically the next time it loads.
 - Fixed: Running an AI analysis with Gemini no longer prints a warning about "automatic function calling" not being recommended.  MapTasker does not use that feature, so it is now switched off.
+- Fixed: On Windows, Tasker names containing accented letters, symbols or non-Latin characters could be garbled or rejected when MapTasker saved a backup fetched from your device, its logs and its small status files.  MapTasker now reads and writes all of these as UTF-8 on every platform.
 - Fixed:
 
 ### Known Issues

@@ -151,6 +151,13 @@ src = ['src',]
 # here lets ruff see that 'logger.exception(...)' records the traceback -- without it, a
 # broad except that does log its failure still trips BLE001.
 logger-objects = ["maptasker.src.sysconst.logger"]
+# PLW1514 (open() with no encoding=) is a preview rule.  On Windows the default encoding is
+# the locale's (cp1252), not UTF-8, so an open() with no encoding garbles or rejects a
+# non-ASCII Tasker name there and works fine on a Mac -- the kind of bug a Mac never shows.
+# explicit-preview-rules keeps every OTHER preview rule off: a preview rule is enabled only
+# when it is named in full below, never by a prefix such as 'PL'.
+preview = true
+explicit-preview-rules = true
 select = [
     'A',    # Builtins
     'ANN',  # Annotations
@@ -185,6 +192,7 @@ select = [
     'PGH',  # Pygrep hooks
     'PIE',  # Unnecessary code
     'PL',   # Pylint
+    'PLW1514',  # open() without an explicit encoding (a preview rule; see explicit-preview-rules)
     'PT',   # Pytest
     # 'PTH',  # Use Pathlib
     'PYI',  # Stub files

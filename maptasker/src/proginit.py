@@ -49,7 +49,7 @@ def read_counter() -> int:
         Returns: the count of the number of times the program has been called
     """
     try:
-        with open(COUNTER_FILE) as f:
+        with open(COUNTER_FILE, encoding="utf-8") as f:
             return loads(f.read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
     except FileNotFoundError:
         return 0
@@ -62,7 +62,7 @@ def write_counter() -> None:
         Parameters: none
         Returns: none
     """
-    with open(COUNTER_FILE, "w") as f:
+    with open(COUNTER_FILE, "w", encoding="utf-8") as f:
         f.write(dumps(run_counter))
 
 
@@ -139,7 +139,7 @@ def open_and_get_backup_xml_file() -> dict:
 
         # We already have the file name...open it.
         try:
-            PrimeItems.file_to_get = open(filename)
+            PrimeItems.file_to_get = open(filename, encoding="utf-8")
             # PrimeItems.file_to_get is now an open file object that can be read from.
         except FileNotFoundError:
             file_not_found = filename

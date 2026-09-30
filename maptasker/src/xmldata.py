@@ -253,7 +253,7 @@ def append_files(file1_path: str, file2_path: str) -> None:
         - Open file1 in read mode.
         - Open file2 in append mode.
         - Copy contents of file1 to file2."""
-    with open(file1_path) as file1, open(file2_path, "a") as file2:
+    with open(file1_path, encoding="utf-8") as file1, open(file2_path, "a", encoding="utf-8") as file2:
         shutil.copyfileobj(file1, file2)
 
 
@@ -271,7 +271,7 @@ def rewrite_xml(file_to_parse: str) -> None:
     utf_xml = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
 
     # Create the XML file with the encoding we want
-    with open(".maptasker_tmp.xml", "w") as new_file:
+    with open(".maptasker_tmp.xml", "w", encoding="utf-8") as new_file:
         new_file.write(utf_xml)
         new_file.close()
 

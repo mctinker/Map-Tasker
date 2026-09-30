@@ -56,7 +56,7 @@ def write_out_backup_file(file_contents: bin) -> None:
         os.remove(my_file_name)
 
     # Open output file
-    with open(my_file_name, "w") as out_file:
+    with open(my_file_name, "w", encoding="utf-8") as out_file:
         # Write out each line
         for item in output_lines:
             item.rstrip()  # Get rid of trailing blanks

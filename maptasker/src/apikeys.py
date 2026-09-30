@@ -229,7 +229,9 @@ def _write_key_file(key_file: Path, wanted: dict[str, str]) -> None:
         raise
 
 
-class _PlainDataUnpickler(pickle.Unpickler):
+# S301 (preview) flags any Unpickler subclass.  This one is the safeguard, not the risk: its
+# find_class refuses every class and function, so nothing a pickle names can be imported or run.
+class _PlainDataUnpickler(pickle.Unpickler):  # noqa: S301
     """
     An unpickler that refuses to import anything, so it can build nothing but plain data.
 

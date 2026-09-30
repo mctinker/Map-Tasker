@@ -1921,7 +1921,7 @@ def is_first_run_today(filename: str = ".maptasker_last_run.txt") -> bool:
 
     # 2. Check if the tracking file exists
     if os.path.exists(filename):
-        with open(filename) as file:
+        with open(filename, encoding="utf-8") as file:
             last_run_str = file.read().strip()
 
         # If the date in the file matches today, it's NOT the first run
@@ -1929,7 +1929,7 @@ def is_first_run_today(filename: str = ".maptasker_last_run.txt") -> bool:
             return False
 
     # 3. If file doesn't exist OR the date is old, update the file and return True
-    with open(filename, "w") as file:
+    with open(filename, "w", encoding="utf-8") as file:
         file.write(today_str)
 
     return True

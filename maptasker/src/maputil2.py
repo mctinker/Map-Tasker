@@ -172,7 +172,7 @@ def suppress_stdout() -> Generator:  # type: ignore  # noqa: PGH003
         return
 
     try:
-        with open(os.devnull, "w") as devnull:
+        with open(os.devnull, "w", encoding="utf-8") as devnull:
             old_stdout = sys.stdout
             sys.stdout = devnull
             old_stderr = sys.stderr

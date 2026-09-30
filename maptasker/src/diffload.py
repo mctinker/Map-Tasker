@@ -301,7 +301,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
         # went wrong.
         try:
             scratch = _scratch_copy(file_path)
-            opened = open(scratch)  # Closed in the finally below.
+            opened = open(scratch, encoding="utf-8")  # Closed in the finally below.
             PrimeItems.file_to_get = opened
             PrimeItems.tasker_root_elements = initial_tasker_root_elements()
             clear_error()

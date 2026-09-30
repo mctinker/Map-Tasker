@@ -83,7 +83,7 @@ def debug_print(message: str) -> None:
         try:
             # 2. Open the file in write mode ('w')
             # 'w' mode will create the file if it doesn't exist, or overwrite it if it does.
-            with open(filename, "a") as file:
+            with open(filename, "a", encoding="utf-8") as file:
                 # 3. Write the text string to the file
                 file.write(message)
         except OSError as e:

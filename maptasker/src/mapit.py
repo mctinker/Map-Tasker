@@ -96,7 +96,7 @@ def on_crash(exctype: object, value: str, traceback: list) -> None:
         )
         console.say("\a", end="", flush=True)  # Bell
         # Redirect print to a debug log
-        with open(debug_file, "w") as log:
+        with open(debug_file, "w", encoding="utf-8") as log:
             # sys.stdout = log
             sys.stderr = log
             sys.__excepthook__(exctype, value, traceback)
