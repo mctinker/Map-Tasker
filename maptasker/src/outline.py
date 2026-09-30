@@ -38,6 +38,7 @@ from maptasker.src.getids import get_ids
 from maptasker.src.maputils import find_owning_project_for_scene
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
+from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import FormatLine
 
 blank = "&nbsp;"
@@ -649,4 +650,4 @@ def outline_the_configuration() -> None:
 
     # Now generate the outline diagram text file.
     if network:
-        network_map(network)
+        network_map(network, current_config())

@@ -23,7 +23,6 @@ from maptasker.src.primitem import PROJECT_COUNT_ATTRIBUTES, PrimeItems, reset_a
 from maptasker.src.proclist import output_task_list
 from maptasker.src.profiles import process_profiles
 from maptasker.src.property import get_properties
-from maptasker.src.runcfg import current_config
 from maptasker.src.scenes import process_project_scenes, process_scene_list
 from maptasker.src.share import share
 from maptasker.src.sysconst import DISABLED, NORMAL_TAB, UNNAMED_ITEM, FormatLine
@@ -34,9 +33,21 @@ from maptasker.src.twisty import add_twisty, remove_twisty
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.runcfg import RunConfig
+
+# Where this module's settings come from
+# ----------------------------------------
+# The settings that do not change while a build runs (detail level, twisty, pretty,
+# directory, taskernet, the single Task and Scene names...) arrive as a RunConfig
+# parameter, snapshotted once by the caller.  Two settings are NOT read from it, and
+# must stay on PrimeItems.program_arguments: single_project_name and single_profile_name.
+# They are run state rather than settings -- profiles.py writes both as it finds a single
+# Profile or Task, and the loop in process_projects depends on seeing that write -- so a
+# snapshot taken before the build would hand back the stale value.
+
 
 # Output a single Scene that no Project claims
-def output_orphan_single_scene() -> None:
+def output_orphan_single_scene(config: RunConfig) -> None:
     """
     Output the single Scene being asked for when no Project lists it.
 
@@ -48,10 +59,13 @@ def output_orphan_single_scene() -> None:
     Does nothing if we are not doing a single Scene, if it has already been found and
     output, or if the name really isn't in the backup.
 
+    Args:
+        config (RunConfig): the run's settings.
+
     Returns:
         None
     """
-    single_scene_name = PrimeItems.program_arguments.single_scene_name
+    single_scene_name = config.single_scene_name
     if (
         not single_scene_name
         or PrimeItems.found_named_items["single_scene_found"]
@@ -68,10 +82,12 @@ def output_orphan_single_scene() -> None:
 def process_projects_and_their_profiles(
     found_tasks: list,
     projects_without_profiles: list,
+    config: RunConfig,
 ) -> list:
     """Parameters:
         - found_tasks (list): A list of tasks that have been found.
         - projects_without_profiles (list): A list of projects that do not have profiles.
+        - config (RunConfig): the run's settings.
     Returns:
         - list: A list of tasks found with duplicates removed.
     Processing Logic:
@@ -87,11 +103,9 @@ def process_projects_and_their_profiles(
 
     # Process unnamed Task
     if (
-        PrimeItems.program_arguments.single_task_name is not None
-        and UNNAMED_ITEM in PrimeItems.program_arguments.single_task_name
-        and PrimeItems.program_arguments.list_unnamed_items
+        config.single_task_name is not None and UNNAMED_ITEM in config.single_task_name and config.list_unnamed_items
     ) and PrimeItems.tasker_root_elements["all_tasks_by_name"]:
-        task_name = PrimeItems.program_arguments.single_task_name
+        task_name = config.single_task_name
         task_id = get_taskid_from_unnamed_task(task_name)
         unnamed_task = PrimeItems.tasker_root_elements["all_tasks"][task_id]
         task_list = [{"xml": unnamed_task["xml"], "name": task_name}]
@@ -116,6 +130,7 @@ def process_projects_and_their_profiles(
         process_projects(
             projects_without_profiles,
             found_tasks,
+            config,
         )
 
     # Only Profiles...?
@@ -159,7 +174,7 @@ def process_projects_and_their_profiles(
     elif PrimeItems.tasker_root_elements["all_scenes"]:
         scene_list = []
         found_tasks = []
-        single_scene_name = PrimeItems.program_arguments.single_scene_name
+        single_scene_name = config.single_scene_name
         for scene in PrimeItems.tasker_root_elements["all_scenes"]:
             scene_name = PrimeItems.tasker_root_elements["all_scenes"][scene]["name"]
             # Only after a single Scene?  Skip everything else.
@@ -175,7 +190,7 @@ def process_projects_and_their_profiles(
     # A single Scene that no Project lists still exists in all_scenes -- output it on
     # its own rather than reporting it as not found.  (The branch above covers a backup
     # with no Projects at all; this covers an orphan Scene in a backup that has them.)
-    output_orphan_single_scene()
+    output_orphan_single_scene(config)
 
     # Restore the single Project name saved at beginning
     PrimeItems.program_arguments.single_project_name = single_project_name
@@ -217,12 +232,13 @@ def get_launcher_task(project: Element, _project_name: str) -> str:
 
 
 # Add heading for Tasks that are not in any Profile
-def task_not_in_profile_heading(project_name: str) -> None:
+def task_not_in_profile_heading(project_name: str, config: RunConfig) -> None:
     # Format the output line
     """Returns a formatted output line for the tasks that are not in any profile.
 
     Parameters:
         - project_name (str): The name of the project.
+        - config (RunConfig): the run's settings (twisty).
     Returns:
         - None: This function does not return anything, it only formats the output line.
     Processing Logic:
@@ -238,7 +254,7 @@ def task_not_in_profile_heading(project_name: str) -> None:
     PrimeItems.output_lines.add_line_to_output(5, "<br>", FormatLine.dont_format_line)
 
     # Add the "twisty" to hide the Task details
-    if PrimeItems.program_arguments.twisty:
+    if config.twisty:
         add_twisty(
             "task_color",
             output_line,
@@ -264,6 +280,7 @@ def do_tasks_in_project(
     found_tasks: list,
     output_the_heading: bool,
     have_tasks_not_in_profile: bool,
+    config: RunConfig,
 ) -> bool:
     """
     Process all of the Tasks in this Project
@@ -274,6 +291,7 @@ def do_tasks_in_project(
             found_tasks (list): List of the Tasks found so far
             output_the_heading (bool): True if we need to output the Project heading
             have_tasks_not_in_profile (bool): Trues if there are Tasks not in the current Profile
+            config (RunConfig): the run's settings
 
             return: True if we have Tasks not in any Profile
     """
@@ -294,7 +312,7 @@ def do_tasks_in_project(
             # Only print the Task header if there are Tasks not found in any Profile,
             # and we are not looking for a single item
             if output_the_heading and task_ids and not is_single_task_or_profile_found():
-                _task_not_in_profile_heading(project_name)
+                _task_not_in_profile_heading(project_name, config)
 
                 output_the_heading = False
 
@@ -328,12 +346,14 @@ def tasks_not_in_profiles(
     task_ids: list,
     found_tasks: list,
     project_name: str,
+    config: RunConfig,
 ) -> bool:
     """
     Process all Tasks in Project that are not referenced by a Profile
         :param task_ids: List of Task IDs
         :param found_tasks: list of Tasks found thus far
         :param project_name: name of current Project
+        :param config: the run's settings
         :return: boolean: True=we have Tasks not in the Profile, False: there are no
                             Tasks not in Profile
     """
@@ -349,10 +369,11 @@ def tasks_not_in_profiles(
         found_tasks,
         output_the_heading,
         have_tasks_not_in_profile,
+        config,
     )
 
     # End the twisty hidden lines if we have Tasks not in any Profile
-    if PrimeItems.program_arguments.twisty:
+    if config.twisty:
         if have_tasks_not_in_profile:
             remove_twisty()
         else:
@@ -372,6 +393,7 @@ def get_extra_and_output_project(
     project: Element,
     project_name: str,
     launcher_task_info: str,
+    config: RunConfig,
 ) -> bool:
     """
     Add extra info to Project output line as appropriate and then output it.
@@ -383,6 +405,7 @@ def get_extra_and_output_project(
         :param project: Project xml element
         :param project_name: name of Project
         :param launcher_task_info: details about (any) launcher Task
+        :param config: the run's settings
         :return: True if we are looking for a single Project and this isn't it.
         False otherwise.
     """
@@ -391,7 +414,7 @@ def get_extra_and_output_project(
     # See if there is a Kid app and get the Project's priority,
     # only if display level is max
     kid_app_info = priority = ""
-    if PrimeItems.program_arguments.display_detail_level > 2:
+    if config.display_detail_level > 2:
         kid_app_info = get_kid_app(project)
         if kid_app_info:
             kid_app_info = format_html("project_color", "", kid_app_info, True)
@@ -415,7 +438,7 @@ def get_extra_and_output_project(
     )
 
     # Make the Project name bold, italcize and/or highlighted if requested
-    project_name_altered = add_name_attribute(project_name, current_config())
+    project_name_altered = add_name_attribute(project_name, config)
 
     # Add a 2-up tooltip to the "Project:" label: Profiles in this Project on the left,
     # all of this Project's Tasks (sorted) on the right, one item per line in each column.
@@ -450,7 +473,7 @@ def get_extra_and_output_project(
     final_project_line = f"{project_name_details} {launcher_task_info}{disabled}{priority}{kid_app_info}"
 
     # Pretty it up?
-    if PrimeItems.program_arguments.pretty:
+    if config.pretty:
         indent_amt = len(project_name) + 5
         # Break at comma
         final_project_line = final_project_line.replace(
@@ -554,6 +577,7 @@ def finish_up(
     project_name: str,
     found_tasks: list,
     profile_count: int,
+    config: RunConfig,
 ) -> None:
     """
     Output the remaining components related to the Project
@@ -561,6 +585,7 @@ def finish_up(
         :param project_name: name of the Project
         :param found_tasks: list of all Tasks found so far
         :param profile_count: count of Profiles in this Project
+        :param config: the run's settings
         :return: nothin
     """
 
@@ -574,12 +599,13 @@ def finish_up(
     # Skipped when we are only after a single Scene: the Project's loose Tasks are not
     # part of the Scene, and this runs before process_project_scenes below has had a
     # chance to set the single_scene_found flag that would otherwise suppress them.
-    if not PrimeItems.program_arguments.single_scene_name:
+    if not config.single_scene_name:
         task_ids = get_ids(False, project, project_name, [])
         tasks_not_in_profile = tasks_not_in_profiles(
             task_ids,
             found_tasks,
             project_name,
+            config,
         )
 
     # Find the Scenes for this Project <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -595,7 +621,7 @@ def finish_up(
         PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
     # Output the Project's variables
-    if PrimeItems.program_arguments.display_detail_level >= 4:
+    if config.display_detail_level >= 4:
         output_variables("Project Global Variables", project)
 
     # Output the Project summary line
@@ -603,9 +629,7 @@ def finish_up(
 
     # If we are not inserting the twisties, then close the unordered list
     # Twisties screw with the indentation, as well as not having Scenes
-    if not PrimeItems.program_arguments.twisty and (
-        PrimeItems.program_arguments.display_detail_level > 0 or not have_scenes
-    ):
+    if not config.twisty and (config.display_detail_level > 0 or not have_scenes):
         PrimeItems.output_lines.add_line_to_output(
             3,
             "",
@@ -692,11 +716,13 @@ def add_close_project_list_line_to_output() -> None:
 def get_profile_details_and_output(
     project: str,
     project_name: str,
+    config: RunConfig,
 ) -> tuple[bool, int, str, bool]:
     """
     Get this Project's details and output them
         Args:
             project_name (str): name of the project
+            config (RunConfig): the run's settings
 
         Returns:
             tuple[bool, int, bool]: True if this is a Task or Profile we want,
@@ -710,7 +736,7 @@ def get_profile_details_and_output(
         return True, profile_count, False
 
     # If doing a directory, save the project name for it
-    if PrimeItems.program_arguments.directory:
+    if config.directory:
         add_directory_item("projects", project_name)
 
     # Get any Project launch details
@@ -722,14 +748,15 @@ def get_profile_details_and_output(
         project,
         project_name,
         launcher_task_info,
+        config,
     )
 
     # Process Project Properties
-    if PrimeItems.program_arguments.display_detail_level > 2:
+    if config.display_detail_level > 2:
         get_properties("Project:", project, Target(PROJECT, project_name, project_name))
 
     # Process TaskerNet details if requested
-    if PrimeItems.program_arguments.taskernet:
+    if config.taskernet:
         share(project, "projtab", Target(PROJECT, project_name, project_name))
 
     return False, profile_count, have_project_wanted
@@ -785,12 +812,14 @@ def process_project_profiles(
 def process_projects(
     projects_without_profiles: list,
     found_tasks: list,
+    config: RunConfig,
 ) -> list:
     """
     Go through all the Projects, get their detail and output it
 
         :param projects_without_profiles: list of Projects with no Profiles
         :param found_tasks: list of Tasks found
+        :param config: the run's settings
         :return: nothing
     """
 
@@ -804,7 +833,7 @@ def process_projects(
 
     # Doing a single Scene?  Work out which Project owns it once, up front, so the loop
     # below can skip straight past every other Project.
-    single_scene_name = PrimeItems.program_arguments.single_scene_name
+    single_scene_name = config.single_scene_name
     scene_owning_project = find_owning_project_for_scene(single_scene_name) if single_scene_name else ""
 
     for project_name in PrimeItems.tasker_root_elements["all_projects"]:
@@ -830,7 +859,7 @@ def process_projects(
             _,
             profile_count,
             have_project_wanted,
-        ) = _get_profile_details_and_output(project, project_name)
+        ) = _get_profile_details_and_output(project, project_name, config)
 
         # If we are searching for a specific Project and we found it, then bail out
         # ...but stay in loop to process all the Profiles for this Project
@@ -858,6 +887,7 @@ def process_projects(
             project_name,
             found_tasks,
             profile_count,
+            config,
         )
 
         # If we are doing a single item and it was found, return the Tasks list

@@ -20,6 +20,7 @@ from maptasker.src.initparg import ProgramArguments
 from maptasker.src import diagintr, diagram, guiwins, mapjump, taskerd, userintr
 from maptasker.src.mapjump import PROFILE, PROJECT, TASK, Target, diagram_placement
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.runcfg import RunConfig, current_config
 from maptasker.src.sysconst import DIAGRAM_FILE
 from maptasker.src import guiwins_search, guiwins_views
 
@@ -284,12 +285,16 @@ def _load(xml: str, calls: dict) -> dict:
     return tables
 
 
-def _render(tmp_path: object, network: dict) -> list[str]:
-    """Draw the diagram and hand back the file it wrote, line by line."""
+def _render(tmp_path: object, network: dict, config: RunConfig | None = None) -> list[str]:
+    """Draw the diagram and hand back the file it wrote, line by line.
+
+    The settings are the ones _load put on PrimeItems unless a config is given, which is
+    what lets a test vary one without touching the global.
+    """
     here = os.getcwd()
     os.chdir(tmp_path)
     try:
-        diagram.network_map(network)
+        diagram.network_map(network, config or current_config())
         with open(DIAGRAM_FILE, encoding="utf-8") as written:
             return written.read().split("\n")
     finally:
@@ -310,6 +315,30 @@ def _drawn(tmp_path: object) -> list[str]:
             },
         },
     )
+
+
+def _profile_rows(lines: list[str]) -> set[int]:
+    """The rows the three Profile names of the fixture were drawn on."""
+    return {row for row, line in enumerate(lines) for name in ("Wake Up", "Wind Down", "Nightly") if name in line}
+
+
+def test_the_diagram_takes_its_profiles_per_line_from_the_config_it_is_given(tmp_path: object) -> None:
+    """The setting comes in as a parameter: the global says six to a row, the config says one."""
+    tables = _load(_DIAGRAM_XML, {"Backup": ["Restore"]})
+    network = {
+        "Home": {
+            "Wake Up": [{"xml": tables["all_tasks"]["20"]["xml"], "name": "Backup"}],
+            "Wind Down": [{"xml": tables["all_tasks"]["21"]["xml"], "name": "Backup"}],
+            "Nightly": [{"xml": tables["all_tasks"]["22"]["xml"], "name": "Restore"}],
+        },
+    }
+    assert PrimeItems.program_arguments.profiles_per_line == 6
+
+    side_by_side = _render(tmp_path, network)
+    stacked = _render(tmp_path, network, current_config().with_changes(profiles_per_line=1))
+
+    assert len(_profile_rows(side_by_side)) == 1
+    assert len(_profile_rows(stacked)) == 3
 
 
 def _span(lines: list[str], placement: tuple[int, int, int]) -> str:

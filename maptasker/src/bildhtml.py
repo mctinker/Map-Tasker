@@ -116,9 +116,12 @@ def build_html(file_to_get: str) -> int:
     found_tasks = []
     projects_without_profiles = []
     projects_with_no_tasks = []
+    # The settings are read once here and handed down.  single_project_name and
+    # single_profile_name are the exceptions, which projects.py reads live (see its header).
     found_tasks = projects.process_projects_and_their_profiles(
         found_tasks,
         projects_without_profiles,
+        current_config(),
     )
 
     # Do special handling: wrap up back matter and print the output.

@@ -17,12 +17,14 @@ anywhere to check them against.
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import pytest
 from maptasker.src import projects, taskerd
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
+from maptasker.src.runcfg import current_config
 from maptasker.src.primitem import (
     PrimeItems,
     initial_directory_items,
@@ -182,7 +184,7 @@ def test_a_backup_with_projects_is_walked_from_the_projects() -> None:
         '<Profile sr="prof5"><id>5</id><mid0>10</mid0><nme>Morning</nme></Profile>'
         '<Task sr="task10"><id>10</id><nme>Alpha</nme></Task>',
     )
-    projects.process_projects_and_their_profiles([], [])
+    projects.process_projects_and_their_profiles([], [], current_config())
     output = _output()
     assert "Home" in output
     assert "Morning" in output
@@ -196,7 +198,7 @@ def test_a_profile_export_is_walked_from_the_profiles() -> None:
         '<Profile sr="prof5"><id>5</id><mid0>10</mid0><nme>Morning</nme></Profile>'
         '<Task sr="task10"><id>10</id><nme>Alpha</nme></Task>',
     )
-    projects.process_projects_and_their_profiles([], [])
+    projects.process_projects_and_their_profiles([], [], current_config())
     assert "Morning" in _output()
 
 
@@ -205,7 +207,7 @@ def test_a_task_export_is_walked_from_the_tasks() -> None:
     condition matters, because a Scene export also carries the Tasks its buttons fire.
     """
     _load('<Task sr="task10"><id>10</id><nme>Alpha</nme></Task><Task sr="task11"><id>11</id><nme>Beta</nme></Task>')
-    projects.process_projects_and_their_profiles([], [])
+    projects.process_projects_and_their_profiles([], [], current_config())
     output = _output()
     assert "Alpha" in output
     assert "Beta" in output
@@ -217,7 +219,7 @@ def test_a_scene_export_is_walked_from_the_scenes() -> None:
     the screen they belong to.
     """
     _load('<Scene sr="scene0"><nme>Panel</nme></Scene><Task sr="task10"><id>10</id><nme>Alpha</nme></Task>')
-    projects.process_projects_and_their_profiles([], [])
+    projects.process_projects_and_their_profiles([], [], current_config())
     assert "Panel" in _output()
     assert PrimeItems.grand_totals["scenes"] == 1
 
@@ -229,9 +231,9 @@ def test_an_unclaimed_scene_is_output_rather_than_reported_missing() -> None:
     is just unclaimed.
     """
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Orphan</nme></Scene>')
-    PrimeItems.program_arguments.single_scene_name = "Orphan"
+    config = current_config().with_changes(single_scene_name="Orphan")
 
-    projects.output_orphan_single_scene()
+    projects.output_orphan_single_scene(config)
     assert PrimeItems.found_named_items["single_scene_found"] is True
     assert PrimeItems.grand_totals["scenes"] == 1
 
@@ -241,10 +243,10 @@ def test_a_scene_already_found_is_not_output_twice() -> None:
     output would otherwise be listed a second time and counted twice.
     """
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Panel</nme></Scene>')
-    PrimeItems.program_arguments.single_scene_name = "Panel"
+    config = current_config().with_changes(single_scene_name="Panel")
     PrimeItems.found_named_items["single_scene_found"] = True
 
-    projects.output_orphan_single_scene()
+    projects.output_orphan_single_scene(config)
     assert PrimeItems.grand_totals["scenes"] == 0
 
 
@@ -253,9 +255,9 @@ def test_a_scene_name_that_is_not_in_the_backup_is_left_alone() -> None:
     found, and marking it found here would silently swallow the user's typo.
     """
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Panel</nme></Scene>')
-    PrimeItems.program_arguments.single_scene_name = "Nonexistent"
+    config = current_config().with_changes(single_scene_name="Nonexistent")
 
-    projects.output_orphan_single_scene()
+    projects.output_orphan_single_scene(config)
     assert PrimeItems.found_named_items["single_scene_found"] is False
     assert PrimeItems.grand_totals["scenes"] == 0
 
@@ -263,7 +265,7 @@ def test_a_scene_name_that_is_not_in_the_backup_is_left_alone() -> None:
 def test_the_orphan_path_does_nothing_on_an_ordinary_run() -> None:
     """No single Scene was asked for, so there is nothing to rescue."""
     _load('<Scene sr="scene0"><nme>Panel</nme></Scene>')
-    projects.output_orphan_single_scene()
+    projects.output_orphan_single_scene(current_config())
     assert PrimeItems.found_named_items["single_scene_found"] is False
 
 
@@ -278,7 +280,7 @@ def test_the_single_project_name_survives_the_walk() -> None:
         '<Task sr="task10"><id>10</id><nme>Alpha</nme></Task>',
     )
     PrimeItems.program_arguments.single_project_name = "Home"
-    projects.process_projects_and_their_profiles([], [])
+    projects.process_projects_and_their_profiles([], [], current_config())
     assert PrimeItems.program_arguments.single_project_name == "Home"
 
 
@@ -292,5 +294,35 @@ def test_found_tasks_come_back_deduplicated() -> None:
         '<Profile sr="prof6"><id>6</id><mid0>10</mid0><nme>Two</nme></Profile>'
         '<Task sr="task10"><id>10</id><nme>Shared</nme></Task>',
     )
-    found = projects.process_projects_and_their_profiles([], [])
+    found = projects.process_projects_and_their_profiles([], [], current_config())
     assert sorted(found) == list(dict.fromkeys(found))
+
+
+# ##################################################################################
+# Settings come in as a parameter
+# ##################################################################################
+def test_the_heading_follows_the_config_it_is_given_and_not_the_global() -> None:
+    """Twisty is on in the global and off in the config: the config is what is obeyed, so a
+    caller that hands in a different config gets a different answer without touching the global.
+    """
+    PrimeItems.program_arguments.twisty = True
+
+    projects.task_not_in_profile_heading("Home", current_config().with_changes(twisty=False))
+    plain = _output()
+    PrimeItems.output_lines = LineOut()
+    projects.task_not_in_profile_heading("Home", current_config())
+    twisty = _output()
+
+    assert "are not in any Profile" in plain
+    assert plain != twisty
+
+
+def test_the_two_settings_the_build_writes_are_never_read_from_the_config() -> None:
+    """single_project_name and single_profile_name are written by profiles.py in the middle of
+    the walk, so a config snapshotted before it would hand back a stale value.  They have to
+    stay live reads off PrimeItems -- this catches one being converted by mistake.
+    """
+    source = Path(projects.__file__).read_text(encoding="utf-8")
+
+    assert "config.single_project_name" not in source
+    assert "config.single_profile_name" not in source

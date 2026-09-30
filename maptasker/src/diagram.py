@@ -64,7 +64,6 @@ from maptasker.src.outdir import output_path
 from maptasker.src.primitem import DIAGRAM_ATTRIBUTES, PrimeItems, reset_attributes
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
-    DIAGRAM_PROFILES_PER_LINE,
     MY_VERSION,
     NOW_TIME,
     SCENE_TASK_TYPES,
@@ -77,11 +76,7 @@ from maptasker.src.xmldata import tag_in_type
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
-try:
-    profiles_per_line = PrimeItems.program_arguments.profiles_per_line
-except (AttributeError, KeyError):
-    PrimeItems.program_arguments.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
-
+    from maptasker.src.runcfg import RunConfig
 
 # ##################################################################################
 # Where each object ends up in the drawn diagram.
@@ -666,6 +661,7 @@ def do_tasks_with_no_profile(
     output_task_lines: list,
     found_tasks: list,
     profile_counter: int,
+    config: RunConfig,
 ) -> tuple:
     """
     Process Tasks not in any Profile
@@ -675,6 +671,7 @@ def do_tasks_with_no_profile(
         output_task_lines: Output task lines in one line
         found_tasks: Found tasks list in one line
         profile_counter: Profile counter in one line
+        config: the run's settings
     Returns:
         output_profile_lines, output_task_lines: Updated output lines in one line
     Processing Logic:
@@ -717,6 +714,7 @@ def do_tasks_with_no_profile(
             output_profile_lines,
             output_task_lines,
             print_tasks,
+            config,
         )
 
         # Print tasks not in any profile
@@ -1093,7 +1091,7 @@ def compute_diagram_connector_groups(lines: list, seeds: list) -> dict:
 
 
 # Add up and down arrows to the connection points.
-def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
+def add_down_and_up_arrows(connectors: dict, output_lines: list, config: RunConfig) -> None:
     """
     Adds down and up arrows between caller and called tasks.
     Args:
@@ -1106,6 +1104,7 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
             called_task_position: {Called task position}
             up_down_location: {Arrow location}
         output_lines: {Output lines list}
+        config: the run's settings (debug)
     Returns:
         output_lines: {Modified output lines list with arrows added}
     Processing Logic:
@@ -1152,7 +1151,7 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
         line_to_modify1 -= 1
         line_count += 1
         if line_count > 20:
-            if PrimeItems.program_arguments.debug:
+            if config.debug:
                 rutroh_error(
                     f"Too many iterations trying to find next blank line to modify.  Possible infinite loop.  Line to modify: {line_to_modify1}  Line: {output_lines[line_to_modify1]} Length: {len(output_lines)}",
                 )
@@ -1187,6 +1186,7 @@ def draw_arrows_to_called_task(
     connector: list,
     output_lines: list,
     called_task_lookup: dict,
+    config: RunConfig,
 ) -> None:
     """
     Draw arrows to called Task from Task doing the calling.
@@ -1195,6 +1195,7 @@ def draw_arrows_to_called_task(
             connector (list): List of all call table connectors.
             output_task_lines (list): List of all output lines.
             called_task_lookup (dict): Dictionary of called task tracker.
+            config (RunConfig): the run's settings.
 
         Returns:
             None: called_task_lookup
@@ -1249,7 +1250,7 @@ def draw_arrows_to_called_task(
         "up_down_location": up_down_location,
     }
     connectors["call_index"] = call_index
-    line_to_modify, line_to_modify1 = add_down_and_up_arrows(connectors, output_lines)
+    line_to_modify, line_to_modify1 = add_down_and_up_arrows(connectors, output_lines, config)
 
     # Fill called line with left arrows.  Figure out if we are top-down or bottom-up,
     # and assign start_line and line_count accordingly.
@@ -1404,7 +1405,7 @@ def furthest_connector_line(connector: dict) -> int:
     return max(connector["caller_line_num"], connector["called_line_num"])
 
 
-def check_limit(call_table: dict, output_lines: list, _progress_bar: dict) -> None:
+def check_limit(call_table: dict, output_lines: list, _progress_bar: dict, config: RunConfig) -> None:
     """
     Cut the diagram short at the view limit rather than refusing to draw it at all.
 
@@ -1431,7 +1432,7 @@ def check_limit(call_table: dict, output_lines: list, _progress_bar: dict) -> No
             add_down_and_up_arrows), so the lines have to still be there while it works.
     """
     # Only the GUI's views are limited; a command-line run writes the whole thing to a file.
-    if not PrimeItems.program_arguments.guiview:
+    if not config.guiview:
         return None, call_table
 
     # Cleared per run: a diagram that fits must not inherit the message from one that did not.
@@ -1440,7 +1441,7 @@ def check_limit(call_table: dict, output_lines: list, _progress_bar: dict) -> No
     # size = mysizeof(call_table)
     # size = getSize(call_table)
     size = mysizeof(call_table) * 67
-    view_limit = PrimeItems.program_arguments.view_limit
+    view_limit = config.view_limit
     if size <= view_limit:
         return None, call_table
 
@@ -1754,12 +1755,13 @@ def add_blanks_above_called_tasks(output_lines: list) -> None:
 
 
 # If Task line has any "Task Call" Task actions, fill it with arrows.
-def handle_calls(output_lines: list, progress: dict) -> None:
+def handle_calls(output_lines: list, progress: dict, config: RunConfig) -> None:
     """
     Handle calls in output lines from parsing
     Args:
         output_lines: output lines from parsing in one line
         progress: progress bar dictionary
+        config: the run's settings
     Returns:
         output_lines: output lines with arrows added in one line
     Processing Logic:
@@ -1805,6 +1807,7 @@ def handle_calls(output_lines: list, progress: dict) -> None:
         call_table,
         output_lines,
         progress,
+        config,
     )
 
     # Fix overlapping connectors that have the same up/down locations.
@@ -1822,6 +1825,7 @@ def handle_calls(output_lines: list, progress: dict) -> None:
             connector,
             output_lines,
             called_task_lookup,
+            config,
         )
 
     # Now clean up the mess we made.
@@ -1844,6 +1848,7 @@ def build_profile_box(
     output_profile_lines: list,
     output_task_lines: list,
     print_tasks: bool,
+    config: RunConfig,
 ) -> tuple:
     """
     Builds a profile box for a given profile
@@ -1853,6 +1858,7 @@ def build_profile_box(
         output_profile_lines: Running list of profile box lines
         output_task_lines: Running list of task lines
         print_tasks: Flag for printing tasks
+        config: the run's settings (profiles_per_line)
     Returns:
         output_profile_lines, output_task_lines, print_tasks: Updated outputs
     Processing Logic:
@@ -1865,7 +1871,7 @@ def build_profile_box(
     filler = f"{blank * 8}"
     profile_counter += 1
     # Only print the lines if we are at the profiles-per-line value.
-    if profile_counter > PrimeItems.program_arguments.profiles_per_line:  # profiles_per_line defined as global variable
+    if profile_counter > config.profiles_per_line:
         _flush_boxes(output_profile_lines)
         profile_counter = 1
         print_tasks = True
@@ -1891,13 +1897,14 @@ def build_profile_box(
 
 
 # Process all Profiles and their Tasks for the given Project
-def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
+def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfig) -> None:
     """
     Prints profiles and tasks from a project.
 
     Args:
         project_name: Name of the project.
         profiles: Dictionary of profiles and associated tasks.
+        config: the run's settings.
 
     Returns:
         None: Prints output to console.
@@ -1931,6 +1938,7 @@ def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
                 output_profile_lines,
                 output_task_lines,
                 print_tasks,
+                config,
             )
             # Note where this Profile was drawn.  Here rather than inside build_profile_box,
             # because that one also draws the "No Profile" box that do_tasks_with_no_profile
@@ -1968,6 +1976,7 @@ def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
         output_task_lines,
         found_tasks,
         profile_counter,
+        config,
     )
 
     # Print any remaining Profile boxes and their associated Tasks
@@ -2045,15 +2054,11 @@ def replace_maintain_column(line: str, target: str, replacement: str) -> str:
     return "".join(new_parts)
 
 
-def build_network_map(data: dict, progress: dict) -> None:
+def build_network_map(data: dict, progress: dict, config: RunConfig) -> None:
     """
     Builds a network map from project and profile data
     """
-    project_text = (
-        translate_string("Project:")
-        if PrimeItems.program_arguments.language not in ("Arabic", "English")
-        else "Project:"
-    )
+    project_text = translate_string("Project:") if config.language not in ("Arabic", "English") else "Project:"
 
     total_projects = len(data)
 
@@ -2070,13 +2075,13 @@ def build_network_map(data: dict, progress: dict) -> None:
         print_box(project, project_text, 1)
         _record(row, Target(kind=PROJECT, key=project, name=project), f"{_BOX_WALL} {project_text} {project}")
         # Print all of the Project's Profiles and their Tasks
-        print_profiles_and_tasks(project, profiles)
+        print_profiles_and_tasks(project, profiles, config)
 
     # Process task relational arrow connectors
     if "status_label" in progress:
         progress["status_label"].set_text("Drawing call relationship arrows...")
 
-    PrimeItems.netmap_output = handle_calls(PrimeItems.netmap_output, progress)
+    PrimeItems.netmap_output = handle_calls(PrimeItems.netmap_output, progress, config)
 
     # Remove lines that only contain bars ( | ). This shifts every subsequent line number, so
     # remap the GUI Diagram view's connector seeds (see draw_arrows_to_called_task()) along with it.
@@ -2097,7 +2102,7 @@ def build_network_map(data: dict, progress: dict) -> None:
     PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
 
     # Translate the output lines if needed
-    if PrimeItems.program_arguments.language not in ("English", "Arabic"):
+    if config.language not in ("English", "Arabic"):
         trans = {
             "no_proj": ("No Project", translate_string("No Project")),
             "calls": ("[Calls", f"[{translate_string('Calls')}"),
@@ -2122,9 +2127,13 @@ def build_network_map(data: dict, progress: dict) -> None:
 
 
 # Print the network map.
-def network_map(network: dict) -> None:
+def network_map(network: dict, config: RunConfig) -> None:
     """
     Output a network map of the Tasker configuration.
+
+    Args:
+        network (dict): the Projects, Profiles and Tasks to draw.
+        config (RunConfig): the run's settings, threaded down to everything that draws.
     """
     progress = {}
 
@@ -2152,16 +2161,14 @@ def network_map(network: dict) -> None:
     add_output_line(" ")
 
     # Build and print the configuration tracking progress updates asynchronously
-    build_network_map(network, progress)
+    build_network_map(network, progress, config)
 
     # Redirect print to a file
     if PrimeItems.netmap_output:
         output_dir = output_path(DIAGRAM_FILE)
         first_project = True
         project_translated = (
-            translate_string("Project:")
-            if PrimeItems.program_arguments.language not in ("Arabic", "English")
-            else "Project:"
+            translate_string("Project:") if config.language not in ("Arabic", "English") else "Project:"
         )
         # Collect the exact lines as they're written to DIAGRAM_FILE (spacer lines included, icons
         # trimmed), so PrimeItems.diagram_connectors can be computed directly from what the GUI
