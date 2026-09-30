@@ -30,6 +30,8 @@ classifiers = [
 dependencies = [
     'darkdetect>=0.8.0',
     'defusedxml>=0.7.1',
+    # aiutils imports it directly.  NiceGUI happens to bring it in, but that is not a promise.
+    'httpx>=0.28.1',
     'keyring>=25.7.0',
     'nicegui>=3.17.1',
     'packaging>=26.3',
@@ -37,6 +39,18 @@ dependencies = [
     "platformdirs>=4.3",
     'requests>=2.34.2',
     'tomli_w>=1.2.0',
+]
+
+[project.optional-dependencies]
+# Only the AI analysis features (and the AI question box) use these.  MapTasker never installs
+# them itself: `pip install "maptasker[ai]"` (or `uv add "maptasker[ai]"`) is how they arrive,
+# and maputil3.AI_EXTRA_INSTALL_COMMAND is what the program tells the user to run.
+ai = [
+    'anthropic>=0.40.0',
+    'google-genai>=1.0.0',
+    'ollama>=0.6.2',
+    'openai>=1.0.0',
+    'psutil>=5.9.0',
 ]
 
 [project.urls]
@@ -85,24 +99,24 @@ packages = ["maptasker"]
 [dependency-groups]
 test = [
     "pytest>=7.3.2",
-    "pytest-mock",
+    "pytest-mock>=3.15.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.0.0",
 ]
 # 'black' was removed: [tool.ruff.format] is the formatter for this project, and
 # running both against the same files makes them fight over the same lines.
 dev = [
+    # The test group, once, rather than a second copy of it that can drift.
+    {include-group = "test"},
+    # The AI libraries: the type check and the AI tests need them installed.
+    "maptasker[ai]",
     "ai-translator>=0.1.0",
     "deep-translator>=1.11.4",
     "import-linter>=2.15",
     "matchify>=0.3.0",
-    "ollama>=0.6.2",
     "pip-autoremove>=0.10.0",
     "pyright[nodejs]>=1.1.414",
     "pytest>=9.1.1",
-    "pytest-asyncio>=1.4.0",
-    "pytest-cov>=7.0.0",
-    "pytest-mock>=3.15.1",
     "rich>=15.0.0",
     "ruff>=0.16.5",
     "vulture>=2.16",

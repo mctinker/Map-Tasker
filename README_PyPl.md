@@ -19,6 +19,11 @@ Sample output can be found [here.](https://github.com/mctinker/Map-Tasker/wiki)
 
 - via uv: `uv add maptasker`
 - via pip: `pip install maptasker`
+
+To use the AI analysis features, install the AI libraries along with MapTasker (MapTasker will not install them for you):
+
+- via uv: `uv add "maptasker[ai]"`
+- via pip: `pip install "maptasker[ai]"`
   
 NOTE: If MapTasker doesn't install on Windows 11, first install 'nicegui' and then install MapTasker.
   

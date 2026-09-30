@@ -39,7 +39,7 @@ from dataclasses import dataclass
 
 from maptasker.src import mapfind
 from maptasker.src.aiutils import get_api_key, start_ollama_server
-from maptasker.src.maputil3 import ensure_and_import
+from maptasker.src.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
@@ -358,10 +358,10 @@ def parse_reply(reply: str, index: mapfind.FindIndex) -> Translation:
 # Asking.
 # ##################################################################################
 def _library(pypi_name: str, import_path: str) -> object:
-    """A provider's library, installed first if need be, or an AskError if it cannot be had."""
-    module = ensure_and_import(pypi_name, import_path)
+    """A provider's library, or an AskError if it is not installed."""
+    module = import_optional(pypi_name, import_path)
     if module is None:
-        message = f"The '{pypi_name}' package is not installed and could not be installed."
+        message = f"The '{pypi_name}' package is not installed.  Install it with: {AI_EXTRA_INSTALL_COMMAND}"
         raise AskError(message)
     return module
 

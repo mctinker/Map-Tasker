@@ -1,65 +1,52 @@
 #! /usr/bin/env python3
-"""maputil3: installing an optional package the moment something needs it (ensure_and_import).
+"""maputil3: importing a library that only the AI features need (import_optional).
 
-The AI modules use it for the libraries only an analysis needs.  It used to hold the XML file
-checks as well; those are in getbakup now, beside the rest of getting a backup file.
+The AI libraries -- OpenAI, Anthropic, Google, Ollama -- are the optional "ai" extra
+(pip install "maptasker[ai]"), so a plain install does not carry them.  MapTasker used to
+run pip for whichever one was missing the first time it was wanted.  It no longer does:
+installing software behind the user's back is not something a configuration viewer should
+do, it cannot work in a frozen app or without a network, and it fetched whatever version
+PyPI had that day rather than the one MapTasker was tested with.  Now the caller is handed
+None and the user is told, once, what to install.
 """
 
 import importlib
-import shutil
-import subprocess
-import sys
 
 from maptasker.src import console
 
+AI_EXTRA_INSTALL_COMMAND = 'pip install "maptasker[ai]"'
 
-def ensure_and_import(pypi_name: str, import_path: str) -> object:
+# The packages already reported missing, so a caller that asks again -- a model list rebuilt
+# on every visit to the AI dialog, say -- does not repeat the same message.
+_reported_missing: set[str] = set()
+
+
+def import_optional(pypi_name: str, import_path: str) -> object:
     """
-    Determine if a module is available, and if not, install it and then import it.
-    Supports standard pip and uv-managed environments.
-    Returns None if the module cannot be installed or imported.
+    Import a library from the "ai" extra, or say how to get it.
+
+    Nothing is ever installed.  If the library is missing, one message names it and the
+    command that installs the extra; later requests for the same library stay quiet.
+
+    Args:
+        pypi_name (str): the name the library is installed under (e.g. "google-genai").
+        import_path (str): the module to import (e.g. "google.genai").
+
+    Returns:
+        object: the imported module, or None if the library is not installed.
     """
-    # 1. Attempt to import if already present
     try:
         return importlib.import_module(import_path)
-    except ImportError:
-        pass
-
-    console.say(f"MapTasker: --- Package {import_path} not found. Preparing installation... ---")
-
-    # 2. Determine the installer command
-    # Check if uv is available and if we are in a uv-managed env or if pip is missing
-    has_uv = shutil.which("uv") is not None
-
-    # Try to see if 'pip' module exists in the current sys.executable
-    try:
-        subprocess.run([sys.executable, "-m", "pip", "--version"], capture_output=True, check=True)
-        use_uv = False
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        use_uv = has_uv  # Use uv if pip failed but uv exists
-
-    # Construct the command
-    if use_uv:
-        # 'uv pip install' targets the active virtualenv by default
-        cmd = ["uv", "pip", "install", pypi_name]
-        console.say(f"MapTasker: --- Using uv to install {pypi_name} ---")
-    else:
-        cmd = [sys.executable, "-m", "pip", "install", pypi_name]
-        console.say(f"MapTasker: --- Using pip to install {pypi_name} ---")
-
-    # 3. Execution
-    try:
-        subprocess.check_call(  # noqa: S603
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-        )
-
-        importlib.invalidate_caches()
-
-        # 4. Final Import
-        return importlib.import_module(import_path)
-
-    except (subprocess.CalledProcessError, ImportError) as e:
-        console.error(f"MapTasker: --- Failed to provide Package {import_path}: {e} ---")
+    except ImportError as e:
+        # A library that is installed but fails inside its own imports is not "missing"; say
+        # what actually went wrong rather than sending the user off to install it again.
+        if getattr(e, "name", None) not in {import_path, import_path.split(".", maxsplit=1)[0]}:
+            console.error(f"MapTasker: the '{pypi_name}' package could not be loaded: {e}")
+            return None
+        if pypi_name not in _reported_missing:
+            _reported_missing.add(pypi_name)
+            console.error(
+                f"MapTasker: the '{pypi_name}' package is not installed.  "
+                f"Install the AI libraries with: {AI_EXTRA_INSTALL_COMMAND}",
+            )
         return None

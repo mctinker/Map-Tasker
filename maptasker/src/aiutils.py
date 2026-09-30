@@ -3,7 +3,6 @@
 #                                                                                      #
 # mapai: Ai support                                                                    #
 #                                                                                      #
-import importlib.util
 import shutil
 import subprocess
 import time
@@ -15,7 +14,7 @@ from contextlib import suppress
 from maptasker.src import console
 from maptasker.src.apikeys import load_api_keys
 from maptasker.src.error import rutroh_error
-from maptasker.src.maputil3 import ensure_and_import
+from maptasker.src.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DEEPSEEK_MODELS,
@@ -52,10 +51,10 @@ def ollama_is_responding(ollama: object) -> bool:
 def start_ollama_server() -> tuple[bool, str]:
     """Start the Ollama server with the 'ollama serve' terminal command and wait for it to answer.
 
-    MapTasker installs the 'ollama' package itself when it is missing (cria.py does it on
-    import, via ensure_and_import), and a machine that has just had it installed has no server
-    running yet.  Without this, whatever triggered the install would be the thing to fail --
-    with a bare connection error -- leaving the user to go and start the server by hand.
+    Having the 'ollama' package does not mean a server is running: the Ollama desktop app may
+    not be open, or an earlier run's server may have gone away.  Without this, the call that
+    needed it would fail with a bare connection error, leaving the user to go and start the
+    server by hand.
 
     Reports nothing itself: the two callers differ on what a failure means (an analysis says so
     through error_handler, the model pulldown only logs it and falls back to its stock list), so
@@ -64,11 +63,12 @@ def start_ollama_server() -> tuple[bool, str]:
     Returns:
         tuple[bool, str]: (True, "") once a server is answering, otherwise (False, reason).
     """
-    ollama = ensure_and_import("ollama", "ollama")
+    ollama = import_optional("ollama", "ollama")
     if ollama is None:
         return (
             False,
-            f"The 'ollama' package could not be installed.  Please install Ollama from '{OLLAMA_DOWNLOAD_URL}'.",
+            f"The 'ollama' package is not installed.  Install it with: {AI_EXTRA_INSTALL_COMMAND}"
+            f", and Ollama itself from '{OLLAMA_DOWNLOAD_URL}'.",
         )
 
     # Already up?  Then this run has nothing to start: the Ollama desktop app, an earlier
@@ -131,7 +131,7 @@ def get_openai_models() -> list:
             return OPENAI_MODELS
         # Initialize the OpenAI client
         # 1. Dynamically get the 'openai' module
-        openai_lib = ensure_and_import("openai", "openai")
+        openai_lib = import_optional("openai", "openai")
         if openai_lib is None:
             return OPENAI_MODELS
 
@@ -245,7 +245,7 @@ def get_gemini_models() -> list:
 
     try:
         # 1. Initialize the Client
-        google_lib = ensure_and_import("google.genai", "google.genai")
+        google_lib = import_optional("google-genai", "google.genai")
         if google_lib is None:
             return GEMINI_MODELS
         client = google_lib.Client(api_key=api_key)
@@ -408,23 +408,14 @@ def get_llama_models() -> list:
         "tinyllama",
     ]
 
-    # Ask BEFORE ensure_and_import: it is the call that installs the package, and afterwards
-    # there is no telling whether this run was the one that installed it.
-    ollama_was_installed = importlib.util.find_spec("ollama") is not None
-
     # Get all locally available models
-    ollama = ensure_and_import("ollama", "ollama")
+    ollama = import_optional("ollama", "ollama")
     if ollama is None:
-        rutroh_error(f"The 'ollama' package could not be installed.  Install Ollama from '{OLLAMA_DOWNLOAD_URL}'.")
+        rutroh_error(
+            f"The 'ollama' package is not installed.  Install it with: {AI_EXTRA_INSTALL_COMMAND}"
+            f", and Ollama itself from '{OLLAMA_DOWNLOAD_URL}'.",
+        )
         return extended_list
-
-    # We just installed it, so nothing can be serving it yet.  Start the server rather than
-    # quietly handing back the stock list as though Ollama had no models installed.
-    if not ollama_was_installed:
-        started, reason = start_ollama_server()
-        if not started:
-            rutroh_error(reason)
-            return extended_list
 
     try:
         all_models = ollama.list()

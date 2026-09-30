@@ -12,30 +12,25 @@ from contextlib import ContextDecorator
 from typing import Any
 
 from maptasker.src import console
-
-# import httpx
-# import ollama
-# import psutil
-# from ollama._client import Client as OllamaClient
-from maptasker.src.maputil3 import ensure_and_import
+from maptasker.src.maputil3 import AI_EXTRA_INSTALL_COMMAND
 from maptasker.src.primitem import PrimeItems
 
-httpx = ensure_and_import("httpx", "httpx")
-if httpx is None:
-    console.error("MapTasker Cria: httpx could not be installed.")
-psutil = ensure_and_import("psutil", "psutil")
-if psutil is None:
-    console.error("MapTasker Cria: psutil could not be installed.")
-
+# These come with the "ai" extra.  This module is only imported once a local (Ollama) analysis
+# is asked for, and its importer (mapai.local_ai) is ready for the ImportError raised here.
+try:
+    import httpx
+    import ollama
+    import psutil
+    from ollama._client import Client as OllamaClient
+except ImportError as e:
+    PrimeItems.error_code = 1
+    PrimeItems.error_msg = (
+        f"The Ollama libraries could not be loaded ({e}).  Install them with: {AI_EXTRA_INSTALL_COMMAND}"
+    )
+    raise ImportError(PrimeItems.error_msg) from e
 
 DEFAULT_MODEL = "llama3.1:8b"
 DEFAULT_MESSAGE_HISTORY = [{"role": "system", "content": "You are a helpful AI assistant."}]
-ollama = ensure_and_import("ollama", "ollama")
-if ollama is None:
-    PrimeItems.error_code = 1
-    PrimeItems.error_msg = "Ollama is not installed, please install ollama from 'https://ollama.com/download'"
-ollama_module = ensure_and_import("ollama", "ollama._client")
-OllamaClient = ollama_module.Client
 
 
 class Client(OllamaClient):

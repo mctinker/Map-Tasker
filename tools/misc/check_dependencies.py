@@ -2,6 +2,8 @@
 """Check andf Update Dependencies for the Project."""
 
 import re
+import tomllib
+from pathlib import Path
 
 import requests
 from packaging.version import InvalidVersion, Version
@@ -134,28 +136,24 @@ def check_dependency_updates(dependencies: list, output_file: str, req_file: str
     print(f"requirements.txt written to: {req_file}")
 
 
-# === Your dependency list ===
-# Auto-generated updated dependency list
-dependencies = [
-    "darkdetect>=0.8.0",
-    "defusedxml>=0.7.1",
-    "keyring>=25.7.0",
-    "nicegui>=3.17.1",
-    "packaging>=26.3",
-    "pillow>=12.3.0",
-    "requests>=2.34.2",
-    "tomli_w>=1.2.0",
-    # Development dependencies
-    "ai-translator>=0.1.0",
-    "black>=26.5.1",
-    "deep-translator>=1.11.4",
-    "ollama>=0.6.2",
-    "pip-autoremove>=0.10.0",
-    "pytest>=9.1.1",
-    "pytest-asyncio>=1.4.0",
-    "pytest-mock>=3.15.1",
-    "vulture>=2.16",
-]
+# === The dependency list ===
+# pyproject.toml is the one place dependencies are declared; this reads it rather than keeping
+# a copy that goes stale (it once still listed 'black' and lacked 'platformdirs').
+def read_dependencies() -> list[str]:
+    """Return every dependency in pyproject.toml: runtime, the 'ai' extra, then the dev group."""
+    pyproject = tomllib.loads((Path(__file__).resolve().parents[2] / "pyproject.toml").read_text(encoding="utf-8"))
+    declared = [
+        *pyproject["project"]["dependencies"],
+        *pyproject["project"]["optional-dependencies"]["ai"],
+        # The dev group also holds {include-group = ...} tables; only the strings are packages.
+        *(d for d in pyproject["dependency-groups"]["dev"] if isinstance(d, str)),
+    ]
+    # 'pyright[nodejs]>=1' -> 'pyright>=1': this only compares versions, and extras would
+    # confuse the name/constraint split above.
+    return sorted({re.sub(r"\[.*?\]", "", d) for d in declared})
+
+
+dependencies = read_dependencies()
 
 
 # Run & create output files

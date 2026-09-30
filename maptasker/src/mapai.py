@@ -7,17 +7,16 @@ upon reinvocation of the application.
 import html
 import importlib.util
 import re
-import sys
 
 from nicegui import run
 
 from maptasker.src import console
-from maptasker.src.aiutils import OLLAMA_DOWNLOAD_URL, get_api_key, start_ollama_server
+from maptasker.src.aiutils import OLLAMA_DOWNLOAD_URL, get_api_key
 from maptasker.src.error import error_handler
 from maptasker.src.guiwins import create_popup_window
 from maptasker.src.guiwins import create_popup_window as popupwindow
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.maputil3 import ensure_and_import
+from maptasker.src.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
 from maptasker.src.outdir import output_path
 from maptasker.src.primitem import PrimeItems, get_single_item_requested
 from maptasker.src.sysconst import (
@@ -51,7 +50,7 @@ def valid_api_key(ai: str, api_key: str) -> bool:
     if ai == "openai_key":
         try:
             # 1. Dynamically get the 'openai' module
-            openai_lib = ensure_and_import("openai", "openai")
+            openai_lib = import_optional("openai", "openai")
             if openai_lib is None:
                 return False
 
@@ -70,7 +69,7 @@ def valid_api_key(ai: str, api_key: str) -> bool:
 
     elif ai == "anthropic_key":
         try:
-            anthropic = ensure_and_import("anthropic", "anthropic")
+            anthropic = import_optional("anthropic", "anthropic")
             if anthropic is None:
                 return False
 
@@ -94,33 +93,21 @@ def valid_api_key(ai: str, api_key: str) -> bool:
         return bool(len(api_key) == expected_length and re.match(pattern, api_key))
 
 
-# Determine if a module is available or not.
+# Determine if a module is installed or not.
 def module_is_available(module_name: str) -> bool:
     """
-    Check if a module is available or not.
+    Check whether a module is installed, without importing it.
 
     Args:
         module_name (str): The name of the module to check.
 
     Returns:
-        bool: True if the module is available, False otherwise.
-
-    This function checks if a module is already imported or if it can be imported using the `importlib.util.find_spec` function. If the module is already imported, it returns True. If the module can be imported, it imports the module using `importlib.util.module_from_spec` and `spec.loader.exec_module`, adds it to the `sys.modules` dictionary, and returns True. If the module cannot be imported, it returns False.
+        bool: True if the module is installed, False otherwise.
     """
-    if module_name in sys.modules:
-        return True
-    if (spec := importlib.util.find_spec(module_name)) is not None:
-        # If you chose to perform the actual import ...
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)
-        return True
-    # Load the module dynamically.
-    if spec is None:
-        _kaka = ensure_and_import(module_name, module_name)
-        return _kaka is not None  # Return boolean indicating if the module was successfully imported.
-
-    return False
+    try:
+        return importlib.util.find_spec(module_name) is not None
+    except ModuleNotFoundError:  # A dotted name whose parent package is not installed.
+        return False
 
 
 # Clean up the output list since it has all the front matter and we only need
@@ -210,28 +197,15 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
         local_ai("What is the capital of France?")
         # Output: "Paris"
     """
-    # Ask BEFORE importing cria: importing it is what installs the 'ollama' package when it is
-    # missing (ensure_and_import, at cria.py's module level), so once that import has happened
-    # there is no longer any way to tell whether this run is the one that installed it.
-    ollama_was_installed = importlib.util.find_spec("ollama") is not None
-
     try:
         from maptasker.src import cria  # noqa: PLC0415
-    except Exception as e:  # noqa: BLE001  Its module-level install can fail in several ways.
+    except (ImportError, OSError) as e:  # The libraries are not installed, or one of them would not load.
         error_handler(
-            f"Ollama support could not be loaded: {e}.  Please install Ollama from '{OLLAMA_DOWNLOAD_URL}'.",
+            f"Ollama support could not be loaded: {e}.  Install the AI libraries with: {AI_EXTRA_INSTALL_COMMAND}"
+            f", and Ollama itself from '{OLLAMA_DOWNLOAD_URL}'.",
             12,
         )
         return
-
-    # We just installed it, so nothing can be serving it yet -- start the server and let it come
-    # up before handing it an analysis.  An install that was already there is left to cria,
-    # which starts a server of its own if whatever the user has running has gone away.
-    if not ollama_was_installed:
-        started, reason = start_ollama_server()
-        if not started:
-            error_handler(reason, 12)
-            return
 
     # Fix the model name
     if PrimeItems.program_arguments.ai_model == "None":
@@ -476,7 +450,7 @@ def open_ai(query: str, ai_object: str, item: str) -> None:
     """
     if PrimeItems.program_arguments.ai_analyze and not module_is_available("openai"):
         error_handler(
-            "Module 'openai' not found. Please install the 'openai' module.",
+            f"Module 'openai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}",
             12,
         )
         return
@@ -487,7 +461,7 @@ def open_ai(query: str, ai_object: str, item: str) -> None:
         get_api_key()
         api_key = PrimeItems.ai["openai_key"]
     # 1. Dynamically get the 'openai' module
-    openai_lib = ensure_and_import("openai", "openai")
+    openai_lib = import_optional("openai", "openai")
     if openai_lib is None:
         return
 
@@ -510,9 +484,9 @@ def claude_ai(query: str, ai_object: str, item: str) -> None:
     Returns:
         None: This function does not return anything.
     """
-    anthropic = ensure_and_import("anthropic", "anthropic")
+    anthropic = import_optional("anthropic", "anthropic")
     if anthropic is None:
-        error_handler("Module 'anthropic' not found. Please install the 'anthropic' module.", 12)
+        error_handler(f"Module 'anthropic' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}", 12)
         return
     client = anthropic.Anthropic(api_key=PrimeItems.program_arguments.ai_apikey)
     process_ai_query_and_response(client, query, ai_object, item)
@@ -531,7 +505,7 @@ def deepseek_ai(query: str, ai_object: str, item: str) -> None:
         None: This function does not return anything.
     """
     # 1. Dynamically get the 'openai' module
-    openai_lib = ensure_and_import("openai", "openai")
+    openai_lib = import_optional("openai", "openai")
     if openai_lib is None:
         return
 
@@ -556,9 +530,9 @@ def gemini_ai(query: str, ai_object: str, item: str) -> None:
     Returns:
         None: This function does not return anything.
     """
-    genai = ensure_and_import("google.genai", "google.genai")
+    genai = import_optional("google-genai", "google.genai")
     if genai is None:
-        error_handler("Module 'google-genai' not found. Please install the 'google-genai' module.", 12)
+        error_handler(f"Module 'google-genai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}", 12)
         return
     client = genai.Client(api_key=PrimeItems.program_arguments.ai_apikey)
     process_ai_query_and_response(client, query, ai_object, item)

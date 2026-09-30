@@ -57,7 +57,7 @@ def test_a_dropped_connection_while_listing_gemini_gives_the_built_in_list(monke
             raise ConnectionError(message)
 
     monkeypatch.setitem(PrimeItems.ai, "gemini_key", "a-key")
-    monkeypatch.setattr(aiutils, "ensure_and_import", lambda *_args: SimpleNamespace(Client=_DroppedConnection))
+    monkeypatch.setattr(aiutils, "import_optional", lambda *_args: SimpleNamespace(Client=_DroppedConnection))
     reported = []
     monkeypatch.setattr(aiutils, "rutroh_error", reported.append)
 

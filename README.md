@@ -109,6 +109,12 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
     MAC/linux: `source {directory path to 'xxx'}/venv/bin/activate`
     Windows: `venv\Scripts\activate`
   - `uv pip install maptasker`
+
+- The AI analysis features need extra libraries (OpenAI, Anthropic, Google and Ollama).  MapTasker does not install them for you; if you want them, install MapTasker with the `ai` extra instead:
+
+     ```python -m pip install "maptasker[ai]" -U```
+                 ...OR...
+     ```uv add "maptasker[ai]"```
   
 ## Usage
 
