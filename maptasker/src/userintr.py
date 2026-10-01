@@ -136,6 +136,13 @@ all_objects = ALL_OBJECTS_MESSAGE
 class MyGui:
     """Main UI Interface for MapTasker using NiceGUI."""
 
+    # Widgets the layout code in guiwins creates and keeps on the window.  Declared here so the
+    # type checker knows they exist; each is assigned once, when the layout is built.
+    gui_header: ui.header
+    save_settings_button: ui.button
+    restore_settings_button: ui.button
+    report_issue_button: ui.button
+
     def __init__(self: "MyGui") -> None:
         """Initialize the GUI and set up all necessary state and layout."""
         # # Trace code

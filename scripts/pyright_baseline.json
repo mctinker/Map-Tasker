@@ -31,7 +31,7 @@
   },
   "maptasker/src/aiutils.py": {
     "reportArgumentType": 2,
-    "reportAttributeAccessIssue": 5
+    "reportAttributeAccessIssue": 4
   },
   "maptasker/src/bildhtml.py": {
     "reportArgumentType": 2,
@@ -67,7 +67,7 @@
   },
   "maptasker/src/cria.py": {
     "reportArgumentType": 7,
-    "reportAttributeAccessIssue": 20,
+    "reportAttributeAccessIssue": 6,
     "reportCallIssue": 1,
     "reportOptionalMemberAccess": 11
   },
@@ -146,13 +146,13 @@
   },
   "maptasker/src/guiutils.py": {
     "reportArgumentType": 4,
-    "reportAttributeAccessIssue": 93,
+    "reportAttributeAccessIssue": 92,
     "reportGeneralTypeIssues": 1,
     "reportReturnType": 2
   },
   "maptasker/src/guiwins.py": {
     "reportArgumentType": 22,
-    "reportAttributeAccessIssue": 196,
+    "reportAttributeAccessIssue": 192,
     "reportGeneralTypeIssues": 2,
     "reportIndexIssue": 2,
     "reportOptionalMemberAccess": 1
@@ -214,7 +214,7 @@
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 13,
     "reportGeneralTypeIssues": 1,
-    "reportOptionalMemberAccess": 2
+    "reportOptionalMemberAccess": 1
   },
   "maptasker/src/mapask.py": {
     "reportAttributeAccessIssue": 6,
