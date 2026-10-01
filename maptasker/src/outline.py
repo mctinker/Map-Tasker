@@ -658,4 +658,4 @@ def outline_the_configuration() -> None:
 
     # Now generate the outline diagram text file.
     if network:
-        network_map(network, config)
+        network_map(network, config, PrimeItems)

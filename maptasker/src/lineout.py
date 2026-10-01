@@ -25,7 +25,10 @@ styling and structure based on the type of element being displayed. The output l
 are accumulated and ultimately used to generate the final HTML output file.
 """
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import format_html
@@ -35,6 +38,10 @@ from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, reset_attr
 from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import PROPERTIES_TAG, UNNAMED_ITEM, FormatLine, debug_out, logger
 from maptasker.src.xmldata import remove_html_tags
+
+if TYPE_CHECKING:
+    from maptasker.src.initparg import ArgumentFields
+    from maptasker.src.runcfg import RunConfig
 
 # build_tooltip_span() (format.py) wraps a "Task:"/"Profile:"/etc. label in
 # <span class="hover-tooltip" data-tooltip="...">label</span> before it ever reaches
@@ -56,16 +63,27 @@ _SPAN_TAG_RE = re.compile(r"<span\b[^>]*>|</span\s*>", re.IGNORECASE)
 class LineOut:
     """Class definition for our output lines"""
 
-    def __init__(self) -> None:
+    def __init__(self, config: RunConfig | None = None) -> None:
         """
         Initialize an object
         Args:
             self: The object being initialized
+            config (RunConfig | None): the settings to format lines by.  Left out, the settings
+                currently on PrimeItems are read, line by line, as they have always been --
+                which is what lets a scope that overrides one (overridden_config) be seen here.
+                Given one, only that is read: it cannot change under the object, and nothing
+                about the global has to be set up to use it.
         Returns:
             None: Nothing is returned
         - Initialize an empty list to store output lines
         - The list will be used to store lines of text as the object is used"""
         self.output_lines = []
+        self._config = config
+
+    @property
+    def settings(self) -> ArgumentFields:
+        """The settings lines are formatted by: the config this was given, else the live ones."""
+        return PrimeItems.program_arguments if self._config is None else self._config
 
     def refresh_our_output(
         self,
@@ -99,7 +117,7 @@ class LineOut:
         """
 
         # Clear whatever is already in the output queue
-        if PrimeItems.program_arguments.ai_analyze:
+        if self.settings.ai_analyze:
             PrimeItems.ai["output_lines"].clear()
         self.output_lines.clear()
 
@@ -109,10 +127,10 @@ class LineOut:
         reset_attributes(*MAP_OUTPUT_ATTRIBUTES)
 
         # Display th starting information in beginning of output
-        output_the_front_matter(current_config())
+        output_the_front_matter(current_config() if self._config is None else self._config)
 
         # Re-add the directory item
-        if PrimeItems.program_arguments.directory:
+        if self.settings.directory:
             add_directory_item("projects", project_name)
 
         # Start Project list
@@ -180,7 +198,7 @@ class LineOut:
         """
         directory = ""
 
-        if PrimeItems.program_arguments.directory and PrimeItems.directory_items["current_item"]:
+        if self.settings.directory and PrimeItems.directory_items["current_item"]:
             directory_item = PrimeItems.directory_items["current_item"]
             directory = f'<a id="{directory_item}"></a>\n'
         return f"{directory}{arg1}{element}{arg3}"
@@ -240,7 +258,7 @@ class LineOut:
         :return: the formatted text to add to the output queue
         """
 
-        font = PrimeItems.program_arguments.font
+        font = self.settings.font
 
         # Dispatch on the label with any hover-tooltip wrapper stripped out (see
         # _HOVER_TOOLTIP_SPAN_RE above) -- otherwise a Task's tooltip mentioning its
@@ -360,19 +378,14 @@ class LineOut:
             # Returns: '<a id="scenes_1"></a>\n<style=color:scene_color;font:Arial;element:Scene:&nbsp;1;>'
         """
         directory = ""
-        if PrimeItems.program_arguments.directory and PrimeItems.directory_items["current_item"]:
+        if self.settings.directory and PrimeItems.directory_items["current_item"]:
             # element's "Scene:" label may be wrapped in a hover-tooltip span (build_tooltip_span()
             # in format.py), which puts a "</span>" between "Scene:" and "&nbsp;" and breaks a plain
             # split on "Scene:&nbsp;" -- strip that wrapper first so this always finds the name.
             unwrapped_element = _HOVER_TOOLTIP_SPAN_RE.sub(r"\1", element)
             scene_name = f"scenes_{unwrapped_element.split('Scene:&nbsp;')[1]}"
             # Get rid of any name attributions
-            if (
-                PrimeItems.program_arguments.bold
-                or PrimeItems.program_arguments.italicize
-                or PrimeItems.program_arguments.highlight
-                or PrimeItems.program_arguments.underline
-            ):
+            if self.settings.bold or self.settings.italicize or self.settings.highlight or self.settings.underline:
                 scene_name = remove_html_tags(scene_name, "")
 
             # Escaped like every other anchor built from a name the user chose: a "<" or
@@ -574,7 +587,7 @@ class LineOut:
 
         if lvl == 2:
             # List item
-            if PrimeItems.program_arguments.twisty and "Scene:" in element:
+            if self.settings.twisty and "Scene:" in element:
                 return f"{self.format_line_list_item(element)}"
             return self.format_line_list_item(element)
 
@@ -617,7 +630,7 @@ class LineOut:
             )
 
         # Drop ID: nnn since we don't need it anymore
-        if "Task ID:" in out_string and PrimeItems.program_arguments.debug is False:
+        if "Task ID:" in out_string and self.settings.debug is False:
             temp_element = out_string.split("Task ID:")
             out_string = temp_element[0]
 

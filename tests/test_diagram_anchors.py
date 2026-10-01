@@ -45,9 +45,9 @@ def _clean_slate() -> None:
 # ##################################################################################
 def test_a_box_lands_on_the_middle_of_its_three_lines() -> None:
     """A box is drawn as a top, a name and a bottom; only the middle line names it."""
-    diagram.add_output_line("header")
+    diagram.add_output_line("header", state=PrimeItems)
     diagram._note_box(_PROFILE, "║ Wake Up")  # noqa: SLF001
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"])  # noqa: SLF001
+    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)  # noqa: SLF001
 
     row, _snippet = PrimeItems.diagram_object_seeds[_PROFILE.anchor]
     assert row == 2
@@ -58,7 +58,7 @@ def test_several_boxes_on_one_row_all_land_on_it() -> None:
     """Six Profiles side by side share the line, and each is recorded on it."""
     diagram._note_box(_PROFILE, "║ Wake Up")  # noqa: SLF001
     diagram._note_box(_OTHER_PROFILE, "║ Wind Down")  # noqa: SLF001
-    diagram._flush_boxes(["top", "║ Wake Up ║ ║ Wind Down ║", "bottom"])  # noqa: SLF001
+    diagram._flush_boxes(["top", "║ Wake Up ║ ║ Wind Down ║", "bottom"], state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds[_PROFILE.anchor][0] == 1
     assert PrimeItems.diagram_object_seeds[_OTHER_PROFILE.anchor][0] == 1
@@ -67,9 +67,9 @@ def test_several_boxes_on_one_row_all_land_on_it() -> None:
 def test_a_flush_clears_what_it_fixed() -> None:
     """Notes belong to the buffer being flushed, never to the next one."""
     diagram._note_box(_PROFILE, "║ Wake Up")  # noqa: SLF001
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"])  # noqa: SLF001
+    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)  # noqa: SLF001
     diagram._note_box(_OTHER_PROFILE, "║ Wind Down")  # noqa: SLF001
-    diagram._flush_boxes(["top", "║ Wind Down ║", "bottom"])  # noqa: SLF001
+    diagram._flush_boxes(["top", "║ Wind Down ║", "bottom"], state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds[_PROFILE.anchor][0] == 1
     assert PrimeItems.diagram_object_seeds[_OTHER_PROFILE.anchor][0] == 4
@@ -77,11 +77,11 @@ def test_a_flush_clears_what_it_fixed() -> None:
 
 def test_task_lines_keep_their_place_within_the_buffer() -> None:
     """A Task's row is where its line sits in the run of Task lines, not where it was noted."""
-    diagram.add_output_line("header")
+    diagram.add_output_line("header", state=PrimeItems)
     buffer = ["└─ Backup", "", "└─ Restore"]
     diagram._note_task(0, _TASK, "└─ Backup")  # noqa: SLF001
     diagram._note_task(2, _TWIN, "└─ Restore")  # noqa: SLF001
-    diagram._flush_tasks(buffer)  # noqa: SLF001
+    diagram._flush_tasks(buffer, state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 1
     assert PrimeItems.diagram_object_seeds[_TWIN.anchor][0] == 3
@@ -91,7 +91,7 @@ def test_two_tasks_of_one_name_are_recorded_separately() -> None:
     """The whole point of recording positions rather than matching text."""
     diagram._note_task(0, _TASK, "└─ Backup")  # noqa: SLF001
     diagram._note_task(1, _TWIN, "└─ Backup")  # noqa: SLF001
-    diagram._flush_tasks(["└─ Backup", "└─ Backup"])  # noqa: SLF001
+    diagram._flush_tasks(["└─ Backup", "└─ Backup"], state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 0
     assert PrimeItems.diagram_object_seeds[_TWIN.anchor][0] == 1
@@ -100,9 +100,9 @@ def test_two_tasks_of_one_name_are_recorded_separately() -> None:
 def test_the_first_drawing_of_a_task_is_the_one_kept() -> None:
     """A Task run by two Profiles is drawn twice; a jump goes to the first, as in the Map."""
     diagram._note_task(0, _TASK, "└─ Backup")  # noqa: SLF001
-    diagram._flush_tasks(["└─ Backup"])  # noqa: SLF001
+    diagram._flush_tasks(["└─ Backup"], state=PrimeItems)  # noqa: SLF001
     diagram._note_task(0, _TASK, "└─ Backup")  # noqa: SLF001
-    diagram._flush_tasks(["└─ Backup"])  # noqa: SLF001
+    diagram._flush_tasks(["└─ Backup"], state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 0
 
@@ -113,7 +113,7 @@ def test_the_first_drawing_of_a_task_is_the_one_kept() -> None:
 def test_a_remap_moves_every_object_with_its_line() -> None:
     """add_blanks_above_called_tasks and the bar sweep both shift rows under the objects."""
     PrimeItems.diagram_object_seeds = {"a": (5, "x"), "b": (9, "y")}
-    diagram._remap_object_seeds({5: 12, 9: 20})  # noqa: SLF001
+    diagram._remap_object_seeds({5: 12, 9: 20}, state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds == {"a": (12, "x"), "b": (20, "y")}
 
@@ -121,7 +121,7 @@ def test_a_remap_moves_every_object_with_its_line() -> None:
 def test_a_remap_drops_an_object_whose_line_is_gone() -> None:
     """A row with no new home was swept away, and pointing at it would point at a stranger."""
     PrimeItems.diagram_object_seeds = {"a": (5, "x"), "b": (9, "y")}
-    diagram._remap_object_seeds({5: 5})  # noqa: SLF001
+    diagram._remap_object_seeds({5: 5}, state=PrimeItems)  # noqa: SLF001
 
     assert set(PrimeItems.diagram_object_seeds) == {"a"}
 
@@ -129,7 +129,7 @@ def test_a_remap_drops_an_object_whose_line_is_gone() -> None:
 def test_the_view_limit_cut_drops_what_is_past_it() -> None:
     """A diagram cut short does not hold the objects it never got to."""
     PrimeItems.diagram_object_seeds = {"a": (5, "x"), "b": (40, "y")}
-    diagram._keep_object_seeds_before(40)  # noqa: SLF001
+    diagram._keep_object_seeds_before(40, state=PrimeItems)  # noqa: SLF001
 
     assert set(PrimeItems.diagram_object_seeds) == {"a"}
 
@@ -294,7 +294,7 @@ def _render(tmp_path: object, network: dict, config: RunConfig | None = None) ->
     here = os.getcwd()
     os.chdir(tmp_path)
     try:
-        diagram.network_map(network, config or current_config())
+        diagram.network_map(network, config or current_config(), state=PrimeItems)
         with open(DIAGRAM_FILE, encoding="utf-8") as written:
             return written.read().split("\n")
     finally:

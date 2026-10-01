@@ -46,7 +46,7 @@ def _clean_globals() -> None:
     PrimeItems.grand_totals = initial_grand_totals()
     PrimeItems.directory_items = initial_directory_items()
     PrimeItems.emitted_anchors = set()
-    projects.setup_summary_counts()
+    projects.setup_summary_counts(PrimeItems)
 
 
 def _load(body: str) -> None:
@@ -122,7 +122,7 @@ def test_the_project_summary_reports_what_was_counted() -> None:
     PrimeItems.task_count_no_profile = 1
     PrimeItems.scene_count = 3
 
-    projects.summary_counts("Home", 4)
+    projects.summary_counts("Home", 4, PrimeItems)
     line = _output()
     assert "Project Home has a total of 4 Profiles" in line
     assert "7  Tasks called by Profiles" in line
@@ -140,12 +140,12 @@ def test_project_counts_accumulate_into_the_run_total() -> None:
     PrimeItems.named_task_count_total = 5
     PrimeItems.task_count_unnamed = 2
     PrimeItems.scene_count = 3
-    projects.summary_counts("Home", 4)
+    projects.summary_counts("Home", 4, PrimeItems)
 
-    projects.setup_summary_counts()
+    projects.setup_summary_counts(PrimeItems)
     PrimeItems.named_task_count_total = 1
     PrimeItems.scene_count = 1
-    projects.summary_counts("Away", 2)
+    projects.summary_counts("Away", 2, PrimeItems)
 
     assert PrimeItems.grand_totals == {
         "projects": 2,
@@ -166,7 +166,7 @@ def test_counters_are_reset_between_projects() -> None:
     PrimeItems.task_count_no_profile = 9
     PrimeItems.scene_count = 9
 
-    assert projects.setup_summary_counts() == 0
+    assert projects.setup_summary_counts(PrimeItems) == 0
     assert PrimeItems.task_count_for_profile == 0
     assert PrimeItems.named_task_count_total == 0
     assert PrimeItems.task_count_unnamed == 0
@@ -184,7 +184,7 @@ def test_a_backup_with_projects_is_walked_from_the_projects() -> None:
         '<Profile sr="prof5"><id>5</id><mid0>10</mid0><nme>Morning</nme></Profile>'
         '<Task sr="task10"><id>10</id><nme>Alpha</nme></Task>',
     )
-    projects.process_projects_and_their_profiles([], [], current_config())
+    projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
     output = _output()
     assert "Home" in output
     assert "Morning" in output
@@ -198,7 +198,7 @@ def test_a_profile_export_is_walked_from_the_profiles() -> None:
         '<Profile sr="prof5"><id>5</id><mid0>10</mid0><nme>Morning</nme></Profile>'
         '<Task sr="task10"><id>10</id><nme>Alpha</nme></Task>',
     )
-    projects.process_projects_and_their_profiles([], [], current_config())
+    projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
     assert "Morning" in _output()
 
 
@@ -207,7 +207,7 @@ def test_a_task_export_is_walked_from_the_tasks() -> None:
     condition matters, because a Scene export also carries the Tasks its buttons fire.
     """
     _load('<Task sr="task10"><id>10</id><nme>Alpha</nme></Task><Task sr="task11"><id>11</id><nme>Beta</nme></Task>')
-    projects.process_projects_and_their_profiles([], [], current_config())
+    projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
     output = _output()
     assert "Alpha" in output
     assert "Beta" in output
@@ -219,7 +219,7 @@ def test_a_scene_export_is_walked_from_the_scenes() -> None:
     the screen they belong to.
     """
     _load('<Scene sr="scene0"><nme>Panel</nme></Scene><Task sr="task10"><id>10</id><nme>Alpha</nme></Task>')
-    projects.process_projects_and_their_profiles([], [], current_config())
+    projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
     assert "Panel" in _output()
     assert PrimeItems.grand_totals["scenes"] == 1
 
@@ -233,7 +233,7 @@ def test_an_unclaimed_scene_is_output_rather_than_reported_missing() -> None:
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Orphan</nme></Scene>')
     config = current_config().with_changes(single_scene_name="Orphan")
 
-    projects.output_orphan_single_scene(config)
+    projects.output_orphan_single_scene(config, PrimeItems)
     assert PrimeItems.found_named_items["single_scene_found"] is True
     assert PrimeItems.grand_totals["scenes"] == 1
 
@@ -246,7 +246,7 @@ def test_a_scene_already_found_is_not_output_twice() -> None:
     config = current_config().with_changes(single_scene_name="Panel")
     PrimeItems.found_named_items["single_scene_found"] = True
 
-    projects.output_orphan_single_scene(config)
+    projects.output_orphan_single_scene(config, PrimeItems)
     assert PrimeItems.grand_totals["scenes"] == 0
 
 
@@ -257,7 +257,7 @@ def test_a_scene_name_that_is_not_in_the_backup_is_left_alone() -> None:
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Panel</nme></Scene>')
     config = current_config().with_changes(single_scene_name="Nonexistent")
 
-    projects.output_orphan_single_scene(config)
+    projects.output_orphan_single_scene(config, PrimeItems)
     assert PrimeItems.found_named_items["single_scene_found"] is False
     assert PrimeItems.grand_totals["scenes"] == 0
 
@@ -265,7 +265,7 @@ def test_a_scene_name_that_is_not_in_the_backup_is_left_alone() -> None:
 def test_the_orphan_path_does_nothing_on_an_ordinary_run() -> None:
     """No single Scene was asked for, so there is nothing to rescue."""
     _load('<Scene sr="scene0"><nme>Panel</nme></Scene>')
-    projects.output_orphan_single_scene(current_config())
+    projects.output_orphan_single_scene(current_config(), PrimeItems)
     assert PrimeItems.found_named_items["single_scene_found"] is False
 
 
@@ -280,7 +280,7 @@ def test_the_single_project_name_survives_the_walk() -> None:
         '<Task sr="task10"><id>10</id><nme>Alpha</nme></Task>',
     )
     PrimeItems.program_arguments.single_project_name = "Home"
-    projects.process_projects_and_their_profiles([], [], current_config())
+    projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
     assert PrimeItems.program_arguments.single_project_name == "Home"
 
 
@@ -294,7 +294,7 @@ def test_found_tasks_come_back_deduplicated() -> None:
         '<Profile sr="prof6"><id>6</id><mid0>10</mid0><nme>Two</nme></Profile>'
         '<Task sr="task10"><id>10</id><nme>Shared</nme></Task>',
     )
-    found = projects.process_projects_and_their_profiles([], [], current_config())
+    found = projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
     assert sorted(found) == list(dict.fromkeys(found))
 
 
@@ -307,10 +307,10 @@ def test_the_heading_follows_the_config_it_is_given_and_not_the_global() -> None
     """
     PrimeItems.program_arguments.twisty = True
 
-    projects.task_not_in_profile_heading("Home", current_config().with_changes(twisty=False))
+    projects.task_not_in_profile_heading("Home", current_config().with_changes(twisty=False), PrimeItems)
     plain = _output()
     PrimeItems.output_lines = LineOut()
-    projects.task_not_in_profile_heading("Home", current_config())
+    projects.task_not_in_profile_heading("Home", current_config(), PrimeItems)
     twisty = _output()
 
     assert "are not in any Profile" in plain

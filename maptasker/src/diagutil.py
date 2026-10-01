@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from string import printable
+from typing import TYPE_CHECKING
 
 from maptasker.src.diagcnst import (
     angle,
@@ -30,8 +31,11 @@ from maptasker.src.diagcnst import (
 )
 from maptasker.src.mapfonts import is_double_width
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import icon_pattern
+
+if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
+    from maptasker.src.runcfg import RunConfig
 
 arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
 directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
@@ -46,7 +50,7 @@ directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arr
 
 
 # Add line to our output queue.
-def add_output_line(line: str) -> None:
+def add_output_line(line: str, state: RunState) -> None:
     """
     Adds a line to the output of the netmap report
     Args:
@@ -57,7 +61,7 @@ def add_output_line(line: str) -> None:
     - This list contains all the lines that will be written to the final output file
     - By adding lines here they will be included in the generated netmap report
     - The lines are collected and then later joined with newlines and written to the file"""
-    PrimeItems.netmap_output.append(line)
+    state.netmap_output.append(line)
 
 
 # Given an array of 3 string elements, format them with fillers for headings
@@ -81,7 +85,7 @@ def include_heading(header: str, output_lines: list) -> None:
 
 
 # Given a list of 3 text elements, print them.
-def print_3_lines(lines: list) -> None:
+def print_3_lines(lines: list, state: RunState) -> None:
     """
     Prints 3 lines from a list of items
     Args:
@@ -95,13 +99,13 @@ def print_3_lines(lines: list) -> None:
     do_list = isinstance(lines, list)
     for line in range(3):
         if do_list:
-            add_output_line(lines[line])
+            add_output_line(lines[line], state=state)
         else:
-            add_output_line(line)
+            add_output_line(line, state=state)
 
 
 # Given a list of text strings, print all of them.
-def print_all(lines: list) -> None:
+def print_all(lines: list, state: RunState) -> None:
     """
     Print all lines in a list
     Args:
@@ -112,7 +116,7 @@ def print_all(lines: list) -> None:
     - Call add_output_line function to print each line
     - No return value as function has side effect of printing lines"""
     for line in lines:
-        add_output_line(line)
+        add_output_line(line, state=state)
 
 
 # Chinese/Japanese/Korean characters.  These are double-width too, but print_box
@@ -134,7 +138,7 @@ def count_cjk_characters(string: str) -> int:
 
 
 # Given a text string and title, enclose them in a box and print the box.
-def print_box(name: str, title: str, indent: int) -> None:
+def print_box(name: str, title: str, indent: int, config: RunConfig, state: RunState) -> None:
     """
     Given a text string and title, enclose them in a box and print the box.
 
@@ -142,6 +146,7 @@ def print_box(name: str, title: str, indent: int) -> None:
         name: Name to display in the box
         title: Title to display before the name: Project:, Profile:, Task:
         indent: Number of blanks for indentation of the box
+        config: the run's settings (language)
         counter: Counter to display after the box
     Returns:
         None: Does not return anything, just prints to console
@@ -166,7 +171,7 @@ def print_box(name: str, title: str, indent: int) -> None:
     filler = f"{blanks * indent}"
 
     # Deal with translations
-    if PrimeItems.program_arguments.language not in ("Arabic", "English"):
+    if config.language not in ("Arabic", "English"):
         title = translate_string(title)
 
     full_name = f"{title} {name}{adder_space_name}"
@@ -175,7 +180,7 @@ def print_box(name: str, title: str, indent: int) -> None:
     box[0] = f"{filler}╔═{box_line * (len(full_name) + len(adder_space_boxline))}═╗"  # Box top
     box[1] = f"{filler}║ {full_name} ║"  # Box middle
     box[2] = f"{filler}╚═{box_line * (len(full_name) + len(adder_space_boxline))}═╝"  # Box bottom
-    print_3_lines(box)
+    print_3_lines(box, state=state)
 
 
 # We have an icon in our name.  Remove any padding as necessary
@@ -313,7 +318,7 @@ def remove_icon(text: str) -> str:
 
 
 # Given a name, enclose it in a text box
-def build_box(name: str, output_lines: list) -> tuple:
+def build_box(name: str, output_lines: list, config: RunConfig) -> tuple:
     """
     Builds a box around the given name.
     Args:
@@ -347,7 +352,7 @@ def build_box(name: str, output_lines: list) -> tuple:
 
     # Set the box line length based on the translated name length
     box_line_length = len(name)
-    if name == "No Profile" and PrimeItems.program_arguments.language not in ("English", "Arabic"):
+    if name == "No Profile" and config.language not in ("English", "Arabic"):
         name = translate_string(name)
         box_line_length = len(name)
         adder_space_name = ""
@@ -559,11 +564,12 @@ def fix_duplicate_up_down_locations(call_table: dict) -> dict:
 
 
 # Build a sorted list of all caller Tasks and their called Tasks.
-def build_call_table(output_lines: list) -> list:
+def build_call_table(output_lines: list, config: RunConfig) -> list:
     """
     Build a sorted list of all caller Tasks and their called Tasks.
         Args:
             output_lines (list): List of output lines
+            config (RunConfig): the run's settings (language)
         Returns:
             list: Caller/Called Task list.
     Processing Logic:
@@ -574,11 +580,7 @@ def build_call_table(output_lines: list) -> list:
     """
     # Go through all output lines looking for caller Tasks.
     call_table = {}
-    project_text = (
-        translate_string("Project:")
-        if PrimeItems.program_arguments.language not in ("Arabic", "English")
-        else "Project:"
-    )
+    project_text = translate_string("Project:") if config.language not in ("Arabic", "English") else "Project:"
     for caller_line_num, line in enumerate(output_lines):
         # Get the Project name if we have one
         project_name_start = line.find(f"║ {project_text} ")

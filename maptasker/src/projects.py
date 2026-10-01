@@ -19,7 +19,7 @@ from maptasker.src.kidapp import get_kid_app
 from maptasker.src.mapjump import PROJECT, Target, anchor_html
 from maptasker.src.maputils import find_owning_profile, find_owning_project, find_owning_project_for_scene
 from maptasker.src.nameattr import add_name_attribute
-from maptasker.src.primitem import PROJECT_COUNT_ATTRIBUTES, PrimeItems, reset_attributes
+from maptasker.src.primitem import PROJECT_COUNT_ATTRIBUTES, reset_attributes
 from maptasker.src.proclist import output_task_list
 from maptasker.src.profiles import process_profiles
 from maptasker.src.property import get_properties
@@ -33,6 +33,7 @@ from maptasker.src.twisty import add_twisty, remove_twisty
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 # Where this module's settings come from
@@ -44,10 +45,15 @@ if TYPE_CHECKING:
 # They are run state rather than settings -- profiles.py writes both as it finds a single
 # Profile or Task, and the loop in process_projects depends on seeing that write -- so a
 # snapshot taken before the build would hand back the stale value.
+#
+# The run's state -- the loaded backup, the output being built, the counters -- arrives as a
+# RunState parameter, and is read and written through it rather than off the PrimeItems global.
+# The functions this one calls in other modules have not been converted and still use the
+# global, which is the same object in a real run (bildhtml passes PrimeItems).
 
 
 # Output a single Scene that no Project claims
-def output_orphan_single_scene(config: RunConfig) -> None:
+def output_orphan_single_scene(config: RunConfig, state: RunState) -> None:
     """
     Output the single Scene being asked for when no Project lists it.
 
@@ -68,13 +74,13 @@ def output_orphan_single_scene(config: RunConfig) -> None:
     single_scene_name = config.single_scene_name
     if (
         not single_scene_name
-        or PrimeItems.found_named_items["single_scene_found"]
-        or single_scene_name not in PrimeItems.tasker_root_elements["all_scenes"]
+        or state.found_named_items["single_scene_found"]
+        or single_scene_name not in state.tasker_root_elements["all_scenes"]
     ):
         return
 
-    PrimeItems.found_named_items["single_scene_found"] = True
-    PrimeItems.grand_totals["scenes"] += 1
+    state.found_named_items["single_scene_found"] = True
+    state.grand_totals["scenes"] += 1
     process_scene_list([single_scene_name], [], config)
 
 
@@ -83,6 +89,7 @@ def process_projects_and_their_profiles(
     found_tasks: list,
     projects_without_profiles: list,
     config: RunConfig,
+    state: RunState,
 ) -> list:
     """Parameters:
         - found_tasks (list): A list of tasks that have been found.
@@ -97,17 +104,17 @@ def process_projects_and_their_profiles(
         - If no Projects then process scenes if there are any."""
 
     # Temporarily save single Project name since process_profiles may override it
-    single_project_name = PrimeItems.program_arguments.single_project_name
+    single_project_name = state.program_arguments.single_project_name
 
     # Processing Tasker Objects: Single Unnamed Tasks, Projects, Profiles, Tasks or Scenes
 
     # Process unnamed Task
     if (
         config.single_task_name is not None and UNNAMED_ITEM in config.single_task_name and config.list_unnamed_items
-    ) and PrimeItems.tasker_root_elements["all_tasks_by_name"]:
+    ) and state.tasker_root_elements["all_tasks_by_name"]:
         task_name = config.single_task_name
         task_id = get_taskid_from_unnamed_task(task_name)
-        unnamed_task = PrimeItems.tasker_root_elements["all_tasks"][task_id]
+        unnamed_task = state.tasker_root_elements["all_tasks"][task_id]
         task_list = [{"xml": unnamed_task["xml"], "name": task_name}]
         task_output_lines = [" "]
         # Get/set the Profile name
@@ -127,42 +134,38 @@ def process_projects_and_their_profiles(
         )
 
     # Process Projects only if there are Projects
-    elif PrimeItems.tasker_root_elements["all_projects"]:
-        process_projects(
-            projects_without_profiles,
-            found_tasks,
-            config,
-        )
+    elif state.tasker_root_elements["all_projects"]:
+        process_projects(projects_without_profiles, found_tasks, config, state=state)
 
     # Only Profiles...?
-    elif PrimeItems.tasker_root_elements["all_profiles"]:
-        PrimeItems.task_count_unnamed = 0
+    elif state.tasker_root_elements["all_profiles"]:
+        state.task_count_unnamed = 0
         process_profiles(
             "",
             "None",
-            PrimeItems.tasker_root_elements["all_profiles"],
+            state.tasker_root_elements["all_profiles"],
             found_tasks,
             config,
         )
-        PrimeItems.grand_totals["profiles"] += 1
+        state.grand_totals["profiles"] += 1
 
     # Only Tasks...(and not Scenes too) e.g. only Tasks?
-    elif PrimeItems.tasker_root_elements["all_tasks"] and not PrimeItems.tasker_root_elements["all_scenes"]:
+    elif state.tasker_root_elements["all_tasks"] and not state.tasker_root_elements["all_scenes"]:
         # Build a "list" of Tasks consisting of the Tasks off our troot Task list,
         task_list = []
         task_output_lines = []
-        for task in PrimeItems.tasker_root_elements["all_tasks"]:
+        for task in state.tasker_root_elements["all_tasks"]:
             task_list.append(
                 {
-                    "xml": PrimeItems.tasker_root_elements["all_tasks"][task]["xml"],
-                    "name": PrimeItems.tasker_root_elements["all_tasks"][task]["name"],
+                    "xml": state.tasker_root_elements["all_tasks"][task]["xml"],
+                    "name": state.tasker_root_elements["all_tasks"][task]["name"],
                 },
             )
             task_output_lines.append(" ")
-            if PrimeItems.tasker_root_elements["all_tasks"][task]["name"]:
-                PrimeItems.grand_totals["named_tasks"] += 1
+            if state.tasker_root_elements["all_tasks"][task]["name"]:
+                state.grand_totals["named_tasks"] += 1
             else:
-                PrimeItems.grand_totals["unnamed_tasks"] += 1
+                state.grand_totals["unnamed_tasks"] += 1
         output_task_list(
             task_list,
             "Unknown",
@@ -174,29 +177,29 @@ def process_projects_and_their_profiles(
         )
 
     # Only Scene...?
-    elif PrimeItems.tasker_root_elements["all_scenes"]:
+    elif state.tasker_root_elements["all_scenes"]:
         scene_list = []
         found_tasks = []
         single_scene_name = config.single_scene_name
-        for scene in PrimeItems.tasker_root_elements["all_scenes"]:
-            scene_name = PrimeItems.tasker_root_elements["all_scenes"][scene]["name"]
+        for scene in state.tasker_root_elements["all_scenes"]:
+            scene_name = state.tasker_root_elements["all_scenes"][scene]["name"]
             # Only after a single Scene?  Skip everything else.
             if single_scene_name and scene_name != single_scene_name:
                 continue
             scene_list.append(scene_name)
-            PrimeItems.grand_totals["scenes"] += 1
+            state.grand_totals["scenes"] += 1
         if scene_list:
             if single_scene_name:
-                PrimeItems.found_named_items["single_scene_found"] = True
+                state.found_named_items["single_scene_found"] = True
             process_scene_list(scene_list, found_tasks, config)
 
     # A single Scene that no Project lists still exists in all_scenes -- output it on
     # its own rather than reporting it as not found.  (The branch above covers a backup
     # with no Projects at all; this covers an orphan Scene in a backup that has them.)
-    output_orphan_single_scene(config)
+    output_orphan_single_scene(config, state=state)
 
     # Restore the single Project name saved at beginning
-    PrimeItems.program_arguments.single_project_name = single_project_name
+    state.program_arguments.single_project_name = single_project_name
 
     # Return a list of Tasks found thus far with duplicates remove
     # Reference: https://www.pythonmorsels.com/deduplicate-lists/
@@ -235,7 +238,7 @@ def get_launcher_task(project: Element, _project_name: str) -> str:
 
 
 # Add heading for Tasks that are not in any Profile
-def task_not_in_profile_heading(project_name: str, config: RunConfig) -> None:
+def task_not_in_profile_heading(project_name: str, config: RunConfig, state: RunState) -> None:
     # Format the output line
     """Returns a formatted output line for the tasks that are not in any profile.
 
@@ -254,7 +257,7 @@ def task_not_in_profile_heading(project_name: str, config: RunConfig) -> None:
     output_line = f"&nbsp;&nbsp;&nbsp;The following Tasks in Project '{project_name}' are not in any Profile..."
 
     # Force a line break before the header
-    PrimeItems.output_lines.add_line_to_output(5, "<br>", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(5, "<br>", FormatLine.dont_format_line)
 
     # Add the "twisty" to hide the Task details
     if config.twisty:
@@ -266,14 +269,14 @@ def task_not_in_profile_heading(project_name: str, config: RunConfig) -> None:
     # Not doing twisty
     else:
         # Just put out the line with a linebreak
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             0,
             f"<br>{output_line}",
             ["", "task_color", FormatLine.add_end_span],
         )
 
     # Start an unordered list
-    PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
 
 # Process all of the Tasks in this Project
@@ -284,6 +287,7 @@ def do_tasks_in_project(
     output_the_heading: bool,
     have_tasks_not_in_profile: bool,
     config: RunConfig,
+    state: RunState,
 ) -> bool:
     """
     Process all of the Tasks in this Project
@@ -298,24 +302,24 @@ def do_tasks_in_project(
 
             return: True if we have Tasks not in any Profile
     """
-    if not PrimeItems.program_arguments.single_profile_name:
-        PrimeItems.named_task_count_total = len(task_ids)
+    if not state.program_arguments.single_profile_name:
+        state.named_task_count_total = len(task_ids)
     _task_not_in_profile_heading = task_not_in_profile_heading
     _output_task_list = output_task_list
     # Go through all Tasks in Project
     for the_id in task_ids:
         # We have a Task in Project that has yet to be output?
-        if the_id not in found_tasks and not is_single_task_or_profile_found():
+        if the_id not in found_tasks and not is_single_task_or_profile_found(state=state):
             # Flag that we have Tasks that are not in any Profile, and bump the count.
             have_tasks_not_in_profile = True
-            PrimeItems.task_count_no_profile = PrimeItems.task_count_no_profile + 1
+            state.task_count_no_profile = state.task_count_no_profile + 1
             # We have a Project's Task that has not yet been output
-            our_task_name = PrimeItems.tasker_root_elements["all_tasks"][the_id]["name"]
+            our_task_name = state.tasker_root_elements["all_tasks"][the_id]["name"]
 
             # Only print the Task header if there are Tasks not found in any Profile,
             # and we are not looking for a single item
-            if output_the_heading and task_ids and not is_single_task_or_profile_found():
-                _task_not_in_profile_heading(project_name, config)
+            if output_the_heading and task_ids and not is_single_task_or_profile_found(state=state):
+                _task_not_in_profile_heading(project_name, config, state=state)
 
                 output_the_heading = False
 
@@ -326,7 +330,7 @@ def do_tasks_in_project(
             ]
 
             # Output the Task (we don't care about the returned value)
-            our_task = PrimeItems.tasker_root_elements["all_tasks"][the_id]
+            our_task = state.tasker_root_elements["all_tasks"][the_id]
 
             _ = _output_task_list(
                 [our_task],
@@ -339,8 +343,8 @@ def do_tasks_in_project(
             )
 
         # Determine if we are to count this Task toward our total if doing a single Profile
-        elif PrimeItems.found_named_items["single_profile_found"] and the_id in found_tasks:
-            PrimeItems.named_task_count_total += 1
+        elif state.found_named_items["single_profile_found"] and the_id in found_tasks:
+            state.named_task_count_total += 1
 
     return have_tasks_not_in_profile
 
@@ -351,6 +355,7 @@ def tasks_not_in_profiles(
     found_tasks: list,
     project_name: str,
     config: RunConfig,
+    state: RunState,
 ) -> bool:
     """
     Process all Tasks in Project that are not referenced by a Profile
@@ -368,12 +373,7 @@ def tasks_not_in_profiles(
 
     # Go through all Tasks for this Project
     have_tasks_not_in_profile = do_tasks_in_project(
-        task_ids,
-        project_name,
-        found_tasks,
-        output_the_heading,
-        have_tasks_not_in_profile,
-        config,
+        task_ids, project_name, found_tasks, output_the_heading, have_tasks_not_in_profile, config, state=state
     )
 
     # End the twisty hidden lines if we have Tasks not in any Profile
@@ -381,14 +381,14 @@ def tasks_not_in_profiles(
         if have_tasks_not_in_profile:
             remove_twisty()
         else:
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 3,
                 "",
                 FormatLine.dont_format_line,
             )
 
     # Force a line break
-    PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
     return have_tasks_not_in_profile
 
 
@@ -398,6 +398,7 @@ def get_extra_and_output_project(
     project_name: str,
     launcher_task_info: str,
     config: RunConfig,
+    state: RunState,
 ) -> bool:
     """
     Add extra info to Project output line as appropriate and then output it.
@@ -449,14 +450,14 @@ def get_extra_and_output_project(
     pids = project.find("pids")
     profile_names = []
     if pids is not None and pids.text:
-        all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
+        all_profiles = state.tasker_root_elements["all_profiles"]
         profile_names = [
             all_profiles[pid]["name"]
             for pid in pids.text.split(",")
             if pid in all_profiles and all_profiles[pid]["name"]
         ]
 
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    all_tasks = state.tasker_root_elements["all_tasks"]
     task_ids = get_ids(False, project, project_name, [])
     task_names = sorted(all_tasks[tid]["name"] for tid in task_ids if tid in all_tasks and all_tasks[tid]["name"])
 
@@ -491,17 +492,17 @@ def get_extra_and_output_project(
         )
 
     # Are we looking for a specific Project?
-    if PrimeItems.program_arguments.single_project_name:
+    if state.program_arguments.single_project_name:
         # We found our single Project
-        PrimeItems.found_named_items["single_project_found"] = True
+        state.found_named_items["single_project_found"] = True
         # Clear the output and just put out our Project.
-        PrimeItems.output_lines.refresh_our_output(
+        state.output_lines.refresh_our_output(
             False,
             project_name,
             "",
         )
         # Okay, we've output the Project name.  Get rid of just the Project name (and then add the full Project line).
-        _ = PrimeItems.output_lines.output_lines.pop()
+        _ = state.output_lines.output_lines.pop()
 
     # Mark this Project's place so a report finding can be clicked and land on it (mapjump).
     # Its own line rather than the front of the Project's line: format_line_list_item
@@ -509,9 +510,9 @@ def get_extra_and_output_project(
     # end to end -- an anchor inside it would be styled and indented along with it.  Emitted
     # after the single-Project reset above, which pops the last line off the output.
     if anchor := anchor_html(Target(PROJECT, project_name, project_name)):
-        PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
+        state.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         2,
         final_project_line,
         FormatLine.dont_format_line,
@@ -521,18 +522,19 @@ def get_extra_and_output_project(
 
 
 # Initialize out grand total counters
-def setup_summary_counts() -> int:
+def setup_summary_counts(state: RunState) -> int:
     """
     Initialize summary counters for the Project
+        :param state: the run state whose counters are reset
         :return: zero
     """
     # Set up Project counters for summary line
-    reset_attributes(*PROJECT_COUNT_ATTRIBUTES)
+    reset_attributes(*PROJECT_COUNT_ATTRIBUTES, state=state)
     return 0
 
 
 # Output the grand total counters for this Project
-def summary_counts(project_name: str, profile_count: int) -> None:
+def summary_counts(project_name: str, profile_count: int, state: RunState) -> None:
     """
     Output Project's summary counts
 
@@ -540,21 +542,21 @@ def summary_counts(project_name: str, profile_count: int) -> None:
         :param profile_count: number of Profiles under this Project
     """
     # Get counts for f-strings
-    task_count_for_profile = PrimeItems.task_count_for_profile
-    named_task_count_total = PrimeItems.named_task_count_total
-    task_count_unnamed = PrimeItems.task_count_unnamed
-    task_count_no_profile = PrimeItems.task_count_no_profile
-    scene_count = PrimeItems.scene_count
+    task_count_for_profile = state.task_count_for_profile
+    named_task_count_total = state.named_task_count_total
+    task_count_unnamed = state.task_count_unnamed
+    task_count_no_profile = state.task_count_no_profile
+    scene_count = state.scene_count
 
     # Accumulate totals for final tally
-    PrimeItems.grand_totals["projects"] += 1
-    PrimeItems.grand_totals["profiles"] += profile_count
-    PrimeItems.grand_totals["unnamed_tasks"] += task_count_unnamed
-    PrimeItems.grand_totals["named_tasks"] += named_task_count_total
-    PrimeItems.grand_totals["scenes"] += scene_count
+    state.grand_totals["projects"] += 1
+    state.grand_totals["profiles"] += profile_count
+    state.grand_totals["unnamed_tasks"] += task_count_unnamed
+    state.grand_totals["named_tasks"] += named_task_count_total
+    state.grand_totals["scenes"] += scene_count
 
     # Output the summary line with counts
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         (
             f'<div class="normtab"><br>Project {project_name} has a total of {profile_count} Profiles,'
@@ -568,7 +570,7 @@ def summary_counts(project_name: str, profile_count: int) -> None:
     )
 
     # Print a ruler
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         "<hr>",
         FormatLine.dont_format_line,
@@ -582,6 +584,7 @@ def finish_up(
     found_tasks: list,
     profile_count: int,
     config: RunConfig,
+    state: RunState,
 ) -> None:
     """
     Output the remaining components related to the Project
@@ -597,7 +600,7 @@ def finish_up(
     task_ids = []
 
     # Close Profile list
-    PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
     # Process any Tasks in Project not associated with any Profile.
     # Skipped when we are only after a single Scene: the Project's loose Tasks are not
@@ -605,12 +608,7 @@ def finish_up(
     # chance to set the single_scene_found flag that would otherwise suppress them.
     if not config.single_scene_name:
         task_ids = get_ids(False, project, project_name, [])
-        tasks_not_in_profile = tasks_not_in_profiles(
-            task_ids,
-            found_tasks,
-            project_name,
-            config,
-        )
+        tasks_not_in_profile = tasks_not_in_profiles(task_ids, found_tasks, project_name, config, state=state)
 
     # Find the Scenes for this Project <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     # ...only if not doing a single Task
@@ -623,19 +621,19 @@ def finish_up(
     # If we don't have Scenes or Tasks that are not in any Profile
     # then start a new ordered list
     if not tasks_not_in_profile and not have_scenes:
-        PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+        state.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
     # Output the Project's variables
     if config.display_detail_level >= 4:
         output_variables("Project Global Variables", project)
 
     # Output the Project summary line
-    summary_counts(project_name, profile_count)
+    summary_counts(project_name, profile_count, state=state)
 
     # If we are not inserting the twisties, then close the unordered list
     # Twisties screw with the indentation, as well as not having Scenes
     if not config.twisty and (config.display_detail_level > 0 or not have_scenes):
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             3,
             "",
             FormatLine.dont_format_line,
@@ -644,14 +642,14 @@ def finish_up(
 
 # Helper functions to process_projects function, below
 # Return the flags for single-task-found and single-profile-found
-def is_single_task_or_profile_found() -> bool:
+def is_single_task_or_profile_found(state: RunState) -> bool:
     """
     Check if a single task, profile or Scene is found and return a boolean value.
     """
     return (
-        PrimeItems.found_named_items["single_task_found"]
-        or PrimeItems.found_named_items["single_profile_found"]
-        or PrimeItems.found_named_items["single_scene_found"]
+        state.found_named_items["single_task_found"]
+        or state.found_named_items["single_profile_found"]
+        or state.found_named_items["single_scene_found"]
     )
 
 
@@ -674,20 +672,20 @@ def get_profile_ids(
 
 # Check if a single profile is not found based on program arguments and named items.
 # Return True if we are doing a single Profile and it was not found, False otherwise
-def is_single_profile_not_found() -> bool:
+def is_single_profile_not_found(state: RunState) -> bool:
     """
     Check if a single profile is not found based on program arguments and named items.
     Return a boolean indicating whether a single profile is not found.
     """
-    return PrimeItems.program_arguments.single_profile_name and not PrimeItems.found_named_items["single_profile_found"]
+    return state.program_arguments.single_profile_name and not state.found_named_items["single_profile_found"]
 
 
 # Add a line to the output with the message "<em>Project has no Profiles</em>" and some formatting.
-def add_no_profiles_line_to_output() -> None:
+def add_no_profiles_line_to_output(state: RunState) -> None:
     """
     Add a line to the output with the message "<em>Project has no Profiles</em>" and some formatting.
     """
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         f"{NORMAL_TAB}<em>Project has no Profiles</em>",
         ["", "profile_color", FormatLine.add_end_span],
@@ -695,24 +693,24 @@ def add_no_profiles_line_to_output() -> None:
 
 
 # Determine if we are doing a single Project or Profile or Task
-def is_single_project_or_profile_or_task_found() -> bool:
+def is_single_project_or_profile_or_task_found(state: RunState) -> bool:
     """
     Check if a single project, profile, task or Scene is found and return a boolean.
     """
     return (
-        PrimeItems.found_named_items["single_project_found"]
-        or PrimeItems.found_named_items["single_profile_found"]
-        or PrimeItems.found_named_items["single_task_found"]
-        or PrimeItems.found_named_items["single_scene_found"]
+        state.found_named_items["single_project_found"]
+        or state.found_named_items["single_profile_found"]
+        or state.found_named_items["single_task_found"]
+        or state.found_named_items["single_scene_found"]
     )
 
 
 # Add a closing Project list
-def add_close_project_list_line_to_output() -> None:
+def add_close_project_list_line_to_output(state: RunState) -> None:
     """
     Add a close project list line to the output.
     """
-    PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
 # ################################################################################
@@ -722,6 +720,7 @@ def get_profile_details_and_output(
     project: str,
     project_name: str,
     config: RunConfig,
+    state: RunState,
 ) -> tuple[bool, int, str, bool]:
     """
     Get this Project's details and output them
@@ -734,10 +733,10 @@ def get_profile_details_and_output(
                 profile count, True if we have the single Project we want.
     """
     # Initialize Project's total counts to zeroes.
-    profile_count = setup_summary_counts()
+    profile_count = setup_summary_counts(state)
 
     # Bail if we are doing a single Task/Profile and it was found
-    if is_single_task_or_profile_found():
+    if is_single_task_or_profile_found(state=state):
         return True, profile_count, False
 
     # If doing a directory, save the project name for it
@@ -749,12 +748,7 @@ def get_profile_details_and_output(
 
     # Check for extra details to include.
     # This comes back as True if we have the specific Project we are looking for.
-    have_project_wanted = get_extra_and_output_project(
-        project,
-        project_name,
-        launcher_task_info,
-        config,
-    )
+    have_project_wanted = get_extra_and_output_project(project, project_name, launcher_task_info, config, state=state)
 
     # Process Project Properties
     if config.display_detail_level > 2:
@@ -777,6 +771,7 @@ def process_project_profiles(
     found_tasks: list,
     profile_count: int,
     config: RunConfig,
+    state: RunState,
 ) -> tuple[bool, int]:
     """
     Process all of the Profiles for this Project
@@ -806,12 +801,12 @@ def process_project_profiles(
         )
 
         # Are we searching for a single Profile and it wasn't found (result=True)?
-        if is_single_profile_not_found():
+        if is_single_profile_not_found(state=state):
             return True, profile_count
 
     else:
         # Add a line saying "No Profiles Found"
-        add_no_profiles_line_to_output()
+        add_no_profiles_line_to_output(state=state)
 
     return False, profile_count
 
@@ -821,6 +816,7 @@ def process_projects(
     projects_without_profiles: list,
     found_tasks: list,
     config: RunConfig,
+    state: RunState,
 ) -> list:
     """
     Go through all the Projects, get their detail and output it
@@ -844,12 +840,9 @@ def process_projects(
     single_scene_name = config.single_scene_name
     scene_owning_project = find_owning_project_for_scene(single_scene_name) if single_scene_name else ""
 
-    for project_name in PrimeItems.tasker_root_elements["all_projects"]:
+    for project_name in state.tasker_root_elements["all_projects"]:
         # Ignore this project if we are looking for a specific one and this isn't it.
-        if (
-            PrimeItems.program_arguments.single_project_name
-            and PrimeItems.program_arguments.single_project_name != project_name
-        ):
+        if state.program_arguments.single_project_name and state.program_arguments.single_project_name != project_name:
             continue
 
         # Likewise if we only want the one Project that owns the single Scene.
@@ -857,17 +850,17 @@ def process_projects(
             continue
 
         # Point to the Project XML element <Project sr=...>
-        project = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
+        project = state.tasker_root_elements["all_projects"][project_name]["xml"]
 
         # Keep track of the Project being processed
-        PrimeItems.current_project = PrimeItems.tasker_root_elements["all_projects"][project_name]
+        state.current_project = state.tasker_root_elements["all_projects"][project_name]
 
         # Get the Project line item details and output them
         (
             _,
             profile_count,
             have_project_wanted,
-        ) = _get_profile_details_and_output(project, project_name, config)
+        ) = _get_profile_details_and_output(project, project_name, config, state=state)
 
         # If we are searching for a specific Project and we found it, then bail out
         # ...but stay in loop to process all the Profiles for this Project
@@ -882,26 +875,15 @@ def process_projects(
                 _,
                 profile_count,
             ) = _process_project_profiles(
-                project,
-                project_name,
-                projects_without_profiles,
-                found_tasks,
-                profile_count,
-                config,
+                project, project_name, projects_without_profiles, found_tasks, profile_count, config, state=state
             )
 
         # Finish the output for this Project
-        _finish_up(
-            project,
-            project_name,
-            found_tasks,
-            profile_count,
-            config,
-        )
+        _finish_up(project, project_name, found_tasks, profile_count, config, state=state)
 
         # If we are doing a single item and it was found, return the Tasks list
-        if _is_single_project_or_profile_or_task_found():
-            add_close_project_list_line_to_output()
+        if _is_single_project_or_profile_or_task_found(state=state):
+            add_close_project_list_line_to_output(state=state)
             return found_tasks
 
     return []

@@ -649,7 +649,7 @@ def export_view(view: str, fmt: str) -> str:
         lines = text.replace("\r\n", "\n").split("\n")
         if lines and not lines[-1]:
             lines.pop()
-        content = _DIAGRAM_WRITERS[fmt](lines, diagintr.model(), meta)
+        content = _DIAGRAM_WRITERS[fmt](lines, diagintr.model(state=PrimeItems), meta)
         stem = DIAGRAM_EXPORT_FILE
 
     path = os.path.join(directory, f"{stem}.{fmt}")

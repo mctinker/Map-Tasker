@@ -33,10 +33,13 @@ collapsing hides whole lines rather than reflowing anything.
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from maptasker.src import mapjump
 from maptasker.src.mapjump import PROJECT, TASK, Target
-from maptasker.src.primitem import PrimeItems
+
+if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
 
 # The class every clickable object name in the Diagram carries, and the ones the
 # interactions add to it.  Styled in guiwins.inject_shared_head_styles.
@@ -245,7 +248,7 @@ def _edges(nodes: list[dict], call_edges: dict, connector_calls: dict) -> list[d
     return edges
 
 
-def build_model(lines: list[str]) -> dict:
+def build_model(lines: list[str], state: RunState) -> dict:
     """Assemble the interaction model from what the finished diagram recorded.
 
     Called at the very end of diagram.network_map, once every position is final: the
@@ -253,20 +256,20 @@ def build_model(lines: list[str]) -> dict:
     grown from their seeds.  Anything earlier would be measuring a diagram that is still
     moving.
     """
-    anchors = getattr(PrimeItems, "diagram_anchors", {}) or {}
-    targets = getattr(PrimeItems, "diagram_object_targets", {}) or {}
+    anchors = getattr(state, "diagram_anchors", {}) or {}
+    targets = getattr(state, "diagram_object_targets", {}) or {}
     # The "diagram was cut short" message is written past the last drawn line; it belongs to
     # no Project, and folding the last one should not take it away.
-    tail = 2 if getattr(PrimeItems, "diagram_limit_msg", "") else 0
+    tail = 2 if getattr(state, "diagram_limit_msg", "") else 0
     regions = _regions(anchors, targets, len(lines), tail)
-    nodes = _nodes(lines, getattr(PrimeItems, "diagram_object_placements", []) or [], targets, regions)
+    nodes = _nodes(lines, getattr(state, "diagram_object_placements", []) or [], targets, regions)
     return {
         "nodes": nodes,
         "regions": regions,
         "edges": _edges(
             nodes,
-            getattr(PrimeItems, "diagram_call_edges", {}) or {},
-            getattr(PrimeItems, "diagram_connector_calls", {}) or {},
+            getattr(state, "diagram_call_edges", {}) or {},
+            getattr(state, "diagram_connector_calls", {}) or {},
         ),
     }
 
@@ -274,7 +277,7 @@ def build_model(lines: list[str]) -> dict:
 # ##################################################################################
 # The model, read back by the view.
 # ##################################################################################
-def model() -> dict:
+def model(state: RunState) -> dict:
     """The model the last-built Diagram recorded, or an empty one.
 
     Empty is ordinary rather than an error: a Diagram file left on disk by an older run of
@@ -284,7 +287,7 @@ def model() -> dict:
     in -- this is what the renderer slices Python strings by.  The browser never measures a
     column itself: it finds a node by the element the renderer wrapped it in.
     """
-    stored = getattr(PrimeItems, "diagram_model", None)
+    stored = getattr(state, "diagram_model", None)
     return stored if isinstance(stored, dict) and stored.get("nodes") else {"nodes": [], "regions": [], "edges": []}
 
 

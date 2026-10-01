@@ -122,6 +122,7 @@ def build_html(file_to_get: str) -> int:
         found_tasks,
         projects_without_profiles,
         current_config(),
+        PrimeItems,
     )
 
     # Do special handling: wrap up back matter and print the output.

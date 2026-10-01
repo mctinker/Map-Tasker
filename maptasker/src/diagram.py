@@ -61,7 +61,7 @@ from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Target
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import find_all_positions
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import DIAGRAM_ATTRIBUTES, PrimeItems, reset_attributes
+from maptasker.src.primitem import DIAGRAM_ATTRIBUTES, reset_attributes
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
     MY_VERSION,
@@ -76,6 +76,7 @@ from maptasker.src.xmldata import tag_in_type
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 # ##################################################################################
@@ -136,7 +137,7 @@ def _note_task(index: int, target: Target, snippet: str) -> None:
     _pending_tasks.append((index, target, snippet))
 
 
-def _record(row: int, target: Target, snippet: str) -> None:
+def _record(row: int, target: Target, snippet: str, state: RunState) -> None:
     """Fix one noted object at a row of netmap_output.
 
     Two records, because two questions are being asked and they have different answers.
@@ -159,55 +160,55 @@ def _record(row: int, target: Target, snippet: str) -> None:
     written once and only read at the end, when the interactive Diagram view's node model is
     assembled (see diagintr.build_model).
     """
-    seeds = PrimeItems.diagram_object_seeds
+    seeds = state.diagram_object_seeds
     if target.anchor not in seeds:
         seeds[target.anchor] = (row, snippet)
-        PrimeItems.diagram_object_targets[target.anchor] = target
-    PrimeItems.diagram_object_placements.append((target.anchor, row, snippet))
+        state.diagram_object_targets[target.anchor] = target
+    state.diagram_object_placements.append((target.anchor, row, snippet))
 
 
-def _flush_boxes(output_lines: list) -> None:
+def _flush_boxes(output_lines: list, state: RunState) -> None:
     """Append a finished row of boxes, and fix every box noted into it at its line.
 
     print_3_lines by another name.  The row is taken before the append rather than after,
     since it is the append that makes it a row at all.
     """
-    row = len(PrimeItems.netmap_output) + 1  # The middle of the three lines.
-    print_3_lines(output_lines)
+    row = len(state.netmap_output) + 1  # The middle of the three lines.
+    print_3_lines(output_lines, state=state)
     for target, snippet in _pending_boxes:
-        _record(row, target, snippet)
+        _record(row, target, snippet, state=state)
     _pending_boxes.clear()
 
 
-def _flush_tasks(output_lines: list) -> None:
+def _flush_tasks(output_lines: list, state: RunState) -> None:
     """Append a finished run of Task lines, and fix every Task noted into it at its line."""
-    base = len(PrimeItems.netmap_output)
-    print_all(output_lines)
+    base = len(state.netmap_output)
+    print_all(output_lines, state=state)
     for index, target, snippet in _pending_tasks:
-        _record(base + index, target, snippet)
+        _record(base + index, target, snippet, state=state)
     _pending_tasks.clear()
 
 
-def _remap_object_seeds(old_to_new: dict[int, int]) -> None:
+def _remap_object_seeds(old_to_new: dict[int, int], state: RunState) -> None:
     """Move every recorded object to where its line has just moved to.
 
     A row with no entry in the map is a row that no longer exists -- cut off at the view
     limit, or swept away as a bar-only line -- and the object on it is dropped rather than
     left pointing at whatever ended up there instead.
     """
-    PrimeItems.diagram_object_seeds = {
+    state.diagram_object_seeds = {
         anchor: (old_to_new[row], snippet)
-        for anchor, (row, snippet) in PrimeItems.diagram_object_seeds.items()
+        for anchor, (row, snippet) in state.diagram_object_seeds.items()
         if row in old_to_new
     }
-    PrimeItems.diagram_object_placements = [
+    state.diagram_object_placements = [
         (anchor, old_to_new[row], snippet)
-        for anchor, row, snippet in PrimeItems.diagram_object_placements
+        for anchor, row, snippet in state.diagram_object_placements
         if row in old_to_new
     ]
 
 
-def _remap_call_edges(old_to_new: dict[int, int]) -> None:
+def _remap_call_edges(old_to_new: dict[int, int], state: RunState) -> None:
     """Move every recorded call to where the two Task lines it joins have just moved to.
 
     The same journey the object seeds make, and made in the same breath as theirs so the
@@ -216,25 +217,23 @@ def _remap_call_edges(old_to_new: dict[int, int]) -> None:
     the view limit, or swept away with a bar-only line) is dropped whole: half a call is
     not a link in a chain.
     """
-    PrimeItems.diagram_call_edges = {
+    state.diagram_call_edges = {
         index: {**edge, "caller_row": old_to_new[edge["caller_row"]], "called_row": old_to_new[edge["called_row"]]}
-        for index, edge in PrimeItems.diagram_call_edges.items()
+        for index, edge in state.diagram_call_edges.items()
         if edge["caller_row"] in old_to_new and edge["called_row"] in old_to_new
     }
 
 
-def _keep_object_seeds_before(cut: int) -> None:
+def _keep_object_seeds_before(cut: int, state: RunState) -> None:
     """Drop every object drawn past the line the view limit cut the diagram at.
 
     Those lines are about to be deleted outright, and an object still pointing into them
     would be a jump into whatever the file ends with.
     """
-    PrimeItems.diagram_object_seeds = {
-        anchor: placement for anchor, placement in PrimeItems.diagram_object_seeds.items() if placement[0] < cut
+    state.diagram_object_seeds = {
+        anchor: placement for anchor, placement in state.diagram_object_seeds.items() if placement[0] < cut
     }
-    PrimeItems.diagram_object_placements = [
-        placement for placement in PrimeItems.diagram_object_placements if placement[1] < cut
-    ]
+    state.diagram_object_placements = [placement for placement in state.diagram_object_placements if placement[1] < cut]
 
 
 def _utf16_length(text: str) -> int:
@@ -300,6 +299,7 @@ def add_quotes(
     called_by_tasks: list,
     position_for_anchor: int,
     found_tasks: list,
+    state: RunState,
 ) -> tuple:
     """
     Add quotes to called Tasks.
@@ -333,7 +333,7 @@ def add_quotes(
 
     # Get the primary task pointer for this task.
     try:
-        prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][real_task_name]
+        prime_task = state.tasker_root_elements["all_tasks_by_name"][real_task_name]
     except KeyError:
         prime_task = None
 
@@ -374,16 +374,16 @@ def add_quotes(
 
             # Keep track of all Tasks being called
             the_task = calls_task
-            if PrimeItems.called_task_tracker:
-                if the_task in PrimeItems.called_task_tracker:
-                    PrimeItems.called_task_tracker[the_task]["total_number"] += 1
+            if state.called_task_tracker:
+                if the_task in state.called_task_tracker:
+                    state.called_task_tracker[the_task]["total_number"] += 1
                 else:
-                    PrimeItems.called_task_tracker[the_task] = {
+                    state.called_task_tracker[the_task] = {
                         "total_number": 1,
                         "counter": 0,
                     }
             else:
-                PrimeItems.called_task_tracker[the_task] = {
+                state.called_task_tracker[the_task] = {
                     "total_number": 1,
                     "counter": 0,
                 }
@@ -409,6 +409,7 @@ def output_the_task(
     task_type: str,
     called_by_tasks: list,
     position_for_anchor: int,
+    state: RunState,
 ) -> tuple[bool, int]:
     """
     Add the Task to the output list.
@@ -428,7 +429,7 @@ def output_the_task(
     # We have a full row of Profiles.  Print the Tasks out.
     if print_tasks:
         if output_task_lines:
-            _flush_tasks(output_task_lines)
+            _flush_tasks(output_task_lines, state=state)
             output_task_lines = []
         last_upward_bar = []
 
@@ -441,6 +442,7 @@ def output_the_task(
         called_by_tasks,
         position_for_anchor,
         found_tasks,
+        state=state,
     )
 
     return found_tasks, last_upward_bar, output_task_lines
@@ -453,6 +455,7 @@ def print_all_tasks(
     output_task_lines: list,
     print_tasks: bool,
     found_tasks: list,
+    state: RunState,
 ) -> list:
     """
     Process all Tasks in the Profile.
@@ -494,7 +497,7 @@ def print_all_tasks(
         task["name"] = tname
 
         # Is it in the master list of all Task names in the XML?
-        task_name = PrimeItems.tasker_root_elements["all_tasks_by_name"][tname]
+        task_name = state.tasker_root_elements["all_tasks_by_name"][tname]
         if task_name:
             prime_task = task_name
             # Now see if this Task has any "called_by" Tasks.
@@ -511,6 +514,7 @@ def print_all_tasks(
             task_type,
             called_by_tasks,
             position_for_anchor,
+            state=state,
         )
 
     return found_tasks
@@ -520,6 +524,7 @@ def process_scene_tasks(
     scene: str,
     position_for_anchor: int,
     task_list: list,
+    state: RunState,
 ) -> tuple:
     """
     Process a Scene's Tasks.
@@ -535,7 +540,7 @@ def process_scene_tasks(
     output_task_lines = []
 
     # Retrieve XML elements inside the scene
-    scene_xml = PrimeItems.tasker_root_elements["all_scenes"].get(scene, {}).get("xml", [])
+    scene_xml = state.tasker_root_elements["all_scenes"].get(scene, {}).get("xml", [])
     # Go through the scene elements, looking for "xxxElement"
     for sub_scene in scene_xml:
         sub_scene_tag = sub_scene.tag
@@ -566,7 +571,7 @@ def process_scene_tasks(
                 continue  # Skip invalid or fake tasks
 
             # Retrieve task information
-            task_info = PrimeItems.tasker_root_elements["all_tasks"].get(task_id)
+            task_info = state.tasker_root_elements["all_tasks"].get(task_id)
             if not task_info:
                 continue
 
@@ -579,13 +584,13 @@ def process_scene_tasks(
             task_list.append([task, position_for_anchor])
 
     if output_task_lines:
-        _flush_tasks(output_task_lines)
+        _flush_tasks(output_task_lines, state=state)
 
     return task_list, output_task_lines
 
 
 # Process all Scenes in the Project, 8 Scenes to a row.
-def print_all_scenes(scenes: list) -> None:
+def print_all_scenes(scenes: list, config: RunConfig, state: RunState) -> None:
     """
         Prints all scenes in a project, 8 Scenes to a row.
 
@@ -608,7 +613,7 @@ def print_all_scenes(scenes: list) -> None:
     scenes_translated = translate_string("Scenes:")
     task_list = []
     # Empty line to start
-    add_output_line(" ")
+    add_output_line(" ", state=state)
 
     # Do all of the Scenes for the given Project
     for scene in scenes:
@@ -616,42 +621,31 @@ def print_all_scenes(scenes: list) -> None:
         if scene_counter > 8:
             # We have 8 columns.  Print them out and reset.
             include_heading(f"{blank * 7}{scenes_translated}", output_scene_lines)
-            _flush_boxes(output_scene_lines)
+            _flush_boxes(output_scene_lines, state=state)
             scene_counter = 1
             output_scene_lines = [filler, filler, filler]
 
         # Start/continue building our outlines
-        output_scene_lines, position_for_anchor = build_box(scene, output_scene_lines)
+        output_scene_lines, position_for_anchor = build_box(scene, output_scene_lines, config=config)
         # Noted after the box is built, and after any flush above it, so the note belongs to
         # the buffer this Scene actually went into rather than to the row before it.
         _note_box(Target(kind=SCENE, key=scene, name=scene), f"{_BOX_WALL} {scene}")
 
         # Process Scene's Tasks
-        task_list, output_task_lines = process_scene_tasks(
-            scene,
-            position_for_anchor + 15,
-            task_list,
-        )
+        task_list, output_task_lines = process_scene_tasks(scene, position_for_anchor + 15, task_list, state=state)
 
     # Print any remaining Scenes
     include_heading(f"{blank * 7}{scenes_translated}", output_scene_lines)
-    _flush_boxes(output_scene_lines)
+    _flush_boxes(output_scene_lines, state=state)
 
     # Print out the Scenes' Tasks
     for task in task_list:
         # Output the Task
         _found_tasks, _last_upward_bar, output_task_lines = output_the_task(
-            True,
-            [],
-            task[0],
-            output_task_lines,
-            task[1] + 15,
-            "",
-            "",
-            task[1],
+            True, [], task[0], output_task_lines, task[1] + 15, "", "", task[1], state=state
         )
     if task_list:
-        _flush_tasks(output_task_lines)
+        _flush_tasks(output_task_lines, state=state)
 
 
 # Process Tasks not in any Profile
@@ -662,6 +656,7 @@ def do_tasks_with_no_profile(
     found_tasks: list,
     profile_counter: int,
     config: RunConfig,
+    state: RunState,
 ) -> tuple:
     """
     Process Tasks not in any Profile
@@ -683,7 +678,7 @@ def do_tasks_with_no_profile(
     if project_name == "No Project":
         return output_profile_lines, output_task_lines
 
-    project_root = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
+    project_root = state.tasker_root_elements["all_projects"][project_name]["xml"]
     tasks_not_in_profile = []
 
     # Get all task IDs for this Project.
@@ -691,10 +686,10 @@ def do_tasks_with_no_profile(
 
     # Go through each Task ID and see if it is in found_tasks.
     for task in project_task_ids:
-        if PrimeItems.tasker_root_elements["all_tasks"][task]["name"] not in found_tasks:
+        if state.tasker_root_elements["all_tasks"][task]["name"] not in found_tasks:
             profile = "No Profile"
             print_tasks = False
-            the_task = PrimeItems.tasker_root_elements["all_tasks"][task]
+            the_task = state.tasker_root_elements["all_tasks"][task]
             if the_task not in tasks_not_in_profile:
                 tasks_not_in_profile.append(the_task)
 
@@ -709,22 +704,13 @@ def do_tasks_with_no_profile(
             print_tasks,
             profile_counter,
         ) = build_profile_box(
-            profile,
-            profile_counter,
-            output_profile_lines,
-            output_task_lines,
-            print_tasks,
-            config,
+            profile, profile_counter, output_profile_lines, output_task_lines, print_tasks, config, state=state
         )
 
         # Print tasks not in any profile
         print_tasks = False
         _ = print_all_tasks(
-            tasks_not_in_profile,
-            position_for_anchor,
-            output_task_lines,
-            print_tasks,
-            found_tasks,
+            tasks_not_in_profile, position_for_anchor, output_task_lines, print_tasks, found_tasks, state=state
         )
 
     return output_profile_lines, output_task_lines
@@ -957,7 +943,7 @@ def find_diagram_connector_seed_cell(lines: list, row: int, col: int) -> tuple |
     return None
 
 
-def compute_diagram_connector_groups(lines: list, seeds: list) -> dict:
+def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) -> dict:
     """
     Identify every Diagram-view connector -- the lines, corners and arrows joining a "calls" Task
     to its "called by" Task -- directly from the final rendered text, growing each one out from a
@@ -1086,12 +1072,12 @@ def compute_diagram_connector_groups(lines: list, seeds: list) -> dict:
             ranges.append((r, start, prev + 1))
         ranges_by_group[gid] = ranges
 
-    PrimeItems.diagram_connector_calls = calls_by_group
+    state.diagram_connector_calls = calls_by_group
     return ranges_by_group
 
 
 # Add up and down arrows to the connection points.
-def add_down_and_up_arrows(connectors: dict, output_lines: list, config: RunConfig) -> None:
+def add_down_and_up_arrows(connectors: dict, output_lines: list, config: RunConfig, state: RunState) -> None:
     """
     Adds down and up arrows between caller and called tasks.
     Args:
@@ -1142,7 +1128,7 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list, config: RunConf
     # draw_arrows_to_called_task(): this corner is a second guaranteed-good anchor into the same
     # connector, so the connector still gets a working seed even if one of the two is ever thrown
     # off (e.g. by an unrelated bug in a later cleanup pass). See compute_diagram_connector_groups().
-    PrimeItems.diagram_connector_seeds.append((line_to_modify, called_task_position, connectors["call_index"]))
+    state.diagram_connector_seeds.append((line_to_modify, called_task_position, connectors["call_index"]))
 
     # Add left arrows to called Task line.  First find next available blank line.
     line_to_modify1 = called_line_num - called_line_index
@@ -1174,7 +1160,7 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list, config: RunConf
         + output_lines[line_to_modify1][caller_task_position:]
     )
     # Extra seed -- see the matching comment above for right_arrow_corner_down.
-    PrimeItems.diagram_connector_seeds.append((line_to_modify1, caller_task_position, connectors["call_index"]))
+    state.diagram_connector_seeds.append((line_to_modify1, caller_task_position, connectors["call_index"]))
 
     # Return the top-most modified output line hnumber.
     return line_to_modify, line_to_modify1
@@ -1187,6 +1173,7 @@ def draw_arrows_to_called_task(
     output_lines: list,
     called_task_lookup: dict,
     config: RunConfig,
+    state: RunState,
 ) -> None:
     """
     Draw arrows to called Task from Task doing the calling.
@@ -1225,13 +1212,13 @@ def draw_arrows_to_called_task(
         )
 
     # Bump the count of the calls to this task.  This is used to determine the displacement of the bottom connector line number.
-    PrimeItems.called_task_tracker[called_task_name]["counter"] += 1
+    state.called_task_tracker[called_task_name]["counter"] += 1
 
     # The call this connector is about to be drawn for, recorded before any of it is drawn:
     # the two Task lines it joins are known here and nowhere further down, and every seed
     # dropped below carries this index so the finished connector can be traced back to it.
-    call_index = len(PrimeItems.diagram_call_edges)
-    PrimeItems.diagram_call_edges[call_index] = {
+    call_index = len(state.diagram_call_edges)
+    state.diagram_call_edges[call_index] = {
         "caller_row": caller_line_num,
         "called_row": called_line_num,
         "caller_name": connector.get("caller_task_name", ""),
@@ -1244,20 +1231,20 @@ def draw_arrows_to_called_task(
         "caller_line_index": caller_line_index,
         "caller_line_num": caller_line_num,
         "caller_task_position": caller_task_position,
-        "called_line_index": PrimeItems.called_task_tracker[called_task_name]["counter"],
+        "called_line_index": state.called_task_tracker[called_task_name]["counter"],
         "called_line_num": called_line_num,
         "called_task_position": called_task_position,
         "up_down_location": up_down_location,
     }
     connectors["call_index"] = call_index
-    line_to_modify, line_to_modify1 = add_down_and_up_arrows(connectors, output_lines, config)
+    line_to_modify, line_to_modify1 = add_down_and_up_arrows(connectors, output_lines, config, state=state)
 
     # Fill called line with left arrows.  Figure out if we are top-down or bottom-up,
     # and assign start_line and line_count accordingly.
     if called_line_num > caller_line_num:
         start_line = line_to_modify
         # Take into account the index of the current "calls ->" called Task
-        line_count -= line_to_modify - (caller_line_num - PrimeItems.called_task_tracker[called_task_name]["counter"])
+        line_count -= line_to_modify - (caller_line_num - state.called_task_tracker[called_task_name]["counter"])
     else:
         # Find the first free line above the called Task
         start_line = line_to_modify1
@@ -1267,7 +1254,7 @@ def draw_arrows_to_called_task(
     # upper_corner_arrow (a non-bar connector character) at up_down_location below, in the loop's
     # x == 0 case, so this cell is guaranteed to survive remove_empty_strings() (which only drops
     # lines that are nothing but bar/space/backslash). See compute_diagram_connector_groups().
-    PrimeItems.diagram_connector_seeds.append((start_line, up_down_location, call_index))
+    state.diagram_connector_seeds.append((start_line, up_down_location, call_index))
 
     # Now traverse the output list from the calling/called Task to the called/calling Task,
     # inserting a up/down/corner arrow along the way.
@@ -1405,7 +1392,7 @@ def furthest_connector_line(connector: dict) -> int:
     return max(connector["caller_line_num"], connector["called_line_num"])
 
 
-def check_limit(call_table: dict, output_lines: list, _progress_bar: dict, config: RunConfig) -> None:
+def check_limit(call_table: dict, output_lines: list, _progress_bar: dict, config: RunConfig, state: RunState) -> None:
     """
     Cut the diagram short at the view limit rather than refusing to draw it at all.
 
@@ -1436,7 +1423,7 @@ def check_limit(call_table: dict, output_lines: list, _progress_bar: dict, confi
         return None, call_table
 
     # Cleared per run: a diagram that fits must not inherit the message from one that did not.
-    PrimeItems.diagram_limit_msg = ""
+    state.diagram_limit_msg = ""
 
     # size = mysizeof(call_table)
     # size = getSize(call_table)
@@ -1458,14 +1445,14 @@ def check_limit(call_table: dict, output_lines: list, _progress_bar: dict, confi
     total_connectors = mysizeof(call_table)
     lines_dropped = max(0, len(output_lines) - cut_at)
 
-    PrimeItems.diagram_limit_msg = (
+    state.diagram_limit_msg = (
         f"{translate_string('MapTasker: view limit reached, diagram truncated')}: "
         f"{translate_string('connectors')}={len(kept)}/{total_connectors}, "
         f"{translate_string('lines dropped')}={lines_dropped}, "
         f"{translate_string('View Limit')}={view_limit}.  "
         f"{translate_string('Select a larger View Limit or a single Project / Profile / Task to see the rest.')}"
     )
-    logger.info(PrimeItems.diagram_limit_msg)
+    logger.info(state.diagram_limit_msg)
 
     # The connectors being dropped can be a lot of memory on the configurations that get here,
     # and nothing refers to them once this returns.
@@ -1714,7 +1701,7 @@ def find_first_substring_position(string: str, substrings: list) -> tuple:
     return None, -1
 
 
-def add_blanks_above_called_tasks(output_lines: list) -> None:
+def add_blanks_above_called_tasks(output_lines: list, state: RunState) -> None:
     # Go through and add blanks above called tasks, one for each caller.
     """
     Goes through the output lines and adds a blank line above each called task line
@@ -1735,12 +1722,12 @@ def add_blanks_above_called_tasks(output_lines: list) -> None:
             task_name = line[task_line + 3 : end_name - 1] if end_name != -1 else line[task_line + 3 : len(line) - 1]
             # Do we have a task that has been called by another task?
             # One extra for a blank line between upper and previous called task lower connectors.
-            if task_name in PrimeItems.called_task_tracker:
+            if task_name in state.called_task_tracker:
                 new_output_lines.extend(
                     [
                         ""
                         for _ in range(
-                            PrimeItems.called_task_tracker[task_name]["total_number"] + 2,
+                            state.called_task_tracker[task_name]["total_number"] + 2,
                         )
                     ],
                 )
@@ -1750,12 +1737,12 @@ def add_blanks_above_called_tasks(output_lines: list) -> None:
         new_output_lines.append(line)
 
     output_lines.clear()
-    _remap_object_seeds(old_to_new)
+    _remap_object_seeds(old_to_new, state=state)
     return new_output_lines
 
 
 # If Task line has any "Task Call" Task actions, fill it with arrows.
-def handle_calls(output_lines: list, progress: dict, config: RunConfig) -> None:
+def handle_calls(output_lines: list, progress: dict, config: RunConfig, state: RunState) -> None:
     """
     Handle calls in output lines from parsing
     Args:
@@ -1780,16 +1767,16 @@ def handle_calls(output_lines: list, progress: dict, config: RunConfig) -> None:
     # that the connector grown from it can be named as "Backup calls Restore" rather than
     # as an anonymous run of box-drawing characters.  That is what turns one connector
     # into a link in a call chain the interactive view can follow.
-    PrimeItems.diagram_connector_seeds = []
+    state.diagram_connector_seeds = []
     # One entry per call drawn, keyed by the index the seeds refer to it by: {caller_row,
     # called_row, caller_name, called_name, project}, rows in output_lines' own numbering
     # here and remapped onto the rendered file's alongside the seeds.  Keyed rather than a
     # plain list because a remap DROPS the calls whose lines no longer exist, and a seed
     # already holding index 7 must not be left pointing at whatever slid into that slot.
-    PrimeItems.diagram_call_edges = {}
+    state.diagram_call_edges = {}
 
     # Go through the output and add blanks above the called tasks, one for each caller.
-    output_lines = add_blanks_above_called_tasks(output_lines)
+    output_lines = add_blanks_above_called_tasks(output_lines, state=state)
 
     # Recaluate progress bar size.
     progress["max_data"] = len(output_lines)
@@ -1799,16 +1786,11 @@ def handle_calls(output_lines: list, progress: dict, config: RunConfig) -> None:
     mark_tasks_not_found(output_lines)
 
     # Create the table of caller/called Tasks and their pointers.
-    call_table = build_call_table(output_lines)
+    call_table = build_call_table(output_lines, config=config)
 
     # Check if we have exceeded our maximum size limit.  Over it, this hands back only the
     # connectors that fit and the line to cut the diagram at once they have been drawn.
-    cut_at, call_table = check_limit(
-        call_table,
-        output_lines,
-        progress,
-        config,
-    )
+    cut_at, call_table = check_limit(call_table, output_lines, progress, config, state=state)
 
     # Fix overlapping connectors that have the same up/down locations.
     call_table = fix_duplicate_up_down_locations(call_table)
@@ -1821,11 +1803,7 @@ def handle_calls(output_lines: list, progress: dict, config: RunConfig) -> None:
     called_task_lookup = {}
     for connector in call_table.values():
         called_task_lookup = draw_arrows_to_called_task(
-            connector["up_down_location"],
-            connector,
-            output_lines,
-            called_task_lookup,
-            config,
+            connector["up_down_location"], connector, output_lines, called_task_lookup, config, state=state
         )
 
     # Now clean up the mess we made.
@@ -1836,7 +1814,7 @@ def handle_calls(output_lines: list, progress: dict, config: RunConfig) -> None:
     # adds or removes any) has left the line numbering exactly as check_limit saw it.
     if cut_at is not None:
         del output_lines[cut_at:]
-        _keep_object_seeds_before(cut_at)
+        _keep_object_seeds_before(cut_at, state=state)
 
     return output_lines
 
@@ -1849,6 +1827,7 @@ def build_profile_box(
     output_task_lines: list,
     print_tasks: bool,
     config: RunConfig,
+    state: RunState,
 ) -> tuple:
     """
     Builds a profile box for a given profile
@@ -1872,7 +1851,7 @@ def build_profile_box(
     profile_counter += 1
     # Only print the lines if we are at the profiles-per-line value.
     if profile_counter > config.profiles_per_line:
-        _flush_boxes(output_profile_lines)
+        _flush_boxes(output_profile_lines, state=state)
         profile_counter = 1
         print_tasks = True
         output_profile_lines = [filler, filler, filler]
@@ -1880,13 +1859,13 @@ def build_profile_box(
         # Do Tasks under previous Profile.
         if output_task_lines:
             # Print the Task lines associated with these 6 Profiles.
-            _flush_tasks(output_task_lines)
+            _flush_tasks(output_task_lines, state=state)
             output_task_lines = []
     else:
         print_tasks = False
 
     # Start/continue building our Profile outlines
-    output_profile_lines, position_for_anchor = build_box(profile, output_profile_lines)
+    output_profile_lines, position_for_anchor = build_box(profile, output_profile_lines, config=config)
     return (
         output_profile_lines,
         output_task_lines,
@@ -1897,7 +1876,7 @@ def build_profile_box(
 
 
 # Process all Profiles and their Tasks for the given Project
-def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfig) -> None:
+def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfig, state: RunState) -> None:
     """
     Prints profiles and tasks from a project.
 
@@ -1933,12 +1912,7 @@ def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfi
                 print_tasks,
                 profile_counter,
             ) = build_profile_box(
-                profile,
-                profile_counter,
-                output_profile_lines,
-                output_task_lines,
-                print_tasks,
-                config,
+                profile, profile_counter, output_profile_lines, output_task_lines, print_tasks, config, state=state
             )
             # Note where this Profile was drawn.  Here rather than inside build_profile_box,
             # because that one also draws the "No Profile" box that do_tasks_with_no_profile
@@ -1948,7 +1922,7 @@ def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfi
             # Profiles by name, so two Profiles of one name in one Project already share a
             # single box in the drawing.  One box, one anchor -- there is no second position
             # for an id to tell apart.
-            owner = PrimeItems.tasker_root_elements["all_profiles_by_name"].get(profile)
+            owner = state.tasker_root_elements["all_profiles_by_name"].get(profile)
             if owner:
                 _note_box(
                     Target(kind=PROFILE, key=owner["id"], name=profile, project=project_name),
@@ -1957,11 +1931,7 @@ def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfi
 
             # Go through the Profile's Tasks
             found_tasks = print_all_tasks(
-                tasks,
-                position_for_anchor,
-                output_task_lines,
-                print_tasks,
-                found_tasks,
+                tasks, position_for_anchor, output_task_lines, print_tasks, found_tasks, state=state
             )
 
             # Print the Scenes: 6 columns
@@ -1971,26 +1941,21 @@ def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfi
 
     # Determine if this Project has Tasks not assoctiated with any Profiles
     output_profile_lines, output_task_lines = do_tasks_with_no_profile(
-        project_name,
-        output_profile_lines,
-        output_task_lines,
-        found_tasks,
-        profile_counter,
-        config,
+        project_name, output_profile_lines, output_task_lines, found_tasks, profile_counter, config, state=state
     )
 
     # Print any remaining Profile boxes and their associated Tasks
     if output_profile_lines[0] != filler:
-        _flush_boxes(output_profile_lines)
+        _flush_boxes(output_profile_lines, state=state)
         if output_task_lines:
-            _flush_tasks(output_task_lines)
+            _flush_tasks(output_task_lines, state=state)
 
     # Map the Scenes
     if print_scenes:
-        print_all_scenes(scenes)
+        print_all_scenes(scenes, config, state=state)
 
     # Add a blank line
-    add_output_line(" ")
+    add_output_line(" ", state=state)
 
 
 def remove_empty_strings(lst: list) -> list:
@@ -2054,7 +2019,7 @@ def replace_maintain_column(line: str, target: str, replacement: str) -> str:
     return "".join(new_parts)
 
 
-def build_network_map(data: dict, progress: dict, config: RunConfig) -> None:
+def build_network_map(data: dict, progress: dict, config: RunConfig, state: RunState) -> None:
     """
     Builds a network map from project and profile data
     """
@@ -2071,35 +2036,35 @@ def build_network_map(data: dict, progress: dict, config: RunConfig) -> None:
             progress["progress_bar"].set_value(idx / total_projects)
 
         # Print Project as a box.  The row is the middle of the three print_box writes.
-        row = len(PrimeItems.netmap_output) + 1
-        print_box(project, project_text, 1)
-        _record(row, Target(kind=PROJECT, key=project, name=project), f"{_BOX_WALL} {project_text} {project}")
+        row = len(state.netmap_output) + 1
+        print_box(project, project_text, 1, config=config, state=state)
+        _record(
+            row, Target(kind=PROJECT, key=project, name=project), f"{_BOX_WALL} {project_text} {project}", state=state
+        )
         # Print all of the Project's Profiles and their Tasks
-        print_profiles_and_tasks(project, profiles, config)
+        print_profiles_and_tasks(project, profiles, config, state=state)
 
     # Process task relational arrow connectors
     if "status_label" in progress:
         progress["status_label"].set_text("Drawing call relationship arrows...")
 
-    PrimeItems.netmap_output = handle_calls(PrimeItems.netmap_output, progress, config)
+    state.netmap_output = handle_calls(state.netmap_output, progress, config, state=state)
 
     # Remove lines that only contain bars ( | ). This shifts every subsequent line number, so
     # remap the GUI Diagram view's connector seeds (see draw_arrows_to_called_task()) along with it.
     old_to_new_row = {}
     new_row = 0
-    for old_row, removal_line in enumerate(PrimeItems.netmap_output):
+    for old_row, removal_line in enumerate(state.netmap_output):
         if all(char in (bar, " ", "\\") for char in removal_line):
             continue
         old_to_new_row[old_row] = new_row
         new_row += 1
-    PrimeItems.diagram_connector_seeds = [
-        (old_to_new_row[row], col, call)
-        for row, col, call in PrimeItems.diagram_connector_seeds
-        if row in old_to_new_row
+    state.diagram_connector_seeds = [
+        (old_to_new_row[row], col, call) for row, col, call in state.diagram_connector_seeds if row in old_to_new_row
     ]
-    _remap_call_edges(old_to_new_row)
-    _remap_object_seeds(old_to_new_row)
-    PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
+    _remap_call_edges(old_to_new_row, state=state)
+    _remap_object_seeds(old_to_new_row, state=state)
+    state.netmap_output = remove_empty_strings(state.netmap_output)
 
     # Translate the output lines if needed
     if config.language not in ("English", "Arabic"):
@@ -2112,7 +2077,7 @@ def build_network_map(data: dict, progress: dict, config: RunConfig) -> None:
             "notfound": (" (Not Found!)", f" {translate_string('(Not Found!)')}"),
         }
 
-        output_list = PrimeItems.netmap_output
+        output_list = state.netmap_output
 
         for i, line in enumerate(output_list):
             if any(key[0] in line for key in trans.values()):
@@ -2127,7 +2092,7 @@ def build_network_map(data: dict, progress: dict, config: RunConfig) -> None:
 
 
 # Print the network map.
-def network_map(network: dict, config: RunConfig) -> None:
+def network_map(network: dict, config: RunConfig, state: RunState) -> None:
     """
     Output a network map of the Tasker configuration.
 
@@ -2138,11 +2103,11 @@ def network_map(network: dict, config: RunConfig) -> None:
     progress = {}
 
     # Start with a ruler line
-    PrimeItems.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
 
     # Emptied here rather than where they are first written, so that a second run cannot
     # leave the previous diagram's objects standing in this one's line numbers.
-    reset_attributes(*DIAGRAM_ATTRIBUTES)
+    reset_attributes(*DIAGRAM_ATTRIBUTES, state=state)
     _pending_boxes.clear()
     _pending_tasks.clear()
 
@@ -2150,21 +2115,22 @@ def network_map(network: dict, config: RunConfig) -> None:
     # now = datetime.now()
     dt_string = NOW_TIME.strftime("%B %d, %Y  %H:%M:%S")
 
-    add_output_line(f"{MY_VERSION}{blank * 5}Configuration Map{blank * 5}{dt_string}")
-    add_output_line(" ")
+    add_output_line(f"{MY_VERSION}{blank * 5}Configuration Map{blank * 5}{dt_string}", state=state)
+    add_output_line(" ", state=state)
     add_output_line(
         translate_string(
             "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment.",
         ),
+        state=state,
     )
-    add_output_line(" ")
-    add_output_line(" ")
+    add_output_line(" ", state=state)
+    add_output_line(" ", state=state)
 
     # Build and print the configuration tracking progress updates asynchronously
-    build_network_map(network, progress, config)
+    build_network_map(network, progress, config, state=state)
 
     # Redirect print to a file
-    if PrimeItems.netmap_output:
+    if state.netmap_output:
         output_dir = output_path(DIAGRAM_FILE)
         first_project = True
         project_translated = (
@@ -2179,17 +2145,15 @@ def network_map(network: dict, config: RunConfig) -> None:
         final_lines = []
         netmap_to_file_line = {}
         with open(str(output_dir), "w", encoding="utf-8") as mapfile:
-            for num, line in enumerate(PrimeItems.netmap_output):
+            for num, line in enumerate(state.netmap_output):
                 if (
                     not first_project
                     and box_line in line
-                    and num + 1 < len(PrimeItems.netmap_output)
-                    and project_translated in PrimeItems.netmap_output[num + 1]
+                    and num + 1 < len(state.netmap_output)
+                    and project_translated in state.netmap_output[num + 1]
                 ):
-                    if bar in PrimeItems.netmap_output[num - 1]:
-                        spacer = (
-                            "".join(char if char == bar else " " for char in PrimeItems.netmap_output[num + 1]) + "\n"
-                        )
+                    if bar in state.netmap_output[num - 1]:
+                        spacer = "".join(char if char == bar else " " for char in state.netmap_output[num + 1]) + "\n"
                     else:
                         spacer = "\n"
                     mapfile.write(spacer)
@@ -2212,18 +2176,18 @@ def network_map(network: dict, config: RunConfig) -> None:
             # own as often as it is displayed in the GUI, and a diagram that simply stops has no
             # other way of telling the reader that there was more.  Written after the loop so it
             # cannot disturb the netmap_output-to-file line mapping the connectors rely on.
-            if PrimeItems.diagram_limit_msg:
-                mapfile.write(f"\n{PrimeItems.diagram_limit_msg}\n")
-                final_lines.extend(["", PrimeItems.diagram_limit_msg])
+            if state.diagram_limit_msg:
+                mapfile.write(f"\n{state.diagram_limit_msg}\n")
+                final_lines.extend(["", state.diagram_limit_msg])
             mapfile.close()
 
         remapped_seeds = [
             (netmap_to_file_line[row], col, call)
-            for row, col, call in PrimeItems.diagram_connector_seeds
+            for row, col, call in state.diagram_connector_seeds
             if row in netmap_to_file_line
         ]
-        _remap_call_edges(netmap_to_file_line)
-        PrimeItems.diagram_connectors = compute_diagram_connector_groups(final_lines, remapped_seeds)
+        _remap_call_edges(netmap_to_file_line, state=state)
+        state.diagram_connectors = compute_diagram_connector_groups(final_lines, remapped_seeds, state=state)
 
         # The last step for the object seeds: onto the file's own line numbering, and then
         # from "the name is somewhere on this line" to the exact span of it, measured
@@ -2232,12 +2196,12 @@ def network_map(network: dict, config: RunConfig) -> None:
         # drawn into it -- remove_icon has run by now, and a column worked out before it
         # would be a column off by one on every line it touched.
         anchors = {}
-        for anchor, (row, snippet) in PrimeItems.diagram_object_seeds.items():
+        for anchor, (row, snippet) in state.diagram_object_seeds.items():
             file_line = netmap_to_file_line.get(row)
             if file_line is None or file_line >= len(final_lines):
                 continue
             anchors[anchor] = (file_line, *_place(final_lines[file_line], snippet, _BOX_WALL in snippet))
-        PrimeItems.diagram_anchors = anchors
+        state.diagram_anchors = anchors
 
         # And the same for every OTHER drawing of each object, which is what the interactive
         # view makes clickable (see _record).  Resolved in draw order, keeping a cursor per
@@ -2246,7 +2210,7 @@ def network_map(network: dict, config: RunConfig) -> None:
         # rather than both being handed the first.
         placements = []
         claimed: dict[int, int] = {}
-        for anchor, row, snippet in PrimeItems.diagram_object_placements:
+        for anchor, row, snippet in state.diagram_object_placements:
             file_line = netmap_to_file_line.get(row)
             if file_line is None or file_line >= len(final_lines):
                 continue
@@ -2257,22 +2221,22 @@ def network_map(network: dict, config: RunConfig) -> None:
                 # the column recorded is in UTF-16 units, which is what the browser counts in.
                 claimed[file_line] = line.find(snippet, claimed.get(file_line, 0)) + len(snippet)
             placements.append((anchor, file_line, column, length))
-        PrimeItems.diagram_object_placements = placements
-        logger.debug(f"diagram: {len(PrimeItems.diagram_anchors)} object anchors recorded")
-        PrimeItems.diagram_object_seeds = {}
+        state.diagram_object_placements = placements
+        logger.debug(f"diagram: {len(state.diagram_anchors)} object anchors recorded")
+        state.diagram_object_seeds = {}
 
         # Everything the interactive Diagram view acts on, assembled now that every position
         # is final -- see diagintr.build_model.  Built here rather than in the view because
         # this is the only place that holds the finished lines, the anchors resolved onto
         # them and the connectors grown from their seeds all at once.
-        PrimeItems.diagram_model = diagintr.build_model(final_lines)
-        PrimeItems.diagram_object_placements = []
+        state.diagram_model = diagintr.build_model(final_lines, state=state)
+        state.diagram_object_placements = []
         logger.debug(
-            f"diagram: {len(PrimeItems.diagram_model['nodes'])} clickable nodes, "
-            f"{len(PrimeItems.diagram_model['regions'])} foldable Projects, "
-            f"{len(PrimeItems.diagram_model['edges'])} calls",
+            f"diagram: {len(state.diagram_model['nodes'])} clickable nodes, "
+            f"{len(state.diagram_model['regions'])} foldable Projects, "
+            f"{len(state.diagram_model['edges'])} calls",
         )
-        PrimeItems.diagram_object_targets = {}
+        state.diagram_object_targets = {}
 
         # Cleanup
-        PrimeItems.netmap_output = []
+        state.netmap_output = []

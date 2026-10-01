@@ -1808,7 +1808,7 @@ class NiceGuiTextView(TextViewSearch):
             # What makes the Diagram clickable rather than merely drawn -- see diagintr.
             # Empty for a Diagram file left on disk by an older run, in which case the
             # lines below are wrapped exactly as they always were.
-            diagram_model = diagintr.model() if is_diagram else {}
+            diagram_model = diagintr.model(state=PrimeItems) if is_diagram else {}
             nodes_by_line = diagintr.nodes_by_line(diagram_model)
             folds_by_line = diagintr.folds_by_line(diagram_model)
 

@@ -11,6 +11,11 @@
 #                                                                                      #
 # Primary Items = global variables used throughout MapTasker
 #
+# PrimeItems is an instance of RunState, which holds the attributes listed below.  Code that
+# has been converted takes a RunState as a parameter (projects.py, diagram.py and the diagram
+# helpers so far) and so can be run against one of its own; code that has not still reads the
+# PrimeItems instance, which a real run passes in.  See RunState.
+#
 # Set up an initial empty dictionary of primary items used throughout this project
 #  xml_tree = main xml element of our Tasker xml tree
 #  xml_root = root xml element of our Tasker xml tree
@@ -44,7 +49,7 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 from maptasker.src import caches
 from maptasker.src.initparg import ArgumentFields, ProgramArguments
@@ -142,192 +147,209 @@ def initial_tasker_root_elements() -> dict:
     }
 
 
-class PrimeItems:
-    """PrimeItems class contains global variables used throughout MapTasker"""
+class RunState:
+    """Everything one run holds: the loaded backup, the output being built, the counters.
 
-    ai: ClassVar = {
-        "do_ai": False,
-        "ai_name": "",
-        "model": "",
-        "output_lines": [],  # Saved output results if doing an AI run.
-        "api_key": "",
-        "openai_key": "",
-        "anthropic_key": "",
-        "deepseek_key": "",
-        "gemini_key": "",
-        "openai_models": OPENAI_MODELS,
-        "anthropic_models": ANTHROPIC_MODELS,
-        "deepseek_models": DEEPSEEK_MODELS,
-        "gemini_models": GEMINI_MODELS,
-        "llama_models": LLAMA_MODELS,
-    }
-    xml_tree = None
-    xml_root = None
-    program_arguments: ClassVar[ProgramArguments] = ProgramArguments()
-    colors_to_use: ClassVar[dict] = {}
-    output_lines: ClassVar = None
-    file_to_get = ""
-    file_to_use = ""
-    task_count_for_profile = 0
-    displaying_named_tasks_not_in_profile = False
-    error_code = 0
-    error_msg = ""
-    # Whether the GUI adds "with return code N" to error_msg.  False for an error whose code
-    # says nothing to the user (a library that is not installed); see error.error_handler.
-    error_show_code = True
-    view_limit_msg = (
-        ""  # Set by bildhtml.write_out_the_file when output hits view_limit; read by the Map view's message field.
-    )
-    # The Diagram view's equivalent: set by diagram.check_limit when the diagram is cut short at
-    # the view limit, read by the Diagram view's message field.  Kept separate from
-    # view_limit_msg so a truncated Map cannot leave its message showing on an untruncated
-    # Diagram (the two views are built from separate runs).
-    diagram_limit_msg = ""
-    # How many output lines went into the Map now on disk.  Set by bildhtml wherever that
-    # file comes from -- the build that wrote it, or mapcache when an unchanged Map is
-    # shown again -- and read by the GUI to say whether the view limit cut it short.  The
-    # count cannot be taken from output_lines at that point: those are emptied after every
-    # build, and a Map that was not rebuilt never filled them in the first place.
-    map_output_line_count = 0
-    found_named_items: ClassVar[dict] = initial_found_named_items()
-    grand_totals: ClassVar[dict] = initial_grand_totals()
-    directory_items: ClassVar[dict] = initial_directory_items()
-    # Every mapjump anchor id written into the Map so far this run.  An id may appear in a
-    # document only once, and a Task listed by two Profiles (or by a Profile and again in
-    # "Tasks not in any Profile") is output twice -- so the second sighting is written
-    # without an anchor and a jump lands on the Task's first appearance.  Emptied wherever
-    # directory_items is, and for the same reason: both describe one run's output, and
-    # refresh_our_output throws that output away and starts it again mid-run.
-    emitted_anchors: ClassVar[set] = set()
-    # Where each object ended up in the Diagram that was last built: {mapjump anchor id:
-    # (line, column, length)}, in the coordinates of the rendered diagram file, with column
-    # and length counted in UTF-16 code units so the browser can use them as given.  Filled
-    # by diagram.network_map; read by mapjump.diagram_placement so a Find result or a report
-    # finding can be taken to the Diagram as precisely as it is taken to the Map.  Empty
-    # until a Diagram has been built, which is the same thing as "no Diagram to jump into".
-    diagram_anchors: ClassVar[dict] = {}
-    # The same, mid-build and before the positions are final: {anchor: (row, drawn text)}
-    # in netmap_output's own line numbering.  Lives on PrimeItems rather than in diagram.py
-    # only so that it is emptied wherever the rest of a run's output is.
-    diagram_object_seeds: ClassVar[dict] = {}
-    # Which object each of those anchors IS: {anchor: mapjump.Target}.  Held apart from the
-    # positions because a position is remapped four times before the diagram is written and
-    # an identity never is -- see diagram._record.  Read once, when the interactive Diagram
-    # view's model is assembled, and emptied straight afterwards.
-    diagram_object_targets: ClassVar[dict] = {}
-    # Every drawing of every object, not just the first: [(anchor, row, drawn text)] while
-    # the diagram is being built, and [(anchor, line, column, length)] once it is written.
-    # diagram_anchors above answers "where does a jump to this object land"; this answers
-    # "which pieces of the drawing ARE this object", which is a different question wherever
-    # the Diagram draws one twice -- a Task run by two Profiles, or fired by a Scene as well.
-    diagram_object_placements: ClassVar[list] = []
-    # Every call the Diagram drew a connector for: {call index: {caller_row, called_row,
-    # caller_name, called_name, project}}, in the rendered file's line numbering by the time
-    # the diagram is finished.  The call index is what each connector seed carries, which is
-    # how a run of box-drawing characters is traced back to the two Tasks it joins.
-    diagram_call_edges: ClassVar[dict] = {}
-    # Which calls each finished connector belongs to: {connector group id: [call index, ...]}.
-    # Filled by diagram.compute_diagram_connector_groups, as the other half of the same fact.
-    diagram_connector_calls: ClassVar[dict] = {}
-    # The whole of what the interactive Diagram view acts on -- nodes, foldable Project
-    # regions and call edges, all in the rendered file's coordinates.  Assembled by
-    # diagintr.build_model once the diagram is written; read by the view when it renders.
-    diagram_model: ClassVar[dict] = {}
-    # The flowchart of the one Task the user last asked for, as mapjump Rows -- see
-    # taskflow.flowchart.  Held here rather than handed to the view because the Task Flow
-    # view opens in its own browser window, and a popped-out page is built from a URL and
-    # is passed nothing (see rungui.popout_view, which reaches the Diagram's file the same
-    # way).  Emptied by a reset, with the rest of a run's state, because it describes a
-    # configuration that is about to be replaced -- but not when a Diagram is drawn, which
-    # leaves the flowchart as it was (it is not in DIAGRAM_ATTRIBUTES).
-    taskflow_rows: ClassVar[list] = []
-    tasker_root_elements: ClassVar[dict] = initial_tasker_root_elements()
-    # The highest Task/Profile id in the file as it was loaded, set by taskerd.get_the_xml_data.
-    # New ids are kept well above it -- see taskedit.NEW_OBJECT_ID_HEADROOM.  0 = nothing loaded.
-    loaded_highest_object_id = 0
-    directories: ClassVar[list] = []
-    variables: ClassVar[dict] = {}
-    current_project = ""
-    last_run = NOW_TIME
-    mono_fonts: ClassVar[dict] = {}
-    slash = "/"
-    task_action_warnings: ClassVar[dict] = {}
-    task_count_unnamed = 0
-    task_count_no_profile = 0
-    named_task_count_total = 0
-    # Scenes in the Project being processed (scenes.py), for that Project's totals line.
-    scene_count = 0
-    # The HTML heading at the top of the Map (frontmtr.py).
-    heading = ""
-    # How many output lines the Map is cut off at (bildhtml.write_out_the_file).  The GUI sets
-    # it from its own view limit before every build.
-    view_limit = VIEW_LIMIT_DEFAULT
-    # The limit given on this run's command line (-view_limit), or None when it was not.  Held
-    # apart from the runtime arguments because the settings restore replaces those wholesale,
-    # and the GUI seeds its own View Limit from it once, at startup (userintr.MyGui).
-    cli_view_limit = None
-    # The Diagram as it is being drawn: its lines, how often each called Task is drawn, and where
-    # each connector between them starts -- all emptied by diagram.py before it draws.
-    netmap_output: ClassVar[list] = []
-    called_task_tracker: ClassVar[dict] = {}
-    diagram_connector_seeds: ClassVar[list] = []
-    # The finished connectors the Diagram view draws: {connector id: its ranges} (see guiwins).
-    diagram_connectors: ClassVar[dict] = {}
-    # The Tasks already written into the Outline (outline.py), so that each is written once.
-    outline_tasks_mapped: ClassVar[list] = []
-    # True on Windows; set at startup, together with slash (proginit).
-    windows_system = False
-    tasker_arg_specs: ClassVar[dict] = {}
-    tasker_category_descriptions: ClassVar[dict] = {}
-    tasker_event_codes: ClassVar[dict] = {}
-    tasker_state_codes: ClassVar[dict] = {}
-    trace: ClassVar[bool] = False
-    languages: ClassVar[dict[str, str]] = {
-        "English": "en",
-        "Spanish": "es",
-        "German": "de",
-        "Simplified Chinese": "zh_CN",
-        "Traditional Chinese": "zh_TW",
-        "Hindi": "hi",
-        "French": "fr",
-        "Portuguese": "pt",
-        "Japanese": "ja",
-        "Russian": "ru",
-        "Korean": "ko",
-        "Arabic": "ar",
-        "Bengali": "bn",
-        "Urdu": "ur",
-        "Indonesian": "in",
-        "Swahili": "sw",
-        "Marathi": "mr",
-        "Telugu": "te",
-        "Turkish": "tr",
-        "Tamil": "ta",
-        "Vietnamese": "vi",
-        "Italian": "it",
-        "Ukrainian": "uk",
-        "Polish": "pl",
-        "Dutch": "nl",
-        "Thai": "th",
-        "Gujarati": "gu",
-        "Persian": "fa",
-        "Swedish": "sv",
-        "Danish": "da",
-        "Finish": "fi",
-        "Norwegian": "no",
-        "Greek": "el",
-        "Czech": "cs",
-    }
-    languages_translated: ClassVar[dict[str, str]] = {}
-    language_set: bool = False
-    # appearance_translated: ClassVar[dict[str, str]] = {}
-    mygui: ClassVar = None
-    # True for a run with no person at the keyboard: a command-line report or export (see
-    # clireports).  Such a run must not open the finished Map in a web browser, and must not
-    # rewrite the settings file the GUI keeps -- what it was asked to do is not a change of
-    # settings.
-    headless: bool = False
+    PrimeItems, below, is the one the program runs on.  A function that is handed a RunState
+    reads and writes only that, so it can be exercised -- or two runs kept apart -- without
+    the global: build a RunState() and pass it in.  What a function has not been converted to
+    take as a parameter still reads PrimeItems, so a fresh RunState is only a complete run
+    for code that has been.
 
+    Every attribute is set per instance, in __init__, so no two RunStates share a dict, list
+    or set.
+    """
+
+    def __init__(self) -> None:
+        """Give this instance its own copy of every attribute, at its declared default."""
+
+        self.ai = {
+            "do_ai": False,
+            "ai_name": "",
+            "model": "",
+            "output_lines": [],  # Saved output results if doing an AI run.
+            "api_key": "",
+            "openai_key": "",
+            "anthropic_key": "",
+            "deepseek_key": "",
+            "gemini_key": "",
+            "openai_models": OPENAI_MODELS,
+            "anthropic_models": ANTHROPIC_MODELS,
+            "deepseek_models": DEEPSEEK_MODELS,
+            "gemini_models": GEMINI_MODELS,
+            "llama_models": LLAMA_MODELS,
+        }
+        self.xml_tree = None
+        self.xml_root = None
+        self.program_arguments: ProgramArguments = ProgramArguments()
+        self.colors_to_use: dict = {}
+        self.output_lines = None
+        self.file_to_get = ""
+        self.file_to_use = ""
+        self.task_count_for_profile = 0
+        self.displaying_named_tasks_not_in_profile = False
+        self.error_code = 0
+        self.error_msg = ""
+        # Whether the GUI adds "with return code N" to error_msg.  False for an error whose code
+        # says nothing to the user (a library that is not installed); see error.error_handler.
+        self.error_show_code = True
+        self.view_limit_msg = (
+            ""  # Set by bildhtml.write_out_the_file when output hits view_limit; read by the Map view's message field.
+        )
+        # The Diagram view's equivalent: set by diagram.check_limit when the diagram is cut short at
+        # the view limit, read by the Diagram view's message field.  Kept separate from
+        # view_limit_msg so a truncated Map cannot leave its message showing on an untruncated
+        # Diagram (the two views are built from separate runs).
+        self.diagram_limit_msg = ""
+        # How many output lines went into the Map now on disk.  Set by bildhtml wherever that
+        # file comes from -- the build that wrote it, or mapcache when an unchanged Map is
+        # shown again -- and read by the GUI to say whether the view limit cut it short.  The
+        # count cannot be taken from output_lines at that point: those are emptied after every
+        # build, and a Map that was not rebuilt never filled them in the first place.
+        self.map_output_line_count = 0
+        self.found_named_items: dict = initial_found_named_items()
+        self.grand_totals: dict = initial_grand_totals()
+        self.directory_items: dict = initial_directory_items()
+        # Every mapjump anchor id written into the Map so far this run.  An id may appear in a
+        # document only once, and a Task listed by two Profiles (or by a Profile and again in
+        # "Tasks not in any Profile") is output twice -- so the second sighting is written
+        # without an anchor and a jump lands on the Task's first appearance.  Emptied wherever
+        # directory_items is, and for the same reason: both describe one run's output, and
+        # refresh_our_output throws that output away and starts it again mid-run.
+        self.emitted_anchors: set = set()
+        # Where each object ended up in the Diagram that was last built: {mapjump anchor id:
+        # (line, column, length)}, in the coordinates of the rendered diagram file, with column
+        # and length counted in UTF-16 code units so the browser can use them as given.  Filled
+        # by diagram.network_map; read by mapjump.diagram_placement so a Find result or a report
+        # finding can be taken to the Diagram as precisely as it is taken to the Map.  Empty
+        # until a Diagram has been built, which is the same thing as "no Diagram to jump into".
+        self.diagram_anchors: dict = {}
+        # The same, mid-build and before the positions are final: {anchor: (row, drawn text)}
+        # in netmap_output's own line numbering.  Lives on PrimeItems rather than in diagram.py
+        # only so that it is emptied wherever the rest of a run's output is.
+        self.diagram_object_seeds: dict = {}
+        # Which object each of those anchors IS: {anchor: mapjump.Target}.  Held apart from the
+        # positions because a position is remapped four times before the diagram is written and
+        # an identity never is -- see diagram._record.  Read once, when the interactive Diagram
+        # view's model is assembled, and emptied straight afterwards.
+        self.diagram_object_targets: dict = {}
+        # Every drawing of every object, not just the first: [(anchor, row, drawn text)] while
+        # the diagram is being built, and [(anchor, line, column, length)] once it is written.
+        # diagram_anchors above answers "where does a jump to this object land"; this answers
+        # "which pieces of the drawing ARE this object", which is a different question wherever
+        # the Diagram draws one twice -- a Task run by two Profiles, or fired by a Scene as well.
+        self.diagram_object_placements: list = []
+        # Every call the Diagram drew a connector for: {call index: {caller_row, called_row,
+        # caller_name, called_name, project}}, in the rendered file's line numbering by the time
+        # the diagram is finished.  The call index is what each connector seed carries, which is
+        # how a run of box-drawing characters is traced back to the two Tasks it joins.
+        self.diagram_call_edges: dict = {}
+        # Which calls each finished connector belongs to: {connector group id: [call index, ...]}.
+        # Filled by diagram.compute_diagram_connector_groups, as the other half of the same fact.
+        self.diagram_connector_calls: dict = {}
+        # The whole of what the interactive Diagram view acts on -- nodes, foldable Project
+        # regions and call edges, all in the rendered file's coordinates.  Assembled by
+        # diagintr.build_model once the diagram is written; read by the view when it renders.
+        self.diagram_model: dict = {}
+        # The flowchart of the one Task the user last asked for, as mapjump Rows -- see
+        # taskflow.flowchart.  Held here rather than handed to the view because the Task Flow
+        # view opens in its own browser window, and a popped-out page is built from a URL and
+        # is passed nothing (see rungui.popout_view, which reaches the Diagram's file the same
+        # way).  Emptied by a reset, with the rest of a run's state, because it describes a
+        # configuration that is about to be replaced -- but not when a Diagram is drawn, which
+        # leaves the flowchart as it was (it is not in DIAGRAM_ATTRIBUTES).
+        self.taskflow_rows: list = []
+        self.tasker_root_elements: dict = initial_tasker_root_elements()
+        # The highest Task/Profile id in the file as it was loaded, set by taskerd.get_the_xml_data.
+        # New ids are kept well above it -- see taskedit.NEW_OBJECT_ID_HEADROOM.  0 = nothing loaded.
+        self.loaded_highest_object_id = 0
+        self.directories: list = []
+        self.variables: dict = {}
+        self.current_project = ""
+        self.last_run = NOW_TIME
+        self.mono_fonts: dict = {}
+        self.slash = "/"
+        self.task_action_warnings: dict = {}
+        self.task_count_unnamed = 0
+        self.task_count_no_profile = 0
+        self.named_task_count_total = 0
+        # Scenes in the Project being processed (scenes.py), for that Project's totals line.
+        self.scene_count = 0
+        # The HTML heading at the top of the Map (frontmtr.py).
+        self.heading = ""
+        # How many output lines the Map is cut off at (bildhtml.write_out_the_file).  The GUI sets
+        # it from its own view limit before every build.
+        self.view_limit = VIEW_LIMIT_DEFAULT
+        # The limit given on this run's command line (-view_limit), or None when it was not.  Held
+        # apart from the runtime arguments because the settings restore replaces those wholesale,
+        # and the GUI seeds its own View Limit from it once, at startup (userintr.MyGui).
+        self.cli_view_limit = None
+        # The Diagram as it is being drawn: its lines, how often each called Task is drawn, and where
+        # each connector between them starts -- all emptied by diagram.py before it draws.
+        self.netmap_output: list = []
+        self.called_task_tracker: dict = {}
+        self.diagram_connector_seeds: list = []
+        # The finished connectors the Diagram view draws: {connector id: its ranges} (see guiwins).
+        self.diagram_connectors: dict = {}
+        # The Tasks already written into the Outline (outline.py), so that each is written once.
+        self.outline_tasks_mapped: list = []
+        # True on Windows; set at startup, together with slash (proginit).
+        self.windows_system = False
+        self.tasker_arg_specs: dict = {}
+        self.tasker_category_descriptions: dict = {}
+        self.tasker_event_codes: dict = {}
+        self.tasker_state_codes: dict = {}
+        self.trace: bool = False
+        self.languages: dict[str, str] = {
+            "English": "en",
+            "Spanish": "es",
+            "German": "de",
+            "Simplified Chinese": "zh_CN",
+            "Traditional Chinese": "zh_TW",
+            "Hindi": "hi",
+            "French": "fr",
+            "Portuguese": "pt",
+            "Japanese": "ja",
+            "Russian": "ru",
+            "Korean": "ko",
+            "Arabic": "ar",
+            "Bengali": "bn",
+            "Urdu": "ur",
+            "Indonesian": "in",
+            "Swahili": "sw",
+            "Marathi": "mr",
+            "Telugu": "te",
+            "Turkish": "tr",
+            "Tamil": "ta",
+            "Vietnamese": "vi",
+            "Italian": "it",
+            "Ukrainian": "uk",
+            "Polish": "pl",
+            "Dutch": "nl",
+            "Thai": "th",
+            "Gujarati": "gu",
+            "Persian": "fa",
+            "Swedish": "sv",
+            "Danish": "da",
+            "Finish": "fi",
+            "Norwegian": "no",
+            "Greek": "el",
+            "Czech": "cs",
+        }
+        self.languages_translated: dict[str, str] = {}
+        self.language_set: bool = False
+        # appearance_translated: ClassVar[dict[str, str]] = {}
+        self.mygui = None
+        # True for a run with no person at the keyboard: a command-line report or export (see
+        # clireports).  Such a run must not open the finished Map in a web browser, and must not
+        # rewrite the settings file the GUI keeps -- what it was asked to do is not a change of
+        # settings.
+        self.headless: bool = False
+
+
+# The run state the program runs on.  Everything that has not been given a RunState of its own
+# reads and writes this one -- it is what "PrimeItems.x" has always meant.
+PrimeItems = RunState()
 
 # What a reset leaves alone: the session's own settings and the look-up tables loaded once for
 # it, as opposed to the state of one run over one backup.  Everything else on PrimeItems is
@@ -353,17 +375,10 @@ SESSION_ATTRIBUTES = frozenset(
     },
 )
 
-# The per-run defaults, taken as the class is defined -- before anything has had a chance to
-# change them -- and deep-copied, here and on every reset, because most are dicts and lists a
-# run fills in place: handing the same object out twice would bring the last run's contents
-# back with it.
-_RUN_DEFAULTS = copy.deepcopy(
-    {
-        name: value
-        for name, value in vars(PrimeItems).items()
-        if not name.startswith("__") and name not in SESSION_ATTRIBUTES
-    },
-)
+# The per-run defaults, taken from a RunState nothing has touched, and deep-copied on every
+# reset because most are dicts and lists a run fills in place: handing the same object out
+# twice would bring the last run's contents back with it.
+_RUN_DEFAULTS = {name: value for name, value in vars(RunState()).items() if name not in SESSION_ATTRIBUTES}
 
 
 # Per-run attributes that are reset together part-way through a session, rather than all at
@@ -414,18 +429,20 @@ LOADED_CONFIGURATION_ATTRIBUTES = (
 )
 
 
-def reset_attributes(*names: str) -> None:
+def reset_attributes(*names: str, state: RunState | None = None) -> None:
     """
-    Put the named per-run attributes of PrimeItems back to their declared defaults.
+    Put the named per-run attributes of a RunState back to their declared defaults.
 
-    Each gets a fresh copy of the value the class body gives it.
+    Each gets a fresh copy of the value RunState's __init__ gives it.
 
     Args:
         *names (str): attribute names -- usually one of the groups above.  Nothing resets a
             session attribute, so naming one raises KeyError.
+        state (RunState | None): the run state to reset, or None for PrimeItems.
     """
+    target = PrimeItems if state is None else state
     for name in names:
-        setattr(PrimeItems, name, copy.deepcopy(_RUN_DEFAULTS[name]))
+        setattr(target, name, copy.deepcopy(_RUN_DEFAULTS[name]))
 
 
 def clear_error() -> None:
