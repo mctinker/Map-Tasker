@@ -18,7 +18,6 @@ from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import output_task_list
 from maptasker.src.property import get_properties
-from maptasker.src.runcfg import current_config
 from maptasker.src.share import share
 from maptasker.src.sysconst import (
     DISABLED,
@@ -31,12 +30,15 @@ from maptasker.src.xmldata import remove_html_tags
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.runcfg import RunConfig
+
 
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
 def get_profile_tasks(
     the_profile: Element,
     found_tasks_list: list,
     task_output_line: list,
+    config: RunConfig,
 ) -> list:
     """
     Get a specific Profile's Tasks (maximum of two: entry and exit).
@@ -44,11 +46,12 @@ def get_profile_tasks(
     :param the_profile: XML element pointing to the Profile.
     :param found_tasks_list: List of tasks that have been found.
     :param task_output_line: List to store the output lines of tasks.
+    :param config: the run's settings.  (single_profile_name is written here, so it is not read from it.)
     :return: List of tasks with their XML elements and names.
     """
     keys_we_dont_want = {"cdate", "edate", "flags", "id", "limit"}
     list_of_tasks = []
-    single_task_name = PrimeItems.program_arguments.single_task_name
+    single_task_name = config.single_task_name
 
     _get_task_name = tasks.get_task_name
     for child in the_profile:
@@ -67,6 +70,7 @@ def get_profile_tasks(
                 found_tasks_list,
                 task_output_line,
                 task_type,
+                config,
             )
             # Add the Task to our list of found Tasks, and use the Task output line as the name.
             list_of_tasks.append({"xml": task_element, "name": task_output_line[-1]})
@@ -87,6 +91,7 @@ def get_profile_tasks(
 # Get a specific Profile's name
 def get_profile_name(
     profile: Element,
+    config: RunConfig,
     project_name: str = "",
     task_names: list[str] | None = None,
 ) -> tuple[str, str]:
@@ -94,6 +99,7 @@ def get_profile_name(
     Get a specific Profile's name
 
         :param profile: xml element pointing to the Profile
+        :param config: the run's settings
         :param project_name: name of the Project this Profile belongs to (for the "Profile:" tooltip)
         :param task_names: names of the Tasks this Profile references (for the "Profile:" tooltip)
         :return: Profile name with appropriate html and the profile name itself
@@ -105,7 +111,7 @@ def get_profile_name(
         the_profile_name = UNNAMED_ITEM
 
     # Make the Project name bold, italicize, underline and/or highlighted if requested
-    altered_profile_name = add_name_attribute(the_profile_name, current_config())
+    altered_profile_name = add_name_attribute(the_profile_name, config)
 
     # If this is an unnamed Profile, then italicize it if not already italicised.
     if UNNAMED_ITEM in altered_profile_name and "<em>" not in altered_profile_name:
@@ -134,7 +140,7 @@ def get_profile_name(
     )
 
     # If we are debugging, add the Profile ID
-    if PrimeItems.program_arguments.debug:
+    if config.debug:
         profile_id = profile.find("id").text
         profile_name_with_html = (
             f"{profile_name_with_html} {format_html('unknown_task_color', '', f', ID:{profile_id}', True)}"
@@ -318,6 +324,7 @@ def conditions_to_name(
     profile_conditions: str,
     profile_name: str,
     profile_name_with_html: str,
+    config: RunConfig,
 ) -> tuple[str, str]:
     """
     Update the profile name and its HTML representation based on the profile's conditions.
@@ -332,6 +339,8 @@ def conditions_to_name(
         The current name of the profile.
     profile_name_with_html : str
         The HTML-formatted representation of the profile name.
+    config : RunConfig
+        The run's settings.
 
     Returns
     -------
@@ -354,11 +363,11 @@ def conditions_to_name(
     PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"] = new_profile_name
 
     # Handle directory hyperlink
-    if PrimeItems.program_arguments.directory:
+    if config.directory:
         add_directory_item("profiles", new_profile_name)
 
     # Make the conditions pretty
-    if PrimeItems.program_arguments.pretty:
+    if config.pretty:
         # condition_length = profile_conditions.find(":")
         # Add spacing for profile name, condition name and "Profile:"
         profile_conditions = profile_conditions.replace(",", "<br>")
@@ -371,6 +380,7 @@ def conditions_to_name(
 # Get the Profile's key attributes: limit, launcher task, run conditions
 def build_profile_line(
     profile: Element,
+    config: RunConfig,
     project_name: str = "",
     task_names: list[str] | None = None,
 ) -> str:
@@ -379,6 +389,7 @@ def build_profile_line(
 
         :param project: the Project xml element
         :param profile: the Profile xml element
+        :param config: the run's settings
         :param project_name: name of the Project this Profile belongs to (for the "Profile:" tooltip)
         :param task_names: names of the Tasks this Profile references (for the "Profile:" tooltip)
         :return: Profile name
@@ -414,7 +425,7 @@ def build_profile_line(
     # reader nothing that "flags: 43 (Hide In Notification, Collapsed, Ignore Settings, Run
     # Exit Task On Startup)" does not.  The names come from objprops, which owns the bit
     # layout, so this line and the Properties editor cannot disagree about what a value means.
-    if PrimeItems.program_arguments.debug:
+    if config.debug:
         flags = profile.find("flags")
         if flags is not None:
             names = objprops.describe_flags(objprops.flag_bits(profile), objprops.PROFILE_FLAG_NAMES)
@@ -424,15 +435,15 @@ def build_profile_line(
             flags = ""
 
     # Get the Profile name
-    profile_name_with_html, profile_name = get_profile_name(profile, project_name, task_names)
+    profile_name_with_html, profile_name = get_profile_name(profile, config, project_name, task_names)
     unmodified_profile_name = profile_name
 
     # Handle directory hyperlink
-    if PrimeItems.program_arguments.directory:
+    if config.directory:
         add_directory_item("profiles", profile_name)
 
     # Get the Profile's conditions
-    if (PrimeItems.program_arguments.conditions) and (profile_conditions := condition.parse_profile_condition(profile)):
+    if config.conditions and (profile_conditions := condition.parse_profile_condition(profile)):
         # Add the HTML
         condition_text = format_html(
             "profile_condition_color",
@@ -443,7 +454,7 @@ def build_profile_line(
 
     # Break it up into separate lines if we are doing pretty output
     temp = f"{condition_text} {launcher}{disabled} {flags}"
-    if PrimeItems.program_arguments.pretty:
+    if config.pretty:
         indentation = len(unmodified_profile_name)
         indentation = 1
         # Break at comma
@@ -457,7 +468,7 @@ def build_profile_line(
     profile_info = f"{profile_name_with_html} {temp}"
 
     # Do final alignment of the HTML string...must include the Profile name.
-    if PrimeItems.program_arguments.pretty and condition_text:
+    if config.pretty and condition_text:
         profile_info = align_html_text(profile_info)
 
     # Mark this Profile's place so a report finding can be clicked and land on it (mapjump).
@@ -484,6 +495,7 @@ def do_profile(
     project_name: str,
     profile: Element,
     list_of_found_tasks: list,
+    config: RunConfig,
 ) -> bool:
     """Function:
         This function searches for a specific Profile and outputs its Tasks.
@@ -493,6 +505,8 @@ def do_profile(
         - project_name (str): The name of the current project.
         - profile (Element): The current profile being processed.
         - list_of_found_tasks (list): A list of all found tasks.
+        - config (RunConfig): the run's settings.  single_profile_name and single_project_name
+            are not read from it: they are written below and read live everywhere.
     Returns:
         - bool: True if a specific Task is being searched for, False otherwise.
     Processing Logic:
@@ -534,24 +548,25 @@ def do_profile(
         profile,
         list_of_found_tasks,
         task_output_lines,
+        config,
     )
 
     # Examine Profile attributes and output Profile line
     # Pull the clean Task name (drop the html/markup) off the front of each Task's output line.
     task_names_for_tooltip = [task["name"].split("&nbsp;")[0] for task in list_of_tasks if task.get("name")]
-    profile_name = build_profile_line(profile, project_name, task_names_for_tooltip)
+    profile_name = build_profile_line(profile, config, project_name, task_names_for_tooltip)
 
     # Process Profile Properties
-    if PrimeItems.program_arguments.display_detail_level > 2:
+    if config.display_detail_level > 2:
         get_properties("Profile:", profile, Target(PROFILE, profile.attrib.get("sr", "")[4:]))
 
     # Process any <Share> information from TaskerNet.  The Profile's identity comes from
     # its "sr" attribute the same way get_profile_name reads it -- see the anchor written
     # alongside the Profile's own line above.
-    if PrimeItems.program_arguments.taskernet:
+    if config.taskernet:
         share(profile, "proftab", Target(PROFILE, profile.attrib.get("sr", "")[4:]))
         # Add a spacer if detail is 0
-        if PrimeItems.program_arguments.display_detail_level == 0:
+        if config.display_detail_level == 0:
             PrimeItems.output_lines.add_line_to_output(
                 0,
                 "",
@@ -568,6 +583,7 @@ def do_profile(
         task_output_lines,
         list_of_found_tasks,
         True,
+        config,
     )
 
 
@@ -692,6 +708,7 @@ def process_profiles(
     project_name: str,
     profile_ids: list,
     list_of_found_tasks: list,
+    config: RunConfig,
 ) -> None:
     """
     Go through Project's Profiles and output each
@@ -700,6 +717,7 @@ def process_profiles(
         :param project_name: Project's name
         :param profile_ids: list of Profiles in Project
         :param list_of_found_tasks: list of Tasks found
+        :param config: the run's settings
         :return: nothing
     """
 
@@ -715,15 +733,12 @@ def process_profiles(
             project_name,
             profile,
             list_of_found_tasks,
+            config,
         )
 
         # Get out if doing a specific Task, and it was found, or not specific task but
         # found speficic Profile.  No need to process any more Profiles.
-        if (
-            specific_task
-            and PrimeItems.program_arguments.single_task_name
-            and PrimeItems.found_named_items["single_task_found"]
-        ) or (
+        if (specific_task and config.single_task_name and PrimeItems.found_named_items["single_task_found"]) or (
             not specific_task and PrimeItems.found_named_items["single_profile_found"]
         ):  # Get out if we've got the Task we're looking for
             break

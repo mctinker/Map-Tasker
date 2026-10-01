@@ -32,6 +32,7 @@ from maptasker.src.outdir import output_path
 from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems, clear_single_items
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
+from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import (
     ALL_OBJECTS_MESSAGE,
     ANALYSIS_FILE,
@@ -766,10 +767,11 @@ def build_profiles(
     task_head = translate_string("Task: ")
     unnamed_task_head = translate_string("Unnamed Task")
     _get_profile_tasks = get_profile_tasks  # Localize for speed
+    config = current_config()
     for profile in profile_ids:
         # Get the Profile's Tasks
         PrimeItems.task_count_unnamed = 0  # Avoid an error in get_profile_tasks
-        if the_tasks := _get_profile_tasks(profiles[profile]["xml"], [], []):
+        if the_tasks := _get_profile_tasks(profiles[profile]["xml"], [], [], config):
             task_list = []
             # Process each Task.  Tasks are simply a flat list of names.
             for task in the_tasks:

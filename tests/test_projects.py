@@ -20,7 +20,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
-from maptasker.src import projects, taskerd
+from maptasker.src import diagram, outline, proclist, profiles, projects, scenes, taskactn, taskerd, tasks, taskuniq
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
@@ -320,9 +320,11 @@ def test_the_heading_follows_the_config_it_is_given_and_not_the_global() -> None
 def test_the_two_settings_the_build_writes_are_never_read_from_the_config() -> None:
     """single_project_name and single_profile_name are written by profiles.py in the middle of
     the walk, so a config snapshotted before it would hand back a stale value.  They have to
-    stay live reads off PrimeItems -- this catches one being converted by mistake.
+    stay live reads off PrimeItems -- this catches one being converted by mistake, in any of
+    the modules that now take their settings as a parameter.
     """
-    source = Path(projects.__file__).read_text(encoding="utf-8")
+    for module in (projects, proclist, profiles, scenes, taskactn, tasks, taskuniq, diagram, outline):
+        source = Path(module.__file__).read_text(encoding="utf-8")
 
-    assert "config.single_project_name" not in source
-    assert "config.single_profile_name" not in source
+        assert "config.single_project_name" not in source, module.__name__
+        assert "config.single_profile_name" not in source, module.__name__

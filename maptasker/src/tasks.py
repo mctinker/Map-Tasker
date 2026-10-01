@@ -25,6 +25,8 @@ from maptasker.src.sysconst import (
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.runcfg import RunConfig
+
 blank = "&nbsp;"
 
 # Tasker's control-flow action codes, used to indent the Actions within a block.  Keyed
@@ -87,12 +89,16 @@ def reformat_html(html_string: str) -> str:
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
 # Optimized
-def get_actions(current_task: Element) -> list:
+def get_actions(current_task: Element, config: RunConfig) -> list:
     """
     Optimized extraction of actions from a task XML element.
+
+    Args:
+        current_task (Element): the Task's XML element.
+        config (RunConfig): the run's settings (indent, pretty).
     """
     tasklist = []
-    indent_size = PrimeItems.program_arguments.indent
+    indent_size = config.indent
     blanks = f"{'&nbsp;' * indent_size}"
 
     try:
@@ -109,7 +115,7 @@ def get_actions(current_task: Element) -> list:
 
     indentation = 0
     indentation_amount = ""
-    pretty_mode = PrimeItems.program_arguments.pretty
+    pretty_mode = config.pretty
     _get_action_code = action_evaluate.get_action_code
     _reformat_html = reformat_html
     _build_action = action_evaluate.build_action
@@ -153,6 +159,7 @@ def entry_or_exit_task(
     extra: str,
     duplicate_task: bool,
     the_task_id: str,
+    config: RunConfig,
 ) -> tuple[list, str]:
     """
     Determine if this is an "Entry" or "Exit" Task and add the appropriate text to the
@@ -164,12 +171,13 @@ def entry_or_exit_task(
             extra (str): Extra text to add to the end of the Task's output line
             duplicate_task (bool): Is this a duplicate Task? True if it is.
             the_task_id (str): The Task's ID
+            config (RunConfig): the run's settings
 
         Returns:
             tuple: task_output_lines and task_name
     """
-    display_level = PrimeItems.program_arguments.display_detail_level
-    indent = blank * PrimeItems.program_arguments.indent
+    display_level = config.display_detail_level
+    indent = blank * config.indent
 
     def append_task_line(name: str, task_type: str) -> None:
         # Suffix is snot getting carried through to output
@@ -199,6 +207,7 @@ def get_task_name(
     tasks_that_have_been_found: list,
     task_output_lines: list,
     task_type: str,
+    config: RunConfig,
 ) -> tuple:
     """
     Get the name of the task given the Task ID.
@@ -208,6 +217,7 @@ def get_task_name(
         :param tasks_that_have_been_found: list of Tasks found so far
         :param task_output_lines: list of Tasks
         :param task_type: Type of Task (Entry, Exit, Scene)
+        :param config: the run's settings
         :return: Task's xml element, Task's name
     """
     # Get the Task info.
@@ -222,7 +232,7 @@ def get_task_name(
         tasks_that_have_been_found.append(the_task_id)
 
     # Determine if this is an "Entry" or "Exit" Task
-    extra = f"&nbsp;&nbsp;Task ID: {the_task_id}" if PrimeItems.program_arguments.debug else ""
+    extra = f"&nbsp;&nbsp;Task ID: {the_task_id}" if config.debug else ""
     task_output_lines, task_name = entry_or_exit_task(
         task_output_lines,
         task_name,
@@ -230,6 +240,7 @@ def get_task_name(
         extra,
         duplicate_task,
         the_task_id,
+        config,
     )
 
     return task, task_name

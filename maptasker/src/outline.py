@@ -38,7 +38,7 @@ from maptasker.src.getids import get_ids
 from maptasker.src.maputils import find_owning_project_for_scene
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
-from maptasker.src.runcfg import current_config
+from maptasker.src.runcfg import RunConfig, current_config
 from maptasker.src.sysconst import FormatLine
 
 blank = "&nbsp;"
@@ -367,6 +367,7 @@ def outline_profiles_tasks_scenes(
     profile_ids: list,
     tasks_in_project: list,
     network: dict,
+    config: RunConfig,
 ) -> None:
     """
     Given a Project, outline it's Profiles, Tasks and Scenes
@@ -414,6 +415,7 @@ def outline_profiles_tasks_scenes(
                 profile,
                 list_of_found_tasks,
                 task_output_line,
+                config,
             )
 
             # Get any/all "Perform Task" links back to other Tasks
@@ -438,11 +440,12 @@ def outline_profiles_tasks_scenes(
 
 
 # Start outline beginning with the Projects
-def do_the_outline(network: dict) -> None:
+def do_the_outline(network: dict, config: RunConfig) -> None:
     """
     Start outline beginning with the Projects
         Args:
             network (dict): Dictionary structure for our network
+            config (RunConfig): the run's settings
     """
     # Make sure we start clean by delteing all prexisting call_tasks and called_by lists.
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
@@ -474,7 +477,7 @@ def do_the_outline(network: dict) -> None:
                     ["", "project_color", FormatLine.add_end_span],
                 )
                 return
-        outline_profiles_tasks_scenes("", pids, tids, network)
+        outline_profiles_tasks_scenes("", pids, tids, network, config)
         return
 
     # Go thru all Projects
@@ -521,6 +524,7 @@ def do_the_outline(network: dict) -> None:
                     profile_ids,
                     task_ids,
                     network,
+                    config,
                 )
 
             # No Profiles for Project
@@ -611,8 +615,12 @@ def outline_the_configuration() -> None:
     # If doing a single profile or task, set single project to this profile/task's project
     fix_project_name_for_single_name()
 
+    # The run's settings, read once and handed down.  (single_project_name, which the line above
+    # may have just written, is not read from it.)
+    config = current_config()
+
     # Output the directory link
-    if PrimeItems.program_arguments.directory:
+    if config.directory:
         PrimeItems.output_lines.add_line_to_output(
             5,
             '<a id="configuration_outline"></a>',
@@ -639,7 +647,7 @@ def outline_the_configuration() -> None:
         return
 
     # Go do it!  Generate the outline near the bottom of the output.
-    do_the_outline(network)
+    do_the_outline(network, config)
 
     # End the list
     PrimeItems.output_lines.add_line_to_output(
@@ -650,4 +658,4 @@ def outline_the_configuration() -> None:
 
     # Now generate the outline diagram text file.
     if network:
-        network_map(network, current_config())
+        network_map(network, config)

@@ -27,7 +27,7 @@ from maptasker.src.primitem import (
     get_single_item_not_found,
     is_single_item_found,
 )
-from maptasker.src.runcfg import current_config, overridden_config
+from maptasker.src.runcfg import RunConfig, current_config, overridden_config
 from maptasker.src.sysconst import (
     NORMAL_TAB,
     Colors,
@@ -460,6 +460,7 @@ def process_unique_situations(
     projects_with_no_tasks: list,
     projects_without_profiles: list,
     found_tasks: list,
+    config: RunConfig,
 ) -> None:
     # Don't do anything if we are looking for a specific named item
     """
@@ -468,6 +469,7 @@ def process_unique_situations(
         projects_with_no_tasks: list - List of projects with no tasks
         projects_without_profiles: list - List of projects without profiles
         found_tasks: list - List of found tasks
+        config: RunConfig - the run's settings, as they stand for this walk
     Returns:
         None: Does not return anything
     Processing Logic:
@@ -482,6 +484,7 @@ def process_unique_situations(
     special_tasks.process_tasks_not_called_by_profile(
         projects_with_no_tasks,
         found_tasks,
+        config,
     )
 
     # Get and output all Projects that don't have any Tasks or Profiles
@@ -597,13 +600,14 @@ def final_processing(
 
     # Turn off the directory temporarily so we don't get duplicates, and put the setting
     # back afterwards for the final directory of Totals.
-    with overridden_config(directory=False):
+    with overridden_config(directory=False) as config:
         # Get the list of Tasks not called by a Profile,
         # and a list of Projects without Profiles/Tasks
         process_unique_situations(
             projects_with_no_tasks,
             projects_without_profiles,
             found_tasks,
+            config,
         )
 
     # Display the trailer stuff, after Projects/Profiles/Tasks/Scenes and print the output.

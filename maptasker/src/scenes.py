@@ -40,6 +40,8 @@ from maptasker.src.xmldata import tag_in_type
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.runcfg import RunConfig
+
 blank = "&nbsp;"
 
 
@@ -300,6 +302,7 @@ def get_scene_elements(
 def process_sub_elements(
     child: Element,
     indentation: int,
+    config: RunConfig,
     anchors: SceneAnchors | None = None,
 ) -> None:
     """
@@ -308,6 +311,7 @@ def process_sub_elements(
     Args:
         child (Element): The child ElementTree to process.
         indentation (int): The indentation level to use for output.
+        config (RunConfig): the run's settings.
 
     Returns:
         None
@@ -324,7 +328,7 @@ def process_sub_elements(
         indentation = original_indentation
         # If it is an xxxElement, then process it by recursing.
         if tag_in_type(subchild.tag, True):
-            process_arguments(subchild, subchild.tag, indentation + 5, anchors)
+            process_arguments(subchild, subchild.tag, indentation + 5, config, anchors)
         # Handle the Key event's filter -- the Event/Key tab of Tasker's Scene Properties.
         # <urlMatch> is the KEYS filter there, not a URL: its values are Tasker's
         # slash-separated key list ("back", "back/home"), and the tag name is a leftover from
@@ -352,6 +356,7 @@ def process_list_element(
     child: Element,
     indentation: int,
     element_name: str,
+    config: RunConfig,
 ) -> None:
     """
     Process the list element associated with the given child element.
@@ -372,7 +377,7 @@ def process_list_element(
     action = child.find("Action")
     if action is not None:
         label = child.find("label").text
-        action_line = get_actions(child)
+        action_line = get_actions(child, config)
 
         # Now fix our indentation
         subline_indentation = f"{blank * len(element_name)}{blank * (9 + indentation)}"
@@ -394,6 +399,7 @@ def format_and_output_arguments(
     child: Element,
     element_type: str,
     indentation: int,
+    config: RunConfig,
     anchors: SceneAnchors | None = None,
 ) -> None:
     """
@@ -451,7 +457,7 @@ def format_and_output_arguments(
         # indentation = 0
 
     # Make pretty
-    if PrimeItems.program_arguments.pretty:
+    if config.pretty:
         line_out = line_out.replace(", ", f"<br>{line_indentation}")
 
     # Close the colour span the arguments text opens and does not, so that this line is one
@@ -498,10 +504,10 @@ def format_and_output_arguments(
 
     # If the element is a ListElementItem, get it's Task Action (in Properties) and output it.
     if element_type == "ListElementItem":
-        process_list_element(child, indentation, element_name)
+        process_list_element(child, indentation, element_name, config)
 
     # Handle sub-elements
-    process_sub_elements(child, indentation, anchors)
+    process_sub_elements(child, indentation, config, anchors)
 
 
 # Whether a Scene colour span is being held open to colour what the Map writes next.
@@ -552,6 +558,7 @@ def process_arguments(
     child: Element,
     element_type: str,
     indentation: int,
+    config: RunConfig,
     anchors: SceneAnchors | None = None,
 ) -> None:
     """
@@ -561,6 +568,7 @@ def process_arguments(
         child (Element): The child element to process.
         element_type (str): The type of the child element.
         indentation (int): The indentation level of the child element.
+        config (RunConfig): the run's settings.
 
     Returns:
         None: This function does not return anything.
@@ -582,15 +590,16 @@ def process_arguments(
         return
 
     # Format and output the xxxElement arguments
-    format_and_output_arguments(child, element_type, indentation, anchors)
+    format_and_output_arguments(child, element_type, indentation, config, anchors)
 
 
 # Go through Scene's XML looking for Tasks (e.g. ClickTask) and output if found
-def process_tasks(child: Element, tasks_found: list) -> None:
+def process_tasks(child: Element, tasks_found: list, config: RunConfig) -> None:
     """Parameters:
         - child (Element): The element to be processed.
         - tasks_found (list): A list of tasks that have been found.
         - indentation (int): The number of spaces to indent the output.
+        - config (RunConfig): the run's settings.
     Returns:
         - None: This function does not return anything.
     Processing Logic:
@@ -629,6 +638,7 @@ def process_tasks(child: Element, tasks_found: list) -> None:
                     tasks_found,
                     temp_task_list,
                     "",
+                    config,
                 )
 
                 # reset to task name since get_task_name changes its value
@@ -662,6 +672,7 @@ def process_tasks(child: Element, tasks_found: list) -> None:
                     temp_task_list,
                     task_element,
                     tasks_found,
+                    config,
                 )
 
         # If we hit the arguments, then break out of loop looking for tasks.add
@@ -734,6 +745,7 @@ def adjust_name_and_add_to_directory(
 def get_details(
     scene: Element,
     tasks_found: list,
+    config: RunConfig,
     indentation: int = 0,
     anchors: SceneAnchors | None = None,
 ) -> None:
@@ -743,6 +755,7 @@ def get_details(
     Args:
         scene (Element): Scene xml element to trundle through.
         tasks_found (list): List of Tasks found so far.
+        config (RunConfig): the run's settings.
         indentation (int): Indentation number of blanks to add to output lines.
         anchors (SceneAnchors): where each element's jump anchor goes; None for a Scene
             whose elements are not anchored (see SceneAnchors).
@@ -767,7 +780,7 @@ def get_details(
         if _tag_in_type(child.tag, True):  # xxxElement (e.g. RectElement)?
             element_type = child.tag
             # Display the Element details
-            if PrimeItems.program_arguments.display_detail_level > 2:
+            if config.display_detail_level > 2:
                 # The jump anchor goes on the element's ARGUMENTS line wherever there is
                 # going to be one, because that is the line a finding about a variable is
                 # actually about -- "Text=%Notes" rather than "'Notes' Element of type
@@ -778,13 +791,13 @@ def get_details(
                 # A Version 2 Scene's <lj> is one of those types, which is how its
                 # components' anchors reach _get_scene_elements -- it writes them itself,
                 # from the layout it decodes.
-                on_heading = PrimeItems.program_arguments.display_detail_level != 5 or element_type not in action_codes
+                on_heading = config.display_detail_level != 5 or element_type not in action_codes
                 _get_scene_elements(child, indentation, anchors if on_heading else None)
 
             # Are we to display Scene element details?
-            if PrimeItems.program_arguments.display_detail_level == 5:
+            if config.display_detail_level == 5:
                 # Get the element type's arguments and process them
-                _process_arguments(child, element_type, indentation, anchors)
+                _process_arguments(child, element_type, indentation, config, anchors)
 
             # Check to see if this Scene has a layout Scene, and deal with it if so.
             sub_scenes = child.find("Scene")
@@ -798,10 +811,10 @@ def get_details(
                     )
 
                     # Okay, process this sub-scene
-                    _process_scene(scene.find("nme").text, [], sub_scene_element, 9)
+                    _process_scene(scene.find("nme").text, [], sub_scene_element, 9, config)
 
             # Process any Tasks as part of this Scene
-            _process_tasks(child, tasks_found)
+            _process_tasks(child, tasks_found, config)
 
     # The Scene's elements are done, so the colour being held open for them is done too.
     # Before the break below rather than after it, so that the span closes inside the
@@ -809,7 +822,7 @@ def get_details(
     drop_the_scene_colour()
 
     # Add a break if end of Scene elements (but not doing a Properties element)
-    if PrimeItems.program_arguments.display_detail_level != 2 and element_type != "PropertiesElement":
+    if config.display_detail_level != 2 and element_type != "PropertiesElement":
         PrimeItems.output_lines.output_lines.append("<br>")
 
 
@@ -817,6 +830,7 @@ def get_details(
 def process_properties(
     scene: Element,
     indentation: int,
+    config: RunConfig,
     anchors: SceneAnchors | None = None,
 ) -> None:
     # Get the PropertiesElement
@@ -829,7 +843,7 @@ def process_properties(
     properties = scene.find("PropertiesElement")
     if properties is not None:
         # Format and output the xxxElement arguments
-        format_and_output_arguments(properties, "PropertiesElement", indentation + 5, anchors)
+        format_and_output_arguments(properties, "PropertiesElement", indentation + 5, config, anchors)
 
         # Process any Tasks as part of this Scene Properties
         # process_tasks(properties, [])
@@ -841,6 +855,7 @@ def process_scene(
     tasks_found: list[str],
     scene_xml: Element,
     indentation: int,
+    config: RunConfig,
 ) -> None:
     """
     Process the Project's Scene(s), one at a time
@@ -849,6 +864,7 @@ def process_scene(
         :param tasks_found: list of Tasks found so far
         :param scene_xml: Scene xml element to process for sub-scene, or None if this is a valid Scene being passed in.
         :param indentation: Indentation number of blanks to add to output
+        :param config: the run's settings
 
         # Get the Scene's geometry and display it
         :return:
@@ -870,18 +886,18 @@ def process_scene(
     )
 
     # Handle directory hyperlink
-    if PrimeItems.program_arguments.directory:
+    if config.directory:
         add_directory_item("scenes", my_scene)
 
     # Go through all the children of the Scene looking for width/height, 'click' tasks and other details.
-    get_details(scene, tasks_found, indentation, anchors)
+    get_details(scene, tasks_found, config, indentation, anchors)
 
     # Process Properties if we are at the head Scene
     if indentation == 0:
-        process_properties(scene, indentation, anchors)
+        process_properties(scene, indentation, config, anchors)
 
     # If we are doing twisties, then we need to close the unordered list.
-    if PrimeItems.program_arguments.twisty:
+    if config.twisty:
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
@@ -889,6 +905,7 @@ def process_scene(
 def process_scene_list(
     scene_list: list[str],
     tasks_found: list,
+    config: RunConfig,
 ) -> None:
     """
     Output each Scene in the list: its "Scene:" line, then -- above detail level 1 -- its details.
@@ -899,16 +916,17 @@ def process_scene_list(
 
         :param scene_list: names of the Scenes to output
         :param tasks_found: list of Tasks found so far
+        :param config: the run's settings
     """
     for scene_name in scene_list:
-        format_item("Scene:", scene_name, scene_name, None)
+        format_item("Scene:", scene_name, scene_name, None, config)
 
-        detail_level = PrimeItems.program_arguments.display_detail_level
+        detail_level = config.display_detail_level
         if detail_level == 0:
             continue
         if detail_level > 1:
-            process_scene(scene_name, tasks_found, None, 0)
-        elif PrimeItems.program_arguments.twisty:
+            process_scene(scene_name, tasks_found, None, 0, config)
+        elif config.twisty:
             remove_twisty()
 
 
@@ -916,11 +934,13 @@ def process_scene_list(
 def process_project_scenes(
     project: Element,
     found_tasks: list,
+    config: RunConfig,
 ) -> bool:
     """
     Go through all Scenes for Project, get their detail and output it
         :param project: xml element of Project we are processing
         :param found_tasks: list of Tasks found so far
+        :param config: the run's settings
         :return: True if a Scene was output, False if not
     """
     scene_names = None
@@ -933,7 +953,7 @@ def process_project_scenes(
         # Only doing a single Scene?  Narrow this Project's list down to just that one.
         # We only get here for the Project that owns it (process_projects skips the
         # rest), so a miss here means the name isn't a Scene of this Project at all.
-        if single_scene_name := PrimeItems.program_arguments.single_scene_name:
+        if single_scene_name := config.single_scene_name:
             scene_list = [scene for scene in scene_list if scene == single_scene_name]
             if not scene_list:
                 return False
@@ -944,7 +964,7 @@ def process_project_scenes(
             # Count what we are actually going to output, which is not necessarily
             # everything the Project lists -- see the single-Scene filter above.
             PrimeItems.scene_count = len(scene_list)
-            process_scene_list(scene_list, found_tasks)
+            process_scene_list(scene_list, found_tasks, config)
 
             # Force a line break
             PrimeItems.output_lines.add_line_to_output(
@@ -953,7 +973,7 @@ def process_project_scenes(
                 FormatLine.dont_format_line,
             )
 
-            if PrimeItems.program_arguments.display_detail_level == 0:
+            if config.display_detail_level == 0:
                 # End list if displaying level 0
                 PrimeItems.output_lines.add_line_to_output(
                     3,

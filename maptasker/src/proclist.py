@@ -20,7 +20,7 @@ from maptasker.src.maputils import find_owning_project_for_scene, fix_hyperlink_
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
-from maptasker.src.runcfg import current_config
+from maptasker.src.runcfg import RunConfig
 from maptasker.src.sysconst import (
     SCENE_TAGS_TO_IGNORE,
     UNNAMED_ITEM,
@@ -36,13 +36,14 @@ from maptasker.src.xmldata import tag_in_type
 # ################################################################################
 # Parse out name and add any attributes to it: spacing and HTML.
 # ################################################################################
-def adjust_name(list_type: str, the_item: str) -> str:
+def adjust_name(list_type: str, the_item: str, config: RunConfig) -> str:
     """
     Parse out name and add any attributes to it
         Args:
 
             list_type (str): The type of the list.
             the_item (str): The text item to process.
+            config (RunConfig): the run's settings.
 
         Returns:
             str: The text item altered as necessary with name attributes.
@@ -57,7 +58,7 @@ def adjust_name(list_type: str, the_item: str) -> str:
     else:
         the_name = the_item
         the_rest = ""
-    altered_name = add_name_attribute(the_name, current_config())
+    altered_name = add_name_attribute(the_name, config)
 
     return f"{altered_name}{the_rest}"
 
@@ -97,6 +98,7 @@ def get_scene_element_names(scene: Element) -> list[str]:
 def format_task_or_scene(
     list_type: list,
     the_item: str,
+    config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
 ) -> tuple:
@@ -106,6 +108,7 @@ def format_task_or_scene(
 
         list_type (list): Either "Task:" or "Scene:"
         the_item (str): text for Task or Scene
+        config (RunConfig): the run's settings
         project_name (str): name of the Project the Task belongs to (for the "Task:" tooltip)
         profile_name (str): name of the Profile the Task belongs to (for the "Task:" tooltip)
 
@@ -113,7 +116,7 @@ def format_task_or_scene(
         tuple[str, str]: Our formatted output line and color to user
     """
     # Format the Task/Scene name as needed: spacing and HTML
-    the_item_altered = adjust_name(list_type, the_item) if list_type in {"Task:", "Scene:"} else the_item
+    the_item_altered = adjust_name(list_type, the_item, config) if list_type in {"Task:", "Scene:"} else the_item
 
     # If Scene Task, add 'ID:' to the Task number and reformat the string.
     if "&#45;&#45;Task:" in list_type:
@@ -174,6 +177,7 @@ def add_dictionary_and_twisty(
     the_task: Element | None,
     output_line: str,
     color_to_use: str,
+    config: RunConfig,
 ) -> tuple[str, str]:
     """
     If doing a directory, format and add it. If not doing directory and we have a Task, add a link.
@@ -185,6 +189,7 @@ def add_dictionary_and_twisty(
         the_task (Element): XML pointer to the Task being processed
         output_line (str): The text string containing the output
         color_to_use (str): The color to use in the output
+        config (RunConfig): the run's settings
 
     Returns:
         tuple[str, str]: Temporary item and temporary list item
@@ -193,28 +198,28 @@ def add_dictionary_and_twisty(
     blank = "&nbsp;"
 
     if "&#45;&#45;Task:" in list_type:
-        temp_item, temp_list = handle_task(list_type, the_item, blank)
-        if PrimeItems.program_arguments.directory:
+        temp_item, temp_list = handle_task(list_type, the_item, blank, config)
+        if config.directory:
             task_name = PrimeItems.tasker_root_elements["all_tasks"][the_item]["name"]
             add_directory_item("tasks", task_name)
-    elif PrimeItems.program_arguments.directory:
+    elif config.directory:
         handle_directory(list_type, the_item, the_task)
     elif "Task:" in list_type:
         handle_task_hyperlink(the_item, blank)
 
-    if should_add_directory_hyperlink(list_type):
+    if should_add_directory_hyperlink(list_type, config):
         add_directory_hyperlink()
 
     if list_type == "Scene:":
         PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
-    if PrimeItems.program_arguments.twisty and "Task:" in list_type:
+    if config.twisty and "Task:" in list_type:
         handle_twisty(color_to_use, output_line)
 
     return temp_item, temp_list
 
 
-def handle_task(list_type: str, the_item: str, blank: str) -> tuple[str, str]:
+def handle_task(list_type: str, the_item: str, blank: str, config: RunConfig) -> tuple[str, str]:
     """
     Handle the task by adding a task hyperlink and debugging the task ID.
 
@@ -222,6 +227,7 @@ def handle_task(list_type: str, the_item: str, blank: str) -> tuple[str, str]:
         list_type (str): The type of the list.
         the_item (str): The text item to process.
         blank (str): A blank string for formatting.
+        config (RunConfig): the run's settings.
 
     Returns:
         tuple[str, str]: The processed item and list type.
@@ -229,7 +235,7 @@ def handle_task(list_type: str, the_item: str, blank: str) -> tuple[str, str]:
     task_name = PrimeItems.tasker_root_elements["all_tasks"][the_item]["name"]
     add_task_hyperlink(task_name, True, blank)
     temp_item, temp_list = the_item, list_type
-    list_type = debug_task_id(list_type)
+    list_type = debug_task_id(list_type, config)
     return temp_item, temp_list
 
 
@@ -268,18 +274,19 @@ def handle_task_hyperlink(the_item: str, blank: str) -> None:
     add_task_hyperlink(task_name, False, blank)
 
 
-def should_add_directory_hyperlink(list_type: str) -> bool:
+def should_add_directory_hyperlink(list_type: str, config: RunConfig) -> bool:
     """
     Determine if a directory hyperlink should be added.
 
     Args:
         list_type (str): The type of the list.
+        config (RunConfig): the run's settings.
 
     Returns:
         bool: True if a directory hyperlink should be added, False otherwise.
     """
     return (
-        PrimeItems.program_arguments.directory
+        config.directory
         and PrimeItems.directory_items["current_item"]
         and "Task:" in list_type
         and "&#45;&#45;Task:" not in list_type
@@ -372,17 +379,18 @@ def handle_twisty(color_to_use: str, output_line: str) -> None:
     add_twisty(color_to_use, output_line)
 
 
-def debug_task_id(list_type: str) -> str:
+def debug_task_id(list_type: str, config: RunConfig) -> str:
     """
     Debug the task ID by appending the ID location to the list type if in debug mode.
 
     Args:
         list_type (str): The type of the list.
+        config (RunConfig): the run's settings.
 
     Returns:
         str: The modified list type with the ID location appended if in debug mode.
     """
-    if PrimeItems.program_arguments.debug:
+    if config.debug:
         id_loc = list_type.find("ID:")
         if id_loc != -1:
             return f"{list_type}{id_loc}"
@@ -432,6 +440,7 @@ def format_item(
     the_item: str,
     the_list: list,
     the_task: Element | None,
+    config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
 ) -> None:
@@ -443,18 +452,19 @@ def format_item(
             the_item (str): The string for the above type
             the_list (list): List of Tasks or Scenes
             the_task (Element): The Task XML element
+            config (RunConfig): the run's settings
             project_name (str): name of the Project the Task belongs to (for the "Task:" tooltip)
             profile_name (str): name of the Profile the Task belongs to (for the "Task:" tooltip)
     """
     # Log if in debug mode
-    if PrimeItems.program_arguments.debug:
+    if config.debug:
         logger.debug(
             f"process_list  the_item:{the_item} the_list:{the_list} list_type:\
             {list_type}",
         )
 
     # Format the Task or Scene
-    output_line, color_to_use = format_task_or_scene(list_type, the_item, project_name, profile_name)
+    output_line, color_to_use = format_task_or_scene(list_type, the_item, config, project_name, profile_name)
 
     # If "--Task:" then this is a Task under a Scene.
     # Need to temporarily save the_item since add_line_to_output changes the_item
@@ -464,6 +474,7 @@ def format_item(
         the_task,
         output_line,
         color_to_use,
+        config,
     )
 
     # Mark this Task/Scene's place so a report finding can be clicked and land on it.
@@ -487,7 +498,7 @@ def format_item(
     if (
         the_task is not None
         and "Task:" in list_type
-        and PrimeItems.program_arguments.display_detail_level > 2
+        and config.display_detail_level > 2
         and not PrimeItems.displaying_named_tasks_not_in_profile
     ):
         get_properties("Task:", the_task, Target(TASK, the_task.attrib.get("sr", "")[4:]))
@@ -499,6 +510,7 @@ def process_item(
     list_type: str,
     the_task: Element,
     tasks_found: list,
+    config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
 ) -> None:
@@ -510,6 +522,7 @@ def process_item(
         list_type (str): The type of the list.
         the_task (xml element): The task to process.
         tasks_found (list): The list of tasks found.
+        config (RunConfig): the run's settings.
         project_name (str): name of the Project the Task belongs to (for the "Task:" tooltip)
         profile_name (str): name of the Profile the Task belongs to (for the "Task:" tooltip)
 
@@ -517,10 +530,10 @@ def process_item(
         None
     """
     # Given an item, format it with all of the particulars and add to output.
-    format_item(list_type, the_item, the_item, the_task, project_name, profile_name)
+    format_item(list_type, the_item, the_item, the_task, config, project_name, profile_name)
 
     # If just displaying basic details, get out.
-    if PrimeItems.program_arguments.display_detail_level == 0:
+    if config.display_detail_level == 0:
         return
 
     # Output Actions for this Task...
@@ -534,15 +547,16 @@ def process_item(
             list_type,
             the_item,
             tasks_found,
+            config,
         )
 
         # End the twisty hidden lines if not a Task in a Scene
-        if PrimeItems.program_arguments.twisty:
+        if config.twisty:
             remove_twisty()
 
     # Remove twisty if not displaying level 0
-    elif PrimeItems.program_arguments.twisty:
-        if PrimeItems.program_arguments.display_detail_level > 0:
+    elif config.twisty:
+        if config.display_detail_level > 0:
             remove_twisty()
         else:
             # End list if doing twisty and displaying level 0.  dont_format_line, not
@@ -564,6 +578,7 @@ def process_list(
     the_list: list,
     the_task: Element,
     tasks_found: list,
+    config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
 ) -> None:
@@ -575,6 +590,7 @@ def process_list(
         :param the_list: list of Task names tro process
         :param the_task: Task/Scene xml element
         :param tasks_found: list of Tasks found so far
+        :param config: the run's settings
         :param project_name: name of the Project the Task belongs to (for the "Task:" tooltip)
         :param profile_name: name of the Profile the Task belongs to (for the "Task:" tooltip)
         :return:
@@ -586,7 +602,7 @@ def process_list(
     _process_item = process_item
     for the_item in the_list:
         # Process the item (list of items)
-        _process_item(the_item, list_type, the_task, tasks_found, project_name, profile_name)
+        _process_item(the_item, list_type, the_task, tasks_found, config, project_name, profile_name)
 
 
 # We're processing a single task only
@@ -598,6 +614,7 @@ def do_single_task(
     task_list: list,
     our_task_element: Element,
     list_of_found_tasks: list,
+    config: RunConfig,
 ) -> None:
     """
     Process a single Task only.
@@ -609,15 +626,17 @@ def do_single_task(
         task_list (list): A list of Tasks.
         our_task_element (Element): The XML element for this Task.
         list_of_found_tasks (list): A list of all Tasks processed so far.
+        config (RunConfig): the run's settings.  single_project_name and single_profile_name
+            are not read from it: this function writes them and the code below reads them live.
 
     Returns:
         None
     """
     logger.debug(
-        f"Comparing task name:{PrimeItems.program_arguments.single_task_name} to our Task name:{our_task_name}",
+        f"Comparing task name:{config.single_task_name} to our Task name:{our_task_name}",
     )
 
-    if PrimeItems.program_arguments.single_task_name == our_task_name:
+    if config.single_task_name == our_task_name:
         PrimeItems.found_named_items.update(
             {
                 "single_task_found": True,
@@ -643,7 +662,7 @@ def do_single_task(
             [item for item in task_list if our_task_name == item[: len(our_task_name)]] if task_list else task_list
         )
 
-        if PrimeItems.program_arguments.pretty and temporary_task_list:
+        if config.pretty and temporary_task_list:
             temporary_task_list[0] = temporary_task_list[0].replace("[", "<br>[")
 
         process_list(
@@ -651,6 +670,7 @@ def do_single_task(
             temporary_task_list,
             our_task_element,
             list_of_found_tasks,
+            config,
             project_name,
             profile_name,
         )
@@ -661,13 +681,13 @@ def do_single_task(
     else:
         PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
-        if PrimeItems.program_arguments.pretty and "[" not in our_task_name:
+        if config.pretty and "[" not in our_task_name:
             task_list[0] = task_list[0].replace(
                 "[",
                 f"<br>{'&nbsp;' * len(our_task_name)}[",
             )
 
-        process_list("Task:", task_list, our_task_element, list_of_found_tasks, project_name, profile_name)
+        process_list("Task:", task_list, our_task_element, list_of_found_tasks, config, project_name, profile_name)
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
@@ -769,6 +789,7 @@ def output_task_list(
     task_output_lines: str,
     list_of_found_tasks: list,
     do_extra: bool,
+    config: RunConfig,
 ) -> bool:
     """
     Given a list of tasks, output them.  The list of tasks is a list of tuples.
@@ -781,6 +802,7 @@ def output_task_list(
             task_output_lines (str): the output lines for the Tasks
             list_of_found_tasks (list): list of Tasks found so far
             do_extra (bool): True to output extra info.
+            config (RunConfig): the run's settings.
         Returns:
             bool: True if we found a single Task we are looking for"""
     _get_extra_details = get_extra_details
@@ -796,7 +818,7 @@ def output_task_list(
         # fmt: on
 
         # Doing extra details?
-        if do_extra and PrimeItems.program_arguments.display_detail_level > DISPLAY_DETAIL_LEVEL_all_tasks:
+        if do_extra and config.display_detail_level > DISPLAY_DETAIL_LEVEL_all_tasks:
             # Get the extra details for this Task
             extra_details = _get_extra_details(
                 task_item["xml"],
@@ -814,10 +836,11 @@ def output_task_list(
             [task_output_lines[count]],
             task_item["xml"],
             list_of_found_tasks,
+            config,
         )
 
         # If only doing a single Task and we found/did it, then we are done
-        if PrimeItems.program_arguments.single_task_name == task_item["name"]:
+        if config.single_task_name == task_item["name"]:
             PrimeItems.found_named_items["single_task_found"] = True
             return True
 

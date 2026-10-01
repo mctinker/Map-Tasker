@@ -28,6 +28,8 @@ from maptasker.src.tasks import get_taskid_from_unnamed_task
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.runcfg import RunConfig
 UNNAMED = " (Unnamed)"
 
 
@@ -69,6 +71,7 @@ def output_list_of_actions(
     action_count: int,
     alist: list,
     the_item: str,
+    config: RunConfig,
     task_id: str = "",
 ) -> None:
     """
@@ -78,6 +81,7 @@ def output_list_of_actions(
         :param action_count: count of Task actions
         :param alist: list of task actions
         :param the_item: the specific Task's detailed line
+        :param config: the run's settings
         :param task_id: id of the Task these Actions belong to, for the mapjump anchor
 
     Returns: the count of the number of times the program has been called
@@ -101,10 +105,7 @@ def output_list_of_actions(
         # 'taction' has the Action text, including all of it's arguments.
         if taction is not None:
             # Optimize spacing if 'pretty' is enabled or if this is a label with html
-            if PrimeItems.program_arguments.pretty or "text-box" in taction:
-                updated_action = _ensure_argument_alignment(taction)
-            else:
-                updated_action = taction
+            updated_action = _ensure_argument_alignment(taction) if config.pretty or "text-box" in taction else taction
 
             # If Action continued ("...continued"), output it
             if updated_action[:3] == "...":
@@ -130,14 +131,14 @@ def output_list_of_actions(
                 )
                 action_count += 1
             if (
-                action_count == 2 and PrimeItems.program_arguments.display_detail_level == 0 and UNNAMED in the_item
+                action_count == 2 and config.display_detail_level == 0 and UNNAMED in the_item
             ):  # Just show first Task if unknown Task
                 break
-            if PrimeItems.program_arguments.display_detail_level == 1 and UNNAMED not in the_item:
+            if config.display_detail_level == 1 and UNNAMED not in the_item:
                 break
 
     # Close Action list if doing straight print, no twisties
-    if not PrimeItems.program_arguments.twisty:
+    if not config.twisty:
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
@@ -147,6 +148,7 @@ def get_task_actions_and_output(
     list_type: str,
     the_item: str,
     tasks_found: list[str],
+    config: RunConfig,
 ) -> None:
     # If Unknown task or displaying more detail, then 'the_task' is not valid, and we have to find it.
     """
@@ -156,6 +158,7 @@ def get_task_actions_and_output(
         list_type: {str}: Type of list
         the_item: {str}: Item being displayed
         tasks_found: {list[str]}: Tasks found so far
+        config: {RunConfig}: the run's settings
     Returns:
         None: No return value
     {Processing Logic}:
@@ -168,7 +171,7 @@ def get_task_actions_and_output(
     line_left_arrow_ascii = "&#11013;"
     line_right_arrow_ascii = "&#11157;"
     # If the Task is unnamed or we are doing more detail, find the Task.
-    if UNNAMED in the_item or PrimeItems.program_arguments.display_detail_level > 0:
+    if UNNAMED in the_item or config.display_detail_level > 0:
         # Get the Task name so that we can get the Task xml element
         # "--Task:" denotes a Task in a Scene which we will handle below
         if UNNAMED in the_item:
@@ -222,7 +225,7 @@ def get_task_actions_and_output(
         if the_task is not None:
             # If we have Task Actions, then output them.  The action list is a list of the Action output lines already
             # formatted.
-            if alist := tasks.get_actions(the_task):
+            if alist := tasks.get_actions(the_task, config):
                 # Track the task and action count if too many actions.
                 action_count = len(alist) - count_unique_substring(
                     alist,
@@ -230,8 +233,8 @@ def get_task_actions_and_output(
                 )
                 # Add the Task to our warning limit dictionary.
                 if (
-                    PrimeItems.program_arguments.task_action_warning_limit < 100
-                    and action_count > PrimeItems.program_arguments.task_action_warning_limit
+                    config.task_action_warning_limit < 100
+                    and action_count > config.task_action_warning_limit
                     and task_name not in PrimeItems.task_action_warnings
                 ):
                     PrimeItems.task_action_warnings[task_name] = {
@@ -248,17 +251,17 @@ def get_task_actions_and_output(
                 action_count = 1
 
                 # Process any <Share> information from TaskerNet
-                if PrimeItems.program_arguments.taskernet:
+                if config.taskernet:
                     share(the_task, "tasktab", Target(TASK, task_id))
                     # Add a spacer if detail is 0
-                    if PrimeItems.program_arguments.display_detail_level == 0:
+                    if config.display_detail_level == 0:
                         PrimeItems.output_lines.add_line_to_output(
                             0,
                             "",
                             FormatLine.dont_format_line,
                         )
 
-                output_list_of_actions(action_count, alist, the_item, task_id)
+                output_list_of_actions(action_count, alist, the_item, config, task_id)
                 # End list if Scene Task
                 if "&#45;&#45;Task:" in list_type:
                     PrimeItems.output_lines.add_line_to_output(
@@ -266,7 +269,7 @@ def get_task_actions_and_output(
                         "",
                         FormatLine.dont_format_line,
                     )
-                    if PrimeItems.program_arguments.twisty:
+                    if config.twisty:
                         PrimeItems.output_lines.add_line_to_output(
                             3,
                             "",

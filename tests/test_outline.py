@@ -13,6 +13,7 @@ import pytest
 from maptasker.src.initparg import ProgramArguments
 from maptasker.src import outline, profiles, taskerd
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.runcfg import current_config
 
 # Three Profiles share 'Caller', which performs 'Callee' exactly once.
 _SHARED_TASK_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
@@ -48,7 +49,7 @@ def test_a_task_shared_by_several_profiles_calls_once(monkeypatch: pytest.Monkey
     )
 
     for profile in tables["all_profiles"].values():
-        the_tasks = profiles.get_profile_tasks(profile["xml"], [], [])
+        the_tasks = profiles.get_profile_tasks(profile["xml"], [], [], current_config())
         outline.get_perform_task_actions(the_tasks)
 
     assert tables["all_tasks_by_name"]["Caller"]["call_tasks"] == ["Callee"]

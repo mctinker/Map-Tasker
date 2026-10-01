@@ -8,7 +8,7 @@
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import output_task_list
-from maptasker.src.runcfg import current_config, overridden_config
+from maptasker.src.runcfg import RunConfig, overridden_config
 from maptasker.src.sysconst import NO_PROJECT, NORMAL_TAB, FormatLine
 from maptasker.src.tasks import (
     get_project_for_solo_task,
@@ -113,6 +113,7 @@ def process_solo_task_with_no_profile(
     have_heading: bool,
     projects_with_no_tasks: list,
     save_twisty: bool,
+    config: RunConfig,
 ) -> tuple:
     """
     Process a single Task that does not belong to any Profile
@@ -123,6 +124,7 @@ def process_solo_task_with_no_profile(
         :param have_heading: whether we have the heading
         :param projects_with_no_tasks: list of Projects without Tasks
         :param save_twisty: whether we are displaying twisty to Hide Task details
+        :param config: the run's settings
         :return: heading flag, xml element for this Task, and total count of unnamed Tasks
     """
     unknown_task, specific_task = False, False
@@ -139,19 +141,17 @@ def process_solo_task_with_no_profile(
 
     # At this point, we've found the Project this Task belongs to,
     # or it doesn't belong to any Profile
-    if not have_heading and PrimeItems.program_arguments.display_detail_level > 2:
+    if not have_heading and config.display_detail_level > 2:
         # Add the heading to the output
         have_heading = add_heading(save_twisty)
     if not unknown_task and project_name != NO_PROJECT:
-        if PrimeItems.program_arguments.debug:
+        if config.debug:
             task_details += f" with Task ID: {task_id} ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
         else:
             task_details += f" ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
 
     # Output the Task's details
-    if (not unknown_task) and (
-        PrimeItems.program_arguments.display_detail_level > 2
-    ):  # Only list named Tasks or if details are wanted.
+    if (not unknown_task) and (config.display_detail_level > 2):  # Only list named Tasks or if details are wanted.
         task_output_lines = [task_details]  # Return as a list.
 
         # We have the Tasks.  Now let's output them.
@@ -163,6 +163,7 @@ def process_solo_task_with_no_profile(
             task_output_lines,
             found_tasks,
             False,
+            config,
         )
 
     return have_heading, specific_task, task_count
@@ -172,12 +173,14 @@ def process_solo_task_with_no_profile(
 def process_tasks_not_called_by_profile(
     projects_with_no_tasks: list,
     found_tasks_list: list,
+    config: RunConfig,
 ) -> None:
     """
     Go through all tasks and output those that are not called by any Profile.
     This is only called if we are not doing a single named item.
         :param projects_with_no_tasks: list of Project xml roots for which there are no Tasks
         :param found_tasks_list: list of all Tasks found so far
+        :param config: the run's settings
         :return: nothing
     """
     task_count = 0
@@ -185,9 +188,9 @@ def process_tasks_not_called_by_profile(
     have_heading = False
     # We only need twisty for top level, starting with the heading, so it is off for the
     # duration of this walk and back to whatever it was on the way out.
-    save_twisty = current_config().twisty
+    save_twisty = config.twisty
 
-    with overridden_config(twisty=False):
+    with overridden_config(twisty=False) as walk_config:
         # Go through all Tasks, one at a time, and see if this one is not in it (not found)
         _process_solo_task_with_no_profile = process_solo_task_with_no_profile
         for task_id in PrimeItems.tasker_root_elements["all_tasks"]:
@@ -205,12 +208,12 @@ def process_tasks_not_called_by_profile(
                     have_heading,
                     projects_with_no_tasks,
                     save_twisty,
+                    walk_config,
                 )
 
                 if (
                     specific_task
-                    or PrimeItems.program_arguments.single_task_name
-                    == PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
+                    or walk_config.single_task_name == PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
                 ):
                     PrimeItems.found_named_items["single_task_found"] = True
                     break
@@ -221,7 +224,7 @@ def process_tasks_not_called_by_profile(
 
     # Provide spacing and end list if we have Tasks
     if task_count > 0:
-        if PrimeItems.program_arguments.display_detail_level > 0:
+        if config.display_detail_level > 0:
             PrimeItems.output_lines.add_line_to_output(
                 0,
                 "",

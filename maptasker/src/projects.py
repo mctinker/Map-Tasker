@@ -75,7 +75,7 @@ def output_orphan_single_scene(config: RunConfig) -> None:
 
     PrimeItems.found_named_items["single_scene_found"] = True
     PrimeItems.grand_totals["scenes"] += 1
-    process_scene_list([single_scene_name], [])
+    process_scene_list([single_scene_name], [], config)
 
 
 # process_projects: go through all Projects Profiles...and output them
@@ -123,6 +123,7 @@ def process_projects_and_their_profiles(
             task_output_lines,
             [],
             True,
+            config,
         )
 
     # Process Projects only if there are Projects
@@ -141,6 +142,7 @@ def process_projects_and_their_profiles(
             "None",
             PrimeItems.tasker_root_elements["all_profiles"],
             found_tasks,
+            config,
         )
         PrimeItems.grand_totals["profiles"] += 1
 
@@ -168,6 +170,7 @@ def process_projects_and_their_profiles(
             task_output_lines,
             [],
             True,
+            config,
         )
 
     # Only Scene...?
@@ -185,7 +188,7 @@ def process_projects_and_their_profiles(
         if scene_list:
             if single_scene_name:
                 PrimeItems.found_named_items["single_scene_found"] = True
-            process_scene_list(scene_list, found_tasks)
+            process_scene_list(scene_list, found_tasks, config)
 
     # A single Scene that no Project lists still exists in all_scenes -- output it on
     # its own rather than reporting it as not found.  (The branch above covers a backup
@@ -332,6 +335,7 @@ def do_tasks_in_project(
                 task_output_lines,
                 found_tasks,
                 True,
+                config,
             )
 
         # Determine if we are to count this Task toward our total if doing a single Profile
@@ -613,6 +617,7 @@ def finish_up(
     have_scenes = process_project_scenes(
         project,
         found_tasks,
+        config,
     )
 
     # If we don't have Scenes or Tasks that are not in any Profile
@@ -771,6 +776,7 @@ def process_project_profiles(
     projects_without_profiles: list,
     found_tasks: list,
     profile_count: int,
+    config: RunConfig,
 ) -> tuple[bool, int]:
     """
     Process all of the Profiles for this Project
@@ -781,6 +787,7 @@ def process_project_profiles(
                     no Profiles
             found_tasks (list): list of Tasks found so far
             profile_count(int): count of the number of Profiles for this Project
+            config (RunConfig): the run's settings
 
         Returns:
             tuple[bool, int]: True if no Profiles found, False otherwise; count of
@@ -795,6 +802,7 @@ def process_project_profiles(
             project_name,
             profile_ids,
             found_tasks,
+            config,
         )
 
         # Are we searching for a single Profile and it wasn't found (result=True)?
@@ -879,6 +887,7 @@ def process_projects(
                 projects_without_profiles,
                 found_tasks,
                 profile_count,
+                config,
             )
 
         # Finish the output for this Project

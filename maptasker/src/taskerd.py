@@ -17,6 +17,7 @@ from maptasker.src.error import error_handler
 from maptasker.src.maputil2 import strip_html_tags, truncate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import conditions_to_name
+from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine
 from maptasker.src.xmldata import parse_tasker_xml, rewrite_xml
 
@@ -104,6 +105,7 @@ def build_tasker_tables() -> None:
     _parse_condition = condition.parse_profile_condition
     _conditions_to_name = conditions_to_name
     unnamed_label = UNNAMED_ITEM
+    config = current_config()
 
     # Pre-compile regex if multiple tags need cleaning (faster than multiple .replace)
     tag_cleaner = re.compile(r"</?em>")
@@ -118,7 +120,7 @@ def build_tasker_tables() -> None:
 
             if conditions:
                 # Assuming _to_name returns (something, name, something_else)
-                _, current_name, _ = _conditions_to_name(xml_content, conditions, unnamed_label, "")
+                _, current_name, _ = _conditions_to_name(xml_content, conditions, unnamed_label, "", config)
 
             # Efficiently strip HTML tags
             if "<em>" in current_name:
