@@ -49,10 +49,11 @@ from maptasker.src.mapjump import (
     Target,
     actions_in_map_order,
 )
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 # Two of healthck's three grading words, spelled out rather than imported (see the
 # header).  ERROR is deliberately not among them: nothing here is broken.  A Profile whose
@@ -245,7 +246,7 @@ def _is_enabled(profile: dict) -> bool:
     return _text(profile["xml"], "limit") != "true"
 
 
-def _project_owners(kind: str) -> dict[str, str]:
+def _project_owners(kind: str, state: RunState) -> dict[str, str]:
     """{object id: owning Project name} for Profiles (<pids>) or Tasks (<tids>).
 
     Built in one pass rather than by asking maputils per object: those walk every Project,
@@ -258,7 +259,7 @@ def _project_owners(kind: str) -> dict[str, str]:
     is the empty string.
     """
     owners: dict[str, str] = {}
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         for member in (item.strip() for item in (project["xml"].findtext(kind) or "").split(",")):
             if member:
                 owners[member] = project_name
@@ -425,7 +426,7 @@ def setting_conflicts(first: dict[tuple, str], second: dict[tuple, str]) -> list
     )
 
 
-def _check_profile_conflicts(problems: list[Problem]) -> None:
+def _check_profile_conflicts(problems: list[Problem], state: RunState) -> None:
     """Report Profiles that watch the same trigger, and say when their Tasks disagree.
 
     Two findings out of one grouping, because they are two different things to do about
@@ -441,10 +442,10 @@ def _check_profile_conflicts(problems: list[Problem]) -> None:
     side by side, which is the point: chasing Perform Task chains would find more, and
     would report them as sentences no one can check.
     """
-    profiles = PrimeItems.tasker_root_elements["all_profiles"]
-    profile_owners = _project_owners("pids")
+    profiles = state.tasker_root_elements["all_profiles"]
+    profile_owners = _project_owners("pids", state=state)
     switches = switch_actions()
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    all_tasks = state.tasker_root_elements["all_tasks"]
 
     groups: dict[tuple[str, ...], list[str]] = defaultdict(list)
     for profile_id, profile in profiles.items():
@@ -619,7 +620,7 @@ def _impossible_day(element: Element) -> str:
     return "names a day of the month that none of the months it names ever reaches"
 
 
-def _check_never_fires(problems: list[Problem]) -> None:
+def _check_never_fires(problems: list[Problem], state: RunState) -> None:
     """Report Profiles whose conditions cannot all be true at once.
 
     Three ways that happens, all of them things a backup states outright.  A Profile with
@@ -633,8 +634,8 @@ def _check_never_fires(problems: list[Problem]) -> None:
     have run anyway" are two different repairs, and only one of them is undone by the
     Enabled switch.
     """
-    profiles = PrimeItems.tasker_root_elements["all_profiles"]
-    owners = _project_owners("pids")
+    profiles = state.tasker_root_elements["all_profiles"]
+    owners = _project_owners("pids", state=state)
 
     for profile_id, profile in profiles.items():
         where = _profile_target(profile_id, profile, owners)
@@ -706,7 +707,7 @@ def condition_label(element: Element) -> str:
 # ##################################################################################
 # Battery: monitors that never stop, and Profiles that fire on a timer.
 # ##################################################################################
-def _check_always_on(problems: list[Problem]) -> None:
+def _check_always_on(problems: list[Problem], state: RunState) -> None:
     """Report the Profile conditions that keep a radio or a sensor running.
 
     A location Profile and a "Wifi Near" Profile look, in Tasker, exactly like any other
@@ -718,9 +719,9 @@ def _check_always_on(problems: list[Problem]) -> None:
 
     Disabled Profiles are skipped: one that is turned off is not monitoring anything.
     """
-    owners = _project_owners("pids")
+    owners = _project_owners("pids", state=state)
 
-    for profile_id, profile in PrimeItems.tasker_root_elements["all_profiles"].items():
+    for profile_id, profile in state.tasker_root_elements["all_profiles"].items():
         if not _is_enabled(profile):
             continue
         where = _profile_target(profile_id, profile, owners)
@@ -750,7 +751,7 @@ def _check_always_on(problems: list[Problem]) -> None:
                 )
 
 
-def _check_frequent_triggers(problems: list[Problem]) -> None:
+def _check_frequent_triggers(problems: list[Problem], state: RunState) -> None:
     """Report Profiles that fire on a short repeating timer.
 
     A <Time> condition with a repeat is a poll wearing a Profile's clothes: it wakes the
@@ -758,9 +759,9 @@ def _check_frequent_triggers(problems: list[Problem]) -> None:
     falls inside Android's own doze window, where each wake costs far more than the work
     being done -- so the interval, not the Task, is usually what wants changing.
     """
-    owners = _project_owners("pids")
+    owners = _project_owners("pids", state=state)
 
-    for profile_id, profile in PrimeItems.tasker_root_elements["all_profiles"].items():
+    for profile_id, profile in state.tasker_root_elements["all_profiles"].items():
         if not _is_enabled(profile):
             continue
         for element in _conditions(profile):
@@ -926,7 +927,7 @@ def _scan_task(task_element: Element, timeouts: dict[str, str]) -> _TaskScan:
     return scan
 
 
-def _location_is_stopped() -> bool:
+def _location_is_stopped(state: RunState) -> bool:
     """Whether anything in the whole file ever turns location tracking back off.
 
     Asked of the configuration rather than of the Task, because the Task that starts a
@@ -935,7 +936,7 @@ def _location_is_stopped() -> bool:
     or one "GPS Off" anywhere is enough to keep quiet: the point of the finding is a
     configuration with no off switch in it at all.
     """
-    for task in PrimeItems.tasker_root_elements["all_tasks"].values():
+    for task in state.tasker_root_elements["all_tasks"].values():
         for action in task["xml"].findall("Action"):
             if action.find("on") is not None:
                 continue
@@ -945,7 +946,7 @@ def _location_is_stopped() -> bool:
     return False
 
 
-def _profile_triggers() -> dict[str, list[str]]:
+def _profile_triggers(state: RunState) -> dict[str, list[str]]:
     """{task id: the Profiles that run it}, from every enabled Profile's <mid0>/<mid1>.
 
     Only enabled Profiles: a Task whose only trigger is switched off cannot be run twice at
@@ -953,7 +954,7 @@ def _profile_triggers() -> dict[str, list[str]]:
     Tasker on its own, and a Task that is both is exactly the one a collision reaches.
     """
     triggers: dict[str, list[str]] = defaultdict(list)
-    for profile_id, profile in PrimeItems.tasker_root_elements["all_profiles"].items():
+    for profile_id, profile in state.tasker_root_elements["all_profiles"].items():
         if not _is_enabled(profile):
             continue
         for tag in ("mid0", "mid1"):
@@ -962,19 +963,19 @@ def _profile_triggers() -> dict[str, list[str]]:
     return triggers
 
 
-def _check_task_hygiene(problems: list[Problem]) -> None:
+def _check_task_hygiene(problems: list[Problem], state: RunState) -> None:
     """Report the Tasks that poll, hang, leave a monitor running, or cannot be re-entered.
 
     One walk per Task feeds all four (see _scan_task): on a backup of several hundred
     Tasks holding tens of thousands of actions, four separate walks is four times the work
     for the same answers.
     """
-    owners = _project_owners("tids")
+    owners = _project_owners("tids", state=state)
     timeouts = timeout_arguments()
-    triggers = _profile_triggers()
-    location_stopped = _location_is_stopped()
+    triggers = _profile_triggers(state=state)
+    location_stopped = _location_is_stopped(state=state)
 
-    for task_id, task in PrimeItems.tasker_root_elements["all_tasks"].items():
+    for task_id, task in state.tasker_root_elements["all_tasks"].items():
         where = Target(TASK, task_id, task["name"], owners.get(task_id, ""))
         scan = _scan_task(task["xml"], timeouts)
 
@@ -1035,7 +1036,7 @@ def _check_task_hygiene(problems: list[Problem]) -> None:
 # ##################################################################################
 # What healthck calls.
 # ##################################################################################
-def lint_problems() -> list[Problem]:
+def lint_problems(state: RunState) -> list[Problem]:
     """Every behavioural problem in the loaded configuration.
 
     What healthck folds into its report.  Ordered by tag and then by location so that the
@@ -1047,11 +1048,11 @@ def lint_problems() -> list[Problem]:
     """
     problems: list[Problem] = []
 
-    _check_profile_conflicts(problems)
-    _check_never_fires(problems)
-    _check_always_on(problems)
-    _check_frequent_triggers(problems)
-    _check_task_hygiene(problems)
+    _check_profile_conflicts(problems, state=state)
+    _check_never_fires(problems, state=state)
+    _check_always_on(problems, state=state)
+    _check_frequent_triggers(problems, state=state)
+    _check_task_hygiene(problems, state=state)
 
     problems.sort(key=lambda problem: (problem.tag, problem.where.label, problem.where.action))
     return problems

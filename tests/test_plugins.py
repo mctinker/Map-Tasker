@@ -366,7 +366,7 @@ def test_with_no_app_list_nothing_is_reported_and_the_report_says_why() -> None:
     """Silence would read as every plugin being installed."""
     with _devices({}):
         assert plugchk.lint_problems() == []
-        rows, _ = healthck.run_health_check()
+        rows, _ = healthck.run_health_check(state=PrimeItems)
     report = text_report(rows)
     assert "[PLUGIN-NOT-INSTALLED]" not in report
     assert "uses 2 plugin(s), and none of them was checked" in report
@@ -375,7 +375,7 @@ def test_with_no_app_list_nothing_is_reported_and_the_report_says_why() -> None:
 def test_the_health_check_reports_it_as_a_warning_with_a_note() -> None:
     """A warning, since the list may be older than what is on the phone -- which the note says."""
     with _devices(_ONE_DEVICE):
-        rows, counts = healthck.run_health_check()
+        rows, counts = healthck.run_health_check(state=PrimeItems)
     report = text_report(rows)
     assert "[PLUGIN-NOT-INSTALLED]  Plugin com.example.missing" in report
     assert "NOTE ON PLUGINS" in report
@@ -386,7 +386,7 @@ def test_the_health_check_reports_it_as_a_warning_with_a_note() -> None:
 def test_unticking_it_skips_the_check() -> None:
     """And takes its note with it."""
     with _devices(_ONE_DEVICE):
-        rows, _ = healthck.run_health_check(skip=[plugchk.NOT_INSTALLED])
+        rows, _ = healthck.run_health_check(skip=[plugchk.NOT_INSTALLED], state=PrimeItems)
     report = text_report(rows)
     assert "[PLUGIN-NOT-INSTALLED]" not in report
     assert "NOTE ON PLUGINS" not in report

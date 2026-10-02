@@ -146,7 +146,7 @@ class ReportEventHandlers:
         """
         gui = self.gui
 
-        rows, counts = run_health_check(skip)
+        rows, counts = run_health_check(skip, state=self.state)
         file_name = write_health_check_report(rows)
 
         if file_name:
@@ -189,7 +189,7 @@ class ReportEventHandlers:
             )
             return
 
-        rows, index = run_variable_xref()
+        rows, index = run_variable_xref(state=self.state)
         file_name = write_variable_xref_report(rows)
 
         if file_name:
@@ -204,7 +204,7 @@ class ReportEventHandlers:
         # html_report does the escaping (see health_check_event) and marks every place the
         # report names -- the variables themselves, and the action each is first set or
         # read at -- so clicking one takes the user there in the Map view.
-        shown = build_report(index, include_index=False)
+        shown = build_report(index, include_index=False, state=self.state)
         self.gui.textview = NiceGuiTextView(
             gui,
             title="Misc View",
@@ -244,7 +244,7 @@ class ReportEventHandlers:
             )
             return
 
-        rows, counts = run_task_flow_check()
+        rows, counts = run_task_flow_check(state=self.state)
         file_name = write_task_flow_report(rows)
 
         if file_name:

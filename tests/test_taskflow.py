@@ -137,7 +137,7 @@ def _findings_for(report_text: str, tag: str) -> list[str]:
 def report() -> str:
     """The whole-configuration control-flow report for the fixture."""
     _load(_FLOW_XML)
-    rows, _ = taskflow.run_task_flow_check()
+    rows, _ = taskflow.run_task_flow_check(state=PrimeItems)
     return text_report(rows)
 
 
@@ -145,7 +145,7 @@ def report() -> str:
 def counts() -> dict:
     """The severity counts for the fixture."""
     _load(_FLOW_XML)
-    _, totals = taskflow.run_task_flow_check()
+    _, totals = taskflow.run_task_flow_check(state=PrimeItems)
     return totals
 
 
@@ -153,7 +153,7 @@ def _flow(name: str) -> taskflow.Flow:
     """One Task of the fixture, analysed."""
     _load(_FLOW_XML)
     task_id = next(key for key, task in PrimeItems.tasker_root_elements["all_tasks"].items() if task["name"] == name)
-    return taskflow.analyze_task_flow(task_id)
+    return taskflow.analyze_task_flow(task_id, state=PrimeItems)
 
 
 # ##################################################################################
@@ -360,7 +360,7 @@ def _load_one(task_xml: str) -> taskflow.Flow:
     """Analyse a configuration holding exactly one Task."""
     _load(f'<TaskerData sr="" dvi="1" tv="6.3.13">{task_xml}</TaskerData>')
     task_id = next(iter(PrimeItems.tasker_root_elements["all_tasks"]))
-    return taskflow.analyze_task_flow(task_id)
+    return taskflow.analyze_task_flow(task_id, state=PrimeItems)
 
 
 # ##################################################################################
@@ -380,7 +380,7 @@ def test_findings_are_clickable(report: str) -> None:
     with no Target is one the user cannot follow.
     """
     _load(_FLOW_XML)
-    rows, _ = taskflow.run_task_flow_check()
+    rows, _ = taskflow.run_task_flow_check(state=PrimeItems)
     located = [row for row in rows if row.text.startswith("[FLOW-")]
     assert located
     assert all(row.target is not None and row.target.action for row in located)
@@ -392,7 +392,7 @@ def test_clean_configuration_says_so() -> None:
     _load(
         '<TaskerData sr="" dvi="1" tv="6.3.13">' + _task("400", "Fine", _IF, _FLASH, _END_IF) + "</TaskerData>",
     )
-    rows, totals = taskflow.run_task_flow_check()
+    rows, totals = taskflow.run_task_flow_check(state=PrimeItems)
     assert totals == {taskflow.ERROR: 0, taskflow.WARNING: 0}
     assert "Nothing to report" in text_report(rows)
 
@@ -401,7 +401,7 @@ def test_report_is_written_to_a_file(tmp_path: object, monkeypatch: pytest.Monke
     """The saved file holds the same text the report renders."""
     _load(_FLOW_XML)
     monkeypatch.chdir(tmp_path)
-    rows, _ = taskflow.run_task_flow_check()
+    rows, _ = taskflow.run_task_flow_check(state=PrimeItems)
     file_name = taskflow.write_task_flow_report(rows)
     assert os.path.basename(file_name).startswith("MapTasker_TaskFlow")
     with open(file_name, encoding="utf-8") as written:
@@ -423,7 +423,7 @@ def test_flowchart_indents_what_is_inside_a_block() -> None:
 
 def test_flowchart_draws_an_arrow_from_a_goto_to_its_target() -> None:
     """The jump gutter joins the Goto's line to the line it lands on, and nothing else."""
-    chart = text_report(taskflow.flowchart(_flow("Sound Jump"))).splitlines()
+    chart = text_report(taskflow.flowchart(_flow("Sound Jump"), state=PrimeItems)).splitlines()
     goto_line = next(line for line in chart if "Goto" in line and "label 'here'" in line)
     landing = next(line for line in chart if "label: here" in line)
     assert goto_line.rstrip().endswith(("╮", "╯"))  # the jump leaves this line for the gutter
@@ -432,7 +432,7 @@ def test_flowchart_draws_an_arrow_from_a_goto_to_its_target() -> None:
 
 def test_flowchart_marks_what_cannot_be_reached() -> None:
     """An action nothing can arrive at is said so on its own line, not only in the report."""
-    chart = text_report(taskflow.flowchart(_flow("After Stop")))
+    chart = text_report(taskflow.flowchart(_flow("After Stop"), state=PrimeItems))
     assert chart.count("[not reached]") == 2
 
 
@@ -443,14 +443,14 @@ def test_flowchart_lines_point_at_their_own_action() -> None:
     action's text is clickable, so that the spine drawn to its left and the jump gutter
     drawn to its right stay plain (see _chart_row).
     """
-    rows = taskflow.flowchart(_flow("Sound"))
+    rows = taskflow.flowchart(_flow("Sound"), state=PrimeItems)
     targets = [target for row in rows for _, target in row.pieces if target is not None and target.action]
     assert [target.action for target in targets] == [1, 2, 3, 4, 5, 6, 7, 8]
 
 
 def test_flowchart_leaves_the_drawing_alone() -> None:
     """The spine and the number column are not part of what a click is offered on."""
-    rows = taskflow.flowchart(_flow("Sound"))
+    rows = taskflow.flowchart(_flow("Sound"), state=PrimeItems)
     clickable = [row for row in rows if any(target and target.action for _, target in row.pieces)]
     assert clickable
     for row in clickable:
@@ -464,14 +464,14 @@ def test_flowchart_leaves_the_drawing_alone() -> None:
 
 def test_flowchart_repeats_the_tasks_own_problems() -> None:
     """A chart drawn for a broken Task says what is broken about it, above the drawing."""
-    chart = text_report(taskflow.flowchart(_flow("Open If")))
+    chart = text_report(taskflow.flowchart(_flow("Open If"), state=PrimeItems))
     assert "[FLOW-IF-WITHOUT-END-IF]" in chart
     assert chart.index("[FLOW-IF-WITHOUT-END-IF]") < chart.index("start of Task")
 
 
 def test_flowchart_of_a_sound_task_says_so() -> None:
     """A Task with nothing wrong gets a chart and a sentence saying there is nothing wrong."""
-    chart = text_report(taskflow.flowchart(_flow("Sound")))
+    chart = text_report(taskflow.flowchart(_flow("Sound"), state=PrimeItems))
     assert "No control-flow problems found in this Task." in chart
     assert "start of Task" in chart
 
@@ -489,7 +489,7 @@ def test_health_check_folds_in_the_control_flow_findings() -> None:
     from maptasker.src.healthck import run_health_check  # noqa: PLC0415  (kept out of this module's imports)
 
     _load(_FLOW_XML)
-    rows, _ = run_health_check()
+    rows, _ = run_health_check(state=PrimeItems)
     health = text_report(rows)
     assert "[FLOW-IF-WITHOUT-END-IF]" in health
     assert "[FLOW-GOTO-MISSING-LABEL]" in health

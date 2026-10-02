@@ -238,7 +238,7 @@ def _load(xml_text: str) -> None:
 def problems() -> list:
     """Every behavioural problem in the fixture."""
     _load(_LINT_XML)
-    return proflint.lint_problems()
+    return proflint.lint_problems(state=PrimeItems)
 
 
 def _where(problems: list, tag: str) -> list[str]:
@@ -447,7 +447,7 @@ def test_findings_are_folded_into_the_health_check() -> None:
     here is a judgement about behaviour, and the report has to say so.
     """
     _load(_LINT_XML)
-    rows, counts = run_health_check()
+    rows, counts = run_health_check(state=PrimeItems)
     report = text_report(rows)
 
     for tag in proflint.TAGS:

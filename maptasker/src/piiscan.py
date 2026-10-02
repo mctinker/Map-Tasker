@@ -74,12 +74,13 @@ from maptasker.src.mapjump import (
     Target,
     actions_in_map_order,
 )
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import PROPERTY_TAGS, VARIABLE_TAG
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 # Two of healthck's three grading words, spelled out rather than imported (see the
 # header).  ERROR is deliberately not among them, and the omission is the point: nothing
@@ -576,7 +577,7 @@ class _Collector:
         return found
 
 
-def _project_owners(kind: str) -> dict[str, str]:
+def _project_owners(kind: str, state: RunState) -> dict[str, str]:
     """{object id: owning Project name} for Profiles (<pids>) or Tasks (<tids>).
 
     proflint._project_owners, kept for its reason: asking maputils per object walks every
@@ -584,7 +585,7 @@ def _project_owners(kind: str) -> dict[str, str]:
     this module promises to read nothing but PrimeItems.
     """
     owners: dict[str, str] = {}
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         for member in (item.strip() for item in (project["xml"].findtext(kind) or "").split(",")):
             if member:
                 owners[member] = project_name
@@ -641,7 +642,7 @@ _SHARE = "Share"
 _SHARE_DESCRIPTION = "d"
 
 
-def _scan_tasks(collect: _Collector) -> None:
+def _scan_tasks(collect: _Collector, state: RunState) -> None:
     """Every action of every Task, and the Task's own properties.
 
     The properties are not an afterthought.  A Project, Profile or Task can carry
@@ -650,8 +651,8 @@ def _scan_tasks(collect: _Collector) -> None:
     they are scanned: the prompt has a default, the default is stored, and a backup taken
     after the key was typed in carries it.
     """
-    owners = _project_owners("tids")
-    for task_id, task in PrimeItems.tasker_root_elements["all_tasks"].items():
+    owners = _project_owners("tids", state=state)
+    for task_id, task in state.tasker_root_elements["all_tasks"].items():
         base = Target(TASK, task_id, task["name"], owners.get(task_id, ""))
         inside_actions: set[int] = set()
         for number, action in enumerate(actions_in_map_order(task["xml"]), start=1):
@@ -660,9 +661,9 @@ def _scan_tasks(collect: _Collector) -> None:
         _scan_properties(collect, base, task["xml"], inside_actions)
 
 
-def _scan_projects(collect: _Collector) -> None:
+def _scan_projects(collect: _Collector, state: RunState) -> None:
     """Every Project's own properties -- see _scan_tasks on why those matter."""
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         _scan_properties(collect, Target(PROJECT, project_name, project_name), project["xml"], set())
 
 
@@ -729,7 +730,7 @@ def _properties_elements(element: Element) -> set[int]:
     return shown
 
 
-def _scan_profiles(collect: _Collector) -> None:
+def _scan_profiles(collect: _Collector, state: RunState) -> None:
     """Every Profile's conditions, the coordinates a location condition holds, and its
     own properties.
 
@@ -738,8 +739,8 @@ def _scan_profiles(collect: _Collector) -> None:
     the Profile's own line.  So a finding about one of those is aimed there rather than at
     the Profile, exactly as _scan_properties aims the other two.
     """
-    owners = _project_owners("pids")
-    for profile_id, profile in PrimeItems.tasker_root_elements["all_profiles"].items():
+    owners = _project_owners("pids", state=state)
+    for profile_id, profile in state.tasker_root_elements["all_profiles"].items():
         where = Target(PROFILE, profile_id, profile["name"], owners.get(profile_id, ""))
         on_properties = _properties_elements(profile["xml"])
         for element in profile["xml"].iter():
@@ -757,14 +758,14 @@ def _scan_profiles(collect: _Collector) -> None:
                 collect.text(where, "this Profile's conditions", value)
 
 
-def _scan_scenes(collect: _Collector) -> None:
+def _scan_scenes(collect: _Collector, state: RunState) -> None:
     """Every Scene, read whole.
 
     Not broken down by element: a Scene's layout is deeply nested and its element names are
     the Scene's own business, so a finding says which Scene rather than which button.  The
     Map view is where the user goes to see the rest, and that is what the finding links to.
     """
-    for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
+    for scene_name, scene in state.tasker_root_elements["all_scenes"].items():
         where = Target(SCENE, scene_name, scene_name)
         for element in scene["xml"].iter():
             value = _scannable(element)
@@ -772,7 +773,7 @@ def _scan_scenes(collect: _Collector) -> None:
                 collect.text(where, f"Scene '{scene_name}'", value)
 
 
-def _scan_variables(collect: _Collector) -> None:
+def _scan_variables(collect: _Collector, state: RunState) -> None:
     """Every global variable's value.
 
     The likeliest place of all for a key to be sitting: the recommended way to keep a
@@ -784,9 +785,9 @@ def _scan_variables(collect: _Collector) -> None:
     them, and from the XML rather than PrimeItems.variables, whose values globalvr has
     already HTML-escaped for display.
     """
-    if PrimeItems.xml_root is None:
+    if state.xml_root is None:
         return
-    for variable in PrimeItems.xml_root.findall("Variable"):
+    for variable in state.xml_root.findall("Variable"):
         children = list(variable)
         if len(children) < 2:
             continue
@@ -796,7 +797,7 @@ def _scan_variables(collect: _Collector) -> None:
             collect.text(Target(VARIABLE, name, name), f"the value of {name}", value)
 
 
-def _scan_preferences(collect: _Collector) -> None:
+def _scan_preferences(collect: _Collector, state: RunState) -> None:
     """The Tasker preferences that hold a credential.
 
     A full backup carries the whole of Tasker's own settings, and one of them is the code
@@ -805,7 +806,7 @@ def _scan_preferences(collect: _Collector) -> None:
     Target.
     """
     where = "Tasker preferences in this backup"
-    for setting in PrimeItems.tasker_root_elements.get("all_services", []):
+    for setting in state.tasker_root_elements.get("all_services", []):
         name = (setting.findtext("n") or "").strip()
         value = setting.findtext("v") or ""
         credential = _CREDENTIAL_PREFERENCES.get(name)
@@ -833,7 +834,7 @@ def _has_coordinates(condition: Element) -> bool:
         return False
 
 
-def lint_problems() -> list[Problem]:
+def lint_problems(state: RunState) -> list[Problem]:
     """Every secret and personal detail in the loaded configuration.
 
     What healthck folds into its report.  Ordered by tag and then by location so the
@@ -845,12 +846,12 @@ def lint_problems() -> list[Problem]:
     """
     collect = _Collector()
 
-    _scan_variables(collect)
-    _scan_projects(collect)
-    _scan_tasks(collect)
-    _scan_profiles(collect)
-    _scan_scenes(collect)
-    _scan_preferences(collect)
+    _scan_variables(collect, state=state)
+    _scan_projects(collect, state=state)
+    _scan_tasks(collect, state=state)
+    _scan_profiles(collect, state=state)
+    _scan_scenes(collect, state=state)
+    _scan_preferences(collect, state=state)
 
     def order(problem: Problem) -> tuple[str, str, int]:
         where = problem.where

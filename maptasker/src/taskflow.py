@@ -44,7 +44,6 @@ from maptasker.src.mapjump import (
 )
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     FLOWCHART_FILE,
     MY_VERSION,
@@ -54,6 +53,8 @@ from maptasker.src.sysconst import (
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 # The same two words healthck grades by, spelled out again rather than imported: healthck
 # imports this module to fold these findings in, so importing it back would be a cycle.
@@ -257,7 +258,7 @@ class Flow:
 # ##################################################################################
 # Reading the XML.
 # ##################################################################################
-def _project_of_task() -> dict[str, str]:
+def _project_of_task(state: RunState) -> dict[str, str]:
     """{task id: owning Project name}, from each Project's <tids>.
 
     Built in one pass rather than by calling maputils.find_owning_project_for_task per
@@ -270,7 +271,7 @@ def _project_of_task() -> dict[str, str]:
     the empty string.
     """
     owners = {}
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         text = (project["xml"].findtext("tids") or "").strip()
         for member in (item.strip() for item in text.split(",") if item.strip()):
             owners[member] = project_name
@@ -824,17 +825,17 @@ def _unreachable(steps: list[Step], jumps: dict[int, Jump], reachable: set[int],
 # ##################################################################################
 # The analysis, one Task at a time.
 # ##################################################################################
-def analyze_task_flow(task_id: str, project_name: str = "") -> Flow | None:
+def analyze_task_flow(task_id: str, project_name: str = "", *, state: RunState) -> Flow | None:
     """Read one Task's control flow, or None when no such Task is loaded.
 
     'project_name' saves the caller a walk over every Project when it already knows the
     answer -- a scan of the whole configuration builds that map once and passes it in.
     """
-    task = PrimeItems.tasker_root_elements["all_tasks"].get(task_id)
+    task = state.tasker_root_elements["all_tasks"].get(task_id)
     if task is None:
         return None
 
-    where = Target(TASK, task_id, task["name"], project_name or _project_of_task().get(task_id, ""))
+    where = Target(TASK, task_id, task["name"], project_name or _project_of_task(state=state).get(task_id, ""))
     steps = _steps(task["xml"], task["name"])
     structure = _match_blocks(steps, where)
     jumps, jump_problems = _resolve_gotos(steps, structure.enclosing, _labels(steps), where)
@@ -845,17 +846,17 @@ def analyze_task_flow(task_id: str, project_name: str = "") -> Flow | None:
     return Flow(where, steps, structure.depth, structure.blocks, jumps, reachable, problems)
 
 
-def control_flow_problems() -> list[Problem]:
+def control_flow_problems(state: RunState) -> list[Problem]:
     """Every control-flow defect in the loaded configuration.
 
     What healthck folds into its own report, and what this module's own report is built
     from.  The Project map is built once here rather than per Task, for the reason
     _project_of_task gives.
     """
-    owners = _project_of_task()
+    owners = _project_of_task(state=state)
     found = []
-    for task_id in PrimeItems.tasker_root_elements["all_tasks"]:
-        flow = analyze_task_flow(task_id, owners.get(task_id, ""))
+    for task_id in state.tasker_root_elements["all_tasks"]:
+        flow = analyze_task_flow(task_id, owners.get(task_id, ""), state=state)
         if flow is not None:
             found += flow.problems
     return found
@@ -864,14 +865,14 @@ def control_flow_problems() -> list[Problem]:
 # ##################################################################################
 # The report.
 # ##################################################################################
-def _current_xml_file() -> str:
+def _current_xml_file(state: RunState) -> str:
     """The path of the XML file being read.
 
     PrimeItems.file_to_get is sometimes an open file object and sometimes the path as a
     plain string -- the same ambiguity healthck._current_xml_file handles, resolved the
     same way.
     """
-    file_to_get = PrimeItems.file_to_get
+    file_to_get = state.file_to_get
     path = getattr(file_to_get, "name", file_to_get) if file_to_get else ""
     return path if isinstance(path, str) and path else "(unknown)"
 
@@ -915,30 +916,30 @@ def _finding_rows(found: list[Problem], indent: str = "") -> list[Row]:
     return rows
 
 
-def _header_rows(title: str) -> list[Row]:
+def _header_rows(title: str, state: RunState) -> list[Row]:
     """The block every report here opens with: which file, when, and by what version."""
     return [
         Row(title),
         Row("=" * _REPORT_WIDTH),
-        Row(f"XML file:    {_current_xml_file()}"),
+        Row(f"XML file:    {_current_xml_file(state=state)}"),
         Row(f"Generated:   {clock.now().strftime('%d-%b-%Y %H:%M:%S')}"),
         Row(f"Version:     {MY_VERSION}"),
     ]
 
 
-def run_task_flow_check() -> tuple[list[Row], dict]:
+def run_task_flow_check(state: RunState) -> tuple[list[Row], dict]:
     """Scan every loaded Task's control flow and return (report rows, counts by severity).
 
     Rows rather than finished text, for the reason healthck gives: the caller saves them as
     plain text and shows them as HTML, and the two have to be the same report.
     """
-    found = control_flow_problems()
+    found = control_flow_problems(state=state)
     counts = _counts(found)
-    tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    tasks = state.tasker_root_elements["all_tasks"]
     actions = sum(len(task["xml"].findall("Action")) for task in tasks.values())
 
     rows = [
-        *_header_rows("MapTasker Task Flow"),
+        *_header_rows("MapTasker Task Flow", state=state),
         Row(""),
         Row(f"Scanned:     {len(tasks)} Tasks, {actions} actions"),
         Row(f"Findings:    {counts[ERROR]} Errors, {counts[WARNING]} Warnings"),
@@ -1194,7 +1195,7 @@ def _legend() -> list[str]:
     ]
 
 
-def flowchart(flow: Flow) -> list[Row]:
+def flowchart(flow: Flow, state: RunState) -> list[Row]:
     """One Task drawn as a flowchart, one Row per line.
 
     Rows rather than lines so that the chart is clickable in the view exactly as a report
@@ -1208,7 +1209,7 @@ def flowchart(flow: Flow) -> list[Row]:
     they were sent to look at it.
     """
     rows = [
-        *_header_rows("MapTasker Task Flowchart"),
+        *_header_rows("MapTasker Task Flowchart", state=state),
         Row(""),
         # The label alone is the clickable piece, not the whole line: an underline running
         # through "Task:" and the padding in front of it reads as a mis-click waiting to

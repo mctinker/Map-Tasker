@@ -460,7 +460,7 @@ def test_a_scene_element_finding_lands_on_that_element() -> None:
     _render_scene(_TEXT_WITH_VARIABLE)
 
     finding = next(
-        suspect for suspect in varxref.suspects(varxref.build_index()) if suspect.subject == "%NotesNobodySets"
+        suspect for suspect in varxref.suspects(varxref.build_index(state=PrimeItems)) if suspect.subject == "%NotesNobodySets"
     )
     place = finding.places[0]
     assert place.label.endswith("Scene 'Panel' element Text 'Notes'")
@@ -558,7 +558,7 @@ def test_a_v2_component_finding_lands_on_the_property_that_holds_the_variable() 
     scenes.process_scene("Panel", [], None, 0, current_config(), state=PrimeItems)
 
     finding = next(
-        suspect for suspect in varxref.suspects(varxref.build_index()) if suspect.subject == "%V2NobodySets"
+        suspect for suspect in varxref.suspects(varxref.build_index(state=PrimeItems)) if suspect.subject == "%V2NobodySets"
     )
     place = finding.places[0]
     assert place.label.endswith("Scene 'Panel' component Text '%V2NobodySets' text")

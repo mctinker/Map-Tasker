@@ -133,7 +133,7 @@ def build_impact_panel(
     wire=False leaves the clicks to the caller -- for the Project dialog, which draws two
     of these and has to wire an ancestor of both (see wire_impact_clicks).
     """
-    analysis = impact.analyze_delete(kind, name, keep_contents=keep_contents)
+    analysis = impact.analyze_delete(kind, name, keep_contents=keep_contents, state=self.state)
 
     for sentence in analysis.goes:
         ui.label(translate_string(sentence)).classes("mt-1")

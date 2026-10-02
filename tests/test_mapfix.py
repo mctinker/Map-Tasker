@@ -239,7 +239,7 @@ def _positions(plan: mapfix.Plan, tag: str) -> list[int]:
 
 def _tags_reported() -> list[str]:
     """Every tag the full health check raises against the configuration as it stands now."""
-    return [finding.tag for finding in healthck.collect_findings().findings]
+    return [finding.tag for finding in healthck.collect_findings(state=PrimeItems).findings]
 
 
 def _tick_only(plan: mapfix.Plan, positions: list[int]) -> None:
@@ -579,7 +579,7 @@ def test_goto_points_at_the_chosen_label_and_clears_the_finding(loaded: None) ->
     # so the claim is about this Task, not about the configuration.
     still_broken = [
         finding.tag
-        for finding in healthck.collect_findings().findings
+        for finding in healthck.collect_findings(state=PrimeItems).findings
         if finding.target is not None and finding.target.key == "22"
     ]
     assert mapfix.GOTO_MISSING_LABEL not in still_broken

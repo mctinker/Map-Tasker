@@ -392,7 +392,7 @@ def _saved(path: str, what: str) -> None:
 def _health_check(options: argparse.Namespace) -> int:
     """Scan the backup for problems.  EXIT_FOUND if there are any at or above -fail_on."""
     _load_backup(options.file)
-    rows, counts = healthck.run_health_check()
+    rows, counts = healthck.run_health_check(state=PrimeItems)
     _report(mapjump.text_report(rows))
     _note(
         f"Health Check: {counts[healthck.ERROR]} errors, {counts[healthck.WARNING]} warnings, "

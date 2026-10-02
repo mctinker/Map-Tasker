@@ -744,7 +744,7 @@ _RENAME_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 def variables() -> "varxref.VariableIndex":
     """The variable cross-reference for the rename fixture."""
     _load(_RENAME_XML)
-    return varxref.build_index()
+    return varxref.build_index(state=PrimeItems)
 
 
 def _values(plan: mapswap.Plan) -> list[str]:
@@ -959,7 +959,7 @@ def test_apply_rewrites_the_configuration_itself(variables) -> None:
     assert errors == []
     assert changed == len(plan.changes)
 
-    rescanned = varxref.build_index()
+    rescanned = varxref.build_index(state=PrimeItems)
     assert ("%Total", "") not in rescanned.variables
     assert ("%Sum", "") in rescanned.variables
     # ...and the prefix neighbour is still there, with its own uses intact.
@@ -1082,11 +1082,11 @@ def test_a_rename_is_confined_to_the_selected_object(variables, _no_selection) -
     """%Total is used in a Task, a Profile context and a Scene; selecting the Task drops
     the other two out of the plan entirely.
     """
-    everywhere = mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum")
+    everywhere = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
     assert {change.site.where.kind for change in everywhere.changes} >= {TASK, PROFILE, SCENE}
 
     PrimeItems.program_arguments.single_task_name = "Adder"
-    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems)), "%Total", "", "%Sum")
+    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum")
     assert {change.site.where.kind for change in scoped.changes} == {TASK}
     assert {change.site.where.key for change in scoped.changes} == {"30"}
     assert 0 < len(scoped.changes) < len(everywhere.changes)
@@ -1099,17 +1099,17 @@ def test_a_scoped_rename_leaves_the_variables_tab_declaration_alone(variables, _
     from under every other Task still using the old name.
     """
     assert any(change.site.kind == mapswap.DECLARATION for change in
-               mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum").changes)
+               mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum").changes)
 
     PrimeItems.program_arguments.single_task_name = "Adder"
-    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems)), "%Total", "", "%Sum")
+    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum")
     assert not any(change.site.kind == mapswap.DECLARATION for change in scoped.changes)
 
 
 def test_a_scoped_rename_warns_that_it_leaves_the_rest_alone(variables, _no_selection) -> None:
     """A half-renamed global is a broken configuration, not a partly-done job."""
     PrimeItems.program_arguments.single_task_name = "Adder"
-    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems)), "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum")
     assert any("keep the old name" in warning for warning in plan.warnings)
 
 
@@ -1131,8 +1131,8 @@ def test_varxref_is_whole_file_unless_a_scope_is_asked_for(loaded, _no_selection
     """
     PrimeItems.program_arguments.single_task_name = "Quiet"
 
-    assert varxref.build_index().scope.is_everything
-    assert not varxref.build_index(mapjump.current_scope(state=PrimeItems)).scope.is_everything
+    assert varxref.build_index(state=PrimeItems).scope.is_everything
+    assert not varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems).scope.is_everything
 
 
 def test_replacing_a_variable_with_an_existing_one_merges_and_says_so(variables, _no_selection) -> None:
@@ -1142,7 +1142,7 @@ def test_replacing_a_variable_with_an_existing_one_merges_and_says_so(variables,
     single object, and it is what the target pulldown offers.  What the user is told is
     the consequence, since it is not what the word "rename" suggests.
     """
-    plan = mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Totals")
+    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Totals")
     assert plan.changes
     merge = [warning for warning in plan.warnings if "MERGES" in warning]
     assert merge
@@ -1155,7 +1155,7 @@ def test_a_scoped_substitution_changes_only_the_selected_object(variables, _no_s
     nothing outside it.
     """
     PrimeItems.program_arguments.single_task_name = "Adder"
-    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems)), "%Total", "", "%Totals")
+    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Totals")
     changed, errors = mapswap.apply(plan)
     assert errors == []
     assert changed == len(plan.changes)
@@ -1165,7 +1165,7 @@ def test_a_scoped_substitution_changes_only_the_selected_object(variables, _no_s
     # scanned whatever the scope -- which is deliberate and load-bearing: declared_names
     # is what tells varxref that a lower-case declared name is a global rather than some
     # Task's local, and a scoped-out declaration would misfile it.
-    inside = varxref.build_index(mapjump.current_scope(state=PrimeItems))
+    inside = varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems)
     survivor = inside.variables[("%Total", "")]
     assert survivor.sets == []
     assert survivor.reads == []
@@ -1174,7 +1174,7 @@ def test_a_scoped_substitution_changes_only_the_selected_object(variables, _no_s
     # Outside: the Profile context, the Scene binding and the two configure-on-import
     # declarations (the Project's and the Profile's) still name it, untouched.
     PrimeItems.program_arguments.single_task_name = ""
-    whole = varxref.build_index()
+    whole = varxref.build_index(state=PrimeItems)
     remaining = whole.variables[("%Total", "")]
     assert {reference.target.kind for reference in remaining.sets + remaining.reads} == {PROJECT, PROFILE, SCENE}
 
@@ -1196,7 +1196,7 @@ def test_ticks_are_carried_by_what_they_point_at_not_by_position(variables) -> N
     Ticks restored by position would then select different changes from the ones the user
     chose -- silently, and in a plan that is about to be applied.
     """
-    plan = mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
     assert len(plan.changes) > 2
 
     plan.selected = {0, 2}
@@ -1204,7 +1204,7 @@ def test_ticks_are_carried_by_what_they_point_at_not_by_position(variables) -> N
     wanted = {plan.changes[0].identity, plan.changes[2].identity}
 
     # Rebuild, with the list deliberately reordered to stand in for a tree that moved.
-    rebuilt = mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum")
+    rebuilt = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
     rebuilt.changes.reverse()
     rebuilt.restore_ticks(remembered)
 
@@ -1217,11 +1217,11 @@ def test_restoring_ticks_overrides_the_defaults_in_both_directions(variables) ->
     Merging with the defaults instead would un-tick the RESET rows a user had gone through
     and enabled one at a time -- the exact work this is meant to preserve.
     """
-    plan = mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
     plan.selected = {1}
     remembered = plan.ticked_identities()
 
-    rebuilt = mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum")
+    rebuilt = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
     assert rebuilt.selected == set(range(len(rebuilt.changes)))  # all ticked by default
     rebuilt.restore_ticks(remembered)
 
@@ -1235,7 +1235,7 @@ def test_indistinguishable_changes_are_restored_by_count(variables) -> None:
     So "two of these were ticked" is the whole of what they chose, and a Counter restores
     it exactly -- where a set would collapse the pair and lose one of the ticks.
     """
-    plan = mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
     duplicated = mapswap.Change(
         site=plan.changes[0].site,
         before=plan.changes[0].before,
@@ -1256,11 +1256,11 @@ def test_ticks_from_a_different_question_do_not_leak_across(variables) -> None:
     """Identities name the object, the field and the value, so a plan for another
     variable cannot match them and comes back at its own defaults.
     """
-    counter = mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum")
+    counter = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
     counter.selected = {0}
     remembered = counter.ticked_identities()
 
-    other = mapswap.plan_variable_rename(varxref.build_index(), "%counter", "30", "%tally")
+    other = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%counter", "30", "%tally")
     other.restore_ticks(remembered)
     assert other.selected == set()
 
@@ -1336,7 +1336,7 @@ def test_every_instance_applies_across_the_objects_it_named(variables) -> None:
     assert errors == []
     assert changed == len(plan.changes)
 
-    rescanned = varxref.build_index()
+    rescanned = varxref.build_index(state=PrimeItems)
     assert not [name for name, _owner in rescanned.variables if name == "%counter"]
     assert {owner for name, owner in rescanned.variables if name == "%tally"} == {"30", "31"}
 

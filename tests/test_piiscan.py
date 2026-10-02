@@ -168,7 +168,7 @@ def loaded() -> ET.Element:
 @pytest.fixture
 def problems(loaded: ET.Element) -> list[piiscan.Problem]:
     """Everything the scan finds in it."""
-    return piiscan.lint_problems()
+    return piiscan.lint_problems(state=PrimeItems)
 
 
 def _where(problem: piiscan.Problem) -> str:
@@ -311,7 +311,7 @@ def test_a_name_is_never_a_finding(problems: list[piiscan.Problem]) -> None:
 def test_nothing_loaded_reports_nothing() -> None:
     """Safe to call the moment the app starts, as every other check here is."""
     _load('<TaskerData sr="" dvi="1" tv="6.3.13"></TaskerData>')
-    assert piiscan.lint_problems() == []
+    assert piiscan.lint_problems(state=PrimeItems) == []
 
 
 # ##################################################################################
@@ -324,7 +324,7 @@ def test_the_redactor_removes_what_the_scan_reports(loaded: ET.Element) -> None:
     have to be describing the same file.  A tag on one side and not the other means one of
     them is lying.
     """
-    reported = {problem.tag for problem in piiscan.lint_problems()}
+    reported = {problem.tag for problem in piiscan.lint_problems(state=PrimeItems)}
     removed = set(piiscan.redact_tree(loaded).counts)
     assert reported == removed
 
@@ -451,7 +451,7 @@ _SHARED_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 def shared_problems() -> list[piiscan.Problem]:
     """What the scan finds in a Task carrying a TaskerNet description."""
     _load(_SHARED_XML)
-    return piiscan.lint_problems()
+    return piiscan.lint_problems(state=PrimeItems)
 
 
 def test_an_address_in_a_taskernet_description_says_where_it_is(shared_problems: list) -> None:
@@ -495,7 +495,7 @@ def test_the_other_share_tags_still_belong_to_the_object(shared_problems: list) 
     the <Share> keeps naming the object, which is where the Map can show it.
     """
     _load(_SHARED_XML.replace("AutoInput,Calendar", "reach me at other@example.com"))
-    findings = [problem for problem in piiscan.lint_problems() if problem.tag == "PII-EMAIL"]
+    findings = [problem for problem in piiscan.lint_problems(state=PrimeItems) if problem.tag == "PII-EMAIL"]
     places = {problem.where.anchor for problem in findings}
     assert "mt-task-30" in places
     assert "mt-task-30-etaskernet" in places
@@ -536,7 +536,7 @@ _PROPERTIES_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 def property_problems() -> list[piiscan.Problem]:
     """What the scan finds in objects whose PROPERTIES hold an address."""
     _load(_PROPERTIES_XML)
-    return piiscan.lint_problems()
+    return piiscan.lint_problems(state=PrimeItems)
 
 
 @pytest.mark.parametrize(
@@ -594,6 +594,6 @@ def test_what_is_not_on_the_properties_line_still_names_the_object() -> None:
     be the same defect pointing the other way.
     """
     _load(_PROPERTIES_XML.replace("<pc>owner is tasks@example.com</pc>", '<Kid sr="Kid"><vnme>b@example.com</vnme></Kid>'))
-    places = {problem.where.anchor for problem in piiscan.lint_problems() if problem.tag == "PII-EMAIL"}
+    places = {problem.where.anchor for problem in piiscan.lint_problems(state=PrimeItems) if problem.tag == "PII-EMAIL"}
     assert "mt-task-41" in places
     assert "mt-task-41-eproperties" not in places

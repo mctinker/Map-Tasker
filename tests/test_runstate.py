@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src import guiutils, mapai, projedit, taskedit, userintr
+from maptasker.src import guiutils, healthck, impact, mapai, projedit, taskedit, taskflow, userintr, varxref
 from maptasker.src import bildhtml, getbakup, outline, proginit, runcli, taskerd, timeline
 from maptasker.src.actionc import load_arg_specs
 from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
@@ -477,3 +477,35 @@ def test_the_ai_query_is_made_from_the_output_of_the_state_it_is_given() -> None
     query = mapai.cleanup_output(state=state)
 
     assert any("Remind Me" in line for line in query)
+
+
+def test_a_health_check_runs_over_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The analysis tools read a loaded configuration and nothing else, so nothing need be on the global."""
+    state = _outline_state(tmp_path, monkeypatch)
+    monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
+
+    rows, counts = healthck.run_health_check(state=state)
+    empty_rows, _ = healthck.run_health_check(state=PrimeItems)
+
+    assert rows
+    assert sum(counts.values()) >= 0
+    assert len(rows) >= len(empty_rows)
+
+
+def test_the_variable_index_is_built_from_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    state = _outline_state(tmp_path, monkeypatch)
+
+    assert varxref.build_index(state=state) is not None
+
+
+def test_what_a_delete_would_do_is_worked_out_on_the_state_it_is_given(
+    tmp_path: object,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    state = _outline_state(tmp_path, monkeypatch)
+    monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
+
+    found = impact.analyze_delete(impact.TASK, "Callee", state)
+
+    assert [consequence.tag for consequence in found.consequences] == ["DANGLING-PERFORM-TASK"]
+    assert "Task 'Caller'" in found.consequences[0].where

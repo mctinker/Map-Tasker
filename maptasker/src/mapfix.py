@@ -786,7 +786,7 @@ def plan_fixes(skip: Collection[str] = ()) -> Plan:
     it ticked would be promising something and then reporting it as an error.
     """
     leave_out = set(skip) | {category.tag for category in healthck.all_categories() if category.tag not in FIXABLE_TAGS}
-    index = healthck.collect_findings(leave_out)
+    index = healthck.collect_findings(leave_out, state=PrimeItems)
 
     timeouts = proflint.timeout_arguments()
     plan = Plan(what="Fix Health Check findings")

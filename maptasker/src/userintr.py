@@ -2070,7 +2070,7 @@ class MapTaskerEventHandlers(
         # them all in one window would read as one enormous Task, so the first is drawn and
         # the user is told the choice was made.
         task_ids = sorted(scope.tasks)
-        flow = analyze_task_flow(task_ids[0]) if task_ids else None
+        flow = analyze_task_flow(task_ids[0], state=self.state) if task_ids else None
         if flow is None:
             gui.display_message_box(
                 f"{translate_string('Could not find Task')} '{scope.name}'.",
@@ -2084,7 +2084,7 @@ class MapTaskerEventHandlers(
                 type="warning",
             )
 
-        self.state.taskflow_rows = flowchart(flow)
+        self.state.taskflow_rows = flowchart(flow, state=self.state)
         chart_file = write_flowchart(self.state.taskflow_rows)
         if chart_file:
             gui.display_message_box(f"{translate_string('Flowchart saved as')} {chart_file}", "Green")

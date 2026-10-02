@@ -212,7 +212,7 @@ def _run(skip: list[str] | None = None) -> tuple[str, dict]:
     skip is what the chooser panel's unticked boxes come to; the default of nothing
     unticked is what every test but the ones about the panel itself wants.
     """
-    rows, totals = run_health_check(skip or [])
+    rows, totals = run_health_check(skip or [], state=PrimeItems)
     return text_report(rows), totals
 
 
@@ -670,7 +670,7 @@ def test_report_is_written_to_the_runtime_directory(tmp_path: object, monkeypatc
     # The rows themselves here rather than _run()'s rendered text: the writer takes the
     # rows and renders them itself, and this test is partly about it rendering them the
     # same way the display does.
-    rows, _ = run_health_check()
+    rows, _ = run_health_check(state=PrimeItems)
 
     written = write_health_check_report(rows)
     file_name = os.path.basename(written)

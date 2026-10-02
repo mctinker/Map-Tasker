@@ -190,19 +190,19 @@ def _loaded() -> None:
 
 def test_a_global_read_only_by_a_script_is_not_reported_as_never_read() -> None:
     """The false finding this was written to remove: %Threshold is read, by global()."""
-    subjects = {suspect.subject for suspect in varxref.suspects(varxref.build_index())}
+    subjects = {suspect.subject for suspect in varxref.suspects(varxref.build_index(state=PrimeItems))}
     assert "%Threshold" not in subjects
 
 
 def test_a_global_set_only_by_a_script_is_not_reported_as_never_set() -> None:
     """The other half: %Result is set, by setGlobal(), and read by the Flash."""
-    subjects = {suspect.subject for suspect in varxref.suspects(varxref.build_index())}
+    subjects = {suspect.subject for suspect in varxref.suspects(varxref.build_index(state=PrimeItems))}
     assert "%Result" not in subjects
 
 
 def test_the_script_is_named_as_where_the_variable_is_used() -> None:
     """The where-used index says the script reads it, so the reader can go and look."""
-    entry = varxref.build_index().variables[("%Threshold", "")]
+    entry = varxref.build_index(state=PrimeItems).variables[("%Threshold", "")]
     assert [reference.detail for reference in entry.reads] == ["JavaScriptlet, Code= (script)"]
 
 
@@ -218,7 +218,7 @@ def test_broken_code_is_reported_at_the_action_that_holds_it() -> None:
 
 def test_the_health_check_carries_the_findings_and_can_leave_them_out() -> None:
     """Folded into the report, and skipped outright when both categories are unticked."""
-    tags = {finding.tag for finding in healthck.collect_findings().findings}
+    tags = {finding.tag for finding in healthck.collect_findings(state=PrimeItems).findings}
     assert {codelint.JS_SYNTAX, codelint.SHELL_SYNTAX} <= tags
-    skipped = {finding.tag for finding in healthck.collect_findings(skip=codelint.TAGS).findings}
+    skipped = {finding.tag for finding in healthck.collect_findings(skip=codelint.TAGS, state=PrimeItems).findings}
     assert not skipped & codelint.TAGS

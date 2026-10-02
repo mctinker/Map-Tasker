@@ -134,7 +134,7 @@ def _tags(analysis: impact.Impact) -> set[str]:
 # ##################################################################################
 def test_perform_task_call_dangles() -> None:
     """A Perform Task naming the deleted Task is reported, at the action that makes it."""
-    found = _tagged(impact.analyze_delete(TASK, "Helper"), "DANGLING-PERFORM-TASK")
+    found = _tagged(impact.analyze_delete(TASK, "Helper", state=PrimeItems), "DANGLING-PERFORM-TASK")
     assert len(found) == 1
     assert "Task 'Wake Up' (id 20) action 1" in found[0].where
     assert found[0].severity == impact.BREAKS
@@ -145,7 +145,7 @@ def test_perform_task_call_dangles() -> None:
 
 def test_scene_element_binding_dangles() -> None:
     """A Scene element firing the deleted Task is reported, named as the designer names it."""
-    found = _tagged(impact.analyze_delete(TASK, "Helper"), "DANGLING-SCENE-TASK")
+    found = _tagged(impact.analyze_delete(TASK, "Helper", state=PrimeItems), "DANGLING-SCENE-TASK")
     assert len(found) == 1
     assert "Scene 'Menu'" in found[0].where
     assert "Button 'Go'" in found[0].where
@@ -153,14 +153,14 @@ def test_scene_element_binding_dangles() -> None:
 
 def test_widget_reference_dangles() -> None:
     """A Set Widget Label naming the deleted Task means a home screen widget stops working."""
-    found = _tagged(impact.analyze_delete(TASK, "Widget Task"), "DANGLING-WIDGET")
+    found = _tagged(impact.analyze_delete(TASK, "Widget Task", state=PrimeItems), "DANGLING-WIDGET")
     assert len(found) == 1
     assert "action 3" in found[0].where
 
 
 def test_scene_action_dangles() -> None:
     """Deleting a Scene leaves every action that shows or hides it by name pointing at nothing."""
-    found = _tagged(impact.analyze_delete(SCENE, "Menu"), "DANGLING-SCENE-ACTION")
+    found = _tagged(impact.analyze_delete(SCENE, "Menu", state=PrimeItems), "DANGLING-SCENE-ACTION")
     assert len(found) == 1
     assert "Task 'Wake Up' (id 20) action 2" in found[0].where
 
@@ -171,7 +171,7 @@ def test_profile_link_is_repaired_not_broken() -> None:
     The counter-example to every test above, and the reason the reference index records
     what SORT each reference is: taskedit.delete_task rewrites this one.
     """
-    assert "DANGLING-PROFILE-LINK" not in _tags(impact.analyze_delete(TASK, "Helper"))
+    assert "DANGLING-PROFILE-LINK" not in _tags(impact.analyze_delete(TASK, "Helper", state=PrimeItems))
 
 
 def test_project_cascade_leaves_outside_profile_links_dangling() -> None:
@@ -181,7 +181,7 @@ def test_project_cascade_leaves_outside_profile_links_dangling() -> None:
     and stops there, which is exactly the asymmetry with the Task delete above.
     """
     found = _tagged(
-        impact.analyze_delete(PROJECT, "Home", keep_contents=False),
+        impact.analyze_delete(PROJECT, "Home", keep_contents=False, state=PrimeItems),
         "DANGLING-PROFILE-LINK",
     )
     assert len(found) == 1
@@ -190,7 +190,7 @@ def test_project_cascade_leaves_outside_profile_links_dangling() -> None:
 
 def test_keeping_the_contents_breaks_no_references() -> None:
     """Moving a Project's contents into "Base" leaves every reference to them working."""
-    analysis = impact.analyze_delete(PROJECT, "Home", keep_contents=True)
+    analysis = impact.analyze_delete(PROJECT, "Home", keep_contents=True, state=PrimeItems)
     assert analysis.breaks == 0
 
 
@@ -200,7 +200,7 @@ def test_references_from_inside_the_delete_are_not_reported() -> None:
     Task 20 calls Task 21 and both go in the cascade, so that call is not reported -- while
     the Scene binding to Task 21 is, because the Scene itself survives.
     """
-    analysis = impact.analyze_delete(PROJECT, "Home", keep_contents=False)
+    analysis = impact.analyze_delete(PROJECT, "Home", keep_contents=False, state=PrimeItems)
     assert "DANGLING-PERFORM-TASK" not in _tags(analysis)
     assert _tagged(analysis, "DANGLING-SCENE-TASK")
 
@@ -210,7 +210,7 @@ def test_references_from_inside_the_delete_are_not_reported() -> None:
 # ##################################################################################
 def test_profile_left_with_nothing_to_run() -> None:
     """A Profile whose every Task is deleted is kept, and will trigger and do nothing."""
-    found = _tagged(impact.analyze_delete(TASK, "Wake Up"), "PROFILE-WITHOUT-TASK")
+    found = _tagged(impact.analyze_delete(TASK, "Wake Up", state=PrimeItems), "PROFILE-WITHOUT-TASK")
     assert len(found) == 1
     assert "Profile 'Wake' (id 10)" in found[0].where
     assert found[0].severity == impact.CHANGES
@@ -218,7 +218,7 @@ def test_profile_left_with_nothing_to_run() -> None:
 
 def test_task_left_with_nothing_running_it() -> None:
     """Deleting a Profile leaves the Task it alone ran in the file with nothing running it."""
-    found = _tagged(impact.analyze_delete(PROFILE, "Wake"), "TASK-LEFT-DEAD")
+    found = _tagged(impact.analyze_delete(PROFILE, "Wake", state=PrimeItems), "TASK-LEFT-DEAD")
     assert len(found) == 1
     assert "Task 'Wake Up' (id 20)" in found[0].where
     # The detail says what is going, so the finding explains itself rather than asserting.
@@ -231,19 +231,19 @@ def test_task_with_another_caller_is_not_left_dead() -> None:
     Scene 'Menu' fires 'Helper', but a Profile and a Perform Task run it too, so deleting
     the Scene does not strand it.  The counter-example to the test above.
     """
-    assert "TASK-LEFT-DEAD" not in _tags(impact.analyze_delete(SCENE, "Menu"))
+    assert "TASK-LEFT-DEAD" not in _tags(impact.analyze_delete(SCENE, "Menu", state=PrimeItems))
 
 
 def test_already_dead_task_is_not_reported() -> None:
     """A Task nothing ran to begin with is not blamed on this delete."""
-    analysis = impact.analyze_delete(PROFILE, "Wake")
+    analysis = impact.analyze_delete(PROFILE, "Wake", state=PrimeItems)
     assert not [item for item in _tagged(analysis, "TASK-LEFT-DEAD") if "Lonely" in item.where]
 
 
 def test_project_scenes_are_left_in_no_project() -> None:
     """A Project's Scenes are neither moved nor deleted, under either choice."""
     for keep in (True, False):
-        found = _tagged(impact.analyze_delete(PROJECT, "Home", keep_contents=keep), "SCENE-LEFT-ADRIFT")
+        found = _tagged(impact.analyze_delete(PROJECT, "Home", keep_contents=keep, state=PrimeItems), "SCENE-LEFT-ADRIFT")
         assert sorted(item.target.key for item in found) == ["Menu", "Solo"]
 
 
@@ -252,7 +252,7 @@ def test_project_scenes_are_left_in_no_project() -> None:
 # ##################################################################################
 def test_global_read_elsewhere_is_left_unset() -> None:
     """A global only the deleted Task sets, read by a Task that stays, is reported."""
-    found = _tagged(impact.analyze_delete(TASK, "Wake Up"), "DANGLING-VARIABLE")
+    found = _tagged(impact.analyze_delete(TASK, "Wake Up", state=PrimeItems), "DANGLING-VARIABLE")
     assert len(found) == 1
     assert "%Handoff" in found[0].detail
     assert "Task 'Reader' (id 24)" in found[0].where
@@ -263,13 +263,13 @@ def test_global_read_elsewhere_is_left_unset() -> None:
 
 def test_variable_finding_carries_its_caveat() -> None:
     """A global can be set from outside the backup, and the report says so."""
-    analysis = impact.analyze_delete(TASK, "Wake Up")
+    analysis = impact.analyze_delete(TASK, "Wake Up", state=PrimeItems)
     assert any("Variables tab" in caveat for caveat in analysis.caveats)
 
 
 def test_no_variable_finding_when_the_reader_goes_too() -> None:
     """Nothing is stranded when everything that reads the variable is deleted as well."""
-    analysis = impact.analyze_delete(PROJECT, "Home", keep_contents=False)
+    analysis = impact.analyze_delete(PROJECT, "Home", keep_contents=False, state=PrimeItems)
     assert "DANGLING-VARIABLE" not in _tags(analysis)
 
 
@@ -278,7 +278,7 @@ def test_no_variable_finding_when_the_reader_goes_too() -> None:
 # ##################################################################################
 def test_a_harmless_delete_says_so() -> None:
     """A Task nothing points at produces no consequences and a summary that says as much."""
-    analysis = impact.analyze_delete(TASK, "Lonely")
+    analysis = impact.analyze_delete(TASK, "Lonely", state=PrimeItems)
     assert analysis.consequences == []
     assert "Nothing else in this configuration points at it" in analysis.summary()
     assert impact.consequence_rows(analysis) == []
@@ -286,11 +286,11 @@ def test_a_harmless_delete_says_so() -> None:
 
 def test_what_goes_is_stated_for_every_kind() -> None:
     """Each kind of delete says what it takes with it and what it leaves behind."""
-    assert "unlinked from 1 Profile(s)" in " ".join(impact.analyze_delete(TASK, "Helper").goes)
-    assert "linked Task(s) are kept" in " ".join(impact.analyze_delete(PROFILE, "Wake").goes)
-    assert "the Tasks they fire are kept" in " ".join(impact.analyze_delete(SCENE, "Menu").goes)
-    assert "move into 'Base'" in " ".join(impact.analyze_delete(PROJECT, "Home").goes)
-    assert "deleted with it" in " ".join(impact.analyze_delete(PROJECT, "Home", keep_contents=False).goes)
+    assert "unlinked from 1 Profile(s)" in " ".join(impact.analyze_delete(TASK, "Helper", state=PrimeItems).goes)
+    assert "linked Task(s) are kept" in " ".join(impact.analyze_delete(PROFILE, "Wake", state=PrimeItems).goes)
+    assert "the Tasks they fire are kept" in " ".join(impact.analyze_delete(SCENE, "Menu", state=PrimeItems).goes)
+    assert "move into 'Base'" in " ".join(impact.analyze_delete(PROJECT, "Home", state=PrimeItems).goes)
+    assert "deleted with it" in " ".join(impact.analyze_delete(PROJECT, "Home", keep_contents=False, state=PrimeItems).goes)
 
 
 def test_object_that_is_already_gone() -> None:
@@ -300,20 +300,20 @@ def test_object_that_is_already_gone() -> None:
     configuration changed underneath it -- the same staleness the analysis is run at
     confirmation time to avoid.
     """
-    analysis = impact.analyze_delete(TASK, "No Such Task")
+    analysis = impact.analyze_delete(TASK, "No Such Task", state=PrimeItems)
     assert analysis.consequences == []
     assert any("no longer in the loaded configuration" in caveat for caveat in analysis.caveats)
 
 
 def test_breaks_are_reported_before_changes() -> None:
     """Worst first, then grouped by tag -- what makes a long list skimmable."""
-    severities = [item.severity for item in impact.analyze_delete(TASK, "Helper").consequences]
+    severities = [item.severity for item in impact.analyze_delete(TASK, "Helper", state=PrimeItems).consequences]
     assert severities == sorted(severities, key=[impact.BREAKS, impact.CHANGES].index)
 
 
 def test_the_dialog_list_leaves_out_the_report_heading() -> None:
     """consequence_rows is report_rows without the heading the dialog already shows itself."""
-    analysis = impact.analyze_delete(TASK, "Helper")
+    analysis = impact.analyze_delete(TASK, "Helper", state=PrimeItems)
     assert text_report(impact.report_rows(analysis)).startswith("Deleting Project 'Home' > Task 'Helper'")
     assert "Deleting" not in text_report(impact.consequence_rows(analysis))
 
@@ -321,5 +321,5 @@ def test_the_dialog_list_leaves_out_the_report_heading() -> None:
 def test_every_reported_place_is_somewhere_to_go() -> None:
     """Each consequence carries a Map target, which is what makes its line clickable."""
     for kind, name in ((TASK, "Helper"), (TASK, "Wake Up"), (SCENE, "Menu"), (PROFILE, "Wake")):
-        for item in impact.analyze_delete(kind, name).consequences:
+        for item in impact.analyze_delete(kind, name, state=PrimeItems).consequences:
             assert item.target is not None, f"{kind} {name}: {item.tag}"

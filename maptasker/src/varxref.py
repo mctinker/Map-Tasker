@@ -56,13 +56,14 @@ from maptasker.src.mapjump import (
 )
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, VARXREF_FILE, logger
 from maptasker.src.taskervars import tasker_global_variables
 
 if TYPE_CHECKING:
     from datetime import datetime
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 # A Tasker variable name begins with a letter and continues with letters, digits and
 # underscores.  The leading-letter rule is the whole reason this is not sysconst's
@@ -458,7 +459,7 @@ def _describe_task(name: str, task_id: str) -> str:
     return describe("Task", name, task_id)
 
 
-def _project_membership(tag: str) -> dict[str, str]:
+def _project_membership(tag: str, state: RunState) -> dict[str, str]:
     """{member: owning Project name} for one of a Project's comma-separated member lists.
 
     Built in one pass rather than by calling maputils.find_owning_project per object: that
@@ -469,26 +470,26 @@ def _project_membership(tag: str) -> dict[str, str]:
     id is the empty string.
     """
     owners = {}
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         text = _element_text(project["xml"], tag)
         for member in (item.strip() for item in text.split(",") if item.strip()):
             owners[member] = project_name
     return owners
 
 
-def _project_of_task() -> dict[str, str]:
+def _project_of_task(state: RunState) -> dict[str, str]:
     """{task id: owning Project name}, from each Project's <tids>."""
-    return _project_membership("tids")
+    return _project_membership("tids", state=state)
 
 
-def _project_of_profile() -> dict[str, str]:
+def _project_of_profile(state: RunState) -> dict[str, str]:
     """{profile id: owning Project name}, from each Project's <pids>."""
-    return _project_membership("pids")
+    return _project_membership("pids", state=state)
 
 
-def _project_of_scene() -> dict[str, str]:
+def _project_of_scene(state: RunState) -> dict[str, str]:
     """{scene name: owning Project name}.  A Project lists Scenes by NAME, not by id."""
-    return _project_membership("scenes")
+    return _project_membership("scenes", state=state)
 
 
 def _string_arguments(action: Element) -> dict[str, str]:
@@ -762,7 +763,7 @@ def _scan_conditions(
                 _record_reads(index, side, Reference(READ, where, f"condition {tag}", scope_id, place, side_element))
 
 
-def _scan_profiles(index: VariableIndex, owners: dict[str, str], scope: Scope) -> None:
+def _scan_profiles(index: VariableIndex, owners: dict[str, str], scope: Scope, state: RunState) -> None:
     """Record what a Profile's contexts read.
 
     A Profile context tests the world; it does not assign to anything, so everything here
@@ -774,7 +775,7 @@ def _scan_profiles(index: VariableIndex, owners: dict[str, str], scope: Scope) -
     can add another, and a context this app has never heard of still reads its variables
     out of <Str sr="argN"> like every other.
     """
-    for profile_id, profile in PrimeItems.tasker_root_elements["all_profiles"].items():
+    for profile_id, profile in state.tasker_root_elements["all_profiles"].items():
         if not scope.allows(PROFILE, profile_id):
             continue
         place = Target(PROFILE, profile_id, profile["name"], owners.get(profile_id, ""))
@@ -815,7 +816,7 @@ def _scan_profiles(index: VariableIndex, owners: dict[str, str], scope: Scope) -
             _scan_conditions(index, context, where, scope_id, place)
 
 
-def _scan_projects(index: VariableIndex, scope: Scope) -> None:
+def _scan_projects(index: VariableIndex, scope: Scope, state: RunState) -> None:
     """Record the variables a Project declares for import: <ProfileVariable><pvn>.
 
     Tasker lets a Project carry variables to be configured when it is imported -- the
@@ -841,7 +842,7 @@ def _scan_projects(index: VariableIndex, scope: Scope) -> None:
     two Projects each declaring %config are no more the same variable than two Tasks
     using %i are.
     """
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         if not scope.allows(PROJECT, project_name):
             continue
         place = Target(PROJECT, project_name, project_name)
@@ -986,11 +987,13 @@ def _scan_v2_scene(
                     )
 
 
-def _scan_scenes(index: VariableIndex, write_arguments: dict, implicit_writes: dict, scope: Scope) -> None:
+def _scan_scenes(
+    index: VariableIndex, write_arguments: dict, implicit_writes: dict, scope: Scope, state: RunState
+) -> None:
     """Walk every Scene: its elements, and the anonymous Tasks living inside it."""
 
-    owners = _project_of_scene()
-    for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
+    owners = _project_of_scene(state=state)
+    for scene_name, scene in state.tasker_root_elements["all_scenes"].items():
         if not scope.allows(SCENE, scene_name):
             continue
         place = Target(SCENE, scene_name, scene_name, owners.get(scene_name, ""))
@@ -1020,14 +1023,14 @@ def _scan_scenes(index: VariableIndex, write_arguments: dict, implicit_writes: d
             )
 
 
-def _scan_declarations(index: VariableIndex) -> None:
+def _scan_declarations(index: VariableIndex, state: RunState) -> None:
     """Record the top-level <Variable> elements: a name exists, with a value.
 
     Neither a set nor a read.  A declared variable holds whatever Tasker last stored in
     it, which is why a global that nothing in the file sets is still not necessarily a
     mistake -- it may simply have been given its value by hand in Tasker's Variables tab.
     """
-    root = PrimeItems.xml_root
+    root = state.xml_root
     if root is None:
         return
     for element in root.findall("Variable"):
@@ -1043,7 +1046,7 @@ def _scan_declarations(index: VariableIndex) -> None:
         entry.value = (children[1].text or "").strip() if len(children) > 1 and children[1].text else ""
 
 
-def build_index(scope: Scope | None = None) -> VariableIndex:
+def build_index(scope: Scope | None = None, *, state: RunState) -> VariableIndex:
     """Scan the loaded configuration and return the where-used index.
 
     Scans EVERYTHING by default, and that default is load-bearing rather than merely
@@ -1067,11 +1070,11 @@ def build_index(scope: Scope | None = None) -> VariableIndex:
     index = VariableIndex(scope=scope)
     write_arguments = _write_arguments()
     implicit_writes = _implicit_writes()
-    owners = _project_of_task()
+    owners = _project_of_task(state=state)
 
-    _scan_declarations(index)
+    _scan_declarations(index, state=state)
 
-    for task_id, task in PrimeItems.tasker_root_elements["all_tasks"].items():
+    for task_id, task in state.tasker_root_elements["all_tasks"].items():
         if not scope.allows(TASK, task_id):
             continue
         place = Target(TASK, task_id, task["name"], owners.get(task_id, ""))
@@ -1088,9 +1091,9 @@ def build_index(scope: Scope | None = None) -> VariableIndex:
                 implicit_writes,
             )
 
-    _scan_projects(index, scope)
-    _scan_profiles(index, _project_of_profile(), scope)
-    _scan_scenes(index, write_arguments, implicit_writes, scope)
+    _scan_projects(index, scope, state=state)
+    _scan_profiles(index, _project_of_profile(state=state), scope, state=state)
+    _scan_scenes(index, write_arguments, implicit_writes, scope, state=state)
 
     _reclassify_written_built_ins(index)
     return index
@@ -1369,13 +1372,13 @@ def suspects(index: VariableIndex) -> list[Suspect]:
 # ##################################################################################
 # Report construction.
 # ##################################################################################
-def _current_xml_file() -> str:
+def _current_xml_file(state: RunState) -> str:
     """The path of the XML file being indexed.
 
     PrimeItems.file_to_get is sometimes an open file object and sometimes the path as a
     plain string -- resolved the same way healthck._current_xml_file resolves it.
     """
-    file_to_get = PrimeItems.file_to_get
+    file_to_get = state.file_to_get
     path = getattr(file_to_get, "name", file_to_get) if file_to_get else ""
     return path if isinstance(path, str) and path else "(unknown)"
 
@@ -1433,7 +1436,9 @@ def _counts_by_scope(index: VariableIndex) -> dict[str, int]:
     return counts
 
 
-def build_report(index: VariableIndex, when: datetime | None = None, include_index: bool = True) -> list[Row]:
+def build_report(
+    index: VariableIndex, when: datetime | None = None, include_index: bool = True, *, state: RunState
+) -> list[Row]:
     """Render the index as plain text.
 
     Rows rather than finished text, for the reason healthck._build_report gives: the
@@ -1456,7 +1461,7 @@ def build_report(index: VariableIndex, when: datetime | None = None, include_ind
     lines = [
         "MapTasker Variable Cross-Reference",
         rule,
-        f"XML file:    {_current_xml_file()}",
+        f"XML file:    {_current_xml_file(state=state)}",
         f"Generated:   {when.strftime('%d-%b-%Y %H:%M:%S')}",
         f"Version:     {MY_VERSION}",
         "",
@@ -1701,10 +1706,10 @@ def _limitations(index: VariableIndex, thin_rule: str) -> list[str]:
     return lines
 
 
-def run_variable_xref() -> tuple[list[Row], VariableIndex]:
+def run_variable_xref(state: RunState) -> tuple[list[Row], VariableIndex]:
     """Build the index and render it.  Returns (report rows, index)."""
-    index = build_index()
-    return build_report(index), index
+    index = build_index(state=state)
+    return build_report(index, state=state), index
 
 
 def write_variable_xref_report(rows: list[Row]) -> str:

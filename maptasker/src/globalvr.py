@@ -77,7 +77,7 @@ def get_variables(configuration: str = "", *, state: RunState) -> None:
         }
 
 
-def _get_cross_reference() -> dict:
+def _get_cross_reference(state: RunState) -> dict:
     """{variable name: its varxref record}, for the names this table can show.
 
     Locals are left out: they are scoped to one Task, Profile or Scene, and this table is
@@ -85,7 +85,7 @@ def _get_cross_reference() -> dict:
     that never reaches detail level 4 never pays for it.
     """
     if _cross_reference.value is None:
-        index = varxref.build_index()
+        index = varxref.build_index(state=state)
         _cross_reference.value = {
             variable.name: variable for (name, owner), variable in index.variables.items() if owner == ""
         }
@@ -127,7 +127,7 @@ def _usage_cell(references: list, table_definition: str, config: RunConfig, stat
 
 def _usage_cells(key: str, table_definition: str, config: RunConfig, state: RunState) -> str:
     """The Set and Read cells for one variable, or empty cells if it is not in the index."""
-    variable = _get_cross_reference().get(key)
+    variable = _get_cross_reference(state=state).get(key)
     if variable is None:
         return f"{table_definition}&nbsp;</td>{table_definition}&nbsp;</td>"
     return _usage_cell(variable.sets, table_definition, config, state=state) + _usage_cell(

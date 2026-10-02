@@ -47,7 +47,6 @@ from maptasker.src.mapjump import (
 )
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     HEALTHCHECK_FILE,
     MY_VERSION,
@@ -59,6 +58,8 @@ if TYPE_CHECKING:
     from collections.abc import Collection
     from datetime import datetime
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 # Severity ordering is the order findings are reported in, worst first.
 ERROR = "ERROR"
@@ -418,12 +419,12 @@ def _split_ids(element: Element, tag: str) -> list[str]:
 # ##################################################################################
 # Reference gathering -- one pass each over Projects, Profiles, Scenes and Tasks.
 # ##################################################################################
-def _index_projects(index: ReferenceIndex) -> None:
+def _index_projects(index: ReferenceIndex, state: RunState) -> None:
     """Walk every Project: record what it owns, and report what it names but does not have."""
-    all_projects = PrimeItems.tasker_root_elements["all_projects"]
-    all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
-    all_scenes = PrimeItems.tasker_root_elements["all_scenes"]
+    all_projects = state.tasker_root_elements["all_projects"]
+    all_profiles = state.tasker_root_elements["all_profiles"]
+    all_tasks = state.tasker_root_elements["all_tasks"]
+    all_scenes = state.tasker_root_elements["all_scenes"]
 
     for project_name, project in all_projects.items():
         where = Target(PROJECT, project_name, project_name)
@@ -470,10 +471,10 @@ def _index_projects(index: ReferenceIndex) -> None:
                 )
 
 
-def _index_profiles(index: ReferenceIndex) -> None:
+def _index_profiles(index: ReferenceIndex, state: RunState) -> None:
     """Walk every Profile: record the Tasks it runs, and report the ones that are missing."""
-    all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    all_profiles = state.tasker_root_elements["all_profiles"]
+    all_tasks = state.tasker_root_elements["all_tasks"]
 
     for profile_id, profile in all_profiles.items():
         where = Target(PROFILE, profile_id, profile["name"], index.project_of_profile.get(profile_id, ""))
@@ -496,9 +497,9 @@ def _index_profiles(index: ReferenceIndex) -> None:
                 )
 
 
-def _index_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict) -> None:
+def _index_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, state: RunState) -> None:
     """Record the Tasks a Legacy Scene's elements fire, reporting any that are missing."""
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    all_tasks = state.tasker_root_elements["all_tasks"]
     # project_of_scene is filled by _index_projects, which run_health_check calls first.
     where = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))
 
@@ -534,7 +535,7 @@ def _index_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict) -> N
                 )
 
 
-def _index_v2_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict) -> None:
+def _index_v2_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, state: RunState) -> None:
     """Record the Tasks a Version 2 Scene's event handlers run.
 
     A V2 Scene keeps its components in a gzipped JSON blob rather than in child elements,
@@ -547,7 +548,7 @@ def _index_v2_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict) -
     if layout is None:
         return
 
-    all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
+    all_tasks_by_name = state.tasker_root_elements["all_tasks_by_name"]
     where = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))
 
     for row in sceneedit_v2.v2_flatten(layout):
@@ -572,15 +573,15 @@ def _index_v2_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict) -
                     )
 
 
-def _index_scenes(index: ReferenceIndex) -> None:
+def _index_scenes(index: ReferenceIndex, state: RunState) -> None:
     """Walk every Scene, Legacy or Version 2, for the Tasks it fires."""
 
-    for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
+    for scene_name, scene in state.tasker_root_elements["all_scenes"].items():
         # <lj> is the whole V2 test, in both directions (see sceneedit.is_v2_scene).
         if scene["xml"].find("lj") is not None:
-            _index_v2_scene_tasks(index, scene_name, scene)
+            _index_v2_scene_tasks(index, scene_name, scene, state=state)
         else:
-            _index_scene_tasks(index, scene_name, scene)
+            _index_scene_tasks(index, scene_name, scene, state=state)
 
 
 def _index_one_action(
@@ -589,6 +590,7 @@ def _index_one_action(
     number: int,
     where: Target,
     scene_args: dict[str, str],
+    state: RunState,
 ) -> None:
     """Record what one action refers to, wherever that action lives.
 
@@ -598,8 +600,8 @@ def _index_one_action(
     Task's actions do.  Scanning them with a second, parallel copy of this logic is how
     the two would drift apart.
     """
-    all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
-    all_scenes = PrimeItems.tasker_root_elements["all_scenes"]
+    all_tasks_by_name = state.tasker_root_elements["all_tasks_by_name"]
+    all_scenes = state.tasker_root_elements["all_scenes"]
 
     code = _element_text(action, "code")
     if not code:
@@ -656,7 +658,7 @@ def _index_one_action(
             )
 
 
-def _index_actions(index: ReferenceIndex) -> None:
+def _index_actions(index: ReferenceIndex, state: RunState) -> None:
     """Walk every action of every Task for Task and Scene references.
 
     The only pass here that is O(actions) rather than O(objects), and the reason the
@@ -668,17 +670,17 @@ def _index_actions(index: ReferenceIndex) -> None:
     the same.  Skipping them would make a Scene shown only by a Profile's anonymous entry
     Task look unused.
     """
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    all_tasks = state.tasker_root_elements["all_tasks"]
     scene_args = _scene_name_args()
 
     for task_id, task in all_tasks.items():
         where = Target(TASK, task_id, task["name"], index.project_of_task.get(task_id, ""))
 
         for number, action in enumerate(actions_in_map_order(task["xml"]), start=1):
-            _index_one_action(index, action, number, where, scene_args)
+            _index_one_action(index, action, number, where, scene_args, state=state)
 
 
-def _index_scene_inline_actions(index: ReferenceIndex) -> None:
+def _index_scene_inline_actions(index: ReferenceIndex, state: RunState) -> None:
     """Walk the actions of anonymous tasks that live inside a Scene.
 
     Tasker keeps a truly anonymous task -- one created inline on a Scene element and named
@@ -691,24 +693,24 @@ def _index_scene_inline_actions(index: ReferenceIndex) -> None:
     """
     scene_args = _scene_name_args()
 
-    for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
+    for scene_name, scene in state.tasker_root_elements["all_scenes"].items():
         scene_target = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))
         where = scene_target.with_text("anonymous Task")
         # .iter() from the Scene root: these sit at whatever depth the element that owns
         # them sits, and are not confined to one element type.
         for number, action in enumerate(scene["xml"].iter("Action"), start=1):
-            _index_one_action(index, action, number, where, scene_args)
+            _index_one_action(index, action, number, where, scene_args, state=state)
 
 
 # ##################################################################################
 # Checks that read the finished index.
 # ##################################################################################
-def _check_reachability(index: ReferenceIndex) -> None:
+def _check_reachability(index: ReferenceIndex, state: RunState) -> None:
     """Report objects nothing can reach: dead Tasks, unowned Profiles and Scenes, empty Projects."""
-    all_projects = PrimeItems.tasker_root_elements["all_projects"]
-    all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
-    all_scenes = PrimeItems.tasker_root_elements["all_scenes"]
+    all_projects = state.tasker_root_elements["all_projects"]
+    all_profiles = state.tasker_root_elements["all_profiles"]
+    all_tasks = state.tasker_root_elements["all_tasks"]
+    all_scenes = state.tasker_root_elements["all_scenes"]
 
     for task_id, task in all_tasks.items():
         if index.task_referrers.get(task_id):
@@ -772,7 +774,7 @@ def _check_reachability(index: ReferenceIndex) -> None:
             )
 
 
-def _check_duplicate_names(index: ReferenceIndex) -> None:
+def _check_duplicate_names(index: ReferenceIndex, state: RunState) -> None:
     """Report two objects of the same kind sharing a name.
 
     Tasker allows it, but every reference by name -- Perform Task, a V2 Scene's RunTask,
@@ -796,7 +798,7 @@ def _check_duplicate_names(index: ReferenceIndex) -> None:
             )
 
     profiles_by_name = defaultdict(list)
-    for profile_id, profile in PrimeItems.tasker_root_elements["all_profiles"].items():
+    for profile_id, profile in state.tasker_root_elements["all_profiles"].items():
         if profile["name"]:
             profiles_by_name[profile["name"]].append(profile_id)
     for profile_name, profile_ids in sorted(profiles_by_name.items()):
@@ -888,7 +890,7 @@ _VARIABLE_SEVERITY = {
 }
 
 
-def _check_variables(index: ReferenceIndex) -> None:
+def _check_variables(index: ReferenceIndex, state: RunState) -> None:
     """Fold the variable cross-reference's problems into this report.
 
     The cross-reference builds its own index -- it reads arguments, conditions, plugin
@@ -900,7 +902,7 @@ def _check_variables(index: ReferenceIndex) -> None:
     Tags are prefixed VAR- so they sort together and can be searched for as a group, and
     are un-translated like every other tag here.
     """
-    for suspect in varxref.suspects(varxref.build_index()):
+    for suspect in varxref.suspects(varxref.build_index(state=state)):
         # A near-duplicate's subject names both spellings ("%SheetID / %SheetId"); every
         # other class names one variable, and the split leaves it alone.
         names = [name.strip() for name in suspect.subject.split("/") if name.strip()]
@@ -923,7 +925,7 @@ def _check_variables(index: ReferenceIndex) -> None:
         )
 
 
-def _check_control_flow(index: ReferenceIndex) -> None:
+def _check_control_flow(index: ReferenceIndex, state: RunState) -> None:
     """Fold the control-flow analysis's problems into this report.
 
     Folded in for the reason _check_variables above is folded in: a user who never presses
@@ -941,7 +943,7 @@ def _check_control_flow(index: ReferenceIndex) -> None:
     words are this module's own -- see the note at the top of taskflow.py on why they are
     spelled out there rather than imported from here.
     """
-    for problem in taskflow.control_flow_problems():
+    for problem in taskflow.control_flow_problems(state=state):
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
@@ -960,7 +962,7 @@ def _check_code(index: ReferenceIndex) -> None:
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
-def _check_behaviour(index: ReferenceIndex) -> None:
+def _check_behaviour(index: ReferenceIndex, state: RunState) -> None:
     """Fold the behavioural lint's problems into this report.
 
     Folded in for the reason _check_control_flow and _check_variables are: every check
@@ -980,7 +982,7 @@ def _check_behaviour(index: ReferenceIndex) -> None:
     the note at the top of proflint.py on why its three severity words are spelled out
     there rather than imported from here.
     """
-    for problem in proflint.lint_problems():
+    for problem in proflint.lint_problems(state=state):
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
@@ -999,7 +1001,7 @@ def _check_plugins(index: ReferenceIndex) -> None:
     index.plugins_unchecked = plugchk.plugins_unchecked()
 
 
-def _check_secrets(index: ReferenceIndex) -> None:
+def _check_secrets(index: ReferenceIndex, state: RunState) -> None:
     """Fold the secrets and personal-details scan into this report.
 
     Folded in for the reason _check_behaviour is: every check above answers a question
@@ -1021,14 +1023,14 @@ def _check_secrets(index: ReferenceIndex) -> None:
     it: what is reported here is what disappears from a redacted file, so this report is how
     a user decides whether one is worth making.
     """
-    for problem in piiscan.lint_problems():
+    for problem in piiscan.lint_problems(state=state):
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
-def _check_hygiene(index: ReferenceIndex) -> None:
+def _check_hygiene(index: ReferenceIndex, state: RunState) -> None:
     """Report the things that are legal, and working, but worth knowing about."""
-    all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    all_profiles = state.tasker_root_elements["all_profiles"]
+    all_tasks = state.tasker_root_elements["all_tasks"]
 
     for profile_id, profile in all_profiles.items():
         # <limit>true</limit> is how Tasker records a disabled Profile (profiles.py).
@@ -1043,7 +1045,7 @@ def _check_hygiene(index: ReferenceIndex) -> None:
     # Counted here rather than read from PrimeItems.task_action_warnings, which is only
     # populated while the Map output is being built (taskactn.py).  A health check run
     # straight after loading a file would otherwise silently report nothing.
-    limit = PrimeItems.program_arguments.task_action_warning_limit
+    limit = state.program_arguments.task_action_warning_limit
     if limit < 100:
         for task_id, task in all_tasks.items():
             count = len(task["xml"].findall("Action"))
@@ -1055,20 +1057,20 @@ def _check_hygiene(index: ReferenceIndex) -> None:
                     f"{count} actions, above your warning limit of {limit}. Consider splitting it into several Tasks.",
                 )
 
-    _check_duplicate_names(index)
+    _check_duplicate_names(index, state=state)
 
 
 # ##################################################################################
 # Report construction.
 # ##################################################################################
-def _current_xml_file() -> str:
+def _current_xml_file(state: RunState) -> str:
     """The path of the XML file being checked.
 
     PrimeItems.file_to_get is sometimes an open file object and sometimes the path as a
     plain string -- the same ambiguity maputil2.write_full_backup_to_current_file
     handles, resolved the same way.
     """
-    file_to_get = PrimeItems.file_to_get
+    file_to_get = state.file_to_get
     path = getattr(file_to_get, "name", file_to_get) if file_to_get else ""
     return path if isinstance(path, str) and path else "(unknown)"
 
@@ -1078,7 +1080,9 @@ def _counts(findings: list[Finding]) -> dict:
     return {severity: sum(1 for item in findings if item.severity == severity) for severity in _SEVERITY_ORDER}
 
 
-def _build_report(index: ReferenceIndex, when: datetime, skip: frozenset[str] = frozenset()) -> list[Row]:
+def _build_report(
+    index: ReferenceIndex, when: datetime, skip: frozenset[str] = frozenset(), *, state: RunState
+) -> list[Row]:
     """Render the findings, one Row per line of the report.
 
     Rows rather than strings so the report can be written twice from one source: as the
@@ -1090,7 +1094,7 @@ def _build_report(index: ReferenceIndex, when: datetime, skip: frozenset[str] = 
     very end (see _not_run), so the report never passes for a clean bill of health on
     something it was told not to look at.
     """
-    root = PrimeItems.tasker_root_elements
+    root = state.tasker_root_elements
     counts = _counts(index.findings)
     rule = "=" * _REPORT_WIDTH
     thin_rule = "-" * _REPORT_WIDTH
@@ -1098,7 +1102,7 @@ def _build_report(index: ReferenceIndex, when: datetime, skip: frozenset[str] = 
     lines = [
         "MapTasker Health Check",
         rule,
-        f"XML file:    {_current_xml_file()}",
+        f"XML file:    {_current_xml_file(state=state)}",
         f"Generated:   {when.strftime('%d-%b-%Y %H:%M:%S')}",
         f"Version:     {MY_VERSION}",
         "",
@@ -1280,7 +1284,7 @@ def _not_run(skip: frozenset[str]) -> list[str]:
     return [*lines, ""]
 
 
-def build_reference_index() -> ReferenceIndex:
+def build_reference_index(state: RunState) -> ReferenceIndex:
     """Everything in the file that points at something else, gathered but not yet judged.
 
     Split out of run_health_check so that a second question can be asked of the same scan:
@@ -1298,20 +1302,20 @@ def build_reference_index() -> ReferenceIndex:
     """
     index = ReferenceIndex()
 
-    for task_id, task in PrimeItems.tasker_root_elements["all_tasks"].items():
+    for task_id, task in state.tasker_root_elements["all_tasks"].items():
         if task["name"]:
             index.task_ids_by_name[task["name"]].append(task_id)
 
-    _index_projects(index)
-    _index_profiles(index)
-    _index_scenes(index)
-    _index_actions(index)
-    _index_scene_inline_actions(index)
+    _index_projects(index, state=state)
+    _index_profiles(index, state=state)
+    _index_scenes(index, state=state)
+    _index_actions(index, state=state)
+    _index_scene_inline_actions(index, state=state)
 
     return index
 
 
-def collect_findings(skip: Collection[str] = ()) -> ReferenceIndex:
+def collect_findings(skip: Collection[str] = (), *, state: RunState) -> ReferenceIndex:
     """Run every pass the skip set leaves standing and return the index they filled.
 
     Split out of run_health_check for build_reference_index's reason, one level up: the
@@ -1335,22 +1339,22 @@ def collect_findings(skip: Collection[str] = ()) -> ReferenceIndex:
     Safe to call with nothing loaded: every pass iterates tables that are empty.
     """
     skip = frozenset(skip)
-    index = build_reference_index()
+    index = build_reference_index(state=state)
 
-    _check_reachability(index)
-    _check_hygiene(index)
+    _check_reachability(index, state=state)
+    _check_hygiene(index, state=state)
     if not _PASS_TAGS["flow"] <= skip:
-        _check_control_flow(index)
+        _check_control_flow(index, state=state)
     if not _PASS_TAGS["code"] <= skip:
         _check_code(index)
     if not _PASS_TAGS["variables"] <= skip:
-        _check_variables(index)
+        _check_variables(index, state=state)
     if not _PASS_TAGS["behaviour"] <= skip:
-        _check_behaviour(index)
+        _check_behaviour(index, state=state)
     if not _PASS_TAGS["plugins"] <= skip:
         _check_plugins(index)
     if not _PASS_TAGS["secrets"] <= skip:
-        _check_secrets(index)
+        _check_secrets(index, state=state)
 
     if skip:
         # The closing notes are keyed off what is left (see _limitations), so filtering
@@ -1361,7 +1365,7 @@ def collect_findings(skip: Collection[str] = ()) -> ReferenceIndex:
     return index
 
 
-def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
+def run_health_check(skip: Collection[str] = (), *, state: RunState) -> tuple[list[Row], dict]:
     """Scan the loaded configuration and return (report rows, counts by severity).
 
     Rows rather than finished text: the caller saves them as plain text and shows them as
@@ -1374,8 +1378,8 @@ def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
     but the GUI checks first so it can say something more useful than "0 Projects".
     """
     skip = frozenset(skip)
-    index = collect_findings(skip)
-    return _build_report(index, clock.now(), skip), _counts(index.findings)
+    index = collect_findings(skip, state=state)
+    return _build_report(index, clock.now(), skip, state=state), _counts(index.findings)
 
 
 def write_health_check_report(rows: list[Row]) -> str:
