@@ -86,7 +86,7 @@ def test_an_entry_within_the_limit_keeps_its_hotlink(output_lines: LineOut) -> N
     """Nothing changes for the ordinary case: the entry is a link to its anchor."""
     PrimeItems.directory_items["profiles"] = [["Morning", "Morning"]]
 
-    do_tasker_element("profiles", RunConfig(), set())
+    do_tasker_element("profiles", RunConfig(), set(), state=PrimeItems)
 
     assert "<a href=#profiles_Morning" in written(output_lines)
 
@@ -95,7 +95,7 @@ def test_an_entry_past_the_limit_is_listed_as_plain_text(output_lines: LineOut) 
     """Its anchor is not in the file, so a link to it would go nowhere."""
     PrimeItems.directory_items["profiles"] = [["Morning", "Morning"], ["Evening", "Evening"]]
 
-    do_tasker_element("profiles", RunConfig(), {"profiles_Evening"})
+    do_tasker_element("profiles", RunConfig(), {"profiles_Evening"}, state=PrimeItems)
 
     output = written(output_lines)
     assert "<a href=#profiles_Morning" in output
@@ -107,7 +107,7 @@ def test_a_demoted_entry_stays_in_alphabetical_order(output_lines: LineOut) -> N
     """Losing the hyperlink must not move the entry to the end of the table."""
     PrimeItems.directory_items["tasks"] = [["Wake", "Wake"], ["Middle", "Middle"], ["Doze", "Doze"]]
 
-    do_tasker_element("tasks", RunConfig(), {"tasks_Middle"})
+    do_tasker_element("tasks", RunConfig(), {"tasks_Middle"}, state=PrimeItems)
 
     output = written(output_lines)
     assert output.index("Doze") < output.index("Middle") < output.index("Wake")
@@ -117,14 +117,14 @@ def test_a_name_with_a_space_matches_its_anchor(output_lines: LineOut) -> None:
     """The anchor is written with the name's blanks as underscores, and matched that way."""
     PrimeItems.directory_items["profiles"] = [["Get_Up", "Get Up"]]
 
-    do_tasker_element("profiles", RunConfig(), {"profiles_Get_Up"})
+    do_tasker_element("profiles", RunConfig(), {"profiles_Get_Up"}, state=PrimeItems)
 
     assert "href=" not in written(output_lines)
 
 
 def test_trailing_information_is_demoted_the_same_way(output_lines: LineOut) -> None:
     """Grand Totals sits at the very bottom, so it is the first thing a cut loses."""
-    do_trailing_matters(RunConfig(display_detail_level=3), {"grand_totals"})
+    do_trailing_matters(RunConfig(display_detail_level=3), {"grand_totals"}, state=PrimeItems)
 
     output = written(output_lines)
     assert "href=#grand_totals" not in output
@@ -133,7 +133,7 @@ def test_trailing_information_is_demoted_the_same_way(output_lines: LineOut) -> 
 
 def test_trailing_information_keeps_its_hotlink_when_it_is_written(output_lines: LineOut) -> None:
     """A Map that fits leaves the trailing entries exactly as they were."""
-    do_trailing_matters(RunConfig(display_detail_level=4), set())
+    do_trailing_matters(RunConfig(display_detail_level=4), set(), state=PrimeItems)
 
     output = written(output_lines)
     assert "href=#grand_totals" in output

@@ -110,7 +110,7 @@ def build_html(file_to_get: str) -> int:
     # Get all Tasker variables.  The configuration digest goes with them so that the
     # where-used counts survive a rebuild that only changed how the Map is displayed.
     if PrimeItems.program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
-        get_variables(building_from[0])
+        get_variables(building_from[0], state=PrimeItems)
 
     # Process all Projects and their Profiles
     found_tasks = []
@@ -173,7 +173,7 @@ def restart_program() -> None:
     Processing Logic:
         - Call ourselves and exit after the last call."""
 
-    restart_program_subprocess()
+    restart_program_subprocess(state=PrimeItems)
     exit_program(0)  # This should never be called.
 
 
@@ -263,7 +263,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
 
                 # Do the directory output
                 if config.directory:
-                    _output_directory(config, dropped_anchors)
+                    _output_directory(config, dropped_anchors, state=PrimeItems)
                 # Output the directory line
                 for output_line in PrimeItems.output_lines.output_lines:
                     map_file.write(output_line)
@@ -395,7 +395,7 @@ def display_back_matter() -> None:
     """
     program_arguments = PrimeItems.program_arguments
     if program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
-        output_variables("Unreferenced Global Variables", "")
+        output_variables("Unreferenced Global Variables", "", config=current_config(), state=PrimeItems)
 
     # Get the output directory/folder path -- see outdir.  (dirout's output_directory,
     # imported above, is the Map's hyperlink directory and has nothing to do with this.)
@@ -418,7 +418,7 @@ def display_back_matter() -> None:
         PrimeItems.program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_tasks
         and PrimeItems.task_action_warnings
     ):
-        display_task_warnings()
+        display_task_warnings(config=current_config(), state=PrimeItems)
 
     # Display the program caveats
     display_caveats(current_config())
@@ -521,7 +521,7 @@ def clean_up_memory() -> None:
     if PrimeItems.xml_tree is not None:
         for elem in PrimeItems.xml_tree.iter():
             elem.clear()
-    clear_tasker_data()
+    clear_tasker_data(state=PrimeItems)
     # The directory and the rest of the run's small state go with the reset below.
     if PrimeItems.xml_root is not None:
         PrimeItems.xml_root.clear()

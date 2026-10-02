@@ -75,7 +75,7 @@ def tasker_data() -> None:
 
 def listed(kind: str, config: RunConfig) -> list[str]:
     """The names of the given kind the directory would list under these settings."""
-    return [item[1] for item in _DIRECTORY[kind] if check_item(kind, item, config)]
+    return [item[1] for item in _DIRECTORY[kind] if check_item(kind, item, config, state=PrimeItems)]
 
 
 # ##################################################################################
@@ -169,7 +169,7 @@ def test_an_unnamed_task_is_still_let_through() -> None:
     unnamed = [["Task_37_(Unnamed)", "Task 37 (Unnamed)"]]
     config = RunConfig(single_task_name="BaseEntry")
 
-    assert [item[1] for item in unnamed if check_item("tasks", item, config)] == ["Task 37 (Unnamed)"]
+    assert [item[1] for item in unnamed if check_item("tasks", item, config, state=PrimeItems)] == ["Task 37 (Unnamed)"]
 
 
 # ##################################################################################

@@ -118,9 +118,9 @@ def process_projects_and_their_profiles(
         task_list = [{"xml": unnamed_task["xml"], "name": task_name}]
         task_output_lines = [" "]
         # Get/set the Profile name
-        profile_name = profile if (profile := find_owning_profile(task_name)) else "No Profile"
+        profile_name = profile if (profile := find_owning_profile(task_name, state=state)) else "No Profile"
         # Get/set the Project name.
-        project_name = project if (project := find_owning_project(profile_name)) else "N/A"
+        project_name = project if (project := find_owning_project(profile_name, state=state)) else "N/A"
 
         # Output the unnamed Task
         output_task_list(task_list, project_name, profile_name, task_output_lines, [], True, config, state=state)
@@ -593,7 +593,7 @@ def finish_up(
 
     # Output the Project's variables
     if config.display_detail_level >= 4:
-        output_variables("Project Global Variables", project)
+        output_variables("Project Global Variables", project, config=config, state=state)
 
     # Output the Project summary line
     summary_counts(project_name, profile_count, state=state)
@@ -709,7 +709,7 @@ def get_profile_details_and_output(
 
     # If doing a directory, save the project name for it
     if config.directory:
-        add_directory_item("projects", project_name)
+        add_directory_item("projects", project_name, config=config, state=state)
 
     # Get any Project launch details
     launcher_task_info = get_launcher_task(project, project_name)
@@ -800,7 +800,7 @@ def process_projects(
     # Doing a single Scene?  Work out which Project owns it once, up front, so the loop
     # below can skip straight past every other Project.
     single_scene_name = config.single_scene_name
-    scene_owning_project = find_owning_project_for_scene(single_scene_name) if single_scene_name else ""
+    scene_owning_project = find_owning_project_for_scene(single_scene_name, state=state) if single_scene_name else ""
 
     for project_name in state.tasker_root_elements["all_projects"]:
         # Ignore this project if we are looking for a specific one and this isn't it.

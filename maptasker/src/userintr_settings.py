@@ -102,7 +102,7 @@ class SettingsEventHandlers:
         # that say which file to read and which single item to map, so data read under the
         # old ones has no business outliving them -- and the button's tooltip promises as
         # much.  Both the parsed data and the file it came from go.
-        clear_tasker_data()
+        clear_tasker_data(state=PrimeItems)
         PrimeItems.file_to_get = ""
 
         # Back to the runtime arguments a fresh run starts with.  Not literally a fresh run,

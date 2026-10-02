@@ -10,6 +10,7 @@ registry; loading a configuration (maputils.clear_tasker_data) and a full reset
 from __future__ import annotations
 
 import pytest
+from maptasker.src.primitem import PrimeItems
 from maptasker.src import appinv, bildhtml, caches, globalvr, mapcache, profedit, scenes, taskedit
 from maptasker.src.maputils import clear_tasker_data
 from maptasker.src.primitem import PrimeItemsReset
@@ -70,7 +71,11 @@ def test_every_cache_the_package_declares_is_registered() -> None:
     assert set(caches.registered_names()) >= EXPECTED
 
 
-@pytest.mark.parametrize("reset", [clear_tasker_data, PrimeItemsReset], ids=["new-configuration", "full-reset"])
+@pytest.mark.parametrize(
+    "reset",
+    [lambda: clear_tasker_data(state=PrimeItems), PrimeItemsReset],
+    ids=["new-configuration", "full-reset"],
+)
 def test_loading_another_configuration_empties_every_cache(reset: object) -> None:
     """Both ways the program starts over leave nothing of the last configuration behind."""
     globalvr._cross_reference.value = {"%Stale": object()}  # noqa: SLF001
@@ -97,7 +102,7 @@ def test_a_scene_left_open_by_a_failed_build_does_not_open_the_next() -> None:
     build began by closing a <span> it had never opened.
     """
     scenes._carrying_scene_colour.value = True  # noqa: SLF001  as a failed build leaves it
-    clear_tasker_data()
+    clear_tasker_data(state=PrimeItems)
     assert scenes._carrying_scene_colour.value is False  # noqa: SLF001
 
 
@@ -106,5 +111,5 @@ def test_the_inventory_generation_only_goes_up() -> None:
     to a number a memo keyed on it has already seen.
     """
     before = appinv.generation()
-    clear_tasker_data()
+    clear_tasker_data(state=PrimeItems)
     assert appinv.generation() > before

@@ -545,15 +545,17 @@ def is_single_item_found(config: RunConfig | None = None) -> bool:
 
 
 # Clear the single named item being asked for, or all of them but one.
-def clear_single_items(keep: str = "") -> None:
+def clear_single_items(keep: str = "", state: RunState | None = None) -> None:
     """
     Clear the single Project/Profile/Task/Scene selection: each name asked for and its found-flag.
 
     Args:
         keep (str): the program_arguments key of one selection to leave as it is (for
             example "single_task_name"), or "" to clear them all.
+        state (RunState | None): the run state to clear them on, or None for PrimeItems.
     """
+    target = PrimeItems if state is None else state
     for name_key, found_key, _ in SINGLE_ITEM_SELECTORS:
         if name_key != keep:
-            PrimeItems.program_arguments[name_key] = ""
-            PrimeItems.found_named_items[found_key] = False
+            target.program_arguments[name_key] = ""
+            target.found_named_items[found_key] = False

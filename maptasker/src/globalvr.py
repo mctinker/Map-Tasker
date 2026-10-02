@@ -13,7 +13,8 @@ from xml.etree.ElementTree import Element
 from maptasker.src import caches, varxref
 from maptasker.src.mapjump import VARIABLE, Target
 from maptasker.src.maputils import fix_hyperlink_name
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
+from maptasker.src.runcfg import RunConfig
 from maptasker.src.sysconst import NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BORDER, FormatLine
 from maptasker.src.taskervars import tasker_global_variables
 
@@ -30,7 +31,7 @@ _cross_reference_key: caches.Slot[str] = caches.Slot("globalvr.cross_reference_k
 
 
 # Read in the variables and save them for now.
-def get_variables(configuration: str = "") -> None:
+def get_variables(configuration: str = "", *, state: RunState) -> None:
     """
     Read in and save the Tasker variables.
         :param configuration: a digest of the configuration these variables are being
@@ -47,7 +48,7 @@ def get_variables(configuration: str = "") -> None:
         _cross_reference_key.value = configuration
 
     # Get all of the Tasker variables
-    if not (global_variables := PrimeItems.xml_root.findall("Variable")):
+    if not (global_variables := state.xml_root.findall("Variable")):
         return
     # Save each in a dictionary.
     # Loop through the variables.
@@ -69,7 +70,7 @@ def get_variables(configuration: str = "") -> None:
             variable_value = variable_value.replace(" ", "&nbsp;")
 
         # Add it to our dictionary
-        PrimeItems.variables[variable_name] = {
+        state.variables[variable_name] = {
             "value": variable_value,
             "project": [],
             "verified": True,
@@ -91,7 +92,7 @@ def _get_cross_reference() -> dict:
     return _cross_reference.value
 
 
-def _usage_cell(references: list, table_definition: str) -> str:
+def _usage_cell(references: list, table_definition: str, config: RunConfig, state: RunState) -> str:
     """One Set or Read cell: how many, linked to the Tasks it happens in.
 
     The count is the useful thing at a glance -- a zero in the Set column beside a
@@ -104,7 +105,7 @@ def _usage_cell(references: list, table_definition: str) -> str:
     if not references:
         return f"{table_definition}0</td>"
 
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    all_tasks = state.tasker_root_elements["all_tasks"]
     # Ordered, de-duplicated: a Task that sets a variable four times is one place to look.
     task_names = list(
         dict.fromkeys(
@@ -114,7 +115,7 @@ def _usage_cell(references: list, table_definition: str) -> str:
         ),
     )
     count = len(references)
-    if not task_names or not PrimeItems.program_arguments.directory:
+    if not task_names or not config.directory:
         return f"{table_definition}{count}</td>"
 
     # Tooltip lists every Task; the link goes to the first, which is where a reader
@@ -124,12 +125,14 @@ def _usage_cell(references: list, table_definition: str) -> str:
     return f'{table_definition}<a href="#tasks_{anchor}" title="{tooltip}">{count}</a></td>'
 
 
-def _usage_cells(key: str, table_definition: str) -> str:
+def _usage_cells(key: str, table_definition: str, config: RunConfig, state: RunState) -> str:
     """The Set and Read cells for one variable, or empty cells if it is not in the index."""
     variable = _get_cross_reference().get(key)
     if variable is None:
         return f"{table_definition}&nbsp;</td>{table_definition}&nbsp;</td>"
-    return _usage_cell(variable.sets, table_definition) + _usage_cell(variable.reads, table_definition)
+    return _usage_cell(variable.sets, table_definition, config, state=state) + _usage_cell(
+        variable.reads, table_definition, config, state=state
+    )
 
 
 # Print the variables (Project's or Unreferenced)
@@ -145,7 +148,7 @@ def _variable_anchor(name: str, wanted: bool) -> str:
     return f' id="{Target(VARIABLE, name).anchor}"' if wanted else ""
 
 
-def print_the_variables(color_to_use: str, project: Element) -> None:
+def print_the_variables(color_to_use: str, project: Element, config: RunConfig, state: RunState) -> None:
     """Parameters:
         - color_to_use (str): The color to use for the table definition.
         - project (Element): The project to use, if applicable.
@@ -164,7 +167,7 @@ def print_the_variables(color_to_use: str, project: Element) -> None:
     variable_output_lines = []
 
     # Go through all of the Tasker global variables.
-    for key, value in sorted(PrimeItems.variables.items()):
+    for key, value in sorted(state.variables.items()):
         # If this is a Tasker global variable, change the value to "global"
         if key in tasker_global_variables:
             value["value"] = "<em>Tasker Global</em>"
@@ -172,48 +175,49 @@ def print_the_variables(color_to_use: str, project: Element) -> None:
         # If doing the Project variables, first find the Project
         if project is not None and project != "":
             # Does this variable have a list of Projects?
-            if PrimeItems.variables[key]["project"]:
+            if state.variables[key]["project"]:
                 # A variable used in three Projects gets a row in each of their tables, but
                 # an HTML id may only appear once in a document -- so the anchor goes on the
                 # row in the FIRST Project that uses it, and the rest are plain rows.  A jump
                 # to the variable then lands on a real use of it rather than on nothing.
-                first_project = PrimeItems.variables[key]["project"][0]["xml"]
+                first_project = state.variables[key]["project"][0]["xml"]
                 variable_output_lines.extend(
                     [
                         f"<tr{_variable_anchor(key, variable_project['xml'] is first_project)}>"
                         f"{table_definition}{key}</td>{table_definition}{value['value']}</td>"
-                        f"{_usage_cells(key, table_definition)}</tr>"
-                        for variable_project in PrimeItems.variables[key]["project"]
+                        f"{_usage_cells(key, table_definition, config, state=state)}</tr>"
+                        for variable_project in state.variables[key]["project"]
                         if variable_project["xml"] == project
                     ],
                 )
 
         # If this is a verified "tasker variable", and not a Project global var?
-        elif PrimeItems.variables[key]["verified"] and not PrimeItems.variables[key]["project"]:
+        elif state.variables[key]["verified"] and not state.variables[key]["project"]:
             # It is an unrefereenced variable.
             variable_output_lines.append(
                 f"<tr{_variable_anchor(key, True)}>"
                 f"{table_definition}{key}</td>{table_definition}{value['value']}</td>"
-                f"{_usage_cells(key, table_definition)}</tr>",
+                f"{_usage_cells(key, table_definition, config, state=state)}</tr>",
             )
 
     return variable_output_lines
 
 
 # Print variables by adding them to the output.
-def output_variables(heading: str, project: Element) -> None:
+def output_variables(heading: str, project: Element, config: RunConfig, state: RunState) -> None:
     """
     Print variables by adding them to the output.
         Args:
 
             heading (str): Heading to print.
             project (xml.etree.ElementTree): Project to print.
+            config (RunConfig): the run's settings (directory, font and colors)
     """
-    if not PrimeItems.variables:
+    if not state.variables:
         return
     # Add a directory entry for variables.
-    if (project is None or project == "") and PrimeItems.program_arguments.directory:
-        PrimeItems.output_lines.add_line_to_output(
+    if (project is None or project == "") and config.directory:
+        state.output_lines.add_line_to_output(
             5,
             '<a id="unreferenced_variables"></a>',
             FormatLine.dont_format_line,
@@ -222,34 +226,34 @@ def output_variables(heading: str, project: Element) -> None:
     # Output unreferenced global variables.  The Project will be "".
     # Force an indentation and set color to use in output.
     if project is None or project == "":
-        color_to_use = PrimeItems.colors_to_use["trailing_comments_color"]
+        color_to_use = config.colors["trailing_comments_color"]
         color_name = "trailing_comments_color"
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             1,
             "",
             ["", "trailing_comments_color", FormatLine.add_end_span],
         )
         # Print a ruler
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             5,
             "<br><hr>",
             FormatLine.dont_format_line,
         )
     else:
-        color_to_use = PrimeItems.colors_to_use["project_color"]
+        color_to_use = config.colors["project_color"]
         color_name = "project_color"
 
     # Print the heading if we have global variables.
-    if variable_output_lines := print_the_variables(color_to_use, project):
-        PrimeItems.output_lines.add_line_to_output(
+    if variable_output_lines := print_the_variables(color_to_use, project, config, state=state):
+        state.output_lines.add_line_to_output(
             5,
             f"<br>{NORMAL_TAB}{heading}",
             ["", color_name, FormatLine.add_end_span],
         )
 
         # Define table
-        table_definition = f'{TABLE_BORDER}<table cellspacing="1" cellpadding="2" border="1" style="height:16px; margin-left: 20;color:{color_to_use};background-color:{TABLE_BACKGROUND_COLOR};font-family:{PrimeItems.program_arguments.font};text-align:left">\n<tr>\n<th>Name</th>\n<th>Value</th>\n<th>Set</th>\n<th>Read</th>\n</tr>'
-        PrimeItems.output_lines.add_line_to_output(
+        table_definition = f'{TABLE_BORDER}<table cellspacing="1" cellpadding="2" border="1" style="height:16px; margin-left: 20;color:{color_to_use};background-color:{TABLE_BACKGROUND_COLOR};font-family:{config.font};text-align:left">\n<tr>\n<th>Name</th>\n<th>Value</th>\n<th>Set</th>\n<th>Read</th>\n</tr>'
+        state.output_lines.add_line_to_output(
             5,
             table_definition,
             FormatLine.dont_format_line,
@@ -257,7 +261,7 @@ def output_variables(heading: str, project: Element) -> None:
 
         # Now go through our dictionary outputing the (sorted) variables
         for line in variable_output_lines:
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 5,
                 line,
                 FormatLine.dont_format_line,
@@ -265,14 +269,14 @@ def output_variables(heading: str, project: Element) -> None:
 
         # Wrap things up
         # End table
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             5,
             "</table><br>",
             FormatLine.dont_format_line,
         )
         # Un-indent the output only if doing unreferenced variables.
         if project is None or project == "":
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 3,
                 "",
                 FormatLine.dont_format_line,

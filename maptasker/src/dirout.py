@@ -19,7 +19,6 @@ import re
 from typing import TYPE_CHECKING
 
 from maptasker.src.maputils import fix_hyperlink_name
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     HOTLINK_STYLE,
     NORMAL_TAB,
@@ -30,6 +29,7 @@ from maptasker.src.sysconst import (
 )
 
 if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 period = "."
@@ -128,7 +128,7 @@ def search_lists(search_string: str, list_of_lists: list) -> bool:
 
 
 # Add directory item (Project/Profile/Task/Scene) to our dictionary of items
-def add_directory_item(key: str, name: str) -> None:
+def add_directory_item(key: str, name: str, config: RunConfig, state: RunState) -> None:
     """
     We are doing a directory.  Add the Project/Profile/Task/Scene name and hyperlink name to our dictionary of items
         Args:
@@ -137,24 +137,25 @@ def add_directory_item(key: str, name: str) -> None:
                 PrimeItems.directory_items"]["directory_head"]
                 where "directory_head is "project", "profile", "task", or "scene"
             name (str): name of the Project/Profile/Task/Scene
+            config (RunConfig): the run's settings (list_unnamed_items)
     """
     # If it is an unnamed task, and we are not doing the list of unnamed tasks, then skip it.
-    if UNNAMED_ITEM in name and not PrimeItems.program_arguments.list_unnamed_items:
+    if UNNAMED_ITEM in name and not config.list_unnamed_items:
         return
     # Clean up the name
     # name = name.replace(" (Scene)", "")
     # Only set values if we haven't already done this named item
-    if not search_lists(name, PrimeItems.directory_items[key]) and name != UNNAMED_ITEM:
+    if not search_lists(name, state.directory_items[key]) and name != UNNAMED_ITEM:
         # fix_hyperlink_name rather than a plain swap of spaces for underscores, for the
         # reason proclist.add_task_hyperlink gives: a name is the user's own text and can
         # hold a "<" or a ">" -- "System >> Say Response" -- which ends the tag it is
         # written into.  This one name becomes both the anchor and the hyperlink that
         # looks for it, so escaping it here keeps the two of them saying the same thing.
         hyperlink_name = fix_hyperlink_name(name)
-        PrimeItems.directory_items["current_item"] = f"{key}_{hyperlink_name}"
-        PrimeItems.directory_items[key].append([hyperlink_name, name])
+        state.directory_items["current_item"] = f"{key}_{hyperlink_name}"
+        state.directory_items[key].append([hyperlink_name, name])
     else:
-        PrimeItems.directory_items["current_item"] = ""
+        state.directory_items["current_item"] = ""
 
 
 #######################################################################################
@@ -192,7 +193,7 @@ def calculate_grid_size(items: list, max_columns: int) -> tuple:
 #######################################################################################
 # Given a list of hyperlinks, build a table and output the table
 #######################################################################################
-def output_table(hyperlinks: list, max_columns: int) -> None:
+def output_table(hyperlinks: list, max_columns: int, state: RunState) -> None:
     """
     Generates a Python docstring for the `output_table` function.
 
@@ -214,7 +215,7 @@ def output_table(hyperlinks: list, max_columns: int) -> None:
     # Now build the html needed for the table with the hyperlinks in it
     html_table = generate_html_table(hyperlinks, num_rows, max_columns)
 
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         html_table,
         ["", "profile_color", FormatLine.add_end_span],
@@ -279,7 +280,7 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
 #######################################################################################
 # Output directory for information at the bottom of the output
 #######################################################################################
-def do_trailing_matters(config: RunConfig, dropped_anchors: set) -> None:
+def do_trailing_matters(config: RunConfig, dropped_anchors: set, *, state: RunState) -> None:
     """
     Create a hyperlinks for key items that are at the bottom of the output
 
@@ -293,7 +294,7 @@ def do_trailing_matters(config: RunConfig, dropped_anchors: set) -> None:
         None
     """
     trailing_matter = []
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         f"<br><br>{NORMAL_TAB}Trailing Information{period * 50}<br><br>",
         ["", "project_color", FormatLine.add_end_span],
@@ -315,7 +316,7 @@ def do_trailing_matters(config: RunConfig, dropped_anchors: set) -> None:
 
     # Output the table
     trailing_matter.sort()
-    output_table(trailing_matter, 4)
+    output_table(trailing_matter, 4, state=state)
 
 
 # ##################################################################################
@@ -333,7 +334,7 @@ def do_trailing_matters(config: RunConfig, dropped_anchors: set) -> None:
 # Read straight off the Project XML rather than through maputils' equivalents: dirout
 # sits below maputils in the import graph (maputils -> taskerd -> profiles -> dirout).
 # ##################################################################################
-def project_owning(items_tag: str, item_to_match: str) -> str:
+def project_owning(items_tag: str, item_to_match: str, state: RunState) -> str:
     """Find the Project that claims a Profile, Task or Scene.
 
     Args:
@@ -346,14 +347,14 @@ def project_owning(items_tag: str, item_to_match: str) -> str:
     """
     if not item_to_match:
         return ""
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         items_in_project = project["xml"].find(items_tag)
         if items_in_project is not None and items_in_project.text and item_to_match in items_in_project.text.split(","):
             return project_name
     return ""
 
 
-def belongs_to(items_tag: str, item_to_match: str, project_name: str) -> bool:
+def belongs_to(items_tag: str, item_to_match: str, project_name: str, state: RunState) -> bool:
     """Is this Profile, Task or Scene one that the given Project owns?
 
     Args:
@@ -365,11 +366,11 @@ def belongs_to(items_tag: str, item_to_match: str, project_name: str) -> bool:
         bool: True unless another Project claims it (see this section's note on the
             items no Project claims at all).
     """
-    owner = project_owning(items_tag, item_to_match)
+    owner = project_owning(items_tag, item_to_match, state=state)
     return owner in ("", project_name)
 
 
-def profile_id(profile_name: str) -> str:
+def profile_id(profile_name: str, state: RunState) -> str:
     """Get the id of the Profile with this name, or "" if there is no such Profile.
 
     Args:
@@ -379,13 +380,13 @@ def profile_id(profile_name: str) -> str:
     Returns:
         str: the Profile's id.
     """
-    for this_id, profile in PrimeItems.tasker_root_elements.get("all_profiles", {}).items():
+    for this_id, profile in state.tasker_root_elements.get("all_profiles", {}).items():
         if profile.get("name") == profile_name:
             return this_id
     return ""
 
 
-def task_id(task_name: str) -> str:
+def task_id(task_name: str, state: RunState) -> str:
     """Get the id of the Task with this name, or "" if there is no such Task.
 
     Args:
@@ -395,11 +396,11 @@ def task_id(task_name: str) -> str:
     Returns:
         str: the Task's id.
     """
-    return PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}).get(task_name, {}).get("id", "")
+    return state.tasker_root_elements.get("all_tasks_by_name", {}).get(task_name, {}).get("id", "")
 
 
 # Get the Task IDs that a Profile directly references: its Entry/Exit Tasks.
-def get_profile_task_ids(profile_name: str) -> set:
+def get_profile_task_ids(profile_name: str, state: RunState) -> set:
     """
     Get the IDs of the Tasks a Profile directly references (its Entry and Exit Tasks)
         Args:
@@ -408,7 +409,7 @@ def get_profile_task_ids(profile_name: str) -> set:
         Returns:
             set: the Profile's Task IDs, empty if the Profile is unknown.
     """
-    profile = PrimeItems.tasker_root_elements.get("all_profiles_by_name", {}).get(profile_name, {}).get("xml")
+    profile = state.tasker_root_elements.get("all_profiles_by_name", {}).get(profile_name, {}).get("xml")
     if profile is None:
         return set()
     # A Profile's Entry Task is <mid0> and its Exit Task is <mid1> (see
@@ -417,7 +418,7 @@ def get_profile_task_ids(profile_name: str) -> set:
 
 
 # Doing Task hyperlink.  Make sure it is okay to do this Task hyperlink.
-def check_task(item: str, config: RunConfig) -> bool:
+def check_task(item: str, config: RunConfig, state: RunState) -> bool:
     """
     Check to make sure this Task should be included in the output
         Args:
@@ -428,7 +429,7 @@ def check_task(item: str, config: RunConfig) -> bool:
             bool: True if we should output this hyperlink, False if it is to be ingored.
     """
     # A Task that belongs to a Scene is held with " (Scene)" on the end of its name.
-    this_task_id = task_id(item[1].replace(" (Scene)", ""))
+    this_task_id = task_id(item[1].replace(" (Scene)", ""), state=state)
 
     # Doing a single Task?  Only that Task.  An unnamed Task is let through whatever its
     # name: the name it is listed under is one MapTasker made up from its first action.
@@ -441,28 +442,28 @@ def check_task(item: str, config: RunConfig) -> bool:
         # Tasker doesn't always list such a Task in the owning Project's <tids>, and
         # the Task would otherwise be dropped from the directory even though it is
         # displayed in the output.
-        if this_task_id in get_profile_task_ids(config.single_profile_name):
+        if this_task_id in get_profile_task_ids(config.single_profile_name, state=state):
             return True
         # Otherwise the Task has to belong to the Project that owns this Profile
         # (e.g. a Task attached to one of that Project's Scenes).
-        owning_project = project_owning("pids", profile_id(config.single_profile_name))
-        return bool(owning_project) and belongs_to("tids", this_task_id, owning_project)
+        owning_project = project_owning("pids", profile_id(config.single_profile_name, state=state), state=state)
+        return bool(owning_project) and belongs_to("tids", this_task_id, owning_project, state=state)
 
     # Doing a single Project?  Only the Tasks that Project owns.
     if config.single_project_name:
-        return belongs_to("tids", this_task_id, config.single_project_name)
+        return belongs_to("tids", this_task_id, config.single_project_name, state=state)
 
     # Doing a single Scene?  Only the Tasks of the Project the Scene belongs to -- which
     # are the Scene's own Tasks, since that is all the run displayed.
     if config.single_scene_name:
-        owning_project = project_owning("scenes", config.single_scene_name)
-        return bool(owning_project) and belongs_to("tids", this_task_id, owning_project)
+        owning_project = project_owning("scenes", config.single_scene_name, state=state)
+        return bool(owning_project) and belongs_to("tids", this_task_id, owning_project, state=state)
 
     return True
 
 
 # Doing Profile hyperlink.  Make sure it is okay to do this Profile hyperlink.
-def check_profile(item: str, config: RunConfig) -> bool:
+def check_profile(item: str, config: RunConfig, state: RunState) -> bool:
     """
     Check to make sure this Profile should be included in the output
         Args:
@@ -482,13 +483,13 @@ def check_profile(item: str, config: RunConfig) -> bool:
 
     # Doing a single Project?  Only the Profiles that Project owns.
     if config.single_project_name:
-        return belongs_to("pids", profile_id(item[1]), config.single_project_name)
+        return belongs_to("pids", profile_id(item[1], state=state), config.single_project_name, state=state)
 
     return True
 
 
 # Doing Project hyperlinks.  Make sure it is okay to do this Project hyperlink.
-def check_project(item: str, config: RunConfig) -> bool:
+def check_project(item: str, config: RunConfig, state: RunState) -> bool:
     """
     Check to make sure this Project should be included in the output
         Args:
@@ -505,7 +506,7 @@ def check_project(item: str, config: RunConfig) -> bool:
     # Doing a single Scene?  Only the Project that owns it is displayed, so only it gets a
     # link.
     if config.single_scene_name:
-        return item[1] == project_owning("scenes", config.single_scene_name)
+        return item[1] == project_owning("scenes", config.single_scene_name, state=state)
 
     # Doing a single Profile or a single Task?  No Project is listed: the object asked for
     # is the whole of what the directory is for.  output_directory leaves the Projects
@@ -515,7 +516,7 @@ def check_project(item: str, config: RunConfig) -> bool:
 
 
 # Doing Scene hyperlink.  Make sure it is okay to do this Scene hyperlink.
-def check_scene(item: str, config: RunConfig) -> bool:
+def check_scene(item: str, config: RunConfig, state: RunState) -> bool:
     """
     Check to make sure this Scene should be included in the output
         Args:
@@ -531,24 +532,24 @@ def check_scene(item: str, config: RunConfig) -> bool:
 
     # Doing a single Project?  Only that Project's Scenes.
     if config.single_project_name:
-        return belongs_to("scenes", item[1], config.single_project_name)
+        return belongs_to("scenes", item[1], config.single_project_name, state=state)
 
     # Doing a single Profile?  Only the Scenes of the Project that owns it, which are
     # displayed along with it.
     if config.single_profile_name:
-        owning_project = project_owning("pids", profile_id(config.single_profile_name))
-        return bool(owning_project) and belongs_to("scenes", item[1], owning_project)
+        owning_project = project_owning("pids", profile_id(config.single_profile_name, state=state), state=state)
+        return bool(owning_project) and belongs_to("scenes", item[1], owning_project, state=state)
 
     # Doing a single Task?  Only the Scenes of the Project that owns the Task.
     if config.single_task_name:
-        owning_project = project_owning("tids", task_id(config.single_task_name))
-        return bool(owning_project) and belongs_to("scenes", item[1], owning_project)
+        owning_project = project_owning("tids", task_id(config.single_task_name, state=state), state=state)
+        return bool(owning_project) and belongs_to("scenes", item[1], owning_project, state=state)
 
     return True
 
 
 # Check to make sure this directory item should be included in the output.
-def check_item(name: str, item: str, config: RunConfig) -> bool:
+def check_item(name: str, item: str, config: RunConfig, state: RunState) -> bool:
     """
     Check to make sure this item should be included in the output
         Args:
@@ -567,13 +568,13 @@ def check_item(name: str, item: str, config: RunConfig) -> bool:
         "scenes": check_scene,
     }
     # Check if doing a single item...only build directory for that item.
-    return function_mappings[name](item, config)
+    return function_mappings[name](item, config, state=state)
 
 
 #######################################################################################
 # Output table for specific Tasker element: Projects, Profiles, Tasks, Scenes
 #######################################################################################
-def do_tasker_element(name: str, config: RunConfig, dropped_anchors: set) -> None:
+def do_tasker_element(name: str, config: RunConfig, dropped_anchors: set, *, state: RunState) -> None:
     """
     Build an html table and output it for the given Tasker element: Project, Profile,
         Scene or Task.  DO this by traversing the entire xml trees.
@@ -593,14 +594,14 @@ def do_tasker_element(name: str, config: RunConfig, dropped_anchors: set) -> Non
         None
     """
     # Output the table header
-    if PrimeItems.directory_items[name]:
+    if state.directory_items[name]:
         # Go through each item and accumulate the names to be used for
         # the directory hyperlinks
         directory_hyperlinks = []
 
         _check_item = check_item
-        for item in PrimeItems.directory_items[name]:
-            if _check_item(name, item, config):
+        for item in state.directory_items[name]:
+            if _check_item(name, item, config, state=state):
                 # Directory item is valid for this name.
                 # Get the name and display name for this item
                 item_name = item[0].replace("_(Scene)", "")
@@ -627,20 +628,20 @@ def do_tasker_element(name: str, config: RunConfig, dropped_anchors: set) -> Non
             directory_hyperlinks.sort()
             directory_hyperlinks = [entry for _, entry in directory_hyperlinks]
             # Output the name title: Project, Profile, Task, Scene
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 5,
                 f"{NORMAL_TAB}{name.capitalize()}{period * 60}<br><br>",
                 ["<br><br>", "project_color", FormatLine.add_end_span],
             )
             # 6 columns for projects, 5 columns for tasks
             number_of_columns = 5 if name == "tasks" else 6
-            output_table(directory_hyperlinks, number_of_columns)
+            output_table(directory_hyperlinks, number_of_columns, state=state)
 
 
 #######################################################################################
 # Output directory by appending it to our output queue
 #######################################################################################
-def output_directory(config: RunConfig, dropped_anchors: set | None = None) -> None:
+def output_directory(config: RunConfig, dropped_anchors: set | None = None, *, state: RunState) -> None:
     """
     Writes the directory to the output queue.
 
@@ -658,7 +659,7 @@ def output_directory(config: RunConfig, dropped_anchors: set | None = None) -> N
         dropped_anchors = set()
 
     # Add heading
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         f"<h2>{NORMAL_TAB}Directory</h2><br><br>",
         ["<br><br>", "profile_color", FormatLine.add_end_span],
@@ -666,16 +667,16 @@ def output_directory(config: RunConfig, dropped_anchors: set | None = None) -> N
     # Ok, run through the Tasker key elements and output the directory for each
     # Only do Projects and Profiles if not looking for a single Project or Profile
     if not (config.single_profile_name or config.single_task_name):
-        do_tasker_element("projects", config, dropped_anchors)
-    do_tasker_element("profiles", config, dropped_anchors)
+        do_tasker_element("projects", config, dropped_anchors, state=state)
+    do_tasker_element("profiles", config, dropped_anchors, state=state)
     if config.display_detail_level != 0:
-        do_tasker_element("tasks", config, dropped_anchors)
-    do_tasker_element("scenes", config, dropped_anchors)
+        do_tasker_element("tasks", config, dropped_anchors, state=state)
+    do_tasker_element("scenes", config, dropped_anchors, state=state)
 
-    do_trailing_matters(config, dropped_anchors)
+    do_trailing_matters(config, dropped_anchors, state=state)
 
     # Add final rule and break
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         "<hr><br><br>\n",
         FormatLine.dont_format_line,

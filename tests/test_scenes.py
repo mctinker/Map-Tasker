@@ -347,7 +347,7 @@ def test_a_long_scene_task_name_is_shortened_for_the_directory() -> None:
     PrimeItems.tasker_root_elements["all_tasks"]["10"]["name"] = long_name
     PrimeItems.tasker_root_elements["all_tasks_by_name"] = {"other": {"xml": None, "id": "99"}}
 
-    result = scenes.adjust_name_and_add_to_directory(long_name, "10", 35, state=PrimeItems)
+    result = scenes.adjust_name_and_add_to_directory(long_name, "10", 35, current_config(), state=PrimeItems)
     assert result.endswith(".10 (Unnamed)")
     assert len(result) < len(long_name)
     assert PrimeItems.tasker_root_elements["all_tasks"]["10"]["name"] == result
@@ -356,7 +356,7 @@ def test_a_long_scene_task_name_is_shortened_for_the_directory() -> None:
 def test_a_short_scene_task_name_is_left_alone() -> None:
     """Most names already fit, and trimming one that does would lose real text."""
     _scene_with(_BUTTON)
-    assert scenes.adjust_name_and_add_to_directory("Clicked", "10", 35, state=PrimeItems) == "Clicked"
+    assert scenes.adjust_name_and_add_to_directory("Clicked", "10", 35, current_config(), state=PrimeItems) == "Clicked"
 
 
 def test_a_scene_task_is_marked_as_such_in_the_directory() -> None:
@@ -365,7 +365,7 @@ def test_a_scene_task_is_marked_as_such_in_the_directory() -> None:
     """
     _scene_with(_BUTTON)
     PrimeItems.program_arguments.directory = True
-    scenes.adjust_name_and_add_to_directory("Clicked", "10", 35, state=PrimeItems)
+    scenes.adjust_name_and_add_to_directory("Clicked", "10", 35, current_config(), state=PrimeItems)
     assert any("Clicked (Scene)" in entry for entry in PrimeItems.directory_items["tasks"])
 
 

@@ -171,7 +171,7 @@ def _project_for_new_object(gui: MyGui, item_label: str) -> tuple[str, str]:
         selected_name = getattr(gui, f"single_{label.lower()}_name", "")
         if is_no_selection(selected_name):
             continue
-        if owning_project := resolve(selected_name):
+        if owning_project := resolve(selected_name, state=PrimeItems):
             return owning_project, ""
         no_owner = translate_string("does not belong to a Project, so there is nowhere to attach a new")
         return "", (

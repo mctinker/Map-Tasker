@@ -20,6 +20,7 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 from zoneinfo import (
     ZoneInfo,
     ZoneInfoNotFoundError,
@@ -33,8 +34,12 @@ from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.mapjump import TASK, Target
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems, clear_single_items
+from maptasker.src.primitem import clear_single_items
 from maptasker.src.sysconst import HOTLINK_STYLE, FormatLine, logger
+
+if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
+    from maptasker.src.runcfg import RunConfig
 
 
 # Validate TCP/IP Address
@@ -211,7 +216,7 @@ def get_pypi_version() -> str:
 
 
 # If we have set the single Project name due to a single Task or Profile name, then reset it.
-def reset_named_objects() -> None:
+def reset_named_objects(state: RunState) -> None:
     """_summary_
     Reset the single Project name if it was set due to a single Task or Profile name.
     Parameters:
@@ -222,8 +227,8 @@ def reset_named_objects() -> None:
     # Check in name hierarchy: Task then Profile.  Whichever was asked for is kept, and every
     # other selection -- the Project it set among them -- is cleared.
     for kept in ("single_task_name", "single_profile_name"):
-        if PrimeItems.program_arguments[kept]:
-            clear_single_items(keep=kept)
+        if state.program_arguments[kept]:
+            clear_single_items(keep=kept, state=state)
             return
 
 
@@ -297,7 +302,7 @@ def find_all_positions(string: str, substring: str, start_position: int = 0) -> 
     return positions
 
 
-def display_task_warnings() -> None:
+def display_task_warnings(config: RunConfig, state: RunState) -> None:
     """
     Output any warnings for tasks with too many actions.
 
@@ -311,12 +316,12 @@ def display_task_warnings() -> None:
         format_html(
             "trailing_comments_color",
             "",
-            f"\n{translate_string('Tasks With Too Many Actions (Limit is')} {PrimeItems.program_arguments.task_action_warning_limit})...",
+            f"\n{translate_string('Tasks With Too Many Actions (Limit is')} {config.task_action_warning_limit})...",
             False,
         ),
     ]
     # Go through the warnings and add to our output list.
-    for task_name, value in PrimeItems.task_action_warnings.items():
+    for task_name, value in state.task_action_warnings.items():
         # Build the hotlink to the Task, aimed at the anchor mapjump gives every Task by
         # its id rather than at the directory's anchor for its name.
         #
@@ -338,12 +343,12 @@ def display_task_warnings() -> None:
         warnings.append(f"{task_translated} {href} {has_translated} {value['count']} {actions_translated}")
 
     # Start the output
-    PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)
 
     # Output all Task warning lines
     for warning in warnings:
         # Add the line to the output.
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             0,
             warning,
             ["", "trailing_comments_color", FormatLine.add_end_span],
@@ -400,7 +405,7 @@ def get_value_if_match(
 
 
 # Clear all Tasker XML data from memory so we start anew.
-def clear_tasker_data() -> None:
+def clear_tasker_data(state: RunState) -> None:
     """
     Empty every table of the loaded backup's Projects, Profiles, Tasks, Scenes and Services.
 
@@ -411,7 +416,7 @@ def clear_tasker_data() -> None:
     registry is emptied with the tables (see caches), so none can go on describing the
     backup that is being replaced.
     """
-    for table in PrimeItems.tasker_root_elements.values():
+    for table in state.tasker_root_elements.values():
         table.clear()
     caches.clear_all()
 
@@ -436,7 +441,7 @@ def count_unique_substring(string_list: list, substring: str) -> int:
 
 
 # Find the owning Profile given a Task name
-def find_owning_profile(task_name: str) -> str:
+def find_owning_profile(task_name: str, state: RunState) -> str:
     """
     Find the owning Profile given a Task name.
 
@@ -449,13 +454,13 @@ def find_owning_profile(task_name: str) -> str:
         str: The name of the owning Profile, or an empty string if no matching Profile is found.
     """
     tid = next(
-        (k for k, v in PrimeItems.tasker_root_elements["all_tasks"].items() if v["name"] == task_name),
+        (k for k, v in state.tasker_root_elements["all_tasks"].items() if v["name"] == task_name),
         "",
     )
 
     # Find the owning Profile
     if tid:
-        for profile_value in PrimeItems.tasker_root_elements["all_profiles"].values():
+        for profile_value in state.tasker_root_elements["all_profiles"].values():
             for mid_key in ["mid0", "mid1"]:
                 mid = profile_value["xml"].find(mid_key)
                 if mid is not None and mid.text == tid:
@@ -465,7 +470,7 @@ def find_owning_profile(task_name: str) -> str:
 
 
 # Find owning Project given a Task name
-def find_owning_project_for_task(task_name: str) -> str:
+def find_owning_project_for_task(task_name: str, state: RunState) -> str:
     """
     Find the owning Project given a Task name.
 
@@ -482,21 +487,21 @@ def find_owning_project_for_task(task_name: str) -> str:
         str: The owning Project name, or an empty string if not found.
     """
     task_id = next(
-        (k for k, v in PrimeItems.tasker_root_elements["all_tasks"].items() if v["name"] == task_name),
+        (k for k, v in state.tasker_root_elements["all_tasks"].items() if v["name"] == task_name),
         "",
     )
     if task_id:
-        for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
+        for project_name, project_value in state.tasker_root_elements["all_projects"].items():
             if task_id in get_ids(False, project_value["xml"], project_name, []):
                 return project_name
 
     # Not attached to a Project directly -- go by whichever Profile runs it.
-    profile_name = find_owning_profile(task_name)
-    return find_owning_project(profile_name) if profile_name else ""
+    profile_name = find_owning_profile(task_name, state=state)
+    return find_owning_project(profile_name, state=state) if profile_name else ""
 
 
 # Find owning Project given a Profile name
-def find_owning_project(profile_name: str) -> str:
+def find_owning_project(profile_name: str, state: RunState) -> str:
     """
     Find the owning Project given a Profile name.
 
@@ -507,19 +512,19 @@ def find_owning_project(profile_name: str) -> str:
     Returns:
         str: The owning Project name, or an empty string if not found.
     """
-    profile_dict = PrimeItems.tasker_root_elements["all_profiles"]
+    profile_dict = state.tasker_root_elements["all_profiles"]
     profile_id = {v["name"]: k for k, v in profile_dict.items()}.get(profile_name)
 
     if profile_id:
         _get_ids = get_ids
-        for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
+        for project_name, project_value in state.tasker_root_elements["all_projects"].items():
             if profile_id in _get_ids(True, project_value["xml"], project_name, []):
                 return project_name
     return ""
 
 
 # Find owning Project given a Scene name
-def find_owning_project_for_scene(scene_name: str) -> str:
+def find_owning_project_for_scene(scene_name: str, state: RunState) -> str:
     """
     Find the owning Project given a Scene name.
 
@@ -534,7 +539,7 @@ def find_owning_project_for_scene(scene_name: str) -> str:
     Returns:
         str: The owning Project name, or an empty string if no Project lists this Scene.
     """
-    for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project_value in state.tasker_root_elements["all_projects"].items():
         scenes = project_value["xml"].find("scenes")
         # Split on the comma rather than testing "in scenes.text": a plain substring test
         # matches Scene "Main" against a Project that only owns "MainMenu".
@@ -671,7 +676,7 @@ def rename_file(old_file_path: str, new_file_path: str) -> bool:
         return False
 
 
-def restart_program_subprocess() -> None:
+def restart_program_subprocess(state: RunState) -> None:
     """
     Restarts the current program by spawning a new process and exiting the old one.
     This is often more reliable on Windows.
@@ -680,7 +685,7 @@ def restart_program_subprocess() -> None:
     # Get the absolute path of the current script file
     # This is more robust than relying directly on sys.argv[0]
     script_path = os.path.abspath(__file__)
-    script_path = script_path.replace(f"src{PrimeItems.slash}maputils.py", "main.py")
+    script_path = script_path.replace(f"src{state.slash}maputils.py", "main.py")
 
     # Prepare the arguments for the new process
     # The first argument is the Python interpreter

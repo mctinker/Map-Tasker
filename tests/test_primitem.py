@@ -218,7 +218,7 @@ def test_clearing_the_loaded_backup_empties_every_table_where_it_stands() -> Non
     }
     tables = dict(PrimeItems.tasker_root_elements)
 
-    maputils.clear_tasker_data()
+    maputils.clear_tasker_data(state=PrimeItems)
 
     for name, table in tables.items():
         assert PrimeItems.tasker_root_elements[name] is table
@@ -233,7 +233,7 @@ def test_a_single_task_or_profile_keeps_itself_and_clears_the_selection_it_set()
     PrimeItems.program_arguments.update(single_task_name="Opener", single_project_name="Home")
     PrimeItems.found_named_items = {found_key: True for _, found_key, _ in SINGLE_ITEM_SELECTORS}
 
-    maputils.reset_named_objects()
+    maputils.reset_named_objects(state=PrimeItems)
 
     assert PrimeItems.program_arguments.single_task_name == "Opener"
     assert PrimeItems.program_arguments.single_project_name == ""
@@ -245,5 +245,5 @@ def test_a_single_task_or_profile_keeps_itself_and_clears_the_selection_it_set()
     }
 
     PrimeItems.program_arguments.update(single_task_name="", single_project_name="Home")
-    maputils.reset_named_objects()
+    maputils.reset_named_objects(state=PrimeItems)
     assert PrimeItems.program_arguments.single_project_name == "Home"

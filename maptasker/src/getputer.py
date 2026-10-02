@@ -132,7 +132,7 @@ def save_arguments(program_arguments: ProgramArguments | dict, colors_to_use: di
     """
     # In the event we set the single Project name due to a single Task or Profile name,
     # then reset it before we do a save and exit.
-    reset_named_objects()
+    reset_named_objects(state=PrimeItems)
 
     guidance = {
         "Guidance": "Modify this file as needed below the entries [program_arguments] and [colors_to_use].  Run 'maptasker -h' for details.",

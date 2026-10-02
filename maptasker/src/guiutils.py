@@ -1612,7 +1612,7 @@ def reload_gui(self: object) -> None:
 
     # ReRun via a new process, which will load and run the new program/version.
     # Note: this current process will not return after this call, but simply be killed.
-    restart_program_subprocess()
+    restart_program_subprocess(state=PrimeItems)
 
 
 # The heads-up every 'Save To Android' write and 'Import Into Tasker' import puts on

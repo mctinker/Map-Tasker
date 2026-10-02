@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import xml.etree.ElementTree as ET
+
 import pytest
-from maptasker.src import diagram, diagutil, mapjump, projects, tasks
+from maptasker.src import diagram, diagutil, dirout, mapjump, maputils, projects, tasks
 from maptasker.src.mapjump import PROFILE, TASK, Target
 from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, RunState, reset_attributes
 from maptasker.src.runcfg import current_config
@@ -103,3 +105,23 @@ def test_an_unnamed_task_is_counted_on_the_state_it_is_read_from() -> None:
     assert name.startswith("Unnamed")
     assert state.task_count_unnamed == 1
     assert PrimeItems.task_count_unnamed == before
+
+
+def test_a_directory_item_is_added_to_the_state_it_is_given() -> None:
+    state = RunState()
+
+    dirout.add_directory_item("tasks", "Remind Me", current_config(), state=state)
+
+    assert state.directory_items["tasks"] == [["Remind_Me", "Remind Me"]]
+    assert PrimeItems.directory_items["tasks"] == []
+
+
+def test_the_owning_profile_is_found_in_the_state_it_is_asked_of() -> None:
+    """The tables are the state's own: the global holds none of this Task or Profile."""
+    state = RunState()
+    state.tasker_root_elements["all_tasks"] = {"13": {"xml": None, "name": "Remind Me"}}
+    profile = ET.fromstring('<Profile sr="prof5"><id>5</id><mid0>13</mid0><nme>Morning</nme></Profile>')  # noqa: S314
+    state.tasker_root_elements["all_profiles"] = {"5": {"xml": profile, "name": "Morning"}}
+
+    assert maputils.find_owning_profile("Remind Me", state=state) == "Morning"
+    assert maputils.find_owning_profile("Remind Me", state=PrimeItems) == ""

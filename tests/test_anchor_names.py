@@ -21,6 +21,7 @@ import pytest
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.maputils import fix_hyperlink_name
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.runcfg import current_config
 from maptasker.src.proclist import add_task_hyperlink
 
 # Real shapes, both taken from the configuration that turned this up.
@@ -78,7 +79,7 @@ def test_an_unnamed_task_named_after_an_if_is_safe_too() -> None:
 
 def test_the_directory_anchor_is_escaped() -> None:
     """The directory builds the anchor AND the hyperlink from one name."""
-    add_directory_item("tasks", NAME_WITH_ANGLE_BRACKET)
+    add_directory_item("tasks", NAME_WITH_ANGLE_BRACKET, current_config(), state=PrimeItems)
 
     assert PrimeItems.directory_items["current_item"] == "tasks_System_&gt;&gt;_Say_Response"
     assert PrimeItems.directory_items["tasks"][0][0] == "System_&gt;&gt;_Say_Response"
@@ -91,7 +92,7 @@ def test_the_hyperlink_and_the_anchor_still_agree() -> None:
     anchor from the name written beside it, so the two have to survive escaping alike --
     a browser reads "&gt;" in both as the same character.
     """
-    add_directory_item("tasks", NAME_WITH_ANGLE_BRACKET)
+    add_directory_item("tasks", NAME_WITH_ANGLE_BRACKET, current_config(), state=PrimeItems)
     add_task_hyperlink(NAME_WITH_ANGLE_BRACKET, display_name=True, blank="&nbsp;", state=PrimeItems)
 
     href_name = PrimeItems.directory_items["tasks"][0][0]
@@ -145,7 +146,7 @@ def test_a_warning_points_at_the_task_by_id(monkeypatch) -> None:
         },
     )
 
-    display_task_warnings()
+    display_task_warnings(current_config(), state=PrimeItems)
 
     html = written(PrimeItems.output_lines)
     assert "href=#mt-task-118" in html, "a named Task's warning does not point at its own anchor"

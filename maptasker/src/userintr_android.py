@@ -1987,7 +1987,7 @@ class AndroidEventHandlers:
         # inside), and the fetch has already written the file to the local drive
         # (validate_or_filelist_xml -> validate_xml -> write_out_backup_file), so
         # loading it here reads that local copy rather than going back to the device.
-        clear_tasker_data()
+        clear_tasker_data(state=PrimeItems)
         update_tasker_object_menus(gui, get_data=True, reset_single_names=True)
 
         # And, as on every other path that loads a file, a single-object export selects

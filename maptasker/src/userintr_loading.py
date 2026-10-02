@@ -327,7 +327,7 @@ class LoadingEventHandlers:
             # Open the picker here next time.
             remember_local_xml_directory(gui, PrimeItems.file_to_get)
 
-            clear_tasker_data()
+            clear_tasker_data(state=PrimeItems)
             clear_single_item_view_names(gui)
             gui.specific_name_msg = ""
             # Indicate that we have note yet gotten the file.
@@ -404,7 +404,7 @@ class LoadingEventHandlers:
             return
 
         # Purge pre-existing data tracking fields
-        clear_tasker_data()
+        clear_tasker_data(state=PrimeItems)
 
         # Hide or update the dynamic input container panel block visually
         if hasattr(the_view, "android_container") and the_view.android_container:

@@ -590,7 +590,9 @@ def fix_project_name_for_single_name() -> None:
         do_pids=False,
     ):
         if scene_name := PrimeItems.program_arguments.single_scene_name:
-            PrimeItems.program_arguments.single_project_name = find_owning_project_for_scene(scene_name)
+            PrimeItems.program_arguments.single_project_name = find_owning_project_for_scene(
+                scene_name, state=PrimeItems
+            )
 
 
 # Outline the Tasker Configuration

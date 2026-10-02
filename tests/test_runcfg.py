@@ -365,28 +365,28 @@ def test_display_caveats_follows_its_config(
 def test_directory_filters_follow_their_config(tasker_data: None) -> None:
     """The single-item directory filters decide from the config they are handed."""
     everything = RunConfig()
-    assert check_project(("Home", "Home"), everything) is True
-    assert check_profile(("Morning", "Morning"), everything) is True
-    assert check_task(("Wake", "Wake"), everything) is True
+    assert check_project(("Home", "Home"), everything, state=PrimeItems) is True
+    assert check_profile(("Morning", "Morning"), everything, state=PrimeItems) is True
+    assert check_task(("Wake", "Wake"), everything, state=PrimeItems) is True
 
     # Asking for one Project links that Project and no other.
     one_project = RunConfig(single_project_name="Home")
-    assert check_project(("Home", "Home"), one_project) is True
-    assert check_project(("Away", "Away"), one_project) is False
+    assert check_project(("Home", "Home"), one_project, state=PrimeItems) is True
+    assert check_project(("Away", "Away"), one_project, state=PrimeItems) is False
 
     # Asking for one Task links that Task, and no Projects or Profiles at all.
     one_task = RunConfig(single_task_name="Wake")
-    assert check_task(("Wake", "Wake"), one_task) is True
-    assert check_task(("Sleep", "Sleep"), one_task) is False
-    assert check_project(("Home", "Home"), one_task) is False
-    assert check_profile(("Morning", "Morning"), one_task) is False
+    assert check_task(("Wake", "Wake"), one_task, state=PrimeItems) is True
+    assert check_task(("Sleep", "Sleep"), one_task, state=PrimeItems) is False
+    assert check_project(("Home", "Home"), one_task, state=PrimeItems) is False
+    assert check_profile(("Morning", "Morning"), one_task, state=PrimeItems) is False
 
     # Asking for one Scene links only the Project that owns it.
     one_scene = RunConfig(single_scene_name="Panel")
-    assert check_project(("Home", "Home"), one_scene) is True
-    assert check_project(("Away", "Away"), one_scene) is False
-    assert check_scene(("Panel", "Panel"), one_scene) is True
-    assert check_scene(("Other", "Other"), one_scene) is False
+    assert check_project(("Home", "Home"), one_scene, state=PrimeItems) is True
+    assert check_project(("Away", "Away"), one_scene, state=PrimeItems) is False
+    assert check_scene(("Panel", "Panel"), one_scene, state=PrimeItems) is True
+    assert check_scene(("Other", "Other"), one_scene, state=PrimeItems) is False
 
 
 def test_directory_filters_ignore_the_global(tasker_data: None) -> None:
@@ -396,8 +396,8 @@ def test_directory_filters_ignore_the_global(tasker_data: None) -> None:
         PrimeItems.program_arguments = initialize_runtime_arguments()
         PrimeItems.program_arguments.single_project_name = "Away"
 
-        assert check_project(("Home", "Home"), RunConfig(single_project_name="Home")) is True
-        assert check_project(("Away", "Away"), RunConfig(single_project_name="Home")) is False
+        assert check_project(("Home", "Home"), RunConfig(single_project_name="Home"), state=PrimeItems) is True
+        assert check_project(("Away", "Away"), RunConfig(single_project_name="Home"), state=PrimeItems) is False
     finally:
         PrimeItems.program_arguments = saved
 
