@@ -11,7 +11,8 @@ from operator import itemgetter
 
 from maptasker.src.error import error_handler
 from maptasker.src.format import format_html
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
+from maptasker.src.runcfg import RunConfig
 from maptasker.src.servicec import service_codes
 from maptasker.src.sysconst import FormatLine
 
@@ -85,10 +86,11 @@ def process_service(
 
 
 # Go through all of the <service> xml elements to process the Tasker preferences.
-def process_preferences(temp_output_lines: list) -> None:
+def process_preferences(temp_output_lines: list, config: RunConfig, state: RunState) -> None:
     """
     Go through all of the <service> xml elements to process the Tasker preferences.
         :param temp_output_lines: list of service/preference output lines
+        :param config: the run's settings (debug)
         :return: nothing
     """
     dummy_num = 200
@@ -96,7 +98,7 @@ def process_preferences(temp_output_lines: list) -> None:
     blank = "&nbsp;"
 
     # No preferences if doing single object
-    if not PrimeItems.tasker_root_elements["all_services"]:
+    if not state.tasker_root_elements["all_services"]:
         temp_output_lines.append(
             [
                 dummy_num,
@@ -113,7 +115,7 @@ def process_preferences(temp_output_lines: list) -> None:
     # Go through each <service> xml element
     _process_service = process_service
     _format_html = format_html
-    for service in PrimeItems.tasker_root_elements["all_services"]:
+    for service in state.tasker_root_elements["all_services"]:
         # Make sure the <Setting> xml element is valid
         if all(service.find(tag) is not None for tag in ("n", "t", "v")):
             # Get the service codes
@@ -127,7 +129,7 @@ def process_preferences(temp_output_lines: list) -> None:
                 _process_service(service_name, service_value, temp_output_lines)
 
             # If debugging, list specific preferences which can't be identified.
-            elif PrimeItems.program_arguments.debug:
+            elif config.debug:
                 # Add a blank line and the output details to our list of output stuff
                 # Add a blank line if this is the first unmapped item
                 if first_time:
@@ -155,9 +157,10 @@ def process_preferences(temp_output_lines: list) -> None:
             error_handler("Error: the backup xml file is corrupt.  Program terminated.", 3)
 
 
-def get_preferences() -> None:
+def get_preferences(config: RunConfig, state: RunState) -> None:
     """
     Go through the Tasker <service> xml elements, each representing a Tasker preference
+    :param config: the run's settings
     :rtype: nothing
     """
     section_names = [
@@ -179,7 +182,7 @@ def get_preferences() -> None:
     temp_output_lines = []
 
     # Output title line
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         0,
         "Tasker Preferences >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",
         ["", "preferences_color", FormatLine.add_end_span],
@@ -191,14 +194,14 @@ def get_preferences() -> None:
     previous_section = None
 
     # Okay, let's deal with the Tasker preferences
-    process_preferences(temp_output_lines)
+    process_preferences(temp_output_lines, config, state=state)
 
     # All service xml elements have been processed.
     # Sort our output by order of display in Tasker (key=list element 0)
     sorted_output = sorted(temp_output_lines, key=itemgetter(0))
 
     # Now output them: go through list of output lines (sorted) and "output" each
-    _add_line_to_output = PrimeItems.output_lines.add_line_to_output
+    _add_line_to_output = state.output_lines.add_line_to_output
     for _, (num, line) in enumerate(sorted_output):
         section = next(
             (item[1]["section"] for item in service_codes.items() if item[1]["num"] == num),

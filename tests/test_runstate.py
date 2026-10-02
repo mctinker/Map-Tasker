@@ -5,7 +5,9 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import diagram, diagutil, dirout, mapjump, maputils, projects, tasks
+from maptasker.src.colrmode import set_color_mode
+from maptasker.src import diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks
+from maptasker.src.lineout import LineOut
 from maptasker.src.mapjump import PROFILE, TASK, Target
 from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, RunState, reset_attributes
 from maptasker.src.runcfg import current_config
@@ -125,3 +127,35 @@ def test_the_owning_profile_is_found_in_the_state_it_is_asked_of() -> None:
 
     assert maputils.find_owning_profile("Remind Me", state=state) == "Morning"
     assert maputils.find_owning_profile("Remind Me", state=PrimeItems) == ""
+
+
+def _loaded_state() -> RunState:
+    """A run state holding a (tiny) backup and an empty output, and nothing on the global."""
+    state = RunState()
+    state.xml_root = ET.fromstring('<TaskerData sr="" dvi="1" tv="6.3.13"/>')  # noqa: S314
+    state.output_lines = LineOut()
+    state.file_to_get = "backup.xml"
+    return state
+
+
+def test_the_front_matter_is_written_into_the_state_it_is_given() -> None:
+    state = _loaded_state()
+    before = len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0
+
+    frontmtr.output_the_front_matter(current_config(), state=state)
+
+    assert "6.3.13" in state.heading
+    assert any("backup.xml" in line for line in state.output_lines.output_lines)
+    assert (len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0) == before
+
+
+def test_a_taskernet_description_is_written_into_the_state_it_is_given() -> None:
+    PrimeItems.colors_to_use = set_color_mode("dark")  # format.py still takes its colors from the global
+    state = _loaded_state()
+    root = ET.fromstring(  # noqa: S314
+        "<Task><Share><d>Turns the lights on</d><g>lights</g></Share></Task>",
+    )
+
+    share.share(root, "tasktab", state=state)
+
+    assert any("Turns the lights on" in line for line in state.output_lines.output_lines)

@@ -488,7 +488,7 @@ def _build_the_view(view: str) -> None:
 
     with console.muted():
         if view == mapexport.MAP:
-            output_the_front_matter(current_config())
+            output_the_front_matter(current_config(), state=PrimeItems)
             build_html("")
         else:
             outline_the_configuration()

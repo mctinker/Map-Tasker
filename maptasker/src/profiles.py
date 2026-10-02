@@ -554,7 +554,7 @@ def do_profile(
     # its "sr" attribute the same way get_profile_name reads it -- see the anchor written
     # alongside the Profile's own line above.
     if config.taskernet:
-        share(profile, "proftab", Target(PROFILE, profile.attrib.get("sr", "")[4:]))
+        share(profile, "proftab", Target(PROFILE, profile.attrib.get("sr", "")[4:]), state=state)
         # Add a spacer if detail is 0
         if config.display_detail_level == 0:
             state.output_lines.add_line_to_output(

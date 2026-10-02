@@ -127,7 +127,7 @@ class LineOut:
         reset_attributes(*MAP_OUTPUT_ATTRIBUTES)
 
         # Display th starting information in beginning of output
-        output_the_front_matter(current_config() if self._config is None else self._config)
+        output_the_front_matter(current_config() if self._config is None else self._config, state=PrimeItems)
 
         # Re-add the directory item
         if self.settings.directory:

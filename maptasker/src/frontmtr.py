@@ -14,15 +14,15 @@ from maptasker.src.addcss import add_css
 from maptasker.src.debug import display_debug_info
 from maptasker.src.format import css_color, format_html
 from maptasker.src.prefers import get_preferences
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, FormatLine
 
 if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 
 # Add the heading matter to the output: heading, source, screen size, etc.
-def output_the_heading(config: RunConfig) -> None:
+def output_the_heading(config: RunConfig, state: RunState) -> None:
     """
     Display the heading and source file details
 
@@ -45,7 +45,7 @@ def output_the_heading(config: RunConfig) -> None:
     tasker_mapping = f"Tasker Mapping{ai_message}................ Tasker XML version:"
 
     # Get the screen dimensions from <dmetric> xml
-    screen_element = PrimeItems.xml_root.find("dmetric")
+    screen_element = state.xml_root.find("dmetric")
     screen_size = (
         f"&nbsp;&nbsp;Device screen size: {screen_element.text.replace(',', ' X ')}"
         if screen_element is not None
@@ -70,7 +70,7 @@ def output_the_heading(config: RunConfig) -> None:
 
     # Format the output heading
     heading_color = "heading_color"
-    PrimeItems.heading = (
+    state.heading = (
         # css_color(): the dark mode's background is configured as bare hex ("222623"), which
         # is not a color as far as CSS is concerned -- the browser discards the declaration
         # and the file opens on white instead of the dark background it was colored for.
@@ -81,7 +81,7 @@ def output_the_heading(config: RunConfig) -> None:
             "",
             (
                 f"<h2>MapTasker</h2><br>{tasker_mapping}"
-                f" {PrimeItems.xml_root.attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;"
+                f" {state.xml_root.attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;"
                 f"{MY_VERSION}{screen_size}&nbsp;&nbsp;&nbsp;&nbsp;{now_for_output}"
             ),
             True,
@@ -96,14 +96,14 @@ def output_the_heading(config: RunConfig) -> None:
     # )
 
     # Add a blank line
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         0,
-        PrimeItems.heading,
+        state.heading,
         FormatLine.dont_format_line,
     )
 
     # Add css
-    add_css(config)
+    add_css(config, state=state)
 
     # Display where the source file came from
     # Did we restore the backup from Android?
@@ -115,13 +115,13 @@ def output_the_heading(config: RunConfig) -> None:
             f" with file location: {config.android_file}"
         )
     elif config.debug or not config.file:
-        filename = isinstance(PrimeItems.file_to_get, str)
-        filename = PrimeItems.file_to_get.name if not filename else PrimeItems.file_to_get
+        filename = isinstance(state.file_to_get, str)
+        filename = state.file_to_get.name if not filename else state.file_to_get
         source_file = filename
     else:
         source_file = config.file
     # Add source to output
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         0,
         f"<br><br>{NORMAL_TAB}Source backup file: {source_file}",
         ["", "heading_color", FormatLine.add_end_span],
@@ -129,7 +129,7 @@ def output_the_heading(config: RunConfig) -> None:
 
 
 # Output the heading etc. as the front matter.
-def output_the_front_matter(config: RunConfig) -> None:
+def output_the_front_matter(config: RunConfig, state: RunState) -> None:
     """
     Generates the front matter for the output file: heading, runtime settings,
     directory, Tasker preferences.
@@ -140,15 +140,15 @@ def output_the_front_matter(config: RunConfig) -> None:
     """
 
     # Heading information
-    output_the_heading(config)
+    output_the_heading(config, state=state)
 
     # If we are debugging, output the runtime arguments and colors
     if config.debug or config.runtime:
-        display_debug_info(config)
+        display_debug_info(config, state=state)
 
     # Output a flag to indicate this is where the directory goes
-    PrimeItems.output_lines.add_line_to_output(5, "maptasker_directory", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(5, "maptasker_directory", FormatLine.dont_format_line)
 
     # If doing Tasker preferences, get them
     if config.preferences:
-        get_preferences()
+        get_preferences(config, state=state)

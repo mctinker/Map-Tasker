@@ -1522,7 +1522,7 @@ class MapTaskerEventHandlers(
 
                 # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
                 PrimeItems.output_lines.output_lines.clear()
-                output_the_front_matter(current_config())
+                output_the_front_matter(current_config(), state=PrimeItems)
 
                 try:
                     # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely

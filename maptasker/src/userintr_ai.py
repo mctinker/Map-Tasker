@@ -75,7 +75,7 @@ async def build_analysis_lines(gui: MyGui) -> bool:
     clear_error()
 
     PrimeItems.output_lines.output_lines.clear()
-    output_the_front_matter(current_config())
+    output_the_front_matter(current_config(), state=PrimeItems)
     try:
         await run.io_bound(build_html, "")
     except MapTaskerError as error:

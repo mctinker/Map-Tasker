@@ -279,7 +279,7 @@ def _build_a_map(tmp_path) -> tuple[float, int]:
     from maptasker.src.runcfg import current_config  # noqa: PLC0415
 
     PrimeItems.output_lines.output_lines.clear()
-    output_the_front_matter(current_config())
+    output_the_front_matter(current_config(), state=PrimeItems)
     build_html("")
     written = tmp_path / "MapTasker.html"
     return (written.stat().st_mtime_ns, PrimeItems.map_output_line_count)

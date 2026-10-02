@@ -724,7 +724,7 @@ def get_profile_details_and_output(
 
     # Process TaskerNet details if requested
     if config.taskernet:
-        share(project, "projtab", Target(PROJECT, project_name, project_name))
+        share(project, "projtab", Target(PROJECT, project_name, project_name), state=state)
 
     return False, profile_count, have_project_wanted
 

@@ -11,14 +11,14 @@ import contextlib
 from typing import TYPE_CHECKING
 
 from maptasker.src.format import is_dark_color
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FONT_FAMILY, SPACE_COUNT1, SPACE_COUNT2, SPACE_COUNT3, FormatLine
 
 if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 
-def add_css(config: RunConfig) -> None:
+def add_css(config: RunConfig, state: RunState) -> None:
     """
     Add formatting CSS to output HTML for the colors and font to use.
     We must re-add the font each time in case a Tasker element overrides the font.
@@ -27,7 +27,7 @@ def add_css(config: RunConfig) -> None:
     """
 
     # Start the style css for the tabs
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         '\n<style  type="text/css">\n',
         FormatLine.dont_format_line,
@@ -41,7 +41,7 @@ def add_css(config: RunConfig) -> None:
             with contextlib.suppress(KeyError):
                 if config.colors[color_argument_name]:
                     our_html = f"color: {config.colors[color_argument_name]}{FONT_FAMILY}{config.font}"
-                    PrimeItems.output_lines.add_line_to_output(
+                    state.output_lines.add_line_to_output(
                         5,
                         f".{color_argument_name} {{{our_html}}}",
                         FormatLine.dont_format_line,
@@ -156,20 +156,20 @@ def add_css(config: RunConfig) -> None:
     tabs = tabs.replace("yyy", SPACE_COUNT2[1])
     tabs = tabs.replace("zzz", SPACE_COUNT3[1])
     # Add the tabs
-    PrimeItems.output_lines.add_line_to_output(5, tabs, FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(5, tabs, FormatLine.dont_format_line)
 
     # End the style css
-    PrimeItems.output_lines.add_line_to_output(5, "</style>\n", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(5, "</style>\n", FormatLine.dont_format_line)
 
     # Add the box
-    PrimeItems.output_lines.add_line_to_output(5, box, FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(5, box, FormatLine.dont_format_line)
 
     # Add the fontsizes
-    PrimeItems.output_lines.add_line_to_output(5, fontsize, FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(5, fontsize, FormatLine.dont_format_line)
 
     # Add image resize
-    PrimeItems.output_lines.add_line_to_output(5, resize_image, FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(5, resize_image, FormatLine.dont_format_line)
 
     # Add the fast-appearing hover tooltip, rendered in the font the user selected.
     tooltip = tooltip.replace("fff", config.font)
-    PrimeItems.output_lines.add_line_to_output(5, tooltip, FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(5, tooltip, FormatLine.dont_format_line)

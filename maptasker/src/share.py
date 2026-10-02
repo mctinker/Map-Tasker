@@ -10,17 +10,13 @@ from xml.etree.ElementTree import Element
 
 from maptasker.src.format import format_html, format_label
 from maptasker.src.mapjump import TASKERNET_PART, Target, anchor_html
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 from maptasker.src.sysconst import FormatLine
 
 
 # Go through xml <Share> elements to grab and output TaskerNet description and
 # search-on lines.
-def share(
-    root_element: Element,
-    tab: str,
-    where: Target | None = None,
-) -> None:
+def share(root_element: Element, tab: str, where: Target | None = None, *, state: RunState) -> None:
     """
     Go through xml <Share> elements to grab and output TaskerNet description and search-on lines
         :param root_element: beginning xml element (e.g. Project or Task)
@@ -36,11 +32,7 @@ def share(
         description_element = share_element.find("d")
         # Process the description
         if description_element is not None:
-            description_element_output(
-                description_element,
-                tab,
-                where,
-            )
+            description_element_output(description_element, tab, where, state=state)
 
         # Look for TaskerNet search parameters
         search_element = share_element.find("g")
@@ -53,16 +45,16 @@ def share(
                 True,
             )
             # Add the tab CSS call to the color.
-            out_string = PrimeItems.output_lines.add_tab(tab, out_string)
-            PrimeItems.output_lines.add_line_to_output(
+            out_string = state.output_lines.add_tab(tab, out_string)
+            state.output_lines.add_line_to_output(
                 2,
                 f"<br>{out_string}<br>",
                 FormatLine.dont_format_line,
             )
 
         # Force a break when done with last Share element, only if there isn't one there already.
-        break_html = "" if PrimeItems.output_lines.output_lines[-1] == "<br>" else "<br>"
-        PrimeItems.output_lines.add_line_to_output(
+        break_html = "" if state.output_lines.output_lines[-1] == "<br>" else "<br>"
+        state.output_lines.add_line_to_output(
             0,
             f"{break_html}",
             FormatLine.dont_format_line,
@@ -70,15 +62,15 @@ def share(
 
         # Now get rid of the last duplicate <br> lines at the bottom of the output.
         for num, item in reversed(
-            list(enumerate(PrimeItems.output_lines.output_lines)),
+            list(enumerate(state.output_lines.output_lines)),
         ):
             if "TaskerNet description:" in item:
                 break
-            if item == "<br>" and PrimeItems.output_lines.output_lines[num - 1] == "<br>":
-                PrimeItems.output_lines.output_lines.remove(num)
+            if item == "<br>" and state.output_lines.output_lines[num - 1] == "<br>":
+                state.output_lines.output_lines.remove(num)
                 break
             if tab != "proftab" and item.endswith("<br><br>"):
-                PrimeItems.output_lines.output_lines[-1] = item.replace(
+                state.output_lines.output_lines[-1] = item.replace(
                     "<br><br>",
                     "<br>",
                 )
@@ -89,9 +81,7 @@ def share(
 # Process the description <d> element
 # ################################################################################
 def description_element_output(
-    description_element: Element,
-    tab: str,
-    where: Target | None = None,
+    description_element: Element, tab: str, where: Target | None = None, *, state: RunState
 ) -> None:
     """
     We have a Taskernet description (<Share>).  Clean it up and add it to the output list.
@@ -106,8 +96,8 @@ def description_element_output(
     # output line rather than the front of the description, for the reason projects.py
     # gives: the description is styled from end to end and an anchor inside it would be
     # styled with it.
-    if where is not None and (anchor := anchor_html(where.at_part(TASKERNET_PART), state=PrimeItems)):
-        PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
+    if where is not None and (anchor := anchor_html(where.at_part(TASKERNET_PART), state=state)):
+        state.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     # Format the description as if it is a label with embedded html/
     out_string = (
@@ -118,10 +108,10 @@ def description_element_output(
     )
 
     # Add the tab CSS call to the color.
-    out_string = PrimeItems.output_lines.add_tab(tab, out_string)
+    out_string = state.output_lines.add_tab(tab, out_string)
 
     # Output the description line.
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         2,
         f"{out_string}",
         FormatLine.dont_format_line,

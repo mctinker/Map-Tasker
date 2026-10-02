@@ -249,7 +249,7 @@ def get_task_actions_and_output(
 
                 # Process any <Share> information from TaskerNet
                 if config.taskernet:
-                    share(the_task, "tasktab", Target(TASK, task_id))
+                    share(the_task, "tasktab", Target(TASK, task_id), state=state)
                     # Add a spacer if detail is 0
                     if config.display_detail_level == 0:
                         state.output_lines.add_line_to_output(

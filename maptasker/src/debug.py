@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING
 
 from maptasker.src import console
 from maptasker.src.format import format_html
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     TYPES_OF_COLOR_NAMES,
@@ -25,17 +24,18 @@ from maptasker.src.sysconst import (
 )
 
 if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 
-def output_debug_line(begin_or_end: str) -> None:
+def output_debug_line(begin_or_end: str, state: RunState) -> None:
     """
     Put out a line that identifies the following output as DEBUG
 
         :param begin_or_end: text identiying the beginning or end of debug
     """
     arrow = ">"
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         0,
         f"Runtime Settings {begin_or_end} {arrow * 80}",
         ["", "disabled_profile_color", FormatLine.add_end_span],
@@ -57,7 +57,7 @@ def format_line_debug(text: str, width: int) -> str:
 # ################################################################################
 # Display the program arguments and colors to use in output for debug purposes
 # ################################################################################
-def display_debug_info(config: RunConfig) -> None:
+def display_debug_info(config: RunConfig, state: RunState) -> None:
     """
     Output our runtime arguments
 
@@ -66,17 +66,17 @@ def display_debug_info(config: RunConfig) -> None:
     """
 
     # Add blank line
-    PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
     # Identify the output as debug stuff
-    output_debug_line("Start")
+    output_debug_line("Start", state=state)
     if config.debug:
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             0,
             f"sys.argv (runtime arguments):{sys.argv!s}",
             ["", "disabled_profile_color", FormatLine.add_end_span],
         )
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             0,
             f"Debug...Current Path: {os.getcwd()}",
             ["", "disabled_profile_color", FormatLine.add_end_span],
@@ -106,20 +106,20 @@ def display_debug_info(config: RunConfig) -> None:
                 value = "None"  # noqa: PLW2901
             # Set color for value
             color_to_use = "unknown_task_color" if not value or value == "None" else "heading_color"
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 0,
                 f"{line_formatted_to_length}: {value}",
                 ["", color_to_use, FormatLine.add_end_span],
             )
         except KeyError:
             msg = f"{ARGUMENT_NAMES[key]}: Error...not found!"
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 0,
                 msg,
                 ["", "heading_color", FormatLine.add_end_span],
             )
             logger.debug(f"MapTasker Error ... {msg}")
-    PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
     # Do colors to use in output
 
@@ -148,7 +148,7 @@ def display_debug_info(config: RunConfig) -> None:
             f"Color for {color_names[key]} set to",
             40,
         )
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             0,
             f"{color_set_to_width}{the_color}",
             ["", "heading_color", FormatLine.add_end_span],
@@ -169,8 +169,8 @@ def display_debug_info(config: RunConfig) -> None:
     #         )
 
     # Finalize debug info
-    output_debug_line("End")
-    PrimeItems.output_lines.add_line_to_output(
+    output_debug_line("End", state=state)
+    state.output_lines.add_line_to_output(
         0,
         "",
         FormatLine.dont_format_line,

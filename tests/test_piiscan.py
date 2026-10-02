@@ -481,7 +481,7 @@ def test_the_map_writes_the_anchor_that_finding_points_at(shared_problems: list)
     PrimeItems.output_lines = LineOut()
     PrimeItems.emitted_anchors = set()
 
-    share(PrimeItems.tasker_root_elements["all_tasks"]["30"]["xml"], "tasktab", Target(TASK, "30"))
+    share(PrimeItems.tasker_root_elements["all_tasks"]["30"]["xml"], "tasktab", Target(TASK, "30"), state=PrimeItems)
     output = "".join(PrimeItems.output_lines.output_lines)
 
     assert f'<a id="{finding.where.anchor}" class="mt-anchor"' in output
