@@ -284,7 +284,7 @@ def get_label_disabled_condition(child: Element) -> str:
 
     # Get the label, if any
     if (label_element := elements.get("label")) is not None:
-        task_label = format_label(label_element.text)
+        task_label = format_label(label_element.text, colors=PrimeItems.colors_to_use)
 
     # See if Action is disabled
     action_disabled = (

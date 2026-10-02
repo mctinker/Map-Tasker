@@ -913,7 +913,7 @@ def process_scene_list(
         if detail_level > 1:
             process_scene(scene_name, tasks_found, None, 0, config, state=state)
         elif config.twisty:
-            remove_twisty()
+            remove_twisty(state=state)
 
 
 # Go through all Scenes for Project, get their detail and output it

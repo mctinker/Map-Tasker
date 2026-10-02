@@ -217,7 +217,7 @@ def add_dictionary_and_twisty(
         state.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
     if config.twisty and "Task:" in list_type:
-        handle_twisty(color_to_use, output_line)
+        handle_twisty(color_to_use, output_line, state=state)
 
     return temp_item, temp_list
 
@@ -370,7 +370,7 @@ def add_directory_hyperlink(state: RunState) -> None:
     )
 
 
-def handle_twisty(color_to_use: str, output_line: str) -> None:
+def handle_twisty(color_to_use: str, output_line: str, state: RunState) -> None:
     """
     Handle the twisty by adding a twisty to the output line.
 
@@ -381,7 +381,7 @@ def handle_twisty(color_to_use: str, output_line: str) -> None:
     Returns:
         None
     """
-    add_twisty(color_to_use, output_line)
+    add_twisty(color_to_use, output_line, state=state)
 
 
 def debug_task_id(list_type: str, config: RunConfig) -> str:
@@ -552,12 +552,12 @@ def process_item(
 
         # End the twisty hidden lines if not a Task in a Scene
         if config.twisty:
-            remove_twisty()
+            remove_twisty(state=state)
 
     # Remove twisty if not displaying level 0
     elif config.twisty:
         if config.display_detail_level > 0:
-            remove_twisty()
+            remove_twisty(state=state)
         else:
             # End list if doing twisty and displaying level 0.  dont_format_line, not
             # dont_add_end_span: the third argument says whether the line needs formatting

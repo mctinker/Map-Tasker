@@ -88,7 +88,7 @@ def add_heading(save_twisty: bool, state: RunState) -> bool:
 
     # Add a twisty, if doing twisties, to hide the line
     if save_twisty:
-        add_twisty("trailing_comments_color", text_line)
+        add_twisty("trailing_comments_color", text_line, state=state)
 
     # Add the header
     state.output_lines.add_line_to_output(
@@ -215,7 +215,7 @@ def process_tasks_not_called_by_profile(
 
         # End the twisty hidden Task list.
         if save_twisty:
-            remove_twisty()
+            remove_twisty(state=state)
 
     # Provide spacing and end list if we have Tasks
     if task_count > 0:

@@ -25,6 +25,7 @@ from maptasker.src.initparg import ProgramArguments, initialize_runtime_argument
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapjump import PROJECT, TASK, Target
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.runcfg import current_config
 from maptasker.src.property import get_properties
 from maptasker.src.share import share
 
@@ -481,7 +482,7 @@ def test_the_map_writes_the_anchor_that_finding_points_at(shared_problems: list)
     PrimeItems.output_lines = LineOut()
     PrimeItems.emitted_anchors = set()
 
-    share(PrimeItems.tasker_root_elements["all_tasks"]["30"]["xml"], "tasktab", Target(TASK, "30"), state=PrimeItems)
+    share(PrimeItems.tasker_root_elements["all_tasks"]["30"]["xml"], "tasktab", Target(TASK, "30"), config=current_config(), state=PrimeItems)
     output = "".join(PrimeItems.output_lines.output_lines)
 
     assert f'<a id="{finding.where.anchor}" class="mt-anchor"' in output

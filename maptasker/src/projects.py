@@ -239,10 +239,7 @@ def task_not_in_profile_heading(project_name: str, config: RunConfig, state: Run
 
     # Add the "twisty" to hide the Task details
     if config.twisty:
-        add_twisty(
-            "task_color",
-            output_line,
-        )
+        add_twisty("task_color", output_line, state=state)
 
     # Not doing twisty
     else:
@@ -351,7 +348,7 @@ def tasks_not_in_profiles(
     # End the twisty hidden lines if we have Tasks not in any Profile
     if config.twisty:
         if have_tasks_not_in_profile:
-            remove_twisty()
+            remove_twisty(state=state)
         else:
             state.output_lines.add_line_to_output(
                 3,
@@ -724,7 +721,7 @@ def get_profile_details_and_output(
 
     # Process TaskerNet details if requested
     if config.taskernet:
-        share(project, "projtab", Target(PROJECT, project_name, project_name), state=state)
+        share(project, "projtab", Target(PROJECT, project_name, project_name), state=state, config=config)
 
     return False, profile_count, have_project_wanted
 

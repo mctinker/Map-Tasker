@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src import diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks
+from maptasker.src import diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapjump import PROFILE, TASK, Target
 from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, RunState, reset_attributes
@@ -150,12 +150,24 @@ def test_the_front_matter_is_written_into_the_state_it_is_given() -> None:
 
 
 def test_a_taskernet_description_is_written_into_the_state_it_is_given() -> None:
-    PrimeItems.colors_to_use = set_color_mode("dark")  # format.py still takes its colors from the global
     state = _loaded_state()
+    config = current_config().with_changes(colors=set_color_mode("dark"))
     root = ET.fromstring(  # noqa: S314
         "<Task><Share><d>Turns the lights on</d><g>lights</g></Share></Task>",
     )
 
-    share.share(root, "tasktab", state=state)
+    share.share(root, "tasktab", config=config, state=state)
 
     assert any("Turns the lights on" in line for line in state.output_lines.output_lines)
+
+
+def test_a_twisty_is_opened_and_closed_on_the_state_it_is_given() -> None:
+    state = _loaded_state()
+    before = len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0
+
+    twisty.add_twisty("task_color", "Remind Me", state=state)
+    assert any("Remind Me" in line for line in state.output_lines.output_lines)
+
+    twisty.remove_twisty(state=state)
+    assert state.output_lines.output_lines[-1] == "</details></span><br>\n"
+    assert (len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0) == before

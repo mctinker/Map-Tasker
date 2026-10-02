@@ -11,12 +11,13 @@ from xml.etree.ElementTree import Element
 from maptasker.src.format import format_html, format_label
 from maptasker.src.mapjump import TASKERNET_PART, Target, anchor_html
 from maptasker.src.primitem import RunState
+from maptasker.src.runcfg import RunConfig
 from maptasker.src.sysconst import FormatLine
 
 
 # Go through xml <Share> elements to grab and output TaskerNet description and
 # search-on lines.
-def share(root_element: Element, tab: str, where: Target | None = None, *, state: RunState) -> None:
+def share(root_element: Element, tab: str, where: Target | None = None, *, config: RunConfig, state: RunState) -> None:
     """
     Go through xml <Share> elements to grab and output TaskerNet description and search-on lines
         :param root_element: beginning xml element (e.g. Project or Task)
@@ -24,6 +25,7 @@ def share(root_element: Element, tab: str, where: Target | None = None, *, state
         :param where: the object this <Share> belongs to, so its description can be marked
             as somewhere a report finding can jump to.  None leaves it unmarked, which is
             what a caller that has no Target for the object gets.
+        :param config: the run's settings (the colors the description is drawn in)
     """
     # Get the <share> element, if any
     share_element: Element = root_element.find("Share")
@@ -32,7 +34,7 @@ def share(root_element: Element, tab: str, where: Target | None = None, *, state
         description_element = share_element.find("d")
         # Process the description
         if description_element is not None:
-            description_element_output(description_element, tab, where, state=state)
+            description_element_output(description_element, tab, where, state=state, config=config)
 
         # Look for TaskerNet search parameters
         search_element = share_element.find("g")
@@ -81,7 +83,7 @@ def share(root_element: Element, tab: str, where: Target | None = None, *, state
 # Process the description <d> element
 # ################################################################################
 def description_element_output(
-    description_element: Element, tab: str, where: Target | None = None, *, state: RunState
+    description_element: Element, tab: str, where: Target | None = None, *, config: RunConfig, state: RunState
 ) -> None:
     """
     We have a Taskernet description (<Share>).  Clean it up and add it to the output list.
@@ -101,7 +103,7 @@ def description_element_output(
 
     # Format the description as if it is a label with embedded html/
     out_string = (
-        format_label(f"<h6>TaskerNet description: {description_element.text}")
+        format_label(f"<h6>TaskerNet description: {description_element.text}", colors=config.colors)
         .replace("action_label_color", "taskernet_color")
         .replace(" ...with label:", "")
         .replace("\n", "<br>")

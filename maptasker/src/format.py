@@ -1,17 +1,21 @@
 """Format output lines and html content"""
 
+from __future__ import annotations
+
 import html
 import re
 from functools import lru_cache
 from html.parser import HTMLParser
 from itertools import zip_longest
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from PIL import ImageColor
 
 from maptasker.src.error import rutroh_error
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import HOTLINK_STYLE, logger, pattern2, pattern8, pattern10, pattern15
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 # Given a line in the output queue, reformat it before writing to file
@@ -345,7 +349,7 @@ def contrast_ratio(color: str, background: str) -> float | None:
 
 
 # Swap out a color that would be unreadable on our background for the default.
-def legible_color(color: str | None, default_color: str) -> str:
+def legible_color(color: str | None, default_color: str, colors: Mapping[str, str]) -> str:
     """
     The color to actually draw a label's text in.
 
@@ -358,12 +362,13 @@ def legible_color(color: str | None, default_color: str) -> str:
 
         :param color: the color the label asked for, if any
         :param default_color: the label's default color, used when there is nothing better
+        :param colors: the run's colors by argument name (RunConfig.colors); the background is read from it
         :return: the color to use
     """
     if not color:
         return default_color
 
-    background = PrimeItems.colors_to_use.get("background_color", "") if PrimeItems.colors_to_use else ""
+    background = colors.get("background_color", "")
     if not background:
         return color
 
@@ -1720,7 +1725,7 @@ def close_left_open_tags(label_html: str) -> str:
     return "".join(f"</{name}>" for name in reversed(still_open))
 
 
-def format_label(lbl: str) -> str:
+def format_label(lbl: str, colors: Mapping[str, str]) -> str:
     """
     Formats a given label string, potentially containing HTML, into an HTML-formatted
     task label with specific styling based on its content.
@@ -1739,6 +1744,7 @@ def format_label(lbl: str) -> str:
 
     Args:
         lbl: The input label string, which may or may not contain HTML.
+        colors: The run's colors by argument name (RunConfig.colors).
 
     Returns:
         A string containing the HTML-formatted task label.
@@ -1796,7 +1802,7 @@ def format_label(lbl: str) -> str:
             # Fall back to the label's default color when the label asked for one that would
             # be unreadable on our background (see legible_color), as well as when it asked
             # for none at all.
-            lbl_color = legible_color(lbl_style["color"], PrimeItems.colors_to_use[color_to_use])
+            lbl_color = legible_color(lbl_style["color"], colors[color_to_use], colors)
             lbl_link = lbl_style.get("is_link", False)
             lbl_href = lbl_style.get("href", None)
 
