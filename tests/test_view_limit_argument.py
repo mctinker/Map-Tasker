@@ -41,7 +41,7 @@ def run_with(*command_line: str) -> None:
     saved_argv = sys.argv
     sys.argv = ["maptasker", *command_line]
     try:
-        process_extended_arguments(runtime_parser())
+        process_extended_arguments(runtime_parser(), state=PrimeItems)
     finally:
         sys.argv = saved_argv
 

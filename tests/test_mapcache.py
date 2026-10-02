@@ -305,7 +305,7 @@ def _a_real_configuration(tmp_path, monkeypatch) -> None:
     PrimeItems.tasker_root_elements = initial_tasker_root_elements()
     PrimeItems.file_to_get = open(_SYNTHETIC_BACKUP)
     load_arg_specs()
-    get_data_and_output_intro(True)
+    get_data_and_output_intro(True, state=PrimeItems)
     yield
     mapcache.forget()
 

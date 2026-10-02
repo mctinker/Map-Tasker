@@ -26,7 +26,7 @@ from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.outdir import normalize_output_directory
 from maptasker.src.parsearg import runtime_parser
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 from maptasker.src.rungui import process_gui
 from maptasker.src.sysconst import (
     MY_LICENSE,
@@ -57,7 +57,7 @@ def get_arg_if_in_list(args: list, the_argument: str) -> int:
 
 
 # We have a -name argument.  Get the name's attributes and save them
-def get_name_attributes(value: str) -> None:
+def get_name_attributes(value: str, state: RunState) -> None:
     """
     We have a -name argument.  Get the name's attributes and save them
         Args:
@@ -71,11 +71,11 @@ def get_name_attributes(value: str) -> None:
     name_attributes = name_attributes.split()
     for attribute in name_attributes:
         if attribute in valid_attributes:
-            PrimeItems.program_arguments[attribute] = True
+            state.program_arguments[attribute] = True
 
 
 # Go through all boolean settings, get each and if have it then set value to True
-def get_and_set_booleans(args: list) -> None:
+def get_and_set_booleans(args: list, state: RunState) -> None:
     """
     Go through all boolean settings, get each and if have it then set value to True
         Args:
@@ -105,29 +105,29 @@ def get_and_set_booleans(args: list) -> None:
     for key, value in boolean_arguments.items():
         try:
             if getattr(args, key):
-                PrimeItems.program_arguments[key] = True
+                state.program_arguments[key] = True
         except AttributeError:
             with contextlib.suppress(AttributeError):
                 if value and getattr(args, value):
-                    PrimeItems.program_arguments[key] = True
+                    state.program_arguments[key] = True
 
 
 # Get the the other arguments
-def get_the_other_arguments(args: list) -> None:
+def get_the_other_arguments(args: list, state: RunState) -> None:
     """
     Get the remainder of the arguments
         Args:
             value (str): The attributes to assign to names: (bold, highlight, underline, italicize)
     """
-    get_and_set_booleans(args)
+    get_and_set_booleans(args, state=state)
 
     # Get display detail level, if provided.
     detail = getattr(args, "detail")
     if detail is not None:
         if isinstance(detail, int):
-            PrimeItems.program_arguments.display_detail_level = detail
+            state.program_arguments.display_detail_level = detail
         elif isinstance(detail, list):
-            PrimeItems.program_arguments.display_detail_level = detail[0]
+            state.program_arguments.display_detail_level = detail[0]
 
 
 def set_everything(program_arguments: ProgramArguments) -> None:
@@ -190,7 +190,7 @@ def get_android_settings(program_arguments: ProgramArguments, args: list) -> Non
             program_arguments.android_file = getattr(args, "android_file")
 
 
-def process_extended_arguments(args: list) -> None:
+def process_extended_arguments(args: list, state: RunState) -> None:
     """
     Process extended arguments from the command line.
 
@@ -215,7 +215,7 @@ def process_extended_arguments(args: list) -> None:
     Note:
         The function assumes that the 'program_arguments' attribute is present in the 'PrimeItems' class.
     """
-    program_arguments = PrimeItems.program_arguments
+    program_arguments = state.program_arguments
 
     # The rest of this function is to handle special cases and non-binary settings.
 
@@ -231,7 +231,7 @@ def process_extended_arguments(args: list) -> None:
 
     # Get names (bold, highlight, underline and/or highlight)
     if value := getattr(args, "names"):
-        get_name_attributes(value)
+        get_name_attributes(value, state=state)
 
     # Get Android device info for fetching the backup xml file
     get_android_settings(program_arguments, args)
@@ -275,7 +275,7 @@ def process_extended_arguments(args: list) -> None:
 
 
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
-def get_runtime_arguments(args: list) -> None:
+def get_runtime_arguments(args: list, state: RunState) -> None:
     """
     Function to get runtime arguments from the command line.
 
@@ -296,10 +296,10 @@ def get_runtime_arguments(args: list) -> None:
     # Not GUI.  Get input from command line arguments or unit test defaults.
 
     # All booleans and display detail level.
-    get_the_other_arguments(args)
+    get_the_other_arguments(args, state=state)
 
     # Get non-binary arguments
-    process_extended_arguments(args)
+    process_extended_arguments(args, state=state)
 
 
 # Add some pazaazz to the version identiifer
@@ -338,7 +338,7 @@ def display_version() -> None:
 
 
 # Get arguments from command line and put them to the proper settings
-def process_arguments(args: object) -> dict:
+def process_arguments(args: object, state: RunState) -> dict:
     """
     Get arguments from command line and put them to the proper settings
         Args:
@@ -348,13 +348,13 @@ def process_arguments(args: object) -> dict:
             None
     """
     # Get our runtime arguments that go into PrimeItems.program_arguments
-    get_runtime_arguments(args)
+    get_runtime_arguments(args, state=state)
 
     # Process color arguments.
 
     # Set the default colors first
-    PrimeItems.colors_to_use = set_color_mode(
-        PrimeItems.program_arguments.appearance_mode,
+    state.colors_to_use = set_color_mode(
+        state.program_arguments.appearance_mode,
     )
 
     # Alter any color specified in the settings / arguments.
@@ -371,7 +371,7 @@ def process_arguments(args: object) -> dict:
 
 
 # Get arguments from saved file and restore them to the proper settings
-def restore_arguments() -> dict:
+def restore_arguments(state: RunState) -> dict:
     """
     Get arguments from saved file and restore them to the proper settings
     """
@@ -387,13 +387,13 @@ def restore_arguments() -> dict:
     with contextlib.suppress(KeyError):
         # Map the prog_arg keys and values restored.  Settings this version does not know
         # (left by an older one, or the corrupt-file message) are skipped and logged.
-        PrimeItems.program_arguments.restore(temp_arguments)
-        PrimeItems.program_arguments.display_detail_level = int(PrimeItems.program_arguments.display_detail_level)
+        state.program_arguments.restore(temp_arguments)
+        state.program_arguments.display_detail_level = int(state.program_arguments.display_detail_level)
 
         # Map the colormap keys and values restored
         for key, value in temp_colors.items():
             if key is not None:
-                PrimeItems.colors_to_use[key] = value
+                state.colors_to_use[key] = value
 
     return
 
@@ -503,14 +503,14 @@ def unit_test() -> namedtuple:  # noqa: PYI024
 
 
 # Validate arguments by looking for inconsistancies.
-def validate_arguments() -> None:
+def validate_arguments(state: RunState) -> None:
     """
     Validate arguments by looking for inconsistancies.
         Args: None
 
         Returns:
             Nothing"""
-    program_arguments = PrimeItems.program_arguments
+    program_arguments = state.program_arguments
     # It doesn't make sense to do twisties if notr displaying full detail.
     if program_arguments.display_detail_level < 3 and program_arguments.twisty:
         message = "Twisty disabled since the display level is not 3 or above."
@@ -526,7 +526,7 @@ def validate_arguments() -> None:
 
 # Get the program arguments from command line or via unit test (e.g. python mapit.py -x)
 # Command line parameters
-def process_cli() -> None:
+def process_cli(state: RunState) -> None:
     """
     Get the program arguments from command line or via unit test (e.g. python mapit.py -x)
         Args:
@@ -541,33 +541,33 @@ def process_cli() -> None:
 
     # Intialize runtime arguments.
     try:  # Save map and diagram view flags in case we are coming from the GUI.
-        save_guiview = PrimeItems.program_arguments.guiview
+        save_guiview = state.program_arguments.guiview
     except (TypeError, KeyError):
         save_guiview = False
     try:
-        save_diagram = PrimeItems.program_arguments.doing_diagram
+        save_diagram = state.program_arguments.doing_diagram
     except (KeyError, TypeError):
         save_diagram = False
-    PrimeItems.program_arguments = initialize_runtime_arguments()
-    PrimeItems.program_arguments.guiview = save_guiview
-    PrimeItems.program_arguments.doing_diagram = save_diagram
+    state.program_arguments = initialize_runtime_arguments()
+    state.program_arguments.guiview = save_guiview
+    state.program_arguments.doing_diagram = save_diagram
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments via Parsearg.
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
 
     # Get the debug argument and startup log file if in debug mode.
-    PrimeItems.program_arguments.debug = getattr(args, debug_flag)
+    state.program_arguments.debug = getattr(args, debug_flag)
 
     # Remember a view limit asked for on the command line before restore_arguments() below
     # replaces the runtime arguments with what the settings file holds.  The GUI seeds its
     # own View Limit from it (userintr.MyGui.seed_view_limit_from_command_line); the command
     # line path applies it in process_extended_arguments.
-    PrimeItems.cli_view_limit = getattr(args, "view_limit", None)
+    state.cli_view_limit = getattr(args, "view_limit", None)
 
     logger.debug(f"Program arguments: {args}")
 
     # Restore runtime arguments if we are not doing a reset and not doing the GUI and there is a settings file to restore.
-    restore_arguments()
+    restore_arguments(state=state)
 
     # Decide GUI versus command line.  This has to come after restore_arguments(), which
     # replaces program_arguments wholesale with what the settings file holds -- so the
@@ -579,19 +579,19 @@ def process_cli() -> None:
     # declared here but read nowhere, so -g did nothing at all).  config.GUI stays an
     # override so a build can force the GUI on, and -g does what its help text promises.
     if GUI or getattr(args, gui_flag, False):
-        PrimeItems.program_arguments.gui = True
+        state.program_arguments.gui = True
 
     # If using the GUI and not doing a map view or version, them process the GUI.
     do_version = getattr(args, version_flag)  # See if doing version (-v)
-    if PrimeItems.program_arguments.gui and not do_version:
+    if state.program_arguments.gui and not do_version:
         (
-            PrimeItems.program_arguments,
-            PrimeItems.colors_to_use,
+            state.program_arguments,
+            state.colors_to_use,
         ) = process_gui(True)
 
     # Not doing the GUI or Map View.  Process commands from command line.
-    elif not PrimeItems.program_arguments.guiview:
-        process_arguments(args)
+    elif not state.program_arguments.guiview:
+        process_arguments(args, state=state)
 
     # Validate arguments against each other (e.g. look for combo problems).
-    validate_arguments()
+    validate_arguments(state=state)

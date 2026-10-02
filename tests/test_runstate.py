@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src import bildhtml, outline, taskerd, timeline
+from maptasker.src import bildhtml, outline, proginit, runcli, taskerd, timeline
 from maptasker.src.actionc import load_arg_specs
 from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
 from maptasker.src import property as prop
@@ -310,3 +310,43 @@ def test_a_backup_is_loaded_into_the_state_it_is_given(tmp_path: object, monkeyp
     assert state.xml_root is not root_before
     assert PrimeItems.tasker_root_elements == tables_before
     assert PrimeItems.xml_root is root_before
+
+
+def test_a_run_is_started_and_its_file_read_on_a_state_of_its_own(
+    tmp_path: object,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The start of a run, as proginit does it: open the named backup, parse it, write the front
+    matter -- all of it on the state that was handed in.
+    """
+    monkeypatch.setattr(timeline, "record", lambda _path: None)
+    monkeypatch.chdir(tmp_path)
+    backup = tmp_path / "backup.xml"
+    backup.write_text(_OUTLINE_XML, encoding="utf-8")
+    state = RunState()
+    state.colors_to_use = set_color_mode("dark")
+    state.output_lines = LineOut(state=state)
+    state.program_arguments.file = str(backup)
+    root_before, lines_before = PrimeItems.xml_root, len(PrimeItems.output_lines.output_lines)
+
+    assert proginit.get_data_and_output_intro(True, state=state) == 0
+
+    assert set(state.tasker_root_elements["all_tasks"]) == {"20", "21"}
+    assert "6.3.13" in state.heading
+    assert state.output_lines.output_lines
+    assert PrimeItems.xml_root is root_before
+    assert len(PrimeItems.output_lines.output_lines) == lines_before
+
+
+def test_a_runtime_option_is_set_on_the_state_it_is_given() -> None:
+    """The command line's options are read into the state's own settings, not the global's."""
+    state = RunState()
+    bold_before = PrimeItems.program_arguments.bold
+    PrimeItems.program_arguments.bold = False
+
+    runcli.get_name_attributes("bold underline", state=state)
+
+    assert state.program_arguments.bold is True
+    assert state.program_arguments.underline is True
+    assert PrimeItems.program_arguments.bold is False
+    PrimeItems.program_arguments.bold = bold_before

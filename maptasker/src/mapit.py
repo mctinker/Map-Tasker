@@ -162,7 +162,7 @@ def start_up() -> None:
     # as True would end every user's startup.  tests/test_build_all.py asserts it is False.
     build_all = False
     if build_all:
-        rebuild_action_tables()
+        rebuild_action_tables(state=PrimeItems)
         exit_program(0)
     # END OF DEVELOPMENT CODE
 
@@ -174,7 +174,7 @@ def start_up() -> None:
 
     # Get our map of colors if we don't have them.
     if not PrimeItems.colors_to_use:
-        PrimeItems.colors_to_use = setup_colors()
+        PrimeItems.colors_to_use = setup_colors(state=PrimeItems)
 
     # Display a popup window telling user we are analyzing
     if PrimeItems.program_arguments.doing_diagram:
@@ -182,7 +182,7 @@ def start_up() -> None:
 
     # Get the XML data and output the front matter
     if PrimeItems.file_to_get or PrimeItems.program_arguments.file:
-        _ = get_data_and_output_intro(True)  # Force the front matter to be created.
+        _ = get_data_and_output_intro(True, state=PrimeItems)  # Force the front matter to be created.
 
 
 # Set up the major variables used within this program, and set up crash routine

@@ -65,7 +65,7 @@ def get_program_arguments() -> None:
     # Setting program_arguments.gui here was pointless for the same reason: process_cli
     # begins by replacing program_arguments wholesale via initialize_runtime_arguments(),
     # so anything written before that call is discarded.  config.GUI is read there instead.
-    process_cli()
+    process_cli(state=PrimeItems)
 
     # Make sure we don't have too much: more than one single item specified in the saved file
     # clears them all.  Every kind counts, Scene included.

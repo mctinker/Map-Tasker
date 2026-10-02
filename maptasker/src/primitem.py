@@ -445,9 +445,13 @@ def reset_attributes(*names: str, state: RunState | None = None) -> None:
         setattr(target, name, copy.deepcopy(_RUN_DEFAULTS[name]))
 
 
-def clear_error() -> None:
-    """Forget the error the last load or build recorded: error_code, error_msg and error_show_code."""
-    reset_attributes("error_code", "error_msg", "error_show_code")
+def clear_error(state: RunState | None = None) -> None:
+    """Forget the error the last load or build recorded: error_code, error_msg and error_show_code.
+
+    Args:
+        state (RunState | None): the run state to clear it on, or None for PrimeItems.
+    """
+    reset_attributes("error_code", "error_msg", "error_show_code", state=state)
 
 
 # Reset all values

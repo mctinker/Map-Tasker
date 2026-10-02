@@ -685,7 +685,7 @@ def get_xml(debug: bool, appearance_mode: str) -> int:
     PrimeItems.colors_to_use = set_color_mode(appearance_mode)
     PrimeItems.output_lines = LineOut()
 
-    return get_data_and_output_intro(True)
+    return get_data_and_output_intro(True, state=PrimeItems)
 
 
 # Clear all buttons associated with fetching the backup file from Android device

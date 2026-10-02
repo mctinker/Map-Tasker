@@ -129,6 +129,6 @@ def test_outdir_on_the_command_line(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     """-outdir sets the folder, made absolute."""
     monkeypatch.setattr(sys, "argv", ["maptasker", "-outdir", "cli_out"])
 
-    process_extended_arguments(runtime_parser())
+    process_extended_arguments(runtime_parser(), state=PrimeItems)
 
     assert PrimeItems.program_arguments.output_directory == str((tmp_path / "cli_out").resolve())

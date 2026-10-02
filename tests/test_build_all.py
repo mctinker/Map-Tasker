@@ -100,7 +100,7 @@ def test_every_step_runs_in_order(_stubbed: list) -> None:
     The validations come first so that a code Tasker has added is reported before the
     bundle and argument harvests go looking for it.
     """
-    proginit.rebuild_action_tables()
+    proginit.rebuild_action_tables(state=PrimeItems)
     assert [call[0] for call in _stubbed] == ["validate", "validate", "bundles", "arguments"]
 
 
@@ -110,7 +110,7 @@ def test_each_code_type_gets_its_own_url(_stubbed: list) -> None:
     Swapping these is the quiet failure this guards: both urls fetch, both parse, and
     every code is then reported as missing from a table it was never in.
     """
-    proginit.rebuild_action_tables()
+    proginit.rebuild_action_tables(state=PrimeItems)
     validations = {call[1]: call[2] for call in _stubbed if call[0] == "validate"}
     assert validations == {"e": proginit.EVENT_CODES_URL, "s": proginit.STATE_CODES_URL}
     assert validations["e"].endswith("EventCodes.java")
@@ -124,7 +124,7 @@ def test_debug_is_on_before_anything_reports(_stubbed: list) -> None:
     silently when debug is off, so a rebuild that turned it on afterwards would look
     like a clean run no matter what it found.
     """
-    proginit.rebuild_action_tables()
+    proginit.rebuild_action_tables(state=PrimeItems)
     assert all(call[3] is True for call in _stubbed if call[0] == "validate")
 
 
