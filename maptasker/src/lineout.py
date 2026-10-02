@@ -41,6 +41,7 @@ from maptasker.src.xmldata import remove_html_tags
 
 if TYPE_CHECKING:
     from maptasker.src.initparg import ArgumentFields
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 # build_tooltip_span() (format.py) wraps a "Task:"/"Profile:"/etc. label in
@@ -63,7 +64,7 @@ _SPAN_TAG_RE = re.compile(r"<span\b[^>]*>|</span\s*>", re.IGNORECASE)
 class LineOut:
     """Class definition for our output lines"""
 
-    def __init__(self, config: RunConfig | None = None) -> None:
+    def __init__(self, config: RunConfig | None = None, state: RunState | None = None) -> None:
         """
         Initialize an object
         Args:
@@ -73,17 +74,27 @@ class LineOut:
                 which is what lets a scope that overrides one (overridden_config) be seen here.
                 Given one, only that is read: it cannot change under the object, and nothing
                 about the global has to be set up to use it.
+            state (RunState | None): the run state these lines belong to: its directory items,
+                its AI output, and the front matter and anchors written when the output is
+                started again.  Left out, PrimeItems -- which is what a LineOut that is
+                PrimeItems.output_lines is.
         Returns:
             None: Nothing is returned
         - Initialize an empty list to store output lines
         - The list will be used to store lines of text as the object is used"""
         self.output_lines = []
         self._config = config
+        self._state = state
+
+    @property
+    def state(self) -> RunState:
+        """The run state these lines belong to: the one this was given, else PrimeItems."""
+        return PrimeItems if self._state is None else self._state
 
     @property
     def settings(self) -> ArgumentFields:
-        """The settings lines are formatted by: the config this was given, else the live ones."""
-        return PrimeItems.program_arguments if self._config is None else self._config
+        """The settings lines are formatted by: the config this was given, else the state's live ones."""
+        return self.state.program_arguments if self._config is None else self._config
 
     def refresh_our_output(
         self,
@@ -118,16 +129,16 @@ class LineOut:
 
         # Clear whatever is already in the output queue
         if self.settings.ai_analyze:
-            PrimeItems.ai["output_lines"].clear()
+            self.state.ai["output_lines"].clear()
         self.output_lines.clear()
 
         # Clear the directory, grand totals, etc.  emitted_anchors goes with them: the
         # output those anchors were written into has just been thrown away, so every object
         # about to be written again needs its anchor again (see PrimeItems.emitted_anchors).
-        reset_attributes(*MAP_OUTPUT_ATTRIBUTES)
+        reset_attributes(*MAP_OUTPUT_ATTRIBUTES, state=self.state)
 
         # Display th starting information in beginning of output
-        output_the_front_matter(current_config() if self._config is None else self._config, state=PrimeItems)
+        output_the_front_matter(current_config() if self._config is None else self._config, state=self.state)
 
         # Re-add the directory item
         if self.settings.directory:
@@ -135,7 +146,7 @@ class LineOut:
                 "projects",
                 project_name,
                 current_config() if self._config is None else self._config,
-                state=PrimeItems,
+                state=self.state,
             )
 
         # Start Project list
@@ -203,8 +214,8 @@ class LineOut:
         """
         directory = ""
 
-        if self.settings.directory and PrimeItems.directory_items["current_item"]:
-            directory_item = PrimeItems.directory_items["current_item"]
+        if self.settings.directory and self.state.directory_items["current_item"]:
+            directory_item = self.state.directory_items["current_item"]
             directory = f'<a id="{directory_item}"></a>\n'
         return f"{directory}{arg1}{element}{arg3}"
 
@@ -383,7 +394,7 @@ class LineOut:
             # Returns: '<a id="scenes_1"></a>\n<style=color:scene_color;font:Arial;element:Scene:&nbsp;1;>'
         """
         directory = ""
-        if self.settings.directory and PrimeItems.directory_items["current_item"]:
+        if self.settings.directory and self.state.directory_items["current_item"]:
             # element's "Scene:" label may be wrapped in a hover-tooltip span (build_tooltip_span()
             # in format.py), which puts a "</span>" between "Scene:" and "&nbsp;" and breaks a plain
             # split on "Scene:&nbsp;" -- strip that wrapper first so this always finds the name.

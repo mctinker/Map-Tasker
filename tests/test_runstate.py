@@ -134,7 +134,7 @@ def _loaded_state() -> RunState:
     """A run state holding a (tiny) backup and an empty output, and nothing on the global."""
     state = RunState()
     state.xml_root = ET.fromstring('<TaskerData sr="" dvi="1" tv="6.3.13"/>')  # noqa: S314
-    state.output_lines = LineOut()
+    state.output_lines = LineOut(state=state)
     state.file_to_get = "backup.xml"
     return state
 
@@ -193,3 +193,30 @@ def test_a_profiles_properties_are_written_into_the_state_it_is_given() -> None:
 
     assert state.output_lines.output_lines
     assert (len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0) == before
+
+
+def test_starting_the_output_again_clears_the_state_the_lines_belong_to() -> None:
+    """refresh_our_output throws the run's output away and writes the front matter again."""
+    state = _loaded_state()
+    state.grand_totals["projects"] = 5
+    PrimeItems.grand_totals["projects"] = 7
+
+    state.output_lines.refresh_our_output(False, "Home", "")
+
+    assert state.grand_totals["projects"] == 0
+    assert PrimeItems.grand_totals["projects"] == 7
+    assert any("Project: Home" in line for line in state.output_lines.output_lines)
+    assert "6.3.13" in state.heading
+    PrimeItems.grand_totals["projects"] = 0
+
+
+def test_a_line_is_formatted_by_the_state_its_output_belongs_to() -> None:
+    """The directory switch and the hyperlink target are the owning state's, not the global's."""
+    state = _loaded_state()
+    state.program_arguments.directory = True
+    state.directory_items["current_item"] = "tasks_Remind_Me"
+    PrimeItems.directory_items["current_item"] = ""
+
+    link = state.output_lines.add_directory_link("tasks", "Remind Me", "")
+
+    assert "tasks_Remind_Me" in link
