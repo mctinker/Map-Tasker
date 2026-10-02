@@ -9,19 +9,22 @@ from __future__ import annotations
 
 import os.path
 from os import getcwd
+from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as ET
 
 from maptasker.src.error import error_handler
 from maptasker.src.maputil2 import http_request
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.xmldata import parse_tasker_xml, rewrite_xml
 
+if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
+
 
 # We've read in the xml backup file.  Now save it for processing.
-def write_out_backup_file(file_contents: bin) -> None:
+def write_out_backup_file(file_contents: bin, state: RunState) -> None:
     """
     We've read in the xml backup file.  Now save it for processing.
 
@@ -34,20 +37,21 @@ def write_out_backup_file(file_contents: bin) -> None:
         error_handler(
             "MapTasker canceled.  An error occurred in getbakup.  Program canceled.",
             2,
+            state=state,
         )
 
     # We must get just the file name and type since we will be using this to save it to our local path.
     # This is the file we will do all of our processing against...the local file fetched from the Android device.
     # Get position of the last "/" in path/file
-    name_location = PrimeItems.program_arguments.android_file.rfind(PrimeItems.slash) + 1
+    name_location = state.program_arguments.android_file.rfind(state.slash) + 1
     # Get the name of the file
-    my_file_name = PrimeItems.program_arguments.android_file[name_location:]
+    my_file_name = state.program_arguments.android_file[name_location:]
 
     # Convert the binary code to string
     output_lines = file_contents.decode("utf-8")
 
     # Set up the backup file full path
-    the_backup_file = PrimeItems.program_arguments.android_file
+    the_backup_file = state.program_arguments.android_file
     put_message = f"Fetching backup file {my_file_name}: {the_backup_file}"
     logger.debug(put_message)
 
@@ -63,7 +67,7 @@ def write_out_backup_file(file_contents: bin) -> None:
             out_file.write(item)
 
     # Set flag to identify that backup file was fetched from Android device
-    PrimeItems.program_arguments.fetched_backup_from_android = True
+    state.program_arguments.fetched_backup_from_android = True
 
 
 # Return the substring after the last occurance of a specific character in a string
@@ -82,7 +86,7 @@ def substring_after_last(string: str, char: chr) -> str:
 
 
 # Set up to fetch the Tasker XML file from the Android device running
-def get_backup_file() -> str:
+def get_backup_file(state: RunState) -> str:
     """
     Set up to fetch the Tasker XML file from the Android device running
     the Tasker server
@@ -91,29 +95,29 @@ def get_backup_file() -> str:
     """
 
     # If running from the GUI, then we have already gotten the file. Just return the name on the local drive.add
-    if PrimeItems.program_arguments.gui:
-        return substring_after_last(PrimeItems.program_arguments.android_file, "/")
+    if state.program_arguments.gui:
+        return substring_after_last(state.program_arguments.android_file, "/")
 
     # Get the contents of the file from the Android device.
     return_code, file_contents = http_request(
-        PrimeItems.program_arguments.android_ipaddr,
-        PrimeItems.program_arguments.android_port,
-        PrimeItems.program_arguments.android_file,
+        state.program_arguments.android_ipaddr,
+        state.program_arguments.android_port,
+        state.program_arguments.android_file,
         "file",
         "?download=1",
     )
 
     if return_code != 0:
         logger.debug(f"return_code:{return_code}")
-        if PrimeItems.program_arguments.gui:
-            PrimeItems.error_code = return_code
+        if state.program_arguments.gui:
+            state.error_code = return_code
             return None
-        error_handler(str(file_contents), 8)
+        error_handler(str(file_contents), 8, state=state)
 
     # Write the XML file to local storage.
-    write_out_backup_file(file_contents)
+    write_out_backup_file(file_contents, state=state)
 
-    return substring_after_last(PrimeItems.program_arguments.android_file, "/")
+    return substring_after_last(state.program_arguments.android_file, "/")
 
 
 # Validate XML
@@ -122,6 +126,7 @@ def validate_xml(
     android_file: str,
     return_code: int,
     file_contents: str,
+    state: RunState,
 ) -> tuple:
     # Run loop since we may have to rerun validation if unicode error
     """Validates an XML file and returns an error message and the parsed XML tree.
@@ -154,22 +159,22 @@ def validate_xml(
         # Validate the file
         if return_code == 0:
             # Process the XML file
-            PrimeItems.program_arguments.android_file = android_file
+            state.program_arguments.android_file = android_file
 
             # If getting file from Android device, write out the backup file first.
             if ip_address:
-                _write_out_backup_file(file_contents)
+                _write_out_backup_file(file_contents, state=state)
 
             # We don't have the file yet.  Lets get it.
             else:
-                return_code = _get_the_xml_data(state=PrimeItems)
+                return_code = _get_the_xml_data(state=state)
                 if return_code != 0:
-                    return PrimeItems.error_msg, None
+                    return state.error_msg, None
 
             # Run the XML file through the XML parser to validate it.
             try:
-                filename_location = android_file.rfind(PrimeItems.slash) + 1
-                file_to_validate = PrimeItems.program_arguments.android_file[filename_location:]
+                filename_location = android_file.rfind(state.slash) + 1
+                file_to_validate = state.program_arguments.android_file[filename_location:]
                 xml_tree = parse_tasker_xml(file_to_validate, encoding=" iso8859_9")
                 process_file = False  # Get out of while/loop
             except ET.ParseError:  # Parsing error
@@ -193,7 +198,7 @@ def validate_xml(
 
 
 # Read XML file and validate the XML.
-def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
+def validate_xml_file(ip_address: str, port: str, android_file: str, state: RunState) -> bool:
     # Read the file
     """Validates an XML file from an Android device.
     Parameters:
@@ -221,12 +226,7 @@ def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
         return_code = 0
 
     # Validate the xml
-    error_message, xml_tree = validate_xml(
-        ip_address,
-        android_file,
-        return_code,
-        file_contents,
-    )
+    error_message, xml_tree = validate_xml(ip_address, android_file, return_code, file_contents, state=state)
 
     # If there was an error, bail out.
     if error_message:

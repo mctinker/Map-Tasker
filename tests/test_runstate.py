@@ -6,12 +6,13 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src import bildhtml, outline, proginit, runcli, taskerd, timeline
+from maptasker.src import bildhtml, getbakup, outline, proginit, runcli, taskerd, timeline
 from maptasker.src.actionc import load_arg_specs
 from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
 from maptasker.src import property as prop
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapjump import PROFILE, TASK, Target
+from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.sysconst import DIAGRAM_FILE as diagram_file
 from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, RunState, reset_attributes
 from maptasker.src.runcfg import current_config
@@ -350,3 +351,50 @@ def test_a_runtime_option_is_set_on_the_state_it_is_given() -> None:
     assert state.program_arguments.underline is True
     assert PrimeItems.program_arguments.bold is False
     PrimeItems.program_arguments.bold = bold_before
+
+
+def _stub_the_device(monkeypatch: pytest.MonkeyPatch, return_code: int, contents: bytes) -> list[tuple]:
+    """Answer the Android server's file request with a canned reply, and record what was asked."""
+    asked: list[tuple] = []
+
+    def reply(*arguments: object) -> tuple[int, bytes]:
+        asked.append(arguments)
+        return return_code, contents
+
+    monkeypatch.setattr(getbakup, "http_request", reply)
+    return asked
+
+
+def test_a_backup_fetched_from_the_device_is_recorded_on_the_state_it_was_fetched_for(
+    tmp_path: object,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    asked = _stub_the_device(monkeypatch, 0, _OUTLINE_XML.encode("utf-8"))
+    state = RunState()
+    state.program_arguments.android_ipaddr = "192.0.2.7"
+    state.program_arguments.android_port = "1821"
+    state.program_arguments.android_file = "/sdcard/Tasker/backup.xml"
+    fetched_before = PrimeItems.program_arguments.fetched_backup_from_android
+
+    assert getbakup.get_backup_file(state=state) == "backup.xml"
+
+    assert asked[0][:3] == ("192.0.2.7", "1821", "/sdcard/Tasker/backup.xml")
+    assert (tmp_path / "backup.xml").read_text(encoding="utf-8") == _OUTLINE_XML
+    assert state.program_arguments.fetched_backup_from_android is True
+    assert PrimeItems.program_arguments.fetched_backup_from_android == fetched_before
+
+
+def test_a_failed_fetch_ends_the_run_with_the_devices_error_code(monkeypatch: pytest.MonkeyPatch) -> None:
+    _stub_the_device(monkeypatch, 7, b"connection refused")
+    state = RunState()
+    state.program_arguments.android_ipaddr = "192.0.2.7"
+    state.program_arguments.android_port = "1821"
+    state.program_arguments.android_file = "/sdcard/Tasker/backup.xml"
+    code_before = PrimeItems.error_code
+
+    with pytest.raises(MapTaskerError) as stopped:
+        getbakup.get_backup_file(state=state)
+
+    assert stopped.value.exit_code == 8
+    assert PrimeItems.error_code == code_before

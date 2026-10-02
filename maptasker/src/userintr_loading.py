@@ -392,9 +392,7 @@ class LoadingEventHandlers:
         PrimeItems.program_arguments.gui = True
 
         return_code, error_message = validate_xml_file(
-            the_view.android_ipaddr,
-            the_view.android_port,
-            android_file,
+            the_view.android_ipaddr, the_view.android_port, android_file, state=PrimeItems
         )
 
         # Handle validation structural failures cleanly

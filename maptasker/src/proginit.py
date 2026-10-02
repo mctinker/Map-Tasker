@@ -106,7 +106,7 @@ def open_and_get_backup_xml_file(state: RunState) -> dict:
         and state.program_arguments.android_file
         and state.program_arguments.android_port
     ):
-        backup_file_name = get_backup_file()
+        backup_file_name = get_backup_file(state=state)
 
         # If no backup file and we're coming from the GUI, then return to GUI.
         if backup_file_name is None and state.program_arguments.gui:

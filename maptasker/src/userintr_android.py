@@ -224,10 +224,7 @@ async def validate_or_filelist_xml(
         if return_code == 0:
             PrimeItems.program_arguments.gui = True
             validated = await run.io_bound(
-                validate_xml_file,
-                android_ipaddr,
-                android_port,
-                android_file,
+                validate_xml_file, android_ipaddr, android_port, android_file, state=PrimeItems
             )
             if validated is None:  # cancelled -- see the note at the top of this file
                 return 1, android_ipaddr, android_port, android_file
