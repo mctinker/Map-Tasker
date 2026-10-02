@@ -77,13 +77,14 @@ from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Row, Target, text_report
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import REFACTOR_FILE, logger
 from maptasker.src.varxref import VARIABLE_PATTERN
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 
 # ##################################################################################
@@ -197,14 +198,14 @@ def _blocked(kind: str, what: str, *blocks: Block) -> Plan:
 # ##################################################################################
 
 
-def _tables() -> dict:
+def _tables(state: RunState) -> dict:
     """The four object tables, whatever state the program is in."""
-    return PrimeItems.tasker_root_elements or {}
+    return state.tasker_root_elements or {}
 
 
-def _table(name: str) -> dict:
+def _table(name: str, state: RunState) -> dict:
     """One object table -- all_tasks, all_profiles, all_projects, all_scenes -- or {}."""
-    return _tables().get(name) or {}
+    return _tables(state=state).get(name) or {}
 
 
 def _members(project_element: Element, tag: str) -> list[str]:
@@ -221,7 +222,7 @@ def _members(project_element: Element, tag: str) -> list[str]:
     return [piece.strip() for piece in raw.split(",") if piece.strip()]
 
 
-def _projects_listing(tag: str, member: str) -> list[str]:
+def _projects_listing(tag: str, member: str, state: RunState) -> list[str]:
     """EVERY Project whose <pids>/<tids>/<scenes> names this member, in table order.
 
     Deliberately not mapfind's project-membership map, which answers "which Project does
@@ -231,29 +232,33 @@ def _projects_listing(tag: str, member: str) -> list[str]:
     first owner and left the second would leave the Task owned by both -- the exact
     inconsistency taskedit.delete_task scans every Project to avoid.
     """
-    return [name for name, entry in _table("all_projects").items() if member in _members(entry["xml"], tag)]
+    return [
+        name for name, entry in _table("all_projects", state=state).items() if member in _members(entry["xml"], tag)
+    ]
 
 
-def _display_project(tag: str, member: str) -> str:
+def _display_project(tag: str, member: str, state: RunState) -> str:
     """The one Project name a Target should print for this member, or "" for none."""
-    owners = _projects_listing(tag, member)
+    owners = _projects_listing(tag, member, state=state)
     return owners[0] if owners else ""
 
 
-def _task_target(task_id: str) -> Target:
+def _task_target(task_id: str, state: RunState) -> Target:
     """The Target for a Task, with the Project a report would file it under."""
-    entry = _table("all_tasks").get(task_id) or {}
-    return Target(kind=TASK, key=task_id, name=entry.get("name", ""), project=_display_project("tids", task_id))
+    entry = _table("all_tasks", state=state).get(task_id) or {}
+    return Target(
+        kind=TASK, key=task_id, name=entry.get("name", ""), project=_display_project("tids", task_id, state=state)
+    )
 
 
-def _profile_target(profile_id: str) -> Target:
+def _profile_target(profile_id: str, state: RunState) -> Target:
     """The Target for a Profile, with the Project a report would file it under."""
-    entry = _table("all_profiles").get(profile_id) or {}
+    entry = _table("all_profiles", state=state).get(profile_id) or {}
     return Target(
         kind=PROFILE,
         key=profile_id,
         name=entry.get("name", ""),
-        project=_display_project("pids", profile_id),
+        project=_display_project("pids", profile_id, state=state),
     )
 
 
@@ -545,7 +550,7 @@ def _new_perform_task(element_cls: type, task_name: str) -> Element:
     return action
 
 
-def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) -> Plan:
+def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str, state: RunState) -> Plan:
     """Move a run of a Task's actions into a new Task, leaving a Perform Task behind.
 
     `action_numbers` are the numbers the MAP PRINTS -- counting from 1, in run order, which
@@ -562,13 +567,13 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) ->
     The Perform Task is written at the position the run started, so what runs when is
     unchanged -- with the one exception the warnings are about, which is local variables.
     """
-    entry = _table("all_tasks").get(task_id)
+    entry = _table("all_tasks", state=state).get(task_id)
     if entry is None:
         return _blocked(EXTRACT, "Extract actions into a new Task", Block("NO-TASK", "That Task is not in this file."))
 
     task_element = entry["xml"]
     task_name = entry.get("name", "") or task_id
-    where = _task_target(task_id)
+    where = _task_target(task_id, state=state)
     all_actions = _actions(task_element)
 
     wanted = sorted({int(number) for number in action_numbers})
@@ -576,7 +581,7 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) ->
     which = _describe_actions(wanted) if wanted else "actions"
     what = f"Extract {which} of Task '{task_name}' into a new Task '{new_name}'"
 
-    scope = extract_scope()
+    scope = extract_scope(state=state)
     if not scope.allows(TASK, task_id):
         # Belt to the filtered pulldown's braces.  The picker does not offer an
         # out-of-scope Task, but a dialog can sit open while the user changes what the Map
@@ -593,13 +598,13 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) ->
             ),
         )
 
-    block = _extract_block(all_actions, wanted, new_name, where)
+    block = _extract_block(all_actions, wanted, new_name, where, state=state)
     if block is not None:
         return _blocked(EXTRACT, what, block)
 
     moving = [all_actions[number - 1] for number in wanted]
     kept = [action for number, action in enumerate(all_actions, start=1) if number not in set(wanted)]
-    owners = _projects_listing("tids", task_id)
+    owners = _projects_listing("tids", task_id, state=state)
 
     plan = Plan(kind=EXTRACT, what=what, elements=(task_element, *all_actions))
     plan.steps = _extract_steps(moving, wanted, new_name, task_name, where, owners)
@@ -608,7 +613,7 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) ->
     def run() -> list[str]:
         """Move the elements, write the call, register the Task, file it under a Project."""
         priority = task_element.findtext("pri", "") or "100"
-        new_task = taskedit.create_new_task(new_name, priority, state=PrimeItems)
+        new_task = taskedit.create_new_task(new_name, priority, state=state)
         if isinstance(new_task, str):
             return [new_task]
 
@@ -627,16 +632,16 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) ->
         before = wanted[0] - 1
         _renumber([*kept[:before], call, *kept[before:]])
 
-        taskedit.register_new_task(new_task, new_name, state=PrimeItems)
+        taskedit.register_new_task(new_task, new_name, state=state)
         for project_name in owners:
-            profedit.add_task_to_project(new_task.task_id, project_name, state=PrimeItems)
+            profedit.add_task_to_project(new_task.task_id, project_name, state=state)
         return []
 
     plan.run = run
     return plan
 
 
-def _extract_block(all_actions: list, wanted: list[int], new_name: str, where: Target) -> Block | None:
+def _extract_block(all_actions: list, wanted: list[int], new_name: str, where: Target, state: RunState) -> Block | None:
     """The one reason this extract will not be done, or None.
 
     One rather than all of them: the checks are ordered from the user's mistake outwards,
@@ -663,7 +668,7 @@ def _extract_block(all_actions: list, wanted: list[int], new_name: str, where: T
         )
     if not new_name:
         return Block("NO-NAME", "The new Task needs a name.", where)
-    if taskedit.task_name_exists(new_name, state=PrimeItems):
+    if taskedit.task_name_exists(new_name, state=state):
         return Block(
             "NAME-TAKEN",
             f"A Task named '{new_name}' is already in this file.  Perform Task calls a Task by name, so "
@@ -782,7 +787,7 @@ def _extract_warnings(moving: list, kept: list, task_name: str, owners: list[str
 _CONDITION_LIST = "ConditionList"
 
 
-def _perform_task_callers(task_name: str) -> list[Target]:
+def _perform_task_callers(task_name: str, state: RunState) -> list[Target]:
     """Every action in the file that calls this Task by name, as clickable Targets.
 
     A targeted scan rather than a healthck index: that builds a picture of the whole
@@ -792,16 +797,16 @@ def _perform_task_callers(task_name: str) -> list[Target]:
     says at greater length.
     """
     callers: list[Target] = []
-    for caller_id, entry in _table("all_tasks").items():
+    for caller_id, entry in _table("all_tasks", state=state).items():
         for number, action in enumerate(_actions(entry["xml"]), start=1):
             if _code(action) != taskedit.PERFORM_TASK_ACTION_CODE:
                 continue
             if _string_argument(action, taskedit.PERFORM_TASK_NAME_ARG_ID) == task_name:
-                callers.append(_task_target(caller_id).at_action(number))
+                callers.append(_task_target(caller_id, state=state).at_action(number))
     return callers
 
 
-def plan_inline(task_id: str, action_number: int) -> Plan:
+def plan_inline(task_id: str, action_number: int, state: RunState) -> Plan:
     """Replace one Perform Task with a copy of the actions of the Task it calls.
 
     A COPY, and the called Task is left exactly where it is.  Anything else would be two
@@ -810,13 +815,13 @@ def plan_inline(task_id: str, action_number: int) -> Plan:
     question this answers -- see the callers warning -- and deleting it stays the user's
     own click.
     """
-    entry = _table("all_tasks").get(task_id)
+    entry = _table("all_tasks", state=state).get(task_id)
     if entry is None:
         return _blocked(INLINE, "Inline a Perform Task", Block("NO-TASK", "That Task is not in this file."))
 
     task_element = entry["xml"]
     task_name = entry.get("name", "") or task_id
-    where = _task_target(task_id)
+    where = _task_target(task_id, state=state)
     all_actions = _actions(task_element)
 
     if not 1 <= action_number <= len(all_actions):
@@ -835,7 +840,7 @@ def plan_inline(task_id: str, action_number: int) -> Plan:
     called_name = _string_argument(call, taskedit.PERFORM_TASK_NAME_ARG_ID)
     what = f"Inline Perform Task '{called_name}' at action {action_number} of Task '{task_name}'"
 
-    called = _table("all_tasks_by_name").get(called_name)
+    called = _table("all_tasks_by_name", state=state).get(called_name)
     block = _inline_block(call, called_name, called, task_id, where.at_action(action_number))
     if block is not None:
         return _blocked(INLINE, what, block)
@@ -852,8 +857,10 @@ def plan_inline(task_id: str, action_number: int) -> Plan:
         what=what,
         elements=(task_element, called_element, call, *all_actions, *called_actions),
     )
-    plan.steps = _inline_steps(called_name, called_actions, task_name, action_number, where, condition, disabled)
-    plan.warnings = _inline_warnings(call, called_name, called_actions, kept)
+    plan.steps = _inline_steps(
+        called_name, called_actions, task_name, action_number, where, condition, disabled, state=state
+    )
+    plan.warnings = _inline_warnings(call, called_name, called_actions, kept, state=state)
 
     def run() -> list[str]:
         """Copy the called Task's actions in, carrying over what the call itself said."""
@@ -971,11 +978,12 @@ def _inline_steps(
     where: Target,
     condition: object,
     disabled: bool,
+    state: RunState,
 ) -> list[Step]:
     """What an inline will do, in order, one line each."""
     count = len(called_actions)
-    called_entry = _table("all_tasks_by_name").get(called_name)
-    called_where = _task_target(called_entry["id"]) if called_entry else None
+    called_entry = _table("all_tasks_by_name", state=state).get(called_name)
+    called_where = _task_target(called_entry["id"], state=state) if called_entry else None
     steps = [
         Step(
             f"Remove the Perform Task at action {action_number} of Task '{task_name}'",
@@ -1002,6 +1010,7 @@ def _inline_warnings(
     called_name: str,
     called_actions: list,
     kept: list,
+    state: RunState,
 ) -> list[str]:
     """What is true of this inline that the user should read before doing it."""
     warnings = []
@@ -1043,7 +1052,7 @@ def _inline_warnings(
             f"its own, and the call's label is not preserved.",
         )
 
-    remaining = len(_perform_task_callers(called_name)) - 1
+    remaining = len(_perform_task_callers(called_name, state=state)) - 1
     if remaining > 0:
         warnings.append(
             f"{remaining} other {'call' if remaining == 1 else 'calls'} to '{called_name}' "
@@ -1075,13 +1084,13 @@ def _inline_warnings(
 # ##################################################################################
 
 
-def _relocate(tag: str, member: str, to_project: str, from_projects: list[str]) -> None:
+def _relocate(tag: str, member: str, to_project: str, from_projects: list[str], state: RunState) -> None:
     """Take a member out of every Project listing it and put it in one.
 
     Every Project, not the first: see _projects_listing on why two of them can hold the
     same id, and taskedit.delete_task, which scans them all for the same reason.
     """
-    projects = _table("all_projects")
+    projects = _table("all_projects", state=state)
     for project_name in from_projects:
         entry = projects.get(project_name)
         if entry is None or project_name == to_project:
@@ -1115,7 +1124,7 @@ def _profile_task_ids(profile_element: Element) -> list[str]:
     )
 
 
-def plan_move(kind: str, key: str, to_project: str) -> Plan:
+def plan_move(kind: str, key: str, to_project: str, state: RunState) -> Plan:
     """Move a Task (kind=TASK, key=its id) or a Profile (kind=PROFILE, key=its id) to a Project.
 
     A Profile takes its Entry and Exit Tasks with it, EXCEPT any that another Profile left
@@ -1124,7 +1133,7 @@ def plan_move(kind: str, key: str, to_project: str) -> Plan:
     Profile that stayed -- turning one deliberate move into a second, invisible one.  The
     Tasks that do not travel are named in a warning rather than passed over in silence.
     """
-    if to_project not in _table("all_projects"):
+    if to_project not in _table("all_projects", state=state):
         return _blocked(
             MOVE,
             "Move to another Project",
@@ -1132,9 +1141,9 @@ def plan_move(kind: str, key: str, to_project: str) -> Plan:
         )
 
     if kind == TASK:
-        return _plan_move_task(key, to_project)
+        return _plan_move_task(key, to_project, state=state)
     if kind == PROFILE:
-        return _plan_move_profile(key, to_project)
+        return _plan_move_profile(key, to_project, state=state)
     return _blocked(
         MOVE,
         "Move to another Project",
@@ -1142,15 +1151,15 @@ def plan_move(kind: str, key: str, to_project: str) -> Plan:
     )
 
 
-def _plan_move_task(task_id: str, to_project: str) -> Plan:
+def _plan_move_task(task_id: str, to_project: str, state: RunState) -> Plan:
     """Move one Task's Project membership."""
-    entry = _table("all_tasks").get(task_id)
+    entry = _table("all_tasks", state=state).get(task_id)
     if entry is None:
         return _blocked(MOVE, "Move a Task to another Project", Block("NO-TASK", "That Task is not in this file."))
 
     task_name = entry.get("name", "") or task_id
-    where = _task_target(task_id)
-    owners = _projects_listing("tids", task_id)
+    where = _task_target(task_id, state=state)
+    owners = _projects_listing("tids", task_id, state=state)
     what = f"Move Task '{task_name}' to Project '{to_project}'"
 
     if owners == [to_project]:
@@ -1174,17 +1183,17 @@ def _plan_move_task(task_id: str, to_project: str) -> Plan:
         ),
         Step(f"Add Task '{task_name}' to Project '{to_project}'", Target(kind=PROJECT, key=to_project)),
     ]
-    plan.warnings = _move_task_warnings(task_id, task_name, owners, to_project)
+    plan.warnings = _move_task_warnings(task_id, task_name, owners, to_project, state=state)
 
     def run() -> list[str]:
-        _relocate("tids", task_id, to_project, owners)
+        _relocate("tids", task_id, to_project, owners, state=state)
         return []
 
     plan.run = run
     return plan
 
 
-def _move_task_warnings(task_id: str, task_name: str, owners: list[str], to_project: str) -> list[str]:
+def _move_task_warnings(task_id: str, task_name: str, owners: list[str], to_project: str, state: RunState) -> list[str]:
     """What a Task's move leaves behind that the user should know about."""
     warnings = []
     if not owners:
@@ -1194,10 +1203,10 @@ def _move_task_warnings(task_id: str, task_name: str, owners: list[str], to_proj
         )
 
     stranded = []
-    for profile_id, profile in _table("all_profiles").items():
+    for profile_id, profile in _table("all_profiles", state=state).items():
         if task_id not in _profile_task_ids(profile["xml"]):
             continue
-        profile_projects = _projects_listing("pids", profile_id)
+        profile_projects = _projects_listing("pids", profile_id, state=state)
         if to_project not in profile_projects:
             stranded.append(f"'{profile.get('name', '') or profile_id}'")
     if stranded:
@@ -1208,7 +1217,7 @@ def _move_task_warnings(task_id: str, task_name: str, owners: list[str], to_proj
             f"Profile that runs it, and a single-Project export of that Profile's Project will not carry it.",
         )
 
-    callers = _perform_task_callers(task_name)
+    callers = _perform_task_callers(task_name, state=state)
     outside = [target for target in callers if target.project and target.project != to_project]
     if outside:
         warnings.append(
@@ -1219,9 +1228,9 @@ def _move_task_warnings(task_id: str, task_name: str, owners: list[str], to_proj
     return warnings
 
 
-def _plan_move_profile(profile_id: str, to_project: str) -> Plan:
+def _plan_move_profile(profile_id: str, to_project: str, state: RunState) -> Plan:
     """Move one Profile's Project membership, and its Tasks' with it where that is safe."""
-    entry = _table("all_profiles").get(profile_id)
+    entry = _table("all_profiles", state=state).get(profile_id)
     if entry is None:
         return _blocked(
             MOVE,
@@ -1231,8 +1240,8 @@ def _plan_move_profile(profile_id: str, to_project: str) -> Plan:
 
     profile_element = entry["xml"]
     profile_name = entry.get("name", "") or profile_id
-    where = _profile_target(profile_id)
-    owners = _projects_listing("pids", profile_id)
+    where = _profile_target(profile_id, state=state)
+    owners = _projects_listing("pids", profile_id, state=state)
     what = f"Move Profile '{profile_name}' to Project '{to_project}'"
 
     if owners == [to_project]:
@@ -1251,8 +1260,8 @@ def _plan_move_profile(profile_id: str, to_project: str) -> Plan:
     task_ids = _profile_task_ids(profile_element)
     staying = {
         other_id: other
-        for other_id, other in _table("all_profiles").items()
-        if other_id != profile_id and set(_projects_listing("pids", other_id)) & set(owners)
+        for other_id, other in _table("all_profiles", state=state).items()
+        if other_id != profile_id and set(_projects_listing("pids", other_id, state=state)) & set(owners)
     }
     shared = {
         task_id: sorted(
@@ -1274,32 +1283,32 @@ def _plan_move_profile(profile_id: str, to_project: str) -> Plan:
         Step(f"Add Profile '{profile_name}' to Project '{to_project}'", Target(kind=PROJECT, key=to_project)),
         *(
             Step(
-                f"Move its Task '{_table('all_tasks').get(task_id, {}).get('name', '') or task_id}' "
+                f"Move its Task '{_table('all_tasks', state=state).get(task_id, {}).get('name', '') or task_id}' "
                 f"to Project '{to_project}' as well",
-                _task_target(task_id),
+                _task_target(task_id, state=state),
             )
             for task_id in travelling
         ),
     ]
-    plan.warnings = _move_profile_warnings(shared, to_project)
+    plan.warnings = _move_profile_warnings(shared, to_project, state=state)
 
     def run() -> list[str]:
-        _relocate("pids", profile_id, to_project, owners)
+        _relocate("pids", profile_id, to_project, owners, state=state)
         for task_id in travelling:
-            _relocate("tids", task_id, to_project, _projects_listing("tids", task_id))
+            _relocate("tids", task_id, to_project, _projects_listing("tids", task_id, state=state), state=state)
         return []
 
     plan.run = run
     return plan
 
 
-def _move_profile_warnings(shared: dict[str, list[str]], to_project: str) -> list[str]:
+def _move_profile_warnings(shared: dict[str, list[str]], to_project: str, state: RunState) -> list[str]:
     """Which of a moving Profile's Tasks are staying, and why."""
     left = {task_id: users for task_id, users in shared.items() if users}
     if not left:
         return []
 
-    tasks = _table("all_tasks")
+    tasks = _table("all_tasks", state=state)
     described = [
         f"'{tasks.get(task_id, {}).get('name', '') or task_id}' (also run by {', '.join(users[:3])})"
         for task_id, users in left.items()
@@ -1433,7 +1442,7 @@ def _repoint_names(element: object, tasks: dict[str, str], scenes: dict[str, str
     return rewritten
 
 
-def plan_duplicate(kind: str, key: str, new_name: str = "") -> Plan:
+def plan_duplicate(kind: str, key: str, new_name: str = "", *, state: RunState) -> Plan:
     """Copy a Project, Profile, Task or Scene under a new name.
 
     `key` is the Task's or Profile's id, and the Project's or Scene's name -- the same
@@ -1449,24 +1458,24 @@ def plan_duplicate(kind: str, key: str, new_name: str = "") -> Plan:
     planner = planners.get(kind)
     if planner is None:
         return _blocked(DUPLICATE, "Duplicate", Block("NOT-COPYABLE", f"A {kind} cannot be duplicated."))
-    return planner(key, (new_name or "").strip())
+    return planner(key, (new_name or "").strip(), state=state)
 
 
-def _plan_duplicate_task(task_id: str, new_name: str) -> Plan:
+def _plan_duplicate_task(task_id: str, new_name: str, state: RunState) -> Plan:
     """Copy one Task, into the same Projects as the original."""
-    entry = _table("all_tasks").get(task_id)
+    entry = _table("all_tasks", state=state).get(task_id)
     if entry is None:
         return _blocked(DUPLICATE, "Duplicate a Task", Block("NO-TASK", "That Task is not in this file."))
 
     task_name = entry.get("name", "") or task_id
-    new_name = new_name or unique_name(task_name, set(_table("all_tasks_by_name")))
+    new_name = new_name or unique_name(task_name, set(_table("all_tasks_by_name", state=state)))
     what = f"Duplicate Task '{task_name}' as '{new_name}'"
-    where = _task_target(task_id)
+    where = _task_target(task_id, state=state)
 
-    if taskedit.task_name_exists(new_name, state=PrimeItems):
+    if taskedit.task_name_exists(new_name, state=state):
         return _blocked(DUPLICATE, what, Block("NAME-TAKEN", _name_taken(TASK, new_name), where))
 
-    owners = _projects_listing("tids", task_id)
+    owners = _projects_listing("tids", task_id, state=state)
     actions = _actions(entry["xml"])
 
     plan = Plan(kind=DUPLICATE, what=what, elements=(entry["xml"],))
@@ -1485,20 +1494,18 @@ def _plan_duplicate_task(task_id: str, new_name: str) -> Plan:
     ]
 
     def run() -> list[str]:
-        new_id = str(taskedit.next_unique_task_or_profile_id(state=PrimeItems))
+        new_id = str(taskedit.next_unique_task_or_profile_id(state=state))
         element = _copy_task_element(entry["xml"], new_id, new_name)
-        taskedit.register_new_task(
-            taskedit.EditableTask(task_id=new_id, task_element=element), new_name, state=PrimeItems
-        )
+        taskedit.register_new_task(taskedit.EditableTask(task_id=new_id, task_element=element), new_name, state=state)
         for project_name in owners:
-            profedit.add_task_to_project(new_id, project_name, state=PrimeItems)
+            profedit.add_task_to_project(new_id, project_name, state=state)
         return []
 
     plan.run = run
     return plan
 
 
-def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
+def _plan_duplicate_profile(profile_id: str, new_name: str, state: RunState) -> Plan:
     """Copy one Profile, and the Tasks it runs, into the same Projects as the original.
 
     Its Tasks are copied too, and that is the decision worth arguing.  A Profile sharing
@@ -1507,25 +1514,25 @@ def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
     order to vary it does not want.  The cost is a second Task per copy, which is what
     Tasker's own "Duplicate" does on the device.
     """
-    entry = _table("all_profiles").get(profile_id)
+    entry = _table("all_profiles", state=state).get(profile_id)
     if entry is None:
         return _blocked(DUPLICATE, "Duplicate a Profile", Block("NO-PROFILE", "That Profile is not in this file."))
 
     profile_element = entry["xml"]
     profile_name = entry.get("name", "") or profile_id
-    new_name = new_name or unique_name(profile_name, set(_table("all_profiles_by_name")))
+    new_name = new_name or unique_name(profile_name, set(_table("all_profiles_by_name", state=state)))
     what = f"Duplicate Profile '{profile_name}' as '{new_name}'"
-    where = _profile_target(profile_id)
+    where = _profile_target(profile_id, state=state)
 
-    if profedit.profile_name_exists(new_name, state=PrimeItems):
+    if profedit.profile_name_exists(new_name, state=state):
         return _blocked(DUPLICATE, what, Block("NAME-TAKEN", _name_taken(PROFILE, new_name), where))
 
-    owners = _projects_listing("pids", profile_id)
+    owners = _projects_listing("pids", profile_id, state=state)
     task_ids = _profile_task_ids(profile_element)
-    taken = set(_table("all_tasks_by_name"))
+    taken = set(_table("all_tasks_by_name", state=state))
     task_names = {}
     for task_id in task_ids:
-        original = _table("all_tasks").get(task_id, {}).get("name", "") or task_id
+        original = _table("all_tasks", state=state).get(task_id, {}).get("name", "") or task_id
         task_names[task_id] = unique_name(original, taken)
         taken.add(task_names[task_id])
 
@@ -1534,9 +1541,9 @@ def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
         Step(f"Create Profile '{new_name}' with the same conditions as '{profile_name}'", where),
         *(
             Step(
-                f"Copy its Task '{_table('all_tasks').get(task_id, {}).get('name', '') or task_id}' as "
+                f"Copy its Task '{_table('all_tasks', state=state).get(task_id, {}).get('name', '') or task_id}' as "
                 f"'{task_names[task_id]}', and point the new Profile at that",
-                _task_target(task_id),
+                _task_target(task_id, state=state),
             )
             for task_id in task_ids
         ),
@@ -1548,18 +1555,18 @@ def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
         reserved: set[str] = set()
         copied_task_ids = {}
         for task_id in task_ids:
-            source = _table("all_tasks").get(task_id)
+            source = _table("all_tasks", state=state).get(task_id)
             if source is None:
                 continue
-            new_task_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=PrimeItems))
+            new_task_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=state))
             reserved.add(new_task_id)
             element = _copy_task_element(source["xml"], new_task_id, task_names[task_id])
             taskedit.register_new_task(
-                taskedit.EditableTask(task_id=new_task_id, task_element=element), task_names[task_id], state=PrimeItems
+                taskedit.EditableTask(task_id=new_task_id, task_element=element), task_names[task_id], state=state
             )
             copied_task_ids[task_id] = new_task_id
 
-        new_profile_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=PrimeItems))
+        new_profile_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=state))
         element = _copy_profile_element(profile_element, new_profile_id, new_name)
         for child in element:
             if child.tag in ("mid0", "mid1"):
@@ -1571,11 +1578,11 @@ def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
             entry_task_id=element.findtext("mid0", "") or "",
             exit_task_id=element.findtext("mid1", "") or "",
         )
-        profedit.register_new_profile(editable, new_name, state=PrimeItems)
+        profedit.register_new_profile(editable, new_name, state=state)
         # add_profile_to_project files the copied Tasks under the Project too -- see its
         # own docstring on why a Project-linked Task with no <tids> entry is invisible.
         for project_name in owners:
-            profedit.add_profile_to_project(editable, project_name, state=PrimeItems)
+            profedit.add_profile_to_project(editable, project_name, state=state)
         return []
 
     plan.run = run
@@ -1602,20 +1609,22 @@ def _duplicate_profile_warnings(new_name: str, task_ids: list[str], owners: list
     return warnings
 
 
-def _plan_duplicate_scene(scene_name: str, new_name: str) -> Plan:
+def _plan_duplicate_scene(scene_name: str, new_name: str, state: RunState) -> Plan:
     """Copy one Scene, into the same Projects as the original."""
-    entry = _table("all_scenes").get(scene_name)
+    entry = _table("all_scenes", state=state).get(scene_name)
     if entry is None:
         return _blocked(DUPLICATE, "Duplicate a Scene", Block("NO-SCENE", "That Scene is not in this file."))
 
-    new_name = new_name or unique_name(scene_name, set(_table("all_scenes")))
+    new_name = new_name or unique_name(scene_name, set(_table("all_scenes", state=state)))
     what = f"Duplicate Scene '{scene_name}' as '{new_name}'"
-    where = Target(kind=SCENE, key=scene_name, name=scene_name, project=_display_project("scenes", scene_name))
+    where = Target(
+        kind=SCENE, key=scene_name, name=scene_name, project=_display_project("scenes", scene_name, state=state)
+    )
 
-    if new_name in _table("all_scenes"):
+    if new_name in _table("all_scenes", state=state):
         return _blocked(DUPLICATE, what, Block("NAME-TAKEN", _name_taken(SCENE, new_name), where))
 
-    owners = _projects_listing("scenes", scene_name)
+    owners = _projects_listing("scenes", scene_name, state=state)
 
     plan = Plan(kind=DUPLICATE, what=what, elements=(entry["xml"],))
     plan.steps = [
@@ -1632,9 +1641,9 @@ def _plan_duplicate_scene(scene_name: str, new_name: str) -> Plan:
 
     def run() -> list[str]:
         element = _copy_scene_element(entry["xml"], new_name)
-        _table("all_scenes")[new_name] = {"xml": element, "name": new_name}
+        _table("all_scenes", state=state)[new_name] = {"xml": element, "name": new_name}
         for project_name in owners:
-            project_entry = _table("all_projects").get(project_name)
+            project_entry = _table("all_projects", state=state).get(project_name)
             if project_entry is not None:
                 projedit.set_project_members(
                     project_entry["xml"],
@@ -1685,7 +1694,7 @@ def _name_taken(kind: str, new_name: str) -> str:
 _PROJECT_SR_PREFIX = "proj"
 
 
-def _next_project_sr() -> str:
+def _next_project_sr(state: RunState) -> str:
     """The next free 'projN' attribute.
 
     A Project's sr is an internal counter unrelated to its <id> (which is a UUID) -- see
@@ -1694,7 +1703,7 @@ def _next_project_sr() -> str:
     """
     used = [
         int(entry["xml"].attrib.get("sr", "")[len(_PROJECT_SR_PREFIX) :])
-        for entry in _table("all_projects").values()
+        for entry in _table("all_projects", state=state).values()
         if entry["xml"].attrib.get("sr", "").startswith(_PROJECT_SR_PREFIX)
         and entry["xml"].attrib.get("sr", "")[len(_PROJECT_SR_PREFIX) :].isdigit()
     ]
@@ -1718,7 +1727,7 @@ class _ProjectCopy:
     scene_names: dict[str, str]  # old Scene name -> the copy's name
 
 
-def _plan_project_copy(project_element: Element) -> _ProjectCopy:
+def _plan_project_copy(project_element: Element, state: RunState) -> _ProjectCopy:
     """Choose a free name for every child of a Project about to be duplicated.
 
     Each kind is checked against its own table AND against the names chosen earlier in this
@@ -1726,19 +1735,19 @@ def _plan_project_copy(project_element: Element) -> _ProjectCopy:
     both be offered 'Setup (copy)', and the second registration would silently overwrite
     the first in all_tasks_by_name.
     """
-    task_names, taken_tasks = {}, set(_table("all_tasks_by_name"))
+    task_names, taken_tasks = {}, set(_table("all_tasks_by_name", state=state))
     for task_id in _members(project_element, "tids"):
-        original = _table("all_tasks").get(task_id, {}).get("name", "") or task_id
+        original = _table("all_tasks", state=state).get(task_id, {}).get("name", "") or task_id
         task_names[task_id] = unique_name(original, taken_tasks)
         taken_tasks.add(task_names[task_id])
 
-    profile_names, taken_profiles = {}, set(_table("all_profiles_by_name"))
+    profile_names, taken_profiles = {}, set(_table("all_profiles_by_name", state=state))
     for profile_id in _members(project_element, "pids"):
-        original = _table("all_profiles").get(profile_id, {}).get("name", "") or profile_id
+        original = _table("all_profiles", state=state).get(profile_id, {}).get("name", "") or profile_id
         profile_names[profile_id] = unique_name(original, taken_profiles)
         taken_profiles.add(profile_names[profile_id])
 
-    scene_names, taken_scenes = {}, set(_table("all_scenes"))
+    scene_names, taken_scenes = {}, set(_table("all_scenes", state=state))
     for scene_name in _members(project_element, "scenes"):
         scene_names[scene_name] = unique_name(scene_name, taken_scenes)
         taken_scenes.add(scene_names[scene_name])
@@ -1746,28 +1755,28 @@ def _plan_project_copy(project_element: Element) -> _ProjectCopy:
     return _ProjectCopy(task_names=task_names, profile_names=profile_names, scene_names=scene_names)
 
 
-def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
+def _plan_duplicate_project(project_name: str, new_name: str, state: RunState) -> Plan:
     """Copy a Project and everything it owns."""
-    entry = _table("all_projects").get(project_name)
+    entry = _table("all_projects", state=state).get(project_name)
     if entry is None:
         return _blocked(DUPLICATE, "Duplicate a Project", Block("NO-PROJECT", "That Project is not in this file."))
 
     project_element = entry["xml"]
-    new_name = new_name or unique_name(project_name, set(_table("all_projects")))
+    new_name = new_name or unique_name(project_name, set(_table("all_projects", state=state)))
     what = f"Duplicate Project '{project_name}' as '{new_name}'"
     where = Target(kind=PROJECT, key=project_name, name=project_name)
 
-    if projedit.project_name_exists(new_name, state=PrimeItems):
+    if projedit.project_name_exists(new_name, state=state):
         return _blocked(DUPLICATE, what, Block("NAME-TAKEN", _name_taken(PROJECT, new_name), where))
 
-    chosen = _plan_project_copy(project_element)
+    chosen = _plan_project_copy(project_element, state=state)
     task_ids = _members(project_element, "tids")
     profile_ids = _members(project_element, "pids")
     scene_names = _members(project_element, "scenes")
 
     plan = Plan(kind=DUPLICATE, what=what, elements=(project_element,))
-    plan.steps = _duplicate_project_steps(new_name, chosen, task_ids, profile_ids, scene_names, where)
-    plan.warnings = _duplicate_project_warnings(project_name, chosen, task_ids)
+    plan.steps = _duplicate_project_steps(new_name, chosen, task_ids, profile_ids, scene_names, where, state=state)
+    plan.warnings = _duplicate_project_warnings(project_name, chosen, task_ids, state=state)
 
     def run() -> list[str]:
         reserved: set[str] = set()
@@ -1775,10 +1784,10 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
         # Tasks first: the Profiles copied below point at them by id, and the Project's own
         # <tids> is the list those ids go into.
         for task_id in task_ids:
-            source = _table("all_tasks").get(task_id)
+            source = _table("all_tasks", state=state).get(task_id)
             if source is None:
                 continue
-            new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=PrimeItems))
+            new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=state))
             reserved.add(new_id)
             new_task_ids[task_id] = new_id
             taskedit.register_new_task(
@@ -1787,15 +1796,15 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
                     task_element=_copy_task_element(source["xml"], new_id, chosen.task_names[task_id]),
                 ),
                 chosen.task_names[task_id],
-                state=PrimeItems,
+                state=state,
             )
 
         new_profile_ids: dict[str, str] = {}
         for profile_id in profile_ids:
-            source = _table("all_profiles").get(profile_id)
+            source = _table("all_profiles", state=state).get(profile_id)
             if source is None:
                 continue
-            new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=PrimeItems))
+            new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=state))
             reserved.add(new_id)
             new_profile_ids[profile_id] = new_id
             element = _copy_profile_element(source["xml"], new_id, chosen.profile_names[profile_id])
@@ -1811,15 +1820,15 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
                     exit_task_id=element.findtext("mid1", "") or "",
                 ),
                 chosen.profile_names[profile_id],
-                state=PrimeItems,
+                state=state,
             )
 
         for scene_name in scene_names:
-            source = _table("all_scenes").get(scene_name)
+            source = _table("all_scenes", state=state).get(scene_name)
             if source is None:
                 continue
             copied = chosen.scene_names[scene_name]
-            _table("all_scenes")[copied] = {
+            _table("all_scenes", state=state)[copied] = {
                 "xml": _copy_scene_element(source["xml"], copied),
                 "name": copied,
             }
@@ -1827,21 +1836,22 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
         # Every by-name reference inside everything just copied, repointed at the copies --
         # after all of them exist, so a Task calling a Task copied later is still caught.
         name_map = {
-            _table("all_tasks").get(old, {}).get("name", "") or old: chosen.task_names[old] for old in new_task_ids
+            _table("all_tasks", state=state).get(old, {}).get("name", "") or old: chosen.task_names[old]
+            for old in new_task_ids
         }
         for new_id in new_task_ids.values():
-            _repoint_names(_table("all_tasks")[new_id]["xml"], name_map, chosen.scene_names)
+            _repoint_names(_table("all_tasks", state=state)[new_id]["xml"], name_map, chosen.scene_names)
         for scene_name in scene_names:
             copied = chosen.scene_names.get(scene_name)
-            if copied in _table("all_scenes"):
-                _repoint_names(_table("all_scenes")[copied]["xml"], name_map, chosen.scene_names)
+            if copied in _table("all_scenes", state=state):
+                _repoint_names(_table("all_scenes", state=state)[copied]["xml"], name_map, chosen.scene_names)
 
         element = copy.deepcopy(project_element)
-        element.set("sr", _next_project_sr())
+        element.set("sr", _next_project_sr(state=state))
         _set_child_text(element, "id", str(uuid.uuid4()))
         _set_child_text(element, "name", new_name)
         projedit.register_new_project(
-            projedit.EditableProject(project_name=new_name, project_element=element), state=PrimeItems
+            projedit.EditableProject(project_name=new_name, project_element=element), state=state
         )
         # Written through set_project_members rather than by hand, so a Project that had no
         # <scenes> of its own gets one in Tasker's child order, and the <mdate> is stamped.
@@ -1864,6 +1874,7 @@ def _duplicate_project_steps(
     profile_ids: list[str],
     scene_names: list[str],
     where: Target,
+    state: RunState,
 ) -> list[Step]:
     """What a Project duplication will do.  Counts, then the renamings, which are the surprise."""
     steps = [Step(f"Create Project '{new_name}'", where)]
@@ -1878,9 +1889,12 @@ def _duplicate_project_steps(
     renamed = [
         (original, copied)
         for original, copied in (
-            *((_table("all_tasks").get(old, {}).get("name", "") or old, new) for old, new in chosen.task_names.items()),
             *(
-                (_table("all_profiles").get(old, {}).get("name", "") or old, new)
+                (_table("all_tasks", state=state).get(old, {}).get("name", "") or old, new)
+                for old, new in chosen.task_names.items()
+            ),
+            *(
+                (_table("all_profiles", state=state).get(old, {}).get("name", "") or old, new)
                 for old, new in chosen.profile_names.items()
             ),
             *chosen.scene_names.items(),
@@ -1897,7 +1911,9 @@ def _duplicate_project_steps(
     return steps
 
 
-def _duplicate_project_warnings(project_name: str, chosen: _ProjectCopy, task_ids: list[str]) -> list[str]:
+def _duplicate_project_warnings(
+    project_name: str, chosen: _ProjectCopy, task_ids: list[str], state: RunState
+) -> list[str]:
     """What a duplicated Project shares with its original whether the user wants it to or not."""
     warnings = [
         (
@@ -1907,10 +1923,11 @@ def _duplicate_project_warnings(project_name: str, chosen: _ProjectCopy, task_id
         ),
     ]
 
-    shared_tasks = [task_id for task_id in task_ids if len(_projects_listing("tids", task_id)) > 1]
+    shared_tasks = [task_id for task_id in task_ids if len(_projects_listing("tids", task_id, state=state)) > 1]
     if shared_tasks:
         named = ", ".join(
-            f"'{_table('all_tasks').get(task_id, {}).get('name', '') or task_id}'" for task_id in shared_tasks[:5]
+            f"'{_table('all_tasks', state=state).get(task_id, {}).get('name', '') or task_id}'"
+            for task_id in shared_tasks[:5]
         )
         warnings.append(
             f"{named} {'is' if len(shared_tasks) == 1 else 'are'} listed by other Projects as well as "
@@ -1944,7 +1961,7 @@ def _duplicate_project_warnings(project_name: str, chosen: _ProjectCopy, task_id
 # ##################################################################################
 
 
-def task_choices(scope: mapjump.Scope | None = None) -> list[tuple[str, str]]:
+def task_choices(scope: mapjump.Scope | None = None, *, state: RunState) -> list[tuple[str, str]]:
     """Every Task as (id, label), Project named, sorted the way a user looks for one.
 
     The Project is in the label because Task names are not unique across a configuration
@@ -1956,8 +1973,8 @@ def task_choices(scope: mapjump.Scope | None = None) -> list[tuple[str, str]]:
     offers every Task in the file.
     """
     entries = [
-        (task_id, entry.get("name", "") or f"Task {task_id}", _display_project("tids", task_id))
-        for task_id, entry in _table("all_tasks").items()
+        (task_id, entry.get("name", "") or f"Task {task_id}", _display_project("tids", task_id, state=state))
+        for task_id, entry in _table("all_tasks", state=state).items()
         if scope is None or scope.allows(TASK, task_id)
     ]
     entries.sort(key=lambda item: (item[2].lower(), item[1].lower()))
@@ -1966,7 +1983,7 @@ def task_choices(scope: mapjump.Scope | None = None) -> list[tuple[str, str]]:
     ]
 
 
-def extract_scope() -> mapjump.Scope:
+def extract_scope(state: RunState) -> mapjump.Scope:
     """The Tasks an Extract may be asked about: the ones the single-item pulldowns select.
 
     WHY THIS ONE OPERATION IS SCOPED AND THE OTHER THREE ARE NOT.
@@ -1991,14 +2008,18 @@ def extract_scope() -> mapjump.Scope:
     offered; Extract has its own Task picker, so unlike Edit Task it has no reason to
     refuse outright.
     """
-    return mapjump.current_scope(state=PrimeItems)
+    return mapjump.current_scope(state=state)
 
 
-def profile_choices() -> list[tuple[str, str]]:
+def profile_choices(state: RunState) -> list[tuple[str, str]]:
     """Every Profile as (id, label), Project named.  Same reasoning as task_choices."""
     entries = [
-        (profile_id, entry.get("name", "") or f"Profile {profile_id}", _display_project("pids", profile_id))
-        for profile_id, entry in _table("all_profiles").items()
+        (
+            profile_id,
+            entry.get("name", "") or f"Profile {profile_id}",
+            _display_project("pids", profile_id, state=state),
+        )
+        for profile_id, entry in _table("all_profiles", state=state).items()
     ]
     entries.sort(key=lambda item: (item[2].lower(), item[1].lower()))
     return [
@@ -2007,17 +2028,17 @@ def profile_choices() -> list[tuple[str, str]]:
     ]
 
 
-def project_choices() -> list[str]:
+def project_choices(state: RunState) -> list[str]:
     """Every Project name, sorted."""
-    return sorted(_table("all_projects"), key=str.lower)
+    return sorted(_table("all_projects", state=state), key=str.lower)
 
 
-def scene_choices() -> list[str]:
+def scene_choices(state: RunState) -> list[str]:
     """Every Scene name, sorted."""
-    return sorted(_table("all_scenes"), key=str.lower)
+    return sorted(_table("all_scenes", state=state), key=str.lower)
 
 
-def action_choices(task_id: str) -> list[tuple[int, str]]:
+def action_choices(task_id: str, state: RunState) -> list[tuple[int, str]]:
     """A Task's actions as (number, label), counted from 1.
 
     Numbered as the Map prints them -- 1, 2, 3 -- because that is the number the user is
@@ -2029,7 +2050,7 @@ def action_choices(task_id: str) -> list[tuple[int, str]]:
     action is shown alongside its name: on a Task of forty Flashes it is the only thing
     telling one from another.
     """
-    entry = _table("all_tasks").get(task_id)
+    entry = _table("all_tasks", state=state).get(task_id)
     if entry is None:
         return []
     choices = []
@@ -2040,7 +2061,7 @@ def action_choices(task_id: str) -> list[tuple[int, str]]:
     return choices
 
 
-def call_choices(task_id: str) -> list[tuple[int, str]]:
+def call_choices(task_id: str, state: RunState) -> list[tuple[int, str]]:
     """Only the Perform Task actions of a Task -- the ones an inline can be asked about.
 
     Filtered here rather than offering every action and refusing the rest in the preview.
@@ -2048,7 +2069,7 @@ def call_choices(task_id: str) -> list[tuple[int, str]]:
     a worse answer than a pulldown of two, and the refusal still exists for the case where
     the Task was edited while the dialog was open.
     """
-    entry = _table("all_tasks").get(task_id)
+    entry = _table("all_tasks", state=state).get(task_id)
     if entry is None:
         return []
     choices = []

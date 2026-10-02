@@ -129,7 +129,7 @@ def _editable_profile(profile_id: str) -> profedit.EditableProfile:
 def test_a_task_export_round_trips() -> None:
     """The simplest case, and the one every other export contains: one Task, deep-copied
     into a TaskerData wrapper and serialized.  Nothing about it may change."""
-    report = roundtrip.verify_task(_editable_task("20"))
+    report = roundtrip.verify_task(_editable_task("20"), state=PrimeItems)
 
     assert report.ok, report.detail()
     assert report.checked == ("Task '20'",)
@@ -138,7 +138,7 @@ def test_a_task_export_round_trips() -> None:
 def test_a_profile_export_round_trips_with_its_linked_task() -> None:
     """A Profile is not meaningful to Tasker without the Task it points at, so the export
     bundles one it did not edit -- exactly the "untouched object" this file is named for."""
-    report = roundtrip.verify_profile(_editable_profile("100"))
+    report = roundtrip.verify_profile(_editable_profile("100"), state=PrimeItems)
 
     assert report.ok, report.detail()
     assert set(report.checked) == {"Profile '100'", "Task '20'"}
@@ -148,7 +148,7 @@ def test_a_project_export_round_trips_with_everything_it_carries() -> None:
     """The widest one: a Project export bundles its Profiles, its Scenes, the Tasks those
     Profiles fire, the Tasks its Scenes' buttons fire, and <dmetric>.  Not one of them is
     the object being edited, and every one of them is written into a live configuration."""
-    report = roundtrip.verify_project("Home")
+    report = roundtrip.verify_project("Home", state=PrimeItems)
 
     assert report.ok, report.detail()
     assert set(report.checked) == {"dmetric", "Profile '100'", "Scene 'Dialog'", "Task '20'", "Task '30'"}
@@ -157,7 +157,7 @@ def test_a_project_export_round_trips_with_everything_it_carries() -> None:
 def test_a_scene_export_round_trips_with_the_tasks_its_buttons_fire() -> None:
     """A Scene's <clickTask> is an id and nothing else, so the export carries the Task too
     -- another object the user never opened, going onto their device."""
-    report = roundtrip.verify_scene("Dialog")
+    report = roundtrip.verify_scene("Dialog", state=PrimeItems)
 
     assert report.ok, report.detail()
     assert set(report.checked) == {"dmetric", "Scene 'Dialog'", "Task '30'"}
@@ -171,7 +171,7 @@ def test_only_the_exported_project_is_exempt_from_comparison() -> None:
     "proj0", <pids> ahead of <tids>, a synthesized identity -- all of which Tasker's
     importer requires.  So it cannot be compared against the live element, and the report
     has to SAY it was not compared rather than counting it as verified."""
-    report = roundtrip.verify_project("Home")
+    report = roundtrip.verify_project("Home", state=PrimeItems)
 
     assert report.exempt == ("Project 'Home'",)
     assert "Project 'Home'" not in report.checked
@@ -200,7 +200,7 @@ def test_a_carriage_return_in_a_name_is_caught() -> None:
     passes, because they all compare the already-wrong bytes against themselves."""
     _live("all_tasks", "20").find("nme").text = "Open\rer"
 
-    report = roundtrip.verify_task(_editable_task("20"))
+    report = roundtrip.verify_task(_editable_task("20"), state=PrimeItems)
 
     assert not report.ok
     assert not report.fixed_point
@@ -214,7 +214,7 @@ def test_a_changed_value_names_the_object_and_the_path() -> None:
     values were -- so this asserts the whole triple, not just that something failed."""
     rendered = taskedit.render_standalone_task_xml(_editable_task("20"), state=PrimeItems)
 
-    report = roundtrip.verify_rendered(rendered.replace("<pri>100</pri>", "<pri>50</pri>"))
+    report = roundtrip.verify_rendered(rendered.replace("<pri>100</pri>", "<pri>50</pri>"), state=PrimeItems)
 
     (difference,) = report.differences["Task '20'"]
     assert not report.ok
@@ -228,7 +228,7 @@ def test_a_dropped_child_is_caught() -> None:
     fact that matters when an Action has lost an argument."""
     rendered = taskedit.render_standalone_task_xml(_editable_task("20"), state=PrimeItems)
 
-    report = roundtrip.verify_rendered(rendered.replace("\t\t<pri>100</pri>\n", ""))
+    report = roundtrip.verify_rendered(rendered.replace("\t\t<pri>100</pri>\n", ""), state=PrimeItems)
 
     assert not report.ok
     assert any("child elements" in difference.was for difference in report.differences["Task '20'"])
@@ -238,7 +238,7 @@ def test_xml_that_will_not_parse_is_reported_as_such() -> None:
     """The worst outcome, and the one worth separating from the others: there is nothing to
     compare against a document that is not XML, so the report says that and stops rather
     than reporting zero differences -- which is what a bare "no mismatches" would say."""
-    report = roundtrip.verify_rendered("<TaskerData><Task><nme>unclosed</TaskerData>")
+    report = roundtrip.verify_rendered("<TaskerData><Task><nme>unclosed</TaskerData>", state=PrimeItems)
 
     assert not report.ok
     assert report.error
@@ -254,7 +254,7 @@ def test_meaningful_whitespace_inside_a_value_is_not_a_difference() -> None:
     pass on a save that had genuinely lost them, and one that treated INDENTATION as content
     would fail on every save.  Both halves are asserted here because the fixture carries
     both kinds of whitespace."""
-    report = roundtrip.verify_task(_editable_task("20"))
+    report = roundtrip.verify_task(_editable_task("20"), state=PrimeItems)
 
     assert report.ok, report.detail()
     assert _live("all_tasks", "20").findtext("nme") == "Opener "
@@ -270,7 +270,7 @@ def test_reindenting_the_export_is_not_a_difference() -> None:
     PrimeItems.xml_root = compact
     PrimeItems.tasker_root_elements["all_tasks"] = taskerd.move_xml_to_table(compact.findall("Task"), True, "nme")
 
-    report = roundtrip.verify_task(_editable_task("30"))
+    report = roundtrip.verify_task(_editable_task("30"), state=PrimeItems)
 
     assert report.ok, report.detail()
 
@@ -283,7 +283,7 @@ def test_a_brand_new_object_is_compared_against_the_dialog_that_holds_it() -> No
     new_task = taskedit.create_new_task("Fresh", "100", state=PrimeItems)
     assert not isinstance(new_task, str), new_task
 
-    report = roundtrip.verify_task(new_task)
+    report = roundtrip.verify_task(new_task, state=PrimeItems)
 
     assert report.ok, report.detail()
     assert report.checked == (f"Task '{new_task.task_id}'",)
@@ -296,7 +296,7 @@ def test_an_object_with_nothing_to_compare_against_is_reported_not_failed() -> N
     honest answer; failing the save over it would block a legitimate one."""
     report = roundtrip.verify_rendered(
         '<TaskerData sr="" dvi="1" tv="6.3.13">\n\t<Task sr="task99">\n\t\t<id>99</id>\n\t</Task>\n</TaskerData>\n',
-    )
+    state=PrimeItems)
 
     assert report.ok
     assert report.unchecked == ("Task '99'",)
@@ -309,7 +309,7 @@ def test_an_object_with_nothing_to_compare_against_is_reported_not_failed() -> N
 def test_a_clean_report_counts_what_it_checked() -> None:
     """The success message has to say how much was actually verified.  "Verified" on its
     own is what a check that silently skipped everything would also say."""
-    assert roundtrip.verify_project("Home").summary() == "Verified: 5 objects came back identical."
+    assert roundtrip.verify_project("Home", state=PrimeItems).summary() == "Verified: 5 objects came back identical."
 
 
 def test_a_failing_report_leads_with_the_failure() -> None:
@@ -317,7 +317,7 @@ def test_a_failing_report_leads_with_the_failure() -> None:
     name the count of objects that changed, not the count that passed."""
     _live("all_tasks", "20").find("nme").text = "Open\rer"
 
-    assert roundtrip.verify_profile(_editable_profile("100")).summary() == (
+    assert roundtrip.verify_profile(_editable_profile("100"), state=PrimeItems).summary() == (
         "Verify FAILED: 1 object changed on the round trip."
     )
 
@@ -345,7 +345,7 @@ def test_a_ticked_verify_that_passes_lets_the_save_through_and_says_so() -> None
     passed and a checkbox that did nothing look exactly alike."""
     with patch.object(userintr_android, "ui") as fake_ui:
         verified = userintr_android._round_trip_verified  # noqa: SLF001
-        allowed = verified(_panel(ticked=True), lambda: roundtrip.verify_project("Home"))
+        allowed = verified(_panel(ticked=True), lambda: roundtrip.verify_project("Home", state=PrimeItems))
 
     assert allowed
     assert fake_ui.notify.call_args.kwargs["type"] == "positive"
@@ -362,7 +362,7 @@ def test_a_ticked_verify_that_fails_stops_the_save_before_the_device_is_touched(
         patch.object(userintr_android, "build_round_trip_report_dialog") as fake_dialog,
     ):
         verified = userintr_android._round_trip_verified  # noqa: SLF001
-        allowed = verified(_panel(ticked=True), lambda: roundtrip.verify_task(_editable_task("20")))
+        allowed = verified(_panel(ticked=True), lambda: roundtrip.verify_task(_editable_task("20"), state=PrimeItems))
 
     assert not allowed
     assert fake_ui.notify.call_args.kwargs["type"] == "negative"
@@ -372,4 +372,4 @@ def test_a_ticked_verify_that_fails_stops_the_save_before_the_device_is_touched(
 def test_a_panel_without_the_checkbox_is_not_a_failure() -> None:
     """Belt and braces for a caller that has not been given the field yet -- an absent
     checkbox reads as unticked, not as a save to refuse."""
-    assert userintr_android._round_trip_verified({}, lambda: roundtrip.verify_project("Home"))  # noqa: SLF001
+    assert userintr_android._round_trip_verified({}, lambda: roundtrip.verify_project("Home", state=PrimeItems))  # noqa: SLF001

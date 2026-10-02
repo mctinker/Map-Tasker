@@ -555,7 +555,7 @@ def test_a_fetch_runs_the_whole_exchange_in_order(device: _FakeRequests) -> None
     written and then throw it away; reading before deleting would believe a previous run's
     answer on a device where nothing ran at all.
     """
-    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert return_code == 0, message
 
     verbs_and_paths = [(verb, url.split("1821", 1)[1]) for verb, url in device.calls]
@@ -579,7 +579,7 @@ def test_an_already_installed_helper_task_is_not_imported_again(device: _FakeReq
     """
     device.task_installed = True
 
-    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert return_code == 0, message
     assert not any("/api/import" in url for _verb, url in device.calls)
 
@@ -598,7 +598,7 @@ def test_the_helper_task_maptasker_installs_is_the_one_it_meant_to(device: _Fake
     'Test App' for each one's name, then the activities in bulk, then write the file a line
     at a time with only the first write truncating.
     """
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     root = ET.fromstring(device.imported_xml)  # noqa: S314  (built by this program, above)
     actions = root.findall(".//Action")
@@ -633,7 +633,7 @@ def test_the_loop_runs_before_the_packages_are_joined(device: _FakeRequests) -> 
     Join' collapses that array into one string, so joining first would leave the loop with
     nothing to walk and every label empty.
     """
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     codes = _codes(device.imported_xml)
     end_for = codes.index("40")
@@ -651,7 +651,7 @@ def test_backing_the_switch_out_restores_the_bulk_task(
     to its v1 name, so the v2 Task left on the device is neither found nor used.
     """
     monkeypatch.setattr(deviceinv, "PAIR_LABELS_ON_DEVICE", False)
-    built = deviceinv.build_helper_task()
+    built = deviceinv.build_helper_task(state=PrimeItems)
     assert not isinstance(built, str), built
 
     codes = _codes(taskedit.render_standalone_task_xml(built, state=PrimeItems))
@@ -668,7 +668,7 @@ def test_fetched_apps_join_the_inventory_and_the_cache(device: _FakeRequests) ->
     before = {entry.pkg for entry in appinv.apps()}
     assert "com.google.android.apps.maps" in before  # harvested from the fixture
 
-    return_code, _ = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    return_code, _ = deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert return_code == 0
 
     assert appinv.fetched_devices()[0][0] == "192.168.0.210:1821"
@@ -683,7 +683,7 @@ def test_the_harvest_wins_where_the_two_sources_disagree(device: _FakeRequests) 
     exactly right; the fetched one's are whatever 'List Apps' happened to line up.  Where
     both have an answer, the harvest's is kept.
     """
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     entry = appinv.resolve_app(WHATSAPP)
     assert entry.label == "WhatsApp"
     assert entry.cls == "com.whatsapp.Main"
@@ -693,10 +693,10 @@ def test_a_fetch_replaces_that_devices_previous_answer(device: _FakeRequests) ->
     """Replaced, not merged: an app uninstalled since the last fetch must not live on in
     the list forever, and the device has just been asked what is actually installed.
     """
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     device.payload = "MAPTASKER-APPS 1\nPACKAGES\ncom.only.this.one\nMAPTASKER-END\n"
     device.task_installed = True
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     cached = json.loads(pathlib.Path(appinv.cache_path()).read_text())
     packages = [app["pkg"] for app in cached["devices"]["192.168.0.210:1821"]["apps"]]
@@ -706,10 +706,10 @@ def test_a_fetch_replaces_that_devices_previous_answer(device: _FakeRequests) ->
 def test_forgetting_a_device_takes_its_apps_out_of_the_inventory_and_the_cache(device: _FakeRequests) -> None:
     """A phone that moved address is a second device, and the old list has to be removable."""
     device.payload = "MAPTASKER-APPS 1\nPACKAGES\ncom.old.address.only\nMAPTASKER-END\n"
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     device.payload = "MAPTASKER-APPS 1\nPACKAGES\ncom.new.address.only\nMAPTASKER-END\n"
     device.task_installed = True
-    deviceinv.fetch_apps_from_device("192.168.0.211", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.211", "1821", state=PrimeItems)
     assert "com.old.address.only" in {entry.pkg for entry in appinv.apps()}
 
     assert appinv.forget_device("192.168.0.210:1821") == ""
@@ -724,7 +724,7 @@ def test_forgetting_a_device_takes_its_apps_out_of_the_inventory_and_the_cache(d
 
 def test_forgetting_a_device_that_is_not_there_changes_nothing(device: _FakeRequests) -> None:
     """A stale Forget -- the dialog open twice -- is not an error."""
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert appinv.forget_device("10.0.0.1:1821") == ""
     assert [record[0] for record in appinv.fetched_devices()] == ["192.168.0.210:1821"]
 
@@ -736,7 +736,7 @@ def test_an_unfinished_file_is_not_read_as_a_complete_list(device: _FakeRequests
     """
     device.payload = "MAPTASKER-APPS 1\nPACKAGES\ncom.whatsapp"
 
-    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert return_code != 0
     assert "never finished" in message
     assert appinv.fetched_devices() == []
@@ -851,7 +851,7 @@ def test_a_fetch_opens_the_dead_end(no_apps_device: _FakeRequests) -> None:
     assert rows[LAUNCH_APP]["addable"] is False
     assert rows[LAUNCH_APP]["reason"] == taskedit.NO_APPS_REASON
 
-    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert return_code == 0, message
 
     rows = {row["action_key"]: row for row in taskedit.list_addable_actions(state=PrimeItems)}
@@ -903,7 +903,7 @@ def test_a_fetch_opens_the_icon_dead_end(no_apps_device: _FakeRequests) -> None:
     assert rows[NOTIFY]["addable"] is False
     assert rows[NOTIFY]["reason"] == taskedit.NO_ICONS_REASON
 
-    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert return_code == 0, message
 
     rows = {row["action_key"]: row for row in taskedit.list_addable_actions(state=PrimeItems)}
@@ -914,7 +914,7 @@ def test_a_fetched_icon_is_the_app_icon_tasker_writes(no_apps_device: _FakeReque
     """What a fetch actually adds: one 'app' icon per installed application, carrying the
     package and the launcher activity, spelled the way a field holds one.
     """
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     icons = appinv.icons()
     assert {icon.kind for icon in icons} == {"app"}
@@ -930,7 +930,7 @@ def test_a_fetch_adds_no_icon_kind_it_cannot_know(no_apps_device: _FakeRequests)
     not enumerable remotely, so a fetch must not appear to supply either -- what it returns
     is applications, and only their own icons come of it.
     """
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     kinds = {icon.kind for icon in appinv.icons()}
     assert "builtin" not in kinds
@@ -942,7 +942,7 @@ def test_the_harvest_wins_for_an_icon_both_sources_have(device: _FakeRequests) -
     <Img> came out of a file Tasker itself wrote, so its <cls> is right, where a fetched
     launcher activity is whatever 'List Apps' reported.  One entry per package either way.
     """
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     whatsapp = [icon for icon in appinv.icons() if icon.kind == "app" and icon.pkg == WHATSAPP]
     assert len(whatsapp) == 1
@@ -954,7 +954,7 @@ def test_fetched_icons_sort_after_the_ones_already_in_use(device: _FakeRequests)
     this configuration actually uses -- have to stay at the top of the picker rather than
     being pushed under them.
     """
-    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     kinds = [icon.kind for icon in appinv.icons()]
     assert kinds == sorted(kinds, key={"builtin": 0, "pack": 1, "app": 2, "var": 3}.get)
@@ -976,7 +976,7 @@ def test_an_icon_argument_stops_being_read_only_once_the_icons_arrive(
     assert icon_arg.widget_kind == "readonly"
     assert icon_arg.readonly_note == taskedit.NO_ICONS_REASON
 
-    assert deviceinv.fetch_apps_from_device("192.168.0.210", "1821")[0] == 0
+    assert deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)[0] == 0
     taskedit.reclassify_action_args(action, state=PrimeItems)
 
     icon_arg = next(arg for arg in action.args if arg.arg_id == "2")
@@ -1167,7 +1167,7 @@ def test_a_file_list_fetch_runs_the_whole_exchange_in_order(file_list_device: _F
     and unlike the app list, a file list is asked for over and over in one session, so a
     stale file is the normal case rather than the rare one.
     """
-    return_code, result = deviceinv.fetch_file_list_from_device("192.168.0.210", "1821")
+    return_code, result = deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert return_code == 0, result
 
     verbs_and_paths = [(verb, url.split("1821", 1)[1]) for verb, url in file_list_device.calls]
@@ -1183,7 +1183,7 @@ def test_a_file_list_fetch_runs_the_whole_exchange_in_order(file_list_device: _F
 
 def test_a_fetch_returns_the_paths_the_device_reported(file_list_device: _FakeFileListRequests) -> None:
     """Exactly as Tasker spelled them -- it is the caller that decides how it wants them."""
-    return_code, result = deviceinv.fetch_file_list_from_device("192.168.0.210", "1821")
+    return_code, result = deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code == 0
     assert result == [
@@ -1196,7 +1196,7 @@ def test_the_listing_task_is_not_imported_twice(file_list_device: _FakeFileListR
     """api/import ADDS a Task of the same name rather than replacing it, so a fetch that
     imported unconditionally would leave a growing pile of identical Tasks behind."""
     file_list_device.task_installed = True
-    deviceinv.fetch_file_list_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert not any(verb == "POST" and "/api/import" in url for verb, url in file_list_device.calls)
 
@@ -1205,7 +1205,7 @@ def test_the_imported_task_lists_xml_under_the_tasker_directory(file_list_device
     """What actually goes to the device.  'List Files' has to recurse -- the XML lives in
     Tasker's subdirectories, not in the directory named -- and has to filter to XML, or
     the pulldown fills with every file on the device."""
-    deviceinv.fetch_file_list_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     imported = ET.fromstring(file_list_device.imported_xml)  # noqa: S314  (built by this program)
     list_files = imported.find(".//Action[code='446']")
@@ -1223,7 +1223,7 @@ def test_the_imported_task_writes_a_payload_this_can_read_back(
     the rest append, so a re-run replaces the previous answer rather than growing it -- and
     the terminator is written last, which is what makes the poll's 'is it finished' check
     mean anything."""
-    deviceinv.fetch_file_list_from_device("192.168.0.210", "1821")
+    deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     imported = ET.fromstring(file_list_device.imported_xml)  # noqa: S314
     writes = imported.findall(".//Action[code='410']")
@@ -1246,7 +1246,7 @@ def test_a_device_that_never_writes_the_file_is_an_error(monkeypatch: pytest.Mon
     maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
-    return_code, message = deviceinv.fetch_file_list_from_device("192.168.0.210", "1821")
+    return_code, message = deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code != 0
     assert "file list" in message
@@ -1313,7 +1313,7 @@ def test_the_storage_root_is_stripped_off_every_path(listed_files) -> None:  # n
 
     listed_files(0, ["/storage/emulated/0/Tasker/configs/user/backup.xml"])
 
-    assert get_list_of_files("1.2.3.4", "1821", "/storage/emulated/0/Tasker") == (
+    assert get_list_of_files("1.2.3.4", "1821", "/storage/emulated/0/Tasker", state=PrimeItems) == (
         0,
         ["/Tasker/configs/user/backup.xml"],
     )
@@ -1331,7 +1331,7 @@ def test_trashed_files_are_kept_out_of_the_list(listed_files) -> None:  # noqa: 
         ],
     )
 
-    assert get_list_of_files("1.2.3.4", "1821", "/storage/emulated/0/Tasker") == (
+    assert get_list_of_files("1.2.3.4", "1821", "/storage/emulated/0/Tasker", state=PrimeItems) == (
         0,
         ["/Tasker/configs/user/backup.xml"],
     )
@@ -1345,7 +1345,7 @@ def test_a_name_with_a_comma_in_it_survives(listed_files) -> None:  # noqa: ANN0
 
     listed_files(0, ["/storage/emulated/0/Tasker/Bonza, Jigsaw.prj.xml"])
 
-    assert get_list_of_files("1.2.3.4", "1821", "/storage/emulated/0/Tasker") == (
+    assert get_list_of_files("1.2.3.4", "1821", "/storage/emulated/0/Tasker", state=PrimeItems) == (
         0,
         ["/Tasker/Bonza, Jigsaw.prj.xml"],
     )
@@ -1358,7 +1358,7 @@ def test_a_fetch_failure_is_passed_straight_through(listed_files) -> None:  # no
 
     listed_files(8, "Tasker did not report the Task afterwards.")
 
-    assert get_list_of_files("1.2.3.4", "1821", "/storage/emulated/0/Tasker") == (
+    assert get_list_of_files("1.2.3.4", "1821", "/storage/emulated/0/Tasker", state=PrimeItems) == (
         8,
         "Tasker did not report the Task afterwards.",
     )
@@ -1370,7 +1370,7 @@ def test_a_listing_of_nothing_but_trash_is_an_error(listed_files) -> None:  # no
 
     listed_files(0, ["/storage/emulated/0/Tasker/.Trash/old.xml"])
 
-    return_code, message = get_list_of_files("1.2.3.4", "1821", "/storage/emulated/0/Tasker")
+    return_code, message = get_list_of_files("1.2.3.4", "1821", "/storage/emulated/0/Tasker", state=PrimeItems)
 
     assert return_code != 0
     assert "trashed" in message
@@ -1508,7 +1508,7 @@ def _import(device: _FakeImportRequests, **kwargs: object) -> tuple[int, str]:
         "1821",
         acknowledged_risk=True,
         **kwargs,
-    )
+    state=PrimeItems)
 
 
 def test_an_import_that_is_not_acknowledged_never_touches_the_device(
@@ -1522,7 +1522,7 @@ def test_an_import_that_is_not_acknowledged_never_touches_the_device(
         "Watched",
         "192.168.0.210",
         "1821",
-    )
+    state=PrimeItems)
 
     assert return_code != 0
     assert "acknowledged_risk" in message
@@ -1761,7 +1761,7 @@ def test_an_unknown_import_type_is_refused_rather_than_defaulted(import_device: 
     """apply_arg_values resolves a dropdown by label and falls back to index 0 for anything
     it does not recognize -- and index 0 of this dropdown is 'Task'.  Unchecked, a typo
     would quietly import the Profile XML as a Task instead of saying so."""
-    built = deviceinv.build_import_profile_task(import_type="Config")
+    built = deviceinv.build_import_profile_task(import_type="Config", state=PrimeItems)
 
     assert isinstance(built, str)
     assert "Task, Configuration" in built
@@ -1774,7 +1774,7 @@ def test_the_source_argument_can_be_changed_without_editing_the_builder(
     Source's options are called and apply_arg_values can only ever reach 0 through it.  0 is
     what api/import sends and stays the default; a prototype should not make the question
     unaskable."""
-    built = deviceinv.build_import_profile_task(source_index="1")
+    built = deviceinv.build_import_profile_task(source_index="1", state=PrimeItems)
     assert not isinstance(built, str), built
 
     imported = ET.fromstring(taskedit.render_standalone_task_xml(built, state=PrimeItems))  # noqa: S314
@@ -1842,7 +1842,7 @@ def _open(device: _FakeImportRequests, **kwargs: object) -> tuple[int, str]:
         "192.168.0.210",
         "1821",
         **kwargs,
-    )
+    state=PrimeItems)
 
 
 def test_the_offer_uploads_under_the_profiles_own_name(open_device: _FakeImportRequests) -> None:
@@ -2204,7 +2204,7 @@ def test_the_endpoint_reaches_the_request(monkeypatch: pytest.MonkeyPatch) -> No
 
 def _open_file_args(route: deviceinv.OfferRoute) -> tuple[str, str]:
     """The staged path and mime type the route's helper Task hands to 'Open File'."""
-    built = route.builder()
+    built = route.builder(state=PrimeItems)
     assert not isinstance(built, str), built
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
     action = task_xml.find(".//Action[code='102']")
@@ -2214,7 +2214,7 @@ def _open_file_args(route: deviceinv.OfferRoute) -> tuple[str, str]:
 
 def _send_intent_args(route: deviceinv.OfferRoute) -> tuple[str, str, str]:
     """The mime type, data URI and package the route's helper Task sends ACTION_VIEW with."""
-    built = route.builder()
+    built = route.builder(state=PrimeItems)
     assert not isinstance(built, str), built
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
     action = task_xml.find(".//Action[code='877']")
@@ -2234,7 +2234,7 @@ def test_the_intent_names_a_class_and_not_just_a_package(import_device: _FakeImp
     component, delivered without matching anything."""
     for route in (deviceinv.SEND_INTENT_ROUTE, deviceinv.SEND_INTENT_PROJECT_ROUTE):
         _mime, _uri, package = _send_intent_args(route)
-        built = route.builder()
+        built = route.builder(state=PrimeItems)
         task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
         intent = task_xml.find(".//Action[code='877']")
         assert package == "net.dinglisch.android.taskerm"
@@ -2302,7 +2302,7 @@ def test_opening_tasker_hands_over_nothing(import_device: _FakeImportRequests) -
     """ACTION_MAIN at an explicit component, and no data, no mime type: there is no file to
     hand over any more, and a VIEW with no data is not a launch.  If this ever grows a data
     argument again it has become the route that does not work."""
-    built = deviceinv.build_launch_tasker_task()
+    built = deviceinv.build_launch_tasker_task(state=PrimeItems)
     assert not isinstance(built, str), built
 
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
@@ -2328,7 +2328,7 @@ def test_opening_tasker_runs_its_own_task_and_reads_its_own_answer(monkeypatch: 
     maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
-    return_code, message = deviceinv.open_tasker_on_device("192.168.0.210", "1821")
+    return_code, message = deviceinv.open_tasker_on_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code == 0, message
     assert ET.fromstring(fake.imported_xml).findtext(".//Task/nme") == deviceinv.LAUNCH_TASKER_TASK_NAME  # noqa: S314
@@ -2347,7 +2347,7 @@ def test_another_routes_answer_is_not_read_as_a_launch(monkeypatch: pytest.Monke
     maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
-    return_code, message = deviceinv.open_tasker_on_device("192.168.0.210", "1821")
+    return_code, message = deviceinv.open_tasker_on_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code != 0
     assert "not a MapTasker launch result" in message
@@ -2766,12 +2766,12 @@ def test_only_the_open_with_route_drops_the_mime_type() -> None:
     matching -- it is what the receiver reads to know what it was handed, and dropping it
     there would lose information for no gain.
     """
-    built = deviceinv.OPEN_FILE_ROUTE.builder()
+    built = deviceinv.OPEN_FILE_ROUTE.builder(state=PrimeItems)
     assert not isinstance(built, str), built
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
     assert (task_xml.find(".//Action[code='102']").findtext("Str[@sr='arg1']") or "") == ""
 
-    built = deviceinv.SEND_INTENT_ROUTE.builder()
+    built = deviceinv.SEND_INTENT_ROUTE.builder(state=PrimeItems)
     assert not isinstance(built, str), built
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
     assert task_xml.find(".//Action[code='877']").findtext("Str[@sr='arg2']") == "text/xml"
@@ -2848,7 +2848,7 @@ def test_the_current_helper_names_come_from_the_routes_themselves() -> None:
     """A hand-kept list is the thing that goes stale, and the failure is the dangerous
     direction: a version bump that updated the constant and not the list would report the
     Task now in use as dead and invite the user to delete the working one."""
-    current = deviceinv.current_helper_task_names()
+    current = deviceinv.current_helper_task_names(state=PrimeItems)
 
     assert len(deviceinv.ALL_OFFER_ROUTES) == 8
     for route in deviceinv.ALL_OFFER_ROUTES:
@@ -2875,7 +2875,7 @@ def test_only_this_programs_leftovers_are_called_stale() -> None:
             "MapTaskerish",  # theirs too -- the prefix has a space in it for this reason
             "",
         ],
-    )
+    state=PrimeItems)
 
     assert stale == ["MapTasker Get Apps v1", "MapTasker Open Profile v1"]
     assert current == ["MapTasker Open Profile v4"]
@@ -2890,7 +2890,7 @@ def test_an_experiment_variant_of_the_current_prototype_is_not_stale() -> None:
             f"{deviceinv.IMPORT_PROFILE_TASK_NAME} [Task/0]",
             "MapTasker Import Profile v1 [Task/0]",
         ],
-    )
+    state=PrimeItems)
 
     assert current == [f"{deviceinv.IMPORT_PROFILE_TASK_NAME} [Task/0]"]
     assert stale == ["MapTasker Import Profile v1 [Task/0]"]
@@ -2921,7 +2921,7 @@ def test_the_whole_task_list_is_asked_for_without_a_name_filter(monkeypatch: pyt
     monkeypatch.setattr(time, "sleep", lambda _seconds: None)
     maputil2._auth_keys.clear()  # noqa: SLF001
 
-    return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("192.168.0.210", "1821")
+    return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code == 0, message
     assert stale == ["MapTasker Open Profile v1"]
@@ -2947,7 +2947,7 @@ def test_a_device_that_cannot_be_asked_reports_rather_than_guesses(monkeypatch: 
     monkeypatch.setattr(time, "sleep", lambda _seconds: None)
     maputil2._auth_keys.clear()  # noqa: SLF001
 
-    return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("192.168.0.210", "1821")
+    return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code != 0
     assert (stale, current) == ([], [])
@@ -2956,7 +2956,7 @@ def test_a_device_that_cannot_be_asked_reports_rather_than_guesses(monkeypatch: 
 
 def test_no_address_is_refused_before_the_device_is_touched() -> None:
     """The same refusal every other call here makes, in the same words."""
-    return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("", "")
+    return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("", "", state=PrimeItems)
 
     assert return_code != 0
     assert "IP address and port" in message
@@ -3047,7 +3047,7 @@ def test_an_object_list_that_cannot_be_trusted_is_refused(payload: str, expected
 
 def test_the_object_list_helper_is_current_and_the_project_helper_it_replaced_is_not() -> None:
     """A helper missing from the current set is one the stale-helper report tells the user to delete."""
-    current, stale = deviceinv.classify_helper_tasks([deviceinv.OBJECT_LIST_TASK_NAME, "MapTasker List Projects v2"])
+    current, stale = deviceinv.classify_helper_tasks([deviceinv.OBJECT_LIST_TASK_NAME, "MapTasker List Projects v2"], state=PrimeItems)
 
     assert current == [deviceinv.OBJECT_LIST_TASK_NAME]
     assert stale == ["MapTasker List Projects v2"]
@@ -3121,7 +3121,7 @@ def test_with_a_project_one_helper_run_answers_every_kind(tasker_device: _FakeTa
     """The case this exists for: an edited Project going back with one new Task in it.  The helper
     has to run for the Project, so its answer serves the Profiles, Scenes and Tasks too -- no
     endpoint is asked as well."""
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export(_EXPORT))
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export(_EXPORT), state=PrimeItems)
 
     assert check.unchecked == {}
     assert check.present == {"Project": ["Test"], "Profile": ["Morning"], "Task": ["Test1"], "Scene": []}
@@ -3136,7 +3136,7 @@ def test_without_a_project_the_endpoints_answer_and_nothing_is_run(tasker_device
     """The same arrays, one request each -- a Task, Profile or Scene save does not wait on a Task run."""
     sent = {"Project": [], "Profile": ["Morning", "Night"], "Scene": ["Panel"], "Task": ["Test1", "Test1plus"]}
 
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", sent)
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", sent, state=PrimeItems)
 
     assert check.unchecked == {}
     assert check.present == {"Profile": ["Morning"], "Scene": [], "Task": ["Test1"]}
@@ -3147,7 +3147,7 @@ def test_the_object_list_helper_asks_test_tasker_for_every_kind(tasker_device: _
     """What actually goes to the device: per kind, 'Test Tasker' of that Type (Projects 11, Profiles
     5, Scenes 6, Tasks 7) into an array, and 'Variable Join' making it one |~|-joined line -- all
     before anything is written -- then the payload, terminator last."""
-    deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Project": ["Test"]})
+    deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Project": ["Test"]}, state=PrimeItems)
 
     imported = ET.fromstring(tasker_device.imported_xml)  # noqa: S314  (built by this program)
     assert imported.findtext(".//nme") == deviceinv.OBJECT_LIST_TASK_NAME
@@ -3179,7 +3179,7 @@ def test_a_helper_answer_that_cannot_be_read_leaves_every_kind_unchecked(tasker_
     unreadable answer covers every kind it was asked for."""
     tasker_device.objects_payload = _objects_payload(projects="%mtprojects")
 
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export(_EXPORT))
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export(_EXPORT), state=PrimeItems)
 
     assert set(check.unchecked) == {"Project", "Profile", "Task", "Scene"}
     assert "did not report any Projects" in check.unchecked["Project"]
@@ -3189,7 +3189,7 @@ def test_a_helper_answer_that_cannot_be_read_leaves_every_kind_unchecked(tasker_
 def test_an_endpoint_that_cannot_answer_does_not_stop_the_others(tasker_device: _FakeTasker) -> None:
     tasker_device.failing.add("/api/profiles")
 
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Profile": ["Morning"], "Task": ["Test1"]})
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Profile": ["Morning"], "Task": ["Test1"]}, state=PrimeItems)
 
     assert "Profile" in check.unchecked
     assert "Profile" not in check.present
@@ -3200,7 +3200,7 @@ def test_tasks_are_asked_about_by_name_not_by_reading_the_whole_list(tasker_devi
     """The whole list makes the device look up every Task it has before it answers -- seconds, and
     past the read timeout on a busy phone, which is what reported a connection error on a device
     that was fine.  The names being sent go in the filter instead, all in one request."""
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Test1", "New Task/2"]})
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Test1", "New Task/2"]}, state=PrimeItems)
 
     assert check.unchecked == {}
     assert check.present == {"Task": ["Test1"]}
@@ -3215,7 +3215,7 @@ def test_a_name_the_server_reads_as_a_pattern_is_asked_of_the_helper(tasker_devi
     'Test Tasker' does not."""
     tasker_device.objects_payload = _objects_payload(tasks="Test1|~|$New Task")
 
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["$New Task", "Other"]})
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["$New Task", "Other"]}, state=PrimeItems)
 
     assert check.unchecked == {}
     assert check.present == {"Task": ["$New Task"]}
@@ -3227,7 +3227,7 @@ def test_a_task_name_the_filter_cannot_carry_reads_the_whole_list(tasker_device:
     name with a dot is looked for in the full list, where it is still found."""
     tasker_device.tasks = ["Updater - .check Connection"]
 
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Updater - .check Connection"]})
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Updater - .check Connection"]}, state=PrimeItems)
 
     assert check.present == {"Task": ["Updater - .check Connection"]}
     task_gets = [urlparse(url) for verb, url in tasker_device.calls if verb == "GET" and "/api/tasks" in url]
@@ -3254,7 +3254,7 @@ def test_the_whole_task_list_is_given_time_to_arrive(monkeypatch: pytest.MonkeyP
 
 
 def test_nothing_named_asks_the_device_nothing(tasker_device: _FakeTasker) -> None:
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export("<TaskerData/>"))
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export("<TaskerData/>"), state=PrimeItems)
 
     assert not check.needs_prompt
     assert tasker_device.calls == []
@@ -3353,7 +3353,7 @@ def test_a_long_list_of_clashes_is_counted_rather_than_listed() -> None:
 def test_the_backup_exchange_runs_in_order_and_leaves_no_backup_behind(tasker_device: _FakeTasker) -> None:
     """The stale answer goes before the run, the download comes after the answer, and the
     backup -- the user's whole configuration -- is deleted from the device once read."""
-    return_code, message, content = deviceinv.fetch_device_backup("192.168.0.210", "1821")
+    return_code, message, content = deviceinv.fetch_device_backup("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code == 0, message
     assert content.decode() == _DEVICE_BACKUP
@@ -3368,7 +3368,7 @@ def test_the_backup_exchange_runs_in_order_and_leaves_no_backup_behind(tasker_de
 def test_the_backup_task_backs_up_without_user_variables(tasker_device: _FakeTasker) -> None:
     """'Data Backup' to MapTasker's own file, relative to the storage root as Tasker's own Backup
     Task does it, variables and preferences left out; then the header and terminator."""
-    deviceinv.fetch_device_backup("192.168.0.210", "1821")
+    deviceinv.fetch_device_backup("192.168.0.210", "1821", state=PrimeItems)
 
     imported = ET.fromstring(tasker_device.imported_xml)  # noqa: S314  (built by this program)
     backup = imported.find(".//Action[code='322']")
@@ -3384,7 +3384,7 @@ def test_a_backup_that_never_finishes_is_not_read(tasker_device: _FakeTasker) ->
     then would be an old one."""
     tasker_device.backup_result = None
 
-    return_code, _message, content = deviceinv.fetch_device_backup("192.168.0.210", "1821")
+    return_code, _message, content = deviceinv.fetch_device_backup("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code != 0
     assert content == b""
@@ -3392,7 +3392,7 @@ def test_a_backup_that_never_finishes_is_not_read(tasker_device: _FakeTasker) ->
 
 
 def test_one_backup_answers_names_and_ids_without_the_project_helper(tasker_device: _FakeTasker) -> None:
-    check, findings, problem = deviceinv.check_against_device_backup("192.168.0.210", "1821", _SENT_FOR_IDS)
+    check, findings, problem = deviceinv.check_against_device_backup("192.168.0.210", "1821", _SENT_FOR_IDS, state=PrimeItems)
 
     assert problem == ""
     assert check is not None
@@ -3404,14 +3404,14 @@ def test_one_backup_answers_names_and_ids_without_the_project_helper(tasker_devi
 def test_a_backup_that_is_not_a_configuration_is_refused(tasker_device: _FakeTasker) -> None:
     tasker_device.backup = "<html><body>Not found</body></html>"
 
-    check, findings, problem = deviceinv.check_against_device_backup("192.168.0.210", "1821", _SENT_FOR_IDS)
+    check, findings, problem = deviceinv.check_against_device_backup("192.168.0.210", "1821", _SENT_FOR_IDS, state=PrimeItems)
 
     assert (check, findings) == (None, [])
     assert "could not be read" in problem
 
 
 def test_the_id_check_helper_is_not_reported_as_a_leftover() -> None:
-    assert deviceinv.ID_CHECK_TASK_NAME in deviceinv.current_helper_task_names()
+    assert deviceinv.ID_CHECK_TASK_NAME in deviceinv.current_helper_task_names(state=PrimeItems)
 
 
 # ##################################################################################
@@ -3474,12 +3474,12 @@ def test_a_saved_task_with_a_regex_name_is_confirmed_by_the_object_list(
 ) -> None:
     """Reporting it missing would make Save To Android import it a second time -- and api/import
     adds another Task of the same name rather than replacing the one already there."""
-    assert deviceinv.confirm_task_on_android("192.168.0.210", "1821", name, "TESTKEY")
+    assert deviceinv.confirm_task_on_android("192.168.0.210", "1821", name, "TESTKEY", state=PrimeItems)
     assert deviceinv.OBJECT_LIST_TASK_NAME in regex_tasker.installed
 
 
 def test_a_regex_name_the_device_lacks_is_still_reported_missing(regex_tasker: _FakeRegexTasker) -> None:
-    assert not deviceinv.confirm_task_on_android("192.168.0.210", "1821", "$NewTask", "TESTKEY")
+    assert not deviceinv.confirm_task_on_android("192.168.0.210", "1821", "$NewTask", "TESTKEY", state=PrimeItems)
 
 
 def test_a_regex_name_is_reported_missing_when_the_object_list_cannot_be_read(
@@ -3487,12 +3487,12 @@ def test_a_regex_name_is_reported_missing_when_the_object_list_cannot_be_read(
 ) -> None:
     regex_tasker.objects_payload = "MAPTASKER-OBJECTS 1\nPROJECTS\nBase\n"  # never finished
 
-    assert not deviceinv.confirm_task_on_android("192.168.0.210", "1821", "$Taskaroo", "TESTKEY")
+    assert not deviceinv.confirm_task_on_android("192.168.0.210", "1821", "$Taskaroo", "TESTKEY", state=PrimeItems)
 
 
 def test_an_ordinary_name_is_still_confirmed_without_the_helper(regex_tasker: _FakeRegexTasker) -> None:
     """The fast path stays: one filtered GET, nothing installed or run."""
-    assert deviceinv.confirm_task_on_android("192.168.0.210", "1821", "Wake Up", "TESTKEY")
+    assert deviceinv.confirm_task_on_android("192.168.0.210", "1821", "Wake Up", "TESTKEY", state=PrimeItems)
     assert not regex_tasker.installed
     assert not any(verb == "POST" for verb, _url in regex_tasker.calls)
 
@@ -3509,7 +3509,7 @@ def test_an_ordinary_name_is_still_confirmed_without_the_helper(regex_tasker: _F
 def test_the_helper_project_carries_every_current_helper_under_its_own_id(loaded: None) -> None:
     """Every builder mints its id without knowing about the others, so without renumbering
     they would all share one -- and <tids> would name a single Task."""
-    root = ET.fromstring(deviceinv.build_helper_project_xml())  # noqa: S314
+    root = ET.fromstring(deviceinv.build_helper_project_xml(state=PrimeItems))  # noqa: S314
 
     project = root.find("Project")
     assert project is not None
@@ -3518,7 +3518,7 @@ def test_the_helper_project_carries_every_current_helper_under_its_own_id(loaded
     assert project.findtext("id")
 
     tasks = root.findall("Task")
-    assert {task.findtext("nme") for task in tasks} == deviceinv.current_helper_task_names()
+    assert {task.findtext("nme") for task in tasks} == deviceinv.current_helper_task_names(state=PrimeItems)
     ids = [task.findtext("id") for task in tasks]
     assert len(set(ids)) == len(ids)
     assert all(task.get("sr") == f"task{task.findtext('id')}" for task in tasks)
@@ -3532,7 +3532,7 @@ def test_the_helper_project_needs_a_loaded_backup() -> None:
     """Every helper's Task id comes from the loaded configuration, so without one there is
     nothing to number them against -- refused before the device is touched."""
     with pytest.raises(ValueError, match="Load a Tasker backup"):
-        deviceinv.build_helper_project_xml()
+        deviceinv.build_helper_project_xml(state=PrimeItems)
 
 
 def test_the_helper_project_numbers_past_the_devices_backup(loaded: None) -> None:
@@ -3545,7 +3545,7 @@ def test_the_helper_project_numbers_past_the_devices_backup(loaded: None) -> Non
 <Profile sr="prof4100"><id>4100</id><nme>Newest</nme></Profile>
 </TaskerData>"""
 
-    root = ET.fromstring(deviceinv.build_helper_project_xml(device_xml=device_backup))  # noqa: S314
+    root = ET.fromstring(deviceinv.build_helper_project_xml(device_xml=device_backup, state=PrimeItems))  # noqa: S314
 
     ids = [int(task.findtext("id")) for task in root.findall("Task")]
     assert min(ids) == 4100 + taskedit.NEW_OBJECT_ID_HEADROOM + 1
@@ -3558,7 +3558,7 @@ def test_the_helper_project_numbers_past_the_devices_backup(loaded: None) -> Non
 def test_an_unreadable_device_backup_builds_nothing(loaded: None) -> None:
     """A caller that wants the loaded ids instead asks for them by passing no backup."""
     with pytest.raises(ValueError, match="could not be read"):
-        deviceinv.build_helper_project_xml(device_xml=b"not xml")
+        deviceinv.build_helper_project_xml(device_xml=b"not xml", state=PrimeItems)
 
 
 class _FakeHelperProjectDevice(_FakeTasker):
@@ -3609,7 +3609,7 @@ def test_the_helper_project_is_uploaded_without_installing_or_running_anything(
 ) -> None:
     """Every helper installed on the way would be a Task the Project carries that Tasker already
     has -- and Tasker refuses the whole Project for one of those (measured on a device)."""
-    result = deviceinv.stage_helper_project("192.168.0.210", "1821")
+    result = deviceinv.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
 
     assert result.ok, result.error
     assert result.device_path.endswith("/Tasker/projects/MapTasker.prj.xml")
@@ -3617,7 +3617,7 @@ def test_the_helper_project_is_uploaded_without_installing_or_running_anything(
     assert posts
     assert all("/upload" in url for url in posts)
     sent = ET.fromstring(helper_project_device.uploaded["MapTasker.prj.xml"])  # noqa: S314
-    assert {task.findtext("nme") for task in sent.findall("Task")} == deviceinv.current_helper_task_names()
+    assert {task.findtext("nme") for task in sent.findall("Task")} == deviceinv.current_helper_task_names(state=PrimeItems)
     assert min(int(task.findtext("id")) for task in sent.findall("Task")) > 5000
 
 
@@ -3627,7 +3627,7 @@ def test_helpers_already_on_the_device_are_named_and_nothing_is_written(
     """Probe B on a real device: one helper Tasker already had, and the Project would not import."""
     helper_project_device.tasks = [deviceinv.OPEN_PROJECT_ROUTE.task_name, "Mine"]
 
-    result = deviceinv.stage_helper_project("192.168.0.210", "1821")
+    result = deviceinv.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
 
     assert not result.ok
     assert result.helpers_present == (deviceinv.OPEN_PROJECT_ROUTE.task_name,)
@@ -3644,10 +3644,10 @@ def test_helpers_already_in_the_project_are_reported_as_done(
     """Every helper there and a 'MapTasker' Project to hold them is the finished state, not a
     pile of Tasks to delete.  Asked with the object-listing helper, which is one of the helpers
     and so is already installed whenever this case arises -- nothing new goes on the device."""
-    helper_project_device.tasks = sorted(deviceinv.current_helper_task_names())
+    helper_project_device.tasks = sorted(deviceinv.current_helper_task_names(state=PrimeItems))
     helper_project_device.objects_payload = _objects_payload(projects=f"Base|~|{deviceinv.HELPER_PROJECT_NAME}")
 
-    result = deviceinv.stage_helper_project("192.168.0.210", "1821")
+    result = deviceinv.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
 
     assert result.already_in_project
     assert result.project_exists
@@ -3664,7 +3664,7 @@ def test_a_project_holding_only_some_helpers_still_names_the_ones_in_the_way(
     helper_project_device.tasks = [deviceinv.OBJECT_LIST_TASK_NAME, deviceinv.FILE_LIST_TASK_NAME]
     helper_project_device.objects_payload = _objects_payload(projects=deviceinv.HELPER_PROJECT_NAME)
 
-    result = deviceinv.stage_helper_project("192.168.0.210", "1821")
+    result = deviceinv.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
 
     assert not result.ok
     assert not result.already_in_project

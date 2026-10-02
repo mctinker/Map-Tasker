@@ -192,7 +192,7 @@ def _args(action_element: ET.Element) -> dict[str, ET.Element]:
 # ##################################################################################
 def test_matching_name_and_type_carries(loaded: None) -> None:
     """Flash's Text and Title reach Notify's, which are at different argument numbers."""
-    carry = mapswap.carry_over_map(FLASH, NOTIFY)
+    carry = mapswap.carry_over_map(FLASH, NOTIFY, state=PrimeItems)
     assert carry == {"0": "1", "3": "0"}
 
 
@@ -202,7 +202,7 @@ def test_matching_name_with_a_different_type_does_not_carry(loaded: None) -> Non
     The case the type half of the rule exists for -- the names are identical, and copying
     one into the other would produce an <Img> holding text.
     """
-    carry = mapswap.carry_over_map(FLASH, NOTIFY)
+    carry = mapswap.carry_over_map(FLASH, NOTIFY, state=PrimeItems)
     assert "4" not in carry  # Flash's Icon
     assert "2" not in carry.values()  # Notify's Icon
 
@@ -212,8 +212,8 @@ def test_a_unique_picker_carries_despite_a_different_name(loaded: None) -> None:
 
     Without this the user would re-pick an app by hand in every Task the swap touched.
     """
-    assert mapswap.carry_over_map(LAUNCH_APP, KILL_APP) == {"0": "0"}
-    assert mapswap.carry_over_map(KILL_APP, LAUNCH_APP) == {"0": "0"}
+    assert mapswap.carry_over_map(LAUNCH_APP, KILL_APP, state=PrimeItems) == {"0": "0"}
+    assert mapswap.carry_over_map(KILL_APP, LAUNCH_APP, state=PrimeItems) == {"0": "0"}
 
 
 def test_fidelity_reports_what_the_user_loses_not_what_the_target_gains(loaded: None) -> None:
@@ -223,35 +223,35 @@ def test_fidelity_reports_what_the_user_loses_not_what_the_target_gains(loaded: 
     'Flash -> Airplane Mode' exact -- promising the user their message text survived into
     an action that cannot hold it.
     """
-    fidelity, carry, _ = mapswap.classify_swap(FLASH, SYSTEM_LOCK)
-    assert not mapswap._wanted_args(SYSTEM_LOCK)  # the target has nothing to fill
+    fidelity, carry, _ = mapswap.classify_swap(FLASH, SYSTEM_LOCK, state=PrimeItems)
+    assert not mapswap._wanted_args(SYSTEM_LOCK, state=PrimeItems)  # the target has nothing to fill
     assert not carry
     assert fidelity == mapswap.RESET
 
     # ...and a pair with nothing on EITHER side really is exact: nothing was lost.
-    assert mapswap.classify_swap(SYSTEM_LOCK, "139t")[0] == mapswap.EXACT
+    assert mapswap.classify_swap(SYSTEM_LOCK, "139t", state=PrimeItems)[0] == mapswap.EXACT
 
 
 def test_flash_to_notify_is_mapped(loaded: None) -> None:
     """The headline pair, and the reason the swap does not defer to taskedit's addability
     test: Notify needs an <Img>, which Add Action cannot generate and a swap can leave empty.
     """
-    fidelity, _, reason = mapswap.classify_swap(FLASH, NOTIFY)
+    fidelity, _, reason = mapswap.classify_swap(FLASH, NOTIFY, state=PrimeItems)
     assert fidelity == mapswap.MAPPED
     assert not reason
 
 
 def test_structural_actions_are_blocked_both_ways(loaded: None) -> None:
     """Swapping an If leaves its End If dangling; nothing here reasons about nesting."""
-    assert mapswap.classify_swap(FLASH, IF_ACTION)[0] == mapswap.BLOCKED
-    assert mapswap.classify_swap(IF_ACTION, FLASH)[0] == mapswap.BLOCKED
+    assert mapswap.classify_swap(FLASH, IF_ACTION, state=PrimeItems)[0] == mapswap.BLOCKED
+    assert mapswap.classify_swap(IF_ACTION, FLASH, state=PrimeItems)[0] == mapswap.BLOCKED
 
 
 def test_the_target_pulldown_offers_every_level_and_hides_nothing(loaded: None) -> None:
     """All four fidelities appear, blocked entries included, and the ones that carry the
     most sit at the top of the list.
     """
-    choices = mapswap.fidelity_choices(FLASH)
+    choices = mapswap.fidelity_choices(FLASH, state=PrimeItems)
     levels = {fidelity for _, _, fidelity in choices}
     assert mapswap.MAPPED in levels
     assert mapswap.RESET in levels
@@ -276,8 +276,8 @@ def test_swap_preserves_everything_that_does_not_belong_to_the_code(loaded: None
     had turned off.
     """
     action_element = _action("20", 0)
-    _, carry, _ = mapswap.classify_swap(FLASH, NOTIFY)
-    mapswap._swap_one_action(action_element, NOTIFY, carry)
+    _, carry, _ = mapswap.classify_swap(FLASH, NOTIFY, state=PrimeItems)
+    mapswap._swap_one_action(action_element, NOTIFY, carry, state=PrimeItems)
 
     assert action_element.attrib["sr"] == "act0"
     assert action_element.findtext("code") == "523"
@@ -289,8 +289,8 @@ def test_swap_preserves_everything_that_does_not_belong_to_the_code(loaded: None
 def test_swap_carries_the_values_and_drops_the_rest(loaded: None) -> None:
     """Text and Title land in Notify's own numbering; the Timeout has nowhere to go."""
     action_element = _action("20", 0)
-    _, carry, _ = mapswap.classify_swap(FLASH, NOTIFY)
-    mapswap._swap_one_action(action_element, NOTIFY, carry)
+    _, carry, _ = mapswap.classify_swap(FLASH, NOTIFY, state=PrimeItems)
+    mapswap._swap_one_action(action_element, NOTIFY, carry, state=PrimeItems)
 
     arguments = _args(action_element)
     assert arguments["arg1"].text == "Done: %n"  # Flash arg0 Text -> Notify arg1 Text
@@ -307,8 +307,8 @@ def test_swap_writes_the_empty_picker_tasker_writes_itself(loaded: None) -> None
     what Tasker writes for an unset picker, in hundreds of places in real backups.
     """
     action_element = _action("20", 1)
-    _, carry, _ = mapswap.classify_swap(FLASH, NOTIFY)
-    mapswap._swap_one_action(action_element, NOTIFY, carry)
+    _, carry, _ = mapswap.classify_swap(FLASH, NOTIFY, state=PrimeItems)
+    mapswap._swap_one_action(action_element, NOTIFY, carry, state=PrimeItems)
 
     icon = _args(action_element)["arg2"]
     assert icon.tag == "Img"
@@ -319,8 +319,8 @@ def test_swap_writes_the_empty_picker_tasker_writes_itself(loaded: None) -> None
 def test_swap_moves_a_picker_subtree_whole(loaded: None) -> None:
     """The <App>'s children come across, not just its text -- which it has none of."""
     action_element = _action("21", 0)
-    _, carry, _ = mapswap.classify_swap(LAUNCH_APP, KILL_APP)
-    mapswap._swap_one_action(action_element, KILL_APP, carry)
+    _, carry, _ = mapswap.classify_swap(LAUNCH_APP, KILL_APP, state=PrimeItems)
+    mapswap._swap_one_action(action_element, KILL_APP, carry, state=PrimeItems)
 
     app = _args(action_element)["arg0"]
     assert app.tag == "App"
@@ -336,8 +336,8 @@ def test_swap_leaves_the_arguments_in_the_order_tasker_writes_them(loaded: None)
     whatever version control the user keeps their backups in.
     """
     action_element = _action("20", 0)
-    _, carry, _ = mapswap.classify_swap(FLASH, NOTIFY)
-    mapswap._swap_one_action(action_element, NOTIFY, carry)
+    _, carry, _ = mapswap.classify_swap(FLASH, NOTIFY, state=PrimeItems)
+    mapswap._swap_one_action(action_element, NOTIFY, carry, state=PrimeItems)
 
     order = [child.attrib["sr"] for child in action_element if child.attrib.get("sr", "").startswith("arg")]
     assert order == sorted(order)
@@ -349,7 +349,7 @@ def test_swap_leaves_the_arguments_in_the_order_tasker_writes_them(loaded: None)
 # ##################################################################################
 def test_plan_finds_every_instance_and_only_that_action(loaded: None) -> None:
     """Both Flashes, and not the Say sitting beside them."""
-    plan = mapswap.plan_action_swap(FLASH, NOTIFY)
+    plan = mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems)
     assert len(plan.changes) == 2
     assert all(change.site.where.kind == TASK for change in plan.changes)
     assert {change.site.where.name for change in plan.changes} == {"Noisy"}
@@ -361,7 +361,7 @@ def test_plan_notes_what_each_action_loses_rather_than_what_the_pair_loses(loade
     A note naming an argument nobody filled in is the kind of warning that teaches users to
     skim past warnings.
     """
-    plan = mapswap.plan_action_swap(FLASH, NOTIFY)
+    plan = mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems)
     notes = {change.site.where.action: change.note for change in plan.changes}
     assert "Timeout" in notes[1]
     assert notes[2] == ""
@@ -373,7 +373,7 @@ def test_reset_rows_start_unticked(loaded: None) -> None:
     RESET discards every argument value in every action it touches, so a user who ticked
     the header box without reading to the bottom would not find out until much later.
     """
-    plan = mapswap.plan_action_swap(FLASH, LAUNCH_APP)
+    plan = mapswap.plan_action_swap(FLASH, LAUNCH_APP, state=PrimeItems)
     assert plan.changes
     assert plan.selected == set()
     assert "None are ticked" in " ".join(plan.warnings)
@@ -381,13 +381,13 @@ def test_reset_rows_start_unticked(loaded: None) -> None:
 
 def test_mapped_rows_start_ticked(loaded: None) -> None:
     """What the preview shows, it shows as selected -- there is nothing hidden to lose."""
-    plan = mapswap.plan_action_swap(FLASH, NOTIFY)
+    plan = mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems)
     assert plan.selected == set(range(len(plan.changes)))
 
 
 def test_a_blocked_pair_plans_nothing_and_says_why(loaded: None) -> None:
     """Not an empty answer -- an explained one."""
-    plan = mapswap.plan_action_swap(FLASH, IF_ACTION)
+    plan = mapswap.plan_action_swap(FLASH, IF_ACTION, state=PrimeItems)
     assert not plan.changes
     assert plan.warnings
     assert "cannot be the target" in plan.warnings[0]
@@ -395,14 +395,14 @@ def test_a_blocked_pair_plans_nothing_and_says_why(loaded: None) -> None:
 
 def test_a_stale_label_is_warned_about_not_rewritten(loaded: None) -> None:
     """'flash the total' on a Notify is stale prose, and this tool does not rewrite prose."""
-    plan = mapswap.plan_action_swap(FLASH, NOTIFY)
+    plan = mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems)
     assert any("label" in warning for warning in plan.warnings)
 
 
 def test_project_narrowing_excludes_everything_outside_it(loaded: None) -> None:
     """A Project that owns none of them answers with none of them."""
-    assert mapswap.plan_action_swap(FLASH, NOTIFY, project="Home").changes
-    assert not mapswap.plan_action_swap(FLASH, NOTIFY, project="Nowhere").changes
+    assert mapswap.plan_action_swap(FLASH, NOTIFY, project="Home", state=PrimeItems).changes
+    assert not mapswap.plan_action_swap(FLASH, NOTIFY, project="Nowhere", state=PrimeItems).changes
 
 
 # ##################################################################################
@@ -410,9 +410,9 @@ def test_project_narrowing_excludes_everything_outside_it(loaded: None) -> None:
 # ##################################################################################
 def test_apply_changes_only_the_ticked_rows(loaded: None) -> None:
     """The tick boxes are the contract; an unticked row is untouched."""
-    plan = mapswap.plan_action_swap(FLASH, NOTIFY)
+    plan = mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems)
     plan.selected = {0}
-    changed, errors = mapswap.apply(plan)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
 
     assert (changed, errors) == (1, [])
     codes = [_action("20", position).findtext("code") for position in (0, 1)]
@@ -426,11 +426,11 @@ def test_apply_refuses_an_element_no_longer_in_the_configuration(loaded: None) -
     the check is by identity, since a Task deleted and another added in its place would
     match by every describable property and be a different object.
     """
-    plan = mapswap.plan_action_swap(FLASH, NOTIFY)
+    plan = mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems)
     task = PrimeItems.tasker_root_elements["all_tasks"]["20"]["xml"]
     task.remove(plan.changes[0].site.element)
 
-    changed, errors = mapswap.apply(plan)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
     assert changed == 1
     assert len(errors) == 1
     assert "no longer in the configuration" in errors[0]
@@ -453,7 +453,7 @@ LAUNCH_APP_APP = "0"  # <App sr="arg0">, a picker's subtree
 
 def test_setting_an_argument_reaches_every_action_of_that_code(loaded) -> None:
     """The plain case: both Flashes, whatever each says now."""
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready")
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", state=PrimeItems)
 
     assert [change.before for change in plan.changes] == ["Done: %n", "bare"]
     assert {change.after for change in plan.changes} == {"Ready"}
@@ -469,7 +469,7 @@ def test_an_action_that_never_set_the_argument_is_reported_rather_than_grown_one
     So it is a skip with the reason, which is the module's standing rule: the user reads
     'one changed' and can see, on the same screen, which one did not and why.
     """
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TITLE, "Summary")
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TITLE, "Summary", state=PrimeItems)
 
     assert [change.site.where.action for change in plan.changes] == [1]  # only the Flash that has a Title
     assert [skip.where.action for skip in plan.skips] == [2]
@@ -483,7 +483,7 @@ def test_the_missing_argument_can_be_written_in(loaded) -> None:
     "give every Flash a Title" is mostly a question about actions with no Title element at
     all -- and answering it with "one cannot be changed" is answering a different question.
     """
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TITLE, "Summary", add_missing=True)
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TITLE, "Summary", add_missing=True, state=PrimeItems)
 
     assert [change.site.kind for change in plan.changes] == [mapswap.STR_ARG, mapswap.NEW_ARG]
     assert not plan.skips
@@ -503,8 +503,8 @@ def test_an_added_argument_is_written_the_way_tasker_writes_one(loaded) -> None:
     'sr' attribute -- but an argument appended after arg8 is a moved line in every diff of
     this backup from here on, hiding the change that was actually made.
     """
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TITLE, "Summary", add_missing=True)
-    changed, errors = mapswap.apply(plan)
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TITLE, "Summary", add_missing=True, state=PrimeItems)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
     assert (changed, errors) == (2, [])
 
     bare = _action("20", 1)
@@ -519,8 +519,8 @@ def test_an_added_argument_is_written_the_way_tasker_writes_one(loaded) -> None:
 def test_adding_a_numeric_argument_uses_the_attribute_shape(loaded) -> None:
     """A number Tasker keeps in val=, so an added one has to be written there too -- an
     <Int> holding its value as text is an argument Tasker reads as unset."""
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_LONG, "1", add_missing=True)
-    changed, errors = mapswap.apply(plan)
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_LONG, "1", add_missing=True, state=PrimeItems)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
 
     assert (changed, errors) == (1, [])  # the other Flash already holds 1
     written = _args(_action("20", 1))["arg1"]
@@ -532,7 +532,7 @@ def test_adding_a_numeric_argument_uses_the_attribute_shape(loaded) -> None:
 def test_a_bad_value_is_refused_before_an_argument_is_created_for_it(loaded) -> None:
     """Creating <Int val="off"> would be creating the very thing the numeric check exists
     to prevent, one element further along."""
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_LONG, "off", add_missing=True)
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_LONG, "off", add_missing=True, state=PrimeItems)
 
     assert not plan.changes
     assert all("not a number" in skip.explanation for skip in plan.skips)
@@ -542,7 +542,7 @@ def test_adding_is_only_offered_where_nothing_is_being_matched(loaded) -> None:
     """A value filter cannot match a field that does not exist, and there is nothing inside
     a missing value to substitute -- so the switch says so rather than quietly doing
     nothing with it."""
-    filtered = mapswap.plan_argument_replace(FLASH, FLASH_TITLE, "Summary", match="Report", add_missing=True)
+    filtered = mapswap.plan_argument_replace(FLASH, FLASH_TITLE, "Summary", match="Report", add_missing=True, state=PrimeItems)
 
     assert all(change.site.kind != mapswap.NEW_ARG for change in filtered.changes)
     assert any("only be ADDED" in warning for warning in filtered.warnings)
@@ -550,14 +550,14 @@ def test_adding_is_only_offered_where_nothing_is_being_matched(loaded) -> None:
 
 def test_without_the_switch_a_missing_argument_says_what_would_add_it(loaded) -> None:
     """The skip is where the user finds out the capability exists at all."""
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TITLE, "Summary")
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TITLE, "Summary", state=PrimeItems)
 
     assert "Add it where missing" in plan.skips[0].explanation
 
 
 def test_a_value_filter_narrows_to_the_actions_that_hold_it(loaded) -> None:
     """"Every Flash that says 'bare'" -- the difference between a scalpel and a hammer."""
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="bare")
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="bare", state=PrimeItems)
 
     assert [change.before for change in plan.changes] == ["bare"]
     # Narrowed, so the warning about setting them all is not shown: it is not true.
@@ -566,7 +566,7 @@ def test_a_value_filter_narrows_to_the_actions_that_hold_it(loaded) -> None:
 
 def test_the_value_filter_ignores_case_as_the_find_tab_does(loaded) -> None:
     """Two halves of one dialog answering the same words differently would be a trap."""
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="BARE")
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="BARE", state=PrimeItems)
 
     assert [change.before for change in plan.changes] == ["bare"]
 
@@ -577,14 +577,14 @@ def test_substituting_changes_only_the_matched_text(loaded) -> None:
     Setting the value would throw away the rest of it -- '%n' here -- which for a Flash
     holding a variable is the difference between an edit and a loss.
     """
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Finished", match="Done", substitute=True)
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Finished", match="Done", substitute=True, state=PrimeItems)
 
     assert [change.after for change in plan.changes] == ["Finished: %n"]
 
 
 def test_substituting_needs_something_to_look_for(loaded) -> None:
     """Without the text to match, "replace only the matching text" has no meaning."""
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Finished", substitute=True)
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Finished", substitute=True, state=PrimeItems)
 
     assert not plan.changes
     assert any("needs the text to look for" in warning for warning in plan.warnings)
@@ -597,10 +597,10 @@ def test_a_numeric_argument_is_read_and_written_where_it_actually_lives(loaded) 
     preview would offer to replace "" and the apply would write text nothing ever reads,
     leaving the action exactly as it was and the user believing otherwise.
     """
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_LONG, "0")
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_LONG, "0", state=PrimeItems)
 
     assert [change.before for change in plan.changes] == ["1"]
-    changed, errors = mapswap.apply(plan)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
     assert (changed, errors) == (1, [])
     assert _args(_action("20", 0))["arg1"].attrib["val"] == "0"
 
@@ -608,7 +608,7 @@ def test_a_numeric_argument_is_read_and_written_where_it_actually_lives(loaded) 
 def test_a_value_that_is_not_a_number_never_reaches_a_numeric_argument(loaded) -> None:
     """'off' in a val= is an action that looks edited in the Map and misbehaves on the
     device, which is the one failure this module must never produce silently."""
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_LONG, "off")
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_LONG, "off", state=PrimeItems)
 
     assert not plan.changes
     # Two skips, and they are different refusals: the Flash that HAS a Long cannot take
@@ -620,18 +620,18 @@ def test_a_value_that_is_not_a_number_never_reaches_a_numeric_argument(loaded) -
 def test_a_picker_argument_is_refused_with_its_reason(loaded) -> None:
     """An App argument is a subtree Tasker builds from a chooser -- appClass, appPkg and a
     label -- so there is no value here for a typed string to stand in for."""
-    plan = mapswap.plan_argument_replace(LAUNCH_APP, LAUNCH_APP_APP, "com.example")
+    plan = mapswap.plan_argument_replace(LAUNCH_APP, LAUNCH_APP_APP, "com.example", state=PrimeItems)
 
     assert not plan.changes
     assert any("picker" in warning for warning in plan.warnings)
     # And the pulldown says the same thing before the user gets this far.
-    refusals = {arg_id: refusal for arg_id, _label, refusal in mapswap.argument_choices(LAUNCH_APP)}
+    refusals = {arg_id: refusal for arg_id, _label, refusal in mapswap.argument_choices(LAUNCH_APP, state=PrimeItems)}
     assert refusals[LAUNCH_APP_APP]
 
 
 def test_the_argument_pulldown_names_arguments_the_way_tasker_does(loaded) -> None:
     """'arg0 Text', 'arg3 Title' -- the position the XML uses beside the name the Map shows."""
-    labels = {arg_id: label for arg_id, label, _refusal in mapswap.argument_choices(FLASH)}
+    labels = {arg_id: label for arg_id, label, _refusal in mapswap.argument_choices(FLASH, state=PrimeItems)}
 
     assert labels[FLASH_TEXT].startswith("arg0 Text")
     assert labels[FLASH_TITLE].startswith("arg3 Title")
@@ -640,15 +640,15 @@ def test_the_argument_pulldown_names_arguments_the_way_tasker_does(loaded) -> No
 def test_an_action_already_holding_the_new_value_is_not_a_change(loaded) -> None:
     """A plan that lists a change which would change nothing makes the tally lie, and the
     tally is the number in front of the user when they press the button."""
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "bare", match="bare")
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "bare", match="bare", state=PrimeItems)
 
     assert not plan.changes
 
 
 def test_applying_an_argument_replace_rewrites_the_configuration(loaded) -> None:
     """End to end, on the shape a Flash's Text actually has."""
-    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="Done", substitute=True)
-    changed, errors = mapswap.apply(plan)
+    plan = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="Done", substitute=True, state=PrimeItems)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
 
     assert (changed, errors) == (1, [])
     assert _args(_action("20", 0))["arg0"].text == "Ready: %n"
@@ -658,8 +658,8 @@ def test_applying_an_argument_replace_rewrites_the_configuration(loaded) -> None
 def test_an_argument_replace_says_what_it_is_in_one_line(loaded) -> None:
     """`what` is the preview's header AND the Undo label, so it has to read as a sentence
     about what was done -- 'Set Flash Text to ...' rather than '548t arg0'."""
-    setting = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready")
-    substituting = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="Done", substitute=True)
+    setting = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", state=PrimeItems)
+    substituting = mapswap.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="Done", substitute=True, state=PrimeItems)
 
     assert setting.what == "Set Flash Text to 'Ready'"
     assert substituting.what == "Replace 'Done' with 'Ready' in Flash Text"
@@ -759,7 +759,7 @@ def test_rename_reaches_every_shape_a_variable_hides_in(variables) -> None:
     The list is the point.  A rename that reaches six of the seven leaves a configuration
     that is half-renamed, which is worse than one this tool declined to touch.
     """
-    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum", state=PrimeItems)
     kinds = {change.site.kind for change in plan.changes}
     assert mapswap.STR_ARG in kinds
     assert mapswap.INT_VAR in kinds
@@ -796,7 +796,7 @@ def test_rename_reaches_a_variable_configured_on_import(variables) -> None:
     that no longer existed anywhere else -- which is precisely the half-renamed
     configuration the rest of this feature is built to avoid.
     """
-    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum", state=PrimeItems)
 
     # The declared NAME, on each of the two; what the declaration offers as a value is the
     # test below this one.
@@ -819,7 +819,7 @@ def test_the_value_offered_on_import_is_read_like_any_other_field(variables) -> 
     The prefix trap applies inside a value like anywhere else, which is why the fixture's
     default names %Total and %Totals in the one string.
     """
-    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum", state=PrimeItems)
 
     values = _import_changes(plan, "pvv")
     assert [change.site.where.kind for change in values] == [PROJECT]
@@ -833,7 +833,7 @@ def test_a_profiles_offered_value_is_scanned_as_well_as_a_projects(variables) ->
     was written first and the Profile's is easy to leave behind, which is exactly what had
     already happened to the declaration itself.
     """
-    plan = mapswap.plan_variable_rename(variables, "%Totals", "", "%Grand")
+    plan = mapswap.plan_variable_rename(variables, "%Totals", "", "%Grand", state=PrimeItems)
 
     values = _import_changes(plan, "pvv")
     assert PROFILE in {change.site.where.kind for change in values}
@@ -864,7 +864,7 @@ def test_a_project_only_local_is_kept_apart_from_every_other_local(variables) ->
     """
     assert ("%setup", "project:Home") in variables.variables
 
-    plan = mapswap.plan_variable_rename(variables, "%setup", "project:Home", "%install")
+    plan = mapswap.plan_variable_rename(variables, "%setup", "project:Home", "%install", state=PrimeItems)
     assert [change.site.kind for change in plan.changes] == [mapswap.IMPORT_VARIABLE]
     assert plan.changes[0].after == "%install"
 
@@ -873,8 +873,8 @@ def test_applying_a_rename_rewrites_the_import_declaration_itself(variables) -> 
     """End to end, because the preview showing a change is not the same as the XML holding
     one: the value lives in the <pvn> element's own text rather than in a <Str> argument.
     """
-    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum")
-    changed, errors = mapswap.apply(plan)
+    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum", state=PrimeItems)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
     assert errors == []
     assert changed == len(plan.changes)
 
@@ -889,7 +889,7 @@ def test_rename_leaves_a_longer_name_that_merely_starts_the_same(variables) -> N
     Not a theoretical worry: the sample backup has 2483 pairs where one variable's name
     is a prefix of another's.
     """
-    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum", state=PrimeItems)
     rewritten = " ".join(_values(plan))
     assert "%Totals" in rewritten
     assert "%Sums" not in rewritten
@@ -909,7 +909,7 @@ def test_renaming_a_local_stays_inside_its_own_task(variables) -> None:
     counters in a real configuration -- 525 of 1523 local names appear in more than one
     Task there.
     """
-    plan = mapswap.plan_variable_rename(variables, "%counter", "30", "%tally")
+    plan = mapswap.plan_variable_rename(variables, "%counter", "30", "%tally", state=PrimeItems)
     assert plan.changes
     assert {change.site.where.key for change in plan.changes} == {"30"}
 
@@ -919,14 +919,14 @@ def test_a_case_change_is_reported_as_the_scope_change_it_is(variables) -> None:
 
     A real thing to want, and never a thing to do by accident, so it warns and proceeds.
     """
-    plan = mapswap.plan_variable_rename(variables, "%counter", "30", "%Counter")
+    plan = mapswap.plan_variable_rename(variables, "%counter", "30", "%Counter", state=PrimeItems)
     assert any("SCOPE" in warning for warning in plan.warnings)
     assert plan.changes  # warned, not refused
 
 
 def test_renaming_onto_an_existing_name_is_reported_as_a_merge(variables) -> None:
     """Two variables becoming one is not what 'rename' sounds like, so it says so."""
-    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Totals")
+    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Totals", state=PrimeItems)
     assert any("MERGE" in warning for warning in plan.warnings)
 
 
@@ -946,7 +946,7 @@ def test_unsafe_renames_are_refused_not_warned_about(variables, old_name, new_na
     The short-name case is the one worth keeping: '%d' matches a strftime format inside a
     Parse/Format DateTime and a printf escape inside a Run Shell.
     """
-    plan = mapswap.plan_variable_rename(variables, old_name, "", new_name)
+    plan = mapswap.plan_variable_rename(variables, old_name, "", new_name, state=PrimeItems)
     assert not plan.changes
     assert plan.warnings
     assert because in plan.warnings[0]
@@ -954,8 +954,8 @@ def test_unsafe_renames_are_refused_not_warned_about(variables, old_name, new_na
 
 def test_apply_rewrites_the_configuration_itself(variables) -> None:
     """End to end: plan, apply, and re-scan to confirm the old name is gone."""
-    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum")
-    changed, errors = mapswap.apply(plan)
+    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum", state=PrimeItems)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
     assert errors == []
     assert changed == len(plan.changes)
 
@@ -968,8 +968,8 @@ def test_apply_rewrites_the_configuration_itself(variables) -> None:
 
 def test_apply_moves_the_declaration_too(variables) -> None:
     """Leaving it behind orphans the value in Tasker's Variables tab under a dead name."""
-    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum")
-    mapswap.apply(plan)
+    plan = mapswap.plan_variable_rename(variables, "%Total", "", "%Sum", state=PrimeItems)
+    mapswap.apply(plan, state=PrimeItems)
 
     declared = [list(element)[0].text for element in PrimeItems.xml_root.findall("Variable")]
     assert "%Sum" in declared
@@ -1018,7 +1018,7 @@ def _no_selection() -> None:
 def test_no_selection_reaches_the_whole_configuration(loaded, _no_selection) -> None:
     """The default, and the thing every other test in this file relies on."""
     assert mapjump.current_scope(state=PrimeItems).is_everything
-    plan = mapswap.plan_action_swap(FLASH, NOTIFY)
+    plan = mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems)
     assert len(plan.changes) == 2  # both Flashes, in the one Task that has them
 
 
@@ -1029,7 +1029,7 @@ def test_a_selected_task_scopes_the_swap_to_itself(loaded, _no_selection) -> Non
     assert not scope.is_everything
     assert scope.phrase == "Task 'Quiet'"
 
-    plan = mapswap.plan_action_swap(FLASH, NOTIFY)
+    plan = mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems)
     assert not plan.changes
     assert any("Limited to Task 'Quiet'" in warning for warning in plan.warnings)
 
@@ -1037,7 +1037,7 @@ def test_a_selected_task_scopes_the_swap_to_itself(loaded, _no_selection) -> Non
 def test_a_selected_task_still_finds_what_is_inside_it(loaded, _no_selection) -> None:
     """...and selecting the Task that does have them finds exactly those."""
     PrimeItems.program_arguments.single_task_name = "Noisy"
-    plan = mapswap.plan_action_swap(FLASH, NOTIFY)
+    plan = mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems)
     assert len(plan.changes) == 2
     assert {change.site.where.name for change in plan.changes} == {"Noisy"}
 
@@ -1051,7 +1051,7 @@ def test_the_pulldown_counts_agree_with_the_scoped_answer(loaded, _no_selection)
     PrimeItems.program_arguments.single_task_name = "Noisy"
     index = mapfind.build_index()
     offered = dict(index.catalog[mapfind.ACTION]).get("Flash", 0)
-    assert offered == len(mapswap.plan_action_swap(FLASH, NOTIFY).changes)
+    assert offered == len(mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems).changes)
 
 
 def test_a_selected_project_pulls_in_what_it_contains(variables, _no_selection) -> None:
@@ -1075,18 +1075,18 @@ def test_a_selection_that_names_nothing_scopes_to_nothing(loaded, _no_selection)
     scope = mapjump.current_scope(state=PrimeItems)
     assert not scope.is_everything
     assert scope.tasks == frozenset()
-    assert not mapswap.plan_action_swap(FLASH, NOTIFY).changes
+    assert not mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems).changes
 
 
 def test_a_rename_is_confined_to_the_selected_object(variables, _no_selection) -> None:
     """%Total is used in a Task, a Profile context and a Scene; selecting the Task drops
     the other two out of the plan entirely.
     """
-    everywhere = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
+    everywhere = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
     assert {change.site.where.kind for change in everywhere.changes} >= {TASK, PROFILE, SCENE}
 
     PrimeItems.program_arguments.single_task_name = "Adder"
-    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum")
+    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
     assert {change.site.where.kind for change in scoped.changes} == {TASK}
     assert {change.site.where.key for change in scoped.changes} == {"30"}
     assert 0 < len(scoped.changes) < len(everywhere.changes)
@@ -1099,17 +1099,17 @@ def test_a_scoped_rename_leaves_the_variables_tab_declaration_alone(variables, _
     from under every other Task still using the old name.
     """
     assert any(change.site.kind == mapswap.DECLARATION for change in
-               mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum").changes)
+               mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems).changes)
 
     PrimeItems.program_arguments.single_task_name = "Adder"
-    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum")
+    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
     assert not any(change.site.kind == mapswap.DECLARATION for change in scoped.changes)
 
 
 def test_a_scoped_rename_warns_that_it_leaves_the_rest_alone(variables, _no_selection) -> None:
     """A half-renamed global is a broken configuration, not a partly-done job."""
     PrimeItems.program_arguments.single_task_name = "Adder"
-    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
     assert any("keep the old name" in warning for warning in plan.warnings)
 
 
@@ -1142,7 +1142,7 @@ def test_replacing_a_variable_with_an_existing_one_merges_and_says_so(variables,
     single object, and it is what the target pulldown offers.  What the user is told is
     the consequence, since it is not what the word "rename" suggests.
     """
-    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Totals")
+    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Totals", state=PrimeItems)
     assert plan.changes
     merge = [warning for warning in plan.warnings if "MERGES" in warning]
     assert merge
@@ -1155,8 +1155,8 @@ def test_a_scoped_substitution_changes_only_the_selected_object(variables, _no_s
     nothing outside it.
     """
     PrimeItems.program_arguments.single_task_name = "Adder"
-    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Totals")
-    changed, errors = mapswap.apply(plan)
+    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Totals", state=PrimeItems)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
     assert errors == []
     assert changed == len(plan.changes)
 
@@ -1196,7 +1196,7 @@ def test_ticks_are_carried_by_what_they_point_at_not_by_position(variables) -> N
     Ticks restored by position would then select different changes from the ones the user
     chose -- silently, and in a plan that is about to be applied.
     """
-    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
     assert len(plan.changes) > 2
 
     plan.selected = {0, 2}
@@ -1204,7 +1204,7 @@ def test_ticks_are_carried_by_what_they_point_at_not_by_position(variables) -> N
     wanted = {plan.changes[0].identity, plan.changes[2].identity}
 
     # Rebuild, with the list deliberately reordered to stand in for a tree that moved.
-    rebuilt = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
+    rebuilt = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
     rebuilt.changes.reverse()
     rebuilt.restore_ticks(remembered)
 
@@ -1217,11 +1217,11 @@ def test_restoring_ticks_overrides_the_defaults_in_both_directions(variables) ->
     Merging with the defaults instead would un-tick the RESET rows a user had gone through
     and enabled one at a time -- the exact work this is meant to preserve.
     """
-    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
     plan.selected = {1}
     remembered = plan.ticked_identities()
 
-    rebuilt = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
+    rebuilt = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
     assert rebuilt.selected == set(range(len(rebuilt.changes)))  # all ticked by default
     rebuilt.restore_ticks(remembered)
 
@@ -1235,7 +1235,7 @@ def test_indistinguishable_changes_are_restored_by_count(variables) -> None:
     So "two of these were ticked" is the whole of what they chose, and a Counter restores
     it exactly -- where a set would collapse the pair and lose one of the ticks.
     """
-    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
     duplicated = mapswap.Change(
         site=plan.changes[0].site,
         before=plan.changes[0].before,
@@ -1256,11 +1256,11 @@ def test_ticks_from_a_different_question_do_not_leak_across(variables) -> None:
     """Identities name the object, the field and the value, so a plan for another
     variable cannot match them and comes back at its own defaults.
     """
-    counter = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum")
+    counter = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
     counter.selected = {0}
     remembered = counter.ticked_identities()
 
-    other = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%counter", "30", "%tally")
+    other = mapswap.plan_variable_rename(varxref.build_index(state=PrimeItems), "%counter", "30", "%tally", state=PrimeItems)
     other.restore_ticks(remembered)
     assert other.selected == set()
 
@@ -1309,8 +1309,8 @@ def test_the_all_instances_entry_leads_its_own_group(variables) -> None:
 
 def test_every_instance_renames_them_all(variables) -> None:
     """One call covering both Tasks, where naming an owner covers only that one."""
-    one = mapswap.plan_variable_rename(variables, "%counter", "30", "%tally")
-    every = mapswap.plan_variable_rename(variables, "%counter", mapswap.EVERY_INSTANCE, "%tally")
+    one = mapswap.plan_variable_rename(variables, "%counter", "30", "%tally", state=PrimeItems)
+    every = mapswap.plan_variable_rename(variables, "%counter", mapswap.EVERY_INSTANCE, "%tally", state=PrimeItems)
 
     assert {change.site.where.key for change in one.changes} == {"30"}
     assert {change.site.where.key for change in every.changes} == {"30", "31"}
@@ -1323,7 +1323,7 @@ def test_renaming_every_instance_of_a_local_says_how_many_it_is(variables) -> No
 
     The count is the only thing on screen that says how far it reaches.
     """
-    plan = mapswap.plan_variable_rename(variables, "%counter", mapswap.EVERY_INSTANCE, "%tally")
+    plan = mapswap.plan_variable_rename(variables, "%counter", mapswap.EVERY_INSTANCE, "%tally", state=PrimeItems)
     local_warning = [warning for warning in plan.warnings if "separate variables" in warning]
     assert local_warning
     assert "2 separate variables" in local_warning[0]
@@ -1331,8 +1331,8 @@ def test_renaming_every_instance_of_a_local_says_how_many_it_is(variables) -> No
 
 def test_every_instance_applies_across_the_objects_it_named(variables) -> None:
     """End to end: both Tasks rewritten, and %counter gone from the file."""
-    plan = mapswap.plan_variable_rename(variables, "%counter", mapswap.EVERY_INSTANCE, "%tally")
-    changed, errors = mapswap.apply(plan)
+    plan = mapswap.plan_variable_rename(variables, "%counter", mapswap.EVERY_INSTANCE, "%tally", state=PrimeItems)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
     assert errors == []
     assert changed == len(plan.changes)
 
@@ -1397,7 +1397,7 @@ def test_the_target_pulldown_offers_every_kind_and_says_what_each_costs(loaded: 
     """Nothing is filtered out: the four flat kinds and every Event and State code, each
     labelled with what choosing it would do -- and a plugin whose payload was never
     recorded stays in the list with the reason as its label."""
-    choices = mapswap.condition_targets("Time")
+    choices = mapswap.condition_targets("Time", state=PrimeItems)
     keys = {key for key, _label, _fidelity in choices}
 
     assert {"Day", "App", "Loc"} <= keys
@@ -1413,7 +1413,7 @@ def test_the_target_pulldown_offers_every_kind_and_says_what_each_costs(loaded: 
 def test_nothing_carries_between_kinds_that_share_no_shape(loaded: None) -> None:
     """There is no correspondence between fh/fm/th/tm and a list of weekdays, and inventing
     one would put an hour where a day number belongs."""
-    fidelity, carry, reason = mapswap.classify_condition_swap("Time", "Day")
+    fidelity, carry, reason = mapswap.classify_condition_swap("Time", "Day", state=PrimeItems)
 
     assert (fidelity, carry, reason) == (mapswap.RESET, {}, "")
 
@@ -1422,9 +1422,9 @@ def test_a_plugin_context_with_no_recorded_payload_is_blocked_with_its_reason(lo
     """An opaque payload has no empty form a plugin will accept -- bundle.py either has the
     definition or nothing can be written."""
     blocked = next(
-        key for key, _label, fidelity in mapswap.condition_targets("Time") if fidelity == mapswap.BLOCKED
+        key for key, _label, fidelity in mapswap.condition_targets("Time", state=PrimeItems) if fidelity == mapswap.BLOCKED
     )
-    plan = mapswap.plan_condition_replace("Time", blocked)
+    plan = mapswap.plan_condition_replace("Time", blocked, state=PrimeItems)
 
     assert not plan.changes
     assert "no definition of its configuration has been recorded" in plan.warnings[0]
@@ -1433,7 +1433,7 @@ def test_a_plugin_context_with_no_recorded_payload_is_blocked_with_its_reason(lo
 def test_the_preview_reads_a_context_the_way_the_profile_editor_does(loaded: None) -> None:
     """'Time 08:00 AM to 09:30 AM', not '<Time> fh=8' -- read through profedit's own field
     getters, so the preview says what the Profile editor would say about the same context."""
-    plan = mapswap.plan_condition_replace("Time", "Day")
+    plan = mapswap.plan_condition_replace("Time", "Day", state=PrimeItems)
 
     assert [change.before for change in plan.changes] == [
         "Time 08:00 AM to 09:30 AM",
@@ -1444,7 +1444,7 @@ def test_the_preview_reads_a_context_the_way_the_profile_editor_does(loaded: Non
 
 def test_an_inverted_context_says_so_in_the_preview(loaded: None) -> None:
     """<pin>true</pin> means 'while this is NOT true', which changes what the row means."""
-    plan = mapswap.plan_condition_replace(VARIABLE_VALUE, "Day")
+    plan = mapswap.plan_condition_replace(VARIABLE_VALUE, "Day", state=PrimeItems)
 
     assert plan.changes[0].before.endswith("[inverted]")
 
@@ -1454,7 +1454,7 @@ def test_every_row_arrives_ticked_including_the_ones_that_carry_nothing(loaded: 
     accident; for a context, carrying nothing is what replacing one KIND with another
     MEANS -- so the cost is said once, loudly, rather than by leaving forty rows to be
     ticked one at a time."""
-    plan = mapswap.plan_condition_replace("Time", "Day")
+    plan = mapswap.plan_condition_replace("Time", "Day", state=PrimeItems)
 
     assert plan.selected == set(range(len(plan.changes)))
     assert any("arrives EMPTY" in warning for warning in plan.warnings)
@@ -1463,7 +1463,7 @@ def test_every_row_arrives_ticked_including_the_ones_that_carry_nothing(loaded: 
 def test_a_profile_left_with_one_empty_context_is_told_so_on_its_own_row(loaded: None) -> None:
     """A Profile whose only context has nothing in it has stopped working, and that is not
     visible in a before/after line reading 'Time 08:00 AM to 09:30 AM  ->  Day'."""
-    plan = mapswap.plan_condition_replace("Time", "Day")
+    plan = mapswap.plan_condition_replace("Time", "Day", state=PrimeItems)
     notes = {change.site.where.name: change.note for change in plan.changes}
 
     assert "only condition" in notes["Morning"]  # its one and only Time
@@ -1474,7 +1474,7 @@ def test_a_profile_that_already_has_the_target_kind_is_refused_with_the_reason(l
     """Across 3,475 sample Profiles not one holds two Times, two Days, two Apps, two
     Locations or two Events.  Writing a shape Tasker never writes is not something the user
     could spot by looking at the Map, so it is a skip rather than a change."""
-    plan = mapswap.plan_condition_replace(AIRPLANE_MODE, "Time")
+    plan = mapswap.plan_condition_replace(AIRPLANE_MODE, "Time", state=PrimeItems)
 
     assert not plan.changes  # its Profile already has a Time
     assert [skip.where.name for skip in plan.skips] == ["Busy"]
@@ -1490,7 +1490,7 @@ def skip_reason(plan: mapswap.Plan) -> str:
 def test_two_contexts_of_one_profile_cannot_both_become_the_same_single_kind(loaded: None) -> None:
     """The case each row looks fine on its own: 'Screen' holds two Variable Value states,
     and replacing both with an Event would hand it two Events one row at a time."""
-    plan = mapswap.plan_condition_replace(VARIABLE_VALUE, DISPLAY_UNLOCKED)
+    plan = mapswap.plan_condition_replace(VARIABLE_VALUE, DISPLAY_UNLOCKED, state=PrimeItems)
 
     assert len(plan.changes) == 1
     assert len(plan.skips) == 1
@@ -1499,7 +1499,7 @@ def test_two_contexts_of_one_profile_cannot_both_become_the_same_single_kind(loa
 
 def test_several_contexts_of_one_profile_can_all_become_states(loaded: None) -> None:
     """State is the one kind a Profile may hold several of, so nothing is refused here."""
-    plan = mapswap.plan_condition_replace(VARIABLE_VALUE, DISPLAY_STATE)
+    plan = mapswap.plan_condition_replace(VARIABLE_VALUE, DISPLAY_STATE, state=PrimeItems)
 
     assert len(plan.changes) == 2
     assert not plan.skips
@@ -1510,7 +1510,7 @@ def test_swapping_a_context_becomes_a_different_element_in_the_same_place(loaded
     the Profile's children do not.  sr is the context's POSITION, so an element removed and
     re-added rather than rewritten would need every context after it renumbered."""
     element = _condition("102", 0)
-    mapswap._swap_one_condition(element, "Day", {})
+    mapswap._swap_one_condition(element, "Day", {}, state=PrimeItems)
 
     assert element.tag == "Day"
     assert element.attrib["sr"] == "con0"
@@ -1524,11 +1524,11 @@ def test_swapping_a_context_becomes_a_different_element_in_the_same_place(loaded
 def test_a_swapped_context_keeps_the_name_the_user_gave_it(loaded: None) -> None:
     """<cname> is prose, like an action's label: kept as it is, and flagged rather than
     rewritten -- this tool does not rewrite prose."""
-    plan = mapswap.plan_condition_replace("Time", "Day")
+    plan = mapswap.plan_condition_replace("Time", "Day", state=PrimeItems)
     assert any("written for the old condition" in warning for warning in plan.warnings)
 
     element = _condition("100", 0)
-    mapswap._swap_one_condition(element, "Day", {})
+    mapswap._swap_one_condition(element, "Day", {}, state=PrimeItems)
     assert element.findtext("cname") == "early"
 
 
@@ -1537,22 +1537,22 @@ def test_the_inverted_flag_follows_only_where_it_still_means_something(loaded: N
     onto a Time would leave a flag Tasker does not read there; dropping it silently would
     turn 'while NOT this' into 'while this'.  So it follows a State and is dropped -- with a
     note -- for the rest."""
-    plan = mapswap.plan_condition_replace(VARIABLE_VALUE, "Day")
+    plan = mapswap.plan_condition_replace(VARIABLE_VALUE, "Day", state=PrimeItems)
     assert "drops its 'inverted' setting" in plan.changes[0].note
 
     element = _condition("101", 0)
-    mapswap._swap_one_condition(element, DISPLAY_STATE, {})
+    mapswap._swap_one_condition(element, DISPLAY_STATE, {}, state=PrimeItems)
     assert element.findtext("pin") == "true"
 
 
 def test_the_attached_conditions_follow_only_a_coded_context(loaded: None) -> None:
     """A <ConditionList> is the if-clause hung off a State or an Event; a Time cannot hold
     one, so it goes -- and the row says so before it does."""
-    plan = mapswap.plan_condition_replace(VARIABLE_VALUE, "Time")
+    plan = mapswap.plan_condition_replace(VARIABLE_VALUE, "Time", state=PrimeItems)
     assert "drops the conditions attached to it" in plan.changes[0].note
 
     element = _condition("101", 1)
-    mapswap._swap_one_condition(element, DISPLAY_STATE, {})
+    mapswap._swap_one_condition(element, DISPLAY_STATE, {}, state=PrimeItems)
     assert element.find("ConditionList") is not None
     assert element.findtext("ConditionList/Condition/lhs") == "%Flight"
 
@@ -1561,12 +1561,12 @@ def test_an_event_is_built_with_the_priority_element_a_state_does_not_have(loade
     """condition.py's condition_event reads a <pri> on every Event; condition_state reads
     none -- and 2,053 of the sample's 2,207 Events carry one."""
     element = _condition("101", 2)
-    mapswap._swap_one_condition(element, DISPLAY_UNLOCKED, {})
+    mapswap._swap_one_condition(element, DISPLAY_UNLOCKED, {}, state=PrimeItems)
     assert element.tag == "Event"
     assert element.findtext("pri") == "0"
 
     other = _condition("101", 0)
-    mapswap._swap_one_condition(other, DISPLAY_STATE, {})
+    mapswap._swap_one_condition(other, DISPLAY_STATE, {}, state=PrimeItems)
     assert other.tag == "State"
     assert other.find("pri") is None
 
@@ -1575,7 +1575,7 @@ def test_a_new_context_is_built_the_way_add_condition_builds_one(loaded: None) -
     """Through profedit for the flat kinds, so what a fresh Time looks like is stated once
     -- there, where 'Add Condition' states it -- rather than a second time here."""
     element = _condition("101", 2)
-    mapswap._swap_one_condition(element, "Time", {})
+    mapswap._swap_one_condition(element, "Time", {}, state=PrimeItems)
 
     assert element.tag == "Time"
     assert [child.tag for child in element] == ["fh", "fm", "th", "tm"]
@@ -1587,7 +1587,7 @@ def test_a_swapped_context_leaves_its_children_in_the_order_tasker_writes_them(l
     """Alphabetical for the non-argument children, then the arguments by 'sr' as a string.
     Nothing reads them this way; it is for the diff, exactly as it is for an action."""
     element = _condition("101", 0)  # a State with a pin and a ConditionList
-    mapswap._swap_one_condition(element, DISPLAY_STATE, {})
+    mapswap._swap_one_condition(element, DISPLAY_STATE, {}, state=PrimeItems)
 
     plain = [child.tag for child in element if not child.attrib.get("sr", "").startswith("arg")]
     assert plain == sorted(plain, key=str.lower)
@@ -1596,16 +1596,16 @@ def test_a_swapped_context_leaves_its_children_in_the_order_tasker_writes_them(l
 
 def test_project_narrowing_applies_to_contexts_too(loaded: None) -> None:
     """A Project that owns none of these Profiles answers with none of them."""
-    assert mapswap.plan_condition_replace("Time", "Day", project="Home").changes
-    assert not mapswap.plan_condition_replace("Time", "Day", project="Nowhere").changes
+    assert mapswap.plan_condition_replace("Time", "Day", project="Home", state=PrimeItems).changes
+    assert not mapswap.plan_condition_replace("Time", "Day", project="Nowhere", state=PrimeItems).changes
 
 
 def test_applying_a_context_replace_rewrites_the_configuration(loaded: None) -> None:
     """End to end, and through apply() rather than the swap directly: the ticked rows and
     only those, inside one undo block."""
-    plan = mapswap.plan_condition_replace("Time", DISPLAY_UNLOCKED)
+    plan = mapswap.plan_condition_replace("Time", DISPLAY_UNLOCKED, state=PrimeItems)
     plan.selected = {0}
-    changed, errors = mapswap.apply(plan)
+    changed, errors = mapswap.apply(plan, state=PrimeItems)
 
     assert (changed, errors) == (1, [])
     assert _condition("100", 0).tag == "Event"

@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src import guiutils, healthck, impact, mapai, projedit, taskedit, taskflow, userintr, varxref
+from maptasker.src import guiutils, healthck, impact, mapai, mapfix, maprefac, projedit, taskedit, taskflow, userintr, varxref
 from maptasker.src import bildhtml, getbakup, outline, proginit, runcli, taskerd, timeline
 from maptasker.src.actionc import load_arg_specs
 from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
@@ -509,3 +509,24 @@ def test_what_a_delete_would_do_is_worked_out_on_the_state_it_is_given(
 
     assert [consequence.tag for consequence in found.consequences] == ["DANGLING-PERFORM-TASK"]
     assert "Task 'Caller'" in found.consequences[0].where
+
+
+def test_a_duplicate_is_planned_against_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A refactor is worked out over the tables of the state it is asked of; nothing is changed yet."""
+    state = _outline_state(tmp_path, monkeypatch)
+    monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
+    tasks_before = dict(state.tasker_root_elements["all_tasks_by_name"])
+
+    plan = maprefac.plan_duplicate(TASK, "20", state=state)
+
+    assert not plan.blocks
+    assert plan.what
+    assert state.tasker_root_elements["all_tasks_by_name"] == tasks_before
+
+
+def test_a_repair_is_planned_against_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    state = _outline_state(tmp_path, monkeypatch)
+
+    plan = mapfix.plan_fixes(state=state)
+
+    assert plan is not None

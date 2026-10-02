@@ -66,11 +66,11 @@ from typing import TYPE_CHECKING
 from maptasker.src import maprefac, profedit, projedit, taskedit, xmldiff
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Target
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.xmldiff import Configuration
 
 
@@ -185,7 +185,7 @@ LEFT_OUT_PROJECT = (
 LEFT_OUT_VALUE = "Global Variables and Tasker settings -- values rather than objects; set them in the Variable editor."
 
 
-def candidates(older: Configuration, newer: Configuration) -> Offer:
+def candidates(older: Configuration, newer: Configuration, state: RunState) -> Offer:
     """Everything `older` can restore into `newer`, one row per object.
 
     One row per object rather than per entry: xmldiff reports a Task that was renamed AND
@@ -232,16 +232,16 @@ def candidates(older: Configuration, newer: Configuration) -> Offer:
             REVERT,
             entry.where,
             details,
-            _live_target(entry.kind, entry.key),
+            _live_target(entry.kind, entry.key, state=state),
             category,
         )
 
-    useful = [candidate for candidate in reverted.values() if not _rename_is_blocked(older, candidate)]
+    useful = [candidate for candidate in reverted.values() if not _rename_is_blocked(older, candidate, state=state)]
     offer.candidates = sorted(brought_back, key=_order) + sorted(useful, key=_order)
     return offer
 
 
-def _rename_is_blocked(older: Configuration, candidate: Candidate) -> bool:
+def _rename_is_blocked(older: Configuration, candidate: Candidate, state: RunState) -> bool:
     """Whether a rename-only revert could do nothing, because its old name is someone else's now.
 
     A revert keeps the current name when the old one is taken (see _plan_revert_named), so a
@@ -254,7 +254,7 @@ def _rename_is_blocked(older: Configuration, candidate: Candidate) -> bool:
         return False
     table, _, _ = _KINDS[candidate.kind]
     old_name = _text((_old_table(older, table).get(candidate.key) or {}).get("xml"), "nme")
-    holder = (_live_table(_BY_NAME[candidate.kind]).get(old_name) or {}).get("id") if old_name else None
+    holder = (_live_table(_BY_NAME[candidate.kind], state=state).get(old_name) or {}).get("id") if old_name else None
     return holder is not None and holder != candidate.key
 
 
@@ -268,7 +268,7 @@ def _order(candidate: Candidate) -> tuple[int, str]:
 # ##################################################################################
 
 
-def _live_table(name: str) -> dict:
+def _live_table(name: str, state: RunState) -> dict:
     """One table of the configuration that is open now -- the table itself, so it can be written.
 
     setdefault rather than `.get(name) or {}`, which is the difference between a restore and
@@ -276,7 +276,7 @@ def _live_table(name: str) -> dict:
     and `or {}` would hand back a new dict nobody holds -- a Scene brought back into it would
     vanish without a word.
     """
-    return PrimeItems.tasker_root_elements.setdefault(name, {})
+    return state.tasker_root_elements.setdefault(name, {})
 
 
 def _old_table(older: Configuration, name: str) -> dict:
@@ -296,22 +296,26 @@ def _members(project: Element, tag: str) -> list[str]:
     return [item.strip() for item in raw.split(",") if item.strip()]
 
 
-def _live_owner(tag: str, key: str) -> str:
+def _live_owner(tag: str, key: str, state: RunState) -> str:
     """The first Project open now that lists this object, or ""."""
     return next(
-        (name for name, entry in _live_table("all_projects").items() if key in _members(entry["xml"], tag)),
+        (
+            name
+            for name, entry in _live_table("all_projects", state=state).items()
+            if key in _members(entry["xml"], tag)
+        ),
         "",
     )
 
 
-def _live_target(kind: str, key: str) -> Target | None:
+def _live_target(kind: str, key: str, state: RunState) -> Target | None:
     """Where a click on this object's row goes, or None when it is not here to go to."""
     table, jump_kind, tag = _KINDS[kind]
-    entry = _live_table(table).get(key)
+    entry = _live_table(table, state=state).get(key)
     if entry is None:
         return None
     name = entry.get("name", "") or (key if kind == "Scene" else "")
-    return Target(kind=jump_kind, key=key, name=name, project=_live_owner(tag, key))
+    return Target(kind=jump_kind, key=key, name=name, project=_live_owner(tag, key, state=state))
 
 
 def _old_owners(older: Configuration, kind: str, key: str) -> list[tuple[str, str]]:
@@ -324,14 +328,14 @@ def _old_owners(older: Configuration, kind: str, key: str) -> list[tuple[str, st
     ]
 
 
-def _live_project_for(project_id: str, project_name: str) -> str:
+def _live_project_for(project_id: str, project_name: str, state: RunState) -> str:
     """The Project open now that IS the snapshot's Project, by name as the tables key it.
 
     Matched on <id> first, the way xmldiff matches Projects -- a Project renamed since is
     still the Project the object was in.  By name only when the snapshot's Project has no
     <id>, which a hand-made export can lack.  "" when it is not here at all.
     """
-    projects = _live_table("all_projects")
+    projects = _live_table("all_projects", state=state)
     if project_id:
         for name, entry in projects.items():
             if _text(entry["xml"], "id") == project_id:
@@ -340,12 +344,12 @@ def _live_project_for(project_id: str, project_name: str) -> str:
     return project_name if project_name in projects else ""
 
 
-def _perform_task_calls(task_name: str) -> int:
+def _perform_task_calls(task_name: str, state: RunState) -> int:
     """How many Perform Task actions in the configuration open now call this name."""
     if not task_name:
         return 0
     calls = 0
-    for entry in _live_table("all_tasks").values():
+    for entry in _live_table("all_tasks", state=state).values():
         for action in entry["xml"].iter("Action"):
             if _text(action, "code") != _PERFORM_TASK_CODE:
                 continue
@@ -370,7 +374,7 @@ def _snapshot_profiles_running(older: Configuration, task_id: str) -> list[tuple
 # ##################################################################################
 
 
-def _element_class() -> type:
+def _element_class(state: RunState) -> type:
     """The Element class the open configuration is built of.
 
     A snapshot is parsed by a second parse (diffload's), and an element appended into the
@@ -379,7 +383,7 @@ def _element_class() -> type:
     type(parent) rather than whatever class came to hand.  Taken from the root when there is
     one, which there always is once a file is loaded.
     """
-    root = PrimeItems.xml_root
+    root = state.xml_root
     return type(root) if root is not None else ETW.Element
 
 
@@ -443,7 +447,7 @@ class _Links:
     warnings: list[str] = field(default_factory=list)
 
 
-def _resolve_links(older: Configuration, old_profile: Element) -> _Links:
+def _resolve_links(older: Configuration, old_profile: Element, state: RunState) -> _Links:
     """Decide what each of a snapshot Profile's Task links becomes in the configuration now.
 
     A link is an id, and the id the snapshot holds names a Task in the snapshot.  Three
@@ -463,8 +467,8 @@ def _resolve_links(older: Configuration, old_profile: Element) -> _Links:
     """
     links = _Links()
     old_tasks = _old_table(older, "all_tasks")
-    live_tasks = _live_table("all_tasks")
-    live_by_name = _live_table("all_tasks_by_name")
+    live_tasks = _live_table("all_tasks", state=state)
+    live_by_name = _live_table("all_tasks_by_name", state=state)
 
     for tag, role in _TASK_LINKS:
         old_id = _text(old_profile, tag)
@@ -503,7 +507,7 @@ def _resolve_links(older: Configuration, old_profile: Element) -> _Links:
 # ##################################################################################
 
 
-def plan_restore(candidate: Candidate, older: Configuration, from_when: str) -> maprefac.Plan:
+def plan_restore(candidate: Candidate, older: Configuration, from_when: str, state: RunState) -> maprefac.Plan:
     """The maprefac.Plan for one candidate: what it would do, or why it will not.
 
     `from_when` is how the snapshot names itself in prose ("backup.xml, 15-Sep-2026
@@ -535,10 +539,10 @@ def plan_restore(candidate: Candidate, older: Configuration, from_when: str) -> 
         planners = {"Task": _plan_bring_back_task, "Profile": _plan_bring_back_profile, "Scene": _plan_bring_back_scene}
     else:
         planners = {"Task": _plan_revert_named, "Profile": _plan_revert_named, "Scene": _plan_revert_scene}
-    return planners[candidate.kind](candidate, older, old_entry, from_when)
+    return planners[candidate.kind](candidate, older, old_entry, from_when, state=state)
 
 
-def _restored_name(kind: str, wanted: str) -> tuple[str, str]:
+def _restored_name(kind: str, wanted: str, state: RunState) -> tuple[str, str]:
     """(the name it can have, the warning if that is not the one it had).
 
     Duplicate's answer to a name somebody else holds: keep the name when it is free, and
@@ -547,7 +551,11 @@ def _restored_name(kind: str, wanted: str) -> tuple[str, str]:
     """
     if not wanted:
         return wanted, ""
-    taken = set(_live_table(_BY_NAME[kind])) if kind in _BY_NAME else set(_live_table("all_scenes"))
+    taken = (
+        set(_live_table(_BY_NAME[kind], state=state))
+        if kind in _BY_NAME
+        else set(_live_table("all_scenes", state=state))
+    )
     if wanted not in taken:
         return wanted, ""
     new_name = maprefac.unique_name(wanted, taken, _RESTORED_SUFFIX)
@@ -557,7 +565,7 @@ def _restored_name(kind: str, wanted: str) -> tuple[str, str]:
     return new_name, warning
 
 
-def _restored_id(key: str, older: Configuration) -> tuple[str, str]:
+def _restored_id(key: str, older: Configuration, state: RunState) -> tuple[str, str]:
     """(the id a brought-back Task or Profile gets, the step saying why if it is not its own).
 
     Its own when nothing holds it now -- the id Tasker on the device last knew it by, and
@@ -566,7 +574,7 @@ def _restored_id(key: str, older: Configuration) -> tuple[str, str]:
     neither table; a free id taken from the Profiles' side would be a collision the file
     only discovers when the device imports it.
     """
-    in_use = set(_live_table("all_tasks")) | set(_live_table("all_profiles"))
+    in_use = set(_live_table("all_tasks", state=state)) | set(_live_table("all_profiles", state=state))
     if key not in in_use:
         return key, ""
     # A new id steers clear of every id the SNAPSHOT uses as well as every one in use now.
@@ -574,15 +582,15 @@ def _restored_id(key: str, older: Configuration) -> tuple[str, str]:
     # alongside it still needs -- and that Profile, restored next, would lose its own id for
     # no reason but the order the two were restored in.
     reserved = set(_old_table(older, "all_tasks")) | set(_old_table(older, "all_profiles"))
-    new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=PrimeItems))
+    new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=state))
     return new_id, f"Its old id, {key}, belongs to something else now, so it comes back as id {new_id}"
 
 
-def _owners_for(older: Configuration, candidate: Candidate) -> tuple[list[str], list[str]]:
+def _owners_for(older: Configuration, candidate: Candidate, state: RunState) -> tuple[list[str], list[str]]:
     """(the Projects open now it goes back into, a warning for each that has gone)."""
     projects, warnings = [], []
     for project_id, project_name in _old_owners(older, candidate.kind, candidate.key):
-        live = _live_project_for(project_id, project_name)
+        live = _live_project_for(project_id, project_name, state=state)
         if live:
             projects.append(live)
         else:
@@ -593,10 +601,10 @@ def _owners_for(older: Configuration, candidate: Candidate) -> tuple[list[str], 
     return projects, warnings
 
 
-def _into_projects(tag: str, key: str, projects: list[str]) -> None:
+def _into_projects(tag: str, key: str, projects: list[str], state: RunState) -> None:
     """Add a restored object to each Project's membership list -- the write half of _owners_for."""
     for project_name in projects:
-        entry = _live_table("all_projects").get(project_name)
+        entry = _live_table("all_projects", state=state).get(project_name)
         if entry is None:
             continue
         members = _members(entry["xml"], tag)
@@ -604,9 +612,13 @@ def _into_projects(tag: str, key: str, projects: list[str]) -> None:
             projedit.set_project_members(entry["xml"], tag, [*members, key])
 
 
-def _project_elements(projects: list[str]) -> tuple:
+def _project_elements(projects: list[str], state: RunState) -> tuple:
     """The live elements of the Projects a restore writes to, for maprefac.apply's check."""
-    return tuple(_live_table("all_projects")[name]["xml"] for name in projects if name in _live_table("all_projects"))
+    return tuple(
+        _live_table("all_projects", state=state)[name]["xml"]
+        for name in projects
+        if name in _live_table("all_projects", state=state)
+    )
 
 
 def _project_steps(kind: str, projects: list[str]) -> list[maprefac.Step]:
@@ -622,20 +634,21 @@ def _plan_bring_back_task(
     older: Configuration,
     old_entry: dict,
     from_when: str,
+    state: RunState,
 ) -> maprefac.Plan:
     """Put a deleted Task back, as it stood in the snapshot, in the Projects that held it."""
     old_element = old_entry["xml"]
     old_name = _text(old_element, "nme")
     table_name = old_entry.get("name", "") or old_name or candidate.key
-    new_id, id_step = _restored_id(candidate.key, older)
-    new_name, name_warning = _restored_name("Task", old_name)
+    new_id, id_step = _restored_id(candidate.key, older, state=state)
+    new_name, name_warning = _restored_name("Task", old_name, state=state)
     shown = new_name or table_name
-    projects, project_warnings = _owners_for(older, candidate)
+    projects, project_warnings = _owners_for(older, candidate, state=state)
 
     plan = maprefac.Plan(
         kind=RESTORE,
         what=f"Bring back Task '{table_name}' from {from_when}",
-        elements=_project_elements(projects),
+        elements=_project_elements(projects, state=state),
     )
     plan.steps = [
         maprefac.Step(f"Bring back Task '{shown}' with its {len(old_element.findall('Action'))} actions"),
@@ -646,7 +659,7 @@ def _plan_bring_back_task(
 
     # Said, not done: relinking a Profile is restoring a second object.
     for profile_id, profile_name, role in _snapshot_profiles_running(older, candidate.key):
-        here = profile_id in _live_table("all_profiles")
+        here = profile_id in _live_table("all_profiles", state=state)
         plan.warnings.append(
             f"Profile '{profile_name}' ran it as its {role} Task then, and is not relinked -- a restore brings "
             f"back one object.  "
@@ -656,7 +669,7 @@ def _plan_bring_back_task(
                 else "That Profile is not in the configuration either; restore it next and the link comes back with it."
             ),
         )
-    calls = _perform_task_calls(new_name) if new_name == old_name else 0
+    calls = _perform_task_calls(new_name, state=state) if new_name == old_name else 0
     if calls:
         plan.warnings.append(
             f"{calls} Perform Task action{'s' if calls != 1 else ''} in the configuration call '{new_name}' by name "
@@ -664,15 +677,15 @@ def _plan_bring_back_task(
         )
 
     def run() -> list[str]:
-        element = _clone(old_element, _element_class())
+        element = _clone(old_element, _element_class(state=state))
         element.set("sr", f"task{new_id}")
         _set_child_text(element, "id", new_id)
         if new_name != old_name:
             _set_child_text(element, "nme", new_name)
         taskedit.register_new_task(
-            taskedit.EditableTask(task_id=new_id, task_element=element), new_name or table_name, state=PrimeItems
+            taskedit.EditableTask(task_id=new_id, task_element=element), new_name or table_name, state=state
         )
-        _into_projects("tids", new_id, projects)
+        _into_projects("tids", new_id, projects, state=state)
         return []
 
     plan.run = run
@@ -684,20 +697,21 @@ def _plan_bring_back_profile(
     older: Configuration,
     old_entry: dict,
     from_when: str,
+    state: RunState,
 ) -> maprefac.Plan:
     """Put a deleted Profile back, with whichever of its Tasks are still here to run."""
     old_element = old_entry["xml"]
     old_name = _text(old_element, "nme")
     table_name = old_entry.get("name", "") or old_name or candidate.key
-    new_id, id_step = _restored_id(candidate.key, older)
-    new_name, name_warning = _restored_name("Profile", old_name)
-    links = _resolve_links(older, old_element)
-    projects, project_warnings = _owners_for(older, candidate)
+    new_id, id_step = _restored_id(candidate.key, older, state=state)
+    new_name, name_warning = _restored_name("Profile", old_name, state=state)
+    links = _resolve_links(older, old_element, state=state)
+    projects, project_warnings = _owners_for(older, candidate, state=state)
 
     plan = maprefac.Plan(
         kind=RESTORE,
         what=f"Bring back Profile '{table_name}' from {from_when}",
-        elements=_project_elements(projects),
+        elements=_project_elements(projects, state=state),
     )
     plan.steps = [
         maprefac.Step(f"Bring back Profile '{new_name or table_name}' with the conditions it had"),
@@ -713,7 +727,7 @@ def _plan_bring_back_profile(
         )
 
     def run() -> list[str]:
-        element = _clone(old_element, _element_class())
+        element = _clone(old_element, _element_class(state=state))
         element.set("sr", f"prof{new_id}")
         _set_child_text(element, "id", new_id)
         if new_name != old_name:
@@ -726,8 +740,8 @@ def _plan_bring_back_profile(
             entry_task_id=links.ids.get("mid0", ""),
             exit_task_id=links.ids.get("mid1", ""),
         )
-        profedit.register_new_profile(editable, new_name or table_name, state=PrimeItems)
-        _into_projects("pids", new_id, projects)
+        profedit.register_new_profile(editable, new_name or table_name, state=state)
+        _into_projects("pids", new_id, projects, state=state)
         return []
 
     plan.run = run
@@ -739,6 +753,7 @@ def _plan_bring_back_scene(
     older: Configuration,
     old_entry: dict,
     from_when: str,
+    state: RunState,
 ) -> maprefac.Plan:
     """Put a deleted Scene back, under its own name or not at all.
 
@@ -750,7 +765,7 @@ def _plan_bring_back_scene(
     """
     scene_name = candidate.key
     what = f"Bring back Scene '{scene_name}' from {from_when}"
-    if scene_name in _live_table("all_scenes"):
+    if scene_name in _live_table("all_scenes", state=state):
         return maprefac.Plan(
             kind=RESTORE,
             what=what,
@@ -760,16 +775,16 @@ def _plan_bring_back_scene(
                     f"A Scene called '{scene_name}' is in the configuration now.  A Scene is known by its name "
                     f"alone, so this one cannot come back beside it under another -- nothing would ever show "
                     f"it.  Rename the Scene that is here first, then restore this one.",
-                    _live_target("Scene", scene_name),
+                    _live_target("Scene", scene_name, state=state),
                 ),
             ],
         )
 
     old_element = old_entry["xml"]
-    projects, project_warnings = _owners_for(older, candidate)
-    missing = _missing_scene_tasks(old_element)
+    projects, project_warnings = _owners_for(older, candidate, state=state)
+    missing = _missing_scene_tasks(old_element, state=state)
 
-    plan = maprefac.Plan(kind=RESTORE, what=what, elements=_project_elements(projects))
+    plan = maprefac.Plan(kind=RESTORE, what=what, elements=_project_elements(projects, state=state))
     plan.steps = [
         maprefac.Step(f"Bring back Scene '{scene_name}' with its elements"),
         *_project_steps("Scene", projects),
@@ -782,16 +797,16 @@ def _plan_bring_back_scene(
         )
 
     def run() -> list[str]:
-        element = _clone(old_element, _element_class())
-        _live_table("all_scenes")[scene_name] = {"xml": element, "name": scene_name}
-        _into_projects("scenes", scene_name, projects)
+        element = _clone(old_element, _element_class(state=state))
+        _live_table("all_scenes", state=state)[scene_name] = {"xml": element, "name": scene_name}
+        _into_projects("scenes", scene_name, projects, state=state)
         return []
 
     plan.run = run
     return plan
 
 
-def _missing_scene_tasks(scene: Element) -> int:
+def _missing_scene_tasks(scene: Element, state: RunState) -> int:
     """How many of a Legacy Scene's element Task links name a Task id not here now.
 
     A Legacy element's <clickTask>, <longclickTask> and the rest hold a Task id; a negative
@@ -799,7 +814,7 @@ def _missing_scene_tasks(scene: Element) -> int:
     never missing.  A Version 2 Scene names its Tasks inside a JSON layout, which is not
     read here -- the warning is what can be said for certain, not everything there is.
     """
-    live = _live_table("all_tasks")
+    live = _live_table("all_tasks", state=state)
     return sum(
         1
         for node in scene.iter()
@@ -812,11 +827,12 @@ def _plan_revert_named(
     older: Configuration,
     old_entry: dict,
     from_when: str,
+    state: RunState,
 ) -> maprefac.Plan:
     """Put a Task or a Profile back as it stood in the snapshot, in place, under its own id."""
     kind = candidate.kind
     table, _, _ = _KINDS[kind]
-    live_entry = _live_table(table).get(candidate.key)
+    live_entry = _live_table(table, state=state).get(candidate.key)
     old_element = old_entry["xml"]
     current_name = (live_entry or {}).get("name", "") or candidate.key
     what = f"Put {kind} '{current_name}' back as it was on {from_when}"
@@ -839,7 +855,7 @@ def _plan_revert_named(
     live_own_name = _text(live_element, "nme")
     # The old name, unless something else has it now -- in which case this keeps the name it
     # has, rather than taking a name another object answers to.
-    by_name = _live_table(_BY_NAME[kind])
+    by_name = _live_table(_BY_NAME[kind], state=state)
     holder = (by_name.get(old_name) or {}).get("id") if old_name else None
     keep_current_name = bool(old_name) and old_name != live_own_name and holder not in (None, candidate.key)
     final_name = live_own_name if keep_current_name else old_name
@@ -847,7 +863,8 @@ def _plan_revert_named(
     plan = maprefac.Plan(kind=RESTORE, what=what, elements=(live_element,))
     plan.steps = [
         maprefac.Step(
-            f"Put everything about {kind} '{current_name}' back as it stood then", _live_target(kind, candidate.key)
+            f"Put everything about {kind} '{current_name}' back as it stood then",
+            _live_target(kind, candidate.key, state=state),
         ),
         *(maprefac.Step(f"    {detail}") for detail in candidate.details),
     ]
@@ -858,14 +875,14 @@ def _plan_revert_named(
             f"'{live_own_name}'.",
         )
     elif kind == "Task" and final_name != live_own_name:
-        calls = _perform_task_calls(live_own_name)
+        calls = _perform_task_calls(live_own_name, state=state)
         if calls:
             plan.warnings.append(
                 f"It goes back to being called '{final_name}'.  {calls} Perform Task "
                 f"action{'s' if calls != 1 else ''} call it as '{live_own_name}' and will reach nothing.",
             )
 
-    links = _resolve_links(older, old_element) if kind == "Profile" else None
+    links = _resolve_links(older, old_element, state=state) if kind == "Profile" else None
     if links is not None:
         plan.steps.extend(maprefac.Step(step) for step in links.steps)
         plan.warnings.extend(links.warnings)
@@ -879,14 +896,14 @@ def _plan_revert_named(
         if links is not None:
             for tag, task_id in links.ids.items():
                 _set_link(live_element, tag, task_id)
-        _rename_in_tables(kind, candidate.key, live_element, current_name, final_name)
+        _rename_in_tables(kind, candidate.key, live_element, current_name, final_name, state=state)
         return []
 
     plan.run = run
     return plan
 
 
-def _rename_in_tables(kind: str, key: str, element: object, table_name: str, new_name: str) -> None:
+def _rename_in_tables(kind: str, key: str, element: object, table_name: str, new_name: str, state: RunState) -> None:
     """Bring a reverted Task's or Profile's two tables into line with the name it now has.
 
     The by-name table is keyed by name, so a revert that changes the name has to move the
@@ -895,11 +912,11 @@ def _rename_in_tables(kind: str, key: str, element: object, table_name: str, new
     name in the element to replace it with.
     """
     table, _, _ = _KINDS[kind]
-    entry = _live_table(table)[key]
+    entry = _live_table(table, state=state)[key]
     shown = new_name or table_name
     entry["xml"] = element
     entry["name"] = shown
-    by_name = _live_table(_BY_NAME[kind])
+    by_name = _live_table(_BY_NAME[kind], state=state)
     if by_name.get(table_name, {}).get("id") == key and table_name != shown:
         del by_name[table_name]
     by_name[shown] = {"xml": element, "id": key}
@@ -910,13 +927,14 @@ def _plan_revert_scene(
     _older: Configuration,  # The planners share one signature; a Scene revert has no links to resolve.
     old_entry: dict,
     from_when: str,
+    state: RunState,
 ) -> maprefac.Plan:
     """Put a Scene back as it stood in the snapshot, in place.
 
     Never a rename: xmldiff matches Scenes by name, so a Scene on both sides has the same one
     on both, and there is nothing to put back but what is inside it.
     """
-    live_entry = _live_table("all_scenes").get(candidate.key)
+    live_entry = _live_table("all_scenes", state=state).get(candidate.key)
     what = f"Put Scene '{candidate.key}' back as it was on {from_when}"
     if live_entry is None:
         return maprefac.Plan(
@@ -936,12 +954,13 @@ def _plan_revert_scene(
     plan = maprefac.Plan(kind=RESTORE, what=what, elements=(live_element,))
     plan.steps = [
         maprefac.Step(
-            f"Put every element of Scene '{candidate.key}' back as it stood then", _live_target("Scene", candidate.key)
+            f"Put every element of Scene '{candidate.key}' back as it stood then",
+            _live_target("Scene", candidate.key, state=state),
         ),
         *(maprefac.Step(f"    {detail}") for detail in candidate.details),
     ]
     plan.warnings = [_UNDONE_WHOLE]
-    missing = _missing_scene_tasks(old_element)
+    missing = _missing_scene_tasks(old_element, state=state)
     if missing:
         plan.warnings.append(
             f"{missing} of its elements, as they were then, run a Task that is not in the configuration now.",

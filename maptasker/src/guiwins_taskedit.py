@@ -288,7 +288,7 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
             fetch_button.set_enabled(False)
             progress_row.set_visibility(True)
             try:
-                fetched = await run.io_bound(deviceinv.fetch_apps_from_device, ip_address, ip_port)
+                fetched = await run.io_bound(deviceinv.fetch_apps_from_device, ip_address, ip_port, state=gui.state)
             finally:
                 fetch_button.set_text(translate_string("Fetch"))
                 fetch_button.set_enabled(True)
@@ -464,6 +464,7 @@ def build_run_task_on_android_dialog(
                     task_name,
                     str(par1_field.value or ""),
                     str(par2_field.value or ""),
+                    state=gui.state,
                 )
             finally:
                 run_button.set_text(translate_string("Run"))

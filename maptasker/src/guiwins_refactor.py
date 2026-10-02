@@ -566,7 +566,7 @@ def fill_options(widgets: dict) -> None:
     contract as the Edit buttons beside this dialog, while the three that act on an object
     as a whole have no business being tied to what is selected for display.
     """
-    tasks = dict(maprefac.task_choices())
+    tasks = dict(maprefac.task_choices(state=PrimeItems))
 
     # Extract's Task, chosen for the user when the selection leaves nothing to choose.
     #
@@ -580,12 +580,12 @@ def fill_options(widgets: dict) -> None:
     # Keyed on "exactly one offered" rather than on "a Task is selected", because those are
     # the same thing wherever it matters and the first also covers a Profile that runs only
     # one Task.  It can never guess: where there is a choice to make, it makes none.
-    scoped = maprefac.task_choices(maprefac.extract_scope())
+    scoped = maprefac.task_choices(maprefac.extract_scope(state=PrimeItems), state=PrimeItems)
     only_task = scoped[0][0] if len(scoped) == 1 else None
     widgets["extract_task"].set_options(dict(scoped), value=only_task)
 
     widgets["inline_task"].set_options(tasks, value=None)
-    widgets["move_project"].set_options({name: name for name in maprefac.project_choices()}, value=None)
+    widgets["move_project"].set_options({name: name for name in maprefac.project_choices(state=PrimeItems)}, value=None)
     _fill_actions(widgets)
     _fill_calls(widgets)
     _fill_move_objects(widgets)
@@ -600,7 +600,7 @@ def _describe_extract_scope(widgets: dict) -> None:
     scope, so the pulldown is not merely short but empty, and an empty pulldown with no
     explanation reads as a bug in the dialog rather than as an answer about the selection.
     """
-    scope = maprefac.extract_scope()
+    scope = maprefac.extract_scope(state=PrimeItems)
     note = widgets["extract_scope_note"]
     if scope.is_everything:
         note.set_text("")
@@ -653,7 +653,7 @@ def _fill_actions(widgets: dict) -> None:
     task_id = widgets["extract_task"].value or ""
     if not _stale(widgets, "actions", task_id):
         return
-    choices = {str(number): label for number, label in maprefac.action_choices(task_id)}
+    choices = {str(number): label for number, label in maprefac.action_choices(task_id, state=PrimeItems)}
     # A dict each, not one shared between them.  Two selects holding the same object is
     # asking for one's filtering to be visible in the other, and these two are the pair
     # most likely to be filtered at the same moment -- they are the two ends of one range.
@@ -667,7 +667,7 @@ def _fill_calls(widgets: dict) -> None:
     if not _stale(widgets, "calls", task_id):
         return
     widgets["inline_call"].set_options(
-        {str(number): label for number, label in maprefac.call_choices(task_id)},
+        {str(number): label for number, label in maprefac.call_choices(task_id, state=PrimeItems)},
         value=None,
     )
 
@@ -677,7 +677,7 @@ def _fill_move_objects(widgets: dict) -> None:
     kind = widgets["move_kind"].value
     if not _stale(widgets, "move", kind):
         return
-    choices = maprefac.profile_choices() if kind == PROFILE else maprefac.task_choices()
+    choices = maprefac.profile_choices(state=PrimeItems) if kind == PROFILE else maprefac.task_choices(state=PrimeItems)
     widgets["move_object"].set_options(dict(choices), value=None)
 
 
@@ -691,13 +691,13 @@ def _fill_duplicate_objects(widgets: dict) -> None:
     if not _stale(widgets, "duplicate", kind):
         return
     if kind == PROJECT:
-        choices = {name: name for name in maprefac.project_choices()}
+        choices = {name: name for name in maprefac.project_choices(state=PrimeItems)}
     elif kind == SCENE:
-        choices = {name: name for name in maprefac.scene_choices()}
+        choices = {name: name for name in maprefac.scene_choices(state=PrimeItems)}
     elif kind == PROFILE:
-        choices = dict(maprefac.profile_choices())
+        choices = dict(maprefac.profile_choices(state=PrimeItems))
     else:
-        choices = dict(maprefac.task_choices())
+        choices = dict(maprefac.task_choices(state=PrimeItems))
     widgets["duplicate_object"].set_options(choices, value=None)
 
 
@@ -718,24 +718,28 @@ def plan_for(mode_value: str, widgets: dict) -> maprefac.Plan | None:
         if not task_id or first is None or last is None:
             return None
         first, last = sorted((int(first), int(last)))
-        return maprefac.plan_extract(task_id, list(range(first, last + 1)), widgets["extract_name"].value or "")
+        return maprefac.plan_extract(
+            task_id, list(range(first, last + 1)), widgets["extract_name"].value or "", state=PrimeItems
+        )
 
     if mode_value == INLINE:
         task_id, call = widgets["inline_task"].value, widgets["inline_call"].value
         if not task_id or call is None:
             return None
-        return maprefac.plan_inline(task_id, int(call))
+        return maprefac.plan_inline(task_id, int(call), state=PrimeItems)
 
     if mode_value == MOVE:
         key, project = widgets["move_object"].value, widgets["move_project"].value
         if not key or not project:
             return None
-        return maprefac.plan_move(widgets["move_kind"].value, key, project)
+        return maprefac.plan_move(widgets["move_kind"].value, key, project, state=PrimeItems)
 
     if mode_value == DUPLICATE:
         key = widgets["duplicate_object"].value
         if not key:
             return None
-        return maprefac.plan_duplicate(widgets["duplicate_kind"].value, key, widgets["duplicate_name"].value or "")
+        return maprefac.plan_duplicate(
+            widgets["duplicate_kind"].value, key, widgets["duplicate_name"].value or "", state=PrimeItems
+        )
 
     return None

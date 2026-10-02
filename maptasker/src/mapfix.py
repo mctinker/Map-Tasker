@@ -67,12 +67,13 @@ from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import TASK, Row, Target, actions_in_map_order, text_report
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FIX_FILE, logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Collection
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 
 # ##################################################################################
@@ -343,14 +344,14 @@ class Plan:
 # ##################################################################################
 
 
-def _table(name: str) -> dict:
+def _table(name: str, state: RunState) -> dict:
     """One object table -- all_tasks, all_tasks_by_name -- or {}."""
-    return (PrimeItems.tasker_root_elements or {}).get(name) or {}
+    return (state.tasker_root_elements or {}).get(name) or {}
 
 
-def _task_element(task_id: str) -> Element | None:
+def _task_element(task_id: str, state: RunState) -> Element | None:
     """One Task's live element, or None when the id is not in the tables."""
-    entry = _table("all_tasks").get(task_id)
+    entry = _table("all_tasks", state=state).get(task_id)
     return entry["xml"] if entry else None
 
 
@@ -441,7 +442,7 @@ def _labels_of(task_element: Element, except_number: int = 0) -> list[tuple[str,
 # ##################################################################################
 
 
-def _plan_collision(where: Target) -> Fix | Skip:
+def _plan_collision(where: Target, state: RunState) -> Fix | Skip:
     """Set a long-running Task's Collision Handling.
 
     The finding names two acceptable answers and this offers both, defaulting to the one it
@@ -450,7 +451,7 @@ def _plan_collision(where: Target) -> Fix | Skip:
     'Run Both Together' is the other answer and is a real choice, not a variant: a Task that
     writes to the same variables from two runs at once is its own kind of wrong.
     """
-    task = _task_element(where.key)
+    task = _task_element(where.key, state=state)
     if task is None:
         return Skip(MISSING_COLLISION, where, "This Task is no longer in the configuration.")
     if task.find("rty") is not None:
@@ -478,7 +479,7 @@ def _plan_collision(where: Target) -> Fix | Skip:
     )
 
 
-def _plan_timeout(where: Target, timeouts: dict[str, str]) -> Fix | Skip:
+def _plan_timeout(where: Target, timeouts: dict[str, str], state: RunState) -> Fix | Skip:
     """Write a timeout into an action that has none.
 
     The argument is the one proflint read to raise the finding, taken from the same table
@@ -487,7 +488,7 @@ def _plan_timeout(where: Target, timeouts: dict[str, str]) -> Fix | Skip:
     Replace tab synthesize one, so that what is written is indistinguishable from what
     Tasker itself would have written.
     """
-    task = _task_element(where.key)
+    task = _task_element(where.key, state=state)
     if task is None:
         return Skip(NO_TIMEOUT, where, "This Task is no longer in the configuration.")
     action = _action_at(task, where.action)
@@ -509,7 +510,7 @@ def _plan_timeout(where: Target, timeouts: dict[str, str]) -> Fix | Skip:
             raise ValueError(unusable)
         element = _argument_element(action, arg_id)
         if element is None:
-            element = _create_timeout_argument(action, code, arg_id)
+            element = _create_timeout_argument(action, code, arg_id, state=state)
         if element.tag == "Int":
             element.set("val", seconds)
             # An <Int> holding a variable keeps the <var> child alongside the attribute, and
@@ -541,6 +542,7 @@ def _create_timeout_argument(
     action: Element,
     code: str,
     arg_id: str,
+    state: RunState,
 ) -> Element:
     """Write the timeout argument into an action that has never carried one.
 
@@ -557,7 +559,7 @@ def _create_timeout_argument(
         unbuildable = f"{_action_name(code)} has no timeout argument to add"
         raise ValueError(unbuildable)
 
-    built = taskedit.build_synthesized_args(type(action), action, [argument], state=PrimeItems)
+    built = taskedit.build_synthesized_args(type(action), action, [argument], state=state)
     if not built or built[0].element is None:
         unbuildable = f"a timeout cannot be written into '{_action_name(code)}' from nothing"
         raise ValueError(unbuildable)
@@ -568,7 +570,7 @@ def _create_timeout_argument(
     return built[0].element
 
 
-def _plan_closer(tag: str, where: Target) -> Fix | Skip:
+def _plan_closer(tag: str, where: Target, state: RunState) -> Fix | Skip:
     """Close a block that is never closed, with an 'End If' or an 'End For' at the Task's end.
 
     THE END OF THE TASK IS THE ONLY PLACE THIS CAN GO, and that is worth being plain about.
@@ -584,7 +586,7 @@ def _plan_closer(tag: str, where: Target) -> Fix | Skip:
     person who wrote the Task can make.
     """
     closer_code, closer_name, block = _CLOSER_OF_TAG[tag]
-    task = _task_element(where.key)
+    task = _task_element(where.key, state=state)
     if task is None:
         return Skip(tag, where, "This Task is no longer in the configuration.")
     opener = _action_at(task, where.action)
@@ -618,7 +620,7 @@ def _plan_closer(tag: str, where: Target) -> Fix | Skip:
     )
 
 
-def _plan_goto(where: Target) -> Fix | Skip:
+def _plan_goto(where: Target, state: RunState) -> Fix | Skip:
     """Point a 'Goto' at a label the Task actually carries.
 
     WHICH label is the user's to say and nothing here guesses at it: the Choice arrives with
@@ -631,7 +633,7 @@ def _plan_goto(where: Target) -> Fix | Skip:
     point at, and the repair is to write a label onto the action that was meant to be jumped
     to, which is an edit this cannot make for somebody.
     """
-    task = _task_element(where.key)
+    task = _task_element(where.key, state=state)
     if task is None:
         return Skip(GOTO_MISSING_LABEL, where, "This Task is no longer in the configuration.")
     action = _action_at(task, where.action)
@@ -682,7 +684,7 @@ def _plan_goto(where: Target) -> Fix | Skip:
     )
 
 
-def _plan_delete_task(where: Target) -> Fix | Skip:
+def _plan_delete_task(where: Target, state: RunState) -> Fix | Skip:
     """Delete a Task nothing in this file runs.
 
     The one repair here that takes something away, and the only one that arrives UNTICKED --
@@ -702,13 +704,13 @@ def _plan_delete_task(where: Target) -> Fix | Skip:
     told a Task called 'Twin' had gone and have no way to know which.  Rename one of them
     first and both are offered on the next run.
     """
-    task = _task_element(where.key)
+    task = _task_element(where.key, state=state)
     if task is None:
         return Skip(UNREFERENCED_TASK, where, "This Task is no longer in the configuration.")
 
-    name = (_table("all_tasks").get(where.key) or {}).get("name", "")
-    sharing = [key for key, entry in _table("all_tasks").items() if entry.get("name") == name]
-    entry = _table("all_tasks_by_name").get(name) if name else None
+    name = (_table("all_tasks", state=state).get(where.key) or {}).get("name", "")
+    sharing = [key for key, entry in _table("all_tasks", state=state).items() if entry.get("name") == name]
+    entry = _table("all_tasks_by_name", state=state).get(name) if name else None
     if not name or entry is None or len(sharing) > 1:
         return Skip(
             UNREFERENCED_TASK,
@@ -720,11 +722,11 @@ def _plan_delete_task(where: Target) -> Fix | Skip:
     actions = len(task.findall("Action"))
 
     def run(_value: str) -> None:
-        current = _table("all_tasks_by_name").get(name)
+        current = _table("all_tasks_by_name", state=state).get(name)
         if current is None or current.get("id") != where.key:
             moved = f"'{name}' no longer names this Task -- nothing was deleted"
             raise ValueError(moved)
-        errors = taskedit.delete_task(name, state=PrimeItems)
+        errors = taskedit.delete_task(name, state=state)
         if errors:
             raise ValueError(errors[0])
 
@@ -748,22 +750,22 @@ def _plan_delete_task(where: Target) -> Fix | Skip:
 # ##################################################################################
 
 
-def _planner_for(tag: str, timeouts: dict[str, str]) -> Callable[[Target], Fix | Skip] | None:
+def _planner_for(tag: str, timeouts: dict[str, str], state: RunState) -> Callable[[Target], Fix | Skip] | None:
     """The function that plans a repair for this tag, or None when there is no repair for it."""
     if tag == MISSING_COLLISION:
-        return _plan_collision
+        return lambda where: _plan_collision(where, state=state)
     if tag == NO_TIMEOUT:
-        return lambda where: _plan_timeout(where, timeouts)
+        return lambda where: _plan_timeout(where, timeouts, state=state)
     if tag in _CLOSER_OF_TAG:
-        return lambda where: _plan_closer(tag, where)
+        return lambda where: _plan_closer(tag, where, state=state)
     if tag == GOTO_MISSING_LABEL:
-        return _plan_goto
+        return lambda where: _plan_goto(where, state=state)
     if tag == UNREFERENCED_TASK:
-        return _plan_delete_task
+        return lambda where: _plan_delete_task(where, state=state)
     return None
 
 
-def plan_fixes(skip: Collection[str] = ()) -> Plan:
+def plan_fixes(skip: Collection[str] = (), *, state: RunState) -> Plan:
     """Run the health check for the repairable categories and offer a repair for each finding.
 
     `skip` is the health check's own -- the categories the chooser panel has unticked, saved
@@ -786,7 +788,7 @@ def plan_fixes(skip: Collection[str] = ()) -> Plan:
     it ticked would be promising something and then reporting it as an error.
     """
     leave_out = set(skip) | {category.tag for category in healthck.all_categories() if category.tag not in FIXABLE_TAGS}
-    index = healthck.collect_findings(leave_out, state=PrimeItems)
+    index = healthck.collect_findings(leave_out, state=state)
 
     timeouts = proflint.timeout_arguments()
     plan = Plan(what="Fix Health Check findings")
@@ -803,7 +805,7 @@ def plan_fixes(skip: Collection[str] = ()) -> Plan:
         findings = findings[:_PLAN_LIMIT]
 
     for finding in findings:
-        planner = _planner_for(finding.tag, timeouts)
+        planner = _planner_for(finding.tag, timeouts, state=state)
         # A finding with no target names a NAME rather than an object (see healthck's
         # Finding.target), and none of the repairable tags do -- but a planner cannot work
         # without one, so this is checked rather than assumed.

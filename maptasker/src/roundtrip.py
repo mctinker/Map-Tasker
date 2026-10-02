@@ -78,13 +78,13 @@ from typing import TYPE_CHECKING
 import defusedxml.ElementTree as ET
 
 from maptasker.src import profedit, projedit, sceneedit, taskedit
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.profedit import EditableProfile
     from maptasker.src.taskedit import EditableTask
 
@@ -215,7 +215,7 @@ def _describe(identity: tuple[str, str]) -> str:
     return f"{tag} '{key}'" if key else tag
 
 
-def live_sources() -> dict[tuple[str, str], Element]:
+def live_sources(state: RunState) -> dict[tuple[str, str], Element]:
     """Every object in the loaded configuration, keyed the way _identify keys them.
 
     This is what the renderers deep-copy out of, so it is what a re-parsed object has to
@@ -223,7 +223,7 @@ def live_sources() -> dict[tuple[str, str], Element]:
     an undo (sessundo._restore) and mutated in place by every edit, so a cache would hand
     back elements from a tree nothing renders from any more.
     """
-    tables = PrimeItems.tasker_root_elements or {}
+    tables = state.tasker_root_elements or {}
     sources: dict[tuple[str, str], Element] = {}
 
     for table_name, tag in (
@@ -243,9 +243,9 @@ def live_sources() -> dict[tuple[str, str], Element]:
             if identity is not None and identity[0] == tag:
                 sources[identity] = element
 
-    if PrimeItems.xml_root is not None:
+    if state.xml_root is not None:
         for tag in _SINGLETON_TAGS:
-            found = PrimeItems.xml_root.find(tag)
+            found = state.xml_root.find(tag)
             if found is not None:
                 sources[(tag, "")] = found
 
@@ -336,6 +336,8 @@ def verify_rendered(
     rendered: str,
     overrides: dict[tuple[str, str], Element] | None = None,
     exempt: Iterable[tuple[str, str]] = (),
+    *,
+    state: RunState,
 ) -> RoundTripReport:
     """Run both checks over one rendered standalone export and report what they found.
 
@@ -365,7 +367,7 @@ def verify_rendered(
         fixed_point_detail = _first_difference(rendered, rewritten)
         logger.error(f"Round-trip verify: not a fixed point -- {fixed_point_detail}")
 
-    sources = live_sources()
+    sources = live_sources(state=state)
     sources.update(overrides or {})
     exempted = set(exempt)
 
@@ -418,20 +420,20 @@ def verify_rendered(
 # already form a cycle among themselves (see projedit.render_standalone_project_xml's own
 # lazy import of sceneedit).
 # ==========================================
-def verify_task(edited_task: EditableTask) -> RoundTripReport:
+def verify_task(edited_task: EditableTask, state: RunState) -> RoundTripReport:
     """The Task about to go to the device, checked against the working copy it renders."""
 
     try:
-        rendered = taskedit.render_standalone_task_xml(edited_task, state=PrimeItems)
+        rendered = taskedit.render_standalone_task_xml(edited_task, state=state)
     except (ValueError, AttributeError) as render_error:
         return RoundTripReport(error=f"the Task could not be rendered ({render_error})")
 
     element = edited_task.task_element
     identity = _identify(element)
-    return verify_rendered(rendered, {identity: element} if identity else None)
+    return verify_rendered(rendered, {identity: element} if identity else None, state=state)
 
 
-def verify_profile(edited_profile: EditableProfile) -> RoundTripReport:
+def verify_profile(edited_profile: EditableProfile, state: RunState) -> RoundTripReport:
     """The Profile about to go to the device, plus the linked Tasks bundled with it.
 
     Only the Profile is overridden.  Its Entry/Exit Tasks are bundled straight out of the
@@ -441,16 +443,16 @@ def verify_profile(edited_profile: EditableProfile) -> RoundTripReport:
     """
 
     try:
-        rendered = profedit.render_standalone_profile_xml(edited_profile, state=PrimeItems)
+        rendered = profedit.render_standalone_profile_xml(edited_profile, state=state)
     except (ValueError, AttributeError) as render_error:
         return RoundTripReport(error=f"the Profile could not be rendered ({render_error})")
 
     element = edited_profile.profile_element
     identity = _identify(element)
-    return verify_rendered(rendered, {identity: element} if identity else None)
+    return verify_rendered(rendered, {identity: element} if identity else None, state=state)
 
 
-def verify_project(project_name: str) -> RoundTripReport:
+def verify_project(project_name: str, state: RunState) -> RoundTripReport:
     """The Project about to go to the device, and everything it carries.
 
     No overrides: a Project export renders from the live tables by name, so the live
@@ -459,7 +461,7 @@ def verify_project(project_name: str) -> RoundTripReport:
     """
 
     try:
-        rendered = projedit.render_standalone_project_xml(project_name, state=PrimeItems)
+        rendered = projedit.render_standalone_project_xml(project_name, state=state)
     except (ValueError, AttributeError) as render_error:
         return RoundTripReport(error=f"the Project could not be rendered ({render_error})")
 
@@ -469,13 +471,13 @@ def verify_project(project_name: str) -> RoundTripReport:
     # element carrying the other one (see projedit.EditableProject).  Keying off the table
     # key there would exempt an object that is not in the document and compare the exported
     # Project against a live element it was never meant to match.
-    entry = (PrimeItems.tasker_root_elements or {}).get("all_projects", {}).get(project_name)
+    entry = (state.tasker_root_elements or {}).get("all_projects", {}).get(project_name)
     element = entry.get("xml") if isinstance(entry, dict) else None
     identity = _identify(element) if element is not None else ("Project", project_name)
-    return verify_rendered(rendered, exempt=[identity] if identity else ())
+    return verify_rendered(rendered, exempt=[identity] if identity else (), state=state)
 
 
-def verify_scene(scene_name: str) -> RoundTripReport:
+def verify_scene(scene_name: str, state: RunState) -> RoundTripReport:
     """The Scene about to go to the device, and the Tasks its elements fire.
 
     No overrides and no exemptions: the Scene renderer only deep-copies, and the edited
@@ -485,8 +487,8 @@ def verify_scene(scene_name: str) -> RoundTripReport:
     """
 
     try:
-        rendered = sceneedit.render_standalone_scene_xml(scene_name, state=PrimeItems)
+        rendered = sceneedit.render_standalone_scene_xml(scene_name, state=state)
     except (ValueError, AttributeError) as render_error:
         return RoundTripReport(error=f"the Scene could not be rendered ({render_error})")
 
-    return verify_rendered(rendered)
+    return verify_rendered(rendered, state=state)

@@ -254,7 +254,7 @@ def _tick_only(plan: mapfix.Plan, positions: list[int]) -> None:
 
 def test_plan_offers_a_repair_for_every_repairable_finding(loaded: None) -> None:
     """Each of the six repairable tags in the fixture turns up exactly once, and nothing else does."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
 
     offered = {fix.tag for fix in plan.fixes}
     assert offered == {
@@ -274,7 +274,7 @@ def test_plan_offers_a_repair_for_every_repairable_finding(loaded: None) -> None
 
 def test_plan_leaves_the_delete_and_the_undecided_unticked(loaded: None) -> None:
     """The two nobody should apply by not looking: the one that deletes, and the one nobody has decided."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
 
     for position, fix in enumerate(plan.fixes):
         if fix.tag == mapfix.UNREFERENCED_TASK or not plan.is_ready(position):
@@ -290,7 +290,7 @@ def test_plan_leaves_the_delete_and_the_undecided_unticked(loaded: None) -> None
 
 def test_plan_honours_the_health_checks_own_skip_list(loaded: None) -> None:
     """A category the user has unticked in the Health Check panel is not offered here either."""
-    plan = mapfix.plan_fixes(skip=[mapfix.UNREFERENCED_TASK, mapfix.NO_TIMEOUT])
+    plan = mapfix.plan_fixes(skip=[mapfix.UNREFERENCED_TASK, mapfix.NO_TIMEOUT], state=PrimeItems)
 
     assert not _positions(plan, mapfix.UNREFERENCED_TASK)
     assert not _positions(plan, mapfix.NO_TIMEOUT)
@@ -299,7 +299,7 @@ def test_plan_honours_the_health_checks_own_skip_list(loaded: None) -> None:
 
 def test_plan_offers_nothing_for_a_finding_it_cannot_repair(loaded: None) -> None:
     """A tag with no repair produces neither a fix nor a skip -- it is simply not this dialog's business."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
 
     assert "DUPLICATE-NAME" in _tags_reported()  # The fixture's two 'Twin' Tasks.
     assert all(fix.tag in mapfix.FIXABLE_TAGS for fix in plan.fixes)
@@ -308,7 +308,7 @@ def test_plan_offers_nothing_for_a_finding_it_cannot_repair(loaded: None) -> Non
 
 def test_report_rows_name_every_repair_and_link_to_it(loaded: None) -> None:
     """The preview is clickable, which for a delete is the only way to judge it."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     rows = mapfix.report_rows(plan)
 
     text = "\n".join(row.text for row in rows)
@@ -327,7 +327,7 @@ def test_report_rows_name_every_repair_and_link_to_it(loaded: None) -> None:
 
 def test_collision_writes_the_chosen_handling_and_clears_the_finding(loaded: None) -> None:
     """The chosen handling is what lands in <rty>, and the finding stops being reported."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, fix = _only(plan, mapfix.MISSING_COLLISION)
     assert fix.where.key == "20"
 
@@ -342,7 +342,7 @@ def test_collision_writes_the_chosen_handling_and_clears_the_finding(loaded: Non
 
 def test_collision_defaults_to_abort_existing_task(loaded: None) -> None:
     """The default is the finding's own first suggestion, and it is applied when nobody chooses."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.MISSING_COLLISION)
     _tick_only(plan, [position])
 
@@ -354,7 +354,7 @@ def test_collision_defaults_to_abort_existing_task(loaded: None) -> None:
 
 def test_collision_goes_in_taskers_own_child_order(loaded: None) -> None:
     """<rty> is inserted where Tasker writes it, not appended -- see objprops.set_child_text_in_tag_order."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.MISSING_COLLISION)
     _tick_only(plan, [position])
     mapfix.apply(plan)
@@ -370,7 +370,7 @@ def test_collision_goes_in_taskers_own_child_order(loaded: None) -> None:
 
 def test_timeout_is_written_into_the_argument_proflint_read(loaded: None) -> None:
     """Into the same argument the finding came out of -- a second derivation could pick another."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, fix = _only(plan, mapfix.NO_TIMEOUT)
     assert (fix.where.key, fix.where.action) == ("21", 1)
 
@@ -386,7 +386,7 @@ def test_timeout_is_written_into_the_argument_proflint_read(loaded: None) -> Non
 
 def test_timeout_refuses_a_value_that_is_not_a_number(loaded: None) -> None:
     """Reported against the action it was about, and nothing is written."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.NO_TIMEOUT)
     plan.chosen[position] = "soon"
     _tick_only(plan, [position])
@@ -401,7 +401,7 @@ def test_timeout_refuses_a_value_that_is_not_a_number(loaded: None) -> None:
 
 def test_timeout_accepts_what_a_number_box_actually_hands_back(loaded: None) -> None:
     """NiceGUI's ui.number gives a FLOAT whatever its format string says, so "60" arrives as "60.0"."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.NO_TIMEOUT)
     plan.chosen[position] = "60.0"
     _tick_only(plan, [position])
@@ -427,7 +427,7 @@ def test_whole_seconds_takes_only_a_whole_number_above_zero() -> None:
 
 def test_timeout_refuses_zero(loaded: None) -> None:
     """Zero is the state being repaired, so writing it back is not a repair."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.NO_TIMEOUT)
     plan.chosen[position] = "0"
     _tick_only(plan, [position])
@@ -443,7 +443,7 @@ def test_timeout_is_synthesized_when_the_action_never_carried_one(loaded: None) 
     action = actions_in_map_order(_task("21"))[0]
     action.remove(action.find("Int[@sr='arg1']"))
 
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.NO_TIMEOUT)
     plan.chosen[position] = "90"
     _tick_only(plan, [position])
@@ -465,7 +465,7 @@ def test_timeout_is_synthesized_when_the_action_never_carried_one(loaded: None) 
 
 def test_end_if_is_appended_as_the_tasks_last_action(loaded: None) -> None:
     """Last in RUN order, which is what sr= decides and not what document order suggests."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, fix = _only(plan, mapfix.IF_WITHOUT_END_IF)
     assert fix.where.key == "22"
 
@@ -479,7 +479,7 @@ def test_end_if_is_appended_as_the_tasks_last_action(loaded: None) -> None:
 
 def test_end_for_closes_a_for_without_touching_the_if_family(loaded: None) -> None:
     """The closer matches the block that was left open, not whichever one is more common."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, fix = _only(plan, mapfix.FOR_WITHOUT_END_FOR)
     assert fix.where.key == "20"
 
@@ -498,7 +498,7 @@ def test_a_closer_is_appended_with_an_sr_that_is_not_already_taken(loaded: None)
         if action.attrib["sr"] == "act2":
             action.set("sr", "act9")  # act0, act1, act9 -- the count is no guide at all.
 
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.IF_WITHOUT_END_IF)
     _tick_only(plan, [position])
     mapfix.apply(plan)
@@ -515,7 +515,7 @@ def test_two_unclosed_blocks_in_one_task_are_closed_innermost_first(loaded: None
     opener.append(code)
     task.append(opener)
 
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     positions = [
         position
         for position, fix in enumerate(plan.fixes)
@@ -538,7 +538,7 @@ def test_two_unclosed_blocks_in_one_task_are_closed_innermost_first(loaded: None
 
 def test_goto_offers_every_label_but_its_own(loaded: None) -> None:
     """A Goto pointed at itself is an infinite loop, so it is not on the menu."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     _, fix = _only(plan, mapfix.GOTO_MISSING_LABEL)
 
     offered = [label for label, _shown in fix.choice.options]
@@ -548,7 +548,7 @@ def test_goto_offers_every_label_but_its_own(loaded: None) -> None:
 
 def test_goto_arrives_with_no_choice_made_and_cannot_be_applied_until_one_is(loaded: None) -> None:
     """The one repair with no defensible default refuses to be made by somebody who never looked."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, fix = _only(plan, mapfix.GOTO_MISSING_LABEL)
 
     assert fix.choice.value == ""
@@ -565,7 +565,7 @@ def test_goto_arrives_with_no_choice_made_and_cannot_be_applied_until_one_is(loa
 
 def test_goto_points_at_the_chosen_label_and_clears_the_finding(loaded: None) -> None:
     """The label the user picked, written into the argument Tasker reads it from."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.GOTO_MISSING_LABEL)
     plan.chosen[position] = "the top"
     _tick_only(plan, [position])
@@ -587,7 +587,7 @@ def test_goto_points_at_the_chosen_label_and_clears_the_finding(loaded: None) ->
 
 def test_goto_is_skipped_when_the_task_carries_no_labels(loaded: None) -> None:
     """Nothing to point at, so it is reported as a skip rather than quietly dropped."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
 
     skipped = [item for item in plan.skips if item.tag == mapfix.GOTO_MISSING_LABEL]
     assert len(skipped) == 1
@@ -602,7 +602,7 @@ def test_goto_is_skipped_when_the_task_carries_no_labels(loaded: None) -> None:
 
 def test_delete_removes_the_task_and_unlinks_it_from_its_project(loaded: None) -> None:
     """Both tables and the owning Project's <tids>, which is what makes it gone from every view."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position = next(
         position for position in _positions(plan, mapfix.UNREFERENCED_TASK) if plan.fixes[position].where.key == "24"
     )
@@ -619,7 +619,7 @@ def test_delete_removes_the_task_and_unlinks_it_from_its_project(loaded: None) -
 
 def test_delete_is_refused_for_two_tasks_sharing_a_name(loaded: None) -> None:
     """Deleting by name would take whichever of them the by-name table happens to hold."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
 
     twins = [item for item in plan.skips if item.tag == mapfix.UNREFERENCED_TASK]
     assert {item.where.key for item in twins} == {"25", "26"}
@@ -633,7 +633,7 @@ def test_delete_is_refused_for_two_tasks_sharing_a_name(loaded: None) -> None:
 def test_a_delete_is_applied_after_every_other_repair_to_the_same_task(loaded: None) -> None:
     """Both ticked repairs are made, and neither is written to a Task that has already gone."""
     # 'Fetch' is unreferenced as well as short of a timeout, so both are offered for it.
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     timeout_position, _ = _only(plan, mapfix.NO_TIMEOUT)
     delete_positions = [
         position for position in _positions(plan, mapfix.UNREFERENCED_TASK) if plan.fixes[position].where.key == "21"
@@ -650,7 +650,7 @@ def test_a_delete_is_applied_after_every_other_repair_to_the_same_task(loaded: N
 
 def test_a_closer_is_applied_before_a_delete_of_the_same_task(loaded: None) -> None:
     """The ordering above holds whichever way round the two sit in the plan."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     closer_position, _ = _only(plan, mapfix.IF_WITHOUT_END_IF)
     delete_positions = [
         position for position in _positions(plan, mapfix.UNREFERENCED_TASK) if plan.fixes[position].where.key == "22"
@@ -670,7 +670,7 @@ def test_a_closer_is_applied_before_a_delete_of_the_same_task(loaded: None) -> N
 
 def test_the_whole_plan_is_one_undo(loaded: None) -> None:
     """Five repairs across four Tasks, and one press of Undo puts every one of them back."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     goto_position, _ = _only(plan, mapfix.GOTO_MISSING_LABEL)
     timeout_position, _ = _only(plan, mapfix.NO_TIMEOUT)
     plan.chosen[goto_position] = "the top"
@@ -692,7 +692,7 @@ def test_the_whole_plan_is_one_undo(loaded: None) -> None:
 
 def test_nothing_ticked_changes_nothing_and_leaves_no_undo_entry(loaded: None) -> None:
     """An empty plan must not cost a press of Undo that puts nothing back."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     plan.selected = set()
 
     repaired, errors = mapfix.apply(plan)
@@ -703,7 +703,7 @@ def test_nothing_ticked_changes_nothing_and_leaves_no_undo_entry(loaded: None) -
 
 def test_a_repair_whose_element_has_gone_is_refused_rather_than_written(loaded: None) -> None:
     """A preview can sit on screen while the user deletes the Task in another dialog."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.IF_WITHOUT_END_IF)
     _tick_only(plan, [position])
 
@@ -724,7 +724,7 @@ def test_a_repair_whose_element_has_gone_is_refused_rather_than_written(loaded: 
 
 def test_ticks_and_choices_survive_the_plan_being_rebuilt(loaded: None) -> None:
     """Carried by what they point at, never by where they sat -- see Fix.identity."""
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
     goto_position, goto = _only(plan, mapfix.GOTO_MISSING_LABEL)
     plan.chosen[goto_position] = "the top"
     plan.selected = {goto_position}
@@ -732,7 +732,7 @@ def test_ticks_and_choices_survive_the_plan_being_rebuilt(loaded: None) -> None:
     ticks = plan.ticked_identities()
     values = {goto.identity: "the top"}
 
-    rebuilt = mapfix.plan_fixes()
+    rebuilt = mapfix.plan_fixes(state=PrimeItems)
     rebuilt.restore(ticks, values)
 
     position, _ = _only(rebuilt, mapfix.GOTO_MISSING_LABEL)
@@ -754,7 +754,7 @@ def test_plan_is_empty_and_harmless_with_nothing_loaded() -> None:
     }
     PrimeItems.xml_root = None
 
-    plan = mapfix.plan_fixes()
+    plan = mapfix.plan_fixes(state=PrimeItems)
 
     assert plan.is_empty
     assert mapfix.apply(plan) == (0, [])

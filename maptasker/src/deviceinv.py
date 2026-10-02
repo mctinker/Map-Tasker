@@ -19,6 +19,7 @@ once; the device work grew up around it.
 
 from __future__ import annotations
 
+import functools
 import json
 import time
 import uuid
@@ -29,6 +30,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 
 from maptasker.src import maputil2, taskedit
@@ -48,7 +51,6 @@ from maptasker.src.maputil2 import (
     tasker_name_matchable,
     tasker_name_query,
 )
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
 # ==========================================
@@ -280,7 +282,7 @@ def _add_paired_label_actions(add: Callable[[str, dict[str, str]], str]) -> str:
     )
 
 
-def build_helper_task(task_name: str = HELPER_TASK_NAME):
+def build_helper_task(task_name: str = HELPER_TASK_NAME, *, state: RunState):
     """Build the helper Task, out of taskedit's own Add-Task machinery.
 
     Returns an EditableTask, or an error message string if it could not be built (the same
@@ -293,14 +295,14 @@ def build_helper_task(task_name: str = HELPER_TASK_NAME):
     there is no second copy of Tasker's XML shape to keep in step with the first.
     """
 
-    edited_task = taskedit.create_new_task(task_name, "100", state=PrimeItems)
+    edited_task = taskedit.create_new_task(task_name, "100", state=state)
     if isinstance(edited_task, str):
         return edited_task
 
     values: dict[str, str] = {}
 
     def add(action_key: str, args: dict[str, str]) -> str:
-        action = taskedit.add_action_to_task(edited_task, action_key, state=PrimeItems)
+        action = taskedit.add_action_to_task(edited_task, action_key, state=state)
         if isinstance(action, list):
             return action[0] if action else f"'{action_key}' could not be added."
         for arg_id, value in args.items():
@@ -500,7 +502,7 @@ def task_return_value(response: object) -> str:
     return "" if text.strip() in (_UNSET_RETURN, _RUN_TASK_RESULT_VARIABLE) else text
 
 
-def build_run_task_helper(task_name: str = RUN_TASK_HELPER_NAME):
+def build_run_task_helper(task_name: str = RUN_TASK_HELPER_NAME, *, state: RunState):
     """Build the Task that runs another Task by name and returns what it returned.
 
     Returns an EditableTask, or an error message string, like every other builder here.
@@ -510,7 +512,7 @@ def build_run_task_helper(task_name: str = RUN_TASK_HELPER_NAME):
     Task it runs still gets %par1 and %par2.  A priority can only be written as a number
     through taskedit, so the %priority variable is put into the built action afterwards.
     """
-    built = _new_offer_task(task_name)
+    built = _new_offer_task(task_name, state=state)
     if isinstance(built, str):
         return built
     edited_task, add, values = built
@@ -571,6 +573,8 @@ def run_task_for_result(
     par1: str = "",
     par2: str = "",
     timeout: float = RUN_TASK_TIMEOUT_SECONDS,
+    *,
+    state: RunState,
 ) -> TaskRunResult:
     """Run a Task that is already on the device, wait for it to finish, and report what it returned.
 
@@ -593,7 +597,7 @@ def run_task_for_result(
 
     started = time.monotonic()
     if not tasker_name_matchable(task_name):
-        return _run_task_through_helper(ip_address, ip_port, task_name, par1, par2, timeout, started)
+        return _run_task_through_helper(ip_address, ip_port, task_name, par1, par2, timeout, started, state=state)
 
     return_code, response = request_with_auth_key(
         ip_address,
@@ -625,6 +629,7 @@ def _run_task_through_helper(
     par2: str,
     timeout: float,
     started: float,
+    state: RunState,
 ) -> TaskRunResult:
     """run_task_for_result for a name the handler cannot find: check, install the helper, run it.
 
@@ -639,7 +644,7 @@ def _run_task_through_helper(
     def failed(message: str) -> TaskRunResult:
         return TaskRunResult(ok=False, error=message, seconds=time.monotonic() - started)
 
-    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port)
+    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
     if return_code != 0:
         return failed(f"Could not check that Tasker has '{task_name}': {message}")
     if task_name not in listed.get("Task", []):
@@ -652,7 +657,12 @@ def _run_task_through_helper(
     if return_code != 0:
         return failed(auth_key)
     return_code, message = _install_task_on_android(
-        ip_address, ip_port, auth_key, RUN_TASK_HELPER_NAME, build_run_task_helper
+        ip_address,
+        ip_port,
+        auth_key,
+        RUN_TASK_HELPER_NAME,
+        functools.partial(build_run_task_helper, state=state),
+        state=state,
     )
     if return_code != 0:
         return failed(f"Could not install '{RUN_TASK_HELPER_NAME}', which runs this Task: {message}")
@@ -679,7 +689,7 @@ def _run_task_through_helper(
     return failed(message)
 
 
-def confirm_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_key: str) -> bool:
+def confirm_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_key: str, state: RunState) -> bool:
     """Whether Tasker has a Task of this name -- taskedit.verify_task_on_android, for any name.
 
     That asks GET api/tasks, whose handler reads the name as a regular expression, so a name
@@ -694,7 +704,7 @@ def confirm_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_
     if tasker_name_matchable(task_name):
         return taskedit.verify_task_on_android(ip_address, ip_port, task_name, auth_key)
 
-    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port)
+    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
     if return_code != 0:
         logger.info(f"Could not list Tasker's objects to confirm '{task_name}': {message}")
         return False
@@ -707,6 +717,7 @@ def _install_task_on_android(
     auth_key: str,
     task_name: str,
     builder: Callable[[], object],
+    state: RunState,
 ) -> tuple[int, str]:
     """Put one of MapTasker's helper Tasks on the device, if it isn't there already.
 
@@ -721,7 +732,7 @@ def _install_task_on_android(
     configuration.  That is also why every helper Task name carries a version.
     """
 
-    if confirm_task_on_android(ip_address, ip_port, task_name, auth_key):
+    if confirm_task_on_android(ip_address, ip_port, task_name, auth_key, state=state):
         return 0, ""
 
     built = builder()
@@ -733,7 +744,7 @@ def _install_task_on_android(
     # Tasks.  'MapTasker Send Profile v1.tsk.xml' sitting in it is litter they did not ask
     # for and would have to recognize before deleting.
     return_code, result = taskedit.save_task_to_android(
-        built, ip_address, ip_port, task_name, via_file=False, state=PrimeItems
+        built, ip_address, ip_port, task_name, via_file=False, state=state
     )
     if return_code != 0:
         return return_code, str(result)
@@ -741,7 +752,9 @@ def _install_task_on_android(
     # api/import answering 200 is not evidence Tasker committed the Task -- the same
     # reservation save_task_to_android_directory exists for.  Checked with the key the import
     # used, which is a fresh one if the device had rejected the one held.
-    if not confirm_task_on_android(ip_address, ip_port, task_name, held_auth_key(ip_address, ip_port) or auth_key):
+    if not confirm_task_on_android(
+        ip_address, ip_port, task_name, held_auth_key(ip_address, ip_port) or auth_key, state=state
+    ):
         return 8, (
             f"'{task_name}' was sent to the device but Tasker did not report it afterwards.  "
             "Tasker 6.2 or higher is required, and Tasker must be running."
@@ -784,7 +797,7 @@ def _poll_for_result(
     return "", last_error
 
 
-def fetch_apps_from_device(ip_address: str, ip_port: str) -> tuple[int, str]:
+def fetch_apps_from_device(ip_address: str, ip_port: str, state: RunState) -> tuple[int, str]:
     """Fetch the full list of installed Applications from an Android device and cache it.
 
     The whole exchange, in order: get an API key, put the helper Task on the device if it
@@ -811,11 +824,7 @@ def fetch_apps_from_device(ip_address: str, ip_port: str) -> tuple[int, str]:
         return return_code, auth_key
 
     return_code, message = _install_task_on_android(
-        ip_address,
-        ip_port,
-        auth_key,
-        HELPER_TASK_NAME,
-        build_helper_task,
+        ip_address, ip_port, auth_key, HELPER_TASK_NAME, functools.partial(build_helper_task, state=state), state=state
     )
     if return_code != 0:
         return return_code, message
@@ -922,7 +931,9 @@ _LIST_FILES_UNSET_PREFIX = "%lfp_"
 _FILE_LIST_POLL_ATTEMPTS = 15
 
 
-def build_file_list_task(task_name: str = FILE_LIST_TASK_NAME, directory: str = FILE_LIST_DIRECTORY):
+def build_file_list_task(
+    task_name: str = FILE_LIST_TASK_NAME, directory: str = FILE_LIST_DIRECTORY, *, state: RunState
+):
     """Build the file-listing helper Task.  Returns an EditableTask, or an error message.
 
     Three actions: 'List Files' over `directory`, 'Variable Join' to collapse the array of
@@ -937,14 +948,14 @@ def build_file_list_task(task_name: str = FILE_LIST_TASK_NAME, directory: str = 
     file name.  This writes the paths and nothing else, joined with _PAYLOAD_JOINER.
     """
 
-    edited_task = taskedit.create_new_task(task_name, "100", state=PrimeItems)
+    edited_task = taskedit.create_new_task(task_name, "100", state=state)
     if isinstance(edited_task, str):
         return edited_task
 
     values: dict[str, str] = {}
 
     def add(action_key: str, args: dict[str, str]) -> str:
-        action = taskedit.add_action_to_task(edited_task, action_key, state=PrimeItems)
+        action = taskedit.add_action_to_task(edited_task, action_key, state=state)
         if isinstance(action, list):
             return action[0] if action else f"'{action_key}' could not be added."
         for arg_id, value in args.items():
@@ -1013,9 +1024,7 @@ def parse_file_list_payload(text: str) -> tuple[list[str], str]:
 
 
 def fetch_file_list_from_device(
-    ip_address: str,
-    ip_port: str,
-    directory: str = FILE_LIST_DIRECTORY,
+    ip_address: str, ip_port: str, directory: str = FILE_LIST_DIRECTORY, *, state: RunState
 ) -> tuple[int, list[str] | str]:
     """Fetch the list of XML files on an Android device.
 
@@ -1048,7 +1057,8 @@ def fetch_file_list_from_device(
         ip_port,
         auth_key,
         FILE_LIST_TASK_NAME,
-        lambda: build_file_list_task(FILE_LIST_TASK_NAME, directory),
+        lambda: build_file_list_task(FILE_LIST_TASK_NAME, directory, state=state),
+        state=state,
     )
     if return_code != 0:
         return return_code, message
@@ -1088,7 +1098,7 @@ def fetch_file_list_from_device(
 
 
 # List the XML files on the Android device
-def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tuple:
+def get_list_of_files(ip_address: str, ip_port: str, file_location: str, state: RunState) -> tuple:
     """Get the list of XML files on an Android device.
 
     Args:
@@ -1112,7 +1122,7 @@ def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tupl
     Blocking -- the helper Task takes a moment to run and this waits for its answer -- so
     callers on the GUI thread must go through run.io_bound (userintr_android.validate_or_filelist_xml does).
     """
-    return_code, result = fetch_file_list_from_device(ip_address, ip_port, file_location)
+    return_code, result = fetch_file_list_from_device(ip_address, ip_port, file_location, state=state)
     if return_code != 0:
         return return_code, result
 
@@ -1238,6 +1248,8 @@ def build_import_profile_task(
     task_name: str = IMPORT_PROFILE_TASK_NAME,
     import_type: str = IMPORT_TYPE_CONFIGURATION,
     source_index: str = _IMPORT_SOURCE_INDEX,
+    *,
+    state: RunState,
 ):
     """Build the Profile-importing helper Task.  Returns an EditableTask, or an error message.
 
@@ -1263,7 +1275,7 @@ def build_import_profile_task(
     if import_type not in type_options:
         return f"'{import_type}' is not an 'Import Data' type.  Expected one of: {', '.join(type_options)}."
 
-    edited_task = taskedit.create_new_task(task_name, "100", state=PrimeItems)
+    edited_task = taskedit.create_new_task(task_name, "100", state=state)
     if isinstance(edited_task, str):
         return edited_task
 
@@ -1275,7 +1287,7 @@ def build_import_profile_task(
         because one of the actions here has an argument that cannot be set through
         apply_edits_to_task (see below).
         """
-        action = taskedit.add_action_to_task(edited_task, action_key, state=PrimeItems)
+        action = taskedit.add_action_to_task(edited_task, action_key, state=state)
         if isinstance(action, list):
             return action[0] if action else f"'{action_key}' could not be added."
         for arg_id, value in args.items():
@@ -1472,6 +1484,8 @@ def import_profile_to_device(  # noqa: PLR0911
     allow_existing: bool = False,
     import_type: str = IMPORT_TYPE_CONFIGURATION,
     source_index: str = _IMPORT_SOURCE_INDEX,
+    *,
+    state: RunState,
 ) -> tuple[int, str]:
     """Put a Profile into Tasker's live configuration on the device.  PROTOTYPE -- read the
     section comment above before calling this, and do not call it from the GUI until the
@@ -1535,7 +1549,8 @@ def import_profile_to_device(  # noqa: PLR0911
         ip_port,
         auth_key,
         task_name,
-        lambda: build_import_profile_task(task_name, import_type, source_index),
+        lambda: build_import_profile_task(task_name, import_type, source_index, state=state),
+        state=state,
     )
     if return_code != 0:
         return return_code, message
@@ -1796,7 +1811,7 @@ def _add_result_writes(
     return ""
 
 
-def _new_offer_task(task_name: str):  # noqa: ANN202
+def _new_offer_task(task_name: str, state: RunState):  # noqa: ANN202
     """An empty Task plus the `add` helper both offer builders use.
 
     Returns (edited_task, add, values) or an error message string.  Synthesized out of
@@ -1805,14 +1820,14 @@ def _new_offer_task(task_name: str):  # noqa: ANN202
     ordinary user's Add Task takes.
     """
 
-    edited_task = taskedit.create_new_task(task_name, "100", state=PrimeItems)
+    edited_task = taskedit.create_new_task(task_name, "100", state=state)
     if isinstance(edited_task, str):
         return edited_task
 
     values: dict[str, str] = {}
 
     def add(action_key: str, args: dict[str, str]) -> str:
-        action = taskedit.add_action_to_task(edited_task, action_key, state=PrimeItems)
+        action = taskedit.add_action_to_task(edited_task, action_key, state=state)
         if isinstance(action, list):
             return action[0] if action else f"'{action_key}' could not be added."
         for arg_id, value in args.items():
@@ -1835,6 +1850,8 @@ def build_open_file_task(
     result_write_path: str = "",
     header: str = "",
     mime_type: str = _OPEN_WITH_MIME_TYPE,
+    *,
+    state: RunState,
 ):
     """Build the Task that puts Android's "Open with..." chooser up for the staged file.
 
@@ -1855,7 +1872,7 @@ def build_open_file_task(
     read off).  That is what lets one installed Task open a file named after the Profile it
     belongs to, instead of every import sharing one filename.
     """
-    built = _new_offer_task(task_name)
+    built = _new_offer_task(task_name, state=state)
     if isinstance(built, str):
         return built
     edited_task, add, values = built
@@ -1879,6 +1896,8 @@ def build_send_intent_task(
     mime_type: str = _SEND_INTENT_MIME_TYPE,
     package: str = _TASKER_PACKAGE,
     activity_class: str = _TASKER_MAIN_ACTIVITY,
+    *,
+    state: RunState,
 ):
     """Build the Task that sends Tasker an explicit ACTION_VIEW for the staged file.
 
@@ -1892,7 +1911,7 @@ def build_send_intent_task(
     make it an explicit component intent, which is delivered without matching anything --
     the whole reason this route can reach Tasker where 'Open File' cannot.
     """
-    built = _new_offer_task(task_name)
+    built = _new_offer_task(task_name, state=state)
     if isinstance(built, str):
         return built
     edited_task, add, values = built
@@ -1937,7 +1956,7 @@ class OfferRoute:
     label: str  # "Profile" / "Project" / "Scene" -- how this reads in a message to the user
     confirm_endpoint: str  # where an import of this kind can be asked about afterwards
     task_name: str
-    builder: Callable[[], object]
+    builder: Callable[..., object]  # takes the run state it builds the Task for: builder(state=...)
     stage_location: str
     extension: str  # 'prf.xml' / 'prj.xml' -- what tells Tasker what it is looking at
     read_path: str
@@ -2010,7 +2029,7 @@ def _build_offer_routes(
             task_name=task_name,
             # No path handed to the builder: it builds with %par1 and is told the real one
             # when it is run.
-            builder=lambda: builder(task_name, _STAGE_PATH_PARAMETER, write_path, header),
+            builder=lambda state: builder(task_name, _STAGE_PATH_PARAMETER, write_path, header, state=state),
             stage_location=stage_location,
             extension=extension,
             read_path=f"/{write_path}",
@@ -2030,18 +2049,12 @@ def _build_offer_routes(
 
 
 OPEN_FILE_ROUTE, SEND_INTENT_ROUTE = _build_offer_routes(
-    "Profile",
-    "prf.xml",
-    PROFILES_ENDPOINT,
-    stage_location=_PROFILE_STAGE_LOCATION,
+    "Profile", "prf.xml", PROFILES_ENDPOINT, stage_location=_PROFILE_STAGE_LOCATION
 )
 # A Project has no endpoint of its own, so it is confirmed through the Profiles it brings --
 # see open_project_on_device.
 OPEN_PROJECT_ROUTE, SEND_INTENT_PROJECT_ROUTE = _build_offer_routes(
-    "Project",
-    "prj.xml",
-    PROFILES_ENDPOINT,
-    stage_location=_PROJECT_STAGE_LOCATION,
+    "Project", "prj.xml", PROFILES_ENDPOINT, stage_location=_PROJECT_STAGE_LOCATION
 )
 # A Scene HAS routes now, and it did not before.  Every way of handing Tasker a '.scn.xml'
 # had been tried and measured failing (see the section comment below), so a Scene was merely
@@ -2055,10 +2068,7 @@ OPEN_PROJECT_ROUTE, SEND_INTENT_PROJECT_ROUTE = _build_offer_routes(
 # the file is already in /Tasker/scenes under the Scene's own name, and the message still
 # tells the user how to import it by hand.  That instruction is what this route used to be.
 OPEN_SCENE_ROUTE, SEND_INTENT_SCENE_ROUTE = _build_offer_routes(
-    "Scene",
-    "scn.xml",
-    SCENES_ENDPOINT,
-    stage_location=_SCENE_LOCATION,
+    "Scene", "scn.xml", SCENES_ENDPOINT, stage_location=_SCENE_LOCATION
 )
 # And a Task, which reaches Tasker headlessly through api/import and needs none of this --
 # taskedit.save_task_to_android is the route that works.  This is what is left when that has
@@ -2066,10 +2076,7 @@ OPEN_SCENE_ROUTE, SEND_INTENT_SCENE_ROUTE = _build_offer_routes(
 # and the user can be handed the same chooser rather than told it did not work.  See
 # userintr's Task import.
 OPEN_TASK_ROUTE, SEND_INTENT_TASK_ROUTE = _build_offer_routes(
-    "Task",
-    "tsk.xml",
-    TASKS_ENDPOINT,
-    stage_location=_TASK_STAGE_LOCATION,
+    "Task", "tsk.xml", TASKS_ENDPOINT, stage_location=_TASK_STAGE_LOCATION
 )
 # Every route there is, in one place, so anything that has to reason about all of them cannot
 # be left behind by a new kind being added -- current_helper_task_names above all, where
@@ -2112,7 +2119,7 @@ _LAUNCH_READ_PATH = f"/{_LAUNCH_WRITE_PATH}"
 _LAUNCH_HEADER = "MAPTASKER-LAUNCH-TASKER 1"
 
 
-def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME):
+def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME, *, state: RunState):
     """Build the Task that brings Tasker to the foreground.  Returns an EditableTask, or an
     error message string, like every other builder here.
 
@@ -2120,7 +2127,7 @@ def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME):
     App-category argument, and taskedit.classify_action_addability refuses those while the
     inventory is empty, which it is on a machine that has never fetched one.
     """
-    built = _new_offer_task(task_name)
+    built = _new_offer_task(task_name, state=state)
     if isinstance(built, str):
         return built
     edited_task, add, values = built
@@ -2140,7 +2147,7 @@ def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME):
     return _finish_offer_task(edited_task, task_name, values)
 
 
-def open_tasker_on_device(ip_address: str, ip_port: str) -> tuple[int, str]:
+def open_tasker_on_device(ip_address: str, ip_port: str, state: RunState) -> tuple[int, str]:
     """Bring Tasker to the foreground on the device.  (0, "") or (return_code, message).
 
     NOT CALLED BY THE GUI any more -- see the section comment above.  Every import kind now
@@ -2167,7 +2174,8 @@ def open_tasker_on_device(ip_address: str, ip_port: str) -> tuple[int, str]:
         ip_port,
         auth_key,
         LAUNCH_TASKER_TASK_NAME,
-        build_launch_tasker_task,
+        functools.partial(build_launch_tasker_task, state=state),
+        state=state,
     )
     if return_code != 0:
         return return_code, message
@@ -2401,6 +2409,8 @@ def offer_to_tasker(  # noqa: PLR0911
     ip_port: str,
     wait_for_confirmation: bool = True,
     route: OfferRoute = OPEN_FILE_ROUTE,
+    *,
+    state: RunState,
 ) -> tuple[int, str]:
     """Offer a Profile, a Project or a Scene to Tasker's own import screen on the device.
 
@@ -2464,7 +2474,9 @@ def offer_to_tasker(  # noqa: PLR0911
     present_before = verify_names_on_android(ip_address, ip_port, route.confirm_endpoint, wanted, auth_key)
     confirmable = bool(wanted) and present_before == set()
 
-    return_code, message = _install_task_on_android(ip_address, ip_port, auth_key, route.task_name, route.builder)
+    return_code, message = _install_task_on_android(
+        ip_address, ip_port, auth_key, route.task_name, functools.partial(route.builder, state=state), state=state
+    )
     if return_code != 0:
         return return_code, message
     auth_key = held_auth_key(ip_address, ip_port) or auth_key
@@ -2533,6 +2545,8 @@ def open_profile_on_device(
     ip_port: str,
     wait_for_confirmation: bool = True,
     route: OfferRoute = OPEN_FILE_ROUTE,
+    *,
+    state: RunState,
 ) -> tuple[int, str]:
     """Offer one Profile to Tasker's import screen.  See offer_to_tasker, which does the work.
 
@@ -2547,6 +2561,7 @@ def open_profile_on_device(
         ip_port,
         wait_for_confirmation,
         route,
+        state=state,
     )
 
 
@@ -2558,6 +2573,8 @@ def open_project_on_device(
     ip_port: str,
     wait_for_confirmation: bool = True,
     route: OfferRoute = OPEN_PROJECT_ROUTE,
+    *,
+    state: RunState,
 ) -> tuple[int, str]:
     """Offer one Project -- and every Profile and Task it owns -- to Tasker's import screen.
 
@@ -2566,13 +2583,7 @@ def open_project_on_device(
     there is no /api/projects to ask about the Project itself; see the section comment.
     """
     return offer_to_tasker(
-        project_xml,
-        project_name,
-        profile_names,
-        ip_address,
-        ip_port,
-        wait_for_confirmation,
-        route,
+        project_xml, project_name, profile_names, ip_address, ip_port, wait_for_confirmation, route, state=state
     )
 
 
@@ -2599,29 +2610,34 @@ def open_project_on_device(
 HELPER_TASK_PREFIX = "MapTasker "
 
 
-def current_helper_builders() -> dict[str, Callable[[], object]]:
+def current_helper_builders(state: RunState) -> dict[str, Callable[[], object]]:
     """Every helper Task THIS build installs, by name, with the builder that makes it.
 
     The one list of helpers: current_helper_task_names reads its names off it and the
     'MapTasker' Project is built from its builders, so a helper added here is both reported
     as in use and bundled into the Project, and one left out is neither.
     """
-    builders: dict[str, Callable[[], object]] = {route.task_name: route.builder for route in ALL_OFFER_ROUTES}
+    builders: dict[str, Callable[[], object]] = {
+        route.task_name: functools.partial(route.builder, state=state) for route in ALL_OFFER_ROUTES
+    }
     builders.update(
         {
-            IMPORT_PROFILE_TASK_NAME: build_import_profile_task,
-            FILE_LIST_TASK_NAME: build_file_list_task,
-            OBJECT_LIST_TASK_NAME: build_object_list_task,
-            ID_CHECK_TASK_NAME: build_id_check_task,
-            LAUNCH_TASKER_TASK_NAME: build_launch_tasker_task,
-            HELPER_TASK_NAME: build_helper_task,
-            RUN_TASK_HELPER_NAME: build_run_task_helper,
+            name: functools.partial(builder, state=state)
+            for name, builder in {
+                IMPORT_PROFILE_TASK_NAME: build_import_profile_task,
+                FILE_LIST_TASK_NAME: build_file_list_task,
+                OBJECT_LIST_TASK_NAME: build_object_list_task,
+                ID_CHECK_TASK_NAME: build_id_check_task,
+                LAUNCH_TASKER_TASK_NAME: build_launch_tasker_task,
+                HELPER_TASK_NAME: build_helper_task,
+                RUN_TASK_HELPER_NAME: build_run_task_helper,
+            }.items()
         },
     )
     return builders
 
 
-def current_helper_task_names() -> set[str]:
+def current_helper_task_names(state: RunState) -> set[str]:
     """Every helper Task name THIS build installs -- the ones that must not be deleted.
 
     Derived from the routes and the standalone helpers rather than written out, because a
@@ -2629,10 +2645,10 @@ def current_helper_task_names() -> set[str]:
     constant and not the list would report the Task now in use as dead, and the user would
     delete the working one.
     """
-    return set(current_helper_builders())
+    return set(current_helper_builders(state=state))
 
 
-def classify_helper_tasks(task_names: Iterable[str]) -> tuple[list[str], list[str]]:
+def classify_helper_tasks(task_names: Iterable[str], state: RunState) -> tuple[list[str], list[str]]:
     """Split every name on the device into (this program's current helpers, its leftovers).
 
     Anything not starting with HELPER_TASK_PREFIX is the user's own and is not this
@@ -2643,7 +2659,7 @@ def classify_helper_tasks(task_names: Iterable[str]) -> tuple[list[str], list[st
     that build's Task with one setting changed rather than an older build's.  Sorted, because
     this is read by a person working down a list in Tasker.
     """
-    current = current_helper_task_names()
+    current = current_helper_task_names(state=state)
     ours = {name.strip() for name in task_names if name and name.strip().startswith(HELPER_TASK_PREFIX)}
     live = {name for name in ours if name in current or any(name.startswith(f"{one} [") for one in current)}
     return sorted(live), sorted(ours - live)
@@ -2728,7 +2744,9 @@ def task_names_on_device(ip_address: str, ip_port: str, names: list[str]) -> tup
     return 0, "", [entry.get("name", "") for entry in reported if isinstance(entry, dict)]
 
 
-def stale_helper_tasks_on_device(ip_address: str, ip_port: str) -> tuple[int, str, list[str], list[str]]:
+def stale_helper_tasks_on_device(
+    ip_address: str, ip_port: str, state: RunState
+) -> tuple[int, str, list[str], list[str]]:
     """(0, "", stale, current) for one device, or (return_code, message, [], []).
 
     The two lists together are the whole answer a user needs: which of this program's Tasks
@@ -2738,7 +2756,7 @@ def stale_helper_tasks_on_device(ip_address: str, ip_port: str) -> tuple[int, st
     return_code, message, names = fetch_task_names_from_device(ip_address, ip_port)
     if return_code != 0:
         return return_code, message, [], []
-    current, stale = classify_helper_tasks(names)
+    current, stale = classify_helper_tasks(names, state=state)
     return 0, "", stale, current
 
 
@@ -2791,7 +2809,9 @@ def _project_id(root: Element | None, project_name: str) -> str:
     return ""
 
 
-def build_helper_project_xml(project_name: str = HELPER_PROJECT_NAME, device_xml: str | bytes = b"") -> str:
+def build_helper_project_xml(
+    project_name: str = HELPER_PROJECT_NAME, device_xml: str | bytes = b"", *, state: RunState
+) -> str:
     """Every current helper Task, inside one Project, as a standalone .prj.xml string.
 
     device_xml is a backup of the device the Project is for -- Tasker's automatic one -- and its
@@ -2802,7 +2822,7 @@ def build_helper_project_xml(project_name: str = HELPER_PROJECT_NAME, device_xml
     missing one would leave that one to be installed loose later, which is what this is for
     avoiding -- or if device_xml is not a backup that can be read.
     """
-    if PrimeItems.xml_root is None:
+    if state.xml_root is None:
         msg = "Load a Tasker backup file first (building the helper Tasks needs it)."
         raise ValueError(msg)
 
@@ -2816,13 +2836,13 @@ def build_helper_project_xml(project_name: str = HELPER_PROJECT_NAME, device_xml
     # Past every id loaded here and every id the device's backup holds, with the headroom
     # next_unique_task_or_profile_id leaves for objects the device made after that backup.
     next_id = max(
-        taskedit.next_unique_task_or_profile_id(state=PrimeItems),
+        taskedit.next_unique_task_or_profile_id(state=state),
         _highest_object_id(device) + taskedit.NEW_OBJECT_ID_HEADROOM + 1 if device is not None else 0,
     )
 
     task_elements = []
     task_ids: list[str] = []
-    for name, builder in sorted(current_helper_builders().items()):
+    for name, builder in sorted(current_helper_builders(state=state).items()):
         built = builder()
         if isinstance(built, str):
             msg = f"Could not build '{name}': {built}"
@@ -2834,8 +2854,8 @@ def build_helper_project_xml(project_name: str = HELPER_PROJECT_NAME, device_xml
         element.find("id").text = task_id
         task_elements.append(element)
 
-    element_cls = type(PrimeItems.xml_root)
-    root = element_cls("TaskerData", {"sr": "", "dvi": "1", "tv": PrimeItems.xml_root.attrib.get("tv", "")})
+    element_cls = type(state.xml_root)
+    root = element_cls("TaskerData", {"sr": "", "dvi": "1", "tv": state.xml_root.attrib.get("tv", "")})
     project = element_cls("Project", {"sr": "proj0", "ve": "2"})
     now_millis = str(int(time.time() * 1000))
     for tag, text in (
@@ -2876,7 +2896,7 @@ class HelperProjectResult:
     project_exists: bool | None = None
 
 
-def _helper_project_on_device(ip_address: str, ip_port: str) -> bool | None:
+def _helper_project_on_device(ip_address: str, ip_port: str, state: RunState) -> bool | None:
     """Whether Tasker has a Project called 'MapTasker'.  None if it could not be asked.
 
     The object-listing helper answers it ('Test Tasker' with Type Projects into an array -- see
@@ -2885,14 +2905,14 @@ def _helper_project_on_device(ip_address: str, ip_port: str) -> bool | None:
     be a Task the Project carries that Tasker already has, which is the one thing that makes the
     import fail (see the section comment).
     """
-    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port)
+    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
     if return_code != 0:
         logger.info(f"Could not list the device's Projects: {message}")
         return None
     return HELPER_PROJECT_NAME in listed.get("Project", [])
 
 
-def stage_helper_project(ip_address: str, ip_port: str) -> HelperProjectResult:
+def stage_helper_project(ip_address: str, ip_port: str, state: RunState) -> HelperProjectResult:
     """Put the 'MapTasker' Project in /Tasker/projects for the user to import, installing nothing.
 
     The exchange: ask which helpers Tasker already has (and stop if any -- see the section
@@ -2910,7 +2930,9 @@ def stage_helper_project(ip_address: str, ip_port: str) -> HelperProjectResult:
             error="An Android IP address and port are needed.  Set them under 'Get XML from Android Device'.",
         )
 
-    return_code, message, present = task_names_on_device(ip_address, ip_port, sorted(current_helper_task_names()))
+    return_code, message, present = task_names_on_device(
+        ip_address, ip_port, sorted(current_helper_task_names(state=state))
+    )
     if return_code != 0:
         return HelperProjectResult(ok=False, error=f"Could not read the device's Task list: {message}")
     if present:
@@ -2919,8 +2941,8 @@ def stage_helper_project(ip_address: str, ip_port: str) -> HelperProjectResult:
         # Project, or the Tasks.
         project_exists = None
         if OBJECT_LIST_TASK_NAME in present:
-            project_exists = _helper_project_on_device(ip_address, ip_port)
-        if project_exists and set(present) == current_helper_task_names():
+            project_exists = _helper_project_on_device(ip_address, ip_port, state=state)
+        if project_exists and set(present) == current_helper_task_names(state=state):
             return HelperProjectResult(ok=False, already_in_project=True, project_exists=True)
         return HelperProjectResult(
             ok=False,
@@ -2933,13 +2955,13 @@ def stage_helper_project(ip_address: str, ip_port: str) -> HelperProjectResult:
 
     exists, device_xml = maputil2.read_android_file(ip_address, ip_port, _TASKER_AUTO_BACKUP_PATH)
     try:
-        project_xml = build_helper_project_xml(HELPER_PROJECT_NAME, device_xml if exists else b"")
+        project_xml = build_helper_project_xml(HELPER_PROJECT_NAME, device_xml if exists else b"", state=state)
     except ValueError as error:
         if not exists:
             return HelperProjectResult(ok=False, error=str(error))
         logger.info(f"Ignoring {_TASKER_AUTO_BACKUP_PATH} for the helper Project's ids: {error}")
         try:
-            project_xml = build_helper_project_xml(HELPER_PROJECT_NAME)
+            project_xml = build_helper_project_xml(HELPER_PROJECT_NAME, state=state)
         except ValueError as retry_error:
             return HelperProjectResult(ok=False, error=str(retry_error))
 
@@ -3019,7 +3041,7 @@ _NAME_TAGS = {"Project": "name", "Profile": "nme", "Task": "nme", "Scene": "nme"
 _NAMES_SHOWN = 8
 
 
-def build_object_list_task(task_name: str = OBJECT_LIST_TASK_NAME):
+def build_object_list_task(task_name: str = OBJECT_LIST_TASK_NAME, *, state: RunState):
     """Build the Tasker-object-listing helper Task.  Returns an EditableTask, or an error message.
 
     Per kind in _OBJECT_LISTS, 'Test Tasker' into that kind's array and 'Variable Join' to make it
@@ -3034,7 +3056,7 @@ def build_object_list_task(task_name: str = OBJECT_LIST_TASK_NAME):
         steps.append((_TEST_TASKER_ACTION, {"0": test_type, "1": "", "2": variable}))
         steps.append((_VARIABLE_JOIN_ACTION, {"0": variable, "1": _PAYLOAD_JOINER, "2": "0"}))
         payload += [section, variable]
-    return _build_reporting_task(task_name, tuple(steps), _OBJECT_LIST_WRITE_PATH, tuple(payload))
+    return _build_reporting_task(task_name, tuple(steps), _OBJECT_LIST_WRITE_PATH, tuple(payload), state=state)
 
 
 def _build_reporting_task(  # noqa: ANN202
@@ -3042,6 +3064,7 @@ def _build_reporting_task(  # noqa: ANN202
     steps: tuple[tuple[str, dict[str, str]], ...],
     result_write_path: str,
     payload_lines: tuple[str, ...],
+    state: RunState,
 ):
     """A helper Task of its working actions followed by their payload, written a line at a time.
 
@@ -3052,7 +3075,7 @@ def _build_reporting_task(  # noqa: ANN202
     before it does.  Built with taskedit's own Add-Task machinery, as build_file_list_task is.
     """
 
-    edited_task = taskedit.create_new_task(task_name, "100", state=PrimeItems)
+    edited_task = taskedit.create_new_task(task_name, "100", state=state)
     if isinstance(edited_task, str):
         return edited_task
 
@@ -3063,7 +3086,7 @@ def _build_reporting_task(  # noqa: ANN202
         for index, text in enumerate(lines)
     ]
     for action_key, args in (*steps, *writes):
-        action = taskedit.add_action_to_task(edited_task, action_key, state=PrimeItems)
+        action = taskedit.add_action_to_task(edited_task, action_key, state=state)
         if isinstance(action, list):
             return action[0] if action else f"'{action_key}' could not be added."
         for arg_id, value in args.items():
@@ -3108,7 +3131,7 @@ def parse_object_list_payload(text: str) -> tuple[dict[str, list[str]], str]:
     return names, ""
 
 
-def fetch_tasker_object_names(ip_address: str, ip_port: str) -> tuple[int, str, dict[str, list[str]]]:
+def fetch_tasker_object_names(ip_address: str, ip_port: str, state: RunState) -> tuple[int, str, dict[str, list[str]]]:
     """Every Project, Profile, Scene and Task Tasker has, by name.  (0, "", by kind) or (code, why, {}).
 
     The exchange fetch_file_list_from_device runs, for the object-listing Task: key, install if
@@ -3132,7 +3155,8 @@ def fetch_tasker_object_names(ip_address: str, ip_port: str) -> tuple[int, str, 
         ip_port,
         auth_key,
         OBJECT_LIST_TASK_NAME,
-        build_object_list_task,
+        functools.partial(build_object_list_task, state=state),
+        state=state,
     )
     if return_code != 0:
         return return_code, message, {}
@@ -3232,7 +3256,9 @@ class TaskerCheck:
         return any(self.present.values()) or bool(self.unchecked)
 
 
-def check_tasker_for_existing(ip_address: str, ip_port: str, sent: dict[str, list[str]]) -> TaskerCheck:
+def check_tasker_for_existing(
+    ip_address: str, ip_port: str, sent: dict[str, list[str]], state: RunState
+) -> TaskerCheck:
     """Ask Tasker which of these objects it already has.  Blocking; see the section comment.
 
     With a Project among them, or a name the HTTP API's lookups cannot find, the helper has to run
@@ -3248,7 +3274,7 @@ def check_tasker_for_existing(ip_address: str, ip_port: str, sent: dict[str, lis
     # maputil2.tasker_name_matchable) -- the endpoints would report '$New Task' missing when it is there.
     unmatchable = any(not tasker_name_matchable(name) for names in wanted.values() for name in names)
     if "Project" in wanted or unmatchable:
-        return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port)
+        return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
         if return_code != 0:
             return TaskerCheck(sent, {}, dict.fromkeys(wanted, message))
         return TaskerCheck(sent, {kind: _found_in(names, listed[kind]) for kind, names in wanted.items()}, {})
@@ -3349,7 +3375,7 @@ _ID_CHECK_POLL_ATTEMPTS = 30
 _TASK_PROFILE_IDS = "Task/Profile"
 
 
-def build_id_check_task(task_name: str = ID_CHECK_TASK_NAME):
+def build_id_check_task(task_name: str = ID_CHECK_TASK_NAME, *, state: RunState):
     """Build the backup-taking helper Task.  Returns an EditableTask, or an error message.
 
     'Data Backup' can fail (canfail), and a failed action stops the Task -- so the payload's
@@ -3361,10 +3387,11 @@ def build_id_check_task(task_name: str = ID_CHECK_TASK_NAME):
         ((_DATA_BACKUP_ACTION, {"0": _ID_CHECK_BACKUP_WRITE_PATH, "2": "0"}),),
         _ID_CHECK_RESULT_WRITE_PATH,
         (_ID_CHECK_PAYLOAD_HEADER,),
+        state=state,
     )
 
 
-def fetch_device_backup(ip_address: str, ip_port: str) -> tuple[int, str, bytes]:
+def fetch_device_backup(ip_address: str, ip_port: str, state: RunState) -> tuple[int, str, bytes]:
     """Have the device back its configuration up now, and read it.  (0, "", xml) or (code, why, b"").
 
     Key, install the helper if missing, clear the previous run's answer, run, wait, download the
@@ -3388,7 +3415,8 @@ def fetch_device_backup(ip_address: str, ip_port: str) -> tuple[int, str, bytes]
         ip_port,
         auth_key,
         ID_CHECK_TASK_NAME,
-        build_id_check_task,
+        functools.partial(build_id_check_task, state=state),
+        state=state,
     )
     if return_code != 0:
         return return_code, message, b""
@@ -3489,6 +3517,7 @@ def check_against_device_backup(
     ip_address: str,
     ip_port: str,
     xml: str | bytes,
+    state: RunState,
 ) -> tuple[TaskerCheck | None, list[IdFinding], str]:
     """Both questions -- which objects Tasker has, and which ids disagree -- from one fresh backup.
 
@@ -3500,7 +3529,7 @@ def check_against_device_backup(
     if export is None:
         return TaskerCheck({kind: [] for kind in TASKER_OBJECT_KINDS}, {}, {}), [], ""
 
-    return_code, message, device_xml = fetch_device_backup(ip_address, ip_port)
+    return_code, message, device_xml = fetch_device_backup(ip_address, ip_port, state=state)
     if return_code != 0:
         return None, [], message
     device = _parse_tasker_xml(device_xml)

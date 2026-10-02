@@ -2436,7 +2436,7 @@ def _inline_tasker_check(monkeypatch, check_for) -> list:
     monkeypatch.setattr(
         userintr_android.deviceinv,
         "check_tasker_for_existing",
-        lambda _ip, _port, sent: deviceinv.TaskerCheck(sent, *check_for(sent)),
+        lambda _ip, _port, sent, **_kw: deviceinv.TaskerCheck(sent, *check_for(sent)),
     )
     return notes
 
@@ -2485,7 +2485,7 @@ async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
     monkeypatch.setattr(
         userintr_android.deviceinv,
         "check_against_device_backup",
-        lambda _ip, _port, _xml: (deviceinv.TaskerCheck({"Task": ["Test1"]}, {"Task": ["Test1"]}, {}), [clash], ""),
+        lambda _ip, _port, _xml, **_kw: (deviceinv.TaskerCheck({"Task": ["Test1"]}, {"Task": ["Test1"]}, {}), [clash], ""),
     )
 
     lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
@@ -2513,7 +2513,7 @@ async def test_a_backup_that_cannot_be_had_falls_back_to_asking_by_name(monkeypa
     monkeypatch.setattr(
         userintr_android.deviceinv,
         "check_against_device_backup",
-        lambda _ip, _port, _xml: (None, [], "Tasker did not answer."),
+        lambda _ip, _port, _xml, **_kw: (None, [], "Tasker did not answer."),
     )
 
     lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
@@ -2622,7 +2622,7 @@ async def test_the_task_import_asks_before_replacing_the_file_it_writes(
         "save_task_to_android",
         lambda *args, **_kwargs: (imported.append(args[3]), (0, args[3]))[1],
     )
-    monkeypatch.setattr(userintr_android.deviceinv, "confirm_task_on_android", lambda *_args: True)
+    monkeypatch.setattr(userintr_android.deviceinv, "confirm_task_on_android", lambda *_args, **_kw: True)
     field_refs, android_refs = task_dialog_refs
 
     await event_handler.save_task_to_android_event(
@@ -2659,7 +2659,7 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
 
     calls = _patch_task_file_path(monkeypatch)
     monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3]))
-    monkeypatch.setattr(userintr_android.deviceinv, "confirm_task_on_android", lambda *_args: False)
+    monkeypatch.setattr(userintr_android.deviceinv, "confirm_task_on_android", lambda *_args, **_kw: False)
     monkeypatch.setattr(
         userintr_android.taskedit,
         "save_task_to_android_directory",
@@ -2702,7 +2702,7 @@ async def test_the_task_import_says_where_the_copy_was_left(monkeypatch, event_h
 
     calls = _patch_task_file_path(monkeypatch)
     monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3]))
-    monkeypatch.setattr(userintr_android.deviceinv, "confirm_task_on_android", lambda *_args: True)
+    monkeypatch.setattr(userintr_android.deviceinv, "confirm_task_on_android", lambda *_args, **_kw: True)
     field_refs, android_refs = task_dialog_refs
 
     await event_handler.save_task_to_android_event(

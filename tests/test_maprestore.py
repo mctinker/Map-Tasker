@@ -184,7 +184,7 @@ def _tids() -> list[str]:
 
 def _candidate(kind: str, key: str) -> maprestore.Candidate:
     """The one candidate the list offers for this object."""
-    matches = [c for c in maprestore.candidates(_older(), _newer()).candidates if (c.kind, c.key) == (kind, key)]
+    matches = [c for c in maprestore.candidates(_older(), _newer(), state=PrimeItems).candidates if (c.kind, c.key) == (kind, key)]
     assert len(matches) == 1, f"expected one candidate for {kind} {key}, got {len(matches)}"
     return matches[0]
 
@@ -192,7 +192,7 @@ def _candidate(kind: str, key: str) -> maprestore.Candidate:
 def _restore(kind: str, key: str, older: xmldiff.Configuration | None = None) -> maprefac.Plan:
     """Plan and apply the restore of one object; assert it went through; return the plan."""
     older = older or _older()
-    plan = maprestore.plan_restore(_candidate(kind, key), older, FROM_WHEN)
+    plan = maprestore.plan_restore(_candidate(kind, key), older, FROM_WHEN, state=PrimeItems)
     assert plan.can_apply, [block.explanation for block in plan.blocks]
     done, errors = maprestore.restore(plan)
     assert (done, errors) == (True, [])
@@ -213,7 +213,7 @@ def _add_task(task_id: str, name: str) -> None:
 
 def test_every_removed_and_changed_object_is_offered_once(loaded: None) -> None:
     """Removed Tasks, Profile and Scene to bring back; the edited Tasks to revert -- one row each."""
-    offer = maprestore.candidates(_older(), _newer())
+    offer = maprestore.candidates(_older(), _newer(), state=PrimeItems)
 
     rows = {(c.kind, c.key, c.action) for c in offer.candidates}
     assert rows == {
@@ -255,7 +255,7 @@ def test_a_rename_alone_is_tagged_renamed(loaded: None) -> None:
 
 def test_bring_back_rows_come_first_and_have_nowhere_to_jump(loaded: None) -> None:
     """The row somebody is looking for is the deleted one -- and it is not here to be gone to."""
-    offer = maprestore.candidates(_older(), _newer())
+    offer = maprestore.candidates(_older(), _newer(), state=PrimeItems)
     actions = [c.action for c in offer.candidates]
 
     assert actions == sorted(actions, key=lambda action: action != maprestore.BRING_BACK)
@@ -265,7 +265,7 @@ def test_bring_back_rows_come_first_and_have_nowhere_to_jump(loaded: None) -> No
 
 def test_additions_projects_and_values_are_counted_not_offered(loaded: None) -> None:
     """A short list must not look like a short comparison: what it leaves out, it says."""
-    offer = maprestore.candidates(_older(), _newer())
+    offer = maprestore.candidates(_older(), _newer(), state=PrimeItems)
 
     assert offer.left_out[maprestore.LEFT_OUT_ADDED] == 1  # Task 30
     assert offer.left_out[maprestore.LEFT_OUT_PROJECT] >= 1  # Home changed, Gone removed
@@ -287,7 +287,7 @@ def test_task_comes_back_on_its_own_id_and_in_its_project(loaded: None) -> None:
     assert "21" in _tids()
     assert [a.findtext("code") for a in actions_in_map_order(_live("all_tasks")["21"]["xml"])] == [FLASH]
     # And the comparison no longer has it as removed -- which is the whole claim.
-    assert ("Task", "21") not in {(c.kind, c.key) for c in maprestore.candidates(_older(), _newer()).candidates}
+    assert ("Task", "21") not in {(c.kind, c.key) for c in maprestore.candidates(_older(), _newer(), state=PrimeItems).candidates}
 
 
 def test_restored_element_is_of_the_live_trees_class(loaded: None) -> None:
@@ -339,7 +339,7 @@ def test_task_whose_name_was_taken_comes_back_as_restored(loaded: None) -> None:
 
 def test_bringing_back_a_called_task_says_the_calls_will_reach_it(loaded: None) -> None:
     """Task 20 still calls 'Helper' -- worth saying, since that is usually why it is wanted back."""
-    plan = maprestore.plan_restore(_candidate("Task", "21"), _older(), FROM_WHEN)
+    plan = maprestore.plan_restore(_candidate("Task", "21"), _older(), FROM_WHEN, state=PrimeItems)
 
     assert any("1 Perform Task action" in warning for warning in plan.warnings)
 
@@ -444,7 +444,7 @@ def test_scene_whose_name_is_taken_is_refused_not_renamed(loaded: None) -> None:
     element = ET.fromstring('<Scene sr="scenePanel"><nme>Panel</nme></Scene>')  # noqa: S314
     _live("all_scenes")["Panel"] = {"xml": element, "name": "Panel"}
 
-    plan = maprestore.plan_restore(candidate, _older(), FROM_WHEN)
+    plan = maprestore.plan_restore(candidate, _older(), FROM_WHEN, state=PrimeItems)
 
     assert not plan.can_apply
     assert plan.blocks[0].reason == "NAME-TAKEN"
@@ -500,7 +500,7 @@ def test_revert_of_a_task_that_went_away_since_is_refused(loaded: None) -> None:
     candidate = _candidate("Task", "20")
     del _live("all_tasks")["20"]
 
-    plan = maprestore.plan_restore(candidate, _older(), FROM_WHEN)
+    plan = maprestore.plan_restore(candidate, _older(), FROM_WHEN, state=PrimeItems)
 
     assert not plan.can_apply
     assert plan.blocks[0].reason == "NOT-HERE"
@@ -508,7 +508,7 @@ def test_revert_of_a_task_that_went_away_since_is_refused(loaded: None) -> None:
 
 def test_a_plan_whose_element_was_detached_is_refused_at_apply(loaded: None) -> None:
     """maprefac.apply's attachment check, reached through restore()."""
-    plan = maprestore.plan_restore(_candidate("Task", "20"), _older(), FROM_WHEN)
+    plan = maprestore.plan_restore(_candidate("Task", "20"), _older(), FROM_WHEN, state=PrimeItems)
     element = _live("all_tasks")["20"]["xml"]
     del _live("all_tasks")["20"]
     PrimeItems.xml_root.remove(element)
@@ -551,7 +551,7 @@ def test_nothing_next_to_a_restored_object_is_touched(loaded: None) -> None:
 
 def test_heading_says_where_the_old_version_comes_from(loaded: None) -> None:
     """'Restore Task X' without 'as it stood when' is the one thing the user has to be sure of."""
-    plan = maprestore.plan_restore(_candidate("Task", "20"), _older(), FROM_WHEN)
+    plan = maprestore.plan_restore(_candidate("Task", "20"), _older(), FROM_WHEN, state=PrimeItems)
 
     assert FROM_WHEN in plan.what
     rows = maprefac.report_rows(plan)
@@ -563,6 +563,6 @@ def test_a_task_brought_back_under_a_new_name_is_not_then_offered_as_a_rename(lo
     _add_task("31", "Helper")
     _restore("Task", "21")  # comes back as 'Helper (restored)'
 
-    offered = {(c.kind, c.key) for c in maprestore.candidates(_older(), _newer()).candidates}
+    offered = {(c.kind, c.key) for c in maprestore.candidates(_older(), _newer(), state=PrimeItems).candidates}
 
     assert ("Task", "21") not in offered

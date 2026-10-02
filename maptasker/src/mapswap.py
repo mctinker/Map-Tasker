@@ -56,13 +56,14 @@ from maptasker.src.actionc import ArgumentCode, action_codes
 from maptasker.src.mapjump import PROFILE, TASK, VARIABLE, Row, Target, current_scope, text_report
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import SWAP_FILE, logger
 from maptasker.src.taskervars import tasker_global_variables
 from maptasker.src.varxref import _LOW_CONFIDENCE_LENGTH, VARIABLE_PATTERN
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 
 # ##################################################################################
@@ -366,25 +367,25 @@ def _effective_args(action_key: str) -> list:
     return list(action_code.args or ())
 
 
-def _category(arg: ArgumentCode) -> str:
+def _category(arg: ArgumentCode, state: RunState) -> str:
     """An argument's category name -- 'String', 'Int', 'App', 'Icon', 'Bundle'."""
-    return PrimeItems.tasker_arg_specs.get(arg.arg_type, "")
+    return state.tasker_arg_specs.get(arg.arg_type, "")
 
 
-def _is_hint_bundle(arg: ArgumentCode) -> bool:
+def _is_hint_bundle(arg: ArgumentCode, state: RunState) -> bool:
     """Whether a Bundle argument is the informational 'Output Variables' note rather than
     a plugin payload.  taskedit skips these when synthesizing; nothing has to be produced
     for one, so it must not count towards either the target's argument tally or BLOCKED.
     """
-    return _category(arg) == "Bundle" and arg.arg_name == taskedit.OUTPUT_VARIABLES_ARG_NAME
+    return _category(arg, state=state) == "Bundle" and arg.arg_name == taskedit.OUTPUT_VARIABLES_ARG_NAME
 
 
-def _wanted_args(action_key: str) -> list:
+def _wanted_args(action_key: str, state: RunState) -> list:
     """The target's arguments that a swap actually has to produce a value for."""
-    return [arg for arg in _effective_args(action_key) if not _is_hint_bundle(arg)]
+    return [arg for arg in _effective_args(action_key) if not _is_hint_bundle(arg, state=state)]
 
 
-def carry_over_map(old_key: str, new_key: str) -> dict[str, str]:
+def carry_over_map(old_key: str, new_key: str, state: RunState) -> dict[str, str]:
     """{old arg id: new arg id} for the arguments that can move across, derived from
     actionc.py rather than listed by hand -- same rule as varxref._write_arguments, so a
     Tasker release that adds an action is covered when actionc.py is regenerated.
@@ -440,7 +441,7 @@ def carry_over_map(old_key: str, new_key: str) -> dict[str, str]:
        guess rule 1 rejects.
     """
     old_args = _effective_args(old_key)
-    new_args = _wanted_args(new_key)
+    new_args = _wanted_args(new_key, state=state)
     carry: dict[str, str] = {}
     claimed: set[str] = set()
 
@@ -453,7 +454,7 @@ def carry_over_map(old_key: str, new_key: str) -> dict[str, str]:
 
     for arg in old_args:
         name = arg.arg_name or ""
-        if not name or _category(arg) in _PICKER_CATEGORIES:
+        if not name or _category(arg, state=state) in _PICKER_CATEGORIES:
             continue  # An unnamed argument has nothing to match on; pickers are rule 2's.
         new_id = by_name_and_type.get((name, arg.arg_type))
         if new_id is not None and new_id not in claimed:
@@ -463,8 +464,8 @@ def carry_over_map(old_key: str, new_key: str) -> dict[str, str]:
     # Rule 2.  Uniqueness is the whole warrant, so it is tested per category and both
     # sides have to be unique -- one App out of one App, never one of two.
     for category in _PICKER_CATEGORIES:
-        from_source = [arg for arg in old_args if _category(arg) == category]
-        to_target = [arg for arg in new_args if _category(arg) == category]
+        from_source = [arg for arg in old_args if _category(arg, state=state) == category]
+        to_target = [arg for arg in new_args if _category(arg, state=state) == category]
         if len(from_source) == 1 and len(to_target) == 1 and to_target[0].arg_id not in claimed:
             carry[from_source[0].arg_id] = to_target[0].arg_id
             claimed.add(to_target[0].arg_id)
@@ -472,7 +473,7 @@ def carry_over_map(old_key: str, new_key: str) -> dict[str, str]:
     return carry
 
 
-def _swap_blocked(old_key: str, new_key: str) -> str:
+def _swap_blocked(old_key: str, new_key: str, state: RunState) -> str:
     """Why this pair cannot be built at all, or "" if it can.
 
     Three reasons, and only three:
@@ -504,8 +505,8 @@ def _swap_blocked(old_key: str, new_key: str) -> str:
     # written.  Carrying one across from the source is not attempted -- a different code is
     # a different plugin, and its payload would mean nothing to this one.
     if taskedit.get_bundle_definition(new_key) is None:
-        for arg in _wanted_args(new_key):
-            if _category(arg) == "Bundle":
+        for arg in _wanted_args(new_key, state=state):
+            if _category(arg, state=state) == "Bundle":
                 return (
                     f"'{action_codes[new_key].name}' is a plugin action and no definition of its "
                     "configuration has been recorded, so an empty one cannot be built."
@@ -514,7 +515,7 @@ def _swap_blocked(old_key: str, new_key: str) -> str:
     return ""
 
 
-def classify_swap(old_key: str, new_key: str) -> tuple[str, dict[str, str], str]:
+def classify_swap(old_key: str, new_key: str, state: RunState) -> tuple[str, dict[str, str], str]:
     """(fidelity, carry-over map, reason) for one code pair, without touching the tree.
 
     EXACT when every argument of the target is carried, RESET when none is, MAPPED in
@@ -523,13 +524,13 @@ def classify_swap(old_key: str, new_key: str) -> tuple[str, dict[str, str], str]
     Pure and cheap -- no tree access, and the inputs are two strings -- which is what lets
     fidelity_choices call it 550 times to build a pulldown.
     """
-    reason = _swap_blocked(old_key, new_key)
+    reason = _swap_blocked(old_key, new_key, state=state)
     if reason:
         return BLOCKED, {}, reason
 
-    carry = carry_over_map(old_key, new_key)
-    wanted = _wanted_args(new_key)
-    given = _wanted_args(old_key)
+    carry = carry_over_map(old_key, new_key, state=state)
+    wanted = _wanted_args(new_key, state=state)
+    given = _wanted_args(old_key, state=state)
 
     # EXACT means the user loses nothing, which is a claim about BOTH sides: every
     # argument of the target is filled AND every argument of the source found a home.
@@ -542,7 +543,7 @@ def classify_swap(old_key: str, new_key: str) -> tuple[str, dict[str, str], str]
     return (MAPPED if carry else RESET), carry, ""
 
 
-def fidelity_choices(old_key: str) -> list[tuple[str, str, str]]:
+def fidelity_choices(old_key: str, state: RunState) -> list[tuple[str, str, str]]:
     """(action key, label, fidelity) for every action, as the target pulldown offers them.
 
     This is where "offer all four levels" is actually delivered.  Nothing is filtered out;
@@ -573,17 +574,17 @@ def fidelity_choices(old_key: str) -> list[tuple[str, str, str]]:
         if key == old_key:
             continue  # Replacing an action with itself is not a question.
 
-        fidelity, carry, reason = classify_swap(old_key, key)
+        fidelity, carry, reason = classify_swap(old_key, key, state=state)
         name = action_code.name
 
         if fidelity == BLOCKED:
             label = f"{name}  -- cannot: {reason}"
         elif not carry:
-            wanted = len(_wanted_args(key))
+            wanted = len(_wanted_args(key, state=state))
             label = f"{name}  -- keeps nothing" + (f"  (resets {wanted})" if wanted else "")
         else:
             kept = _carried_names(old_key, carry)
-            label = f"{name}  -- keeps {', '.join(kept)}  ({len(carry)} of {len(_wanted_args(key))})"
+            label = f"{name}  -- keeps {', '.join(kept)}  ({len(carry)} of {len(_wanted_args(key, state=state))})"
 
         carried_count[key] = len(carry)
         choices.append((key, label, fidelity))
@@ -715,11 +716,7 @@ def variable_choices(index: varxref.VariableIndex) -> list[tuple[str, str, str]]
     return [(name, owner, label) for name, owner, label, _, _ in choices]
 
 
-def plan_action_swap(
-    old_key: str,
-    new_key: str,
-    project: str = "",
-) -> Plan:
+def plan_action_swap(old_key: str, new_key: str, project: str = "", *, state: RunState) -> Plan:
     """Every action in the file with `old_key`'s code, and what replacing it would do.
 
     Finds them through mapfind: a Query with only the action facet set is the question
@@ -750,7 +747,7 @@ def plan_action_swap(
     # `what` is also the Undo label, so the scope belongs in it: "Replace 'Flash' with
     # 'Notify'" sitting in the history of a run that only touched one Task would describe
     # a much bigger change than the one that can be taken back.
-    scope = current_scope(state=PrimeItems)
+    scope = current_scope(state=state)
     if not scope.is_everything:
         plan.what = f"{what} in {scope.phrase}"
         plan.warnings.append(
@@ -758,7 +755,7 @@ def plan_action_swap(
             f"selection to replace across the whole configuration.",
         )
 
-    fidelity, carry, reason = classify_swap(old_key, new_key)
+    fidelity, carry, reason = classify_swap(old_key, new_key, state=state)
     if fidelity == BLOCKED:
         plan.warnings.append(reason)
         return plan
@@ -785,9 +782,9 @@ def plan_action_swap(
             plan.changes.append(
                 Change(
                     site=site,
-                    before=_action_summary(action.element, old_key),
-                    after=_projected_summary(action.element, old_key, new_key, carry),
-                    note=_swap_note(action.element, fidelity, carry, old_key),
+                    before=_action_summary(action.element, old_key, state=state),
+                    after=_projected_summary(action.element, old_key, new_key, carry, state=state),
+                    note=_swap_note(action.element, fidelity, carry, old_key, state=state),
                 ),
             )
 
@@ -849,14 +846,14 @@ def _has_value(element: Element | None) -> bool:
     return len(element) > 0
 
 
-def _action_summary(action_element: Element, action_key: str) -> str:
+def _action_summary(action_element: Element, action_key: str, state: RunState) -> str:
     """One line describing an action as it stands -- "Flash 'Done: %n'".
 
     The first argument that holds text, which is the one the Map leads with and almost
     always the one that says what the action is for.
     """
     name = action_codes[action_key].name if action_key in action_codes else action_key
-    for arg in _wanted_args(action_key):
+    for arg in _wanted_args(action_key, state=state):
         element = _argument_element(action_element, arg.arg_id)
         text = (element.text or "").strip() if element is not None else ""
         if text:
@@ -869,6 +866,7 @@ def _projected_summary(
     old_key: str,
     new_key: str,
     carry: dict[str, str],
+    state: RunState,
 ) -> str:
     """The same line, as it would read after the swap -- without performing it.
 
@@ -879,7 +877,7 @@ def _projected_summary(
     one line of preview text.
     """
     name = action_codes[new_key].name if new_key in action_codes else new_key
-    for arg in _wanted_args(old_key):
+    for arg in _wanted_args(old_key, state=state):
         if arg.arg_id not in carry:
             continue
         element = _argument_element(action_element, arg.arg_id)
@@ -894,6 +892,7 @@ def _swap_note(
     fidelity: str,
     carry: dict[str, str],
     old_key: str,
+    state: RunState,
 ) -> str:
     """What this particular action loses, as opposed to what the pair loses in general.
 
@@ -904,7 +903,7 @@ def _swap_note(
     """
     dropped = [
         arg.arg_name or f"arg{arg.arg_id}"
-        for arg in _wanted_args(old_key)
+        for arg in _wanted_args(old_key, state=state)
         if arg.arg_id not in carry and _has_value(_argument_element(action_element, arg.arg_id))
     ]
     if not dropped:
@@ -944,6 +943,7 @@ def _swap_one_action(
     action_element: Element,
     new_key: str,
     carry: dict[str, str],
+    state: RunState,
 ) -> None:
     """Rewrite one <Action> in place.  Called only from apply(), only inside its undo block.
 
@@ -1004,7 +1004,7 @@ def _swap_one_action(
     code_element.text = new_key[:-1]
 
     # 4.  A fresh argument set, through the same function Add Action uses.
-    taskedit.build_synthesized_args(element_cls, action_element, _effective_args(new_key), new_key, state=PrimeItems)
+    taskedit.build_synthesized_args(element_cls, action_element, _effective_args(new_key), new_key, state=state)
 
     # 5.  The carried values displace the defaults just synthesized for them.
     synthesized = {
@@ -1023,8 +1023,8 @@ def _swap_one_action(
     # empty.  The empty element is not an invention: 675 empty <Img> and 287 empty <App>
     # sit in that same sample data, which is what Tasker itself writes for an unset picker.
     present = {child.attrib.get("sr", "") for child in action_element}
-    for arg in _wanted_args(new_key):
-        tag = _PICKER_TAGS.get(_category(arg))
+    for arg in _wanted_args(new_key, state=state):
+        tag = _PICKER_TAGS.get(_category(arg, state=state))
         if tag and f"arg{arg.arg_id}" not in present:
             action_element.append(element_cls(tag, {"sr": f"arg{arg.arg_id}"}))
 
@@ -1139,7 +1139,7 @@ def condition_choices(index: mapfind.FindIndex) -> list[tuple[str, str, int]]:
     return choices
 
 
-def _condition_blocked(new_key: str) -> str:
+def _condition_blocked(new_key: str, state: RunState) -> str:
     """Why an empty context of this kind cannot be built at all, or "".
 
     The same single reason a swap target is ever blocked: a plugin payload <Bundle> that
@@ -1153,8 +1153,8 @@ def _condition_blocked(new_key: str) -> str:
     if code_key not in action_codes:
         return f"'{new_key}' is not a Profile context this build knows about."
     if taskedit.get_bundle_definition(code_key) is None:
-        for arg in _wanted_args(code_key):
-            if _category(arg) == "Bundle":
+        for arg in _wanted_args(code_key, state=state):
+            if _category(arg, state=state) == "Bundle":
                 return (
                     f"'{action_codes[code_key].name}' is a plugin {tag.lower()} and no definition of its "
                     "configuration has been recorded, so an empty one cannot be built."
@@ -1162,7 +1162,7 @@ def _condition_blocked(new_key: str) -> str:
     return ""
 
 
-def classify_condition_swap(old_key: str, new_key: str) -> tuple[str, dict[str, str], str]:
+def classify_condition_swap(old_key: str, new_key: str, state: RunState) -> tuple[str, dict[str, str], str]:
     """(fidelity, carry-over map, reason) for one pair of context kinds.
 
     EXACT/MAPPED/RESET mean exactly what they mean for an action swap, and are computed
@@ -1177,7 +1177,7 @@ def classify_condition_swap(old_key: str, new_key: str) -> tuple[str, dict[str, 
     Wifi Connected' -> 'Event: Wifi Connected' carries the SSID across by the same
     name-and-type rule that carries a Flash's Text into a Notify.
     """
-    reason = _condition_blocked(new_key)
+    reason = _condition_blocked(new_key, state=state)
     if reason:
         return BLOCKED, {}, reason
 
@@ -1186,15 +1186,15 @@ def classify_condition_swap(old_key: str, new_key: str) -> tuple[str, dict[str, 
     if not old_code or not new_code:
         return RESET, {}, ""
 
-    carry = carry_over_map(old_code, new_code)
-    wanted = _wanted_args(new_code)
-    given = _wanted_args(old_code)
+    carry = carry_over_map(old_code, new_code, state=state)
+    wanted = _wanted_args(new_code, state=state)
+    given = _wanted_args(old_code, state=state)
     if len(carry) == len(wanted) == len(given):
         return EXACT, carry, ""
     return (MAPPED if carry else RESET), carry, ""
 
 
-def condition_targets(old_key: str) -> list[tuple[str, str, str]]:
+def condition_targets(old_key: str, state: RunState) -> list[tuple[str, str, str]]:
     """(condition key, label, fidelity) for every kind a context could become.
 
     Everything Tasker can watch for: the four flat kinds and every Event and State code in
@@ -1226,7 +1226,7 @@ def condition_targets(old_key: str) -> list[tuple[str, str, str]]:
     for key in candidates:
         if key == old_key:
             continue  # Replacing a context with the same kind of context is not a question.
-        fidelity, carry, reason = classify_condition_swap(old_key, key)
+        fidelity, carry, reason = classify_condition_swap(old_key, key, state=state)
         name = _condition_name(key)
         _, code_key = _split_condition(key)
 
@@ -1236,7 +1236,7 @@ def condition_targets(old_key: str) -> list[tuple[str, str, str]]:
             label = f"{name}  -- a fresh, empty {name.split(':')[0]}"
         else:
             kept = _carried_names(_split_condition(old_key)[1], carry)
-            label = f"{name}  -- keeps {', '.join(kept)}  ({len(carry)} of {len(_wanted_args(code_key))})"
+            label = f"{name}  -- keeps {', '.join(kept)}  ({len(carry)} of {len(_wanted_args(code_key, state=state))})"
 
         carried_count[key] = len(carry)
         choices.append((key, label, fidelity))
@@ -1249,7 +1249,7 @@ def condition_targets(old_key: str) -> list[tuple[str, str, str]]:
     return choices
 
 
-def _fresh_condition(element_cls: type, new_key: str) -> Element:
+def _fresh_condition(element_cls: type, new_key: str, state: RunState) -> Element:
     """An empty context of this kind, built exactly as adding one by hand would build it.
 
     The flat kinds go through profedit.add_condition_to_profile -- the same call the
@@ -1289,13 +1289,13 @@ def _fresh_condition(element_cls: type, new_key: str) -> Element:
 
     # code_key is passed so that a plugin's opaque payload <Bundle> is rebuilt from
     # bundle.py's recorded definition for this very code -- see build_synthesized_args.
-    taskedit.build_synthesized_args(element_cls, fresh, _effective_args(code_key), code_key, state=PrimeItems)
+    taskedit.build_synthesized_args(element_cls, fresh, _effective_args(code_key), code_key, state=state)
 
     # The picker arguments build_synthesized_args cannot write, as the empty element
     # Tasker writes for an unset picker.  Step 6 of _swap_one_action, for the same reason.
     present = {child.attrib.get("sr", "") for child in fresh}
-    for arg in _wanted_args(code_key):
-        picker_tag = _PICKER_TAGS.get(_category(arg))
+    for arg in _wanted_args(code_key, state=state):
+        picker_tag = _PICKER_TAGS.get(_category(arg, state=state))
         if picker_tag and f"arg{arg.arg_id}" not in present:
             fresh.append(element_cls(picker_tag, {"sr": f"arg{arg.arg_id}"}))
     return fresh
@@ -1336,7 +1336,7 @@ def _has_time_window(element: Element) -> bool:
     return bool(hour) and not hour.startswith("-")
 
 
-def _condition_summary(element: Element, tag: str, code_key: str = "") -> str:
+def _condition_summary(element: Element, tag: str, code_key: str = "", *, state: RunState) -> str:
     """One line describing a context as it stands -- "Time 08:00 AM to 09:30 AM".
 
     Read through profedit's own field getters rather than off the XML, so the preview says
@@ -1350,7 +1350,7 @@ def _condition_summary(element: Element, tag: str, code_key: str = "") -> str:
     inverted = " [inverted]" if (element.findtext("pin") or "").strip() == "true" else ""
 
     if code_key:
-        for arg in _wanted_args(code_key):
+        for arg in _wanted_args(code_key, state=state):
             argument = _argument_element(element, arg.arg_id)
             text = (argument.text or "").strip() if argument is not None else ""
             if text:
@@ -1387,6 +1387,7 @@ def _projected_condition_summary(
     old_key: str,
     new_key: str,
     carry: dict[str, str],
+    state: RunState,
 ) -> str:
     """The same line as it would read afterwards, projected rather than performed.
 
@@ -1399,7 +1400,7 @@ def _projected_condition_summary(
     _, old_code = _split_condition(old_key)
     if not carry or not old_code:
         return name
-    for arg in _wanted_args(old_code):
+    for arg in _wanted_args(old_code, state=state):
         if arg.arg_id not in carry:
             continue
         argument = _argument_element(element, arg.arg_id)
@@ -1415,6 +1416,7 @@ def _condition_note(
     new_key: str,
     carry: dict[str, str],
     fidelity: str,
+    state: RunState,
 ) -> str:
     """What this particular Profile loses, as opposed to what the pair loses in general.
 
@@ -1431,7 +1433,7 @@ def _condition_note(
     if condition.key and new_code:
         dropped = [
             arg.arg_name or f"arg{arg.arg_id}"
-            for arg in _wanted_args(condition.key)
+            for arg in _wanted_args(condition.key, state=state)
             if arg.arg_id not in carry and _has_value(_argument_element(element, arg.arg_id))
         ]
         if dropped:
@@ -1469,11 +1471,7 @@ def _duplicate_context(record: object, condition: object, new_tag: str, already_
     return ""
 
 
-def plan_condition_replace(
-    old_key: str,
-    new_key: str,
-    project: str = "",
-) -> Plan:
+def plan_condition_replace(old_key: str, new_key: str, project: str = "", *, state: RunState) -> Plan:
     """Every Profile context of one kind, and what replacing it with another would do.
 
     `project` narrows exactly as the other three do.  Nothing is touched: each Change
@@ -1511,7 +1509,7 @@ def plan_condition_replace(
     # The same scope note the other three carry, and for the same reason: `what` is the
     # Undo label, so a plan that touched one Profile must not describe itself as touching
     # the file.
-    scope = current_scope(state=PrimeItems)
+    scope = current_scope(state=state)
     if not scope.is_everything:
         plan.what = f"{what} in {scope.phrase}"
         plan.warnings.append(
@@ -1519,7 +1517,7 @@ def plan_condition_replace(
             f"selection to replace across the whole configuration.",
         )
 
-    fidelity, carry, reason = classify_condition_swap(old_key, new_key)
+    fidelity, carry, reason = classify_condition_swap(old_key, new_key, state=state)
     if fidelity == BLOCKED:
         plan.warnings.append(reason)
         return plan
@@ -1555,9 +1553,9 @@ def plan_condition_replace(
                         new_key=new_key,
                         carry=carry,
                     ),
-                    before=_condition_summary(condition.element, condition.tag, condition.key),
-                    after=_projected_condition_summary(condition.element, old_key, new_key, carry),
-                    note=_condition_note(record, condition, new_key, carry, fidelity),
+                    before=_condition_summary(condition.element, condition.tag, condition.key, state=state),
+                    after=_projected_condition_summary(condition.element, old_key, new_key, carry, state=state),
+                    note=_condition_note(record, condition, new_key, carry, fidelity, state=state),
                 ),
             )
 
@@ -1618,6 +1616,7 @@ def _swap_one_condition(
     condition_element: Element,
     new_key: str,
     carry: dict[str, str],
+    state: RunState,
 ) -> None:
     """Rewrite one Profile context in place.  Called only from apply(), inside its undo block.
 
@@ -1637,7 +1636,7 @@ def _swap_one_condition(
 
     # Built FIRST, before anything is torn down: if the target cannot be built this raises,
     # and it must raise with the Profile's context still intact.
-    fresh = _fresh_condition(element_cls, new_key)
+    fresh = _fresh_condition(element_cls, new_key, state=state)
     keep_tags = _kept_condition_children(fresh.tag)
 
     # 1.  Lift what survives, deep, before the tear-down -- the arguments that carry over
@@ -1714,7 +1713,7 @@ def _swap_one_condition(
 _WRITABLE_CATEGORIES = ("Str", "String", "Int", "Boolean")
 
 
-def argument_choices(action_key: str) -> list[tuple[str, str, str]]:
+def argument_choices(action_key: str, state: RunState) -> list[tuple[str, str, str]]:
     """(arg id, label, refusal) for every argument of one action, in Tasker's own order.
 
     The Replace tab's argument pulldown.  Each is labelled with both its position and the
@@ -1727,9 +1726,9 @@ def argument_choices(action_key: str) -> list[tuple[str, str, str]]:
     """
     choices = []
     for argument in _effective_args(action_key):
-        if _is_hint_bundle(argument):
+        if _is_hint_bundle(argument, state=state):
             continue  # Not an argument at all -- the plugin's note about what it outputs.
-        category = _category(argument)
+        category = _category(argument, state=state)
         name = f"arg{argument.arg_id} {argument.arg_name}".rstrip()
         writable = category in _WRITABLE_CATEGORIES
         refusal = "" if writable else f"a {category or 'picker'} argument is chosen from a picker, not typed"
@@ -1785,7 +1784,7 @@ def _numeric_refusal(numeric: bool, value: str) -> str:
     )
 
 
-def _creatable(action_element: Element, arg_id: str) -> bool:
+def _creatable(action_element: Element, arg_id: str, state: RunState) -> bool:
     """Whether an argument this action does not carry could be written into it.
 
     Asked of taskedit rather than answered here, and asked by BUILDING one on a throwaway
@@ -1798,7 +1797,7 @@ def _creatable(action_element: Element, arg_id: str) -> bool:
     if argument is None:
         return False
     scratch = copy.deepcopy(action_element)
-    built = taskedit.build_synthesized_args(type(scratch), scratch, [argument], state=PrimeItems)
+    built = taskedit.build_synthesized_args(type(scratch), scratch, [argument], state=state)
     return bool(built) and built[0].element is not None
 
 
@@ -1810,6 +1809,8 @@ def plan_argument_replace(
     project: str = "",
     substitute: bool = False,
     add_missing: bool = False,
+    *,
+    state: RunState,
 ) -> Plan:
     """Every action of one code, and what putting `new_value` in one of its arguments would do.
 
@@ -1859,7 +1860,7 @@ def plan_argument_replace(
 
     # The same scope note the other two carry, and for the same reason: `what` is the Undo
     # label, so a plan that touched one Task must not describe itself as touching the file.
-    scope = current_scope(state=PrimeItems)
+    scope = current_scope(state=state)
     if not scope.is_everything:
         plan.what = f"{what} in {scope.phrase}"
         plan.warnings.append(
@@ -1870,9 +1871,9 @@ def plan_argument_replace(
     if argument is None:
         plan.warnings.append(f"'{action_name}' has no argument {arg_id}.")
         return plan
-    if _category(argument) not in _WRITABLE_CATEGORIES:
+    if _category(argument, state=state) not in _WRITABLE_CATEGORIES:
         plan.warnings.append(
-            f"{arg_name} is {_category(argument)}: chosen from a picker rather than typed, so there is "
+            f"{arg_name} is {_category(argument, state=state)}: chosen from a picker rather than typed, so there is "
             f"no value here to replace.",
         )
         return plan
@@ -1880,7 +1881,7 @@ def plan_argument_replace(
         plan.warnings.append("Replacing text inside a value needs the text to look for.")
         return plan
 
-    numeric = _category(argument) in ("Int", "Boolean")
+    numeric = _category(argument, state=state) in ("Int", "Boolean")
     refusal = _numeric_refusal(numeric, new_value)
 
     adding = add_missing and not match and not substitute
@@ -1927,7 +1928,7 @@ def plan_argument_replace(
                 if refusal:
                     plan.skips.append(Skip(where=where, reason=BLOCKED_UNADDABLE, explanation=refusal))
                     continue
-                if not _creatable(found.element, arg_id):
+                if not _creatable(found.element, arg_id, state=state):
                     plan.skips.append(
                         Skip(
                             where=where,
@@ -2047,6 +2048,7 @@ def plan_variable_rename(
     old_name: str,
     owner: str | None,
     new_name: str,
+    state: RunState,
 ) -> Plan:
     """Every place this variable is set or read, and what renaming it would do.
 
@@ -2098,7 +2100,7 @@ def plan_variable_rename(
     # configuration half-renamed -- the places inside still read the new name, the places
     # outside still read the old one -- and unlike a swap, that is a broken configuration
     # rather than a partly-done job.  So it is said as a warning, not just in the title.
-    displaying = current_scope(state=PrimeItems)
+    displaying = current_scope(state=state)
     if not displaying.is_everything:
         plan.warnings.append(
             f"Limited to {displaying.phrase}, which is what the app is displaying.  Uses of {old_name} "
@@ -2173,7 +2175,7 @@ def plan_variable_rename(
             continue  # The name is in this field's record but not in this particular value.
         plan.changes.append(Change(site=site, before=before, after=after))
 
-    declaration = _declaration_site(old_name, entries, (pattern, new_name))
+    declaration = _declaration_site(old_name, entries, (pattern, new_name), state=state)
     if declaration is not None:
         before, after = _rewrite_site(declaration, pattern, new_name)
         if before != after:
@@ -2354,14 +2356,14 @@ def _site_kind(reference: varxref.Reference) -> str:
     return BUNDLE
 
 
-def _declaration_site(old_name: str, entries: list[varxref.Variable], rename: tuple) -> Site | None:
+def _declaration_site(old_name: str, entries: list[varxref.Variable], rename: tuple, state: RunState) -> Site | None:
     """The top-level <Variable> that declares this name, if the file carries one.
 
     Why a rename cannot be done by walking Tasks alone: Tasker's Variables tab holds the
     declaration and its value, and leaving it behind orphans the value under a name
     nothing uses any more.
     """
-    if not any(entry.declared for entry in entries) or PrimeItems.xml_root is None:
+    if not any(entry.declared for entry in entries) or state.xml_root is None:
         return None
 
     # Only when the whole configuration is in play.  A <Variable> is a file-level object,
@@ -2370,9 +2372,9 @@ def _declaration_site(old_name: str, entries: list[varxref.Variable], rename: tu
     # rename Tasker's Variables tab entry out from under every OTHER Task still using the
     # old name.  A scoped rename is partial by the user's own choice; this keeps it
     # partial in the safe direction.
-    if not current_scope(state=PrimeItems).is_everything:
+    if not current_scope(state=state).is_everything:
         return None
-    for element in PrimeItems.xml_root.findall("Variable"):
+    for element in state.xml_root.findall("Variable"):
         children = list(element)
         if children and (children[0].text or "").strip() == old_name:
             return Site(
@@ -2404,11 +2406,11 @@ def _current_value(site: Site) -> str:
     return site.element.text or ""
 
 
-def _set_value(site: Site, value: str) -> None:
+def _set_value(site: Site, value: str, state: RunState) -> None:
     """Put a value into this field, in the shape the field keeps it in.  The write half of
     _current_value, and the reason the two sit together."""
     if site.kind == NEW_ARG:
-        _create_argument(site, value)
+        _create_argument(site, value, state=state)
         return
     if site.kind == INT_VALUE:
         site.element.set("val", value)
@@ -2416,7 +2418,7 @@ def _set_value(site: Site, value: str) -> None:
     site.element.text = value
 
 
-def _create_argument(site: Site, value: str) -> None:
+def _create_argument(site: Site, value: str, state: RunState) -> None:
     """Write an argument the action has never carried, and put the value in it.
 
     Built through taskedit.build_synthesized_args -- the same function Add Action uses, and
@@ -2439,7 +2441,7 @@ def _create_argument(site: Site, value: str) -> None:
         unbuildable = f"{action_key} has no argument {arg_id} to add"
         raise ValueError(unbuildable)
 
-    built = taskedit.build_synthesized_args(type(site.element), site.element, [argument], state=PrimeItems)
+    built = taskedit.build_synthesized_args(type(site.element), site.element, [argument], state=state)
     if not built or built[0].element is None:
         unbuildable = f"an argument of this kind cannot be written from nothing ({site.detail})"
         raise ValueError(unbuildable)
@@ -2596,7 +2598,7 @@ def write_swap_report(rows: list[Row]) -> str:
     return file_path
 
 
-def apply(plan: Plan) -> tuple[int, list[str]]:
+def apply(plan: Plan, state: RunState) -> tuple[int, list[str]]:
     """Make the selected changes.  Returns (how many were made, errors).
 
     ONE undo block around the whole thing, and the outermost one:
@@ -2641,7 +2643,7 @@ def apply(plan: Plan) -> tuple[int, list[str]]:
                 )
                 continue
             try:
-                _apply_one(change)
+                _apply_one(change, state=state)
             except (AttributeError, KeyError, ValueError) as failure:
                 errors.append(f"{change.site.where.label}: {failure}")
                 continue
@@ -2650,18 +2652,18 @@ def apply(plan: Plan) -> tuple[int, list[str]]:
     return changed, errors
 
 
-def _apply_one(change: Change) -> None:
+def _apply_one(change: Change, state: RunState) -> None:
     """Perform one planned change.  Raises rather than reporting; apply() catches."""
     if change.site.kind == ACTION_ELEMENT:
-        _swap_one_action(change.site.element, change.site.new_key, change.site.carry)
+        _swap_one_action(change.site.element, change.site.new_key, change.site.carry, state=state)
         return
     if change.site.kind == PROFILE_CONDITION:
-        _swap_one_condition(change.site.element, change.site.new_key, change.site.carry)
+        _swap_one_condition(change.site.element, change.site.new_key, change.site.carry, state=state)
         return
-    _write_site(change.site)
+    _write_site(change.site, state=state)
 
 
-def _write_site(site: Site) -> None:
+def _write_site(site: Site, state: RunState) -> None:
     """Rewrite one field in place -- the write half of _rewrite_site.
 
     Takes no value: the Site carries the pattern and the new name, so what gets written is
@@ -2670,7 +2672,7 @@ def _write_site(site: Site) -> None:
     stops a stale preview value being written over a field somebody edited meanwhile.
     """
     if site.new_value is not None:
-        _set_value(site, site.new_value)
+        _set_value(site, site.new_value, state=state)
         return
 
     pattern, new_name = site.rename
@@ -2687,7 +2689,7 @@ def _write_site(site: Site) -> None:
         sceneedit.encode_v2_layout(site.element, layout)
         return
 
-    _set_value(site, pattern.sub(new_name, _current_value(site)))
+    _set_value(site, pattern.sub(new_name, _current_value(site)), state=state)
 
 
 # ##################################################################################

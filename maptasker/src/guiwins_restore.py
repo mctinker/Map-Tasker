@@ -170,7 +170,7 @@ def build_restore_dialog(
             """
             if held.older is None or held.snapshot is None:
                 return
-            plan = maprestore.plan_restore(candidate, held.older, held.snapshot.described())
+            plan = maprestore.plan_restore(candidate, held.older, held.snapshot.described(), state=PrimeItems)
             held.plan = plan
             held.previewed = candidate
             preview_heading.set_text(translate_string("Preview -- nothing has changed yet"))
@@ -217,7 +217,7 @@ def build_restore_dialog(
                 await load(choice.value or 0)
                 return
             clear_preview()
-            offer = await run.io_bound(maprestore.candidates, held.older, current_configuration())
+            offer = await run.io_bound(maprestore.candidates, held.older, current_configuration(), state=PrimeItems)
             if offer is None:
                 return
             held.offer = offer
@@ -283,7 +283,7 @@ def _read(snapshot: timeline.Snapshot) -> tuple[Configuration | None, maprestore
     older, problem = timeline.configuration_of(snapshot)
     if older is None:
         return None, None, problem
-    return older, maprestore.candidates(older, current_configuration()), ""
+    return older, maprestore.candidates(older, current_configuration(), state=PrimeItems), ""
 
 
 # ##################################################################################

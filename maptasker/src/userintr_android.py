@@ -47,6 +47,7 @@ from maptasker.src.guiwins import (
 from maptasker.src.guiwins_profedit import build_save_profile_to_android_dialog
 from maptasker.src.maputil2 import held_auth_key, http_request, read_android_file, translate_string
 from maptasker.src.maputils import clear_tasker_data
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.userintr_editors import (
     _apply_scene_field_values,
@@ -114,7 +115,7 @@ async def _what_tasker_already_has(
     id_lines: list[str] = []
     if check_ids:
         ui.notify("Taking a fresh backup on the device to check IDs -- this can take a little while.", type="info")
-        checked = await run.io_bound(deviceinv.check_against_device_backup, ip_address, ip_port, xml)
+        checked = await run.io_bound(deviceinv.check_against_device_backup, ip_address, ip_port, xml, state=PrimeItems)
         if checked is None:  # cancelled -- see the note at the top of this file
             return []
         check, findings, problem = checked
@@ -129,7 +130,7 @@ async def _what_tasker_already_has(
                 "a small MapTasker Task runs on the device for this.",
                 type="info",
             )
-        check = await run.io_bound(deviceinv.check_tasker_for_existing, ip_address, ip_port, sent)
+        check = await run.io_bound(deviceinv.check_tasker_for_existing, ip_address, ip_port, sent, state=PrimeItems)
         if check is None:  # cancelled -- see the note at the top of this file
             return []
 
@@ -246,10 +247,7 @@ async def validate_or_filelist_xml(
             timeout=1500,
         )
         listed = await run.io_bound(
-            deviceinv.get_list_of_files,
-            android_ipaddr,
-            android_port,
-            deviceinv.FILE_LIST_DIRECTORY,
+            deviceinv.get_list_of_files, android_ipaddr, android_port, deviceinv.FILE_LIST_DIRECTORY, state=self.state
         )
         if listed is None:  # cancelled -- see the note at the top of this file
             return 1, android_ipaddr, android_port, android_file
@@ -493,11 +491,7 @@ class AndroidEventHandlers:
 
         # Blocking -- a key fetch and a GET -- so it goes to a worker thread like every other
         # Android call from the GUI.
-        listed = await run.io_bound(
-            deviceinv.stale_helper_tasks_on_device,
-            ip_address,
-            ip_port,
-        )
+        listed = await run.io_bound(deviceinv.stale_helper_tasks_on_device, ip_address, ip_port, state=self.state)
         if listed is None:  # cancelled -- see the note at the top of this file
             return
         return_code, message, stale, current = listed
@@ -540,7 +534,7 @@ class AndroidEventHandlers:
             return
         notify_watch_android_device()
 
-        result = await run.io_bound(deviceinv.stage_helper_project, ip_address, ip_port)
+        result = await run.io_bound(deviceinv.stage_helper_project, ip_address, ip_port, state=self.state)
         # None, not a result: nicegui's run.io_bound answers None when the wait is cancelled or
         # the app is shutting down (see its own docstring), and nothing was staged in that case.
         if result is None:
@@ -587,7 +581,7 @@ class AndroidEventHandlers:
             deviceinv.await_import,
             ip_address,
             ip_port,
-            sorted(deviceinv.current_helper_task_names()),
+            sorted(deviceinv.current_helper_task_names(state=self.state)),
             f"Project '{project}'",
             deviceinv.TASKS_ENDPOINT,
             attempts=deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS,
@@ -648,7 +642,7 @@ class AndroidEventHandlers:
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
         # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_task(edited_task)):
+        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_task(edited_task, state=self.state)):
             return
 
         if not await ping_android_device(self.gui, ip_address, ip_port):
@@ -709,7 +703,9 @@ class AndroidEventHandlers:
             # the import once more from the file now sitting in /Tasker/tasks (see
             # taskedit.save_task_to_android_directory's docstring for why a retry, not a
             # different endpoint, is the only fallback that can help).
-            confirmed = await run.io_bound(deviceinv.confirm_task_on_android, ip_address, ip_port, task_name, auth_key)
+            confirmed = await run.io_bound(
+                deviceinv.confirm_task_on_android, ip_address, ip_port, task_name, auth_key, state=self.state
+            )
             if confirmed is None:  # cancelled -- see the note at the top of this file
                 return
             if confirmed:
@@ -745,6 +741,7 @@ class AndroidEventHandlers:
                         ip_port,
                         wait_for_confirmation=False,
                         route=deviceinv.OPEN_TASK_ROUTE,
+                        state=self.state,
                     )
                     if offered is None:  # cancelled -- see the note at the top of this file
                         return
@@ -865,7 +862,7 @@ class AndroidEventHandlers:
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
         # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_task(edited_task)):
+        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_task(edited_task, state=self.state)):
             return
 
         if not await ping_android_device(self.gui, ip_address, ip_port):
@@ -990,7 +987,9 @@ class AndroidEventHandlers:
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
         # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_scene(edited_scene.scene_name)):
+        if not _round_trip_verified(
+            android_field_refs, lambda: roundtrip.verify_scene(edited_scene.scene_name, state=self.state)
+        ):
             return
 
         if not await ping_android_device(self.gui, ip_address, ip_port):
@@ -1101,7 +1100,9 @@ class AndroidEventHandlers:
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
         # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_profile(edited_profile)):
+        if not _round_trip_verified(
+            android_field_refs, lambda: roundtrip.verify_profile(edited_profile, state=self.state)
+        ):
             return
 
         if not await ping_android_device(self.gui, ip_address, ip_port):
@@ -1318,7 +1319,9 @@ class AndroidEventHandlers:
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
         # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_profile(edited_profile)):
+        if not _round_trip_verified(
+            android_field_refs, lambda: roundtrip.verify_profile(edited_profile, state=self.state)
+        ):
             return
 
         if not await ping_android_device(self.gui, ip_address, ip_port):
@@ -1474,6 +1477,7 @@ class AndroidEventHandlers:
                 ip_port,
                 wait_for_confirmation=False,
                 route=route,
+                state=self.state,
             )
             if offered is None:  # cancelled -- see the note at the top of this file
                 return
@@ -1680,7 +1684,9 @@ class AndroidEventHandlers:
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
         # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_scene(edited_scene.scene_name)):
+        if not _round_trip_verified(
+            android_field_refs, lambda: roundtrip.verify_scene(edited_scene.scene_name, state=self.state)
+        ):
             return
 
         if not await ping_android_device(self.gui, ip_address, ip_port):
@@ -1753,7 +1759,9 @@ class AndroidEventHandlers:
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
         # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_project(edited_project.project_name)):
+        if not _round_trip_verified(
+            android_field_refs, lambda: roundtrip.verify_project(edited_project.project_name, state=self.state)
+        ):
             return
 
         if not await ping_android_device(self.gui, ip_address, ip_port):
@@ -1828,7 +1836,9 @@ class AndroidEventHandlers:
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
         # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_project(edited_project.project_name)):
+        if not _round_trip_verified(
+            android_field_refs, lambda: roundtrip.verify_project(edited_project.project_name, state=self.state)
+        ):
             return
 
         if not await ping_android_device(self.gui, ip_address, ip_port):

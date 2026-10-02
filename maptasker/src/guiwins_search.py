@@ -1533,7 +1533,7 @@ class _ReplaceTab:
             self.target_select.set_options({})
             return
         self.target_select.set_options(
-            {key: label for key, label, _fidelity in mapswap.fidelity_choices(source)},
+            {key: label for key, label, _fidelity in mapswap.fidelity_choices(source, state=PrimeItems)},
             value=None,
         )
 
@@ -1551,7 +1551,7 @@ class _ReplaceTab:
             self.arg_select.set_options({})
             return
         self.arg_select.set_options(
-            {arg_id: label for arg_id, label, _refusal in mapswap.argument_choices(action)},
+            {arg_id: label for arg_id, label, _refusal in mapswap.argument_choices(action, state=PrimeItems)},
             value=None,
         )
 
@@ -1569,7 +1569,7 @@ class _ReplaceTab:
             self.condition_target_select.set_options({})
             return
         self.condition_target_select.set_options(
-            {key: label for key, label, _fidelity in mapswap.condition_targets(source)},
+            {key: label for key, label, _fidelity in mapswap.condition_targets(source, state=PrimeItems)},
             value=None,
         )
 
@@ -1715,7 +1715,7 @@ class _ReplaceTab:
                     type="warning",
                 )
                 return
-            plan = mapswap.plan_action_swap(source, target, project)
+            plan = mapswap.plan_action_swap(source, target, project, state=PrimeItems)
         elif kind == "argument":
             _, action, arg_id, new_value, match, project, substitute, add_missing = inputs
             if not action or not arg_id:
@@ -1725,13 +1725,7 @@ class _ReplaceTab:
                 )
                 return
             plan = mapswap.plan_argument_replace(
-                action,
-                arg_id,
-                new_value,
-                match,
-                project,
-                substitute,
-                add_missing,
+                action, arg_id, new_value, match, project, substitute, add_missing, state=PrimeItems
             )
             if plan.is_empty and not plan.skips and not plan.warnings:
                 # Said out loud rather than left to an empty list: "nothing holds that
@@ -1749,13 +1743,13 @@ class _ReplaceTab:
                     type="warning",
                 )
                 return
-            plan = mapswap.plan_condition_replace(source, target, project)
+            plan = mapswap.plan_condition_replace(source, target, project, state=PrimeItems)
         else:
             _, name, owner, new_name = inputs
             if not name or not new_name:
                 ui.notify(translate_string("Choose a variable, and type the new name."), type="warning")
                 return
-            plan = mapswap.plan_variable_rename(self.variable_index(), name, owner, new_name)
+            plan = mapswap.plan_variable_rename(self.variable_index(), name, owner, new_name, state=PrimeItems)
 
         if restore is not None:
             plan.restore_ticks(restore)
@@ -1824,7 +1818,7 @@ class _ReplaceTab:
             ui.notify(translate_string("Nothing is ticked."), type="warning")
             return
 
-        changed, errors = mapswap.apply(plan)
+        changed, errors = mapswap.apply(plan, state=PrimeItems)
         for message in errors[:_REPLACE_ERROR_LIMIT]:
             ui.notify(message, type="negative")
         if changed:
