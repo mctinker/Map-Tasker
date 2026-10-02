@@ -587,7 +587,7 @@ def process_cli(state: RunState) -> None:
         (
             state.program_arguments,
             state.colors_to_use,
-        ) = process_gui(True)
+        ) = process_gui(True, state=state)
 
     # Not doing the GUI or Map View.  Process commands from command line.
     elif not state.program_arguments.guiview:

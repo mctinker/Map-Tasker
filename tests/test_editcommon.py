@@ -22,6 +22,7 @@ from __future__ import annotations
 import os
 
 import pytest
+from maptasker.src.primitem import PrimeItems
 from maptasker.src import deviceinv, editcommon, presave, profedit, projedit, sceneedit, taskedit
 
 # Every editor, and the three things it is allowed to differ in.
@@ -163,10 +164,10 @@ def fake_device(monkeypatch: pytest.MonkeyPatch) -> dict:
 def _save_calls(ip: str, port: str) -> list[tuple[str, object]]:
     """The four editors' save-to-device entry points, called with this address."""
     return [
-        ("project", lambda: projedit.save_project_to_android("Home/Work", ip, port)),
-        ("profile", lambda: profedit.save_profile_to_android(None, ip, port, "Morning")),
-        ("scene", lambda: sceneedit.save_scene_to_android("Dialog", ip, port)),
-        ("task", lambda: taskedit.save_task_to_android_file(None, ip, port, "Opener")),
+        ("project", lambda: projedit.save_project_to_android("Home/Work", ip, port, state=PrimeItems)),
+        ("profile", lambda: profedit.save_profile_to_android(None, ip, port, "Morning", state=PrimeItems)),
+        ("scene", lambda: sceneedit.save_scene_to_android("Dialog", ip, port, state=PrimeItems)),
+        ("task", lambda: taskedit.save_task_to_android_file(None, ip, port, "Opener", state=PrimeItems)),
     ]
 
 
@@ -217,7 +218,7 @@ def test_the_task_upload_hands_back_what_the_device_holds(fake_device: dict) -> 
     api/import, so what reaches Tasker is provably the file in the folder rather than a
     second render nothing has checked.
     """
-    assert taskedit._put_task_file_on_android(None, "1.2.3.4", "1821", "Opener") == (
+    assert taskedit._put_task_file_on_android(None, "1.2.3.4", "1821", "Opener", state=PrimeItems) == (
         0,
         "/Tasker/tasks/Opener.tsk.xml",
         b"<TaskerData/>",
@@ -238,8 +239,8 @@ def test_a_render_that_raises_is_reported_by_the_kinds_that_can_raise(
 
     monkeypatch.setattr(projedit, "render_standalone_project_xml", deleted)
     monkeypatch.setattr(sceneedit, "render_standalone_scene_xml", deleted)
-    assert projedit.save_project_to_android("Home/Work", "1.2.3.4", "1821") == (
+    assert projedit.save_project_to_android("Home/Work", "1.2.3.4", "1821", state=PrimeItems) == (
         8,
         "Project 'Home/Work' no longer exists.",
     )
-    assert sceneedit.save_scene_to_android("Dialog", "1.2.3.4", "1821") == (8, "Project 'Home/Work' no longer exists.")
+    assert sceneedit.save_scene_to_android("Dialog", "1.2.3.4", "1821", state=PrimeItems) == (8, "Project 'Home/Work' no longer exists.")

@@ -1004,7 +1004,7 @@ def _swap_one_action(
     code_element.text = new_key[:-1]
 
     # 4.  A fresh argument set, through the same function Add Action uses.
-    taskedit.build_synthesized_args(element_cls, action_element, _effective_args(new_key), new_key)
+    taskedit.build_synthesized_args(element_cls, action_element, _effective_args(new_key), new_key, state=PrimeItems)
 
     # 5.  The carried values displace the defaults just synthesized for them.
     synthesized = {
@@ -1289,7 +1289,7 @@ def _fresh_condition(element_cls: type, new_key: str) -> Element:
 
     # code_key is passed so that a plugin's opaque payload <Bundle> is rebuilt from
     # bundle.py's recorded definition for this very code -- see build_synthesized_args.
-    taskedit.build_synthesized_args(element_cls, fresh, _effective_args(code_key), code_key)
+    taskedit.build_synthesized_args(element_cls, fresh, _effective_args(code_key), code_key, state=PrimeItems)
 
     # The picker arguments build_synthesized_args cannot write, as the empty element
     # Tasker writes for an unset picker.  Step 6 of _swap_one_action, for the same reason.
@@ -1798,7 +1798,7 @@ def _creatable(action_element: Element, arg_id: str) -> bool:
     if argument is None:
         return False
     scratch = copy.deepcopy(action_element)
-    built = taskedit.build_synthesized_args(type(scratch), scratch, [argument])
+    built = taskedit.build_synthesized_args(type(scratch), scratch, [argument], state=PrimeItems)
     return bool(built) and built[0].element is not None
 
 
@@ -2439,7 +2439,7 @@ def _create_argument(site: Site, value: str) -> None:
         unbuildable = f"{action_key} has no argument {arg_id} to add"
         raise ValueError(unbuildable)
 
-    built = taskedit.build_synthesized_args(type(site.element), site.element, [argument])
+    built = taskedit.build_synthesized_args(type(site.element), site.element, [argument], state=PrimeItems)
     if not built or built[0].element is None:
         unbuildable = f"an argument of this kind cannot be written from nothing ({site.detail})"
         raise ValueError(unbuildable)

@@ -49,15 +49,15 @@ def test_the_query_holds_the_selected_task(monkeypatch) -> None:
     monkeypatch.setattr(
         userintr_ai,
         "capture_gui_state",
-        lambda _gui, _data: PrimeItems.program_arguments.update({"single_task_name": "Remind Me"}),
+        lambda _gui, _data, *, state, **_kw: PrimeItems.program_arguments.update({"single_task_name": "Remind Me"}),
     )
     PrimeItems.output_lines.output_lines.clear()  # As a Map view leaves it.
-    assert mapai.cleanup_output() == []
+    assert mapai.cleanup_output(state=PrimeItems) == []
 
-    gui = SimpleNamespace(view_limit=10000, display_message_box=lambda *_args: None)
+    gui = SimpleNamespace(view_limit=10000, display_message_box=lambda *_args: None, state=PrimeItems)
     assert asyncio.run(userintr_ai.build_analysis_lines(gui))
 
-    query_lines = mapai.cleanup_output()
+    query_lines = mapai.cleanup_output(state=PrimeItems)
     assert any("Task:" in line and "Remind Me" in line for line in query_lines)
     assert any("Time to check your reminders" in line for line in query_lines)
 
@@ -68,12 +68,12 @@ def test_the_query_is_text_without_blank_lines(monkeypatch) -> None:
     monkeypatch.setattr(
         userintr_ai,
         "capture_gui_state",
-        lambda _gui, _data: PrimeItems.program_arguments.update({"single_task_name": "Remind Me"}),
+        lambda _gui, _data, *, state, **_kw: PrimeItems.program_arguments.update({"single_task_name": "Remind Me"}),
     )
-    gui = SimpleNamespace(view_limit=10000, display_message_box=lambda *_args: None)
+    gui = SimpleNamespace(view_limit=10000, display_message_box=lambda *_args: None, state=PrimeItems)
     assert asyncio.run(userintr_ai.build_analysis_lines(gui))
 
-    for line in mapai.cleanup_output():
+    for line in mapai.cleanup_output(state=PrimeItems):
         assert line.strip()
         assert "&#" not in line
         assert "&nbsp;" not in line

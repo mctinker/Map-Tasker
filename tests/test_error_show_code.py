@@ -34,6 +34,7 @@ class MyGui:
 
     def __init__(self) -> None:
         self.boxes: list[tuple[str, str]] = []
+        self.state = PrimeItems
 
     def display_message_box(self, message: str, color: str) -> None:
         self.boxes.append((message, color))

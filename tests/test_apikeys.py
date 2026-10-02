@@ -219,7 +219,7 @@ def test_get_api_key_copies_the_saved_keys_into_prime_items(monkeypatch: pytest.
     apikeys.save_api_keys({"anthropic_key": "sk-ant", "api_key": "sk-given"})
     monkeypatch.setattr(PrimeItems, "ai", {"anthropic_key": "", "api_key": "", "anthropic_models": ["claude-sonnet-5"]})
 
-    assert aiutils.get_api_key() == "sk-given"
+    assert aiutils.get_api_key(state=PrimeItems) == "sk-given"
     assert PrimeItems.ai["anthropic_key"] == "sk-ant"
     assert PrimeItems.ai["anthropic_models"] == ["claude-sonnet-5"]
 
@@ -229,5 +229,5 @@ def test_get_api_key_with_nothing_saved_leaves_prime_items_alone(monkeypatch: py
     table = {"openai_key": "sk-typed-this-run"}
     monkeypatch.setattr(PrimeItems, "ai", table)
 
-    assert aiutils.get_api_key() == "None"
+    assert aiutils.get_api_key(state=PrimeItems) == "None"
     assert table == {"openai_key": "sk-typed-this-run"}

@@ -45,12 +45,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
+
 from maptasker.src import appinv, caches, editcommon, objprops, piiscan, sessundo, taskedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.editcommon import touch_project_mdate
 from maptasker.src.presave import backup_local_file
-from maptasker.src.primitem import PrimeItems
 
 # Condition types offered in the GUI's "Condition Type" picker. Time/Day/App/Loc
 # have simple, well-known field sets, so add_condition_to_profile can add one
@@ -136,28 +137,26 @@ class EditableProfile:
     exit_task_id: str = ""
 
 
-def resolve_profile_by_name(
-    profile_name: str,
-) -> tuple[str, Element] | None:
+def resolve_profile_by_name(profile_name: str, state: RunState) -> tuple[str, Element] | None:
     """Look up a Profile's id and live XML element by its displayed name.
 
     Returns (profile_id, live_element), or None if not found. Callers must not
     mutate the returned element directly -- go through load_profile_for_edit() instead.
     """
-    entry = PrimeItems.tasker_root_elements.get("all_profiles_by_name", {}).get(profile_name)
+    entry = state.tasker_root_elements.get("all_profiles_by_name", {}).get(profile_name)
     if entry is None:
         return None
     return entry["id"], entry["xml"]
 
 
-def load_profile_for_edit(profile_name: str) -> EditableProfile | None:
+def load_profile_for_edit(profile_name: str, state: RunState) -> EditableProfile | None:
     """Resolve a Profile by name, deep-copy it, and build its editable-condition
     model plus its Entry/Exit Task ids.
 
     This is the one point of contact with the live tree -- everything downstream
     (including Save) operates on the copy, so the in-memory backup is never touched.
     """
-    resolved = resolve_profile_by_name(profile_name)
+    resolved = resolve_profile_by_name(profile_name, state=state)
     if resolved is None:
         return None
     profile_id, live_element = resolved
@@ -165,13 +164,13 @@ def load_profile_for_edit(profile_name: str) -> EditableProfile | None:
     return EditableProfile(
         profile_id=profile_id,
         profile_element=profile_copy,
-        conditions=_build_editable_conditions(profile_copy),
+        conditions=_build_editable_conditions(profile_copy, state=state),
         entry_task_id=profile_copy.findtext("mid0", ""),
         exit_task_id=profile_copy.findtext("mid1", ""),
     )
 
 
-def create_new_profile(name: str) -> EditableProfile | str:
+def create_new_profile(name: str, state: RunState) -> EditableProfile | str:
     """Build a brand-new Profile element, not tied to any existing one, ready
     for conditions to be added to it -- the Profile counterpart of
     taskedit.create_new_task. Returns an error message string if no backup is
@@ -201,12 +200,12 @@ def create_new_profile(name: str) -> EditableProfile | str:
     alphabetical (cdate, edate, flags, id, limit, mid0, nme) before the
     condition elements -- same convention as create_new_project's.
     """
-    if PrimeItems.xml_root is None:
+    if state.xml_root is None:
         return "Load a Tasker backup file first (Add Profile needs it to generate a unique Profile ID)."
 
-    new_id = taskedit.next_unique_task_or_profile_id()
+    new_id = taskedit.next_unique_task_or_profile_id(state=state)
 
-    element_cls = type(PrimeItems.xml_root)
+    element_cls = type(state.xml_root)
     profile_element = element_cls("Profile", {"sr": f"prof{new_id}", "ve": "2"})
 
     now_millis = str(int(time.time() * 1000))
@@ -224,7 +223,7 @@ def create_new_profile(name: str) -> EditableProfile | str:
     return EditableProfile(profile_id=str(new_id), profile_element=profile_element, conditions=[])
 
 
-def _build_editable_conditions(profile_copy: Element) -> list[EditableCondition]:
+def _build_editable_conditions(profile_copy: Element, state: RunState) -> list[EditableCondition]:
     """Find the Profile's condition children (Time/Day/State/Event/App/Loc), in
     document order, skipping Profile metadata -- see _PROFILE_METADATA_TAGS and
     condition.py's parse_profile_condition, which this mirrors (built explicitly
@@ -241,7 +240,9 @@ def _build_editable_conditions(profile_copy: Element) -> list[EditableCondition]
                 cond_index=cond_index,
                 cond_type=child.tag,
                 condition_element=child,
-                args=_build_condition_args(child, child.tag) if child.tag in _CONDITION_CODE_SUFFIX else [],
+                args=_build_condition_args(child, child.tag, state=state)
+                if child.tag in _CONDITION_CODE_SUFFIX
+                else [],
             ),
         )
         cond_index += 1
@@ -251,6 +252,7 @@ def _build_editable_conditions(profile_copy: Element) -> list[EditableCondition]
 def _build_condition_args(
     condition_element: Element,
     cond_type: str,
+    state: RunState,
 ) -> list[taskedit.EditableArg]:
     """Builds the editable-arg model for a State or Event condition's
     plugin/built-in configuration -- see the module docstring for why this
@@ -267,17 +269,17 @@ def _build_condition_args(
         return []
 
     effective_args = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
-    return taskedit.build_editable_args(condition_element, effective_args)
+    return taskedit.build_editable_args(condition_element, effective_args, state=state)
 
 
-def reclassify_condition_args(condition: EditableCondition) -> None:
+def reclassify_condition_args(condition: EditableCondition, state: RunState) -> None:
     """Rebuild one condition's argument models against the inventory as it stands now --
     the Profile side of taskedit.reclassify_action_args, for the same reason: an App or
     Icon argument that was read-only for want of an inventory has to stop being read-only
     once a fetch has supplied one, without the dialog having to be reopened.
     """
     condition.args = (
-        _build_condition_args(condition.condition_element, condition.cond_type)
+        _build_condition_args(condition.condition_element, condition.cond_type, state=state)
         if condition.cond_type in _CONDITION_CODE_SUFFIX
         else []
     )
@@ -398,7 +400,7 @@ def add_condition_to_profile(edited_profile: EditableProfile, cond_type: str) ->
 _addable_condition_codes: caches.KeyedCache[dict[str, list[dict]]] = caches.KeyedCache("profedit.addable_conditions")
 
 
-def _list_addable_condition_codes(suffix: str) -> list[dict]:
+def _list_addable_condition_codes(suffix: str, state: RunState) -> list[dict]:
     """All real numeric Profile-condition entries for a given actionc.py key
     suffix -- "e" for Event (e.g. "1000e"), "s" for State (e.g. "100s") --
     matching condition.py's condition_event/condition_state, whose own
@@ -427,11 +429,11 @@ def _list_addable_condition_codes(suffix: str) -> list[dict]:
     for key, action_code in action_codes.items():
         if not (key.endswith(suffix) and key[:-1].isdigit()):
             continue  # Not a real numeric code for this condition type (e.g. a Task-action entry).
-        addable, reason = taskedit.classify_action_addability(key)
+        addable, reason = taskedit.classify_action_addability(key, state=state)
         category_code = action_code.category
         category_name = "Uncategorized"
         if category_code and category_code.isdigit():
-            category_name = PrimeItems.tasker_category_descriptions.get(int(category_code), "Uncategorized")
+            category_name = state.tasker_category_descriptions.get(int(category_code), "Uncategorized")
         rows.append(
             {
                 "condition_key": key,
@@ -447,24 +449,25 @@ def _list_addable_condition_codes(suffix: str) -> list[dict]:
     return rows
 
 
-def list_addable_events() -> list[dict]:
+def list_addable_events(state: RunState) -> list[dict]:
     """All real numeric Profile-Event condition entries (actionc.py keys ending
     in "e") with their addability -- see _list_addable_condition_codes.
     """
-    return _list_addable_condition_codes("e")
+    return _list_addable_condition_codes("e", state=state)
 
 
-def list_addable_states() -> list[dict]:
+def list_addable_states(state: RunState) -> list[dict]:
     """All real numeric Profile-State condition entries (actionc.py keys ending
     in "s") with their addability -- see _list_addable_condition_codes.
     """
-    return _list_addable_condition_codes("s")
+    return _list_addable_condition_codes("s", state=state)
 
 
 def _add_code_condition_to_profile(
     edited_profile: EditableProfile,
     cond_type: str,
     condition_key: str,
+    state: RunState,
     *,
     include_pri: bool,
 ) -> EditableCondition | list[str]:
@@ -490,7 +493,7 @@ def _add_code_condition_to_profile(
     Returns the new condition, or a list of error messages if condition_key
     isn't a real, addable code.
     """
-    addable, reason = taskedit.classify_action_addability(condition_key)
+    addable, reason = taskedit.classify_action_addability(condition_key, state=state)
     if not addable:
         return [reason or f"'{condition_key}' is not addable."]
 
@@ -511,7 +514,7 @@ def _add_code_condition_to_profile(
 
     # condition_key lets build_synthesized_args rebuild a plugin payload <Bundle>
     # from bundle.py's definition for this very code -- see _list_addable_condition_codes.
-    args = taskedit.build_synthesized_args(element_cls, condition_element, effective_args, condition_key)
+    args = taskedit.build_synthesized_args(element_cls, condition_element, effective_args, condition_key, state=state)
 
     edited_profile.profile_element.append(condition_element)
 
@@ -527,18 +530,22 @@ def _add_code_condition_to_profile(
     return new_condition
 
 
-def add_event_condition_to_profile(edited_profile: EditableProfile, event_key: str) -> EditableCondition | list[str]:
+def add_event_condition_to_profile(
+    edited_profile: EditableProfile, event_key: str, state: RunState
+) -> EditableCondition | list[str]:
     """Add a new Event condition from an actionc.py event key (e.g. "1000e") --
     see _add_code_condition_to_profile.
     """
-    return _add_code_condition_to_profile(edited_profile, "Event", event_key, include_pri=True)
+    return _add_code_condition_to_profile(edited_profile, "Event", event_key, include_pri=True, state=state)
 
 
-def add_state_condition_to_profile(edited_profile: EditableProfile, state_key: str) -> EditableCondition | list[str]:
+def add_state_condition_to_profile(
+    edited_profile: EditableProfile, state_key: str, state: RunState
+) -> EditableCondition | list[str]:
     """Add a new State condition from an actionc.py state key (e.g. "100s") --
     see _add_code_condition_to_profile.
     """
-    return _add_code_condition_to_profile(edited_profile, "State", state_key, include_pri=False)
+    return _add_code_condition_to_profile(edited_profile, "State", state_key, include_pri=False, state=state)
 
 
 def _set_profile_task_link(profile_element: Element, tag: str, task_id: str) -> None:
@@ -1050,9 +1057,9 @@ def android_profile_path(profile_name: str) -> str:
     return EXPORT.android_path(profile_name)
 
 
-def profile_name_exists(name: str) -> bool:
+def profile_name_exists(name: str, state: RunState) -> bool:
     """Whether a Profile with this name already exists in the currently loaded backup."""
-    return name.strip() in PrimeItems.tasker_root_elements.get("all_profiles_by_name", {})
+    return name.strip() in state.tasker_root_elements.get("all_profiles_by_name", {})
 
 
 def save_path_exists(output_path: str) -> bool:
@@ -1060,7 +1067,7 @@ def save_path_exists(output_path: str) -> bool:
     return editcommon.save_path_exists(output_path)
 
 
-def render_standalone_profile_xml(edited_profile: EditableProfile, *, redact: bool = False) -> str:
+def render_standalone_profile_xml(edited_profile: EditableProfile, state: RunState, *, redact: bool = False) -> str:
     """Render the edited Profile as a standalone TaskerData/Profile[/Task...] XML
     string. Unlike a Task, a Profile's own XML only *references* its Entry/Exit
     Tasks by id (mid0/mid1) -- it isn't meaningful to Tasker on its own without
@@ -1074,7 +1081,7 @@ def render_standalone_profile_xml(edited_profile: EditableProfile, *, redact: bo
     writing a comment above the file saying what went -- what "Redact secrets" on the
     export button does.  Off by default, so nothing that already calls this changes.
     """
-    tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
+    tv = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
     profile_copy = copy.deepcopy(edited_profile.profile_element)
     # The parsed tree's Element class isn't necessarily xml.etree.ElementTree's own
     # C-accelerated Element (defusedxml's hardened XMLParser forces the pure-Python
@@ -1084,7 +1091,7 @@ def render_standalone_profile_xml(edited_profile: EditableProfile, *, redact: bo
     root = element_cls("TaskerData", {"sr": "", "dvi": "1", "tv": tv})
     root.append(profile_copy)
 
-    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    all_tasks = state.tasker_root_elements.get("all_tasks", {})
     # A Profile can legitimately use the same Task for both Entry and Exit --
     # dict.fromkeys() dedupes while preserving order, so it's only bundled once.
     linked_task_ids = dict.fromkeys(
@@ -1111,6 +1118,7 @@ def render_standalone_profile_xml(edited_profile: EditableProfile, *, redact: bo
 def write_standalone_profile_xml(
     edited_profile: EditableProfile,
     output_path: str,
+    state: RunState,
     *,
     redact: bool = False,
 ) -> str:
@@ -1130,7 +1138,7 @@ def write_standalone_profile_xml(
     """
     _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
-        out_file.write(render_standalone_profile_xml(edited_profile, redact=redact))
+        out_file.write(render_standalone_profile_xml(edited_profile, redact=redact, state=state))
     return safety_copy
 
 
@@ -1139,6 +1147,7 @@ def save_profile_to_android(
     ip_address: str,
     ip_port: str,
     profile_name: str,
+    state: RunState,
 ) -> tuple[int, str]:
     """Writes the edited Profile, rendered as standalone XML, onto the Android
     device's storage under /Tasker/profiles, via the Tasker HTTP Server Example's
@@ -1156,12 +1165,12 @@ def save_profile_to_android(
         ip_address,
         ip_port,
         profile_name,
-        lambda: render_standalone_profile_xml(edited_profile).encode("utf-8"),
+        lambda: render_standalone_profile_xml(edited_profile, state=state).encode("utf-8"),
     )
     return return_code, result
 
 
-def register_new_profile(edited_profile: EditableProfile, profile_name: str) -> None:
+def register_new_profile(edited_profile: EditableProfile, profile_name: str, state: RunState) -> None:
     """Adds a new Profile to the in-memory backup's Profile tables (all_profiles,
     all_profiles_by_name) so it behaves like any other Profile loaded from the
     backup -- e.g. so it shows up in the Edit Profile picker and so a second Add
@@ -1176,17 +1185,17 @@ def register_new_profile(edited_profile: EditableProfile, profile_name: str) -> 
     userintr_android.save_profile_to_android_event's is_new_profile branch).
     """
     with sessundo.undoable(f"Add Profile '{profile_name}'"):
-        PrimeItems.tasker_root_elements["all_profiles"][edited_profile.profile_id] = {
+        state.tasker_root_elements["all_profiles"][edited_profile.profile_id] = {
             "xml": edited_profile.profile_element,
             "name": profile_name,
         }
-        PrimeItems.tasker_root_elements["all_profiles_by_name"][profile_name] = {
+        state.tasker_root_elements["all_profiles_by_name"][profile_name] = {
             "xml": edited_profile.profile_element,
             "id": edited_profile.profile_id,
         }
 
 
-def add_profile_to_project(edited_profile: EditableProfile, project_name: str) -> None:
+def add_profile_to_project(edited_profile: EditableProfile, project_name: str, state: RunState) -> None:
     """Attaches a newly-registered Profile to a Project by appending its id to
     that Project's <pids> element -- the actual mechanism Tasker (and every
     view this app generates) uses to know which Profiles belong to which
@@ -1217,7 +1226,7 @@ def add_profile_to_project(edited_profile: EditableProfile, project_name: str) -
     Project (defense in depth; the GUI should only offer real Project names).
     """
     with sessundo.undoable(f"Add a Profile to Project '{project_name}'"):
-        project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+        project_entry = state.tasker_root_elements.get("all_projects", {}).get(project_name)
         if project_entry is None:
             return
 
@@ -1230,12 +1239,12 @@ def add_profile_to_project(edited_profile: EditableProfile, project_name: str) -
 
         for task_id in (edited_profile.entry_task_id, edited_profile.exit_task_id):
             if task_id:
-                add_task_to_project(task_id, project_name)
+                add_task_to_project(task_id, project_name, state=state)
 
         touch_project_mdate(project_element)
 
 
-def add_task_to_project(task_id: str, project_name: str) -> None:
+def add_task_to_project(task_id: str, project_name: str, state: RunState) -> None:
     """Attaches a newly-registered Task to a Project by appending its id to that
     Project's <tids> element -- the <pids>/<tids> counterpart of
     add_profile_to_project, for Tasks instead of Profiles. Call once, right
@@ -1259,7 +1268,7 @@ def add_task_to_project(task_id: str, project_name: str) -> None:
     should only offer real Project names).
     """
     with sessundo.undoable(f"Add a Task to Project '{project_name}'"):
-        project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+        project_entry = state.tasker_root_elements.get("all_projects", {}).get(project_name)
         if project_entry is None:
             return
 
@@ -1272,7 +1281,7 @@ def add_task_to_project(task_id: str, project_name: str) -> None:
         touch_project_mdate(project_element)
 
 
-def delete_profile(profile_name: str) -> list[str]:
+def delete_profile(profile_name: str, state: RunState) -> list[str]:
     """Deletes a Profile and nothing else -- its Entry/Exit Tasks are deliberately
     left alone. Returns [] on success, else a list of error strings (mirrors
     projedit.delete_project's convention), mutating nothing on error.
@@ -1301,12 +1310,12 @@ def delete_profile(profile_name: str) -> list[str]:
     whichever view walked that Project.
     """
     with sessundo.undoable(f"Delete Profile '{profile_name}'"):
-        resolved = resolve_profile_by_name(profile_name)
+        resolved = resolve_profile_by_name(profile_name, state=state)
         if resolved is None:
             return [f"Profile '{profile_name}' no longer exists."]
         profile_id, _ = resolved
 
-        for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
+        for project_entry in state.tasker_root_elements.get("all_projects", {}).values():
             project_element = project_entry["xml"]
             pids_element = project_element.find("pids")
             existing_ids = pids_element.text.split(",") if pids_element is not None and pids_element.text else []
@@ -1315,8 +1324,8 @@ def delete_profile(profile_name: str) -> list[str]:
             _set_child_text(project_element, "pids", ",".join(i for i in existing_ids if i != profile_id))
             touch_project_mdate(project_element)
 
-        PrimeItems.tasker_root_elements.get("all_profiles", {}).pop(profile_id, None)
-        PrimeItems.tasker_root_elements.get("all_profiles_by_name", {}).pop(profile_name, None)
+        state.tasker_root_elements.get("all_profiles", {}).pop(profile_id, None)
+        state.tasker_root_elements.get("all_profiles_by_name", {}).pop(profile_name, None)
         return []
 
 
@@ -1339,7 +1348,7 @@ def validate_new_profile_requirements(edited_profile: EditableProfile) -> list[s
     return errors
 
 
-def apply_edited_profile_to_live_tree(edited_profile: EditableProfile) -> None:
+def apply_edited_profile_to_live_tree(edited_profile: EditableProfile, state: RunState) -> None:
     """Writes an edited (pre-existing) Profile's changes back into the in-memory
     backup's Profile tables (all_profiles, all_profiles_by_name) so views
     generated from them -- Map, Diagram, Tree -- reflect the edit right away
@@ -1356,7 +1365,7 @@ def apply_edited_profile_to_live_tree(edited_profile: EditableProfile) -> None:
     with sessundo.undoable(
         f"Edit Profile '{edited_profile.profile_element.findtext('nme', '') or edited_profile.profile_id}'"
     ):
-        all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
+        all_profiles = state.tasker_root_elements["all_profiles"]
         entry = all_profiles.get(edited_profile.profile_id)
         if entry is None:
             return
@@ -1366,13 +1375,13 @@ def apply_edited_profile_to_live_tree(edited_profile: EditableProfile) -> None:
 
         all_profiles[edited_profile.profile_id] = {"xml": edited_profile.profile_element, "name": new_name}
 
-        all_profiles_by_name = PrimeItems.tasker_root_elements.setdefault("all_profiles_by_name", {})
+        all_profiles_by_name = state.tasker_root_elements.setdefault("all_profiles_by_name", {})
         if old_name in all_profiles_by_name and old_name != new_name:
             del all_profiles_by_name[old_name]
         all_profiles_by_name[new_name] = {"xml": edited_profile.profile_element, "id": edited_profile.profile_id}
 
 
-def apply_profile_rename(edited_profile: EditableProfile, new_name: str) -> list[str]:
+def apply_profile_rename(edited_profile: EditableProfile, new_name: str, state: RunState) -> list[str]:
     """Validate a new Profile name on its own and, only if valid, write it into
     the Profile copy's <nme>. Returns [] on success, else the error messages,
     mutating nothing on error. Mirrors taskedit.apply_task_rename exactly.
@@ -1392,7 +1401,7 @@ def apply_profile_rename(edited_profile: EditableProfile, new_name: str) -> list
     errors = []
     if not new_name:
         errors.append("Profile name cannot be empty.")
-    elif new_name != current_name and profile_name_exists(new_name):
+    elif new_name != current_name and profile_name_exists(new_name, state=state):
         errors.append(f"A Profile named '{new_name}' already exists in this backup. Choose a different name.")
 
     if errors:
@@ -1402,7 +1411,7 @@ def apply_profile_rename(edited_profile: EditableProfile, new_name: str) -> list
     return []
 
 
-def rename_profile_in_live_tree(edited_profile: EditableProfile) -> str:
+def rename_profile_in_live_tree(edited_profile: EditableProfile, state: RunState) -> str:
     """Renames an already-registered Profile in the in-memory backup: stamps the
     new <nme> onto the element the Profile tables actually point at, and moves its
     all_profiles_by_name entry to the new key (all_profiles is keyed by id, which
@@ -1428,7 +1437,7 @@ def rename_profile_in_live_tree(edited_profile: EditableProfile) -> str:
     the table's "name" field would leave the written XML carrying the old one.
     """
     with sessundo.undoable(f"Rename Profile to '{edited_profile.profile_element.findtext('nme', '')}'"):
-        all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
+        all_profiles = state.tasker_root_elements.get("all_profiles", {})
         entry = all_profiles.get(edited_profile.profile_id)
         if entry is None:
             return ""
@@ -1439,7 +1448,7 @@ def rename_profile_in_live_tree(edited_profile: EditableProfile) -> str:
         _set_child_text(live_element, "nme", new_name)
         entry["name"] = new_name
 
-        all_profiles_by_name = PrimeItems.tasker_root_elements.setdefault("all_profiles_by_name", {})
+        all_profiles_by_name = state.tasker_root_elements.setdefault("all_profiles_by_name", {})
         if old_name in all_profiles_by_name and old_name != new_name:
             del all_profiles_by_name[old_name]
         all_profiles_by_name[new_name] = {"xml": live_element, "id": edited_profile.profile_id}

@@ -60,13 +60,13 @@ from maptasker.src.guiwins_search import (
 )
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
     logger,
 )
 
 if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MyGui
 
 
@@ -341,10 +341,10 @@ def _escape_html_text(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def _connectors_by_line() -> dict[int, list[tuple[int, int, int]]]:
+def _connectors_by_line(state: RunState) -> dict[int, list[tuple[int, int, int]]]:
     """Invert PrimeItems.diagram_connectors (id -> ranges) into line_num -> (start, end, id)."""
     by_line: dict[int, list[tuple[int, int, int]]] = {}
-    for connector_id, ranges in getattr(PrimeItems, "diagram_connectors", {}).items():
+    for connector_id, ranges in getattr(state, "diagram_connectors", {}).items():
         for line_num, col_start, col_end in ranges:
             by_line.setdefault(line_num, []).append((col_start, col_end, connector_id))
     return by_line
@@ -1561,7 +1561,7 @@ class NiceGuiTextView(TextViewSearch):
         """
         if self.scope_label is None:
             return
-        drawn, changed = scope_badge_text(self.built_for, mapjump.current_scope(state=PrimeItems).phrase)
+        drawn, changed = scope_badge_text(self.built_for, mapjump.current_scope(state=self.master_gui.state).phrase)
         self.scope_label.set_text(drawn)
         self.scope_stale_label.set_text(changed)
         self.scope_stale_label.set_visibility(bool(changed))
@@ -1640,7 +1640,9 @@ class NiceGuiTextView(TextViewSearch):
                 ui.button(translate_string("Bottom"), on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
                 ui.button(translate_string("Toggle Wrap"), on_click=self.toggle_wrap).classes("bg-blue-600")
                 if self.is_map:
-                    self.map_message_label = ui.label(PrimeItems.view_limit_msg).classes("text-orange-400 italic ml-4")
+                    self.map_message_label = ui.label(self.master_gui.state.view_limit_msg).classes(
+                        "text-orange-400 italic ml-4"
+                    )
                 if is_diagram:
                     ui.separator().props("vertical")
                     # Held on the view, not left anonymous, so "Reset Options" can move it:
@@ -1691,7 +1693,7 @@ class NiceGuiTextView(TextViewSearch):
             # drawers, cards and tab panels that rely on it.
             background_style = ""
             if self.title.startswith("Map"):
-                background = css_color(PrimeItems.colors_to_use.get("background_color", ""))
+                background = css_color(self.master_gui.state.colors_to_use.get("background_color", ""))
                 if background:
                     background_style = f" background-color: {background} !important;"
 
@@ -1709,7 +1711,7 @@ class NiceGuiTextView(TextViewSearch):
                     # reconciles against the file it actually reads. Deliberately not
                     # master_gui.font -- see the note there on why that can be stale.
                     f"width: 100%; max-width: 100%; "
-                    f"font-family: '{PrimeItems.program_arguments.font}', monospace;"
+                    f"font-family: '{self.master_gui.state.program_arguments.font}', monospace;"
                     f"{line_height_style}{background_style}",
                 )
             )
@@ -1734,7 +1736,9 @@ class NiceGuiTextView(TextViewSearch):
         # Starting point, used as-is by the Misc and Task Flow views (neither of which has a
         # generated file behind it).  The file-backed views replace this below with the font
         # their file actually carries.
-        html_style = f"width: 100%; max-width: 100%; font-family: '{PrimeItems.program_arguments.font}', monospace;"
+        html_style = (
+            f"width: 100%; max-width: 100%; font-family: '{self.master_gui.state.program_arguments.font}', monospace;"
+        )
         if not (is_diagram or is_flow):
             html_style += " word-break: break-word;"
 
@@ -1750,7 +1754,7 @@ class NiceGuiTextView(TextViewSearch):
             # the same reason the Diagram popout re-reads its own file (rungui.popout_view).
             with self.scroll_area:
                 content_str = (
-                    mapjump.html_report(PrimeItems.taskflow_rows)
+                    mapjump.html_report(self.master_gui.state.taskflow_rows)
                     if is_flow
                     else ("\n".join(str(line) for line in the_data) if isinstance(the_data, list) else str(the_data))
                 )
@@ -1790,7 +1794,11 @@ class NiceGuiTextView(TextViewSearch):
             # Diagram file is plain text with no CSS of its own, hence the fallback to the
             # font that generated this run.
             extracted_font = self.extract_first_font_name(final_html)
-            view_font = extracted_font if extracted_font != "Font name not found" else PrimeItems.program_arguments.font
+            view_font = (
+                extracted_font
+                if extracted_font != "Font name not found"
+                else self.master_gui.state.program_arguments.font
+            )
             html_style = f"width: 100%; max-width: 100%; font-family: '{view_font}', monospace;"
             if not is_diagram:
                 html_style += " word-break: break-word;"
@@ -1804,11 +1812,11 @@ class NiceGuiTextView(TextViewSearch):
             if html_lines and html_lines[0].strip() == '<span class="normtab"></span><!doctype html>':
                 del html_lines[0]  # Remove the first line if it matches the unwanted header
 
-            connectors_by_line = _connectors_by_line() if is_diagram else None
+            connectors_by_line = _connectors_by_line(state=self.master_gui.state) if is_diagram else None
             # What makes the Diagram clickable rather than merely drawn -- see diagintr.
             # Empty for a Diagram file left on disk by an older run, in which case the
             # lines below are wrapped exactly as they always were.
-            diagram_model = diagintr.model(state=PrimeItems) if is_diagram else {}
+            diagram_model = diagintr.model(state=self.master_gui.state) if is_diagram else {}
             nodes_by_line = diagintr.nodes_by_line(diagram_model)
             folds_by_line = diagintr.folds_by_line(diagram_model)
 
@@ -1905,8 +1913,8 @@ class NiceGuiTextView(TextViewSearch):
             # of the connector hint: that the diagram stops early is the more important of the
             # two things to tell the user, and this is the Map view's view_limit_msg field by
             # another name (see NiceGuiTextView.build_ui).
-            if PrimeItems.diagram_limit_msg and hasattr(self, "diagram_message_label"):
-                self.diagram_message_label.set_text(PrimeItems.diagram_limit_msg)
+            if self.master_gui.state.diagram_limit_msg and hasattr(self, "diagram_message_label"):
+                self.diagram_message_label.set_text(self.master_gui.state.diagram_limit_msg)
             await self._enable_in_page_links()
             self._mark_content_ready()
             # Everything is on the page now, so a report finding that asked for this Map can

@@ -34,7 +34,6 @@ from maptasker.src.guiwins import build_changes_since_dialog, build_health_check
 from maptasker.src.guiwins_views import NiceGuiTextView
 from maptasker.src.healthck import ERROR, WARNING, run_health_check, write_health_check_report
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import TIMELINE_FILE
 from maptasker.src.taskflow import run_task_flow_check, write_task_flow_report
 from maptasker.src.userintr_loading import local_xml_start_directory
@@ -44,6 +43,7 @@ from maptasker.src.xmldiff import compare
 if TYPE_CHECKING:
     from datetime import date
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
 
 
@@ -104,6 +104,10 @@ class ReportEventHandlers:
     """The report handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
     handler is reached through self, just as it was before these moved here."""
 
+    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
+    # its window's.
+    state: RunState
+
     def health_check_event(self: MapTaskerEventHandlers) -> None:
         """Ask which categories to report, then scan, display and save.
 
@@ -114,14 +118,14 @@ class ReportEventHandlers:
         takes on a large backup.
         """
         gui = self.gui
-        if not PrimeItems.tasker_root_elements["all_tasks"]:
+        if not self.state.tasker_root_elements["all_tasks"]:
             gui.display_message_box(
                 translate_string("No XML file has been loaded.  Get an XML file first."),
                 "Red",
             )
             return
 
-        build_health_check_dialog(self.run_health_check_for, self.save_health_check_skip, gui)
+        build_health_check_dialog(self.run_health_check_for, self.save_health_check_skip, gui, state=self.state)
 
     def save_health_check_skip(self: MapTaskerEventHandlers, skip: list[str]) -> None:
         """Remember which Health Check categories to leave out, in the settings file.
@@ -132,7 +136,7 @@ class ReportEventHandlers:
         two would be put back to what it was at startup.
         """
         remember_setting(self.gui, "health_check_skip", skip)
-        save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
+        save_restore_args(self.state.program_arguments, self.state.colors_to_use, to_save=True)
 
     def run_health_check_for(self: MapTaskerEventHandlers, skip: list[str]) -> None:
         """Run the check for the categories the panel left ticked, and show the report.
@@ -178,7 +182,7 @@ class ReportEventHandlers:
     def variable_xref_event(self: MapTaskerEventHandlers) -> None:
         """Build the variable where-used index, display it and save it to a file."""
         gui = self.gui
-        if not PrimeItems.tasker_root_elements["all_tasks"]:
+        if not self.state.tasker_root_elements["all_tasks"]:
             gui.display_message_box(
                 translate_string("No XML file has been loaded.  Get an XML file first."),
                 "Red",
@@ -233,7 +237,7 @@ class ReportEventHandlers:
         the Map and Diagram views already honour.
         """
         gui = self.gui
-        if not PrimeItems.tasker_root_elements["all_tasks"]:
+        if not self.state.tasker_root_elements["all_tasks"]:
             gui.display_message_box(
                 translate_string("No XML file has been loaded.  Get an XML file first."),
                 "Red",
@@ -272,7 +276,7 @@ class ReportEventHandlers:
     async def compare_files_event(self: MapTaskerEventHandlers) -> None:
         """Compare another XML file against the loaded one, display the report and save it."""
         gui = self.gui
-        if not PrimeItems.tasker_root_elements["all_tasks"]:
+        if not self.state.tasker_root_elements["all_tasks"]:
             gui.display_message_box(
                 translate_string("No XML file has been loaded.  Get an XML file first."),
                 "Red",
@@ -337,7 +341,7 @@ class ReportEventHandlers:
         telling them there is nothing to compare it against wastes the choice.  Same
         check, and the same wording, as compare_files_event.
         """
-        if not PrimeItems.tasker_root_elements["all_tasks"]:
+        if not self.state.tasker_root_elements["all_tasks"]:
             self.gui.display_message_box(
                 translate_string("No XML file has been loaded.  Get an XML file first."),
                 "Red",

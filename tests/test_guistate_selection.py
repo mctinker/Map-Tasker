@@ -29,24 +29,24 @@ def test_task_wins_over_the_profile_and_project_mapping_it_filled_in(selection_a
         single_profile_name="Morning Reminder",
         single_project_name="Base",
     )
-    assert live_selection() == ("Task", "Remind Me")
+    assert live_selection(state=PrimeItems) == ("Task", "Remind Me")
 
 
 def test_profile_wins_over_its_project(selection_arguments: dict) -> None:
     """A selected Profile is not replaced by the Project mapping it filled in."""
     selection_arguments.update(single_profile_name="Morning Reminder", single_project_name="Base")
-    assert live_selection() == ("Profile", "Morning Reminder")
+    assert live_selection(state=PrimeItems) == ("Profile", "Morning Reminder")
 
 
 def test_nothing_selected(selection_arguments: dict) -> None:
     """No selection carries nothing forward."""
-    assert live_selection() == ("", "")
+    assert live_selection(state=PrimeItems) == ("", "")
 
 
 def _stale_window(**overrides: object) -> SimpleNamespace:
     """A MyGui stand-in holding every setting, as a window built earlier in the session would."""
     settings = {**dict.fromkeys(ARGUMENT_NAMES, ""), **initialize_runtime_arguments(), **overrides}
-    return SimpleNamespace(**settings, color_lookup={})
+    return SimpleNamespace(**settings, color_lookup={}, state=PrimeItems)
 
 
 @pytest.fixture
@@ -65,7 +65,7 @@ def test_address_set_in_one_window_survives_a_save_read_from_another() -> None:
     guistate.remember_setting(used_window, "android_last_ipaddr", "10.1.2.3")
 
     assert guistate.gui_settings(other_window)["android_last_ipaddr"] == "10.1.2.3"
-    guistate.capture_gui_state(other_window, {})
+    guistate.capture_gui_state(other_window, {}, state=PrimeItems)
     assert PrimeItems.program_arguments.android_last_ipaddr == "10.1.2.3"
     assert other_window.android_last_ipaddr == "10.1.2.3"
 

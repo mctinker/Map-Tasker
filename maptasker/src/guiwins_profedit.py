@@ -36,7 +36,6 @@ from maptasker.src.guiwins_taskedit import (
 )
 from maptasker.src.mapjump import PROFILE
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from nicegui.elements.select import Select
@@ -128,7 +127,7 @@ def _build_profile_editor_body(
         # Rebuild from scratch so the Link/Unlink controls always reflect the
         # profile's current entry_task_id/exit_task_id after a Link or Unlink.
         tasks_container.clear()
-        all_tasks_by_name = PrimeItems.tasker_root_elements.get("all_tasks_by_name", {})
+        all_tasks_by_name = self.state.tasker_root_elements.get("all_tasks_by_name", {})
         task_names = sorted(all_tasks_by_name)
         with tasks_container:
             for link_type, task_id in (
@@ -467,7 +466,7 @@ def _build_profile_editor_body(
                 # tool can't synthesize -- see taskedit.classify_action_addability) is
                 # labeled "(Not Supported)" and greyed out/unselectable -- see
                 # _mark_unsupported_options.
-                event_rows = profedit.list_addable_events()
+                event_rows = profedit.list_addable_events(state=self.state)
                 event_options = {
                     row["condition_key"]: row["name"] if row["addable"] else f"{row['name']} (Not Supported)"
                     for row in event_rows
@@ -483,7 +482,7 @@ def _build_profile_editor_body(
                 )
                 event_type_picker.bind_visibility_from(add_type_picker, "value", backward=lambda v: v == "Event")
 
-                state_rows = profedit.list_addable_states()
+                state_rows = profedit.list_addable_states(state=self.state)
                 state_options = {
                     row["condition_key"]: row["name"] if row["addable"] else f"{row['name']} (Not Supported)"
                     for row in state_rows

@@ -69,6 +69,7 @@ from maptasker.src.translator import T
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MyGui
 
 
@@ -171,7 +172,7 @@ def _project_for_new_object(gui: MyGui, item_label: str) -> tuple[str, str]:
         selected_name = getattr(gui, f"single_{label.lower()}_name", "")
         if is_no_selection(selected_name):
             continue
-        if owning_project := resolve(selected_name, state=PrimeItems):
+        if owning_project := resolve(selected_name, state=gui.state):
             return owning_project, ""
         no_owner = translate_string("does not belong to a Project, so there is nowhere to attach a new")
         return "", (
@@ -330,8 +331,8 @@ def _finish_new_scene(gui: MyGui, edited_scene: sceneedit.EditableScene, project
     # Project are one thing the user did.  undoable is re-entrant, so the mutators'
     # own blocks inside this one add nothing to the history.
     with sessundo.undoable(f"Add Scene '{edited_scene.scene_name}'"):
-        sceneedit.register_new_scene(edited_scene)
-        sceneedit.add_scene_to_project(edited_scene.scene_name, project_name)
+        sceneedit.register_new_scene(edited_scene, state=gui.state)
+        sceneedit.add_scene_to_project(edited_scene.scene_name, project_name, state=gui.state)
     refresh_tasker_object_pulldowns(gui)
 
     # Select the new Scene as the app-wide single-Scene filter and show it in the
@@ -422,12 +423,12 @@ def reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool,
     app's in-memory state failed to switch over to it.
     """
     try:
-        PrimeItems.file_to_get = open(new_file_path, encoding="utf-8")
+        gui.state.file_to_get = open(new_file_path, encoding="utf-8")
     except OSError as e:
         return False, str(e)
 
-    PrimeItems.program_arguments.file = new_file_path
-    return_code = get_the_xml_data(state=PrimeItems)
+    gui.state.program_arguments.file = new_file_path
+    return_code = get_the_xml_data(state=gui.state)
     if return_code != 0:
         return False, f"Failed to load '{new_file_path}' (code {return_code})."
 
@@ -455,7 +456,7 @@ def _apply_edited_task(edited_task: taskedit.EditableTask, field_refs: dict) -> 
         for error in errors:
             ui.notify(error, type="negative")
         return False
-    taskedit.apply_edited_task_to_live_tree(edited_task)
+    taskedit.apply_edited_task_to_live_tree(edited_task, state=PrimeItems)
     return True
 
 
@@ -477,7 +478,7 @@ def _validate_and_apply_new_task(
 
     name_value = field_refs["name"].value.strip()
     conflict_errors = []
-    if taskedit.task_name_exists(name_value):
+    if taskedit.task_name_exists(name_value, state=PrimeItems):
         conflict_errors.append(f"A Task named '{name_value}' already exists in this backup. Choose a different name.")
     if check_save_path:
         save_path = field_refs["save_path"].value.strip()
@@ -522,11 +523,11 @@ def _finish_new_task(
     # links it to, and attaching it to its Project are one thing the user did.  undoable is
     # re-entrant, so the mutators' own blocks inside this one add nothing to the history.
     with sessundo.undoable(f"Add Task '{name_value}'"):
-        taskedit.register_new_task(edited_task, name_value)
+        taskedit.register_new_task(edited_task, name_value, state=gui.state)
         if on_created is not None:
             on_created(edited_task.task_id)
         if target_project_name:
-            profedit.add_task_to_project(edited_task.task_id, target_project_name)
+            profedit.add_task_to_project(edited_task.task_id, target_project_name, state=gui.state)
 
     refresh_tasker_object_pulldowns(gui)
 
@@ -567,7 +568,7 @@ def _link_pending_task_pickers(edited_profile: profedit.EditableProfile, field_r
         picker = field_refs.get(f"{link_type.lower()}_task_picker")
         if picker is None or not picker.value:
             continue
-        resolved = taskedit.resolve_task_by_name(picker.value)
+        resolved = taskedit.resolve_task_by_name(picker.value, state=PrimeItems)
         if resolved is not None:
             task_id, _ = resolved
             profedit.link_task_to_profile(edited_profile, task_id, link_type)
@@ -587,7 +588,7 @@ def _apply_edited_profile(edited_profile: profedit.EditableProfile, field_refs: 
         for error in errors:
             ui.notify(error, type="negative")
         return False
-    profedit.apply_edited_profile_to_live_tree(edited_profile)
+    profedit.apply_edited_profile_to_live_tree(edited_profile, state=PrimeItems)
     return True
 
 
@@ -611,7 +612,7 @@ def _validate_and_apply_new_profile(
     project_name = field_refs.get("target_project_name", "")
 
     conflict_errors = []
-    if profedit.profile_name_exists(name_value):
+    if profedit.profile_name_exists(name_value, state=PrimeItems):
         conflict_errors.append(
             f"A Profile named '{name_value}' already exists in this backup. Choose a different name.",
         )
@@ -655,8 +656,8 @@ def _finish_new_profile(
     # Project are one thing the user did.  undoable is re-entrant, so the mutators'
     # own blocks inside this one add nothing to the history.
     with sessundo.undoable(f"Add Profile '{name_value}'"):
-        profedit.register_new_profile(edited_profile, name_value)
-        profedit.add_profile_to_project(edited_profile, project_name)
+        profedit.register_new_profile(edited_profile, name_value, state=gui.state)
+        profedit.add_profile_to_project(edited_profile, project_name, state=gui.state)
     refresh_tasker_object_pulldowns(gui)
 
     # Select the new Profile as the app-wide single-Profile filter and show it
@@ -671,7 +672,7 @@ def _finish_new_project(gui: MyGui, edited_project: projedit.EditableProject) ->
     (unlike _finish_new_profile's add_profile_to_project) -- a Project has no
     parent of its own.
     """
-    projedit.register_new_project(edited_project)
+    projedit.register_new_project(edited_project, state=gui.state)
     refresh_tasker_object_pulldowns(gui)
 
     # Select the new Project as the app-wide single-Project filter and show it
@@ -796,6 +797,10 @@ class EditorEventHandlers:
     """The editor handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
     handler is reached through self, just as it was before these moved here."""
 
+    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
+    # its window's.
+    state: RunState
+
     def open_edit_task_dialog_event(self) -> None:
         """Opens the Edit Task dialog for the currently selected single Task name."""
         the_view = self.gui
@@ -804,7 +809,7 @@ class EditorEventHandlers:
             ui.notify(translate_string("Select a single Task first (Task pulldown above)."), type="warning")
             return
 
-        edited_task = taskedit.load_task_for_edit(task_name)
+        edited_task = taskedit.load_task_for_edit(task_name, state=self.state)
         if edited_task is None:
             ui.notify(f"Could not find Task '{task_name}'.", type="negative")
             return
@@ -872,13 +877,13 @@ class EditorEventHandlers:
         the title, the read-only Name field and the default export path are all
         brought up to date, and everything else stays pending until Ok/Save.
         """
-        errors = taskedit.apply_task_rename(edited_task, new_name)
+        errors = taskedit.apply_task_rename(edited_task, new_name, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
             return
 
-        old_name = taskedit.rename_task_in_live_tree(edited_task)
+        old_name = taskedit.rename_task_in_live_tree(edited_task, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
         _select_renamed_item(self.gui, "Task", new_name)
 
@@ -920,7 +925,7 @@ class EditorEventHandlers:
         pointing at the name just deleted, and leaving it there would let Edit
         Task reopen on a Task that no longer resolves.
         """
-        errors = taskedit.delete_task(task_name)
+        errors = taskedit.delete_task(task_name, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -961,12 +966,14 @@ class EditorEventHandlers:
 
         def _write() -> None:
             try:
-                safety_copy = taskedit.write_standalone_task_xml(edited_task, save_path, redact=redact)
+                safety_copy = taskedit.write_standalone_task_xml(
+                    edited_task, save_path, redact=redact, state=self.state
+                )
             except OSError as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
 
-            taskedit.apply_edited_task_to_live_tree(edited_task)
+            taskedit.apply_edited_task_to_live_tree(edited_task, state=self.state)
 
             # The write took a copy of anything already at that path (see presave);
             # say so, so the user knows where it went.
@@ -1041,7 +1048,7 @@ class EditorEventHandlers:
                     ui.notify(error, type="negative")
                 kept = False
                 continue
-            taskedit.apply_edited_task_to_live_tree(edited_task)
+            taskedit.apply_edited_task_to_live_tree(edited_task, state=self.state)
 
         for tag, (edited_task, field_refs) in list(pending_tasks.items()):
             if not edited_task.actions:
@@ -1141,7 +1148,7 @@ class EditorEventHandlers:
             for error in errors:
                 ui.notify(error, type="negative")
             return
-        taskedit.apply_edited_task_to_live_tree(edited_task)
+        taskedit.apply_edited_task_to_live_tree(edited_task, state=self.state)
         task_name = edited_task.task_element.findtext("nme", "") or edited_task.task_id
         ui.notify(f"{translate_string('Changes kept for Task')} '{task_name}'.", type="positive")
 
@@ -1216,11 +1223,11 @@ class EditorEventHandlers:
         one path and not the other would show up in the Edit Task picker only sometimes.
         """
         if is_new_task:
-            taskedit.register_new_task(edited_task, task_name)
+            taskedit.register_new_task(edited_task, task_name, state=self.state)
             if on_created is not None:
                 on_created(edited_task.task_id)
         else:
-            taskedit.apply_edited_task_to_live_tree(edited_task)
+            taskedit.apply_edited_task_to_live_tree(edited_task, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
 
     def open_add_project_dialog_event(self) -> None:
@@ -1232,17 +1239,17 @@ class EditorEventHandlers:
         # See open_add_task_dialog_event's identical self-healing load: the toolbar's
         # "Current File" only means a filename is known, not that it's been parsed
         # into PrimeItems.xml_root yet.
-        if PrimeItems.xml_root is None:
-            if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
-                PrimeItems.file_to_get = the_view.file
-            if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
+        if self.state.xml_root is None:
+            if not self.state.file_to_get and getattr(the_view, "file", ""):
+                self.state.file_to_get = the_view.file
+            if not self.state.file_to_get or get_xml(the_view.debug, the_view.appearance_mode, state=self.state) != 0:
                 ui.notify(
                     translate_string("No backup file is currently loaded. Use 'Get Local XML' first."),
                     type="warning",
                 )
                 return
 
-        new_project = projedit.create_new_project("")
+        new_project = projedit.create_new_project("", state=self.state)
         if isinstance(new_project, str):
             ui.notify(new_project, type="warning")
             return
@@ -1262,14 +1269,14 @@ class EditorEventHandlers:
         Dialog stays open on any error so the user's in-progress work isn't lost.
         """
         name_value = field_refs["name"].value.strip()
-        if projedit.project_name_exists(name_value):
+        if projedit.project_name_exists(name_value, state=self.state):
             ui.notify(
                 f"A Project named '{name_value}' already exists in this backup. Choose a different name.",
                 type="negative",
             )
             return
 
-        errors = projedit.apply_edits_to_project(edited_project, name_value)
+        errors = projedit.apply_edits_to_project(edited_project, name_value, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -1288,7 +1295,7 @@ class EditorEventHandlers:
             ui.notify(translate_string("Select a single Project first (Project pulldown above)."), type="warning")
             return
 
-        edited_project = projedit.load_project_for_edit(project_name)
+        edited_project = projedit.load_project_for_edit(project_name, state=self.state)
         if edited_project is None:
             ui.notify(f"Could not find Project '{project_name}'.", type="negative")
             return
@@ -1340,13 +1347,13 @@ class EditorEventHandlers:
         """
         old_name = edited_project.project_name
 
-        errors = projedit.apply_edits_to_project(edited_project, new_name)
+        errors = projedit.apply_edits_to_project(edited_project, new_name, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
             return
 
-        projedit.rename_project_in_live_tree(old_name, edited_project)
+        projedit.rename_project_in_live_tree(old_name, edited_project, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
         _select_renamed_item(self.gui, "Project", new_name)
 
@@ -1360,7 +1367,7 @@ class EditorEventHandlers:
         in-memory backup immediately -- see projedit.set_project_enabled for
         why the Edit Project dialog has to work that way.
         """
-        projedit.set_project_enabled(edited_project, enabled)
+        projedit.set_project_enabled(edited_project, enabled, state=self.state)
 
     # ----------------------------------------------------------------------------------
     # Object Properties -- the panel Project/Profile/Task/Scene share.  What it edits is
@@ -1421,7 +1428,7 @@ class EditorEventHandlers:
         The Project counterpart of set_project_enabled_event, and immediate for the same
         reason: there is no later moment at which a by-name save could pick this up.
         """
-        projedit.apply_properties_to_live_tree(edited_project)
+        projedit.apply_properties_to_live_tree(edited_project, state=self.state)
 
     def cancel_object_properties_event(
         self,
@@ -1478,13 +1485,13 @@ class EditorEventHandlers:
         old_name = edited_project.project_name
         name_value = field_refs["name"].value.strip()
 
-        errors = projedit.apply_edits_to_project(edited_project, name_value)
+        errors = projedit.apply_edits_to_project(edited_project, name_value, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
             return
 
-        projedit.rename_project_in_live_tree(old_name, edited_project)
+        projedit.rename_project_in_live_tree(old_name, edited_project, state=self.state)
 
         success, result = write_full_backup_to_current_file()
         if not success:
@@ -1531,9 +1538,7 @@ class EditorEventHandlers:
         def _write() -> None:
             try:
                 safety_copy = projedit.write_standalone_project_xml(
-                    edited_project.project_name,
-                    save_path,
-                    redact=redact,
+                    edited_project.project_name, save_path, redact=redact, state=self.state
                 )
             except (OSError, ValueError) as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
@@ -1605,7 +1610,7 @@ class EditorEventHandlers:
         selection, and closes both dialogs. Both dialogs stay open on error
         (e.g. "Base" with keep_contents) so nothing is lost/hidden.
         """
-        errors = projedit.delete_project(project_name, keep_contents=keep_contents)
+        errors = projedit.delete_project(project_name, keep_contents=keep_contents, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -1655,10 +1660,10 @@ class EditorEventHandlers:
         # See open_add_task_dialog_event's identical self-healing load: the toolbar's
         # "Current File" only means a filename is known, not that it's been parsed
         # into PrimeItems.xml_root yet.
-        if PrimeItems.xml_root is None:
-            if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
-                PrimeItems.file_to_get = the_view.file
-            if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
+        if self.state.xml_root is None:
+            if not self.state.file_to_get and getattr(the_view, "file", ""):
+                self.state.file_to_get = the_view.file
+            if not self.state.file_to_get or get_xml(the_view.debug, the_view.appearance_mode, state=self.state) != 0:
                 ui.notify(
                     translate_string("No backup file is currently loaded. Use 'Get Local XML' first."),
                     type="warning",
@@ -1683,7 +1688,7 @@ class EditorEventHandlers:
         The prompt stays open if the Scene can't be built, so the choice isn't lost along
         with the error.
         """
-        new_scene = sceneedit.create_new_scene("", version, template or sceneedit.V2_DEFAULT_TEMPLATE)
+        new_scene = sceneedit.create_new_scene("", version, template or sceneedit.V2_DEFAULT_TEMPLATE, state=self.state)
         if isinstance(new_scene, str):
             ui.notify(new_scene, type="warning")
             return
@@ -1704,14 +1709,14 @@ class EditorEventHandlers:
         Dialog stays open on any error so the user's in-progress work isn't lost.
         """
         name_value = field_refs["name"].value.strip()
-        if sceneedit.scene_name_exists(name_value):
+        if sceneedit.scene_name_exists(name_value, state=self.state):
             ui.notify(
                 f"A Scene named '{name_value}' already exists in this backup. Choose a different name.",
                 type="negative",
             )
             return
 
-        errors = sceneedit.apply_edits_to_scene(edited_scene, name_value) + _apply_scene_field_values(
+        errors = sceneedit.apply_edits_to_scene(edited_scene, name_value, state=self.state) + _apply_scene_field_values(
             edited_scene,
             field_refs,
         )
@@ -1743,7 +1748,7 @@ class EditorEventHandlers:
             suspended.open()
             return
 
-        edited_scene = sceneedit.load_scene_for_edit(scene_name)
+        edited_scene = sceneedit.load_scene_for_edit(scene_name, state=self.state)
         if edited_scene is None:
             ui.notify(f"Could not find Scene '{scene_name}'.", type="negative")
             return
@@ -1806,7 +1811,7 @@ class EditorEventHandlers:
                 ui.notify(error, type="negative")
             return
 
-        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
+        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene, state=self.state)
 
         ui.notify(f"Saved Scene '{edited_scene.scene_name}'.", type="positive")
         dialog.close()
@@ -1853,13 +1858,13 @@ class EditorEventHandlers:
         """
         old_name = edited_scene.scene_name
 
-        errors = sceneedit.apply_edits_to_scene(edited_scene, new_name)
+        errors = sceneedit.apply_edits_to_scene(edited_scene, new_name, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
             return
 
-        sceneedit.apply_edited_scene_to_live_tree(old_name, edited_scene)
+        sceneedit.apply_edited_scene_to_live_tree(old_name, edited_scene, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
         _select_renamed_item(self.gui, "Scene", new_name)
 
@@ -1892,7 +1897,7 @@ class EditorEventHandlers:
                 ui.notify(error, type="negative")
             return
 
-        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
+        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene, state=self.state)
 
         success, result = write_full_backup_to_current_file()
         if not success:
@@ -1938,16 +1943,14 @@ class EditorEventHandlers:
                 ui.notify(error, type="negative")
             return
 
-        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
+        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene, state=self.state)
 
         redact = _redact_requested(field_refs, SCENE_REDACT_FIELD)
 
         def _write() -> None:
             try:
                 safety_copy = sceneedit.write_standalone_scene_xml(
-                    edited_scene.scene_name,
-                    save_path,
-                    redact=redact,
+                    edited_scene.scene_name, save_path, redact=redact, state=self.state
                 )
             except (OSError, ValueError) as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
@@ -1988,7 +1991,7 @@ class EditorEventHandlers:
         pointing at the name just deleted, and leaving it there would let Edit
         Scene reopen on a Scene that no longer resolves.
         """
-        errors = sceneedit.delete_scene(scene_name)
+        errors = sceneedit.delete_scene(scene_name, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -2009,7 +2012,7 @@ class EditorEventHandlers:
             ui.notify(translate_string("Select a single Profile first (Profile pulldown above)."), type="warning")
             return
 
-        edited_profile = profedit.load_profile_for_edit(profile_name)
+        edited_profile = profedit.load_profile_for_edit(profile_name, state=self.state)
         if edited_profile is None:
             ui.notify(f"Could not find Profile '{profile_name}'.", type="negative")
             return
@@ -2058,13 +2061,13 @@ class EditorEventHandlers:
         dialog open and renaming *only* the name, so the conditions and
         Entry/Exit Task links still being edited stay pending until Ok/Save.
         """
-        errors = profedit.apply_profile_rename(edited_profile, new_name)
+        errors = profedit.apply_profile_rename(edited_profile, new_name, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
             return
 
-        old_name = profedit.rename_profile_in_live_tree(edited_profile)
+        old_name = profedit.rename_profile_in_live_tree(edited_profile, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
         _select_renamed_item(self.gui, "Profile", new_name)
 
@@ -2103,7 +2106,7 @@ class EditorEventHandlers:
         still pointing at the name just deleted, and leaving it there would let
         Edit Profile reopen on a Profile that no longer resolves.
         """
-        errors = profedit.delete_profile(profile_name)
+        errors = profedit.delete_profile(profile_name, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -2134,17 +2137,17 @@ class EditorEventHandlers:
         # See open_add_task_dialog_event's identical self-healing load: the toolbar's
         # "Current File" only means a filename is known, not that it's been parsed
         # into PrimeItems.xml_root yet.
-        if PrimeItems.xml_root is None:
-            if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
-                PrimeItems.file_to_get = the_view.file
-            if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
+        if self.state.xml_root is None:
+            if not self.state.file_to_get and getattr(the_view, "file", ""):
+                self.state.file_to_get = the_view.file
+            if not self.state.file_to_get or get_xml(the_view.debug, the_view.appearance_mode, state=self.state) != 0:
                 ui.notify(
                     translate_string("No backup file is currently loaded. Use 'Get Local XML' first."),
                     type="warning",
                 )
                 return
 
-        new_profile = profedit.create_new_profile("")
+        new_profile = profedit.create_new_profile("", state=self.state)
         if isinstance(new_profile, str):
             ui.notify(new_profile, type="warning")
             return
@@ -2161,7 +2164,7 @@ class EditorEventHandlers:
         if not task_name:
             ui.notify(translate_string("Choose a Task first."), type="warning")
             return
-        resolved = taskedit.resolve_task_by_name(task_name)
+        resolved = taskedit.resolve_task_by_name(task_name, state=self.state)
         if resolved is None:
             ui.notify(f"Could not find Task '{task_name}'.", type="negative")
             return
@@ -2185,7 +2188,7 @@ class EditorEventHandlers:
         Task and on_linked (the picker's own render_task_links) is called to
         refresh the display -- see build_add_task_dialog's on_task_created.
         """
-        new_task = taskedit.create_new_task("", "100")
+        new_task = taskedit.create_new_task("", "100", state=self.state)
         if isinstance(new_task, str):
             ui.notify(new_task, type="warning")
             return
@@ -2219,7 +2222,7 @@ class EditorEventHandlers:
         if not event_key:
             ui.notify(translate_string("Choose an Event type first."), type="warning")
             return
-        result = profedit.add_event_condition_to_profile(edited_profile, event_key)
+        result = profedit.add_event_condition_to_profile(edited_profile, event_key, state=self.state)
         if isinstance(result, list):
             for error in result:
                 ui.notify(error, type="negative")
@@ -2231,7 +2234,7 @@ class EditorEventHandlers:
         if not state_key:
             ui.notify(translate_string("Choose a State type first."), type="warning")
             return
-        result = profedit.add_state_condition_to_profile(edited_profile, state_key)
+        result = profedit.add_state_condition_to_profile(edited_profile, state_key, state=self.state)
         if isinstance(result, list):
             for error in result:
                 ui.notify(error, type="negative")
@@ -2279,12 +2282,14 @@ class EditorEventHandlers:
 
         def _write() -> None:
             try:
-                safety_copy = profedit.write_standalone_profile_xml(edited_profile, save_path, redact=redact)
+                safety_copy = profedit.write_standalone_profile_xml(
+                    edited_profile, save_path, redact=redact, state=self.state
+                )
             except OSError as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
 
-            profedit.apply_edited_profile_to_live_tree(edited_profile)
+            profedit.apply_edited_profile_to_live_tree(edited_profile, state=self.state)
 
             # The write took a copy of anything already at that path (see presave);
             # say so, so the user knows where it went.
@@ -2367,7 +2372,7 @@ class EditorEventHandlers:
 
         save_path = field_refs["save_path"].value.strip()
         try:
-            safety_copy = profedit.write_standalone_profile_xml(edited_profile, save_path)
+            safety_copy = profedit.write_standalone_profile_xml(edited_profile, save_path, state=self.state)
         except OSError as e:
             ui.notify(f"Could not save file: {e}", type="negative")
             return
@@ -2462,10 +2467,10 @@ class EditorEventHandlers:
             f"Add Profile '{profile_name}'" if is_new_profile else f"Edit Profile '{profile_name}'",
         ):
             if is_new_profile:
-                profedit.register_new_profile(edited_profile, profile_name)
-                profedit.add_profile_to_project(edited_profile, project_name)
+                profedit.register_new_profile(edited_profile, profile_name, state=self.state)
+                profedit.add_profile_to_project(edited_profile, project_name, state=self.state)
             else:
-                profedit.apply_edited_profile_to_live_tree(edited_profile)
+                profedit.apply_edited_profile_to_live_tree(edited_profile, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
 
     def open_add_task_dialog_event(self) -> None:
@@ -2487,17 +2492,17 @@ class EditorEventHandlers:
         # parsed into PrimeItems.xml_root yet (see the same self-healing load in
         # MyGui.__init__). Load it now rather than let create_new_task below
         # confusingly report "no file loaded" while a file is plainly shown.
-        if PrimeItems.xml_root is None:
-            if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
-                PrimeItems.file_to_get = the_view.file
-            if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
+        if self.state.xml_root is None:
+            if not self.state.file_to_get and getattr(the_view, "file", ""):
+                self.state.file_to_get = the_view.file
+            if not self.state.file_to_get or get_xml(the_view.debug, the_view.appearance_mode, state=self.state) != 0:
                 ui.notify(
                     translate_string("No backup file is currently loaded. Use 'Get Local XML' first."),
                     type="warning",
                 )
                 return
 
-        new_task = taskedit.create_new_task("", "100")
+        new_task = taskedit.create_new_task("", "100", state=self.state)
         if isinstance(new_task, str):
             ui.notify(new_task, type="warning")
             return
@@ -2518,7 +2523,7 @@ class EditorEventHandlers:
         Returns the new action's act_number (so the dialog can highlight it as
         the most recently added), or None if it failed.
         """
-        result = taskedit.add_action_to_task(edited_task, action_key, position)
+        result = taskedit.add_action_to_task(edited_task, action_key, position, state=self.state)
         if isinstance(result, list):
             for error in result:
                 ui.notify(error, type="negative")
@@ -2540,7 +2545,7 @@ class EditorEventHandlers:
         Returns the new "If" action's act_number (so the dialog can highlight
         it as the most recently added), or None if it failed.
         """
-        result = taskedit.add_if_block_to_task(edited_task, variant, position)
+        result = taskedit.add_if_block_to_task(edited_task, variant, position, state=self.state)
         if isinstance(result, list):
             for error in result:
                 ui.notify(error, type="negative")
@@ -2569,7 +2574,7 @@ class EditorEventHandlers:
         Returns the new action's act_number (so the dialog can highlight it as
         the most recently added), or None if it failed.
         """
-        result = taskedit.add_action_to_task(edited_task, action_key, position)
+        result = taskedit.add_action_to_task(edited_task, action_key, position, state=self.state)
         if isinstance(result, list):
             for error in result:
                 ui.notify(error, type="negative")
@@ -2591,7 +2596,7 @@ class EditorEventHandlers:
         Returns the new "If" action's act_number (so the dialog can highlight
         it as the most recently added), or None if it failed.
         """
-        result = taskedit.add_if_block_to_task(edited_task, variant, position)
+        result = taskedit.add_if_block_to_task(edited_task, variant, position, state=self.state)
         if isinstance(result, list):
             for error in result:
                 ui.notify(error, type="negative")
@@ -2600,7 +2605,7 @@ class EditorEventHandlers:
 
     def copy_action_in_edit_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
         """Duplicates an action (inserted right after the original) in a Task being edited."""
-        taskedit.copy_action_in_task(edited_task, act_number)
+        taskedit.copy_action_in_task(edited_task, act_number, state=self.state)
 
     def move_action_in_edit_task_event(
         self,
@@ -2686,7 +2691,7 @@ class EditorEventHandlers:
 
         save_path = field_refs["save_path"].value.strip()
         try:
-            safety_copy = taskedit.write_standalone_task_xml(edited_task, save_path)
+            safety_copy = taskedit.write_standalone_task_xml(edited_task, save_path, state=self.state)
         except OSError as e:
             ui.notify(f"Could not save file: {e}", type="negative")
             return

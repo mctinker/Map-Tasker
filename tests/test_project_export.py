@@ -130,7 +130,7 @@ def _exported(project_name: str) -> ET.Element:
 
 def _document(project_name: str) -> ET.Element:
     """The whole exported <TaskerData> document."""
-    return ET.fromstring(projedit.render_standalone_project_xml(project_name))  # noqa: S314
+    return ET.fromstring(projedit.render_standalone_project_xml(project_name, state=PrimeItems))  # noqa: S314
 
 
 def test_the_project_keeps_the_id_tasker_imports_by() -> None:
@@ -192,7 +192,7 @@ def test_nothing_is_synthesized_over_something_real() -> None:
 def test_the_live_tree_is_left_alone() -> None:
     """The export works on a deep copy.  A synthesized <id> that leaked back into the loaded
     configuration would silently edit the user's Project."""
-    projedit.render_standalone_project_xml("Spare")
+    projedit.render_standalone_project_xml("Spare", state=PrimeItems)
 
     live = PrimeItems.tasker_root_elements["all_projects"]["Spare"]["xml"]
     assert live.find("id") is None

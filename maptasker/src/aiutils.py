@@ -19,7 +19,7 @@ from maptasker.src import console
 from maptasker.src.apikeys import load_api_keys
 from maptasker.src.error import rutroh_error
 from maptasker.src.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 from maptasker.src.sysconst import (
     DEEPSEEK_MODELS,
     GEMINI_MODELS,
@@ -136,7 +136,7 @@ def start_ollama_server() -> tuple[bool, str]:
     )
 
 
-def get_openai_models() -> list:
+def get_openai_models(state: RunState) -> list:
     """
     Lists all available OpenAI models that can be called from Python,
     with a focus on models suitable for programming hints (like for Android Tasker).
@@ -145,7 +145,7 @@ def get_openai_models() -> list:
     export OPENAI_API_KEY='YOUR_API_KEY'
     """
     # If we don't have the api key, then just use the default list of models.
-    api_key = PrimeItems.ai.get("openai_key", "")
+    api_key = state.ai.get("openai_key", "")
     if not api_key:
         return OPENAI_MODELS
 
@@ -239,7 +239,7 @@ def get_anthropic_models() -> list:
     ]
 
 
-def get_gemini_models() -> list:
+def get_gemini_models(state: RunState) -> list:
     """
     Lists all available Gemini models that can be called from Python,
     with a focus on models suitable for programming hints (like for Android Tasker).
@@ -251,7 +251,7 @@ def get_gemini_models() -> list:
 
     # Get the API key
     with suppress(KeyError):
-        api_key = PrimeItems.ai["gemini_key"]
+        api_key = state.ai["gemini_key"]
     if not api_key:
         return GEMINI_MODELS
 
@@ -471,7 +471,7 @@ def get_deepseek_models() -> list:
 
 
 # Get the Ai api keys
-def get_api_key() -> str:
+def get_api_key(state: RunState) -> str:
     """
     Copy the saved AI API keys into PrimeItems.ai.
 
@@ -485,5 +485,5 @@ def get_api_key() -> str:
     saved_keys = load_api_keys()
     if not any(saved_keys.values()):
         return "None"
-    PrimeItems.ai.update(saved_keys)
-    return PrimeItems.ai["api_key"]
+    state.ai.update(saved_keys)
+    return state.ai["api_key"]

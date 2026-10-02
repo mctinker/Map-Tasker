@@ -386,7 +386,7 @@ def test_an_untouched_export_is_untouched(loaded: ET.Element) -> None:
     """
     from maptasker.src import projedit  # noqa: PLC0415  - imported here to keep the GUI stack out of the rest
 
-    plain = projedit.render_standalone_project_xml("Home")
+    plain = projedit.render_standalone_project_xml("Home", state=PrimeItems)
     assert "[REDACTED:" not in plain
     # The Password in Task 'Leaky', which the export bundles.  Not the global variable's
     # key: a Project export carries the Project's Profiles, Tasks and Scenes, and Tasker's
@@ -403,7 +403,7 @@ def test_a_redacted_export_says_so(loaded: ET.Element) -> None:
     """
     from maptasker.src import projedit  # noqa: PLC0415
 
-    exported = projedit.render_standalone_project_xml("Home", redact=True)
+    exported = projedit.render_standalone_project_xml("Home", redact=True, state=PrimeItems)
     assert exported.startswith("<!--")
     assert "MapTasker redacted export" in exported
     assert "[REDACTED:" in exported

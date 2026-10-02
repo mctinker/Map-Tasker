@@ -379,7 +379,7 @@ def test_launch_app_is_not_addable_without_an_inventory(_nothing_loaded: None) -
     """With nothing to pick from, the refusal stands -- and says what is actually missing
     rather than the old blanket "this tool can't generate that kind of value".
     """
-    addable, reason = taskedit.classify_action_addability(LAUNCH_APP)
+    addable, reason = taskedit.classify_action_addability(LAUNCH_APP, state=PrimeItems)
     assert addable is False
     assert "Applications" in reason
 
@@ -387,7 +387,7 @@ def test_launch_app_is_not_addable_without_an_inventory(_nothing_loaded: None) -
 def test_loading_a_configuration_makes_launch_app_addable(loaded: None) -> None:
     """The 22 entries app_icon_fetch_design.md counts, by way of three of them."""
     for key in (LAUNCH_APP, KILL_APP, NOTIFY):
-        addable, reason = taskedit.classify_action_addability(key)
+        addable, reason = taskedit.classify_action_addability(key, state=PrimeItems)
         assert addable is True, f"{key}: {reason}"
 
 
@@ -396,13 +396,13 @@ def test_the_addable_action_memo_follows_the_inventory(_nothing_loaded: None) ->
     inputs never change, and one of them now does.  Without the generation check, the Add
     Action picker goes on offering the answer it computed before a configuration existed.
     """
-    before = {row["action_key"]: row["addable"] for row in taskedit.list_addable_actions()}
+    before = {row["action_key"]: row["addable"] for row in taskedit.list_addable_actions(state=PrimeItems)}
     assert before[LAUNCH_APP] is False
     assert before[FLASH] is True  # nothing to do with the inventory, addable throughout
 
     _load(_FIXTURE_XML)
 
-    after = {row["action_key"]: row["addable"] for row in taskedit.list_addable_actions()}
+    after = {row["action_key"]: row["addable"] for row in taskedit.list_addable_actions(state=PrimeItems)}
     assert after[LAUNCH_APP] is True
 
 
@@ -413,8 +413,8 @@ def test_a_synthesized_launch_app_writes_the_xml_tasker_writes(loaded: None) -> 
     from the inventory on the way to the XML, which is the whole reason harvesting is
     worth doing rather than just letting the field be typed into.
     """
-    edited_task = taskedit.create_new_task("Opener2", "3")
-    taskedit.add_action_to_task(edited_task, LAUNCH_APP)
+    edited_task = taskedit.create_new_task("Opener2", "3", state=PrimeItems)
+    taskedit.add_action_to_task(edited_task, LAUNCH_APP, state=PrimeItems)
 
     errors = taskedit.apply_edits_to_task(
         edited_task,
@@ -432,8 +432,8 @@ def test_a_synthesized_launch_app_writes_the_xml_tasker_writes(loaded: None) -> 
 
 def test_a_synthesized_notify_writes_its_icon(loaded: None) -> None:
     """The Icon counterpart, and the one place the <Img> is built from nothing at all."""
-    edited_task = taskedit.create_new_task("Noisy2", "3")
-    taskedit.add_action_to_task(edited_task, NOTIFY)
+    edited_task = taskedit.create_new_task("Noisy2", "3", state=PrimeItems)
+    taskedit.add_action_to_task(edited_task, NOTIFY, state=PrimeItems)
 
     errors = taskedit.apply_edits_to_task(
         edited_task,
@@ -453,7 +453,7 @@ def test_an_existing_action_offers_its_app_as_a_picker(loaded: None) -> None:
     """Edit Task's side of it: the argument that used to come back read-only now comes back
     as a field holding the packages it already names.
     """
-    edited_task = taskedit.load_task_for_edit("Opener")
+    edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
     launch_action = edited_task.actions[0]
     app_arg = launch_action.args[0]
 
@@ -654,7 +654,7 @@ def test_backing_the_switch_out_restores_the_bulk_task(
     built = deviceinv.build_helper_task()
     assert not isinstance(built, str), built
 
-    codes = _codes(taskedit.render_standalone_task_xml(built))
+    codes = _codes(taskedit.render_standalone_task_xml(built, state=PrimeItems))
     assert codes.count("815") == 3  # Package, App, Activity -- all in bulk
     assert "39" not in codes  # no For
     assert "344" not in codes  # no Test App
@@ -834,7 +834,7 @@ def test_the_refusal_the_gui_can_act_on_is_exactly_the_named_one(no_apps_device:
     it, so the two cannot drift apart without this failing.
     """
     assert appinv.apps() == []
-    addable, reason = taskedit.classify_action_addability(LAUNCH_APP)
+    addable, reason = taskedit.classify_action_addability(LAUNCH_APP, state=PrimeItems)
     assert addable is False
     assert reason == taskedit.NO_APPS_REASON
 
@@ -847,14 +847,14 @@ def test_a_fetch_opens_the_dead_end(no_apps_device: _FakeRequests) -> None:
     itself has to be enough to turn the row addable -- which it is only because the fetch
     moves deviceinv's generation and taskedit.list_addable_actions rebuilds on that.
     """
-    rows = {row["action_key"]: row for row in taskedit.list_addable_actions()}
+    rows = {row["action_key"]: row for row in taskedit.list_addable_actions(state=PrimeItems)}
     assert rows[LAUNCH_APP]["addable"] is False
     assert rows[LAUNCH_APP]["reason"] == taskedit.NO_APPS_REASON
 
     return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
     assert return_code == 0, message
 
-    rows = {row["action_key"]: row for row in taskedit.list_addable_actions()}
+    rows = {row["action_key"]: row for row in taskedit.list_addable_actions(state=PrimeItems)}
     assert rows[LAUNCH_APP]["addable"] is True
 
 
@@ -867,7 +867,7 @@ def test_an_app_argument_with_nothing_to_offer_says_why(no_apps_device: _FakeReq
     """
     arg = next(a for a in taskedit.action_codes[LAUNCH_APP].args if a.arg_id == "0")
     element = ET.fromstring('<Action sr="act0"><App sr="arg0"/></Action>')  # noqa: S314
-    editable = taskedit.build_editable_args(element, [arg])[0]
+    editable = taskedit.build_editable_args(element, [arg], state=PrimeItems)[0]
 
     assert editable.widget_kind == "readonly"
     assert editable.readonly_note == taskedit.NO_APPS_REASON
@@ -886,7 +886,7 @@ def test_the_icon_refusal_is_a_named_one_too(no_apps_device: _FakeRequests) -> N
     whose arg2 is an <Img> -- is refused for the icon reason, by equality.
     """
     assert appinv.icons() == []
-    addable, reason = taskedit.classify_action_addability(NOTIFY)
+    addable, reason = taskedit.classify_action_addability(NOTIFY, state=PrimeItems)
     assert addable is False
     assert reason == taskedit.NO_ICONS_REASON
 
@@ -899,14 +899,14 @@ def test_a_fetch_opens_the_icon_dead_end(no_apps_device: _FakeRequests) -> None:
     to turn the row addable -- which it is, because every fetched application stands as an
     icon and the fetch moves deviceinv's generation.
     """
-    rows = {row["action_key"]: row for row in taskedit.list_addable_actions()}
+    rows = {row["action_key"]: row for row in taskedit.list_addable_actions(state=PrimeItems)}
     assert rows[NOTIFY]["addable"] is False
     assert rows[NOTIFY]["reason"] == taskedit.NO_ICONS_REASON
 
     return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
     assert return_code == 0, message
 
-    rows = {row["action_key"]: row for row in taskedit.list_addable_actions()}
+    rows = {row["action_key"]: row for row in taskedit.list_addable_actions(state=PrimeItems)}
     assert rows[NOTIFY]["addable"] is True
 
 
@@ -971,13 +971,13 @@ def test_an_icon_argument_stops_being_read_only_once_the_icons_arrive(
     be offered beside that message instead of only inside a picker it cannot open.
     """
     action_xml = '<Action sr="act0" ve="7"><code>523</code><Img sr="arg2" ve="2"/></Action>'
-    action = taskedit._build_editable_action(ET.fromstring(action_xml), 0)  # noqa: S314, SLF001
+    action = taskedit._build_editable_action(ET.fromstring(action_xml), 0, state=PrimeItems)  # noqa: S314, SLF001
     icon_arg = next(arg for arg in action.args if arg.arg_id == "2")
     assert icon_arg.widget_kind == "readonly"
     assert icon_arg.readonly_note == taskedit.NO_ICONS_REASON
 
     assert deviceinv.fetch_apps_from_device("192.168.0.210", "1821")[0] == 0
-    taskedit.reclassify_action_args(action)
+    taskedit.reclassify_action_args(action, state=PrimeItems)
 
     icon_arg = next(arg for arg in action.args if arg.arg_id == "2")
     assert icon_arg.widget_kind == "icon_picker"
@@ -1777,7 +1777,7 @@ def test_the_source_argument_can_be_changed_without_editing_the_builder(
     built = deviceinv.build_import_profile_task(source_index="1")
     assert not isinstance(built, str), built
 
-    imported = ET.fromstring(taskedit.render_standalone_task_xml(built))  # noqa: S314
+    imported = ET.fromstring(taskedit.render_standalone_task_xml(built, state=PrimeItems))  # noqa: S314
     assert imported.find(".//Action[code='153']/Int[@sr='arg1']").get("val") == "1"
 
 
@@ -2413,9 +2413,9 @@ def _save_task_file(monkeypatch: pytest.MonkeyPatch, fake: _FakeUploadRequests) 
     monkeypatch.setattr(maputil2, "requests", fake)
     monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)  # the read-back settle
     _load(_FIXTURE_XML)
-    edited_task = taskedit.load_task_for_edit("Opener")  # by NAME -- see load_task_for_edit
+    edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)  # by NAME -- see load_task_for_edit
     assert edited_task is not None
-    return taskedit.save_task_to_android_file(edited_task, "192.168.0.210", "1821", "Opener")
+    return taskedit.save_task_to_android_file(edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems)
 
 
 def test_a_task_file_goes_to_taskers_tasks_folder(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2498,9 +2498,9 @@ def _import_task(monkeypatch: pytest.MonkeyPatch, fake: _FakeImportViaFileReques
     monkeypatch.setattr(maputil2, "requests", fake)
     monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)  # the read-back settle
     _load(_FIXTURE_XML)
-    edited_task = taskedit.load_task_for_edit("Opener")
+    edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
     assert edited_task is not None
-    return taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", **kwargs)
+    return taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", **kwargs, state=PrimeItems)
 
 
 def test_an_import_leaves_the_task_in_the_tasks_folder(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2525,7 +2525,7 @@ def test_the_import_posts_the_devices_bytes_and_not_a_second_render(monkeypatch:
     # The read-back doubles as the write's verify, so a device serving something else is a
     # failed write -- which is the other half of the contract, tested just below.  Here the
     # verify is neutralised so the import step itself can be observed.
-    monkeypatch.setattr(taskedit, "render_standalone_task_xml", lambda _task: from_device.decode())
+    monkeypatch.setattr(taskedit, "render_standalone_task_xml", lambda _task, **_kw: from_device.decode())
     return_code, result = _import_task(monkeypatch, fake)
 
     assert return_code == 0, result
@@ -2567,7 +2567,7 @@ def test_the_retry_reimports_the_file_rather_than_re_rendering(monkeypatch: pyte
     fake = _FakeImportViaFileRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
     _load(_FIXTURE_XML)
-    edited_task = taskedit.load_task_for_edit("Opener")
+    edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
     fake.uploaded = b"<TaskerData>already on the device</TaskerData>"  # what the folder holds
 
     return_code, result = taskedit.save_task_to_android_directory(
@@ -2606,8 +2606,8 @@ def test_a_write_still_settling_is_waited_for_rather_than_failed(monkeypatch: py
         return real_get(url, **kwargs)
 
     fake.get = slow_to_appear
-    edited_task = taskedit.load_task_for_edit("Opener")
-    return_code, result = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener")
+    edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
+    return_code, result = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems)
 
     assert return_code == 0, result
     assert misses[0] == 2  # it really did have to wait
@@ -2627,8 +2627,8 @@ def test_a_write_that_never_appears_is_still_a_failure(monkeypatch: pytest.Monke
         _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}') if "/api/auth" in url else _FakeResponse(404)
     )
 
-    edited_task = taskedit.load_task_for_edit("Opener")
-    return_code, result = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener")
+    edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
+    return_code, result = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems)
 
     assert return_code != 0
     assert "could not confirm it landed correctly" in result

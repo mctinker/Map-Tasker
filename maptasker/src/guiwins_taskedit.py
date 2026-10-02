@@ -30,6 +30,7 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins_impact import build_impact_panel
 from maptasker.src.mapjump import TASK
 from maptasker.src.maputil2 import tasker_name_matchable, translate_string
+from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -110,7 +111,7 @@ def _render_task_name_field(
     """
     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
 
-    task_names = taskedit.get_all_task_names()
+    task_names = taskedit.get_all_task_names(state=PrimeItems)
     if not task_names:
         return
 
@@ -861,7 +862,7 @@ def _after_inventory_fetch(redraw: Callable[[], None], action: taskedit.Editable
     """
 
     def refresh() -> None:
-        taskedit.reclassify_action_args(action)
+        taskedit.reclassify_action_args(action, state=PrimeItems)
         redraw()
 
     return refresh
@@ -874,7 +875,7 @@ def _after_condition_fetch(
     """_after_inventory_fetch's counterpart for a Profile State/Event condition's arguments."""
 
     def refresh() -> None:
-        profedit.reclassify_condition_args(condition)
+        profedit.reclassify_condition_args(condition, state=PrimeItems)
         redraw()
 
     return refresh
@@ -1159,7 +1160,7 @@ def _build_task_action_editor(
     # Last-known per-action If condition values, keyed by act_number -- lets an
     # uncheck/re-check of the "If" checkbox edit instead of starting over.
     condition_cache: dict[int, tuple[str, str, str]] = {}
-    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
+    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions(state=self.state)})
     # Maps each "Position" dropdown label to the act_number to insert at (None
     # for "At the End") -- kept out-of-band rather than as the ui.select's own
     # value/options dict, since "Before N" and "After N-1" resolve to the exact
@@ -1227,7 +1228,7 @@ def _build_task_action_editor(
 
     def refresh_picker(_e: ui.event | None = None) -> None:
         picker_container.clear()
-        rows = taskedit.search_addable_actions(search_input.value, category_select.value)
+        rows = taskedit.search_addable_actions(search_input.value, category_select.value, state=self.state)
         with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
             for row in rows:
                 if row["addable"]:
@@ -1629,7 +1630,7 @@ def build_add_task_dialog(
     from maptasker.src.guiwins import _build_properties_button  # noqa: PLC0415
 
     field_refs: dict = {"target_project_name": target_project_name}
-    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
+    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions(state=self.state)})
     # Same out-of-band Position-label -> act_number map as build_edit_task_dialog's.
     position_labels: dict[str, int | None] = {}
     # Same per-action If condition value cache as build_edit_task_dialog's.
@@ -1798,7 +1799,7 @@ def build_add_task_dialog(
 
         def refresh_picker(_e: ui.event | None = None) -> None:
             picker_container.clear()
-            rows = taskedit.search_addable_actions(search_input.value, category_select.value)
+            rows = taskedit.search_addable_actions(search_input.value, category_select.value, state=self.state)
             with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
                 for row in rows:
                     if row["addable"]:

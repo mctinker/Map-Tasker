@@ -84,6 +84,7 @@ from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import (
     MAP_OUTPUT_ATTRIBUTES,
     PrimeItems,
+    RunState,
     clear_error,
     initial_found_named_items,
     reset_attributes,
@@ -138,6 +139,9 @@ class MyGui:
 
     # Widgets the layout code in guiwins creates and keeps on the window.  Declared here so the
     # type checker knows they exist; each is assigned once, when the layout is built.
+    # The run state this window shows and edits.  PrimeItems -- the one the program runs on -- unless a
+    # window is given another (a test, say), and everything under the window reads it from here.
+    state: RunState
     gui_header: ui.header
     save_settings_button: ui.button
     restore_settings_button: ui.button
@@ -164,6 +168,7 @@ class MyGui:
         # sys.setprofile(trace_calls)
 
         logger.info("Starting GUI")
+        self.state = PrimeItems
         self.initialization = True
         # The 'Output Folder' box, once the layout has built it -- see
         # guiwins._create_output_directory_section.
@@ -174,7 +179,7 @@ class MyGui:
         # 1. Initialize settings and state
         initialize_gui(self)
         self.set_defaults()
-        PrimeItems.mygui = self
+        self.state.mygui = self
 
         # 1a. Install the saved language's translation *before* any of the layout exists.
         # Every label, button, tab title and tooltip is run through translate_string() at
@@ -211,12 +216,12 @@ class MyGui:
             return
 
         # Now restore the settings and update the fields if not resetting.
-        if not PrimeItems.program_arguments.reset:
+        if not self.state.program_arguments.reset:
             self.event_handlers.restore_settings_event()
 
             # 3. Synchronize runtime arguments
-            if self.color_lookup and not PrimeItems.colors_to_use:
-                capture_gui_state(self, {})
+            if self.color_lookup and not self.state.colors_to_use:
+                capture_gui_state(self, {}, state=self.state)
 
         # A view limit asked for on this run's command line goes on last, over whatever the
         # restore above put in place.
@@ -230,9 +235,9 @@ class MyGui:
 
         # Populate the Target specific item if we have a single Project, Profile, or Task name set.
         if (
-            PrimeItems.tasker_root_elements["all_projects"]
-            or PrimeItems.tasker_root_elements["all_profiles"]
-            or PrimeItems.tasker_root_elements["all_tasks"]
+            self.state.tasker_root_elements["all_projects"]
+            or self.state.tasker_root_elements["all_profiles"]
+            or self.state.tasker_root_elements["all_tasks"]
         ):
             refresh_tasker_object_pulldowns(self)
         # No data, but we have a file to get -- either a real file object already set by the
@@ -243,10 +248,10 @@ class MyGui:
         # stays None -- e.g. no single Project/Profile/Task name was saved to restore (the one
         # other path that syncs PrimeItems.file_to_get, via process_single_name_restore) -- and
         # anything that checks xml_root directly (like Add Task) wrongly reports no file loaded.
-        elif PrimeItems.file_to_get or self.file:
-            if not PrimeItems.file_to_get:
-                PrimeItems.file_to_get = self.file
-            return_code = get_xml(self.debug, self.appearance_mode)
+        elif self.state.file_to_get or self.file:
+            if not self.state.file_to_get:
+                self.state.file_to_get = self.file
+            return_code = get_xml(self.debug, self.appearance_mode, state=self.state)
             if return_code == 0:
                 refresh_tasker_object_pulldowns(self)
 
@@ -280,10 +285,10 @@ class MyGui:
         fresh MyGui for every page load, and a limit the user changed in the window during
         the session must not be put back by a refresh.
         """
-        view_limit = PrimeItems.cli_view_limit
+        view_limit = self.state.cli_view_limit
         if view_limit is None:
             return
-        PrimeItems.cli_view_limit = None
+        self.state.cli_view_limit = None
         self.event_handlers.viewlimit_event(str(view_limit))
 
     def set_defaults(self: "MyGui") -> None:
@@ -356,7 +361,7 @@ class MyGui:
         self.view_limit = VIEW_LIMIT_DEFAULT
         self.notify_timeout = NOTIFY_TIMEOUT_DEFAULT
         self.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
-        PrimeItems.program_arguments.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
+        self.state.program_arguments.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
 
         handlers = getattr(self, "event_handlers", None)
         if handlers is None:
@@ -388,14 +393,14 @@ class MyGui:
         pulldown; this only front-runs the part it needs before the layout exists.
         """
         # A reset run deliberately ignores the saved settings, so it starts out in English.
-        if PrimeItems.program_arguments.reset:
+        if self.state.program_arguments.reset:
             return
 
-        language = PrimeItems.program_arguments.language or "English"
+        language = self.state.program_arguments.language or "English"
         # The saved value is the English language name ("German"); anything else (a hand-edited
         # settings file, or a translated name written by an older version) is not something
         # set_language can resolve, so leave the default English in place.
-        if language not in PrimeItems.languages:
+        if language not in self.state.languages:
             logger.warning(f"Saved language '{language}' is not recognized.  Using English.")
             return
 
@@ -420,10 +425,10 @@ class MyGui:
         mean every message in the app stays up until it is clicked.
         """
         # A reset run deliberately ignores the saved settings.
-        if PrimeItems.program_arguments.reset:
+        if self.state.program_arguments.reset:
             return
 
-        saved_duration = PrimeItems.program_arguments.notify_timeout
+        saved_duration = self.state.program_arguments.notify_timeout
         if saved_duration is not None:
             # The pulldown does not exist yet; notify_timeout_event skips it when it is absent.
             self.event_handlers.notify_timeout_event(saved_duration)
@@ -450,9 +455,9 @@ class MyGui:
             - If error reading file, display error.
             - If successful, return True."""
         if (
-            not PrimeItems.tasker_root_elements["all_projects"]
-            and not PrimeItems.tasker_root_elements["all_profiles"]
-            and not PrimeItems.tasker_root_elements["all_tasks"]
+            not self.state.tasker_root_elements["all_projects"]
+            and not self.state.tasker_root_elements["all_profiles"]
+            and not self.state.tasker_root_elements["all_tasks"]
         ) or self.android_ipaddr:
             if self.android_ipaddr == "" or self.android_file == "":
                 if not self.prompt_and_get_file(self.debug, self.appearance_mode):
@@ -460,12 +465,12 @@ class MyGui:
 
             # We have a file identified.  We now have to read it in.
             else:
-                filename_location = self.android_file.rfind(PrimeItems.slash) + 1
-                file_to_use = PrimeItems.program_arguments.android_file[filename_location:]
+                filename_location = self.android_file.rfind(self.state.slash) + 1
+                file_to_use = self.state.program_arguments.android_file[filename_location:]
                 if not file_to_use:
                     file_to_use = self.android_file[filename_location:]
                 try:
-                    PrimeItems.file_to_get = open(file_to_use, encoding="utf-8")
+                    self.state.file_to_get = open(file_to_use, encoding="utf-8")
                 except FileNotFoundError:
                     # self.display_message_box(
                     #     f"XML file {file_to_use} not found.",
@@ -477,8 +482,8 @@ class MyGui:
                 display_current_file(self, file_to_use)
 
                 # Get the XML
-                PrimeItems.program_arguments.gui = True
-                return_code = get_the_xml_data(state=PrimeItems)
+                self.state.program_arguments.gui = True
+                return_code = get_the_xml_data(state=self.state)
                 if return_code != 0:
                     return False
 
@@ -497,7 +502,7 @@ class MyGui:
         Returns:
             bool: True if successful, False otherwise.
         """
-        return_code = get_xml(debug, appearance_mode)
+        return_code = get_xml(debug, appearance_mode, state=self.state)
         # Did we get an error reading the backup file?
         if return_code > 0:
             none_translated = translate_string("None")
@@ -516,7 +521,7 @@ class MyGui:
         # file object (.name is its path) and sometimes a plain string path/filename
         # (e.g. restored from CLI args or settings) -- see maputil2.py's identical
         # getattr(..., "name", ...) handling.
-        file_name = getattr(PrimeItems.file_to_get, "name", PrimeItems.file_to_get)
+        file_name = getattr(self.state.file_to_get, "name", self.state.file_to_get)
         if file_name:
             self.display_and_set_file(file_name)
             self.android_file = self.android_ipaddr = self.android_port = ""
@@ -577,7 +582,7 @@ class MyGui:
         """
 
         tree_data = []
-        root = PrimeItems.tasker_root_elements
+        root = self.state.tasker_root_elements
         # Start with Projects
         projects = root["all_projects"]
         _build_profiles = build_profiles
@@ -597,7 +602,7 @@ class MyGui:
                     [],
                 ):
                     # Build our list of Profiles in this Project.
-                    profile_list = _build_profiles(root, profile_ids, project)
+                    profile_list = _build_profiles(root, profile_ids, project, state=self.state)
 
                 # Project has no Profiles
                 else:
@@ -636,7 +641,7 @@ class MyGui:
         """
         # 1. Local caching for speed
         _translate = translate_string
-        _prime = PrimeItems
+        _prime = self.state
         error_message = None
 
         # 2. Check for missing name (Early exit potential)
@@ -1092,7 +1097,7 @@ class MyGui:
         self.current_file_display_message = False
         # Load file for def get_xml
         if self.file:
-            PrimeItems.file_to_get = self.file
+            self.state.file_to_get = self.file
 
         ## Let uer know what is happening
         # self.display_message_box(f"Verifing {my_name}...", "Green")
@@ -1400,7 +1405,7 @@ def _single_selection_still_exists(gui: MyGui) -> bool:
         name = getattr(gui, f"single_{label.lower()}_name", "")
         if is_no_selection(name):
             continue
-        if name not in PrimeItems.tasker_root_elements.get(_SELECTION_TABLES[label], {}):
+        if name not in gui.state.tasker_root_elements.get(_SELECTION_TABLES[label], {}):
             return False
     return True
 
@@ -1423,6 +1428,11 @@ class MapTaskerEventHandlers(
         # We store a reference to the main MyGui instance so we can read
         # checkbox states, inputs, and update the UI elements.
         self.gui = gui_instance
+
+    @property
+    def state(self: "MapTaskerEventHandlers") -> RunState:
+        """The run state the window shows and edits: its own, which the handler mixins read."""
+        return self.gui.state
 
     # ==========================================
     # 2. Display View: Map, Diagram, Misc or Tree
@@ -1458,12 +1468,12 @@ class MapTaskerEventHandlers(
         logger.info(f"GUI: Switching to {window_title}")
 
         gui = self.gui
-        PrimeItems.view_limit = gui.view_limit if hasattr(gui, "view_limit") else VIEW_LIMIT_DEFAULT
+        self.state.view_limit = gui.view_limit if hasattr(gui, "view_limit") else VIEW_LIMIT_DEFAULT
 
         # Plug all of our settings back into PrimeItems.program_arguments
-        capture_gui_state(gui, {})
+        capture_gui_state(gui, {}, state=self.state)
         if overrides:
-            PrimeItems.program_arguments.update(overrides)
+            self.state.program_arguments.update(overrides)
 
         # Start this view generation with a clean slate: found_named_items only ever
         # gets set to True (projects.py/profiles.py/tasks.py/scenes.py, once
@@ -1476,7 +1486,7 @@ class MapTaskerEventHandlers(
         # entirely, even though this run never actually found it yet.
         # Built from primitem.SINGLE_ITEM_SELECTORS rather than written out here, so a
         # newly added single item can't be left out of the reset.
-        PrimeItems.found_named_items = initial_found_named_items()
+        self.state.found_named_items = initial_found_named_items()
 
         # Same reasoning for the directory and the running totals -- both accumulate
         # across a single run and are never emptied at the end of one:
@@ -1501,7 +1511,7 @@ class MapTaskerEventHandlers(
 
         # Map view
         if view_type == "map":
-            if PrimeItems.xml_root is None:
+            if self.state.xml_root is None:
                 gui.display_message_box(
                     translate_string("No XML data loaded! Please select a valid XML file first."),
                     "Orange",
@@ -1521,12 +1531,12 @@ class MapTaskerEventHandlers(
                 clear_error()
 
                 # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
-                PrimeItems.output_lines.output_lines.clear()
-                output_the_front_matter(current_config(), state=PrimeItems)
+                self.state.output_lines.output_lines.clear()
+                output_the_front_matter(current_config(), state=self.state)
 
                 try:
                     # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely
-                    await run.io_bound(build_html, "", state=PrimeItems)
+                    await run.io_bound(build_html, "", state=self.state)
                 except MapTaskerError as e:
                     # Intercept background termination codes gracefully.  This was
                     # "except SystemExit" and had to be: build_html and everything under it
@@ -1548,18 +1558,18 @@ class MapTaskerEventHandlers(
                     return
 
                 # Check if an entry-point processing failure occurred during build_html
-                if getattr(PrimeItems, "error_code", 0) > 0:
-                    gui.display_message_box(f"Map processing error: {PrimeItems.error_msg}", "Orange")
+                if getattr(self.state, "error_code", 0) > 0:
+                    gui.display_message_box(f"Map processing error: {self.state.error_msg}", "Orange")
                     clear_error()
                     return
 
                 # Now process the data for display in the gui.  How big the Map is comes
                 # from the build rather than from output_lines, which holds nothing at all
                 # when the Map that was already on disk was shown again (see mapcache).
-                output_length = PrimeItems.map_output_line_count
+                output_length = self.state.map_output_line_count
 
                 # Clear out our inline data to free up memory for the GUI display, since we no longer need it.
-                PrimeItems.output_lines.output_lines.clear()
+                self.state.output_lines.output_lines.clear()
 
                 # Display the map in its own browser window/tab rather than the main window.
                 # A "goto" rides along on the URL rather than being pushed into the window
@@ -1572,7 +1582,7 @@ class MapTaskerEventHandlers(
                 # own.  Read here rather than remembered on PrimeItems because the popout is
                 # constructed after this call returns, by which time any overrides for this one
                 # build have been put back.
-                query = urlencode({"goto": goto, "scope": PrimeItems.program_arguments.single_project_name or ""})
+                query = urlencode({"goto": goto, "scope": self.state.program_arguments.single_project_name or ""})
                 _open_popout_window(f"/popout/map?{query}", getattr(gui, "open_view_in_new_window", False))
 
                 # Check for hard stop limit and notify user if output was truncated
@@ -1589,14 +1599,14 @@ class MapTaskerEventHandlers(
         elif view_type in ("diagram", "misc"):
             # Check if we have a Project or Profile
             if view_type == "diagram":
-                if PrimeItems.tasker_root_elements["all_projects"] or PrimeItems.tasker_root_elements["all_profiles"]:
+                if self.state.tasker_root_elements["all_projects"] or self.state.tasker_root_elements["all_profiles"]:
                     gui.display_message_box(
                         translate_string("The 'Diagram' view is running in the background.  Please stand by..."),
                         "Green",
                     )
 
                     # Offload the configuration outliner to an IO-bound thread safely
-                    await run.io_bound(outline_the_configuration, state=PrimeItems)
+                    await run.io_bound(outline_the_configuration, state=self.state)
 
                     # Check if an entry-point processing failure occurred (e.g. check_limit() in
                     # diagram.py tripping the view_limit) during outline_the_configuration(). Unlike
@@ -1606,8 +1616,8 @@ class MapTaskerEventHandlers(
                     # stale/absent connector data) happened to already be on disk from an earlier,
                     # successful run -- which looks like a normal diagram but whose connectors no
                     # longer highlight anything when clicked, with no indication anything went wrong.
-                    if getattr(PrimeItems, "error_code", 0) > 0:
-                        gui.display_message_box(f"Diagram processing error: {PrimeItems.error_msg}", "Orange")
+                    if getattr(self.state, "error_code", 0) > 0:
+                        gui.display_message_box(f"Diagram processing error: {self.state.error_msg}", "Orange")
                         clear_error()
                         return
 
@@ -1618,7 +1628,7 @@ class MapTaskerEventHandlers(
                     # user picks a different single object, so its hotlinks go on pointing at
                     # the objects of the selection it was built for, and there was no sign of
                     # that anywhere on screen.
-                    built_for = urlencode({"built_for": mapjump.current_scope(state=PrimeItems).phrase})
+                    built_for = urlencode({"built_for": mapjump.current_scope(state=self.state).phrase})
                     _open_popout_window(
                         f"/popout/diagram?{built_for}",
                         getattr(gui, "open_view_in_new_window", False),
@@ -1626,8 +1636,8 @@ class MapTaskerEventHandlers(
 
                     # Cut short at the view limit?  Say so, as the "map" branch above does -- the
                     # diagram is still shown, up to the point the limit allowed.
-                    if PrimeItems.diagram_limit_msg:
-                        gui.display_message_box(PrimeItems.diagram_limit_msg, "Orange")
+                    if self.state.diagram_limit_msg:
+                        gui.display_message_box(self.state.diagram_limit_msg, "Orange")
                     gui.display_message_box(translate_string("Diagram View opened in a new browser window."), "Green")
                 else:
                     gui.display_message_box(
@@ -1704,7 +1714,7 @@ class MapTaskerEventHandlers(
         Not silently: the settings are not the user's, so the notification says which ones
         this went past.
         """
-        level = max(PrimeItems.program_arguments.display_detail_level, mapjump.minimum_detail_level(target))
+        level = max(self.state.program_arguments.display_detail_level, mapjump.minimum_detail_level(target))
         # Narrowed to the Project that owns what was clicked, rather than built whole.  A
         # click asks to be shown one thing, and a Map of one Project is both the answer to
         # that and a great deal quicker to build and to read than a Map of everything.
@@ -1728,7 +1738,7 @@ class MapTaskerEventHandlers(
         # that the Map on screen afterwards is not the one the user's own settings would have
         # produced.  Worked out by comparing the overrides against what is actually set, so
         # that a user already on this Project at this detail level is told nothing at all.
-        changed = {key for key, value in overrides.items() if PrimeItems.program_arguments[key] != value}
+        changed = {key for key, value in overrides.items() if self.state.program_arguments[key] != value}
         reasons = []
         if changed & set(SELECTION_KEYS):
             reasons.append(f"{translate_string('Project')} '{scope}'" if scope else translate_string("whole file"))
@@ -1745,17 +1755,17 @@ class MapTaskerEventHandlers(
         )
 
         # Put back exactly what was there, key by key.
-        saved = {key: PrimeItems.program_arguments[key] for key in overrides}
+        saved = {key: self.state.program_arguments[key] for key in overrides}
         try:
             # held_overrides, not just the update view_event does, because the build is not
             # the only thing writing these: capture_gui_state re-copies the GUI's own
             # single-item selection over program_arguments from NiceGUI's outbox loop, and
             # one of this build's own notifications is enough to trigger it.  See its
             # definition in guistate for what that cost.
-            with held_overrides(overrides):
+            with held_overrides(overrides, state=self.state):
                 await self.view_event("map", goto=target.token(), overrides=overrides)
         finally:
-            PrimeItems.program_arguments.update(saved)
+            self.state.program_arguments.update(saved)
 
     def refactor_event(self: "MapTaskerEventHandlers") -> None:
         """Open the Refactor dialog: the structural moves, with a preview.
@@ -2046,7 +2056,7 @@ class MapTaskerEventHandlers(
         built from a URL and is handed nothing, which is the same reason the Diagram popout
         re-reads its own generated file (see rungui.popout_view).
         """
-        scope = mapjump.current_scope(state=PrimeItems)
+        scope = mapjump.current_scope(state=self.state)
         if scope.label != "Task":
             ui.notify(
                 translate_string("Choose a single Task in 'Specific Name' to also see it drawn as a flowchart."),
@@ -2074,8 +2084,8 @@ class MapTaskerEventHandlers(
                 type="warning",
             )
 
-        PrimeItems.taskflow_rows = flowchart(flow)
-        chart_file = write_flowchart(PrimeItems.taskflow_rows)
+        self.state.taskflow_rows = flowchart(flow)
+        chart_file = write_flowchart(self.state.taskflow_rows)
         if chart_file:
             gui.display_message_box(f"{translate_string('Flowchart saved as')} {chart_file}", "Green")
 

@@ -183,7 +183,7 @@ def test_the_exempt_project_is_still_renumbered() -> None:
     because sr="proj7" in the backup becomes sr="proj0" in the export.  Asserting the
     rewrite happens is what keeps the exemption honest -- if the renumber were ever dropped,
     this test says so instead of the exemption silently covering for it."""
-    exported = ET.fromstring(projedit.render_standalone_project_xml("Home"))  # noqa: S314
+    exported = ET.fromstring(projedit.render_standalone_project_xml("Home", state=PrimeItems))  # noqa: S314
 
     assert _live("all_projects", "Home").get("sr") == "proj7"
     assert exported.find("Project").get("sr") == "proj0"
@@ -212,7 +212,7 @@ def test_a_changed_value_names_the_object_and_the_path() -> None:
     """A report nobody can act on is not much better than no report.  When an object comes
     back different, the message has to say which object, where inside it, and what the two
     values were -- so this asserts the whole triple, not just that something failed."""
-    rendered = taskedit.render_standalone_task_xml(_editable_task("20"))
+    rendered = taskedit.render_standalone_task_xml(_editable_task("20"), state=PrimeItems)
 
     report = roundtrip.verify_rendered(rendered.replace("<pri>100</pri>", "<pri>50</pri>"))
 
@@ -226,7 +226,7 @@ def test_a_dropped_child_is_caught() -> None:
     """The other shape corruption takes: not a wrong value but a missing element.  Compared
     by position rather than resynchronized, so what is reported is the count -- which is the
     fact that matters when an Action has lost an argument."""
-    rendered = taskedit.render_standalone_task_xml(_editable_task("20"))
+    rendered = taskedit.render_standalone_task_xml(_editable_task("20"), state=PrimeItems)
 
     report = roundtrip.verify_rendered(rendered.replace("\t\t<pri>100</pri>\n", ""))
 
@@ -280,7 +280,7 @@ def test_a_brand_new_object_is_compared_against_the_dialog_that_holds_it() -> No
     nothing there to compare it against.  Without the override it would be skipped as
     unchecked -- i.e. the one save with no prior version to fall back on would be the one
     save that got no verification."""
-    new_task = taskedit.create_new_task("Fresh", "100")
+    new_task = taskedit.create_new_task("Fresh", "100", state=PrimeItems)
     assert not isinstance(new_task, str), new_task
 
     report = roundtrip.verify_task(new_task)

@@ -19,11 +19,14 @@ import html
 import json
 import os
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from maptasker.src.maputil2 import is_html_colour, strip_html_tags, tasker_icon_name
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import V2_MATERIAL_PALETTE
 from maptasker.src.taskervars import tasker_global_variable_names, tasker_global_variables
+
+if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
 
 # The layout JSON's top-level key holding the component tree.  (Its sibling, the Scene's
 # name, is sceneedit._V2_NAME_KEY: only a rename, which is sceneedit's, ever touches it.)
@@ -474,7 +477,7 @@ V2_SHOW_WHEN_GROUPS = (
 )
 
 
-def _v2_global_choices() -> tuple[list[V2ShowWhenChoice], list[V2ShowWhenChoice]]:
+def _v2_global_choices(state: RunState) -> tuple[list[V2ShowWhenChoice], list[V2ShowWhenChoice]]:
     """(user globals, built-in globals) out of the loaded backup's <Variable> elements.
 
     Read straight from the XML rather than from PrimeItems.variables, which looks like the
@@ -512,8 +515,8 @@ def _v2_global_choices() -> tuple[list[V2ShowWhenChoice], list[V2ShowWhenChoice]
 
     builtin_names = set(tasker_global_variables) | set(tasker_global_variable_names)
     stored_names = (
-        [variable.findtext("n") for variable in PrimeItems.xml_root.findall("Variable")]
-        if PrimeItems.xml_root is not None
+        [variable.findtext("n") for variable in state.xml_root.findall("Variable")]
+        if state.xml_root is not None
         else []
     )
 
@@ -528,14 +531,14 @@ def _v2_global_choices() -> tuple[list[V2ShowWhenChoice], list[V2ShowWhenChoice]
     return user, builtin
 
 
-def v2_show_when_choices() -> list[tuple[str, list[V2ShowWhenChoice]]]:
+def v2_show_when_choices(state: RunState) -> list[tuple[str, list[V2ShowWhenChoice]]]:
     """The whole Show When picker, as (category, choices) in V2_SHOW_WHEN_GROUPS order.
 
     A category with nothing in it is still returned, empty -- a backup with no variables of
     its own should say "User Globals: none" rather than silently offering two categories
     where the user was told there are three.
     """
-    user, builtin = _v2_global_choices()
+    user, builtin = _v2_global_choices(state=state)
     return [
         ("Environment", list(V2_SHOW_WHEN_ENVIRONMENT)),
         ("Operators", list(V2_SHOW_WHEN_OPERATORS)),
@@ -571,7 +574,7 @@ def v2_insert_show_when(current: str, value: str, caret: int | None = None) -> t
     return f"{before}{inserted}{after}", position + len(inserted)
 
 
-def v2_dynamic_variable_choices() -> list[tuple[str, list[V2ShowWhenChoice]]]:
+def v2_dynamic_variable_choices(state: RunState) -> list[tuple[str, list[V2ShowWhenChoice]]]:
     """The variables offered for a Dynamic state field, as (category, choices).
 
     The same three categories of variable the Show When picker lists -- Environment, User
@@ -581,7 +584,7 @@ def v2_dynamic_variable_choices() -> list[tuple[str, list[V2ShowWhenChoice]]]:
 
     Empty categories are returned empty, for the reason v2_show_when_choices gives.
     """
-    user, builtin = _v2_global_choices()
+    user, builtin = _v2_global_choices(state=state)
     return [
         ("Environment", list(V2_SHOW_WHEN_ENVIRONMENT)),
         ("User Globals", user),
@@ -2007,7 +2010,7 @@ def v2_rename_id(layout: dict, path: tuple, new_id: str) -> list[str]:
     return []
 
 
-def find_component_id_references(scene_name: str, component_id: str) -> list[str]:
+def find_component_id_references(scene_name: str, component_id: str, state: RunState) -> list[str]:
     """Tasks whose actions address this component by id, as readable descriptions.
 
     Tasker reaches into a Version 2 Scene from outside: 'Run Scene v2 Action' and friends
@@ -2036,7 +2039,7 @@ def find_component_id_references(scene_name: str, component_id: str) -> list[str
     wanted_id = component_id.strip().casefold()
 
     references = []
-    for entry in PrimeItems.tasker_root_elements.get("all_tasks", {}).values():
+    for entry in state.tasker_root_elements.get("all_tasks", {}).values():
         task_element = entry["xml"]
         task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"
         for action in task_element.findall("Action"):

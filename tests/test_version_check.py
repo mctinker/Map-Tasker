@@ -15,6 +15,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+from maptasker.src.primitem import PrimeItems
 from maptasker.src import guiutils
 
 
@@ -33,11 +34,11 @@ def view(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     monkeypatch.setattr(guiutils, "ui", MagicMock())
     monkeypatch.setattr(guiutils, "translate_string", lambda text: text)
 
-    async def io_bound(function, *args):  # noqa: ANN001, ANN002, ANN202
-        return await asyncio.to_thread(function, *args)
+    async def io_bound(function, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003, ANN202
+        return await asyncio.to_thread(function, *args, **kwargs)
 
     monkeypatch.setattr(guiutils.run, "io_bound", io_bound)
-    return SimpleNamespace(upgrade_container=MagicMock(), event_handlers=MagicMock())
+    return SimpleNamespace(upgrade_container=MagicMock(), event_handlers=MagicMock(), state=PrimeItems)
 
 
 def _check(view: SimpleNamespace) -> None:
@@ -53,7 +54,7 @@ def _check(view: SimpleNamespace) -> None:
 def test_pypi_is_asked_on_a_worker_thread_not_the_event_loop(view: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> None:
     """The one call that blocks runs where there is no event loop for it to freeze."""
     asked_with_loop_running = []
-    monkeypatch.setattr(guiutils, "is_new_version", lambda: asked_with_loop_running.append(_event_loop_running()) or True)
+    monkeypatch.setattr(guiutils, "is_new_version", lambda **_kw: asked_with_loop_running.append(_event_loop_running()) or True)
 
     _check(view)
 
@@ -63,7 +64,7 @@ def test_pypi_is_asked_on_a_worker_thread_not_the_event_loop(view: SimpleNamespa
 def test_starting_the_check_returns_before_pypi_is_asked(view: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> None:
     """check_new_version only schedules the check, so the page build carries straight on."""
     asked = []
-    monkeypatch.setattr(guiutils, "is_new_version", lambda: asked.append(True) or False)
+    monkeypatch.setattr(guiutils, "is_new_version", lambda **_kw: asked.append(True) or False)
 
     async def page_build() -> None:
         guiutils.check_new_version(view)
@@ -81,7 +82,7 @@ def test_the_upgrade_controls_appear_only_for_a_newer_version(
     newer: bool,
 ) -> None:
     """Built into the sidebar's upgrade slot when PyPI has something newer, and not otherwise."""
-    monkeypatch.setattr(guiutils, "is_new_version", lambda: newer)
+    monkeypatch.setattr(guiutils, "is_new_version", lambda **_kw: newer)
 
     _check(view)
 
@@ -93,7 +94,7 @@ def test_the_upgrade_controls_appear_only_for_a_newer_version(
 def test_after_the_first_run_today_nothing_is_scheduled(view: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> None:
     """PyPI is asked once a day; later starts do not even schedule a check."""
     monkeypatch.setattr(guiutils, "is_first_run_today", lambda: False)
-    monkeypatch.setattr(guiutils, "is_new_version", lambda: pytest.fail("PyPI was asked again the same day"))
+    monkeypatch.setattr(guiutils, "is_new_version", lambda **_kw: pytest.fail("PyPI was asked again the same day"))
 
     guiutils.check_new_version(view)
 
@@ -107,7 +108,7 @@ def test_a_check_that_raises_is_logged_not_lost(
 ) -> None:
     """A task nobody awaits would swallow the error; the done callback puts it in the log."""
 
-    def broken() -> bool:
+    def broken(**_kw: object) -> bool:
         raise ValueError("PyPI answered nonsense")
 
     monkeypatch.setattr(guiutils, "is_new_version", broken)

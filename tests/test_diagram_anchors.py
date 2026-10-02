@@ -669,7 +669,7 @@ def test_a_chain_of_calls_crosses_a_project_boundary(modelled: tuple[list[str], 
 def _rendered(lines: list[str], model: dict) -> list[str]:
     """Every line of the diagram as the Diagram view writes it into the page."""
     nodes, folds = diagintr.nodes_by_line(model), diagintr.folds_by_line(model)
-    connectors = guiwins_views._connectors_by_line()  # noqa: SLF001
+    connectors = guiwins_views._connectors_by_line(state=PrimeItems)  # noqa: SLF001
     return [guiwins_views._wrap_diagram_line(num, line, connectors, nodes, folds) for num, line in enumerate(lines)]  # noqa: SLF001
 
 

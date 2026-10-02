@@ -65,7 +65,7 @@ def test_a_dropped_connection_while_listing_gemini_gives_the_built_in_list(monke
     reported = []
     monkeypatch.setattr(aiutils, "rutroh_error", reported.append)
 
-    assert aiutils.get_gemini_models() == aiutils.GEMINI_MODELS
+    assert aiutils.get_gemini_models(state=PrimeItems) == aiutils.GEMINI_MODELS
     assert any("UNEXPECTED_EOF" in message for message in reported)
 
 
@@ -137,7 +137,7 @@ def test_an_openai_error_while_listing_gives_the_built_in_list(monkeypatch) -> N
     reported = []
     monkeypatch.setattr(aiutils, "rutroh_error", reported.append)
 
-    assert aiutils.get_openai_models() == aiutils.OPENAI_MODELS
+    assert aiutils.get_openai_models(state=PrimeItems) == aiutils.OPENAI_MODELS
     assert any("bad key" in message for message in reported)
 
 
@@ -146,4 +146,4 @@ def test_a_bug_while_listing_openai_models_is_not_hidden(monkeypatch) -> None:
     monkeypatch.setattr(aiutils, "import_optional", lambda *_args: _an_openai(TypeError("a bug")))
 
     with pytest.raises(TypeError):
-        aiutils.get_openai_models()
+        aiutils.get_openai_models(state=PrimeItems)

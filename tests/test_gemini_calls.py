@@ -30,7 +30,7 @@ def test_the_analysis_call_turns_automatic_function_calling_off(monkeypatch: pyt
 
     client = SimpleNamespace(models=SimpleNamespace(generate_content=generate_content))
 
-    assert mapai._process_gemini_response(client, "the query") == "an answer"
+    assert mapai._process_gemini_response(client, "the query", state=PrimeItems) == "an answer"
     assert seen["config"] == AFC_OFF
     assert seen["model"] == "gemini-test"
 
@@ -71,6 +71,6 @@ def test_the_real_library_logs_no_function_calling_warning(
     monkeypatch.setattr(client.models, "_generate_content", lambda **_kwargs: SimpleNamespace(text="an answer"))
 
     with caplog.at_level(logging.INFO):
-        assert mapai._process_gemini_response(client, "the query") == "an answer"
+        assert mapai._process_gemini_response(client, "the query", state=PrimeItems) == "an answer"
 
     assert "automatic function calling" not in caplog.text.lower()

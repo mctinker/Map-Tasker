@@ -47,7 +47,7 @@ def ai(monkeypatch: pytest.MonkeyPatch) -> dict:
         "gemini_key": "",
     }
     monkeypatch.setattr(PrimeItems, "ai", table)
-    monkeypatch.setattr(mapask, "get_api_key", lambda: "None")
+    monkeypatch.setattr(mapask, "get_api_key", lambda **_kw: "None")
     return table
 
 

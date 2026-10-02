@@ -207,7 +207,7 @@ def _build_show_when_dialog(
     insert, search and caret handling over a shorter list (no operators -- see
     sceneedit_v2.v2_dynamic_variable_choices), under its own heading.
     """
-    groups = sceneedit_v2.v2_show_when_choices() if groups is None else groups
+    groups = sceneedit_v2.v2_show_when_choices(state=PrimeItems) if groups is None else groups
     search = {"text": ""}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[620px] max-w-[740px] p-6"):
@@ -361,7 +361,7 @@ def _variable_picker_button(field: ui.input, label: str) -> None:
         icon="playlist_add",
         on_click=lambda _e=None: _build_show_when_dialog(
             field,
-            sceneedit_v2.v2_dynamic_variable_choices(),
+            sceneedit_v2.v2_dynamic_variable_choices(state=PrimeItems),
             f"Select a variable for {label}",
         ),
     ).props("flat dense round size=sm")
@@ -619,7 +619,7 @@ def _build_state_field(item: dict, field: sceneedit_v2.V2StateField) -> None:
     def pick_variable() -> None:
         _build_show_when_dialog(
             variable_input,
-            sceneedit_v2.v2_dynamic_variable_choices(),
+            sceneedit_v2.v2_dynamic_variable_choices(state=PrimeItems),
             f"Select a variable for {field.label}",
         )
 
@@ -858,7 +858,7 @@ class _V2Designer:
     def delete_selected(self) -> None:
         node = sceneedit_v2.v2_node_at(self.layout, self.selection["path"])
         node_id = (node or {}).get("id", "")
-        references = sceneedit_v2.find_component_id_references(self.scene_name, node_id)
+        references = sceneedit_v2.find_component_id_references(self.scene_name, node_id, state=PrimeItems)
         self.snapshot()
         errors = sceneedit_v2.v2_delete_node(self.layout, self.selection["path"])
         if errors:
@@ -1186,7 +1186,7 @@ class _V2Designer:
         value = node.get(prop.key, "")
         id_input = ui.input(translate_string(prop.label), value=str(value)).props("dense").classes("w-full")
         id_input.on("blur", lambda _e=None, w=id_input, p=self.selection["path"]: self.rename_id(p, w))
-        references = sceneedit_v2.find_component_id_references(self.scene_name, str(value))
+        references = sceneedit_v2.find_component_id_references(self.scene_name, str(value), state=PrimeItems)
         if references:
             ui.label(
                 f"{translate_string('Addressed by id from')}: {', '.join(references)}",

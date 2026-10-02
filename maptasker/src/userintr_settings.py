@@ -47,18 +47,22 @@ from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import clear_tasker_data, make_hex_color
 from maptasker.src.outdir import normalize_output_directory, output_directory
 from maptasker.src.outline import outline_the_configuration
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ARGUMENT_NAMES, NOTIFY_TIMEOUT_DEFAULT, TYPES_OF_COLOR_NAMES, VIEW_LIMIT_DEFAULT
 
 if TYPE_CHECKING:
     from nicegui import Event
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
 
 
 class SettingsEventHandlers:
     """The settings handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
     handler is reached through self, just as it was before these moved here."""
+
+    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
+    # its window's.
+    state: RunState
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
@@ -102,20 +106,20 @@ class SettingsEventHandlers:
         # that say which file to read and which single item to map, so data read under the
         # old ones has no business outliving them -- and the button's tooltip promises as
         # much.  Both the parsed data and the file it came from go.
-        clear_tasker_data(state=PrimeItems)
-        PrimeItems.file_to_get = ""
+        clear_tasker_data(state=self.state)
+        self.state.file_to_get = ""
 
         # Back to the runtime arguments a fresh run starts with.  Not literally a fresh run,
         # though: this one is still the GUI, and a good deal of the program asks
         # program_arguments whether it is (error reporting, XML loading, the map build), so
         # that one flag is put straight back.
-        PrimeItems.program_arguments = initialize_runtime_arguments()
-        PrimeItems.program_arguments.gui = True
+        self.state.program_arguments = initialize_runtime_arguments()
+        self.state.program_arguments.gui = True
 
         # Reset the view's own settings, then the colors that follow from the appearance mode
         # it just reset.
         the_view.set_defaults()
-        PrimeItems.colors_to_use = set_color_mode(the_view.appearance_mode)
+        self.state.colors_to_use = set_color_mode(the_view.appearance_mode)
 
         # set_defaults puts the language back to English but does not touch the catalog the
         # rest of the program translates through, so the window would come back in the old
@@ -358,7 +362,7 @@ class SettingsEventHandlers:
             return  # Exit early to break the recursive loop!
         language = language.value.strip() if hasattr(language, "value") else str(language).strip()
         # Let everyone know we are setting the language
-        PrimeItems.language_set = True
+        self.state.language_set = True
 
         # Determine reference view (matches your event logic structure)
         the_view = self if self.__class__.__name__ == "MyGui" else self.gui
@@ -573,17 +577,17 @@ class SettingsEventHandlers:
 
         # Get or Set and Get the language to use in English: Spanish, German, etc.
         language_translated = translate_string(language, set_language=True)
-        if language in PrimeItems.languages:
+        if language in self.state.languages:
             language_to_use = language
-        elif language_translated in PrimeItems.languages:
+        elif language_translated in self.state.languages:
             language_to_use = language_translated
         else:
             language_to_use = "English"
         the_view.language = language_to_use
 
-        flag_language = language if language in PrimeItems.languages else translate_string(language)
+        flag_language = language if language in self.state.languages else translate_string(language)
         try:
-            flag = f"flag_{PrimeItems.languages[flag_language]}"
+            flag = f"flag_{self.state.languages[flag_language]}"
             add_logo(the_view, flag)
         except KeyError:
             pass
@@ -597,9 +601,9 @@ class SettingsEventHandlers:
         # translating.  Only possible once a client is connected, which is not the case
         # during the startup settings restore that also lands here.
         with contextlib.suppress(Exception):
-            if PrimeItems.mygui is not None and context.client.has_socket_connection:
+            if self.state.mygui is not None and context.client.has_socket_connection:
                 ui.run_javascript(
-                    set_document_language_js(PrimeItems.languages.get(language_to_use, "en")),
+                    set_document_language_js(self.state.languages.get(language_to_use, "en")),
                 )
 
         # 2. Change the menu dropdown value safely using the lock flag. The dropdown's
@@ -612,7 +616,7 @@ class SettingsEventHandlers:
                 the_view.is_updating = True  # Engage the lock
                 the_view.language_optionmenu.value = language_to_use
                 the_view.language_optionmenu.update()
-                PrimeItems.program_arguments.language = language_to_use
+                self.state.program_arguments.language = language_to_use
             finally:
                 the_view.is_updating = False  # Disengage the lock
 
@@ -734,7 +738,7 @@ class SettingsEventHandlers:
             return
         if folder != guiview.output_directory:
             remember_setting(guiview, "output_directory", folder)
-            save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
+            save_restore_args(self.state.program_arguments, self.state.colors_to_use, to_save=True)
             guiview.display_message_box(
                 f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory()}",
                 "Green",
@@ -885,7 +889,7 @@ class SettingsEventHandlers:
         the_view.color_lookup[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
             color  # Add color for the selected item to our dictionary
         )
-        PrimeItems.colors_to_use[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
+        self.state.colors_to_use[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
             color  # Add color for the selected item to our dictionary
         )
 
@@ -902,9 +906,9 @@ class SettingsEventHandlers:
             - Displays message box to confirm reset.
             - Destroys color change window."""
         the_view = self.gui
-        PrimeItems.colors_to_use = set_color_mode(the_view.appearance_mode)
+        self.state.colors_to_use = set_color_mode(the_view.appearance_mode)
         # Save our background color for later reuse
-        the_view.saved_background_color = make_hex_color(PrimeItems.colors_to_use.get("background_color"))
+        the_view.saved_background_color = make_hex_color(self.state.colors_to_use.get("background_color"))
         the_view.color_lookup = {}
         the_view.display_message_box(
             translate_string("Tasker items set back to their default colors."),
@@ -1070,7 +1074,7 @@ class SettingsEventHandlers:
             if hasattr(mygui, "sidebar_detail_option") and mygui.sidebar_detail_option:
                 mygui.sidebar_detail_option.value = "3"
             mygui.display_detail_level = all_parameters_threshold
-            PrimeItems.program_arguments.display_detail_level = all_parameters_threshold
+            self.state.program_arguments.display_detail_level = all_parameters_threshold
 
         # 3. Check to see if we are doing everything (they are mutually exclusive)
         if mygui.twisty and mygui.everything:
@@ -1128,11 +1132,11 @@ class SettingsEventHandlers:
         the Diagram view (see NiceGuiTextView._profiles_per_line_selected in guiwins.py)."""
         gui = self.gui
         gui.profiles_per_line = profiles_per_line
-        PrimeItems.program_arguments.profiles_per_line = profiles_per_line
+        self.state.program_arguments.profiles_per_line = profiles_per_line
 
         # Nothing to check for None here: this call returns nothing, so nicegui's cancelled-wait
         # answer and its ordinary one are the same value (see nicegui.run._run).
-        await run.io_bound(outline_the_configuration, state=PrimeItems)
+        await run.io_bound(outline_the_configuration, state=self.state)
 
         # Reload every open Diagram view -- "Open View In New Window" can leave more than one up.
         for view in live_views(gui):

@@ -23,9 +23,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
+
 from maptasker.src import appinv, sessundo
 from maptasker.src.actionc import action_codes
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import SCENE_TASK_TYPES
 from maptasker.src.taskedit import (
     apply_arg_values,
@@ -101,7 +102,7 @@ def legacy_element_label(element: Element) -> str:
     return f"{element_type} '{name}'" if name else element_type
 
 
-def legacy_element_args(element: Element) -> list:
+def legacy_element_args(element: Element, state: RunState) -> list:
     """The element's editable arguments, as taskedit.EditableArg records.
 
     Empty for an element type actionc.py has no entry for -- a type from a newer Tasker.
@@ -113,7 +114,7 @@ def legacy_element_args(element: Element) -> list:
     action_code = action_codes.get(element.tag)
     if action_code is None:
         return []
-    return build_editable_args(element, action_code.args)
+    return build_editable_args(element, action_code.args, state=state)
 
 
 # ---- Legacy colour arguments ---------------------------------------------------------
@@ -438,7 +439,7 @@ LEGACY_ELEMENT_ACTION_CODES = (
 LEGACY_ELEMENT_MATCH_CODES = ("65",)
 
 
-def find_element_name_references(scene_name: str, element_name: str) -> list[str]:
+def find_element_name_references(scene_name: str, element_name: str, state: RunState) -> list[str]:
     """Tasks whose actions address this element by name, as readable descriptions.
 
     The Legacy sibling of find_component_id_references, and matched the same way and for the
@@ -458,7 +459,7 @@ def find_element_name_references(scene_name: str, element_name: str) -> list[str
     wanted_element = element_name.strip().casefold()
 
     references = []
-    for entry in PrimeItems.tasker_root_elements.get("all_tasks", {}).values():
+    for entry in state.tasker_root_elements.get("all_tasks", {}).values():
         task_element = entry["xml"]
         task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"
         for action in task_element.findall("Action"):
@@ -471,7 +472,7 @@ def find_element_name_references(scene_name: str, element_name: str) -> list[str
     return sorted(set(references))
 
 
-def find_element_match_references(scene_name: str) -> list[str]:
+def find_element_match_references(scene_name: str, state: RunState) -> list[str]:
     """Tasks that address this Scene's elements by a match *pattern* (Element Visibility).
 
     Reported wholesale for the Scene rather than per element, because that is as precise as
@@ -485,7 +486,7 @@ def find_element_match_references(scene_name: str) -> list[str]:
 
     wanted_scene = scene_name.strip().casefold()
     references = []
-    for entry in PrimeItems.tasker_root_elements.get("all_tasks", {}).values():
+    for entry in state.tasker_root_elements.get("all_tasks", {}).values():
         task_element = entry["xml"]
         task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"
         for action in task_element.findall("Action"):
@@ -624,6 +625,7 @@ def legacy_new_element(
     scene_element: Element,
     element_type: str,
     box: tuple[int, int, int, int],
+    state: RunState,
     *,
     landscape: bool = False,
 ) -> Element | str:
@@ -664,7 +666,7 @@ def legacy_new_element(
     element.append(geometry)
 
     effective_args = _legacy_effective_args(element_type)
-    build_synthesized_args(element_cls, element, effective_args)
+    build_synthesized_args(element_cls, element, effective_args, state=state)
 
     for argument in effective_args:
         if argument.arg_type != "8":
@@ -902,14 +904,14 @@ def legacy_task_tags_for(element: Element) -> list[str]:
     return known + present
 
 
-def legacy_task_bindings(element: Element) -> list[LegacyBinding]:
+def legacy_task_bindings(element: Element, state: RunState) -> list[LegacyBinding]:
     """Every Task this element currently fires, resolved to names where it can be.
 
     A binding whose id is not in the loaded backup is reported under its id rather than
     dropped -- it is still what the Scene will run, and hiding it would make the Tasks
     section disagree with the file.
     """
-    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    all_tasks = state.tasker_root_elements.get("all_tasks", {})
     bindings = []
     for child in element:
         if child.tag not in SCENE_TASK_TYPES:
@@ -975,20 +977,20 @@ def legacy_clear_task_binding(element: Element, tag: str) -> None:
         element.remove(child)
 
 
-def legacy_task_choices() -> list[str]:
+def legacy_task_choices(state: RunState) -> list[str]:
     """Every Task name in the loaded backup, sorted -- what a binding can be pointed at.
 
     The same list the Task editor's own 'Perform Task' picker offers
     (taskedit.get_all_task_names), so the two never disagree about what exists.
     """
-    return sorted(PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}))
+    return sorted(state.tasker_root_elements.get("all_tasks_by_name", {}))
 
 
-def legacy_task_id_for_name(task_name: str) -> str:
+def legacy_task_id_for_name(task_name: str, state: RunState) -> str:
     """The id of the Task with this name, or "" -- how a picked name becomes what the XML
     stores.
     """
-    entry = PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}).get(task_name)
+    entry = state.tasker_root_elements.get("all_tasks_by_name", {}).get(task_name)
     return str(entry["id"]) if entry else ""
 
 
@@ -1005,7 +1007,7 @@ def legacy_can_have_background(element: Element) -> bool:
     return element.tag in LEGACY_BACKGROUND_TYPES
 
 
-def legacy_add_background(element: Element) -> Element | None:
+def legacy_add_background(element: Element, state: RunState) -> Element | None:
     """Give this element a background sub-element, shaped the way Tasker writes one.
 
     Its <geom> is -1,-1,-1,-1,-1,-1,-1,-1 in every sample: a background has no geometry of
@@ -1024,7 +1026,7 @@ def legacy_add_background(element: Element) -> Element | None:
     geometry = element_cls("geom")
     geometry.text = ",".join([UNSET_DIMENSION] * LEGACY_GEOM_VALUES)
     background.append(geometry)
-    build_synthesized_args(element_cls, background, _legacy_effective_args("RectElement"))
+    build_synthesized_args(element_cls, background, _legacy_effective_args("RectElement"), state=state)
     _legacy_order_arg_children(background)
     element.append(background)
     return background
@@ -1044,9 +1046,7 @@ def legacy_scene_properties(
     return scene_element.find("PropertiesElement")
 
 
-def legacy_add_scene_properties(
-    scene_element: Element,
-) -> Element:
+def legacy_add_scene_properties(scene_element: Element, state: RunState) -> Element:
     """Give the Scene a <PropertiesElement>, at the end where Tasker keeps it."""
     existing = legacy_scene_properties(scene_element)
     if existing is not None:
@@ -1054,7 +1054,7 @@ def legacy_add_scene_properties(
 
     element_cls = type(scene_element)
     properties = element_cls("PropertiesElement", {"sr": "props"})
-    build_synthesized_args(element_cls, properties, _legacy_effective_args("PropertiesElement"))
+    build_synthesized_args(element_cls, properties, _legacy_effective_args("PropertiesElement"), state=state)
     _legacy_order_arg_children(properties)
     scene_element.append(properties)
     return properties
@@ -1489,7 +1489,7 @@ def legacy_action_items(properties: Element) -> list[LegacyActionItem]:
     return items
 
 
-def legacy_action_item_args(item: LegacyActionItem) -> list:
+def legacy_action_item_args(item: LegacyActionItem, state: RunState) -> list:
     """The item's action's editable arguments, as taskedit.EditableArg records.
 
     Its <Action> is an ordinary Task action -- same <code> and <Int/Str sr="argN"> shape --
@@ -1503,7 +1503,7 @@ def legacy_action_item_args(item: LegacyActionItem) -> list:
     if action_code is None:
         return []
     effective = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
-    return build_editable_args(item.action_element, effective)
+    return build_editable_args(item.action_element, effective, state=state)
 
 
 def legacy_set_action_item_label(item: LegacyActionItem, text: str) -> None:
@@ -1571,6 +1571,7 @@ def legacy_renumber_action_items(properties: Element) -> None:
 def legacy_add_action_item(
     properties: Element,
     action_key: str,
+    state: RunState,
 ) -> LegacyActionItem | list[str]:
     """Add an action-bar item running a brand-new action of this type, or return why not.
 
@@ -1583,7 +1584,7 @@ def legacy_add_action_item(
     label alone is valid (it lands in the overflow menu).  Appended after any existing item,
     which is where Tasker adds one -- its plus button is at the bottom of the list.
     """
-    addable, reason = classify_action_addability(action_key)
+    addable, reason = classify_action_addability(action_key, state=state)
     if not addable:
         return [reason or f"'{action_key}' cannot be added."]
 
@@ -1600,7 +1601,7 @@ def legacy_add_action_item(
     code = element_cls("code")
     code.text = action_key[:-1]
     action.append(code)
-    build_synthesized_args(element_cls, action, effective, action_key)
+    build_synthesized_args(element_cls, action, effective, action_key, state=state)
     _legacy_order_arg_children(action)
     item.append(action)
 
@@ -1648,7 +1649,7 @@ def legacy_move_action_item(properties: Element, sr: str, offset: int) -> None:
     legacy_renumber_action_items(properties)
 
 
-def find_element_name_actions(scene_name: str, element_name: str) -> list[tuple[str, object]]:
+def find_element_name_actions(scene_name: str, element_name: str, state: RunState) -> list[tuple[str, object]]:
     """The exact <Str> elements a rename would rewrite, as (Task name, Str element).
 
     STRICTER THAN find_element_name_references ON PURPOSE.  That one matches an action naming
@@ -1667,7 +1668,7 @@ def find_element_name_actions(scene_name: str, element_name: str) -> list[tuple[
     wanted_element = element_name.strip().casefold()
 
     found = []
-    for entry in PrimeItems.tasker_root_elements.get("all_tasks", {}).values():
+    for entry in state.tasker_root_elements.get("all_tasks", {}).values():
         task_element = entry["xml"]
         task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"
         for action in task_element.findall("Action"):
@@ -1685,7 +1686,7 @@ def find_element_name_actions(scene_name: str, element_name: str) -> list[tuple[
     return found
 
 
-def apply_element_renames_to_tasks(scene_name: str, renames: list[tuple[str, str]]) -> int:
+def apply_element_renames_to_tasks(scene_name: str, renames: list[tuple[str, str]], state: RunState) -> int:
     """Rewrite the Task actions that address these elements by name.  Returns how many
     argument values were changed.
 
@@ -1698,7 +1699,7 @@ def apply_element_renames_to_tasks(scene_name: str, renames: list[tuple[str, str
     with sessundo.undoable(f"Rename Scene '{scene_name}' elements in the Tasks that use them"):
         changed = 0
         for old_name, new_name in renames:
-            for _task_name, argument in find_element_name_actions(scene_name, old_name):
+            for _task_name, argument in find_element_name_actions(scene_name, old_name, state=state):
                 argument.text = new_name
                 changed += 1
         return changed

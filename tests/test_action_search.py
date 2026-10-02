@@ -15,6 +15,7 @@ the thing a user types "if" into.
 from __future__ import annotations
 
 import pytest
+from maptasker.src.primitem import PrimeItems
 from maptasker.src import taskedit
 
 # A catalogue built to separate the three ranks on one query.  "set" is the whole of one
@@ -36,12 +37,12 @@ def _fake_catalogue(monkeypatch: pytest.MonkeyPatch) -> None:
     Alphabetical because that is the order list_addable_actions hands rows over in, and
     half of what these tests check is that the order SURVIVES inside each rank.
     """
-    monkeypatch.setattr(taskedit, "list_addable_actions", lambda: list(_FAKE_ACTIONS))
+    monkeypatch.setattr(taskedit, "list_addable_actions", lambda **_kw: list(_FAKE_ACTIONS))
 
 
 def _names(query: str = "", category_name: str = "All") -> list[str]:
     """The search results as the list of names it puts on screen, in order."""
-    return [row["name"] for row in taskedit.search_addable_actions(query, category_name)]
+    return [row["name"] for row in taskedit.search_addable_actions(query, category_name, state=PrimeItems)]
 
 
 # ##################################################################################

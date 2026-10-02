@@ -106,6 +106,7 @@ def settings_file_untouched(monkeypatch):
 def mock_gui_instance():
     """Creates a decoupled MyGui mockup context with required UI attribute references."""
     gui = MagicMock(spec=MyGui)
+    gui.state = PrimeItems
 
     # Initialize basic state variables matching _initialize_gui_settings
     gui.is_updating = False
@@ -168,6 +169,7 @@ def gui_with_selection():
     attribute, PrimeItems.program_arguments and the pulldown widget all name it.
     """
     gui = MagicMock(spec=MyGui)
+    gui.state = PrimeItems
     gui.is_updating = False
     gui.specific_name_msg = "Display only Project 'My Project'"
     gui.single_project_name = "My Project"
@@ -660,6 +662,7 @@ def test_set_startup_language_installs_translation_before_layout():
         PrimeItems.program_arguments.reset = False
 
         gui = MagicMock(spec=MyGui)
+        gui.state = PrimeItems
         MyGui.set_startup_language(gui)
 
         assert gui.language == "German"
@@ -677,6 +680,7 @@ def test_set_startup_language_ignored_on_reset():
         PrimeItems.program_arguments.reset = True
 
         gui = MagicMock(spec=MyGui)
+        gui.state = PrimeItems
         MyGui.set_startup_language(gui)
 
         assert not hasattr(PrimeItems, "_"), "reset run must not install a translation"
@@ -693,6 +697,7 @@ def test_set_startup_language_rejects_unknown_language():
         PrimeItems.program_arguments.reset = False
 
         gui = MagicMock(spec=MyGui)
+        gui.state = PrimeItems
         MyGui.set_startup_language(gui)
 
         assert not hasattr(PrimeItems, "_")
@@ -710,7 +715,7 @@ def test_document_language_declaration():
     saved = PrimeItems.program_arguments.language
     try:
         PrimeItems.program_arguments.language = "Japanese"
-        head = document_language_html()
+        head = document_language_html(state=PrimeItems)
 
         assert 'document.documentElement.lang = "ja"' in head
         assert 'setAttribute("translate", "no")' in head
@@ -730,7 +735,7 @@ def test_document_language_js_shared_by_both_paths():
     saved = PrimeItems.program_arguments.language
     try:
         PrimeItems.program_arguments.language = "French"
-        assert set_document_language_js("fr") in document_language_html()
+        assert set_document_language_js("fr") in document_language_html(state=PrimeItems)
         assert 'document.documentElement.lang = "fr"' in set_document_language_js("fr")
     finally:
         PrimeItems.program_arguments.language = saved
@@ -1233,12 +1238,12 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
         "build_overwrite_confirm_dialog",
         lambda what, on_confirm, **kwargs: calls["overwrite"].append((what, on_confirm, kwargs)),
     )
-    monkeypatch.setattr(userintr_android.profedit, "render_standalone_profile_xml", lambda _p: "<TaskerData/>")
-    monkeypatch.setattr(userintr_android.projedit, "render_standalone_project_xml", lambda _n: "<TaskerData/>")
-    monkeypatch.setattr(userintr_android.projedit, "project_profile_names", lambda _n: ["Watched", "Also Watched"])
+    monkeypatch.setattr(userintr_android.profedit, "render_standalone_profile_xml", lambda _p, **_kw: "<TaskerData/>")
+    monkeypatch.setattr(userintr_android.projedit, "render_standalone_project_xml", lambda _n, **_kw: "<TaskerData/>")
+    monkeypatch.setattr(userintr_android.projedit, "project_profile_names", lambda _n, **_kw: ["Watched", "Also Watched"])
     monkeypatch.setattr(userintr_android, "_unapplied_project_edits", lambda _refs: [])
-    monkeypatch.setattr(userintr_android.sceneedit, "render_standalone_scene_xml", lambda _n: "<TaskerData/>")
-    monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s: None)
+    monkeypatch.setattr(userintr_android.sceneedit, "render_standalone_scene_xml", lambda _n, **_kw: "<TaskerData/>")
+    monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s, **_kw: None)
     monkeypatch.setattr(userintr_android, "_apply_scene_field_values", lambda _s, _refs: [])
     monkeypatch.setattr(
         userintr.MapTaskerEventHandlers,
@@ -1914,7 +1919,7 @@ async def test_the_scene_edits_are_applied_before_the_export(monkeypatch, event_
     monkeypatch.setattr(
         userintr_android.sceneedit,
         "apply_edited_scene_to_live_tree",
-        lambda name, _scene: applied.append(name),
+        lambda name, _scene, **_kw: applied.append(name),
     )
 
     await _import_scene(event_handler, android_refs)
@@ -2042,7 +2047,7 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
 
     monkeypatch.setattr(userintr_android, "ping_android_device", fake_ping)
     monkeypatch.setattr(userintr_android.taskedit, "apply_edits_to_task", lambda *_args: [])
-    monkeypatch.setattr(userintr_android.taskedit, "task_name_exists", lambda _name: False)
+    monkeypatch.setattr(userintr_android.taskedit, "task_name_exists", lambda _name, **_kw: False)
     monkeypatch.setattr(userintr_android, "_task_arg_values", lambda _refs: {})
     monkeypatch.setattr(userintr_editors, "refresh_tasker_object_pulldowns", lambda _gui: None)
     # Both halves of _keep_task_in_loaded_config: which one runs depends on whether the Task
@@ -2050,12 +2055,12 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
     monkeypatch.setattr(
         userintr_android.taskedit,
         "apply_edited_task_to_live_tree",
-        lambda _task: calls["kept"].append("existing"),
+        lambda _task, **_kw: calls["kept"].append("existing"),
     )
     monkeypatch.setattr(
         userintr_android.taskedit,
         "register_new_task",
-        lambda _task, name: calls["kept"].append(f"new:{name}"),
+        lambda _task, name, **_kw: calls["kept"].append(f"new:{name}"),
     )
     # One read of the path now answers both questions -- see maputil2.read_android_file.
     # The content it hands back is what becomes the safety copy, with no second GET.
@@ -2070,7 +2075,7 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
         lambda path, content: (calls["backed_up"].append((path, content)), (True, "/copies/Opener.tsk.xml"))[1],
     )
 
-    def fake_upload(_task, _ip, _port, name):
+    def fake_upload(_task, _ip, _port, name, **_kw):
         calls["uploaded"].append(name)
         return upload
 
@@ -2184,6 +2189,7 @@ def test_a_save_to_android_panel_option_is_kept_for_the_next_session(monkeypatch
     )
     monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments(android_verify=False, android_check_ids=False))
     gui = MagicMock()
+    gui.state = PrimeItems
 
     guiwins.remember_android_panel_option(gui, "android_check_ids", True)
 
@@ -2219,6 +2225,8 @@ def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch) ->
     )
     monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments())
     gui = MagicMock(android_ipaddr="", android_port="", android_last_ipaddr="", android_last_port="")
+    gui.state = PrimeItems
+    gui.state = PrimeItems
 
     guiutils.remember_android_address(gui, " 10.0.0.7 ", "1822")
     guiutils.remember_android_address(gui, "10.0.0.7", "1822")  # unchanged: no second write
@@ -2232,6 +2240,7 @@ def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch) ->
 
     # Nothing entered yet anywhere: the defaults.
     fresh = MagicMock(android_ipaddr="", android_port="", android_last_ipaddr="", android_last_port="")
+    fresh.state = PrimeItems
     monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments())
     assert guiutils.android_address_defaults(fresh) == ("192.168.0.210", "1821")
 
@@ -2656,7 +2665,7 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
         "save_task_to_android_directory",
         lambda *_args, **_kwargs: (8, "Tasker did not report the Task"),
     )
-    monkeypatch.setattr(userintr_android.taskedit, "render_standalone_task_xml", lambda _task: "<TaskerData/>")
+    monkeypatch.setattr(userintr_android.taskedit, "render_standalone_task_xml", lambda _task, **_kw: "<TaskerData/>")
     offered: list = []
     monkeypatch.setattr(
         userintr_android.deviceinv,
@@ -2755,7 +2764,7 @@ def _patch_object_save_path(monkeypatch, kind: str, exists=False, upload=(0, "/T
         lambda message, **kwargs: calls["notify"].append((message, kwargs.get("type"))),
     )
 
-    def record(*args: object) -> tuple:
+    def record(*args: object, **_kw: object) -> tuple:
         calls["uploaded"].append(args)
         return upload
 
@@ -2780,7 +2789,7 @@ def _patch_object_save_path(monkeypatch, kind: str, exists=False, upload=(0, "/T
         monkeypatch.setattr(userintr_android.projedit, "save_project_to_android", record)
     else:
         monkeypatch.setattr(userintr_android, "_apply_scene_field_values", lambda _s, _refs: [])
-        monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s: None)
+        monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s, **_kw: None)
         monkeypatch.setattr(userintr_android.sceneedit, "android_scene_path", lambda name: f"/Tasker/scenes/{name}.scn.xml")
         monkeypatch.setattr(userintr_android.sceneedit, "save_scene_to_android", record)
     return calls
@@ -2955,6 +2964,7 @@ async def test_a_device_that_would_not_answer_opens_no_dialog(monkeypatch, event
 def _gui_with_pulldowns(options_per_label: dict) -> MagicMock:
     """A view whose four 'Specific Name' pulldowns hold the given option lists."""
     gui = MagicMock(spec=MyGui)
+    gui.state = PrimeItems
     gui.is_updating = False
     for label in SINGLE_ITEM_LABELS:
         setattr(gui, f"single_{label.lower()}_name", "")

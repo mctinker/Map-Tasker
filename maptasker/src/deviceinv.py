@@ -293,14 +293,14 @@ def build_helper_task(task_name: str = HELPER_TASK_NAME):
     there is no second copy of Tasker's XML shape to keep in step with the first.
     """
 
-    edited_task = taskedit.create_new_task(task_name, "100")
+    edited_task = taskedit.create_new_task(task_name, "100", state=PrimeItems)
     if isinstance(edited_task, str):
         return edited_task
 
     values: dict[str, str] = {}
 
     def add(action_key: str, args: dict[str, str]) -> str:
-        action = taskedit.add_action_to_task(edited_task, action_key)
+        action = taskedit.add_action_to_task(edited_task, action_key, state=PrimeItems)
         if isinstance(action, list):
             return action[0] if action else f"'{action_key}' could not be added."
         for arg_id, value in args.items():
@@ -733,11 +733,7 @@ def _install_task_on_android(
     # Tasks.  'MapTasker Send Profile v1.tsk.xml' sitting in it is litter they did not ask
     # for and would have to recognize before deleting.
     return_code, result = taskedit.save_task_to_android(
-        built,
-        ip_address,
-        ip_port,
-        task_name,
-        via_file=False,
+        built, ip_address, ip_port, task_name, via_file=False, state=PrimeItems
     )
     if return_code != 0:
         return return_code, str(result)
@@ -941,14 +937,14 @@ def build_file_list_task(task_name: str = FILE_LIST_TASK_NAME, directory: str = 
     file name.  This writes the paths and nothing else, joined with _PAYLOAD_JOINER.
     """
 
-    edited_task = taskedit.create_new_task(task_name, "100")
+    edited_task = taskedit.create_new_task(task_name, "100", state=PrimeItems)
     if isinstance(edited_task, str):
         return edited_task
 
     values: dict[str, str] = {}
 
     def add(action_key: str, args: dict[str, str]) -> str:
-        action = taskedit.add_action_to_task(edited_task, action_key)
+        action = taskedit.add_action_to_task(edited_task, action_key, state=PrimeItems)
         if isinstance(action, list):
             return action[0] if action else f"'{action_key}' could not be added."
         for arg_id, value in args.items():
@@ -1267,7 +1263,7 @@ def build_import_profile_task(
     if import_type not in type_options:
         return f"'{import_type}' is not an 'Import Data' type.  Expected one of: {', '.join(type_options)}."
 
-    edited_task = taskedit.create_new_task(task_name, "100")
+    edited_task = taskedit.create_new_task(task_name, "100", state=PrimeItems)
     if isinstance(edited_task, str):
         return edited_task
 
@@ -1279,7 +1275,7 @@ def build_import_profile_task(
         because one of the actions here has an argument that cannot be set through
         apply_edits_to_task (see below).
         """
-        action = taskedit.add_action_to_task(edited_task, action_key)
+        action = taskedit.add_action_to_task(edited_task, action_key, state=PrimeItems)
         if isinstance(action, list):
             return action[0] if action else f"'{action_key}' could not be added."
         for arg_id, value in args.items():
@@ -1809,14 +1805,14 @@ def _new_offer_task(task_name: str):  # noqa: ANN202
     ordinary user's Add Task takes.
     """
 
-    edited_task = taskedit.create_new_task(task_name, "100")
+    edited_task = taskedit.create_new_task(task_name, "100", state=PrimeItems)
     if isinstance(edited_task, str):
         return edited_task
 
     values: dict[str, str] = {}
 
     def add(action_key: str, args: dict[str, str]) -> str:
-        action = taskedit.add_action_to_task(edited_task, action_key)
+        action = taskedit.add_action_to_task(edited_task, action_key, state=PrimeItems)
         if isinstance(action, list):
             return action[0] if action else f"'{action_key}' could not be added."
         for arg_id, value in args.items():
@@ -2820,7 +2816,7 @@ def build_helper_project_xml(project_name: str = HELPER_PROJECT_NAME, device_xml
     # Past every id loaded here and every id the device's backup holds, with the headroom
     # next_unique_task_or_profile_id leaves for objects the device made after that backup.
     next_id = max(
-        taskedit.next_unique_task_or_profile_id(),
+        taskedit.next_unique_task_or_profile_id(state=PrimeItems),
         _highest_object_id(device) + taskedit.NEW_OBJECT_ID_HEADROOM + 1 if device is not None else 0,
     )
 
@@ -3056,7 +3052,7 @@ def _build_reporting_task(  # noqa: ANN202
     before it does.  Built with taskedit's own Add-Task machinery, as build_file_list_task is.
     """
 
-    edited_task = taskedit.create_new_task(task_name, "100")
+    edited_task = taskedit.create_new_task(task_name, "100", state=PrimeItems)
     if isinstance(edited_task, str):
         return edited_task
 
@@ -3067,7 +3063,7 @@ def _build_reporting_task(  # noqa: ANN202
         for index, text in enumerate(lines)
     ]
     for action_key, args in (*steps, *writes):
-        action = taskedit.add_action_to_task(edited_task, action_key)
+        action = taskedit.add_action_to_task(edited_task, action_key, state=PrimeItems)
         if isinstance(action, list):
             return action[0] if action else f"'{action_key}' could not be added."
         for arg_id, value in args.items():

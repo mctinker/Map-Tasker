@@ -82,12 +82,12 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
     from xml.etree.ElementTree import Element
 
 from maptasker.src import editcommon, piiscan, sessundo
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.presave import backup_local_file
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.editcommon import touch_project_mdate
 from maptasker.src.sysconst import SCENE_TASK_TYPES
 from maptasker.src.sceneedit_legacy import UNSET_DIMENSION, apply_element_renames_to_tasks, legacy_restore
@@ -284,22 +284,22 @@ def _rename_v2_layout(scene_element: Element, new_name: str) -> None:
     encode_v2_layout(scene_element, layout)
 
 
-def resolve_scene_by_name(scene_name: str) -> Element | None:
+def resolve_scene_by_name(scene_name: str, state: RunState) -> Element | None:
     """Look up a Scene's live XML element by its name (also its all_scenes key).
 
     Callers must not mutate the returned element directly -- go through
     load_scene_for_edit() instead.
     """
-    entry = PrimeItems.tasker_root_elements.get("all_scenes", {}).get(scene_name)
+    entry = state.tasker_root_elements.get("all_scenes", {}).get(scene_name)
     return None if entry is None else entry["xml"]
 
 
-def load_scene_for_edit(scene_name: str) -> EditableScene | None:
+def load_scene_for_edit(scene_name: str, state: RunState) -> EditableScene | None:
     """Resolve a Scene by name and deep-copy it -- the one point of contact with
     the live tree, so the in-memory backup is never touched until Rename is
     applied.  Mirrors projedit.load_project_for_edit.
     """
-    live_element = resolve_scene_by_name(scene_name)
+    live_element = resolve_scene_by_name(scene_name, state=state)
     if live_element is None:
         return None
     return EditableScene(scene_name=scene_name, scene_element=copy.deepcopy(live_element))
@@ -497,9 +497,7 @@ def v2_template_layout(name: str, template: str) -> dict:
 
 
 def create_new_scene(
-    name: str,
-    version: str = SCENE_VERSION_LEGACY,
-    template: str = V2_DEFAULT_TEMPLATE,
+    name: str, version: str = SCENE_VERSION_LEGACY, template: str = V2_DEFAULT_TEMPLATE, *, state: RunState
 ) -> EditableScene | str:
     """Build a brand-new, empty Scene element of either kind, not tied to any
     existing one.  Returns an error message string if no backup is loaded (needed
@@ -531,12 +529,12 @@ def create_new_scene(
     matches what Tasker writes.  The Scene starts empty either way: adding
     elements/components is the part still to come (see this module's docstring).
     """
-    if PrimeItems.xml_root is None:
+    if state.xml_root is None:
         return "Load a Tasker backup file first (Add Scene needs it to build the Scene)."
     if version not in SCENE_VERSIONS:
         return f"'{version}' is not a kind of Scene. Choose {' or '.join(SCENE_VERSIONS)}."
 
-    element_cls = type(PrimeItems.xml_root)
+    element_cls = type(state.xml_root)
     clean_name = name.strip()
     is_v2 = version == SCENE_VERSION_V2
     scene_element = element_cls("Scene", {"sr": f"scene{clean_name}"})
@@ -568,12 +566,12 @@ def create_new_scene(
     return EditableScene(scene_name=clean_name, scene_element=scene_element)
 
 
-def scene_name_exists(name: str) -> bool:
+def scene_name_exists(name: str, state: RunState) -> bool:
     """Whether a Scene with this name already exists in the currently loaded backup."""
-    return name.strip() in PrimeItems.tasker_root_elements.get("all_scenes", {})
+    return name.strip() in state.tasker_root_elements.get("all_scenes", {})
 
 
-def apply_edits_to_scene(edited_scene: EditableScene, new_name: str) -> list[str]:
+def apply_edits_to_scene(edited_scene: EditableScene, new_name: str, state: RunState) -> list[str]:
     """Validate the new name, and only if valid, write it into the Scene copy's
     <nme> child AND its sr attribute (both carry the name -- see this module's
     docstring).  All-or-nothing, mirrors projedit.apply_edits_to_project.
@@ -599,7 +597,7 @@ def apply_edits_to_scene(edited_scene: EditableScene, new_name: str) -> list[str
         errors.append(
             "Scene name cannot contain a comma -- a Project lists its Scenes as one comma-separated name list.",
         )
-    elif new_name != edited_scene.scene_name and scene_name_exists(new_name):
+    elif new_name != edited_scene.scene_name and scene_name_exists(new_name, state=state):
         errors.append(f"A Scene named '{new_name}' already exists in this backup. Choose a different name.")
 
     if errors:
@@ -639,7 +637,7 @@ def set_scene_dimensions(edited_scene: EditableScene, dimensions: dict[str, str]
     touch_scene_edate(edited_scene.scene_element)
 
 
-def register_new_scene(edited_scene: EditableScene) -> None:
+def register_new_scene(edited_scene: EditableScene, state: RunState) -> None:
     """Adds a new Scene to the in-memory backup's all_scenes table so it behaves
     like any other Scene loaded from the backup -- so it shows up in the Scene
     pulldown, and so a second Add Scene with the same name is caught by
@@ -648,13 +646,13 @@ def register_new_scene(edited_scene: EditableScene) -> None:
     a table nothing walks (see that function).
     """
     with sessundo.undoable(f"Add Scene '{edited_scene.scene_name}'"):
-        PrimeItems.tasker_root_elements.setdefault("all_scenes", {})[edited_scene.scene_name] = {
+        state.tasker_root_elements.setdefault("all_scenes", {})[edited_scene.scene_name] = {
             "xml": edited_scene.scene_element,
             "name": edited_scene.scene_name,
         }
 
 
-def add_scene_to_project(scene_name: str, project_name: str) -> None:
+def add_scene_to_project(scene_name: str, project_name: str, state: RunState) -> None:
     """Attaches a newly-registered Scene to a Project by appending its *name* to
     that Project's <scenes> element -- the mechanism Tasker, and every view this
     app generates, uses to know which Scenes belong to which Project:
@@ -673,7 +671,7 @@ def add_scene_to_project(scene_name: str, project_name: str) -> None:
     isn't a known Project (defense in depth; the GUI only offers real names).
     """
     with sessundo.undoable(f"Add Scene '{scene_name}' to Project '{project_name}'"):
-        project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+        project_entry = state.tasker_root_elements.get("all_projects", {}).get(project_name)
         if project_entry is None:
             return
 
@@ -695,7 +693,7 @@ def _project_scene_names(project_element: Element) -> list[str]:
     return [name for name in child.text.split(",") if name]
 
 
-def project_owning_scene(scene_name: str) -> str:
+def project_owning_scene(scene_name: str, state: RunState) -> str:
     """The name of the Project whose <scenes> lists this Scene, or "".
 
     Used when a Task is created from inside a Scene -- the Scene Properties Event tabs -- so
@@ -708,7 +706,7 @@ def project_owning_scene(scene_name: str) -> str:
     """
     if not scene_name:
         return ""
-    for name, entry in PrimeItems.tasker_root_elements.get("all_projects", {}).items():
+    for name, entry in state.tasker_root_elements.get("all_projects", {}).items():
         if scene_name in _project_scene_names(entry["xml"]):
             return name
     return ""
@@ -733,7 +731,7 @@ def _set_project_scene_names(
     _set_child_text(project_element, "scenes", ",".join(scene_names))
 
 
-def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene) -> None:
+def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene, state: RunState) -> None:
     """Writes an edited (pre-existing) Scene back into the in-memory backup: its
     contents onto the live element, its all_scenes entry under whatever name it
     now carries, and -- if that name changed -- the <scenes> list of every
@@ -766,7 +764,7 @@ def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene) 
     ever pass a name that was just loaded via load_scene_for_edit).
     """
     with sessundo.undoable(f"Edit Scene '{old_name}'"):
-        all_scenes = PrimeItems.tasker_root_elements.get("all_scenes", {})
+        all_scenes = state.tasker_root_elements.get("all_scenes", {})
         entry = all_scenes.get(old_name)
         if entry is None:
             return
@@ -776,7 +774,7 @@ def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene) 
         # it as it was, and renaming a Scene has never rewritten those (see this module's
         # docstring), so the Scene name in a Task action is still the one it came in under.
         if edited_scene.element_renames:
-            apply_element_renames_to_tasks(old_name, edited_scene.element_renames)
+            apply_element_renames_to_tasks(old_name, edited_scene.element_renames, state=state)
             edited_scene.element_renames.clear()
 
         live_element = entry["xml"]
@@ -795,7 +793,7 @@ def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene) 
         new_name = live_element.findtext("nme", "") or old_name
         if new_name != old_name:
             del all_scenes[old_name]
-            for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
+            for project_entry in state.tasker_root_elements.get("all_projects", {}).values():
                 project_element = project_entry["xml"]
                 scene_names = _project_scene_names(project_element)
                 if old_name not in scene_names:
@@ -811,7 +809,7 @@ def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene) 
         edited_scene.scene_name = new_name
 
 
-def delete_scene(scene_name: str) -> list[str]:
+def delete_scene(scene_name: str, state: RunState) -> list[str]:
     """Deletes a Scene from the in-memory backup and removes it from every
     Project's <scenes> list.  Returns [] on success, else a list of error
     strings (mirrors projedit.delete_project's convention), and mutates nothing
@@ -823,11 +821,11 @@ def delete_scene(scene_name: str) -> list[str]:
     same call the Delete Task dialog spells out in reverse).
     """
     with sessundo.undoable(f"Delete Scene '{scene_name}'"):
-        all_scenes = PrimeItems.tasker_root_elements.get("all_scenes", {})
+        all_scenes = state.tasker_root_elements.get("all_scenes", {})
         if scene_name not in all_scenes:
             return [f"Scene '{scene_name}' no longer exists."]
 
-        for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
+        for project_entry in state.tasker_root_elements.get("all_projects", {}).values():
             project_element = project_entry["xml"]
             scene_names = _project_scene_names(project_element)
             if scene_name not in scene_names:
@@ -905,7 +903,7 @@ def scene_task_ids(scene_element: Element) -> list[str]:
     return found
 
 
-def render_standalone_scene_xml(scene_name: str, *, redact: bool = False) -> str:
+def render_standalone_scene_xml(scene_name: str, state: RunState, *, redact: bool = False) -> str:
     """Render a Scene as a standalone TaskerData/Scene XML string, matching the
     shape Tasker's own Scene export produces (verified against a single-Scene
     export in this repo's sample data: a TaskerData root holding one <Scene>, which keeps
@@ -932,13 +930,13 @@ def render_standalone_scene_xml(scene_name: str, *, redact: bool = False) -> str
     writing a comment above the file saying what went -- what "Redact secrets" on the
     export button does.  Off by default, so nothing that already calls this changes.
     """
-    scene_entry = PrimeItems.tasker_root_elements.get("all_scenes", {}).get(scene_name)
+    scene_entry = state.tasker_root_elements.get("all_scenes", {}).get(scene_name)
     if scene_entry is None:
         msg = f"Scene '{scene_name}' no longer exists in this backup."
         raise ValueError(msg)
 
     scene_copy = copy.deepcopy(scene_entry["xml"])
-    tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
+    tv = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
 
     # Match the parsed tree's actual Element class (see projedit's identical note).
     element_cls = type(scene_copy)
@@ -948,7 +946,7 @@ def render_standalone_scene_xml(scene_name: str, *, redact: bool = False) -> str
     # invented: the right value is the screen these elements were laid out on, which is the
     # device the backup came from.  A backup without one exports without one -- inventing a
     # screen size would have Tasker scale the Scene to a device that never existed.
-    source_metric = PrimeItems.xml_root.find(_DISPLAY_METRIC_TAG) if PrimeItems.xml_root is not None else None
+    source_metric = state.xml_root.find(_DISPLAY_METRIC_TAG) if state.xml_root is not None else None
     if source_metric is not None:
         root.append(copy.deepcopy(source_metric))
 
@@ -957,7 +955,7 @@ def render_standalone_scene_xml(scene_name: str, *, redact: bool = False) -> str
     # Then the Tasks its elements fire.  Nothing but the Scene points at these, so without
     # them the Scene imports and its buttons do nothing -- a failure that looks like a
     # successful import.  Ids that resolve to no Task are skipped rather than faked.
-    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    all_tasks = state.tasker_root_elements.get("all_tasks", {})
     seen: set[str] = set()
     for task_id in scene_task_ids(scene_copy):
         task_entry = all_tasks.get(task_id)
@@ -975,7 +973,7 @@ def render_standalone_scene_xml(scene_name: str, *, redact: bool = False) -> str
     return notice + ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_scene_xml(scene_name: str, output_path: str, *, redact: bool = False) -> str:
+def write_standalone_scene_xml(scene_name: str, output_path: str, state: RunState, *, redact: bool = False) -> str:
     """Write a Scene as a standalone .scn.xml file.  Raises OSError on failure,
     ValueError if the Scene no longer exists.
 
@@ -990,14 +988,14 @@ def write_standalone_scene_xml(scene_name: str, output_path: str, *, redact: boo
     device, where the keys in it are the keys it needs to work, and a redacted upload would
     be an import that silently stopped functioning.
     """
-    rendered = render_standalone_scene_xml(scene_name, redact=redact)
+    rendered = render_standalone_scene_xml(scene_name, redact=redact, state=state)
     _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
         out_file.write(rendered)
     return safety_copy
 
 
-def save_scene_to_android(scene_name: str, ip_address: str, ip_port: str) -> tuple[int, str]:
+def save_scene_to_android(scene_name: str, ip_address: str, ip_port: str, state: RunState) -> tuple[int, str]:
     """Writes the Scene onto the Android device's storage under /Tasker/scenes.  The
     upload and its readback-verify are EditorKind.upload_and_verify, shared with the
     other three editors; see it for why a 200 from /upload proves nothing on its own,
@@ -1012,7 +1010,7 @@ def save_scene_to_android(scene_name: str, ip_address: str, ip_port: str) -> tup
             ip_address,
             ip_port,
             scene_name,
-            lambda: render_standalone_scene_xml(scene_name).encode("utf-8"),
+            lambda: render_standalone_scene_xml(scene_name, state=state).encode("utf-8"),
         )
     except ValueError as e:
         return 8, str(e)

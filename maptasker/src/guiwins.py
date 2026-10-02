@@ -110,6 +110,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine, Sequence
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MyGui
 
 
@@ -676,7 +677,7 @@ def remember_android_panel_option(gui: MyGui, name: str, value: object) -> None:
     other way would otherwise forget a box ticked in it.
     """
     remember_setting(gui, name, bool(value))
-    save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
+    save_restore_args(gui.state.program_arguments, gui.state.colors_to_use, to_save=True)
 
 
 def _android_device_fields(gui: MyGui) -> dict:
@@ -1684,7 +1685,7 @@ def _build_scene_properties_dialog(
                     ).props("dense flat")
                     return
 
-                args = {arg.arg_id: arg for arg in sceneedit_legacy.legacy_element_args(properties)}
+                args = {arg.arg_id: arg for arg in sceneedit_legacy.legacy_element_args(properties, state=self.state)}
                 property_type = args.get(_SCENE_PROPERTY_TYPE_ARG)
 
                 # Named tabs, not label-valued ones: ui.tab's value defaults to its label,
@@ -1712,7 +1713,7 @@ def _build_scene_properties_dialog(
                         )
 
         def add_properties() -> None:
-            sceneedit_legacy.legacy_add_scene_properties(scene_element)
+            sceneedit_legacy.legacy_add_scene_properties(scene_element, state=self.state)
             render()
 
         render()
@@ -1984,7 +1985,7 @@ def _render_scene_actions_tab(
                 ),
             ).props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}").classes("w-full")
 
-            item_args = sceneedit_legacy.legacy_action_item_args(item)
+            item_args = sceneedit_legacy.legacy_action_item_args(item, state=self.state)
             if item.action_element is None:
                 ui.label(translate_string("This item has no action.")).classes("text-xs text-gray-500 italic")
             elif not item_args:
@@ -2031,7 +2032,7 @@ def _render_scene_action_item_picker(
     (sceneedit_legacy.legacy_add_action_item -> taskedit.build_synthesized_args).  An action that
     cannot be synthesized is greyed out with its reason, exactly as it is there.
     """
-    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
+    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions(state=self.state)})
 
     ui.label(translate_string("Add an action bar item")).classes("text-sm font-bold mt-3")
     with ui.row().classes("w-full gap-4"):
@@ -2040,7 +2041,7 @@ def _render_scene_action_item_picker(
     picker_container = ui.column().classes("w-full")
 
     def add_item(action_key: str) -> None:
-        added = sceneedit_legacy.legacy_add_action_item(properties, action_key)
+        added = sceneedit_legacy.legacy_add_action_item(properties, action_key, state=self.state)
         if isinstance(added, list):
             for error in added:
                 ui.notify(error, type="negative")
@@ -2049,7 +2050,7 @@ def _render_scene_action_item_picker(
 
     def refresh_picker(_event: ui.event | None = None) -> None:
         picker_container.clear()
-        rows = taskedit.search_addable_actions(search_input.value, category_select.value)
+        rows = taskedit.search_addable_actions(search_input.value, category_select.value, state=self.state)
         with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
             for row in rows:
                 if row["addable"]:
@@ -2158,14 +2159,14 @@ def _render_scene_event(
     # blank name still reads as bound.  taskerd normally fills a made-up display name in for
     # an unnamed Task, but a caller that built the tables without that pass would otherwise
     # make a real binding read as "Nothing".
-    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    all_tasks = self.state.tasker_root_elements.get("all_tasks", {})
     entry = all_tasks.get(task_id)
     task_name = ((entry or {}).get("name") or f"Task {task_id}") if task_id else ""
 
     def set_binding(picked: str) -> None:
         if not picked:
             return
-        picked_id = sceneedit_legacy.legacy_task_id_for_name(picked)
+        picked_id = sceneedit_legacy.legacy_task_id_for_name(picked, state=self.state)
         if not picked_id:
             ui.notify(f"No Task named '{picked}' in this backup.", type="negative")
             return
@@ -2241,7 +2242,7 @@ def _render_task_picker(on_pick: Callable[[str], None]) -> None:
     sceneedit_legacy.legacy_task_id_for_name and every other Task-by-name path in this app take, and
     resolving it at the callback keeps this function ignorant of what the caller does with it.
     """
-    rows = taskedit.list_pickable_tasks()
+    rows = taskedit.list_pickable_tasks(state=PrimeItems)
     projects = sorted({row["project_name"] for row in rows})
 
     ui.label(translate_string("Pick a Task")).classes("text-sm font-bold mt-2")
@@ -2258,7 +2259,7 @@ def _render_task_picker(on_pick: Callable[[str], None]) -> None:
 
     def refresh_picker(_event: ui.event | None = None) -> None:
         picker_container.clear()
-        matches = taskedit.search_pickable_tasks(search_input.value, project_select.value)
+        matches = taskedit.search_pickable_tasks(search_input.value, project_select.value, state=PrimeItems)
         with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
             if not matches:
                 ui.label(translate_string("No Task matches.")).classes("text-xs text-gray-500 italic")
@@ -2374,7 +2375,7 @@ def _render_scene_event_task_actions(
     held_key = f"{event.tag}:{task_id}"
     held = task_state["bound"].get(held_key)
     if held is None:
-        edited_task = taskedit.load_task_for_edit_by_id(task_id)
+        edited_task = taskedit.load_task_for_edit_by_id(task_id, state=self.state)
         if edited_task is None:
             ui.label(
                 f"{translate_string('Task')} {task_id} "
@@ -2442,7 +2443,7 @@ def _render_scene_event_new_task(
     what this Task is.  It is a plain field: a name another Task already has is refused by
     create_scene_event_task_event rather than quietly given a suffix.
     """
-    if PrimeItems.xml_root is None:
+    if self.state.xml_root is None:
         ui.label(
             translate_string("Load a Tasker configuration first -- a new Task needs one to get an id."),
         ).classes("text-xs text-gray-500 italic")
@@ -2456,9 +2457,7 @@ def _render_scene_event_new_task(
         # has registered them: without this all three would be handed the same id, and
         # creating the second would overwrite the first in the Task tables.
         created = taskedit.create_new_task(
-            default_name,
-            "100",
-            reserved_ids={task.task_id for task, _refs in pending.values()},
+            default_name, "100", reserved_ids={task.task_id for task, _refs in pending.values()}, state=self.state
         )
         if isinstance(created, str):  # No backup loaded -- create_new_task's own message.
             ui.label(translate_string(created)).classes("text-xs text-gray-500 italic")
@@ -2487,7 +2486,7 @@ def _render_scene_event_new_task(
         # attaches to the Project that was selected before it opened.  A Task in no Project's
         # <tids> runs but appears in no generated view of any Project.  "" when the Scene
         # belongs to none, which _finish_new_task reads as "nothing to attach to".
-        "target_project_name": sceneedit.project_owning_scene(scene_name),
+        "target_project_name": sceneedit.project_owning_scene(scene_name, state=self.state),
     }
     pending[event.tag] = (edited_task, field_refs)
     task_state["flushers"].append(
@@ -3117,6 +3116,7 @@ def build_health_check_dialog(
     on_run: Callable[[list[str]], None],
     on_save: Callable[[list[str]], None],
     gui: MyGui,
+    state: RunState,
 ) -> None:
     """Ask which categories of finding the Health Check should report, then run it.
 
@@ -3141,7 +3141,7 @@ def build_health_check_dialog(
     Application picker.  It opens the same fetch dialog those do, over this panel, and the
     panel stays open so Run is one click away once the list is in.
     """
-    skip = set(PrimeItems.program_arguments.health_check_skip or [])
+    skip = set(state.program_arguments.health_check_skip or [])
     boxes: dict[str, ui.checkbox] = {}
     # Select All and Deselect All set every box in turn, and each of those would otherwise
     # save the settings file on its own: forty-five writes for one click.
@@ -3701,7 +3701,7 @@ def initialize_gui(self: MyGui) -> None:
 
 def _initialize_gui_settings(self: MyGui) -> None:
     """Initializes GUI-related appearance and display settings."""
-    PrimeItems.program_arguments.gui = True
+    self.state.program_arguments.gui = True
     self.gui = True
     self.guiview = False
     self.appearance_mode = None
@@ -3812,7 +3812,7 @@ def _initialize_runtime_options(self: MyGui) -> None:
 # =========================================================================
 # Initialize the GUI screen layout using NiceGUI with split sidebars and main content area.
 # =========================================================================
-def document_language_html() -> str:
+def document_language_html(state: RunState) -> str:
     """Head markup declaring the GUI's language and asking the browser not to translate it.
 
     Without a lang attribute the browser sniffs the text instead.  With the GUI set to
@@ -3829,7 +3829,7 @@ def document_language_html() -> str:
     rebuilds the layout but not the document, so language_set_event() updates the live
     attributes itself -- see set_document_language_js().
     """
-    lang_code = PrimeItems.languages.get(PrimeItems.program_arguments.language or "English", "en")
+    lang_code = state.languages.get(state.program_arguments.language or "English", "en")
     return f'<meta name="google" content="notranslate"><script>{set_document_language_js(lang_code)}</script>'
 
 
@@ -3862,7 +3862,7 @@ def inject_shared_head_styles() -> None:
     # Every page needs this for the same reason it needs the CSS below: each @ui.page is its
     # own document, so a popped-out Map/Diagram window would otherwise be left for the
     # browser to sniff and translate on its own.
-    ui.add_head_html(document_language_html())
+    ui.add_head_html(document_language_html(state=PrimeItems))
 
     ui.add_head_html(webassets.head_html())
 
@@ -4060,8 +4060,8 @@ def _create_right_drawer(self: MyGui) -> None:
 
 def _create_execution_section(self: MyGui) -> None:
     """The Execution group: Get Local XML File, Exit, and the two checkboxes that shape what Exit and a new view do."""
-    get_file_color = "green" if PrimeItems.file_to_get else "red"
-    blink_class = "" if PrimeItems.file_to_get else " animate-pulse"
+    get_file_color = "green" if self.state.file_to_get else "red"
+    blink_class = "" if self.state.file_to_get else " animate-pulse"
 
     self.get_xml_button = ui.button(
         translate_string("Get Local XML File"),
@@ -4829,7 +4829,7 @@ def _create_name_display_options_section(self: MyGui) -> None:
 def _create_task_action_limit_section(self: MyGui) -> None:
     """Creates the task 'actions' limit slider in the NiceGUI sidebar."""
     text_to_insert = "Task 'actions' limit"
-    text = PrimeItems._(text_to_insert) if hasattr(PrimeItems, "_") else text_to_insert
+    text = self.state._(text_to_insert) if hasattr(self.state, "_") else text_to_insert
 
     # 1. Label tracking the live dynamic value
     self.task_action_label = ui.label(f"{text}: {self.task_action_warning_limit}").classes(
@@ -4891,7 +4891,7 @@ def _create_language_selection_section(self: MyGui) -> None:
     )
 
     # This returns a list of English language keys, e.g., ["English", "German", "French"]
-    languages = sort_languages_with_priority(PrimeItems.languages.keys())
+    languages = sort_languages_with_priority(self.state.languages.keys())
 
     # ui.select's "value" (what on_change reports, and what must be assigned to select
     # a specific entry) is always the dict KEY, never the displayed label -- so map each
@@ -5089,11 +5089,11 @@ def _create_font_section(self: MyGui) -> None:
 
     # {font name: label shown}, so the label can mark a font as monospaced while the
     # value carried by the pulldown stays the plain name the output has to reference.
-    if not PrimeItems.mono_fonts:
+    if not self.state.mono_fonts:
         font_items = get_font_choices()
-        PrimeItems.mono_fonts = font_items
+        self.state.mono_fonts = font_items
     else:
-        font_items = PrimeItems.mono_fonts
+        font_items = self.state.mono_fonts
 
     font_names = list(font_items)
     default_font = [name for name in font_names if "Courier" in name]

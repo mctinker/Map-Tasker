@@ -28,6 +28,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
+
 from maptasker.src import appinv, caches, editcommon, piiscan, plugset, sessundo
 from maptasker.src.actionc import action_codes
 from maptasker.src.actiont import lookup_values
@@ -42,7 +44,6 @@ from maptasker.src.maputil2 import (
     tasker_name_query,
 )
 from maptasker.src.presave import backup_local_file
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 
 # The purely informational Bundle hint (a list of the variables an action/condition
@@ -158,25 +159,25 @@ _IF_CONDITION_CODE_TO_INDEX = {code: i for i, (code, _label) in enumerate(IF_CON
 _IF_CONDITION_LABEL_TO_CODE = {label: code for code, label in IF_CONDITION_OPERATORS}
 
 
-def resolve_task_by_name(task_name: str) -> tuple[str, Element] | None:
+def resolve_task_by_name(task_name: str, state: RunState) -> tuple[str, Element] | None:
     """Look up a Task's id and live XML element by its displayed name.
 
     Returns (task_id, live_element), or None if not found. Callers must not mutate
     the returned element directly -- go through load_task_for_edit() instead.
     """
-    entry = PrimeItems.tasker_root_elements["all_tasks_by_name"].get(task_name)
+    entry = state.tasker_root_elements["all_tasks_by_name"].get(task_name)
     if entry is None:
         return None
     return entry["id"], entry["xml"]
 
 
-def load_task_for_edit(task_name: str) -> EditableTask | None:
+def load_task_for_edit(task_name: str, state: RunState) -> EditableTask | None:
     """Resolve a Task by name, deep-copy it, and build its editable-action model.
 
     This is the one point of contact with the live tree -- everything downstream
     (including Save) operates on the copy, so the in-memory backup is never touched.
     """
-    resolved = resolve_task_by_name(task_name)
+    resolved = resolve_task_by_name(task_name, state=state)
     if resolved is None:
         return None
     task_id, live_element = resolved
@@ -184,11 +185,11 @@ def load_task_for_edit(task_name: str) -> EditableTask | None:
     return EditableTask(
         task_id=task_id,
         task_element=task_copy,
-        actions=_build_editable_actions(task_copy),
+        actions=_build_editable_actions(task_copy, state=state),
     )
 
 
-def load_task_for_edit_by_id(task_id: str) -> EditableTask | None:
+def load_task_for_edit_by_id(task_id: str, state: RunState) -> EditableTask | None:
     """load_task_for_edit, but from the id the XML actually stores.
 
     A Scene's Task bindings (<keyTask>, <clickTask>, ...) hold an id, not a name, and the
@@ -200,14 +201,14 @@ def load_task_for_edit_by_id(task_id: str) -> EditableTask | None:
     Same contract as load_task_for_edit otherwise -- a deep copy, so nothing downstream
     touches the live tree until apply_edited_task_to_live_tree.
     """
-    entry = PrimeItems.tasker_root_elements.get("all_tasks", {}).get(str(task_id))
+    entry = state.tasker_root_elements.get("all_tasks", {}).get(str(task_id))
     if entry is None:
         return None
     task_copy = copy.deepcopy(entry["xml"])
     return EditableTask(
         task_id=str(task_id),
         task_element=task_copy,
-        actions=_build_editable_actions(task_copy),
+        actions=_build_editable_actions(task_copy, state=state),
     )
 
 
@@ -226,7 +227,7 @@ def load_task_for_edit_by_id(task_id: str) -> EditableTask | None:
 NEW_OBJECT_ID_HEADROOM = 1000
 
 
-def next_unique_task_or_profile_id(reserved: set[str] | None = None) -> int:
+def next_unique_task_or_profile_id(reserved: set[str] | None = None, *, state: RunState) -> int:
     """Computes the next id safe to assign to a brand-new Task or Profile.
 
     Never lower than NEW_OBJECT_ID_HEADROOM above the highest id the file had when it was
@@ -258,16 +259,18 @@ def next_unique_task_or_profile_id(reserved: set[str] | None = None) -> int:
     existing_ids = [
         int(k)
         for table_name in ("all_tasks", "all_profiles")
-        for k in PrimeItems.tasker_root_elements.get(table_name, {})
+        for k in state.tasker_root_elements.get(table_name, {})
         if k.isdigit()
     ]
     existing_ids.extend(int(k) for k in (reserved or ()) if str(k).isdigit())
-    loaded_highest = PrimeItems.loaded_highest_object_id
+    loaded_highest = state.loaded_highest_object_id
     floor = loaded_highest + NEW_OBJECT_ID_HEADROOM + 1 if loaded_highest else 0
     return max(max(existing_ids, default=0) + 1, floor)
 
 
-def create_new_task(name: str, priority: str, reserved_ids: set[str] | None = None) -> EditableTask | str:
+def create_new_task(
+    name: str, priority: str, reserved_ids: set[str] | None = None, *, state: RunState
+) -> EditableTask | str:
     """Build a brand-new Task element, not tied to any existing one, ready for
     actions to be added to it. Returns an error message string if no backup is
     loaded -- needed both to generate a collision-free id and to source the correct
@@ -277,12 +280,12 @@ def create_new_task(name: str, priority: str, reserved_ids: set[str] | None = No
     other Task built by this same call site and not registered yet; see there for what goes
     wrong without it.
     """
-    if PrimeItems.xml_root is None:
+    if state.xml_root is None:
         return "Load a Tasker backup file first (Add Task needs it to generate a unique Task ID)."
 
-    new_id = next_unique_task_or_profile_id(reserved_ids)
+    new_id = next_unique_task_or_profile_id(reserved_ids, state=state)
 
-    element_cls = type(PrimeItems.xml_root)
+    element_cls = type(state.xml_root)
     task_element = element_cls("Task", {"sr": f"task{new_id}"})
 
     now_millis = str(int(time.time() * 1000))
@@ -301,9 +304,7 @@ def create_new_task(name: str, priority: str, reserved_ids: set[str] | None = No
 
 
 def add_action_to_task(
-    edited_task: EditableTask,
-    action_key: str,
-    position: int | None = None,
+    edited_task: EditableTask, action_key: str, position: int | None = None, *, state: RunState
 ) -> EditableAction | list[str]:
     """Synthesize a new Action element from scratch and add it to the task --
     appended at the end by default (position=None), or inserted at `position`
@@ -317,7 +318,7 @@ def add_action_to_task(
     Re-checks addability even though the UI shouldn't offer a non-addable action --
     defense in depth, matching apply_edits_to_task's list[str]-errors convention.
     """
-    addable, reason = classify_action_addability(action_key)
+    addable, reason = classify_action_addability(action_key, state=state)
     if not addable:
         return [reason or f"'{action_key}' is not addable."]
 
@@ -338,7 +339,7 @@ def add_action_to_task(
     else:
         # action_key lets build_synthesized_args rebuild a plugin payload <Bundle>
         # from bundle.py's definition for this very code -- see get_bundle_definition.
-        args = build_synthesized_args(element_cls, action_element, effective_args, action_key)
+        args = build_synthesized_args(element_cls, action_element, effective_args, action_key, state=state)
 
     edited_task.task_element.append(action_element)
 
@@ -358,9 +359,7 @@ def add_action_to_task(
 
 
 def add_if_block_to_task(
-    edited_task: EditableTask,
-    variant: str,
-    position: int | None = None,
+    edited_task: EditableTask, variant: str, position: int | None = None, *, state: RunState
 ) -> EditableAction | list[str]:
     """Insert an "If" action plus whatever companions the chosen variant calls
     for (see IF_BLOCK_VARIANTS): nothing extra for "If", an "End If" after it
@@ -372,13 +371,13 @@ def add_if_block_to_task(
     attention -- they're arg-less), or a list of error strings, matching
     add_action_to_task's convention.
     """
-    if_action = add_action_to_task(edited_task, IF_ACTION_KEY, position)
+    if_action = add_action_to_task(edited_task, IF_ACTION_KEY, position, state=state)
     if isinstance(if_action, list):
         return if_action
 
     insert_at = edited_task.actions.index(if_action) + 1
     for follower_key in _IF_BLOCK_FOLLOWERS.get(variant, ()):
-        follower = add_action_to_task(edited_task, follower_key, insert_at)
+        follower = add_action_to_task(edited_task, follower_key, insert_at, state=state)
         if isinstance(follower, list):
             return follower
         insert_at += 1
@@ -436,7 +435,7 @@ def remove_action_from_task(edited_task: EditableTask, act_number: int) -> None:
     _renumber_actions(edited_task)
 
 
-def copy_action_in_task(edited_task: EditableTask, act_number: int) -> EditableAction | None:
+def copy_action_in_task(edited_task: EditableTask, act_number: int, state: RunState) -> EditableAction | None:
     """Duplicate the action currently numbered act_number, inserting the copy
     immediately after it in the model, then renumber every action's sr="actN" to
     match (XML child order doesn't matter -- see _renumber_actions).
@@ -451,7 +450,7 @@ def copy_action_in_task(edited_task: EditableTask, act_number: int) -> EditableA
     new_element = copy.deepcopy(source.action_element)
     edited_task.task_element.append(new_element)
 
-    new_action = _build_editable_action(new_element, source.act_number)
+    new_action = _build_editable_action(new_element, source.act_number, state=state)
     edited_task.actions.insert(source_index + 1, new_action)
 
     _renumber_actions(edited_task)
@@ -548,7 +547,7 @@ def set_action_continue_after_error(
             action.action_element.remove(se)
 
 
-def _build_editable_action(action_element: Element, act_number: int) -> EditableAction:
+def _build_editable_action(action_element: Element, act_number: int, state: RunState) -> EditableAction:
     """Build a single EditableAction bound to an already-in-the-tree Action element.
 
     Shared by _build_editable_actions (initial load) and copy_action_in_task (a
@@ -584,11 +583,11 @@ def _build_editable_action(action_element: Element, act_number: int) -> Editable
         act_number=act_number,
         code=code,
         action_name=action_code.name,
-        args=build_editable_args(action_element, effective_args),
+        args=build_editable_args(action_element, effective_args, state=state),
     )
 
 
-def _build_editable_actions(task_copy: Element) -> list[EditableAction]:
+def _build_editable_actions(task_copy: Element, state: RunState) -> list[EditableAction]:
     """Find the Task's Actions, sort them into execution order, and build their arg models.
 
     Execution order is driven by the numeric suffix of sr="actN", not document order
@@ -599,7 +598,10 @@ def _build_editable_actions(task_copy: Element) -> list[EditableAction]:
     actions = task_copy.findall("Action")
     shell_sort(actions, True, False)
 
-    return [_build_editable_action(action_element, _action_number(action_element)) for action_element in actions]
+    return [
+        _build_editable_action(action_element, _action_number(action_element), state=state)
+        for action_element in actions
+    ]
 
 
 def _action_number(action_element: Element) -> int:
@@ -609,7 +611,7 @@ def _action_number(action_element: Element) -> int:
     return int(match.group()) if match else 0
 
 
-def reclassify_action_args(action: EditableAction) -> None:
+def reclassify_action_args(action: EditableAction, state: RunState) -> None:
     """Rebuild one action's argument models against the inventory as it stands now.
 
     An argument's widget kind is decided when the model is built (see
@@ -630,12 +632,13 @@ def reclassify_action_args(action: EditableAction) -> None:
         action.args = _build_if_action_args(action.action_element)
         return
     effective_args = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
-    action.args = build_editable_args(action.action_element, effective_args)
+    action.args = build_editable_args(action.action_element, effective_args, state=state)
 
 
 def build_editable_args(
     action_element: Element,
     effective_args: list,
+    state: RunState,
 ) -> list[EditableArg]:
     """Classify each of an action's defined arguments into a widget kind, bound to
     whatever Int/Str element already exists in the XML for it (never synthesized).
@@ -649,18 +652,18 @@ def build_editable_args(
     editable_args = []
     for arg in effective_args:
         the_arg = f"arg{arg.arg_id}"
-        category = PrimeItems.tasker_arg_specs.get(arg.arg_type, "")
+        category = state.tasker_arg_specs.get(arg.arg_type, "")
 
         if category == "Boolean" or _is_checkbox_arg_eval(arg.arg_eval):
-            editable_args.append(_build_boolean_arg(action_element, the_arg, arg))
+            editable_args.append(_build_boolean_arg(action_element, the_arg, arg, state=state))
         elif category == "Int":
-            editable_args.append(_build_int_arg(action_element, the_arg, arg))
+            editable_args.append(_build_int_arg(action_element, the_arg, arg, state=state))
         elif category in ("String", "Str"):
-            editable_args.append(_build_string_arg(action_element, the_arg, arg))
+            editable_args.append(_build_string_arg(action_element, the_arg, arg, state=state))
         elif category == "App":
-            editable_args.append(_build_app_arg(action_element, the_arg, arg))
+            editable_args.append(_build_app_arg(action_element, the_arg, arg, state=state))
         elif category in _ICON_CATEGORIES:
-            editable_args.append(_build_icon_arg(action_element, the_arg, arg))
+            editable_args.append(_build_icon_arg(action_element, the_arg, arg, state=state))
         elif category == "Bundle" and plugset.is_plugin(action_element):
             editable_args.append(_plugin_settings_arg(action_element, arg))
         else:
@@ -883,7 +886,7 @@ def _display_arg_name(arg) -> str:
     return first_entry.removesuffix("=")
 
 
-def _classify_arg_widget(arg) -> tuple[str, str, list[str] | None]:
+def _classify_arg_widget(arg, state: RunState) -> tuple[str, str, list[str] | None]:
     """Pure schema classification of an ArgumentCode -- no XML/value involved.
 
     Returns (widget_kind, backing_tag, dropdown_options). Shared between reading an
@@ -895,7 +898,7 @@ def _classify_arg_widget(arg) -> tuple[str, str, list[str] | None]:
     if _is_checkbox_arg_eval(arg.arg_eval):
         return "checkbox", "Int", None
 
-    category = PrimeItems.tasker_arg_specs.get(arg.arg_type, "")
+    category = state.tasker_arg_specs.get(arg.arg_type, "")
 
     if category == "Boolean":
         return "checkbox", "Int", None
@@ -919,11 +922,11 @@ def _classify_arg_widget(arg) -> tuple[str, str, list[str] | None]:
     return "readonly", "", None
 
 
-def _build_boolean_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
+def _build_boolean_arg(action_element: Element, the_arg: str, arg, state: RunState) -> EditableArg:
     int_element = _find_int_element(action_element, the_arg)
     if int_element is None:
         return _readonly_arg(arg, "Not present in this action's XML.")
-    widget_kind, backing_tag, _ = _classify_arg_widget(arg)
+    widget_kind, backing_tag, _ = _classify_arg_widget(arg, state=state)
     return EditableArg(
         arg_id=arg.arg_id,
         arg_name=_display_arg_name(arg),
@@ -935,7 +938,7 @@ def _build_boolean_arg(action_element: Element, the_arg: str, arg) -> EditableAr
     )
 
 
-def _build_int_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
+def _build_int_arg(action_element: Element, the_arg: str, arg, state: RunState) -> EditableArg:
     int_element = _find_int_element(action_element, the_arg)
     if int_element is None:
         return _readonly_arg(arg, "Not present in this action's XML.")
@@ -944,7 +947,7 @@ def _build_int_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
     is_var = var_element is not None
     raw_value = var_element.text or "" if is_var else int_element.attrib.get("val", "")
 
-    widget_kind, backing_tag, dropdown_options = _classify_arg_widget(arg)
+    widget_kind, backing_tag, dropdown_options = _classify_arg_widget(arg, state=state)
 
     if widget_kind == "dropdown":
         if is_var:
@@ -997,20 +1000,20 @@ def is_perform_task_name_arg(action_code: str, arg) -> bool:
     return action_code == PERFORM_TASK_ACTION_CODE and arg.arg_id == PERFORM_TASK_NAME_ARG_ID
 
 
-def get_all_task_names() -> list[str]:
+def get_all_task_names(state: RunState) -> list[str]:
     """Every Task name in the currently loaded backup, sorted -- the options
     offered by the 'Perform Task' action's Name picker (see
     is_perform_task_name_arg). Same source task_name_exists reads.
     """
-    return sorted(PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}))
+    return sorted(state.tasker_root_elements.get("all_tasks_by_name", {}))
 
 
-def _build_string_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
+def _build_string_arg(action_element: Element, the_arg: str, arg, state: RunState) -> EditableArg:
     str_element = _find_str_element(action_element, the_arg)
     if str_element is None:
         return _readonly_arg(arg, "Not present in this action's XML.")
 
-    widget_kind, backing_tag, _ = _classify_arg_widget(arg)
+    widget_kind, backing_tag, _ = _classify_arg_widget(arg, state=state)
     return EditableArg(
         arg_id=arg.arg_id,
         arg_name=_display_arg_name(arg),
@@ -1022,7 +1025,7 @@ def _build_string_arg(action_element: Element, the_arg: str, arg) -> EditableArg
     )
 
 
-def _build_app_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
+def _build_app_arg(action_element: Element, the_arg: str, arg, state: RunState) -> EditableArg:
     """An <App sr="argN"> argument, as a field holding its package names.
 
     Read-only in two cases, both of which are what this argument did before it was
@@ -1031,7 +1034,7 @@ def _build_app_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
     _build_string_arg gives a missing <Str>: this builds a model of what is there, and
     synthesizing a missing element belongs to Add Task (build_synthesized_args).
     """
-    widget_kind, backing_tag, _ = _classify_arg_widget(arg)
+    widget_kind, backing_tag, _ = _classify_arg_widget(arg, state=state)
     if widget_kind != "app_picker":
         return _readonly_arg(arg, NO_APPS_REASON)
 
@@ -1050,12 +1053,12 @@ def _build_app_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
     )
 
 
-def _build_icon_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
+def _build_icon_arg(action_element: Element, the_arg: str, arg, state: RunState) -> EditableArg:
     """An <Img sr="argN"> argument, as a field holding one icon reference -- see
     appinv.format_icon_value for how the four forms of one are spelled.  Falls back to
     read-only on the same two conditions as _build_app_arg, for the same reasons.
     """
-    widget_kind, backing_tag, _ = _classify_arg_widget(arg)
+    widget_kind, backing_tag, _ = _classify_arg_widget(arg, state=state)
     if widget_kind != "icon_picker":
         return _readonly_arg(arg, NO_ICONS_REASON)
 
@@ -1074,7 +1077,7 @@ def _build_icon_arg(action_element: Element, the_arg: str, arg) -> EditableArg:
     )
 
 
-def _build_default_arg(arg) -> EditableArg | None:
+def _build_default_arg(arg, state: RunState) -> EditableArg | None:
     """Seed a default EditableArg for a brand-new action being synthesized (Add Task).
 
     Returns None for any Bundle-category arg -- on an addable action (see
@@ -1085,11 +1088,11 @@ def _build_default_arg(arg) -> EditableArg | None:
     `element` is left None -- add_action_to_task() builds and attaches the real XML
     element afterward, keeping this function pure/schema-only.
     """
-    category = PrimeItems.tasker_arg_specs.get(arg.arg_type, "")
+    category = state.tasker_arg_specs.get(arg.arg_type, "")
     if category == "Bundle":
         return None
 
-    widget_kind, backing_tag, dropdown_options = _classify_arg_widget(arg)
+    widget_kind, backing_tag, dropdown_options = _classify_arg_widget(arg, state=state)
     if widget_kind == "readonly":
         return None
 
@@ -1146,12 +1149,12 @@ def tasker_configuration_warning(element: Element, name: str) -> str:
     return PLUGIN_CONFIGURATION_WARNING.format(name=name) if needs_tasker_configuration(element) else ""
 
 
-def _is_plugin_bundle_arg(arg) -> bool:
+def _is_plugin_bundle_arg(arg, state: RunState) -> bool:
     """Whether an ArgumentCode is an opaque third-party plugin payload Bundle, as
     opposed to the informational 'Output Variables' Bundle hint (which needs no
     element written at all -- see _build_default_arg).
     """
-    category = PrimeItems.tasker_arg_specs.get(arg.arg_type, "")
+    category = state.tasker_arg_specs.get(arg.arg_type, "")
     return category == "Bundle" and arg.arg_name != OUTPUT_VARIABLES_ARG_NAME
 
 
@@ -1203,6 +1206,7 @@ def _synthesize_bundle_arg(
     container_element: Element,
     effective_args: list,
     action_key: str,
+    state: RunState,
 ) -> EditableArg | None:
     """Build a plugin payload <Bundle> from bundle.py's definition for action_key,
     append it to container_element, and return a read-only EditableArg for it.
@@ -1230,7 +1234,7 @@ def _synthesize_bundle_arg(
         return None
 
     bundle_element = _build_bundle_element(element_cls, "Bundle", definition)
-    declaring_arg = next((arg for arg in effective_args if _is_plugin_bundle_arg(arg)), None)
+    declaring_arg = next((arg for arg in effective_args if _is_plugin_bundle_arg(arg, state=state)), None)
     if not bundle_element.attrib.get("sr") and declaring_arg is not None:
         bundle_element.set("sr", f"arg{declaring_arg.arg_id}")
     container_element.append(bundle_element)
@@ -1275,10 +1279,7 @@ def _build_merged_plugin_arg(arg) -> EditableArg | None:
 
 
 def build_synthesized_args(
-    element_cls: type,
-    container_element: Element,
-    effective_args: list,
-    action_key: str = "",
+    element_cls: type, container_element: Element, effective_args: list, action_key: str = "", *, state: RunState
 ) -> list[EditableArg]:
     """Synthesizes default Int/Str XML elements for a set of ArgumentCode
     definitions, appends them to container_element, and returns their bound
@@ -1310,7 +1311,7 @@ def build_synthesized_args(
     args = []
     bundle_sr = ""
     if action_key:
-        bundle_arg = _synthesize_bundle_arg(element_cls, container_element, effective_args, action_key)
+        bundle_arg = _synthesize_bundle_arg(element_cls, container_element, effective_args, action_key, state=state)
         if bundle_arg is not None:
             args.append(bundle_arg)
             bundle_sr = f"arg{bundle_arg.arg_id}"
@@ -1321,10 +1322,10 @@ def build_synthesized_args(
 
         # Any *other* Bundle-declared argument is a real argument of the plugin, which
         # Tasker writes as a plain <Str> -- _build_default_arg would drop it entirely.
-        if bundle_sr and _is_plugin_bundle_arg(arg):
+        if bundle_sr and _is_plugin_bundle_arg(arg, state=state):
             editable_arg = _build_merged_plugin_arg(arg)
         else:
-            editable_arg = _build_default_arg(arg)
+            editable_arg = _build_default_arg(arg, state=state)
         if editable_arg is None:
             continue
 
@@ -1366,7 +1367,7 @@ NO_ICONS_REASON = "No icons were found in the loaded configuration to choose fro
 _ICON_CATEGORIES = ("Icon", "Img")
 
 
-def classify_action_addability(action_key: str) -> tuple[bool, str]:
+def classify_action_addability(action_key: str, state: RunState) -> tuple[bool, str]:
     """Whether a real numeric Task-action key (e.g. '104t') can be synthesized from
     scratch, and why not if not.
 
@@ -1400,7 +1401,7 @@ def classify_action_addability(action_key: str) -> tuple[bool, str]:
         return True, ""
 
     for arg in effective_args:
-        category = PrimeItems.tasker_arg_specs.get(arg.arg_type, "")
+        category = state.tasker_arg_specs.get(arg.arg_type, "")
         if category in _SAFE_CATEGORIES:
             continue
         if category == "Bundle" and arg.arg_name == OUTPUT_VARIABLES_ARG_NAME:
@@ -1434,7 +1435,7 @@ def classify_action_addability(action_key: str) -> tuple[bool, str]:
 _addable_actions: caches.KeyedCache[list[dict]] = caches.KeyedCache("taskedit.addable_actions")
 
 
-def list_addable_actions() -> list[dict]:
+def list_addable_actions(state: RunState) -> list[dict]:
     """All real numeric Task-action entries with their addability, memoized.
 
     Most of the underlying data (actionc.py, arg_specs.json, category_descriptions.json)
@@ -1444,20 +1445,20 @@ def list_addable_actions() -> list[dict]:
     and rebuilds when that moves -- without it, the Add Action picker would go on showing
     'Launch App' greyed out, with a reason that stopped being true, until restart.
     """
-    return _addable_actions.get(appinv.generation(), _build_addable_actions)
+    return _addable_actions.get(appinv.generation(), lambda: _build_addable_actions(state))
 
 
-def _build_addable_actions() -> list[dict]:
+def _build_addable_actions(state: RunState) -> list[dict]:
     """Every real numeric Task-action entry with its addability, sorted by name (see list_addable_actions)."""
     rows = []
     for key, action_code in action_codes.items():
         if not (key.endswith("t") and key[:-1].isdigit()):
             continue  # Not a real numeric Task-action code (e.g. Scene-widget entries).
-        addable, reason = classify_action_addability(key)
+        addable, reason = classify_action_addability(key, state=state)
         category_code = action_code.category
         category_name = "Uncategorized"
         if category_code and category_code.isdigit():
-            category_name = PrimeItems.tasker_category_descriptions.get(int(category_code), "Uncategorized")
+            category_name = state.tasker_category_descriptions.get(int(category_code), "Uncategorized")
         rows.append(
             {
                 "action_key": key,
@@ -1506,7 +1507,7 @@ def _match_rank(name: str, query: str) -> int:
     return _WHOLE_WORD if matched else _ANYWHERE
 
 
-def search_addable_actions(query: str = "", category_name: str = "All") -> list[dict]:
+def search_addable_actions(query: str = "", category_name: str = "All", *, state: RunState) -> list[dict]:
     """Filter the memoized action list by name substring and/or exact category name.
 
     Ranked rather than alphabetical whenever there is something to rank against -- see
@@ -1514,7 +1515,7 @@ def search_addable_actions(query: str = "", category_name: str = "All") -> list[
     built it in, which is what browsing a category wants.
     """
     query = query.strip().lower()
-    rows = list_addable_actions()
+    rows = list_addable_actions(state=state)
     if query:
         rows = [r for r in rows if query in r["name"].lower()]
     if category_name and category_name != "All":
@@ -1531,7 +1532,7 @@ def search_addable_actions(query: str = "", category_name: str = "All") -> list[
 NO_PROJECT_NAME = "No Project"
 
 
-def list_pickable_tasks() -> list[dict]:
+def list_pickable_tasks(state: RunState) -> list[dict]:
     """Every Task that can be pointed at, with the Project that owns it.
 
     The Task-side counterpart of list_addable_actions, and shaped like it so one picker can
@@ -1551,7 +1552,7 @@ def list_pickable_tasks() -> list[dict]:
     no name is a row that does nothing when it is clicked.  Leaving it out is better than
     offering it and silently ignoring the click.
     """
-    root = PrimeItems.tasker_root_elements
+    root = state.tasker_root_elements
     project_of: dict[str, str] = {}
     for project in root.get("all_projects", {}).values():
         for task_id in _project_task_ids(project["xml"]):
@@ -1570,12 +1571,12 @@ def list_pickable_tasks() -> list[dict]:
     return rows
 
 
-def search_pickable_tasks(query: str = "", project_name: str = "All") -> list[dict]:
+def search_pickable_tasks(query: str = "", project_name: str = "All", *, state: RunState) -> list[dict]:
     """Filter the Task list by name substring and/or exact Project name -- the Task-side
     search_addable_actions, matching on the same terms so both pickers behave alike.
     """
     query = query.strip().lower()
-    rows = list_pickable_tasks()
+    rows = list_pickable_tasks(state=state)
     if query:
         rows = [row for row in rows if query in row["name"].lower()]
     if project_name and project_name != "All":
@@ -1947,7 +1948,7 @@ def apply_action_edits_to_task(edited_task: EditableTask, arg_values: dict[str, 
     return []
 
 
-def apply_task_rename(edited_task: EditableTask, new_name: str) -> list[str]:
+def apply_task_rename(edited_task: EditableTask, new_name: str, state: RunState) -> list[str]:
     """Validate a new Task name on its own and, only if valid, write it into the
     Task copy's <nme>. Returns [] on success, else the error messages, mutating
     nothing on error.
@@ -1968,7 +1969,7 @@ def apply_task_rename(edited_task: EditableTask, new_name: str) -> list[str]:
     errors = []
     if not new_name:
         errors.append("Task name cannot be empty.")
-    elif new_name != current_name and task_name_exists(new_name):
+    elif new_name != current_name and task_name_exists(new_name, state=state):
         errors.append(f"A Task named '{new_name}' already exists in this backup. Choose a different name.")
 
     if errors:
@@ -1978,7 +1979,7 @@ def apply_task_rename(edited_task: EditableTask, new_name: str) -> list[str]:
     return []
 
 
-def rename_task_in_live_tree(edited_task: EditableTask) -> str:
+def rename_task_in_live_tree(edited_task: EditableTask, state: RunState) -> str:
     """Renames an already-registered Task in the in-memory backup: stamps the new
     <nme> onto the element the Task tables actually point at, and moves its
     all_tasks_by_name entry to the new key (all_tasks is keyed by id, which a
@@ -2004,7 +2005,7 @@ def rename_task_in_live_tree(edited_task: EditableTask) -> str:
     "name" field would leave the written XML still carrying the old one.
     """
     with sessundo.undoable(f"Rename Task to '{edited_task.task_element.findtext('nme', '')}'"):
-        all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+        all_tasks = state.tasker_root_elements.get("all_tasks", {})
         entry = all_tasks.get(edited_task.task_id)
         if entry is None:
             return ""
@@ -2015,7 +2016,7 @@ def rename_task_in_live_tree(edited_task: EditableTask) -> str:
         _set_child_text(live_element, "nme", new_name)
         entry["name"] = new_name
 
-        all_tasks_by_name = PrimeItems.tasker_root_elements.setdefault("all_tasks_by_name", {})
+        all_tasks_by_name = state.tasker_root_elements.setdefault("all_tasks_by_name", {})
         if old_name in all_tasks_by_name and old_name != new_name:
             del all_tasks_by_name[old_name]
         all_tasks_by_name[new_name] = {"xml": live_element, "id": edited_task.task_id}
@@ -2054,9 +2055,9 @@ def android_task_path(task_name: str) -> str:
     return EXPORT.android_path(task_name)
 
 
-def task_name_exists(name: str) -> bool:
+def task_name_exists(name: str, state: RunState) -> bool:
     """Whether a Task with this name already exists in the currently loaded backup."""
-    return name.strip() in PrimeItems.tasker_root_elements.get("all_tasks_by_name", {})
+    return name.strip() in state.tasker_root_elements.get("all_tasks_by_name", {})
 
 
 def save_path_exists(output_path: str) -> bool:
@@ -2064,7 +2065,7 @@ def save_path_exists(output_path: str) -> bool:
     return editcommon.save_path_exists(output_path)
 
 
-def render_standalone_task_xml(edited_task: EditableTask, *, redact: bool = False) -> str:
+def render_standalone_task_xml(edited_task: EditableTask, state: RunState, *, redact: bool = False) -> str:
     """Render the edited Task as a standalone TaskerData/Task XML string, matching
     Tasker's own single-task export/import format. Shared by write_standalone_task_xml
     (local file) and save_task_to_android (posted to the Android device).
@@ -2074,7 +2075,7 @@ def render_standalone_task_xml(edited_task: EditableTask, *, redact: bool = Fals
     writing a comment above the file saying what went -- what "Redact secrets" on the
     export button does.  Off by default, so nothing that already calls this changes.
     """
-    tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
+    tv = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
     task_copy = copy.deepcopy(edited_task.task_element)
     # The parsed tree's Element class isn't necessarily xml.etree.ElementTree's own
     # C-accelerated Element (defusedxml's hardened XMLParser forces the pure-Python
@@ -2093,7 +2094,9 @@ def render_standalone_task_xml(edited_task: EditableTask, *, redact: bool = Fals
     return notice + ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_task_xml(edited_task: EditableTask, output_path: str, *, redact: bool = False) -> str:
+def write_standalone_task_xml(
+    edited_task: EditableTask, output_path: str, state: RunState, *, redact: bool = False
+) -> str:
     """Write the edited Task as a standalone TaskerData/Task XML file, matching
     Tasker's own single-task export/import format. Raises OSError on failure.
 
@@ -2110,16 +2113,12 @@ def write_standalone_task_xml(edited_task: EditableTask, output_path: str, *, re
     """
     _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
-        out_file.write(render_standalone_task_xml(edited_task, redact=redact))
+        out_file.write(render_standalone_task_xml(edited_task, redact=redact, state=state))
     return safety_copy
 
 
 def save_task_to_android(
-    edited_task: EditableTask,
-    ip_address: str,
-    ip_port: str,
-    task_name: str,
-    via_file: bool = True,
+    edited_task: EditableTask, ip_address: str, ip_port: str, task_name: str, via_file: bool = True, *, state: RunState
 ) -> tuple[int, str]:
     """Import the edited Task into Tasker on the Android device, from a copy of it left in
     /Tasker/tasks.
@@ -2167,11 +2166,13 @@ def save_task_to_android(
     # user nothing and -- more to the point -- does not put an authorization prompt on their
     # phone for an import that was never going to happen.
     if via_file:
-        return_code, result, xml_bytes = _put_task_file_on_android(edited_task, ip_address, ip_port, task_name)
+        return_code, result, xml_bytes = _put_task_file_on_android(
+            edited_task, ip_address, ip_port, task_name, state=state
+        )
         if return_code != 0:
             return return_code, result
     else:
-        xml_bytes = render_standalone_task_xml(edited_task).encode("utf-8")
+        xml_bytes = render_standalone_task_xml(edited_task, state=state).encode("utf-8")
 
     # Step 2: the bytes that came off the device, not a fresh render of the same Task.  The key
     # is the one held for this device, asked for only if there is none, and a key the device
@@ -2191,6 +2192,7 @@ def _put_task_file_on_android(
     ip_address: str,
     ip_port: str,
     task_name: str,
+    state: RunState,
 ) -> tuple[int, str, bytes]:
     """Write the Task to /Tasker/tasks and hand back WHAT THE DEVICE NOW HOLDS.
 
@@ -2215,7 +2217,7 @@ def _put_task_file_on_android(
         ip_address,
         ip_port,
         task_name,
-        lambda: render_standalone_task_xml(edited_task).encode("utf-8"),
+        lambda: render_standalone_task_xml(edited_task, state=state).encode("utf-8"),
     )
 
 
@@ -2224,6 +2226,7 @@ def save_task_to_android_file(
     ip_address: str,
     ip_port: str,
     task_name: str,
+    state: RunState,
 ) -> tuple[int, str]:
     """Writes the edited Task, rendered as standalone XML, onto the Android device's storage
     under /Tasker/tasks, via the Tasker HTTP Server Example's POST /upload endpoint (see
@@ -2237,7 +2240,9 @@ def save_task_to_android_file(
 
     Returns (0, device_file_path) on success, or (return_code, error_message).
     """
-    return_code, result, _bytes_on_device = _put_task_file_on_android(edited_task, ip_address, ip_port, task_name)
+    return_code, result, _bytes_on_device = _put_task_file_on_android(
+        edited_task, ip_address, ip_port, task_name, state=state
+    )
     return return_code, result
 
 
@@ -2328,7 +2333,7 @@ def save_task_to_android_directory(
     return 0, task_name
 
 
-def register_new_task(edited_task: EditableTask, task_name: str) -> None:
+def register_new_task(edited_task: EditableTask, task_name: str, state: RunState) -> None:
     """Adds a new Task to the in-memory backup's Task tables (all_tasks,
     all_tasks_by_name) so it behaves like any other Task loaded from the backup --
     e.g. so it shows up in the Edit Task picker (guiutils.py reads
@@ -2340,17 +2345,17 @@ def register_new_task(edited_task: EditableTask, task_name: str) -> None:
     userintr_android.save_task_to_android_event's is_new_task branch).
     """
     with sessundo.undoable(f"Add Task '{task_name}'"):
-        PrimeItems.tasker_root_elements["all_tasks"][edited_task.task_id] = {
+        state.tasker_root_elements["all_tasks"][edited_task.task_id] = {
             "xml": edited_task.task_element,
             "name": task_name,
         }
-        PrimeItems.tasker_root_elements["all_tasks_by_name"][task_name] = {
+        state.tasker_root_elements["all_tasks_by_name"][task_name] = {
             "xml": edited_task.task_element,
             "id": edited_task.task_id,
         }
 
 
-def apply_edited_task_to_live_tree(edited_task: EditableTask) -> None:
+def apply_edited_task_to_live_tree(edited_task: EditableTask, state: RunState) -> None:
     """Writes an edited (pre-existing) Task's changes back into the in-memory
     backup's Task tables (all_tasks, all_tasks_by_name) so views generated from
     them -- Map, Diagram, Tree -- reflect the edit right away instead of the
@@ -2370,7 +2375,7 @@ def apply_edited_task_to_live_tree(edited_task: EditableTask) -> None:
     call once, right after a successful Save (local or to Android).
     """
     with sessundo.undoable(f"Edit Task '{edited_task.task_element.findtext('nme', '') or edited_task.task_id}'"):
-        all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+        all_tasks = state.tasker_root_elements["all_tasks"]
         entry = all_tasks.get(edited_task.task_id)
         if entry is None:
             return
@@ -2380,7 +2385,7 @@ def apply_edited_task_to_live_tree(edited_task: EditableTask) -> None:
 
         all_tasks[edited_task.task_id] = {"xml": edited_task.task_element, "name": new_name}
 
-        all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
+        all_tasks_by_name = state.tasker_root_elements["all_tasks_by_name"]
         if old_name in all_tasks_by_name and old_name != new_name:
             del all_tasks_by_name[old_name]
         all_tasks_by_name[new_name] = {"xml": edited_task.task_element, "id": edited_task.task_id}
@@ -2394,7 +2399,7 @@ def _project_task_ids(project_element: Element) -> list[str]:
     return tids_element.text.split(",") if tids_element is not None and tids_element.text else []
 
 
-def delete_task(task_name: str) -> list[str]:
+def delete_task(task_name: str, state: RunState) -> list[str]:
     """Deletes a Task and every reference to it. Returns [] on success, else a
     list of error strings (mirrors profedit.delete_profile/projedit.delete_project's
     convention), mutating nothing on error.
@@ -2427,12 +2432,12 @@ def delete_task(task_name: str) -> list[str]:
     actions here would be a much wider mutation than "delete this Task".
     """
     with sessundo.undoable(f"Delete Task '{task_name}'"):
-        resolved = resolve_task_by_name(task_name)
+        resolved = resolve_task_by_name(task_name, state=state)
         if resolved is None:
             return [f"Task '{task_name}' no longer exists."]
         task_id, _ = resolved
 
-        for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
+        for project_entry in state.tasker_root_elements.get("all_projects", {}).values():
             project_element = project_entry["xml"]
             existing_ids = _project_task_ids(project_element)
             if task_id not in existing_ids:
@@ -2440,11 +2445,11 @@ def delete_task(task_name: str) -> list[str]:
             _set_child_text(project_element, "tids", ",".join(i for i in existing_ids if i != task_id))
             touch_project_mdate(project_element)
 
-        for profile_entry in PrimeItems.tasker_root_elements.get("all_profiles", {}).values():
+        for profile_entry in state.tasker_root_elements.get("all_profiles", {}).values():
             profile_element = profile_entry["xml"]
             for child in [c for c in profile_element if "mid" in c.tag and c.text == task_id]:
                 profile_element.remove(child)
 
-        PrimeItems.tasker_root_elements.get("all_tasks", {}).pop(task_id, None)
-        PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}).pop(task_name, None)
+        state.tasker_root_elements.get("all_tasks", {}).pop(task_id, None)
+        state.tasker_root_elements.get("all_tasks_by_name", {}).pop(task_name, None)
         return []

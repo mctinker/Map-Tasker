@@ -608,7 +608,7 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) ->
     def run() -> list[str]:
         """Move the elements, write the call, register the Task, file it under a Project."""
         priority = task_element.findtext("pri", "") or "100"
-        new_task = taskedit.create_new_task(new_name, priority)
+        new_task = taskedit.create_new_task(new_name, priority, state=PrimeItems)
         if isinstance(new_task, str):
             return [new_task]
 
@@ -627,9 +627,9 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) ->
         before = wanted[0] - 1
         _renumber([*kept[:before], call, *kept[before:]])
 
-        taskedit.register_new_task(new_task, new_name)
+        taskedit.register_new_task(new_task, new_name, state=PrimeItems)
         for project_name in owners:
-            profedit.add_task_to_project(new_task.task_id, project_name)
+            profedit.add_task_to_project(new_task.task_id, project_name, state=PrimeItems)
         return []
 
     plan.run = run
@@ -663,7 +663,7 @@ def _extract_block(all_actions: list, wanted: list[int], new_name: str, where: T
         )
     if not new_name:
         return Block("NO-NAME", "The new Task needs a name.", where)
-    if taskedit.task_name_exists(new_name):
+    if taskedit.task_name_exists(new_name, state=PrimeItems):
         return Block(
             "NAME-TAKEN",
             f"A Task named '{new_name}' is already in this file.  Perform Task calls a Task by name, so "
@@ -1463,7 +1463,7 @@ def _plan_duplicate_task(task_id: str, new_name: str) -> Plan:
     what = f"Duplicate Task '{task_name}' as '{new_name}'"
     where = _task_target(task_id)
 
-    if taskedit.task_name_exists(new_name):
+    if taskedit.task_name_exists(new_name, state=PrimeItems):
         return _blocked(DUPLICATE, what, Block("NAME-TAKEN", _name_taken(TASK, new_name), where))
 
     owners = _projects_listing("tids", task_id)
@@ -1485,11 +1485,13 @@ def _plan_duplicate_task(task_id: str, new_name: str) -> Plan:
     ]
 
     def run() -> list[str]:
-        new_id = str(taskedit.next_unique_task_or_profile_id())
+        new_id = str(taskedit.next_unique_task_or_profile_id(state=PrimeItems))
         element = _copy_task_element(entry["xml"], new_id, new_name)
-        taskedit.register_new_task(taskedit.EditableTask(task_id=new_id, task_element=element), new_name)
+        taskedit.register_new_task(
+            taskedit.EditableTask(task_id=new_id, task_element=element), new_name, state=PrimeItems
+        )
         for project_name in owners:
-            profedit.add_task_to_project(new_id, project_name)
+            profedit.add_task_to_project(new_id, project_name, state=PrimeItems)
         return []
 
     plan.run = run
@@ -1515,7 +1517,7 @@ def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
     what = f"Duplicate Profile '{profile_name}' as '{new_name}'"
     where = _profile_target(profile_id)
 
-    if profedit.profile_name_exists(new_name):
+    if profedit.profile_name_exists(new_name, state=PrimeItems):
         return _blocked(DUPLICATE, what, Block("NAME-TAKEN", _name_taken(PROFILE, new_name), where))
 
     owners = _projects_listing("pids", profile_id)
@@ -1549,16 +1551,15 @@ def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
             source = _table("all_tasks").get(task_id)
             if source is None:
                 continue
-            new_task_id = str(taskedit.next_unique_task_or_profile_id(reserved))
+            new_task_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=PrimeItems))
             reserved.add(new_task_id)
             element = _copy_task_element(source["xml"], new_task_id, task_names[task_id])
             taskedit.register_new_task(
-                taskedit.EditableTask(task_id=new_task_id, task_element=element),
-                task_names[task_id],
+                taskedit.EditableTask(task_id=new_task_id, task_element=element), task_names[task_id], state=PrimeItems
             )
             copied_task_ids[task_id] = new_task_id
 
-        new_profile_id = str(taskedit.next_unique_task_or_profile_id(reserved))
+        new_profile_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=PrimeItems))
         element = _copy_profile_element(profile_element, new_profile_id, new_name)
         for child in element:
             if child.tag in ("mid0", "mid1"):
@@ -1570,11 +1571,11 @@ def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
             entry_task_id=element.findtext("mid0", "") or "",
             exit_task_id=element.findtext("mid1", "") or "",
         )
-        profedit.register_new_profile(editable, new_name)
+        profedit.register_new_profile(editable, new_name, state=PrimeItems)
         # add_profile_to_project files the copied Tasks under the Project too -- see its
         # own docstring on why a Project-linked Task with no <tids> entry is invisible.
         for project_name in owners:
-            profedit.add_profile_to_project(editable, project_name)
+            profedit.add_profile_to_project(editable, project_name, state=PrimeItems)
         return []
 
     plan.run = run
@@ -1756,7 +1757,7 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
     what = f"Duplicate Project '{project_name}' as '{new_name}'"
     where = Target(kind=PROJECT, key=project_name, name=project_name)
 
-    if projedit.project_name_exists(new_name):
+    if projedit.project_name_exists(new_name, state=PrimeItems):
         return _blocked(DUPLICATE, what, Block("NAME-TAKEN", _name_taken(PROJECT, new_name), where))
 
     chosen = _plan_project_copy(project_element)
@@ -1777,7 +1778,7 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
             source = _table("all_tasks").get(task_id)
             if source is None:
                 continue
-            new_id = str(taskedit.next_unique_task_or_profile_id(reserved))
+            new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=PrimeItems))
             reserved.add(new_id)
             new_task_ids[task_id] = new_id
             taskedit.register_new_task(
@@ -1786,6 +1787,7 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
                     task_element=_copy_task_element(source["xml"], new_id, chosen.task_names[task_id]),
                 ),
                 chosen.task_names[task_id],
+                state=PrimeItems,
             )
 
         new_profile_ids: dict[str, str] = {}
@@ -1793,7 +1795,7 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
             source = _table("all_profiles").get(profile_id)
             if source is None:
                 continue
-            new_id = str(taskedit.next_unique_task_or_profile_id(reserved))
+            new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=PrimeItems))
             reserved.add(new_id)
             new_profile_ids[profile_id] = new_id
             element = _copy_profile_element(source["xml"], new_id, chosen.profile_names[profile_id])
@@ -1809,6 +1811,7 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
                     exit_task_id=element.findtext("mid1", "") or "",
                 ),
                 chosen.profile_names[profile_id],
+                state=PrimeItems,
             )
 
         for scene_name in scene_names:
@@ -1837,7 +1840,9 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
         element.set("sr", _next_project_sr())
         _set_child_text(element, "id", str(uuid.uuid4()))
         _set_child_text(element, "name", new_name)
-        projedit.register_new_project(projedit.EditableProject(project_name=new_name, project_element=element))
+        projedit.register_new_project(
+            projedit.EditableProject(project_name=new_name, project_element=element), state=PrimeItems
+        )
         # Written through set_project_members rather than by hand, so a Project that had no
         # <scenes> of its own gets one in Tasker's child order, and the <mdate> is stamped.
         for tag, ids in (

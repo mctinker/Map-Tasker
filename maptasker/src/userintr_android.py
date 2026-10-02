@@ -47,7 +47,6 @@ from maptasker.src.guiwins import (
 from maptasker.src.guiwins_profedit import build_save_profile_to_android_dialog
 from maptasker.src.maputil2 import held_auth_key, http_request, read_android_file, translate_string
 from maptasker.src.maputils import clear_tasker_data
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.userintr_editors import (
     _apply_scene_field_values,
@@ -60,6 +59,7 @@ from maptasker.src.userintr_editors import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MyGui
 
 
@@ -222,9 +222,9 @@ async def validate_or_filelist_xml(
 
         # Validate the XML syntax structure
         if return_code == 0:
-            PrimeItems.program_arguments.gui = True
+            self.state.program_arguments.gui = True
             validated = await run.io_bound(
-                validate_xml_file, android_ipaddr, android_port, android_file, state=PrimeItems
+                validate_xml_file, android_ipaddr, android_port, android_file, state=self.state
             )
             if validated is None:  # cancelled -- see the note at the top of this file
                 return 1, android_ipaddr, android_port, android_file
@@ -310,6 +310,10 @@ class AndroidEventHandlers:
     """The Android handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
     handler is reached through self, just as it was before these moved here."""
 
+    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
+    # its window's.
+    state: RunState
+
     # ==========================================
     # ANDROID XML BACKUP EVENT HANDLERS
     # ==========================================
@@ -328,9 +332,9 @@ class AndroidEventHandlers:
         android_ipaddr, android_port = android_address_defaults(gui)
 
         if gui.android_file == "" or gui.android_file is None:
-            android_file = "/Tasker/configs/user/backup.xml".replace("/", PrimeItems.slash)
+            android_file = "/Tasker/configs/user/backup.xml".replace("/", self.state.slash)
         else:
-            android_file = gui.android_file.replace("/", PrimeItems.slash)
+            android_file = gui.android_file.replace("/", self.state.slash)
 
         # 3. Mount text input fields and control action items into the view hierarchy
         with gui.android_container:
@@ -528,7 +532,7 @@ class AndroidEventHandlers:
         # Checked before the device is touched: the helpers are built out of the loaded
         # configuration, and a Project that cannot be built should not put an authorization
         # prompt on the phone.
-        if PrimeItems.xml_root is None:
+        if self.state.xml_root is None:
             ui.notify("Load a Tasker backup file first (building the helper Tasks needs it).", type="negative")
             return
 
@@ -675,11 +679,7 @@ class AndroidEventHandlers:
             # The key is the one held for this device this session, so a device already asked --
             # by an earlier save, a fetch or an import -- is not prompted again.
             saved = await run.io_bound(
-                taskedit.save_task_to_android,
-                edited_task,
-                ip_address,
-                ip_port,
-                task_name,
+                taskedit.save_task_to_android, edited_task, ip_address, ip_port, task_name, state=self.state
             )
             if saved is None:  # cancelled -- see the note at the top of this file
                 return
@@ -738,7 +738,7 @@ class AndroidEventHandlers:
                     # works, which for a Task it usually does.
                     offered = await run.io_bound(
                         deviceinv.offer_to_tasker,
-                        taskedit.render_standalone_task_xml(edited_task).encode("utf-8"),
+                        taskedit.render_standalone_task_xml(edited_task, state=self.state).encode("utf-8"),
                         task_name,
                         [task_name],
                         ip_address,
@@ -777,7 +777,7 @@ class AndroidEventHandlers:
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
-            lambda: taskedit.render_standalone_task_xml(edited_task),
+            lambda: taskedit.render_standalone_task_xml(edited_task, state=self.state),
             _API_IMPORT_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
         )
@@ -808,7 +808,7 @@ class AndroidEventHandlers:
         # A brand-new Task (Add Task) was never registered onto the live tree in the first
         # place -- computed before anything below can change task_id, so it stays accurate
         # for the registration step the callers end with.
-        is_new_task = edited_task.task_id not in PrimeItems.tasker_root_elements.get("all_tasks", {})
+        is_new_task = edited_task.task_id not in self.state.tasker_root_elements.get("all_tasks", {})
 
         errors = taskedit.apply_edits_to_task(
             edited_task,
@@ -821,7 +821,7 @@ class AndroidEventHandlers:
                 ui.notify(error, type="negative")
             return False, False
 
-        if is_new_task and taskedit.task_name_exists(field_refs["name"].value.strip()):
+        if is_new_task and taskedit.task_name_exists(field_refs["name"].value.strip(), state=self.state):
             ui.notify(
                 f"A Task named '{field_refs['name'].value.strip()}' already exists in this backup. "
                 "Choose a different name.",
@@ -893,11 +893,7 @@ class AndroidEventHandlers:
                 )
             # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
             saved = await run.io_bound(
-                taskedit.save_task_to_android_file,
-                edited_task,
-                ip_address,
-                ip_port,
-                task_name,
+                taskedit.save_task_to_android_file, edited_task, ip_address, ip_port, task_name, state=self.state
             )
             if saved is None:  # cancelled -- see the note at the top of this file
                 return
@@ -930,7 +926,7 @@ class AndroidEventHandlers:
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
-            lambda: taskedit.render_standalone_task_xml(edited_task),
+            lambda: taskedit.render_standalone_task_xml(edited_task, state=self.state),
             _FILE_WRITE_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
         )
@@ -985,7 +981,7 @@ class AndroidEventHandlers:
                 ui.notify(error, type="negative")
             return
 
-        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
+        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene, state=self.state)
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
@@ -1022,10 +1018,7 @@ class AndroidEventHandlers:
                 )
             # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
             saved = await run.io_bound(
-                sceneedit.save_scene_to_android,
-                edited_scene.scene_name,
-                ip_address,
-                ip_port,
+                sceneedit.save_scene_to_android, edited_scene.scene_name, ip_address, ip_port, state=self.state
             )
             if saved is None:  # cancelled -- see the note at the top of this file
                 return
@@ -1057,7 +1050,7 @@ class AndroidEventHandlers:
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
-            lambda: sceneedit.render_standalone_scene_xml(edited_scene.scene_name),
+            lambda: sceneedit.render_standalone_scene_xml(edited_scene.scene_name, state=self.state),
             _FILE_WRITE_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
         )
@@ -1138,11 +1131,7 @@ class AndroidEventHandlers:
                 )
             # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
             saved = await run.io_bound(
-                profedit.save_profile_to_android,
-                edited_profile,
-                ip_address,
-                ip_port,
-                profile_name,
+                profedit.save_profile_to_android, edited_profile, ip_address, ip_port, profile_name, state=self.state
             )
             if saved is None:  # cancelled -- see the note at the top of this file
                 return
@@ -1173,7 +1162,7 @@ class AndroidEventHandlers:
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
-            lambda: profedit.render_standalone_profile_xml(edited_profile),
+            lambda: profedit.render_standalone_profile_xml(edited_profile, state=self.state),
             _FILE_WRITE_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
         )
@@ -1218,7 +1207,7 @@ class AndroidEventHandlers:
         project_name = field_refs.get("target_project_name", "") if is_new_profile else ""
         if is_new_profile:
             new_profile_errors = []
-            if profedit.profile_name_exists(field_refs["name"].value.strip()):
+            if profedit.profile_name_exists(field_refs["name"].value.strip(), state=self.state):
                 new_profile_errors.append(
                     f"A Profile named '{field_refs['name'].value.strip()}' already exists in this backup. "
                     "Choose a different name.",
@@ -1340,7 +1329,7 @@ class AndroidEventHandlers:
         notify_watch_android_device()
 
         profile_name = field_refs["name"].value.strip()
-        profile_xml = profedit.render_standalone_profile_xml(edited_profile).encode("utf-8")
+        profile_xml = profedit.render_standalone_profile_xml(edited_profile, state=self.state).encode("utf-8")
 
         await self._offer_into_tasker(
             profile_xml,
@@ -1682,7 +1671,7 @@ class AndroidEventHandlers:
                 ui.notify(error, type="negative")
             return
 
-        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
+        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene, state=self.state)
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
@@ -1714,7 +1703,7 @@ class AndroidEventHandlers:
         # prompt, the safety copy, staging under the Scene's own name, and the two-phase
         # wait.  The bespoke copy of all that is gone.
         await self._offer_into_tasker(
-            sceneedit.render_standalone_scene_xml(edited_scene.scene_name).encode("utf-8"),
+            sceneedit.render_standalone_scene_xml(edited_scene.scene_name, state=self.state).encode("utf-8"),
             edited_scene.scene_name,
             [edited_scene.scene_name],
             deviceinv.OPEN_SCENE_ROUTE,
@@ -1775,12 +1764,12 @@ class AndroidEventHandlers:
         notify_watch_android_device()
 
         project_name = edited_project.project_name
-        project_xml = projedit.render_standalone_project_xml(project_name).encode("utf-8")
+        project_xml = projedit.render_standalone_project_xml(project_name, state=self.state).encode("utf-8")
 
         await self._offer_into_tasker(
             project_xml,
             project_name,
-            projedit.project_profile_names(project_name),
+            projedit.project_profile_names(project_name, state=self.state),
             # The "Open with..." route, for the reason import_profile_into_tasker_event gives
             # at length: the user picks Tasker out of Android's own chooser rather than this
             # program guessing what a '.prj.xml' resolves to.  A Project has exactly the same
@@ -1867,10 +1856,7 @@ class AndroidEventHandlers:
                 )
             # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
             saved = await run.io_bound(
-                projedit.save_project_to_android,
-                edited_project.project_name,
-                ip_address,
-                ip_port,
+                projedit.save_project_to_android, edited_project.project_name, ip_address, ip_port, state=self.state
             )
             if saved is None:  # cancelled -- see the note at the top of this file
                 return
@@ -1902,7 +1888,7 @@ class AndroidEventHandlers:
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
-            lambda: projedit.render_standalone_project_xml(edited_project.project_name),
+            lambda: projedit.render_standalone_project_xml(edited_project.project_name, state=self.state),
             _FILE_WRITE_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
         )
@@ -1984,7 +1970,7 @@ class AndroidEventHandlers:
         # inside), and the fetch has already written the file to the local drive
         # (validate_or_filelist_xml -> validate_xml -> write_out_backup_file), so
         # loading it here reads that local copy rather than going back to the device.
-        clear_tasker_data(state=PrimeItems)
+        clear_tasker_data(state=self.state)
         update_tasker_object_menus(gui, get_data=True, reset_single_names=True)
 
         # And, as on every other path that loads a file, a single-object export selects

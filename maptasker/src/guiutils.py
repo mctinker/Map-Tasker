@@ -3,7 +3,7 @@
 import asyncio
 import contextlib
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from xml.etree.ElementTree import Element
 
 from nicegui import run, ui
@@ -29,7 +29,7 @@ from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import http_request, translate_string
 from maptasker.src.maputils import get_pypi_version, restart_program_subprocess
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems, clear_single_items
+from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems, RunState, clear_single_items
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
 from maptasker.src.runcfg import current_config
@@ -50,6 +50,15 @@ from maptasker.src.tasks import get_taskid_from_unnamed_task
 
 if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
+
+
+def window_state(window: object) -> RunState:
+    """The run state a window shows and edits: its own, or PrimeItems for anything that has none.
+
+    Several of the functions below take their window as a plain `object` (they are bound onto it
+    as methods), so the state is asked for here, once, rather than at each use.
+    """
+    return cast("RunState", getattr(window, "state", PrimeItems))
 
 
 # ==========================================
@@ -74,7 +83,7 @@ def is_ollama_model(gui: "MyGui") -> bool:
     if (getattr(gui, "ai_name", "") or "").upper() in ("LLAMA", "OLLAMA"):
         return True
 
-    installed = {item.replace(" (installed)", "").strip() for item in PrimeItems.ai.get("llama_models", [])}
+    installed = {item.replace(" (installed)", "").strip() for item in gui.state.ai.get("llama_models", [])}
     return model in set(LLAMA_MODELS) | installed
 
 
@@ -121,7 +130,7 @@ def display_model_pulldown(
         gui_instance = gui_arg.gui
     elif hasattr(gui_arg, "client") or hasattr(gui_arg, "sender"):
         # It's a NiceGUI UI Event object; try to fetch from PrimeItems or a cross-reference
-        gui_instance = getattr(PrimeItems, "mygui", gui_arg)
+        gui_instance = getattr(gui_arg.state, "mygui", gui_arg)
     else:
         gui_instance = gui_arg
 
@@ -135,8 +144,10 @@ def display_model_pulldown(
         if gui_instance.displaying_extended_list is not None and gui_instance.displaying_extended_list:
             return  # Return if we are already displaying it.
         # Get the extended list...only if we are not in the middle of setting/changing the language.
-        if not PrimeItems.language_set:
-            display_models = extended_models if extended_models is not None else get_extended_ai_model_list()
+        if not gui_arg.state.language_set:
+            display_models = (
+                extended_models if extended_models is not None else get_extended_ai_model_list(state=gui_arg.state)
+            )
             gui_instance.displaying_extended_list = True
         else:
             # Not a request to build the extended, or we are in the middle of changing the language.
@@ -160,7 +171,7 @@ def display_model_pulldown(
         gui_instance.ai_model_option.update()
     else:
         # Otherwise, if we are building it for the first time
-        current_model = [PrimeItems.program_arguments.ai_model]
+        current_model = [gui_arg.state.program_arguments.ai_model]
         if not current_model or current_model not in display_models:
             current_model = ["None"]
         gui_instance.ai_model_option = (
@@ -216,7 +227,7 @@ def prefix_and_sort(strings: list[str], name: str) -> list[str]:
     return prefixed_strings
 
 
-def get_extended_ai_model_list() -> list:
+def get_extended_ai_model_list(state: RunState) -> list:
     """Retrieves and compiles an extended list of available AI models from various providers.
 
     This function fetches models from OpenAI, Anthropic, and Gemini (assuming respective
@@ -241,20 +252,20 @@ def get_extended_ai_model_list() -> list:
               "Anthropic/claude-3-opus-20240229", "Gemini/gemini-pro").
               Returns an empty list if no models are retrieved.
     """
-    _ = get_api_key()
-    PrimeItems.ai["openai_models"] = get_openai_models()
-    PrimeItems.ai["anthropic_models"] = get_anthropic_models()
-    PrimeItems.ai["gemini_models"] = get_gemini_models()
-    PrimeItems.ai["llama_models"] = get_llama_models()
-    PrimeItems.ai["deepseek_models"] = get_deepseek_models()
+    _ = get_api_key(state=state)
+    state.ai["openai_models"] = get_openai_models(state=state)
+    state.ai["anthropic_models"] = get_anthropic_models()
+    state.ai["gemini_models"] = get_gemini_models(state=state)
+    state.ai["llama_models"] = get_llama_models()
+    state.ai["deepseek_models"] = get_deepseek_models()
 
     # Define the models
     extended_model_groups = {
-        "OpenAI": PrimeItems.ai["openai_models"],
-        "Anthropic": PrimeItems.ai["anthropic_models"],
-        "Gemini": PrimeItems.ai["gemini_models"],
-        "LLAMA": PrimeItems.ai["llama_models"],
-        "DeepSeek": PrimeItems.ai["deepseek_models"],
+        "OpenAI": state.ai["openai_models"],
+        "Anthropic": state.ai["anthropic_models"],
+        "Gemini": state.ai["gemini_models"],
+        "LLAMA": state.ai["llama_models"],
+        "DeepSeek": state.ai["deepseek_models"],
     }
     # all_models = openai_models + anthropic_models + gemini_models
 
@@ -450,7 +461,7 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     tree_data = self.build_the_tree()
     # If no tree data, then we don't have any Projects.  Just get the Profiles and Tasks.
     if not tree_data:
-        profiles = [value["name"] for value in PrimeItems.tasker_root_elements["all_profiles"].values()]
+        profiles = [value["name"] for value in self.state.tasker_root_elements["all_profiles"].values()]
         # tasks = [value["name"] for value in PrimeItems.tasker_root_elements["all_tasks"].values()]
     # We have the Tasker objects.  Collect all Projects, Profiles and Tasks from the tree data.
     else:
@@ -472,7 +483,7 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
         profiles_to_display = [translate_string("No profiles found")]
 
     # Build list of Task names to display in the GUI pulldown.
-    tasks_to_display = list(PrimeItems.tasker_root_elements["all_tasks_by_name"])
+    tasks_to_display = list(self.state.tasker_root_elements["all_tasks_by_name"])
 
     # Check for no tasks.
     if not tasks_to_display:
@@ -492,7 +503,7 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
 
     # Build the list of Scene names.  all_scenes is keyed by Scene name (see
     # taskerd.get_the_xml_data), so its keys are the list -- no prefix, like Tasks.
-    scenes_to_display = sorted(PrimeItems.tasker_root_elements["all_scenes"])
+    scenes_to_display = sorted(self.state.tasker_root_elements["all_scenes"])
     if not scenes_to_display:
         scenes_to_display = [translate_string("No scenes found")]
 
@@ -504,7 +515,7 @@ def display_selected_object_labels(self: "MyGui") -> None:
     Display the current settings for Ai with absolute value-matching fixes for NiceGUI.
     """
     if not self.ai_apikey:
-        self.ai_apikey = get_api_key()
+        self.ai_apikey = get_api_key(state=self.state)
 
     key_to_display = "N/A" if getattr(self, "ai_name", "") == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
 
@@ -627,7 +638,7 @@ def display_current_file(self: "MyGui", file_name: str) -> None:
 
     # 2. Translation Logic
     text = "Current File"
-    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+    text = self.state._(text) if hasattr(self.state, "_") else text
     full_display_text = f"{text}: {clean_file_name}"
 
     # Nothing loaded: say so, the way the label reads when it is first built (see
@@ -664,7 +675,7 @@ def display_current_file(self: "MyGui", file_name: str) -> None:
 
 
 # Get the XML data and setup Primeitems
-def get_xml(debug: bool, appearance_mode: str) -> int:
+def get_xml(debug: bool, appearance_mode: str, state: RunState) -> int:
     """ "Returns the tasker root xml items from the backup xml file based on the given debug and appearance mode parameters."
     Parameters:
         debug (bool): Indicates whether the program is in debug mode or not.
@@ -679,13 +690,13 @@ def get_xml(debug: bool, appearance_mode: str) -> int:
         - Initialize output_lines variable.
         - Return data and output intro."""
 
-    if not PrimeItems.program_arguments.debug:
-        PrimeItems.program_arguments.debug = debug
-    PrimeItems.program_arguments.gui = True
-    PrimeItems.colors_to_use = set_color_mode(appearance_mode)
-    PrimeItems.output_lines = LineOut()
+    if not state.program_arguments.debug:
+        state.program_arguments.debug = debug
+    state.program_arguments.gui = True
+    state.colors_to_use = set_color_mode(appearance_mode)
+    state.output_lines = LineOut()
 
-    return get_data_and_output_intro(True, state=PrimeItems)
+    return get_data_and_output_intro(True, state=state)
 
 
 # Clear all buttons associated with fetching the backup file from Android device
@@ -741,6 +752,7 @@ def build_profiles(
     root: dict,
     profile_ids: list,
     project: Element,
+    state: RunState,
 ) -> list:
     """Parameters:
         - root (dict): Dictionary containing all profiles and their tasks.
@@ -770,8 +782,8 @@ def build_profiles(
     config = current_config()
     for profile in profile_ids:
         # Get the Profile's Tasks
-        PrimeItems.task_count_unnamed = 0  # Avoid an error in get_profile_tasks
-        if the_tasks := _get_profile_tasks(profiles[profile]["xml"], [], [], config, state=PrimeItems):
+        state.task_count_unnamed = 0  # Avoid an error in get_profile_tasks
+        if the_tasks := _get_profile_tasks(profiles[profile]["xml"], [], [], config, state=state):
             task_list = []
             # Process each Task.  Tasks are simply a flat list of names.
             for task in the_tasks:
@@ -793,7 +805,7 @@ def build_profiles(
     no_profile_tasks = []
     task_ids = get_ids(
         False,
-        PrimeItems.tasker_root_elements["all_projects"][project]["xml"],
+        state.tasker_root_elements["all_projects"][project]["xml"],
         project,
         [],
     )
@@ -1066,7 +1078,7 @@ SINGLE_ITEM_EXPORT_TAGS = (
 )
 
 
-def single_item_export_selection(file_path: str) -> tuple[str, str]:
+def single_item_export_selection(file_path: str, state: RunState) -> tuple[str, str]:
     """Work out which single item, if any, a just-loaded XML file selects all by itself.
 
     Args:
@@ -1100,7 +1112,7 @@ def single_item_export_selection(file_path: str) -> tuple[str, str]:
         return "", ""
     position, label, table = min(tagged)
 
-    names = list(PrimeItems.tasker_root_elements.get(table) or {})
+    names = list(state.tasker_root_elements.get(table) or {})
     if not names:
         return "", ""
 
@@ -1121,9 +1133,11 @@ def single_item_export_selection(file_path: str) -> tuple[str, str]:
 def set_tasker_object_names(self: object) -> None:
     """Set names to display in pulldown menus based on current tasker object names."""
     # Translate the default values if possible
-    none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
+    none_text = window_state(self)._("None") if hasattr(window_state(self), "_") else "None"
     display_only_text = "Display only"
-    display_only_text = PrimeItems._(display_only_text) if hasattr(PrimeItems, "_") else display_only_text
+    display_only_text = (
+        window_state(self)._(display_only_text) if hasattr(window_state(self), "_") else display_only_text
+    )
 
     defaults = {
         label.lower(): getattr(self, f"single_{label.lower()}_name", "") or none_text for label in SINGLE_ITEM_LABELS
@@ -1174,7 +1188,7 @@ def _set_default_names(self: object, defaults: dict) -> None:
     """Handles setting names when no specific name is available."""
     self.specific_name_msg = ""
     try:
-        none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
+        none_text = window_state(self)._("None") if hasattr(window_state(self), "_") else "None"
 
         # The tasker_root_elements key backing each pulldown.  When a backup has none
         # of a given item, its pulldown collapses to just "None" -- otherwise it would
@@ -1188,7 +1202,7 @@ def _set_default_names(self: object, defaults: dict) -> None:
             optionmenu = getattr(self, f"specific_{label.lower()}_optionmenu", None)
             if optionmenu is None:
                 continue
-            if not PrimeItems.tasker_root_elements.get(root_key):
+            if not window_state(self).tasker_root_elements.get(root_key):
                 # NiceGUI updates available options by changing the .options list directly
                 optionmenu.options = [none_text]
                 optionmenu.value = none_text
@@ -1229,13 +1243,13 @@ def is_valid_ai_config(self: "MyGui") -> bool:
 
     # Make sure we have read in the api keys.
     if not self.ai_apikey or self.ai_apikey == "Hidden":
-        self.ai_apikey = get_api_key()
+        self.ai_apikey = get_api_key(state=self.state)
 
     is_valid_config = False
     for provider, config in ai_providers.items():
-        models = PrimeItems.ai.get(config["models"], [])
-        key_to_check = PrimeItems.ai.get(config["key"], None)
-        api_key = key_to_check if provider != "llama" and key_to_check == PrimeItems.ai[f"{provider}_key"] else None
+        models = self.state.ai.get(config["models"], [])
+        key_to_check = self.state.ai.get(config["key"], None)
+        api_key = key_to_check if provider != "llama" and key_to_check == self.state.ai[f"{provider}_key"] else None
 
         # If llama, then we need to strip " (Installed)" off the name.
         if provider == "llama":
@@ -1245,7 +1259,7 @@ def is_valid_ai_config(self: "MyGui") -> bool:
             if provider != "llama" and not api_key:
                 # We have found the model but it doesn't have the api key.
                 break
-            if api_key is None or PrimeItems.ai[config["key"]] == api_key:  # No key check needed for this provider
+            if api_key is None or self.state.ai[config["key"]] == api_key:  # No key check needed for this provider
                 is_valid_config = True
                 self.ai_apikey = api_key
                 break
@@ -1325,43 +1339,43 @@ def valid_item(
         return True
     # Set our file to get the file from the local drive since it had previously been pulled from the Android device.
     # Setting PrimeItems.program_arguments.file will be used in get_xml() and won't prompt for file if it exists.
-    filename_location = self.android_file.rfind(PrimeItems.slash) + 1
+    filename_location = self.android_file.rfind(window_state(self).slash) + 1
     if filename_location != 0:
-        PrimeItems.program_arguments.file = self.android_file[filename_location:]
+        window_state(self).program_arguments.file = self.android_file[filename_location:]
     elif self.file:
-        PrimeItems.program_arguments.file = self.file
+        window_state(self).program_arguments.file = self.file
     else:
         _ = self.prompt_and_get_file(self.debug, self.appearance_mode)
 
     # Get the XML data only if it hasn't been loaded yet
     if (
-        not PrimeItems.tasker_root_elements["all_projects"]
-        and not PrimeItems.tasker_root_elements["all_profiles"]
-        and not PrimeItems.tasker_root_elements["all_tasks"]
+        not window_state(self).tasker_root_elements["all_projects"]
+        and not window_state(self).tasker_root_elements["all_profiles"]
+        and not window_state(self).tasker_root_elements["all_tasks"]
     ):
-        PrimeItems.program_arguments.directory = self.directory
-        PrimeItems.program_arguments.list_unnamed_items = self.list_unnamed_items
-        return_code = get_xml(debug, appearance_mode)
+        window_state(self).program_arguments.directory = self.directory
+        window_state(self).program_arguments.list_unnamed_items = self.list_unnamed_items
+        return_code = get_xml(debug, appearance_mode, state=window_state(self))
 
         # Did we get an error reading the backup file?
         if return_code > 0:
             if return_code == 6:
-                PrimeItems.error_msg = "Cancel button pressed."
-            PrimeItems.error_code = 0
+                window_state(self).error_msg = "Cancel button pressed."
+            window_state(self).error_code = 0
             return False
 
     # Set up for name checking
     # Find the specific item and get it's root element
     root_element_choices = {
-        "Project": PrimeItems.tasker_root_elements["all_projects"],
-        "Profile": PrimeItems.tasker_root_elements["all_profiles"],
-        "Task": PrimeItems.tasker_root_elements["all_tasks"],
-        "Scene": PrimeItems.tasker_root_elements["all_scenes"],
+        "Project": window_state(self).tasker_root_elements["all_projects"],
+        "Profile": window_state(self).tasker_root_elements["all_profiles"],
+        "Task": window_state(self).tasker_root_elements["all_tasks"],
+        "Scene": window_state(self).tasker_root_elements["all_scenes"],
     }
     root_element = root_element_choices[element_name]
 
     # Special case if Task.
-    if root_element == PrimeItems.tasker_root_elements["all_tasks"] and UNNAMED_ITEM in the_name:
+    if root_element == window_state(self).tasker_root_elements["all_tasks"] and UNNAMED_ITEM in the_name:
         task_id = get_taskid_from_unnamed_task(the_name)
         return task_id in root_element
 
@@ -1452,21 +1466,21 @@ def set_ai_key(self: object, model: str) -> None:
     """
     # Set the appropriate API key based on the model chosen.  This doesn't apply to llama (no apikey).
     model_keys = {
-        **dict.fromkeys(PrimeItems.ai["openai_models"], "openai_key"),
-        **dict.fromkeys(PrimeItems.ai["anthropic_models"], "anthropic_key"),
-        **dict.fromkeys(PrimeItems.ai["deepseek_models"], "deepseek_key"),
-        **dict.fromkeys(PrimeItems.ai["gemini_models"], "gemini_key"),
+        **dict.fromkeys(window_state(self).ai["openai_models"], "openai_key"),
+        **dict.fromkeys(window_state(self).ai["anthropic_models"], "anthropic_key"),
+        **dict.fromkeys(window_state(self).ai["deepseek_models"], "deepseek_key"),
+        **dict.fromkeys(window_state(self).ai["gemini_models"], "gemini_key"),
     }
     ai_to_get = model_keys.get(model, "")
     if not ai_to_get:
         return False
-    self.ai_apikey = PrimeItems.ai.get(ai_to_get)
+    self.ai_apikey = window_state(self).ai.get(ai_to_get)
 
     # If we didn't find the key, then see if we are using the extended list and need to get the key.
     if not self.ai_apikey and self.ai_model_extended_list:
-        self.ai_apikey = get_api_key()
+        self.ai_apikey = get_api_key(state=window_state(self))
         # Try again using the updated model list.
-        self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
+        self.ai_apikey = window_state(self).ai.get(model_keys.get(model, ""), "")
 
     return bool(self.ai_apikey)
 
@@ -1531,13 +1545,13 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
         pass
 
     # Display any error message from other rountines
-    if PrimeItems.error_msg:
-        if PrimeItems.error_show_code:
-            gui.display_message_box(f"{PrimeItems.error_msg} with return code {PrimeItems.error_code}.", "Red")
+    if self.state.error_msg:
+        if self.state.error_show_code:
+            gui.display_message_box(f"{self.state.error_msg} with return code {self.state.error_code}.", "Red")
         else:
-            gui.display_message_box(PrimeItems.error_msg, "Red")
+            gui.display_message_box(self.state.error_msg, "Red")
         # The next error starts from the default: show its code.
-        PrimeItems.error_show_code = True
+        self.state.error_show_code = True
 
     if hasattr(gui, "tab_to_use") and hasattr(gui, "main_tabs_container"):
         gui.main_tabs_container.set_value = gui.tab_to_use
@@ -1612,7 +1626,7 @@ def reload_gui(self: object) -> None:
 
     # ReRun via a new process, which will load and run the new program/version.
     # Note: this current process will not return after this call, but simply be killed.
-    restart_program_subprocess(state=PrimeItems)
+    restart_program_subprocess(state=window_state(self))
 
 
 # The heads-up every 'Save To Android' write and 'Import Into Tasker' import puts on
@@ -1665,13 +1679,13 @@ def android_address_defaults(gui: "MyGui") -> tuple[str, str]:
     ipaddr = (
         getattr(gui, "android_last_ipaddr", "")
         or getattr(gui, "android_ipaddr", "")
-        or PrimeItems.program_arguments.android_last_ipaddr
+        or gui.state.program_arguments.android_last_ipaddr
         or DEFAULT_ANDROID_IPADDR
     )
     port = (
         getattr(gui, "android_last_port", "")
         or getattr(gui, "android_port", "")
-        or PrimeItems.program_arguments.android_last_port
+        or gui.state.program_arguments.android_last_port
         or DEFAULT_ANDROID_PORT
     )
     return str(ipaddr), str(port)
@@ -1697,14 +1711,14 @@ def remember_android_address(gui: "MyGui", ipaddr: str, port: str) -> None:
     unchanged = (
         getattr(gui, "android_last_ipaddr", "") == ipaddr
         and getattr(gui, "android_last_port", "") == port
-        and PrimeItems.program_arguments.android_last_ipaddr == ipaddr
-        and PrimeItems.program_arguments.android_last_port == port
+        and gui.state.program_arguments.android_last_ipaddr == ipaddr
+        and gui.state.program_arguments.android_last_port == port
     )
     remember_setting(gui, "android_last_ipaddr", ipaddr)
     remember_setting(gui, "android_last_port", port)
     if unchanged:
         return
-    save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
+    save_restore_args(gui.state.program_arguments, gui.state.colors_to_use, to_save=True)
 
 
 def remember_android_address_fields(
@@ -1824,7 +1838,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
 
 
 # Get Pypi version and return True if it is newer than our current version.
-def is_new_version() -> bool:
+def is_new_version(state: RunState) -> bool:
     """
     Check if the new version is available
     Args:
@@ -1835,7 +1849,7 @@ def is_new_version() -> bool:
     pypi_version_code = get_pypi_version()
     if pypi_version_code:
         pypi_version = pypi_version_code.split("==")[1]
-        PrimeItems.last_run = NOW_TIME  # Update last run to now since we are doing the check.
+        state.last_run = NOW_TIME  # Update last run to now since we are doing the check.
         return is_version_greater(VERSION, pypi_version)
     return False
 
@@ -1877,7 +1891,7 @@ async def _show_upgrade_if_newer(self: "MyGui") -> None:
     test_button = False
     # None (a cancelled wait, or the app stopping -- see nicegui.run._run) is falsy and lands
     # here with 'no newer version', which is the right thing to do with a page that has gone.
-    if not (await run.io_bound(is_new_version) or test_button):
+    if not (await run.io_bound(is_new_version, state=self.state) or test_button):
         return
 
     # 1. Clear out any stale visual elements and unhide the sidebar placeholder slot

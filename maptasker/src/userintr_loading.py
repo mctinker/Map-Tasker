@@ -40,10 +40,10 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins_views import refresh_scope_badges
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import clear_tasker_data
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ALL_OBJECTS_MESSAGE
 
 if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MyGui
 
 
@@ -59,7 +59,7 @@ def local_xml_start_directory(gui: MyGui) -> str:
         :param gui: the GUI object holding the remembered directory
         :return: directory to start the file picker in ('~' if there is nothing usable)
     """
-    saved_directory = getattr(gui, "local_xml_directory", "") or PrimeItems.program_arguments.local_xml_directory
+    saved_directory = getattr(gui, "local_xml_directory", "") or gui.state.program_arguments.local_xml_directory
     if saved_directory and Path(saved_directory).expanduser().is_dir():
         return saved_directory
     return "~"
@@ -116,6 +116,10 @@ class LoadingEventHandlers:
     """The loading handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
     handler is reached through self, just as it was before these moved here."""
 
+    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
+    # its window's.
+    state: RunState
+
     # Process single name selection/event
     def process_name_event(
         self,
@@ -168,7 +172,7 @@ class LoadingEventHandlers:
                 setattr(the_view, f"single_{my_name.lower()}_name", name_entered)
                 key_name = f"single_{my_name.lower()}_name"
                 # Assign it to the dictionary
-                PrimeItems.program_arguments[key_name] = name_entered
+                self.state.program_arguments[key_name] = name_entered
 
                 # Built after the name is stored, so the "is anything still selected?" check
                 # sees this selection too.
@@ -235,7 +239,7 @@ class LoadingEventHandlers:
         guiutils.single_item_export_selection, which resolves the name against the XML
         rather than trusting the file's own name.
         """
-        label, name = single_item_export_selection(file_path)
+        label, name = single_item_export_selection(file_path, state=self.state)
         if not label:
             return
 
@@ -318,24 +322,24 @@ class LoadingEventHandlers:
             ui.notify(translate_string("File path saved successfully!"), type="positive")
 
             # Let everyone knmow which file we are working with
-            PrimeItems.file_to_get = (
+            self.state.file_to_get = (
                 AppState.selected_file_path[0]
                 if isinstance(AppState.selected_file_path, list)
                 else AppState.selected_file_path
             )
 
             # Open the picker here next time.
-            remember_local_xml_directory(gui, PrimeItems.file_to_get)
+            remember_local_xml_directory(gui, self.state.file_to_get)
 
-            clear_tasker_data(state=PrimeItems)
+            clear_tasker_data(state=self.state)
             clear_single_item_view_names(gui)
             gui.specific_name_msg = ""
             # Indicate that we have note yet gotten the file.
-            PrimeItems.program_arguments.file = ""
+            self.state.program_arguments.file = ""
             gui.android_ipaddr = ""
             gui.android_port = ""
             gui.android_file = ""
-            program_args = PrimeItems.program_arguments
+            program_args = self.state.program_arguments
             program_args.android_file = ""
             program_args.android_ipaddr = ""
             program_args.android_port = ""
@@ -358,7 +362,7 @@ class LoadingEventHandlers:
             # last, after the pulldowns have been rebuilt for the new file and
             # reset_single_names has cleared the previous file's selection, so this
             # selection is the one left standing.
-            self.select_single_item_export(PrimeItems.file_to_get)
+            self.select_single_item_export(self.state.file_to_get)
 
         else:
             # Handle the case where the user hit "Cancel" or closed the dialog
@@ -389,10 +393,10 @@ class LoadingEventHandlers:
         the_view.file = ""  # Negate any prior local computer directory file tracking pointers
 
         # Validate the target remote XML structure
-        PrimeItems.program_arguments.gui = True
+        self.state.program_arguments.gui = True
 
         return_code, error_message = validate_xml_file(
-            the_view.android_ipaddr, the_view.android_port, android_file, state=PrimeItems
+            the_view.android_ipaddr, the_view.android_port, android_file, state=self.state
         )
 
         # Handle validation structural failures cleanly
@@ -402,7 +406,7 @@ class LoadingEventHandlers:
             return
 
         # Purge pre-existing data tracking fields
-        clear_tasker_data(state=PrimeItems)
+        clear_tasker_data(state=self.state)
 
         # Hide or update the dynamic input container panel block visually
         if hasattr(the_view, "android_container") and the_view.android_container:

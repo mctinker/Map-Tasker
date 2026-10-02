@@ -574,7 +574,7 @@ def _restored_id(key: str, older: Configuration) -> tuple[str, str]:
     # alongside it still needs -- and that Profile, restored next, would lose its own id for
     # no reason but the order the two were restored in.
     reserved = set(_old_table(older, "all_tasks")) | set(_old_table(older, "all_profiles"))
-    new_id = str(taskedit.next_unique_task_or_profile_id(reserved))
+    new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=PrimeItems))
     return new_id, f"Its old id, {key}, belongs to something else now, so it comes back as id {new_id}"
 
 
@@ -669,7 +669,9 @@ def _plan_bring_back_task(
         _set_child_text(element, "id", new_id)
         if new_name != old_name:
             _set_child_text(element, "nme", new_name)
-        taskedit.register_new_task(taskedit.EditableTask(task_id=new_id, task_element=element), new_name or table_name)
+        taskedit.register_new_task(
+            taskedit.EditableTask(task_id=new_id, task_element=element), new_name or table_name, state=PrimeItems
+        )
         _into_projects("tids", new_id, projects)
         return []
 
@@ -724,7 +726,7 @@ def _plan_bring_back_profile(
             entry_task_id=links.ids.get("mid0", ""),
             exit_task_id=links.ids.get("mid1", ""),
         )
-        profedit.register_new_profile(editable, new_name or table_name)
+        profedit.register_new_profile(editable, new_name or table_name, state=PrimeItems)
         _into_projects("pids", new_id, projects)
         return []
 

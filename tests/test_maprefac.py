@@ -825,7 +825,7 @@ def test_apply_refuses_a_plan_whose_subject_was_deleted_meanwhile(loaded: None) 
     plan = maprefac.plan_extract("20", [3, 4, 5], "Loud Part")
     assert not plan.is_blocked
 
-    taskedit.delete_task("Morning")
+    taskedit.delete_task("Morning", state=PrimeItems)
     done, errors = maprefac.apply(plan)
 
     assert done is False

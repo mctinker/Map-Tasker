@@ -321,7 +321,7 @@ def loaded_tasks():
 
 
 def test_the_bound_task_is_found_by_the_id_the_binding_holds(loaded_tasks):
-    edited = taskedit.load_task_for_edit_by_id("268")
+    edited = taskedit.load_task_for_edit_by_id("268", state=PrimeItems)
     assert edited is not None
     assert edited.task_id == "268"
     assert edited.task_element.findtext("nme") == "Key Handler"
@@ -332,7 +332,7 @@ def test_an_unnamed_task_is_still_reachable_by_id(loaded_tasks):
     """The case load_task_for_edit cannot do anything useful with: there is no real name to
     resolve, only the display name taskerd invented.
     """
-    edited = taskedit.load_task_for_edit_by_id("269")
+    edited = taskedit.load_task_for_edit_by_id("269", state=PrimeItems)
     assert edited is not None
     assert edited.task_element.find("nme") is None
 
@@ -340,20 +340,20 @@ def test_an_unnamed_task_is_still_reachable_by_id(loaded_tasks):
 def test_editing_the_loaded_task_does_not_touch_the_live_one(loaded_tasks):
     """Same contract as load_task_for_edit -- a deep copy, so nothing lands until an
     explicit apply."""
-    edited = taskedit.load_task_for_edit_by_id("268")
+    edited = taskedit.load_task_for_edit_by_id("268", state=PrimeItems)
     edited.task_element.find("nme").text = "Something Else"
     assert PrimeItems.tasker_root_elements["all_tasks"]["268"]["xml"].findtext("nme") == "Key Handler"
 
 
 def test_a_binding_pointing_at_a_task_that_is_not_here_resolves_to_nothing(loaded_tasks):
-    assert taskedit.load_task_for_edit_by_id("9999") is None
+    assert taskedit.load_task_for_edit_by_id("9999", state=PrimeItems) is None
 
 
 def test_applying_action_edits_leaves_the_task_name_alone(loaded_tasks):
     """The KEY tab shows no Name field, so applying from it must not write one -- and must
     not fail for want of one either, which is what apply_edits_to_task would do here.
     """
-    edited = taskedit.load_task_for_edit_by_id("269")
+    edited = taskedit.load_task_for_edit_by_id("269", state=PrimeItems)
     key = taskedit.arg_key(edited.actions[0].act_number, "0")
 
     errors = taskedit.apply_action_edits_to_task(edited, {key: "goodbye"})
@@ -364,7 +364,7 @@ def test_applying_action_edits_leaves_the_task_name_alone(loaded_tasks):
 
 
 def test_applying_action_edits_writes_the_argument_and_the_label(loaded_tasks):
-    edited = taskedit.load_task_for_edit_by_id("268")
+    edited = taskedit.load_task_for_edit_by_id("268", state=PrimeItems)
     act_number = edited.actions[0].act_number
 
     errors = taskedit.apply_action_edits_to_task(
@@ -460,6 +460,7 @@ def stub_gui():
     from unittest.mock import MagicMock  # noqa: PLC0415
 
     gui = MagicMock()
+    gui.state = PrimeItems
     gui.indent = 4
     return gui
 
@@ -553,7 +554,7 @@ def test_the_key_panel_documents_the_variables_the_guide_lists(key_event_tab):
 def test_the_bound_tasks_actions_are_listed_below_it(key_event_tab):
     """The bound Task's actions, in the editor the Edit Task dialog is made of."""
     container, properties, ui = key_event_tab
-    expected = taskedit.load_task_for_edit_by_id(properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG))
+    expected = taskedit.load_task_for_edit_by_id(properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG), state=PrimeItems)
 
     headers = [e._props.get("label", "") for e in _descendants(container) if isinstance(e, ui.expansion)]
 
@@ -741,8 +742,10 @@ def test_apply_to_task_puts_the_action_edits_into_the_loaded_configuration(monke
     notified = []
     monkeypatch.setattr(userintr.ui, "notify", lambda message, **kwargs: notified.append((message, kwargs.get("type"))))
 
-    handlers = userintr.MapTaskerEventHandlers(MagicMock())
-    edited = taskedit.load_task_for_edit_by_id("268")
+    window = MagicMock()
+    window.state = PrimeItems
+    handlers = userintr.MapTaskerEventHandlers(window)
+    edited = taskedit.load_task_for_edit_by_id("268", state=PrimeItems)
     key = taskedit.arg_key(edited.actions[0].act_number, "0")
 
     handlers.apply_scene_key_task_event(edited, {key: MagicMock(value="goodbye")})
@@ -764,10 +767,12 @@ def test_a_rejected_value_is_reported_and_nothing_is_applied(monkeypatch, loaded
     monkeypatch.setattr(userintr.ui, "notify", lambda message, **kwargs: notified.append((message, kwargs.get("type"))))
     monkeypatch.setattr(taskedit, "apply_action_edits_to_task", lambda *_a, **_k: ["Nope."])
     applied = []
-    monkeypatch.setattr(taskedit, "apply_edited_task_to_live_tree", lambda task: applied.append(task))
+    monkeypatch.setattr(taskedit, "apply_edited_task_to_live_tree", lambda task, **_kw: applied.append(task))
 
-    handlers = userintr.MapTaskerEventHandlers(MagicMock())
-    handlers.apply_scene_key_task_event(taskedit.load_task_for_edit_by_id("268"), {})
+    window = MagicMock()
+    window.state = PrimeItems
+    handlers = userintr.MapTaskerEventHandlers(window)
+    handlers.apply_scene_key_task_event(taskedit.load_task_for_edit_by_id("268", state=PrimeItems), {})
 
     assert applied == []
     assert notified == [("Nope.", "negative")]
@@ -804,12 +809,13 @@ def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it
             pytest.skip("no named Tasks in the sample backup")
 
         gui = MagicMock()
+        gui.state = PrimeItems
         gui.indent = 4
         opened = []
         monkeypatch.setattr(ui.dialog, "open", lambda self: opened.append(self))
 
         for task_name in named[:5]:
-            edited = taskedit.load_task_for_edit(task_name)
+            edited = taskedit.load_task_for_edit(task_name, state=PrimeItems)
             with Client(page("/")):
                 guiwins_taskedit.build_edit_task_dialog(gui, edited)
             headers = [e._props.get("label", "") for e in _descendants(opened[-1]) if isinstance(e, ui.expansion)]
@@ -1036,7 +1042,7 @@ def test_the_placement_follows_taskers_overflow_rules():
 
 
 def test_adding_an_item_builds_one_tasker_would_recognise(sample_action_items):
-    added = sceneedit_legacy.legacy_add_action_item(sample_action_items, "548t")  # Flash
+    added = sceneedit_legacy.legacy_add_action_item(sample_action_items, "548t", state=PrimeItems)  # Flash
     assert not isinstance(added, list), added
 
     items = sceneedit_legacy.legacy_action_items(sample_action_items)
@@ -1055,22 +1061,22 @@ def test_an_action_that_cannot_be_synthesized_is_refused_with_a_reason(sample_ac
     from maptasker.src.taskedit import classify_action_addability, list_addable_actions  # noqa: PLC0415
 
     refused = next(
-        (row["action_key"] for row in list_addable_actions() if not row["addable"]),
+        (row["action_key"] for row in list_addable_actions(state=PrimeItems) if not row["addable"]),
         None,
     )
     if refused is None:
         pytest.skip("every action is addable in this build")
     before = ET.tostring(sample_action_items)
 
-    result = sceneedit_legacy.legacy_add_action_item(sample_action_items, refused)
+    result = sceneedit_legacy.legacy_add_action_item(sample_action_items, refused, state=PrimeItems)
 
     assert isinstance(result, list) and result
-    assert result[0] == classify_action_addability(refused)[1]
+    assert result[0] == classify_action_addability(refused, state=PrimeItems)[1]
     assert ET.tostring(sample_action_items) == before
 
 
 def test_items_stay_numbered_in_order_through_every_change(sample_action_items):
-    sceneedit_legacy.legacy_add_action_item(sample_action_items, "548t")
+    sceneedit_legacy.legacy_add_action_item(sample_action_items, "548t", state=PrimeItems)
     order = [item.label for item in sceneedit_legacy.legacy_action_items(sample_action_items)]
 
     sceneedit_legacy.legacy_move_action_item(sample_action_items, "item1", 1)
@@ -1095,7 +1101,7 @@ def test_moving_past_either_end_does_nothing(sample_action_items):
 
 def test_the_items_stay_after_everything_else_in_the_element(sample_action_items):
     """Tasker writes the bindings, then the arguments, then the filter, then the items."""
-    sceneedit_legacy.legacy_add_action_item(sample_action_items, "548t")
+    sceneedit_legacy.legacy_add_action_item(sample_action_items, "548t", state=PrimeItems)
     tags = [child.tag for child in sample_action_items]
     first_item = tags.index(sceneedit_legacy.LEGACY_ACTION_ITEM_TAG)
     assert set(tags[first_item:]) == {sceneedit_legacy.LEGACY_ACTION_ITEM_TAG}
@@ -1168,7 +1174,7 @@ def picker_tables():
 
 
 def test_every_task_is_listed_once_with_the_project_that_owns_it(picker_tables):
-    rows = taskedit.list_pickable_tasks()
+    rows = taskedit.list_pickable_tasks(state=PrimeItems)
     assert [(row["name"], row["project_name"]) for row in rows] == [
         ("beta only", "Beta"),
         ("Orphan", taskedit.NO_PROJECT_NAME),
@@ -1179,33 +1185,33 @@ def test_every_task_is_listed_once_with_the_project_that_owns_it(picker_tables):
 
 def test_the_list_is_sorted_the_way_a_reader_expects(picker_tables):
     """Case-insensitively, so "beta only" is not exiled below every capitalised name."""
-    names = [row["name"] for row in taskedit.list_pickable_tasks()]
+    names = [row["name"] for row in taskedit.list_pickable_tasks(state=PrimeItems)]
     assert names == sorted(names, key=str.lower)
 
 
 def test_searching_matches_part_of_a_name_whatever_its_case(picker_tables):
-    assert [row["name"] for row in taskedit.search_pickable_tasks("SETUP")] == ["Shared Setup"]
-    assert [row["name"] for row in taskedit.search_pickable_tasks("o")] == ["beta only", "Orphan"]
+    assert [row["name"] for row in taskedit.search_pickable_tasks("SETUP", state=PrimeItems)] == ["Shared Setup"]
+    assert [row["name"] for row in taskedit.search_pickable_tasks("o", state=PrimeItems)] == ["beta only", "Orphan"]
 
 
 def test_filtering_by_project_narrows_to_that_project(picker_tables):
-    assert [row["name"] for row in taskedit.search_pickable_tasks("", "Beta")] == ["beta only"]
-    assert [row["name"] for row in taskedit.search_pickable_tasks("", taskedit.NO_PROJECT_NAME)] == ["Orphan"]
-    assert len(taskedit.search_pickable_tasks("", "All")) == 4
+    assert [row["name"] for row in taskedit.search_pickable_tasks("", "Beta", state=PrimeItems)] == ["beta only"]
+    assert [row["name"] for row in taskedit.search_pickable_tasks("", taskedit.NO_PROJECT_NAME, state=PrimeItems)] == ["Orphan"]
+    assert len(taskedit.search_pickable_tasks("", "All", state=PrimeItems)) == 4
 
 
 def test_the_two_filters_apply_together(picker_tables):
-    assert [row["name"] for row in taskedit.search_pickable_tasks("shared", "Alpha")] == ["Shared Setup"]
-    assert taskedit.search_pickable_tasks("shared", "Beta") == []
+    assert [row["name"] for row in taskedit.search_pickable_tasks("shared", "Alpha", state=PrimeItems)] == ["Shared Setup"]
+    assert taskedit.search_pickable_tasks("shared", "Beta", state=PrimeItems) == []
 
 
 def test_the_list_is_live_rather_than_memoized(picker_tables):
     """A Task added through the Add Task dialog has to show up in the picker at once -- which
     is why this one is not cached the way list_addable_actions is.
     """
-    before = len(taskedit.list_pickable_tasks())
+    before = len(taskedit.list_pickable_tasks(state=PrimeItems))
     PrimeItems.tasker_root_elements["all_tasks_by_name"]["Brand New"] = {"xml": None, "id": "9"}
-    assert len(taskedit.list_pickable_tasks()) == before + 1
+    assert len(taskedit.list_pickable_tasks(state=PrimeItems)) == before + 1
 
 
 def _click(button) -> None:
@@ -1229,7 +1235,7 @@ def test_the_event_panel_picks_a_task_the_way_add_an_action_picks_one(key_event_
     searches = [e for e in _descendants(container) if isinstance(e, ui.input)]
     assert "Search Tasks" in [e._props.get("label") for e in searches]
 
-    rows = taskedit.list_pickable_tasks()
+    rows = taskedit.list_pickable_tasks(state=PrimeItems)
     buttons = [
         e._props.get("label")
         for e in _descendants(container)
@@ -1242,7 +1248,7 @@ def test_the_event_panel_picks_a_task_the_way_add_an_action_picks_one(key_event_
 def test_the_picker_offers_a_project_filter(key_event_tab):
     """The Task-side counterpart of the action picker's Category dropdown."""
     container, _properties, ui = key_event_tab
-    projects = sorted({row["project_name"] for row in taskedit.list_pickable_tasks()})
+    projects = sorted({row["project_name"] for row in taskedit.list_pickable_tasks(state=PrimeItems)})
     options = [e.options for e in _descendants(container) if isinstance(e, ui.select)]
     assert ["All", *projects] in options
 
@@ -1251,7 +1257,7 @@ def _task_rows_on_screen(container, ui) -> set:
     """The picker's own rows, told apart from the action editor's buttons below it by being
     labelled like a Task rather than like an action.
     """
-    every = {f"{row['name']} ({row['project_name']})" for row in taskedit.list_pickable_tasks()}
+    every = {f"{row['name']} ({row['project_name']})" for row in taskedit.list_pickable_tasks(state=PrimeItems)}
     return {
         e._props.get("label")
         for e in _descendants(container)
@@ -1261,15 +1267,15 @@ def _task_rows_on_screen(container, ui) -> set:
 
 def test_typing_in_the_search_box_narrows_the_rows(key_event_tab):
     container, _properties, ui = key_event_tab
-    wanted = taskedit.list_pickable_tasks()[0]["name"]
+    wanted = taskedit.list_pickable_tasks(state=PrimeItems)[0]["name"]
 
     search = next(
         e for e in _descendants(container) if isinstance(e, ui.input) and e._props.get("label") == "Search Tasks"
     )
     search.value = wanted
 
-    matches = taskedit.search_pickable_tasks(wanted)
-    assert 0 < len(matches) < len(taskedit.list_pickable_tasks()), "the search must actually narrow"
+    matches = taskedit.search_pickable_tasks(wanted, state=PrimeItems)
+    assert 0 < len(matches) < len(taskedit.list_pickable_tasks(state=PrimeItems)), "the search must actually narrow"
     assert _task_rows_on_screen(container, ui) == {
         f"{row['name']} ({row['project_name']})" for row in matches
     }
@@ -1277,15 +1283,15 @@ def test_typing_in_the_search_box_narrows_the_rows(key_event_tab):
 
 def test_choosing_a_project_narrows_the_rows(key_event_tab):
     container, _properties, ui = key_event_tab
-    project = taskedit.list_pickable_tasks()[0]["project_name"]
+    project = taskedit.list_pickable_tasks(state=PrimeItems)[0]["project_name"]
 
     project_select = next(
         e for e in _descendants(container) if isinstance(e, ui.select) and e.options[:1] == ["All"]
     )
     project_select.value = project
 
-    matches = taskedit.search_pickable_tasks("", project)
-    everything = taskedit.list_pickable_tasks()
+    matches = taskedit.search_pickable_tasks("", project, state=PrimeItems)
+    everything = taskedit.list_pickable_tasks(state=PrimeItems)
     if len({row["project_name"] for row in everything}) > 1:
         # Only a real narrowing when the backup has more than one Project to narrow to; with a
         # single Project the right answer is all of them.
@@ -1304,6 +1310,7 @@ def test_clicking_a_row_binds_that_task_to_the_event(key_event_tab):
     from unittest.mock import MagicMock  # noqa: PLC0415
 
     gui = MagicMock()
+    gui.state = PrimeItems
     gui.indent = 4
     with container:
         panel = ui.column()
@@ -1316,7 +1323,7 @@ def test_clicking_a_row_binds_that_task_to_the_event(key_event_tab):
         )
 
     wanted = next(
-        row for row in taskedit.list_pickable_tasks() if row["task_id"] != properties.findtext("keyTask")
+        row for row in taskedit.list_pickable_tasks(state=PrimeItems) if row["task_id"] != properties.findtext("keyTask")
     )
     button = next(
         e
@@ -1384,7 +1391,7 @@ def test_a_task_with_no_name_is_left_out_of_the_picker(picker_tables):
     """
     PrimeItems.tasker_root_elements["all_tasks_by_name"][""] = {"xml": None, "id": "9"}
 
-    assert "" not in [row["name"] for row in taskedit.list_pickable_tasks()]
+    assert "" not in [row["name"] for row in taskedit.list_pickable_tasks(state=PrimeItems)]
 
 
 # ==========================================
@@ -1547,7 +1554,7 @@ def test_the_new_task_joins_the_project_the_scene_belongs_to(unbound_event):
     _click(_picker_button(container, ui, "Flash ("))
     _click(next(e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == "Create Task"))
 
-    owner = sceneedit.project_owning_scene(scene_name)
+    owner = sceneedit.project_owning_scene(scene_name, state=PrimeItems)
     assert owner
     project = PrimeItems.tasker_root_elements["all_projects"][owner]["xml"]
     assert properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG) in (project.findtext("tids") or "").split(",")
@@ -1640,11 +1647,11 @@ def test_a_reserved_id_is_never_handed_out_again():
         PrimeItems.loaded_highest_object_id = 0
         PrimeItems.tasker_root_elements["all_tasks"] = {"10": {}, "11": {}}
         PrimeItems.tasker_root_elements["all_profiles"] = {}
-        assert taskedit.next_unique_task_or_profile_id() == 12
-        assert taskedit.next_unique_task_or_profile_id({"12"}) == 13
-        assert taskedit.next_unique_task_or_profile_id({"12", "13"}) == 14
+        assert taskedit.next_unique_task_or_profile_id(state=PrimeItems) == 12
+        assert taskedit.next_unique_task_or_profile_id({"12"}, state=PrimeItems) == 13
+        assert taskedit.next_unique_task_or_profile_id({"12", "13"}, state=PrimeItems) == 14
         # Junk in the reserved set is ignored rather than raising.
-        assert taskedit.next_unique_task_or_profile_id({"not-a-number"}) == 12
+        assert taskedit.next_unique_task_or_profile_id({"not-a-number"}, state=PrimeItems) == 12
     finally:
         PrimeItems.loaded_highest_object_id = saved_highest
         PrimeItems.tasker_root_elements.clear()
@@ -1661,11 +1668,11 @@ def test_new_ids_start_clear_of_the_loaded_files_highest():
         PrimeItems.tasker_root_elements["all_tasks"] = {"1206": {}, "1208": {}}
         PrimeItems.tasker_root_elements["all_profiles"] = {"1207": {}}
         PrimeItems.loaded_highest_object_id = 1208
-        first = taskedit.next_unique_task_or_profile_id()
+        first = taskedit.next_unique_task_or_profile_id(state=PrimeItems)
         assert first == 1208 + taskedit.NEW_OBJECT_ID_HEADROOM + 1
         PrimeItems.tasker_root_elements["all_tasks"][str(first)] = {}
-        assert taskedit.next_unique_task_or_profile_id() == first + 1
-        assert taskedit.next_unique_task_or_profile_id({str(first + 1)}) == first + 2
+        assert taskedit.next_unique_task_or_profile_id(state=PrimeItems) == first + 1
+        assert taskedit.next_unique_task_or_profile_id({str(first + 1)}, state=PrimeItems) == first + 2
     finally:
         PrimeItems.loaded_highest_object_id = saved_highest
         PrimeItems.tasker_root_elements.clear()
@@ -2006,7 +2013,7 @@ def test_cancel_takes_away_a_task_binding_made_in_the_dialog(scene_properties_di
     dialog = open_dialog()
     event_tabs = next(e for e in _descendants(_event_panel(dialog)) if isinstance(e, ui.tabs))
     event_tabs.value = home_tap.label
-    wanted = taskedit.list_pickable_tasks()[0]
+    wanted = taskedit.list_pickable_tasks(state=PrimeItems)[0]
     _click(
         next(
             e

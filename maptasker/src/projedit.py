@@ -47,11 +47,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
+
 from maptasker.src import editcommon, objprops, piiscan, sessundo
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.editcommon import touch_project_mdate
 from maptasker.src.presave import backup_local_file
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sceneedit import scene_task_ids
 
 BASE_PROJECT_NAME = "Base"
@@ -99,28 +100,28 @@ class EditableProject:
     project_element: Element
 
 
-def resolve_project_by_name(project_name: str) -> Element | None:
+def resolve_project_by_name(project_name: str, state: RunState) -> Element | None:
     """Look up a Project's live XML element by its name (also its all_projects key).
 
     Callers must not mutate the returned element directly -- go through
     load_project_for_edit() instead.
     """
-    entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+    entry = state.tasker_root_elements.get("all_projects", {}).get(project_name)
     return None if entry is None else entry["xml"]
 
 
-def load_project_for_edit(project_name: str) -> EditableProject | None:
+def load_project_for_edit(project_name: str, state: RunState) -> EditableProject | None:
     """Resolve a Project by name and deep-copy it -- the one point of contact
     with the live tree, so the in-memory backup is never touched until Rename
     is applied. Mirrors profedit.load_profile_for_edit.
     """
-    live_element = resolve_project_by_name(project_name)
+    live_element = resolve_project_by_name(project_name, state=state)
     if live_element is None:
         return None
     return EditableProject(project_name=project_name, project_element=copy.deepcopy(live_element))
 
 
-def create_new_project(name: str) -> EditableProject | str:
+def create_new_project(name: str, state: RunState) -> EditableProject | str:
     """Build a brand-new Project element, not tied to any existing one. Returns
     an error message string if no backup is loaded (needed to source the
     correct Element class -- see profedit.create_new_profile's identical note).
@@ -142,17 +143,17 @@ def create_new_project(name: str) -> EditableProject | str:
     Project has <cdate>+<mdate>, none has <edate>) -- see _touch_mdate, called
     by every function that mutates a Project afterward, for how it's kept current.
     """
-    if PrimeItems.xml_root is None:
+    if state.xml_root is None:
         return "Load a Tasker backup file first (Add Project needs it to generate a unique Project ID)."
 
     existing_sr_ids = [
         int(match.group(1))
-        for entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values()
+        for entry in state.tasker_root_elements.get("all_projects", {}).values()
         if (match := _PROJECT_SR_RE.match(entry["xml"].attrib.get("sr", "")))
     ]
     new_sr_id = max(existing_sr_ids, default=0) + 1
 
-    element_cls = type(PrimeItems.xml_root)
+    element_cls = type(state.xml_root)
     project_element = element_cls("Project", {"sr": f"proj{new_sr_id}", "ve": "2"})
 
     now_millis = str(int(time.time() * 1000))
@@ -169,12 +170,12 @@ def create_new_project(name: str) -> EditableProject | str:
     return EditableProject(project_name=name.strip(), project_element=project_element)
 
 
-def project_name_exists(name: str) -> bool:
+def project_name_exists(name: str, state: RunState) -> bool:
     """Whether a Project with this name already exists in the currently loaded backup."""
-    return name.strip() in PrimeItems.tasker_root_elements.get("all_projects", {})
+    return name.strip() in state.tasker_root_elements.get("all_projects", {})
 
 
-def apply_edits_to_project(edited_project: EditableProject, new_name: str) -> list[str]:
+def apply_edits_to_project(edited_project: EditableProject, new_name: str, state: RunState) -> list[str]:
     """Validate the new name, and only if valid, mutate the Project copy's
     <name> child. All-or-nothing, mirrors profedit.apply_edits_to_profile's
     shape but with a single field.
@@ -187,7 +188,7 @@ def apply_edits_to_project(edited_project: EditableProject, new_name: str) -> li
     new_name = new_name.strip()
     if not new_name:
         errors.append("Project name cannot be empty.")
-    elif new_name != edited_project.project_name and project_name_exists(new_name):
+    elif new_name != edited_project.project_name and project_name_exists(new_name, state=state):
         errors.append(f"A Project named '{new_name}' already exists in this backup. Choose a different name.")
 
     if errors:
@@ -251,7 +252,7 @@ def set_project_members(
     touch_project_mdate(project_element)
 
 
-def register_new_project(edited_project: EditableProject) -> None:
+def register_new_project(edited_project: EditableProject, state: RunState) -> None:
     """Adds a new Project to the in-memory backup's all_projects table so it
     behaves like any other Project loaded from the backup -- e.g. so it shows
     up in the Project pulldown and so a second Add Project with the same name
@@ -261,7 +262,7 @@ def register_new_project(edited_project: EditableProject) -> None:
     profedit.register_new_profile/taskedit.register_new_task.
     """
     with sessundo.undoable(f"Add Project '{edited_project.project_name}'"):
-        PrimeItems.tasker_root_elements.setdefault("all_projects", {})[edited_project.project_name] = {
+        state.tasker_root_elements.setdefault("all_projects", {})[edited_project.project_name] = {
             "xml": edited_project.project_element,
             "name": edited_project.project_name,
         }
@@ -293,7 +294,7 @@ def is_project_enabled(edited_project: EditableProject) -> bool:
     return enbl is None or enbl.text != DISABLED_PROJECT_VALUE
 
 
-def set_project_enabled(edited_project: EditableProject, enabled: bool) -> None:
+def set_project_enabled(edited_project: EditableProject, enabled: bool, state: RunState) -> None:
     """Enables or disables the Project by removing/setting its <enbl>false</enbl>
     child -- the Project counterpart of profedit.set_profile_enabled, though the
     tag and its polarity differ (see is_project_enabled).
@@ -326,7 +327,7 @@ def set_project_enabled(edited_project: EditableProject, enabled: bool) -> None:
     carries the <enbl> in with it.
     """
     elements = [edited_project.project_element]
-    live_element = resolve_project_by_name(edited_project.project_name)
+    live_element = resolve_project_by_name(edited_project.project_name, state=state)
     if live_element is not None and live_element is not edited_project.project_element:
         elements.append(live_element)
 
@@ -340,7 +341,7 @@ def set_project_enabled(edited_project: EditableProject, enabled: bool) -> None:
         touch_project_mdate(element)
 
 
-def apply_properties_to_live_tree(edited_project: EditableProject) -> None:
+def apply_properties_to_live_tree(edited_project: EditableProject, state: RunState) -> None:
     """Carry the Properties dialog's edits from the Project copy through to the LIVE
     Project element -- the Project counterpart of the write-through half of
     set_project_enabled, and needed for the same reasons that one gives.
@@ -366,7 +367,7 @@ def apply_properties_to_live_tree(edited_project: EditableProject) -> None:
     <mdate> is stamped because this is a modification, matching what set_project_enabled
     does for the Enabled toggle.
     """
-    live_element = resolve_project_by_name(edited_project.project_name)
+    live_element = resolve_project_by_name(edited_project.project_name, state=state)
     with sessundo.undoable(f"Edit Project '{edited_project.project_name}' properties"):
         if live_element is not None and live_element is not edited_project.project_element:
             objprops.mirror_properties(objprops.KIND_PROJECT, edited_project.project_element, live_element)
@@ -374,7 +375,7 @@ def apply_properties_to_live_tree(edited_project: EditableProject) -> None:
         touch_project_mdate(edited_project.project_element)
 
 
-def rename_project_in_live_tree(old_name: str, edited_project: EditableProject) -> None:
+def rename_project_in_live_tree(old_name: str, edited_project: EditableProject, state: RunState) -> None:
     """Writes an edited (pre-existing) Project's new name back into the
     in-memory backup's all_projects table. Unlike
     profedit.apply_edited_profile_to_live_tree's id-keyed object swap, a
@@ -386,7 +387,7 @@ def rename_project_in_live_tree(old_name: str, edited_project: EditableProject) 
     ever pass a name that was just loaded via load_project_for_edit).
     """
     with sessundo.undoable(f"Rename Project '{old_name}'"):
-        all_projects = PrimeItems.tasker_root_elements.get("all_projects", {})
+        all_projects = state.tasker_root_elements.get("all_projects", {})
         if old_name not in all_projects:
             return
 
@@ -401,7 +402,7 @@ def _project_child_ids(project_element: Element, tag: str) -> list[str]:
     return child.text.split(",") if child is not None and child.text else []
 
 
-def project_profile_names(project_name: str) -> list[str]:
+def project_profile_names(project_name: str, state: RunState) -> list[str]:
     """The names of the Profiles this Project owns, read off its live <pids>.
 
     For confirming a Project import.  Tasker's HTTP API has no /api/projects -- it can
@@ -424,11 +425,11 @@ def project_profile_names(project_name: str) -> list[str]:
     <pids> means the Project references a Profile this backup does not have, so an import
     would not bring it either.
     """
-    live_element = resolve_project_by_name(project_name)
+    live_element = resolve_project_by_name(project_name, state=state)
     if live_element is None:
         return []
 
-    all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
+    all_profiles = state.tasker_root_elements.get("all_profiles", {})
     names = []
     for profile_id in _project_child_ids(live_element, "pids"):
         entry = all_profiles.get(profile_id.strip())
@@ -531,7 +532,7 @@ def _ensure_project_identity(project_copy: Element) -> None:
         project_copy.insert(later[0] if later else (simple[-1] + 1 if simple else 0), child)
 
 
-def render_standalone_project_xml(project_name: str, *, redact: bool = False) -> str:
+def render_standalone_project_xml(project_name: str, state: RunState, *, redact: bool = False) -> str:
     """Render a Project as a standalone TaskerData XML string, in the order Tasker's own
     single-Project export uses: <dmetric>, every Profile the Project owns, the Project
     element itself, every Scene it owns, then every Task those Profiles use.  Mirrors
@@ -552,13 +553,13 @@ def render_standalone_project_xml(project_name: str, *, redact: bool = False) ->
     writing a comment above the file saying what went -- what "Redact secrets" on the
     export button does.  Off by default, so nothing that already calls this changes.
     """
-    project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+    project_entry = state.tasker_root_elements.get("all_projects", {}).get(project_name)
     if project_entry is None:
         msg = f"Project '{project_name}' no longer exists in this backup."
         raise ValueError(msg)
 
     project_element = project_entry["xml"]
-    tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
+    tv = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
     project_copy = copy.deepcopy(project_element)
     # <id>, <mdate> and <clr> come through untouched -- Tasker will not import a Project
     # without an <id>, and this used to remove one.  See _PROJECT_IDENTITY_TAGS.  Safe to
@@ -611,7 +612,7 @@ def render_standalone_project_xml(project_name: str, *, redact: bool = False) ->
 
     # The Scenes are gathered before anything is appended, because whether there are any
     # decides whether <dmetric> is written -- and <dmetric> has to go first.
-    all_scenes = PrimeItems.tasker_root_elements.get("all_scenes", {})
+    all_scenes = state.tasker_root_elements.get("all_scenes", {})
     scene_elements = [
         copy.deepcopy(all_scenes[scene_name]["xml"])
         for scene_name in _project_scene_names(project_element)
@@ -622,7 +623,7 @@ def render_standalone_project_xml(project_name: str, *, redact: bool = False) ->
     # <dmetric> first, exactly where Tasker puts it (two sample Project exports
     # and backup.xml all lead with it), and only alongside Scenes -- see _DISPLAY_METRIC_TAG for
     # the measured correlation and for why the value is copied rather than invented.
-    source_metric = PrimeItems.xml_root.find(_DISPLAY_METRIC_TAG) if PrimeItems.xml_root is not None else None
+    source_metric = state.xml_root.find(_DISPLAY_METRIC_TAG) if state.xml_root is not None else None
     if scene_elements and source_metric is not None:
         root.append(copy.deepcopy(source_metric))
 
@@ -630,7 +631,7 @@ def render_standalone_project_xml(project_name: str, *, redact: bool = False) ->
     # (Tasker's actual single-Project export format): <dmetric>, then every Profile, then
     # the Project element itself, then every Scene, then every Task -- not Project-first,
     # which is what you'd expect from <pids>/<tids> being *inside* <Project>.
-    all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
+    all_profiles = state.tasker_root_elements.get("all_profiles", {})
     profile_ids = _project_child_ids(project_element, "pids")
     for profile_id in profile_ids:
         profile_entry = all_profiles.get(profile_id)
@@ -644,7 +645,7 @@ def render_standalone_project_xml(project_name: str, *, redact: bool = False) ->
     # four of them and shipped none -- and an import has nothing to resolve them against.
     root.extend(scene_elements)
 
-    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    all_tasks = state.tasker_root_elements.get("all_tasks", {})
     # A Project's own <tids> only lists Tasks created *directly* inside it (no attached
     # Profile) -- a Profile's Entry/Exit Task (<mid0>/<mid1>) is looked up globally by id
     # and can belong to a completely different Project's own <tids>.  Confirmed against a
@@ -692,7 +693,7 @@ def render_standalone_project_xml(project_name: str, *, redact: bool = False) ->
     return notice + ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_project_xml(project_name: str, output_path: str, *, redact: bool = False) -> str:
+def write_standalone_project_xml(project_name: str, output_path: str, state: RunState, *, redact: bool = False) -> str:
     """Write a Project (plus every Profile/Task it owns) as a standalone XML
     file. Raises OSError on failure, ValueError if the Project no longer exists.
 
@@ -707,14 +708,14 @@ def write_standalone_project_xml(project_name: str, output_path: str, *, redact:
     device, where the keys in it are the keys it needs to work, and a redacted upload would
     be an import that silently stopped functioning.
     """
-    rendered = render_standalone_project_xml(project_name, redact=redact)
+    rendered = render_standalone_project_xml(project_name, redact=redact, state=state)
     _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
         out_file.write(rendered)
     return safety_copy
 
 
-def save_project_to_android(project_name: str, ip_address: str, ip_port: str) -> tuple[int, str]:
+def save_project_to_android(project_name: str, ip_address: str, ip_port: str, state: RunState) -> tuple[int, str]:
     """Writes the Project -- every Profile and Task it owns -- onto the Android
     device's storage under /Tasker/projects.  The upload and its readback-verify are
     EditorKind.upload_and_verify, shared with the other three editors; see it for why
@@ -735,40 +736,40 @@ def save_project_to_android(project_name: str, ip_address: str, ip_port: str) ->
             ip_address,
             ip_port,
             project_name,
-            lambda: render_standalone_project_xml(project_name).encode("utf-8"),
+            lambda: render_standalone_project_xml(project_name, state=state).encode("utf-8"),
         )
     except ValueError as e:
         return 8, str(e)
     return return_code, result
 
 
-def delete_profiles_and_tasks_of_project(project_name: str) -> None:
+def delete_profiles_and_tasks_of_project(project_name: str, state: RunState) -> None:
     """Deletes every Profile/Task this Project owns (per its live <pids>/<tids>)
     from the in-memory backup's lookup tables -- the "Delete Contents" half of
     delete_project. First delete-a-Profile/Task primitive in the app; scoped
     to this cascade only, not exposed as a standalone button.
     """
     with sessundo.undoable(f"Delete the contents of Project '{project_name}'"):
-        live_element = resolve_project_by_name(project_name)
+        live_element = resolve_project_by_name(project_name, state=state)
         if live_element is None:
             return
 
-        all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
-        all_profiles_by_name = PrimeItems.tasker_root_elements.get("all_profiles_by_name", {})
+        all_profiles = state.tasker_root_elements.get("all_profiles", {})
+        all_profiles_by_name = state.tasker_root_elements.get("all_profiles_by_name", {})
         for profile_id in _project_child_ids(live_element, "pids"):
             entry = all_profiles.pop(profile_id, None)
             if entry is not None:
                 all_profiles_by_name.pop(entry["name"], None)
 
-        all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
-        all_tasks_by_name = PrimeItems.tasker_root_elements.get("all_tasks_by_name", {})
+        all_tasks = state.tasker_root_elements.get("all_tasks", {})
+        all_tasks_by_name = state.tasker_root_elements.get("all_tasks_by_name", {})
         for task_id in _project_child_ids(live_element, "tids"):
             entry = all_tasks.pop(task_id, None)
             if entry is not None:
                 all_tasks_by_name.pop(entry["name"], None)
 
 
-def move_project_contents_to_base(project_name: str) -> str:
+def move_project_contents_to_base(project_name: str, state: RunState) -> str:
     """Moves this Project's Profiles/Tasks into Tasker's default "Base"
     Project -- the "Keep Contents" half of delete_project. Creates a "Base"
     Project on the fly if this backup doesn't already have one (not
@@ -780,16 +781,16 @@ def move_project_contents_to_base(project_name: str) -> str:
     list of already-registered ids instead of one newly-created one -- the
     Profiles/Tasks themselves aren't touched, only which Project references them.
     """
-    all_projects = PrimeItems.tasker_root_elements.setdefault("all_projects", {})
+    all_projects = state.tasker_root_elements.setdefault("all_projects", {})
     if BASE_PROJECT_NAME not in all_projects:
-        base_project = create_new_project(BASE_PROJECT_NAME)
+        base_project = create_new_project(BASE_PROJECT_NAME, state=state)
         if isinstance(base_project, str):
             # No backup loaded -- can't happen in practice (a Project to delete
             # implies one is), but keeps this function total.
             return BASE_PROJECT_NAME
-        register_new_project(base_project)
+        register_new_project(base_project, state=state)
 
-    live_element = resolve_project_by_name(project_name)
+    live_element = resolve_project_by_name(project_name, state=state)
     base_element = all_projects[BASE_PROJECT_NAME]["xml"]
 
     for tag in ("pids", "tids"):
@@ -805,7 +806,7 @@ def move_project_contents_to_base(project_name: str) -> str:
     return BASE_PROJECT_NAME
 
 
-def delete_project(project_name: str, *, keep_contents: bool) -> list[str]:
+def delete_project(project_name: str, state: RunState, *, keep_contents: bool) -> list[str]:
     """Deletes a Project, either moving its contents into "Base" (keep_contents)
     or deleting them too (cascade) -- see move_project_contents_to_base /
     delete_profiles_and_tasks_of_project. Returns [] on success, else a list
@@ -824,14 +825,14 @@ def delete_project(project_name: str, *, keep_contents: bool) -> list[str]:
                 f"Use 'Delete Contents', or rename it first.",
             ]
 
-        all_projects = PrimeItems.tasker_root_elements.get("all_projects", {})
+        all_projects = state.tasker_root_elements.get("all_projects", {})
         if project_name not in all_projects:
             return [f"Project '{project_name}' no longer exists."]
 
         if keep_contents:
-            move_project_contents_to_base(project_name)
+            move_project_contents_to_base(project_name, state=state)
         else:
-            delete_profiles_and_tasks_of_project(project_name)
+            delete_profiles_and_tasks_of_project(project_name, state=state)
 
         del all_projects[project_name]
         return []

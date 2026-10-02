@@ -26,7 +26,6 @@ from nicegui import Event, context, ui
 
 from maptasker.src import mapjump
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
@@ -197,8 +196,8 @@ async def jump_diagram_view(master_gui: MyGui, target: mapjump.Target) -> bool:
     passed over, exactly as jump_map_view treats its Maps: with "Open View In New Window"
     on, several can be up at once showing different runs.
     """
-    placement = mapjump.diagram_placement(target, state=PrimeItems)
-    patterns = mapjump.diagram_patterns(target, state=PrimeItems)
+    placement = mapjump.diagram_placement(target, state=master_gui.state)
+    patterns = mapjump.diagram_patterns(target, state=master_gui.state)
     anchor = mapjump.diagram_anchor(target)
     # Nothing to go on at all: an object the Diagram neither recorded nor draws a line for
     # -- an unnamed Task, a variable.  Answered here rather than with a match on something
@@ -278,7 +277,7 @@ async def go_to_target(master_gui: MyGui, target: mapjump.Target, prefer_diagram
     """
     # A report, and a set of results, are both snapshots.  The object named can have been
     # renamed or deleted in the editor since, so say so rather than scrolling to nothing.
-    if not mapjump.exists(target, state=PrimeItems):
+    if not mapjump.exists(target, state=master_gui.state):
         ui.notify(
             f"{target.label} {translate_string('is no longer in the loaded configuration.')}",
             type="warning",

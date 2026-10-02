@@ -422,7 +422,7 @@ def verify_task(edited_task: EditableTask) -> RoundTripReport:
     """The Task about to go to the device, checked against the working copy it renders."""
 
     try:
-        rendered = taskedit.render_standalone_task_xml(edited_task)
+        rendered = taskedit.render_standalone_task_xml(edited_task, state=PrimeItems)
     except (ValueError, AttributeError) as render_error:
         return RoundTripReport(error=f"the Task could not be rendered ({render_error})")
 
@@ -441,7 +441,7 @@ def verify_profile(edited_profile: EditableProfile) -> RoundTripReport:
     """
 
     try:
-        rendered = profedit.render_standalone_profile_xml(edited_profile)
+        rendered = profedit.render_standalone_profile_xml(edited_profile, state=PrimeItems)
     except (ValueError, AttributeError) as render_error:
         return RoundTripReport(error=f"the Profile could not be rendered ({render_error})")
 
@@ -459,7 +459,7 @@ def verify_project(project_name: str) -> RoundTripReport:
     """
 
     try:
-        rendered = projedit.render_standalone_project_xml(project_name)
+        rendered = projedit.render_standalone_project_xml(project_name, state=PrimeItems)
     except (ValueError, AttributeError) as render_error:
         return RoundTripReport(error=f"the Project could not be rendered ({render_error})")
 
@@ -485,7 +485,7 @@ def verify_scene(scene_name: str) -> RoundTripReport:
     """
 
     try:
-        rendered = sceneedit.render_standalone_scene_xml(scene_name)
+        rendered = sceneedit.render_standalone_scene_xml(scene_name, state=PrimeItems)
     except (ValueError, AttributeError) as render_error:
         return RoundTripReport(error=f"the Scene could not be rendered ({render_error})")
 

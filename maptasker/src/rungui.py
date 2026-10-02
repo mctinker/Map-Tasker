@@ -16,7 +16,7 @@ from __future__ import annotations
 import contextlib
 import os
 import socket
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from nicegui import app, core, ui
 
@@ -29,8 +29,10 @@ from maptasker.src.guiwins import inject_shared_head_styles
 from maptasker.src.guiwins_nav import register_finding_clicks
 from maptasker.src.guiwins_views import NiceGuiTextView
 from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
+
+if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
 
 # The port ui.run() gets.  DEFAULT_PORT is NiceGUI's own default and stays the port we use
 # whenever it is free, so the GUI keeps showing up at the same familiar URL.
@@ -97,7 +99,7 @@ POPOUT_TITLES = {"map": "Map View", "diagram": "Diagram View", "flow": "Task Flo
 _settings_saved = {"done": False}
 
 
-def save_gui_settings(user_input: object) -> None:
+def save_gui_settings(user_input: object, state: RunState) -> None:
     """Copy the GUI's current settings into program_arguments/colors_to_use and write the settings file.
 
     Called once per run, from whichever gets there first: the server's shutdown hook (every way
@@ -111,39 +113,39 @@ def save_gui_settings(user_input: object) -> None:
     _settings_saved["done"] = True
 
     # Establish our runtime default values if we don't yet have 'em.
-    if not PrimeItems.colors_to_use:
-        PrimeItems.program_arguments = initialize_runtime_arguments()
+    if not state.colors_to_use:
+        state.program_arguments = initialize_runtime_arguments()
 
     # Move user_input values into our program_arguments dictionary and colors_to_use dictionary
-    capture_gui_state(user_input, {})
+    capture_gui_state(user_input, {}, state=state)
 
     # Hide the Ai key so when settings are saved, it isn't written to toml file.
     ai_apikey = getattr(user_input, "ai_apikey", None)
     if ai_apikey is not None and ai_apikey:
-        PrimeItems.ai["api_key"] = ai_apikey
-        PrimeItems.program_arguments.ai_apikey = "HIDDEN"
+        state.ai["api_key"] = ai_apikey
+        state.program_arguments.ai_apikey = "HIDDEN"
 
     # Convert display_detail_level to integer
-    PrimeItems.program_arguments.display_detail_level = convert_to_integer(
-        PrimeItems.program_arguments.display_detail_level,
+    state.program_arguments.display_detail_level = convert_to_integer(
+        state.program_arguments.display_detail_level,
         DEFAULT_DISPLAY_DETAIL_LEVEL,
     )
     # Convert indent to integer
-    PrimeItems.program_arguments.indent = convert_to_integer(
-        PrimeItems.program_arguments.indent,
+    state.program_arguments.indent = convert_to_integer(
+        state.program_arguments.indent,
         4,
     )
 
     # Save our runtime settings.
     _, _ = save_restore_args(
-        PrimeItems.program_arguments,
-        PrimeItems.colors_to_use,
+        state.program_arguments,
+        state.colors_to_use,
         to_save=True,
     )
     logger.info("Settings saved on exit.")
 
 
-def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
+def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]:
     # global MyGui
     """Parameters:
         - use_gui (bool): Flag to indicate whether to use GUI or not.
@@ -171,7 +173,7 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
     if use_gui:
         from maptasker.src.userintr import MyGui  # noqa: PLC0415
 
-    PrimeItems.program_arguments.gui = True
+    state.program_arguments.gui = True
 
     # 1. Create a dictionary to hold our UI instance so we can retrieve it after the server closes
     shared_state = {}
@@ -185,7 +187,7 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
         restart = False
         # What the session is on right now -- captured *before* MyGui() below re-runs the
         # settings restore over the top of it. See reapply_selection.
-        carried_type, carried_name = live_selection()
+        carried_type, carried_name = live_selection(state=state)
 
         # Check if this is a page refresh/re-connection
         if app_lock["is_built"]:
@@ -238,13 +240,13 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
         from 'scope' because that one is a Project NAME and is compared against a jump's
         own; this one is a phrase, and is only ever read by a human.
         """
-        gui = PrimeItems.mygui
+        gui = state.mygui
         # The Task Flow view has nothing on disk to fall back on: its chart lives on
         # PrimeItems and dies with the process.  Reopening this URL in a new session (a
         # restored browser tab, a bookmark) therefore has to say so rather than render an
         # empty page -- which is the same thing this route already says when there is no
         # GUI to reach at all.
-        stale = view_type == "flow" and not PrimeItems.taskflow_rows
+        stale = view_type == "flow" and not state.taskflow_rows
         if gui is None or stale or view_type not in POPOUT_TITLES:
             ui.label(
                 "No data available. Please generate this view from the main MapTasker window first.",
@@ -306,7 +308,7 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
         **kwargs: dict[str, Any],
     ) -> None:
         # Grab your active MyGui instance securely from global state tracking
-        my_gui_instance = getattr(PrimeItems, "mygui", None)
+        my_gui_instance = getattr(state, "mygui", None)
 
         if my_gui_instance:  # noqa: SIM102
             # You have full structural access to your MyGui class properties here!
@@ -314,7 +316,7 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
             if hasattr(my_gui_instance, "event") and my_gui_instance.event:
                 my_gui_instance.event = False  # Reset the event flag after processing
 
-                capture_gui_state(my_gui_instance, data)
+                capture_gui_state(my_gui_instance, data, state=state)
 
         # Always forward execution to the original emitter so the browser communicates!
         await _original_sio_emit(event, data=data, room=room, **kwargs)
@@ -324,7 +326,7 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
 
     # 4. Point to the icon directory fore our favicon.
     abspath = os.path.abspath(__file__)
-    assets_dir = os.path.dirname(abspath).replace("src", f"assets{PrimeItems.slash}icons")
+    assets_dir = os.path.dirname(abspath).replace("src", f"assets{state.slash}icons")
 
     # =========================================================================
 
@@ -332,7 +334,7 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
     # happen only after ui.run() returned, which it does for the Exit button -- but Ctrl-C in
     # the terminal (or a SIGTERM) makes ui.run() raise KeyboardInterrupt instead, and every
     # setting changed in the session was lost.  Shutdown handlers run in both cases.
-    app.on_shutdown(lambda: save_gui_settings(shared_state.get("user_input")))
+    app.on_shutdown(lambda: save_gui_settings(shared_state.get("user_input"), state=state))
 
     # 5. Start the server (This will now properly block without running main() twice)
     try:
@@ -346,7 +348,7 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
             show=True,
             cache_control_directives="no-store, no-cache, must-revalidate",  # Forces immediate network state clears
             reconnect_timeout=10.0,  # Keeps a brief signal blip from clearing out memory singles
-            favicon=f"{assets_dir}{PrimeItems.slash}Animated Gear.gif",
+            favicon=f"{assets_dir}{state.slash}Animated Gear.gif",
         )
     except OSError as e:
         logger.error(f"Error starting GUI: {e}")
@@ -372,7 +374,7 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
 
     # Normally already done by the shutdown hook; this catches a server that stopped without
     # running it.
-    save_gui_settings(user_input)
+    save_gui_settings(user_input, state=state)
 
     # Spit out the message and log it.
     error_handler("Program exited. Goodbye.", 0)
@@ -381,4 +383,4 @@ def process_gui(use_gui: bool) -> tuple[ProgramArguments, dict]:
     exit_program(0)
 
     # Return the program arguments and colors to use.
-    return (PrimeItems.program_arguments, do_colors(user_input))
+    return (state.program_arguments, do_colors(user_input))

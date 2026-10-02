@@ -21,12 +21,12 @@ import contextlib
 from typing import TYPE_CHECKING
 
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ARGUMENT_NAMES, logger
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MyGui
 
 
@@ -44,7 +44,7 @@ SELECTION_KEYS = (
 )
 
 
-def live_selection() -> tuple[str, str]:
+def live_selection(state: RunState) -> tuple[str, str]:
     """The (item type, name) the running session currently has selected, or ("", "").
 
     Read out of PrimeItems.program_arguments rather than off the MyGui instance, because
@@ -53,7 +53,7 @@ def live_selection() -> tuple[str, str]:
     and the specific_<x>_optionmenu attribute names both use.
     """
     for key in SELECTION_KEYS:
-        name = PrimeItems.program_arguments[key]
+        name = state.program_arguments[key]
         if name and name != "None":
             return key.removeprefix("single_").removesuffix("_name").capitalize(), name
     return "", ""
@@ -84,7 +84,7 @@ def reapply_selection(gui: MyGui, item_type: str, name: str) -> None:
 
 
 # Get the colors to use.
-def do_colors(user_input: MyGui) -> dict:
+def do_colors(user_input: MyGui, state: RunState) -> dict:
     """Sets color mode and processes colors.
     Parameters:
         - user_input (dict): User input dictionary containing appearance mode and color lookup.
@@ -104,7 +104,7 @@ def do_colors(user_input: MyGui) -> dict:
         for key, value in color_lookup.items():
             colormap[key] = value
 
-    PrimeItems.program_arguments.gui = True  # Set flag to indicate we are using GUI
+    state.program_arguments.gui = True  # Set flag to indicate we are using GUI
 
     return colormap
 
@@ -152,7 +152,7 @@ _active_overrides: dict = {}
 
 
 @contextlib.contextmanager
-def held_overrides(overrides: dict | None) -> Iterator[None]:
+def held_overrides(overrides: dict | None, state: RunState) -> Iterator[None]:
     """Put `overrides` into program_arguments and KEEP them there for the duration of a build.
 
     The caller still owns putting the original values back afterwards -- this only guarantees
@@ -168,7 +168,7 @@ def held_overrides(overrides: dict | None) -> Iterator[None]:
         return
     previous = _active_overrides
     _active_overrides = {**previous, **overrides}
-    PrimeItems.program_arguments.update(overrides)
+    state.program_arguments.update(overrides)
     try:
         yield
     finally:
@@ -193,15 +193,15 @@ def remember_setting(gui: MyGui, name: str, value: object) -> None:
     The caller still writes the settings file.
     """
     setattr(gui, name, value)
-    PrimeItems.program_arguments[name] = value
+    gui.state.program_arguments[name] = value
     _remembered_settings.add(name)
 
 
 def _apply_remembered_settings(gui: MyGui) -> None:
     """Bring a (possibly stale) MyGui instance up to date with every remember_setting value."""
     for name in _remembered_settings:
-        if name in PrimeItems.program_arguments:
-            setattr(gui, name, PrimeItems.program_arguments[name])
+        if name in gui.state.program_arguments:
+            setattr(gui, name, gui.state.program_arguments[name])
 
 
 def gui_settings(gui: MyGui) -> dict:
@@ -210,7 +210,7 @@ def gui_settings(gui: MyGui) -> dict:
     return {name: getattr(gui, name) for name in ARGUMENT_NAMES}
 
 
-def capture_gui_state(user_input: MyGui, data: dict) -> None:
+def capture_gui_state(user_input: MyGui, data: dict, state: RunState) -> None:
     """Capture the current state of the GUI and save it to PrimeItems.
     Parameters:
         - user_input (MyGui): The user input object containing GUI state.
@@ -218,24 +218,24 @@ def capture_gui_state(user_input: MyGui, data: dict) -> None:
     """
     # Check to see if it is a specific entry:
     if data and "Prettier" in get_first_text_entry(data):
-        PrimeItems.program_arguments.pretty = user_input.pretty
+        state.program_arguments.pretty = user_input.pretty
 
     # Do the entire enchillada if it is not a specific entry:
     else:
         _apply_remembered_settings(user_input)
         for value in ARGUMENT_NAMES:
             with contextlib.suppress(AttributeError):
-                PrimeItems.program_arguments[value] = getattr(user_input, value)
+                state.program_arguments[value] = getattr(user_input, value)
                 logger.info(
-                    f"GUI arg: {value} set to: {PrimeItems.program_arguments[value]}",
+                    f"GUI arg: {value} set to: {state.program_arguments[value]}",
                 )
-        PrimeItems.program_arguments.display_detail_level = int(
-            PrimeItems.program_arguments.display_detail_level,
+        state.program_arguments.display_detail_level = int(
+            state.program_arguments.display_detail_level,
         )
-        PrimeItems.program_arguments.indent = int(PrimeItems.program_arguments.indent)
+        state.program_arguments.indent = int(state.program_arguments.indent)
         # Update colors based on the current MyGui instance
-        PrimeItems.colors_to_use = do_colors(user_input)
+        state.colors_to_use = do_colors(user_input, state=state)
 
     # A build in flight outranks whatever the widgets currently say: its overrides go back on
     # top of everything captured above.  No-op unless one is actually holding some.
-    PrimeItems.program_arguments.update(_active_overrides)
+    state.program_arguments.update(_active_overrides)

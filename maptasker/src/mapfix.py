@@ -557,7 +557,7 @@ def _create_timeout_argument(
         unbuildable = f"{_action_name(code)} has no timeout argument to add"
         raise ValueError(unbuildable)
 
-    built = taskedit.build_synthesized_args(type(action), action, [argument])
+    built = taskedit.build_synthesized_args(type(action), action, [argument], state=PrimeItems)
     if not built or built[0].element is None:
         unbuildable = f"a timeout cannot be written into '{_action_name(code)}' from nothing"
         raise ValueError(unbuildable)
@@ -724,7 +724,7 @@ def _plan_delete_task(where: Target) -> Fix | Skip:
         if current is None or current.get("id") != where.key:
             moved = f"'{name}' no longer names this Task -- nothing was deleted"
             raise ValueError(moved)
-        errors = taskedit.delete_task(name)
+        errors = taskedit.delete_task(name, state=PrimeItems)
         if errors:
             raise ValueError(errors[0])
 

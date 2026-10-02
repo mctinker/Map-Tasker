@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src import guiutils, mapai, projedit, taskedit, userintr
 from maptasker.src import bildhtml, getbakup, outline, proginit, runcli, taskerd, timeline
 from maptasker.src.actionc import load_arg_specs
 from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
@@ -14,7 +15,13 @@ from maptasker.src.lineout import LineOut
 from maptasker.src.mapjump import PROFILE, TASK, Target
 from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.sysconst import DIAGRAM_FILE as diagram_file
-from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, RunState, reset_attributes
+from maptasker.src.primitem import (
+    MAP_OUTPUT_ATTRIBUTES,
+    PrimeItems,
+    RunState,
+    initial_tasker_root_elements,
+    reset_attributes,
+)
 from maptasker.src.runcfg import current_config
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
@@ -398,3 +405,75 @@ def test_a_failed_fetch_ends_the_run_with_the_devices_error_code(monkeypatch: py
 
     assert stopped.value.exit_code == 8
     assert PrimeItems.error_code == code_before
+
+
+class MyGui:
+    """Just enough of the window for the functions below: a state, and somewhere to show messages.
+
+    Named as the window is, because display_error_file_and_ai_response goes by the class name.
+    """
+
+    def __init__(self, state: RunState) -> None:
+        self.state = state
+        self.boxes: list[tuple[str, str]] = []
+
+    def display_message_box(self, message: str, color: str) -> None:
+        self.boxes.append((message, color))
+
+
+def test_a_window_shows_the_error_of_the_state_it_holds() -> None:
+    """The error file is shown as the window's own: its state's message, not the global's."""
+    window = MyGui(RunState())
+    window.state.error_msg = "Something went wrong."
+    window.state.error_code = 3
+    global_message = PrimeItems.error_msg
+
+    guiutils.display_error_file_and_ai_response(window)
+
+    assert window.boxes == [("Something went wrong. with return code 3.", "Red")]
+    assert PrimeItems.error_msg == global_message
+
+
+def test_the_handlers_act_on_the_state_of_their_window() -> None:
+    state = RunState()
+
+    handlers = userintr.MapTaskerEventHandlers(MyGui(state))
+
+    assert handlers.state is state
+
+
+def test_a_window_with_no_state_of_its_own_is_taken_to_be_on_the_global() -> None:
+    assert guiutils.window_state(object()) is PrimeItems
+    assert guiutils.window_state(MyGui(RunState())) is not PrimeItems
+
+
+def test_a_task_is_deleted_from_the_state_it_is_asked_of(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The editors work on whichever state they are handed: the loaded tables are its own."""
+    state = _outline_state(tmp_path, monkeypatch)
+    callee = state.tasker_root_elements["all_tasks_by_name"]["Callee"]["id"]
+    global_tasks = dict(PrimeItems.tasker_root_elements["all_tasks"])
+
+    assert taskedit.task_name_exists("Callee", state=state)
+    assert taskedit.delete_task("Callee", state=state) == []
+
+    assert not taskedit.task_name_exists("Callee", state=state)
+    assert callee not in state.tasker_root_elements["all_tasks"]
+    assert PrimeItems.tasker_root_elements["all_tasks"] == global_tasks
+
+
+def test_a_project_is_looked_up_in_the_state_it_is_asked_of(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    state = _outline_state(tmp_path, monkeypatch)
+    monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
+
+    assert projedit.project_name_exists("Home", state=state)
+    assert not projedit.project_name_exists("Home", state=PrimeItems)
+
+
+def test_the_ai_query_is_made_from_the_output_of_the_state_it_is_given() -> None:
+    state = RunState()
+    state.output_lines = LineOut(state=state)
+    state.output_lines.output_lines.extend(["<br>", "Profile: Morning", "Task: Remind Me"])
+
+    query = mapai.cleanup_output(state=state)
+
+    assert any("Remind Me" in line for line in query)

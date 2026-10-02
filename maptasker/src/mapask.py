@@ -234,7 +234,7 @@ def model_settings(ai_name: str, ai_model: str) -> ModelSettings:
     key = PrimeItems.ai.get(key_name) or ""
     if not key:
         # The saved keys are only read in when something first needs one.
-        get_api_key()
+        get_api_key(state=PrimeItems)
         key = PrimeItems.ai.get(key_name) or ""
     if not key or key == "Hidden":
         message = f"No {provider} API key is set.  Enter one with 'Show/Edit API Key(s)' on the Analyze tab."

@@ -39,7 +39,6 @@ from maptasker.src.maputil2 import translate_string
 from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import (
     MAP_OUTPUT_ATTRIBUTES,
-    PrimeItems,
     clear_error,
     initial_found_named_items,
     reset_attributes,
@@ -52,6 +51,7 @@ if TYPE_CHECKING:
 
     from nicegui import Event
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
 
 
@@ -66,23 +66,23 @@ async def build_analysis_lines(gui: MyGui) -> bool:
         :param gui: the window, holding the selected object and every other setting
         :return: True if the lines are ready, False if the build failed (and has said why)
     """
-    PrimeItems.view_limit = getattr(gui, "view_limit", PrimeItems.view_limit)
-    capture_gui_state(gui, {})
+    gui.state.view_limit = getattr(gui, "view_limit", gui.state.view_limit)
+    capture_gui_state(gui, {}, state=gui.state)
     # Also what keeps build_html from answering with the Map already on disk (see mapcache).
-    PrimeItems.program_arguments.ai_analyze = True
-    PrimeItems.found_named_items = initial_found_named_items()
+    gui.state.program_arguments.ai_analyze = True
+    gui.state.found_named_items = initial_found_named_items()
     reset_attributes(*MAP_OUTPUT_ATTRIBUTES)
     clear_error()
 
-    PrimeItems.output_lines.output_lines.clear()
-    output_the_front_matter(current_config(), state=PrimeItems)
+    gui.state.output_lines.output_lines.clear()
+    output_the_front_matter(current_config(), state=gui.state)
     try:
-        await run.io_bound(build_html, "", state=PrimeItems)
+        await run.io_bound(build_html, "", state=gui.state)
     except MapTaskerError as error:
         gui.display_message_box(f"Analysis halted building the Map (code {error.exit_code}).", "Red")
         return False
-    if getattr(PrimeItems, "error_code", 0) > 0:
-        gui.display_message_box(f"Analysis halted building the Map: {PrimeItems.error_msg}", "Orange")
+    if getattr(gui.state, "error_code", 0) > 0:
+        gui.display_message_box(f"Analysis halted building the Map: {gui.state.error_msg}", "Orange")
         clear_error()
         return False
     return True
@@ -91,6 +91,10 @@ async def build_analysis_lines(gui: MyGui) -> bool:
 class AIEventHandlers:
     """The AI handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
     handler is reached through self, just as it was before these moved here."""
+
+    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
+    # its window's.
+    state: RunState
 
     def ai_model_selected_event(self: MapTaskerEventHandlers, event_value: Event) -> None:
         """Updates the AI model based on dropdown selection."""
@@ -104,14 +108,14 @@ class AIEventHandlers:
                 self.gui.ai_name = event_value.value.split(":")[0].strip()
             else:
                 self.gui.ai_model = event_value.value.strip()
-            PrimeItems.program_arguments.ai_name = self.gui.ai_name
+            self.state.program_arguments.ai_name = self.gui.ai_name
         elif isinstance(event_value.value, list):
             self.gui.ai_model = event_value.value[0]
 
         logger.info(f"AI Model changed to: {self.gui.ai_model}")
 
         # Set the PrimeItems.ai model keys and appropriate API key based on the model chosen.
-        _ = get_api_key()
+        _ = get_api_key(state=self.state)
         _ = set_ai_key(self.gui, self.gui.ai_model)
 
         # 2. Force the Dropdown value to stay matched with its prefixed display options list
@@ -149,7 +153,7 @@ class AIEventHandlers:
         """
         the_view = self.gui
         # Get our key, if it exists.
-        the_view.ai_apikey = get_api_key()
+        the_view.ai_apikey = get_api_key(state=self.state)
 
         # 1. Instantiate the Dialog Class
         api_key_dialog = APIKeyDialog(the_view)
@@ -267,12 +271,12 @@ class AIEventHandlers:
         if (
             the_view.ai_model_extended_list
             and not the_view.initialization
-            and not PrimeItems.language_set
+            and not self.state.language_set
             and not the_view.displaying_extended_list
         ):
             the_view.aimodel_extend_checkbox.disable()  # One fetch at a time.
             try:
-                extended_models = await run.io_bound(get_extended_ai_model_list)
+                extended_models = await run.io_bound(get_extended_ai_model_list, state=self.state)
             finally:
                 the_view.aimodel_extend_checkbox.enable()
             # Unticked again while the list was on its way: the default list stays.
@@ -343,7 +347,7 @@ class AIEventHandlers:
                 else:
                     gui.ai_name = "Llama"
             else:
-                PrimeItems.program_arguments.ai_name = gui.ai_name
+                self.state.program_arguments.ai_name = gui.ai_name
 
             # Do the analysis.  First save our windows and settings.
             _, _ = save_restore_args(gui_settings(gui), gui.color_lookup, to_save=True)
@@ -354,8 +358,8 @@ class AIEventHandlers:
                 return
 
             # Now make certain we have the api key set for the model we are using.
-            PrimeItems.program_arguments.ai_apikey = gui.ai_apikey
-            PrimeItems.program_arguments.ai_model = gui.ai_model
+            self.state.program_arguments.ai_apikey = gui.ai_apikey
+            self.state.program_arguments.ai_model = gui.ai_model
             # Save the current tab
             gui.tab_to_use = "Analyze"
 
@@ -363,7 +367,7 @@ class AIEventHandlers:
             # Ok, run the analysis.  Await the execution of map_ai() so control doesn't leak early!
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             try:
-                await map_ai()
+                await map_ai(state=self.state)
             finally:
                 # The analysis is over, so stop saying it is running.  map_ai clears its own
                 # PrimeItems copy of the flag; this is the view's, which every later save and
@@ -376,9 +380,9 @@ class AIEventHandlers:
 
         # Test if no XML data loaded
         elif (
-            not PrimeItems.tasker_root_elements["all_projects"]
-            and not PrimeItems.tasker_root_elements["all_profiles"]
-            and not PrimeItems.tasker_root_elements["all_tasks"]
+            not self.state.tasker_root_elements["all_projects"]
+            and not self.state.tasker_root_elements["all_profiles"]
+            and not self.state.tasker_root_elements["all_tasks"]
         ):
             gui.display_message_box(
                 translate_string("No projects, profiles, or tasks have been loaded!  Load some XML and try again."),
@@ -452,7 +456,7 @@ class AIEventHandlers:
 
         # 4. Iterate over keys and validate/commit changes
         for key, value in api_keys.items():
-            if PrimeItems.ai.get(key, "") != value:  # Check if the key value changed
+            if self.state.ai.get(key, "") != value:  # Check if the key value changed
                 # Validate the length/format of the key if it has a value
                 if value and key in apikeys_to_validate and not _valid_api_key(key, value):
                     text = translate_string("API key is invalid!")
@@ -462,7 +466,7 @@ class AIEventHandlers:
                     return
 
                 # Commit change to state
-                PrimeItems.ai[key] = value
+                self.state.ai[key] = value
                 apikey_changed = True
 
                 text = translate_string("API key saved:")
@@ -480,7 +484,7 @@ class AIEventHandlers:
         # 5. Save the keys if they have modified state
         if apikey_changed:
             try:
-                in_password_store = save_api_keys(PrimeItems.ai)
+                in_password_store = save_api_keys(self.state.ai)
             except OSError as error:
                 text = translate_string("The API keys could not be saved:")
                 _display_message_box(f"{text} {error}", "Red")

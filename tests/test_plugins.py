@@ -268,7 +268,7 @@ def test_the_editor_shows_what_a_plugin_is_set_to() -> None:
     action = _action("com.joaomgcd.join", _JOIN_PUSH, "Device: Kitchen Tablet", code="774351906")
     entry = action_codes["774351906t"]
     effective = action_codes[entry.redirect].args if entry.redirect else entry.args
-    settings = next(arg for arg in taskedit.build_editable_args(action, effective) if arg.arg_id == "0")
+    settings = next(arg for arg in taskedit.build_editable_args(action, effective, state=PrimeItems) if arg.arg_id == "0")
     assert settings.widget_kind == "readonly"
     assert settings.current_value.startswith("Device: Kitchen Tablet; ")
     assert "Title: Door" in settings.current_value
