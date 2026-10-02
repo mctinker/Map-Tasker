@@ -162,12 +162,12 @@ def test_resetting_a_group_leaves_everything_else_alone() -> None:
     PrimeItems.grand_totals["projects"] = 7
     PrimeItems.netmap_output = ["║ Wake Up ║"]
 
-    reset_attributes(*primitem.MAP_OUTPUT_ATTRIBUTES)
+    reset_attributes(*primitem.MAP_OUTPUT_ATTRIBUTES, state=PrimeItems)
 
     assert PrimeItems.grand_totals == initial_grand_totals()
     assert PrimeItems.netmap_output == ["║ Wake Up ║"]
     with pytest.raises(KeyError):
-        reset_attributes("slash")  # a session attribute: nothing resets it
+        reset_attributes("slash", state=PrimeItems)  # a session attribute: nothing resets it
 
 
 def test_loading_a_backup_builds_the_tables_an_empty_one_starts_with() -> None:

@@ -1017,7 +1017,7 @@ def _no_selection() -> None:
 
 def test_no_selection_reaches_the_whole_configuration(loaded, _no_selection) -> None:
     """The default, and the thing every other test in this file relies on."""
-    assert mapjump.current_scope().is_everything
+    assert mapjump.current_scope(state=PrimeItems).is_everything
     plan = mapswap.plan_action_swap(FLASH, NOTIFY)
     assert len(plan.changes) == 2  # both Flashes, in the one Task that has them
 
@@ -1025,7 +1025,7 @@ def test_no_selection_reaches_the_whole_configuration(loaded, _no_selection) -> 
 def test_a_selected_task_scopes_the_swap_to_itself(loaded, _no_selection) -> None:
     """Selecting the Task that has no Flash leaves nothing for a Flash swap to do."""
     PrimeItems.program_arguments.single_task_name = "Quiet"
-    scope = mapjump.current_scope()
+    scope = mapjump.current_scope(state=PrimeItems)
     assert not scope.is_everything
     assert scope.phrase == "Task 'Quiet'"
 
@@ -1057,7 +1057,7 @@ def test_the_pulldown_counts_agree_with_the_scoped_answer(loaded, _no_selection)
 def test_a_selected_project_pulls_in_what_it_contains(variables, _no_selection) -> None:
     """A Project's scope is its Profiles, Tasks and Scenes, not just its own name."""
     PrimeItems.program_arguments.single_project_name = "Home"
-    scope = mapjump.current_scope()
+    scope = mapjump.current_scope(state=PrimeItems)
     assert scope.projects == frozenset({"Home"})
     assert scope.profiles == frozenset({"10"})
     assert scope.tasks == frozenset({"30", "31"})
@@ -1072,7 +1072,7 @@ def test_a_selection_that_names_nothing_scopes_to_nothing(loaded, _no_selection)
     fail in.
     """
     PrimeItems.program_arguments.single_project_name = "No Such Project"
-    scope = mapjump.current_scope()
+    scope = mapjump.current_scope(state=PrimeItems)
     assert not scope.is_everything
     assert scope.tasks == frozenset()
     assert not mapswap.plan_action_swap(FLASH, NOTIFY).changes
@@ -1086,7 +1086,7 @@ def test_a_rename_is_confined_to_the_selected_object(variables, _no_selection) -
     assert {change.site.where.kind for change in everywhere.changes} >= {TASK, PROFILE, SCENE}
 
     PrimeItems.program_arguments.single_task_name = "Adder"
-    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope()), "%Total", "", "%Sum")
+    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems)), "%Total", "", "%Sum")
     assert {change.site.where.kind for change in scoped.changes} == {TASK}
     assert {change.site.where.key for change in scoped.changes} == {"30"}
     assert 0 < len(scoped.changes) < len(everywhere.changes)
@@ -1102,14 +1102,14 @@ def test_a_scoped_rename_leaves_the_variables_tab_declaration_alone(variables, _
                mapswap.plan_variable_rename(varxref.build_index(), "%Total", "", "%Sum").changes)
 
     PrimeItems.program_arguments.single_task_name = "Adder"
-    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope()), "%Total", "", "%Sum")
+    scoped = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems)), "%Total", "", "%Sum")
     assert not any(change.site.kind == mapswap.DECLARATION for change in scoped.changes)
 
 
 def test_a_scoped_rename_warns_that_it_leaves_the_rest_alone(variables, _no_selection) -> None:
     """A half-renamed global is a broken configuration, not a partly-done job."""
     PrimeItems.program_arguments.single_task_name = "Adder"
-    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope()), "%Total", "", "%Sum")
+    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems)), "%Total", "", "%Sum")
     assert any("keep the old name" in warning for warning in plan.warnings)
 
 
@@ -1132,7 +1132,7 @@ def test_varxref_is_whole_file_unless_a_scope_is_asked_for(loaded, _no_selection
     PrimeItems.program_arguments.single_task_name = "Quiet"
 
     assert varxref.build_index().scope.is_everything
-    assert not varxref.build_index(mapjump.current_scope()).scope.is_everything
+    assert not varxref.build_index(mapjump.current_scope(state=PrimeItems)).scope.is_everything
 
 
 def test_replacing_a_variable_with_an_existing_one_merges_and_says_so(variables, _no_selection) -> None:
@@ -1155,7 +1155,7 @@ def test_a_scoped_substitution_changes_only_the_selected_object(variables, _no_s
     nothing outside it.
     """
     PrimeItems.program_arguments.single_task_name = "Adder"
-    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope()), "%Total", "", "%Totals")
+    plan = mapswap.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems)), "%Total", "", "%Totals")
     changed, errors = mapswap.apply(plan)
     assert errors == []
     assert changed == len(plan.changes)
@@ -1165,7 +1165,7 @@ def test_a_scoped_substitution_changes_only_the_selected_object(variables, _no_s
     # scanned whatever the scope -- which is deliberate and load-bearing: declared_names
     # is what tells varxref that a lower-case declared name is a global rather than some
     # Task's local, and a scoped-out declaration would misfile it.
-    inside = varxref.build_index(mapjump.current_scope())
+    inside = varxref.build_index(mapjump.current_scope(state=PrimeItems))
     survivor = inside.variables[("%Total", "")]
     assert survivor.sets == []
     assert survivor.reads == []

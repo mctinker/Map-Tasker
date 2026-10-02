@@ -482,16 +482,11 @@ def process_unique_situations(
         return
 
     # Get and output all Tasks not called by any Profile
-    special_tasks.process_tasks_not_called_by_profile(
-        projects_with_no_tasks,
-        found_tasks,
-        config,
-    )
+    special_tasks.process_tasks_not_called_by_profile(projects_with_no_tasks, found_tasks, config, state=PrimeItems)
 
     # Get and output all Projects that don't have any Tasks or Profiles
     special_tasks.process_missing_tasks_and_profiles(
-        projects_with_no_tasks,
-        projects_without_profiles,
+        projects_with_no_tasks, projects_without_profiles, state=PrimeItems
     )
     return
 

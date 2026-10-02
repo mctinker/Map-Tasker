@@ -6,7 +6,7 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 from maptasker.src.proclist import output_task_list
 from maptasker.src.runcfg import RunConfig, overridden_config
 from maptasker.src.sysconst import NO_PROJECT, NORMAL_TAB, FormatLine
@@ -20,6 +20,7 @@ from maptasker.src.twisty import add_twisty, remove_twisty
 def process_missing_tasks_and_profiles(
     projects_with_no_tasks: list,
     projects_without_profiles: list,
+    state: RunState,
 ) -> None:
     """
     Output Projects Without Tasks and Projects Without Profiles
@@ -30,21 +31,21 @@ def process_missing_tasks_and_profiles(
     """
 
     # List Projects with no Tasks
-    if len(projects_with_no_tasks) > 0 and not PrimeItems.found_named_items["single_task_found"]:
-        PrimeItems.output_lines.add_line_to_output(
+    if len(projects_with_no_tasks) > 0 and not state.found_named_items["single_task_found"]:
+        state.output_lines.add_line_to_output(
             1,
             f"{NORMAL_TAB}<hr>{NORMAL_TAB}<em>Projects Without Tasks...</em><br>",
             ["", "trailing_comments_color", FormatLine.add_end_span],
         )
 
         for item in projects_with_no_tasks:
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 0,
                 f"Project {item} has no <em>Named</em> Tasks",
                 ["", "trailing_comments_color", FormatLine.add_end_span],
             )
         # End list
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             3,
             "<br>",
             FormatLine.dont_format_line,
@@ -53,19 +54,19 @@ def process_missing_tasks_and_profiles(
     # List all Projects without Profiles
     if projects_without_profiles:
         # Add heading
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             1,
             f"{NORMAL_TAB}<em>Projects Without Profiles...</em><br>",
             ["<br>", "trailing_comments_color", FormatLine.add_end_span],
         )
         for item in projects_without_profiles:
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 0,
                 f"- Project '{item}' has no Profiles",
                 ["", "trailing_comments_color", FormatLine.add_end_span],
             )
         # End list
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             3,
             "<br>",
             FormatLine.dont_format_line,
@@ -73,7 +74,7 @@ def process_missing_tasks_and_profiles(
 
 
 # Add heading to output for named Tasks not in any Profile
-def add_heading(save_twisty: bool) -> bool:
+def add_heading(save_twisty: bool, state: RunState) -> bool:
     """
     Add a header to the output for the solo Tasks
 
@@ -82,7 +83,7 @@ def add_heading(save_twisty: bool) -> bool:
     """
 
     # Start a list and add a ruler-line across page
-    PrimeItems.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
     text_line = f"{NORMAL_TAB}Named Tasks that are not called by any Profile...<br>"
 
     # Add a twisty, if doing twisties, to hide the line
@@ -90,13 +91,13 @@ def add_heading(save_twisty: bool) -> bool:
         add_twisty("trailing_comments_color", text_line)
 
     # Add the header
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         1,
         text_line,
         ["", "trailing_comments_color", FormatLine.add_end_span],
     )
-    PrimeItems.displaying_named_tasks_not_in_profile = True
-    PrimeItems.output_lines.add_line_to_output(
+    state.displaying_named_tasks_not_in_profile = True
+    state.output_lines.add_line_to_output(
         1,
         "",
         FormatLine.dont_format_line,
@@ -114,6 +115,7 @@ def process_solo_task_with_no_profile(
     projects_with_no_tasks: list,
     save_twisty: bool,
     config: RunConfig,
+    state: RunState,
 ) -> tuple:
     """
     Process a single Task that does not belong to any Profile
@@ -130,10 +132,7 @@ def process_solo_task_with_no_profile(
     unknown_task, specific_task = False, False
 
     # Get the Project this Task is under.
-    project_name, _ = get_project_for_solo_task(
-        task_id,
-        projects_with_no_tasks,
-    )
+    project_name, _ = get_project_for_solo_task(task_id, projects_with_no_tasks, state=state)
 
     # Bump the count of Tasks and get the Task's details
     task_details = ""
@@ -143,7 +142,7 @@ def process_solo_task_with_no_profile(
     # or it doesn't belong to any Profile
     if not have_heading and config.display_detail_level > 2:
         # Add the heading to the output
-        have_heading = add_heading(save_twisty)
+        have_heading = add_heading(save_twisty, state=state)
     if not unknown_task and project_name != NO_PROJECT:
         if config.debug:
             task_details += f" with Task ID: {task_id} ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
@@ -155,15 +154,9 @@ def process_solo_task_with_no_profile(
         task_output_lines = [task_details]  # Return as a list.
 
         # We have the Tasks.  Now let's output them.
-        our_task = PrimeItems.tasker_root_elements["all_tasks"][task_id]
+        our_task = state.tasker_root_elements["all_tasks"][task_id]
         specific_task = output_task_list(
-            [our_task],
-            project_name,
-            "",
-            task_output_lines,
-            found_tasks,
-            False,
-            config,
+            [our_task], project_name, "", task_output_lines, found_tasks, False, config, state=state
         )
 
     return have_heading, specific_task, task_count
@@ -174,6 +167,7 @@ def process_tasks_not_called_by_profile(
     projects_with_no_tasks: list,
     found_tasks_list: list,
     config: RunConfig,
+    state: RunState,
 ) -> None:
     """
     Go through all tasks and output those that are not called by any Profile.
@@ -193,9 +187,9 @@ def process_tasks_not_called_by_profile(
     with overridden_config(twisty=False) as walk_config:
         # Go through all Tasks, one at a time, and see if this one is not in it (not found)
         _process_solo_task_with_no_profile = process_solo_task_with_no_profile
-        for task_id in PrimeItems.tasker_root_elements["all_tasks"]:
+        for task_id in state.tasker_root_elements["all_tasks"]:
             # If we just processed a single task only, then bail out.
-            if PrimeItems.found_named_items["single_task_found"]:
+            if state.found_named_items["single_task_found"]:
                 break
 
             # We have a solo Task not associated to any Profile
@@ -209,13 +203,14 @@ def process_tasks_not_called_by_profile(
                     projects_with_no_tasks,
                     save_twisty,
                     walk_config,
+                    state=state,
                 )
 
                 if (
                     specific_task
-                    or walk_config.single_task_name == PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
+                    or walk_config.single_task_name == state.tasker_root_elements["all_tasks"][task_id]["name"]
                 ):
-                    PrimeItems.found_named_items["single_task_found"] = True
+                    state.found_named_items["single_task_found"] = True
                     break
 
         # End the twisty hidden Task list.
@@ -225,25 +220,25 @@ def process_tasks_not_called_by_profile(
     # Provide spacing and end list if we have Tasks
     if task_count > 0:
         if config.display_detail_level > 0:
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 0,
                 "",
                 FormatLine.dont_format_line,
             )  # blank line
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             3,
             "",
             FormatLine.dont_format_line,
         )  # Close Task list
 
     if task_name is True:
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             3,
             "",
             FormatLine.dont_format_line,
         )  # Close Task list
 
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         3,
         "",
         FormatLine.dont_format_line,

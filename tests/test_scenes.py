@@ -95,7 +95,7 @@ def test_a_scene_reports_its_size_the_way_it_is_labelled() -> None:
     reads "800 X 480" is not ambiguous, it is wrong -- and a portrait Scene reported as
     landscape is the kind of thing a reader takes at face value.
     """
-    scenes.process_scene("Panel", [], None, 0, current_config())
+    scenes.process_scene("Panel", [], None, 0, current_config(), state=PrimeItems)
     assert "Width/Height: 480 X 800" in _output()
 
 
@@ -166,7 +166,7 @@ def test_a_scene_v2_element_is_output_with_its_attributes() -> None:
     """The V2 element's type leads, and its remaining keys are indented under it so the
     attributes group with the element they belong to rather than running together.
     """
-    scenes.process_recursive_json({"type": "Button", "text": "OK", "id": 3}, 0)
+    scenes.process_recursive_json({"type": "Button", "text": "OK", "id": 3}, 0, state=PrimeItems)
     output = _output()
     assert "type: Button" in output
     assert "text: OK" in output
@@ -177,7 +177,7 @@ def test_nested_scene_v2_elements_are_indented_by_depth() -> None:
     """V2 JSON nests -- a container element holds its children -- and the nesting is only
     visible as indentation, the same as a Task's If blocks.
     """
-    scenes.process_recursive_json({"type": "Box", "child": {"type": "Button", "text": "OK"}}, 0)
+    scenes.process_recursive_json({"type": "Box", "child": {"type": "Button", "text": "OK"}}, 0, state=PrimeItems)
     lines = [line for line in PrimeItems.output_lines.output_lines if "type:" in line]
     assert len(lines) == 2
     assert lines[1].index("type:") > lines[0].index("type:")
@@ -185,7 +185,7 @@ def test_nested_scene_v2_elements_are_indented_by_depth() -> None:
 
 def test_a_list_of_scene_v2_elements_is_output_one_per_item() -> None:
     """The top level of a V2 element list is a list, not an object."""
-    scenes.process_recursive_json([{"type": "Button"}, {"type": "Text"}], 0)
+    scenes.process_recursive_json([{"type": "Button"}, {"type": "Text"}], 0, state=PrimeItems)
     output = _output()
     assert "type: Button" in output
     assert "type: Text" in output
@@ -195,7 +195,7 @@ def test_a_scene_v2_row_that_will_not_decode_says_so_in_the_output() -> None:
     """The reader has to be told the Scene's contents could not be read -- a Scene
     silently listed with no elements looks like an empty Scene.
     """
-    scenes.get_scene_elements(ET.fromstring("<lj>not valid at all @@@</lj>"), 0)  # noqa: S314
+    scenes.get_scene_elements(ET.fromstring("<lj>not valid at all @@@</lj>"), 0, state=PrimeItems)  # noqa: S314
     assert "could not be processed" in _output()
 
 
@@ -210,7 +210,7 @@ def test_a_projects_scenes_are_found_by_name() -> None:
         PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
         [],
         current_config(),
-    )
+    state=PrimeItems)
     assert PrimeItems.scene_count == 2
 
 
@@ -220,7 +220,7 @@ def test_a_project_with_no_scenes_reports_none() -> None:
         PrimeItems.tasker_root_elements["all_projects"]["Bare"]["xml"],
         [],
         current_config(),
-    )
+    state=PrimeItems)
 
 
 def test_asking_for_one_scene_narrows_the_project_to_it() -> None:
@@ -232,7 +232,7 @@ def test_asking_for_one_scene_narrows_the_project_to_it() -> None:
         PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
         [],
         current_config(),
-    )
+    state=PrimeItems)
     assert PrimeItems.scene_count == 1
     assert PrimeItems.found_named_items["single_scene_found"] is True
 
@@ -275,7 +275,7 @@ def test_each_scene_element_is_listed_with_its_geometry() -> None:
     """Where a control sits and how big it is, which is what makes a list of elements a
     description of a screen rather than a list of names.
     """
-    scenes.get_details(_scene_with(_BUTTON + _TEXT), [], current_config(), 0)
+    scenes.get_details(_scene_with(_BUTTON + _TEXT), [], current_config(), 0, state=PrimeItems)
     output = _output()
     assert "'OK' Element of type Button ...with geometry 0x0 100x50" in output
     assert "'Label' Element of type Text ...with geometry 0x60 100x20" in output
@@ -283,7 +283,7 @@ def test_each_scene_element_is_listed_with_its_geometry() -> None:
 
 def test_an_element_without_geometry_is_still_listed() -> None:
     """An element that has never been positioned has no <geom>, and must not be dropped."""
-    scenes.get_details(_scene_with('<TextElement sr="t"><Str>Bare</Str></TextElement>'), [], current_config(), 0)
+    scenes.get_details(_scene_with('<TextElement sr="t"><Str>Bare</Str></TextElement>'), [], current_config(), 0, state=PrimeItems)
     assert "'Bare' Element of type Text" in _output()
 
 
@@ -291,7 +291,7 @@ def test_the_task_an_element_fires_is_listed_under_it() -> None:
     """A Scene's buttons are how a Task gets run by hand.  Without them the Task looks
     unreachable -- in no Profile and called by nothing.
     """
-    scenes.get_details(_scene_with(_BUTTON), [], current_config(), 0)
+    scenes.get_details(_scene_with(_BUTTON), [], current_config(), 0, state=PrimeItems)
     output = _output()
     assert "Clicked" in output
     assert "TAP" in output  # the kind of interaction that fires it
@@ -299,7 +299,7 @@ def test_the_task_an_element_fires_is_listed_under_it() -> None:
 
 def test_a_scene_task_counts_toward_the_totals() -> None:
     """A Task reached only from a Scene is still a Task in this configuration."""
-    scenes.get_details(_scene_with(_BUTTON), [], current_config(), 0)
+    scenes.get_details(_scene_with(_BUTTON), [], current_config(), 0, state=PrimeItems)
     assert PrimeItems.named_task_count_total == 1
 
 
@@ -308,7 +308,7 @@ def test_a_placeholder_task_reference_is_not_a_task() -> None:
     up finds nothing, and listing it invents a Task the configuration does not have.
     """
     element = '<ButtonElement sr="but1"><clickTask>-1</clickTask><Str>OK</Str></ButtonElement>'
-    scenes.get_details(_scene_with(element), [], current_config(), 0)
+    scenes.get_details(_scene_with(element), [], current_config(), 0, state=PrimeItems)
     assert PrimeItems.named_task_count_total == 0
 
 
@@ -317,7 +317,7 @@ def test_element_details_are_left_out_below_detail_level_three() -> None:
     exist to leave that kind of bulk out.
     """
     PrimeItems.program_arguments.display_detail_level = 2
-    scenes.get_details(_scene_with(_BUTTON + _TEXT), [], current_config(), 0)
+    scenes.get_details(_scene_with(_BUTTON + _TEXT), [], current_config(), 0, state=PrimeItems)
     assert "Element of type" not in _output()
 
 
@@ -330,7 +330,7 @@ def test_a_layout_scene_inside_an_element_is_reported_with_its_size() -> None:
         "<Sub><nme>Inner</nme><heightPort>100</heightPort><widthPort>200</widthPort></Sub>"
         "</Scene></ButtonElement>"
     )
-    scenes.get_details(_scene_with(element), [], current_config(), 0)
+    scenes.get_details(_scene_with(element), [], current_config(), 0, state=PrimeItems)
     assert "Element has an item 'Layout' (Scene) with width/height 200 X 100" in _output()
 
 
@@ -347,7 +347,7 @@ def test_a_long_scene_task_name_is_shortened_for_the_directory() -> None:
     PrimeItems.tasker_root_elements["all_tasks"]["10"]["name"] = long_name
     PrimeItems.tasker_root_elements["all_tasks_by_name"] = {"other": {"xml": None, "id": "99"}}
 
-    result = scenes.adjust_name_and_add_to_directory(long_name, "10", 35)
+    result = scenes.adjust_name_and_add_to_directory(long_name, "10", 35, state=PrimeItems)
     assert result.endswith(".10 (Unnamed)")
     assert len(result) < len(long_name)
     assert PrimeItems.tasker_root_elements["all_tasks"]["10"]["name"] == result
@@ -356,7 +356,7 @@ def test_a_long_scene_task_name_is_shortened_for_the_directory() -> None:
 def test_a_short_scene_task_name_is_left_alone() -> None:
     """Most names already fit, and trimming one that does would lose real text."""
     _scene_with(_BUTTON)
-    assert scenes.adjust_name_and_add_to_directory("Clicked", "10", 35) == "Clicked"
+    assert scenes.adjust_name_and_add_to_directory("Clicked", "10", 35, state=PrimeItems) == "Clicked"
 
 
 def test_a_scene_task_is_marked_as_such_in_the_directory() -> None:
@@ -365,7 +365,7 @@ def test_a_scene_task_is_marked_as_such_in_the_directory() -> None:
     """
     _scene_with(_BUTTON)
     PrimeItems.program_arguments.directory = True
-    scenes.adjust_name_and_add_to_directory("Clicked", "10", 35)
+    scenes.adjust_name_and_add_to_directory("Clicked", "10", 35, state=PrimeItems)
     assert any("Clicked (Scene)" in entry for entry in PrimeItems.directory_items["tasks"])
 
 
@@ -378,7 +378,7 @@ def test_asking_for_a_scene_this_project_does_not_have_finds_nothing() -> None:
         PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
         [],
         current_config(),
-    )
+    state=PrimeItems)
     assert PrimeItems.found_named_items["single_scene_found"] is False
 
 
@@ -420,7 +420,7 @@ def _render_scene(elements: str) -> None:
     _scene_with(elements)
     actionc.load_arg_specs()
     PrimeItems.program_arguments.display_detail_level = 5
-    scenes.process_scene("Panel", [], None, 0, current_config())
+    scenes.process_scene("Panel", [], None, 0, current_config(), state=PrimeItems)
 
 
 def test_each_scene_element_carries_its_own_jump_anchor() -> None:
@@ -498,7 +498,7 @@ def test_an_element_is_still_anchored_where_its_arguments_are_not_shown() -> Non
     """
     _scene_with(_TEXT)
     PrimeItems.program_arguments.display_detail_level = 3
-    scenes.process_scene("Panel", [], None, 0, current_config())
+    scenes.process_scene("Panel", [], None, 0, current_config(), state=PrimeItems)
 
     output = _output()
     assert '<a id="mt-scene-Panel-etxt1" class="mt-anchor"' in output
@@ -525,7 +525,7 @@ def test_each_v2_component_property_holding_a_variable_carries_its_own_jump_anch
     keyed by -- and the property is part of that address, because the property is the line.
     """
     _v2_scene_with(_V2_LAYOUT)
-    scenes.process_scene("Panel", [], None, 0, current_config())
+    scenes.process_scene("Panel", [], None, 0, current_config(), state=PrimeItems)
 
     written = _anchors_written()
     assert "mt-scene-Panel-echildren%2F0%23text" in written  # the first child's text
@@ -541,7 +541,7 @@ def test_a_v2_property_with_no_variable_in_it_is_not_anchored() -> None:
     it, so a "%" anywhere in the Scene would otherwise anchor the "children:" line too.
     """
     _v2_scene_with(_V2_LAYOUT)
-    scenes.process_scene("Panel", [], None, 0, current_config())
+    scenes.process_scene("Panel", [], None, 0, current_config(), state=PrimeItems)
 
     written = _anchors_written()
     assert "mt-scene-Panel-echildren%2F0%23textSize" not in written  # plain "22"
@@ -555,7 +555,7 @@ def test_a_v2_component_finding_lands_on_the_property_that_holds_the_variable() 
     the Map wrote, on the line that shows the variable.
     """
     _v2_scene_with(_V2_LAYOUT)
-    scenes.process_scene("Panel", [], None, 0, current_config())
+    scenes.process_scene("Panel", [], None, 0, current_config(), state=PrimeItems)
 
     finding = next(
         suspect for suspect in varxref.suspects(varxref.build_index()) if suspect.subject == "%V2NobodySets"
@@ -580,7 +580,7 @@ def test_a_v2_layout_that_will_not_decode_writes_no_anchors() -> None:
         "</TaskerData>",
     )
     taskerd.build_tasker_tables()
-    scenes.process_scene("Panel", [], None, 0, current_config())
+    scenes.process_scene("Panel", [], None, 0, current_config(), state=PrimeItems)
 
     assert "could not be processed" in _output()
     assert not _anchors_written()

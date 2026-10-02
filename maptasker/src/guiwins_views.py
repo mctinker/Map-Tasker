@@ -1561,7 +1561,7 @@ class NiceGuiTextView(TextViewSearch):
         """
         if self.scope_label is None:
             return
-        drawn, changed = scope_badge_text(self.built_for, mapjump.current_scope().phrase)
+        drawn, changed = scope_badge_text(self.built_for, mapjump.current_scope(state=PrimeItems).phrase)
         self.scope_label.set_text(drawn)
         self.scope_stale_label.set_text(changed)
         self.scope_stale_label.set_visibility(bool(changed))

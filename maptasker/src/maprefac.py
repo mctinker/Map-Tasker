@@ -1986,7 +1986,7 @@ def extract_scope() -> mapjump.Scope:
     offered; Extract has its own Task picker, so unlike Edit Task it has no reason to
     refuse outright.
     """
-    return mapjump.current_scope()
+    return mapjump.current_scope(state=PrimeItems)
 
 
 def profile_choices() -> list[tuple[str, str]]:

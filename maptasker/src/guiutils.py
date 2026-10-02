@@ -771,7 +771,7 @@ def build_profiles(
     for profile in profile_ids:
         # Get the Profile's Tasks
         PrimeItems.task_count_unnamed = 0  # Avoid an error in get_profile_tasks
-        if the_tasks := _get_profile_tasks(profiles[profile]["xml"], [], [], config):
+        if the_tasks := _get_profile_tasks(profiles[profile]["xml"], [], [], config, state=PrimeItems):
             task_list = []
             # Process each Task.  Tasks are simply a flat list of names.
             for task in the_tasks:

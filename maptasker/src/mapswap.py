@@ -750,7 +750,7 @@ def plan_action_swap(
     # `what` is also the Undo label, so the scope belongs in it: "Replace 'Flash' with
     # 'Notify'" sitting in the history of a run that only touched one Task would describe
     # a much bigger change than the one that can be taken back.
-    scope = current_scope()
+    scope = current_scope(state=PrimeItems)
     if not scope.is_everything:
         plan.what = f"{what} in {scope.phrase}"
         plan.warnings.append(
@@ -1511,7 +1511,7 @@ def plan_condition_replace(
     # The same scope note the other three carry, and for the same reason: `what` is the
     # Undo label, so a plan that touched one Profile must not describe itself as touching
     # the file.
-    scope = current_scope()
+    scope = current_scope(state=PrimeItems)
     if not scope.is_everything:
         plan.what = f"{what} in {scope.phrase}"
         plan.warnings.append(
@@ -1859,7 +1859,7 @@ def plan_argument_replace(
 
     # The same scope note the other two carry, and for the same reason: `what` is the Undo
     # label, so a plan that touched one Task must not describe itself as touching the file.
-    scope = current_scope()
+    scope = current_scope(state=PrimeItems)
     if not scope.is_everything:
         plan.what = f"{what} in {scope.phrase}"
         plan.warnings.append(
@@ -2098,7 +2098,7 @@ def plan_variable_rename(
     # configuration half-renamed -- the places inside still read the new name, the places
     # outside still read the old one -- and unlike a swap, that is a broken configuration
     # rather than a partly-done job.  So it is said as a warning, not just in the title.
-    displaying = current_scope()
+    displaying = current_scope(state=PrimeItems)
     if not displaying.is_everything:
         plan.warnings.append(
             f"Limited to {displaying.phrase}, which is what the app is displaying.  Uses of {old_name} "
@@ -2370,7 +2370,7 @@ def _declaration_site(old_name: str, entries: list[varxref.Variable], rename: tu
     # rename Tasker's Variables tab entry out from under every OTHER Task still using the
     # old name.  A scoped rename is partial by the user's own choice; this keeps it
     # partial in the safe direction.
-    if not current_scope().is_everything:
+    if not current_scope(state=PrimeItems).is_everything:
         return None
     for element in PrimeItems.xml_root.findall("Variable"):
         children = list(element)

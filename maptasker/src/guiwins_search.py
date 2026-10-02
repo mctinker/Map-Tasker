@@ -1496,7 +1496,7 @@ class _ReplaceTab:
             # Scoped, unlike varxref's other callers: a rename WRITES, and what it may
             # write to is what the app is displaying.  See build_index's own note on
             # why whole-file is the default there and this is the exception.
-            self.held["variables"] = varxref.build_index(mapjump.current_scope())
+            self.held["variables"] = varxref.build_index(mapjump.current_scope(state=PrimeItems))
         return self.held["variables"]
 
     def invalidate(self) -> None:

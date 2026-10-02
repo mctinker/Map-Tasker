@@ -187,8 +187,8 @@ def test_entry_and_exit_tasks_get_opposite_arrows() -> None:
     Profile's condition becomes true or when it stops being true.
     """
     output: list[str] = []
-    tasks.get_task_name("10", [], output, "Entry", current_config())
-    tasks.get_task_name("11", [], output, "Exit", current_config())
+    tasks.get_task_name("10", [], output, "Entry", current_config(), state=PrimeItems)
+    tasks.get_task_name("11", [], output, "Exit", current_config(), state=PrimeItems)
     assert ENTRY_ARROW in output[0]
     assert EXIT_ARROW in output[1]
 
@@ -197,7 +197,7 @@ def test_an_unknown_task_id_is_not_an_error() -> None:
     """A Profile can reference a Task that is not in the backup.  Returning empty lets
     the caller carry on and list the rest of the Profile, rather than stopping the run.
     """
-    assert tasks.get_task_name("99999", [], [], "Entry", current_config()) == (None, "")
+    assert tasks.get_task_name("99999", [], [], "Entry", current_config(), state=PrimeItems) == (None, "")
 
 
 def test_a_task_seen_twice_is_only_listed_once() -> None:
@@ -205,8 +205,8 @@ def test_a_task_seen_twice_is_only_listed_once() -> None:
     distinguishes the second sighting from a second Task.
     """
     found: list[str] = []
-    tasks.get_task_name("13", found, [], "Entry", current_config())
-    tasks.get_task_name("13", found, [], "Entry", current_config())
+    tasks.get_task_name("13", found, [], "Entry", current_config(), state=PrimeItems)
+    tasks.get_task_name("13", found, [], "Entry", current_config(), state=PrimeItems)
     assert found == ["13"]
 
 
@@ -216,10 +216,10 @@ def test_only_the_first_sighting_of_an_unnamed_task_is_counted() -> None:
     by the time a Task reaches it through get_task_name, taskerd has already given
     every Task a derived name.
     """
-    tasks.entry_or_exit_task([], "", "Entry", "", False, "13", current_config())
+    tasks.entry_or_exit_task([], "", "Entry", "", False, "13", current_config(), state=PrimeItems)
     assert PrimeItems.task_count_unnamed == 1
 
-    tasks.entry_or_exit_task([], "", "Entry", "", True, "13", current_config())  # a duplicate sighting
+    tasks.entry_or_exit_task([], "", "Entry", "", True, "13", current_config(), state=PrimeItems)  # a duplicate sighting
     assert PrimeItems.task_count_unnamed == 1
 
 
@@ -229,7 +229,7 @@ def test_an_unnamed_task_is_named_and_the_name_is_kept() -> None:
     has to find the same name the user is looking at.
     """
     output: list[str] = []
-    _, name = tasks.entry_or_exit_task(output, "", "Entry", "", False, "13", current_config())
+    _, name = tasks.entry_or_exit_task(output, "", "Entry", "", False, "13", current_config(), state=PrimeItems)
     assert name == "Unnamed13"
     assert PrimeItems.tasker_root_elements["all_tasks"]["13"]["name"] == "Unnamed13"
 
@@ -240,7 +240,7 @@ def test_debug_mode_puts_the_task_id_on_the_line() -> None:
     """
     PrimeItems.program_arguments.debug = True
     output: list[str] = []
-    tasks.get_task_name("10", [], output, "Entry", current_config())
+    tasks.get_task_name("10", [], output, "Entry", current_config(), state=PrimeItems)
     assert "Task ID: 10" in output[0]
 
 
@@ -251,8 +251,8 @@ def test_a_solo_task_is_traced_to_its_project() -> None:
     """A Task in no Profile is still in a Project, via that Project's <tids>.  It is
     listed under that Project, so this lookup decides where it appears.
     """
-    assert tasks.get_project_for_solo_task("11", [])[0] == "Home"
-    assert tasks.get_project_for_solo_task("12", [])[0] == "Away"
+    assert tasks.get_project_for_solo_task("11", [], state=PrimeItems)[0] == "Home"
+    assert tasks.get_project_for_solo_task("12", [], state=PrimeItems)[0] == "Away"
 
 
 def test_projects_without_tasks_are_collected_on_the_way_past() -> None:
@@ -262,7 +262,7 @@ def test_projects_without_tasks_are_collected_on_the_way_past() -> None:
     # Task 13 is in no Project's <tids>, so the walk visits every Project rather than
     # returning at the first match -- which is what it takes to reach the empty one.
     empty: list[str] = []
-    tasks.get_project_for_solo_task("13", empty)
+    tasks.get_project_for_solo_task("13", empty, state=PrimeItems)
     assert "Empty" in empty
 
 
@@ -276,7 +276,7 @@ def test_a_task_in_no_project_is_not_attributed_to_one() -> None:
     """Task 13 is in no Project's <tids>.  Naming a Project for it puts the Task under a
     heading it does not belong to, which reads as a fact about the configuration.
     """
-    assert tasks.get_project_for_solo_task("13", [])[0] == "No Project"
+    assert tasks.get_project_for_solo_task("13", [], state=PrimeItems)[0] == "No Project"
 
 
 # ##################################################################################

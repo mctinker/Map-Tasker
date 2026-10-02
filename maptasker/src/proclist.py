@@ -18,7 +18,7 @@ from maptasker.src.kidapp import get_kid_app
 from maptasker.src.mapjump import SCENE, TASK, Target, anchor_html
 from maptasker.src.maputils import find_owning_project_for_scene, fix_hyperlink_name
 from maptasker.src.nameattr import add_name_attribute
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 from maptasker.src.property import get_properties
 from maptasker.src.runcfg import RunConfig
 from maptasker.src.sysconst import (
@@ -101,6 +101,8 @@ def format_task_or_scene(
     config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
+    *,
+    state: RunState,
 ) -> tuple:
     """
     Given an item, build output line for Task or Scene
@@ -142,7 +144,7 @@ def format_task_or_scene(
             tooltip_lines.append(f"Project: {owning_project}")
 
         # Add the Scene's list of UI elements to the tooltip, one element per line.
-        scene_xml = PrimeItems.tasker_root_elements["all_scenes"].get(the_item, {}).get("xml")
+        scene_xml = state.tasker_root_elements["all_scenes"].get(the_item, {}).get("xml")
         if scene_xml is not None:
             element_names = get_scene_element_names(scene_xml)
             if element_names:
@@ -154,7 +156,7 @@ def format_task_or_scene(
         # This is a Task embedded in a Scene (e.g. a Tap/Long Tap handler). scenes.py doesn't
         # pass a project_name/profile_name in for these, so fall back to the Project currently
         # being processed to show a tooltip for the "--Task:" label.
-        owning_project_name = project_name or (PrimeItems.current_project["name"] if PrimeItems.current_project else "")
+        owning_project_name = project_name or (state.current_project["name"] if state.current_project else "")
         tooltip_lines = [f"Project: {owning_project_name}"] if owning_project_name else []
         task_label = build_tooltip_span("&#45;&#45;Task:", tooltip_lines)
         label = list_type.replace("&#45;&#45;Task:", task_label, 1)
@@ -178,6 +180,7 @@ def add_dictionary_and_twisty(
     output_line: str,
     color_to_use: str,
     config: RunConfig,
+    state: RunState,
 ) -> tuple[str, str]:
     """
     If doing a directory, format and add it. If not doing directory and we have a Task, add a link.
@@ -198,20 +201,20 @@ def add_dictionary_and_twisty(
     blank = "&nbsp;"
 
     if "&#45;&#45;Task:" in list_type:
-        temp_item, temp_list = handle_task(list_type, the_item, blank, config)
+        temp_item, temp_list = handle_task(list_type, the_item, blank, config, state=state)
         if config.directory:
-            task_name = PrimeItems.tasker_root_elements["all_tasks"][the_item]["name"]
+            task_name = state.tasker_root_elements["all_tasks"][the_item]["name"]
             add_directory_item("tasks", task_name)
     elif config.directory:
-        handle_directory(list_type, the_item, the_task)
+        handle_directory(list_type, the_item, the_task, state=state)
     elif "Task:" in list_type:
-        handle_task_hyperlink(the_item, blank)
+        handle_task_hyperlink(the_item, blank, state=state)
 
-    if should_add_directory_hyperlink(list_type, config):
-        add_directory_hyperlink()
+    if should_add_directory_hyperlink(list_type, config, state=state):
+        add_directory_hyperlink(state=state)
 
     if list_type == "Scene:":
-        PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
+        state.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
     if config.twisty and "Task:" in list_type:
         handle_twisty(color_to_use, output_line)
@@ -219,7 +222,7 @@ def add_dictionary_and_twisty(
     return temp_item, temp_list
 
 
-def handle_task(list_type: str, the_item: str, blank: str, config: RunConfig) -> tuple[str, str]:
+def handle_task(list_type: str, the_item: str, blank: str, config: RunConfig, state: RunState) -> tuple[str, str]:
     """
     Handle the task by adding a task hyperlink and debugging the task ID.
 
@@ -232,14 +235,14 @@ def handle_task(list_type: str, the_item: str, blank: str, config: RunConfig) ->
     Returns:
         tuple[str, str]: The processed item and list type.
     """
-    task_name = PrimeItems.tasker_root_elements["all_tasks"][the_item]["name"]
-    add_task_hyperlink(task_name, True, blank)
+    task_name = state.tasker_root_elements["all_tasks"][the_item]["name"]
+    add_task_hyperlink(task_name, True, blank, state=state)
     temp_item, temp_list = the_item, list_type
     list_type = debug_task_id(list_type, config)
     return temp_item, temp_list
 
 
-def handle_directory(list_type: str, the_item: str, the_task: Element | None) -> None:
+def handle_directory(list_type: str, the_item: str, the_task: Element | None, state: RunState) -> None:
     """
     Handle the directory by processing tasks or adding scene directories.
 
@@ -254,12 +257,12 @@ def handle_directory(list_type: str, the_item: str, the_task: Element | None) ->
     if "Task:" in list_type:
         # A Scene has no Task element; a Task always has its own (see item_anchor).
         if the_task is not None:
-            process_task_directory(the_task)
+            process_task_directory(the_task, state=state)
     elif list_type == "Scene:":
         add_scene_directory(the_item)
 
 
-def handle_task_hyperlink(the_item: str, blank: str) -> None:
+def handle_task_hyperlink(the_item: str, blank: str, state: RunState) -> None:
     """
     Handle the task hyperlink by adding a hyperlink to the task name.
 
@@ -271,10 +274,10 @@ def handle_task_hyperlink(the_item: str, blank: str) -> None:
         None
     """
     task_name = the_item.split("&nbsp;", maxsplit=1)[0]
-    add_task_hyperlink(task_name, False, blank)
+    add_task_hyperlink(task_name, False, blank, state=state)
 
 
-def should_add_directory_hyperlink(list_type: str, config: RunConfig) -> bool:
+def should_add_directory_hyperlink(list_type: str, config: RunConfig, state: RunState) -> bool:
     """
     Determine if a directory hyperlink should be added.
 
@@ -287,13 +290,13 @@ def should_add_directory_hyperlink(list_type: str, config: RunConfig) -> bool:
     """
     return (
         config.directory
-        and PrimeItems.directory_items["current_item"]
+        and state.directory_items["current_item"]
         and "Task:" in list_type
         and "&#45;&#45;Task:" not in list_type
     )
 
 
-def add_task_hyperlink(task_name: str, display_name: bool, blank: str) -> None:
+def add_task_hyperlink(task_name: str, display_name: bool, blank: str, state: RunState) -> None:
     """
     Add a hyperlink to the task name.
 
@@ -316,14 +319,14 @@ def add_task_hyperlink(task_name: str, display_name: bool, blank: str) -> None:
     hyperlink_name = fix_hyperlink_name(task_name)
     name = f"{blank * 8}{task_name}" if display_name else ""
     # Add hyperlink html (<a id="tasks_Task_Name"><br>Task Name</a>) to the output
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         2,
         f'<a id="tasks_{hyperlink_name}"><br>{name}</a>',
         FormatLine.dont_format_line,
     )
 
 
-def process_task_directory(the_task: Element) -> None:
+def process_task_directory(the_task: Element, state: RunState) -> None:
     """
     Process the task directory by adding the task name to the directory items.
 
@@ -334,7 +337,7 @@ def process_task_directory(the_task: Element) -> None:
         None
     """
     task_id = the_task.attrib.get("sr", "")[4:]
-    task_name = PrimeItems.tasker_root_elements["all_tasks"].get(task_id, {}).get("name", "")
+    task_name = state.tasker_root_elements["all_tasks"].get(task_id, {}).get("name", "")
     if task_name:
         add_directory_item("tasks", task_name)
 
@@ -349,16 +352,16 @@ def add_scene_directory(the_item: str) -> None:
     add_directory_item("scenes", the_item)
 
 
-def add_directory_hyperlink() -> None:
+def add_directory_hyperlink(state: RunState) -> None:
     """
     Add a hyperlink to the current directory item.
 
     Returns:
         None
     """
-    directory_item = f"{PrimeItems.directory_items['current_item']}"
+    directory_item = f"{state.directory_items['current_item']}"
     directory = f'<a id="{directory_item}"></a>\n'
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         directory,
         FormatLine.dont_format_line,
@@ -400,7 +403,7 @@ def debug_task_id(list_type: str, config: RunConfig) -> str:
 # ################################################################################
 # The anchor that lets a report finding jump to this Task/Scene in the Map view.
 # ################################################################################
-def item_anchor(list_type: str, the_item: str, the_task: Element | None) -> str:
+def item_anchor(list_type: str, the_item: str, the_task: Element | None, state: RunState) -> str:
     """The mapjump anchor for the Task or Scene about to be output, or "" if there is none.
 
     Where each identity comes from, and why not from the output line's text:
@@ -418,16 +421,16 @@ def item_anchor(list_type: str, the_item: str, the_task: Element | None) -> str:
     turns out not to hold) -- an anchor is only worth writing when it is the right one.
     """
     if "&#45;&#45;Task:" in list_type:
-        task = PrimeItems.tasker_root_elements["all_tasks"].get(the_item)
-        return anchor_html(Target(TASK, the_item, task["name"] if task else "")) if task else ""
+        task = state.tasker_root_elements["all_tasks"].get(the_item)
+        return anchor_html(Target(TASK, the_item, task["name"] if task else ""), state=state) if task else ""
 
     if list_type == "Scene:":
-        return anchor_html(Target(SCENE, the_item, the_item))
+        return anchor_html(Target(SCENE, the_item, the_item), state=state)
 
     if "Task:" in list_type and the_task is not None:
         task_id = the_task.attrib.get("sr", "")[4:]
-        task = PrimeItems.tasker_root_elements["all_tasks"].get(task_id)
-        return anchor_html(Target(TASK, task_id, task["name"] if task else "")) if task else ""
+        task = state.tasker_root_elements["all_tasks"].get(task_id)
+        return anchor_html(Target(TASK, task_id, task["name"] if task else ""), state=state) if task else ""
 
     return ""
 
@@ -443,6 +446,8 @@ def format_item(
     config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
+    *,
+    state: RunState,
 ) -> None:
     """
     Given an item, format it with all of the particulars:
@@ -464,25 +469,22 @@ def format_item(
         )
 
     # Format the Task or Scene
-    output_line, color_to_use = format_task_or_scene(list_type, the_item, config, project_name, profile_name)
+    output_line, color_to_use = format_task_or_scene(
+        list_type, the_item, config, project_name, profile_name, state=state
+    )
 
     # If "--Task:" then this is a Task under a Scene.
     # Need to temporarily save the_item since add_line_to_output changes the_item
     temp_item, temp_list = add_dictionary_and_twisty(
-        list_type,
-        the_item,
-        the_task,
-        output_line,
-        color_to_use,
-        config,
+        list_type, the_item, the_task, output_line, color_to_use, config, state=state
     )
 
     # Mark this Task/Scene's place so a report finding can be clicked and land on it.
-    if anchor := item_anchor(list_type, the_item, the_task):
-        PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
+    if anchor := item_anchor(list_type, the_item, the_task, state=state):
+        state.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     # Add this Task/Scene to the output as a list item
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         2,
         output_line,
         FormatLine.dont_format_line,
@@ -499,7 +501,7 @@ def format_item(
         the_task is not None
         and "Task:" in list_type
         and config.display_detail_level > 2
-        and not PrimeItems.displaying_named_tasks_not_in_profile
+        and not state.displaying_named_tasks_not_in_profile
     ):
         get_properties("Task:", the_task, Target(TASK, the_task.attrib.get("sr", "")[4:]))
 
@@ -513,6 +515,8 @@ def process_item(
     config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
+    *,
+    state: RunState,
 ) -> None:
     """
     Process the item and add it to the output.
@@ -530,7 +534,7 @@ def process_item(
         None
     """
     # Given an item, format it with all of the particulars and add to output.
-    format_item(list_type, the_item, the_item, the_task, config, project_name, profile_name)
+    format_item(list_type, the_item, the_item, the_task, config, project_name, profile_name, state=state)
 
     # If just displaying basic details, get out.
     if config.display_detail_level == 0:
@@ -542,13 +546,7 @@ def process_item(
     task_in_list_type = "Task:" in list_type
     if task_in_list_type:
         # We have a Task, so get its Actions
-        get_task_actions_and_output(
-            the_task,
-            list_type,
-            the_item,
-            tasks_found,
-            config,
-        )
+        get_task_actions_and_output(the_task, list_type, the_item, tasks_found, config, state=state)
 
         # End the twisty hidden lines if not a Task in a Scene
         if config.twisty:
@@ -563,7 +561,7 @@ def process_item(
             # dont_add_end_span: the third argument says whether the line needs formatting
             # at all, and the wrong member of the two sent add_line_to_output looking for a
             # color inside an enum member.
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 3,
                 "",
                 FormatLine.dont_format_line,
@@ -581,6 +579,8 @@ def process_list(
     config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
+    *,
+    state: RunState,
 ) -> None:
     """
     Process Task/Scene text/line item: call recursively for Tasks within Scenes
@@ -602,7 +602,7 @@ def process_list(
     _process_item = process_item
     for the_item in the_list:
         # Process the item (list of items)
-        _process_item(the_item, list_type, the_task, tasks_found, config, project_name, profile_name)
+        _process_item(the_item, list_type, the_task, tasks_found, config, project_name, profile_name, state=state)
 
 
 # We're processing a single task only
@@ -615,6 +615,7 @@ def do_single_task(
     our_task_element: Element,
     list_of_found_tasks: list,
     config: RunConfig,
+    state: RunState,
 ) -> None:
     """
     Process a single Task only.
@@ -637,7 +638,7 @@ def do_single_task(
     )
 
     if config.single_task_name == our_task_name:
-        PrimeItems.found_named_items.update(
+        state.found_named_items.update(
             {
                 "single_task_found": True,
                 "single_project_found": True,
@@ -646,17 +647,17 @@ def do_single_task(
         )
 
         save_project, save_profile = (
-            PrimeItems.program_arguments.single_project_name,
-            PrimeItems.program_arguments.single_profile_name,
+            state.program_arguments.single_project_name,
+            state.program_arguments.single_profile_name,
         )
-        PrimeItems.program_arguments.update(
+        state.program_arguments.update(
             {
                 "single_project_name": project_name,
                 "single_profile_name": profile_name or UNNAMED_ITEM,
             },
         )
 
-        PrimeItems.output_lines.refresh_our_output(True, project_name, profile_name)
+        state.output_lines.refresh_our_output(True, project_name, profile_name)
 
         temporary_task_list = (
             [item for item in task_list if our_task_name == item[: len(our_task_name)]] if task_list else task_list
@@ -673,13 +674,14 @@ def do_single_task(
             config,
             project_name,
             profile_name,
+            state=state,
         )
 
-        PrimeItems.program_arguments.update(
+        state.program_arguments.update(
             {"single_project_name": save_project, "single_profile_name": save_profile},
         )
     else:
-        PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+        state.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
         if config.pretty and "[" not in our_task_name:
             task_list[0] = task_list[0].replace(
@@ -687,8 +689,10 @@ def do_single_task(
                 f"<br>{'&nbsp;' * len(our_task_name)}[",
             )
 
-        process_list("Task:", task_list, our_task_element, list_of_found_tasks, config, project_name, profile_name)
-        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+        process_list(
+            "Task:", task_list, our_task_element, list_of_found_tasks, config, project_name, profile_name, state=state
+        )
+        state.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
 # Search image xml element for key and return title=value
@@ -790,6 +794,7 @@ def output_task_list(
     list_of_found_tasks: list,
     do_extra: bool,
     config: RunConfig,
+    state: RunState,
 ) -> bool:
     """
     Given a list of tasks, output them.  The list of tasks is a list of tuples.
@@ -837,11 +842,12 @@ def output_task_list(
             task_item["xml"],
             list_of_found_tasks,
             config,
+            state=state,
         )
 
         # If only doing a single Task and we found/did it, then we are done
         if config.single_task_name == task_item["name"]:
-            PrimeItems.found_named_items["single_task_found"] = True
+            state.found_named_items["single_task_found"] = True
             return True
 
     return False

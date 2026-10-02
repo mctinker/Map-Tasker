@@ -22,7 +22,6 @@ from maptasker.src.mapjump import (
     scene_element_parts,
     v2_property_holds_a_variable,
 )
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import format_item, process_list
 from maptasker.src.sceneedit import decompress_gzip_json
 from maptasker.src.sceneedit_v2 import v2_child_slots, v2_flatten
@@ -40,6 +39,7 @@ from maptasker.src.xmldata import tag_in_type
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 blank = "&nbsp;"
@@ -63,10 +63,7 @@ def get_geometry(scene_element: Element) -> tuple[str, str]:
 
 
 def process_recursive_json(
-    data: str,
-    indentation: str,
-    current_depth: int = 0,
-    anchors: SceneAnchors | None = None,
+    data: str, indentation: str, current_depth: int = 0, anchors: SceneAnchors | None = None, *, state: RunState
 ) -> None:
     """
     Recursively processes JSON data and adds it to PrimeItems output.
@@ -93,7 +90,7 @@ def process_recursive_json(
         type_value = data.get("type")
         if type_value is not None and not isinstance(type_value, (dict, list)):
             mark("type")
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 0,
                 f"{blank * ((3 + indentation) + (current_depth * 3))}type: {type_value}",
                 ["", "scene_color", FormatLine.add_end_span],
@@ -108,26 +105,26 @@ def process_recursive_json(
 
             if isinstance(value, dict):
                 # Print the key and indicate it's a nested object
-                PrimeItems.output_lines.add_line_to_output(
+                state.output_lines.add_line_to_output(
                     0,
                     f"{blank * current_indent}{key}:",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
                 # Recursive call: increment depth
-                process_recursive_json(value, indentation, current_depth + 1, anchors)
+                process_recursive_json(value, indentation, current_depth + 1, anchors, state=state)
             elif isinstance(value, list):
                 # Print the key and indicate it's a list
-                PrimeItems.output_lines.add_line_to_output(
+                state.output_lines.add_line_to_output(
                     0,
                     f"{blank * current_indent}{key}:",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
                 # Recursive call for each item in the list: increment depth
                 for item in value:
-                    process_recursive_json(item, indentation, current_depth + 1, anchors)
+                    process_recursive_json(item, indentation, current_depth + 1, anchors, state=state)
             else:
                 # Base case: standard key-value pair
-                PrimeItems.output_lines.add_line_to_output(
+                state.output_lines.add_line_to_output(
                     0,
                     f"{blank * current_indent}{key}: {value}",
                     ["", "scene_color", FormatLine.add_end_span],
@@ -135,7 +132,7 @@ def process_recursive_json(
     elif isinstance(data, list):
         # Optional: Handle lists if they appear in your Scene V2 JSON
         for i, item in enumerate(data):
-            process_recursive_json({f"[{i}]": item}, indentation, current_depth, anchors)
+            process_recursive_json({f"[{i}]": item}, indentation, current_depth, anchors, state=state)
 
 
 # Where each of one Scene's elements gets its anchor in the Map.
@@ -163,8 +160,9 @@ class SceneAnchors:
     mapjump.scene_element_parts on why they are deliberately left unanchored.
     """
 
-    def __init__(self, scene_name: str = "", scene_element: Element | None = None) -> None:
-        """Take the Scene's name -- how Tasker keys it, and so how a Target names it -- and its element."""
+    def __init__(self, scene_name: str = "", scene_element: Element | None = None, *, state: RunState) -> None:
+        """Take the run state the anchors are written into, the Scene's name -- how Tasker keys it, and so how a Target names it -- and its element."""
+        self.state = state
         self.scene_name = scene_name
         self.parts = scene_element_parts(scene_element) if scene_name and scene_element is not None else {}
         # {id(component): {property: its anchor key}} for a Version 2 layout, once one has
@@ -230,15 +228,13 @@ class SceneAnchors:
         """
         if not part:
             return
-        if anchor := anchor_html(Target(SCENE, self.scene_name, self.scene_name).at_part(part)):
-            PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
+        if anchor := anchor_html(Target(SCENE, self.scene_name, self.scene_name).at_part(part), state=self.state):
+            self.state.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
 
 # Get the Scene's elements
 def get_scene_elements(
-    child: Element,
-    indentation: int,
-    anchors: SceneAnchors | None = None,
+    child: Element, indentation: int, anchors: SceneAnchors | None = None, *, state: RunState
 ) -> None:
     """Get_scene_elements function processes an XML element and its sub-elements to retrieve their names, geometry, and layout information if applicable.
     Parameters:
@@ -259,7 +255,7 @@ def get_scene_elements(
 
         # Check for errors in decompression
         if isinstance(json_data, str) and json_data.startswith("An error occurred"):
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 0,
                 f"{blank * (3 + indentation)}Scene V2 compressed JSON element could not be processed: {json_data}",
                 ["", "scene_color", FormatLine.add_end_span],
@@ -270,7 +266,7 @@ def get_scene_elements(
             if anchors is not None:
                 anchors.note_v2_layout(json_data)
             # Start the recursive processing.  Scene V2 JSON is nested, so we need to recurse through it to get all the details.
-            process_recursive_json(json_data, indentation, anchors=anchors)
+            process_recursive_json(json_data, indentation, anchors=anchors, state=state)
         return
 
     # First string is the name of the element
@@ -291,7 +287,7 @@ def get_scene_elements(
     if anchors is not None:
         anchors.mark(child)
 
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         0,
         (f"{blank * (3 + indentation)}{element_name}Element of type {element_type[0]}{geometry_text}"),
         ["", "scene_color", FormatLine.add_end_span],
@@ -300,10 +296,7 @@ def get_scene_elements(
 
 # Handle sub-lements of the element we are doing.
 def process_sub_elements(
-    child: Element,
-    indentation: int,
-    config: RunConfig,
-    anchors: SceneAnchors | None = None,
+    child: Element, indentation: int, config: RunConfig, anchors: SceneAnchors | None = None, *, state: RunState
 ) -> None:
     """
     Process the sub-elements of the given child ElementTree.
@@ -328,7 +321,7 @@ def process_sub_elements(
         indentation = original_indentation
         # If it is an xxxElement, then process it by recursing.
         if tag_in_type(subchild.tag, True):
-            process_arguments(subchild, subchild.tag, indentation + 5, config, anchors)
+            process_arguments(subchild, subchild.tag, indentation + 5, config, anchors, state=state)
         # Handle the Key event's filter -- the Event/Key tab of Tasker's Scene Properties.
         # <urlMatch> is the KEYS filter there, not a URL: its values are Tasker's
         # slash-separated key list ("back", "back/home"), and the tag name is a leftover from
@@ -343,7 +336,7 @@ def process_sub_elements(
             if url_match_element is not None:
                 line_out = f"{line_out} Keys={url_match_element.text}"
             if line_out:
-                PrimeItems.output_lines.add_line_to_output(
+                state.output_lines.add_line_to_output(
                     2,
                     f"<br>{blank * 12}Key Event {line_out}<br>",
                     ["", "scene_color", FormatLine.add_end_span],
@@ -357,6 +350,7 @@ def process_list_element(
     indentation: int,
     element_name: str,
     config: RunConfig,
+    state: RunState,
 ) -> None:
     """
     Process the list element associated with the given child element.
@@ -381,13 +375,13 @@ def process_list_element(
 
         # Now fix our indentation
         subline_indentation = f"{blank * len(element_name)}{blank * (9 + indentation)}"
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             2,
             f"{subline_indentation}Action={label}",
             ["", "scene_color", FormatLine.add_end_span],
         )
         # Output the action details
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             2,
             f"<br>{subline_indentation}{action_line[0]}",
             ["", "scene_color", FormatLine.add_end_span],
@@ -401,6 +395,8 @@ def format_and_output_arguments(
     indentation: int,
     config: RunConfig,
     anchors: SceneAnchors | None = None,
+    *,
+    state: RunState,
 ) -> None:
     """
     Formats and outputs the arguments for the given child element, element type, and indentation level.
@@ -492,7 +488,7 @@ def format_and_output_arguments(
         anchors.mark(child)
 
     # Output the element line details.
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         2,
         f"{blank * (6 + indentation)}{title}{element_name}...{line_out}<br>",
         ["", "scene_color", FormatLine.add_end_span],
@@ -500,14 +496,14 @@ def format_and_output_arguments(
 
     # Put the colour back for whatever the Map writes next -- see the note above.
     if unclosed:
-        carry_the_scene_colour()
+        carry_the_scene_colour(state=state)
 
     # If the element is a ListElementItem, get it's Task Action (in Properties) and output it.
     if element_type == "ListElementItem":
-        process_list_element(child, indentation, element_name, config)
+        process_list_element(child, indentation, element_name, config, state=state)
 
     # Handle sub-elements
-    process_sub_elements(child, indentation, config, anchors)
+    process_sub_elements(child, indentation, config, anchors, state=state)
 
 
 # Whether a Scene colour span is being held open to colour what the Map writes next.
@@ -531,14 +527,14 @@ def format_and_output_arguments(
 _carrying_scene_colour: caches.Slot[bool] = caches.Slot("scenes.carrying_scene_colour", False)
 
 
-def carry_the_scene_colour() -> None:
+def carry_the_scene_colour(state: RunState) -> None:
     """Hold the Scene colour open for the lines that follow, closing any already held.
 
     Both tags on one line, so that taking over from the last one costs the output no
     extra line of its own -- there is nothing between them to put on a line anyway.
     """
     closing = "</span>" if _carrying_scene_colour.value else ""
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         f'{closing}<span class="scene_color">',
         FormatLine.dont_format_line,
@@ -546,10 +542,10 @@ def carry_the_scene_colour() -> None:
     _carrying_scene_colour.value = True
 
 
-def drop_the_scene_colour() -> None:
+def drop_the_scene_colour(state: RunState) -> None:
     """Close the Scene colour being held open, if one is."""
     if _carrying_scene_colour.value:
-        PrimeItems.output_lines.add_line_to_output(5, "</span>", FormatLine.dont_format_line)
+        state.output_lines.add_line_to_output(5, "</span>", FormatLine.dont_format_line)
         _carrying_scene_colour.value = False
 
 
@@ -560,6 +556,8 @@ def process_arguments(
     indentation: int,
     config: RunConfig,
     anchors: SceneAnchors | None = None,
+    *,
+    state: RunState,
 ) -> None:
     """
     Process the arguments of a given child element in a scene.
@@ -590,11 +588,11 @@ def process_arguments(
         return
 
     # Format and output the xxxElement arguments
-    format_and_output_arguments(child, element_type, indentation, config, anchors)
+    format_and_output_arguments(child, element_type, indentation, config, anchors, state=state)
 
 
 # Go through Scene's XML looking for Tasks (e.g. ClickTask) and output if found
-def process_tasks(child: Element, tasks_found: list, config: RunConfig) -> None:
+def process_tasks(child: Element, tasks_found: list, config: RunConfig, state: RunState) -> None:
     """Parameters:
         - child (Element): The element to be processed.
         - tasks_found (list): A list of tasks that have been found.
@@ -627,18 +625,14 @@ def process_tasks(child: Element, tasks_found: list, config: RunConfig) -> None:
             # Only process Task if it is not a fake Task.
             if temp_task_list[0][0] != "-":
                 # Start a list
-                PrimeItems.output_lines.add_line_to_output(
+                state.output_lines.add_line_to_output(
                     1,
                     "",
                     FormatLine.dont_format_line,
                 )
                 # Get the name of Task
                 task_element, task_name = tasks.get_task_name(
-                    sub_child.text,
-                    tasks_found,
-                    temp_task_list,
-                    "",
-                    config,
+                    sub_child.text, tasks_found, temp_task_list, "", config, state=state
                 )
 
                 # reset to task name since get_task_name changes its value
@@ -647,9 +641,7 @@ def process_tasks(child: Element, tasks_found: list, config: RunConfig) -> None:
                 # Add the Scene Task to the directory if unnamed.
                 if "(Unnamed)" in task_name:
                     task_name = adjust_name_and_add_to_directory(
-                        task_name,
-                        temp_task_list[0],
-                        TASK_NAME_MAX_LENGTH,
+                        task_name, temp_task_list[0], TASK_NAME_MAX_LENGTH, state=state
                     )
 
                 # If Task is related to the scene Properties, some of the names change.
@@ -664,29 +656,24 @@ def process_tasks(child: Element, tasks_found: list, config: RunConfig) -> None:
                 # Ok, process the task (e.g. output it).  "&#45;" = hyphen
                 extra = f"{blank * 2}{task_name}"
                 task_type = f"<br>{blank}{preamble}&#45;&#45;Task: {task_title}{extra}"
-                PrimeItems.named_task_count_total += 1
+                state.named_task_count_total += 1
 
                 # process the Scene's Task
-                process_list(
-                    task_type,
-                    temp_task_list,
-                    task_element,
-                    tasks_found,
-                    config,
-                )
+                process_list(task_type, temp_task_list, task_element, tasks_found, config, state=state)
 
         # If we hit the arguments, then break out of loop looking for tasks.add
         elif sub_child.tag in ["Str", "Int"]:
             break
 
     # Add a break after last Task.
-    PrimeItems.output_lines.add_line_to_output(5, "<br>", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(5, "<br>", FormatLine.dont_format_line)
 
 
 def adjust_name_and_add_to_directory(
     task_name: str,
     task_id: str,
     max_length: int,
+    state: RunState,
 ) -> str:
     """
     Adjusts the task name to fit within the specified maximum length and adds it to the directory with '(Scene)' appended.
@@ -713,23 +700,23 @@ def adjust_name_and_add_to_directory(
         task_name = f"{task_name[: max_length - 8].rstrip()}.{task_id} (Unnamed)"
 
         # Update the task name in our master dictionary
-        PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"] = task_name
+        state.tasker_root_elements["all_tasks"][task_id]["name"] = task_name
         # Update the name in our 'by name' directory
-        for key, value in PrimeItems.tasker_root_elements["all_tasks_by_name"].items():
+        for key, value in state.tasker_root_elements["all_tasks_by_name"].items():
             # If the task name really hasn't changed (new name = old name), bail out.
             if key == task_name:
                 break
             if value["id"] == task_id:
-                PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"] = task_name
+                state.tasker_root_elements["all_tasks"][task_id]["name"] = task_name
 
                 # Add the new name / values
-                PrimeItems.tasker_root_elements["all_tasks_by_name"][task_name] = {
+                state.tasker_root_elements["all_tasks_by_name"][task_name] = {
                     "xml": value["xml"],
                     "id": task_id,
                 }
 
                 # Delete the original
-                del PrimeItems.tasker_root_elements["all_tasks_by_name"][orig_name]
+                del state.tasker_root_elements["all_tasks_by_name"][orig_name]
                 # Get out of loop
                 break
 
@@ -748,6 +735,8 @@ def get_details(
     config: RunConfig,
     indentation: int = 0,
     anchors: SceneAnchors | None = None,
+    *,
+    state: RunState,
 ) -> None:
     """
     Go through Scene to obtain it's height and width and output.
@@ -792,46 +781,43 @@ def get_details(
                 # components' anchors reach _get_scene_elements -- it writes them itself,
                 # from the layout it decodes.
                 on_heading = config.display_detail_level != 5 or element_type not in action_codes
-                _get_scene_elements(child, indentation, anchors if on_heading else None)
+                _get_scene_elements(child, indentation, anchors if on_heading else None, state=state)
 
             # Are we to display Scene element details?
             if config.display_detail_level == 5:
                 # Get the element type's arguments and process them
-                _process_arguments(child, element_type, indentation, config, anchors)
+                _process_arguments(child, element_type, indentation, config, anchors, state=state)
 
             # Check to see if this Scene has a layout Scene, and deal with it if so.
             sub_scenes = child.find("Scene")
             if sub_scenes is not None:
                 for sub_scene_element in sub_scenes:
                     width, height = _get_geometry(sub_scene_element)
-                    PrimeItems.output_lines.add_line_to_output(
+                    state.output_lines.add_line_to_output(
                         0,
                         f"{blank * (4 + indentation)}Element has an item 'Layout' (Scene) with width/height {width} X {height}",
                         ["", "scene_color", FormatLine.add_end_span],
                     )
 
                     # Okay, process this sub-scene
-                    _process_scene(scene.find("nme").text, [], sub_scene_element, 9, config)
+                    _process_scene(scene.find("nme").text, [], sub_scene_element, 9, config, state=state)
 
             # Process any Tasks as part of this Scene
-            _process_tasks(child, tasks_found, config)
+            _process_tasks(child, tasks_found, config, state=state)
 
     # The Scene's elements are done, so the colour being held open for them is done too.
     # Before the break below rather than after it, so that the span closes inside the
     # Scene it belongs to and nothing after this Scene is written inside it.
-    drop_the_scene_colour()
+    drop_the_scene_colour(state=state)
 
     # Add a break if end of Scene elements (but not doing a Properties element)
     if config.display_detail_level != 2 and element_type != "PropertiesElement":
-        PrimeItems.output_lines.output_lines.append("<br>")
+        state.output_lines.output_lines.append("<br>")
 
 
 # Process the Scene's Properties
 def process_properties(
-    scene: Element,
-    indentation: int,
-    config: RunConfig,
-    anchors: SceneAnchors | None = None,
+    scene: Element, indentation: int, config: RunConfig, anchors: SceneAnchors | None = None, *, state: RunState
 ) -> None:
     # Get the PropertiesElement
     """Returns:
@@ -843,7 +829,7 @@ def process_properties(
     properties = scene.find("PropertiesElement")
     if properties is not None:
         # Format and output the xxxElement arguments
-        format_and_output_arguments(properties, "PropertiesElement", indentation + 5, config, anchors)
+        format_and_output_arguments(properties, "PropertiesElement", indentation + 5, config, anchors, state=state)
 
         # Process any Tasks as part of this Scene Properties
         # process_tasks(properties, [])
@@ -856,6 +842,7 @@ def process_scene(
     scene_xml: Element,
     indentation: int,
     config: RunConfig,
+    state: RunState,
 ) -> None:
     """
     Process the Project's Scene(s), one at a time
@@ -870,16 +857,16 @@ def process_scene(
         :return:
     """
     # Get the Scene's XML pointer.  If scene_xml being passed in is None, then use the name passed in to get the XML.
-    scene = PrimeItems.tasker_root_elements["all_scenes"][my_scene]["xml"] if scene_xml is None else scene_xml
+    scene = state.tasker_root_elements["all_scenes"][my_scene]["xml"] if scene_xml is None else scene_xml
 
     # Where each element's jump anchor goes.  Only for a Scene reached by name: a sub-Scene
     # arrives as an element of another Scene and shares that Scene's name, so keying its
     # elements here would write ids that belong to the outer Scene's elements.
-    anchors = SceneAnchors(my_scene, scene) if scene_xml is None else SceneAnchors()
+    anchors = SceneAnchors(my_scene, scene, state=state) if scene_xml is None else SceneAnchors(state=state)
 
     # Get the Scene's geometry and display it
     height, width = get_geometry(scene)
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         0,
         f"{blank * (indentation + 2)}Width/Height: {width} X {height}<br>",
         ["", "scene_color", FormatLine.add_end_span],
@@ -890,15 +877,15 @@ def process_scene(
         add_directory_item("scenes", my_scene)
 
     # Go through all the children of the Scene looking for width/height, 'click' tasks and other details.
-    get_details(scene, tasks_found, config, indentation, anchors)
+    get_details(scene, tasks_found, config, indentation, anchors, state=state)
 
     # Process Properties if we are at the head Scene
     if indentation == 0:
-        process_properties(scene, indentation, config, anchors)
+        process_properties(scene, indentation, config, anchors, state=state)
 
     # If we are doing twisties, then we need to close the unordered list.
     if config.twisty:
-        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+        state.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
 # Output a list of Scenes: each one's line, then its details
@@ -906,6 +893,7 @@ def process_scene_list(
     scene_list: list[str],
     tasks_found: list,
     config: RunConfig,
+    state: RunState,
 ) -> None:
     """
     Output each Scene in the list: its "Scene:" line, then -- above detail level 1 -- its details.
@@ -919,13 +907,13 @@ def process_scene_list(
         :param config: the run's settings
     """
     for scene_name in scene_list:
-        format_item("Scene:", scene_name, scene_name, None, config)
+        format_item("Scene:", scene_name, scene_name, None, config, state=state)
 
         detail_level = config.display_detail_level
         if detail_level == 0:
             continue
         if detail_level > 1:
-            process_scene(scene_name, tasks_found, None, 0, config)
+            process_scene(scene_name, tasks_found, None, 0, config, state=state)
         elif config.twisty:
             remove_twisty()
 
@@ -935,6 +923,7 @@ def process_project_scenes(
     project: Element,
     found_tasks: list,
     config: RunConfig,
+    state: RunState,
 ) -> bool:
     """
     Go through all Scenes for Project, get their detail and output it
@@ -944,7 +933,7 @@ def process_project_scenes(
         :return: True if a Scene was output, False if not
     """
     scene_names = None
-    PrimeItems.scene_count = 0
+    state.scene_count = 0
     with contextlib.suppress(Exception):
         scene_names = project.find("scenes").text
     if scene_names is not None:
@@ -957,17 +946,17 @@ def process_project_scenes(
             scene_list = [scene for scene in scene_list if scene == single_scene_name]
             if not scene_list:
                 return False
-            PrimeItems.found_named_items["single_scene_found"] = True
+            state.found_named_items["single_scene_found"] = True
 
         # If we have at least one Scene, process it
         if scene_list[0]:
             # Count what we are actually going to output, which is not necessarily
             # everything the Project lists -- see the single-Scene filter above.
-            PrimeItems.scene_count = len(scene_list)
-            process_scene_list(scene_list, found_tasks, config)
+            state.scene_count = len(scene_list)
+            process_scene_list(scene_list, found_tasks, config, state=state)
 
             # Force a line break
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 0,
                 "",
                 FormatLine.dont_format_line,
@@ -975,7 +964,7 @@ def process_project_scenes(
 
             if config.display_detail_level == 0:
                 # End list if displaying level 0
-                PrimeItems.output_lines.add_line_to_output(
+                state.output_lines.add_line_to_output(
                     3,
                     "",
                     FormatLine.dont_format_line,

@@ -334,7 +334,7 @@ def get_properties(property_tag: str, header: Element, where: Target | None = No
     # lands here rather than on the object's own line -- which, on a Project with several
     # Profiles, is a long way above.  There is nothing finer to aim at: every property of
     # an object goes out as ONE line, which is what the separator above is joining.
-    if where is not None and (anchor := anchor_html(where.at_part(PROPERTIES_PART))):
+    if where is not None and (anchor := anchor_html(where.at_part(PROPERTIES_PART), state=PrimeItems)):
         PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     # Ok, output the properties as a single line.

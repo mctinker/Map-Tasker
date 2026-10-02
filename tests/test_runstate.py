@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import pytest
-from maptasker.src import diagram, diagutil, projects
-from maptasker.src.mapjump import PROFILE, Target
+from maptasker.src import diagram, diagutil, mapjump, projects, tasks
+from maptasker.src.mapjump import PROFILE, TASK, Target
 from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, RunState, reset_attributes
+from maptasker.src.runcfg import current_config
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 
@@ -79,3 +80,26 @@ def test_a_diagram_object_is_recorded_on_the_state_it_is_given() -> None:
 
     assert state.diagram_object_seeds[_PROFILE.anchor][0] == 2
     assert PrimeItems.diagram_object_seeds == {}
+
+
+def test_an_anchor_is_remembered_by_the_state_it_was_written_into() -> None:
+    """An id may appear in a document once.  Two runs are two documents, so each gets its own."""
+    first, second = RunState(), RunState()
+    target = Target(TASK, "13", "Remind Me")
+
+    assert mapjump.anchor_html(target, state=first) != ""
+    assert mapjump.anchor_html(target, state=first) == ""
+    assert mapjump.anchor_html(target, state=second) != ""
+    assert target.anchor not in PrimeItems.emitted_anchors
+
+
+def test_an_unnamed_task_is_counted_on_the_state_it_is_read_from() -> None:
+    state = RunState()
+    state.tasker_root_elements["all_tasks"] = {"13": {"xml": None, "name": ""}}
+    before = PrimeItems.task_count_unnamed
+
+    _, name = tasks.get_task_name("13", [], [], "Entry", current_config(), state=state)
+
+    assert name.startswith("Unnamed")
+    assert state.task_count_unnamed == 1
+    assert PrimeItems.task_count_unnamed == before

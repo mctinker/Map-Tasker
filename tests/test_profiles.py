@@ -74,7 +74,7 @@ def test_entry_and_exit_tasks_are_told_apart() -> None:
     opposite things, and only the element name says which is which.
     """
     output_lines: list[str] = []
-    found = profiles.get_profile_tasks(_profile("5"), [], output_lines, current_config())
+    found = profiles.get_profile_tasks(_profile("5"), [], output_lines, current_config(), state=PrimeItems)
 
     assert len(found) == 2
     assert ENTRY_ARROW in output_lines[0] and "Entry Task" in output_lines[0]
@@ -89,18 +89,18 @@ def test_task_search_stops_at_the_profile_name() -> None:
     profile = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
         '<Profile sr="prof9"><id>9</id><nme>Named First</nme><mid0>10</mid0></Profile>',
     )
-    assert profiles.get_profile_tasks(profile, [], [], current_config()) == []
+    assert profiles.get_profile_tasks(profile, [], [], current_config(), state=PrimeItems) == []
 
 
 def test_profile_task_count_skips_tasks_already_seen() -> None:
     """The per-Profile count feeds the run's totals.  A Task fired by two Profiles is one
     Task, so counting it once per sighting would inflate the configuration's size.
     """
-    profiles.get_profile_tasks(_profile("5"), [], [], current_config())
+    profiles.get_profile_tasks(_profile("5"), [], [], current_config(), state=PrimeItems)
     assert PrimeItems.task_count_for_profile == 2
 
     already_found = ["10", "11"]
-    profiles.get_profile_tasks(_profile("5"), already_found, [], current_config())
+    profiles.get_profile_tasks(_profile("5"), already_found, [], current_config(), state=PrimeItems)
     assert PrimeItems.task_count_for_profile == 2  # unchanged
 
 
@@ -110,7 +110,7 @@ def test_a_single_task_search_records_its_owning_profile() -> None:
     otherwise has no way back to the Profile heading the Task belongs under.
     """
     PrimeItems.program_arguments.single_task_name = "Exit Task"
-    profiles.get_profile_tasks(_profile("5"), [], [], current_config())
+    profiles.get_profile_tasks(_profile("5"), [], [], current_config(), state=PrimeItems)
 
     assert PrimeItems.found_named_items["single_task_found"] is True
     assert PrimeItems.program_arguments.single_profile_name == "Morning"
@@ -125,7 +125,7 @@ def test_bookkeeping_tags_are_not_mistaken_for_tasks() -> None:
         '<Profile sr="prof9"><id>9</id><cdate>1</cdate><edate>2</edate>'
         "<flags>x</flags><limit>true</limit><mid0>10</mid0></Profile>",
     )
-    found = profiles.get_profile_tasks(profile, [], [], current_config())
+    found = profiles.get_profile_tasks(profile, [], [], current_config(), state=PrimeItems)
     assert len(found) == 1
 
 
@@ -136,7 +136,7 @@ def test_profile_name_is_labelled_and_coloured() -> None:
     """The name is returned twice: once dressed for the HTML output, and once bare for
     use as a key.  The bare one must stay bare -- it is what the tables are keyed on.
     """
-    with_html, plain = profiles.get_profile_name(_profile("5"), current_config())
+    with_html, plain = profiles.get_profile_name(_profile("5"), current_config(), state=PrimeItems)
     assert plain == "Morning"
     assert 'class="profile_color"' in with_html
     assert "Profile:" in with_html
@@ -147,7 +147,7 @@ def test_unnamed_profile_name_is_italicised_but_its_id_is_not() -> None:
     say so.  The ".6 Unnamed" suffix is the program talking and stays outside the <em>,
     so the italics mark the condition text only.
     """
-    with_html, plain = profiles.get_profile_name(_profile("6"), current_config())
+    with_html, plain = profiles.get_profile_name(_profile("6"), current_config(), state=PrimeItems)
     assert "<em>*from 800 to 00</em>" in with_html
     assert "<em>" not in plain
 
@@ -156,7 +156,7 @@ def test_profile_label_carries_a_tooltip_of_its_project_and_tasks() -> None:
     """A Profile line shows the condition, not the Tasks -- so the Tasks it fires, and
     the Project it belongs to, are on the label's hover tooltip instead.
     """
-    with_html, _ = profiles.get_profile_name(_profile("5"), current_config(), "Home", ["Entry Task", "Exit Task"])
+    with_html, _ = profiles.get_profile_name(_profile("5"), current_config(), "Home", ["Entry Task", "Exit Task"], state=PrimeItems)
     assert 'class="hover-tooltip"' in with_html
     assert "Project: Home" in with_html
     assert "Entry Task" in with_html
@@ -164,7 +164,7 @@ def test_profile_label_carries_a_tooltip_of_its_project_and_tasks() -> None:
 
 def test_profile_label_has_no_tooltip_when_there_is_nothing_to_say() -> None:
     """An empty tooltip is worse than none: it shows an empty box on hover."""
-    with_html, _ = profiles.get_profile_name(_profile("5"), current_config())
+    with_html, _ = profiles.get_profile_name(_profile("5"), current_config(), state=PrimeItems)
     assert "hover-tooltip" not in with_html
 
 
@@ -175,7 +175,7 @@ def test_debug_mode_decodes_the_profile_flags() -> None:
     Properties editor about what a bit means.
     """
     PrimeItems.program_arguments.debug = True
-    profiles.build_profile_line(_profile("8"), current_config())
+    profiles.build_profile_line(_profile("8"), current_config(), state=PrimeItems)
     line = PrimeItems.output_lines.output_lines[-1]
 
     assert "flags: 43" in line
@@ -187,7 +187,7 @@ def test_debug_mode_shows_the_profile_id() -> None:
     thing you need when a Profile is not where it should be, and is otherwise invisible.
     """
     PrimeItems.program_arguments.debug = True
-    with_html, _ = profiles.get_profile_name(_profile("5"), current_config())
+    with_html, _ = profiles.get_profile_name(_profile("5"), current_config(), state=PrimeItems)
     assert "ID:5" in with_html
 
 
@@ -201,7 +201,7 @@ def test_profile_line_shows_its_run_condition() -> None:
     """The condition is the whole point of a Profile: without it the line says only that
     a Profile exists.
     """
-    profiles.build_profile_line(_profile("8"), current_config())
+    profiles.build_profile_line(_profile("8"), current_config(), state=PrimeItems)
     line = PrimeItems.output_lines.output_lines[-1]
     assert "Time: from 8:00" in line
     assert 'class="profile_condition_color"' in line
@@ -212,7 +212,7 @@ def test_conditions_can_be_turned_off() -> None:
     off the Profile is still listed -- only its condition is left out.
     """
     PrimeItems.program_arguments.conditions = False
-    profiles.build_profile_line(_profile("8"), current_config())
+    profiles.build_profile_line(_profile("8"), current_config(), state=PrimeItems)
     line = PrimeItems.output_lines.output_lines[-1]
     assert "8:00" not in line
     assert "Named At Eight" in line
@@ -223,7 +223,7 @@ def test_a_disabled_profile_says_so() -> None:
     configuration and still listed, and nothing else on the line distinguishes it from
     one that runs every day.
     """
-    profiles.build_profile_line(_profile("7"), current_config())
+    profiles.build_profile_line(_profile("7"), current_config(), state=PrimeItems)
     line = PrimeItems.output_lines.output_lines[-1]
     assert 'class="disabled_profile_color"' in line
 
@@ -232,7 +232,7 @@ def test_an_enabled_profile_is_not_marked_disabled() -> None:
     """The other half of the same check: <limit> absent, and a <limit> that is not
     "true", both mean the Profile runs.
     """
-    profiles.build_profile_line(_profile("5"), current_config())
+    profiles.build_profile_line(_profile("5"), current_config(), state=PrimeItems)
     assert "disabled_profile_color" not in PrimeItems.output_lines.output_lines[-1]
 
 
@@ -306,8 +306,8 @@ def test_the_profile_id_follows_the_config_it_is_given_and_not_the_global() -> N
     """
     PrimeItems.program_arguments.debug = False
 
-    with_html, _ = profiles.get_profile_name(_profile("5"), current_config().with_changes(debug=True))
-    plain_html, _ = profiles.get_profile_name(_profile("5"), current_config())
+    with_html, _ = profiles.get_profile_name(_profile("5"), current_config().with_changes(debug=True), state=PrimeItems)
+    plain_html, _ = profiles.get_profile_name(_profile("5"), current_config(), state=PrimeItems)
 
     assert "ID:5" in with_html
     assert "ID:5" not in plain_html

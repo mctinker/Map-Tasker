@@ -1618,7 +1618,7 @@ class MapTaskerEventHandlers(
                     # user picks a different single object, so its hotlinks go on pointing at
                     # the objects of the selection it was built for, and there was no sign of
                     # that anywhere on screen.
-                    built_for = urlencode({"built_for": mapjump.current_scope().phrase})
+                    built_for = urlencode({"built_for": mapjump.current_scope(state=PrimeItems).phrase})
                     _open_popout_window(
                         f"/popout/diagram?{built_for}",
                         getattr(gui, "open_view_in_new_window", False),
@@ -2046,7 +2046,7 @@ class MapTaskerEventHandlers(
         built from a URL and is handed nothing, which is the same reason the Diagram popout
         re-reads its own generated file (see rungui.popout_view).
         """
-        scope = mapjump.current_scope()
+        scope = mapjump.current_scope(state=PrimeItems)
         if scope.label != "Task":
             ui.notify(
                 translate_string("Choose a single Task in 'Specific Name' to also see it drawn as a flowchart."),

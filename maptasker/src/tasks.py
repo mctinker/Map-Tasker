@@ -15,7 +15,6 @@ import maptasker.src.actione as action_evaluate
 from maptasker.src import console
 from maptasker.src.error import error_handler, rutroh_error
 from maptasker.src.getids import get_ids
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
     UNNAMED_ITEM,
@@ -25,6 +24,7 @@ from maptasker.src.sysconst import (
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 blank = "&nbsp;"
@@ -160,6 +160,7 @@ def entry_or_exit_task(
     duplicate_task: bool,
     the_task_id: str,
     config: RunConfig,
+    state: RunState,
 ) -> tuple[list, str]:
     """
     Determine if this is an "Entry" or "Exit" Task and add the appropriate text to the
@@ -189,10 +190,10 @@ def entry_or_exit_task(
         append_task_line(task_name, task_type)
     else:
         task_name = f"{UNNAMED_ITEM}{the_task_id}"
-        PrimeItems.tasker_root_elements["all_tasks"][the_task_id]["name"] = task_name
+        state.tasker_root_elements["all_tasks"][the_task_id]["name"] = task_name
 
         if not duplicate_task and task_type in {"Entry", "Exit"}:
-            PrimeItems.task_count_unnamed += 1
+            state.task_count_unnamed += 1
 
         append_task_line(task_name, task_type)
 
@@ -208,6 +209,7 @@ def get_task_name(
     task_output_lines: list,
     task_type: str,
     config: RunConfig,
+    state: RunState,
 ) -> tuple:
     """
     Get the name of the task given the Task ID.
@@ -221,7 +223,7 @@ def get_task_name(
         :return: Task's xml element, Task's name
     """
     # Get the Task info.
-    task_info = PrimeItems.tasker_root_elements["all_tasks"].get(the_task_id)
+    task_info = state.tasker_root_elements["all_tasks"].get(the_task_id)
     if not task_info:
         return None, ""
     task, task_name = task_info["xml"], task_info["name"]
@@ -234,13 +236,7 @@ def get_task_name(
     # Determine if this is an "Entry" or "Exit" Task
     extra = f"&nbsp;&nbsp;Task ID: {the_task_id}" if config.debug else ""
     task_output_lines, task_name = entry_or_exit_task(
-        task_output_lines,
-        task_name,
-        task_type,
-        extra,
-        duplicate_task,
-        the_task_id,
-        config,
+        task_output_lines, task_name, task_type, extra, duplicate_task, the_task_id, config, state=state
     )
 
     return task, task_name
@@ -250,6 +246,7 @@ def get_task_name(
 def get_project_for_solo_task(
     the_task_id: str,
     projects_with_no_tasks: list,
+    state: RunState,
 ) -> tuple[str, Element]:
     """
     Find the Project belonging to the Task id passed in
@@ -261,11 +258,11 @@ def get_project_for_solo_task(
     project_name = NO_PROJECT
     project_element = None
 
-    all_projects = PrimeItems.tasker_root_elements["all_projects"]
+    all_projects = state.tasker_root_elements["all_projects"]
     if all_projects is not None:
         for project in all_projects:
-            project_element = PrimeItems.tasker_root_elements["all_projects"][project]["xml"]
-            project_name = PrimeItems.tasker_root_elements["all_projects"][project]["name"]
+            project_element = state.tasker_root_elements["all_projects"][project]["xml"]
+            project_name = state.tasker_root_elements["all_projects"][project]["name"]
             task_ids = get_ids(
                 False,
                 project_element,

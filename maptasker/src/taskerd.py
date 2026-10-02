@@ -120,7 +120,9 @@ def build_tasker_tables() -> None:
 
             if conditions:
                 # Assuming _to_name returns (something, name, something_else)
-                _, current_name, _ = _conditions_to_name(xml_content, conditions, unnamed_label, "", config)
+                _, current_name, _ = _conditions_to_name(
+                    xml_content, conditions, unnamed_label, "", config, state=PrimeItems
+                )
 
             # Efficiently strip HTML tags
             if "<em>" in current_name:

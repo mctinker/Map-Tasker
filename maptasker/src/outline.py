@@ -411,12 +411,7 @@ def outline_profiles_tasks_scenes(
             tasks_in_profile = []  # Keep track of Tasks processed/output.
             list_of_found_tasks = []
 
-            the_tasks = _get_profile_tasks(
-                profile,
-                list_of_found_tasks,
-                task_output_line,
-                config,
-            )
+            the_tasks = _get_profile_tasks(profile, list_of_found_tasks, task_output_line, config, state=PrimeItems)
 
             # Get any/all "Perform Task" links back to other Tasks
             _get_perform_task_actions(the_tasks)

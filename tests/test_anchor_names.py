@@ -57,7 +57,7 @@ def _runtime(monkeypatch) -> None:
 
 def test_a_task_name_with_an_angle_bracket_does_not_end_its_own_tag() -> None:
     """The reported fault: the id attribute was cut short and the rest became text."""
-    add_task_hyperlink(NAME_WITH_ANGLE_BRACKET, display_name=True, blank="&nbsp;")
+    add_task_hyperlink(NAME_WITH_ANGLE_BRACKET, display_name=True, blank="&nbsp;", state=PrimeItems)
 
     html = written(PrimeItems.output_lines)
     # Where the browser would decide the tag ends: at the first ">" after it opens.
@@ -70,7 +70,7 @@ def test_a_task_name_with_an_angle_bracket_does_not_end_its_own_tag() -> None:
 
 def test_an_unnamed_task_named_after_an_if_is_safe_too() -> None:
     """Unnamed Tasks take the text of their first action, comparisons and all."""
-    add_task_hyperlink(UNNAMED_TASK_NAME, display_name=True, blank="&nbsp;")
+    add_task_hyperlink(UNNAMED_TASK_NAME, display_name=True, blank="&nbsp;", state=PrimeItems)
 
     html = written(PrimeItems.output_lines)
     assert 'id="tasks_If_%new_val_&gt;_%aab_zone1end.922_(Unnamed)"' in html
@@ -92,7 +92,7 @@ def test_the_hyperlink_and_the_anchor_still_agree() -> None:
     a browser reads "&gt;" in both as the same character.
     """
     add_directory_item("tasks", NAME_WITH_ANGLE_BRACKET)
-    add_task_hyperlink(NAME_WITH_ANGLE_BRACKET, display_name=True, blank="&nbsp;")
+    add_task_hyperlink(NAME_WITH_ANGLE_BRACKET, display_name=True, blank="&nbsp;", state=PrimeItems)
 
     href_name = PrimeItems.directory_items["tasks"][0][0]
     assert f'id="tasks_{href_name}"' in written(PrimeItems.output_lines)
@@ -100,7 +100,7 @@ def test_the_hyperlink_and_the_anchor_still_agree() -> None:
 
 def test_a_name_with_nothing_to_escape_is_left_as_it_was() -> None:
     """Spaces still become underscores, and nothing else is touched."""
-    add_task_hyperlink("Wake Up", display_name=True, blank="&nbsp;")
+    add_task_hyperlink("Wake Up", display_name=True, blank="&nbsp;", state=PrimeItems)
 
     assert 'id="tasks_Wake_Up"' in written(PrimeItems.output_lines)
 
@@ -112,7 +112,7 @@ def test_the_helper_escapes_both_brackets() -> None:
 
 def test_a_name_with_a_double_quote_does_not_end_its_own_attribute() -> None:
     """An unnamed Task named after an Anchor action carries the action's quoted text."""
-    add_task_hyperlink('Anchor "NOTE: read me".705 (Unnamed)', display_name=True, blank="&nbsp;")
+    add_task_hyperlink('Anchor "NOTE: read me".705 (Unnamed)', display_name=True, blank="&nbsp;", state=PrimeItems)
 
     html = written(PrimeItems.output_lines)
     opening_tag = html[html.index("<a id=") : html.index(">", html.index("<a id=")) + 1]

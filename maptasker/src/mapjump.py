@@ -33,14 +33,18 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field, replace
 from html import escape
+from typing import TYPE_CHECKING
 from urllib.parse import quote, unquote
 
-from maptasker.src.primitem import PrimeItems, get_single_item_requested
+from maptasker.src.primitem import get_single_item_requested
 from maptasker.src.sysconst import (
     DISPLAY_DETAIL_LEVEL_all_parameters,
     DISPLAY_DETAIL_LEVEL_everything,
     POPOUT_WINDOW_PREFIX,
 )
+
+if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
 
 # What kind of thing a Target names.  Deliberately not an Enum: these are written into
 # HTML ids and into the token that crosses into the browser and back, so they are strings
@@ -458,7 +462,7 @@ def scope_for(target: Target) -> str:
     return target.key if target.kind == PROJECT else target.project
 
 
-def exists(target: Target) -> bool:
+def exists(target: Target, state: RunState) -> bool:
     """Whether the object a Target names is still in the loaded configuration.
 
     A report is a snapshot.  Between running one and clicking a line of it, the Task it
@@ -476,7 +480,7 @@ def exists(target: Target) -> bool:
         SCENE: "all_scenes",
     }
     table = tables.get(target.kind)
-    return True if table is None else target.key in PrimeItems.tasker_root_elements[table]
+    return True if table is None else target.key in state.tasker_root_elements[table]
 
 
 # ##################################################################################
@@ -540,7 +544,7 @@ def _members(project_element: object, tag: str) -> list[str]:
     return [piece.strip() for piece in raw.split(",") if piece.strip()]
 
 
-def current_scope() -> Scope:
+def current_scope(state: RunState) -> Scope:
     """What the app is displaying, as a Scope -- everything, when nothing single is chosen.
 
     What each kind pulls in is what the Map itself shows for that selection:
@@ -560,7 +564,7 @@ def current_scope() -> Scope:
     if not label:
         return Scope()
 
-    roots = PrimeItems.tasker_root_elements
+    roots = state.tasker_root_elements
     if label == "Project":
         project = (roots.get("all_projects") or {}).get(name)
         if project is None:
@@ -711,7 +715,7 @@ def click_wiring_js(container_id: str) -> str:
 # ##################################################################################
 # Anchors in the generated Map.
 # ##################################################################################
-def anchor_html(target: Target) -> str:
+def anchor_html(target: Target, state: RunState) -> str:
     """The empty anchor element that marks this object's place in the Map output.
 
     Emitted whatever the settings, unlike the directory's own anchors
@@ -728,13 +732,13 @@ def anchor_html(target: Target) -> str:
     identical ids the browser happened to settle on.
     """
     anchor_id = target.anchor
-    if anchor_id in PrimeItems.emitted_anchors:
+    if anchor_id in state.emitted_anchors:
         return ""
-    PrimeItems.emitted_anchors.add(anchor_id)
+    state.emitted_anchors.add(anchor_id)
     return f'<a id="{anchor_id}" class="{ANCHOR_CLASS}"></a>'
 
 
-def anchor_attribute(target: Target) -> str:
+def anchor_attribute(target: Target, state: RunState) -> str:
     """This object's anchor as a bare id="..." attribute, for a line with no room for an element.
 
     Task actions are anchored this way and nothing else is.  lineout.action_div builds the
@@ -748,9 +752,9 @@ def anchor_attribute(target: Target) -> str:
     this run -- see anchor_html for why.
     """
     anchor_id = target.anchor
-    if anchor_id in PrimeItems.emitted_anchors:
+    if anchor_id in state.emitted_anchors:
         return ""
-    PrimeItems.emitted_anchors.add(anchor_id)
+    state.emitted_anchors.add(anchor_id)
     return f'id="{anchor_id}" '
 
 
@@ -1184,7 +1188,7 @@ def jump_js(anchor_id: str) -> str:
 # A Profile and a Scene are drawn identically, which is why both patterns are offered for
 # either and the first match on the page wins -- the alternative, guessing, would be no
 # more accurate and would fail outright where the guess was wrong.
-def _diagram_project_prefix() -> str:
+def _diagram_project_prefix(state: RunState) -> str:
     """How the Diagram labels a Project box, in whatever language it was drawn in.
 
     diagram.build_network_map's own rule, repeated rather than imported: importing
@@ -1197,12 +1201,12 @@ def _diagram_project_prefix() -> str:
     # function needs maputil2 (see tests/test_import_structure.py, _KEPT_DEFERRED).
     from maptasker.src.maputil2 import translate_string  # noqa: PLC0415
 
-    if PrimeItems.program_arguments.language in ("Arabic", "English"):
+    if state.program_arguments.language in ("Arabic", "English"):
         return "Project: "
     return f"{translate_string('Project:')} "
 
 
-def diagram_patterns(target: Target) -> list[str]:
+def diagram_patterns(target: Target, state: RunState) -> list[str]:
     """The text this object is drawn as in the Diagram, likeliest form first.
 
     Empty for an object the Diagram has no line for -- an unnamed Task, which the Diagram
@@ -1214,7 +1218,7 @@ def diagram_patterns(target: Target) -> list[str]:
     if not name or target.kind == VARIABLE:
         return []
     if target.kind == PROJECT:
-        return [f"║ {_diagram_project_prefix()}{name} ║"]
+        return [f"║ {_diagram_project_prefix(state=state)}{name} ║"]
     if target.kind == TASK:
         # The trailing space is what keeps "Test1" from landing on "Test13": every Task
         # line diagram.py writes continues past the name, with a type marker, a call
@@ -1223,7 +1227,7 @@ def diagram_patterns(target: Target) -> list[str]:
     return [f"║ {name} ║"]
 
 
-def diagram_placement(target: Target) -> tuple[int, int, int] | None:
+def diagram_placement(target: Target, state: RunState) -> tuple[int, int, int] | None:
     """Where the Diagram that was last built drew this object: (line, column, length).
 
     None when it did not draw it -- a Diagram narrowed to one Project, one cut short at the
@@ -1235,7 +1239,7 @@ def diagram_placement(target: Target) -> tuple[int, int, int] | None:
     nowhere finer to land than Task 118 -- and landing there is the right answer rather
     than a failure to be reported.
     """
-    anchors = getattr(PrimeItems, "diagram_anchors", None)
+    anchors = getattr(state, "diagram_anchors", None)
     if not anchors:
         return None
     return anchors.get(replace(target, action=0, part="").anchor)

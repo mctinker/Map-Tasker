@@ -106,7 +106,7 @@ def description_element_output(
     # output line rather than the front of the description, for the reason projects.py
     # gives: the description is styled from end to end and an anchor inside it would be
     # styled with it.
-    if where is not None and (anchor := anchor_html(where.at_part(TASKERNET_PART))):
+    if where is not None and (anchor := anchor_html(where.at_part(TASKERNET_PART), state=PrimeItems)):
         PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     # Format the description as if it is a label with embedded html/

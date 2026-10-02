@@ -12,8 +12,8 @@
 # Primary Items = global variables used throughout MapTasker
 #
 # PrimeItems is an instance of RunState, which holds the attributes listed below.  Code that
-# has been converted takes a RunState as a parameter (projects.py, diagram.py and the diagram
-# helpers so far) and so can be run against one of its own; code that has not still reads the
+# has been converted takes a RunState as a parameter (the Project, Profile, Task, Scene and Action
+# output, mapjump, and the Diagram code so far) and so can be run against one of its own; code that has not still reads the
 # PrimeItems instance, which a real run passes in.  See RunState.
 #
 # Set up an initial empty dictionary of primary items used throughout this project

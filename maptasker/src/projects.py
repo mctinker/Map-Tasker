@@ -81,7 +81,7 @@ def output_orphan_single_scene(config: RunConfig, state: RunState) -> None:
 
     state.found_named_items["single_scene_found"] = True
     state.grand_totals["scenes"] += 1
-    process_scene_list([single_scene_name], [], config)
+    process_scene_list([single_scene_name], [], config, state=state)
 
 
 # process_projects: go through all Projects Profiles...and output them
@@ -123,15 +123,7 @@ def process_projects_and_their_profiles(
         project_name = project if (project := find_owning_project(profile_name)) else "N/A"
 
         # Output the unnamed Task
-        output_task_list(
-            task_list,
-            project_name,
-            profile_name,
-            task_output_lines,
-            [],
-            True,
-            config,
-        )
+        output_task_list(task_list, project_name, profile_name, task_output_lines, [], True, config, state=state)
 
     # Process Projects only if there are Projects
     elif state.tasker_root_elements["all_projects"]:
@@ -140,13 +132,7 @@ def process_projects_and_their_profiles(
     # Only Profiles...?
     elif state.tasker_root_elements["all_profiles"]:
         state.task_count_unnamed = 0
-        process_profiles(
-            "",
-            "None",
-            state.tasker_root_elements["all_profiles"],
-            found_tasks,
-            config,
-        )
+        process_profiles("", "None", state.tasker_root_elements["all_profiles"], found_tasks, config, state=state)
         state.grand_totals["profiles"] += 1
 
     # Only Tasks...(and not Scenes too) e.g. only Tasks?
@@ -166,15 +152,7 @@ def process_projects_and_their_profiles(
                 state.grand_totals["named_tasks"] += 1
             else:
                 state.grand_totals["unnamed_tasks"] += 1
-        output_task_list(
-            task_list,
-            "Unknown",
-            "",
-            task_output_lines,
-            [],
-            True,
-            config,
-        )
+        output_task_list(task_list, "Unknown", "", task_output_lines, [], True, config, state=state)
 
     # Only Scene...?
     elif state.tasker_root_elements["all_scenes"]:
@@ -191,7 +169,7 @@ def process_projects_and_their_profiles(
         if scene_list:
             if single_scene_name:
                 state.found_named_items["single_scene_found"] = True
-            process_scene_list(scene_list, found_tasks, config)
+            process_scene_list(scene_list, found_tasks, config, state=state)
 
     # A single Scene that no Project lists still exists in all_scenes -- output it on
     # its own rather than reporting it as not found.  (The branch above covers a backup
@@ -333,13 +311,7 @@ def do_tasks_in_project(
             our_task = state.tasker_root_elements["all_tasks"][the_id]
 
             _ = _output_task_list(
-                [our_task],
-                project_name,
-                "",
-                task_output_lines,
-                found_tasks,
-                True,
-                config,
+                [our_task], project_name, "", task_output_lines, found_tasks, True, config, state=state
             )
 
         # Determine if we are to count this Task toward our total if doing a single Profile
@@ -509,7 +481,7 @@ def get_extra_and_output_project(
     # dispatches on what a line contains, and the Project line is styled and indented from
     # end to end -- an anchor inside it would be styled and indented along with it.  Emitted
     # after the single-Project reset above, which pops the last line off the output.
-    if anchor := anchor_html(Target(PROJECT, project_name, project_name)):
+    if anchor := anchor_html(Target(PROJECT, project_name, project_name), state=state):
         state.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     state.output_lines.add_line_to_output(
@@ -612,11 +584,7 @@ def finish_up(
 
     # Find the Scenes for this Project <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     # ...only if not doing a single Task
-    have_scenes = process_project_scenes(
-        project,
-        found_tasks,
-        config,
-    )
+    have_scenes = process_project_scenes(project, found_tasks, config, state=state)
 
     # If we don't have Scenes or Tasks that are not in any Profile
     # then start a new ordered list
@@ -792,13 +760,7 @@ def process_project_profiles(
     # True if we have Profiles for this Project
     if profile_ids := get_profile_ids(project, project_name, projects_without_profiles):
         profile_count = len(profile_ids)
-        process_profiles(
-            project,
-            project_name,
-            profile_ids,
-            found_tasks,
-            config,
-        )
+        process_profiles(project, project_name, profile_ids, found_tasks, config, state=state)
 
         # Are we searching for a single Profile and it wasn't found (result=True)?
         if is_single_profile_not_found(state=state):

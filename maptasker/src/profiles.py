@@ -15,7 +15,6 @@ from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import build_tooltip_span, format_html
 from maptasker.src.mapjump import PROFILE, Target, anchor_html
 from maptasker.src.nameattr import add_name_attribute
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import output_task_list
 from maptasker.src.property import get_properties
 from maptasker.src.share import share
@@ -30,6 +29,7 @@ from maptasker.src.xmldata import remove_html_tags
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 
@@ -39,6 +39,7 @@ def get_profile_tasks(
     found_tasks_list: list,
     task_output_line: list,
     config: RunConfig,
+    state: RunState,
 ) -> list:
     """
     Get a specific Profile's Tasks (maximum of two: entry and exit).
@@ -64,22 +65,18 @@ def get_profile_tasks(
             task_id = child.text
 
             if task_id not in found_tasks_list:
-                PrimeItems.task_count_for_profile += 1
+                state.task_count_for_profile += 1
             task_element, task_name = _get_task_name(
-                task_id,
-                found_tasks_list,
-                task_output_line,
-                task_type,
-                config,
+                task_id, found_tasks_list, task_output_line, task_type, config, state=state
             )
             # Add the Task to our list of found Tasks, and use the Task output line as the name.
             list_of_tasks.append({"xml": task_element, "name": task_output_line[-1]})
 
             if single_task_name and single_task_name == task_name:
-                PrimeItems.found_named_items["single_task_found"] = True
+                state.found_named_items["single_task_found"] = True
                 profile_name = the_profile.find("nme")
                 if profile_name is not None:
-                    PrimeItems.program_arguments.single_profile_name = profile_name.text
+                    state.program_arguments.single_profile_name = profile_name.text
                 break
 
         elif tag == "nme":
@@ -90,10 +87,7 @@ def get_profile_tasks(
 
 # Get a specific Profile's name
 def get_profile_name(
-    profile: Element,
-    config: RunConfig,
-    project_name: str = "",
-    task_names: list[str] | None = None,
+    profile: Element, config: RunConfig, project_name: str = "", task_names: list[str] | None = None, *, state: RunState
 ) -> tuple[str, str]:
     """
     Get a specific Profile's name
@@ -107,7 +101,7 @@ def get_profile_name(
     # If we don't have the name, then set it to 'No Profile'
     profile_id = profile.attrib.get("sr")
     profile_id = profile_id[4:]
-    if not (the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]):
+    if not (the_profile_name := state.tasker_root_elements["all_profiles"][profile_id]["name"]):
         the_profile_name = UNNAMED_ITEM
 
     # Make the Project name bold, italicize, underline and/or highlighted if requested
@@ -325,6 +319,7 @@ def conditions_to_name(
     profile_name: str,
     profile_name_with_html: str,
     config: RunConfig,
+    state: RunState,
 ) -> tuple[str, str]:
     """
     Update the profile name and its HTML representation based on the profile's conditions.
@@ -360,7 +355,7 @@ def conditions_to_name(
 
     # Now cleanup the name in order to use it.
     new_profile_name = f"{profile_name.replace('<em>', '').replace('</em>', '').rstrip()}"
-    PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"] = new_profile_name
+    state.tasker_root_elements["all_profiles"][profile_id]["name"] = new_profile_name
 
     # Handle directory hyperlink
     if config.directory:
@@ -379,10 +374,7 @@ def conditions_to_name(
 
 # Get the Profile's key attributes: limit, launcher task, run conditions
 def build_profile_line(
-    profile: Element,
-    config: RunConfig,
-    project_name: str = "",
-    task_names: list[str] | None = None,
+    profile: Element, config: RunConfig, project_name: str = "", task_names: list[str] | None = None, *, state: RunState
 ) -> str:
     """
     Get the Profile's key attributes: limit, launcher task, run conditions and output it
@@ -435,7 +427,7 @@ def build_profile_line(
             flags = ""
 
     # Get the Profile name
-    profile_name_with_html, profile_name = get_profile_name(profile, config, project_name, task_names)
+    profile_name_with_html, profile_name = get_profile_name(profile, config, project_name, task_names, state=state)
     unmodified_profile_name = profile_name
 
     # Handle directory hyperlink
@@ -474,13 +466,15 @@ def build_profile_line(
     # Mark this Profile's place so a report finding can be clicked and land on it (mapjump).
     # The id comes from the "sr" attribute the same way get_profile_name reads it, rather
     # than from the name: two Profiles may share a name, and an unnamed one has none.
-    anchor = anchor_html(Target(PROFILE, profile.attrib.get("sr", "")[4:], unmodified_profile_name, project_name))
+    anchor = anchor_html(
+        Target(PROFILE, profile.attrib.get("sr", "")[4:], unmodified_profile_name, project_name), state=state
+    )
     if anchor:
-        PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
+        state.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     # Fix the column alignment of the final html string
     # Output the Profile line
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         2,
         profile_info,
         FormatLine.dont_format_line,
@@ -496,6 +490,7 @@ def do_profile(
     profile: Element,
     list_of_found_tasks: list,
     config: RunConfig,
+    state: RunState,
 ) -> bool:
     """Function:
         This function searches for a specific Profile and outputs its Tasks.
@@ -519,42 +514,37 @@ def do_profile(
         - Outputs the Tasks for the current Profile.
         - Returns True if a specific Task is being searched for, False otherwise."""
     # Are we searching for a specific Profile?
-    if PrimeItems.program_arguments.single_profile_name:
+    if state.program_arguments.single_profile_name:
         # Make sure this item's name is in our list of profiles.
-        if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
+        if not (profile_name := state.tasker_root_elements["all_profiles"][item]["name"]):
             return False  # Not our Profile...go to next Profile ID
 
-        if PrimeItems.program_arguments.single_profile_name != profile_name:
+        if state.program_arguments.single_profile_name != profile_name:
             return False  # Not our Profile...go to next Profile ID
 
         # Oh, Yeah! We found the Profile we were looking for!
         # Identify items found.
-        PrimeItems.found_named_items["single_profile_found"] = True
-        PrimeItems.program_arguments.single_project_name = project_name
-        PrimeItems.found_named_items["single_project_found"] = True
+        state.found_named_items["single_profile_found"] = True
+        state.program_arguments.single_project_name = project_name
+        state.found_named_items["single_project_found"] = True
 
         # Clear the output list to prepare for single Profile only
-        PrimeItems.output_lines.refresh_our_output(
+        state.output_lines.refresh_our_output(
             False,
             project_name,
             "",
         )
 
         # Start Profile list
-        PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+        state.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
     # Get Task xml element and name
     task_output_lines = []  # Profile's Tasks will be filled in here
-    list_of_tasks = get_profile_tasks(
-        profile,
-        list_of_found_tasks,
-        task_output_lines,
-        config,
-    )
+    list_of_tasks = get_profile_tasks(profile, list_of_found_tasks, task_output_lines, config, state=state)
 
     # Examine Profile attributes and output Profile line
     # Pull the clean Task name (drop the html/markup) off the front of each Task's output line.
     task_names_for_tooltip = [task["name"].split("&nbsp;")[0] for task in list_of_tasks if task.get("name")]
-    profile_name = build_profile_line(profile, config, project_name, task_names_for_tooltip)
+    profile_name = build_profile_line(profile, config, project_name, task_names_for_tooltip, state=state)
 
     # Process Profile Properties
     if config.display_detail_level > 2:
@@ -567,7 +557,7 @@ def do_profile(
         share(profile, "proftab", Target(PROFILE, profile.attrib.get("sr", "")[4:]))
         # Add a spacer if detail is 0
         if config.display_detail_level == 0:
-            PrimeItems.output_lines.add_line_to_output(
+            state.output_lines.add_line_to_output(
                 0,
                 "",
                 FormatLine.dont_format_line,
@@ -584,6 +574,7 @@ def do_profile(
         list_of_found_tasks,
         True,
         config,
+        state=state,
     )
 
 
@@ -709,6 +700,7 @@ def process_profiles(
     profile_ids: list,
     list_of_found_tasks: list,
     config: RunConfig,
+    state: RunState,
 ) -> None:
     """
     Go through Project's Profiles and output each
@@ -724,22 +716,15 @@ def process_profiles(
     # Go through the Profiles found in the Project
     _do_profile = do_profile
     for item in profile_ids:
-        profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
+        profile = state.tasker_root_elements["all_profiles"][item]["xml"]
         if profile is None:  # If Project has no profiles, skip
             return
-        specific_task = _do_profile(
-            item,
-            project,
-            project_name,
-            profile,
-            list_of_found_tasks,
-            config,
-        )
+        specific_task = _do_profile(item, project, project_name, profile, list_of_found_tasks, config, state=state)
 
         # Get out if doing a specific Task, and it was found, or not specific task but
         # found speficic Profile.  No need to process any more Profiles.
-        if (specific_task and config.single_task_name and PrimeItems.found_named_items["single_task_found"]) or (
-            not specific_task and PrimeItems.found_named_items["single_profile_found"]
+        if (specific_task and config.single_task_name and state.found_named_items["single_task_found"]) or (
+            not specific_task and state.found_named_items["single_profile_found"]
         ):  # Get out if we've got the Task we're looking for
             break
         if not specific_task:

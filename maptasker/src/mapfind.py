@@ -656,7 +656,7 @@ def build_index() -> FindIndex:
     Safe to call with nothing loaded: the tables are empty, the index is empty, and every
     query over it answers nothing -- but the GUI checks first so it can say why.
     """
-    scope = current_scope()
+    scope = current_scope(state=PrimeItems)
     index = FindIndex(scope=scope)
     _index_projects(index, scope)
     _index_profiles(index, _project_membership("pids"), scope)

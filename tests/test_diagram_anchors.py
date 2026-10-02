@@ -194,28 +194,28 @@ def test_a_placement_is_found_by_anchor() -> None:
     """The Diagram view looks the object up by the same anchor id the Map puts in the page."""
     PrimeItems.diagram_anchors = {_TASK.anchor: (12, 8, 9)}
 
-    assert diagram_placement(_TASK) == (12, 8, 9)
+    assert diagram_placement(_TASK, state=PrimeItems) == (12, 8, 9)
 
 
 def test_an_action_is_answered_by_its_task() -> None:
     """The Diagram draws no actions, so 'action 5 of Task 20' lands on Task 20's own line."""
     PrimeItems.diagram_anchors = {_TASK.anchor: (12, 8, 9)}
 
-    assert diagram_placement(_TASK.at_action(5)) == (12, 8, 9)
+    assert diagram_placement(_TASK.at_action(5), state=PrimeItems) == (12, 8, 9)
 
 
 def test_an_object_the_diagram_never_drew_has_no_placement() -> None:
     """A Diagram narrowed to one Project holds nothing outside it -- the caller falls back."""
     PrimeItems.diagram_anchors = {_TASK.anchor: (12, 8, 9)}
 
-    assert diagram_placement(_TWIN) is None
+    assert diagram_placement(_TWIN, state=PrimeItems) is None
 
 
 def test_no_diagram_at_all_has_no_placements() -> None:
     """Before any Diagram is built there is nothing to jump into, and nothing to raise about."""
     PrimeItems.diagram_anchors = {}
 
-    assert diagram_placement(_TASK) is None
+    assert diagram_placement(_TASK, state=PrimeItems) is None
 
 
 # ##################################################################################
@@ -406,8 +406,8 @@ def test_an_action_is_taken_to_its_tasks_line(drawn: list[str]) -> None:
     """The Diagram draws no actions, so an action's Target lands on the Task that holds it."""
     task = Target(kind=TASK, key="21", name="Backup")
 
-    assert diagram_placement(task.at_action(4)) == PrimeItems.diagram_anchors[task.anchor]
-    assert _span(drawn, diagram_placement(task.at_action(4))) == "└─ Backup"
+    assert diagram_placement(task.at_action(4), state=PrimeItems) == PrimeItems.diagram_anchors[task.anchor]
+    assert _span(drawn, diagram_placement(task.at_action(4), state=PrimeItems)) == "└─ Backup"
 
 
 # ##################################################################################
