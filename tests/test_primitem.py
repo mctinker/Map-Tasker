@@ -132,11 +132,14 @@ def test_cleaning_up_after_a_run_leaves_settings_that_can_be_used() -> None:
 # The groups reset part-way through a session.
 # ##################################################################################
 def _is_prime_items(node: ast.AST, attribute: str | None = None) -> bool:
-    """Whether node is PrimeItems.<attribute> (any attribute, if none is given)."""
+    """Whether node is <run state>.<attribute> (any attribute, if none is given).
+
+    The run state is PrimeItems, or `state` in the code that has been handed one.
+    """
     return (
         isinstance(node, ast.Attribute)
         and isinstance(node.value, ast.Name)
-        and node.value.id == "PrimeItems"
+        and node.value.id in {"PrimeItems", "state"}
         and attribute in {None, node.attr}
     )
 

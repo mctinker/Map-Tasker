@@ -77,7 +77,7 @@ def _load_as_current(path: str) -> None:
     with open(path) as handle:  # noqa: PTH123, SIM115
         PrimeItems.file_to_get = handle
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-        assert taskerd.get_the_xml_data() == 0
+        assert taskerd.get_the_xml_data(state=PrimeItems) == 0
 
 
 def _snapshot() -> dict:
@@ -272,9 +272,9 @@ def test_the_user_file_is_never_the_one_parsed(tmp_path, monkeypatch) -> None:
     parsed_paths = []
     real_get_the_xml_data = diffload.get_the_xml_data
 
-    def spy() -> int:
+    def spy(*, state: object) -> int:
         parsed_paths.append(PrimeItems.file_to_get.name)
-        return real_get_the_xml_data()
+        return real_get_the_xml_data(state=state)
 
     monkeypatch.setattr(diffload, "get_the_xml_data", spy)
     configuration, message = diffload.load_for_comparison(other)

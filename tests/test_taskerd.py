@@ -56,7 +56,7 @@ def _build(body: str) -> dict:
     PrimeItems.xml_root = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
         f'<TaskerData sr="" dvi="1" tv="6.3.13">{body}</TaskerData>',
     )
-    taskerd.build_tasker_tables()
+    taskerd.build_tasker_tables(state=PrimeItems)
     return PrimeItems.tasker_root_elements
 
 
@@ -270,7 +270,7 @@ def _load_file(text: str) -> int:
         handle.close()
         with open(handle.name) as opened:
             PrimeItems.file_to_get = opened
-            return taskerd.get_the_xml_data()
+            return taskerd.get_the_xml_data(state=PrimeItems)
     finally:
         os.unlink(handle.name)
 

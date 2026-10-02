@@ -356,7 +356,7 @@ def _load_backup(text: str | None) -> Path:
             try:
                 _put_on_primeitems(file_to_get=opened, tasker_root_elements=initial_tasker_root_elements())
                 clear_error()
-                return_code = get_the_xml_data()
+                return_code = get_the_xml_data(state=PrimeItems)
             finally:
                 arguments.gui = False
     if return_code != 0:

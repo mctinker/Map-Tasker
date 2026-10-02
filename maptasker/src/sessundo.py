@@ -197,7 +197,7 @@ def _restore(payload: bytes) -> bool:
     # and no ElementTree class of its own.  This is only a holder for the root (bildhtml
     # iterates it); the parse above is still the safe one.
     PrimeItems.xml_tree = ETW.ElementTree(root)
-    build_tasker_tables()
+    build_tasker_tables(state=PrimeItems)
     return True
 
 

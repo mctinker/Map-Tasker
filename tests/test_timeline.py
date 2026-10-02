@@ -74,7 +74,7 @@ def _load_as_current(path: str) -> int:
     with open(path) as handle:  # noqa: PTH123, SIM115
         PrimeItems.file_to_get = handle
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-        return taskerd.get_the_xml_data()
+        return taskerd.get_the_xml_data(state=PrimeItems)
 
 
 @pytest.fixture(autouse=True)

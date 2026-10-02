@@ -52,7 +52,7 @@ def _loaded() -> None:
     PrimeItems.directory_items = initial_directory_items()
     PrimeItems.emitted_anchors = set()
     PrimeItems.xml_root = ET.fromstring(_XML)  # noqa: S314  (fixture text, defined in this file)
-    taskerd.build_tasker_tables()
+    taskerd.build_tasker_tables(state=PrimeItems)
 
 
 def _output() -> str:
@@ -267,7 +267,7 @@ def _scene_with(elements: str) -> ET.Element:
         '<Task sr="task10"><id>10</id><nme>Clicked</nme></Task>'
         "</TaskerData>",
     )
-    taskerd.build_tasker_tables()
+    taskerd.build_tasker_tables(state=PrimeItems)
     return PrimeItems.tasker_root_elements["all_scenes"]["Panel"]["xml"]
 
 
@@ -408,7 +408,7 @@ def _v2_scene_with(layout: dict) -> None:
         f"<lj>{_gzipped_json(layout)}</lj></Scene>"
         "</TaskerData>",
     )
-    taskerd.build_tasker_tables()
+    taskerd.build_tasker_tables(state=PrimeItems)
 
 
 def _render_scene(elements: str) -> None:
@@ -579,7 +579,7 @@ def test_a_v2_layout_that_will_not_decode_writes_no_anchors() -> None:
         '<Scene sr="scene0"><nme>Panel</nme><lj>not valid at all @@@</lj></Scene>'
         "</TaskerData>",
     )
-    taskerd.build_tasker_tables()
+    taskerd.build_tasker_tables(state=PrimeItems)
     scenes.process_scene("Panel", [], None, 0, current_config(), state=PrimeItems)
 
     assert "could not be processed" in _output()

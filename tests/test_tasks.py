@@ -76,7 +76,7 @@ def _loaded() -> None:
     PrimeItems.found_named_items = initial_found_named_items()
     PrimeItems.task_count_unnamed = 0
     PrimeItems.xml_root = ET.fromstring(_XML)  # noqa: S314  (fixture text, defined in this file)
-    taskerd.build_tasker_tables()
+    taskerd.build_tasker_tables(state=PrimeItems)
 
 
 def _task_of(*actions: str) -> ET.Element:

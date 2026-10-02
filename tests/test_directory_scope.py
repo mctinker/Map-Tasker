@@ -67,7 +67,7 @@ def tasker_data() -> None:
     PrimeItems.xml_root = ET.fromstring(  # noqa: S314  (fixture text, defined in this file)
         f'<TaskerData sr="" dvi="1" tv="6.3.13">{_XML}</TaskerData>',
     )
-    taskerd.build_tasker_tables()
+    taskerd.build_tasker_tables(state=PrimeItems)
     yield
     PrimeItems.tasker_root_elements = saved_elements
     PrimeItems.program_arguments = saved_arguments

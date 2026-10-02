@@ -478,7 +478,7 @@ class MyGui:
 
                 # Get the XML
                 PrimeItems.program_arguments.gui = True
-                return_code = get_the_xml_data()
+                return_code = get_the_xml_data(state=PrimeItems)
                 if return_code != 0:
                     return False
 

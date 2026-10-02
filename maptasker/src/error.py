@@ -1,16 +1,21 @@
 #! /usr/bin/env python3
 """Error handling module for MapTasker."""
 
+from __future__ import annotations
+
 import logging
-from typing import NoReturn
+from typing import TYPE_CHECKING, NoReturn
 
 from maptasker.src import console
 from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ERROR_FILE, Colors, logger
 
+if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
 
-def error_handler(error_message: str, exit_code: int, *, show_code: bool = True) -> None:
+
+def error_handler(error_message: str, exit_code: int, *, show_code: bool = True, state: RunState | None = None) -> None:
     """
     Error handler: print and log the error.  Exit with error code if provided
         :param error_message: text of error to print and log
@@ -19,7 +24,10 @@ def error_handler(error_message: str, exit_code: int, *, show_code: bool = True)
             the message says everything there is to say -- a library that is not installed --
             and a number would only leave the user wondering what it means.  A run from the
             command line still ends with the code.
+        :param state: the run state the error is recorded on (error_code, error_msg), or None for
+            PrimeItems
     """
+    target = PrimeItems if state is None else state
     # Add our heading to more easily identify the problem
     if exit_code in {0, 99}:
         final_error_message = f"{Colors.Green}{error_message}"
@@ -35,23 +43,23 @@ def error_handler(error_message: str, exit_code: int, *, show_code: bool = True)
         # message goes to the window instead (just below).  Either way it is recorded --
         # console.error logs what it shows, and logger.debug covers the quiet case.
         if (
-            PrimeItems.program_arguments and PrimeItems.program_arguments.debug and not PrimeItems.program_arguments.gui
+            target.program_arguments and target.program_arguments.debug and not target.program_arguments.gui
         ) or exit_code == 5:
             console.error(final_error_message)
         else:
             logger.debug(final_error_message)
 
         # If coming from GUI, set error info. and return to GUI.
-        if PrimeItems.program_arguments and PrimeItems.program_arguments.gui:
+        if target.program_arguments and target.program_arguments.gui:
             # Write the rror to file for use by userinter (e.g. on rerun), so userintr can display error on entry.
             with open(ERROR_FILE, "w", encoding="utf-8") as error_file:
                 error_file.write(f"{error_message}\n")
                 if show_code:
                     error_file.write(f"{exit_code}\n")
             # Set error info. for GUI to display.
-            PrimeItems.error_code = exit_code
-            PrimeItems.error_msg = error_message
-            PrimeItems.error_show_code = show_code
+            target.error_code = exit_code
+            target.error_msg = error_message
+            target.error_show_code = show_code
             return
         # Not coming from GUI.  Stop the run, carrying the code with it.
         exit_program(exit_code)

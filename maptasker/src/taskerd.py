@@ -15,7 +15,7 @@ from maptasker.src.actionc import load_arg_specs
 from maptasker.src.actione import get_action_code
 from maptasker.src.error import error_handler
 from maptasker.src.maputil2 import strip_html_tags, truncate_string
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PrimeItems, RunState
 from maptasker.src.profiles import conditions_to_name
 from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine
@@ -54,7 +54,7 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
 _ANCHOR_LABEL = "Anchor ...with label:\n"
 
 
-def build_tasker_tables() -> None:
+def build_tasker_tables(state: RunState) -> None:
     """Build PrimeItems.tasker_root_elements from PrimeItems.xml_root -- the
     Project/Profile/Task/Scene/Setting lookup tables the whole application navigates
     the backup through, including the derived names an unnamed Profile or Task is
@@ -74,38 +74,38 @@ def build_tasker_tables() -> None:
 
     # Extract and transform data into Projects, Profiles, Tasks, Scenes and Services
     _move_xml_to_table = move_xml_to_table
-    PrimeItems.tasker_root_elements = {
+    state.tasker_root_elements = {
         "all_projects": _move_xml_to_table(
-            PrimeItems.xml_root.findall("Project"),
+            state.xml_root.findall("Project"),
             False,
             "name",
         ),
         "all_profiles": _move_xml_to_table(
-            PrimeItems.xml_root.findall("Profile"),
+            state.xml_root.findall("Profile"),
             True,
             "nme",
         ),
         "all_tasks": _move_xml_to_table(
-            PrimeItems.xml_root.findall("Task"),
+            state.xml_root.findall("Task"),
             True,
             "nme",
         ),
         "all_scenes": _move_xml_to_table(
-            PrimeItems.xml_root.findall("Scene"),
+            state.xml_root.findall("Scene"),
             False,
             "nme",
         ),
-        "all_services": PrimeItems.xml_root.findall("Setting"),
+        "all_services": state.xml_root.findall("Setting"),
     }
 
     # Assign names to Profiles that have no name = their condition.nnn (Unnamed)
     # Cache external references and methods to local variables
     # This avoids repeated global/attribute lookups in the loop
-    all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
+    all_profiles = state.tasker_root_elements["all_profiles"]
     _parse_condition = condition.parse_profile_condition
     _conditions_to_name = conditions_to_name
     unnamed_label = UNNAMED_ITEM
-    config = current_config()
+    config = current_config(state)
 
     # Pre-compile regex if multiple tags need cleaning (faster than multiple .replace)
     tag_cleaner = re.compile(r"</?em>")
@@ -121,7 +121,7 @@ def build_tasker_tables() -> None:
             if conditions:
                 # Assuming _to_name returns (something, name, something_else)
                 _, current_name, _ = _conditions_to_name(
-                    xml_content, conditions, unnamed_label, "", config, state=PrimeItems
+                    xml_content, conditions, unnamed_label, "", config, state=state
                 )
 
             # Efficiently strip HTML tags
@@ -133,14 +133,14 @@ def build_tasker_tables() -> None:
 
     # Get Profiles by name (mirrors all_tasks_by_name below) -- profedit.py's
     # Edit Profile feature resolves a Profile by its displayed name through this.
-    PrimeItems.tasker_root_elements["all_profiles_by_name"] = {
+    state.tasker_root_elements["all_profiles_by_name"] = {
         profile["name"]: {"xml": profile["xml"], "id": key} for key, profile in all_profiles.items()
     }
 
     # Get Tasks by name and handle Tasks with no name.
-    PrimeItems.tasker_root_elements["all_tasks_by_name"] = {}
+    state.tasker_root_elements["all_tasks_by_name"] = {}
     _get_first_action = get_first_action
-    for key, value in PrimeItems.tasker_root_elements["all_tasks"].items():
+    for key, value in state.tasker_root_elements["all_tasks"].items():
         if not value["name"]:
             # Get the first Task Action and user it as the Task name.
             first_action = _get_first_action(value["xml"])
@@ -151,22 +151,22 @@ def build_tasker_tables() -> None:
             # Put the new name back into PrimeItems.tasker_root_elements["all_tasks"]
             value["name"] = f"{first_action.rstrip()}.{key!s} (Unnamed)"
 
-        PrimeItems.tasker_root_elements["all_tasks_by_name"][value["name"]] = {
+        state.tasker_root_elements["all_tasks_by_name"][value["name"]] = {
             "xml": value["xml"],
             "id": key,
         }
 
     # Sort them for easier debug.
-    temp = sorted(PrimeItems.tasker_root_elements["all_tasks"].items())
-    PrimeItems.tasker_root_elements["all_tasks"] = dict(temp)
-    temp = sorted(PrimeItems.tasker_root_elements["all_tasks_by_name"].items())
-    PrimeItems.tasker_root_elements["all_tasks_by_name"] = dict(temp)
+    temp = sorted(state.tasker_root_elements["all_tasks"].items())
+    state.tasker_root_elements["all_tasks"] = dict(temp)
+    temp = sorted(state.tasker_root_elements["all_tasks_by_name"].items())
+    state.tasker_root_elements["all_tasks_by_name"] = dict(temp)
 
 
 # Load all of the Projects, Profiles and Tasks into a format we can easily
 # navigate through.
 # Optimized
-def get_the_xml_data() -> bool:
+def get_the_xml_data(state: RunState) -> bool:
     # Put this code into a while loop in the event we have to re-call it again.
     """Gets the XML data from a Tasker backup file and returns it in a dictionary.
     Parameters:
@@ -184,7 +184,7 @@ def get_the_xml_data() -> bool:
         - Checks for valid Tasker backup file.
         - Moves all data into dictionaries.
         - Returns all data in a dictionary."""
-    file_to_parse = PrimeItems.file_to_get.name
+    file_to_parse = state.file_to_get.name
     counter = 0
 
     # # Count the lines to see if we should issue a status.
@@ -197,22 +197,22 @@ def get_the_xml_data() -> bool:
     # Validate the XML file by parsing it twice if necessary.
     while True:
         try:
-            PrimeItems.xml_tree = parse_tasker_xml(file_to_parse)
+            state.xml_tree = parse_tasker_xml(file_to_parse)
             break
         # If error, rewrite thqat file with correct encoding.  Try this twice and then call it quits if still fails.
         except (ET.ParseError, UnicodeDecodeError) as e:
             counter += 1
             if counter > 2 or isinstance(e, ET.ParseError):
-                error_handler(f"Error in {file_to_parse}: {e}", 1)
+                error_handler(f"Error in {file_to_parse}: {e}", 1, state=state)
                 return 1
             _rewrite_xml(file_to_parse)
 
-    if PrimeItems.xml_tree is None:
-        return 1 if not PrimeItems.program_arguments.gui else _handle_gui_error("Bad XML file")
+    if state.xml_tree is None:
+        return 1 if not state.program_arguments.gui else _handle_gui_error("Bad XML file", state=state)
 
-    PrimeItems.xml_root = PrimeItems.xml_tree.getroot()
-    if PrimeItems.xml_root.tag != "TaskerData":
-        return _handle_gui_error("Invalid Tasker backup XML file", code=3)
+    state.xml_root = state.xml_tree.getroot()
+    if state.xml_root.tag != "TaskerData":
+        return _handle_gui_error("Invalid Tasker backup XML file", code=3, state=state)
 
     # A different configuration is now the loaded one, so the session's undo history no
     # longer describes it -- see sessundo.clear() for what undoing into another file's
@@ -232,17 +232,17 @@ def get_the_xml_data() -> bool:
     # wraps its window in timeline.suppressed().
     timeline.record(file_to_parse)
 
-    build_tasker_tables()
+    build_tasker_tables(state=state)
     # The highest Task/Profile id as the file has it, before this session adds anything -- the
     # floor taskedit.next_unique_task_or_profile_id keeps new ids clear of (see
     # NEW_OBJECT_ID_HEADROOM).  Here rather than in build_tasker_tables, which an undo also
     # runs: the tables it rebuilds then hold this session's own new objects, and re-basing on
     # those would push the next id up again.
-    PrimeItems.loaded_highest_object_id = max(
+    state.loaded_highest_object_id = max(
         (
             int(key)
             for table_name in ("all_tasks", "all_profiles")
-            for key in PrimeItems.tasker_root_elements[table_name]
+            for key in state.tasker_root_elements[table_name]
             if key.isdigit()
         ),
         default=0,
@@ -250,10 +250,10 @@ def get_the_xml_data() -> bool:
     return 0
 
 
-def _handle_gui_error(message: str, code: int = 1) -> int:
-    PrimeItems.output_lines.add_line_to_output(0, message, FormatLine.dont_format_line)
-    if PrimeItems.program_arguments.gui:
-        PrimeItems.error_msg = message
+def _handle_gui_error(message: str, code: int = 1, *, state: RunState) -> int:
+    state.output_lines.add_line_to_output(0, message, FormatLine.dont_format_line)
+    if state.program_arguments.gui:
+        state.error_msg = message
     return code
 
 

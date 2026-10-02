@@ -232,7 +232,7 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
             return PrimeItems.error_code
 
         # Go get all the xml data
-        return_code = get_the_xml_data()
+        return_code = get_the_xml_data(state=PrimeItems)
 
         # Close the file
         PrimeItems.file_to_get.close()

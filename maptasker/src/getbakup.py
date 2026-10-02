@@ -162,7 +162,7 @@ def validate_xml(
 
             # We don't have the file yet.  Lets get it.
             else:
-                return_code = _get_the_xml_data()
+                return_code = _get_the_xml_data(state=PrimeItems)
                 if return_code != 0:
                     return PrimeItems.error_msg, None
 

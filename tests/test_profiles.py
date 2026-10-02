@@ -57,7 +57,7 @@ def _loaded() -> None:
     PrimeItems.task_count_for_profile = 0
     PrimeItems.task_count_unnamed = 0
     PrimeItems.xml_root = ET.fromstring(_XML)  # noqa: S314  (fixture text, defined in this file)
-    taskerd.build_tasker_tables()
+    taskerd.build_tasker_tables(state=PrimeItems)
 
 
 def _profile(profile_id: str) -> ET.Element:

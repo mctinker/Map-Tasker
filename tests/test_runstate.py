@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src import bildhtml, outline, taskerd
+from maptasker.src import bildhtml, outline, taskerd, timeline
 from maptasker.src.actionc import load_arg_specs
 from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
 from maptasker.src import property as prop
@@ -235,21 +235,22 @@ _OUTLINE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 </TaskerData>"""
 
 
-def _outline_state() -> RunState:
-    """A run state holding the outline fixture's tables, parsed the way taskerd does it.
+def _outline_state(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> RunState:
+    """A run state that has loaded the outline fixture from a file, the way a user's load does.
 
-    taskerd builds PrimeItems' tables, so the global is lent the XML for the parse and given
-    its own tables back afterwards.
+    Nothing of it is on the global: taskerd parses into the state it is handed.  (The history a
+    load would record on disk is switched off; it is not what is being looked at.)
     """
+    monkeypatch.setattr(timeline, "record", lambda _path: None)
+    backup = tmp_path / "backup.xml"
+    backup.write_text(_OUTLINE_XML, encoding="utf-8")
     state = RunState()
-    state.xml_root = ET.fromstring(_OUTLINE_XML)  # noqa: S314
     state.colors_to_use = set_color_mode("dark")
     state.output_lines = LineOut(state=state)
-    held = PrimeItems.xml_root, PrimeItems.tasker_root_elements
-    PrimeItems.xml_root = state.xml_root
-    taskerd.build_tasker_tables()
-    state.tasker_root_elements = PrimeItems.tasker_root_elements
-    PrimeItems.xml_root, PrimeItems.tasker_root_elements = held
+    with backup.open(encoding="utf-8") as opened:
+        state.file_to_get = opened
+        assert taskerd.get_the_xml_data(state=state) == 0
+    state.file_to_get = str(backup)
     return state
 
 
@@ -258,7 +259,7 @@ def test_a_whole_outline_is_built_on_a_state_of_its_own(tmp_path: object, monkey
     is not PrimeItems: its tables, its output, its call links -- and nothing on the global.
     """
     monkeypatch.chdir(tmp_path)
-    state = _outline_state()
+    state = _outline_state(tmp_path, monkeypatch)
     PrimeItems.output_lines = LineOut()
     on_the_global = len(PrimeItems.output_lines.output_lines)
     netmap_before, model_before = list(PrimeItems.netmap_output), dict(PrimeItems.diagram_model)
@@ -280,7 +281,7 @@ def test_a_whole_map_is_built_on_a_state_of_its_own(tmp_path: object, monkeypatc
     """
     load_arg_specs()
     monkeypatch.chdir(tmp_path)
-    state = _outline_state()
+    state = _outline_state(tmp_path, monkeypatch)
     state.headless = True  # Nobody is watching: do not open a browser.
     state.tasker_arg_specs = PrimeItems.tasker_arg_specs
     state.tasker_category_descriptions = PrimeItems.tasker_category_descriptions
@@ -296,3 +297,16 @@ def test_a_whole_map_is_built_on_a_state_of_its_own(tmp_path: object, monkeypatc
     assert "Caller" in (tmp_path / "MapTasker.html").read_text(encoding="utf-8")
     assert len(PrimeItems.output_lines.output_lines) == on_the_global
     assert PrimeItems.grand_totals["projects"] == projects_before
+
+
+def test_a_backup_is_loaded_into_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    tables_before = dict(PrimeItems.tasker_root_elements)
+    root_before = PrimeItems.xml_root
+
+    state = _outline_state(tmp_path, monkeypatch)
+
+    assert set(state.tasker_root_elements["all_tasks"]) == {"20", "21"}
+    assert state.loaded_highest_object_id == 21
+    assert state.xml_root is not root_before
+    assert PrimeItems.tasker_root_elements == tables_before
+    assert PrimeItems.xml_root is root_before

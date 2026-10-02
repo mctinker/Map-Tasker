@@ -312,7 +312,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
             # anyone ran would file the other file into the history of the one they are
             # working on.  Only this call can record: it is the load.
             with timeline.suppressed():
-                return_code = get_the_xml_data()
+                return_code = get_the_xml_data(state=PrimeItems)
             parsed = _Parsed(return_code, PrimeItems.tasker_root_elements, PrimeItems.xml_root, scratch)
         except Exception as error:
             # Deliberately every exception, not just OSError.  The contract this module
