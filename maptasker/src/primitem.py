@@ -454,16 +454,16 @@ def clear_error() -> None:
 class PrimeItemsReset:
     """Put every per-run attribute of PrimeItems back to its declared default."""
 
-    def __init__(self) -> None:
+    def __init__(self, state: RunState | None = None) -> None:
         """
-        Reset PrimeItems for a new run.
+        Reset a run state (PrimeItems, unless one is given) for a new run.
 
         Every attribute not in SESSION_ATTRIBUTES gets a fresh copy of the value the class body
         gives it.  The class body is the only list: this used to name each attribute a second
         time, by hand, and that copy had drifted from it.  What other modules keep about the
         configuration goes with it (see caches).
         """
-        reset_attributes(*_RUN_DEFAULTS)
+        reset_attributes(*_RUN_DEFAULTS, state=state)
         caches.clear_all()
 
 
@@ -472,32 +472,35 @@ class PrimeItemsReset:
 # ask "what would this run show?" without the global being set up first.  Left out, they
 # read the settings currently on PrimeItems, as they always have.  A RunConfig and a
 # ProgramArguments share their fields (ArgumentFields), which is all this needs.
-def _settings(config: RunConfig | None) -> ArgumentFields:
+def _settings(config: RunConfig | None, state: RunState | None = None) -> ArgumentFields:
     """
-    Return the settings to read: the given config, or the ones on PrimeItems.
+    Return the settings to read: the given config, or the ones on a run state.
 
     Args:
         config (RunConfig | None): the settings to use, or None for the current ones.
+        state (RunState | None): the run state whose settings are the current ones, or None
+            for PrimeItems.
 
     Returns:
         ArgumentFields: the settings -- a RunConfig or a ProgramArguments -- read by attribute.
     """
-    return PrimeItems.program_arguments if config is None else config
+    return (PrimeItems if state is None else state).program_arguments if config is None else config
 
 
 # Return the single named item being asked for, if any.
-def get_single_item_requested(config: RunConfig | None = None) -> tuple[str, str]:
+def get_single_item_requested(config: RunConfig | None = None, state: RunState | None = None) -> tuple[str, str]:
     """
     Return the single named item the user asked to display, if any.
 
     Args:
         config (RunConfig | None): the settings to read, or None for the current ones.
+        state (RunState | None): the run state to read, or None for PrimeItems.
 
     Returns:
         tuple[str, str]: (label, name) -- e.g. ("Task", "My Task") -- for whichever
             single_xxx_name is set, or ("", "") if we are displaying everything.
     """
-    settings = _settings(config)
+    settings = _settings(config, state)
     for name_key, _, label in SINGLE_ITEM_SELECTORS:
         if name := getattr(settings, name_key):
             return label, name
@@ -505,41 +508,43 @@ def get_single_item_requested(config: RunConfig | None = None) -> tuple[str, str
 
 
 # Return the single named item that was asked for but never found, if any.
-def get_single_item_not_found(config: RunConfig | None = None) -> tuple[str, str]:
+def get_single_item_not_found(config: RunConfig | None = None, state: RunState | None = None) -> tuple[str, str]:
     """
     Return the single named item that was requested but never found while building the
     output.
 
     Args:
         config (RunConfig | None): the settings to read, or None for the current ones.
+        state (RunState | None): the run state to read, or None for PrimeItems.
 
     Returns:
         tuple[str, str]: (label, name) of the missing item, or ("", "") if nothing is
             missing -- either because no single item was requested, or because the one
             that was requested turned up.
     """
-    settings = _settings(config)
+    settings = _settings(config, state)
     for name_key, found_key, label in SINGLE_ITEM_SELECTORS:
         name = getattr(settings, name_key)
-        if name and not PrimeItems.found_named_items.get(found_key):
+        if name and not (PrimeItems if state is None else state).found_named_items.get(found_key):
             return label, name
     return "", ""
 
 
 # Return True if a single named item was asked for and it was found.
-def is_single_item_found(config: RunConfig | None = None) -> bool:
+def is_single_item_found(config: RunConfig | None = None, state: RunState | None = None) -> bool:
     """
     Return True if a single named item was requested and has been found.
 
     Args:
         config (RunConfig | None): the settings to read, or None for the current ones.
+        state (RunState | None): the run state to read, or None for PrimeItems.
 
     Returns:
         bool: True if any requested single item's found-flag is set.
     """
-    settings = _settings(config)
+    settings = _settings(config, state)
     return any(
-        getattr(settings, name_key) and PrimeItems.found_named_items.get(found_key)
+        getattr(settings, name_key) and (PrimeItems if state is None else state).found_named_items.get(found_key)
         for name_key, found_key, _ in SINGLE_ITEM_SELECTORS
     )
 

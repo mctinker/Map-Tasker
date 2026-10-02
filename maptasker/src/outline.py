@@ -36,7 +36,7 @@ from maptasker.src.diagram import network_map
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.maputils import find_owning_project_for_scene
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.runcfg import RunConfig, current_config
 from maptasker.src.sysconst import FormatLine
@@ -65,6 +65,7 @@ def bare_task_name(name: str) -> str:
 def update_caller_and_called_tasks(
     task: Element,
     perform_task_name: str,
+    state: RunState,
 ) -> None:
     # Find the Task xml element to which this Perform Task refers.
     """
@@ -82,8 +83,8 @@ def update_caller_and_called_tasks(
     """
     # Get the Task element referred to by perform_task_name.
     try:
-        if PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]:
-            task_called = PrimeItems.tasker_root_elements["all_tasks_by_name"][
+        if state.tasker_root_elements["all_tasks_by_name"][task["name"]]:
+            task_called = state.tasker_root_elements["all_tasks_by_name"][
                 task["name"]
             ]  # Get the Task element referred to by perform_task_name
 
@@ -95,15 +96,15 @@ def update_caller_and_called_tasks(
                 task_called["call_tasks"] = [perform_task_name]
             except AttributeError:
                 task_called["call_tasks"] = [perform_task_name]
-            PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]["call_tasks"] = task_called["call_tasks"]
+            state.tasker_root_elements["all_tasks_by_name"][task["name"]]["call_tasks"] = task_called["call_tasks"]
     # We have a task name that is not valid.  Don't change anything.
     except KeyError:
         return
 
     # Find the Task xml element to which this Perform Task refers.  Set up the called by Task list.
     with contextlib.suppress(KeyError):
-        if PrimeItems.tasker_root_elements["all_tasks_by_name"][perform_task_name]:
-            task_called = PrimeItems.tasker_root_elements["all_tasks_by_name"][perform_task_name]
+        if state.tasker_root_elements["all_tasks_by_name"][perform_task_name]:
+            task_called = state.tasker_root_elements["all_tasks_by_name"][perform_task_name]
 
             # Add it to the list of Tasks that call this Task.
             try:
@@ -113,15 +114,14 @@ def update_caller_and_called_tasks(
                     task_called["called_by"] = [task["name"]]
             except KeyError:
                 task_called["called_by"] = [task["name"]]
-            PrimeItems.tasker_root_elements["all_tasks_by_name"][perform_task_name]["called_by"] = task_called[
-                "called_by"
-            ]
+            state.tasker_root_elements["all_tasks_by_name"][perform_task_name]["called_by"] = task_called["called_by"]
 
 
 # Go through the Task's Actions looking for any Perform Task actions.
 def do_task_actions(
     task_actions: list[Element],
     task: Element,
+    state: RunState,
 ) -> None:
     """
     Parses task action elements and updates task call relationships.
@@ -154,12 +154,12 @@ def do_task_actions(
 
             if perform_task_name:
                 task["name"] = bare_task_name(task["name"])
-                _update_caller_and_called_tasks(task, perform_task_name)
+                _update_caller_and_called_tasks(task, perform_task_name, state=state)
 
 
 # Go through all Tasks for Profile and see if any have a "Perform Task" action.
 # If so, save the link to the other Task to be displayed in the outline.
-def get_perform_task_actions(the_tasks: list) -> None:
+def get_perform_task_actions(the_tasks: list, state: RunState) -> None:
     """
     Go through all Tasks for Profile and see if any have a "Perform Task" action.
     If so, save the link to the other Task to be displayed in the outline.
@@ -175,7 +175,7 @@ def get_perform_task_actions(the_tasks: list) -> None:
         # shared by several Profiles arrives decorated, and would otherwise be scanned (and its
         # calls recorded) once per Profile.
         task_name = bare_task_name(task["name"])
-        if task_name not in PrimeItems.outline_tasks_mapped:
+        if task_name not in state.outline_tasks_mapped:
             # Get Task's Actions
             try:
                 task_actions = task["xml"].findall("Action")
@@ -184,13 +184,13 @@ def get_perform_task_actions(the_tasks: list) -> None:
                 continue
             # Go through Actions and see if any are "Perform Task"
             if task_actions:
-                _do_task_actions(task_actions, task)
+                _do_task_actions(task_actions, task, state=state)
             # Keep track of the processed task
-            PrimeItems.outline_tasks_mapped.append(task_name)
+            state.outline_tasks_mapped.append(task_name)
 
 
 # Output the Tasks that are not in any Profile
-def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> None:
+def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list, state: RunState) -> None:
     # Now process all Tasks under Project that are not called by any Profile
     # task_ids is a list of strings, each string is a Task id.
     """
@@ -218,7 +218,7 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> No
         # Go through all Tasks in the Profiles for this Project
         if profile_task not in all_profiles_tasks:
             # The Task has not been processed = not in any Profile.
-            the_task_element = PrimeItems.tasker_root_elements["all_tasks"][task]
+            the_task_element = state.tasker_root_elements["all_tasks"][task]
             no_profile_task = the_task_element
             # Add it to the list of Tasks not in any Profile if not already in the list.
             if no_profile_task not in no_profile_tasks:
@@ -237,18 +237,18 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> No
         task_line = task_line.rstrip(task_line[-1])
 
         # Output the line
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             0,
             task_line,
             ["", "task_color", FormatLine.add_end_span],
         )
 
         # Get any/all "Perform Task" links back to other Tasks
-        get_perform_task_actions(no_profile_task_lines)
+        get_perform_task_actions(no_profile_task_lines, state=state)
 
 
 # Outline the Scenes under the Project
-def outline_scenes(project_name: str, network: dict) -> None:
+def outline_scenes(project_name: str, network: dict, state: RunState) -> None:
     """
     Outline the Scenes under the Project
         Args:
@@ -258,8 +258,8 @@ def outline_scenes(project_name: str, network: dict) -> None:
                     the owning Project.
     """
     scene_names = ""
-    if PrimeItems.tasker_root_elements["all_projects"]:
-        project = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
+    if state.tasker_root_elements["all_projects"]:
+        project = state.tasker_root_elements["all_projects"][project_name]["xml"]
         with contextlib.suppress(Exception):
             scene_names = project.find("scenes").text
         if scene_names != "":
@@ -269,7 +269,7 @@ def outline_scenes(project_name: str, network: dict) -> None:
             network[project_name]["Scenes"] = scene_list
 
             arrow_to_use = arrow
-            _add_line_to_output = PrimeItems.output_lines.add_line_to_output
+            _add_line_to_output = state.output_lines.add_line_to_output
             for scene in scene_list:
                 # If last Scene for Project, put an elbow in instead of full bracket
                 if scene == scene_list[-1]:
@@ -288,6 +288,7 @@ def do_profile_tasks(
     the_tasks: list,
     task_output_line: list,
     network: dict,
+    state: RunState,
 ) -> list:
     """
     Go through the Tasks in the Profile and output them.
@@ -316,7 +317,7 @@ def do_profile_tasks(
     network[project_name][profile_name] = []
 
     # Go through Task's output lines and Tasks, and add arrows as appropriate.
-    _add_line_to_output = PrimeItems.output_lines.add_line_to_output
+    _add_line_to_output = state.output_lines.add_line_to_output
     for task_line, task in zip(task_output_line, the_tasks, strict=False):
         # Keep track of Tasks processed.
         taskid = task["xml"].attrib.get("sr")
@@ -339,8 +340,8 @@ def do_profile_tasks(
 
         # Go through all "calls task" tasks and add them to the call_task.
         with contextlib.suppress(KeyError):
-            if PrimeItems.tasker_root_elements["all_tasks"][task["name"]]:
-                prime_task = PrimeItems.tasker_root_elements["all_tasks"][task["name"]]
+            if state.tasker_root_elements["all_tasks"][task["name"]]:
+                prime_task = state.tasker_root_elements["all_tasks"][task["name"]]
                 try:
                     for perform_task in prime_task["call_tasks"]:
                         call_task = f"{call_task} '{perform_task}',"
@@ -368,6 +369,7 @@ def outline_profiles_tasks_scenes(
     tasks_in_project: list,
     network: dict,
     config: RunConfig,
+    state: RunState,
 ) -> None:
     """
     Given a Project, outline it's Profiles, Tasks and Scenes
@@ -384,19 +386,19 @@ def outline_profiles_tasks_scenes(
     _get_profile_tasks = get_profile_tasks
     _get_perform_task_actions = get_perform_task_actions
     _do_profile_tasks = do_profile_tasks
-    _add_line_to_output = PrimeItems.output_lines.add_line_to_output
+    _add_line_to_output = state.output_lines.add_line_to_output
     for item in profile_ids:
         # Get the Profile element
-        profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
+        profile = state.tasker_root_elements["all_profiles"][item]["xml"]
         # Get the Profile name
-        if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
+        if not (profile_name := state.tasker_root_elements["all_profiles"][item]["name"]):
             profile_name = f"Anonymous#{no_name_counter!s}"
             no_name_counter += 1
 
         # Doing all Projects or single Project and this is our Project...
         if (
-            not PrimeItems.program_arguments.single_profile_name
-            or PrimeItems.program_arguments.single_profile_name == profile_name
+            not state.program_arguments.single_profile_name
+            or state.program_arguments.single_profile_name == profile_name
         ):
             # Add Profile to our network
             profile_line = f"{blank * 5}{arrow}{blank * 2}Profile: {profile_name}"
@@ -411,31 +413,27 @@ def outline_profiles_tasks_scenes(
             tasks_in_profile = []  # Keep track of Tasks processed/output.
             list_of_found_tasks = []
 
-            the_tasks = _get_profile_tasks(profile, list_of_found_tasks, task_output_line, config, state=PrimeItems)
+            the_tasks = _get_profile_tasks(profile, list_of_found_tasks, task_output_line, config, state=state)
 
             # Get any/all "Perform Task" links back to other Tasks
-            _get_perform_task_actions(the_tasks)
+            _get_perform_task_actions(the_tasks, state=state)
 
             # Output the Profile's Tasks
             tasks_in_profile = _do_profile_tasks(
-                project_name,
-                profile_name,
-                the_tasks,
-                task_output_line,
-                network,
+                project_name, profile_name, the_tasks, task_output_line, network, state=state
             )
             all_profiles_tasks.extend(tasks_in_profile)
 
     # List the Tasks not in any Profile for this Project
-    if not PrimeItems.program_arguments.single_profile_name:
-        tasks_not_in_profile(all_profiles_tasks, tasks_in_project)
+    if not state.program_arguments.single_profile_name:
+        tasks_not_in_profile(all_profiles_tasks, tasks_in_project, state=state)
 
     # Get the Scenes for this Project
-    outline_scenes(project_name, network)
+    outline_scenes(project_name, network, state=state)
 
 
 # Start outline beginning with the Projects
-def do_the_outline(network: dict, config: RunConfig) -> None:
+def do_the_outline(network: dict, config: RunConfig, state: RunState) -> None:
     """
     Start outline beginning with the Projects
         Args:
@@ -443,53 +441,53 @@ def do_the_outline(network: dict, config: RunConfig) -> None:
             config (RunConfig): the run's settings
     """
     # Make sure we start clean by delteing all prexisting call_tasks and called_by lists.
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
-    all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
+    all_tasks = state.tasker_root_elements["all_tasks"]
+    all_tasks_by_name = state.tasker_root_elements["all_tasks_by_name"]
     for task_num in all_tasks:
-        task = PrimeItems.tasker_root_elements["all_tasks"][task_num]
+        task = state.tasker_root_elements["all_tasks"][task_num]
         with contextlib.suppress(KeyError):
             del all_tasks_by_name[task["name"]]["call_tasks"]
         with contextlib.suppress(KeyError):
             del all_tasks_by_name[task["name"]]["called_by"]
-    PrimeItems.outline_tasks_mapped = []  # Keep track of tasks that have been mapped.
+    state.outline_tasks_mapped = []  # Keep track of tasks that have been mapped.
 
     # If no projects and a profile or task, just display profile or task rather than going through this loop.
-    if not PrimeItems.tasker_root_elements["all_projects"] and (
-        PrimeItems.tasker_root_elements["all_profiles"] or PrimeItems.tasker_root_elements["all_tasks"]
+    if not state.tasker_root_elements["all_projects"] and (
+        state.tasker_root_elements["all_profiles"] or state.tasker_root_elements["all_tasks"]
     ):
         pids = []
         tids = []
         # Get the Profile and Task IDs
-        for key in PrimeItems.tasker_root_elements["all_profiles"]:
+        for key in state.tasker_root_elements["all_profiles"]:
             pids.append(key)  # noqa: PERF402
-        for key in PrimeItems.tasker_root_elements["all_tasks"]:
+        for key in state.tasker_root_elements["all_tasks"]:
             tids.append(key)
             # If no Profile at this point, let user know and return.
             if not pids:
-                PrimeItems.output_lines.add_line_to_output(
+                state.output_lines.add_line_to_output(
                     0,
                     f"{blank * 3}Task only...nothing to outline",
                     ["", "project_color", FormatLine.add_end_span],
                 )
                 return
-        outline_profiles_tasks_scenes("", pids, tids, network, config)
+        outline_profiles_tasks_scenes("", pids, tids, network, config, state=state)
         return
 
     # Go thru all Projects
-    _add_line_to_output = PrimeItems.output_lines.add_line_to_output
+    _add_line_to_output = state.output_lines.add_line_to_output
     _format_html = format_html
     _get_ids = get_ids
     _outline_profiles_tasks_scenes = outline_profiles_tasks_scenes
-    for project_item in PrimeItems.tasker_root_elements["all_projects"]:
+    for project_item in state.tasker_root_elements["all_projects"]:
         # Get the Project XML element
-        project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
+        project = state.tasker_root_elements["all_projects"][project_item]["xml"]
         # Get the Project name formatted for the directory hotlink (with +++s)
         project_name = project_item
 
         # Doing all Projects or single Project and this is our Project...
         if (
-            not PrimeItems.program_arguments.single_project_name
-            or PrimeItems.program_arguments.single_project_name == project_name
+            not state.program_arguments.single_project_name
+            or state.program_arguments.single_project_name == project_name
         ):
             # Add Project to our network
             network[project_name] = {}
@@ -514,13 +512,7 @@ def do_the_outline(network: dict, config: RunConfig) -> None:
             # Get the Profile IDs for this Project and process them
             # True if we have Profiles for this Project
             if profile_ids := _get_ids(True, project, project_name, []):
-                _outline_profiles_tasks_scenes(
-                    project_name,
-                    profile_ids,
-                    task_ids,
-                    network,
-                    config,
-                )
+                _outline_profiles_tasks_scenes(project_name, profile_ids, task_ids, network, config, state=state)
 
             # No Profiles for Project
             if not profile_ids:
@@ -533,7 +525,7 @@ def do_the_outline(network: dict, config: RunConfig) -> None:
 
 
 # Get the Project for the single named item (Profile or Task)
-def check_for_single_name(root: dict, single_name: str, do_pids: bool) -> bool:
+def check_for_single_name(root: dict, single_name: str, do_pids: bool, state: RunState) -> bool:
     """
     Get the Project for the single named item (Profile or Task)
 
@@ -553,17 +545,17 @@ def check_for_single_name(root: dict, single_name: str, do_pids: bool) -> bool:
                 break
         # We have the Profile/Task ID for the single name
         if item_id:
-            for key, value in PrimeItems.tasker_root_elements["all_projects"].items():
+            for key, value in state.tasker_root_elements["all_projects"].items():
                 item_ids = get_ids(do_pids, value["xml"], single_name, [])
                 # Is our single named object in this project?
                 if item_id in item_ids:
-                    PrimeItems.program_arguments.single_project_name = key
+                    state.program_arguments.single_project_name = key
                     return True
     return False
 
 
 # If doing a single named item (Profile or Task), then get the Project associated with the named item.
-def fix_project_name_for_single_name() -> None:
+def fix_project_name_for_single_name(state: RunState) -> None:
     """
     Set the project name for a single profile/task name.
 
@@ -581,22 +573,19 @@ def fix_project_name_for_single_name() -> None:
         None
     """
     if not check_for_single_name(
-        PrimeItems.tasker_root_elements["all_profiles"],
-        PrimeItems.program_arguments.single_profile_name,
+        state.tasker_root_elements["all_profiles"],
+        state.program_arguments.single_profile_name,
         do_pids=True,
+        state=state,
     ) and not check_for_single_name(
-        PrimeItems.tasker_root_elements["all_tasks"],
-        PrimeItems.program_arguments.single_task_name,
-        do_pids=False,
+        state.tasker_root_elements["all_tasks"], state.program_arguments.single_task_name, do_pids=False, state=state
     ):
-        if scene_name := PrimeItems.program_arguments.single_scene_name:
-            PrimeItems.program_arguments.single_project_name = find_owning_project_for_scene(
-                scene_name, state=PrimeItems
-            )
+        if scene_name := state.program_arguments.single_scene_name:
+            state.program_arguments.single_project_name = find_owning_project_for_scene(scene_name, state=state)
 
 
 # Outline the Tasker Configuration
-def outline_the_configuration() -> None:
+def outline_the_configuration(state: RunState) -> None:
     """
     Outline the Tasker Configuration
         Args:
@@ -604,27 +593,27 @@ def outline_the_configuration() -> None:
     """
 
     # Start with a ruler line
-    PrimeItems.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
 
     # Define our network.
     network = {}
 
     # If doing a single profile or task, set single project to this profile/task's project
-    fix_project_name_for_single_name()
+    fix_project_name_for_single_name(state=state)
 
     # The run's settings, read once and handed down.  (single_project_name, which the line above
     # may have just written, is not read from it.)
-    config = current_config()
+    config = current_config(state)
 
     # Output the directory link
     if config.directory:
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             5,
             '<a id="configuration_outline"></a>',
             FormatLine.dont_format_line,
         )
     # Output the header
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         0,
         "<em>Configuration Outline</em>",
         ["", "trailing_comments_color", FormatLine.add_end_span],
@@ -632,11 +621,11 @@ def outline_the_configuration() -> None:
 
     # Make sure there is something to outline
     if (
-        not PrimeItems.tasker_root_elements["all_tasks"]
-        and not PrimeItems.tasker_root_elements["all_profiles"]
-        and not PrimeItems.tasker_root_elements["all_projects"]
+        not state.tasker_root_elements["all_tasks"]
+        and not state.tasker_root_elements["all_profiles"]
+        and not state.tasker_root_elements["all_projects"]
     ):
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             0,
             "Nothing to outline",
             ["", "trailing_comments_color", FormatLine.add_end_span],
@@ -644,10 +633,10 @@ def outline_the_configuration() -> None:
         return
 
     # Go do it!  Generate the outline near the bottom of the output.
-    do_the_outline(network, config)
+    do_the_outline(network, config, state=state)
 
     # End the list
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         3,
         "",
         FormatLine.dont_format_line,
@@ -655,4 +644,4 @@ def outline_the_configuration() -> None:
 
     # Now generate the outline diagram text file.
     if network:
-        network_map(network, config, PrimeItems)
+        network_map(network, config, state)

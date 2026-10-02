@@ -6,10 +6,13 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src import bildhtml, outline, taskerd
+from maptasker.src.actionc import load_arg_specs
 from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
 from maptasker.src import property as prop
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapjump import PROFILE, TASK, Target
+from maptasker.src.sysconst import DIAGRAM_FILE as diagram_file
 from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, RunState, reset_attributes
 from maptasker.src.runcfg import current_config
 
@@ -220,3 +223,76 @@ def test_a_line_is_formatted_by_the_state_its_output_belongs_to() -> None:
     link = state.output_lines.add_directory_link("tasks", "Remind Me", "")
 
     assert "tasks_Remind_Me" in link
+
+
+_OUTLINE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
+  <Project sr="proj0"><name>Home</name><pids>10</pids><tids>20,21</tids></Project>
+  <Profile sr="prof10" ve="2"><id>10</id><mid0>20</mid0><nme>One</nme></Profile>
+  <Task sr="task20" ve="2"><id>20</id><nme>Caller</nme>
+    <Action sr="act0"><code>130</code><Str sr="arg0">Callee</Str></Action>
+  </Task>
+  <Task sr="task21" ve="2"><id>21</id><nme>Callee</nme><Action sr="act0"><code>548</code></Action></Task>
+</TaskerData>"""
+
+
+def _outline_state() -> RunState:
+    """A run state holding the outline fixture's tables, parsed the way taskerd does it.
+
+    taskerd builds PrimeItems' tables, so the global is lent the XML for the parse and given
+    its own tables back afterwards.
+    """
+    state = RunState()
+    state.xml_root = ET.fromstring(_OUTLINE_XML)  # noqa: S314
+    state.colors_to_use = set_color_mode("dark")
+    state.output_lines = LineOut(state=state)
+    held = PrimeItems.xml_root, PrimeItems.tasker_root_elements
+    PrimeItems.xml_root = state.xml_root
+    taskerd.build_tasker_tables()
+    state.tasker_root_elements = PrimeItems.tasker_root_elements
+    PrimeItems.xml_root, PrimeItems.tasker_root_elements = held
+    return state
+
+
+def test_a_whole_outline_is_built_on_a_state_of_its_own(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The Outline and the Diagram built from it, start to finish, against a RunState that
+    is not PrimeItems: its tables, its output, its call links -- and nothing on the global.
+    """
+    monkeypatch.chdir(tmp_path)
+    state = _outline_state()
+    PrimeItems.output_lines = LineOut()
+    on_the_global = len(PrimeItems.output_lines.output_lines)
+    netmap_before, model_before = list(PrimeItems.netmap_output), dict(PrimeItems.diagram_model)
+
+    outline.outline_the_configuration(state=state)
+
+    assert state.tasker_root_elements["all_tasks_by_name"]["Caller"]["call_tasks"] == ["Callee"]
+    assert any("Caller" in line for line in state.output_lines.output_lines)
+    assert state.diagram_model
+    assert (tmp_path / diagram_file).read_text(encoding="utf-8")
+    assert len(PrimeItems.output_lines.output_lines) == on_the_global
+    assert PrimeItems.netmap_output == netmap_before
+    assert PrimeItems.diagram_model == model_before
+
+
+def test_a_whole_map_is_built_on_a_state_of_its_own(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The Map, from the Projects down to the file it is written to, against a RunState that is
+    not PrimeItems.  Only the output folder is still read from the global (outdir.py).
+    """
+    load_arg_specs()
+    monkeypatch.chdir(tmp_path)
+    state = _outline_state()
+    state.headless = True  # Nobody is watching: do not open a browser.
+    state.tasker_arg_specs = PrimeItems.tasker_arg_specs
+    state.tasker_category_descriptions = PrimeItems.tasker_category_descriptions
+    PrimeItems.output_lines = LineOut()
+    monkeypatch.setattr(PrimeItems.program_arguments, "output_directory", str(tmp_path))
+    on_the_global = len(PrimeItems.output_lines.output_lines)
+    projects_before = PrimeItems.grand_totals["projects"]
+
+    bildhtml.build_html("", state=state)
+
+    assert state.grand_totals["projects"] == 1
+    assert state.grand_totals["named_tasks"] == 2
+    assert "Caller" in (tmp_path / "MapTasker.html").read_text(encoding="utf-8")
+    assert len(PrimeItems.output_lines.output_lines) == on_the_global
+    assert PrimeItems.grand_totals["projects"] == projects_before

@@ -50,7 +50,7 @@ def test_a_task_shared_by_several_profiles_calls_once(monkeypatch: pytest.Monkey
 
     for profile in tables["all_profiles"].values():
         the_tasks = profiles.get_profile_tasks(profile["xml"], [], [], current_config(), state=PrimeItems)
-        outline.get_perform_task_actions(the_tasks)
+        outline.get_perform_task_actions(the_tasks, state=PrimeItems)
 
     assert tables["all_tasks_by_name"]["Caller"]["call_tasks"] == ["Callee"]
     assert tables["all_tasks_by_name"]["Callee"]["called_by"] == ["Caller"]

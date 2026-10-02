@@ -489,9 +489,9 @@ def _build_the_view(view: str) -> None:
     with console.muted():
         if view == mapexport.MAP:
             output_the_front_matter(current_config(), state=PrimeItems)
-            build_html("")
+            build_html("", state=PrimeItems)
         else:
-            outline_the_configuration()
+            outline_the_configuration(state=PrimeItems)
     if PrimeItems.error_code > 0:
         raise _ReportError(EXIT_ERROR, PrimeItems.error_msg or f"The {view} could not be built.")
 

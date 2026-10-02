@@ -138,14 +138,14 @@ class LineOut:
         reset_attributes(*MAP_OUTPUT_ATTRIBUTES, state=self.state)
 
         # Display th starting information in beginning of output
-        output_the_front_matter(current_config() if self._config is None else self._config, state=self.state)
+        output_the_front_matter(current_config(self.state) if self._config is None else self._config, state=self.state)
 
         # Re-add the directory item
         if self.settings.directory:
             add_directory_item(
                 "projects",
                 project_name,
-                current_config() if self._config is None else self._config,
+                current_config(self.state) if self._config is None else self._config,
                 state=self.state,
             )
 
@@ -330,7 +330,7 @@ class LineOut:
         return self.add_directory_link(separator, element, "\n")
 
     # Handles profile element by adding directory link
-    def handle_profile(self, element: str) -> None:
+    def handle_profile(self, element: str) -> str:
         """Handles profile element by adding directory link
         Args:
             element: Profile element to handle
@@ -621,7 +621,7 @@ class LineOut:
         self,
         list_level: int,
         out_string: str,
-        format_line: list,
+        format_line: list | FormatLine,
     ) -> None:
         """
         Add line to the list of output lines.  The output entry is based on the
@@ -637,7 +637,7 @@ class LineOut:
             :return: none
         """
         # Format the output line by adding appropriate HTML.
-        if format_line != FormatLine.dont_format_line:
+        if not isinstance(format_line, FormatLine):
             out_string = format_html(
                 format_line[1],  # Color code
                 format_line[0],  # Text before.

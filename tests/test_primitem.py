@@ -123,7 +123,7 @@ def test_each_reset_hands_out_containers_of_its_own() -> None:
 def test_cleaning_up_after_a_run_leaves_settings_that_can_be_used() -> None:
     """It put the function that builds the default settings where the settings belong, so the
     next thing to read or write a setting failed."""
-    bildhtml.clean_up_memory()
+    bildhtml.clean_up_memory(state=PrimeItems)
 
     assert PrimeItems.program_arguments == initialize_runtime_arguments()
 

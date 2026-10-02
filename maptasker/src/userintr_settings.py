@@ -1132,7 +1132,7 @@ class SettingsEventHandlers:
 
         # Nothing to check for None here: this call returns nothing, so nicegui's cancelled-wait
         # answer and its ordinary one are the same value (see nicegui.run._run).
-        await run.io_bound(outline_the_configuration)
+        await run.io_bound(outline_the_configuration, state=PrimeItems)
 
         # Reload every open Diagram view -- "Open View In New Window" can leave more than one up.
         for view in live_views(gui):

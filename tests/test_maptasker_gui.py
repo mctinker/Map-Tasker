@@ -585,7 +585,7 @@ async def test_view_event_map_execution_flow(
     await event_handler.view_event("map")
 
     # Verify background execution handoff of the blocking HTML build
-    mock_io_bound.assert_awaited_once_with(build_html, "")
+    mock_io_bound.assert_awaited_once_with(build_html, "", state=PrimeItems)
     # Verify the rendered view is handed to its own page.  The path and the query are
     # checked apart from one another: the path is what identifies the page, while the
     # query carries the jump target and the Project the Map was built for, and those two

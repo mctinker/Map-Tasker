@@ -184,7 +184,7 @@ def process_tasks_not_called_by_profile(
     # duration of this walk and back to whatever it was on the way out.
     save_twisty = config.twisty
 
-    with overridden_config(twisty=False) as walk_config:
+    with overridden_config(state=state, twisty=False) as walk_config:
         # Go through all Tasks, one at a time, and see if this one is not in it (not found)
         _process_solo_task_with_no_profile = process_solo_task_with_no_profile
         for task_id in state.tasker_root_elements["all_tasks"]:

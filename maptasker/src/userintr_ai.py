@@ -77,7 +77,7 @@ async def build_analysis_lines(gui: MyGui) -> bool:
     PrimeItems.output_lines.output_lines.clear()
     output_the_front_matter(current_config(), state=PrimeItems)
     try:
-        await run.io_bound(build_html, "")
+        await run.io_bound(build_html, "", state=PrimeItems)
     except MapTaskerError as error:
         gui.display_message_box(f"Analysis halted building the Map (code {error.exit_code}).", "Red")
         return False

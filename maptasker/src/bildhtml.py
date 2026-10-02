@@ -22,8 +22,8 @@ from maptasker.src.maputils import (
 )
 from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import (
-    PrimeItems,
     PrimeItemsReset,
+    RunState,
     get_single_item_not_found,
     is_single_item_found,
 )
@@ -43,7 +43,7 @@ from maptasker.src.sysconst import (
 _map_just_written: caches.Slot[str] = caches.Slot("bildhtml.map_just_written", "")
 
 
-def build_html(file_to_get: str) -> int:
+def build_html(file_to_get: str, state: RunState) -> int:
     """Builds and generates the final HTML output file for MapTasker.
 
     This function builds the html output file for MapTasker.
@@ -72,11 +72,11 @@ def build_html(file_to_get: str) -> int:
     # Let the userr know we are in debug mode.
     console.debug(">>>  MapTasker is in debug mode.  <<<")
 
-    if PrimeItems.error_code > 0:
+    if state.error_code > 0:
         # We have a error.  Spit it out and exit.
-        exit_program(PrimeItems.error_code)
+        exit_program(state.error_code)
 
-    if PrimeItems.xml_root is None:
+    if state.xml_root is None:
         # Code 6 is "nothing to read".  Raised rather than sys.exit()ed because this runs
         # inside a run.io_bound worker when the GUI is driving: view_event catches it and
         # says so in the window (see MapTaskerEventHandlers.view_event).
@@ -86,7 +86,7 @@ def build_html(file_to_get: str) -> int:
 
     # Set up file to read if it is passed in (via rerun)
     if file_to_get:
-        PrimeItems.file_to_get = file_to_get
+        state.file_to_get = file_to_get
 
     # The Map that would come out of the work below may already be sitting on disk from
     # earlier in this session -- closing the view and opening it again, coming back from
@@ -98,19 +98,19 @@ def build_html(file_to_get: str) -> int:
     # Not while analyzing with AI: that path does not want the file, it wants the output
     # lines in memory, and those are produced by doing the work.
     building_from = mapcache.digests()
-    doing_ai_analysis = PrimeItems.program_arguments.ai_analyze
+    doing_ai_analysis = state.program_arguments.ai_analyze
     if not doing_ai_analysis and mapcache.is_current(
         outdir.output_path("MapTasker.html"),
         building_from,
     ):
-        PrimeItems.map_output_line_count = mapcache.output_lines()
+        state.map_output_line_count = mapcache.output_lines()
         logger.debug("build_html: the Map on disk is current; it was not built again.")
         return 0
 
     # Get all Tasker variables.  The configuration digest goes with them so that the
     # where-used counts survive a rebuild that only changed how the Map is displayed.
-    if PrimeItems.program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
-        get_variables(building_from[0], state=PrimeItems)
+    if state.program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
+        get_variables(building_from[0], state=state)
 
     # Process all Projects and their Profiles
     found_tasks = []
@@ -121,12 +121,12 @@ def build_html(file_to_get: str) -> int:
     found_tasks = projects.process_projects_and_their_profiles(
         found_tasks,
         projects_without_profiles,
-        current_config(),
-        PrimeItems,
+        current_config(state),
+        state,
     )
 
     # Do special handling: wrap up back matter and print the output.
-    final_processing(found_tasks, projects_without_profiles, projects_with_no_tasks)
+    final_processing(found_tasks, projects_without_profiles, projects_with_no_tasks, state=state)
 
     # Save our runtime settings for next time.  Make sure we don't save the rerun state as True
     # The live dictionaries, not a RunConfig snapshot: save_arguments edits what it is
@@ -137,11 +137,11 @@ def build_html(file_to_get: str) -> int:
     # Not for a headless run: a command-line export was asked to build something, not to
     # change the settings the GUI keeps, and its own arguments (the detail level it was
     # given, the file it was pointed at) would replace whatever the person last chose there.
-    if not PrimeItems.headless:
-        with overridden_config(rerun=False):
+    if not state.headless:
+        with overridden_config(state=state, rerun=False):
             _, _ = save_restore_args(
-                PrimeItems.program_arguments,
-                PrimeItems.colors_to_use,
+                state.program_arguments,
+                state.colors_to_use,
                 to_save=True,
             )
 
@@ -150,19 +150,19 @@ def build_html(file_to_get: str) -> int:
     # after the settings have been saved: saving edits them, and the note has to describe
     # the settings as the next run will find them, not as they were mid-build.
     if _map_just_written.value and not doing_ai_analysis:
-        mapcache.remember(_map_just_written.value, PrimeItems.map_output_line_count, building_from)
+        mapcache.remember(_map_just_written.value, state.map_output_line_count, building_from)
         _map_just_written.value = ""
 
     # Rerun this program if "Rerun" was selected from GUI
     # First get the filename as a string.
-    if PrimeItems.program_arguments.rerun:
-        do_rerun()
+    if state.program_arguments.rerun:
+        do_rerun(state=state)
 
     return 0
 
 
 # Re-launch our program via the "rerun" feature.
-def restart_program() -> None:
+def restart_program(state: RunState) -> None:
     # Restart our program
     # sys.executable = the path of the python interpreter and use it to execute ourselves again.
     """Restarts the program.
@@ -173,12 +173,12 @@ def restart_program() -> None:
     Processing Logic:
         - Call ourselves and exit after the last call."""
 
-    restart_program_subprocess(state=PrimeItems)
+    restart_program_subprocess(state=state)
     exit_program(0)  # This should never be called.
 
 
 # Handle "rerun" request
-def do_rerun() -> None:
+def do_rerun(state: RunState) -> None:
     """
     Re-runs the program with a new file
     Args:
@@ -191,14 +191,14 @@ def do_rerun() -> None:
     """
 
     # Get rid of everything.
-    clean_up_memory()
+    clean_up_memory(state=state)
 
     # Now do it!  Rerun the program.
-    restart_program()
+    restart_program(state=state)
 
 
 # write_out_the_file: we have a list of output lines.  Write them out.
-def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
+def write_out_the_file(my_output_dir: str, my_file_name: str, state: RunState) -> None:
     """
     write_out_the_file: we have a list of output lines.  Write them out.
         :param my_output_dir: directory to output to
@@ -208,7 +208,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
     output_file = f"{my_output_dir}{my_file_name}"
     # Clear any stale message from a previous run -- only set again below if this run also hits the limit.
-    PrimeItems.view_limit_msg = ""
+    state.view_limit_msg = ""
     with open(output_file, "w", encoding="utf-8") as out_file:
         # Everything below writes through this rather than straight to the file, because
         # this is the only point that sees the whole document: it is the only place that
@@ -220,11 +220,11 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
         # Output the rest that is in our output queue
         _output_directory = output_directory  # Localize for speed
         _format_line = format_line  # Localize for speed
-        config = current_config()  # Settings for this write -- read once, outside the loop
-        for num, item in enumerate(PrimeItems.output_lines.output_lines):
+        config = current_config(state)  # Settings for this write -- read once, outside the loop
+        for num, item in enumerate(state.output_lines.output_lines):
             # This is a temporary workaround to the GUI terminating prematurely due to output size.
-            if num > PrimeItems.view_limit:
-                msg_text = f"{translate_string('MapTasker: view limit reached, stopping output to file:  output')}={len(PrimeItems.output_lines.output_lines)}, {translate_string('hardstop view limit')}={PrimeItems.view_limit}"
+            if num > state.view_limit:
+                msg_text = f"{translate_string('MapTasker: view limit reached, stopping output to file:  output')}={len(state.output_lines.output_lines)}, {translate_string('hardstop view limit')}={state.view_limit}"
                 # print(msg_text)
                 # Breaking out mid-loop can leave something the last item opened still
                 # unclosed (a <span> deliberately left open by format_html(end_span=False)
@@ -244,7 +244,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
                     "</body></html>",
                 )
                 logger.info(msg_text)
-                PrimeItems.view_limit_msg = (
+                state.view_limit_msg = (
                     msg_text  # Read by the Map view's message field (see guiwins_views.NiceGuiTextView).
                 )
                 break  # Don't output more than the view limit
@@ -253,22 +253,22 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
             # if so, output_directory will create it's own list of output lines.
             if "maptasker_directory" in item:
                 # Temporarily save our output lines
-                temp_lines_out = PrimeItems.output_lines.output_lines
+                temp_lines_out = state.output_lines.output_lines
                 # Work out which of the directory's targets the view limit drops before
                 # swapping the output queue out: an entry whose target never makes it
                 # into the file is listed as plain text rather than as a hyperlink that
                 # would take the user nowhere.
-                dropped_anchors = unreachable_anchors(temp_lines_out, PrimeItems.view_limit)
-                PrimeItems.output_lines.output_lines = []  # Create a new output queue
+                dropped_anchors = unreachable_anchors(temp_lines_out, state.view_limit)
+                state.output_lines.output_lines = []  # Create a new output queue
 
                 # Do the directory output
                 if config.directory:
-                    _output_directory(config, dropped_anchors, state=PrimeItems)
+                    _output_directory(config, dropped_anchors, state=state)
                 # Output the directory line
-                for output_line in PrimeItems.output_lines.output_lines:
+                for output_line in state.output_lines.output_lines:
                     map_file.write(output_line)
                 # Restore our regular output
-                PrimeItems.output_lines.output_lines = temp_lines_out
+                state.output_lines.output_lines = temp_lines_out
                 continue
 
             # Format the output line
@@ -298,38 +298,38 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
 
 
 # Output grand totals
-def output_grand_totals() -> None:
+def output_grand_totals(state: RunState) -> None:
     """
     Output the grand totals of Projects/Profiles/Tasks/Scenes
     """
-    grand_total_projects = PrimeItems.grand_totals["projects"]
-    if PrimeItems.program_arguments.single_project_name or PrimeItems.program_arguments.single_profile_name:
+    grand_total_projects = state.grand_totals["projects"]
+    if state.program_arguments.single_project_name or state.program_arguments.single_profile_name:
         grand_total_projects = 1
-    grand_total_profiles = PrimeItems.grand_totals["profiles"]
-    if PrimeItems.program_arguments.single_profile_name:
+    grand_total_profiles = state.grand_totals["profiles"]
+    if state.program_arguments.single_profile_name:
         grand_total_profiles = 1
-    grand_total_unnamed_tasks = PrimeItems.grand_totals["unnamed_tasks"]
-    grand_total_named_tasks = PrimeItems.grand_totals["named_tasks"]
-    if PrimeItems.program_arguments.single_task_name:
+    grand_total_unnamed_tasks = state.grand_totals["unnamed_tasks"]
+    grand_total_named_tasks = state.grand_totals["named_tasks"]
+    if state.program_arguments.single_task_name:
         grand_total_named_tasks = 1
         grand_total_profiles = 1
-    grand_total_scenes = PrimeItems.grand_totals["scenes"]
+    grand_total_scenes = state.grand_totals["scenes"]
     # A single Scene: the one Scene, under its one owning Project, and no Profiles.
     # (An orphan Scene -- see projects.output_orphan_single_scene -- has no Project.)
-    if PrimeItems.program_arguments.single_scene_name:
+    if state.program_arguments.single_scene_name:
         grand_total_projects = min(grand_total_projects, 1)
         grand_total_profiles = 0
         grand_total_scenes = 1
     # If doing a directory, then add id to hyperlink to.
-    if PrimeItems.program_arguments.directory:
-        PrimeItems.output_lines.add_line_to_output(
+    if state.program_arguments.directory:
+        state.output_lines.add_line_to_output(
             5,
             '<a id="grand_totals"></a>',
             FormatLine.dont_format_line,
         )
 
     total_number = "Total number of "
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         1,
         (
             f"<br><hr>{NORMAL_TAB}Tasker Displayed Totals...<br>{NORMAL_TAB}{total_number}Projects: {grand_total_projects}<br>{NORMAL_TAB}{total_number}Profiles:  {grand_total_profiles}<br>{NORMAL_TAB}{total_number}Tasks:"
@@ -339,11 +339,11 @@ def output_grand_totals() -> None:
         ),
         ["", "trailing_comments_color", FormatLine.add_end_span],
     )
-    PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
 # Display the output in the default web browser,
-def display_output(my_output_dir: str, my_file_name: str) -> None:
+def display_output(my_output_dir: str, my_file_name: str, state: RunState) -> None:
     """
     Display the output in the default web browser,
     Args:
@@ -354,10 +354,10 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
 
     # Only invoke the browser if not doing a Map View from the GUI, and if someone is there to
     # look at it: a command-line report or export (headless) has nobody to show it to.
-    if PrimeItems.mygui is None and not PrimeItems.headless and not PrimeItems.program_arguments.ai_analyze:
+    if state.mygui is None and not state.headless and not state.program_arguments.ai_analyze:
         try:
             webbrowser.open(
-                f"file:{PrimeItems.slash * 2}{my_output_dir}{my_file_name}",
+                f"file:{state.slash * 2}{my_output_dir}{my_file_name}",
                 new=2,
             )
         except webbrowser.Error:
@@ -368,7 +368,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
 
 
 # We've displayed Projects etc.. Now display the back matter
-def display_back_matter() -> None:
+def display_back_matter(state: RunState) -> None:
     # Display global variables
     """
     Displays back matter and finalizes HTML output
@@ -393,39 +393,36 @@ def display_back_matter() -> None:
         - Clean up memory
         - Display output file in browser
     """
-    program_arguments = PrimeItems.program_arguments
+    program_arguments = state.program_arguments
     if program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
-        output_variables("Unreferenced Global Variables", "", config=current_config(), state=PrimeItems)
+        output_variables("Unreferenced Global Variables", "", config=current_config(state), state=state)
 
     # Get the output directory/folder path -- see outdir.  (dirout's output_directory,
     # imported above, is the Map's hyperlink directory and has nothing to do with this.)
     my_output_dir = str(outdir.output_directory())
 
     # Output the grand total (Projects/Profiles/Tasks/Scenes)
-    output_grand_totals()
+    output_grand_totals(state=state)
 
     # If doing a single named item and the item was not found, clean up and exit
-    missing_label, missing_name = get_single_item_not_found()
+    missing_label, missing_name = get_single_item_not_found(state=state)
     if missing_label:
         if program_arguments.guiview:
-            PrimeItems.error_code = 1
-            PrimeItems.error_msg = translate_string("Error: Single item specified but not found!  Try again.")
+            state.error_code = 1
+            state.error_msg = translate_string("Error: Single item specified but not found!  Try again.")
             return
-        clean_up_and_exit(missing_label, missing_name)
+        clean_up_and_exit(missing_label, missing_name, state=state)
 
     # Display warning for Task with too many actions
-    if (
-        PrimeItems.program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_tasks
-        and PrimeItems.task_action_warnings
-    ):
-        display_task_warnings(config=current_config(), state=PrimeItems)
+    if state.program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_tasks and state.task_action_warnings:
+        display_task_warnings(config=current_config(state), state=state)
 
     # Display the program caveats
-    display_caveats(current_config(), state=PrimeItems)
+    display_caveats(current_config(state), state=state)
 
     # Finalize the HTML
     final_msg = "\n</body>\n</html>"
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         5,
         final_msg,
         FormatLine.dont_format_line,
@@ -438,13 +435,13 @@ def display_back_matter() -> None:
             f"{Colors.Yellow}MapTasker canceled.  An error occurred.  Program canceled.",
             0,
         )
-        clean_up_memory()
+        clean_up_memory(state=state)
         exit_program(2)
 
     # Finally, write out all of the output that is queued up.
-    my_file_name = f"{PrimeItems.slash}MapTasker.html"
-    PrimeItems.map_output_line_count = len(PrimeItems.output_lines.output_lines)
-    write_out_the_file(my_output_dir, my_file_name)
+    my_file_name = f"{state.slash}MapTasker.html"
+    state.map_output_line_count = len(state.output_lines.output_lines)
+    write_out_the_file(my_output_dir, my_file_name, state=state)
 
     # Where the Map landed, for build_html to take its note of afterwards.  Recorded here
     # rather than acted on here because the note has to be taken once the run is finished
@@ -453,7 +450,7 @@ def display_back_matter() -> None:
     _map_just_written.value = f"{my_output_dir}{my_file_name}"
 
     # Display the final results in the default web browser
-    display_output(my_output_dir, my_file_name)
+    display_output(my_output_dir, my_file_name, state=state)
 
 
 # If not doing a single named item, then output unique Project/Profile situations
@@ -462,6 +459,7 @@ def process_unique_situations(
     projects_without_profiles: list,
     found_tasks: list,
     config: RunConfig,
+    state: RunState,
 ) -> None:
     # Don't do anything if we are looking for a specific named item
     """
@@ -478,16 +476,14 @@ def process_unique_situations(
         - Get and output tasks not called by any profile
         - Get and output projects that don't have any tasks or profiles
     """
-    if is_single_item_found():
+    if is_single_item_found(state=state):
         return
 
     # Get and output all Tasks not called by any Profile
-    special_tasks.process_tasks_not_called_by_profile(projects_with_no_tasks, found_tasks, config, state=PrimeItems)
+    special_tasks.process_tasks_not_called_by_profile(projects_with_no_tasks, found_tasks, config, state=state)
 
     # Get and output all Projects that don't have any Tasks or Profiles
-    special_tasks.process_missing_tasks_and_profiles(
-        projects_with_no_tasks, projects_without_profiles, state=PrimeItems
-    )
+    special_tasks.process_missing_tasks_and_profiles(projects_with_no_tasks, projects_without_profiles, state=state)
     return
 
 
@@ -495,6 +491,7 @@ def process_unique_situations(
 def clean_up_and_exit(
     name: str,
     profile_or_task_name: str,
+    state: RunState,
 ) -> None:
     """
     Cleanup memory and let user know there was no match found for Task/Profile/Project
@@ -503,40 +500,40 @@ def clean_up_and_exit(
     """
 
     # Clear our current list of output lines.
-    PrimeItems.output_lines.output_lines.clear()
+    state.output_lines.output_lines.clear()
     # Spit out the error
     error_handler(f'{name} "{profile_or_task_name}" not found!!', 5)
     # Clean up all memory
-    clean_up_memory()
+    clean_up_memory(state=state)
     # Exit with code "item" not found.
     exit_program(5)
 
 
 # Clean up our memory hogs
-def clean_up_memory() -> None:
+def clean_up_memory(state: RunState) -> None:
     """
     Clean up our memory hogs
         :return:
     """
-    if PrimeItems.xml_tree is not None:
-        for elem in PrimeItems.xml_tree.iter():
+    if state.xml_tree is not None:
+        for elem in state.xml_tree.iter():
             elem.clear()
-    clear_tasker_data(state=PrimeItems)
+    clear_tasker_data(state=state)
     # The directory and the rest of the run's small state go with the reset below.
-    if PrimeItems.xml_root is not None:
-        PrimeItems.xml_root.clear()
-    if PrimeItems.output_lines is not None:
-        PrimeItems.output_lines.output_lines.clear()
+    if state.xml_root is not None:
+        state.xml_root.clear()
+    if state.output_lines is not None:
+        state.output_lines.output_lines.clear()
     # Reset all of our primasry items
-    PrimeItemsReset()
-    PrimeItems.program_arguments = initialize_runtime_arguments()
+    PrimeItemsReset(state=state)
+    state.program_arguments = initialize_runtime_arguments()
 
     # Tell python to collect the garbage
     gc.collect()
 
 
 # Check if doing a single item and if not found, then clean up and exit
-def check_single_item() -> None:
+def check_single_item(state: RunState) -> None:
     """
     Check if doing a single container item (Project or Profile) and if it was not found,
     then clean up and exit.
@@ -555,15 +552,15 @@ def check_single_item() -> None:
         ("single_project_name", "single_project_found", "Project"),
         ("single_profile_name", "single_profile_found", "Profile"),
     ):
-        name = PrimeItems.program_arguments[name_key]
-        if not name or PrimeItems.found_named_items[found_key]:
+        name = state.program_arguments[name_key]
+        if not name or state.found_named_items[found_key]:
             continue
-        if PrimeItems.program_arguments.gui:
-            PrimeItems.error_code = 1
-            PrimeItems.error_msg = f"{label} {name} was not found."
+        if state.program_arguments.gui:
+            state.error_code = 1
+            state.error_msg = f"{label} {name} was not found."
             return
         rutroh_error(f"The {label} '{name}' was not found.")
-        clean_up_and_exit(label, name)
+        clean_up_and_exit(label, name, state=state)
 
 
 # Do the cleanup stuff: check for single name, do unique situations, and display
@@ -572,6 +569,7 @@ def final_processing(
     found_tasks: list,
     projects_without_profiles: list,
     projects_with_no_tasks: list,
+    state: RunState,
 ) -> None:
     # Store single item details in local variables
     """
@@ -592,19 +590,14 @@ def final_processing(
         - Display back matter after processing projects, profiles, tasks, scenes
     """
     # See if we are only looking for a single Project/Profile and it wasn't found
-    check_single_item()
+    check_single_item(state=state)
 
     # Turn off the directory temporarily so we don't get duplicates, and put the setting
     # back afterwards for the final directory of Totals.
-    with overridden_config(directory=False) as config:
+    with overridden_config(state=state, directory=False) as config:
         # Get the list of Tasks not called by a Profile,
         # and a list of Projects without Profiles/Tasks
-        process_unique_situations(
-            projects_with_no_tasks,
-            projects_without_profiles,
-            found_tasks,
-            config,
-        )
+        process_unique_situations(projects_with_no_tasks, projects_without_profiles, found_tasks, config, state=state)
 
     # Display the trailer stuff, after Projects/Profiles/Tasks/Scenes and print the output.
-    display_back_matter()
+    display_back_matter(state=state)

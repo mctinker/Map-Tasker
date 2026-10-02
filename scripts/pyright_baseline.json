@@ -206,10 +206,6 @@
   "maptasker/src/kidapp.py": {
     "reportOptionalMemberAccess": 3
   },
-  "maptasker/src/lineout.py": {
-    "reportArgumentType": 2,
-    "reportReturnType": 2
-  },
   "maptasker/src/mapai.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 13,

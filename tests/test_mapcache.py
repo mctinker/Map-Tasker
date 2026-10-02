@@ -280,7 +280,7 @@ def _build_a_map(tmp_path) -> tuple[float, int]:
 
     PrimeItems.output_lines.output_lines.clear()
     output_the_front_matter(current_config(), state=PrimeItems)
-    build_html("")
+    build_html("", state=PrimeItems)
     written = tmp_path / "MapTasker.html"
     return (written.stat().st_mtime_ns, PrimeItems.map_output_line_count)
 

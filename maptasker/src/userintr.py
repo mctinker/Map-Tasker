@@ -1526,7 +1526,7 @@ class MapTaskerEventHandlers(
 
                 try:
                     # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely
-                    await run.io_bound(build_html, "")
+                    await run.io_bound(build_html, "", state=PrimeItems)
                 except MapTaskerError as e:
                     # Intercept background termination codes gracefully.  This was
                     # "except SystemExit" and had to be: build_html and everything under it
@@ -1596,7 +1596,7 @@ class MapTaskerEventHandlers(
                     )
 
                     # Offload the configuration outliner to an IO-bound thread safely
-                    await run.io_bound(outline_the_configuration)
+                    await run.io_bound(outline_the_configuration, state=PrimeItems)
 
                     # Check if an entry-point processing failure occurred (e.g. check_limit() in
                     # diagram.py tripping the view_limit) during outline_the_configuration(). Unlike

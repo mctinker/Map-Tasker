@@ -560,7 +560,7 @@ def current_scope(state: RunState) -> Scope:
     rather than a full one -- nothing matches, which is the honest answer, where falling
     back to everything would quietly widen a Replace to the whole configuration.
     """
-    label, name = get_single_item_requested()
+    label, name = get_single_item_requested(state=state)
     if not label:
         return Scope()
 
