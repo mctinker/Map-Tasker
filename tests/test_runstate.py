@@ -6,7 +6,8 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src import diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
+from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
+from maptasker.src import property as prop
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapjump import PROFILE, TASK, Target
 from maptasker.src.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, RunState, reset_attributes
@@ -170,4 +171,25 @@ def test_a_twisty_is_opened_and_closed_on_the_state_it_is_given() -> None:
 
     twisty.remove_twisty(state=state)
     assert state.output_lines.output_lines[-1] == "</details></span><br>\n"
+    assert (len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0) == before
+
+
+def test_the_caveats_are_written_into_the_state_it_is_given() -> None:
+    state = _loaded_state()
+    before = len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0
+
+    caveats.display_caveats(current_config(), state=state)
+
+    assert state.output_lines.output_lines
+    assert (len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0) == before
+
+
+def test_a_profiles_properties_are_written_into_the_state_it_is_given() -> None:
+    state = _loaded_state()
+    profile = ET.fromstring('<Profile sr="prof5"><id>5</id><flags>12</flags><nme>Morning</nme></Profile>')  # noqa: S314
+    before = len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0
+
+    prop.get_properties("Profile:", profile, config=current_config(), state=state)
+
+    assert state.output_lines.output_lines
     assert (len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0) == before

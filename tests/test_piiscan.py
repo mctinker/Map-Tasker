@@ -571,7 +571,7 @@ def test_the_map_writes_the_properties_anchor_a_finding_points_at(property_probl
     PrimeItems.output_lines = LineOut()
     PrimeItems.emitted_anchors = set()
 
-    get_properties("Project:", PrimeItems.tasker_root_elements["all_projects"]["Server"]["xml"], finding.where)
+    get_properties("Project:", PrimeItems.tasker_root_elements["all_projects"]["Server"]["xml"], finding.where, config=current_config(), state=PrimeItems)
     output = "".join(PrimeItems.output_lines.output_lines)
 
     assert f'<a id="{finding.where.anchor}" class="mt-anchor"' in output

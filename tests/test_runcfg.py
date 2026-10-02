@@ -348,7 +348,7 @@ def test_display_caveats_follows_its_config(
         PrimeItems.program_arguments = initialize_runtime_arguments()
         PrimeItems.output_lines = LineOut()
 
-        display_caveats(RunConfig(display_detail_level=detail_level, preferences=preferences))
+        display_caveats(RunConfig(display_detail_level=detail_level, preferences=preferences), state=PrimeItems)
         written = "".join(PrimeItems.output_lines.output_lines)
 
         for caveat in expected_caveats:

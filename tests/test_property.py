@@ -28,6 +28,8 @@ import xml.etree.ElementTree as ET
 import pytest
 from maptasker.src import objprops
 from maptasker.src import property as prop
+from maptasker.src.primitem import PrimeItems
+from maptasker.src.runcfg import current_config
 
 # The Atest2 export, trimmed to its properties and one condition: a repeat count of 5 and
 # <flags>12</flags>, which is Delete After Disable (mask 4) plus the Ignore Settings bit
@@ -168,7 +170,7 @@ def test_the_map_line_carries_them(captured_output) -> None:
     """End to end: what a Profile's "Profile: Properties..." line actually says.  <flags> 53
     is 1 + 4 + 16 + 32: every bit set but mask 8, whose absence is what makes Restore Settings
     worth reporting."""
-    prop.get_properties("Profile:", _profile(flags="53"))
+    prop.get_properties("Profile:", _profile(flags="53"), config=current_config(), state=PrimeItems)
 
     assert len(captured_output) == 1
     line = captured_output[0]
@@ -192,7 +194,7 @@ def test_the_limit_tag_is_reported_as_the_disabled_marker_it_is(captured_output)
     """
     profile = _profile(flags="8")
     ET.SubElement(profile, "ProfileVariable")
-    prop.get_properties("Profile:", profile)
+    prop.get_properties("Profile:", profile, config=current_config(), state=PrimeItems)
 
     assert "Disabled:true" in captured_output[0]
     assert "Limit Repeats" not in captured_output[0]
@@ -205,7 +207,7 @@ def test_a_task_is_never_asked_for_a_profiles_settings(captured_output) -> None:
     task = ET.fromstring(  # noqa: S314  (fixture text, defined in this file)
         "<Task sr='task1'><nme>T</nme><flags>13</flags><stayawake>true</stayawake></Task>",
     )
-    prop.get_properties("Task:", task)
+    prop.get_properties("Task:", task, config=current_config(), state=PrimeItems)
 
     assert len(captured_output) == 1
     assert "Keep Device Awake:true" in captured_output[0]

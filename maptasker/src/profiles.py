@@ -548,7 +548,9 @@ def do_profile(
 
     # Process Profile Properties
     if config.display_detail_level > 2:
-        get_properties("Profile:", profile, Target(PROFILE, profile.attrib.get("sr", "")[4:]))
+        get_properties(
+            "Profile:", profile, Target(PROFILE, profile.attrib.get("sr", "")[4:]), config=config, state=state
+        )
 
     # Process any <Share> information from TaskerNet.  The Profile's identity comes from
     # its "sr" attribute the same way get_profile_name reads it -- see the anchor written

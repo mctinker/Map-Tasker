@@ -421,7 +421,7 @@ def display_back_matter() -> None:
         display_task_warnings(config=current_config(), state=PrimeItems)
 
     # Display the program caveats
-    display_caveats(current_config())
+    display_caveats(current_config(), state=PrimeItems)
 
     # Finalize the HTML
     final_msg = "\n</body>\n</html>"

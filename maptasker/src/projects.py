@@ -717,7 +717,7 @@ def get_profile_details_and_output(
 
     # Process Project Properties
     if config.display_detail_level > 2:
-        get_properties("Project:", project, Target(PROJECT, project_name, project_name))
+        get_properties("Project:", project, Target(PROJECT, project_name, project_name), config=config, state=state)
 
     # Process TaskerNet details if requested
     if config.taskernet:

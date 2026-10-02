@@ -11,7 +11,8 @@ from xml.etree.ElementTree import Element
 from maptasker.src import objprops
 from maptasker.src.error import rutroh_error
 from maptasker.src.mapjump import PROPERTIES_PART, Target, anchor_html
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
+from maptasker.src.runcfg import RunConfig
 from maptasker.src.sysconst import PROPERTIES_TAG, FormatLine
 
 # The Profile-only settings this module reports beyond <cldm>, named by their
@@ -243,7 +244,9 @@ VARIABLE_TAG = "ProfileVariable"
 
 # Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out.
-def get_properties(property_tag: str, header: Element, where: Target | None = None) -> None:
+def get_properties(
+    property_tag: str, header: Element, where: Target | None = None, *, config: RunConfig, state: RunState
+) -> None:
     """
 
     Args:
@@ -251,6 +254,7 @@ def get_properties(property_tag: str, header: Element, where: Target | None = No
         header (Element): xml header to Project/Profile/Task
         where (Target): the object these properties belong to, so the line can be marked as
             somewhere a report finding can jump to.  None leaves it unmarked.
+        config (RunConfig): the run's settings (pretty)
 
     Returns:
         nothing
@@ -323,7 +327,7 @@ def get_properties(property_tag: str, header: Element, where: Target | None = No
     # this used to do) keeps a comma belonging to the text itself -- one inside a comment or a
     # variable's value, or the one in "Structured Variable (JSON, etc.)" -- from being turned
     # into a line break.
-    if PrimeItems.program_arguments.pretty:
+    if config.pretty:
         blank = "&nbsp;"
         number_of_blanks = 20 if property_tag == "Task:" else 23
         separator = f"<br>{blank * number_of_blanks}"
@@ -334,12 +338,12 @@ def get_properties(property_tag: str, header: Element, where: Target | None = No
     # lands here rather than on the object's own line -- which, on a Project with several
     # Profiles, is a long way above.  There is nothing finer to aim at: every property of
     # an object goes out as ONE line, which is what the separator above is joining.
-    if where is not None and (anchor := anchor_html(where.at_part(PROPERTIES_PART), state=PrimeItems)):
-        PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
+    if where is not None and (anchor := anchor_html(where.at_part(PROPERTIES_PART), state=state)):
+        state.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     # Ok, output the properties as a single line.
     out_string = f"<br>{property_tag}{PROPERTIES_TAG}" + separator.join(properties) + "<br>"
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         2,
         out_string,
         ["", css_attribute, FormatLine.add_end_span],

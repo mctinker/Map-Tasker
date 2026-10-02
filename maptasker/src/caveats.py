@@ -13,14 +13,14 @@ from typing import TYPE_CHECKING
 
 from maptasker.src.format import format_html
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 
 if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
     from maptasker.src.runcfg import RunConfig
 
 
-def display_caveats(config: RunConfig) -> None:
+def display_caveats(config: RunConfig, state: RunState) -> None:
     """
     Output the program caveats at the very end
     Inputs:
@@ -79,11 +79,11 @@ def display_caveats(config: RunConfig) -> None:
     # caveats.append(f"{cav11} https://www.ffmpeg.org/download.html\n")
 
     # Start the output
-    PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)
+    state.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)
 
     # Output all caveats
     for caveat in caveats:
-        PrimeItems.output_lines.add_line_to_output(
+        state.output_lines.add_line_to_output(
             0,
             caveat,
             ["", "trailing_comments_color", FormatLine.add_end_span],

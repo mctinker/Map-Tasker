@@ -505,7 +505,7 @@ def format_item(
         and config.display_detail_level > 2
         and not state.displaying_named_tasks_not_in_profile
     ):
-        get_properties("Task:", the_task, Target(TASK, the_task.attrib.get("sr", "")[4:]))
+        get_properties("Task:", the_task, Target(TASK, the_task.attrib.get("sr", "")[4:]), config=config, state=state)
 
 
 # Process Given a Task/Scene, process it.
