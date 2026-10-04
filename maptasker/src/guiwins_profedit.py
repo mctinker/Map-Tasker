@@ -772,7 +772,7 @@ def build_add_profile_dialog(
     shows up in the Project/Profile/Task pulldowns, Map, Diagram, or Tree
     views if some Project's <pids> element lists its id (see
     userintr.build_the_tree/projects.process_project_profiles, both driven by
-    getids.get_ids -- not by the all_profiles lookup table register_new_profile
+    elemvals.get_ids -- not by the all_profiles lookup table register_new_profile
     populates), which is why a Project is required at all.
     """
     field_refs: dict = {"target_project_name": target_project_name}

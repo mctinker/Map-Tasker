@@ -51,8 +51,8 @@ from maptasker.src.diagutil import (
     print_box,
     remove_icon,
 )
+from maptasker.src.elemvals import get_ids
 from maptasker.src.error import rutroh_error
-from maptasker.src.getids import get_ids
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Target
 
 # Avoid circular import error: guiwins has the proper import statement for configure_progress_bar,

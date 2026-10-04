@@ -1078,7 +1078,7 @@ def _inline_warnings(
 # the two halves of that already, from the add and the delete side.
 #
 # What makes it worth a preview anyway is what a Project's membership decides: it is
-# what the Map, the Diagram, the Tree and every pulldown walk (getids.get_ids), and it
+# what the Map, the Diagram, the Tree and every pulldown walk (elemvals.get_ids), and it
 # is what a single-Project export writes.  A Task quietly filed under the wrong Project
 # is a Task the user cannot find and an export that does not carry it.
 # ##################################################################################

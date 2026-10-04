@@ -13,8 +13,8 @@ import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.actione as action_evaluate
 from maptasker.src import console
+from maptasker.src.elemvals import get_ids
 from maptasker.src.error import error_handler, rutroh_error
-from maptasker.src.getids import get_ids
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
     UNNAMED_ITEM,

@@ -20,8 +20,8 @@ from maptasker.src.aiutils import (
     get_openai_models,
 )
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src.elemvals import get_ids
 from maptasker.src.error import rutroh_error
-from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guistate import gui_settings, remember_setting
 from maptasker.src.guiutil2 import get_changelog_file

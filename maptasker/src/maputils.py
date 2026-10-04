@@ -29,9 +29,9 @@ from zoneinfo import (
 import requests
 
 from maptasker.src import caches, clock, console
+from maptasker.src.elemvals import get_ids
 from maptasker.src.error import rutroh_error
 from maptasker.src.format import format_html
-from maptasker.src.getids import get_ids
 from maptasker.src.mapjump import TASK, Target
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import clear_single_items

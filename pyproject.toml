@@ -36,7 +36,7 @@ dependencies = [
     'nicegui>=3.17.1',
     'packaging>=26.3',
     'pillow>=12.3.0',
-    "platformdirs>=4.3",
+    "platformdirs>=4.12.3",
     'requests>=2.34.2',
     'tomli_w>=1.2.0',
 ]
@@ -50,7 +50,7 @@ ai = [
     'google-genai>=1.0.0',
     'ollama>=0.6.2',
     'openai>=1.0.0',
-    'psutil>=5.9.0',
+    'psutil>=7.2.2',
 ]
 
 [project.urls]
@@ -120,7 +120,7 @@ dev = [
     "pyright[nodejs]>=1.1.414",
     "pytest>=9.1.1",
     "rich>=15.0.0",
-    "ruff>=0.16.5",
+    "ruff>=0.16.10",
     "vulture>=2.16",
 ]
 
@@ -307,7 +307,6 @@ max-complexity = 20
 'maptasker/src/guiwins_search.py' = ['SLF001']
 'maptasker/src/guiwins_taskedit.py' = ['C901']
 'maptasker/src/guiwins_views.py' = ['C901', 'ISC004', 'SLF001']
-'maptasker/src/kidapp.py' = ['D100']
 'maptasker/src/mapai.py' = ['F811']
 'maptasker/src/mapit.py' = ['ANN001', 'ARG001']
 'maptasker/src/mapjump.py' = ['I001']
@@ -328,7 +327,6 @@ max-complexity = 20
 'maptasker/src/shelsort.py' = ['D100']
 'maptasker/src/taskedit.py' = ['ANN001', 'ARG001', 'SIM108', 'TC003']
 'maptasker/src/taskerd.py' = ['PLC0415']
-'maptasker/src/taskflag.py' = ['D100']
 # userintr.py's two entries moved with the Android handlers they belong to (see the guiwins
 # note above): userintr.py itself no longer violates either rule, so it has no line.
 'maptasker/src/userintr_android.py' = ['F841', 'RUF059']
@@ -464,9 +462,9 @@ layers = [
     bldargs : bldbndle : bundle : caveats : clip : clock :
     colors : colrmode : condition : condjoin : config : console :
     cria : debug : deprecate : deviceinv : diagcnst : diagintr :
-    diagram : diagutil : diffload : dirout : editcommon : error :
-    format : frontmtr : getbakup : getids : getputer : globalvr :
-    guiutil2 : healthck : impact : initparg : kidapp : lineout : livevars :
+    diagram : diagutil : diffload : dirout : editcommon : elemvals : error :
+    format : frontmtr : getbakup : getputer : globalvr :
+    guiutil2 : healthck : impact : initparg : lineout : livevars :
     mapask : mapcache : mapexport : mapfind : mapfix : mapfonts :
     mapjump : mappdf : maprefac : maprestore : mapswap : maputil2 :
     maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
@@ -474,7 +472,7 @@ layers = [
     profedit : profiles : proflint : proginit : projects : projedit :
     property : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenemodel : scenes : servicec :
     sessundo : share : shelsort : sysconst : taskactn : taskedit :
-    taskerd : taskertables : taskervars : taskflag : taskflow : tasks : taskuniq :
+    taskerd : taskertables : taskervars : taskflow : tasks : taskuniq :
     timecomp : timeline : translator : twisty : userhelp : valcodes : varxref :
     xmldata : xmldiff
     """,

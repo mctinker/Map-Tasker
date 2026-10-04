@@ -33,8 +33,8 @@ from xml.etree.ElementTree import Element
 import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.diagram import network_map
+from maptasker.src.elemvals import get_ids
 from maptasker.src.format import format_html
-from maptasker.src.getids import get_ids
 from maptasker.src.maputils import find_owning_project_for_scene
 from maptasker.src.primitem import RunState
 from maptasker.src.profiles import get_profile_tasks

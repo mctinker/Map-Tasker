@@ -108,6 +108,9 @@
   "maptasker/src/editcommon.py": {
     "reportReturnType": 1
   },
+  "maptasker/src/elemvals.py": {
+    "reportOptionalMemberAccess": 5
+  },
   "maptasker/src/format.py": {
     "reportAttributeAccessIssue": 5,
     "reportReturnType": 1
@@ -123,9 +126,6 @@
   "maptasker/src/getfile.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 2
-  },
-  "maptasker/src/getids.py": {
-    "reportOptionalMemberAccess": 2
   },
   "maptasker/src/getputer.py": {
     "reportArgumentType": 3,
@@ -209,9 +209,6 @@
     "reportArgumentType": 53,
     "reportAttributeAccessIssue": 1,
     "reportReturnType": 1
-  },
-  "maptasker/src/kidapp.py": {
-    "reportOptionalMemberAccess": 3
   },
   "maptasker/src/mapai.py": {
     "reportAttributeAccessIssue": 13,

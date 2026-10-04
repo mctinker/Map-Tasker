@@ -9,7 +9,7 @@ profedit.add_profile_to_project/add_task_to_project) -- Add/Rename/Enable apply
 straight to the live in-memory backup, same as every other in-app edit.
 
 Delete needs its own care: a Project's <pids>/<tids> is the only place that
-lists which Profiles/Tasks belong to it (getids.get_ids, and every view --
+lists which Profiles/Tasks belong to it (elemvals.get_ids, and every view --
 Map/Diagram/Tree -- walk exactly that to find them). delete_project lets the
 caller choose between deleting the Project's contents too (cascade) or
 keeping them by moving them into Tasker's default "Base" project (see

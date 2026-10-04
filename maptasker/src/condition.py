@@ -14,10 +14,10 @@ from maptasker.src.actargs import extract_condition
 # action_codes: Master dictionary of Task action and Profile condition codes
 from maptasker.src.actionc import action_codes
 from maptasker.src.debug import not_in_dictionary
+from maptasker.src.elemvals import get_priority
 from maptasker.src.objprops import APP_FLAG_NAMES, APP_MATCH_FOREGROUND_APP_BIT, describe_flags, flag_bits
 from maptasker.src.primitem import RunState
 from maptasker.src.sysconst import logger
-from maptasker.src.taskflag import get_priority
 from maptasker.src.tasks import reformat_html
 
 space = "&nbsp;"

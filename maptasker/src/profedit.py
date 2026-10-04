@@ -1201,7 +1201,7 @@ def add_profile_to_project(edited_profile: EditableProfile, project_name: str, s
     """Attaches a newly-registered Profile to a Project by appending its id to
     that Project's <pids> element -- the actual mechanism Tasker (and every
     view this app generates) uses to know which Profiles belong to which
-    Project: getids.get_ids reads exactly this element, and both
+    Project: elemvals.get_ids reads exactly this element, and both
     userintr.build_the_tree (the GUI's Project/Profile/Task pulldowns) and
     projects.process_project_profiles (Map/Diagram/Tree output) call it the
     same way. Without this, register_new_profile alone leaves a Profile
@@ -1303,7 +1303,7 @@ def delete_profile(profile_name: str, state: RunState) -> list[str]:
     both), and unlink it from whichever Project's <pids> lists it. That last one
     is what actually removes it from the GUI pulldowns, Map, Diagram and Tree
     views, none of which read the lookup tables directly -- they walk <pids> via
-    getids.get_ids (see add_profile_to_project's docstring, the mirror image of
+    elemvals.get_ids (see add_profile_to_project's docstring, the mirror image of
     this).
 
     Scans every Project's <pids> rather than assuming a single owner: nothing in

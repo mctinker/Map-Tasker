@@ -11,10 +11,10 @@ MIT License   Refer to https://opensource.org/license/mit
 # MIT License   Refer to https://opensource.org/license/mit                            #
 from xml.etree.ElementTree import Element
 
-import maptasker.src.taskflag as task_flags
+import maptasker.src.elemvals as task_flags
 from maptasker.src.dirout import add_directory_item
+from maptasker.src.elemvals import get_kid_app
 from maptasker.src.format import build_tooltip_span, format_html
-from maptasker.src.kidapp import get_kid_app
 from maptasker.src.mapjump import SCENE, TASK, Target, anchor_html
 from maptasker.src.maputils import find_owning_project_for_scene, fix_hyperlink_name
 from maptasker.src.nameattr import add_name_attribute

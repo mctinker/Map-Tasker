@@ -12,10 +12,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from maptasker.src.dirout import add_directory_item
+from maptasker.src.elemvals import get_ids, get_kid_app, get_priority
 from maptasker.src.format import build_tooltip_span, build_two_column_tooltip_lines, format_html
-from maptasker.src.getids import get_ids
 from maptasker.src.globalvr import output_variables
-from maptasker.src.kidapp import get_kid_app
 from maptasker.src.mapjump import PROJECT, Target, anchor_html
 from maptasker.src.maputils import find_owning_profile, find_owning_project, find_owning_project_for_scene
 from maptasker.src.nameattr import add_name_attribute
@@ -26,7 +25,6 @@ from maptasker.src.property import get_properties
 from maptasker.src.scenes import process_project_scenes, process_scene_list
 from maptasker.src.share import share
 from maptasker.src.sysconst import DISABLED, NORMAL_TAB, UNNAMED_ITEM, FormatLine
-from maptasker.src.taskflag import get_priority
 from maptasker.src.tasks import get_taskid_from_unnamed_task
 from maptasker.src.twisty import add_twisty, remove_twisty
 

@@ -85,7 +85,7 @@ _MINUTES_IN_DAY = 24 * 60
 _VARIABLE_MARKER = "%"
 
 # <rty> -- what Tasker does when a Task is started again while it is still running.  No
-# <rty> at all is the default, which is the first of these (taskflag.get_collision).
+# <rty> at all is the default, which is the first of these (elemvals.get_collision).
 _COLLISION = {
     "0": "Tasker's default, 'Abort New Task': the second start is dropped, so this Task runs once, not once"
     " for each Profile",

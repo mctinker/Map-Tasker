@@ -33,8 +33,8 @@ from maptasker.src import (
 )
 from maptasker.src.bildhtml import build_html
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
+from maptasker.src.elemvals import get_ids
 from maptasker.src.frontmtr import output_the_front_matter
-from maptasker.src.getids import get_ids
 from maptasker.src.guistate import SELECTION_KEYS, capture_gui_state, held_overrides
 from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.guiutils import (
