@@ -398,8 +398,10 @@ skip_covered = true
 # History: 36 at 37.58% (754 tests) -> 44 at 45.41%, when the XML-parsing core
 # (taskerd/tasks/profiles/projects/scenes/action/actargs) gained direct tests and
 # went from 43% to 75% between them -> 42, recalibrated to CI's environment while
-# tests still skipped without XML/ -> 56 at 57.5% (1847 tests), once they no longer did.
-fail_under = 56
+# tests still skipped without XML/ -> 56 at 57.5% (1847 tests), once they no longer did
+# -> 60 at 62.25% (2300 tests), once the installer, backup fetch, Preferences, Task flags and the
+# Fix, Restore and Impact dialogs had direct tests.  Set about two points under, as before.
+fail_under = 60
 exclude_also = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",
