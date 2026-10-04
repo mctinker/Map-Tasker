@@ -41,7 +41,6 @@ from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
 from maptasker.src.primitem import (
     LOADED_CONFIGURATION_ATTRIBUTES,
-    PrimeItems,
     clear_error,
     initial_tasker_root_elements,
 )
@@ -51,6 +50,8 @@ from maptasker.src.xmldiff import Configuration
 
 if TYPE_CHECKING:
     from datetime import datetime
+
+    from maptasker.src.primitem import RunState
 
 # What get_the_xml_data returns, and what to tell the user about each.  Its own docstring
 # documents these; a bare number in the GUI would tell nobody anything.
@@ -87,35 +88,35 @@ class _Parsed(NamedTuple):
 _FORCED_ARGUMENTS = {"gui": True, "directory": False}
 
 
-def current_configuration() -> Configuration:
+def current_configuration(state: RunState) -> Configuration:
     """The configuration MapTasker has loaded, as one side of a comparison.
 
     Hands over PrimeItems.tasker_root_elements itself rather than a copy.  xmldiff only
     ever reads it, and copying a table holding every element of a large backup to satisfy
     a rule nothing is breaking would be a waste.
     """
-    path = loaded_file_path()
+    path = loaded_file_path(state=state)
     return Configuration(
         path=path or "(currently loaded)",
-        tables=PrimeItems.tasker_root_elements,
-        root=PrimeItems.xml_root,
+        tables=state.tasker_root_elements,
+        root=state.xml_root,
         when=_modified_time(path),
     )
 
 
-def loaded_file_path() -> str:
+def loaded_file_path(state: RunState) -> str:
     """The path of the XML file currently loaded, or "" if there is none.
 
     PrimeItems.file_to_get is sometimes an open file object and sometimes the path as a
     plain string -- the same ambiguity healthck._current_xml_file and
     maputil2.write_full_backup_to_current_file handle, resolved the same way.
     """
-    file_to_get = PrimeItems.file_to_get
+    file_to_get = state.file_to_get
     path = getattr(file_to_get, "name", file_to_get) if file_to_get else ""
     return path if isinstance(path, str) else ""
 
 
-def load_for_comparison(file_path: str) -> tuple[Configuration | None, str]:
+def load_for_comparison(file_path: str, state: RunState) -> tuple[Configuration | None, str]:
     """Parse another XML file into a Configuration, leaving the loaded one alone.
 
     Returns (Configuration, "") on success, or (None, message) on failure -- a message
@@ -126,9 +127,9 @@ def load_for_comparison(file_path: str) -> tuple[Configuration | None, str]:
     if not file_path:
         return None, "No file was chosen to compare against."
 
-    with _parsed_in_isolation(file_path) as parsed:
+    with _parsed_in_isolation(file_path, state=state) as parsed:
         if parsed.return_code != 0:
-            return None, _failure_message(parsed, file_path)
+            return None, _failure_message(parsed, file_path, state=state)
 
         return (
             Configuration(
@@ -141,7 +142,7 @@ def load_for_comparison(file_path: str) -> tuple[Configuration | None, str]:
         )
 
 
-def _failure_message(parsed: _Parsed, file_path: str) -> str:
+def _failure_message(parsed: _Parsed, file_path: str, state: RunState) -> str:
     """Why the file did not load, in terms the user can act on.
 
     Read inside the isolation window, while PrimeItems.error_msg still belongs to this
@@ -150,7 +151,7 @@ def _failure_message(parsed: _Parsed, file_path: str) -> str:
     name = os.path.basename(file_path)
     # taskerd embeds the path it was handed, which was the temporary copy.  Put the name
     # the user chose back in its place, keeping any line/column detail after it.
-    detail = PrimeItems.error_msg or ""
+    detail = state.error_msg or ""
     if parsed.scratch:
         detail = detail.replace(parsed.scratch, file_path)
 
@@ -243,7 +244,7 @@ def _modified_time(file_path: str) -> datetime | None:
 
 
 @contextlib.contextmanager
-def _parsed_in_isolation(file_path: str) -> _Parsed:
+def _parsed_in_isolation(file_path: str, state: RunState) -> _Parsed:
     """Run get_the_xml_data against another file with PrimeItems as its scratch storage.
 
     Yields a _Parsed.  Everything saved here is restored on the way out, including when
@@ -275,20 +276,20 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
     """
     # Everything loading a backup sets, and the file and the error that go with it -- see
     # primitem.LOADED_CONFIGURATION_ATTRIBUTES, which a test keeps in step with taskerd.
-    saved = {name: getattr(PrimeItems, name) for name in LOADED_CONFIGURATION_ATTRIBUTES}
+    saved = {name: getattr(state, name) for name in LOADED_CONFIGURATION_ATTRIBUTES}
     # Restored by content into the SAME dict and the same lists inside it, rather than by
     # replacing it with the copy: anything already holding a reference to
     # PrimeItems.directory_items (or to one of its lists) would otherwise be left writing
     # into an object nothing reads any more.
-    saved_directory = PrimeItems.directory_items
-    saved_directory_contents = copy.deepcopy(PrimeItems.directory_items)
-    saved_arguments = {key: PrimeItems.program_arguments[key] for key in _FORCED_ARGUMENTS}
+    saved_directory = state.directory_items
+    saved_directory_contents = copy.deepcopy(state.directory_items)
+    saved_arguments = {key: state.program_arguments[key] for key in _FORCED_ARGUMENTS}
     # get_the_xml_data clears the session's undo history, because a load normally means a
     # different configuration is open now.  This load does not -- see sessundo.save_history.
     saved_undo_history = sessundo.save_history()
     # _handle_gui_error appends the failure to the running output, which belongs to the
     # map being built for the file the user actually has open.
-    saved_output = list(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines is not None else None
+    saved_output = list(state.output_lines.output_lines) if state.output_lines is not None else None
     saved_error_file = _read_error_file()
 
     scratch = None
@@ -302,18 +303,18 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
         try:
             scratch = _scratch_copy(file_path)
             opened = open(scratch, encoding="utf-8")  # Closed in the finally below.
-            PrimeItems.file_to_get = opened
-            PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-            clear_error()
-            PrimeItems.program_arguments.update(_FORCED_ARGUMENTS)
+            state.file_to_get = opened
+            state.tasker_root_elements = initial_tasker_root_elements()
+            clear_error(state)
+            state.program_arguments.update(_FORCED_ARGUMENTS)
 
             # The file being compared against is not a configuration the user opened, so
             # it does not belong in the timeline history -- without this, every comparison
             # anyone ran would file the other file into the history of the one they are
             # working on.  Only this call can record: it is the load.
             with timeline.suppressed():
-                return_code = get_the_xml_data(state=PrimeItems)
-            parsed = _Parsed(return_code, PrimeItems.tasker_root_elements, PrimeItems.xml_root, scratch)
+                return_code = get_the_xml_data(state=state)
+            parsed = _Parsed(return_code, state.tasker_root_elements, state.xml_root, scratch)
         except Exception as error:
             # Deliberately every exception, not just OSError.  The contract this module
             # owes its caller is that picking a bad file to compare against produces a
@@ -327,7 +328,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
             # an AttributeError from inside the error handler rather than as a return
             # code.  A missing file, an unreadable one and a failed copy arrive here too.
             logger.exception("Comparison file could not be read")
-            PrimeItems.error_msg = str(error)
+            state.error_msg = str(error)
             parsed = _Parsed(_LOAD_FAILED, initial_tasker_root_elements(), None, scratch or "")
 
         yield parsed
@@ -341,17 +342,17 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
                 os.unlink(scratch)
 
         for name, value in saved.items():
-            setattr(PrimeItems, name, value)
+            setattr(state, name, value)
         sessundo.restore_history(saved_undo_history)
-        PrimeItems.directory_items = saved_directory
+        state.directory_items = saved_directory
         for key, value in saved_directory_contents.items():
             if isinstance(saved_directory.get(key), list):
                 saved_directory[key][:] = value
             else:
                 saved_directory[key] = value
-        PrimeItems.program_arguments.update(saved_arguments)
+        state.program_arguments.update(saved_arguments)
         if saved_output is not None:
-            PrimeItems.output_lines.output_lines = saved_output
+            state.output_lines.output_lines = saved_output
         _restore_error_file(saved_error_file)
 
 

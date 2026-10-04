@@ -104,7 +104,7 @@ def test_mapit_all_returns_the_code_it_was_stopped_with(monkeypatch: pytest.Monk
     """The translation back to a process exit status happens once, at the top, and nowhere else."""
     from maptasker.src import mapit  # noqa: PLC0415
 
-    def stop() -> None:
+    def stop(**_kw: object) -> None:
         raise MapTaskerError("stopped", exit_code=code)
 
     monkeypatch.setattr(mapit, "initialize_everything", stop)
@@ -116,7 +116,7 @@ def test_mapit_all_returns_zero_when_nothing_went_wrong(monkeypatch: pytest.Monk
     """The ordinary path still reports success."""
     from maptasker.src import mapit  # noqa: PLC0415
 
-    monkeypatch.setattr(mapit, "initialize_everything", lambda: ([], [], []))
+    monkeypatch.setattr(mapit, "initialize_everything", lambda **_kw: ([], [], []))
     assert mapit.mapit_all() == 0
 
 
@@ -128,7 +128,7 @@ def test_a_real_bug_is_not_turned_into_an_exit_code(monkeypatch: pytest.MonkeyPa
     """
     from maptasker.src import mapit  # noqa: PLC0415
 
-    def boom() -> None:
+    def boom(**_kw: object) -> None:
         raise ValueError("a genuine bug")
 
     monkeypatch.setattr(mapit, "initialize_everything", boom)

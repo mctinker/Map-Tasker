@@ -163,9 +163,7 @@ class SettingsEventHandlers:
         the_view.color_lookup = {}
         # Restore all changes that have been saved
         temp_args, the_view.color_lookup = save_restore_args(
-            temp_args,
-            the_view.color_lookup,
-            to_save=False,
+            temp_args, the_view.color_lookup, to_save=False, state=self.state
         )
 
         # set_defaults has just put the notification duration back to the default, and the
@@ -668,9 +666,7 @@ class SettingsEventHandlers:
         the_view = self.gui
         # Save the arguments in the temporary dictionary
         _, the_view.color_lookup = save_restore_args(
-            gui_settings(the_view),
-            the_view.color_lookup,
-            to_save=True,
+            gui_settings(the_view), the_view.color_lookup, to_save=True, state=self.state
         )
         the_view.display_message_box(translate_string("Settings saved."), "Green")
 
@@ -738,7 +734,7 @@ class SettingsEventHandlers:
             return
         if folder != guiview.output_directory:
             remember_setting(guiview, "output_directory", folder)
-            save_restore_args(self.state.program_arguments, self.state.colors_to_use, to_save=True)
+            save_restore_args(self.state.program_arguments, self.state.colors_to_use, to_save=True, state=self.state)
             guiview.display_message_box(
                 f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory()}",
                 "Green",

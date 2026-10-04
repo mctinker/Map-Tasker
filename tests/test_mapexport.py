@@ -100,7 +100,7 @@ _DIAGRAM_MODEL = {
 @pytest.fixture
 def meta() -> dict:
     """The metadata an export of the Map carries."""
-    return mapexport.metadata(mapexport.MAP)
+    return mapexport.metadata(mapexport.MAP, state=PrimeItems)
 
 
 @pytest.fixture
@@ -253,7 +253,7 @@ def test_map_json(meta: dict) -> None:
 
 def test_map_pdf_bookmarks_every_object(meta: dict, no_system_fonts: None) -> None:
     """One bookmark per Project, Profile, Task, Scene and section, nested as the Map is."""
-    pdf = mapexport.map_pdf(mapexport.map_blocks(_MAP_HTML), meta)
+    pdf = mapexport.map_pdf(mapexport.map_blocks(_MAP_HTML), meta, state=PrimeItems)
     objects = _objects(pdf)
     titles = [_title(body) for body in objects.values() if b"/Parent" in body and b"/Title" in body]
     assert titles == [
@@ -270,12 +270,12 @@ def test_map_pdf_bookmarks_every_object(meta: dict, no_system_fonts: None) -> No
 
 def test_a_table_is_lined_up_only_when_it_fits_the_page(meta: dict, no_system_fonts: None) -> None:
     """Padding that the page then wraps is worse than none, so a wide table goes unpadded."""
-    content = _content(_objects(mapexport.map_pdf(mapexport.map_blocks(_MAP_HTML), meta)))
+    content = _content(_objects(mapexport.map_pdf(mapexport.map_blocks(_MAP_HTML), meta, state=PrimeItems)))
     assert b"(    Name   | Value) Tj" in content
     assert b"(    %Level | 80) Tj" in content
 
     wide = "<table><tr>" + "".join(f"<td>{letter * 40}</td>" for letter in "ABC") + "<td></td></tr></table>"
-    content = _content(_objects(mapexport.map_pdf(mapexport.map_blocks(wide), meta)))
+    content = _content(_objects(mapexport.map_pdf(mapexport.map_blocks(wide), meta, state=PrimeItems)))
     rows = " ".join(row.decode() for row in re.findall(rb"\((.*?)\) Tj", content))
     assert " ".join(rows.split()).endswith(f"{'A' * 40} | {'B' * 40} | {'C' * 40}")
 
@@ -283,7 +283,7 @@ def test_a_table_is_lined_up_only_when_it_fits_the_page(meta: dict, no_system_fo
 def test_the_source_is_named_without_its_folder(monkeypatch: pytest.MonkeyPatch) -> None:
     """An export gets passed around; the folder it was made in is the maker's business."""
     monkeypatch.setattr(PrimeItems, "file_to_get", os.path.join("Users", "someone", "backup.xml"))
-    assert mapexport.metadata(mapexport.MAP)["source"] == "backup.xml"
+    assert mapexport.metadata(mapexport.MAP, state=PrimeItems)["source"] == "backup.xml"
 
 
 # ##################################################################################
@@ -320,7 +320,7 @@ def test_diagram_json(meta: dict) -> None:
 def test_diagram_pdf_is_as_wide_as_the_drawing(meta: dict, no_system_fonts: None) -> None:
     """No line of a Diagram is broken, so the page widens to hold the longest one."""
     lines = [*_DIAGRAM_LINES, "─" * 400]
-    objects = _objects(mapexport.diagram_pdf(lines, _DIAGRAM_MODEL, meta))
+    objects = _objects(mapexport.diagram_pdf(lines, _DIAGRAM_MODEL, meta, state=PrimeItems))
     width = float(re.search(rb"/MediaBox \[0 0 ([\d.]+)", _body_of_type(objects, b"/Page ")).group(1))
     # 400 Courier columns at 7 points, 0.6 of the size each, and a half-inch margin a side.
     assert width == pytest.approx(400 * 7 * 0.6 + 72)
@@ -431,16 +431,16 @@ def test_export_view_writes_each_format(monkeypatch: pytest.MonkeyPatch, tmp_pat
     """Each view, in each format, from the file it is displayed from."""
     monkeypatch.chdir(tmp_path)
     with pytest.raises(mapexport.ExportError):
-        mapexport.export_view(mapexport.MAP, mapexport.MARKDOWN)
+        mapexport.export_view(mapexport.MAP, mapexport.MARKDOWN, state=PrimeItems)
     with pytest.raises(mapexport.ExportError):
-        mapexport.export_view(mapexport.DIAGRAM, mapexport.MARKDOWN)
+        mapexport.export_view(mapexport.DIAGRAM, mapexport.MARKDOWN, state=PrimeItems)
 
     (tmp_path / mapexport.MAP_SOURCE).write_text(_MAP_HTML, encoding="utf-8")
     (tmp_path / DIAGRAM_FILE).write_text("\n".join(_DIAGRAM_LINES) + "\n", encoding="utf-8")
     monkeypatch.setattr(PrimeItems, "diagram_model", _DIAGRAM_MODEL)
     for view in (mapexport.MAP, mapexport.DIAGRAM):
         for fmt in mapexport.FORMATS:
-            path = mapexport.export_view(view, fmt)
+            path = mapexport.export_view(view, fmt, state=PrimeItems)
             assert os.path.dirname(path) == str(tmp_path)
             assert os.path.basename(path).endswith(f"_Export.{fmt}")
             assert os.path.getsize(path) > 0

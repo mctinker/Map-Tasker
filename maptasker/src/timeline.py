@@ -61,6 +61,7 @@ from typing import TYPE_CHECKING
 
 from maptasker.src import clock
 from maptasker.src.editcommon import sanitize_filename
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.xmldiff import compare
 
@@ -341,7 +342,7 @@ def configuration_of(snapshot: Snapshot) -> tuple[Configuration | None, str]:
 
     try:
         with _expanded(snapshot) as temporary:
-            configuration, message = load_for_comparison(temporary)
+            configuration, message = load_for_comparison(temporary, state=PrimeItems)
     except OSError as error:
         logger.error(f"Timeline snapshot could not be expanded: {error}")
         return None, f"The snapshot from {snapshot.label()} could not be read.  ({error})"
@@ -404,7 +405,7 @@ def changes_since(cutoff: datetime | None, newer: Configuration | None = None) -
             f"configuration held instead: {older_snapshot.described()}."
         )
 
-    newer = newer if newer is not None else current_configuration()
+    newer = newer if newer is not None else current_configuration(state=PrimeItems)
     if not newer.tables.get("all_tasks"):
         return Comparison(problem="No XML file has been loaded.  Get an XML file first.")
 

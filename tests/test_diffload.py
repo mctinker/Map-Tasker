@@ -120,7 +120,7 @@ def _runtime(tmp_path, monkeypatch):
 def test_the_other_file_is_actually_parsed(tmp_path) -> None:
     """The returned Configuration holds the OTHER file's objects, not the loaded one's."""
     other = _write(tmp_path, "other.xml", _OTHER_XML)
-    configuration, message = diffload.load_for_comparison(other)
+    configuration, message = diffload.load_for_comparison(other, state=PrimeItems)
 
     assert message == ""
     assert configuration is not None
@@ -138,7 +138,7 @@ def test_the_loaded_configuration_is_untouched(tmp_path) -> None:
     exactly the failure this module exists to prevent, and == would not see it.
     """
     before = _snapshot()
-    diffload.load_for_comparison(_write(tmp_path, "other.xml", _OTHER_XML))
+    diffload.load_for_comparison(_write(tmp_path, "other.xml", _OTHER_XML), state=PrimeItems)
     after = _snapshot()
 
     for name, value in before.items():
@@ -155,7 +155,7 @@ def test_a_derived_profile_name_lands_on_the_other_file_not_the_loaded_one(tmp_p
     Configuration and must not have gone anywhere near the loaded tables.
     """
     other = _write(tmp_path, "unnamed.xml", _UNNAMED_PROFILE_XML)
-    configuration, message = diffload.load_for_comparison(other)
+    configuration, message = diffload.load_for_comparison(other, state=PrimeItems)
 
     assert message == ""
     assert configuration.tables["all_profiles"]["30"]["name"]
@@ -179,7 +179,7 @@ def test_a_malformed_file_reports_and_does_not_exit(tmp_path) -> None:
     PrimeItems.program_arguments.gui = False
     before = _snapshot()
 
-    configuration, message = diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML))
+    configuration, message = diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML), state=PrimeItems)
 
     assert configuration is None
     assert "bad.xml" in message
@@ -190,7 +190,7 @@ def test_a_malformed_file_reports_and_does_not_exit(tmp_path) -> None:
 
 def test_a_non_tasker_file_is_named_as_such(tmp_path) -> None:
     """Valid XML that is not a Tasker backup gets its own message, not "invalid XML"."""
-    configuration, message = diffload.load_for_comparison(_write(tmp_path, "other.xml", _NOT_TASKER_XML))
+    configuration, message = diffload.load_for_comparison(_write(tmp_path, "other.xml", _NOT_TASKER_XML), state=PrimeItems)
     assert configuration is None
     assert "not a valid Tasker backup file" in message or "not a Tasker backup file" in message
 
@@ -203,7 +203,7 @@ def test_a_missing_file_reports_rather_than_raises(tmp_path) -> None:
     contents of something they have not got.
     """
     before = _snapshot()
-    configuration, message = diffload.load_for_comparison(str(tmp_path / "nowhere.xml"))
+    configuration, message = diffload.load_for_comparison(str(tmp_path / "nowhere.xml"), state=PrimeItems)
 
     assert configuration is None
     assert "nowhere.xml could not be read" in message
@@ -224,7 +224,7 @@ def test_a_failure_message_never_shows_the_temporary_copy(tmp_path, name: str, t
     reads as a bug in MapTasker rather than a problem with their file.
     """
     path = _write(tmp_path, name, text) if text is not None else str(tmp_path / name)
-    _, message = diffload.load_for_comparison(path)
+    _, message = diffload.load_for_comparison(path, state=PrimeItems)
 
     # The scratch marker, not the temp directory: pytest's own tmp_path lives under the
     # temp directory too, so the user's real file legitimately has that prefix.
@@ -235,7 +235,7 @@ def test_a_failure_message_never_shows_the_temporary_copy(tmp_path, name: str, t
 
 def test_no_file_chosen(tmp_path) -> None:
     """Cancelling the file picker hands back an empty path, and is not an error state."""
-    configuration, message = diffload.load_for_comparison("")
+    configuration, message = diffload.load_for_comparison("", state=PrimeItems)
     assert configuration is None
     assert "No file was chosen" in message
 
@@ -248,7 +248,7 @@ def test_an_exception_inside_the_window_still_restores(tmp_path) -> None:
     """
     before = _snapshot()
     with pytest.raises(RuntimeError, match="boom"):  # noqa: PT012
-        with diffload._parsed_in_isolation(_write(tmp_path, "other.xml", _OTHER_XML)):
+        with diffload._parsed_in_isolation(_write(tmp_path, "other.xml", _OTHER_XML), state=PrimeItems):
             raise RuntimeError("boom")
 
     for name, value in before.items():
@@ -277,7 +277,7 @@ def test_the_user_file_is_never_the_one_parsed(tmp_path, monkeypatch) -> None:
         return real_get_the_xml_data(state=state)
 
     monkeypatch.setattr(diffload, "get_the_xml_data", spy)
-    configuration, message = diffload.load_for_comparison(other)
+    configuration, message = diffload.load_for_comparison(other, state=PrimeItems)
 
     assert message == ""
     assert configuration is not None
@@ -291,7 +291,7 @@ def test_the_original_file_is_left_byte_for_byte(tmp_path) -> None:
     """The obvious companion to the test above, stated in the terms the user cares about."""
     other = _write(tmp_path, "other.xml", _OTHER_XML)
     before = (tmp_path / "other.xml").read_bytes()
-    diffload.load_for_comparison(other)
+    diffload.load_for_comparison(other, state=PrimeItems)
     assert (tmp_path / "other.xml").read_bytes() == before
 
 
@@ -303,7 +303,7 @@ def test_a_bad_file_leaves_no_error_file_behind(tmp_path) -> None:
     as though their own configuration had failed to load.
     """
     assert not os.path.exists(ERROR_FILE)
-    diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML))
+    diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML), state=PrimeItems)
     assert not os.path.exists(ERROR_FILE)
 
 
@@ -312,7 +312,7 @@ def test_a_pre_existing_error_file_survives(tmp_path) -> None:
     with open(ERROR_FILE, "wb") as error_file:  # noqa: PTH123
         error_file.write(b"a real error\n1\n")
 
-    diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML))
+    diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML), state=PrimeItems)
 
     with open(ERROR_FILE, "rb") as error_file:  # noqa: PTH123
         assert error_file.read() == b"a real error\n1\n"
@@ -328,7 +328,7 @@ def test_the_directory_list_is_not_polluted(tmp_path) -> None:
     PrimeItems.program_arguments.directory = True
     PrimeItems.directory_items["profiles"] = ["already here"]
 
-    diffload.load_for_comparison(_write(tmp_path, "unnamed.xml", _UNNAMED_PROFILE_XML))
+    diffload.load_for_comparison(_write(tmp_path, "unnamed.xml", _UNNAMED_PROFILE_XML), state=PrimeItems)
 
     assert PrimeItems.directory_items["profiles"] == ["already here"]
     assert PrimeItems.program_arguments.directory is True
@@ -337,7 +337,7 @@ def test_the_directory_list_is_not_polluted(tmp_path) -> None:
 def test_output_lines_are_not_polluted(tmp_path) -> None:
     """A failed parse appends to the running output, which belongs to the loaded file's map."""
     PrimeItems.output_lines.output_lines = ["the loaded file's map"]
-    diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML))
+    diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML), state=PrimeItems)
     assert PrimeItems.output_lines.output_lines == ["the loaded file's map"]
 
 
@@ -352,7 +352,7 @@ def test_a_bad_file_before_any_map_has_been_built(tmp_path) -> None:
     PrimeItems.output_lines = None
     before = _snapshot()
 
-    configuration, message = diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML))
+    configuration, message = diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML), state=PrimeItems)
 
     assert configuration is None
     assert message
@@ -365,7 +365,7 @@ def test_a_bad_file_before_any_map_has_been_built(tmp_path) -> None:
 # ##################################################################################
 def test_current_configuration_describes_the_loaded_file(tmp_path) -> None:
     """The loaded configuration, as one side of a comparison."""
-    configuration = diffload.current_configuration()
+    configuration = diffload.current_configuration(state=PrimeItems)
 
     assert configuration.path.endswith("loaded.xml")
     assert configuration.tables is PrimeItems.tasker_root_elements
@@ -380,10 +380,10 @@ def test_loaded_file_path_handles_a_plain_string() -> None:
     reach this module, so both have to work.
     """
     PrimeItems.file_to_get = "/somewhere/plain.xml"
-    assert diffload.loaded_file_path() == "/somewhere/plain.xml"
+    assert diffload.loaded_file_path(state=PrimeItems) == "/somewhere/plain.xml"
 
     PrimeItems.file_to_get = ""
-    assert diffload.loaded_file_path() == ""
+    assert diffload.loaded_file_path(state=PrimeItems) == ""
 
 
 # ##################################################################################
@@ -468,10 +468,10 @@ def test_the_two_sides_compare(tmp_path) -> None:
     """The point of all of this: two Configurations that xmldiff can actually compare."""
     from maptasker.src.xmldiff import compare  # noqa: PLC0415
 
-    other, message = diffload.load_for_comparison(_write(tmp_path, "other.xml", _OTHER_XML))
+    other, message = diffload.load_for_comparison(_write(tmp_path, "other.xml", _OTHER_XML), state=PrimeItems)
     assert message == ""
 
-    report, counts = compare(other, diffload.current_configuration())
+    report, counts = compare(other, diffload.current_configuration(state=PrimeItems))
 
     assert "[PROJECT-ADDED]  Project 'Loaded'" in report
     assert "[PROJECT-REMOVED]  Project 'Other'" in report

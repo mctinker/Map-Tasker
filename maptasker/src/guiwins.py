@@ -677,7 +677,7 @@ def remember_android_panel_option(gui: MyGui, name: str, value: object) -> None:
     other way would otherwise forget a box ticked in it.
     """
     remember_setting(gui, name, bool(value))
-    save_restore_args(gui.state.program_arguments, gui.state.colors_to_use, to_save=True)
+    save_restore_args(gui.state.program_arguments, gui.state.colors_to_use, to_save=True, state=gui.state)
 
 
 def _android_device_fields(gui: MyGui) -> dict:

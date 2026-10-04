@@ -217,7 +217,9 @@ def build_restore_dialog(
                 await load(choice.value or 0)
                 return
             clear_preview()
-            offer = await run.io_bound(maprestore.candidates, held.older, current_configuration(), state=PrimeItems)
+            offer = await run.io_bound(
+                maprestore.candidates, held.older, current_configuration(state=PrimeItems), state=PrimeItems
+            )
             if offer is None:
                 return
             held.offer = offer
@@ -283,7 +285,7 @@ def _read(snapshot: timeline.Snapshot) -> tuple[Configuration | None, maprestore
     older, problem = timeline.configuration_of(snapshot)
     if older is None:
         return None, None, problem
-    return older, maprestore.candidates(older, current_configuration(), state=PrimeItems), ""
+    return older, maprestore.candidates(older, current_configuration(state=PrimeItems), state=PrimeItems), ""
 
 
 # ##################################################################################

@@ -21,13 +21,14 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import BinaryIO
 
+    from maptasker.src.primitem import RunState
+
 from maptasker.src import console
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.maputil2 import log_startup_values, translate_string
 from maptasker.src.maputils import reset_named_objects
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     ARGUMENTS_FILE,
@@ -117,7 +118,9 @@ def corrupted_file(program_arguments: dict, colors_to_use: dict) -> None:
 
 
 # Write out our runtime settings as a TOML file
-def save_arguments(program_arguments: ProgramArguments | dict, colors_to_use: dict, new_file: str) -> None:
+def save_arguments(
+    program_arguments: ProgramArguments | dict, colors_to_use: dict, new_file: str, state: RunState
+) -> None:
     """
     Save the program arguments, colors to use, and new file to a JSON file.
 
@@ -132,7 +135,7 @@ def save_arguments(program_arguments: ProgramArguments | dict, colors_to_use: di
     """
     # In the event we set the single Project name due to a single Task or Profile name,
     # then reset it before we do a save and exit.
-    reset_named_objects(state=PrimeItems)
+    reset_named_objects(state=state)
 
     guidance = {
         "Guidance": "Modify this file as needed below the entries [program_arguments] and [colors_to_use].  Run 'maptasker -h' for details.",
@@ -170,7 +173,7 @@ def save_arguments(program_arguments: ProgramArguments | dict, colors_to_use: di
             program_arguments[argument] = ""
 
         # Make sure we don't save an item name of "None" in another language
-        if PrimeItems.program_arguments.language != "English":
+        if state.program_arguments.language != "English":
             if translate_string(program_arguments[argument] == "None"):
                 program_arguments[argument] = ""
             # Make sure we don't save translated prefixes
@@ -192,7 +195,7 @@ def save_arguments(program_arguments: ProgramArguments | dict, colors_to_use: di
         **guidance,
         "program_arguments": dict(sorted(user_args.items())),  # Sort the program args first.
         "colors_to_use": dict(sorted(colors_to_use.items())),  # Sort the colors next.
-        "last_run": PrimeItems.last_run,
+        "last_run": state.last_run,
     }
 
     # Write out the guidance, user program arguments and colors in TOML format.
@@ -211,7 +214,7 @@ def save_arguments(program_arguments: ProgramArguments | dict, colors_to_use: di
 
 
 # Read the TOML file and return the settings.
-def read_toml_file(new_file: str) -> tuple[dict, dict]:
+def read_toml_file(new_file: str, state: RunState) -> tuple[dict, dict]:
     """
     Reads a TOML file and returns the program arguments and colors to use.
 
@@ -267,10 +270,10 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
                 logger.error(f"No [program_arguments] found in {new_file}.  Falling back to default settings.")
                 program_arguments = initialize_runtime_arguments().as_dict()
             try:
-                PrimeItems.last_run = settings["last_run"]  # Get the last run date
+                state.last_run = settings["last_run"]  # Get the last run date
             except KeyError:
                 # If this hadn't been previously saved, set it to yesterday (25 hours+).
-                PrimeItems.last_run = twenty_four_hours_ago
+                state.last_run = twenty_four_hours_ago
 
             f.close()
         except tomllib.TOMLDecodeError:  # no saved file
@@ -287,6 +290,7 @@ def read_arguments(
     program_arguments: ProgramArguments | dict,
     colors_to_use: dict,
     new_file: str,
+    state: RunState,
 ) -> tuple[ProgramArguments | dict, dict]:
     """
     Reads the program arguments, colors to use, old file, and new file.
@@ -302,9 +306,9 @@ def read_arguments(
     """
     # Read the user settings TOML file
     if os.path.isfile(new_file):
-        program_arguments, colors_to_use = read_toml_file(new_file)
+        program_arguments, colors_to_use = read_toml_file(new_file, state=state)
     else:
-        program_arguments = PrimeItems.program_arguments
+        program_arguments = state.program_arguments
         colors_to_use = set_color_mode(program_arguments.appearance_mode)
 
     # A run always starts out not doing any of the transient things, whatever a settings
@@ -321,9 +325,7 @@ def read_arguments(
 
 # Save and restore colors to use and program arguments
 def save_restore_args(
-    program_arguments: ProgramArguments | dict,
-    colors_to_use: dict,
-    to_save: bool = True,
+    program_arguments: ProgramArguments | dict, colors_to_use: dict, to_save: bool = True, *, state: RunState
 ) -> tuple[ProgramArguments | dict, dict]:
     """
     Save and restore colors to use and program arguments
@@ -333,18 +335,14 @@ def save_restore_args(
         :return: program runtime arguments saved/restored, colors to use saved/restored
     """
     our_path = os.getcwd()
-    new_file = f"{our_path}{PrimeItems.slash}{ARGUMENTS_FILE}"
+    new_file = f"{our_path}{state.slash}{ARGUMENTS_FILE}"
 
     # Saving?
     if to_save:
-        save_arguments(program_arguments, colors_to_use, new_file)
+        save_arguments(program_arguments, colors_to_use, new_file, state=state)
 
     # Restore dictionaries
     else:
-        program_arguments, colors_to_use = read_arguments(
-            program_arguments,
-            colors_to_use,
-            new_file,
-        )
+        program_arguments, colors_to_use = read_arguments(program_arguments, colors_to_use, new_file, state=state)
 
     return program_arguments, colors_to_use

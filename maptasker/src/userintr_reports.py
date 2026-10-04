@@ -56,7 +56,7 @@ async def _choose_comparison_file(gui: MyGui) -> str:
     the file picker.  Otherwise, and whenever that offer is declined, this is the same
     picker getxml_event opens, started in the same remembered directory.
     """
-    original = original_of(loaded_file_path())
+    original = original_of(loaded_file_path(state=gui.state))
 
     if original:
         with ui.dialog() as dialog, ui.card().classes("min-w-[420px] p-6"):
@@ -136,7 +136,7 @@ class ReportEventHandlers:
         two would be put back to what it was at startup.
         """
         remember_setting(self.gui, "health_check_skip", skip)
-        save_restore_args(self.state.program_arguments, self.state.colors_to_use, to_save=True)
+        save_restore_args(self.state.program_arguments, self.state.colors_to_use, to_save=True, state=self.state)
 
     def run_health_check_for(self: MapTaskerEventHandlers, skip: list[str]) -> None:
         """Run the check for the categories the panel left ticked, and show the report.
@@ -294,7 +294,7 @@ class ReportEventHandlers:
         # abspath("") is the current directory, which would match a file picked from it.
         # realpath rather than abspath so a symlink, or a path through /tmp on a Mac (where
         # it is a link to /private/tmp), is still recognised as the same file.
-        loaded = loaded_file_path()
+        loaded = loaded_file_path(state=self.state)
         if loaded and os.path.realpath(other_path) == os.path.realpath(loaded):
             gui.display_message_box(
                 translate_string("That is the file already loaded.  Choose a different one to compare against."),
@@ -302,14 +302,14 @@ class ReportEventHandlers:
             )
             return
 
-        other, error_message = load_for_comparison(other_path)
+        other, error_message = load_for_comparison(other_path, state=self.state)
         if other is None:
             gui.display_message_box(error_message, "Red")
             return
 
         # Ordered by file date so "added" means added in the newer file, whichever way round
         # the user picked them.  The report header names both files either way.
-        older, newer = order_by_age(other, current_configuration())
+        older, newer = order_by_age(other, current_configuration(state=self.state))
         report, counts = compare(older, newer)
 
         file_name = write_comparison_report(report)

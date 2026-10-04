@@ -29,19 +29,25 @@ proftab, tasktab, actiontab, scenetab -- rather than from its words, which are t
 
 from __future__ import annotations
 
+import functools
 import html
 import json
 import os
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from maptasker.src import diagintr, mapfonts, mappdf
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.outdir import output_directory
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import DIAGRAM_EXPORT_FILE, DIAGRAM_FILE, MAP_EXPORT_FILE, MY_VERSION, logger
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from maptasker.src.primitem import RunState
 
 # The two views that can be exported.
 MAP = "map"
@@ -322,13 +328,13 @@ def _dedent(lines: list[str]) -> list[str]:
 # ##################################################################################
 # Shared
 # ##################################################################################
-def metadata(view: str) -> dict:
+def metadata(view: str, state: RunState) -> dict:
     """What every export says about itself: which view, which MapTasker, when, and from what.
 
     The source is the backup file's name without its folder.  An export is made to be passed
     around, and a full path would carry the name of the account it was made on.
     """
-    source = getattr(PrimeItems.file_to_get, "name", PrimeItems.file_to_get)
+    source = getattr(state.file_to_get, "name", state.file_to_get)
     return {
         "format": f"maptasker-{view}",
         "format_version": FORMAT_VERSION,
@@ -349,9 +355,9 @@ def _details(meta: dict) -> list[str]:
     return details
 
 
-def _font(text: str) -> mapfonts.EmbeddableFont | None:
+def _font(text: str, state: RunState) -> mapfonts.EmbeddableFont | None:
     """The font a PDF of `text` is drawn in, or None to fall back on Courier."""
-    font = mapfonts.embeddable_font(text, PrimeItems.program_arguments.font)
+    font = mapfonts.embeddable_font(text, state.program_arguments.font)
     if font is None:
         logger.info("PDF export: no monospaced TrueType font found, so drawing characters become ASCII in Courier.")
     return font
@@ -468,7 +474,7 @@ def _json_entry(block: Block) -> dict:
     return entry
 
 
-def map_pdf(blocks: list[Block], meta: dict) -> bytes:
+def map_pdf(blocks: list[Block], meta: dict, state: RunState) -> bytes:
     """The Map as a PDF: indented by depth, headings in color, a bookmark for every object."""
     title = translate_string("MapTasker Map")
     lines = [mappdf.Line(title, _COLORS[PROJECT]), *(mappdf.Line(detail) for detail in _details(meta))]
@@ -477,7 +483,7 @@ def map_pdf(blocks: list[Block], meta: dict) -> bytes:
     return mappdf.render(
         lines,
         title=title,
-        font=_font("".join(line.text for line in lines)),
+        font=_font("".join(line.text for line in lines), state=state),
         bookmarks=bookmarks,
         producer=meta["generator"],
     )
@@ -589,12 +595,12 @@ def diagram_json(lines: list[str], model: dict, meta: dict) -> str:
     return json.dumps({**meta, **diagram_contents(model), "lines": lines}, ensure_ascii=False, indent=2) + "\n"
 
 
-def diagram_pdf(lines: list[str], model: dict, meta: dict) -> bytes:
+def diagram_pdf(lines: list[str], model: dict, meta: dict, state: RunState) -> bytes:
     """The Diagram as a PDF: pages as wide as its widest line, and a bookmark for each Project."""
     return mappdf.render(
         [mappdf.Line(line) for line in lines],
         title=translate_string("MapTasker Diagram"),
-        font=_font("".join(lines)),
+        font=_font("".join(lines), state=state),
         bookmarks=[mappdf.Bookmark(region["name"], region["start"]) for region in model.get("regions", [])],
         wrap=False,
         page_size=mappdf.LETTER_LANDSCAPE,
@@ -610,6 +616,12 @@ _MAP_WRITERS = {MARKDOWN: map_markdown, JSON: map_json, PDF: map_pdf}
 _DIAGRAM_WRITERS = {MARKDOWN: diagram_markdown, JSON: diagram_json, PDF: diagram_pdf}
 
 
+def _writer(writers: dict, fmt: str, state: RunState) -> Callable[..., str | bytes]:
+    """The function that writes `fmt`.  Only a PDF is drawn in a font -- the run's -- so only
+    its writer is handed the run state."""
+    return functools.partial(writers[fmt], state=state) if fmt == PDF else writers[fmt]
+
+
 def _read(path: str, missing: str) -> str:
     """The text of the file a view was drawn from, or an ExportError saying `missing`."""
     try:
@@ -622,7 +634,7 @@ def _read(path: str, missing: str) -> str:
         raise ExportError(message) from error
 
 
-def export_view(view: str, fmt: str) -> str:
+def export_view(view: str, fmt: str, state: RunState) -> str:
     """Write the Map or the Diagram, as last built, in format `fmt`, and answer the path written.
 
     Read from and written to the output folder, which is where the views are built (see outdir).
@@ -633,10 +645,10 @@ def export_view(view: str, fmt: str) -> str:
         message = f"Cannot export {view!r} as {fmt!r}"
         raise ValueError(message)
     directory = str(output_directory())
-    meta = metadata(view)
+    meta = metadata(view, state=state)
     if view == MAP:
         document = _read(os.path.join(directory, MAP_SOURCE), "There is no Map to export.  Display the Map first.")
-        content = _MAP_WRITERS[fmt](map_blocks(document), meta)
+        content = _writer(_MAP_WRITERS, fmt, state)(map_blocks(document), meta)
         stem = MAP_EXPORT_FILE
     else:
         text = _read(
@@ -649,7 +661,7 @@ def export_view(view: str, fmt: str) -> str:
         lines = text.replace("\r\n", "\n").split("\n")
         if lines and not lines[-1]:
             lines.pop()
-        content = _DIAGRAM_WRITERS[fmt](lines, diagintr.model(state=PrimeItems), meta)
+        content = _writer(_DIAGRAM_WRITERS, fmt, state)(lines, diagintr.model(state=state), meta)
         stem = DIAGRAM_EXPORT_FILE
 
     path = os.path.join(directory, f"{stem}.{fmt}")

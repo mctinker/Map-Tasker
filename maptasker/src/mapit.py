@@ -27,6 +27,7 @@ This is the main coordinator module that kicks-off the other components that lau
 # Reference: https://github.com/Taskomater/Tasker-XML-Info                             #
 #                                                                                      #
 import asyncio
+import functools
 import platform
 import sys
 
@@ -38,7 +39,7 @@ from maptasker.src.error import exit_program
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import log_startup_values
 from maptasker.src.mtexcept import MapTaskerError
-from maptasker.src.primitem import PrimeItems, PrimeItemsReset
+from maptasker.src.primitem import PrimeItems, PrimeItemsReset, RunState
 from maptasker.src.progargs import get_program_arguments
 from maptasker.src.proginit import (
     check_versions,
@@ -55,7 +56,7 @@ crash_debug = False
 
 
 # Handle program error gracefully if not in debug mode
-def on_crash(exctype: object, value: str, traceback: list) -> None:
+def on_crash(exctype: object, value: str, traceback: list, *, state: RunState) -> None:
     # Display the crash report if in debug mode
     """
     Handle runtime errors
@@ -73,7 +74,7 @@ def on_crash(exctype: object, value: str, traceback: list) -> None:
     """
     if crash_debug:
         if "does not support chat" in value.error:
-            PrimeItems.program_arguments.ai_analyze = False
+            state.program_arguments.ai_analyze = False
             console.error(value.error)
             return
         # sys.__excepthook__ is the default excepthook that prints the stack trace
@@ -121,7 +122,7 @@ def _install_async_exception_handler() -> None:
 
 
 # Perform maptasker program initialization functions
-def start_up() -> None:
+def start_up(state: RunState) -> None:
     # Get any arguments passed to program
     """
     Initializes the program startup.
@@ -146,11 +147,11 @@ def start_up() -> None:
 
     # Get the OS so we know which directory slash to use (/ or \)
     if platform.system() == "Windows":
-        PrimeItems.slash = "\\"
-        PrimeItems.windows_system = True
+        state.slash = "\\"
+        state.windows_system = True
     else:
-        PrimeItems.slash = "/"
-        PrimeItems.windows_system = False
+        state.slash = "/"
+        state.windows_system = False
 
     # Validate the runtime version of python
     check_versions()
@@ -162,49 +163,49 @@ def start_up() -> None:
     # as True would end every user's startup.  tests/test_build_all.py asserts it is False.
     build_all = False
     if build_all:
-        rebuild_action_tables(state=PrimeItems)
+        rebuild_action_tables(state=state)
         exit_program(0)
     # END OF DEVELOPMENT CODE
 
     # Get runtime arguments (from CLI or GUI)
-    get_program_arguments()
+    get_program_arguments(state=state)
 
     # Force GUI mode
-    PrimeItems.program_arguments.gui = True
+    state.program_arguments.gui = True
 
     # Get our map of colors if we don't have them.
-    if not PrimeItems.colors_to_use:
-        PrimeItems.colors_to_use = setup_colors(state=PrimeItems)
+    if not state.colors_to_use:
+        state.colors_to_use = setup_colors(state=state)
 
     # Display a popup window telling user we are analyzing
-    if PrimeItems.program_arguments.doing_diagram:
-        PrimeItems.program_arguments.doing_diagram = False
+    if state.program_arguments.doing_diagram:
+        state.program_arguments.doing_diagram = False
 
     # Get the XML data and output the front matter
-    if PrimeItems.file_to_get or PrimeItems.program_arguments.file:
-        _ = get_data_and_output_intro(True, state=PrimeItems)  # Force the front matter to be created.
+    if state.file_to_get or state.program_arguments.file:
+        _ = get_data_and_output_intro(True, state=state)  # Force the front matter to be created.
 
 
 # Set up the major variables used within this program, and set up crash routine
-def initialize_everything() -> tuple[list, list, list]:
+def initialize_everything(state: RunState) -> tuple[list, list, list]:
     """
     Set up all the variables and logic in case program craps out
         :return: empty list of primary items used throughout project
     """
     # Reset colors to use if running unit test
     if "-test=yes" in sys.argv:
-        PrimeItems.colors_to_use = []
+        state.colors_to_use = []
 
     # Check to see if we might be coming from another program (e.g. run_test.py), and we are not generating a map view.
     # If so, re-initialize PrimeItems since it is still carrying the values from the last test/run.
     if (
-        PrimeItems.colors_to_use and (PrimeItems.program_arguments and not PrimeItems.program_arguments.guiview)
-    ) or not PrimeItems.colors_to_use:
-        PrimeItemsReset()
+        state.colors_to_use and (state.program_arguments and not state.program_arguments.guiview)
+    ) or not state.colors_to_use:
+        PrimeItemsReset(state=state)
 
     # We have to initialize output_lines here. Otherwise, we'll lose the output class
     # with the upcoming call to start_up.
-    PrimeItems.output_lines = LineOut()
+    state.output_lines = LineOut()
 
     # Attach the handler to NiceGUI's event loop once that loop is running.  There is no loop yet
     # at this point -- ui.run() makes its own later -- and asyncio.get_event_loop() raises
@@ -214,14 +215,15 @@ def initialize_everything() -> tuple[list, list, list]:
 
     # Get colors to use, runtime arguments etc...all of our primary items we need
     # throughout
-    start_up()
+    start_up(state=state)
 
     # Set up to catch all crashes gracefully
     if sys.excepthook == sys.excepthook:
         global crash_debug  # noqa: PLW0603
-        if PrimeItems.program_arguments.debug:
+        if state.program_arguments.debug:
             crash_debug = True
-        sys.excepthook = on_crash
+        # The hook is called with the three arguments Python gives it; the state is bound here.
+        sys.excepthook = functools.partial(on_crash, state=state)
 
     # If debugging, force an ESC so that the full command/path is not displayed in
     #   VsCode terminal window.
@@ -236,13 +238,15 @@ def initialize_everything() -> tuple[list, list, list]:
 #   Main Program Starts Here                                                           #
 #                                                                                      #
 ########################################################################################
-def mapit_all() -> int:
+def mapit_all(state: RunState | None = None) -> int:
     # Initialize variables and get the backup xml file
     """
     Maps all Projects, Profiles, Tasks and Scenes in a Tasker backup file
 
     Args:
-        None
+        state (RunState | None): the run state the program runs on.  None -- what the console script
+            and `python -m maptasker.main` give it -- is PrimeItems, which this function is the one
+            place to name.
 
     Returns:
         int: the status the process should exit with -- 0 when the run finished or was
@@ -256,13 +260,15 @@ def mapit_all() -> int:
 
         This will eventually call rungui or runcli.
     """
+    state = PrimeItems if state is None else state
+
     # A report asked for on the command line (-healthcheck, -compare ...) runs with no window
     # and no GUI start-up, and ends with its own exit code.
     if clireports.wants_report(sys.argv[1:]):
-        return clireports.run(sys.argv[1:])
+        return clireports.run(sys.argv[1:], state=state)
 
     try:
-        _, _, _ = initialize_everything()
+        _, _, _ = initialize_everything(state=state)
     except MapTaskerError as error:
         # The top of the process, and the only place that turns "MapTasker cannot carry
         # on" back into an exit status.  Everything below here raises rather than exits

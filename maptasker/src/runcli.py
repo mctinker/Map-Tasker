@@ -377,11 +377,7 @@ def restore_arguments(state: RunState) -> dict:
     """
     temp_arguments = temp_colors = {}
     # Get the arguments from our saved settings file.
-    temp_arguments, temp_colors = save_restore_args(
-        temp_arguments,
-        temp_colors,
-        to_save=False,
-    )
+    temp_arguments, temp_colors = save_restore_args(temp_arguments, temp_colors, to_save=False, state=state)
 
     # We will get a Keyerror if the restore file does not exist
     with contextlib.suppress(KeyError):

@@ -159,7 +159,7 @@ async def test_saved_settings_are_on_screen_when_the_window_opens(caplog: pytest
     saved = initialize_runtime_arguments()
     saved["bold"] = True
     saved["display_detail_level"] = 5
-    save_restore_args(saved, set_color_mode("Dark"), to_save=True)
+    save_restore_args(saved, set_color_mode("Dark"), to_save=True, state=PrimeItems)
 
     async with _open_window() as (user, gui):
         assert gui.bold is True
@@ -195,7 +195,7 @@ async def test_save_settings_writes_what_the_window_shows(tmp_path, caplog: pyte
         assert user.notify.contains("Settings saved."), user.notify.messages
 
     assert (tmp_path / ARGUMENTS_FILE).exists()
-    restored, _colors = save_restore_args({}, {}, to_save=False)
+    restored, _colors = save_restore_args({}, {}, to_save=False, state=PrimeItems)
     assert restored["italicize"] is True
     assert restored["bold"] is False
     _no_errors_logged(caplog)

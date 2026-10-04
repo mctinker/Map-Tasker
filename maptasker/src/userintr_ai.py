@@ -350,7 +350,7 @@ class AIEventHandlers:
                 self.state.program_arguments.ai_name = gui.ai_name
 
             # Do the analysis.  First save our windows and settings.
-            _, _ = save_restore_args(gui_settings(gui), gui.color_lookup, to_save=True)
+            _, _ = save_restore_args(gui_settings(gui), gui.color_lookup, to_save=True, state=self.state)
 
             # The analysis is of the selected object's Map, so build it first.
             if not await build_analysis_lines(gui):

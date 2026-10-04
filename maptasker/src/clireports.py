@@ -87,6 +87,8 @@ from maptasker.src.taskerd import get_the_xml_data
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
+    from maptasker.src.primitem import RunState
+
 # ##################################################################################
 # The exit codes.  0-8 are the ones the command line already had (see parsearg's epilog);
 # 10 and 11 are new, and are the two a scheduled job is written around.
@@ -236,7 +238,7 @@ def build_parser() -> argparse.ArgumentParser:
 # Getting ready.  A command-line run starts from nothing, so this does what the start of
 # the GUI's run does -- and no more.
 # ##################################################################################
-def _prepare(options: argparse.Namespace) -> None:
+def _prepare(options: argparse.Namespace, state: RunState) -> None:
     """Set PrimeItems up for a run with nobody watching."""
     # A terminal that cannot show a Tasker name (a Windows console in its legacy code page,
     # a pipe that has no encoding of its own) must not turn a report into a traceback.
@@ -244,34 +246,34 @@ def _prepare(options: argparse.Namespace) -> None:
         if callable(reconfigure := getattr(stream, "reconfigure", None)):  # A captured stream has none.
             reconfigure(encoding="utf-8", errors="replace")
 
-    PrimeItemsReset()
-    PrimeItems.headless = True
-    PrimeItems.slash = "\\" if platform.system() == "Windows" else "/"
-    PrimeItems.windows_system = platform.system() == "Windows"
+    PrimeItemsReset(state=state)
+    state.headless = True
+    state.slash = "\\" if platform.system() == "Windows" else "/"
+    state.windows_system = platform.system() == "Windows"
     load_arg_specs()
 
-    PrimeItems.program_arguments = initialize_runtime_arguments()
-    _apply_saved_settings()
+    state.program_arguments = initialize_runtime_arguments()
+    _apply_saved_settings(state=state)
     # Whatever the GUI last left behind about what it was doing is not what this run is for.
-    PrimeItems.program_arguments.update(
+    state.program_arguments.update(
         {"gui": False, "guiview": False, "doing_diagram": False, "rerun": False, "ai_analyze": False},
     )
-    clear_single_items()
-    PrimeItems.colors_to_use = set_color_mode(PrimeItems.program_arguments.appearance_mode)
-    _put_on_primeitems(output_lines=LineOut(), tasker_root_elements=initial_tasker_root_elements())
+    clear_single_items(state=state)
+    state.colors_to_use = set_color_mode(state.program_arguments.appearance_mode)
+    _put_on_primeitems(output_lines=LineOut(), tasker_root_elements=initial_tasker_root_elements(), state=state)
 
     if options.outdir:
         folder, problem = normalize_output_directory(options.outdir)
         if problem:
             raise _ReportError(EXIT_OUTPUT_FAILED, problem)
-        PrimeItems.program_arguments.output_directory = folder
+        state.program_arguments.output_directory = folder
     if options.detail is not None:
-        PrimeItems.program_arguments.display_detail_level = options.detail
+        state.program_arguments.display_detail_level = options.detail
     if options.history_dir:
         timeline.use_history_folder(options.history_dir)
 
 
-def _put_on_primeitems(**attributes: object) -> None:
+def _put_on_primeitems(state: RunState, **attributes: object) -> None:
     """Set attributes on PrimeItems by name.
 
     PrimeItems declares a few of these (output_lines, file_to_get) with a type too narrow for
@@ -279,22 +281,22 @@ def _put_on_primeitems(**attributes: object) -> None:
     and the type-check baseline already counts those.  By name it is not one more of them.
     """
     for name, value in attributes.items():
-        setattr(PrimeItems, name, value)
+        setattr(state, name, value)
 
 
-def _apply_saved_settings() -> None:
+def _apply_saved_settings(state: RunState) -> None:
     """Take what the GUI last saved -- the output folder, the colours, the detail level.
 
     So that a report is saved where the window would have saved it and an export looks as the
     Map does.  Read, never written: a missing or unreadable settings file leaves the defaults.
     """
     with contextlib.suppress(Exception):
-        saved_arguments, saved_colors = save_restore_args({}, {}, to_save=False)
-        PrimeItems.program_arguments.restore(
+        saved_arguments, saved_colors = save_restore_args({}, {}, to_save=False, state=state)
+        state.program_arguments.restore(
             saved_arguments if isinstance(saved_arguments, dict) else saved_arguments.as_dict(),
         )
-        PrimeItems.program_arguments.display_detail_level = int(PrimeItems.program_arguments.display_detail_level)
-        PrimeItems.colors_to_use.update({key: value for key, value in saved_colors.items() if key is not None})
+        state.program_arguments.display_detail_level = int(state.program_arguments.display_detail_level)
+        state.colors_to_use.update({key: value for key, value in saved_colors.items() if key is not None})
 
 
 @contextlib.contextmanager
@@ -337,7 +339,7 @@ def _resolve_backup(text: str | None) -> Path:
     return path
 
 
-def _load_backup(text: str | None) -> Path:
+def _load_backup(text: str | None, state: RunState) -> Path:
     """Load a backup as the configuration this run works on, and return the file it was.
 
     The load is taskerd's own, so it records the backup in the history exactly as opening it
@@ -348,19 +350,19 @@ def _load_backup(text: str | None) -> Path:
     ends the run with a bare exit code and no reason to give.
     """
     path = _resolve_backup(text)
-    arguments = PrimeItems.program_arguments
+    arguments = state.program_arguments
     arguments.file = str(path)
     with _error_file_left_alone(), console.muted():
         arguments.gui = True
         with path.open(encoding="utf-8") as opened:
             try:
-                _put_on_primeitems(file_to_get=opened, tasker_root_elements=initial_tasker_root_elements())
-                clear_error()
-                return_code = get_the_xml_data(state=PrimeItems)
+                _put_on_primeitems(file_to_get=opened, tasker_root_elements=initial_tasker_root_elements(), state=state)
+                clear_error(state)
+                return_code = get_the_xml_data(state=state)
             finally:
                 arguments.gui = False
     if return_code != 0:
-        raise _ReportError(EXIT_NOT_A_BACKUP, PrimeItems.error_msg or f"{path} is not a valid Tasker backup file.")
+        raise _ReportError(EXIT_NOT_A_BACKUP, state.error_msg or f"{path} is not a valid Tasker backup file.")
     sys.stderr.write(f"MapTasker: loaded {path}\n")
     return path
 
@@ -389,10 +391,10 @@ def _saved(path: str, what: str) -> None:
 # ##################################################################################
 # The reports
 # ##################################################################################
-def _health_check(options: argparse.Namespace) -> int:
+def _health_check(options: argparse.Namespace, state: RunState) -> int:
     """Scan the backup for problems.  EXIT_FOUND if there are any at or above -fail_on."""
-    _load_backup(options.file)
-    rows, counts = healthck.run_health_check(state=PrimeItems)
+    _load_backup(options.file, state=state)
+    rows, counts = healthck.run_health_check(state=state)
     _report(mapjump.text_report(rows))
     _note(
         f"Health Check: {counts[healthck.ERROR]} errors, {counts[healthck.WARNING]} warnings, "
@@ -407,7 +409,7 @@ def _health_check(options: argparse.Namespace) -> int:
     return EXIT_FOUND if failing else EXIT_OK
 
 
-def _compare(options: argparse.Namespace) -> int:
+def _compare(options: argparse.Namespace, state: RunState) -> int:
     """Show what differs between two backups.  EXIT_FOUND if anything does."""
     first, second = options.compare
     for path in (first, second):
@@ -418,7 +420,7 @@ def _compare(options: argparse.Namespace) -> int:
 
     sides = []
     for path in (first, second):
-        configuration, message = diffload.load_for_comparison(str(Path(path).expanduser()))
+        configuration, message = diffload.load_for_comparison(str(Path(path).expanduser()), state=state)
         if configuration is None:
             raise _ReportError(EXIT_NOT_A_BACKUP, message)
         sides.append(configuration)
@@ -453,13 +455,13 @@ def _cutoff(period: str) -> datetime | None:
         raise _ReportError(EXIT_BAD_OPTION, message) from None
 
 
-def _changes_since(options: argparse.Namespace) -> int:
+def _changes_since(options: argparse.Namespace, state: RunState) -> int:
     """Show what changed in the configuration since a period.  EXIT_FOUND if anything did."""
     cutoff = _cutoff(options.changes_since)
     # Asked before the load, which is itself recorded in the history: with nothing there
     # already this backup would be the whole of it, and the answer is "nothing before it".
     had_history = bool(timeline.snapshots())
-    _load_backup(options.file)
+    _load_backup(options.file, state=state)
     if not had_history:
         _note("There was no history yet, so this backup is now its first entry.  Run this again after the next backup.")
         return EXIT_NO_HISTORY
@@ -476,32 +478,32 @@ def _changes_since(options: argparse.Namespace) -> int:
     return EXIT_OK if result.nothing_changed else EXIT_FOUND
 
 
-def _build_the_view(view: str) -> None:
+def _build_the_view(view: str, state: RunState) -> None:
     """Build the Map or the Diagram, as the window does, so that there is something to export."""
-    arguments = PrimeItems.program_arguments
-    PrimeItems.view_limit = _UNLIMITED
+    arguments = state.program_arguments
+    state.view_limit = _UNLIMITED
     arguments.view_limit = _UNLIMITED
-    reset_attributes(*MAP_OUTPUT_ATTRIBUTES)
-    PrimeItems.found_named_items = initial_found_named_items()
-    clear_error()
-    _put_on_primeitems(output_lines=LineOut())
+    reset_attributes(*MAP_OUTPUT_ATTRIBUTES, state=state)
+    state.found_named_items = initial_found_named_items()
+    clear_error(state)
+    _put_on_primeitems(output_lines=LineOut(), state=state)
 
     with console.muted():
         if view == mapexport.MAP:
-            output_the_front_matter(current_config(), state=PrimeItems)
-            build_html("", state=PrimeItems)
+            output_the_front_matter(current_config(state), state=state)
+            build_html("", state=state)
         else:
-            outline_the_configuration(state=PrimeItems)
-    if PrimeItems.error_code > 0:
-        raise _ReportError(EXIT_ERROR, PrimeItems.error_msg or f"The {view} could not be built.")
+            outline_the_configuration(state=state)
+    if state.error_code > 0:
+        raise _ReportError(EXIT_ERROR, state.error_msg or f"The {view} could not be built.")
 
 
-def _export(options: argparse.Namespace) -> int:
+def _export(options: argparse.Namespace, state: RunState) -> int:
     """Build the Map or the Diagram and write it as a file, then print where it went."""
-    _load_backup(options.file)
-    _build_the_view(options.export)
+    _load_backup(options.file, state=state)
+    _build_the_view(options.export, state=state)
     try:
-        path = mapexport.export_view(options.export, options.format)
+        path = mapexport.export_view(options.export, options.format, state=state)
     except mapexport.ExportError as error:
         raise _ReportError(EXIT_ERROR, str(error)) from error
     except OSError as error:
@@ -535,8 +537,9 @@ def _stop_on_terminate() -> Iterator[None]:
         signal.signal(signal.SIGTERM, previous)
 
 
-def _watch(options: argparse.Namespace) -> int:
+def _watch(options: argparse.Namespace, state: RunState) -> int:
     """Record each backup that appears in a folder in the history."""
+    del state  # The history is the session's, not the run state's: every command is called alike.
     folder = Path(options.watch).expanduser()
     if not folder.is_dir():
         raise _ReportError(EXIT_NO_FILE, f"{folder} is not a folder.")
@@ -568,28 +571,30 @@ _COMMANDS = (
 )
 
 
-def run(argv: list[str]) -> int:
+def run(argv: list[str], state: RunState | None = None) -> int:
     """Run the report the command line asks for, and return the exit code.
 
     Args:
         argv (list[str]): the command line, without the program's own name.
+        state (RunState | None): the run state the report is made on, or None for PrimeItems.
 
     Returns:
         int: the exit code.  Nothing here ends the process: mapit_all returns this as the
             status, and a test can call it as often as it likes.
     """
+    state = PrimeItems if state is None else state
     try:
         options = build_parser().parse_args(argv)
     except MapTaskerError as stopped:  # -h, or an option that makes no sense: already answered.
         return stopped.exit_code
 
     try:
-        _prepare(options)
+        _prepare(options, state=state)
         for name, command in _COMMANDS:
             # Given, not merely truthy: "-changes_since ''" is a period that is wrong, which
             # _cutoff says so about, and not a report that was never asked for.
             if getattr(options, name) not in (None, False):
-                return command(options)
+                return command(options, state=state)
     except _ReportError as failure:
         console.error(f"MapTasker: {failure.message}")
         return failure.code
@@ -604,5 +609,5 @@ def run(argv: list[str]) -> int:
         return EXIT_ERROR
     finally:
         timeline.use_history_folder(None)
-        PrimeItems.headless = False
+        state.headless = False
     return EXIT_ERROR

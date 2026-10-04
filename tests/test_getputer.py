@@ -37,7 +37,7 @@ def program_arguments(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Progra
 
 def test_saving_settings_writes_the_toml_file_and_nothing_else(program_arguments: ProgramArguments, tmp_path: Path) -> None:
     """There is one settings file now."""
-    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
+    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True, state=PrimeItems)
 
     assert sorted(path.name for path in tmp_path.glob("*Settings*")) == [ARGUMENTS_FILE]
 
@@ -45,9 +45,9 @@ def test_saving_settings_writes_the_toml_file_and_nothing_else(program_arguments
 def test_settings_come_back_from_the_toml_file_alone(program_arguments: ProgramArguments) -> None:
     """Every saved argument and color is restored with no second file to read."""
     colors = set_color_mode("Dark")
-    getputer.save_restore_args(program_arguments, colors, to_save=True)
+    getputer.save_restore_args(program_arguments, colors, to_save=True, state=PrimeItems)
 
-    restored_arguments, restored_colors = getputer.save_restore_args({}, {}, to_save=False)
+    restored_arguments, restored_colors = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
 
     assert {name: restored_arguments[name] for name in ARGUMENT_NAMES} == {
         name: program_arguments[name] for name in ARGUMENT_NAMES
@@ -74,10 +74,10 @@ def test_an_old_system_settings_pickle_is_never_loaded_and_is_deleted_on_save(
     legacy_file = Path(LEGACY_SYSTEM_SETTINGS_FILE)
     legacy_file.write_bytes(pickle.dumps({"payload": _RunsCodeWhenLoaded(marker)}))
 
-    getputer.save_restore_args({}, {}, to_save=False)
+    getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
     assert legacy_file.exists()
 
-    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
+    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True, state=PrimeItems)
     assert not legacy_file.exists()
     assert not marker.exists()
 
@@ -86,9 +86,9 @@ def test_a_language_saved_under_the_old_tamil_spelling_is_carried_over(program_a
     """Tamil was listed as 'Tamali', and the language is saved by its name.  A settings file from
     before the fix has to come back as Tamil, not as a name nothing recognizes."""
     program_arguments.language = "Tamali"
-    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
+    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True, state=PrimeItems)
 
-    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False)
+    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
 
     assert restored_arguments["language"] == "Tamil"
     assert restored_arguments["language"] in PrimeItems.languages
@@ -98,9 +98,9 @@ def test_a_gemini_model_saved_under_the_wrong_spelling_is_carried_over(program_a
     """'gemini-3.1-flash_lite' was offered for a while; Google's name has a hyphen, and answers the
     underscore with 404 NOT_FOUND.  A settings file saved with it has to come back as the real name."""
     program_arguments.ai_model = "gemini-3.1-flash_lite"
-    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
+    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True, state=PrimeItems)
 
-    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False)
+    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
 
     assert restored_arguments["ai_model"] == "gemini-3.1-flash-lite"
     assert restored_arguments["ai_model"] in GEMINI_MODELS
@@ -108,9 +108,9 @@ def test_a_gemini_model_saved_under_the_wrong_spelling_is_carried_over(program_a
 
 def test_a_model_that_was_never_misspelled_is_left_alone(program_arguments: ProgramArguments) -> None:
     program_arguments.ai_model = "gemini-3.5-flash-lite"
-    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
+    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True, state=PrimeItems)
 
-    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False)
+    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
 
     assert restored_arguments["ai_model"] == "gemini-3.5-flash-lite"
 

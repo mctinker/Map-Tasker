@@ -99,7 +99,7 @@ def settings_file_untouched(monkeypatch):
     """
     from maptasker.src import guiutils  # noqa: PLC0415
 
-    monkeypatch.setattr(guiutils, "save_restore_args", lambda args, colors, to_save=False: (args, colors))
+    monkeypatch.setattr(guiutils, "save_restore_args", lambda args, colors, to_save=False, **_kw: (args, colors))
 
 
 @pytest.fixture
@@ -2185,7 +2185,7 @@ def test_a_save_to_android_panel_option_is_kept_for_the_next_session(monkeypatch
     monkeypatch.setattr(
         guiwins,
         "save_restore_args",
-        lambda args, colors, to_save=False: (written.append((dict(args), to_save)), (args, colors))[1],
+        lambda args, colors, to_save=False, **_kw: (written.append((dict(args), to_save)), (args, colors))[1],
     )
     monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments(android_verify=False, android_check_ids=False))
     gui = MagicMock()
@@ -2221,7 +2221,7 @@ def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch) ->
     monkeypatch.setattr(
         guiutils,
         "save_restore_args",
-        lambda args, colors, to_save=False: (written.append((dict(args), to_save)), (args, colors))[1],
+        lambda args, colors, to_save=False, **_kw: (written.append((dict(args), to_save)), (args, colors))[1],
     )
     monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments())
     gui = MagicMock(android_ipaddr="", android_port="", android_last_ipaddr="", android_last_port="")

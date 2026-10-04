@@ -39,6 +39,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from maptasker.src.primitem import PrimeItems
 from maptasker.src import mapit
 
 # The Android cases need a device on the LAN running the 'HTTP Server Example' Tasker

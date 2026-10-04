@@ -139,11 +139,7 @@ def build_html(file_to_get: str, state: RunState) -> int:
     # given, the file it was pointed at) would replace whatever the person last chose there.
     if not state.headless:
         with overridden_config(state=state, rerun=False):
-            _, _ = save_restore_args(
-                state.program_arguments,
-                state.colors_to_use,
-                to_save=True,
-            )
+            _, _ = save_restore_args(state.program_arguments, state.colors_to_use, to_save=True, state=state)
 
     # Take a note of what the Map just written was built from, so that asking for the same
     # one again is answered with that file rather than by building it a second time.  Last,

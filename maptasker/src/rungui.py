@@ -137,11 +137,7 @@ def save_gui_settings(user_input: object, state: RunState) -> None:
     )
 
     # Save our runtime settings.
-    _, _ = save_restore_args(
-        state.program_arguments,
-        state.colors_to_use,
-        to_save=True,
-    )
+    _, _ = save_restore_args(state.program_arguments, state.colors_to_use, to_save=True, state=state)
     logger.info("Settings saved on exit.")
 
 
@@ -200,7 +196,7 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
                 del shared_state["user_input"]
 
         # Safely instantiate or overwrite the UI instance
-        shared_state["user_input"] = MyGui()
+        shared_state["user_input"] = MyGui(state)
         # Mark as built so the application tracks that initialization has occurred
         app_lock["is_built"] = True
         if restart:

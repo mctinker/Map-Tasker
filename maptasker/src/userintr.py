@@ -147,8 +147,13 @@ class MyGui:
     restore_settings_button: ui.button
     report_issue_button: ui.button
 
-    def __init__(self: "MyGui") -> None:
-        """Initialize the GUI and set up all necessary state and layout."""
+    def __init__(self: "MyGui", state: RunState | None = None) -> None:
+        """Initialize the GUI and set up all necessary state and layout.
+
+        Args:
+            state (RunState | None): the run state this window shows and edits, or None for
+                PrimeItems -- the one the program runs on.
+        """
         # # Trace code
         # PrimeItems.program_arguments.debug = True  # Set this to True to enable tracing
         # # Create the trace object (set trace=False to only get function names, not every line)
@@ -168,7 +173,7 @@ class MyGui:
         # sys.setprofile(trace_calls)
 
         logger.info("Starting GUI")
-        self.state = PrimeItems
+        self.state = PrimeItems if state is None else state
         self.initialization = True
         # The 'Output Folder' box, once the layout has built it -- see
         # guiwins._create_output_directory_section.

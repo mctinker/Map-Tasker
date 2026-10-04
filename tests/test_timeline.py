@@ -182,7 +182,7 @@ def test_the_file_a_comparison_reads_is_not_recorded(tmp_path) -> None:
     _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML))
     before = [snapshot.digest for snapshot in timeline.snapshots()]
 
-    configuration, message = diffload.load_for_comparison(_write(tmp_path, "other.xml", _LATER_XML))
+    configuration, message = diffload.load_for_comparison(_write(tmp_path, "other.xml", _LATER_XML), state=PrimeItems)
 
     assert message == "" and configuration is not None
     assert [snapshot.digest for snapshot in timeline.snapshots()] == before
@@ -191,7 +191,7 @@ def test_the_file_a_comparison_reads_is_not_recorded(tmp_path) -> None:
 def test_suppression_is_lifted_afterwards(tmp_path) -> None:
     """A comparison must not switch recording off for the rest of the session."""
     _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML))
-    diffload.load_for_comparison(_write(tmp_path, "other.xml", _LATER_XML))
+    diffload.load_for_comparison(_write(tmp_path, "other.xml", _LATER_XML), state=PrimeItems)
 
     assert timeline.recording_suppressed is False
     _load_as_current(_write(tmp_path, "later.xml", _LATER_XML))

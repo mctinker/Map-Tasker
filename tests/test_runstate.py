@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src import guiutils, healthck, impact, mapai, mapfix, maprefac, projedit, taskedit, taskflow, userintr, varxref
+from maptasker.src import clireports, guiutils, healthck, impact, mapai, mapfix, maprefac, projedit, taskedit, taskflow, userintr, varxref
 from maptasker.src import bildhtml, getbakup, outline, proginit, runcli, taskerd, timeline
 from maptasker.src.actionc import load_arg_specs
 from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
@@ -530,3 +530,24 @@ def test_a_repair_is_planned_against_the_state_it_is_given(tmp_path: object, mon
     plan = mapfix.plan_fixes(state=state)
 
     assert plan is not None
+
+
+def test_a_command_line_report_is_made_on_a_state_of_its_own(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The whole of a report -- the load, the check, the exit code -- on a RunState that is not
+    PrimeItems.  The entry point is the one place that names the global, and it was not asked to.
+    """
+    monkeypatch.chdir(tmp_path)
+    backup = tmp_path / "backup.xml"
+    backup.write_text(_OUTLINE_XML, encoding="utf-8")
+    state = RunState()
+    root_before = PrimeItems.xml_root
+
+    code = clireports.run(
+        ["-healthcheck", "-file", str(backup), "-fail_on", "never", "-history_dir", str(tmp_path / "history")],
+        state=state,
+    )
+
+    assert code == clireports.EXIT_OK
+    assert set(state.tasker_root_elements["all_tasks"]) == {"20", "21"}
+    assert state.headless is False  # Put back afterwards, as a run on the global does.
+    assert PrimeItems.xml_root is root_before

@@ -1622,7 +1622,7 @@ def reload_gui(self: object) -> None:
     self.tab_to_use = selected_tab_name(self)
 
     # Save the settings
-    _, _ = save_restore_args(gui_settings(self), self.color_lookup, to_save=True)
+    _, _ = save_restore_args(gui_settings(self), self.color_lookup, to_save=True, state=window_state(self))
 
     # ReRun via a new process, which will load and run the new program/version.
     # Note: this current process will not return after this call, but simply be killed.
@@ -1718,7 +1718,7 @@ def remember_android_address(gui: "MyGui", ipaddr: str, port: str) -> None:
     remember_setting(gui, "android_last_port", port)
     if unchanged:
         return
-    save_restore_args(gui.state.program_arguments, gui.state.colors_to_use, to_save=True)
+    save_restore_args(gui.state.program_arguments, gui.state.colors_to_use, to_save=True, state=gui.state)
 
 
 def remember_android_address_fields(
