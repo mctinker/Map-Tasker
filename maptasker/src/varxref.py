@@ -63,6 +63,7 @@ if TYPE_CHECKING:
     from datetime import datetime
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.livevars import LiveValues
     from maptasker.src.primitem import RunState
 
 # A Tasker variable name begins with a letter and continues with letters, digits and
@@ -1147,6 +1148,10 @@ class Suspect:
     # place (None for a line that is prose).  Kept parallel to `detail` so the renderer
     # can pair them off without parsing the text back.
     places: list[Target | None] = field(default_factory=list)
+    # What the phone says about this variable, when it was asked (see livevars) -- "" when it
+    # was not, which is every report built without a device.  One line, kept apart from
+    # `summary` so a finding reads the same with or without it.
+    live: str = ""
 
 
 @dataclass
@@ -1297,7 +1302,7 @@ def _near_duplicates(totals: dict[str, _Totals]) -> list[Suspect]:
     return sorted(suspects, key=lambda item: item.subject.lower())
 
 
-def _never_set(totals: dict[str, _Totals]) -> list[Suspect]:
+def _never_set(totals: dict[str, _Totals], live: LiveValues | None = None) -> list[Suspect]:
     """Globals something reads that nothing in the file ever sets.
 
     Globals only.  A local read before it is set is usually a Perform Task parameter or a
@@ -1323,12 +1328,13 @@ def _never_set(totals: dict[str, _Totals]) -> list[Suspect]:
                 "Nothing here sets it, so a read sees an empty value.",
                 [Target(VARIABLE, name, name)],
                 [total.first_read_target],
+                _live_verdict(NEVER_SET, name, live),
             ),
         )
     return suspects
 
 
-def _never_read(totals: dict[str, _Totals]) -> list[Suspect]:
+def _never_read(totals: dict[str, _Totals], live: LiveValues | None = None) -> list[Suspect]:
     """Globals something sets that nothing in the file ever reads.
 
     Undeclared names only, and that filter is what makes the class worth printing: 325
@@ -1353,19 +1359,54 @@ def _never_read(totals: dict[str, _Totals]) -> list[Suspect]:
                 "Nothing here reads it, and it is not declared in Tasker's Variables tab.",
                 [Target(VARIABLE, name, name)],
                 [total.first_set_target],
+                _live_verdict(NEVER_READ, name, live),
             ),
         )
     return suspects
 
 
-def suspects(index: VariableIndex) -> list[Suspect]:
+def _shown_value(value: str) -> str:
+    """A live value as one short quoted line: whitespace folded, cut at 60 characters."""
+    folded = " ".join(value.split())
+    if len(folded) > 60:
+        folded = f"{folded[:57]}..."
+    return f"'{folded}'" if folded else "(empty)"
+
+
+def _live_verdict(tag: str, name: str, live: LiveValues | None) -> str:
+    """What the phone adds to a never-set or never-read finding, or "" when it was not asked.
+
+    The file can only say nothing in IT sets or reads a variable; the phone can say whether
+    the variable exists at all, which is what decides if the finding is a bug.  Worded to
+    claim no more than that: a global on the phone that this file never sets was set by
+    something else -- another Project, a plugin, the Variables tab -- and a global that is
+    set here but not there only means the setting action has not run since it was last
+    cleared.
+    """
+    if live is None:
+        return ""
+    held = live.has(name)
+    if tag == NEVER_SET:
+        if held:
+            return f"on the phone it holds {_shown_value(live.value(name))} -- something outside this file sets it"
+        return "not on the phone either -- confirmed: nothing sets it, so a read sees an empty value"
+    if held:
+        return f"on the phone it holds {_shown_value(live.value(name))} -- something outside this file may read it"
+    return "not on the phone -- the action that sets it has not run, or it has since been cleared"
+
+
+def suspects(index: VariableIndex, live: LiveValues | None = None) -> list[Suspect]:
     """Every problem class, worst first.
 
     Split out from the report so healthck can fold these into its own findings without
     building the index twice -- see the module header.
+
+    live, when given, adds the phone's answer to each never-set and never-read finding.  It
+    changes what a finding says and never whether there is one: the file is the source of
+    truth for what the configuration does, and the phone only qualifies it.
     """
     totals = _totals_by_name(index)
-    found = _near_duplicates(totals) + _never_set(totals) + _never_read(totals)
+    found = _near_duplicates(totals) + _never_set(totals, live) + _never_read(totals, live)
     return sorted(found, key=lambda item: (_SUSPECT_ORDER.index(item.tag), item.subject.lower()))
 
 
@@ -1403,7 +1444,17 @@ def _reference_lines(references: list[Reference], role: str) -> list[Row]:
     return rows
 
 
-def _variable_block(variable: Variable) -> list[Row]:
+def _live_line(variable: Variable, live: LiveValues) -> str:
+    """One global's value on the phone, and -- for a declared one -- whether it still matches the file."""
+    if not live.has(variable.name):
+        return "(not on the phone)"
+    shown = _shown_value(live.value(variable.name))
+    if variable.declared and " ".join(live.value(variable.name).split()) != " ".join(variable.value.split()):
+        return f"{shown}  (differs from the value in this file)"
+    return shown
+
+
+def _variable_block(variable: Variable, live: LiveValues | None = None) -> list[Row]:
     """One variable's whole entry."""
     counts = f"set {len(variable.sets)}, read {len(variable.reads)}"
     place = Target(VARIABLE, variable.name, variable.name)
@@ -1421,6 +1472,8 @@ def _variable_block(variable: Variable) -> list[Row]:
         if len(value) > 60:
             value = f"{value[:57]}..."
         rows.append(Row(f"    value  {value}"))
+    if live is not None and variable.scope == GLOBAL:
+        rows.append(Row(f"    live   {_live_line(variable, live)}"))
     rows += _reference_lines(variable.sets, SET)
     rows += _reference_lines(variable.reads, READ)
     rows.append(Row(""))
@@ -1437,7 +1490,12 @@ def _counts_by_scope(index: VariableIndex) -> dict[str, int]:
 
 
 def build_report(
-    index: VariableIndex, when: datetime | None = None, include_index: bool = True, *, state: RunState
+    index: VariableIndex,
+    when: datetime | None = None,
+    include_index: bool = True,
+    live: LiveValues | None = None,
+    *,
+    state: RunState,
 ) -> list[Row]:
     """Render the index as plain text.
 
@@ -1451,6 +1509,9 @@ def build_report(
     acts on, and dropping the rest into a <pre> costs the browser a great deal to render
     something nobody scrolls through on screen.  The SAVED file always has everything --
     the index is a reference document, and the point of it is to be searched.
+
+    live, when given, puts what the phone holds beside the file's own account: a 'live' line
+    on every global, and the phone's answer under each never-set and never-read finding.
     """
     when = when or clock.now()
     counts = _counts_by_scope(index)
@@ -1477,13 +1538,15 @@ def build_report(
         "",
     ]
 
-    found = suspects(index)
+    found = suspects(index, live)
     tallies = {tag: sum(1 for item in found if item.tag == tag) for tag in _SUSPECT_ORDER}
     lines.insert(
         len(lines) - 1,
         f"Suspects:    {tallies[NEAR_DUPLICATE]} near-duplicate name(s), "
         f"{tallies[NEVER_SET]} read but never set, {tallies[NEVER_READ]} set but never read",
     )
+    if live is not None:
+        lines[len(lines) - 1 : len(lines) - 1] = _live_summary(live, found)
 
     if not index.variables:
         return [Row(line) for line in [*lines, "No variables found.", ""]]
@@ -1491,7 +1554,7 @@ def build_report(
     rows = [Row(line) for line in lines]
     rows += _suspects_section(found, thin_rule)
     if include_index:
-        rows += _global_section(index, thin_rule)
+        rows += _global_section(index, thin_rule, live)
         rows += _local_section(index, thin_rule)
     else:
         rows += [
@@ -1503,6 +1566,24 @@ def build_report(
             Row(""),
         ]
     return rows + [Row(line) for line in _limitations(index, thin_rule)]
+
+
+def _live_summary(live: LiveValues, found: list[Suspect]) -> list[str]:
+    """The header lines saying what the phone was asked and how its answer split the findings."""
+    lines = [f"Live values: {len(live.values)} globals read from {live.address}"]
+    for tag, absent_phrase, present_phrase in (
+        (NEVER_SET, "confirmed -- not on the phone either", "exist on the phone, so something else sets them"),
+        (NEVER_READ, "not on the phone", "on the phone"),
+    ):
+        members = [item for item in found if item.tag == tag]
+        if not members:
+            continue
+        missing = sum(1 for item in members if item.live.startswith("not on the phone"))
+        label = "read but never set" if tag == NEVER_SET else "set but never read"
+        lines.append(
+            f"             of {len(members)} {label}: {missing} {absent_phrase}, {len(members) - missing} {present_phrase}",
+        )
+    return lines
 
 
 def _suspects_section(found: list[Suspect], thin_rule: str) -> list[Row]:
@@ -1545,6 +1626,8 @@ def _suspects_section(found: list[Suspect], thin_rule: str) -> list[Row]:
                     for line, place in zip(suspect.detail, _padded_places(suspect), strict=False)
                     if line
                 ]
+                if suspect.live:
+                    rows.append(Row(f"      live     {suspect.live}"))
             rows.append(Row(""))
     return rows
 
@@ -1590,7 +1673,7 @@ def _detail_rows(suspect: Suspect) -> list[Row]:
     ]
 
 
-def _global_section(index: VariableIndex, thin_rule: str) -> list[Row]:
+def _global_section(index: VariableIndex, thin_rule: str, live: LiveValues | None = None) -> list[Row]:
     """Every global, built-in and Tasker-set name, A-Z."""
     wanted = sorted(
         (variable for variable in index.variables.values() if variable.scope != LOCAL),
@@ -1603,7 +1686,7 @@ def _global_section(index: VariableIndex, thin_rule: str) -> list[Row]:
     for variable in wanted:
         # Said once, on the entry itself, rather than left for the reader to work out from
         # the name: a built-in with no 'set' block is Tasker doing its job, not a fault.
-        block = _variable_block(variable)
+        block = _variable_block(variable, live)
         if variable.scope in (BUILTIN, TASKER_SET):
             block.insert(1, Row(f"    ({variable.scope} -- Tasker sets this one)"))
         rows += block
@@ -1706,10 +1789,10 @@ def _limitations(index: VariableIndex, thin_rule: str) -> list[str]:
     return lines
 
 
-def run_variable_xref(state: RunState) -> tuple[list[Row], VariableIndex]:
+def run_variable_xref(state: RunState, live: LiveValues | None = None) -> tuple[list[Row], VariableIndex]:
     """Build the index and render it.  Returns (report rows, index)."""
     index = build_index(state=state)
-    return build_report(index, state=state), index
+    return build_report(index, live=live, state=state), index
 
 
 def write_variable_xref_report(rows: list[Row], state: RunState) -> str:

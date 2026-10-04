@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
-from maptasker.src import mapjump, timeline
+from maptasker.src import livevars, mapjump, timeline
 from maptasker.src.diffload import (
     current_configuration,
     load_for_comparison,
@@ -30,6 +30,7 @@ from maptasker.src.diffload import (
 from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guistate import remember_setting
+from maptasker.src.guiutils import android_address_defaults, remember_android_address, remember_android_address_fields
 from maptasker.src.guiwins import build_changes_since_dialog, build_health_check_dialog
 from maptasker.src.guiwins_views import NiceGuiTextView
 from maptasker.src.healthck import ERROR, WARNING, run_health_check, write_health_check_report
@@ -181,6 +182,21 @@ class ReportEventHandlers:
 
     def variable_xref_event(self: MapTaskerEventHandlers) -> None:
         """Build the variable where-used index, display it and save it to a file."""
+        if not self.state.tasker_root_elements["all_tasks"]:
+            self.gui.display_message_box(
+                translate_string("No XML file has been loaded.  Get an XML file first."),
+                "Red",
+            )
+            return
+        self.show_variable_xref()
+
+    def variable_xref_live_event(self: MapTaskerEventHandlers) -> None:
+        """Ask which phone to read, then build the index with what its globals hold right now.
+
+        The address comes first, as it does for every other Android dialog, and is kept like
+        theirs.  The read is the only part that touches the phone; if it fails the report is
+        not built from a half answer -- the user is told why and the dialog stays up to retry.
+        """
         gui = self.gui
         if not self.state.tasker_root_elements["all_tasks"]:
             gui.display_message_box(
@@ -189,7 +205,64 @@ class ReportEventHandlers:
             )
             return
 
-        rows, index = run_variable_xref(state=self.state)
+        default_ip, default_port = android_address_defaults(gui)
+        with ui.dialog() as dialog, ui.card().classes("w-96"):
+            ui.label(translate_string("Variable Xref with Live Values")).classes("text-lg font-bold")
+            ui.label(
+                translate_string(
+                    "Reads the current value of every global variable from Tasker on the Android device and "
+                    "sets it beside what this file says.  Nothing on the device is changed.",
+                ),
+            ).classes("text-sm text-gray-500")
+            ip_field = ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full")
+            port_field = ui.input(translate_string("Port"), value=default_port).classes("w-full")
+            remember_android_address_fields(gui, ip_field, port_field, dialog)
+
+            progress_row = ui.row().classes("w-full items-center gap-2 mt-3")
+            progress_row.set_visibility(False)
+            with progress_row:
+                ui.spinner(size="sm")
+                ui.label(
+                    translate_string(
+                        "Waiting on the Android device -- accept the authorization prompt there if one appears.",
+                    ),
+                ).classes("text-sm text-amber-700 dark:text-amber-500")
+
+            async def read_live() -> None:
+                ip_address = str(ip_field.value or "").strip()
+                ip_port = str(port_field.value or "").strip()
+                remember_android_address(gui, ip_address, ip_port)
+
+                read_button.set_enabled(False)
+                progress_row.set_visibility(True)
+                try:
+                    fetched = await run.io_bound(livevars.fetch_live_values, ip_address, ip_port)
+                finally:
+                    read_button.set_enabled(True)
+                    progress_row.set_visibility(False)
+
+                # None when the wait was cancelled or the app is stopping (nicegui.run._run).
+                if fetched is None:
+                    return
+                return_code, message, live = fetched
+                if return_code != 0 or live is None:
+                    ui.notify(message, type="negative", timeout=8000)
+                    return
+
+                dialog.close()
+                self.show_variable_xref(live)
+
+            with ui.row().classes("w-full justify-end gap-2 mt-4"):
+                ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+                read_button = ui.button(translate_string("Read Live Values"), on_click=read_live).classes(
+                    "bg-blue-600",
+                )
+        dialog.open()
+
+    def show_variable_xref(self: MapTaskerEventHandlers, live: livevars.LiveValues | None = None) -> None:
+        """Build the index, save the report, and show it -- with the phone's values when live is given."""
+        gui = self.gui
+        rows, index = run_variable_xref(state=self.state, live=live)
         file_name = write_variable_xref_report(rows, state=self.state)
 
         if file_name:
@@ -204,7 +277,7 @@ class ReportEventHandlers:
         # html_report does the escaping (see health_check_event) and marks every place the
         # report names -- the variables themselves, and the action each is first set or
         # read at -- so clicking one takes the user there in the Map view.
-        shown = build_report(index, include_index=False, state=self.state)
+        shown = build_report(index, include_index=False, live=live, state=self.state)
         self.gui.textview = NiceGuiTextView(
             gui,
             title="Misc View",
@@ -214,7 +287,7 @@ class ReportEventHandlers:
         # A configuration with nothing wrong in it produces a report whose first section
         # says so and then 10,000 lines of index.  Worth saying out loud, so a clean result
         # is not mistaken for the feature having failed to run.
-        if not suspects(index):
+        if not suspects(index, live):
             ui.notify(
                 translate_string("Variable Cross-Reference found no suspect variables."),
                 type="positive",

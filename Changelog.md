@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file!
 
 - Added: A new __What Fires When?__ button lets you pick a moment -- date and time, Wi-Fi network, app in front and battery level -- and shows which Profiles would be active, the order their Tasks would start in, and where they collide, such as two Profiles setting Wi-Fi opposite ways or one Task started twice.  Anything the inputs do not describe, such as an Event or a location, is shown as possible along with what it is waiting on, rather than guessed at.
 - Added: Health Check, Compare, Changes Since and Export can now be run from the command line with no window (for example `maptasker -healthcheck -file backup.xml`), and they end with an exit code a script can act on, so a nightly Tasker backup can be checked automatically.  A new `-watch FOLDER` option records each new backup that appears in a folder in the history, so it fills up even on days MapTasker is not opened.
+- Added: A new __Xref Live__ button beside Variable Xref reads the current value of every global variable from Tasker on your Android device and shows it beside each variable, and it checks the "read but never set" and "set but never read" findings against the phone.  A variable the phone does not have is a confirmed problem, while one it does have was set or read by something outside the file; nothing on the device is changed.
 - Added:
 
 ### Changed

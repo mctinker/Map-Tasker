@@ -4303,27 +4303,45 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
     # Full width and coloured through "color" for the same two reasons the two buttons
     # above are: the drawer is w-80 and this label will not fit beside another, and
     # Quasar's own bg-primary beats a Tailwind bg-* class added here.
-    self.variable_xref_button = (
-        ui.button(
+    # Variable Xref and its live twin share a row.  Each grows to half of it ("flex-grow"
+    # rather than w-full, which would push the second onto a line of its own), and the row
+    # carries the negative margin the lone button used to.
+    with ui.row().classes("w-full no-wrap gap-1").style("margin-top:-6px"):
+        self.variable_xref_button = ui.button(
             translate_string("Variable Xref"),
             color="teal",
             on_click=self.event_handlers.variable_xref_event,
             icon="manage_search",
-        )
-        .classes("w-full justify-center")
-        .style("margin-top:-6px")
-    )
-    with self.variable_xref_button:
-        ui.tooltip(
-            translate_string(
-                "Trace every %variable in the loaded XML: where each one is set, where it is "
-                "read, which are read but never set, which are set but never read, and which "
-                "near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: "
-                "Task actions and their conditions, plugin configuration, Profile contexts and "
-                "Scenes.\n\nResults are displayed here and saved to a text file in the Output "
-                "Folder.",
-            ),
-        ).style("white-space: pre-wrap")
+        ).classes("flex-grow justify-center")
+        with self.variable_xref_button:
+            ui.tooltip(
+                translate_string(
+                    "Trace every %variable in the loaded XML: where each one is set, where it is "
+                    "read, which are read but never set, which are set but never read, and which "
+                    "near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: "
+                    "Task actions and their conditions, plugin configuration, Profile contexts and "
+                    "Scenes.\n\nResults are displayed here and saved to a text file in the Output "
+                    "Folder.",
+                ),
+            ).style("white-space: pre-wrap")
+
+        self.variable_xref_live_button = ui.button(
+            translate_string("Xref Live"),
+            color="teal",
+            on_click=self.event_handlers.variable_xref_live_event,
+            icon="sensors",
+        ).classes("flex-grow justify-center")
+        with self.variable_xref_live_button:
+            ui.tooltip(
+                translate_string(
+                    "The Variable Xref, plus what each global variable holds right now on the Android "
+                    "device, read through Tasker's HTTP API.\n\nIt also checks the 'read but never set' "
+                    "and 'set but never read' findings against the device: a variable the device does "
+                    "not have is a confirmed problem, and one it does have was set or read by something "
+                    "outside this file.\n\nNothing on the device is changed.  Values appear in the "
+                    "saved report.",
+                ),
+            ).style("white-space: pre-wrap")
 
     # Full width and coloured through "color" for the same two reasons the three buttons
     # above are: the drawer is w-80, this label will not fit beside another, and Quasar's
