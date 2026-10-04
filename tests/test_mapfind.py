@@ -165,7 +165,7 @@ def _load(xml_text: str) -> None:
 def index() -> mapfind.FindIndex:
     """The search index for the fixture."""
     _load(_FIXTURE_XML)
-    return mapfind.build_index()
+    return mapfind.build_index(state=PrimeItems)
 
 
 def _named(hits: list[mapfind.Hit]) -> set[tuple[str, str]]:
@@ -366,7 +366,7 @@ def test_report_is_written_to_a_timestamped_file(index: mapfind.FindIndex, tmp_p
 def test_an_empty_configuration_is_answered_not_raised() -> None:
     """Safe to build an index over nothing -- the GUI checks first, but this must not raise."""
     _load('<TaskerData sr="" dvi="1" tv="6.3.13"></TaskerData>')
-    empty = mapfind.build_index()
+    empty = mapfind.build_index(state=PrimeItems)
     assert empty.objects == []
     assert empty.choices(mapfind.ACTION) == []
     assert mapfind.run_query(empty, mapfind.Query(action="Flash")) == ([], 0)

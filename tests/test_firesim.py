@@ -118,12 +118,12 @@ def _loaded() -> None:
 
 def _states(scenario: firesim.Scenario) -> dict[str, str]:
     """{Profile name: active/possible/inactive} for one scenario."""
-    result = firesim.simulate(scenario)
+    result = firesim.simulate(scenario, state=PrimeItems)
     return {profile.target.name: profile.state for profile in result.active + result.possible + result.inactive}
 
 
 def _profile(scenario: firesim.Scenario, name: str) -> firesim.ProfileResult:
-    result = firesim.simulate(scenario)
+    result = firesim.simulate(scenario, state=PrimeItems)
     return next(profile for profile in result.active + result.possible + result.inactive if profile.target.name == name)
 
 
@@ -208,7 +208,7 @@ def test_event_is_only_ever_possible() -> None:
 
 def test_disabled_profile_is_counted_not_simulated() -> None:
     """A switched-off Profile is active on nothing."""
-    result = firesim.simulate(firesim.Scenario(_MONDAY))
+    result = firesim.simulate(firesim.Scenario(_MONDAY), state=PrimeItems)
     assert result.disabled == 1
     assert "Switched Off" not in _states(firesim.Scenario(_MONDAY))
 
@@ -218,7 +218,7 @@ def test_disabled_profile_is_counted_not_simulated() -> None:
 # ##################################################################################
 def test_queue_runs_higher_priority_first_and_marks_ties() -> None:
     """Work Hours (priority 10) starts first; the rest share the default and are tied."""
-    result = firesim.simulate(firesim.Scenario(_MONDAY, wifi="Office", app="", battery=50))
+    result = firesim.simulate(firesim.Scenario(_MONDAY, wifi="Office", app="", battery=50), state=PrimeItems)
     names = [run.profile.target.name for run in result.queue]
     assert names[0] == "Work Hours"
     assert not result.queue[0].tied
@@ -229,7 +229,7 @@ def test_queue_runs_higher_priority_first_and_marks_ties() -> None:
 
 def test_profiles_on_different_triggers_that_disagree() -> None:
     """Work Hours and Office watch different things, are true together, and set WiFi both ways."""
-    result = firesim.simulate(firesim.Scenario(_MONDAY, wifi="Office", app="", battery=50))
+    result = firesim.simulate(firesim.Scenario(_MONDAY, wifi="Office", app="", battery=50), state=PrimeItems)
     settings = [collision for collision in result.collisions if collision.kind == firesim.SETTING]
     assert len(settings) == 1
     assert settings[0].certain
@@ -237,13 +237,13 @@ def test_profiles_on_different_triggers_that_disagree() -> None:
     assert "runs later, so the device is left On" in settings[0].detail
 
     # Off the office network the pair is not active together, and there is nothing to report.
-    quiet = firesim.simulate(firesim.Scenario(_MONDAY, wifi="Cafe", app="", battery=50))
+    quiet = firesim.simulate(firesim.Scenario(_MONDAY, wifi="Cafe", app="", battery=50), state=PrimeItems)
     assert not [collision for collision in quiet.collisions if collision.kind == firesim.SETTING]
 
 
 def test_one_task_started_by_two_profiles() -> None:
     """Low Battery and Maps both start Task 'Shared', whose handling is Abort Existing Task."""
-    result = firesim.simulate(firesim.Scenario(_MONDAY, app="Maps", battery=10))
+    result = firesim.simulate(firesim.Scenario(_MONDAY, app="Maps", battery=10), state=PrimeItems)
     same = [
         collision
         for collision in result.collisions
@@ -256,7 +256,7 @@ def test_one_task_started_by_two_profiles() -> None:
 
 def test_collision_with_a_possible_profile_is_not_certain() -> None:
     """With the app unknown, Maps may or may not be active, and the collision says so."""
-    result = firesim.simulate(firesim.Scenario(_MONDAY, battery=10))
+    result = firesim.simulate(firesim.Scenario(_MONDAY, battery=10), state=PrimeItems)
     same = [
         collision
         for collision in result.collisions
@@ -270,7 +270,7 @@ def test_collision_with_a_possible_profile_is_not_certain() -> None:
 def test_nothing_loaded() -> None:
     """With empty tables the answer is empty, not an error."""
     PrimeItems.tasker_root_elements = {"all_projects": {}, "all_profiles": {}, "all_tasks": {}}
-    result = firesim.simulate(firesim.Scenario(_MONDAY))
+    result = firesim.simulate(firesim.Scenario(_MONDAY), state=PrimeItems)
     assert not result.active
     assert not result.possible
     assert not result.inactive
@@ -300,5 +300,5 @@ def test_tasker_pattern_matching(pattern: str, value: str, expected: bool) -> No
 
 def test_pickers_are_filled_from_the_configuration() -> None:
     """Every network a condition names, split on '/', and every app a condition names."""
-    assert firesim.wifi_networks() == ["Home", "Office", "Office-5G"]
-    assert firesim.condition_apps() == {"com.google.android.apps.maps": "Maps"}
+    assert firesim.wifi_networks(state=PrimeItems) == ["Home", "Office", "Office-5G"]
+    assert firesim.condition_apps(state=PrimeItems) == {"com.google.android.apps.maps": "Maps"}

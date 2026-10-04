@@ -690,7 +690,7 @@ class _FindDialog:
 
     def __init__(self, view: TextViewSearch) -> None:
         self.view = view
-        self.index = mapfind.build_index()
+        self.index = mapfind.build_index(state=PrimeItems)
         # A Find run from the Diagram shows its answers in the Diagram where it can (see
         # go_to_target).  Decided here, from the view the button was pressed on, rather
         # than from whatever view happens to be frontmost when a row is clicked.

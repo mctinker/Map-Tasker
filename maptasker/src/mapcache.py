@@ -54,7 +54,7 @@ import os
 from typing import TYPE_CHECKING
 
 from maptasker.src import caches
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
@@ -99,7 +99,7 @@ def _absorb(digest: object, element: "Element | None") -> None:
     digest.update(SEPARATOR)
 
 
-def configuration_digest() -> str:
+def configuration_digest(state: RunState) -> str:
     """What the loaded configuration is, as the Map sees it.
 
     Taken from the object tables rather than from the xml root because those are what the
@@ -107,7 +107,7 @@ def configuration_digest() -> str:
     still has it, and the digest has to follow the drawing.
     """
     digest = hashlib.blake2b(digest_size=16)
-    tables = PrimeItems.tasker_root_elements or {}
+    tables = state.tasker_root_elements or {}
     for table_name in OBJECT_TABLES:
         digest.update(table_name.encode())
         digest.update(SEPARATOR)
@@ -123,27 +123,27 @@ def configuration_digest() -> str:
 
     # Everything in the file that is not one of those objects: the global variables the
     # Map lists and Tasker's own preferences, both of which it can be asked to display.
-    for child in PrimeItems.xml_root if PrimeItems.xml_root is not None else ():
+    for child in state.xml_root if state.xml_root is not None else ():
         if child.tag not in OBJECT_TAGS:
             _absorb(digest, child)
 
     return digest.hexdigest()
 
 
-def settings_digest() -> str:
+def settings_digest(state: RunState) -> str:
     """What was asked for: every runtime setting and every colour, left uncurated."""
     digest = hashlib.blake2b(digest_size=16)
-    for name, value in sorted(PrimeItems.program_arguments.items()):
+    for name, value in sorted(state.program_arguments.items()):
         digest.update(f"{name}={value!r}".encode())
         digest.update(SEPARATOR)
-    colors = PrimeItems.colors_to_use
+    colors = state.colors_to_use
     for name, value in sorted((colors or {}).items()) if isinstance(colors, dict) else ():
         digest.update(f"{name}={value!r}".encode())
         digest.update(SEPARATOR)
     return digest.hexdigest()
 
 
-def digests() -> tuple[str, str]:
+def digests(state: RunState) -> tuple[str, str]:
     """What a Map built right now would be built from: (configuration, settings).
 
     Taken at the START of a build and remembered as that build's answer, because a build
@@ -156,7 +156,7 @@ def digests() -> tuple[str, str]:
     Against the state it started from, a hit means what it says: nothing that went into
     this file has changed since.
     """
-    return (configuration_digest(), settings_digest())
+    return (configuration_digest(state=state), settings_digest(state=state))
 
 
 def _same_path(path: str) -> str:

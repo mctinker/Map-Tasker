@@ -83,25 +83,25 @@ def _map_file(tmp_path, text: str = "<html>a Map</html>") -> str:
 def test_a_map_nothing_has_disturbed_is_current(tmp_path) -> None:
     """The whole point: same configuration, same settings, same file."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 1234, mapcache.digests())
+    mapcache.remember(path, 1234, mapcache.digests(state=PrimeItems))
 
-    assert mapcache.is_current(path, mapcache.digests())
+    assert mapcache.is_current(path, mapcache.digests(state=PrimeItems))
     assert mapcache.output_lines() == 1234
 
 
 def test_nothing_is_current_before_anything_has_been_remembered() -> None:
     """A session that has not built a Map yet has nothing to hand back."""
-    assert not mapcache.is_current("/wherever/MapTasker.html", mapcache.digests())
+    assert not mapcache.is_current("/wherever/MapTasker.html", mapcache.digests(state=PrimeItems))
     assert mapcache.output_lines() == 0
 
 
 def test_forgetting_gives_up_the_record(tmp_path) -> None:
     """After forget() the next Map is built from scratch."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
     mapcache.forget()
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 # ##################################################################################
@@ -110,76 +110,76 @@ def test_forgetting_gives_up_the_record(tmp_path) -> None:
 def test_renaming_a_task_is_not_the_same_configuration(tmp_path) -> None:
     """A name shows in the Map, so a Map built before the rename is the wrong Map."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     task = PrimeItems.tasker_root_elements["all_tasks"]["20"]
     task["xml"].find("nme").text = "Wake Up Later"
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 def test_changing_an_action_argument_is_not_the_same_configuration(tmp_path) -> None:
     """The change the Map is most likely to be asked to show: an edit inside an action."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     action_argument = PrimeItems.tasker_root_elements["all_tasks"]["21"]["xml"].find("Action/Str")
     action_argument.text = "something else"
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 def test_changing_an_attribute_is_not_the_same_configuration(tmp_path) -> None:
     """Attributes carry meaning here -- an action's 'sr' is its position in the Task."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     PrimeItems.tasker_root_elements["all_tasks"]["21"]["xml"].find("Action").set("sr", "act9")
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 def test_the_derived_name_of_an_object_counts_as_the_configuration(tmp_path) -> None:
     """An unnamed Profile is given a name to display; that name is part of what is drawn."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     PrimeItems.tasker_root_elements["all_profiles"]["10"]["name"] = "Wake (renamed by the naming pass)"
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 def test_a_change_outside_the_four_tables_still_counts(tmp_path) -> None:
     """A global variable's value is listed in the Map, and it lives in none of the tables."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     PrimeItems.xml_root.find("Variable/v").text = "not ready"
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 def test_deleting_an_object_is_not_the_same_configuration(tmp_path) -> None:
     """Fewer Tasks, fewer Tasks drawn."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     del PrimeItems.tasker_root_elements["all_tasks"]["21"]
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 def test_putting_the_configuration_back_makes_the_map_current_again(tmp_path) -> None:
     """Undo included: the test that the digest reads content and not merely 'something happened'."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
     task_name = PrimeItems.tasker_root_elements["all_tasks"]["20"]["xml"].find("nme")
 
     task_name.text = "Wake Up Later"
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
     task_name.text = "Wake Up"
-    assert mapcache.is_current(path, mapcache.digests())
+    assert mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 # ##################################################################################
@@ -188,11 +188,11 @@ def test_putting_the_configuration_back_makes_the_map_current_again(tmp_path) ->
 def test_a_changed_setting_is_a_different_map(tmp_path) -> None:
     """Display detail level decides how much of each Task is drawn."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     PrimeItems.program_arguments.display_detail_level = 3
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 def _something_else(value: object) -> object:
@@ -211,21 +211,21 @@ def test_every_setting_is_part_of_what_was_built(tmp_path, name) -> None:
     """The settings are not a curated list: every one counts, including one added later,
     without being named here."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     PrimeItems.program_arguments[name] = _something_else(PrimeItems.program_arguments[name])
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 def test_a_changed_colour_is_a_different_map(tmp_path) -> None:
     """Colours are written into the Map itself, so they are part of what was built."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     PrimeItems.colors_to_use["project_color"] = "Red"
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 # ##################################################################################
@@ -234,36 +234,36 @@ def test_a_changed_colour_is_a_different_map(tmp_path) -> None:
 def test_a_map_file_that_has_been_written_to_since_is_refused(tmp_path) -> None:
     """Something else wrote to it, so what is on disk is no longer what was built."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     _map_file(tmp_path, "<html>a Map, and then some</html>")
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 def test_a_map_file_that_has_gone_is_refused(tmp_path) -> None:
     """Deleted from under us between one Map and the next."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
     (tmp_path / "MapTasker.html").unlink()
 
-    assert not mapcache.is_current(path, mapcache.digests())
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
 def test_a_different_path_is_refused(tmp_path) -> None:
     """The record is about one file, not about any Map anywhere."""
     path = _map_file(tmp_path)
-    mapcache.remember(path, 10, mapcache.digests())
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
-    assert not mapcache.is_current(str(tmp_path / "Somewhere Else.html"), mapcache.digests())
+    assert not mapcache.is_current(str(tmp_path / "Somewhere Else.html"), mapcache.digests(state=PrimeItems))
 
 
 def test_remembering_a_file_that_was_never_written_records_nothing(tmp_path) -> None:
     """A build that failed before writing leaves nothing to hand back."""
-    mapcache.remember(str(tmp_path / "never written.html"), 10, mapcache.digests())
+    mapcache.remember(str(tmp_path / "never written.html"), 10, mapcache.digests(state=PrimeItems))
 
-    assert not mapcache.is_current(str(tmp_path / "never written.html"), mapcache.digests())
+    assert not mapcache.is_current(str(tmp_path / "never written.html"), mapcache.digests(state=PrimeItems))
 
 
 # ##################################################################################

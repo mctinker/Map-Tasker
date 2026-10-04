@@ -42,11 +42,12 @@ from typing import TYPE_CHECKING
 from maptasker.src import proflint
 from maptasker.src.mapjump import PROFILE, TASK, Target
 from maptasker.src.objprops import APP_MATCH_FOREGROUND_APP_BIT, flag_bits
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from datetime import datetime
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 # What a single condition, and then a whole Profile, comes out as.
 YES = "yes"
@@ -438,10 +439,10 @@ def _judge(element: Element, scenario: Scenario) -> tuple[Verdict, bool]:
 # ##################################################################################
 # Profiles.
 # ##################################################################################
-def _project_owners() -> dict[str, str]:
+def _project_owners(state: RunState) -> dict[str, str]:
     """{Profile or Task id: owning Project name} -- see proflint._project_owners for why one pass."""
     owners: dict[str, str] = {}
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         for kind in ("pids", "tids"):
             for member in (item.strip() for item in (project["xml"].findtext(kind) or "").split(",")):
                 if member:
@@ -449,9 +450,9 @@ def _project_owners() -> dict[str, str]:
     return owners
 
 
-def _task_target(task_id: str, owners: dict[str, str]) -> Target | None:
+def _task_target(task_id: str, owners: dict[str, str], state: RunState) -> Target | None:
     """Somewhere to go and look at one Task, or None when the link names no Task in the file."""
-    task = PrimeItems.tasker_root_elements["all_tasks"].get(task_id)
+    task = state.tasker_root_elements["all_tasks"].get(task_id)
     if task is None:
         return None
     return Target(TASK, task_id, task["name"], owners.get(f"tids:{task_id}", ""))
@@ -463,7 +464,9 @@ def _priority(profile_xml: Element) -> int:
     return int(value) if value.isdigit() else DEFAULT_PRIORITY
 
 
-def evaluate_profile(profile_id: str, profile: dict, scenario: Scenario, owners: dict[str, str]) -> ProfileResult:
+def evaluate_profile(
+    profile_id: str, profile: dict, scenario: Scenario, owners: dict[str, str], state: RunState
+) -> ProfileResult:
     """One Profile against the scenario: every condition judged, and the three-way answer.
 
     Tasker ANDs a Profile's conditions, so one certain NO is the end of it, and a Profile is
@@ -481,16 +484,16 @@ def evaluate_profile(profile_id: str, profile: dict, scenario: Scenario, owners:
     if not verdicts:
         verdicts.append(Verdict("No condition", NO, "there is nothing for Tasker to make it active on"))
     outcomes = {verdict.outcome for verdict in verdicts}
-    state = INACTIVE if NO in outcomes else POSSIBLE if UNKNOWN in outcomes else ACTIVE
+    result_state = INACTIVE if NO in outcomes else POSSIBLE if UNKNOWN in outcomes else ACTIVE
 
     return ProfileResult(
         target=Target(PROFILE, profile_id, profile["name"], owners.get(f"pids:{profile_id}", "")),
-        state=state,
+        state=result_state,
         verdicts=verdicts,
         priority=_priority(element),
         instant=instant,
-        entry=_task_target(_text(element, "mid0"), owners),
-        exit=_task_target(_text(element, "mid1"), owners),
+        entry=_task_target(_text(element, "mid0"), owners, state=state),
+        exit=_task_target(_text(element, "mid1"), owners, state=state),
     )
 
 
@@ -526,7 +529,7 @@ def _both(first: ProfileResult, second: ProfileResult) -> str:
     return "  This happens only if the Profiles still waiting on something turn out to be active as well."
 
 
-def _setting_collisions(queue: list[Run]) -> list[Collision]:
+def _setting_collisions(queue: list[Run], state: RunState) -> list[Collision]:
     """Two Profiles active together whose entry Tasks set the same switch opposite ways.
 
     proflint's PROFILE-CONFLICT, asked of Profiles that are active at the same moment
@@ -534,7 +537,7 @@ def _setting_collisions(queue: list[Run]) -> list[Collision]:
     last -- which, between two starts of equal priority, is not fixed.
     """
     switches = proflint.switch_actions()
-    tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    tasks = state.tasker_root_elements["all_tasks"]
     settings = {run.position: proflint.settings_set(tasks[run.task.key]["xml"], switches) for run in queue}
 
     collisions: list[Collision] = []
@@ -559,13 +562,13 @@ def _setting_collisions(queue: list[Run]) -> list[Collision]:
     return collisions
 
 
-def _same_task_collisions(queue: list[Run]) -> list[Collision]:
+def _same_task_collisions(queue: list[Run], state: RunState) -> list[Collision]:
     """One Task started by two or more Profiles at once: its collision handling decides what happens."""
     by_task: dict[str, list[Run]] = defaultdict(list)
     for run in queue:
         by_task[run.task.key].append(run)
 
-    tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    tasks = state.tasker_root_elements["all_tasks"]
     collisions: list[Collision] = []
     for runs in by_task.values():
         if len(runs) < 2:
@@ -594,7 +597,7 @@ def _same_task_collisions(queue: list[Run]) -> list[Collision]:
 # ##################################################################################
 # What the dialog calls.
 # ##################################################################################
-def simulate(scenario: Scenario) -> Simulation:
+def simulate(scenario: Scenario, state: RunState) -> Simulation:
     """Run one scenario over every enabled Profile in the loaded configuration.
 
     Disabled Profiles are counted and otherwise left out: a Profile that is switched off
@@ -602,12 +605,12 @@ def simulate(scenario: Scenario) -> Simulation:
     and so is the answer.
     """
     result = Simulation(scenario)
-    owners = _project_owners()
-    for profile_id, profile in PrimeItems.tasker_root_elements.get("all_profiles", {}).items():
+    owners = _project_owners(state=state)
+    for profile_id, profile in state.tasker_root_elements.get("all_profiles", {}).items():
         if _text(profile["xml"], "limit") == "true":
             result.disabled += 1
             continue
-        evaluated = evaluate_profile(profile_id, profile, scenario, owners)
+        evaluated = evaluate_profile(profile_id, profile, scenario, owners, state=state)
         {ACTIVE: result.active, POSSIBLE: result.possible, INACTIVE: result.inactive}[evaluated.state].append(
             evaluated,
         )
@@ -616,19 +619,21 @@ def simulate(scenario: Scenario) -> Simulation:
         group.sort(key=lambda item: (-item.priority, item.target.label))
 
     result.queue = _build_queue(result.active + result.possible)
-    result.collisions = _same_task_collisions(result.queue) + _setting_collisions(result.queue)
+    result.collisions = _same_task_collisions(result.queue, state=state) + _setting_collisions(
+        result.queue, state=state
+    )
     result.collisions.sort(key=lambda item: (not item.certain, item.kind, item.where.label))
     return result
 
 
-def wifi_networks() -> list[str]:
+def wifi_networks(state: RunState) -> list[str]:
     """Every SSID a 'Wifi Connected' condition in the configuration names, for the picker.
 
     Split on "/" because that is how one condition names several networks, and variables
     and patterns are left out -- "Home*" is not a network anyone can be connected to.
     """
     networks: set[str] = set()
-    for profile in PrimeItems.tasker_root_elements.get("all_profiles", {}).values():
+    for profile in state.tasker_root_elements.get("all_profiles", {}).values():
         for element in profile["xml"].findall("State"):
             if _text(element, "code") != _WIFI_CONNECTED:
                 continue
@@ -639,14 +644,14 @@ def wifi_networks() -> list[str]:
     return sorted(networks, key=str.casefold)
 
 
-def condition_apps() -> dict[str, str]:
+def condition_apps(state: RunState) -> dict[str, str]:
     """{package: label} for every app an App condition names, for the picker.
 
     The Profiles' own apps rather than everything installed: those are the only apps whose
     being in front changes the answer.  Anything else can still be typed in.
     """
     found: dict[str, str] = {}
-    for profile in PrimeItems.tasker_root_elements.get("all_profiles", {}).values():
+    for profile in state.tasker_root_elements.get("all_profiles", {}).values():
         for element in profile["xml"].findall("App"):
             for child in element:
                 if child.tag.startswith("pkg") and (package := (child.text or "").strip()):

@@ -124,7 +124,7 @@ def build_firesim_dialog(make_jump: Callable) -> ui.dialog | None:
                     {
                         _SKIP: translate_string("(not simulated)"),
                         _NONE: translate_string("(not connected)"),
-                        **{name: name for name in firesim.wifi_networks()},
+                        **{name: name for name in firesim.wifi_networks(state=PrimeItems)},
                     },
                     value=_SKIP,
                     label=translate_string("Wi-Fi network"),
@@ -139,7 +139,7 @@ def build_firesim_dialog(make_jump: Callable) -> ui.dialog | None:
                     {
                         _SKIP: translate_string("(not simulated)"),
                         _NONE: translate_string("(no app in front)"),
-                        **firesim.condition_apps(),
+                        **firesim.condition_apps(state=PrimeItems),
                     },
                     value=_SKIP,
                     label=translate_string("App in front"),
@@ -172,7 +172,7 @@ def build_firesim_dialog(make_jump: Callable) -> ui.dialog | None:
                 summary.set_text(translate_string("Choose a date and a time."))
                 area.clear()
                 return
-            result = firesim.simulate(scenario)
+            result = firesim.simulate(scenario, state=PrimeItems)
             summary.set_text(_summary_text(result))
             _draw(result, area, make_jump)
 

@@ -97,7 +97,7 @@ def build_html(file_to_get: str, state: RunState) -> int:
     #
     # Not while analyzing with AI: that path does not want the file, it wants the output
     # lines in memory, and those are produced by doing the work.
-    building_from = mapcache.digests()
+    building_from = mapcache.digests(state=state)
     doing_ai_analysis = state.program_arguments.ai_analyze
     if not doing_ai_analysis and mapcache.is_current(
         outdir.output_path("MapTasker.html"),

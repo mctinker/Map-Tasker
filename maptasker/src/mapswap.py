@@ -760,7 +760,7 @@ def plan_action_swap(old_key: str, new_key: str, project: str = "", *, state: Ru
         plan.warnings.append(reason)
         return plan
 
-    index = mapfind.build_index()
+    index = mapfind.build_index(state=state)
     old_code = old_key[:-1]
 
     for record in index.objects:
@@ -1522,7 +1522,7 @@ def plan_condition_replace(old_key: str, new_key: str, project: str = "", *, sta
         plan.warnings.append(reason)
         return plan
 
-    index = mapfind.build_index()
+    index = mapfind.build_index(state=state)
     named = 0
 
     for record in index.objects:
@@ -1894,7 +1894,7 @@ def plan_argument_replace(
     pattern = re.compile(re.escape(match), re.IGNORECASE) if substitute else None
     wanted = match.lower()
     detail = f"{action_name}, {arg_name}="
-    index = mapfind.build_index()
+    index = mapfind.build_index(state=state)
     code = action_key[:-1]
     added = 0
 

@@ -29,7 +29,7 @@ _SETTINGS = mapask.ModelSettings(mapask.ANTHROPIC, "claude-sonnet-5", "test-key"
 def index() -> mapfind.FindIndex:
     """The search index for test_mapfind's fixture."""
     _load(_FIXTURE_XML)
-    return mapfind.build_index()
+    return mapfind.build_index(state=PrimeItems)
 
 
 @pytest.fixture

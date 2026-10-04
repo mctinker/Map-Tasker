@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from datetime import datetime
 
 import pytest
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src import clireports, guiutils, healthck, impact, mapai, mapfix, maprefac, projedit, taskedit, taskflow, userintr, varxref
-from maptasker.src import bildhtml, getbakup, outline, proginit, runcli, taskerd, timeline
+from maptasker.src import bildhtml, firesim, getbakup, mapcache, mapfind, outline, proginit, runcli, taskerd, timeline
 from maptasker.src.actionc import load_arg_specs
 from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
 from maptasker.src import property as prop
@@ -551,3 +552,36 @@ def test_a_command_line_report_is_made_on_a_state_of_its_own(tmp_path: object, m
     assert set(state.tasker_root_elements["all_tasks"]) == {"20", "21"}
     assert state.headless is False  # Put back afterwards, as a run on the global does.
     assert PrimeItems.xml_root is root_before
+
+
+def test_the_find_index_is_built_from_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    state = _outline_state(tmp_path, monkeypatch)
+    monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
+
+    index = mapfind.build_index(state=state)
+    nothing = mapfind.build_index(state=PrimeItems)
+
+    assert any(found.name == "Caller" for found in index.objects)
+    assert not nothing.objects
+
+
+def test_a_scenario_is_simulated_against_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    state = _outline_state(tmp_path, monkeypatch)
+    monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
+
+    simulation = firesim.simulate(firesim.Scenario(when=datetime(2026, 10, 5, 8, 30)), state=state)
+
+    assert simulation.scenario.when.hour == 8
+    assert firesim.wifi_networks(state=state) == []
+
+
+def test_a_cached_map_is_remembered_against_the_state_it_was_built_from(
+    tmp_path: object,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The digests say what a Map was built from: two states holding different backups differ."""
+    first = _outline_state(tmp_path, monkeypatch)
+    second = RunState()
+
+    assert mapcache.configuration_digest(first) != mapcache.configuration_digest(second)
+    assert mapcache.digests(first) != mapcache.digests(second)

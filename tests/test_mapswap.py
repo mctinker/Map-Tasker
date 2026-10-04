@@ -1049,7 +1049,7 @@ def test_the_pulldown_counts_agree_with_the_scoped_answer(loaded, _no_selection)
     disagreement mapfind's own design notes exist to prevent.
     """
     PrimeItems.program_arguments.single_task_name = "Noisy"
-    index = mapfind.build_index()
+    index = mapfind.build_index(state=PrimeItems)
     offered = dict(index.catalog[mapfind.ACTION]).get("Flash", 0)
     assert offered == len(mapswap.plan_action_swap(FLASH, NOTIFY, state=PrimeItems).changes)
 
@@ -1116,7 +1116,7 @@ def test_a_scoped_rename_warns_that_it_leaves_the_rest_alone(variables, _no_sele
 def test_the_scope_reaches_the_saved_reports(loaded, _no_selection) -> None:
     """An empty answer has to say it was scoped, or it reads as "there are none"."""
     PrimeItems.program_arguments.single_task_name = "Quiet"
-    rows = mapfind.report_rows(mapfind.Query(action="Flash"), [], 0, mapfind.build_index())
+    rows = mapfind.report_rows(mapfind.Query(action="Flash"), [], 0, mapfind.build_index(state=PrimeItems))
     assert any("Limited to Task 'Quiet'" in row.text for row in rows)
 
 
@@ -1350,14 +1350,14 @@ def test_a_scope_leaves_nothing_for_the_project_narrowing_to_narrow(loaded, _no_
     thing.  Either way the label promises the whole configuration and delivers a corner of
     it, which is what makes it worth removing rather than relabelling.
     """
-    assert mapfind.build_index().projects == ["Home"]
+    assert mapfind.build_index(state=PrimeItems).projects == ["Home"]
 
     PrimeItems.program_arguments.single_task_name = "Noisy"
-    assert mapfind.build_index().projects == []
+    assert mapfind.build_index(state=PrimeItems).projects == []
 
     PrimeItems.program_arguments.single_task_name = ""
     PrimeItems.program_arguments.single_project_name = "Home"
-    assert mapfind.build_index().projects == ["Home"]
+    assert mapfind.build_index(state=PrimeItems).projects == ["Home"]
 
 
 # ##################################################################################
@@ -1386,10 +1386,10 @@ def test_the_source_pulldown_offers_the_contexts_the_file_actually_uses(loaded: 
     """Tasker's whole table of Events and States runs to 174 entries, nearly none of which
     are in the file in front of the user -- and the count beside each is also how many
     places a swap would touch."""
-    choices = dict((key, count) for key, _label, count in mapswap.condition_choices(mapfind.build_index()))
+    choices = dict((key, count) for key, _label, count in mapswap.condition_choices(mapfind.build_index(state=PrimeItems)))
 
     assert choices == {"Time": 2, VARIABLE_VALUE: 2, DISPLAY_STATE: 1, AIRPLANE_MODE: 1}
-    labels = {key: label for key, label, _count in mapswap.condition_choices(mapfind.build_index())}
+    labels = {key: label for key, label, _count in mapswap.condition_choices(mapfind.build_index(state=PrimeItems))}
     assert labels[DISPLAY_STATE].startswith("State: Display State")
 
 

@@ -82,11 +82,12 @@ from maptasker.src.mapjump import (
 )
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FIND_FILE, logger
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 # The facets, as the ids the GUI keys its pulldowns by.  Strings rather than an Enum for
 # the same reason mapjump's kinds are: they are read straight out of a Query built from
@@ -348,7 +349,7 @@ def _split_ids(element: Element, tag: str) -> list[str]:
     return [item.strip() for item in text.split(",") if item.strip()] if text else []
 
 
-def _project_membership(tag: str) -> dict[str, str]:
+def _project_membership(tag: str, state: RunState) -> dict[str, str]:
     """{member: owning Project name} for one of a Project's comma-separated member lists.
 
     In one pass, rather than by asking maputils which Project owns each object in turn --
@@ -356,7 +357,7 @@ def _project_membership(tag: str) -> dict[str, str]:
     scan done over again for every Task in it.
     """
     owners = {}
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         for member in _split_ids(project["xml"], tag):
             owners[member] = project_name
     return owners
@@ -497,10 +498,10 @@ def _index_action(
     return record
 
 
-def _index_tasks(index: FindIndex, project_of_task: dict[str, str], scope: Scope) -> None:
+def _index_tasks(index: FindIndex, project_of_task: dict[str, str], scope: Scope, state: RunState) -> None:
     """Walk every Task and every action in it."""
     scene_args = _scene_name_args()
-    for task_id, task in PrimeItems.tasker_root_elements["all_tasks"].items():
+    for task_id, task in state.tasker_root_elements["all_tasks"].items():
         if not scope.allows(TASK, task_id):
             continue
         project = project_of_task.get(task_id, "")
@@ -523,9 +524,9 @@ def _index_tasks(index: FindIndex, project_of_task: dict[str, str], scope: Scope
         index.by_task_id[task_id] = record
 
 
-def _index_profiles(index: FindIndex, project_of_profile: dict[str, str], scope: Scope) -> None:
+def _index_profiles(index: FindIndex, project_of_profile: dict[str, str], scope: Scope, state: RunState) -> None:
     """Walk every Profile: its contexts, the apps they name, and the Tasks it runs."""
-    for profile_id, profile in PrimeItems.tasker_root_elements["all_profiles"].items():
+    for profile_id, profile in state.tasker_root_elements["all_profiles"].items():
         if not scope.allows(PROFILE, profile_id):
             continue
         project = project_of_profile.get(profile_id, "")
@@ -592,7 +593,7 @@ def _index_profiles(index: FindIndex, project_of_profile: dict[str, str], scope:
         index.objects.append(record)
 
 
-def _index_scenes(index: FindIndex, project_of_scene: dict[str, str], scope: Scope) -> None:
+def _index_scenes(index: FindIndex, project_of_scene: dict[str, str], scope: Scope, state: RunState) -> None:
     """Walk every Scene.  A Scene answers the Scene facet by BEING the Scene asked for.
 
     Its elements are read for the free-text facet only -- every <Str> in the Scene, which
@@ -601,7 +602,7 @@ def _index_scenes(index: FindIndex, project_of_scene: dict[str, str], scope: Sco
     one is not found by the action facet; the module comment says so, and the report
     repeats it, so a zero is never mistaken for "there are none".
     """
-    for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
+    for scene_name, scene in state.tasker_root_elements["all_scenes"].items():
         if not scope.allows(SCENE, scene_name):
             continue
         project = project_of_scene.get(scene_name, "")
@@ -618,7 +619,7 @@ def _index_scenes(index: FindIndex, project_of_scene: dict[str, str], scope: Sco
         index.objects.append(record)
 
 
-def _index_projects(index: FindIndex, scope: Scope) -> None:
+def _index_projects(index: FindIndex, scope: Scope, state: RunState) -> None:
     """Walk every Project.  A Project answers for the Scenes it lists and for its own name.
 
     It is deliberately NOT made to answer for everything it contains: on a file with 200
@@ -626,7 +627,7 @@ def _index_projects(index: FindIndex, scope: Scope) -> None:
     mentioning it, which is a list of Projects rather than an answer about the app.  The
     Tasks and Profiles themselves are in the results already.
     """
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         if not scope.allows(PROJECT, project_name):
             continue
         index.projects.append(project_name)
@@ -643,7 +644,7 @@ def _index_projects(index: FindIndex, scope: Scope) -> None:
         )
 
 
-def build_index() -> FindIndex:
+def build_index(state: RunState) -> FindIndex:
     """Read the loaded configuration into everything a query needs, in one pass.
 
     Limited to what the app is DISPLAYING (mapjump.current_scope): with a single Project,
@@ -656,12 +657,12 @@ def build_index() -> FindIndex:
     Safe to call with nothing loaded: the tables are empty, the index is empty, and every
     query over it answers nothing -- but the GUI checks first so it can say why.
     """
-    scope = current_scope(state=PrimeItems)
+    scope = current_scope(state=state)
     index = FindIndex(scope=scope)
-    _index_projects(index, scope)
-    _index_profiles(index, _project_membership("pids"), scope)
-    _index_tasks(index, _project_membership("tids"), scope)
-    _index_scenes(index, _project_membership("scenes"), scope)
+    _index_projects(index, scope, state=state)
+    _index_profiles(index, _project_membership("pids", state=state), scope, state=state)
+    _index_tasks(index, _project_membership("tids", state=state), scope, state=state)
+    _index_scenes(index, _project_membership("scenes", state=state), scope, state=state)
     index.projects.sort(key=str.lower)
     logger.debug(
         f"mapfind index: {len(index.objects)} objects, "
