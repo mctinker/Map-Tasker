@@ -208,7 +208,7 @@ def test_the_script_is_named_as_where_the_variable_is_used() -> None:
 
 def test_broken_code_is_reported_at_the_action_that_holds_it() -> None:
     """One finding per broken action, pointing at it by its number in the Task."""
-    problems = codelint.lint_problems()
+    problems = codelint.lint_problems(state=PrimeItems)
     assert [(problem.tag, problem.where.name, problem.where.action) for problem in problems] == [
         (codelint.JS_SYNTAX, "Broken", 2),
         (codelint.SHELL_SYNTAX, "Broken", 3),

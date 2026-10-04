@@ -899,7 +899,7 @@ def report_rows(plan: Plan) -> list[Row]:
     return rows
 
 
-def write_fix_report(rows: list[Row]) -> str:
+def write_fix_report(rows: list[Row], state: RunState) -> str:
     """Save the preview as text, the way healthck, mapswap and maprefac save theirs.
 
     Worth having for the repairs the user decided NOT to make as much as the ones they did:
@@ -910,7 +910,7 @@ def write_fix_report(rows: list[Row]) -> str:
     file_name = append_to_filename(FIX_FILE, stamp)
     if not file_name:
         return ""
-    file_path = output_path(file_name)
+    file_path = output_path(file_name, state=state)
     try:
         with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))
@@ -923,7 +923,7 @@ def write_fix_report(rows: list[Row]) -> str:
 # ##################################################################################
 # Doing it.
 # ##################################################################################
-def apply(plan: Plan) -> tuple[int, list[str]]:
+def apply(plan: Plan, state: RunState) -> tuple[int, list[str]]:
     """Make the ticked repairs.  Returns (how many were made, anything that went wrong).
 
     ONE undo block around the whole thing, and the outermost one.  Repairing thirty findings
@@ -967,9 +967,9 @@ def apply(plan: Plan) -> tuple[int, list[str]]:
 
     errors: list[str] = []
     repaired = 0
-    attached = maputil2.attached_elements()
+    attached = maputil2.attached_elements(state=state)
 
-    with sessundo.undoable(plan.what):
+    with sessundo.undoable(plan.what, state=state):
         for position, fix in ticked:
             if not plan.is_ready(position):
                 errors.append(f"{fix.where.label}: nothing has been chosen for this one yet.  Skipped.")
@@ -991,6 +991,6 @@ def apply(plan: Plan) -> tuple[int, list[str]]:
             # that lives inside that Task must not then be written to.  Cheaper and safer
             # than re-walking the whole tree per repair: only a delete can invalidate one.
             if fix.tag == UNREFERENCED_TASK:
-                attached = maputil2.attached_elements()
+                attached = maputil2.attached_elements(state=state)
 
     return repaired, errors

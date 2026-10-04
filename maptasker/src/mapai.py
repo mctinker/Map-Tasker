@@ -155,7 +155,7 @@ def record_response(response: str, ai_object: str, item: str, state: RunState) -
     The ERROR_FILE will be read and displayed in the GUI on ReRun, with the response handled in
     'display_messages_from_last_run' and 'display_ai_response'
     """
-    with open(output_path(ANALYSIS_FILE), "w", encoding="utf-8") as response_file:
+    with open(output_path(ANALYSIS_FILE, state=state), "w", encoding="utf-8") as response_file:
         response_file.write(
             f'{state.program_arguments.ai_name} AI Response using model {state.program_arguments.ai_model} for {ai_object} "{item}":\n\n{response}',
         )
@@ -200,12 +200,13 @@ def local_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
             f", and Ollama itself from '{OLLAMA_DOWNLOAD_URL}'.",
             12,
             show_code=False,
+            state=state,
         )
         return
 
     # Fix the model name
     if state.program_arguments.ai_model == "None":
-        error_handler("No model selected.", 12)
+        error_handler("No model selected.", 12, state=state)
         return
 
     console.say(f"Model: {state.program_arguments.ai_model}")
@@ -234,7 +235,7 @@ def local_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
         # Call Cria
         ai = cria.Cria()
 
-        with cria.Model(state.program_arguments.ai_model) as ai:
+        with cria.Model(state.program_arguments.ai_model, state=state) as ai:
             for chunk in ai.chat(messages=messages, prompt=prompt):
                 response = f"{response}{chunk}"
             ai.clear()
@@ -246,6 +247,7 @@ def local_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
         error_handler(
             f"Ai analysis error: {e}.  Try again.",
             12,
+            state=state,
         )
 
 
@@ -388,7 +390,7 @@ def process_ai_query_and_response(
             response = process_function(client, query, state=state)
             record_response(response, ai_object, item, state=state)
         else:
-            error_handler("Invalid AI name selected.", 12)
+            error_handler("Invalid AI name selected.", 12, state=state)
     except Exception as e:
         # Deliberately broad: five AI providers, five unrelated exception hierarchies --
         # handle_ai_error exists precisely to turn any of them into a sentence, so
@@ -457,6 +459,7 @@ def open_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
             f"Module 'openai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}",
             12,
             show_code=False,
+            state=state,
         )
         return
 
@@ -491,7 +494,12 @@ def claude_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
     """
     anthropic = import_optional("anthropic", "anthropic")
     if anthropic is None:
-        error_handler(f"Module 'anthropic' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}", 12, show_code=False)
+        error_handler(
+            f"Module 'anthropic' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}",
+            12,
+            show_code=False,
+            state=state,
+        )
         return
     client = anthropic.Anthropic(api_key=state.program_arguments.ai_apikey)
     process_ai_query_and_response(client, query, ai_object, item, state=state)
@@ -538,7 +546,10 @@ def gemini_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
     genai = import_optional("google-genai", "google.genai")
     if genai is None:
         error_handler(
-            f"Module 'google-genai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}", 12, show_code=False
+            f"Module 'google-genai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}",
+            12,
+            show_code=False,
+            state=state,
         )
         return
     client = genai.Client(api_key=state.program_arguments.ai_apikey)
@@ -594,7 +605,7 @@ async def _run_analysis_in_background(popup: popupwindow, state: RunState) -> No
         # Get the targeted worker function
         ai_func = name_function_map.get(
             ai_name,
-            lambda *args: error_handler("Invalid model selected (AI name is blank).", 12),  # noqa: ARG005
+            lambda *args, **kwargs: error_handler("Invalid model selected (AI name is blank).", 12, state=state),  # noqa: ARG005
         )
 
         # Use NiceGUI's run.io_bound to run the AI function in a separate thread so it doesn't block the main event

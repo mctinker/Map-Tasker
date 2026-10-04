@@ -33,10 +33,11 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from maptasker.src.mapjump import TASK, Target, actions_in_map_order
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 WARNING = "WARNING"
 
@@ -440,24 +441,24 @@ def _code_of(action: Element) -> str:
     return ""
 
 
-def _task_owners() -> dict[str, str]:
+def _task_owners(state: RunState) -> dict[str, str]:
     """{Task id: owning Project name}, in one pass (see proflint._project_owners)."""
     owners: dict[str, str] = {}
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         for member in (item.strip() for item in (project["xml"].findtext("tids") or "").split(",")):
             if member:
                 owners[member] = project_name
     return owners
 
 
-def lint_problems() -> list[Problem]:
+def lint_problems(state: RunState) -> list[Problem]:
     """Every JavaScriptlet and Run Shell action whose code is not well-formed.
 
     Safe to call with nothing loaded: an empty list comes back.
     """
     problems: list[Problem] = []
-    owners = _task_owners()
-    for task_id, task in PrimeItems.tasker_root_elements["all_tasks"].items():
+    owners = _task_owners(state=state)
+    for task_id, task in state.tasker_root_elements["all_tasks"].items():
         where = Target(TASK, task_id, task["name"], owners.get(task_id, ""))
         for number, action in enumerate(actions_in_map_order(task["xml"]), start=1):
             code = action.findtext("code")

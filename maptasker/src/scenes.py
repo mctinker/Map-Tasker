@@ -371,7 +371,7 @@ def process_list_element(
     action = child.find("Action")
     if action is not None:
         label = child.find("label").text
-        action_line = get_actions(child, config)
+        action_line = get_actions(child, config, state=state)
 
         # Now fix our indentation
         subline_indentation = f"{blank * len(element_name)}{blank * (9 + indentation)}"
@@ -422,6 +422,7 @@ def format_and_output_arguments(
         action_codes,  # from actionc.py
         child,
         True,
+        state=state,
     )
     # Sub-element probably doesn't have a name.
     the_result = the_result.replace("&nbsp;&nbsp;,", "&nbsp;&nbsp;(no name),")

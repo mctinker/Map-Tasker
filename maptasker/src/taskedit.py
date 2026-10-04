@@ -44,6 +44,7 @@ from maptasker.src.maputil2 import (
     tasker_name_query,
 )
 from maptasker.src.presave import backup_local_file
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 
 # The purely informational Bundle hint (a list of the variables an action/condition
@@ -915,9 +916,9 @@ def _classify_arg_widget(arg, state: RunState) -> tuple[str, str, list[str] | No
     # but a picker with nothing in it is a field the user has no way to fill correctly, so
     # with an empty inventory these stay exactly as read-only as they were before
     # appinv.py existed.  See classify_action_addability, which gates on the same thing.
-    if category == "App" and appinv.have_apps():
+    if category == "App" and appinv.have_apps(state=state):
         return "app_picker", "App", None
-    if category in _ICON_CATEGORIES and appinv.have_icons():
+    if category in _ICON_CATEGORIES and appinv.have_icons(state=state):
         return "icon_picker", "Img", None
     return "readonly", "", None
 
@@ -1413,9 +1414,9 @@ def classify_action_addability(action_key: str, state: RunState) -> tuple[bool, 
         # from -- see appinv.py, and _classify_arg_widget, which gates the field itself
         # on the same answer.  This is what makes Launch App, Notify and the other 20
         # entries listed in app_icon_fetch_design.md addable at all.
-        if category == "App" and appinv.have_apps():
+        if category == "App" and appinv.have_apps(state=state):
             continue
-        if category in _ICON_CATEGORIES and appinv.have_icons():
+        if category in _ICON_CATEGORIES and appinv.have_icons(state=state):
             continue
         if category == "App":
             return False, NO_APPS_REASON
@@ -1445,7 +1446,7 @@ def list_addable_actions(state: RunState) -> list[dict]:
     and rebuilds when that moves -- without it, the Add Action picker would go on showing
     'Launch App' greyed out, with a reason that stopped being true, until restart.
     """
-    return _addable_actions.get(appinv.generation(), lambda: _build_addable_actions(state))
+    return _addable_actions.get(appinv.generation(state=state), lambda: _build_addable_actions(state))
 
 
 def _build_addable_actions(state: RunState) -> list[dict]:
@@ -1833,6 +1834,7 @@ def apply_arg_values(
     args: list[EditableArg],
     key_for_arg: Callable[[EditableArg], str],
     arg_values: dict[str, str],
+    state: RunState,
 ) -> None:
     """Applies a set of args' pending values onto their backing XML elements.
     Caller must have already validated via validate_arg_values -- this assumes
@@ -1858,7 +1860,7 @@ def apply_arg_values(
             index = arg.dropdown_options.index(value) if value in arg.dropdown_options else 0
             arg.element.set("val", str(index))
         elif arg.backing_tag == "App":
-            appinv.write_app_element(arg.element, appinv.parse_app_value(value))
+            appinv.write_app_element(arg.element, appinv.parse_app_value(value, state=state))
         elif arg.backing_tag == "Img":
             appinv.write_icon_element(arg.element, appinv.parse_icon_value(value))
         elif arg.backing_tag == "Int" and arg.is_var:
@@ -1926,6 +1928,7 @@ def _apply_action_edits(edited_task: EditableTask, arg_values: dict[str, str]) -
             action.args,
             lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id),
             arg_values,
+            state=PrimeItems,
         )
         if (pending_label := arg_values.get(label_key(action.act_number))) is not None:
             _apply_action_label(action, pending_label)
@@ -2004,7 +2007,7 @@ def rename_task_in_live_tree(edited_task: EditableTask, state: RunState) -> str:
     into the saved file, so the new name survives a save; updating only the table's
     "name" field would leave the written XML still carrying the old one.
     """
-    with sessundo.undoable(f"Rename Task to '{edited_task.task_element.findtext('nme', '')}'"):
+    with sessundo.undoable(f"Rename Task to '{edited_task.task_element.findtext('nme', '')}'", state=state):
         all_tasks = state.tasker_root_elements.get("all_tasks", {})
         entry = all_tasks.get(edited_task.task_id)
         if entry is None:
@@ -2344,7 +2347,7 @@ def register_new_task(edited_task: EditableTask, task_name: str, state: RunState
     or after a successful Save To Android import (see
     userintr_android.save_task_to_android_event's is_new_task branch).
     """
-    with sessundo.undoable(f"Add Task '{task_name}'"):
+    with sessundo.undoable(f"Add Task '{task_name}'", state=state):
         state.tasker_root_elements["all_tasks"][edited_task.task_id] = {
             "xml": edited_task.task_element,
             "name": task_name,
@@ -2374,7 +2377,9 @@ def apply_edited_task_to_live_tree(edited_task: EditableTask, state: RunState) -
     Task, saved via Save To Android before ever reaching register_new_task) --
     call once, right after a successful Save (local or to Android).
     """
-    with sessundo.undoable(f"Edit Task '{edited_task.task_element.findtext('nme', '') or edited_task.task_id}'"):
+    with sessundo.undoable(
+        f"Edit Task '{edited_task.task_element.findtext('nme', '') or edited_task.task_id}'", state=state
+    ):
         all_tasks = state.tasker_root_elements["all_tasks"]
         entry = all_tasks.get(edited_task.task_id)
         if entry is None:
@@ -2431,7 +2436,7 @@ def delete_task(task_name: str, state: RunState) -> list[str]:
     well want to repoint at a replacement Task, and silently editing other Tasks'
     actions here would be a much wider mutation than "delete this Task".
     """
-    with sessundo.undoable(f"Delete Task '{task_name}'"):
+    with sessundo.undoable(f"Delete Task '{task_name}'", state=state):
         resolved = resolve_task_by_name(task_name, state=state)
         if resolved is None:
             return [f"Task '{task_name}' no longer exists."]

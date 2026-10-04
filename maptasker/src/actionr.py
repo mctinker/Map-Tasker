@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
 from maptasker.src.format import format_html
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DISPLAY_DETAIL_LEVEL_all_tasks,
     DISPLAY_DETAIL_LEVEL_all_variables,
@@ -30,6 +29,8 @@ from maptasker.src.sysconst import (
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 
 # Given a list of positional items, return a string in the correct order based on position.
@@ -92,7 +93,7 @@ def find_capitalized_percent_substrings(string: str) -> list:
 
 
 # Get the variables from this result and save them in the dictionary.
-def get_variables(result: str) -> None:
+def get_variables(result: str, state: RunState) -> None:
     # Fid all variables with at least one capitalized letter.
     """Get all variables with at least one capitalized letter.
     Parameters:
@@ -105,7 +106,7 @@ def get_variables(result: str) -> None:
         - If it is, add the current project name to the list of projects associated with the variable.
         - If it is not, add the variable to the variable dictionary with a default value and the current project name.
         - If the variable is not found in the dictionary, it is considered inactive."""
-    if not PrimeItems.current_project:
+    if not state.current_project:
         return
     if variable_list := find_capitalized_percent_substrings(result):
         # Go thru list of capitalized percent substrings and see if they are
@@ -113,16 +114,16 @@ def get_variables(result: str) -> None:
         for variable in variable_list:
             # Validate that this variable is for the Project we are currently doing.
             try:
-                if primary_variable := PrimeItems.variables[variable]:
-                    if primary_variable["project"] and PrimeItems.current_project not in primary_variable["project"]:
-                        primary_variable["project"].append(PrimeItems.current_project)
+                if primary_variable := state.variables[variable]:
+                    if primary_variable["project"] and state.current_project not in primary_variable["project"]:
+                        primary_variable["project"].append(state.current_project)
                     elif not primary_variable["project"]:
-                        primary_variable["project"] = [PrimeItems.current_project]
+                        primary_variable["project"] = [state.current_project]
             except KeyError:
                 # Drop here if variable is not in Tasker's variable list (i.e. the xml)
-                PrimeItems.variables[variable] = {
+                state.variables[variable] = {
                     "value": "(Inactive)",
-                    "project": [PrimeItems.current_project],
+                    "project": [state.current_project],
                     "verified": False,
                 }
 
@@ -157,6 +158,8 @@ def get_action_results(
     code_action: Element,
     action_type: bool,
     deprecated: str = "",
+    *,
+    state: RunState,
 ) -> str:
     """
     For the given code, save the display_name, required arg list and associated type
@@ -177,7 +180,7 @@ def get_action_results(
     evaluated_results = defaultdict(list)
     evaluated_results["returning_something"] = False
 
-    program_arguments = PrimeItems.program_arguments
+    program_arguments = state.program_arguments
     # If just displaying action names or there are no action details, then just
     # display the name
     if (
@@ -185,12 +188,7 @@ def get_action_results(
         and program_arguments.display_detail_level != DISPLAY_DETAIL_LEVEL_all_tasks
     ):
         # Process the Task action arguments
-        evaluated_results = action_args(
-            the_action_code_plus,
-            action_codes,
-            code_action,
-            evaluated_results,
-        )
+        evaluated_results = action_args(the_action_code_plus, action_codes, code_action, evaluated_results, state=state)
 
     # If we have results from evaluation, then go put them in their appropriate order
     if evaluated_results["returning_something"]:
@@ -201,7 +199,7 @@ def get_action_results(
         result = evaluated_results["error"]
 
     # Replace '\n' with ', ' if not pretty
-    if not PrimeItems.program_arguments.pretty and "Configuration Parameter(s):" in result:
+    if not state.program_arguments.pretty and "Configuration Parameter(s):" in result:
         result = fix_config_parameters(result, "\n", ", ")
 
     # Clean up the rest of it.  Fix brackets, double commas, etc.
@@ -222,7 +220,7 @@ def get_action_results(
 
         # Process variables if display_detail_level is 4
         if program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
-            get_variables(result)
+            get_variables(result, state=state)
 
     # Return the properly formatted HTML (if Task) with the Action name and extra stuff
     if action_type:  # If this is a Task...
@@ -234,8 +232,10 @@ def get_action_results(
         ) + format_html(
             "action_color",
             "",
-            (f"{result}{get_action.get_extra_stuff(code_action, action_type)}"),
+            (f"{result}{get_action.get_extra_stuff(code_action, action_type, state=state)}"),
             False,
         )
 
-    return f"{our_action_code.name}{deprecated}{result}{get_action.get_extra_stuff(code_action, action_type)}"
+    return (
+        f"{our_action_code.name}{deprecated}{result}{get_action.get_extra_stuff(code_action, action_type, state=state)}"
+    )

@@ -1712,7 +1712,7 @@ def run_variable_xref(state: RunState) -> tuple[list[Row], VariableIndex]:
     return build_report(index, state=state), index
 
 
-def write_variable_xref_report(rows: list[Row]) -> str:
+def write_variable_xref_report(rows: list[Row], state: RunState) -> str:
     """Write the report to a timestamped file in the output folder (see outdir).
 
     Returns the path written, or "" if the write failed -- the caller reports the
@@ -1724,7 +1724,7 @@ def write_variable_xref_report(rows: list[Row]) -> str:
     file_name = append_to_filename(VARXREF_FILE, stamp)
     if not file_name:
         return ""
-    file_path = output_path(file_name)
+    file_path = output_path(file_name, state=state)
     try:
         with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))

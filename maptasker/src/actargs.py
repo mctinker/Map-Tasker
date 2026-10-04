@@ -14,7 +14,7 @@ from maptasker.src.actiond import process_condition_list
 from maptasker.src.condjoin import join_conditions
 from maptasker.src.format import format_html
 from maptasker.src.plugset import BUNDLE_HOUSEKEEPING, BUNDLE_TYPE_SUFFIX, BUNDLE_UNSET, decode_settings, plugin_package
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PrimeItems, RunState
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.xmldata import extract_integer, extract_string
 
@@ -27,6 +27,7 @@ def process_clean_string(
     arg: tuple,
     evaluated_results: dict,
     blank: str,
+    state: RunState,
 ) -> None:
     """
     Processes and formats the clean_string based on program arguments and code action.
@@ -43,7 +44,7 @@ def process_clean_string(
         evaluated_results["returning_something"] = False
         return
 
-    pretty_print = PrimeItems.program_arguments.pretty
+    pretty_print = state.program_arguments.pretty
 
     if pretty_print:
         clean_string = clean_string.replace("\n\n", "\n")
@@ -111,6 +112,7 @@ def get_bundle(
     code_action: Element,
     evaluated_results: dict,
     arg: str,
+    state: RunState,
 ) -> dict:
     """
     Extracts a bundle value from an XML code action.
@@ -172,7 +174,7 @@ def get_bundle(
 
     # Separate configuration parameter arguments by commas.
     save_returning = evaluated_results["returning_something"]
-    process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
+    process_clean_string(clean_string, code_action, arg, evaluated_results, blank, state=state)
     evaluated_results["returning_something"] = save_returning
 
     return evaluated_results
@@ -185,6 +187,7 @@ def evaluate_argument(
     argeval: list,
     argtype: str,
     code_action: Element,
+    state: RunState,
 ) -> dict:
     """
     Extracts action arguments from an XML code action.
@@ -246,7 +249,7 @@ def evaluate_argument(
             extract_image(evaluated_results, code_action, argeval, arg)
 
         case "Bundle":
-            get_bundle(code_action, evaluated_results, arg)
+            get_bundle(code_action, evaluated_results, arg, state=state)
 
         case _:
             logger.debug(
@@ -399,7 +402,7 @@ def extract_argument(evaluated_results: dict, arg: str, argeval: str) -> None:
 
 
 # Action code not found...let user know
-def handle_missing_code(the_action_code_plus: str, index: int) -> str:
+def handle_missing_code(the_action_code_plus: str, index: int, state: RunState) -> str:
     """
     Handle missing action code in MapTasker.
     Args:
@@ -419,7 +422,7 @@ def handle_missing_code(the_action_code_plus: str, index: int) -> str:
         True,
     )
     logger.debug(error_message)
-    PrimeItems.output_lines.add_line_to_output(
+    state.output_lines.add_line_to_output(
         0,
         error_message,
         FormatLine.dont_format_line,
@@ -433,6 +436,7 @@ def action_args(
     action_codes: list,
     code_action: Element,
     evaluated_results: dict,
+    state: RunState,
 ) -> list:
     """
     Go through the arguments and parse each one based on its argument 'type'
@@ -470,19 +474,13 @@ def action_args(
             # in: the search is linear, this is the only thing that reads it, and an
             # action code missing an argument spec is the rare case.
             index = num if arg == "if" else our_action_args.index(arg)
-            argtype = handle_missing_code(the_action_code_plus, index)
+            argtype = handle_missing_code(the_action_code_plus, index, state=state)
 
         # Get the Action arguments
         evaluated_results[f"arg{arg[0]}"] = {}
         evaluated_results[f"arg{arg[0]}"]["type"] = argtype
 
         # Evaluate the argument.
-        evaluated_results = evaluate_argument(
-            evaluated_results,
-            arg,
-            argeval,
-            argtype,
-            code_action,
-        )
+        evaluated_results = evaluate_argument(evaluated_results, arg, argeval, argtype, code_action, state=state)
 
     return evaluated_results

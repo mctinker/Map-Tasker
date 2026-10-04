@@ -1027,7 +1027,7 @@ class _FindDialog:
             ui.notify(translate_string("Run a Find first."), type="warning")
             return
         rows = mapfind.report_rows(query, self.produced["hits"], self.produced["total"], self.index)
-        file_name = mapfind.write_find_report(rows)
+        file_name = mapfind.write_find_report(rows, state=self.state)
         if file_name:
             ui.notify(f"{translate_string('Find results saved as')} {file_name}", type="positive")
         else:
@@ -1863,7 +1863,7 @@ class _ReplaceTab:
         if plan is None:
             ui.notify(translate_string("Press Preview first."), type="warning")
             return
-        file_name = mapswap.write_swap_report(mapswap.report_rows(plan))
+        file_name = mapswap.write_swap_report(mapswap.report_rows(plan), state=self.state)
         if file_name:
             ui.notify(f"{translate_string('Replace preview saved as')} {file_name}", type="positive")
         else:

@@ -89,7 +89,7 @@ def reformat_html(html_string: str) -> str:
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
 # Optimized
-def get_actions(current_task: Element, config: RunConfig) -> list:
+def get_actions(current_task: Element, config: RunConfig, state: RunState) -> list:
     """
     Optimized extraction of actions from a task XML element.
 
@@ -105,7 +105,7 @@ def get_actions(current_task: Element, config: RunConfig) -> list:
         task_actions = current_task.findall("Action")
     except defusedxml.DefusedXmlException:
         console.debug(f"tasks.py current Task: {current_task}")
-        error_handler("Error: No action found!!!", 0)
+        error_handler("Error: No action found!!!", 0, state=state)
         return []
 
     if not task_actions:
@@ -121,7 +121,7 @@ def get_actions(current_task: Element, config: RunConfig) -> list:
     _build_action = action_evaluate.build_action
     for action in task_actions:
         child = action.find("code")
-        task_code = _get_action_code(child, action, True, "t")
+        task_code = _get_action_code(child, action, True, "t", state=state)
         action_code = child.text if child is not None else ""
 
         if action_code in INDENT_OUT_CODES:
@@ -131,13 +131,7 @@ def get_actions(current_task: Element, config: RunConfig) -> list:
         # If pretty text, then reformat it.
         if "Configuration Parameter(s):" in task_code and pretty_mode:
             task_code = _reformat_html(task_code)
-        _build_action(
-            tasklist,
-            task_code,
-            child,
-            indentation,
-            indentation_amount,
-        )
+        _build_action(tasklist, task_code, child, indentation, indentation_amount, state=state)
 
         if action_code in INDENT_IN_CODES:
             indentation += 1

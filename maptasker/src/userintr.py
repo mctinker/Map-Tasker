@@ -777,7 +777,7 @@ class MyGui:
                 setattr(self, key, value)
                 # Start log if debug
                 if key == "debug" and value:
-                    log_startup_values()
+                    log_startup_values(state=self.state)
                 # Make the modification based on the specfic setting
                 _ = self.restore_display(key, value)
                 # # Now display the setting and act on it if necessary.
@@ -1267,8 +1267,8 @@ class MyGui:
         # Rename ANALYSIS_FILE.
         # X Get front part of filename ANALYSIS_FILE and plug it in as the beginning.
         if new_file_name := append_to_filename(ANALYSIS_FILE, date_and_time):
-            new_file_path = output_path(new_file_name)
-            rename_file(output_path(ANALYSIS_FILE), new_file_path)
+            new_file_path = output_path(new_file_name, state=self.state)
+            rename_file(output_path(ANALYSIS_FILE, state=self.state), new_file_path)
             text = translate_string("saved as")
             self.display_message_box(
                 f"{ANALYSIS_FILE} {text} {new_file_path}",
@@ -1895,7 +1895,7 @@ class MapTaskerEventHandlers(
           NOT SAVED.  Nothing was written and nothing changed, so there is nothing to
           rebuild and the list is left exactly as it was.
         """
-        saved, result = write_full_backup_to_current_file()
+        saved, result = write_full_backup_to_current_file(state=self.state)
         if not saved:
             ui.notify(f"{translate_string('Could not save to current file:')} {result}", type="negative")
             return False

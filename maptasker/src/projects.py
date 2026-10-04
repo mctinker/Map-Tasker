@@ -389,7 +389,7 @@ def get_extra_and_output_project(
     # only if display level is max
     kid_app_info = priority = ""
     if config.display_detail_level > 2:
-        kid_app_info = get_kid_app(project)
+        kid_app_info = get_kid_app(project, state=state)
         if kid_app_info:
             kid_app_info = format_html("project_color", "", kid_app_info, True)
         priority = get_priority(project, False)

@@ -14,13 +14,14 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
+
 import contextlib
 
 from maptasker.src.actiont import lookup_values
 from maptasker.src.condjoin import boolean_operators, join_conditions
 from maptasker.src.error import error_handler
 from maptasker.src.format import format_html, format_label
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
     DISABLED,
@@ -254,7 +255,7 @@ def process_xml_list(
 
 
 # Get Task's label, disabled flag and any conditions
-def get_label_disabled_condition(child: Element) -> str:
+def get_label_disabled_condition(child: Element, state: RunState) -> str:
     """
     Get Task's label, disabled flag and any conditions
         :param child: head Action xml element
@@ -284,7 +285,7 @@ def get_label_disabled_condition(child: Element) -> str:
 
     # Get the label, if any
     if (label_element := elements.get("label")) is not None:
-        task_label = format_label(label_element.text, colors=PrimeItems.colors_to_use)
+        task_label = format_label(label_element.text, colors=state.colors_to_use)
 
     # See if Action is disabled
     action_disabled = (
@@ -364,6 +365,7 @@ def get_conditions(child: Element, the_action_code: str) -> str:
 def get_extra_stuff(
     code_action: Element,
     action_type: bool,
+    state: RunState,
 ) -> str:
     """
     # Chase after relevant data after <code> Task action
@@ -382,13 +384,13 @@ def get_extra_stuff(
 
     action_code = action_code_xml.text if action_code_xml is not None and not isinstance(action_code_xml, int) else ""
 
-    program_arguments = PrimeItems.program_arguments
-    colors_to_use = PrimeItems.colors_to_use
+    program_arguments = state.program_arguments
+    colors_to_use = state.colors_to_use
 
     # Only get extras if this is a Task action (vs. a Profile condition)
     if action_type and program_arguments.display_detail_level > DISPLAY_DETAIL_LEVEL_all_tasks:
         # Look for extra Task stuff: label, disabled, conditions
-        extra_stuff = get_label_disabled_condition(code_action)
+        extra_stuff = get_label_disabled_condition(code_action, state=state)
         # If this is an 'If' action, remove the 'IF' from the label since we already have it.
         if action_code == "37":
             extra_stuff = extra_stuff.replace("IF", "").replace("( ", "(")

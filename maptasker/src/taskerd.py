@@ -15,7 +15,7 @@ from maptasker.src.actionc import load_arg_specs
 from maptasker.src.actione import get_action_code
 from maptasker.src.error import error_handler
 from maptasker.src.maputil2 import strip_html_tags, truncate_string
-from maptasker.src.primitem import PrimeItems, RunState
+from maptasker.src.primitem import RunState
 from maptasker.src.profiles import conditions_to_name
 from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine
@@ -114,7 +114,7 @@ def build_tasker_tables(state: RunState) -> None:
         # Check if the name is missing or empty
         if not profile.get("name"):
             xml_content = profile["xml"]
-            conditions = _parse_condition(xml_content)
+            conditions = _parse_condition(xml_content, state=state)
 
             current_name = unnamed_label
 
@@ -143,7 +143,7 @@ def build_tasker_tables(state: RunState) -> None:
     for key, value in state.tasker_root_elements["all_tasks"].items():
         if not value["name"]:
             # Get the first Task Action and user it as the Task name.
-            first_action = _get_first_action(value["xml"])
+            first_action = _get_first_action(value["xml"], state=state)
             # Handle special case of 'Anchor ...with label:\n'
             if _ANCHOR_LABEL in first_action:
                 first_action = 'Anchor "' + first_action.split(_ANCHOR_LABEL, 1)[1]
@@ -257,7 +257,7 @@ def _handle_gui_error(message: str, code: int = 1, *, state: RunState) -> int:
     return code
 
 
-def get_first_action(task: Element) -> str:
+def get_first_action(task: Element, state: RunState) -> str:
     """
     Retrieve the name of the first action code from a Tasker task XML element.
 
@@ -275,7 +275,7 @@ def get_first_action(task: Element) -> str:
         - Returns an empty string if no suitable action is found.
     """
     # Build the Tasker argument codes dictionary if we don't yet have it.
-    if not PrimeItems.tasker_arg_specs:
+    if not state.tasker_arg_specs:
         load_arg_specs()
 
     task_actions = task.findall("Action")
@@ -293,7 +293,7 @@ def get_first_action(task: Element) -> str:
 
         # Now get the Action code
         child = action.find("code")
-        the_result = get_action_code(child, action, True, "t")
+        the_result = get_action_code(child, action, True, "t", state=state)
         clean_text = strip_html_tags(the_result)
         clean_text = (
             clean_text.replace("&nbsp;&nbsp;", "&nbsp;")

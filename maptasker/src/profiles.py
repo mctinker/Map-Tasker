@@ -435,7 +435,7 @@ def build_profile_line(
         add_directory_item("profiles", profile_name, config=config, state=state)
 
     # Get the Profile's conditions
-    if config.conditions and (profile_conditions := condition.parse_profile_condition(profile)):
+    if config.conditions and (profile_conditions := condition.parse_profile_condition(profile, state=state)):
         # Add the HTML
         condition_text = format_html(
             "profile_condition_color",

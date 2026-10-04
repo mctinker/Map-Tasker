@@ -333,7 +333,7 @@ def test_collision_writes_the_chosen_handling_and_clears_the_finding(loaded: Non
 
     plan.chosen[position] = "2"  # Run Both Together
     _tick_only(plan, [position])
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (1, [])
     assert _task("20").findtext("rty") == "2"
@@ -347,7 +347,7 @@ def test_collision_defaults_to_abort_existing_task(loaded: None) -> None:
     _tick_only(plan, [position])
 
     assert "Abort Existing Task" in plan.describe(position)
-    mapfix.apply(plan)
+    mapfix.apply(plan, state=PrimeItems)
 
     assert _task("20").findtext("rty") == "1"
 
@@ -357,7 +357,7 @@ def test_collision_goes_in_taskers_own_child_order(loaded: None) -> None:
     plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.MISSING_COLLISION)
     _tick_only(plan, [position])
-    mapfix.apply(plan)
+    mapfix.apply(plan, state=PrimeItems)
 
     plain = [child.tag for child in _task("20") if child.tag[:1].islower()]
     assert plain == sorted(plain)
@@ -376,7 +376,7 @@ def test_timeout_is_written_into_the_argument_proflint_read(loaded: None) -> Non
 
     plan.chosen[position] = "45"
     _tick_only(plan, [position])
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (1, [])
     action = actions_in_map_order(_task("21"))[0]
@@ -391,7 +391,7 @@ def test_timeout_refuses_a_value_that_is_not_a_number(loaded: None) -> None:
     plan.chosen[position] = "soon"
     _tick_only(plan, [position])
 
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert repaired == 0
     assert len(errors) == 1
@@ -408,7 +408,7 @@ def test_timeout_accepts_what_a_number_box_actually_hands_back(loaded: None) -> 
 
     assert "60 seconds" in plan.describe(position)
 
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (1, [])
     assert actions_in_map_order(_task("21"))[0].find("Int[@sr='arg1']").attrib["val"] == "60"
@@ -432,7 +432,7 @@ def test_timeout_refuses_zero(loaded: None) -> None:
     plan.chosen[position] = "0"
     _tick_only(plan, [position])
 
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, len(errors)) == (0, 1)
     assert mapfix.NO_TIMEOUT in _tags_reported()
@@ -447,7 +447,7 @@ def test_timeout_is_synthesized_when_the_action_never_carried_one(loaded: None) 
     position, _ = _only(plan, mapfix.NO_TIMEOUT)
     plan.chosen[position] = "90"
     _tick_only(plan, [position])
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (1, [])
     written = actions_in_map_order(_task("21"))[0].find("Int[@sr='arg1']")
@@ -470,7 +470,7 @@ def test_end_if_is_appended_as_the_tasks_last_action(loaded: None) -> None:
     assert fix.where.key == "22"
 
     _tick_only(plan, [position])
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (1, [])
     assert _codes("22") == [FLASH, IF, GOTO, END_IF]
@@ -484,7 +484,7 @@ def test_end_for_closes_a_for_without_touching_the_if_family(loaded: None) -> No
     assert fix.where.key == "20"
 
     _tick_only(plan, [position])
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (1, [])
     assert _codes("20") == [FOR, WAIT, FLASH, END_FOR]
@@ -501,7 +501,7 @@ def test_a_closer_is_appended_with_an_sr_that_is_not_already_taken(loaded: None)
     plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.IF_WITHOUT_END_IF)
     _tick_only(plan, [position])
-    mapfix.apply(plan)
+    mapfix.apply(plan, state=PrimeItems)
 
     assert _codes("22") == [FLASH, IF, GOTO, END_IF]
 
@@ -523,7 +523,7 @@ def test_two_unclosed_blocks_in_one_task_are_closed_innermost_first(loaded: None
     ]
     assert len(positions) == 2
     _tick_only(plan, positions)
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (2, [])
     # End For first: it closes the inner block, opened last.
@@ -555,7 +555,7 @@ def test_goto_arrives_with_no_choice_made_and_cannot_be_applied_until_one_is(loa
     assert not plan.is_ready(position)
 
     _tick_only(plan, [position])
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert repaired == 0
     assert len(errors) == 1
@@ -570,7 +570,7 @@ def test_goto_points_at_the_chosen_label_and_clears_the_finding(loaded: None) ->
     plan.chosen[position] = "the top"
     _tick_only(plan, [position])
 
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (1, [])
     goto = actions_in_map_order(_task("22"))[2]
@@ -608,7 +608,7 @@ def test_delete_removes_the_task_and_unlinks_it_from_its_project(loaded: None) -
     )
     _tick_only(plan, [position])
 
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (1, [])
     assert "24" not in PrimeItems.tasker_root_elements["all_tasks"]
@@ -642,7 +642,7 @@ def test_a_delete_is_applied_after_every_other_repair_to_the_same_task(loaded: N
 
     plan.chosen[timeout_position] = "30"
     _tick_only(plan, [*delete_positions, timeout_position])
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (2, [])
     assert "21" not in PrimeItems.tasker_root_elements["all_tasks"]
@@ -657,7 +657,7 @@ def test_a_closer_is_applied_before_a_delete_of_the_same_task(loaded: None) -> N
     ]
     _tick_only(plan, [closer_position, *delete_positions])
 
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert errors == []
     assert repaired == 1 + len(delete_positions)
@@ -677,7 +677,7 @@ def test_the_whole_plan_is_one_undo(loaded: None) -> None:
     plan.chosen[timeout_position] = "30"
 
     before = _codes("20"), _codes("22")
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert errors == []
     assert repaired == len(plan.selected)
@@ -695,7 +695,7 @@ def test_nothing_ticked_changes_nothing_and_leaves_no_undo_entry(loaded: None) -
     plan = mapfix.plan_fixes(state=PrimeItems)
     plan.selected = set()
 
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (0, [])
     assert not sessundo.can_undo()
@@ -712,7 +712,7 @@ def test_a_repair_whose_element_has_gone_is_refused_rather_than_written(loaded: 
     del PrimeItems.tasker_root_elements["all_tasks_by_name"]["Jumper"]
     PrimeItems.xml_root.remove(detached)
 
-    repaired, errors = mapfix.apply(plan)
+    repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert repaired == 0
     assert len(errors) == 1
@@ -757,7 +757,7 @@ def test_plan_is_empty_and_harmless_with_nothing_loaded() -> None:
     plan = mapfix.plan_fixes(state=PrimeItems)
 
     assert plan.is_empty
-    assert mapfix.apply(plan) == (0, [])
+    assert mapfix.apply(plan, state=PrimeItems) == (0, [])
 
 
 def test_every_repairable_tag_is_a_category_the_health_check_reports() -> None:

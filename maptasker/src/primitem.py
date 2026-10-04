@@ -16,6 +16,15 @@
 # output, mapjump, and the Diagram code so far) and so can be run against one of its own; code that has not still reads the
 # PrimeItems instance, which a real run passes in.  See RunState.
 #
+# What is still read from PrimeItems directly, and why: only the SESSION_ATTRIBUTES below --
+# the language and translator (translator, maputil2.translate_string), Tasker's spec and code
+# tables (actionc, valcodes, actargs), the OS path separator (clip), the trace flag (guiutil2),
+# the AI model/key lists (mapask, guiwins2) -- plus the debug flag read by the logging helpers
+# underneath everything (console), and the import-time failure in cria, which happens before
+# any run exists.  Those belong to the session, not to one run over one backup, so there is
+# nothing for a RunState of its own to hold.  The entry points (mapit_all, clireports.run,
+# MyGui, error_handler, current_config and so on) default their state to PrimeItems.
+#
 # Set up an initial empty dictionary of primary items used throughout this project
 #  xml_tree = main xml element of our Tasker xml tree
 #  xml_root = root xml element of our Tasker xml tree

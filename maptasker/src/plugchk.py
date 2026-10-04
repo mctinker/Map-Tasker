@@ -31,10 +31,11 @@ from maptasker.src import appinv
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import PROFILE, TASK, Target, actions_in_map_order
 from maptasker.src.plugset import plugin_package
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 WARNING = "WARNING"
 
@@ -85,17 +86,17 @@ def _item_name(code: str, suffix: str) -> str:
     return entry.name if entry is not None and entry.name else f"code {code}"
 
 
-def _owners(kind: str) -> dict[str, str]:
+def _owners(kind: str, state: RunState) -> dict[str, str]:
     """{member id: owning Project name} for one of a Project's lists (see proflint._project_owners)."""
     owners: dict[str, str] = {}
-    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+    for project_name, project in state.tasker_root_elements["all_projects"].items():
         for member in (item.strip() for item in (project["xml"].findtext(kind) or "").split(",")):
             if member:
                 owners[member] = project_name
     return owners
 
 
-def plugin_uses() -> dict[str, list[Use]]:
+def plugin_uses(state: RunState) -> dict[str, list[Use]]:
     """{package: every place it is used} for every plugin in the configuration.
 
     Task actions, in the order the Map numbers them, then Profile conditions -- the two
@@ -104,9 +105,9 @@ def plugin_uses() -> dict[str, list[Use]]:
     plugin used only there is vanishingly rare.
     """
     uses: dict[str, list[Use]] = {}
-    root = PrimeItems.tasker_root_elements
+    root = state.tasker_root_elements
 
-    task_owners = _owners("tids")
+    task_owners = _owners("tids", state=state)
     for task_id, task in root["all_tasks"].items():
         where = Target(TASK, task_id, task["name"], task_owners.get(task_id, ""))
         for number, action in enumerate(actions_in_map_order(task["xml"]), start=1):
@@ -115,7 +116,7 @@ def plugin_uses() -> dict[str, list[Use]]:
                 name = _item_name(action.findtext("code") or "", "t")
                 uses.setdefault(package, []).append(Use(where.at_action(number), name))
 
-    profile_owners = _owners("pids")
+    profile_owners = _owners("pids", state=state)
     for profile_id, profile in root["all_profiles"].items():
         where = Target(PROFILE, profile_id, profile["name"], profile_owners.get(profile_id, ""))
         condition: Element
@@ -154,7 +155,7 @@ def _detail(uses: list[Use], checked: str) -> list[tuple[str, Target | None]]:
     return pieces
 
 
-def lint_problems() -> list[Problem]:
+def lint_problems(state: RunState) -> list[Problem]:
     """One finding per plugin the configuration uses and no fetched app list has.
 
     Nothing at all when no list has been fetched: with nothing to check against, every
@@ -174,7 +175,7 @@ def lint_problems() -> list[Problem]:
     installed = frozenset().union(*(packages for _, packages in devices.values()))
     checked = _checked_against(devices)
     problems = []
-    for package, uses in sorted(plugin_uses().items()):
+    for package, uses in sorted(plugin_uses(state=state).items()):
         if package in installed:
             continue
         problems.append(
@@ -190,7 +191,7 @@ def lint_problems() -> list[Problem]:
     return problems
 
 
-def plugins_unchecked() -> int:
+def plugins_unchecked(state: RunState) -> int:
     """How many plugins the configuration uses, when no app list has been fetched to check them.
 
     0 when there is a list (the check ran) or no plugin to check.  healthck prints a note
@@ -199,4 +200,4 @@ def plugins_unchecked() -> int:
     """
     if appinv.fetched_packages():
         return 0
-    return len(plugin_uses())
+    return len(plugin_uses(state=state))

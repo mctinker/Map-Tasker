@@ -644,7 +644,7 @@ def export_view(view: str, fmt: str, state: RunState) -> str:
     if view not in (MAP, DIAGRAM) or fmt not in FORMATS:
         message = f"Cannot export {view!r} as {fmt!r}"
         raise ValueError(message)
-    directory = str(output_directory())
+    directory = str(output_directory(state=state))
     meta = metadata(view, state=state)
     if view == MAP:
         document = _read(os.path.join(directory, MAP_SOURCE), "There is no Map to export.  Display the Map first.")

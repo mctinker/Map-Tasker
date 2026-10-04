@@ -23,7 +23,7 @@ import requests
 from requests.exceptions import ConnectionError, InvalidSchema, RequestException, Timeout
 
 from maptasker.src import clock
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PrimeItems, RunState
 from maptasker.src.sysconst import MY_VERSION, NOW_TIME, logger, logging
 from maptasker.src.translator import T
 
@@ -807,16 +807,16 @@ def http_delete_request(
 
 
 # Log the arguments
-def log_startup_values() -> None:
+def log_startup_values(state: RunState) -> None:
     """
     Log the runtime arguments and color mappings
     """
     setup_logging()  # Get logging going
     logger.info(f"{MY_VERSION} {str(NOW_TIME)}")  # noqa: RUF010
     logger.info(f"sys.argv:{str(sys.argv)}")  # noqa: RUF010
-    for key, value in PrimeItems.program_arguments.items():
+    for key, value in state.program_arguments.items():
         logger.info(f"{key}: {value}")
-    for key, value in PrimeItems.colors_to_use.items():
+    for key, value in state.colors_to_use.items():
         logger.info(f"colormap for {key} set to {value}")
 
 
@@ -897,7 +897,7 @@ _TABLE_OF_TAG = {
 }
 
 
-def attached_elements() -> set[int]:
+def attached_elements(state: RunState) -> set[int]:
     """The id() of every element a save would currently write.
 
     What "still there" means for a preview built a moment ago and about to be applied --
@@ -934,7 +934,7 @@ def attached_elements() -> set[int]:
     """
     reachable: set[int] = set()
 
-    root = PrimeItems.xml_root
+    root = state.xml_root
     if root is not None:
         reachable.add(id(root))
         for child in root:
@@ -943,7 +943,7 @@ def attached_elements() -> set[int]:
             reachable.update(id(element) for element in child.iter())
 
     for table in _TABLE_OF_TAG.values():
-        for item in (PrimeItems.tasker_root_elements.get(table) or {}).values():
+        for item in (state.tasker_root_elements.get(table) or {}).values():
             element = item.get("xml") if isinstance(item, dict) else item
             if element is None:
                 continue
@@ -952,7 +952,7 @@ def attached_elements() -> set[int]:
     return reachable
 
 
-def render_full_backup_xml(*, indent: bool = True) -> str:
+def render_full_backup_xml(state: RunState, *, indent: bool = True) -> str:
     """Render the entire in-memory Tasker backup -- every Project, Profile, Task,
     Scene and everything else the loaded file holds -- as one XML string, with every
     edit made this session applied to it.
@@ -1018,11 +1018,11 @@ def render_full_backup_xml(*, indent: bool = True) -> str:
     Raises:
         ValueError: if no backup is loaded (PrimeItems.xml_root is None).
     """
-    if PrimeItems.xml_root is None:
+    if state.xml_root is None:
         msg = "No backup data is currently loaded."
         raise ValueError(msg)
 
-    root = PrimeItems.xml_root
+    root = state.xml_root
     # The root the render is built on, and its children as a plain list to reconcile.
     #
     # For a file that is one deep copy of the whole tree, which the indent pass is then
@@ -1094,7 +1094,7 @@ def render_full_backup_xml(*, indent: bool = True) -> str:
         # additions rather than risking two different key-less elements colliding on a
         # shared None key.
         keyless_additions = []
-        for entry in PrimeItems.tasker_root_elements.get(table_name, {}).values():
+        for entry in state.tasker_root_elements.get(table_name, {}).values():
             current_element = copy.deepcopy(entry["xml"]) if indent else entry["xml"]
             current_key = _element_match_key(current_element, tag)
             if current_key is None:
@@ -1156,7 +1156,7 @@ def render_full_backup_xml(*, indent: bool = True) -> str:
     return _XML_DECLARATION + ETW.tostring(rendered_root, encoding="unicode") + "\n"
 
 
-def write_full_backup_to_current_file() -> tuple[bool, str]:
+def write_full_backup_to_current_file(state: RunState) -> tuple[bool, str]:
     """Writes the entire current Tasker backup -- every Project, Profile, Task,
     Scene, everything -- out to a brand-new, timestamped copy of whatever file
     it was loaded from (PrimeItems.file_to_get), e.g. backup.xml ->
@@ -1188,7 +1188,7 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     Returns (True, new_file_path) on success, or (False, error_message) if
     there's no current file to copy from, or the write itself fails.
     """
-    file_to_get = PrimeItems.file_to_get
+    file_to_get = state.file_to_get
     # PrimeItems.file_to_get is sometimes an open file object (.name is its path) and
     # sometimes just the path itself as a plain string (e.g. getxml_event's own direct
     # assignment, or the self-healing load in userintr_editors.open_add_task_dialog_event/
@@ -1199,11 +1199,11 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     if not file_path or not isinstance(file_path, str):
         return False, "No backup file is currently loaded to save back to."
 
-    if PrimeItems.xml_root is None:
+    if state.xml_root is None:
         return False, "No backup data is currently loaded."
 
     try:
-        xml_text = render_full_backup_xml()
+        xml_text = render_full_backup_xml(state=state)
     except ValueError as e:
         return False, str(e)
 

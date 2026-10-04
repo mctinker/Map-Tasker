@@ -396,7 +396,7 @@ def test_save_also_writes_the_report_the_way_the_window_does(tmp_path: Path, cap
 
 
 def test_a_report_that_cannot_be_saved_is_exit_2(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("maptasker.src.healthck.write_health_check_report", lambda _rows: "")
+    monkeypatch.setattr("maptasker.src.healthck.write_health_check_report", lambda _rows, **_kw: "")
 
     assert _run("-healthcheck", "-save", "-file", str(_backup(tmp_path))) == clireports.EXIT_OUTPUT_FAILED
 

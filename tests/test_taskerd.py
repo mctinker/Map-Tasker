@@ -236,7 +236,7 @@ def test_get_first_action_reads_act0_not_document_order() -> None:
         '<Action sr="act0"><code>548</code><Str sr="arg0">first</Str></Action>'
         "</Task>",
     )
-    assert taskerd.get_first_action(task) == "Flash Text=first"
+    assert taskerd.get_first_action(task, state=PrimeItems) == "Flash Text=first"
 
 
 def test_get_first_action_of_a_task_without_one_is_empty() -> None:
@@ -244,7 +244,7 @@ def test_get_first_action_of_a_task_without_one_is_empty() -> None:
     task = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
         '<Task sr="task1"><id>1</id><Action sr="act1"><code>548</code><Str sr="arg0">x</Str></Action></Task>',
     )
-    assert taskerd.get_first_action(task) == ""
+    assert taskerd.get_first_action(task, state=PrimeItems) == ""
 
 
 def test_get_first_action_is_truncated() -> None:
@@ -254,7 +254,7 @@ def test_get_first_action_is_truncated() -> None:
     task = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
         f'<Task sr="task1"><id>1</id><Action sr="act0"><code>548</code><Str sr="arg0">{"x" * 200}</Str></Action></Task>',
     )
-    result = taskerd.get_first_action(task)
+    result = taskerd.get_first_action(task, state=PrimeItems)
     assert len(result) < 40
     assert result.endswith("...")
 

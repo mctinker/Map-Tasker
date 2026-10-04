@@ -110,6 +110,6 @@ def test_the_inventory_generation_only_goes_up() -> None:
     """Clearing rebuilds the inventory, and the rebuild moves the generation on -- never back
     to a number a memo keyed on it has already seen.
     """
-    before = appinv.generation()
+    before = appinv.generation(state=PrimeItems)
     clear_tasker_data(state=PrimeItems)
-    assert appinv.generation() > before
+    assert appinv.generation(state=PrimeItems) > before

@@ -316,7 +316,7 @@ def test_extract_moves_the_actions_and_leaves_a_call(loaded: None) -> None:
     """The whole operation, checked from both ends and from the Project."""
     plan = maprefac.plan_extract("20", [3, 4, 5], "Loud Part", state=PrimeItems)
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
     # What is left runs in the same order, with the call standing where the block did.
     assert _codes("20") == [VARIABLE_SET, FLASH, PERFORM_TASK, PERFORM_TASK]
@@ -335,7 +335,7 @@ def test_extract_moves_the_actions_and_leaves_a_call(loaded: None) -> None:
 def test_extract_carries_the_label_with_its_action(loaded: None) -> None:
     """A label belongs to the action, not to the Task, and must not be left behind."""
     plan = maprefac.plan_extract("20", [2], "Greeting", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     moved = actions_in_map_order(_task(_task_id("Greeting")))[0]
     assert moved.findtext("label") == "say hello"
 
@@ -343,14 +343,14 @@ def test_extract_carries_the_label_with_its_action(loaded: None) -> None:
 def test_extract_takes_the_source_tasks_priority(loaded: None) -> None:
     """A new Task's priority is a property of the actions moved, not a default of 100."""
     plan = maprefac.plan_extract("20", [1], "Counter", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     assert _task(_task_id("Counter")).findtext("pri") == "50"
 
 
 def test_extract_writes_a_perform_task_tasker_would_recognise(loaded: None) -> None:
     """The call has to be the shape Tasker writes, not merely one this program can read."""
     plan = maprefac.plan_extract("20", [1], "Counter", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     call = actions_in_map_order(_task("20"))[0]
 
     assert call.findtext("code") == PERFORM_TASK
@@ -380,7 +380,7 @@ def test_extract_refuses_a_selection_with_gaps(loaded: None) -> None:
     plan = maprefac.plan_extract("20", [2, 4], "Bits", state=PrimeItems)
     assert plan.is_blocked
     assert plan.blocks[0].reason == "NOT-CONTIGUOUS"
-    assert maprefac.apply(plan)[0] is False
+    assert maprefac.apply(plan, state=PrimeItems)[0] is False
     assert _codes("20") == [VARIABLE_SET, FLASH, IF, FLASH, END_IF, PERFORM_TASK]
 
 
@@ -447,7 +447,7 @@ def test_inline_replaces_the_call_with_the_called_tasks_actions(loaded: None) ->
     """Morning's action 5 calls Wake Steps; afterwards it holds Wake Steps' two actions."""
     plan = maprefac.plan_inline("20", 6, state=PrimeItems)
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
     assert _codes("20") == [VARIABLE_SET, FLASH, IF, FLASH, END_IF, VARIABLE_SET, FLASH]
     assert _srs("20") == [f"act{number}" for number in range(7)]
@@ -467,7 +467,7 @@ def test_inline_in_the_middle_keeps_what_follows_in_order(loaded: None) -> None:
         action.set("sr", f"act{number}")
 
     plan = maprefac.plan_inline("20", 2, state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     assert _codes("20") == [VARIABLE_SET, VARIABLE_SET, FLASH, FLASH, IF, FLASH, END_IF]
     assert _srs("20") == [f"act{number}" for number in range(7)]
 
@@ -481,7 +481,7 @@ def test_inline_carries_the_calls_condition_onto_every_copy(loaded: None) -> Non
 
     plan = maprefac.plan_inline("20", 6, state=PrimeItems)
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
     copied = actions_in_map_order(_task("20"))[5:]
     assert len(copied) == 2
@@ -494,7 +494,7 @@ def test_inline_carries_the_calls_disabled_state_onto_every_copy(loaded: None) -
     ET.SubElement(call, "on").text = "false"
 
     plan = maprefac.plan_inline("20", 6, state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     assert all(action.findtext("on") == "false" for action in actions_in_map_order(_task("20"))[5:])
 
 
@@ -504,7 +504,7 @@ def test_inline_moves_the_calls_label_onto_the_first_copy(loaded: None) -> None:
     ET.SubElement(call, "label").text = "wake up"
 
     plan = maprefac.plan_inline("20", 6, state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     copied = actions_in_map_order(_task("20"))[5:]
     assert copied[0].findtext("label") == "wake up"
     assert copied[1].find("label") is None
@@ -559,7 +559,7 @@ def test_inline_refuses_a_conditional_call_to_a_task_with_a_block(loaded: None) 
     call.find("Str[@sr='arg0']").text = "Morning Copy"
     # A called Task that holds an If, plus a condition on the call itself.
     branching = maprefac.plan_duplicate(TASK, "20", "Morning Copy", state=PrimeItems)
-    assert maprefac.apply(branching) == (True, [])
+    assert maprefac.apply(branching, state=PrimeItems) == (True, [])
     ET.SubElement(call, "ConditionList", {"sr": "if"})
 
     plan = maprefac.plan_inline("20", 6, state=PrimeItems)
@@ -597,7 +597,7 @@ def test_move_task_changes_which_project_lists_it(loaded: None) -> None:
     """A Task is not inside a Project in the file -- moving it edits two membership lists."""
     plan = maprefac.plan_move(TASK, "22", "Away", state=PrimeItems)
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     assert "22" not in _members("Home", "tids")
     assert "22" in _members("Away", "tids")
 
@@ -608,7 +608,7 @@ def test_move_task_stamps_both_projects_as_modified(loaded: None) -> None:
     for entry in projects.values():
         entry["xml"].find("mdate").text if entry["xml"].find("mdate") is not None else None
     plan = maprefac.plan_move(TASK, "22", "Away", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     assert projects["Home"]["xml"].findtext("mdate")
     assert projects["Away"]["xml"].findtext("mdate")
 
@@ -637,7 +637,7 @@ def test_move_profile_takes_its_own_tasks_with_it(loaded: None) -> None:
     """Dawn runs Task 20 and nothing else does, so Task 20 travels."""
     plan = maprefac.plan_move(PROFILE, "100", "Away", state=PrimeItems)
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     assert "100" in _members("Away", "pids")
     assert "100" not in _members("Home", "pids")
     assert "20" in _members("Away", "tids")
@@ -650,7 +650,7 @@ def test_move_profile_leaves_a_task_another_profile_still_runs(loaded: None) -> 
     ET.SubElement(_task_element_of_profile("100"), "mid1").text = "21"
 
     plan = maprefac.plan_move(PROFILE, "101", "Away", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     assert "22" in _members("Away", "tids")
     assert "21" in _members("Home", "tids")
     assert "21" not in _members("Away", "tids")
@@ -677,7 +677,7 @@ def test_duplicate_task_makes_a_second_independent_task(loaded: None) -> None:
     """A copy that shares the original's element is a second name for it, not a copy."""
     plan = maprefac.plan_duplicate(TASK, "22", state=PrimeItems)
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
     new_id = _task_id("Quiet (copy)")
     assert new_id != "22"
@@ -691,7 +691,7 @@ def test_duplicate_task_makes_a_second_independent_task(loaded: None) -> None:
 def test_duplicate_task_honours_a_name_the_user_chose(loaded: None) -> None:
     """The derived '(copy)' name is a default, not a rule."""
     plan = maprefac.plan_duplicate(TASK, "22", "Hush", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     assert "Hush" in PrimeItems.tasker_root_elements["all_tasks_by_name"]
 
 
@@ -706,7 +706,7 @@ def test_duplicate_profile_copies_its_tasks_and_points_at_them(loaded: None) -> 
     """A copy sharing the original's Task is a second name for it, not a copy."""
     plan = maprefac.plan_duplicate(PROFILE, "100", "Dawn Two", state=PrimeItems)
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
     profiles = PrimeItems.tasker_root_elements["all_profiles_by_name"]
     new_profile = PrimeItems.tasker_root_elements["all_profiles"][profiles["Dawn Two"]["id"]]["xml"]
@@ -721,7 +721,7 @@ def test_duplicate_profile_copies_its_tasks_and_points_at_them(loaded: None) -> 
 def test_duplicate_scene_takes_a_name_of_its_own_everywhere(loaded: None) -> None:
     """A Scene's sr= is built from its name, so a copy keeping it still says the old one."""
     plan = maprefac.plan_duplicate(SCENE, "Panel", "Panel Two", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
     copied = PrimeItems.tasker_root_elements["all_scenes"]["Panel Two"]["xml"]
     assert copied.findtext("nme") == "Panel Two"
@@ -734,7 +734,7 @@ def test_duplicate_project_copies_everything_it_owns(loaded: None) -> None:
     """Profiles, Tasks and Scenes all copied, and nothing left shared with the original."""
     plan = maprefac.plan_duplicate(PROJECT, "Home", "Home Two", state=PrimeItems)
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
     assert "Home Two" in PrimeItems.tasker_root_elements["all_projects"]
     assert len(_members("Home Two", "tids")) == len(_members("Home", "tids"))
@@ -748,7 +748,7 @@ def test_duplicate_project_copies_everything_it_owns(loaded: None) -> None:
 def test_duplicate_project_gives_it_a_uuid_of_its_own(loaded: None) -> None:
     """A Project's <id> is a UUID in every real backup, and two Projects must not share one."""
     plan = maprefac.plan_duplicate(PROJECT, "Home", "Home Two", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     projects = PrimeItems.tasker_root_elements["all_projects"]
     assert projects["Home Two"]["xml"].findtext("id") != projects["Home"]["xml"].findtext("id")
     assert projects["Home Two"]["xml"].attrib["sr"] != projects["Home"]["xml"].attrib["sr"]
@@ -757,7 +757,7 @@ def test_duplicate_project_gives_it_a_uuid_of_its_own(loaded: None) -> None:
 def test_duplicate_project_repoints_calls_at_the_copies(loaded: None) -> None:
     """The failure this exists to prevent: a copied Project calling back into the original."""
     plan = maprefac.plan_duplicate(PROJECT, "Home", "Home Two", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
     copied_morning = _task_id("Morning (copy)")
     call = actions_in_map_order(_task(copied_morning))[5]
@@ -774,7 +774,7 @@ def test_duplicate_project_repoints_calls_at_the_copies(loaded: None) -> None:
 def test_duplicate_project_repoints_its_profiles_task_links(loaded: None) -> None:
     """Those are by id rather than by name, so they need doing separately."""
     plan = maprefac.plan_duplicate(PROJECT, "Home", "Home Two", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
     profiles = PrimeItems.tasker_root_elements["all_profiles"]
     for profile_id in _members("Home Two", "pids"):
@@ -815,7 +815,7 @@ def test_a_preview_is_clickable_where_it_names_something(loaded: None) -> None:
 def test_apply_refuses_a_blocked_plan_even_if_it_is_asked(loaded: None) -> None:
     """The dialog disables the button; apply() does not rely on it having remembered to."""
     plan = maprefac.plan_extract("20", [2, 4], "Bits", state=PrimeItems)
-    done, errors = maprefac.apply(plan)
+    done, errors = maprefac.apply(plan, state=PrimeItems)
     assert done is False
     assert errors == [plan.blocks[0].explanation]
 
@@ -826,7 +826,7 @@ def test_apply_refuses_a_plan_whose_subject_was_deleted_meanwhile(loaded: None) 
     assert not plan.is_blocked
 
     taskedit.delete_task("Morning", state=PrimeItems)
-    done, errors = maprefac.apply(plan)
+    done, errors = maprefac.apply(plan, state=PrimeItems)
 
     assert done is False
     assert "no longer in the configuration" in errors[0]
@@ -837,7 +837,7 @@ def test_the_whole_refactor_costs_one_undo(loaded: None) -> None:
     """Extract writes a Task, edits a Task and edits a Project.  That is one thing the user did."""
     before = _codes("20")
     plan = maprefac.plan_extract("20", [3, 4, 5], "Loud Part", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
     assert sessundo.can_undo()
     assert sessundo.next_undo_label() == plan.what
@@ -851,7 +851,7 @@ def test_the_whole_refactor_costs_one_undo(loaded: None) -> None:
 def test_an_undone_refactor_can_be_redone(loaded: None) -> None:
     """The mirror of the undo, since a redo restores a whole configuration rather than replaying steps."""
     plan = maprefac.plan_extract("20", [3, 4, 5], "Loud Part", state=PrimeItems)
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     sessundo.undo(state=PrimeItems)
 
     assert sessundo.redo(state=PrimeItems)[0] is True
@@ -914,7 +914,7 @@ def test_the_dialog_asks_for_the_range_the_user_selected(loaded: None) -> None:
     state=PrimeItems)
     assert plan is not None
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     assert _codes(_task_id("Loud Part")) == [IF, FLASH, END_IF]
 
 
@@ -1033,7 +1033,7 @@ def test_extract_refuses_a_task_that_is_not_on_screen(loaded: None) -> None:
     assert plan.is_blocked
     assert plan.blocks[0].reason == "OUT-OF-SCOPE"
     assert "Task 'Quiet'" in plan.blocks[0].explanation
-    assert maprefac.apply(plan)[0] is False
+    assert maprefac.apply(plan, state=PrimeItems)[0] is False
     assert "Counter" not in PrimeItems.tasker_root_elements["all_tasks_by_name"]
 
 
@@ -1042,7 +1042,7 @@ def test_extract_allows_the_task_that_is_on_screen(loaded: None) -> None:
     _displaying(single_task_name="Morning")
     plan = maprefac.plan_extract("20", [3, 4, 5], "Loud Part", state=PrimeItems)
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
     assert "Loud Part" in PrimeItems.tasker_root_elements["all_tasks_by_name"]
 
 
@@ -1051,7 +1051,7 @@ def test_extract_allows_a_task_of_the_profile_on_screen(loaded: None) -> None:
     _displaying(single_profile_name="Dusk")
     plan = maprefac.plan_extract("21", [2], "Announce", state=PrimeItems)
     assert not plan.is_blocked
-    assert maprefac.apply(plan) == (True, [])
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
 
 def _pickers() -> dict:

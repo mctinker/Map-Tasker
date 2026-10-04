@@ -263,7 +263,7 @@ def build_refactor_dialog(
                 invalidate()
                 return
 
-            done, errors = maprefac.apply(plan)
+            done, errors = maprefac.apply(plan, state=state)
             for message in errors[:4]:
                 ui.notify(message, type="negative")
             if not done:
@@ -297,7 +297,7 @@ def build_refactor_dialog(
             if plan is None:
                 ui.notify(translate_string("Press Preview first."), type="warning")
                 return
-            file_name = maprefac.write_refactor_report(maprefac.report_rows(plan))
+            file_name = maprefac.write_refactor_report(maprefac.report_rows(plan), state=state)
             if file_name:
                 ui.notify(f"{translate_string('Refactor preview saved as')} {file_name}", type="positive")
             else:

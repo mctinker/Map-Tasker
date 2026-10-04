@@ -54,9 +54,10 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.primitem import RunState
+
 from maptasker.src import caches, clock
 from maptasker.src.editcommon import set_child_text as _set_child_text
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import APPS_CACHE_FILE, logger
 
 # An App *condition*'s per-entry tags: cls0/label0/pkg0, cls1/label1/pkg1, ... (see
@@ -287,7 +288,7 @@ def format_app_value(entries: list[AppEntry]) -> str:
     return _APP_LIST_JOINER.join(entry.pkg for entry in entries)
 
 
-def parse_app_value(text: str) -> list[AppEntry]:
+def parse_app_value(text: str, state: RunState) -> list[AppEntry]:
     """Turn what the field holds back into entries, re-attaching each package's label and
     class from the inventory.
 
@@ -296,7 +297,7 @@ def parse_app_value(text: str) -> list[AppEntry]:
     is a working App; an action that launches a specific activity (Launch App) will want
     its class, which is exactly what picking from the list rather than typing gives you.
     """
-    return [resolve_app(token.strip()) for token in text.split(",") if token.strip()]
+    return [resolve_app(token.strip(), state=state) for token in text.split(",") if token.strip()]
 
 
 def format_icon_value(icon: IconRef | None) -> str:
@@ -386,7 +387,7 @@ _state = _Inventory()
 caches.register(_state)
 
 
-def generation() -> int:
+def generation(state: RunState) -> int:
     """Bumped every time the inventory is rebuilt.
 
     Addability depends on the inventory (see taskedit.classify_action_addability), and
@@ -395,36 +396,36 @@ def generation() -> int:
     it was built under and rebuilds when this moves.  Without it, loading a configuration
     would leave 'Launch App' greyed out with a stale reason until restart.
     """
-    _ensure_harvested()
+    _ensure_harvested(state=state)
     return _state.generation
 
 
-def apps() -> list[AppEntry]:
+def apps(state: RunState) -> list[AppEntry]:
     """Every Application the inventory knows, by label."""
-    _ensure_harvested()
+    _ensure_harvested(state=state)
     return _state.apps
 
 
-def icons() -> list[IconRef]:
+def icons(state: RunState) -> list[IconRef]:
     """Every icon the inventory knows, built-ins first."""
-    _ensure_harvested()
+    _ensure_harvested(state=state)
     return _state.icons
 
 
-def have_apps() -> bool:
+def have_apps(state: RunState) -> bool:
     """Whether an App-typed argument can be offered for editing at all.  Empty inventory,
     empty picker, nothing to type into it from -- so the argument stays read-only, exactly
     as it was before this module existed.
     """
-    return bool(apps())
+    return bool(apps(state=state))
 
 
-def have_icons() -> bool:
+def have_icons(state: RunState) -> bool:
     """The Icon counterpart of have_apps()."""
-    return bool(icons())
+    return bool(icons(state=state))
 
 
-def resolve_app(package: str) -> AppEntry:
+def resolve_app(package: str, state: RunState) -> AppEntry:
     """The inventory's entry for a package, or a bare entry carrying just the package.
 
     A variable is answered by the convention rather than by the inventory (see
@@ -436,7 +437,7 @@ def resolve_app(package: str) -> AppEntry:
     """
     if is_variable_reference(package):
         return variable_app_entry(package)
-    _ensure_harvested()
+    _ensure_harvested(state=state)
     return _state.apps_by_package.get(package, AppEntry(pkg=package, label=package))
 
 
@@ -512,9 +513,9 @@ def _sorted_icons(icons: Iterable[IconRef]) -> list[IconRef]:
     return sorted(icons, key=lambda icon: (kind_order.get(icon.kind, 9), icon.display.lower()))
 
 
-def _ensure_harvested() -> None:
+def _ensure_harvested(state: RunState) -> None:
     _ensure_cache_loaded()
-    root = getattr(PrimeItems, "xml_root", None)
+    root = getattr(state, "xml_root", None)
     if root is _state.harvested_from and _state.cache_stamp == _state.built_at_cache_stamp:
         return
 

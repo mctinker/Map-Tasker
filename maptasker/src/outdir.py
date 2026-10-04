@@ -26,11 +26,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import platformdirs
 
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
+
+if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
 
 # The folder made inside the user's Documents when no output folder has been chosen.
 OUTPUT_FOLDER_NAME = "MapTasker"
@@ -41,7 +44,7 @@ def default_output_directory() -> Path:
     return platformdirs.user_documents_path() / OUTPUT_FOLDER_NAME
 
 
-def output_directory() -> Path:
+def output_directory(state: RunState) -> Path:
     """The folder to write output to, made if it is not there yet.
 
     Falls back to the current directory, with a warning in the log, when the chosen folder
@@ -49,7 +52,7 @@ def output_directory() -> Path:
     without write permission.  A report the user asked for is worth more in an unexpected
     place than not written at all.
     """
-    chosen = PrimeItems.program_arguments.output_directory
+    chosen = state.program_arguments.output_directory
     folder = Path(chosen).expanduser() if chosen else default_output_directory()
     try:
         folder.mkdir(parents=True, exist_ok=True)
@@ -59,9 +62,9 @@ def output_directory() -> Path:
     return folder
 
 
-def output_path(file_name: str) -> str:
+def output_path(file_name: str, state: RunState) -> str:
     """The full path file_name is written to (and read back from) in the output folder."""
-    return str(output_directory() / file_name)
+    return str(output_directory(state=state) / file_name)
 
 
 def normalize_output_directory(text: str) -> tuple[str, str]:

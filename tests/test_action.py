@@ -177,12 +177,12 @@ def test_a_disabled_action_is_marked() -> None:
     """An <on/> element means the user switched the action off.  It is still in the Task
     and still listed, and nothing else on the line distinguishes it from one that runs.
     """
-    result = action.get_label_disabled_condition(_action_with("<on/>"))
+    result = action.get_label_disabled_condition(_action_with("<on/>"), state=PrimeItems)
     assert 'class="disabled_action_color"' in result
 
 
 def test_an_enabled_action_is_not_marked_disabled() -> None:
-    assert "disabled_action_color" not in action.get_label_disabled_condition(_action_with(""))
+    assert "disabled_action_color" not in action.get_label_disabled_condition(_action_with(""), state=PrimeItems)
 
 
 def test_an_action_label_is_shown() -> None:
@@ -191,19 +191,19 @@ def test_an_action_label_is_shown() -> None:
     """
     assert "why this is here" in action.get_label_disabled_condition(
         _action_with("<label>why this is here</label>"),
-    )
+    state=PrimeItems)
 
 
 def test_a_remote_action_says_so() -> None:
     """The action runs on another device.  Reading the line without that is reading it
     as something that happens on this phone.
     """
-    result = action.get_label_disabled_condition(_action_with("<remoteDevice>Tablet</remoteDevice>"))
+    result = action.get_label_disabled_condition(_action_with("<remoteDevice>Tablet</remoteDevice>"), state=PrimeItems)
     assert "Remote Device/Execution" in result
 
 
 def test_a_remote_timeout_is_shown_with_its_value() -> None:
-    result = action.get_label_disabled_condition(_action_with("<remoteTimeout>30</remoteTimeout>"))
+    result = action.get_label_disabled_condition(_action_with("<remoteTimeout>30</remoteTimeout>"), state=PrimeItems)
     assert "Remote Timeout (Seconds): 30" in result
 
 
@@ -211,7 +211,7 @@ def test_an_action_with_no_code_is_skipped() -> None:
     """Every action has a <code>; one without is a malformed element, and reading on
     would attribute the next action's details to it.
     """
-    assert action.get_label_disabled_condition(ET.fromstring('<Action sr="act0"/>')) == ""  # noqa: S314
+    assert action.get_label_disabled_condition(ET.fromstring('<Action sr="act0"/>'), state=PrimeItems) == ""  # noqa: S314
 
 
 # ##################################################################################

@@ -872,7 +872,7 @@ def _limitations(index: FindIndex) -> list[str]:
     return notes
 
 
-def write_find_report(rows: list[Row]) -> str:
+def write_find_report(rows: list[Row], state: RunState) -> str:
     """Write the results to a timestamped file in the output folder (see outdir).
 
     Returns the path written, or "" if the write failed -- the results are on screen
@@ -882,7 +882,7 @@ def write_find_report(rows: list[Row]) -> str:
     file_name = append_to_filename(FIND_FILE, stamp)
     if not file_name:
         return ""
-    file_path = output_path(file_name)
+    file_path = output_path(file_name, state=state)
     try:
         with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))

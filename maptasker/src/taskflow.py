@@ -44,6 +44,7 @@ from maptasker.src.mapjump import (
 )
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     FLOWCHART_FILE,
     MY_VERSION,
@@ -982,21 +983,21 @@ def write_task_flow_report(rows: list[Row]) -> str:
     Returns the path written, or "" if the write failed -- named, stamped and handled
     exactly as healthck.write_health_check_report does, and for its reasons.
     """
-    return _write(rows, TASKFLOW_FILE, "Task Flow report")
+    return _write(rows, TASKFLOW_FILE, "Task Flow report", state=PrimeItems)
 
 
 def write_flowchart(rows: list[Row]) -> str:
     """Write one Task's flowchart to a timestamped file.  Returns the path, or ""."""
-    return _write(rows, FLOWCHART_FILE, "Flowchart")
+    return _write(rows, FLOWCHART_FILE, "Flowchart", state=PrimeItems)
 
 
-def _write(rows: list[Row], base_name: str, what: str) -> str:
+def _write(rows: list[Row], base_name: str, what: str, state: RunState) -> str:
     """Write rows as plain text to a timestamped copy of base_name in the output folder."""
     stamp = clock.now().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(base_name, stamp)
     if not file_name:
         return ""
-    file_path = output_path(file_name)
+    file_path = output_path(file_name, state=state)
     try:
         with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))

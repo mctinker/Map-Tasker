@@ -4,19 +4,53 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from pathlib import Path
 
 import pytest
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src import clireports, guiutils, healthck, impact, mapai, mapfix, maprefac, projedit, taskedit, taskflow, userintr, varxref
-from maptasker.src import sessundo
-from maptasker.src import bildhtml, firesim, getbakup, mapcache, mapfind, outline, proginit, runcli, taskerd, timeline
-from maptasker.src.actionc import load_arg_specs
-from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
+from maptasker.src import (
+    bildhtml,
+    caveats,
+    clireports,
+    codelint,
+    condition,
+    diagram,
+    diagutil,
+    dirout,
+    firesim,
+    frontmtr,
+    getbakup,
+    guiutils,
+    healthck,
+    impact,
+    mapai,
+    mapcache,
+    mapfind,
+    mapfix,
+    mapjump,
+    maprefac,
+    maputils,
+    outdir,
+    outline,
+    proginit,
+    projects,
+    projedit,
+    runcli,
+    sessundo,
+    share,
+    taskedit,
+    taskerd,
+    tasks,
+    timeline,
+    twisty,
+    userintr,
+    varxref,
+)
 from maptasker.src import property as prop
+from maptasker.src.actionc import load_arg_specs
+from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapjump import PROFILE, TASK, Target
 from maptasker.src.mtexcept import MapTaskerError
-from maptasker.src.sysconst import DIAGRAM_FILE as diagram_file
 from maptasker.src.primitem import (
     MAP_OUTPUT_ATTRIBUTES,
     PrimeItems,
@@ -25,6 +59,7 @@ from maptasker.src.primitem import (
     reset_attributes,
 )
 from maptasker.src.runcfg import current_config
+from maptasker.src.sysconst import DIAGRAM_FILE as diagram_file
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 
@@ -494,7 +529,9 @@ def test_a_health_check_runs_over_the_state_it_is_given(tmp_path: object, monkey
     assert len(rows) >= len(empty_rows)
 
 
-def test_the_variable_index_is_built_from_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_the_variable_index_is_built_from_the_state_it_is_given(
+    tmp_path: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
     state = _outline_state(tmp_path, monkeypatch)
 
     assert varxref.build_index(state=state) is not None
@@ -513,7 +550,9 @@ def test_what_a_delete_would_do_is_worked_out_on_the_state_it_is_given(
     assert "Task 'Caller'" in found.consequences[0].where
 
 
-def test_a_duplicate_is_planned_against_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_duplicate_is_planned_against_the_state_it_is_given(
+    tmp_path: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """A refactor is worked out over the tables of the state it is asked of; nothing is changed yet."""
     state = _outline_state(tmp_path, monkeypatch)
     monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
@@ -566,7 +605,9 @@ def test_the_find_index_is_built_from_the_state_it_is_given(tmp_path: object, mo
     assert not nothing.objects
 
 
-def test_a_scenario_is_simulated_against_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_scenario_is_simulated_against_the_state_it_is_given(
+    tmp_path: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
     state = _outline_state(tmp_path, monkeypatch)
     monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
 
@@ -584,8 +625,8 @@ def test_a_cached_map_is_remembered_against_the_state_it_was_built_from(
     first = _outline_state(tmp_path, monkeypatch)
     second = RunState()
 
-    assert mapcache.configuration_digest(first) != mapcache.configuration_digest(second)
-    assert mapcache.digests(first) != mapcache.digests(second)
+    assert mapcache.configuration_digest(state=first) != mapcache.configuration_digest(state=second)
+    assert mapcache.digests(state=first) != mapcache.digests(state=second)
 
 
 def test_there_is_nothing_to_undo_on_a_state_that_has_edited_nothing() -> None:
@@ -594,3 +635,40 @@ def test_there_is_nothing_to_undo_on_a_state_that_has_edited_nothing() -> None:
 
     assert changed is False
     assert why
+
+
+_CONDITIONS_XML = (
+    '<Profile sr="prof5"><id>5</id><nme>Office</nme>'
+    '<State sr="con0" ve="2"><code>160</code><Str sr="arg0" ve="3">Office/Office-5G</Str></State>'
+    '<Event sr="con1" ve="2"><code>461</code></Event></Profile>'
+)
+
+
+def test_a_profiles_state_and_event_conditions_are_read_with_the_state_it_is_given() -> None:
+    """The State and Event handlers are reached through a table of functions, so a missing
+    parameter shows only when a Profile that has one is read -- which the synthetic backup has not.
+    """
+    load_arg_specs()
+    state = RunState()
+    state.colors_to_use = set_color_mode("dark")
+    profile = ET.fromstring(_CONDITIONS_XML)  # noqa: S314
+
+    text = condition.parse_profile_condition(profile, state=state)
+
+    assert "State:" in text
+    assert "Event:" in text
+
+
+def test_the_output_folder_is_the_one_the_state_it_is_given_asks_for(tmp_path: Path) -> None:
+    """Two runs write to their own folders: the folder is read from the state, not the global."""
+    first, second = RunState(), RunState()
+    first.program_arguments.output_directory = str(tmp_path / "first")
+    second.program_arguments.output_directory = str(tmp_path / "second")
+
+    assert outdir.output_directory(state=first) == tmp_path / "first"
+    assert outdir.output_path("report.txt", state=second) == str(tmp_path / "second" / "report.txt")
+
+
+def test_there_is_no_code_to_lint_on_a_state_that_has_loaded_nothing() -> None:
+    """The lint reads the Tasks of the state it is handed, so an unloaded state has none."""
+    assert codelint.lint_problems(state=RunState()) == []

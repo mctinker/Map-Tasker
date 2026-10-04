@@ -222,7 +222,7 @@ def get_task_actions_and_output(
         if the_task is not None:
             # If we have Task Actions, then output them.  The action list is a list of the Action output lines already
             # formatted.
-            if alist := tasks.get_actions(the_task, config):
+            if alist := tasks.get_actions(the_task, config, state=state):
                 # Track the task and action count if too many actions.
                 action_count = len(alist) - count_unique_substring(
                     alist,
@@ -279,4 +279,4 @@ def get_task_actions_and_output(
                     FormatLine.dont_format_line,
                 )
         else:
-            error_handler("No Task found!!!", 0)
+            error_handler("No Task found!!!", 0, state=state)

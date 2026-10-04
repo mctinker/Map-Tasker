@@ -75,7 +75,6 @@ from typing import TYPE_CHECKING
 import defusedxml.ElementTree as ET
 
 from maptasker.src import clock
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
@@ -83,6 +82,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from maptasker.src.primitem import RunState
+
 
 # How many steps back the history goes.  Deep enough that a user who realises three or four
 # edits later is still covered, shallow enough to stay a bounded amount of memory.
@@ -133,7 +133,7 @@ _redo: list[Checkpoint] = []
 _depth = 0
 
 
-def _render() -> str | None:
+def _render(state: RunState) -> str | None:
     """The loaded configuration as one XML string.  None if there is nothing loaded or the
     render failed.
 
@@ -152,10 +152,10 @@ def _render() -> str | None:
     # and a module-scope import would put sessundo in the middle of that graph for no benefit.
     from maptasker.src.maputil2 import render_full_backup_xml  # noqa: PLC0415
 
-    if PrimeItems.xml_root is None:
+    if state.xml_root is None:
         return None
     try:
-        return render_full_backup_xml(indent=False)
+        return render_full_backup_xml(indent=False, state=state)
     except (ValueError, TypeError, AttributeError) as error:
         logger.error(f"Undo checkpoint could not be taken: {error}")
         return None
@@ -204,7 +204,7 @@ def _restore(payload: bytes, state: RunState) -> bool:
 
 
 @contextlib.contextmanager
-def undoable(label: str) -> Iterator[None]:
+def undoable(label: str, state: RunState) -> Iterator[None]:
     """Wrap a change to the loaded configuration so the user can take it back.
 
     Put it around the mutation itself, in the module that performs it, rather than around
@@ -250,13 +250,13 @@ def undoable(label: str) -> Iterator[None]:
             _depth -= 1
         return
 
-    before = _render()
+    before = _render(state=state)
     _depth = 1
     try:
         yield
     finally:
         _depth = 0
-        after = _render()
+        after = _render(state=state)
         # `after is None` means the render failed on the way out, so whether anything
         # changed is unknown -- and unknown is kept, because the alternative is throwing
         # away the only copy of a state that may well have just been mutated.
@@ -307,7 +307,7 @@ def undo(state: RunState) -> tuple[bool, str]:
     if not _undo:
         return False, "There is nothing to undo."
 
-    current = _render()
+    current = _render(state=state)
     checkpoint = _undo.pop()
     if not _restore(checkpoint.payload, state=state):
         # _restore left the configuration untouched, so put the checkpoint back rather
@@ -325,7 +325,7 @@ def redo(state: RunState) -> tuple[bool, str]:
     if not _redo:
         return False, "There is nothing to redo."
 
-    current = _render()
+    current = _render(state=state)
     checkpoint = _redo.pop()
     if not _restore(checkpoint.payload, state=state):
         _redo.append(checkpoint)

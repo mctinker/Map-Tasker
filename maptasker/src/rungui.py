@@ -351,7 +351,8 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
         if "Address already in use" in str(e):
             error_handler(
                 "Error: Address already in use. Please close any other instances of MapTasker or change the port.",
-                100,  # Force an exit.
+                100,  # Force an exit.,
+                state=state,
             )
     except KeyboardInterrupt:
         # Ctrl-C: the shutdown hook above has saved the settings; carry on to the normal exit.
@@ -365,7 +366,7 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
 
     # If the user closed the window/browser without the UI building
     if not user_input:
-        error_handler("Program exited. Goodbye.", 0)
+        error_handler("Program exited. Goodbye.", 0, state=state)
         exit_program(0)
 
     # Normally already done by the shutdown hook; this catches a server that stopped without
@@ -373,7 +374,7 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
     save_gui_settings(user_input, state=state)
 
     # Spit out the message and log it.
-    error_handler("Program exited. Goodbye.", 0)
+    error_handler("Program exited. Goodbye.", 0, state=state)
 
     # Call it quits.
     exit_program(0)

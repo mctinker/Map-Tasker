@@ -672,7 +672,7 @@ def test_report_is_written_to_the_runtime_directory(tmp_path: object, monkeypatc
     # same way the display does.
     rows, _ = run_health_check(state=PrimeItems)
 
-    written = write_health_check_report(rows)
+    written = write_health_check_report(rows, state=PrimeItems)
     file_name = os.path.basename(written)
 
     # MapTasker_HealthCheck_MM-DD-YYYY_HH-MM-SS.txt

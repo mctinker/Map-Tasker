@@ -14,7 +14,7 @@ from typing import Any
 from maptasker.src import console
 from maptasker.src.aiutils import ollama_errors
 from maptasker.src.maputil3 import AI_EXTRA_INSTALL_COMMAND
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PrimeItems, RunState
 
 # These come with the "ai" extra.  This module is only imported once a local (Ollama) analysis
 # is asked for, and its importer (mapai.local_ai) is ready for the ImportError raised here.
@@ -140,7 +140,9 @@ class Client(OllamaClient):
         self.messages = [{"role": "system", "content": "You are a helpful AI assistant."}]
 
 
-def check_models(model: str, silence_output: bool) -> str | None:
+def check_models(model: str, silence_output: bool, state: RunState | None = None) -> str | None:
+    """The installed name of `model`, pulling it if need be.  None, with the reason on `state`, if it cannot be had."""
+    run_state = PrimeItems if state is None else state
     model_list = ollama.list().get("models", [])
     for m in model_list:
         m_name = m.get("name", "")
@@ -173,8 +175,8 @@ def check_models(model: str, silence_output: bool) -> str | None:
     except ollama_errors() as e:  # Any of these means "no model".
         console.error(str(e))
         # Model not found!
-        PrimeItems.error_code = 1
-        PrimeItems.error_msg = f"Invalid model {model} passed. See the model library here: https://ollama.com/library"
+        run_state.error_code = 1
+        run_state.error_msg = f"Invalid model {model} passed. See the model library here: https://ollama.com/library"
         return None
         # raise ValueError("Invalid model passed. See the model library here: https://ollama.com/library")
 
@@ -204,6 +206,7 @@ class Cria(Client):
         allow_interruption: bool | None = True,
         silence_output: bool | None = False,
         close_on_exit: bool | None = True,
+        state: RunState | None = None,
     ) -> None:
         self.run_subprocess = run_subprocess
         self.capture_output = capture_output
@@ -246,7 +249,7 @@ class Cria(Client):
         else:
             self.ollama_subrprocess = None
 
-        self.model = check_models(model, silence_output)
+        self.model = check_models(model, silence_output, state)
 
         if not standalone:
             self.llm = find_process(["ollama", "run", self.model])
@@ -296,6 +299,7 @@ class Model(Cria, ContextDecorator):
         capture_output: bool | None = False,
         silence_output: bool | None = False,
         close_on_exit: bool | None = True,
+        state: RunState | None = None,
     ) -> None:
         super().__init__(
             model=model,
@@ -303,6 +307,7 @@ class Model(Cria, ContextDecorator):
             run_subprocess=False,
             standalone=True,
             close_on_exit=close_on_exit,
+            state=state,
         )
 
         self.capture_output = capture_output
@@ -310,7 +315,7 @@ class Model(Cria, ContextDecorator):
         self.silence_output = silence_output
         self.close_on_exit = close_on_exit
 
-        self.model = check_models(model, silence_output)
+        self.model = check_models(model, silence_output, state)
         if self.model is None:
             return
 

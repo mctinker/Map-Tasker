@@ -752,6 +752,7 @@ def get_icon_info(the_task: Element) -> str:
 def get_extra_details(
     our_task_element: Element,
     task_output_lines: list,
+    state: RunState,
 ) -> tuple:
     """
     Get additional information for this Task.
@@ -764,7 +765,7 @@ def get_extra_details(
         tuple (str, str, str, str, str): The extra details as strings.
     """
     extra_details = {
-        "kid_app_info": get_kid_app(our_task_element),
+        "kid_app_info": get_kid_app(our_task_element, state=state),
         "priority": task_flags.get_priority(our_task_element, False),
         "collision": task_flags.get_collision(our_task_element),
         "stay_awake": task_flags.get_awake(our_task_element),
@@ -827,10 +828,7 @@ def output_task_list(
         # Doing extra details?
         if do_extra and config.display_detail_level > DISPLAY_DETAIL_LEVEL_all_tasks:
             # Get the extra details for this Task
-            extra_details = _get_extra_details(
-                task_item["xml"],
-                [task_output_lines[count]],
-            )
+            extra_details = _get_extra_details(task_item["xml"], [task_output_lines[count]], state=state)
             # Tack on the extra info since [task_output_lines[count]] it is immutable
             task_output_lines[count] += " ".join(filter(None, extra_details))
 

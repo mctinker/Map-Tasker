@@ -46,6 +46,7 @@ from nicegui import ui
 
 from maptasker.src import mapfix
 from maptasker.src.maputil2 import translate_string
+from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
@@ -236,7 +237,7 @@ def build_fix_dialog(
                 ui.notify(translate_string("Tick something first."), type="warning")
                 return
 
-            repaired, errors = mapfix.apply(plan)
+            repaired, errors = mapfix.apply(plan, state=state)
             for message in errors[:4]:
                 ui.notify(message, type="negative")
             if len(errors) > 4:
@@ -466,7 +467,7 @@ def _save_preview(plan: mapfix.Plan | None) -> None:
     """
     if plan is None:
         return
-    file_name = mapfix.write_fix_report(mapfix.report_rows(plan))
+    file_name = mapfix.write_fix_report(mapfix.report_rows(plan), state=PrimeItems)
     if file_name:
         ui.notify(f"{translate_string('Fix preview saved as')} {file_name}", type="positive")
     else:

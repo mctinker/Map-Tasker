@@ -974,11 +974,11 @@ def _plan_revert_scene(
     return plan
 
 
-def restore(plan: maprefac.Plan) -> tuple[bool, list[str]]:
+def restore(plan: maprefac.Plan, state: RunState) -> tuple[bool, list[str]]:
     """Apply a restore.  maprefac.apply, under this module's name so the dialog reads right.
 
     Everything that makes apply() safe is maprefac's -- the blocks refused again, every
     element the plan closes over re-checked as still attached, the whole of it one undo
     labelled with the plan's own heading.  See its docstring; there is no second version.
     """
-    return maprefac.apply(plan)
+    return maprefac.apply(plan, state=state)

@@ -645,7 +645,7 @@ def register_new_scene(edited_scene: EditableScene, state: RunState) -> None:
     follow it with add_scene_to_project: registration alone leaves the Scene in
     a table nothing walks (see that function).
     """
-    with sessundo.undoable(f"Add Scene '{edited_scene.scene_name}'"):
+    with sessundo.undoable(f"Add Scene '{edited_scene.scene_name}'", state=state):
         state.tasker_root_elements.setdefault("all_scenes", {})[edited_scene.scene_name] = {
             "xml": edited_scene.scene_element,
             "name": edited_scene.scene_name,
@@ -670,7 +670,7 @@ def add_scene_to_project(scene_name: str, project_name: str, state: RunState) ->
     immediately for every other view in the same session.  No-op if project_name
     isn't a known Project (defense in depth; the GUI only offers real names).
     """
-    with sessundo.undoable(f"Add Scene '{scene_name}' to Project '{project_name}'"):
+    with sessundo.undoable(f"Add Scene '{scene_name}' to Project '{project_name}'", state=state):
         project_entry = state.tasker_root_elements.get("all_projects", {}).get(project_name)
         if project_entry is None:
             return
@@ -763,7 +763,7 @@ def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene, 
     No-op if old_name isn't registered (defense in depth; the GUI should only
     ever pass a name that was just loaded via load_scene_for_edit).
     """
-    with sessundo.undoable(f"Edit Scene '{old_name}'"):
+    with sessundo.undoable(f"Edit Scene '{old_name}'", state=state):
         all_scenes = state.tasker_root_elements.get("all_scenes", {})
         entry = all_scenes.get(old_name)
         if entry is None:
@@ -820,7 +820,7 @@ def delete_scene(scene_name: str, state: RunState) -> list[str]:
     top-level Task owned by a Project, which is left exactly where it is (the
     same call the Delete Task dialog spells out in reverse).
     """
-    with sessundo.undoable(f"Delete Scene '{scene_name}'"):
+    with sessundo.undoable(f"Delete Scene '{scene_name}'", state=state):
         all_scenes = state.tasker_root_elements.get("all_scenes", {})
         if scene_name not in all_scenes:
             return [f"Scene '{scene_name}' no longer exists."]

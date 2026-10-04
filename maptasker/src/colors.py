@@ -8,7 +8,7 @@ import string
 
 from maptasker.src import console
 from maptasker.src.error import error_handler, exit_program
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES, logger
 
 
@@ -249,7 +249,7 @@ def validate_color(the_color: str) -> object:  # noqa: RET503
 
 
 # Get the runtime option for a color change and set it
-def get_and_set_the_color(the_arg: str) -> None:
+def get_and_set_the_color(the_arg: str, state: RunState) -> None:
     """
     Get the runtime option for a color change and set it
         :param the_arg: the color runtime argument (e.g. "cProfile=Blue" or
@@ -259,19 +259,21 @@ def get_and_set_the_color(the_arg: str) -> None:
     the_color_option = the_arg[2:].split("=")
     color_type = the_color_option[0]
     if len(the_color_option) < 2:  # Do we have the second parameter?
-        error_handler(f"{the_arg} has an invalid 'color'.  See the help (-ch)!", 7)
+        error_handler(f"{the_arg} has an invalid 'color'.  See the help (-ch)!", 7, state=state)
     if color_type not in TYPES_OF_COLOR_NAMES:
         error_handler(
             (f"{color_type} is an invalid type for 'color'.  See the help (-h)!  Exit code 7"),
             7,
+            state=state,
         )
     desired_color = the_color_option[1]
     logger.debug(f" desired_color:{desired_color}")
     if validate_color(desired_color):  # If the color provided is valid...
         # match color_type:
-        PrimeItems.colors_to_use[TYPES_OF_COLOR_NAMES[color_type]] = desired_color
+        state.colors_to_use[TYPES_OF_COLOR_NAMES[color_type]] = desired_color
     else:
         error_handler(
             (f"MapTasker...invalid color specified: {desired_color} for 'c{the_color_option[0]}'!"),
             7,
+            state=state,
         )

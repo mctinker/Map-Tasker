@@ -32,6 +32,7 @@ from maptasker.src.guiwins_canvas import (
 )
 from maptasker.src.guiwins_taskedit import _dropdown_current_label
 from maptasker.src.maputil2 import translate_string
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import SCENE_TASK_TYPES
 
 if TYPE_CHECKING:
@@ -672,6 +673,7 @@ class _LegacyDesigner:
                 height,
                 options,
                 editing=sceneview.CanvasEditing(selected=self.selection["srs"], snap=self.snap["grid"]),
+                state=self.gui.state,
             )
         _emit_canvas_fit(self.root_class, width, height, budget=DESIGNER_CANVAS_HEIGHT)
         _emit_canvas_editing(self.root_class, self.snap["grid"])
@@ -1465,7 +1467,7 @@ def _render_legacy_arg(
             for error in errors:
                 ui.notify(error, type="negative")
             return
-        sceneedit_legacy.legacy_set_arg(arg, str(value))
+        sceneedit_legacy.legacy_set_arg(arg, str(value), state=PrimeItems)
         on_applied()
 
     with ui.row().classes("w-full items-center gap-2"):

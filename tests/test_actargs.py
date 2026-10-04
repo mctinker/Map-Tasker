@@ -34,7 +34,7 @@ def _map_icon(img_xml: str, code: str = "138", action_code: str = SET_TASKER_ICO
     action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
         f'<Action sr="act0" ve="7"><code>{code}</code>{img_xml}</Action>',
     )
-    return get_action_results(action_code, actionc.action_codes, action, False)
+    return get_action_results(action_code, actionc.action_codes, action, False, state=PrimeItems)
 
 
 @pytest.fixture(autouse=True)
@@ -123,7 +123,7 @@ def test_icon_is_paired_with_its_own_argument() -> None:
         '<Img sr="arg2" ve="2"><nme>mw_navigation_apps</nme></Img>'
         '<Int sr="arg5" val="5"/></Action>',
     )
-    result = get_action_results(NOTIFY, actionc.action_codes, action, False)
+    result = get_action_results(NOTIFY, actionc.action_codes, action, False, state=PrimeItems)
     assert "Text=Text here, Icon=mw_navigation_apps, Priority=5" in result
 
 
@@ -143,7 +143,7 @@ def test_goto_label_argument_maps() -> None:
         '<Int sr="arg0" val="1"/><Int sr="arg1" val="1"/>'
         '<Str sr="arg2" ve="3">Log Profile Names</Str></Action>',
     )
-    result = get_action_results(GOTO, actionc.action_codes, action, False)
+    result = get_action_results(GOTO, actionc.action_codes, action, False, state=PrimeItems)
     assert "Label=Log Profile Names" in result
 
 
@@ -155,7 +155,7 @@ def test_label_argument_is_not_the_actions_own_label() -> None:
         '<Int sr="arg0" val="1"/><Int sr="arg1" val="1"/>'
         '<Str sr="arg2" ve="3">Log Profile Names</Str></Action>',
     )
-    result = get_action_results(GOTO, actionc.action_codes, action, False)
+    result = get_action_results(GOTO, actionc.action_codes, action, False, state=PrimeItems)
     assert "Label=Log Profile Names" in result
     assert "Label=Jump back to the top" not in result
 
@@ -167,7 +167,7 @@ def test_set_widget_label_maps_its_label() -> None:
         '<Str sr="arg0" ve="3">Allow Macro Toggle</Str>'
         '<Str sr="arg1" ve="3">Macros Off</Str></Action>',
     )
-    result = get_action_results(SET_WIDGET_LABEL, actionc.action_codes, action, False)
+    result = get_action_results(SET_WIDGET_LABEL, actionc.action_codes, action, False, state=PrimeItems)
     assert "Name=Allow Macro Toggle" in result
     assert "Label=Macros Off" in result
 
@@ -189,7 +189,7 @@ def _bundle_result(inner: str, arg: str = "0") -> dict:
     action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
         f'<Action sr="act0" ve="7"><code>1</code>{inner}</Action>',
     )
-    return actargs.get_bundle(action, {"returning_something": True}, arg)
+    return actargs.get_bundle(action, {"returning_something": True}, arg, state=PrimeItems)
 
 
 def test_a_plugin_blurb_is_read_as_its_configuration() -> None:
@@ -294,5 +294,5 @@ def test_an_unmapped_action_code_is_reported_rather_than_guessed() -> None:
     has to say so in the output: silently showing the action with no arguments is
     indistinguishable from an action that genuinely takes none.
     """
-    assert actargs.handle_missing_code("999t", 2) == ""
+    assert actargs.handle_missing_code("999t", 2, state=PrimeItems) == ""
     assert "not mapped" in "".join(PrimeItems.output_lines.output_lines)

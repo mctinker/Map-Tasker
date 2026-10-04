@@ -91,11 +91,12 @@ from nicegui import ui
 from maptasker.src import objprops
 from maptasker.src.actiont import lookup_values
 from maptasker.src.maputil2 import is_html_colour, tasker_icon_name, translate_string
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import SCENE_TASK_TYPES, V2_MATERIAL_PALETTE
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 # Tasker's "this orientation has no layout of its own" (sceneedit_legacy.UNSET_DIMENSION), which
 # appears both as a Scene dimension and inside a <geom>.
@@ -483,7 +484,7 @@ def paint_order(scene_element: Element) -> list:
     return sorted(drawable, key=order)
 
 
-def element_tasks(element: Element) -> list[tuple[str, str]]:
+def element_tasks(element: Element, state: RunState) -> list[tuple[str, str]]:
     """The Tasks this element fires, as (what fires it, Task name) -- "TAP", "LONG TAP",
     "ITEM TAP" and the rest, from sysconst.SCENE_TASK_TYPES.
 
@@ -492,7 +493,7 @@ def element_tasks(element: Element) -> list[tuple[str, str]]:
     has no name to show, so it is reported as an unnamed Task rather than skipped -- the
     element does still do something when tapped, and that is the point of showing this.
     """
-    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    all_tasks = state.tasker_root_elements.get("all_tasks", {})
     found = []
     for child in element:
         label = SCENE_TASK_TYPES.get(child.tag)
@@ -516,6 +517,8 @@ def draw_scene(
     height: int,
     options: PreviewOptions,
     editing: CanvasEditing | None = None,
+    *,
+    state: RunState,
 ) -> None:
     """Draw the whole canvas, into whatever NiceGUI container is currently open.
 
@@ -557,7 +560,7 @@ def draw_scene(
     with canvas:
         selected_boxes = []
         for element in paint_order(scene_element):
-            _draw_element(element, options, editing=editing)
+            _draw_element(element, options, editing=editing, state=state)
             sr = element.get("sr", "")
             if editing and sr in editing.selected:
                 # None for an element selected in one orientation and looked at in the
@@ -670,10 +673,7 @@ def _enum(values: list[str], index: int) -> str:
 
 
 def _draw_element(
-    element: Element,
-    options: PreviewOptions,
-    depth: int = 0,
-    editing: CanvasEditing | None = None,
+    element: Element, options: PreviewOptions, depth: int = 0, editing: CanvasEditing | None = None, *, state: RunState
 ) -> None:
     """Place one element on the canvas and hand it to the drawer for its type.
 
@@ -711,14 +711,14 @@ def _draw_element(
         if options.show_bounds:
             _draw_bounds(element, width, height)
         if options.show_tasks:
-            _draw_task_badges(element)
+            _draw_task_badges(element, state=state)
 
     # A tooltip on a frame the user is dragging gets in the way of the thing it describes,
     # so the designer does without: the Inspector is showing all of it anyway.  That reason
     # does not survive the trip to the Preview, where the dialog holding that Inspector is
     # closed -- so the surface says which it is rather than this inferring it from `editing`.
     if not editing or editing.tooltips:
-        _attach_tooltip(frame, element, args, box)
+        _attach_tooltip(frame, element, args, box, state=state)
 
 
 def _draw_bounds(element: Element, width: int, height: int) -> None:
@@ -741,11 +741,11 @@ def _draw_bounds(element: Element, width: int, height: int) -> None:
         )
 
 
-def _draw_task_badges(element: Element) -> None:
+def _draw_task_badges(element: Element, state: RunState) -> None:
     """The Tasks this element fires, along its bottom edge.  A Scene's elements are mostly
     there to run Tasks, and which one is not visible in any amount of geometry.
     """
-    tasks = element_tasks(element)
+    tasks = element_tasks(element, state=state)
     if not tasks:
         return
     with ui.element("div").style(
@@ -765,6 +765,7 @@ def _attach_tooltip(
     element: Element,
     args: ElementArgs,
     box: tuple[int, int, int, int],
+    state: RunState,
 ) -> None:
     """Everything about this element that the drawing cannot carry: its type, its real
     geometry, the Tasks it fires, and -- the reason this exists -- every %variable it
@@ -787,7 +788,7 @@ def _attach_tooltip(
         lines.append(f"{translate_string('Flags')}: {', '.join(flag_names)}")
         if element_is_hidden(element):
             lines.append(translate_string("Not visible until a Task shows it"))
-    lines.extend(f"{label} → {task_name}" for label, task_name in element_tasks(element))
+    lines.extend(f"{label} → {task_name}" for label, task_name in element_tasks(element, state=state))
     with frame:
         ui.tooltip("\n".join(lines)).style("white-space: pre-wrap")
 
@@ -1406,11 +1407,12 @@ def _draw_list(
     height: int,
     options: PreviewOptions,
     depth: int,
+    state: RunState,
 ) -> None:
     """ListElement: 1 Source, 2/3 Selection Mode, 5 Horizontal Space, 6 Vertical Space --
     and, at arg4, a whole nested <Scene> that is the layout of one row.
     """
-    _draw_item_layout(element, args, "arg4", width, height, options, depth, translate_string("List"))
+    _draw_item_layout(element, args, "arg4", width, height, options, depth, translate_string("List"), state=state)
 
 
 def _draw_spinner(
@@ -1420,9 +1422,10 @@ def _draw_spinner(
     height: int,
     options: PreviewOptions,
     depth: int,
+    state: RunState,
 ) -> None:
     """SpinnerElement: 1 Source, 2 Variable, and the item layout <Scene> at arg3."""
-    _draw_item_layout(element, args, "arg3", width, height, options, depth, translate_string("Spinner"))
+    _draw_item_layout(element, args, "arg3", width, height, options, depth, translate_string("Spinner"), state=state)
 
 
 def _draw_item_layout(
@@ -1434,6 +1437,7 @@ def _draw_item_layout(
     options: PreviewOptions,
     depth: int,
     kind: str,
+    state: RunState,
 ) -> None:
     """Draw a List's or Spinner's row template: the nested <Scene sr="val"> Tasker stores
     inside the element, laid out on its own little canvas and scaled to this element's width.
@@ -1473,7 +1477,7 @@ def _draw_item_layout(
             f"background: {_canvas_background(nested).css}; overflow: hidden;",
         ):
             for child in paint_order(nested):
-                _draw_element(child, options, depth + 1)
+                _draw_element(child, options, depth + 1, state=state)
         if height > item_height * scale + 20:
             ui.label("⋮").style(
                 "position: absolute; left: 50%; bottom: 2px; transform: translateX(-50%);"

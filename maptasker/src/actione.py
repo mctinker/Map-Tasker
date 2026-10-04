@@ -25,7 +25,7 @@ from maptasker.src.config import CONTINUE_LIMIT
 from maptasker.src.debug import not_in_dictionary
 from maptasker.src.deprecate import depricated
 from maptasker.src.format import format_html
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 from maptasker.src.sysconst import pattern13
 
 blank = "&nbsp;"
@@ -54,6 +54,7 @@ def get_action_code(
     code_action: Element,
     action_type: bool,
     code_type: str,
+    state: RunState,
 ) -> str:
     """
     Given an action code, evaluate it for display
@@ -73,7 +74,9 @@ def get_action_code(
 
     # We have a code that is not yet in the dictionary?
     if the_action_code_plus not in action_codes:
-        the_result = f"Code {the_action_code_plus} not yet mapped{get_extra_stuff(code_action, action_type)}"
+        the_result = (
+            f"Code {the_action_code_plus} not yet mapped{get_extra_stuff(code_action, action_type, state=state)}"
+        )
         not_in_dictionary(
             "Action/Condition",
             f"'display' for code {the_action_code_plus}",
@@ -85,11 +88,7 @@ def get_action_code(
         # then throw it away on the very next line, which is the other reason no action
         # was ever marked deprecated.
         the_result = action_results.get_action_results(
-            the_action_code_plus,
-            action_codes,
-            code_action,
-            action_type,
-            depricated,
+            the_action_code_plus, action_codes, code_action, action_type, depricated, state=state
         )
 
         # If this is a redirected lookup entry, create a temporary mirror
@@ -112,11 +111,7 @@ def get_action_code(
 
                 # Get the results from the (copy of the) referred-to dictionary entry
                 the_result = action_results.get_action_results(
-                    the_action_code_plus,
-                    temp_lookup_codes,
-                    code_action,
-                    action_type,
-                    depricated,
+                    the_action_code_plus, temp_lookup_codes, code_action, action_type, depricated, state=state
                 )
 
     return the_result
@@ -233,6 +228,7 @@ def finalize_action_details(
     alist: list,
     indent: int,
     extra_blanks: int,
+    state: RunState,
 ) -> list:
     """
     Finalize the action line and append it to the list of actions.
@@ -251,7 +247,7 @@ def finalize_action_details(
     # Append as-is if there's no newline and length exceeds 80, or if pretty output is enabled
     if (
         ("\n" not in task_code_line and len(task_code_line) > 80)
-        or PrimeItems.program_arguments.pretty
+        or state.program_arguments.pretty
         or "text-box" in task_code_line
     ):
         alist.append(task_code_line)
@@ -290,6 +286,7 @@ def build_action(
     code_element: Element,
     indent: int,
     indent_amt: str,
+    state: RunState,
 ) -> list:
     """
     Construct Task Action output line
@@ -324,7 +321,7 @@ def build_action(
         task_code_line = indent_amt
 
     # Make the output align/pretty.  Don't make label html pretty if they have html.
-    if PrimeItems.program_arguments.pretty:
+    if state.program_arguments.pretty:
         lbl_position = task_code_line.find("...with label:")
         temp = task_code_line.split("<div")
         just_the_action = temp[0]
@@ -356,11 +353,6 @@ def build_action(
 
     # We have Task Action details
     else:
-        alist = finalize_action_details(
-            task_code_line,
-            alist,
-            indent,
-            extra_blanks,
-        )
+        alist = finalize_action_details(task_code_line, alist, indent, extra_blanks, state=state)
 
     return alist

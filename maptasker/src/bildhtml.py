@@ -100,7 +100,7 @@ def build_html(file_to_get: str, state: RunState) -> int:
     building_from = mapcache.digests(state=state)
     doing_ai_analysis = state.program_arguments.ai_analyze
     if not doing_ai_analysis and mapcache.is_current(
-        outdir.output_path("MapTasker.html"),
+        outdir.output_path("MapTasker.html", state=state),
         building_from,
     ):
         state.map_output_line_count = mapcache.output_lines()
@@ -360,6 +360,7 @@ def display_output(my_output_dir: str, my_file_name: str, state: RunState) -> No
             error_handler(
                 "Error: Failed to open output in browser: your browser is not supported.",
                 1,
+                state=state,
             )
 
 
@@ -395,7 +396,7 @@ def display_back_matter(state: RunState) -> None:
 
     # Get the output directory/folder path -- see outdir.  (dirout's output_directory,
     # imported above, is the Map's hyperlink directory and has nothing to do with this.)
-    my_output_dir = str(outdir.output_directory())
+    my_output_dir = str(outdir.output_directory(state=state))
 
     # Output the grand total (Projects/Profiles/Tasks/Scenes)
     output_grand_totals(state=state)
@@ -430,6 +431,7 @@ def display_back_matter(state: RunState) -> None:
         error_handler(
             f"{Colors.Yellow}MapTasker canceled.  An error occurred.  Program canceled.",
             0,
+            state=state,
         )
         clean_up_memory(state=state)
         exit_program(2)
@@ -498,7 +500,7 @@ def clean_up_and_exit(
     # Clear our current list of output lines.
     state.output_lines.output_lines.clear()
     # Spit out the error
-    error_handler(f'{name} "{profile_or_task_name}" not found!!', 5)
+    error_handler(f'{name} "{profile_or_task_name}" not found!!', 5, state=state)
     # Clean up all memory
     clean_up_memory(state=state)
     # Exit with code "item" not found.

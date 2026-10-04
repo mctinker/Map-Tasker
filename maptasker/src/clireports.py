@@ -401,7 +401,7 @@ def _health_check(options: argparse.Namespace, state: RunState) -> int:
         f"{counts[healthck.INFO]} notes.",
     )
     if options.save:
-        _saved(healthck.write_health_check_report(rows), "Health Check")
+        _saved(healthck.write_health_check_report(rows, state=state), "Health Check")
 
     if options.fail_on == FAIL_ON_NEVER:
         return EXIT_OK
@@ -431,7 +431,7 @@ def _compare(options: argparse.Namespace, state: RunState) -> int:
     report, counts = xmldiff.compare(older, newer)
     _report(report)
     if options.save:
-        _saved(diffload.write_comparison_report(report), "Comparison")
+        _saved(diffload.write_comparison_report(report, state=state), "Comparison")
     return EXIT_FOUND if any(counts.values()) else EXIT_OK
 
 
@@ -474,7 +474,7 @@ def _changes_since(options: argparse.Namespace, state: RunState) -> int:
         _note(result.note)
     _report(result.report)
     if options.save:
-        _saved(diffload.write_comparison_report(result.report, TIMELINE_FILE), "Timeline")
+        _saved(diffload.write_comparison_report(result.report, TIMELINE_FILE, state=state), "Timeline")
     return EXIT_OK if result.nothing_changed else EXIT_FOUND
 
 

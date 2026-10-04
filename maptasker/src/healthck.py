@@ -947,7 +947,7 @@ def _check_control_flow(index: ReferenceIndex, state: RunState) -> None:
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
-def _check_code(index: ReferenceIndex) -> None:
+def _check_code(index: ReferenceIndex, state: RunState) -> None:
     """Fold the check of the code inside JavaScriptlet and Run Shell actions into this report.
 
     Folded in for _check_control_flow's reason, one level further in: that check looks at
@@ -958,7 +958,7 @@ def _check_code(index: ReferenceIndex) -> None:
 
     The severity and the tag both come from codelint unchanged, as proflint's are.
     """
-    for problem in codelint.lint_problems():
+    for problem in codelint.lint_problems(state=state):
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
@@ -986,7 +986,7 @@ def _check_behaviour(index: ReferenceIndex, state: RunState) -> None:
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
-def _check_plugins(index: ReferenceIndex) -> None:
+def _check_plugins(index: ReferenceIndex, state: RunState) -> None:
     """Fold the check for plugins that are not installed into this report.
 
     Folded in for _check_behaviour's reason: it is a question about the DEVICE, answered
@@ -996,9 +996,9 @@ def _check_plugins(index: ReferenceIndex) -> None:
 
     The severity and the tag both come from plugchk unchanged, as proflint's are.
     """
-    for problem in plugchk.lint_problems():
+    for problem in plugchk.lint_problems(state=state):
         index.add(problem.severity, problem.tag, problem.where, problem.detail, problem.target, problem.related)
-    index.plugins_unchecked = plugchk.plugins_unchecked()
+    index.plugins_unchecked = plugchk.plugins_unchecked(state=state)
 
 
 def _check_secrets(index: ReferenceIndex, state: RunState) -> None:
@@ -1346,13 +1346,13 @@ def collect_findings(skip: Collection[str] = (), *, state: RunState) -> Referenc
     if not _PASS_TAGS["flow"] <= skip:
         _check_control_flow(index, state=state)
     if not _PASS_TAGS["code"] <= skip:
-        _check_code(index)
+        _check_code(index, state=state)
     if not _PASS_TAGS["variables"] <= skip:
         _check_variables(index, state=state)
     if not _PASS_TAGS["behaviour"] <= skip:
         _check_behaviour(index, state=state)
     if not _PASS_TAGS["plugins"] <= skip:
-        _check_plugins(index)
+        _check_plugins(index, state=state)
     if not _PASS_TAGS["secrets"] <= skip:
         _check_secrets(index, state=state)
 
@@ -1382,7 +1382,7 @@ def run_health_check(skip: Collection[str] = (), *, state: RunState) -> tuple[li
     return _build_report(index, clock.now(), skip, state=state), _counts(index.findings)
 
 
-def write_health_check_report(rows: list[Row]) -> str:
+def write_health_check_report(rows: list[Row], state: RunState) -> str:
     """Write the report to a timestamped file in the output folder (see outdir).
 
     Returns the path written, or "" if the write failed -- the caller reports the
@@ -1399,7 +1399,7 @@ def write_health_check_report(rows: list[Row]) -> str:
     file_name = append_to_filename(HEALTHCHECK_FILE, stamp)
     if not file_name:
         return ""
-    file_path = output_path(file_name)
+    file_path = output_path(file_name, state=state)
     try:
         with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))

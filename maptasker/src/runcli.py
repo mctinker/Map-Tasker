@@ -363,9 +363,9 @@ def process_arguments(args: object, state: RunState) -> dict:
         the_name = getattr(args, f"c{item}")
         if the_name is not None:
             if isinstance(the_name, list):
-                _get_and_set_the_color(f"-c{item}={the_name[0]}")
+                _get_and_set_the_color(f"-c{item}={the_name[0]}", state=state)
             else:
-                _get_and_set_the_color(f"-c{item}={the_name}")
+                _get_and_set_the_color(f"-c{item}={the_name}", state=state)
 
     return
 

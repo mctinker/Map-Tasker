@@ -142,7 +142,7 @@ def start_up(state: RunState) -> None:
     # If debug mode, fire-up the log.
     if "-d" in sys.argv or "-debug" in sys.argv:
         console.say("Debug turned on via startup argument")
-        log_startup_values()
+        log_startup_values(state=state)
     logger.info(f"sys.argv{sys.argv!s}")
 
     # Get the OS so we know which directory slash to use (/ or \)

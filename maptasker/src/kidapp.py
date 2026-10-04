@@ -7,10 +7,10 @@
 
 from xml.etree.ElementTree import Element
 
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 
 
-def get_kid_app(element: Element) -> str:
+def get_kid_app(element: Element, state: RunState) -> str:
     """
     Get any associated Kid Application info and return it
         :param element: root element to search for <Kid>
@@ -48,7 +48,7 @@ def get_kid_app(element: Element) -> str:
         f" Version:{kid_target} {kid_features} {kid_plugins}]"
     )
 
-    if PrimeItems.program_arguments.pretty:
+    if state.program_arguments.pretty:
         number_of_blanks = kid_app_info.find("Package:") - 4
         kid_app_info = kid_app_info.replace(",", f"<br>{blank * number_of_blanks}")
 

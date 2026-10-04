@@ -102,7 +102,7 @@ def _indent_of(line: str) -> int:
 # ##################################################################################
 def test_actions_come_back_in_order() -> None:
     """One line per action, in the order they run."""
-    lines = tasks.get_actions(_task_of(_FLASH, _FLASH, _FLASH), current_config())
+    lines = tasks.get_actions(_task_of(_FLASH, _FLASH, _FLASH), current_config(), state=PrimeItems)
     assert len(lines) == 3
 
 
@@ -110,14 +110,14 @@ def test_a_task_with_no_actions_produces_no_lines() -> None:
     """An empty Task is legal -- Tasker writes one for a Task the user created and never
     filled in -- and must not be an error or a blank line.
     """
-    assert tasks.get_actions(ET.fromstring('<Task sr="task99"><id>99</id></Task>'), current_config()) == []  # noqa: S314
+    assert tasks.get_actions(ET.fromstring('<Task sr="task99"><id>99</id></Task>'), current_config(), state=PrimeItems) == []  # noqa: S314
 
 
 def test_actions_inside_an_if_are_indented_under_it() -> None:
     """The If and its End If sit at the outer level and what they guard sits one level in.
     This indentation IS the Task's structure as the reader sees it -- see the module note.
     """
-    lines = tasks.get_actions(_task_of(_FLASH, _IF, _FLASH, _END_IF, _FLASH), current_config())
+    lines = tasks.get_actions(_task_of(_FLASH, _IF, _FLASH, _END_IF, _FLASH), current_config(), state=PrimeItems)
     assert [_indent_of(line) for line in lines] == [0, 0, 1, 0, 0]
 
 
@@ -125,7 +125,7 @@ def test_nesting_goes_deeper_and_comes_back_out() -> None:
     """Two levels in and two levels back out.  A de-indent that trims the wrong amount
     leaves everything after the inner block permanently shifted.
     """
-    lines = tasks.get_actions(_task_of(_IF, _FOR, _FLASH, _END_FOR, _FLASH, _END_IF, _FLASH), current_config())
+    lines = tasks.get_actions(_task_of(_IF, _FOR, _FLASH, _END_FOR, _FLASH, _END_IF, _FLASH), current_config(), state=PrimeItems)
     assert [_indent_of(line) for line in lines] == [0, 1, 2, 1, 1, 0, 0]
 
 
@@ -133,7 +133,7 @@ def test_else_sits_at_the_level_of_its_if() -> None:
     """Else both closes and opens a block: it is drawn level with its If, and what
     follows it is indented again.
     """
-    lines = tasks.get_actions(_task_of(_IF, _FLASH, _ELSE, _FLASH, _END_IF), current_config())
+    lines = tasks.get_actions(_task_of(_IF, _FLASH, _ELSE, _FLASH, _END_IF), current_config(), state=PrimeItems)
     assert [_indent_of(line) for line in lines] == [0, 1, 0, 1, 0]
 
 
@@ -142,7 +142,7 @@ def test_a_stray_end_if_cannot_indent_backwards() -> None:
     the indent below zero.  Negative indentation is not a thing: the rest of the Task
     would be drawn wrongly, or the slicing that trims it would eat real text.
     """
-    lines = tasks.get_actions(_task_of(_END_IF, _FLASH, _END_IF, _FLASH), current_config())
+    lines = tasks.get_actions(_task_of(_END_IF, _FLASH, _END_IF, _FLASH), current_config(), state=PrimeItems)
     assert [_indent_of(line) for line in lines] == [0, 0, 0, 0]
 
 
@@ -152,7 +152,7 @@ def test_a_label_that_reads_like_an_if_does_not_open_a_block() -> None:
     Task's outer level -- read the label as an If and everything below it is drawn
     inside a block the Task does not have.
     """
-    lines = tasks.get_actions(_task_of(_FLASH, _FLASH_LABELLED_IF, _GOTO_TO_IF_LABEL, _FLASH), current_config())
+    lines = tasks.get_actions(_task_of(_FLASH, _FLASH_LABELLED_IF, _GOTO_TO_IF_LABEL, _FLASH), current_config(), state=PrimeItems)
     assert [_indent_of(line) for line in lines] == [0, 0, 0, 0]
 
 
@@ -160,7 +160,7 @@ def test_a_label_that_reads_like_an_end_if_does_not_close_a_block() -> None:
     """The same in the other direction: a labelled action inside an If must not pop the
     block out from under the actions that follow it.
     """
-    lines = tasks.get_actions(_task_of(_IF, _FLASH_LABELLED_END_IF, _FLASH, _END_IF, _FLASH), current_config())
+    lines = tasks.get_actions(_task_of(_IF, _FLASH_LABELLED_END_IF, _FLASH, _END_IF, _FLASH), current_config(), state=PrimeItems)
     assert [_indent_of(line) for line in lines] == [0, 1, 1, 0, 0]
 
 
@@ -174,7 +174,7 @@ def test_actions_are_sorted_by_their_number_not_document_order() -> None:
         '<Action sr="act0"><code>548</code><Str sr="arg0">first</Str></Action>'
         "</Task>",
     )
-    lines = tasks.get_actions(task, current_config())
+    lines = tasks.get_actions(task, current_config(), state=PrimeItems)
     assert "first" in lines[0]
     assert "second" in lines[1]
 

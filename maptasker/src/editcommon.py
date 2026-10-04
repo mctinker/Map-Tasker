@@ -22,9 +22,11 @@ import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from maptasker.src import maputil2, outdir
+
 # maputil2's upload and read-back are called through the module, not imported by name, so a
 # test that stands in for them on maputil2 is the one these calls reach.
-from maptasker.src import maputil2, outdir
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ILLEGAL_IN_FILENAME
 
 if TYPE_CHECKING:
@@ -114,7 +116,7 @@ class EditorKind:
         getxml_event/local_xml_start_directory in userintr_loading.py), which isn't
         necessarily where an exported object should land.
         """
-        return outdir.output_path(f"{self.sanitize_filename(name)}{self.extension}")
+        return outdir.output_path(f"{self.sanitize_filename(name)}{self.extension}", state=PrimeItems)
 
     def android_path(self, name: str) -> str:
         """The absolute path a Save To Android of this object would write to on the device.

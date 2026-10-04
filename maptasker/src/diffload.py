@@ -185,7 +185,7 @@ def original_of(file_path: str) -> str:
     return original if os.path.isfile(original) else ""
 
 
-def write_comparison_report(report: str, base_name: str = COMPARE_FILE) -> str:
+def write_comparison_report(report: str, base_name: str = COMPARE_FILE, *, state: RunState) -> str:
     """Write the report to a timestamped file in the output folder (see outdir).
 
     Returns the path written, or "" if the write failed -- a comparison whose
@@ -206,7 +206,7 @@ def write_comparison_report(report: str, base_name: str = COMPARE_FILE) -> str:
     file_name = append_to_filename(base_name, stamp)
     if not file_name:
         return ""
-    report_path = output_path(file_name)
+    report_path = output_path(file_name, state=state)
     try:
         with open(report_path, "w", encoding="utf-8") as output_file:
             output_file.write(report)

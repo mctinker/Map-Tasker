@@ -236,7 +236,7 @@ def test_a_home_assistant_service_is_named_the_way_home_assistant_names_it() -> 
 def test_home_assistants_blurb_gives_way_to_its_settings() -> None:
     """Its blurb is nothing but the raw fields again ("dataJson: {}"), server id and all."""
     action = _action("com.github.db1996.taskerha", _HA_CALL, "dataJson: {}\ninstanceId: abcd1234")
-    value = actargs.get_bundle(action, {"returning_something": True}, "0")["arg0"]["value"]
+    value = actargs.get_bundle(action, {"returning_something": True}, "0", state=PrimeItems)["arg0"]["value"]
     assert value == "Configuration Parameter(s):\nService=light.turn_on\nEntity=light.hall\n"
 
 
@@ -247,14 +247,14 @@ def test_any_other_plugin_is_left_to_the_generic_reading() -> None:
     """One "Name=value" line per field, exactly as before."""
     action = _action("com.example.other", {"parameters": _json({"a": 1})})
     assert plugset.decode_settings(action.find("Bundle/Vals"), "com.example.other") is None
-    value = actargs.get_bundle(action, {"returning_something": True}, "0")["arg0"]["value"]
+    value = actargs.get_bundle(action, {"returning_something": True}, "0", state=PrimeItems)["arg0"]["value"]
     assert 'parameters={"a": 1}' in value
 
 
 def test_a_decoded_plugin_still_leads_with_its_blurb_in_the_map() -> None:
     """The blurb is the plugin's own sentence about what the action does."""
     action = _action("com.joaomgcd.join", _JOIN_PUSH, "Device: Kitchen Tablet")
-    value = actargs.get_bundle(action, {"returning_something": True}, "0")["arg0"]["value"]
+    value = actargs.get_bundle(action, {"returning_something": True}, "0", state=PrimeItems)["arg0"]["value"]
     assert value.startswith("Configuration Parameter(s):\nDevice: Kitchen Tablet\n")
     assert "Title=Door" in value
     assert "plugininstanceid" not in value
@@ -324,7 +324,7 @@ def _devices(devices: dict) -> mock._patch:
 def test_a_plugin_the_device_does_not_have_is_reported_once_for_all_its_uses() -> None:
     """One finding per plugin, naming the list it was checked against and every place using it."""
     with _devices(_ONE_DEVICE):
-        problems = plugchk.lint_problems()
+        problems = plugchk.lint_problems(state=PrimeItems)
     assert [problem.where for problem in problems] == ["Plugin com.example.missing"]
     detail = "".join(text for text, _ in problems[0].detail)
     assert "192.0.2.1:1821 on 2026-09-01 10:00:00" in detail
@@ -340,7 +340,7 @@ def test_each_place_is_named_by_its_own_action_not_the_one_it_borrows_arguments_
     """
     PrimeItems.tasker_root_elements["all_tasks"]["1"]["xml"].find("Action/Str[@sr='arg1']").text = "com.example.gone"
     with _devices(_ONE_DEVICE):
-        problems = {problem.where: problem for problem in plugchk.lint_problems()}
+        problems = {problem.where: problem for problem in plugchk.lint_problems(state=PrimeItems)}
     detail = "".join(text for text, _ in problems["Plugin com.example.gone"].detail)
     assert detail.endswith("action 1 (Join Action).")
 
@@ -348,7 +348,7 @@ def test_each_place_is_named_by_its_own_action_not_the_one_it_borrows_arguments_
 def test_each_place_a_missing_plugin_is_used_is_a_link() -> None:
     """The location line goes to the first place; the detail line links every one."""
     with _devices(_ONE_DEVICE):
-        problem = plugchk.lint_problems()[0]
+        problem = plugchk.lint_problems(state=PrimeItems)[0]
     linked = [target for _, target in problem.detail if target is not None]
     assert problem.target == linked[0]
     assert problem.related == linked[1:]
@@ -359,13 +359,13 @@ def test_a_plugin_on_any_fetched_device_is_not_reported() -> None:
     """The backup does not say which phone it is for."""
     tablet = {"192.0.2.2:1821": ("2026-08-01 09:00:00", frozenset({"com.example.missing"}))}
     with _devices({**_ONE_DEVICE, **tablet}):
-        assert plugchk.lint_problems() == []
+        assert plugchk.lint_problems(state=PrimeItems) == []
 
 
 def test_with_no_app_list_nothing_is_reported_and_the_report_says_why() -> None:
     """Silence would read as every plugin being installed."""
     with _devices({}):
-        assert plugchk.lint_problems() == []
+        assert plugchk.lint_problems(state=PrimeItems) == []
         rows, _ = healthck.run_health_check(state=PrimeItems)
     report = text_report(rows)
     assert "[PLUGIN-NOT-INSTALLED]" not in report

@@ -194,7 +194,7 @@ def _restore(kind: str, key: str, older: xmldiff.Configuration | None = None) ->
     older = older or _older()
     plan = maprestore.plan_restore(_candidate(kind, key), older, FROM_WHEN, state=PrimeItems)
     assert plan.can_apply, [block.explanation for block in plan.blocks]
-    done, errors = maprestore.restore(plan)
+    done, errors = maprestore.restore(plan, state=PrimeItems)
     assert (done, errors) == (True, [])
     return plan
 
@@ -448,7 +448,7 @@ def test_scene_whose_name_is_taken_is_refused_not_renamed(loaded: None) -> None:
 
     assert not plan.can_apply
     assert plan.blocks[0].reason == "NAME-TAKEN"
-    done, _ = maprestore.restore(plan)
+    done, _ = maprestore.restore(plan, state=PrimeItems)
     assert not done
     assert _live("all_scenes")["Panel"]["xml"] is element
 
@@ -513,7 +513,7 @@ def test_a_plan_whose_element_was_detached_is_refused_at_apply(loaded: None) -> 
     del _live("all_tasks")["20"]
     PrimeItems.xml_root.remove(element)
 
-    done, errors = maprestore.restore(plan)
+    done, errors = maprestore.restore(plan, state=PrimeItems)
 
     assert not done
     assert "no longer in the configuration" in errors[0]

@@ -2149,7 +2149,7 @@ def _wrapped(text: str) -> list[str]:
     return lines or [""]
 
 
-def write_refactor_report(rows: list[Row]) -> str:
+def write_refactor_report(rows: list[Row], state: RunState) -> str:
     """Save the preview as text, the way mapfind, varxref and mapswap save theirs.
 
     Worth having for the refactor the user decided NOT to do as much as the one they did:
@@ -2160,7 +2160,7 @@ def write_refactor_report(rows: list[Row]) -> str:
     file_name = append_to_filename(REFACTOR_FILE, stamp)
     if not file_name:
         return ""
-    file_path = output_path(file_name)
+    file_path = output_path(file_name, state=state)
     try:
         with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))
@@ -2170,7 +2170,7 @@ def write_refactor_report(rows: list[Row]) -> str:
     return file_path
 
 
-def apply(plan: Plan) -> tuple[bool, list[str]]:
+def apply(plan: Plan, state: RunState) -> tuple[bool, list[str]]:
     """Do the refactor.  Returns (whether it was done, anything that went wrong).
 
     Three gates, in this order, and each is a different question:
@@ -2201,7 +2201,7 @@ def apply(plan: Plan) -> tuple[bool, list[str]]:
     if plan.run is None:
         return False, ["There is nothing to apply."]
 
-    attached = maputil2.attached_elements()
+    attached = maputil2.attached_elements(state=state)
     if any(id(element) not in attached for element in plan.elements):
         return False, [
             (
@@ -2211,7 +2211,7 @@ def apply(plan: Plan) -> tuple[bool, list[str]]:
             ),
         ]
 
-    with sessundo.undoable(plan.what):
+    with sessundo.undoable(plan.what, state=state):
         try:
             errors = plan.run()
         except (AttributeError, KeyError, TypeError, ValueError) as failure:

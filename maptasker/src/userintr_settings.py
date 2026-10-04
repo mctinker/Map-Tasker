@@ -736,7 +736,7 @@ class SettingsEventHandlers:
             remember_setting(guiview, "output_directory", folder)
             save_restore_args(self.state.program_arguments, self.state.colors_to_use, to_save=True, state=self.state)
             guiview.display_message_box(
-                f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory()}",
+                f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory(state=self.state)}",
                 "Green",
             )
         _show_output_directory(guiview)
@@ -746,7 +746,9 @@ class SettingsEventHandlers:
         guiview = self.gui
         guiview.output_directory = folder or ""
         _show_output_directory(guiview)
-        return f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory()}\n"
+        return (
+            f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory(state=self.state)}\n"
+        )
 
     def viewlimit_event(self: object, view_limit: str) -> None:
         """View Limit Event handled safely without recursion."""

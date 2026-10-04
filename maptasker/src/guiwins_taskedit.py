@@ -30,6 +30,7 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins_impact import build_impact_panel
 from maptasker.src.mapjump import TASK
 from maptasker.src.maputil2 import tasker_name_matchable, translate_string
+from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -528,7 +529,7 @@ def _build_app_picker_dialog(field: ui.input, gui: MyGui) -> None:
     over the field, never a replacement for it, so it must not be able to quietly delete a
     value merely because it doesn't recognise it.
     """
-    entries = appinv.apps()
+    entries = appinv.apps(state=PrimeItems)
     known_packages = {entry.pkg for entry in entries}
     current = [token.strip() for token in str(field.value or "").split(",") if token.strip()]
     unknown = [token for token in current if token not in known_packages]
@@ -663,7 +664,7 @@ def _build_app_entry_picker_dialog(on_pick: Callable[[appinv.AppEntry], None], g
     class, not just a package name to write into a field.  Filling all three is the point:
     that condition's class field is the one nobody can be expected to know by heart.
     """
-    entries = appinv.apps()
+    entries = appinv.apps(state=PrimeItems)
     search = {"text": ""}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):
@@ -733,7 +734,7 @@ def _render_app_entry_pick_button(
     on the same terms as a typed one.  Absent entirely when there is nothing to pick from,
     which leaves the three fields precisely as they were before this existed.
     """
-    if not appinv.have_apps():
+    if not appinv.have_apps(state=gui.state):
         return
 
     def fill_in(entry: appinv.AppEntry) -> None:
@@ -758,7 +759,7 @@ def _build_tasker_icon_picker_dialog(field: ui.input, gui: MyGui) -> None:
     an action whose icon was never set has always carried, and it has to stay reachable
     once a picker exists.
     """
-    icons = appinv.icons()
+    icons = appinv.icons(state=PrimeItems)
     search = {"text": ""}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):

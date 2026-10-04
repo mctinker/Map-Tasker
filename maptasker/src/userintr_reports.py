@@ -147,7 +147,7 @@ class ReportEventHandlers:
         gui = self.gui
 
         rows, counts = run_health_check(skip, state=self.state)
-        file_name = write_health_check_report(rows)
+        file_name = write_health_check_report(rows, state=self.state)
 
         if file_name:
             gui.display_message_box(f"{translate_string('Health Check saved as')} {file_name}", "Green")
@@ -190,7 +190,7 @@ class ReportEventHandlers:
             return
 
         rows, index = run_variable_xref(state=self.state)
-        file_name = write_variable_xref_report(rows)
+        file_name = write_variable_xref_report(rows, state=self.state)
 
         if file_name:
             gui.display_message_box(f"{translate_string('Variable Cross-Reference saved as')} {file_name}", "Green")
@@ -312,7 +312,7 @@ class ReportEventHandlers:
         older, newer = order_by_age(other, current_configuration(state=self.state))
         report, counts = compare(older, newer)
 
-        file_name = write_comparison_report(report)
+        file_name = write_comparison_report(report, state=self.state)
         if file_name:
             gui.display_message_box(f"{translate_string('Comparison saved as')} {file_name}", "Green")
         else:
@@ -381,7 +381,7 @@ class ReportEventHandlers:
         if result.note:
             ui.notify(translate_string(result.note), type="warning")
 
-        file_name = write_comparison_report(result.report, TIMELINE_FILE)
+        file_name = write_comparison_report(result.report, TIMELINE_FILE, state=self.state)
         if file_name:
             gui.display_message_box(f"{translate_string('Timeline saved as')} {file_name}", "Green")
         else:

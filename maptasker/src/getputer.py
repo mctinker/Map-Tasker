@@ -261,7 +261,7 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[dict, dict]:
                     program_arguments["ai_model"] = RENAMED_AI_MODELS[program_arguments["ai_model"]]
                 # Start log. file if debug is on.
                 if program_arguments["debug"]:
-                    log_startup_values()
+                    log_startup_values(state=state)
             except KeyError:
                 # A settings file with no [program_arguments] table at all.  Saves are
                 # atomic now, so this is either a hand-edited file or one left half-written

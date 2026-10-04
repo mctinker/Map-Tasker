@@ -456,7 +456,7 @@ def test_order_by_age_keeps_the_given_order_without_timestamps() -> None:
 
 def test_write_comparison_report(tmp_path) -> None:
     """The report is written to a timestamped file in the output folder, and its path returned."""
-    written = Path(diffload.write_comparison_report("a report\n"))
+    written = Path(diffload.write_comparison_report("a report\n", state=PrimeItems))
 
     assert written.parent == tmp_path
     assert written.name.startswith("MapTasker_Compare_")

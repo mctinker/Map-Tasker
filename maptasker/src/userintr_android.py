@@ -1198,7 +1198,9 @@ class AndroidEventHandlers:
         _link_pending_task_pickers(edited_profile, field_refs, state=self.state)
         condition_values = _profile_condition_values(field_refs)
 
-        errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
+        errors = profedit.apply_edits_to_profile(
+            edited_profile, field_refs["name"].value, condition_values, state=self.state
+        )
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")

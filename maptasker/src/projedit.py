@@ -261,7 +261,7 @@ def register_new_project(edited_project: EditableProject, state: RunState) -> No
     standalone-file/Save-To-Android path to also call this from, unlike
     profedit.register_new_profile/taskedit.register_new_task.
     """
-    with sessundo.undoable(f"Add Project '{edited_project.project_name}'"):
+    with sessundo.undoable(f"Add Project '{edited_project.project_name}'", state=state):
         state.tasker_root_elements.setdefault("all_projects", {})[edited_project.project_name] = {
             "xml": edited_project.project_element,
             "name": edited_project.project_name,
@@ -368,7 +368,7 @@ def apply_properties_to_live_tree(edited_project: EditableProject, state: RunSta
     does for the Enabled toggle.
     """
     live_element = resolve_project_by_name(edited_project.project_name, state=state)
-    with sessundo.undoable(f"Edit Project '{edited_project.project_name}' properties"):
+    with sessundo.undoable(f"Edit Project '{edited_project.project_name}' properties", state=state):
         if live_element is not None and live_element is not edited_project.project_element:
             objprops.mirror_properties(objprops.KIND_PROJECT, edited_project.project_element, live_element)
             touch_project_mdate(live_element)
@@ -386,7 +386,7 @@ def rename_project_in_live_tree(old_name: str, edited_project: EditableProject, 
     No-op if old_name isn't registered (defense in depth; the GUI should only
     ever pass a name that was just loaded via load_project_for_edit).
     """
-    with sessundo.undoable(f"Rename Project '{old_name}'"):
+    with sessundo.undoable(f"Rename Project '{old_name}'", state=state):
         all_projects = state.tasker_root_elements.get("all_projects", {})
         if old_name not in all_projects:
             return
@@ -749,7 +749,7 @@ def delete_profiles_and_tasks_of_project(project_name: str, state: RunState) -> 
     delete_project. First delete-a-Profile/Task primitive in the app; scoped
     to this cascade only, not exposed as a standalone button.
     """
-    with sessundo.undoable(f"Delete the contents of Project '{project_name}'"):
+    with sessundo.undoable(f"Delete the contents of Project '{project_name}'", state=state):
         live_element = resolve_project_by_name(project_name, state=state)
         if live_element is None:
             return
@@ -817,7 +817,7 @@ def delete_project(project_name: str, state: RunState, *, keep_contents: bool) -
     and source would be the same Project, so there's nothing meaningful to
     move -- Base can only be deleted with its contents (or renamed first).
     """
-    with sessundo.undoable(f"Delete Project '{project_name}'"):
+    with sessundo.undoable(f"Delete Project '{project_name}'", state=state):
         if project_name == BASE_PROJECT_NAME and keep_contents:
             return [
                 f"'{BASE_PROJECT_NAME}' can't be deleted with 'Keep Contents' -- "

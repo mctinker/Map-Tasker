@@ -60,6 +60,7 @@ from maptasker.src.guiwins_search import (
 )
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.outdir import output_path
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
     logger,
@@ -1044,7 +1045,7 @@ class NiceGuiSceneView:
         width, height = dimensions
         editing = self._legacy_editing()
         with self.canvas_wrap:
-            sceneview.draw_scene(scene_element, width, height, self.options, editing=editing)
+            sceneview.draw_scene(scene_element, width, height, self.options, editing=editing, state=PrimeItems)
         self._apply_scale(width, height)
         if editing is not None:
             _ACTIVE_CANVASES[CANVAS_PREVIEW_ROOT] = {
@@ -1743,9 +1744,9 @@ class NiceGuiTextView(TextViewSearch):
             html_style += " word-break: break-word;"
 
         if self.title.startswith("Map"):
-            file_to_read = output_path("MapTasker.html")
+            file_to_read = output_path("MapTasker.html", state=self.master_gui.state)
         elif is_diagram:
-            file_to_read = output_path(DIAGRAM_FILE)
+            file_to_read = output_path(DIAGRAM_FILE, state=self.master_gui.state)
         elif self.title.startswith("Misc") or is_flow:
             # The Task Flow view is this renderer with the Diagram's habits: rows mapjump has
             # already made clickable, but a drawing rather than prose, so nothing may wrap

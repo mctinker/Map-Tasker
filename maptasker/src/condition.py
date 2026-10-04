@@ -5,6 +5,7 @@
 # condition: Process profile condition: time, date, state, event, location, app        #
 #                                                                                      #
 
+import functools
 from xml.etree.ElementTree import Element
 
 import maptasker.src.actione as action_evaluate
@@ -14,7 +15,7 @@ from maptasker.src.actargs import extract_condition
 from maptasker.src.actionc import action_codes
 from maptasker.src.debug import not_in_dictionary
 from maptasker.src.objprops import APP_FLAG_NAMES, APP_MATCH_FOREGROUND_APP_BIT, describe_flags, flag_bits
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import RunState
 from maptasker.src.sysconst import logger
 from maptasker.src.taskflag import get_priority
 from maptasker.src.tasks import reformat_html
@@ -138,6 +139,7 @@ def condition_day(the_item: Element, the_output_condition: str) -> str:
 def condition_state(
     the_item: Element,
     the_output_condition: str,
+    state: RunState,
 ) -> str:
     """
     Handle the "State" condition
@@ -152,8 +154,8 @@ def condition_state(
     _extract_condition = extract_condition
 
     # 1. Hoist configurations and flags
-    is_pretty = PrimeItems.program_arguments.pretty
-    is_debug = PrimeItems.program_arguments.debug
+    is_pretty = state.program_arguments.pretty
+    is_debug = state.program_arguments.debug
 
     invert_node = the_item.find("pin")
     is_inverted = invert_node is not None and invert_node.text == "true"
@@ -170,15 +172,15 @@ def condition_state(
         if state_code not in action_codes:
             logger.debug(f"code:{child_text} not found in action codes!")
 
-        state = _get_action_code(code_node, the_item, False, "s")
+        state_text = _get_action_code(code_node, the_item, False, "s", state=state)
 
-        if is_pretty and "Configuration Parameter(s):" in state:
-            state = _reformat_html(state)
+        if is_pretty and "Configuration Parameter(s):" in state_text:
+            state_text = _reformat_html(state_text)
 
-        state = state.replace("&nbsp;&nbsp;", "  ")
+        state_text = state_text.replace("&nbsp;&nbsp;", "  ")
 
-        state = state.replace("\n", spaces)
-        condition_chunks.append(f"State: {state}  ")
+        state_text = state_text.replace("\n", spaces)
+        condition_chunks.append(f"State: {state_text}  ")
 
         if is_inverted:
             condition_chunks.append(" <em>[inverted]</em>")
@@ -203,6 +205,7 @@ def condition_state(
 def condition_event(
     the_item: Element,
     the_output_condition: str,
+    state: RunState,
 ) -> str:
     """
     Handle the "Event" condition
@@ -221,15 +224,10 @@ def condition_event(
 
     # Get the event code and its arguments with spacing added for 'pretty' text
     # the_event_code.text = event_code
-    event = action_evaluate.get_action_code(
-        the_event_code,
-        the_item,
-        False,
-        "e",
-    )
+    event = action_evaluate.get_action_code(the_event_code, the_item, False, "e", state=state)
 
     # If pretty text, then reformat it.
-    if "Configuration Parameter(s):" in event and PrimeItems.program_arguments.pretty:
+    if "Configuration Parameter(s):" in event and state.program_arguments.pretty:
         event = reformat_html(event)
 
     # Get the event priority
@@ -245,7 +243,7 @@ def condition_event(
     # Format the Event text
     event = event.replace("\n", "<br>")
     the_output_condition = f"{the_output_condition}Event: {event}"
-    if PrimeItems.program_arguments.debug:  # if debugging then add the code
+    if state.program_arguments.debug:  # if debugging then add the code
         the_output_condition = f"{the_output_condition} (code:{the_event_code.text})"
     return the_output_condition
 
@@ -296,7 +294,7 @@ def condition_loc(item: Element, condition: str) -> str:
 
 
 # Given a Profile, return its list of conditions
-def parse_profile_condition(the_profile: Element) -> str:
+def parse_profile_condition(the_profile: Element, state: RunState) -> str:
     """
     Given a Profile, return its list of conditions
         :param the_profile: the xml element pointing to <Profile object
@@ -306,8 +304,8 @@ def parse_profile_condition(the_profile: Element) -> str:
     function_map = {
         "Time": condition_time,
         "Day": condition_day,
-        "State": condition_state,
-        "Event": condition_event,
+        "State": functools.partial(condition_state, state=state),
+        "Event": functools.partial(condition_event, state=state),
         "App": condition_app,
         "Loc": condition_loc,
     }

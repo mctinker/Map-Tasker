@@ -420,7 +420,7 @@ def _list_addable_condition_codes(suffix: str, state: RunState) -> list[dict]:
     # argument (five Events declare one) is addable only while deviceinv has an inventory
     # to pick from, so the memo is thrown away when that generation moves -- the same
     # reasoning, and the same counter, as taskedit.list_addable_actions.
-    by_suffix = _addable_condition_codes.get(appinv.generation(), dict)
+    by_suffix = _addable_condition_codes.get(appinv.generation(state=state), dict)
     cached = by_suffix.get(suffix)
     if cached is not None:
         return cached
@@ -632,6 +632,7 @@ def apply_edits_to_profile(
     edited_profile: EditableProfile,
     name_value: str,
     condition_values: dict[str, str],
+    state: RunState,
 ) -> list[str]:
     """Validate all fields, and only if everything's valid, mutate the profile copy.
 
@@ -741,6 +742,7 @@ def apply_edits_to_profile(
                 condition.args,
                 lambda arg, ci=condition.cond_index: condition_arg_key(ci, arg.arg_id),
                 condition_values,
+                state=state,
             )
 
     return []
@@ -1184,7 +1186,7 @@ def register_new_profile(edited_profile: EditableProfile, profile_name: str, sta
     or after a successful Save To Android import (see
     userintr_android.save_profile_to_android_event's is_new_profile branch).
     """
-    with sessundo.undoable(f"Add Profile '{profile_name}'"):
+    with sessundo.undoable(f"Add Profile '{profile_name}'", state=state):
         state.tasker_root_elements["all_profiles"][edited_profile.profile_id] = {
             "xml": edited_profile.profile_element,
             "name": profile_name,
@@ -1225,7 +1227,7 @@ def add_profile_to_project(edited_profile: EditableProfile, project_name: str, s
     every other view in the same session. No-op if project_name isn't a known
     Project (defense in depth; the GUI should only offer real Project names).
     """
-    with sessundo.undoable(f"Add a Profile to Project '{project_name}'"):
+    with sessundo.undoable(f"Add a Profile to Project '{project_name}'", state=state):
         project_entry = state.tasker_root_elements.get("all_projects", {}).get(project_name)
         if project_entry is None:
             return
@@ -1267,7 +1269,7 @@ def add_task_to_project(task_id: str, project_name: str, state: RunState) -> Non
     No-op if project_name isn't a known Project (defense in depth; the GUI
     should only offer real Project names).
     """
-    with sessundo.undoable(f"Add a Task to Project '{project_name}'"):
+    with sessundo.undoable(f"Add a Task to Project '{project_name}'", state=state):
         project_entry = state.tasker_root_elements.get("all_projects", {}).get(project_name)
         if project_entry is None:
             return
@@ -1309,7 +1311,7 @@ def delete_profile(profile_name: str, state: RunState) -> list[str]:
     leaving a dangling id behind would make the Profile appear to still exist in
     whichever view walked that Project.
     """
-    with sessundo.undoable(f"Delete Profile '{profile_name}'"):
+    with sessundo.undoable(f"Delete Profile '{profile_name}'", state=state):
         resolved = resolve_profile_by_name(profile_name, state=state)
         if resolved is None:
             return [f"Profile '{profile_name}' no longer exists."]
@@ -1363,7 +1365,7 @@ def apply_edited_profile_to_live_tree(edited_profile: EditableProfile, state: Ru
     identical no-op for a brand-new Task.
     """
     with sessundo.undoable(
-        f"Edit Profile '{edited_profile.profile_element.findtext('nme', '') or edited_profile.profile_id}'"
+        f"Edit Profile '{edited_profile.profile_element.findtext('nme', '') or edited_profile.profile_id}'", state=state
     ):
         all_profiles = state.tasker_root_elements["all_profiles"]
         entry = all_profiles.get(edited_profile.profile_id)
@@ -1436,7 +1438,7 @@ def rename_profile_in_live_tree(edited_profile: EditableProfile, state: RunState
     splices into the saved file, so the new name survives a save; updating only
     the table's "name" field would leave the written XML carrying the old one.
     """
-    with sessundo.undoable(f"Rename Profile to '{edited_profile.profile_element.findtext('nme', '')}'"):
+    with sessundo.undoable(f"Rename Profile to '{edited_profile.profile_element.findtext('nme', '')}'", state=state):
         all_profiles = state.tasker_root_elements.get("all_profiles", {})
         entry = all_profiles.get(edited_profile.profile_id)
         if entry is None:

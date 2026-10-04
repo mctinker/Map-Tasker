@@ -2577,7 +2577,7 @@ def report_rows(plan: Plan) -> list[Row]:
     return rows
 
 
-def write_swap_report(rows: list[Row]) -> str:
+def write_swap_report(rows: list[Row], state: RunState) -> str:
     """Save the preview as text, the way varxref and mapfind save theirs.
 
     Worth having for the plan the user did NOT apply as much as the one they did: a
@@ -2588,7 +2588,7 @@ def write_swap_report(rows: list[Row]) -> str:
     file_name = append_to_filename(SWAP_FILE, stamp)
     if not file_name:
         return ""
-    file_path = output_path(file_name)
+    file_path = output_path(file_name, state=state)
     try:
         with open(file_path, "w", encoding="utf-8") as output_file:
             output_file.write(text_report(rows))
@@ -2632,9 +2632,9 @@ def apply(plan: Plan, state: RunState) -> tuple[int, list[str]]:
     # order the list, so that a plan assembled in any order still applies in a safe one.
     changes.sort(key=lambda change: change.site.kind == DECLARATION)
 
-    attached = maputil2.attached_elements()
+    attached = maputil2.attached_elements(state=state)
 
-    with sessundo.undoable(plan.what):
+    with sessundo.undoable(plan.what, state=state):
         for change in changes:
             if id(change.site.element) not in attached:
                 errors.append(

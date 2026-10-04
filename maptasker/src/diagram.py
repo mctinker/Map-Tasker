@@ -2131,7 +2131,7 @@ def network_map(network: dict, config: RunConfig, state: RunState) -> None:
 
     # Redirect print to a file
     if state.netmap_output:
-        output_dir = output_path(DIAGRAM_FILE)
+        output_dir = output_path(DIAGRAM_FILE, state=state)
         first_project = True
         project_translated = (
             translate_string("Project:") if config.language not in ("Arabic", "English") else "Project:"

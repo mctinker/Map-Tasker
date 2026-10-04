@@ -44,9 +44,9 @@ def test_default_is_a_maptasker_folder_in_documents(documents: Path) -> None:
     """With nothing chosen, output goes to Documents/MapTasker, which is made on first use."""
     assert not (documents / "MapTasker").exists()
 
-    assert outdir.output_directory() == documents / "MapTasker"
+    assert outdir.output_directory(state=PrimeItems) == documents / "MapTasker"
     assert (documents / "MapTasker").is_dir()
-    assert outdir.output_path("report.txt") == str(documents / "MapTasker" / "report.txt")
+    assert outdir.output_path("report.txt", state=PrimeItems) == str(documents / "MapTasker" / "report.txt")
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="asks Windows itself where Documents is")
@@ -69,7 +69,7 @@ def test_a_chosen_folder_is_used_and_made(tmp_path: Path) -> None:
     chosen = tmp_path / "reports" / "nested"
     PrimeItems.program_arguments.output_directory = str(chosen)
 
-    assert outdir.output_directory() == chosen
+    assert outdir.output_directory(state=PrimeItems) == chosen
     assert chosen.is_dir()
 
 
@@ -79,7 +79,7 @@ def test_an_unusable_folder_falls_back_to_the_working_directory(tmp_path: Path) 
     blocker.write_text("", encoding="utf-8")
     PrimeItems.program_arguments.output_directory = str(blocker / "under_a_file")
 
-    assert outdir.output_directory() == Path.cwd()
+    assert outdir.output_directory(state=PrimeItems) == Path.cwd()
 
 
 def test_reports_are_written_to_the_output_folder(tmp_path: Path) -> None:
@@ -87,7 +87,7 @@ def test_reports_are_written_to_the_output_folder(tmp_path: Path) -> None:
     chosen = tmp_path / "out"
     PrimeItems.program_arguments.output_directory = str(chosen)
 
-    written = healthck.write_health_check_report([])
+    written = healthck.write_health_check_report([], state=PrimeItems)
 
     assert os.path.dirname(written) == str(chosen)
     assert os.path.basename(written).startswith("MapTasker_HealthCheck_")

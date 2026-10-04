@@ -779,7 +779,7 @@ def build_profiles(
     task_head = translate_string("Task: ")
     unnamed_task_head = translate_string("Unnamed Task")
     _get_profile_tasks = get_profile_tasks  # Localize for speed
-    config = current_config()
+    config = current_config(state=state)
     for profile in profile_ids:
         # Get the Profile's Tasks
         state.task_count_unnamed = 0  # Avoid an error in get_profile_tasks
@@ -1516,7 +1516,7 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
     error_msg = ""
 
     # Handle Ai Response and display it
-    analysis_path = output_path(ANALYSIS_FILE)
+    analysis_path = output_path(ANALYSIS_FILE, state=self.state)
     if os.path.isfile(analysis_path):
         with open(analysis_path, encoding="utf-8", errors="replace") as analysis_file:
             analysis_response = analysis_file.read()

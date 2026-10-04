@@ -200,7 +200,7 @@ def legacy_validate_arg(arg: object, value: str) -> list[str]:
     return validate_arg_values([arg], lambda _arg: "value", {"value": str(value)})
 
 
-def legacy_set_arg(arg: object, value: str) -> None:
+def legacy_set_arg(arg: object, value: str, state: RunState) -> None:
     """Write one inspector field back onto the XML element behind it.
 
     Goes through taskedit.apply_arg_values rather than setting the attribute here, so the
@@ -214,7 +214,7 @@ def legacy_set_arg(arg: object, value: str) -> None:
     as apply_arg_values does for its own callers.
     """
 
-    apply_arg_values([arg], lambda _arg: "value", {"value": str(value)})
+    apply_arg_values([arg], lambda _arg: "value", {"value": str(value)}, state=state)
 
 
 def legacy_geometry_values(element: Element) -> list[str]:
@@ -1696,7 +1696,7 @@ def apply_element_renames_to_tasks(scene_name: str, renames: list[tuple[str, str
     Called from apply_edited_scene_to_live_tree and nowhere else -- see
     EditableScene.element_renames on why this cannot happen while the dialog is still open.
     """
-    with sessundo.undoable(f"Rename Scene '{scene_name}' elements in the Tasks that use them"):
+    with sessundo.undoable(f"Rename Scene '{scene_name}' elements in the Tasks that use them", state=state):
         changed = 0
         for old_name, new_name in renames:
             for _task_name, argument in find_element_name_actions(scene_name, old_name, state=state):

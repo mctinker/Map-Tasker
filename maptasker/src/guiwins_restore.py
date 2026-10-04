@@ -232,7 +232,7 @@ def build_restore_dialog(
             if plan is None:
                 ui.notify(translate_string("Press 'Restore this' on a row first."), type="warning")
                 return
-            done, errors = maprestore.restore(plan)
+            done, errors = maprestore.restore(plan, state=state)
             for message in errors[:4]:
                 ui.notify(message, type="negative")
             if not done:

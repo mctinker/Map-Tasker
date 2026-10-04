@@ -154,7 +154,7 @@ def process_preferences(temp_output_lines: list, config: RunConfig, state: RunSt
                 dummy_num += 1
         # Invalid <Setting> xml element
         else:
-            error_handler("Error: the backup xml file is corrupt.  Program terminated.", 3)
+            error_handler("Error: the backup xml file is corrupt.  Program terminated.", 3, state=state)
 
 
 def get_preferences(config: RunConfig, state: RunState) -> None:

@@ -329,7 +329,7 @@ def _finish_new_scene(gui: MyGui, edited_scene: sceneedit.EditableScene, project
     # One step to take back, not two: registering the Scene and attaching it to its
     # Project are one thing the user did.  undoable is re-entrant, so the mutators'
     # own blocks inside this one add nothing to the history.
-    with sessundo.undoable(f"Add Scene '{edited_scene.scene_name}'"):
+    with sessundo.undoable(f"Add Scene '{edited_scene.scene_name}'", state=gui.state):
         sceneedit.register_new_scene(edited_scene, state=gui.state)
         sceneedit.add_scene_to_project(edited_scene.scene_name, project_name, state=gui.state)
     refresh_tasker_object_pulldowns(gui)
@@ -522,7 +522,7 @@ def _finish_new_task(
     # One step to take back, not two or three: registering the Task, whatever on_created
     # links it to, and attaching it to its Project are one thing the user did.  undoable is
     # re-entrant, so the mutators' own blocks inside this one add nothing to the history.
-    with sessundo.undoable(f"Add Task '{name_value}'"):
+    with sessundo.undoable(f"Add Task '{name_value}'", state=gui.state):
         taskedit.register_new_task(edited_task, name_value, state=gui.state)
         if on_created is not None:
             on_created(edited_task.task_id)
@@ -583,7 +583,7 @@ def _apply_edited_profile(edited_profile: profedit.EditableProfile, field_refs: 
     """
     _link_pending_task_pickers(edited_profile, field_refs, state=state)
     condition_values = _profile_condition_values(field_refs)
-    errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
+    errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values, state=state)
     if errors:
         for error in errors:
             ui.notify(error, type="negative")
@@ -632,7 +632,7 @@ def _validate_and_apply_new_profile(
         return False, "", ""
 
     condition_values = _profile_condition_values(field_refs)
-    errors = profedit.apply_edits_to_profile(edited_profile, name_value, condition_values)
+    errors = profedit.apply_edits_to_profile(edited_profile, name_value, condition_values, state=state)
     if errors:
         for error in errors:
             ui.notify(error, type="negative")
@@ -656,7 +656,7 @@ def _finish_new_profile(
     # One step to take back, not two: registering the Profile and attaching it to its
     # Project are one thing the user did.  undoable is re-entrant, so the mutators'
     # own blocks inside this one add nothing to the history.
-    with sessundo.undoable(f"Add Profile '{name_value}'"):
+    with sessundo.undoable(f"Add Profile '{name_value}'", state=gui.state):
         profedit.register_new_profile(edited_profile, name_value, state=gui.state)
         profedit.add_profile_to_project(edited_profile, project_name, state=gui.state)
     refresh_tasker_object_pulldowns(gui)
@@ -1193,7 +1193,7 @@ class EditorEventHandlers:
         """
         if not _apply_edited_task(edited_task, field_refs, state=self.state):
             return
-        success, result = write_full_backup_to_current_file()
+        success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
@@ -1494,7 +1494,7 @@ class EditorEventHandlers:
 
         projedit.rename_project_in_live_tree(old_name, edited_project, state=self.state)
 
-        success, result = write_full_backup_to_current_file()
+        success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
@@ -1900,7 +1900,7 @@ class EditorEventHandlers:
 
         sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene, state=self.state)
 
-        success, result = write_full_backup_to_current_file()
+        success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
@@ -2272,7 +2272,9 @@ class EditorEventHandlers:
         _link_pending_task_pickers(edited_profile, field_refs, state=self.state)
         condition_values = _profile_condition_values(field_refs)
 
-        errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
+        errors = profedit.apply_edits_to_profile(
+            edited_profile, field_refs["name"].value, condition_values, state=self.state
+        )
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -2343,7 +2345,7 @@ class EditorEventHandlers:
         """
         if not _apply_edited_profile(edited_profile, field_refs, state=self.state):
             return
-        success, result = write_full_backup_to_current_file()
+        success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
@@ -2443,7 +2445,7 @@ class EditorEventHandlers:
 
         _finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
-        success, result = write_full_backup_to_current_file()
+        success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
@@ -2467,7 +2469,7 @@ class EditorEventHandlers:
         are one thing to take back rather than two -- same reason _finish_new_profile does.
         """
         with sessundo.undoable(
-            f"Add Profile '{profile_name}'" if is_new_profile else f"Edit Profile '{profile_name}'",
+            f"Add Profile '{profile_name}'" if is_new_profile else f"Edit Profile '{profile_name}'", state=self.state
         ):
             if is_new_profile:
                 profedit.register_new_profile(edited_profile, profile_name, state=self.state)
@@ -2763,7 +2765,7 @@ class EditorEventHandlers:
 
         _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
 
-        success, result = write_full_backup_to_current_file()
+        success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
