@@ -36,6 +36,7 @@ from html import escape
 from typing import TYPE_CHECKING
 from urllib.parse import quote, unquote
 
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import get_single_item_requested
 from maptasker.src.sysconst import (
     DISPLAY_DETAIL_LEVEL_all_parameters,
@@ -1197,10 +1198,6 @@ def _diagram_project_prefix(state: RunState) -> str:
     and Arabic are left untranslated there, so translating here would look for a label the
     Diagram never wrote.
     """
-    # Kept off this module's import path: mapjump is imported almost everywhere, and only this
-    # function needs maputil2 (see tests/test_import_structure.py, _KEPT_DEFERRED).
-    from maptasker.src.maputil2 import translate_string  # noqa: PLC0415
-
     if state.program_arguments.language in ("Arabic", "English"):
         return "Project: "
     return f"{translate_string('Project:')} "

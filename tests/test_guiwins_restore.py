@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src import guiwins_restore, sessundo, timeline
+from maptasker.src import guiwins_restore, sessundo, timecomp, timeline
 from maptasker.src.primitem import PrimeItems
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
@@ -60,7 +60,7 @@ def _history(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         _built["read"].append(snapshot.source)
         return (None, _built["problem"]) if _built["problem"] else (_older(), "")
 
-    monkeypatch.setattr(guiwins_restore.timeline, "configuration_of", configuration_of)
+    monkeypatch.setattr(guiwins_restore.timecomp, "configuration_of", configuration_of)
 
 
 def _page() -> None:

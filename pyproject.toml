@@ -451,9 +451,9 @@ layers = [
     """,
     """
     getfile : guistate : guiutils : guiwins :
-    guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 :
-    guiwins_firesim : guiwins_fix : guiwins_impact : guiwins_nav : guiwins_profedit :
-    guiwins_refactor : guiwins_restore : guiwins_search : guiwins_taskedit :
+    guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 : guiwins_editor :
+    guiwins_firesim : guiwins_fix : guiwins_impact : guiwins_legacyarg : guiwins_nav : guiwins_profedit :
+    guiwins_refactor : guiwins_restore : guiwins_sceneprops : guiwins_search : guiwins_taskedit :
     guiwins_views : mapai : sceneview :
     userintr : userintr_ai : userintr_android : userintr_editors :
     userintr_loading : userintr_reports : userintr_settings : webassets
@@ -466,7 +466,7 @@ layers = [
     cria : debug : deprecate : deviceinv : diagcnst : diagintr :
     diagram : diagutil : diffload : dirout : editcommon : error :
     format : frontmtr : getbakup : getids : getputer : globalvr :
-    guiutil2 : healthck : impact : initparg : kidapp : lineout :
+    guiutil2 : healthck : impact : initparg : kidapp : lineout : livevars :
     mapask : mapcache : mapexport : mapfind : mapfix : mapfonts :
     mapjump : mappdf : maprefac : maprestore : mapswap : maputil2 :
     maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
@@ -474,8 +474,8 @@ layers = [
     profedit : profiles : proflint : proginit : projects : projedit :
     property : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenes : servicec :
     sessundo : share : shelsort : sysconst : taskactn : taskedit :
-    taskerd : taskervars : taskflag : taskflow : tasks : taskuniq :
-    timeline : translator : twisty : userhelp : valcodes : varxref :
+    taskerd : taskertables : taskervars : taskflag : taskflow : tasks : taskuniq :
+    timecomp : timeline : translator : twisty : userhelp : valcodes : varxref :
     xmldata : xmldiff
     """,
 ]
@@ -493,13 +493,16 @@ allowed_importers = [
     "maptasker.src.guiwins_canvas",
     "maptasker.src.guiwins_designer_legacy",
     "maptasker.src.guiwins_designer_v2",
+    "maptasker.src.guiwins_editor",
     "maptasker.src.guiwins_firesim",
     "maptasker.src.guiwins_fix",
     "maptasker.src.guiwins_impact",
+    "maptasker.src.guiwins_legacyarg",
     "maptasker.src.guiwins_nav",
     "maptasker.src.guiwins_profedit",
     "maptasker.src.guiwins_refactor",
     "maptasker.src.guiwins_restore",
+    "maptasker.src.guiwins_sceneprops",
     "maptasker.src.guiwins_search",
     "maptasker.src.guiwins_taskedit",
     "maptasker.src.guiwins_views",

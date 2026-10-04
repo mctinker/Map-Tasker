@@ -73,9 +73,11 @@ def parse_globals(response: object) -> dict[str, str] | None:
     The API lists {"name", "value"} objects; the name arrives with or without its leading
     '%', so both spellings are made one -- the index names every variable with it.
     """
+    if not isinstance(response, (str, bytes, bytearray)):
+        return None
     try:
         reported = json.loads(response)
-    except (ValueError, TypeError):
+    except ValueError:
         return None
     if not isinstance(reported, list):
         return None

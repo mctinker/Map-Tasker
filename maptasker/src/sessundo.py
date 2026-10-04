@@ -75,7 +75,9 @@ from typing import TYPE_CHECKING
 import defusedxml.ElementTree as ET
 
 from maptasker.src import clock
+from maptasker.src.maputil2 import render_full_backup_xml
 from maptasker.src.sysconst import logger
+from maptasker.src.taskertables import build_tasker_tables
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -148,10 +150,6 @@ def _render(state: RunState) -> str | None:
     with no history entry -- which is exactly the situation every edit was in before this
     module existed.
     """
-    # Imported here rather than at the top: maputil2 is imported by most of this package,
-    # and a module-scope import would put sessundo in the middle of that graph for no benefit.
-    from maptasker.src.maputil2 import render_full_backup_xml  # noqa: PLC0415
-
     if state.xml_root is None:
         return None
     try:
@@ -185,9 +183,6 @@ def _restore(payload: bytes, state: RunState) -> bool:
     Parsed before anything is assigned, so a payload that somehow will not parse leaves the
     user's configuration exactly as it was rather than half-replaced.
     """
-    # Lazy import for the same reason as _capture's -- taskerd sits low in the import graph.
-    from maptasker.src.taskerd import build_tasker_tables  # noqa: PLC0415
-
     try:
         root = ET.fromstring(gzip.decompress(payload).decode("utf-8"))
     except (OSError, ET.ParseError, UnicodeDecodeError, ValueError) as error:

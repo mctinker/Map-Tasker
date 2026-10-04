@@ -40,7 +40,7 @@ import pytest
 from maptasker.src.initparg import ProgramArguments
 from maptasker.src import sceneedit, taskedit
 from maptasker.src.primitem import PrimeItems
-from maptasker.src import sceneedit_legacy
+from maptasker.src import guiwins_sceneprops, sceneedit_legacy
 
 # The backup the Scene tests load: hand-built, in tests/data, so they run anywhere -- CI included --
 # and hold nobody's configuration (see the comment at the top of the file).  The sweeps below also
@@ -477,7 +477,6 @@ def _scene_with(root: ET.Element, predicate) -> ET.Element:
 @pytest.fixture
 def key_event_tab(sample_backup, stub_gui):
     """The Event tab's Key panel, over the first sample Scene that fires a key Task."""
-    from maptasker.src import guiwins  # noqa: PLC0415
 
     root = sample_backup(_SYNTHETIC_BACKUP)
     properties = _scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None)
@@ -485,7 +484,7 @@ def key_event_tab(sample_backup, stub_gui):
         pytest.skip("no sample Scene with a key Task")
 
     key_event = sceneedit_legacy.LEGACY_SCENE_EVENTS[0]
-    container = _render(stub_gui, properties, guiwins._render_scene_event, key_event, lambda: None)
+    container = _render(stub_gui, properties, guiwins_sceneprops._render_scene_event, key_event, lambda: None)
     return container, properties, pytest.importorskip("nicegui").ui
 
 
@@ -496,7 +495,6 @@ def test_the_screen_has_taskers_own_three_tabs(sample_backup, stub_gui):
     ui = pytest.importorskip("nicegui").ui
     from unittest.mock import MagicMock  # noqa: PLC0415
 
-    from maptasker.src import guiwins  # noqa: PLC0415
 
     root = sample_backup(_SYNTHETIC_BACKUP)
     scene = next(s for s in root.iter("Scene") if s.find("PropertiesElement") is not None)
@@ -508,7 +506,7 @@ def test_the_screen_has_taskers_own_three_tabs(sample_backup, stub_gui):
     original_open = ui.dialog.open
     ui.dialog.open = lambda self: opened.append(self)
     try:
-        _render(stub_gui, edited, lambda gui, target: guiwins._build_scene_properties_dialog(gui, target, {}))
+        _render(stub_gui, edited, lambda gui, target: guiwins_sceneprops._build_scene_properties_dialog(gui, target, {}))
     finally:
         ui.dialog.open = original_open
 
@@ -577,7 +575,6 @@ def test_an_event_with_no_task_says_so_and_still_offers_the_filter(sample_backup
     """Swallowing the Back key without running anything is a real thing to want, so the
     panel must not go blank just because nothing is bound.
     """
-    from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
@@ -587,7 +584,7 @@ def test_an_event_with_no_task_says_so_and_still_offers_the_filter(sample_backup
     container = _render(
         stub_gui,
         properties,
-        guiwins._render_scene_event,
+        guiwins_sceneprops._render_scene_event,
         sceneedit_legacy.LEGACY_SCENE_EVENTS[0],
         lambda: None,
     )
@@ -602,7 +599,6 @@ def test_an_event_the_scene_type_rules_out_still_shows_what_is_bound(sample_back
     the file holds is how an editor comes to disagree with the file.  It is shown with the
     reason it no longer applies.
     """
-    from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
@@ -614,7 +610,7 @@ def test_an_event_the_scene_type_rules_out_still_shows_what_is_bound(sample_back
     home_tap = sceneedit_legacy.LEGACY_SCENE_EVENTS[1]
     sceneedit_legacy.legacy_set_task_binding(properties, home_tap.tag, properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG))
 
-    container = _render(stub_gui, properties, guiwins._render_scene_event, home_tap, lambda: None)
+    container = _render(stub_gui, properties, guiwins_sceneprops._render_scene_event, home_tap, lambda: None)
 
     labels = [e.text for e in _descendants(container) if isinstance(e, ui.label)]
     assert "Available only for Activity scenes." in labels
@@ -628,7 +624,6 @@ def test_an_event_the_scene_type_rules_out_still_shows_what_is_bound(sample_back
 @pytest.fixture
 def actions_tab(sample_backup, stub_gui):
     """The Actions tab over the first sample Scene that has action bar items."""
-    from maptasker.src import guiwins  # noqa: PLC0415
 
     root = sample_backup(_SYNTHETIC_BACKUP)
     properties = _scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_ACTION_ITEM_TAG) is not None)
@@ -636,7 +631,7 @@ def actions_tab(sample_backup, stub_gui):
         pytest.skip("no sample Scene with action bar items")
     properties = copy.deepcopy(properties)
 
-    container = _render(stub_gui, properties, guiwins._render_scene_actions_tab, lambda: None)
+    container = _render(stub_gui, properties, guiwins_sceneprops._render_scene_actions_tab, lambda: None)
     return container, properties, pytest.importorskip("nicegui").ui
 
 
@@ -709,7 +704,6 @@ def test_a_scene_that_is_not_an_activity_is_told_so_but_keeps_its_items(sample_b
     """The guide says the Actions tab is Activity-only.  Items already in the file are still
     shown, or an editor would quietly drop them on the next save.
     """
-    from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
@@ -719,7 +713,7 @@ def test_a_scene_that_is_not_an_activity_is_told_so_but_keeps_its_items(sample_b
         sceneedit_legacy.LEGACY_SCENE_TYPE_DIALOG,
     )
 
-    container = _render(stub_gui, properties, guiwins._render_scene_actions_tab, lambda: None)
+    container = _render(stub_gui, properties, guiwins_sceneprops._render_scene_actions_tab, lambda: None)
 
     labels = [e.text for e in _descendants(container) if isinstance(e, ui.label)]
     assert any("Activity only" in label for label in labels)
@@ -1306,7 +1300,6 @@ def test_clicking_a_row_binds_that_task_to_the_event(key_event_tab):
     container, properties, ui = key_event_tab
     rerendered = []
     # The panel was built with a no-op rerender; rebuild it with one we can watch.
-    from maptasker.src import guiwins  # noqa: PLC0415
     from unittest.mock import MagicMock  # noqa: PLC0415
 
     gui = MagicMock()
@@ -1315,7 +1308,7 @@ def test_clicking_a_row_binds_that_task_to_the_event(key_event_tab):
     with container:
         panel = ui.column()
     with panel:
-        guiwins._render_scene_event(
+        guiwins_sceneprops._render_scene_event(
             gui,
             properties,
             sceneedit_legacy.LEGACY_SCENE_EVENTS[0],
@@ -1340,7 +1333,6 @@ def test_clicking_a_row_binds_that_task_to_the_event(key_event_tab):
 
 def test_an_anonymous_binding_is_not_offered_a_picker(sample_backup, stub_gui):
     """It cannot be pointed anywhere else without losing it, so there is nothing to pick."""
-    from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
@@ -1350,7 +1342,7 @@ def test_an_anonymous_binding_is_not_offered_a_picker(sample_backup, stub_gui):
     container = _render(
         stub_gui,
         properties,
-        guiwins._render_scene_event,
+        guiwins_sceneprops._render_scene_event,
         sceneedit_legacy.LEGACY_SCENE_EVENTS[0],
         lambda: None,
     )
@@ -1365,7 +1357,6 @@ def test_the_bound_task_is_named_even_when_its_entry_has_no_name(sample_backup, 
     """A binding must never read as "Nothing" just because the Task tables carry a blank name
     for it -- what is bound and what it is called are two different questions.
     """
-    from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
@@ -1376,7 +1367,7 @@ def test_the_bound_task_is_named_even_when_its_entry_has_no_name(sample_backup, 
     container = _render(
         stub_gui,
         properties,
-        guiwins._render_scene_event,
+        guiwins_sceneprops._render_scene_event,
         sceneedit_legacy.LEGACY_SCENE_EVENTS[0],
         lambda: None,
     )
@@ -1440,7 +1431,7 @@ def unbound_event(sample_backup, stub_gui, monkeypatch):
         return _render(
             stub_gui,
             properties,
-            guiwins._render_scene_event,
+            guiwins_sceneprops._render_scene_event,
             event,
             lambda: rerenders.append(1),
             task_state,
@@ -1587,7 +1578,6 @@ def test_an_anonymous_binding_gets_no_editor_of_either_kind(sample_backup, stub_
     """It is not in the Task tables, so there is nothing to load, nothing for an Apply to
     write into, and replacing it would destroy the only copy.
     """
-    from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
@@ -1597,7 +1587,7 @@ def test_an_anonymous_binding_gets_no_editor_of_either_kind(sample_backup, stub_
     container = _render(
         stub_gui,
         properties,
-        guiwins._render_scene_event,
+        guiwins_sceneprops._render_scene_event,
         sceneedit_legacy.LEGACY_SCENE_EVENTS[0],
         lambda: None,
     )
@@ -1735,7 +1725,7 @@ def scene_properties_dialog(sample_backup, stub_gui, monkeypatch):
         with Client(page("/")):
             container = ui.column()
             with container:
-                guiwins._build_scene_properties_dialog(stub_gui, edited, {} if field_refs is None else field_refs)
+                guiwins_sceneprops._build_scene_properties_dialog(stub_gui, edited, {} if field_refs is None else field_refs)
         return opened[-1]
 
     return open_dialog, scene, notified

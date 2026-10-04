@@ -239,7 +239,7 @@ def next_unique_task_or_profile_id(reserved: set[str] | None = None, *, state: R
 
     `reserved` is ids that are spoken for but not in the tables yet -- Tasks composed but
     not created.  The Scene Properties Event tabs can have one in progress under each of
-    their three sub-tabs at once (see guiwins._render_scene_event_new_task), and without
+    their three sub-tabs at once (see guiwins_sceneprops._render_scene_event_new_task), and without
     this they would all be handed the same id: registering the second would then overwrite
     the first in all_tasks, leaving the first event's binding silently pointing at the other
     Task's actions.

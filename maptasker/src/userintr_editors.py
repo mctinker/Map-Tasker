@@ -33,9 +33,6 @@ from maptasker.src.guiutils import (
 )
 from maptasker.src.guiwins import (
     EDIT_PROJECT_INERT_FIELDS,
-    PROJECT_REDACT_FIELD,
-    REDACT_FIELD,
-    SCENE_REDACT_FIELD,
     build_add_project_dialog,
     build_add_scene_dialog,
     build_add_scene_version_dialog,
@@ -47,6 +44,7 @@ from maptasker.src.guiwins import (
     build_overwrite_confirm_dialog,
     build_rename_dialog,
 )
+from maptasker.src.guiwins_editor import PROJECT_REDACT_FIELD, REDACT_FIELD, SCENE_REDACT_FIELD
 from maptasker.src.guiwins_profedit import (
     build_add_profile_dialog,
     build_delete_profile_dialog,
@@ -186,7 +184,7 @@ def _redact_requested(field_refs: dict, key: str = REDACT_FIELD) -> bool:
     """Whether this export's "Redact secrets" box is ticked.
 
     Read through a helper rather than off the widget, because the four Edit dialogs file
-    the box under three different keys (see guiwins.build_redact_checkbox) and because a
+    the box under three different keys (see guiwins_editor.build_redact_checkbox) and because a
     dialog that has not been given one at all -- Add Task and Add Profile, which export
     something the user has only just typed in -- must read as "no" rather than raise.
     """
@@ -998,7 +996,7 @@ class EditorEventHandlers:
         to, WITHOUT touching the loaded configuration.
 
         Called whenever the panel holding those widgets is about to be torn down -- a sub-tab
-        switch, a Property Type change, or Ok (see guiwins._build_scene_properties_dialog's
+        switch, a Property Type change, or Ok (see guiwins_sceneprops._build_scene_properties_dialog's
         flush_event_task_edits).  The copy outlives the widgets; the widgets do not survive
         the rebuild, so anything typed and not snapshotted here is gone.  Cancel does not run
         it: the copies it would write onto are the ones being thrown away.
@@ -1083,7 +1081,7 @@ class EditorEventHandlers:
         properties alone and not of the whole Scene.
 
         The geometry is separate because it is not in that element: those four boxes drive the
-        Scene dialog's own inputs (guiwins._render_scene_geometry), and a value written into
+        Scene dialog's own inputs (guiwins_sceneprops._render_scene_geometry), and a value written into
         one of those is what the save would read, so reverting the element alone would leave a
         cancelled size change still in force.
 
@@ -1111,7 +1109,7 @@ class EditorEventHandlers:
     ) -> bool:
         """Registers the Task being composed under a Scene Properties Event tab and hands
         its id to `on_created`, which is what binds it to the event -- what "Create Task"
-        does (see guiwins._render_scene_event_task_actions).
+        does (see guiwins_sceneprops._render_scene_event_task_actions).
 
         Add Task's Ok (keep_new_task_event) for a Task that has no dialog of its own: same
         validation, same registration, same pulldown refresh, and the binding takes the

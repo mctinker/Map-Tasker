@@ -57,6 +57,7 @@ from maptasker.src import (
     healthck,
     mapexport,
     mapjump,
+    timecomp,
     timeline,
     xmldiff,
 )
@@ -466,7 +467,7 @@ def _changes_since(options: argparse.Namespace, state: RunState) -> int:
         _note("There was no history yet, so this backup is now its first entry.  Run this again after the next backup.")
         return EXIT_NO_HISTORY
 
-    result = timeline.changes_since(cutoff, state=state)
+    result = timecomp.changes_since(cutoff, state=state)
     if result.problem:
         _note(result.problem)
         return EXIT_NO_HISTORY

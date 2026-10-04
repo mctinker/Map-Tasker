@@ -13,7 +13,7 @@ import ast
 import pathlib
 
 import pytest
-from maptasker.src import bildhtml, maputils, primitem, taskerd
+from maptasker.src import bildhtml, maputils, primitem, taskerd, taskertables
 from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.primitem import (
     SESSION_ATTRIBUTES,
@@ -145,7 +145,15 @@ def _is_prime_items(node: ast.AST, attribute: str | None = None) -> bool:
 
 
 def _taskerd_tree() -> ast.Module:
-    return ast.parse(pathlib.Path(taskerd.__file__).read_text(encoding="utf-8"))
+    """The code a load runs: taskerd, and taskertables, where the lookup tables it builds are written."""
+    return ast.Module(
+        body=[
+            statement
+            for module in (taskerd, taskertables)
+            for statement in ast.parse(pathlib.Path(module.__file__).read_text(encoding="utf-8")).body
+        ],
+        type_ignores=[],
+    )
 
 
 def test_every_reset_group_names_only_per_run_attributes() -> None:

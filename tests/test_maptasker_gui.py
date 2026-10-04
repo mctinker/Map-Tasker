@@ -32,7 +32,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 from maptasker.src.initparg import ProgramArguments
-from maptasker.src import clock, timeline
+from maptasker.src import clock, timecomp, timeline
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     clear_single_item_view_names,
@@ -1022,7 +1022,7 @@ async def test_the_button_refuses_with_nothing_loaded(event_handler, mock_gui_in
 @pytest.mark.asyncio
 async def test_the_chosen_period_is_what_gets_reported(event_handler, mock_gui_instance):
     """The happy path: a report, saved under its own name and displayed."""
-    result = timeline.Comparison(report="what changed", counts={"ADDED": 1, "CHANGED": 2})
+    result = timecomp.Comparison(report="what changed", counts={"ADDED": 1, "CHANGED": 2})
     writer = MagicMock(return_value="MapTasker_Timeline_01-01-2026_00-00-00.txt")
 
     with _patched_timeline(result, writer) as (io_bound, view, _notify):
@@ -1030,7 +1030,7 @@ async def test_the_chosen_period_is_what_gets_reported(event_handler, mock_gui_i
 
     # Off the event loop: expanding and re-parsing a snapshot is megabytes of work.
     io_bound.assert_awaited_once()
-    assert io_bound.await_args[0][0] is timeline.changes_since
+    assert io_bound.await_args[0][0] is timecomp.changes_since
     # A week back, not None and not today -- the cutoff actually reflects the choice.
     cutoff = io_bound.await_args[0][1]
     assert 6 < (clock.now() - cutoff).days < 8
@@ -1048,7 +1048,7 @@ async def test_every_period_the_picker_offers_reaches_the_report(event_handler, 
     Parameterized over PERIOD_LABELS rather than a hand-written list, so an option added
     to the picker without a cutoff to go with it fails here.
     """
-    result = timeline.Comparison(report="what changed", counts={"ADDED": 1})
+    result = timecomp.Comparison(report="what changed", counts={"ADDED": 1})
     chosen_date = clock.now().date() - timedelta(days=100)
     expected_days = {timeline.TODAY: 0, timeline.THIS_WEEK: 7, timeline.THIS_MONTH: 30, timeline.ON_DATE: 100}
 
@@ -1066,7 +1066,7 @@ async def test_every_period_the_picker_offers_reaches_the_report(event_handler, 
 @pytest.mark.asyncio
 async def test_the_report_explains_itself_when_there_is_no_history(event_handler, mock_gui_instance):
     """Nothing to compare against is a message, not an empty report."""
-    result = timeline.Comparison(problem="No configuration history has been recorded yet.")
+    result = timecomp.Comparison(problem="No configuration history has been recorded yet.")
 
     with _patched_timeline(result) as (_io_bound, view, _notify):
         await event_handler.report_changes_since(timeline.THIS_WEEK)
@@ -1078,7 +1078,7 @@ async def test_the_report_explains_itself_when_there_is_no_history(event_handler
 @pytest.mark.asyncio
 async def test_the_report_passes_on_a_short_history_note(event_handler, mock_gui_instance):
     """The report is still produced; the caveat about how far back it reaches is said too."""
-    result = timeline.Comparison(report="what changed", counts={"ADDED": 1}, note="does not reach back that far")
+    result = timecomp.Comparison(report="what changed", counts={"ADDED": 1}, note="does not reach back that far")
 
     with _patched_timeline(result) as (_io_bound, view, notify):
         await event_handler.report_changes_since(timeline.THIS_MONTH)
@@ -1090,7 +1090,7 @@ async def test_the_report_passes_on_a_short_history_note(event_handler, mock_gui
 @pytest.mark.asyncio
 async def test_the_report_says_so_when_nothing_changed(event_handler, mock_gui_instance):
     """A report that ran and found nothing looks identical to one that failed to run."""
-    result = timeline.Comparison(report="a header and nothing else", counts={"ADDED": 0, "CHANGED": 0})
+    result = timecomp.Comparison(report="a header and nothing else", counts={"ADDED": 0, "CHANGED": 0})
 
     with _patched_timeline(result) as (_io_bound, view, notify):
         await event_handler.report_changes_since(timeline.TODAY)
@@ -1102,7 +1102,7 @@ async def test_the_report_says_so_when_nothing_changed(event_handler, mock_gui_i
 @pytest.mark.asyncio
 async def test_the_report_still_displays_when_the_save_fails(event_handler, mock_gui_instance):
     """Same as the comparison's: a failed save is not a reason to withhold the findings."""
-    result = timeline.Comparison(report="what changed", counts={"ADDED": 1})
+    result = timecomp.Comparison(report="what changed", counts={"ADDED": 1})
 
     with _patched_timeline(result, MagicMock(return_value="")) as (_io_bound, view, _notify):
         await event_handler.report_changes_since(timeline.ALL)

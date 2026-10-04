@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
-from maptasker.src import livevars, mapjump, timeline
+from maptasker.src import livevars, mapjump, timecomp, timeline
 from maptasker.src.diffload import (
     current_configuration,
     load_for_comparison,
@@ -108,6 +108,7 @@ class ReportEventHandlers:
     # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
     # its window's.
     state: RunState
+    gui: MyGui
 
     def health_check_event(self: MapTaskerEventHandlers) -> None:
         """Ask which categories to report, then scan, display and save.
@@ -190,7 +191,7 @@ class ReportEventHandlers:
             return
         self.show_variable_xref()
 
-    def variable_xref_live_event(self: MapTaskerEventHandlers) -> None:
+    def variable_xref_live_event(self) -> None:
         """Ask which phone to read, then build the index with what its globals hold right now.
 
         The address comes first, as it does for every other Android dialog, and is kept like
@@ -259,7 +260,7 @@ class ReportEventHandlers:
                 )
         dialog.open()
 
-    def show_variable_xref(self: MapTaskerEventHandlers, live: livevars.LiveValues | None = None) -> None:
+    def show_variable_xref(self, live: livevars.LiveValues | None = None) -> None:
         """Build the index, save the report, and show it -- with the phone's values when live is given."""
         gui = self.gui
         rows, index = run_variable_xref(state=self.state, live=live)
@@ -440,7 +441,7 @@ class ReportEventHandlers:
         """
         gui = self.gui
         cutoff = timeline.cutoff_for(period, on_date=on_date)
-        result = await run.io_bound(timeline.changes_since, cutoff, state=self.state)
+        result = await run.io_bound(timecomp.changes_since, cutoff, state=self.state)
         # None, not a report: nicegui answers that when the wait is cancelled or the app is
         # stopping (see nicegui.run._run), and there is no page left to write the report to.
         if result is None:

@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
-from maptasker.src import maprefac, maprestore, timeline
+from maptasker.src import maprefac, maprestore, timecomp, timeline
 from maptasker.src.diffload import current_configuration
 from maptasker.src.maputil2 import translate_string
 
@@ -283,7 +283,7 @@ def build_restore_dialog(
 
 def _read(snapshot: timeline.Snapshot, state: RunState) -> tuple[Configuration | None, maprestore.Offer | None, str]:
     """Read one snapshot and list what it can restore.  (configuration, offer, problem)."""
-    older, problem = timeline.configuration_of(snapshot, state=state)
+    older, problem = timecomp.configuration_of(snapshot, state=state)
     if older is None:
         return None, None, problem
     return older, maprestore.candidates(older, current_configuration(state=state), state=state), ""

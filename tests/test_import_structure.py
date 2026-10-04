@@ -32,28 +32,24 @@ import pytest
 _SRC = pathlib.Path(__file__).resolve().parent.parent / "maptasker" / "src"
 
 # (importer, imported): deferred because the imported module already imports the importer,
-# directly or through others, at module level.
-_BREAKS_A_LOOP = {
-    ("guiwins_designer_legacy", "guiwins"),
-    ("guiwins_taskedit", "guiwins"),
-    ("sessundo", "taskerd"),
-    ("timeline", "diffload"),
-}
+# directly or through others, at module level.  Empty: each one that was here was removed by
+# moving the shared code down a layer -- taskertables (below taskerd and sessundo), timecomp
+# (above timeline and diffload), guiwins_editor, guiwins_sceneprops and guiwins_legacyarg
+# (below guiwins and the editors) -- rather than by deferring the import.  A new entry means a new
+# cycle; the fix is the same.
+_BREAKS_A_LOOP: set[tuple[str, str]] = set()
 
 # (importer, imported): deferred for a reason other than a loop.
 _KEPT_DEFERRED = {
-    ("mapai", "cria"): "cria installs httpx, psutil and ollama the moment it is imported.",
-    ("mapask", "cria"): "cria installs httpx, psutil and ollama the moment it is imported.",
-    ("mapjump", "maputil2"): "Kept GUI-free and off the import path; only one function needs it.",
-    ("maputil2", "presave"): "Most of the package imports maputil2, and every one of them would depend on presave.",
-    ("sessundo", "maputil2"): "Keeps sessundo out of the middle of the import graph -- see the note at the import.",
+    ("mapai", "cria"): "cria needs the optional 'ai' libraries and raises ImportError without them, so a plain install must not import it.",
+    ("mapask", "cria"): "cria needs the optional 'ai' libraries and raises ImportError without them, so a plain install must not import it.",
     ("proginit", "bldargs"): "Rebuilds the action tables from the network, only when asked; tests patch it there.",
     ("proginit", "bldbndle"): "Rebuilds the action tables from the backup, only when asked; tests patch it there.",
     ("proginit", "valcodes"): "Checks the codes against the network, only when asked; tests patch it there.",
     ("rungui", "userintr"): "Loads the GUI modules when the GUI starts: at startup, diagram's import-time default is discarded.",
 }
 
-_LARGEST_LOOP = 4
+_LARGEST_LOOP = 0
 
 
 def _import_graphs() -> tuple[dict[str, set[str]], dict[tuple[str, str], list[int]]]:

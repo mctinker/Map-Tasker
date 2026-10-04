@@ -151,21 +151,23 @@
     "reportReturnType": 2
   },
   "maptasker/src/guiwins.py": {
-    "reportArgumentType": 22,
+    "reportArgumentType": 18,
     "reportAttributeAccessIssue": 192,
-    "reportGeneralTypeIssues": 2,
-    "reportIndexIssue": 2,
     "reportOptionalMemberAccess": 1
   },
   "maptasker/src/guiwins2.py": {
     "reportAttributeAccessIssue": 5
   },
   "maptasker/src/guiwins_designer_legacy.py": {
-    "reportArgumentType": 19,
-    "reportAttributeAccessIssue": 10
+    "reportArgumentType": 15,
+    "reportAttributeAccessIssue": 7
   },
   "maptasker/src/guiwins_designer_v2.py": {
     "reportArgumentType": 10
+  },
+  "maptasker/src/guiwins_legacyarg.py": {
+    "reportArgumentType": 4,
+    "reportAttributeAccessIssue": 3
   },
   "maptasker/src/guiwins_nav.py": {
     "reportArgumentType": 1,
@@ -176,6 +178,11 @@
   },
   "maptasker/src/guiwins_restore.py": {
     "reportArgumentType": 1
+  },
+  "maptasker/src/guiwins_sceneprops.py": {
+    "reportArgumentType": 4,
+    "reportGeneralTypeIssues": 2,
+    "reportIndexIssue": 2
   },
   "maptasker/src/guiwins_search.py": {
     "reportAttributeAccessIssue": 1,
@@ -207,7 +214,6 @@
     "reportOptionalMemberAccess": 3
   },
   "maptasker/src/mapai.py": {
-    "reportArgumentType": 1,
     "reportAttributeAccessIssue": 13,
     "reportGeneralTypeIssues": 1,
     "reportOptionalMemberAccess": 1
@@ -379,10 +385,13 @@
     "reportOptionalSubscript": 1
   },
   "maptasker/src/taskerd.py": {
+    "reportAttributeAccessIssue": 3,
+    "reportReturnType": 4
+  },
+  "maptasker/src/taskertables.py": {
     "reportArgumentType": 1,
     "reportAssignmentType": 1,
-    "reportAttributeAccessIssue": 8,
-    "reportReturnType": 4
+    "reportAttributeAccessIssue": 5
   },
   "maptasker/src/tasks.py": {
     "reportArgumentType": 2,
@@ -393,11 +402,10 @@
     "reportAttributeAccessIssue": 13
   },
   "maptasker/src/timeline.py": {
-    "reportArgumentType": 2,
-    "reportCallIssue": 2,
-    "reportGeneralTypeIssues": 2,
-    "reportInvalidTypeForm": 2,
-    "reportReturnType": 2
+    "reportArgumentType": 1,
+    "reportCallIssue": 1,
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
   },
   "maptasker/src/translator.py": {
     "reportAttributeAccessIssue": 2

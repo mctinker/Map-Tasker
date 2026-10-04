@@ -19,7 +19,7 @@ apply_properties writes onto whatever element it is handed:
     working copy -- apply_edited_task_to_live_tree swaps the whole element into
     all_tasks, and render_standalone_task_xml deep-copies it -- so a property written
     there reaches the live tree, the export and the upload alike.  Cancel on the
-    parent dialog still discards it, and guiwins.editor_state hashes
+    parent dialog still discards it, and guiwins_editor.editor_state hashes
     ETW.tostring(element), so "Changes Pending" lights up with no extra wiring.
 
   * Project -- hand it the working copy too, then mirror it onto the LIVE element with

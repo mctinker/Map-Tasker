@@ -1069,7 +1069,7 @@ def legacy_properties_snapshot(
 
     THE PROPERTIES ALONE, not the whole Scene the way legacy_snapshot takes it, because that
     is all the Properties dialog writes to: its geometry boxes drive the Scene dialog's own
-    inputs rather than the element (see guiwins._render_scene_geometry), and everything else
+    inputs rather than the element (see guiwins_sceneprops._render_scene_geometry), and everything else
     it touches -- the eight arguments, the action bar items, the key filter, the three event
     bindings -- is inside this one child.  Snapshotting the whole Scene would make its Cancel
     throw away whatever the designer behind it had done before it was opened, which is the

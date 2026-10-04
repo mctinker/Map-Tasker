@@ -26,6 +26,9 @@ import uuid
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+from urllib.parse import quote
+
+import defusedxml.ElementTree as DefusedET
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -1353,8 +1356,6 @@ def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, 
     Returns True only on a successful GET that lists at least one Profile of that name; a
     request that failed is False, i.e. 'not confirmed', never 'confirmed absent'.
     """
-    from urllib.parse import quote  # noqa: PLC0415
-
     return_code, response = http_request(
         ip_address.strip(),
         ip_port.strip(),
@@ -2219,8 +2220,6 @@ def verify_names_on_android(
     None is not an empty set.  'Could not ask' and 'none of them are there' lead to opposite
     conclusions everywhere this is used.
     """
-    from urllib.parse import quote  # noqa: PLC0415
-
     names = [name.strip() for name in names if name and name.strip()]
     if not names:
         return set()
@@ -3204,8 +3203,6 @@ def names_in_export(xml: str | bytes) -> dict[str, list[str]]:
 
 def _parse_tasker_xml(xml: str | bytes) -> Element | None:
     """A TaskerData document's root, or None if it does not parse."""
-    import defusedxml.ElementTree as DefusedET  # noqa: PLC0415
-
     try:
         return DefusedET.fromstring(xml)
     except DefusedET.ParseError:

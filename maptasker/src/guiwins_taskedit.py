@@ -9,9 +9,8 @@ The Profile editor reuses the argument fields here (a Profile's state and event 
 are built out of the same <Arg> shapes an Action is), so guiwins_profedit imports from this
 module; nothing here imports from there.
 
-Its three calls back into guiwins -- editor_state, PendingChangesBanner and the Properties
-button -- are made inside the functions that need them, because guiwins imports this module
-at the top of its own file and a module-level import here would close the loop.
+The editor scaffolding it shares with the other Edit dialogs -- editor_state, PendingChangesBanner
+and the Properties button -- comes from guiwins_editor.
 """
 
 from __future__ import annotations
@@ -26,6 +25,12 @@ from maptasker.src.guiutils import (
     android_address_defaults,
     remember_android_address,
     remember_android_address_fields,
+)
+from maptasker.src.guiwins_editor import (
+    PendingChangesBanner,
+    _build_properties_button,
+    build_redact_checkbox,
+    editor_state,
 )
 from maptasker.src.guiwins_impact import build_impact_panel
 from maptasker.src.mapjump import TASK
@@ -1400,15 +1405,6 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
     per Task. Field widgets are kept in a plain dict (matching this file's existing
     ad-hoc widget-ref pattern) and read at Save time rather than using NiceGUI bindings.
     """
-    # Imported here rather than at the top of the file: guiwins imports this module, so a
-    # module-level import would be a cycle.  See this module's docstring.
-    from maptasker.src.guiwins import (  # noqa: PLC0415
-        PendingChangesBanner,
-        _build_properties_button,
-        build_redact_checkbox,
-        editor_state,
-    )
-
     task_name = edited_task.task_element.findtext("nme", "")
     field_refs: dict = {}
 
@@ -1631,10 +1627,6 @@ def build_add_task_dialog(
     registered. Left "" for open_add_task_for_profile_link_event's nested
     dialog, which doesn't attach to a Project at all.
     """
-    # Imported here rather than at the top of the file: guiwins imports this module, so a
-    # module-level import would be a cycle.  See this module's docstring.
-    from maptasker.src.guiwins import _build_properties_button  # noqa: PLC0415
-
     field_refs: dict = {"target_project_name": target_project_name}
     category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions(state=self.state)})
     # Same out-of-band Position-label -> act_number map as build_edit_task_dialog's.

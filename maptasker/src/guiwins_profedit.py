@@ -5,10 +5,8 @@ bulk of it -- a Profile's contexts (Application, Day, Time, State, Event, Locati
 their own panel, and the ones that carry arguments render them through the Task editor's own
 argument fields, which is why this module imports from guiwins_taskedit.
 
-Its four calls back into guiwins -- editor_state, PendingChangesBanner, the Properties button
-and the shared Save To Android fields -- are made inside the functions that need them, for
-the same reason as guiwins_taskedit: guiwins imports the split-out modules at the top of its
-own file.
+The editor scaffolding it shares with the other Edit dialogs -- editor_state, PendingChangesBanner
+and the Properties button -- comes from guiwins_editor.
 """
 
 from __future__ import annotations
@@ -18,9 +16,9 @@ from typing import TYPE_CHECKING
 from nicegui import ui
 
 from maptasker.src import objprops, profedit
-from maptasker.src.guiwins import (
+from maptasker.src.guiwins import _android_device_fields
+from maptasker.src.guiwins_editor import (
     PendingChangesBanner,
-    _android_device_fields,
     _build_properties_button,
     build_redact_checkbox,
     editor_state,
@@ -557,7 +555,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
         # the working copy's element as they happen; every condition's own fields wait in
         # field_refs until a save reads them, as does whatever is sitting picked but not yet
         # linked in an Entry/Exit Task picker (see userintr_editors._link_pending_task_pickers) --
-        # which is a pending change too, since a save would apply it.  See guiwins.editor_state.
+        # which is a pending change too, since a save would apply it.  See guiwins_editor.editor_state.
         pending_changes = PendingChangesBanner()
         pending_changes.watch(dialog, lambda: editor_state(edited_profile.profile_element, field_refs))
 
