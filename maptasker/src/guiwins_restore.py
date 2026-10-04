@@ -37,11 +37,11 @@ from nicegui import run, ui
 from maptasker.src import maprefac, maprestore, timeline
 from maptasker.src.diffload import current_configuration
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.xmldiff import Configuration
 
 # How many rows are drawn.  Every row is a button and a link, and a history compared against
@@ -101,6 +101,7 @@ def build_restore_dialog(
     make_jump: Callable,
     rebuild_after_apply: Callable[[], Coroutine],
     save_configuration: Callable[[], bool],
+    state: RunState,
 ) -> ui.dialog | None:
     """Build and return the Restore From History dialog, or None if there is nothing to restore from.
 
@@ -109,7 +110,7 @@ def build_restore_dialog(
     to write the configuration to a file -- for guiwins_fix's reason: this module is reached
     FROM guiwins, and reaching back into it would be a circular import.
     """
-    if not PrimeItems.tasker_root_elements.get("all_tasks"):
+    if not state.tasker_root_elements.get("all_tasks"):
         ui.notify(translate_string("No XML file has been loaded.  Get an XML file first."), type="warning")
         return None
 
@@ -170,7 +171,7 @@ def build_restore_dialog(
             """
             if held.older is None or held.snapshot is None:
                 return
-            plan = maprestore.plan_restore(candidate, held.older, held.snapshot.described(), state=PrimeItems)
+            plan = maprestore.plan_restore(candidate, held.older, held.snapshot.described(), state=state)
             held.plan = plan
             held.previewed = candidate
             preview_heading.set_text(translate_string("Preview -- nothing has changed yet"))
@@ -197,7 +198,7 @@ def build_restore_dialog(
             list_area.clear()
             left_out.clear()
             try:
-                result = await run.io_bound(_read, held.snapshot)
+                result = await run.io_bound(_read, held.snapshot, state=state)
             finally:
                 held.busy = False
             # None from nicegui means the wait was cancelled or the app is stopping.
@@ -218,7 +219,7 @@ def build_restore_dialog(
                 return
             clear_preview()
             offer = await run.io_bound(
-                maprestore.candidates, held.older, current_configuration(state=PrimeItems), state=PrimeItems
+                maprestore.candidates, held.older, current_configuration(state=state), state=state
             )
             if offer is None:
                 return
@@ -280,12 +281,12 @@ def build_restore_dialog(
     return dialog
 
 
-def _read(snapshot: timeline.Snapshot) -> tuple[Configuration | None, maprestore.Offer | None, str]:
+def _read(snapshot: timeline.Snapshot, state: RunState) -> tuple[Configuration | None, maprestore.Offer | None, str]:
     """Read one snapshot and list what it can restore.  (configuration, offer, problem)."""
-    older, problem = timeline.configuration_of(snapshot)
+    older, problem = timeline.configuration_of(snapshot, state=state)
     if older is None:
         return None, None, problem
-    return older, maprestore.candidates(older, current_configuration(state=PrimeItems), state=PrimeItems), ""
+    return older, maprestore.candidates(older, current_configuration(state=state), state=state), ""
 
 
 # ##################################################################################

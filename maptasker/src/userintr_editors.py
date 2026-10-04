@@ -61,7 +61,6 @@ from maptasker.src.guiwins_taskedit import (
 from maptasker.src.guiwins_views import NiceGuiSceneView, suspend_scene_editor_session, suspended_scene_editor
 from maptasker.src.maputil2 import translate_string, write_full_backup_to_current_file
 from maptasker.src.maputils import find_owning_project, find_owning_project_for_scene, find_owning_project_for_task
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.translator import T
@@ -438,7 +437,7 @@ def reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool,
     return True, ""
 
 
-def _apply_edited_task(edited_task: taskedit.EditableTask, field_refs: dict) -> bool:
+def _apply_edited_task(edited_task: taskedit.EditableTask, field_refs: dict, state: RunState) -> bool:
     """Validates and applies an existing Task's field values into the live
     in-memory backup -- the shared body of keep_edited_task_event ("Ok") and
     save_edited_task_to_current_file_event ("Save To Current File"), which
@@ -456,13 +455,14 @@ def _apply_edited_task(edited_task: taskedit.EditableTask, field_refs: dict) -> 
         for error in errors:
             ui.notify(error, type="negative")
         return False
-    taskedit.apply_edited_task_to_live_tree(edited_task, state=PrimeItems)
+    taskedit.apply_edited_task_to_live_tree(edited_task, state=state)
     return True
 
 
 def _validate_and_apply_new_task(
     edited_task: taskedit.EditableTask,
     field_refs: dict,
+    state: RunState,
     *,
     check_save_path: bool = False,
 ) -> tuple[bool, str]:
@@ -478,7 +478,7 @@ def _validate_and_apply_new_task(
 
     name_value = field_refs["name"].value.strip()
     conflict_errors = []
-    if taskedit.task_name_exists(name_value, state=PrimeItems):
+    if taskedit.task_name_exists(name_value, state=state):
         conflict_errors.append(f"A Task named '{name_value}' already exists in this backup. Choose a different name.")
     if check_save_path:
         save_path = field_refs["save_path"].value.strip()
@@ -554,7 +554,7 @@ def _profile_condition_values(field_refs: dict) -> dict[str, str]:
     return condition_values
 
 
-def _link_pending_task_pickers(edited_profile: profedit.EditableProfile, field_refs: dict) -> None:
+def _link_pending_task_pickers(edited_profile: profedit.EditableProfile, field_refs: dict, state: RunState) -> None:
     """Links in whatever's currently picked in the Entry/Exit "Choose a Task"
     dropdown even if the user never clicked its separate "Link" button --
     picking a Task in that dropdown reads as "done" to a user, so Save/Ok/
@@ -568,33 +568,34 @@ def _link_pending_task_pickers(edited_profile: profedit.EditableProfile, field_r
         picker = field_refs.get(f"{link_type.lower()}_task_picker")
         if picker is None or not picker.value:
             continue
-        resolved = taskedit.resolve_task_by_name(picker.value, state=PrimeItems)
+        resolved = taskedit.resolve_task_by_name(picker.value, state=state)
         if resolved is not None:
             task_id, _ = resolved
             profedit.link_task_to_profile(edited_profile, task_id, link_type)
 
 
-def _apply_edited_profile(edited_profile: profedit.EditableProfile, field_refs: dict) -> bool:
+def _apply_edited_profile(edited_profile: profedit.EditableProfile, field_refs: dict, state: RunState) -> bool:
     """Validates and applies an existing Profile's field values into the live
     in-memory backup -- the shared body of keep_edited_profile_event ("Ok")
     and save_edited_profile_to_current_file_event ("Save To Current File"),
     which differ only in what happens after this succeeds. Any error is
     already notified to the user; returns False so the caller knows to stop there.
     """
-    _link_pending_task_pickers(edited_profile, field_refs)
+    _link_pending_task_pickers(edited_profile, field_refs, state=state)
     condition_values = _profile_condition_values(field_refs)
     errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
     if errors:
         for error in errors:
             ui.notify(error, type="negative")
         return False
-    profedit.apply_edited_profile_to_live_tree(edited_profile, state=PrimeItems)
+    profedit.apply_edited_profile_to_live_tree(edited_profile, state=state)
     return True
 
 
 def _validate_and_apply_new_profile(
     edited_profile: profedit.EditableProfile,
     field_refs: dict,
+    state: RunState,
     *,
     check_save_path: bool = False,
 ) -> tuple[bool, str, str]:
@@ -606,13 +607,13 @@ def _validate_and_apply_new_profile(
     (True, name_value, project_name) on success, or (False, "", "") if
     anything failed (errors already notified).
     """
-    _link_pending_task_pickers(edited_profile, field_refs)
+    _link_pending_task_pickers(edited_profile, field_refs, state=state)
 
     name_value = field_refs["name"].value.strip()
     project_name = field_refs.get("target_project_name", "")
 
     conflict_errors = []
-    if profedit.profile_name_exists(name_value, state=PrimeItems):
+    if profedit.profile_name_exists(name_value, state=state):
         conflict_errors.append(
             f"A Profile named '{name_value}' already exists in this backup. Choose a different name.",
         )
@@ -1120,7 +1121,7 @@ class EditorEventHandlers:
         Returns True if the Task now exists; False leaves the panel alone with the errors
         already notified, so nothing typed is lost.
         """
-        applied, name_value = _validate_and_apply_new_task(edited_task, field_refs)
+        applied, name_value = _validate_and_apply_new_task(edited_task, field_refs, state=self.state)
         if not applied:
             return False
         _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
@@ -1164,7 +1165,7 @@ class EditorEventHandlers:
         backs the "Ok" button, which keeps the edit for this session only. Dialog
         stays open on any error so the user's in-progress edits aren't lost.
         """
-        if not _apply_edited_task(edited_task, field_refs):
+        if not _apply_edited_task(edited_task, field_refs, state=self.state):
             return
         ui.notify(translate_string("Changes kept."), type="positive")
         dialog.close()
@@ -1190,7 +1191,7 @@ class EditorEventHandlers:
         whatever name was actually applied, after the reload, the same way the
         Rename button does (see _select_renamed_item).
         """
-        if not _apply_edited_task(edited_task, field_refs):
+        if not _apply_edited_task(edited_task, field_refs, state=self.state):
             return
         success, result = write_full_backup_to_current_file()
         if not success:
@@ -2268,7 +2269,7 @@ class EditorEventHandlers:
         the edited Profile out as a standalone .prf.xml file. Dialog stays open on
         any error so the user's in-progress edits aren't lost.
         """
-        _link_pending_task_pickers(edited_profile, field_refs)
+        _link_pending_task_pickers(edited_profile, field_refs, state=self.state)
         condition_values = _profile_condition_values(field_refs)
 
         errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
@@ -2316,7 +2317,7 @@ class EditorEventHandlers:
         dialog -- backs the "Ok" button, which keeps the edit for this session
         only. Dialog stays open on any error so the user's in-progress edits aren't lost.
         """
-        if not _apply_edited_profile(edited_profile, field_refs):
+        if not _apply_edited_profile(edited_profile, field_refs, state=self.state):
             return
         ui.notify(translate_string("Changes kept."), type="positive")
         dialog.close()
@@ -2340,7 +2341,7 @@ class EditorEventHandlers:
         the reload -- same reasoning as
         save_edited_task_to_current_file_event's.
         """
-        if not _apply_edited_profile(edited_profile, field_refs):
+        if not _apply_edited_profile(edited_profile, field_refs, state=self.state):
             return
         success, result = write_full_backup_to_current_file()
         if not success:
@@ -2366,7 +2367,9 @@ class EditorEventHandlers:
         save_new_task_event exactly. Dialog stays open on any error so the user's
         in-progress work isn't lost.
         """
-        ok, name_value, project_name = _validate_and_apply_new_profile(edited_profile, field_refs, check_save_path=True)
+        ok, name_value, project_name = _validate_and_apply_new_profile(
+            edited_profile, field_refs, check_save_path=True, state=self.state
+        )
         if not ok:
             return
 
@@ -2402,7 +2405,7 @@ class EditorEventHandlers:
         profedit.add_profile_to_project) but not the save path, since no file
         is written.
         """
-        ok, name_value, project_name = _validate_and_apply_new_profile(edited_profile, field_refs)
+        ok, name_value, project_name = _validate_and_apply_new_profile(edited_profile, field_refs, state=self.state)
         if not ok:
             return
 
@@ -2434,7 +2437,7 @@ class EditorEventHandlers:
         failed disk write is reported but doesn't undo the registration
         already done (same as Ok, which never touches disk at all).
         """
-        ok, name_value, project_name = _validate_and_apply_new_profile(edited_profile, field_refs)
+        ok, name_value, project_name = _validate_and_apply_new_profile(edited_profile, field_refs, state=self.state)
         if not ok:
             return
 
@@ -2685,7 +2688,7 @@ class EditorEventHandlers:
         on_created, if given, is called with the new Task's id once it's
         registered -- see build_add_task_dialog's on_task_created.
         """
-        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs, check_save_path=True)
+        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs, check_save_path=True, state=self.state)
         if not ok:
             return
 
@@ -2723,7 +2726,7 @@ class EditorEventHandlers:
         on_created, if given, is called with the new Task's id once it's
         registered -- see build_add_task_dialog's on_task_created.
         """
-        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs)
+        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs, state=self.state)
         if not ok:
             return
 
@@ -2754,7 +2757,7 @@ class EditorEventHandlers:
         failed disk write is reported but doesn't undo the registration
         already done (same as Ok, which never touches disk at all).
         """
-        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs)
+        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs, state=self.state)
         if not ok:
             return
 

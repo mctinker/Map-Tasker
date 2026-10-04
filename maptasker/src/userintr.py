@@ -1813,7 +1813,7 @@ class MapTaskerEventHandlers(
             """
             refresh_tasker_object_pulldowns(self.gui)
 
-        dialog = build_refactor_dialog("", make_jump, refresh_after_apply)
+        dialog = build_refactor_dialog("", make_jump, refresh_after_apply, state=self.state)
         if dialog is None:
             return
         self.gui.refactor_dialog = dialog
@@ -1861,7 +1861,7 @@ class MapTaskerEventHandlers(
             """
             refresh_tasker_object_pulldowns(self.gui)
 
-        dialog = build_fix_dialog("", make_jump, refresh_after_apply, self.save_whole_configuration)
+        dialog = build_fix_dialog("", make_jump, refresh_after_apply, self.save_whole_configuration, state=self.state)
         if dialog is None:
             return
         self.gui.fix_dialog = dialog
@@ -1944,7 +1944,7 @@ class MapTaskerEventHandlers(
             """The pulldowns: a restore adds whole objects, so an option list built before one is short."""
             refresh_tasker_object_pulldowns(self.gui)
 
-        dialog = build_restore_dialog(make_jump, refresh_after_apply, self.save_whole_configuration)
+        dialog = build_restore_dialog(make_jump, refresh_after_apply, self.save_whole_configuration, state=self.state)
         if dialog is None:
             return
         self.gui.restore_dialog = dialog
@@ -1972,7 +1972,7 @@ class MapTaskerEventHandlers(
 
             return go
 
-        dialog = build_firesim_dialog(make_jump)
+        dialog = build_firesim_dialog(make_jump, state=self.state)
         if dialog is None:
             return
         self.gui.firesim_dialog = dialog
@@ -2022,7 +2022,7 @@ class MapTaskerEventHandlers(
         if the step removed it, refresh_tasker_object_pulldowns drops it from the options
         the same way a file load does.
         """
-        succeeded, message = sessundo.redo() if forwards else sessundo.undo()
+        succeeded, message = sessundo.redo(state=self.state) if forwards else sessundo.undo(state=self.state)
         if not succeeded:
             ui.notify(message, type="warning")
             return

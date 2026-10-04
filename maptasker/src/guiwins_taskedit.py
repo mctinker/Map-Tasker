@@ -30,11 +30,11 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins_impact import build_impact_panel
 from maptasker.src.mapjump import TASK
 from maptasker.src.maputil2 import tasker_name_matchable, translate_string
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MyGui
 
 
@@ -94,6 +94,7 @@ def _render_task_name_field(
     arg: taskedit.EditableArg,
     key: str,
     field_refs: dict,
+    state: RunState,
 ) -> None:
     """Renders the 'Perform Task' action's Name field: an ordinary text input
     the user can key any string into, plus a companion "Pick a Task" dropdown
@@ -111,7 +112,7 @@ def _render_task_name_field(
     """
     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
 
-    task_names = taskedit.get_all_task_names(state=PrimeItems)
+    task_names = taskedit.get_all_task_names(state=state)
     if not task_names:
         return
 
@@ -852,7 +853,9 @@ def _render_inventory_fetch(gui: MyGui, reason: str, on_fetched: Callable[[], No
     _render_fetch_apps_button(fetch, for_icons=for_icons)
 
 
-def _after_inventory_fetch(redraw: Callable[[], None], action: taskedit.EditableAction) -> Callable[[], None]:
+def _after_inventory_fetch(
+    redraw: Callable[[], None], action: taskedit.EditableAction, state: RunState
+) -> Callable[[], None]:
     """What to do once a fetch has filled the inventory: re-ask this action's arguments
     what kind of widget they are, and then draw them again.
 
@@ -863,7 +866,7 @@ def _after_inventory_fetch(redraw: Callable[[], None], action: taskedit.Editable
     """
 
     def refresh() -> None:
-        taskedit.reclassify_action_args(action, state=PrimeItems)
+        taskedit.reclassify_action_args(action, state=state)
         redraw()
 
     return refresh
@@ -872,11 +875,12 @@ def _after_inventory_fetch(redraw: Callable[[], None], action: taskedit.Editable
 def _after_condition_fetch(
     redraw: Callable[[], None],
     condition: profedit.EditableCondition,
+    state: RunState,
 ) -> Callable[[], None]:
     """_after_inventory_fetch's counterpart for a Profile State/Event condition's arguments."""
 
     def refresh() -> None:
-        profedit.reclassify_condition_args(condition, state=PrimeItems)
+        profedit.reclassify_condition_args(condition, state=state)
         redraw()
 
     return refresh
@@ -1352,7 +1356,7 @@ def _build_task_action_editor(
                                     "flex-1",
                                 )
                             elif taskedit.is_perform_task_name_arg(action.code, arg):
-                                _render_task_name_field(self, action, arg, key, field_refs)
+                                _render_task_name_field(self, action, arg, key, field_refs, state=self.state)
                             elif arg.widget_kind == "app_picker":
                                 _render_app_arg_field(self, arg, key, field_refs)
                             elif arg.widget_kind == "icon_picker":
@@ -1363,7 +1367,7 @@ def _build_task_action_editor(
                                     _render_readonly_note(
                                         self,
                                         arg.readonly_note,
-                                        _after_inventory_fetch(render_actions, action),
+                                        _after_inventory_fetch(render_actions, action, state=self.state),
                                     )
                             else:  # readonly
                                 ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
@@ -1371,7 +1375,7 @@ def _build_task_action_editor(
                                     _render_readonly_note(
                                         self,
                                         arg.readonly_note,
-                                        _after_inventory_fetch(render_actions, action),
+                                        _after_inventory_fetch(render_actions, action, state=self.state),
                                     )
 
     refresh_picker()
@@ -1738,7 +1742,7 @@ def build_add_task_dialog(
                                         label=arg.arg_name,
                                     ).classes("flex-1")
                                 elif taskedit.is_perform_task_name_arg(action.code, arg):
-                                    _render_task_name_field(self, action, arg, key, field_refs)
+                                    _render_task_name_field(self, action, arg, key, field_refs, state=self.state)
                                 elif arg.widget_kind == "app_picker":
                                     _render_app_arg_field(self, arg, key, field_refs)
                                 elif arg.widget_kind == "icon_picker":
@@ -1754,7 +1758,7 @@ def build_add_task_dialog(
                                         _render_readonly_note(
                                             self,
                                             arg.readonly_note,
-                                            _after_inventory_fetch(render_added_actions, action),
+                                            _after_inventory_fetch(render_added_actions, action, state=self.state),
                                         )
                                 else:  # "text" or "raw_fallback"
                                     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")

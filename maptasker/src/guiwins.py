@@ -98,7 +98,6 @@ from maptasker.src.guiwins_views import (
 from maptasker.src.mapjump import PROJECT, SCENE
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.outdir import default_output_directory
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DIAGRAM_PROFILES_PER_LINE,
     NOTIFY_TIMEOUT_DEFAULT,
@@ -2203,7 +2202,7 @@ def _render_scene_event(
             )
 
     if not anonymous:
-        _render_task_picker(set_binding)
+        _render_task_picker(set_binding, state=self.state)
 
     if event.tag == sceneedit_legacy.LEGACY_KEY_TASK_TAG:
         _render_scene_key_filter(properties)
@@ -2221,7 +2220,7 @@ def _render_scene_event(
     )
 
 
-def _render_task_picker(on_pick: Callable[[str], None]) -> None:
+def _render_task_picker(on_pick: Callable[[str], None], state: RunState) -> None:
     """ "Pick a Task", built the way "Add an action" is: a search box, a filter, and a
     scrolling list of one clickable row per match.
 
@@ -2242,7 +2241,7 @@ def _render_task_picker(on_pick: Callable[[str], None]) -> None:
     sceneedit_legacy.legacy_task_id_for_name and every other Task-by-name path in this app take, and
     resolving it at the callback keeps this function ignorant of what the caller does with it.
     """
-    rows = taskedit.list_pickable_tasks(state=PrimeItems)
+    rows = taskedit.list_pickable_tasks(state=state)
     projects = sorted({row["project_name"] for row in rows})
 
     ui.label(translate_string("Pick a Task")).classes("text-sm font-bold mt-2")
@@ -2259,7 +2258,7 @@ def _render_task_picker(on_pick: Callable[[str], None]) -> None:
 
     def refresh_picker(_event: ui.event | None = None) -> None:
         picker_container.clear()
-        matches = taskedit.search_pickable_tasks(search_input.value, project_select.value, state=PrimeItems)
+        matches = taskedit.search_pickable_tasks(search_input.value, project_select.value, state=state)
         with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
             if not matches:
                 ui.label(translate_string("No Task matches.")).classes("text-xs text-gray-500 italic")
@@ -2533,6 +2532,8 @@ def _build_scene_editor_body(
     edited_scene: sceneedit.EditableScene,
     field_refs: dict,
     dialog: ui.dialog | None = None,
+    *,
+    state: RunState,
 ) -> None:
     """Renders the editable body shared by the Add Scene and Edit Scene dialogs --
     the Scene sibling of _build_profile_editor_body/the Task dialog's action list.
@@ -2628,7 +2629,7 @@ def _build_scene_editor_body(
                 translate_string("This Scene's Version 2 layout could not be read, and will be left exactly as it is."),
             ).classes("text-sm text-orange-600 mt-2")
             return
-        _build_v2_designer(edited_scene, field_refs, layout)
+        _build_v2_designer(edited_scene, field_refs, layout, state=state)
         return
 
     with ui.row().classes("w-full gap-2 mt-2"):
@@ -2785,7 +2786,7 @@ def build_add_scene_dialog(
 
         field_refs["name"] = ui.input(translate_string("Scene Name"), value="").classes("w-full")
 
-        _build_scene_editor_body(self, edited_scene, field_refs, dialog)
+        _build_scene_editor_body(self, edited_scene, field_refs, dialog, state=self.state)
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
@@ -2854,7 +2855,7 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
             ui.input(translate_string("Scene Name"), value=scene_name).props("readonly").classes("w-full")
         )
 
-        _build_scene_editor_body(self, edited_scene, field_refs, dialog)
+        _build_scene_editor_body(self, edited_scene, field_refs, dialog, state=self.state)
 
         field_refs["scene_save_path"] = ui.input(
             translate_string("Save as"),
@@ -3847,7 +3848,7 @@ def set_document_language_js(lang_code: str) -> str:
     )
 
 
-def inject_shared_head_styles() -> None:
+def inject_shared_head_styles(state: RunState) -> None:
     """Links the stylesheet and script shared by every page of the app (maptasker/assets/css and
     maptasker/assets/js: scrollbar theming, light-mode overrides, Map/Diagram/Tree table layout,
     the Diagram view's click-to-highlight connector styling, and the Scene canvas's handlers),
@@ -3862,7 +3863,7 @@ def inject_shared_head_styles() -> None:
     # Every page needs this for the same reason it needs the CSS below: each @ui.page is its
     # own document, so a popped-out Map/Diagram window would otherwise be left for the
     # browser to sniff and translate on its own.
-    ui.add_head_html(document_language_html(state=PrimeItems))
+    ui.add_head_html(document_language_html(state=state))
 
     ui.add_head_html(webassets.head_html())
 
@@ -3871,7 +3872,7 @@ def initialize_screen(self: MyGui) -> None:
     """Initializes the main GUI screen layout using NiceGUI with split sidebars."""
     logger.info("Building UI Layout...")
 
-    inject_shared_head_styles()
+    inject_shared_head_styles(state=self.state)
     # Before anything can notify: the wrapper has to be in place for the first message, and
     # start-up is capable of producing several (see restore_settings_event's running report).
     install_notification_timeout()

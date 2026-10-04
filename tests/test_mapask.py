@@ -221,12 +221,12 @@ def test_the_provider_is_named_or_looked_up(ai: dict, ai_name: str, ai_model: st
 
 def test_settings_carry_the_providers_key(ai: dict) -> None:
     """A cloud model is asked with its own provider's key; a local one with none."""
-    assert mapask.model_settings("Anthropic", "claude-sonnet-5") == mapask.ModelSettings(
+    assert mapask.model_settings("Anthropic", "claude-sonnet-5", state=PrimeItems) == mapask.ModelSettings(
         mapask.ANTHROPIC,
         "claude-sonnet-5",
         "sk-ant-test",
     )
-    assert mapask.model_settings("LLAMA", "llama3.2 (installed)") == mapask.ModelSettings(mapask.LLAMA, "llama3.2")
+    assert mapask.model_settings("LLAMA", "llama3.2 (installed)", state=PrimeItems) == mapask.ModelSettings(mapask.LLAMA, "llama3.2")
 
 
 @pytest.mark.parametrize(
@@ -241,7 +241,7 @@ def test_settings_carry_the_providers_key(ai: dict) -> None:
 def test_missing_settings_are_said_before_anything_is_sent(ai: dict, ai_name: str, ai_model: str, says: str) -> None:
     """Each gap on the Analyze tab is named, so the user knows where to go and fix it."""
     with pytest.raises(mapask.AskError, match=says):
-        mapask.model_settings(ai_name, ai_model)
+        mapask.model_settings(ai_name, ai_model, state=PrimeItems)
 
 
 @pytest.mark.asyncio

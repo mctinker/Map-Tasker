@@ -27,11 +27,12 @@ from maptasker.src.guiwins_canvas import (
     _v2_selection_props,
 )
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import V2_MATERIAL_PALETTE
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from maptasker.src.primitem import RunState
 
 
 def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str], None]) -> None:
@@ -192,6 +193,8 @@ def _build_show_when_dialog(
     field: ui.input,
     groups: list[tuple[str, list[sceneedit_v2.V2ShowWhenChoice]]] | None = None,
     title: str = "Insert into Show When",
+    *,
+    state: RunState,
 ) -> None:
     """The Show When picker: choose variables to build the condition out of, from the three
     categories in sceneedit_v2.v2_show_when_choices -- the Screen Builder's own environment
@@ -207,7 +210,7 @@ def _build_show_when_dialog(
     insert, search and caret handling over a shorter list (no operators -- see
     sceneedit_v2.v2_dynamic_variable_choices), under its own heading.
     """
-    groups = sceneedit_v2.v2_show_when_choices(state=PrimeItems) if groups is None else groups
+    groups = sceneedit_v2.v2_show_when_choices(state=state) if groups is None else groups
     search = {"text": ""}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[620px] max-w-[740px] p-6"):
@@ -345,7 +348,7 @@ _V2_CATEGORY_ICONS: dict[str, str] = {
 }
 
 
-def _variable_picker_button(field: ui.input, label: str) -> None:
+def _variable_picker_button(field: ui.input, label: str, state: RunState) -> None:
     """The Select Variable half of a property that can either be filled in or pointed at a
     variable -- a Text's own text, a max lines of %line_budget, a shadow the theme decides.
 
@@ -360,16 +363,14 @@ def _variable_picker_button(field: ui.input, label: str) -> None:
     picker = ui.button(
         icon="playlist_add",
         on_click=lambda _e=None: _build_show_when_dialog(
-            field,
-            sceneedit_v2.v2_dynamic_variable_choices(state=PrimeItems),
-            f"Select a variable for {label}",
+            field, sceneedit_v2.v2_dynamic_variable_choices(state=state), f"Select a variable for {label}", state=state
         ),
     ).props("flat dense round size=sm")
     with picker:
         ui.tooltip(translate_string("Pick from the Scene's environment and global variables."))
 
 
-def _build_colour_field(item: dict, prop: sceneedit_v2.V2Prop) -> None:
+def _build_colour_field(item: dict, prop: sceneedit_v2.V2Prop, state: RunState) -> None:
     """A Version 2 colour property: type a name or a #hex value, pick one off the wheel, or
     take one of Material's own roles from the menu.  A "colorvar" property adds a fourth way --
     point it at a variable and let the phone decide.
@@ -411,7 +412,7 @@ def _build_colour_field(item: dict, prop: sceneedit_v2.V2Prop) -> None:
             ui.tooltip(translate_string("Pick one of Material's own colour roles."))
             _build_material_colour_menu(field)
         if prop.kind == "colorvar":
-            _variable_picker_button(field, prop.label)
+            _variable_picker_button(field, prop.label, state=state)
 
     def colour_changed(node: dict, key: str, text: str) -> None:
         sceneedit_v2.v2_set_prop(node, key, text)
@@ -579,7 +580,7 @@ def _build_material_colour_menu(field: ui.color_input) -> None:
                     ui.label(css).classes("text-xs text-gray-500 font-mono")
 
 
-def _build_state_field(item: dict, field: sceneedit_v2.V2StateField) -> None:
+def _build_state_field(item: dict, field: sceneedit_v2.V2StateField, state: RunState) -> None:
     """One of the Screen Builder's state properties -- Enabled, Content format: a pulldown of
     its states, and, for Dynamic only, the text or %variable to be evaluated when the Scene is
     shown.
@@ -594,7 +595,7 @@ def _build_state_field(item: dict, field: sceneedit_v2.V2StateField) -> None:
     and the value together), since neither the state nor the box alone says what to store.
     """
     stored = item.get(field.key, "")
-    state = sceneedit_v2.v2_state_of(field, stored)
+    field_state = sceneedit_v2.v2_state_of(field, stored)
     # Guards the prompt below against firing while this field is still being built.  Nothing
     # in NiceGUI 3.15 raises on_change from a constructor, so this is belt and braces -- but
     # the cost of being wrong is a picker dialog opening by itself every time a component that
@@ -619,14 +620,15 @@ def _build_state_field(item: dict, field: sceneedit_v2.V2StateField) -> None:
     def pick_variable() -> None:
         _build_show_when_dialog(
             variable_input,
-            sceneedit_v2.v2_dynamic_variable_choices(state=PrimeItems),
+            sceneedit_v2.v2_dynamic_variable_choices(state=state),
             f"Select a variable for {field.label}",
+            state=state,
         )
 
     state_select = (
         ui.select(
             list(field.states),
-            value=state or None,
+            value=field_state or None,
             label=translate_string(field.label),
             clearable=True,
             on_change=lambda _e=None: state_changed(),
@@ -685,6 +687,7 @@ def _build_v2_designer(
     edited_scene: sceneedit.EditableScene,
     field_refs: dict,
     layout: dict,
+    state: RunState,
 ) -> None:
     """The Version 2 Scene designer -- phase 1: pick a component out of the tree on the
     left, edit its properties on the right.
@@ -718,7 +721,7 @@ def _build_v2_designer(
         ).classes("text-sm text-orange-600 mt-2")
         return
 
-    _V2Designer(edited_scene, field_refs, layout).render()
+    _V2Designer(edited_scene, field_refs, layout, state=state).render()
 
 
 class _V2Designer:
@@ -728,7 +731,8 @@ class _V2Designer:
     to outlive a rebuild: the layout, the selection, the undo stack and the panes themselves.
     """
 
-    def __init__(self, edited_scene: sceneedit.EditableScene, field_refs: dict, layout: dict) -> None:
+    def __init__(self, edited_scene: sceneedit.EditableScene, field_refs: dict, layout: dict, state: RunState) -> None:
+        self.state = state
         self.field_refs = field_refs
         self.layout = layout
         # What is selected: a *run* of adjacent siblings, as the path of its first component and
@@ -858,7 +862,7 @@ class _V2Designer:
     def delete_selected(self) -> None:
         node = sceneedit_v2.v2_node_at(self.layout, self.selection["path"])
         node_id = (node or {}).get("id", "")
-        references = sceneedit_v2.find_component_id_references(self.scene_name, node_id, state=PrimeItems)
+        references = sceneedit_v2.find_component_id_references(self.scene_name, node_id, state=self.state)
         self.snapshot()
         errors = sceneedit_v2.v2_delete_node(self.layout, self.selection["path"])
         if errors:
@@ -949,7 +953,7 @@ class _V2Designer:
         if prop.kind == "task":
             # RunTask names a Task in the loaded backup, so offer the real list rather than
             # a free field -- with_input still allows a name that isn't loaded yet.
-            task_names = sorted(PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}))
+            task_names = sorted(self.state.tasker_root_elements.get("all_tasks_by_name", {}))
             ui.select(
                 task_names,
                 value=str(value) if value != "" else None,
@@ -966,9 +970,9 @@ class _V2Designer:
                 on_change=lambda e, k=prop.key, d=target: sceneedit_v2.v2_set_prop(d, k, str(e.value or "")),
             ).props("dense").classes("w-full")
         elif prop.kind == "state" and (state_field := sceneedit_v2.v2_state_field(prop.key)) is not None:
-            _build_state_field(target, state_field)
+            _build_state_field(target, state_field, state=self.state)
         elif prop.kind in ("color", "colorvar"):
-            _build_colour_field(target, prop)
+            _build_colour_field(target, prop, state=self.state)
         elif prop.kind == "icon":
             _build_icon_field(target, prop)
         else:
@@ -989,7 +993,7 @@ class _V2Designer:
                 with text_input.add_slot("append"):
                     show_when_button = ui.button(
                         icon="playlist_add",
-                        on_click=lambda _e=None, w=text_input: _build_show_when_dialog(w),
+                        on_click=lambda _e=None, w=text_input: _build_show_when_dialog(w, state=self.state),
                     ).props("flat dense round size=sm")
                     with show_when_button:
                         ui.tooltip(translate_string("Pick from the Scene's environment and global variables."))
@@ -999,7 +1003,7 @@ class _V2Designer:
                 # a max lines of "2" and a max lines of "%line_budget" are the same property
                 # written two ways, and neither is a state the other isn't.
                 with text_input.add_slot("append"):
-                    _variable_picker_button(text_input, prop.label)
+                    _variable_picker_button(text_input, prop.label, state=self.state)
             # Either of the two properties a component can be named by: its treeLabel, or --
             # for a Text, which is named by what it says -- its own text (see
             # sceneedit_v2.v2_node_name).  A change to whichever names *this* node has to reach
@@ -1186,7 +1190,7 @@ class _V2Designer:
         value = node.get(prop.key, "")
         id_input = ui.input(translate_string(prop.label), value=str(value)).props("dense").classes("w-full")
         id_input.on("blur", lambda _e=None, w=id_input, p=self.selection["path"]: self.rename_id(p, w))
-        references = sceneedit_v2.find_component_id_references(self.scene_name, str(value), state=PrimeItems)
+        references = sceneedit_v2.find_component_id_references(self.scene_name, str(value), state=self.state)
         if references:
             ui.label(
                 f"{translate_string('Addressed by id from')}: {', '.join(references)}",

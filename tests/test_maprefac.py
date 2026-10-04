@@ -842,7 +842,7 @@ def test_the_whole_refactor_costs_one_undo(loaded: None) -> None:
     assert sessundo.can_undo()
     assert sessundo.next_undo_label() == plan.what
 
-    assert sessundo.undo()[0] is True
+    assert sessundo.undo(state=PrimeItems)[0] is True
     assert _codes("20") == before
     assert "Loud Part" not in PrimeItems.tasker_root_elements["all_tasks_by_name"]
     assert not sessundo.can_undo()
@@ -852,9 +852,9 @@ def test_an_undone_refactor_can_be_redone(loaded: None) -> None:
     """The mirror of the undo, since a redo restores a whole configuration rather than replaying steps."""
     plan = maprefac.plan_extract("20", [3, 4, 5], "Loud Part", state=PrimeItems)
     assert maprefac.apply(plan) == (True, [])
-    sessundo.undo()
+    sessundo.undo(state=PrimeItems)
 
-    assert sessundo.redo()[0] is True
+    assert sessundo.redo(state=PrimeItems)[0] is True
     assert "Loud Part" in PrimeItems.tasker_root_elements["all_tasks_by_name"]
     assert _codes("20") == [VARIABLE_SET, FLASH, PERFORM_TASK, PERFORM_TASK]
 
@@ -911,7 +911,7 @@ def test_the_dialog_asks_for_the_range_the_user_selected(loaded: None) -> None:
     plan = guiwins_refactor.plan_for(
         guiwins_refactor.EXTRACT,
         _widgets(extract_task="20", extract_from="3", extract_to="5", extract_name="Loud Part"),
-    )
+    state=PrimeItems)
     assert plan is not None
     assert not plan.is_blocked
     assert maprefac.apply(plan) == (True, [])
@@ -923,7 +923,7 @@ def test_the_dialog_does_not_mind_which_end_was_picked_first(loaded: None) -> No
     plan = guiwins_refactor.plan_for(
         guiwins_refactor.EXTRACT,
         _widgets(extract_task="20", extract_from="5", extract_to="3", extract_name="Loud Part"),
-    )
+    state=PrimeItems)
     assert plan is not None
     assert not plan.is_blocked
 
@@ -938,7 +938,7 @@ def test_an_unfilled_form_is_not_a_blocked_plan(loaded: None) -> None:
         (guiwins_refactor.MOVE, {"move_kind": TASK, "move_object": "22"}),
         (guiwins_refactor.DUPLICATE, {}),
     ):
-        assert guiwins_refactor.plan_for(mode, _widgets(**filled)) is None
+        assert guiwins_refactor.plan_for(mode, _widgets(**filled), state=PrimeItems) is None
 
 
 def test_a_falsy_field_value_is_not_mistaken_for_an_empty_box(loaded: None) -> None:
@@ -953,7 +953,7 @@ def test_a_falsy_field_value_is_not_mistaken_for_an_empty_box(loaded: None) -> N
     plan = guiwins_refactor.plan_for(
         guiwins_refactor.INLINE,
         _widgets(inline_task="20", inline_call="0"),
-    )
+    state=PrimeItems)
     assert plan is not None  # reached the engine rather than returning None
     assert plan.blocks[0].reason == "NO-ACTION"
 
@@ -1083,7 +1083,7 @@ def test_a_single_selected_task_is_filled_in_for_you(loaded: None) -> None:
     """Picking a Task out of a list of one is not a decision, so the dialog makes it."""
     _displaying(single_task_name="Morning")
     widgets = _pickers()
-    guiwins_refactor.fill_options(widgets)
+    guiwins_refactor.fill_options(widgets, state=PrimeItems)
 
     assert widgets["extract_task"].value == "20"
     # ...and it cascades: the action pulldowns are ready without a second interaction.
@@ -1095,7 +1095,7 @@ def test_a_profile_running_one_task_is_filled_in_too(loaded: None) -> None:
     """Same rule, stated as "one Task offered" rather than "a Task selected"."""
     _displaying(single_profile_name="Dawn")  # Dawn runs Task 20 and nothing else
     widgets = _pickers()
-    guiwins_refactor.fill_options(widgets)
+    guiwins_refactor.fill_options(widgets, state=PrimeItems)
     assert widgets["extract_task"].value == "20"
 
 
@@ -1103,7 +1103,7 @@ def test_nothing_is_filled_in_when_there_is_a_choice_to_make(loaded: None) -> No
     """Where the user has a real decision, the dialog must not make one for them."""
     _displaying(single_profile_name="Dusk")  # Dusk runs two Tasks
     widgets = _pickers()
-    guiwins_refactor.fill_options(widgets)
+    guiwins_refactor.fill_options(widgets, state=PrimeItems)
     assert widgets["extract_task"].value is None
     assert len(widgets["extract_task"].options) == 2
 
@@ -1111,7 +1111,7 @@ def test_nothing_is_filled_in_when_there_is_a_choice_to_make(loaded: None) -> No
 def test_nothing_is_filled_in_when_nothing_is_selected(loaded: None) -> None:
     """Unscoped, every Task is offered and none is chosen."""
     widgets = _pickers()
-    guiwins_refactor.fill_options(widgets)
+    guiwins_refactor.fill_options(widgets, state=PrimeItems)
     assert widgets["extract_task"].value is None
     assert len(widgets["extract_task"].options) == 5
 

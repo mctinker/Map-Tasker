@@ -8,6 +8,7 @@ from datetime import datetime
 import pytest
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src import clireports, guiutils, healthck, impact, mapai, mapfix, maprefac, projedit, taskedit, taskflow, userintr, varxref
+from maptasker.src import sessundo
 from maptasker.src import bildhtml, firesim, getbakup, mapcache, mapfind, outline, proginit, runcli, taskerd, timeline
 from maptasker.src.actionc import load_arg_specs
 from maptasker.src import caveats, diagram, diagutil, dirout, frontmtr, mapjump, maputils, projects, share, tasks, twisty
@@ -585,3 +586,11 @@ def test_a_cached_map_is_remembered_against_the_state_it_was_built_from(
 
     assert mapcache.configuration_digest(first) != mapcache.configuration_digest(second)
     assert mapcache.digests(first) != mapcache.digests(second)
+
+
+def test_there_is_nothing_to_undo_on_a_state_that_has_edited_nothing() -> None:
+    """Undo restores into whichever state it is asked of; with no edits it says so and changes nothing."""
+    changed, why = sessundo.undo(state=RunState())
+
+    assert changed is False
+    assert why

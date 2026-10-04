@@ -32,12 +32,12 @@ from nicegui import ui
 
 from maptasker.src import firesim
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from maptasker.src.mapjump import Target
+    from maptasker.src.primitem import RunState
 
 # The two answers a Wi-Fi or app picker can give besides a real network or app.  Keys that
 # no SSID or package can be, so a network actually named "(not connected)" cannot be
@@ -98,14 +98,14 @@ def _picked(value: object) -> str | None:
     return str(value).strip()
 
 
-def build_firesim_dialog(make_jump: Callable) -> ui.dialog | None:
+def build_firesim_dialog(make_jump: Callable, state: RunState) -> ui.dialog | None:
     """Build and return the What Fires When? dialog, or None if nothing is loaded.
 
     `make_jump` turns a Target into a click handler, and is passed in rather than imported
     for guiwins_fix's reason: this module is reached FROM guiwins, and reaching back into it
     would be a circular import.
     """
-    if not PrimeItems.tasker_root_elements.get("all_profiles"):
+    if not state.tasker_root_elements.get("all_profiles"):
         ui.notify(
             translate_string("No XML file with Profiles has been loaded.  Get an XML file first."), type="warning"
         )
@@ -124,7 +124,7 @@ def build_firesim_dialog(make_jump: Callable) -> ui.dialog | None:
                     {
                         _SKIP: translate_string("(not simulated)"),
                         _NONE: translate_string("(not connected)"),
-                        **{name: name for name in firesim.wifi_networks(state=PrimeItems)},
+                        **{name: name for name in firesim.wifi_networks(state=state)},
                     },
                     value=_SKIP,
                     label=translate_string("Wi-Fi network"),
@@ -139,7 +139,7 @@ def build_firesim_dialog(make_jump: Callable) -> ui.dialog | None:
                     {
                         _SKIP: translate_string("(not simulated)"),
                         _NONE: translate_string("(no app in front)"),
-                        **firesim.condition_apps(state=PrimeItems),
+                        **firesim.condition_apps(state=state),
                     },
                     value=_SKIP,
                     label=translate_string("App in front"),
@@ -172,7 +172,7 @@ def build_firesim_dialog(make_jump: Callable) -> ui.dialog | None:
                 summary.set_text(translate_string("Choose a date and a time."))
                 area.clear()
                 return
-            result = firesim.simulate(scenario, state=PrimeItems)
+            result = firesim.simulate(scenario, state=state)
             summary.set_text(_summary_text(result))
             _draw(result, area, make_jump)
 

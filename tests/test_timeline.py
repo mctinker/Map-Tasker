@@ -272,7 +272,7 @@ def test_what_changed_since_reports_the_difference(tmp_path) -> None:
     timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=now - timedelta(days=7))
     _load_as_current(_write(tmp_path, "today.xml", _LATER_XML))
 
-    result = timeline.changes_over_last(14)
+    result = timeline.changes_over_last(14, state=PrimeItems)
 
     assert result.problem == ""
     assert result.nothing_changed is False
@@ -290,7 +290,7 @@ def test_the_older_side_is_named_by_when_it_was_not_by_its_temporary_file(tmp_pa
     timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=when)
     _load_as_current(_write(tmp_path, "today.xml", _LATER_XML))
 
-    result = timeline.changes_over_last(7)
+    result = timeline.changes_over_last(7, state=PrimeItems)
 
     assert "week_ago.xml (from the configuration history)" in result.report
     assert "maptasker_timeline_" not in result.report
@@ -303,7 +303,7 @@ def test_an_unchanged_configuration_reports_no_differences(tmp_path) -> None:
     timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=clock.now() - timedelta(days=7))
     _load_as_current(_write(tmp_path, "today.xml", _LOADED_XML))
 
-    result = timeline.changes_over_last(14)
+    result = timeline.changes_over_last(14, state=PrimeItems)
 
     assert result.problem == ""
     assert result.nothing_changed is True
@@ -316,7 +316,7 @@ def test_a_history_that_does_not_reach_back_says_so(tmp_path) -> None:
     timeline.record(_write(tmp_path, "yesterday.xml", _LOADED_XML), when=clock.now() - timedelta(days=1))
     _load_as_current(_write(tmp_path, "today.xml", _LATER_XML))
 
-    result = timeline.changes_over_last(30)
+    result = timeline.changes_over_last(30, state=PrimeItems)
 
     assert result.report
     assert "does not reach back that far" in result.note
@@ -324,7 +324,7 @@ def test_a_history_that_does_not_reach_back_says_so(tmp_path) -> None:
 
 def test_an_empty_history_is_explained_not_crashed() -> None:
     """First ever run, before anything has been loaded twice."""
-    result = timeline.changes_over_last(7)
+    result = timeline.changes_over_last(7, state=PrimeItems)
 
     assert result.report == ""
     assert "No configuration history" in result.problem
@@ -335,7 +335,7 @@ def test_nothing_loaded_is_explained(tmp_path) -> None:
     timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=clock.now() - timedelta(days=7))
     PrimeItems.tasker_root_elements = initial_tasker_root_elements()
 
-    result = timeline.changes_over_last(14)
+    result = timeline.changes_over_last(14, state=PrimeItems)
 
     assert result.report == ""
     assert "No XML file has been loaded" in result.problem
@@ -352,7 +352,7 @@ def test_a_corrupt_snapshot_is_reported_not_raised(tmp_path) -> None:
     with gzip.open(stored, "wb") as compressed:
         compressed.write(_MALFORMED_XML.encode("utf-8"))
 
-    result = timeline.changes_over_last(14)
+    result = timeline.changes_over_last(14, state=PrimeItems)
 
     assert result.report == ""
     assert result.problem
@@ -479,7 +479,7 @@ def test_all_reaches_the_oldest_snapshot_without_complaining(tmp_path) -> None:
     timeline.record(_write(tmp_path, "old.xml", _LOADED_XML), when=clock.now() - timedelta(days=200))
     _load_as_current(_write(tmp_path, "today.xml", _LATER_XML))
 
-    result = timeline.changes_since(None)
+    result = timeline.changes_since(None, state=PrimeItems)
 
     assert result.problem == ""
     assert result.note == ""

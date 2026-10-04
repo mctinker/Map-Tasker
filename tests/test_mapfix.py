@@ -683,7 +683,7 @@ def test_the_whole_plan_is_one_undo(loaded: None) -> None:
     assert repaired == len(plan.selected)
     assert sessundo.can_undo()
 
-    done, _message = sessundo.undo()
+    done, _message = sessundo.undo(state=PrimeItems)
 
     assert done
     assert (_codes("20"), _codes("22")) == before

@@ -46,10 +46,11 @@ from nicegui import ui
 
 from maptasker.src import mapfix
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
+
+    from maptasker.src.primitem import RunState
 
 # How many repairs and skips are drawn.  mapfix caps the plan itself (see its _PLAN_LIMIT),
 # so these are the second guard rather than the first: a list of several hundred widgets is
@@ -102,6 +103,7 @@ def build_fix_dialog(
     make_jump: Callable,
     rebuild_after_apply: Callable[[], Coroutine],
     save_configuration: Callable[[], bool],
+    state: RunState,
 ) -> ui.dialog | None:
     """Build and return the Fix Findings dialog, or None if there is nothing loaded to scan.
 
@@ -116,7 +118,7 @@ def build_fix_dialog(
     its own outcome to the user, because what there is to say about a save is not something
     this module knows (see userintr.fix_findings_event, which has all three answers).
     """
-    if not PrimeItems.tasker_root_elements.get("all_tasks"):
+    if not state.tasker_root_elements.get("all_tasks"):
         ui.notify(translate_string("No XML file has been loaded.  Get an XML file first."), type="warning")
         return None
 
@@ -200,7 +202,7 @@ def build_fix_dialog(
                 else {}
             )
 
-            plan = mapfix.plan_fixes(PrimeItems.program_arguments.health_check_skip or [], state=PrimeItems)
+            plan = mapfix.plan_fixes(state.program_arguments.health_check_skip or [], state=state)
             if previous is not None:
                 plan.restore(ticks, values)
             held["plan"] = plan

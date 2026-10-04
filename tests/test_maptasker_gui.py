@@ -2381,7 +2381,7 @@ async def test_the_check_ids_box_reaches_the_tasker_check(monkeypatch, event_han
     _patch_task_file_path(monkeypatch)
     asked: list = []
 
-    async def record(_ip, _port, _render, _consequence, **options) -> list[str]:
+    async def record(_ip, _port, _render, _consequence, *, state, **options) -> list[str]:
         asked.append(options)
         return []
 
@@ -2449,7 +2449,7 @@ _ONE_PROJECT = '<TaskerData sr=""><Project sr="proj0"><name>Test</name></Project
 async def test_tasker_lines_end_with_what_happens_to_the_objects(monkeypatch):
     notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": ["Test1"]}, {}))
 
-    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_TASK, "CONSEQUENCE")
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_TASK, "CONSEQUENCE", state=PrimeItems)
 
     assert lines == ["Tasker already has the Task 'Test1'.", "CONSEQUENCE"]
     assert notes == []  # no Project, so no helper Task to warn about
@@ -2460,7 +2460,7 @@ async def test_a_check_that_could_not_run_prompts_without_a_consequence(monkeypa
     """Nothing is known to be there, so there is nothing to say will happen to it."""
     _inline_tasker_check(monkeypatch, lambda _sent: ({}, {"Task": "Tasker did not answer."}))
 
-    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_TASK, "CONSEQUENCE")
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_TASK, "CONSEQUENCE", state=PrimeItems)
 
     assert lines == ["Could not check which Tasks Tasker already has: Tasker did not answer."]
 
@@ -2469,7 +2469,7 @@ async def test_a_check_that_could_not_run_prompts_without_a_consequence(monkeypa
 async def test_nothing_in_tasker_means_no_lines_and_a_project_check_is_announced(monkeypatch):
     notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Project": []}, {}))
 
-    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_PROJECT, "CONSEQUENCE")
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_PROJECT, "CONSEQUENCE", state=PrimeItems)
 
     assert lines == []
     assert notes and "Projects" in notes[0]
@@ -2494,6 +2494,7 @@ async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
         lambda: _ONE_TASK,
         "CONSEQUENCE",
         check_ids=True,
+        state=PrimeItems,
     )
 
     assert lines == [
@@ -2522,6 +2523,7 @@ async def test_a_backup_that_cannot_be_had_falls_back_to_asking_by_name(monkeypa
         lambda: _ONE_TASK,
         "CONSEQUENCE",
         check_ids=True,
+        state=PrimeItems,
     )
 
     assert lines == [
@@ -2539,7 +2541,7 @@ async def test_an_export_that_cannot_be_rendered_is_left_to_the_save_to_report(m
     def deleted() -> str:
         raise ValueError("Project 'Test' no longer exists in this backup.")
 
-    assert await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", deleted, "CONSEQUENCE") == []
+    assert await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", deleted, "CONSEQUENCE", state=PrimeItems) == []
     assert asked == []
 
 

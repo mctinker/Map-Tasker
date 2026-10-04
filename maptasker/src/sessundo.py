@@ -82,6 +82,8 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from datetime import datetime
 
+    from maptasker.src.primitem import RunState
+
 # How many steps back the history goes.  Deep enough that a user who realises three or four
 # edits later is still covered, shallow enough to stay a bounded amount of memory.
 MAX_CHECKPOINTS = 20
@@ -171,7 +173,7 @@ def _trim() -> None:
         _undo.pop(0)
 
 
-def _restore(payload: bytes) -> bool:
+def _restore(payload: bytes, state: RunState) -> bool:
     """Make `payload` the loaded configuration again.  True if it took.
 
     The same two steps a file load takes (taskerd.get_the_xml_data), minus the file: parse,
@@ -192,12 +194,12 @@ def _restore(payload: bytes) -> bool:
         logger.error(f"Undo could not restore the checkpoint: {error}")
         return False
 
-    PrimeItems.xml_root = root
+    state.xml_root = root
     # ETW's ElementTree, not defusedxml's -- defusedxml exposes the parsing entry points
     # and no ElementTree class of its own.  This is only a holder for the root (bildhtml
     # iterates it); the parse above is still the safe one.
-    PrimeItems.xml_tree = ETW.ElementTree(root)
-    build_tasker_tables(state=PrimeItems)
+    state.xml_tree = ETW.ElementTree(root)
+    build_tasker_tables(state=state)
     return True
 
 
@@ -295,7 +297,7 @@ def history() -> list[tuple[str, datetime]]:
     return [(checkpoint.label, checkpoint.when) for checkpoint in reversed(_undo)]
 
 
-def undo() -> tuple[bool, str]:
+def undo(state: RunState) -> tuple[bool, str]:
     """Take back the most recent edit.
 
     Returns (True, label of the edit undone) or (False, why not).  The current state goes
@@ -307,7 +309,7 @@ def undo() -> tuple[bool, str]:
 
     current = _render()
     checkpoint = _undo.pop()
-    if not _restore(checkpoint.payload):
+    if not _restore(checkpoint.payload, state=state):
         # _restore left the configuration untouched, so put the checkpoint back rather
         # than losing a step of history to a failure that changed nothing.
         _undo.append(checkpoint)
@@ -318,14 +320,14 @@ def undo() -> tuple[bool, str]:
     return True, checkpoint.label
 
 
-def redo() -> tuple[bool, str]:
+def redo(state: RunState) -> tuple[bool, str]:
     """Put back the most recently undone edit.  The mirror of undo(), in every respect."""
     if not _redo:
         return False, "There is nothing to redo."
 
     current = _render()
     checkpoint = _redo.pop()
-    if not _restore(checkpoint.payload):
+    if not _restore(checkpoint.payload, state=state):
         _redo.append(checkpoint)
         return False, "That redo step could not be restored -- nothing was changed."
 

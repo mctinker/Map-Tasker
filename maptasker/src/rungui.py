@@ -256,7 +256,7 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
         # once via initialize_screen() -> inject_shared_head_styles()) doesn't carry over here.
         # Without this, the Diagram view's connector click handler still fires but has no
         # .connector-highlight rule to apply, so nothing visibly highlights.
-        inject_shared_head_styles()
+        inject_shared_head_styles(state=state)
 
         # NiceGUI wraps every page's content in a padded ".nicegui-content" div; strip that
         # padding here so the view below can actually reach the browser's full width/height

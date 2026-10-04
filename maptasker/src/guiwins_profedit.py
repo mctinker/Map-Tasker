@@ -287,7 +287,7 @@ def _build_profile_editor_body(
                                         _render_readonly_note(
                                             self,
                                             arg.readonly_note,
-                                            _after_condition_fetch(render_conditions, condition),
+                                            _after_condition_fetch(render_conditions, condition, state=self.state),
                                         )
                                 else:  # readonly
                                     ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes(
@@ -297,7 +297,7 @@ def _build_profile_editor_body(
                                         _render_readonly_note(
                                             self,
                                             arg.readonly_note,
-                                            _after_condition_fetch(render_conditions, condition),
+                                            _after_condition_fetch(render_conditions, condition, state=self.state),
                                         )
 
                     elif condition.cond_type == "Time":

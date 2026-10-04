@@ -47,7 +47,6 @@ from maptasker.src.guiwins import (
 from maptasker.src.guiwins_profedit import build_save_profile_to_android_dialog
 from maptasker.src.maputil2 import held_auth_key, http_request, read_android_file, translate_string
 from maptasker.src.maputils import clear_tasker_data
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.userintr_editors import (
     _apply_scene_field_values,
@@ -84,6 +83,7 @@ async def _what_tasker_already_has(
     ip_port: str,
     render_xml: Callable[[], str | bytes],
     consequence: str,
+    state: RunState,
     *,
     check_ids: bool = False,
 ) -> list[str]:
@@ -115,7 +115,7 @@ async def _what_tasker_already_has(
     id_lines: list[str] = []
     if check_ids:
         ui.notify("Taking a fresh backup on the device to check IDs -- this can take a little while.", type="info")
-        checked = await run.io_bound(deviceinv.check_against_device_backup, ip_address, ip_port, xml, state=PrimeItems)
+        checked = await run.io_bound(deviceinv.check_against_device_backup, ip_address, ip_port, xml, state=state)
         if checked is None:  # cancelled -- see the note at the top of this file
             return []
         check, findings, problem = checked
@@ -130,7 +130,7 @@ async def _what_tasker_already_has(
                 "a small MapTasker Task runs on the device for this.",
                 type="info",
             )
-        check = await run.io_bound(deviceinv.check_tasker_for_existing, ip_address, ip_port, sent, state=PrimeItems)
+        check = await run.io_bound(deviceinv.check_tasker_for_existing, ip_address, ip_port, sent, state=state)
         if check is None:  # cancelled -- see the note at the top of this file
             return []
 
@@ -777,6 +777,7 @@ class AndroidEventHandlers:
             lambda: taskedit.render_standalone_task_xml(edited_task, state=self.state),
             _API_IMPORT_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
+            state=self.state,
         )
         if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(
@@ -926,6 +927,7 @@ class AndroidEventHandlers:
             lambda: taskedit.render_standalone_task_xml(edited_task, state=self.state),
             _FILE_WRITE_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
+            state=self.state,
         )
         if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(
@@ -1052,6 +1054,7 @@ class AndroidEventHandlers:
             lambda: sceneedit.render_standalone_scene_xml(edited_scene.scene_name, state=self.state),
             _FILE_WRITE_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
+            state=self.state,
         )
         if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(
@@ -1166,6 +1169,7 @@ class AndroidEventHandlers:
             lambda: profedit.render_standalone_profile_xml(edited_profile, state=self.state),
             _FILE_WRITE_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
+            state=self.state,
         )
         if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(
@@ -1191,7 +1195,7 @@ class AndroidEventHandlers:
         this had to be one implementation -- a second copy would drift, and the way it would
         drift is one button validating something the other does not.
         """
-        _link_pending_task_pickers(edited_profile, field_refs)
+        _link_pending_task_pickers(edited_profile, field_refs, state=self.state)
         condition_values = _profile_condition_values(field_refs)
 
         errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
@@ -1588,11 +1592,7 @@ class AndroidEventHandlers:
                 await _offer()
 
         tasker_lines = await _what_tasker_already_has(
-            ip_address,
-            ip_port,
-            lambda: xml_bytes,
-            _IMPORT_SCREEN_CONSEQUENCE,
-            check_ids=check_ids,
+            ip_address, ip_port, lambda: xml_bytes, _IMPORT_SCREEN_CONSEQUENCE, check_ids=check_ids, state=self.state
         )
         if exists is not False or tasker_lines:
             # Cancel leaves both dialogs open with the edit intact, so nothing is lost by
@@ -1901,6 +1901,7 @@ class AndroidEventHandlers:
             lambda: projedit.render_standalone_project_xml(edited_project.project_name, state=self.state),
             _FILE_WRITE_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
+            state=self.state,
         )
         if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(

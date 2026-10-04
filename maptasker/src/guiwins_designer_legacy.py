@@ -32,12 +32,12 @@ from maptasker.src.guiwins_canvas import (
 )
 from maptasker.src.guiwins_taskedit import _dropdown_current_label
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import SCENE_TASK_TYPES
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MyGui
 
 
@@ -45,6 +45,7 @@ def _build_rename_legacy_element_dialog(
     edited_scene: sceneedit.EditableScene,
     element: object,
     on_renamed: Callable[[str, str, bool], None],
+    state: RunState,
 ) -> None:
     """Rename one Legacy element, having first said what else in the backup is relying on
     its current name.
@@ -72,11 +73,11 @@ def _build_rename_legacy_element_dialog(
     old_name = (
         (element.find("Str[@sr='arg0']").text or "").strip() if element.find("Str[@sr='arg0']") is not None else ""
     )
-    rewritable = sceneedit_legacy.find_element_name_actions(edited_scene.scene_name, old_name, state=PrimeItems)
+    rewritable = sceneedit_legacy.find_element_name_actions(edited_scene.scene_name, old_name, state=state)
     rewritable_tasks = sorted({task_name for task_name, _argument in rewritable})
-    loose_tasks = sceneedit_legacy.find_element_name_references(edited_scene.scene_name, old_name, state=PrimeItems)
+    loose_tasks = sceneedit_legacy.find_element_name_references(edited_scene.scene_name, old_name, state=state)
     unmatched = [task for task in loose_tasks if task not in rewritable_tasks]
-    patterns = sceneedit_legacy.find_element_match_references(edited_scene.scene_name, state=PrimeItems)
+    patterns = sceneedit_legacy.find_element_match_references(edited_scene.scene_name, state=state)
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[520px] max-w-[720px] p-6"):
         ui.label(f"{translate_string('Rename Element')}: {old_name}").classes("text-lg font-bold text-blue-600")
@@ -505,7 +506,7 @@ class _LegacyDesigner:
             element_type,
             box,
             landscape=sceneview.has_landscape_layout(self.scene_element),
-            state=PrimeItems,
+            state=self.gui.state,
         )
         if isinstance(element, str):
             self.history.pop()
@@ -543,9 +544,9 @@ class _LegacyDesigner:
         name = sceneedit_legacy.legacy_element_label(element)
         element_name = (element.findtext("Str[@sr='arg0']") or "").strip()
         references = sceneedit_legacy.find_element_name_references(
-            self.edited_scene.scene_name, element_name, state=PrimeItems
+            self.edited_scene.scene_name, element_name, state=self.gui.state
         )
-        patterns = sceneedit_legacy.find_element_match_references(self.edited_scene.scene_name, state=PrimeItems)
+        patterns = sceneedit_legacy.find_element_match_references(self.edited_scene.scene_name, state=self.gui.state)
 
         self.snapshot()
         self.set_selection(sceneedit_legacy.legacy_delete_element(self.scene_element, self.selection["sr"]))
@@ -828,7 +829,7 @@ class _LegacyDesigner:
                 for index, label in enumerate(("X", "Y", "Width", "Height")):
                     self.geometry_input(label, index, element, box)
 
-        args = sceneedit_legacy.legacy_element_args(element, state=PrimeItems)
+        args = sceneedit_legacy.legacy_element_args(element, state=self.gui.state)
         if not args:
             ui.label(
                 translate_string(
@@ -873,7 +874,7 @@ class _LegacyDesigner:
         element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         if element is None:
             return
-        _build_rename_legacy_element_dialog(self.edited_scene, element, self.apply_rename)
+        _build_rename_legacy_element_dialog(self.edited_scene, element, self.apply_rename, state=self.gui.state)
 
     def apply_rename(self, old_name: str, new_name: str, update_tasks: bool) -> None:
         """Take the rename dialog's answer.  The Task rewrite is *recorded*, not performed --
@@ -906,7 +907,7 @@ class _LegacyDesigner:
         those inside the Scene itself and nowhere else, so replacing one destroys the only
         copy; the offer to do that would be an offer to lose work.
         """
-        bindings = sceneedit_legacy.legacy_task_bindings(element, state=PrimeItems)
+        bindings = sceneedit_legacy.legacy_task_bindings(element, state=self.gui.state)
         available = sceneedit_legacy.legacy_task_tags_for(element)
         if self.pending_events["sr"] != self.selection["sr"]:
             # The pending rows belong to the element they were opened on.
@@ -922,7 +923,7 @@ class _LegacyDesigner:
             value=self.expanded["tasks"],
             on_value_change=lambda event: self.expanded.__setitem__("tasks", bool(event.value)),
         ).classes("w-full mt-2"):
-            choices = sceneedit_legacy.legacy_task_choices(state=PrimeItems)
+            choices = sceneedit_legacy.legacy_task_choices(state=self.gui.state)
             for binding in bindings:
                 with ui.row().classes("w-full items-center gap-1 no-wrap"):
                     ui.label(translate_string(binding.label)).classes("text-xs w-28 shrink-0")
@@ -988,7 +989,7 @@ class _LegacyDesigner:
         element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         if element is None or not task_name:
             return
-        task_id = sceneedit_legacy.legacy_task_id_for_name(task_name, state=PrimeItems)
+        task_id = sceneedit_legacy.legacy_task_id_for_name(task_name, state=self.gui.state)
         if not task_id:
             ui.notify(f"No Task named '{task_name}' in this backup.", type="negative")
             return
@@ -1034,7 +1035,7 @@ class _LegacyDesigner:
                 return
             # It is a RectElement, so it gets the Rect fields -- the same generated form the
             # inspector gives a real Rect, from the same table.
-            for arg in sceneedit_legacy.legacy_element_args(background, state=PrimeItems):
+            for arg in sceneedit_legacy.legacy_element_args(background, state=self.gui.state):
                 _render_legacy_arg(arg, self.repaint, name_editable=True)
             ui.button(translate_string("Remove background"), icon="delete", on_click=self.remove_background).props(
                 "dense flat size=sm color=negative",
@@ -1045,7 +1046,7 @@ class _LegacyDesigner:
         if element is None:
             return
         self.snapshot()
-        sceneedit_legacy.legacy_add_background(element, state=PrimeItems)
+        sceneedit_legacy.legacy_add_background(element, state=self.gui.state)
         self.expanded["background"] = True
         self.render()
 

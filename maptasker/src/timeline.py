@@ -61,11 +61,11 @@ from typing import TYPE_CHECKING
 
 from maptasker.src import clock
 from maptasker.src.editcommon import sanitize_filename
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.xmldiff import compare
 
 if TYPE_CHECKING:
+    from maptasker.src.primitem import RunState
     from maptasker.src.xmldiff import Configuration
 
 # Where the history lives, in the current runtime directory -- the same place every other
@@ -327,7 +327,7 @@ def _expanded(snapshot: Snapshot) -> str:
             Path(temporary).unlink()
 
 
-def configuration_of(snapshot: Snapshot) -> tuple[Configuration | None, str]:
+def configuration_of(snapshot: Snapshot, state: RunState) -> tuple[Configuration | None, str]:
     """One snapshot as a comparison side.  Returns (Configuration, "") or (None, message).
 
     Goes through diffload.load_for_comparison, so a snapshot that will not parse produces
@@ -342,7 +342,7 @@ def configuration_of(snapshot: Snapshot) -> tuple[Configuration | None, str]:
 
     try:
         with _expanded(snapshot) as temporary:
-            configuration, message = load_for_comparison(temporary, state=PrimeItems)
+            configuration, message = load_for_comparison(temporary, state=state)
     except OSError as error:
         logger.error(f"Timeline snapshot could not be expanded: {error}")
         return None, f"The snapshot from {snapshot.label()} could not be read.  ({error})"
@@ -372,7 +372,7 @@ class Comparison:
         return bool(self.report) and not any(self.counts.values())
 
 
-def changes_since(cutoff: datetime | None, newer: Configuration | None = None) -> Comparison:
+def changes_since(cutoff: datetime | None, newer: Configuration | None = None, *, state: RunState) -> Comparison:
     """Compare the configuration as it stood at `cutoff` against the one loaded now.
 
     A cutoff of None means the whole history -- the oldest configuration held.  That is
@@ -405,11 +405,11 @@ def changes_since(cutoff: datetime | None, newer: Configuration | None = None) -
             f"configuration held instead: {older_snapshot.described()}."
         )
 
-    newer = newer if newer is not None else current_configuration(state=PrimeItems)
+    newer = newer if newer is not None else current_configuration(state=state)
     if not newer.tables.get("all_tasks"):
         return Comparison(problem="No XML file has been loaded.  Get an XML file first.")
 
-    older_configuration, message = configuration_of(older_snapshot)
+    older_configuration, message = configuration_of(older_snapshot, state=state)
     if older_configuration is None:
         return Comparison(problem=message)
 
@@ -417,9 +417,9 @@ def changes_since(cutoff: datetime | None, newer: Configuration | None = None) -
     return Comparison(report=report, counts=counts, older=older_snapshot, note=note)
 
 
-def changes_over_last(days: int, newer: Configuration | None = None) -> Comparison:
+def changes_over_last(days: int, newer: Configuration | None = None, *, state: RunState) -> Comparison:
     """changes_since, counted back in whole days -- "this week" is days=7."""
-    return changes_since(clock.now() - timedelta(days=days), newer)
+    return changes_since(clock.now() - timedelta(days=days), newer, state=state)
 
 
 # ##################################################################################

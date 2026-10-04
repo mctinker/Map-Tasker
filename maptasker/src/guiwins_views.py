@@ -60,7 +60,6 @@ from maptasker.src.guiwins_search import (
 )
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
     logger,
@@ -2106,7 +2105,7 @@ class NiceGuiTextView(TextViewSearch):
         mapfonts.embeddable_font), and the window should not stop answering meanwhile.
         """
         try:
-            path = await run.io_bound(mapexport.export_view, what, fmt, state=PrimeItems)
+            path = await run.io_bound(mapexport.export_view, what, fmt, state=self.master_gui.state)
         except mapexport.ExportError as error:
             ui.notify(str(error), type="warning", position="top")
             return

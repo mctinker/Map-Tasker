@@ -30,13 +30,13 @@ from nicegui import context, ui
 from maptasker.src import mapask, mapfind, mapjump, mapswap, varxref
 from maptasker.src.guiwins_nav import go_to_target
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
     import collections
     from collections.abc import Callable, Coroutine
 
+    from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MyGui
 
 
@@ -610,7 +610,7 @@ class TextViewSearch:
         Returns whether it restored a previous Replace, so the caller can open the dialog
         on this tab rather than on Find when it did.
         """
-        return _ReplaceTab(self, dialog, index, jump_to, replace_panel).restore_previous()
+        return _ReplaceTab(self, dialog, index, jump_to, replace_panel, state=self.master_gui.state).restore_previous()
 
     def _dismiss_find_dialog(self) -> None:
         """Take down the Find/Replace dialog this view has up, if it still has one.
@@ -661,7 +661,7 @@ class TextViewSearch:
         cached index would keep offering an action of a Task that has been deleted, and
         keep hiding one just added.
         """
-        if not PrimeItems.tasker_root_elements["all_tasks"]:
+        if not self.master_gui.state.tasker_root_elements["all_tasks"]:
             ui.notify(translate_string("No XML file has been loaded.  Get an XML file first."), type="warning")
             return
 
@@ -672,7 +672,7 @@ class TextViewSearch:
         # holding its own results list.
         self._dismiss_find_dialog()
 
-        dialog = _FindDialog(self).dialog
+        dialog = _FindDialog(self, state=self.master_gui.state).dialog
         # Held on the view for as long as it is on screen: this one may outlive the click
         # that dismissed it in every previous version -- a docked dialog stays up until the
         # user closes it -- and the next press of Find/Replace has to be able to find it.
@@ -688,9 +688,10 @@ class _FindDialog:
     them.  The Replace tab is _ReplaceTab's.
     """
 
-    def __init__(self, view: TextViewSearch) -> None:
+    def __init__(self, view: TextViewSearch, state: RunState) -> None:
+        self.state = state
         self.view = view
-        self.index = mapfind.build_index(state=PrimeItems)
+        self.index = mapfind.build_index(state=self.state)
         # A Find run from the Diagram shows its answers in the Diagram where it can (see
         # go_to_target).  Decided here, from the view the button was pressed on, rather
         # than from whatever view happens to be frontmost when a row is clicked.
@@ -1057,7 +1058,9 @@ class _FindDialog:
             return
         gui = self.view.master_gui
         try:
-            settings = mapask.model_settings(getattr(gui, "ai_name", ""), getattr(gui, "ai_model", ""))
+            settings = mapask.model_settings(
+                getattr(gui, "ai_name", ""), getattr(gui, "ai_model", ""), state=self.state
+            )
         except mapask.AskError as error:
             ui.notify(str(error), type="warning", multi_line=True)
             return
@@ -1153,7 +1156,9 @@ class _ReplaceTab:
         index: mapfind.FindIndex,
         jump_to: Callable,
         replace_panel: ui.tab_panel,
+        state: RunState,
     ) -> None:
+        self.state = state
         self.view = view
         self.dialog = dialog
         self.index = index
@@ -1496,7 +1501,7 @@ class _ReplaceTab:
             # Scoped, unlike varxref's other callers: a rename WRITES, and what it may
             # write to is what the app is displaying.  See build_index's own note on
             # why whole-file is the default there and this is the exception.
-            self.held["variables"] = varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems)
+            self.held["variables"] = varxref.build_index(mapjump.current_scope(state=self.state), state=self.state)
         return self.held["variables"]
 
     def invalidate(self) -> None:
@@ -1533,7 +1538,7 @@ class _ReplaceTab:
             self.target_select.set_options({})
             return
         self.target_select.set_options(
-            {key: label for key, label, _fidelity in mapswap.fidelity_choices(source, state=PrimeItems)},
+            {key: label for key, label, _fidelity in mapswap.fidelity_choices(source, state=self.state)},
             value=None,
         )
 
@@ -1551,7 +1556,7 @@ class _ReplaceTab:
             self.arg_select.set_options({})
             return
         self.arg_select.set_options(
-            {arg_id: label for arg_id, label, _refusal in mapswap.argument_choices(action, state=PrimeItems)},
+            {arg_id: label for arg_id, label, _refusal in mapswap.argument_choices(action, state=self.state)},
             value=None,
         )
 
@@ -1569,7 +1574,7 @@ class _ReplaceTab:
             self.condition_target_select.set_options({})
             return
         self.condition_target_select.set_options(
-            {key: label for key, label, _fidelity in mapswap.condition_targets(source, state=PrimeItems)},
+            {key: label for key, label, _fidelity in mapswap.condition_targets(source, state=self.state)},
             value=None,
         )
 
@@ -1715,7 +1720,7 @@ class _ReplaceTab:
                     type="warning",
                 )
                 return
-            plan = mapswap.plan_action_swap(source, target, project, state=PrimeItems)
+            plan = mapswap.plan_action_swap(source, target, project, state=self.state)
         elif kind == "argument":
             _, action, arg_id, new_value, match, project, substitute, add_missing = inputs
             if not action or not arg_id:
@@ -1725,7 +1730,7 @@ class _ReplaceTab:
                 )
                 return
             plan = mapswap.plan_argument_replace(
-                action, arg_id, new_value, match, project, substitute, add_missing, state=PrimeItems
+                action, arg_id, new_value, match, project, substitute, add_missing, state=self.state
             )
             if plan.is_empty and not plan.skips and not plan.warnings:
                 # Said out loud rather than left to an empty list: "nothing holds that
@@ -1743,13 +1748,13 @@ class _ReplaceTab:
                     type="warning",
                 )
                 return
-            plan = mapswap.plan_condition_replace(source, target, project, state=PrimeItems)
+            plan = mapswap.plan_condition_replace(source, target, project, state=self.state)
         else:
             _, name, owner, new_name = inputs
             if not name or not new_name:
                 ui.notify(translate_string("Choose a variable, and type the new name."), type="warning")
                 return
-            plan = mapswap.plan_variable_rename(self.variable_index(), name, owner, new_name, state=PrimeItems)
+            plan = mapswap.plan_variable_rename(self.variable_index(), name, owner, new_name, state=self.state)
 
         if restore is not None:
             plan.restore_ticks(restore)
@@ -1818,7 +1823,7 @@ class _ReplaceTab:
             ui.notify(translate_string("Nothing is ticked."), type="warning")
             return
 
-        changed, errors = mapswap.apply(plan, state=PrimeItems)
+        changed, errors = mapswap.apply(plan, state=self.state)
         for message in errors[:_REPLACE_ERROR_LIMIT]:
             ui.notify(message, type="negative")
         if changed:

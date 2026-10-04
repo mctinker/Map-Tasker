@@ -530,7 +530,7 @@ def test_a_restore_is_one_undo(loaded: None) -> None:
     _restore("Task", "21")
     assert sessundo.can_undo()
 
-    done, _ = sessundo.undo()
+    done, _ = sessundo.undo(state=PrimeItems)
 
     assert done
     assert "21" not in PrimeItems.tasker_root_elements["all_tasks"]

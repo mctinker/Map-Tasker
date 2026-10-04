@@ -40,7 +40,7 @@ from dataclasses import dataclass
 from maptasker.src import mapfind
 from maptasker.src.aiutils import get_api_key, start_ollama_server
 from maptasker.src.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PrimeItems, RunState
 from maptasker.src.sysconst import logger
 
 # The providers, spelled the way the Analyze tab's model pulldown groups them and the way
@@ -217,7 +217,7 @@ def resolve_provider(ai_name: str, ai_model: str) -> str:
     return ""
 
 
-def model_settings(ai_name: str, ai_model: str) -> ModelSettings:
+def model_settings(ai_name: str, ai_model: str, state: RunState) -> ModelSettings:
     """The settings to ask with, or an AskError saying what is missing from the Analyze tab."""
     model = _bare_model(ai_model)
     if not model or model == "None":
@@ -231,11 +231,11 @@ def model_settings(ai_name: str, ai_model: str) -> ModelSettings:
         return ModelSettings(provider, model)
 
     key_name = _KEY_NAMES[provider]
-    key = PrimeItems.ai.get(key_name) or ""
+    key = state.ai.get(key_name) or ""
     if not key:
         # The saved keys are only read in when something first needs one.
-        get_api_key(state=PrimeItems)
-        key = PrimeItems.ai.get(key_name) or ""
+        get_api_key(state=state)
+        key = state.ai.get(key_name) or ""
     if not key or key == "Hidden":
         message = f"No {provider} API key is set.  Enter one with 'Show/Edit API Key(s)' on the Analyze tab."
         raise AskError(message)
