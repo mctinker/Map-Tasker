@@ -451,7 +451,7 @@ layers = [
     """,
     """
     getfile : guistate : guiutils : guiwins :
-    guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 : guiwins_editor :
+    guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 : guiwins_designers : guiwins_editor :
     guiwins_firesim : guiwins_fix : guiwins_impact : guiwins_legacyarg : guiwins_nav : guiwins_profedit :
     guiwins_refactor : guiwins_restore : guiwins_sceneprops : guiwins_search : guiwins_taskedit :
     guiwins_views : mapai : sceneview :
@@ -472,7 +472,7 @@ layers = [
     maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
     firesim : folderwatch : parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
     profedit : profiles : proflint : proginit : projects : projedit :
-    property : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenes : servicec :
+    property : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenemodel : scenes : servicec :
     sessundo : share : shelsort : sysconst : taskactn : taskedit :
     taskerd : taskertables : taskervars : taskflag : taskflow : tasks : taskuniq :
     timecomp : timeline : translator : twisty : userhelp : valcodes : varxref :

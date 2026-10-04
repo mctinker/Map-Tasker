@@ -151,7 +151,7 @@
     "reportReturnType": 2
   },
   "maptasker/src/guiwins.py": {
-    "reportArgumentType": 18,
+    "reportArgumentType": 17,
     "reportAttributeAccessIssue": 192,
     "reportOptionalMemberAccess": 1
   },
@@ -159,7 +159,7 @@
     "reportAttributeAccessIssue": 5
   },
   "maptasker/src/guiwins_designer_legacy.py": {
-    "reportArgumentType": 15,
+    "reportArgumentType": 16,
     "reportAttributeAccessIssue": 7
   },
   "maptasker/src/guiwins_designer_v2.py": {

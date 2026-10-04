@@ -26,9 +26,7 @@ from maptasker.src import (
     piiscan,
     plugchk,
     proflint,
-    sceneedit,
-    sceneedit_legacy,
-    sceneedit_v2,
+    scenemodel,
     taskflow,
     varxref,
 )
@@ -50,7 +48,6 @@ from maptasker.src.outdir import output_path
 from maptasker.src.sysconst import (
     HEALTHCHECK_FILE,
     MY_VERSION,
-    SCENE_TASK_TYPES,
     logger,
 )
 
@@ -74,11 +71,6 @@ _SEVERITY_HEADINGS = {
 }
 
 _REPORT_WIDTH = 78
-
-# A Task that fires from a Scene element and lives only inside that Scene carries a
-# negative id (see sceneedit_legacy.LEGACY_ANONYMOUS_TASK_PREFIX).  It is not in all_tasks and
-# never will be, so it is neither a broken reference nor an unreferenced Task.
-_ANONYMOUS_TASK_PREFIX = "-"
 
 # "Perform Task" -- arg0 is the Task *name*.  The one Task-by-name reference in the
 # action set; every other Task reference in a backup is by id.
@@ -497,91 +489,35 @@ def _index_profiles(index: ReferenceIndex, state: RunState) -> None:
                 )
 
 
-def _index_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, state: RunState) -> None:
-    """Record the Tasks a Legacy Scene's elements fire, reporting any that are missing."""
-    all_tasks = state.tasker_root_elements["all_tasks"]
-    # project_of_scene is filled by _index_projects, which run_health_check calls first.
-    where = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))
-
-    # .iter() rather than a walk over direct children: a Legacy element can hold another
-    # (a WebElement carrying a RectElement, for one), and a binding on a nested element is
-    # every bit as real as one at the top.  Every backup to hand happens to keep them all
-    # at the top level, which is exactly why this is worth not assuming.
-    for element in scene["xml"].iter():
-        if not element.tag.endswith("Element"):
-            continue
-        # legacy_element_label reads the element's own name from arg0 and renders it the
-        # way the designer's tree does ("Button 'Cancel'"), so a finding names the element
-        # by what the user will see when they go to fix it.
-        label = sceneedit_legacy.legacy_element_label(element)
-        for binding in element:
-            if binding.tag not in SCENE_TASK_TYPES:
-                continue
-            task_id = (binding.text or "").strip()
-            # An anonymous Task lives inside the Scene itself and is in no table.
-            if not task_id or task_id.startswith(_ANONYMOUS_TASK_PREFIX):
-                continue
-            event = SCENE_TASK_TYPES[binding.tag]
-            if task_id in all_tasks:
-                index.task_referrers[task_id].append(
-                    Referrer(BY_SCENE_ELEMENT, where.with_text(f"{label} {event}")),
-                )
-            else:
-                index.add(
-                    ERROR,
-                    "BROKEN-SCENE-TASK",
-                    where,
-                    f"{label} '{event}' fires Task id {task_id}, which is not in this file.",
-                )
-
-
-def _index_v2_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, state: RunState) -> None:
-    """Record the Tasks a Version 2 Scene's event handlers run.
-
-    A V2 Scene keeps its components in a gzipped JSON blob rather than in child elements,
-    and a RunTask handler names its Task rather than pointing at an id -- so this resolves
-    through all_tasks_by_name where the Legacy walk above resolves through all_tasks.
-    """
-    layout = sceneedit.decode_v2_layout(scene["xml"])
-    # None means a Legacy Scene or an <lj> that would not decode.  Either way there is
-    # nothing here to check, and guessing at a corrupt layout would invent findings.
-    if layout is None:
-        return
-
-    all_tasks_by_name = state.tasker_root_elements["all_tasks_by_name"]
-    where = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))
-
-    for row in sceneedit_v2.v2_flatten(layout):
-        for handler in sceneedit_v2.v2_handlers(row.node):
-            for action in handler.get("actions") or ():
-                if not isinstance(action, dict) or action.get("type") != "RunTask":
-                    continue
-                task_name = (action.get("task") or "").strip()
-                if not _is_resolvable(task_name):
-                    continue
-                entry = all_tasks_by_name.get(task_name)
-                if entry:
-                    index.task_referrers[entry["id"]].append(
-                        Referrer(BY_SCENE_COMPONENT, where.with_text(f"component '{row.label}'")),
-                    )
-                else:
-                    index.add(
-                        ERROR,
-                        "BROKEN-SCENE-TASK",
-                        where,
-                        f"component '{row.label}' runs Task '{task_name}', which is not in this file.",
-                    )
-
-
 def _index_scenes(index: ReferenceIndex, state: RunState) -> None:
-    """Walk every Scene, Legacy or Version 2, for the Tasks it fires."""
+    """Walk every Scene, Legacy or Version 2, for the Tasks it runs -- reporting any that are missing.
+
+    scenemodel hands over each Task a Scene runs, whichever kind it is; what differs is only how
+    the Scene names it.  A Legacy element holds the Task's id and resolves through all_tasks; a
+    Version 2 handler holds its name and resolves through all_tasks_by_name.
+    """
+    all_tasks = state.tasker_root_elements["all_tasks"]
+    all_tasks_by_name = state.tasker_root_elements["all_tasks_by_name"]
 
     for scene_name, scene in state.tasker_root_elements["all_scenes"].items():
-        # <lj> is the whole V2 test, in both directions (see sceneedit.is_v2_scene).
-        if scene["xml"].find("lj") is not None:
-            _index_v2_scene_tasks(index, scene_name, scene, state=state)
-        else:
-            _index_scene_tasks(index, scene_name, scene, state=state)
+        # project_of_scene is filled by _index_projects, which run_health_check calls first.
+        where = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))
+
+        for binding in scenemodel.model_of(scene["xml"]).task_bindings(scene["xml"]):
+            if binding.task_name:
+                # A name holding a variable is decided on the device and cannot be checked here.
+                if not _is_resolvable(binding.task_name):
+                    continue
+                entry = all_tasks_by_name.get(binding.task_name)
+                task_id = entry["id"] if entry else ""
+            else:
+                task_id = binding.task_id if binding.task_id in all_tasks else ""
+
+            if task_id:
+                kind = BY_SCENE_COMPONENT if binding.component else BY_SCENE_ELEMENT
+                index.task_referrers[task_id].append(Referrer(kind, where.with_text(binding.referrer)))
+            else:
+                index.add(ERROR, "BROKEN-SCENE-TASK", where, binding.broken)
 
 
 def _index_one_action(

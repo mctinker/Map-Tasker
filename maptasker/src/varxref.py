@@ -34,9 +34,10 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src import clock, codelint, sceneedit, sceneedit_legacy, sceneedit_v2
+from maptasker.src import clock, codelint, scenemodel
 from maptasker.src.actionc import action_codes
 from maptasker.src.bundle import bundles
+from maptasker.src.editcommon import argument_elements, string_arguments
 from maptasker.src.mapjump import (
     PROFILE,
     PROJECT,
@@ -48,11 +49,7 @@ from maptasker.src.mapjump import (
     Target,
     actions_in_map_order,
     describe,
-    scene_component_part,
-    scene_element_parts,
     text_report,
-    v2_property_holds_a_variable,
-    v2_strings,
 )
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
@@ -215,24 +212,6 @@ _PROFILE_NON_CONTEXT_TAGS = frozenset(
 # {Legacy Scene element: the argument holding its value}.  A value field is a two-way
 # binding -- the Scene shows what the variable holds and writes back what the user does.
 #
-# Deliberately short.  EditText's arg1 and Slider's arg4 are the two confirmed by real
-# Scenes (an EditText carries '%aab_form2b' there, a Slider '<var>%AAB_ScaleTaperMidpoint');
-# CheckBox and Switch are read from their argument shape, a label in arg0 and a single
-# state in arg1 and nothing else.  The other input types are left out rather than guessed
-# at, because the cost is asymmetric: a wrong entry here records a set that never happens
-# and silently suppresses a real "read but never set", while a missing one only leaves a
-# variable looking unset, which the limitations already warn about.
-_LEGACY_VALUE_ARGS = {
-    "EditTextElement": "1",
-    "SliderElement": "4",
-    "CheckBoxElement": "1",
-    "SwitchElement": "1",
-}
-
-# Version 2 component properties that bind two-way, the same as a Legacy value field: a
-# TextInput's "value" is both what it displays and where what the user types is put.
-_V2_VALUE_KEYS = frozenset({"value", "checked"})
-
 # Arguments holding SEVERAL variable names at once, separated by a splitter the user
 # chooses.  Everywhere else the first name in a write argument is the target and any
 # further ones are subscripts being read (see _record_write); here every name is a target.
@@ -493,57 +472,6 @@ def _project_of_scene(state: RunState) -> dict[str, str]:
     return _project_membership("scenes", state=state)
 
 
-def _string_arguments(action: Element) -> dict[str, str]:
-    """{arg id: text} for one action's or Scene element's arguments.
-
-    Matched on the "sr" attribute rather than child order, which Tasker does not
-    guarantee -- the same way taskedit.py and healthck.py reach an argument.
-
-    Covers both shapes an argument can take.  A text argument is <Str sr="argN">, but an
-    argument Tasker expects a NUMBER in holds <Int sr="argN"><var>%Volume</var></Int> when
-    the user has bound a variable to it instead of typing a figure.  Reading only the <Str>
-    children missed 833 of those in a real backup to hand, across 70 names -- every
-    variable driving a volume, a delay, a slider position or a screen brightness.
-    """
-    arguments = {}
-    for child in action.findall("Str"):
-        sr = child.attrib.get("sr", "")
-        if sr.startswith("arg"):
-            arguments[sr[3:]] = child.text or ""
-    for child in action.findall("Int"):
-        sr = child.attrib.get("sr", "")
-        bound = child.find("var")
-        if sr.startswith("arg") and bound is not None and bound.text:
-            # setdefault, not assignment: an argument is one or the other, and the <Str>
-            # reading is the one to keep if a file ever carries both.
-            arguments.setdefault(sr[3:], bound.text)
-    return arguments
-
-
-def _argument_elements(node: Element) -> dict:
-    """{arg id: the element whose .text holds the value} -- what _string_arguments reads.
-
-    Deliberately the same two shapes, in the same precedence, as that function: these two
-    have to agree about what an argument is, or a reference would be recorded against one
-    element and rewritten in another.
-
-    The <Int> case is why this is not simply "the child carrying that sr": a numeric
-    argument the user has bound a variable to holds it in a <var> child, so the <var> is
-    the element a rewrite has to touch, not the <Int> around it.
-    """
-    elements = {}
-    for child in node.findall("Str"):
-        sr = child.attrib.get("sr", "")
-        if sr.startswith("arg"):
-            elements[sr[3:]] = child
-    for child in node.findall("Int"):
-        sr = child.attrib.get("sr", "")
-        bound = child.find("var")
-        if sr.startswith("arg") and bound is not None and bound.text:
-            elements.setdefault(sr[3:], bound)
-    return elements
-
-
 def _argument_label(code: str, arg_id: str) -> str:
     """ "Variable Set, Name=" -- the action and the argument a reference was found in.
 
@@ -675,8 +603,8 @@ def _scan_action(
             Reference(SET, where, f"{_argument_label(code, '')} (output variable)", scope_id, place),
         )
 
-    arguments = _string_arguments(action)
-    argument_elements = _argument_elements(action)
+    arguments = string_arguments(action)
+    argument_nodes = argument_elements(action)
     targets = write_arguments.get(code, set())
 
     # An in-place action writes back into the variable it reads, but only in one
@@ -701,19 +629,19 @@ def _scan_action(
             _record_write(
                 index,
                 text,
-                Reference(SET, where, detail, scope_id, place, argument_elements.get(arg_id)),
+                Reference(SET, where, detail, scope_id, place, argument_nodes.get(arg_id)),
                 plural=(code, arg_id) in _PLURAL_WRITE_ARGS,
                 also_read=arg_id in writes_back,
             )
         else:
-            _record_reads(index, text, Reference(READ, where, detail, scope_id, place, argument_elements.get(arg_id)))
+            _record_reads(index, text, Reference(READ, where, detail, scope_id, place, argument_nodes.get(arg_id)))
 
     # A JavaScriptlet names Tasker variables through Tasker's own calls -- global('Name'),
     # setLocal('name', value) -- and never with a '%', so the loop above cannot see them:
     # a global read only by a script used to be reported as never read.
     if code == codelint.JAVASCRIPTLET:
         label = f"{_argument_label(code, '0')} (script)"
-        script_element = argument_elements.get("0")
+        script_element = argument_nodes.get("0")
         for name, is_write in codelint.js_variable_uses(arguments.get("0", "")):
             if is_write:
                 _record_write(index, name, Reference(SET, where, label, scope_id, place, script_element), plural=False)
@@ -806,8 +734,8 @@ def _scan_profiles(index: VariableIndex, owners: dict[str, str], scope: Scope, s
                 continue
 
             label = f"{context.tag} context"
-            context_elements = _argument_elements(context)
-            for arg_id, text in _string_arguments(context).items():
+            context_elements = argument_elements(context)
+            for arg_id, text in string_arguments(context).items():
                 if text:
                     _record_reads(
                         index,
@@ -869,123 +797,40 @@ def _scan_projects(index: VariableIndex, scope: Scope, state: RunState) -> None:
             _record_import_value(index, declaration, place.label, scope_id, place, _IMPORT_VARIABLE_DETAIL)
 
 
-def _scan_legacy_scene(
+def _scan_scene_text(
     index: VariableIndex,
     scene: dict,
     place: Target,
     scope_id: str,
 ) -> None:
-    """Record what a Legacy Scene's elements read, and what its input elements write.
+    """Record what a Scene's text reads, and what its input elements write.
 
-    An input element's value field is a TWO-WAY binding: the Scene shows what the variable
-    holds and writes back what the user types or slides.  Recording only the read would
-    leave a variable that a Scene is the only setter of looking as though nothing sets it,
-    which is exactly the false alarm this whole section exists to remove.
+    Whichever kind of Scene it is, scenemodel hands over the same thing: every piece of text
+    in it that may name a variable, with where it is.  An input's value is a TWO-WAY binding --
+    the Scene shows what the variable holds and writes back what the user types or slides --
+    and recording only the read would leave a variable that a Scene is the only setter of
+    looking as though nothing sets it, which is exactly the false alarm this whole section
+    exists to remove.
 
-    .iter() rather than direct children, for the reason healthck gives: a Legacy element
-    can hold another (every element here carries a RectElement background), and a binding
-    on a nested one is every bit as real.
-
-    Every reference is recorded against the ELEMENT, not against the Scene.  A Scene is the
-    one object in a report whose findings are never about the object itself -- "%Notes is
-    read and nothing sets it, first at Scene 'Launcher'" is a fact about one element of a
-    Scene that may hold fifty of them -- so the location says which element, and a click on
-    it lands on that element's own line in the Map (mapjump.scene_element_parts).  Elements
-    the Map does not anchor keep the Scene's own anchor, which is where every one of these
-    used to land.
+    Every reference lands on the ELEMENT or component PROPERTY, never on the Scene, and a
+    click on it lands on that line of the Map (see scenemodel for why).
     """
-    parts = scene_element_parts(scene["xml"])
-    for element in scene["xml"].iter():
-        if not element.tag.endswith("Element"):
-            continue
-        label = sceneedit_legacy.legacy_element_label(element)
-        spot = place.at_part(parts.get(id(element), ""), f"element {label}")
-        where = spot.label
-        value_arg = _LEGACY_VALUE_ARGS.get(element.tag)
-        value_elements = _argument_elements(element)
-        for arg_id, text in _string_arguments(element).items():
-            if not text:
-                continue
-            if arg_id == value_arg:
-                detail = f"{label} value (two-way)"
-                _record_write(
-                    index,
-                    text,
-                    Reference(SET, where, detail, scope_id, spot, value_elements.get(arg_id)),
-                    plural=False,
-                    also_read=True,
-                )
-            else:
-                _record_reads(index, text, Reference(READ, where, label, scope_id, spot, value_elements.get(arg_id)))
-
-
-def _scan_v2_scene(
-    index: VariableIndex,
-    scene: dict,
-    place: Target,
-    scope_id: str,
-) -> None:
-    """Record what a Version 2 Scene's components read and write.
-
-    A V2 Scene keeps its components in a gzipped JSON blob rather than in child elements,
-    so this walks the decoded layout.  Each component is scanned for its OWN properties
-    only -- child slots are skipped, because a node's dict contains its whole subtree and
-    counting that would report every variable once per ancestor, which on a 53-component
-    Scene means a variable read once looking read six times.
-
-    Every reference is recorded against the component's own PROPERTY, not against the
-    Scene, for the reason _scan_legacy_scene gives -- and one property rather than one
-    component, because the Map writes a V2 component out one property per line, so there
-    is an exact line for a finding to land on.
-    """
-    layout = sceneedit.decode_v2_layout(scene["xml"])
-    # None means an <lj> that would not decode.  Guessing at a corrupt layout would
-    # invent references, so there is nothing to do here.
-    if layout is None:
-        return
-
-    for row in sceneedit_v2.v2_flatten(layout):
-        child_slots = {slot for slot, _ in sceneedit_v2.v2_child_slots(row.node)}
-        for key, value in row.node.items():
-            if key in child_slots:
-                continue
-            # Asked before the strings are walked, rather than left to the test below, so
-            # that the properties this records are visibly the same set the Map anchors --
-            # see mapjump.v2_property_holds_a_variable, which is that one question.
-            if not v2_property_holds_a_variable(value):
-                continue
-            for text in v2_strings(value):
-                if "%" not in text:
-                    continue
-                label = f"component '{row.label}' {key}"
-                # (component path, property key) rather than an element: the value sits
-                # inside the gzipped JSON of <lj>, and the decoded layout this loop is
-                # walking is a throwaway -- a reference into it would address nothing by
-                # the time anybody wanted to write to it.  The path survives a re-decode.
-                where_in_layout = (row.path, key)
-                # The same two things, as somewhere to go and look: the Map writes an
-                # anchor per property line of every component, and the path and the key
-                # together are what pick out the one this value is on.
-                spot = place.at_part(
-                    scene_component_part(row.path, key),
-                    f"component {row.label} {key}",
-                )
-                if key in _V2_VALUE_KEYS:
-                    # Same two-way binding as a Legacy input element: a TextInput's value
-                    # is both what it shows and where what the user types goes.
-                    _record_write(
-                        index,
-                        text,
-                        Reference(SET, spot.label, label, scope_id, spot, scene["xml"], where_in_layout),
-                        plural=False,
-                        also_read=True,
-                    )
-                else:
-                    _record_reads(
-                        index,
-                        text,
-                        Reference(READ, spot.label, label, scope_id, spot, scene["xml"], where_in_layout),
-                    )
+    for site in scenemodel.model_of(scene["xml"]).text_sites(scene["xml"], place):
+        where = site.spot.label
+        if site.two_way:
+            _record_write(
+                index,
+                site.text,
+                Reference(SET, where, site.detail, scope_id, site.spot, site.element, site.path),
+                plural=False,
+                also_read=True,
+            )
+        else:
+            _record_reads(
+                index,
+                site.text,
+                Reference(READ, where, site.detail, scope_id, site.spot, site.element, site.path),
+            )
 
 
 def _scan_scenes(
@@ -1002,11 +847,7 @@ def _scan_scenes(
         index.scope_locations[scope_id] = place
         index.scenes_scanned += 1
 
-        # <lj> is the whole V2 test, in both directions (see sceneedit.is_v2_scene).
-        if scene["xml"].find("lj") is not None:
-            _scan_v2_scene(index, scene, place, scope_id)
-        else:
-            _scan_legacy_scene(index, scene, place, scope_id)
+        _scan_scene_text(index, scene, place, scope_id)
 
         # A truly anonymous task -- one created inline on a Scene element -- lives inside
         # the Scene as <Action> children rather than as a top-level <Task>, so the walk

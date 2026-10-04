@@ -190,3 +190,59 @@ class EditorKind:
             return 8, str(verify_content), _NO_BYTES
 
         return 0, device_path, verify_content
+
+
+# ##################################################################################
+# Reading a node's arguments.  Shared by every analysis that has to know what a Tasker action,
+# condition or Scene element holds -- varxref, and the Scene models that varxref and healthck both
+# ask (scenemodel) -- so it lives below all of them.
+# ##################################################################################
+def string_arguments(action: Element) -> dict[str, str]:
+    """{arg id: text} for one action's or Scene element's arguments.
+
+    Matched on the "sr" attribute rather than child order, which Tasker does not
+    guarantee -- the same way taskedit.py and healthck.py reach an argument.
+
+    Covers both shapes an argument can take.  A text argument is <Str sr="argN">, but an
+    argument Tasker expects a NUMBER in holds <Int sr="argN"><var>%Volume</var></Int> when
+    the user has bound a variable to it instead of typing a figure.  Reading only the <Str>
+    children missed 833 of those in a real backup to hand, across 70 names -- every
+    variable driving a volume, a delay, a slider position or a screen brightness.
+    """
+    arguments = {}
+    for child in action.findall("Str"):
+        sr = child.attrib.get("sr", "")
+        if sr.startswith("arg"):
+            arguments[sr[3:]] = child.text or ""
+    for child in action.findall("Int"):
+        sr = child.attrib.get("sr", "")
+        bound = child.find("var")
+        if sr.startswith("arg") and bound is not None and bound.text:
+            # setdefault, not assignment: an argument is one or the other, and the <Str>
+            # reading is the one to keep if a file ever carries both.
+            arguments.setdefault(sr[3:], bound.text)
+    return arguments
+
+
+def argument_elements(node: Element) -> dict:
+    """{arg id: the element whose .text holds the value} -- what string_arguments reads.
+
+    Deliberately the same two shapes, in the same precedence, as that function: these two
+    have to agree about what an argument is, or a reference would be recorded against one
+    element and rewritten in another.
+
+    The <Int> case is why this is not simply "the child carrying that sr": a numeric
+    argument the user has bound a variable to holds it in a <var> child, so the <var> is
+    the element a rewrite has to touch, not the <Int> around it.
+    """
+    elements = {}
+    for child in node.findall("Str"):
+        sr = child.attrib.get("sr", "")
+        if sr.startswith("arg"):
+            elements[sr[3:]] = child
+    for child in node.findall("Int"):
+        sr = child.attrib.get("sr", "")
+        bound = child.find("var")
+        if sr.startswith("arg") and bound is not None and bound.text:
+            elements.setdefault(sr[3:], bound)
+    return elements

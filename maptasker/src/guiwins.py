@@ -73,10 +73,7 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins_canvas import (
     _register_canvas_events,
 )
-from maptasker.src.guiwins_designer_legacy import (
-    _build_legacy_designer,
-)
-from maptasker.src.guiwins_designer_v2 import _build_v2_designer
+from maptasker.src.guiwins_designers import designer_for
 from maptasker.src.guiwins_editor import (
     PROJECT_REDACT_FIELD,
     SCENE_REDACT_FIELD,
@@ -90,7 +87,6 @@ from maptasker.src.guiwins_nav import (
     live_views,
     register_finding_clicks,
 )
-from maptasker.src.guiwins_sceneprops import _build_scene_properties_dialog
 from maptasker.src.guiwins_taskedit import (
     _build_fetch_apps_dialog,
 )
@@ -1251,29 +1247,11 @@ def _build_scene_editor_body(
     Both callers supply their own Name field and their own button row; everything
     between the two is this.
 
-    Branches on which kind of Scene it was handed (sceneedit.is_v2_scene), because
-    the two have almost nothing in common below the name:
-
-      Legacy -- editable size (the four <widthPort>/<heightPort>/<widthLand>/
-      <heightLand> children Tasker lays the Scene out on), plus a read-only list
-      of its UI elements.  -1 is Tasker's own "not laid out for this orientation"
-      and is left alone as such (see sceneedit_legacy.UNSET_DIMENSION), which is why
-      these are plain text inputs rather than number spinners -- a spinner would
-      quietly turn a deliberate -1 into a 0-sized Scene.
-
-      Version 2 -- no size fields at all, and a read-only outline of the component
-      tree instead of an element list.  The size fields are omitted rather than
-      shown-and-disabled because a V2 layout is declarative: there is no canvas
-      to size, every real V2 Scene carries -1 across all four, and offering the
-      four boxes would invite someone to set a number that means nothing.  Their
-      absence from field_refs is what userintr_editors._apply_scene_field_values reads as
-      "nothing to validate here", so no size is ever written to a V2 Scene.
-
-    Each branch then hands off to the designer for its kind -- _build_v2_designer
-    for a component tree, _build_legacy_designer for a canvas -- and neither needs
-    anything from either dialog beyond the field_refs dict it is already handed.
-    What each designer does and does not yet edit is documented on it rather than
-    here; both are still filling in, and this function's job is only to pick.
+    Asks guiwins_designers which designer the Scene's kind gets, and mounts it below the name.
+    The two kinds have almost nothing in common there -- a Legacy Scene has editable size fields
+    and a canvas, a Version 2 Scene a component tree and no size at all -- so everything that
+    differs lives with the designer (see LegacyDesigner and V2Designer), and this function's job
+    is only the part both share: the Scene's kind, and the Preview button.
 
     Every widget it puts in field_refs is read back by
     userintr_editors._apply_scene_field_values, which is the only thing that has to grow
@@ -1286,7 +1264,7 @@ def _build_scene_editor_body(
     minus that one button.
     """
     scene_element = edited_scene.scene_element
-    is_v2 = sceneedit.is_v2_scene(scene_element)
+    designer = designer_for(scene_element)
 
     with ui.row().classes("w-full items-center gap-2 mt-1"):
         ui.label(
@@ -1305,76 +1283,11 @@ def _build_scene_editor_body(
             # place that knows a preview is possible at all.
             dialog.on_value_change(lambda event: _scene_dialog_closed(_self, dialog, field_refs, event))
         with preview_button:
-            # Two Scenes, two things the preview is drawing from, so two tooltips: a Legacy
-            # Scene is previewed at the size typed into the fields below, a V2 Scene at a
-            # screen size the preview itself offers, because a V2 layout has none.
-            ui.tooltip(
-                (
-                    translate_string(
-                        "Draws this Scene as a picture in the main window -- including the components "
-                        "you have added or changed here but not yet saved.\n\n"
-                        "A Version 2 layout has no size of its own, so the preview lays it out in a screen "
-                        "you pick, and re-flows it when you change that.\n\n"
-                        "This dialog closes while the preview is up, with everything in it kept; the "
-                        "preview's 'Back to Editor' button brings it back.\n\n"
-                        "It is a representation, not Tasker's own renderer: %variables are named rather "
-                        "than resolved, Material colours come from the baseline palette rather than the "
-                        "device's theme, and images, video and web content are shown as placeholders.",
-                    )
-                    if is_v2
-                    else translate_string(
-                        "Draws this Scene as a picture in the main window, at the size typed above -- "
-                        "including changes not yet saved.\n\n"
-                        "This dialog closes while the preview is up, with everything in it kept; the "
-                        "preview's 'Back to Editor' button brings it back.\n\n"
-                        "It is a representation, not Tasker's own renderer: %variables are named rather "
-                        "than resolved, and images, video and web content are shown as placeholders.",
-                    )
-                ),
-            ).style("white-space: pre-wrap")
+            # What the preview is drawing from differs by kind -- the size typed into the fields
+            # below, or a screen the preview itself offers -- so each designer says which.
+            ui.tooltip(translate_string(designer.preview_tooltip)).style("white-space: pre-wrap")
 
-    if is_v2:
-        layout = sceneedit.decode_v2_layout(scene_element)
-        if layout is None:
-            ui.label(
-                translate_string("This Scene's Version 2 layout could not be read, and will be left exactly as it is."),
-            ).classes("text-sm text-orange-600 mt-2")
-            return
-        _build_v2_designer(edited_scene, field_refs, layout, state=state)
-        return
-
-    with ui.row().classes("w-full gap-2 mt-2"):
-        for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
-            field_refs[key] = (
-                ui.input(
-                    translate_string(label),
-                    value=scene_element.findtext(key, sceneedit_legacy.UNSET_DIMENSION),
-                )
-                .classes("w-36")
-                .props("dense")
-            )
-    ui.label(translate_string("-1 means this orientation has no layout of its own.")).classes(
-        "text-xs text-gray-500 italic",
-    )
-
-    # The same button Project/Profile/Task grow, opening the Scene's own form -- see
-    # _build_scene_properties_dialog for why the form could not be shared even though the
-    # button is.  Legacy only: a V2 Scene has no <PropertiesElement>, and the V2 branch
-    # above has already returned by here.
-    #
-    # No on_applied: every Scene save path calls sceneedit.apply_edited_scene_to_live_tree
-    # BEFORE rendering by name, so the working copy this writes to is what gets saved.  That
-    # is the difference from Edit Project, whose by-name saves do not apply first and so
-    # need the live-tree mirror.
-    _build_properties_button(
-        _self,
-        objprops.KIND_SCENE,
-        scene_element,
-        dialog,
-        opener=lambda: _build_scene_properties_dialog(_self, edited_scene, field_refs),
-    )
-
-    _build_legacy_designer(_self, edited_scene, field_refs)
+    designer.build_body(_self, edited_scene, field_refs, dialog, state=state)
 
 
 def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> None:

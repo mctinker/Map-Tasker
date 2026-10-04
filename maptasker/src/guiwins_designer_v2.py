@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from maptasker.src.primitem import RunState
+    from maptasker.src.userintr import MyGui
 
 
 def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str], None]) -> None:
@@ -1404,3 +1405,46 @@ class _V2Designer:
             self.render_inspector()
         with self.toolbar:
             self.render_toolbar()
+
+
+class V2Designer:
+    """The Version 2 Scene designer, as the Scene dialogs mount it -- see guiwins_designers.
+
+    The whole of what a dialog needs to know about this kind of Scene lives here: no size fields
+    (a V2 layout is declarative, so there is no canvas to size and every real V2 Scene carries -1
+    across all four -- offering the four boxes would invite someone to set a number that means
+    nothing), and the component-tree designer where the Legacy one has its canvas.  Their absence
+    from field_refs is what userintr_editors._apply_scene_field_values reads as "nothing to
+    validate here", so no size is ever written to a V2 Scene.
+    """
+
+    # A V2 layout has no size, so the preview lays it out in a screen the preview itself offers.
+    preview_tooltip = (
+        "Draws this Scene as a picture in the main window -- including the components "
+        "you have added or changed here but not yet saved.\n\n"
+        "A Version 2 layout has no size of its own, so the preview lays it out in a screen "
+        "you pick, and re-flows it when you change that.\n\n"
+        "This dialog closes while the preview is up, with everything in it kept; the "
+        "preview's 'Back to Editor' button brings it back.\n\n"
+        "It is a representation, not Tasker's own renderer: %variables are named rather "
+        "than resolved, Material colours come from the baseline palette rather than the "
+        "device's theme, and images, video and web content are shown as placeholders."
+    )
+
+    def build_body(
+        self,
+        gui: MyGui,
+        edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
+        dialog: ui.dialog | None,
+        *,
+        state: RunState,
+    ) -> None:
+        """Mount the component-tree designer, or say the layout could not be read and leave it alone."""
+        layout = sceneedit.decode_v2_layout(edited_scene.scene_element)
+        if layout is None:
+            ui.label(
+                translate_string("This Scene's Version 2 layout could not be read, and will be left exactly as it is."),
+            ).classes("text-sm text-orange-600 mt-2")
+            return
+        _build_v2_designer(edited_scene, field_refs, layout, state=state)

@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, ui
 
-from maptasker.src import sceneedit, sceneedit_legacy, sceneview
+from maptasker.src import objprops, sceneedit, sceneedit_legacy, sceneview
 from maptasker.src.guiwins_canvas import (
     _ACTIVE_CANVASES,
     _DESIGNER_SEQUENCE,
@@ -27,6 +27,7 @@ from maptasker.src.guiwins_canvas import (
     _emit_canvas_fit,
     _register_canvas_events,
 )
+from maptasker.src.guiwins_editor import _build_properties_button
 from maptasker.src.guiwins_legacyarg import _render_legacy_arg
 from maptasker.src.guiwins_sceneprops import _build_scene_properties_dialog, _scene_properties_summary
 from maptasker.src.maputil2 import translate_string
@@ -1369,3 +1370,69 @@ def _apply_item_layout_size(
         widget.value = nested.scene_element.findtext(key, sceneedit_legacy.UNSET_DIMENSION)
         return
     sceneedit.set_scene_dimensions(nested, {key: value})
+
+
+class LegacyDesigner:
+    """The Legacy Scene designer, as the Scene dialogs mount it -- see guiwins_designers.
+
+    Everything a Legacy Scene needs above its elements: the four size fields Tasker lays the Scene
+    out on, the Scene Properties button, and then the canvas designer itself.
+    """
+
+    # A Legacy Scene is previewed at the size typed into its own fields.
+    preview_tooltip = (
+        "Draws this Scene as a picture in the main window, at the size typed above -- "
+        "including changes not yet saved.\n\n"
+        "This dialog closes while the preview is up, with everything in it kept; the "
+        "preview's 'Back to Editor' button brings it back.\n\n"
+        "It is a representation, not Tasker's own renderer: %variables are named rather "
+        "than resolved, and images, video and web content are shown as placeholders."
+    )
+
+    def build_body(
+        self,
+        gui: MyGui,
+        edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
+        dialog: ui.dialog | None,
+        *,
+        state: RunState,
+    ) -> None:
+        """Size fields, the Scene Properties button, then the canvas designer."""
+        scene_element = edited_scene.scene_element
+        # Editable size (the four <widthPort>/<heightPort>/<widthLand>/<heightLand> children Tasker
+        # lays the Scene out on).  -1 is Tasker's own "not laid out for this orientation" and is
+        # left alone as such (see sceneedit_legacy.UNSET_DIMENSION), which is why these are plain
+        # text inputs rather than number spinners -- a spinner would quietly turn a deliberate -1
+        # into a 0-sized Scene.
+        with ui.row().classes("w-full gap-2 mt-2"):
+            for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
+                field_refs[key] = (
+                    ui.input(
+                        translate_string(label),
+                        value=scene_element.findtext(key, sceneedit_legacy.UNSET_DIMENSION),
+                    )
+                    .classes("w-36")
+                    .props("dense")
+                )
+        ui.label(translate_string("-1 means this orientation has no layout of its own.")).classes(
+            "text-xs text-gray-500 italic",
+        )
+
+        # The same button Project/Profile/Task grow, opening the Scene's own form -- see
+        # _build_scene_properties_dialog for why the form could not be shared even though the
+        # button is.  Legacy only: a V2 Scene has no <PropertiesElement>.
+        #
+        # No on_applied: every Scene save path calls sceneedit.apply_edited_scene_to_live_tree
+        # BEFORE rendering by name, so the working copy this writes to is what gets saved.  That
+        # is the difference from Edit Project, whose by-name saves do not apply first and so
+        # need the live-tree mirror.
+        _build_properties_button(
+            gui,
+            objprops.KIND_SCENE,
+            scene_element,
+            dialog,
+            opener=lambda: _build_scene_properties_dialog(gui, edited_scene, field_refs),
+        )
+
+        _build_legacy_designer(gui, edited_scene, field_refs)
