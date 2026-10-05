@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from maptasker.src import webassets
 
 
@@ -13,8 +15,6 @@ def test_an_asset_url_changes_when_the_file_does(tmp_path, monkeypatch) -> None:
     before = webassets.url("x.css")
 
     (tmp_path / "x.css").write_text("a { color: red }")
-    import os
-
     os.utime(tmp_path / "x.css", ns=(1, 1))
 
     assert webassets.url("x.css") != before

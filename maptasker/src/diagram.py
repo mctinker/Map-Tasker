@@ -943,6 +943,42 @@ def find_diagram_connector_seed_cell(lines: list, row: int, col: int) -> tuple |
     return None
 
 
+# How many blank cells of interruption a straight run can bridge over before giving up and
+# treating the run as genuinely ended.  Foreign connector characters are bridged without limit.
+_MAX_BRIDGE = 4
+
+
+def _reachable_neighbors(lines: list, r: int, c: int, max_bridge: int = _MAX_BRIDGE) -> list:
+    """The connector cells the one at (r, c) joins to, looking past what interrupts a straight run.
+
+    See compute_diagram_connector_groups() for why a run needs bridging at all.
+    """
+    found = []
+    for dr, dc in CONNECTOR_DIRECTIONS[lines[r][c]]:
+        nr, nc = r + dr, c + dc
+        blanks = 0
+        while 0 <= nr < len(lines) and 0 <= nc < len(lines[nr]):
+            nchar = lines[nr][nc]
+            if nchar in CONNECTOR_DIRECTIONS and (-dr, -dc) in CONNECTOR_DIRECTIONS[nchar]:
+                found.append((nr, nc))
+                break
+            # Not a continuation -- keep looking past it only if it's something a real,
+            # unrelated line (box border, task text, ...) would never sit on top of.
+            if nchar == " ":
+                # Only blanks count against the limit.  A long run can cross a whole
+                # bundle of other connectors' bars standing shoulder to shoulder (dozens
+                # of them where a busy Task is called from many places); counting those
+                # too cut the run in two at the bundle, leaving the half that reaches
+                # the called Task a stub with no caller and nothing to jump to.
+                blanks += 1
+                if blanks > max_bridge:
+                    break
+            elif nchar not in CONNECTOR_DIRECTIONS:
+                break
+            nr, nc = nr + dr, nc + dc
+    return found
+
+
 def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) -> dict:
     """
     Identify every Diagram-view connector -- the lines, corners and arrows joining a "calls" Task
@@ -992,36 +1028,6 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
     run of characters.  A list rather than one index because two calls whose runs touch are
     one group -- geometry decides the groups, and the calls that fall in one all claim it.
     """
-    # How many blank cells of interruption a straight run can bridge over before giving up and
-    # treating the run as genuinely ended.  Foreign connector characters are bridged without limit.
-    max_bridge = 4
-
-    def reachable_neighbors(r: int, c: int) -> list:
-        found = []
-        for dr, dc in CONNECTOR_DIRECTIONS[lines[r][c]]:
-            nr, nc = r + dr, c + dc
-            blanks = 0
-            while 0 <= nr < len(lines) and 0 <= nc < len(lines[nr]):
-                nchar = lines[nr][nc]
-                if nchar in CONNECTOR_DIRECTIONS and (-dr, -dc) in CONNECTOR_DIRECTIONS[nchar]:
-                    found.append((nr, nc))
-                    break
-                # Not a continuation -- keep looking past it only if it's something a real,
-                # unrelated line (box border, task text, ...) would never sit on top of.
-                if nchar == " ":
-                    # Only blanks count against the limit.  A long run can cross a whole
-                    # bundle of other connectors' bars standing shoulder to shoulder (dozens
-                    # of them where a busy Task is called from many places); counting those
-                    # too cut the run in two at the bundle, leaving the half that reaches
-                    # the called Task a stub with no caller and nothing to jump to.
-                    blanks += 1
-                    if blanks > max_bridge:
-                        break
-                elif nchar not in CONNECTOR_DIRECTIONS:
-                    break
-                nr, nc = nr + dr, nc + dc
-        return found
-
     visited: set = set()
     groups: dict = {}
     group_of_cell: dict = {}
@@ -1049,7 +1055,7 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
         while stack:
             r, c = stack.pop()
             cells.append((r, c))
-            for nr, nc in reachable_neighbors(r, c):
+            for nr, nc in _reachable_neighbors(lines, r, c):
                 if (nr, nc) in visited:
                     continue
                 visited.add((nr, nc))
