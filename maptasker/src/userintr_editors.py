@@ -17,6 +17,7 @@ to the XML by taskedit, profedit, sceneedit and projedit.  This is what the dial
 
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING
 
 from nicegui import ui
@@ -397,6 +398,26 @@ def _notify_if_plugin_needs_configuration(element: object, name: str) -> None:
     warning = taskedit.tasker_configuration_warning(element, name)
     if warning:
         ui.notify(warning, type="warning", multi_line=True, timeout=8000)
+
+
+async def show_save_in_progress_notice() -> ui.notification:
+    """Tell the user a Save To Current File has started, before the (blocking) save does.
+
+    A large configuration can take a few seconds to render, write and reload, and every step
+    of that runs on NiceGUI's event loop: a notification only queued before it would not
+    reach the browser until the whole save was over.  The short sleep hands the loop back
+    long enough for the message to be sent first.  The caller dismisses the returned
+    notification once the save has finished or failed, so it never outlives the work.
+    """
+    notice = ui.notification(
+        translate_string("Save to current file in progress"),
+        type="ongoing",
+        spinner=True,
+        timeout=None,
+        position="top",
+    )
+    await asyncio.sleep(0.15)
+    return notice
 
 
 def reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool, str]:
@@ -1168,7 +1189,7 @@ class EditorEventHandlers:
         ui.notify(translate_string("Changes kept."), type="positive")
         dialog.close()
 
-    def save_edited_task_to_current_file_event(
+    async def save_edited_task_to_current_file_event(
         self,
         edited_task: taskedit.EditableTask,
         field_refs: dict,
@@ -1191,11 +1212,14 @@ class EditorEventHandlers:
         """
         if not _apply_edited_task(edited_task, field_refs, state=self.state):
             return
+        notice = await show_save_in_progress_notice()
         success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
+            notice.dismiss()
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
         reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
+        notice.dismiss()
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
@@ -1444,7 +1468,7 @@ class EditorEventHandlers:
             )
         dialog.close()
 
-    def save_project_to_current_file_event(
+    async def save_project_to_current_file_event(
         self,
         edited_project: projedit.EditableProject,
         field_refs: dict,
@@ -1492,11 +1516,14 @@ class EditorEventHandlers:
 
         projedit.rename_project_in_live_tree(old_name, edited_project, state=self.state)
 
+        notice = await show_save_in_progress_notice()
         success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
+            notice.dismiss()
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
         reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
+        notice.dismiss()
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
@@ -1871,7 +1898,7 @@ class EditorEventHandlers:
         rename_dialog.close()
         parent_dialog.close()
 
-    def save_scene_to_current_file_event(
+    async def save_scene_to_current_file_event(
         self,
         edited_scene: sceneedit.EditableScene,
         field_refs: dict,
@@ -1898,11 +1925,14 @@ class EditorEventHandlers:
 
         sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene, state=self.state)
 
+        notice = await show_save_in_progress_notice()
         success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
+            notice.dismiss()
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
         reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
+        notice.dismiss()
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
@@ -2322,7 +2352,7 @@ class EditorEventHandlers:
         ui.notify(translate_string("Changes kept."), type="positive")
         dialog.close()
 
-    def save_edited_profile_to_current_file_event(
+    async def save_edited_profile_to_current_file_event(
         self,
         edited_profile: profedit.EditableProfile,
         field_refs: dict,
@@ -2343,11 +2373,14 @@ class EditorEventHandlers:
         """
         if not _apply_edited_profile(edited_profile, field_refs, state=self.state):
             return
+        notice = await show_save_in_progress_notice()
         success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
+            notice.dismiss()
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
         reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
+        notice.dismiss()
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
@@ -2419,7 +2452,7 @@ class EditorEventHandlers:
         )
         dialog.close()
 
-    def save_new_profile_to_current_file_event(
+    async def save_new_profile_to_current_file_event(
         self,
         edited_profile: profedit.EditableProfile,
         field_refs: dict,
@@ -2443,11 +2476,14 @@ class EditorEventHandlers:
 
         _finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
+        notice = await show_save_in_progress_notice()
         success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
+            notice.dismiss()
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
         reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
+        notice.dismiss()
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
@@ -2738,7 +2774,7 @@ class EditorEventHandlers:
         )
         dialog.close()
 
-    def save_new_task_to_current_file_event(
+    async def save_new_task_to_current_file_event(
         self,
         edited_task: taskedit.EditableTask,
         field_refs: dict,
@@ -2763,12 +2799,15 @@ class EditorEventHandlers:
 
         _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
 
+        notice = await show_save_in_progress_notice()
         success, result = write_full_backup_to_current_file(state=self.state)
         if not success:
+            notice.dismiss()
             ui.notify(f"Could not save to current file: {result}", type="negative")
             return
 
         reload_ok, reload_error = reload_saved_copy_and_refresh(self.gui, result)
+        notice.dismiss()
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return

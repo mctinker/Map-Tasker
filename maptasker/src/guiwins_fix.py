@@ -103,7 +103,7 @@ def build_fix_dialog(
     title: str,
     make_jump: Callable,
     rebuild_after_apply: Callable[[], Coroutine],
-    save_configuration: Callable[[], bool],
+    save_configuration: Callable[[], Coroutine],
     state: RunState,
 ) -> ui.dialog | None:
     """Build and return the Fix Findings dialog, or None if there is nothing loaded to scan.
@@ -262,7 +262,7 @@ def build_fix_dialog(
             # repair that has already been tried and did not work.
             scan()
 
-        def do_save() -> None:
+        async def do_save() -> None:
             """The Save button: write the repairs -- and every other edit this session -- to a file.
 
             HERE BECAUSE THE REPAIRS ARE IN MEMORY AND NOTHING ELSE ON THIS SCREEN SAYS SO.
@@ -276,7 +276,7 @@ def build_fix_dialog(
             holding belongs to a tree nothing renders from any more.  Ticks and choices are
             carried across by identity, so repairs decided and not yet applied survive it.
             """
-            if save_configuration():
+            if await save_configuration():
                 scan(restore=True)
 
         _build_buttons(

@@ -100,7 +100,7 @@ class _State:
 def build_restore_dialog(
     make_jump: Callable,
     rebuild_after_apply: Callable[[], Coroutine],
-    save_configuration: Callable[[], bool],
+    save_configuration: Callable[[], Coroutine],
     state: RunState,
 ) -> ui.dialog | None:
     """Build and return the Restore From History dialog, or None if there is nothing to restore from.
@@ -248,7 +248,7 @@ def build_restore_dialog(
             Rescanned afterwards, and it must be: the switch to the saved copy reloads the whole
             configuration.  The snapshot being read is untouched by that, so it stays chosen.
             """
-            if save_configuration():
+            if await save_configuration():
                 await rescan()
 
         with ui.row().classes("w-full justify-end mt-4 gap-2"):

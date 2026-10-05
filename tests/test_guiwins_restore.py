@@ -67,7 +67,7 @@ def _page() -> None:
     async def rebuild() -> None:
         _built["rebuilt"] += 1
 
-    def save() -> bool:
+    async def save() -> bool:
         _built["saved"] += 1
         return _built["save_answer"]
 

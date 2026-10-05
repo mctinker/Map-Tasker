@@ -120,7 +120,11 @@ from maptasker.src.userhelp import (
 )
 from maptasker.src.userintr_ai import AIEventHandlers
 from maptasker.src.userintr_android import AndroidEventHandlers
-from maptasker.src.userintr_editors import EditorEventHandlers, reload_saved_copy_and_refresh
+from maptasker.src.userintr_editors import (
+    EditorEventHandlers,
+    reload_saved_copy_and_refresh,
+    show_save_in_progress_notice,
+)
 from maptasker.src.userintr_loading import LoadingEventHandlers
 from maptasker.src.userintr_reports import ReportEventHandlers
 from maptasker.src.userintr_settings import SettingsEventHandlers
@@ -1867,7 +1871,7 @@ class MapTaskerEventHandlers(
         self.gui.fix_dialog = dialog
         dialog.open()
 
-    def save_whole_configuration(self: "MapTaskerEventHandlers") -> bool:
+    async def save_whole_configuration(self: "MapTaskerEventHandlers") -> bool:
         """The Fix Findings and Restore dialogs' 'Save To Current File'.  True when their list must be rebuilt.
 
         The same two steps, in the same order, as every Edit dialog's button of that name
@@ -1895,12 +1899,15 @@ class MapTaskerEventHandlers(
           NOT SAVED.  Nothing was written and nothing changed, so there is nothing to
           rebuild and the list is left exactly as it was.
         """
+        notice = await show_save_in_progress_notice()
         saved, result = write_full_backup_to_current_file(state=self.state)
         if not saved:
+            notice.dismiss()
             ui.notify(f"{translate_string('Could not save to current file:')} {result}", type="negative")
             return False
 
         loaded, error = reload_saved_copy_and_refresh(self.gui, result)
+        notice.dismiss()
         if not loaded:
             ui.notify(
                 f"{translate_string('Saved a copy to')} {result}, "

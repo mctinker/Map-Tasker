@@ -49,7 +49,7 @@ def _page() -> None:
     async def rebuild() -> None:
         _built["rebuilt"] += 1
 
-    def save() -> bool:
+    async def save() -> bool:
         _built["saved"] += 1
         return _built["save_answer"]
 
@@ -242,10 +242,12 @@ async def test_saving_the_configuration_rescans_only_when_the_save_asks_for_it()
     """A save that switched files has left the plan holding elements nothing renders from."""
     async with _open() as user:
         _press(user, "Save To Current File")
+        await asyncio.sleep(0.1)
         assert _built["saved"] == 1
 
         _built["save_answer"] = True
         _press(user, "Save To Current File")
+        await asyncio.sleep(0.1)
         assert _built["saved"] == 2
 
 
