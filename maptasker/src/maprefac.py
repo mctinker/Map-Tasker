@@ -1124,6 +1124,27 @@ def _profile_task_ids(profile_element: Element) -> list[str]:
     )
 
 
+def _namesake_in(table: str, tag: str, member: str, name: str, project: str, state: RunState) -> str:
+    """The id of ANOTHER object in `project` that has this name, or "" for none.
+
+    The "does it already exist there?" half of a move that _projects_listing cannot answer:
+    that one asks whether this very id is listed, and a second Task or Profile of the same
+    name under a different id is just as much a collision.  Perform Task and every pulldown
+    find a Task by name, so two of them in one Project make the move silently change which
+    one a call reaches.  An unnamed object has no name to collide on, so it never matches.
+    """
+    if not name:
+        return ""
+    entry = _table("all_projects", state=state).get(project)
+    if entry is None:
+        return ""
+    objects = _table(table, state=state)
+    for other_id in _members(entry["xml"], tag):
+        if other_id != member and objects.get(other_id, {}).get("name", "") == name:
+            return other_id
+    return ""
+
+
 def plan_move(kind: str, key: str, to_project: str, state: RunState) -> Plan:
     """Move a Task (kind=TASK, key=its id) or a Profile (kind=PROFILE, key=its id) to a Project.
 
@@ -1174,6 +1195,20 @@ def _plan_move_task(task_id: str, to_project: str, state: RunState) -> Plan:
             ),
         )
 
+    namesake = _namesake_in("all_tasks", "tids", task_id, entry.get("name", ""), to_project, state=state)
+    if namesake:
+        return _blocked(
+            MOVE,
+            what,
+            Block(
+                "NAME-TAKEN",
+                f"Project '{to_project}' already has a different Task named '{task_name}'.  Perform Task calls "
+                f"a Task by name, so two of them in one Project would leave every call to either ambiguous.  "
+                f"Rename one of them first.",
+                _task_target(namesake, state=state),
+            ),
+        )
+
     plan = Plan(kind=MOVE, what=what, elements=(entry["xml"],))
     plan.steps = [
         *(
@@ -1181,9 +1216,19 @@ def _plan_move_task(task_id: str, to_project: str, state: RunState) -> Plan:
             for owner in owners
             if owner != to_project
         ),
-        Step(f"Add Task '{task_name}' to Project '{to_project}'", Target(kind=PROJECT, key=to_project)),
+        *(
+            []
+            if to_project in owners
+            else [Step(f"Add Task '{task_name}' to Project '{to_project}'", Target(kind=PROJECT, key=to_project))]
+        ),
     ]
     plan.warnings = _move_task_warnings(task_id, task_name, owners, to_project, state=state)
+    if to_project in owners:
+        plan.warnings.insert(
+            0,
+            f"Task '{task_name}' is already listed by Project '{to_project}', so this only removes it from "
+            f"the other Project{'s' if len(owners) > 2 else ''} that list{'' if len(owners) > 2 else 's'} it.",
+        )
 
     def run() -> list[str]:
         _relocate("tids", task_id, to_project, owners, state=state)
@@ -1273,6 +1318,38 @@ def _plan_move_profile(profile_id: str, to_project: str, state: RunState) -> Pla
     }
     travelling = [task_id for task_id in task_ids if not shared[task_id]]
 
+    # Nothing may arrive in the Project under a name something there already has: not the
+    # Profile, and not any Task that travels with it.  A Task already listed by the target
+    # is not arriving, so it is not a collision with itself.
+    tasks = _table("all_tasks", state=state)
+    blocks = []
+    profile_namesake = _namesake_in("all_profiles", "pids", profile_id, entry.get("name", ""), to_project, state=state)
+    if profile_namesake:
+        blocks.append(
+            Block(
+                "NAME-TAKEN",
+                f"Project '{to_project}' already has a different Profile named '{profile_name}'.  Rename one "
+                f"of them first.",
+                _profile_target(profile_namesake, state=state),
+            ),
+        )
+    for task_id in travelling:
+        task_name = tasks.get(task_id, {}).get("name", "")
+        task_namesake = _namesake_in("all_tasks", "tids", task_id, task_name, to_project, state=state)
+        if task_namesake:
+            blocks.append(
+                Block(
+                    "NAME-TAKEN",
+                    f"Profile '{profile_name}' runs Task '{task_name}', which would move with it, and Project "
+                    f"'{to_project}' already has a different Task of that name.  Perform Task calls a Task by "
+                    f"name, so two of them in one Project would leave every call to either ambiguous.  Rename "
+                    f"one of them first.",
+                    _task_target(task_namesake, state=state),
+                ),
+            )
+    if blocks:
+        return _blocked(MOVE, what, *blocks)
+
     plan = Plan(kind=MOVE, what=what, elements=(profile_element,))
     plan.steps = [
         *(
@@ -1280,7 +1357,13 @@ def _plan_move_profile(profile_id: str, to_project: str, state: RunState) -> Pla
             for owner in owners
             if owner != to_project
         ),
-        Step(f"Add Profile '{profile_name}' to Project '{to_project}'", Target(kind=PROJECT, key=to_project)),
+        *(
+            []
+            if to_project in owners
+            else [
+                Step(f"Add Profile '{profile_name}' to Project '{to_project}'", Target(kind=PROJECT, key=to_project)),
+            ]
+        ),
         *(
             Step(
                 f"Move its Task '{_table('all_tasks', state=state).get(task_id, {}).get('name', '') or task_id}' "

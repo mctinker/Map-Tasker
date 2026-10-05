@@ -663,6 +663,55 @@ def test_move_profile_says_which_task_stayed_and_why(loaded: None) -> None:
     assert any("Wake Steps" in warning and "Dawn" in warning for warning in plan.warnings)
 
 
+def _add_to_project(project: str, tag: str, member: str) -> None:
+    """List one more id under a Project, as a hand-edited file might."""
+    element = PrimeItems.tasker_root_elements["all_projects"][project]["xml"].find(tag)
+    element.text = f"{element.text},{member}"
+
+
+def test_move_task_refuses_a_different_task_with_the_same_name(loaded: None) -> None:
+    """Same name under another id is a collision too: Perform Task could no longer tell them apart."""
+    PrimeItems.tasker_root_elements["all_tasks"]["24"]["name"] = "Quiet"
+    plan = maprefac.plan_move(TASK, "22", "Away", state=PrimeItems)
+    assert plan.is_blocked
+    assert plan.blocks[0].reason == "NAME-TAKEN"
+    assert plan.blocks[0].where.key == "24"
+
+
+def test_move_profile_refuses_a_different_profile_with_the_same_name(loaded: None) -> None:
+    """The Profile itself may not arrive under a name the target already has."""
+    PrimeItems.tasker_root_elements["all_profiles"]["102"]["name"] = "Dawn"
+    plan = maprefac.plan_move(PROFILE, "100", "Away", state=PrimeItems)
+    assert plan.is_blocked
+    assert plan.blocks[0].reason == "NAME-TAKEN"
+
+
+def test_move_profile_refuses_when_a_travelling_task_would_collide(loaded: None) -> None:
+    """Dawn's Task 'Morning' travels with it, and Away already has a different 'Morning'."""
+    PrimeItems.tasker_root_elements["all_tasks"]["24"]["name"] = "Morning"
+    plan = maprefac.plan_move(PROFILE, "100", "Away", state=PrimeItems)
+    assert plan.is_blocked
+    assert "Morning" in plan.blocks[0].explanation
+
+
+def test_move_task_ignores_a_namesake_in_another_project(loaded: None) -> None:
+    """Only the target Project matters; a same-named Task elsewhere is not in the way."""
+    PrimeItems.tasker_root_elements["all_tasks"]["20"]["name"] = "Trip"
+    assert not maprefac.plan_move(TASK, "22", "Away", state=PrimeItems).is_blocked
+
+
+def test_move_task_already_listed_in_target_only_removes_it_elsewhere(loaded: None) -> None:
+    """Listed by both Projects: not blocked, but no second 'Add', and the user is told why."""
+    _add_to_project("Away", "tids", "22")
+    plan = maprefac.plan_move(TASK, "22", "Away", state=PrimeItems)
+    assert not plan.is_blocked
+    assert not any(step.text.startswith("Add") for step in plan.steps)
+    assert "already listed" in plan.warnings[0]
+    assert maprefac.apply(plan, state=PrimeItems) == (True, [])
+    assert _members("Away", "tids").count("22") == 1
+    assert "22" not in _members("Home", "tids")
+
+
 def _task_element_of_profile(profile_id: str) -> ET.Element:
     """A Profile element, for tests that need to add a Task link to it."""
     return PrimeItems.tasker_root_elements["all_profiles"][profile_id]["xml"]
