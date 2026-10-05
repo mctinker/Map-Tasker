@@ -256,6 +256,11 @@ max-complexity = 20
 'tests/*' = ['ANN', 'ARG', 'INP001', 'S101',]
 # scripts/ holds maintainer command-line tools, not a package, and they report by printing.
 'scripts/*' = ['INP001', 'T201']
+# capture_screens.py imports MapTasker inside its functions on purpose: serve() puts the chosen
+# checkout on sys.path (--root) and checks the keyring and HOME are isolated before anything of
+# MapTasker's is loaded, and playwright is only there for the driver half of the one file.
+# S603: the one subprocess it starts is this same script, from the project's own interpreter.
+'scripts/capture_screens.py' = ['PLC0415', 'S603']
 
 # ---------------------------------------------------------------------------
 # Deliberate, not debt. These stay.

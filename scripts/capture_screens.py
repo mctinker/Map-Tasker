@@ -57,9 +57,16 @@ import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
+
+    from maptasker.src.userintr import MyGui
+
+    # playwright is only there when the script is run with it (see the usage above), so this
+    # cannot resolve in the project's own environment; the page's methods are then unchecked.
+    from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # The tree MapTasker is run from.  Normally this one; --root points it at another checkout (a
@@ -92,20 +99,20 @@ class Screen:
     """
 
     name: str
-    setup: Callable[[object], Awaitable[None] | None] | None = None
+    setup: Callable[[MyGui], Awaitable[None] | None] | None = None
     clicks: list[str] = field(default_factory=list)
     scroll_to: str = ""
     url: str = ""
     settle: float = 0.8
 
 
-SYNTHETIC_BACKUP = RUN_ROOT / "tests" / "data" / "synthetic_backup.xml"  # replaced by serve() with the scratch copy
+SYNTHETIC_BACKUP = RUN_ROOT / "tests" / "data" / "synthetic_backup.xml"  # the server uses the scratch copy instead
 
 
 # ################################################################################
 # Server side
 # ################################################################################
-def select_item(gui: object, kind: str, name: str) -> None:
+def select_item(gui: MyGui, kind: str, name: str) -> None:
     """Select a Project/Profile/Task/Scene exactly as picking it from the pulldown does.
 
     The pulldown itself is moved too, the way select_single_item_export does it: the handler
@@ -124,7 +131,7 @@ def select_item(gui: object, kind: str, name: str) -> None:
             gui.is_updating = False
 
 
-def load_backup(gui: object) -> None:
+def load_backup(gui: MyGui) -> None:
     """Load the synthetic backup the way 'Get Local XML File' does, once a file is picked."""
     from maptasker.src.guiutils import (
         clear_single_item_view_names,
@@ -134,7 +141,7 @@ def load_backup(gui: object) -> None:
     from maptasker.src.maputils import clear_tasker_data
     from maptasker.src.primitem import PrimeItems
 
-    PrimeItems.file_to_get = str(SYNTHETIC_BACKUP)
+    PrimeItems.file_to_get = os.environ.get(BACKUP_VARIABLE, str(SYNTHETIC_BACKUP))
     clear_tasker_data(state=PrimeItems)
     clear_single_item_view_names(gui)
     reset_single_item_pulldowns(gui)
@@ -142,15 +149,17 @@ def load_backup(gui: object) -> None:
     update_tasker_object_menus(gui, get_data=True, reset_single_names=True)
 
 
-def nothing(_gui: object) -> None:
+def nothing(_gui: MyGui) -> None:
     """The window as it opens, with the synthetic backup loaded."""
 
 
-def handler(name: str, *args: object, select: dict[str, str] | None = None) -> Callable[[object], object]:
+def handler(
+    name: str, *args: object, select: dict[str, str] | None = None
+) -> Callable[[MyGui], Awaitable[None] | None]:
     """A setup that selects what `select` names ({"Task": "Remind Me"}), then calls
     gui.event_handlers.<name>(*args) -- the same call the button makes."""
 
-    def setup(gui: object) -> object:
+    def setup(gui: MyGui) -> Awaitable[None] | None:
         for kind, item in (select or {}).items():
             select_item(gui, kind, item)
         return getattr(gui.event_handlers, name)(*args)
@@ -158,7 +167,8 @@ def handler(name: str, *args: object, select: dict[str, str] | None = None) -> C
     return setup
 
 
-def helper_tasks(_gui: object) -> None:
+def helper_tasks(_gui: MyGui) -> None:
+    """The dialog that offers to install the helper Tasks on the device."""
     from maptasker.src.guiwins import build_helper_tasks_dialog
 
     build_helper_tasks_dialog(
@@ -168,7 +178,8 @@ def helper_tasks(_gui: object) -> None:
     )
 
 
-def helpers_in_the_way(_gui: object) -> None:
+def helpers_in_the_way(_gui: MyGui) -> None:
+    """The dialog that says old helper Tasks are in the way of installing the new ones."""
     from maptasker.src.guiwins import build_helpers_in_the_way_dialog
 
     build_helpers_in_the_way_dialog(
@@ -176,13 +187,15 @@ def helpers_in_the_way(_gui: object) -> None:
     )
 
 
-def overwrite_confirm(_gui: object) -> None:
+def overwrite_confirm(_gui: MyGui) -> None:
+    """The dialog that asks before overwriting a file that already exists."""
     from maptasker.src.guiwins import build_overwrite_confirm_dialog
 
     build_overwrite_confirm_dialog("/Users/you/Documents/MapTasker/Remind Me.tsk.xml", lambda: None)
 
 
-def round_trip_failed(_gui: object) -> None:
+def round_trip_failed(_gui: MyGui) -> None:
+    """The report shown when a save did not read back the same as what was written."""
     from maptasker.src.guiwins import build_round_trip_report_dialog
     from maptasker.src.roundtrip import RoundTripReport
 
@@ -197,7 +210,6 @@ SCENE = {"Scene": "Reminder List"}
 
 def edit_dialog_screens(
     key: str,
-    kind: str,
     opener: str,
     select: dict[str, str],
     *,
@@ -257,7 +269,7 @@ SCREENS: dict[str, Screen] = {
         Screen("task_flow", handler("task_flow_event", select=TASK), scroll_to="Misc View"),
         Screen("tree_view", handler("view_event", "tree"), scroll_to="Tree View"),
         # ---- Inside the Edit Task dialog -------------------------------------------------
-        *edit_dialog_screens("task", "Task", "open_edit_task_dialog_event", TASK, delete="Delete Task"),
+        *edit_dialog_screens("task", "open_edit_task_dialog_event", TASK, delete="Delete Task"),
         Screen("edit_task_action_open", handler("open_edit_task_dialog_event", select=TASK), clicks=["0: Flash"]),
         Screen("edit_task_add_action", handler("open_edit_task_dialog_event", select=TASK), clicks=["Wait (Task)"]),
         Screen(
@@ -265,8 +277,8 @@ SCREENS: dict[str, Screen] = {
         ),
         Screen("add_task_properties", handler("open_add_task_dialog_event", select=PROJECT), clicks=["Add Properties"]),
         # ---- Inside the Edit Project / Profile / Scene dialogs ----------------------------
-        *edit_dialog_screens("project", "Project", "open_edit_project_dialog_event", PROJECT, delete="Delete Project"),
-        *edit_dialog_screens("profile", "Profile", "open_edit_profile_dialog_event", PROFILE, delete="Delete Profile"),
+        *edit_dialog_screens("project", "open_edit_project_dialog_event", PROJECT, delete="Delete Project"),
+        *edit_dialog_screens("profile", "open_edit_profile_dialog_event", PROFILE, delete="Delete Profile"),
         Screen(
             "edit_profile_condition_open", handler("open_edit_profile_dialog_event", select=PROFILE), clicks=["0: Time"]
         ),
@@ -283,7 +295,7 @@ SCREENS: dict[str, Screen] = {
             clicks=["Add Properties"],
         ),
         *edit_dialog_screens(
-            "scene", "Scene", "open_edit_scene_dialog_event", SCENE, delete="Delete Scene", properties="Edit Properties"
+            "scene", "open_edit_scene_dialog_event", SCENE, delete="Delete Scene", properties="Edit Properties"
         ),
         Screen(
             "edit_scene_preview", handler("open_edit_scene_dialog_event", select=SCENE), clicks=["Preview"], settle=2
@@ -419,8 +431,8 @@ def serve(port: int, root: Path) -> int:
     driver stops it."""
     if os.environ.get(ISOLATION_FLAG) != "1":
         sys.exit("--serve is internal: run the script without it, so the server starts isolated from your own data.")
-    global SYNTHETIC_BACKUP  # noqa: PLW0603
-    SYNTHETIC_BACKUP = Path(os.environ[BACKUP_VARIABLE])
+    if not os.environ.get(BACKUP_VARIABLE):
+        sys.exit("--serve is internal: the driver says which backup to load.")
     sys.path.insert(0, str(root))
 
     from maptasker.src.mapit import mapit_all
@@ -428,18 +440,13 @@ def serve(port: int, root: Path) -> int:
     from nicegui import ui
 
     real_run = ui.run
-
-    def run_without_browser(*args: object, **kwargs: object) -> None:
-        # rungui asks for show=True (open the user's browser) and for the first free port.
-        kwargs.update(show=False, port=port)
-        real_run(*args, **kwargs)
-
-    ui.run = run_without_browser
+    # rungui asks for show=True (open the user's browser) and for the first free port.
+    patch.object(ui, "run", lambda *args, **kwargs: real_run(*args, **{**kwargs, "show": False, "port": port})).start()
 
     # The Map and Diagram buttons open a pop-out window; here the driver visits that page itself.
     from maptasker.src import userintr
 
-    userintr._open_popout_window = lambda *_args, **_kwargs: None  # noqa: SLF001
+    patch.object(userintr, "_open_popout_window", lambda *_args, **_kwargs: None).start()
 
     @ui.page("/capture/{name}")
     async def capture(name: str) -> None:
@@ -471,6 +478,7 @@ def serve(port: int, root: Path) -> int:
 # Driver side
 # ################################################################################
 def free_port() -> int:
+    """A TCP port nothing is listening on, for the server to take."""
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         return sock.getsockname()[1]
@@ -483,6 +491,7 @@ def server_python() -> str:
 
 
 def wait_for_server(port: int, process: subprocess.Popen, timeout: float = 60) -> None:
+    """Block until the server answers on `port`, or raise if it exits or never comes up."""
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if process.poll() is not None:
@@ -490,14 +499,15 @@ def wait_for_server(port: int, process: subprocess.Popen, timeout: float = 60) -
             raise RuntimeError(msg)
         try:
             urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=2)
-            return
         except (urllib.error.URLError, ConnectionError, TimeoutError):
             time.sleep(0.3)
+        else:
+            return
     msg = "The MapTasker server did not come up."
     raise RuntimeError(msg)
 
 
-def click(page: object, text: str) -> None:
+def click(page: Page, text: str) -> None:
     """Click the control labelled `text` -- inside the topmost open dialog if there is one, so a
     "Delete" or "Cancel" under the dialog is never the one pressed.  "css=..." is a selector."""
     if text.startswith("css="):
@@ -508,7 +518,7 @@ def click(page: object, text: str) -> None:
     scope.get_by_text(text, exact=True).first.click(timeout=10_000)
 
 
-def settle(page: object, screen: Screen) -> None:
+def settle(page: Page, screen: Screen) -> None:
     """Everything between the screen being ready and the picture: scroll, calm the pointer, wait."""
     if screen.scroll_to:
         page.get_by_text(screen.scroll_to, exact=True).first.evaluate("el => el.scrollIntoView({block: 'start'})")
@@ -516,7 +526,7 @@ def settle(page: object, screen: Screen) -> None:
     page.wait_for_timeout(int(screen.settle * 1000))
 
 
-def inspect_labels(page: object) -> None:
+def inspect_labels(page: Page) -> None:
     """Print what can be clicked on the page, topmost dialog first -- for writing a Screen's clicks."""
     dialogs = page.locator(".q-dialog")
     scope = dialogs.last if dialogs.count() else page.locator("body")
@@ -530,7 +540,9 @@ def inspect_labels(page: object) -> None:
 
 
 def capture_all(names: list[str], output: Path, scale: float, root: Path, inspect: bool = False) -> int:
-    from playwright.sync_api import sync_playwright
+    """Capture each named screen into `output`.  Returns 1 if any failed, else 0."""
+    from playwright.sync_api import Error as PlaywrightError  # pyright: ignore[reportMissingImports]
+    from playwright.sync_api import sync_playwright  # pyright: ignore[reportMissingImports]
 
     output.mkdir(parents=True, exist_ok=True)
     port = free_port()
@@ -558,7 +570,7 @@ def capture_all(names: list[str], output: Path, scale: float, root: Path, inspec
     failures: list[str] = []
 
     with log_path.open("w") as log:
-        server = subprocess.Popen(  # noqa: S603
+        server = subprocess.Popen(
             [server_python(), str(Path(__file__).resolve()), "--serve", "--port", str(port), "--root", str(root)],
             cwd=workdir,
             env=environment,
@@ -594,7 +606,7 @@ def capture_all(names: list[str], output: Path, scale: float, root: Path, inspec
                     target = output / f"{name}.png"
                     page.screenshot(path=str(target))
                     print(f"  ok    {target.name}")
-                except Exception as error:  # noqa: BLE001 - report it and carry on with the rest
+                except PlaywrightError as error:  # report it and carry on with the rest
                     failures.append(name)
                     print(f"  FAIL  {name}: {str(error).splitlines()[0]}")
                 finally:
@@ -616,6 +628,7 @@ def capture_all(names: list[str], output: Path, scale: float, root: Path, inspec
 
 
 def main() -> int:
+    """Read the command line and run the server or the driver, as asked."""
     parser = argparse.ArgumentParser(description="Capture a PNG of every MapTasker screen.")
     parser.add_argument("--serve", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--port", type=int, help=argparse.SUPPRESS)
