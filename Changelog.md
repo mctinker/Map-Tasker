@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file!
 - Added: A new __What Fires When?__ button lets you pick a moment -- date and time, Wi-Fi network, app in front and battery level -- and shows which Profiles would be active, the order their Tasks would start in, and where they collide, such as two Profiles setting Wi-Fi opposite ways or one Task started twice.  Anything the inputs do not describe, such as an Event or a location, is shown as possible along with what it is waiting on, rather than guessed at.
 - Added: Health Check, Compare, Changes Since and Export can now be run from the command line with no window (for example `maptasker -healthcheck -file backup.xml`), and they end with an exit code a script can act on, so a nightly Tasker backup can be checked automatically.  A new `-watch FOLDER` option records each new backup that appears in a folder in the history, so it fills up even on days MapTasker is not opened.
 - Added: A new __Xref Live__ button beside Variable Xref reads the current value of every global variable from Tasker on your Android device and shows it beside each variable, and it checks the "read but never set" and "set but never read" findings against the phone.  A variable the phone does not have is a confirmed problem, while one it does have was set or read by something outside the file; nothing on the device is changed.
+- Added: In the Diagram view, clicking a connector now also draws a red rectangle around the calling Task and the called Task, so you can see which two Tasks it joins.  The rectangles clear when you click elsewhere.
 - Added:
 
 ### Changed
@@ -19,6 +20,7 @@ All notable changes to this project will be documented in this file!
 - Changed: Refactor's __Move to a Project__ now refuses to move a Task or Profile into a Project that already has a different one of the same name, including a Task that would travel along with a moved Profile.  The preview names the clashing item, so you can rename one of them first.
 - Changed: Several places that quietly swallowed any error now catch only the failures they expect, such as a dropped connection or an unreadable font folder, so a genuine bug is reported instead of being mistaken for "Ollama is not running" or "no fonts installed".  Where a catch-all is still the right call, the full error details are now written to the debug log.
 - Changed: MapTasker no longer installs the AI libraries on its own the first time you use an AI feature; if they are missing it tells you once to install them with `pip install "maptasker[ai]"`.  This keeps MapTasker from downloading software you did not ask for.
+- Changed: In the Diagram view, 'Jump to Start' and 'Jump to End' now also scroll sideways when needed, so the Task at that end of the connector is on screen without adjusting the horizontal scroll yourself.
 - Changed:
 
 ### Removed
@@ -30,6 +32,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Choosing the Gemini model 'gemini-3.1-flash_lite' for AI analysis failed with a "404 NOT_FOUND" error, because its name was misspelled with an underscore.  The name is corrected, and a setting saved with the old spelling is fixed automatically the next time it loads.
 - Fixed: Running an AI analysis with Gemini no longer prints a warning about "automatic function calling" not being recommended.  MapTasker does not use that feature, so it is now switched off.
 - Fixed: On Windows, Tasker names containing accented letters, symbols or non-Latin characters could be garbled or rejected when MapTasker saved a backup fetched from your device, its logs and its small status files.  MapTasker now reads and writes all of these as UTF-8 on every platform.
+- Fixed: In the Diagram view, clicking an arrow into a Task that is called from many places now highlights the whole connection back to its caller and offers 'Jump to Start' and 'Jump to End'.  Connectors that crossed a dense row of other connectors used to be cut in two, leaving the arrow end with nothing to highlight.
 - Fixed:
 
 ### Known Issues

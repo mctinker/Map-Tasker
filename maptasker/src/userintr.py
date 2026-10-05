@@ -2170,6 +2170,9 @@ class MapTaskerEventHandlers(
                 container.querySelectorAll('.connector-highlight').forEach(el => {{
                     el.classList.remove('connector-highlight');
                 }});
+                container.querySelectorAll('.connector-task-box').forEach(el => {{
+                    el.classList.remove('connector-task-box');
+                }});
 
                 // ...and the outline left on whatever a clicked report finding jumped to
                 // (see mapjump.jump_js).  "Clear" means the view is back to how it was

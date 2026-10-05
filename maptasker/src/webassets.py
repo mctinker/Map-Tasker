@@ -33,8 +33,17 @@ def mount() -> str:
 
 
 def url(relative: str) -> str:
-    """The URL of one asset.  Versioned, so an upgraded install is not served a stale cached copy."""
-    return f"{mount()}/{relative}?v={VERSION}"
+    """The URL of one asset.  Versioned, so an upgraded install is not served a stale cached copy.
+
+    The file's modification time is part of the version.  The release number alone does not
+    change between builds of one release, so a browser that had cached the stylesheet kept
+    serving it without a rule added since -- the page's script ran and its styling did not.
+    """
+    try:
+        stamp = f"-{(ASSETS_DIR / relative).stat().st_mtime_ns}"
+    except OSError:
+        stamp = ""
+    return f"{mount()}/{relative}?v={VERSION}{stamp}"
 
 
 def head_html() -> str:

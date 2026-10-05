@@ -291,6 +291,19 @@ def model(state: RunState) -> dict:
     return stored if isinstance(stored, dict) and stored.get("nodes") else {"nodes": [], "regions": [], "edges": []}
 
 
+def connector_tasks(the_model: dict) -> dict[str, list[str]]:
+    """Each connector's id -> the anchors of the Tasks it joins, for the jump buttons.
+
+    Which Task a connector's end belongs to is not something its cells say; the calls do.
+    Keyed by the id as text because that is what the browser reads off the page.
+    """
+    found: dict[str, set[str]] = {}
+    for edge in the_model.get("edges", []):
+        for group in edge["groups"]:
+            found.setdefault(str(group), set()).update((edge["caller"], edge["called"]))
+    return {group: sorted(anchors) for group, anchors in found.items()}
+
+
 def nodes_by_line(the_model: dict) -> dict[int, list[dict]]:
     """The model's nodes grouped by the line they were drawn on, for the renderer."""
     by_line: dict[int, list[dict]] = {}

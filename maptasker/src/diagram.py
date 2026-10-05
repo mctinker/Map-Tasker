@@ -992,24 +992,32 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
     run of characters.  A list rather than one index because two calls whose runs touch are
     one group -- geometry decides the groups, and the calls that fall in one all claim it.
     """
-    # How many cells of interruption (foreign connector characters and/or blanks) a straight run
-    # can bridge over before giving up and treating the run as genuinely ended.
+    # How many blank cells of interruption a straight run can bridge over before giving up and
+    # treating the run as genuinely ended.  Foreign connector characters are bridged without limit.
     max_bridge = 4
 
     def reachable_neighbors(r: int, c: int) -> list:
         found = []
         for dr, dc in CONNECTOR_DIRECTIONS[lines[r][c]]:
             nr, nc = r + dr, c + dc
-            for _ in range(max_bridge + 1):
-                if not (0 <= nr < len(lines)) or not (0 <= nc < len(lines[nr])):
-                    break
+            blanks = 0
+            while 0 <= nr < len(lines) and 0 <= nc < len(lines[nr]):
                 nchar = lines[nr][nc]
                 if nchar in CONNECTOR_DIRECTIONS and (-dr, -dc) in CONNECTOR_DIRECTIONS[nchar]:
                     found.append((nr, nc))
                     break
                 # Not a continuation -- keep looking past it only if it's something a real,
                 # unrelated line (box border, task text, ...) would never sit on top of.
-                if nchar not in CONNECTOR_DIRECTIONS and nchar != " ":
+                if nchar == " ":
+                    # Only blanks count against the limit.  A long run can cross a whole
+                    # bundle of other connectors' bars standing shoulder to shoulder (dozens
+                    # of them where a busy Task is called from many places); counting those
+                    # too cut the run in two at the bundle, leaving the half that reaches
+                    # the called Task a stub with no caller and nothing to jump to.
+                    blanks += 1
+                    if blanks > max_bridge:
+                        break
+                elif nchar not in CONNECTOR_DIRECTIONS:
                     break
                 nr, nc = nr + dr, nc + dc
         return found

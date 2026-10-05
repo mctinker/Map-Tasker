@@ -651,6 +651,18 @@ def test_every_edge_carries_the_connector_that_was_drawn_for_it(modelled: tuple[
             assert group in PrimeItems.diagram_connectors
 
 
+def test_a_connector_is_matched_to_the_tasks_it_joins(modelled: tuple[list[str], dict]) -> None:
+    """The jump buttons use this to find the Task at the end they are taking the user to."""
+    _, model = modelled
+
+    joined = diagintr.connector_tasks(model)
+
+    for edge in model["edges"]:
+        for group in edge["groups"]:
+            assert {edge["caller"], edge["called"]} <= set(joined[str(group)])
+    assert diagintr.connector_tasks({"edges": []}) == {}
+
+
 def test_a_chain_of_calls_crosses_a_project_boundary(modelled: tuple[list[str], dict]) -> None:
     """Walked here the way the browser walks it, since that is the claim being made."""
     _, model = modelled
@@ -725,6 +737,27 @@ def test_a_name_and_a_connector_never_claim_the_same_character() -> None:
     assert [line[start:end] for start, end, _ in spans] == ["──── ", "Backup", " ────"]
     assert diagintr.NODE_CLASS in spans[1][2]
     assert all("connector" in spans[at][2] for at in (0, 2))
+
+
+def test_a_run_crossing_a_wide_bundle_of_bars_is_still_one_connector() -> None:
+    """A Task called from many places has a wall of other connectors' bars to cross.
+
+    The run below passes through eight bars shoulder to shoulder, more than the blanks a
+    run may bridge.  It used to be cut in two there, so the half reaching the called Task
+    was a stub with neither a caller to highlight nor an end to jump to.
+    """
+    bars = 8
+    width = bars + 6
+    run = "╭" + "─" * (width - 2) + "╮"
+    crossed = run[:4] + "│" * bars + run[4 + bars :]
+    lines = ["    " + "│" * bars, crossed, "    " + "│" * bars]
+    seeds = [(1, 0, 7), (1, width - 1, 7)]  # Both ends of the run, as the drawing drops them.
+
+    groups = diagram.compute_diagram_connector_groups(lines, seeds, state=PrimeItems)
+
+    own = [ranges for ranges in groups.values() if any(col == 0 for _, col, _ in ranges)]
+    assert len(own) == 1
+    assert any(end == width for _, _, end in own[0]), "the far end of the run is not in the same connector"
 
 
 def test_a_project_line_carries_its_fold_control(modelled: tuple[list[str], dict]) -> None:

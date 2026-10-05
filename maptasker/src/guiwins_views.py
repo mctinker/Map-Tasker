@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import json
 import re
 from typing import TYPE_CHECKING
 
@@ -1899,7 +1900,7 @@ class NiceGuiTextView(TextViewSearch):
                         await asyncio.sleep(0.01)
 
             if connectors_by_line:
-                self._enable_connector_highlighting()
+                self._enable_connector_highlighting(diagintr.connector_tasks(diagram_model))
                 if hasattr(self, "diagram_message_label"):
                     self.diagram_message_label.set_text(translate_string("Click on connector to highlight"))
             if diagram_model.get("nodes"):
@@ -1953,7 +1954,7 @@ class NiceGuiTextView(TextViewSearch):
         with self.scroll_area:
             ui.run_javascript(diagintr.command_js(f"c{self.scroll_area.id}", name, argument))
 
-    def _enable_connector_highlighting(self) -> None:
+    def _enable_connector_highlighting(self, connector_tasks: dict[str, list[str]] | None = None) -> None:
         """Wires up click-to-highlight for Diagram view connector spans.
 
         Clicking a connector span highlights every span sharing its data-connector-id and clears
@@ -1964,7 +1965,12 @@ class NiceGuiTextView(TextViewSearch):
         bring it into view without hunting for it manually; the button hides itself again once
         the user scrolls that end into view (or clicks away). A jump scrolls vertically to that
         end's line and horizontally back to column 1, so the line is read from its beginning
-        rather than from wherever the connector happens to sit across a wide diagram.
+        rather than from wherever the connector happens to sit across a wide diagram -- unless
+        the Task that end belongs to is drawn out of view to the right, in which case it
+        scrolls sideways as far as that Task needs and no further.  `connector_tasks` (see
+        diagintr.connector_tasks) says which Tasks each connector joins, and so which get a
+        red rectangle drawn round them when it is clicked; without it a jump only ever goes
+        to the line and nothing is boxed.
         """
         # ui.run_javascript() needs an active NiceGUI "slot" to know which client to target.
         # This runs from a background asyncio task (self._task), after the `with self.scroll_area:`
@@ -1977,6 +1983,7 @@ class NiceGuiTextView(TextViewSearch):
                 const outerContainer = document.getElementById("c{self.scroll_area.id}");
                 if (!outerContainer || outerContainer.dataset.connectorClickWired) return;
                 outerContainer.dataset.connectorClickWired = "1";
+                const connectorTasks = {json.dumps(connector_tasks or {})};
 {mapjump.REVEAL_ANCESTORS_JS}
 
                 // Quasar's own q-scroll-area styling sets "contain: strict" on outerContainer,
@@ -1987,6 +1994,73 @@ class NiceGuiTextView(TextViewSearch):
                 // previous Diagram view load first (clear()-ing the view's container doesn't touch
                 // elements parented directly under body).
                 document.querySelectorAll(".connector-jump-button").forEach((el) => el.remove());
+
+                // The Task this end of a connector belongs to: of the Tasks the connector's
+                // calls join, the one drawn on the line nearest the end that was jumped to
+                // (a Task run by two Profiles is drawn more than once, so the nearest
+                // drawing, not just the first).
+                function endTaskElement(end, id) {{
+                    const endLine = end.closest(".mt-dline");
+                    if (!endLine) return null;
+                    const row = parseInt(endLine.dataset.line, 10);
+                    let best = null;
+                    let bestGap = Infinity;
+                    (connectorTasks[id] || []).forEach((anchor) => {{
+                        outerContainer.querySelectorAll('.mt-dnode[data-anchor="' + anchor + '"]').forEach((el) => {{
+                            const line = el.closest(".mt-dline");
+                            const gap = line ? Math.abs(parseInt(line.dataset.line, 10) - row) : Infinity;
+                            if (gap < bestGap) {{
+                                best = el;
+                                bestGap = gap;
+                            }}
+                        }});
+                    }});
+                    return best;
+                }}
+
+                // The red rectangle round the Tasks a clicked connector joins.  Each Task is
+                // marked where it is drawn nearest either end of the connector: one run by
+                // two Profiles is drawn twice, and only one of the two is what this
+                // connector is joined to.  An outline, so no column moves (see the CSS).
+                function boxConnectorTasks(matches, id) {{
+                    const rows = [matches[0], matches[matches.length - 1]].map((el) => {{
+                        const line = el.closest(".mt-dline");
+                        return line ? parseInt(line.dataset.line, 10) : NaN;
+                    }});
+                    (connectorTasks[id] || []).forEach((anchor) => {{
+                        let best = null;
+                        let bestGap = Infinity;
+                        outerContainer.querySelectorAll('.mt-dnode[data-anchor="' + anchor + '"]').forEach((el) => {{
+                            const line = el.closest(".mt-dline");
+                            if (!line) return;
+                            const at = parseInt(line.dataset.line, 10);
+                            const gap = Math.min(...rows.map((row) => Math.abs(row - at)));
+                            if (gap < bestGap) {{
+                                best = el;
+                                bestGap = gap;
+                            }}
+                        }});
+                        if (best) best.classList.add("connector-task-box");
+                    }});
+                }}
+
+                // Scrolls sideways, only if need be, until that Task's name is on screen.
+                // Called once a jump has put the connector's line in view and pinned the
+                // diagram back to column 1, so a Task already in view leaves it there.
+                function revealEndTask(end, id) {{
+                    const task = endTaskElement(end, id);
+                    if (!task) return;
+                    mtRevealAncestors(task);
+                    for (let a = task.parentElement; a; a = a.parentElement) {{
+                        if (a.scrollWidth <= a.clientWidth) continue;
+                        const view = a.getBoundingClientRect();
+                        const name = task.getBoundingClientRect();
+                        if (name.left >= view.left && name.right <= view.right) continue;
+                        // The name's left edge a sixth of the way in, so the "└─" that
+                        // introduces it and a little of what is around it show too.
+                        a.scrollLeft += name.left - view.left - view.width / 6;
+                    }}
+                }}
 
                 function makeJumpButton(label, bottomOffset) {{
                     const btn = document.createElement("button");
@@ -2022,6 +2096,7 @@ class NiceGuiTextView(TextViewSearch):
                             if (document.scrollingElement) {{
                                 document.scrollingElement.scrollLeft = 0;
                             }}
+                            revealEndTask(target, btn._connectorId);
                             // Don't wait for the resulting "scroll" event to re-check visibility --
                             // it fires asynchronously, and updateJumpButtons is hoisted so it's
                             // already safe to call here even though it's defined further down.
@@ -2081,6 +2156,9 @@ class NiceGuiTextView(TextViewSearch):
                     outerContainer.querySelectorAll(".connector-highlight").forEach((el) => {{
                         el.classList.remove("connector-highlight");
                     }});
+                    outerContainer.querySelectorAll(".connector-task-box").forEach((el) => {{
+                        el.classList.remove("connector-task-box");
+                    }});
                     jumpEndBtn._jumpTarget = null;
                     jumpStartBtn._jumpTarget = null;
                     if (target) {{
@@ -2092,6 +2170,9 @@ class NiceGuiTextView(TextViewSearch):
                         if (matches.length > 0) {{
                             jumpStartBtn._jumpTarget = matches[0];
                             jumpEndBtn._jumpTarget = matches[matches.length - 1];
+                            boxConnectorTasks(matches, id);
+                            jumpStartBtn._connectorId = id;
+                            jumpEndBtn._connectorId = id;
                         }}
                     }}
                     updateJumpButtons();
