@@ -48,7 +48,7 @@ def _page() -> None:
         SimpleNamespace(scene_element=_built["scene"]),
         _built["field_refs"],
         _built.get("dialog"),
-        state=RunState(),
+        RunState(),
     )
 
 

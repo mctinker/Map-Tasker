@@ -1433,12 +1433,12 @@ class V2Designer:
 
     def build_body(
         self,
-        gui: MyGui,
+        _gui: MyGui,
         edited_scene: sceneedit.EditableScene,
         field_refs: dict,
-        dialog: ui.dialog | None,
-        *,
+        _dialog: ui.dialog | None,
         state: RunState,
+        /,
     ) -> None:
         """Mount the component-tree designer, or say the layout could not be read and leave it alone."""
         layout = sceneedit.decode_v2_layout(edited_scene.scene_element)

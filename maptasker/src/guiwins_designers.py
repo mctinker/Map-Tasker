@@ -50,13 +50,17 @@ class SceneDesigner(Protocol):
         edited_scene: sceneedit.EditableScene,
         field_refs: dict,
         dialog: ui.dialog | None,
-        *,
         state: RunState,
+        /,
     ) -> None:
         """Put everything below the Scene's name into the dialog being built.
 
         Anything the dialog has to read back at save time goes into field_refs; what the designer
         edits in place needs nothing from either dialog beyond the dict it is already handed.
+
+        Positional only: each kind of designer needs a different part of what it is handed (the
+        legacy one reaches the state through the GUI, the V2 one wants neither the GUI nor the
+        dialog), and an implementation names the ones it leaves alone with a leading underscore.
         """
         ...
 

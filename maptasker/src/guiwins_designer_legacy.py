@@ -1395,8 +1395,8 @@ class LegacyDesigner:
         edited_scene: sceneedit.EditableScene,
         field_refs: dict,
         dialog: ui.dialog | None,
-        *,
-        state: RunState,
+        _state: RunState,
+        /,
     ) -> None:
         """Size fields, the Scene Properties button, then the canvas designer."""
         scene_element = edited_scene.scene_element

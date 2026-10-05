@@ -1287,7 +1287,7 @@ def _build_scene_editor_body(
             # below, or a screen the preview itself offers -- so each designer says which.
             ui.tooltip(translate_string(designer.preview_tooltip)).style("white-space: pre-wrap")
 
-    designer.build_body(_self, edited_scene, field_refs, dialog, state=state)
+    designer.build_body(_self, edited_scene, field_refs, dialog, state)
 
 
 def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> None:
