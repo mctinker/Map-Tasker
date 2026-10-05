@@ -67,6 +67,9 @@ htmlcov
 # ---------------------------------------------------------------------------
 
 # Program output: the map, the reports and the diagrams MapTasker writes.
+# Everything the scripts write into scripts/Reports.  Reports are made from a real Tasker
+# backup, and two of them once carried API keys from it into a commit.
+scripts/Reports/
 MapTasker.html
 MapTasker_Map.txt
 MapTasker_Apps.json
