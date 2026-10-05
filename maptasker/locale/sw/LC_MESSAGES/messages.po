@@ -2761,3 +2761,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "Katika kifaa cha Android – pungua arifa hiyo ikiwa itaonekana."
 msgid "Xref Live"
 msgstr "Maelekezo"
+msgid "Save to current file in progress"
+msgstr "Hifadhi kwenye faili inayopo"

@@ -2747,3 +2747,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "في انتظار الإقرار على جهاز Android - إذا ظهرت نافذة طلب الموافقة، يرجى الموافقة عليها."
 msgid "Xref Live"
 msgstr "مرجع مباشر"
+msgid "Save to current file in progress"
+msgstr "حفظ في الملف الحالي قيد الإنشاء"

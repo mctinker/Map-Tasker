@@ -2747,3 +2747,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "Android 기기에서 대기 중 – 나타난 경우, 해당 승인 요청을 수락합니다."
 msgid "Xref Live"
 msgstr "Xref 실시간"
+msgid "Save to current file in progress"
+msgstr "현재 작업 중인 파일에 저장"

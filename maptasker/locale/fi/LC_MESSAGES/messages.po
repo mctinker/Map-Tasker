@@ -2767,3 +2767,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "Odota Android-laitteella – jos ilmoitus hyväksymisestä ilmestyy, hyväksy se siellä."
 msgid "Xref Live"
 msgstr "Viittaus: Live"
+msgid "Save to current file in progress"
+msgstr "Tallenna nykyiseen tiedostoon"

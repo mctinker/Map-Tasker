@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.1.1] ??-Oct-2026  # FIX
+## [14.1.1] 05-Oct-2026
 
 ### Added
 
@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file!
 
 ### Removed
 
-- Removed:
+- Removed: Nothing removed
 
 ### Fixed
 

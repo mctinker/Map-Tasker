@@ -2769,3 +2769,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "Περιμένετε στην συσκευή Android – εάν εμφανιστεί κάποιο μήνυμα, επιβεβαιώστε την εξουσιοδότηση εκεί."
 msgid "Xref Live"
 msgstr "Επιστροφή στην αρχική σελίδα"
+msgid "Save to current file in progress"
+msgstr "Αποθήκευση στο τρέχον αρχείο που βρίσκεται σε εξέλιξη"

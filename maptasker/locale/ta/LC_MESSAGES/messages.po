@@ -2769,3 +2769,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "ஆண்ட்ராய்டு சாதனத்தில் காத்திருங்கள் - ஏதேனும் அறிவிப்பு தோன்றினால், அங்கிருந்து அங்கீகாரம் அளிக்கவும்."
 msgid "Xref Live"
 msgstr "Xref நேரலை"
+msgid "Save to current file in progress"
+msgstr "தற்போதைய கோப்பில் சேமிக்கவும்"

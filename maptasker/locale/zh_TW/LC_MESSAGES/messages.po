@@ -2660,3 +2660,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "在 Android 裝置上等待 – 如果出現授權提示，請在該裝置上接受。"
 msgid "Xref Live"
 msgstr "參照：即時"
+msgid "Save to current file in progress"
+msgstr "儲存至目前正在編輯的檔案"

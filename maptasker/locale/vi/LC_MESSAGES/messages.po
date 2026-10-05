@@ -2767,3 +2767,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "Chờ đợi trên thiết bị Android – nếu có thông báo yêu cầu xác thực, vui lòng chấp nhận."
 msgid "Xref Live"
 msgstr "Liên kết trực tiếp"
+msgid "Save to current file in progress"
+msgstr "Lưu vào tệp đang mở"

@@ -2747,3 +2747,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "Androidデバイスで待機 – 表示された場合は、その認証プロンプトを確認してください。"
 msgid "Xref Live"
 msgstr "Xref ライブ"
+msgid "Save to current file in progress"
+msgstr "現在開いているファイルに保存"

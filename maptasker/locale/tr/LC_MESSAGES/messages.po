@@ -2763,3 +2763,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "Android cihazda bekleme – eğer bir onay isteği görüyorsanız, o isteği oradan kabul edin."
 msgid "Xref Live"
 msgstr "Xref Canlı"
+msgid "Save to current file in progress"
+msgstr "Mevcut üzerinde oluşturulan dosyaya kaydet"

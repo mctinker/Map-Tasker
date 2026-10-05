@@ -2755,3 +2755,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "प्रतीक्षा करना Android डिवाइस पर – यदि कोई संकेत दिखाई देता है, तो वहां प्राधिकरण स्वीकार करें।"
 msgid "Xref Live"
 msgstr "Xref langsung"
+msgid "Save to current file in progress"
+msgstr "सहेजें वर्तमान फ़ाइल में"

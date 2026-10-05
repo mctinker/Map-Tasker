@@ -304,7 +304,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Edit 'Undo/Redo' function
 
-- [x] Structure Search
+- [x] Structured Search
 
 - [x] Interactive Diagram view
 
@@ -328,7 +328,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Test-run Task on Android
 
-- [ ] Live Variable Inspector
+- [x] Live Variable Inspector
 
 - [x] Profile Conflict and Performance Lint
 

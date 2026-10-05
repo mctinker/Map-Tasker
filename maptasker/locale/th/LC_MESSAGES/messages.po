@@ -2767,3 +2767,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "รอการเชื่อมต่อบนอุปกรณ์ Android – หากมีคำถามขออนุมัติ ให้ตอบรับ"
 msgid "Xref Live"
 msgstr "ลิงก์เชื่อมโยงแบบเรียลไทม์"
+msgid "Save to current file in progress"
+msgstr "บันทึกไปยังไฟล์ที่กำลังทำงานอยู่"

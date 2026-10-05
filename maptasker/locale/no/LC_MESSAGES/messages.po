@@ -2751,3 +2751,5 @@ msgid "Waiting on the Android device -- accept the authorization prompt there if
 msgstr "Vent på Android-enheten – aksepter autorisasjonsforespørselen hvis den vises."
 msgid "Xref Live"
 msgstr "Xref Live"
+msgid "Save to current file in progress"
+msgstr "Lagre i gjeldende fil"
