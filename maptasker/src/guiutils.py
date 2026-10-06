@@ -510,16 +510,8 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     return True, projects_to_display, profiles_to_display, tasks_to_display, scenes_to_display
 
 
-def display_selected_object_labels(self: "MyGui") -> None:
-    """
-    Display the current settings for Ai with absolute value-matching fixes for NiceGUI.
-    """
-    if not self.ai_apikey:
-        self.ai_apikey = get_api_key(state=self.state)
-
-    key_to_display = "N/A" if getattr(self, "ai_name", "") == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
-
-    # 1. Resolve the true display value for the model dropdown
+def _model_to_display(self: "MyGui") -> str:
+    """The text the AI model dropdown should show for the active model."""
     model_to_display = "None"
     if self.ai_model:
         # If the dropdown widget exists, look for the choice that ends with our active model
@@ -529,30 +521,11 @@ def display_selected_object_labels(self: "MyGui") -> None:
         else:
             model_to_display = self.ai_model
 
-    none_translated = translate_string("None")
-    to_display = {
-        label: getattr(self, f"single_{label.lower()}_name", "") or none_translated for label in SINGLE_ITEM_LABELS
-    }
-    project_to_display = to_display["Project"]
-    profile_to_display = to_display["Profile"]
-    task_to_display = to_display["Task"]
-    scene_to_display = to_display["Scene"]
-    # "Current <item> selection: ..." -- for whichever item is actually selected, and blank
-    # (as it starts out) when none is.  Both halves used to go wrong: the test was against
-    # the literal "None", so a translated "Keiner"/"Aucun" read as a real selection, and
-    # with nothing selected the loop simply fell through and left the previous item's name
-    # on screen -- still naming a Task moments after it was set back to None.
-    selected_label = selected_single_item_label(self)
-    self.currently_selected_label.set_text(
-        f"Current {selected_label} selection: {to_display[selected_label]}" if selected_label else "",
-    )
+    return model_to_display
 
-    # The Edit/Add buttons below the pulldowns follow that same selection: only the ones
-    # it can actually drive are shown.  Done here because every path that changes the
-    # selection ends up in this function (update_tasker_object_menus calls it), so the
-    # buttons can't be left describing a selection that has moved on.
-    refresh_object_action_buttons(self)
 
+def _render_analyze_tab(self: "MyGui", key_to_display: str, model_to_display: str, to_display: dict) -> None:
+    """Redraw the "Analyze" tab: the model and key, the targets chosen for analysis, and the prompt."""
     # 2. Render the "Analyze" Tab panel context natively
     with self.tab_analyze:
         # Clear the container frame so elements don't stack up iteratively
@@ -585,16 +558,16 @@ def display_selected_object_labels(self: "MyGui") -> None:
 
         # Display Targets selections
         translation_proj = translate_string("Project to Analyze:")
-        self.ai_project_label = ui.label(f"{translation_proj} {project_to_display}").classes("text-sm mt-1")
+        self.ai_project_label = ui.label(f"{translation_proj} {to_display['Project']}").classes("text-sm mt-1")
 
         translation_prof = translate_string("Profile to Analyze:")
-        self.ai_profile_label = ui.label(f"{translation_prof} {profile_to_display}").classes("text-sm mt-1")
+        self.ai_profile_label = ui.label(f"{translation_prof} {to_display['Profile']}").classes("text-sm mt-1")
 
         translation_task = translate_string("Task to Analyze:")
-        self.ai_task_label = ui.label(f"{translation_task} {task_to_display}").classes("text-sm mt-1")
+        self.ai_task_label = ui.label(f"{translation_task} {to_display['Task']}").classes("text-sm mt-1")
 
         translation_scene = translate_string("Scene to Analyze:")
-        self.ai_scene_label = ui.label(f"{translation_scene} {scene_to_display}").classes("text-sm mt-1")
+        self.ai_scene_label = ui.label(f"{translation_scene} {to_display['Scene']}").classes("text-sm mt-1")
 
         # Display Prompt configurations
         display_prompt = translate_string(self.ai_prompt)
@@ -605,6 +578,9 @@ def display_selected_object_labels(self: "MyGui") -> None:
         )
         self.tab_analyze.update()  # Force NiceGUI to re-render the tab context immediately
 
+
+def _render_specific_name_tab(self: "MyGui") -> None:
+    """Redraw the "Specific Name" tab's label, which names the object a run is limited to."""
     # 4. Render Specific Name Tab labels tracking sync
     with self.tab_specific_name:
         # The following displays the selected Project/Profile/Task in the 'Specific Name' tab,
@@ -618,6 +594,43 @@ def display_selected_object_labels(self: "MyGui") -> None:
             with self.tab_specific_name:
                 self.specific_name_msg_label = ui.label(name_to_display).classes("text-xs ml-2 mt-2 text-left")
         self.tab_specific_name.update()  # Force NiceGUI to re-render the tab context immediately
+
+
+def display_selected_object_labels(self: "MyGui") -> None:
+    """
+    Display the current settings for Ai with absolute value-matching fixes for NiceGUI.
+    """
+    if not self.ai_apikey:
+        self.ai_apikey = get_api_key(state=self.state)
+
+    key_to_display = "N/A" if getattr(self, "ai_name", "") == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
+
+    # 1. Resolve the true display value for the model dropdown
+    model_to_display = _model_to_display(self)
+
+    none_translated = translate_string("None")
+    to_display = {
+        label: getattr(self, f"single_{label.lower()}_name", "") or none_translated for label in SINGLE_ITEM_LABELS
+    }
+    # "Current <item> selection: ..." -- for whichever item is actually selected, and blank
+    # (as it starts out) when none is.  Both halves used to go wrong: the test was against
+    # the literal "None", so a translated "Keiner"/"Aucun" read as a real selection, and
+    # with nothing selected the loop simply fell through and left the previous item's name
+    # on screen -- still naming a Task moments after it was set back to None.
+    selected_label = selected_single_item_label(self)
+    self.currently_selected_label.set_text(
+        f"Current {selected_label} selection: {to_display[selected_label]}" if selected_label else "",
+    )
+
+    # The Edit/Add buttons below the pulldowns follow that same selection: only the ones
+    # it can actually drive are shown.  Done here because every path that changes the
+    # selection ends up in this function (update_tasker_object_menus calls it), so the
+    # buttons can't be left describing a selection that has moved on.
+    refresh_object_action_buttons(self)
+
+    _render_analyze_tab(self, key_to_display, model_to_display, to_display)
+
+    _render_specific_name_tab(self)
 
     # Recolor 'Run Analysis' from the same state these labels just displayed.  The button is built
     # with the tab, before restored settings land, so its initial color can be stale.

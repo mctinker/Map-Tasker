@@ -188,6 +188,12 @@ class RunState:
             "gemini_models": GEMINI_MODELS,
             "llama_models": LLAMA_MODELS,
         }
+        self._init_loaded_backup()
+        self._init_output()
+        self._init_session()
+
+    def _init_loaded_backup(self) -> None:
+        """The backup that is loaded, the arguments it is read with, and what a failed read leaves."""
         self.xml_tree = None
         self.xml_root = None
         self.program_arguments: ProgramArguments = ProgramArguments()
@@ -216,6 +222,9 @@ class RunState:
         # count cannot be taken from output_lines at that point: those are emptied after every
         # build, and a Map that was not rebuilt never filled them in the first place.
         self.map_output_line_count = 0
+
+    def _init_output(self) -> None:
+        """What one run's output is built from: the running totals, the directory, and the Diagram's records."""
         self.found_named_items: dict = initial_found_named_items()
         self.grand_totals: dict = initial_grand_totals()
         self.directory_items: dict = initial_directory_items()
@@ -260,6 +269,9 @@ class RunState:
         # regions and call edges, all in the rendered file's coordinates.  Assembled by
         # diagintr.build_model once the diagram is written; read by the view when it renders.
         self.diagram_model: dict = {}
+
+    def _init_session(self) -> None:
+        """The flowchart, the tables loaded once, and the settings that outlive a single run."""
         # The flowchart of the one Task the user last asked for, as mapjump Rows -- see
         # taskflow.flowchart.  Held here rather than handed to the view because the Task Flow
         # view opens in its own browser window, and a popped-out page is built from a URL and

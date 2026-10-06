@@ -124,25 +124,79 @@ def build_refactor_dialog(
         ui.notify(translate_string("No XML file has been loaded.  Get an XML file first."), type="warning")
         return None
 
-    # `persistent`, by the same rule as the Find/Replace dialog: a dialog holding work in
-    # progress or asking for a decision leaves on a button and nothing else.  A preview is
-    # both, and the pulldowns make it acute -- Quasar renders a select's popup OUTSIDE the
-    # card, so the click that picks a Task would otherwise be the click that closes this.
-    with ui.dialog().props("persistent") as dialog, ui.card().classes("w-[900px] max-w-full p-6"):
-        # `title` names the view when this is opened from one and is empty from the main
-        # window, which is the ordinary case now -- so the heading is just "Refactor" there
-        # rather than "Refactor -- " trailing off into nothing.
-        heading = f"{translate_string('Refactor')} -- {title}" if title else translate_string("Refactor")
-        ui.label(heading).classes("text-lg font-bold text-blue-600")
+    return _RefactorDialog(title, make_jump, rebuild_view, state).build()
 
+
+class _RefactorDialog:
+    """The Refactor dialog: its widgets, the plan on screen, and the handlers that work on them.
+
+    Every handler reads and writes the same few widgets and the same plan, so they are methods of
+    one object rather than closures over a dozen locals.
+    """
+
+    def __init__(
+        self,
+        title: str,
+        make_jump: Callable,
+        rebuild_view: Callable[[], Coroutine],
+        state: RunState,
+    ) -> None:
+        """
+        Args:
+            title: What the view this was opened from is called, or "" from the main window.
+            make_jump: How to follow a preview row to the object it names.
+            rebuild_view: How to redraw the view once something has changed.
+            state: The run's state.
+        """
+        self.title = title
+        self.make_jump = make_jump
+        self.rebuild_view = rebuild_view
+        self.state = state
         # The plan on screen, and the field values it was built from.  Held in a dict
-        # rather than as locals because every closure below both reads and writes it, and
+        # rather than as locals because every handler below both reads and writes it, and
         # a Plan cannot be remembered on the view the way a Find query can -- it holds live
         # elements, and holding them across a reopen is the stale-handle case
         # maprefac.apply's attachment check exists to catch.
-        held: dict = {"plan": None, "inputs": None}
+        self.held: dict = {"plan": None, "inputs": None}
+        self.dialog: ui.dialog
+        self.mode: ui.toggle
+        self.blurb: ui.label
+        self.widgets: dict
+        self.summary: ui.label
+        self.preview_area: ui.scroll_area
+        self.apply_button: ui.button
 
-        mode = ui.toggle({key: translate_string(label) for key, label in _MODE_LABELS.items()}, value=EXTRACT).props(
+    def build(self) -> ui.dialog:
+        """Draw the dialog, with the first mode showing and no preview."""
+        # `persistent`, by the same rule as the Find/Replace dialog: a dialog holding work in
+        # progress or asking for a decision leaves on a button and nothing else.  A preview is
+        # both, and the pulldowns make it acute -- Quasar renders a select's popup OUTSIDE the
+        # card, so the click that picks a Task would otherwise be the click that closes this.
+        with ui.dialog().props("persistent") as self.dialog, ui.card().classes("w-[900px] max-w-full p-6"):
+            # `title` names the view when this is opened from one and is empty from the main
+            # window, which is the ordinary case now -- so the heading is just "Refactor" there
+            # rather than "Refactor -- " trailing off into nothing.
+            heading = f"{translate_string('Refactor')} -- {self.title}" if self.title else translate_string("Refactor")
+            ui.label(heading).classes("text-lg font-bold text-blue-600")
+
+            self._build_mode_toggle()
+            self.widgets = _build_mode_rows()
+            self.summary = ui.label("").classes("text-sm font-bold text-orange-500 mt-3")
+            self.preview_area = ui.scroll_area().classes("w-full h-80 border rounded dark:border-gray-700 mt-1")
+            self._build_buttons()
+
+            fill_options(self.widgets, state=self.state)
+            self.mode.on_value_change(self.mode_changed)
+            self._watch_fields()
+            self.mode_changed()
+
+        return self.dialog
+
+    def _build_mode_toggle(self) -> None:
+        """The toggle that picks the mode, with its tooltip and the line saying what the mode does."""
+        self.mode = ui.toggle(
+            {key: translate_string(label) for key, label in _MODE_LABELS.items()}, value=EXTRACT
+        ).props(
             "dense",
         )
         # One tooltip for the whole toggle rather than one per option: ui.toggle renders its
@@ -150,7 +204,7 @@ def build_refactor_dialog(
         # its length by describing the three modes you are NOT on -- the line under the
         # toggle only ever describes the one you are.
         _tip(
-            mode,
+            self.mode,
             "Which structural move to make.\n\n"
             "Extract actions -- pull a run of a Task's actions out into a Task of their own, "
             "leaving a 'Perform Task' in their place.\n\n"
@@ -159,152 +213,14 @@ def build_refactor_dialog(
             "Move to a Project -- change which Project owns a Task or a Profile.\n\n"
             "Duplicate -- copy a Project, Profile, Task or Scene under a new name.\n\n",
         )
-        blurb = ui.label(translate_string(_MODE_BLURBS[EXTRACT])).classes(
+        self.blurb = ui.label(translate_string(_MODE_BLURBS[EXTRACT])).classes(
             "text-xs text-gray-500 italic mb-3 mt-1",
         )
 
-        widgets = _build_mode_rows()
-        summary = ui.label("").classes("text-sm font-bold text-orange-500 mt-3")
-        preview_area = ui.scroll_area().classes("w-full h-80 border rounded dark:border-gray-700 mt-1")
-
-        def current_inputs() -> tuple:
-            """Every field that feeds a plan, as one comparable value.
-
-            What "the preview matches the fields" is checked against.  Every field of every
-            mode, not just the visible ones: the mode itself is part of it, so switching
-            away and back cannot leave a preview from the other mode looking current.
-            """
-            return (
-                mode.value,
-                widgets["extract_task"].value,
-                widgets["extract_from"].value,
-                widgets["extract_to"].value,
-                (widgets["extract_name"].value or "").strip(),
-                widgets["inline_task"].value,
-                widgets["inline_call"].value,
-                widgets["move_kind"].value,
-                widgets["move_object"].value,
-                widgets["move_project"].value,
-                widgets["duplicate_kind"].value,
-                widgets["duplicate_object"].value,
-                (widgets["duplicate_name"].value or "").strip(),
-            )
-
-        def invalidate() -> None:
-            """Throw away the preview and disable Apply.  Every field change comes here.
-
-            The whole of the rule this dialog is built around.  Nothing else disables the
-            button, and nothing re-enables it except a preview being drawn.
-            """
-            held.update(plan=None, inputs=None)
-            apply_button.disable()
-            preview_area.clear()
-            summary.set_text("")
-
-        def draw(plan: maprefac.Plan) -> None:
-            """Draw the plan, from the same Rows that Save Preview writes to a file.
-
-            Every row that points at something is a link, because the only way to judge a
-            refactor is to go and look at what it names -- and on the two operations that
-            refuse most often, the block's explanation names the actions that would have to
-            be selected differently.
-            """
-            preview_area.clear()
-            summary.set_text(
-                f"{plan.what} -- "
-                + (
-                    translate_string("cannot be done")
-                    if plan.is_blocked
-                    else f"{len(plan.steps)} {translate_string('steps')}"
-                ),
-            )
-
-            with preview_area, ui.column().classes("w-full gap-0 p-2"):
-                for row in maprefac.report_rows(plan)[:_PREVIEW_LINE_LIMIT]:
-                    if row.target is not None:
-                        ui.link(row.text, "#").on("click", make_jump(row.target)).classes(
-                            "text-blue-600 dark:text-blue-400 font-mono text-xs whitespace-pre "
-                            "decoration-dotted hover:underline",
-                        )
-                    else:
-                        ui.label(row.text).classes(
-                            "font-mono text-xs whitespace-pre " + _row_classes(row.text),
-                        )
-
-        def preview() -> None:
-            """Build the plan for what is in the fields, and show it.
-
-            A blocked plan is drawn like any other and leaves Apply disabled.  It is not an
-            error and must not be notified as one: the user asked whether this could be
-            done, and the block is the answer to that question, printed where they are
-            already looking.
-            """
-            plan = plan_for(mode.value, widgets, state=state)
-            if plan is None:
-                ui.notify(translate_string("Fill in every box first."), type="warning")
-                return
-            held.update(plan=plan, inputs=current_inputs())
-            draw(plan)
-            if plan.can_apply:
-                apply_button.enable()
-            else:
-                apply_button.disable()
-
-        async def do_apply() -> None:
-            """The Apply button.  Only ever applies the plan on screen.
-
-            Re-checks that the plan matches the fields even though every field invalidates
-            it: this is the last point at which the check is cheap, and the cost of it
-            being wrong is a configuration restructured in a way nobody previewed.
-            """
-            plan = held["plan"]
-            if plan is None or held["inputs"] != current_inputs():
-                ui.notify(translate_string("Press Preview first."), type="warning")
-                invalidate()
-                return
-
-            done, errors = maprefac.apply(plan, state=state)
-            for message in errors[:4]:
-                ui.notify(message, type="negative")
-            if not done:
-                return
-
-            ui.notify(
-                f"{plan.what}. {translate_string('Undo is available.')}",
-                type="positive",
-                position="top",
-            )
-            invalidate()
-            dialog.close()
-            # Refill the pulldowns before redrawing: a refactor is the one operation here
-            # that ADDS and REMOVES objects, so unlike a Replace, every option in every
-            # pulldown may now be stale -- a Task extracted into is not in the Task list,
-            # and a Project duplicated is not in the Project list.  _stale's record is
-            # cleared first, because this is the one refill that must happen even though
-            # nothing the user chose has changed: what changed is the configuration.
-            widgets["filled"].clear()
-            fill_options(widgets, state=state)
-            await rebuild_view()
-
-        def save_preview() -> None:
-            """Write the preview to a file.
-
-            Worth having for the refactor the user decided NOT to do as much as the one
-            they did: a block's explanation names the actions that would have to be selected
-            differently, and that is a work list which does not survive closing this.
-            """
-            plan = held["plan"]
-            if plan is None:
-                ui.notify(translate_string("Press Preview first."), type="warning")
-                return
-            file_name = maprefac.write_refactor_report(maprefac.report_rows(plan), state=state)
-            if file_name:
-                ui.notify(f"{translate_string('Refactor preview saved as')} {file_name}", type="positive")
-            else:
-                ui.notify(translate_string("Refactor preview could not be saved."), type="negative")
-
+    def _build_buttons(self) -> None:
+        """The row of buttons along the bottom: Preview, Apply, Save Preview and Close."""
         with ui.row().classes("w-full justify-end mt-4 gap-2"):
-            preview_button = ui.button(translate_string("Preview"), on_click=preview).classes(
+            preview_button = ui.button(translate_string("Preview"), on_click=self.preview).classes(
                 "bg-blue-600 text-white px-4",
             )
             _tip(
@@ -315,19 +231,19 @@ def build_refactor_dialog(
                 "Every place the preview names is a link: click one to open it in a tab of its own "
                 "and look at it before you decide.\n\n",
             )
-            apply_button = ui.button(translate_string("Apply"), on_click=do_apply).classes(
+            self.apply_button = ui.button(translate_string("Apply"), on_click=self.do_apply).classes(
                 "bg-orange-600 text-white px-4",
             )
-            apply_button.disable()
+            self.apply_button.disable()
             _tip(
-                apply_button,
+                self.apply_button,
                 "Carry out the refactor exactly as the preview describes it.\n\n"
                 "Greyed out until a preview exists for what is in the boxes right now -- changing "
                 "any box clears the preview, so what you apply is always what you were shown.\n\n"
                 "However many objects it touches, the whole refactor is one press of Undo "
                 "afterwards.\n\n",
             )
-            save_button = ui.button(translate_string("Save Preview"), on_click=save_preview).classes(
+            save_button = ui.button(translate_string("Save Preview"), on_click=self.save_preview).classes(
                 "bg-blue-600 text-white px-4",
             )
             _tip(
@@ -337,7 +253,7 @@ def build_refactor_dialog(
                 "refusal names the actions that would have to be selected differently, and that "
                 "list does not survive closing this window.\n\n",
             )
-            close_button = ui.button(translate_string("Close"), on_click=dialog.close).classes(
+            close_button = ui.button(translate_string("Close"), on_click=self.dialog.close).classes(
                 "bg-red-500 text-white px-4",
             )
             _tip(
@@ -347,16 +263,12 @@ def build_refactor_dialog(
                 "time, so there is never anything left pending here.\n\n",
             )
 
-        def mode_changed() -> None:
-            """Show one mode's fields and hide the rest, and start it with no preview."""
-            blurb.set_text(translate_string(_MODE_BLURBS.get(mode.value, "")))
-            for key, row in widgets["rows"].items():
-                row.set_visibility(key == mode.value)
-            invalidate()
-
-        fill_options(widgets, state=state)
-        mode.on_value_change(mode_changed)
-        # The two pulldowns whose CONTENTS depend on another pulldown, rather than merely
+    def _watch_fields(self) -> None:
+        """Make every field change invalidate the preview, and refill the pulldowns that depend on another."""
+        widgets = self.widgets
+        state = self.state
+        invalidate = self.invalidate
+        # The pulldowns whose CONTENTS depend on another pulldown, rather than merely
         # invalidating with it: which actions there are to extract, and which of them are
         # calls, are facts about the Task chosen above.
         widgets["extract_task"].on_value_change(lambda: (_fill_actions(widgets, state=state), invalidate()))
@@ -374,9 +286,150 @@ def build_refactor_dialog(
             "duplicate_name",
         ):
             widgets[key].on_value_change(invalidate)
-        mode_changed()
 
-    return dialog
+    def current_inputs(self) -> tuple:
+        """Every field that feeds a plan, as one comparable value.
+
+        What "the preview matches the fields" is checked against.  Every field of every
+        mode, not just the visible ones: the mode itself is part of it, so switching
+        away and back cannot leave a preview from the other mode looking current.
+        """
+        widgets = self.widgets
+        return (
+            self.mode.value,
+            widgets["extract_task"].value,
+            widgets["extract_from"].value,
+            widgets["extract_to"].value,
+            (widgets["extract_name"].value or "").strip(),
+            widgets["inline_task"].value,
+            widgets["inline_call"].value,
+            widgets["move_kind"].value,
+            widgets["move_object"].value,
+            widgets["move_project"].value,
+            widgets["duplicate_kind"].value,
+            widgets["duplicate_object"].value,
+            (widgets["duplicate_name"].value or "").strip(),
+        )
+
+    def invalidate(self) -> None:
+        """Throw away the preview and disable Apply.  Every field change comes here.
+
+        The whole of the rule this dialog is built around.  Nothing else disables the
+        button, and nothing re-enables it except a preview being drawn.
+        """
+        self.held.update(plan=None, inputs=None)
+        self.apply_button.disable()
+        self.preview_area.clear()
+        self.summary.set_text("")
+
+    def draw(self, plan: maprefac.Plan) -> None:
+        """Draw the plan, from the same Rows that Save Preview writes to a file.
+
+        Every row that points at something is a link, because the only way to judge a
+        refactor is to go and look at what it names -- and on the two operations that
+        refuse most often, the block's explanation names the actions that would have to
+        be selected differently.
+        """
+        self.preview_area.clear()
+        self.summary.set_text(
+            f"{plan.what} -- "
+            + (
+                translate_string("cannot be done")
+                if plan.is_blocked
+                else f"{len(plan.steps)} {translate_string('steps')}"
+            ),
+        )
+
+        with self.preview_area, ui.column().classes("w-full gap-0 p-2"):
+            for row in maprefac.report_rows(plan)[:_PREVIEW_LINE_LIMIT]:
+                if row.target is not None:
+                    ui.link(row.text, "#").on("click", self.make_jump(row.target)).classes(
+                        "text-blue-600 dark:text-blue-400 font-mono text-xs whitespace-pre "
+                        "decoration-dotted hover:underline",
+                    )
+                else:
+                    ui.label(row.text).classes(
+                        "font-mono text-xs whitespace-pre " + _row_classes(row.text),
+                    )
+
+    def preview(self) -> None:
+        """Build the plan for what is in the fields, and show it.
+
+        A blocked plan is drawn like any other and leaves Apply disabled.  It is not an
+        error and must not be notified as one: the user asked whether this could be
+        done, and the block is the answer to that question, printed where they are
+        already looking.
+        """
+        plan = plan_for(self.mode.value, self.widgets, state=self.state)
+        if plan is None:
+            ui.notify(translate_string("Fill in every box first."), type="warning")
+            return
+        self.held.update(plan=plan, inputs=self.current_inputs())
+        self.draw(plan)
+        if plan.can_apply:
+            self.apply_button.enable()
+        else:
+            self.apply_button.disable()
+
+    async def do_apply(self) -> None:
+        """The Apply button.  Only ever applies the plan on screen.
+
+        Re-checks that the plan matches the fields even though every field invalidates
+        it: this is the last point at which the check is cheap, and the cost of it
+        being wrong is a configuration restructured in a way nobody previewed.
+        """
+        plan = self.held["plan"]
+        if plan is None or self.held["inputs"] != self.current_inputs():
+            ui.notify(translate_string("Press Preview first."), type="warning")
+            self.invalidate()
+            return
+
+        done, errors = maprefac.apply(plan, state=self.state)
+        for message in errors[:4]:
+            ui.notify(message, type="negative")
+        if not done:
+            return
+
+        ui.notify(
+            f"{plan.what}. {translate_string('Undo is available.')}",
+            type="positive",
+            position="top",
+        )
+        self.invalidate()
+        self.dialog.close()
+        # Refill the pulldowns before redrawing: a refactor is the one operation here
+        # that ADDS and REMOVES objects, so unlike a Replace, every option in every
+        # pulldown may now be stale -- a Task extracted into is not in the Task list,
+        # and a Project duplicated is not in the Project list.  _stale's record is
+        # cleared first, because this is the one refill that must happen even though
+        # nothing the user chose has changed: what changed is the configuration.
+        self.widgets["filled"].clear()
+        fill_options(self.widgets, state=self.state)
+        await self.rebuild_view()
+
+    def save_preview(self) -> None:
+        """Write the preview to a file.
+
+        Worth having for the refactor the user decided NOT to do as much as the one
+        they did: a block's explanation names the actions that would have to be selected
+        differently, and that is a work list which does not survive closing this.
+        """
+        plan = self.held["plan"]
+        if plan is None:
+            ui.notify(translate_string("Press Preview first."), type="warning")
+            return
+        file_name = maprefac.write_refactor_report(maprefac.report_rows(plan), state=self.state)
+        if file_name:
+            ui.notify(f"{translate_string('Refactor preview saved as')} {file_name}", type="positive")
+        else:
+            ui.notify(translate_string("Refactor preview could not be saved."), type="negative")
+
+    def mode_changed(self) -> None:
+        """Show one mode's fields and hide the rest, and start it with no preview."""
+        self.blurb.set_text(translate_string(_MODE_BLURBS.get(self.mode.value, "")))
+        for key, row in self.widgets["rows"].items():
+            row.set_visibility(key == self.mode.value)
+        self.invalidate()
 
 
 def _tip(element: ui.element, text: str) -> None:

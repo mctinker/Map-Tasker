@@ -577,32 +577,16 @@ def _record_import_value(
         _record_reads(index, value, Reference(READ, where, f"{detail}, Value=", scope_id, place, value_element))
 
 
-def _scan_action(
+def _scan_action_arguments(
     index: VariableIndex,
     action: Element,
+    code: str,
     place: Target,
     scope_id: str,
     write_arguments: dict[str, set[str]],
-    implicit_writes: dict[str, set[str]],
 ) -> None:
-    """Record every variable one action sets or reads.
-
-    'place' is where this action is, as both the phrase the report prints (its .label) and
-    the identity a click on that line jumps to.
-    """
+    """Record the variables an action names in its arguments, as writes or reads."""
     where = place.label
-    code = _element_text(action, "code")
-    if not code:
-        return
-
-    # The output variables this action produces without naming them anywhere.  Marked as
-    # such in the report: "set by" pointing at an action that never mentions the variable
-    # is otherwise the sort of claim a user has no way to check.
-    for name in implicit_writes.get(code, ()):
-        index.entry(name, scope_id).sets.append(
-            Reference(SET, where, f"{_argument_label(code, '')} (output variable)", scope_id, place),
-        )
-
     arguments = string_arguments(action)
     argument_nodes = argument_elements(action)
     targets = write_arguments.get(code, set())
@@ -636,18 +620,29 @@ def _scan_action(
         else:
             _record_reads(index, text, Reference(READ, where, detail, scope_id, place, argument_nodes.get(arg_id)))
 
+
+def _scan_javascriptlet(index: VariableIndex, action: Element, code: str, place: Target, scope_id: str) -> None:
+    """Record the variables a JavaScriptlet names through Tasker's own calls; any other action has none."""
     # A JavaScriptlet names Tasker variables through Tasker's own calls -- global('Name'),
     # setLocal('name', value) -- and never with a '%', so the loop above cannot see them:
     # a global read only by a script used to be reported as never read.
-    if code == codelint.JAVASCRIPTLET:
-        label = f"{_argument_label(code, '0')} (script)"
-        script_element = argument_nodes.get("0")
-        for name, is_write in codelint.js_variable_uses(arguments.get("0", "")):
-            if is_write:
-                _record_write(index, name, Reference(SET, where, label, scope_id, place, script_element), plural=False)
-            else:
-                _record_reads(index, name, Reference(READ, where, label, scope_id, place, script_element))
+    if code != codelint.JAVASCRIPTLET:
+        return
+    where = place.label
+    arguments = string_arguments(action)
+    argument_nodes = argument_elements(action)
+    label = f"{_argument_label(code, '0')} (script)"
+    script_element = argument_nodes.get("0")
+    for name, is_write in codelint.js_variable_uses(arguments.get("0", "")):
+        if is_write:
+            _record_write(index, name, Reference(SET, where, label, scope_id, place, script_element), plural=False)
+        else:
+            _record_reads(index, name, Reference(READ, where, label, scope_id, place, script_element))
 
+
+def _scan_plugin_bundle(index: VariableIndex, action: Element, code: str, place: Target, scope_id: str) -> None:
+    """Record the variables named in a plugin action's configuration, which are all reads."""
+    where = place.label
     # A plugin action keeps its configuration in a <Bundle> rather than in <Str> arguments,
     # and 1741 actions in a real backup to hand carry one.  Every variable named in there is
     # something the plugin reads when it runs, so a global referenced only from a plugin's
@@ -660,6 +655,10 @@ def _scan_action(
             if element.text:
                 _record_reads(index, element.text, Reference(READ, where, label, scope_id, place, element))
 
+
+def _scan_action_condition(index: VariableIndex, action: Element, place: Target, scope_id: str) -> None:
+    """Record the variables read by the action's own condition."""
+    where = place.label
     # The action's own condition -- 'If %HearMute Is Not Set'.  These live in <lhs>/<rhs>
     # rather than in an <Str sr="argN">, and skipping them loses a large share of every
     # read in a real configuration.
@@ -669,6 +668,38 @@ def _scan_action(
             side = (side_element.text or "").strip() if side_element is not None else ""
             if side:
                 _record_reads(index, side, Reference(READ, where, f"if {tag}", scope_id, place, side_element))
+
+
+def _scan_action(
+    index: VariableIndex,
+    action: Element,
+    place: Target,
+    scope_id: str,
+    write_arguments: dict[str, set[str]],
+    implicit_writes: dict[str, set[str]],
+) -> None:
+    """Record every variable one action sets or reads.
+
+    'place' is where this action is, as both the phrase the report prints (its .label) and
+    the identity a click on that line jumps to.
+    """
+    where = place.label
+    code = _element_text(action, "code")
+    if not code:
+        return
+
+    # The output variables this action produces without naming them anywhere.  Marked as
+    # such in the report: "set by" pointing at an action that never mentions the variable
+    # is otherwise the sort of claim a user has no way to check.
+    for name in implicit_writes.get(code, ()):
+        index.entry(name, scope_id).sets.append(
+            Reference(SET, where, f"{_argument_label(code, '')} (output variable)", scope_id, place),
+        )
+
+    _scan_action_arguments(index, action, code, place, scope_id, write_arguments)
+    _scan_javascriptlet(index, action, code, place, scope_id)
+    _scan_plugin_bundle(index, action, code, place, scope_id)
+    _scan_action_condition(index, action, place, scope_id)
 
     index.actions_scanned += 1
 

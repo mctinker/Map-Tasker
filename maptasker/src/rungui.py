@@ -141,79 +141,15 @@ def save_gui_settings(user_input: object, state: RunState) -> None:
     logger.info("Settings saved on exit.")
 
 
-def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]:
-    # global MyGui
-    """Parameters:
-        - use_gui (bool): Flag to indicate whether to use GUI or not.
-    Returns:
-        - tuple[ProgramArguments, dict]: Tuple containing program arguments and colors to use.
-    Processing Logic:
-        - Import MyGui if use_gui is True.
-        - Set flag to indicate GUI usage.
-        - Display GUI and get user input.
-        - Initialize runtime arguments if not already set.
-        - If user clicks "Exit" button, save settings and exit program.
-        - If user closes window, cancel program.
-        - If user clicks "Run" button, get input from GUI variables.
-        - Set program arguments in dictionary.
-        - Convert display_detail_level and indent to integers.
-        - Get font from GUI.
-        - Return program arguments and colors to use."""
-    # CODE STARTS HERE
-    logger.info("starting")
+def _register_popout_page(state: RunState) -> None:
+    """Register the page that shows the Map, the Diagram or a Task's flowchart in its own window.
 
-    # Imported here rather than at the top so that userintr, and the GUI modules it brings in,
-    # load when the GUI starts -- not when rungui is imported, which is at startup, before
-    # process_cli replaces program_arguments.  diagram writes a default into program_arguments
-    # as it is imported, and at startup that write would be thrown away.
-    if use_gui:
-        from maptasker.src.userintr import MyGui  # noqa: PLC0415
+    Opened by MapTaskerEventHandlers.view_event in userintr.py, so these views no longer replace
+    the main window's content.  It reuses the single shared MyGui instance (PrimeItems.mygui)
+    rather than building a new one, since this is a single-user, single-server-process desktop
+    app.
+    """
 
-    state.program_arguments.gui = True
-
-    # 1. Create a dictionary to hold our UI instance so we can retrieve it after the server closes
-    shared_state = {}
-
-    # Create a lock to prevent the browser from building the app multiple times
-    app_lock = {"is_built": False}
-
-    # 2. EXPLICITLY define the root page.
-    @ui.page("/")
-    def map_tasker_root() -> None:
-        restart = False
-        # What the session is on right now -- captured *before* MyGui() below re-runs the
-        # settings restore over the top of it. See reapply_selection.
-        carried_type, carried_name = live_selection(state=state)
-
-        # Check if this is a page refresh/re-connection
-        if app_lock["is_built"]:
-            logger.info("Application refreshed or reconnected. Re-initializing user interface context.")
-            # print("Application refreshed or reconnected. Re-initializing user interface context.")
-
-            # Optional: Clear out any global data references that should reset on a clean page refresh
-            if "user_input" in shared_state:
-                restart = True
-                del shared_state["user_input"]
-
-        # Safely instantiate or overwrite the UI instance
-        shared_state["user_input"] = MyGui(state)
-        # Mark as built so the application tracks that initialization has occurred
-        app_lock["is_built"] = True
-        if restart:
-            # Only after a rebuild: on the very first build there is no live session to
-            # carry over, and the settings file is the right source.
-            reapply_selection(shared_state["user_input"], carried_type, carried_name)
-            # The old "Please re-enter your inputs" wording is no longer true of the thing
-            # people actually lost -- the selection now survives -- so say what did happen.
-            message = "This window was rebuilt from your saved settings."
-            if carried_name:
-                message += f" Still showing {carried_type}: {carried_name}."
-            ui.notify(message, color="orange", position="bottom")
-
-    # 2b. Pop-out page for the Map, Diagram and Task Flow views, opened in their own browser
-    # window/tab (see MapTaskerEventHandlers.view_event in userintr.py) so they no longer replace the
-    # main window's content. Reuses the single shared MyGui instance (PrimeItems.mygui) rather
-    # than building a new one, since this is a single-user, single-server-process desktop app.
     @ui.page("/popout/{view_type}")
     def popout_view(view_type: str, goto: str = "", scope: str = "", built_for: str = "") -> None:
         """The Map, the Diagram or a Task's flowchart in its own window.
@@ -288,8 +224,9 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
             built_for=built_for,
         )
 
-    logger.info("Starting NiceGUI server mainloop")
 
+def _intercept_socket_emit(state: RunState) -> None:
+    """Have everything the server sends to the browser pass through capture_gui_state first."""
     # =========================================================================
     # Intercept all interactions with the UI to save MyGui to PrimeItems and shared_state
     # from nicegui import app, core, ui
@@ -320,18 +257,9 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
     # 3. Apply the monkey-patch directly to the core server emitter instance
     core.sio.emit = intercepted_sio_emit
 
-    # 4. Point to the icon directory fore our favicon.
-    abspath = os.path.abspath(__file__)
-    assets_dir = os.path.dirname(abspath).replace("src", f"assets{state.slash}icons")
 
-    # =========================================================================
-
-    # 4b. Save the settings as the server shuts down, however it was told to.  The save used to
-    # happen only after ui.run() returned, which it does for the Exit button -- but Ctrl-C in
-    # the terminal (or a SIGTERM) makes ui.run() raise KeyboardInterrupt instead, and every
-    # setting changed in the session was lost.  Shutdown handlers run in both cases.
-    app.on_shutdown(lambda: save_gui_settings(shared_state.get("user_input"), state=state))
-
+def _run_server(state: RunState, assets_dir: str) -> None:
+    """Start the NiceGUI server, which blocks until it is shut down, and report why it could not start."""
     # 5. Start the server (This will now properly block without running main() twice)
     try:
         ui.run(
@@ -357,6 +285,96 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
     except KeyboardInterrupt:
         # Ctrl-C: the shutdown hook above has saved the settings; carry on to the normal exit.
         logger.info("GUI interrupted from the keyboard.")
+
+
+def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]:
+    # global MyGui
+    """Parameters:
+        - use_gui (bool): Flag to indicate whether to use GUI or not.
+    Returns:
+        - tuple[ProgramArguments, dict]: Tuple containing program arguments and colors to use.
+    Processing Logic:
+        - Import MyGui if use_gui is True.
+        - Set flag to indicate GUI usage.
+        - Display GUI and get user input.
+        - Initialize runtime arguments if not already set.
+        - If user clicks "Exit" button, save settings and exit program.
+        - If user closes window, cancel program.
+        - If user clicks "Run" button, get input from GUI variables.
+        - Set program arguments in dictionary.
+        - Convert display_detail_level and indent to integers.
+        - Get font from GUI.
+        - Return program arguments and colors to use."""
+    # CODE STARTS HERE
+    logger.info("starting")
+
+    # Imported here rather than at the top so that userintr, and the GUI modules it brings in,
+    # load when the GUI starts -- not when rungui is imported, which is at startup, before
+    # process_cli replaces program_arguments.  diagram writes a default into program_arguments
+    # as it is imported, and at startup that write would be thrown away.
+    if use_gui:
+        from maptasker.src.userintr import MyGui  # noqa: PLC0415
+
+    state.program_arguments.gui = True
+
+    # 1. Create a dictionary to hold our UI instance so we can retrieve it after the server closes
+    shared_state = {}
+
+    # Create a lock to prevent the browser from building the app multiple times
+    app_lock = {"is_built": False}
+
+    # 2. EXPLICITLY define the root page.
+    @ui.page("/")
+    def map_tasker_root() -> None:
+        restart = False
+        # What the session is on right now -- captured *before* MyGui() below re-runs the
+        # settings restore over the top of it. See reapply_selection.
+        carried_type, carried_name = live_selection(state=state)
+
+        # Check if this is a page refresh/re-connection
+        if app_lock["is_built"]:
+            logger.info("Application refreshed or reconnected. Re-initializing user interface context.")
+            # print("Application refreshed or reconnected. Re-initializing user interface context.")
+
+            # Optional: Clear out any global data references that should reset on a clean page refresh
+            if "user_input" in shared_state:
+                restart = True
+                del shared_state["user_input"]
+
+        # Safely instantiate or overwrite the UI instance
+        shared_state["user_input"] = MyGui(state)
+        # Mark as built so the application tracks that initialization has occurred
+        app_lock["is_built"] = True
+        if restart:
+            # Only after a rebuild: on the very first build there is no live session to
+            # carry over, and the settings file is the right source.
+            reapply_selection(shared_state["user_input"], carried_type, carried_name)
+            # The old "Please re-enter your inputs" wording is no longer true of the thing
+            # people actually lost -- the selection now survives -- so say what did happen.
+            message = "This window was rebuilt from your saved settings."
+            if carried_name:
+                message += f" Still showing {carried_type}: {carried_name}."
+            ui.notify(message, color="orange", position="bottom")
+
+    _register_popout_page(state)
+
+    logger.info("Starting NiceGUI server mainloop")
+
+    _intercept_socket_emit(state)
+
+    # 4. Point to the icon directory fore our favicon.
+    abspath = os.path.abspath(__file__)
+    assets_dir = os.path.dirname(abspath).replace("src", f"assets{state.slash}icons")
+
+    # =========================================================================
+
+    # 4b. Save the settings as the server shuts down, however it was told to.  The save used to
+    # happen only after ui.run() returned, which it does for the Exit button -- but Ctrl-C in
+    # the terminal (or a SIGTERM) makes ui.run() raise KeyboardInterrupt instead, and every
+    # setting changed in the session was lost.  Shutdown handlers run in both cases.
+    app.on_shutdown(lambda: save_gui_settings(shared_state.get("user_input"), state=state))
+
+    _run_server(state, assets_dir)
 
     logger.info("GUI closed. Cleaning up...")
     console.say("MapTasker GUI closed. Cleaning up...")

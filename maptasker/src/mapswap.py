@@ -1882,7 +1882,6 @@ def plan_argument_replace(
         return plan
 
     numeric = _category(argument, state=state) in ("Int", "Boolean")
-    refusal = _numeric_refusal(numeric, new_value)
 
     adding = add_missing and not match and not substitute
     if add_missing and not adding:
@@ -1891,103 +1890,146 @@ def plan_argument_replace(
             "field that does not exist, and there is nothing inside a missing value to replace.",
         )
 
-    pattern = re.compile(re.escape(match), re.IGNORECASE) if substitute else None
-    wanted = match.lower()
-    detail = f"{action_name}, {arg_name}="
-    index = mapfind.build_index(state=state)
-    code = action_key[:-1]
-    added = 0
-
-    for record in index.objects:
+    job = _ArgumentReplace(
+        plan=plan,
+        action_key=action_key,
+        arg_id=arg_id,
+        arg_name=arg_name,
+        new_value=new_value,
+        wanted=match.lower(),
+        substitute=substitute,
+        adding=adding,
+        refusal=_numeric_refusal(numeric, new_value),
+        pattern=re.compile(re.escape(match), re.IGNORECASE) if substitute else None,
+        detail=f"{action_name}, {arg_name}=",
+        state=state,
+    )
+    for record in mapfind.build_index(state=state).objects:
         if record.kind != TASK:
             continue
         if project and record.project != project:
             continue
         for found in record.actions:
-            if found.code != code or found.element is None:
+            if found.code != action_key[:-1] or found.element is None:
                 continue
-            where = record.target.at_action(found.number)
-            site, reason = _argument_site(found.element, arg_id, where, detail)
-            if site is None:
-                # An argument the action never set.  Written into it when the user asked
-                # for that, and otherwise reported: it is exactly the action they meant to
-                # change and did not, so it says so and says what to tick.
-                if not adding:
-                    # Reported only when nothing was filtering.  A value filter cannot rule
-                    # out a field there is nothing to read, so with one set these would be
-                    # noise; without one, they are the ones the user did not get.
-                    if not wanted:
-                        plan.skips.append(
-                            Skip(
-                                where=where,
-                                reason=BLOCKED_UNADDABLE,
-                                explanation=f"{reason}  Tick 'Add it where missing' to write one in.",
-                            ),
-                        )
-                    continue
-                if refusal:
-                    plan.skips.append(Skip(where=where, reason=BLOCKED_UNADDABLE, explanation=refusal))
-                    continue
-                if not _creatable(found.element, arg_id, state=state):
-                    plan.skips.append(
-                        Skip(
-                            where=where,
-                            reason=BLOCKED_UNADDABLE,
-                            explanation="this argument cannot be written from nothing -- it is not a plain value.",
-                        ),
-                    )
-                    continue
-                added += 1
-                plan.changes.append(
-                    Change(
-                        site=Site(
-                            kind=NEW_ARG,
-                            element=found.element,
-                            where=where,
-                            detail=detail,
-                            new_value=new_value,
-                            create_arg=(action_key, arg_id),
-                        ),
-                        before="",
-                        after=new_value,
-                        note=f"this action has no {arg_name} -- one is added",
-                    ),
-                )
-                continue
-
-            before = _current_value(site)
-            if wanted and wanted not in before.lower():
-                continue
-
-            if refusal and not substitute:
-                plan.skips.append(Skip(where=where, reason=BLOCKED_UNADDABLE, explanation=refusal))
-                continue
-
-            site = Site(
-                kind=site.kind,
-                element=site.element,
-                where=where,
-                detail=detail,
-                new_value=None if substitute else new_value,
-                rename=(pattern, new_value) if substitute else (),
-            )
-            after = _rewrite_site(site, pattern, new_value)[1]
-            if after == before:
-                continue  # Already holds it: a change that would change nothing.
-            plan.changes.append(Change(site=site, before=before, after=after))
+            job.consider(found.element, record.target.at_action(found.number))
 
     plan.selected = set(range(len(plan.changes)))
-    if added:
+    if job.added:
         plan.warnings.append(
-            f"{added} of these ADD a {arg_name} to an action that never had one, rather than changing "
+            f"{job.added} of these ADD a {arg_name} to an action that never had one, rather than changing "
             f"one it has.  Each says so on its own row.",
         )
-    if plan.changes and not wanted and not substitute:
+    if plan.changes and not job.wanted and not substitute:
         plan.warnings.append(
             f"Every {action_name} in scope gets the same {arg_name} -- {len(plan.changes)} of them.  "
             f"Narrow it with the value filter if that is more than you meant.",
         )
     return plan
+
+
+@dataclass
+class _ArgumentReplace:
+    """One plan_argument_replace: what is being asked, and the plan it is adding to.
+
+    consider() is given each action of the code in turn and either adds a Change, adds a Skip
+    saying why it cannot, or -- for an action the value filter rules out, or that already holds
+    the value -- does nothing.
+    """
+
+    plan: Plan
+    action_key: str
+    arg_id: str
+    arg_name: str
+    new_value: str
+    wanted: str  # the value filter, lowercased; "" for none
+    substitute: bool
+    adding: bool  # write the argument into actions that have none
+    refusal: str  # why new_value cannot go in a numeric argument; "" if it can
+    pattern: re.Pattern | None
+    detail: str
+    state: RunState
+    added: int = 0  # how many of the changes ADD an argument
+
+    def consider(self, element: Element, where: Target) -> None:
+        """Work out what putting the new value into one action's argument would do."""
+        site, reason = _argument_site(element, self.arg_id, where, self.detail)
+        if site is None:
+            self._consider_missing(element, where, reason)
+        else:
+            self._consider_present(site, where)
+
+    def _consider_missing(self, element: Element, where: Target, reason: str) -> None:
+        """An argument the action never set.  Written into it when the user asked for that, and
+        otherwise reported: it is exactly the action they meant to change and did not, so it
+        says so and says what to tick.
+        """
+        plan = self.plan
+        if not self.adding:
+            # Reported only when nothing was filtering.  A value filter cannot rule
+            # out a field there is nothing to read, so with one set these would be
+            # noise; without one, they are the ones the user did not get.
+            if not self.wanted:
+                plan.skips.append(
+                    Skip(
+                        where=where,
+                        reason=BLOCKED_UNADDABLE,
+                        explanation=f"{reason}  Tick 'Add it where missing' to write one in.",
+                    ),
+                )
+            return
+        if self.refusal:
+            plan.skips.append(Skip(where=where, reason=BLOCKED_UNADDABLE, explanation=self.refusal))
+            return
+        if not _creatable(element, self.arg_id, state=self.state):
+            plan.skips.append(
+                Skip(
+                    where=where,
+                    reason=BLOCKED_UNADDABLE,
+                    explanation="this argument cannot be written from nothing -- it is not a plain value.",
+                ),
+            )
+            return
+        self.added += 1
+        plan.changes.append(
+            Change(
+                site=Site(
+                    kind=NEW_ARG,
+                    element=element,
+                    where=where,
+                    detail=self.detail,
+                    new_value=self.new_value,
+                    create_arg=(self.action_key, self.arg_id),
+                ),
+                before="",
+                after=self.new_value,
+                note=f"this action has no {self.arg_name} -- one is added",
+            ),
+        )
+
+    def _consider_present(self, site: Site, where: Target) -> None:
+        """An action that carries the argument: a Change to its value, unless that would change nothing."""
+        plan = self.plan
+        before = _current_value(site)
+        if self.wanted and self.wanted not in before.lower():
+            return
+
+        if self.refusal and not self.substitute:
+            plan.skips.append(Skip(where=where, reason=BLOCKED_UNADDABLE, explanation=self.refusal))
+            return
+
+        site = Site(
+            kind=site.kind,
+            element=site.element,
+            where=where,
+            detail=self.detail,
+            new_value=None if self.substitute else self.new_value,
+            rename=(self.pattern, self.new_value) if self.substitute else (),
+        )
+        after = _rewrite_site(site, self.pattern, self.new_value)[1]
+        if after == before:
+            return  # Already holds it: a change that would change nothing.
+        plan.changes.append(Change(site=site, before=before, after=after))
 
 
 # ##################################################################################

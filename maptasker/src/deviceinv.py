@@ -322,30 +322,21 @@ def build_helper_task(task_name: str = HELPER_TASK_NAME, *, state: RunState):
     def join(variable: str) -> str:
         return add(_VARIABLE_JOIN_ACTION, {"0": variable, "1": _PAYLOAD_JOINER, "2": "0"})
 
-    error = list_apps(_LIST_APPS_PACKAGE, _PACKAGES_VARIABLE)
-    if error:
-        return error
+    # Each step answers with the error that stopped it, or "" -- and the first error ends the build.
+    steps = [lambda: list_apps(_LIST_APPS_PACKAGE, _PACKAGES_VARIABLE)]
 
     if PAIR_LABELS_ON_DEVICE:
-        error = _add_paired_label_actions(add)
-        if error:
-            return error
+        steps.append(lambda: _add_paired_label_actions(add))
 
-    error = join(_PACKAGES_VARIABLE)
-    if error:
-        return error
+    steps.append(lambda: join(_PACKAGES_VARIABLE))
 
     if not PAIR_LABELS_ON_DEVICE:
-        error = list_apps(_LIST_APPS_LABEL, _LABELS_VARIABLE) or join(_LABELS_VARIABLE)
-        if error:
-            return error
+        steps.append(lambda: list_apps(_LIST_APPS_LABEL, _LABELS_VARIABLE) or join(_LABELS_VARIABLE))
 
     # Activities are asked for in bulk whether or not labels are paired -- 'Test App' has no
     # activity type to ask for, so there is nothing to pair them with.  They stay subject to
     # parse_device_payload's length check, and are dropped when they fail it.
-    error = list_apps(_LIST_APPS_ACTIVITY, _ACTIVITIES_VARIABLE) or join(_ACTIVITIES_VARIABLE)
-    if error:
-        return error
+    steps.append(lambda: list_apps(_LIST_APPS_ACTIVITY, _ACTIVITIES_VARIABLE) or join(_ACTIVITIES_VARIABLE))
 
     # Then the file, a line at a time.  The first write truncates and every later one
     # appends, so a re-run replaces the previous answer rather than growing it.
@@ -359,11 +350,16 @@ def build_helper_task(task_name: str = HELPER_TASK_NAME, *, state: RunState):
         _ACTIVITIES_VARIABLE,
         _PAYLOAD_TERMINATOR,
     )
-    for index, text in enumerate(payload_lines):
-        error = add(
+    steps.extend(
+        lambda index=index, text=text: add(
             _WRITE_FILE_ACTION,
             {"0": _DEVICE_RESULT_WRITE_PATH, "1": text, "2": "0" if index == 0 else "1", "3": "1"},
         )
+        for index, text in enumerate(payload_lines)
+    )
+
+    for step in steps:
+        error = step()
         if error:
             return error
 

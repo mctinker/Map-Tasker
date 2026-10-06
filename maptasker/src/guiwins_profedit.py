@@ -38,6 +38,7 @@ from maptasker.src.maputil2 import translate_string
 if TYPE_CHECKING:
     from nicegui.elements.select import Select
 
+    from maptasker.src import taskedit
     from maptasker.src.userintr import MyGui
 
 
@@ -101,36 +102,83 @@ def _build_profile_editor_body(
     differs between the two. Must be called inside the caller's own
     `with ui.dialog(), ui.card():` block, after field_refs["name"] is set.
     """
-    with ui.row().classes("w-full items-center gap-4"):
-        enabled_switch = ui.switch(
-            value=profedit.is_profile_enabled(edited_profile),
-            on_change=lambda e: self.event_handlers.set_profile_enabled_event(edited_profile, e.value),
-        )
-        enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
+    _ProfileEditorBody(self, edited_profile, field_refs, parent_dialog).build()
 
-        # The working copy, and no on_applied: every Profile save path goes through it --
-        # apply_edited_profile_to_live_tree swaps the whole element into all_profiles,
-        # render_standalone_profile_xml takes the EditableProfile, and register_new_profile
-        # stores this same object for a brand-new one -- so this is the Task situation, not
-        # the Project one.  Being in the shared body, one call covers Add and Edit alike.
-        #
-        # parent_dialog is passed in rather than found: this body is built inside its
-        # caller's `with ui.dialog()` block, and the Properties editor needs to know which
-        # dialog it is opening over.  See build_edit_profile_dialog/build_add_profile_dialog.
-        _build_properties_button(self, objprops.KIND_PROFILE, edited_profile.profile_element, parent_dialog)
 
-    tasks_container = ui.column().classes("w-full")
+class _ProfileEditorBody:
+    """The Profile editor's body, and the state its two re-rendering sections share.
 
-    def render_task_links() -> None:
-        # Rebuild from scratch so the Link/Unlink controls always reflect the
-        # profile's current entry_task_id/exit_task_id after a Link or Unlink.
-        tasks_container.clear()
-        all_tasks_by_name = self.state.tasker_root_elements.get("all_tasks_by_name", {})
+    The Entry/Exit Task section and the conditions section each rebuild themselves from
+    scratch whenever something they show changes, so both are methods that call themselves
+    back from their own buttons.  What they need between renders -- the Profile being
+    edited, the dialog's field_refs, and the container each one clears -- is held here.
+    """
+
+    def __init__(
+        self,
+        gui: MyGui,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """
+        Args:
+            gui: The application window, which holds the event handlers and the run's state.
+            edited_profile: The working copy of the Profile being edited.
+            field_refs: The dialog's widgets by key, which Save reads the values back from.
+            parent_dialog: The dialog this body is built inside.
+        """
+        self.gui = gui
+        self.edited_profile = edited_profile
+        self.field_refs = field_refs
+        self.parent_dialog = parent_dialog
+        self.tasks_container: ui.column
+        self.conditions_container: ui.column
+        # What each cond* widget held when the conditions were last rebuilt; see render_conditions.
+        self.unsaved: dict[str, str] = {}
+
+    def build(self) -> None:
+        """Renders the whole body: the Enabled switch, the Task links, and the conditions."""
+        edited_profile = self.edited_profile
+        gui = self.gui
+        with ui.row().classes("w-full items-center gap-4"):
+            enabled_switch = ui.switch(
+                value=profedit.is_profile_enabled(edited_profile),
+                on_change=lambda e: gui.event_handlers.set_profile_enabled_event(edited_profile, e.value),
+            )
+            enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
+
+            # The working copy, and no on_applied: every Profile save path goes through it --
+            # apply_edited_profile_to_live_tree swaps the whole element into all_profiles,
+            # render_standalone_profile_xml takes the EditableProfile, and register_new_profile
+            # stores this same object for a brand-new one -- so this is the Task situation, not
+            # the Project one.  Being in the shared body, one call covers Add and Edit alike.
+            #
+            # parent_dialog is passed in rather than found: this body is built inside its
+            # caller's `with ui.dialog()` block, and the Properties editor needs to know which
+            # dialog it is opening over.  See build_edit_profile_dialog/build_add_profile_dialog.
+            _build_properties_button(gui, objprops.KIND_PROFILE, edited_profile.profile_element, self.parent_dialog)
+
+        self.tasks_container = ui.column().classes("w-full")
+        self.render_task_links()
+
+        ui.label(translate_string("Conditions")).classes("text-sm font-bold mt-4")
+        self.conditions_container = ui.column().classes("w-full")
+        self.render_conditions()
+
+    # ------------------------------------------------------------------ Entry/Exit Tasks
+
+    def render_task_links(self) -> None:
+        """Rebuilds the Entry/Exit Task rows, so the Link/Unlink controls always reflect the
+        profile's current entry_task_id/exit_task_id after a Link or Unlink.
+        """
+        self.tasks_container.clear()
+        all_tasks_by_name = self.gui.state.tasker_root_elements.get("all_tasks_by_name", {})
         task_names = sorted(all_tasks_by_name)
-        with tasks_container:
+        with self.tasks_container:
             for link_type, task_id in (
-                ("Entry", edited_profile.entry_task_id),
-                ("Exit", edited_profile.exit_task_id),
+                ("Entry", self.edited_profile.entry_task_id),
+                ("Exit", self.edited_profile.exit_task_id),
             ):
                 with ui.row().classes("w-full items-center gap-2 mt-2"):
                     current_name = (
@@ -143,377 +191,416 @@ def _build_profile_editor_body(
                     )
                     ui.label(f"{link_type} Task:").classes("font-bold w-24")
                     if current_name:
-                        ui.label(current_name).classes("flex-1")
-                        ui.button(
-                            translate_string("Unlink"),
-                            on_click=lambda lt=link_type: (
-                                self.event_handlers.unlink_task_from_profile_event(edited_profile, lt),
-                                render_task_links(),
-                            ),
-                        ).props("flat color=red dense")
+                        self._render_linked_task(link_type, current_name)
                     else:
-                        picker = (
-                            ui.select(task_names, label=translate_string("Choose a Task"), with_input=True)
-                            .classes("flex-1")
-                            .props("dense")
-                        )
-                        # Registered under a fixed key (not cleared/rebuilt like the cond*
-                        # keys) so Save/Ok/Save To Android can link in whatever's currently
-                        # picked here even if the user never clicked "Link" separately --
-                        # see userintr_editors._link_pending_task_pickers.
-                        field_refs[f"{link_type.lower()}_task_picker"] = picker
-                        ui.button(
-                            translate_string("Link"),
-                            on_click=lambda lt=link_type, p=picker: (
-                                self.event_handlers.link_task_to_profile_event(edited_profile, lt, p.value),
-                                render_task_links(),
-                            ),
-                        ).props("flat color=blue dense")
-                        # Alternative to picking an existing Task: build a brand-new one
-                        # inline (the same Add Task dialog the top-level "Add Task" button
-                        # opens) and link it in as this Profile's Entry/Exit Task the
-                        # moment it's created -- see open_add_task_for_profile_link_event.
-                        ui.button(
-                            translate_string("Add Task"),
-                            on_click=lambda lt=link_type: self.event_handlers.open_add_task_for_profile_link_event(
-                                edited_profile,
-                                lt,
-                                render_task_links,
-                            ),
-                        ).props("flat color=blue dense")
+                        self._render_task_picker(link_type, task_names)
 
-    render_task_links()
+    def _render_linked_task(self, link_type: str, current_name: str) -> None:
+        """The row for an Entry/Exit Task that is linked: its name, and a button to unlink it."""
+        ui.label(current_name).classes("flex-1")
+        ui.button(
+            translate_string("Unlink"),
+            on_click=lambda lt=link_type: (
+                self.gui.event_handlers.unlink_task_from_profile_event(self.edited_profile, lt),
+                self.render_task_links(),
+            ),
+        ).props("flat color=red dense")
 
-    ui.label(translate_string("Conditions")).classes("text-sm font-bold mt-4")
-    conditions_container = ui.column().classes("w-full")
+    def _render_task_picker(self, link_type: str, task_names: list[str]) -> None:
+        """The row for an Entry/Exit Task that is not linked: a picker, and Link/Add Task buttons."""
+        picker = (
+            ui.select(task_names, label=translate_string("Choose a Task"), with_input=True)
+            .classes("flex-1")
+            .props("dense")
+        )
+        # Registered under a fixed key (not cleared/rebuilt like the cond*
+        # keys) so Save/Ok/Save To Android can link in whatever's currently
+        # picked here even if the user never clicked "Link" separately --
+        # see userintr_editors._link_pending_task_pickers.
+        self.field_refs[f"{link_type.lower()}_task_picker"] = picker
+        ui.button(
+            translate_string("Link"),
+            on_click=lambda lt=link_type, p=picker: (
+                self.gui.event_handlers.link_task_to_profile_event(self.edited_profile, lt, p.value),
+                self.render_task_links(),
+            ),
+        ).props("flat color=blue dense")
+        # Alternative to picking an existing Task: build a brand-new one
+        # inline (the same Add Task dialog the top-level "Add Task" button
+        # opens) and link it in as this Profile's Entry/Exit Task the
+        # moment it's created -- see open_add_task_for_profile_link_event.
+        ui.button(
+            translate_string("Add Task"),
+            on_click=lambda lt=link_type: self.gui.event_handlers.open_add_task_for_profile_link_event(
+                self.edited_profile,
+                lt,
+                self.render_task_links,
+            ),
+        ).props("flat color=blue dense")
 
-    def render_conditions() -> None:
-        # Rebuild from scratch -- Add/Delete Condition and an App condition's
-        # Add/Remove App Entry all change what field_refs keys are valid, so
-        # stale cond*_* keys must not survive into the next Save. But field
-        # values (Time/Loc/Day/App/State/Event) are only ever written back
-        # onto the XML at Save time -- they're not applied immediately like
-        # Add/Delete Condition or Link/Unlink Task are -- so rebuilding from
-        # the XML alone would silently discard whatever the user had already
-        # entered elsewhere in this same dialog but hadn't saved yet (most
-        # noticeable on Day, with its 51 checkboxes, but the same gap exists
-        # for every field here). Snapshot the current widget values first
-        # (same string coercion save_edited_profile_event uses) so each
-        # widget below can prefer its own not-yet-saved value over the one
-        # freshly read from the XML.
-        unsaved = {
+    # ---------------------------------------------------------------------- Conditions
+
+    def checkbox_initial(self, key: str, default: bool) -> bool:
+        """A checkbox's starting value: what it held before this render, else the XML's."""
+        return self.unsaved[key] in ("1", "true", "True") if key in self.unsaved else default
+
+    def text_initial(self, key: str, default: str) -> str:
+        """A text field's starting value: what it held before this render, else the XML's."""
+        return self.unsaved.get(key, default)
+
+    def render_conditions(self) -> None:
+        """Rebuilds the conditions section from scratch.
+
+        Add/Delete Condition and an App condition's Add/Remove App Entry all change what
+        field_refs keys are valid, so stale cond*_* keys must not survive into the next Save.
+        But field values (Time/Loc/Day/App/State/Event) are only ever written back
+        onto the XML at Save time -- they're not applied immediately like
+        Add/Delete Condition or Link/Unlink Task are -- so rebuilding from
+        the XML alone would silently discard whatever the user had already
+        entered elsewhere in this same dialog but hadn't saved yet (most
+        noticeable on Day, with its 51 checkboxes, but the same gap exists
+        for every field here). Snapshot the current widget values first
+        (same string coercion save_edited_profile_event uses) so each
+        widget below can prefer its own not-yet-saved value over the one
+        freshly read from the XML.
+        """
+        field_refs = self.field_refs
+        self.unsaved = {
             key: ("1" if widget.value is True else "0" if widget.value is False else str(widget.value))
             for key, widget in field_refs.items()
             if key.startswith("cond")
         }
 
-        def checkbox_initial(key: str, default: bool) -> bool:
-            return unsaved[key] in ("1", "true", "True") if key in unsaved else default
-
-        def text_initial(key: str, default: str) -> str:
-            return unsaved.get(key, default)
-
         for key in [k for k in field_refs if k.startswith("cond")]:
             del field_refs[key]
-        conditions_container.clear()
-        with conditions_container:
-            if not edited_profile.conditions:
+        self.conditions_container.clear()
+        with self.conditions_container:
+            if not self.edited_profile.conditions:
                 ui.label(translate_string("No conditions on this Profile.")).classes("text-xs text-gray-500 italic")
-            for condition in edited_profile.conditions:
-                header = f"{condition.cond_index}: {profedit.get_condition_display_name(condition)}"
-                with ui.expansion(header).classes("w-full"):
-                    ui.button(
-                        translate_string("Delete Condition"),
-                        on_click=lambda ci=condition.cond_index: (
-                            self.event_handlers.remove_condition_from_profile_event(edited_profile, ci),
-                            render_conditions(),
-                        ),
-                    ).props("flat color=red dense").classes("mb-2")
+            for condition in self.edited_profile.conditions:
+                self._render_condition(condition)
+            self._render_add_condition_row()
 
-                    if condition.cond_type in ("State", "Event"):
-                        _render_plugin_configuration_warning(
-                            condition.condition_element,
-                            profedit.get_condition_display_name(condition),
-                        )
-                        if not condition.args:
-                            ui.label(
-                                translate_string(
-                                    "No editable arguments (code not mapped, or this condition has none).",
-                                ),
-                            ).classes("text-xs text-gray-500 italic")
-                        for arg in condition.args:
-                            key = profedit.condition_arg_key(condition.cond_index, arg.arg_id)
-                            with ui.row().classes("w-full items-center gap-2"):
-                                if arg.widget_kind == "checkbox":
-                                    field_refs[key] = ui.checkbox(
-                                        arg.arg_name,
-                                        value=checkbox_initial(key, arg.current_value == "1"),
-                                    )
-                                elif arg.widget_kind == "dropdown":
-                                    options = arg.dropdown_options or []
-                                    try:
-                                        current_label = options[int(arg.current_value)]
-                                    except (ValueError, IndexError):
-                                        current_label = options[0] if options else ""
-                                    field_refs[key] = ui.select(
-                                        options,
-                                        value=text_initial(key, current_label),
-                                        label=arg.arg_name,
-                                    ).classes("flex-1")
-                                elif arg.widget_kind == "app_picker":
-                                    _render_app_arg_field(
-                                        self,
-                                        arg,
-                                        key,
-                                        field_refs,
-                                        text_initial(key, arg.current_value),
-                                    )
-                                elif arg.widget_kind == "icon_picker":
-                                    _render_icon_arg_field(
-                                        self,
-                                        arg,
-                                        key,
-                                        field_refs,
-                                        text_initial(key, arg.current_value),
-                                    )
-                                elif arg.widget_kind in ("text", "raw_fallback"):
-                                    field_refs[key] = ui.input(
-                                        arg.arg_name,
-                                        value=text_initial(key, arg.current_value),
-                                    ).classes("flex-1")
-                                    if arg.readonly_note:
-                                        _render_readonly_note(
-                                            self,
-                                            arg.readonly_note,
-                                            _after_condition_fetch(render_conditions, condition, state=self.state),
-                                        )
-                                else:  # readonly
-                                    ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes(
-                                        "flex-1",
-                                    )
-                                    if arg.readonly_note:
-                                        _render_readonly_note(
-                                            self,
-                                            arg.readonly_note,
-                                            _after_condition_fetch(render_conditions, condition, state=self.state),
-                                        )
+    def _render_condition(self, condition: profedit.EditableCondition) -> None:
+        """One condition's expansion panel: a Delete button and the fields for its type."""
+        header = f"{condition.cond_index}: {profedit.get_condition_display_name(condition)}"
+        with ui.expansion(header).classes("w-full"):
+            ui.button(
+                translate_string("Delete Condition"),
+                on_click=lambda ci=condition.cond_index: (
+                    self.gui.event_handlers.remove_condition_from_profile_event(self.edited_profile, ci),
+                    self.render_conditions(),
+                ),
+            ).props("flat color=red dense").classes("mb-2")
 
-                    elif condition.cond_type == "Time":
-                        values = profedit.get_time_field_values(condition)
-                        start_key = profedit.condition_field_key(condition.cond_index, "start_time")
-                        end_key = profedit.condition_field_key(condition.cond_index, "end_time")
-                        rep_value_key = profedit.condition_field_key(condition.cond_index, "rep_value")
-                        rep_unit_key = profedit.condition_field_key(condition.cond_index, "rep_unit")
-                        with ui.row().classes("w-full gap-2 items-end"):
-                            # Plain text, not type=time: a native time input can't hold a
-                            # %variable value (see profedit.get_time_field_values), only
-                            # "hh:mm AM/PM", so this field needs to accept either form as free text.
-                            field_refs[start_key] = ui.input(
-                                translate_string("Start Time"),
-                                value=text_initial(start_key, values["start_time"]),
-                                placeholder=translate_string("hh:mm AM/PM or %variable"),
-                            ).classes("flex-1")
-                            field_refs[end_key] = ui.input(
-                                translate_string("End Time"),
-                                value=text_initial(end_key, values["end_time"]),
-                                placeholder=translate_string("hh:mm AM/PM or %variable"),
-                            ).classes("flex-1")
-                        with ui.row().classes("w-full gap-2 items-end mt-2"):
-                            field_refs[rep_value_key] = ui.input(
-                                translate_string("Every"),
-                                value=text_initial(rep_value_key, values["rep_value"]),
-                            ).classes("w-24")
-                            field_refs[rep_unit_key] = (
-                                ui.select(
-                                    ["Hours", "Minutes"],
-                                    value=text_initial(rep_unit_key, values["rep_unit"]),
-                                )
-                                .classes("w-32")
-                                .props("dense")
-                            )
+            if condition.cond_type in ("State", "Event"):
+                self._render_code_condition(condition)
+            elif condition.cond_type == "Time":
+                self._render_time_condition(condition)
+            elif condition.cond_type == "Loc":
+                self._render_location_condition(condition)
+            elif condition.cond_type == "Day":
+                self._render_day_condition(condition)
+            elif condition.cond_type == "App":
+                self._render_app_condition(condition)
 
-                    elif condition.cond_type == "Loc":
-                        values = profedit.get_loc_field_values(condition)
-                        with ui.row().classes("w-full gap-2"):
-                            for key, label in (
-                                ("lat", "Latitude"),
-                                ("long", "Longitude"),
-                                ("rad", "Radius (m)"),
-                            ):
-                                field_key = profedit.condition_field_key(condition.cond_index, key)
-                                field_refs[field_key] = ui.input(
-                                    label,
-                                    value=text_initial(field_key, values[key]),
-                                ).classes("flex-1")
+    def _render_code_condition(self, condition: profedit.EditableCondition) -> None:
+        """A State or Event condition: a field for each of its arguments."""
+        _render_plugin_configuration_warning(
+            condition.condition_element,
+            profedit.get_condition_display_name(condition),
+        )
+        if not condition.args:
+            ui.label(
+                translate_string(
+                    "No editable arguments (code not mapped, or this condition has none).",
+                ),
+            ).classes("text-xs text-gray-500 italic")
+        for arg in condition.args:
+            key = profedit.condition_arg_key(condition.cond_index, arg.arg_id)
+            with ui.row().classes("w-full items-center gap-2"):
+                self._render_argument(condition, arg, key)
 
-                    elif condition.cond_type == "Day":
-                        weekday_checkboxes: dict[int, ui.checkbox] = {}
+    def _render_argument(self, condition: profedit.EditableCondition, arg: taskedit.EditableArg, key: str) -> None:
+        """The widget for one State/Event argument, by the kind of widget the argument calls for."""
+        field_refs = self.field_refs
+        if arg.widget_kind == "checkbox":
+            field_refs[key] = ui.checkbox(
+                arg.arg_name,
+                value=self.checkbox_initial(key, arg.current_value == "1"),
+            )
+        elif arg.widget_kind == "dropdown":
+            options = arg.dropdown_options or []
+            try:
+                current_label = options[int(arg.current_value)]
+            except (ValueError, IndexError):
+                current_label = options[0] if options else ""
+            field_refs[key] = ui.select(
+                options,
+                value=self.text_initial(key, current_label),
+                label=arg.arg_name,
+            ).classes("flex-1")
+        elif arg.widget_kind == "app_picker":
+            _render_app_arg_field(self.gui, arg, key, field_refs, self.text_initial(key, arg.current_value))
+        elif arg.widget_kind == "icon_picker":
+            _render_icon_arg_field(self.gui, arg, key, field_refs, self.text_initial(key, arg.current_value))
+        elif arg.widget_kind in ("text", "raw_fallback"):
+            field_refs[key] = ui.input(
+                arg.arg_name,
+                value=self.text_initial(key, arg.current_value),
+            ).classes("flex-1")
+            self._render_argument_note(condition, arg)
+        else:  # readonly
+            ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
+            self._render_argument_note(condition, arg)
 
-                        ui.label(translate_string("Week-Day")).classes("text-xs font-bold text-gray-500")
-                        selected_weekdays = set(profedit.get_day_selected_weekdays(condition))
-                        with ui.row().classes("w-full gap-2 flex-wrap"):
-                            for day_number in range(1, 8):
-                                day_key = profedit.condition_field_key(condition.cond_index, f"wday{day_number}")
-                                checkbox = ui.checkbox(
-                                    profedit.WEEKDAY_NAMES[day_number],
-                                    value=checkbox_initial(day_key, day_number in selected_weekdays),
-                                )
-                                weekday_checkboxes[day_number] = checkbox
-                                field_refs[day_key] = checkbox
-                        with ui.row().classes("w-full gap-2 mb-2"):
-                            ui.button(
-                                translate_string("All"),
-                                on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(
-                                    boxes,
-                                    set(range(1, 8)),
-                                ),
-                            ).props("flat dense")
-                            ui.button(
-                                translate_string("None"),
-                                on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(boxes, set()),
-                            ).props("flat dense")
-                            ui.button(
-                                translate_string("Odd"),
-                                on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(
-                                    boxes,
-                                    {1, 3, 5, 7},
-                                ),
-                            ).props("flat dense")
+    def _render_argument_note(self, condition: profedit.EditableCondition, arg: taskedit.EditableArg) -> None:
+        """The note under an argument that explains why it can't be edited here, if it has one."""
+        if arg.readonly_note:
+            _render_readonly_note(
+                self.gui,
+                arg.readonly_note,
+                _after_condition_fetch(self.render_conditions, condition, state=self.gui.state),
+            )
 
-                        ui.label(translate_string("Month")).classes("text-xs font-bold text-gray-500")
-                        selected_months = set(profedit.get_day_selected_months(condition))
-                        with ui.row().classes("w-full gap-2 flex-wrap mb-2"):
-                            for month_number in range(12):
-                                month_key = profedit.condition_field_key(condition.cond_index, f"mnth{month_number}")
-                                field_refs[month_key] = ui.checkbox(
-                                    profedit.MONTH_NAMES[month_number],
-                                    value=checkbox_initial(month_key, month_number in selected_months),
-                                )
-
-                        ui.label(translate_string("Day of Month")).classes("text-xs font-bold text-gray-500")
-                        selected_month_days = set(profedit.get_day_selected_month_days(condition))
-                        with ui.row().classes("w-full gap-2 flex-wrap"):
-                            for day_of_month in range(1, 32):
-                                mday_key = profedit.condition_field_key(condition.cond_index, f"mday{day_of_month}")
-                                field_refs[mday_key] = ui.checkbox(
-                                    str(day_of_month),
-                                    value=checkbox_initial(mday_key, day_of_month in selected_month_days),
-                                )
-                            last_day_key = profedit.condition_field_key(
-                                condition.cond_index,
-                                f"mday{profedit.DAY_OF_MONTH_LAST_DAY}",
-                            )
-                            field_refs[last_day_key] = ui.checkbox(
-                                translate_string("Last Day Of Month"),
-                                value=checkbox_initial(
-                                    last_day_key,
-                                    profedit.DAY_OF_MONTH_LAST_DAY in selected_month_days,
-                                ),
-                            )
-
-                    elif condition.cond_type == "App":
-                        for entry_index, entry in enumerate(profedit.get_app_entries(condition)):
-                            with ui.row().classes("w-full items-center gap-2"):
-                                pkg_key = profedit.condition_field_key(condition.cond_index, f"app{entry_index}_pkg")
-                                label_key = profedit.condition_field_key(
-                                    condition.cond_index,
-                                    f"app{entry_index}_label",
-                                )
-                                cls_key = profedit.condition_field_key(condition.cond_index, f"app{entry_index}_cls")
-                                field_refs[pkg_key] = ui.input(
-                                    translate_string("Package"),
-                                    value=text_initial(pkg_key, entry["pkg"]),
-                                ).classes("flex-1")
-                                field_refs[label_key] = ui.input(
-                                    translate_string("Label"),
-                                    value=text_initial(label_key, entry["label"]),
-                                ).classes("flex-1")
-                                field_refs[cls_key] = ui.input(
-                                    translate_string("Class (optional)"),
-                                    value=text_initial(cls_key, entry["cls"]),
-                                ).classes("flex-1")
-                                _render_app_entry_pick_button(self, field_refs, pkg_key, label_key, cls_key)
-                                ui.button(
-                                    translate_string("Remove"),
-                                    on_click=lambda ci=condition.cond_index, ei=entry_index: (
-                                        self.event_handlers.remove_app_entry_event(edited_profile, ci, ei),
-                                        render_conditions(),
-                                    ),
-                                ).props("flat color=red dense")
-                        ui.button(
-                            translate_string("Add App Entry"),
-                            on_click=lambda ci=condition.cond_index: (
-                                self.event_handlers.add_app_entry_event(edited_profile, ci),
-                                render_conditions(),
-                            ),
-                        ).props("flat color=blue dense")
-
-            with ui.row().classes("w-full items-center gap-2 mt-2"):
-                add_type_picker = (
-                    ui.select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
-                    .classes("w-48")
-                    .props("dense")
+    def _render_time_condition(self, condition: profedit.EditableCondition) -> None:
+        """A Time condition: its start and end times, and how often it repeats."""
+        field_refs = self.field_refs
+        values = profedit.get_time_field_values(condition)
+        start_key = profedit.condition_field_key(condition.cond_index, "start_time")
+        end_key = profedit.condition_field_key(condition.cond_index, "end_time")
+        rep_value_key = profedit.condition_field_key(condition.cond_index, "rep_value")
+        rep_unit_key = profedit.condition_field_key(condition.cond_index, "rep_unit")
+        with ui.row().classes("w-full gap-2 items-end"):
+            # Plain text, not type=time: a native time input can't hold a
+            # %variable value (see profedit.get_time_field_values), only
+            # "hh:mm AM/PM", so this field needs to accept either form as free text.
+            field_refs[start_key] = ui.input(
+                translate_string("Start Time"),
+                value=self.text_initial(start_key, values["start_time"]),
+                placeholder=translate_string("hh:mm AM/PM or %variable"),
+            ).classes("flex-1")
+            field_refs[end_key] = ui.input(
+                translate_string("End Time"),
+                value=self.text_initial(end_key, values["end_time"]),
+                placeholder=translate_string("hh:mm AM/PM or %variable"),
+            ).classes("flex-1")
+        with ui.row().classes("w-full gap-2 items-end mt-2"):
+            field_refs[rep_value_key] = ui.input(
+                translate_string("Every"),
+                value=self.text_initial(rep_value_key, values["rep_value"]),
+            ).classes("w-24")
+            field_refs[rep_unit_key] = (
+                ui.select(
+                    ["Hours", "Minutes"],
+                    value=self.text_initial(rep_unit_key, values["rep_unit"]),
                 )
-                # Only shown once "Event"/"State" is picked above -- unlike Time/Day/App/
-                # Loc, an Event/State condition's fields depend on which of the ~60-100+
-                # codes was chosen (see profedit.list_addable_events/list_addable_states),
-                # so each needs its own second, searchable picker (with_input=True) rather
-                # than being addable from the type name alone. Every code is listed (not
-                # just the addable ones) so the user can see what exists, but any not
-                # addable (e.g. a third-party plugin needing a Bundle/App payload this
-                # tool can't synthesize -- see taskedit.classify_action_addability) is
-                # labeled "(Not Supported)" and greyed out/unselectable -- see
-                # _mark_unsupported_options.
-                event_rows = profedit.list_addable_events(state=self.state)
-                event_options = {
-                    row["condition_key"]: row["name"] if row["addable"] else f"{row['name']} (Not Supported)"
-                    for row in event_rows
-                }
-                event_type_picker = (
-                    ui.select(event_options, label=translate_string("Event Type"), with_input=True)
-                    .classes("flex-1")
-                    .props("dense")
-                )
-                _mark_unsupported_options(
-                    event_type_picker,
-                    {row["condition_key"] for row in event_rows if not row["addable"]},
-                )
-                event_type_picker.bind_visibility_from(add_type_picker, "value", backward=lambda v: v == "Event")
+                .classes("w-32")
+                .props("dense")
+            )
 
-                state_rows = profedit.list_addable_states(state=self.state)
-                state_options = {
-                    row["condition_key"]: row["name"] if row["addable"] else f"{row['name']} (Not Supported)"
-                    for row in state_rows
-                }
-                state_type_picker = (
-                    ui.select(state_options, label=translate_string("State Type"), with_input=True)
-                    .classes("flex-1")
-                    .props("dense")
-                )
-                _mark_unsupported_options(
-                    state_type_picker,
-                    {row["condition_key"] for row in state_rows if not row["addable"]},
-                )
-                state_type_picker.bind_visibility_from(add_type_picker, "value", backward=lambda v: v == "State")
+    def _render_location_condition(self, condition: profedit.EditableCondition) -> None:
+        """A Location condition: latitude, longitude and radius."""
+        values = profedit.get_loc_field_values(condition)
+        with ui.row().classes("w-full gap-2"):
+            for key, label in (
+                ("lat", "Latitude"),
+                ("long", "Longitude"),
+                ("rad", "Radius (m)"),
+            ):
+                field_key = profedit.condition_field_key(condition.cond_index, key)
+                self.field_refs[field_key] = ui.input(
+                    label,
+                    value=self.text_initial(field_key, values[key]),
+                ).classes("flex-1")
 
-                def add_condition_clicked(
-                    type_picker: Select = add_type_picker,
-                    event_picker: Select = event_type_picker,
-                    state_picker: Select = state_type_picker,
-                ) -> None:
-                    if type_picker.value == "Event":
-                        self.event_handlers.add_event_condition_to_profile_event(edited_profile, event_picker.value)
-                    elif type_picker.value == "State":
-                        self.event_handlers.add_state_condition_to_profile_event(edited_profile, state_picker.value)
-                    else:
-                        self.event_handlers.add_condition_to_profile_event(edited_profile, type_picker.value)
-                    render_conditions()
+    def _render_day_condition(self, condition: profedit.EditableCondition) -> None:
+        """A Day condition: its weekdays, months and days of the month."""
+        self._render_weekday_checkboxes(condition)
+        self._render_month_checkboxes(condition)
+        self._render_day_of_month_checkboxes(condition)
 
-                ui.button(translate_string("Add Condition"), on_click=add_condition_clicked).props(
-                    "flat color=blue dense",
+    def _render_weekday_checkboxes(self, condition: profedit.EditableCondition) -> None:
+        """The Week-Day checkboxes, with their All/None/Odd quick-select buttons."""
+        weekday_checkboxes: dict[int, ui.checkbox] = {}
+
+        ui.label(translate_string("Week-Day")).classes("text-xs font-bold text-gray-500")
+        selected_weekdays = set(profedit.get_day_selected_weekdays(condition))
+        with ui.row().classes("w-full gap-2 flex-wrap"):
+            for day_number in range(1, 8):
+                day_key = profedit.condition_field_key(condition.cond_index, f"wday{day_number}")
+                checkbox = ui.checkbox(
+                    profedit.WEEKDAY_NAMES[day_number],
+                    value=self.checkbox_initial(day_key, day_number in selected_weekdays),
+                )
+                weekday_checkboxes[day_number] = checkbox
+                self.field_refs[day_key] = checkbox
+        with ui.row().classes("w-full gap-2 mb-2"):
+            ui.button(
+                translate_string("All"),
+                on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(
+                    boxes,
+                    set(range(1, 8)),
+                ),
+            ).props("flat dense")
+            ui.button(
+                translate_string("None"),
+                on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(boxes, set()),
+            ).props("flat dense")
+            ui.button(
+                translate_string("Odd"),
+                on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(
+                    boxes,
+                    {1, 3, 5, 7},
+                ),
+            ).props("flat dense")
+
+    def _render_month_checkboxes(self, condition: profedit.EditableCondition) -> None:
+        """The Month checkboxes."""
+        ui.label(translate_string("Month")).classes("text-xs font-bold text-gray-500")
+        selected_months = set(profedit.get_day_selected_months(condition))
+        with ui.row().classes("w-full gap-2 flex-wrap mb-2"):
+            for month_number in range(12):
+                month_key = profedit.condition_field_key(condition.cond_index, f"mnth{month_number}")
+                self.field_refs[month_key] = ui.checkbox(
+                    profedit.MONTH_NAMES[month_number],
+                    value=self.checkbox_initial(month_key, month_number in selected_months),
                 )
 
-    render_conditions()
+    def _render_day_of_month_checkboxes(self, condition: profedit.EditableCondition) -> None:
+        """The Day of Month checkboxes, and Tasker's "Last Day Of Month" one."""
+        field_refs = self.field_refs
+        ui.label(translate_string("Day of Month")).classes("text-xs font-bold text-gray-500")
+        selected_month_days = set(profedit.get_day_selected_month_days(condition))
+        with ui.row().classes("w-full gap-2 flex-wrap"):
+            for day_of_month in range(1, 32):
+                mday_key = profedit.condition_field_key(condition.cond_index, f"mday{day_of_month}")
+                field_refs[mday_key] = ui.checkbox(
+                    str(day_of_month),
+                    value=self.checkbox_initial(mday_key, day_of_month in selected_month_days),
+                )
+            last_day_key = profedit.condition_field_key(
+                condition.cond_index,
+                f"mday{profedit.DAY_OF_MONTH_LAST_DAY}",
+            )
+            field_refs[last_day_key] = ui.checkbox(
+                translate_string("Last Day Of Month"),
+                value=self.checkbox_initial(
+                    last_day_key,
+                    profedit.DAY_OF_MONTH_LAST_DAY in selected_month_days,
+                ),
+            )
+
+    def _render_app_condition(self, condition: profedit.EditableCondition) -> None:
+        """An App condition: a row for each app it matches, and a button to add another."""
+        for entry_index, entry in enumerate(profedit.get_app_entries(condition)):
+            self._render_app_entry(condition, entry_index, entry)
+        ui.button(
+            translate_string("Add App Entry"),
+            on_click=lambda ci=condition.cond_index: (
+                self.gui.event_handlers.add_app_entry_event(self.edited_profile, ci),
+                self.render_conditions(),
+            ),
+        ).props("flat color=blue dense")
+
+    def _render_app_entry(self, condition: profedit.EditableCondition, entry_index: int, entry: dict[str, str]) -> None:
+        """One app an App condition matches: its package, label and class, and Pick/Remove buttons."""
+        field_refs = self.field_refs
+        with ui.row().classes("w-full items-center gap-2"):
+            pkg_key = profedit.condition_field_key(condition.cond_index, f"app{entry_index}_pkg")
+            label_key = profedit.condition_field_key(
+                condition.cond_index,
+                f"app{entry_index}_label",
+            )
+            cls_key = profedit.condition_field_key(condition.cond_index, f"app{entry_index}_cls")
+            field_refs[pkg_key] = ui.input(
+                translate_string("Package"),
+                value=self.text_initial(pkg_key, entry["pkg"]),
+            ).classes("flex-1")
+            field_refs[label_key] = ui.input(
+                translate_string("Label"),
+                value=self.text_initial(label_key, entry["label"]),
+            ).classes("flex-1")
+            field_refs[cls_key] = ui.input(
+                translate_string("Class (optional)"),
+                value=self.text_initial(cls_key, entry["cls"]),
+            ).classes("flex-1")
+            _render_app_entry_pick_button(self.gui, field_refs, pkg_key, label_key, cls_key)
+            ui.button(
+                translate_string("Remove"),
+                on_click=lambda ci=condition.cond_index, ei=entry_index: (
+                    self.gui.event_handlers.remove_app_entry_event(self.edited_profile, ci, ei),
+                    self.render_conditions(),
+                ),
+            ).props("flat color=red dense")
+
+    def _render_add_condition_row(self) -> None:
+        """The row at the bottom: a type picker, the Event/State code pickers it reveals, and Add Condition."""
+        with ui.row().classes("w-full items-center gap-2 mt-2"):
+            add_type_picker = (
+                ui.select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
+                .classes("w-48")
+                .props("dense")
+            )
+            # Only shown once "Event"/"State" is picked above -- unlike Time/Day/App/
+            # Loc, an Event/State condition's fields depend on which of the ~60-100+
+            # codes was chosen (see profedit.list_addable_events/list_addable_states),
+            # so each needs its own second, searchable picker (with_input=True) rather
+            # than being addable from the type name alone. Every code is listed (not
+            # just the addable ones) so the user can see what exists, but any not
+            # addable (e.g. a third-party plugin needing a Bundle/App payload this
+            # tool can't synthesize -- see taskedit.classify_action_addability) is
+            # labeled "(Not Supported)" and greyed out/unselectable -- see
+            # _mark_unsupported_options.
+            event_type_picker = _build_code_type_picker(
+                profedit.list_addable_events(state=self.gui.state),
+                translate_string("Event Type"),
+                add_type_picker,
+                "Event",
+            )
+            state_type_picker = _build_code_type_picker(
+                profedit.list_addable_states(state=self.gui.state),
+                translate_string("State Type"),
+                add_type_picker,
+                "State",
+            )
+
+            ui.button(
+                translate_string("Add Condition"),
+                on_click=lambda: self._add_condition_clicked(add_type_picker, event_type_picker, state_type_picker),
+            ).props("flat color=blue dense")
+
+    def _add_condition_clicked(self, type_picker: Select, event_picker: Select, state_picker: Select) -> None:
+        """Adds the kind of condition the pickers are set to, then redraws the conditions."""
+        handlers = self.gui.event_handlers
+        if type_picker.value == "Event":
+            handlers.add_event_condition_to_profile_event(self.edited_profile, event_picker.value)
+        elif type_picker.value == "State":
+            handlers.add_state_condition_to_profile_event(self.edited_profile, state_picker.value)
+        else:
+            handlers.add_condition_to_profile_event(self.edited_profile, type_picker.value)
+        self.render_conditions()
+
+
+def _build_code_type_picker(rows: list[dict], label: str, type_picker: Select, shown_for: str) -> Select:
+    """A searchable picker of every Event or State code, shown only while the type picker says so.
+
+    Args:
+        rows: The codes, as profedit.list_addable_events/list_addable_states return them.
+        label: The picker's label.
+        type_picker: The Condition Type picker whose value decides whether this one shows.
+        shown_for: The Condition Type value ("Event" or "State") this picker is for.
+
+    Returns:
+        The picker.
+    """
+    options = {
+        row["condition_key"]: row["name"] if row["addable"] else f"{row['name']} (Not Supported)" for row in rows
+    }
+    picker = ui.select(options, label=label, with_input=True).classes("flex-1").props("dense")
+    _mark_unsupported_options(picker, {row["condition_key"] for row in rows if not row["addable"]})
+    picker.bind_visibility_from(type_picker, "value", backward=lambda v: v == shown_for)
+    return picker
 
 
 def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProfile) -> None:

@@ -143,114 +143,136 @@ def _build_add_legacy_element_dialog(
         selected, which is worth saying up front; a Legacy element has no parent to go into.
         It goes on top of the stack, which the header says once.
     """
-    search = {"text": ""}
-    blocked = {
-        entry.element_type: sceneedit_legacy.legacy_can_add(entry.element_type)
-        for entry in sceneedit_legacy.LEGACY_PALETTE
-    }
+    _AddLegacyElementDialog(on_pick).build()
 
-    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[640px] max-w-[760px] p-6"):
-        ui.label(translate_string("Add Element")).classes("text-lg font-bold text-blue-600")
-        ui.label(
-            translate_string("Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."),
-        ).classes("text-sm text-gray-500 italic")
 
-        def pick(entry: sceneedit_legacy.LegacyPaletteEntry) -> None:
-            reason = blocked.get(entry.element_type, "")
-            if reason:
-                ui.notify(reason, type="warning", multi_line=True)
-                return
-            dialog.close()
-            on_pick(entry.element_type)
+class _AddLegacyElementDialog:
+    """The Legacy Add Element sheet: a search box and the palette's chips, filtered as the search is typed."""
 
-        def matches(entry: sceneedit_legacy.LegacyPaletteEntry) -> bool:
-            """Substring, case-insensitive, over the label, its translation and the XML tag --
-            so "map" finds the Map element whose tag is SceneElement, and someone who knows
-            the format can type "SceneElement" and still get there.
-            """
-            text = search["text"].strip().lower()
-            if not text:
-                return True
-            return any(
-                text in candidate.lower()
-                for candidate in (entry.label, translate_string(entry.label), entry.element_type)
-            )
+    def __init__(self, on_pick: Callable[[str], None]) -> None:
+        """
+        Args:
+            on_pick: Called with the element type of the element picked.
+        """
+        self.on_pick = on_pick
+        self.search = {"text": ""}
+        self.blocked = {
+            entry.element_type: sceneedit_legacy.legacy_can_add(entry.element_type)
+            for entry in sceneedit_legacy.LEGACY_PALETTE
+        }
+        self.dialog: ui.dialog
+        self.results: ui.column
 
-        def chip(entry: sceneedit_legacy.LegacyPaletteEntry) -> None:
-            reason = blocked.get(entry.element_type, "")
-            props = ["outline", "rounded", "no-caps", "dense", "icon-right=info_outline"]
-            if reason:
-                props.append("color=grey")
-            button = ui.button(
-                translate_string(entry.label),
-                on_click=lambda _e=None, x=entry: pick(x),
-            ).props(" ".join(props))
-            if reason:
-                button.classes("opacity-70")
-            with button:
-                # Blocked chips stay clickable rather than disabled, for the reason the V2
-                # dialog gives: a disabled Quasar button eats its own tooltip, which is the
-                # one place the block is explained.
-                lines = [translate_string(entry.description)]
-                if reason:
-                    lines.append(translate_string(reason))
-                ui.tooltip("\n\n".join(lines)).style("white-space: pre-wrap").classes("max-w-sm")
-
-        search_input = (
-            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
-            .props("outlined dense clearable autofocus")
-            .classes("w-full mt-2")
-        )
-        with search_input.add_slot("prepend"):
-            ui.icon("search")
-
-        results = ui.column().classes("w-full gap-0 mt-1 max-h-96 overflow-auto")
-
-        def render() -> None:
-            results.clear()
-            shown = 0
-            with results:
-                for group in sceneedit_legacy.LEGACY_PALETTE_GROUPS:
-                    visible = [
-                        entry for entry in sceneedit_legacy.LEGACY_PALETTE if entry.group == group and matches(entry)
-                    ]
-                    if not visible:
-                        continue
-                    shown += len(visible)
-                    ui.label(translate_string(group)).classes("text-xs uppercase text-blue-400 mt-3 mb-1")
-                    with ui.row().classes("w-full gap-2 flex-wrap"):
-                        for entry in visible:
-                            chip(entry)
-                if not shown:
-                    ui.label(translate_string("No element matches that.")).classes(
-                        "text-sm italic text-gray-500 mt-3",
-                    )
-
-        def search_changed(value: str) -> None:
-            search["text"] = value or ""
-            render()
-
-        def enter_pressed() -> None:
-            """Enter picks the search's one remaining match -- silent while several still
-            match, since guessing would add the wrong element.
-            """
-            hits = [entry for entry in sceneedit_legacy.LEGACY_PALETTE if matches(entry)]
-            if len(hits) == 1:
-                pick(hits[0])
-
-        search_input.on("keydown.enter", lambda _e=None: enter_pressed())
-        render()
-
-        with ui.row().classes("w-full items-center justify-between mt-4 pt-3 border-t"):
+    def build(self) -> None:
+        """Draw the dialog and open it."""
+        with ui.dialog().props("persistent") as self.dialog, ui.card().classes("min-w-[640px] max-w-[760px] p-6"):
+            ui.label(translate_string("Add Element")).classes("text-lg font-bold text-blue-600")
             ui.label(
-                translate_string(
-                    "Grey: MapTasker has no argument table for it, so it can't be created without "
-                    "guessing what Tasker expects inside. Headings are MapTasker's own grouping.",
-                ),
-            ).classes("text-xs text-gray-500 italic")
-            ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
+                translate_string("Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."),
+            ).classes("text-sm text-gray-500 italic")
 
-    dialog.open()
+            search_input = (
+                ui.input(
+                    placeholder=translate_string("Search elements"),
+                    on_change=lambda e: self.search_changed(e.value),
+                )
+                .props("outlined dense clearable autofocus")
+                .classes("w-full mt-2")
+            )
+            with search_input.add_slot("prepend"):
+                ui.icon("search")
+
+            self.results = ui.column().classes("w-full gap-0 mt-1 max-h-96 overflow-auto")
+
+            search_input.on("keydown.enter", lambda _e=None: self.enter_pressed())
+            self.render()
+
+            with ui.row().classes("w-full items-center justify-between mt-4 pt-3 border-t"):
+                ui.label(
+                    translate_string(
+                        "Grey: MapTasker has no argument table for it, so it can't be created without "
+                        "guessing what Tasker expects inside. Headings are MapTasker's own grouping.",
+                    ),
+                ).classes("text-xs text-gray-500 italic")
+                ui.button(translate_string("Cancel"), on_click=self.dialog.close).props("flat")
+
+        self.dialog.open()
+
+    def pick(self, entry: sceneedit_legacy.LegacyPaletteEntry) -> None:
+        """Add the element, or say why it can't be added."""
+        reason = self.blocked.get(entry.element_type, "")
+        if reason:
+            ui.notify(reason, type="warning", multi_line=True)
+            return
+        self.dialog.close()
+        self.on_pick(entry.element_type)
+
+    def matches(self, entry: sceneedit_legacy.LegacyPaletteEntry) -> bool:
+        """Substring, case-insensitive, over the label, its translation and the XML tag --
+        so "map" finds the Map element whose tag is SceneElement, and someone who knows
+        the format can type "SceneElement" and still get there.
+        """
+        text = self.search["text"].strip().lower()
+        if not text:
+            return True
+        return any(
+            text in candidate.lower() for candidate in (entry.label, translate_string(entry.label), entry.element_type)
+        )
+
+    def chip(self, entry: sceneedit_legacy.LegacyPaletteEntry) -> None:
+        """One element of the palette, as a button."""
+        reason = self.blocked.get(entry.element_type, "")
+        props = ["outline", "rounded", "no-caps", "dense", "icon-right=info_outline"]
+        if reason:
+            props.append("color=grey")
+        button = ui.button(
+            translate_string(entry.label),
+            on_click=lambda _e=None, x=entry: self.pick(x),
+        ).props(" ".join(props))
+        if reason:
+            button.classes("opacity-70")
+        with button:
+            # Blocked chips stay clickable rather than disabled, for the reason the V2
+            # dialog gives: a disabled Quasar button eats its own tooltip, which is the
+            # one place the block is explained.
+            lines = [translate_string(entry.description)]
+            if reason:
+                lines.append(translate_string(reason))
+            ui.tooltip("\n\n".join(lines)).style("white-space: pre-wrap").classes("max-w-sm")
+
+    def render(self) -> None:
+        """Redraw the chips, grouped, for what the search matches."""
+        self.results.clear()
+        shown = 0
+        with self.results:
+            for group in sceneedit_legacy.LEGACY_PALETTE_GROUPS:
+                visible = [
+                    entry for entry in sceneedit_legacy.LEGACY_PALETTE if entry.group == group and self.matches(entry)
+                ]
+                if not visible:
+                    continue
+                shown += len(visible)
+                ui.label(translate_string(group)).classes("text-xs uppercase text-blue-400 mt-3 mb-1")
+                with ui.row().classes("w-full gap-2 flex-wrap"):
+                    for entry in visible:
+                        self.chip(entry)
+            if not shown:
+                ui.label(translate_string("No element matches that.")).classes(
+                    "text-sm italic text-gray-500 mt-3",
+                )
+
+    def search_changed(self, value: str) -> None:
+        """Filter the chips by what has been typed."""
+        self.search["text"] = value or ""
+        self.render()
+
+    def enter_pressed(self) -> None:
+        """Enter picks the search's one remaining match -- silent while several still
+        match, since guessing would add the wrong element.
+        """
+        hits = [entry for entry in sceneedit_legacy.LEGACY_PALETTE if self.matches(entry)]
+        if len(hits) == 1:
+            self.pick(hits[0])
 
 
 def _legacy_canvas_size(

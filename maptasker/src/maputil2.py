@@ -953,6 +953,127 @@ def attached_elements(state: RunState) -> set[int]:
     return reachable
 
 
+def _element_id_key(element: ETW.Element) -> str | None:
+    # Always the element's own <id> child -- never a table's dict key. all_profiles/
+    # all_tasks happen to be keyed by <id> already (stable across a rename -- only
+    # <nme> changes), but all_projects is keyed by <name>, which a Rename DOES change.
+    # Matching Projects by name broke exactly that case: renaming "Test" to "Zz" left
+    # the rendered file's still-"Test"-named child unmatched (orphaned, never removed)
+    # while the renamed copy got appended as a *second* Project -- both under different names,
+    # so the "old name is gone" and "no duplicates" checks both failed even though no id
+    # was reused. <id> doesn't change across a Rename (only <name> does), so matching on
+    # it correctly finds and replaces the old element for every case: an untouched
+    # pre-existing Project/Profile/Task (self-match, effectively a no-op), a renamed one
+    # (finds the old element despite the name change), and a brand-new one (id was never
+    # seen before, correctly falls through to "append").
+    id_element = element.find("id")
+    if id_element is None or not id_element.text or not id_element.text.strip():
+        return None
+    return id_element.text.strip()
+
+
+def _element_match_key(element: ETW.Element, tag: str) -> str | None:
+    # What identifies this element across the two trees being reconciled.  For
+    # Project/Profile/Task that is <id> (see _element_id_key).  A Scene has no <id>
+    # at all -- its identity is its name, held in <nme> and, redundantly, in its own
+    # sr="scene<name>" attribute (see sceneedit.py's module docstring).
+    #
+    # Matching a Scene by name is only safe because sceneedit was built around this
+    # constraint: projedit/profedit edit a detached deep copy and swap it into the
+    # table afterward, which is fine when the match key is <id> (a rename doesn't
+    # change it) but would strand a renamed Scene -- the tree's own element would still
+    # say the old name, nothing would match, and the save would emit both.
+    # sceneedit.apply_edited_scene_to_live_tree therefore copies the edit *onto* the
+    # live element rather than swapping objects, and the children this renders are
+    # that same live tree's (or copies of it, taken above) -- so both sides always
+    # carry the same name by the time this runs.  Change one of those two and this
+    # breaks.
+    if tag == "Scene":
+        return (element.findtext("nme", "") or "").strip() or None
+    return _element_id_key(element)
+
+
+def _reconcile_children(
+    children: list,
+    tag: str,
+    table_name: str,
+    state: RunState,
+    *,
+    indent: bool,
+) -> list:
+    """Reconcile one tag's children of the rendered root with the lookup table that holds that tag.
+
+    Returns:
+        The children, with each of this tag's replaced by the table's current version, the ones
+        the tables gained added next to their own kind, and the ones they lost dropped.
+    """
+    # What the lookup tables say this tag's elements are, right now, by match key.
+    # Every one of the three outcomes below is decided against this one dictionary:
+    # a tree child whose key is in it is REPLACED by the table's version, a key in it
+    # that no tree child carries is APPENDED as something newly added, and a tree child
+    # whose key is NOT in it has been DELETED and is dropped.
+    current_by_key = {}
+    # Table entries with no match key at all: never seen in practice -- every
+    # Project/Profile/Task in this repo's own sample backup has an <id> and every
+    # Scene an <nme> -- but they cannot be matched, so they are carried along as
+    # additions rather than risking two different key-less elements colliding on a
+    # shared None key.
+    keyless_additions = []
+    for entry in state.tasker_root_elements.get(table_name, {}).values():
+        current_element = copy.deepcopy(entry["xml"]) if indent else entry["xml"]
+        current_key = _element_match_key(current_element, tag)
+        if current_key is None:
+            keyless_additions.append(current_element)
+        else:
+            current_by_key[current_key] = current_element
+
+    # DROPPING IS WHY THIS IS A REBUILT LIST AND NOT AN IN-PLACE PATCH.
+    #
+    # Until this existed, the reconciliation could only replace a child or add one, so
+    # a Delete never reached the file: delete_task/delete_profile/delete_scene take the
+    # item out of the lookup tables (which is what makes it disappear from the Map, the
+    # Diagram, the Tree and every pulldown) but leave the tree's own child alone, on
+    # purpose -- the tree is not what the application reads.  Rendering straight from
+    # that tree wrote the deleted item back out, so "delete the Task, Save To Current
+    # File" produced a file with the Task still in it, and reloading it brought the
+    # Task back.  Silently: nothing in the GUI said the delete had not taken.
+    rebuilt = []
+    matched_keys = set()
+    last_index_of_tag = -1
+    for child in children:
+        if child.tag != tag:
+            rebuilt.append(child)
+            continue
+        child_key = _element_match_key(child, tag)
+        if child_key is None:
+            # Unidentifiable, so it cannot be shown to have been deleted either.  Kept:
+            # dropping a child on a guess is the one outcome here with no way back.
+            rebuilt.append(child)
+        elif child_key in current_by_key:
+            rebuilt.append(current_by_key[child_key])
+            matched_keys.add(child_key)
+        else:
+            continue  # Deleted from the tables -- and so from the file.
+        last_index_of_tag = len(rebuilt) - 1
+
+    for current_key, current_element in current_by_key.items():
+        if current_key in matched_keys:
+            continue
+        # Brand-new Project/Profile/Task/Scene (e.g. from Add Project/Add Profile/Add
+        # Task/Add Scene): insert it next to its own kind rather than at the very end
+        # of the file, so the top-level <Setting>/<Profile>/<Project>/<Scene>/<Task>/
+        # <Variable> grouping that real Tasker backups always use stays intact.
+        insert_at = last_index_of_tag + 1 if last_index_of_tag >= 0 else len(rebuilt)
+        rebuilt.insert(insert_at, current_element)
+        last_index_of_tag = insert_at
+
+    for current_element in keyless_additions:
+        insert_at = last_index_of_tag + 1 if last_index_of_tag >= 0 else len(rebuilt)
+        rebuilt.insert(insert_at, current_element)
+        last_index_of_tag = insert_at
+    return rebuilt
+
+
 def render_full_backup_xml(state: RunState, *, indent: bool = True) -> str:
     """Render the entire in-memory Tasker backup -- every Project, Profile, Task,
     Scene and everything else the loaded file holds -- as one XML string, with every
@@ -1039,116 +1160,13 @@ def render_full_backup_xml(state: RunState, *, indent: bool = True) -> str:
         rendered_root.text, rendered_root.tail = root.text, root.tail
     children = list(rendered_root) if indent else list(root)
 
-    def _element_id_key(element: ETW.Element) -> str | None:
-        # Always the element's own <id> child -- never a table's dict key. all_profiles/
-        # all_tasks happen to be keyed by <id> already (stable across a rename -- only
-        # <nme> changes), but all_projects is keyed by <name>, which a Rename DOES change.
-        # Matching Projects by name broke exactly that case: renaming "Test" to "Zz" left
-        # the rendered file's still-"Test"-named child unmatched (orphaned, never removed)
-        # while the renamed copy got appended as a *second* Project -- both under different names,
-        # so the "old name is gone" and "no duplicates" checks both failed even though no id
-        # was reused. <id> doesn't change across a Rename (only <name> does), so matching on
-        # it correctly finds and replaces the old element for every case: an untouched
-        # pre-existing Project/Profile/Task (self-match, effectively a no-op), a renamed one
-        # (finds the old element despite the name change), and a brand-new one (id was never
-        # seen before, correctly falls through to "append").
-        id_element = element.find("id")
-        if id_element is None or not id_element.text or not id_element.text.strip():
-            return None
-        return id_element.text.strip()
-
-    def _element_match_key(element: ETW.Element, tag: str) -> str | None:
-        # What identifies this element across the two trees being reconciled.  For
-        # Project/Profile/Task that is <id> (see _element_id_key).  A Scene has no <id>
-        # at all -- its identity is its name, held in <nme> and, redundantly, in its own
-        # sr="scene<name>" attribute (see sceneedit.py's module docstring).
-        #
-        # Matching a Scene by name is only safe because sceneedit was built around this
-        # constraint: projedit/profedit edit a detached deep copy and swap it into the
-        # table afterward, which is fine when the match key is <id> (a rename doesn't
-        # change it) but would strand a renamed Scene -- the tree's own element would still
-        # say the old name, nothing would match, and the save would emit both.
-        # sceneedit.apply_edited_scene_to_live_tree therefore copies the edit *onto* the
-        # live element rather than swapping objects, and the children this renders are
-        # that same live tree's (or copies of it, taken above) -- so both sides always
-        # carry the same name by the time this runs.  Change one of those two and this
-        # breaks.
-        if tag == "Scene":
-            return (element.findtext("nme", "") or "").strip() or None
-        return _element_id_key(element)
-
     for tag, table_name in (
         ("Project", "all_projects"),
         ("Profile", "all_profiles"),
         ("Task", "all_tasks"),
         ("Scene", "all_scenes"),
     ):
-        # What the lookup tables say this tag's elements are, right now, by match key.
-        # Every one of the three outcomes below is decided against this one dictionary:
-        # a tree child whose key is in it is REPLACED by the table's version, a key in it
-        # that no tree child carries is APPENDED as something newly added, and a tree child
-        # whose key is NOT in it has been DELETED and is dropped.
-        current_by_key = {}
-        # Table entries with no match key at all: never seen in practice -- every
-        # Project/Profile/Task in this repo's own sample backup has an <id> and every
-        # Scene an <nme> -- but they cannot be matched, so they are carried along as
-        # additions rather than risking two different key-less elements colliding on a
-        # shared None key.
-        keyless_additions = []
-        for entry in state.tasker_root_elements.get(table_name, {}).values():
-            current_element = copy.deepcopy(entry["xml"]) if indent else entry["xml"]
-            current_key = _element_match_key(current_element, tag)
-            if current_key is None:
-                keyless_additions.append(current_element)
-            else:
-                current_by_key[current_key] = current_element
-
-        # DROPPING IS WHY THIS IS A REBUILT LIST AND NOT AN IN-PLACE PATCH.
-        #
-        # Until this existed, the reconciliation could only replace a child or add one, so
-        # a Delete never reached the file: delete_task/delete_profile/delete_scene take the
-        # item out of the lookup tables (which is what makes it disappear from the Map, the
-        # Diagram, the Tree and every pulldown) but leave the tree's own child alone, on
-        # purpose -- the tree is not what the application reads.  Rendering straight from
-        # that tree wrote the deleted item back out, so "delete the Task, Save To Current
-        # File" produced a file with the Task still in it, and reloading it brought the
-        # Task back.  Silently: nothing in the GUI said the delete had not taken.
-        rebuilt = []
-        matched_keys = set()
-        last_index_of_tag = -1
-        for child in children:
-            if child.tag != tag:
-                rebuilt.append(child)
-                continue
-            child_key = _element_match_key(child, tag)
-            if child_key is None:
-                # Unidentifiable, so it cannot be shown to have been deleted either.  Kept:
-                # dropping a child on a guess is the one outcome here with no way back.
-                rebuilt.append(child)
-            elif child_key in current_by_key:
-                rebuilt.append(current_by_key[child_key])
-                matched_keys.add(child_key)
-            else:
-                continue  # Deleted from the tables -- and so from the file.
-            last_index_of_tag = len(rebuilt) - 1
-
-        for current_key, current_element in current_by_key.items():
-            if current_key in matched_keys:
-                continue
-            # Brand-new Project/Profile/Task/Scene (e.g. from Add Project/Add Profile/Add
-            # Task/Add Scene): insert it next to its own kind rather than at the very end
-            # of the file, so the top-level <Setting>/<Profile>/<Project>/<Scene>/<Task>/
-            # <Variable> grouping that real Tasker backups always use stays intact.
-            insert_at = last_index_of_tag + 1 if last_index_of_tag >= 0 else len(rebuilt)
-            rebuilt.insert(insert_at, current_element)
-            last_index_of_tag = insert_at
-
-        for current_element in keyless_additions:
-            insert_at = last_index_of_tag + 1 if last_index_of_tag >= 0 else len(rebuilt)
-            rebuilt.insert(insert_at, current_element)
-            last_index_of_tag = insert_at
-
-        children = rebuilt
+        children = _reconcile_children(children, tag, table_name, state, indent=indent)
 
     rendered_root[:] = children
 

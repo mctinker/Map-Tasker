@@ -7,7 +7,7 @@ import re
 from functools import lru_cache
 from html.parser import HTMLParser
 from itertools import zip_longest
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, ClassVar, NamedTuple
 
 from PIL import ImageColor
 
@@ -15,7 +15,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.sysconst import HOTLINK_STYLE, logger, pattern2, pattern8, pattern10, pattern15
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Callable, Mapping
 
 
 # Given a line in the output queue, reformat it before writing to file
@@ -883,6 +883,73 @@ def selector_matches(selector: tuple, element_stack: list[tuple]) -> bool:
     return True
 
 
+# How the tags HTMLTextFormatter knows about are handled, as tables so that handle_starttag
+# and handle_endtag stay a lookup rather than a ladder of one branch per tag.
+#
+# Tags that do nothing but switch one style on at the start tag and off again at the end tag.
+STYLE_FLAG_TAGS = {
+    "u": "is_underline",
+    "i": "is_italic",
+    "em": "is_italic",
+    "b": "is_bold",
+    "strong": "is_bold",
+    "h1": "is_h1",
+    "h2": "is_h2",
+    "h3": "is_h3",
+    "h4": "is_h4",
+    "h5": "is_h5",
+    "h6": "is_h6",
+}
+
+# Tags passed straight through to the output rather than turned into styling of their own.
+# <blockquote>, like the list and table tags, is a block-level container whose whole job --
+# setting the quoted run off from the text around it -- is the browser's to do when it renders
+# the output.  <br> is the one that becomes a newline, and a <p> is only marked: the paragraph
+# break itself is handled in formatting.  <hr> has no end tag of its own to close.
+START_TAG_SEGMENTS = {
+    "br": "\n",
+    "p": "<p>",
+    "hr": "<hr>",
+    "thead": "<thead>",
+    "tr": "<tr>",
+    "td": "<td>",
+    "big": "<big>",
+    "small": "<small>",
+    "blockquote": "<blockquote>",
+}
+END_TAG_SEGMENTS = {
+    "li": "</li>",
+    "thead": "</thead>",
+    "tr": "</tr>",
+    "td": "</td>",
+    "big": "</big>",
+    "small": "</small>",
+    "blockquote": "</blockquote>",
+}
+
+# Tags with nothing to contribute of their own.  <span> lands here because it is purely a
+# carrier for the "style=" attribute applied in handle_starttag and taken back off in
+# handle_endtag.
+TAGS_WITH_NO_START_ACTION = {"tbody", "body", "html", "fieldset", "meta", "head", "figure", "span"}
+TAGS_WITH_NO_END_ACTION = {
+    "br",
+    "h",
+    "img",
+    "tbody",
+    "head",
+    "body",
+    "html",
+    "fieldset",
+    "meta",
+    "title",
+    "legend",
+    "figure",
+    "figcaption",
+    "p",
+    "span",
+}
+
+
 class HTMLTextFormatter(HTMLParser):
     """
     A custom HTML parser that extracts text content along with
@@ -964,178 +1031,122 @@ class HTMLTextFormatter(HTMLParser):
         # this way (<div style="...">, <span style="...">) rather than in <font>/<b>/<i>.
         self._push_inline_styles(tag, attrs)
 
-        # Handle the <div> and <section> tags.  Both are block-level containers: their own
-        # contribution is to start their contents on a fresh line, indented one level deeper
-        # than the element they sit in.  Any styling they carry was applied just above and is
-        # taken back off by the matching end tag.
-        if tag in ("div", "section"):
-            self.div_depth += 1
-            self._start_new_line()
-            return
-
-        # Handle the <img> tag.
-        #
-        # Look the attributes up by name rather than by position.  attrs is a list of
-        # (name, value) pairs, and taking them positionally got both cases wrong: an
-        # <img> carrying only a src (no alt -- which is how TaskerNet descriptions embed
-        # YouTube thumbnails) fell into a branch that interpolated the whole ('src', url)
-        # tuple as the URL, and one whose attributes came in another order, or which
-        # carried a width/class as well, took whatever happened to be second as its alt
-        # text.  A mangled src is not merely wrong in the page: the browser reads it as a
-        # relative URL and requests it, which is where the "/popout/('src', 'https://...')
-        # not found" console messages came from.
-        if tag == "img":
-            attributes = dict(attrs)
-            source = image_source(attributes.get("src") or "")
-            # Nothing useful to render without a source, and emitting the tag anyway would
-            # send the browser off after another bogus relative URL.
-            if not source:
-                logger.warning(f"Ignoring <img> with no usable src attribute: {attrs}")
-                return
-            # Escape both values into the tag being built rather than dropping them in as
-            # written.  A src or alt carrying a double quote closed its attribute early, and
-            # what followed was read as further attributes -- which for a src means the
-            # browser is handed a truncated URL and the image simply does not appear.  The
-            # same goes for a bare "&", which an unescaped URL is full of.
-            alt_text = attributes.get("alt")
-            alt_attribute = f' alt="{html.escape(alt_text, quote=True)}"' if alt_text else ""
-            # "referrerpolicy=no-referrer" asks the browser not to say where the request came
-            # from.  An image host that turns down hotlinking decides that on the referrer,
-            # and what it would be told here -- a "localhost:<port>" page, or a "file://" one
-            # for the saved output -- is exactly the sort it turns down, which shows up as a
-            # broken-image icon for a URL that loads perfectly well on its own.  Nothing is
-            # lost by withholding it: these are someone else's images on someone else's host.
-            self._add_segment(
-                f'<img src="{html.escape(source, quote=True)}"{alt_attribute} '
-                f'referrerpolicy="no-referrer" class="image-small"/>',
-            )
-            # Return to prevent it from being added to the tag stack
-            return
-
-        # Handle the <style> tag
-        if tag == "style":
-            self.is_in_style = True
-            return
-
-        # Handle the <pre> tag
-        if tag == "pre":
-            self.is_preformatted = True
-            # Add a newline before the preformatted block for clean formatting
-            self._add_segment("<pre>")
-            return
-
-        if tag == "br":
-            # Insert a newline segment
-            self._add_segment("\n")
-            return
-
-        if tag == "p":
-            # Ignore <p> tags, as they are handled in formatting
-            self._add_segment("<p>")
-            return
-
-        if tag == "font":
-            attrs_dict = dict(attrs)
-            if "color" in attrs_dict:
-                self.current_styles["color"] = attrs_dict["color"].lower()
-
-        # Handle underline tags
-        elif tag == "u":
-            self.current_styles["is_underline"] = True
-
-        # Handle italic/emphasis tags
-        elif tag in ["i", "em"]:
-            self.current_styles["is_italic"] = True
-
-        # Handle bold tag
-        elif tag in ("b", "strong"):
-            self.current_styles["is_bold"] = True
-
-        # Handle anchor (link) tags
-        elif tag == "a":
-            attrs_dict = dict(attrs)
-            if "href" in attrs_dict:
-                self.current_styles["is_link"] = True
-                self.current_styles["href"] = attrs_dict["href"]
-
-        # Handle list tags
-        # tag = "li"
-        elif tag == "ul":
-            self.list_indent_level += 1
-            self.list_types.append("ul")
-            self._add_segment("<ul>")  # Add a newline before the list starts
-        elif tag == "ol":
-            self.list_indent_level += 1
-            self.list_types.append("ol")
-            self.list_counter.append(0)
-            self._add_segment("<ol>")  # Add a newline before the list starts
-        elif tag == "li":
-            leading_spaces = " " * count_trailing_blanks(self.rawdata, self.offset)
-            indent = "  " * (self.list_indent_level - 1)
-            self._add_segment(f"{indent}{leading_spaces}<li>")
-
-        # New: Handle table tags
-        elif tag == "table":
-            self.current_styles["is_table_cell"] = True
-            self._add_segment("<table>")
-        elif tag == "thead":
-            self._add_segment("<thead>")
-        elif tag == "tr":
-            self._add_segment("<tr>")
-        elif tag == "th":
-            self.table_th = True
-        elif tag == "td":
-            self._add_segment("<td>")
-        elif tag == "big":
-            self._add_segment("<big>")
-        elif tag == "small":
-            self._add_segment("<small>")
-
-        # Handle the <blockquote> tag.  Like the list and table tags above, it is passed
-        # straight through rather than turned into styling of its own: it is a block-level
-        # container whose whole job -- setting the quoted run off from the text around it --
-        # is the browser's to do when it renders the output.
-        elif tag == "blockquote":
-            self._add_segment("<blockquote>")
-
-        elif tag == "code":
-            self.code_tag = True
-
-        # Handle new heading tags
-        elif tag == "h1":
-            self.current_styles["is_h1"] = True
-        elif tag == "h2":
-            self.current_styles["is_h2"] = True
-        elif tag == "h3":
-            self.current_styles["is_h3"] = True
-        elif tag == "h4":
-            self.current_styles["is_h4"] = True
-        elif tag == "h5":
-            self.current_styles["is_h5"] = True
-        elif tag == "h6":
-            self.current_styles["is_h6"] = True
-        elif tag == "title":
-            end_title = self.rawdata.find("</title>", self.offset)
-            if end_title != -1:
-                self._add_segment("Title: ")
-        elif tag == "legend":
-            end_legend = self.rawdata.find("</legend>", self.offset)
-            if end_legend != -1:
-                self.current_styles["is_italic"] = True
-        elif tag == "figcaption":
-            end_caption = self.rawdata.find("</figcaption>", self.offset)
-            if end_caption != -1:
-                self.current_styles["is_italic"] = True
-        elif tag == "hr":
-            self._add_segment("<hr>")
-
-        # Tags with nothing to contribute of their own.  <span> lands here because it is
-        # purely a carrier for the "style=" attribute already applied above.
-        elif tag in ("tbody", "body", "html", "fieldset", "meta", "head", "figure", "span"):
-            return
-        # Unrecognized tag
-        else:
+        if tag in START_TAG_SEGMENTS:
+            self._add_segment(START_TAG_SEGMENTS[tag])
+        elif tag in STYLE_FLAG_TAGS:
+            self.current_styles[STYLE_FLAG_TAGS[tag]] = True
+        elif tag in self.START_HANDLERS:
+            self.START_HANDLERS[tag](self, tag, attrs)
+        elif tag not in TAGS_WITH_NO_START_ACTION:
             self.handle_unknown_starttag(tag, attrs)
+
+    def _start_block(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """
+        Handle the <div> and <section> tags.  Both are block-level containers: their own
+        contribution is to start their contents on a fresh line, indented one level deeper
+        than the element they sit in.  Any styling they carry was applied in handle_starttag
+        and is taken back off by the matching end tag.
+        """
+        self.div_depth += 1
+        self._start_new_line()
+
+    def _start_image(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """
+        Handle the <img> tag.
+
+        Look the attributes up by name rather than by position.  attrs is a list of
+        (name, value) pairs, and taking them positionally got both cases wrong: an
+        <img> carrying only a src (no alt -- which is how TaskerNet descriptions embed
+        YouTube thumbnails) fell into a branch that interpolated the whole ('src', url)
+        tuple as the URL, and one whose attributes came in another order, or which
+        carried a width/class as well, took whatever happened to be second as its alt
+        text.  A mangled src is not merely wrong in the page: the browser reads it as a
+        relative URL and requests it, which is where the "/popout/('src', 'https://...')
+        not found" console messages came from.
+        """
+        attributes = dict(attrs)
+        source = image_source(attributes.get("src") or "")
+        # Nothing useful to render without a source, and emitting the tag anyway would
+        # send the browser off after another bogus relative URL.
+        if not source:
+            logger.warning(f"Ignoring <img> with no usable src attribute: {attrs}")
+            return
+        # Escape both values into the tag being built rather than dropping them in as
+        # written.  A src or alt carrying a double quote closed its attribute early, and
+        # what followed was read as further attributes -- which for a src means the
+        # browser is handed a truncated URL and the image simply does not appear.  The
+        # same goes for a bare "&", which an unescaped URL is full of.
+        alt_text = attributes.get("alt")
+        alt_attribute = f' alt="{html.escape(alt_text, quote=True)}"' if alt_text else ""
+        # "referrerpolicy=no-referrer" asks the browser not to say where the request came
+        # from.  An image host that turns down hotlinking decides that on the referrer,
+        # and what it would be told here -- a "localhost:<port>" page, or a "file://" one
+        # for the saved output -- is exactly the sort it turns down, which shows up as a
+        # broken-image icon for a URL that loads perfectly well on its own.  Nothing is
+        # lost by withholding it: these are someone else's images on someone else's host.
+        self._add_segment(
+            f'<img src="{html.escape(source, quote=True)}"{alt_attribute} '
+            f'referrerpolicy="no-referrer" class="image-small"/>',
+        )
+
+    def _start_style(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <style> tag: what follows is a stylesheet, not text."""
+        self.is_in_style = True
+
+    def _start_pre(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <pre> tag, adding the opening tag for clean formatting."""
+        self.is_preformatted = True
+        self._add_segment("<pre>")
+
+    def _start_font(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <font> tag, taking its color if it has one."""
+        attrs_dict = dict(attrs)
+        if "color" in attrs_dict:
+            self.current_styles["color"] = attrs_dict["color"].lower()
+
+    def _start_link(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <a> tag.  An anchor without an href is not a link."""
+        attrs_dict = dict(attrs)
+        if "href" in attrs_dict:
+            self.current_styles["is_link"] = True
+            self.current_styles["href"] = attrs_dict["href"]
+
+    def _start_list(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <ul> and <ol> tags, which open a list one level deeper."""
+        self.list_indent_level += 1
+        self.list_types.append(tag)
+        if tag == "ol":
+            self.list_counter.append(0)
+        self._add_segment(f"<{tag}>")
+
+    def _start_list_item(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <li> tag, indenting it to the depth of its list."""
+        leading_spaces = " " * count_trailing_blanks(self.rawdata, self.offset)
+        indent = "  " * (self.list_indent_level - 1)
+        self._add_segment(f"{indent}{leading_spaces}<li>")
+
+    def _start_table(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <table> tag."""
+        self.current_styles["is_table_cell"] = True
+        self._add_segment("<table>")
+
+    def _start_table_heading(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <th> tag: the next piece of text is the heading's."""
+        self.table_th = True
+
+    def _start_code(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <code> tag: the next piece of text is the code."""
+        self.code_tag = True
+
+    def _start_title(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <title> tag, labeling its text -- but only if the tag is ever closed."""
+        if self.rawdata.find("</title>", self.offset) != -1:
+            self._add_segment("Title: ")
+
+    def _start_italic_caption(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """Handle the <legend> and <figcaption> tags: italic text, but only if the tag is ever closed."""
+        if self.rawdata.find(f"</{tag}>", self.offset) != -1:
+            self.current_styles["is_italic"] = True
 
     def handle_endtag(self, tag: str) -> None:
         """
@@ -1146,140 +1157,70 @@ class HTMLTextFormatter(HTMLParser):
         self._pop_inline_styles(tag)
         self._pop_element(tag)
 
-        # Handle the </div> and </section> tags
-        if tag in ("div", "section"):
-            # End the div's/section's content with a line of its own, and step the indent
-            # back out to the level of whatever contains it.
-            self._start_new_line()
-            self.div_depth = max(self.div_depth - 1, 0)
-            if self.tag_stack and self.tag_stack[-1] == tag:
-                self.tag_stack.pop()
-            return
-
-        # Handle the </style> tag.  The rules gathered up are now complete, so work out what
-        # they select and add them to the ones in force for the rest of the description.
-        # Nothing is emitted: a stylesheet is instructions for drawing the text, not text.
-        if tag == "style":
-            self.is_in_style = False
-            self.stylesheet.extend(parse_stylesheet("".join(self.style_text)))
-            self.style_text = []
-            if self.tag_stack and self.tag_stack[-1] == tag:
-                self.tag_stack.pop()
-            return
-
-        # Handle the </pre> tag
-        if tag == "pre":
-            self.is_preformatted = False
-            # Add a newline after the preformatted block
-            self._add_segment("</pre>")
-            if self.tag_stack and self.tag_stack[-1] == tag:
-                self.tag_stack.pop()
-            return
-
         if self.tag_stack and self.tag_stack[-1] == tag:
             self.tag_stack.pop()
 
-        if tag == "font":
-            # Find the last 'font' tag in the stack to determine the previous color
-            # or reset if no other font tag is active.
-            found_font = False
-            for t_in_stack in reversed(self.tag_stack):
-                if t_in_stack == "font":
-                    found_font = True
-                    self.current_styles["color"] = None
-                    break
-            if not found_font:
-                self.current_styles["color"] = None
-
-        # Revert underline tag
-        elif tag == "u":
-            self.current_styles["is_underline"] = False
-
-        # Revert italic/emphasis tags
-        elif tag in ["i", "em"]:
-            self.current_styles["is_italic"] = False
-
-        # Revert bold tag
-        elif tag in ("b", "strong"):
-            self.current_styles["is_bold"] = False
-
-        # Revert anchor tags
-        elif tag == "a":
-            self.current_styles["is_link"] = False
-            self.current_styles["href"] = None
-
-        # Revert list tags
-        elif tag in {"ul", "ol"}:
-            if self.list_indent_level > 0:
-                self.list_indent_level -= 1
-            if self.list_types:
-                self.list_types.pop()
-            if tag == "ul":
-                self._add_segment("</ul>")
-            else:
-                self._add_segment("</ol>")
-        elif tag == "li":
-            self._add_segment("</li>")
-
-        elif tag == "code":
-            self.code_tag = False
-
-        # New: Revert table tags
-        elif tag == "table":
-            # self._add_segment("\n" + "=" * 40 + "\n")  # End of table visual indicator
-            self._add_segment("</table>")
-            self.current_styles["is_table_cell"] = False
-        elif tag == "thead":
-            self._add_segment("</thead>")
-        elif tag == "tr":
-            self._add_segment("</tr>")
-        elif tag == "th":
-            self.table_th = False
-        elif tag == "td":
-            self._add_segment("</td>")
-
-        # Revert new heading tags
-        elif tag == "h1":
-            self.current_styles["is_h1"] = False
-        elif tag == "h2":
-            self.current_styles["is_h2"] = False
-        elif tag == "h3":
-            self.current_styles["is_h3"] = False
-        elif tag == "h4":
-            self.current_styles["is_h4"] = False
-        elif tag == "h5":
-            self.current_styles["is_h5"] = False
-        elif tag == "h6":
-            self.current_styles["is_h6"] = False
-        elif tag == "big":
-            self._add_segment("</big>")
-        elif tag == "small":
-            self._add_segment("</small>")
-        elif tag == "blockquote":
-            self._add_segment("</blockquote>")
-        # End tags with nothing left to do.  </span> lands here: the styling it carried was
-        # already taken back off at the top of this method.
-        elif tag in (
-            "br",
-            "h",
-            "img",
-            "tbody",
-            "head",
-            "body",
-            "html",
-            "fieldset",
-            "meta",
-            "title",
-            "legend",
-            "figure",
-            "figcaption",
-            "p",
-            "span",
-        ):
-            return
-        # Unrecognized tag
-        else:
+        if tag in END_TAG_SEGMENTS:
+            self._add_segment(END_TAG_SEGMENTS[tag])
+        elif tag in STYLE_FLAG_TAGS:
+            self.current_styles[STYLE_FLAG_TAGS[tag]] = False
+        elif tag in self.END_HANDLERS:
+            self.END_HANDLERS[tag](self, tag)
+        elif tag not in TAGS_WITH_NO_END_ACTION:
             self.handle_unknown_endtag(tag)
+
+    def _end_block(self, tag: str) -> None:
+        """
+        Handle the </div> and </section> tags: end the content with a line of its own, and
+        step the indent back out to the level of whatever contains it.
+        """
+        self._start_new_line()
+        self.div_depth = max(self.div_depth - 1, 0)
+
+    def _end_style(self, tag: str) -> None:
+        """
+        Handle the </style> tag.  The rules gathered up are now complete, so work out what
+        they select and add them to the ones in force for the rest of the description.
+        Nothing is emitted: a stylesheet is instructions for drawing the text, not text.
+        """
+        self.is_in_style = False
+        self.stylesheet.extend(parse_stylesheet("".join(self.style_text)))
+        self.style_text = []
+
+    def _end_pre(self, tag: str) -> None:
+        """Handle the </pre> tag, closing the preformatted block."""
+        self.is_preformatted = False
+        self._add_segment("</pre>")
+
+    def _end_font(self, tag: str) -> None:
+        """Handle the </font> tag.  The color is cleared whether or not another <font> is still open."""
+        self.current_styles["color"] = None
+
+    def _end_link(self, tag: str) -> None:
+        """Handle the </a> tag."""
+        self.current_styles["is_link"] = False
+        self.current_styles["href"] = None
+
+    def _end_list(self, tag: str) -> None:
+        """Handle the </ul> and </ol> tags, which close a list."""
+        if self.list_indent_level > 0:
+            self.list_indent_level -= 1
+        if self.list_types:
+            self.list_types.pop()
+        self._add_segment(f"</{tag}>")
+
+    def _end_table(self, tag: str) -> None:
+        """Handle the </table> tag."""
+        self._add_segment("</table>")
+        self.current_styles["is_table_cell"] = False
+
+    def _end_table_heading(self, tag: str) -> None:
+        """Handle the </th> tag."""
+        self.table_th = False
+
+    def _end_code(self, tag: str) -> None:
+        """Handle the </code> tag."""
+        self.code_tag = False
 
     def handle_data(self, data: str) -> None:
         """
@@ -1563,6 +1504,40 @@ class HTMLTextFormatter(HTMLParser):
         """
         return self.formatted_segments
 
+    # The tags that need more than a flag or a fixed segment, each with the method that deals
+    # with it.  Defined last because they name the methods above.
+    START_HANDLERS: ClassVar[dict[str, Callable[..., None]]] = {
+        "div": _start_block,
+        "section": _start_block,
+        "img": _start_image,
+        "style": _start_style,
+        "pre": _start_pre,
+        "font": _start_font,
+        "a": _start_link,
+        "ul": _start_list,
+        "ol": _start_list,
+        "li": _start_list_item,
+        "table": _start_table,
+        "th": _start_table_heading,
+        "code": _start_code,
+        "title": _start_title,
+        "legend": _start_italic_caption,
+        "figcaption": _start_italic_caption,
+    }
+    END_HANDLERS: ClassVar[dict[str, Callable[..., None]]] = {
+        "div": _end_block,
+        "section": _end_block,
+        "style": _end_style,
+        "pre": _end_pre,
+        "font": _end_font,
+        "a": _end_link,
+        "ul": _end_list,
+        "ol": _end_list,
+        "table": _end_table,
+        "th": _end_table_heading,
+        "code": _end_code,
+    }
+
 
 def parse_html_to_text_segments(html_string: str) -> list[dict]:
     """
@@ -1725,6 +1700,200 @@ def close_left_open_tags(label_html: str) -> str:
     return "".join(f"</{name}>" for name in reversed(still_open))
 
 
+def _segment_css(lbl_style: dict) -> str:
+    """
+    The inline CSS for the underline, italic, bold and table styles of one label segment.
+
+    Args:
+        lbl_style: The styles of the segment, as HTMLTextFormatter recorded them.
+
+    Returns:
+        The CSS declarations to put on the span that carries the segment's text.
+    """
+    css_styles = ";text-decoration: none;"
+    if lbl_style.get("is_underline"):
+        css_styles += ";text-decoration: underline;"
+    if lbl_style.get("is_italic"):
+        css_styles += "font-style: italic;"
+    if lbl_style.get("is_bold"):
+        css_styles += ";font-weight: bold;"
+    if lbl_style.get("is_table_cell"):
+        css_styles += ";is_table;"
+    return css_styles.replace(";;", ";")
+
+
+def _link_segment(lbl_text: str, lbl_style: dict) -> str:
+    """
+    A label segment's text, wrapped in an anchor if the segment is a link.
+
+    Style the link explicitly rather than leaving it to the browser's default: the
+    anchor is about to be wrapped in a span carrying this segment's color and
+    "text-decoration: none", and the Map view's Tailwind reset makes an <a> inherit
+    both, which renders the link exactly like the text around it -- see
+    sysconst.HOTLINK_STYLE. Same styling the directory and Task warning links use, so
+    every hotlink in the output looks the same.
+
+    An external link also opens in a new tab: in the Map view the output is rendered
+    inside the running app's own page, so following a TaskerNet link in place would
+    navigate away from MapTasker itself. In-page targets (href="#...", e.g. the
+    directory's own anchors) deliberately stay in this tab -- that is the whole point
+    of them.
+
+    Args:
+        lbl_text: The segment's text.
+        lbl_style: The styles of the segment, as HTMLTextFormatter recorded them.
+
+    Returns:
+        The text, as a link if it is one.
+    """
+    if not lbl_style.get("is_link", False):
+        return lbl_text
+    lbl_href = lbl_style.get("href")
+    new_tab = "" if str(lbl_href).startswith("#") else ' target="_blank" rel="noopener noreferrer"'
+    return f'<a href="{lbl_href}" style="{HOTLINK_STYLE}"{new_tab}>{lbl_text}</a>'
+
+
+class _LabelBuilder:
+    """
+    Builds the html of one label out of its parsed segments, one at a time.
+
+    What each segment adds depends on the ones before it -- whether the text box has been
+    opened, the heading level last seen, and the last text written -- so that is kept here
+    between calls to add().
+    """
+
+    def __init__(self, task_label: str, colors: Mapping[str, str], color_to_use: str) -> None:
+        """
+        Args:
+            task_label: The html the label starts with.
+            colors: The run's colors by argument name (RunConfig.colors).
+            color_to_use: The name of the color the label is written in by default.
+        """
+        self.task_label = task_label
+        self.colors = colors
+        self.color_to_use = color_to_use
+        self.have_paren = False
+        self.previous_heading = 0
+        self.previous_text = ""
+
+    def add(self, action_label: dict) -> None:
+        """
+        Add one parsed segment of the label to the html.
+
+        Args:
+            action_label: The segment, as parse_html_to_text_segments returned it.
+        """
+        # Get the label verbage
+        lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
+
+        # Convert newlines to breaks
+        if lbl_text == "\n":
+            lbl_text = "<br>"
+
+        # Handle situation in which a "\n" preceeds a name. The \n screws up the html
+        if lbl_text.startswith("\n%"):
+            lbl_text = lbl_text[1:]
+
+        # Get the label details for this item in them label.  If no 'styles', then ignore the line
+        try:
+            lbl_style = action_label["styles"]
+        except KeyError:
+            return
+
+        # Fall back to the label's default color when the label asked for one that would
+        # be unreadable on our background (see legible_color), as well as when it asked
+        # for none at all.
+        lbl_color = legible_color(lbl_style["color"], self.colors[self.color_to_use], self.colors)
+        css_styles = _segment_css(lbl_style)
+        lbl_text = _link_segment(lbl_text, lbl_style)
+
+        lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
+        if lbl_style.get("is_table_cell"):
+            lbl_heading = 0
+
+        # If we have back-to-back headings, then force a new line.
+        if (lbl_heading > 0 and self.previous_heading > 0) and (lbl_heading != self.previous_heading):
+            # Start the next paragraph.  The <p> used to be written inside a <span> of
+            # its own, which put a block inside an inline element and left the span with
+            # no end tag of its own; a paragraph needs neither, since one <p> ends the
+            # one before it.
+            self.task_label = self.task_label + "<p>"
+
+        # If we have a color, then format it accordingly.
+        if lbl_color:
+            self._add_colored(lbl_text, lbl_color, css_styles, lbl_heading, lbl_style)
+        # No color
+        else:
+            self.task_label = self.task_label + f"{'&nbsp;' * lbl_heading}" + lbl_text
+
+    def _add_colored(self, lbl_text: str, lbl_color: str, css_styles: str, lbl_heading: int, lbl_style: dict) -> None:
+        """
+        Add a segment that has a color: in a span of that color, or as it stands if it is markup.
+
+        Args:
+            lbl_text: The segment's text, already wrapped as a link if it is one.
+            lbl_color: The color to write it in.
+            css_styles: The inline CSS for its underline, italic, bold and table styles.
+            lbl_heading: The heading level it is written at, 0 for none.
+            lbl_style: The styles of the segment, as HTMLTextFormatter recorded them.
+        """
+        if not self.have_paren:
+            self.task_label = self.task_label + '<div class="text-box"><p>\n'
+        # Reset fontsize back to normal if we have a new heading and this is a \n.
+        if lbl_text == "\n" and lbl_heading != self.previous_heading:
+            self.task_label = self.task_label + "<br><span class='h0-text'>\n</span>"
+            self.previous_heading = 0
+            return
+        # Remove leading newline...causes problems with it there.
+        if lbl_text != "\n" and lbl_text.startswith("\n"):
+            lbl_text = lbl_text[1:]
+
+        # If we have a new heading, force a break if we didn't just do one and it isn't a table cell.
+        if (
+            lbl_heading != self.previous_heading
+            and self.previous_text not in ("\n", "<br>")
+            and self.previous_text != "<br>"
+            and not self.task_label.endswith("\n")
+            and not lbl_style["is_table_cell"]
+        ):
+            self.task_label = self.task_label + "<br>"
+
+        # If this is a table, then just output the table details without any heading spaces.
+        if lbl_style.get("is_table_cell"):
+            # Ignore breaks within table entries.
+            if lbl_text == "<br>":
+                return
+            self.task_label = self.task_label + "\r" + lbl_text
+        elif lbl_text.strip() in STRUCTURAL_SEGMENTS:
+            # Markup rather than words: in as it stands, outside any span.
+            self.task_label = self.task_label + lbl_text
+        else:
+            # Concatenate all of the text lines with the color.
+            # Use the combined css_styles string and data_href_attribute
+            self.task_label = (
+                self.task_label
+                + f'<span style="color:{lbl_color}{css_styles}" class="h{lbl_heading}-text">'
+                + lbl_text
+                + "</span>"
+            )
+        self.have_paren = True
+        self.previous_heading = lbl_heading
+        self.previous_text = lbl_text
+
+    def finish(self) -> str:
+        """
+        The label's html, with anything the author left open closed off.
+
+        Returns:
+            The finished html.
+        """
+        # Nothing the author left open may outlast the label (see LEFT_OPEN_TAG).
+        label = self.task_label + close_left_open_tags(self.task_label)
+        if self.have_paren:
+            label = label + "</p></div>"
+        return label
+
+
 def format_label(lbl: str, colors: Mapping[str, str]) -> str:
     """
     Formats a given label string, potentially containing HTML, into an HTML-formatted
@@ -1749,7 +1918,6 @@ def format_label(lbl: str, colors: Mapping[str, str]) -> str:
     Returns:
         A string containing the HTML-formatted task label.
     """
-    blank = "&nbsp;"
     color_to_use = "taskernet_color" if "TaskerNet description" in lbl else "action_label_color"
 
     # A label that is a whole HTML document was laid out by its author -- render it as
@@ -1764,142 +1932,21 @@ def format_label(lbl: str, colors: Mapping[str, str]) -> str:
 
     # Do this for all labels:  Leave as is for now in case we change it in the future.
     if contains_html(lbl) or lbl:
-        task_label = format_html(
+        builder = _LabelBuilder(
+            format_html(
+                color_to_use,
+                "",
+                " ...with label:",
+                True,
+            ),
+            colors,
             color_to_use,
-            "",
-            " ...with label:",
-            True,
         )
 
-        # Parse the HTML string
-        formatted_lbl = parse_html_to_text_segments(lbl)
-
-        # Go through each item in the formatted list and break it into html.
-        have_paren = False
-        previous_heading = 0
-        previous_text = ""
-
-        # Go through the lines in this formatted html
-        for action_label in formatted_lbl:
-            # Get the label verbage
-            lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
-
-            # Convert newlines to breaks
-            if lbl_text == "\n":
-                lbl_text = "<br>"
-
-            # Handle situation in which a "\n" preceeds a name. The \n screws up the html
-            if lbl_text.startswith("\n%"):
-                lbl_text = lbl_text[1:]
-
-            # Get the label details for this item in them label.  If no 'styles', then ignore the line
-            try:
-                lbl_style = action_label["styles"]
-            except KeyError:
-                continue
-
-            # Get link details
-            # Fall back to the label's default color when the label asked for one that would
-            # be unreadable on our background (see legible_color), as well as when it asked
-            # for none at all.
-            lbl_color = legible_color(lbl_style["color"], colors[color_to_use], colors)
-            lbl_link = lbl_style.get("is_link", False)
-            lbl_href = lbl_style.get("href", None)
-
-            # Create CSS for underline, italic, and bold styles
-            css_styles = ";text-decoration: none;"
-            if lbl_style.get("is_underline"):
-                css_styles += ";text-decoration: underline;"
-            if lbl_style.get("is_italic"):
-                css_styles += "font-style: italic;"
-            if lbl_style.get("is_bold"):
-                css_styles += ";font-weight: bold;"
-            if lbl_style.get("is_table_cell"):
-                css_styles += ";is_table;"
-            # Style the link explicitly rather than leaving it to the browser's default: the
-            # anchor is about to be wrapped in a span carrying this segment's color and
-            # "text-decoration: none", and the Map view's Tailwind reset makes an <a> inherit
-            # both, which renders the link exactly like the text around it -- see
-            # sysconst.HOTLINK_STYLE. Same styling the directory and Task warning links use, so
-            # every hotlink in the output looks the same.
-            #
-            # An external link also opens in a new tab: in the Map view the output is rendered
-            # inside the running app's own page, so following a TaskerNet link in place would
-            # navigate away from MapTasker itself. In-page targets (href="#...", e.g. the
-            # directory's own anchors) deliberately stay in this tab -- that is the whole point
-            # of them.
-            if lbl_link:
-                new_tab = "" if str(lbl_href).startswith("#") else ' target="_blank" rel="noopener noreferrer"'
-                lbl_text = f'<a href="{lbl_href}" style="{HOTLINK_STYLE}"{new_tab}>{lbl_text}</a>'
-
-            css_styles = css_styles.replace(";;", ";")
-
-            lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
-            if lbl_style.get("is_table_cell"):
-                lbl_heading = 0
-
-            # If we have back-to-back headings, then force a new line.
-            if (lbl_heading > 0 and previous_heading > 0) and (lbl_heading != previous_heading):
-                # Start the next paragraph.  The <p> used to be written inside a <span> of
-                # its own, which put a block inside an inline element and left the span with
-                # no end tag of its own; a paragraph needs neither, since one <p> ends the
-                # one before it.
-                task_label = task_label + "<p>"
-            # If we have a color, then format it accordingly.
-            if lbl_color:
-                if not have_paren:
-                    task_label = task_label + '<div class="text-box"><p>\n'
-                # Reset fontsize back to normal if we have a new heading and this is a \n.
-                if lbl_text == "\n" and lbl_heading != previous_heading:
-                    lbl_text = " "
-                    lbl_heading = 0
-                    task_label = task_label + "<br><span class='h0-text'>\n</span>"
-                    previous_heading = 0
-                    continue
-                # Remove leading newline...causes problems with it there.
-                if lbl_text != "\n" and lbl_text.startswith("\n"):
-                    lbl_text = lbl_text[1:]
-
-                # If we have a new heading, force a break if we didn't just do one and it isn't a table cell.
-                if (
-                    lbl_heading != previous_heading
-                    and previous_text not in ("\n", "<br>")
-                    and previous_text != "<br>"
-                    and not task_label.endswith("\n")
-                    and not lbl_style["is_table_cell"]
-                ):
-                    task_label = task_label + "<br>"
-
-                # If this is a table, then just output the table details without any heading spaces.
-                if lbl_style.get("is_table_cell"):
-                    # Ignore breaks within table entries.
-                    if lbl_text == "<br>":
-                        continue
-                    task_label = task_label + "\r" + lbl_text
-                elif lbl_text.strip() in STRUCTURAL_SEGMENTS:
-                    # Markup rather than words: in as it stands, outside any span.
-                    task_label = task_label + lbl_text
-                else:
-                    # Concatenate all of the text lines with the color.
-                    # Use the combined css_styles string and data_href_attribute
-                    task_label = (
-                        task_label
-                        + f'<span style="color:{lbl_color}{css_styles}" class="h{lbl_heading}-text">'
-                        + lbl_text
-                        + "</span>"
-                    )
-                have_paren = True
-                previous_heading = lbl_heading
-                previous_text = lbl_text
-
-            # No color
-            else:
-                task_label = task_label + f"{blank * lbl_heading}" + lbl_text
-
-        # Nothing the author left open may outlast the label (see LEFT_OPEN_TAG).
-        task_label = task_label + close_left_open_tags(task_label)
-        if have_paren:
-            task_label = task_label + "</p></div>"
+        # Go through the lines in the parsed html, adding each to the label.
+        for action_label in parse_html_to_text_segments(lbl):
+            builder.add(action_label)
+        task_label = builder.finish()
 
     # No embedded html
     else:

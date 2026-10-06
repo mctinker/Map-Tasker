@@ -81,11 +81,11 @@
     "reportReturnType": 7
   },
   "maptasker/src/diagram.py": {
-    "reportArgumentType": 21,
+    "reportArgumentType": 20,
     "reportAssignmentType": 4,
-    "reportAttributeAccessIssue": 6,
+    "reportAttributeAccessIssue": 5,
     "reportCallIssue": 10,
-    "reportGeneralTypeIssues": 3,
+    "reportGeneralTypeIssues": 2,
     "reportOptionalSubscript": 3,
     "reportReturnType": 9
   },
@@ -190,13 +190,13 @@
     "reportReturnType": 1
   },
   "maptasker/src/guiwins_taskedit.py": {
-    "reportArgumentType": 16,
-    "reportGeneralTypeIssues": 5,
-    "reportIndexIssue": 2
+    "reportArgumentType": 15,
+    "reportGeneralTypeIssues": 4,
+    "reportIndexIssue": 1
   },
   "maptasker/src/guiwins_views.py": {
     "reportArgumentType": 9,
-    "reportAttributeAccessIssue": 22,
+    "reportAttributeAccessIssue": 21,
     "reportGeneralTypeIssues": 2,
     "reportOptionalContextManager": 1,
     "reportOptionalMemberAccess": 4
@@ -371,7 +371,6 @@
     "reportRedeclaration": 2
   },
   "maptasker/src/taskactn.py": {
-    "reportAssignmentType": 1,
     "reportAttributeAccessIssue": 8,
     "reportGeneralTypeIssues": 1
   },

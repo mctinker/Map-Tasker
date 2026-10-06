@@ -532,34 +532,12 @@ def _ensure_project_identity(project_copy: Element) -> None:
         project_copy.insert(later[0] if later else (simple[-1] + 1 if simple else 0), child)
 
 
-def render_standalone_project_xml(project_name: str, state: RunState, *, redact: bool = False) -> str:
-    """Render a Project as a standalone TaskerData XML string, in the order Tasker's own
-    single-Project export uses: <dmetric>, every Profile the Project owns, the Project
-    element itself, every Scene it owns, then every Task those Profiles use.  Mirrors
-    profedit.render_standalone_profile_xml's TaskerData-wrapping approach, just scoped to a
-    whole Project's contents instead of one Profile's linked Entry/Exit Task(s).
+def _exportable_project_copy(project_element: Element) -> Element:
+    """A copy of the Project element, put in the form a standalone export has to have it in.
 
-    Tasks come from three places: the Project's own <tids>, its Profiles' Entry/Exit
-    <mid0>/<mid1>, and the handlers on its Scenes' elements (see _scene_task_ids) -- that
-    last one reachable from nothing else, so a Scene exported without it imports with dead
-    buttons.
-
-    Deliberately does NOT recurse into Tasks a bundled Task calls via "Perform Task".
-
-    Raises ValueError if project_name isn't a currently-loaded Project.
-
-    `redact` runs the export through piiscan first, replacing the API keys, tokens,
-    passwords, phone numbers, email addresses and coordinates in it with markers and
-    writing a comment above the file saying what went -- what "Redact secrets" on the
-    export button does.  Off by default, so nothing that already calls this changes.
+    Safe to mutate because it is a deep copy; the pids/tids reads elsewhere go through
+    project_element (the live one) regardless.
     """
-    project_entry = state.tasker_root_elements.get("all_projects", {}).get(project_name)
-    if project_entry is None:
-        msg = f"Project '{project_name}' no longer exists in this backup."
-        raise ValueError(msg)
-
-    project_element = project_entry["xml"]
-    tv = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
     project_copy = copy.deepcopy(project_element)
     # <id>, <mdate> and <clr> come through untouched -- Tasker will not import a Project
     # without an <id>, and this used to remove one.  See _PROJECT_IDENTITY_TAGS.  Safe to
@@ -603,6 +581,86 @@ def render_standalone_project_xml(project_name: str, state: RunState, *, redact:
         if children.index(pids_element) > children.index(tids_element):
             project_copy.remove(pids_element)
             project_copy.insert(list(project_copy).index(tids_element), pids_element)
+    return project_copy
+
+
+def _export_task_ids(
+    project_element: Element,
+    profile_ids: list[str],
+    all_profiles: dict,
+    scene_elements: list[Element],
+) -> list[str]:
+    """The ids of every Task a standalone Project export carries, in the order they are written.
+
+    Args:
+        project_element: The Project being exported.
+        profile_ids: The ids of the Profiles it owns.
+        all_profiles: The loaded Profiles, by id.
+        scene_elements: The Scenes it owns.
+    """
+    # A Project's own <tids> only lists Tasks created *directly* inside it (no attached
+    # Profile) -- a Profile's Entry/Exit Task (<mid0>/<mid1>) is looked up globally by id
+    # and can belong to a completely different Project's own <tids>.  Confirmed against a
+    # real backup: a Profile owned by "Test" here had Entry Tasks whose own <tids>
+    # membership was "Base" and "Adaptive Brightness Quick Setting".  Restricting to the
+    # Project's own <tids> (the old behavior) silently dropped every such Task from the
+    # export -- see profiles.get_profile_tasks, which resolves mid0/mid1 the same
+    # ownership-independent way for the Map/Diagram/Tree views.
+    task_ids = list(_project_child_ids(project_element, "tids"))
+    seen_task_ids = set(task_ids)
+    for profile_id in profile_ids:
+        profile_entry = all_profiles.get(profile_id)
+        if profile_entry is None:
+            continue
+        for child in profile_entry["xml"]:
+            if "mid" in child.tag and child.text and child.text not in seen_task_ids:
+                seen_task_ids.add(child.text)
+                task_ids.append(child.text)
+
+    # And the Tasks the Project's Scenes fire.  A Scene button's Task is reached from
+    # neither <tids> nor a Profile's <mid0>/<mid1> -- nothing links to it but the Scene
+    # element itself -- so without this the Scene imports and its buttons do nothing.  The
+    # walk lives in sceneedit (sceneedit.scene_task_ids) because it is a fact about Scenes,
+    # and the standalone Scene export needs exactly the same thing.  Last,
+    # after the two id sources above, so a Task that is already coming keeps its place
+    # rather than being re-ordered by which Scene happens to mention it.
+    for scene_element in scene_elements:
+        for task_id in scene_task_ids(scene_element):
+            if task_id not in seen_task_ids:
+                seen_task_ids.add(task_id)
+                task_ids.append(task_id)
+    return task_ids
+
+
+def render_standalone_project_xml(project_name: str, state: RunState, *, redact: bool = False) -> str:
+    """Render a Project as a standalone TaskerData XML string, in the order Tasker's own
+    single-Project export uses: <dmetric>, every Profile the Project owns, the Project
+    element itself, every Scene it owns, then every Task those Profiles use.  Mirrors
+    profedit.render_standalone_profile_xml's TaskerData-wrapping approach, just scoped to a
+    whole Project's contents instead of one Profile's linked Entry/Exit Task(s).
+
+    Tasks come from three places: the Project's own <tids>, its Profiles' Entry/Exit
+    <mid0>/<mid1>, and the handlers on its Scenes' elements (see _scene_task_ids) -- that
+    last one reachable from nothing else, so a Scene exported without it imports with dead
+    buttons.
+
+    Deliberately does NOT recurse into Tasks a bundled Task calls via "Perform Task".
+
+    Raises ValueError if project_name isn't a currently-loaded Project.
+
+    `redact` runs the export through piiscan first, replacing the API keys, tokens,
+    passwords, phone numbers, email addresses and coordinates in it with markers and
+    writing a comment above the file saying what went -- what "Redact secrets" on the
+    export button does.  Off by default, so nothing that already calls this changes.
+    """
+    project_entry = state.tasker_root_elements.get("all_projects", {}).get(project_name)
+    if project_entry is None:
+        msg = f"Project '{project_name}' no longer exists in this backup."
+        raise ValueError(msg)
+
+    project_element = project_entry["xml"]
+    tv = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
+    project_copy = _exportable_project_copy(project_element)
 
     # Match the parsed tree's actual Element class (see profedit.render_standalone_profile_xml's
     # identical note) -- defusedxml's hardened parser isn't necessarily xml.etree's own
@@ -646,37 +704,7 @@ def render_standalone_project_xml(project_name: str, state: RunState, *, redact:
     root.extend(scene_elements)
 
     all_tasks = state.tasker_root_elements.get("all_tasks", {})
-    # A Project's own <tids> only lists Tasks created *directly* inside it (no attached
-    # Profile) -- a Profile's Entry/Exit Task (<mid0>/<mid1>) is looked up globally by id
-    # and can belong to a completely different Project's own <tids>.  Confirmed against a
-    # real backup: a Profile owned by "Test" here had Entry Tasks whose own <tids>
-    # membership was "Base" and "Adaptive Brightness Quick Setting".  Restricting to the
-    # Project's own <tids> (the old behavior) silently dropped every such Task from the
-    # export -- see profiles.get_profile_tasks, which resolves mid0/mid1 the same
-    # ownership-independent way for the Map/Diagram/Tree views.
-    task_ids = list(_project_child_ids(project_element, "tids"))
-    seen_task_ids = set(task_ids)
-    for profile_id in profile_ids:
-        profile_entry = all_profiles.get(profile_id)
-        if profile_entry is None:
-            continue
-        for child in profile_entry["xml"]:
-            if "mid" in child.tag and child.text and child.text not in seen_task_ids:
-                seen_task_ids.add(child.text)
-                task_ids.append(child.text)
-
-    # And the Tasks the Project's Scenes fire.  A Scene button's Task is reached from
-    # neither <tids> nor a Profile's <mid0>/<mid1> -- nothing links to it but the Scene
-    # element itself -- so without this the Scene imports and its buttons do nothing.  The
-    # walk lives in sceneedit (sceneedit.scene_task_ids) because it is a fact about Scenes,
-    # and the standalone Scene export needs exactly the same thing.  Last,
-    # after the two id sources above, so a Task that is already coming keeps its place
-    # rather than being re-ordered by which Scene happens to mention it.
-    for scene_element in scene_elements:
-        for task_id in scene_task_ids(scene_element):
-            if task_id not in seen_task_ids:
-                seen_task_ids.add(task_id)
-                task_ids.append(task_id)
+    task_ids = _export_task_ids(project_element, profile_ids, all_profiles, scene_elements)
 
     for task_id in task_ids:
         task_entry = all_tasks.get(task_id)

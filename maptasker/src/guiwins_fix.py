@@ -123,177 +123,219 @@ def build_fix_dialog(
         ui.notify(translate_string("No XML file has been loaded.  Get an XML file first."), type="warning")
         return None
 
-    # `persistent`, by the same rule as the Refactor and Find/Replace dialogs: a dialog
-    # holding work in progress or asking for a decision leaves on a button and nothing else.
-    # A list of half-made choices is both, and the pulldowns make it acute -- Quasar renders
-    # a select's popup OUTSIDE the card, so the click that picks a label would otherwise be
-    # the click that throws away every tick on the list.
-    with ui.dialog().props("persistent") as dialog, ui.card().classes("w-[1000px] max-w-full p-6"):
-        heading = f"{translate_string('Fix Findings')} -- {title}" if title else translate_string("Fix Findings")
-        ui.label(heading).classes("text-lg font-bold text-blue-600")
-        ui.label(translate_string(_BLURB)).classes("text-xs text-gray-500 italic mb-2 mt-1")
+    return _FixDialog(title, make_jump, rebuild_after_apply, save_configuration, state).build()
 
-        # The plan on screen.  Held in a dict rather than as a local because every closure
-        # below both reads and writes it, and it cannot be remembered on the view between
-        # openings: it closes over live elements, and holding one across a reopen is exactly
-        # the stale-handle case mapfix.apply's attachment check exists to catch.
-        held: dict = {"plan": None}
 
-        summary = ui.label("").classes("text-sm font-bold text-orange-500")
-        list_area = ui.scroll_area().classes("w-full h-[460px] border rounded dark:border-gray-700 mt-1")
+class _FixDialog:
+    """The Fix Findings dialog: the plan on screen, its widgets, and the handlers that work on them.
 
-        def ticker(plan: mapfix.Plan, position: int) -> Callable:
-            """One row's tick box: put this repair in or out of what Apply makes.
+    Every handler reads and writes the same plan and the same summary line, so they are methods
+    of one object rather than closures over a handful of locals.
+    """
 
-            A factory rather than a lambda built in the loop, for the usual reason: a lambda
-            would close over the loop variable and every box would tick the last row.
-            """
+    def __init__(
+        self,
+        title: str,
+        make_jump: Callable,
+        rebuild_after_apply: Callable[[], Coroutine],
+        save_configuration: Callable[[], Coroutine],
+        state: RunState,
+    ) -> None:
+        """
+        Args:
+            title: What the view this was opened from is called, or "" from the main window.
+            make_jump: How to follow a row to the object it names.
+            rebuild_after_apply: How to bring the rest of the window up to date once something has changed.
+            save_configuration: How to write the configuration to a file; returns whether to rescan.
+            state: The run's state.
+        """
+        self.title = title
+        self.make_jump = make_jump
+        self.rebuild_after_apply = rebuild_after_apply
+        self.save_configuration = save_configuration
+        self.state = state
+        # The plan on screen.  Held in a dict rather than as an attribute of its own because
+        # it cannot be remembered on the view between openings: it closes over live elements,
+        # and holding one across a reopen is exactly the stale-handle case mapfix.apply's
+        # attachment check exists to catch.
+        self.held: dict = {"plan": None}
+        self.dialog: ui.dialog
+        self.summary: ui.label
+        self.screen: _Screen
 
-            def ticked(event: object) -> None:
-                if getattr(event, "value", False):
-                    plan.selected.add(position)
-                else:
-                    plan.selected.discard(position)
-                summary.set_text(_summary_text(plan))
+    def build(self) -> ui.dialog:
+        """Draw the dialog and run the first scan."""
+        # `persistent`, by the same rule as the Refactor and Find/Replace dialogs: a dialog
+        # holding work in progress or asking for a decision leaves on a button and nothing else.
+        # A list of half-made choices is both, and the pulldowns make it acute -- Quasar renders
+        # a select's popup OUTSIDE the card, so the click that picks a label would otherwise be
+        # the click that throws away every tick on the list.
+        with ui.dialog().props("persistent") as self.dialog, ui.card().classes("w-[1000px] max-w-full p-6"):
+            title = self.title
+            heading = f"{translate_string('Fix Findings')} -- {title}" if title else translate_string("Fix Findings")
+            ui.label(heading).classes("text-lg font-bold text-blue-600")
+            ui.label(translate_string(_BLURB)).classes("text-xs text-gray-500 italic mb-2 mt-1")
 
-            return ticked
-
-        def chooser(plan: mapfix.Plan, position: int, box: ui.checkbox) -> Callable:
-            """One row's decision: remember it, and let the repair be ticked once it is made.
-
-            The tick box starts disabled for a repair whose Choice has no default -- which
-            label a broken 'Goto' was meant to name -- so the one decision nobody can make
-            for the user is one the dialog cannot be clicked past.  mapfix.apply refuses an
-            undecided repair as well; this is the half that stops it being offered.
-            """
-
-            def chosen(event: object) -> None:
-                raw = getattr(event, "value", "") or ""
-                # A number box hands back a float whatever its format string says, so "60"
-                # arrives as 60.0.  Canonicalised on the way in so that what is stored, what
-                # the line below says, and what gets written are one number -- see
-                # mapfix.whole_seconds, which is tolerant of it either way.
-                plan.chosen[position] = mapfix.whole_seconds(str(raw)) if isinstance(raw, (int, float)) else str(raw)
-                if plan.is_ready(position):
-                    box.enable()
-                else:
-                    box.disable()
-                    box.value = False
-                    plan.selected.discard(position)
-                screen.lines[position].set_text(plan.describe(position))
-                summary.set_text(_summary_text(plan))
-
-            return chosen
-
-        screen = _Screen(area=list_area, summary=summary, jump=make_jump, tick=ticker, choose=chooser)
-
-        def scan(*, restore: bool = False) -> None:
-            """Run the scan and show what it found.
-
-            `restore` carries the user's ticks and decisions across a rescan, by what they
-            point at rather than by where they sat -- see mapfix.Fix.identity.  Without it,
-            a rescan after editing something in another window would throw away every choice
-            already made, which is the work this dialog exists to collect.
-            """
-            previous = held["plan"] if restore else None
-            ticks = previous.ticked_identities() if previous is not None else set()
-            values = (
-                {previous.fixes[position].identity: value for position, value in previous.chosen.items()}
-                if previous is not None
-                else {}
+            self.summary = ui.label("").classes("text-sm font-bold text-orange-500")
+            list_area = ui.scroll_area().classes("w-full h-[460px] border rounded dark:border-gray-700 mt-1")
+            self.screen = _Screen(
+                area=list_area,
+                summary=self.summary,
+                jump=self.make_jump,
+                tick=self.ticker,
+                choose=self.chooser,
             )
 
-            plan = mapfix.plan_fixes(state.program_arguments.health_check_skip or [], state=state)
-            if previous is not None:
-                plan.restore(ticks, values)
-            held["plan"] = plan
-            _draw(plan, screen)
-
-        def set_all(*, ticked: bool) -> None:
-            """Tick or untick every repair that CAN be ticked, and redraw.
-
-            "That can be" is the whole of the difference from a plain select-all: a repair
-            waiting on a decision stays out, because ticking it would be ticking something
-            nobody has decided.
-            """
-            plan = held["plan"]
-            if plan is None:
-                return
-            plan.selected = (
-                {position for position in range(len(plan.fixes)) if plan.is_ready(position)} if ticked else set()
+            _build_buttons(
+                self.dialog,
+                {
+                    "tick_all": lambda: self.set_all(ticked=True),
+                    "tick_none": lambda: self.set_all(ticked=False),
+                    "rescan": lambda: self.scan(restore=True),
+                    "apply": self.do_apply,
+                    "save_file": self.do_save,
+                    "save": lambda: _save_preview(self.held["plan"]),
+                },
             )
-            _draw(plan, screen)
 
-        async def do_apply() -> None:
-            """The Apply button.  Makes exactly the repairs ticked on screen.
+            self.scan()
 
-            The list is rebuilt afterwards rather than the dialog closed: repairing eight
-            findings out of thirty is the ordinary way this gets used, and somebody who has
-            just done the eight easy ones should find the other twenty-two still in front of
-            them -- with the repaired ones gone, because the scan is run again.
-            """
-            plan = held["plan"]
-            if plan is None or not plan.selected:
-                ui.notify(translate_string("Tick something first."), type="warning")
-                return
+        return self.dialog
 
-            repaired, errors = mapfix.apply(plan, state=state)
-            for message in errors[:4]:
-                ui.notify(message, type="negative")
-            if len(errors) > 4:
-                ui.notify(
-                    f"{len(errors) - 4} {translate_string('more problems -- see the log.')}",
-                    type="negative",
-                )
+    def ticker(self, plan: mapfix.Plan, position: int) -> Callable:
+        """One row's tick box: put this repair in or out of what Apply makes.
 
-            if repaired:
-                ui.notify(
-                    f"{repaired} {translate_string('repaired.')} {translate_string('Undo is available.')}",
-                    type="positive",
-                    position="top",
-                )
-                # The rest of the window first: a repair can delete a Task, so an option list
-                # built before one offers names that no longer resolve -- the same reason Undo
-                # and Redo refresh them.
-                await rebuild_after_apply()
+        A factory rather than a lambda built in the loop, for the usual reason: a lambda
+        would close over the loop variable and every box would tick the last row.
+        """
 
-            # Ticks are NOT carried over.  What was just applied is gone from the new scan and
-            # anything that failed is still there, so a restored tick would be a tick on a
-            # repair that has already been tried and did not work.
-            scan()
+        def ticked(event: object) -> None:
+            if getattr(event, "value", False):
+                plan.selected.add(position)
+            else:
+                plan.selected.discard(position)
+            self.summary.set_text(_summary_text(plan))
 
-        async def do_save() -> None:
-            """The Save button: write the repairs -- and every other edit this session -- to a file.
+        return ticked
 
-            HERE BECAUSE THE REPAIRS ARE IN MEMORY AND NOTHING ELSE ON THIS SCREEN SAYS SO.
-            Apply changes the loaded configuration and no file, the same way every Edit dialog's
-            Ok does; without this the only way to get eight ticked repairs onto disk was to open
-            an editor on some unrelated object and press its own Save To Current File, which is
-            a strange place to have to go for the result of a press made here.
+    def chooser(self, plan: mapfix.Plan, position: int, box: ui.checkbox) -> Callable:
+        """One row's decision: remember it, and let the repair be ticked once it is made.
 
-            The list is rebuilt when the save reports it should be, and it must be: the switch
-            to the saved copy reloads the whole configuration, so every element the plan is
-            holding belongs to a tree nothing renders from any more.  Ticks and choices are
-            carried across by identity, so repairs decided and not yet applied survive it.
-            """
-            if await save_configuration():
-                scan(restore=True)
+        The tick box starts disabled for a repair whose Choice has no default -- which
+        label a broken 'Goto' was meant to name -- so the one decision nobody can make
+        for the user is one the dialog cannot be clicked past.  mapfix.apply refuses an
+        undecided repair as well; this is the half that stops it being offered.
+        """
 
-        _build_buttons(
-            dialog,
-            {
-                "tick_all": lambda: set_all(ticked=True),
-                "tick_none": lambda: set_all(ticked=False),
-                "rescan": lambda: scan(restore=True),
-                "apply": do_apply,
-                "save_file": do_save,
-                "save": lambda: _save_preview(held["plan"]),
-            },
+        def chosen(event: object) -> None:
+            raw = getattr(event, "value", "") or ""
+            # A number box hands back a float whatever its format string says, so "60"
+            # arrives as 60.0.  Canonicalised on the way in so that what is stored, what
+            # the line below says, and what gets written are one number -- see
+            # mapfix.whole_seconds, which is tolerant of it either way.
+            plan.chosen[position] = mapfix.whole_seconds(str(raw)) if isinstance(raw, (int, float)) else str(raw)
+            if plan.is_ready(position):
+                box.enable()
+            else:
+                box.disable()
+                box.value = False
+                plan.selected.discard(position)
+            self.screen.lines[position].set_text(plan.describe(position))
+            self.summary.set_text(_summary_text(plan))
+
+        return chosen
+
+    def scan(self, *, restore: bool = False) -> None:
+        """Run the scan and show what it found.
+
+        `restore` carries the user's ticks and decisions across a rescan, by what they
+        point at rather than by where they sat -- see mapfix.Fix.identity.  Without it,
+        a rescan after editing something in another window would throw away every choice
+        already made, which is the work this dialog exists to collect.
+        """
+        previous = self.held["plan"] if restore else None
+        ticks = previous.ticked_identities() if previous is not None else set()
+        values = (
+            {previous.fixes[position].identity: value for position, value in previous.chosen.items()}
+            if previous is not None
+            else {}
         )
 
-        scan()
+        plan = mapfix.plan_fixes(self.state.program_arguments.health_check_skip or [], state=self.state)
+        if previous is not None:
+            plan.restore(ticks, values)
+        self.held["plan"] = plan
+        _draw(plan, self.screen)
 
-    return dialog
+    def set_all(self, *, ticked: bool) -> None:
+        """Tick or untick every repair that CAN be ticked, and redraw.
+
+        "That can be" is the whole of the difference from a plain select-all: a repair
+        waiting on a decision stays out, because ticking it would be ticking something
+        nobody has decided.
+        """
+        plan = self.held["plan"]
+        if plan is None:
+            return
+        plan.selected = (
+            {position for position in range(len(plan.fixes)) if plan.is_ready(position)} if ticked else set()
+        )
+        _draw(plan, self.screen)
+
+    async def do_apply(self) -> None:
+        """The Apply button.  Makes exactly the repairs ticked on screen.
+
+        The list is rebuilt afterwards rather than the dialog closed: repairing eight
+        findings out of thirty is the ordinary way this gets used, and somebody who has
+        just done the eight easy ones should find the other twenty-two still in front of
+        them -- with the repaired ones gone, because the scan is run again.
+        """
+        plan = self.held["plan"]
+        if plan is None or not plan.selected:
+            ui.notify(translate_string("Tick something first."), type="warning")
+            return
+
+        repaired, errors = mapfix.apply(plan, state=self.state)
+        for message in errors[:4]:
+            ui.notify(message, type="negative")
+        if len(errors) > 4:
+            ui.notify(
+                f"{len(errors) - 4} {translate_string('more problems -- see the log.')}",
+                type="negative",
+            )
+
+        if repaired:
+            ui.notify(
+                f"{repaired} {translate_string('repaired.')} {translate_string('Undo is available.')}",
+                type="positive",
+                position="top",
+            )
+            # The rest of the window first: a repair can delete a Task, so an option list
+            # built before one offers names that no longer resolve -- the same reason Undo
+            # and Redo refresh them.
+            await self.rebuild_after_apply()
+
+        # Ticks are NOT carried over.  What was just applied is gone from the new scan and
+        # anything that failed is still there, so a restored tick would be a tick on a
+        # repair that has already been tried and did not work.
+        self.scan()
+
+    async def do_save(self) -> None:
+        """The Save button: write the repairs -- and every other edit this session -- to a file.
+
+        HERE BECAUSE THE REPAIRS ARE IN MEMORY AND NOTHING ELSE ON THIS SCREEN SAYS SO.
+        Apply changes the loaded configuration and no file, the same way every Edit dialog's
+        Ok does; without this the only way to get eight ticked repairs onto disk was to open
+        an editor on some unrelated object and press its own Save To Current File, which is
+        a strange place to have to go for the result of a press made here.
+
+        The list is rebuilt when the save reports it should be, and it must be: the switch
+        to the saved copy reloads the whole configuration, so every element the plan is
+        holding belongs to a tree nothing renders from any more.  Ticks and choices are
+        carried across by identity, so repairs decided and not yet applied survive it.
+        """
+        if await self.save_configuration():
+            self.scan(restore=True)
 
 
 # ##################################################################################

@@ -247,8 +247,9 @@ docstring-quotes = 'double'
 multiline-quotes = 'double'
 
 [tool.ruff.lint.mccabe]
-# Unlike Flake8, default to a complexity level of 15.
-max-complexity = 20
+# A ceiling, and as low as the code allows: the worst function sits at it.  The target for new code
+# is lower; see [tool.complexity-ratchet] below and scripts/complexity_ratchet.py.
+max-complexity = 15
 
 [tool.ruff.lint.per-file-ignores]
 # https://docs.astral.sh/ruff/rules/
@@ -261,6 +262,8 @@ max-complexity = 20
 # MapTasker's is loaded, and playwright is only there for the driver half of the one file.
 # S603: the one subprocess it starts is this same script, from the project's own interpreter.
 'scripts/capture_screens.py' = ['PLC0415', 'S603']
+# complexity_ratchet.py runs ruff to measure the functions, from the project's own interpreter.
+'scripts/complexity_ratchet.py' = ['S603']
 
 # ---------------------------------------------------------------------------
 # Deliberate, not debt. These stay.
@@ -297,7 +300,7 @@ max-complexity = 20
 'maptasker/src/deviceinv.py' = ['ANN201', 'F811']
 'maptasker/src/diagintr.py' = ['PLW2901']
 'maptasker/src/diagram.py' = ['PLW2901']
-'maptasker/src/format.py' = ['ARG002', 'C901', 'PLR0912', 'S105']
+'maptasker/src/format.py' = ['ARG002', 'S105']
 'maptasker/src/getfile.py' = ['ANN201', 'ANN202', 'D101', 'D102', 'N801', 'PLC0415']
 'maptasker/src/getputer.py' = ['PERF403']
 'maptasker/src/guiwins.py' = ['ARG001', 'ISC004']
@@ -307,15 +310,12 @@ max-complexity = 20
 # rules in the move (PLR0912, RUF100, SIM117), and guiwins_canvas.py needs no line at all.
 # The second split, into guiwins_views/_search/_nav, took C901 and SLF001 with it: the
 # view the private attributes belong to, and the one function too complex, both went.
-'maptasker/src/guiwins_designer_v2.py' = ['C901', 'SIM117']
-'maptasker/src/guiwins_profedit.py' = ['C901', 'PLR0912', 'PLR0915']
+'maptasker/src/guiwins_designer_v2.py' = ['SIM117']
 'maptasker/src/guiwins_search.py' = ['SLF001']
-'maptasker/src/guiwins_taskedit.py' = ['C901']
-'maptasker/src/guiwins_views.py' = ['C901', 'ISC004', 'SLF001']
+'maptasker/src/guiwins_views.py' = ['ISC004', 'SLF001']
 'maptasker/src/mapai.py' = ['F811']
 'maptasker/src/mapit.py' = ['ANN001', 'ARG001']
 'maptasker/src/mapjump.py' = ['I001']
-'maptasker/src/mapswap.py' = ['C901', 'PLR0912']
 'maptasker/src/maputil2.py' = ['A004']
 'maptasker/src/outline.py' = ['PLW2901', 'SIM102']
 'maptasker/src/prefers.py' = ['ISC001']
@@ -337,12 +337,28 @@ max-complexity = 20
 'maptasker/src/userintr_android.py' = ['F841', 'RUF059']
 
 [tool.ruff.lint.pylint]
-max-args = 15
-max-branches = 20
-max-returns = 10
-max-statements = 120
+# Ceilings, not targets: each is as low as the code allows, so the worst function in the
+# project sits right at it and a function any worse than that fails.  They were 15, 20, 10
+# and 120 until the largest functions were split up.  What new code is held to is lower still:
+# see [tool.complexity-ratchet] below and scripts/complexity_ratchet.py, which also keeps the
+# functions that are over it from growing.
+max-args = 9
+max-branches = 15
+max-returns = 9
+max-statements = 60
 max-locals = 20
 max-nested-blocks = 10
+
+# The targets scripts/complexity_ratchet.py holds every function to, as opposed to the ceilings
+# above, which nothing may pass.  A function over a target is listed, with how far over it is,
+# in scripts/complexity_baseline.json; that list can only shrink.  Fix a function and lower it
+# with `uv run python scripts/complexity_ratchet.py --update`.
+[tool.complexity-ratchet]
+statements = 50  # ruff PLR0915, the pylint default
+branches = 12  # ruff PLR0912, the pylint default
+complexity = 12  # ruff C901
+arguments = 8  # ruff PLR0913
+lines = 100  # first line of the def to its last, which ruff has no rule for
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = 'all'

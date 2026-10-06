@@ -111,6 +111,14 @@ jobs:
       - name: noqa ratchet
         run: uv run --no-sync python scripts/noqa_ratchet.py
 
+      # ruff's max-statements/-branches/-args and mccabe limits in pyproject.toml are ceilings
+      # no function may pass. The targets new code is held to are lower
+      # ([tool.complexity-ratchet]); the functions still over them are listed, measure by
+      # measure, in scripts/complexity_baseline.json. This fails on a new one, on one that got
+      # worse, and on one that got better until the baseline is lowered to match (--update).
+      - name: complexity ratchet
+        run: uv run --no-sync python scripts/complexity_ratchet.py
+
       # ruff's ANN rules require annotations; pyright ([tool.pyright] in pyproject.toml,
       # basic mode) checks that they are right. The errors that predate it are counted per
       # file and rule in scripts/pyright_baseline.json: this fails on any new one, and on a

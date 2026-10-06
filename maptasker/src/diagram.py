@@ -291,9 +291,57 @@ def flatten_with_quotes(string_list: list) -> str:
     return ", ".join([f"{task_delimeter}{s}{task_delimeter}" for s in string_list])
 
 
+def _real_task_name(task_name: str) -> str:
+    """The Task's own name, in case it has a Screen element 'click' name associated with it."""
+    position = task_name.find(":")
+    real_task_name = task_name.split("&nbsp;", maxsplit=1)[0]
+    if position != -1 and "," in task_name:
+        scene_task_type_to_check = task_name.split(",")[1].split(":", maxsplit=1)[0][1:]
+        for scene_task_type in SCENE_TASK_TYPES.values():
+            if scene_task_type == scene_task_type_to_check:
+                temp = task_name.find(":")
+                if temp != -1:
+                    real_task_name = task_name[temp + 2 :]
+                break
+    return real_task_name
+
+
+def _add_blank_lines_for_calls(output_task_lines: list, prime_task: dict | None, state: RunState) -> None:
+    """Add a blank line afterwards for each called Task (one per task name) for yet-to-be-populated connectors."""
+    with contextlib.suppress(KeyError):
+        for calls_task in prime_task["call_tasks"]:
+            output_task_lines.append("")
+
+            # Keep track of all Tasks being called
+            the_task = calls_task
+            if state.called_task_tracker:
+                if the_task in state.called_task_tracker:
+                    state.called_task_tracker[the_task]["total_number"] += 1
+                else:
+                    state.called_task_tracker[the_task] = {
+                        "total_number": 1,
+                        "counter": 0,
+                    }
+            else:
+                state.called_task_tracker[the_task] = {
+                    "total_number": 1,
+                    "counter": 0,
+                }
+
+
+def _interject_upward_bars(output_task_lines: list, last_upward_bar: list) -> None:
+    """Interject the "|" for previous Tasks under Profile."""
+    for bar_char in last_upward_bar:
+        for line_num, line in enumerate(output_task_lines):
+            if len(line) > bar_char and not line[bar_char]:
+                output_task_lines[line_num] = f"{line[:bar_char]}│{line[bar_char:]}"
+            if len(line) <= bar_char:
+                output_task_lines[line_num] = f"{line.ljust(bar_char)}│"
+
+
 def add_quotes(
     output_task_lines: list,
-    last_upward_bar: int,
+    last_upward_bar: list,
     task: dict,
     task_type: str,
     called_by_tasks: list,
@@ -319,17 +367,7 @@ def add_quotes(
     call_tasks = ""
     task_name = task["name"]
 
-    # Correct the name in case it has a Screen element 'click' name associated with it.
-    position = task_name.find(":")
-    real_task_name = task_name.split("&nbsp;")[0]
-    if position != -1 and "," in task_name:
-        scene_task_type_to_check = task_name.split(",")[1].split(":")[0][1:]
-        for scene_task_type in SCENE_TASK_TYPES.values():
-            if scene_task_type == scene_task_type_to_check:
-                temp = task_name.find(":")
-                if temp != -1:
-                    real_task_name = task_name[temp + 2 :]
-                break
+    real_task_name = _real_task_name(task_name)
 
     # Get the primary task pointer for this task.
     try:
@@ -367,34 +405,9 @@ def add_quotes(
     if task_name not in found_tasks:
         found_tasks.append(task_name)
 
-    # Add a blank line afterwards for each called Task (one per task name) for yet-to-be-populated connectors.
-    with contextlib.suppress(KeyError):
-        for calls_task in prime_task["call_tasks"]:
-            output_task_lines.append("")
+    _add_blank_lines_for_calls(output_task_lines, prime_task, state)
 
-            # Keep track of all Tasks being called
-            the_task = calls_task
-            if state.called_task_tracker:
-                if the_task in state.called_task_tracker:
-                    state.called_task_tracker[the_task]["total_number"] += 1
-                else:
-                    state.called_task_tracker[the_task] = {
-                        "total_number": 1,
-                        "counter": 0,
-                    }
-            else:
-                state.called_task_tracker[the_task] = {
-                    "total_number": 1,
-                    "counter": 0,
-                }
-
-    # Interject the "|" for previous Tasks under Profile
-    for bar_char in last_upward_bar:
-        for line_num, line in enumerate(output_task_lines):
-            if len(line) > bar_char and not line[bar_char]:
-                output_task_lines[line_num] = f"{line[:bar_char]}│{line[bar_char:]}"
-            if len(line) <= bar_char:
-                output_task_lines[line_num] = f"{line.ljust(bar_char)}│"
+    _interject_upward_bars(output_task_lines, last_upward_bar)
 
     return found_tasks, last_upward_bar, output_task_lines
 
@@ -1581,6 +1594,43 @@ def cleanup_missing_straight_lines(output_lines: list, num: str, line: str) -> l
     return output_lines
 
 
+def _adjust_position_for_arrow(output_lines: list, num: int, position: int) -> int:
+    """Adjust position if there's a right arrow corner down to the left."""
+    if output_lines[num][position - 1] == right_arrow_corner_down:
+        return position - 1
+    return position
+
+
+def _insert_bar_if_blank(new_line: str, position: int) -> str:
+    """Insert a bar at the position if there are two blank spaces."""
+    if new_line[position - 1] == " " and new_line[position] == " ":
+        return new_line[:position] + bar + new_line[position + 1 :]
+    return new_line
+
+
+def _process_elbows(output_lines: list, num: int, previous_line_num: int, position: int) -> int:
+    """Handle cases where the current character is an elbow."""
+    new_line = output_lines[previous_line_num]
+    while output_lines[num][position] == angle_elbow:
+        if len(new_line) <= position:
+            new_line = new_line.ljust(position + 1, " ")
+        if new_line[position] == straight_line or new_line[position] == " ":
+            output_lines[previous_line_num] = _insert_bar_if_blank(
+                new_line,
+                position,
+            )
+            previous_line_num -= 1
+            new_line = output_lines[previous_line_num]
+        elif new_line[position] == box_line:
+            return -1
+        else:
+            previous_line_num -= 1
+            if previous_line_num == -1:
+                break
+            new_line = output_lines[previous_line_num]
+    return previous_line_num
+
+
 def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
     """
     Cleanup missing bars in the diagram.
@@ -1593,50 +1643,12 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
     Returns:
         list: The modified list of strings.
     """
-
-    def adjust_position_for_arrow(position: int) -> int:
-        """Adjust position if there's a right arrow corner down to the left."""
-        if output_lines[num][position - 1] == right_arrow_corner_down:
-            return position - 1
-        return position
-
-    def insert_bar_if_blank(new_line: str, position: int) -> str:
-        """Insert a bar at the position if there are two blank spaces."""
-        if new_line[position - 1] == " " and new_line[position] == " ":
-            return new_line[:position] + bar + new_line[position + 1 :]
-        return new_line
-
-    def process_elbows(previous_line_num: int, position: int) -> int:
-        """Handle cases where the current character is an elbow."""
-        new_line = output_lines[previous_line_num]
-        _insert_bar_if_blank = insert_bar_if_blank
-        while output_lines[num][position] == angle_elbow:
-            if len(new_line) <= position:
-                new_line = new_line.ljust(position + 1, " ")
-            if new_line[position] == straight_line or new_line[position] == " ":
-                output_lines[previous_line_num] = _insert_bar_if_blank(
-                    new_line,
-                    position,
-                )
-                previous_line_num -= 1
-                new_line = output_lines[previous_line_num]
-            elif new_line[position] == box_line:
-                return -1
-            else:
-                previous_line_num -= 1
-                if previous_line_num == -1:
-                    break
-                new_line = output_lines[previous_line_num]
-        return previous_line_num
-
     previous_line_num = num - 1
 
     # Backup a position if "╰" is found just before position.
-    position = adjust_position_for_arrow(position)
+    position = _adjust_position_for_arrow(output_lines, num, position)
 
     # Now go through and insert a bars as necessary
-    _insert_bar_if_blank = insert_bar_if_blank
-    _process_elbows = process_elbows
     while previous_line_num >= 0:
         new_line = output_lines[previous_line_num]
 
@@ -1649,7 +1661,7 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
             output_lines[previous_line_num] = _insert_bar_if_blank(new_line, position)
             previous_line_num -= 1
         elif output_lines[num][position] == angle_elbow:
-            previous_line_num = _process_elbows(previous_line_num, position)
+            previous_line_num = _process_elbows(output_lines, num, previous_line_num, position)
             if previous_line_num == -1:
                 break
         else:
@@ -2106,6 +2118,125 @@ def build_network_map(data: dict, progress: dict, config: RunConfig, state: RunS
 
 
 # Print the network map.
+def _write_diagram_file(config: RunConfig, state: RunState) -> tuple[list[str], dict[int, int]]:
+    """Write the diagram to its file.
+
+    Returns:
+        The exact lines as they were written, and how each netmap_output index maps to its
+        final line number.
+    """
+    output_dir = output_path(DIAGRAM_FILE, state=state)
+    first_project = True
+    project_translated = translate_string("Project:") if config.language not in ("Arabic", "English") else "Project:"
+    # Collect the exact lines as they're written to DIAGRAM_FILE (spacer lines included, icons
+    # trimmed), so PrimeItems.diagram_connectors can be computed directly from what the GUI
+    # Diagram view will actually display -- see compute_diagram_connector_groups(). Track how
+    # the netmap_output index (num) maps to the final line number too, since the spacer lines
+    # written between projects shift every subsequent line -- needed to keep the connector
+    # seeds (recorded in netmap_output's coordinates) in sync with final_lines.
+    final_lines = []
+    netmap_to_file_line = {}
+    with open(str(output_dir), "w", encoding="utf-8") as mapfile:
+        for num, line in enumerate(state.netmap_output):
+            if (
+                not first_project
+                and box_line in line
+                and num + 1 < len(state.netmap_output)
+                and project_translated in state.netmap_output[num + 1]
+            ):
+                if bar in state.netmap_output[num - 1]:
+                    spacer = "".join(char if char == bar else " " for char in state.netmap_output[num + 1]) + "\n"
+                else:
+                    spacer = "\n"
+                mapfile.write(spacer)
+                mapfile.write(spacer)
+                final_lines.append(spacer.rstrip("\n"))
+                final_lines.append(spacer.rstrip("\n"))
+            if project_translated in line:
+                first_project = False
+
+            netmap_to_file_line[num] = len(final_lines)
+            line = remove_icon(line)
+            mapfile.write(f"{line}\n")
+            # A handful of netmap_output entries (e.g. the header hint) carry an embedded "\n"
+            # of their own, which becomes two physical lines once written -- split the same way
+            # here so final_lines stays row-for-row aligned with the file.
+            final_lines.extend(line.split("\n"))
+
+        # Say so in the diagram itself when it was cut short at the view limit (check_limit),
+        # the way the Map view's file carries its own limit message -- the file is read on its
+        # own as often as it is displayed in the GUI, and a diagram that simply stops has no
+        # other way of telling the reader that there was more.  Written after the loop so it
+        # cannot disturb the netmap_output-to-file line mapping the connectors rely on.
+        if state.diagram_limit_msg:
+            mapfile.write(f"\n{state.diagram_limit_msg}\n")
+            final_lines.extend(["", state.diagram_limit_msg])
+        mapfile.close()
+    return final_lines, netmap_to_file_line
+
+
+def _resolve_object_anchors(final_lines: list[str], netmap_to_file_line: dict[int, int], state: RunState) -> None:
+    """Record each object's anchor against the file's own line numbering and the exact span of its name."""
+    # The last step for the object seeds: onto the file's own line numbering, and then
+    # from "the name is somewhere on this line" to the exact span of it, measured
+    # against the line as written.  Resolved here rather than in the browser because
+    # this is the only place that holds both the finished line and the name that was
+    # drawn into it -- remove_icon has run by now, and a column worked out before it
+    # would be a column off by one on every line it touched.
+    anchors = {}
+    for anchor, (row, snippet) in state.diagram_object_seeds.items():
+        file_line = netmap_to_file_line.get(row)
+        if file_line is None or file_line >= len(final_lines):
+            continue
+        anchors[anchor] = (file_line, *_place(final_lines[file_line], snippet, _BOX_WALL in snippet))
+    state.diagram_anchors = anchors
+
+
+def _resolve_object_placements(
+    final_lines: list[str],
+    netmap_to_file_line: dict[int, int],
+    state: RunState,
+) -> None:
+    """Record every OTHER drawing of each object as well, which is what the interactive view makes clickable."""
+    # And the same for every OTHER drawing of each object, which is what the interactive
+    # view makes clickable (see _record).  Resolved in draw order, keeping a cursor per
+    # line: a Task run by two Profiles drawn side by side is written on that line twice,
+    # and each drawing has to be given the copy of the name it is actually drawn as
+    # rather than both being handed the first.
+    placements = []
+    claimed: dict[int, int] = {}
+    for anchor, row, snippet in state.diagram_object_placements:
+        file_line = netmap_to_file_line.get(row)
+        if file_line is None or file_line >= len(final_lines):
+            continue
+        line = final_lines[file_line]
+        column, length = _place(line, snippet, _BOX_WALL in snippet, claimed.get(file_line, 0))
+        if length:
+            # In code points, which is what the next search along this line counts in;
+            # the column recorded is in UTF-16 units, which is what the browser counts in.
+            claimed[file_line] = line.find(snippet, claimed.get(file_line, 0)) + len(snippet)
+        placements.append((anchor, file_line, column, length))
+    state.diagram_object_placements = placements
+    logger.debug(f"diagram: {len(state.diagram_anchors)} object anchors recorded")
+    state.diagram_object_seeds = {}
+
+
+def _build_diagram_model(final_lines: list[str], state: RunState) -> None:
+    """Assemble everything the interactive Diagram view acts on, now that every position is final."""
+    # Everything the interactive Diagram view acts on, assembled now that every position
+    # is final -- see diagintr.build_model.  Built here rather than in the view because
+    # this is the only place that holds the finished lines, the anchors resolved onto
+    # them and the connectors grown from their seeds all at once.
+    state.diagram_model = diagintr.build_model(final_lines, state=state)
+    state.diagram_object_placements = []
+    logger.debug(
+        f"diagram: {len(state.diagram_model['nodes'])} clickable nodes, "
+        f"{len(state.diagram_model['regions'])} foldable Projects, "
+        f"{len(state.diagram_model['edges'])} calls",
+    )
+    state.diagram_object_targets = {}
+
+
 def network_map(network: dict, config: RunConfig, state: RunState) -> None:
     """
     Output a network map of the Tasker configuration.
@@ -2145,55 +2276,7 @@ def network_map(network: dict, config: RunConfig, state: RunState) -> None:
 
     # Redirect print to a file
     if state.netmap_output:
-        output_dir = output_path(DIAGRAM_FILE, state=state)
-        first_project = True
-        project_translated = (
-            translate_string("Project:") if config.language not in ("Arabic", "English") else "Project:"
-        )
-        # Collect the exact lines as they're written to DIAGRAM_FILE (spacer lines included, icons
-        # trimmed), so PrimeItems.diagram_connectors can be computed directly from what the GUI
-        # Diagram view will actually display -- see compute_diagram_connector_groups(). Track how
-        # the netmap_output index (num) maps to the final line number too, since the spacer lines
-        # written between projects shift every subsequent line -- needed to keep the connector
-        # seeds (recorded in netmap_output's coordinates) in sync with final_lines.
-        final_lines = []
-        netmap_to_file_line = {}
-        with open(str(output_dir), "w", encoding="utf-8") as mapfile:
-            for num, line in enumerate(state.netmap_output):
-                if (
-                    not first_project
-                    and box_line in line
-                    and num + 1 < len(state.netmap_output)
-                    and project_translated in state.netmap_output[num + 1]
-                ):
-                    if bar in state.netmap_output[num - 1]:
-                        spacer = "".join(char if char == bar else " " for char in state.netmap_output[num + 1]) + "\n"
-                    else:
-                        spacer = "\n"
-                    mapfile.write(spacer)
-                    mapfile.write(spacer)
-                    final_lines.append(spacer.rstrip("\n"))
-                    final_lines.append(spacer.rstrip("\n"))
-                if project_translated in line:
-                    first_project = False
-
-                netmap_to_file_line[num] = len(final_lines)
-                line = remove_icon(line)
-                mapfile.write(f"{line}\n")
-                # A handful of netmap_output entries (e.g. the header hint) carry an embedded "\n"
-                # of their own, which becomes two physical lines once written -- split the same way
-                # here so final_lines stays row-for-row aligned with the file.
-                final_lines.extend(line.split("\n"))
-
-            # Say so in the diagram itself when it was cut short at the view limit (check_limit),
-            # the way the Map view's file carries its own limit message -- the file is read on its
-            # own as often as it is displayed in the GUI, and a diagram that simply stops has no
-            # other way of telling the reader that there was more.  Written after the loop so it
-            # cannot disturb the netmap_output-to-file line mapping the connectors rely on.
-            if state.diagram_limit_msg:
-                mapfile.write(f"\n{state.diagram_limit_msg}\n")
-                final_lines.extend(["", state.diagram_limit_msg])
-            mapfile.close()
+        final_lines, netmap_to_file_line = _write_diagram_file(config, state)
 
         remapped_seeds = [
             (netmap_to_file_line[row], col, call)
@@ -2203,54 +2286,9 @@ def network_map(network: dict, config: RunConfig, state: RunState) -> None:
         _remap_call_edges(netmap_to_file_line, state=state)
         state.diagram_connectors = compute_diagram_connector_groups(final_lines, remapped_seeds, state=state)
 
-        # The last step for the object seeds: onto the file's own line numbering, and then
-        # from "the name is somewhere on this line" to the exact span of it, measured
-        # against the line as written.  Resolved here rather than in the browser because
-        # this is the only place that holds both the finished line and the name that was
-        # drawn into it -- remove_icon has run by now, and a column worked out before it
-        # would be a column off by one on every line it touched.
-        anchors = {}
-        for anchor, (row, snippet) in state.diagram_object_seeds.items():
-            file_line = netmap_to_file_line.get(row)
-            if file_line is None or file_line >= len(final_lines):
-                continue
-            anchors[anchor] = (file_line, *_place(final_lines[file_line], snippet, _BOX_WALL in snippet))
-        state.diagram_anchors = anchors
-
-        # And the same for every OTHER drawing of each object, which is what the interactive
-        # view makes clickable (see _record).  Resolved in draw order, keeping a cursor per
-        # line: a Task run by two Profiles drawn side by side is written on that line twice,
-        # and each drawing has to be given the copy of the name it is actually drawn as
-        # rather than both being handed the first.
-        placements = []
-        claimed: dict[int, int] = {}
-        for anchor, row, snippet in state.diagram_object_placements:
-            file_line = netmap_to_file_line.get(row)
-            if file_line is None or file_line >= len(final_lines):
-                continue
-            line = final_lines[file_line]
-            column, length = _place(line, snippet, _BOX_WALL in snippet, claimed.get(file_line, 0))
-            if length:
-                # In code points, which is what the next search along this line counts in;
-                # the column recorded is in UTF-16 units, which is what the browser counts in.
-                claimed[file_line] = line.find(snippet, claimed.get(file_line, 0)) + len(snippet)
-            placements.append((anchor, file_line, column, length))
-        state.diagram_object_placements = placements
-        logger.debug(f"diagram: {len(state.diagram_anchors)} object anchors recorded")
-        state.diagram_object_seeds = {}
-
-        # Everything the interactive Diagram view acts on, assembled now that every position
-        # is final -- see diagintr.build_model.  Built here rather than in the view because
-        # this is the only place that holds the finished lines, the anchors resolved onto
-        # them and the connectors grown from their seeds all at once.
-        state.diagram_model = diagintr.build_model(final_lines, state=state)
-        state.diagram_object_placements = []
-        logger.debug(
-            f"diagram: {len(state.diagram_model['nodes'])} clickable nodes, "
-            f"{len(state.diagram_model['regions'])} foldable Projects, "
-            f"{len(state.diagram_model['edges'])} calls",
-        )
-        state.diagram_object_targets = {}
+        _resolve_object_anchors(final_lines, netmap_to_file_line, state)
+        _resolve_object_placements(final_lines, netmap_to_file_line, state)
+        _build_diagram_model(final_lines, state)
 
         # Cleanup
         state.netmap_output = []

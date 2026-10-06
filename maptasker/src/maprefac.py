@@ -1861,40 +1861,97 @@ def _plan_duplicate_project(project_name: str, new_name: str, state: RunState) -
     plan.steps = _duplicate_project_steps(new_name, chosen, task_ids, profile_ids, scene_names, where, state=state)
     plan.warnings = _duplicate_project_warnings(project_name, chosen, task_ids, state=state)
 
-    def run() -> list[str]:
-        reserved: set[str] = set()
-        new_task_ids: dict[str, str] = {}
-        # Tasks first: the Profiles copied below point at them by id, and the Project's own
-        # <tids> is the list those ids go into.
-        for task_id in task_ids:
-            source = _table("all_tasks", state=state).get(task_id)
+    plan.run = _ProjectDuplicator(project_element, new_name, chosen, task_ids, profile_ids, scene_names, state).run
+    return plan
+
+
+class _ProjectDuplicator:
+    """The copying a Project duplication does when it is applied.
+
+    What is copied is decided at plan time and held here: the Tasks, then the Profiles that
+    point at them, then the Scenes, then the by-name references inside all of it, then the
+    Project that lists them.  The ids of the new Tasks and Profiles are drawn as they are
+    made, which is why they are state of this object rather than of the plan.
+    """
+
+    def __init__(
+        self,
+        project_element: Element,
+        new_name: str,
+        chosen: _ProjectCopy,
+        task_ids: list[str],
+        profile_ids: list[str],
+        scene_names: list[str],
+        state: RunState,
+    ) -> None:
+        """
+        Args:
+            project_element: The Project being copied.
+            new_name: The copy's name.
+            chosen: The names decided for the copies of everything it owns.
+            task_ids: The ids of its Tasks.
+            profile_ids: The ids of its Profiles.
+            scene_names: The names of its Scenes.
+            state: The run's state.
+        """
+        self.project_element = project_element
+        self.new_name = new_name
+        self.chosen = chosen
+        self.task_ids = task_ids
+        self.profile_ids = profile_ids
+        self.scene_names = scene_names
+        self.state = state
+        self.reserved: set[str] = set()
+        self.new_task_ids: dict[str, str] = {}
+        self.new_profile_ids: dict[str, str] = {}
+
+    def run(self) -> list[str]:
+        """Make the copy, and return the errors (none, as nothing here can fail part-way)."""
+        self._copy_tasks()
+        self._copy_profiles()
+        self._copy_scenes()
+        self._repoint_copies()
+        self._register_project()
+        return []
+
+    def _next_id(self) -> str:
+        """An id no Task or Profile has, and none this copy has taken either."""
+        new_id = str(taskedit.next_unique_task_or_profile_id(self.reserved, state=self.state))
+        self.reserved.add(new_id)
+        return new_id
+
+    def _copy_tasks(self) -> None:
+        """Tasks first: the Profiles copied next point at them by id, and the Project's own
+        <tids> is the list those ids go into.
+        """
+        for task_id in self.task_ids:
+            source = _table("all_tasks", state=self.state).get(task_id)
             if source is None:
                 continue
-            new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=state))
-            reserved.add(new_id)
-            new_task_ids[task_id] = new_id
+            new_id = self._next_id()
+            self.new_task_ids[task_id] = new_id
             taskedit.register_new_task(
                 taskedit.EditableTask(
                     task_id=new_id,
-                    task_element=_copy_task_element(source["xml"], new_id, chosen.task_names[task_id]),
+                    task_element=_copy_task_element(source["xml"], new_id, self.chosen.task_names[task_id]),
                 ),
-                chosen.task_names[task_id],
-                state=state,
+                self.chosen.task_names[task_id],
+                state=self.state,
             )
 
-        new_profile_ids: dict[str, str] = {}
-        for profile_id in profile_ids:
-            source = _table("all_profiles", state=state).get(profile_id)
+    def _copy_profiles(self) -> None:
+        """Copy each Profile, pointing its Entry and Exit Task links at the copies of those Tasks."""
+        for profile_id in self.profile_ids:
+            source = _table("all_profiles", state=self.state).get(profile_id)
             if source is None:
                 continue
-            new_id = str(taskedit.next_unique_task_or_profile_id(reserved, state=state))
-            reserved.add(new_id)
-            new_profile_ids[profile_id] = new_id
-            element = _copy_profile_element(source["xml"], new_id, chosen.profile_names[profile_id])
+            new_id = self._next_id()
+            self.new_profile_ids[profile_id] = new_id
+            element = _copy_profile_element(source["xml"], new_id, self.chosen.profile_names[profile_id])
             for child in element:
                 if child.tag in ("mid0", "mid1"):
                     current = (child.text or "").strip()
-                    child.text = new_task_ids.get(current, current)
+                    child.text = self.new_task_ids.get(current, current)
             profedit.register_new_profile(
                 profedit.EditableProfile(
                     profile_id=new_id,
@@ -1902,52 +1959,56 @@ def _plan_duplicate_project(project_name: str, new_name: str, state: RunState) -
                     entry_task_id=element.findtext("mid0", "") or "",
                     exit_task_id=element.findtext("mid1", "") or "",
                 ),
-                chosen.profile_names[profile_id],
-                state=state,
+                self.chosen.profile_names[profile_id],
+                state=self.state,
             )
 
-        for scene_name in scene_names:
-            source = _table("all_scenes", state=state).get(scene_name)
+    def _copy_scenes(self) -> None:
+        """Copy each Scene under the name chosen for it."""
+        for scene_name in self.scene_names:
+            source = _table("all_scenes", state=self.state).get(scene_name)
             if source is None:
                 continue
-            copied = chosen.scene_names[scene_name]
-            _table("all_scenes", state=state)[copied] = {
+            copied = self.chosen.scene_names[scene_name]
+            _table("all_scenes", state=self.state)[copied] = {
                 "xml": _copy_scene_element(source["xml"], copied),
                 "name": copied,
             }
 
-        # Every by-name reference inside everything just copied, repointed at the copies --
-        # after all of them exist, so a Task calling a Task copied later is still caught.
+    def _repoint_copies(self) -> None:
+        """Every by-name reference inside everything just copied, repointed at the copies --
+        after all of them exist, so a Task calling a Task copied later is still caught.
+        """
+        state = self.state
         name_map = {
-            _table("all_tasks", state=state).get(old, {}).get("name", "") or old: chosen.task_names[old]
-            for old in new_task_ids
+            _table("all_tasks", state=state).get(old, {}).get("name", "") or old: self.chosen.task_names[old]
+            for old in self.new_task_ids
         }
-        for new_id in new_task_ids.values():
-            _repoint_names(_table("all_tasks", state=state)[new_id]["xml"], name_map, chosen.scene_names)
-        for scene_name in scene_names:
-            copied = chosen.scene_names.get(scene_name)
+        for new_id in self.new_task_ids.values():
+            _repoint_names(_table("all_tasks", state=state)[new_id]["xml"], name_map, self.chosen.scene_names)
+        for scene_name in self.scene_names:
+            copied = self.chosen.scene_names.get(scene_name)
             if copied in _table("all_scenes", state=state):
-                _repoint_names(_table("all_scenes", state=state)[copied]["xml"], name_map, chosen.scene_names)
+                _repoint_names(_table("all_scenes", state=state)[copied]["xml"], name_map, self.chosen.scene_names)
 
-        element = copy.deepcopy(project_element)
-        element.set("sr", _next_project_sr(state=state))
+    def _register_project(self) -> None:
+        """Register the Project that lists the copies, with an id of its own."""
+        chosen = self.chosen
+        element = copy.deepcopy(self.project_element)
+        element.set("sr", _next_project_sr(state=self.state))
         _set_child_text(element, "id", str(uuid.uuid4()))
-        _set_child_text(element, "name", new_name)
+        _set_child_text(element, "name", self.new_name)
         projedit.register_new_project(
-            projedit.EditableProject(project_name=new_name, project_element=element), state=state
+            projedit.EditableProject(project_name=self.new_name, project_element=element), state=self.state
         )
         # Written through set_project_members rather than by hand, so a Project that had no
         # <scenes> of its own gets one in Tasker's child order, and the <mdate> is stamped.
         for tag, ids in (
-            ("tids", [new_task_ids[old] for old in task_ids if old in new_task_ids]),
-            ("pids", [new_profile_ids[old] for old in profile_ids if old in new_profile_ids]),
-            ("scenes", [chosen.scene_names[old] for old in scene_names if old in chosen.scene_names]),
+            ("tids", [self.new_task_ids[old] for old in self.task_ids if old in self.new_task_ids]),
+            ("pids", [self.new_profile_ids[old] for old in self.profile_ids if old in self.new_profile_ids]),
+            ("scenes", [chosen.scene_names[old] for old in self.scene_names if old in chosen.scene_names]),
         ):
             projedit.set_project_members(element, tag, ids)
-        return []
-
-    plan.run = run
-    return plan
 
 
 def _duplicate_project_steps(

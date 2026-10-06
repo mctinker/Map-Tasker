@@ -1520,168 +1520,187 @@ class MapTaskerEventHandlers(
 
         # Map view
         if view_type == "map":
-            if self.state.xml_root is None:
-                gui.display_message_box(
-                    translate_string("No XML data loaded! Please select a valid XML file first."),
-                    "Orange",
-                )
-                return
-
-            # Say so before the work starts, and keep saying it right through it.  A large
-            # configuration takes real time to build below, and the one-second toast that
-            # used to announce it was gone for almost all of that wait -- leaving a window
-            # that looked like the button had done nothing.  This one carries a spinner and
-            # no timeout, and comes down in the "finally" below whichever way this ends.
-            building = _busy_banner(
-                f"{translate_string('Building the')} {window_title}.  {translate_string('Please stand by ...')}",
-            )
-            try:
-                # 1. Clear out stale error codes before starting execution paths
-                clear_error()
-
-                # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
-                self.state.output_lines.output_lines.clear()
-                output_the_front_matter(current_config(), state=self.state)
-
-                try:
-                    # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely
-                    await run.io_bound(build_html, "", state=self.state)
-                except MapTaskerError as e:
-                    # Intercept background termination codes gracefully.  This was
-                    # "except SystemExit" and had to be: build_html and everything under it
-                    # ended the process outright on any error.  They raise this now, which
-                    # is an ordinary Exception, so a failed build is one failed build --
-                    # the window stays up and says what happened.
-                    error_code_extracted = e.exit_code
-                    if error_code_extracted == 6:
-                        gui.display_message_box(
-                            translate_string(
-                                "Map view creation skipped: No valid XML source found or action canceled."
-                            ),
-                            "Orange",
-                        )
-                    else:
-                        gui.display_message_box(
-                            f"Map processing halted with system code: {error_code_extracted}", "Red"
-                        )
-                    return
-
-                # Check if an entry-point processing failure occurred during build_html
-                if getattr(self.state, "error_code", 0) > 0:
-                    gui.display_message_box(f"Map processing error: {self.state.error_msg}", "Orange")
-                    clear_error()
-                    return
-
-                # Now process the data for display in the gui.  How big the Map is comes
-                # from the build rather than from output_lines, which holds nothing at all
-                # when the Map that was already on disk was shown again (see mapcache).
-                output_length = self.state.map_output_line_count
-
-                # Clear out our inline data to free up memory for the GUI display, since we no longer need it.
-                self.state.output_lines.output_lines.clear()
-
-                # Display the map in its own browser window/tab rather than the main window.
-                # A "goto" rides along on the URL rather than being pushed into the window
-                # afterwards: the popout is its own page with its own timing, and only it knows
-                # when the Map has finished streaming in and is therefore scrollable.
-                #
-                # "scope" says which Project this Map was built for -- always, not just for a
-                # jump -- so that a later clicked finding can tell whether the Map already on
-                # screen is one that can show what it points at, or whether it has to build its
-                # own.  Read here rather than remembered on PrimeItems because the popout is
-                # constructed after this call returns, by which time any overrides for this one
-                # build have been put back.
-                query = urlencode({"goto": goto, "scope": self.state.program_arguments.single_project_name or ""})
-                _open_popout_window(f"/popout/map?{query}", getattr(gui, "open_view_in_new_window", False))
-
-                # Check for hard stop limit and notify user if output was truncated
-                if output_length > gui.view_limit:
-                    gui.display_message_box(
-                        f"Map view truncated {output_length} lines to {gui.view_limit} lines due to view limit.",
-                        "Orange",
-                    )
-                gui.display_message_box(translate_string("Map View opened in a new browser window."), "Green")
-            finally:
-                _clear_busy_banner(building)
+            await self._view_map(window_title, goto)
 
         # Setup diagram view.
         elif view_type in ("diagram", "misc"):
-            # Check if we have a Project or Profile
             if view_type == "diagram":
-                if self.state.tasker_root_elements["all_projects"] or self.state.tasker_root_elements["all_profiles"]:
-                    gui.display_message_box(
-                        translate_string("The 'Diagram' view is running in the background.  Please stand by..."),
-                        "Green",
-                    )
-
-                    # Offload the configuration outliner to an IO-bound thread safely
-                    await run.io_bound(outline_the_configuration, state=self.state)
-
-                    # Check if an entry-point processing failure occurred (e.g. check_limit() in
-                    # diagram.py tripping the view_limit) during outline_the_configuration(). Unlike
-                    # the "map" branch above, this used to go unchecked: on failure, network_map()
-                    # (diagram.py) skips writing DIAGRAM_FILE and computing PrimeItems.diagram_connectors
-                    # entirely, so the popout below would silently reopen whatever stale diagram (and
-                    # stale/absent connector data) happened to already be on disk from an earlier,
-                    # successful run -- which looks like a normal diagram but whose connectors no
-                    # longer highlight anything when clicked, with no indication anything went wrong.
-                    if getattr(self.state, "error_code", 0) > 0:
-                        gui.display_message_box(f"Diagram processing error: {self.state.error_msg}", "Orange")
-                        clear_error()
-                        return
-
-                    # Display the diagram in its own browser window/tab rather than the main window.
-                    # What the app was showing when this Diagram was drawn, carried so the
-                    # view can say so on its own toolbar -- and say when the selection has
-                    # moved on since.  A Diagram is a snapshot: nothing rebuilds it when the
-                    # user picks a different single object, so its hotlinks go on pointing at
-                    # the objects of the selection it was built for, and there was no sign of
-                    # that anywhere on screen.
-                    built_for = urlencode({"built_for": mapjump.current_scope(state=self.state).phrase})
-                    _open_popout_window(
-                        f"/popout/diagram?{built_for}",
-                        getattr(gui, "open_view_in_new_window", False),
-                    )
-
-                    # Cut short at the view limit?  Say so, as the "map" branch above does -- the
-                    # diagram is still shown, up to the point the limit allowed.
-                    if self.state.diagram_limit_msg:
-                        gui.display_message_box(self.state.diagram_limit_msg, "Orange")
-                    gui.display_message_box(translate_string("Diagram View opened in a new browser window."), "Green")
-                else:
-                    gui.display_message_box(
-                        translate_string("No XML data loaded! Please select a valid XML file first."),
-                        "Orange",
-                    )
-
+                await self._view_diagram()
             else:
-                gui.display_message_box(
-                    translate_string("The 'Misc' view is running in the background.  Please stand by..."),
-                    "LimeGreen",
-                )
-                gui.textview = NiceGuiTextView(
-                    gui,
-                    title="Misc View",
-                    the_data=[],
-                )
+                self._view_misc()
 
         elif view_type == "tree":
-            tree_data = gui.build_the_tree()
-            if tree_data:
-                gui.textview = NiceGuiTreeView(gui, "Tree View", items=tree_data)
-            else:
-                gui.display_message_box(translate_string("No Project(s) Found in XML!"), "Red")
-                return
+            self._view_tree()
         else:
-            ui.notify(
-                translate_string("No XML data loaded! Please Get XML from Android or Local drive first."),
-                type="warning",
-                position="top",
-            )
+            self._view_invalid()
+
+    async def _view_map(self: "MapTaskerEventHandlers", window_title: str, goto: str) -> None:
+        """Build the Map and open it in a window of its own."""
+        gui = self.gui
+        if self.state.xml_root is None:
             gui.display_message_box(
-                translate_string("Invalid view type specified. Use 'map', 'diagram', or 'tree'."),
-                "Red",
+                translate_string("No XML data loaded! Please select a valid XML file first."),
+                "Orange",
             )
+            return
+
+        # Say so before the work starts, and keep saying it right through it.  A large
+        # configuration takes real time to build below, and the one-second toast that
+        # used to announce it was gone for almost all of that wait -- leaving a window
+        # that looked like the button had done nothing.  This one carries a spinner and
+        # no timeout, and comes down in the "finally" below whichever way this ends.
+        building = _busy_banner(
+            f"{translate_string('Building the')} {window_title}.  {translate_string('Please stand by ...')}",
+        )
+        try:
+            # 1. Clear out stale error codes before starting execution paths
+            clear_error()
+
+            # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
+            self.state.output_lines.output_lines.clear()
+            output_the_front_matter(current_config(), state=self.state)
+
+            try:
+                # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely
+                await run.io_bound(build_html, "", state=self.state)
+            except MapTaskerError as e:
+                # Intercept background termination codes gracefully.  This was
+                # "except SystemExit" and had to be: build_html and everything under it
+                # ended the process outright on any error.  They raise this now, which
+                # is an ordinary Exception, so a failed build is one failed build --
+                # the window stays up and says what happened.
+                error_code_extracted = e.exit_code
+                if error_code_extracted == 6:
+                    gui.display_message_box(
+                        translate_string("Map view creation skipped: No valid XML source found or action canceled."),
+                        "Orange",
+                    )
+                else:
+                    gui.display_message_box(f"Map processing halted with system code: {error_code_extracted}", "Red")
+                return
+
+            # Check if an entry-point processing failure occurred during build_html
+            if getattr(self.state, "error_code", 0) > 0:
+                gui.display_message_box(f"Map processing error: {self.state.error_msg}", "Orange")
+                clear_error()
+                return
+
+            # Now process the data for display in the gui.  How big the Map is comes
+            # from the build rather than from output_lines, which holds nothing at all
+            # when the Map that was already on disk was shown again (see mapcache).
+            output_length = self.state.map_output_line_count
+
+            # Clear out our inline data to free up memory for the GUI display, since we no longer need it.
+            self.state.output_lines.output_lines.clear()
+
+            # Display the map in its own browser window/tab rather than the main window.
+            # A "goto" rides along on the URL rather than being pushed into the window
+            # afterwards: the popout is its own page with its own timing, and only it knows
+            # when the Map has finished streaming in and is therefore scrollable.
+            #
+            # "scope" says which Project this Map was built for -- always, not just for a
+            # jump -- so that a later clicked finding can tell whether the Map already on
+            # screen is one that can show what it points at, or whether it has to build its
+            # own.  Read here rather than remembered on PrimeItems because the popout is
+            # constructed after this call returns, by which time any overrides for this one
+            # build have been put back.
+            query = urlencode({"goto": goto, "scope": self.state.program_arguments.single_project_name or ""})
+            _open_popout_window(f"/popout/map?{query}", getattr(gui, "open_view_in_new_window", False))
+
+            # Check for hard stop limit and notify user if output was truncated
+            if output_length > gui.view_limit:
+                gui.display_message_box(
+                    f"Map view truncated {output_length} lines to {gui.view_limit} lines due to view limit.",
+                    "Orange",
+                )
+            gui.display_message_box(translate_string("Map View opened in a new browser window."), "Green")
+        finally:
+            _clear_busy_banner(building)
+
+    async def _view_diagram(self: "MapTaskerEventHandlers") -> None:
+        """Build the Diagram and open it in a window of its own."""
+        gui = self.gui
+        if self.state.tasker_root_elements["all_projects"] or self.state.tasker_root_elements["all_profiles"]:
+            gui.display_message_box(
+                translate_string("The 'Diagram' view is running in the background.  Please stand by..."),
+                "Green",
+            )
+
+            # Offload the configuration outliner to an IO-bound thread safely
+            await run.io_bound(outline_the_configuration, state=self.state)
+
+            # Check if an entry-point processing failure occurred (e.g. check_limit() in
+            # diagram.py tripping the view_limit) during outline_the_configuration(). Unlike
+            # the "map" branch above, this used to go unchecked: on failure, network_map()
+            # (diagram.py) skips writing DIAGRAM_FILE and computing PrimeItems.diagram_connectors
+            # entirely, so the popout below would silently reopen whatever stale diagram (and
+            # stale/absent connector data) happened to already be on disk from an earlier,
+            # successful run -- which looks like a normal diagram but whose connectors no
+            # longer highlight anything when clicked, with no indication anything went wrong.
+            if getattr(self.state, "error_code", 0) > 0:
+                gui.display_message_box(f"Diagram processing error: {self.state.error_msg}", "Orange")
+                clear_error()
+                return
+
+            # Display the diagram in its own browser window/tab rather than the main window.
+            # What the app was showing when this Diagram was drawn, carried so the
+            # view can say so on its own toolbar -- and say when the selection has
+            # moved on since.  A Diagram is a snapshot: nothing rebuilds it when the
+            # user picks a different single object, so its hotlinks go on pointing at
+            # the objects of the selection it was built for, and there was no sign of
+            # that anywhere on screen.
+            built_for = urlencode({"built_for": mapjump.current_scope(state=self.state).phrase})
+            _open_popout_window(
+                f"/popout/diagram?{built_for}",
+                getattr(gui, "open_view_in_new_window", False),
+            )
+
+            # Cut short at the view limit?  Say so, as the "map" branch above does -- the
+            # diagram is still shown, up to the point the limit allowed.
+            if self.state.diagram_limit_msg:
+                gui.display_message_box(self.state.diagram_limit_msg, "Orange")
+            gui.display_message_box(translate_string("Diagram View opened in a new browser window."), "Green")
+        else:
+            gui.display_message_box(
+                translate_string("No XML data loaded! Please select a valid XML file first."),
+                "Orange",
+            )
+
+    def _view_misc(self: "MapTaskerEventHandlers") -> None:
+        """Open the Misc view, which finds its own content."""
+        gui = self.gui
+        gui.display_message_box(
+            translate_string("The 'Misc' view is running in the background.  Please stand by..."),
+            "LimeGreen",
+        )
+        gui.textview = NiceGuiTextView(
+            gui,
+            title="Misc View",
+            the_data=[],
+        )
+
+    def _view_tree(self: "MapTaskerEventHandlers") -> None:
+        """Show the Tree view, or say there is nothing to show it of."""
+        gui = self.gui
+        tree_data = gui.build_the_tree()
+        if tree_data:
+            gui.textview = NiceGuiTreeView(gui, "Tree View", items=tree_data)
+        else:
+            gui.display_message_box(translate_string("No Project(s) Found in XML!"), "Red")
+            return
+
+    def _view_invalid(self: "MapTaskerEventHandlers") -> None:
+        """Say that the view asked for is not one there is."""
+        gui = self.gui
+        ui.notify(
+            translate_string("No XML data loaded! Please Get XML from Android or Local drive first."),
+            type="warning",
+            position="top",
+        )
+        gui.display_message_box(
+            translate_string("Invalid view type specified. Use 'map', 'diagram', or 'tree'."),
+            "Red",
+        )
 
     def clear_view_event(self: "MapTaskerEventHandlers") -> None:
         """Clears the current view and resets the textview, closing any open Map/Diagram popout tabs."""

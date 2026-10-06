@@ -2274,6 +2274,13 @@ def test_no_save_to_android_path_calls_the_device_on_the_event_loop() -> None:
         "save_project_to_android_event",
         "save_scene_to_android_event",
         "_offer_into_tasker",
+        # What _offer_into_tasker hands the rest of an import to: the steps of _IntoTaskerRun.
+        "run_offer",
+        "_import_is_confirmable",
+        "_offer_to_device",
+        "_report_outcome",
+        # The confirm-and-fall-back tail of save_task_to_android_event.
+        "_confirm_task_upload",
     }
     device_calls = {
         "read_android_file",
@@ -2358,15 +2365,21 @@ def test_every_device_write_asks_tasker_what_it_already_has() -> None:
     assert asks == paths, f"no Tasker check, or no check_ids, in: {sorted(paths - asks)}"
 
     importers = {"import_profile_into_tasker_event", "import_project_into_tasker_event", "import_scene_into_tasker_event"}
+    # The box travels in the IntoTaskerOffer each importer hands to _offer_into_tasker.
     passes_box = {
         node.name
         for node in ast.walk(tree)
         if isinstance(node, ast.AsyncFunctionDef)
         and node.name in importers
         and any(
-            isinstance(call.func, ast.Attribute)
-            and call.func.attr == "_offer_into_tasker"
+            isinstance(call.func, ast.Name)
+            and call.func.id == "IntoTaskerOffer"
             and any(keyword.arg == "check_ids" for keyword in call.keywords)
+            for call in ast.walk(node)
+            if isinstance(call, ast.Call)
+        )
+        and any(
+            isinstance(call.func, ast.Attribute) and call.func.attr == "_offer_into_tasker"
             for call in ast.walk(node)
             if isinstance(call, ast.Call)
         )

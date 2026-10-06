@@ -138,6 +138,131 @@ def output_list_of_actions(
         state.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
+def _find_task(the_item: str, list_type: str, state: RunState) -> tuple:
+    """Find the Task an output line is about, by its name or its id.
+
+    Returns:
+        The Task's xml element (None if it could not be found), its name and its id.
+    """
+    line_left_arrow_ascii = "&#11013;"
+    line_right_arrow_ascii = "&#11157;"
+    # Get the Task name so that we can get the Task xml element
+    # "--Task:" denotes a Task in a Scene which we will handle below
+    if UNNAMED in the_item:
+        index = the_item.find(UNNAMED)
+        task_name = the_item[: index + len(UNNAMED)]
+    else:
+        temp_id = "x" if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
+        # Cleanup the task name from any extra stuff added.
+        task_name = temp_id[0].split("&nbsp;")[0]
+        if line_left_arrow_ascii in task_name:
+            task_name = task_name.split(line_left_arrow_ascii)[0].strip()
+        elif line_right_arrow_ascii in task_name:
+            task_name = task_name.split(line_right_arrow_ascii)[0].strip()
+    # Find the Task
+    the_task, task_id = get_value_if_match(
+        state.tasker_root_elements["all_tasks"],
+        "name",
+        task_name,
+        "xml",
+    )
+
+    # Get the Task name from the ID if it wasn't found above.
+    if the_task is None and task_name == "x":
+        the_task = state.tasker_root_elements["all_tasks"][the_item]["xml"]
+        if the_task is None and UNNAMED_ITEM in the_item:
+            task_id = get_taskid_from_unnamed_task(the_item)
+            the_task = state.tasker_root_elements["all_tasks"][task_id]["xml"]
+        task_name = state.tasker_root_elements["all_tasks"][the_item]["name"]
+        task_id = the_item
+
+    # It is a valid Task.  If unknown and it is an Entry or Exit (valid) task, add it to the count of unnamed Tasks.
+    elif UNNAMED in the_item and ("Entry Task" in the_item or "Exit" in the_item):
+        state.task_count_unnamed += 1
+
+    # Still no Task?  The unnamed Task's name in the output line can carry display-only
+    # markup that defeats the name lookup above: 'pretty' inserts '<br>' in front of the
+    # '[' in a name like 'Media Control Cmd=Play [Simula....799 (Unnamed)' (see
+    # proclist.do_single_task).  Every unnamed Task name ends in '.{task id} (Unnamed)',
+    # so fall back to finding the Task by its ID.
+    if the_task is None and UNNAMED in task_name and "." in task_name:
+        task_id = get_taskid_from_unnamed_task(task_name)
+        if task_info := state.tasker_root_elements["all_tasks"].get(task_id):
+            the_task = task_info["xml"]
+            task_name = task_info["name"]
+    return the_task, task_name, task_id
+
+
+def _output_task_actions(
+    the_task: Element,
+    task_name: str,
+    task_id: str,
+    list_type: str,
+    the_item: str,
+    config: RunConfig,
+    state: RunState,
+) -> None:
+    """Output the Task's actions, if it has any, noting it if it has too many."""
+    # If we have Task Actions, then output them.  The action list is a list of the Action output lines already
+    # formatted.
+    if alist := tasks.get_actions(the_task, config, state=state):
+        # Track the task and action count if too many actions.
+        action_count = len(alist) - count_unique_substring(
+            alist,
+            "...indent=",
+        )
+        # Add the Task to our warning limit dictionary.
+        if (
+            config.task_action_warning_limit < 100
+            and action_count > config.task_action_warning_limit
+            and task_name not in state.task_action_warnings
+        ):
+            state.task_action_warnings[task_name] = {
+                "count": action_count,
+                "id": task_id,
+            }
+
+        # Start a list of Actions
+        state.output_lines.add_line_to_output(
+            1,
+            "",
+            FormatLine.dont_format_line,
+        )
+        action_count = 1
+
+        # Process any <Share> information from TaskerNet
+        if config.taskernet:
+            share(the_task, "tasktab", Target(TASK, task_id), state=state, config=config)
+            # Add a spacer if detail is 0
+            if config.display_detail_level == 0:
+                state.output_lines.add_line_to_output(
+                    0,
+                    "",
+                    FormatLine.dont_format_line,
+                )
+
+        output_list_of_actions(action_count, alist, the_item, config, task_id, state=state)
+        # End list if Scene Task
+        if "&#45;&#45;Task:" in list_type:
+            state.output_lines.add_line_to_output(
+                3,
+                "",
+                FormatLine.dont_format_line,
+            )
+            if config.twisty:
+                state.output_lines.add_line_to_output(
+                    3,
+                    "",
+                    FormatLine.dont_format_line,
+                )
+        # End the list of Actions
+        state.output_lines.add_line_to_output(
+            3,
+            "",
+            FormatLine.dont_format_line,
+        )
+
+
 # For this specific Task, get its Actions and output the Task and Actions
 def get_task_actions_and_output(
     the_task: Element,
@@ -165,54 +290,9 @@ def get_task_actions_and_output(
     4. Output actions list with formatting
     5. Handle errors if no task found
     """
-    line_left_arrow_ascii = "&#11013;"
-    line_right_arrow_ascii = "&#11157;"
     # If the Task is unnamed or we are doing more detail, find the Task.
     if UNNAMED in the_item or config.display_detail_level > 0:
-        # Get the Task name so that we can get the Task xml element
-        # "--Task:" denotes a Task in a Scene which we will handle below
-        if UNNAMED in the_item:
-            index = the_item.find(UNNAMED)
-            task_name = the_item[: index + len(UNNAMED)]
-        else:
-            temp_id = "x" if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
-            # Cleanup the task name from any extra stuff added.
-            task_name = temp_id[0].split("&nbsp;")[0]
-            if line_left_arrow_ascii in task_name:
-                task_name = task_name.split(line_left_arrow_ascii)[0].strip()
-            elif line_right_arrow_ascii in task_name:
-                task_name = task_name.split(line_right_arrow_ascii)[0].strip()
-        # Find the Task
-        the_task, task_id = get_value_if_match(
-            state.tasker_root_elements["all_tasks"],
-            "name",
-            task_name,
-            "xml",
-        )
-
-        # Get the Task name from the ID if it wasn't found above.
-        if the_task is None and task_name == "x":
-            the_task = state.tasker_root_elements["all_tasks"][the_item]["xml"]
-            if the_task is None and UNNAMED_ITEM in the_item:
-                task_id = get_taskid_from_unnamed_task(the_item)
-                the_task = state.tasker_root_elements["all_tasks"][task_id]["xml"]
-            task_name = state.tasker_root_elements["all_tasks"][the_item]["name"]
-            task_id = the_item
-
-        # It is a valid Task.  If unknown and it is an Entry or Exit (valid) task, add it to the count of unnamed Tasks.
-        elif UNNAMED in the_item and ("Entry Task" in the_item or "Exit" in the_item):
-            state.task_count_unnamed += 1
-
-        # Still no Task?  The unnamed Task's name in the output line can carry display-only
-        # markup that defeats the name lookup above: 'pretty' inserts '<br>' in front of the
-        # '[' in a name like 'Media Control Cmd=Play [Simula....799 (Unnamed)' (see
-        # proclist.do_single_task).  Every unnamed Task name ends in '.{task id} (Unnamed)',
-        # so fall back to finding the Task by its ID.
-        if the_task is None and UNNAMED in task_name and "." in task_name:
-            task_id = get_taskid_from_unnamed_task(task_name)
-            if task_info := state.tasker_root_elements["all_tasks"].get(task_id):
-                the_task = task_info["xml"]
-                task_name = task_info["name"]
+        the_task, task_name, task_id = _find_task(the_item, list_type, state)
 
         # Keep tabs on the tasks processed so far.
         if task_id not in tasks_found:
@@ -220,63 +300,6 @@ def get_task_actions_and_output(
 
         # Get Task actions
         if the_task is not None:
-            # If we have Task Actions, then output them.  The action list is a list of the Action output lines already
-            # formatted.
-            if alist := tasks.get_actions(the_task, config, state=state):
-                # Track the task and action count if too many actions.
-                action_count = len(alist) - count_unique_substring(
-                    alist,
-                    "...indent=",
-                )
-                # Add the Task to our warning limit dictionary.
-                if (
-                    config.task_action_warning_limit < 100
-                    and action_count > config.task_action_warning_limit
-                    and task_name not in state.task_action_warnings
-                ):
-                    state.task_action_warnings[task_name] = {
-                        "count": action_count,
-                        "id": task_id,
-                    }
-
-                # Start a list of Actions
-                state.output_lines.add_line_to_output(
-                    1,
-                    "",
-                    FormatLine.dont_format_line,
-                )
-                action_count = 1
-
-                # Process any <Share> information from TaskerNet
-                if config.taskernet:
-                    share(the_task, "tasktab", Target(TASK, task_id), state=state, config=config)
-                    # Add a spacer if detail is 0
-                    if config.display_detail_level == 0:
-                        state.output_lines.add_line_to_output(
-                            0,
-                            "",
-                            FormatLine.dont_format_line,
-                        )
-
-                output_list_of_actions(action_count, alist, the_item, config, task_id, state=state)
-                # End list if Scene Task
-                if "&#45;&#45;Task:" in list_type:
-                    state.output_lines.add_line_to_output(
-                        3,
-                        "",
-                        FormatLine.dont_format_line,
-                    )
-                    if config.twisty:
-                        state.output_lines.add_line_to_output(
-                            3,
-                            "",
-                            FormatLine.dont_format_line,
-                        )
-                # End the list of Actions
-                state.output_lines.add_line_to_output(
-                    3,
-                    "",
-                    FormatLine.dont_format_line,
-                )
+            _output_task_actions(the_task, task_name, task_id, list_type, the_item, config, state)
         else:
             error_handler("No Task found!!!", 0, state=state)

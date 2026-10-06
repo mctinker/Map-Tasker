@@ -124,16 +124,75 @@ def build_restore_dialog(
         )
         return None
 
-    # `persistent`, by the Refactor and Fix Findings dialogs' rule: a dialog holding a preview
-    # leaves on a button and nothing else.  The pulldown makes it acute -- Quasar renders a
-    # select's popup outside the card, so the click that picks a configuration would otherwise
-    # be the click that closes the dialog.
-    with ui.dialog().props("persistent") as dialog, ui.card().classes("w-[1000px] max-w-full p-6"):
-        ui.label(translate_string("Restore From History")).classes("text-lg font-bold text-blue-600")
-        ui.label(translate_string(_BLURB)).classes("text-xs text-gray-500 italic mb-2 mt-1")
+    return _RestoreDialog(make_jump, rebuild_after_apply, save_configuration, state, held).build()
 
-        choice = ui.select(
-            {position: snapshot.described() for position, snapshot in enumerate(held.snapshots)},
+
+class _RestoreDialog:
+    """The Restore From History dialog: its widgets, and the handlers that work on them.
+
+    Every handler reads and writes the dialog's _State and draws into the same few widgets, so
+    they are methods of one object rather than closures over a dozen locals.
+    """
+
+    def __init__(
+        self,
+        make_jump: Callable,
+        rebuild_after_apply: Callable[[], Coroutine],
+        save_configuration: Callable[[], Coroutine],
+        state: RunState,
+        held: _State,
+    ) -> None:
+        """
+        Args:
+            make_jump: How to follow a row to the object it names.
+            rebuild_after_apply: How to bring the rest of the window up to date once something has changed.
+            save_configuration: How to write the configuration to a file.
+            state: The run's state.
+            held: What the dialog is holding, which starts out as the snapshots in the history.
+        """
+        self.make_jump = make_jump
+        self.rebuild_after_apply = rebuild_after_apply
+        self.save_configuration = save_configuration
+        self.state = state
+        self.held = held
+        self.dialog: ui.dialog
+        self.choice: ui.select
+        self.summary: ui.label
+        self.left_out: ui.column
+        self.list_area: ui.scroll_area
+        self.preview_heading: ui.label
+        self.preview_area: ui.scroll_area
+        self.apply_button: ui.button
+
+    def build(self) -> ui.dialog:
+        """Draw the dialog, and start reading the newest configuration once it is on a page."""
+        # `persistent`, by the Refactor and Fix Findings dialogs' rule: a dialog holding a preview
+        # leaves on a button and nothing else.  The pulldown makes it acute -- Quasar renders a
+        # select's popup outside the card, so the click that picks a configuration would otherwise
+        # be the click that closes the dialog.
+        with ui.dialog().props("persistent") as self.dialog, ui.card().classes("w-[1000px] max-w-full p-6"):
+            ui.label(translate_string("Restore From History")).classes("text-lg font-bold text-blue-600")
+            ui.label(translate_string(_BLURB)).classes("text-xs text-gray-500 italic mb-2 mt-1")
+
+            self._build_choice()
+            self.summary = ui.label("").classes("text-sm font-bold text-orange-500 mt-2")
+            self.left_out = ui.column().classes("w-full gap-0")
+            self.list_area = ui.scroll_area().classes("w-full h-[300px] border rounded dark:border-gray-700 mt-1")
+            self.preview_heading = ui.label("").classes("text-sm font-bold text-blue-600 mt-3")
+            self.preview_area = ui.scroll_area().classes("w-full h-[200px] border rounded dark:border-gray-700 mt-1")
+            self._build_buttons()
+
+            self.choice.on_value_change(lambda event: self.load(event.value or 0))
+            # A timer rather than an await here: this function builds the dialog and returns it,
+            # and the first read has to happen once the dialog is on a page to write into.
+            ui.timer(0.1, lambda: self.load(0), once=True)
+
+        return self.dialog
+
+    def _build_choice(self) -> None:
+        """The pulldown of configurations in the history, with its explanation underneath."""
+        self.choice = ui.select(
+            {position: snapshot.described() for position, snapshot in enumerate(self.held.snapshots)},
             value=0,
             label=translate_string("Restore from the configuration as it was on"),
         ).classes("w-full")
@@ -148,122 +207,21 @@ def build_restore_dialog(
             ),
         ).classes("text-xs text-gray-500")
 
-        summary = ui.label("").classes("text-sm font-bold text-orange-500 mt-2")
-        left_out = ui.column().classes("w-full gap-0")
-        list_area = ui.scroll_area().classes("w-full h-[300px] border rounded dark:border-gray-700 mt-1")
-        preview_heading = ui.label("").classes("text-sm font-bold text-blue-600 mt-3")
-        preview_area = ui.scroll_area().classes("w-full h-[200px] border rounded dark:border-gray-700 mt-1")
-
-        def clear_preview() -> None:
-            """Throw the preview away and take Apply with it -- the Refactor dialog's one rule."""
-            held.plan = None
-            held.previewed = None
-            preview_heading.set_text("")
-            preview_area.clear()
-            apply_button.disable()
-
-        def show_preview(candidate: maprestore.Candidate) -> None:
-            """Plan one row's restore against the configuration as it is NOW, and draw it.
-
-            Planned at the click, not when the list was drawn: another dialog can have edited
-            since, and every check the plan makes -- is the id free, is the name taken, is the
-            Project here -- is only true for a moment.
-            """
-            if held.older is None or held.snapshot is None:
-                return
-            plan = maprestore.plan_restore(candidate, held.older, held.snapshot.described(), state=state)
-            held.plan = plan
-            held.previewed = candidate
-            preview_heading.set_text(translate_string("Preview -- nothing has changed yet"))
-            _draw_preview(preview_area, plan, make_jump)
-            if plan.can_apply:
-                apply_button.enable()
-            else:
-                apply_button.disable()
-
-        async def load(position: int) -> None:
-            """Read the chosen configuration from the history and list what it can restore.
-
-            Off the event loop: expanding and parsing a snapshot is megabytes of work, the same
-            reason Changes Since does it there.
-            """
-            if held.busy:
-                return
-            held.busy = True
-            clear_preview()
-            held.snapshot = held.snapshots[position]
-            # What was restored is only true of the snapshot it was restored from.
-            held.applied.clear()
-            summary.set_text(translate_string("Reading that configuration..."))
-            list_area.clear()
-            left_out.clear()
-            try:
-                result = await run.io_bound(_read, held.snapshot, state=state)
-            finally:
-                held.busy = False
-            # None from nicegui means the wait was cancelled or the app is stopping.
-            if result is None:
-                return
-            older, offer, problem = result
-            if problem:
-                summary.set_text("")
-                ui.notify(translate_string(problem), type="negative")
-                return
-            held.older, held.offer = older, offer
-            _draw_list(list_area, left_out, summary, offer, held.applied, make_jump, show_preview)
-
-        async def rescan() -> None:
-            """List again against the configuration as it now is -- after a restore, or a save."""
-            if held.older is None:
-                await load(choice.value or 0)
-                return
-            clear_preview()
-            offer = await run.io_bound(
-                maprestore.candidates, held.older, current_configuration(state=state), state=state
-            )
-            if offer is None:
-                return
-            held.offer = offer
-            _draw_list(list_area, left_out, summary, offer, held.applied, make_jump, show_preview)
-
-        async def do_apply() -> None:
-            """Apply exactly the plan on screen.  One press of Undo takes it back."""
-            plan = held.plan
-            if plan is None:
-                ui.notify(translate_string("Press 'Restore this' on a row first."), type="warning")
-                return
-            done, errors = maprestore.restore(plan, state=state)
-            for message in errors[:4]:
-                ui.notify(message, type="negative")
-            if not done:
-                return
-            held.mark_applied()
-            ui.notify(f"{plan.what}.  {translate_string('Undo is available.')}", type="positive", position="top")
-            await rebuild_after_apply()
-            await rescan()
-
-        async def do_save() -> None:
-            """Write the whole configuration to a timestamped copy -- see guiwins_fix's own.
-
-            Rescanned afterwards, and it must be: the switch to the saved copy reloads the whole
-            configuration.  The snapshot being read is untouched by that, so it stays chosen.
-            """
-            if await save_configuration():
-                await rescan()
-
+    def _build_buttons(self) -> None:
+        """The row of buttons along the bottom: Apply, Cancel Preview, Save To Current File and Close."""
         with ui.row().classes("w-full justify-end mt-4 gap-2"):
-            apply_button = ui.button(translate_string("Apply"), on_click=do_apply).classes("px-4")
-            apply_button.props("color=orange")
-            apply_button.disable()
+            self.apply_button = ui.button(translate_string("Apply"), on_click=self.do_apply).classes("px-4")
+            self.apply_button.props("color=orange")
+            self.apply_button.disable()
             _tip(
-                apply_button,
+                self.apply_button,
                 "Make the restore the preview describes, and nothing else.\n\n"
                 "Greyed out until a row's 'Restore this' has drawn a preview that can be applied.\n\n"
                 "One press of Undo afterwards puts the configuration back as it is now.\n\n",
             )
-            ui.button(translate_string("Cancel Preview"), on_click=clear_preview).props("outline")
+            ui.button(translate_string("Cancel Preview"), on_click=self.clear_preview).props("outline")
             _tip(
-                ui.button(translate_string("Save To Current File"), color="green", on_click=do_save).classes(
+                ui.button(translate_string("Save To Current File"), color="green", on_click=self.do_save).classes(
                     "text-white px-4",
                 ),
                 "Write the whole configuration -- what you have restored and every other edit made this "
@@ -271,14 +229,121 @@ def build_restore_dialog(
                 "written to.\n\n"
                 "Until you press this, a restore exists only in memory and is lost on exit.\n\n",
             )
-            ui.button(translate_string("Close"), on_click=dialog.close).props("color=red").classes("text-white px-4")
+            ui.button(translate_string("Close"), on_click=self.dialog.close).props("color=red").classes(
+                "text-white px-4",
+            )
 
-        choice.on_value_change(lambda event: load(event.value or 0))
-        # A timer rather than an await here: this function builds the dialog and returns it,
-        # and the first read has to happen once the dialog is on a page to write into.
-        ui.timer(0.1, lambda: load(0), once=True)
+    def clear_preview(self) -> None:
+        """Throw the preview away and take Apply with it -- the Refactor dialog's one rule."""
+        self.held.plan = None
+        self.held.previewed = None
+        self.preview_heading.set_text("")
+        self.preview_area.clear()
+        self.apply_button.disable()
 
-    return dialog
+    def show_preview(self, candidate: maprestore.Candidate) -> None:
+        """Plan one row's restore against the configuration as it is NOW, and draw it.
+
+        Planned at the click, not when the list was drawn: another dialog can have edited
+        since, and every check the plan makes -- is the id free, is the name taken, is the
+        Project here -- is only true for a moment.
+        """
+        held = self.held
+        if held.older is None or held.snapshot is None:
+            return
+        plan = maprestore.plan_restore(candidate, held.older, held.snapshot.described(), state=self.state)
+        held.plan = plan
+        held.previewed = candidate
+        self.preview_heading.set_text(translate_string("Preview -- nothing has changed yet"))
+        _draw_preview(self.preview_area, plan, self.make_jump)
+        if plan.can_apply:
+            self.apply_button.enable()
+        else:
+            self.apply_button.disable()
+
+    async def load(self, position: int) -> None:
+        """Read the chosen configuration from the history and list what it can restore.
+
+        Off the event loop: expanding and parsing a snapshot is megabytes of work, the same
+        reason Changes Since does it there.
+        """
+        held = self.held
+        if held.busy:
+            return
+        held.busy = True
+        self.clear_preview()
+        held.snapshot = held.snapshots[position]
+        # What was restored is only true of the snapshot it was restored from.
+        held.applied.clear()
+        self.summary.set_text(translate_string("Reading that configuration..."))
+        self.list_area.clear()
+        self.left_out.clear()
+        try:
+            result = await run.io_bound(_read, held.snapshot, state=self.state)
+        finally:
+            held.busy = False
+        # None from nicegui means the wait was cancelled or the app is stopping.
+        if result is None:
+            return
+        older, offer, problem = result
+        if problem:
+            self.summary.set_text("")
+            ui.notify(translate_string(problem), type="negative")
+            return
+        held.older, held.offer = older, offer
+        self._draw_list(offer)
+
+    async def rescan(self) -> None:
+        """List again against the configuration as it now is -- after a restore, or a save."""
+        held = self.held
+        if held.older is None:
+            await self.load(self.choice.value or 0)
+            return
+        self.clear_preview()
+        offer = await run.io_bound(
+            maprestore.candidates, held.older, current_configuration(state=self.state), state=self.state
+        )
+        if offer is None:
+            return
+        held.offer = offer
+        self._draw_list(offer)
+
+    def _draw_list(self, offer: maprestore.Offer) -> None:
+        """Draw the rows the offer lists, each with a button that previews its restore."""
+        _draw_list(
+            self.list_area,
+            self.left_out,
+            self.summary,
+            offer,
+            self.held.applied,
+            self.make_jump,
+            self.show_preview,
+        )
+
+    async def do_apply(self) -> None:
+        """Apply exactly the plan on screen.  One press of Undo takes it back."""
+        plan = self.held.plan
+        if plan is None:
+            ui.notify(translate_string("Press 'Restore this' on a row first."), type="warning")
+            return
+        done, errors = maprestore.restore(plan, state=self.state)
+        for message in errors[:4]:
+            ui.notify(message, type="negative")
+        if not done:
+            return
+        self.held.mark_applied()
+        ui.notify(f"{plan.what}.  {translate_string('Undo is available.')}", type="positive", position="top")
+        await self.rebuild_after_apply()
+        await self.rescan()
+
+    async def do_save(self) -> None:
+        """Write the whole configuration to a timestamped copy -- see guiwins_fix's own.
+
+        Rescanned afterwards, and it must be: the switch to the saved copy reloads the whole
+        configuration.  The snapshot being read is untouched by that, so it stays chosen.
+        """
+        if await self.save_configuration():
+            await self.rescan()
 
 
 def _read(snapshot: timeline.Snapshot, state: RunState) -> tuple[Configuration | None, maprestore.Offer | None, str]:

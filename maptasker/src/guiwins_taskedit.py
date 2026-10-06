@@ -140,7 +140,6 @@ def _render_task_name_field(
 # reasoning behind _ICON_PREVIEW_LIMIT, which the Scene designer's own picker uses.
 _PICKER_ROW_LIMIT = 200
 
-
 def _picker_search_input(on_change: Callable[[str], None], placeholder: str) -> ui.input:
     """The search box both pickers below open with."""
     search_input = (
@@ -191,12 +190,68 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
     use, which is both the right thing to test and the thing whose failure message is worth
     showing.
     """
-    default_ip, default_port = android_address_defaults(gui)
+    _FetchAppsDialog(gui, on_fetched, for_icons).build()
 
-    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[460px] p-6"):
-        title = "Fetch Icons From Android Device" if for_icons else "Fetch Applications From Android Device"
+
+class _FetchAppsDialog:
+    """The Fetch Applications (or Icons) From Android Device dialog.
+
+    A class rather than closures because the device list, the Fetch button and its progress row are
+    all redrawn from several handlers, and "a device was forgotten" has to outlive each of them.
+    """
+
+    def __init__(self, gui: MyGui, on_fetched: Callable[[], None], for_icons: bool) -> None:
+        """
+        Args:
+            gui: The application window, which holds the run's state and the remembered address.
+            on_fetched: Called when the list of applications has changed, by a fetch or a forget.
+            for_icons: Whether the user came for icons rather than Applications; see _build_fetch_apps_dialog.
+        """
+        self.gui = gui
+        self.on_fetched = on_fetched
+        self.for_icons = for_icons
+        self.forgot = False
+        self.dialog: ui.dialog
+        self.device_rows: ui.column
+        self.ip_field: ui.input
+        self.port_field: ui.input
+        self.progress_row: ui.row
+        self.fetch_button: ui.button
+
+    def build(self) -> None:
+        """Draw the dialog and open it."""
+        default_ip, default_port = android_address_defaults(self.gui)
+
+        with ui.dialog().props("persistent") as self.dialog, ui.card().classes("min-w-[460px] p-6"):
+            self._build_explanation()
+
+            # Each list already fetched, with a way to drop it.  A device is filed under the
+            # address it answered on, so a phone that has moved address is a second entry here,
+            # and the first one's list -- apps since uninstalled and all -- stays in the pickers
+            # and in the Health Check's plugin check until it is forgotten (appinv.forget_device).
+            self.device_rows = ui.column().classes("w-full gap-0 mt-1")
+            self.show_devices()
+
+            self.ip_field = ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full")
+            self.port_field = ui.input(translate_string("Port"), value=default_port).classes("w-full")
+            remember_android_address_fields(self.gui, self.ip_field, self.port_field, self.dialog)
+
+            self._build_progress_row()
+
+            with ui.row().classes("w-full justify-end gap-2 mt-4"):
+                ui.button(translate_string("Cancel"), on_click=self.cancel).props("outline")
+                self.fetch_button = ui.button(translate_string("Fetch"), on_click=self.fetch).classes("bg-blue-600")
+                self.fetch_button.tooltip(
+                    translate_string("Fetch the full list of installed Applications from the Android device."),
+                )
+
+        self.dialog.open()
+
+    def _build_explanation(self) -> None:
+        """The heading and what the fetch will do, including what to expect on the phone."""
+        title = "Fetch Icons From Android Device" if self.for_icons else "Fetch Applications From Android Device"
         ui.label(translate_string(title)).classes("text-lg font-bold text-blue-600")
-        if for_icons:
+        if self.for_icons:
             ui.label(
                 translate_string(
                     "Icons come from the same place Applications do: Tasker identifies an application's "
@@ -229,55 +284,16 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
             ),
         ).classes("text-sm text-amber-700 dark:text-amber-500 mt-2")
 
-        # Each list already fetched, with a way to drop it.  A device is filed under the
-        # address it answered on, so a phone that has moved address is a second entry here,
-        # and the first one's list -- apps since uninstalled and all -- stays in the pickers
-        # and in the Health Check's plugin check until it is forgotten (appinv.forget_device).
-        forgot = False
-        device_rows = ui.column().classes("w-full gap-0 mt-1")
+    def _build_progress_row(self) -> None:
+        """The spinner and message shown while the fetch runs, hidden until it starts.
 
-        def forget(device: str) -> None:
-            nonlocal forgot
-            error = appinv.forget_device(device)
-            forgot = True
-            show_devices()
-            if error:
-                ui.notify(f"{translate_string('Forgotten for now, but could not be saved:')} {error}", type="warning")
-            else:
-                ui.notify(f"{translate_string('Forgot the applications fetched from')} {device}", type="info")
-
-        def show_devices() -> None:
-            device_rows.clear()
-            with device_rows:
-                for device, when, count in appinv.fetched_devices():
-                    with ui.row().classes("w-full items-center justify-between no-wrap"):
-                        ui.label(f"{device}: {count} {translate_string('applications, fetched')} {when}").classes(
-                            "text-xs text-gray-500",
-                        )
-                        forget_button = ui.button(
-                            translate_string("Forget"),
-                            on_click=lambda _event, device=device: forget(device),
-                        ).props("flat dense no-caps color=negative")
-                        forget_button.tooltip(
-                            translate_string(
-                                "Remove this device's list of applications.  Do this for a device you no longer "
-                                "use, or an old address of this one, so apps that are not installed any more stop "
-                                "being offered and counted as installed.",
-                            ),
-                        )
-
-        show_devices()
-
-        ip_field = ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full")
-        port_field = ui.input(translate_string("Port"), value=default_port).classes("w-full")
-        remember_android_address_fields(gui, ip_field, port_field, dialog)
-
-        # Hidden until the fetch starts.  The button going grey and saying 'Fetching...' is
-        # not enough on its own: what the user has to do next is happening on the phone, not
-        # here, and nothing on this screen would otherwise say to go and look at it.
-        progress_row = ui.row().classes("w-full items-center gap-2 mt-3")
-        progress_row.set_visibility(False)
-        with progress_row:
+        The button going grey and saying 'Fetching...' is not enough on its own: what the user
+        has to do next is happening on the phone, not here, and nothing on this screen would
+        otherwise say to go and look at it.
+        """
+        self.progress_row = ui.row().classes("w-full items-center gap-2 mt-3")
+        self.progress_row.set_visibility(False)
+        with self.progress_row:
             ui.spinner(size="sm")
             ui.label(
                 translate_string(
@@ -286,52 +302,76 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
                 ),
             ).classes("text-sm text-amber-700 dark:text-amber-500")
 
-        async def fetch() -> None:
-            ip_address = str(ip_field.value or "").strip()
-            ip_port = str(port_field.value or "").strip()
-            remember_android_address(gui, ip_address, ip_port)
+    def forget(self, device: str) -> None:
+        """Drop one device's list of applications, and redraw the list of devices."""
+        error = appinv.forget_device(device)
+        self.forgot = True
+        self.show_devices()
+        if error:
+            ui.notify(f"{translate_string('Forgotten for now, but could not be saved:')} {error}", type="warning")
+        else:
+            ui.notify(f"{translate_string('Forgot the applications fetched from')} {device}", type="info")
 
-            fetch_button.set_text(translate_string("Fetching..."))
-            fetch_button.set_enabled(False)
-            progress_row.set_visibility(True)
-            try:
-                fetched = await run.io_bound(deviceinv.fetch_apps_from_device, ip_address, ip_port, state=gui.state)
-            finally:
-                fetch_button.set_text(translate_string("Fetch"))
-                fetch_button.set_enabled(True)
-                progress_row.set_visibility(False)
+    def show_devices(self) -> None:
+        """Draw a row for each device already fetched from, with its Forget button."""
+        self.device_rows.clear()
+        with self.device_rows:
+            for device, when, count in appinv.fetched_devices():
+                with ui.row().classes("w-full items-center justify-between no-wrap"):
+                    ui.label(f"{device}: {count} {translate_string('applications, fetched')} {when}").classes(
+                        "text-xs text-gray-500",
+                    )
+                    forget_button = ui.button(
+                        translate_string("Forget"),
+                        on_click=lambda _event, device=device: self.forget(device),
+                    ).props("flat dense no-caps color=negative")
+                    forget_button.tooltip(
+                        translate_string(
+                            "Remove this device's list of applications.  Do this for a device you no longer "
+                            "use, or an old address of this one, so apps that are not installed any more stop "
+                            "being offered and counted as installed.",
+                        ),
+                    )
 
-            # None rather than a pair: nicegui answers that when the wait is cancelled or the
-            # app is stopping (see nicegui.run._run).  The fetch itself is finished or will
-            # finish; there is just no page left to report it to.
-            if fetched is None:
-                return
-            return_code, message = fetched
-            if return_code != 0:
-                ui.notify(message, type="negative", timeout=8000)
-                return
+    async def fetch(self) -> None:
+        """Ask the device for its applications, reporting what happens."""
+        gui = self.gui
+        ip_address = str(self.ip_field.value or "").strip()
+        ip_port = str(self.port_field.value or "").strip()
+        remember_android_address(gui, ip_address, ip_port)
 
-            # Remembered for next time, same as the Get XML and Save To Android dialogs do.
-            gui.android_ipaddr = ip_address
-            gui.android_port = ip_port
-            ui.notify(message, type="positive", timeout=6000)
-            dialog.close()
-            on_fetched()
+        self.fetch_button.set_text(translate_string("Fetching..."))
+        self.fetch_button.set_enabled(False)
+        self.progress_row.set_visibility(True)
+        try:
+            fetched = await run.io_bound(deviceinv.fetch_apps_from_device, ip_address, ip_port, state=gui.state)
+        finally:
+            self.fetch_button.set_text(translate_string("Fetch"))
+            self.fetch_button.set_enabled(True)
+            self.progress_row.set_visibility(False)
 
-        def cancel() -> None:
-            """Close without fetching -- but a forgotten device has changed the list all the same."""
-            dialog.close()
-            if forgot:
-                on_fetched()
+        # None rather than a pair: nicegui answers that when the wait is cancelled or the
+        # app is stopping (see nicegui.run._run).  The fetch itself is finished or will
+        # finish; there is just no page left to report it to.
+        if fetched is None:
+            return
+        return_code, message = fetched
+        if return_code != 0:
+            ui.notify(message, type="negative", timeout=8000)
+            return
 
-        with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button(translate_string("Cancel"), on_click=cancel).props("outline")
-            fetch_button = ui.button(translate_string("Fetch"), on_click=fetch).classes("bg-blue-600")
-            fetch_button.tooltip(
-                translate_string("Fetch the full list of installed Applications from the Android device."),
-            )
+        # Remembered for next time, same as the Get XML and Save To Android dialogs do.
+        gui.android_ipaddr = ip_address
+        gui.android_port = ip_port
+        ui.notify(message, type="positive", timeout=6000)
+        self.dialog.close()
+        self.on_fetched()
 
-    dialog.open()
+    def cancel(self) -> None:
+        """Close without fetching -- but a forgotten device has changed the list all the same."""
+        self.dialog.close()
+        if self.forgot:
+            self.on_fetched()
 
 
 def _format_task_output(output: str) -> str:
@@ -361,10 +401,69 @@ def build_run_task_on_android_dialog(
     different %par1/%par2 values without re-entering the address.  The run itself waits for
     the Task to finish, so it goes through run.io_bound -- see deviceinv.run_task_for_result.
     """
-    default_ip, default_port = android_address_defaults(gui)
+    _RunTaskOnAndroidDialog(gui, task_name, has_pending_edits).build()
 
-    with ui.dialog() as dialog, ui.card().classes("min-w-[520px] max-w-[900px] w-full p-6"):
-        ui.label(f"{translate_string('Run Task On Android')}: {task_name}").classes(
+
+class _RunTaskOnAndroidDialog:
+    """The Run Task On Android dialog: its fields, the Run button, and where a run's outcome is shown."""
+
+    def __init__(self, gui: MyGui, task_name: str, has_pending_edits: Callable[[], bool] | None) -> None:
+        """
+        Args:
+            gui: The application window, which holds the run's state and the remembered address.
+            task_name: The Task to run on the device.
+            has_pending_edits: Asked at Run time whether the editor holds changes the device has not seen.
+        """
+        self.gui = gui
+        self.task_name = task_name
+        self.has_pending_edits = has_pending_edits
+        self.dialog: ui.dialog
+        self.ip_field: ui.input
+        self.port_field: ui.input
+        self.par1_field: ui.input
+        self.par2_field: ui.input
+        self.progress_row: ui.row
+        self.result_column: ui.column
+        self.run_button: ui.button
+
+    def build(self) -> None:
+        """Draw the dialog and open it."""
+        default_ip, default_port = android_address_defaults(self.gui)
+
+        with ui.dialog() as self.dialog, ui.card().classes("min-w-[520px] max-w-[900px] w-full p-6"):
+            self._build_explanation()
+
+            with ui.row().classes("w-full gap-4"):
+                self.ip_field = ui.input(translate_string("Android IP Address"), value=default_ip).classes("flex-1")
+                self.port_field = ui.input(translate_string("Port"), value=default_port).classes("w-32")
+            remember_android_address_fields(self.gui, self.ip_field, self.port_field, self.dialog)
+            with ui.row().classes("w-full gap-4"):
+                self.par1_field = ui.input(translate_string("%par1 (optional)")).classes("flex-1")
+                self.par2_field = ui.input(translate_string("%par2 (optional)")).classes("flex-1")
+
+            self.progress_row = ui.row().classes("w-full items-center gap-2 mt-3")
+            self.progress_row.set_visibility(False)
+            with self.progress_row:
+                ui.spinner(size="sm")
+                ui.label(
+                    translate_string(
+                        "Running on the Android device -- accept the authorization prompt there if one appears.",
+                    ),
+                ).classes("text-sm text-amber-700 dark:text-amber-500")
+
+            # Built empty and hidden; each run fills it with that run's outcome.
+            self.result_column = ui.column().classes("w-full gap-1 mt-3")
+            self.result_column.set_visibility(False)
+
+            with ui.row().classes("w-full justify-end gap-2 mt-4"):
+                ui.button(translate_string("Close"), on_click=self.dialog.close).props("outline")
+                self.run_button = ui.button(translate_string("Run"), on_click=self.run_task).classes("bg-blue-600")
+
+        self.dialog.open()
+
+    def _build_explanation(self) -> None:
+        """The heading, what a run does, and what to expect on the phone."""
+        ui.label(f"{translate_string('Run Task On Android')}: {self.task_name}").classes(
             "text-lg font-bold text-blue-600",
         )
         ui.label(
@@ -374,7 +473,7 @@ def build_run_task_on_android_dialog(
                 "run.  Tasker must be running, with the 'HTTP Server Example' project active.",
             ),
         ).classes("text-sm text-gray-500 italic")
-        if not tasker_name_matchable(task_name):
+        if not tasker_name_matchable(self.task_name):
             ui.label(
                 translate_string(
                     f"Tasker's HTTP server cannot look up a name holding characters such as $ ( ) + or ?, so "
@@ -398,97 +497,72 @@ def build_run_task_on_android_dialog(
             ),
         ).classes("text-sm text-amber-700 dark:text-amber-500 mt-1")
 
-        with ui.row().classes("w-full gap-4"):
-            ip_field = ui.input(translate_string("Android IP Address"), value=default_ip).classes("flex-1")
-            port_field = ui.input(translate_string("Port"), value=default_port).classes("w-32")
-        remember_android_address_fields(gui, ip_field, port_field, dialog)
-        with ui.row().classes("w-full gap-4"):
-            par1_field = ui.input(translate_string("%par1 (optional)")).classes("flex-1")
-            par2_field = ui.input(translate_string("%par2 (optional)")).classes("flex-1")
-
-        progress_row = ui.row().classes("w-full items-center gap-2 mt-3")
-        progress_row.set_visibility(False)
-        with progress_row:
-            ui.spinner(size="sm")
-            ui.label(
-                translate_string(
-                    "Running on the Android device -- accept the authorization prompt there if one appears.",
-                ),
-            ).classes("text-sm text-amber-700 dark:text-amber-500")
-
-        # Built empty and hidden; each run fills it with that run's outcome.
-        result_column = ui.column().classes("w-full gap-1 mt-3")
-        result_column.set_visibility(False)
-
-        def show_result(result: deviceinv.TaskRunResult) -> None:
-            result_column.clear()
-            with result_column:
-                if result.ok:
-                    ui.label(
-                        f"{translate_string('Task finished in')} {result.seconds:.1f}s.",
-                    ).classes("text-sm font-bold text-green-700 dark:text-green-500")
-                    if result.output:
-                        ui.label(translate_string("Return value:")).classes("text-xs text-gray-500")
-                        ui.code(_format_task_output(result.output), language="text").classes(
-                            "w-full max-h-80 overflow-auto",
-                        )
-                    else:
-                        ui.label(translate_string("The Task did not return a value.")).classes(
-                            "text-sm text-gray-500 italic",
-                        )
-                else:
-                    ui.label(translate_string("The Task could not be run.")).classes(
-                        "text-sm font-bold text-red-600",
+    def show_result(self, result: deviceinv.TaskRunResult) -> None:
+        """Show what a run came to: its return value, or why there is none."""
+        self.result_column.clear()
+        with self.result_column:
+            if result.ok:
+                ui.label(
+                    f"{translate_string('Task finished in')} {result.seconds:.1f}s.",
+                ).classes("text-sm font-bold text-green-700 dark:text-green-500")
+                if result.output:
+                    ui.label(translate_string("Return value:")).classes("text-xs text-gray-500")
+                    ui.code(_format_task_output(result.output), language="text").classes(
+                        "w-full max-h-80 overflow-auto",
                     )
-                    ui.label(result.error).classes("text-sm text-red-600 whitespace-pre-wrap")
-            result_column.set_visibility(True)
-
-        async def run_task() -> None:
-            ip_address = str(ip_field.value or "").strip()
-            ip_port = str(port_field.value or "").strip()
-            if not ip_address or not ip_port:
-                ui.notify(translate_string("Enter the Android device's IP Address and Port."), type="warning")
-                return
-            remember_android_address(gui, ip_address, ip_port)
-            if has_pending_edits is not None and has_pending_edits():
-                ui.notify(
-                    translate_string(
-                        "This Task has unsaved edits.  The device runs the version it already has -- "
-                        "use 'Save To Android' first to run the edited one.",
-                    ),
-                    type="warning",
+                else:
+                    ui.label(translate_string("The Task did not return a value.")).classes(
+                        "text-sm text-gray-500 italic",
+                    )
+            else:
+                ui.label(translate_string("The Task could not be run.")).classes(
+                    "text-sm font-bold text-red-600",
                 )
+                ui.label(result.error).classes("text-sm text-red-600 whitespace-pre-wrap")
+        self.result_column.set_visibility(True)
 
-            run_button.set_text(translate_string("Running..."))
-            run_button.set_enabled(False)
-            progress_row.set_visibility(True)
-            result_column.set_visibility(False)
-            try:
-                result = await run.io_bound(
-                    deviceinv.run_task_for_result,
-                    ip_address,
-                    ip_port,
-                    task_name,
-                    str(par1_field.value or ""),
-                    str(par2_field.value or ""),
-                    state=gui.state,
-                )
-            finally:
-                run_button.set_text(translate_string("Run"))
-                run_button.set_enabled(True)
-                progress_row.set_visibility(False)
-            # None is nicegui's answer for a cancelled wait or an app that is stopping (see
-            # nicegui.run._run), not a run of the Task: the Task ran on the device regardless,
-            # and only the page that would show what it returned has gone.
-            if result is None:
-                return
-            show_result(result)
+    async def run_task(self) -> None:
+        """Run the Task on the device, and show what it returned."""
+        gui = self.gui
+        ip_address = str(self.ip_field.value or "").strip()
+        ip_port = str(self.port_field.value or "").strip()
+        if not ip_address or not ip_port:
+            ui.notify(translate_string("Enter the Android device's IP Address and Port."), type="warning")
+            return
+        remember_android_address(gui, ip_address, ip_port)
+        if self.has_pending_edits is not None and self.has_pending_edits():
+            ui.notify(
+                translate_string(
+                    "This Task has unsaved edits.  The device runs the version it already has -- "
+                    "use 'Save To Android' first to run the edited one.",
+                ),
+                type="warning",
+            )
 
-        with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button(translate_string("Close"), on_click=dialog.close).props("outline")
-            run_button = ui.button(translate_string("Run"), on_click=run_task).classes("bg-blue-600")
-
-    dialog.open()
+        self.run_button.set_text(translate_string("Running..."))
+        self.run_button.set_enabled(False)
+        self.progress_row.set_visibility(True)
+        self.result_column.set_visibility(False)
+        try:
+            result = await run.io_bound(
+                deviceinv.run_task_for_result,
+                ip_address,
+                ip_port,
+                self.task_name,
+                str(self.par1_field.value or ""),
+                str(self.par2_field.value or ""),
+                state=gui.state,
+            )
+        finally:
+            self.run_button.set_text(translate_string("Run"))
+            self.run_button.set_enabled(True)
+            self.progress_row.set_visibility(False)
+        # None is nicegui's answer for a cancelled wait or an app that is stopping (see
+        # nicegui.run._run), not a run of the Task: the Task ran on the device regardless,
+        # and only the page that would show what it returned has gone.
+        if result is None:
+            return
+        self.show_result(result)
 
 
 def _render_variable_entry(on_variable: Callable[[str], None], button_text: str) -> None:
@@ -1137,6 +1211,446 @@ def build_if_variant_dialog(on_choice: Callable[[str], None]) -> None:
     variant_dialog.open()
 
 
+class _ActionPicker:
+    """The "Add an action" half of the Add Task and Edit Task dialogs.
+
+    A search box and category filter, a Position dropdown saying where the action goes, and the
+    list of actions to pick from.  The two dialogs differ only in which event handlers do the
+    adding, so those are passed in, and in what happens once something has been added, which
+    on_added is told.
+    """
+
+    def __init__(
+        self,
+        gui: MyGui,
+        edited_task: taskedit.EditableTask,
+        add_action: Callable[[str, int | None], int | None],
+        add_if_block: Callable[[str, int | None], int | None],
+        on_added: Callable[[int | None], None],
+    ) -> None:
+        """
+        Args:
+            gui: The application window, which holds the run's state.
+            edited_task: The working copy of the Task the action is added to.
+            add_action: Adds the action with this key at this position, and returns its act_number
+                (None if it could not be added).
+            add_if_block: The same for an "If" block of the given variant.
+            on_added: Called with what add_action/add_if_block returned.
+        """
+        self.gui = gui
+        self.edited_task = edited_task
+        self.add_action = add_action
+        self.add_if_block = add_if_block
+        self.on_added = on_added
+        # Maps each "Position" dropdown label to the act_number to insert at (None
+        # for "At the End") -- kept out-of-band rather than as the ui.select's own
+        # value/options dict, since "Before N" and "After N-1" resolve to the exact
+        # same act_number and a dict's keys (which NiceGUI's dict-options form uses
+        # as the value) must be unique, but the two need to stay distinct, readable
+        # menu entries.
+        self.position_labels: dict[str, int | None] = {}
+        self.search_input: ui.input
+        self.category_select: ui.select
+        self.position_select: ui.select
+        self.picker_container: ui.column
+
+    def build(self) -> None:
+        """Draws the search row, the Position dropdown and the (still empty) list of actions."""
+        category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions(state=self.gui.state)})
+        ui.label(translate_string("Add an action")).classes("text-sm font-bold mt-2")
+        with ui.row().classes("w-full gap-4"):
+            self.search_input = ui.input(translate_string("Search actions")).classes("flex-1")
+            self.category_select = ui.select(["All", *category_names], value="All").classes("w-48")
+        self.position_select = (
+            ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
+        )
+        self.picker_container = ui.column().classes("w-full")
+        self.search_input.on_value_change(self.refresh)
+        self.category_select.on_value_change(self.refresh)
+
+    def refresh(self, _e: ui.event | None = None) -> None:
+        """Redraws the list of actions to pick from, for the current search and category."""
+        self.picker_container.clear()
+        rows = taskedit.search_addable_actions(
+            self.search_input.value,
+            self.category_select.value,
+            state=self.gui.state,
+        )
+        with self.picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
+            for row in rows:
+                if row["addable"]:
+                    ui.button(
+                        f"{row['name']} ({row['category_name']})",
+                        on_click=lambda r=row: self.pick(r["action_key"]),
+                    ).props("flat align=left dense").classes("w-full justify-start")
+                else:
+                    with ui.column().classes("w-full gap-0"):
+                        ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
+                        _render_addability_reason(self.gui, row["reason"], self.refresh)
+
+    def refresh_positions(self) -> None:
+        """Redraws the Position dropdown -- see _refresh_position_options."""
+        _refresh_position_options(self.edited_task, self.position_select, self.position_labels)
+
+    def pick(self, action_key: str) -> None:
+        """Adds the picked action.
+
+        "If" gets an extra prompt (just the If, or a whole If/Else/End If
+        block?) before anything is inserted; every other action goes in
+        directly. Position is resolved when the choice lands, not at
+        picker-click time -- same value, and the variant dialog is modal.
+        """
+        if action_key == taskedit.IF_ACTION_KEY:
+            build_if_variant_dialog(
+                lambda variant: self.on_added(
+                    self.add_if_block(variant, self.position_labels.get(self.position_select.value)),
+                ),
+            )
+            return
+        self.on_added(self.add_action(action_key, self.position_labels.get(self.position_select.value)))
+
+
+class _ActionList:
+    """What the Add Task and Edit Task dialogs' lists of actions have in common.
+
+    Both draw the actions added so far as expansions, highlight the one added last, and
+    rebuild the whole list after any change -- which renumbers the actions, so the
+    act*_arg* keys in field_refs would otherwise go stale.  Each subclass supplies its own
+    render_actions, and what an action's panel holds.
+    """
+
+    def __init__(self, gui: MyGui, edited_task: taskedit.EditableTask, field_refs: dict) -> None:
+        """
+        Args:
+            gui: The application window, which holds the event handlers and the run's state.
+            edited_task: The working copy of the Task whose actions are listed.
+            field_refs: The dialog's widgets by key, which Save reads the values back from.
+        """
+        self.gui = gui
+        self.edited_task = edited_task
+        self.field_refs = field_refs
+        # Last-known per-action If condition values, keyed by act_number -- lets an
+        # uncheck/re-check of the "If" checkbox edit instead of starting over.
+        self.condition_cache: dict[int, tuple[str, str, str]] = {}
+        # act_number of the action most recently added in this dialog session --
+        # render_actions highlights it so it's easy to spot in a long list.
+        self.last_added_act_number: int | None = None
+        self.picker: _ActionPicker
+        self.actions_container: ui.column
+
+    def clear_last_added(self) -> None:
+        """Forgets which action was added last.
+
+        A change that renumbers the list leaves a stale act_number here, which would risk
+        highlighting the wrong action -- drop the highlight instead of letting it follow
+        whatever action inherits the number.
+        """
+        self.last_added_act_number = None
+
+    def on_added(self, act_number: int | None) -> None:
+        """Takes note of a newly added action (None if adding failed), and redraws."""
+        if act_number is not None:
+            self.last_added_act_number = act_number
+        self.render_actions()
+        self.picker.refresh_positions()
+
+    def render_actions(self) -> None:
+        """Rebuilds the list from scratch."""
+        raise NotImplementedError
+
+    def _forget_action_widgets(self) -> None:
+        """Drops the act* keys of the widgets about to be rebuilt, so none survives into the next Save."""
+        for key in [k for k in self.field_refs if k.startswith("act")]:
+            del self.field_refs[key]
+
+    def _render_action_header(
+        self, action: taskedit.EditableAction, nest_level: int, indent_spaces: int
+    ) -> ui.expansion:
+        """The expansion an action's panel goes in, titled by its number and name, indented to its nesting."""
+        # Indent with non-breaking spaces -- plain ones collapse in the rendered header.
+        indent_pad = "\u00a0" * (indent_spaces * nest_level)
+        is_last_added = action.act_number == self.last_added_act_number
+        header = f"{indent_pad}{action.act_number}: {action.action_name}"
+        if is_last_added:
+            header += "  \u2190 just added"
+        action_expansion = ui.expansion(header, value=is_last_added).classes("w-full")
+        if is_last_added:
+            action_expansion.classes("bg-amber-100 dark:bg-amber-900 border-2 border-amber-400 rounded")
+        return action_expansion
+
+    def _render_action_basics(self, action: taskedit.EditableAction) -> None:
+        """An action's Label, its If and Continue-After-Error checkboxes, and any warning about its plugin."""
+        self.field_refs[taskedit.label_key(action.act_number)] = ui.input(
+            translate_string("Label"),
+            value=taskedit.get_action_label(action),
+        ).classes("w-full")
+        if action.code != taskedit.IF_ACTION_CODE:
+            _render_action_condition_checkbox(self.gui, self.edited_task, action, self.condition_cache)
+        _render_continue_after_error_checkbox(self.gui, self.edited_task, action)
+        _render_plugin_configuration_warning(action.action_element, action.action_name)
+
+    def _render_shared_argument(
+        self,
+        action: taskedit.EditableAction,
+        arg: taskedit.EditableArg,
+        key: str,
+    ) -> bool:
+        """Draws an argument's widget if it is one of the kinds both dialogs draw alike.
+
+        Returns:
+            True if it was drawn, False if the kind is one the caller has to deal with.
+        """
+        field_refs = self.field_refs
+        if arg.widget_kind == "checkbox":
+            field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
+        elif arg.widget_kind == "dropdown":
+            options = arg.dropdown_options or []
+            field_refs[key] = ui.select(
+                options,
+                value=_dropdown_current_label(arg),
+                label=arg.arg_name,
+            ).classes("flex-1")
+        elif taskedit.is_perform_task_name_arg(action.code, arg):
+            _render_task_name_field(self.gui, action, arg, key, field_refs, state=self.gui.state)
+        elif arg.widget_kind == "app_picker":
+            _render_app_arg_field(self.gui, arg, key, field_refs)
+        elif arg.widget_kind == "icon_picker":
+            _render_icon_arg_field(self.gui, arg, key, field_refs)
+        else:
+            return False
+        return True
+
+    def _render_argument_note(self, action: taskedit.EditableAction, arg: taskedit.EditableArg) -> None:
+        """The note under an argument that explains why it can't be edited here, if it has one."""
+        if arg.readonly_note:
+            _render_readonly_note(
+                self.gui,
+                arg.readonly_note,
+                _after_inventory_fetch(self.render_actions, action, state=self.gui.state),
+            )
+
+    def _render_readonly_argument(self, action: taskedit.EditableAction, arg: taskedit.EditableArg) -> None:
+        """An argument that can't be edited here: shown as it is, with the note saying why, if any."""
+        ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
+        self._render_argument_note(action, arg)
+
+
+class _NewTaskActionList(_ActionList):
+    """The "Actions in this Task" list of the Add Task dialog: every action added so far, each with Remove."""
+
+    def build(self) -> None:
+        """Draws the Add an action picker and the (empty) list below it, then fills in both."""
+        gui = self.gui
+        self.picker = _ActionPicker(
+            gui,
+            self.edited_task,
+            lambda action_key, position: gui.event_handlers.add_action_to_new_task_event(
+                self.edited_task,
+                action_key,
+                position,
+            ),
+            lambda variant, position: gui.event_handlers.add_if_block_to_new_task_event(
+                self.edited_task,
+                variant,
+                position,
+            ),
+            self.on_added,
+        )
+        self.picker.build()
+        ui.label(translate_string("Actions in this Task")).classes("text-sm font-bold mt-2")
+        self.actions_container = ui.column().classes("w-full")
+        self.picker.refresh()
+        self.picker.refresh_positions()
+        self.render_actions()
+
+    def render_actions(self) -> None:
+        """Rebuilds the list from scratch -- a Remove renumbers every action after it, so
+        stale act*_arg* keys must not survive into the next Save.
+        """
+        self._forget_action_widgets()
+        self.actions_container.clear()
+        with self.actions_container:
+            if not self.edited_task.actions:
+                ui.label(translate_string("No actions added yet.")).classes("text-xs text-gray-500 italic")
+            indent_spaces = _action_indent_spaces(self.gui)
+            display_levels = taskedit.action_display_levels(self.edited_task.actions)
+            for action, nest_level in zip(self.edited_task.actions, display_levels, strict=True):
+                with self._render_action_header(action, nest_level, indent_spaces):
+                    self._render_action_basics(action)
+                    for arg in action.args:
+                        key = taskedit.arg_key(action.act_number, arg.arg_id)
+                        with ui.row().classes("w-full items-center gap-2"):
+                            self._render_argument(action, arg, key)
+                    self._render_remove_button(action)
+
+    def _render_argument(self, action: taskedit.EditableAction, arg: taskedit.EditableArg, key: str) -> None:
+        """The widget for one argument of an action in the list."""
+        if self._render_shared_argument(action, arg, key):
+            return
+        if arg.widget_kind == "readonly":
+            # A newly-added plugin action's payload (see
+            # taskedit._synthesize_bundle_arg): not editable here,
+            # and apply_arg_values skips it, so never a field_ref.
+            self._render_readonly_argument(action, arg)
+        else:  # "text" or "raw_fallback"
+            self.field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
+
+    def _render_remove_button(self, action: taskedit.EditableAction) -> None:
+        """The button that takes an action out of the new Task."""
+        ui.button(
+            translate_string("Remove"),
+            on_click=lambda n=action.act_number: (
+                self.clear_last_added(),
+                self.gui.event_handlers.remove_action_from_new_task_event(self.edited_task, n),
+                self.render_actions(),
+                self.picker.refresh_positions(),
+            ),
+        ).props("flat color=red dense")
+
+
+class _EditTaskActionList(_ActionList):
+    """The "Actions in this Task" list of the Edit Task dialog, with Copy/Move/Delete and an Enabled switch."""
+
+    def __init__(
+        self,
+        gui: MyGui,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        list_classes: str,
+    ) -> None:
+        """
+        Args:
+            gui: The application window, which holds the event handlers and the run's state.
+            edited_task: The working copy of the Task whose actions are listed.
+            field_refs: The dialog's widgets by key, which Save reads the values back from.
+            list_classes: The classes of the scroll area the list sits in.
+        """
+        super().__init__(gui, edited_task, field_refs)
+        self.list_classes = list_classes
+
+    def build(self) -> None:
+        """Draws the Add an action picker and the (empty) list below it, then fills in both."""
+        gui = self.gui
+        self.picker = _ActionPicker(
+            gui,
+            self.edited_task,
+            lambda action_key, position: gui.event_handlers.add_action_to_edit_task_event(
+                self.edited_task,
+                action_key,
+                position,
+            ),
+            lambda variant, position: gui.event_handlers.add_if_block_to_edit_task_event(
+                self.edited_task,
+                variant,
+                position,
+            ),
+            self.on_added,
+        )
+        self.picker.build()
+        ui.label(translate_string("Actions in this Task")).classes("text-sm font-bold mt-2")
+        self.actions_container = ui.column().classes("w-full")
+        self.picker.refresh()
+        self.picker.refresh_positions()
+        self.render_actions()
+
+    def render_actions(self) -> None:
+        """Rebuilds the list from scratch -- Copy/Move/Delete all renumber every action, so
+        stale act*_arg* keys must not survive into the next Save.
+        """
+        self._forget_action_widgets()
+        self.actions_container.clear()
+        with self.actions_container, ui.scroll_area().classes(self.list_classes):
+            if not self.edited_task.actions:
+                ui.label(translate_string("No actions in this Task.")).classes("text-xs text-gray-500 italic")
+            last_position = len(self.edited_task.actions) - 1
+            indent_spaces = _action_indent_spaces(self.gui)
+            display_levels = taskedit.action_display_levels(self.edited_task.actions)
+            for action, nest_level in zip(self.edited_task.actions, display_levels, strict=True):
+                with self._render_action_header(action, nest_level, indent_spaces):
+                    self._render_action_controls(action, last_position)
+                    self._render_enabled_switch(action)
+                    self._render_action_basics(action)
+                    if not action.args:
+                        ui.label(translate_string("No editable arguments.")).classes("text-xs text-gray-500 italic")
+                    for arg in action.args:
+                        key = taskedit.arg_key(action.act_number, arg.arg_id)
+                        with ui.row().classes("w-full items-center gap-2"):
+                            self._render_argument(action, arg, key)
+
+    def _render_action_controls(self, action: taskedit.EditableAction, last_position: int) -> None:
+        """The Copy button, the Move-to box with its button, and the Delete button."""
+        handlers = self.gui.event_handlers
+        edited_task = self.edited_task
+        with ui.row().classes("w-full items-center gap-2 mb-2"):
+            ui.button(
+                translate_string("Copy"),
+                on_click=lambda n=action.act_number: (
+                    self.clear_last_added(),
+                    handlers.copy_action_in_edit_task_event(edited_task, n),
+                    self.render_actions(),
+                    self.picker.refresh_positions(),
+                ),
+            ).props("flat color=blue dense")
+            move_to_input = (
+                ui.number(
+                    translate_string("Move to #"),
+                    value=action.act_number,
+                    min=0,
+                    max=last_position,
+                )
+                .classes("w-24")
+                .props("dense")
+            )
+            ui.button(
+                translate_string("Move"),
+                on_click=lambda n=action.act_number, target=move_to_input: (
+                    self.clear_last_added(),
+                    handlers.move_action_in_edit_task_event(
+                        edited_task,
+                        n,
+                        int(target.value) if target.value is not None else n,
+                    ),
+                    self.render_actions(),
+                    self.picker.refresh_positions(),
+                ),
+            ).props("flat color=orange dense")
+            ui.button(
+                translate_string("Delete"),
+                on_click=lambda n=action.act_number: (
+                    self.clear_last_added(),
+                    handlers.delete_action_in_edit_task_event(edited_task, n),
+                    self.render_actions(),
+                    self.picker.refresh_positions(),
+                ),
+            ).props("flat color=red dense")
+
+    def _render_enabled_switch(self, action: taskedit.EditableAction) -> None:
+        """The switch that enables or disables an action."""
+        action_enabled_switch = ui.switch(
+            value=taskedit.is_action_enabled(action),
+            on_change=lambda e, n=action.act_number: self.gui.event_handlers.set_action_enabled_event(
+                self.edited_task,
+                n,
+                e.value,
+            ),
+        ).classes("mb-2")
+        action_enabled_switch.bind_text_from(
+            action_enabled_switch,
+            "value",
+            backward=lambda v: "Enabled" if v else "Disabled",
+        )
+
+    def _render_argument(self, action: taskedit.EditableAction, arg: taskedit.EditableArg, key: str) -> None:
+        """The widget for one argument of an action in the list."""
+        if self._render_shared_argument(action, arg, key):
+            return
+        if arg.widget_kind in ("text", "raw_fallback"):
+            self.field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
+            self._render_argument_note(action, arg)
+        else:  # readonly
+            self._render_readonly_argument(action, arg)
+
+
 def _build_task_action_editor(
     self: MyGui,
     edited_task: taskedit.EditableTask,
@@ -1168,227 +1682,119 @@ def _build_task_action_editor(
     Returns render_actions, so a caller that changes the Task underneath the editor can
     redraw the list.
     """
-    # Last-known per-action If condition values, keyed by act_number -- lets an
-    # uncheck/re-check of the "If" checkbox edit instead of starting over.
-    condition_cache: dict[int, tuple[str, str, str]] = {}
-    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions(state=self.state)})
-    # Maps each "Position" dropdown label to the act_number to insert at (None
-    # for "At the End") -- kept out-of-band rather than as the ui.select's own
-    # value/options dict, since "Before N" and "After N-1" resolve to the exact
-    # same act_number and a dict's keys (which NiceGUI's dict-options form uses
-    # as the value) must be unique, but the two need to stay distinct, readable
-    # menu entries.
-    position_labels: dict[str, int | None] = {}
+    action_list = _EditTaskActionList(self, edited_task, field_refs, list_classes)
+    action_list.build()
+    return action_list.render_actions
 
-    ui.label(translate_string("Add an action")).classes("text-sm font-bold mt-2")
-    with ui.row().classes("w-full gap-4"):
-        search_input = ui.input(translate_string("Search actions")).classes("flex-1")
-        category_select = ui.select(["All", *category_names], value="All").classes("w-48")
-    position_select = (
-        ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
-    )
 
-    picker_container = ui.column().classes("w-full")
-    ui.label(translate_string("Actions in this Task")).classes("text-sm font-bold mt-2")
-    actions_container = ui.column().classes("w-full")
-    # act_number of the action most recently added in this dialog session --
-    # render_actions highlights it so it's easy to spot in a long list.
-    last_added_act_number: int | None = None
-
-    def clear_last_added() -> None:
-        # Copy/Move/Delete all renumber the list, so a stale act_number here
-        # would risk highlighting the wrong action -- drop the highlight
-        # instead of letting it follow whatever action inherits the number.
-        nonlocal last_added_act_number
-        last_added_act_number = None
-
-    def refresh_position_options() -> None:
-        _refresh_position_options(edited_task, position_select, position_labels)
-
-    def add_picked_action(action_key: str) -> None:
-        nonlocal last_added_act_number
-        # "If" gets an extra prompt (just the If, or a whole If/Else/End If
-        # block?) before anything is inserted; every other action goes in
-        # directly. Position is resolved when the choice lands, not at
-        # picker-click time -- same value, and the variant dialog is modal.
-        if action_key == taskedit.IF_ACTION_KEY:
-
-            def _add_if_block(variant: str) -> None:
-                nonlocal last_added_act_number
-                act_number = self.event_handlers.add_if_block_to_edit_task_event(
-                    edited_task,
-                    variant,
-                    position_labels.get(position_select.value),
-                )
-                if act_number is not None:
-                    last_added_act_number = act_number
-                render_actions()
-                refresh_position_options()
-
-            build_if_variant_dialog(_add_if_block)
-            return
-        act_number = self.event_handlers.add_action_to_edit_task_event(
-            edited_task,
-            action_key,
-            position_labels.get(position_select.value),
-        )
-        if act_number is not None:
-            last_added_act_number = act_number
-        render_actions()
-        refresh_position_options()
-
-    def refresh_picker(_e: ui.event | None = None) -> None:
-        picker_container.clear()
-        rows = taskedit.search_addable_actions(search_input.value, category_select.value, state=self.state)
-        with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
-            for row in rows:
-                if row["addable"]:
-                    ui.button(
-                        f"{row['name']} ({row['category_name']})",
-                        on_click=lambda r=row: add_picked_action(r["action_key"]),
-                    ).props("flat align=left dense").classes("w-full justify-start")
-                else:
-                    with ui.column().classes("w-full gap-0"):
-                        ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
-                        _render_addability_reason(self, row["reason"], refresh_picker)
-
-    search_input.on_value_change(refresh_picker)
-    category_select.on_value_change(refresh_picker)
-
-    def render_actions() -> None:
-        # Rebuild from scratch -- Copy/Move/Delete all renumber every action, so
-        # stale act*_arg* keys must not survive into the next Save.
-        for key in [k for k in field_refs if k.startswith("act")]:
-            del field_refs[key]
-        actions_container.clear()
-        with actions_container, ui.scroll_area().classes(list_classes):
-            if not edited_task.actions:
-                ui.label(translate_string("No actions in this Task.")).classes("text-xs text-gray-500 italic")
-            last_position = len(edited_task.actions) - 1
-            indent_spaces = _action_indent_spaces(self)
-            display_levels = taskedit.action_display_levels(edited_task.actions)
-            for action, nest_level in zip(edited_task.actions, display_levels, strict=True):
-                # Indent with non-breaking spaces -- plain ones collapse in the rendered header.
-                indent_pad = "\u00a0" * (indent_spaces * nest_level)
-                is_last_added = action.act_number == last_added_act_number
-                header = f"{indent_pad}{action.act_number}: {action.action_name}"
-                if is_last_added:
-                    header += "  \u2190 just added"
-                action_expansion = ui.expansion(header, value=is_last_added).classes("w-full")
-                if is_last_added:
-                    action_expansion.classes("bg-amber-100 dark:bg-amber-900 border-2 border-amber-400 rounded")
-                with action_expansion:
-                    with ui.row().classes("w-full items-center gap-2 mb-2"):
-                        ui.button(
-                            translate_string("Copy"),
-                            on_click=lambda n=action.act_number: (
-                                clear_last_added(),
-                                self.event_handlers.copy_action_in_edit_task_event(edited_task, n),
-                                render_actions(),
-                                refresh_position_options(),
-                            ),
-                        ).props("flat color=blue dense")
-                        move_to_input = (
-                            ui.number(
-                                translate_string("Move to #"),
-                                value=action.act_number,
-                                min=0,
-                                max=last_position,
-                            )
-                            .classes("w-24")
-                            .props("dense")
-                        )
-                        ui.button(
-                            translate_string("Move"),
-                            on_click=lambda n=action.act_number, target=move_to_input: (
-                                clear_last_added(),
-                                self.event_handlers.move_action_in_edit_task_event(
-                                    edited_task,
-                                    n,
-                                    int(target.value) if target.value is not None else n,
-                                ),
-                                render_actions(),
-                                refresh_position_options(),
-                            ),
-                        ).props("flat color=orange dense")
-                        ui.button(
-                            translate_string("Delete"),
-                            on_click=lambda n=action.act_number: (
-                                clear_last_added(),
-                                self.event_handlers.delete_action_in_edit_task_event(edited_task, n),
-                                render_actions(),
-                                refresh_position_options(),
-                            ),
-                        ).props("flat color=red dense")
-
-                    action_enabled_switch = ui.switch(
-                        value=taskedit.is_action_enabled(action),
-                        on_change=lambda e, n=action.act_number: self.event_handlers.set_action_enabled_event(
-                            edited_task,
-                            n,
-                            e.value,
-                        ),
-                    ).classes("mb-2")
-                    action_enabled_switch.bind_text_from(
-                        action_enabled_switch,
-                        "value",
-                        backward=lambda v: "Enabled" if v else "Disabled",
-                    )
-
-                    field_refs[taskedit.label_key(action.act_number)] = ui.input(
-                        translate_string("Label"),
-                        value=taskedit.get_action_label(action),
-                    ).classes("w-full")
-
-                    if action.code != taskedit.IF_ACTION_CODE:
-                        _render_action_condition_checkbox(self, edited_task, action, condition_cache)
-                    _render_continue_after_error_checkbox(self, edited_task, action)
-                    _render_plugin_configuration_warning(action.action_element, action.action_name)
-
-                    if not action.args:
-                        ui.label(translate_string("No editable arguments.")).classes("text-xs text-gray-500 italic")
-                    for arg in action.args:
-                        key = taskedit.arg_key(action.act_number, arg.arg_id)
-                        with ui.row().classes("w-full items-center gap-2"):
-                            if arg.widget_kind == "checkbox":
-                                field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
-                            elif arg.widget_kind == "dropdown":
-                                options = arg.dropdown_options or []
-                                field_refs[key] = ui.select(
-                                    options,
-                                    value=_dropdown_current_label(arg),
-                                    label=arg.arg_name,
-                                ).classes(
-                                    "flex-1",
-                                )
-                            elif taskedit.is_perform_task_name_arg(action.code, arg):
-                                _render_task_name_field(self, action, arg, key, field_refs, state=self.state)
-                            elif arg.widget_kind == "app_picker":
-                                _render_app_arg_field(self, arg, key, field_refs)
-                            elif arg.widget_kind == "icon_picker":
-                                _render_icon_arg_field(self, arg, key, field_refs)
-                            elif arg.widget_kind in ("text", "raw_fallback"):
-                                field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
-                                if arg.readonly_note:
-                                    _render_readonly_note(
-                                        self,
-                                        arg.readonly_note,
-                                        _after_inventory_fetch(render_actions, action, state=self.state),
-                                    )
-                            else:  # readonly
-                                ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
-                                if arg.readonly_note:
-                                    _render_readonly_note(
-                                        self,
-                                        arg.readonly_note,
-                                        _after_inventory_fetch(render_actions, action, state=self.state),
-                                    )
-
-    refresh_picker()
-    refresh_position_options()
-    render_actions()
-
-    return render_actions
+def _render_edit_task_buttons(
+    self: MyGui,
+    edited_task: taskedit.EditableTask,
+    field_refs: dict,
+    dialog: ui.dialog,
+    title_label: ui.label,
+    pending_changes: PendingChangesBanner,
+) -> None:
+    """The Edit Task dialog's row of buttons: Cancel, Delete, Rename, Ok and the several Saves."""
+    with ui.row().classes("w-full justify-end gap-2 mt-4"):
+        ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+        delete_task_button = ui.button(
+            translate_string("Delete Task"),
+            on_click=lambda: self.event_handlers.delete_task_event(edited_task, dialog),
+        ).classes("bg-red-500 text-white")
+        with delete_task_button:
+            ui.tooltip(
+                translate_string(
+                    "Deletes this Task and every reference to it: it is removed from the Tasks of every "
+                    "Project that owns it, and from any Profile that runs it as its Entry/Exit Task. "
+                    "The Profiles themselves are kept.",
+                ),
+            )
+        rename_task_button = ui.button(
+            translate_string("Rename"),
+            on_click=lambda: self.event_handlers.rename_task_event(edited_task, field_refs, title_label),
+        ).classes("bg-blue-600")
+        with rename_task_button:
+            ui.tooltip(
+                translate_string(
+                    "Prompts for a new name and applies just that to the loaded backup, right now. "
+                    "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
+                    "open so you can carry on editing.",
+                ),
+            )
+        ui.button(
+            translate_string("Ok"),
+            on_click=lambda: self.event_handlers.keep_edited_task_event(edited_task, field_refs, dialog),
+        ).props("outline")
+        task_to_current_file = ui.button(
+            translate_string("Save To Current File"),
+            on_click=lambda: self.event_handlers.save_edited_task_to_current_file_event(
+                edited_task,
+                field_refs,
+                dialog,
+            ),
+        ).props("outline")
+        with task_to_current_file:
+            ui.tooltip(
+                translate_string(
+                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- "
+                    "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ),
+            ).style("white-space: pre-wrap")
+        task_to_android = ui.button(
+            translate_string("Save To Android"),
+            on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
+                edited_task,
+                field_refs,
+                dialog,
+            ),
+        ).props("outline")
+        with task_to_android:
+            ui.tooltip(
+                translate_string(
+                    "This opens a choice of two: write the Task as a standalone file onto your Android "
+                    "device under /Tasker/tasks, or import it straight into Tasker's live "
+                    "configuration.\n\n"
+                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                    "device, with the server running (see the README's Direct XML Retrieval notes), and "
+                    "Tasker must be 6.2 or higher.\n\n"
+                    "The Android device must be on the same network, and the IP Address and Port must "
+                    "match its Tasker server settings.\n\n"
+                    "Watch the Android device while either one runs: Tasker asks you to authorize "
+                    "the connection several times for one save, and a prompt left untapped fails it.\n\n"
+                    "You must exit and restart Tasker to see an imported Task in the Tasker UI.",
+                ),
+            ).style("white-space: pre-wrap")
+        run_on_android = ui.button(
+            translate_string("Run On Android"),
+            on_click=lambda: build_run_task_on_android_dialog(
+                self,
+                field_refs["name"].value.strip(),
+                lambda: bool(pending_changes.row.visible),
+            ),
+        ).props("outline")
+        with run_on_android:
+            ui.tooltip(
+                translate_string(
+                    "Runs this Task on your Android device and shows what it returned, or the error.\n\n"
+                    "The device runs the Task as Tasker already has it: use 'Save To Android' first to "
+                    "run your edits.",
+                ),
+            ).style("white-space: pre-wrap")
+        task_save = ui.button(
+            translate_string("Export Task"),
+            on_click=lambda: self.event_handlers.save_edited_task_event(edited_task, field_refs, dialog),
+        ).classes("bg-blue-600")
+        with task_save:
+            ui.tooltip(
+                translate_string("This will save the Task directly to your current drive.\n\n"),
+            ).style("white-space: pre-wrap")
 
 
 def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> None:
@@ -1454,105 +1860,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
         pending_changes = PendingChangesBanner()
         pending_changes.watch(dialog, lambda: editor_state(edited_task.task_element, field_refs))
 
-        with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
-            delete_task_button = ui.button(
-                translate_string("Delete Task"),
-                on_click=lambda: self.event_handlers.delete_task_event(edited_task, dialog),
-            ).classes("bg-red-500 text-white")
-            with delete_task_button:
-                ui.tooltip(
-                    translate_string(
-                        "Deletes this Task and every reference to it: it is removed from the Tasks of every "
-                        "Project that owns it, and from any Profile that runs it as its Entry/Exit Task. "
-                        "The Profiles themselves are kept.",
-                    ),
-                )
-            rename_task_button = ui.button(
-                translate_string("Rename"),
-                on_click=lambda: self.event_handlers.rename_task_event(edited_task, field_refs, title_label),
-            ).classes("bg-blue-600")
-            with rename_task_button:
-                ui.tooltip(
-                    translate_string(
-                        "Prompts for a new name and applies just that to the loaded backup, right now. "
-                        "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
-                        "open so you can carry on editing.",
-                    ),
-                )
-            ui.button(
-                translate_string("Ok"),
-                on_click=lambda: self.event_handlers.keep_edited_task_event(edited_task, field_refs, dialog),
-            ).props("outline")
-            task_to_current_file = ui.button(
-                translate_string("Save To Current File"),
-                on_click=lambda: self.event_handlers.save_edited_task_to_current_file_event(
-                    edited_task,
-                    field_refs,
-                    dialog,
-                ),
-            ).props("outline")
-            with task_to_current_file:
-                ui.tooltip(
-                    translate_string(
-                        "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- "
-                        "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
-                        "It is written to a new, timestamped copy of the file currently loaded: "
-                        "backup.xml becomes backup_20260728_143005.xml.\n"
-                        "The file you loaded is never written to, so it is left exactly as it was.\n"
-                        "The app then switches to the new copy, which becomes the current file for any further "
-                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device.",
-                    ),
-                ).style("white-space: pre-wrap")
-            task_to_android = ui.button(
-                translate_string("Save To Android"),
-                on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
-                    edited_task,
-                    field_refs,
-                    dialog,
-                ),
-            ).props("outline")
-            with task_to_android:
-                ui.tooltip(
-                    translate_string(
-                        "This opens a choice of two: write the Task as a standalone file onto your Android "
-                        "device under /Tasker/tasks, or import it straight into Tasker's live "
-                        "configuration.\n\n"
-                        "The 'Http Server Example' Tasker Project must be installed and active on the Android "
-                        "device, with the server running (see the README's Direct XML Retrieval notes), and "
-                        "Tasker must be 6.2 or higher.\n\n"
-                        "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings.\n\n"
-                        "Watch the Android device while either one runs: Tasker asks you to authorize "
-                        "the connection several times for one save, and a prompt left untapped fails it.\n\n"
-                        "You must exit and restart Tasker to see an imported Task in the Tasker UI.",
-                    ),
-                ).style("white-space: pre-wrap")
-            run_on_android = ui.button(
-                translate_string("Run On Android"),
-                on_click=lambda: build_run_task_on_android_dialog(
-                    self,
-                    field_refs["name"].value.strip(),
-                    lambda: bool(pending_changes.row.visible),
-                ),
-            ).props("outline")
-            with run_on_android:
-                ui.tooltip(
-                    translate_string(
-                        "Runs this Task on your Android device and shows what it returned, or the error.\n\n"
-                        "The device runs the Task as Tasker already has it: use 'Save To Android' first to "
-                        "run your edits.",
-                    ),
-                ).style("white-space: pre-wrap")
-            task_save = ui.button(
-                translate_string("Export Task"),
-                on_click=lambda: self.event_handlers.save_edited_task_event(edited_task, field_refs, dialog),
-            ).classes("bg-blue-600")
-            with task_save:
-                ui.tooltip(
-                    translate_string("This will save the Task directly to your current drive.\n\n"),
-                ).style("white-space: pre-wrap")
+        _render_edit_task_buttons(self, edited_task, field_refs, dialog, title_label, pending_changes)
 
     dialog.open()
 
@@ -1594,6 +1902,116 @@ def build_delete_task_dialog(
     confirm_dialog.open()
 
 
+def _make_save_path_sync(field_refs: dict, last_auto_path: dict) -> Callable[..., None]:
+    """The Task Name field's change handler for the Add Task dialog: keeps "Save as" in step with it.
+
+    Args:
+        field_refs: The dialog's widgets by key; "name" and "save_path" are read from it.
+        last_auto_path: Holds, under "value", the path last worked out from the name.
+    """
+
+    def sync_save_path(_e: ui.event | None = None) -> None:
+        # Keep "Save as" in sync with the Task Name as the user types, so the
+        # file actually lands under the name they gave the task -- but only
+        # while it still holds what we last auto-computed; if the user has
+        # since edited it manually, leave their edit alone. (Can't tell "manual
+        # edit" apart via save_path's own on_change: NiceGUI fires that for
+        # programmatic value sets too, so it would trip on the very first sync.)
+        if field_refs["save_path"].value == last_auto_path["value"]:
+            new_path = taskedit.default_save_path(field_refs["name"].value)
+            field_refs["save_path"].value = new_path
+            last_auto_path["value"] = new_path
+
+    return sync_save_path
+
+
+def _render_new_task_name_row(
+    self: MyGui,
+    edited_task: taskedit.EditableTask,
+    field_refs: dict,
+    dialog: ui.dialog,
+    sync_save_path: Callable[..., None],
+) -> None:
+    """The Add Task dialog's Name and Priority fields and its Properties button."""
+    with ui.row().classes("w-full gap-4"):
+        field_refs["name"] = ui.input(translate_string("Task Name"), value="", on_change=sync_save_path).classes(
+            "flex-1",
+        )
+        field_refs["priority"] = ui.input(translate_string("Priority"), value="100").classes("w-32")
+        # Safe on a not-yet-registered Task, unlike Add Project's equivalent:
+        # register_new_task stores THIS element object in all_tasks rather than a
+        # copy of it, and every save path deep-copies it at write time, so properties
+        # set before the Task exists are still on it once it does.
+        _build_properties_button(self, objprops.KIND_TASK, edited_task.task_element, dialog)
+
+
+def _render_new_task_buttons(
+    self: MyGui,
+    edited_task: taskedit.EditableTask,
+    field_refs: dict,
+    dialog: ui.dialog,
+    on_task_created: Callable[[str], None] | None,
+) -> None:
+    """The Add Task dialog's row of buttons: Cancel, Ok and the several Saves."""
+    with ui.row().classes("w-full justify-end gap-2 mt-4"):
+        ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+        ui.button(
+            translate_string("Ok"),
+            on_click=lambda: self.event_handlers.keep_new_task_event(
+                edited_task,
+                field_refs,
+                dialog,
+                on_created=on_task_created,
+            ),
+        ).props("outline")
+        new_task_to_current_file = ui.button(
+            translate_string("Save To Current File"),
+            on_click=lambda: self.event_handlers.save_new_task_to_current_file_event(
+                edited_task,
+                field_refs,
+                dialog,
+                on_created=on_task_created,
+            ),
+        ).props("outline")
+        with new_task_to_current_file:
+            ui.tooltip(
+                translate_string(
+                    "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
+                    "with the new Task added to it, the same way 'Ok' adds it.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ),
+            ).style("white-space: pre-wrap")
+        ui.button(
+            translate_string("Save To Android"),
+            on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
+                edited_task,
+                field_refs,
+                dialog,
+                on_created=on_task_created,
+            ),
+        ).props("outline")
+        export_task = ui.button(
+            translate_string("Export Task"),
+            on_click=lambda: self.event_handlers.save_new_task_event(
+                edited_task,
+                field_refs,
+                dialog,
+                on_created=on_task_created,
+            ),
+        ).classes("bg-blue-600")
+        with export_task:
+            ui.tooltip(
+                translate_string(
+                    "Exports the Task as XML to a file on your computer.",
+                ),
+            ).style("white-space: pre-wrap")
+
+
 def build_add_task_dialog(
     self: MyGui,
     edited_task: taskedit.EditableTask,
@@ -1628,255 +2046,26 @@ def build_add_task_dialog(
     dialog, which doesn't attach to a Project at all.
     """
     field_refs: dict = {"target_project_name": target_project_name}
-    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions(state=self.state)})
-    # Same out-of-band Position-label -> act_number map as build_edit_task_dialog's.
-    position_labels: dict[str, int | None] = {}
-    # Same per-action If condition value cache as build_edit_task_dialog's.
-    condition_cache: dict[int, tuple[str, str, str]] = {}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         ui.label(translate_string("Add Task")).classes("text-xl font-bold text-blue-600")
 
         last_auto_path = {"value": taskedit.default_save_path("")}
-
-        def sync_save_path(_e: ui.event | None = None) -> None:
-            # Keep "Save as" in sync with the Task Name as the user types, so the
-            # file actually lands under the name they gave the task -- but only
-            # while it still holds what we last auto-computed; if the user has
-            # since edited it manually, leave their edit alone. (Can't tell "manual
-            # edit" apart via save_path's own on_change: NiceGUI fires that for
-            # programmatic value sets too, so it would trip on the very first sync.)
-            if field_refs["save_path"].value == last_auto_path["value"]:
-                new_path = taskedit.default_save_path(field_refs["name"].value)
-                field_refs["save_path"].value = new_path
-                last_auto_path["value"] = new_path
+        sync_save_path = _make_save_path_sync(field_refs, last_auto_path)
 
         if target_project_name:
             ui.label(f"{translate_string('Adding to Project:')} {target_project_name}").classes(
                 "text-sm text-gray-500 italic",
             )
 
-        with ui.row().classes("w-full gap-4"):
-            field_refs["name"] = ui.input(translate_string("Task Name"), value="", on_change=sync_save_path).classes(
-                "flex-1",
-            )
-            field_refs["priority"] = ui.input(translate_string("Priority"), value="100").classes("w-32")
-            # Safe on a not-yet-registered Task, unlike Add Project's equivalent:
-            # register_new_task stores THIS element object in all_tasks rather than a
-            # copy of it, and every save path deep-copies it at write time, so properties
-            # set before the Task exists are still on it once it does.
-            _build_properties_button(self, objprops.KIND_TASK, edited_task.task_element, dialog)
-
-        ui.label(translate_string("Add an action")).classes("text-sm font-bold mt-2")
-        with ui.row().classes("w-full gap-4"):
-            search_input = ui.input(translate_string("Search actions")).classes("flex-1")
-            category_select = ui.select(["All", *category_names], value="All").classes("w-48")
-        position_select = (
-            ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
-        )
-
-        picker_container = ui.column().classes("w-full")
-        ui.label(translate_string("Actions in this Task")).classes("text-sm font-bold mt-2")
-        added_container = ui.column().classes("w-full")
-        # act_number of the action most recently added in this dialog session --
-        # render_added_actions highlights it so it's easy to spot in a long list.
-        last_added_act_number: int | None = None
-
-        def clear_last_added() -> None:
-            # Remove renumbers the list, so a stale act_number here would risk
-            # highlighting the wrong action -- drop the highlight instead of
-            # letting it follow whatever action inherits the number.
-            nonlocal last_added_act_number
-            last_added_act_number = None
-
-        def refresh_position_options() -> None:
-            _refresh_position_options(edited_task, position_select, position_labels)
-
-        def render_added_actions() -> None:
-            # Rebuild from scratch -- a Remove renumbers every action after it, so
-            # stale act*_arg* keys must not survive into the next Save.
-            for key in [k for k in field_refs if k.startswith("act")]:
-                del field_refs[key]
-            added_container.clear()
-            with added_container:
-                if not edited_task.actions:
-                    ui.label(translate_string("No actions added yet.")).classes("text-xs text-gray-500 italic")
-                indent_spaces = _action_indent_spaces(self)
-                display_levels = taskedit.action_display_levels(edited_task.actions)
-                for action, nest_level in zip(edited_task.actions, display_levels, strict=True):
-                    # Indent with non-breaking spaces -- plain ones collapse in the rendered header.
-                    indent_pad = "\u00a0" * (indent_spaces * nest_level)
-                    is_last_added = action.act_number == last_added_act_number
-                    header = f"{indent_pad}{action.act_number}: {action.action_name}"
-                    if is_last_added:
-                        header += "  \u2190 just added"
-                    action_expansion = ui.expansion(header, value=is_last_added).classes("w-full")
-                    if is_last_added:
-                        action_expansion.classes("bg-amber-100 dark:bg-amber-900 border-2 border-amber-400 rounded")
-                    with action_expansion:
-                        field_refs[taskedit.label_key(action.act_number)] = ui.input(
-                            translate_string("Label"),
-                            value=taskedit.get_action_label(action),
-                        ).classes("w-full")
-                        if action.code != taskedit.IF_ACTION_CODE:
-                            _render_action_condition_checkbox(self, edited_task, action, condition_cache)
-                        _render_continue_after_error_checkbox(self, edited_task, action)
-                        _render_plugin_configuration_warning(action.action_element, action.action_name)
-                        for arg in action.args:
-                            key = taskedit.arg_key(action.act_number, arg.arg_id)
-                            with ui.row().classes("w-full items-center gap-2"):
-                                if arg.widget_kind == "checkbox":
-                                    field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
-                                elif arg.widget_kind == "dropdown":
-                                    options = arg.dropdown_options or []
-                                    field_refs[key] = ui.select(
-                                        options,
-                                        value=_dropdown_current_label(arg),
-                                        label=arg.arg_name,
-                                    ).classes("flex-1")
-                                elif taskedit.is_perform_task_name_arg(action.code, arg):
-                                    _render_task_name_field(self, action, arg, key, field_refs, state=self.state)
-                                elif arg.widget_kind == "app_picker":
-                                    _render_app_arg_field(self, arg, key, field_refs)
-                                elif arg.widget_kind == "icon_picker":
-                                    _render_icon_arg_field(self, arg, key, field_refs)
-                                elif arg.widget_kind == "readonly":
-                                    # A newly-added plugin action's payload (see
-                                    # taskedit._synthesize_bundle_arg): not editable here,
-                                    # and apply_arg_values skips it, so never a field_ref.
-                                    ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes(
-                                        "flex-1",
-                                    )
-                                    if arg.readonly_note:
-                                        _render_readonly_note(
-                                            self,
-                                            arg.readonly_note,
-                                            _after_inventory_fetch(render_added_actions, action, state=self.state),
-                                        )
-                                else:  # "text" or "raw_fallback"
-                                    field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
-                        ui.button(
-                            translate_string("Remove"),
-                            on_click=lambda n=action.act_number: (
-                                clear_last_added(),
-                                self.event_handlers.remove_action_from_new_task_event(edited_task, n),
-                                render_added_actions(),
-                                refresh_position_options(),
-                            ),
-                        ).props("flat color=red dense")
-
-        def add_picked_action(action_key: str) -> None:
-            nonlocal last_added_act_number
-            # Same "If" block prompt and Position handling as
-            # build_edit_task_dialog's picker.
-            if action_key == taskedit.IF_ACTION_KEY:
-
-                def _add_if_block(variant: str) -> None:
-                    nonlocal last_added_act_number
-                    act_number = self.event_handlers.add_if_block_to_new_task_event(
-                        edited_task,
-                        variant,
-                        position_labels.get(position_select.value),
-                    )
-                    if act_number is not None:
-                        last_added_act_number = act_number
-                    render_added_actions()
-                    refresh_position_options()
-
-                build_if_variant_dialog(_add_if_block)
-                return
-            act_number = self.event_handlers.add_action_to_new_task_event(
-                edited_task,
-                action_key,
-                position_labels.get(position_select.value),
-            )
-            if act_number is not None:
-                last_added_act_number = act_number
-            render_added_actions()
-            refresh_position_options()
-
-        def refresh_picker(_e: ui.event | None = None) -> None:
-            picker_container.clear()
-            rows = taskedit.search_addable_actions(search_input.value, category_select.value, state=self.state)
-            with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
-                for row in rows:
-                    if row["addable"]:
-                        ui.button(
-                            f"{row['name']} ({row['category_name']})",
-                            on_click=lambda r=row: add_picked_action(r["action_key"]),
-                        ).props("flat align=left dense").classes("w-full justify-start")
-                    else:
-                        with ui.column().classes("w-full gap-0"):
-                            ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
-                            _render_addability_reason(self, row["reason"], refresh_picker)
-
-        search_input.on_value_change(refresh_picker)
-        category_select.on_value_change(refresh_picker)
-        refresh_picker()
-        refresh_position_options()
-        render_added_actions()
+        _render_new_task_name_row(self, edited_task, field_refs, dialog, sync_save_path)
+        _NewTaskActionList(self, edited_task, field_refs).build()
 
         field_refs["save_path"] = ui.input(
             translate_string("Save as"),
             value=last_auto_path["value"],
         ).classes("w-full mt-2")
 
-        with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
-            ui.button(
-                translate_string("Ok"),
-                on_click=lambda: self.event_handlers.keep_new_task_event(
-                    edited_task,
-                    field_refs,
-                    dialog,
-                    on_created=on_task_created,
-                ),
-            ).props("outline")
-            new_task_to_current_file = ui.button(
-                translate_string("Save To Current File"),
-                on_click=lambda: self.event_handlers.save_new_task_to_current_file_event(
-                    edited_task,
-                    field_refs,
-                    dialog,
-                    on_created=on_task_created,
-                ),
-            ).props("outline")
-            with new_task_to_current_file:
-                ui.tooltip(
-                    translate_string(
-                        "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
-                        "with the new Task added to it, the same way 'Ok' adds it.\n"
-                        "It is written to a new, timestamped copy of the file currently loaded: "
-                        "backup.xml becomes backup_20260728_143005.xml.\n"
-                        "The file you loaded is never written to, so it is left exactly as it was.\n"
-                        "The app then switches to the new copy, which becomes the current file for any further "
-                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device.",
-                    ),
-                ).style("white-space: pre-wrap")
-            ui.button(
-                translate_string("Save To Android"),
-                on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
-                    edited_task,
-                    field_refs,
-                    dialog,
-                    on_created=on_task_created,
-                ),
-            ).props("outline")
-            export_task = ui.button(
-                translate_string("Export Task"),
-                on_click=lambda: self.event_handlers.save_new_task_event(
-                    edited_task,
-                    field_refs,
-                    dialog,
-                    on_created=on_task_created,
-                ),
-            ).classes("bg-blue-600")
-            with export_task:
-                ui.tooltip(
-                    translate_string(
-                        "Exports the Task as XML to a file on your computer.",
-                    ),
-                ).style("white-space: pre-wrap")
+        _render_new_task_buttons(self, edited_task, field_refs, dialog, on_task_created)
 
     dialog.open()

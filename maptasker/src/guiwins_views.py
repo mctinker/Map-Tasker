@@ -22,7 +22,7 @@ import asyncio
 import contextlib
 import json
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from nicegui import Event, run, ui
 
@@ -538,6 +538,175 @@ def _wrap_diagram_line(
         f'<span class="{diagintr.LINE_CLASS}" data-line="{line_num}"{fold_attribute}>'
         f'{"".join(pieces)}<span class="mt-dnl">\n</span></span>'
     )
+
+
+# Tags the fallback rendering lets through unescaped; everything else <like this> is shown as text.
+FALLBACK_ALLOWED_TAGS = frozenset(
+    {
+        "a",
+        "table",
+        "tr",
+        "td",
+        "th",
+        "tbody",
+        "thead",
+        "div",
+        "span",
+        "br",
+        "style",
+        "b",
+        "i",
+        "u",
+        "strong",
+        "em",
+        "hr",
+        "!doctype",
+        "html",
+        "head",
+        "meta",
+        "title",
+        "body",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "p",
+        "ul",
+        "ol",
+        "li",
+        # Everything format.py can put in a TaskerNet description or Task label needs
+        # to be in this list, or it is escaped and shown as its own markup instead of
+        # being rendered.  "img" is the one that shows: a description's picture came
+        # out as the literal text of its <img> tag and no image at all.
+        "img",
+        "figure",
+        "figcaption",
+        "big",
+        "small",
+        "code",
+        "pre",
+        "blockquote",
+        "font",
+        "mark",
+        "sub",
+        "sup",
+    },
+)
+
+
+def _is_css_line(text: str) -> bool:
+    """Whether a stray line of the fallback data is actually a CSS rule."""
+    clean = text.strip()
+    if clean.startswith((".", "#", "}", "{")):
+        return True
+    return bool(":" in clean and (clean.endswith(";") or "/*" in clean or "*/" in clean))
+
+
+def _escape_text_except_html(text: str) -> str:
+    """Escapes < and > but preserves intended HTML tags like tables and links."""
+    parts = re.split(r"(<[^>]+>)", text)
+
+    for i in range(len(parts)):
+        if i % 2 == 0:
+            parts[i] = parts[i].replace("<", "&lt;").replace(">", "&gt;")
+        else:
+            tag_name_match = re.match(r"^</?([!a-zA-Z0-9]+)", parts[i])
+            if not (tag_name_match and tag_name_match.group(1).lower() in FALLBACK_ALLOWED_TAGS):
+                parts[i] = parts[i].replace("<", "&lt;").replace(">", "&gt;")
+    return "".join(parts)
+
+
+class _StyleCollector:
+    """Folds the lines of a <style> block, and stray lines of CSS, into <style> elements.
+
+    A stylesheet arrives a line at a time, so a block is gathered up until the line that closes
+    it.  A line of CSS with no block around it is wrapped on its own.
+    """
+
+    def __init__(self, html_builder: list[str]) -> None:
+        """
+        Args:
+            html_builder: The HTML being assembled; each finished <style> element is appended to it.
+        """
+        self.html_builder = html_builder
+        self.in_style_block = False
+        self.style_buffer: list[str] = []
+
+    def consume(self, text: str) -> bool:
+        """Take the line if it is CSS, either inside a <style> block or on its own.
+
+        Returns:
+            True if it was taken, False if it is a line of content for the caller to deal with.
+        """
+        if "<style>" in text:
+            self.in_style_block = True
+
+        if self.in_style_block:
+            clean_line = text.replace("<style>", "").replace("</style>", "").replace('"""', "")
+            self.style_buffer.append(clean_line)
+            if "</style>" in text:
+                self.in_style_block = False
+                self.html_builder.append(f"<style>{''.join(self.style_buffer)}</style>")
+                self.style_buffer = []
+            return True
+        if _is_css_line(text):
+            self.html_builder.append(f"<style>{text}</style>")
+            return True
+        return False
+
+
+def _fallback_map_html(the_data: dict) -> list[str]:
+    """The Map's output lines, as they are held in memory, as HTML: a <div> per line, a <span> per colour."""
+    html_builder: list[str] = []
+    styles = _StyleCollector(html_builder)
+    for value in the_data.values():
+        text_list = value.get("text", [])
+        color_list = value.get("color", [])
+        full_line_text = "".join(str(t) for t in text_list)
+
+        if styles.consume(full_line_text):
+            continue
+        line_html = "<div>"
+        for t_idx, text_segment in enumerate(text_list):
+            segment = str(text_segment).replace('"""', "")
+            safe_text = _escape_text_except_html(segment)
+            color = color_list[t_idx] if t_idx < len(color_list) else "inherit"
+            line_html += f"<span style='color: {color};'>{safe_text}</span>"
+        line_html = line_html.rstrip("\r\n")
+        html_builder.append(line_html + "</div>")
+    return html_builder
+
+
+def _fallback_lines_html(the_data: list[str]) -> list[str]:
+    """The lines of every view but the Map, as HTML: a <div> per line."""
+    html_builder: list[str] = []
+    styles = _StyleCollector(html_builder)
+    for line in the_data:
+        if line.strip() == "":
+            html_builder.append("<div>&nbsp;</div>")
+            continue
+        text = line.replace("<br><br>", "") if "<br><br>" in line else line
+        if '"""' in text:
+            if text in {"<div>  </tr>\n</div>", "<div>\n</div>"}:
+                continue
+            text = text.replace('"""', "")
+
+        if styles.consume(text):
+            continue
+        clean_text_line = text.rstrip("\r\n")
+        safe_line = _escape_text_except_html(clean_text_line)
+        html_builder.append(f"<div>{safe_line}</div>")
+    return html_builder
+
+
+def _compress_blank_lines(final_html: str) -> str:
+    """Squeeze runs of empty <div>s, blank lines and <br>s in the fallback HTML down to one."""
+    empty_div_pattern = r"(<div>(?:\s|&nbsp;|<span[^>]*>(?:\s|&nbsp;)*</span>)*</div>\s*){2,}"
+    final_html = re.sub(empty_div_pattern, "", final_html)
+    final_html = re.sub(r"\n{3,}", "\n", final_html)
+    return re.sub(r"(<br\s*/?>\s*){2,}", "<br>", final_html)
 
 
 # ==========================================
@@ -1749,25 +1918,7 @@ class NiceGuiTextView(TextViewSearch):
         elif is_diagram:
             file_to_read = output_path(DIAGRAM_FILE, state=self.master_gui.state)
         elif self.title.startswith("Misc") or is_flow:
-            # The Task Flow view is this renderer with the Diagram's habits: rows mapjump has
-            # already made clickable, but a drawing rather than prose, so nothing may wrap
-            # (see build_ui).  Its content comes off PrimeItems rather than through the_data
-            # because a popped-out window builds itself from a URL and is handed nothing --
-            # the same reason the Diagram popout re-reads its own file (rungui.popout_view).
-            with self.scroll_area:
-                content_str = (
-                    mapjump.html_report(self.master_gui.state.taskflow_rows)
-                    if is_flow
-                    else ("\n".join(str(line) for line in the_data) if isinstance(the_data, list) else str(the_data))
-                )
-                ui.html(f"<pre style='{html_style}'>{content_str}</pre>", sanitize=False)
-            # A report rendered by mapjump.html_report marks the rows that point at
-            # something in the Map (see its FINDING_CLASS).  Tested for rather than assumed,
-            # since this branch also shows reports that carry no such rows at all -- the
-            # file comparison, and any report from a build before those rows existed.
-            if mapjump.FINDING_CLASS in content_str:
-                enable_finding_clicks(self)
-            self._mark_content_ready()
+            self._show_report(the_data, html_style, is_flow)
             return
 
         try:
@@ -1780,149 +1931,10 @@ class NiceGuiTextView(TextViewSearch):
                 if not is_diagram:
                     final_html = HTML_OPTIMIZE_PATTERN.sub(optimize_html, final_html)
 
-            # Render in whatever font the file we just read was actually generated with,
-            # rather than overriding it with the GUI's current selection.
-            #
-            # This used to rewrite the file's font-family to self.master_gui.font. That is
-            # only right while the two agree -- and the popout page resolves its gui through
-            # PrimeItems.mygui, which is simply the most recently constructed MyGui, so a
-            # main window that got rebuilt (a reload, a reconnect, a second window) leaves a
-            # .font behind that never generated anything. Rewriting to it then replaced a
-            # correct font with a stale one, which is why the saved MapTasker.html could show
-            # the selected font while the Map view of that very same file did not.
-            #
-            # Reading the font back out of the file removes the disagreement outright: the
-            # view can only ever show what the output it is displaying was built with. The
-            # Diagram file is plain text with no CSS of its own, hence the fallback to the
-            # font that generated this run.
-            extracted_font = self.extract_first_font_name(final_html)
-            view_font = (
-                extracted_font
-                if extracted_font != "Font name not found"
-                else self.master_gui.state.program_arguments.font
-            )
-            html_style = f"width: 100%; max-width: 100%; font-family: '{view_font}', monospace;"
-            if not is_diagram:
-                html_style += " word-break: break-word;"
-            # build_ui() styled the scroll area before this file had been read, so bring it
-            # into step now that the font it is actually holding is known.
-            self.scroll_area.style(f"font-family: '{view_font}', monospace;")
-
-            # --- STREAMING CHUNK ENGINE ---
-            # Slice the giant HTML text by lines and push them in digestible blocks
-            html_lines = final_html.splitlines()
-            if html_lines and html_lines[0].strip() == '<span class="normtab"></span><!doctype html>':
-                del html_lines[0]  # Remove the first line if it matches the unwanted header
-
-            connectors_by_line = _connectors_by_line(state=self.master_gui.state) if is_diagram else None
-            # What makes the Diagram clickable rather than merely drawn -- see diagintr.
-            # Empty for a Diagram file left on disk by an older run, in which case the
-            # lines below are wrapped exactly as they always were.
-            diagram_model = diagintr.model(state=self.master_gui.state) if is_diagram else {}
-            nodes_by_line = diagintr.nodes_by_line(diagram_model)
-            folds_by_line = diagintr.folds_by_line(diagram_model)
-
-            # The Diagram view's click-to-highlight feature wraps every connector character in its
-            # own <span> (tens of thousands of them on a large diagram, since a run only merges
-            # with its neighbor when they're on the very same line -- see
-            # compute_diagram_connector_groups() in diagram.py). That many extra inline elements
-            # makes the browser's layout/paint work on scroll noticeably heavier, so the Diagram
-            # view is chunked much more finely than other views. Every view's chunks are marked
-            # content-visibility: auto though, which lets the browser skip layout and paint
-            # entirely for chunks that are scrolled out of view instead of doing that work for the
-            # whole document on every frame -- on a very large Map view that's the difference
-            # between laying out the whole document up front and only what's on screen.
-            # contain-intrinsic-size reserves roughly the right amount of scrollbar space for an
-            # unrendered chunk so scrolling doesn't jump around as chunks pop in and out; it
-            # doesn't need to be exact, just close. For the Map/Misc views this estimate is fuzzier
-            # than for Diagram's plain monospace text, since long lines there can word-wrap
-            # (word-break: break-word, set above) into more than one visual line -- a minor
-            # scrollbar jitter, not a correctness issue.
-            # text-sm is 14px; at the Diagram view's tightened line-height (1.2, set in build_ui)
-            # that's ~17px per line instead of Tailwind's default ~20px.
-            approx_px_per_line = 17 if is_diagram else 20
-
-            # The Diagram is a drawing made of lines, and every one of them has to keep its
-            # own number for a connector click to land on it, so it is still cut into pieces
-            # of 150 lines.  The Map is not: by the time it reaches here the newlines
-            # between its tags have been optimized away, so cutting it by lines left the
-            # whole Map in one piece however big it was (see split_for_streaming).
-            if is_diagram:
-                chunks = [
-                    (
-                        "".join(
-                            _wrap_diagram_line(
-                                start + offset,
-                                line,
-                                connectors_by_line or {},
-                                nodes_by_line,
-                                folds_by_line,
-                            )
-                            for offset, line in enumerate(html_lines[start : start + 150])
-                        ),
-                        len(html_lines[start : start + 150]),
-                    )
-                    for start in range(0, len(html_lines), 150)
-                ]
-            else:
-                # Joined back exactly as the chunks used to be written, so that what the
-                # browser is given is the same text it was given before -- only cut up
-                # differently.  How tall a piece is, near enough to reserve scrollbar space
-                # for: every line of the Map ends in a <br>, so counting those counts lines.
-                chunks = [(piece, piece.count("<br>") or 1) for piece in split_for_streaming("\n".join(html_lines))]
-
-            delivered = 0
-            total_size = sum(len(content) for content, _ in chunks) or 1
-            with self.scroll_area:
-                for number, (chunk_content, chunk_lines) in enumerate(chunks):
-                    chunk_height = chunk_lines * approx_px_per_line
-                    chunk_style = (
-                        html_style + f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
-                    )
-                    chunk = ui.html(chunk_content, sanitize=False).classes("w-full block max-w-full").style(chunk_style)
-                    # How many lines this chunk holds, so that zooming can re-reserve the
-                    # right amount of scrollbar space for it while it is still unrendered --
-                    # the height above was worked out against the unzoomed line height.
-                    if is_diagram:
-                        chunk.props(f"data-lines={chunk_lines}")
-                    # How far along, on the banner _show_loading put up.  Content arrives
-                    # top-down so there is something to look at almost at once, but on a
-                    # large configuration it goes on arriving for a while after that, and
-                    # a percentage is the difference between "still working" and "stuck".
-                    delivered += len(chunk_content)
-                    self._set_loading_text(
-                        f"{translate_string('Building the view')} ... {min(100, round(100 * delivered / total_size))}%",
-                    )
-                    # Yields the loop to keep the WebSocket alive.  Not after every piece:
-                    # the Map is now cut into far more of them, and a hundredth of a second
-                    # each would put a wait of its own in front of the user.
-                    if number % 4 == 0:
-                        await asyncio.sleep(0.01)
-
-            if connectors_by_line:
-                self._enable_connector_highlighting(diagintr.connector_tasks(diagram_model))
-                if hasattr(self, "diagram_message_label"):
-                    self.diagram_message_label.set_text(translate_string("Click on connector to highlight"))
-            if diagram_model.get("nodes"):
-                self._enable_diagram_interaction(diagram_model)
-                # Replaces the connector hint rather than joining it: both are about
-                # clicking the diagram, and this one covers the connectors too.
-                if hasattr(self, "diagram_message_label"):
-                    self.diagram_message_label.set_text(
-                        translate_string("Click a name for its Map entry \u00b7 shift-click a Task for its call chain"),
-                    )
-            # A diagram cut short at the view limit (diagram.check_limit) says so here, in place
-            # of the connector hint: that the diagram stops early is the more important of the
-            # two things to tell the user, and this is the Map view's view_limit_msg field by
-            # another name (see NiceGuiTextView.build_ui).
-            if self.master_gui.state.diagram_limit_msg and hasattr(self, "diagram_message_label"):
-                self.diagram_message_label.set_text(self.master_gui.state.diagram_limit_msg)
-            await self._enable_in_page_links()
-            self._mark_content_ready()
-            # Everything is on the page now, so a report finding that asked for this Map can
-            # finally be taken to.  Last, deliberately: the anchor it wants may be in the
-            # chunk that only just arrived.
-            await self._deliver_jump()
+            html_style = self._style_for_file_font(final_html, is_diagram)
+            chunks, diagram_model, connectors_by_line = self._chunk_view_html(final_html, is_diagram)
+            await self._stream_chunks(chunks, html_style, is_diagram)
+            await self._finish_view(diagram_model, connectors_by_line)
             return  # noqa: TRY300
 
         except FileNotFoundError:
@@ -1931,6 +1943,209 @@ class NiceGuiTextView(TextViewSearch):
         # Apply the fallback generation if the file does not exist
         self._process_fallback_data(the_data)
         self._mark_content_ready()
+
+    def _show_report(self, the_data: dict | list, html_style: str, is_flow: bool) -> None:
+        """Show the Misc or Task Flow view: a report that has no generated file behind it."""
+        # The Task Flow view is this renderer with the Diagram's habits: rows mapjump has
+        # already made clickable, but a drawing rather than prose, so nothing may wrap
+        # (see build_ui).  Its content comes off PrimeItems rather than through the_data
+        # because a popped-out window builds itself from a URL and is handed nothing --
+        # the same reason the Diagram popout re-reads its own file (rungui.popout_view).
+        with self.scroll_area:
+            content_str = (
+                mapjump.html_report(self.master_gui.state.taskflow_rows)
+                if is_flow
+                else ("\n".join(str(line) for line in the_data) if isinstance(the_data, list) else str(the_data))
+            )
+            ui.html(f"<pre style='{html_style}'>{content_str}</pre>", sanitize=False)
+        # A report rendered by mapjump.html_report marks the rows that point at
+        # something in the Map (see its FINDING_CLASS).  Tested for rather than assumed,
+        # since this branch also shows reports that carry no such rows at all -- the
+        # file comparison, and any report from a build before those rows existed.
+        if mapjump.FINDING_CLASS in content_str:
+            enable_finding_clicks(self)
+        self._mark_content_ready()
+
+    def _style_for_file_font(self, final_html: str, is_diagram: bool) -> str:
+        """The style the view's chunks are given, in the font the file being shown was built with.
+
+        Also brings the scroll area into step, since build_ui() styled it before the file had
+        been read.
+
+        Args:
+            final_html: The contents of the Map or Diagram file.
+            is_diagram: Whether this is the Diagram view, which is plain text and does not wrap.
+
+        Returns:
+            The CSS for each chunk, before its own content-visibility rules are added.
+        """
+        # Render in whatever font the file we just read was actually generated with,
+        # rather than overriding it with the GUI's current selection.
+        #
+        # This used to rewrite the file's font-family to self.master_gui.font. That is
+        # only right while the two agree -- and the popout page resolves its gui through
+        # PrimeItems.mygui, which is simply the most recently constructed MyGui, so a
+        # main window that got rebuilt (a reload, a reconnect, a second window) leaves a
+        # .font behind that never generated anything. Rewriting to it then replaced a
+        # correct font with a stale one, which is why the saved MapTasker.html could show
+        # the selected font while the Map view of that very same file did not.
+        #
+        # Reading the font back out of the file removes the disagreement outright: the
+        # view can only ever show what the output it is displaying was built with. The
+        # Diagram file is plain text with no CSS of its own, hence the fallback to the
+        # font that generated this run.
+        extracted_font = self.extract_first_font_name(final_html)
+        view_font = (
+            extracted_font if extracted_font != "Font name not found" else self.master_gui.state.program_arguments.font
+        )
+        html_style = f"width: 100%; max-width: 100%; font-family: '{view_font}', monospace;"
+        if not is_diagram:
+            html_style += " word-break: break-word;"
+        # build_ui() styled the scroll area before this file had been read, so bring it
+        # into step now that the font it is actually holding is known.
+        self.scroll_area.style(f"font-family: '{view_font}', monospace;")
+        return html_style
+
+    def _chunk_view_html(self, final_html: str, is_diagram: bool) -> tuple[list[tuple[str, int]], dict, dict | None]:
+        """Cut the file's text into the pieces it is streamed to the browser in.
+
+        Args:
+            final_html: The contents of the Map or Diagram file.
+            is_diagram: Whether this is the Diagram view.
+
+        Returns:
+            The chunks, each as (its content, how many lines it holds); the Diagram's
+            interactive model, {} for the other views; and the Diagram's connectors by line
+            number, None for the other views.
+        """
+        # Slice the giant HTML text by lines and push them in digestible blocks
+        html_lines = final_html.splitlines()
+        if html_lines and html_lines[0].strip() == '<span class="normtab"></span><!doctype html>':
+            del html_lines[0]  # Remove the first line if it matches the unwanted header
+
+        connectors_by_line = _connectors_by_line(state=self.master_gui.state) if is_diagram else None
+        # What makes the Diagram clickable rather than merely drawn -- see diagintr.
+        # Empty for a Diagram file left on disk by an older run, in which case the
+        # lines below are wrapped exactly as they always were.
+        diagram_model = diagintr.model(state=self.master_gui.state) if is_diagram else {}
+        nodes_by_line = diagintr.nodes_by_line(diagram_model)
+        folds_by_line = diagintr.folds_by_line(diagram_model)
+
+        # The Diagram is a drawing made of lines, and every one of them has to keep its
+        # own number for a connector click to land on it, so it is still cut into pieces
+        # of 150 lines.  The Map is not: by the time it reaches here the newlines
+        # between its tags have been optimized away, so cutting it by lines left the
+        # whole Map in one piece however big it was (see split_for_streaming).
+        if is_diagram:
+            chunks = [
+                (
+                    "".join(
+                        _wrap_diagram_line(
+                            start + offset,
+                            line,
+                            connectors_by_line or {},
+                            nodes_by_line,
+                            folds_by_line,
+                        )
+                        for offset, line in enumerate(html_lines[start : start + 150])
+                    ),
+                    len(html_lines[start : start + 150]),
+                )
+                for start in range(0, len(html_lines), 150)
+            ]
+        else:
+            # Joined back exactly as the chunks used to be written, so that what the
+            # browser is given is the same text it was given before -- only cut up
+            # differently.  How tall a piece is, near enough to reserve scrollbar space
+            # for: every line of the Map ends in a <br>, so counting those counts lines.
+            chunks = [(piece, piece.count("<br>") or 1) for piece in split_for_streaming("\n".join(html_lines))]
+        return chunks, diagram_model, connectors_by_line
+
+    async def _stream_chunks(self, chunks: list[tuple[str, int]], html_style: str, is_diagram: bool) -> None:
+        """Push the chunks into the scroll area, a few at a time, with a progress percentage.
+
+        Args:
+            chunks: What _chunk_view_html made: each chunk's content and how many lines it holds.
+            html_style: The style every chunk is given, before its own content-visibility rules.
+            is_diagram: Whether this is the Diagram view.
+        """
+        # The Diagram view's click-to-highlight feature wraps every connector character in its
+        # own <span> (tens of thousands of them on a large diagram, since a run only merges
+        # with its neighbor when they're on the very same line -- see
+        # compute_diagram_connector_groups() in diagram.py). That many extra inline elements
+        # makes the browser's layout/paint work on scroll noticeably heavier, so the Diagram
+        # view is chunked much more finely than other views. Every view's chunks are marked
+        # content-visibility: auto though, which lets the browser skip layout and paint
+        # entirely for chunks that are scrolled out of view instead of doing that work for the
+        # whole document on every frame -- on a very large Map view that's the difference
+        # between laying out the whole document up front and only what's on screen.
+        # contain-intrinsic-size reserves roughly the right amount of scrollbar space for an
+        # unrendered chunk so scrolling doesn't jump around as chunks pop in and out; it
+        # doesn't need to be exact, just close. For the Map/Misc views this estimate is fuzzier
+        # than for Diagram's plain monospace text, since long lines there can word-wrap
+        # (word-break: break-word, set above) into more than one visual line -- a minor
+        # scrollbar jitter, not a correctness issue.
+        # text-sm is 14px; at the Diagram view's tightened line-height (1.2, set in build_ui)
+        # that's ~17px per line instead of Tailwind's default ~20px.
+        approx_px_per_line = 17 if is_diagram else 20
+
+        delivered = 0
+        total_size = sum(len(content) for content, _ in chunks) or 1
+        with self.scroll_area:
+            for number, (chunk_content, chunk_lines) in enumerate(chunks):
+                chunk_height = chunk_lines * approx_px_per_line
+                chunk_style = html_style + f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
+                chunk = ui.html(chunk_content, sanitize=False).classes("w-full block max-w-full").style(chunk_style)
+                # How many lines this chunk holds, so that zooming can re-reserve the
+                # right amount of scrollbar space for it while it is still unrendered --
+                # the height above was worked out against the unzoomed line height.
+                if is_diagram:
+                    chunk.props(f"data-lines={chunk_lines}")
+                # How far along, on the banner _show_loading put up.  Content arrives
+                # top-down so there is something to look at almost at once, but on a
+                # large configuration it goes on arriving for a while after that, and
+                # a percentage is the difference between "still working" and "stuck".
+                delivered += len(chunk_content)
+                self._set_loading_text(
+                    f"{translate_string('Building the view')} ... {min(100, round(100 * delivered / total_size))}%",
+                )
+                # Yields the loop to keep the WebSocket alive.  Not after every piece:
+                # the Map is now cut into far more of them, and a hundredth of a second
+                # each would put a wait of its own in front of the user.
+                if number % 4 == 0:
+                    await asyncio.sleep(0.01)
+
+    async def _finish_view(self, diagram_model: dict, connectors_by_line: dict | None) -> None:
+        """Everything that happens once the last chunk is on the page: wiring, hints, and the jump.
+
+        Args:
+            diagram_model: The Diagram's interactive model, {} for the other views.
+            connectors_by_line: The Diagram's connectors by line number, None for the other views.
+        """
+        if connectors_by_line:
+            self._enable_connector_highlighting(diagintr.connector_tasks(diagram_model))
+            if hasattr(self, "diagram_message_label"):
+                self.diagram_message_label.set_text(translate_string("Click on connector to highlight"))
+        if diagram_model.get("nodes"):
+            self._enable_diagram_interaction(diagram_model)
+            # Replaces the connector hint rather than joining it: both are about
+            # clicking the diagram, and this one covers the connectors too.
+            if hasattr(self, "diagram_message_label"):
+                self.diagram_message_label.set_text(
+                    translate_string("Click a name for its Map entry \u00b7 shift-click a Task for its call chain"),
+                )
+        # A diagram cut short at the view limit (diagram.check_limit) says so here, in place
+        # of the connector hint: that the diagram stops early is the more important of the
+        # two things to tell the user, and this is the Map view's view_limit_msg field by
+        # another name (see NiceGuiTextView.build_ui).
+        if self.master_gui.state.diagram_limit_msg and hasattr(self, "diagram_message_label"):
+            self.diagram_message_label.set_text(self.master_gui.state.diagram_limit_msg)
+        await self._enable_in_page_links()
+        self._mark_content_ready()
+        # Everything is on the page now, so a report finding that asked for this Map can
+        # finally be taken to.  Last, deliberately: the anchor it wants may be in the
+        # chunk that only just arrived.
+        await self._deliver_jump()
 
     def _enable_diagram_interaction(self, diagram_model: dict) -> None:
         """Wire up the Diagram view's clickable nodes, folds, chains and zoom.
@@ -2231,153 +2446,14 @@ class NiceGuiTextView(TextViewSearch):
 
     def _process_fallback_data(self: MyGui, the_data: dict | list) -> None:
         """Fallback logic to assemble HTML content strings when the source file is missing."""
-        html_builder = []
-        in_style_block = False
-        style_buffer = []
-
-        def is_css_line(text: str) -> bool:
-            """Helper function to determine if a stray line is actually a CSS rule."""
-            clean = text.strip()
-            if clean.startswith((".", "#", "}", "{")):
-                return True
-            return bool(":" in clean and (clean.endswith(";") or "/*" in clean or "*/" in clean))
-
-        def escape_text_except_html(text: str) -> str:
-            """Escapes < and > but preserves intended HTML tags like tables and links."""
-
-            parts = re.split(r"(<[^>]+>)", text)
-
-            allowed_tags = {
-                "a",
-                "table",
-                "tr",
-                "td",
-                "th",
-                "tbody",
-                "thead",
-                "div",
-                "span",
-                "br",
-                "style",
-                "b",
-                "i",
-                "u",
-                "strong",
-                "em",
-                "hr",
-                "!doctype",
-                "html",
-                "head",
-                "meta",
-                "title",
-                "body",
-                "h1",
-                "h2",
-                "h3",
-                "h4",
-                "h5",
-                "h6",
-                "p",
-                "ul",
-                "ol",
-                "li",
-                # Everything format.py can put in a TaskerNet description or Task label needs
-                # to be in this list, or it is escaped and shown as its own markup instead of
-                # being rendered.  "img" is the one that shows: a description's picture came
-                # out as the literal text of its <img> tag and no image at all.
-                "img",
-                "figure",
-                "figcaption",
-                "big",
-                "small",
-                "code",
-                "pre",
-                "blockquote",
-                "font",
-                "mark",
-                "sub",
-                "sup",
-            }
-
-            for i in range(len(parts)):
-                if i % 2 == 0:
-                    parts[i] = parts[i].replace("<", "&lt;").replace(">", "&gt;")
-                else:
-                    tag_name_match = re.match(r"^</?([!a-zA-Z0-9]+)", parts[i])
-                    if tag_name_match and tag_name_match.group(1).lower() in allowed_tags:
-                        pass
-                    else:
-                        parts[i] = parts[i].replace("<", "&lt;").replace(">", "&gt;")
-            return "".join(parts)
-
         # --- 2. FALLBACK DICTIONARY PROCESSING (Legacy Map View) ---
-        if self.is_map:
-            for _num, (_linenum, value) in enumerate(the_data.items()):
-                text_list = value.get("text", [])
-                color_list = value.get("color", [])
-                full_line_text = "".join(str(t) for t in text_list)
-
-                if "<style>" in full_line_text:
-                    in_style_block = True
-
-                if in_style_block:
-                    clean_line = full_line_text.replace("<style>", "").replace("</style>", "").replace('"""', "")
-                    style_buffer.append(clean_line)
-                    if "</style>" in full_line_text:
-                        in_style_block = False
-                        html_builder.append(f"<style>{''.join(style_buffer)}</style>")
-                        style_buffer = []
-                elif is_css_line(full_line_text):
-                    html_builder.append(f"<style>{full_line_text}</style>")
-                else:
-                    line_html = "<div>"
-                    for t_idx, text_segment in enumerate(text_list):
-                        if '"""' in str(text_segment):
-                            text_segment = str(text_segment).replace('"""', "")  # noqa: PLW2901
-                        safe_text = escape_text_except_html(str(text_segment))
-                        color = color_list[t_idx] if t_idx < len(color_list) else "inherit"
-                        line_html += f"<span style='color: {color};'>{safe_text}</span>"
-                    line_html = line_html.rstrip("\r\n")
-                    html_builder.append(line_html + "</div>")
-
         # --- 3. FALLBACK LIST DATA PROCESSING (Other Views) ---
-        else:
-            for line in the_data:
-                if line.strip() == "":
-                    html_builder.append("<div>&nbsp;</div>")
-                    continue
-                if "<br><br>" in line:
-                    line = line.replace("<br><br>", "")  # noqa: PLW2901
-                if '"""' in line:
-                    if line in {"<div>  </tr>\n</div>", "<div>\n</div>"}:
-                        continue
-                    line = line.replace('"""', "")  # noqa: PLW2901
-
-                if "<style>" in line:
-                    in_style_block = True
-
-                if in_style_block:
-                    clean_line = line.replace("<style>", "").replace("</style>", "")
-                    style_buffer.append(clean_line)
-                    if "</style>" in line:
-                        in_style_block = False
-                        html_builder.append(f"<style>{''.join(style_buffer)}</style>")
-                        style_buffer = []
-                elif is_css_line(line):
-                    html_builder.append(f"<style>{line}</style>")
-                else:
-                    clean_text_line = line.rstrip("\r\n")
-                    safe_line = escape_text_except_html(clean_text_line)
-                    html_builder.append(f"<div>{safe_line}</div>")
+        html_builder = (
+            _fallback_map_html(cast("dict", the_data)) if self.is_map else _fallback_lines_html(cast("list", the_data))
+        )
 
         # --- 4. COMPRESS MULTIPLE BLANK LINES FOR FALLBACK DATA ---
-        final_html = "".join(html_builder)
-        empty_div_pattern = r"(<div>(?:\s|&nbsp;|<span[^>]*>(?:\s|&nbsp;)*</span>)*</div>\s*){2,}"
-        final_html = re.sub(empty_div_pattern, "", final_html)
-        final_html = re.sub(r"\n{3,}", "\n", final_html)
-        final_html = re.sub(r"(<br\s*/?>\s*){2,}", "<br>", final_html)
-
-        self.html_display.content = final_html
+        self.html_display.content = _compress_blank_lines("".join(html_builder))
 
     def scroll(self, direction: str) -> None:
         """Manages the scroll position of the view's content area based on the specified direction ('top' or 'bottom').

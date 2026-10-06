@@ -164,166 +164,212 @@ def _build_scene_properties_dialog(
     Legacy only.  A Version 2 Scene has no <PropertiesElement> at all -- its equivalents
     live in the declarative layout -- so the button that opens this is not built for one.
     """
-    scene_element = edited_scene.scene_element
-    # WHAT CANCEL PUTS BACK, taken once, before anything can have been typed.  The
-    # properties element carries every field in this dialog except the geometry, and the
-    # geometry is not in the element at all -- those boxes write into the Scene dialog's own
-    # four inputs -- so it takes a value snapshot of its own.
-    properties_snapshot = sceneedit_legacy.legacy_properties_snapshot(scene_element)
-    geometry_snapshot = {
-        key: str(field_refs[key].value) for key, _label in sceneedit.SCENE_DIMENSION_FIELDS if key in field_refs
-    }
-    # Which tab is on screen, kept across the rebuilds render() does.  Without it, picking a
-    # Task or changing Property Type -- both of which rebuild the whole body -- would throw
-    # the user back to the UI tab from whichever one they were working in.
-    showing = {"tab": _SCENE_TAB_UI, "event": sceneedit_legacy.LEGACY_SCENE_EVENTS[0].label}
-    # THE TASK EDITS THIS DIALOG IS HOLDING, and why it holds them rather than the panels.
-    #
-    # The Event panel is rebuilt constantly -- every sub-tab switch, every binding change,
-    # every Property Type change goes through render() -- and each rebuild destroys the
-    # editor's widgets and, before this, the Task copy behind them.  So an action added under
-    # Key and then a click on Tab Tap was an action thrown away, and the only exit this
-    # dialog then had threw away whatever was still on screen.  That was the whole of the
-    # "actions do not stick" bug.  Ok is that exit now, and it keeps the lot; Cancel is the
-    # other one, and dropping these copies is the whole of what it does to them.
-    #
-    # Both dicts are keyed so that the right copy is found again on the next render, and both
-    # hold (EditableTask, field_refs): the copy carries the actions, the widgets carry the
-    # argument values until flush_event_task_edits snapshots them onto it.
-    pending_tasks: dict[str, tuple] = {}  # events with nothing bound: Tasks not created yet
-    bound_tasks: dict[str, tuple] = {}  # events with a Task bound: working copies of it
-    # Snapshot callables for the editors CURRENTLY on screen, refilled by every render.
-    flushers: list[Callable[[], None]] = []
+    _ScenePropertiesDialog(self, edited_scene, field_refs, on_closed).build()
 
-    def flush_event_task_edits() -> None:
+
+class _ScenePropertiesDialog:
+    """The Scene Properties dialog: its widgets, the Task edits it is holding, and its handlers.
+
+    render() rebuilds the body from scratch whenever something it shows changes, and Ok and
+    Cancel both need what the Event tab has been holding, so the handlers are methods of one
+    object that keeps all of it rather than closures over a dozen locals.
+    """
+
+    def __init__(
+        self,
+        gui: MyGui,
+        edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
+        on_closed: Callable[[], None] | None,
+    ) -> None:
+        """
+        Args:
+            gui: The application window, which holds the event handlers and the run's state.
+            edited_scene: The working copy of the Scene whose properties are edited.
+            field_refs: The Scene dialog's widgets by key, which this dialog's geometry boxes drive.
+            on_closed: Called once Ok or Cancel has closed the dialog, if given.
+        """
+        self.gui = gui
+        self.edited_scene = edited_scene
+        self.field_refs = field_refs
+        self.on_closed = on_closed
+        self.scene_element = edited_scene.scene_element
+        # WHAT CANCEL PUTS BACK, taken once, before anything can have been typed.  The
+        # properties element carries every field in this dialog except the geometry, and the
+        # geometry is not in the element at all -- those boxes write into the Scene dialog's own
+        # four inputs -- so it takes a value snapshot of its own.
+        self.properties_snapshot = sceneedit_legacy.legacy_properties_snapshot(self.scene_element)
+        self.geometry_snapshot = {
+            key: str(field_refs[key].value) for key, _label in sceneedit.SCENE_DIMENSION_FIELDS if key in field_refs
+        }
+        # Which tab is on screen, kept across the rebuilds render() does.  Without it, picking a
+        # Task or changing Property Type -- both of which rebuild the whole body -- would throw
+        # the user back to the UI tab from whichever one they were working in.
+        self.showing = {"tab": _SCENE_TAB_UI, "event": sceneedit_legacy.LEGACY_SCENE_EVENTS[0].label}
+        # THE TASK EDITS THIS DIALOG IS HOLDING, and why it holds them rather than the panels.
+        #
+        # The Event panel is rebuilt constantly -- every sub-tab switch, every binding change,
+        # every Property Type change goes through render() -- and each rebuild destroys the
+        # editor's widgets and, before this, the Task copy behind them.  So an action added under
+        # Key and then a click on Tab Tap was an action thrown away, and the only exit this
+        # dialog then had threw away whatever was still on screen.  That was the whole of the
+        # "actions do not stick" bug.  Ok is that exit now, and it keeps the lot; Cancel is the
+        # other one, and dropping these copies is the whole of what it does to them.
+        #
+        # Both dicts are keyed so that the right copy is found again on the next render, and both
+        # hold (EditableTask, field_refs): the copy carries the actions, the widgets carry the
+        # argument values until flush_event_task_edits snapshots them onto it.
+        self.pending_tasks: dict[str, tuple] = {}  # events with nothing bound: Tasks not created yet
+        self.bound_tasks: dict[str, tuple] = {}  # events with a Task bound: working copies of it
+        # Snapshot callables for the editors CURRENTLY on screen, refilled by every render.
+        self.flushers: list[Callable[[], None]] = []
+        self.dialog: ui.dialog
+        self.dialog_body: ui.column
+
+    def build(self) -> None:
+        """Draw the dialog and open it."""
+        with (
+            ui.dialog().props("persistent") as self.dialog,
+            ui.card().classes("min-w-[560px] max-w-[860px] w-full p-6"),
+        ):
+            ui.label(f"{translate_string('Scene Properties')}: {self.edited_scene.scene_name}").classes(
+                "text-xl font-bold text-blue-600",
+            )
+            # Built and first filled inside the card, the way every other dialog in this file
+            # does it -- a container filled after the `with` block has closed is not attached to
+            # the dialog being opened.  It is emptied and refilled rather than rebuilt, because
+            # Property Type changes what is in it (see render).
+            self.dialog_body = ui.column().classes("w-full")
+            self.render()
+            self._build_buttons()
+
+        self.dialog.open()
+
+    def flush_event_task_edits(self) -> None:
         """Move what is in the Event tab's widgets onto the Task copies behind them.
 
         Called before anything that destroys those widgets, and before Ok reads the copies.
         The copies outlive the widgets; the widgets do not survive a rebuild.  Not called by
         Cancel: the copies it would write onto are the ones being dropped.
         """
-        for flush in flushers:
+        for flush in self.flushers:
             flush()
-        flushers.clear()
+        self.flushers.clear()
 
-    def scene_task_state() -> dict:
+    def scene_task_state(self) -> dict:
         """What the Event panels are handed so they can find their held copies and register
         their own flusher -- one bundle rather than four parameters threaded three deep.
         """
-        return {"pending": pending_tasks, "bound": bound_tasks, "flushers": flushers}
+        return {"pending": self.pending_tasks, "bound": self.bound_tasks, "flushers": self.flushers}
 
-    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[860px] w-full p-6"):
-        ui.label(f"{translate_string('Scene Properties')}: {edited_scene.scene_name}").classes(
-            "text-xl font-bold text-blue-600",
-        )
-        # Built and first filled inside the card, the way every other dialog in this file
-        # does it -- a container filled after the `with` block has closed is not attached to
-        # the dialog being opened.  It is emptied and refilled rather than rebuilt, because
-        # Property Type changes what is in it (see render).
-        dialog_body = ui.column().classes("w-full")
-
-        def render() -> None:
-            """Rebuilt in full whenever Property Type changes, because that is what decides
-            which fields exist at all.  Safe to do from a dropdown's own handler -- there is
-            no caret to lose, and the Legacy designer's Task-binding selects already rebuild
-            themselves the same way; a text field could not (see _render_legacy_arg).
-            """
-            flush_event_task_edits()
-            dialog_body.clear()
-            with dialog_body:
-                properties = sceneedit_legacy.legacy_scene_properties(scene_element)
-                if properties is None:
-                    ui.label(
-                        translate_string(
-                            "This Scene has no properties element. 66 of the 366 Scenes MapTasker has "
-                            "seen have none either, so this is ordinary rather than damage.",
-                        ),
-                    ).classes("text-xs text-gray-500 italic")
-                    ui.button(
-                        translate_string("Add scene properties"),
-                        icon="add",
-                        on_click=add_properties,
-                    ).props("dense flat")
-                    return
-
-                args = {arg.arg_id: arg for arg in sceneedit_legacy.legacy_element_args(properties, state=self.state)}
-                property_type = args.get(_SCENE_PROPERTY_TYPE_ARG)
-
-                # Named tabs, not label-valued ones: ui.tab's value defaults to its label,
-                # and a translated label would make `showing` unreadable in every language
-                # but English and stop matching the moment the language changed.
-                with ui.tabs(
-                    value=showing["tab"],
-                    on_change=lambda event: showing.__setitem__("tab", str(event.value)),
-                ).classes("w-full") as tabs:
-                    for name in _SCENE_TABS:
-                        ui.tab(name, label=translate_string(name))
-                with ui.tab_panels(tabs, value=showing["tab"]).classes("w-full"):
-                    with ui.tab_panel(_SCENE_TAB_UI):
-                        _render_scene_ui_tab(args, property_type, scene_element, field_refs, render)
-                    with ui.tab_panel(_SCENE_TAB_ACTIONS):
-                        _render_scene_actions_tab(self, properties, render)
-                    with ui.tab_panel(_SCENE_TAB_EVENT):
-                        _render_scene_event_tab(
-                            self,
-                            properties,
-                            showing,
-                            render,
-                            scene_task_state(),
-                            edited_scene.scene_name,
-                        )
-
-        def add_properties() -> None:
-            sceneedit_legacy.legacy_add_scene_properties(scene_element, state=self.state)
-            render()
-
-        render()
-
-        def keep_and_close() -> None:
-            """Ok keeps everything: the Scene's own fields are already written through, and the
-            Task edits -- the one part that could not be, since a Task is not the Scene and the
-            action editor collects its argument values in widgets -- are applied here.
-
-            Stays open if anything is rejected, with the errors notified and the edits still on
-            screen to fix.  Closing on a rejection would be the same bug in a new place.
-            """
-            flush_event_task_edits()
-            properties = sceneedit_legacy.legacy_scene_properties(scene_element)
-
-            def bind(event_tag: str, new_task_id: str) -> None:
-                if properties is not None:
-                    sceneedit_legacy.legacy_set_task_binding(properties, event_tag, new_task_id)
-
-            if not self.event_handlers.keep_scene_event_task_edits(bound_tasks, pending_tasks, bind):
-                render()
+    def render(self) -> None:
+        """Rebuilt in full whenever Property Type changes, because that is what decides
+        which fields exist at all.  Safe to do from a dropdown's own handler -- there is
+        no caret to lose, and the Legacy designer's Task-binding selects already rebuild
+        themselves the same way; a text field could not (see _render_legacy_arg).
+        """
+        self.flush_event_task_edits()
+        self.dialog_body.clear()
+        with self.dialog_body:
+            properties = sceneedit_legacy.legacy_scene_properties(self.scene_element)
+            if properties is None:
+                ui.label(
+                    translate_string(
+                        "This Scene has no properties element. 66 of the 366 Scenes MapTasker has "
+                        "seen have none either, so this is ordinary rather than damage.",
+                    ),
+                ).classes("text-xs text-gray-500 italic")
+                ui.button(
+                    translate_string("Add scene properties"),
+                    icon="add",
+                    on_click=self.add_properties,
+                ).props("dense flat")
                 return
-            dialog.close()
-            if on_closed:
-                on_closed()
+            self._render_tabs(properties)
 
-        def discard_and_close() -> None:
-            """Cancel puts the properties back as they were and closes, applying nothing.
+    def _render_tabs(self, properties: Element) -> None:
+        """The UI, Actions and Event tabs, for a Scene that has a properties element."""
+        gui = self.gui
+        showing = self.showing
+        args = {arg.arg_id: arg for arg in sceneedit_legacy.legacy_element_args(properties, state=gui.state)}
+        property_type = args.get(_SCENE_PROPERTY_TYPE_ARG)
 
-            The Task copies are dropped simply by never being applied -- they are held here and
-            nowhere else, so letting them go is the whole of it.  Their flushers go with them:
-            each one writes widget values onto a copy that is about to be thrown away, and
-            running them first would only make the discarding slower.
-            """
-            flushers.clear()
-            bound_tasks.clear()
-            pending_tasks.clear()
-            self.event_handlers.discard_scene_properties_event(
-                scene_element,
-                properties_snapshot,
-                geometry_snapshot,
-                field_refs,
-            )
-            dialog.close()
-            if on_closed:
-                on_closed()
+        # Named tabs, not label-valued ones: ui.tab's value defaults to its label,
+        # and a translated label would make `showing` unreadable in every language
+        # but English and stop matching the moment the language changed.
+        with ui.tabs(
+            value=showing["tab"],
+            on_change=lambda event: showing.__setitem__("tab", str(event.value)),
+        ).classes("w-full") as tabs:
+            for name in _SCENE_TABS:
+                ui.tab(name, label=translate_string(name))
+        with ui.tab_panels(tabs, value=showing["tab"]).classes("w-full"):
+            with ui.tab_panel(_SCENE_TAB_UI):
+                _render_scene_ui_tab(args, property_type, self.scene_element, self.field_refs, self.render)
+            with ui.tab_panel(_SCENE_TAB_ACTIONS):
+                _render_scene_actions_tab(gui, properties, self.render)
+            with ui.tab_panel(_SCENE_TAB_EVENT):
+                _render_scene_event_tab(
+                    gui,
+                    properties,
+                    showing,
+                    self.render,
+                    self.scene_task_state(),
+                    self.edited_scene.scene_name,
+                )
 
+    def add_properties(self) -> None:
+        """Give a Scene that has no properties element one, and redraw."""
+        sceneedit_legacy.legacy_add_scene_properties(self.scene_element, state=self.gui.state)
+        self.render()
+
+    def keep_and_close(self) -> None:
+        """Ok keeps everything: the Scene's own fields are already written through, and the
+        Task edits -- the one part that could not be, since a Task is not the Scene and the
+        action editor collects its argument values in widgets -- are applied here.
+
+        Stays open if anything is rejected, with the errors notified and the edits still on
+        screen to fix.  Closing on a rejection would be the same bug in a new place.
+        """
+        self.flush_event_task_edits()
+        properties = sceneedit_legacy.legacy_scene_properties(self.scene_element)
+
+        def bind(event_tag: str, new_task_id: str) -> None:
+            if properties is not None:
+                sceneedit_legacy.legacy_set_task_binding(properties, event_tag, new_task_id)
+
+        if not self.gui.event_handlers.keep_scene_event_task_edits(self.bound_tasks, self.pending_tasks, bind):
+            self.render()
+            return
+        self.dialog.close()
+        if self.on_closed:
+            self.on_closed()
+
+    def discard_and_close(self) -> None:
+        """Cancel puts the properties back as they were and closes, applying nothing.
+
+        The Task copies are dropped simply by never being applied -- they are held here and
+        nowhere else, so letting them go is the whole of it.  Their flushers go with them:
+        each one writes widget values onto a copy that is about to be thrown away, and
+        running them first would only make the discarding slower.
+        """
+        self.flushers.clear()
+        self.bound_tasks.clear()
+        self.pending_tasks.clear()
+        self.gui.event_handlers.discard_scene_properties_event(
+            self.scene_element,
+            self.properties_snapshot,
+            self.geometry_snapshot,
+            self.field_refs,
+        )
+        self.dialog.close()
+        if self.on_closed:
+            self.on_closed()
+
+    def _build_buttons(self) -> None:
+        """The Cancel and Ok buttons, each with its tooltip."""
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            cancel_button = ui.button(translate_string("Cancel"), on_click=discard_and_close).props("outline")
+            cancel_button = ui.button(translate_string("Cancel"), on_click=self.discard_and_close).props("outline")
             with cancel_button:
                 ui.tooltip(
                     translate_string(
@@ -333,7 +379,7 @@ def _build_scene_properties_dialog(
                         "Task', or 'Create Task' -- stays there. Undo takes those back.",
                     ),
                 ).style("white-space: pre-wrap")
-            ok_button = ui.button(translate_string("Ok"), on_click=keep_and_close).classes("bg-blue-600")
+            ok_button = ui.button(translate_string("Ok"), on_click=self.keep_and_close).classes("bg-blue-600")
             with ok_button:
                 ui.tooltip(
                     translate_string(
@@ -343,8 +389,6 @@ def _build_scene_properties_dialog(
                         "any actions in it. Undo takes a Task edit back.",
                     ),
                 ).style("white-space: pre-wrap")
-
-    dialog.open()
 
 
 def _render_scene_ui_tab(

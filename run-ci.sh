@@ -86,6 +86,8 @@ run_gate "ruff check" uv run --no-sync ruff check
 
 run_gate "noqa ratchet" uv run --no-sync python scripts/noqa_ratchet.py
 
+run_gate "complexity ratchet" uv run --no-sync python scripts/complexity_ratchet.py
+
 run_gate "typecheck ratchet" uv run --no-sync python scripts/typecheck_ratchet.py
 
 run_gate "import layers" uv run --no-sync lint-imports

@@ -96,11 +96,8 @@ def _read_names(data: bytes, directory: dict[bytes, tuple[int, int]]) -> tuple[s
     return family, style
 
 
-def _read_cmap(data: bytes, directory: dict[bytes, tuple[int, int]]) -> dict[int, int]:
-    """Return {codepoint: glyph id} from the most complete Unicode cmap subtable."""
-    if b"cmap" not in directory:
-        return {}
-    base = directory[b"cmap"][0]
+def _best_cmap_subtable(data: bytes, base: int) -> int | None:
+    """The offset of the most complete Unicode subtable of the cmap table at `base`, if it has one."""
     num_subtables = struct.unpack(">H", data[base + 2 : base + 4])[0]
     # Rank the (platform, encoding) pairs so full-Unicode subtables win over BMP-only ones.
     ranking = {(3, 10): 5, (0, 6): 5, (0, 4): 5, (3, 1): 4, (0, 3): 4, (0, 1): 3, (0, 0): 3, (3, 0): 1}
@@ -110,61 +107,84 @@ def _read_cmap(data: bytes, directory: dict[bytes, tuple[int, int]]) -> dict[int
         score = ranking.get((platform_id, encoding_id))
         if score is not None and (best is None or score > best[0]):
             best = (score, base + offset)
-    if best is None:
-        return {}
+    return None if best is None else best[1]
 
-    sub = best[1]
-    table_format = struct.unpack(">H", data[sub : sub + 2])[0]
+
+def _cmap_format_4(data: bytes, sub: int) -> dict[int, int]:
+    """The codepoints of a format 4 subtable (segment mapping to delta values, the BMP)."""
     cmap: dict[int, int] = {}
-
-    if table_format == 4:
-        seg_bytes = struct.unpack(">H", data[sub + 6 : sub + 8])[0]
-        segments = seg_bytes // 2
-        ends = struct.unpack(f">{segments}H", data[sub + 14 : sub + 14 + seg_bytes])
-        starts_at = sub + 16 + seg_bytes
-        starts = struct.unpack(f">{segments}H", data[starts_at : starts_at + seg_bytes])
-        deltas_at = starts_at + seg_bytes
-        deltas = struct.unpack(f">{segments}h", data[deltas_at : deltas_at + seg_bytes])
-        ranges_at = deltas_at + seg_bytes
-        range_offsets = struct.unpack(f">{segments}H", data[ranges_at : ranges_at + seg_bytes])
-        for i in range(segments):
-            start, end = starts[i], ends[i]
-            if start == 0xFFFF:
-                continue
-            for codepoint in range(start, min(end, 0xFFFE) + 1):
-                if range_offsets[i] == 0:
-                    glyph = (codepoint + deltas[i]) & 0xFFFF
-                else:
-                    at = ranges_at + i * 2 + range_offsets[i] + (codepoint - start) * 2
-                    if at + 2 > len(data):
-                        continue
-                    glyph = struct.unpack(">H", data[at : at + 2])[0]
-                    if glyph:
-                        glyph = (glyph + deltas[i]) & 0xFFFF
+    seg_bytes = struct.unpack(">H", data[sub + 6 : sub + 8])[0]
+    segments = seg_bytes // 2
+    ends = struct.unpack(f">{segments}H", data[sub + 14 : sub + 14 + seg_bytes])
+    starts_at = sub + 16 + seg_bytes
+    starts = struct.unpack(f">{segments}H", data[starts_at : starts_at + seg_bytes])
+    deltas_at = starts_at + seg_bytes
+    deltas = struct.unpack(f">{segments}h", data[deltas_at : deltas_at + seg_bytes])
+    ranges_at = deltas_at + seg_bytes
+    range_offsets = struct.unpack(f">{segments}H", data[ranges_at : ranges_at + seg_bytes])
+    for i in range(segments):
+        start, end = starts[i], ends[i]
+        if start == 0xFFFF:
+            continue
+        for codepoint in range(start, min(end, 0xFFFE) + 1):
+            if range_offsets[i] == 0:
+                glyph = (codepoint + deltas[i]) & 0xFFFF
+            else:
+                at = ranges_at + i * 2 + range_offsets[i] + (codepoint - start) * 2
+                if at + 2 > len(data):
+                    continue
+                glyph = struct.unpack(">H", data[at : at + 2])[0]
                 if glyph:
-                    cmap[codepoint] = glyph
-
-    elif table_format == 12:
-        num_groups = struct.unpack(">I", data[sub + 12 : sub + 16])[0]
-        for i in range(num_groups):
-            at = sub + 16 + i * 12
-            start, end, glyph = struct.unpack(">III", data[at : at + 12])
-            # Guard against absurd ranges in malformed fonts.
-            for step in range(min(end - start + 1, 0x10000)):
-                cmap[start + step] = glyph + step
-
-    elif table_format == 6:
-        first, count = struct.unpack(">HH", data[sub + 6 : sub + 10])
-        glyphs = struct.unpack(f">{count}H", data[sub + 10 : sub + 10 + count * 2])
-        cmap = {first + i: glyph for i, glyph in enumerate(glyphs) if glyph}
-
-    elif table_format == 0:
-        for codepoint in range(256):
-            glyph = data[sub + 6 + codepoint]
+                    glyph = (glyph + deltas[i]) & 0xFFFF
             if glyph:
                 cmap[codepoint] = glyph
-
     return cmap
+
+
+def _cmap_format_12(data: bytes, sub: int) -> dict[int, int]:
+    """The codepoints of a format 12 subtable (segmented coverage, the whole of Unicode)."""
+    cmap: dict[int, int] = {}
+    num_groups = struct.unpack(">I", data[sub + 12 : sub + 16])[0]
+    for i in range(num_groups):
+        at = sub + 16 + i * 12
+        start, end, glyph = struct.unpack(">III", data[at : at + 12])
+        # Guard against absurd ranges in malformed fonts.
+        for step in range(min(end - start + 1, 0x10000)):
+            cmap[start + step] = glyph + step
+    return cmap
+
+
+def _cmap_format_6(data: bytes, sub: int) -> dict[int, int]:
+    """The codepoints of a format 6 subtable (a trimmed table of 16-bit codes)."""
+    first, count = struct.unpack(">HH", data[sub + 6 : sub + 10])
+    glyphs = struct.unpack(f">{count}H", data[sub + 10 : sub + 10 + count * 2])
+    return {first + i: glyph for i, glyph in enumerate(glyphs) if glyph}
+
+
+def _cmap_format_0(data: bytes, sub: int) -> dict[int, int]:
+    """The codepoints of a format 0 subtable (a byte encoding table of 256 entries)."""
+    cmap: dict[int, int] = {}
+    for codepoint in range(256):
+        glyph = data[sub + 6 + codepoint]
+        if glyph:
+            cmap[codepoint] = glyph
+    return cmap
+
+
+_CMAP_READERS = {4: _cmap_format_4, 12: _cmap_format_12, 6: _cmap_format_6, 0: _cmap_format_0}
+
+
+def _read_cmap(data: bytes, directory: dict[bytes, tuple[int, int]]) -> dict[int, int]:
+    """Return {codepoint: glyph id} from the most complete Unicode cmap subtable."""
+    if b"cmap" not in directory:
+        return {}
+    sub = _best_cmap_subtable(data, directory[b"cmap"][0])
+    if sub is None:
+        return {}
+
+    table_format = struct.unpack(">H", data[sub : sub + 2])[0]
+    reader = _CMAP_READERS.get(table_format)
+    return reader(data, sub) if reader else {}
 
 
 def _read_metrics(data: bytes, directory: dict[bytes, tuple[int, int]]) -> tuple[int, list[int]]:

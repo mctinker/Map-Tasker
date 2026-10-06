@@ -54,11 +54,72 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
     its own tooltip, so disabling would hide the very sentence that explains the block; a
     click on one notifies the reason instead of inserting.
     """
-    relation, target_name = sceneedit_v2.v2_insert_destination(layout, path)
-    groups = sceneedit_v2.v2_palette_for(layout, path)
-    search = {"text": ""}
+    _AddElementDialog(layout, path, on_pick).build()
 
+
+class _AddElementDialog:
+    """The Add Element sheet: a search box and the palette's chips, filtered as the search is typed."""
+
+    def __init__(self, layout: dict, path: tuple, on_pick: Callable[[str], None]) -> None:
+        """
+        Args:
+            layout: The Scene's Version 2 layout.
+            path: Where in it the selection is, which decides where an element would go.
+            on_pick: Called with the node type of the element picked.
+        """
+        self.on_pick = on_pick
+        self.relation, self.target_name = sceneedit_v2.v2_insert_destination(layout, path)
+        self.groups = sceneedit_v2.v2_palette_for(layout, path)
+        self.search = {"text": ""}
+        self.dialog: ui.dialog
+        self.results: ui.column
+
+    def build(self) -> None:
+        """Draw the dialog and open it."""
+        with ui.dialog().props("persistent") as self.dialog, ui.card().classes("min-w-[640px] max-w-[760px] p-6"):
+            ui.label(translate_string("Add Element")).classes("text-lg font-bold text-blue-600")
+            if self.target_name:
+                # The destination stated up front rather than left to a tooltip -- this is
+                # v2_insert_node's inside-vs-after rule, resolved against the current selection.
+                ui.label(
+                    translate_string(
+                        "Adds inside {name}" if self.relation == "inside" else "Adds after {name}",
+                    ).format(name=self.target_name),
+                ).classes("text-sm text-gray-500 italic")
+
+            # Created before `results` because NiceGUI lays widgets out in creation order, and the
+            # search box belongs above the chips it filters.
+            search_input = (
+                ui.input(
+                    placeholder=translate_string("Search elements"),
+                    on_change=lambda e: self.search_changed(e.value),
+                )
+                .props("outlined dense clearable autofocus")
+                .classes("w-full mt-2")
+            )
+            with search_input.add_slot("prepend"):
+                ui.icon("search")
+
+            self.results = ui.column().classes("w-full gap-0 mt-1 max-h-96 overflow-auto")
+
+            search_input.on("keydown.enter", lambda _e=None: self.enter_pressed())
+
+            self.render()
+
+            with ui.row().classes("w-full items-center justify-between mt-4 pt-3 border-t"):
+                ui.label(
+                    translate_string(
+                        "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. "
+                        "Grey: can't go where the selection would put it.",
+                    ),
+                ).classes("text-xs text-gray-500 italic")
+                ui.button(translate_string("Cancel"), on_click=self.dialog.close).props("flat")
+
+        self.dialog.open()
+
+    @staticmethod
     def tooltip_for(entry: sceneedit_v2.V2PaletteEntry, reason: str) -> str:
+        """What a chip's tooltip says: what the element is, why it can't go here, and any warning."""
         lines = [translate_string(entry.description)]
         if reason:
             lines.append(reason)
@@ -73,113 +134,78 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
             )
         return "\n\n".join(lines)
 
-    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[640px] max-w-[760px] p-6"):
-        ui.label(translate_string("Add Element")).classes("text-lg font-bold text-blue-600")
-        if target_name:
-            # The destination stated up front rather than left to a tooltip -- this is
-            # v2_insert_node's inside-vs-after rule, resolved against the current selection.
-            ui.label(
-                translate_string("Adds inside {name}" if relation == "inside" else "Adds after {name}").format(
-                    name=target_name,
-                ),
-            ).classes("text-sm text-gray-500 italic")
+    def pick(self, entry: sceneedit_v2.V2PaletteEntry, reason: str) -> None:
+        """Insert the element, or say why it can't be inserted here."""
+        if reason:
+            ui.notify(reason, type="warning")
+            return
+        self.dialog.close()
+        self.on_pick(entry.node_type)
 
-        def pick(entry: sceneedit_v2.V2PaletteEntry, reason: str) -> None:
-            if reason:
-                ui.notify(reason, type="warning")
-                return
-            dialog.close()
-            on_pick(entry.node_type)
-
-        def matches(entry: sceneedit_v2.V2PaletteEntry) -> bool:
-            """Substring, case-insensitive, over the label, its translation and the JSON
-            type -- so "row" finds Horizontal Row, and someone who knows the format can
-            still type "FlowRow" and get there.
-            """
-            text = search["text"].strip().lower()
-            if not text:
-                return True
-            return any(
-                text in candidate.lower() for candidate in (entry.label, translate_string(entry.label), entry.node_type)
-            )
-
-        def chip(entry: sceneedit_v2.V2PaletteEntry, reason: str) -> None:
-            # The icon and colour go on as Quasar props rather than as ui.button arguments:
-            # ui.button takes `icon` but has no icon_right, and the colour is state-dependent
-            # (grey = blocked, orange = unverified, default otherwise).
-            props = ["outline", "rounded", "no-caps", "dense"]
-            props.append("icon-right=help_outline" if not entry.verified else "icon-right=info_outline")
-            if reason:
-                props.append("color=grey")
-            elif not entry.verified:
-                props.append("color=orange")
-            button = ui.button(
-                translate_string(entry.label),
-                on_click=lambda _e=None, x=entry, r=reason: pick(x, r),
-            ).props(" ".join(props))
-            if reason:
-                button.classes("opacity-70")
-            with button:
-                ui.tooltip(tooltip_for(entry, reason)).style("white-space: pre-wrap").classes("max-w-sm")
-
-        # Created before `results` because NiceGUI lays widgets out in creation order, and the
-        # search box belongs above the chips it filters.  Its on_change closes over
-        # search_changed, which is defined below -- resolved at call time, not at creation.
-        search_input = (
-            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
-            .props("outlined dense clearable autofocus")
-            .classes("w-full mt-2")
+    def matches(self, entry: sceneedit_v2.V2PaletteEntry) -> bool:
+        """Substring, case-insensitive, over the label, its translation and the JSON
+        type -- so "row" finds Horizontal Row, and someone who knows the format can
+        still type "FlowRow" and get there.
+        """
+        text = self.search["text"].strip().lower()
+        if not text:
+            return True
+        return any(
+            text in candidate.lower() for candidate in (entry.label, translate_string(entry.label), entry.node_type)
         )
-        with search_input.add_slot("prepend"):
-            ui.icon("search")
 
-        results = ui.column().classes("w-full gap-0 mt-1 max-h-96 overflow-auto")
+    def chip(self, entry: sceneedit_v2.V2PaletteEntry, reason: str) -> None:
+        """One element of the palette, as a button."""
+        # The icon and colour go on as Quasar props rather than as ui.button arguments:
+        # ui.button takes `icon` but has no icon_right, and the colour is state-dependent
+        # (grey = blocked, orange = unverified, default otherwise).
+        props = ["outline", "rounded", "no-caps", "dense"]
+        props.append("icon-right=help_outline" if not entry.verified else "icon-right=info_outline")
+        if reason:
+            props.append("color=grey")
+        elif not entry.verified:
+            props.append("color=orange")
+        button = ui.button(
+            translate_string(entry.label),
+            on_click=lambda _e=None, x=entry, r=reason: self.pick(x, r),
+        ).props(" ".join(props))
+        if reason:
+            button.classes("opacity-70")
+        with button:
+            ui.tooltip(self.tooltip_for(entry, reason)).style("white-space: pre-wrap").classes("max-w-sm")
 
-        def render() -> None:
-            results.clear()
-            shown = 0
-            with results:
-                for group, entries in groups:
-                    visible = [(entry, reason) for entry, reason in entries if matches(entry)]
-                    if not visible:
-                        continue
-                    shown += len(visible)
-                    ui.label(translate_string(group)).classes("text-xs uppercase text-blue-400 mt-3 mb-1")
-                    with ui.row().classes("w-full gap-2 flex-wrap"):
-                        for entry, reason in visible:
-                            chip(entry, reason)
-                if not shown:
-                    ui.label(translate_string("No element matches that.")).classes(
-                        "text-sm italic text-gray-500 mt-3",
-                    )
+    def render(self) -> None:
+        """Redraw the chips, grouped, for what the search matches."""
+        self.results.clear()
+        shown = 0
+        with self.results:
+            for group, entries in self.groups:
+                visible = [(entry, reason) for entry, reason in entries if self.matches(entry)]
+                if not visible:
+                    continue
+                shown += len(visible)
+                ui.label(translate_string(group)).classes("text-xs uppercase text-blue-400 mt-3 mb-1")
+                with ui.row().classes("w-full gap-2 flex-wrap"):
+                    for entry, reason in visible:
+                        self.chip(entry, reason)
+            if not shown:
+                ui.label(translate_string("No element matches that.")).classes(
+                    "text-sm italic text-gray-500 mt-3",
+                )
 
-        def search_changed(value: str) -> None:
-            search["text"] = value or ""
-            render()
+    def search_changed(self, value: str) -> None:
+        """Filter the chips by what has been typed."""
+        self.search["text"] = value or ""
+        self.render()
 
-        def enter_pressed() -> None:
-            """Enter picks the search's one remaining match -- the fast path for someone who
-            knows what they want.  Deliberately silent when the search still matches several
-            elements: guessing which of them was meant would insert the wrong component.
-            """
-            hits = [(entry, reason) for _group, entries in groups for entry, reason in entries if matches(entry)]
-            if len(hits) == 1:
-                pick(*hits[0])
-
-        search_input.on("keydown.enter", lambda _e=None: enter_pressed())
-
-        render()
-
-        with ui.row().classes("w-full items-center justify-between mt-4 pt-3 border-t"):
-            ui.label(
-                translate_string(
-                    "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. "
-                    "Grey: can't go where the selection would put it.",
-                ),
-            ).classes("text-xs text-gray-500 italic")
-            ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
-
-    dialog.open()
+    def enter_pressed(self) -> None:
+        """Enter picks the search's one remaining match -- the fast path for someone who
+        knows what they want.  Deliberately silent when the search still matches several
+        elements: guessing which of them was meant would insert the wrong component.
+        """
+        hits = [(entry, reason) for _group, entries in self.groups for entry, reason in entries if self.matches(entry)]
+        if len(hits) == 1:
+            self.pick(*hits[0])
 
 
 # How many entries of one category the Show When picker lists before it stops and asks for a

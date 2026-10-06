@@ -654,67 +654,10 @@ def apply_edits_to_profile(
     # Validate every condition's pending values before mutating anything.
     pending: dict[int, tuple[str, object]] = {}
     for condition in edited_profile.conditions:
-        if condition.cond_type == "Time":
-            values = {
-                key: condition_values.get(condition_field_key(condition.cond_index, key), "") for key in _TIME_FIELDS
-            }
-            field_errors = _validate_time_field_values(values)
-            errors.extend(field_errors)
-            if not field_errors:
-                pending[condition.cond_index] = ("Time", values)
-
-        elif condition.cond_type == "Loc":
-            values = {
-                key: condition_values.get(condition_field_key(condition.cond_index, key), "") for key in _LOC_FIELDS
-            }
-            field_errors = _validate_loc_field_values(values)
-            errors.extend(field_errors)
-            if not field_errors:
-                pending[condition.cond_index] = ("Loc", values)
-
-        elif condition.cond_type == "Day":
-            selected_weekdays = [
-                day
-                for day in range(1, 8)
-                if condition_values.get(condition_field_key(condition.cond_index, f"wday{day}"))
-                in ("1", "true", "True")
-            ]
-            selected_months = [
-                month
-                for month in range(12)
-                if condition_values.get(condition_field_key(condition.cond_index, f"mnth{month}"))
-                in ("1", "true", "True")
-            ]
-            selected_month_days = [
-                day
-                for day in (*range(1, 32), DAY_OF_MONTH_LAST_DAY)
-                if condition_values.get(condition_field_key(condition.cond_index, f"mday{day}"))
-                in ("1", "true", "True")
-            ]
-            pending[condition.cond_index] = ("Day", (selected_weekdays, selected_months, selected_month_days))
-
-        elif condition.cond_type == "App":
-            entries = [
-                {
-                    key: condition_values.get(condition_field_key(condition.cond_index, f"app{i}_{key}"), "")
-                    for key in ("pkg", "label", "cls")
-                }
-                for i in range(len(get_app_entries(condition)))
-            ]
-            field_errors = _validate_app_entries(entries)
-            errors.extend(field_errors)
-            if not field_errors:
-                pending[condition.cond_index] = ("App", entries)
-
-        elif condition.cond_type in _CONDITION_CODE_SUFFIX and condition.args:
-            field_errors = taskedit.validate_arg_values(
-                condition.args,
-                lambda arg, ci=condition.cond_index: condition_arg_key(ci, arg.arg_id),
-                condition_values,
-            )
-            errors.extend(f"{error} ({condition.cond_type} condition {condition.cond_index})" for error in field_errors)
-            if not field_errors:
-                pending[condition.cond_index] = ("StateEvent", None)
+        field_errors, update = _pending_condition_edit(condition, condition_values)
+        errors.extend(field_errors)
+        if update is not None:
+            pending[condition.cond_index] = update
 
     if errors:
         return errors
@@ -723,29 +666,107 @@ def apply_edits_to_profile(
 
     for condition in edited_profile.conditions:
         update = pending.get(condition.cond_index)
-        if update is None:
-            continue
-        cond_type, payload = update
-        if cond_type == "Time":
-            _write_time_field_values(condition, payload)
-        elif cond_type == "Loc":
-            _write_loc_field_values(condition, payload)
-        elif cond_type == "Day":
-            weekdays, months, month_days = payload
-            _write_day_selected_weekdays(condition, weekdays)
-            _write_day_selected_months(condition, months)
-            _write_day_selected_month_days(condition, month_days)
-        elif cond_type == "App":
-            _write_app_entries(condition, payload)
-        elif cond_type == "StateEvent":
-            taskedit.apply_arg_values(
-                condition.args,
-                lambda arg, ci=condition.cond_index: condition_arg_key(ci, arg.arg_id),
-                condition_values,
-                state=state,
-            )
+        if update is not None:
+            _write_pending_condition_edit(condition, update, condition_values, state)
 
     return []
+
+
+def _pending_condition_edit(
+    condition: EditableCondition,
+    condition_values: dict[str, str],
+) -> tuple[list[str], tuple[str, object] | None]:
+    """Check one condition's field values.
+
+    Returns:
+        The errors found, and -- if there are none and the condition has anything to write --
+        its type and what to write, for _write_pending_condition_edit.
+    """
+    if condition.cond_type == "Time":
+        values = {key: condition_values.get(condition_field_key(condition.cond_index, key), "") for key in _TIME_FIELDS}
+        field_errors = _validate_time_field_values(values)
+        return field_errors, (None if field_errors else ("Time", values))
+
+    if condition.cond_type == "Loc":
+        values = {key: condition_values.get(condition_field_key(condition.cond_index, key), "") for key in _LOC_FIELDS}
+        field_errors = _validate_loc_field_values(values)
+        return field_errors, (None if field_errors else ("Loc", values))
+
+    if condition.cond_type == "Day":
+        return [], ("Day", _selected_day_values(condition, condition_values))
+
+    if condition.cond_type == "App":
+        entries = [
+            {
+                key: condition_values.get(condition_field_key(condition.cond_index, f"app{i}_{key}"), "")
+                for key in ("pkg", "label", "cls")
+            }
+            for i in range(len(get_app_entries(condition)))
+        ]
+        field_errors = _validate_app_entries(entries)
+        return field_errors, (None if field_errors else ("App", entries))
+
+    if condition.cond_type in _CONDITION_CODE_SUFFIX and condition.args:
+        field_errors = taskedit.validate_arg_values(
+            condition.args,
+            lambda arg, ci=condition.cond_index: condition_arg_key(ci, arg.arg_id),
+            condition_values,
+        )
+        errors = [f"{error} ({condition.cond_type} condition {condition.cond_index})" for error in field_errors]
+        return errors, (None if errors else ("StateEvent", None))
+
+    return [], None
+
+
+def _selected_day_values(
+    condition: EditableCondition,
+    condition_values: dict[str, str],
+) -> tuple[list[int], list[int], list[int]]:
+    """The weekdays, months and days of the month a Day condition's checkboxes have ticked."""
+    selected_weekdays = [
+        day
+        for day in range(1, 8)
+        if condition_values.get(condition_field_key(condition.cond_index, f"wday{day}")) in ("1", "true", "True")
+    ]
+    selected_months = [
+        month
+        for month in range(12)
+        if condition_values.get(condition_field_key(condition.cond_index, f"mnth{month}")) in ("1", "true", "True")
+    ]
+    selected_month_days = [
+        day
+        for day in (*range(1, 32), DAY_OF_MONTH_LAST_DAY)
+        if condition_values.get(condition_field_key(condition.cond_index, f"mday{day}")) in ("1", "true", "True")
+    ]
+    return selected_weekdays, selected_months, selected_month_days
+
+
+def _write_pending_condition_edit(
+    condition: EditableCondition,
+    update: tuple[str, object],
+    condition_values: dict[str, str],
+    state: RunState,
+) -> None:
+    """Write what _pending_condition_edit found for one condition onto it."""
+    cond_type, payload = update
+    if cond_type == "Time":
+        _write_time_field_values(condition, payload)
+    elif cond_type == "Loc":
+        _write_loc_field_values(condition, payload)
+    elif cond_type == "Day":
+        weekdays, months, month_days = payload
+        _write_day_selected_weekdays(condition, weekdays)
+        _write_day_selected_months(condition, months)
+        _write_day_selected_month_days(condition, month_days)
+    elif cond_type == "App":
+        _write_app_entries(condition, payload)
+    elif cond_type == "StateEvent":
+        taskedit.apply_arg_values(
+            condition.args,
+            lambda arg, ci=condition.cond_index: condition_arg_key(ci, arg.arg_id),
+            condition_values,
+            state=state,
+        )
 
 
 def condition_field_key(cond_index: int, field_name: str) -> str:
