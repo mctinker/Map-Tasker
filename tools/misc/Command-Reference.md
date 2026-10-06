@@ -2,7 +2,7 @@
 
 Every command, option and pulldown in the MapTasker user interface: **354** entries (**287** of them commands) across **30** windows.
 
-_Generated from the MapTasker 14.1.1 source on 2026-10-05 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 14.1.1 source on 2026-10-06 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -4235,7 +4235,7 @@ _Toolbar, then the scroll area the canvas is drawn into._
 
 Outline every component and name it, the way the designer's tree names it.
 
-<sub>Source: `guiwins_views.py` line 806</sub>
+<sub>Source: `guiwins_views.py` line 807</sub>
 
 <a id="cmd-actions"></a>
 ### Actions
@@ -4245,7 +4245,7 @@ Outline every component and name it, the way the designer's tree names it.
 
 Show what each component does when tapped, and what it writes to.
 
-<sub>Source: `guiwins_views.py` line 819</sub>
+<sub>Source: `guiwins_views.py` line 820</sub>
 
 <a id="cmd-landscape-2"></a>
 ### Landscape
@@ -4255,7 +4255,7 @@ Show what each component does when tapped, and what it writes to.
 
 Turn the screen on its side and let the layout re-flow into it.
 
-<sub>Source: `guiwins_views.py` line 860</sub>
+<sub>Source: `guiwins_views.py` line 861</sub>
 
 <a id="cmd-text-density"></a>
 ### Text density
@@ -4267,7 +4267,7 @@ A Scene's element positions are stored in device pixels, but its text sizes are 
 
 So it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them.
 
-<sub>Source: `guiwins_views.py` line 883</sub>
+<sub>Source: `guiwins_views.py` line 884</sub>
 
 <a id="cmd-snap-2"></a>
 ### Snap
@@ -4277,7 +4277,7 @@ So it is set here. Raise it if the text looks too small for its elements, lower 
 
 Round dragged positions and sizes to this many pixels.
 
-<sub>Source: `guiwins_views.py` line 916</sub>
+<sub>Source: `guiwins_views.py` line 917</sub>
 
 <a id="cmd-screen"></a>
 ### Screen
@@ -4289,7 +4289,7 @@ A Version 2 Scene has no size of its own -- it lays itself out inside whatever s
 
 Change this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this.
 
-<sub>Source: `guiwins_views.py` line 939</sub>
+<sub>Source: `guiwins_views.py` line 940</sub>
 
 ## Ui
 
@@ -4303,7 +4303,7 @@ _Builds the UI layout for the various text views, including toolbar and scrollab
 
 (Map and Diagram only) Save what the view shows to a file in the current directory, as Markdown, JSON or PDF.
 
-<sub>Source: `guiwins_views.py` line 411</sub>
+<sub>Source: `guiwins_views.py` line 412</sub>
 
 <a id="cmd-zoom-out"></a>
 ### Zoom Out
@@ -4313,7 +4313,7 @@ _Builds the UI layout for the various text views, including toolbar and scrollab
 
 Zoom out. Ctrl/⌘ and the scroll wheel does the same.
 
-<sub>Source: `guiwins_views.py` line 441</sub>
+<sub>Source: `guiwins_views.py` line 442</sub>
 
 <a id="cmd-zoom-in"></a>
 ### Zoom In
@@ -4323,7 +4323,7 @@ Zoom out. Ctrl/⌘ and the scroll wheel does the same.
 
 Zoom in. Ctrl/⌘ and the scroll wheel does the same.
 
-<sub>Source: `guiwins_views.py` line 449</sub>
+<sub>Source: `guiwins_views.py` line 450</sub>
 
 <a id="cmd-collapse"></a>
 ### Collapse
@@ -4335,7 +4335,7 @@ Collapse every Project down to its title bar.
 
 One Project on its own collapses by clicking the top edge of its box.
 
-<sub>Source: `guiwins_views.py` line 454</sub>
+<sub>Source: `guiwins_views.py` line 455</sub>
 
 <a id="cmd-expand"></a>
 ### Expand
@@ -4345,7 +4345,7 @@ One Project on its own collapses by clicking the top edge of its box.
 
 Expand every collapsed Project.
 
-<sub>Source: `guiwins_views.py` line 467</sub>
+<sub>Source: `guiwins_views.py` line 468</sub>
 
 <a id="cmd-reset"></a>
 ### Reset
@@ -4355,7 +4355,7 @@ Expand every collapsed Project.
 
 Back to the whole diagram: no zoom, nothing folded, nothing filtered.
 
-<sub>Source: `guiwins_views.py` line 472</sub>
+<sub>Source: `guiwins_views.py` line 473</sub>
 
 <a id="cmd-help"></a>
 ### Help
@@ -4375,7 +4375,7 @@ Click the ▾ beside a Project to collapse it, and the ▸ to bring it back.
 
 Ctrl (or ⌘) and the scroll wheel zooms. Esc clears a chain.
 
-<sub>Source: `guiwins_views.py` line 479</sub>
+<sub>Source: `guiwins_views.py` line 480</sub>
 
 <a id="cmd-rebuild"></a>
 ### Rebuild
@@ -4385,7 +4385,7 @@ Ctrl (or ⌘) and the scroll wheel zooms. Esc clears a chain.
 
 (Diagram only) Offered when the Diagram was drawn for a different selection than the one chosen now; it draws the Diagram again for the current one.
 
-<sub>Source: `guiwins_views.py` line 1552</sub>
+<sub>Source: `guiwins_views.py` line 1553</sub>
 
 <a id="cmd-search"></a>
 ### Search
@@ -4401,7 +4401,7 @@ Click on the line number to go to that line in the text view box.
 
 The 'Clear' button will clear the search results.
 
-<sub>Source: `guiwins_views.py` line 1603</sub>
+<sub>Source: `guiwins_views.py` line 1604</sub>
 
 <a id="cmd-clear-3"></a>
 ### Clear
@@ -4411,7 +4411,7 @@ The 'Clear' button will clear the search results.
 
 Clear the Map/Diagram/Tree view data currently held and displayed.
 
-<sub>Source: `guiwins_views.py` line 1613</sub>
+<sub>Source: `guiwins_views.py` line 1614</sub>
 
 <a id="cmd-find-replace"></a>
 ### Find/Replace
@@ -4427,7 +4427,7 @@ Results come back as a list of objects; click one to be taken to it.
 
 Opens **Init**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins_views.py` line 1622</sub>
+<sub>Source: `guiwins_views.py` line 1623</sub>
 
 <a id="cmd-find-replace-find"></a>
 #### Find
@@ -4509,7 +4509,7 @@ Hidden when a single Project/Profile/Task/Scene is selected, because the scope h
 
 Turn line wrapping on or off in the displayed output.
 
-<sub>Source: `guiwins_views.py` line 1642</sub>
+<sub>Source: `guiwins_views.py` line 1643</sub>
 
 <a id="cmd-profiles-per-line"></a>
 ### Profiles Per Line
@@ -4519,7 +4519,7 @@ Turn line wrapping on or off in the displayed output.
 
 (Diagram only) The number of Profiles drawn side-by-side on a single line.
 
-<sub>Source: `guiwins_views.py` line 1654</sub>
+<sub>Source: `guiwins_views.py` line 1655</sub>
 
 ## Upgrade If Newer
 

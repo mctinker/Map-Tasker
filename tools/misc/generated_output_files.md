@@ -27,7 +27,7 @@ One per command that saves its results.  Each is stamped with the date and time 
 | File | Written to | Produced by | What it holds |
 | :--- | :--- | :--- | :--- |
 | `MapTasker_Analysis_date_time.txt` | Current folder | 'Run (AI) Analysis' | The analysis the AI model returned for your configuration. |
-| `MapTasker_Compare_date_time.txt` | Current folder | 'Compare Files' | What differs between two configurations. |
+| `MapTasker_Compare.txt` | Current folder | 'Compare Files' | What differs between two configurations. |
 | `MapTasker_Find_date_time.txt` | Current folder | 'Find' > 'Save Results' | The saved results of a search. |
 | `MapTasker_Fix_date_time.txt` | Current folder | 'Fix Findings' | What the repairs changed.  Kept apart from the Health Check report because that one says what is wrong and this one says what was done about it. |
 | `MapTasker_Flowchart_date_time.txt` | Current folder | 'Task Flow' | The flowchart drawn for a single Task. |

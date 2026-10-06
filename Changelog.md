@@ -22,7 +22,6 @@ All notable changes to this project will be documented in this file!
 - Changed: MapTasker no longer installs the AI libraries on its own the first time you use an AI feature; if they are missing it tells you once to install them with `pip install "maptasker[ai]"`.  This keeps MapTasker from downloading software you did not ask for.
 - Changed: Pressing __Save To Current File__ now immediately shows a "Save to current file in progress" notice, which stays up until the save finishes.  Saving a large configuration can take a few seconds, and until now nothing told you it had started.
 - Changed: In the Diagram view, 'Jump to Start' and 'Jump to End' now also scroll sideways when needed, so the Task at that end of the connector is on screen without adjusting the horizontal scroll yourself.
-- Changed:
 
 ### Removed
 
@@ -34,7 +33,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Running an AI analysis with Gemini no longer prints a warning about "automatic function calling" not being recommended.  MapTasker does not use that feature, so it is now switched off.
 - Fixed: On Windows, Tasker names containing accented letters, symbols or non-Latin characters could be garbled or rejected when MapTasker saved a backup fetched from your device, its logs and its small status files.  MapTasker now reads and writes all of these as UTF-8 on every platform.
 - Fixed: In the Diagram view, clicking an arrow into a Task that is called from many places now highlights the whole connection back to its caller and offers 'Jump to Start' and 'Jump to End'.  Connectors that crossed a dense row of other connectors used to be cut in two, leaving the arrow end with nothing to highlight.
-- Fixed:
 
 ### Known Issues
 

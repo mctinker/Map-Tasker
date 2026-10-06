@@ -39,6 +39,7 @@ EXCLUDE_LIST = {
     "*/dist/*",
     ".nicegui/*",
     "*/.nicegui/*",
+    "Reports/*",
 }
 
 
