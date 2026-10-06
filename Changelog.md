@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: __Draft with AI__ in the Add Task window turns a description in plain words into actions, using the AI model chosen on the Analyze tab, which is told how Tasks work so that most drafts take a single request. The draft is added unsaved for you to review and edit, anything the AI suggested that MapTasker cannot build is listed beside it, and a Stop button gives up on a slow model.
 - Added:
 
 ### Changed
@@ -28,6 +29,8 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
       `killall_port8080.sh`
 
+* __Draft with AI__ is slow and often unusable on very small local models (such as tinyllama); a larger local model or a cloud model is recommended.
+* __Draft with AI__ cannot choose an Application or an icon for an action, and a plugin action it picks still has to be configured inside Tasker; both are left at their defaults for you to fill in.
 * Not all Task actions and Profile states or events editing are supported.  What remains unsupported is third-party plugins: their settings are an opaque payload that only the plugin's own configurator understands, so those still have to be set up inside Tasker.
 * The icon list is built from the configuration you have loaded, so an icon used nowhere in it is not offered; type its name.  The Application list can be topped up from the device ('App not listed?'), but until it is, it likewise holds only what your configuration already names.
 * Applications fetched from the device come back without their activity class.  MapTasker asks Tasker for the activity of every installed app as a bulk list, and uses it only if it lines up one-for-one with the packages -- measured against a real device, it does not, so it is discarded rather than pairing every app with some other app's activity.  Names are not affected: those are looked up one app at a time, so they are always the right ones.  The activity is filled in from your own configuration for any app it already names, and an action that needs one for an app it does not (Launch App, say) has to have it typed in.

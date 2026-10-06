@@ -470,7 +470,7 @@ layers = [
     """,
     """
     getfile : guistate : guiutils : guiwins :
-    guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 : guiwins_designers : guiwins_editor :
+    guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 : guiwins_designers : guiwins_draft : guiwins_editor :
     guiwins_firesim : guiwins_fix : guiwins_impact : guiwins_legacyarg : guiwins_nav : guiwins_profedit :
     guiwins_refactor : guiwins_restore : guiwins_sceneprops : guiwins_search : guiwins_taskedit :
     guiwins_views : mapai : sceneview :
@@ -486,7 +486,7 @@ layers = [
     diagram : diagutil : diffload : dirout : editcommon : elemvals : error :
     format : frontmtr : getbakup : getputer : globalvr :
     guiutil2 : healthck : impact : initparg : lineout : livevars :
-    mapask : mapcache : mapexport : mapfind : mapfix : mapfonts :
+    mapask : mapcache : mapdraft : mapexport : mapfind : mapfix : mapfonts :
     mapjump : mappdf : maprefac : maprestore : mapswap : maputil2 :
     maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
     firesim : folderwatch : parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
@@ -512,6 +512,7 @@ allowed_importers = [
     "maptasker.src.guiwins_canvas",
     "maptasker.src.guiwins_designer_legacy",
     "maptasker.src.guiwins_designer_v2",
+    "maptasker.src.guiwins_draft",
     "maptasker.src.guiwins_editor",
     "maptasker.src.guiwins_firesim",
     "maptasker.src.guiwins_fix",

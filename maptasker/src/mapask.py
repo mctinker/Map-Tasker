@@ -95,7 +95,12 @@ MAX_REPLY_TOKENS = 1024
 ANTHROPIC_MAX_TOKENS = 16000
 
 # The reply's shape, which Claude models that support structured output are held to exactly.
-# Other models (and other providers) are left to the prompt and to _reply_object.
+# Other models (and other providers) are left to the prompt and to reply_object.
+# The Claude models that take output_config.effort.  Not every Claude model does -- Haiku 4.5
+# turns the field down -- so it is sent only to these.
+EFFORT_MODELS = ("claude-fable-5", "claude-opus-5", "claude-opus-4-8", "claude-sonnet-5")
+# The OpenAI models that reason before they answer, and so take reasoning_effort.
+OPENAI_REASONING_MODELS = ("gpt-5", "o3", "o4")
 STRUCTURED_OUTPUT_MODELS = (
     "claude-fable-5",
     "claude-opus-5",
@@ -166,11 +171,25 @@ class AskError(Exception):
 
 @dataclass(frozen=True)
 class ModelSettings:
-    """Which model to ask, and with what key -- read off the Analyze tab when Ask is pressed."""
+    """Which model to ask, and with what key -- read off the Analyze tab when Ask is pressed.
+
+    'schema' and 'max_tokens' are for a question whose reply is not a Find query -- see
+    mapdraft, which asks twice with two different shapes of reply.  Left alone they are the
+    Find's own.
+    """
 
     provider: str
     model: str
     api_key: str = ""
+    # The shape of the reply, for the models that can be held to one; None means REPLY_SCHEMA.
+    schema: dict | None = None
+    max_tokens: int = MAX_REPLY_TOKENS
+    # How hard a model that reasons before it answers is asked to: "low" for a question whose
+    # answer needs no deliberation.  Applied only where the provider and model take it, and
+    # dropped, with the request made again, if the service turns it down.  "" leaves it alone.
+    effort: str = ""
+    # Seconds to wait for the answer before giving up on it; None waits as long as it takes.
+    timeout: float | None = None
 
 
 @dataclass(frozen=True)
@@ -273,31 +292,34 @@ def build_prompt(question: str, index: mapfind.FindIndex) -> tuple[str, str]:
 # ##################################################################################
 # The reply.
 # ##################################################################################
-def _reply_object(reply: str) -> dict:
-    """The JSON object in a reply, however much prose or fencing a model wraps it in."""
+def reply_object(reply: str, what: str = "search") -> dict:
+    """The JSON object in a reply, however much prose or fencing a model wraps it in.
+
+    'what' is what the reply was meant to be, for the message when it is not.
+    """
     text = _THINKING.sub("", reply or "")
     start, end = text.find("{"), text.rfind("}")
     if start == -1 or end < start:
-        message = "The AI model did not reply with a search.  Try rewording the question."
+        message = f"The AI model did not reply with a {what}.  Try rewording the question."
         raise AskError(message)
     try:
         parsed = json.loads(text[start : end + 1])
     except json.JSONDecodeError as error:
-        message = "The AI model's reply could not be read as a search.  Try asking again."
+        message = f"The AI model's reply could not be read as a {what}.  Try asking again."
         raise AskError(message) from error
     if not isinstance(parsed, dict):
-        message = "The AI model did not reply with a search.  Try rewording the question."
+        message = f"The AI model did not reply with a {what}.  Try rewording the question."
         raise AskError(message)
     return parsed
 
 
-def _values(raw: object) -> list[str]:
+def values_of(raw: object) -> list[str]:
     """A box's reply as a list of non-empty strings: one for a value, more for a list of them."""
     items = raw if isinstance(raw, list) else [raw]
     return [str(item).strip() for item in items if item is not None and str(item).strip()]
 
 
-def _canonical(value: str, known: Iterable[str]) -> str:
+def canonical(value: str, known: Iterable[str]) -> str:
     """The value spelled as the configuration spells it, or "" if the configuration does not use it.
 
     Exact first, so a value that really does end in "(2)" is not stripped of it; then
@@ -317,7 +339,7 @@ def _canonical(value: str, known: Iterable[str]) -> str:
 
 def parse_reply(reply: str, index: mapfind.FindIndex) -> Translation:
     """Turn a model's reply into a Query of only the values this configuration uses."""
-    fields = _reply_object(reply)
+    fields = reply_object(reply)
     labels = {**mapfind.FACET_LABELS, PROJECT_KEY: "Project"}
     catalogs: dict[str, Iterable[str]] = {facet: index.catalog.get(facet, {}) for facet in _CATALOGUED}
     catalogs[PROJECT_KEY] = index.projects
@@ -326,18 +348,18 @@ def parse_reply(reply: str, index: mapfind.FindIndex) -> Translation:
     unknown: list[str] = []
     surplus: list[str] = []
     for box, catalog in catalogs.items():
-        values = _values(fields.get(box))
+        values = values_of(fields.get(box))
         if not values:
             chosen[box] = ""
             continue
         surplus += [f"{labels[box]} '{value}'" for value in values[1:]]
-        chosen[box] = _canonical(values[0], catalog)
+        chosen[box] = canonical(values[0], catalog)
         if not chosen[box]:
             unknown.append(f"{labels[box]} '{values[0]}'")
 
-    texts = _values(fields.get(mapfind.TEXT))
+    texts = values_of(fields.get(mapfind.TEXT))
     surplus += [f"{labels[mapfind.TEXT]} '{text}'" for text in texts[1:]]
-    note = " ".join(_values(fields.get(UNEXPRESSED_KEY)))
+    note = " ".join(values_of(fields.get(UNEXPRESSED_KEY)))
 
     return Translation(
         query=mapfind.Query(
@@ -384,20 +406,50 @@ async def _chat_completion(client: object, model: str, system: str, user: str, *
     return response.choices[0].message.content or ""
 
 
+async def _first_that_works(what: str, *attempts: Callable[[], Awaitable[str]]) -> str:
+    """The reply of the first attempt that gets one; the last is not caught, so its failure is the caller's.
+
+    For an option -- a reasoning effort, a reply schema -- that only some versions of a model or
+    server take, and that a refusal of is not worth failing the question over.  A question
+    taken back is not a failure: cancellation passes through.
+    """
+    for attempt in attempts[:-1]:
+        try:
+            reply = await attempt()
+        except Exception as error:  # noqa: BLE001 -- any refusal, from any provider's library
+            logger.debug(f"mapask: {what} was not taken ({error}); asking without it")
+        else:
+            return reply
+    return await attempts[-1]()
+
+
 async def _ask_openai(settings: ModelSettings, system: str, user: str) -> str:
-    client = _library("openai", "openai").AsyncOpenAI(api_key=settings.api_key)
-    return await _chat_completion(client, settings.model, system, user)
+    def attempt(**extra: object) -> Awaitable[str]:
+        client = _library("openai", "openai").AsyncOpenAI(api_key=settings.api_key)
+        return _chat_completion(client, settings.model, system, user, **extra)
+
+    attempts: list[Callable[[], Awaitable[str]]] = [attempt]
+    if settings.effort and settings.model.startswith(OPENAI_REASONING_MODELS):
+        attempts.insert(0, lambda: attempt(reasoning_effort=settings.effort))
+    return await _first_that_works(f"{settings.model}'s reasoning_effort", *attempts)
 
 
 async def _ask_deepseek(settings: ModelSettings, system: str, user: str) -> str:
     client = _library("openai", "openai").AsyncOpenAI(api_key=settings.api_key, base_url="https://api.deepseek.com")
-    return await _chat_completion(client, settings.model, system, user, temperature=0.0, max_tokens=MAX_REPLY_TOKENS)
+    return await _chat_completion(client, settings.model, system, user, temperature=0.0, max_tokens=settings.max_tokens)
 
 
 async def _ask_anthropic(settings: ModelSettings, system: str, user: str) -> str:
     extra = {}
+    output_config: dict = {}
     if settings.model.startswith(STRUCTURED_OUTPUT_MODELS):
-        extra["output_config"] = {"format": {"type": "json_schema", "schema": REPLY_SCHEMA}}
+        output_config["format"] = {"type": "json_schema", "schema": settings.schema or REPLY_SCHEMA}
+    # Current Claude models think before they answer, which is most of the wait for a reply
+    # this small; "low" spends far less of it.
+    if settings.effort and settings.model.startswith(EFFORT_MODELS):
+        output_config["effort"] = settings.effort
+    if output_config:
+        extra["output_config"] = output_config
     async with _library("anthropic", "anthropic").AsyncAnthropic(api_key=settings.api_key) as client:
         message = await client.messages.create(
             model=settings.model,
@@ -411,23 +463,31 @@ async def _ask_anthropic(settings: ModelSettings, system: str, user: str) -> str
 
 async def _ask_gemini(settings: ModelSettings, system: str, user: str) -> str:
     client = _library("google-genai", "google.genai").Client(api_key=settings.api_key)
-    try:
+    config = {
+        "system_instruction": system,
+        "response_mime_type": "application/json",
+        # No tools are given, so nothing can be called; see mapai._process_gemini_response.
+        "automatic_function_calling": {"disable": True},
+    }
+
+    async def attempt(**extra: object) -> str:
         response = await client.aio.models.generate_content(
             model=settings.model,
             contents=user,
-            config={
-                "system_instruction": system,
-                "response_mime_type": "application/json",
-                # No tools are given, so nothing can be called; see mapai._process_gemini_response.
-                "automatic_function_calling": {"disable": True},
-            },
+            config={**config, **extra},
         )
+        return response.text or ""
+
+    attempts: list[Callable[[], Awaitable[str]]] = [attempt]
+    if settings.effort and "gemini-3" in settings.model:
+        attempts.insert(0, lambda: attempt(thinking_config={"thinking_level": settings.effort}))
+    try:
+        return await _first_that_works(f"{settings.model}'s thinking_level", *attempts)
     finally:
         # A google-genai release older than aclose closes its connections with the client.
         close = getattr(client.aio, "aclose", None)
         if close is not None:
             await close()
-    return response.text or ""
 
 
 async def _ask_llama(settings: ModelSettings, system: str, user: str) -> str:
@@ -455,12 +515,18 @@ async def _ask_llama(settings: ModelSettings, system: str, user: str) -> str:
         raise AskError(message)
     # The request itself goes through ollama's async client, for the reason given above.
     client = _library("ollama", "ollama").AsyncClient()
-    response = await client.chat(
-        model=ai.model,
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-        format="json",
-    )
-    return response["message"]["content"] or ""
+    messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+
+    async def attempt(reply_format: object) -> str:
+        response = await client.chat(model=ai.model, messages=messages, format=reply_format)
+        return response["message"]["content"] or ""
+
+    # A schema holds a small model to the reply's shape, which "json" alone does not; a server
+    # too old to take one is asked again with "json".
+    attempts = [lambda: attempt("json")]
+    if settings.schema:
+        attempts.insert(0, lambda: attempt(settings.schema))
+    return await _first_that_works("a reply schema", *attempts)
 
 
 # (ModelSettings, system prompt, user message) -> the reply's text.
@@ -487,9 +553,18 @@ async def ask_model(settings: ModelSettings, system: str, user: str) -> str:
         message = f"'{settings.provider}' is not an AI service MapTasker can ask."
         raise AskError(message)
     try:
-        return await handler(settings, system, user)
+        if settings.timeout is None:
+            return await handler(settings, system, user)
+        async with asyncio.timeout(settings.timeout):
+            return await handler(settings, system, user)
     except AskError:
         raise
+    except TimeoutError as error:
+        message = (
+            f"{settings.provider} ({settings.model}) did not answer within {settings.timeout:.0f} seconds.  "
+            "A faster model chosen on the Analyze tab, or a shorter request, may help."
+        )
+        raise AskError(message) from error
     except Exception as error:
         logger.error(f"mapask: {settings.provider} {settings.model} failed: {error}")
         message = f"{settings.provider} ({settings.model}) could not be asked: {error}"

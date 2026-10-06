@@ -226,7 +226,9 @@ def test_settings_carry_the_providers_key(ai: dict) -> None:
         "claude-sonnet-5",
         "sk-ant-test",
     )
-    assert mapask.model_settings("LLAMA", "llama3.2 (installed)", state=PrimeItems) == mapask.ModelSettings(mapask.LLAMA, "llama3.2")
+    assert mapask.model_settings("LLAMA", "llama3.2 (installed)", state=PrimeItems) == mapask.ModelSettings(
+        mapask.LLAMA, "llama3.2"
+    )
 
 
 @pytest.mark.parametrize(
@@ -287,3 +289,122 @@ async def test_a_failing_service_is_reported_not_raised(monkeypatch: pytest.Monk
     monkeypatch.setattr(mapask, "_ask_anthropic", broken)
     with pytest.raises(mapask.AskError, match="invalid x-api-key"):
         await mapask.ask_model(_SETTINGS, "system", "user")
+
+
+def _fake_anthropic(monkeypatch: pytest.MonkeyPatch) -> dict:
+    sent: dict = {}
+
+    class Messages:
+        async def create(self, **kwargs: object) -> SimpleNamespace:
+            sent.update(kwargs)
+            return SimpleNamespace(content=[SimpleNamespace(text="{}")])
+
+    class AsyncAnthropic:
+        def __init__(self, api_key: str) -> None:
+            self.messages = Messages()
+
+        async def __aenter__(self) -> AsyncAnthropic:  # noqa: PYI034
+            return self
+
+        async def __aexit__(self, *_: object) -> None:
+            return None
+
+    monkeypatch.setattr(mapask, "_library", lambda *_: SimpleNamespace(AsyncAnthropic=AsyncAnthropic))
+    return sent
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("model", "takes_effort"),
+    [("claude-sonnet-5-5", True), ("claude-opus-5-5", True), ("claude-haiku-4-5-20251001", False)],
+)
+async def test_effort_is_asked_for_only_of_the_models_that_take_it(
+    monkeypatch: pytest.MonkeyPatch,
+    model: str,
+    takes_effort: bool,
+) -> None:
+    sent = _fake_anthropic(monkeypatch)
+    await mapask.ask_model(mapask.ModelSettings(mapask.ANTHROPIC, model, "k", effort="low"), "system", "user")
+
+    assert ("effort" in sent.get("output_config", {})) is takes_effort
+    if takes_effort:
+        assert sent["output_config"]["effort"] == "low"
+
+
+@pytest.mark.asyncio
+async def test_no_effort_is_sent_unless_asked_for(monkeypatch: pytest.MonkeyPatch) -> None:
+    sent = _fake_anthropic(monkeypatch)
+    await mapask.ask_model(_SETTINGS, "system", "user")
+
+    assert "effort" not in sent.get("output_config", {})
+
+
+@pytest.mark.asyncio
+async def test_an_answer_that_takes_too_long_is_given_up_on_and_said(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def slow(*_: object) -> str:
+        await asyncio.sleep(3600)
+        return ""
+
+    monkeypatch.setattr(mapask, "_ask_anthropic", slow)
+    settings = mapask.ModelSettings(mapask.ANTHROPIC, "claude-sonnet-5-5", "k", timeout=0.05)
+
+    with pytest.raises(mapask.AskError, match="did not answer within"):
+        await mapask.ask_model(settings, "system", "user")
+
+
+@pytest.mark.asyncio
+async def test_a_reasoning_model_that_refuses_the_effort_is_asked_again_without_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = []
+
+    class Completions:
+        async def create(self, **kwargs: object) -> SimpleNamespace:
+            calls.append(kwargs)
+            if "reasoning_effort" in kwargs:
+                message = "unsupported parameter"
+                raise RuntimeError(message)
+            return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="{}"))])
+
+    class AsyncOpenAI:
+        def __init__(self, api_key: str) -> None:
+            self.chat = SimpleNamespace(completions=Completions())
+
+        async def __aenter__(self) -> AsyncOpenAI:  # noqa: PYI034
+            return self
+
+        async def __aexit__(self, *_: object) -> None:
+            return None
+
+    monkeypatch.setattr(mapask, "_library", lambda *_: SimpleNamespace(AsyncOpenAI=AsyncOpenAI))
+    reply = await mapask.ask_model(mapask.ModelSettings(mapask.OPENAI, "gpt-5", "k", effort="low"), "system", "user")
+
+    assert reply == "{}"
+    assert ["reasoning_effort" in call for call in calls] == [True, False]
+
+
+@pytest.mark.asyncio
+async def test_an_option_a_model_refuses_is_dropped_and_the_question_asked_again() -> None:
+    calls = []
+
+    async def refused() -> str:
+        calls.append("with")
+        message = "unsupported"
+        raise RuntimeError(message)
+
+    async def plain() -> str:
+        calls.append("without")
+        return "reply"
+
+    assert await mapask._first_that_works("an option", refused, plain) == "reply"  # noqa: SLF001
+    assert calls == ["with", "without"]
+
+
+@pytest.mark.asyncio
+async def test_the_last_attempt_is_not_caught() -> None:
+    async def broken() -> str:
+        message = "down"
+        raise RuntimeError(message)
+
+    with pytest.raises(RuntimeError, match="down"):
+        await mapask._first_that_works("an option", broken)  # noqa: SLF001

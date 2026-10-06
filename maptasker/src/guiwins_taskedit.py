@@ -26,6 +26,7 @@ from maptasker.src.guiutils import (
     remember_android_address,
     remember_android_address_fields,
 )
+from maptasker.src.guiwins_draft import DraftRow
 from maptasker.src.guiwins_editor import (
     PendingChangesBanner,
     _build_properties_button,
@@ -2086,7 +2087,9 @@ def build_add_task_dialog(
             )
 
         _render_new_task_name_row(self, edited_task, field_refs, dialog, sync_save_path)
-        _NewTaskActionList(self, edited_task, field_refs).build()
+        actions = _NewTaskActionList(self, edited_task, field_refs)
+        DraftRow(self, edited_task, field_refs, dialog, actions.on_added).build()
+        actions.build()
 
         field_refs["save_path"] = ui.input(
             translate_string("Save as"),

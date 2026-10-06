@@ -1620,6 +1620,14 @@ def _apply_action_label(action: EditableAction, label_text: str) -> None:
         action.action_element.remove(label_element)
 
 
+def set_action_label(action: EditableAction, label_text: str) -> None:
+    """Give the action a label of its own, or clear it with empty text -- for a caller that is
+    not the editor's own Save, which applies labels with the rest of its fields (see
+    apply_action_edits_to_task).
+    """
+    _apply_action_label(action, label_text)
+
+
 def validate_arg_values(
     args: list[EditableArg],
     key_for_arg: Callable[[EditableArg], str],
