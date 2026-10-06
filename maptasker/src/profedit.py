@@ -493,6 +493,8 @@ def _add_code_condition_to_profile(
     Returns the new condition, or a list of error messages if condition_key
     isn't a real, addable code.
     """
+    if condition_key not in action_codes:
+        return [f"'{condition_key}' is not a {cond_type} code this tool knows."]
     addable, reason = taskedit.classify_action_addability(condition_key, state=state)
     if not addable:
         return [reason or f"'{condition_key}' is not addable."]

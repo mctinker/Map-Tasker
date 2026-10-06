@@ -44,6 +44,9 @@ _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 @pytest.fixture(autouse=True)
 def _loaded() -> None:
     """A loaded configuration with two Scenes in one Project."""
+    # What turns an action's argument type into a name (actargs reads it), loaded the way start-up loads it.  Left
+    # to whichever test ran before, these failed with a KeyError when run on their own or after one that clears it.
+    actionc.load_arg_specs()
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.colors_to_use = set_color_mode("dark")
     PrimeItems.output_lines = LineOut()

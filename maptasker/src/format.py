@@ -379,6 +379,22 @@ def legible_color(color: str | None, default_color: str, colors: Mapping[str, st
     return color
 
 
+def escaped_text(text: str) -> str:
+    """
+    Text made safe to write into the page: "<", ">" and "&" become entities, so it can only be shown.
+
+    A description's own markup is read by the parser and comes through as tags and styling;
+    what is left is words.  Those words can still contain characters that are markup once
+    written into HTML -- most simply a description that spells a tag as "&lt;script&gt;",
+    which the parser turns back into "<script>".  Written out as it stands, that is a script
+    element in the Map, put there by a file downloaded from the internet.
+
+        :param text: words, as the parser decoded them
+        :return: the same words, escaped
+    """
+    return html.escape(text, quote=False)
+
+
 def safe_url(url: str) -> str:
     """
     An href/src value if its scheme is one we allow, otherwise empty.
@@ -663,6 +679,10 @@ UNRENDERABLE_COLORS = {"transparent", "inherit", "currentcolor", "initial", "uns
 # effectively disappeared, not to second-guess every color an author chose: a mid-tone like
 # #9090aa on white comes to about 2.9 and is left alone.
 MINIMUM_CONTRAST_RATIO = 2.0
+
+# What would let a value written into our own style="..." attribute get out of it: close the
+# attribute, open a tag, or begin another declaration.
+STYLE_ESCAPE_CHARACTERS = ('"', "<", ">", ";")
 
 # A hex color written without its leading "#", the way colrmode stores the dark background.
 BARE_HEX_COLOR = re.compile(r"[0-9a-fA-F]{3}|[0-9a-fA-F]{6}")
@@ -1099,17 +1119,20 @@ class HTMLTextFormatter(HTMLParser):
         self._add_segment("<pre>")
 
     def _start_font(self, tag: str, attrs: list[tuple[str, str]]) -> None:
-        """Handle the <font> tag, taking its color if it has one."""
+        """Handle the <font> tag, taking its color if it has one and it is one that stays in its attribute."""
         attrs_dict = dict(attrs)
-        if "color" in attrs_dict:
-            self.current_styles["color"] = attrs_dict["color"].lower()
+        color = (attrs_dict.get("color") or "").lower()
+        # Written into a style="..." attribute of our own (see _LabelBuilder.add), so a value that
+        # could close that attribute, or start another declaration, is not a color.
+        if color and not any(character in color for character in STYLE_ESCAPE_CHARACTERS):
+            self.current_styles["color"] = color
 
     def _start_link(self, tag: str, attrs: list[tuple[str, str]]) -> None:
-        """Handle the <a> tag.  An anchor without an href is not a link."""
-        attrs_dict = dict(attrs)
-        if "href" in attrs_dict:
+        """Handle the <a> tag.  An anchor without an href, or with one that is not safe to follow, is not a link."""
+        href = safe_url(dict(attrs).get("href") or "")
+        if href:
             self.current_styles["is_link"] = True
-            self.current_styles["href"] = attrs_dict["href"]
+            self.current_styles["href"] = href
 
     def _start_list(self, tag: str, attrs: list[tuple[str, str]]) -> None:
         """Handle the <ul> and <ol> tags, which open a list one level deeper."""
@@ -1237,7 +1260,10 @@ class HTMLTextFormatter(HTMLParser):
         if self.is_preformatted:
             self._add_preformatted_segment(data)
         elif data.strip():
-            decoded_data = html.unescape(data)
+            # The parser has already turned character references into the characters they stand
+            # for, so "&lt;b&gt;" arrives here as "<b>": text, which has to stay text when it is
+            # written into the page (see escaped_text).
+            decoded_data = escaped_text(data)
             if self.table_th:
                 decoded_data = "<th>" + decoded_data + "</th>"
                 self.table_th = False
@@ -1266,7 +1292,7 @@ class HTMLTextFormatter(HTMLParser):
         """
         Handle character entity references (e.g., &).
         """
-        self._add_segment(html.entities.html5.get(name, f"&{name};"))
+        self._add_segment(escaped_text(html.entities.html5.get(name, f"&{name};")))
 
     def handle_charref(self, name: str) -> None:
         """
@@ -1274,7 +1300,7 @@ class HTMLTextFormatter(HTMLParser):
         """
         try:
             char_code = int(name[1:], 16) if name.startswith("x") else int(name)
-            self._add_segment(chr(char_code))
+            self._add_segment(escaped_text(chr(char_code)))
         except ValueError:
             self._add_segment(f"&#{name};")
 
@@ -1419,7 +1445,7 @@ class HTMLTextFormatter(HTMLParser):
             # The color goes on to be written into a style="..." attribute of our own (see
             # format_label).  No color contains a quote or an angle bracket, so a value that
             # does is one trying to get out of that attribute, and is dropped.
-            if '"' in value or "<" in value or ">" in value:
+            if any(character in value for character in STYLE_ESCAPE_CHARACTERS[:3]):
                 continue
 
             if prop == "color":
@@ -1496,7 +1522,7 @@ class HTMLTextFormatter(HTMLParser):
         # Indicate that this is a preformatted segment
         styles_copy["is_preformatted"] = True
         styles_copy["is_heading"] = False
-        self.formatted_segments.append({"text": text, "styles": styles_copy})
+        self.formatted_segments.append({"text": escaped_text(text), "styles": styles_copy})
 
     def get_formatted_text(self) -> list[dict]:
         """
@@ -1748,9 +1774,9 @@ def _link_segment(lbl_text: str, lbl_style: dict) -> str:
     """
     if not lbl_style.get("is_link", False):
         return lbl_text
-    lbl_href = lbl_style.get("href")
-    new_tab = "" if str(lbl_href).startswith("#") else ' target="_blank" rel="noopener noreferrer"'
-    return f'<a href="{lbl_href}" style="{HOTLINK_STYLE}"{new_tab}>{lbl_text}</a>'
+    lbl_href = str(lbl_style.get("href"))
+    new_tab = "" if lbl_href.startswith("#") else ' target="_blank" rel="noopener noreferrer"'
+    return f'<a href="{html.escape(lbl_href, quote=True)}" style="{HOTLINK_STYLE}"{new_tab}>{lbl_text}</a>'
 
 
 class _LabelBuilder:

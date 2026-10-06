@@ -59,11 +59,11 @@ def get_backup_arguments(xml_file: str) -> dict:
         suffix = OWNER_SUFFIX.get(element.tag)
         if suffix is None:
             continue
-        code = element.findtext("code")
+        code = (element.findtext("code") or "").strip()
         if not code:
             continue
 
-        key = f"{code.strip()}{suffix}"
+        key = f"{code}{suffix}"
         for child in element:
             sr = child.attrib.get("sr", "")
             if sr.startswith("arg") and sr[len("arg") :].isdigit():
@@ -171,9 +171,14 @@ def insert_arguments(overlay_file: str, missing: dict) -> int:
         if entry is None:
             published[key] = slots
             continue
-        entry["args"].extend(harvested_argument(arg_id, arg_type) for arg_id, arg_type in slots.items())
+        # An argument the entry already carries is not added again.  The slots were worked out
+        # against the tables as loaded, and a second harvest in the same run (or against an
+        # overlay edited since) would otherwise put the same argument in twice.
+        present = {arg[0] for arg in entry["args"]}
+        new_slots = {arg_id: arg_type for arg_id, arg_type in slots.items() if arg_id not in present}
+        entry["args"].extend(harvested_argument(arg_id, arg_type) for arg_id, arg_type in new_slots.items())
         entry["args"].sort(key=lambda arg: int(arg[0]))
-        added += len(slots)
+        added += len(new_slots)
 
     for key, slots in published.items():
         console.say(
