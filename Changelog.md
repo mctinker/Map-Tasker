@@ -2,18 +2,45 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.1.1] 05-Oct-2026
+## [14.1.2] ??-Oct-2026  # FIX
 
 ### Added
+
+- Added:
+
+### Changed
+
+- Changed: The Pick an icon list for Task actions now shows a picture beside each icon's name, so you can choose by sight. Tasker's own artwork lives on your phone, so Material-style icons are drawn as their closest equivalent and other icons get a generic picture for their kind.
+- Changed:
+
+### Removed
+
+- Removed:
+
+### Fixed
+
+- Fixed:
+
+### Known Issues
+
+* It is unlikely but possible to have a previous MapTasker browser session preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
+you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command to kill all instances of MapTasker:
+
+      `killall_port8080.sh`
+
+* Not all Task actions and Profile states or events editing are supported.  What remains unsupported is third-party plugins: their settings are an opaque payload that only the plugin's own configurator understands, so those still have to be set up inside Tasker.
+* The icon list is built from the configuration you have loaded, so an icon used nowhere in it is not offered; type its name.  The Application list can be topped up from the device ('App not listed?'), but until it is, it likewise holds only what your configuration already names.
+* Applications fetched from the device come back without their activity class.  MapTasker asks Tasker for the activity of every installed app as a bulk list, and uses it only if it lines up one-for-one with the packages -- measured against a real device, it does not, so it is discarded rather than pairing every app with some other app's activity.  Names are not affected: those are looked up one app at a time, so they are always the right ones.  The activity is filled in from your own configuration for any app it already names, and an action that needs one for an app it does not (Launch App, say) has to have it typed in.
+
+
+## Older History Logs
+
+## [14.1.1] 05-Oct-2026
 
 - Added: A new __What Fires When?__ button lets you pick a moment -- date and time, Wi-Fi network, app in front and battery level -- and shows which Profiles would be active, the order their Tasks would start in, and where they collide, such as two Profiles setting Wi-Fi opposite ways or one Task started twice.  Anything the inputs do not describe, such as an Event or a location, is shown as possible along with what it is waiting on, rather than guessed at.
 - Added: Health Check, Compare, Changes Since and Export can now be run from the command line with no window (for example `maptasker -healthcheck -file backup.xml`), and they end with an exit code a script can act on, so a nightly Tasker backup can be checked automatically.  A new `-watch FOLDER` option records each new backup that appears in a folder in the history, so it fills up even on days MapTasker is not opened.
 - Added: A new __Xref Live__ button beside Variable Xref reads the current value of every global variable from Tasker on your Android device and shows it beside each variable, and it checks the "read but never set" and "set but never read" findings against the phone.  A variable the phone does not have is a confirmed problem, while one it does have was set or read by something outside the file; nothing on the device is changed.
 - Added: In the Diagram view, clicking a connector now also draws a red rectangle around the calling Task and the called Task, so you can see which two Tasks it joins.  The rectangles clear when you click elsewhere.
-- Added:
-
-### Changed
-
 - Changed: In the __Restore From History__ window, a row's 'Restore this' button now turns green once its restore has been applied, and the row stays in the list so you can see what you have already brought back.  If it has nothing left to restore, the green button is greyed out so the same restore cannot be applied twice.
 - Changed: The MapTasker logo has moved from the top of the Display Options panel to the middle of the title bar, which leaves more room for the options themselves.
 - Changed: The 'Save Settings' and 'Restore Settings' buttons are now labelled 'Save' and 'Restore' and sit side by side under the Application Settings heading, instead of one above the other.
@@ -22,35 +49,10 @@ All notable changes to this project will be documented in this file!
 - Changed: MapTasker no longer installs the AI libraries on its own the first time you use an AI feature; if they are missing it tells you once to install them with `pip install "maptasker[ai]"`.  This keeps MapTasker from downloading software you did not ask for.
 - Changed: Pressing __Save To Current File__ now immediately shows a "Save to current file in progress" notice, which stays up until the save finishes.  Saving a large configuration can take a few seconds, and until now nothing told you it had started.
 - Changed: In the Diagram view, 'Jump to Start' and 'Jump to End' now also scroll sideways when needed, so the Task at that end of the connector is on screen without adjusting the horizontal scroll yourself.
-
-### Removed
-
-- Removed: Nothing removed
-
-### Fixed
-
 - Fixed: Choosing the Gemini model 'gemini-3.1-flash_lite' for AI analysis failed with a "404 NOT_FOUND" error, because its name was misspelled with an underscore.  The name is corrected, and a setting saved with the old spelling is fixed automatically the next time it loads.
 - Fixed: Running an AI analysis with Gemini no longer prints a warning about "automatic function calling" not being recommended.  MapTasker does not use that feature, so it is now switched off.
 - Fixed: On Windows, Tasker names containing accented letters, symbols or non-Latin characters could be garbled or rejected when MapTasker saved a backup fetched from your device, its logs and its small status files.  MapTasker now reads and writes all of these as UTF-8 on every platform.
 - Fixed: In the Diagram view, clicking an arrow into a Task that is called from many places now highlights the whole connection back to its caller and offers 'Jump to Start' and 'Jump to End'.  Connectors that crossed a dense row of other connectors used to be cut in two, leaving the arrow end with nothing to highlight.
-
-### Known Issues
-
-* It is unlikely but possible to have a previous MapTasker browser session preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
-you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
-
-      `lsof -i :8080`
-For each PID listed in the output from the above terminal command, issue the following:
-
-      `kill -9 pid_number`
-...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080' (e.g. kill -9 8547).
-* Not all Task actions and Profile states or events editing are supported.  What remains unsupported is third-party plugins: their settings are an opaque payload that only the plugin's own configurator understands, so those still have to be set up inside Tasker.
-* The icon list is built from the configuration you have loaded, so an icon used nowhere in it is not offered; type its name.  The Application list can be topped up from the device ('App not listed?'), but until it is, it likewise holds only what your configuration already names.
-* Applications fetched from the device come back without their activity class.  MapTasker asks Tasker for the activity of every installed app as a bulk list, and uses it only if it lines up one-for-one with the packages -- measured against a real device, it does not, so it is discarded rather than pairing every app with some other app's activity.  Names are not affected: those are looked up one app at a time, so they are always the right ones.  The activity is filled in from your own configuration for any app it already names, and an action that needs one for an app it does not (Launch App, say) has to have it typed in.
-* Some strings defy translation.
-
-
-## Older History Logs
 
 ## [14.1.0] 28-Sep-2026
 - Added: A new __Fix Finding__ button beside 'Health Check' repairs the findings that have an obvious fix -- setting a long-running Task's collision handling, giving a blocking action a timeout, closing an 'If' or 'For' that is never closed, pointing a broken 'Goto' at a label the Task carries, and deleting a Task nothing runs.  Everything is listed with what it would change before anything happens, you tick only what you want, and however many repairs you make, the whole lot is a single Undo.

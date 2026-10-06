@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
-from maptasker.src import appinv, deviceinv, objprops, profedit, taskedit
+from maptasker.src import appinv, deviceinv, objprops, profedit, sceneedit_v2, taskedit
 from maptasker.src.guiutils import (
     android_address_defaults,
     remember_android_address,
@@ -139,6 +139,32 @@ def _render_task_name_field(
 # holds more, and the list is rebuilt on every keystroke of the search box -- the same
 # reasoning behind _ICON_PREVIEW_LIMIT, which the Scene designer's own picker uses.
 _PICKER_ROW_LIMIT = 200
+
+# Tasker's own icons are named <set>_<category>_<name> -- "mw_action_info_outline" -- and the
+# artwork is inside the Tasker app on the phone, so it cannot be drawn here.  What can be is
+# the Material glyph of the same name, which is what 'mw' (Material) icons are and a close
+# stand-in for the Holo 'hd'/'hl' ones.  Anything else gets a glyph for its kind, so every
+# row still has a picture to tell it from the next.
+_TASKER_ICON_SETS = ("mw", "hd", "hl")
+_ICON_KIND_GLYPHS = {"builtin": "image", "pack": "extension", "app": "android", "var": "percent"}
+_ICON_GLYPH_STYLE = "font-size: 24px;"
+
+
+def _tasker_icon_glyph(icon: appinv.IconRef) -> str:
+    """The Material icon name to draw one icon by -- its own for a 'mw_' built-in, a
+    look-alike for an 'hd_'/'hl_' one, and a generic glyph for its kind otherwise.
+    """
+    if icon.kind == "builtin":
+        parts = icon.name.split("_", 2)
+        if len(parts) == 3 and parts[0] in _TASKER_ICON_SETS:
+            candidate = parts[2]
+            # 'mw' is Material by definition.  The look-alike sets are only trusted when the
+            # name is one the font is known to hold: an unknown ligature is drawn as its own
+            # text, which is worse than a generic glyph.
+            if parts[0] == "mw" or candidate in sceneedit_v2.v2_icon_names():
+                return candidate
+    return _ICON_KIND_GLYPHS.get(icon.kind, "image")
+
 
 def _picker_search_input(on_change: Callable[[str], None], placeholder: str) -> ui.input:
     """The search box both pickers below open with."""
@@ -870,7 +896,8 @@ def _build_tasker_icon_picker_dialog(field: ui.input, gui: MyGui) -> None:
                     return
                 for icon in visible[:_PICKER_ROW_LIMIT]:
                     reference = appinv.format_icon_value(icon)
-                    with ui.row().classes("w-full items-center gap-2"):
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ui.icon(_tasker_icon_glyph(icon)).style(_ICON_GLYPH_STYLE).classes("text-gray-700")
                         ui.button(
                             icon.display,
                             on_click=lambda _e=None, value=reference: pick(value),

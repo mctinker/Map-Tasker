@@ -112,10 +112,21 @@ def _dialog_values(props: objprops.EditableProperties, fields: tuple[str, ...] =
 # --------------------------------------------------------------------------------------
 # The backstop: every object in the sample data survives a no-op edit unchanged.
 # --------------------------------------------------------------------------------------
+def _signature(element: ET.Element) -> list[tuple]:
+    """Everything ET.tostring would write for `element`, without the cost of writing it.
+
+    Serializing is ElementTree's pure-Python path and was most of this file's run time; walking
+    the tree into tuples says the same thing -- tag, attributes in order, text and tail -- several
+    times faster.  None and "" are folded together because the serializer cannot tell them apart.
+    """
+    return [(e.tag, tuple(e.attrib.items()), e.text or "", e.tail or "") for e in element.iter()]
+
+
 @functools.lru_cache(maxsize=1)
-def _sample_objects() -> tuple[tuple[str, str, ET.Element], ...]:
-    """Parsed once and shared: the round-trip test deep-copies before mutating, so the two
-    parametrizations cannot see each other's edits."""
+def _sample_objects() -> tuple[tuple[str, str, ET.Element, list[tuple]], ...]:
+    """Parsed once and shared, each with its signature taken before anything touches it: the
+    round-trip test deep-copies before mutating, so the two parametrizations cannot see each
+    other's edits, and neither has to serialize the untouched original again."""
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     found = []
     # The synthetic backup always, so this runs on CI too; any real backups in XML/ as well.
@@ -130,7 +141,7 @@ def _sample_objects() -> tuple[tuple[str, str, ET.Element], ...]:
             (objprops.KIND_PROJECT, "Project"),
             (objprops.KIND_PROFILE, "Profile"),
         ):
-            found.extend((os.path.basename(path), kind, element) for element in root.iter(tag))
+            found.extend((os.path.basename(path), kind, element, _signature(element)) for element in root.iter(tag))
     return tuple(found)
 
 
@@ -147,12 +158,11 @@ def test_a_no_op_edit_changes_no_object_in_the_sample_data(fields: tuple[str, ..
         pytest.skip("no sample XML in XML/ to measure against")
 
     changed = []
-    for source, kind, element in objects:
-        before = ET.tostring(element)
+    for source, kind, element, before in objects:
         working = copy.deepcopy(element)
         props = objprops.load_properties(kind, working)
         errors = objprops.apply_properties(props, _dialog_values(props, fields))
-        if errors or ET.tostring(working) != before:
+        if errors or _signature(working) != before:
             changed.append(f"{source} {kind} {element.findtext('nme') or element.findtext('name')}: {errors}")
 
     assert not changed, f"{len(changed)} of {len(objects)} objects changed: {changed[:5]}"

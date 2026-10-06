@@ -34,6 +34,8 @@
 !run-ci.sh
 # Rebuilds the generated wiki pages and pushes them; kept beside run-ci.sh.
 !publish-wikis.sh
+# Kills any MapTasker instance still holding port 8080.
+!killall_port8080.sh
 !maptasker
 !tests
 dmg_builder
