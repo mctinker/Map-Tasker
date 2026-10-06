@@ -12,6 +12,7 @@ catches it wherever the platform's default happens to be UTF-8 already.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import textwrap
@@ -31,13 +32,17 @@ def _run_checked(script: str, tmp_path: Path) -> subprocess.CompletedProcess[str
         warnings.filterwarnings("error", category=EncodingWarning, module=r"maptasker\\..*")
         """,
     )
+    env = {"PYTHONPATH": str(_PROJECT_ROOT), "PATH": "", "PYTHONIOENCODING": "utf-8"}
+    # Windows cannot initialise Winsock (so "import asyncio" fails) without SYSTEMROOT.
+    if "SYSTEMROOT" in os.environ:
+        env["SYSTEMROOT"] = os.environ["SYSTEMROOT"]
     return subprocess.run(  # noqa: S603
         [sys.executable, "-X", "warn_default_encoding", "-c", prelude + textwrap.dedent(script)],
         cwd=tmp_path,
         capture_output=True,
         text=True,
         encoding="utf-8",
-        env={"PYTHONPATH": str(_PROJECT_ROOT), "PATH": "", "PYTHONIOENCODING": "utf-8"},
+        env=env,
         check=False,
         timeout=120,
     )
