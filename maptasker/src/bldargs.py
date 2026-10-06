@@ -25,7 +25,7 @@ OWNER_SUFFIX = {"Event": "e", "State": "s", "Action": "t"}
 # PrimeItems.tasker_arg_specs: "0"=Int, "1"=Str).
 #
 # <Bundle> is deliberately NOT harvested. A plugin payload is already supplied from
-# bundle.py when an action/condition is synthesized (see taskedit._synthesize_bundle_arg),
+# bundles.json when an action/condition is synthesized (see taskedit._synthesize_bundle_arg),
 # so declaring it would add nothing there -- and it would actively hurt the map output,
 # because actargs.get_bundle renders whatever <Bundle> the element has without looking at
 # which arg slot asked for it, so a second Bundle argument prints the same payload twice.

@@ -42,9 +42,9 @@
     "reportOptionalMemberAccess": 1
   },
   "maptasker/src/bldbndle.py": {
-    "reportArgumentType": 2,
+    "reportArgumentType": 1,
     "reportAttributeAccessIssue": 1,
-    "reportOptionalMemberAccess": 4
+    "reportOptionalMemberAccess": 2
   },
   "maptasker/src/caveats.py": {
     "reportAttributeAccessIssue": 2
@@ -267,8 +267,7 @@
     "reportCallIssue": 9
   },
   "maptasker/src/parsearg.py": {
-    "reportArgumentType": 2,
-    "reportReturnType": 1
+    "reportArgumentType": 2
   },
   "maptasker/src/piiscan.py": {
     "reportAttributeAccessIssue": 1,

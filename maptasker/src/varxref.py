@@ -17,7 +17,7 @@
 # mapjump is where an object's identity lives.                                          #
 #                                                                                      #
 # Built in phases.  Done: the recognizer and the set/read tables derived from actionc.py #
-# and bundle.py, one pass over Task actions, and the SUSPECTS section that leads the     #
+# and bundles.json, one pass over Task actions, and the SUSPECTS section that leads the     #
 # report -- near-duplicate names, read-but-never-set, set-but-never-read.                #
 #                                                                                       #
 # Still to come, and named in the report's own limitations so it never overstates        #
@@ -244,7 +244,7 @@ def _implicit_writes() -> dict[str, set[str]]:
     mentioning them anywhere in the action -- an HTTP Request sets %http_data, Get
     Material You Colors sets forty %my_* colours.  What each one produces is declared in
     its <Bundle> as RELEVANT_VARIABLES, which bldbndle.py has already collected into
-    bundle.py for 142 action codes and 643 names.
+    bundles.json for 142 action codes and 643 names.
 
     Without this, every one of those names reads as "used but nothing sets it", and the
     problem list is 499 entries of Tasker working exactly as intended.  With it, 18.

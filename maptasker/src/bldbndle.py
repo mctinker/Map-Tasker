@@ -2,13 +2,12 @@
 """bldbndle: build the Tasker <Bundle> dictionary from a backup XML file"""
 
 #                                                                                      #
-# bldbndle: read a Tasker backup xml and merge every <Bundle> into src/bundle.py       #
+# bldbndle: read a Tasker backup xml and merge every <Bundle> into assets/json/bundles.json #
 #                                                                                      #
 # NOTE: FOR DEVELOPMENT ONLY!!!  Called by proginit.py when 'build_all' is True.        #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
-import importlib.util
 import json
 import os
 from typing import Any
@@ -17,13 +16,13 @@ from xml.etree.ElementTree import Element  # Need for type hints
 import defusedxml.ElementTree as ET
 
 from maptasker.src import console
+from maptasker.src.bundle import BUNDLES_FILE, read_bundles
 
 # Owning xml element tag > suffix appended to the <code> value to make the key.
 OWNER_SUFFIX = {"Event": "e", "State": "s", "Action": "t"}
 
-# Default name of the Tasker backup xml to read and of the python file to create.
+# Default name of the Tasker backup xml to read.  What is written is bundle.BUNDLES_FILE.
 DEFAULT_XML_FILE = "backup.xml"
-OUTPUT_FILENAME = "bundle.py"
 
 # The plugin blurb is the specific configuration of the plugin in this backup, which is
 # of no use in a generic dictionary.  Blank it out (the '-type' sub-tag is left alone).
@@ -119,44 +118,19 @@ def get_bundles(xml_file: str) -> dict:
     return bundles
 
 
-def add_trailing_commas(text: str) -> str:
-    """
-    Add a trailing comma to the last entry of every dictionary and list.
-    Json has no trailing comma but python does, so add one to each line that is
-    followed by a closing '}' or ']' on the next line.
-    Args:
-        text (str): the json text to fix up
-    Returns:
-        str: the same text with a trailing comma added to each closing entry
-    """
-    # Json escapes every newline in a string ('\n'), so all line breaks here are
-    # structural and it is safe to work line by line.
-    lines = text.split("\n")
-    for num in range(len(lines) - 1):
-        line = lines[num].rstrip()
-        # Is the next line closing a dictionary or list?
-        if lines[num + 1].lstrip()[:1] in ("}", "]") and line and line[-1] not in ("{", "[", ","):
-            lines[num] = f"{line},"
-
-    return "\n".join(lines)
-
-
 def load_existing_bundles(path: str) -> dict:
     """
-    Read back the bundles a previously written bundle.py holds.
+    Read back the bundles a previously written bundles file holds.
     Args:
-        path (str): a bundle.py to read, which need not exist
+        path (str): a bundles.json to read, which need not exist
     Returns:
         dict: the bundles it defines, or {} if there is no such file or it cannot be read
     """
     if not os.path.isfile(path):
         return {}
     try:
-        spec = importlib.util.spec_from_file_location("_bldbndle_existing", path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return dict(module.bundles)
-    except (OSError, SyntaxError, ValueError, AttributeError) as error:
+        return dict(read_bundles(path))
+    except (OSError, RuntimeError) as error:
         msg = f"bldbndle: could not read existing bundles from {path}: {error}"
         console.error(msg)
         return {}
@@ -166,7 +140,7 @@ def merge_bundles(existing: dict, harvested: dict) -> tuple[dict, list[str]]:
     """
     Combine the bundles already recorded with the ones just read out of a backup.
 
-    A rebuild used to replace bundle.py outright, which quietly threw away every
+    A rebuild used to replace bundles.json outright, which quietly threw away every
     definition the new backup did not happen to contain -- and could also downgrade one
     it did, because get_bundles keeps the FIRST <Bundle> it meets for a code and a code
     can appear both fully configured and bare in the same file.  That is exactly what
@@ -200,56 +174,43 @@ def merge_bundles(existing: dict, harvested: dict) -> tuple[dict, list[str]]:
 
 def save_bundles(bundles: dict, output_file: str) -> None:
     """
-    Write the bundle dictionary out as a python source file.
+    Write the bundle dictionary out as a json file.
+
+    One top-level entry to a line, so that a rebuild that adds or changes a definition
+    shows in a diff as that line and not as a rewrite of the file.  Compact within a line:
+    the file is read by a program, and the indentation was most of its size.
     Args:
         bundles (dict): the dictionary of bundles to save
-        output_file (str): the python file to create
+        output_file (str): the json file to create
     Returns:
         None
     """
     # Sort numerically by code, then by the owner suffix, so the output is stable.
-    ordered = dict(
-        sorted(bundles.items(), key=lambda item: (int(item[0][:-1]), item[0][-1])),
-    )
-
+    ordered = sorted(bundles.items(), key=lambda item: (int(item[0][:-1]), item[0][-1]))
+    lines = [
+        f"{json.dumps(key)}: {json.dumps(value, ensure_ascii=False, separators=(',', ':'))}" for key, value in ordered
+    ]
     with open(output_file, "w", encoding="utf-8") as out:
-        out.write(
-            '"""Tasker <Bundle> definitions extracted from a Tasker export."""\n\n',
-        )
-        out.write(
-            "# Key is the owning <code> value with 'e' (Event), 's' (State) or 't' (Action) appended.\n",
-        )
-        out.write(
-            "# Value is the <Bundle> tag and its content: {'Bundle': {attributes and sub-tags}}.\n",
-        )
-        out.write("# This file is generated by bldbndle.py -- do not edit by hand.\n\n")
-        out.write("bundles = ")
-        # Use json rather than pprint so that every key and value is double-quoted.
-        # The bundles only hold strings, dicts and lists, so the json output is also
-        # valid python (no true/false/null can appear), and any embedded quote in the
-        # Tasker data is escaped for us.  Json omits the trailing comma that python
-        # allows, so put it back before writing the dictionary out.
-        out.write(add_trailing_commas(json.dumps(ordered, indent=4, ensure_ascii=False)))
-        out.write("\n")
+        out.write("{\n" + ",\n".join(lines) + "\n}\n")
 
 
 def build_bundles(xml_file: str = "", output_file: str = "", live_file: str = "") -> int:
     """
-    Merge the <Bundle> definitions in a Tasker backup xml into 'bundle.py'.
+    Merge the <Bundle> definitions in a Tasker backup xml into 'bundles.json'.
     Args:
         xml_file (str): backup xml to read.  Defaults to 'backup.xml' in the project root.
-        output_file (str): python file to write.  Defaults to '/maptasker/src/bundle.py',
-            which is the file the program imports -- a build lands where it is used, with
+        output_file (str): json file to write.  Defaults to 'assets/json/bundles.json',
+            which is the file the program reads -- a build lands where it is used, with
             no copy to make afterwards.
-        live_file (str): the bundle.py the program imports, merged in so that a build
+        live_file (str): the bundles file the program reads, merged in so that a build
             writing somewhere else still carries everything already recorded.  Defaults
-            to '/maptasker/src/bundle.py' as well, so it matters only when output_file is
+            to 'assets/json/bundles.json' as well, so it matters only when output_file is
             pointed elsewhere; pass a path that does not exist to merge with the output
             file alone.
     Returns:
         int: 0 if successful, non-zero if the xml file could not be read
     """
-    # Work out where everything lives: '/maptasker/src' > project root and the json assets.
+    # Work out where everything lives: '/maptasker/src' > project root.
     src_dir = os.path.dirname(os.path.abspath(__file__))
     maptasker_dir = os.path.dirname(src_dir)
     project_root = os.path.dirname(maptasker_dir)
@@ -260,12 +221,12 @@ def build_bundles(xml_file: str = "", output_file: str = "", live_file: str = ""
             DEFAULT_XML_FILE if os.path.isfile(DEFAULT_XML_FILE) else os.path.join(project_root, DEFAULT_XML_FILE)
         )
     if not output_file:
-        # Straight into the file taskedit and varxref import.  This used to be written to
-        # assets/json and copied across by hand, which is how a rebuild that had quietly
+        # Straight into the file taskedit and varxref read.  A build used to be written
+        # somewhere else and copied across by hand, which is how a rebuild that had quietly
         # dropped 218 definitions could get as far as being installed.
-        output_file = os.path.join(src_dir, OUTPUT_FILENAME)
+        output_file = BUNDLES_FILE
     if not live_file:
-        live_file = os.path.join(src_dir, OUTPUT_FILENAME)
+        live_file = BUNDLES_FILE
 
     if not os.path.isfile(xml_file):
         msg = f"bldbndle: backup xml file not found: {xml_file}"

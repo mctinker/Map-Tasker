@@ -8,9 +8,6 @@
   "maptasker/src/bildhtml.py::build_html": {
     "LINES": 112
   },
-  "maptasker/src/colors.py::validate_color": {
-    "LINES": 211
-  },
   "maptasker/src/debug.py::display_debug_info": {
     "LINES": 118
   },
@@ -143,9 +140,6 @@
   },
   "maptasker/src/maputil2.py::http_post_request": {
     "PLR0913": 9
-  },
-  "maptasker/src/parsearg.py::runtime_parser": {
-    "LINES": 406
   },
   "maptasker/src/profiles.py::align_html_text": {
     "LINES": 113

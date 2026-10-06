@@ -1419,7 +1419,7 @@ def test_nothing_carries_between_kinds_that_share_no_shape(loaded: None) -> None
 
 
 def test_a_plugin_context_with_no_recorded_payload_is_blocked_with_its_reason(loaded: None) -> None:
-    """An opaque payload has no empty form a plugin will accept -- bundle.py either has the
+    """An opaque payload has no empty form a plugin will accept -- bundles.json either has the
     definition or nothing can be written."""
     blocked = next(
         key for key, _label, fidelity in mapswap.condition_targets("Time", state=PrimeItems) if fidelity == mapswap.BLOCKED

@@ -4,12 +4,31 @@
 # colors: get and set the program colors                                               #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
+import json
+import os
 import string
+from functools import cache
 
 from maptasker.src import console
 from maptasker.src.error import error_handler, exit_program
 from maptasker.src.primitem import RunState
 from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES, logger
+
+# The named colors, by family, are data: assets/json/color_names.json.  Resolved off this file
+# rather than the working directory, which proginit changes (see actionc._JSON_DIR).
+COLOR_NAMES_FILE = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "json", "color_names.json"),
+)
+# Not a name but a description of what else is accepted; it is listed last by '-ch', and
+# (as it always has been) is itself accepted as a color.
+ANY_COLOR = ["hex value.  Example 'db29ff'"]
+
+
+@cache
+def color_names() -> dict[str, list[str]]:
+    """The named colors by family -- {"Red": ["IndianRed", ...], ...} -- read the first time they are wanted."""
+    with open(COLOR_NAMES_FILE, encoding="utf-8") as file:
+        return json.load(file)
 
 
 # Given a list [x,y,z] , print as x y z
@@ -45,203 +64,19 @@ def validate_color(the_color: str) -> object:  # noqa: RET503
             a color name
         :rtype: object: True if a hexadecimal color was provided, or the color name
     """
-    red_color_names = [
-        "IndianRed",
-        "LightCoral",
-        "Salmon",
-        "DarkSalmon",
-        "LightSalmon",
-        "Crimson",
-        "Red",
-        "FireBrick",
-        "DarkRed",
-    ]
-    pink_color_names = [
-        "Pink",
-        "LightPink",
-        "HotPink",
-        "DeepPink",
-        "MediumVioletRed",
-        "PaleVioletRed",
-    ]
-    orange_color_names = [
-        "LightSalmon",
-        "Coral",
-        "Tomato",
-        "OrangeRed",
-        "DarkOrange",
-        "Orange",
-    ]
-    yellow_color_names = [
-        "Gold",
-        "Yellow",
-        "LightYellow",
-        "LemonChiffon",
-        "LightGoldenrodYellow",
-        "PapayaWhip",
-        "Moccasin",
-        "PeachPuff",
-        "PaleGoldenrod",
-        "Khaki",
-        "DarkKhaki",
-    ]
-    purple_color_names = [
-        "Lavender",
-        "Thistle",
-        "Plum",
-        "Violet",
-        "Orchid",
-        "Fuchsia",
-        "Magenta",
-        "MediumOrchid",
-        "MediumPurple",
-        "RebeccaPurple",
-        "BlueViolet",
-        "DarkViolet",
-        "DarkOrchid",
-        "DarkMagenta",
-        "Purple",
-        "Indigo",
-        "SlateBlue",
-        "DarkSlateBlue",
-        "MediumSlateBlue",
-    ]
-    green_color_names = [
-        "GreenYellow",
-        "Chartreuse",
-        "LawnGreen",
-        "Lime",
-        "LimeGreen",
-        "PaleGreen",
-        "LightGreen",
-        "MediumSpringGreen",
-        "SpringGreen",
-        "MediumSeaGreen",
-        "SeaGreen",
-        "ForestGreen",
-        "Green",
-        "DarkGreen",
-        "YellowGreen",
-        "OliveDrab",
-        "Olive",
-        "DarkOliveGreen",
-        "MediumAquamarine",
-        "DarkSeaGreen",
-        "LightSeaGreen",
-        "DarkCyan",
-        "Teal",
-    ]
-    blue_color_names = [
-        "Aqua",
-        "Cyan",
-        "LightCyan",
-        "PaleTurquoise",
-        "Aquamarine",
-        "Turquoise",
-        "MediumTurquoise",
-        "DarkTurquoise",
-        "CadetBlue",
-        "SteelBlue",
-        "LightSteelBlue",
-        "PowderBlue",
-        "LightBlue",
-        "SkyBlue",
-        "LightSkyBlue",
-        "DeepSkyBlue",
-        "DodgerBlue",
-        "CornflowerBlue",
-        "MediumSlateBlue",
-        "RoyalBlue",
-        "Blue",
-        "MediumBlue",
-        "DarkBlue",
-        "Navy",
-        "MidnightBlue",
-    ]
-    brown_color_names = [
-        "Cornsilk",
-        "BlanchedAlmond",
-        "Bisque",
-        "NavajoWhite",
-        "Wheat",
-        "BurlyWood",
-        "Tan",
-        "RosyBrown",
-        "SandyBrown",
-        "Goldenrod",
-        "DarkGoldenrod",
-        "Peru",
-        "Chocolate",
-        "SaddleBrown",
-        "Sienna",
-        "Brown",
-        "Maroon",
-    ]
-    white_color_names = [
-        "White",
-        "Snow",
-        "HoneyDew",
-        "MintCream",
-        "Azure",
-        "AliceBlue",
-        "GhostWhite",
-        "WhiteSmoke",
-        "SeaShell",
-        "Beige",
-        "OldLace",
-        "FloralWhite",
-        "Ivory",
-        "AntiqueWhite",
-        "Linen",
-        "LavenderBlush",
-        "MistyRose",
-    ]
-    gray_color_names = [
-        "Gainsboro",
-        "LightGray",
-        "Silver",
-        "DarkGray",
-        "Gray",
-        "DimGray",
-        "LightSlateGray",
-        "SlateGray",
-        "DarkSlateGray",
-        "Black",
-    ]
-    any_color = ["hex value.  Example 'db29ff'"]
-
-    all_colors = (
-        red_color_names
-        + pink_color_names
-        + orange_color_names
-        + yellow_color_names
-        + purple_color_names
-        + green_color_names
-        + blue_color_names
-        + brown_color_names
-        + white_color_names
-        + gray_color_names
-        + any_color
-    )
+    families = color_names()
 
     if the_color != "h":
+        all_colors = [name for names in families.values() for name in names] + ANY_COLOR
         logger.debug(the_color in all_colors)
         #  Test for hexdigits
         if all(c in string.hexdigits for c in the_color):
             return True
         # Return True/False based on whether it is in our named colors
         return the_color in all_colors
-    print_list("\nRed color names:", red_color_names)
-    print_list("\nPink color names:", pink_color_names)
-    print_list("\nOrange color names:", orange_color_names)
-    print_list("\nYellow color names:", yellow_color_names)
-    print_list("\nPurple color names:", purple_color_names)
-    print_list("\nGreen color names:", green_color_names)
-    print_list("\nBlue color names:", blue_color_names)
-    print_list("\nBrown color names:", brown_color_names)
-    print_list("\nWhite color names:", white_color_names)
-    print_list("\nGray color names:", gray_color_names)
-    print_list("\nAny color:", any_color)
+    for family, names in families.items():
+        print_list(f"\n{family} color names:", names)
+    print_list("\nAny color:", ANY_COLOR)
     # The colour list IS the run when "-ch" is given: there is nothing else to do once it
     # is on screen.  exit_program rather than exit() so the GUI and the test suite survive
     # somebody asking for it (see maputils.exit_program).

@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 """bldbndle unit tests -- the <Bundle> table is rebuilt by merging, not by replacing.
 
-A rebuild reads ONE backup.  Before this was a merge it replaced bundle.py outright, so
+A rebuild reads ONE backup.  Before this was a merge it replaced the bundles file outright, so
 every definition that backup did not happen to contain was silently dropped, and a code
 it did contain could still come back poorer: get_bundles keeps the first <Bundle> it
 meets for a code, and the same code can appear both fully configured and bare in one
@@ -11,7 +11,7 @@ pins down with the real xml shape.
 
 The tests are about what SURVIVES a rebuild, because that is how this fails: quietly,
 into a generated file nobody reads, and only noticed later when an action synthesized
-from bundle.py is missing part of its payload.
+from the bundles file is missing part of its payload.
 """
 
 from __future__ import annotations
@@ -19,7 +19,9 @@ from __future__ import annotations
 import os
 import textwrap
 
-from maptasker.src import bldbndle
+import pytest
+
+from maptasker.src import bldbndle, bundle
 from maptasker.src.bldbndle import (
     build_bundles,
     get_bundles,
@@ -73,16 +75,16 @@ def test_an_unchanged_redefinition_is_silent() -> None:
 
 
 def test_missing_or_unreadable_file_reads_as_empty(tmp_path: os.PathLike) -> None:
-    """A first run has no bundle.py, and a corrupt one must not take the build down."""
-    assert load_existing_bundles(str(tmp_path / "nope.py")) == {}
-    broken = tmp_path / "broken.py"
-    broken.write_text("bundles = {this is not python\n", encoding="utf-8")
+    """A first run has no bundles file, and a corrupt one must not take the build down."""
+    assert load_existing_bundles(str(tmp_path / "nope.json")) == {}
+    broken = tmp_path / "broken.json"
+    broken.write_text('{"2099e": {this is not json\n', encoding="utf-8")
     assert load_existing_bundles(str(broken)) == {}
 
 
 def test_save_and_load_round_trip(tmp_path: os.PathLike) -> None:
     """What save_bundles writes is what load_existing_bundles reads back."""
-    out = tmp_path / "bundle.py"
+    out = tmp_path / "bundles.json"
     original = {"2099e": FULL_2099, "111t": BARE_2099}
     save_bundles(original, str(out))
     assert load_existing_bundles(str(out)) == original
@@ -113,21 +115,21 @@ def test_2099e_regression(tmp_path: os.PathLike) -> None:
     """End to end: rebuilding from a backup whose 2099e is bare must not strip 2099e.
 
     This is the bug as it actually happened, driven through build_bundles rather than
-    merge_bundles, so the wiring is covered too: an existing bundle.py holding the full
+    merge_bundles, so the wiring is covered too: an existing bundles file holding the full
     2099e plus a code this backup has never heard of, rebuilt from an xml whose 2099e is
     empty.  Everything has to survive, and the backup's own new code has to arrive.
     """
     xml_file = tmp_path / "backup.xml"
     xml_file.write_text(_XML, encoding="utf-8")
-    out = tmp_path / "bundle.py"
+    out = tmp_path / "bundles.json"
     save_bundles({"2099e": FULL_2099, "555t": BARE_2099}, str(out))
 
     # The bare 2099e really is what this xml offers -- otherwise the test proves nothing.
     assert get_bundles(str(xml_file))["2099e"] == BARE_2099
 
     # live_file points nowhere, so this merges with the output file alone rather than
-    # dragging in the real maptasker/src/bundle.py.
-    rc = build_bundles(xml_file=str(xml_file), output_file=str(out), live_file=str(tmp_path / "none.py"))
+    # dragging in the real assets/json/bundles.json.
+    rc = build_bundles(xml_file=str(xml_file), output_file=str(out), live_file=str(tmp_path / "none.json"))
     assert rc == 0
 
     rebuilt = load_existing_bundles(str(out))
@@ -137,9 +139,9 @@ def test_2099e_regression(tmp_path: os.PathLike) -> None:
 
 
 def test_default_output_is_the_file_the_program_imports(tmp_path: os.PathLike, monkeypatch) -> None:
-    """A rebuild lands in maptasker/src/bundle.py, with no copy to make afterwards.
+    """A rebuild lands in maptasker/assets/json/bundles.json, with no copy to make afterwards.
 
-    It used to be written to assets/json and moved across by hand, which is how a
+    It used to be written somewhere else and moved across by hand, which is how a
     rebuild that had quietly dropped most of the table could still get installed.
     save_bundles is stubbed so that asserting this does not rewrite the real file.
     """
@@ -154,7 +156,66 @@ def test_default_output_is_the_file_the_program_imports(tmp_path: os.PathLike, m
     monkeypatch.setattr(bldbndle, "save_bundles", _capture)
     assert build_bundles(xml_file=str(xml_file)) == 0
 
-    assert written["path"] == os.path.join(os.path.dirname(bldbndle.__file__), "bundle.py")
-    assert written["path"].endswith(os.path.join("maptasker", "src", "bundle.py"))
+    assert written["path"] == bundle.BUNDLES_FILE
+    assert written["path"].endswith(os.path.join("maptasker", "assets", "json", "bundles.json"))
     # It merged with the real table rather than replacing it with this two-bundle xml.
     assert written["count"] > 2
+
+
+def test_the_file_is_one_entry_to_a_line_so_a_rebuild_diffs_small(tmp_path: os.PathLike) -> None:
+    out = tmp_path / "bundles.json"
+    save_bundles({"2099e": FULL_2099, "111t": BARE_2099}, str(out))
+
+    lines = out.read_text(encoding="utf-8").splitlines()
+    assert lines[0] == "{"
+    assert lines[-1] == "}"
+    # In numeric order of the code, whatever order they were given in.
+    assert [line.split('"')[1] for line in lines[1:-1]] == ["111t", "2099e"]
+
+
+def test_the_shipped_table_reads_back_whole() -> None:
+    """The file the program reads is valid, keyed as action_codes is, and every entry is a Bundle."""
+    table = bundle.read_bundles()
+
+    assert len(table) > 200
+    assert all(key[-1] in "est" and key[:-1].isdigit() for key in table)
+    assert all(set(entry) == {"Bundle"} for entry in table.values())
+    # Sorted the way save_bundles writes it, so a rebuild with nothing new changes nothing.
+    assert list(table) == sorted(table, key=lambda key: (int(key[:-1]), key[-1]))
+
+
+def test_the_table_is_not_read_until_it_is_used(tmp_path: os.PathLike) -> None:
+    path = tmp_path / "bundles.json"
+    save_bundles({"2099e": FULL_2099}, str(path))
+    lazy = bundle.LazyBundles(str(path))
+
+    path.unlink()  # Nothing has been read, so nothing is missing yet.
+    with pytest.raises(RuntimeError, match="missing"):
+        lazy.get("2099e")
+
+
+def test_the_table_behaves_as_the_dict_it_replaced(tmp_path: os.PathLike) -> None:
+    path = tmp_path / "bundles.json"
+    save_bundles({"2099e": FULL_2099, "111t": BARE_2099}, str(path))
+    lazy = bundle.LazyBundles(str(path))
+
+    assert lazy == {"2099e": FULL_2099, "111t": BARE_2099}
+    assert lazy.get("2099e") == FULL_2099
+    assert lazy.get("1t") is None
+    assert "111t" in lazy
+    assert len(lazy) == 2
+    assert [key for key, _ in lazy.items()] == ["111t", "2099e"]
+
+    # Read once, and again only when told the file has changed.
+    save_bundles({"111t": BARE_2099}, str(path))
+    assert len(lazy) == 2
+    lazy.reload()
+    assert len(lazy) == 1
+
+
+def test_a_table_that_is_not_json_is_an_error_not_an_empty_table(tmp_path: os.PathLike) -> None:
+    path = tmp_path / "bundles.json"
+    path.write_text("not json", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="not valid JSON"):
+        bundle.LazyBundles(str(path)).get("2099e")

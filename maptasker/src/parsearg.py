@@ -8,7 +8,8 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
 import argparse
-import textwrap
+import json
+import os
 from argparse import ArgumentParser
 
 from maptasker.src import console
@@ -186,399 +187,117 @@ def file_validation(file: str) -> str:
 
 
 ##################################################################################
-# Get the program arguments using via a GUI (Gooey)
-def runtime_parser() -> None:
-    """
-    Get the program arguments using via a GUI (Gooey)
-    Args:
-        function: {Function description in one line}
-    Returns:
-        None: {Return description in one line}
-    {Processing Logic}:
-        - Setup argument parser
-        - Add arguments for runtime settings
-        - Parse arguments and call output function
-    """
-    # Setup for argument parsing
-    parser = ArgumentParser(
-        prog="MapTasker",
-        description=(
-            "This program reads a Tasker backup file (e.g. backup.xml) and displays the"
-            " configuration of Profiles/Tasks/Scenes"
-        ),
-        epilog=textwrap.dedent(
-            """\
-                                Exit codes...
-                                    exit 1- program error
-                                    exit 2- output file failure
-                                    exit 3- file selected is not a valid Tasker backup file
-                                    exit 5- requested single Task not found
-                                    exit 6- no or improper filename selected
-                                    exit 7- invalid option
-                                    exit 8- request to Android device running server failed.  See output for error code.
-                                    exit 10- a command-line report found something (see below)
-                                    exit 11- -changes_since had no earlier configuration to compare against
+# The command-line options are data: assets/json/cli_arguments.json.  Its "arguments" are in
+# the order they are listed in the help, and each says what add_argument is told about it;
+# only the checks are code, and they are named there ("type": "ipaddr") and found here.
+##################################################################################
+CLI_ARGUMENTS_FILE = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "json", "cli_arguments.json"),
+)
 
-                                Reports that run with no window (write the report to standard output):
-                                    -healthcheck -file backup.xml        scan a backup for problems
-                                    -compare older.xml newer.xml         what differs between two backups
-                                    -changes_since week -file backup.xml what changed over a period
-                                    -export map -format md -file backup.xml    write the Map or Diagram as a file
-                                    -watch FOLDER                        record each new backup in the history
-                                Run one of them with -h for its options, e.g. 'maptasker -healthcheck -h'.
+# The "type" an argument names in the table, and the function that checks and converts it.
+_ARGUMENT_TYPES = {
+    "ipaddr": ipaddr_validation,
+    "port": port_validation,
+    "file": file_validation,
+    "font": font_validation,
+    "indent": indentation_validation,
+    "view_limit": validate_view_limit,
+    "int": int,
+    "str": str,
+}
+# What an argument's "choices" may name rather than list: values the program already holds.
+_ARGUMENT_CHOICES = {
+    "@ai_models": lambda: OPENAI_MODELS + LLAMA_MODELS + ANTHROPIC_MODELS + DEEPSEEK_MODELS + GEMINI_MODELS,
+}
+# Table keys that are not add_argument's own, and so are not passed to it.
+_NOT_ARGPARSE = {"names", "group", "hidden", "comment"}
 
-                                The output HTML file is saved in your current folder/directory
-                                .
-                                """,
-        ),
-        formatter_class=argparse.RawTextHelpFormatter,
-    )
 
-    # Ai arguments
-    models = OPENAI_MODELS + LLAMA_MODELS + ANTHROPIC_MODELS + DEEPSEEK_MODELS + GEMINI_MODELS
-    parser.add_argument(
-        "-ai_model",
-        help="The model to use for Profiles and Tasks Ai analysis.",
-        choices=models,
-        required=False,
-        nargs=1,
-    )
+def _text(value: str | list[str]) -> str:
+    """A string from the table, which stores a multi-line one as a list of its lines."""
+    return value if isinstance(value, str) else "\n".join(value)
 
-    # Android mutually inclusive group
-    android_group = parser.add_argument_group("mutually inclusive")
-    # Android device TCP IP Address
-    android_group.add_argument(
-        "-android_ipaddr",
-        help=textwrap.dedent(
-            """ \
-                        TCP/IP Address of Android device running Tasker server
-                            Example: -android_ipaddr 192.168.0.210
-                            Also requires -android_port and -android_file arguments
-                            """,
-        ),
-        type=ipaddr_validation,
-        nargs=1,
-        required=False,
-        default="",
-    )
-    # Android Port Number
-    android_group.add_argument(
-        "-android_port",
-        type=port_validation,
-        help=textwrap.dedent(
-            """ \
-                        Port number of Android device running Tasker server
-                            Example: -android_port 1821
-                        Also requires -android_ipaddr and -android_file arguments
-                            """,
-        ),
-        nargs=1,
-        required=False,
-        default="",
-    )
-    # Android device file location
-    android_group.add_argument(
-        "-android_file",
-        type=file_validation,
-        help=textwrap.dedent(
-            """ \
-                        File location of Tasker backup file on Android device
-                            Example: -a-android_file /Tasker/configs/user/backup.xml
-                        Also requires -android_ipaddr and -android_port arguments
-                            """,
-        ),
-        nargs=1,
-        required=False,
-        default="",
-    )
 
-    # Display Background Appearnace: system, light or dark.
-    parser.add_argument(
-        "-appearance",
-        choices=["system", "light", "dark"],
-        help=textwrap.dedent(
-            """ \
-                        Display appearance mode: system (default), light, dark
-                            Example: -appearance dark
-                            """,
-        ),
-        nargs=1,
-        required=False,
-        default="system",
-    )
-    # Display Profile/Task conditions
-    parser.add_argument(
-        "-conditions",
-        help="Display the condition(s) for Profiles and Tasks",
-        action="store_true",
-        default=False,
-    )
-    # Debug
-    parser.add_argument(
-        "-debug",
-        help="Print and log debug information",
-        action="store_true",
-        default=False,
-    )
-    # Level of detail to display
-    parser.add_argument(
-        "-detail",
-        help=textwrap.dedent(
-            """ \
-                        Level of detail to display:
-                            0 = display simple Project/Profile/Task/Scene names only with no details
-                            1 = display all Task action details for unknown Tasks only
-                            2 = display full Task action name on every Task
-                            3 = display full Task action details on every Task with action details
-                            4 = detail level 3 plus global variables
-                            5 = detail level 4 plus Scene element UI details (default).
-                            Example: '-detail 2' for Task action names only
-                            """,
-        ),
-        choices=[0, 1, 2, 3, 4, 5],
-        required=False,
-        type=int,
-        nargs=1,
-        default=3,
-    )
-    # Display directory
-    parser.add_argument(
-        "-directory",
-        help="Display a directory of hotlinks for all Projects/Profiles/Tasks/Scenes.",
-        action="store_true",
-        default=False,
-    )
-    # Group everrything and twisty
-    everything_group = parser.add_mutually_exclusive_group()
-    # Display everything
-    everything_group.add_argument(
-        "-e",
-        "-everything",
-        help=textwrap.dedent(
-            """ \
-                        Display everything: full detail, Profile/Task conditions,
-                        TaskerNet information, directory, etc..
-                            """,
-        ),
-        action="store_true",
-        default=False,
-    )
-    # File to use for the input (e.g. ~/Downloads/backup.xml)
-    parser.add_argument(
-        "-file",
-        help=textwrap.dedent(
-            """ \
-                        Directory and file name of Tasker XML file to analyze.
-                        Example: -file ~/Downloads/backup.xml
-                            """,
-        ),
-        required=False,
-        nargs=1,
-    )
-    # Font to use in output
-    parser.add_argument(
-        "-font",
-        help=textwrap.dedent(
-            """ \
-                        Name of monospaced font to use in output (default = 'Courier').
-                        Enter font name of 'help' for a list of valid fonts.
-                            """,
-        ),
-        required=False,
-        type=font_validation,
-        nargs=1,
-        # default="Courier",
-    )
-    # Use the GUI
-    parser.add_argument(
-        "-g",
-        "-gui",
-        help=textwrap.dedent(
-            """ \
-                        Prompt for (these) settings via the graphical user interface (GUI):
-                            This argument overrides all other arguments.
-                            """,
-        ),
-        action="store_true",
-        default=False,
-    )
-    # Indentation amount (number of spaces)
-    parser.add_argument(
-        "-i",
-        "-indent",
-        help="Number of spaces to indent Task If/Then/Else Actions (default = 4)",
-        required=False,
-        type=indentation_validation,
-        nargs=1,
-        default=4,
-    )
-    # Gui Map View feature
-    parser.add_argument(
-        "-guiview",
-        help=argparse.SUPPRESS,  # Don't display this in the help
-        action="store_true",
-        default=False,
-    )
-    # view_limit
-    parser.add_argument(
-        "-view_limit",
-        help=argparse.SUPPRESS,  # Don't display this in the help
-        type=validate_view_limit,
-        metavar="LIMIT",
-        # None rather than a number, so that "not given" can be told apart from "given the
-        # default": a limit restored from the settings file has to survive a run that says
-        # nothing about it (see runcli.process_extended_arguments).
-        default=None,
-    )
-    # Display Project/Profile/Task/Scene names in bold
-    parser.add_argument(
-        "-names",
-        choices=["bold", "highlight", "underline", "italicize"],
-        help=textwrap.dedent(
-            """ \
-                        Display all Projects/Profiles/Tasks/Scenes in bold, underlined, italicized and/or highlighted text.
-                            Example: names underline italicize
-                            """,
-        ),
-        nargs="+",
-        required=False,
-        default="",
-    )
-    # Display Configuration Outline
-    parser.add_argument(
-        "-o",
-        "-outline",
-        help=textwrap.dedent(
-            """ \
-                        Display configuration outline of Projects, Profiles, Tasks and Scenes, and
-                        display the configuraion Map (MapTasker_map.txt) in the default text editor"
-                            """,
-        ),
-        action="store_true",
-        default=False,
-    )
-    # Where reports, exports and the view files are written
-    parser.add_argument(
-        "-outdir",
-        help=textwrap.dedent(
-            """ \
-                        Folder to write reports, exports and the Map/Diagram files to
-                        (default = a MapTasker folder in your Documents folder).
-                            Example: -outdir ~/MapTasker_Reports
-                            """,
-        ),
-        required=False,
-        nargs=1,
-    )
-    # Display Tasker preferences
-    parser.add_argument(
-        "-preferences",
-        help="Display Tasker preferences",
-        action="store_true",
-        default=False,
-    )
+def _argument_keywords(entry: dict) -> dict:
+    """The keyword arguments add_argument is called with for one entry of the table."""
+    keywords = {key: value for key, value in entry.items() if key not in _NOT_ARGPARSE}
+    if entry.get("hidden"):
+        keywords["help"] = argparse.SUPPRESS  # Don't display this in the help
+    elif "help" in keywords:
+        keywords["help"] = _text(keywords["help"])
+    if "type" in keywords:
+        keywords["type"] = _ARGUMENT_TYPES[keywords["type"]]
+    if isinstance(keywords.get("choices"), str):
+        keywords["choices"] = _ARGUMENT_CHOICES[keywords["choices"]]()
+    return keywords
 
-    # Make the output pretty
-    parser.add_argument(
-        "-pretty",
-        help="Make output prettier (one argument/parameter per line)",
-        action="store_true",
-        default=False,
-    )
 
-    # Group project, profile, task and scene = name ... together as exclusive arguments
-    single_group = parser.add_mutually_exclusive_group()
-    single_group.add_argument(
-        "-project",
-        nargs=1,
-        required=False,
-        type=str,
-        help="Display the details for a specific Project only.",
-    )
-    single_group.add_argument(
-        "-profile",
-        nargs=1,
-        required=False,
-        type=str,
-        help="Display the details for a specific Profile only.",
-    )
-    single_group.add_argument(
-        "-task",
-        nargs=1,
-        required=False,
-        type=str,
-        help='Display the details for a single Task only (forces minimum of "-detail 3").',
-    )
-    single_group.add_argument(
-        "-scene",
-        nargs=1,
-        required=False,
-        type=str,
-        help='Display the details for a single Scene only (forces minimum of "-detail 3").',
-    )
-
-    # Reset arguments
-    parser.add_argument(
-        "-reset",
-        action="store_true",
-        default=False,
-        help="Reset previously saved arguments...start fresh.",
-    )
-    # Rerun indicator (hidden)
-    # parser.add_argument("-rerun", default=False, action="store_true", help=argparse.SUPPRESS)
-    # Display runtime arguments/settings
-    parser.add_argument(
-        "-runtime",
-        help="Display all runtime arguments/settings at the top of the output.",
-        action="store_true",
-        default=False,
-    )
-    # Display taskerNet info
-    parser.add_argument(
-        "-taskernet",
-        help="Display any TaskerNet information for Projects/Profiles.",
-        action="store_true",
-        default=False,
-    )
-    # Display Task details under "hide/twisty"
-    everything_group.add_argument(
-        "-twisty",
-        help=("Hide Task's details under 'twisty' ➤. Click on twisty to display details."),
-        action="store_true",
-        default=False,
-    )
-
-    # Version argument
-    parser.add_argument(
-        "-v",
-        "-version",
-        help="Display the program version and license information.",
-        action="store_true",
-        default=False,
-    )
-
-    # define a color group for the various color settings
-    color_group = parser.add_argument_group("Output Color Options")
-    # For each type of color option, create the appropriate argument
-    _add_argument = color_group.add_argument
+def _add_color_arguments(group: argparse._ArgumentGroup) -> None:
+    """One '-c<kind>' option for each kind of thing that can be colored."""
     for key, value in TYPES_OF_COLORS.items():
-        _add_argument(
+        group.add_argument(
             f"-c{key}",
             help=f"Provide a valid color for {value}.  Example: -c{key} Blue",
             required=False,
             type=str,
             nargs=1,
         )
-    # Color help
-    _add_argument(
-        "-ch",
-        "-colorhelp",
-        help="Display a list of valid color names.",
-        required=False,
-        action="store_true",
+
+
+def build_parser() -> ArgumentParser:
+    """The command-line parser, built from the table of options.
+
+    Returns:
+        ArgumentParser: the parser, ready for parse_args.
+    """
+    with open(CLI_ARGUMENTS_FILE, encoding="utf-8") as file:
+        table = json.load(file)
+
+    settings = table["parser"]
+    parser = ArgumentParser(
+        prog=settings["prog"],
+        description=_text(settings["description"]),
+        epilog=_text(settings["epilog"]),
+        formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    # parser.print_help()
+    # A group is made when the first option in it is, which is also where it is first
+    # listed: the order of the table is the order of the help.
+    groups: dict[str, argparse._ActionsContainer] = {}
+
+    def group_for(name: str) -> argparse._ActionsContainer:
+        if name not in groups:
+            spec = table["groups"][name]
+            groups[name] = (
+                parser.add_mutually_exclusive_group()
+                if spec.get("exclusive")
+                else parser.add_argument_group(spec["title"])
+            )
+        return groups[name]
+
+    for entry in table["arguments"]:
+        target = group_for(entry["group"]) if "group" in entry else parser
+        if entry.get("expand") == "colors":
+            _add_color_arguments(target)
+        else:
+            target.add_argument(*entry["names"], **_argument_keywords(entry))
+    return parser
+
+
+##################################################################################
+# Get the program arguments from the command line
+def runtime_parser() -> argparse.Namespace:
+    """
+    Get the program arguments from the command line
+    Returns:
+        Namespace: the options given, with the defaults for those that were not
+    Processing Logic:
+        - Build the argument parser from the table of options
+        - Parse the arguments
+        - Make certain the three Android options are given together, if any is
+    """
+    parser = build_parser()
     args = parser.parse_args()
     if args is None:
         # No arguments provide
@@ -595,7 +314,7 @@ def runtime_parser() -> None:
     return args
 
 
-# Get the program arguments using via a GUI (Gooey)
+# Log the arguments the program was given
 def output_results(args: object) -> None:
     # Arguments have been provided
     """Outputs logging information about function arguments

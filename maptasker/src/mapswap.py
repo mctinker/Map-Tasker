@@ -36,7 +36,7 @@
 #                                                                                        #
 # What cannot be reached is reported rather than dropped: a variable a plugin produces   #
 # without naming it, a target built at run time ('Variable Set %(%which)'), a plugin     #
-# payload bundle.py has no definition for.  A silent skip is the worst thing this module #
+# payload bundles.json has no definition for.  A silent skip is the worst thing this module #
 # could do -- the user reads "23 changed", believes the job done, and the two it could   #
 # not touch are the two that now disagree with the other twenty-one.                     #
 #                                                                                        #
@@ -304,7 +304,7 @@ BLOCKED = "blocked"  # cannot be built at all -- see _swap_blocked
 # including Notify, Launch App, Kill App, Browse URL, Media Control and the whole Notify
 # LED/Sound/Vibrate family -- which between them are a large share of the actions anybody
 # would actually want to bulk-replace.  Judged on the swap's own terms it blocks 24: the
-# 17 plugin actions whose payload bundle.py has not recorded, and the 7 structural ones
+# 17 plugin actions whose payload bundles.json has not recorded, and the 7 structural ones
 # below.  The two sets barely overlap, which is the point: nearly every action the old
 # test refused is refused for a reason that only applies to building from nothing.
 #
@@ -479,7 +479,7 @@ def _swap_blocked(old_key: str, new_key: str, state: RunState) -> str:
     Three reasons, and only three:
 
       Either side is _STRUCTURAL.
-      The target carries a plugin <Bundle> that bundle.py has no recorded definition for
+      The target carries a plugin <Bundle> that bundles.json has no recorded definition for
         (taskedit.get_bundle_definition returns None).  An opaque payload is opaque: there
         is no empty form of it that a plugin will accept, which is what separates it from a
         picker, and carrying one over from the source is not on the table either -- a
@@ -501,7 +501,7 @@ def _swap_blocked(old_key: str, new_key: str, state: RunState) -> str:
         return f"'{new_key}' is not an action this build knows about."
 
     # An opaque plugin payload has no empty form a plugin will accept, which is what
-    # separates it from a picker: bundle.py either has the definition or nothing can be
+    # separates it from a picker: bundles.json either has the definition or nothing can be
     # written.  Carrying one across from the source is not attempted -- a different code is
     # a different plugin, and its payload would mean nothing to this one.
     if taskedit.get_bundle_definition(new_key) is None:
@@ -1143,7 +1143,7 @@ def _condition_blocked(new_key: str, state: RunState) -> str:
     """Why an empty context of this kind cannot be built at all, or "".
 
     The same single reason a swap target is ever blocked: a plugin payload <Bundle> that
-    bundle.py has no recorded definition for.  An opaque payload has no empty form a
+    bundles.json has no recorded definition for.  An opaque payload has no empty form a
     plugin will accept, and carrying one over from the source is not on the table either
     -- a different code is a different plugin, and its payload would mean nothing here.
     """
@@ -1288,7 +1288,7 @@ def _fresh_condition(element_cls: type, new_key: str, state: RunState) -> Elemen
         fresh.append(priority)
 
     # code_key is passed so that a plugin's opaque payload <Bundle> is rebuilt from
-    # bundle.py's recorded definition for this very code -- see build_synthesized_args.
+    # bundles.json's recorded definition for this very code -- see build_synthesized_args.
     taskedit.build_synthesized_args(element_cls, fresh, _effective_args(code_key), code_key, state=state)
 
     # The picker arguments build_synthesized_args cannot write, as the empty element

@@ -1205,7 +1205,7 @@ def _render_plugin_configuration_warning(element: object, name: str) -> None:
     edit -- nothing at all for anything else (see
     taskedit.tasker_configuration_warning). Shown in all three action/condition
     lists (Edit Task, Add Task, Edit Profile's State/Event conditions), whether the
-    item was just added from bundle.py or read from the loaded backup.
+    item was just added from bundles.json or read from the loaded backup.
     """
     warning = taskedit.tasker_configuration_warning(element, name)
     if not warning:
