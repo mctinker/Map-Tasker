@@ -1,11 +1,12 @@
 #! /usr/bin/env python3
 """Backup Script: Compresses the current directory into a ZIP archive and copies it to specified destination directories.
-This script prompts the user for a version ID, creates a timestamped ZIP archive of the current directory, and copies it to the specified destination directories."""
+This script prompts the user for a version ID (defaulting to the version in pyproject.toml if none is entered), creates a timestamped ZIP archive of the current directory, and copies it to the specified destination directories."""
 
 import datetime
 import os
 import shutil
 import tempfile
+import tomllib
 import zipfile
 
 # ==============================================================================
@@ -72,6 +73,15 @@ def get_supported_compression_methods() -> list[tuple[str, int]]:
         pass
 
     return methods
+
+
+def read_pyproject_version(directory: str = ".") -> str:
+    """Returns the version from pyproject.toml's [project] table in the given directory, or "" if it cannot be read."""
+    try:
+        with open(os.path.join(directory, "pyproject.toml"), "rb") as pyproject:
+            return str(tomllib.load(pyproject).get("project", {}).get("version", "")).strip()
+    except (OSError, tomllib.TOMLDecodeError):
+        return ""
 
 
 def is_excluded(item_name: str) -> bool:
@@ -156,11 +166,15 @@ def copy_archive_to_destinations(source_zip: str, destinations: list[str]) -> No
 def main() -> None:
     """Main function to execute the backup process."""
     # 1. Prompt for Version ID
-    version_id = input("Enter the version ID (e.g., 12.2.3): ").strip()
+    version_id = input("Enter the version ID (e.g., 12.2.3), or press Enter to use pyproject.toml's: ").strip()
     if not version_id:
-        version_id = "NoVersionID"
-        # print("Error: Version ID cannot be empty.")
-        # return
+        # Nothing entered: use the version in pyproject.toml.
+        version_id = read_pyproject_version()
+        if version_id:
+            print(f"Using version {version_id} from pyproject.toml.")
+        else:
+            version_id = "NoVersionID"
+            print("No version found in pyproject.toml; using 'NoVersionID'.")
 
     # 2. Construct Filename
     current_dir_name = os.path.basename(os.getcwd())
