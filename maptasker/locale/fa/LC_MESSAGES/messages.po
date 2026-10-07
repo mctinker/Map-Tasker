@@ -2801,186 +2801,127 @@ msgid "The request to the AI model was cancelled."
 msgstr "درخواست از مدل هوش مصنوعی لغو شد."
 msgid "e.g. flash 'Hello' if %WIFI is on"
 msgstr "به عنوان مثال، اگر اتصال Wi-Fi فعال باشد، پیام \"Hello\" را نمایش دهید."
-
 msgid "- TaskerNet Updates: Link a Project, Profile, Task or Scene to the TaskerNet share it came from (paste the share's address and say which of yours it is), and MapTasker tells you when its author publishes a newer version -- when you start it, and whenever you press Check Now.  Review lists what the author changed, each with a Take this button that previews the change before anything happens and is one press of Undo afterwards.  What is taken is the author's version of that Task, Profile or Scene, except that a Profile stays as switched on or off as you had it.  Accept Latest Version takes everything listed in one go instead, with no preview of its own (one press of Undo takes it back).  Only the address of each linked share is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone else's automation that will run on your phone, so read each preview before you take it.  \n"
 msgstr "- به‌روزرسانی‌های TaskerNet: یک پروژه، پروفایل، وظیفه یا صحنه را به اشتراک TaskerNet که از آن آمده است، مرتبط کنید (آدرس اشتراک را کپی کنید و مشخص کنید کدام یک از اشتراکات شماست)، و TaskerTask به شما اطلاع می‌دهد که نویسنده، نسخه‌ی جدیدی را منتشر می‌کند – هنگامی که آن را اجرا می‌کنید و هر زمان که دکمه \"بررسی مجدد\" را فشار می‌دهید. \"بررسی لیست\" تغییرات اعمال شده توسط نویسنده را نشان می‌دهد، و هر کدام دارای دکمه \"قبول این تغییر\" هستند که قبل از وقوع هر تغییری، نمایشی از تغییرات را نشان می‌دهد و پس از فشردن آن، امکان لغو تغییرات را فراهم می‌کند. آنچه انتخاب می‌شود، نسخه‌ی وظیفه، پروفایل یا صحنه متعلق به نویسنده است، به جز اینکه پروفایل همچنان به همان صورت روشن یا خاموش باقی می‌ماند که شما آن را تنظیم کرده‌اید. \"پذیرش آخرین نسخه\" به طور همزمان تمام موارد ذکر شده را انتخاب می‌کند، بدون هیچ پیش‌نمایشی (فشردن دکمه \"لغو\" آن را به حالت اولیه بازمی‌گرداند). فقط آدرس هر اشتراک مرتبط به taskernet.com ارسال می‌شود؛ هیچ چیز از تنظیمات شما از کامپیوتر شما خارج نمی‌شود. یک به‌روزرسانی، خودکارسازی متعلق به شخص دیگری است که روی تلفن شما اجرا می‌شود، بنابراین قبل از اعمال آن، هر پیش‌نمایشی را بررسی کنید.\n"
-
 msgid "A"
 msgstr "یک"
-
 msgid "Accept Latest Version"
 msgstr "آخرین نسخه را بپذیرید"
-
 msgid "Asking TaskerNet.  Please stand by..."
 msgstr "درخواست از TaskerNet. لطفاً منتظر بمانید..."
-
 msgid "Before you share this export: lists the plugins and apps it uses, the special access it needs (root, ADB Wi-Fi, Write Secure Settings and the like), the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on.\n\nBuilt from what is in the file, so it is a minimum rather than a guarantee."
 msgstr "قبل از اینکه این فایل را به اشتراک بگذارید، موارد زیر را فهرست کنید: افزونه‌ها و برنامه‌هایی که از آن‌ها استفاده می‌کند، دسترسی‌های خاصی که نیاز دارد (مانند دسترسی روت، ADB، Wi-Fi و دسترسی به تنظیمات امن)، متغیرهایی که Tasker از شما درخواست می‌کند و قدیمی‌ترین نسخه‌ای از Tasker که می‌داند بر روی آن اجرا می‌شود.\n\nاین فایل بر اساس محتوای آن ساخته شده است، بنابراین این یک حداقل است، نه یک تضمین."
-
 msgid "Check Now"
 msgstr "اکنون بررسی کنید"
-
 msgid "Check readiness"
 msgstr "بررسی آمادگی"
-
 msgid "Choose which one of yours the share is."
 msgstr "لطفاً مشخص کنید کدام یک از سهام متعلق به شماست."
-
 msgid "Copied."
 msgstr "کپی شد."
-
 msgid "Copy as text"
 msgstr "به عنوان متن کپی کنید"
-
 msgid "Each change reads: the author's version -> your copy."
 msgstr "هر تغییر به این صورت است: نسخه نویسنده -> نسخه شما."
-
 msgid "Everything linked is up to date."
 msgstr "تمام لینک‌های موجود به‌روز هستند."
-
 msgid "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find out when its author publishes a newer version.\n\nShows what the author changed and lets you take each change on its own, previewed first and one press of Undo afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; nothing from your configuration leaves this computer."
 msgstr "یک پروژه، پروفایل، وظیفه یا صحنه را به اشتراک (share) مربوط به TaskerNet متصل کنید و متوجه شوید که نویسنده چه زمانی نسخه جدیدی را منتشر می‌کند.\n\nاین قابلیت، تغییرات ایجاد شده توسط نویسنده را نشان می‌دهد و به شما این امکان را می‌دهد که هر یک از این تغییرات را به صورت جداگانه، ابتدا مشاهده کنید و سپس با یک کلیک، آن‌ها را لغو کنید.\n\nفقط آدرس هر اشتراک متصل شده، به taskernet.com ارسال می‌شود؛ هیچ چیز دیگری از تنظیمات شما از این کامپیوتر خارج نمی‌شود."
-
 msgid "Link a share"
 msgstr "لینک اشتراک"
-
 msgid "Linked -- press Review to compare it with your copy"
 msgstr "پیوند – برای مقایسه آن با نسخه خود، روی \"بررسی\" کلیک کنید."
-
 msgid "Linked shares"
 msgstr "سهام مرتبط"
-
 msgid "Linked.  The version published"
 msgstr "پیوند داده شده. نسخه منتشر شده"
-
 msgid "Mark As Up To Date"
 msgstr "به‌روزرسانی"
-
 msgid "Marked as up to date."
 msgstr "آخرین نسخه"
-
 msgid "Newer version published"
 msgstr "نسخه جدید منتشر شده است"
-
 msgid "No earlier version is on file."
 msgstr "هیچ نسخه‌ای از این سند در دسترس نیست."
-
 msgid "No shares are linked yet.  Link one below."
 msgstr "هنوز هیچ سهامی به این روش مرتبط نشده است. لطفاً یکی از گزینه‌های زیر را انتخاب کنید."
-
 msgid "Not checked yet"
 msgstr "هنوز بررسی نشده است."
-
 msgid "Not in the configuration that is loaded."
 msgstr "نه در تنظیماتی که بارگیری شده است."
-
 msgid "Nothing to take."
 msgstr "هیچ چیز قابل برداشت وجود ندارد."
-
 msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here."
 msgstr "صفحه مربوط به این سهام را در TaskerNet باز کنید (صفحه‌ای که هنگام کلیک بر روی دکمه \"وارد کردن\" نمایش داده می‌شود، به عنوان مثال صفحه‌ای که شامل دستورالعمل‌های \"وارد کردن:\" است) و آدرس آن را در اینجا کپی کنید."
-
 msgid "Pick the one of yours it is, then press Link."
 msgstr "یکی از گزینه‌های خود را انتخاب کنید، سپس دکمه \"لینک\" را فشار دهید."
-
 msgid "Press 'Take this' on a row first."
 msgstr "ابتدا روی یکی از ردیف‌ها، دکمه \"پذیرش این را\" را بزنید."
-
 msgid "Readiness"
 msgstr "آمادگی"
-
 msgid "Removed by the author -- not offered; delete them in their own Edit dialogs"
 msgstr "حذف شده توسط نویسنده – این موارد ارائه نشده‌اند؛ لطفاً آن‌ها را در قسمت ویرایش مربوط به خود حذف کنید."
-
 msgid "Report saved as"
 msgstr "ذخیره شده به عنوان"
-
 msgid "Review"
 msgstr "بررسی"
-
 msgid "Save Report"
 msgstr "ذخیره گزارش"
-
 msgid "Show every difference from my copy, not only the author's changes"
 msgstr "لطفاً تمام تفاوت‌ها را نسبت به نسخه من نشان دهید، نه فقط تغییراتی که نویسنده ایجاد کرده است."
-
 msgid "Some changes were skipped, so this version is not marked as the one you have."
 msgstr "برخی از تغییرات نادیده گرفته شده‌اند، بنابراین این نسخه به عنوان نسخه شما مشخص نشده است."
-
 msgid "Some links could not be checked -- see the list."
 msgstr "برخی از لینک‌ها قابل بررسی نبودند – لطفاً لیست را مشاهده کنید."
-
 msgid "TaskerNet Updates"
 msgstr "آخرین به‌روزرسانی‌های TaskerNet"
-
 msgid "TaskerNet share link"
 msgstr "لینک اشتراک TaskerNet"
-
 msgid "The author changed"
 msgstr "نویسنده تغییراتی ایجاد کرد."
-
 msgid "The author has published nothing new since the version you accepted"
 msgstr "نویسنده هیچ اثر جدیدی از زمان انتشار نسخه ای که شما پذیرفتید، منتشر نکرده است."
-
 msgid "The report could not be saved."
 msgstr "امکان ذخیره گزارش وجود نداشت."
-
 msgid "Up to date -- published"
 msgstr "آخرین نسخه – منتشر شده"
-
 msgid "What this needs on the phone that receives it."
 msgstr "آن چیزی که این دستگاه به تلفن دریافت‌کننده نیاز دارد."
-
 msgid "Which one of yours is it?"
 msgstr "کدام یک از آن‌ها مال شماست؟"
-
 msgid "With no earlier version to compare against, this lists everything that differs from your copy.  Tasker rewrites some things when it imports a share, so not every difference is the author's.  From the next update on, only what the author changed is listed."
 msgstr "با توجه به اینکه نسخه‌های قبلی برای مقایسه وجود ندارد، این لیست تمام تفاوت‌های موجود بین نسخه شما را نشان می‌دهد. نرم‌افزار Tasker گاهی اوقات هنگام وارد کردن یک فایل، تغییراتی را اعمال می‌کند، بنابراین همه تفاوت‌ها لزوماً توسط نویسنده ایجاد نشده‌اند. از نسخه بعدی، فقط تغییراتی که توسط نویسنده اعمال شده است، در این لیست نمایش داده می‌شود."
-
 msgid "Your copy matches it."
 msgstr "نسخ شما با آن مطابقت دارد."
-
 msgid "can be taken here."
 msgstr "می‌توانید آن را در اینجا دریافت کنید."
-
 msgid "change(s) taken.  Undo is available."
 msgstr "تغییرات اعمال شده. امکان لغو تغییرات وجود دارد."
-
 msgid "change(s) to the Project itself (its description or variables, say) are not offered one by one -- see Save Report."
 msgstr "تغییرات اعمال شده در پروژه (مانند توضیحات یا متغیرهای آن) به صورت جداگانه ارائه نمی‌شوند – لطفاً به بخش \"ذخیره گزارش\" مراجعه کنید."
-
 msgid "difference(s) from your copy are listed."
 msgstr "تفاوت‌ها (در نسخه‌ی شما) در اینجا فهرست شده‌اند."
-
 msgid "has the same content as it."
 msgstr "مطابق با آن است."
-
 msgid "is now the one MapTasker takes you to have."
 msgstr "اکنون، MapTasker شما را به این مکان می‌برد."
-
 msgid "linked share(s) have a newer version."
 msgstr "نسخه جدیدی از این فایل به اشتراک گذاشته شده وجود دارد."
-
 msgid "linked share(s) have a newer version.  Open TaskerNet Updates to see what changed."
 msgstr "نسخه جدیدی از این اشتراک(های) موجود است. برای مشاهده تغییرات، برنامه به‌روزرسانی TaskerNet را باز کنید."
-
 msgid "more."
 msgstr "بیشتر."
-
 msgid "object(s) exist only in your copy and are left alone."
 msgstr "این اشیاء تنها در نسخه شما وجود دارند و بدون تغییر باقی می‌مانند."
-
 msgid "object(s) since the version you accepted"
 msgstr "آن اشیاء (یا آن شی) که نسخهٔ آن را پذیرفته‌اید."
-
 msgid "object(s) still differ from your copy, but not because of anything the author changed -- Tasker rewrites a share when it imports it, or you edited them.  Tick the box below to list them."
 msgstr "آن اشیاء هنوز با نسخه شما متفاوت هستند، اما نه به دلیل هر گونه تغییری که نویسنده ایجاد کرده است – برنامه‌ی Tasker، هنگام وارد کردن آن‌ها، آن‌ها را دوباره ایجاد می‌کند، یا شما آن‌ها را ویرایش کرده‌اید. برای نمایش آن‌ها، لطفاً گزینه زیر را علامت بزنید."
-
 msgid "on TaskerNet"
 msgstr "در TaskerNet"
-
 msgid "shared as"
 msgstr "به اشتراک گذاشته شده"
-
 msgid "the version published"
 msgstr "نسخه‌ای که منتشر شده است"
+msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here.  This is a one-time setup process only for each project/profile/task to establish its linkage to TaskerNet."
+msgstr "صفحه مربوط به سهم را در TaskerNet باز کنید (صفحه‌ای که هنگام کلیک بر روی دکمه «وارد کردن» نمایش داده می‌شود، به عنوان مثال صفحه‌ای که شامل دستورالعمل «وارد کردن» است). آدرس آن را در اینجا کپی کنید. این یک فرآیند تنظیم اولیه است که فقط برای هر پروژه/پروفایل/وظیفه برای ایجاد ارتباط آن با TaskerNet انجام می‌شود."

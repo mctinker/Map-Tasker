@@ -2801,186 +2801,127 @@ msgid "The request to the AI model was cancelled."
 msgstr "Η αίτηση προς το μοντέλο Τεχνητής Νοημοσύνης ακυρώθηκε."
 msgid "e.g. flash 'Hello' if %WIFI is on"
 msgstr "π.χ. εμφανίστε το μήνυμα \"Γεια σας\" εάν το Wi-Fi είναι ενεργό."
-
 msgid "- TaskerNet Updates: Link a Project, Profile, Task or Scene to the TaskerNet share it came from (paste the share's address and say which of yours it is), and MapTasker tells you when its author publishes a newer version -- when you start it, and whenever you press Check Now.  Review lists what the author changed, each with a Take this button that previews the change before anything happens and is one press of Undo afterwards.  What is taken is the author's version of that Task, Profile or Scene, except that a Profile stays as switched on or off as you had it.  Accept Latest Version takes everything listed in one go instead, with no preview of its own (one press of Undo takes it back).  Only the address of each linked share is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone else's automation that will run on your phone, so read each preview before you take it.  \n"
 msgstr "- Ενημερώσεις TaskerNet: Συνδέστε ένα Έργο, Προφίλ, Εργασία ή Σκηνή με το μοναδικό link του TaskerNet (επικολλήστε τη διεύθυνση του link και αναφέρετε ποιο είναι από τα δικά σας), και το TaskerNet σας ενημερώνει όταν ο δημιουργός δημοσιεύει μια νεότερη έκδοση – κάθε φορά που ξεκινάτε το, και κάθε φορά που πατάτε το \"Έλεγχος Τώρα\". Η λειτουργία \"Επισκόπηση\" εμφανίζει τις αλλαγές που έκανε ο δημιουργός, με ένα κουμπί \"Εφαρμογή\" που σας επιτρέπει να δείτε τις αλλαγές πριν από την εφαρμογή τους και ένα κουμπί \"Ακύρωση\" μετά. Αυτό που εφαρμόζεται είναι η έκδοση του δημιουργού για την συγκεκριμένη Εργασία, Προφίλ ή Σκηνή, εκτός από το γεγονός ότι το Προφίλ παραμένει στην κατάσταση \"ενεργοποιημένο\" ή \"απενεργοποιημένο\" όπως το είχατε ορισμένο. Η επιλογή \"Νέα Έκδοση\" εφαρμόζει όλα όσα έχουν καταγραφεί αμέσως, χωρίς να χρειάζεται προεπισκόπηση (το κουμπί \"Ακύρωση\" το επαναφέρει). Μόνο η διεύθυνση κάθε συνδεδεμένου link αποστέλλεται στο taskernet.com. Κανένα στοιχείο από τις ρυθμίσεις σας δεν αποστέλλεται από τον υπολογιστή σας. Μια ενημέρωση είναι η αυτοματοποίηση κάποιου άλλου, η οποία θα εκτελεστεί στο τηλέφωνό σας, οπότε διαβάστε προσεκτικά κάθε προεπισκόπηση πριν την εφαρμόσετε.\n"
-
 msgid "A"
 msgstr "Ένα"
-
 msgid "Accept Latest Version"
 msgstr "Αποδεχτείτε την τελευταία έκδοση"
-
 msgid "Asking TaskerNet.  Please stand by..."
 msgstr "Αναμένουμε απάντηση από το TaskerNet. Παρακαλούμε να περιμένετε..."
-
 msgid "Before you share this export: lists the plugins and apps it uses, the special access it needs (root, ADB Wi-Fi, Write Secure Settings and the like), the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on.\n\nBuilt from what is in the file, so it is a minimum rather than a guarantee."
 msgstr "Πριν μοιραστείτε αυτόν τον οδηγό εξαγωγής: αναφέρει τα πρόσθετα και τις εφαρμογές που χρησιμοποιεί, τις ειδικές άδειες που χρειάζεται (π.χ. root, ADB, Wi-Fi, πρόσβαση στις ασφαλείς ρυθμίσεις κ.λπ.), τις μεταβλητές που θα ζητήσει το Tasker από τον εισαγωγέα, και την παλαιότερη έκδοση του Tasker στην οποία είναι γνωστό ότι λειτουργεί.\n\nΔημιουργείται με βάση τις πληροφορίες που περιέχονται στο αρχείο, επομένως αποτελεί ελάχιστη και όχι εγγύηση."
-
 msgid "Check Now"
 msgstr "Ελέγξτε τώρα"
-
 msgid "Check readiness"
 msgstr "Ελέγξτε την ετοιμότητα"
-
 msgid "Choose which one of yours the share is."
 msgstr "Επιλέξτε ποιο από τα δικά σας μερίδια ανήκει."
-
 msgid "Copied."
 msgstr "Αντιγραφή."
-
 msgid "Copy as text"
 msgstr "Αντιγράψτε ως κείμενο"
-
 msgid "Each change reads: the author's version -> your copy."
 msgstr "Κάθε αλλαγή διαβάζει: η έκδοση του συγγραφέα -> η δική σας αντίγραφο."
-
 msgid "Everything linked is up to date."
 msgstr "Όλα τα στοιχεία που αναφέρονται είναι ενημερωμένα."
-
 msgid "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find out when its author publishes a newer version.\n\nShows what the author changed and lets you take each change on its own, previewed first and one press of Undo afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; nothing from your configuration leaves this computer."
 msgstr "Συνδέστε ένα έργο, ένα προφίλ, μια εργασία ή μια σκηνή με το κοινόχρηστο αρχείο από το TaskerNet και μάθετε πότε ο δημιουργός του δημοσιεύει μια νέα έκδοση.\n\nΔείχνει τις αλλαγές που έκανε ο δημιουργός και σας επιτρέπει να εφαρμόσετε κάθε αλλαγή ξεχωριστά, πρώτα με προεπισκόπηση και στη συνέχεια με ένα κλικ \"Ακύρωση\".\n\nΜόνο η διεύθυνση κάθε συνδεδεμένου αρχείου αποστέλλεται στο taskernet.com. Κανένα στοιχείο από τη διαμόρφωσή σας δεν αποστέλλεται από αυτό το υπολογιστή."
-
 msgid "Link a share"
 msgstr "Σύνδεση με ένα άρθρο"
-
 msgid "Linked -- press Review to compare it with your copy"
 msgstr "Συνδεδεμένο – Πατήστε στην επιλογή \"Επισκόπηση\" για να το συγκρίνετε με την έκδοσή σας."
-
 msgid "Linked shares"
 msgstr "Μεταβλητές με κοινά στοιχεία"
-
 msgid "Linked.  The version published"
 msgstr "Συνδεδεμένο. Η έκδοση που δημοσιεύτηκε"
-
 msgid "Mark As Up To Date"
 msgstr "Σημειώστε ως ενημερωμένο"
-
 msgid "Marked as up to date."
 msgstr "Σημειώθηκε ότι είναι ενημερωμένο."
-
 msgid "Newer version published"
 msgstr "Νέα έκδοση δημοσιεύθηκε"
-
 msgid "No earlier version is on file."
 msgstr "Δεν υπάρχει κάποια προηγούμενη έκδοση που να είναι καταγεγραμμένη."
-
 msgid "No shares are linked yet.  Link one below."
 msgstr "Δεν έχουν συνδεθεί ακόμη μετοχές. Συνδέστε μία από τις παρακάτω."
-
 msgid "Not checked yet"
 msgstr "Δεν έχει ελεγχθεί ακόμη"
-
 msgid "Not in the configuration that is loaded."
 msgstr "Δεν είναι στην διαμόρφωση που έχει φορτωθεί."
-
 msgid "Nothing to take."
 msgstr "Δεν υπάρχει τίποτα για να πάρει κανείς."
-
 msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here."
 msgstr "Ανοίξτε τη δική σας σελίδα στο TaskerNet (αυτή που εμφανίζεται όταν κάνετε κλικ στο κουμπί \"Εισαγωγή\" (π.χ., περιέχει τις οδηγίες \"Εισαγωγή:\") και επικολλήστε τη διεύθυνσή της εδώ."
-
 msgid "Pick the one of yours it is, then press Link."
 msgstr "Επιλέξτε αυτό που σας ταιριάζει, στη συνέχεια πατήστε το \"Σύνδεσμος\"."
-
 msgid "Press 'Take this' on a row first."
 msgstr "Πατήστε το κουμπί \"Χρήση\" στην πρώτη γραμμή."
-
 msgid "Readiness"
 msgstr "Προετοιμασία"
-
 msgid "Removed by the author -- not offered; delete them in their own Edit dialogs"
 msgstr "Αφαίρεση από τον συγγραφέα – δεν προσφέρονται; Διαγράψτε τα στις δικές τους διαλογικές πλατφόρμες επεξεργασίας."
-
 msgid "Report saved as"
 msgstr "Αποθηκεύστε το αρχείο ως"
-
 msgid "Review"
 msgstr "Αξιολόγηση"
-
 msgid "Save Report"
 msgstr "Αποθηκεύστε αναφορά"
-
 msgid "Show every difference from my copy, not only the author's changes"
 msgstr "Δείξτε όλες τις διαφορές από την έκδοσή μου, όχι μόνο τις αλλαγές του συγγραφέα."
-
 msgid "Some changes were skipped, so this version is not marked as the one you have."
 msgstr "Ορισμένες αλλαγές δεν έγιναν, επομένως αυτή η έκδοση δεν είναι η ίδια με αυτή που διαθέτετε."
-
 msgid "Some links could not be checked -- see the list."
 msgstr "Ορισμένοι σύνδεσμοι δεν ήταν προσβάσιμοι – δείτε τη λίστα."
-
 msgid "TaskerNet Updates"
 msgstr "Ενημερώσεις TaskerNet"
-
 msgid "TaskerNet share link"
 msgstr "Σύνδεσμος για πρόσβαση στο TaskerNet"
-
 msgid "The author changed"
 msgstr "Ο συγγραφέας άλλαξε"
-
 msgid "The author has published nothing new since the version you accepted"
 msgstr "Ο συγγραφέας δεν έχει δημοσιεύσει τίποτα νέο από την έκδοση που αποδέχτηκε."
-
 msgid "The report could not be saved."
 msgstr "Δεν ήταν δυνατή η αποθήκευση της αναφοράς."
-
 msgid "Up to date -- published"
 msgstr "Επίκαιρο – δημοσιεύθηκε"
-
 msgid "What this needs on the phone that receives it."
 msgstr "Τι χρειάζεται το τηλέφωνο που λαμβάνει το σήμα."
-
 msgid "Which one of yours is it?"
 msgstr "Ποιο είναι το δικό σας;"
-
 msgid "With no earlier version to compare against, this lists everything that differs from your copy.  Tasker rewrites some things when it imports a share, so not every difference is the author's.  From the next update on, only what the author changed is listed."
 msgstr "Δεδομένου ότι δεν υπάρχει προηγούμενη έκδοση για σύγκριση, η λίστα περιλαμβάνει τα πάντα που διαφέρουν από την έκδοση που έχετε. Το Tasker μπορεί να τροποποιήσει ορισμένα πράγματα κατά την εισαγωγή μιας κοινής, επομένως δεν είναι όλα τα διαφοροποιήματα του συγγραφέα. Από την επόμενη ενημέρωση, θα εμφανίζονται μόνο οι αλλαγές που έκανε ο συγγραφέας."
-
 msgid "Your copy matches it."
 msgstr "Το κείμενό σας ταιριάζει με αυτό."
-
 msgid "can be taken here."
 msgstr "Μπορείτε να τα προμηθευτείτε εδώ."
-
 msgid "change(s) taken.  Undo is available."
 msgstr "Έχουν εφαρμοστεί αλλαγές. Διατίθεται η λειτουργία \"Ακύρωση\"."
-
 msgid "change(s) to the Project itself (its description or variables, say) are not offered one by one -- see Save Report."
 msgstr "Οι αλλαγές που γίνονται στο ίδιο το έργο (στην περιγραφή ή στις μεταβλητές του, για παράδειγμα) δεν γίνονται μεμονωμένα – δείτε την επιλογή \"Αποθήκευση Αναφοράς\"."
-
 msgid "difference(s) from your copy are listed."
 msgstr "Οι διαφορές από την αρχική σας έκδοση αναφέρονται παρακάτω."
-
 msgid "has the same content as it."
 msgstr "περιέχει το ίδιο περιεχόμενο με αυτό."
-
 msgid "is now the one MapTasker takes you to have."
 msgstr "Είναι πλέον η εφαρμογή που χρησιμοποιεί το MapTasker για να σας καθοδηγήσει."
-
 msgid "linked share(s) have a newer version."
 msgstr "Τα συνδεδεμένα κοινά έχουν μια νεότερη έκδοση."
-
 msgid "linked share(s) have a newer version.  Open TaskerNet Updates to see what changed."
 msgstr "Τα συνδεδεμένα αρχεία έχουν μια νεότερη έκδοση. Για να δείτε τις αλλαγές, ανοίξτε την \"TaskerNet Updates\"."
-
 msgid "more."
 msgstr "περισσότερα."
-
 msgid "object(s) exist only in your copy and are left alone."
 msgstr "Τα αντικείμενα υπάρχουν μόνο στην αντίγραφο που έχετε και αφήνονται ανέπαφα."
-
 msgid "object(s) since the version you accepted"
 msgstr "αντικείμενο(α) που αποκτήσατε, δεδομένου του εκδοτικού αριθμού που αποδέσατε"
-
 msgid "object(s) still differ from your copy, but not because of anything the author changed -- Tasker rewrites a share when it imports it, or you edited them.  Tick the box below to list them."
 msgstr "Τα αντικείμενα εξακολουθούν να διαφέρουν από την έκδοσή σας, αλλά όχι λόγω οποιασδήποτε αλλαγής που έκανε ο συγγραφέας – Το Tasker αντικαθιστά ένα αρχείο όταν το εισάγει, ή εσείς το έχετε επεξεργαστεί. Επιλέξτε το πλαίσιο παρακάτω για να τα εμφανίσετε."
-
 msgid "on TaskerNet"
 msgstr "στο TaskerNet"
-
 msgid "shared as"
 msgstr "μοιραζόταν"
-
 msgid "the version published"
 msgstr "η έκδοση που δημοσιεύτηκε"
+msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here.  This is a one-time setup process only for each project/profile/task to establish its linkage to TaskerNet."
+msgstr "Ανοίξτε τη δική σας σελίδα στο TaskerNet (αυτή που εμφανίζεται όταν κάνετε κλικ στο κουμπί \"Εισαγωγή\" (π.χ., περιέχει τις οδηγίες \"Εισαγωγή:\")) και επικολλήστε τη διεύθυνσή της εδώ. Αυτή είναι μια διαδικασία ρύθμισης που γίνεται μία φορά για κάθε έργο/προφίλ/εργασία, με σκοπό να δημιουργηθεί η σύνδεσή της με το TaskerNet."

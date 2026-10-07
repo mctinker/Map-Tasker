@@ -2781,186 +2781,127 @@ msgid "The request to the AI model was cancelled."
 msgstr "Anmodningen til AI-modellen blev annulleret."
 msgid "e.g. flash 'Hello' if %WIFI is on"
 msgstr "f.eks. vis \"Hej\" hvis Wi-Fi er aktiveret"
-
 msgid "- TaskerNet Updates: Link a Project, Profile, Task or Scene to the TaskerNet share it came from (paste the share's address and say which of yours it is), and MapTasker tells you when its author publishes a newer version -- when you start it, and whenever you press Check Now.  Review lists what the author changed, each with a Take this button that previews the change before anything happens and is one press of Undo afterwards.  What is taken is the author's version of that Task, Profile or Scene, except that a Profile stays as switched on or off as you had it.  Accept Latest Version takes everything listed in one go instead, with no preview of its own (one press of Undo takes it back).  Only the address of each linked share is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone else's automation that will run on your phone, so read each preview before you take it.  \n"
 msgstr "- Opdateringer i TaskerNet: Forbind et projekt, en profil, en opgave eller en scene med den TaskerNet-del, den stammer fra (indsæt delens adresse og angiv, hvilken af dine der det er), og TaskerNet vil fortælle dig, når forfatteren udgiver en nyere version – når du starter den, og hver gang du trykker på \"Tjek nu\". Review viser, hvad forfatteren har ændret, med en knap, der giver dig mulighed for at se ændringen, før noget sker, og en knap til at annullere efterfølgende. Det, der gemmes, er forfatterens version af den pågældende opgave, profil eller scene, med undtagelse af, at en profil forbliver i den tilstand, du har sat den i. \"Accept Latest Version\" gemmer alt, der er angivet, på én gang, uden nogen form for forhåndsvisning (annullering vil returnere det). Kun adressen for hver forbundne del sendes til taskernet.com; intet fra din konfiguration forlader din computer. En opdatering er en andens automatisering, der vil køre på din telefon, så læs hver forhåndsvisning, før du bruger den.\n"
-
 msgid "A"
 msgstr "Et"
-
 msgid "Accept Latest Version"
 msgstr "Accepter den seneste version"
-
 msgid "Asking TaskerNet.  Please stand by..."
 msgstr "Kontakt TaskerNet. Vær venligst opmærksom..."
-
 msgid "Before you share this export: lists the plugins and apps it uses, the special access it needs (root, ADB Wi-Fi, Write Secure Settings and the like), the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on.\n\nBuilt from what is in the file, so it is a minimum rather than a guarantee."
 msgstr "Før du deler denne eksport:\n*   Angiver de plugins og apps, den bruger\n*   Angiver de specielle tilladelser, den har brug for (root, ADB Wi-Fi, Write Secure Settings osv.)\n*   Angiver de variabler, Tasker vil spørge importeren om\n*   Angiver den ældste version af Tasker, den er kendt til at køre på.\n\nDenne eksport er baseret på indholdet i filen, så den er et minimum snarere end en garanti."
-
 msgid "Check Now"
 msgstr "Tjek nu"
-
 msgid "Check readiness"
 msgstr "Kontroller klarhed"
-
 msgid "Choose which one of yours the share is."
 msgstr "Vælg, hvilken af dine andele det drejer sig om."
-
 msgid "Copied."
 msgstr "Kopieret."
-
 msgid "Copy as text"
 msgstr "Kopiér som tekst"
-
 msgid "Each change reads: the author's version -> your copy."
 msgstr "Hver ændring er beskrevet som: forfatterens version -> din kopi."
-
 msgid "Everything linked is up to date."
 msgstr "Alt, der er linket, er opdateret."
-
 msgid "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find out when its author publishes a newer version.\n\nShows what the author changed and lets you take each change on its own, previewed first and one press of Undo afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; nothing from your configuration leaves this computer."
 msgstr "Forbind et projekt, en profil, en opgave eller en scene med den del af TaskerNet, den stammer fra, og find ud af, hvornår forfatteren offentliggør en nyere version.\n\nViser, hvad forfatteren har ændret, og giver dig mulighed for at gennemgå hver ændring individuelt, først i forhåndsvisning og derefter med en enkelt \"Fortæl\" knap.\n\nKun adressen for hver linkede del sendes til taskernet.com; intet fra din konfiguration forlader denne computer."
-
 msgid "Link a share"
 msgstr "Link til deling"
-
 msgid "Linked -- press Review to compare it with your copy"
 msgstr "Linket – tryk på \"Sammenlign\" for at sammenligne det med din kopi."
-
 msgid "Linked shares"
 msgstr "Koblede aktier"
-
 msgid "Linked.  The version published"
 msgstr "Forbundet. Versionen, der er offentliggjort."
-
 msgid "Mark As Up To Date"
 msgstr "Marker som opdateret"
-
 msgid "Marked as up to date."
 msgstr "Markeret som opdateret."
-
 msgid "Newer version published"
 msgstr "Nyere version er udgivet"
-
 msgid "No earlier version is on file."
 msgstr "Der findes ingen tidligere version af dette dokument."
-
 msgid "No shares are linked yet.  Link one below."
 msgstr "Ingen aktier er endnu forbundet. Forbind en nedenfor."
-
 msgid "Not checked yet"
 msgstr "Ikke kontrolleret endnu"
-
 msgid "Not in the configuration that is loaded."
 msgstr "Ikke i den konfiguration, der er indlæst."
-
 msgid "Nothing to take."
 msgstr "Intet at tage."
-
 msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here."
 msgstr "Åbn den specifikke side for aktien på TaskerNet (den, der vises, når du klikker på 'Importer'-knappen (f.eks. den, der har instruktioner om 'Importer':) og indsæt dens adresse her."
-
 msgid "Pick the one of yours it is, then press Link."
 msgstr "Vælg den, du ønsker, og tryk derefter på \"Link\"."
-
 msgid "Press 'Take this' on a row first."
 msgstr "Tryk på \"Tag dette\" i den første række."
-
 msgid "Readiness"
 msgstr "Klarhed"
-
 msgid "Removed by the author -- not offered; delete them in their own Edit dialogs"
 msgstr "Fjernet af forfatteren – ikke tilgængelige; slet dem i deres egne redigeringsdialoger."
-
 msgid "Report saved as"
 msgstr "Rapport gemt som"
-
 msgid "Review"
 msgstr "Anmeldelse"
-
 msgid "Save Report"
 msgstr "Gem rapport"
-
 msgid "Show every difference from my copy, not only the author's changes"
 msgstr "Vis alle forskelle i forhold til min kopi, ikke kun forfatterens ændringer."
-
 msgid "Some changes were skipped, so this version is not marked as the one you have."
 msgstr "Nogle ændringer blev overset, så denne version er ikke markeret som den, du har."
-
 msgid "Some links could not be checked -- see the list."
 msgstr "Nogle links kunne ikke verificeres – se listen."
-
 msgid "TaskerNet Updates"
 msgstr "Opdateringer fra TaskerNet"
-
 msgid "TaskerNet share link"
 msgstr "Link til TaskerNet"
-
 msgid "The author changed"
 msgstr "Forfatteren ændrede"
-
 msgid "The author has published nothing new since the version you accepted"
 msgstr "Forfatteren har ikke udgivet noget nyt siden den version, du accepterede."
-
 msgid "The report could not be saved."
 msgstr "Rapporten kunne ikke gemmes."
-
 msgid "Up to date -- published"
 msgstr "Aktuel – udgivet"
-
 msgid "What this needs on the phone that receives it."
 msgstr "Hvad der er nødvendigt på den telefon, der modtager signalet."
-
 msgid "Which one of yours is it?"
 msgstr "Hvilken af dem er din?"
-
 msgid "With no earlier version to compare against, this lists everything that differs from your copy.  Tasker rewrites some things when it imports a share, so not every difference is the author's.  From the next update on, only what the author changed is listed."
 msgstr "Da der ikke er nogen tidligere version at sammenligne med, viser denne liste alt, der er anderledes i din kopi. Tasker omskriver nogle ting, når den importerer en fil, så ikke alle forskelle er forfatterens. Fra den næste opdatering vil kun det, forfatteren har ændret, blive vist."
-
 msgid "Your copy matches it."
 msgstr "Dit udkast stemmer overens med det."
-
 msgid "can be taken here."
 msgstr "kan foretages her."
-
 msgid "change(s) taken.  Undo is available."
 msgstr "ændringer er foretaget. \"Fortæl\" er tilgængeligt."
-
 msgid "change(s) to the Project itself (its description or variables, say) are not offered one by one -- see Save Report."
 msgstr "ændringer, der påvirker projektet selv (f.eks. dets beskrivelse eller variabler), tilbydes ikke individuelt – se \"Gem rapport\"."
-
 msgid "difference(s) from your copy are listed."
 msgstr "Forskelle fra din kopi er angivet."
-
 msgid "has the same content as it."
 msgstr "indeholder den samme information som den oprindelige."
-
 msgid "is now the one MapTasker takes you to have."
 msgstr "er nu den eneste adresse, MapTasker viser dig."
-
 msgid "linked share(s) have a newer version."
 msgstr "De linkede del(dr) har en nyere version."
-
 msgid "linked share(s) have a newer version.  Open TaskerNet Updates to see what changed."
 msgstr "De linkede del(ar) har en nyere version. Åbn \"TaskerNet Updates\" for at se, hvad der er blevet ændret."
-
 msgid "more."
 msgstr "mere."
-
 msgid "object(s) exist only in your copy and are left alone."
 msgstr "Objekterne eksisterer kun i din kopi og efterlades uændrede."
-
 msgid "object(s) since the version you accepted"
 msgstr "objekter, da versionen du accepterede"
-
 msgid "object(s) still differ from your copy, but not because of anything the author changed -- Tasker rewrites a share when it imports it, or you edited them.  Tick the box below to list them."
 msgstr "Objekterne (eller dokumenterne) kan stadig adskille sig fra din kopi, men ikke på grund af ændringer, som forfatteren har foretaget – Tasker omskriver en fil, når den importeres, eller du har selv redigeret den. Marker afkrydsningsfeltet nedenfor for at liste dem."
-
 msgid "on TaskerNet"
 msgstr "på TaskerNet"
-
 msgid "shared as"
 msgstr "delt"
-
 msgid "the version published"
 msgstr "den udgave, der er udgivet"
+msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here.  This is a one-time setup process only for each project/profile/task to establish its linkage to TaskerNet."
+msgstr "Åbn den specifikke side for aktien i TaskerNet (den, der vises, når du klikker på 'Importer'-knappen (f.eks. den, der har instruktioner om 'Importer:') og indsæt dens adresse her. Dette er en engangsproces for hvert projekt/profil/opgave for at etablere forbindelsen til TaskerNet."

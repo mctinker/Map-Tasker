@@ -2799,186 +2799,127 @@ msgid "The request to the AI model was cancelled."
 msgstr "Pyynnön AI-mallille peruttiin."
 msgid "e.g. flash 'Hello' if %WIFI is on"
 msgstr "esim. näytä \"Hello\" jos Wi-Fi on käytössä"
-
 msgid "- TaskerNet Updates: Link a Project, Profile, Task or Scene to the TaskerNet share it came from (paste the share's address and say which of yours it is), and MapTasker tells you when its author publishes a newer version -- when you start it, and whenever you press Check Now.  Review lists what the author changed, each with a Take this button that previews the change before anything happens and is one press of Undo afterwards.  What is taken is the author's version of that Task, Profile or Scene, except that a Profile stays as switched on or off as you had it.  Accept Latest Version takes everything listed in one go instead, with no preview of its own (one press of Undo takes it back).  Only the address of each linked share is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone else's automation that will run on your phone, so read each preview before you take it.  \n"
 msgstr "- TaskerNetin päivitykset: Yhdistä projekti, profiili, tehtävä tai kohtaus TaskerNet-osiin, josta se on peräisin (liitä ja kerro, mikä se on ja mitä sille on annettu osoite), ja TaskerNet kertoo, kun sen kirjoittaja julkaisee uudemman version – kun aloitat sen ja aina, kun painat \"Tarkista nyt\". Review näyttää, mitä kirjoittaja on muuttanut, ja jokaisessa on \"Tee tämä\" -painike, joka esikatseluttaa muutoksen ennen kuin mitään tapahtuu, ja jonka avulla voit peruuttaa muutoksen yhdellä painalluksella. \"Tee tämä\" -painikkeella otetaan kirjoittajan versio kyseisestä tehtävästä, profiilista tai kohtauksesta, paitsi että profiili pysyy päällä tai pois päältä, kuten sinulla oli se. \"Ota uusin versio\" ottaa kaiken listatun yhdellä kertaa, ilman omaa esikatselua (peruutus toimii yhdellä painalluksella). Vain kunkin yhdistetyn osion osoite lähetetään taskernet.com:iin; mitään asetuksistasi ei lähetetä tietokoneeltasi. Päivitys on jonkun muun automatisoitu toiminto, joka suoritetaan puhelimellasi, joten lue jokainen esikatselu ennen kuin käytät sitä.\n"
-
 msgid "A"
 msgstr "A"
-
 msgid "Accept Latest Version"
 msgstr "Hyväksy uusin versio"
-
 msgid "Asking TaskerNet.  Please stand by..."
 msgstr "Kysytään TaskerNet-järjestelmältä. Ole hyvä ja odota..."
-
 msgid "Before you share this export: lists the plugins and apps it uses, the special access it needs (root, ADB Wi-Fi, Write Secure Settings and the like), the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on.\n\nBuilt from what is in the file, so it is a minimum rather than a guarantee."
 msgstr "Ennen kuin jaat tämän vientitiedoston: se listaa käytetyt lisäohjelmat ja sovellukset, erityiset tarvitsemat pääsyn (root, ADB Wi-Fi, Write Secure Settings jne.), muuttujat, joita Tasker kysyy tuonnin aikana, sekä vanhimman Taskerin, jonka sen tiedetään toimivan.\n\nTiedosto perustuu siihen, mitä tiedostossa on, joten se on enemmän minimivaatimus kuin takuu."
-
 msgid "Check Now"
 msgstr "Tarkista nyt"
-
 msgid "Check readiness"
 msgstr "Tarkista valmius"
-
 msgid "Choose which one of yours the share is."
 msgstr "Valitse, mikä osuus sinun on."
-
 msgid "Copied."
 msgstr "Kopioitu."
-
 msgid "Copy as text"
 msgstr "Kopioi tekstiin"
-
 msgid "Each change reads: the author's version -> your copy."
 msgstr "Jokainen muutos ilmaisee: kirjailijan versio -> oma kopio."
-
 msgid "Everything linked is up to date."
 msgstr "Kaikki linkit ovat ajantasaisia."
-
 msgid "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find out when its author publishes a newer version.\n\nShows what the author changed and lets you take each change on its own, previewed first and one press of Undo afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; nothing from your configuration leaves this computer."
 msgstr "Linkitä projekti, profiili, tehtävä tai kohtaus Taskernet-osioon, josta se on peräisin, ja selvitä, milloin sen tekijä julkaisee uudemman version.\n\nNäyttää, mitä tekijä on muuttanut, ja antaa sinun tarkastella jokaista muutosta erikseen, ensin esikatseluun ja sitten yhden \"Peruuta\" -painalluksen jälkeen.\n\nVain kunkin linkitetyn osion osoite lähetetään taskernet.comille; mitään asetuksistasi ei lähetetä tästä tietokoneesta."
-
 msgid "Link a share"
 msgstr "Lisää jako"
-
 msgid "Linked -- press Review to compare it with your copy"
 msgstr "Linkitetty – paina \"Vertaa\" -painiketta verrataksesi sitä omaan kopioon."
-
 msgid "Linked shares"
 msgstr "Yhteydessä olevat osakke"
-
 msgid "Linked.  The version published"
 msgstr "Linkitetty. Versio, joka on julkaistu."
-
 msgid "Mark As Up To Date"
 msgstr "Merkitse päivitettynä"
-
 msgid "Marked as up to date."
 msgstr "Merkitty päivitettynä."
-
 msgid "Newer version published"
 msgstr "Uusi versio julkaistu"
-
 msgid "No earlier version is on file."
 msgstr "Ennen olevaa versiota ei ole tiedostossa."
-
 msgid "No shares are linked yet.  Link one below."
 msgstr "Tällä hetkellä ei ole yhteyksiä määritelty. Lisää yhteys alla."
-
 msgid "Not checked yet"
 msgstr "Vaikka ei ole vielä tarkistettu."
-
 msgid "Not in the configuration that is loaded."
 msgstr "Ei kyseessä ole ladattu konfiguraatio."
-
 msgid "Nothing to take."
 msgstr "Ei otettavaa."
-
 msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here."
 msgstr "Avaa osakkeen oma sivu TaskerNetissä (se, joka näkyy kun napsautat \"Tuo\"-painiketta, esimerkiksi jossa on ohjeet \"Tuon\":), ja liitä sen osoite tähän."
-
 msgid "Pick the one of yours it is, then press Link."
 msgstr "Valitse haluamasi, ja paina \"Linkki\"."
-
 msgid "Press 'Take this' on a row first."
 msgstr "Napauta ensin \"Hyväksy\" -painiketta rivillä."
-
 msgid "Readiness"
 msgstr "Valmius"
-
 msgid "Removed by the author -- not offered; delete them in their own Edit dialogs"
 msgstr "Poikkeuksena, tekijä on poistanut ne – ne eivät ole tarjolla; poista ne omista muokkausikkunoistaan."
-
 msgid "Report saved as"
 msgstr "Raportti tallennettu nimellä"
-
 msgid "Review"
 msgstr "Arvio"
-
 msgid "Save Report"
 msgstr "Tallenna raportti"
-
 msgid "Show every difference from my copy, not only the author's changes"
 msgstr "Listataan kaikki erot minun kopioni kanssa, ei vain kirjoittajan muutokset."
-
 msgid "Some changes were skipped, so this version is not marked as the one you have."
 msgstr "Joitakin muutoksia jätettiin huomiotta, joten tämä versio ei ole sama kuin sinulla on."
-
 msgid "Some links could not be checked -- see the list."
 msgstr "Osa linkeistä ei voitu tarkistaa – katso luettelo."
-
 msgid "TaskerNet Updates"
 msgstr "TaskerNetin päivitykset"
-
 msgid "TaskerNet share link"
 msgstr "TaskerNet-yhteismerkki"
-
 msgid "The author changed"
 msgstr "Kirjailija muutti"
-
 msgid "The author has published nothing new since the version you accepted"
 msgstr "Kirjailija ei ole julkaissut uusia teoksia sen jälkeen, kun olet hyväksynyt sen."
-
 msgid "The report could not be saved."
 msgstr "Raporttia ei voitu tallentaa."
-
 msgid "Up to date -- published"
 msgstr "Ajantasainen – julkaistu"
-
 msgid "What this needs on the phone that receives it."
 msgstr "Mitä tämä tarvitsee puhelimelta, joka vastaanottaa sen."
-
 msgid "Which one of yours is it?"
 msgstr "Mikä on sinun?"
-
 msgid "With no earlier version to compare against, this lists everything that differs from your copy.  Tasker rewrites some things when it imports a share, so not every difference is the author's.  From the next update on, only what the author changed is listed."
 msgstr "Koska ei ole aiempaa versiota vertailtavaksi, tämä luettelo sisältää kaikki erot omassa kopioissasi. Tasker muokkaa joitain asioita, kun se tuo tiedoston, joten kaikki erot eivät välttämättä ole kirjoittajan tekemiä. Alkuperäisestä päivityksestä lähtien luettelossa näkyvät vain ne asiat, jotka kirjoittaja on muuttanut."
-
 msgid "Your copy matches it."
 msgstr "Tekstisi vastaa sitä."
-
 msgid "can be taken here."
 msgstr "voidaan tehdä täällä."
-
 msgid "change(s) taken.  Undo is available."
 msgstr "* Muutokset on tehty.\n* Palautus on käytettävissä."
-
 msgid "change(s) to the Project itself (its description or variables, say) are not offered one by one -- see Save Report."
 msgstr "Muutokset projektissa (sen kuvaukseen tai muuttujiin, esimerkiksi) eivät ole tarjolla yksittäin – katso \"Tallenna raportti\"."
-
 msgid "difference(s) from your copy are listed."
 msgstr "Erotukset omasta kopioistasi on lueteltu."
-
 msgid "has the same content as it."
 msgstr "sisällö on täsmälleen sama kuin alkuperäisessä."
-
 msgid "is now the one MapTasker takes you to have."
 msgstr "nyt on MapTaskerin suositus."
-
 msgid "linked share(s) have a newer version."
 msgstr "Linkitetty osake(t) on uudempi versio."
-
 msgid "linked share(s) have a newer version.  Open TaskerNet Updates to see what changed."
 msgstr "Linkitetty share(t) sisältävät uudemman version. Avaa \"TaskerNet Updates\" nähdäksesi, mitä on muuttunut."
-
 msgid "more."
 msgstr "enemmän."
-
 msgid "object(s) exist only in your copy and are left alone."
 msgstr "Objektit ovat olemassa vain sinun kopiosi, ja ne jätetään muuten."
-
 msgid "object(s) since the version you accepted"
 msgstr "kohde(t), koska hyväksyt käytössä olevan version"
-
 msgid "object(s) still differ from your copy, but not because of anything the author changed -- Tasker rewrites a share when it imports it, or you edited them.  Tick the box below to list them."
 msgstr "Kohde(t) eroavat edelleen omasta kopiosi, mutta eivät siksi, että kirjailija on muuttanut mitään – Tasker luo uuden kopion, kun se tuo sen, tai sinä olet itse muokannut niitä. Merkitse alla oleva laatikko, jos haluat listata ne."
-
 msgid "on TaskerNet"
 msgstr "TaskerNetissä"
-
 msgid "shared as"
 msgstr "jaettu"
-
 msgid "the version published"
 msgstr "julkaisettu versio"
+msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here.  This is a one-time setup process only for each project/profile/task to establish its linkage to TaskerNet."
+msgstr "Avaa osakkeen oma sivu TaskerNetissä (sivu, joka näkyy kun napsautat \"Tuo\"-painiketta, esimerkiksi sisältää ohjeet \"Tuo:\"), ja liitä sen osoite tähän. Tämä on vain kerran tehtävä prosessi, jonka avulla jokainen projekti/profiili/tehtävä yhdistetään TaskerNetiin."

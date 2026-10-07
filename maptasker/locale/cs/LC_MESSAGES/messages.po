@@ -2795,186 +2795,127 @@ msgid "The request to the AI model was cancelled."
 msgstr "Žádost adresovaná AI modelu byla zrušena."
 msgid "e.g. flash 'Hello' if %WIFI is on"
 msgstr "např. zobrazte \"Hello\" pokud je aktivní Wi-Fi"
-
 msgid "- TaskerNet Updates: Link a Project, Profile, Task or Scene to the TaskerNet share it came from (paste the share's address and say which of yours it is), and MapTasker tells you when its author publishes a newer version -- when you start it, and whenever you press Check Now.  Review lists what the author changed, each with a Take this button that previews the change before anything happens and is one press of Undo afterwards.  What is taken is the author's version of that Task, Profile or Scene, except that a Profile stays as switched on or off as you had it.  Accept Latest Version takes everything listed in one go instead, with no preview of its own (one press of Undo takes it back).  Only the address of each linked share is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone else's automation that will run on your phone, so read each preview before you take it.  \n"
 msgstr "- Aktualizace TaskerNet: Propojte projekt, profil, úkol nebo scénu se sdíleným zdrojem (vložte adresu sdíleného zdroje a uveďte, který z vašich patří), a TaskerNet vás upozorní, když autor publikuje novější verzi – při spuštění a při každém stisknutí tlačítka \"Zkontrolovat nyní\". Funkce Review zobrazuje, jaké změny autor provedl, s tlačítkem \"Použít\", které vám umožní představit si změnu ještě předtím, než se něco stane, a po stisknutí tlačítka \"Zrušit\". Použité je verze daného úkolu, profilu nebo scény od autora, s tím, že profil zůstane zapnutý nebo vypnutý, jak jste jej měli nastavený. \"Přijmout nejnovější verzi\" vezme vše uvedené najednou, bez vlastního předhlídk (po stisknutí tlačítka \"Zrušit\" se vrátí zpět). Na taskernet.com se odesílá pouze adresa každého propojeného sdíleného zdroje; nic z vaší konfigurace neopustí váš počítač. Aktualizace je automatizace od někoho jiného, která bude běžet na vašem telefonu, takže si před jejím použitím pečlivě přečtěte všechny předhlídky.\n"
-
 msgid "A"
 msgstr "A"
-
 msgid "Accept Latest Version"
 msgstr "Přijmout nejnovější verzi"
-
 msgid "Asking TaskerNet.  Please stand by..."
 msgstr "Zadáváme dotaz TaskerNet. Prosím, počkejte..."
-
 msgid "Before you share this export: lists the plugins and apps it uses, the special access it needs (root, ADB Wi-Fi, Write Secure Settings and the like), the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on.\n\nBuilt from what is in the file, so it is a minimum rather than a guarantee."
 msgstr "Než budete tento export sdílet:\n*   uvádí seznam pluginů a aplikací, které používá,\n*   specifické oprávnění, která potřebuje (root přístup, ADB Wi-Fi, přístup k zabezpečeným nastavením atd.),\n*   proměnné, které Tasker bude během importu požadovat, a\n*   nejstarší verzi Taskeru, na které je známé, že běží.\n\nJe založeno na informacích obsažených ve souboru, proto představuje minimální požadavky, nikoli záruku."
-
 msgid "Check Now"
 msgstr "Zkontrolujte nyní"
-
 msgid "Check readiness"
 msgstr "Zkontrolujte připravenost"
-
 msgid "Choose which one of yours the share is."
 msgstr "Vyberte, do kterého z nich patří."
-
 msgid "Copied."
 msgstr "Zkopírováno."
-
 msgid "Copy as text"
 msgstr "Zkopírujte jako text"
-
 msgid "Each change reads: the author's version -> your copy."
 msgstr "Každá změna má následující označení: verze autora -> vaše kopie."
-
 msgid "Everything linked is up to date."
 msgstr "Všechny odkazy jsou aktuální."
-
 msgid "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find out when its author publishes a newer version.\n\nShows what the author changed and lets you take each change on its own, previewed first and one press of Undo afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; nothing from your configuration leaves this computer."
 msgstr "Propojte projekt, profil, úkol nebo scénu se sdíleným prostředkem, ze kterého pochází, a zjistěte, kdy autor vydá novější verzi.\n\nZobrazuje, jaké změny autor provedl, a umožňuje vám si každou změnu prohlédnout a aplikovat, a poté ji jednoduše zrušit.\n\nNa taskernet.com se odesílá pouze adresa každého propojeného sdíleného prostředku; nic z vaší konfigurace se z tohoto počítače nepřenáší."
-
 msgid "Link a share"
 msgstr "Odkaz a sdílení"
-
 msgid "Linked -- press Review to compare it with your copy"
 msgstr "Propojené – pro srovnání s vaší kopií klikněte na recenzi."
-
 msgid "Linked shares"
 msgstr "Spojené akcie"
-
 msgid "Linked.  The version published"
 msgstr "Propojeno. Verze publikovaná"
-
 msgid "Mark As Up To Date"
 msgstr "Označit jako aktuální"
-
 msgid "Marked as up to date."
 msgstr "Označeno jako aktuální."
-
 msgid "Newer version published"
 msgstr "Nová verze byla publikována"
-
 msgid "No earlier version is on file."
 msgstr "Neexistuje žádná předchozí verze tohoto dokumentu."
-
 msgid "No shares are linked yet.  Link one below."
 msgstr "V současné době neexistují žádné propojené akcie. Propojte jednu níže."
-
 msgid "Not checked yet"
 msgstr "Stále nebylo zkontrolováno"
-
 msgid "Not in the configuration that is loaded."
 msgstr "Ne, ne v konfiguraci, která je načtena."
-
 msgid "Nothing to take."
 msgstr "Žádné věci k odbavení."
-
 msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here."
 msgstr "Otevřete vlastní stránku sdíleného obsahu na TaskerNet (stránku, která se zobrazí po kliknutí na tlačítko „Import“ – například obsahuje instrukce „Import:“) a zde zkopírujte její adresu."
-
 msgid "Pick the one of yours it is, then press Link."
 msgstr "Vyberte si jednu ze svých a poté stiskněte tlačítko \"Odkaz\"."
-
 msgid "Press 'Take this' on a row first."
 msgstr "Nejdříve stiskněte tlačítko „Přijmout“."
-
 msgid "Readiness"
 msgstr "Připravenost"
-
 msgid "Removed by the author -- not offered; delete them in their own Edit dialogs"
 msgstr "Odstraněno autorem – nejsou nabízeny; odstraňte je v jejich vlastních dialogových oknech."
-
 msgid "Report saved as"
 msgstr "Záznam uložen jako"
-
 msgid "Review"
 msgstr "Recenze"
-
 msgid "Save Report"
 msgstr "Uložit report"
-
 msgid "Show every difference from my copy, not only the author's changes"
 msgstr "Uveďte všechny rozdíly oproti mé kopii, nejen změny provedené autorem."
-
 msgid "Some changes were skipped, so this version is not marked as the one you have."
 msgstr "Některé změny byly přeskočeny, proto tato verze není označena jako ta, kterou máte."
-
 msgid "Some links could not be checked -- see the list."
 msgstr "Některé odkazy nemohly být ověřeny – viz seznam."
-
 msgid "TaskerNet Updates"
 msgstr "Aktualizace TaskerNet"
-
 msgid "TaskerNet share link"
 msgstr "Odkaz na sdílený prostor TaskerNet"
-
 msgid "The author changed"
 msgstr "Autor změnil"
-
 msgid "The author has published nothing new since the version you accepted"
 msgstr "Autor vydal od doby, kdy jste verzi přijali, žádnou novou knihu."
-
 msgid "The report could not be saved."
 msgstr "Nebylo možné uložit zprávu."
-
 msgid "Up to date -- published"
 msgstr "Aktuální – vydáno"
-
 msgid "What this needs on the phone that receives it."
 msgstr "Co tato zařízení potřebuje, aby správně fungovalo, když je přijímá."
-
 msgid "Which one of yours is it?"
 msgstr "Který z nich je váš?"
-
 msgid "With no earlier version to compare against, this lists everything that differs from your copy.  Tasker rewrites some things when it imports a share, so not every difference is the author's.  From the next update on, only what the author changed is listed."
 msgstr "Protože neexistuje žádná předchozí verze pro srovnání, tento seznam uvádí vše, co se liší od vaší kopie. Aplikace Tasker někdy upravuje určité části při importu sdíleného souboru, takže ne všechny rozdíly jsou způsobeny původním autorem. Od další aktualizace bude v seznamu uvedeno pouze to, co autor změnil."
-
 msgid "Your copy matches it."
 msgstr "Vaše kopie odpovídá."
-
 msgid "can be taken here."
 msgstr "Mohou být získány zde."
-
 msgid "change(s) taken.  Undo is available."
 msgstr "provedeny změny. Funkce \"Zrušit\" je k dispozici."
-
 msgid "change(s) to the Project itself (its description or variables, say) are not offered one by one -- see Save Report."
 msgstr "Změny, které se týkají samotného projektu (např. jeho popisu nebo proměnných), nejsou nabízeny samostatně – viz uložení reportu."
-
 msgid "difference(s) from your copy are listed."
 msgstr "Rozdíly oproti vaší kopii jsou uvedeny níže."
-
 msgid "has the same content as it."
 msgstr "má stejný obsah jako původní dokument."
-
 msgid "is now the one MapTasker takes you to have."
 msgstr "Nyní je to hlavní úkol, který MapTasker nabízí."
-
 msgid "linked share(s) have a newer version."
 msgstr "Spojené sdílené soubory mají novější verzi."
-
 msgid "linked share(s) have a newer version.  Open TaskerNet Updates to see what changed."
 msgstr "Související verze(y) mají novější verzi. Pro zobrazení změn otevřete sekci „Aktualizace TaskerNet“."
-
 msgid "more."
 msgstr "více."
-
 msgid "object(s) exist only in your copy and are left alone."
 msgstr "Tyto objekty existují pouze ve vaší kopii a zůstávají nezměněné."
-
 msgid "object(s) since the version you accepted"
 msgstr "objekty, které jste přijali"
-
 msgid "object(s) still differ from your copy, but not because of anything the author changed -- Tasker rewrites a share when it imports it, or you edited them.  Tick the box below to list them."
 msgstr "Objekty se stále liší od vašeho, ale to není způsobeno žádnými změnami, které autor provedl – aplikace Tasker znovu vytvoří sdílený soubor, pokud jej importuje, nebo jste jej sami upravili. Zaškrtněte následující políčko, pokud chcete, aby byly tyto objekty zobrazeny."
-
 msgid "on TaskerNet"
 msgstr "v TaskerNet"
-
 msgid "shared as"
 msgstr "sdíleno"
-
 msgid "the version published"
 msgstr "verze, která byla publikována"
+msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here.  This is a one-time setup process only for each project/profile/task to establish its linkage to TaskerNet."
+msgstr "Otevřete vlastní stránku sdíleného souboru v TaskerNet (ta, která se zobrazí po kliknutí na tlačítko \"Import\" – například s instrukcemi \"Import:\"), a vložte její adresu sem. Toto je jednorázová konfigurace, která se používá pro každý projekt/profil/úkol, aby se vytvořila jeho vazba na TaskerNet."
