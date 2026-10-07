@@ -65,6 +65,7 @@ from maptasker.src.guiwins_fix import build_fix_dialog
 from maptasker.src.guiwins_nav import forget_views, go_to_target, live_views, opening_view_in_a_new_window
 from maptasker.src.guiwins_refactor import build_refactor_dialog
 from maptasker.src.guiwins_restore import build_restore_dialog
+from maptasker.src.guiwins_tnupdate import build_tnupdate_dialog, check_links_at_startup
 from maptasker.src.guiwins_views import NiceGuiTextView, NiceGuiTreeView
 from maptasker.src.maputil2 import (
     log_startup_values,
@@ -139,6 +140,16 @@ all_objects = ALL_OBJECTS_MESSAGE
 
 # We'll use a class to maintain your state, just like before,
 # but it NO LONGER inherits from customtkinter.CTk
+def check_for_updates(gui: "MyGui") -> None:
+    """Look for a newer MapTasker on PyPI, and for newer versions of the TaskerNet shares linked.
+
+    Both are asked off the event loop and say nothing unless there is something to say.  The
+    second asks nothing at all if no share has been linked.
+    """
+    check_new_version(gui)
+    check_links_at_startup()
+
+
 class MyGui:
     """Main UI Interface for MapTasker using NiceGUI."""
 
@@ -151,6 +162,8 @@ class MyGui:
     save_settings_button: ui.button
     restore_settings_button: ui.button
     report_issue_button: ui.button
+    # The TaskerNet Updates dialog while one is up (see taskernet_updates_event).
+    tnupdate_dialog: ui.dialog | None
 
     def __init__(self: "MyGui", state: RunState | None = None) -> None:
         """Initialize the GUI and set up all necessary state and layout.
@@ -237,8 +250,8 @@ class MyGui:
         # restore above put in place.
         self.seed_view_limit_from_command_line()
 
-        # Check if newer version of our code is available on Pypi.
-        check_new_version(self)
+        # Check if newer version of our code is available on Pypi, and any share linked to TaskerNet.
+        check_for_updates(self)
 
         # See if we have a changelog, and get it if we do.  This must go before 'self.process_current_messages()' call.
         check_for_changelog(self)
@@ -1975,6 +1988,45 @@ class MapTaskerEventHandlers(
             return
         self.gui.restore_dialog = dialog
         dialog.open()
+
+    def taskernet_updates_event(self: "MapTaskerEventHandlers") -> None:
+        """Open the TaskerNet Updates dialog: linked shares, what their authors changed, and taking it.
+
+        Beside Restore From History because it is that dialog's other source: both bring an
+        object in from a configuration that is not the one open, one at a time, previewed first.
+
+        Rebuilt on every press, for restore_history_event's reason: a preview closes over live
+        elements, and holding one across a reopen is the stale-handle case maprefac.apply's
+        attachment check exists to catch.
+        """
+        self._dismiss_tnupdate_dialog()
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
+            """One row's click: open what it names in a window of its own, keeping this one up."""
+
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        async def refresh_after_apply() -> None:
+            """The pulldowns: taking an update can add whole objects, so an option list built before one is short."""
+            refresh_tasker_object_pulldowns(self.gui)
+
+        dialog = build_tnupdate_dialog(make_jump, refresh_after_apply, self.save_whole_configuration, state=self.state)
+        if dialog is None:
+            return
+        self.gui.tnupdate_dialog = dialog
+        dialog.open()
+
+    def _dismiss_tnupdate_dialog(self: "MapTaskerEventHandlers") -> None:
+        """Take down the TaskerNet Updates dialog if one is still up -- see _dismiss_restore_dialog."""
+        dialog = getattr(self.gui, "tnupdate_dialog", None)
+        self.gui.tnupdate_dialog = None
+        if dialog is not None:
+            with suppress_logged("Deleting the TaskerNet Updates dialog"):
+                dialog.delete()
 
     def fire_simulator_event(self: "MapTaskerEventHandlers") -> None:
         """Open the What Fires When? dialog: pick a moment, see which Profiles it makes active.

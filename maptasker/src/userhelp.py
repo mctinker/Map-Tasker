@@ -223,6 +223,18 @@ OUTPUT_FOLDER_HELP_TEXT = (
     " Map/Diagram files are written to the 'Output Folder' set in the settings drawer.  Left empty,"
     " that is a 'MapTasker' folder in your Documents folder.  \n"
 )
+# Another note held apart for the same reason.  Until the catalogs are synced it reads in English
+# in every language.
+TASKERNET_UPDATES_HELP_TEXT = (
+    "- TaskerNet Updates: Link a Project, Profile, Task or Scene to the TaskerNet share it came from"
+    " (paste the share's address and say which of yours it is), and MapTasker tells you when its author"
+    " publishes a newer version -- when you start it, and whenever you press Check Now.  Review lists what"
+    " the author changed, each with a Take this button that previews the change before anything happens and"
+    " is one press of Undo afterwards.  What is taken is the author's version of that Task, Profile or Scene,"
+    " except that a Profile stays as switched on or off as you had it.  Only the address of each linked share"
+    " is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone"
+    " else's automation that will run on your phone, so read each preview before you take it.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -252,5 +264,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(COMMAND_REFERENCE_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(COMMAND_REFERENCE_TEXT)}"
     )

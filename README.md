@@ -64,6 +64,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Enhanced search and structured 'Find/Replace'.
 - Add and Edit Projects, Profiles, Tasks, and Scenes (see [Note 6](#6))
 - List changes since a specific date.
+- Link a Project, Profile, Task or Scene to the TaskerNet share it came from, be told when its author publishes a newer version, and take their changes one at a time.
 - Analyze the health of the Tasker XML as well as the numerous variables throughout the configuration.
 - Compare an XML file against the loaded XML.
 
@@ -349,6 +350,8 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 - [ ] Readiness Check
 
 - [x] Command Line Reports
+
+- [x] TaskerNet Updates
 
 - [x] Support additional plugins
 

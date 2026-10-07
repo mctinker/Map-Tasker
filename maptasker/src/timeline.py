@@ -183,6 +183,15 @@ def _history_folder(*, create: bool) -> Path | None:
     return folder if folder.is_dir() else None
 
 
+def history_folder(*, create: bool = False) -> Path | None:
+    """The folder the history is kept in, for the program's other remembered state that belongs beside it.
+
+    TaskerNet's saved links live there too (see tnupdate): both are about the configuration
+    files the user has loaded.  None when it cannot be had; never raises.
+    """
+    return _history_folder(create=create)
+
+
 def _digest_of(file_path: str) -> str:
     """The first _DIGEST_LENGTH hex characters of the file's SHA-256, or "" if unreadable."""
     hasher = hashlib.sha256()

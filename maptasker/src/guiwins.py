@@ -2921,6 +2921,30 @@ def _create_history_buttons_section(self: MyGui) -> None:
             ),
         ).style("white-space: pre-wrap")
 
+    # Under Restore From History because it is that dialog's other source: an object brought in
+    # one at a time from a configuration that is not the one open -- here, the TaskerNet share
+    # it came from rather than a file kept in the history.
+    taskernet_updates_button = (
+        ui.button(
+            translate_string("TaskerNet Updates"),
+            color="teal",
+            on_click=self.event_handlers.taskernet_updates_event,
+            icon="cloud_sync",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with taskernet_updates_button:
+        ui.tooltip(
+            translate_string(
+                "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find "
+                "out when its author publishes a newer version.\n\nShows what the author changed and "
+                "lets you take each change on its own, previewed first and one press of Undo "
+                "afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; "
+                "nothing from your configuration leaves this computer.",
+            ),
+        ).style("white-space: pre-wrap")
+
 
 def _create_analysis_buttons_section(self: MyGui) -> None:
     """The reports that read the configuration's behaviour: Variable Xref, Task Flow and What Fires When."""

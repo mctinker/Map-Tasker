@@ -213,14 +213,14 @@ class _RestoreDialog:
             self.apply_button = ui.button(translate_string("Apply"), on_click=self.do_apply).classes("px-4")
             self.apply_button.props("color=orange")
             self.apply_button.disable()
-            _tip(
+            tip(
                 self.apply_button,
                 "Make the restore the preview describes, and nothing else.\n\n"
                 "Greyed out until a row's 'Restore this' has drawn a preview that can be applied.\n\n"
                 "One press of Undo afterwards puts the configuration back as it is now.\n\n",
             )
             ui.button(translate_string("Cancel Preview"), on_click=self.clear_preview).props("outline")
-            _tip(
+            tip(
                 ui.button(translate_string("Save To Current File"), color="green", on_click=self.do_save).classes(
                     "text-white px-4",
                 ),
@@ -255,7 +255,7 @@ class _RestoreDialog:
         held.plan = plan
         held.previewed = candidate
         self.preview_heading.set_text(translate_string("Preview -- nothing has changed yet"))
-        _draw_preview(self.preview_area, plan, self.make_jump)
+        draw_preview(self.preview_area, plan, self.make_jump)
         if plan.can_apply:
             self.apply_button.enable()
         else:
@@ -396,30 +396,34 @@ def _draw_list(
     with area, ui.column().classes("w-full gap-0 p-1"):
         for identity, candidate in applied.items():
             if identity not in offered:
-                _draw_row(candidate, make_jump, on_restore, applied=True, finished=True)
+                draw_row(candidate, make_jump, on_restore, applied=True, finished=True)
         if offer.is_empty:
             ui.label(translate_string(_NOTHING)).classes("text-sm text-gray-500 italic p-2")
             return
         for candidate in offer.candidates[:_ROW_LIMIT]:
-            _draw_row(candidate, make_jump, on_restore, applied=candidate.identity in applied)
+            draw_row(candidate, make_jump, on_restore, applied=candidate.identity in applied)
         if len(offer.candidates) > _ROW_LIMIT:
             ui.label(
                 f"...{len(offer.candidates) - _ROW_LIMIT} {translate_string('more.  Choose a more recent configuration.')}",
             ).classes("text-xs text-gray-500 italic mt-2")
 
 
-def _draw_row(
+def draw_row(
     candidate: maprestore.Candidate,
     make_jump: Callable,
     on_restore: Callable[[maprestore.Candidate], None],
     *,
     applied: bool = False,
     finished: bool = False,
+    tag: str | None = None,
+    button_label: str = "Restore this",
 ) -> None:
     """One object: its tag, where it is (a link, when it is here to go to), and 'Restore this'.
 
     `applied` draws the button green, for a row whose restore has been applied; `finished`
-    also disables it, for one that has nothing left to restore.
+    also disables it, for one that has nothing left to restore.  `tag` and `button_label` are
+    for the other dialog that draws these rows -- TaskerNet Updates, where "removed" would be
+    the wrong word for something the author added -- and default to this dialog's own.
     """
     # min-w-0 and break-all are what keep the button on screen.  A flex child will not shrink
     # below its content's width unless told it may, and a detail line holding one long unbroken
@@ -429,7 +433,7 @@ def _draw_row(
     with ui.row().classes("w-full items-start gap-2 border-b dark:border-gray-700 py-1 px-2 no-wrap"):
         with ui.column().classes("flex-1 min-w-0 gap-0"):
             with ui.row().classes("items-baseline gap-2 min-w-0"):
-                ui.label(candidate.tag).classes("font-mono text-xs font-bold text-orange-500 shrink-0")
+                ui.label(tag or candidate.tag).classes("font-mono text-xs font-bold text-orange-500 shrink-0")
                 if candidate.target is not None:
                     ui.link(candidate.where, "#").on("click", make_jump(candidate.target)).classes(
                         "text-blue-600 dark:text-blue-400 font-mono text-sm decoration-dotted hover:underline "
@@ -443,7 +447,7 @@ def _draw_row(
                 ui.label(
                     f"...{len(candidate.details) - _DETAIL_LINES} {translate_string('more -- the preview lists them all')}",
                 ).classes("text-xs text-gray-500 italic pl-4")
-        button = ui.button(translate_string("Restore this"), on_click=lambda: on_restore(candidate)).classes(
+        button = ui.button(translate_string(button_label), on_click=lambda: on_restore(candidate)).classes(
             "shrink-0",
         )
         button.props("dense color=green" if applied else "dense outline")
@@ -451,7 +455,7 @@ def _draw_row(
             button.disable()
 
 
-def _draw_preview(area: ui.scroll_area, plan: maprefac.Plan, make_jump: Callable) -> None:
+def draw_preview(area: ui.scroll_area, plan: maprefac.Plan, make_jump: Callable) -> None:
     """The plan, from maprefac.report_rows -- the same rows the Refactor dialog draws."""
     area.clear()
     with area, ui.column().classes("w-full gap-0 p-2"):
@@ -475,7 +479,7 @@ def _row_classes(text: str) -> str:
     return "text-gray-700 dark:text-gray-300"
 
 
-def _tip(element: ui.element, text: str) -> ui.element:
+def tip(element: ui.element, text: str) -> ui.element:
     """Attach one of this dialog's tooltips; pre-wrap keeps its blank lines (see guiwins_fix._tip)."""
     with element:
         ui.tooltip(translate_string(text)).style("white-space: pre-wrap")

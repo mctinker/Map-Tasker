@@ -303,7 +303,8 @@ def test_timestamps_alone_are_never_a_change() -> None:
     make the whole feature useless.
     """
     restamped = _OLDER_XML.replace("<cdate>1</cdate>", "<cdate>424242</cdate>").replace(
-        "<mdate>2</mdate>", "<mdate>424242</mdate>",
+        "<mdate>2</mdate>",
+        "<mdate>424242</mdate>",
     )
     _, totals = compare(_configuration(_OLDER_XML, "a.xml"), _configuration(restamped, "b.xml"))
     assert totals == {ADDED: 0, REMOVED: 0, RENAMED: 0, CHANGED: 0}
@@ -368,7 +369,8 @@ def test_project_variable_change_is_spelled_out(report: str) -> None:
 def test_reordered_membership_is_not_a_change() -> None:
     """<pids> compared as a set: Tasker reorders it freely and the order means nothing."""
     shuffled = _OLDER_XML.replace(
-        "<pids>10,11,12,14,15,16,17</pids>", "<pids>17,16,15,14,12,11,10</pids>",
+        "<pids>10,11,12,14,15,16,17</pids>",
+        "<pids>17,16,15,14,12,11,10</pids>",
     )
     _, totals = compare(_configuration(_OLDER_XML, "a.xml"), _configuration(shuffled, "b.xml"))
     assert totals[CHANGED] == 0
@@ -604,6 +606,7 @@ def test_many_id_collisions_warn_at_the_top() -> None:
     Left to infer it from the entries, a reader would work through a hundred nonsense
     findings before reaching the same conclusion.
     """
+
     def one_side(prefix: str, code: str) -> str:
         tasks = "".join(
             f'<Task sr="t{index}" ve="2"><id>{index}</id><nme>{prefix}{index}</nme>'
@@ -627,10 +630,10 @@ def test_every_detail_line_is_listed() -> None:
     A count of what was left out tells the reader something changed but not what, which
     sends them back to the XML to find it.
     """
+
     def one_side(text: str) -> str:
         actions = "".join(
-            f'<Action sr="act{index}" ve="7"><code>548</code>'
-            f'<Str sr="arg0" ve="3">{text}{index}</Str></Action>'
+            f'<Action sr="act{index}" ve="7"><code>548</code><Str sr="arg0" ve="3">{text}{index}</Str></Action>'
             for index in range(40)
         )
         return (
@@ -666,3 +669,80 @@ def test_counts_match_the_entries(report: str, counts: dict) -> None:
     for kind, prefix in ((ADDED, "-ADDED"), (REMOVED, "-REMOVED"), (RENAMED, "-RENAMED"), (CHANGED, "-CHANGED")):
         entries = [line for line in report.splitlines() if line.startswith("[") and prefix in line.split("]")[0]]
         assert len(entries) == counts[kind], f"{kind}: header says {counts[kind]}, body has {len(entries)}"
+
+
+def test_a_difference_in_nothing_but_an_empty_argument_says_so_instead_of_just_changed() -> None:
+    """A newer Tasker writes an empty argument an older one did not know.  It is a difference; it is not nothing.
+
+    The report used to say only "Changed." here, which is true and tells the reader nothing --
+    they cannot tell an edit from a rewrite by Tasker, and go looking for what they did.
+    """
+    older = """<TaskerData sr="" dvi="1" tv="6.5.6">
+      <Task sr="t" ve="2"><id>20</id><nme>Runner</nme>
+        <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">Running</Str></Action></Task>
+    </TaskerData>
+    """
+    newer = older.replace("Running</Str>", 'Running</Str><Str sr="arg1" ve="3" />')
+
+    text, totals = compare(_configuration(older, "a.xml"), _configuration(newer, "b.xml"))
+
+    assert totals[CHANGED] == 1
+    assert "Changed." not in text.split("WHAT THIS COMPARISON")[0]
+    assert "1. Flash: only in the newer file: arg1 (empty)" in text
+
+
+def test_a_profile_whose_flags_differ_says_which() -> None:
+    older = """<TaskerData sr="" dvi="1" tv="6.5.6">
+      <Profile sr="p" ve="2"><flags>8</flags><id>10</id><nme>Wake</nme><Time sr="con0"><fh>7</fh></Time></Profile>
+    </TaskerData>
+    """
+
+    text, _ = compare(_configuration(older, "a.xml"), _configuration(older.replace(">8<", ">10<"), "b.xml"))
+
+    assert "flags: '8' -> '10'" in text
+
+
+def test_an_edited_condition_says_which_setting_differs() -> None:
+    """'Event condition edited.' is true and says nothing: a reader cannot tell an edit from Tasker rewriting it."""
+    older = """<TaskerData sr="" dvi="1" tv="6.5.6">
+      <Profile sr="p" ve="2"><id>10</id><nme>Hear</nme>
+        <Event sr="con0" ve="2"><code>2089</code><pri>0</pri><Int sr="arg0" val="1"/><Str sr="arg1" ve="3">old</Str>
+          <Bundle sr="arg2"><Vals sr="val"><Key>a</Key></Vals></Bundle></Event></Profile>
+    </TaskerData>
+    """
+    newer = (
+        older.replace(">old<", ">new<")
+        .replace("<Key>a</Key>", "<Key>b</Key>")
+        .replace("</Bundle>", '</Bundle><Int sr="arg3"/>')
+    )
+
+    text, _ = compare(_configuration(older, "a.xml"), _configuration(newer, "b.xml"))
+
+    assert "Event condition edited." in text
+    assert "Event: arg1: 'old' -> 'new'" in text
+    assert "Event: arg2 > val > Key: 'a' -> 'b'" in text
+    assert "Event: arg3 (empty) only in the newer file" in text
+
+
+def test_a_long_list_of_condition_differences_is_cut_and_counted() -> None:
+    args = "".join(f'<Str sr="arg{n}" ve="3">{{}}</Str>' for n in range(8))
+    older = f'<TaskerData sr="" dvi="1" tv="6.5.6"><Profile sr="p"><id>10</id><nme>P</nme><State sr="con0"><code>1</code>{args}</State></Profile></TaskerData>'
+    newer = older.replace("{}", "x")
+    older = older.replace("{}", "y")
+
+    text, _ = compare(_configuration(older, "a.xml"), _configuration(newer, "b.xml"))
+
+    assert text.count("State: arg") == 4
+    assert "State: ...4 more" in text
+
+
+def test_two_conditions_of_one_type_are_told_apart() -> None:
+    older = """<TaskerData sr="" dvi="1" tv="6.5.6"><Profile sr="p"><id>10</id><nme>P</nme>
+      <State sr="con0"><code>1</code><Int sr="arg0" val="1"/></State>
+      <State sr="con1"><code>2</code><Int sr="arg0" val="1"/></State></Profile></TaskerData>"""
+    newer = older.replace('<code>2</code><Int sr="arg0" val="1"/>', '<code>2</code><Int sr="arg0" val="9"/>')
+
+    text, _ = compare(_configuration(older, "a.xml"), _configuration(newer, "b.xml"))
+
+    assert "State: #2 arg0: '1' -> '9'" in text
+    assert "#1" not in text

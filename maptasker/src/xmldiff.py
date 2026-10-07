@@ -352,7 +352,33 @@ def _action_detail(
         # Named ("Text"), not numbered ("arg0") -- a bare arg number tells nobody anything.
         label = names.get(arg_id, f"argument {arg_id}")
         details.append(f"{position}. {_action_code_name(after_code)} {label}: '{was}' -> '{now}'")
+    if not details:
+        # The action differs, but in no value anything above reads: an argument that is there on one
+        # side and not the other and has nothing in it.  A newer Tasker writes these for arguments
+        # an older one did not have.  Said, rather than left as a bare "Changed."
+        details.append(f"{position}. {_action_code_name(after_code)}: {_shape_difference(before, after)}")
     return details
+
+
+def _shape_difference(before: Element, after: Element) -> str:
+    """How two elements holding the same values differ in what they contain, in a few words."""
+    was = {(child.get("sr") or child.tag): child for child in before}
+    now = {(child.get("sr") or child.tag): child for child in after}
+
+    def named(keys: list[str], side: dict[str, Element]) -> str:
+        return ", ".join(f"{key} (empty)" if _is_empty(side[key]) else key for key in keys)
+
+    parts = []
+    if only_now := sorted(key for key in now if key not in was):
+        parts.append(f"only in the newer file: {named(only_now, now)}")
+    if only_was := sorted(key for key in was if key not in now):
+        parts.append(f"only in the older file: {named(only_was, was)}")
+    return "; ".join(parts) or "its markup differs but no value does"
+
+
+def _is_empty(element: Element) -> bool:
+    """An element with nothing in it: no text, no value, no children."""
+    return not (element.text or "").strip() and "val" not in element.attrib and len(element) == 0
 
 
 def _pair_replaced_actions(
@@ -461,19 +487,95 @@ def _task_details(
 # ##################################################################################
 # Profiles, Projects and Scenes.
 # ##################################################################################
-def _conditions(profile: Element) -> dict[str, list[str]]:
-    """{condition type: canonical text of each}, e.g. {"Event": ["<Event>...</Event>"]}.
+def _condition_elements(profile: Element) -> dict[str, list[Element]]:
+    """{condition type: each condition element}.
 
     Anything a Profile carries that is not one of its own fields is a condition -- the
     types are open-ended (App, Time, State, Event, Loc, ...) and a newer Tasker may add
     one, so they are recognised by exclusion rather than by a list that would go stale.
     """
-    grouped: dict[str, list[str]] = {}
+    grouped: dict[str, list[Element]] = {}
     for child in profile:
-        if child.tag in _PROFILE_OWN_TAGS:
-            continue
-        grouped.setdefault(child.tag, []).append(_canonical(child))
+        if child.tag not in _PROFILE_OWN_TAGS:
+            grouped.setdefault(child.tag, []).append(child)
     return grouped
+
+
+def _conditions(profile: Element) -> dict[str, list[str]]:
+    """{condition type: canonical text of each}, e.g. {"Event": ["<Event>...</Event>"]}."""
+    return {kind: [_canonical(item) for item in items] for kind, items in _condition_elements(profile).items()}
+
+
+# How many differences inside one edited condition are spelled out, and how much of a value is
+# shown.  A condition's settings can be a long list or a long string; the report is for
+# recognising what changed, and the object itself is one click away.
+_CONDITION_LINES = 4
+_VALUE_WIDTH = 60
+
+
+def _children_by_key(element: Element) -> dict[str, Element]:
+    """An element's children by what names them: 'sr' ("arg3") where it has one, else the tag.
+
+    Two children with the same name get a number, so neither is lost.
+    """
+    keyed: dict[str, Element] = {}
+    for child in element:
+        key = child.get("sr") or child.tag
+        while key in keyed:
+            key = f"{key}+"
+        keyed[key] = child
+    return keyed
+
+
+def _leaf_value(element: Element) -> str:
+    """What an element holds -- its text, or its 'val' attribute -- shortened for a report line."""
+    value = (element.text or "").strip() or element.get("val", "")
+    value = " ".join(value.split())
+    return value if len(value) <= _VALUE_WIDTH else f"{value[: _VALUE_WIDTH - 3]}..."
+
+
+def _held(element: Element) -> str:
+    """' (empty)' for an element with nothing in it, else ": 'what it holds'"."""
+    return " (empty)" if _is_empty(element) else f": '{_leaf_value(element)}'"
+
+
+def _element_differences(before: Element, after: Element, path: str = "") -> list[str]:
+    """Where two elements of the same kind differ, as 'arg3: 'a' -> 'b'' lines.  Nested settings read 'arg2 > Vals > key'."""
+    was, now = _children_by_key(before), _children_by_key(after)
+    lines: list[str] = []
+    for key in sorted(was.keys() | now.keys(), key=lambda item: (len(item), item)):
+        old, new = was.get(key), now.get(key)
+        here = f"{path}{key}"
+        if old is None and new is not None:
+            lines.append(f"{here}{_held(new)} only in the newer file")
+        elif new is None and old is not None:
+            lines.append(f"{here}{_held(old)} only in the older file")
+        elif old is None or new is None:
+            continue
+        elif len(old) or len(new):
+            lines.extend(_element_differences(old, new, f"{here} > "))
+        elif _leaf_value(old) != _leaf_value(new):
+            lines.append(f"{here}: '{_leaf_value(old)}' -> '{_leaf_value(new)}'")
+    return lines
+
+
+def _condition_edit_details(kind: str, before: list[Element], after: list[Element]) -> list[str]:
+    """What is different inside the conditions of one type that exist on both sides, after 'X condition edited.'
+
+    Conditions are paired by position.  Past the first few differences the rest are counted, not listed.
+    """
+    lines: list[str] = []
+    alone = len(before) == len(after) == 1
+    for number, (old, new) in enumerate(zip(before, after, strict=False), start=1):
+        if _canonical(old) != _canonical(new):
+            prefix = "" if alone else f"#{number} "
+            lines.extend(f"{prefix}{line}" for line in _element_differences(old, new))
+    if len(before) != len(after):
+        lines.append(f"{len(before)} of them before, {len(after)} now")
+    shown = lines[:_CONDITION_LINES]
+    if len(lines) > _CONDITION_LINES:
+        shown.append(f"...{len(lines) - _CONDITION_LINES} more")
+    return [f"  {kind}: {line}" for line in shown] or [f"  {kind}: its markup differs but no setting does"]
 
 
 def _profile_summary(side: _Side, profile: Element) -> list[str]:
@@ -498,6 +600,11 @@ def _profile_details(older: _Side, newer: _Side, key: str) -> list[str]:
     if was_disabled != now_disabled:
         details.append("disabled (was enabled)" if now_disabled else "enabled (was disabled)")
 
+    for tag in ("flags", "pri"):
+        was, now = _text(before, tag), _text(after, tag)
+        if was != now:
+            details.append(f"{tag}: '{was}' -> '{now}'")
+
     # Each id is resolved on its own side: the name for one id can differ between the two
     # files, which is the whole point of reporting a rename separately.
     for tag, label in (("mid0", "entry Task"), ("mid1", "exit Task")):
@@ -520,6 +627,13 @@ def _profile_details(older: _Side, newer: _Side, key: str) -> list[str]:
             details.append(f"{condition_type} condition removed ({len(was)}).")
         else:
             details.append(f"{condition_type} condition edited.")
+            details.extend(
+                _condition_edit_details(
+                    condition_type,
+                    _condition_elements(before)[condition_type],
+                    _condition_elements(after)[condition_type],
+                )
+            )
     return details
 
 

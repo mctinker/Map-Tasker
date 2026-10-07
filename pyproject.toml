@@ -458,8 +458,8 @@ layers = [
     getfile : guistate : guiutils : guiwins :
     guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 : guiwins_designers : guiwins_draft : guiwins_editor :
     guiwins_firesim : guiwins_fix : guiwins_impact : guiwins_legacyarg : guiwins_nav : guiwins_profedit :
-    guiwins_refactor : guiwins_restore : guiwins_sceneprops : guiwins_search : guiwins_taskedit :
-    guiwins_views : mapai : sceneview :
+    guiwins_readiness : guiwins_refactor : guiwins_restore : guiwins_sceneprops : guiwins_search : guiwins_taskedit :
+    guiwins_tnupdate : guiwins_views : mapai : sceneview :
     userintr : userintr_ai : userintr_android : userintr_editors :
     userintr_loading : userintr_reports : userintr_settings : webassets
     """,
@@ -477,10 +477,10 @@ layers = [
     maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
     firesim : folderwatch : parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
     profedit : profiles : proflint : proginit : projects : projedit :
-    property : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenemodel : scenes : servicec :
+    property : readiness : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenemodel : scenes : servicec :
     sessundo : share : shelsort : sysconst : taskactn : taskedit :
     taskerd : taskertables : taskervars : taskflow : tasks : taskuniq :
-    timecomp : timeline : translator : twisty : userhelp : valcodes : varxref :
+    timecomp : timeline : tnupdate : translator : twisty : userhelp : valcodes : varxref :
     xmldata : xmldiff
     """,
 ]
@@ -506,11 +506,13 @@ allowed_importers = [
     "maptasker.src.guiwins_legacyarg",
     "maptasker.src.guiwins_nav",
     "maptasker.src.guiwins_profedit",
+    "maptasker.src.guiwins_readiness",
     "maptasker.src.guiwins_refactor",
     "maptasker.src.guiwins_restore",
     "maptasker.src.guiwins_sceneprops",
     "maptasker.src.guiwins_search",
     "maptasker.src.guiwins_taskedit",
+    "maptasker.src.guiwins_tnupdate",
     "maptasker.src.guiwins_views",
     "maptasker.src.mapai",
     "maptasker.src.mapit",
