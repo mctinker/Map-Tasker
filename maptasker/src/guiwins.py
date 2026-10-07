@@ -42,6 +42,7 @@ from maptasker.src import (
     mapjump,
     objprops,
     projedit,
+    readiness,
     roundtrip,
     sceneedit,
     sceneedit_legacy,
@@ -78,7 +79,6 @@ from maptasker.src.guiwins_editor import (
     SCENE_REDACT_FIELD,
     PendingChangesBanner,
     _build_properties_button,
-    build_redact_checkbox,
     editor_state,
 )
 from maptasker.src.guiwins_impact import build_impact_panel, wire_impact_clicks
@@ -86,6 +86,7 @@ from maptasker.src.guiwins_nav import (
     live_views,
     register_finding_clicks,
 )
+from maptasker.src.guiwins_readiness import build_share_checks
 from maptasker.src.guiwins_taskedit import (
     _build_fetch_apps_dialog,
 )
@@ -816,7 +817,7 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
             translate_string("Save as"),
             value=projedit.default_project_save_path(project_name),
         ).classes("w-full mt-2")
-        build_redact_checkbox(field_refs, PROJECT_REDACT_FIELD)
+        build_share_checks(field_refs, PROJECT_REDACT_FIELD, readiness.check_project, project_name, self.state)
 
         # This dialog has no field that waits for a save -- the Name is read-only and the
         # "Save as" path is not part of the Project (see PENDING_CHANGES_IGNORED_FIELDS) --
@@ -1484,7 +1485,7 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
             translate_string("Save as"),
             value=sceneedit.default_scene_save_path(scene_name),
         ).classes("w-full mt-2")
-        build_redact_checkbox(field_refs, SCENE_REDACT_FIELD)
+        build_share_checks(field_refs, SCENE_REDACT_FIELD, readiness.check_scene, scene_name, self.state)
 
         # The two Scene-only pieces of state, for the same reason revert_session has to take
         # them separately: a Version 2 session leaves the element alone from beginning to end

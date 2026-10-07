@@ -1,0 +1,160 @@
+{
+  "_comment": [
+    "What a configuration needs on someone else's phone, for readiness.py.  Data, not code.",
+    "",
+    "'access' names the special access an action can need: what it is called, and what the person",
+    "receiving the file has to do about it.  These are the things Tasker itself cannot ask for when",
+    "the file is imported.  Ordinary runtime permissions (location, SMS, contacts, ...) are left out",
+    "on purpose: Tasker lists those itself when a Project is imported.",
+    "",
+    "'items' is keyed like actionc.action_codes: the Tasker code plus t (action), e (event) or s (state).",
+    "  'needs'  each entry is one requirement.  'a|b|c' means ANY ONE of them will do, which is how",
+    "           Tasker works for most of these -- Kill App runs with root, ADB Wifi, Device Owner",
+    "           or Shizuku, whichever the phone has.",
+    "  'when'   an argument that has to hold one of the listed integer values for 'needs' to apply",
+    "           ('arg1': [0, 1, 2] -- Show Scene, Display As one of the three overlay modes).",
+    "  'since'  the first Tasker release that has the item, from the release notes at",
+    "           https://tasker.joaoapps.com/changes.html.  Absent means older than the 5.x notes, i.e.",
+    "           present in every Tasker still in use.",
+    "",
+    "'by_argument' is the structural rule: an action carrying one of these switches, turned on, needs",
+    "that access whatever the action is.  Twelve actions have a Use Root switch, and finding them by",
+    "the switch means a new one is covered without an entry here.",
+    "",
+    "This is a floor, not a guarantee.  An action with no entry is not known to need nothing -- it is",
+    "just not known.  Every code below is checked against actionc by tests/test_readiness.py, so a",
+    "typo or a renamed action fails there rather than silently reading as 'no requirement'."
+  ],
+
+  "access": {
+    "root": {
+      "label": "Root",
+      "how": "The phone has to be rooted, and Tasker granted root when it asks."
+    },
+    "adb_wifi": {
+      "label": "ADB Wi-Fi",
+      "how": "Wireless debugging turned on and paired on the phone, so Tasker can run commands that normally need root."
+    },
+    "write_secure_settings": {
+      "label": "Write Secure Settings",
+      "how": "Granted once from a computer: adb shell pm grant net.dinglisch.android.taskerm android.permission.WRITE_SECURE_SETTINGS"
+    },
+    "read_logs": {
+      "label": "Read Logs",
+      "how": "Granted once from a computer: adb shell pm grant net.dinglisch.android.taskerm android.permission.READ_LOGS"
+    },
+    "shizuku": {
+      "label": "Shizuku",
+      "how": "The Shizuku app installed and running, with Tasker allowed to use it."
+    },
+    "tasker_settings": {
+      "label": "Tasker Settings app",
+      "how": "The separate Tasker Settings app installed on the phone."
+    },
+    "device_owner": {
+      "label": "Device Admin/Owner",
+      "how": "Tasker set up as Device Admin or Device Owner, which is done once from a computer."
+    },
+    "accessibility": {
+      "label": "Accessibility service",
+      "how": "Tasker's accessibility service switched on in Android Settings."
+    },
+    "notification_access": {
+      "label": "Notification access",
+      "how": "Tasker allowed under Android Settings, Notification access."
+    },
+    "dnd_access": {
+      "label": "Do Not Disturb access",
+      "how": "Tasker allowed under Android Settings, Do Not Disturb access."
+    },
+    "overlay": {
+      "label": "Display over other apps",
+      "how": "Tasker allowed to display over other apps in Android Settings."
+    }
+  },
+
+  "by_argument": {
+    "use root": "root",
+    "use shizuku": "shizuku",
+    "use tasker settings": "tasker_settings"
+  },
+
+  "items": {
+    "375t": {"needs": ["adb_wifi"], "since": "5.9.2"},
+    "18t": {"needs": ["root|adb_wifi|device_owner|shizuku"]},
+    "379t": {"needs": ["device_owner"], "since": "6.3.12"},
+    "433t": {"needs": ["root|adb_wifi|write_secure_settings|shizuku"]},
+    "59t": {"needs": ["root"]},
+    "235t": {"needs": ["write_secure_settings|root"], "when": {"arg0": [0, 1]}},
+    "304t": {"needs": ["dnd_access"]},
+    "308t": {"needs": ["dnd_access"]},
+    "313t": {"needs": ["dnd_access"]},
+    "245t": {"needs": ["accessibility|write_secure_settings"]},
+    "246t": {"needs": ["accessibility|write_secure_settings"]},
+    "219t": {"needs": ["accessibility|write_secure_settings"]},
+    "249t": {"needs": ["accessibility|write_secure_settings"]},
+    "513t": {"needs": ["accessibility|write_secure_settings"]},
+    "47t": {"needs": ["overlay"], "when": {"arg1": [0, 1, 2]}},
+    "2085e": {"needs": ["read_logs|root|adb_wifi|shizuku"]},
+    "461e": {"needs": ["notification_access"]},
+    "464e": {"needs": ["notification_access"]},
+
+    "2078e": {"since": "5.8"},
+    "2081e": {"since": "5.8"},
+    "335t": {"since": "5.8"},
+    "339t": {"since": "5.8"},
+    "340t": {"since": "5.8"},
+    "351t": {"since": "5.8"},
+    "358t": {"since": "5.8"},
+    "360t": {"since": "5.8"},
+    "188s": {"since": "5.8.5"},
+    "361t": {"since": "5.8.5"},
+    "363t": {"since": "5.9.2"},
+    "2088e": {"since": "5.9.3"},
+    "190s": {"since": "5.9.3"},
+    "372t": {"since": "5.9.3"},
+    "373t": {"since": "5.9.3"},
+    "378t": {"since": "5.9.3"},
+    "2092e": {"since": "5.10"},
+    "2094e": {"since": "5.11.13"},
+    "386t": {"since": "5.11.13"},
+    "383t": {"since": "5.11.13"},
+    "387t": {"since": "5.11.13"},
+    "389t": {"since": "5.11.13"},
+    "390t": {"since": "5.11.13"},
+    "398t": {"since": "5.13.5"},
+    "374t": {"since": "5.14.6"},
+    "399t": {"since": "5.15.12"},
+    "402t": {"since": "5.15.12"},
+    "2097e": {"since": "5.15.12"},
+    "424t": {"since": "6.0.9"},
+    "430t": {"since": "6.0.9"},
+    "2099e": {"since": "6.1.26"},
+    "391t": {"since": "6.1.26"},
+    "407t": {"since": "6.1.26"},
+    "413t": {"since": "6.1.26"},
+    "194s": {"since": "6.2.18"},
+    "2089e": {"since": "6.2.18"},
+    "380t": {"since": "6.2.18"},
+    "432t": {"since": "6.2.18"},
+    "352t": {"since": "6.3.12"},
+    "448t": {"since": "6.3.12"},
+    "452t": {"since": "6.3.12"},
+    "460t": {"since": "6.3.12"},
+    "2100e": {"since": "6.4.13"},
+    "461t": {"since": "6.4.13"},
+    "462t": {"since": "6.4.13"},
+    "2101e": {"since": "6.5.9"},
+    "2102e": {"since": "6.5.9"},
+    "418t": {"since": "6.5.9"},
+    "463t": {"since": "6.5.9"},
+    "464t": {"since": "6.5.9"},
+    "465t": {"since": "6.5.9"},
+    "466t": {"since": "6.5.9"},
+    "467t": {"since": "6.5.9"},
+    "468t": {"since": "6.5.9"},
+    "469t": {"since": "6.5.9"},
+    "470t": {"since": "6.5.9"},
+    "474t": {"since": "6.6.18"}
+  }
+}

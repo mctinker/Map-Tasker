@@ -73,7 +73,7 @@ class Use:
     name: str
 
 
-def _item_name(code: str, suffix: str) -> str:
+def item_name(code: str, suffix: str) -> str:
     """What Tasker calls a plugin action, event or state.
 
     Its own entry's name, and the redirect's only when it has none.  actionc.py points 145
@@ -113,7 +113,7 @@ def plugin_uses(state: RunState) -> dict[str, list[Use]]:
         for number, action in enumerate(actions_in_map_order(task["xml"]), start=1):
             package = plugin_package(action)
             if package:
-                name = _item_name(action.findtext("code") or "", "t")
+                name = item_name(action.findtext("code") or "", "t")
                 uses.setdefault(package, []).append(Use(where.at_action(number), name))
 
     profile_owners = _owners("pids", state=state)
@@ -125,7 +125,7 @@ def plugin_uses(state: RunState) -> dict[str, list[Use]]:
                 continue
             package = plugin_package(condition)
             if package:
-                name = _item_name(condition.findtext("code") or "", condition.tag[0].lower())
+                name = item_name(condition.findtext("code") or "", condition.tag[0].lower())
                 uses.setdefault(package, []).append(Use(where.with_text(f"{condition.tag} '{name}'"), name))
 
     return uses
