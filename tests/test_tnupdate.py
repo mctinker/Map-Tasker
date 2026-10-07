@@ -660,6 +660,41 @@ def test_an_empty_argument_is_not_added_to_an_action_that_is_a_different_action(
     assert 'sr="arg1"' not in aligned.xml
 
 
+def test_a_disabled_profile_keeps_its_settings_in_tasker_s_order() -> None:
+    """The real 'Simple Chat Bot': disabled on both sides, and reported 'Changed.' for putting <limit> before <id>.
+
+    Tasker writes a Profile's own fields alphabetically.  Taking yours out and putting it back at the
+    index it has in YOUR list -- when the share's list is a different length -- put it in the wrong
+    place, and the two Profiles differed in the order of their settings and in nothing else.
+    """
+    dawn = _live("all_profiles")["100"]["xml"]
+    limit = type(dawn)("limit")
+    limit.text = "true"
+    dawn.insert([child.tag for child in dawn].index("id") + 1, limit)
+
+    held = _review(_share())
+
+    assert ("Profile", "100", maprestore.REVERT) not in {(c.kind, c.key, c.action) for c in held.everything}, (
+        held.report
+    )
+    xml = _aligned_ids(_share()).xml
+    assert xml.index("<id>100</id>") < xml.index("<limit>true</limit>")
+
+
+def test_a_field_yours_has_and_the_share_lacks_goes_in_alphabetical_order() -> None:
+    dawn = _live("all_profiles")["100"]["xml"]
+    limit = type(dawn)("limit")
+    limit.text = "true"
+    dawn.insert([child.tag for child in dawn].index("id") + 1, limit)
+    share = _share().replace("<limit>true</limit>", "")
+
+    xml = _aligned_ids(share).xml
+    first = xml[: xml.index("<Time")]
+
+    order = [first.index(tag) for tag in ("<flags>", "<id>100</id>", "<limit>", "<mid0>")]
+    assert order == sorted(order)
+
+
 def test_a_profile_you_disabled_stays_disabled() -> None:
     dawn = _live("all_profiles")["100"]["xml"]
     dawn.find("flags").text = "8"

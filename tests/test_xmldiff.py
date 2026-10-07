@@ -746,3 +746,91 @@ def test_two_conditions_of_one_type_are_told_apart() -> None:
 
     assert "State: #2 arg0: '1' -> '9'" in text
     assert "#1" not in text
+
+
+# ##################################################################################
+# Saying exactly what changed.
+# ##################################################################################
+def _tasks(older_task: str, newer_task: str) -> tuple[str, dict]:
+    older = f'<TaskerData sr="" dvi="1" tv="6.5.6">{older_task}</TaskerData>'
+    newer = f'<TaskerData sr="" dvi="1" tv="6.5.6">{newer_task}</TaskerData>'
+    return compare(_configuration(older, "a.xml"), _configuration(newer, "b.xml"))
+
+
+def test_a_task_that_differs_only_in_its_priority_says_so() -> None:
+    """The Task's own settings were never compared, so a changed priority was a bare 'Changed.'"""
+    action = '<Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">hi</Str></Action>'
+    text, totals = _tasks(
+        f"<Task sr='t'><id>20</id><nme>Runner</nme><pri>100</pri>{action}</Task>",
+        f"<Task sr='t'><id>20</id><nme>Runner</nme><pri>7</pri>{action}</Task>",
+    )
+
+    assert totals[CHANGED] == 1
+    assert "pri: '100' -> '7'" in text
+    assert "Changed." not in text.split("WHAT THIS COMPARISON")[0]
+
+
+def test_a_task_variable_is_named_by_what_it_is_called_and_its_secret_is_hidden() -> None:
+    action = '<Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">hi</Str></Action>'
+    variable = '<ProfileVariable sr="pv0"><pvn>%api_key</pvn><pvv>sk-' + 'oPqrg1qC1H2rqg4NPIcNT3Blbk' + 'FJCedjzdl5caPz6Q0SWJ4r</pvv></ProfileVariable>'
+    text, _ = _tasks(
+        f"<Task sr='t'><id>20</id><nme>Runner</nme>{action}</Task>",
+        f"<Task sr='t'><id>20</id><nme>Runner</nme>{variable}{action}</Task>",
+    )
+
+    assert "variable %api_key value:" in text
+    assert "sk-" + "oPqrg1qC1H2rqg4NPIcNT3Blbk" + "FJCedjzdl5caPz6Q0SWJ4r" not in text, "a report is pasted into forum posts"
+    assert "[REDACTED" in text
+
+
+def test_a_secret_in_an_argument_is_hidden_in_the_report_too() -> None:
+    key = "sk-" + "oPqrg1qC1H2rqg4NPIcNT3Blbk" + "FJCedjzdl5caPz6Q0SWJ4r"
+    text, _ = _tasks(
+        '<Task sr="t"><id>20</id><nme>R</nme><Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">a</Str></Action></Task>',
+        f'<Task sr="t"><id>20</id><nme>R</nme><Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">{key}</Str></Action></Task>',
+    )
+
+    assert key not in text
+    assert "[REDACTED" in text
+
+
+def test_an_added_task_says_what_its_actions_are_not_only_how_many() -> None:
+    """'3 actions.' tells you its size; the lines under it tell you what it is."""
+    text, _ = _tasks(
+        "",
+        """<Task sr="t"><id>20</id><nme>Stopper</nme>
+          <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">Stopping now</Str></Action>
+          <Action sr="act1" ve="7"><code>523</code><Str sr="arg0" ve="3">Title</Str></Action></Task>""",
+    )
+
+    assert "2 actions." in text
+    assert "1. Flash: Text = 'Stopping now'" in text
+    assert "2. Notify:" in text
+
+
+def test_a_long_value_that_changed_shows_the_stretch_that_differs_not_all_of_it() -> None:
+    body = "line one of a long script that does something\n" * 6
+    older = body + "var image = window['a'];\n" + body
+    newer = body + "var image = window['b'];\n" + body
+    text, _ = _tasks(
+        f'<Task sr="t"><id>20</id><nme>R</nme><Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">{older}</Str></Action></Task>',
+        f'<Task sr="t"><id>20</id><nme>R</nme><Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">{newer}</Str></Action></Task>',
+    )
+
+    change = next(line for line in text.splitlines() if "Text:" in line)
+    assert "window['a']" in change
+    assert "window['b']" in change
+    assert len(change) < 300, "not the whole script twice"
+    assert "\n" not in change
+
+
+def test_profiles_whose_settings_differ_only_in_order_say_so() -> None:
+    first = '<Profile sr="p"><flags>10</flags><id>10</id><limit>true</limit><nme>P</nme><Time sr="con0"><fh>7</fh></Time></Profile>'
+    second = '<Profile sr="p"><flags>10</flags><limit>true</limit><id>10</id><nme>P</nme><Time sr="con0"><fh>7</fh></Time></Profile>'
+    text, totals = compare(
+        _configuration(f'<TaskerData sr="" dvi="1" tv="6.5.6">{first}</TaskerData>', "a.xml"),
+        _configuration(f'<TaskerData sr="" dvi="1" tv="6.5.6">{second}</TaskerData>', "b.xml"),
+    )
+
+    assert totals[CHANGED] == 1
+    assert "only the order of its settings differs" in text

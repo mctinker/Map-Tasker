@@ -2780,3 +2780,132 @@ msgid "The request to the AI model was cancelled."
 msgstr "एआई मॉडल को दिया गया अनुरोध रद्द कर दिया गया।"
 msgid "e.g. flash 'Hello' if %WIFI is on"
 msgstr "उदाहरण के लिए, यदि वाई-फाई चालू है तो 'नमस्ते' प्रदर्शित करें।"
+
+msgid "- TaskerNet Updates: Link a Project, Profile, Task or Scene to the TaskerNet share it came from (paste the share's address and say which of yours it is), and MapTasker tells you when its author publishes a newer version -- when you start it, and whenever you press Check Now.  Review lists what the author changed, each with a Take this button that previews the change before anything happens and is one press of Undo afterwards.  What is taken is the author's version of that Task, Profile or Scene, except that a Profile stays as switched on or off as you had it.  Accept Latest Version takes everything listed in one go instead, with no preview of its own (one press of Undo takes it back).  Only the address of each linked share is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone else's automation that will run on your phone, so read each preview before you take it.  \n"
+msgstr "- टास्करनेट अपडेट: एक प्रोजेक्ट, प्रोफाइल, टास्क या सीन को टास्करनेट से जोड़ें जिससे वह साझा किया गया था (शेयर का पता पेस्ट करें और बताएं कि यह किसका है), और टास्करनेट आपको बताता है जब इसके लेखक एक नया संस्करण प्रकाशित करते हैं - जब आप इसे शुरू करते हैं, और हर बार जब आप \"चेक नाउ\" दबाते हैं। रिव्यू सूची में यह दिखाता है कि लेखक ने क्या बदलाव किए हैं, जिसमें एक \"यह देखें\" बटन है जो किसी भी बदलाव से पहले पूर्वावलोकन दिखाता है और एक बार \"रद्द करें\" दबाने पर। जो लिया जाता है, वह उस टास्क, प्रोफाइल या सीन का लेखक का संस्करण है, सिवाय इसके कि प्रोफाइल उसी तरह चालू या बंद रहता है जैसा आपने इसे सेट किया है। \"नवीनतम संस्करण\" में सूचीबद्ध सब कुछ एक साथ लिया जाता है, बिना किसी पूर्वावलोकन के (एक बार \"रद्द करें\" दबाने पर)। केवल प्रत्येक लिंक किए गए शेयर का पता taskernet.com पर भेजा जाता है; आपके कंप्यूटर से कुछ भी नहीं भेजा जाता है। एक अपडेट किसी और का ऑटोमेशन है जो आपके फोन पर चलेगा, इसलिए इसे इस्तेमाल करने से पहले प्रत्येक पूर्वावलोकन को ध्यान से पढ़ें।\n"
+
+msgid "A"
+msgstr "ए"
+
+msgid "Accept Latest Version"
+msgstr "नवीनतम संस्करण को स्वीकार करें"
+
+msgid "Asking TaskerNet.  Please stand by..."
+msgstr "टास्करनेट से अनुरोध। कृपया प्रतीक्षा करें..."
+
+msgid "Before you share this export: lists the plugins and apps it uses, the special access it needs (root, ADB Wi-Fi, Write Secure Settings and the like), the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on.\n\nBuilt from what is in the file, so it is a minimum rather than a guarantee."
+msgstr "इस एक्सपोर्ट को साझा करने से पहले: यह उन प्लगइन्स और ऐप्स की सूची प्रदान करता है जिनका यह उपयोग करता है, उन विशेष एक्सेस की सूची जो इसे चाहिए (जैसे रूट, ADB वाई-फाई, सुरक्षित सेटिंग्स लिखना), और टास्कर द्वारा आयातकर्ता से पूछे जाने वाले चर, और यह ज्ञात है कि यह किन पुराने टास्कर संस्करणों पर चलता है।\n\nयह फ़ाइल में मौजूद जानकारी पर आधारित है, इसलिए यह एक न्यूनतम है, गारंटी नहीं।"
+
+msgid "Check Now"
+msgstr "अभी जांच करें"
+
+msgid "Check readiness"
+msgstr "तैयारी की जाँच करें"
+
+msgid "Choose which one of yours the share is."
+msgstr "यह तय करें कि आपके पास किस चीज का हिस्सा है।"
+
+msgid "Copied."
+msgstr "कॉपी किया गया।"
+
+msgid "Copy as text"
+msgstr "टेक्स्ट के रूप में कॉपी करें"
+
+msgid "Each change reads: the author's version -> your copy."
+msgstr "प्रत्येक बदलाव इस प्रकार है: लेखक का संस्करण -> आपका प्रति।"
+
+msgid "Everything linked is up to date."
+msgstr "यहां दिए गए सभी लिंक वर्तमान हैं।"
+
+msgid "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find out when its author publishes a newer version.\n\nShows what the author changed and lets you take each change on its own, previewed first and one press of Undo afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; nothing from your configuration leaves this computer."
+msgstr "किसी प्रोजेक्ट, प्रोफाइल, कार्य या दृश्य को TaskerNet से जोड़ें, जिससे यह आया है, और पता करें कि इसके लेखक नवीनतम संस्करण कब प्रकाशित करते हैं।\n\nयह दिखाता है कि लेखक ने क्या बदलाव किए हैं और आपको प्रत्येक बदलाव को अलग-अलग देखने, पहले उसका पूर्वावलोकन करने और फिर एक बार \"अनडू\" दबाने की अनुमति देता है।\n\nकेवल प्रत्येक जुड़े हुए शेयर का पता ही taskernet.com को भेजा जाता है; आपके कंप्यूटर से कोई भी जानकारी इस कंप्यूटर पर नहीं जाती है।"
+
+msgid "Link a share"
+msgstr "लिंक साझा करें"
+
+msgid "Linked -- press Review to compare it with your copy"
+msgstr "जुड़े हुए – अपनी प्रति से तुलना करने के लिए \"समीक्षा\" बटन पर क्लिक करें।"
+
+msgid "Linked shares"
+msgstr "जुड़े शेयर"
+
+msgid "Linked.  The version published"
+msgstr "जुड़े हुए। प्रकाशित संस्करण।"
+
+msgid "Mark As Up To Date"
+msgstr "अपडेट के रूप में चिह्नित करें"
+
+msgid "Marked as up to date."
+msgstr "नवीनतम जानकारी के साथ अपडेट किया गया।"
+
+msgid "Newer version published"
+msgstr "नया संस्करण प्रकाशित"
+
+msgid "No earlier version is on file."
+msgstr "कोई भी पिछला संस्करण उपलब्ध नहीं है।"
+
+msgid "No shares are linked yet.  Link one below."
+msgstr "अभी कोई शेयर लिंक नहीं किया गया है। नीचे दिए गए एक शेयर को लिंक करें।"
+
+msgid "Not checked yet"
+msgstr "अभी तक इसकी जाँच नहीं की गई है।"
+
+msgid "Not in the configuration that is loaded."
+msgstr "वह कॉन्फ़िगरेशन में नहीं जो लोड किया गया है।"
+
+msgid "Nothing to take."
+msgstr "कुछ भी नहीं ले जाना है।"
+
+msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here."
+msgstr "टास्कर्नेट पर शेयर का अपना पेज खोलें (जिस पेज पर 'इम्पोर्ट' बटन पर क्लिक करने पर दिखाई देता है, जैसे कि इसमें 'इम्पोर्ट:' के निर्देश हों) और यहां उसका पता पेस्ट करें।"
+
+msgid "Pick the one of yours it is, then press Link."
+msgstr "सबसे उपयुक्त विकल्प चुनें, फिर \"लिंक\" पर क्लिक करें।"
+
+msgid "Press 'Take this' on a row first."
+msgstr "सबसे पहले, एक पंक्ति पर 'यह लें' बटन पर क्लिक करें।"
+
+msgid "Readiness"
+msgstr "तैयारी"
+
+msgid "Removed by the author -- not offered; delete them in their own Edit dialogs"
+msgstr "लेखक द्वारा हटाया गया – यह विकल्प नहीं दिया गया है; इन्हें अपनी एडिट संवादों में हटा दें।"
+
+msgid "Report saved as"
+msgstr "रिपोर्ट को \"सहेजें\" के रूप में सहेजना।"
+
+msgid "Review"
+msgstr "समीक्षा"
+
+msgid "Save Report"
+msgstr "रिपोर्ट सहेजें"
+
+msgid "Show every difference from my copy, not only the author's changes"
+msgstr "मेरे प्रतिलिपि से हर अंतर को दिखाएं, केवल लेखक के परिवर्तनों को ही नहीं।"
+
+msgid "Some changes were skipped, so this version is not marked as the one you have."
+msgstr "कुछ बदलावों को छोड़ दिया गया है, इसलिए यह संस्करण आपके द्वारा डाउनलोड किए गए संस्करण के समान नहीं है।"
+
+msgid "Some links could not be checked -- see the list."
+msgstr "कुछ लिंक की जांच नहीं की जा सकी – सूची देखें।"
+
+msgid "TaskerNet Updates"
+msgstr "टास्करनेट अपडेट"
+
+msgid "TaskerNet share link"
+msgstr "टास्करनेट शेयर लिंक"
+
+msgid "The author changed"
+msgstr "लेखक ने बदलाव किया।"
+
+msgid "The author has published nothing new since the version you accepted"
+msgstr "लेखक ने उस संस्करण को स्वीकार करने के बाद से कोई नया काम प्रकाशित नहीं किया है।"
+
+msgid "The report could not be saved."
+msgstr "रिपोर्ट को सहेज नहीं सका।"
+
+msgid "Up to date -- published"
+msgstr "नवीनतम – प्रकाशित"
+
+msgid "What this needs on the phone that receives it."
+msgstr "जिस फ़ोन पर यह संदेश प्राप्त होता है, उसे इसके लिए क्या चाहिए।"

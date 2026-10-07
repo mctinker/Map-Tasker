@@ -417,11 +417,12 @@ def draw_row(
     finished: bool = False,
     tag: str | None = None,
     button_label: str = "Restore this",
+    detail_lines: int = _DETAIL_LINES,
 ) -> None:
     """One object: its tag, where it is (a link, when it is here to go to), and 'Restore this'.
 
     `applied` draws the button green, for a row whose restore has been applied; `finished`
-    also disables it, for one that has nothing left to restore.  `tag` and `button_label` are
+    also disables it, for one that has nothing left to restore.  `tag`, `button_label` and `detail_lines` are
     for the other dialog that draws these rows -- TaskerNet Updates, where "removed" would be
     the wrong word for something the author added -- and default to this dialog's own.
     """
@@ -441,11 +442,11 @@ def draw_row(
                     )
                 else:
                     ui.label(candidate.where).classes("font-mono text-sm break-all min-w-0")
-            for detail in candidate.details[:_DETAIL_LINES]:
+            for detail in candidate.details[:detail_lines]:
                 ui.label(detail).classes("text-xs text-gray-600 dark:text-gray-300 font-mono pl-4 break-all")
-            if len(candidate.details) > _DETAIL_LINES:
+            if len(candidate.details) > detail_lines:
                 ui.label(
-                    f"...{len(candidate.details) - _DETAIL_LINES} {translate_string('more -- the preview lists them all')}",
+                    f"...{len(candidate.details) - detail_lines} {translate_string('more -- the preview lists them all')}",
                 ).classes("text-xs text-gray-500 italic pl-4")
         button = ui.button(translate_string(button_label), on_click=lambda: on_restore(candidate)).classes(
             "shrink-0",

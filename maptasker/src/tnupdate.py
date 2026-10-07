@@ -800,16 +800,33 @@ def _relink(root: Element, profiles: dict[str, str], tasks: dict[str, str]) -> N
                 child.text = tasks.get(child.text.strip(), child.text.strip())
 
 
+def _insert_in_order(profile: Element, new: Element) -> None:
+    """Put `new` among a Profile's own fields where Tasker writes it: alphabetical, ahead of the conditions.
+
+    Tasker writes cdate, clp, cldm, edate, flags, id, limit, mid0, nme, pri and then the conditions
+    (<Event sr="con0">...).  A field put anywhere else makes the Profile differ from yours in the order
+    of its settings and nothing else, which is what a compare then reports as a bare "Changed."
+    """
+    position = len(profile)
+    for index, child in enumerate(profile):
+        if child.get("sr", "").startswith("con") or child.tag.lower() > new.tag.lower():
+            position = index
+            break
+    profile.insert(position, new)
+
+
 def _keep_your_state(profile: Element, yours: Element) -> None:
     """Give the share's Profile the enabled state, collapse state and enabled flag yours has."""
     for tag in _STATE_TAGS:
-        for stale in profile.findall(tag):
-            profile.remove(stale)
-        mine = yours.find(tag)
-        if mine is not None:
+        shared, mine = profile.find(tag), yours.find(tag)
+        if mine is None and shared is not None:
+            profile.remove(shared)
+        elif mine is not None and shared is not None:
+            shared.text = mine.text
+        elif mine is not None:
             kept = Element(tag)
             kept.text = mine.text
-            profile.insert(min(list(yours).index(mine), len(profile)), kept)
+            _insert_in_order(profile, kept)
     flags, your_flags = profile.find("flags"), yours.find("flags")
     if your_flags is None:
         return
@@ -817,7 +834,7 @@ def _keep_your_state(profile: Element, yours: Element) -> None:
         # A share with no <flags> at all (it is 0) is the same as one with 0, once yours has the bit set.
         flags = Element("flags")
         flags.text = "0"
-        profile.insert(min(list(yours).index(your_flags), len(profile)), flags)
+        _insert_in_order(profile, flags)
     try:
         flags.text = str((int(flags.text or 0) & ~_ENABLED_BIT) | (int(your_flags.text or 0) & _ENABLED_BIT))
     except ValueError:

@@ -2799,3 +2799,186 @@ msgid "The request to the AI model was cancelled."
 msgstr "এআই মডেলের কাছে করা অনুরোধটি বাতিল করা হয়েছে।"
 msgid "e.g. flash 'Hello' if %WIFI is on"
 msgstr "উদাহরণস্বরূপ, যদি ওয়াইফাই চালু থাকে, তাহলে \"হ্যালো\" শব্দটি প্রদর্শন করুন।"
+
+msgid "- TaskerNet Updates: Link a Project, Profile, Task or Scene to the TaskerNet share it came from (paste the share's address and say which of yours it is), and MapTasker tells you when its author publishes a newer version -- when you start it, and whenever you press Check Now.  Review lists what the author changed, each with a Take this button that previews the change before anything happens and is one press of Undo afterwards.  What is taken is the author's version of that Task, Profile or Scene, except that a Profile stays as switched on or off as you had it.  Accept Latest Version takes everything listed in one go instead, with no preview of its own (one press of Undo takes it back).  Only the address of each linked share is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone else's automation that will run on your phone, so read each preview before you take it.  \n"
+msgstr "- টাস্কারনেট আপডেট: একটি প্রজেক্ট, প্রোফাইল, টাস্ক বা সিনকে টাস্কারনেটের সাথে যুক্ত করুন, যেখান থেকে এটি শেয়ার করা হয়েছে (শেয়ারের ঠিকানা পেস্ট করুন এবং বলুন এটি আপনার কোনোটির কিনা), এবং টাস্কম্যাপ আপনাকে জানায় যখন এর লেখক নতুন সংস্করণ প্রকাশ করেন - যখন আপনি এটি শুরু করেন এবং প্রতিবার যখন \"চেক নাও\" এ ক্লিক করেন। রিভিউ তালিকাভুক্ত করে যে লেখক কী পরিবর্তন করেছেন, এবং প্রতিটি পরিবর্তনের আগে \"এইটি ব্যবহার করুন\" -এর বোতামের মাধ্যমে প্রিভিউ করা যায়, যা একবার ক্লিক করে বাতিল করতে হয়। এখানে, লেখক কর্তৃক তৈরি টাস্ক, প্রোফাইল বা সিন-এর সংস্করণ নেওয়া হয়, তবে প্রোফাইলটি আপনার ইচ্ছানুসারে চালু বা বন্ধ থাকে। \"সর্বশেষ সংস্করণ গ্রহণ করুন\" -এর মাধ্যমে একবারেই সবকিছু নেওয়া হয়, যেখানে কোনো প্রিভিউ থাকে না (একবার \"বাতিল করুন\" ক্লিক করলে এটি বাতিল হয়ে যায়)। শুধুমাত্র প্রতিটি যুক্ত শেয়ারের ঠিকানা taskernet.com-এ পাঠানো হয়; আপনার কম্পিউটারের কোনো সেটিংস সেখান থেকে নেওয়া হয় না। এটি অন্য কারো তৈরি করা স্বয়ংক্রিয় প্রোগ্রাম, যা আপনার ফোনে চলবে, তাই এটি ব্যবহার করার আগে প্রতিটি প্রিভিউ ভালোভাবে দেখে নিন।\n"
+
+msgid "A"
+msgstr "এ"
+
+msgid "Accept Latest Version"
+msgstr "সর্বশেষ সংস্করণ গ্রহণ করুন"
+
+msgid "Asking TaskerNet.  Please stand by..."
+msgstr "টাস্কারনেটের কাছে জানতে চাওয়া। অনুগ্রহ করে অপেক্ষা করুন..."
+
+msgid "Before you share this export: lists the plugins and apps it uses, the special access it needs (root, ADB Wi-Fi, Write Secure Settings and the like), the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on.\n\nBuilt from what is in the file, so it is a minimum rather than a guarantee."
+msgstr "এই এক্সপোর্ট শেয়ার করার আগে: এটি যে প্লাগইন এবং অ্যাপ্লিকেশন ব্যবহার করে, যে বিশেষ অ্যাক্সেসের প্রয়োজন (রুট, ADB ওয়াই-ফাই, সুরক্ষিত সেটিংস লেখা ইত্যাদি), এবং Tasker যে ভেরিয়েবলগুলোর বিষয়ে জিজ্ঞাসা করবে, সেই তথ্যগুলো উল্লেখ করুন। এছাড়াও, এটি কোন সংস্করণের Tasker-এর সাথে কাজ করে, তা উল্লেখ করুন।\n\nএটি ফাইলের মধ্যে থাকা তথ্যের উপর ভিত্তি করে তৈরি করা হয়েছে, তাই এটি একটি সর্বনিম্ন প্রয়োজন, কোনো নিশ্চয়তা নয়।"
+
+msgid "Check Now"
+msgstr "এখনই যাচাই করুন"
+
+msgid "Check readiness"
+msgstr "উপযুক্ততা যাচাই করুন"
+
+msgid "Choose which one of yours the share is."
+msgstr "আপনার মধ্যে কোনটি আপনার অধিকার, তা নির্বাচন করুন।"
+
+msgid "Copied."
+msgstr "কপি করা হয়েছে।"
+
+msgid "Copy as text"
+msgstr "কপি করুন"
+
+msgid "Each change reads: the author's version -> your copy."
+msgstr "প্রতিটি পরিবর্তনের ক্ষেত্রে, লেখাটি হলো: লেখকের সংস্করণ -> আপনার অনুলিপি।"
+
+msgid "Everything linked is up to date."
+msgstr "এখানে দেওয়া সমস্ত লিঙ্কগুলো আপ-টু-ডেট।"
+
+msgid "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find out when its author publishes a newer version.\n\nShows what the author changed and lets you take each change on its own, previewed first and one press of Undo afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; nothing from your configuration leaves this computer."
+msgstr "প্রজেক্ট, প্রোফাইল, টাস্ক বা সিনকে TaskerNet-এর সাথে যুক্ত করুন, যেখান থেকে এটি এসেছে, এবং জানতে পারবেন যে এর লেখক নতুন সংস্করণ প্রকাশ করছেন কিনা।\n\nএই বৈশিষ্ট্যটি দেখায় যে লেখক কী পরিবর্তন করেছেন এবং আপনাকে প্রতিটি পরিবর্তন আলাদাভাবে দেখতে, প্রথমে প্রিভিউ করতে এবং তারপর \"আনডু\" করতে দেয়।\n\nশুধুমাত্র প্রতিটি সংযুক্ত শেয়ারের ঠিকানা taskernet.com-এ পাঠানো হয়; আপনার কনফিগারেশনের কোনো অংশ এই কম্পিউটার থেকে পাঠানো হয় না।"
+
+msgid "Link a share"
+msgstr "একটি শেয়ারের সাথে সংযোগ স্থাপন করুন"
+
+msgid "Linked -- press Review to compare it with your copy"
+msgstr "সংযুক্ত – আপনার কপিকளுடன் তুলনা করার জন্য \"রিভিউ\" অপশনটি ব্যবহার করুন।"
+
+msgid "Linked shares"
+msgstr "সংযুক্ত শেয়ার"
+
+msgid "Linked.  The version published"
+msgstr "সংযুক্ত। যে সংস্করণটি প্রকাশিত হয়েছে।"
+
+msgid "Mark As Up To Date"
+msgstr "আপডেট করুন"
+
+msgid "Marked as up to date."
+msgstr "সর্বশেষ তথ্য অনুযায়ী।"
+
+msgid "Newer version published"
+msgstr "নতুন সংস্করণ প্রকাশিত হয়েছে"
+
+msgid "No earlier version is on file."
+msgstr "এই পর্যন্ত আর কোনো সংস্করণ উপলব্ধ নেই।"
+
+msgid "No shares are linked yet.  Link one below."
+msgstr "এখন কোনো শেয়ারের সাথে সংযোগ স্থাপন করা হয়নি। নিচে একটি সংযোগ স্থাপন করুন।"
+
+msgid "Not checked yet"
+msgstr "এখন পর্যন্ত পরীক্ষা করা হয়নি।"
+
+msgid "Not in the configuration that is loaded."
+msgstr "যে কনফিগারেশনটি লোড করা হয়েছে, তার থেকে ভিন্ন।"
+
+msgid "Nothing to take."
+msgstr "কোনো কিছু নেই।"
+
+msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here."
+msgstr "টাস্কারনেটের (যে পেজটি \"ইম্পোর্ট\" বোতামে ক্লিক করলে দেখা যায়, যেমনটিতে \"ইম্পোর্ট:\" নির্দেশাবলী রয়েছে) নিজের শেয়ারের পেজটি খুলুন এবং এখানে তার ঠিকানাটি পেস্ট করুন।"
+
+msgid "Pick the one of yours it is, then press Link."
+msgstr "আপনার পছন্দসইটি নির্বাচন করুন, তারপর \"লিঙ্ক\" বোতামটি চাপুন।"
+
+msgid "Press 'Take this' on a row first."
+msgstr "প্রথমে একটি সারিতে 'এইটি গ্রহণ করুন' বোতামটিতে ক্লিক করুন।"
+
+msgid "Readiness"
+msgstr "প্রস্তুতি"
+
+msgid "Removed by the author -- not offered; delete them in their own Edit dialogs"
+msgstr "লেখক দ্বারা সরানো হয়েছে – এগুলো উপলব্ধ নয়; এগুলোর নিজস্ব এডিট ডায়ালগ থেকে সরিয়ে দিন।"
+
+msgid "Report saved as"
+msgstr "রিপোর্টটি \"সংরক্ষণ করুন\" হিসেবে চিহ্নিত করা হলো।"
+
+msgid "Review"
+msgstr "পর্যালোচনা"
+
+msgid "Save Report"
+msgstr "রিপোর্টটি সংরক্ষণ করুন"
+
+msgid "Show every difference from my copy, not only the author's changes"
+msgstr "আমার সংস্করণের সাথে প্রতিটি পার্থক্য স্পষ্টভাবে উল্লেখ করুন, শুধুমাত্র লেখকের পরিবর্তনগুলো নয়।"
+
+msgid "Some changes were skipped, so this version is not marked as the one you have."
+msgstr "কিছু পরিবর্তন বাদ দেওয়া হয়েছে, তাই এই সংস্করণটি আপনার কাছে থাকা সংস্করণের মতো নয়।"
+
+msgid "Some links could not be checked -- see the list."
+msgstr "কিছু লিঙ্ক পরীক্ষা করা যায়নি — তালিকাটি দেখুন।"
+
+msgid "TaskerNet Updates"
+msgstr "টাস্কারনেট-এর আপডেট"
+
+msgid "TaskerNet share link"
+msgstr "টাস্কারনেট শেয়ার লিঙ্ক"
+
+msgid "The author changed"
+msgstr "రచিকা পরিবর্তন করেছেন"
+
+msgid "The author has published nothing new since the version you accepted"
+msgstr "লেখক এই সংস্করণটি গ্রহণ করার পর থেকে কোনো নতুন কাজ প্রকাশ করেননি।"
+
+msgid "The report could not be saved."
+msgstr "রিপোর্টটি সংরক্ষণ করা যায়নি।"
+
+msgid "Up to date -- published"
+msgstr "সর্বশেষ – প্রকাশিত"
+
+msgid "What this needs on the phone that receives it."
+msgstr "এই ডিভাইসটিকে গ্রহণকারী ফোনে কী প্রয়োজন।"
+
+msgid "Which one of yours is it?"
+msgstr "এর মধ্যে আপনার কোনটি?"
+
+msgid "With no earlier version to compare against, this lists everything that differs from your copy.  Tasker rewrites some things when it imports a share, so not every difference is the author's.  From the next update on, only what the author changed is listed."
+msgstr "আগের কোনো সংস্করণের সাথে তুলনা করার সুযোগ না থাকায়, এই তালিকা আপনার সংস্করণের সাথে কী কী ভিন্নতা রয়েছে, তা উল্লেখ করে। Tasker যখন কোনো শেয়ার ইম্পোর্ট করে, তখন এটি কিছু বিষয় পরিবর্তন করে দেয়, তাই প্রতিটি ভিন্নতা লেখকের পরিবর্তন নয়। এরপর থেকে, শুধুমাত্র যে পরিবর্তন লেখক করেছেন, তা এই তালিকায় দেখানো হবে।"
+
+msgid "Your copy matches it."
+msgstr "আপনার লেখাটি এটির সাথে মিলে যাচ্ছে।"
+
+msgid "can be taken here."
+msgstr "এখান থেকে নেওয়া যেতে পারে।"
+
+msgid "change(s) taken.  Undo is available."
+msgstr "পরিবর্তন(গুলি) সম্পন্ন হয়েছে। \"আনডু\" অপশনটি উপলব্ধ।"
+
+msgid "change(s) to the Project itself (its description or variables, say) are not offered one by one -- see Save Report."
+msgstr "প্রকল্পের কোনো অংশ (যেমন এর বর্ণনা বা চলক) আলাদাভাবে পরিবর্তন করার অপশন দেওয়া হয় না - \"রিপোর্ট সংরক্ষণ\" দেখুন।"
+
+msgid "difference(s) from your copy are listed."
+msgstr "আপনার সংস্করণের থেকে পার্থক্যগুলো উল্লেখ করা হলো।"
+
+msgid "has the same content as it."
+msgstr "এর বিষয়বস্তু এটির মতোই।"
+
+msgid "is now the one MapTasker takes you to have."
+msgstr "এখন MapTasker আপনাকে যে স্থানে নিয়ে যায়, সেটিই আপনার পছন্দের স্থান।"
+
+msgid "linked share(s) have a newer version."
+msgstr "সংযুক্ত শেয়ার(গুলি)-এর একটি নতুন সংস্করণ রয়েছে।"
+
+msgid "linked share(s) have a newer version.  Open TaskerNet Updates to see what changed."
+msgstr "সংযুক্ত শেয়ারগুলির নতুন সংস্করণ রয়েছে। টাস্কারনেট আপডেটগুলি খুলুন এবং দেখুন কী পরিবর্তন হয়েছে।"
+
+msgid "more."
+msgstr "আরও।"
+
+msgid "object(s) exist only in your copy and are left alone."
+msgstr "বস্তুগুলো শুধুমাত্র আপনার অনুলিপি-তে বিদ্যমান এবং সেগুলি অপরিবর্তিত থাকে।"
+
+msgid "object(s) since the version you accepted"
+msgstr "যে সংস্করণটি আপনি গ্রহণ করেছেন, সেই অনুযায়ী বস্তু(গুলি)।"
+
+msgid "object(s) still differ from your copy, but not because of anything the author changed -- Tasker rewrites a share when it imports it, or you edited them.  Tick the box below to list them."
+msgstr "বস্তুগুলো এখনও আপনার সংস্করণের থেকে আলাদা, তবে এর কারণ লেখক কোনো পরিবর্তন করেননি—টেস্কার যখন কোনো ফাইল ইম্পোর্ট করে, অথবা আপনি নিজে সম্পাদনা করেন। তালিকাভুক্ত করার জন্য নিচে থাকা বাক্সটি নির্বাচন করুন।"
+
+msgid "on TaskerNet"
+msgstr "টাস্কারনেট-এ"
+
+msgid "shared as"
+msgstr "শেয়ার করা হয়েছে"
+
+msgid "the version published"
+msgstr "প্রকাশিত সংস্করণ"

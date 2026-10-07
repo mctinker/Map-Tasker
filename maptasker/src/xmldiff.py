@@ -17,12 +17,14 @@
 #                                                                                      #
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import TYPE_CHECKING, NamedTuple
 
 from maptasker.src import clock
 from maptasker.src.actionc import action_codes
+from maptasker.src.piiscan import redact_in_text
 from maptasker.src.sysconst import MY_VERSION, SCENE_TASK_TYPES
 
 if TYPE_CHECKING:
@@ -301,6 +303,25 @@ def _action_at(action: Element, position: int) -> str:
     return f"{position}. {_action_code_name(_text(action, 'code'))}"
 
 
+# How many of an added or removed Task's actions are spelled out, and how many of an action's
+# arguments.  "3 actions." tells you how big it is; the first few lines say what it is.
+_SUMMARY_ACTIONS = 6
+_SUMMARY_ARGUMENTS = 2
+
+
+def _action_summary(action: Element, position: int) -> str:
+    """'1. Perform Task: Task = 'ChatGPT Stop Response'' -- one action and its first filled-in arguments."""
+    code = _text(action, "code")
+    names = _argument_names(code)
+    arguments = _action_arguments(action)
+    shown = [
+        f"{names.get(arg_id, arg_id)} = '{_flat(value)[:_VALUE_LIMIT]}'"
+        for arg_id, value in sorted(arguments.items(), key=lambda item: (len(item[0]), item[0]))
+        if value
+    ][:_SUMMARY_ARGUMENTS]
+    return f"{_action_at(action, position)}" + (f": {', '.join(shown)}" if shown else "")
+
+
 def _argument_names(code: str) -> dict[str, str]:
     """{arg id: argument name} for one action code, e.g. {"0": "Text"}.
 
@@ -341,7 +362,9 @@ def _action_detail(
     details = []
     before_label, after_label = _text(before, "label"), _text(after, "label")
     if before_label != after_label:
-        details.append(f"{position}. {_action_code_name(after_code)} label: '{before_label}' -> '{after_label}'")
+        details.append(
+            f"{position}. {_action_code_name(after_code)} label: {_describe_change(before_label, after_label)}"
+        )
 
     names = _argument_names(after_code)
     before_arguments, after_arguments = _action_arguments(before), _action_arguments(after)
@@ -351,13 +374,59 @@ def _action_detail(
             continue
         # Named ("Text"), not numbered ("arg0") -- a bare arg number tells nobody anything.
         label = names.get(arg_id, f"argument {arg_id}")
-        details.append(f"{position}. {_action_code_name(after_code)} {label}: '{was}' -> '{now}'")
+        details.append(f"{position}. {_action_code_name(after_code)} {label}: {_describe_change(was, now)}")
     if not details:
         # The action differs, but in no value anything above reads: an argument that is there on one
         # side and not the other and has nothing in it.  A newer Tasker writes these for arguments
         # an older one did not have.  Said, rather than left as a bare "Changed."
         details.append(f"{position}. {_action_code_name(after_code)}: {_shape_difference(before, after)}")
     return details
+
+
+# How much of a value a report line shows, and how much of what surrounds a difference inside a
+# long one.  A JavaScriptlet is dozens of lines; the report is for recognising what changed, so a
+# long value is cut down to the place it differs.
+_VALUE_LIMIT = 80
+_CONTEXT = 24
+
+
+def _flat(text: str) -> str:
+    """One line, with anything that is a secret hidden: whitespace runs, newlines included, become one space.
+
+    A report line quotes values, and the report is saved to a file and meant to be pasted into a
+    forum post.  A key in an argument must not travel with it, so what piiscan recognises as a
+    secret -- the same rules the Health Check reports and a redacted export strips -- is replaced by
+    its placeholder here, before anything is compared or clipped.  Done to the whole value first: a
+    key cut in half by the clipping would no longer be recognisable, and half a key is still a leak.
+    """
+    return " ".join(redact_in_text(text)[0].split())
+
+
+def _describe_change(was: str, now: str) -> str:
+    """ "'was' -> 'now'", and for long text just the part that differs, with a little around it.
+
+    Two long values that begin and end alike -- a script with one line changed -- are shown as the
+    changed stretch between the ellipses rather than as two whole screens of text.
+    """
+    was, now = _flat(was), _flat(now)
+    if max(len(was), len(now)) <= _VALUE_LIMIT:
+        return f"'{was}' -> '{now}'"
+    start = 0
+    while start < min(len(was), len(now)) and was[start] == now[start]:
+        start += 1
+    end = 0
+    while end < min(len(was), len(now)) - start and was[-1 - end] == now[-1 - end]:
+        end += 1
+    low = max(0, start - _CONTEXT)
+
+    def window(text: str) -> str:
+        high = min(len(text), len(text) - end + _CONTEXT)
+        shown = text[low:high]
+        if len(shown) > _VALUE_LIMIT:
+            shown = f"{shown[: _VALUE_LIMIT // 2]} ... {shown[-_VALUE_LIMIT // 2 :]}"
+        return f"{'...' if low else ''}{shown}{'...' if high < len(text) else ''}"
+
+    return f"'{window(was)}' -> '{window(now)}'"
 
 
 def _shape_difference(before: Element, after: Element) -> str:
@@ -373,6 +442,8 @@ def _shape_difference(before: Element, after: Element) -> str:
         parts.append(f"only in the newer file: {named(only_now, now)}")
     if only_was := sorted(key for key in was if key not in now):
         parts.append(f"only in the older file: {named(only_was, was)}")
+    if not parts and list(was) != list(now):
+        return "only the order of its settings differs"
     return "; ".join(parts) or "its markup differs but no value does"
 
 
@@ -481,7 +552,49 @@ def _task_details(
     if details and unchanged:
         # How much stayed put is what makes a long entry readable at a glance.
         details.append(f"{unchanged} of {len(before_actions)} actions unchanged.")
-    return details
+    return [*_task_field_changes(before, after), *details]
+
+
+# What a Task carries besides its actions that is not its identity or a timestamp: its priority,
+# a TaskerNet <Share> block, and whatever a later Tasker adds.
+_TASK_NOT_FIELDS = frozenset({"id", "nme", "Action", *_VOLATILE_TAGS})
+
+
+def _task_field_changes(before: Element, after: Element) -> list[str]:
+    """What differs in a Task's own settings -- 'pri: '100' -> '7'' -- as opposed to its actions."""
+
+    def fields(task: Element) -> dict[str, Element]:
+        keyed = {}
+        for key, child in _children_by_key(task).items():
+            if child.tag in _TASK_NOT_FIELDS:
+                continue
+            # A Task variable is named by what it is called, not by its position among the Task's settings.
+            name = _text(child, "pvn") if child.tag == "ProfileVariable" else ""
+            keyed[f"variable {name}" if name else key] = child
+        return keyed
+
+    return [_readable_variable_line(line) for line in _differences_between(fields(before), fields(after))]
+
+
+# What a Task variable's settings are called in Tasker's own dialog, for lines about them.
+_VARIABLE_FIELDS = {
+    "pvv": "value",
+    "pvd": "description",
+    "pvdn": "label",
+    "pvci": "configure on import",
+    "pvn": "name",
+    "pvt": "type",
+    "exportval": "export value",
+}
+
+
+def _readable_variable_line(line: str) -> str:
+    """'variable %key > pvv: ...' as 'variable %key value: ...'."""
+    head, separator, rest = line.partition(" > ")
+    match = re.match(r"(\w+)(.*)", rest, re.DOTALL)
+    if not line.startswith("variable ") or not separator or match is None:
+        return line
+    return f"{head} {_VARIABLE_FIELDS.get(match[1], match[1])}{match[2]}"
 
 
 # ##################################################################################
@@ -527,11 +640,27 @@ def _children_by_key(element: Element) -> dict[str, Element]:
     return keyed
 
 
+def _raw_value(element: Element) -> str:
+    """What an element holds, whole: its text, or its 'val' attribute."""
+    return (element.text or "").strip() or element.get("val", "")
+
+
 def _leaf_value(element: Element) -> str:
     """What an element holds -- its text, or its 'val' attribute -- shortened for a report line."""
-    value = (element.text or "").strip() or element.get("val", "")
-    value = " ".join(value.split())
+    value = _flat((element.text or "").strip() or element.get("val", ""))
     return value if len(value) <= _VALUE_WIDTH else f"{value[: _VALUE_WIDTH - 3]}..."
+
+
+def _only_on_one_side(element: Element, here: str, side: str) -> list[str]:
+    """Lines for something one file has and the other lacks: what it holds, or each setting of it if it has several."""
+    if len(element) == 0:
+        return [f"{here}{_held(element)} only in the {side} file"]
+    nothing = element.makeelement(element.tag, {})
+    return (
+        _element_differences(nothing, element, f"{here} > ")
+        if side == "newer"
+        else _element_differences(element, nothing, f"{here} > ")
+    )
 
 
 def _held(element: Element) -> str:
@@ -541,21 +670,25 @@ def _held(element: Element) -> str:
 
 def _element_differences(before: Element, after: Element, path: str = "") -> list[str]:
     """Where two elements of the same kind differ, as 'arg3: 'a' -> 'b'' lines.  Nested settings read 'arg2 > Vals > key'."""
-    was, now = _children_by_key(before), _children_by_key(after)
+    return _differences_between(_children_by_key(before), _children_by_key(after), path)
+
+
+def _differences_between(was: dict[str, Element], now: dict[str, Element], path: str = "") -> list[str]:
+    """The same, for two sets of children already keyed."""
     lines: list[str] = []
     for key in sorted(was.keys() | now.keys(), key=lambda item: (len(item), item)):
         old, new = was.get(key), now.get(key)
         here = f"{path}{key}"
         if old is None and new is not None:
-            lines.append(f"{here}{_held(new)} only in the newer file")
+            lines.extend(_only_on_one_side(new, here, "newer"))
         elif new is None and old is not None:
-            lines.append(f"{here}{_held(old)} only in the older file")
+            lines.extend(_only_on_one_side(old, here, "older"))
         elif old is None or new is None:
             continue
         elif len(old) or len(new):
             lines.extend(_element_differences(old, new, f"{here} > "))
-        elif _leaf_value(old) != _leaf_value(new):
-            lines.append(f"{here}: '{_leaf_value(old)}' -> '{_leaf_value(new)}'")
+        elif _raw_value(old) != _raw_value(new):
+            lines.append(f"{here}: {_describe_change(_raw_value(old), _raw_value(new))}")
     return lines
 
 
@@ -786,7 +919,10 @@ def _summary_for(kind: str, side: _Side, key: str) -> list[str]:
     """What an added or removed object was, so its entry means something on its own."""
     element = side.objects[kind][key]
     if kind == "Task":
-        return [f"{len(element.findall('Action'))} actions."]
+        actions = element.findall("Action")
+        shown = [_action_summary(action, number) for number, action in enumerate(actions[:_SUMMARY_ACTIONS], start=1)]
+        more = [f"...{len(actions) - _SUMMARY_ACTIONS} more"] if len(actions) > _SUMMARY_ACTIONS else []
+        return [f"{len(actions)} actions.", *shown, *more]
     if kind == "Profile":
         return _profile_summary(side, element)
     if kind == "Scene":
@@ -890,7 +1026,14 @@ def _compare_one(kind: str, older: _Side, newer: _Side, key: str, entries: list[
     # twice: once as the rename, and once as a change with nothing to say.
     if not details and old_name != new_name:
         return
-    entries.append(Entry(kind, CHANGED, where, details or ["Changed."], key))
+    if not details:
+        # Nothing the per-kind comparison reads differs, yet the objects do.  Say how, where it can be said.
+        details = (
+            [_shape_difference(older.objects[kind][key], newer.objects[kind][key])]
+            if kind in ("Task", "Profile")
+            else ["Changed."]
+        )
+    entries.append(Entry(kind, CHANGED, where, details, key))
 
 
 def _compare_named_values(kind: str, was: dict[str, str], now: dict[str, str], entries: list[Entry]) -> None:

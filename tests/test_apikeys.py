@@ -87,25 +87,56 @@ def _old_key_file(contents: object) -> Path:
 # Saving and reading back.
 # ##################################################################################
 def test_keys_are_saved_to_the_password_store_and_nowhere_else(store: MemoryKeyring, key_file: Path) -> None:
-    """With a store to use, each key is an entry of its own there, and no file is written."""
+    """With a store to use, all the keys are one entry there -- one Keychain prompt -- and no file is written."""
     saved = apikeys.save_api_keys({"openai_key": "sk-openai", "anthropic_key": "sk-ant", "model": "gpt-5"})
 
     assert saved is True
-    assert store.entries == {
-        (apikeys.SERVICE_NAME, "openai_key"): "sk-openai",
-        (apikeys.SERVICE_NAME, "anthropic_key"): "sk-ant",
+    assert list(store.entries) == [(apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)]
+    assert json.loads(store.entries[(apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)]) == {
+        "openai_key": "sk-openai",
+        "anthropic_key": "sk-ant",
     }
     assert not key_file.exists()
     assert apikeys.load_api_keys() == _no_keys(openai_key="sk-openai", anthropic_key="sk-ant")
 
 
 def test_a_cleared_key_is_removed_from_the_store(store: MemoryKeyring) -> None:
-    """Saving a key as "" deletes its entry rather than leaving the old one behind."""
+    """Saving a key as "" drops it from the entry rather than leaving the old one behind."""
     apikeys.save_api_keys({"openai_key": "sk-openai", "gemini_key": "AIza-gemini"})
     apikeys.save_api_keys({"openai_key": "sk-openai", "gemini_key": ""})
 
-    assert (apikeys.SERVICE_NAME, "gemini_key") not in store.entries
+    assert "AIza-gemini" not in store.entries[(apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)]
     assert apikeys.load_api_keys() == _no_keys(openai_key="sk-openai")
+
+
+def test_clearing_every_key_removes_the_entry(store: MemoryKeyring) -> None:
+    """With no key left, nothing stays in the store."""
+    apikeys.save_api_keys({"openai_key": "sk-openai"})
+    apikeys.save_api_keys({})
+
+    assert store.entries == {}
+    assert apikeys.load_api_keys() == _no_keys()
+
+
+def test_keys_kept_one_entry_apiece_are_gathered_into_the_one_entry(store: MemoryKeyring) -> None:
+    """Older versions filed each key separately; they are moved over, and the old entries removed."""
+    store.entries[(apikeys.SERVICE_NAME, "openai_key")] = "sk-openai"
+    store.entries[(apikeys.SERVICE_NAME, "gemini_key")] = "AIza-gemini"
+
+    assert apikeys.load_api_keys() == _no_keys(openai_key="sk-openai", gemini_key="AIza-gemini")
+    assert list(store.entries) == [(apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)]
+
+
+def test_once_gathered_the_old_entries_are_not_asked_for_again(store: MemoryKeyring) -> None:
+    """Asking for an entry is what prompts for the Keychain, so only the one entry is read."""
+    apikeys.save_api_keys({"openai_key": "sk-openai"})
+    asked: list[str] = []
+    original = store.get_password
+    store.get_password = lambda service, username: (asked.append(username), original(service, username))[1]
+    apikeys._stored_keys.cache_clear()
+
+    assert apikeys.load_api_keys() == _no_keys(openai_key="sk-openai")
+    assert set(asked) == {apikeys.ENTRY_NAME}
 
 
 @pytest.mark.usefixtures("no_store")
@@ -160,7 +191,7 @@ def test_an_old_pickled_key_file_is_moved_over_and_deleted(store: MemoryKeyring)
     )
 
     assert apikeys.load_api_keys() == _no_keys(openai_key="sk-openai", anthropic_key="sk-ant")
-    assert store.entries[(apikeys.SERVICE_NAME, "anthropic_key")] == "sk-ant"
+    assert json.loads(store.entries[(apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)])["anthropic_key"] == "sk-ant"
     assert not legacy_file.exists()
 
 

@@ -59,6 +59,10 @@ REPORT_FILE = "MapTasker_TaskerNet.txt"
 # How many rows are drawn, for guiwins_restore's reason: every one is a button and a link.
 _ROW_LIMIT = 200
 
+# How many detail lines a row shows.  More than the Restore dialog's three: what a new Task does, or
+# what changed in a script, is the reason for deciding, and the preview is one more click away.
+_DETAIL_LINES = 8
+
 # How many removed objects a note names before "...".
 _NAMES_IN_NOTE = 5
 
@@ -112,8 +116,6 @@ class _Held:
     # Whether the review on screen was the first this link had, so the wording that says what
     # that means survives the rescan after something is taken.
     first_review: bool = False
-    # The changes a 'Accept Latest Version' preview is on screen for, or None when it is not.
-    accepting: list[maprestore.Candidate] | None = None
 
 
 def build_tnupdate_dialog(
@@ -270,19 +272,18 @@ class _UpdatesDialog:
                 "One press of Undo afterwards puts the configuration back as it is now.",
             )
             ui.button(translate_string("Cancel Preview"), on_click=self.clear_preview).props("outline")
-            self.latest_button = ui.button(translate_string("Accept Latest Version"), on_click=self.preview_latest)
+            self.latest_button = ui.button(translate_string("Accept Latest Version"), on_click=self.accept_latest)
             self.latest_button.props("color=orange outline")
             self.latest_button.disable()
             tip(
                 self.latest_button,
-                "Take the author's version of everything listed below in one go, instead of pressing 'Take "
-                "this' on each row.\n\n"
-                "Shows the changes it would take first, and nothing happens until you press Apply.  Each "
-                "change is made one after another; one that cannot be made is skipped and listed.\n\n"
-                "One press of Undo takes them all back.  Then the version you have becomes the one "
-                "published, as 'Mark As Up To Date' does.\n\n"
+                "Take the author's version of everything listed below, in one go, instead of pressing 'Take "
+                "this' on each row.  There is no preview and no Apply: pressing this does it.\n\n"
+                "Each change is made one after another; one that cannot be made is skipped and listed.  One "
+                "press of Undo takes them all back.\n\n"
+                "Then the version you have becomes the one published, as 'Mark As Up To Date' does.\n\n"
                 "Ticking 'Show every difference' first includes the ones that are not the author's -- your "
-                "own edits among them -- so read the list before you apply.",
+                "own edits among them -- so read the list before you press this.",
             )
             self.accept_button = ui.button(translate_string("Mark As Up To Date"), on_click=self.mark_current)
             self.accept_button.props("outline")
@@ -613,6 +614,7 @@ class _UpdatesDialog:
             finished=finished,
             tag=_row_tag(candidate),
             button_label="Take this",
+            detail_lines=_DETAIL_LINES,
         )
 
     # ##############################################################################
@@ -623,7 +625,6 @@ class _UpdatesDialog:
         """Throw the preview away and take Apply with it -- the Refactor dialog's one rule."""
         self.held.plan = None
         self.held.previewed = None
-        self.held.accepting = None
         self.preview_heading.set_text("")
         self.preview_area.clear()
         self.apply_button.disable()
@@ -648,9 +649,6 @@ class _UpdatesDialog:
 
     async def do_apply(self) -> None:
         """Apply exactly the plan on screen.  One press of Undo takes it back."""
-        if self.held.accepting is not None:
-            await self._apply_latest()
-            return
         plan, candidate = self.held.plan, self.held.previewed
         if plan is None or candidate is None:
             self._notify(translate_string("Press 'Take this' on a row first."), kind="warning")
@@ -669,13 +667,13 @@ class _UpdatesDialog:
         """The changes the list on screen shows -- the author's, or every difference when that box is ticked."""
         return list(held.everything if self.show_all.value else held.offer.candidates)
 
-    def preview_latest(self) -> None:
-        """Show what accepting the latest version would take, one line per change.  Nothing is changed.
+    async def accept_latest(self) -> None:
+        """Take every change listed, in one go, and make the version published the one the user has.
 
-        Not a plan per change, drawn all together: those would each be made against the configuration
-        as it is NOW, and the real ones are made one after another, each against what the last left
-        -- a warning that a Profile's Task is missing would be about a Task this very change brings.
-        So what is shown is what will be attempted, and what happens to each is reported afterwards.
+        No preview and no Apply of its own: pressing the button IS the decision to take what the
+        list shows, which is why the list is on screen before the button is enabled and why the
+        button says in its tooltip what it takes.  What 'Take this' previews one object at a time is
+        taken here together, and the way back is the same -- one press of Undo.
         """
         held = self.held.review
         if held is None:
@@ -685,31 +683,6 @@ class _UpdatesDialog:
             self.mark_current()
             return
         self.clear_preview()
-        self.held.accepting = changes
-        kinds = {kind: sum(1 for change in changes if change.kind == kind) for kind in ("Task", "Profile", "Scene")}
-        self.preview_heading.set_text(
-            f"{translate_string('Preview -- nothing has changed yet.  Accepting the version published')} "
-            f"{tnupdate.describe_date(held.info.published_ms)}: {len(changes)} {translate_string('change(s)')} "
-            f"({kinds['Task']} Task, {kinds['Profile']} Profile, {kinds['Scene']} Scene)",
-        )
-        with self.preview_area, ui.column().classes("w-full gap-0 p-2"):
-            ui.label(
-                translate_string(
-                    "Each is taken in this order, one after another.  One that cannot be made is skipped and "
-                    "listed afterwards.  One press of Undo takes them all back.",
-                ),
-            ).classes("text-xs text-gray-500 italic mb-1")
-            for change in changes:
-                ui.label(f"{_row_tag(change)}  {change.where}").classes("font-mono text-xs font-bold")
-                for detail in change.details[:2]:
-                    ui.label(detail).classes("font-mono text-xs text-gray-600 dark:text-gray-300 pl-4 break-all")
-        self.apply_button.enable()
-
-    async def _apply_latest(self) -> None:
-        """Take every change the preview named, as one Undo, and say what happened to each."""
-        held, changes = self.held.review, self.held.accepting
-        if held is None or changes is None:
-            return
         # On the event loop, as 'Take this' is: it changes the configuration, and the undo history
         # and the tables it rebuilds are not meant to be written from two threads.
         taken = tnupdate.accept_changes(changes, held, self.state)

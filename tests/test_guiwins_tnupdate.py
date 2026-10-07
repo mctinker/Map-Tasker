@@ -16,7 +16,7 @@ import contextlib
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src import guiwins_tnupdate, tnupdate
+from maptasker.src import guiwins_tnupdate, sessundo, tnupdate
 from maptasker.src.primitem import PrimeItems
 from nicegui import context, core, ui
 from nicegui.testing.user_interaction import UserInteraction
@@ -393,26 +393,45 @@ async def test_differences_that_are_not_the_authors_are_hidden_but_one_tick_away
 
 
 @pytest.mark.asyncio
-async def test_accept_latest_version_shows_what_it_will_take_then_takes_all_of_it_and_moves_the_version_on() -> None:
+async def test_accept_latest_version_takes_everything_listed_in_one_press_and_moves_the_version_on() -> None:
+    """One press: no preview step and no Apply -- and one Undo for the lot."""
     _seed()
     async with _open() as user:
         await _review_the_update(user)
-        before = _live("all_tasks")["20"]["xml"].findtext("Action/Str")
+        assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello"
 
         _press(user, _only(user, "Accept Latest Version"))
-
-        assert any("5 change(s)" in label for label in _labels(user)), "what it will take is shown first"
-        assert _only(user, "Apply").enabled
-        assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == before, "and nothing has been done yet"
-
-        _press(user, _only(user, "Apply"))
 
         await _until(lambda: _built["rebuilt"] == 1)
         assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello there"
         assert _live("all_tasks")["22"]["xml"].findtext("Action/Str") == "anon v2"
+        assert user.notify.contains("5 change(s) taken.")
+        assert not _only(user, "Apply").enabled, "nothing is left waiting on Apply"
         saved = _book().links[("Project", "Pack")]
         assert saved.seen_ms == _built["published"], "the version published is now the one you have"
         assert _book().baseline(saved) == _V2
+
+
+@pytest.mark.asyncio
+async def test_accept_latest_version_is_one_undo() -> None:
+    _seed()
+    async with _open() as user:
+        await _review_the_update(user)
+        _press(user, _only(user, "Accept Latest Version"))
+        await _until(lambda: _built["rebuilt"] == 1)
+
+        assert sessundo.undo(state=PrimeItems)
+
+        assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello"
+        assert _live("all_tasks")["22"]["xml"].findtext("Action/Str") == "anon"
+
+
+@pytest.mark.asyncio
+async def test_accept_latest_version_does_nothing_until_a_review_is_on_screen() -> None:
+    _seed()
+    async with _open() as user:
+        await user.should_see("Newer version published")
+        assert not _only(user, "Accept Latest Version").enabled
 
 
 @pytest.mark.asyncio

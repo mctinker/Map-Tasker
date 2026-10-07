@@ -39,9 +39,13 @@ from maptasker.src.sysconst import API_KEYS_FILE, LEGACY_KEYFILE, logger
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-# The service every key is filed under in the password store.  Each key is an entry of its
-# own, named for its PrimeItems.ai slot, since a store holds one string per entry.
+# The service the keys are filed under in the password store, and the one entry in it that
+# holds them all, as a JSON object of the keys that are set.  One entry rather than one per
+# key, because the Keychain asks for permission once per entry: five entries meant five
+# prompts, one means one.  (The JSON is a few hundred characters at most, well inside the
+# smallest limit a store has -- about 1,280 characters on Windows.)
 SERVICE_NAME = "MapTasker"
+ENTRY_NAME = "api_keys"
 
 # The PrimeItems.ai slots that are saved.  'api_key' is a key handed to a run directly
 # rather than through the API key dialog (see rungui); the old pickle saved it along with
@@ -120,11 +124,12 @@ def save_api_keys(keys: Mapping[str, str]) -> bool:
 @functools.cache
 def _stored_keys() -> dict[str, str]:
     """
-    Read the saved keys, moving an old '.maptasker.pkl' over first if there is one.
+    Read the saved keys, moving older ways of keeping them over first if there are any.
 
     Returns:
         dict[str, str]: the keys, one entry per API_KEY_NAMES.
     """
+    _move_per_key_entries()
     _move_legacy_key_file()
     return _read_store()
 
@@ -143,10 +148,11 @@ def _read_store() -> dict[str, str]:
     if key_file.exists():
         return _read_key_file(key_file)
     try:
-        return {name: keyring.get_password(SERVICE_NAME, name) or "" for name in API_KEY_NAMES}
+        stored = keyring.get_password(SERVICE_NAME, ENTRY_NAME)
     except KeyringError as error:
         logger.warning("No API keys read: the password store could not be used (%s).", error)
         return dict.fromkeys(API_KEY_NAMES, "")
+    return _parse_keys(stored or "", f"The {ENTRY_NAME} entry in the password store")
 
 
 def _write_store(wanted: dict[str, str]) -> bool:
@@ -161,12 +167,12 @@ def _write_store(wanted: dict[str, str]) -> bool:
     """
     key_file = fallback_file()
     try:
-        for name, value in wanted.items():
-            if value:
-                keyring.set_password(SERVICE_NAME, name, value)
-            else:
-                with contextlib.suppress(PasswordDeleteError):  # It was never saved.
-                    keyring.delete_password(SERVICE_NAME, name)
+        kept = {name: value for name, value in wanted.items() if value}
+        if kept:
+            keyring.set_password(SERVICE_NAME, ENTRY_NAME, json.dumps(kept, separators=(",", ":")))
+        else:
+            with contextlib.suppress(PasswordDeleteError):  # It was never saved.
+                keyring.delete_password(SERVICE_NAME, ENTRY_NAME)
     except KeyringError as error:
         logger.warning("Saving the API keys to %s: the password store could not be used (%s).", key_file, error)
         _write_key_file(key_file, wanted)
@@ -192,9 +198,29 @@ def _read_key_file(key_file: Path) -> dict[str, str]:
         dict[str, str]: the keys, one entry per API_KEY_NAMES -- all "" if it can't be read.
     """
     try:
-        contents = json.loads(key_file.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as error:  # ValueError covers bad JSON and bad UTF-8 alike.
+        text = key_file.read_text(encoding="utf-8")
+    except (OSError, ValueError) as error:  # ValueError covers bad UTF-8.
         logger.error("The API key file %s could not be read (%s).", key_file, error)
+        text = ""
+    return _parse_keys(text, f"The API key file {key_file}")
+
+
+def _parse_keys(text: str, source: str) -> dict[str, str]:
+    """
+    Pick the keys out of the JSON text kept in the password store or the fallback file.
+
+    Args:
+        text (str): the JSON.
+        source (str): what the text came from, for the log if it is no good.
+
+    Returns:
+        dict[str, str]: the keys, one entry per API_KEY_NAMES -- "" for any that is missing or unusable.
+    """
+    try:
+        contents = json.loads(text)
+    except ValueError as error:
+        if text:
+            logger.error("%s could not be read (%s).", source, error)
         contents = {}
     if not isinstance(contents, dict):
         contents = {}
@@ -227,6 +253,34 @@ def _write_key_file(key_file: Path, wanted: dict[str, str]) -> None:
         with contextlib.suppress(OSError):
             os.unlink(temp_name)
         raise
+
+
+def _move_per_key_entries() -> None:
+    """
+    Gather the keys older versions kept as an entry apiece in the password store into the one entry.
+
+    Reading the old entries is what makes the Keychain ask for permission for each of them,
+    so it is done only while the one entry does not exist yet.  Once they are moved, never again.
+    """
+    if fallback_file().exists():
+        return  # The keys are in the file; the store is not in use.
+    try:
+        if keyring.get_password(SERVICE_NAME, ENTRY_NAME):
+            return
+        old = {name: keyring.get_password(SERVICE_NAME, name) or "" for name in API_KEY_NAMES}
+    except KeyringError as error:
+        logger.warning("The password store could not be used to look for older API keys (%s).", error)
+        return
+    if not any(old.values()) or not _write_store(old):
+        return  # Nothing to move, or it went to the file instead -- which is read in preference.
+    for name in API_KEY_NAMES:
+        try:
+            keyring.delete_password(SERVICE_NAME, name)
+        except PasswordDeleteError:
+            continue  # That one was never saved.
+        except KeyringError as error:
+            logger.warning("The old %s entry in the password store could not be removed (%s).", name, error)
+    logger.info("Moved the API keys to a single entry in the password store.")
 
 
 # S301 (preview) flags any Unpickler subclass.  This one is the safeguard, not the risk: its

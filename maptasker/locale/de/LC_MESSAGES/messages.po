@@ -2763,3 +2763,186 @@ msgid "The request to the AI model was cancelled."
 msgstr "Die Anfrage an das KI-Modell wurde abgebrochen."
 msgid "e.g. flash 'Hello' if %WIFI is on"
 msgstr "z.B. \"Hallo\" anzeigen, wenn WLAN aktiviert ist."
+
+msgid "- TaskerNet Updates: Link a Project, Profile, Task or Scene to the TaskerNet share it came from (paste the share's address and say which of yours it is), and MapTasker tells you when its author publishes a newer version -- when you start it, and whenever you press Check Now.  Review lists what the author changed, each with a Take this button that previews the change before anything happens and is one press of Undo afterwards.  What is taken is the author's version of that Task, Profile or Scene, except that a Profile stays as switched on or off as you had it.  Accept Latest Version takes everything listed in one go instead, with no preview of its own (one press of Undo takes it back).  Only the address of each linked share is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone else's automation that will run on your phone, so read each preview before you take it.  \n"
+msgstr "- TaskerNet-Updates: Verknüpfen Sie ein Projekt, ein Profil, eine Aufgabe oder eine Szene mit dem TaskerNet-Teil, von dem es stammt (fügen Sie die Adresse des Teils ein und geben Sie an, welches von Ihren ist), und TaskerNet informiert Sie, wenn der Autor eine neuere Version veröffentlicht – jedes Mal, wenn Sie es starten, und jedes Mal, wenn Sie auf „Jetzt prüfen“ klicken. „Überblick“ zeigt Ihnen, welche Änderungen der Autor vorgenommen hat, jeweils mit einer Schaltfläche „So“ zur Vorschau, bevor etwas passiert, und einer einzigen „Rückgängig“-Schaltfläche danach. Was übernommen wird, ist die Version der Aufgabe, des Profils oder der Szene des Autors, außer dass ein Profil so bleibt, wie Sie es eingestellt haben. „Neueste Version“ übernimmt stattdessen alle aufgeführten Elemente auf einmal, ohne eigene Vorschau (eine „Rückgängig“-Schaltfläche setzt dies zurück). Nur die Adresse jedes verknüpften Teils wird an taskernet.com gesendet; nichts von Ihrer Konfiguration verlässt Ihren Computer. Eine Aktualisierung ist die Automatisierung einer anderen Person, die auf Ihrem Telefon ausgeführt wird, also lesen Sie jede Vorschau, bevor Sie sie übernehmen.\n"
+
+msgid "A"
+msgstr "Ein"
+
+msgid "Accept Latest Version"
+msgstr "Neueste Version akzeptieren"
+
+msgid "Asking TaskerNet.  Please stand by..."
+msgstr "Anfrage an TaskerNet. Bitte warten..."
+
+msgid "Before you share this export: lists the plugins and apps it uses, the special access it needs (root, ADB Wi-Fi, Write Secure Settings and the like), the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on.\n\nBuilt from what is in the file, so it is a minimum rather than a guarantee."
+msgstr "Bevor Sie diese Exportdatei weitergeben:\n*   Listet die verwendeten Plugins und Apps auf.\n*   Gibt die speziellen Zugriffsrechte an, die benötigt werden (z. B. Root-Zugriff, ADB, Wi-Fi, Zugriff auf sichere Einstellungen usw.).\n*   Listet die Variablen auf, die Tasker beim Import abfragen wird.\n*   Gibt die älteste Tasker-Version an, auf der es bekannt ist, dass sie läuft.\n\nDie Informationen basieren auf dem Inhalt der Datei, daher handelt es sich um eine Mindestanforderung, nicht um eine Garantie."
+
+msgid "Check Now"
+msgstr "Überprüfen Sie jetzt"
+
+msgid "Check readiness"
+msgstr "Überprüfen Sie die Bereitschaft"
+
+msgid "Choose which one of yours the share is."
+msgstr "Wählen Sie, wem die Aktie gehört."
+
+msgid "Copied."
+msgstr "Kopiert."
+
+msgid "Copy as text"
+msgstr "Kopieren als Text"
+
+msgid "Each change reads: the author's version -> your copy."
+msgstr "Jede Änderung lautet: Originalversion des Autors -> Ihre Kopie."
+
+msgid "Everything linked is up to date."
+msgstr "Alle verlinkten Informationen sind aktuell."
+
+msgid "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find out when its author publishes a newer version.\n\nShows what the author changed and lets you take each change on its own, previewed first and one press of Undo afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; nothing from your configuration leaves this computer."
+msgstr "Verknüpfen Sie ein Projekt, ein Profil, eine Aufgabe oder eine Szene mit dem TaskerNet-Teil, von dem es stammt, und erfahren Sie, wann der Autor eine neuere Version veröffentlicht.\n\nZeigt, welche Änderungen der Autor vorgenommen hat und ermöglicht es Ihnen, jede Änderung einzeln zu prüfen, zuerst vorab und dann mit einem einzigen Klick auf \"Rückgängig\".\n\nNur die Adresse jedes verknüpften Teils wird an taskernet.com gesendet; nichts von Ihrer Konfiguration verlässt diesen Computer."
+
+msgid "Link a share"
+msgstr "Verknüpfen"
+
+msgid "Linked -- press Review to compare it with your copy"
+msgstr "Verknüpfen – Vergleichen Sie es mit Ihrer Version"
+
+msgid "Linked shares"
+msgstr "Verbundaktien"
+
+msgid "Linked.  The version published"
+msgstr "Verlinkt. Die veröffentlichte Version"
+
+msgid "Mark As Up To Date"
+msgstr "Als aktuell markieren"
+
+msgid "Marked as up to date."
+msgstr "Als aktuell gekennzeichnet."
+
+msgid "Newer version published"
+msgstr "Neuerer Entwurf veröffentlicht"
+
+msgid "No earlier version is on file."
+msgstr "Es gibt keine vorherige Version, die aufbewahrt wird."
+
+msgid "No shares are linked yet.  Link one below."
+msgstr "Bisher gibt es keine Verbindungen. Bitte wählen Sie eine unten aus."
+
+msgid "Not checked yet"
+msgstr "Noch nicht überprüft"
+
+msgid "Not in the configuration that is loaded."
+msgstr "Nicht in der Konfiguration, die geladen ist."
+
+msgid "Nothing to take."
+msgstr "Nichts mitnehmen."
+
+msgid "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' button (e.g. has the 'Import:' instructions) and paste its address here."
+msgstr "Öffnen Sie die eigene Seite des Angebots auf TaskerNet (diejenige, die angezeigt wird, wenn Sie auf die Schaltfläche „Importieren“ klicken – z. B. die Anweisungen „Importieren:“ enthält) und fügen Sie hier die Adresse ein."
+
+msgid "Pick the one of yours it is, then press Link."
+msgstr "Wählen Sie den, der Ihnen gehört, und klicken Sie dann auf „Link“."
+
+msgid "Press 'Take this' on a row first."
+msgstr "Drücken Sie zuerst auf „Nehmen“ in einer Zeile."
+
+msgid "Readiness"
+msgstr "Vorbereitung"
+
+msgid "Removed by the author -- not offered; delete them in their own Edit dialogs"
+msgstr "Entfernt vom Autor – nicht angeboten; löschen Sie sie in ihren eigenen Bearbeitungsdialogen."
+
+msgid "Report saved as"
+msgstr "Bericht gespeichert als"
+
+msgid "Review"
+msgstr "Bewertung"
+
+msgid "Save Report"
+msgstr "Bericht speichern"
+
+msgid "Show every difference from my copy, not only the author's changes"
+msgstr "Zeigen Sie alle Unterschiede zu meiner Version, nicht nur die Änderungen des Autors."
+
+msgid "Some changes were skipped, so this version is not marked as the one you have."
+msgstr "Einige Änderungen wurden übersprungen, daher ist diese Version nicht als diejenige gekennzeichnet, die Sie besitzen."
+
+msgid "Some links could not be checked -- see the list."
+msgstr "Einige Links konnten nicht überprüft werden – siehe die Liste."
+
+msgid "TaskerNet Updates"
+msgstr "Aktuelle Informationen zu TaskerNet"
+
+msgid "TaskerNet share link"
+msgstr "Link zum TaskerNet-Netzwerk"
+
+msgid "The author changed"
+msgstr "Der Autor hat ... geändert"
+
+msgid "The author has published nothing new since the version you accepted"
+msgstr "Der Autor hat seit der von Ihnen akzeptierten Version keine neuen Werke veröffentlicht."
+
+msgid "The report could not be saved."
+msgstr "Der Bericht konnte nicht gespeichert werden."
+
+msgid "Up to date -- published"
+msgstr "Aktuell – Veröffentlicht"
+
+msgid "What this needs on the phone that receives it."
+msgstr "Was dieses Gerät benötigt, um korrekt zu funktionieren."
+
+msgid "Which one of yours is it?"
+msgstr "Welches gehört zu Ihnen?"
+
+msgid "With no earlier version to compare against, this lists everything that differs from your copy.  Tasker rewrites some things when it imports a share, so not every difference is the author's.  From the next update on, only what the author changed is listed."
+msgstr "Da es keine vorherige Version zum Vergleich gibt, listet diese alle Unterschiede zu Ihrer Kopie auf. Tasker ändert einige Dinge, wenn eine Datei importiert wird, daher sind nicht alle Unterschiede vom Autor. Ab dem nächsten Update werden nur noch die Änderungen des Autors aufgeführt."
+
+msgid "Your copy matches it."
+msgstr "Ihr Text entspricht dem."
+
+msgid "can be taken here."
+msgstr "können Sie hier erhalten."
+
+msgid "change(s) taken.  Undo is available."
+msgstr "durchgeführte Änderungen. Die Möglichkeit zur Rückgängigmachung ist vorhanden."
+
+msgid "change(s) to the Project itself (its description or variables, say) are not offered one by one -- see Save Report."
+msgstr "Änderungen am Projekt selbst (z. B. Beschreibung oder Variablen) werden nicht einzeln angeboten – siehe \"Bericht speichern\"."
+
+msgid "difference(s) from your copy are listed."
+msgstr "Die Unterschiede zu Ihrer Version sind aufgeführt."
+
+msgid "has the same content as it."
+msgstr "enthält den gleichen Inhalt wie die ursprüngliche Version."
+
+msgid "is now the one MapTasker takes you to have."
+msgstr "ist jetzt die Karte, die MapTasker Ihnen anzeigt."
+
+msgid "linked share(s) have a newer version."
+msgstr "Die verlinkten Aktien/Anteile haben eine neuere Version."
+
+msgid "linked share(s) have a newer version.  Open TaskerNet Updates to see what changed."
+msgstr "Die verlinkten Dateien haben eine neuere Version. Öffnen Sie \"TaskerNet Updates\", um zu sehen, welche Änderungen vorgenommen wurden."
+
+msgid "more."
+msgstr "mehr."
+
+msgid "object(s) exist only in your copy and are left alone."
+msgstr "Das Objekt(e) existiert(en) nur in Ihrer Kopie und bleibt unverändert."
+
+msgid "object(s) since the version you accepted"
+msgstr "Objekte, da die von Ihnen akzeptierte Version"
+
+msgid "object(s) still differ from your copy, but not because of anything the author changed -- Tasker rewrites a share when it imports it, or you edited them.  Tick the box below to list them."
+msgstr "Die Objekte unterscheiden sich möglicherweise noch von Ihrer Version, aber nicht, weil der Autor Änderungen vorgenommen hat – Tasker erstellt eine neue Kopie, wenn er eine importiert, oder Sie haben sie bearbeitet. Aktivieren Sie das Kästchen unten, um sie aufzulisten."
+
+msgid "on TaskerNet"
+msgstr "auf TaskerNet"
+
+msgid "shared as"
+msgstr "geteilt"
+
+msgid "the version published"
+msgstr "die veröffentlichte Version"
