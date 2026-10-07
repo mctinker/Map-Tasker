@@ -68,11 +68,12 @@ _NAMES_IN_NOTE = 5
 
 _BLURB = (
     "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and MapTasker tells you when "
-    "its author publishes a newer version, shows what they changed, and lets you take each change one at a time."
+    "its author publishes a newer version, shows what they changed, and lets you take each change one at a time or "
+    "accept the latest version all at once."
 )
 _PRIVACY = (
-    "Checking sends taskernet.com the address of each link and nothing else: no part of your configuration "
-    "leaves this computer.  An update is someone else's automation that will run on your phone -- read what "
+    "'Check Now' sends taskernet.com the address of each defined link and nothing else: no part of your "
+    "configuration leaves this computer.  An update is someone else's automation that will run on your phone -- read what "
     "each one does in its preview before you take it."
 )
 
@@ -249,7 +250,8 @@ class _UpdatesDialog:
         ui.label(
             translate_string(
                 "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' "
-                "button (e.g. has the 'Import:' instructions) and paste its address here.",
+                "button (e.g. has the 'Import:' instructions) and paste its address here.  This is a one-time setup process "
+                "only for each project/profile/task to establish its linkage to TaskerNet.",
             ),
         ).classes("text-xs text-gray-500")
         with ui.row().classes("w-full items-center no-wrap gap-2"):
