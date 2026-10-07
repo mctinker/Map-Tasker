@@ -112,6 +112,8 @@ class _Held:
     # Whether the review on screen was the first this link had, so the wording that says what
     # that means survives the rescan after something is taken.
     first_review: bool = False
+    # The changes a 'Accept Latest Version' preview is on screen for, or None when it is not.
+    accepting: list[maprestore.Candidate] | None = None
 
 
 def build_tnupdate_dialog(
@@ -166,11 +168,13 @@ class _UpdatesDialog:
         self.check_button: ui.button
         self.summary: ui.label
         self.notes: ui.column
+        self.show_all: ui.checkbox
         self.list_area: ui.scroll_area
         self.preview_heading: ui.label
         self.preview_area: ui.scroll_area
         self.apply_button: ui.button
         self.accept_button: ui.button
+        self.latest_button: ui.button
         self.report_button: ui.button
 
     def _notify(
@@ -204,6 +208,11 @@ class _UpdatesDialog:
             self._build_add_section()
             self.summary = ui.label("").classes("text-sm font-bold text-orange-500 mt-2")
             self.notes = ui.column().classes("w-full gap-0")
+            self.show_all = ui.checkbox(
+                translate_string("Show every difference from my copy, not only the author's changes"),
+                on_change=self._redraw_list,
+            ).classes("text-xs")
+            self.show_all.set_visibility(False)
             self.list_area = ui.scroll_area().classes("w-full h-[220px] border rounded dark:border-gray-700 mt-1")
             self.preview_heading = ui.label("").classes("text-sm font-bold text-blue-600 mt-3")
             self.preview_area = ui.scroll_area().classes("w-full h-[160px] border rounded dark:border-gray-700 mt-1")
@@ -237,8 +246,8 @@ class _UpdatesDialog:
         # picker and the note below it, hiding exactly what the pasted address has just filled in.
         ui.label(
             translate_string(
-                "Open the share's own page on TaskerNet (the one with its Import button, or the link Tasker's "
-                "Export > As Link gives you) and paste its address here.",
+                "Open the share's own page on TaskerNet (the one that displays when you click on the 'Import' "
+                "button (e.g. has the 'Import:' instructions) and paste its address here.",
             ),
         ).classes("text-xs text-gray-500")
         with ui.row().classes("w-full items-center no-wrap gap-2"):
@@ -261,6 +270,20 @@ class _UpdatesDialog:
                 "One press of Undo afterwards puts the configuration back as it is now.",
             )
             ui.button(translate_string("Cancel Preview"), on_click=self.clear_preview).props("outline")
+            self.latest_button = ui.button(translate_string("Accept Latest Version"), on_click=self.preview_latest)
+            self.latest_button.props("color=orange outline")
+            self.latest_button.disable()
+            tip(
+                self.latest_button,
+                "Take the author's version of everything listed below in one go, instead of pressing 'Take "
+                "this' on each row.\n\n"
+                "Shows the changes it would take first, and nothing happens until you press Apply.  Each "
+                "change is made one after another; one that cannot be made is skipped and listed.\n\n"
+                "One press of Undo takes them all back.  Then the version you have becomes the one "
+                "published, as 'Mark As Up To Date' does.\n\n"
+                "Ticking 'Show every difference' first includes the ones that are not the author's -- your "
+                "own edits among them -- so read the list before you apply.",
+            )
             self.accept_button = ui.button(translate_string("Mark As Up To Date"), on_click=self.mark_current)
             self.accept_button.props("outline")
             self.accept_button.disable()
@@ -319,6 +342,17 @@ class _UpdatesDialog:
                     ui.label(link.problem).classes("text-xs text-red-500 break-all")
             review = ui.button(translate_string("Review"), on_click=partial(self.review, link))
             review.props("dense outline").classes("shrink-0")
+            tip(
+                review,
+                "Download this share from TaskerNet and set it beside your copy.  Nothing in your "
+                "configuration is changed.\n\n"
+                "Lists what the author changed since the version you last accepted, each with a 'Take this' "
+                "button that previews before anything happens.\n\n"
+                "The first time, there is no earlier version to compare with: the version published now is "
+                "recorded as the one you have, and everything that differs from your copy is listed "
+                "(some of it is Tasker rewriting the share when it was imported).\n\n"
+                "Later reviews leave the version you have alone until you press 'Mark As Up To Date'.",
+            )
             if not loaded:
                 review.disable()
             unlink = ui.button(translate_string("Unlink"), on_click=partial(self.unlink, link))
@@ -373,7 +407,7 @@ class _UpdatesDialog:
 
     async def check_now(self) -> None:
         """Ask TaskerNet about every link, and say what it found."""
-        waiting = await self._check(only_due=False)
+        waiting = await self._check(only_due=False, announce=True)
         if waiting is None:
             return
         problems = sum(1 for link in self.book.links.values() if link.problem)
@@ -384,19 +418,32 @@ class _UpdatesDialog:
         else:
             self._notify(translate_string("Everything linked is up to date."), kind="positive")
 
-    async def _check(self, *, only_due: bool) -> int | None:
-        """Check the links off the event loop and redraw them.  The number with something newer, or None."""
+    async def _check(self, *, only_due: bool, announce: bool = False) -> int | None:
+        """Check the links off the event loop and redraw them.  The number with something newer, or None.
+
+        `announce` puts a notice up for as long as TaskerNet is being asked, which is as long as its
+        slowest answer or the timeout.  It is for the button the user pressed; the check made as the
+        dialog opens runs quietly.
+        """
         if self.held.busy:
             return None
         self.held.busy = True
         self.check_button.disable()
+        pending = self._announce(translate_string("Asking TaskerNet.  Please stand by...")) if announce else None
         try:
             waiting = await run.io_bound(tnupdate.check_all, self.book, only_due=only_due)
         finally:
             self.held.busy = False
             self.check_button.enable()
+            if pending is not None:
+                pending.dismiss()
         self._draw_links()
         return waiting
+
+    def _announce(self, message: str) -> ui.notification:
+        """A notice with a spinner and no timeout, for something in progress; the caller dismisses it."""
+        with self.dialog:
+            return ui.notification(message, type="ongoing", spinner=True, timeout=None)
 
     # ##############################################################################
     # Reviewing.
@@ -406,11 +453,14 @@ class _UpdatesDialog:
         """Put the review area back to empty, and take the buttons that act on it away."""
         self.held.review = None
         self.held.applied.clear()
+        self.show_all.set_value(False)
+        self.show_all.set_visibility(False)
         self.summary.set_text("")
         self.notes.clear()
         self.list_area.clear()
         self.clear_preview()
         self.accept_button.disable()
+        self.latest_button.disable()
         self.report_button.disable()
 
     async def review(self, link: tnupdate.Link) -> None:
@@ -425,7 +475,7 @@ class _UpdatesDialog:
             return
         self.held.busy = True
         self._clear_review()
-        self.summary.set_text(translate_string("Asking TaskerNet..."))
+        self.summary.set_text(translate_string("Asking TaskerNet.  Please stand by..."))
         try:
             result = await run.io_bound(tnupdate.review, link, self.state, self.book)
         finally:
@@ -447,6 +497,7 @@ class _UpdatesDialog:
         self.held.review, self.held.first_review = held, first
         self._draw_links()
         self.accept_button.enable()
+        self.latest_button.enable()
         self.report_button.enable()
         self._draw_review()
 
@@ -455,6 +506,7 @@ class _UpdatesDialog:
         held = self.held.review
         if held is None:
             return
+        self.show_all.set_visibility(len(held.everything) > len(held.offer.candidates))
         self.summary.set_text(self._summary_text(held, first=self.held.first_review))
         self.notes.clear()
         with self.notes:
@@ -467,9 +519,11 @@ class _UpdatesDialog:
         published = tnupdate.describe_date(held.info.published_ms)
         author = held.author
         if author is not None and author.nothing:
+            accepted = tnupdate.describe_date(held.link.seen_ms)
             return (
-                f"{translate_string('The version published')} {published} "
-                f"{translate_string('has the same content as the one you accepted.')}"
+                f"{translate_string('The author has published nothing new since the version you accepted')} "
+                f"({accepted}): {translate_string('the version published')} {published} "
+                f"{translate_string('has the same content as it.')}"
             )
         if author is not None:
             return (
@@ -491,7 +545,7 @@ class _UpdatesDialog:
     def _note_lines(self, held: tnupdate.Review) -> list[str]:
         """What is not offered, and why, so a short list does not read as a short comparison."""
         lines = []
-        if held.offer.candidates:
+        if held.everything:
             # xmldiff's lines read "older -> newer", and here the share is the older side.
             lines.append(translate_string("Each change reads: the author's version -> your copy."))
         if held.author is None and held.offer.candidates:
@@ -501,6 +555,11 @@ class _UpdatesDialog:
                     "Tasker rewrites some things when it imports a share, so not every difference is the author's.  "
                     "From the next update on, only what the author changed is listed.",
                 ),
+            )
+        hidden = len(held.everything) - len(held.offer.candidates)
+        if held.author is not None and hidden > 0:
+            lines.append(
+                f"{hidden} {translate_string('object(s) still differ from your copy, but not because of anything the author changed -- Tasker rewrites a share when it imports it, or you edited them.  Tick the box below to list them.')}",
             )
         if held.author is not None and held.author.removed:
             names = "; ".join(held.author.removed[:_NAMES_IN_NOTE])
@@ -519,20 +578,28 @@ class _UpdatesDialog:
                 )
         return lines
 
+    def _redraw_list(self) -> None:
+        """Draw the list again after the 'show every difference' box was ticked or cleared."""
+        held = self.held.review
+        if held is not None:
+            self.clear_preview()
+            self._draw_list(held)
+
     def _draw_list(self, held: tnupdate.Review) -> None:
         """The rows, each with its button.  Rows already taken stay, with a green button, until the next review."""
         self.list_area.clear()
-        offered = {candidate.identity for candidate in held.offer.candidates}
+        candidates = held.everything if self.show_all.value else held.offer.candidates
+        offered = {candidate.identity for candidate in candidates}
         with self.list_area, ui.column().classes("w-full gap-0 p-1"):
             for identity, candidate in self.held.applied.items():
                 if identity not in offered:
                     self._row(candidate, applied=True, finished=True)
-            if held.offer.is_empty and not self.held.applied:
+            if not candidates and not self.held.applied:
                 ui.label(translate_string("Nothing to take.")).classes("text-sm text-gray-500 italic p-2")
-            for candidate in held.offer.candidates[:_ROW_LIMIT]:
+            for candidate in candidates[:_ROW_LIMIT]:
                 self._row(candidate, applied=candidate.identity in self.held.applied)
-            if len(held.offer.candidates) > _ROW_LIMIT:
-                ui.label(f"...{len(held.offer.candidates) - _ROW_LIMIT} {translate_string('more.')}").classes(
+            if len(candidates) > _ROW_LIMIT:
+                ui.label(f"...{len(candidates) - _ROW_LIMIT} {translate_string('more.')}").classes(
                     "text-xs text-gray-500 italic mt-2",
                 )
 
@@ -556,6 +623,7 @@ class _UpdatesDialog:
         """Throw the preview away and take Apply with it -- the Refactor dialog's one rule."""
         self.held.plan = None
         self.held.previewed = None
+        self.held.accepting = None
         self.preview_heading.set_text("")
         self.preview_area.clear()
         self.apply_button.disable()
@@ -580,6 +648,9 @@ class _UpdatesDialog:
 
     async def do_apply(self) -> None:
         """Apply exactly the plan on screen.  One press of Undo takes it back."""
+        if self.held.accepting is not None:
+            await self._apply_latest()
+            return
         plan, candidate = self.held.plan, self.held.previewed
         if plan is None or candidate is None:
             self._notify(translate_string("Press 'Take this' on a row first."), kind="warning")
@@ -592,6 +663,74 @@ class _UpdatesDialog:
         self.held.applied[candidate.identity] = candidate
         self._notify(f"{plan.what}.  {translate_string('Undo is available.')}", kind="positive", position="top")
         await self.rebuild_after_apply()
+        await self.rescan()
+
+    def _listed(self, held: tnupdate.Review) -> list[maprestore.Candidate]:
+        """The changes the list on screen shows -- the author's, or every difference when that box is ticked."""
+        return list(held.everything if self.show_all.value else held.offer.candidates)
+
+    def preview_latest(self) -> None:
+        """Show what accepting the latest version would take, one line per change.  Nothing is changed.
+
+        Not a plan per change, drawn all together: those would each be made against the configuration
+        as it is NOW, and the real ones are made one after another, each against what the last left
+        -- a warning that a Profile's Task is missing would be about a Task this very change brings.
+        So what is shown is what will be attempted, and what happens to each is reported afterwards.
+        """
+        held = self.held.review
+        if held is None:
+            return
+        changes = self._listed(held)
+        if not changes:
+            self.mark_current()
+            return
+        self.clear_preview()
+        self.held.accepting = changes
+        kinds = {kind: sum(1 for change in changes if change.kind == kind) for kind in ("Task", "Profile", "Scene")}
+        self.preview_heading.set_text(
+            f"{translate_string('Preview -- nothing has changed yet.  Accepting the version published')} "
+            f"{tnupdate.describe_date(held.info.published_ms)}: {len(changes)} {translate_string('change(s)')} "
+            f"({kinds['Task']} Task, {kinds['Profile']} Profile, {kinds['Scene']} Scene)",
+        )
+        with self.preview_area, ui.column().classes("w-full gap-0 p-2"):
+            ui.label(
+                translate_string(
+                    "Each is taken in this order, one after another.  One that cannot be made is skipped and "
+                    "listed afterwards.  One press of Undo takes them all back.",
+                ),
+            ).classes("text-xs text-gray-500 italic mb-1")
+            for change in changes:
+                ui.label(f"{_row_tag(change)}  {change.where}").classes("font-mono text-xs font-bold")
+                for detail in change.details[:2]:
+                    ui.label(detail).classes("font-mono text-xs text-gray-600 dark:text-gray-300 pl-4 break-all")
+        self.apply_button.enable()
+
+    async def _apply_latest(self) -> None:
+        """Take every change the preview named, as one Undo, and say what happened to each."""
+        held, changes = self.held.review, self.held.accepting
+        if held is None or changes is None:
+            return
+        # On the event loop, as 'Take this' is: it changes the configuration, and the undo history
+        # and the tables it rebuilds are not meant to be written from two threads.
+        taken = tnupdate.accept_changes(changes, held, self.state)
+        for line in taken.skipped[:4]:
+            self._notify(line, kind="negative")
+        if taken.done:
+            self._notify(
+                f"{taken.done} {translate_string('change(s) taken.  Undo is available.')}",
+                kind="positive",
+                position="top",
+            )
+            await self.rebuild_after_apply()
+        if not taken.skipped:
+            # All of it is in: the version published is now the one the user has.
+            tnupdate.accept(self.book, held)
+            self._draw_links()
+        else:
+            self._notify(
+                translate_string("Some changes were skipped, so this version is not marked as the one you have."),
+                kind="warning",
+            )
         await self.rescan()
 
     async def rescan(self) -> None:

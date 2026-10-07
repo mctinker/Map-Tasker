@@ -231,7 +231,8 @@ TASKERNET_UPDATES_HELP_TEXT = (
     " publishes a newer version -- when you start it, and whenever you press Check Now.  Review lists what"
     " the author changed, each with a Take this button that previews the change before anything happens and"
     " is one press of Undo afterwards.  What is taken is the author's version of that Task, Profile or Scene,"
-    " except that a Profile stays as switched on or off as you had it.  Only the address of each linked share"
+    " except that a Profile stays as switched on or off as you had it.  Accept Latest Version takes everything"
+    " listed in one go instead (one Undo), after showing you what it will take.  Only the address of each linked share"
     " is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone"
     " else's automation that will run on your phone, so read each preview before you take it.  \n"
 )

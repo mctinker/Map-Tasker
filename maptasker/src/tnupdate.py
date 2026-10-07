@@ -98,7 +98,7 @@ from xml.etree.ElementTree import Element, tostring
 import defusedxml.ElementTree as DefusedET
 import httpx
 
-from maptasker.src import clock, diffload, maprestore, timeline, xmldiff
+from maptasker.src import clock, diffload, maprestore, sessundo, timeline, xmldiff
 from maptasker.src.sysconst import MY_VERSION, logger
 from maptasker.src.xmldiff import Configuration
 
@@ -977,6 +977,10 @@ class Review:
     report: str = ""
     counts: dict = field(default_factory=dict)
     author: AuthorChanges | None = None
+    # Every object that differs from your copy, whoever made the difference.  `offer` holds only
+    # the author's changes when there is an accepted version to tell them by; this keeps the rest
+    # reachable, since what Tasker rewrote on import and what you edited are differences too.
+    everything: list[maprestore.Candidate] = field(default_factory=list)
 
     @property
     def identical(self) -> bool:
@@ -1078,9 +1082,10 @@ def build_review(
     """Compare an already-aligned share with the linked item, offering the author's changes if they are known."""
     report, counts = xmldiff.compare(shared, scope)
     offer = maprestore.candidates(shared, scope, state)
+    everything = list(offer.candidates)
     if author is not None:
         offer.candidates = [c for c in offer.candidates if (c.kind, c.key) in author.keys]
-    return Review(link, info, shared, offer, xml_text, report, counts, author)
+    return Review(link, info, shared, offer, xml_text, report, counts, author, everything)
 
 
 def rescan(held: Review, state: RunState) -> Review | None:
@@ -1089,6 +1094,41 @@ def rescan(held: Review, state: RunState) -> Review | None:
     if scope is None:
         return None
     return build_review(held.link, held.info, held.shared, scope, state, held.xml_text, held.author)
+
+
+@dataclass
+class Taken:
+    """What accepting a version did: how many changes went in, and which could not be made, with why."""
+
+    done: int = 0
+    skipped: list[str] = field(default_factory=list)
+
+
+def accept_changes(candidates: list[maprestore.Candidate], held: Review, state: RunState) -> Taken:
+    """Take every one of `candidates` from the share, in order, as ONE change the user can undo.
+
+    The alternative to a 'Take this' per object, for the user who wants the author's version and
+    not a choice of its parts.  It is the same restore, repeated: each object is planned against
+    the configuration as the one before LEFT it, which is what a single press of 'Take this' on
+    each row in turn would do -- a Profile is linked by name to the Task that came in a moment
+    earlier -- and not against the configuration as it was when the list was drawn.  Tasks are
+    taken before Profiles before Scenes (the candidates' own order) for that reason.
+
+    One that cannot be made -- its plan is blocked, or it fails -- is skipped and said so; it
+    does not stop the rest.  The whole of it is one Undo, labelled with the share and the count.
+    """
+    taken = Taken()
+    label = f"Accept TaskerNet version of {held.link.name} ({len(candidates)} changes)"
+    with sessundo.undoable(label, state=state):
+        for candidate in candidates:
+            plan = maprestore.plan_restore(candidate, held.shared, held.from_when, state=state)
+            done, errors = maprestore.restore(plan, state=state)
+            if done:
+                taken.done += 1
+            else:
+                reason = " ".join(errors) or "it could not be done."
+                taken.skipped.append(f"{candidate.where}: {reason}")
+    return taken
 
 
 def accept(book: LinkBook, held: Review) -> None:

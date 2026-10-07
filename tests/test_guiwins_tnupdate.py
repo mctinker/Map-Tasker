@@ -363,3 +363,107 @@ async def test_a_review_that_fails_says_why_even_though_its_own_button_was_redra
         await _until(lambda: user.notify.contains("not valid Tasker XML"))
         assert reached, "the notification was raised, and from a context that still exists"
         assert "not valid Tasker XML" in _book().links[("Project", "Pack")].problem
+
+
+@pytest.mark.asyncio
+async def test_differences_that_are_not_the_authors_are_hidden_but_one_tick_away() -> None:
+    """Linking lists every difference from your copy; reviewing again lists only the author's, and says so.
+
+    The two lists answer different questions -- 'how does my copy differ from the share?' and 'what
+    did the author change since I accepted it?' -- so the second must not look as if the first
+    went away.
+    """
+    _seed()
+    _built["xml"] = _share()
+    _live("all_tasks")["20"]["xml"].find("Action/Str").text = "my own words"
+    async with _open() as user:
+        await user.should_see("Newer version published")
+        _press(user, _only(user, "Review"))
+
+        await user.should_see("has published nothing new since the version you accepted")
+        assert not _buttons(user, "Take this"), "nothing the author changed"
+        assert any("still differ from your copy" in label for label in _labels(user))
+        (box,) = user.find(kind=ui.checkbox).elements
+        assert box.visible
+
+        box.set_value(True)
+
+        await _until(lambda: _buttons(user, "Take this"))
+        assert len(_buttons(user, "Take this")) == 1
+
+
+@pytest.mark.asyncio
+async def test_accept_latest_version_shows_what_it_will_take_then_takes_all_of_it_and_moves_the_version_on() -> None:
+    _seed()
+    async with _open() as user:
+        await _review_the_update(user)
+        before = _live("all_tasks")["20"]["xml"].findtext("Action/Str")
+
+        _press(user, _only(user, "Accept Latest Version"))
+
+        assert any("5 change(s)" in label for label in _labels(user)), "what it will take is shown first"
+        assert _only(user, "Apply").enabled
+        assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == before, "and nothing has been done yet"
+
+        _press(user, _only(user, "Apply"))
+
+        await _until(lambda: _built["rebuilt"] == 1)
+        assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello there"
+        assert _live("all_tasks")["22"]["xml"].findtext("Action/Str") == "anon v2"
+        saved = _book().links[("Project", "Pack")]
+        assert saved.seen_ms == _built["published"], "the version published is now the one you have"
+        assert _book().baseline(saved) == _V2
+
+
+@pytest.mark.asyncio
+async def test_accept_latest_version_with_nothing_to_take_just_marks_the_version() -> None:
+    _seed()
+    _built["xml"] = _share()
+    async with _open() as user:
+        await user.should_see("Newer version published")
+        _press(user, _only(user, "Review"))
+        await user.should_see("has published nothing new")
+
+        _press(user, _only(user, "Accept Latest Version"))
+
+        await _until(lambda: user.notify.contains("Marked as up to date."))
+        assert _book().links[("Project", "Pack")].seen_ms == _built["published"]
+
+
+@pytest.mark.asyncio
+async def test_check_now_says_it_is_asking_taskernet_and_takes_the_notice_down_when_it_has_heard(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The notice is up for the whole wait and gone after it -- not left on screen for the session."""
+    _seed()
+    events: list[str] = []
+
+    class Notice:
+        def __init__(self, message: str, **kwargs: object) -> None:
+            events.append(f"up: {message}")
+            self.kwargs = kwargs
+
+        def dismiss(self) -> None:
+            events.append("down")
+
+    monkeypatch.setattr(guiwins_tnupdate.ui, "notification", Notice)
+    async with _open() as user:
+        await user.should_see("Newer version published")
+        events.clear()
+        _built["asked"].clear()
+
+        _press(user, _only(user, "Check Now"))
+
+        await _until(lambda: "down" in events)
+        assert events == ["up: Asking TaskerNet.  Please stand by...", "down"]
+        assert _built["asked"] == ["Project:Pack"]
+
+
+@pytest.mark.asyncio
+async def test_the_check_made_as_the_dialog_opens_does_not_put_a_notice_up(monkeypatch: pytest.MonkeyPatch) -> None:
+    _seed()
+    made: list[str] = []
+    monkeypatch.setattr(guiwins_tnupdate.ui, "notification", lambda message, **_: made.append(message))
+    async with _open() as user:
+        await user.should_see("Newer version published")
+    assert made == []

@@ -812,6 +812,16 @@ def test_with_an_accepted_version_only_the_authors_changes_are_offered() -> None
     assert any("Dusk" in line for line in held.author.removed)
 
 
+def test_the_differences_that_are_not_the_authors_stay_reachable() -> None:
+    """Filtering to the author's changes must not make the other differences vanish."""
+    _live("all_tasks")["20"]["xml"].find("Action/Str").text = "my own words"
+
+    held = _review(_share(), accepted=_share())
+
+    assert not held.offer.candidates, "nothing the author did"
+    assert ("Task", "20", maprestore.REVERT) in {(c.kind, c.key, c.action) for c in held.everything}
+
+
 def test_an_object_the_author_left_alone_is_not_offered_even_if_you_edited_it() -> None:
     """Your own edit of something the author never touched is not for the author's version to overwrite."""
     _live("all_tasks")["20"]["xml"].find("Action/Str").text = "my own words"
@@ -988,3 +998,75 @@ def test_a_review_leaves_the_loaded_configuration_exactly_as_it_was() -> None:
 
     assert PrimeItems.tasker_root_elements is tables
     assert {name: (id(entry["xml"]), entry["name"]) for name, entry in _live("all_tasks").items()} == before
+
+
+# ##################################################################################
+# Accepting the whole of a version.
+# ##################################################################################
+
+
+def test_accepting_takes_every_change_in_one_go_and_in_one_undo() -> None:
+    held = _review(_V2, accepted=_share())
+    changes = list(held.offer.candidates)
+    assert len(changes) == 5
+
+    taken = tnupdate.accept_changes(changes, held, PrimeItems)
+
+    assert (taken.done, taken.skipped) == (5, [])
+    tasks = {entry["name"]: entry["xml"] for entry in _live("all_tasks").values()}
+    assert tasks["Morning"].findtext("Action/Str") == "hello there"
+    assert tasks["Assistant"].findtext("id") == "21", "the renamed Task is still yours, renamed"
+    assert tasks["Brand New"] is not None
+    assert _live("all_profiles")["100"]["xml"].findtext("Time/fh") == "7"
+    assert _live("all_profiles")["100"]["xml"].findtext("flags") == "10", "still switched on"
+
+    assert sessundo.undo(state=PrimeItems), "one press"
+
+    names = {entry["name"] for entry in _live("all_tasks").values()}
+    assert "Brand New" not in names
+    assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello"
+    assert _live("all_profiles")["100"]["xml"].findtext("Time/fh") == "6"
+    assert _live("all_tasks")["21"]["xml"].findtext("nme") == "Helper"
+
+
+def test_a_change_that_cannot_be_made_is_skipped_and_named_and_the_rest_still_go_in(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    held = _review(_V2, accepted=_share())
+    real = maprestore.restore
+
+    def refuse_morning(plan: object, state: object) -> tuple[bool, list[str]]:
+        if "Morning" in plan.what:
+            return False, ["Something stands in the way."]
+        return real(plan, state=state)
+
+    monkeypatch.setattr(tnupdate.maprestore, "restore", refuse_morning)
+
+    taken = tnupdate.accept_changes(list(held.offer.candidates), held, PrimeItems)
+
+    assert taken.done == 4
+    assert len(taken.skipped) == 1
+    assert "Morning" in taken.skipped[0]
+    assert "Something stands in the way." in taken.skipped[0]
+    assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello"
+    assert _live("all_tasks")["22"]["xml"].findtext("Action/Str") == "anon v2"
+
+
+def test_a_profile_is_linked_to_a_task_that_came_in_with_it() -> None:
+    """Each is planned against what the one before left, so a new Profile finds its new Task by name."""
+    share = _share().replace(
+        "</TaskerData>",
+        """<Task sr="task30" ve="2"><id>30</id><nme>Fresh Task</nme>
+      <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">fresh</Str></Action></Task>
+    <Profile sr="prof31" ve="2"><id>31</id><mid0>30</mid0><nme>Fresh Profile</nme><Time sr="con0"><fh>9</fh></Time></Profile>
+    </TaskerData>""",
+    )
+    held = _review(share, accepted=_share())
+    assert {c.kind for c in held.offer.candidates} == {"Task", "Profile"}
+
+    taken = tnupdate.accept_changes(list(held.offer.candidates), held, PrimeItems)
+
+    assert taken.skipped == []
+    profile = next(entry["xml"] for entry in _live("all_profiles").values() if entry["name"] == "Fresh Profile")
+    entry = _live("all_tasks")[profile.findtext("mid0")]
+    assert entry["name"] == "Fresh Task"
