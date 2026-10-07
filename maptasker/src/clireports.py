@@ -68,6 +68,7 @@ from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
+from maptasker.src.maputil2 import suppress_logged
 from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.outdir import normalize_output_directory
 from maptasker.src.outline import outline_the_configuration
@@ -291,7 +292,7 @@ def _apply_saved_settings(state: RunState) -> None:
     So that a report is saved where the window would have saved it and an export looks as the
     Map does.  Read, never written: a missing or unreadable settings file leaves the defaults.
     """
-    with contextlib.suppress(Exception):
+    with suppress_logged("Reading the saved settings for a report"):
         saved_arguments, saved_colors = save_restore_args({}, {}, to_save=False, state=state)
         state.program_arguments.restore(
             saved_arguments if isinstance(saved_arguments, dict) else saved_arguments.as_dict(),

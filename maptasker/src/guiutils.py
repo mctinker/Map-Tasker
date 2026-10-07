@@ -26,7 +26,7 @@ from maptasker.src.getputer import save_restore_args
 from maptasker.src.guistate import gui_settings, remember_setting
 from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.lineout import LineOut
-from maptasker.src.maputil2 import http_request, translate_string
+from maptasker.src.maputil2 import http_request, suppress_logged, translate_string
 from maptasker.src.maputils import get_pypi_version, restart_program_subprocess
 from maptasker.src.outdir import output_path
 from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems, RunState, clear_single_items
@@ -743,7 +743,7 @@ def clear_android_buttons(self: "MyGui") -> None:
     for attr in elements_to_delete:
         widget = getattr(self, attr, None)
         if widget:
-            with contextlib.suppress(Exception):
+            with suppress_logged("Deleting a GUI widget"):
                 widget.delete()  # NiceGUI uses .delete() instead of .destroy()
 
             # Clear the reference so your object state stays clean
@@ -1185,10 +1185,14 @@ def _set_single_item_name(self: object, label: str, name: str, defaults: dict) -
     form, and no-ops rather than blanking the pulldown when nothing matches.
     """
     self.specific_name_msg = f"{defaults['display_only']}{translate_string(label)} '{name}'"
-    try:
-        select_pulldown_option(getattr(self, f"specific_{label.lower()}_optionmenu"), name)
-    except AttributeError:
+    # No pulldown yet means the window is not built (a settings restore can land here first),
+    # so there is nothing to select.  Looked up rather than caught, so an AttributeError from
+    # inside select_pulldown_option is no longer taken for "not built yet".
+    optionmenu = getattr(self, f"specific_{label.lower()}_optionmenu", None)
+    if optionmenu is None:
+        logger.debug("The %s pulldown is not built yet; not selecting %r", label, name)
         return
+    select_pulldown_option(optionmenu, name)
 
     for other in SINGLE_ITEM_LABELS:
         if other == label:
@@ -1222,7 +1226,10 @@ def _set_default_names(self: object, defaults: dict) -> None:
             else:
                 optionmenu.value = defaults[label.lower()]
     except AttributeError:
-        pass
+        # Assigning .value runs the pulldown's change handlers, which can reach for window
+        # state that a startup restore has not set up yet -- so this stays broad enough to
+        # survive that, but leaves the traceback in the debug log rather than hiding it.
+        logger.debug("Resetting the Specific Name pulldowns failed; leaving them as they are", exc_info=True)
 
 
 def is_valid_ai_config(self: "MyGui") -> bool:

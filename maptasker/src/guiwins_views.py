@@ -19,7 +19,6 @@ below this module, and guiwins.py above it.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 import re
 from typing import TYPE_CHECKING, cast
@@ -59,7 +58,7 @@ from maptasker.src.guiwins_search import (
     SEARCH_JAVASCRIPT_TIMEOUT,
     TextViewSearch,
 )
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import suppress_logged, translate_string
 from maptasker.src.outdir import output_path
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -1567,7 +1566,7 @@ class NiceGuiTextView(TextViewSearch):
         """Take the progress banner down.  Safe to call when there isn't one."""
         row, self._loading_row, self._loading_label = self._loading_row, None, None
         if row is not None:
-            with contextlib.suppress(Exception):
+            with suppress_logged("Deleting the progress banner"):
                 row.delete()
 
     def _mark_content_ready(self) -> None:

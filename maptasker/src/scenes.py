@@ -7,7 +7,6 @@
 #                                                                                      #
 from __future__ import annotations
 
-import contextlib
 from typing import TYPE_CHECKING
 
 from maptasker.src import caches, tasks
@@ -931,10 +930,9 @@ def process_project_scenes(
         :param config: the run's settings
         :return: True if a Scene was output, False if not
     """
-    scene_names = None
     state.scene_count = 0
-    with contextlib.suppress(Exception):
-        scene_names = project.find("scenes").text
+    # None when the Project has no <scenes> element, or an empty one.
+    scene_names = project.findtext("scenes") or None
     if scene_names is not None:
         scene_list = scene_names.split(",")
 

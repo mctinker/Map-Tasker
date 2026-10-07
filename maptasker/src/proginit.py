@@ -6,7 +6,6 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 import atexit
-import contextlib
 import sys
 from collections import namedtuple
 from json import dumps, loads
@@ -176,14 +175,9 @@ def setup_colors(state: RunState) -> dict:
 
     # See if a color has already been assigned.  If so, keep it.  Otherwise,
     # use default from set_color_mode.
-    with contextlib.suppress(Exception):
-        if state.colors_to_use:
-            for color_argument_name in TYPES_OF_COLOR_NAMES.values():
-                try:
-                    if state.colors_to_use[color_argument_name]:
-                        colors_to_use[color_argument_name] = state.colors_to_use[color_argument_name]
-                except KeyError:
-                    continue
+    for color_argument_name in TYPES_OF_COLOR_NAMES.values():
+        if assigned := state.colors_to_use.get(color_argument_name):
+            colors_to_use[color_argument_name] = assigned
 
     return colors_to_use
 

@@ -25,7 +25,6 @@ these modules -- see any of their docstrings for which calls those are and why.
 
 from __future__ import annotations
 
-import contextlib
 import html
 import inspect
 import re
@@ -94,7 +93,7 @@ from maptasker.src.guiwins_views import (
     _scene_dialog_closed,
 )
 from maptasker.src.mapjump import PROJECT, SCENE
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import suppress_logged, translate_string
 from maptasker.src.outdir import default_output_directory
 from maptasker.src.sysconst import (
     DIAGRAM_PROFILES_PER_LINE,
@@ -3361,7 +3360,7 @@ async def get_rid_of_windows_and_exit(self: MyGui, _delete_all: bool = True) -> 
         # that same event loop. Without awaiting, shutdown can win the race and the browser never
         # receives the command, so the tabs are left open. window.close()-ing this tab itself may
         # tear down the connection before a response comes back, hence the timeout/suppress.
-        with contextlib.suppress(Exception):
+        with suppress_logged("Closing the pop-out windows"):
             await ui.run_javascript(mapjump.close_popouts_js(close_this_window=True), timeout=2.0)
     ui.notify(translate_string("Shutting down MapTasker..."), type="warning")
     app.shutdown()

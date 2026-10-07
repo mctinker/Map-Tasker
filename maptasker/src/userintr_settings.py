@@ -43,11 +43,17 @@ from maptasker.src.guiwins import (
 )
 from maptasker.src.guiwins_nav import element_is_live, live_views
 from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import suppress_logged, translate_string
 from maptasker.src.maputils import clear_tasker_data, make_hex_color
 from maptasker.src.outdir import normalize_output_directory, output_directory
 from maptasker.src.outline import outline_the_configuration
-from maptasker.src.sysconst import ARGUMENT_NAMES, NOTIFY_TIMEOUT_DEFAULT, TYPES_OF_COLOR_NAMES, VIEW_LIMIT_DEFAULT
+from maptasker.src.sysconst import (
+    ARGUMENT_NAMES,
+    NOTIFY_TIMEOUT_DEFAULT,
+    TYPES_OF_COLOR_NAMES,
+    VIEW_LIMIT_DEFAULT,
+    logger,
+)
 
 if TYPE_CHECKING:
     from nicegui import Event
@@ -584,11 +590,12 @@ class SettingsEventHandlers:
         the_view.language = language_to_use
 
         flag_language = language if language in self.state.languages else translate_string(language)
-        try:
-            flag = f"flag_{self.state.languages[flag_language]}"
-            add_logo(the_view, flag)
-        except KeyError:
-            pass
+        # A language with no flag of its own gets none.  Looked up rather than caught, so a
+        # KeyError from inside add_logo is no longer taken for "no flag".
+        if (flag_code := self.state.languages.get(flag_language)) is not None:
+            add_logo(the_view, f"flag_{flag_code}")
+        else:
+            logger.debug("No flag for language %r; leaving the logo as it was", flag_language)
 
         language_translated = translate_string(language_to_use)
 
@@ -598,7 +605,7 @@ class SettingsEventHandlers:
         # and a browser that trusts it could decide the newly translated UI needs
         # translating.  Only possible once a client is connected, which is not the case
         # during the startup settings restore that also lands here.
-        with contextlib.suppress(Exception):
+        with suppress_logged("Re-stamping the document language"):
             if self.state.mygui is not None and context.client.has_socket_connection:
                 ui.run_javascript(
                     set_document_language_js(self.state.languages.get(language_to_use, "en")),

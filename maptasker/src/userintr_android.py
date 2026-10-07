@@ -19,7 +19,6 @@ stands in for one of them patches this module's own name for it.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -46,7 +45,7 @@ from maptasker.src.guiwins import (
     build_save_to_android_dialog,
 )
 from maptasker.src.guiwins_profedit import build_save_profile_to_android_dialog
-from maptasker.src.maputil2 import held_auth_key, http_request, read_android_file, translate_string
+from maptasker.src.maputil2 import held_auth_key, http_request, read_android_file, suppress_logged, translate_string
 from maptasker.src.maputils import clear_tasker_data
 from maptasker.src.sysconst import logger
 from maptasker.src.userintr_editors import (
@@ -562,14 +561,14 @@ class _IntoTaskerRun:
         # so a suppress around the dismiss never saw it.  Only a deleted element warns -- a
         # deleted client is silently ignored by nicegui -- so is_deleted is the whole check.
         if not getattr(pending, "is_deleted", False):
-            with contextlib.suppress(Exception):
+            with suppress_logged("Dismissing the pending notice"):
                 pending.dismiss()
         if outcome is None:  # cancelled -- see the note at the top of this file
             return
         return_code, message = outcome
         # Not an error in the usual sense: most likely nobody has got to the phone yet, or
         # they declined.  Either way it is the DEVICE this reports on, not the edit here.
-        with contextlib.suppress(Exception):
+        with suppress_logged("Notifying of the device's reply"):
             ui.notify(message, type="positive" if return_code == 0 else "warning")
 
 
@@ -858,12 +857,12 @@ class AndroidEventHandlers:
         )
         # Guarded for the reason _offer_into_tasker gives: the pending notice may be gone by now.
         if not getattr(pending, "is_deleted", False):
-            with contextlib.suppress(Exception):
+            with suppress_logged("Dismissing the pending notice"):
                 pending.dismiss()
         if outcome is None:
             return
         return_code, message = outcome
-        with contextlib.suppress(Exception):
+        with suppress_logged("Notifying of the device's reply"):
             ui.notify(message, type="positive" if return_code == 0 else "warning")
 
     def open_save_to_android_dialog_event(

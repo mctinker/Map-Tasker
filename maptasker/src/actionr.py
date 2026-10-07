@@ -42,22 +42,23 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
     """
     # Get all of the evaluated results into a single list
     result_parts = []
-    for key in evaluated_results:
+    for key, entry in evaluated_results.items():
         if key not in ("returning_something", "error"):
-            try:
-                arg_value = evaluated_results[key]["value"]
-                if arg_value is not None:
-                    if isinstance(arg_value, str | bool):
-                        result_parts.append(arg_value)
-                    else:
-                        result_parts.append(arg_value["value"])
-                # Eliminate empty values
-                if result_parts and (result_parts[-1] == ", " or result_parts[-1] == ""):
-                    result_parts.pop()
-                    continue
-            # Argument is missing...ignore it.
-            except KeyError:
-                pass
+            # An argument that was present but never evaluated has no "value" (it is
+            # recorded with just its type, see action_args): ignore it.  This used
+            # to be a try/except KeyError around everything below, which also swallowed a
+            # malformed value.
+            if "value" not in entry:
+                continue
+            arg_value = entry["value"]
+            if arg_value is not None:
+                if isinstance(arg_value, str | bool):
+                    result_parts.append(arg_value)
+                else:
+                    result_parts.append(arg_value["value"])
+            # Eliminate empty values
+            if result_parts and (result_parts[-1] == ", " or result_parts[-1] == ""):
+                result_parts.pop()
 
     # Return results as a string
     if result_parts:

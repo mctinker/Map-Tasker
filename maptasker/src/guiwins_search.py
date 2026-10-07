@@ -21,7 +21,6 @@ guiwins_nav.go_to_target, and guiwins_views imports this module to build its vie
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 import re
 from functools import lru_cache
@@ -31,7 +30,7 @@ from nicegui import context, ui
 
 from maptasker.src import mapask, mapfind, mapjump, mapswap, varxref, webassets
 from maptasker.src.guiwins_nav import go_to_target
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import suppress_logged, translate_string
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
@@ -352,7 +351,7 @@ class TextViewSearch:
         dialog = self._find_dialog
         self._find_dialog = None
         if dialog is not None:
-            with contextlib.suppress(Exception):
+            with suppress_logged("Deleting the Find dialog"):
                 dialog.delete()
 
     def _cancel_find_ask(self) -> None:

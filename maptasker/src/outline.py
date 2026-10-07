@@ -260,8 +260,8 @@ def outline_scenes(project_name: str, network: dict, state: RunState) -> None:
     scene_names = ""
     if state.tasker_root_elements["all_projects"]:
         project = state.tasker_root_elements["all_projects"][project_name]["xml"]
-        with contextlib.suppress(Exception):
-            scene_names = project.find("scenes").text
+        # No <scenes> element, or an empty one, both mean no Scenes.
+        scene_names = project.findtext("scenes", default="")
         if scene_names != "":
             scene_list = scene_names.split(",")
 

@@ -21,6 +21,7 @@ import contextlib
 from typing import TYPE_CHECKING
 
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src.maputil2 import suppress_logged
 from maptasker.src.sysconst import ARGUMENT_NAMES, logger
 
 if TYPE_CHECKING:
@@ -79,7 +80,7 @@ def reapply_selection(gui: MyGui, item_type: str, name: str) -> None:
     """
     if not item_type:
         return
-    with contextlib.suppress(Exception):
+    with suppress_logged("Selecting the named item in the GUI"):
         gui.event_handlers.process_name_event(item_type, name)
 
 

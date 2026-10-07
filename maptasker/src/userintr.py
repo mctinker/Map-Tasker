@@ -68,6 +68,7 @@ from maptasker.src.guiwins_restore import build_restore_dialog
 from maptasker.src.guiwins_views import NiceGuiTextView, NiceGuiTreeView
 from maptasker.src.maputil2 import (
     log_startup_values,
+    suppress_logged,
     translate_string,
     write_full_backup_to_current_file,
 )
@@ -618,9 +619,8 @@ class MyGui:
                     profile_list = [no_profiles]
 
                 # Process Scenes
-                scene_names = None
-                with contextlib.suppress(Exception):
-                    scene_names = projects[project]["xml"].find("scenes").text
+                # None when the Project has no <scenes> element, or an empty one.
+                scene_names = projects[project]["xml"].findtext("scenes") or None
                 if scene_names is not None:
                     scene_list = scene_names.split(",")
                     for scene in scene_list:
@@ -1359,7 +1359,7 @@ def _busy_banner(message: str) -> ui.element | None:
 def _clear_busy_banner(banner: ui.element | None) -> None:
     """Take down a _busy_banner, whether or not its window is still there."""
     if banner is not None:
-        with contextlib.suppress(Exception):
+        with suppress_logged("Deleting the busy banner"):
             banner.delete()
 
 
@@ -1986,7 +1986,7 @@ class MapTaskerEventHandlers(
         dialog = getattr(self.gui, "firesim_dialog", None)
         self.gui.firesim_dialog = None
         if dialog is not None:
-            with contextlib.suppress(Exception):
+            with suppress_logged("Deleting the Fire Simulator dialog"):
                 dialog.delete()
 
         def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
@@ -2009,7 +2009,7 @@ class MapTaskerEventHandlers(
         dialog = getattr(self.gui, "restore_dialog", None)
         self.gui.restore_dialog = None
         if dialog is not None:
-            with contextlib.suppress(Exception):
+            with suppress_logged("Deleting the Restore dialog"):
                 dialog.delete()
 
     def _dismiss_fix_dialog(self: "MapTaskerEventHandlers") -> None:
@@ -2021,7 +2021,7 @@ class MapTaskerEventHandlers(
         dialog = getattr(self.gui, "fix_dialog", None)
         self.gui.fix_dialog = None
         if dialog is not None:
-            with contextlib.suppress(Exception):
+            with suppress_logged("Deleting the Fix Findings dialog"):
                 dialog.delete()
 
     def _dismiss_refactor_dialog(self: "MapTaskerEventHandlers") -> None:
@@ -2035,7 +2035,7 @@ class MapTaskerEventHandlers(
         dialog = getattr(self.gui, "refactor_dialog", None)
         self.gui.refactor_dialog = None
         if dialog is not None:
-            with contextlib.suppress(Exception):
+            with suppress_logged("Deleting the Refactor dialog"):
                 dialog.delete()
 
     def _step_edit_history(self: "MapTaskerEventHandlers", *, forwards: bool) -> None:

@@ -125,6 +125,29 @@ def is_html_colour(text: str) -> bool:
 # ==========================================
 
 
+@contextmanager
+def suppress_logged(what: str, *exceptions: type[BaseException]) -> Generator[None, None, None]:
+    """Swallows `exceptions` (Exception when none are named) and records them at debug level.
+
+    For best-effort steps -- taking a dialog down, nudging the browser -- whose failure is
+    expected now and then and not worth interrupting anyone over.  contextlib.suppress does the
+    same but leaves no trace, so a real bug behind one of those steps looked exactly like the
+    expected failure.  This keeps the behavior and keeps the traceback: it is in the debug log.
+
+    Prefer naming the exception the step is expected to raise; the default is for the steps that
+    hand their work to a library (NiceGUI, the browser) with no documented list of what fails.
+
+    Args:
+        what: what was being attempted, as a phrase that completes "<what> failed".
+        *exceptions: the exception types to swallow.
+    """
+    to_swallow = exceptions or (Exception,)
+    try:
+        yield
+    except to_swallow:
+        logger.debug("%s failed; carrying on", what, exc_info=True)
+
+
 # Held for as long as one thread has sys.stdout/sys.stderr pointed at its devnull -- see
 # suppress_stdout for what overlapping swaps did to the program.
 _SUPPRESS_LOCK = threading.Lock()

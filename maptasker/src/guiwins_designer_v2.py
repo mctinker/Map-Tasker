@@ -12,7 +12,6 @@ guiwins.
 from __future__ import annotations
 
 import collections
-import contextlib
 import copy
 from typing import TYPE_CHECKING
 
@@ -26,7 +25,7 @@ from maptasker.src.guiwins_canvas import (
     _register_canvas_events,
     _v2_selection_props,
 )
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import suppress_logged, translate_string
 from maptasker.src.sysconst import V2_MATERIAL_PALETTE
 
 if TYPE_CHECKING:
@@ -265,7 +264,7 @@ def _build_show_when_dialog(
             clicked into, or a browser that declines) means "the end", which is what
             v2_insert_show_when does with it.
             """
-            with contextlib.suppress(Exception):
+            with suppress_logged("Reading the caret position"):
                 return await ui.run_javascript(
                     f"(() => {{ {_native_input} return el ? el.selectionStart : null; }})()",
                     timeout=3.0,
@@ -281,7 +280,7 @@ def _build_show_when_dialog(
             field.value = text
             # Put the caret back where the insert left it, so re-opening the picker adds the
             # next piece after this one rather than back at the same spot.
-            with contextlib.suppress(Exception):
+            with suppress_logged("Restoring the caret position"):
                 ui.run_javascript(
                     f"(() => {{ {_native_input} if (el) {{ el.setSelectionRange({caret}, {caret}); }} }})()",
                 )
