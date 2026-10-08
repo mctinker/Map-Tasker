@@ -3,8 +3,9 @@
 
 Three steps, each of which can be run again safely:
 
-  1. Search r/tasker for posts from the last year whose title starts with "[Project Share]" and pull the
-     TaskerNet link out of each (the post itself, or failing that the author's own comments).
+  1. Search r/tasker for posts whose title starts with "[Project Share]" and pull the TaskerNet link out of
+     each (the post itself, or failing that the author's own comments).  Only posts newer than the last run's
+     are looked at -- the first run goes back a year, and --days N goes back N days whatever is already there.
   2. Download each share's Tasker XML into NewXML/ -- one file per share.  A share already there is kept.
   3. Merge everything in NewXML/ into Tasker backups of 5 Projects each -- XML/newxml1.xml, newxml2.xml, ... --
      renumbering Task and Profile ids so shares that each started at "Task 1" do not collide.  A lone Profile,
@@ -59,6 +60,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DOWNLOAD_DIR = ROOT / "NewXML"
 DEFAULT_OUTPUT = ROOT / "XML" / "newxml.xml"
 MANIFEST_NAME = "_sources.json"
+CHECKED_NAME = "_checked.json"  # {"checked_through": when the newest post already dealt with was made}
+DEFAULT_DAYS = 365  # how far back a first run looks
 
 SUBREDDIT = "tasker"
 TITLE_PREFIX = "[project share]"
@@ -204,17 +207,37 @@ def author_comment_links(post: Post, delay: float) -> list[str]:
     return list(dict.fromkeys(links))
 
 
-def collect_posts(days: int, delay: float) -> list[Post]:
-    """Every "[Project Share]" post of the last `days` days, once each, with the share links found for it."""
-    cutoff = datetime.now(UTC) - timedelta(days=days)
+def starting_point(download_dir: Path, days: int | None) -> datetime:
+    """Where to start searching: back `days` if asked, else just past the newest post already dealt with.
+
+    "Dealt with" is what _checked.json says, or failing that the newest post any saved share came from.
+    A first run, with neither, looks back DEFAULT_DAYS.
+    """
+    if days is not None:
+        return datetime.now(UTC) - timedelta(days=days)
+    stamps = []
+    with contextlib.suppress(OSError, ValueError, TypeError):
+        stamps.append(json.loads((download_dir / CHECKED_NAME).read_text(encoding="utf-8"))["checked_through"])
+    with contextlib.suppress(OSError, ValueError, TypeError):
+        manifest = json.loads((download_dir / MANIFEST_NAME).read_text(encoding="utf-8"))
+        stamps += [item["posted"] for item in manifest.values() if item.get("posted")]
+    try:
+        newest = max(datetime.fromisoformat(stamp) for stamp in stamps)
+    except ValueError:  # no stamps at all, or one that is not a date
+        return datetime.now(UTC) - timedelta(days=DEFAULT_DAYS)
+    return newest + timedelta(seconds=1)
+
+
+def collect_posts(since: datetime, delay: float) -> list[Post]:
+    """Every "[Project Share]" post made since `since`, once each, with the share links found for it."""
     unique: dict[str, Post] = {}
     for query in SEARCH_QUERIES:
         print(f"Searching r/{SUBREDDIT} for {query} ...", flush=True)
-        for post in search_posts(query, cutoff, delay):
+        for post in search_posts(query, since, delay):
             unique.setdefault(post.post_id, post)
         time.sleep(delay)
     posts = sorted(unique.values(), key=lambda post: post.posted, reverse=True)
-    print(f"Found {len(posts)} [Project Share] post(s) in the last {days} days.")
+    print(f"Found {len(posts)} new [Project Share] post(s) since {since:%Y-%m-%d %H:%M}.")
     for post in posts:
         if not post.links:
             try:
@@ -224,6 +247,25 @@ def collect_posts(days: int, delay: float) -> list[Post]:
         if not post.links:
             print(f"  no TaskerNet link found: {post.title} ({post.url})")
     return posts
+
+
+def record_checked(download_dir: Path, posts: list[Post]) -> None:
+    """Remember how far the posts have been dealt with, so the next run starts after them.
+
+    Up to the newest post -- but stopping short of the oldest one whose share did not get saved (a
+    404, a dropped connection), so that it is tried again rather than left behind.
+    """
+    if not posts:
+        return
+    manifest_path = download_dir / MANIFEST_NAME
+    saved: set[str] = set()
+    if manifest_path.is_file():
+        saved = {item["link"] for item in json.loads(manifest_path.read_text(encoding="utf-8")).values()}
+    through = max(post.posted for post in posts)
+    failed = [post.posted for post in posts if any(link not in saved for link in post.links)]
+    if failed:
+        through = min(through, min(failed) - timedelta(seconds=1))
+    (download_dir / CHECKED_NAME).write_text(json.dumps({"checked_through": through.isoformat()}), encoding="utf-8")
 
 
 # ##################################################################################
@@ -443,7 +485,9 @@ def combine_xml(source_dir: Path, output: Path, projects_per_file: int = 5) -> l
 def main() -> int:
     """Search, download, combine."""
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--days", type=int, default=365, help="how far back to look (default 365)")
+    parser.add_argument(
+        "--days", type=int, default=None, help=f"look back this many days, ignoring what is already collected (first run: {DEFAULT_DAYS})"
+    )
     parser.add_argument("--download-dir", type=Path, default=DEFAULT_DOWNLOAD_DIR)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT, help="base name: newxml.xml -> newxml1.xml, ...")
     parser.add_argument("--projects-per-file", type=int, default=5, help="Projects in each output file (default 5)")
@@ -454,9 +498,10 @@ def main() -> int:
     args = parser.parse_args()
 
     if not args.combine_only:
-        posts = collect_posts(args.days, args.delay)
+        posts = collect_posts(starting_point(args.download_dir, args.days), args.delay)
         extra = [link for item in args.link for link in find_share_links(item)]
         download_shares(posts, extra, args.download_dir, refresh=args.refresh, delay=args.delay)
+        record_checked(args.download_dir, posts)
     written = combine_xml(args.download_dir, args.output, max(1, args.projects_per_file))
     print(f"Wrote {len(written)} file(s) beside {args.output}")
     return 0 if written else 1
