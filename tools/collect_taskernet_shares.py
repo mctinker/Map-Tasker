@@ -7,7 +7,7 @@ Three steps, each of which can be run again safely:
      each (the post itself, or failing that the author's own comments).  Only posts newer than the last run's
      are looked at -- the first run goes back a year, and --days N goes back N days whatever is already there.
   2. Download each share's Tasker XML into NewXML/ -- one file per share.  A share already there is kept.
-  3. Merge everything in NewXML/ into Tasker backups of 5 Projects each -- XML/newxml1.xml, newxml2.xml, ... --
+  3. Merge everything in NewXML/ into Tasker backups of 7 Projects each -- XML/newxml1.xml, newxml2.xml, ... --
      renumbering Task and Profile ids so shares that each started at "Task 1" do not collide.  A lone Profile,
      Task or Scene share goes in whichever file it falls in.
 
@@ -47,14 +47,14 @@ import sys
 import time
 import urllib.error
 import urllib.request
-import xml.etree.ElementTree as ET  # noqa: S405 -- parsing is done by defusedxml when it is installed
+import xml.etree.ElementTree as ET
 import zlib
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import parse_qs, quote, urlencode, urlparse
 
 with contextlib.suppress(ImportError):
-    import defusedxml.ElementTree as DefusedET  # noqa: N813
+    import defusedxml.ElementTree as DefusedET
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DOWNLOAD_DIR = ROOT / "NewXML"
@@ -66,7 +66,9 @@ DEFAULT_DAYS = 365  # how far back a first run looks
 SUBREDDIT = "tasker"
 TITLE_PREFIX = "[project share]"
 # Reddit refuses an obviously scripted User-Agent; an ordinary browser's is let through.
-REDDIT_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+REDDIT_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+)
 TASKERNET_UA = "MapTasker-ShareCollector/1.0"
 SEARCH_QUERIES = ('"[Project Share]"', "title:project share")
 MAX_SEARCH_PAGES = 15
@@ -107,7 +109,7 @@ def http_get(url: str, user_agent: str, *, retries: int = 5) -> bytes:
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response:  # noqa: S310
                 return response.read()
         except urllib.error.HTTPError as error:
-            if error.code != 429 or attempt == retries:  # noqa: PLR2004
+            if error.code != 429 or attempt == retries:
                 raise
             wait = int(error.headers.get("Retry-After") or 0) or 30 * 2**attempt
             print(f"  rate limited; waiting {wait}s", flush=True)
@@ -150,7 +152,9 @@ def parse_share_link(link: str) -> tuple[str, str] | None:
 
 def share_link(user: str, share_id: str) -> str:
     """The share's page address, as TaskerNet itself spells it."""
-    return f"https://taskernet.com/shares/?user={quote(user, safe='')}&id={quote(share_id, safe='').replace('%20', '+')}"
+    return (
+        f"https://taskernet.com/shares/?user={quote(user, safe='')}&id={quote(share_id, safe='').replace('%20', '+')}"
+    )
 
 
 def read_feed(url: str) -> list[ET.Element]:
@@ -160,7 +164,7 @@ def read_feed(url: str) -> list[ET.Element]:
 
 def entry_to_post(entry: ET.Element) -> Post | None:
     """A Post from a feed entry, or None if it is not one that has a date and a title."""
-    text = lambda tag: (entry.findtext(f"{ATOM}{tag}") or "").strip()  # noqa: E731
+    text = lambda tag: (entry.findtext(f"{ATOM}{tag}") or "").strip()
     stamp = text("updated") or text("published")
     link = entry.find(f"{ATOM}link")
     if not stamp or not text("title"):
@@ -398,7 +402,7 @@ class Renumberer:
 
 def version_key(text: str) -> tuple:
     """Sort key for a Tasker version such as '6.7.6-beta': its numbers, then whether it is a final release."""
-    numbers = tuple(int(part) for part in re.findall(r"\d+", text.split("-")[0]))
+    numbers = tuple(int(part) for part in re.findall(r"\d+", text.split("-", maxsplit=1)[0]))
     return (numbers, "-" not in text)
 
 
@@ -454,7 +458,7 @@ def merge_batch(batch: list[tuple[Path, ET.Element]]) -> ET.Element:
     return merged
 
 
-def combine_xml(source_dir: Path, output: Path, projects_per_file: int = 5) -> list[Path]:
+def combine_xml(source_dir: Path, output: Path, projects_per_file: int = 7) -> list[Path]:
     """Merge the shares in `source_dir` into numbered Tasker backups, `projects_per_file` Projects to a file.
 
     `output` names the first: XML/newxml.xml gives XML/newxml1.xml, XML/newxml2.xml, ...  Numbered files left
@@ -467,7 +471,9 @@ def combine_xml(source_dir: Path, output: Path, projects_per_file: int = 5) -> l
         path = output.with_name(f"{output.stem}{number}{output.suffix}")
         path.write_text(ET.tostring(merge_batch(batch), encoding="unicode"), encoding="utf-8")
         ET.parse(path)  # the file must read back
-        print(f"  {path.name}: {len(batch)} share(s), {sum(len(root.findall('Project')) for _, root in batch)} project(s)")
+        print(
+            f"  {path.name}: {len(batch)} share(s), {sum(len(root.findall('Project')) for _, root in batch)} project(s)"
+        )
         written.append(path)
     stale = re.compile(rf"{re.escape(output.stem)}(\d+){re.escape(output.suffix)}")
     for old in output.parent.glob(f"{output.stem}*{output.suffix}"):
@@ -486,11 +492,14 @@ def main() -> int:
     """Search, download, combine."""
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument(
-        "--days", type=int, default=None, help=f"look back this many days, ignoring what is already collected (first run: {DEFAULT_DAYS})"
+        "--days",
+        type=int,
+        default=None,
+        help=f"look back this many days, ignoring what is already collected (first run: {DEFAULT_DAYS})",
     )
     parser.add_argument("--download-dir", type=Path, default=DEFAULT_DOWNLOAD_DIR)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT, help="base name: newxml.xml -> newxml1.xml, ...")
-    parser.add_argument("--projects-per-file", type=int, default=5, help="Projects in each output file (default 5)")
+    parser.add_argument("--projects-per-file", type=int, default=5, help="Projects in each output file (default 7)")
     parser.add_argument("--delay", type=float, default=3.0, help="seconds between Reddit requests (default 3)")
     parser.add_argument("--refresh", action="store_true", help="download shares again even if already saved")
     parser.add_argument("--combine-only", action="store_true", help="skip Reddit and TaskerNet; merge what is saved")
