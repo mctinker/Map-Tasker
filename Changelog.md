@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file!
 - Added: __Draft with AI__ in the Add Task window turns a description in plain words into actions, using the AI model chosen on the Analyze tab, which is told how Tasks work so that most drafts take a single request. The draft is added unsaved for you to review and edit, anything the AI suggested that MapTasker cannot build is listed beside it, and a Stop button gives up on a slow model.
 - Added: __Check Readiness__ in the Edit Project and Edit Scene windows, beside Redact secrets, lists what the export needs on someone else's phone: its plugins and apps, the special access it needs (such as root, ADB Wi-Fi or Write Secure Settings), the variables Tasker will ask about on import, and the oldest Tasker it is known to run on. The list can be copied as text to paste into a forum post or TaskerNet description.
 - Added: A new __TaskerNet Updates__ button links a Project, Profile, Task or Scene to the TaskerNet share it came from, tells you when its author publishes a newer version, and lists what they changed so you can take each change on its own after previewing it, or accept the whole latest version in one step.  Only the share's address is sent to TaskerNet; nothing from your configuration leaves your computer.
+- Added: The IR for Tasker plugin's action is now recognised, so it shows its name and its settings (such as the code sent and the transmission method) instead of an unmapped code number.
 - Added:
 
 ### Changed

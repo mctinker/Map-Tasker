@@ -128,6 +128,7 @@
 ["159t", {"args": [["0", true, "Name", "1", ""], ["1", true, "Set", "0", ["Set=", "l", "switch_set"]]], "canfail": "True", "category": "110", "name": "Profile Status", "redirect": ""}],
 ["15t", {"args": [["0", false, "Title", "1", ""], ["1", true, "Code", "1", ""], ["2", true, "Allow Cancel", "3", ["e", "Allow Cancel"]], ["3", true, "Remember Till Off", "3", ["e", "Remember Till Off"]], ["4", true, "Full Screen", "3", ["e", "Full Screen"]], ["5", false, "Background Image", "1", ""], ["6", true, "Layout", "1", ""]], "canfail": "False", "category": "40", "name": "Lock", "redirect": ""}],
 ["1600958131t", {"args": [], "canfail": "", "category": "", "name": "AutoBubbles Create Bubble", "redirect": "1040876951t"}],
+["1605400840t", {"args": [], "canfail": "", "category": "", "name": "IR for Tasker", "redirect": "1040876951t"}],
 ["160s", {"args": [["0", true, "", "1", "SSID="], ["1", true, "", "1", ", MAC="], ["2", true, "", "1", ", IP"], ["3", true, "", "0", [", Active=", "l", "160"]], ["4", false, "", "0", ", Arg 4="]], "canfail": "", "category": "", "name": "Wifi Connected", "redirect": ""}],
 ["161s", {"args": [], "canfail": "", "category": "", "name": "Ethernet Connect", "redirect": ""}],
 ["161t", {"args": [["0", false, "Task", "1", ""], ["1", false, "Task", "1", ""], ["2", false, "Task", "1", ""], ["3", false, "Task", "1", ""]], "canfail": "False", "category": "110", "name": "Setup App Shortcuts", "redirect": ""}],
