@@ -50,7 +50,6 @@ ai = [
     'google-genai>=2.28.0',
     'ollama>=0.6.3',
     'openai>=3.24.0',
-    'psutil>=7.2.2',
 ]
 
 [project.urls]
@@ -129,7 +128,7 @@ dev = [
 # into an ordinary development environment.
 #
 # The AI libraries themselves, for whoever works on the AI features or runs the type check
-# (which resolves the imports in cria.py):  uv sync --group ai-dev
+# (which resolves the imports in aiutils.py, mapai.py and mapask.py):  uv sync --group ai-dev
 ai-dev = [
     "maptasker[ai]",
 ]
@@ -289,7 +288,6 @@ max-complexity = 15
 'maptasker/src/clip.py' = ['PGH004']
 'maptasker/src/colors.py' = ['D100', 'PLR1722']
 'maptasker/src/condition.py' = ['RET504']
-'maptasker/src/cria.py' = ['ANN401', 'B904', 'D101', 'D102', 'D103', 'D105', 'D107', 'EM101', 'PLW0108', 'RET504', 'S603', 'S607', 'SIM210', 'TRY003', 'TRY300']
 'maptasker/src/deprecate.py' = ['D100']
 'maptasker/src/deviceinv.py' = ['ANN201', 'F811']
 'maptasker/src/diagintr.py' = ['PLW2901']
@@ -471,7 +469,7 @@ layers = [
     actiont : addcss : aiutils : apikeys : appinv : bildhtml :
     bldargs : bldbndle : bundle : caveats : clip : clock :
     colors : colrmode : condition : condjoin : config : console :
-    cria : debug : deprecate : deviceinv : diagcnst : diagintr :
+    debug : deprecate : deviceinv : diagcnst : diagintr :
     diagram : diagutil : diffload : dirout : editcommon : elemvals : error :
     format : frontmtr : getbakup : getputer : globalvr :
     guiutil2 : healthck : impact : initparg : lineout : livevars :

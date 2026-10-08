@@ -376,8 +376,6 @@ LLAMA_MODELS = [
     "aya",
     "codegemma:2b",
     "codellama:latest",
-    "deepseek-r1:1.5b",
-    # "deepseek-v3",  # This model is huge...404gb!
     # "devstral",     # This model is 14gb!
     "exaone-deep",
     "gemma3:1b",
@@ -395,16 +393,36 @@ LLAMA_MODELS = [
     "qwen3.5:0.8b",
     "tinyllama",
 ]
+# The Claude models the Analyze tab offers.  Ids are the exact strings the API takes: no date suffix,
+# which no current model has.
 ANTHROPIC_MODELS = [
     "claude-fable-5-1",
     "claude-haiku-4-5",
+    "claude-haiku-5-5",
     "claude-opus-5",
+    "claude-opus-5-5",
     "claude-sonnet-5",
+    "claude-sonnet-5-5",
 ]
-DEEPSEEK_MODELS = ["deepseek-chat"]
+# Those, and the earlier ones that are still served: what the extended list offers when the Models API
+# cannot be asked (no key yet, or no connection).
+ANTHROPIC_EXTENDED_MODELS = [
+    "claude-fable-5",
+    *ANTHROPIC_MODELS,
+    "claude-opus-4-5",
+    "claude-opus-4-6",
+    "claude-opus-4-7",
+    "claude-opus-4-8",
+    "claude-sonnet-4-5",
+    "claude-sonnet-4-6",
+]
 # Model names that were listed with the wrong spelling, and what Google actually calls them.  A
 # settings file saved while the wrong one was offered is carried over (see getputer).
 RENAMED_AI_MODELS = {"gemini-3.1-flash_lite": "gemini-3.1-flash-lite"}
+# AI services MapTasker no longer supports.  A settings file saved while one was selected is carried
+# over by clearing the selection (see getputer), since nothing it names can be run any more.
+RETIRED_AI_NAMES = ("DeepSeek",)
+RETIRED_AI_MODEL_PREFIXES = ("deepseek",)
 
 GEMINI_MODELS = [
     "gemini-3.1-flash-lite",
@@ -418,7 +436,6 @@ MODEL_GROUPS = {
     "OpenAI": OPENAI_MODELS,
     "Anthropic": ANTHROPIC_MODELS,
     "LLAMA": LLAMA_MODELS,
-    "DeepSeek": DEEPSEEK_MODELS,
     "Gemini": GEMINI_MODELS,
 }
 

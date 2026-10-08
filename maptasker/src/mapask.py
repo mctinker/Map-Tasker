@@ -31,14 +31,13 @@
 from __future__ import annotations
 
 import asyncio
-import importlib.util
 import json
 import re
 from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass
 
 from maptasker.src import mapfind
-from maptasker.src.aiutils import get_api_key, start_ollama_server
+from maptasker.src.aiutils import get_api_key, prepare_ollama_model
 from maptasker.src.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
 from maptasker.src.primitem import PrimeItems, RunState
 from maptasker.src.sysconst import logger
@@ -47,7 +46,6 @@ from maptasker.src.sysconst import logger
 # mapai dispatches on them.
 OPENAI = "OpenAI"
 ANTHROPIC = "Anthropic"
-DEEPSEEK = "DeepSeek"
 GEMINI = "Gemini"
 LLAMA = "LLAMA"
 
@@ -58,7 +56,6 @@ _PROVIDER_NAMES = {
     "openai": OPENAI,
     "anthropic": ANTHROPIC,
     "claude": ANTHROPIC,
-    "deepseek": DEEPSEEK,
     "gemini": GEMINI,
     "llama": LLAMA,
     "ollama": LLAMA,
@@ -68,13 +65,12 @@ _PROVIDER_NAMES = {
 _MODEL_LISTS = (
     (OPENAI, "openai_models"),
     (ANTHROPIC, "anthropic_models"),
-    (DEEPSEEK, "deepseek_models"),
     (GEMINI, "gemini_models"),
     (LLAMA, "llama_models"),
 )
 
 # Where PrimeItems.ai keeps each provider's API key.  Ollama runs locally and has none.
-_KEY_NAMES = {OPENAI: "openai_key", ANTHROPIC: "anthropic_key", DEEPSEEK: "deepseek_key", GEMINI: "gemini_key"}
+_KEY_NAMES = {OPENAI: "openai_key", ANTHROPIC: "anthropic_key", GEMINI: "gemini_key"}
 
 # The boxes whose value must be one the configuration uses, in the order the prompt lists
 # them.  The text box is free, and the Project box is checked against the Project list.
@@ -98,7 +94,7 @@ ANTHROPIC_MAX_TOKENS = 16000
 # Other models (and other providers) are left to the prompt and to reply_object.
 # The Claude models that take output_config.effort.  Not every Claude model does -- Haiku 4.5
 # turns the field down -- so it is sent only to these.
-EFFORT_MODELS = ("claude-fable-5", "claude-opus-5", "claude-opus-4-8", "claude-sonnet-5")
+EFFORT_MODELS = ("claude-fable-5", "claude-opus-5", "claude-opus-4-8", "claude-sonnet-5", "claude-haiku-5")
 # The OpenAI models that reason before they answer, and so take reasoning_effort.
 OPENAI_REASONING_MODELS = ("gpt-5", "o3", "o4")
 STRUCTURED_OUTPUT_MODELS = (
@@ -108,6 +104,7 @@ STRUCTURED_OUTPUT_MODELS = (
     "claude-opus-4-5",
     "claude-sonnet-5",
     "claude-haiku-4-5",
+    "claude-haiku-5",
 )
 REPLY_SCHEMA = {
     "type": "object",
@@ -394,7 +391,7 @@ def _library(pypi_name: str, import_path: str) -> object:
 # made by an asyncio task is abandoned where it waits when the task is cancelled: its
 # connection is closed, and the provider stops generating the reply.
 async def _chat_completion(client: object, model: str, system: str, user: str, **extra: object) -> str:
-    """One OpenAI-style chat completion -- OpenAI's own API, and DeepSeek's copy of it."""
+    """One OpenAI chat completion."""
     # The o1 family refuses a system message; mapai makes the same allowance for it.
     role = "user" if "o1" in model else "system"
     async with client:
@@ -432,11 +429,6 @@ async def _ask_openai(settings: ModelSettings, system: str, user: str) -> str:
     if settings.effort and settings.model.startswith(OPENAI_REASONING_MODELS):
         attempts.insert(0, lambda: attempt(reasoning_effort=settings.effort))
     return await _first_that_works(f"{settings.model}'s reasoning_effort", *attempts)
-
-
-async def _ask_deepseek(settings: ModelSettings, system: str, user: str) -> str:
-    client = _library("openai", "openai").AsyncOpenAI(api_key=settings.api_key, base_url="https://api.deepseek.com")
-    return await _chat_completion(client, settings.model, system, user, temperature=0.0, max_tokens=settings.max_tokens)
 
 
 async def _ask_anthropic(settings: ModelSettings, system: str, user: str) -> str:
@@ -491,34 +483,19 @@ async def _ask_gemini(settings: ModelSettings, system: str, user: str) -> str:
 
 
 async def _ask_llama(settings: ModelSettings, system: str, user: str) -> str:
-    # Asked before cria is imported, for the reason mapai.local_ai gives: importing cria is
-    # what installs the 'ollama' package, after which there is no telling that this run did.
-    was_installed = importlib.util.find_spec("ollama") is not None
-    try:
-        from maptasker.src import cria  # noqa: PLC0415
-    except (ImportError, OSError) as error:
-        # The install failed, or pip itself could not be run (see mapai.local_ai).
-        message = f"Ollama support could not be loaded: {error}"
-        raise AskError(message) from error
-    if not was_installed:
-        started, reason = await asyncio.to_thread(start_ollama_server)
-        if not started:
-            raise AskError(reason)
-
-    # Cria starts a server if none is up and works out which installed model the name means.
-    # All of that blocks, so it goes to a thread; a question taken back while it runs is
-    # dropped before anything is asked, though the preparation itself finishes.
-    # Standalone: nothing is left running an 'ollama run' of its own for one short reply.
-    ai = await asyncio.to_thread(cria.Cria, model=settings.model, standalone=True, silence_output=True)
-    if ai.model is None:
-        message = f"The Ollama model '{settings.model}' is not installed and could not be downloaded."
-        raise AskError(message)
+    ollama = _library("ollama", "ollama")
+    # The server, and the model on it, which may have to be started or downloaded.  All of that
+    # blocks, so it goes to a thread; a question taken back while it runs is dropped before anything
+    # is asked, though the preparation itself finishes.
+    model, reason = await asyncio.to_thread(prepare_ollama_model, settings.model)
+    if model is None:
+        raise AskError(reason)
     # The request itself goes through ollama's async client, for the reason given above.
-    client = _library("ollama", "ollama").AsyncClient()
+    client = ollama.AsyncClient()
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
     async def attempt(reply_format: object) -> str:
-        response = await client.chat(model=ai.model, messages=messages, format=reply_format)
+        response = await client.chat(model=model, messages=messages, format=reply_format)
         return response["message"]["content"] or ""
 
     # A schema holds a small model to the reply's shape, which "json" alone does not; a server
@@ -544,7 +521,6 @@ async def ask_model(settings: ModelSettings, system: str, user: str) -> str:
     handlers: dict[str, Asker] = {
         OPENAI: _ask_openai,
         ANTHROPIC: _ask_anthropic,
-        DEEPSEEK: _ask_deepseek,
         GEMINI: _ask_gemini,
         LLAMA: _ask_llama,
     }

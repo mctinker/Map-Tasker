@@ -38,12 +38,10 @@ def ai(monkeypatch: pytest.MonkeyPatch) -> dict:
     table = {
         "openai_models": ["gpt-5"],
         "anthropic_models": ["claude-sonnet-5"],
-        "deepseek_models": ["deepseek-chat"],
         "gemini_models": ["gemini-3-pro"],
         "llama_models": ["llama3.2 (installed)"],
         "openai_key": "",
         "anthropic_key": "sk-ant-test",
-        "deepseek_key": "",
         "gemini_key": "",
     }
     monkeypatch.setattr(PrimeItems, "ai", table)
@@ -316,7 +314,14 @@ def _fake_anthropic(monkeypatch: pytest.MonkeyPatch) -> dict:
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("model", "takes_effort"),
-    [("claude-sonnet-5-5", True), ("claude-opus-5-5", True), ("claude-haiku-4-5-20251001", False)],
+    [
+        ("claude-fable-5-1", True),
+        ("claude-sonnet-5-5", True),
+        ("claude-opus-5-5", True),
+        ("claude-haiku-5-5", True),
+        ("claude-haiku-4-5", False),
+        ("claude-haiku-4-5-20251001", False),
+    ],
 )
 async def test_effort_is_asked_for_only_of_the_models_that_take_it(
     monkeypatch: pytest.MonkeyPatch,
@@ -408,3 +413,251 @@ async def test_the_last_attempt_is_not_caught() -> None:
 
     with pytest.raises(RuntimeError, match="down"):
         await mapask._first_that_works("an option", broken)  # noqa: SLF001
+
+
+# ##################################################################################
+# The other providers, each called the way its library is called.
+# ##################################################################################
+@pytest.mark.parametrize("ai_name", ["DeepSeek", "deepseek"])
+def test_deepseek_is_no_longer_a_service_that_can_be_asked(ai: dict, ai_name: str) -> None:
+    ai["anthropic_key"] = "sk-ant-test"
+    with pytest.raises(mapask.AskError, match="cannot tell which AI service runs 'deepseek-chat'"):
+        mapask.model_settings(ai_name, "deepseek-chat", state=PrimeItems)
+
+
+def test_a_provider_with_no_handler_is_refused() -> None:
+    with pytest.raises(mapask.AskError, match="is not an AI service MapTasker can ask"):
+        asyncio.run(mapask.ask_model(mapask.ModelSettings("DeepSeek", "deepseek-chat", "k"), "system", "user"))
+
+
+class _FakeOpenAIClient:
+    """openai.AsyncOpenAI: an async context manager whose chat completions answer `reply`."""
+
+    def __init__(self, sent: dict, *, refuse: tuple[str, ...] = (), reply: str = "{}") -> None:
+        self._sent = sent
+        self._refuse = refuse
+        self._reply = reply
+        self.chat = SimpleNamespace(completions=SimpleNamespace(create=self._create))
+
+    async def _create(self, **kwargs: object) -> SimpleNamespace:
+        self._sent.setdefault("calls", []).append(kwargs)
+        if any(name in kwargs for name in self._refuse):
+            message = "Unrecognized request argument"
+            raise RuntimeError(message)
+        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=self._reply))])
+
+    async def __aenter__(self) -> _FakeOpenAIClient:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        self._sent["closed"] = self._sent.get("closed", 0) + 1
+
+
+def _fake_openai(monkeypatch: pytest.MonkeyPatch, **options: object) -> dict:
+    sent: dict = {}
+
+    def async_openai(api_key: str) -> _FakeOpenAIClient:
+        sent["api_key"] = api_key
+        return _FakeOpenAIClient(sent, **options)
+
+    monkeypatch.setattr(mapask, "_library", lambda *_: SimpleNamespace(AsyncOpenAI=async_openai))
+    return sent
+
+
+@pytest.mark.asyncio
+async def test_openai_is_sent_the_rules_as_the_system_message_and_the_client_is_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sent = _fake_openai(monkeypatch, reply='{"app": ""}')
+
+    reply = await mapask.ask_model(mapask.ModelSettings(mapask.OPENAI, "gpt-5.5", "sk-openai"), "the rules", "the question")
+
+    assert reply == '{"app": ""}'
+    assert sent["api_key"] == "sk-openai"
+    ((call,),) = [(c,) for c in sent["calls"]]
+    assert call["model"] == "gpt-5.5"
+    assert call["messages"] == [
+        {"role": "system", "content": "the rules"},
+        {"role": "user", "content": "the question"},
+    ]
+    assert sent["closed"] == 1
+
+
+@pytest.mark.asyncio
+async def test_the_o1_models_are_sent_the_rules_as_a_user_message(monkeypatch: pytest.MonkeyPatch) -> None:
+    sent = _fake_openai(monkeypatch)
+
+    await mapask.ask_model(mapask.ModelSettings(mapask.OPENAI, "o1-mini", "k"), "the rules", "the question")
+
+    assert sent["calls"][0]["messages"][0] == {"role": "user", "content": "the rules"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("model", "takes_effort"), [("gpt-5.5", True), ("o3", True), ("o4-mini", True), ("gpt-4o", False)])
+async def test_reasoning_effort_goes_only_to_the_openai_models_that_reason(
+    monkeypatch: pytest.MonkeyPatch, model: str, takes_effort: bool
+) -> None:
+    sent = _fake_openai(monkeypatch)
+
+    await mapask.ask_model(mapask.ModelSettings(mapask.OPENAI, model, "k", effort="low"), "system", "user")
+
+    assert ("reasoning_effort" in sent["calls"][0]) is takes_effort
+
+
+@pytest.mark.asyncio
+async def test_an_openai_model_that_turns_the_effort_down_is_asked_again_without_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sent = _fake_openai(monkeypatch, refuse=("reasoning_effort",), reply='{"app": "x"}')
+
+    reply = await mapask.ask_model(mapask.ModelSettings(mapask.OPENAI, "gpt-5.5", "k", effort="low"), "system", "user")
+
+    assert reply == '{"app": "x"}'
+    assert ["reasoning_effort" in call for call in sent["calls"]] == [True, False]
+
+
+class _FakeGeminiClient:
+    """google.genai.Client: `aio.models.generate_content` answers `reply`, and `aio.aclose` is recorded."""
+
+    def __init__(self, sent: dict, *, refuse: bool = False, reply: str = "{}") -> None:
+        async def generate_content(**kwargs: object) -> SimpleNamespace:
+            sent.setdefault("calls", []).append(kwargs)
+            if refuse and "thinking_config" in kwargs["config"]:
+                message = "thinking_level is not supported"
+                raise RuntimeError(message)
+            return SimpleNamespace(text=reply)
+
+        async def aclose() -> None:
+            sent["closed"] = True
+
+        self.aio = SimpleNamespace(models=SimpleNamespace(generate_content=generate_content), aclose=aclose)
+
+
+def _fake_gemini(monkeypatch: pytest.MonkeyPatch, **options: object) -> dict:
+    sent: dict = {}
+
+    def client(api_key: str) -> _FakeGeminiClient:
+        sent["api_key"] = api_key
+        return _FakeGeminiClient(sent, **options)
+
+    monkeypatch.setattr(mapask, "_library", lambda *_: SimpleNamespace(Client=client))
+    return sent
+
+
+@pytest.mark.asyncio
+async def test_gemini_is_sent_the_rules_as_its_system_instruction_and_asked_for_json_with_no_tools(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sent = _fake_gemini(monkeypatch, reply='{"app": ""}')
+
+    reply = await mapask.ask_model(mapask.ModelSettings(mapask.GEMINI, "gemini-3.5-flash", "AIza-k"), "the rules", "the question")
+
+    assert reply == '{"app": ""}'
+    assert sent["api_key"] == "AIza-k"
+    (call,) = sent["calls"]
+    assert call["model"] == "gemini-3.5-flash"
+    assert call["contents"] == "the question"
+    assert call["config"]["system_instruction"] == "the rules"
+    assert call["config"]["response_mime_type"] == "application/json"
+    assert call["config"]["automatic_function_calling"] == {"disable": True}
+    assert sent["closed"] is True, "the client is closed whatever happened"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("model", "takes_level"), [("gemini-3.5-flash", True), ("gemini-2.5-flash", False)])
+async def test_a_thinking_level_goes_only_to_the_gemini_3_models(
+    monkeypatch: pytest.MonkeyPatch, model: str, takes_level: bool
+) -> None:
+    sent = _fake_gemini(monkeypatch)
+
+    await mapask.ask_model(mapask.ModelSettings(mapask.GEMINI, model, "k", effort="low"), "system", "user")
+
+    assert ("thinking_config" in sent["calls"][0]["config"]) is takes_level
+
+
+@pytest.mark.asyncio
+async def test_a_gemini_that_turns_the_thinking_level_down_is_asked_again_without_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sent = _fake_gemini(monkeypatch, refuse=True, reply='{"app": "x"}')
+
+    reply = await mapask.ask_model(mapask.ModelSettings(mapask.GEMINI, "gemini-3.5-flash", "k", effort="low"), "s", "u")
+
+    assert reply == '{"app": "x"}'
+    assert ["thinking_config" in call["config"] for call in sent["calls"]] == [True, False]
+
+
+@pytest.mark.asyncio
+async def test_a_gemini_whose_client_cannot_be_closed_is_still_answered(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A google-genai release older than aclose closes its connections with the client."""
+    sent = _fake_gemini(monkeypatch)
+    original = _FakeGeminiClient.__init__
+
+    def without_aclose(self: _FakeGeminiClient, *args: object, **kwargs: object) -> None:
+        original(self, *args, **kwargs)
+        del self.aio.aclose
+
+    monkeypatch.setattr(_FakeGeminiClient, "__init__", without_aclose)
+
+    assert await mapask.ask_model(mapask.ModelSettings(mapask.GEMINI, "gemini-3.5-flash", "k"), "s", "u") == "{}"
+    assert "closed" not in sent
+
+
+def _fake_ollama(monkeypatch: pytest.MonkeyPatch, *, prepared: tuple = ("llama3.2:latest", ""), refuse_schema: bool = False) -> dict:
+    seen: dict = {"chats": []}
+
+    class AsyncClient:
+        async def chat(self, model: str, messages: list, format: object) -> dict:  # noqa: A002
+            seen["chats"].append({"model": model, "messages": messages, "format": format})
+            if refuse_schema and isinstance(format, dict):
+                message = "format must be a string"
+                raise RuntimeError(message)
+            return {"message": {"content": '{"app": ""}'}}
+
+    monkeypatch.setattr(mapask, "_library", lambda *_: SimpleNamespace(AsyncClient=AsyncClient))
+    monkeypatch.setattr(mapask, "prepare_ollama_model", lambda name: seen.setdefault("prepared", []).append(name) or prepared)
+    return seen
+
+
+@pytest.mark.asyncio
+async def test_a_local_model_is_made_ready_and_then_asked_by_the_name_ollama_knows_it_by(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen = _fake_ollama(monkeypatch)
+
+    reply = await mapask.ask_model(mapask.ModelSettings(mapask.LLAMA, "llama3.2"), "the rules", "the question")
+
+    assert reply == '{"app": ""}'
+    assert seen["prepared"] == ["llama3.2"]
+    ((chat,),) = [(c,) for c in seen["chats"]]
+    assert chat["model"] == "llama3.2:latest"
+    assert chat["messages"] == [{"role": "system", "content": "the rules"}, {"role": "user", "content": "the question"}]
+    assert chat["format"] == "json"
+
+
+@pytest.mark.asyncio
+async def test_a_local_model_is_held_to_the_replys_shape_when_it_is_given_one(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _fake_ollama(monkeypatch)
+
+    await mapask.ask_model(mapask.ModelSettings(mapask.LLAMA, "llama3.2", schema=mapask.REPLY_SCHEMA), "s", "u")
+
+    assert [chat["format"] for chat in seen["chats"]] == [mapask.REPLY_SCHEMA]
+
+
+@pytest.mark.asyncio
+async def test_an_ollama_too_old_to_take_a_schema_is_asked_again_with_json(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _fake_ollama(monkeypatch, refuse_schema=True)
+
+    await mapask.ask_model(mapask.ModelSettings(mapask.LLAMA, "llama3.2", schema=mapask.REPLY_SCHEMA), "s", "u")
+
+    assert [chat["format"] for chat in seen["chats"]] == [mapask.REPLY_SCHEMA, "json"]
+
+
+@pytest.mark.asyncio
+async def test_a_local_model_that_cannot_be_made_ready_says_why_and_is_not_asked(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _fake_ollama(monkeypatch, prepared=(None, "Ollama is not installed."))
+
+    with pytest.raises(mapask.AskError, match="Ollama is not installed."):
+        await mapask.ask_model(mapask.ModelSettings(mapask.LLAMA, "llama3.2"), "s", "u")
+
+    assert seen["chats"] == []

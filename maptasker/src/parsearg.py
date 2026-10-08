@@ -18,7 +18,6 @@ from maptasker.src.mapfonts import get_monospaced_fonts
 from maptasker.src.maputils import validate_ip_address, validate_port
 from maptasker.src.sysconst import (
     ANTHROPIC_MODELS,
-    DEEPSEEK_MODELS,
     GEMINI_MODELS,
     LLAMA_MODELS,
     OPENAI_MODELS,
@@ -208,7 +207,7 @@ _ARGUMENT_TYPES = {
 }
 # What an argument's "choices" may name rather than list: values the program already holds.
 _ARGUMENT_CHOICES = {
-    "@ai_models": lambda: OPENAI_MODELS + LLAMA_MODELS + ANTHROPIC_MODELS + DEEPSEEK_MODELS + GEMINI_MODELS,
+    "@ai_models": lambda: OPENAI_MODELS + LLAMA_MODELS + ANTHROPIC_MODELS + GEMINI_MODELS,
 }
 # Table keys that are not add_argument's own, and so are not passed to it.
 _NOT_ARGPARSE = {"names", "group", "hidden", "comment"}

@@ -41,8 +41,6 @@ _BREAKS_A_LOOP: set[tuple[str, str]] = set()
 
 # (importer, imported): deferred for a reason other than a loop.
 _KEPT_DEFERRED = {
-    ("mapai", "cria"): "cria needs the optional 'ai' libraries and raises ImportError without them, so a plain install must not import it.",
-    ("mapask", "cria"): "cria needs the optional 'ai' libraries and raises ImportError without them, so a plain install must not import it.",
     ("proginit", "bldargs"): "Rebuilds the action tables from the network, only when asked; tests patch it there.",
     ("proginit", "bldbndle"): "Rebuilds the action tables from the backup, only when asked; tests patch it there.",
     ("proginit", "valcodes"): "Checks the codes against the network, only when asked; tests patch it there.",

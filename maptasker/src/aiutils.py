@@ -7,6 +7,7 @@ import importlib.util
 import shutil
 import subprocess
 import time
+from collections.abc import Callable
 from contextlib import suppress
 from types import ModuleType
 
@@ -21,7 +22,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
 from maptasker.src.primitem import RunState
 from maptasker.src.sysconst import (
-    DEEPSEEK_MODELS,
+    ANTHROPIC_EXTENDED_MODELS,
     GEMINI_MODELS,
     OPENAI_MODELS,
     logger,
@@ -101,7 +102,7 @@ def start_ollama_server() -> tuple[bool, str]:
 
     # The Python package and the Ollama application are two separate installs, and only the
     # first one is ours to do.  Say so plainly rather than letting the missing command surface
-    # as the FileNotFoundError cria raises deep inside an analysis.
+    # as a FileNotFoundError deep inside an analysis.
     if shutil.which("ollama") is None:
         return (
             False,
@@ -111,8 +112,8 @@ def start_ollama_server() -> tuple[bool, str]:
     console.say("MapTasker: --- Starting the Ollama server ('ollama serve')... ---")
     try:
         # Not waited on: 'ollama serve' runs for as long as the server does.  Left running
-        # afterwards on purpose -- an analysis needs it for its whole duration, and cria finds
-        # this same process rather than starting a second one.
+        # afterwards on purpose -- an analysis needs it for its whole duration, and the next
+        # request finds this same server (ollama_is_responding) rather than starting a second.
         subprocess.Popen(
             ["ollama", "serve"],  # noqa: S607  Deliberately found on PATH, as the user runs it.
             stdout=subprocess.DEVNULL,
@@ -134,6 +135,87 @@ def start_ollama_server() -> tuple[bool, str]:
         f"The Ollama server did not start within {OLLAMA_STARTUP_TIMEOUT} seconds.  "
         "Try running 'ollama serve' in a terminal, then try again.",
     )
+
+
+# The suffix the model pulldown puts on a model the user has installed.
+INSTALLED_SUFFIX = " (installed)"
+
+
+def installed_ollama_model(name: str, installed: list[str]) -> str | None:
+    """The name Ollama itself knows `name` by, if the user has that model.
+
+    Ollama names a model 'name:tag' ("tinyllama:latest", "llama3.1:8b"), and a name with no tag
+    means ':latest'.  A name given without a tag also means the model when the user has it under
+    some other tag -- "llama3.1" for an installed "llama3.1:8b" -- so that is accepted too, taking
+    the alphabetically first when there are several, so the choice does not depend on the order
+    Ollama happened to list them in.
+
+    Args:
+        name (str): the model asked for, as the pulldown or a command line spells it.
+        installed (list[str]): the names Ollama reports as installed.
+
+    Returns:
+        str | None: the installed name, or None if the user does not have the model.
+    """
+    wanted = name.replace(INSTALLED_SUFFIX, "").strip()
+    if not wanted:
+        return None
+    by_tag = {tagged_model_name(model): model for model in installed}
+    if tagged_model_name(wanted) in by_tag:
+        return by_tag[tagged_model_name(wanted)]
+    if ":" not in wanted:
+        return next((by_tag[tag] for tag in sorted(by_tag) if tag.split(":", maxsplit=1)[0] == wanted), None)
+    return None
+
+
+def prepare_ollama_model(name: str, say: Callable[[str], None] = console.say) -> tuple[str | None, str]:
+    """Get a local model ready to be asked: a server answering, and the model installed.
+
+    Blocking -- starting a server and downloading a model both take as long as they take -- so an
+    async caller runs it in a thread.  A model the user does not have is pulled from Ollama's
+    library, with its progress reported through `say`, the way running it at the command line
+    would have.
+
+    Args:
+        name (str): the model asked for.
+        say (Callable[[str], None]): where progress goes.
+
+    Returns:
+        tuple[str | None, str]: (the installed model's name, "") when ready, otherwise (None, why not).
+    """
+    started, reason = start_ollama_server()
+    if not started:
+        return None, reason
+    ollama = import_optional("ollama", "ollama")
+    if ollama is None:  # start_ollama_server has just imported it, so this is not expected.
+        return None, f"The 'ollama' package is not installed.  Install it with: {AI_EXTRA_INSTALL_COMMAND}"
+
+    try:
+        installed = [model["model"] for model in ollama.list()["models"]]
+    except ollama_errors() as error:
+        return None, f"Could not ask Ollama which models are installed: {error}"
+    except (KeyError, TypeError) as error:
+        return None, f"Unexpected response from Ollama: {error}"
+
+    if (found := installed_ollama_model(name, installed)) is not None:
+        return found, ""
+
+    wanted = name.replace(INSTALLED_SUFFIX, "").strip()
+    say(f"MapTasker: --- The Ollama model '{wanted}' is not installed.  Downloading it (this may take a while)... ---")
+    try:
+        last_status = ""
+        for progress in ollama.pull(wanted, stream=True):
+            status = progress.get("status") or ""
+            if status and status != last_status:
+                say(f"MapTasker: {status}")
+                last_status = status
+    except ollama_errors() as error:
+        return None, (
+            f"The Ollama model '{wanted}' is not installed and could not be downloaded ({error}).  "
+            "See the model library at https://ollama.com/library"
+        )
+    say(f"MapTasker: --- '{wanted}' is installed. ---")
+    return wanted, ""
 
 
 def get_openai_models(state: RunState) -> list:
@@ -211,32 +293,39 @@ def contains_any_substring_loop(main_string: str, substrings: str) -> bool:
     return any(sub in main_string for sub in substrings)  # No substring was found
 
 
-def get_anthropic_models() -> list:
+def get_anthropic_models(state: RunState) -> list:
     """
-    Provides a curated list of Anthropic Claude models suitable for programming hints
-    (like for Android Tasker), based on Anthropic's publicly available information.
+    Lists the Claude models the Analyze tab's extended list offers.
 
-    Note: The Anthropic API does not provide a direct 'list_models()' endpoint.
-    This function relies on a hardcoded list derived from Anthropic's official
-    documentation and common knowledge of their model capabilities.
+    With an Anthropic API key to ask with, this is what the Models API says the key can use, so a
+    model released after this version of MapTasker is offered too.  Without one -- or when it cannot
+    be asked -- it is the built-in list (sysconst.ANTHROPIC_EXTENDED_MODELS).
 
-    Requires your Anthropic API key to be set as an environment variable:
-    export ANTHROPIC_API_KEY='YOUR_API_KEY'
+    Args:
+        state (RunState): the run, whose AI settings hold the key.
+
+    Returns:
+        list: the model ids, sorted.
     """
-    # From : https://docs.anthropic.com/en/api/client-sdks
-    return [
-        "claude-fable-5",
-        "claude-opus-5",
-        "claude-sonnet-5",
-        "claude-opus-4-7",
-        "claude-opus-4-8",
-        "claude-opus-4-5",
-        "claude-opus-4-6",
-        "claude-sonnet-4-5",
-        "claude-sonnet-4-6",
-        "claude-haiku-4-5",
-        "claude-sonnet-4-5",
-    ]
+    api_key = state.ai.get("anthropic_key", "")
+    if not api_key:
+        return sorted(ANTHROPIC_EXTENDED_MODELS)
+
+    anthropic = import_optional("anthropic", "anthropic")
+    if anthropic is None:
+        return sorted(ANTHROPIC_EXTENDED_MODELS)
+
+    try:
+        # models.list() pages by itself as it is iterated.
+        listed = sorted({model.id for model in anthropic.Anthropic(api_key=api_key).models.list()})
+    except anthropic.AnthropicError as e:
+        # A bad key, a refused or dropped connection, a timeout: the SDK's whole hierarchy.  None of
+        # it is a reason to leave the pulldown empty.
+        rutroh_error(f"An error occurred trying to list Anthropic models: {e}")
+        return sorted(ANTHROPIC_EXTENDED_MODELS)
+
+    claude = [model for model in listed if model.startswith("claude-")]
+    return claude or sorted(ANTHROPIC_EXTENDED_MODELS)
 
 
 def get_gemini_models(state: RunState) -> list:
@@ -358,7 +447,7 @@ def get_llama_models() -> list:
     based on keywords commonly found in the names of coding-oriented models.
 
     Returns:
-        list[str]: A list of model names (e.g., "codellama", "deepseek-coder").
+        list[str]: A list of model names (e.g., "codellama", "qwen2.5-coder").
     """
     extended_list = [
         "aya",
@@ -369,11 +458,6 @@ def get_llama_models() -> list:
         "codellama:7b",
         "codellama:13b",
         "codeqwen:latest",
-        "deepseek-coder",
-        "deepseek-coder-v2:latest",
-        "deepseek-r1",
-        "deepseek-r1:1.5b",
-        # "deepseek-v3",  # This model is huge...404gb!
         # "devstral",     # This model is 14gb!
         "dolphin3",
         "exaone-deep",
@@ -458,16 +542,6 @@ def get_llama_models() -> list:
     except (KeyError, TypeError) as e:
         rutroh_error(f"Unexpected response from Ollama: {e}")
         return extended_list
-
-
-def get_deepseek_models() -> list:
-    """
-    Get the list of deepseek AI models.
-
-    Returns:
-        list: _description_
-    """
-    return DEEPSEEK_MODELS
 
 
 # Get the Ai api keys

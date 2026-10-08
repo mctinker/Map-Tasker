@@ -35,11 +35,39 @@ from maptasker.src.sysconst import (
     LEGACY_SYSTEM_SETTINGS_FILE,
     NOW_TIME,
     RENAMED_AI_MODELS,
+    RETIRED_AI_MODEL_PREFIXES,
+    RETIRED_AI_NAMES,
     TRANSIENT_ARGUMENTS,
     logger,
 )
 
 twenty_four_hours_ago = NOW_TIME - timedelta(hours=25)
+
+
+# A saved choice of AI service that MapTasker no longer supports
+def drop_unsupported_ai_selection(program_arguments: dict) -> bool:
+    """Clear the saved AI service and model if they are ones MapTasker can no longer run.
+
+    A settings file saved while one was selected would otherwise bring it back on the Analyze tab,
+    where nothing could be done with it: the model is in no list, and no key is kept for it.
+    Cleared, the tab comes up as it does when no model has ever been chosen.
+
+    Args:
+        program_arguments (dict): the [program_arguments] table just read, changed in place.
+
+    Returns:
+        bool: True if a selection was cleared.
+    """
+    model = str(program_arguments.get("ai_model") or "").lower()
+    if program_arguments.get("ai_name") not in RETIRED_AI_NAMES and not model.startswith(RETIRED_AI_MODEL_PREFIXES):
+        return False
+    logger.info(
+        f"The saved AI selection ({program_arguments.get('ai_name')!r}, {program_arguments.get('ai_model')!r}) is "
+        "no longer supported, so it has been cleared.",
+    )
+    program_arguments["ai_name"] = ""
+    program_arguments["ai_model"] = ""
+    return True
 
 
 # Write a settings file in one indivisible step
@@ -259,6 +287,7 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[dict, dict]:
                 # name with "404 NOT_FOUND"): carry it over to the real name.
                 if program_arguments.get("ai_model") in RENAMED_AI_MODELS:
                     program_arguments["ai_model"] = RENAMED_AI_MODELS[program_arguments["ai_model"]]
+                drop_unsupported_ai_selection(program_arguments)
                 # Start log. file if debug is on.
                 if program_arguments["debug"]:
                     log_startup_values(state=state)

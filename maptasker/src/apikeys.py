@@ -50,7 +50,12 @@ ENTRY_NAME = "api_keys"
 # The PrimeItems.ai slots that are saved.  'api_key' is a key handed to a run directly
 # rather than through the API key dialog (see rungui); the old pickle saved it along with
 # the rest, so it still is.
-API_KEY_NAMES = ("openai_key", "anthropic_key", "deepseek_key", "gemini_key", "api_key")
+API_KEY_NAMES = ("openai_key", "anthropic_key", "gemini_key", "api_key")
+
+# Keys for services MapTasker no longer supports.  Never read into a run; a copy found in what is
+# saved is taken out the next time it is read (see _forget_retired_keys), so that a key nothing
+# can use does not go on sitting in the user's password store.
+RETIRED_KEY_NAMES = ("deepseek_key",)
 
 # A pickle written with protocol 2 or later opens with this byte.  The very first key files
 # were plain text holding a single key, and those do not.
@@ -152,7 +157,34 @@ def _read_store() -> dict[str, str]:
     except KeyringError as error:
         logger.warning("No API keys read: the password store could not be used (%s).", error)
         return dict.fromkeys(API_KEY_NAMES, "")
-    return _parse_keys(stored or "", f"The {ENTRY_NAME} entry in the password store")
+    keys = _parse_keys(stored or "", f"The {ENTRY_NAME} entry in the password store")
+    _forget_retired_keys(stored or "", keys)
+    return keys
+
+
+def _forget_retired_keys(text: str, keys: dict[str, str]) -> None:
+    """
+    Save the keys again, without the key of a service that is no longer supported, if `text` holds one.
+
+    Best effort: a store that cannot be written to leaves the old key where it was, to be tried
+    again on the next read, and is not a reason to stop reading the keys that are still wanted.
+
+    Args:
+        text (str): the JSON that was read -- from the password store or the fallback file.
+        keys (dict[str, str]): the keys that were taken out of it, one entry per API_KEY_NAMES.
+    """
+    try:
+        contents = json.loads(text) if text else {}
+    except ValueError:
+        return
+    if not isinstance(contents, dict) or not any(name in contents for name in RETIRED_KEY_NAMES):
+        return
+    try:
+        _write_store(keys)
+    except OSError as error:
+        logger.warning("A key for a service MapTasker no longer supports could not be removed (%s).", error)
+        return
+    logger.info("Removed the saved key of a service MapTasker no longer supports.")
 
 
 def _write_store(wanted: dict[str, str]) -> bool:
@@ -202,7 +234,9 @@ def _read_key_file(key_file: Path) -> dict[str, str]:
     except (OSError, ValueError) as error:  # ValueError covers bad UTF-8.
         logger.error("The API key file %s could not be read (%s).", key_file, error)
         text = ""
-    return _parse_keys(text, f"The API key file {key_file}")
+    keys = _parse_keys(text, f"The API key file {key_file}")
+    _forget_retired_keys(text, keys)
+    return keys
 
 
 def _parse_keys(text: str, source: str) -> dict[str, str]:
@@ -273,7 +307,7 @@ def _move_per_key_entries() -> None:
         return
     if not any(old.values()) or not _write_store(old):
         return  # Nothing to move, or it went to the file instead -- which is read in preference.
-    for name in API_KEY_NAMES:
+    for name in (*API_KEY_NAMES, *RETIRED_KEY_NAMES):
         try:
             keyring.delete_password(SERVICE_NAME, name)
         except PasswordDeleteError:

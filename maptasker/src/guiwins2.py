@@ -30,7 +30,6 @@ class APIKeyDialog:
             with ui.column().classes("w-full gap-4 mb-6"):
                 self.openai_key = self.create_key_entry("OpenAI API Key:", "openai_key")
                 self.anthropic_key = self.create_key_entry("Claude API Key:", "anthropic_key")
-                self.deepseek_key = self.create_key_entry("DeepSeek API Key:", "deepseek_key")
                 self.gemini_key = self.create_key_entry("Gemini API Key:", "gemini_key")
 
             # Action Buttons Row (OK, ?, and Cancel)

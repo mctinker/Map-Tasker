@@ -31,7 +31,7 @@
   },
   "maptasker/src/aiutils.py": {
     "reportArgumentType": 2,
-    "reportAttributeAccessIssue": 4
+    "reportAttributeAccessIssue": 1
   },
   "maptasker/src/bildhtml.py": {
     "reportArgumentType": 2,
@@ -64,12 +64,6 @@
   "maptasker/src/console.py": {
     "reportArgumentType": 1,
     "reportCallIssue": 1
-  },
-  "maptasker/src/cria.py": {
-    "reportArgumentType": 7,
-    "reportAttributeAccessIssue": 6,
-    "reportCallIssue": 1,
-    "reportOptionalMemberAccess": 11
   },
   "maptasker/src/debug.py": {
     "reportAttributeAccessIssue": 9
@@ -211,12 +205,11 @@
     "reportReturnType": 1
   },
   "maptasker/src/mapai.py": {
-    "reportAttributeAccessIssue": 13,
-    "reportGeneralTypeIssues": 1,
-    "reportOptionalMemberAccess": 1
+    "reportAttributeAccessIssue": 4,
+    "reportGeneralTypeIssues": 1
   },
   "maptasker/src/mapask.py": {
-    "reportAttributeAccessIssue": 6,
+    "reportAttributeAccessIssue": 5,
     "reportGeneralTypeIssues": 2
   },
   "maptasker/src/mapcache.py": {
@@ -415,7 +408,7 @@
   },
   "maptasker/src/userintr_ai.py": {
     "reportArgumentType": 3,
-    "reportAttributeAccessIssue": 29,
+    "reportAttributeAccessIssue": 28,
     "reportGeneralTypeIssues": 2
   },
   "maptasker/src/userintr_android.py": {

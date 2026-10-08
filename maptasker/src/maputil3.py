@@ -11,6 +11,7 @@ None and the user is told, once, what to install.
 """
 
 import importlib
+from types import ModuleType
 
 from maptasker.src import console
 
@@ -21,7 +22,7 @@ AI_EXTRA_INSTALL_COMMAND = 'pip install "maptasker[ai]"'
 _reported_missing: set[str] = set()
 
 
-def import_optional(pypi_name: str, import_path: str) -> object:
+def import_optional(pypi_name: str, import_path: str) -> ModuleType | None:
     """
     Import a library from the "ai" extra, or say how to get it.
 
@@ -33,7 +34,7 @@ def import_optional(pypi_name: str, import_path: str) -> object:
         import_path (str): the module to import (e.g. "google.genai").
 
     Returns:
-        object: the imported module, or None if the library is not installed.
+        ModuleType | None: the imported module, or None if the library is not installed.
     """
     try:
         return importlib.import_module(import_path)

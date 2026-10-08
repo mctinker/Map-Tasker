@@ -14,7 +14,6 @@ from maptasker.src import clock, console, webassets
 from maptasker.src.aiutils import (
     get_anthropic_models,
     get_api_key,
-    get_deepseek_models,
     get_gemini_models,
     get_llama_models,
     get_openai_models,
@@ -254,10 +253,9 @@ def get_extended_ai_model_list(state: RunState) -> list:
     """
     _ = get_api_key(state=state)
     state.ai["openai_models"] = get_openai_models(state=state)
-    state.ai["anthropic_models"] = get_anthropic_models()
+    state.ai["anthropic_models"] = get_anthropic_models(state=state)
     state.ai["gemini_models"] = get_gemini_models(state=state)
     state.ai["llama_models"] = get_llama_models()
-    state.ai["deepseek_models"] = get_deepseek_models()
 
     # Define the models
     extended_model_groups = {
@@ -265,7 +263,6 @@ def get_extended_ai_model_list(state: RunState) -> list:
         "Anthropic": state.ai["anthropic_models"],
         "Gemini": state.ai["gemini_models"],
         "LLAMA": state.ai["llama_models"],
-        "DeepSeek": state.ai["deepseek_models"],
     }
     # all_models = openai_models + anthropic_models + gemini_models
 
@@ -1255,7 +1252,6 @@ def is_valid_ai_config(self: "MyGui") -> bool:
         "openai": {"models": "openai_models", "key": "openai_key"},
         "anthropic": {"models": "anthropic_models", "key": "anthropic_key"},
         "gemini": {"models": "gemini_models", "key": "gemini_key"},
-        "deepseek": {"models": "deepseek_models", "key": "deepseek_key"},
         "llama": {"models": "llama_models", "key": None},  # Assuming no key for llama based on original if
     }
     if not self.ai_model:
@@ -1488,7 +1484,6 @@ def set_ai_key(self: object, model: str) -> None:
     model_keys = {
         **dict.fromkeys(window_state(self).ai["openai_models"], "openai_key"),
         **dict.fromkeys(window_state(self).ai["anthropic_models"], "anthropic_key"),
-        **dict.fromkeys(window_state(self).ai["deepseek_models"], "deepseek_key"),
         **dict.fromkeys(window_state(self).ai["gemini_models"], "gemini_key"),
     }
     ai_to_get = model_keys.get(model, "")

@@ -15,11 +15,10 @@ Map's text, not its HTML.
 from __future__ import annotations
 
 import asyncio
-import sys
-import types
 from pathlib import Path
 from types import SimpleNamespace
 
+import httpx
 import pytest
 from maptasker.src import console, mapai
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -67,17 +66,77 @@ def reported(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, int]]:
         ("", False),
     ],
 )
-def test_a_gemini_key_has_a_fixed_shape(key: str, valid: bool) -> None:
+def test_a_gemini_key_has_a_fixed_shape(key: str, valid: bool, monkeypatch: pytest.MonkeyPatch) -> None:
+    # A key without the usual shape is asked about; here Google refuses it.
+    monkeypatch.setattr(mapai, "_gemini_key_works", lambda api_key: False)
     assert mapai.valid_api_key("gemini_key", key) is valid
 
 
+def test_a_gemini_key_of_the_usual_shape_is_accepted_without_asking_google(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mapai, "_gemini_key_works", lambda api_key: pytest.fail("Google was asked"))
+    assert mapai.valid_api_key("gemini_key", "AIzaSy" + "a" * 33) is True
+
+
+def test_a_gemini_key_of_another_shape_is_accepted_if_google_accepts_it(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mapai, "_gemini_key_works", lambda api_key: api_key == "a-newer-kind-of-key")
+    assert mapai.valid_api_key("gemini_key", "a-newer-kind-of-key") is True
+    assert mapai.valid_api_key("gemini_key", "another") is False
+
+
+class _GenaiAPIError(Exception):
+    pass
+
+
+def _fake_genai(*, listing: object) -> SimpleNamespace:
+    """google.genai, whose client lists models as `listing` says: an iterable, or an exception to raise."""
+    seen: dict = {}
+
+    class Models:
+        def list(self) -> object:
+            if isinstance(listing, Exception):
+                raise listing
+            return iter(listing)
+
+    class Client:
+        def __init__(self, api_key: str) -> None:
+            seen["api_key"] = api_key
+            self.models = Models()
+
+    return SimpleNamespace(Client=Client, errors=SimpleNamespace(APIError=_GenaiAPIError), seen=seen)
+
+
+def test_google_is_asked_by_listing_models_with_the_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    library = _fake_genai(listing=[SimpleNamespace(name="models/gemini-3.5-flash")])
+    monkeypatch.setattr(mapai, "import_optional", lambda *_: library)
+
+    assert mapai._gemini_key_works("the-key") is True  # noqa: SLF001
+    assert library.seen["api_key"] == "the-key"
+
+
 @pytest.mark.parametrize(
-    ("key", "valid"),
-    [("a" * 32, True), ("A1_-" * 8, True), ("a" * 31, False), ("a" * 33, False), ("a" * 31 + "!", False), ("", False)],
+    "failure",
+    [_GenaiAPIError("API key not valid"), httpx.ConnectError("no network"), ValueError("no key")],
 )
-def test_a_deepseek_key_is_thirty_two_plain_characters(key: str, valid: bool) -> None:
-    assert mapai.valid_api_key("deepseek_key", key) is valid
-    assert mapai.valid_api_key("anything_else", key) is valid
+def test_a_key_google_refuses_or_cannot_be_asked_about_is_not_valid(
+    failure: Exception, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(mapai, "import_optional", lambda *_: _fake_genai(listing=failure))
+    assert mapai._gemini_key_works("the-key") is False  # noqa: SLF001
+
+
+def test_no_key_at_all_is_never_sent_to_google(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mapai, "import_optional", lambda *_: pytest.fail("the library was loaded"))
+    assert mapai._gemini_key_works("") is False  # noqa: SLF001
+
+
+def test_gemini_without_its_library_has_no_valid_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mapai, "import_optional", lambda *_: None)
+    assert mapai._gemini_key_works("the-key") is False  # noqa: SLF001
+
+
+@pytest.mark.parametrize("service", ["deepseek_key", "api_key", "anything_else", ""])
+def test_a_service_mapask_cannot_ask_has_no_valid_key(service: str) -> None:
+    assert mapai.valid_api_key(service, "a" * 32) is False
 
 
 class _OpenAIError(Exception):
@@ -218,14 +277,8 @@ def test_a_response_is_saved_and_queued_for_the_gui(state: RunState, tmp_path: P
     [
         ("Request too large for model", "claude-sonnet-5", "Task too large for ChatGPT or ChatGPT quota not enough!"),
         ("'Incorrect API key provided: sk-...", "claude-sonnet-5", "Invalid ChatGPT API key provided!"),
-        (
-            "Error code: 401 - bad",
-            "deepseek-chat",
-            "DeepSeek error code 401...possible invalid DeepSeek API key provided!",
-        ),
-        ("Error code: 500 - down", "deepseek-chat", "Refer to DeepSeek error codes"),
         ("Something else entirely", "claude-sonnet-5", "Something else entirely"),
-        ("Error code: 401", "claude-sonnet-5", "Error code: 401"),  # Only DeepSeek's codes are explained.
+        ("Error code: 401", "claude-sonnet-5", "Error code: 401"),  # Anything else is passed on as it came.
     ],
 )
 def test_a_known_failure_is_explained_and_an_unknown_one_is_passed_on(
@@ -236,14 +289,6 @@ def test_a_known_failure_is_explained_and_an_unknown_one_is_passed_on(
     mapai.process_error(error, "Task", "Noisy", state=state)
 
     assert expected in _error_text(tmp_path)
-
-
-def test_a_401_from_deepseek_gets_the_extra_line_and_a_500_does_not(state: RunState, tmp_path: Path) -> None:
-    state.program_arguments.ai_model = "deepseek-chat"
-
-    mapai.process_error("Error code: 500", "Task", "t", state=state)
-
-    assert "401" not in _error_text(tmp_path)
 
 
 # ##################################################################################
@@ -292,6 +337,7 @@ def test_anthropic_gets_room_to_think_and_only_the_text_blocks_are_kept(state: R
                 SimpleNamespace(type="text", text="Part one. "),
                 SimpleNamespace(type="text", text="Part two."),
             ],
+            stop_reason="end_turn",
         )
 
     client = SimpleNamespace(messages=SimpleNamespace(create=create))
@@ -303,19 +349,54 @@ def test_anthropic_gets_room_to_think_and_only_the_text_blocks_are_kept(state: R
     assert sent["messages"] == [{"role": "user", "content": "the query"}]
 
 
-def test_deepseek_is_asked_for_a_deterministic_short_reply(state: RunState) -> None:
+def _anthropic_client(**reply: object) -> SimpleNamespace:
+    message = SimpleNamespace(content=[SimpleNamespace(type="text", text="Some analysis.")], **reply)
+    return SimpleNamespace(messages=SimpleNamespace(create=lambda **kwargs: message))
+
+
+@pytest.mark.parametrize("model", ["claude-fable-5-1", "claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"])
+def test_every_current_claude_model_is_asked_the_same_way(state: RunState, model: str) -> None:
     sent = {}
+    client = SimpleNamespace(
+        messages=SimpleNamespace(
+            create=lambda **kwargs: sent.update(kwargs)
+            or SimpleNamespace(content=[SimpleNamespace(type="text", text="ok")], stop_reason="end_turn"),
+        ),
+    )
+    state.program_arguments.ai_model = model
 
-    def create(**kwargs: object) -> SimpleNamespace:
-        sent.update(kwargs)
-        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="Answer."))])
+    assert mapai._process_anthropic_response(client, "q", state=state) == "ok"  # noqa: SLF001
+    assert sent["model"] == model
+    # None of the options the newer models refuse: no sampling settings, no thinking budget, no forced tool.
+    assert not {"temperature", "top_p", "top_k", "thinking", "tool_choice"} & set(sent)
 
-    client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
-    state.program_arguments.ai_model = "deepseek-chat"
 
-    assert mapai._process_deepseek_response(client, "q", state=state) == "Answer."  # noqa: SLF001
-    assert (sent["temperature"], sent["stream"], sent["max_tokens"]) == (0.0, False, 1024)
-    assert sent["messages"][0]["role"] == "system"
+def test_a_claude_reply_that_ran_out_of_room_says_so(state: RunState) -> None:
+    client = _anthropic_client(stop_reason="max_tokens")
+
+    reply = mapai._process_anthropic_response(client, "q", state=state)  # noqa: SLF001
+
+    assert reply.startswith("Some analysis.")
+    assert "cut short" in reply
+
+
+def test_a_claude_that_declines_is_reported_as_declining_not_as_an_empty_analysis(state: RunState) -> None:
+    message = SimpleNamespace(
+        content=[],
+        stop_reason="refusal",
+        stop_details=SimpleNamespace(type="refusal", category="cyber", explanation="..."),
+    )
+    client = SimpleNamespace(messages=SimpleNamespace(create=lambda **kwargs: message))
+
+    reply = mapai._process_anthropic_response(client, "q", state=state)  # noqa: SLF001
+
+    assert reply == "The model declined to analyze this (cyber).  Try another model."
+
+
+def test_a_decline_with_no_category_still_says_so(state: RunState) -> None:
+    client = _anthropic_client(stop_reason="refusal", stop_details=None)
+
+    assert "declined to analyze this." in mapai._process_anthropic_response(client, "q", state=state)  # noqa: SLF001
 
 
 def test_gemini_is_given_no_tools_to_call(state: RunState) -> None:
@@ -352,16 +433,15 @@ def test_each_ai_name_goes_to_its_own_processor(
     for name, function in (
         ("OpenAI", "_process_openai_response"),
         ("Anthropic", "_process_anthropic_response"),
-        ("DeepSeek", "_process_deepseek_response"),
         ("Gemini", "_process_gemini_response"),
     ):
         monkeypatch.setattr(mapai, function, lambda client, query, state, name=name: called.append(name) or name)
 
-    for name in ("OpenAI", "Anthropic", "DeepSeek", "Gemini"):
+    for name in ("OpenAI", "Anthropic", "Gemini"):
         state.program_arguments.ai_name = name
         mapai.process_ai_query_and_response(object(), "q", "Task", "t", state=state)
 
-    assert called == ["OpenAI", "Anthropic", "DeepSeek", "Gemini"]
+    assert called == ["OpenAI", "Anthropic", "Gemini"]
 
 
 def test_a_name_no_processor_knows_is_reported(state: RunState, reported: list) -> None:
@@ -393,7 +473,6 @@ def test_any_failure_becomes_a_sentence_in_the_error_file_not_a_traceback(
         ("claude-sonnet-5", "Error: invalid x-api-key", "Invalid Anthropic API key provided"),
         ("gemini-3-pro", "API key not valid. Please pass a valid API key.", "Invalid Gemini API key provided"),
         ("claude-sonnet-5", "Connection error.", "Connection Error: Check your firewall."),
-        ("deepseek-chat", "boom", "DeepSeek failed with error: boom"),
         ("not-a-model", "boom", "Unknown failed with error: boom"),
     ],
 )
@@ -402,7 +481,6 @@ def test_a_provider_s_failure_is_put_in_words(state: RunState, model: str, messa
     state.ai["openai_models"] = ["gpt-5"]
     state.ai["anthropic_models"] = ["claude-sonnet-5"]
     state.ai["gemini_models"] = ["gemini-3-pro"]
-    state.ai["deepseek_models"] = ["deepseek-chat"]
 
     assert expected in mapai.handle_ai_error(RuntimeError(message), state=state)
 
@@ -430,18 +508,6 @@ def test_claude_is_started_with_the_key_and_given_the_query(state: RunState, mon
 
     assert made == {"key": "sk-test"}
     assert handed == {"client": "CLIENT", "query": "the query"}
-
-
-def test_deepseek_is_the_openai_library_pointed_at_deepseek(state: RunState, monkeypatch: pytest.MonkeyPatch) -> None:
-    made = {}
-    monkeypatch.setattr(
-        mapai, "import_optional", lambda *_: _library(OpenAI=lambda **kwargs: made.update(kwargs) or "CLIENT")
-    )
-    monkeypatch.setattr(mapai, "process_ai_query_and_response", lambda *args, **kwargs: made.update(done=True))
-
-    mapai.deepseek_ai("q", "Task", "t", state=state)
-
-    assert made == {"api_key": "sk-test", "base_url": "https://api.deepseek.com", "done": True}
 
 
 def test_gemini_is_started_with_the_key(state: RunState, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -518,101 +584,101 @@ def test_openai_that_is_not_installed_is_reported_before_the_key_is_looked_up(
     assert "Module 'openai' not found" in reported[0][0]
 
 
-def test_a_library_that_cannot_be_loaded_ends_quietly_for_openai_and_deepseek(
+def test_a_library_that_cannot_be_loaded_ends_quietly_for_openai(
     state: RunState, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """import_optional has already said why; there is nothing more to do."""
     monkeypatch.setattr(mapai, "import_optional", lambda *_: None)
     monkeypatch.setattr(mapai, "process_ai_query_and_response", lambda *args, **kwargs: pytest.fail("a query was sent"))
 
-    mapai.deepseek_ai("q", "Task", "t", state=state)
     mapai.open_ai("q", "Task", "t", state=state)
 
 
 # ##################################################################################
 # Local models.
 # ##################################################################################
-def _fake_cria(chunks: list[str], *, record: dict | None = None, raises: Exception | None = None) -> types.ModuleType:
-    module = types.ModuleType("maptasker.src.cria")
+def _fake_ollama(*, reply: str = "It does things.", raises: Exception | None = None) -> SimpleNamespace:
+    """The ollama package, whose client answers `reply` (or raises) and records what it was asked."""
+    asked: dict = {}
 
-    class Cria:
-        def __init__(self) -> None:
+    class Client:
+        def chat(self, model: str, messages: list) -> dict:
+            asked.update(model=model, messages=messages)
             if raises is not None:
                 raise raises
+            return {"message": {"content": reply}}
 
-    class Model:
-        def __init__(self, name: str, state: object) -> None:
-            if record is not None:
-                record["model"] = name
+    return SimpleNamespace(Client=Client, asked=asked)
 
-        def __enter__(self) -> Model:
-            return self
 
-        def __exit__(self, *_: object) -> None:
-            return None
-
-        def chat(self, messages: list, prompt: str) -> list[str]:
-            if record is not None:
-                record.update(messages=messages, prompt=prompt)
-            return chunks
-
-        def clear(self) -> None:
-            if record is not None:
-                record["cleared"] = True
-
-    module.Cria = Cria
-    module.Model = Model
-    return module
+@pytest.fixture
+def local(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
+    """A local run: the library, the model preparation and the console, all replaced and recorded."""
+    setup = SimpleNamespace(ollama=_fake_ollama(), prepared=[], result=("llama3:latest", ""))
+    monkeypatch.setattr(mapai, "import_optional", lambda *_: setup.ollama)
+    monkeypatch.setattr(mapai, "prepare_ollama_model", lambda name: setup.prepared.append(name) or setup.result)
+    monkeypatch.setattr(mapai, "ollama_errors", lambda: (ConnectionError,))
+    monkeypatch.setattr(console, "say", lambda *_: None)
+    return setup
 
 
 def test_a_local_model_answers_and_the_answer_is_recorded(
-    state: RunState, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    state: RunState, tmp_path: Path, local: SimpleNamespace
 ) -> None:
-    seen: dict = {}
-    monkeypatch.setitem(sys.modules, "maptasker.src.cria", _fake_cria(["It ", "does ", "things."], record=seen))
-    monkeypatch.setattr(console, "say", lambda *_: None)
     state.program_arguments.ai_name = "LLAMA"
-    state.program_arguments.ai_model = "llama3"
+    state.program_arguments.ai_model = "llama3 (installed)"
     state.program_arguments.ai_analyze = True
 
     mapai.local_ai("Analyze this:Task data", "Task", "Noisy", state=state)
 
-    assert seen["model"] == "llama3"
-    assert seen["cleared"] is True
-    assert seen["messages"][0]["role"] == "system"
-    assert seen["messages"][1]["role"] == "user"
+    assert local.prepared == ["llama3 (installed)"], "the model is made ready by the name the pulldown gave"
+    assert local.ollama.asked["model"] == "llama3:latest", "and asked by the name Ollama knows it by"
+    assert local.ollama.asked["messages"] == [
+        {"role": "system", "content": mapai.ai_role},
+        {"role": "user", "content": "Analyze this:Task data"},
+    ], "the question goes the way it does to every other service"
     assert "It does things." in (tmp_path / ANALYSIS_FILE).read_text(encoding="utf-8")
     assert state.program_arguments.ai_analyze is False  # So a failure does not come back round.
 
 
-def test_a_local_model_that_is_not_chosen_is_reported(
-    state: RunState, reported: list, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setitem(sys.modules, "maptasker.src.cria", _fake_cria([]))
+def test_a_local_model_that_is_not_chosen_is_reported(state: RunState, reported: list, local: SimpleNamespace) -> None:
     state.program_arguments.ai_model = "None"
 
     mapai.local_ai("q:x", "Task", "t", state=state)
 
     assert reported == [("No model selected.", 12)]
+    assert local.prepared == []
 
 
-def test_ollama_not_being_installed_is_reported_not_raised(
-    state: RunState, reported: list, monkeypatch: pytest.MonkeyPatch
+def test_a_model_that_cannot_be_made_ready_is_reported_with_the_reason(
+    state: RunState, reported: list, local: SimpleNamespace
 ) -> None:
-    monkeypatch.setitem(sys.modules, "maptasker.src.cria", _fake_cria([], raises=FileNotFoundError("ollama")))
-    monkeypatch.setattr(console, "say", lambda *_: None)
+    local.result = (None, "Ollama is not installed.  Please install the Ollama app from 'https://ollama.com/download'.")
     state.program_arguments.ai_model = "llama3"
 
     mapai.local_ai("q:x", "Task", "t", state=state)
 
-    assert reported and "Ai analysis error: ollama" in reported[0][0]
+    assert reported == [(local.result[1], 12)]
+    assert local.ollama.asked == {}, "nothing was asked"
     assert state.program_arguments.ai_analyze is False
+
+
+@pytest.mark.parametrize("failure", [ConnectionError("refused"), KeyError("message"), TypeError("bad reply")])
+def test_a_local_model_that_fails_while_answering_is_reported_not_raised(
+    state: RunState, reported: list, local: SimpleNamespace, failure: Exception
+) -> None:
+    local.ollama = _fake_ollama(raises=failure)
+    state.program_arguments.ai_model = "llama3"
+
+    mapai.local_ai("q:x", "Task", "t", state=state)
+
+    assert reported and "Ai analysis error:" in reported[0][0]
 
 
 def test_the_local_libraries_failing_to_load_is_reported_with_how_to_fix_it(
     state: RunState, reported: list, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setitem(sys.modules, "maptasker.src.cria", None)  # An import of None raises ImportError.
+    monkeypatch.setattr(mapai, "import_optional", lambda *_: None)
 
     mapai.local_ai("q:x", "Task", "t", state=state)
 
@@ -651,7 +717,6 @@ def worker(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     [
         ("OpenAI", "open_ai"),
         ("Anthropic", "claude_ai"),
-        ("DeepSeek", "deepseek_ai"),
         ("Gemini", "gemini_ai"),
         ("LLAMA", "local_ai"),
     ],
@@ -663,6 +728,21 @@ def test_each_ai_name_runs_its_own_worker(state: RunState, worker: SimpleNamespa
     asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))  # noqa: SLF001
 
     assert [call[0] for call in worker.ran] == [getattr(mapai, function)]
+
+
+@pytest.mark.parametrize("name", ["DeepSeek", "Deepseek", "", "Nobody"])
+def test_an_ai_name_that_is_not_a_supported_service_runs_nothing_and_says_so(
+    state: RunState, worker: SimpleNamespace, reported: list, name: str
+) -> None:
+    state.program_arguments.ai_name = name
+    state.output_lines.output_lines = ["Task: Noisy", "Action: 1"]
+
+    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))  # noqa: SLF001
+
+    assert worker.ran[0][0] is not mapai.open_ai
+    # The lookup falls back to a function that reports the problem, run in the worker thread.
+    worker.ran[0][0]("q", "Task", "Noisy", state=state)
+    assert reported and "Invalid model selected" in reported[-1][0]
 
 
 def test_the_query_names_the_object_carries_the_prompt_and_every_line(state: RunState, worker: SimpleNamespace) -> None:

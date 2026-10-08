@@ -336,18 +336,17 @@ class AIEventHandlers:
                 "Green",
             )
 
-            # Make sure we have the ai name
+            # Make sure we have the ai name, spelled the way map_ai dispatches on it.
             if not gui.ai_name:
                 if gui.ai_model.startswith("gemini"):
                     gui.ai_name = "Gemini"
                 elif gui.ai_model.startswith("claude"):
-                    gui.ai_name = "Claude"
-                elif gui.ai_model.startswith("gpt") or gui.ai_model.startswith("o"):
+                    gui.ai_name = "Anthropic"
+                elif gui.ai_model.startswith(("gpt", "o1", "o3", "o4")):
                     gui.ai_name = "OpenAI"
                 else:
-                    gui.ai_name = "Llama"
-            else:
-                self.state.program_arguments.ai_name = gui.ai_name
+                    gui.ai_name = "LLAMA"
+            self.state.program_arguments.ai_name = gui.ai_name
 
             # Do the analysis.  First save our windows and settings.
             _, _ = save_restore_args(gui_settings(gui), gui.color_lookup, to_save=True, state=self.state)
@@ -446,7 +445,6 @@ class AIEventHandlers:
         api_keys = {
             "openai_key": dialog_container.entry_openai_key.value,
             "anthropic_key": dialog_container.entry_anthropic_key.value,
-            "deepseek_key": dialog_container.entry_deepseek_key.value,
             "gemini_key": dialog_container.entry_gemini_key.value,
         }
 

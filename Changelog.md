@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file!
 - Added: __Check Readiness__ in the Edit Project and Edit Scene windows, beside Redact secrets, lists what the export needs on someone else's phone: its plugins and apps, the special access it needs (such as root, ADB Wi-Fi or Write Secure Settings), the variables Tasker will ask about on import, and the oldest Tasker it is known to run on. The list can be copied as text to paste into a forum post or TaskerNet description.
 - Added: A new __TaskerNet Updates__ button links a Project, Profile, Task or Scene to the TaskerNet share it came from, tells you when its author publishes a newer version, and lists what they changed so you can take each change on its own after previewing it, or accept the whole latest version in one step.  Only the share's address is sent to TaskerNet; nothing from your configuration leaves your computer.
 - Added: The IR for Tasker plugin's action is now recognised, so it shows its name and its settings (such as the code sent and the transmission method) instead of an unmapped code number.
+- Added: The Claude models offered for AI analysis now include Claude Fable 5.1, Opus 5.5, Sonnet 5.5 and Haiku 5.5. With an Anthropic API key, the extended list is read from Anthropic itself, so newer models appear without waiting for an update.
 - Added:
 
 ### Changed
@@ -18,10 +19,13 @@ All notable changes to this project will be documented in this file!
 - Changed: Compare Files, Changes Since and TaskerNet Updates now say exactly what differs in a Task or Profile -- its priority, the line of a long script that changed, a Task variable, or what a new Task's actions are -- instead of 'Changed.' or just a count.  Values that look like API keys or passwords are hidden in these lines.
 - Changed: The Debug tab is now called __Assistance__, and the Display Help and Get Android Help buttons have moved there from the right-hand panel.  Your last-used tab is still restored correctly if it was Debug.
 - Changed: Your AI API keys are now kept together in one entry in the system keychain, so macOS asks for keychain access once instead of once per key. Keys you saved earlier are moved over automatically the first time you start.
+- Changed: Analysis with a local Ollama model now talks to Ollama directly. Among other things this stops a model you already have being fetched from Ollama's library again on every analysis.
+- Changed: A Gemini API key that does not have the usual Google format is now checked with Google itself instead of being refused outright.
 - Changed:
 
 ### Removed
 
+- Removed: DeepSeek is no longer supported: its API key entry and its models are gone, along with the DeepSeek models offered for local use. A DeepSeek key or selection saved by an earlier version is cleared automatically.
 - Removed:
 
 ### Fixed
@@ -32,6 +36,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: The Map view no longer stops partway through a configuration whose Scene holds a web page, such as a WebView component with its own HTML and script. The page is now shown as text on the component's line instead of being run inside the Map.
 - Fixed: Renaming a Profile from its editor no longer fails with an error after the rename has been applied. The Rename prompt now closes, and the editor's title, Name field and Save as path follow the new name.
 - Fixed: If the Map or Diagram file could not be found when its view opened, the view stayed on "Building the view" and never showed anything. It now shows the lines held in memory instead.
+- Fixed: An AI analysis started with a model whose service had not been recorded, such as one restored from saved settings, stopped with "Invalid model selected". It now runs.
+- Fixed: When a Claude model declines a request or runs out of room to finish, the analysis now says so instead of showing an empty or cut-off response.
 - Fixed:
 
 ### Known Issues

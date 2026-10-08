@@ -58,7 +58,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Send Projects, Profiles, Tasks and Scenes back to Tasker on your ANdroid device.
 - Save and restore runtime settings.
 - Identify Tasks that have too many 'actions', and which should potentially be broken up into multiple Tasks.
-- Ai Analysis option to analyze a specific Project, Profile, Task or Scene using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models.
+- Ai Analysis option to analyze a specific Project, Profile, Task or Scene using either the server-based ChatGPT/Claude/Gemini or the local-based Llama (via Ollama) supported models.
 - Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.
 - Automatic update detection and optional installation of new versions.
 - Enhanced search and structured 'Find/Replace'.
@@ -421,7 +421,7 @@ We appreciate your help in making MapTasker better!
 
 [©Connor Talbot 2021 for Clippy](https://github.com/con-dog/clippy)
 
-[Ollama](https://ollama.com/), [OpenAi](https://openai.com/), [Claude AI](https://claude.ai), [Gemini AI](https://gemini.google.com/), [DeepSeek AI](https://chat.deepseek.com/)
+[Ollama](https://ollama.com/), [OpenAi](https://openai.com/), [Claude AI](https://claude.ai), [Gemini AI](https://gemini.google.com/)
 
 [Anonyo Noor for cria](https://github.com/leftmove/cria)
 

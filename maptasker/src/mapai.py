@@ -8,10 +8,11 @@ import html
 import importlib.util
 import re
 
+import httpx
 from nicegui import run
 
 from maptasker.src import console
-from maptasker.src.aiutils import OLLAMA_DOWNLOAD_URL, get_api_key
+from maptasker.src.aiutils import OLLAMA_DOWNLOAD_URL, get_api_key, ollama_errors, prepare_ollama_model
 from maptasker.src.error import error_handler
 from maptasker.src.guiwins import create_popup_window
 from maptasker.src.guiwins import create_popup_window as popupwindow
@@ -21,7 +22,6 @@ from maptasker.src.outdir import output_path
 from maptasker.src.primitem import RunState, get_single_item_requested
 from maptasker.src.sysconst import (
     ANALYSIS_FILE,
-    DEEPSEEK_MODELS,
     ERROR_FILE,
     logger,
 )
@@ -35,18 +35,41 @@ ai_role = (
 )
 
 
-# Validate OpenAI API key
+# Gemini keys as Google has issued them: "AIzaSy" and 33 more characters.
+_GEMINI_KEY_PATTERN = re.compile(r"^AIzaSy[A-Za-z0-9_-]{33}$")
+
+
+def _gemini_key_works(api_key: str) -> bool:
+    """True if Google accepts this key: it can ask for the list of models."""
+    if not api_key:
+        return False
+    genai = import_optional("google-genai", "google.genai")
+    if genai is None:
+        return False
+    try:
+        next(iter(genai.Client(api_key=api_key).models.list()), None)
+    except (genai.errors.APIError, httpx.HTTPError, ValueError):
+        # A key Google refuses, no connection to ask over, or a key the client will not take.
+        return False
+    return True
+
+
+# Validate an API key
 def valid_api_key(ai: str, api_key: str) -> bool:
     """
-    Validate the length/value of the provided API key.  This can only work for OpewnAI and antrhopic, since DeepSeek doesn't
-    have a specific API key format, and the only way to validate is to make an API call and see if it works.
+    Validate the provided API key for one of the services MapTasker can ask.
+
+    OpenAI and Anthropic keys have no format worth checking, so they are tried: a key is valid if
+    the service will list its models for it.  A Gemini key is checked against its usual shape first,
+    which settles it without a request; a key that does not have that shape is tried too, since
+    Google has more than one kind and refusing a good one would be worse than asking.
 
     Args:
-        ai (str): The AI service to validate the API key for.
+        ai (str): The key to validate: "openai_key", "anthropic_key" or "gemini_key".
         api_key (str): The AI API key to validate.
 
     Returns:
-        bool: True if the API key is valid, False otherwise.
+        bool: True if the API key is valid, False otherwise (or if the service is not one MapTasker can ask).
     """
     if ai == "openai_key":
         # 1. Get the 'openai' module.  It reports its own absence.
@@ -62,29 +85,19 @@ def valid_api_key(ai: str, api_key: str) -> bool:
         return True
 
     if ai == "anthropic_key":
+        anthropic = import_optional("anthropic", "anthropic")
+        if anthropic is None:
+            return False
         try:
-            anthropic = import_optional("anthropic", "anthropic")
-            if anthropic is None:
-                return False
-
-            client = anthropic.Anthropic(api_key=api_key)
-            client.models.list()
-            return True  # noqa: TRY300
+            anthropic.Anthropic(api_key=api_key).models.list()
         except anthropic.AnthropicError:
             return False
+        return True
 
-    elif ai == "gemini_key":
-        # Regex: Starts with AIzaSy, followed by 33 characters (total 39)
-        pattern = r"^AIzaSy[A-Za-z0-9_-]{33}$"
-        return bool(re.match(pattern, api_key))
+    if ai == "gemini_key":
+        return bool(_GEMINI_KEY_PATTERN.match(api_key)) or _gemini_key_works(api_key)
 
-    else:
-        # Validate DeepSeek API key.
-        expected_length = 32
-        pattern = r"^[a-zA-Z0-9_-]{32}$"
-
-        # Check if the API key matches the expected length and pattern
-        return bool(len(api_key) == expected_length and re.match(pattern, api_key))
+    return False
 
 
 # Determine if a module is installed or not.
@@ -172,31 +185,24 @@ def record_response(response: str, ai_object: str, item: str, state: RunState) -
 # Do local Ai processing.
 def local_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
     """
-    Perform local AI processing on the given query.
+    Perform local AI processing on the given query, with a model run by Ollama.
 
     Args:
         query (str): The query to be processed by the local AI model.
-        ai_objeect (str): The object to be processed by the local AI model.
+        ai_object (str): The object to be processed by the local AI model.
         item (str): the object's name
 
     Returns:
         None: This function does not return anything.
 
     Description:
-        This function performs local AI processing on the given query using the specified model.
-        It opens the model using the `cria.Model` context manager and retrieves the response.
-        It then iterates over the response and prints each chunk of the chat.
-        Finally, it closes the model.
-
-    Example:
-        local_ai("What is the capital of France?")
-        # Output: "Paris"
+        Starts the Ollama server if none is answering, downloads the model if it is not installed,
+        and asks it the same question, in the same way, as the server-based services are asked.
     """
-    try:
-        from maptasker.src import cria  # noqa: PLC0415
-    except (ImportError, OSError) as e:  # The libraries are not installed, or one of them would not load.
+    ollama = import_optional("ollama", "ollama")
+    if ollama is None:  # The library is not installed; import_optional has said how to get it.
         error_handler(
-            f"Ollama support could not be loaded: {e}.  Install the AI libraries with: {AI_EXTRA_INSTALL_COMMAND}"
+            f"Ollama support could not be loaded.  Install the AI libraries with: {AI_EXTRA_INSTALL_COMMAND}"
             f", and Ollama itself from '{OLLAMA_DOWNLOAD_URL}'.",
             12,
             show_code=False,
@@ -204,51 +210,31 @@ def local_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
         )
         return
 
-    # Fix the model name
     if state.program_arguments.ai_model == "None":
         error_handler("No model selected.", 12, state=state)
         return
 
     console.say(f"Model: {state.program_arguments.ai_model}")
-    # print(f"Query: {query}")
-
-    # Prep the querey for the model.
-    prompt = query.split(":", maxsplit=1)[0]  # Skip the first character, which is a colon.
-    context = query.replace(prompt[1:], "")  # All of the Project/Profile/Task data
-    # Set up the query
-    messages = [
-        {
-            "role": "system",
-            "content": f"You are a programmer using Tasker, and Android task management tool. The program code follows, with each line separated by '\n'. {prompt}:{context}",
-        },
-        {"role": "user", "content": context},
-    ]
-    response = ""
-    # Make sure we don't come back if cria fails.
+    # Make sure we don't come back if this fails.
     state.program_arguments.ai_analyze = False
 
-    # Open the model and get the response.  Cria() is inside the try because it is the call that
-    # starts a server when there is none (and raises FileNotFoundError when the Ollama app is not
-    # installed at all) -- an error the user should be told about, not one that ends the analysis
-    # thread with a traceback.
+    # The server, and the model on it.  Either may have to be started or downloaded, and neither is
+    # something to end the analysis thread with a traceback over: say what is wrong.
+    model, reason = prepare_ollama_model(state.program_arguments.ai_model)
+    if model is None:
+        error_handler(reason, 12, show_code=False, state=state)
+        return
+
+    messages = [{"role": "system", "content": ai_role}, {"role": "user", "content": query}]
     try:
-        # Call Cria
-        ai = cria.Cria()
+        reply = ollama.Client().chat(model=model, messages=messages)
+        response = reply["message"]["content"]
+    except (*ollama_errors(), KeyError, TypeError, ValueError) as e:
+        error_handler(f"Ai analysis error: {e}.  Try again.", 12, state=state)
+        return
 
-        with cria.Model(state.program_arguments.ai_model, state=state) as ai:
-            for chunk in ai.chat(messages=messages, prompt=prompt):
-                response = f"{response}{chunk}"
-            ai.clear()
-
-        # Open error file, since we're going to queue up the response in this file for display back to the GUI.
-        record_response(response, ai_object, item, state=state)
-
-    except (FileNotFoundError, ValueError, TypeError, UnboundLocalError) as e:
-        error_handler(
-            f"Ai analysis error: {e}.  Try again.",
-            12,
-            state=state,
-        )
+    # The response is queued up in the error file, for display back in the GUI.
+    record_response(response, ai_object, item, state=state)
 
 
 # Handle ChatGPT Error
@@ -264,17 +250,10 @@ def process_error(error: str, ai_object: str, item: str, state: RunState) -> Non
     Returns:
         None: This function does not return anything.
     """
-    extra = ""
     if "Request too large" in error:
         output_error = f"{ai_object} too large for ChatGPT or ChatGPT quota not enough!\n\n"
     elif "'Incorrect API key provided" in error:
         output_error = "Invalid ChatGPT API key provided!\n\n"
-    elif state.program_arguments.ai_model in DEEPSEEK_MODELS and "Error code:" in error:
-        if ": 401" in error:
-            extra = "DeepSeek error code 401...possible invalid DeepSeek API key provided!\n\n"
-        output_error = (
-            f"{extra}Refer to DeepSeek error codes: https://api-docs.deepseek.com/quick_start/error_codes\n\n"
-        )
     else:
         output_error = error
 
@@ -315,24 +294,16 @@ def _process_anthropic_response(client: object, query: str, state: RunState) -> 
         messages=[{"role": "user", "content": query}],
     )
     # A model that thinks puts a thinking block ahead of its text, so content[0] is not the reply.
-    return "".join(block.text for block in message.content if block.type == "text")
-
-
-def _process_deepseek_response(client: object, query: str, state: RunState) -> str:
-    """Helper function to process DeepSeek responses."""
-    model = state.program_arguments.ai_model
-    role = ai_role
-    message = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": role},
-            {"role": "user", "content": query},
-        ],
-        max_tokens=1024,
-        temperature=0.0,  # Changed from 0.7 to 0.0 for more deterministic output.
-        stream=False,
-    )
-    return message.choices[0].message.content
+    text = "".join(block.text for block in message.content if block.type == "text")
+    # A model can decline, and can run out of room to finish.  Either leaves a reply that is empty or
+    # ends mid-sentence, and it should not pass for the whole analysis.
+    if message.stop_reason == "refusal":
+        category = getattr(getattr(message, "stop_details", None), "category", None)
+        reason = f" ({category})" if category else ""
+        return f"{text}\n\nThe model declined to analyze this{reason}.  Try another model.".strip()
+    if message.stop_reason == "max_tokens":
+        return f"{text}\n\n[The response was cut short: it reached the model's output limit.]"
+    return text
 
 
 def _process_gemini_response(client: object, query: str, state: RunState) -> str:
@@ -366,7 +337,7 @@ def process_ai_query_and_response(
     Generic function to process AI responses from various AI services.
 
     Args:
-        client: The AI client (OpenAI, Claude, DeepSeek, Gemini).
+        client: The AI client (OpenAI, Claude, Gemini).
         query (str): The query to send to the AI.
         ai_object (str): The object being processed.
         item (str): The name of the object being processed.
@@ -380,7 +351,6 @@ def process_ai_query_and_response(
     ai_processors = {
         "OpenAI": _process_openai_response,
         "Anthropic": _process_anthropic_response,
-        "DeepSeek": _process_deepseek_response,
         "Gemini": _process_gemini_response,
     }
 
@@ -392,7 +362,7 @@ def process_ai_query_and_response(
         else:
             error_handler("Invalid AI name selected.", 12, state=state)
     except Exception as e:
-        # Deliberately broad: five AI providers, five unrelated exception hierarchies --
+        # Deliberately broad: four AI providers, four unrelated exception hierarchies --
         # handle_ai_error exists precisely to turn any of them into a sentence, so
         # enumerating them here would duplicate that and go stale faster.  The traceback is
         # logged so that a bug in the response handling does not pass for a provider error.
@@ -420,7 +390,6 @@ def handle_ai_error(error: Exception, state: RunState) -> str:
             for name, models in {
                 "OpenAI": state.ai["openai_models"],
                 "Anthropic": state.ai["anthropic_models"],
-                "DeepSeek": state.ai["deepseek_models"],
                 "Llama": state.ai["llama_models"],
                 "Gemini": state.ai["gemini_models"],
             }.items()
@@ -505,32 +474,6 @@ def claude_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
     process_ai_query_and_response(client, query, ai_object, item, state=state)
 
 
-def deepseek_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
-    """
-    Sends a query to the DeepSeek API to generate a completion using the specified model.
-
-    Args:
-        query (str): The query to be sent to the OpenAI API, pointing to deepseek.
-        ai_object (str): The object to be processed by the OpenAI API.
-        item (str): The name of the object.
-
-    Returns:
-        None: This function does not return anything.
-    """
-    # 1. Dynamically get the 'openai' module
-    openai_lib = import_optional("openai", "openai")
-    if openai_lib is None:
-        return
-
-    # 2. Extract the specific classes needed
-    OpenAI = openai_lib.OpenAI  # noqa: N806
-    client = OpenAI(
-        api_key=state.program_arguments.ai_apikey,
-        base_url="https://api.deepseek.com",
-    )
-    process_ai_query_and_response(client, query, ai_object, item, state=state)
-
-
 def gemini_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
     """
     Sends a query to theGoogle's Gemini API to generate a completion using the specified model.
@@ -596,7 +539,6 @@ async def _run_analysis_in_background(popup: popupwindow, state: RunState) -> No
         name_function_map = {
             "OpenAI": open_ai,
             "Anthropic": claude_ai,
-            "DeepSeek": deepseek_ai,
             "Gemini": gemini_ai,
             "LLAMA": local_ai,
         }

@@ -179,7 +179,7 @@ VIEW_HELP_TEXT = (
     "- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.  \n"
 )
 AI_HELP_TEXT = (
-    "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.  \n"
+    "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or Gemini models.  \n"
     "The following steps are required in order to run AI against your Profile.  \n"
     "1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).  \n"
     "2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.  \n"
@@ -207,7 +207,7 @@ VIEWLIMIT_HELP_TEXT = (
 APIKEY_HELP_TEXT = (
     "This menu is where you define your AI API keys for use by the AI 'Analyze' button.  \n"
     "The keys are saved across sessions.  \n"
-    "The keys are used to access the OpenAI, Claude AI, Gemini AI, and DeepSeek AI server-based models.  \n"
+    "The keys are used to access the OpenAI, Claude AI and Gemini AI server-based models.  \n"
     "Click on the 'Clear' button to clear a specific API key entry.  \n"
     "Select 'Ok' to save the changes or 'Cancel' to back out of the changes.  \n"
 )

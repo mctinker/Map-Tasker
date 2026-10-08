@@ -3,7 +3,7 @@
     "LINES": 155
   },
   "maptasker/src/aiutils.py::get_llama_models": {
-    "LINES": 108
+    "LINES": 103
   },
   "maptasker/src/bildhtml.py::build_html": {
     "LINES": 112
@@ -187,11 +187,11 @@
     "LINES": 190
   },
   "maptasker/src/userintr_ai.py::AIEventHandlers.ai_analyze_event": {
-    "LINES": 112,
-    "PLR0912": 15
+    "LINES": 111,
+    "PLR0912": 14
   },
   "maptasker/src/userintr_ai.py::AIEventHandlers.ai_apikey_process_event": {
-    "LINES": 110,
+    "LINES": 109,
     "PLR0912": 13
   },
   "maptasker/src/userintr_android.py::AndroidEventHandlers.get_xml_from_android_event": {

@@ -142,14 +142,14 @@ def test_once_gathered_the_old_entries_are_not_asked_for_again(store: MemoryKeyr
 @pytest.mark.usefixtures("no_store")
 def test_with_no_password_store_the_keys_go_to_an_owner_only_file(key_file: Path) -> None:
     """The fallback file is written whole, readable by its owner alone, and read back."""
-    saved = apikeys.save_api_keys({"deepseek_key": "sk-deepseek"})
+    saved = apikeys.save_api_keys({"gemini_key": "AIza-gemini"})
 
     assert saved is False
-    assert json.loads(key_file.read_text(encoding="utf-8")) == _no_keys(deepseek_key="sk-deepseek")
+    assert json.loads(key_file.read_text(encoding="utf-8")) == _no_keys(gemini_key="AIza-gemini")
     if sys.platform != "win32":  # Windows has no owner-only mode bits; %APPDATA% is per-user instead.
         assert stat.S_IMODE(key_file.stat().st_mode) == 0o600
     assert not list(key_file.parent.glob("*.tmp"))
-    assert apikeys.load_api_keys() == _no_keys(deepseek_key="sk-deepseek")
+    assert apikeys.load_api_keys() == _no_keys(gemini_key="AIza-gemini")
 
 
 def test_a_save_to_the_store_removes_the_file_an_earlier_save_fell_back_to(
@@ -262,3 +262,81 @@ def test_get_api_key_with_nothing_saved_leaves_prime_items_alone(monkeypatch: py
 
     assert aiutils.get_api_key(state=PrimeItems) == "None"
     assert table == {"openai_key": "sk-typed-this-run"}
+
+
+# ##################################################################################
+# A service MapTasker no longer supports.
+# ##################################################################################
+def test_the_supported_services_are_the_three_that_can_be_asked() -> None:
+    assert apikeys.API_KEY_NAMES == ("openai_key", "anthropic_key", "gemini_key", "api_key")
+    assert not set(apikeys.RETIRED_KEY_NAMES) & set(apikeys.API_KEY_NAMES)
+
+
+def test_a_retired_key_is_never_read_into_a_run(store: MemoryKeyring) -> None:
+    store.entries[(apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)] = json.dumps(
+        {"openai_key": "sk-openai", "deepseek_key": "sk-deepseek"},
+    )
+
+    assert apikeys.load_api_keys() == _no_keys(openai_key="sk-openai")
+
+
+def test_a_retired_key_in_the_password_store_is_taken_out_of_it_when_the_keys_are_read(store: MemoryKeyring) -> None:
+    """Otherwise a key nothing can use would sit in the user's Keychain for good."""
+    entry = (apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)
+    store.entries[entry] = json.dumps({"openai_key": "sk-openai", "deepseek_key": "sk-deepseek"})
+
+    apikeys.load_api_keys()
+
+    assert json.loads(store.entries[entry]) == {"openai_key": "sk-openai"}
+    assert "deepseek" not in store.entries[entry]
+
+
+def test_a_store_holding_only_a_retired_key_is_emptied(store: MemoryKeyring) -> None:
+    store.entries[(apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)] = json.dumps({"deepseek_key": "sk-deepseek"})
+
+    assert apikeys.load_api_keys() == _no_keys()
+    assert store.entries == {}
+
+
+@pytest.mark.usefixtures("no_store")
+def test_a_retired_key_in_the_fallback_file_is_taken_out_of_it_too(key_file: Path) -> None:
+    key_file.parent.mkdir(parents=True)
+    key_file.write_text(json.dumps({"gemini_key": "AIza-gemini", "deepseek_key": "sk-deepseek"}), encoding="utf-8")
+
+    assert apikeys.load_api_keys() == _no_keys(gemini_key="AIza-gemini")
+    assert json.loads(key_file.read_text(encoding="utf-8")) == _no_keys(gemini_key="AIza-gemini")
+
+
+def test_keys_that_are_all_still_supported_are_not_rewritten(store: MemoryKeyring) -> None:
+    entry = (apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)
+    store.entries[entry] = json.dumps({"openai_key": "sk-openai"})
+    writes: list[str] = []
+    original = store.set_password
+    store.set_password = lambda service, username, password: (writes.append(username), original(service, username, password))[1]
+
+    apikeys.load_api_keys()
+
+    assert writes == []
+
+
+def test_a_retired_key_that_cannot_be_removed_does_not_stop_the_others_being_read(
+    store: MemoryKeyring, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    store.entries[(apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)] = json.dumps(
+        {"openai_key": "sk-openai", "deepseek_key": "sk-deepseek"},
+    )
+
+    def refuse(keys: dict) -> bool:
+        raise OSError("read-only")
+
+    monkeypatch.setattr(apikeys, "_write_store", refuse)
+
+    assert apikeys.load_api_keys() == _no_keys(openai_key="sk-openai")
+
+
+def test_an_older_per_key_deepseek_entry_is_removed_when_the_keys_are_gathered(store: MemoryKeyring) -> None:
+    store.entries[(apikeys.SERVICE_NAME, "openai_key")] = "sk-openai"
+    store.entries[(apikeys.SERVICE_NAME, "deepseek_key")] = "sk-deepseek"
+
+    assert apikeys.load_api_keys() == _no_keys(openai_key="sk-openai")
+    assert list(store.entries) == [(apikeys.SERVICE_NAME, apikeys.ENTRY_NAME)]

@@ -64,7 +64,6 @@ from maptasker.src import caches
 from maptasker.src.initparg import ArgumentFields, ProgramArguments
 from maptasker.src.sysconst import (
     ANTHROPIC_MODELS,
-    DEEPSEEK_MODELS,
     GEMINI_MODELS,
     LLAMA_MODELS,
     NOW_TIME,
@@ -180,11 +179,9 @@ class RunState:
             "api_key": "",
             "openai_key": "",
             "anthropic_key": "",
-            "deepseek_key": "",
             "gemini_key": "",
             "openai_models": OPENAI_MODELS,
             "anthropic_models": ANTHROPIC_MODELS,
-            "deepseek_models": DEEPSEEK_MODELS,
             "gemini_models": GEMINI_MODELS,
             "llama_models": LLAMA_MODELS,
         }
