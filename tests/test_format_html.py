@@ -278,6 +278,10 @@ def test_a_document_keeps_its_structure_and_loses_what_could_act() -> None:
     assert "kept words" in result and "<custom" not in result
 
 
+def test_a_bold_tag_is_a_b_tag_in_a_document_too() -> None:
+    assert "<b>x</b>" in fmt.embed_html_document("<html><body><bold>x</bold> y</body></html>")
+
+
 def test_a_document_is_wrapped_in_a_container_that_carries_its_body_style() -> None:
     result = fmt.embed_html_document(_DOCUMENT)
 
@@ -547,6 +551,12 @@ def test_inline_styles_turn_color_bold_italic_and_underline_on_for_their_element
 
     assert (inner["color"], inner["is_bold"], inner["is_italic"], inner["is_underline"]) == ("red", True, True, True)
     assert (after["color"], after["is_bold"], after["is_italic"], after["is_underline"]) == (None, False, False, False)
+
+
+def test_a_bold_tag_is_bold_for_its_element_only() -> None:
+    assert _styles("a <bold>x</bold> b", "x")["is_bold"] is True
+    assert _styles("a <bold>x</bold> b", " b")["is_bold"] is False
+    assert not any("not yet mapped" in text for text in _texts("<bold>x</bold>"))
 
 
 @pytest.mark.parametrize(

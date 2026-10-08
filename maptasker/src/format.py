@@ -250,6 +250,10 @@ ALLOWED_ELEMENTS = {
     "thead", "tr", "u", "ul",
 }  # fmt: skip
 
+# Tags authors write that are not HTML, and the element a browser would have been given had they
+# spelled it right.
+TAG_ALIASES = {"bold": "b"}
+
 # Attributes kept on those elements.  Deliberately excludes every "on*" handler, and "id"
 # and "class", which would collide with the ids and classes of the output around it.
 ALLOWED_ATTRIBUTES = {"align", "alt", "colspan", "height", "href", "rowspan", "span", "src", "style", "title", "width"}
@@ -472,6 +476,7 @@ class HTMLDocumentSanitizer(HTMLParser):
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
         """Emit an allowed tag with its safe attributes; drop or unwrap anything else."""
+        tag = TAG_ALIASES.get(tag, tag)
         if tag in DROPPED_ELEMENTS:
             if tag not in VOID_ELEMENTS:
                 self.dropped_depth += 1
@@ -490,12 +495,14 @@ class HTMLDocumentSanitizer(HTMLParser):
 
     def handle_startendtag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
         """A self-closing tag opens and closes in one go, so it never joins the open list."""
+        tag = TAG_ALIASES.get(tag, tag)
         if tag in DROPPED_ELEMENTS or self.dropped_depth or tag not in ALLOWED_ELEMENTS:
             return
         self.parts.append(f"<{tag}{self._safe_attributes(attrs)}>")
 
     def handle_endtag(self, tag: str) -> None:
         """Close the tag, along with anything left open inside it."""
+        tag = TAG_ALIASES.get(tag, tag)
         if self.dropped_depth:
             if tag in DROPPED_ELEMENTS:
                 self.dropped_depth -= 1
@@ -912,6 +919,7 @@ STYLE_FLAG_TAGS = {
     "i": "is_italic",
     "em": "is_italic",
     "b": "is_bold",
+    "bold": "is_bold",  # not HTML, but authors write it, and mean <b>
     "strong": "is_bold",
     "h1": "is_h1",
     "h2": "is_h2",
