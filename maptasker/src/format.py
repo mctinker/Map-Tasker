@@ -922,9 +922,9 @@ STYLE_FLAG_TAGS = {
 }
 
 # Tags passed straight through to the output rather than turned into styling of their own.
-# <blockquote>, like the list and table tags, is a block-level container whose whole job --
-# setting the quoted run off from the text around it -- is the browser's to do when it renders
-# the output.  <br> is the one that becomes a newline, and a <p> is only marked: the paragraph
+# <blockquote> and the definition list (<dl>, <dt>, <dd>), like the list and table tags, are
+# block-level containers whose whole job -- setting the quoted run off from the text around it --
+# is the browser's to do when it renders the output.  <br> is the one that becomes a newline, and a <p> is only marked: the paragraph
 # break itself is handled in formatting.  <hr> has no end tag of its own to close.
 START_TAG_SEGMENTS = {
     "br": "\n",
@@ -936,6 +936,9 @@ START_TAG_SEGMENTS = {
     "big": "<big>",
     "small": "<small>",
     "blockquote": "<blockquote>",
+    "dl": "<dl>",
+    "dt": "<dt>",
+    "dd": "<dd>",
 }
 END_TAG_SEGMENTS = {
     "li": "</li>",
@@ -945,6 +948,9 @@ END_TAG_SEGMENTS = {
     "big": "</big>",
     "small": "</small>",
     "blockquote": "</blockquote>",
+    "dl": "</dl>",
+    "dt": "</dt>",
+    "dd": "</dd>",
 }
 
 # Tags with nothing to contribute of their own.  <span> lands here because it is purely a
@@ -2214,8 +2220,11 @@ BLOCK_TAGS = frozenset(
     {
         "blockquote",
         "body",
+        "dd",
         "details",
         "div",
+        "dl",
+        "dt",
         "h1",
         "h2",
         "h3",

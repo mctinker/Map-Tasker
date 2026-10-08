@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: A shared TaskerNet description or label could put live HTML or script into the Map by spelling a tag with entities (such as &lt;script&gt;), giving a link a javascript: address, or closing a colour attribute early. Such text is now shown as plain text, and links that could run code are shown without the link.
+- Fixed: A TaskerNet description that used HTML definition lists (the dl, dt and dd tags) no longer shows "HTML start tag not yet mapped" messages in the Map. Those tags are now passed through and displayed as a proper list.
 - Fixed:
 
 ### Known Issues

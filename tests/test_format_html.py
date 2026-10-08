@@ -602,6 +602,7 @@ def test_lists_tables_and_blocks_are_passed_through_as_their_own_segments() -> N
     assert _texts("<ul><li>one</li></ul>") == ["<ul>", "<li>", "one", "</li>", "</ul>"]
     assert _texts("<ol><li>a</li></ol>") == ["<ol>", "<li>", "a", "</li>", "</ol>"]
     assert _texts("<blockquote>q</blockquote>") == ["<blockquote>", "q", "</blockquote>"]
+    assert _texts("<dl><dt>t</dt><dd>d</dd></dl>") == ["<dl>", "<dt>", "t", "</dt>", "<dd>", "d", "</dd>", "</dl>"]
     table = _texts("<table><thead><tr><th>H</th></tr></thead><tbody><tr><td>c</td></tr></tbody></table>")
     assert table == [
         "<table>", "<thead>", "<tr>", "<th>H</th>", "</tr>", "</thead>", "<tr>", "<td>", "c", "</td>", "</tr>", "</table>",
