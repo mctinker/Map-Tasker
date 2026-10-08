@@ -186,6 +186,17 @@ def test_nested_scene_v2_elements_are_indented_by_depth() -> None:
     assert lines[1].index("type:") > lines[0].index("type:")
 
 
+def test_markup_in_a_scene_v2_property_is_shown_as_text_not_run() -> None:
+    """A WebView component's content is a whole page.  Written into the Map as it stands it is
+    markup in the Map, <script> and all, rather than a line saying what the component holds.
+    """
+    scenes.process_recursive_json({"type": "WebView", "content": "<script>go()</script>", "a<b": 1}, 0, state=PrimeItems)
+    output = _output()
+    assert "content: &lt;script&gt;go()&lt;/script&gt;" in output
+    assert "a&lt;b: 1" in output
+    assert "<script" not in output
+
+
 def test_a_list_of_scene_v2_elements_is_output_one_per_item() -> None:
     """The top level of a V2 element list is a list, not an object."""
     scenes.process_recursive_json([{"type": "Button"}, {"type": "Text"}], 0, state=PrimeItems)

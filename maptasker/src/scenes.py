@@ -7,6 +7,7 @@
 #                                                                                      #
 from __future__ import annotations
 
+import html
 from typing import TYPE_CHECKING
 
 from maptasker.src import caches, tasks
@@ -76,6 +77,15 @@ def process_recursive_json(
     """
     blank = " "  # Assuming blank is a space character
 
+    def escaped(text: object) -> str:
+        """A key or value as text for the Map, which is html.
+
+        A Scene's own layout holds whole documents -- a WebView component's content is a
+        page, <script> and all -- and written out as it stands it is a page inside the Map:
+        the browser runs it into the Map's own markup, and the view stops partway through.
+        """
+        return html.escape(str(text))
+
     def mark(key: str) -> None:
         """Anchor the line about to be written, when this dict is a component."""
         if anchors is not None:
@@ -91,7 +101,7 @@ def process_recursive_json(
             mark("type")
             state.output_lines.add_line_to_output(
                 0,
-                f"{blank * ((3 + indentation) + (current_depth * 3))}type: {type_value}",
+                f"{blank * ((3 + indentation) + (current_depth * 3))}type: {escaped(type_value)}",
                 ["", "scene_color", FormatLine.add_end_span],
             )
             current_depth += 1
@@ -106,7 +116,7 @@ def process_recursive_json(
                 # Print the key and indicate it's a nested object
                 state.output_lines.add_line_to_output(
                     0,
-                    f"{blank * current_indent}{key}:",
+                    f"{blank * current_indent}{escaped(key)}:",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
                 # Recursive call: increment depth
@@ -115,7 +125,7 @@ def process_recursive_json(
                 # Print the key and indicate it's a list
                 state.output_lines.add_line_to_output(
                     0,
-                    f"{blank * current_indent}{key}:",
+                    f"{blank * current_indent}{escaped(key)}:",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
                 # Recursive call for each item in the list: increment depth
@@ -125,7 +135,7 @@ def process_recursive_json(
                 # Base case: standard key-value pair
                 state.output_lines.add_line_to_output(
                     0,
-                    f"{blank * current_indent}{key}: {value}",
+                    f"{blank * current_indent}{escaped(key)}: {escaped(value)}",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
     elif isinstance(data, list):
