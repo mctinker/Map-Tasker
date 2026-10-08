@@ -349,7 +349,7 @@
     "reportArgumentType": 13,
     "reportAttributeAccessIssue": 21,
     "reportOperatorIssue": 2,
-    "reportOptionalMemberAccess": 6,
+    "reportOptionalMemberAccess": 5,
     "reportOptionalSubscript": 1,
     "reportReturnType": 1
   },
