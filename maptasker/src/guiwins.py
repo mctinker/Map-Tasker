@@ -2529,6 +2529,9 @@ def initialize_screen(self: MyGui) -> None:
     _create_main_body(self)
 
     if self.tab_to_use:
+        # The Assistance tab was called "Debug" in settings files saved by earlier versions.
+        if self.tab_to_use == "Debug":
+            self.tab_to_use = "Assistance"
         self.gui_main_tabs_container.set_value(self.tab_to_use)
 
 
@@ -2671,11 +2674,6 @@ def _create_right_drawer(self: MyGui) -> None:
             "text-xs font-bold uppercase text-gray-400 mt-4 self-center",
         ).style("margin-top:5px")
         _create_settings_buttons_section(self)
-
-        ui.label(translate_string("Help & Information")).classes(
-            "text-xs font-bold uppercase text-gray-400 mt-4 gap-w-0 m-0 p-0 leading-none self-center",
-        ).style("margin-top:5px")
-        _create_help_options_section(self)
 
         # The "Buy Me A Coffee" logo and button close out the drawer.  add_logo() re-enters
         # gui_right_drawer itself rather than nesting inside a wrapper here, so the bottom
@@ -3062,7 +3060,7 @@ def _create_main_body(self: MyGui) -> None:
             )
             self.tab_colors = ui.tab("Colors", label=translate_string("Colors"), icon="palette")
             self.tab_analyze = ui.tab("Analyze", label=translate_string("Analyze"), icon="analytics")
-            self.tab_debug = ui.tab("Debug", label=translate_string("Debug"), icon="bug_report")
+            self.tab_debug = ui.tab("Assistance", label=translate_string("Assistance"), icon="support_agent")
 
         with ui.tab_panels(self.gui_main_tabs_container, value=self.tab_specific_name).classes(
             "w-full border rounded shadow-inner p-4 mt-1 gap-y-0 m-0 p-0 leading-none",
@@ -3080,9 +3078,10 @@ def _create_main_body(self: MyGui) -> None:
                 ui.label(translate_string("AI Analysis")).classes("text-base mb-2")
                 _create_analyze_tab_content(self, ui.tab_panel(self.tab_analyze))
 
-            # --- TAB 4: DEBUG (MINIMIZED SPACING) ---
+            # --- TAB 4: ASSISTANCE: help buttons plus the debug aids (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_debug).classes("p-2 m-0") as self.gui_debug_panel:  # noqa: SIM117
                 with ui.column().classes("gap-1"):
+                    _create_help_options_section(self)
                     self.debug_checkbox = (
                         ui.checkbox(translate_string("Debug Mode")).bind_value(self, "debug").classes("text-xs")
                     )
@@ -3828,7 +3827,7 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
 
 
 def _create_help_options_section(self: MyGui) -> None:
-    """Creates browser execution panels, help routing shortcuts, and app termination controls."""
+    """The Display Help and Get Android Help buttons, at the top of the Assistance tab."""
     handlers = self.event_handlers
 
     # 1. Specialized Help Buttons Row

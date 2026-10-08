@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 
 - Changed: The Pick an icon list for Task actions now shows a picture beside each icon's name, so you can choose by sight. Tasker's own artwork lives on your phone, so Material-style icons are drawn as their closest equivalent and other icons get a generic picture for their kind.
 - Changed: Compare Files, Changes Since and TaskerNet Updates now say exactly what differs in a Task or Profile -- its priority, the line of a long script that changed, a Task variable, or what a new Task's actions are -- instead of 'Changed.' or just a count.  Values that look like API keys or passwords are hidden in these lines.
+- Changed: The Debug tab is now called __Assistance__, and the Display Help and Get Android Help buttons have moved there from the right-hand panel.  Your last-used tab is still restored correctly if it was Debug.
 - Changed: Your AI API keys are now kept together in one entry in the system keychain, so macOS asks for keychain access once instead of once per key. Keys you saved earlier are moved over automatically the first time you start.
 - Changed:
 

@@ -128,7 +128,7 @@ def _no_errors_logged(caplog: pytest.LogCaptureFixture) -> None:
 async def test_the_window_opens_with_its_tabs_and_main_buttons(caplog: pytest.LogCaptureFixture) -> None:
     """Everything the first screen offers is there, built by the real window."""
     async with _open_window() as (user, gui):
-        for tab in ("Specific Name", "Colors", "Analyze", "Debug"):
+        for tab in ("Specific Name", "Colors", "Analyze", "Assistance"):
             await user.should_see(kind=ui.tab, content=tab)
         for button in ("Get Local XML File", "Get XML from Android Device", "Map", "Diagram", "Tree", "Reset Options", "Exit"):
             await user.should_see(kind=ui.button, content=button)

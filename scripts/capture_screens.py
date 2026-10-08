@@ -233,7 +233,7 @@ SCREENS: dict[str, Screen] = {
         Screen("main", nothing),
         Screen("main_colors_tab", nothing, clicks=["Colors"]),
         Screen("main_analyze_tab", nothing, clicks=["Analyze"]),
-        Screen("main_debug_tab", nothing, clicks=["Debug"]),
+        Screen("main_debug_tab", nothing, clicks=["Assistance"]),
         Screen("main_project_selected", lambda gui: select_item(gui, "Project", "Reminders")),
         Screen("main_profile_selected", lambda gui: select_item(gui, "Profile", "Morning Reminder")),
         Screen("main_task_selected", lambda gui: select_item(gui, "Task", "Remind Me")),
@@ -332,7 +332,7 @@ SCREENS: dict[str, Screen] = {
         # ---- The main window's other dialogs -----------------------------------------------
         Screen("api_keys", nothing, clicks=["Analyze", "Show/Edit API Key(s)"]),
         Screen("ai_prompt", nothing, clicks=["Analyze", "Change Prompt"]),
-        Screen("debug_log", nothing, clicks=["Debug", "Display Log"]),
+        Screen("debug_log", nothing, clicks=["Assistance", "Display Log"]),
         Screen("color_picker", nothing, clicks=["Colors", "css=.q-btn:has(i:text('colorize'))"]),
         Screen("file_picker", nothing, clicks=["Get Local XML File"]),
         Screen("compare_files_picker", nothing, clicks=["Compare Files"]),

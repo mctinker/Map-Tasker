@@ -482,7 +482,7 @@ SCENE_TASK_TYPES = {
 }
 
 # GUI Tab Names
-TAB_NAMES = ["Specific Name", "Colors", "Analyze", "Debug"]
+TAB_NAMES = ["Specific Name", "Colors", "Analyze", "Assistance"]
 
 # Default GUI Window Dimensions: Width x Height + X_offset + Y_offset (no spaces)
 DEFAULT_GUI_WINDOW = "1129x1044+698+145"

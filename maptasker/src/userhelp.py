@@ -98,7 +98,7 @@ INFO_TEXT = (
     "   - Change Prompt: Modify the prompt sent to the AI model.\n"
     "   - Run Analysis: Submit the selected Project/Profile/Task and prompt to the selected model.\n"
     "   - Extended: List all available models rather than just the default set.  \n"
-    "* Debug tab: Display Runtime Settings option and turn on Debug mode.  \n"
+    "* Assistance tab: Display Help and Get Android Help, the Display Runtime Settings option, Debug mode, and the notification log.  \n"
     "* Map/Diagram/Tree view toolbar commands are...\n"
     "   - Search: Highlight every instance of the case-insensitive text entered in the search box, up to the first 200.  Click a line number to go to that line.\n"
     "   - Find/Replace: (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene.  Click a result to be taken to it.\n"
