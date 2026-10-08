@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: A shared TaskerNet description or label could put live HTML or script into the Map by spelling a tag with entities (such as &lt;script&gt;), giving a link a javascript: address, or closing a colour attribute early. Such text is now shown as plain text, and links that could run code are shown without the link.
 - Fixed: A TaskerNet description that used definition lists (dl, dt and dd), superscript and subscript (sup and sub) or a bold tag no longer shows "HTML start tag not yet mapped" messages in the Map. Those tags are now displayed as a list, as raised or lowered text, and as bold text.
 - Fixed: The Map view no longer stops partway through a configuration whose Scene holds a web page, such as a WebView component with its own HTML and script. The page is now shown as text on the component's line instead of being run inside the Map.
+- Fixed: A Legacy Scene containing a List or a Spinner no longer fails to draw in the Scene Preview and the Scene designer. Those elements previously raised an error instead of appearing on the canvas.
 - Fixed:
 
 ### Known Issues

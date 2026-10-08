@@ -404,9 +404,11 @@ skip_covered = true
 # tests still skipped without XML/ -> 56 at 57.5% (1847 tests), once they no longer did
 # -> 60 at 62.25% (2300 tests), once the installer, backup fetch, Preferences, Task flags and the
 # Fix, Restore and Impact dialogs had direct tests -> 66 at 68.5% (3114 tests), once the Profile, Project and
-# Scene editors, label formatting, the AI analysis, the command-line setup and the small utilities did.
+# Scene editors, label formatting, the AI analysis, the command-line setup and the small utilities did
+# -> 73 at 75.8% (3507 tests), once the Edit Profile dialogs, the Find/Replace and Search dialogs and the
+# Legacy and Version 2 Scene designers were driven through NiceGUI's user simulation.
 # Set about two points under, as before.
-fail_under = 66
+fail_under = 73
 exclude_also = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",

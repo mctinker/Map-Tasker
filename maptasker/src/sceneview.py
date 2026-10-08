@@ -707,7 +707,10 @@ def _draw_element(
         )
     with frame:
         drawer = _DRAWERS.get(element.tag, _draw_unknown)
-        drawer(element, args, width, height, options, depth)
+        if drawer in _STATEFUL_DRAWERS:
+            drawer(element, args, width, height, options, depth, state=state)
+        else:
+            drawer(element, args, width, height, options, depth)
         if options.show_bounds:
             _draw_bounds(element, width, height)
         if options.show_tasks:
@@ -1521,6 +1524,10 @@ _DRAWERS = {
     "ListElement": _draw_list,
     "SpinnerElement": _draw_spinner,
 }
+
+# The drawers that draw a whole Scene inside the element (a row's layout), and so need the run's
+# state to draw it with; _draw_element hands them the state and every other drawer none.
+_STATEFUL_DRAWERS = frozenset({_draw_list, _draw_spinner})
 
 
 # ======================================================================================
