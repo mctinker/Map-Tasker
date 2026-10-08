@@ -30,6 +30,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: A TaskerNet description that used definition lists (dl, dt and dd), superscript and subscript (sup and sub) or a bold tag no longer shows "HTML start tag not yet mapped" messages in the Map. Those tags are now displayed as a list, as raised or lowered text, and as bold text.
 - Fixed: The Map view no longer stops partway through a configuration whose Scene holds a web page, such as a WebView component with its own HTML and script. The page is now shown as text on the component's line instead of being run inside the Map.
 - Fixed: A Legacy Scene containing a List or a Spinner no longer fails to draw in the Scene Preview and the Scene designer. Those elements previously raised an error instead of appearing on the canvas.
+- Fixed: Renaming a Profile from its editor no longer fails with an error after the rename has been applied. The Rename prompt now closes, and the editor's title, Name field and Save as path follow the new name.
+- Fixed: If the Map or Diagram file could not be found when its view opened, the view stayed on "Building the view" and never showed anything. It now shows the lines held in memory instead.
 - Fixed:
 
 ### Known Issues

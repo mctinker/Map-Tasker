@@ -62,7 +62,6 @@ from maptasker.src.maputil2 import translate_string, write_full_backup_to_curren
 from maptasker.src.maputils import find_owning_project, find_owning_project_for_scene, find_owning_project_for_task
 from maptasker.src.sysconst import logger
 from maptasker.src.taskerd import get_the_xml_data
-from maptasker.src.translator import T
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -2100,7 +2099,7 @@ class EditorEventHandlers:
         refresh_tasker_object_pulldowns(self.gui)
         _select_renamed_item(self.gui, "Profile", new_name)
 
-        title_label.set_text(f"{T.translate_string('Edit Profile')}: {new_name}")
+        title_label.set_text(f"{translate_string('Edit Profile')}: {new_name}")
         # Keeps Ok/Save from re-applying the pre-rename name -- see
         # confirm_rename_task_event's identical note.
         field_refs["name"].value = new_name

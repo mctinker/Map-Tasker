@@ -2455,7 +2455,10 @@ class NiceGuiTextView(TextViewSearch):
         )
 
         # --- 4. COMPRESS MULTIPLE BLANK LINES FOR FALLBACK DATA ---
-        self.html_display.content = _compress_blank_lines("".join(html_builder))
+        # Into the scroll area, as every other path puts the view's content.  This runs from
+        # process_data's background task, where no slot is in context, hence the re-entry.
+        with self.scroll_area:
+            ui.html(_compress_blank_lines("".join(html_builder)), sanitize=False)
 
     def scroll(self, direction: str) -> None:
         """Manages the scroll position of the view's content area based on the specified direction ('top' or 'bottom').

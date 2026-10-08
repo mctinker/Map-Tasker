@@ -425,7 +425,7 @@
   },
   "maptasker/src/userintr_editors.py": {
     "reportArgumentType": 4,
-    "reportAttributeAccessIssue": 70
+    "reportAttributeAccessIssue": 69
   },
   "maptasker/src/userintr_loading.py": {
     "reportArgumentType": 1,
