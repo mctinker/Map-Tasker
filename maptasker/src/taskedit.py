@@ -44,7 +44,6 @@ from maptasker.src.maputil2 import (
     tasker_name_query,
 )
 from maptasker.src.presave import backup_local_file
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 
 # The purely informational Bundle hint (a list of the variables an action/condition
@@ -1885,6 +1884,7 @@ def apply_edits_to_task(
     name_value: str,
     priority_value: str,
     arg_values: dict[str, str],
+    state: RunState,
 ) -> list[str]:
     """Validate all fields, and only if everything's valid, mutate the task copy.
 
@@ -1910,7 +1910,7 @@ def apply_edits_to_task(
     if priority_value:
         _set_child_text(edited_task.task_element, "pri", priority_value)
 
-    _apply_action_edits(edited_task, arg_values)
+    _apply_action_edits(edited_task, arg_values, state)
 
     return []
 
@@ -1929,20 +1929,20 @@ def validate_action_edits(edited_task: EditableTask, arg_values: dict[str, str])
     return errors
 
 
-def _apply_action_edits(edited_task: EditableTask, arg_values: dict[str, str]) -> None:
+def _apply_action_edits(edited_task: EditableTask, arg_values: dict[str, str], state: RunState) -> None:
     """Write the validated action argument values and labels onto the Task copy."""
     for action in edited_task.actions:
         apply_arg_values(
             action.args,
             lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id),
             arg_values,
-            state=PrimeItems,
+            state=state,
         )
         if (pending_label := arg_values.get(label_key(action.act_number))) is not None:
             _apply_action_label(action, pending_label)
 
 
-def apply_action_edits_to_task(edited_task: EditableTask, arg_values: dict[str, str]) -> list[str]:
+def apply_action_edits_to_task(edited_task: EditableTask, arg_values: dict[str, str], state: RunState) -> list[str]:
     """apply_edits_to_task without the Name/Priority half, for an editor that shows neither.
 
     The Scene Properties KEY tab edits the actions of the Task the Scene fires on a key
@@ -1955,7 +1955,7 @@ def apply_action_edits_to_task(edited_task: EditableTask, arg_values: dict[str, 
     errors = validate_action_edits(edited_task, arg_values)
     if errors:
         return errors
-    _apply_action_edits(edited_task, arg_values)
+    _apply_action_edits(edited_task, arg_values, state)
     return []
 
 
@@ -2051,9 +2051,9 @@ def sanitize_filename(name: str) -> str:
     return EXPORT.sanitize_filename(name)
 
 
-def default_save_path(task_name: str) -> str:
+def default_save_path(task_name: str, state: RunState) -> str:
     """Default standalone-export path: {output folder}/{sanitized name}.tsk.xml."""
-    return EXPORT.default_save_path(task_name)
+    return EXPORT.default_save_path(task_name, state)
 
 
 def android_task_path(task_name: str) -> str:

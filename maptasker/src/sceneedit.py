@@ -843,9 +843,9 @@ def sanitize_filename(name: str) -> str:
     return EXPORT.sanitize_filename(name)
 
 
-def default_scene_save_path(scene_name: str) -> str:
+def default_scene_save_path(scene_name: str, state: RunState) -> str:
     """Default standalone-export path: {output folder}/{sanitized name}.scn.xml."""
-    return EXPORT.default_save_path(scene_name)
+    return EXPORT.default_save_path(scene_name, state)
 
 
 def save_path_exists(output_path: str) -> bool:

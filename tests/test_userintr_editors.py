@@ -89,10 +89,10 @@ class _Notices(list):
 
 @pytest.fixture(autouse=True)
 def _backup() -> None:
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
     _load(_XML)
     yield
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
 
 
 @pytest.fixture(autouse=True)
@@ -505,7 +505,7 @@ def test_a_valid_rename_is_applied_at_once_and_the_dialog_follows_it(
 ) -> None:
     edited = _edit_task()
     label = _Label()
-    fields = _task_fields(save_path=taskedit.default_save_path("Noisy"))
+    fields = _task_fields(save_path=taskedit.default_save_path("Noisy", PrimeItems))
 
     handlers.confirm_rename_task_event(edited, fields, label, "Loud", dialog)
 
@@ -513,7 +513,7 @@ def test_a_valid_rename_is_applied_at_once_and_the_dialog_follows_it(
     assert "Noisy" not in PrimeItems.tasker_root_elements["all_tasks_by_name"]
     assert label.text == "Edit Task: Loud"
     assert fields["name"].value == "Loud", "Ok would otherwise rename it straight back"
-    assert fields["save_path"].value == taskedit.default_save_path("Loud")
+    assert fields["save_path"].value == taskedit.default_save_path("Loud", PrimeItems)
     assert notices.said("Renamed to 'Loud'.")
     assert calls["refresh_tasker_object_pulldowns"] and calls["_select_renamed_item"][0][0][1:] == ("Task", "Loud")
     dialog.close.assert_called_once()
@@ -1734,12 +1734,12 @@ def test_a_profile_rename_is_applied_at_once_and_the_dialog_follows_it(
     calls: dict,
     dialog: MagicMock,
 ) -> None:
-    fields, label = _profile_fields(save_path=profedit.default_save_path("Morning")), _Label()
+    fields, label = _profile_fields(save_path=profedit.default_save_path("Morning", PrimeItems)), _Label()
     handlers.confirm_rename_profile_event(_edit_profile(), fields, label, "Dawn", dialog)
     assert "Dawn" in PrimeItems.tasker_root_elements["all_profiles_by_name"]
     assert "Dawn" in label.text
     assert fields["name"].value == "Dawn"
-    assert fields["save_path"].value == profedit.default_save_path("Dawn")
+    assert fields["save_path"].value == profedit.default_save_path("Dawn", PrimeItems)
     assert calls["_select_renamed_item"][0][0][1:] == ("Profile", "Dawn")
     dialog.close.assert_called_once()
 

@@ -44,7 +44,6 @@ from maptasker.src.mapjump import (
 )
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     FLOWCHART_FILE,
     MY_VERSION,
@@ -977,18 +976,18 @@ def _limitations() -> list[str]:
     ]
 
 
-def write_task_flow_report(rows: list[Row]) -> str:
+def write_task_flow_report(rows: list[Row], state: RunState) -> str:
     """Write the control-flow report to a timestamped file in the output folder.
 
     Returns the path written, or "" if the write failed -- named, stamped and handled
     exactly as healthck.write_health_check_report does, and for its reasons.
     """
-    return _write(rows, TASKFLOW_FILE, "Task Flow report", state=PrimeItems)
+    return _write(rows, TASKFLOW_FILE, "Task Flow report", state=state)
 
 
-def write_flowchart(rows: list[Row]) -> str:
+def write_flowchart(rows: list[Row], state: RunState) -> str:
     """Write one Task's flowchart to a timestamped file.  Returns the path, or ""."""
-    return _write(rows, FLOWCHART_FILE, "Flowchart", state=PrimeItems)
+    return _write(rows, FLOWCHART_FILE, "Flowchart", state=state)
 
 
 def _write(rows: list[Row], base_name: str, what: str, state: RunState) -> str:

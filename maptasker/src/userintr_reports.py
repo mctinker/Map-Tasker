@@ -319,7 +319,7 @@ class ReportEventHandlers:
             return
 
         rows, counts = run_task_flow_check(state=self.state)
-        file_name = write_task_flow_report(rows)
+        file_name = write_task_flow_report(rows, self.state)
 
         if file_name:
             gui.display_message_box(f"{translate_string('Task Flow report saved as')} {file_name}", "Green")

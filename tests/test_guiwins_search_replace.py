@@ -34,7 +34,7 @@ FLASH_TEXT_LABEL = "Text"
 def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[None]:
     """The swap fixture loaded, an empty undo history, and a working directory of its own."""
     monkeypatch.chdir(tmp_path)
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
     _load(_FIXTURE_XML)
     built.clear()
     built.update(view=None, jumps=[], title="Map")
@@ -44,7 +44,7 @@ def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIter
 
     monkeypatch.setattr(guiwins_search, "go_to_target", go_to_target)
     yield
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
 
 
 async def _replace_tab(user: User) -> None:

@@ -42,7 +42,6 @@ from maptasker.src.runcfg import RunConfig, current_config
 from maptasker.src.sysconst import FormatLine
 
 blank = "&nbsp;"
-list_of_found_tasks = []
 line = "─"
 arrow = f"├{line * 3}▶"
 

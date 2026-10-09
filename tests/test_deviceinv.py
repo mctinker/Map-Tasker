@@ -421,6 +421,7 @@ def test_a_synthesized_launch_app_writes_the_xml_tasker_writes(loaded: None) -> 
         "Opener2",
         "3",
         {taskedit.arg_key(0, "0"): f"{WHATSAPP}, {MAPS}"},
+        PrimeItems,
     )
     assert errors == []
 
@@ -440,6 +441,7 @@ def test_a_synthesized_notify_writes_its_icon(loaded: None) -> None:
         "Noisy2",
         "3",
         {taskedit.arg_key(0, "2"): f"spreadsheet@{CRYSTAL}"},
+        PrimeItems,
     )
     assert errors == []
 

@@ -153,7 +153,7 @@ def _newer() -> xmldiff.Configuration:
 @pytest.fixture
 def loaded() -> None:
     """The newer configuration open, with an empty undo history."""
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
     root = ET.fromstring(_NEWER_XML)  # noqa: S314  (fixture text, defined in this file)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
@@ -166,7 +166,7 @@ def loaded() -> None:
     PrimeItems.tasker_arg_specs = specs
     PrimeItems.tasker_root_elements = _tables(root)
     yield
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
 
 
 # ##################################################################################
@@ -528,7 +528,7 @@ def test_a_plan_whose_element_was_detached_is_refused_at_apply(loaded: None) -> 
 def test_a_restore_is_one_undo(loaded: None) -> None:
     """Task, Project membership and by-name table: one press puts all of it back."""
     _restore("Task", "21")
-    assert sessundo.can_undo()
+    assert sessundo.can_undo(PrimeItems)
 
     done, _ = sessundo.undo(state=PrimeItems)
 

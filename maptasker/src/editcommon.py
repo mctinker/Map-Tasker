@@ -26,12 +26,13 @@ from maptasker.src import maputil2, outdir
 
 # maputil2's upload and read-back are called through the module, not imported by name, so a
 # test that stands in for them on maputil2 is the one these calls reach.
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ILLEGAL_IN_FILENAME
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from xml.etree.ElementTree import Element
+
+    from maptasker.src.primitem import RunState
 
 
 # What a failed upload's readback answers with when there is nothing to hand back.
@@ -108,7 +109,7 @@ class EditorKind:
         """This kind's name-to-filename substitution, with its own fallback."""
         return sanitize_filename(name, self.fallback)
 
-    def default_save_path(self, name: str) -> str:
+    def default_save_path(self, name: str, state: RunState) -> str:
         """Default standalone-export path: {output folder}/{sanitized name}{extension}.
 
         Uses the output folder (see outdir) rather than the loaded backup file's directory
@@ -116,7 +117,7 @@ class EditorKind:
         getxml_event/local_xml_start_directory in userintr_loading.py), which isn't
         necessarily where an exported object should land.
         """
-        return outdir.output_path(f"{self.sanitize_filename(name)}{self.extension}", state=PrimeItems)
+        return outdir.output_path(f"{self.sanitize_filename(name)}{self.extension}", state=state)
 
     def android_path(self, name: str) -> str:
         """The absolute path a Save To Android of this object would write to on the device.

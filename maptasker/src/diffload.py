@@ -286,7 +286,7 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> _Parsed:
     saved_arguments = {key: state.program_arguments[key] for key in _FORCED_ARGUMENTS}
     # get_the_xml_data clears the session's undo history, because a load normally means a
     # different configuration is open now.  This load does not -- see sessundo.save_history.
-    saved_undo_history = sessundo.save_history()
+    saved_undo_history = sessundo.save_history(state)
     # _handle_gui_error appends the failure to the running output, which belongs to the
     # map being built for the file the user actually has open.
     saved_output = list(state.output_lines.output_lines) if state.output_lines is not None else None
@@ -343,7 +343,7 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> _Parsed:
 
         for name, value in saved.items():
             setattr(state, name, value)
-        sessundo.restore_history(saved_undo_history)
+        sessundo.restore_history(saved_undo_history, state)
         state.directory_items = saved_directory
         for key, value in saved_directory_contents.items():
             if isinstance(saved_directory.get(key), list):

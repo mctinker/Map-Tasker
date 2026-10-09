@@ -46,7 +46,6 @@ from nicegui import ui
 
 from maptasker.src import mapfix
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
@@ -194,7 +193,7 @@ class _FixDialog:
                     "rescan": lambda: self.scan(restore=True),
                     "apply": self.do_apply,
                     "save_file": self.do_save,
-                    "save": lambda: _save_preview(self.held["plan"]),
+                    "save": lambda: _save_preview(self.held["plan"], self.state),
                 },
             )
 
@@ -495,7 +494,7 @@ def _draw_choice(
         select.tooltip(translate_string(_UNDECIDED_TIP))
 
 
-def _save_preview(plan: mapfix.Plan | None) -> None:
+def _save_preview(plan: mapfix.Plan | None, state: RunState) -> None:
     """Write the list to a text file, exactly as it stands.
 
     Worth having for the repairs the user decides NOT to make as much as the ones they do: a
@@ -509,7 +508,7 @@ def _save_preview(plan: mapfix.Plan | None) -> None:
     """
     if plan is None:
         return
-    file_name = mapfix.write_fix_report(mapfix.report_rows(plan), state=PrimeItems)
+    file_name = mapfix.write_fix_report(mapfix.report_rows(plan), state=state)
     if file_name:
         ui.notify(f"{translate_string('Fix preview saved as')} {file_name}", type="positive")
     else:

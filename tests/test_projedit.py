@@ -379,7 +379,7 @@ def test_a_projects_scenes_are_read_by_name_and_trimmed() -> None:
 def test_a_project_name_becomes_a_safe_file_name() -> None:
     assert projedit.sanitize_filename("Home/Work") == "Home_Work"
     assert projedit.sanitize_filename("???") != ""
-    assert projedit.default_project_save_path("Home").endswith("Home.prj.xml")
+    assert projedit.default_project_save_path("Home", PrimeItems).endswith("Home.prj.xml")
     assert projedit.android_project_path("Home/Work") == "/Tasker/projects/Home_Work.prj.xml"
 
 
@@ -658,15 +658,15 @@ def test_deleting_a_project_that_is_gone_says_so_and_changes_nothing() -> None:
 
 
 def test_a_delete_is_one_step_to_undo() -> None:
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
 
     assert projedit.delete_project("Home", state=PrimeItems, keep_contents=False) == []
-    assert sessundo.next_undo_label() == "Delete Project 'Home'"
-    assert [label for label, _when in sessundo.history()] == ["Delete Project 'Home'"]
+    assert sessundo.next_undo_label(PrimeItems) == "Delete Project 'Home'"
+    assert [label for label, _when in sessundo.history(PrimeItems)] == ["Delete Project 'Home'"]
 
     done, _message = sessundo.undo(state=PrimeItems)
 
     assert done
     assert "Home" in PrimeItems.tasker_root_elements["all_projects"]
     assert {"100", "101"} <= PrimeItems.tasker_root_elements["all_profiles"].keys()
-    sessundo.clear()
+    sessundo.clear(PrimeItems)

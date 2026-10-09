@@ -356,7 +356,7 @@ def test_applying_action_edits_leaves_the_task_name_alone(loaded_tasks):
     edited = taskedit.load_task_for_edit_by_id("269", state=PrimeItems)
     key = taskedit.arg_key(edited.actions[0].act_number, "0")
 
-    errors = taskedit.apply_action_edits_to_task(edited, {key: "goodbye"})
+    errors = taskedit.apply_action_edits_to_task(edited, {key: "goodbye"}, PrimeItems)
 
     assert errors == []
     assert edited.task_element.find("nme") is None
@@ -373,6 +373,7 @@ def test_applying_action_edits_writes_the_argument_and_the_label(loaded_tasks):
             taskedit.arg_key(act_number, "0"): "goodbye",
             taskedit.label_key(act_number): "say it",
         },
+        PrimeItems,
     )
 
     assert errors == []

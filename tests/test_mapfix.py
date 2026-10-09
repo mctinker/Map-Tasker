@@ -204,10 +204,10 @@ def _load(xml_text: str) -> None:
 @pytest.fixture
 def loaded() -> None:
     """The fixture configuration, in the tables mapfix reads, with an empty undo history."""
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
     _load(_FIXTURE_XML)
     yield
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
 
 
 # ##################################################################################
@@ -681,7 +681,7 @@ def test_the_whole_plan_is_one_undo(loaded: None) -> None:
 
     assert errors == []
     assert repaired == len(plan.selected)
-    assert sessundo.can_undo()
+    assert sessundo.can_undo(PrimeItems)
 
     done, _message = sessundo.undo(state=PrimeItems)
 
@@ -698,7 +698,7 @@ def test_nothing_ticked_changes_nothing_and_leaves_no_undo_entry(loaded: None) -
     repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (0, [])
-    assert not sessundo.can_undo()
+    assert not sessundo.can_undo(PrimeItems)
 
 
 def test_a_repair_whose_element_has_gone_is_refused_rather_than_written(loaded: None) -> None:

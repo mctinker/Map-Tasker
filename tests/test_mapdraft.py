@@ -893,7 +893,7 @@ def test_a_drafted_task_saves_like_any_other(backup: None) -> None:
         PrimeItems,
     )
 
-    assert taskedit.apply_edits_to_task(task, "Drafted", "100", {}) == []
+    assert taskedit.apply_edits_to_task(task, "Drafted", "100", {}, PrimeItems) == []
     xml = taskedit.render_standalone_task_xml(task, state=PrimeItems)
     assert "<nme>Drafted</nme>" in xml
     assert "<label>hi</label>" in xml

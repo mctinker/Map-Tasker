@@ -248,7 +248,7 @@ async def test_apply_restores_one_object_rebuilds_the_window_and_lists_again(loa
         assert not _only(user, "Apply").enabled
         # A restored object has nothing left to restore, so its row is kept but cannot be pressed again.
         assert [button.enabled for button in _buttons(user, "Restore this")].count(False) == 1
-    assert sessundo.can_undo()
+    assert sessundo.can_undo(PrimeItems)
 
 
 # ##################################################################################

@@ -484,16 +484,16 @@ def test_deleting_a_scene_that_is_gone_says_so_and_changes_nothing() -> None:
 
 
 def test_a_delete_is_one_step_to_undo() -> None:
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
 
     assert sceneedit.delete_scene("Dash", state=PrimeItems) == []
-    assert sessundo.next_undo_label() == "Delete Scene 'Dash'"
+    assert sessundo.next_undo_label(PrimeItems) == "Delete Scene 'Dash'"
     done, _message = sessundo.undo(state=PrimeItems)
 
     assert done
     assert "Dash" in PrimeItems.tasker_root_elements["all_scenes"]
     assert "Dash" in _project("Home").findtext("scenes")
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
 
 
 # ##################################################################################
@@ -502,7 +502,7 @@ def test_a_delete_is_one_step_to_undo() -> None:
 def test_a_scene_name_becomes_a_safe_file_name() -> None:
     assert sceneedit.sanitize_filename("A/B") == "A_B"
     assert sceneedit.sanitize_filename("???") != ""
-    assert sceneedit.default_scene_save_path("Dash").endswith("Dash.scn.xml")
+    assert sceneedit.default_scene_save_path("Dash", PrimeItems).endswith("Dash.scn.xml")
     assert sceneedit.android_scene_path("A/B") == "/Tasker/scenes/A_B.scn.xml"
 
 

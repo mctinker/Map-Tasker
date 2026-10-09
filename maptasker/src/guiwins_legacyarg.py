@@ -22,10 +22,11 @@ from maptasker.src import sceneedit_legacy, taskedit
 from maptasker.src.guiwins_canvas import FIELD_COMMIT_DEBOUNCE_MS
 from maptasker.src.guiwins_taskedit import _dropdown_current_label
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from maptasker.src.primitem import RunState
 
 
 def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event], None]) -> None:
@@ -77,6 +78,7 @@ def _render_legacy_arg(
     on_applied: Callable[[], None],
     on_rename: Callable[[], None] | None = None,
     *,
+    state: RunState,
     name_editable: bool = False,
 ) -> None:
     """One property field, rendered from the same EditableArg model the Task editor uses --
@@ -114,7 +116,7 @@ def _render_legacy_arg(
             for error in errors:
                 ui.notify(error, type="negative")
             return
-        sceneedit_legacy.legacy_set_arg(arg, str(value), state=PrimeItems)
+        sceneedit_legacy.legacy_set_arg(arg, str(value), state=state)
         on_applied()
 
     with ui.row().classes("w-full items-center gap-2"):

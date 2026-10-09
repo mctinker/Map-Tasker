@@ -78,7 +78,7 @@ def get_the_xml_data(state: RunState) -> bool:
     #
     # diffload puts the history back afterwards: it comes through here too, to parse the
     # file being compared against, and that load does not replace what the user has open.
-    sessundo.clear()
+    sessundo.clear(state)
 
     # And this configuration goes into the history, for the same reason and in the same
     # place: every way of loading a file arrives here.  timeline.record decides whether

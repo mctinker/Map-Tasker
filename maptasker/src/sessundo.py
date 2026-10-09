@@ -83,7 +83,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from datetime import datetime
 
-    from maptasker.src.primitem import RunState
+    from maptasker.src.primitem import RunState, UndoHistory
 
 
 # How many steps back the history goes.  Deep enough that a user who realises three or four
@@ -124,15 +124,13 @@ class Checkpoint:
         return len(self.payload)
 
 
-# The two halves of the history.  Undoing moves an entry from _undo to _redo and redoing
-# moves it back, so between them they always describe one straight line through the
-# session's edits with the current state sitting somewhere along it.
-_undo: list[Checkpoint] = []
-_redo: list[Checkpoint] = []
-
-# Depth of the currently-open undoable() blocks.  Only the outermost takes a checkpoint --
-# see undoable() for why that is not merely an optimisation.
-_depth = 0
+# The history itself is not kept here: it is state.undo_history (primitem.UndoHistory), so
+# that each run state has an Undo of its own and two of them in one process cannot step on each
+# other's.  Its two halves: undoing moves an entry from `undo` to `redo` and redoing moves it
+# back, so between them they always describe one straight line through the session's edits
+# with the current state sitting somewhere along it.  Its `depth` is the number of
+# currently-open undoable() blocks -- only the outermost takes a checkpoint, and see
+# undoable() for why that is not merely an optimisation.
 
 
 def _render(state: RunState) -> str | None:
@@ -164,11 +162,12 @@ def _compress(rendered: str) -> bytes:
     return gzip.compress(rendered.encode("utf-8"), _COMPRESSION_LEVEL)
 
 
-def _trim() -> None:
+def _trim(history: UndoHistory) -> None:
     """Drop the oldest checkpoints until the history is inside both of its limits."""
-    del _undo[: max(0, len(_undo) - MAX_CHECKPOINTS)]
-    while len(_undo) > 1 and sum(c.size for c in _undo) + sum(c.size for c in _redo) > MAX_TOTAL_BYTES:
-        _undo.pop(0)
+    undo_side = history.undo
+    del undo_side[: max(0, len(undo_side) - MAX_CHECKPOINTS)]
+    while len(undo_side) > 1 and sum(c.size for c in undo_side) + sum(c.size for c in history.redo) > MAX_TOTAL_BYTES:
+        undo_side.pop(0)
 
 
 def _restore(payload: bytes, state: RunState) -> bool:
@@ -235,61 +234,63 @@ def undoable(label: str, state: RunState) -> Iterator[None]:
     configuration that differs from the one on the way in, so it is kept -- which is
     exactly the case where the user most needs the state from before it.
     """
-    global _depth  # noqa: PLW0603
+    history = state.undo_history
 
-    if _depth > 0:
-        _depth += 1
+    if history.depth > 0:
+        history.depth += 1
         try:
             yield
         finally:
-            _depth -= 1
+            history.depth -= 1
         return
 
     before = _render(state=state)
-    _depth = 1
+    history.depth = 1
     try:
         yield
     finally:
-        _depth = 0
+        history.depth = 0
         after = _render(state=state)
         # `after is None` means the render failed on the way out, so whether anything
         # changed is unknown -- and unknown is kept, because the alternative is throwing
         # away the only copy of a state that may well have just been mutated.
         if before is not None and (after is None or after != before):
-            _undo.append(Checkpoint(label=label, when=clock.now(), payload=_compress(before)))
+            history.undo.append(Checkpoint(label=label, when=clock.now(), payload=_compress(before)))
             # Redoing only makes sense along the line the user walked back down.  Making a
             # fresh change from here is a new line, and the old one can no longer be reached.
-            _redo.clear()
-            _trim()
+            history.redo.clear()
+            _trim(history)
 
 
-def can_undo() -> bool:
+def can_undo(state: RunState) -> bool:
     """Whether there is an edit to take back."""
-    return bool(_undo)
+    return bool(state.undo_history.undo)
 
 
-def can_redo() -> bool:
+def can_redo(state: RunState) -> bool:
     """Whether an undone edit can be put back."""
-    return bool(_redo)
+    return bool(state.undo_history.redo)
 
 
-def next_undo_label() -> str:
+def next_undo_label(state: RunState) -> str:
     """What Undo would take back, or "" if there is nothing."""
-    return _undo[-1].label if _undo else ""
+    undo_side = state.undo_history.undo
+    return undo_side[-1].label if undo_side else ""
 
 
-def next_redo_label() -> str:
+def next_redo_label(state: RunState) -> str:
     """What Redo would put back, or "" if there is nothing."""
-    return _redo[-1].label if _redo else ""
+    redo_side = state.undo_history.redo
+    return redo_side[-1].label if redo_side else ""
 
 
-def history() -> list[tuple[str, datetime]]:
+def history(state: RunState) -> list[tuple[str, datetime]]:
     """The whole undo history, most recent edit first -- for the History dialog.
 
     Only the undo half: what the user can still take back.  The redo half is the same
     edits seen from the other side and listing both would show each one twice.
     """
-    return [(checkpoint.label, checkpoint.when) for checkpoint in reversed(_undo)]
+    return [(checkpoint.label, checkpoint.when) for checkpoint in reversed(state.undo_history.undo)]
 
 
 def undo(state: RunState) -> tuple[bool, str]:
@@ -299,40 +300,42 @@ def undo(state: RunState) -> tuple[bool, str]:
     onto the redo stack first, under that same label, so Redo puts back exactly the edit
     Undo just removed.
     """
-    if not _undo:
+    history = state.undo_history
+    if not history.undo:
         return False, "There is nothing to undo."
 
     current = _render(state=state)
-    checkpoint = _undo.pop()
+    checkpoint = history.undo.pop()
     if not _restore(checkpoint.payload, state=state):
         # _restore left the configuration untouched, so put the checkpoint back rather
         # than losing a step of history to a failure that changed nothing.
-        _undo.append(checkpoint)
+        history.undo.append(checkpoint)
         return False, "That undo step could not be restored -- nothing was changed."
 
     if current is not None:
-        _redo.append(Checkpoint(label=checkpoint.label, when=clock.now(), payload=_compress(current)))
+        history.redo.append(Checkpoint(label=checkpoint.label, when=clock.now(), payload=_compress(current)))
     return True, checkpoint.label
 
 
 def redo(state: RunState) -> tuple[bool, str]:
     """Put back the most recently undone edit.  The mirror of undo(), in every respect."""
-    if not _redo:
+    history = state.undo_history
+    if not history.redo:
         return False, "There is nothing to redo."
 
     current = _render(state=state)
-    checkpoint = _redo.pop()
+    checkpoint = history.redo.pop()
     if not _restore(checkpoint.payload, state=state):
-        _redo.append(checkpoint)
+        history.redo.append(checkpoint)
         return False, "That redo step could not be restored -- nothing was changed."
 
     if current is not None:
-        _undo.append(Checkpoint(label=checkpoint.label, when=clock.now(), payload=_compress(current)))
-        _trim()
+        history.undo.append(Checkpoint(label=checkpoint.label, when=clock.now(), payload=_compress(current)))
+        _trim(history)
     return True, checkpoint.label
 
 
-def clear() -> None:
+def clear(state: RunState) -> None:
     """Throw the history away.
 
     Call it whenever a different configuration becomes the loaded one -- a Get XML, a fetch
@@ -341,26 +344,26 @@ def clear() -> None:
     would not restore an edit; it would silently replace everything the user has open with
     the contents of another file.
     """
-    _undo.clear()
-    _redo.clear()
+    state.undo_history.undo.clear()
+    state.undo_history.redo.clear()
 
 
-def save_history() -> tuple[list[Checkpoint], list[Checkpoint]]:
+def save_history(state: RunState) -> tuple[list[Checkpoint], list[Checkpoint]]:
     """The history as it stands, to be handed back to restore_history() later.
 
     For diffload, and only for diffload.  Loading the file the user picked to compare
     against goes through taskerd.get_the_xml_data, which clears this history because a load
     normally means a different configuration is now open -- see clear().  A comparison is
-    the one load where that is wrong: it borrows PrimeItems for the second file and puts
+    the one load where that is wrong: it borrows the run state for the second file and puts
     everything back afterwards, and the user's own configuration, edits and all, is still
     open the whole time.  Without this pair, clicking "Compare Files" would silently throw
     away every undo step of the session.
     """
-    return list(_undo), list(_redo)
+    return list(state.undo_history.undo), list(state.undo_history.redo)
 
 
-def restore_history(state: tuple[list[Checkpoint], list[Checkpoint]]) -> None:
+def restore_history(saved: tuple[list[Checkpoint], list[Checkpoint]], state: RunState) -> None:
     """Put back what save_history() returned."""
-    undo_side, redo_side = state
-    _undo[:] = undo_side
-    _redo[:] = redo_side
+    undo_side, redo_side = saved
+    state.undo_history.undo[:] = undo_side
+    state.undo_history.redo[:] = redo_side

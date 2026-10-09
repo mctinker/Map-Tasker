@@ -60,7 +60,6 @@ from maptasker.src.guiwins_search import (
 )
 from maptasker.src.maputil2 import suppress_logged, translate_string
 from maptasker.src.outdir import output_path
-from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
     logger,
@@ -1217,7 +1216,9 @@ class NiceGuiSceneView:
         width, height = dimensions
         editing = self._legacy_editing()
         with self.canvas_wrap:
-            sceneview.draw_scene(scene_element, width, height, self.options, editing=editing, state=PrimeItems)
+            sceneview.draw_scene(
+                scene_element, width, height, self.options, editing=editing, state=self.master_gui.state
+            )
         self._apply_scale(width, height)
         if editing is not None:
             _ACTIVE_CANVASES[CANVAS_PREVIEW_ROOT] = {

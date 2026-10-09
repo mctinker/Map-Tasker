@@ -53,7 +53,7 @@ def _stale_window(**overrides: object) -> SimpleNamespace:
 def fresh_remembered(monkeypatch: pytest.MonkeyPatch) -> None:
     """program_arguments at their defaults, and nothing remembered yet."""
     monkeypatch.setattr(PrimeItems, "program_arguments", initialize_runtime_arguments())
-    monkeypatch.setattr(guistate, "_remembered_settings", set())
+    monkeypatch.setattr(PrimeItems, "remembered_settings", set())
 
 
 @pytest.mark.usefixtures("fresh_remembered")

@@ -125,7 +125,7 @@ def _load_local(tmp_path: Path, xml: str) -> None:
 def _runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """A believable runtime with the local configuration loaded the way MapTasker loads one."""
     monkeypatch.chdir(tmp_path)
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
     PrimeItems.program_arguments = ProgramArguments(
         gui=True, debug=False, directory=False, pretty=False, display_detail_level=3, file="", language="English"
     )
@@ -140,7 +140,7 @@ def _runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     PrimeItems.tasker_arg_specs = specs
     _load_local(tmp_path, _LOCAL_XML)
     yield
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
 
 
 def _link(kind: str = "Project", name: str = "Pack", share: str = LINK) -> tnupdate.Link:

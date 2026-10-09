@@ -634,7 +634,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
 
         field_refs["save_path"] = ui.input(
             translate_string("Save as"),
-            value=profedit.default_save_path(profile_name),
+            value=profedit.default_save_path(profile_name, self.state),
         ).classes("w-full mt-2")
         build_redact_checkbox(field_refs)
 
@@ -867,14 +867,14 @@ def build_add_profile_dialog(
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         ui.label(translate_string("Add Profile")).classes("text-xl font-bold text-blue-600")
 
-        last_auto_path = {"value": profedit.default_save_path("")}
+        last_auto_path = {"value": profedit.default_save_path("", self.state)}
 
         def sync_save_path(_e: object = None) -> None:
             # Keep "Save as" in sync with the Profile Name as the user types --
             # see guiwins_taskedit.build_add_task_dialog's identical sync_save_path for why this
             # only overwrites the path while it still holds what was last auto-computed.
             if field_refs["save_path"].value == last_auto_path["value"]:
-                new_path = profedit.default_save_path(field_refs["name"].value)
+                new_path = profedit.default_save_path(field_refs["name"].value, self.state)
                 field_refs["save_path"].value = new_path
                 last_auto_path["value"] = new_path
 

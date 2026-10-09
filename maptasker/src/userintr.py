@@ -2168,7 +2168,7 @@ class MapTaskerEventHandlers(
             )
 
         self.state.taskflow_rows = flowchart(flow, state=self.state)
-        chart_file = write_flowchart(self.state.taskflow_rows)
+        chart_file = write_flowchart(self.state.taskflow_rows, self.state)
         if chart_file:
             gui.display_message_box(f"{translate_string('Flowchart saved as')} {chart_file}", "Green")
 

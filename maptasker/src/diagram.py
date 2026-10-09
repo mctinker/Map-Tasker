@@ -119,22 +119,22 @@ if TYPE_CHECKING:
 # What a box is closed with, for extending a located name to the whole box it sits in.
 _BOX_WALL = "\u2551"
 
-# Objects noted against the three-line box buffer, waiting for it to be flushed.  Always
-# the middle line of the three, which is the only one a name is written on.
-_pending_boxes: list[tuple[Target, str]] = []
+# The objects noted against the three-line box buffer, waiting for it to be flushed, are
+# state.diagram_pending_boxes: [(target, snippet)], always the middle line of the three, which
+# is the only one a name is written on.  Those noted against the Task-line buffer are
+# state.diagram_pending_tasks: [(index in that buffer, target, snippet)].  Both live on the run
+# state, and are emptied with the rest of the Diagram's records, so that two Diagrams being
+# drawn cannot mix their notes.
 
-# Objects noted against the Task-line buffer: (index in that buffer, target, snippet).
-_pending_tasks: list[tuple[int, Target, str]] = []
 
-
-def _note_box(target: Target, snippet: str) -> None:
+def _note_box(target: Target, snippet: str, state: RunState) -> None:
     """Record that this object has just been drawn into the box buffer's middle line."""
-    _pending_boxes.append((target, snippet))
+    state.diagram_pending_boxes.append((target, snippet))
 
 
-def _note_task(index: int, target: Target, snippet: str) -> None:
+def _note_task(index: int, target: Target, snippet: str, state: RunState) -> None:
     """Record that this Task has just been drawn as line `index` of the Task buffer."""
-    _pending_tasks.append((index, target, snippet))
+    state.diagram_pending_tasks.append((index, target, snippet))
 
 
 def _record(row: int, target: Target, snippet: str, state: RunState) -> None:
@@ -175,18 +175,18 @@ def _flush_boxes(output_lines: list, state: RunState) -> None:
     """
     row = len(state.netmap_output) + 1  # The middle of the three lines.
     print_3_lines(output_lines, state=state)
-    for target, snippet in _pending_boxes:
+    for target, snippet in state.diagram_pending_boxes:
         _record(row, target, snippet, state=state)
-    _pending_boxes.clear()
+    state.diagram_pending_boxes.clear()
 
 
 def _flush_tasks(output_lines: list, state: RunState) -> None:
     """Append a finished run of Task lines, and fix every Task noted into it at its line."""
     base = len(state.netmap_output)
     print_all(output_lines, state=state)
-    for index, target, snippet in _pending_tasks:
+    for index, target, snippet in state.diagram_pending_tasks:
         _record(base + index, target, snippet, state=state)
-    _pending_tasks.clear()
+    state.diagram_pending_tasks.clear()
 
 
 def _remap_object_seeds(old_to_new: dict[int, int], state: RunState) -> None:
@@ -400,6 +400,7 @@ def add_quotes(
             len(output_task_lines),
             Target(kind=TASK, key=task_id, name=real_task_name),
             f"{angle}{task_name}",
+            state,
         )
     output_task_lines.append(line)
     if task_name not in found_tasks:
@@ -642,7 +643,7 @@ def print_all_scenes(scenes: list, config: RunConfig, state: RunState) -> None:
         output_scene_lines, position_for_anchor = build_box(scene, output_scene_lines, config=config)
         # Noted after the box is built, and after any flush above it, so the note belongs to
         # the buffer this Scene actually went into rather than to the row before it.
-        _note_box(Target(kind=SCENE, key=scene, name=scene), f"{_BOX_WALL} {scene}")
+        _note_box(Target(kind=SCENE, key=scene, name=scene), f"{_BOX_WALL} {scene}", state)
 
         # Process Scene's Tasks
         task_list, output_task_lines = process_scene_tasks(scene, position_for_anchor + 15, task_list, state=state)
@@ -1953,6 +1954,7 @@ def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfi
                 _note_box(
                     Target(kind=PROFILE, key=owner["id"], name=profile, project=project_name),
                     f"{_BOX_WALL} {profile}",
+                    state,
                 )
 
             # Go through the Profile's Tasks
@@ -2253,8 +2255,6 @@ def network_map(network: dict, config: RunConfig, state: RunState) -> None:
     # Emptied here rather than where they are first written, so that a second run cannot
     # leave the previous diagram's objects standing in this one's line numbers.
     reset_attributes(*DIAGRAM_ATTRIBUTES, state=state)
-    _pending_boxes.clear()
-    _pending_tasks.clear()
 
     # datetime object containing current date and time
     # now = datetime.now()

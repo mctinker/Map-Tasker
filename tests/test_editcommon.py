@@ -83,7 +83,7 @@ def test_save_and_device_paths_differ_only_in_extension_and_folder(
     default: str,
 ) -> None:
     """The local default path and the device path are one shape with the kind filled in."""
-    assert getattr(module, default)("My Name") == os.path.join(os.getcwd(), f"My Name{extension}")
+    assert getattr(module, default)("My Name", PrimeItems) == os.path.join(os.getcwd(), f"My Name{extension}")
     assert getattr(module, android)("My Name") == f"/{folder}/My Name{extension}"
     # Derived from the *sanitized* name, which is what makes two names collide on one file.
     assert getattr(module, android)("Wake: Up") == getattr(module, android)("Wake_ Up")

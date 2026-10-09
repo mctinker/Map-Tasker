@@ -149,7 +149,8 @@ def get_first_text_entry(data: dict) -> str:
 # Whether that landed before or after the build had read the values it needed was pure
 # timing, which is why it showed on Windows and not on macOS.  Re-asserting them takes the
 # timing out of it: for as long as a build holds overrides, no capture can undo them.
-_active_overrides: dict = {}
+#
+# They are state.held_overrides, on the run state the GUI is showing.
 
 
 @contextlib.contextmanager
@@ -163,23 +164,22 @@ def held_overrides(overrides: dict | None, state: RunState) -> Iterator[None]:
     says nothing about whether builds can overlap; it just cannot be the thing that breaks if
     they ever do.
     """
-    global _active_overrides  # noqa: PLW0603
     if not overrides:
         yield
         return
-    previous = _active_overrides
-    _active_overrides = {**previous, **overrides}
+    previous = state.held_overrides
+    state.held_overrides = {**previous, **overrides}
     state.program_arguments.update(overrides)
     try:
         yield
     finally:
-        _active_overrides = previous
+        state.held_overrides = previous
 
 
 # The settings saved to the file the moment they change -- the Android address, the Save To
 # Android panel's checkboxes, the Health Check skip list, the local XML directory -- recorded as
-# they are set through remember_setting.  Each one's latest value lives in program_arguments.
-_remembered_settings: set[str] = set()
+# they are set through remember_setting.  Each one's latest value lives in program_arguments;
+# the names are state.remembered_settings.
 
 
 def remember_setting(gui: MyGui, name: str, value: object) -> None:
@@ -195,12 +195,12 @@ def remember_setting(gui: MyGui, name: str, value: object) -> None:
     """
     setattr(gui, name, value)
     gui.state.program_arguments[name] = value
-    _remembered_settings.add(name)
+    gui.state.remembered_settings.add(name)
 
 
 def _apply_remembered_settings(gui: MyGui) -> None:
     """Bring a (possibly stale) MyGui instance up to date with every remember_setting value."""
-    for name in _remembered_settings:
+    for name in gui.state.remembered_settings:
         if name in gui.state.program_arguments:
             setattr(gui, name, gui.state.program_arguments[name])
 
@@ -239,4 +239,4 @@ def capture_gui_state(user_input: MyGui, data: dict, state: RunState) -> None:
 
     # A build in flight outranks whatever the widgets currently say: its overrides go back on
     # top of everything captured above.  No-op unless one is actually holding some.
-    state.program_arguments.update(_active_overrides)
+    state.program_arguments.update(state.held_overrides)

@@ -36,7 +36,6 @@ from maptasker.src.guiwins_editor import (
 from maptasker.src.guiwins_impact import build_impact_panel
 from maptasker.src.mapjump import TASK
 from maptasker.src.maputil2 import tasker_name_matchable, translate_string
-from maptasker.src.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -635,7 +634,7 @@ def _build_app_picker_dialog(field: ui.input, gui: MyGui) -> None:
     over the field, never a replacement for it, so it must not be able to quietly delete a
     value merely because it doesn't recognise it.
     """
-    entries = appinv.apps(state=PrimeItems)
+    entries = appinv.apps(state=gui.state)
     known_packages = {entry.pkg for entry in entries}
     current = [token.strip() for token in str(field.value or "").split(",") if token.strip()]
     unknown = [token for token in current if token not in known_packages]
@@ -770,7 +769,7 @@ def _build_app_entry_picker_dialog(on_pick: Callable[[appinv.AppEntry], None], g
     class, not just a package name to write into a field.  Filling all three is the point:
     that condition's class field is the one nobody can be expected to know by heart.
     """
-    entries = appinv.apps(state=PrimeItems)
+    entries = appinv.apps(state=gui.state)
     search = {"text": ""}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):
@@ -865,7 +864,7 @@ def _build_tasker_icon_picker_dialog(field: ui.input, gui: MyGui) -> None:
     an action whose icon was never set has always carried, and it has to stay reachable
     once a picker exists.
     """
-    icons = appinv.icons(state=PrimeItems)
+    icons = appinv.icons(state=gui.state)
     search = {"text": ""}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):
@@ -1877,7 +1876,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
 
         field_refs["save_path"] = ui.input(
             translate_string("Save as"),
-            value=taskedit.default_save_path(task_name),
+            value=taskedit.default_save_path(task_name, self.state),
         ).classes("w-full mt-2")
         build_redact_checkbox(field_refs)
 
@@ -1930,12 +1929,13 @@ def build_delete_task_dialog(
     confirm_dialog.open()
 
 
-def _make_save_path_sync(field_refs: dict, last_auto_path: dict) -> Callable[..., None]:
+def _make_save_path_sync(field_refs: dict, last_auto_path: dict, state: RunState) -> Callable[..., None]:
     """The Task Name field's change handler for the Add Task dialog: keeps "Save as" in step with it.
 
     Args:
         field_refs: The dialog's widgets by key; "name" and "save_path" are read from it.
         last_auto_path: Holds, under "value", the path last worked out from the name.
+        state: The run state whose output folder the path is worked out in.
     """
 
     def sync_save_path(_e: ui.event | None = None) -> None:
@@ -1946,7 +1946,7 @@ def _make_save_path_sync(field_refs: dict, last_auto_path: dict) -> Callable[...
         # edit" apart via save_path's own on_change: NiceGUI fires that for
         # programmatic value sets too, so it would trip on the very first sync.)
         if field_refs["save_path"].value == last_auto_path["value"]:
-            new_path = taskedit.default_save_path(field_refs["name"].value)
+            new_path = taskedit.default_save_path(field_refs["name"].value, state)
             field_refs["save_path"].value = new_path
             last_auto_path["value"] = new_path
 
@@ -2078,8 +2078,8 @@ def build_add_task_dialog(
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         ui.label(translate_string("Add Task")).classes("text-xl font-bold text-blue-600")
 
-        last_auto_path = {"value": taskedit.default_save_path("")}
-        sync_save_path = _make_save_path_sync(field_refs, last_auto_path)
+        last_auto_path = {"value": taskedit.default_save_path("", self.state)}
+        sync_save_path = _make_save_path_sync(field_refs, last_auto_path, self.state)
 
         if target_project_name:
             ui.label(f"{translate_string('Adding to Project:')} {target_project_name}").classes(

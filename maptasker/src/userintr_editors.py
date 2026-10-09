@@ -468,6 +468,7 @@ def _apply_edited_task(edited_task: taskedit.EditableTask, field_refs: dict, sta
         field_refs["name"].value,
         field_refs["priority"].value,
         arg_values,
+        state,
     )
     if errors:
         for error in errors:
@@ -508,7 +509,7 @@ def _validate_and_apply_new_task(
         return False, ""
 
     arg_values = _task_arg_values(field_refs)
-    errors = taskedit.apply_edits_to_task(edited_task, name_value, field_refs["priority"].value, arg_values)
+    errors = taskedit.apply_edits_to_task(edited_task, name_value, field_refs["priority"].value, arg_values, state)
     if errors:
         for error in errors:
             ui.notify(error, type="negative")
@@ -915,8 +916,8 @@ class EditorEventHandlers:
         # defaulted to for the old name -- a path the user typed themselves is
         # their choice and shouldn't be silently rewritten by a rename.
         save_path_field = field_refs.get("save_path")
-        if save_path_field is not None and save_path_field.value == taskedit.default_save_path(old_name):
-            save_path_field.value = taskedit.default_save_path(new_name)
+        if save_path_field is not None and save_path_field.value == taskedit.default_save_path(old_name, self.state):
+            save_path_field.value = taskedit.default_save_path(new_name, self.state)
 
         ui.notify(f"Renamed to '{new_name}'.", type="positive")
         rename_dialog.close()
@@ -974,6 +975,7 @@ class EditorEventHandlers:
             field_refs["name"].value,
             field_refs["priority"].value,
             arg_values,
+            self.state,
         )
         if errors:
             for error in errors:
@@ -1026,7 +1028,7 @@ class EditorEventHandlers:
         be noise, and the same validation runs again -- and does report -- when the edits are
         actually applied.
         """
-        taskedit.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs))
+        taskedit.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs), self.state)
 
     def keep_scene_event_task_edits(
         self,
@@ -1061,7 +1063,7 @@ class EditorEventHandlers:
         kept = True
         for edited_task, field_refs in bound_tasks.values():
             arg_values = _task_arg_values(field_refs)
-            errors = taskedit.apply_action_edits_to_task(edited_task, arg_values)
+            errors = taskedit.apply_action_edits_to_task(edited_task, arg_values, self.state)
             if errors:
                 for error in errors:
                     ui.notify(error, type="negative")
@@ -1162,7 +1164,7 @@ class EditorEventHandlers:
         Properties dialog is still being used and the Scene's own edits are still
         pending in it.
         """
-        errors = taskedit.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs))
+        errors = taskedit.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs), self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -2106,8 +2108,8 @@ class EditorEventHandlers:
         # Only re-derive the export path if it's still this dialog's default for
         # the old name -- see confirm_rename_task_event's identical guard.
         save_path_field = field_refs.get("save_path")
-        if save_path_field is not None and save_path_field.value == profedit.default_save_path(old_name):
-            save_path_field.value = profedit.default_save_path(new_name)
+        if save_path_field is not None and save_path_field.value == profedit.default_save_path(old_name, self.state):
+            save_path_field.value = profedit.default_save_path(new_name, self.state)
 
         ui.notify(f"Renamed to '{new_name}'.", type="positive")
         rename_dialog.close()

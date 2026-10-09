@@ -363,7 +363,7 @@ def build_helper_task(task_name: str = HELPER_TASK_NAME, *, state: RunState):
         if error:
             return error
 
-    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values)
+    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values, state)
     if errors:
         return errors[0]
     return edited_task
@@ -527,7 +527,7 @@ def build_run_task_helper(task_name: str = RUN_TASK_HELPER_NAME, *, state: RunSt
     ) or add(_RETURN_ACTION, {"0": _RUN_TASK_RESULT_VARIABLE})
     if error:
         return error
-    finished = _finish_offer_task(edited_task, task_name, values)
+    finished = _finish_offer_task(edited_task, task_name, values, state)
     if isinstance(finished, str):
         return finished
 
@@ -990,7 +990,7 @@ def build_file_list_task(
         if error:
             return error
 
-    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values)
+    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values, state)
     if errors:
         return errors[0]
     return edited_task
@@ -1320,7 +1320,7 @@ def build_import_profile_task(
         if isinstance(written, str):
             return written
 
-    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values)
+    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values, state)
     if errors:
         return errors[0]
 
@@ -1834,10 +1834,10 @@ def _new_offer_task(task_name: str, state: RunState):  # noqa: ANN202
     return edited_task, add, values
 
 
-def _finish_offer_task(edited_task, task_name: str, values: dict[str, str]):  # noqa: ANN001, ANN202
+def _finish_offer_task(edited_task, task_name: str, values: dict[str, str], state: RunState):  # noqa: ANN001, ANN202
     """Apply the staged argument values.  Returns the EditableTask or an error message."""
 
-    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values)
+    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values, state)
     return errors[0] if errors else edited_task
 
 
@@ -1882,7 +1882,7 @@ def build_open_file_task(
     )
     if error:
         return error
-    return _finish_offer_task(edited_task, task_name, values)
+    return _finish_offer_task(edited_task, task_name, values, state)
 
 
 def build_send_intent_task(
@@ -1927,7 +1927,7 @@ def build_send_intent_task(
     ) or _add_result_writes(add, result_write_path, header, stage_path)
     if error:
         return error
-    return _finish_offer_task(edited_task, task_name, values)
+    return _finish_offer_task(edited_task, task_name, values, state)
 
 
 @dataclass(frozen=True)
@@ -2141,7 +2141,7 @@ def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME, *, state:
     ) or _add_result_writes(add, _LAUNCH_WRITE_PATH, _LAUNCH_HEADER, f"/{_SCENE_LOCATION}")
     if error:
         return error
-    return _finish_offer_task(edited_task, task_name, values)
+    return _finish_offer_task(edited_task, task_name, values, state)
 
 
 def open_tasker_on_device(ip_address: str, ip_port: str, state: RunState) -> tuple[int, str]:
@@ -3087,7 +3087,7 @@ def _build_reporting_task(  # noqa: ANN202
         for arg_id, value in args.items():
             values[taskedit.arg_key(action.act_number, arg_id)] = value
 
-    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values)
+    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values, state)
     if errors:
         return errors[0]
     return edited_task

@@ -856,7 +856,7 @@ class _LegacyDesigner:
 
         ui.label(translate_string("Properties")).classes("text-xs uppercase text-gray-500 mt-2")
         for arg in args:
-            _render_legacy_arg(arg, self.repaint, on_rename=self.rename_selected)
+            _render_legacy_arg(arg, self.repaint, on_rename=self.rename_selected, state=self.gui.state)
         self.render_tasks(element)
         self.render_background(element)
         self.render_item_layout(element)
@@ -1051,7 +1051,7 @@ class _LegacyDesigner:
             # It is a RectElement, so it gets the Rect fields -- the same generated form the
             # inspector gives a real Rect, from the same table.
             for arg in sceneedit_legacy.legacy_element_args(background, state=self.gui.state):
-                _render_legacy_arg(arg, self.repaint, name_editable=True)
+                _render_legacy_arg(arg, self.repaint, name_editable=True, state=self.gui.state)
             ui.button(translate_string("Remove background"), icon="delete", on_click=self.remove_background).props(
                 "dense flat size=sm color=negative",
             )

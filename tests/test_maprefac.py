@@ -217,10 +217,10 @@ def _load(xml_text: str) -> None:
 @pytest.fixture
 def loaded() -> None:
     """The fixture configuration, in the tables maprefac reads, with an empty undo history."""
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
     _load(_FIXTURE_XML)
     yield
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
 
 
 # ##################################################################################
@@ -888,13 +888,13 @@ def test_the_whole_refactor_costs_one_undo(loaded: None) -> None:
     plan = maprefac.plan_extract("20", [3, 4, 5], "Loud Part", state=PrimeItems)
     assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
-    assert sessundo.can_undo()
-    assert sessundo.next_undo_label() == plan.what
+    assert sessundo.can_undo(PrimeItems)
+    assert sessundo.next_undo_label(PrimeItems) == plan.what
 
     assert sessundo.undo(state=PrimeItems)[0] is True
     assert _codes("20") == before
     assert "Loud Part" not in PrimeItems.tasker_root_elements["all_tasks_by_name"]
-    assert not sessundo.can_undo()
+    assert not sessundo.can_undo(PrimeItems)
 
 
 def test_an_undone_refactor_can_be_redone(loaded: None) -> None:

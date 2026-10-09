@@ -137,7 +137,7 @@ async def test_edit_is_titled_with_the_profile_and_its_name_is_read_only() -> No
         name = _inputs(user)["Profile Name"]
         assert name.value == "Morning"
         assert "readonly" in name.props
-        assert _inputs(user)["Save as"].value == profedit.default_save_path("Morning")
+        assert _inputs(user)["Save as"].value == profedit.default_save_path("Morning", PrimeItems)
 
 
 @pytest.mark.asyncio
@@ -187,7 +187,7 @@ async def test_typing_a_name_in_add_follows_through_to_the_save_path() -> None:
     async with _open(_add_page) as user:
         fields = _inputs(user)
         fields["Profile Name"].value = "Evening"
-        assert fields["Save as"].value == profedit.default_save_path("Evening")
+        assert fields["Save as"].value == profedit.default_save_path("Evening", PrimeItems)
 
 
 @pytest.mark.asyncio

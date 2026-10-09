@@ -1106,6 +1106,7 @@ class AndroidEventHandlers:
             field_refs["name"].value,
             field_refs["priority"].value,
             _task_arg_values(field_refs),
+            self.state,
         )
         if errors:
             for error in errors:

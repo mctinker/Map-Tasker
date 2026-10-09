@@ -35,12 +35,12 @@ _built: dict = {}
 def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[None]:
     """The fixture configuration, an empty undo history, and a working directory of its own."""
     monkeypatch.chdir(tmp_path)
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
     _load(_FIXTURE_XML)
     _built.clear()
     _built.update(rebuilt=0, saved=0, save_answer=False, jumps=[])
     yield
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
 
 
 def _page() -> None:

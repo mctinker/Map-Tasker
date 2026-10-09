@@ -20,10 +20,19 @@
 # the language and translator (translator, maputil2.translate_string), Tasker's spec and code
 # tables (actionc, valcodes, actargs), the OS path separator (clip), the trace flag (guiutil2),
 # the AI model/key lists (mapask, guiwins2) -- plus the debug flag read by the logging helpers
-# underneath everything (console), and the import-time failure in cria, which happens before
-# any run exists.  Those belong to the session, not to one run over one backup, so there is
-# nothing for a RunState of its own to hold.  The entry points (mapit_all, clireports.run,
-# MyGui, error_handler, current_config and so on) default their state to PrimeItems.
+# underneath everything (console).  Those belong to the session, not to one run over one
+# backup, so there is nothing for a RunState of its own to hold.  The entry points (mapit_all,
+# clireports.run, MyGui, error_handler, current_config and so on) default their state to
+# PrimeItems.
+#
+# What the module-level variables elsewhere are for: a few modules keep process-wide state
+# that is not a RunState's -- the terminal mute switch (console), the one-time registration
+# of NiceGUI's static files and notify wrapper (webassets, guiwins), the Android devices' API
+# keys (maputil2, which belong to a device, not to a run), the "already told the user"
+# guards (maputil3), the history folder and the load-recording switch (timeline), and the
+# Scene preview's drawing scratch (sceneview).  Each says why where it is declared.  What does
+# belong to a run -- the Undo history, the Diagram's pending boxes and Task lines, the GUI's
+# held overrides and remembered settings -- is on the RunState, below.
 #
 # Set up an initial empty dictionary of primary items used throughout this project
 #  xml_tree = main xml element of our Tasker xml tree
@@ -58,6 +67,7 @@
 from __future__ import annotations
 
 import copy
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from maptasker.src import caches
@@ -73,6 +83,7 @@ from maptasker.src.sysconst import (
 
 if TYPE_CHECKING:
     from maptasker.src.runcfg import RunConfig
+    from maptasker.src.sessundo import Checkpoint
 
 # The single-named-item selectors: display only this one Project, or Profile, or Task,
 # or Scene.  Each entry maps the program_arguments key holding the requested name to its
@@ -155,6 +166,24 @@ def initial_tasker_root_elements() -> dict:
     }
 
 
+@dataclass
+class UndoHistory:
+    """The Undo and Redo stacks for one run state's loaded configuration (see sessundo).
+
+    Undoing moves an entry from `undo` to `redo` and redoing moves it back, so between them
+    they describe one straight line through the edits with the current state somewhere along
+    it.  `depth` counts the undoable() blocks currently open, so that only the outermost
+    takes a checkpoint.
+
+    A class of its own, rather than three attributes, so that sessundo's save_history and
+    restore_history can hand the lot over and put it back in one piece.
+    """
+
+    undo: list[Checkpoint] = field(default_factory=list)
+    redo: list[Checkpoint] = field(default_factory=list)
+    depth: int = 0
+
+
 class RunState:
     """Everything one run holds: the loaded backup, the output being built, the counters.
 
@@ -187,6 +216,7 @@ class RunState:
         }
         self._init_loaded_backup()
         self._init_output()
+        self._init_editing_session()
         self._init_session()
 
     def _init_loaded_backup(self) -> None:
@@ -266,6 +296,23 @@ class RunState:
         # regions and call edges, all in the rendered file's coordinates.  Assembled by
         # diagintr.build_model once the diagram is written; read by the view when it renders.
         self.diagram_model: dict = {}
+        # The Diagram's Profile and Scene boxes and Task lines that have been drawn but not yet
+        # flushed to a row of netmap_output: what each box/Task IS, held until the row it will
+        # land on is known (see diagram._note_box and _flush_boxes).  Emptied with the rest of
+        # the Diagram's records.
+        self.diagram_pending_boxes: list = []
+        self.diagram_pending_tasks: list = []
+
+    def _init_editing_session(self) -> None:
+        """What the GUI keeps about the configuration it is editing: its Undo history and its settings."""
+        # The loaded configuration's edit history (sessundo): what Undo and Redo step through.
+        self.undo_history: UndoHistory = UndoHistory()
+        # The settings a Map/Diagram build holds over whatever the GUI would capture back into
+        # program_arguments while it runs (guistate.held_overrides), and the names of the
+        # settings that win over every window's own copy (guistate.remember_setting).  Both
+        # are about the GUI that is showing this state, not about one build.
+        self.held_overrides: dict = {}
+        self.remembered_settings: set[str] = set()
 
     def _init_session(self) -> None:
         """The flowchart, the tables loaded once, and the settings that outlive a single run."""
@@ -390,6 +437,9 @@ SESSION_ATTRIBUTES = frozenset(
         "trace",  # debug tracing, switched on once (guiutil2)
         "view_limit",  # set by the GUI just before a build, which a reset must not undo
         "cli_view_limit",  # what this run's command line asked for, which outlives any one run
+        "undo_history",  # the loaded configuration's edits, which a Map build must not forget (sessundo)
+        "held_overrides",  # the GUI's, held for the length of a build (guistate)
+        "remembered_settings",  # the GUI's, remembered for the whole session (guistate)
     },
 )
 
@@ -421,6 +471,8 @@ DIAGRAM_ATTRIBUTES = (
     "diagram_connector_seeds",
     "diagram_connectors",
     "diagram_model",
+    "diagram_pending_boxes",
+    "diagram_pending_tasks",
 )
 # The counts behind one Project's summary line (projects.setup_summary_counts).
 PROJECT_COUNT_ATTRIBUTES = (

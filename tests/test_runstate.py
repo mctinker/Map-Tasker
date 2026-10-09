@@ -20,6 +20,7 @@ from maptasker.src import (
     frontmtr,
     getbakup,
     guiutils,
+    guistate,
     healthck,
     impact,
     mapai,
@@ -54,6 +55,7 @@ from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import (
     MAP_OUTPUT_ATTRIBUTES,
     PrimeItems,
+    PrimeItemsReset,
     RunState,
     initial_tasker_root_elements,
     reset_attributes,
@@ -66,11 +68,11 @@ _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 
 @pytest.fixture(autouse=True)
 def _clean_slate() -> None:
-    """Nothing noted against a diagram, on the global or in the module's own buffers."""
+    """Nothing noted against a diagram on the global."""
     PrimeItems.netmap_output = []
     PrimeItems.diagram_object_seeds = {}
-    diagram._pending_boxes.clear()  # noqa: SLF001
-    diagram._pending_tasks.clear()  # noqa: SLF001
+    PrimeItems.diagram_pending_boxes = []
+    PrimeItems.diagram_pending_tasks = []
 
 
 def test_the_global_is_a_run_state() -> None:
@@ -128,7 +130,7 @@ def test_a_diagram_object_is_recorded_on_the_state_it_is_given() -> None:
     """The box is noted and then flushed to its rows, all without the global being set up."""
     state = RunState()
     diagutil.add_output_line("header", state=state)
-    diagram._note_box(_PROFILE, "║ Wake Up")  # noqa: SLF001
+    diagram._note_box(_PROFILE, "║ Wake Up", state=state)  # noqa: SLF001
     diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=state)  # noqa: SLF001
 
     assert state.diagram_object_seeds[_PROFILE.anchor][0] == 2
@@ -672,3 +674,119 @@ def test_the_output_folder_is_the_one_the_state_it_is_given_asks_for(tmp_path: P
 def test_there_is_no_code_to_lint_on_a_state_that_has_loaded_nothing() -> None:
     """The lint reads the Tasks of the state it is handed, so an unloaded state has none."""
     assert codelint.lint_problems(state=RunState()) == []
+
+
+# ##################################################################################
+# State that used to be module-level, and is now a RunState's own: two runs in one process
+# must not see each other's.
+# ##################################################################################
+def _rename_home_project(state: RunState, new_name: str) -> None:
+    """Edit the loaded configuration under an undo block, the way every edit panel's mutator does."""
+    with sessundo.undoable(f"Rename Project to '{new_name}'", state=state):
+        state.xml_root.find("Project/name").text = new_name
+
+
+def test_each_state_has_an_undo_history_of_its_own(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """An edit made on one state can be undone there, and is invisible to every other."""
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    first = _outline_state(tmp_path / "a", monkeypatch)
+    second = _outline_state(tmp_path / "b", monkeypatch)
+
+    _rename_home_project(first, "Away")
+
+    assert sessundo.can_undo(first)
+    assert sessundo.next_undo_label(first) == "Rename Project to 'Away'"
+    assert not sessundo.can_undo(second)
+    assert sessundo.history(second) == []
+    assert not sessundo.can_undo(PrimeItems)
+
+    # Undoing on the other state has nothing to take back, and does not touch the first's edit.
+    assert sessundo.undo(state=second)[0] is False
+    assert first.xml_root.find("Project/name").text == "Away"
+
+    done, _label = sessundo.undo(state=first)
+
+    assert done
+    assert first.xml_root.find("Project/name").text == "Home"
+    assert sessundo.can_redo(first)
+    assert not sessundo.can_redo(second)
+
+
+def test_clearing_one_states_history_leaves_the_others(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    first = _outline_state(tmp_path / "a", monkeypatch)
+    second = _outline_state(tmp_path / "b", monkeypatch)
+    _rename_home_project(first, "Away")
+    _rename_home_project(second, "Office")
+
+    sessundo.clear(first)
+
+    assert not sessundo.can_undo(first)
+    assert sessundo.next_undo_label(second) == "Rename Project to 'Office'"
+
+
+def test_an_undo_block_open_on_one_state_does_not_nest_the_others(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Only the outermost block takes a checkpoint -- per state, not per process."""
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    first = _outline_state(tmp_path / "a", monkeypatch)
+    second = _outline_state(tmp_path / "b", monkeypatch)
+
+    with sessundo.undoable("Outer", state=first):
+        _rename_home_project(second, "Office")  # Not nested inside first's block.
+        first.xml_root.find("Project/name").text = "Away"
+
+    assert [label for label, _when in sessundo.history(second)] == ["Rename Project to 'Office'"]
+    assert [label for label, _when in sessundo.history(first)] == ["Outer"]
+
+
+def test_a_reset_for_a_new_build_keeps_the_undo_history(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Building a Map resets the run's state; the edits made to the loaded configuration are not part of it."""
+    state = _outline_state(tmp_path, monkeypatch)
+    _rename_home_project(state, "Away")
+    state.remembered_settings.add("android_ipaddr")
+    state.held_overrides = {"single_project_name": "Away"}
+    state.diagram_pending_boxes.append((_PROFILE, "x"))
+
+    PrimeItemsReset(state=state)
+
+    assert sessundo.can_undo(state)
+    assert state.remembered_settings == {"android_ipaddr"}
+    assert state.held_overrides == {"single_project_name": "Away"}
+    assert state.diagram_pending_boxes == []
+
+
+def test_the_diagram_pending_notes_belong_to_the_state_they_were_noted_on() -> None:
+    """Two Diagrams under way at once: a box noted on one is flushed onto that one's rows only."""
+    first, second = RunState(), RunState()
+    for state in (first, second):
+        diagutil.add_output_line("header", state=state)
+    diagram._note_box(_PROFILE, "║ Wake Up", state=first)  # noqa: SLF001
+
+    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=second)  # noqa: SLF001
+
+    assert second.diagram_object_seeds == {}
+    assert len(first.diagram_pending_boxes) == 1
+
+    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=first)  # noqa: SLF001
+
+    assert first.diagram_object_seeds[_PROFILE.anchor][0] == 2
+    assert first.diagram_pending_boxes == []
+    assert PrimeItems.diagram_pending_boxes == []
+
+
+def test_held_overrides_are_held_on_the_state_they_were_given() -> None:
+    first, second = RunState(), RunState()
+
+    with guistate.held_overrides({"single_project_name": "Home"}, state=first):
+        assert first.held_overrides == {"single_project_name": "Home"}
+        assert second.held_overrides == {}
+        assert first.program_arguments.single_project_name == "Home"
+        assert second.program_arguments.single_project_name == ""
+
+    assert first.held_overrides == {}

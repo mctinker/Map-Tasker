@@ -305,7 +305,7 @@ class _ScenePropertiesDialog:
                 ui.tab(name, label=translate_string(name))
         with ui.tab_panels(tabs, value=showing["tab"]).classes("w-full"):
             with ui.tab_panel(_SCENE_TAB_UI):
-                _render_scene_ui_tab(args, property_type, self.scene_element, self.field_refs, self.render)
+                _render_scene_ui_tab(args, property_type, self.scene_element, self.field_refs, self.render, gui.state)
             with ui.tab_panel(_SCENE_TAB_ACTIONS):
                 _render_scene_actions_tab(gui, properties, self.render)
             with ui.tab_panel(_SCENE_TAB_EVENT):
@@ -397,6 +397,7 @@ def _render_scene_ui_tab(
     scene_element: Element,
     field_refs: dict,
     rerender: Callable[[], None],
+    state: RunState,
 ) -> None:
     """The UI tab: how the Scene is put on screen, which way up, and what it is dressed in.
 
@@ -411,7 +412,7 @@ def _render_scene_ui_tab(
     this one, which is the same four numbers by another route.
     """
     if property_type is not None:
-        _render_legacy_arg(property_type, rerender, name_editable=True)
+        _render_legacy_arg(property_type, rerender, name_editable=True, state=state)
 
     current_type = property_type.current_value if property_type is not None else ""
 
@@ -419,13 +420,13 @@ def _render_scene_ui_tab(
 
     for arg_id in _SCENE_ALWAYS_ARGS:
         if arg_id in args:
-            _render_legacy_arg(args[arg_id], lambda: None, name_editable=True)
+            _render_legacy_arg(args[arg_id], lambda: None, name_editable=True, state=state)
 
     if current_type == _SCENE_TYPE_ACTIVITY:
         ui.label(translate_string("Action bar")).classes("text-sm font-bold mt-3")
         for arg_id in _SCENE_ACTIVITY_ARGS:
             if arg_id in args:
-                _render_legacy_arg(args[arg_id], lambda: None, name_editable=True)
+                _render_legacy_arg(args[arg_id], lambda: None, name_editable=True, state=state)
                 # The two that are not just decoration: each of them turns an Event tab on.
                 if arg_id == sceneedit_legacy.LEGACY_ICON_ARG:
                     ui.label(
@@ -600,7 +601,7 @@ def _render_scene_actions_tab(
             else:
                 ui.label(f"{translate_string('Action')}: {item.action_name}").classes("text-sm font-bold mt-2")
                 for arg in item_args:
-                    _render_legacy_arg(arg, lambda: None, name_editable=True)
+                    _render_legacy_arg(arg, lambda: None, name_editable=True, state=self.state)
 
     _render_scene_action_item_picker(self, properties, rerender)
 

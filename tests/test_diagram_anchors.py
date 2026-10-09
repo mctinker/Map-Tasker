@@ -36,8 +36,8 @@ def _clean_slate() -> None:
     PrimeItems.netmap_output = []
     PrimeItems.diagram_object_seeds = {}
     PrimeItems.diagram_anchors = {}
-    diagram._pending_boxes.clear()  # noqa: SLF001
-    diagram._pending_tasks.clear()  # noqa: SLF001
+    PrimeItems.diagram_pending_boxes = []
+    PrimeItems.diagram_pending_tasks = []
 
 
 # ##################################################################################
@@ -46,7 +46,7 @@ def _clean_slate() -> None:
 def test_a_box_lands_on_the_middle_of_its_three_lines() -> None:
     """A box is drawn as a top, a name and a bottom; only the middle line names it."""
     diagram.add_output_line("header", state=PrimeItems)
-    diagram._note_box(_PROFILE, "║ Wake Up")  # noqa: SLF001
+    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)  # noqa: SLF001
     diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)  # noqa: SLF001
 
     row, _snippet = PrimeItems.diagram_object_seeds[_PROFILE.anchor]
@@ -56,8 +56,8 @@ def test_a_box_lands_on_the_middle_of_its_three_lines() -> None:
 
 def test_several_boxes_on_one_row_all_land_on_it() -> None:
     """Six Profiles side by side share the line, and each is recorded on it."""
-    diagram._note_box(_PROFILE, "║ Wake Up")  # noqa: SLF001
-    diagram._note_box(_OTHER_PROFILE, "║ Wind Down")  # noqa: SLF001
+    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)  # noqa: SLF001
+    diagram._note_box(_OTHER_PROFILE, "║ Wind Down", state=PrimeItems)  # noqa: SLF001
     diagram._flush_boxes(["top", "║ Wake Up ║ ║ Wind Down ║", "bottom"], state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds[_PROFILE.anchor][0] == 1
@@ -66,9 +66,9 @@ def test_several_boxes_on_one_row_all_land_on_it() -> None:
 
 def test_a_flush_clears_what_it_fixed() -> None:
     """Notes belong to the buffer being flushed, never to the next one."""
-    diagram._note_box(_PROFILE, "║ Wake Up")  # noqa: SLF001
+    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)  # noqa: SLF001
     diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)  # noqa: SLF001
-    diagram._note_box(_OTHER_PROFILE, "║ Wind Down")  # noqa: SLF001
+    diagram._note_box(_OTHER_PROFILE, "║ Wind Down", state=PrimeItems)  # noqa: SLF001
     diagram._flush_boxes(["top", "║ Wind Down ║", "bottom"], state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds[_PROFILE.anchor][0] == 1
@@ -79,8 +79,8 @@ def test_task_lines_keep_their_place_within_the_buffer() -> None:
     """A Task's row is where its line sits in the run of Task lines, not where it was noted."""
     diagram.add_output_line("header", state=PrimeItems)
     buffer = ["└─ Backup", "", "└─ Restore"]
-    diagram._note_task(0, _TASK, "└─ Backup")  # noqa: SLF001
-    diagram._note_task(2, _TWIN, "└─ Restore")  # noqa: SLF001
+    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)  # noqa: SLF001
+    diagram._note_task(2, _TWIN, "└─ Restore", state=PrimeItems)  # noqa: SLF001
     diagram._flush_tasks(buffer, state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 1
@@ -89,8 +89,8 @@ def test_task_lines_keep_their_place_within_the_buffer() -> None:
 
 def test_two_tasks_of_one_name_are_recorded_separately() -> None:
     """The whole point of recording positions rather than matching text."""
-    diagram._note_task(0, _TASK, "└─ Backup")  # noqa: SLF001
-    diagram._note_task(1, _TWIN, "└─ Backup")  # noqa: SLF001
+    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)  # noqa: SLF001
+    diagram._note_task(1, _TWIN, "└─ Backup", state=PrimeItems)  # noqa: SLF001
     diagram._flush_tasks(["└─ Backup", "└─ Backup"], state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 0
@@ -99,9 +99,9 @@ def test_two_tasks_of_one_name_are_recorded_separately() -> None:
 
 def test_the_first_drawing_of_a_task_is_the_one_kept() -> None:
     """A Task run by two Profiles is drawn twice; a jump goes to the first, as in the Map."""
-    diagram._note_task(0, _TASK, "└─ Backup")  # noqa: SLF001
+    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)  # noqa: SLF001
     diagram._flush_tasks(["└─ Backup"], state=PrimeItems)  # noqa: SLF001
-    diagram._note_task(0, _TASK, "└─ Backup")  # noqa: SLF001
+    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)  # noqa: SLF001
     diagram._flush_tasks(["└─ Backup"], state=PrimeItems)  # noqa: SLF001
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 0

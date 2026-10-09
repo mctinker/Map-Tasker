@@ -347,7 +347,7 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
 UNDO_BUTTONS_POLL_SECONDS = 0.25
 
 
-def build_edit_history_dialog() -> None:
+def build_edit_history_dialog(state: RunState) -> None:
     """Lists what the session's Undo would step back through, most recent first.
 
     Read-only, and deliberately so.  Jumping straight to an arbitrary point in the list is
@@ -355,7 +355,7 @@ def build_edit_history_dialog() -> None:
     "go back four steps" would silently discard three edits that are not on screen.  Undo,
     one press at a time, keeps the user looking at what each press actually did.
     """
-    entries = sessundo.history()
+    entries = sessundo.history(state)
 
     with ui.dialog() as history_dialog, ui.card().classes("min-w-[420px] max-w-[680px] w-full p-6"):
         ui.label(translate_string("Edit History")).classes("text-lg font-bold")
@@ -457,7 +457,7 @@ def _create_undo_section(self: MyGui) -> None:
         translate_string("Edit History"),
         color="teal",
         icon="history",
-        on_click=build_edit_history_dialog,
+        on_click=lambda: build_edit_history_dialog(self.state),
     ).classes("w-full justify-center")
     with self.edit_history_button:
         ui.tooltip(
@@ -470,11 +470,11 @@ def _create_undo_section(self: MyGui) -> None:
         # Assigning a value a NiceGUI element already has is dropped before it reaches the
         # client, so the ticks where nothing has changed send nothing over the wire -- the
         # same property "Changes Pending" leans on.
-        self.undo_edit_button.set_enabled(sessundo.can_undo())
-        self.redo_edit_button.set_enabled(sessundo.can_redo())
-        if next_undo := sessundo.next_undo_label():
+        self.undo_edit_button.set_enabled(sessundo.can_undo(self.state))
+        self.redo_edit_button.set_enabled(sessundo.can_redo(self.state))
+        if next_undo := sessundo.next_undo_label(self.state):
             self.undo_next_label.text = f"{translate_string('Undo')}: {next_undo}"
-        elif next_redo := sessundo.next_redo_label():
+        elif next_redo := sessundo.next_redo_label(self.state):
             self.undo_next_label.text = f"{translate_string('Redo')}: {next_redo}"
         else:
             self.undo_next_label.text = translate_string("No changes to undo.")
@@ -815,7 +815,7 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
 
         field_refs["project_save_path"] = ui.input(
             translate_string("Save as"),
-            value=projedit.default_project_save_path(project_name),
+            value=projedit.default_project_save_path(project_name, self.state),
         ).classes("w-full mt-2")
         build_share_checks(field_refs, PROJECT_REDACT_FIELD, readiness.check_project, project_name, self.state)
 
@@ -1483,7 +1483,7 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
 
         field_refs["scene_save_path"] = ui.input(
             translate_string("Save as"),
-            value=sceneedit.default_scene_save_path(scene_name),
+            value=sceneedit.default_scene_save_path(scene_name, self.state),
         ).classes("w-full mt-2")
         build_share_checks(field_refs, SCENE_REDACT_FIELD, readiness.check_scene, scene_name, self.state)
 

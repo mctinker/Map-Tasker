@@ -838,7 +838,7 @@ def test_a_profile_name_becomes_a_safe_file_name() -> None:
     assert profedit.sanitize_filename("???") != ""
     assert profedit.android_profile_path("Home/Work") == "/Tasker/profiles/Home_Work.prf.xml"
     assert profedit.android_profile_path("Home_Work") == profedit.android_profile_path("Home/Work")
-    assert profedit.default_save_path("Morning").endswith("Morning.prf.xml")
+    assert profedit.default_save_path("Morning", PrimeItems).endswith("Morning.prf.xml")
 
 
 def test_a_name_is_taken_when_a_profile_has_it() -> None:
@@ -1175,7 +1175,7 @@ def test_renaming_a_profile_nobody_registered_does_nothing() -> None:
 # ##################################################################################
 def test_adding_a_profile_to_a_project_is_one_step_to_undo() -> None:
     """Register and attach each open their own undo block; the user did one thing."""
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
     created = _new_profile(entry="20")
     before_pids = _project("Home").findtext("pids")
 
@@ -1184,12 +1184,12 @@ def test_adding_a_profile_to_a_project_is_one_step_to_undo() -> None:
         profedit.add_profile_to_project(created, "Home", state=PrimeItems)
 
     assert created.profile_id in _project("Home").findtext("pids").split(",")
-    assert sessundo.next_undo_label() == "Add Profile"
-    assert [label for label, _when in sessundo.history()] == ["Add Profile"]
+    assert sessundo.next_undo_label(PrimeItems) == "Add Profile"
+    assert [label for label, _when in sessundo.history(PrimeItems)] == ["Add Profile"]
 
     done, _message = sessundo.undo(state=PrimeItems)
 
     assert done
     assert "Fresh" not in PrimeItems.tasker_root_elements["all_profiles_by_name"]
     assert _project("Home").findtext("pids") == before_pids
-    sessundo.clear()
+    sessundo.clear(PrimeItems)
