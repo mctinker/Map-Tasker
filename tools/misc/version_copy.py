@@ -137,7 +137,7 @@ if __name__ == "__main__":
     TARGET_DIRECTORY: str = "/Users/mikrubin/MapTasker"
     OLD_STRING: str = "MapTasker_Dev"
     NEW_STRING: str = "MapTasker"
-    FILES_TO_EXCLUDE: list[str] = [".DS_Store", "maptasker-dev.code-workspace", "secret.key"]
+    FILES_TO_EXCLUDE: list[str] = [".DS_Store", "maptasker-dev.code-workspace", "secret.key", ".venv"]
 
     # Execute the copy and string replacement
     copy_and_rename(

@@ -265,97 +265,31 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 ## To-Do List (in no particular order)
 
-- [x] Auto Update Feature
-
-- [x] Fix output column alignment
-
-- [x] Support Windows 11
-
-- [x] Add a runtime option for more pretty output
-
-- [x] Add AI support to analyze Profiles and Tasks
-
-- [x] Save and restore the AI analysis window location
-
-- [x] Add color to the Map View in the GUI
-
-- [x] Add name attributes (highlight, bold, italicize, underline) to the Map View in the GUI
-
-- [x] Display progress bar for diagram view
-
-- [x] Add 'Search' and 'Word Wrap' to the Map view.
-
-- [x] Add 'Search' to the Diagram view.
-
-- [x] Identify Tasks with too many actions.
-
-- [x] Support additional AI's
-
-- [x] Fix minor formatting issues.
-
-- [x] If Profile has no name, display the same name as that of Tasker
-
-- [x] Properly handle Task anchors with embedded HTML
-
-- [x] Multilingual Support
-
-- [x] Edit Support
-
-- [x] Health Checkup and Variable Cross-reference
-
-- [x] Edit 'Undo/Redo' function
-
-- [x] Structured Search
-
-- [x] Interactive Diagram view
-
-- [x] Find and Replace function
-
-- [x] Capture Android Device Apps and Icons
-
-- [x] Add and Edit Properties
-
-- [x] Export Map and Diagram views to Portable Formats (Markdown / JSON / PDF)
-
-- [x] Import Edits Directly Into Tasker
-
-- [x] Roundtrip (Device-to/from Android) Data Validation
-
-- [x] Task Flow Checker
-
-- [x] Refactor Task or Profile
-
-- [x] Impact Analysis Before Destructive Edit
-
-- [x] Test-run Task on Android
-
-- [x] Live Variable Inspector
-
-- [x] Profile Conflict and Performance Lint
-
-- [x] Secrets Security Scan
-
-- [x] Natural Language 'Find'
-
-- [x] Configuration Timeline
-
-- [x] One-click Fixes For Health Check Findings
-
-- [x] Restore From History
-
-- [x] Java Scriptlets and Shell Actions Checker
-
-- [x] What Fires When Report
-
 - [ ] Readiness Check
-
-- [x] Command Line Reports
-
-- [x] TaskerNet Updates
 
 - [x] Support additional plugins
 
 - [ ] Map remaining Tasker preferences
+
+- [ ] Task Stepper: dry-run a Task action by action, showing which If, For and Goto branches run and what each variable holds
+
+- [ ] Live Run Monitor: stream which Profiles and Tasks fire on the phone and light them up in the Diagram view
+
+- [ ] Three-way merge of two backups against a common ancestor, resolved conflict by conflict and undone in one step
+
+- [x] TaskerNet update tracker: tell you when the author of a share you use has published a newer version, with a diff of the changes
+
+- [ ] Personal snippet library: save reusable action sequences, Tasks and Profile templates and insert them with parameters
+
+- [ ] Plain-English explanations in the Map: an AI-written, cached and editable one-line summary of each Profile and Task
+
+- [ ] Missing-resource checker: verify that the files, folders, images, sounds, Scenes and apps your actions reference still exist
+
+- [ ] Complexity and trend dashboard: track Task length, nesting, call-chain depth and findings over time
+
+- [ ] Documentation site export: a linked set of Markdown or HTML pages, one per Project, Profile, Task and Scene, with call diagrams
+
+- [ ] Variable rename and scope assistant: rename a variable, or make a global local, everywhere it is used, as one Undo
 
 ## Privacy Statement
 
@@ -422,8 +356,6 @@ We appreciate your help in making MapTasker better!
 [©Connor Talbot 2021 for Clippy](https://github.com/con-dog/clippy)
 
 [Ollama](https://ollama.com/), [OpenAi](https://openai.com/), [Claude AI](https://claude.ai), [Gemini AI](https://gemini.google.com/)
-
-[Anonyo Noor for cria](https://github.com/leftmove/cria)
 
 [NiceGui](https://nicegui.io/)
 
