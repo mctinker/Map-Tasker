@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file!
 - Added: A new __TaskerNet Updates__ button links a Project, Profile, Task or Scene to the TaskerNet share it came from, tells you when its author publishes a newer version, and lists what they changed so you can take each change on its own after previewing it, or accept the whole latest version in one step.  Only the share's address is sent to TaskerNet; nothing from your configuration leaves your computer.
 - Added: The IR for Tasker plugin's action is now recognised, so it shows its name and its settings (such as the code sent and the transmission method) instead of an unmapped code number.
 - Added: The Claude models offered for AI analysis now include Claude Fable 5.1, Opus 5.5, Sonnet 5.5 and Haiku 5.5. With an Anthropic API key, the extended list is read from Anthropic itself, so newer models appear without waiting for an update.
+- Added: __Find Links__ in the TaskerNet Updates window looks through TaskerNet's public shares for the ones your Projects, Profiles, Tasks and Scenes came from, and links each one whose content agrees with yours -- not just its name, since different authors reuse names.  Ones that only partly agree are listed for you to tick, and the scan -- several minutes the first time -- runs in the background and a notification tells you when it is done.  Stop ends the reading of TaskerNet's list early and compares your objects with the part already read.
 - Added:
 
 ### Changed

@@ -35,6 +35,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from dataclasses import dataclass, field
 from functools import partial
 from typing import TYPE_CHECKING, Literal
@@ -43,6 +44,7 @@ from nicegui import context, run, ui
 
 from maptasker.src import diffload, maprefac, maprestore, tnupdate
 from maptasker.src.guiwins_restore import draw_preview, draw_row, tip
+from maptasker.src.guiwins_tnfind import build_find_dialog
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.sysconst import logger
 
@@ -169,6 +171,8 @@ class _UpdatesDialog:
         self.link_note: ui.label
         self.add_button: ui.button
         self.check_button: ui.button
+        self.find_button: ui.button
+        self.find_dialog: ui.dialog | None = None
         self.summary: ui.label
         self.notes: ui.column
         self.show_all: ui.checkbox
@@ -230,6 +234,18 @@ class _UpdatesDialog:
             ui.label(translate_string("Linked shares")).classes("text-sm font-bold")
             self.check_button = ui.button(translate_string("Check Now"), icon="cloud_sync", on_click=self.check_now)
             self.check_button.props("dense outline")
+            self.find_button = ui.button(
+                translate_string("Find Links"), icon="travel_explore", on_click=self.find_links
+            )
+            self.find_button.props("dense outline")
+            tip(
+                self.find_button,
+                "Look through TaskerNet's public shares for the ones your Projects, Profiles, Tasks and Scenes "
+                "came from, and link them for you.\n\n"
+                "A share is linked only when its content agrees with yours, not just its name.  Ones that might "
+                "be yours are listed for you to tick.\n\n"
+                "The first scan reads TaskerNet's whole list of shares and can take several minutes.",
+            )
             tip(
                 self.check_button,
                 "Ask TaskerNet whether each linked share has been published again since the version you have.\n\n"
@@ -336,6 +352,8 @@ class _UpdatesDialog:
                 with ui.row().classes("items-baseline gap-2 min-w-0"):
                     ui.label(link.name).classes("font-mono text-sm break-all" + ("" if loaded else " text-gray-400"))
                     ui.link(translate_string("on TaskerNet"), link.link, new_tab=True).classes("text-xs")
+                    if link.auto:
+                        ui.label(translate_string("found automatically")).classes("text-xs text-gray-500 italic")
                 if not loaded:
                     ui.label(translate_string("Not in the configuration that is loaded.")).classes(
                         "text-xs text-gray-500 italic",
@@ -402,6 +420,17 @@ class _UpdatesDialog:
         self.link_input.set_value("")
         self._draw_links()
         await self.review(link)
+
+    def find_links(self) -> None:
+        """Open the Find Links dialog; what it links is drawn here when it is done."""
+        # The one opened before is taken down first: a closed dialog stays in the page, and its buttons would
+        # go on answering to a scan it is no longer showing.
+        if self.find_dialog is not None:
+            with contextlib.suppress(RuntimeError):
+                self.find_dialog.delete()
+        self.find_dialog = build_find_dialog(self.state, self.book, self._draw_links)
+        if self.find_dialog is not None:
+            self.find_dialog.open()
 
     async def _first_check(self) -> None:
         """Look for anything newer in links not checked lately, as the dialog opens."""

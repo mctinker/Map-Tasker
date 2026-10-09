@@ -13,10 +13,13 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import threading
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src import guiwins_tnupdate, sessundo, tnupdate
+from maptasker.src import guiwins_tnupdate, sessundo, tnfind, tnupdate
+from maptasker.src import guiwins_tnfind
+from maptasker.src.guiwins_tnfind import build_find_dialog
 from maptasker.src.primitem import PrimeItems
 from nicegui import context, core, ui
 from nicegui.testing.user_interaction import UserInteraction
@@ -37,6 +40,7 @@ _built: dict = {}
 @pytest.fixture(autouse=True)
 def _network(monkeypatch: pytest.MonkeyPatch, _runtime: None) -> None:  # noqa: F811, PT019
     """TaskerNet replaced by two answers the tests set: what is published, and what it says."""
+    guiwins_tnfind._JOBS.clear()  # a scan from one test must not be picked up by the next
     _built.clear()
     _built.update(rebuilt=0, saved=0, save_answer=False, asked=[], published=1_700_000_000_000, xml=_V2, offline=False)
 
@@ -486,3 +490,249 @@ async def test_the_check_made_as_the_dialog_opens_does_not_put_a_notice_up(monke
     async with _open() as user:
         await user.should_see("Newer version published")
     assert made == []
+
+
+# ##################################################################################
+# Find Links
+# ##################################################################################
+def _listing(monkeypatch: pytest.MonkeyPatch, *names: str) -> None:
+    """TaskerNet's public list: one page holding a Project share of each name, by the publisher in LINK."""
+    from tests.test_tnfind import _listed  # noqa: PLC0415  (only these tests need it)
+
+    monkeypatch.setattr(
+        tnupdate,
+        "fetch_public_page",
+        lambda token="": {"shares": [_listed("Project", name) for name in names]},  # noqa: ARG005
+    )
+
+
+@pytest.mark.asyncio
+async def test_find_links_links_what_agrees_and_shows_it_in_the_list_behind(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The user presses Scan; Pack, whose content agrees with its share, is linked and says it was found."""
+    _built["xml"] = _share()
+    _listing(monkeypatch, "Pack")
+    async with _open() as user:
+        await user.should_see("No shares are linked yet.")
+        _press(user, _only(user, "Find Links"))
+        await user.should_see("Find TaskerNet Links")
+
+        _press(user, _only(user, "Scan"))
+
+        await _until(lambda: _book().links.get(("Project", "Pack")))
+        await user.should_see("Linked automatically")
+        await user.should_see("found automatically")
+        link = _book().links[("Project", "Pack")]
+        assert link.auto
+        assert link.seen_ms == _built["published"]
+
+
+@pytest.mark.asyncio
+async def test_find_links_offers_a_possible_match_and_links_it_only_when_ticked(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from tests.test_tnfind import _HALF  # noqa: PLC0415
+
+    _built["xml"] = _HALF
+    _listing(monkeypatch, "Pack")
+    async with _open() as user:
+        await user.should_see("No shares are linked yet.")
+        _press(user, _only(user, "Find Links"))
+        _press(user, _only(user, "Scan"))
+
+        await user.should_see("Possible matches")
+        expected = f"published {tnupdate.describe_date(_built['published'])}"
+        assert any(expected in label for label in _labels(user)), "each possible match says when it was published"
+        assert _book().links == {}, "nothing is linked on a maybe"
+        # The tick boxes of the possible matches are the ones with no label of their own.
+        (box,) = [b for b in user.find(kind=ui.checkbox).elements if b.text == ""]
+        box.set_value(True)
+        _press(user, _only(user, "Link Ticked"))
+
+        await _until(lambda: _book().links.get(("Project", "Pack")))
+        assert not _book().links[("Project", "Pack")].auto, "the user chose it"
+
+
+@pytest.mark.asyncio
+async def test_find_links_with_nothing_loaded_does_not_open() -> None:
+    PrimeItems.tasker_root_elements = {"all_tasks": {}, "all_projects": {}, "all_profiles": {}}
+
+    def page() -> None:
+        _built["dialog"] = build_find_dialog(PrimeItems, _book(), lambda: None)
+
+    async with user_simulation(root=page) as user:
+        await user.open("/")
+        assert _built["dialog"] is None
+        assert user.notify.contains("No XML file has been loaded.")
+
+
+def _close_of_find_links(user: User) -> ui.button:
+    """The Close button inside the Find Links dialog -- found by the dialog that holds Scan, not by its place in the page."""
+    element: ui.element = _only(user, "Scan")
+    while not isinstance(element, ui.dialog):
+        element = element.parent_slot.parent
+    (close,) = [b for b in element.descendants() if isinstance(b, ui.button) and b.text == "Close"]
+    return close
+
+
+def _slow_listing(monkeypatch: pytest.MonkeyPatch, release: threading.Event, *names: str) -> list[str]:
+    """A public list that does not answer until `release` is set; returns the tokens it was asked for."""
+    from tests.test_tnfind import _listed  # noqa: PLC0415
+
+    asked: list[str] = []
+
+    def page(token: str = "") -> dict:
+        asked.append(token)
+        release.wait(timeout=10)
+        return {"shares": [_listed("Project", name) for name in names]}
+
+    monkeypatch.setattr(tnupdate, "fetch_public_page", page)
+    return asked
+
+
+@pytest.mark.asyncio
+async def test_closing_find_links_does_not_stop_the_scan_and_a_notification_says_when_it_is_done(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _built["xml"] = _share()
+    release = threading.Event()
+    _slow_listing(monkeypatch, release, "Pack")
+    async with _open() as user:
+        await user.should_see("No shares are linked yet.")
+        _press(user, _only(user, "Find Links"))
+        _press(user, _only(user, "Scan"))
+
+        _press(user, _close_of_find_links(user))
+
+        assert user.notify.contains("carries on in the background")
+        assert _book().links == {}, "it has not finished"
+        assert guiwins_tnfind.current_job().running
+
+        release.set()
+
+        await _until(lambda: user.notify.contains("TaskerNet scan finished: 1 linked"))
+        assert _book().links[("Project", "Pack")].auto
+        await user.should_see("found automatically")
+
+
+@pytest.mark.asyncio
+async def test_opening_find_links_again_after_a_background_scan_shows_what_it_found(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _built["xml"] = _share()
+    release = threading.Event()
+    _slow_listing(monkeypatch, release, "Pack")
+    async with _open() as user:
+        await user.should_see("No shares are linked yet.")
+        _press(user, _only(user, "Find Links"))
+        _press(user, _only(user, "Scan"))
+        _press(user, _close_of_find_links(user))
+        release.set()
+        await _until(lambda: user.notify.contains("TaskerNet scan finished"))
+
+        _press(user, _only(user, "Find Links"))
+
+        await user.should_see("Linked automatically")
+
+
+@pytest.mark.asyncio
+async def test_opening_find_links_while_a_scan_runs_picks_it_up_and_does_not_start_another(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _built["xml"] = _share()
+    release = threading.Event()
+    asked = _slow_listing(monkeypatch, release, "Pack")
+    async with _open() as user:
+        await user.should_see("No shares are linked yet.")
+        _press(user, _only(user, "Find Links"))
+        _press(user, _only(user, "Scan"))
+        _press(user, _close_of_find_links(user))
+
+        _press(user, _only(user, "Find Links"))
+        scans = [b for b in _buttons(user, "Scan") if b.enabled]
+        stops = [b for b in _buttons(user, "Stop") if b.enabled]
+
+        assert scans == [], "no second scan can be started from the dialog that picked it up"
+        assert len(stops) == 1, "but it can be stopped"
+        release.set()
+        await _until(lambda: user.notify.contains("TaskerNet scan finished"))
+        assert len(asked) == 1
+
+
+@pytest.mark.asyncio
+async def test_a_stopped_background_scan_says_so_in_its_notification(monkeypatch: pytest.MonkeyPatch) -> None:
+    release = threading.Event()
+    _slow_listing(monkeypatch, release, "Pack")
+    async with _open() as user:
+        await user.should_see("No shares are linked yet.")
+        _press(user, _only(user, "Find Links"))
+        _press(user, _only(user, "Scan"))
+        await user.should_see("Stop")
+        _press(user, [b for b in _buttons(user, "Stop") if b.enabled][0])
+        release.set()
+
+        await _until(lambda: user.notify.contains("TaskerNet scan finished"))
+        assert guiwins_tnfind.current_job().result.stopped
+
+
+@pytest.mark.asyncio
+async def test_select_all_and_deselect_all_work_on_the_whole_checklist(monkeypatch: pytest.MonkeyPatch) -> None:
+    from tests.test_tnfind import _HALF, _listed  # noqa: PLC0415
+
+    _built["xml"] = _HALF
+    monkeypatch.setattr(
+        tnupdate,
+        "fetch_public_page",
+        lambda token="": {"shares": [_listed("Project", "Pack", 5, "AAAAuser"), _listed("Project", "Pack", 9, "BBBBuser")]},  # noqa: ARG005
+    )
+
+    async with _open() as user:
+        await user.should_see("No shares are linked yet.")
+        _press(user, _only(user, "Find Links"))
+        assert not _only(user, "Select All").enabled, "no checklist yet"
+        _press(user, _only(user, "Scan"))
+        await user.should_see("Possible matches")
+
+        def boxes() -> list[ui.checkbox]:
+            return [b for b in user.find(kind=ui.checkbox).elements if b.text == ""]
+
+        assert len(boxes()) == 2
+        assert _only(user, "Select All").enabled
+        _press(user, _only(user, "Select All"))
+        assert [b.value for b in boxes()] == [True, True]
+        _press(user, _only(user, "Deselect All"))
+        assert [b.value for b in boxes()] == [False, False]
+        _press(user, _only(user, "Select All"))
+        _press(user, _only(user, "Link Ticked"))
+
+        await _until(lambda: _book().links.get(("Project", "Pack")))
+        assert _book().links[("Project", "Pack")].link.endswith("Project%3APack"), "one object, one link"
+
+
+@pytest.mark.asyncio
+async def test_stop_during_the_reading_still_gives_matches_and_says_the_list_was_cut_short(monkeypatch: pytest.MonkeyPatch) -> None:
+    from tests.test_tnfind import _listed  # noqa: PLC0415
+
+    _built["xml"] = _share()
+    release = threading.Event()
+    pages: list[str] = []
+
+    def page(token: str = "") -> dict:
+        pages.append(token)
+        release.wait(timeout=10)
+        return {"shares": [_listed("Project", "Pack")], "pageToken": "more"}
+
+    monkeypatch.setattr(tnupdate, "fetch_public_page", page)
+    monkeypatch.setattr(tnfind, "_PAGE_DELAY_SECONDS", 0)
+    async with _open() as user:
+        await user.should_see("No shares are linked yet.")
+        _press(user, _only(user, "Find Links"))
+        _press(user, _only(user, "Scan"))
+        await _until(lambda: pages)
+        _press(user, [b for b in _buttons(user, "Stop") if b.enabled][0])
+
+        release.set()
+
+        await _until(lambda: user.notify.contains("TaskerNet scan finished: 1 linked"))
+        await user.should_see("stopped while reading the list")
+        assert _book().links[("Project", "Pack")].auto
+        assert len(pages) == 1, "no further pages were read after Stop"

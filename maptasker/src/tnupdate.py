@@ -270,6 +270,15 @@ def _get_json(url: str, limit: int) -> dict:
     return answer
 
 
+def fetch_public_page(token: str = "") -> dict:
+    """One page of TaskerNet's public listing: {'shares': [...12...], 'pageToken': ...}.  `token` is the last page's.
+
+    The listing can only be paged through; it has no search.  See tnfind for what is done with it.
+    """
+    url = f"{_API_ROOT}shares/public?a=0" + (f"&pageToken={quote(token, safe='')}" if token else "")
+    return _get_json(url, _INFO_LIMIT)
+
+
 def fetch_info(ref: ShareRef) -> ShareInfo:
     """What is published at `ref` -- its publish date above all.  One small request; no XML."""
     answer = _get_json(_endpoint("shares", ref), _INFO_LIMIT)
@@ -344,6 +353,8 @@ class Link:
     share_name: str = ""
     # Why the last check failed, or "" -- kept so the list can say so without asking again.
     problem: str = ""
+    # Found by tnfind from the share's content rather than pasted by the user.
+    auto: bool = False
 
     @property
     def ref(self) -> ShareRef:
@@ -617,6 +628,11 @@ def _run_by(profiles: dict) -> list[str]:
 def _id_by_name(table: dict, name: str) -> str | None:
     """The key of the entry called `name` in an id-keyed table, or None.  The first, should two share a name."""
     return next((key for key, entry in table.items() if isinstance(entry, dict) and entry.get("name") == name), None)
+
+
+def scope_of(kind: str, name: str, tables: dict) -> dict | None:
+    """The tables of what the configuration holds of one object -- see _scope_tables.  None if it is not there."""
+    return _scope_tables(Link(kind, name, ""), tables)
 
 
 def local_names(kind: str, state: RunState) -> list[str]:

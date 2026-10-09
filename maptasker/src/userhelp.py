@@ -234,7 +234,12 @@ TASKERNET_UPDATES_HELP_TEXT = (
     " except that a Profile stays as switched on or off as you had it.  Accept Latest Version takes everything"
     " listed in one go instead, with no preview of its own (one press of Undo takes it back).  Only the address of each linked share"
     " is sent to taskernet.com; nothing from your configuration leaves your computer.  An update is someone"
-    " else's automation that will run on your phone, so read each preview before you take it.  \n"
+    " else's automation that will run on your phone, so read each preview before you take it.  Find Links searches"
+    " TaskerNet's public shares for the ones your Projects, Profiles, Tasks and Scenes came from and links those"
+    " whose content agrees with yours -- a name alone is not enough, as different authors reuse names; partial"
+    " matches are listed for you to tick.  The scan runs in the background -- close the window and carry on -- and a"
+    " notification tells you when it is done.  Stop ends the reading of TaskerNet's list early and compares yours"
+    " with the part already read; Select All and Deselect All tick the whole list of possible matches.  \n"
 )
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
