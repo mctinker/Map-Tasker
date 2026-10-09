@@ -1,7 +1,4 @@
 {
-  "maptasker/src/addcss.py::add_css": {
-    "LINES": 155
-  },
   "maptasker/src/aiutils.py::get_llama_models": {
     "LINES": 103
   },
@@ -102,9 +99,6 @@
   "maptasker/src/guiwins_taskedit.py::_render_edit_task_buttons": {
     "LINES": 108
   },
-  "maptasker/src/guiwins_views.py::NiceGuiTextView._enable_connector_highlighting": {
-    "LINES": 224
-  },
   "maptasker/src/guiwins_views.py::NiceGuiTextView.build_ui": {
     "LINES": 152
   },
@@ -113,9 +107,6 @@
   },
   "maptasker/src/healthck.py::_limitations": {
     "LINES": 106
-  },
-  "maptasker/src/mapjump.py::diagram_jump_js": {
-    "LINES": 182
   },
   "maptasker/src/maprefac.py::_plan_move_profile": {
     "LINES": 110

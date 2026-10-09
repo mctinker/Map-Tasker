@@ -22,13 +22,11 @@ from __future__ import annotations
 
 import asyncio
 import json
-import re
-from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from nicegui import context, ui
 
-from maptasker.src import mapask, mapfind, mapjump, mapswap, varxref, webassets
+from maptasker.src import assettext, mapask, mapfind, mapjump, mapswap, varxref
 from maptasker.src.guiwins_nav import go_to_target
 from maptasker.src.maputil2 import suppress_logged, translate_string
 from maptasker.src.sysconst import logger
@@ -77,40 +75,15 @@ def search_jump_js(target_id: str) -> str:
     is this one's own choice and deliberate -- a search result is read forwards from the
     line that matched.
     """
-    return f"""
-{mapjump.REVEAL_ANCESTORS_JS}
-        // Restore any previously-clicked match back to the standard highlight color before
-        // marking the newly-clicked one, so only the match the user just jumped to stands out.
-        document.querySelectorAll('.search-highlight-active').forEach(el => {{
-            el.classList.remove('search-highlight-active');
-            el.style.backgroundColor = '#ffd941';
-            el.style.color = '#000000';
-        }});
-        const el = document.getElementById("{target_id}");
-        if (el) {{
-            // As in the Diagram connector jump buttons: a chunk skipped by
-            // content-visibility: auto was never laid out, so scrollIntoView() on a
-            // descendant of it lands in the wrong place until it's forced to render.
-            mtRevealAncestors(el);
-            el.classList.add('search-highlight-active');
-            el.style.backgroundColor = '#ff5722';
-            el.style.color = '#ffffff';
-            el.scrollIntoView({{ behavior: 'auto', block: 'start' }});
-        }}
-    """
+    return assettext.render(
+        "js/search_result_jump.js", REVEAL_ANCESTORS_JS=mapjump.REVEAL_ANCESTORS_JS, TARGET_ID=str(target_id)
+    )
 
 
 # The script a view search runs in the browser.  It is a real .js file rather than a string
 # here so that an editor highlights and lints it; the four placeholders in it are filled in by
 # search_crawl_js.
 SEARCH_CRAWL_SCRIPT = "js/search_crawl.js"
-_SEARCH_PLACEHOLDER = re.compile(r"__(SCROLL_AREA_ID|SEARCH_TERM|TERM_LENGTH|CONTENT_TOKEN)__")
-
-
-@lru_cache(maxsize=1)
-def _search_crawl_template() -> str:
-    """The text of the search script, as it is on disk -- read once, then kept."""
-    return (webassets.ASSETS_DIR / SEARCH_CRAWL_SCRIPT).read_text(encoding="utf-8")
 
 
 def search_crawl_js(scroll_area_id: int, query: str, content_token: int) -> str:
@@ -127,14 +100,15 @@ def search_crawl_js(scroll_area_id: int, query: str, content_token: int) -> str:
     Returns:
         The script, ready for client.run_javascript.
     """
-    values = {
-        "SCROLL_AREA_ID": str(scroll_area_id),
-        "SEARCH_TERM": json.dumps(query.lower()),
-        "TERM_LENGTH": str(len(query)),
-        "CONTENT_TOKEN": str(content_token),
-    }
-    # One pass, so that a search term that happens to look like a placeholder is left alone.
-    return _SEARCH_PLACEHOLDER.sub(lambda match: values[match.group(1)], _search_crawl_template())
+    # Filled in one pass (assettext.render), so that a search term that happens to look like a
+    # placeholder is left alone.
+    return assettext.render(
+        SEARCH_CRAWL_SCRIPT,
+        SCROLL_AREA_ID=str(scroll_area_id),
+        SEARCH_TERM=json.dumps(query.lower()),
+        TERM_LENGTH=str(len(query)),
+        CONTENT_TOKEN=str(content_token),
+    )
 
 
 class TextViewSearch:

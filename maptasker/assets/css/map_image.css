@@ -1,0 +1,7 @@
+
+<style>
+    .image-small {
+        width: 300px;
+        height: auto; /* Maintains the aspect ratio */
+    }
+</style>

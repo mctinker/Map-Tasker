@@ -3,8 +3,8 @@
 // the search term, and answers with where each one is.
 //
 // It is run through client.run_javascript as the body of a function, so it ends in `return`.
-// Before it is sent, guiwins_search.search_crawl_js replaces the four __PLACEHOLDERS__ below
-// with the id of the view's scroll area, the (lowercased, JSON-encoded) search term, the
+// Before it is sent, guiwins_search.search_crawl_js replaces the four double-underscore
+// placeholders below with the id of the view's scroll area, the (lowercased, JSON-encoded) search term, the
 // term's length and the view's content token.
 
 const outerContainer = document.getElementById("c__SCROLL_AREA_ID__");

@@ -36,6 +36,7 @@ from html import escape
 from typing import TYPE_CHECKING
 from urllib.parse import quote, unquote
 
+from maptasker.src import assettext
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import get_single_item_requested
 from maptasker.src.sysconst import (
@@ -692,25 +693,11 @@ def click_wiring_js(container_id: str) -> str:
     raise at all -- see raise_map_window_js.  It is a no-op when no Map is open, which is
     the case the rebuild that follows raises the window it opens.
     """
-    return f"""
-        const container = document.getElementById({json.dumps(container_id)});
-        if (!container || container.dataset.mtFindingClicks) return;
-        container.dataset.mtFindingClicks = "1";
-
-        const jump = (event) => {{
-            const row = event.target.closest('[data-mt-target]');
-            if (!row) return;
-            event.preventDefault();
-            {raise_map_window_js().strip()};
-            emitEvent('mt_jump', {{ target: row.dataset.mtTarget }});
-        }};
-        container.addEventListener('click', jump);
-        // Enter and Space, so a row reached by tabbing behaves like the control it says
-        // it is.  Space would otherwise scroll the report out from under the user.
-        container.addEventListener('keydown', (event) => {{
-            if (event.key === 'Enter' || event.key === ' ') jump(event);
-        }});
-    """
+    return assettext.render(
+        "js/finding_clicks.js",
+        CONTAINER_ID=json.dumps(container_id),
+        RAISE_MAP_WINDOW=raise_map_window_js().strip(),
+    )
 
 
 # ##################################################################################
@@ -771,21 +758,7 @@ def anchor_attribute(target: Target, state: RunState) -> str:
 # the chunk visible first is the fix, and it is needed by every jump in the app -- this
 # one, the search results dialog, and the Diagram's connector jump buttons -- which is why
 # it is defined once here instead of a third time in guiwins.
-REVEAL_ANCESTORS_JS = """
-            function mtRevealAncestors(element) {
-                // A line the interactive Diagram view has folded away or filtered out is
-                // hidden outright, and scrolling to something with no box is scrolling to
-                // nowhere -- so ask that view to open it back up first.  The hook is absent
-                // on every other page and on a Diagram with no model behind it, which is why
-                // it is asked for rather than called (see diagintr.interaction_js).
-                if (window.mtDiagramReveal) window.mtDiagramReveal(element);
-                for (let node = element; node; node = node.parentElement) {
-                    if (getComputedStyle(node).contentVisibility === "auto") {
-                        node.style.contentVisibility = "visible";
-                    }
-                }
-            }
-"""
+REVEAL_ANCESTORS_JS = assettext.text("js/reveal_ancestors.js")
 
 # What a jump should actually land on, given the anchor it was aimed at.
 #
@@ -800,112 +773,10 @@ REVEAL_ANCESTORS_JS = """
 # jump a clicked report finding asks for (below), and the Map's own hyperlinks, which the
 # view takes over so that they can reach a line the browser has not laid out yet (see
 # guiwins_views.NiceGuiTextView._enable_in_page_links).
-RESOLVE_TARGET_JS = f"""
-            function mtJumpTarget(anchor) {{
-                if (!anchor || !anchor.classList.contains({ANCHOR_CLASS!r})) return anchor;
-                let target = anchor.nextElementSibling;
-                while (target && !target.textContent.trim()) {{
-                    target = target.nextElementSibling;
-                }}
-                return target || anchor.parentElement;
-            }}
-"""
+RESOLVE_TARGET_JS = assettext.render("js/resolve_target.js", ANCHOR_CLASS=repr(ANCHOR_CLASS))
 
 
-_RAISE_MAP_WINDOW_JS = """
-        (() => {
-            const MAP_WINDOW_PREFIX = MAP_PREFIX;
-
-            // The Map window, raised from inside the click that asked for it.
-            //
-            // Which request actually raises a background TAB was measured in Chrome rather
-            // than reasoned about, because the reasoning was wrong twice.  Of everything
-            // that looks like it should work, one thing does:
-            //
-            //   other.focus()          ignored.  A tab cannot be focused by whoever happens
-            //                          to hold a handle to it -- that is tab-jacking, and it
-            //                          is refused even for a window this one opened.  Asked
-            //                          anyway, and asked first, because a view opened as a
-            //                          real popup WINDOW rather than a tab is raised by it.
-            //   owner.open("", name)   ignored.  Asking the Map's own opener to raise it
-            //                          looks like the privileged request and is not one: the
-            //                          activation belongs to the window the click happened
-            //                          in and does not travel into another window's open().
-            //                          It still hands back a live window, so it reads as
-            //                          success and swallows anything tried after it.
-            //   window.open("", name)  RAISES IT.  The activation is here, the name is
-            //                          looked up across the whole family of windows this one
-            //                          belongs to, and the empty URL means the Map is brought
-            //                          forward without being reloaded -- so it keeps its
-            //                          scroll position, and the jump already on its way lands
-            //                          in a page that is still the one that was scrolled.
-            //
-            // So the one that works is asked from here first, and the opener is left as a
-            // last resort for a browser that refuses it (open() returns null when a popup is
-            // blocked).  None of the three is required to work: the jump itself has already
-            // been sent, and a browser that will not raise a window is not a failure to
-            // report.
-            function raiseWindow(owner, other) {
-                let name = "";
-                try {
-                    name = other.name || "";
-                } catch (error) {
-                    name = "";
-                }
-                try {
-                    other.focus();
-                } catch (error) {}
-                if (!name) return true;
-                for (const asker of [window, owner]) {
-                    try {
-                        if (!asker || asker.closed) continue;
-                        const raised = asker.open("", name);
-                        if (raised) {
-                            try {
-                                raised.focus();
-                            } catch (error) {}
-                            return true;
-                        }
-                    } catch (error) {}
-                }
-                return true;
-            }
-
-            // Only a window that already exists is raised, and it is found by HANDLE rather
-            // than by name: a name nothing has claimed would conjure a blank window, and with
-            // "Open View In New Window" on the Map's name carries a timestamp nothing here
-            // could predict anyway.  The name that raises it is then read back off the handle
-            // -- a name that is known to exist, because a live window has it.
-            //
-            // TWO lists, because which window holds the Map's handle depends on who asked for
-            // it.  _open_popout_window registers the new window on whichever client was
-            // active when it ran: the main window when the Map button was pressed there, but
-            // the view itself when a jump from that view had to build the Map -- go_to_target
-            // runs inside the clicked view's slot, so rebuild_map_for_jump's window.open() is
-            // that view's.  Own list first, and each list newest first, which is the Map
-            // jump_map_view tries first (see its note on several Maps being open at once).
-            //
-            // When there is no Map open anywhere this does nothing, and the rebuild that
-            // follows opens one and raises it on its own.
-            for (const source of [window, window.opener]) {
-                try {
-                    if (!source || source.closed) continue;
-                    const popouts = source.mapTaskerPopouts || [];
-                    for (let index = popouts.length - 1; index >= 0; index -= 1) {
-                        const other = popouts[index];
-                        if (other && !other.closed && other !== window
-                            && (other.name || "").startsWith(MAP_WINDOW_PREFIX)) {
-                            return raiseWindow(source, other);
-                        }
-                    }
-                } catch (error) {
-                    // A window that has gone away, or one the browser will not let us touch.
-                    // The jump itself is unaffected, so there is nothing to report.
-                }
-            }
-            return false;
-        })()
-"""
+_RAISE_MAP_WINDOW_SCRIPT = "js/raise_map_window.js"
 
 
 def raise_map_window_js() -> str:
@@ -925,7 +796,7 @@ def raise_map_window_js() -> str:
     object clicks (diagintr), a report finding (click_wiring_js), and a Find result
     (find_result_click_js).  Evaluates to true when a Map was found to raise.
     """
-    return _RAISE_MAP_WINDOW_JS.replace("MAP_PREFIX", json.dumps(f"{POPOUT_WINDOW_PREFIX}map"))
+    return assettext.render(_RAISE_MAP_WINDOW_SCRIPT, MAP_PREFIX=json.dumps(f"{POPOUT_WINDOW_PREFIX}map"))
 
 
 def find_result_click_js(guard_anchor: str = "") -> str:
@@ -1013,34 +884,7 @@ def close_popouts_js(close_this_window: bool = False) -> str:
     Exit closes it deliberately, at the end, once everything else is gone.
     """
     tail = "\n            try { window.close(); } catch (error) {}" if close_this_window else ""
-    return f"""
-        (() => {{
-            const seen = new Set();
-
-            const sweep = (holder) => {{
-                let popouts;
-                try {{
-                    if (!holder || holder.closed) return;
-                    popouts = holder.mapTaskerPopouts || [];
-                }} catch (error) {{
-                    return;  // A window gone, or one this page is not allowed to touch.
-                }}
-                for (const other of popouts) {{
-                    try {{
-                        if (!other || other === window || seen.has(other)) continue;
-                        seen.add(other);
-                        sweep(other);   // Whatever IT opened, while it is still open to ask.
-                        if (!other.closed) other.close();
-                    }} catch (error) {{}}
-                }}
-                try {{ holder.mapTaskerPopouts = []; }} catch (error) {{}}
-            }};
-
-            sweep(window);
-            try {{ sweep(window.opener); }} catch (error) {{}}{tail}
-            return true;
-        }})();
-    """
+    return assettext.render("js/close_popouts.js", TAIL=tail)
 
 
 def bring_to_front_js() -> str:
@@ -1081,20 +925,7 @@ def bring_to_front_js() -> str:
     was opened under one (see _open_popout_window), and the guard on window.name is what
     keeps it from conjuring a blank popup if that ever stops being true.
     """
-    return """
-        (() => {
-            try { window.focus(); } catch (error) {}
-            if (!window.name) return true;
-            try {
-                if (window.opener && !window.opener.closed) {
-                    window.opener.open('', window.name);
-                    return true;
-                }
-            } catch (error) {}
-            try { window.open('', window.name); } catch (error) {}
-            return true;
-        })();
-    """
+    return assettext.text("js/bring_to_front.js")
 
 
 def jump_js(anchor_id: str) -> str:
@@ -1115,50 +946,13 @@ def jump_js(anchor_id: str) -> str:
     # "return" at the top level, and an IIFE inside it: ui.run_javascript() compiles what it
     # is given as the body of a function, so a bare expression's value never comes back --
     # only an explicit return does.  The same shape the search JS in guiwins uses.
-    return f"""
-        return (() => {{
-{REVEAL_ANCESTORS_JS}
-{RESOLVE_TARGET_JS}
-            const anchor = document.getElementById({json.dumps(anchor_id)});
-            if (!anchor) return false;
-            mtRevealAncestors(anchor);
-
-            // With the "twisty" option on, a Task's line and everything under it sit inside
-            // a collapsed <details> (see twisty.add_twisty).  Scrolling to something the
-            // browser is not displaying does nothing at all, so open every one of them on
-            // the way down first -- the user asked to be taken here.
-            for (let box = anchor.closest('details'); box; box = box.parentElement?.closest('details')) {{
-                box.open = true;
-            }}
-
-            // An empty marker highlights what follows it; anything else (a variable's own
-            // table row) IS the target.  Highlighting a line break draws an outline around
-            // nothing, which reads as the jump having failed -- see mtJumpTarget.
-            const target = mtJumpTarget(anchor);
-            if (!target) return false;
-
-            document.querySelectorAll('.{HIGHLIGHT_CLASS}').forEach(
-                (element) => element.classList.remove('{HIGHLIGHT_CLASS}'),
-            );
-            mtRevealAncestors(target);
-            target.classList.add('{HIGHLIGHT_CLASS}');
-            // Instant, not smooth -- the same choice the Diagram's jumps make, and for one
-            // more reason besides theirs.
-            //
-            // Theirs: a jump crosses tens of thousands of pixels on a large output, where an
-            // animated scroll is slow to land and distracting rather than helpful.
-            //
-            // And: a smooth scroll is an animation, and an animation does not run on a page
-            // the browser is not displaying.  This jump is delivered the moment the Map has
-            // finished streaming in, which is precisely when its window may not be the one in
-            // front -- a popout the browser opened behind, or one the user has clicked away
-            // from while it built.  The animation then never starts, never recovers, and
-            // leaves a Map sitting at the top with the object highlighted 40,000 pixels down
-            // where nobody will see it.  Setting the position outright works either way.
-            target.scrollIntoView({{ behavior: 'auto', block: 'center' }});
-            return true;
-        }})();
-    """
+    return assettext.render(
+        "js/jump_to_anchor.js",
+        REVEAL_ANCESTORS_JS=REVEAL_ANCESTORS_JS,
+        RESOLVE_TARGET_JS=RESOLVE_TARGET_JS,
+        ANCHOR_ID=json.dumps(anchor_id),
+        HIGHLIGHT_CLASS=HIGHLIGHT_CLASS,
+    )
 
 
 # ##################################################################################
@@ -1282,156 +1076,12 @@ def diagram_jump_js(
     Evaluates to false when neither finds anything, which is the caller's cue to build a
     Map instead.
     """
-    return f"""
-        return (() => {{
-{REVEAL_ANCESTORS_JS}
-            const container = document.getElementById({json.dumps(container_id)});
-            if (!container) return false;
-            const patterns = {json.dumps(patterns)};
-            const placement = {json.dumps(list(placement) if placement else None)};
-            const anchor = {json.dumps(anchor)};
-            if (!patterns.length && !placement && !anchor) return false;
-
-            // Any highlight left by a previous jump goes first, in both views' shared class,
-            // so only the object just asked for is marked.
-            document.querySelectorAll('.{HIGHLIGHT_CLASS}').forEach(
-                (element) => element.classList.remove('{HIGHLIGHT_CLASS}'),
-            );
-
-            const walker = () => document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-
-            // The recorded line, as a node and an offset into it.
-            //
-            // The interactive Diagram view gives every line an element of its own carrying
-            // its number (see diagintr), so the line is asked for directly and only the
-            // column is counted -- across that one line's text nodes, which a connector or
-            // an object name splits it into.
-            //
-            // The walk below is what this did before there were line elements, and is kept
-            // for a Diagram rendered without them.  It cannot simply be used for both: the
-            // newline that ends a line now sits in a hidden element of its own, so counting
-            // newlines through the text nodes arrives at column 0 of the wanted line already
-            // standing at the END of the previous line's newline node -- the right position,
-            // in a node with no line text left in it to highlight.
-            function seekWithinLine(lineElement, column) {{
-                const crawl = document.createTreeWalker(lineElement, NodeFilter.SHOW_TEXT);
-                for (let node = crawl.nextNode(); node; node = crawl.nextNode()) {{
-                    const text = node.nodeValue;
-                    const ends = text.indexOf("\\n");
-                    const usable = ends === -1 ? text.length : ends;
-                    if (column < usable || (column === usable && ends !== -1)) {{
-                        return {{ node: node, offset: column }};
-                    }}
-                    column -= usable;
-                    // The line ends in this node and the column is past the end of it, so it
-                    // is not a column on this line at all.
-                    if (ends !== -1) return null;
-                }}
-                return null;
-            }}
-
-            function seek(lineNumber, column) {{
-                const lineElement = container.querySelector('[data-line="' + lineNumber + '"]');
-                if (lineElement) return seekWithinLine(lineElement, column);
-                let line = 0;
-                const crawl = walker();
-                for (let node = crawl.nextNode(); node; node = crawl.nextNode()) {{
-                    const text = node.nodeValue;
-                    if (!text.length) continue;
-                    let from = 0;
-                    while (from <= text.length) {{
-                        if (line === lineNumber) {{
-                            const rest = text.indexOf("\\n", from);
-                            const end = rest === -1 ? text.length : rest;
-                            if (column <= end - from) return {{ node: node, offset: from + column }};
-                            column -= end - from;
-                            // The line ends in this node and the column is past the end of
-                            // it, so it is not a column on this line at all -- walking on
-                            // into the next one would answer with a position on the wrong
-                            // line, which is worse than not answering.
-                            if (rest !== -1) return null;
-                            break;   // The line continues in the next node.
-                        }}
-                        const next = text.indexOf("\\n", from);
-                        if (next === -1) break;
-                        line += 1;
-                        from = next + 1;
-                    }}
-                }}
-                return null;
-            }}
-
-            // The fallback: the first line holding one of the forms this object is drawn
-            // as, preferring the earlier forms.  One walk, keeping the best so far, since a
-            // later pattern matching an earlier line must not beat the first pattern
-            // matching a later one -- "Test1" without its trailing space matches the line
-            // drawn for "Test13", which is exactly what the ordering is there to settle.
-            function search() {{
-                let best = null;
-                const crawl = walker();
-                for (let node = crawl.nextNode(); node; node = crawl.nextNode()) {{
-                    const text = node.nodeValue;
-                    for (let rank = 0; rank < patterns.length; rank++) {{
-                        if (best && best.rank <= rank) break;
-                        const at = text.indexOf(patterns[rank]);
-                        if (at >= 0) best = {{ rank: rank, node: node, offset: at, length: patterns[rank].length }};
-                    }}
-                    if (best && best.rank === 0) break;
-                }}
-                return best;
-            }}
-
-            // The interactive Diagram wraps every object's name in an element of its own
-            // (see diagintr), and an element is an exact answer: no counting, no clamping,
-            // and the whole name rather than as much of it as fits in one text node.  The
-            // two below are what this did before there were elements, and remain the answer
-            // for a Diagram rendered from a file an older run left on disk.
-            if (anchor) {{
-                const element = container.querySelector('[data-anchor="' + CSS.escape(anchor) + '"]');
-                if (element) {{
-                    element.classList.add('{HIGHLIGHT_CLASS}');
-                    mtRevealAncestors(element);
-                    element.scrollIntoView({{block: 'center', inline: 'nearest', behavior: 'auto'}});
-                    for (let box = element.parentElement; box; box = box.parentElement) {{
-                        if (box.scrollWidth > box.clientWidth) box.scrollLeft = 0;
-                    }}
-                    return true;
-                }}
-            }}
-
-            let found = null;
-            if (placement) {{
-                const spot = seek(placement[0], placement[1]);
-                if (spot) {{
-                    // A length of zero is "the name could not be placed on the line after
-                    // all" (see diagram._place): the line is still the right one, so all of
-                    // it that is in this node is marked rather than nothing at all.
-                    const rest = spot.node.nodeValue.indexOf("\\n", spot.offset);
-                    const toEnd = (rest === -1 ? spot.node.nodeValue.length : rest) - spot.offset;
-                    found = {{ node: spot.node, offset: spot.offset, length: placement[2] || toEnd }};
-                }}
-            }}
-            if (!found) found = search();
-            if (!found) return false;
-
-            // Clamped to the node the span starts in.  A name is drawn as one unbroken run
-            // of text, so this is the whole of it; the clamp is there for the case where a
-            // connector span has split the line between the start and the end, where
-            // highlighting the first part of the name is still an answer.
-            const end = Math.min(found.offset + found.length, found.node.nodeValue.length);
-            const span = document.createElement('span');
-            span.className = '{HIGHLIGHT_CLASS}';
-            const range = document.createRange();
-            range.setStart(found.node, found.offset);
-            range.setEnd(found.node, end);
-            range.surroundContents(span);
-            mtRevealAncestors(span);
-            span.scrollIntoView({{block: 'center', inline: 'nearest', behavior: 'auto'}});
-            // Back to column 1, as the connector jump buttons do: a wide diagram scrolled
-            // sideways puts the reader in the middle of a line.
-            for (let box = span.parentElement; box; box = box.parentElement) {{
-                if (box.scrollWidth > box.clientWidth) box.scrollLeft = 0;
-            }}
-            return true;
-        }})();
-    """
+    return assettext.render(
+        "js/diagram_jump.js",
+        REVEAL_ANCESTORS_JS=REVEAL_ANCESTORS_JS,
+        CONTAINER_ID=json.dumps(container_id),
+        PATTERNS=json.dumps(patterns),
+        PLACEMENT=json.dumps(list(placement) if placement else None),
+        ANCHOR=json.dumps(anchor),
+        HIGHLIGHT_CLASS=HIGHLIGHT_CLASS,
+    )

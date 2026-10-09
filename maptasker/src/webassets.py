@@ -9,13 +9,12 @@ carry and far cheaper than resending the canvas script over the websocket on eve
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from nicegui import app
 
+from maptasker.src import assettext
 from maptasker.src.sysconst import VERSION
 
-ASSETS_DIR = Path(__file__).resolve().parent.parent / "assets"
+ASSETS_DIR = assettext.ASSETS_DIR
 ASSETS_URL = "/maptasker_assets"
 STYLESHEET = "css/maptasker.css"
 CANVAS_SCRIPT = "js/scene_canvas.js"

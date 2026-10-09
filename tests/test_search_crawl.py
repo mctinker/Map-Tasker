@@ -9,17 +9,17 @@ from __future__ import annotations
 
 import json
 
-from maptasker.src import guiwins_search, webassets
+from maptasker.src import assettext, guiwins_search
 
 _PLACEHOLDERS = ("__SCROLL_AREA_ID__", "__SEARCH_TERM__", "__TERM_LENGTH__", "__CONTENT_TOKEN__")
 
 
 def test_the_script_is_shipped_with_the_assets() -> None:
-    assert (webassets.ASSETS_DIR / guiwins_search.SEARCH_CRAWL_SCRIPT).is_file()
+    assert (assettext.ASSETS_DIR / guiwins_search.SEARCH_CRAWL_SCRIPT).is_file()
 
 
 def test_every_placeholder_is_filled_in_exactly_once() -> None:
-    template = guiwins_search._search_crawl_template()
+    template = assettext.text(guiwins_search.SEARCH_CRAWL_SCRIPT)
     script = guiwins_search.search_crawl_js(42, "Hello", 7)
 
     for placeholder in _PLACEHOLDERS:

@@ -1,0 +1,13 @@
+
+.resettab {display: inline-block; margin-left: 0;}
+.normtab {display: inline-block; margin-left: 20;}
+.projtab {display: inline-block; margin-left: 20;}
+.proftab {display: inline-block; margin-left: 40;}
+.tasktab {display: inline-block; margin-left: 70;}
+.actiontab {display: inline-block; margin-left: 80;}
+.scenetab {display: inline-block; margin-left: 20;}
+.scenetasktab {display: inline-block; margin-left: 30;}
+.blanktab1 {display: inline-block; margin-right: __BLANK_TAB_1__;}
+.blanktab2 {display: inline-block; margin-right: __BLANK_TAB_2__;}
+.blanktab3 {display: inline-block; margin-right: __BLANK_TAB_3__;}
+    

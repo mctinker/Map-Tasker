@@ -1,0 +1,32 @@
+
+<style>
+    .hover-tooltip {
+        position: relative;
+        cursor: help;
+    }
+    .hover-tooltip::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 0;
+        top: 100%;
+        white-space: pre;
+        font-family:__FONT__, monospace;
+        background: #333;
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+        line-height: 1.4;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.1s linear, visibility 0.1s linear;
+        pointer-events: none;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .hover-tooltip:hover::after {
+        opacity: 1;
+        visibility: visible;
+        transition-delay: 0.15s;
+    }
+</style>

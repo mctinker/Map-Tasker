@@ -1,0 +1,17 @@
+
+<style>
+.text-box {
+    border: 2px solid __BOX_BORDER__;
+    padding-left: 10px;    /* Keeps the existing left padding */
+    padding-right: 10px;   /* Keeps the existing right padding */
+    padding-top: 0px;      /* No space at the top */
+    padding-bottom: 4px;   /* Just enough space at the bottom */
+    margin: 4px 10px;
+    width: 100%;
+    background-color: __BOX_BACKGROUND__;
+}
+.text-box p {
+    margin: 0;             /* The box's own padding is the spacing; a paragraph adds none */
+}
+</style>
+    

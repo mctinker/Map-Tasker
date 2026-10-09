@@ -466,7 +466,7 @@ layers = [
     """,
     """
     actargs : action : caches : codelint : actionc : actiond : actione : actionr :
-    actiont : addcss : aiutils : apikeys : appinv : bildhtml :
+    actiont : addcss : aiutils : apikeys : appinv : assettext : bildhtml :
     bldargs : bldbndle : bundle : caveats : clip : clock :
     colors : colrmode : condition : condjoin : config : console :
     debug : deprecate : deviceinv : diagcnst : diagintr :

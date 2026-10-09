@@ -27,6 +27,7 @@ from urllib.parse import urlencode
 from nicegui import Event, context, run, ui
 
 from maptasker.src import (
+    assettext,
     console,
     mapjump,
     sessundo,
@@ -2200,58 +2201,13 @@ class MapTaskerEventHandlers(
             # Mirrors the "clearPreviousHighlights" routine inside NiceGuiTextView.search_event:
             # unwrap every '.search-highlight' span back into a plain text node, descending into
             # Shadow DOM roots too since that's where the highlighted matches actually live.
-            ui.run_javascript(f"""
-                const outerContainer = document.getElementById("c{textview.scroll_area.id}");
-                if (!outerContainer) return;
-                const container = outerContainer.querySelector('.q-scrollarea__content') || outerContainer;
-
-                function clearHighlights(root) {{
-                    const highlights = root.querySelectorAll ? root.querySelectorAll('.search-highlight') : [];
-                    highlights.forEach(el => {{
-                        const textNode = document.createTextNode(el.textContent);
-                        el.parentNode.replaceChild(textNode, el);
-                    }});
-                    const children = root.querySelectorAll ? root.querySelectorAll('*') : [];
-                    children.forEach(child => {{
-                        if (child.shadowRoot) clearHighlights(child.shadowRoot);
-                    }});
-                }}
-
-                // Prefer unwrapping the spans search_event recorded, which puts each match's
-                // own text node back where the span was. The generic sweep below cannot do
-                // that -- it substitutes freshly created text nodes -- and search_event's
-                // cached index (see guiwins.py) refers to the nodes themselves, so letting
-                // the sweep loose on them means throwing that index away and making the next
-                // search crawl the whole view again from scratch.
-                const cache = container.__mtSearchIndex;
-                if (cache && cache.highlights) {{
-                    for (const span of cache.highlights) {{
-                        if (span.parentNode && span.firstChild) {{
-                            span.parentNode.replaceChild(span.firstChild, span);
-                        }}
-                    }}
-                    cache.highlights = [];
-                }}
-                if (container.querySelector('.search-highlight')) {{
-                    clearHighlights(container);
-                    container.__mtSearchIndex = null;  // no longer describes these text nodes
-                }}
-
-                // Also turn off any Diagram-view connector highlighting left by clicking a connector.
-                container.querySelectorAll('.connector-highlight').forEach(el => {{
-                    el.classList.remove('connector-highlight');
-                }});
-                container.querySelectorAll('.connector-task-box').forEach(el => {{
-                    el.classList.remove('connector-task-box');
-                }});
-
-                // ...and the outline left on whatever a clicked report finding jumped to
-                // (see mapjump.jump_js).  "Clear" means the view is back to how it was
-                // rendered, whichever of the three ways something on it came to stand out.
-                container.querySelectorAll('.{mapjump.HIGHLIGHT_CLASS}').forEach(el => {{
-                    el.classList.remove('{mapjump.HIGHLIGHT_CLASS}');
-                }});
-            """)
+            ui.run_javascript(
+                assettext.render(
+                    "js/clear_search_highlights.js",
+                    SCROLL_AREA_ID=str(textview.scroll_area.id),
+                    HIGHLIGHT_CLASS=mapjump.HIGHLIGHT_CLASS,
+                )
+            )
 
         ui.notify(translate_string("Cleared the search highlights."), type="info")
 

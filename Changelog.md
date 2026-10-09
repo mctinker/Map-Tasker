@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: If the Map or Diagram file could not be found when its view opened, the view stayed on "Building the view" and never showed anything. It now shows the lines held in memory instead.
 - Fixed: An AI analysis started with a model whose service had not been recorded, such as one restored from saved settings, stopped with "Invalid model selected". It now runs.
 - Fixed: When a Claude model declines a request or runs out of room to finish, the analysis now says so instead of showing an empty or cut-off response.
+- Fixed: The hover tooltips in the Map showed their text in an invalid colour, so on a light page it could be unreadable against the dark tooltip. The text is now always white.
 - Fixed:
 
 ### Known Issues
