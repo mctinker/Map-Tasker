@@ -235,6 +235,11 @@ async def validate_or_filelist_xml(
             if return_code != 0:
                 self.display_message_box(error_message, "Red")
                 return 1, android_ipaddr, android_port, android_file
+            if self.state.backup_fetch_path:
+                self.display_message_box(
+                    f"{translate_string('Backup file saved to')} {self.state.backup_fetch_path}",
+                    "Green",
+                )
         else:
             return 1, android_ipaddr, android_port, android_file
 

@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as ET
 
+from maptasker.src import console
 from maptasker.src.error import error_handler
 from maptasker.src.maputil2 import http_request
 from maptasker.src.sysconst import logger
@@ -69,6 +70,9 @@ def write_out_backup_file(file_contents: bin, state: RunState) -> None:
     # Set flag to identify that backup file was fetched from Android device
     state.program_arguments.fetched_backup_from_android = True
 
+    # Record where it landed so the caller (GUI or CLI) can tell the user.
+    state.backup_fetch_path = os.path.join(my_output_dir, my_file_name)
+
 
 # Return the substring after the last occurance of a specific character in a string
 def substring_after_last(string: str, char: chr) -> str:
@@ -116,6 +120,7 @@ def get_backup_file(state: RunState) -> str:
 
     # Write the XML file to local storage.
     write_out_backup_file(file_contents, state=state)
+    console.say(f"Backup file saved to {state.backup_fetch_path}")
 
     return substring_after_last(state.program_arguments.android_file, "/")
 

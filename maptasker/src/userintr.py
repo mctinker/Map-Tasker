@@ -97,6 +97,7 @@ from maptasker.src.sysconst import (
     ALL_OBJECTS_MESSAGE,
     ANALYSIS_FILE,
     CHANGELOG_URL,
+    DIAGRAM_FILE,
     DIAGRAM_PROFILES_PER_LINE,
     NOTIFY_TIMEOUT_DEFAULT,
     POPOUT_WINDOW_PREFIX,
@@ -1628,6 +1629,8 @@ class MapTaskerEventHandlers(
                     "Orange",
                 )
             gui.display_message_box(translate_string("Map View opened in a new browser window."), "Green")
+            map_path = output_path("MapTasker.html", state=self.state)
+            gui.display_message_box(f"{translate_string('Map saved to')} {map_path}", "Green")
         finally:
             _clear_busy_banner(building)
 
@@ -1674,6 +1677,8 @@ class MapTaskerEventHandlers(
             if self.state.diagram_limit_msg:
                 gui.display_message_box(self.state.diagram_limit_msg, "Orange")
             gui.display_message_box(translate_string("Diagram View opened in a new browser window."), "Green")
+            diagram_path = output_path(DIAGRAM_FILE, state=self.state)
+            gui.display_message_box(f"{translate_string('Diagram saved to')} {diagram_path}", "Green")
         else:
             gui.display_message_box(
                 translate_string("No XML data loaded! Please select a valid XML file first."),

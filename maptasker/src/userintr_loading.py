@@ -405,6 +405,12 @@ class LoadingEventHandlers:
             the_view.android_file = ""
             return
 
+        if self.state.backup_fetch_path:
+            the_view.display_message_box(
+                f"{translate_string('Backup file saved to')} {self.state.backup_fetch_path}",
+                "Green",
+            )
+
         # Purge pre-existing data tracking fields
         clear_tasker_data(state=self.state)
 

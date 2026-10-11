@@ -243,6 +243,11 @@ class RunState:
         # view_limit_msg so a truncated Map cannot leave its message showing on an untruncated
         # Diagram (the two views are built from separate runs).
         self.diagram_limit_msg = ""
+        # Full path of the backup XML most recently fetched from an Android device and saved
+        # locally.  Set by getbakup.write_out_backup_file; read by the GUI/CLI callers that
+        # triggered the fetch so they can tell the user where it landed.  "" when nothing has
+        # been fetched this run.
+        self.backup_fetch_path = ""
         # How many output lines went into the Map now on disk.  Set by bildhtml wherever that
         # file comes from -- the build that wrote it, or mapcache when an unchanged Map is
         # shown again -- and read by the GUI to say whether the view limit cut it short.  The

@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
+- Changed: The Map view, Diagram view, and Android backup fetch now tell you the exact file path they saved to, matching the other export and report features.
 - Changed:
 
 ### Removed
