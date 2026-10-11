@@ -41,7 +41,9 @@ def get_ids(
     # Get the IDs.
     try:
         # Get a list of the Profiles for this head_xml_element
-        found_ids = head_xml_element.find(ids_to_find).text
+        # An element with no text (a Project whose last Task was deleted is saved as <tids/>) reads
+        # back as None, which is "no IDs" and not something to split.
+        found_ids = head_xml_element.find(ids_to_find).text or ""
     except AttributeError:  # head_xml_element has no Profile/Task IDs
         if head_xml_element_name not in head_xml_elements_without_profiles:
             head_xml_elements_without_profiles.append(head_xml_element_name)

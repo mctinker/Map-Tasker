@@ -1933,14 +1933,18 @@ class MapTaskerEventHandlers(
           rebuild and the list is left exactly as it was.
         """
         notice = await show_save_in_progress_notice()
-        saved, result = write_full_backup_to_current_file(state=self.state)
-        if not saved:
-            notice.dismiss()
-            ui.notify(f"{translate_string('Could not save to current file:')} {result}", type="negative")
-            return False
+        # Dismissed however this ends: an exception from the write or the reload must not leave
+        # the "in progress" spinner on screen for ever, which reads as a hung save.
+        try:
+            saved, result = write_full_backup_to_current_file(state=self.state)
+            if not saved:
+                ui.notify(f"{translate_string('Could not save to current file:')} {result}", type="negative")
+                return False
 
-        loaded, error = reload_saved_copy_and_refresh(self.gui, result)
-        notice.dismiss()
+            loaded, error = reload_saved_copy_and_refresh(self.gui, result)
+        finally:
+            notice.dismiss()
+
         if not loaded:
             ui.notify(
                 f"{translate_string('Saved a copy to')} {result}, "
