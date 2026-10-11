@@ -39,6 +39,9 @@ dependencies = [
     "platformdirs>=4.13.0",
     'requests>=2.34.2',
     'tomli_w>=1.2.0',
+    # Windows has no system time-zone database, so zoneinfo (maputils' time-zone lookup) finds no
+    # zone at all without this and silently falls back to UTC.  Linux and macOS ship their own.
+    "tzdata>=2025.2; sys_platform == 'win32'",
 ]
 
 [project.optional-dependencies]

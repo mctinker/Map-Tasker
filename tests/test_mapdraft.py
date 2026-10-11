@@ -16,9 +16,10 @@ from __future__ import annotations
 import asyncio
 import json
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
-from maptasker.src import mapask, mapdraft, taskedit
+from maptasker.src import appinv, caches, mapask, mapdraft, taskedit
 from maptasker.src.primitem import PrimeItems
 
 from tests.test_mapswap import _FIXTURE_XML, _load
@@ -38,8 +39,19 @@ _SETTINGS = mapask.ModelSettings(mapask.ANTHROPIC, "claude-sonnet-5", "test-key"
 
 
 @pytest.fixture
-def backup() -> None:
-    """test_mapswap's fixture backup, loaded: its Tasks are Noisy, Opener and Quiet."""
+def backup(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """test_mapswap's fixture backup, loaded: its Tasks are Noisy, Opener and Quiet.
+
+    With a small, known list of fetched Applications, kept in a cache file of its own.  What is
+    addable follows the Application and icon inventory (Notify, one of the common actions, has an
+    icon argument), and the inventory includes whatever MapTasker_Apps.json sits in the current
+    directory -- so without this, the catalog these tests read was the maintainer's phone locally
+    and an empty one on a CI checkout, and the same test passed in one place and failed in the other.
+    """
+    cache = tmp_path / "MapTasker_Apps.json"
+    cache.write_text(json.dumps({"devices": {"test:1821": {"apps": [{"pkg": "com.test.app", "label": "Test"}]}}}))
+    monkeypatch.setattr(appinv, "cache_path", lambda: str(cache))
+    caches.clear_all()
     _load(_FIXTURE_XML)
 
 
