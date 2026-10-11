@@ -61,8 +61,8 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 
-SRC_PATH = Path("/Users/mikrubin/MapTasker_Dev/maptasker/src")
-LOCALE_PATH = Path("/Users/mikrubin/MapTasker_Dev/maptasker/locale")
+SRC_PATH = Path("/Users/mikrubin/MapTasker/maptasker/src")
+LOCALE_PATH = Path("/Users/mikrubin/MapTasker/maptasker/locale")
 
 # Function names that mean "this string is user-visible and must be translated".
 TRANSLATE_FUNCS = {"translate_string", "_translate", "_"}

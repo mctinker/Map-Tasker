@@ -133,9 +133,9 @@ def copy_and_rename(
 
 # --- Example Usage ---
 if __name__ == "__main__":
-    SOURCE_DIRECTORY: str = "/Users/mikrubin/MapTasker_Dev"
+    SOURCE_DIRECTORY: str = "/Users/mikrubin/MapTasker"
     TARGET_DIRECTORY: str = "/Users/mikrubin/MapTasker"
-    OLD_STRING: str = "MapTasker_Dev"
+    OLD_STRING: str = "MapTasker"
     NEW_STRING: str = "MapTasker"
     FILES_TO_EXCLUDE: list[str] = [".DS_Store", "maptasker-dev.code-workspace", "secret.key", ".venv"]
 

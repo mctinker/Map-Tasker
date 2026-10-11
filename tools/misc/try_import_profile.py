@@ -43,7 +43,7 @@ import json
 import os
 import sys
 
-REPO = "/Users/mikrubin/MapTasker_Dev"
+REPO = "/Users/mikrubin/MapTasker"
 sys.path.insert(0, REPO)
 
 from maptasker.src.primitem import PrimeItems  # noqa: E402

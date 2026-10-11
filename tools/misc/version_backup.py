@@ -17,9 +17,9 @@ import zipfile
 
 # Add the full paths of the destination directories where copies will be sent.
 DESTINATION_DIRECTORIES = [
-    r"/Volumes/MyStuff/AMyStuff/Backups/MapTasker_Dev Older Copies",
-    r"/Users/mikrubin/MikeSafe/MapTasker_Dev",
-    r"/Users/mikrubin/Library/CloudStorage/GoogleDrive-mikrubin@gmail.com/My Drive/AMyStuff/Backups/MapTasker_Dev Older Copies",
+    r"/Volumes/MyStuff/AMyStuff/Backups/MapTasker Older Copies",
+    r"/Users/mikrubin/MikeSafe/MapTasker",
+    r"/Users/mikrubin/Library/CloudStorage/GoogleDrive-mikrubin@gmail.com/My Drive/AMyStuff/Backups/MapTasker Older Copies",
 ]
 
 # Add names of files or directories you wish to EXCLUDE from the backup.

@@ -147,7 +147,7 @@ def translate_and_generate_gettext(input_file: str, languages: dict, base_locale
 
 if __name__ == "__main__":
     # The base path where the language folders are located
-    LOCALE_BASE_PATH = "/Users/mikrubin/MapTasker_Dev/maptasker/locale"
+    LOCALE_BASE_PATH = "/Users/mikrubin/MapTasker/maptasker/locale"
 
     # Dictionary of languages: Key is ISO identifier, Value is Name (for reference)
     # Ensure the keys here match the folder names under LOCALE_BASE_PATH

@@ -47,7 +47,7 @@ def update_po_files(root_dir: str, target_text: str, replacement_text: str) -> N
 # --- CONFIGURATION ---
 # Change '.' to the actual path of your 'locale' folder if this script
 # isn't running in the parent directory.
-LOCALE_PATH = "/Users/mikrubin/MapTasker_Dev/maptasker/locale"
+LOCALE_PATH = "/Users/mikrubin/MapTasker/maptasker/locale"
 
 # Example: Adding msgctxt to your "Top" entry
 OLD_LINE = "Click 'Get Local XML' to try a different XML file."
