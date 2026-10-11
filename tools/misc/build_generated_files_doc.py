@@ -97,13 +97,25 @@ FILENAME_SUFFIXES = (".txt", ".html", ".json", ".toml", ".log", ".pkl", ".md", "
 CURRENT = "Current folder"
 CONFIG = "Settings folder"
 DEVICE = "Android device, 'Tasker/'"
+# The reports, views and exports go to the output folder (see 'outdir.py'): Documents/MapTasker
+# unless the 'Output Folder' setting names another.  The TaskerNet links are kept with the
+# configuration history, which is where 'timeline.py' makes its folder.
+OUTPUT = "Output folder"
+TIMELINE = "Inside 'MapTasker_Timeline'"
+BESIDE_SAVED = "Beside the file being saved"
 
 # The order sections appear on the page, and the note under each heading.
 SECTIONS: list[tuple[str, str]] = [
     ("Views", "The map and the diagram themselves, and what the 'Export' button writes."),
-    ("Reports", "One per command that saves its results.  Each is stamped with the date and time it was written, so a run never overwrites the one before it."),
-    ("Settings and remembered state", "What MapTasker carries from one run to the next.  Deleting any of these costs you the setting, not the configuration."),
-    ("Folders", "Written beside the files above, in the current folder."),
+    (
+        "Reports",
+        "One per command that saves its results.  Each is stamped with the date and time it was written, so a run never overwrites the one before it.",
+    ),
+    (
+        "Settings and remembered state",
+        "What MapTasker carries from one run to the next.  Deleting any of these costs you the setting, not the configuration.",
+    ),
+    ("Folders", "Made by MapTasker where they are needed, and recreated if you delete them."),
     ("Android", "Written on the device by the Tasker helper Tasks, and read back by MapTasker over the HTTP API."),
     ("Diagnostics", "Only written when something is being looked into."),
 ]
@@ -122,94 +134,100 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
     # -- Views ---------------------------------------------------------------------
     "MapTasker.html": {
         "section": "Views",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "Every run that displays the map",
         "note": "The mapping of your Tasker configuration.  It is opened in your default browser as a new tab.",
     },
     "MapTasker_Map.txt": {
         "section": "Views",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "The Diagram view, or the '-outline' runtime option",
         "note": "A textual diagram of the configuration, displayed in your default text editor.  Turn text wrapping off and use a monospace font when viewing it, or the columns will not line up.",
     },
     "MapTasker_Map_Export": {
         "section": "Views",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "Map view > Export",
         "note": "The Map view exported as Markdown, JSON or PDF, one file per format.",
     },
     "MapTasker_Diagram_Export": {
         "section": "Views",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "Diagram view > Export",
         "note": "The Diagram view exported as Markdown, JSON or PDF, one file per format.",
     },
     # -- Reports -------------------------------------------------------------------
     "MapTasker_HealthCheck.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Health Check'",
         "note": "What the check found wrong with the configuration.",
     },
     "MapTasker_Fix.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Fix Findings'",
         "note": "What the repairs changed.  Kept apart from the Health Check report because that one says what is wrong and this one says what was done about it.",
     },
     "MapTasker_Find.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Find' > 'Save Results'",
         "note": "The saved results of a search.",
     },
     "MapTasker_Replace.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Find' > 'Replace'",
         "note": "The preview of a replacement: what would change, before anything does.",
     },
     "MapTasker_Refactor.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Refactor'",
         "note": "The preview a refactoring operation was applied from, or declined.",
     },
     "MapTasker_Analysis.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Run (AI) Analysis'",
         "note": "The analysis the AI model returned for your configuration.",
     },
     "MapTasker_Compare.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Compare Files'",
         "note": "What differs between two configurations.",
     },
     "MapTasker_Timeline.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Timeline'",
         "note": "What has changed in your own configuration since an earlier snapshot.  It is the comparison report under another name, so that 'what changed since Tuesday' does not land on top of a comparison of two separate files.",
     },
     "MapTasker_VarXref.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Variables Xref'",
         "note": "Every variable, and everywhere it is set and read.",
     },
     "MapTasker_TaskFlow.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Task Flow'",
         "note": "Every Task's If/Else/For/Goto structure, linted.",
     },
     "MapTasker_Flowchart.txt": {
         "section": "Reports",
-        "location": CURRENT,
+        "location": OUTPUT,
         "produced_by": "'Task Flow'",
         "note": "The flowchart drawn for a single Task.",
+    },
+    "MapTasker_TaskerNet.txt": {
+        "section": "Reports",
+        "location": OUTPUT,
+        "produced_by": "'TaskerNet Updates' > 'Save Report'",
+        "note": "What the author of a TaskerNet share changed since the version you have, and how your copy compares with the published one.",
     },
     # -- Settings and remembered state ----------------------------------------------
     "MapTasker_Settings.toml": {
@@ -260,10 +278,22 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "produced_by": "Older versions only",
         "note": "A second settings file that never held anything.  It is no longer written, and a leftover one is deleted unopened.  Hidden.",
     },
+    "taskernet_links.json": {
+        "section": "Settings and remembered state",
+        "location": TIMELINE,
+        "produced_by": "'TaskerNet Updates'",
+        "note": "Which TaskerNet share each linked Project, Profile, Task or Scene came from, and the version of it you have.  Only the share's address is kept, never your configuration.  Delete it and the links are lost; they can be made again.",
+    },
+    "taskernet_catalogue.json": {
+        "section": "Settings and remembered state",
+        "location": TIMELINE,
+        "produced_by": "'TaskerNet Updates' > 'Find Links'",
+        "note": "TaskerNet's public listing of shares, kept for a week so that finding links does not read the whole listing again each time.  Delete it and it is fetched again.",
+    },
     # -- Folders ---------------------------------------------------------------------
     "MapTasker_Backups": {
         "section": "Folders",
-        "location": CURRENT,
+        "location": BESIDE_SAVED,
         "produced_by": "Any save that would overwrite a file",
         "note": "A copy of a file taken just before a save would overwrite it, with only the ten newest kept per file.  Nothing is copied if there is nothing at the target path.  Old copies are removed for you, and you can delete single copies or the whole folder at any time without breaking anything -- it is recreated the next time a save needs it.",
     },
@@ -272,6 +302,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "location": CURRENT,
         "produced_by": "'Timeline'",
         "note": "The history of your configuration, used to track what has changed.  The thirty most recent differing configurations are kept, each one compressed.",
+    },
+    "taskernet_baselines": {
+        "section": "Folders",
+        "location": TIMELINE,
+        "produced_by": "'TaskerNet Updates'",
+        "note": "A compressed copy of each linked share as its author published it, kept as the version you have so that the next update can say what the author changed.",
     },
     # -- Android ----------------------------------------------------------------------
     "maptasker_apps.txt": {
@@ -316,6 +352,18 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "location": CURRENT,
         "produced_by": "The '-debug' runtime option",
         "note": "A trace log for program debugging.  It is only created with '-debug', and a runtime error tells you to look here.",
+    },
+    "buildit.log": {
+        "section": "Diagnostics",
+        "location": CURRENT,
+        "produced_by": "The '-debug' runtime option",
+        "note": "The messages from checking Tasker's state and event codes against its own list.  Only written with '-debug', and added to rather than replaced.",
+    },
+    "trace_log.txt": {
+        "section": "Diagnostics",
+        "location": CURRENT,
+        "produced_by": "A developer's trace",
+        "note": "A line-by-line trace of the program running.  Nothing in a normal run writes it: it exists only when the trace hook in the source is switched on by hand, and it is cleared each time MapTasker starts.",
     },
     ".maptasker_error.txt": {
         "section": "Diagnostics",
@@ -455,6 +503,52 @@ def modules() -> list[Path]:
     return sorted(SOURCE_DIR.glob("*.py"))
 
 
+def note_stamped_callers(
+    trees: dict[Path, ast.Module],
+    stamping: dict[str, set[int | str]],
+    discovery: Discovery,
+) -> None:
+    """Find the constants handed to a function that stamps its filename argument.
+
+    Whoever calls such a function with a constant in a stamped position gets that constant
+    stamped.  A function handed to something else to be called --
+    'run.io_bound(write_comparison_report, text, NAME)' -- is the same call with its
+    arguments shifted along by the function itself.
+
+    Args:
+        trees (dict[Path, ast.Module]): every module, parsed.
+        stamping (dict[str, set[int | str]]): function name -> the parameters it stamps.
+        discovery (Discovery): collected here.
+    """
+    for path, tree in trees.items():
+        for call in [n for n in ast.walk(tree) if isinstance(n, ast.Call)]:
+            name = call.func.id if isinstance(call.func, ast.Name) else getattr(call.func, "attr", "")
+            arguments = list(call.args)
+            if not stamping.get(name) and arguments:
+                handed = arguments[0]
+                name = handed.id if isinstance(handed, ast.Name) else getattr(handed, "attr", "")
+                arguments = arguments[1:]
+            stamped_positions = stamping.get(name)
+            if not stamped_positions:
+                continue
+            for position, argument in enumerate(arguments):
+                if (
+                    position in stamped_positions
+                    and isinstance(argument, ast.Name)
+                    and argument.id in discovery.constants
+                ):
+                    discovery.stamped.add(argument.id)
+                    discovery.modules.setdefault(argument.id, path.stem)
+            for keyword in call.keywords:
+                if (
+                    keyword.arg in stamped_positions
+                    and isinstance(keyword.value, ast.Name)
+                    and keyword.value.id in discovery.constants
+                ):
+                    discovery.stamped.add(keyword.value.id)
+                    discovery.modules.setdefault(keyword.value.id, path.stem)
+
+
 def discover_stamped(discovery: Discovery) -> None:
     """Work out which files get a date and time stamped into their name.
 
@@ -501,21 +595,7 @@ def discover_stamped(discovery: Discovery) -> None:
                         discovery.stamped.add(default.id)
                         discovery.modules.setdefault(default.id, path.stem)
 
-    # Second pass: whoever calls those functions, with a constant in a stamped position.
-    for path, tree in trees.items():
-        for call in [n for n in ast.walk(tree) if isinstance(n, ast.Call)]:
-            name = call.func.id if isinstance(call.func, ast.Name) else getattr(call.func, "attr", "")
-            stamped_positions = stamping.get(name)
-            if not stamped_positions:
-                continue
-            for position, argument in enumerate(call.args):
-                if position in stamped_positions and isinstance(argument, ast.Name) and argument.id in discovery.constants:
-                    discovery.stamped.add(argument.id)
-                    discovery.modules.setdefault(argument.id, path.stem)
-            for keyword in call.keywords:
-                if keyword.arg in stamped_positions and isinstance(keyword.value, ast.Name) and keyword.value.id in discovery.constants:
-                    discovery.stamped.add(keyword.value.id)
-                    discovery.modules.setdefault(keyword.value.id, path.stem)
+    note_stamped_callers(trees, stamping, discovery)
 
 
 def discover_literals(discovery: Discovery) -> None:
@@ -534,6 +614,69 @@ def discover_literals(discovery: Discovery) -> None:
     for node in ast.walk(ast.parse(SYSCONST.read_text(encoding="utf-8"))):
         if isinstance(node, ast.Constant) and isinstance(node.value, str) and looks_like_a_filename(node.value):
             discovery.literals.setdefault(node.value, SYSCONST.stem)
+
+
+def writes_a_file(call: ast.Call) -> bool:
+    """Is this call an open() for writing or appending?
+
+    Args:
+        call (ast.Call): the call.
+
+    Returns:
+        bool: True if it is open(..., "w"/"a"/"x"/"wb"/...).
+    """
+    if not isinstance(call.func, ast.Name) or call.func.id != "open":
+        return False
+    modes = [a.value for a in call.args[1:2] if isinstance(a, ast.Constant)]
+    modes += [k.value.value for k in call.keywords if k.arg == "mode" and isinstance(k.value, ast.Constant)]
+    return any(isinstance(m, str) and m[:1] in "wax" for m in modes)
+
+
+def discover_module_files(discovery: Discovery) -> None:
+    """Find output files that the other modules name for themselves.
+
+    'sysconst.py' holds most of the names, but not all: 'tnupdate.py' names the saved
+    TaskerNet links, 'tnfind.py' the TaskerNet catalogue, and so on, each with a constant
+    of its own.  Two shapes are recognised, and both are narrow on purpose -- a constant
+    named '*_FILE' or '*_FOLDER' holding a plain name, and a literal held in a local
+    variable that is then opened for writing ('valcodes.debug_print').  A name that is
+    only ever read, such as the JSON files under 'assets', is neither.
+
+    Args:
+        discovery (Discovery): collected here.
+    """
+    for path in modules():
+        if path == SYSCONST:
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in tree.body:
+            if not isinstance(node, ast.Assign) or not isinstance(node.value, ast.Constant):
+                continue
+            value = node.value.value
+            targets = [t.id for t in node.targets if isinstance(t, ast.Name)]
+            if not isinstance(value, str) or not value or "/" in value or " " in value or is_excluded(value):
+                continue
+            if any(t.endswith("_FILE") for t in targets) and value.lower().endswith(FILENAME_SUFFIXES):
+                discovery.literals.setdefault(value, path.stem)
+                # Also a constant, so that discover_stamped can follow it to 'append_to_filename'.
+                discovery.constants.setdefault(next(t for t in targets if t.endswith("_FILE")), value)
+            elif any(t.endswith("_FOLDER") for t in targets):
+                discovery.folders.setdefault(value, path.stem)
+        for function in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+            named = {
+                target.id: node.value.value
+                for node in ast.walk(function)
+                if isinstance(node, ast.Assign)
+                and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)
+                for target in node.targets
+                if isinstance(target, ast.Name)
+            }
+            for call in [n for n in ast.walk(function) if isinstance(n, ast.Call) and writes_a_file(n)]:
+                first = call.args[0] if call.args else None
+                value = named.get(first.id) if isinstance(first, ast.Name) else None
+                if value and value.lower().endswith(FILENAME_SUFFIXES) and not is_excluded(value):
+                    discovery.literals.setdefault(value, path.stem)
 
 
 def discover_folders(discovery: Discovery) -> None:
@@ -584,6 +727,7 @@ def discover() -> Discovery:
     """
     discovery = Discovery()
     discover_constants(discovery)
+    discover_module_files(discovery)
     discover_stamped(discovery)
     discover_literals(discovery)
     discover_folders(discovery)
@@ -681,6 +825,8 @@ def build_page(files: list[OutputFile]) -> str:
         "'Current folder' is the folder MapTasker was started from.  'Settings folder' is the",
         "one the operating system sets aside for this user's settings: `Library/Application",
         "Support` on macOS, `APPDATA` on Windows, `XDG_CONFIG_HOME` or `.config` on Linux.",
+        "'Output folder' is the one set by the Output Folder setting, `Documents/MapTasker` unless",
+        "you have chosen another.",
         "",
         "> Generated by `tools/misc/build_generated_files_doc.py` from the source.  Run it",
         "> again rather than editing this page by hand.",
@@ -691,10 +837,16 @@ def build_page(files: list[OutputFile]) -> str:
         in_section = [f for f in files if f.section == section]
         if not in_section:
             continue
-        out += [f"## {section}", "", blurb, "", "| File | Written to | Produced by | What it holds |", "| :--- | :--- | :--- | :--- |"]
         out += [
-            f"| `{f.displayed_name}` | {f.location} | {escape(f.produced_by)} | {escape(f.note)} |"
-            for f in in_section
+            f"## {section}",
+            "",
+            blurb,
+            "",
+            "| File | Written to | Produced by | What it holds |",
+            "| :--- | :--- | :--- | :--- |",
+        ]
+        out += [
+            f"| `{f.displayed_name}` | {f.location} | {escape(f.produced_by)} | {escape(f.note)} |" for f in in_section
         ]
         out.append("")
 
@@ -737,7 +889,9 @@ def main() -> int:
     parser.add_argument("--stats", action="store_true", help="report what was found in the source")
     parser.add_argument("--check", action="store_true", help="write nothing; fail if the page on disk is out of date")
     parser.add_argument("--print", dest="to_stdout", action="store_true", help="write nothing; print the page")
-    parser.add_argument("--page-name", default=DEFAULT_PAGE_NAME, help=f"Wiki page name (default: {DEFAULT_PAGE_NAME}).")
+    parser.add_argument(
+        "--page-name", default=DEFAULT_PAGE_NAME, help=f"Wiki page name (default: {DEFAULT_PAGE_NAME})."
+    )
     add_publish_arguments(parser)
     arguments = parser.parse_args()
     if arguments.publish and (arguments.to_stdout or arguments.check):
@@ -756,7 +910,10 @@ def main() -> int:
     elif arguments.check:
         current = OUTPUT_PAGE.read_text(encoding="utf-8") if OUTPUT_PAGE.is_file() else ""
         if current != page:
-            print(f"{OUTPUT_PAGE.name} is out of date.  Run: python tools/misc/build_generated_files_doc.py", file=sys.stderr)
+            print(
+                f"{OUTPUT_PAGE.name} is out of date.  Run: python tools/misc/build_generated_files_doc.py",
+                file=sys.stderr,
+            )
             return 1
         print(f"{OUTPUT_PAGE.name} is up to date.")
     else:
