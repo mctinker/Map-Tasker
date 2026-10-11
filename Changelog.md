@@ -6,37 +6,19 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: __Draft with AI__ in the Add Task window turns a description in plain words into actions, using the AI model chosen on the Analyze tab, which is told how Tasks work so that most drafts take a single request. The draft is added unsaved for you to review and edit, anything the AI suggested that MapTasker cannot build is listed beside it, and a Stop button gives up on a slow model.
-- Added: __Check Readiness__ in the Edit Project and Edit Scene windows, beside Redact secrets, lists what the export needs on someone else's phone: its plugins and apps, the special access it needs (such as root, ADB Wi-Fi or Write Secure Settings), the variables Tasker will ask about on import, and the oldest Tasker it is known to run on. The list can be copied as text to paste into a forum post or TaskerNet description.
-- Added: A new __TaskerNet Updates__ button links a Project, Profile, Task or Scene to the TaskerNet share it came from, tells you when its author publishes a newer version, and lists what they changed so you can take each change on its own after previewing it, or accept the whole latest version in one step.  Only the share's address is sent to TaskerNet; nothing from your configuration leaves your computer.
-- Added: The IR for Tasker plugin's action is now recognised, so it shows its name and its settings (such as the code sent and the transmission method) instead of an unmapped code number.
-- Added: The Claude models offered for AI analysis now include Claude Fable 5.1, Opus 5.5, Sonnet 5.5 and Haiku 5.5. With an Anthropic API key, the extended list is read from Anthropic itself, so newer models appear without waiting for an update.
+- Added:
 
 ### Changed
 
-- Changed: The Pick an icon list for Task actions now shows a picture beside each icon's name, so you can choose by sight. Tasker's own artwork lives on your phone, so Material-style icons are drawn as their closest equivalent and other icons get a generic picture for their kind.
-- Changed: Compare Files, Changes Since and TaskerNet Updates now say exactly what differs in a Task or Profile -- its priority, the line of a long script that changed, a Task variable, or what a new Task's actions are -- instead of 'Changed.' or just a count.  Values that look like API keys or passwords are hidden in these lines.
-- Changed: The Debug tab is now called __Assistance__, and the Display Help and Get Android Help buttons have moved there from the right-hand panel.  Your last-used tab is still restored correctly if it was Debug.
-- Changed: Your AI API keys are now kept together in one entry in the system keychain, so macOS asks for keychain access once instead of once per key. Keys you saved earlier are moved over automatically the first time you start.
-- Changed: Analysis with a local Ollama model now talks to Ollama directly. Among other things this stops a model you already have being fetched from Ollama's library again on every analysis.
-- Changed: A Gemini API key that does not have the usual Google format is now checked with Google itself instead of being refused outright.
+- Changed:
 
 ### Removed
 
-- Removed: DeepSeek is no longer supported: its API key entry and its models are gone, along with the DeepSeek models offered for local use. A DeepSeek key or selection saved by an earlier version is cleared automatically.
+- Removed:
 
 ### Fixed
 
-- Fixed: A shared TaskerNet description or label could put live HTML or script into the Map by spelling a tag with entities (such as &lt;script&gt;), giving a link a javascript: address, or closing a colour attribute early. Such text is now shown as plain text, and links that could run code are shown without the link.
-- Fixed: A TaskerNet description that used definition lists (dl, dt and dd), superscript and subscript (sup and sub) or a bold tag no longer shows "HTML start tag not yet mapped" messages in the Map. Those tags are now displayed as a list, as raised or lowered text, and as bold text.
-- Fixed: A Legacy Scene containing a List or a Spinner no longer fails to draw in the Scene Preview and the Scene designer. Those elements previously raised an error instead of appearing on the canvas.
-- Fixed: The Map view no longer stops partway through a configuration whose Scene holds a web page, such as a WebView component with its own HTML and script. The page is now shown as text on the component's line instead of being run inside the Map.
-- Fixed: Renaming a Profile from its editor no longer fails with an error after the rename has been applied. The Rename prompt now closes, and the editor's title, Name field and Save as path follow the new name.
-- Fixed: If the Map or Diagram file could not be found when its view opened, the view stayed on "Building the view" and never showed anything. It now shows the lines held in memory instead.
-- Fixed: An AI analysis started with a model whose service had not been recorded, such as one restored from saved settings, stopped with "Invalid model selected". It now runs.
-- Fixed: When a Claude model declines a request or runs out of room to finish, the analysis now says so instead of showing an empty or cut-off response.
-- Fixed: The hover tooltips in the Map showed their text in an invalid colour, so on a light page it could be unreadable against the dark tooltip. The text is now always white.
-- Fixed: Save To Current File in Fix Findings no longer hangs on "Save to current file in progress" after repairs have deleted every Task in a Project. The copy is saved and loaded as normal, and if a save ever fails partway the progress message now goes away instead of staying up.
+- Fixed:
 
 ### Known Issues
 
@@ -54,6 +36,31 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
 
 ## Older History Logs
+
+## [14.1.2] 11-Oct-2026
+
+- Added: __Draft with AI__ in the Add Task window turns a description in plain words into actions, using the AI model chosen on the Analyze tab, which is told how Tasks work so that most drafts take a single request. The draft is added unsaved for you to review and edit, anything the AI suggested that MapTasker cannot build is listed beside it, and a Stop button gives up on a slow model.
+- Added: __Check Readiness__ in the Edit Project and Edit Scene windows, beside Redact secrets, lists what the export needs on someone else's phone: its plugins and apps, the special access it needs (such as root, ADB Wi-Fi or Write Secure Settings), the variables Tasker will ask about on import, and the oldest Tasker it is known to run on. The list can be copied as text to paste into a forum post or TaskerNet description.
+- Added: A new __TaskerNet Updates__ button links a Project, Profile, Task or Scene to the TaskerNet share it came from, tells you when its author publishes a newer version, and lists what they changed so you can take each change on its own after previewing it, or accept the whole latest version in one step.  Only the share's address is sent to TaskerNet; nothing from your configuration leaves your computer.
+- Added: The IR for Tasker plugin's action is now recognised, so it shows its name and its settings (such as the code sent and the transmission method) instead of an unmapped code number.
+- Added: The Claude models offered for AI analysis now include Claude Fable 5.1, Opus 5.5, Sonnet 5.5 and Haiku 5.5. With an Anthropic API key, the extended list is read from Anthropic itself, so newer models appear without waiting for an update.
+- Changed: The Pick an icon list for Task actions now shows a picture beside each icon's name, so you can choose by sight. Tasker's own artwork lives on your phone, so Material-style icons are drawn as their closest equivalent and other icons get a generic picture for their kind.
+- Changed: Compare Files, Changes Since and TaskerNet Updates now say exactly what differs in a Task or Profile -- its priority, the line of a long script that changed, a Task variable, or what a new Task's actions are -- instead of 'Changed.' or just a count.  Values that look like API keys or passwords are hidden in these lines.
+- Changed: The Debug tab is now called __Assistance__, and the Display Help and Get Android Help buttons have moved there from the right-hand panel.  Your last-used tab is still restored correctly if it was Debug.
+- Changed: Your AI API keys are now kept together in one entry in the system keychain, so macOS asks for keychain access once instead of once per key. Keys you saved earlier are moved over automatically the first time you start.
+- Changed: Analysis with a local Ollama model now talks to Ollama directly. Among other things this stops a model you already have being fetched from Ollama's library again on every analysis.
+- Changed: A Gemini API key that does not have the usual Google format is now checked with Google itself instead of being refused outright.
+- Removed: DeepSeek is no longer supported: its API key entry and its models are gone, along with the DeepSeek models offered for local use. A DeepSeek key or selection saved by an earlier version is cleared automatically.
+- Fixed: A shared TaskerNet description or label could put live HTML or script into the Map by spelling a tag with entities (such as &lt;script&gt;), giving a link a javascript: address, or closing a colour attribute early. Such text is now shown as plain text, and links that could run code are shown without the link.
+- Fixed: A TaskerNet description that used definition lists (dl, dt and dd), superscript and subscript (sup and sub) or a bold tag no longer shows "HTML start tag not yet mapped" messages in the Map. Those tags are now displayed as a list, as raised or lowered text, and as bold text.
+- Fixed: A Legacy Scene containing a List or a Spinner no longer fails to draw in the Scene Preview and the Scene designer. Those elements previously raised an error instead of appearing on the canvas.
+- Fixed: The Map view no longer stops partway through a configuration whose Scene holds a web page, such as a WebView component with its own HTML and script. The page is now shown as text on the component's line instead of being run inside the Map.
+- Fixed: Renaming a Profile from its editor no longer fails with an error after the rename has been applied. The Rename prompt now closes, and the editor's title, Name field and Save as path follow the new name.
+- Fixed: If the Map or Diagram file could not be found when its view opened, the view stayed on "Building the view" and never showed anything. It now shows the lines held in memory instead.
+- Fixed: An AI analysis started with a model whose service had not been recorded, such as one restored from saved settings, stopped with "Invalid model selected". It now runs.
+- Fixed: When a Claude model declines a request or runs out of room to finish, the analysis now says so instead of showing an empty or cut-off response.
+- Fixed: The hover tooltips in the Map showed their text in an invalid colour, so on a light page it could be unreadable against the dark tooltip. The text is now always white.
+- Fixed: Save To Current File in Fix Findings no longer hangs on "Save to current file in progress" after repairs have deleted every Task in a Project. The copy is saved and loaded as normal, and if a save ever fails partway the progress message now goes away instead of staying up.
 
 ## [14.1.1] 05-Oct-2026
 
