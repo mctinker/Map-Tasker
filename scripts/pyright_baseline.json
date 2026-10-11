@@ -103,7 +103,7 @@
     "reportReturnType": 1
   },
   "maptasker/src/elemvals.py": {
-    "reportOptionalMemberAccess": 5
+    "reportOptionalMemberAccess": 4
   },
   "maptasker/src/format.py": {
     "reportAttributeAccessIssue": 5,

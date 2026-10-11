@@ -47,7 +47,12 @@ async def _open(page: Callable[[], None]) -> AsyncIterator[User]:
 
 
 def _label_texts(user: User) -> list[str]:
-    return [element.text for element in user.find(kind=ui.label).elements]
+    """Every label's text, in the order the labels were created -- which is the order they are drawn in.
+
+    find() hands back a set, so iterating it says nothing about order; element ids count up as the page
+    is built.
+    """
+    return [element.text for element in sorted(user.find(kind=ui.label).elements, key=lambda element: element.id)]
 
 
 @pytest.mark.asyncio
