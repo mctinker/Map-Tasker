@@ -22,6 +22,7 @@ from maptasker.src import guiwins_tnfind
 from maptasker.src.guiwins_tnfind import build_find_dialog
 from maptasker.src.primitem import PrimeItems
 from nicegui import context, core, ui
+from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_notify import UserNotify
 from nicegui.testing.user_simulation import user_simulation
@@ -32,7 +33,6 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable
     from pathlib import Path
 
-    from nicegui.testing.user import User
 
 _built: dict = {}
 
@@ -53,6 +53,23 @@ def _network(monkeypatch: pytest.MonkeyPatch, _runtime: None) -> None:  # noqa: 
 
     monkeypatch.setattr(tnupdate, "fetch_info", fetch_info)
     monkeypatch.setattr(tnupdate, "fetch_xml", lambda _ref: _built["xml"])
+
+
+@pytest.fixture(autouse=True)
+def _patient_user(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Give should_see four seconds rather than NiceGUI's default third of one.
+
+    Everything this dialog fetches or reviews runs on a worker thread (run.io_bound) and shows up on a
+    later pass of the event loop.  Three looks 0.1 s apart is enough on a fast machine and not on a
+    loaded CI runner -- test_review_lists_what_the_author_changed failed on Python 3.11 there and passed
+    on the same code a run earlier.  A test that passes is not slowed: it returns at the first look.
+    """
+    original = User.should_see
+
+    async def should_see(self: User, *args: object, retries: int = 40, **kwargs: object) -> None:
+        await original(self, *args, retries=retries, **kwargs)
+
+    monkeypatch.setattr(User, "should_see", should_see)
 
 
 def _page() -> None:
