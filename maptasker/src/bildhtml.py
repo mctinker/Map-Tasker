@@ -43,6 +43,52 @@ from maptasker.src.sysconst import (
 _map_just_written: caches.Slot[str] = caches.Slot("bildhtml.map_just_written", "")
 
 
+def _map_on_disk_is_current(state: RunState, building_from: tuple, doing_ai_analysis: bool) -> bool:
+    """Whether the Map already on disk is this build's answer -- if so it has been counted, and nothing is built.
+
+    Args:
+        state (RunState): the run state being built.
+        building_from (tuple): what this build would be made from (mapcache.digests).
+        doing_ai_analysis (bool): whether this is an AI analysis, which wants the lines in memory.
+
+    Returns:
+        bool: True if the Map on disk was current.
+    """
+    # The Map that would come out of the work below may already be sitting on disk from
+    # earlier in this session -- closing the view and opening it again, coming back from
+    # the Diagram, and every report finding that builds a Map purely so it can jump to a
+    # line in it.  If neither the configuration nor a single setting has changed since it
+    # was written, that file IS this build's answer, and building it again would cost the
+    # user the longest wait in the program to arrive at the same bytes.
+    #
+    # Not while analyzing with AI: that path does not want the file, it wants the output
+    # lines in memory, and those are produced by doing the work.
+    if not doing_ai_analysis and mapcache.is_current(
+        outdir.output_path("MapTasker.html", state=state),
+        building_from,
+    ):
+        state.map_output_line_count = mapcache.output_lines()
+        logger.debug("build_html: the Map on disk is current; it was not built again.")
+        return True
+    return False
+
+
+def _save_runtime_settings(state: RunState) -> None:
+    """Save our runtime settings for next time, unless this run was headless."""
+    # Make sure we don't save the rerun state as True.
+    # The live dictionaries, not a RunConfig snapshot: save_arguments edits what it is
+    # given (hiding the API key, resetting the transient arguments, clearing a single
+    # Project name that was only set because a single Task was asked for) and the rest of
+    # the run expects to see those edits.
+    #
+    # Not for a headless run: a command-line export was asked to build something, not to
+    # change the settings the GUI keeps, and its own arguments (the detail level it was
+    # given, the file it was pointed at) would replace whatever the person last chose there.
+    if not state.headless:
+        with overridden_config(state=state, rerun=False):
+            _, _ = save_restore_args(state.program_arguments, state.colors_to_use, to_save=True, state=state)
+
+
 def build_html(file_to_get: str, state: RunState) -> int:
     """Builds and generates the final HTML output file for MapTasker.
 
@@ -88,23 +134,9 @@ def build_html(file_to_get: str, state: RunState) -> int:
     if file_to_get:
         state.file_to_get = file_to_get
 
-    # The Map that would come out of the work below may already be sitting on disk from
-    # earlier in this session -- closing the view and opening it again, coming back from
-    # the Diagram, and every report finding that builds a Map purely so it can jump to a
-    # line in it.  If neither the configuration nor a single setting has changed since it
-    # was written, that file IS this build's answer, and building it again would cost the
-    # user the longest wait in the program to arrive at the same bytes.
-    #
-    # Not while analyzing with AI: that path does not want the file, it wants the output
-    # lines in memory, and those are produced by doing the work.
     building_from = mapcache.digests(state=state)
     doing_ai_analysis = state.program_arguments.ai_analyze
-    if not doing_ai_analysis and mapcache.is_current(
-        outdir.output_path("MapTasker.html", state=state),
-        building_from,
-    ):
-        state.map_output_line_count = mapcache.output_lines()
-        logger.debug("build_html: the Map on disk is current; it was not built again.")
+    if _map_on_disk_is_current(state, building_from, doing_ai_analysis):
         return 0
 
     # Get all Tasker variables.  The configuration digest goes with them so that the
@@ -128,18 +160,7 @@ def build_html(file_to_get: str, state: RunState) -> int:
     # Do special handling: wrap up back matter and print the output.
     final_processing(found_tasks, projects_without_profiles, projects_with_no_tasks, state=state)
 
-    # Save our runtime settings for next time.  Make sure we don't save the rerun state as True
-    # The live dictionaries, not a RunConfig snapshot: save_arguments edits what it is
-    # given (hiding the API key, resetting the transient arguments, clearing a single
-    # Project name that was only set because a single Task was asked for) and the rest of
-    # the run expects to see those edits.
-    #
-    # Not for a headless run: a command-line export was asked to build something, not to
-    # change the settings the GUI keeps, and its own arguments (the detail level it was
-    # given, the file it was pointed at) would replace whatever the person last chose there.
-    if not state.headless:
-        with overridden_config(state=state, rerun=False):
-            _, _ = save_restore_args(state.program_arguments, state.colors_to_use, to_save=True, state=state)
+    _save_runtime_settings(state)
 
     # Take a note of what the Map just written was built from, so that asking for the same
     # one again is answered with that file rather than by building it a second time.  Last,

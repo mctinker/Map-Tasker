@@ -360,6 +360,66 @@ def tasks_not_in_profiles(
 
 
 # Add extra info to Project output line as appropriate and then output it.
+def _project_disabled_marker(project: Element) -> str:
+    """The '[DISABLED]' marker for a disabled Project, or "" for an enabled one."""
+    # Look for a disabled Project.  A Project carries its own disabled marker,
+    # <enbl>false</enbl> -- a different tag from the <limit>true</limit> a Profile
+    # uses (see profiles.build_profile_line), and the opposite polarity: for a
+    # Project it is the value "false" that means disabled, so the tag missing
+    # altogether -- which is how Tasker writes every enabled Project -- reads as
+    # enabled.  Read here the same way build_profile_line reads its own tag rather
+    # than through projedit.is_project_enabled (which writes it from Edit Project's
+    # Enabled/Disabled switch), keeping this output path free of the editing modules.
+    #
+    # Reuses the disabled-Profile color: it is the color of the [DISABLED] marker
+    # everywhere it appears, so the two read as the same indicator, which is what
+    # they are.
+    enbl = project.find("enbl")
+    return (
+        format_html("disabled_profile_color", "", DISABLED, True) if enbl is not None and enbl.text == "false" else ""
+    )
+
+
+def _project_label(project: Element, project_name: str, state: RunState) -> str:
+    """The "Project:" label with its 2-up tooltip: Profiles on the left, all the Tasks (sorted) on the right."""
+    # Add a 2-up tooltip to the "Project:" label: Profiles in this Project on the left,
+    # all of this Project's Tasks (sorted) on the right, one item per line in each column.
+    pids = project.find("pids")
+    profile_names = []
+    if pids is not None and pids.text:
+        all_profiles = state.tasker_root_elements["all_profiles"]
+        profile_names = [
+            all_profiles[pid]["name"]
+            for pid in pids.text.split(",")
+            if pid in all_profiles and all_profiles[pid]["name"]
+        ]
+
+    all_tasks = state.tasker_root_elements["all_tasks"]
+    task_ids = get_ids(False, project, project_name, [])
+    task_names = sorted(all_tasks[tid]["name"] for tid in task_ids if tid in all_tasks and all_tasks[tid]["name"])
+
+    return build_tooltip_span(
+        "Project:",
+        build_two_column_tooltip_lines("Profiles:", profile_names, "Tasks (sorted):", task_names),
+    )
+
+
+def _prettify_project_line(final_project_line: str, project_name: str) -> str:
+    """Break the Project's output line after each comma and before each bracket, indented under its name."""
+    blank = "&nbsp;"
+    indent_amt = len(project_name) + 5
+    # Break at comma
+    final_project_line = final_project_line.replace(
+        ", ",
+        f", <br>{blank * indent_amt}",
+    )
+    # Break at bracket
+    return final_project_line.replace(
+        " [",
+        f"<br>{blank * indent_amt} [",
+    )
+
+
 def get_extra_and_output_project(
     project: Element,
     project_name: str,
@@ -381,8 +441,6 @@ def get_extra_and_output_project(
         :return: True if we are looking for a single Project and this isn't it.
         False otherwise.
     """
-    blank = "&nbsp;"
-
     # See if there is a Kid app and get the Project's priority,
     # only if display level is max
     kid_app_info = priority = ""
@@ -392,46 +450,12 @@ def get_extra_and_output_project(
             kid_app_info = format_html("project_color", "", kid_app_info, True)
         priority = get_priority(project, False)
 
-    # Look for a disabled Project.  A Project carries its own disabled marker,
-    # <enbl>false</enbl> -- a different tag from the <limit>true</limit> a Profile
-    # uses (see profiles.build_profile_line), and the opposite polarity: for a
-    # Project it is the value "false" that means disabled, so the tag missing
-    # altogether -- which is how Tasker writes every enabled Project -- reads as
-    # enabled.  Read here the same way build_profile_line reads its own tag rather
-    # than through projedit.is_project_enabled (which writes it from Edit Project's
-    # Enabled/Disabled switch), keeping this output path free of the editing modules.
-    #
-    # Reuses the disabled-Profile color: it is the color of the [DISABLED] marker
-    # everywhere it appears, so the two read as the same indicator, which is what
-    # they are.
-    enbl = project.find("enbl")
-    disabled = (
-        format_html("disabled_profile_color", "", DISABLED, True) if enbl is not None and enbl.text == "false" else ""
-    )
+    disabled = _project_disabled_marker(project)
 
     # Make the Project name bold, italcize and/or highlighted if requested
     project_name_altered = add_name_attribute(project_name, config)
 
-    # Add a 2-up tooltip to the "Project:" label: Profiles in this Project on the left,
-    # all of this Project's Tasks (sorted) on the right, one item per line in each column.
-    pids = project.find("pids")
-    profile_names = []
-    if pids is not None and pids.text:
-        all_profiles = state.tasker_root_elements["all_profiles"]
-        profile_names = [
-            all_profiles[pid]["name"]
-            for pid in pids.text.split(",")
-            if pid in all_profiles and all_profiles[pid]["name"]
-        ]
-
-    all_tasks = state.tasker_root_elements["all_tasks"]
-    task_ids = get_ids(False, project, project_name, [])
-    task_names = sorted(all_tasks[tid]["name"] for tid in task_ids if tid in all_tasks and all_tasks[tid]["name"])
-
-    project_label = build_tooltip_span(
-        "Project:",
-        build_two_column_tooltip_lines("Profiles:", profile_names, "Tasks (sorted):", task_names),
-    )
+    project_label = _project_label(project, project_name, state)
 
     # Get the name in a format with proper HTML code wrapped around it
     project_name_details = format_html(
@@ -446,17 +470,7 @@ def get_extra_and_output_project(
 
     # Pretty it up?
     if config.pretty:
-        indent_amt = len(project_name) + 5
-        # Break at comma
-        final_project_line = final_project_line.replace(
-            ", ",
-            f", <br>{blank * indent_amt}",
-        )
-        # Break at bracket
-        final_project_line = final_project_line.replace(
-            " [",
-            f"<br>{blank * indent_amt} [",
-        )
+        final_project_line = _prettify_project_line(final_project_line, project_name)
 
     # Are we looking for a specific Project?
     if state.program_arguments.single_project_name:

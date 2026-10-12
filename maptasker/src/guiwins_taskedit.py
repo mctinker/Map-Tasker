@@ -620,6 +620,128 @@ def _render_variable_entry(on_variable: Callable[[str], None], button_text: str)
     ui.button(translate_string(button_text), on_click=use_variable).props("flat dense color=primary")
 
 
+class _AppPicker:
+    """The Pick an Application dialog: the ticks, the search, and what goes back into the field.
+
+    Held in a class rather than closures because everything it does reads or changes the same
+    handful of things -- what is ticked, what the field holds that is not in the inventory,
+    what has been typed in the search box -- and each of the handlers is then a method that says
+    so.
+    """
+
+    def __init__(self, field: ui.input, gui: MyGui) -> None:
+        """Read the inventory and what the field already holds; nothing is drawn until build()."""
+        self.field = field
+        self.gui = gui
+        self.entries = appinv.apps(state=gui.state)
+        known_packages = {entry.pkg for entry in self.entries}
+        current = [token.strip() for token in str(field.value or "").split(",") if token.strip()]
+        self.unknown = [token for token in current if token not in known_packages]
+        self.chosen = {token for token in current if token in known_packages}
+        self.search_text = ""
+
+    def build(self) -> None:
+        """Draw the dialog and open it."""
+        with ui.dialog().props("persistent") as self.dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):
+            ui.label(translate_string("Pick an Application")).classes("text-lg font-bold text-blue-600")
+            ui.label(
+                translate_string(
+                    "The Applications named somewhere in the loaded configuration.  Tick every one this "
+                    "argument should match.  Anything already in the field that isn't listed stays.",
+                ),
+            ).classes("text-sm text-gray-500 italic")
+
+            # What is in the field but not in the list -- a package typed by hand, or a variable.
+            # Shown because 'anything else stays' is a promise the user cannot otherwise check,
+            # and because it is the only feedback that adding a variable below took effect.
+            self.unlisted_label = ui.label("").classes("text-xs text-blue-600 mt-1")
+
+            _picker_search_input(self.search_changed, "Search Applications")
+            self.results = ui.column().classes("w-full gap-0 mt-2 max-h-96 overflow-auto")
+            self.render()
+            self.show_unlisted()
+
+            with ui.row().classes("w-full items-center gap-2 mt-2"):
+                ui.label(translate_string("Or a Tasker variable:")).classes("text-xs text-gray-500")
+                _render_variable_entry(self.add_variable, "Add")
+
+            with ui.row().classes("w-full justify-between items-center gap-2 mt-3"):
+                _render_fetch_apps_button(self.fetch_then_reopen)
+                with ui.row().classes("gap-2"):
+                    ui.button(translate_string("Cancel"), on_click=self.dialog.close).props("flat")
+                    ui.button(translate_string("Use Selected"), on_click=self.use_selected).props("color=primary")
+
+        self.dialog.open()
+
+    def show_unlisted(self) -> None:
+        """Say what the field holds that the list does not."""
+        self.unlisted_label.set_text(
+            f"{translate_string('Also in this field')}: {', '.join(self.unknown)}" if self.unknown else "",
+        )
+
+    def toggle(self, package: str, ticked: bool) -> None:
+        """Tick or untick one package."""
+        if ticked:
+            self.chosen.add(package)
+        else:
+            self.chosen.discard(package)
+
+    def render(self) -> None:
+        """Fill the list with the applications that match the search."""
+        self.results.clear()
+        text = self.search_text.strip().lower()
+        visible = [
+            entry for entry in self.entries if not text or text in entry.pkg.lower() or text in entry.label.lower()
+        ]
+        with self.results:
+            if not visible:
+                ui.label(translate_string("Nothing here.")).classes("text-sm italic text-gray-500")
+                return
+            for entry in visible[:_PICKER_ROW_LIMIT]:
+                ui.checkbox(
+                    entry.display,
+                    value=entry.pkg in self.chosen,
+                    on_change=lambda e, pkg=entry.pkg: self.toggle(pkg, bool(e.value)),
+                ).props("dense")
+            if len(visible) > _PICKER_ROW_LIMIT:
+                ui.label(
+                    f"{translate_string('More matches than can be shown -- narrow the search.')} ({len(visible)})",
+                ).classes("text-xs italic text-gray-500 mt-1")
+
+    def search_changed(self, value: str) -> None:
+        """Narrow the list to what was typed."""
+        self.search_text = value
+        self.render()
+
+    def add_variable(self, name: str) -> None:
+        """Keep a Tasker variable in the field alongside the ticked applications."""
+        if name not in self.unknown:
+            self.unknown.append(name)
+        self.show_unlisted()
+
+    def apply_selection(self) -> None:
+        """Write the ticks back into the field."""
+        # Inventory order for the picked ones, so the field reads the same way twice
+        # running; the unrecognised ones first, where they were.
+        self.field.set_value(
+            ", ".join(self.unknown + [entry.pkg for entry in self.entries if entry.pkg in self.chosen])
+        )
+
+    def use_selected(self) -> None:
+        """Use Selected: apply the ticks and close."""
+        self.apply_selection()
+        self.dialog.close()
+
+    async def fetch_then_reopen(self) -> None:
+        """Fetch the application list from the device, then reopen this picker over the new inventory."""
+        # The ticks are written into the field before reopening, and the fresh dialog
+        # reads its ticks back out of the field -- so a fetch part-way through choosing
+        # apps does not throw away what has been chosen so far.
+        self.apply_selection()
+        self.dialog.close()
+        await _build_fetch_apps_dialog(self.gui, lambda: _build_app_picker_dialog(self.field, self.gui))
+
+
 def _build_app_picker_dialog(field: ui.input, gui: MyGui) -> None:
     """Pick Applications for a field holding package names.
 
@@ -634,101 +756,7 @@ def _build_app_picker_dialog(field: ui.input, gui: MyGui) -> None:
     over the field, never a replacement for it, so it must not be able to quietly delete a
     value merely because it doesn't recognise it.
     """
-    entries = appinv.apps(state=gui.state)
-    known_packages = {entry.pkg for entry in entries}
-    current = [token.strip() for token in str(field.value or "").split(",") if token.strip()]
-    unknown = [token for token in current if token not in known_packages]
-    chosen = {token for token in current if token in known_packages}
-    search = {"text": ""}
-
-    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):
-        ui.label(translate_string("Pick an Application")).classes("text-lg font-bold text-blue-600")
-        ui.label(
-            translate_string(
-                "The Applications named somewhere in the loaded configuration.  Tick every one this "
-                "argument should match.  Anything already in the field that isn't listed stays.",
-            ),
-        ).classes("text-sm text-gray-500 italic")
-
-        # What is in the field but not in the list -- a package typed by hand, or a variable.
-        # Shown because 'anything else stays' is a promise the user cannot otherwise check,
-        # and because it is the only feedback that adding a variable below took effect.
-        unlisted_label = ui.label("").classes("text-xs text-blue-600 mt-1")
-
-        def show_unlisted() -> None:
-            unlisted_label.set_text(
-                f"{translate_string('Also in this field')}: {', '.join(unknown)}" if unknown else "",
-            )
-
-        def toggle(package: str, ticked: bool) -> None:
-            if ticked:
-                chosen.add(package)
-            else:
-                chosen.discard(package)
-
-        def render() -> None:
-            results.clear()
-            text = search["text"].strip().lower()
-            visible = [
-                entry for entry in entries if not text or text in entry.pkg.lower() or text in entry.label.lower()
-            ]
-            with results:
-                if not visible:
-                    ui.label(translate_string("Nothing here.")).classes("text-sm italic text-gray-500")
-                    return
-                for entry in visible[:_PICKER_ROW_LIMIT]:
-                    ui.checkbox(
-                        entry.display,
-                        value=entry.pkg in chosen,
-                        on_change=lambda e, pkg=entry.pkg: toggle(pkg, bool(e.value)),
-                    ).props("dense")
-                if len(visible) > _PICKER_ROW_LIMIT:
-                    ui.label(
-                        f"{translate_string('More matches than can be shown -- narrow the search.')} ({len(visible)})",
-                    ).classes("text-xs italic text-gray-500 mt-1")
-
-        def search_changed(value: str) -> None:
-            search["text"] = value
-            render()
-
-        _picker_search_input(search_changed, "Search Applications")
-        results = ui.column().classes("w-full gap-0 mt-2 max-h-96 overflow-auto")
-        render()
-        show_unlisted()
-
-        def add_variable(name: str) -> None:
-            if name not in unknown:
-                unknown.append(name)
-            show_unlisted()
-
-        with ui.row().classes("w-full items-center gap-2 mt-2"):
-            ui.label(translate_string("Or a Tasker variable:")).classes("text-xs text-gray-500")
-            _render_variable_entry(add_variable, "Add")
-
-        def apply_selection() -> None:
-            # Inventory order for the picked ones, so the field reads the same way twice
-            # running; the unrecognised ones first, where they were.
-            field.set_value(", ".join(unknown + [entry.pkg for entry in entries if entry.pkg in chosen]))
-
-        def use_selected() -> None:
-            apply_selection()
-            dialog.close()
-
-        async def fetch_then_reopen() -> None:
-            # The ticks are written into the field before reopening, and the fresh dialog
-            # reads its ticks back out of the field -- so a fetch part-way through choosing
-            # apps does not throw away what has been chosen so far.
-            apply_selection()
-            dialog.close()
-            await _build_fetch_apps_dialog(gui, lambda: _build_app_picker_dialog(field, gui))
-
-        with ui.row().classes("w-full justify-between items-center gap-2 mt-3"):
-            _render_fetch_apps_button(fetch_then_reopen)
-            with ui.row().classes("gap-2"):
-                ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
-                ui.button(translate_string("Use Selected"), on_click=use_selected).props("color=primary")
-
-    dialog.open()
+    _AppPicker(field, gui).build()
 
 
 def _render_fetch_apps_button(on_click: Callable[[], object], for_icons: bool = False) -> None:
@@ -1714,6 +1742,60 @@ def _build_task_action_editor(
     return action_list.render_actions
 
 
+def _render_task_save_buttons(
+    self: MyGui,
+    edited_task: taskedit.EditableTask,
+    field_refs: dict,
+    dialog: ui.dialog,
+) -> None:
+    """The Edit Task dialog's two ways of keeping the edits beyond the session: Save To Current File and Save To Android."""
+    task_to_current_file = ui.button(
+        translate_string("Save To Current File"),
+        on_click=lambda: self.event_handlers.save_edited_task_to_current_file_event(
+            edited_task,
+            field_refs,
+            dialog,
+        ),
+    ).props("outline")
+    with task_to_current_file:
+        ui.tooltip(
+            translate_string(
+                "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- "
+                "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
+                "It is written to a new, timestamped copy of the file currently loaded: "
+                "backup.xml becomes backup_20260728_143005.xml.\n"
+                "The file you loaded is never written to, so it is left exactly as it was.\n"
+                "The app then switches to the new copy, which becomes the current file for any further "
+                "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                "This writes to this computer only -- nothing is sent to your Android device.",
+            ),
+        ).style("white-space: pre-wrap")
+    task_to_android = ui.button(
+        translate_string("Save To Android"),
+        on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
+            edited_task,
+            field_refs,
+            dialog,
+        ),
+    ).props("outline")
+    with task_to_android:
+        ui.tooltip(
+            translate_string(
+                "This opens a choice of two: write the Task as a standalone file onto your Android "
+                "device under /Tasker/tasks, or import it straight into Tasker's live "
+                "configuration.\n\n"
+                "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                "device, with the server running (see the README's Direct XML Retrieval notes), and "
+                "Tasker must be 6.2 or higher.\n\n"
+                "The Android device must be on the same network, and the IP Address and Port must "
+                "match its Tasker server settings.\n\n"
+                "Watch the Android device while either one runs: Tasker asks you to authorize "
+                "the connection several times for one save, and a prompt left untapped fails it.\n\n"
+                "You must exit and restart Tasker to see an imported Task in the Tasker UI.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
 def _render_edit_task_buttons(
     self: MyGui,
     edited_task: taskedit.EditableTask,
@@ -1753,51 +1835,7 @@ def _render_edit_task_buttons(
             translate_string("Ok"),
             on_click=lambda: self.event_handlers.keep_edited_task_event(edited_task, field_refs, dialog),
         ).props("outline")
-        task_to_current_file = ui.button(
-            translate_string("Save To Current File"),
-            on_click=lambda: self.event_handlers.save_edited_task_to_current_file_event(
-                edited_task,
-                field_refs,
-                dialog,
-            ),
-        ).props("outline")
-        with task_to_current_file:
-            ui.tooltip(
-                translate_string(
-                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- "
-                    "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
-                    "It is written to a new, timestamped copy of the file currently loaded: "
-                    "backup.xml becomes backup_20260728_143005.xml.\n"
-                    "The file you loaded is never written to, so it is left exactly as it was.\n"
-                    "The app then switches to the new copy, which becomes the current file for any further "
-                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                    "This writes to this computer only -- nothing is sent to your Android device.",
-                ),
-            ).style("white-space: pre-wrap")
-        task_to_android = ui.button(
-            translate_string("Save To Android"),
-            on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
-                edited_task,
-                field_refs,
-                dialog,
-            ),
-        ).props("outline")
-        with task_to_android:
-            ui.tooltip(
-                translate_string(
-                    "This opens a choice of two: write the Task as a standalone file onto your Android "
-                    "device under /Tasker/tasks, or import it straight into Tasker's live "
-                    "configuration.\n\n"
-                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
-                    "device, with the server running (see the README's Direct XML Retrieval notes), and "
-                    "Tasker must be 6.2 or higher.\n\n"
-                    "The Android device must be on the same network, and the IP Address and Port must "
-                    "match its Tasker server settings.\n\n"
-                    "Watch the Android device while either one runs: Tasker asks you to authorize "
-                    "the connection several times for one save, and a prompt left untapped fails it.\n\n"
-                    "You must exit and restart Tasker to see an imported Task in the Tasker UI.",
-                ),
-            ).style("white-space: pre-wrap")
+        _render_task_save_buttons(self, edited_task, field_refs, dialog)
         run_on_android = ui.button(
             translate_string("Run On Android"),
             on_click=lambda: build_run_task_on_android_dialog(

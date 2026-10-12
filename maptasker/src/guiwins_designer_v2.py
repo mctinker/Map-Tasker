@@ -215,6 +215,73 @@ class _AddElementDialog:
 _SHOW_WHEN_PREVIEW_LIMIT = 40
 
 
+def _native_input_script(field_id: int) -> str:
+    """The JavaScript that finds a ui.input's native <input>, as ``el`` (null if there is none).
+
+    getHtmlElement() hands back whatever element carries the NiceGUI id, and for ui.input that
+    IS the <input> -- not a wrapper around one -- so this has to cope with both rather than
+    assuming a wrapper to search inside.  (Assuming the wrapper is exactly the bug this
+    replaced: querySelector found nothing, every read came back null, and every pick silently
+    fell back to the end.)
+    """
+    return (
+        f"const el = (() => {{ const r = getHtmlElement({field_id});"
+        f" return r && r.matches('input, textarea') ? r : r && r.querySelector('input, textarea'); }})();"
+    )
+
+
+async def _caret_position(field: ui.input) -> int | None:
+    """Where the cursor is sitting in the field, asked of the browser.
+
+    It has to be asked for rather than remembered: the caret lives in the DOM, and NiceGUI's
+    own value binding knows nothing about it.  Asking while a dialog has focus still works --
+    a blurred input keeps its selection.  None (a field never clicked into, or a browser that
+    declines) means "the end", which is what v2_insert_show_when does with it.
+    """
+    with suppress_logged("Reading the caret position"):
+        return await ui.run_javascript(
+            f"(() => {{ {_native_input_script(field.id)} return el ? el.selectionStart : null; }})()",
+            timeout=3.0,
+        )
+    return None
+
+
+def _render_show_when_groups(
+    results: ui.column,
+    groups: list[tuple[str, list[sceneedit_v2.V2ShowWhenChoice]]],
+    matches: Callable[[sceneedit_v2.V2ShowWhenChoice], bool],
+    pick: Callable[[sceneedit_v2.V2ShowWhenChoice], object],
+) -> None:
+    """Fill the picker's list: a heading and a row of buttons per group, narrowed to the search."""
+    results.clear()
+    with results:
+        for group, choices in groups:
+            visible = [choice for choice in choices if matches(choice)]
+            ui.label(f"{translate_string(group)} ({len(visible)})").classes(
+                "text-xs uppercase text-blue-400 mt-3 mb-1",
+            )
+            if not visible:
+                ui.label(translate_string("Nothing here.")).classes("text-sm italic text-gray-500")
+                continue
+            with ui.row().classes("w-full gap-2 flex-wrap"):
+                for choice in visible[:_SHOW_WHEN_PREVIEW_LIMIT]:
+                    button = ui.button(
+                        choice.label,
+                        on_click=lambda _e=None, c=choice: pick(c),
+                    ).props("outline rounded no-caps dense")
+                    if choice.label != choice.value:
+                        # Only the named entries need this -- a user global is
+                        # already showing the exact text it inserts.
+                        with button:
+                            ui.tooltip(choice.value)
+            if len(visible) > _SHOW_WHEN_PREVIEW_LIMIT:
+                ui.label(
+                    translate_string("...and {count} more -- type above to narrow it down.").format(
+                        count=len(visible) - _SHOW_WHEN_PREVIEW_LIMIT,
+                    ),
+                ).classes("text-xs text-gray-500 italic mt-1")
+
+
 def _build_show_when_dialog(
     field: ui.input,
     groups: list[tuple[str, list[sceneedit_v2.V2ShowWhenChoice]]] | None = None,
@@ -245,44 +312,18 @@ def _build_show_when_dialog(
             translate_string("What you pick goes in at the cursor. Open this again to add the next piece."),
         ).classes("text-sm text-gray-500 italic")
 
-        # Reaching the field's native <input>.  getHtmlElement() hands back whatever element
-        # carries the NiceGUI id, and for ui.input that IS the <input> -- not a wrapper around
-        # one -- so this has to cope with both rather than assuming a wrapper to search
-        # inside.  (Assuming the wrapper is exactly the bug this replaced: querySelector found
-        # nothing, every read came back null, and every pick silently fell back to the end.)
-        _native_input = (
-            f"const el = (() => {{ const r = getHtmlElement({field.id});"
-            f" return r && r.matches('input, textarea') ? r : r && r.querySelector('input, textarea'); }})();"
-        )
-
-        async def caret_position() -> int | None:
-            """Where the cursor is sitting in the Show When field, asked of the browser.
-
-            It has to be asked for rather than remembered: the caret lives in the DOM, and
-            NiceGUI's own value binding knows nothing about it.  Asking while this dialog has
-            focus still works -- a blurred input keeps its selection.  None (a field never
-            clicked into, or a browser that declines) means "the end", which is what
-            v2_insert_show_when does with it.
-            """
-            with suppress_logged("Reading the caret position"):
-                return await ui.run_javascript(
-                    f"(() => {{ {_native_input} return el ? el.selectionStart : null; }})()",
-                    timeout=3.0,
-                )
-            return None
-
         async def pick(choice: sceneedit_v2.V2ShowWhenChoice) -> None:
             text, caret = sceneedit_v2.v2_insert_show_when(
                 str(field.value or ""),
                 choice.value,
-                await caret_position(),
+                await _caret_position(field),
             )
             field.value = text
             # Put the caret back where the insert left it, so re-opening the picker adds the
             # next piece after this one rather than back at the same spot.
             with suppress_logged("Restoring the caret position"):
                 ui.run_javascript(
-                    f"(() => {{ {_native_input} if (el) {{ el.setSelectionRange({caret}, {caret}); }} }})()",
+                    f"(() => {{ {_native_input_script(field.id)} if (el) {{ el.setSelectionRange({caret}, {caret}); }} }})()",
                 )
             # Close on the pick.  A condition is built out of several of these, so staying
             # open to save a click is the obvious thing to do and the wrong one: the dialog
@@ -309,33 +350,7 @@ def _build_show_when_dialog(
         results = ui.column().classes("w-full gap-0 mt-1 max-h-96 overflow-auto")
 
         def render() -> None:
-            results.clear()
-            with results:
-                for group, choices in groups:
-                    visible = [choice for choice in choices if matches(choice)]
-                    ui.label(f"{translate_string(group)} ({len(visible)})").classes(
-                        "text-xs uppercase text-blue-400 mt-3 mb-1",
-                    )
-                    if not visible:
-                        ui.label(translate_string("Nothing here.")).classes("text-sm italic text-gray-500")
-                        continue
-                    with ui.row().classes("w-full gap-2 flex-wrap"):
-                        for choice in visible[:_SHOW_WHEN_PREVIEW_LIMIT]:
-                            button = ui.button(
-                                choice.label,
-                                on_click=lambda _e=None, c=choice: pick(c),
-                            ).props("outline rounded no-caps dense")
-                            if choice.label != choice.value:
-                                # Only the named entries need this -- a user global is
-                                # already showing the exact text it inserts.
-                                with button:
-                                    ui.tooltip(choice.value)
-                    if len(visible) > _SHOW_WHEN_PREVIEW_LIMIT:
-                        ui.label(
-                            translate_string("...and {count} more -- type above to narrow it down.").format(
-                                count=len(visible) - _SHOW_WHEN_PREVIEW_LIMIT,
-                            ),
-                        ).classes("text-xs text-gray-500 italic mt-1")
+            _render_show_when_groups(results, groups, matches, pick)
 
         def search_changed(value: str) -> None:
             search["text"] = value or ""

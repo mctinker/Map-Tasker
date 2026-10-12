@@ -777,6 +777,64 @@ def get_task_details_and_save(
 
 # Go through all caller and called Tasks and build the call table based on the
 # input line passed in.
+def _find_called_task_line(
+    output_lines: list,
+    caller_line_num: int,
+    called_task_name: str,
+    called_task_index: int,
+) -> tuple[int, int, int] | None:
+    """Find the "Called" Task's own line, and where on each line the connector arrows will meet the names.
+
+    Args:
+        output_lines: the Diagram's output lines.
+        caller_line_num: the line of the Task doing the calling.
+        called_task_name: the name of the Task being called.
+        called_task_index: which call to this Task from the caller this is (1 for the first).
+
+    Returns:
+        (the called Task's line number, the caller-side position of the name, the called-side
+        position of the name), or None if the called Task has no line of its own.
+    """
+    #  Find the "Called" Task line for the caller Task.
+    search_name = f"{angle}{called_task_name}"
+
+    # Make sure the called Task exists.
+    for called_line_num, check_line in enumerate(output_lines):
+        # See if the task name is in the line: "└─ {called_task_name}".
+        if search_name in check_line:
+            # Make certain that this is the exact string we want and not a substr match.
+            # If search_name as a substr of the task name we are looking for, then erroneously gets a match and we
+            # must continue the search!
+            str_pos = check_line.find(search_name)
+
+            # Find the "[" bracket and make sure it is the next valid character after the name.
+            modified_check_line = check_line.replace("(entry) ", "").replace(
+                "(exit) ",
+                "",
+            )
+            string_position = modified_check_line.find(f"{search_name} [", str_pos)
+            # Keep searching if this is not the valid caller Task name.
+            if string_position == -1:
+                continue
+
+            # Find the position of the "[Calls -->" task name on the called line immediately after "└─ ".
+            caller_task_position = str_pos + (len(called_task_name) // 2)
+            # Find the position of the "Called by" task name on the caller by line
+            temp_line = output_lines[caller_line_num].replace(task_delimeter, "")
+            start_find_nth = temp_line.find("[Calls ──▶")
+            called_task_position = (
+                find_nth(
+                    temp_line,
+                    called_task_name,
+                    called_task_index,
+                    start_find_nth,
+                )
+                + len(called_task_name) // 2
+            )
+            return called_line_num, caller_task_position, called_task_position
+    return None
+
+
 def process_callers_and_called_tasks(
     output_lines: list,
     call_table: dict,
@@ -827,51 +885,11 @@ def process_callers_and_called_tasks(
         called_task_index = 1 if called_task_name not in called_names else called_names.count(called_task_name) + 1
         called_names.append(called_task_name)
 
-        #  Find the "Called" Task line for the caller Task.
-        search_name = f"{angle}{called_task_name}"
-
-        # Make sure the called Task exists.
-        found_called_task = False
-        for called_line_num, check_line in enumerate(output_lines):  # noqa: B007
-            # See if the task name is in the line: "└─ {called_task_name}".
-            if search_name in check_line:
-                # Make certain that this is the exact string we want and not a substr match.
-                # If search_name as a substr of the task name we are looking for, then erroneously gets a match and we
-                # must continue the search!
-                str_pos = check_line.find(search_name)
-
-                # Find the "[" bracket and make sure it is the next valid character after the name.
-                modified_check_line = check_line.replace("(entry) ", "").replace(
-                    "(exit) ",
-                    "",
-                )
-                string_position = modified_check_line.find(f"{search_name} [", str_pos)
-                # Keep searching if this is not the valid caller Task name.
-                if string_position == -1:
-                    continue
-
-                # Find the position of the "[Calls -->" task name on the called line immediately after "└─ ".
-                found_called_task = True
-                # caller_task_position = check_line.index(called_task_name) + (len(called_task_name) // 2)
-                caller_task_position = str_pos + (len(called_task_name) // 2)
-                # Find the position of the "Called by" task name on the caller by line
-                temp_line = output_lines[caller_line_num].replace(task_delimeter, "")
-                start_find_nth = temp_line.find("[Calls ──▶")
-                called_task_position = (
-                    find_nth(
-                        temp_line,
-                        called_task_name,
-                        called_task_index,
-                        start_find_nth,
-                    )
-                    + len(called_task_name) // 2
-                )
-                # Get out of loop.
-                break
+        found = _find_called_task_line(output_lines, caller_line_num, called_task_name, called_task_index)
 
         # If called Task found, then save everything (only do it once) in the call table.
-        # if found_called_task and called_task_name not in processed_tasks:
-        if found_called_task:
+        if found:
+            called_line_num, caller_task_position, called_task_position = found
             connectors = {
                 "caller_task_name": caller_task_name,
                 "caller_line_num": caller_line_num,

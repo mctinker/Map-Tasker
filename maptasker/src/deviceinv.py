@@ -2396,7 +2396,83 @@ def _stage_xml(
     return 0, task_path
 
 
-def offer_to_tasker(  # noqa: PLR0911
+def _offer_input_problem(
+    ip_address: str,
+    ip_port: str,
+    object_name: str,
+    xml_bytes: bytes,
+    route: OfferRoute,
+) -> tuple[int, str] | None:
+    """What is wrong with the request itself, as (return code, message), or None if there is nothing."""
+    if not ip_address or not ip_port:
+        return 8, "An Android IP address and port are needed.  Set them under 'Get XML from Android Device'."
+    if not object_name:
+        return 8, f"A {route.label} name is needed."
+    if not xml_bytes:
+        return 8, f"There is no {route.label} XML to import."
+    return None
+
+
+def _hand_offer_to_device(
+    ip_address: str,
+    ip_port: str,
+    xml_bytes: bytes,
+    object_name: str,
+    route: OfferRoute,
+    auth_key: str,
+) -> tuple[int, str, str]:
+    """Stage the XML, run the helper Task that opens Tasker's import screen, and read back its answer.
+
+    Returns (0, the path the file was staged at, the API key now held) once the Task has
+    answered the way the route says it should, or (a return code, an error message, the key).
+    """
+    delete_code, delete_error = http_delete_request(ip_address, ip_port, route.read_path, auth_key)
+    if delete_code != 0:
+        logger.info(f"Could not clear {route.read_path} before offering: {delete_error}")
+
+    return_code, message = _stage_xml(ip_address, ip_port, xml_bytes, object_name, route)
+    if return_code != 0:
+        return return_code, message, auth_key
+    stage_task_path = message
+
+    # The path goes over WITH the run, as %par1, rather than having been baked into the Task
+    # when it was installed -- see run_task_on_android.
+    return_code, message = request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda auth_key: run_task_on_android(ip_address, ip_port, route.task_name, auth_key, stage_task_path),
+    )
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
+    if return_code != 0:
+        return return_code, message, auth_key
+
+    text, error = _poll_for_result(ip_address, ip_port, route.read_path, _OPEN_POLL_ATTEMPTS, "import result")
+    if error:
+        return 8, f"{error}  {route.failure_hint.format(path=stage_task_path)}", auth_key
+    if not text.splitlines() or text.splitlines()[0].strip() != route.header:
+        return 8, "The file the Android device wrote is not a MapTasker import result.", auth_key
+    return 0, stage_task_path, auth_key
+
+
+def _offer_sent_message(subject: str, key: str, landed: str, *, already_there: bool) -> str:
+    """What to say once the import screen is open and nothing more is being waited for.
+
+    `already_there` is for an object Tasker already has: it will offer to replace it, and whether
+    that was confirmed cannot be seen from here.
+    """
+    if already_there:
+        return (
+            f"{subject} was sent to {key} and Tasker's import screen was opened.  Tasker already has what "
+            "this would import and will offer to replace it; whether that was confirmed cannot be seen "
+            f"from here.{landed}"
+        )
+    return (
+        f"{subject} was sent to {key} and Tasker's import screen was opened.  "
+        f"It is not imported until it is confirmed on the device.{landed}"
+    )
+
+
+def offer_to_tasker(
     xml_bytes: bytes,
     object_name: str,
     confirm_names: list[str],
@@ -2449,12 +2525,8 @@ def offer_to_tasker(  # noqa: PLR0911
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
     object_name = object_name.strip()
-    if not ip_address or not ip_port:
-        return 8, "An Android IP address and port are needed.  Set them under 'Get XML from Android Device'."
-    if not object_name:
-        return 8, f"A {route.label} name is needed."
-    if not xml_bytes:
-        return 8, f"There is no {route.label} XML to import."
+    if problem := _offer_input_problem(ip_address, ip_port, object_name, xml_bytes, route):
+        return problem
 
     subject = f"{route.label} '{object_name}'"
     key = device_address(ip_address, ip_port)
@@ -2476,11 +2548,7 @@ def offer_to_tasker(  # noqa: PLR0911
         return return_code, message
     auth_key = held_auth_key(ip_address, ip_port) or auth_key
 
-    delete_code, delete_error = http_delete_request(ip_address, ip_port, route.read_path, auth_key)
-    if delete_code != 0:
-        logger.info(f"Could not clear {route.read_path} before offering: {delete_error}")
-
-    return_code, message = _stage_xml(ip_address, ip_port, xml_bytes, object_name, route)
+    return_code, message, auth_key = _hand_offer_to_device(ip_address, ip_port, xml_bytes, object_name, route, auth_key)
     if return_code != 0:
         return return_code, message
     stage_task_path = message
@@ -2489,37 +2557,13 @@ def offer_to_tasker(  # noqa: PLR0911
     # possible if they are told which file -- the whole reason it carries the object's name.
     landed = f"  It is on the device at {stage_task_path}."
 
-    # The path goes over WITH the run, as %par1, rather than having been baked into the Task
-    # when it was installed -- see run_task_on_android.
-    return_code, message = request_with_auth_key(
-        ip_address,
-        ip_port,
-        lambda auth_key: run_task_on_android(ip_address, ip_port, route.task_name, auth_key, stage_task_path),
-    )
-    auth_key = held_auth_key(ip_address, ip_port) or auth_key
-    if return_code != 0:
-        return return_code, message
-
-    text, error = _poll_for_result(ip_address, ip_port, route.read_path, _OPEN_POLL_ATTEMPTS, "import result")
-    if error:
-        return 8, f"{error}  {route.failure_hint.format(path=stage_task_path)}"
-    if not text.splitlines() or text.splitlines()[0].strip() != route.header:
-        return 8, "The file the Android device wrote is not a MapTasker import result."
-
     if not wait_for_confirmation:
-        return 0, (
-            f"{subject} was sent to {key} and Tasker's import screen was opened.  "
-            f"It is not imported until it is confirmed on the device.{landed}"
-        )
+        return 0, _offer_sent_message(subject, key, landed, already_there=False)
 
     # Waiting for something that is already there would 'confirm' the import the instant it
     # was asked, whatever the user goes on to tap -- including Cancel.  So it is not asked.
     if not confirmable:
-        return 0, (
-            f"{subject} was sent to {key} and Tasker's import screen was opened.  Tasker already has what "
-            "this would import and will offer to replace it; whether that was confirmed cannot be seen "
-            f"from here.{landed}"
-        )
+        return 0, _offer_sent_message(subject, key, landed, already_there=True)
 
     return await_import(
         ip_address,

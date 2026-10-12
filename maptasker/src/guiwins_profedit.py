@@ -603,6 +603,135 @@ def _build_code_type_picker(rows: list[dict], label: str, type_picker: Select, s
     return picker
 
 
+def _build_edit_profile_fields(
+    self: MyGui,
+    edited_profile: profedit.EditableProfile,
+    field_refs: dict,
+    dialog: ui.dialog,
+) -> ui.label:
+    """The Edit Profile dialog's title and fields: Name, the shared editor body, Save as, redact and the banner.
+
+    Returns the title label, which Rename retitles while the dialog is still open.
+    """
+    profile_name = edited_profile.profile_element.findtext("nme", "")
+    # Kept as a local (not in field_refs, which is scanned by key for widgets
+    # to read .value off) so Rename can retitle the still-open dialog --
+    # see guiwins_taskedit.build_edit_task_dialog's identical note and rename_profile_event.
+    title_label = ui.label(f"Edit Profile: {profile_name}").classes("text-xl font-bold text-blue-600")
+
+    # Read-only -- renamed only through the Rename button's prompt; see
+    # guiwins_taskedit.build_edit_task_dialog's identical Name field for why.
+    field_refs["name"] = (
+        ui.input(translate_string("Profile Name"), value=profile_name).props("readonly").classes("w-full")
+    )
+
+    _build_profile_editor_body(self, edited_profile, field_refs, dialog)
+
+    field_refs["save_path"] = ui.input(
+        translate_string("Save as"),
+        value=profedit.default_save_path(profile_name, self.state),
+    ).classes("w-full mt-2")
+    build_redact_checkbox(field_refs)
+
+    # Add/Delete Condition, Link/Unlink Task, the Enabled toggle and a Rename all land on
+    # the working copy's element as they happen; every condition's own fields wait in
+    # field_refs until a save reads them, as does whatever is sitting picked but not yet
+    # linked in an Entry/Exit Task picker (see userintr_editors._link_pending_task_pickers) --
+    # which is a pending change too, since a save would apply it.  See guiwins_editor.editor_state.
+    pending_changes = PendingChangesBanner()
+    pending_changes.watch(dialog, lambda: editor_state(edited_profile.profile_element, field_refs))
+    return title_label
+
+
+def _build_edit_profile_buttons(
+    self: MyGui,
+    edited_profile: profedit.EditableProfile,
+    field_refs: dict,
+    dialog: ui.dialog,
+    title_label: ui.label,
+) -> None:
+    """The Edit Profile dialog's button row: Cancel, Delete, Rename, Ok, the two saves and Export."""
+    with ui.row().classes("w-full justify-end gap-2 mt-4"):
+        ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+        delete_profile_button = ui.button(
+            translate_string("Delete Profile"),
+            on_click=lambda: self.event_handlers.delete_profile_event(edited_profile, dialog),
+        ).classes("bg-red-500 text-white")
+        with delete_profile_button:
+            ui.tooltip(
+                translate_string(
+                    "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by "
+                    "the Project, not by the Profile, and the same Task can be used by other Profiles.",
+                ),
+            )
+        rename_profile_button = ui.button(
+            translate_string("Rename"),
+            on_click=lambda: self.event_handlers.rename_profile_event(edited_profile, field_refs, title_label),
+        ).classes("bg-blue-600")
+        with rename_profile_button:
+            ui.tooltip(
+                translate_string(
+                    "Prompts for a new name and applies just that to the loaded backup, right now. "
+                    "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
+                    "open so you can carry on editing.",
+                ),
+            )
+        ui.button(
+            translate_string("Ok"),
+            on_click=lambda: self.event_handlers.keep_edited_profile_event(edited_profile, field_refs, dialog),
+        ).props("outline")
+        profile_to_current_file = ui.button(
+            translate_string("Save To Current File"),
+            on_click=lambda: self.event_handlers.save_edited_profile_to_current_file_event(
+                edited_profile,
+                field_refs,
+                dialog,
+            ),
+        ).props("outline")
+        with profile_to_current_file:
+            ui.tooltip(
+                translate_string(
+                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- "
+                    "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ),
+            ).style("white-space: pre-wrap")
+        profile_to_android = ui.button(
+            translate_string("Save To Android"),
+            on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
+                edited_profile,
+                field_refs,
+                dialog,
+            ),
+        ).props("outline")
+        with profile_to_android:
+            ui.tooltip(
+                translate_string(
+                    "This will write the Profile as a standalone file onto your Android device, "
+                    "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
+                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                    "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
+                    "The Android device must be on the same network, and the IP Address and Port must "
+                    "match its Tasker server settings.\n\n"
+                    "Watch the Android device while this runs: Tasker asks you to authorize the "
+                    "connection several times for one save, and a prompt left untapped fails it.",
+                ),
+            ).style("white-space: pre-wrap")
+        export = ui.button(
+            translate_string("Export Profile"),
+            on_click=lambda: self.event_handlers.save_edited_profile_event(edited_profile, field_refs, dialog),
+        ).classes("bg-blue-600")
+        with export:
+            ui.tooltip(
+                translate_string("Saves this Profile as a standalone .prf.xml file on this computer."),
+            ).style("white-space: pre-wrap")
+
+
 def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProfile) -> None:
     """Builds and opens the Edit Profile dialog: Rename (the Name field is
     read-only -- Rename prompts for a new one and applies it on its own,
@@ -615,116 +744,11 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
     per Profile. Field widgets are kept in a plain dict (matching this file's existing
     ad-hoc widget-ref pattern) and read at Save time rather than using NiceGUI bindings.
     """
-    profile_name = edited_profile.profile_element.findtext("nme", "")
     field_refs: dict = {}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
-        # Kept as a local (not in field_refs, which is scanned by key for widgets
-        # to read .value off) so Rename can retitle the still-open dialog --
-        # see guiwins_taskedit.build_edit_task_dialog's identical note and rename_profile_event.
-        title_label = ui.label(f"Edit Profile: {profile_name}").classes("text-xl font-bold text-blue-600")
-
-        # Read-only -- renamed only through the Rename button's prompt; see
-        # guiwins_taskedit.build_edit_task_dialog's identical Name field for why.
-        field_refs["name"] = (
-            ui.input(translate_string("Profile Name"), value=profile_name).props("readonly").classes("w-full")
-        )
-
-        _build_profile_editor_body(self, edited_profile, field_refs, dialog)
-
-        field_refs["save_path"] = ui.input(
-            translate_string("Save as"),
-            value=profedit.default_save_path(profile_name, self.state),
-        ).classes("w-full mt-2")
-        build_redact_checkbox(field_refs)
-
-        # Add/Delete Condition, Link/Unlink Task, the Enabled toggle and a Rename all land on
-        # the working copy's element as they happen; every condition's own fields wait in
-        # field_refs until a save reads them, as does whatever is sitting picked but not yet
-        # linked in an Entry/Exit Task picker (see userintr_editors._link_pending_task_pickers) --
-        # which is a pending change too, since a save would apply it.  See guiwins_editor.editor_state.
-        pending_changes = PendingChangesBanner()
-        pending_changes.watch(dialog, lambda: editor_state(edited_profile.profile_element, field_refs))
-
-        with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
-            delete_profile_button = ui.button(
-                translate_string("Delete Profile"),
-                on_click=lambda: self.event_handlers.delete_profile_event(edited_profile, dialog),
-            ).classes("bg-red-500 text-white")
-            with delete_profile_button:
-                ui.tooltip(
-                    translate_string(
-                        "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by "
-                        "the Project, not by the Profile, and the same Task can be used by other Profiles.",
-                    ),
-                )
-            rename_profile_button = ui.button(
-                translate_string("Rename"),
-                on_click=lambda: self.event_handlers.rename_profile_event(edited_profile, field_refs, title_label),
-            ).classes("bg-blue-600")
-            with rename_profile_button:
-                ui.tooltip(
-                    translate_string(
-                        "Prompts for a new name and applies just that to the loaded backup, right now. "
-                        "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
-                        "open so you can carry on editing.",
-                    ),
-                )
-            ui.button(
-                translate_string("Ok"),
-                on_click=lambda: self.event_handlers.keep_edited_profile_event(edited_profile, field_refs, dialog),
-            ).props("outline")
-            profile_to_current_file = ui.button(
-                translate_string("Save To Current File"),
-                on_click=lambda: self.event_handlers.save_edited_profile_to_current_file_event(
-                    edited_profile,
-                    field_refs,
-                    dialog,
-                ),
-            ).props("outline")
-            with profile_to_current_file:
-                ui.tooltip(
-                    translate_string(
-                        "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- "
-                        "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
-                        "It is written to a new, timestamped copy of the file currently loaded: "
-                        "backup.xml becomes backup_20260728_143005.xml.\n"
-                        "The file you loaded is never written to, so it is left exactly as it was.\n"
-                        "The app then switches to the new copy, which becomes the current file for any further "
-                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device.",
-                    ),
-                ).style("white-space: pre-wrap")
-            profile_to_android = ui.button(
-                translate_string("Save To Android"),
-                on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
-                    edited_profile,
-                    field_refs,
-                    dialog,
-                ),
-            ).props("outline")
-            with profile_to_android:
-                ui.tooltip(
-                    translate_string(
-                        "This will write the Profile as a standalone file onto your Android device, "
-                        "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
-                        "The 'Http Server Example' Tasker Project must be installed and active on the Android "
-                        "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
-                        "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings.\n\n"
-                        "Watch the Android device while this runs: Tasker asks you to authorize the "
-                        "connection several times for one save, and a prompt left untapped fails it.",
-                    ),
-                ).style("white-space: pre-wrap")
-            export = ui.button(
-                translate_string("Export Profile"),
-                on_click=lambda: self.event_handlers.save_edited_profile_event(edited_profile, field_refs, dialog),
-            ).classes("bg-blue-600")
-            with export:
-                ui.tooltip(
-                    translate_string("Saves this Profile as a standalone .prf.xml file on this computer."),
-                ).style("white-space: pre-wrap")
+        title_label = _build_edit_profile_fields(self, edited_profile, field_refs, dialog)
+        _build_edit_profile_buttons(self, edited_profile, field_refs, dialog, title_label)
 
     dialog.open()
 
@@ -837,6 +861,112 @@ def build_delete_profile_dialog(
     confirm_dialog.open()
 
 
+def _build_add_profile_fields(
+    self: MyGui,
+    edited_profile: profedit.EditableProfile,
+    field_refs: dict,
+    dialog: ui.dialog,
+    target_project_name: str,
+) -> None:
+    """The Add Profile dialog's title and fields: Name (which drives Save as), the shared editor body and Save as."""
+    ui.label(translate_string("Add Profile")).classes("text-xl font-bold text-blue-600")
+
+    last_auto_path = {"value": profedit.default_save_path("", self.state)}
+
+    def sync_save_path(_e: object = None) -> None:
+        # Keep "Save as" in sync with the Profile Name as the user types --
+        # see guiwins_taskedit.build_add_task_dialog's identical sync_save_path for why this
+        # only overwrites the path while it still holds what was last auto-computed.
+        if field_refs["save_path"].value == last_auto_path["value"]:
+            new_path = profedit.default_save_path(field_refs["name"].value, self.state)
+            field_refs["save_path"].value = new_path
+            last_auto_path["value"] = new_path
+
+    if target_project_name:
+        ui.label(f"{translate_string('Adding to Project:')} {target_project_name}").classes(
+            "text-sm text-gray-500 italic",
+        )
+
+    field_refs["name"] = ui.input(translate_string("Profile Name"), value="", on_change=sync_save_path).classes(
+        "w-full",
+    )
+
+    _build_profile_editor_body(self, edited_profile, field_refs, dialog)
+
+    field_refs["save_path"] = ui.input(
+        translate_string("Save as"),
+        value=last_auto_path["value"],
+    ).classes("w-full mt-2")
+
+
+def _build_add_profile_buttons(
+    self: MyGui,
+    edited_profile: profedit.EditableProfile,
+    field_refs: dict,
+    dialog: ui.dialog,
+) -> None:
+    """The Add Profile dialog's button row: Cancel, Ok, the two saves and Export."""
+    with ui.row().classes("w-full justify-end gap-2 mt-4"):
+        ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+        ui.button(
+            translate_string("Ok"),
+            on_click=lambda: self.event_handlers.keep_new_profile_event(edited_profile, field_refs, dialog),
+        ).props("outline")
+        new_profile_to_current_file = ui.button(
+            translate_string("Save To Current File"),
+            on_click=lambda: self.event_handlers.save_new_profile_to_current_file_event(
+                edited_profile,
+                field_refs,
+                dialog,
+            ),
+        ).props("outline")
+        with new_profile_to_current_file:
+            ui.tooltip(
+                translate_string(
+                    "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
+                    "with the new Profile added to its Project, the same way 'Ok' adds it.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ),
+            ).style("white-space: pre-wrap")
+        profile_to_android = ui.button(
+            translate_string("Save To Android"),
+            on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
+                edited_profile,
+                field_refs,
+                dialog,
+            ),
+        ).props("outline")
+        with profile_to_android:
+            ui.tooltip(
+                translate_string(
+                    "This will write the Profile as a standalone file onto your Android device, "
+                    "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
+                    "The 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android "
+                    "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
+                    "The Android device must be on the same network, and the IP Address and Port must "
+                    "match its Tasker server settings.\n\n"
+                    "Watch the Android device while this runs: Tasker asks you to authorize the "
+                    "connection several times for one save, and a prompt left untapped fails it.",
+                ),
+            ).style("white-space: pre-wrap")
+        export_prof = ui.button(
+            translate_string("Export Profile"),
+            on_click=lambda: self.event_handlers.save_new_profile_event(edited_profile, field_refs, dialog),
+        ).classes("bg-blue-600")
+        with export_prof:
+            ui.tooltip(
+                translate_string(
+                    "Saves this Profile, with all of its conditions and linked Tasks, as one standalone .prf.xml file -- the same format Tasker's own Profile export produces.\n\n"
+                    "Tasks the Profile runs are not included; they belong to their own Project.",
+                ),
+            ).style("white-space: pre-wrap")
+
+
 def build_add_profile_dialog(
     self: MyGui,
     edited_profile: profedit.EditableProfile,
@@ -865,93 +995,7 @@ def build_add_profile_dialog(
     field_refs: dict = {"target_project_name": target_project_name}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
-        ui.label(translate_string("Add Profile")).classes("text-xl font-bold text-blue-600")
-
-        last_auto_path = {"value": profedit.default_save_path("", self.state)}
-
-        def sync_save_path(_e: object = None) -> None:
-            # Keep "Save as" in sync with the Profile Name as the user types --
-            # see guiwins_taskedit.build_add_task_dialog's identical sync_save_path for why this
-            # only overwrites the path while it still holds what was last auto-computed.
-            if field_refs["save_path"].value == last_auto_path["value"]:
-                new_path = profedit.default_save_path(field_refs["name"].value, self.state)
-                field_refs["save_path"].value = new_path
-                last_auto_path["value"] = new_path
-
-        if target_project_name:
-            ui.label(f"{translate_string('Adding to Project:')} {target_project_name}").classes(
-                "text-sm text-gray-500 italic",
-            )
-
-        field_refs["name"] = ui.input(translate_string("Profile Name"), value="", on_change=sync_save_path).classes(
-            "w-full",
-        )
-
-        _build_profile_editor_body(self, edited_profile, field_refs, dialog)
-
-        field_refs["save_path"] = ui.input(
-            translate_string("Save as"),
-            value=last_auto_path["value"],
-        ).classes("w-full mt-2")
-
-        with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
-            ui.button(
-                translate_string("Ok"),
-                on_click=lambda: self.event_handlers.keep_new_profile_event(edited_profile, field_refs, dialog),
-            ).props("outline")
-            new_profile_to_current_file = ui.button(
-                translate_string("Save To Current File"),
-                on_click=lambda: self.event_handlers.save_new_profile_to_current_file_event(
-                    edited_profile,
-                    field_refs,
-                    dialog,
-                ),
-            ).props("outline")
-            with new_profile_to_current_file:
-                ui.tooltip(
-                    translate_string(
-                        "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
-                        "with the new Profile added to its Project, the same way 'Ok' adds it.\n"
-                        "It is written to a new, timestamped copy of the file currently loaded: "
-                        "backup.xml becomes backup_20260728_143005.xml.\n"
-                        "The file you loaded is never written to, so it is left exactly as it was.\n"
-                        "The app then switches to the new copy, which becomes the current file for any further "
-                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device.",
-                    ),
-                ).style("white-space: pre-wrap")
-            profile_to_android = ui.button(
-                translate_string("Save To Android"),
-                on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
-                    edited_profile,
-                    field_refs,
-                    dialog,
-                ),
-            ).props("outline")
-            with profile_to_android:
-                ui.tooltip(
-                    translate_string(
-                        "This will write the Profile as a standalone file onto your Android device, "
-                        "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
-                        "The 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android "
-                        "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
-                        "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings.\n\n"
-                        "Watch the Android device while this runs: Tasker asks you to authorize the "
-                        "connection several times for one save, and a prompt left untapped fails it.",
-                    ),
-                ).style("white-space: pre-wrap")
-            export_prof = ui.button(
-                translate_string("Export Profile"),
-                on_click=lambda: self.event_handlers.save_new_profile_event(edited_profile, field_refs, dialog),
-            ).classes("bg-blue-600")
-            with export_prof:
-                ui.tooltip(
-                    translate_string(
-                        "Saves this Profile, with all of its conditions and linked Tasks, as one standalone .prf.xml file -- the same format Tasker's own Profile export produces.\n\n"
-                        "Tasks the Profile runs are not included; they belong to their own Project.",
-                    ),
-                ).style("white-space: pre-wrap")
+        _build_add_profile_fields(self, edited_profile, field_refs, dialog, target_project_name)
+        _build_add_profile_buttons(self, edited_profile, field_refs, dialog)
 
     dialog.open()

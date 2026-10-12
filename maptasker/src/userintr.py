@@ -153,6 +153,102 @@ def check_for_updates(gui: "MyGui") -> None:
     check_links_at_startup()
 
 
+# ##################################################################################
+# What restoring each saved setting does (MyGui.restore_display).
+# ##################################################################################
+# Settings that have nothing to restore into: they are set as attributes on the window and
+# say nothing.
+RESTORE_KEYS_TO_IGNORE = frozenset(
+    {
+        "gui",
+        "save",
+        "restore",
+        "rerun",
+        "reset",
+        "Analyze",
+        "ai_analyze",
+        "ai_model",
+        "ai_name",
+        "ai_prompt",
+        "tab_to_use",
+        "guiview",
+        "fetched_backup_from_android",
+        # Only consulted when the 'Get Local XML File' picker is opened -- there is no
+        # widget of its own to restore it into.
+        "local_xml_directory",
+        # Likewise only read when a Save To Android panel opens -- see
+        # guiwins._android_device_fields.
+        "android_check_ids",
+        "android_verify",
+        # Only read when an Android dialog opens -- see guiutils.android_address_defaults.
+        "android_last_ipaddr",
+        "android_last_port",
+    },
+)
+# Setting -> (the window's checkbox for it, the name the message calls it).
+RESTORE_CHECKBOXES = {
+    "ai_model_extended_list": ("aimodel_extend_checkbox", "Display Profile/Task Conditions"),
+    "bold": ("bold_checkbox", "Display Names in Bold"),
+    "conditions": ("conditions_checkbox", "Display Profile/Task Conditions"),
+    "debug": ("debug_checkbox", "Debug Mode"),
+    "directory": ("directory_checkbox", "Display Directory"),
+    "highlight": ("highlight_checkbox", "Display Names Highlighted"),
+    "italicize": ("italicize_checkbox", "Display Names Italicized"),
+    "list_unnamed_items": ("list_unnamed_items_checkbox", "Display Unnamed Tasks"),
+    "preferences": ("preferences_checkbox", "Display Tasker Preferences"),
+    "pretty": ("pretty_checkbox", "Display Prettier"),
+    "runtime": ("runtime_checkbox", "Display Runtime Settings"),
+    "taskernet": ("taskernet_checkbox", "Display TaskerNet Information"),
+    "twisty": ("twisty_checkbox", "Hide Task Details Under Twisty"),
+    "underline": ("underline_checkbox", "Display Names Underlined"),
+}
+# Setting -> what the message calls an Android address setting ("<label> set to <value>").
+RESTORE_ANDROID_LABELS = {
+    "android_ipaddr": "Android Get XML TCP IP Address",
+    "android_port": "Android Get XML Port Number",
+    "android_file": "Android Get XML File Location",
+}
+# Setting -> the event handler that takes the value and applies it.
+RESTORE_EVENT_HANDLERS = {
+    "display_detail_level": "detail_selected_event",
+    "font": "font_event",
+    "indent": "indent_selected_event",
+    "language": "language_set_event",
+    "notify_timeout": "notify_timeout_event",
+    "output_directory": "output_directory_restored",
+    "view_limit": "viewlimit_event",
+}
+# Setting -> the kind of object whose name it holds.
+RESTORE_SINGLE_NAMES = {
+    "single_profile_name": "Profile",
+    "single_project_name": "Project",
+    "single_task_name": "Task",
+    "single_scene_name": "Scene",
+}
+
+# How a restore message ends when the setting has no value, and what it says instead.
+_UNSET_ENDING = "set to \n"
+_UNNAMED_ENDING = "named ''.\n"
+
+
+def tidy_restore_message(message: str | None) -> str:
+    """The restore message with an empty ending put into words ("set to" nothing is "is not set").
+
+    Args:
+        message (str | None): what the handler returned; None and "" both mean nothing to say.
+
+    Returns:
+        str: the message to show, or "".
+    """
+    if not message:
+        return ""
+    if message.endswith(_UNSET_ENDING):
+        return f"{message[: -len(_UNSET_ENDING)]} is not set.\n"
+    if message.endswith(_UNNAMED_ENDING):
+        return f"{message[: -len(_UNNAMED_ENDING)]} is not named.\n"
+    return message
+
+
 class MyGui:
     """Main UI Interface for MapTasker using NiceGUI."""
 
@@ -226,21 +322,8 @@ class MyGui:
         # dozen things at the wrong one.
         self.set_startup_notification_duration()
 
-        # 3. Build the UI Layout directly!
-        try:
-            initialize_screen(self)
-        except Exception as e:
-            ui.label(f"CRASH IN UI LAYOUT: {e}").classes("text-2xl text-red-500 m-8 font-mono")
-            # Whatever went wrong, the label above is now the window's entire content, so
-            # the user can see it.  sys.exit() used to follow, which was the worst of both
-            # worlds: raised inside a NiceGUI page builder it does not end the process, it
-            # kills the request handling this page and leaves uvicorn logging a SystemExit
-            # traceback -- so the message just written was never displayed.  Returning
-            # leaves the message on screen and the server up.
-            console.error("\n" + "=" * 50)
-            console.error(f"🚨 CRITICAL UI BUILD ERROR 🚨 {e}")
-            console.error("=" * 50 + "\n")
-            logger.exception("Building the GUI layout failed", exc_info=e)
+        # 3. Build the UI Layout directly!  Nothing more is done if that fails: the message is the window.
+        if not self._build_layout():
             return
 
         # Now restore the settings and update the fields if not resetting.
@@ -261,6 +344,47 @@ class MyGui:
         # See if we have a changelog, and get it if we do.  This must go before 'self.process_current_messages()' call.
         check_for_changelog(self)
 
+        self._populate_object_pulldowns()
+
+        # See if we have any carryover error messages from the AI run.
+        # Note: this must go after the settings restoration.
+        display_error_file_and_ai_response(self)
+
+        # CHG: FOR DEVELOPMENT ONLY
+        # PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
+        # PrimeItems.program_arguments.single_project_name = self.single_project_name = PrimeItems.program_arguments[
+        #     "single_profile_name"
+        # ] = self.single_profile_name = PrimeItems.program_arguments.single_task_name = self.single_task_name = "None"
+        # PrimeItems.program_arguments.single_project_name = self.single_project_name = "Garden Watering"
+        # PrimeItems.program_arguments.guiview = True
+        # _ = get_xml(self.debug, self.appearance_mode)
+        # self.view_limit = 9999999
+        # list_tasker_objects(self)
+        # self.event_handlers.view_event("map")
+
+        self.initialization = False
+
+    def _build_layout(self: "MyGui") -> bool:
+        """Build the window's layout.  False if that failed, and the failure is what the window now shows."""
+        try:
+            initialize_screen(self)
+        except Exception as e:
+            ui.label(f"CRASH IN UI LAYOUT: {e}").classes("text-2xl text-red-500 m-8 font-mono")
+            # Whatever went wrong, the label above is now the window's entire content, so
+            # the user can see it.  sys.exit() used to follow, which was the worst of both
+            # worlds: raised inside a NiceGUI page builder it does not end the process, it
+            # kills the request handling this page and leaves uvicorn logging a SystemExit
+            # traceback -- so the message just written was never displayed.  Returning
+            # leaves the message on screen and the server up.
+            console.error("\n" + "=" * 50)
+            console.error(f"🚨 CRITICAL UI BUILD ERROR 🚨 {e}")
+            console.error("=" * 50 + "\n")
+            logger.exception("Building the GUI layout failed", exc_info=e)
+            return False
+        return True
+
+    def _populate_object_pulldowns(self: "MyGui") -> None:
+        """Fill the Project/Profile/Task pulldowns from what is loaded, loading the restored file if need be."""
         # Populate the Target specific item if we have a single Project, Profile, or Task name set.
         if (
             self.state.tasker_root_elements["all_projects"]
@@ -282,24 +406,6 @@ class MyGui:
             return_code = get_xml(self.debug, self.appearance_mode, state=self.state)
             if return_code == 0:
                 refresh_tasker_object_pulldowns(self)
-
-        # See if we have any carryover error messages from the AI run.
-        # Note: this must go after the settings restoration.
-        display_error_file_and_ai_response(self)
-
-        # CHG: FOR DEVELOPMENT ONLY
-        # PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
-        # PrimeItems.program_arguments.single_project_name = self.single_project_name = PrimeItems.program_arguments[
-        #     "single_profile_name"
-        # ] = self.single_profile_name = PrimeItems.program_arguments.single_task_name = self.single_task_name = "None"
-        # PrimeItems.program_arguments.single_project_name = self.single_project_name = "Garden Watering"
-        # PrimeItems.program_arguments.guiview = True
-        # _ = get_xml(self.debug, self.appearance_mode)
-        # self.view_limit = 9999999
-        # list_tasker_objects(self)
-        # self.event_handlers.view_event("map")
-
-        self.initialization = False
 
     def seed_view_limit_from_command_line(self: "MyGui") -> None:
         """Put a view limit given with -view_limit in force, over the restored settings.
@@ -865,7 +971,6 @@ class MyGui:
 
     # Given a setting key and value, set the attribute for the key to the value and return the setting as a message.
     def restore_display(self, key: str, value: str) -> str:
-        # Dictionary of program arguments and function to run for each upon restoration.
         """
         Restores display settings
         Args:
@@ -874,186 +979,49 @@ class MyGui:
         Returns:
             message: str - Message describing setting change
         {Processing Logic}:
-            - Maps setting names to lambda functions for processing
-            - Checks for special case settings and sets attribute directly
-            - Looks up and runs corresponding lambda function
-            - Returns message generated by lambda function
+            - Settings that have no widget of their own are just set as attributes
+            - Every other setting is looked up in the tables above and run through its handler
+            - The message that comes back is tidied up for a setting that has no value
         """
         message = ""
-        keys_to_ignore = {
-            "gui",
-            "save",
-            "restore",
-            "rerun",
-            "reset",
-            "Analyze",
-            "ai_analyze",
-            "ai_model",
-            "ai_name",
-            "ai_prompt",
-            "tab_to_use",
-            "guiview",
-            "fetched_backup_from_android",
-            # Only consulted when the 'Get Local XML File' picker is opened -- there is no
-            # widget of its own to restore it into.
-            "local_xml_directory",
-            # Likewise only read when a Save To Android panel opens -- see
-            # guiwins._android_device_fields.
-            "android_check_ids",
-            "android_verify",
-            # Only read when an Android dialog opens -- see guiutils.android_address_defaults.
-            "android_last_ipaddr",
-            "android_last_port",
-        }
-        # Define what to do for each argument restored.
-        set_to = translate_string("set to")
-        message_map = {
-            "android_ipaddr": lambda: f"{translate_string('Android Get XML TCP IP Address')} {set_to} {value}\n",
-            "android_port": lambda: f"{translate_string('Android Get XML Port Number')} {set_to} {value}\n",
-            "android_file": lambda: f"{translate_string('Android Get XML File Location')} {set_to} {value}\n",
-            # Moves the "Dark Mode" switch and repaints the window.  Without this the saved
-            # appearance mode landed on self (every restored key does, via setattr above) and
-            # then sat there unused, which is what made dark mode look like it was never saved.
-            "appearance_mode": lambda: restore_appearance_mode(self, value),
-            "ai_model_extended_list": lambda: self.select_deselect_checkbox(
-                self.aimodel_extend_checkbox,
-                value,
-                "Display Profile/Task Conditions",
-                display=False,
-            ),
-            "bold": lambda: self.select_deselect_checkbox(
-                self.bold_checkbox,
-                value,
-                "Display Names in Bold",
-                display=False,
-            ),
-            "conditions": lambda: self.select_deselect_checkbox(
-                self.conditions_checkbox,
-                value,
-                "Display Profile/Task Conditions",
-                display=False,
-            ),
-            "debug": lambda: self.select_deselect_checkbox(
-                self.debug_checkbox,
-                value,
-                "Debug Mode",
-                display=False,
-            ),
-            "directory": lambda: self.select_deselect_checkbox(
-                self.directory_checkbox,
-                value,
-                "Display Directory",
-                display=False,
-            ),
-            "display_detail_level": lambda: self.event_handlers.detail_selected_event(
-                value,
-            ),
-            "file": lambda: self.display_and_set_file(value),
-            "font": lambda: self.event_handlers.font_event(value),
-            # "font": lambda: f"Font set to {value}.\n",
-            "highlight": lambda: self.select_deselect_checkbox(
-                self.highlight_checkbox,
-                value,
-                "Display Names Highlighted",
-                display=False,
-            ),
-            "indent": lambda: self.event_handlers.indent_selected_event(value),
-            "italicize": lambda: self.select_deselect_checkbox(
-                self.italicize_checkbox,
-                value,
-                "Display Names Italicized",
-                display=False,
-            ),
-            "language": lambda: self.event_handlers.language_set_event(value),
-            "list_unnamed_items": lambda: self.select_deselect_checkbox(
-                self.list_unnamed_items_checkbox,
-                value,
-                "Display Unnamed Tasks",
-                display=False,
-            ),
-            "notify_timeout": lambda: self.event_handlers.notify_timeout_event(value),
-            "output_directory": lambda: self.event_handlers.output_directory_restored(value),
-            "view_limit": lambda: self.event_handlers.viewlimit_event(value),
-            "preferences": lambda: self.select_deselect_checkbox(
-                self.preferences_checkbox,
-                value,
-                "Display Tasker Preferences",
-                display=False,
-            ),
-            "pretty": lambda: self.select_deselect_checkbox(
-                self.pretty_checkbox,
-                value,
-                "Display Prettier",
-                display=False,
-            ),
-            "runtime": lambda: self.select_deselect_checkbox(
-                self.runtime_checkbox,
-                value,
-                "Display Runtime Settings",
-                display=False,
-            ),
-            "single_profile_name": lambda: self.process_single_name_restore(
-                "Profile",
-                value,
-            ),
-            "single_project_name": lambda: self.process_single_name_restore(
-                "Project",
-                value,
-            ),
-            "single_task_name": lambda: self.process_single_name_restore("Task", value),
-            "single_scene_name": lambda: self.process_single_name_restore("Scene", value),
-            "task_action_warning_limit": lambda: self.tasklimit_set(value),
-            "taskernet": lambda: self.select_deselect_checkbox(
-                self.taskernet_checkbox,
-                value,
-                "Display TaskerNet Information",
-                display=False,
-            ),
-            "twisty": lambda: self.select_deselect_checkbox(
-                self.twisty_checkbox,
-                value,
-                "Hide Task Details Under Twisty",
-                display=False,
-            ),
-            "underline": lambda: self.select_deselect_checkbox(
-                self.underline_checkbox,
-                value,
-                "Display Names Underlined",
-                display=False,
-            ),
-        }
-
-        # Processs specific items that have no effect on the GUI
-        if key in keys_to_ignore:
-            message = ""
-            # Check if key is an attribute on self before setting
+        if key in RESTORE_KEYS_TO_IGNORE:
+            # Process specific items that have no effect on the GUI: set the attribute, if there is one.
             if hasattr(self, key):
                 setattr(self, key, value)
         else:
-            # Use dictionary lookup and lambda funtion to process key/value.
-            message_func = message_map.get(key)
-            if message_func:
-                # Note: display_detail_level, file, font, indent, and single object name all return a message of 'None'.
-                message = message_func()  # This calls the lambda function and takes a bit of time.
-            # Catch bug where we have a key but no lambda function to process it.
-            elif self.debug:
+            handled, message = self._restore_setting(key, value)
+            # Catch bug where we have a key but nothing to process it.
+            if not handled and self.debug:
                 logger.debug(
                     f"userintr: no lambda rtn for key or value: {key}, {value}",
                 )
+        return tidy_restore_message(message)
 
-        # Cleanup the end of the message if it is not set.
-        the_empty_ending = "set to \n"
-        the_empty_ending_length = len(the_empty_ending)
-        named_ending = "named ''.\n"
-        named_ending_length = len(named_ending)
-        if message is None or message == "":
-            return ""
-        if message.endswith(the_empty_ending):
-            message = f"{message[:-the_empty_ending_length]} is not set.\n"
-        elif message.endswith(named_ending):
-            message = f"{message[:-named_ending_length]} is not named.\n"
+    def _restore_setting(self, key: str, value: str) -> tuple[bool, str | None]:
+        """Run the handler for one restored setting.  Returns (a handler exists, the message it gave).
 
-        return message
+        The message can be None: display_detail_level, file, font, indent and the single object
+        names all answer with nothing, because they say what they did themselves.
+        """
+        if key in RESTORE_CHECKBOXES:
+            attribute, label = RESTORE_CHECKBOXES[key]
+            return True, self.select_deselect_checkbox(getattr(self, attribute), value, label, display=False)
+        if key in RESTORE_ANDROID_LABELS:
+            return True, f"{translate_string(RESTORE_ANDROID_LABELS[key])} {translate_string('set to')} {value}\n"
+        if key in RESTORE_EVENT_HANDLERS:
+            return True, getattr(self.event_handlers, RESTORE_EVENT_HANDLERS[key])(value)
+        if key in RESTORE_SINGLE_NAMES:
+            return True, self.process_single_name_restore(RESTORE_SINGLE_NAMES[key], value)
+        if key == "appearance_mode":
+            # Moves the "Dark Mode" switch and repaints the window.  Without this the saved
+            # appearance mode landed on self (every restored key does, via setattr above) and
+            # then sat there unused, which is what made dark mode look like it was never saved.
+            return True, restore_appearance_mode(self, value)
+        if key == "file":
+            return True, self.display_and_set_file(value)
+        if key == "task_action_warning_limit":
+            return True, self.tasklimit_set(value)
+        return False, None
 
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in

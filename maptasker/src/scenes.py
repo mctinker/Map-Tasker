@@ -398,30 +398,8 @@ def process_list_element(
 
 
 # Get the xxxElement arguments, format and output them.  Recurse for more sub-elements.
-def format_and_output_arguments(
-    child: Element,
-    element_type: str,
-    indentation: int,
-    config: RunConfig,
-    anchors: SceneAnchors | None = None,
-    *,
-    state: RunState,
-) -> None:
-    """
-    Formats and outputs the arguments for the given child element, element type, and indentation level.
-
-    Parameters:
-        child (Element): The child element to format and output arguments for.
-        element_type (str): The type of the element.
-        indentation (int): The indentation level.
-
-    Returns:
-        None
-    """
-    # Remove "Element" from the name and set up the indetation spacing.
-    element_name = element_type.replace("Element", "")
-    line_indentation = f"{blank * len(element_name)}{blank * (18 + indentation)}"
-
+def _scene_argument_text(child: Element, element_type: str, state: RunState) -> str:
+    """The element's arguments as a Scene line: the action results, tidied and turned into the Scene's colour."""
     # Get the internal element name
     internal_name = child.attrib.get("sr")
 
@@ -453,19 +431,11 @@ def format_and_output_arguments(
     # Remove 'Rounded Corners' if no 'Corner Radius'
     if "Corner Radius:0" in line_out:
         line_out = line_out.replace("Rounded Corners:All", "")
+    return line_out
 
-    # If we have a list element, then it represents a series of task Actions in the scene Properties.
-    if element_type == "ListElementItem":
-        title = "ACTIONS Tab "
-        element_name = ""
-    else:
-        title = "UI for  "
-        # indentation = 0
 
-    # Make pretty
-    if config.pretty:
-        line_out = line_out.replace(", ", f"<br>{line_indentation}")
-
+def _close_open_spans(line_out: str) -> tuple[str, int]:
+    """The line with the colour span its arguments left open closed; and how many were open."""
     # Close the colour span the arguments text opens and does not, so that this line is one
     # element of its own -- and then open an identical one, so that the colour carries on
     # exactly as it did.  Both halves are needed, and neither on its own would do:
@@ -489,7 +459,48 @@ def format_and_output_arguments(
     # Counted rather than assumed to be one, so an element type whose arguments do come back
     # balanced is left as it is -- and gets no stray tag it never asked for.
     unclosed = max(line_out.count("<span") - line_out.count("</span>"), 0)
-    line_out += "</span>" * unclosed
+    return line_out + "</span>" * unclosed, unclosed
+
+
+def format_and_output_arguments(
+    child: Element,
+    element_type: str,
+    indentation: int,
+    config: RunConfig,
+    anchors: SceneAnchors | None = None,
+    *,
+    state: RunState,
+) -> None:
+    """
+    Formats and outputs the arguments for the given child element, element type, and indentation level.
+
+    Parameters:
+        child (Element): The child element to format and output arguments for.
+        element_type (str): The type of the element.
+        indentation (int): The indentation level.
+
+    Returns:
+        None
+    """
+    # Remove "Element" from the name and set up the indetation spacing.
+    element_name = element_type.replace("Element", "")
+    line_indentation = f"{blank * len(element_name)}{blank * (18 + indentation)}"
+
+    line_out = _scene_argument_text(child, element_type, state)
+
+    # If we have a list element, then it represents a series of task Actions in the scene Properties.
+    if element_type == "ListElementItem":
+        title = "ACTIONS Tab "
+        element_name = ""
+    else:
+        title = "UI for  "
+        # indentation = 0
+
+    # Make pretty
+    if config.pretty:
+        line_out = line_out.replace(", ", f"<br>{line_indentation}")
+
+    line_out, unclosed = _close_open_spans(line_out)
 
     # Mark this element's place: this is the line holding the values a finding about a
     # variable names.  A no-op for an element already anchored on its heading line, which

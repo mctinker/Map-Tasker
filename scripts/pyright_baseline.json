@@ -75,10 +75,9 @@
     "reportReturnType": 7
   },
   "maptasker/src/diagram.py": {
-    "reportArgumentType": 20,
+    "reportArgumentType": 10,
     "reportAssignmentType": 4,
-    "reportAttributeAccessIssue": 5,
-    "reportCallIssue": 10,
+    "reportAttributeAccessIssue": 3,
     "reportGeneralTypeIssues": 2,
     "reportOptionalSubscript": 3,
     "reportReturnType": 9
@@ -237,7 +236,7 @@
     "reportOptionalSubscript": 1
   },
   "maptasker/src/mapswap.py": {
-    "reportArgumentType": 8,
+    "reportArgumentType": 5,
     "reportAttributeAccessIssue": 5,
     "reportCallIssue": 1,
     "reportGeneralTypeIssues": 1,
@@ -402,8 +401,8 @@
     "reportAttributeAccessIssue": 2
   },
   "maptasker/src/userintr.py": {
-    "reportArgumentType": 22,
-    "reportAttributeAccessIssue": 38,
+    "reportArgumentType": 8,
+    "reportAttributeAccessIssue": 24,
     "reportReturnType": 1
   },
   "maptasker/src/userintr_ai.py": {

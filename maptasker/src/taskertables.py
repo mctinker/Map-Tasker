@@ -60,24 +60,8 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
 _ANCHOR_LABEL = "Anchor ...with label:\n"
 
 
-def build_tasker_tables(state: RunState) -> None:
-    """Build PrimeItems.tasker_root_elements from PrimeItems.xml_root -- the
-    Project/Profile/Task/Scene/Setting lookup tables the whole application navigates
-    the backup through, including the derived names an unnamed Profile or Task is
-    listed under.
-
-    Split out of get_the_xml_data (which still calls it, and is still the only way a
-    file becomes the loaded configuration) so that sessundo can rebuild the tables
-    after replacing xml_root with an undo checkpoint, without a file, a parse, or any
-    of the validation that only makes sense the first time.
-
-    It writes into the global rather than returning a dict, and that is deliberate --
-    see diffload.py's module comment for the trap: profiles.conditions_to_name, called
-    from the unnamed-Profile pass below, writes its derived name back through
-    PrimeItems.tasker_root_elements itself.  A version that filled a local dict would
-    have that pass writing into whatever table the global happened to hold instead.
-    """
-
+def _load_root_tables(state: RunState) -> None:
+    """Fill state.tasker_root_elements with the Project, Profile, Task, Scene and Setting tables from the XML."""
     # Extract and transform data into Projects, Profiles, Tasks, Scenes and Services
     _move_xml_to_table = move_xml_to_table
     state.tasker_root_elements = {
@@ -104,15 +88,14 @@ def build_tasker_tables(state: RunState) -> None:
         "all_services": state.xml_root.findall("Setting"),
     }
 
-    # Assign names to Profiles that have no name = their condition.nnn (Unnamed)
-    # Cache external references and methods to local variables
-    # This avoids repeated global/attribute lookups in the loop
+
+def _name_unnamed_profiles(state: RunState) -> None:
+    """Give every Profile with no name its conditions for a name (state.tasker_root_elements is written through)."""
     all_profiles = state.tasker_root_elements["all_profiles"]
     _parse_condition = condition.parse_profile_condition
     _conditions_to_name = conditions_to_name
     unnamed_label = UNNAMED_ITEM
     config = current_config(state)
-
     # Pre-compile regex if multiple tags need cleaning (faster than multiple .replace)
     tag_cleaner = re.compile(r"</?em>")
 
@@ -137,12 +120,9 @@ def build_tasker_tables(state: RunState) -> None:
             # Direct update to the dictionary reference
             profile["name"] = current_name
 
-    # Get Profiles by name (mirrors all_tasks_by_name below) -- profedit.py's
-    # Edit Profile feature resolves a Profile by its displayed name through this.
-    state.tasker_root_elements["all_profiles_by_name"] = {
-        profile["name"]: {"xml": profile["xml"], "id": key} for key, profile in all_profiles.items()
-    }
 
+def _index_tasks_by_name(state: RunState) -> None:
+    """Name the Tasks that have no name from their first action, index them by name, and sort both tables."""
     # Get Tasks by name and handle Tasks with no name.
     state.tasker_root_elements["all_tasks_by_name"] = {}
     _get_first_action = get_first_action
@@ -167,6 +147,36 @@ def build_tasker_tables(state: RunState) -> None:
     state.tasker_root_elements["all_tasks"] = dict(temp)
     temp = sorted(state.tasker_root_elements["all_tasks_by_name"].items())
     state.tasker_root_elements["all_tasks_by_name"] = dict(temp)
+
+
+def build_tasker_tables(state: RunState) -> None:
+    """Build PrimeItems.tasker_root_elements from PrimeItems.xml_root -- the
+    Project/Profile/Task/Scene/Setting lookup tables the whole application navigates
+    the backup through, including the derived names an unnamed Profile or Task is
+    listed under.
+
+    Split out of get_the_xml_data (which still calls it, and is still the only way a
+    file becomes the loaded configuration) so that sessundo can rebuild the tables
+    after replacing xml_root with an undo checkpoint, without a file, a parse, or any
+    of the validation that only makes sense the first time.
+
+    It writes into the global rather than returning a dict, and that is deliberate --
+    see diffload.py's module comment for the trap: profiles.conditions_to_name, called
+    from the unnamed-Profile pass below, writes its derived name back through
+    PrimeItems.tasker_root_elements itself.  A version that filled a local dict would
+    have that pass writing into whatever table the global happened to hold instead.
+    """
+    _load_root_tables(state)
+    _name_unnamed_profiles(state)
+
+    # Get Profiles by name (mirrors all_tasks_by_name below) -- profedit.py's
+    # Edit Profile feature resolves a Profile by its displayed name through this.
+    state.tasker_root_elements["all_profiles_by_name"] = {
+        profile["name"]: {"xml": profile["xml"], "id": key}
+        for key, profile in state.tasker_root_elements["all_profiles"].items()
+    }
+
+    _index_tasks_by_name(state)
 
 
 def get_first_action(task: Element, state: RunState) -> str:

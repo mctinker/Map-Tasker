@@ -751,6 +751,159 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
 EDIT_PROJECT_INERT_FIELDS: frozenset[str] = frozenset({"name", "project_save_path", PROJECT_REDACT_FIELD})
 
 
+def _build_edit_project_fields(
+    self: MyGui,
+    edited_project: projedit.EditableProject,
+    field_refs: dict,
+    dialog: ui.dialog,
+) -> None:
+    """The Edit Project dialog's title and fields: Name, the Enabled switch, Properties, Save as and the share checks.
+
+    Built into whatever card is open when this is called; the by-name save buttons that follow
+    (see _build_edit_project_buttons) read field_refs, so the fields register themselves in it.
+    """
+    project_name = edited_project.project_name
+    ui.label(f"{translate_string('Edit Project')}: {project_name}").classes("text-xl font-bold text-blue-600")
+
+    # Read-only -- renamed only through the Rename button's prompt; see
+    # guiwins_taskedit.build_edit_task_dialog's identical Name field for why.
+    field_refs["name"] = (
+        ui.input(translate_string("Project Name"), value=project_name).props("readonly").classes("w-full")
+    )
+
+    # Enabled/Disabled, presented exactly as Edit Profile offers it (see
+    # guiwins_profedit._build_profile_editor_body's identical switch).  What it writes is not the
+    # same though: a Project is disabled by <enbl>false</enbl>, not by the
+    # <limit>true</limit> a Profile uses -- see projedit.is_project_enabled.
+    #
+    # Deliberately NOT registered in field_refs: projedit.set_project_enabled writes
+    # straight through to the live Project element the moment the switch is flipped,
+    # the way Rename and Delete here already do, so there is nothing left for a save
+    # to apply.  Putting it in field_refs would instead trip _unapplied_project_edits
+    # (see EDIT_PROJECT_INERT_FIELDS above) -- correctly, since that guard has no way
+    # to tell an already-applied field from an unapplied one.
+    enabled_switch = ui.switch(
+        value=projedit.is_project_enabled(edited_project),
+        on_change=lambda e: self.event_handlers.set_project_enabled_event(edited_project, e.value),
+    ).classes("mt-2")
+    enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
+    with enabled_switch:
+        ui.tooltip(
+            translate_string(
+                "Disables the Project in the loaded backup, right now -- like Rename, this takes "
+                "effect immediately rather than waiting for a save, and Cancel does not undo it.",
+            ),
+        )
+
+    # Applied to the working copy AND mirrored onto the live element the moment Ok is
+    # pressed -- see projedit.apply_properties_to_live_tree for why both, and why this
+    # cannot wait for a save the way Task's and Profile's do.  That immediacy is what
+    # keeps it out of field_refs and therefore clear of _unapplied_project_edits: by
+    # the time either by-name save runs, there is nothing left unapplied.
+    _build_properties_button(
+        self,
+        objprops.KIND_PROJECT,
+        edited_project.project_element,
+        dialog,
+        on_applied=lambda: self.event_handlers.apply_project_properties_event(edited_project),
+    )
+
+    field_refs["project_save_path"] = ui.input(
+        translate_string("Save as"),
+        value=projedit.default_project_save_path(project_name, self.state),
+    ).classes("w-full mt-2")
+    build_share_checks(field_refs, PROJECT_REDACT_FIELD, readiness.check_project, project_name, self.state)
+
+    # This dialog has no field that waits for a save -- the Name is read-only and the
+    # "Save as" path is not part of the Project (see PENDING_CHANGES_IGNORED_FIELDS) --
+    # so what raises the message here is the Enabled toggle, which writes <enbl> onto
+    # the copy as it is flipped.  That is still something to save: it is in the loaded
+    # backup and in no file, which is what the message says.  Rename is the other
+    # immediate change and cannot leave one behind, because it closes this dialog
+    # (confirm_rename_project_event).
+    pending_changes = PendingChangesBanner()
+    pending_changes.watch(dialog, lambda: editor_state(edited_project.project_element, field_refs))
+
+
+def _build_edit_project_buttons(
+    self: MyGui,
+    edited_project: projedit.EditableProject,
+    field_refs: dict,
+    dialog: ui.dialog,
+) -> None:
+    """The Edit Project dialog's button row: Cancel, Delete, Rename, the two saves and Export."""
+    with ui.row().classes("w-full justify-end gap-2 mt-4"):
+        ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+        ui.button(
+            translate_string("Delete Project"),
+            on_click=lambda: self.event_handlers.delete_project_event(edited_project, dialog),
+        ).classes("bg-red-500 text-white")
+        rename_project_button = ui.button(
+            translate_string("Rename"),
+            on_click=lambda: self.event_handlers.rename_project_event(edited_project, dialog),
+        ).classes("bg-blue-600")
+        with rename_project_button:
+            ui.tooltip(
+                translate_string(
+                    "Prompts for a new name and applies it to the loaded backup, right now. "
+                    "The Project Name field above is read-only -- this is the only way to change it.",
+                ),
+            )
+        project_to_current_file = ui.button(
+            translate_string("Save To Current File"),
+            on_click=lambda: self.event_handlers.save_project_to_current_file_event(
+                edited_project,
+                field_refs,
+                dialog,
+            ),
+        ).props("outline")
+        with project_to_current_file:
+            ui.tooltip(
+                translate_string(
+                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- "
+                    "including every edit made anywhere in this session.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ),
+            ).style("white-space: pre-wrap")
+        project_to_android = ui.button(
+            translate_string("Save To Android"),
+            on_click=lambda: self.event_handlers.open_save_project_to_android_dialog_event(
+                edited_project,
+                field_refs,
+                dialog,
+            ),
+        ).props("outline")
+        with project_to_android:
+            ui.tooltip(
+                translate_string(
+                    "This will write the Project, and everything in it -- every Profile and Task -- as a "
+                    "standalone file onto your Android device, under /Tasker/projects -- it does not import "
+                    "it into Tasker's live configuration.\n\n"
+                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                    "device, with the server running.\n\n"
+                    "The Android device must be on the same network, and the IP Address and Port must "
+                    "match its Tasker server settings.\n\n"
+                    "Watch the Android device while this runs: Tasker asks you to authorize the "
+                    "connection several times for one save, and a prompt left untapped fails it.",
+                ),
+            ).style("white-space: pre-wrap")
+        save_single_project = ui.button(
+            translate_string("Export Project"),
+            on_click=lambda: self.event_handlers.save_project_event(edited_project, field_refs, dialog),
+        ).classes("bg-blue-600")
+        with save_single_project:
+            ui.tooltip(
+                translate_string(
+                    "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file.",
+                ),
+            )
+
+
 def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProject) -> None:
     """Builds and opens the Edit Project dialog: Rename the Project (the Name
     field is read-only -- Rename prompts for the new one, see build_rename_dialog),
@@ -764,141 +917,11 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
     save here -- an already-registered Project has whatever Profiles/Tasks are attached
     to it, which is exactly why Add Project has no equivalent button (see its docstring).
     """
-    project_name = edited_project.project_name
     field_refs: dict = {}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
-        ui.label(f"{translate_string('Edit Project')}: {project_name}").classes("text-xl font-bold text-blue-600")
-
-        # Read-only -- renamed only through the Rename button's prompt; see
-        # guiwins_taskedit.build_edit_task_dialog's identical Name field for why.
-        field_refs["name"] = (
-            ui.input(translate_string("Project Name"), value=project_name).props("readonly").classes("w-full")
-        )
-
-        # Enabled/Disabled, presented exactly as Edit Profile offers it (see
-        # guiwins_profedit._build_profile_editor_body's identical switch).  What it writes is not the
-        # same though: a Project is disabled by <enbl>false</enbl>, not by the
-        # <limit>true</limit> a Profile uses -- see projedit.is_project_enabled.
-        #
-        # Deliberately NOT registered in field_refs: projedit.set_project_enabled writes
-        # straight through to the live Project element the moment the switch is flipped,
-        # the way Rename and Delete here already do, so there is nothing left for a save
-        # to apply.  Putting it in field_refs would instead trip _unapplied_project_edits
-        # (see EDIT_PROJECT_INERT_FIELDS above) -- correctly, since that guard has no way
-        # to tell an already-applied field from an unapplied one.
-        enabled_switch = ui.switch(
-            value=projedit.is_project_enabled(edited_project),
-            on_change=lambda e: self.event_handlers.set_project_enabled_event(edited_project, e.value),
-        ).classes("mt-2")
-        enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
-        with enabled_switch:
-            ui.tooltip(
-                translate_string(
-                    "Disables the Project in the loaded backup, right now -- like Rename, this takes "
-                    "effect immediately rather than waiting for a save, and Cancel does not undo it.",
-                ),
-            )
-
-        # Applied to the working copy AND mirrored onto the live element the moment Ok is
-        # pressed -- see projedit.apply_properties_to_live_tree for why both, and why this
-        # cannot wait for a save the way Task's and Profile's do.  That immediacy is what
-        # keeps it out of field_refs and therefore clear of _unapplied_project_edits: by
-        # the time either by-name save runs, there is nothing left unapplied.
-        _build_properties_button(
-            self,
-            objprops.KIND_PROJECT,
-            edited_project.project_element,
-            dialog,
-            on_applied=lambda: self.event_handlers.apply_project_properties_event(edited_project),
-        )
-
-        field_refs["project_save_path"] = ui.input(
-            translate_string("Save as"),
-            value=projedit.default_project_save_path(project_name, self.state),
-        ).classes("w-full mt-2")
-        build_share_checks(field_refs, PROJECT_REDACT_FIELD, readiness.check_project, project_name, self.state)
-
-        # This dialog has no field that waits for a save -- the Name is read-only and the
-        # "Save as" path is not part of the Project (see PENDING_CHANGES_IGNORED_FIELDS) --
-        # so what raises the message here is the Enabled toggle, which writes <enbl> onto
-        # the copy as it is flipped.  That is still something to save: it is in the loaded
-        # backup and in no file, which is what the message says.  Rename is the other
-        # immediate change and cannot leave one behind, because it closes this dialog
-        # (confirm_rename_project_event).
-        pending_changes = PendingChangesBanner()
-        pending_changes.watch(dialog, lambda: editor_state(edited_project.project_element, field_refs))
-
-        with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
-            ui.button(
-                translate_string("Delete Project"),
-                on_click=lambda: self.event_handlers.delete_project_event(edited_project, dialog),
-            ).classes("bg-red-500 text-white")
-            rename_project_button = ui.button(
-                translate_string("Rename"),
-                on_click=lambda: self.event_handlers.rename_project_event(edited_project, dialog),
-            ).classes("bg-blue-600")
-            with rename_project_button:
-                ui.tooltip(
-                    translate_string(
-                        "Prompts for a new name and applies it to the loaded backup, right now. "
-                        "The Project Name field above is read-only -- this is the only way to change it.",
-                    ),
-                )
-            project_to_current_file = ui.button(
-                translate_string("Save To Current File"),
-                on_click=lambda: self.event_handlers.save_project_to_current_file_event(
-                    edited_project,
-                    field_refs,
-                    dialog,
-                ),
-            ).props("outline")
-            with project_to_current_file:
-                ui.tooltip(
-                    translate_string(
-                        "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- "
-                        "including every edit made anywhere in this session.\n"
-                        "It is written to a new, timestamped copy of the file currently loaded: "
-                        "backup.xml becomes backup_20260728_143005.xml.\n"
-                        "The file you loaded is never written to, so it is left exactly as it was.\n"
-                        "The app then switches to the new copy, which becomes the current file for any further "
-                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device.",
-                    ),
-                ).style("white-space: pre-wrap")
-            project_to_android = ui.button(
-                translate_string("Save To Android"),
-                on_click=lambda: self.event_handlers.open_save_project_to_android_dialog_event(
-                    edited_project,
-                    field_refs,
-                    dialog,
-                ),
-            ).props("outline")
-            with project_to_android:
-                ui.tooltip(
-                    translate_string(
-                        "This will write the Project, and everything in it -- every Profile and Task -- as a "
-                        "standalone file onto your Android device, under /Tasker/projects -- it does not import "
-                        "it into Tasker's live configuration.\n\n"
-                        "The 'Http Server Example' Tasker Project must be installed and active on the Android "
-                        "device, with the server running.\n\n"
-                        "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings.\n\n"
-                        "Watch the Android device while this runs: Tasker asks you to authorize the "
-                        "connection several times for one save, and a prompt left untapped fails it.",
-                    ),
-                ).style("white-space: pre-wrap")
-            save_single_project = ui.button(
-                translate_string("Export Project"),
-                on_click=lambda: self.event_handlers.save_project_event(edited_project, field_refs, dialog),
-            ).classes("bg-blue-600")
-            with save_single_project:
-                ui.tooltip(
-                    translate_string(
-                        "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file.",
-                    ),
-                )
+        _build_edit_project_fields(self, edited_project, field_refs, dialog)
+        _build_edit_project_buttons(self, edited_project, field_refs, dialog)
 
     dialog.open()
 
@@ -1422,6 +1445,152 @@ def build_add_scene_dialog(
     dialog.open()
 
 
+def _build_edit_scene_fields(
+    self: MyGui,
+    edited_scene: sceneedit.EditableScene,
+    field_refs: dict,
+    dialog: ui.dialog,
+) -> None:
+    """The Edit Scene dialog's title and fields: Name, the designers, Save as and the share checks.
+
+    Built into whatever card is open when this is called; the saves that follow
+    (see _build_edit_scene_buttons) read field_refs, so the fields register themselves in it.
+    """
+    scene_name = edited_scene.scene_name
+    ui.label(f"{translate_string('Edit Scene')}: {scene_name}").classes("text-xl font-bold text-blue-600")
+    # The kind of Scene is stated in the body too (see _build_scene_editor_body); it
+    # is here as well because it is why the body looks the way it does.
+
+    # Read-only -- renamed only through the Rename button's prompt; see
+    # build_edit_project_dialog's identical Name field for why.
+    field_refs["name"] = ui.input(translate_string("Scene Name"), value=scene_name).props("readonly").classes("w-full")
+
+    _build_scene_editor_body(self, edited_scene, field_refs, dialog, state=self.state)
+
+    field_refs["scene_save_path"] = ui.input(
+        translate_string("Save as"),
+        value=sceneedit.default_scene_save_path(scene_name, self.state),
+    ).classes("w-full mt-2")
+    build_share_checks(field_refs, SCENE_REDACT_FIELD, readiness.check_scene, scene_name, self.state)
+
+    # The two Scene-only pieces of state, for the same reason revert_session has to take
+    # them separately: a Version 2 session leaves the element alone from beginning to end
+    # -- its work is in the decoded layout dict until a save encodes it back into <lj> --
+    # so comparing elements alone would call a reordered, retyped, half-rebuilt V2 Scene
+    # unchanged; and element_renames is a list of renames held pending against the live
+    # Tasks, which is unsaved work by definition.  Both are reduced to their repr here
+    # because the value has to be a snapshot: the dict is the live one the designer goes
+    # on editing, so keeping it would only ever be compared against itself.
+    pending_changes = PendingChangesBanner()
+    pending_changes.watch(
+        dialog,
+        lambda: editor_state(
+            edited_scene.scene_element,
+            field_refs,
+            repr(field_refs.get("v2_layout")),
+            repr(edited_scene.element_renames),
+        ),
+    )
+
+
+def _build_edit_scene_buttons(
+    self: MyGui,
+    edited_scene: sceneedit.EditableScene,
+    field_refs: dict,
+    dialog: ui.dialog,
+    cancel: Callable[[], None],
+) -> None:
+    """The Edit Scene dialog's button row: Cancel, Delete, Rename, Ok, the two saves and Export."""
+    with ui.row().classes("w-full justify-end gap-2 mt-4"):
+        cancel_button = ui.button(translate_string("Cancel"), on_click=cancel).props("outline")
+        with cancel_button:
+            ui.tooltip(
+                translate_string(
+                    "Closes without saving, and puts this Scene back exactly as it was when this "
+                    "dialog opened -- including anything moved or resized in the Preview.\n\n"
+                    "A Rename is the one thing this cannot take back: it is applied to the loaded "
+                    "backup as it is confirmed, and closes this dialog with it.",
+                ),
+            ).style("white-space: pre-wrap")
+        ui.button(
+            translate_string("Delete Scene"),
+            on_click=lambda: self.event_handlers.delete_scene_event(edited_scene, dialog),
+        ).classes("bg-red-500 text-white")
+        rename_scene_button = ui.button(
+            translate_string("Rename"),
+            on_click=lambda: self.event_handlers.rename_scene_event(edited_scene, dialog),
+        ).classes("bg-blue-600")
+        with rename_scene_button:
+            ui.tooltip(
+                translate_string(
+                    "Prompts for a new name and applies it to the loaded backup, right now -- "
+                    "renaming the Scene everywhere, including in the Scene list of every Project "
+                    "that holds it.\n\n"
+                    "Tasks that show or hide this Scene by name are NOT updated; those still name "
+                    "the old Scene.\n\n"
+                    "The Scene Name field above is read-only -- this is the only way to change it.",
+                ),
+            ).style("white-space: pre-wrap")
+        ui.button(
+            translate_string("Ok"),
+            on_click=lambda: self.event_handlers.save_edited_scene_event(edited_scene, field_refs, dialog),
+        ).props("outline")
+        scene_to_current_file = ui.button(
+            translate_string("Save To Current File"),
+            on_click=lambda: self.event_handlers.save_scene_to_current_file_event(
+                edited_scene,
+                field_refs,
+                dialog,
+            ),
+        ).props("outline")
+        with scene_to_current_file:
+            ui.tooltip(
+                translate_string(
+                    "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this "
+                    "Scene -- including every edit made anywhere in this session.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ),
+            ).style("white-space: pre-wrap")
+        scene_to_android = ui.button(
+            translate_string("Save To Android"),
+            on_click=lambda: self.event_handlers.open_save_scene_to_android_dialog_event(
+                edited_scene,
+                field_refs,
+                dialog,
+            ),
+        ).props("outline")
+        with scene_to_android:
+            ui.tooltip(
+                translate_string(
+                    "This will write the Scene as a standalone file onto your Android device, under "
+                    "/Tasker/scenes -- it does not import it into Tasker's live configuration.\n\n"
+                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                    "device, with the server running.\n\n"
+                    "The Android device must be on the same network, and the IP Address and Port must "
+                    "match its Tasker server settings.\n\n"
+                    "Watch the Android device while this runs: Tasker asks you to authorize the "
+                    "connection several times for one save, and a prompt left untapped fails it.",
+                ),
+            ).style("white-space: pre-wrap")
+        export_scene = ui.button(
+            translate_string("Export Scene"),
+            on_click=lambda: self.event_handlers.save_scene_event(edited_scene, field_refs, dialog),
+        ).classes("bg-blue-600")
+        with export_scene:
+            ui.tooltip(
+                translate_string(
+                    "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same "
+                    "format Tasker's own Scene export produces.\n\n"
+                    "Tasks the Scene's elements run are not included; they belong to their own Project.",
+                ),
+            ).style("white-space: pre-wrap")
+
+
 def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) -> None:
     """Builds and opens the Edit Scene dialog: edit the Scene's size, rename it
     (the Name field is read-only -- Rename prompts for the new one, see
@@ -1469,131 +1638,8 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
             )
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[800px] w-full p-6"):
-        ui.label(f"{translate_string('Edit Scene')}: {scene_name}").classes("text-xl font-bold text-blue-600")
-        # The kind of Scene is stated in the body too (see _build_scene_editor_body); it
-        # is here as well because it is why the body looks the way it does.
-
-        # Read-only -- renamed only through the Rename button's prompt; see
-        # build_edit_project_dialog's identical Name field for why.
-        field_refs["name"] = (
-            ui.input(translate_string("Scene Name"), value=scene_name).props("readonly").classes("w-full")
-        )
-
-        _build_scene_editor_body(self, edited_scene, field_refs, dialog, state=self.state)
-
-        field_refs["scene_save_path"] = ui.input(
-            translate_string("Save as"),
-            value=sceneedit.default_scene_save_path(scene_name, self.state),
-        ).classes("w-full mt-2")
-        build_share_checks(field_refs, SCENE_REDACT_FIELD, readiness.check_scene, scene_name, self.state)
-
-        # The two Scene-only pieces of state, for the same reason revert_session has to take
-        # them separately: a Version 2 session leaves the element alone from beginning to end
-        # -- its work is in the decoded layout dict until a save encodes it back into <lj> --
-        # so comparing elements alone would call a reordered, retyped, half-rebuilt V2 Scene
-        # unchanged; and element_renames is a list of renames held pending against the live
-        # Tasks, which is unsaved work by definition.  Both are reduced to their repr here
-        # because the value has to be a snapshot: the dict is the live one the designer goes
-        # on editing, so keeping it would only ever be compared against itself.
-        pending_changes = PendingChangesBanner()
-        pending_changes.watch(
-            dialog,
-            lambda: editor_state(
-                edited_scene.scene_element,
-                field_refs,
-                repr(field_refs.get("v2_layout")),
-                repr(edited_scene.element_renames),
-            ),
-        )
-
-        with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            cancel_button = ui.button(translate_string("Cancel"), on_click=cancel).props("outline")
-            with cancel_button:
-                ui.tooltip(
-                    translate_string(
-                        "Closes without saving, and puts this Scene back exactly as it was when this "
-                        "dialog opened -- including anything moved or resized in the Preview.\n\n"
-                        "A Rename is the one thing this cannot take back: it is applied to the loaded "
-                        "backup as it is confirmed, and closes this dialog with it.",
-                    ),
-                ).style("white-space: pre-wrap")
-            ui.button(
-                translate_string("Delete Scene"),
-                on_click=lambda: self.event_handlers.delete_scene_event(edited_scene, dialog),
-            ).classes("bg-red-500 text-white")
-            rename_scene_button = ui.button(
-                translate_string("Rename"),
-                on_click=lambda: self.event_handlers.rename_scene_event(edited_scene, dialog),
-            ).classes("bg-blue-600")
-            with rename_scene_button:
-                ui.tooltip(
-                    translate_string(
-                        "Prompts for a new name and applies it to the loaded backup, right now -- "
-                        "renaming the Scene everywhere, including in the Scene list of every Project "
-                        "that holds it.\n\n"
-                        "Tasks that show or hide this Scene by name are NOT updated; those still name "
-                        "the old Scene.\n\n"
-                        "The Scene Name field above is read-only -- this is the only way to change it.",
-                    ),
-                ).style("white-space: pre-wrap")
-            ui.button(
-                translate_string("Ok"),
-                on_click=lambda: self.event_handlers.save_edited_scene_event(edited_scene, field_refs, dialog),
-            ).props("outline")
-            scene_to_current_file = ui.button(
-                translate_string("Save To Current File"),
-                on_click=lambda: self.event_handlers.save_scene_to_current_file_event(
-                    edited_scene,
-                    field_refs,
-                    dialog,
-                ),
-            ).props("outline")
-            with scene_to_current_file:
-                ui.tooltip(
-                    translate_string(
-                        "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this "
-                        "Scene -- including every edit made anywhere in this session.\n"
-                        "It is written to a new, timestamped copy of the file currently loaded: "
-                        "backup.xml becomes backup_20260728_143005.xml.\n"
-                        "The file you loaded is never written to, so it is left exactly as it was.\n"
-                        "The app then switches to the new copy, which becomes the current file for any further "
-                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device.",
-                    ),
-                ).style("white-space: pre-wrap")
-            scene_to_android = ui.button(
-                translate_string("Save To Android"),
-                on_click=lambda: self.event_handlers.open_save_scene_to_android_dialog_event(
-                    edited_scene,
-                    field_refs,
-                    dialog,
-                ),
-            ).props("outline")
-            with scene_to_android:
-                ui.tooltip(
-                    translate_string(
-                        "This will write the Scene as a standalone file onto your Android device, under "
-                        "/Tasker/scenes -- it does not import it into Tasker's live configuration.\n\n"
-                        "The 'Http Server Example' Tasker Project must be installed and active on the Android "
-                        "device, with the server running.\n\n"
-                        "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings.\n\n"
-                        "Watch the Android device while this runs: Tasker asks you to authorize the "
-                        "connection several times for one save, and a prompt left untapped fails it.",
-                    ),
-                ).style("white-space: pre-wrap")
-            export_scene = ui.button(
-                translate_string("Export Scene"),
-                on_click=lambda: self.event_handlers.save_scene_event(edited_scene, field_refs, dialog),
-            ).classes("bg-blue-600")
-            with export_scene:
-                ui.tooltip(
-                    translate_string(
-                        "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same "
-                        "format Tasker's own Scene export produces.\n\n"
-                        "Tasks the Scene's elements run are not included; they belong to their own Project.",
-                    ),
-                ).style("white-space: pre-wrap")
+        _build_edit_scene_fields(self, edited_scene, field_refs, dialog)
+        _build_edit_scene_buttons(self, edited_scene, field_refs, dialog, cancel)
 
     # Preview has to close this dialog to get at the screen behind it, and the work in
     # progress lives in the dialog's widgets and field_refs -- not in the live tree, which
@@ -1737,6 +1783,57 @@ def _app_list_status() -> str:
     return f"{heading} {lines[0]}" if len(lines) == 1 else "\n".join([f"{heading}:", *lines])
 
 
+def _fill_health_check_categories(
+    boxes: dict[str, ui.checkbox],
+    skip: set[str],
+    box_changed: Callable[[], None],
+) -> None:
+    """The Health Check panel's scrolling list of categories, a checkbox each; `boxes` is filled by tag."""
+    # Scrolled rather than fitted: the list is forty-five entries and grows with every
+    # check added, and a dialog taller than the window is one whose buttons cannot be
+    # reached.  The headings are just headings -- a group is not itself a choice, so
+    # there is nothing here that can be ticked but does not correspond to a finding.
+    with ui.scroll_area().classes("w-full h-[420px] mt-2 border rounded"):
+        group = ""
+        for category in healthck.CATEGORIES:
+            if category.group != group:
+                group = category.group
+                ui.label(translate_string(group)).classes("font-bold text-sm mt-3 mb-1")
+            with ui.row().classes("items-center gap-2 ml-2 no-wrap"):
+                boxes[category.tag] = ui.checkbox(
+                    value=category.tag not in skip,
+                    on_change=box_changed,
+                ).props("dense")
+                with ui.column().classes("gap-0"):
+                    ui.label(category.tag).classes("font-mono text-xs")
+                    ui.label(translate_string(category.what)).classes("text-xs text-gray-500")
+
+
+def _build_app_list_status_row(gui: MyGui) -> None:
+    """The panel's line saying what the plugins are checked against, with the button that refreshes it."""
+
+    async def refresh_apps() -> None:
+        """Fetch the app list from the device, then say what the plugins will be checked against."""
+        await _build_fetch_apps_dialog(gui, show_app_status)
+
+    def show_app_status() -> None:
+        app_status.set_text(_app_list_status())
+
+    with ui.row().classes("w-full items-center justify-between gap-2 mt-3 no-wrap"):
+        app_status = ui.label(_app_list_status()).classes("text-xs text-gray-500 whitespace-pre-line")
+        refresh_button = ui.button(
+            translate_string("Refresh App List"),
+            icon="cloud_download",
+            on_click=refresh_apps,
+        ).props("flat dense color=primary no-caps")
+        refresh_button.tooltip(
+            translate_string(
+                "Fetch the list of installed applications from your Android device, so the check for "
+                "plugins that are not installed is up to date.",
+            ),
+        )
+
+
 def build_health_check_dialog(
     on_run: Callable[[list[str]], None],
     on_save: Callable[[list[str]], None],
@@ -1796,50 +1893,14 @@ def build_health_check_dialog(
         ui.label(translate_string("Health Check")).classes("text-lg font-bold text-blue-600")
         ui.label(translate_string("Report these categories:")).classes("text-sm text-gray-500")
 
-        # Scrolled rather than fitted: the list is forty-five entries and grows with every
-        # check added, and a dialog taller than the window is one whose buttons cannot be
-        # reached.  The headings are just headings -- a group is not itself a choice, so
-        # there is nothing here that can be ticked but does not correspond to a finding.
-        with ui.scroll_area().classes("w-full h-[420px] mt-2 border rounded"):
-            group = ""
-            for category in healthck.CATEGORIES:
-                if category.group != group:
-                    group = category.group
-                    ui.label(translate_string(group)).classes("font-bold text-sm mt-3 mb-1")
-                with ui.row().classes("items-center gap-2 ml-2 no-wrap"):
-                    boxes[category.tag] = ui.checkbox(
-                        value=category.tag not in skip,
-                        on_change=box_changed,
-                    ).props("dense")
-                    with ui.column().classes("gap-0"):
-                        ui.label(category.tag).classes("font-mono text-xs")
-                        ui.label(translate_string(category.what)).classes("text-xs text-gray-500")
+        _fill_health_check_categories(boxes, skip, box_changed)
 
         def run() -> None:
             """Close the panel, then run the check for whatever is still ticked."""
             dialog.close()
             on_run(skipped())
 
-        async def refresh_apps() -> None:
-            """Fetch the app list from the device, then say what the plugins will be checked against."""
-            await _build_fetch_apps_dialog(gui, show_app_status)
-
-        def show_app_status() -> None:
-            app_status.set_text(_app_list_status())
-
-        with ui.row().classes("w-full items-center justify-between gap-2 mt-3 no-wrap"):
-            app_status = ui.label(_app_list_status()).classes("text-xs text-gray-500 whitespace-pre-line")
-            refresh_button = ui.button(
-                translate_string("Refresh App List"),
-                icon="cloud_download",
-                on_click=refresh_apps,
-            ).props("flat dense color=primary no-caps")
-            refresh_button.tooltip(
-                translate_string(
-                    "Fetch the list of installed applications from your Android device, so the check for "
-                    "plugins that are not installed is up to date.",
-                ),
-            )
+        _build_app_list_status_row(gui)
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
@@ -3213,6 +3274,81 @@ def _create_specific_name_pulldowns(self: MyGui) -> None:
         )
 
 
+def _object_action_button(label: str, on_click: Callable[..., object]) -> ui.button:
+    """One of the Edit/Add/Run buttons for the selected object.
+
+    Each flexes within its row, capped at 12rem -- the cap is what keeps a row showing one
+    button the same width as each half of a row showing two, instead of the lone button
+    stretching to the whole column.
+
+    Args:
+        label (str): the button's text, already translated.  The caller's own translate_string
+            call is what the translation catalogs are built from, so it stays at the call.
+        on_click: the event handler the button runs.
+
+    Returns:
+        ui.button: the button, for the caller to keep or add to.
+    """
+    return ui.button(label, on_click=on_click).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+
+
+def _create_object_action_rows(self: MyGui) -> None:
+    """The Edit/Add button rows (and Run On Android), one row per kind of object.
+
+    All are built here, but only the ones the current pulldown selection can actually drive are
+    ever on screen: guiutils.refresh_object_action_buttons hides the rest (and any row left
+    with nothing in it) every time the selection changes.  Each row is held on self so it can
+    be hidden along with its pair.
+
+    flex-1/min-w-0: takes whatever the Editing group leaves rather than a fixed width, so
+    nothing overflows the panel at any window size.
+    """
+    handlers = self.event_handlers
+    with ui.column().classes("flex-1 min-w-0 gap-0 m-0 p-0"):
+        with ui.row().classes("w-full gap-2 m-0 p-0") as self.project_buttons_row:
+            self.edit_project_button = _object_action_button(
+                translate_string("Edit Project"), handlers.open_edit_project_dialog_event
+            )
+            self.add_project_button = _object_action_button(
+                translate_string("Add Project"), handlers.open_add_project_dialog_event
+            )
+        with ui.row().classes("w-full gap-2 m-0 p-0") as self.profile_buttons_row:
+            self.edit_profile_button = _object_action_button(
+                translate_string("Edit Profile"), handlers.open_edit_profile_dialog_event
+            )
+            self.add_profile_button = _object_action_button(
+                translate_string("Add Profile"), handlers.open_add_profile_dialog_event
+            )
+        with ui.row().classes("w-full gap-2 m-0 p-0") as self.task_buttons_row:
+            self.edit_task_button = _object_action_button(
+                translate_string("Edit Task"), handlers.open_edit_task_dialog_event
+            )
+            self.add_task_button = _object_action_button(
+                translate_string("Add Task"), handlers.open_add_task_dialog_event
+            )
+            self.run_task_button = _object_action_button(
+                translate_string("Run On Android"),
+                handlers.open_run_task_on_android_dialog_event,
+            ).tooltip(
+                translate_string(
+                    "Run the selected Task on your Android device and see what it returned.",
+                ),
+            )
+        # The Scene pair is the only one of the four behind a switch -- Scene
+        # editing is still filling in (see sceneedit.py).  Not built at all when
+        # config.EDIT_SCENE is False, rather than built-and-hidden: nothing else
+        # reads these two attributes, so leaving them unset is enough, and it
+        # keeps a disabled feature from occupying a row of the tab.
+        if EDIT_SCENE:
+            with ui.row().classes("w-full gap-2 m-0 p-0") as self.scene_buttons_row:
+                self.edit_scene_button = _object_action_button(
+                    translate_string("Edit Scene"), handlers.open_edit_scene_dialog_event
+                )
+                self.add_scene_button = _object_action_button(
+                    translate_string("Add Scene"), handlers.open_add_scene_dialog_event
+                )
+
+
 def _create_object_action_buttons(self: MyGui) -> None:
     """The Edit/Add buttons for whatever is selected, and the Editing group pinned beside them."""
     # The Edit/Add pairs on the left, the Editing (Undo/Redo/History) group
@@ -3225,107 +3361,9 @@ def _create_object_action_buttons(self: MyGui) -> None:
     # sits between two drawers and is only ~650px wide, so a wrapping row drops
     # the Editing group underneath the Edit/Add pairs as soon as both are shown
     # -- which is most of the time.  The Edit/Add buttons give up their fixed
-    # width to pay for it (see their flex-1 below).
+    # width to pay for it (see their flex-1 in _object_action_button).
     with ui.row(wrap=False).classes("w-full items-start justify-between gap-4 m-0 p-0"):
-        # All the Edit/Add buttons (and Run On Android) are built here, but only the ones the
-        # current pulldown selection can actually drive are ever on screen --
-        # guiutils.refresh_object_action_buttons hides the rest (and any row
-        # left with nothing in it) every time the selection changes, starting
-        # with the call at the end of this block.  Each row is held on self so
-        # it can be hidden along with its pair.
-        # flex-1/min-w-0: takes whatever the Editing group leaves rather than
-        # a fixed width, so nothing overflows the panel at any window size.
-        # Each button flexes within it, capped at 12rem -- the cap is what keeps
-        # a row showing one button the same width as each half of a row showing
-        # two, instead of the lone button stretching to the whole column.
-        with ui.column().classes("flex-1 min-w-0 gap-0 m-0 p-0"):
-            with ui.row().classes("w-full gap-2 m-0 p-0") as self.project_buttons_row:
-                self.edit_project_button = (
-                    ui.button(
-                        translate_string("Edit Project"),
-                        on_click=self.event_handlers.open_edit_project_dialog_event,
-                    )
-                    .classes("flex-1 min-w-0 mt-2 bg-blue-500")
-                    .style("max-width:12rem")
-                )
-                self.add_project_button = (
-                    ui.button(
-                        translate_string("Add Project"),
-                        on_click=self.event_handlers.open_add_project_dialog_event,
-                    )
-                    .classes("flex-1 min-w-0 mt-2 bg-blue-500")
-                    .style("max-width:12rem")
-                )
-            with ui.row().classes("w-full gap-2 m-0 p-0") as self.profile_buttons_row:
-                self.edit_profile_button = (
-                    ui.button(
-                        translate_string("Edit Profile"),
-                        on_click=self.event_handlers.open_edit_profile_dialog_event,
-                    )
-                    .classes("flex-1 min-w-0 mt-2 bg-blue-500")
-                    .style("max-width:12rem")
-                )
-                self.add_profile_button = (
-                    ui.button(
-                        translate_string("Add Profile"),
-                        on_click=self.event_handlers.open_add_profile_dialog_event,
-                    )
-                    .classes("flex-1 min-w-0 mt-2 bg-blue-500")
-                    .style("max-width:12rem")
-                )
-            with ui.row().classes("w-full gap-2 m-0 p-0") as self.task_buttons_row:
-                self.edit_task_button = (
-                    ui.button(
-                        translate_string("Edit Task"),
-                        on_click=self.event_handlers.open_edit_task_dialog_event,
-                    )
-                    .classes("flex-1 min-w-0 mt-2 bg-blue-500")
-                    .style("max-width:12rem")
-                )
-                self.add_task_button = (
-                    ui.button(
-                        translate_string("Add Task"),
-                        on_click=self.event_handlers.open_add_task_dialog_event,
-                    )
-                    .classes("flex-1 min-w-0 mt-2 bg-blue-500")
-                    .style("max-width:12rem")
-                )
-                self.run_task_button = (
-                    ui.button(
-                        translate_string("Run On Android"),
-                        on_click=self.event_handlers.open_run_task_on_android_dialog_event,
-                    )
-                    .classes("flex-1 min-w-0 mt-2 bg-blue-500")
-                    .style("max-width:12rem")
-                    .tooltip(
-                        translate_string(
-                            "Run the selected Task on your Android device and see what it returned.",
-                        ),
-                    )
-                )
-            # The Scene pair is the only one of the four behind a switch -- Scene
-            # editing is still filling in (see sceneedit.py).  Not built at all when
-            # config.EDIT_SCENE is False, rather than built-and-hidden: nothing else
-            # reads these two attributes, so leaving them unset is enough, and it
-            # keeps a disabled feature from occupying a row of the tab.
-            if EDIT_SCENE:
-                with ui.row().classes("w-full gap-2 m-0 p-0") as self.scene_buttons_row:
-                    self.edit_scene_button = (
-                        ui.button(
-                            translate_string("Edit Scene"),
-                            on_click=self.event_handlers.open_edit_scene_dialog_event,
-                        )
-                        .classes("flex-1 min-w-0 mt-2 bg-blue-500")
-                        .style("max-width:12rem")
-                    )
-                    self.add_scene_button = (
-                        ui.button(
-                            translate_string("Add Scene"),
-                            on_click=self.event_handlers.open_add_scene_dialog_event,
-                        )
-                        .classes("flex-1 min-w-0 mt-2 bg-blue-500")
-                        .style("max-width:12rem")
-                    )
+        _create_object_action_rows(self)
 
         # "shrink-0" so the Editing group keeps its width and stays hard against
         # the right edge instead of being squeezed as the Edit/Add rows come and

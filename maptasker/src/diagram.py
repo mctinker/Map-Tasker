@@ -993,6 +993,43 @@ def _reachable_neighbors(lines: list, r: int, c: int, max_bridge: int = _MAX_BRI
     return found
 
 
+def _grow_connector(lines: list, seed_cell: tuple[int, int], visited: set) -> list[tuple[int, int]]:
+    """Every cell of the connector the seed lies on, found by flood fill; the cells are added to `visited`."""
+    # Flood-fill this connector's connected cells, following only the directions each
+    # character actually continues the path in.
+    cells = []
+    stack = [seed_cell]
+    visited.add(seed_cell)
+    while stack:
+        r, c = stack.pop()
+        cells.append((r, c))
+        for nr, nc in _reachable_neighbors(lines, r, c):
+            if (nr, nc) in visited:
+                continue
+            visited.add((nr, nc))
+            stack.append((nr, nc))
+    return cells
+
+
+def _cells_to_ranges(cells: list[tuple[int, int]]) -> list[tuple[int, int, int]]:
+    """A connector's cells compacted into per-row (line_num, col_start, col_end) ranges."""
+    by_row: dict = {}
+    for r, c in cells:
+        by_row.setdefault(r, []).append(c)
+    ranges = []
+    for r, cols in by_row.items():
+        cols.sort()
+        start = prev = cols[0]
+        for col in cols[1:]:
+            if col == prev + 1:
+                prev = col
+                continue
+            ranges.append((r, start, prev + 1))
+            start = prev = col
+        ranges.append((r, start, prev + 1))
+    return ranges
+
+
 def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) -> dict:
     """
     Identify every Diagram-view connector -- the lines, corners and arrows joining a "calls" Task
@@ -1061,20 +1098,7 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
                 calls_by_group[existing].append(call_index)
             continue
 
-        # Flood-fill this connector's connected cells, following only the directions each
-        # character actually continues the path in.
-        cells = []
-        stack = [seed_cell]
-        visited.add(seed_cell)
-        while stack:
-            r, c = stack.pop()
-            cells.append((r, c))
-            for nr, nc in _reachable_neighbors(lines, r, c):
-                if (nr, nc) in visited:
-                    continue
-                visited.add((nr, nc))
-                stack.append((nr, nc))
-
+        cells = _grow_connector(lines, seed_cell, visited)
         groups[group_id] = cells
         calls_by_group[group_id] = [call_index]
         for cell in cells:
@@ -1082,23 +1106,7 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
         group_id += 1
 
     # Compact each group's cells into per-row (line_num, col_start, col_end) ranges.
-    ranges_by_group: dict = {}
-    for gid, cells in groups.items():
-        by_row: dict = {}
-        for r, c in cells:
-            by_row.setdefault(r, []).append(c)
-        ranges = []
-        for r, cols in by_row.items():
-            cols.sort()
-            start = prev = cols[0]
-            for col in cols[1:]:
-                if col == prev + 1:
-                    prev = col
-                    continue
-                ranges.append((r, start, prev + 1))
-                start = prev = col
-            ranges.append((r, start, prev + 1))
-        ranges_by_group[gid] = ranges
+    ranges_by_group = {gid: _cells_to_ranges(cells) for gid, cells in groups.items()}
 
     state.diagram_connector_calls = calls_by_group
     return ranges_by_group
@@ -1195,9 +1203,62 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list, config: RunConf
 
 
 # Draw arrows to called Task from Task doing the calling.
+def _line_with_arrow(line: str, up_down_location: int, use_arrow: str) -> str:
+    """One output line with `use_arrow` put at `up_down_location`, bars and delimiters kept in line.
+
+    Args:
+        line (str): the line as it stands, task delimiters and all.
+        up_down_location (int): the column the arrow goes in.
+        use_arrow (str): the up, down, corner, bar or straight-line character to draw there.
+
+    Returns:
+        str: the line with the arrow in it.
+    """
+    # If there are bars inside of up_down_location, then we need to leave them there.
+    temp_line = line.replace(task_delimeter, "")
+    temp_line = temp_line.ljust(up_down_location)
+    front_line = temp_line[:up_down_location]
+    # Adjust bars if there are task delimeters in the line.
+    # Some lines still have delimeters.  We need to fix the bars beyond the delimeters so they align properly
+    # ith the bars above them.
+    delimeters = find_all_positions(line, task_delimeter)
+    if delimeters:
+        bars = find_all_positions(temp_line, bar)
+        for bar_position in bars:
+            if bar_position > delimeters[-1]:  # Only if the bar is beyond the last delimiter.
+                delimeter_length = len(delimeters)
+                temp_line = front_line
+                front_line = (
+                    temp_line[:bar_position]
+                    + f"{blank * delimeter_length}{bar}"
+                    + temp_line[bar_position + delimeter_length + 1 :]
+                )
+    # Put it all together.
+    back_line = temp_line[up_down_location + 1 :]
+    return f"{front_line}{use_arrow}{back_line}"
+
+
+def _record_call_edge(connector: dict, state: RunState) -> int:
+    """Record the call this connector is about to be drawn for, and return its index.
+
+    Recorded before any of it is drawn: the two Task lines it joins are known here and nowhere
+    further down, and every seed dropped later carries this index so the finished connector can
+    be traced back to it.
+    """
+    call_index = len(state.diagram_call_edges)
+    state.diagram_call_edges[call_index] = {
+        "caller_row": connector["caller_line_num"],
+        "called_row": connector["called_line_num"],
+        "caller_name": connector.get("caller_task_name", ""),
+        "called_name": connector["called_task_name"],
+        "project": connector.get("project_name", ""),
+    }
+    return call_index
+
+
 def draw_arrows_to_called_task(
     up_down_location: int,
-    connector: list,
+    connector: dict,
     output_lines: list,
     called_task_lookup: dict,
     config: RunConfig,
@@ -1207,7 +1268,7 @@ def draw_arrows_to_called_task(
     Draw arrows to called Task from Task doing the calling.
         Args:
             up_down_location (int): Position on line where the up or down arrow should be drawn.
-            connector (list): List of all call table connectors.
+            connector (dict): The call table connector being drawn.
             output_task_lines (list): List of all output lines.
             called_task_lookup (dict): Dictionary of called task tracker.
             config (RunConfig): the run's settings.
@@ -1242,17 +1303,7 @@ def draw_arrows_to_called_task(
     # Bump the count of the calls to this task.  This is used to determine the displacement of the bottom connector line number.
     state.called_task_tracker[called_task_name]["counter"] += 1
 
-    # The call this connector is about to be drawn for, recorded before any of it is drawn:
-    # the two Task lines it joins are known here and nowhere further down, and every seed
-    # dropped below carries this index so the finished connector can be traced back to it.
-    call_index = len(state.diagram_call_edges)
-    state.diagram_call_edges[call_index] = {
-        "caller_row": caller_line_num,
-        "called_row": called_line_num,
-        "caller_name": connector.get("caller_task_name", ""),
-        "called_name": called_task_name,
-        "project": connector.get("project_name", ""),
-    }
+    call_index = _record_call_edge(connector, state)
 
     # Add up and down arrows to the connection points.
     connectors = {
@@ -1299,30 +1350,7 @@ def draw_arrows_to_called_task(
                 use_arrow = straight_line if arrow in (left_arrow, right_arrow) else bar
 
         # Add initial/ending up/down arrow or bar/straight line.
-
-        # If there are bars inside of up_down_location, then we need to leave them there.
-        temp_line = output_lines[start_line + x].replace(task_delimeter, "")
-        temp_line = temp_line.ljust(up_down_location)
-        front_line = temp_line[:up_down_location]
-        # Adjust bars if there are task delimeters in the line.
-        # Some lines still have delimeters.  We need to fix the bars beyond the delimeters so they align properly
-        # ith the bars above them.
-        delimeters = find_all_positions(output_lines[start_line + x], task_delimeter)
-        if delimeters:
-            bars = find_all_positions(temp_line, bar)
-            for bar_position in bars:
-                if bar_position > delimeters[-1]:  # Only if the bar is beyond the last delimiter.
-                    delimeter_length = len(delimeters)
-                    temp_line = front_line
-                    front_line = (
-                        temp_line[:bar_position]
-                        + f"{blank * delimeter_length}{bar}"
-                        + temp_line[bar_position + delimeter_length + 1 :]
-                    )
-        # Put it all together.
-        back_line = temp_line[up_down_location + 1 :]
-        new_line = f"{front_line}{use_arrow}{back_line}"
-        output_lines[start_line + x] = new_line
+        output_lines[start_line + x] = _line_with_arrow(output_lines[start_line + x], up_down_location, use_arrow)
 
     return called_task_lookup
 

@@ -463,17 +463,8 @@ def _row_classes(text: str) -> str:
     return "text-gray-700 dark:text-gray-300"
 
 
-def _build_mode_rows() -> dict:
-    """Every mode's fields, built once and shown one row at a time.
-
-    All four rows exist from the start rather than being rebuilt on each mode change, so
-    that switching modes and switching back finds the boxes as they were left.  Somebody
-    who goes to look at a Project's contents before deciding on a name should not come back
-    to an empty form.
-    """
-    # What each dependent pulldown was last filled from -- see _stale.
-    widgets: dict = {"rows": {}, "filled": {}}
-
+def _build_extract_row(widgets: dict) -> None:
+    """Extract: the Task to take actions out of, the run to move, and the new Task's name."""
     with ui.column().classes("w-full gap-0 mt-2") as widgets["rows"][EXTRACT]:
         with ui.row().classes("w-full items-center gap-2"):
             widgets["extract_task"] = _select(
@@ -512,6 +503,9 @@ def _build_mode_rows() -> dict:
             "text-xs text-orange-600 dark:text-orange-400 border-l-4 border-orange-400 pl-2 py-1 mt-2",
         )
 
+
+def _build_inline_row(widgets: dict) -> None:
+    """Inline: the Task holding the call, and which call to fold back in."""
     with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][INLINE]:
         widgets["inline_task"] = _select(
             translate_string("In Task"),
@@ -525,6 +519,9 @@ def _build_mode_rows() -> dict:
             "Only the calls in the Task chosen alongside are offered.",
         )
 
+
+def _build_move_row(widgets: dict) -> None:
+    """Move: a Task or a Profile, and the Project that is to own it."""
     with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][MOVE]:
         widgets["move_kind"] = ui.toggle(
             {key: translate_string(label) for key, label in _MOVE_KINDS.items()},
@@ -551,6 +548,9 @@ def _build_mode_rows() -> dict:
             "lists it now, not just the first.",
         )
 
+
+def _build_duplicate_row(widgets: dict) -> None:
+    """Duplicate: what kind of object, which one, and what to call the copy."""
     with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][DUPLICATE]:
         widgets["duplicate_kind"] = ui.toggle(
             {key: translate_string(label) for key, label in _DUPLICATE_KINDS.items()},
@@ -582,6 +582,23 @@ def _build_mode_rows() -> dict:
                 ),
             )
         )
+
+
+def _build_mode_rows() -> dict:
+    """Every mode's fields, built once and shown one row at a time.
+
+    All four rows exist from the start rather than being rebuilt on each mode change, so
+    that switching modes and switching back finds the boxes as they were left.  Somebody
+    who goes to look at a Project's contents before deciding on a name should not come back
+    to an empty form.
+    """
+    # What each dependent pulldown was last filled from -- see _stale.
+    widgets: dict = {"rows": {}, "filled": {}}
+
+    _build_extract_row(widgets)
+    _build_inline_row(widgets)
+    _build_move_row(widgets)
+    _build_duplicate_row(widgets)
 
     return widgets
 

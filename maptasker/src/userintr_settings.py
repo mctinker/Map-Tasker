@@ -56,10 +56,143 @@ from maptasker.src.sysconst import (
 )
 
 if TYPE_CHECKING:
-    from nicegui import Event
+    from nicegui import Client, Event
 
     from maptasker.src.primitem import RunState
     from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
+
+
+def _tear_down_layout(the_view: MyGui, client: Client) -> None:
+    """Take the old layout down: carry the tab across, delete the layout elements, clear the content.
+
+    Everything here happens while the old layout is still standing and before anything is
+    built; rebuild_gui_layout builds the new one afterwards.
+    """
+    # Carry the tab the user is actually looking at across the rebuild.
+    #
+    # initialize_screen() re-selects self.tab_to_use, but nothing updates that when
+    # a tab is clicked -- it only ever holds what the settings file restored, or
+    # "Analyze" from the last analysis run (see analyze_event).  So a language
+    # switch used to land on whatever tab was saved rather than the one on screen.
+    # Read it off the live ui.tabs here, while the old layout is still standing.
+    selected_tab = selected_tab_name(the_view)
+    if selected_tab is not None:
+        the_view.tab_to_use = selected_tab
+
+    # Remove previous top-level layout elements (header/drawer/footer). NiceGUI
+    # moves those to be direct children of the q-layout (siblings of the page
+    # container), so they must be torn down explicitly rather than via
+    # `client.layout.clear()`, which would also destroy the page container itself.
+    #
+    # Skip anything already deleted.  Dialogs are siblings of the page container
+    # too -- create_popup_window() and friends only close() them, so every dialog
+    # ever opened is still sitting in this list -- and NiceGUI plants a hidden
+    # "canary" element for each one in whatever slot was active when the dialog
+    # was built (see Dialog.__init__), with a weakref.finalize that deletes the
+    # dialog once that canary is collected.  MapTasker's dialogs are built from
+    # drawer/content callbacks, so deleting a drawer below drops the canary's last
+    # reference and CPython runs the finalizer right there, mid-loop, taking those
+    # dialogs out of the list this loop is walking a snapshot of.  Deleting one a
+    # second time is what raised "ValueError: list.remove(x): x not in list".
+    for child in list(client.layout.default_slot.children):
+        if child is not client.page_container and not child.is_deleted:
+            child.delete()
+
+    # Clear the actual page content (this is where the new elements get built).
+    client.content.clear()
+
+    # Several widgets (e.g. ai_model_option, font_out_label) are only (re)created
+    # by helper functions that check "if the attribute is already set, reuse it"
+    # instead of always rebuilding. Now that their elements were torn down above,
+    # null out any such stale reference on the view so those helpers create fresh
+    # ones instead of touching an element NiceGUI considers deleted.
+    for attr_name, attr_value in list(vars(the_view).items()):
+        if getattr(attr_value, "is_deleted", False):
+            setattr(the_view, attr_name, None)
+
+
+def _restore_layout_state(handlers: MapTaskerEventHandlers, the_view: MyGui) -> None:
+    """Put the view's settings, file, task limit and object pulldowns back onto the fresh layout."""
+    # Redisplay current file onto the fresh layout.  Only when there is one: with
+    # nothing loaded the label as just built reads "No file loaded", which is the
+    # right thing to say, and display_current_file would replace it with a bare
+    # "Current File: ".
+    if the_view.file:
+        display_current_file(the_view, the_view.file)
+
+    # Restore settings values so that they are correctly displayed in the new UI instance
+    temp_args = {arg: getattr(the_view, arg) for arg in ARGUMENT_NAMES if hasattr(the_view, arg)}
+    the_view.extract_settings(temp_args)
+
+    # Trigger task limit label updates
+    if hasattr(handlers, "tasklimit_event"):
+        handlers.tasklimit_event(the_view.task_action_warning_limit)
+
+    # Reset the single item object tracking names. Guarded the same way as
+    # check_name's identical call: setting a pulldown's .value fires its
+    # on_change (single_project_name_event etc.), which re-enters check_name --
+    # harmless if that validates fine, but an infinite loop if it doesn't (e.g.
+    # a restored single_project_name pointing at a file that no longer exists).
+    try:
+        the_view.is_updating = True
+        set_tasker_object_names(the_view)
+    finally:
+        the_view.is_updating = False
+
+    # Reset single item dropdown select lists
+    update_tasker_object_menus(
+        the_view,
+        get_data=False,
+        reset_single_names=False,
+    )
+
+    # Handle upgrade buttons checks
+    check_new_version(the_view)
+
+    # Update the pull-down menus option items lists.
+    #
+    # refresh_tasker_object_pulldowns, not list_tasker_objects: the latter
+    # gates on load_xml(), which with nothing loaded yet goes off and opens
+    # the file picker, and reports the user's not having picked one as a red
+    # "Cancel button pressed." toast -- on a language switch, where no file
+    # was ever asked for.  (It also re-fetches from the Android device
+    # whenever android_ipaddr is set, which is just as unwanted here.)  The
+    # pulldowns are all this needs, and refreshing them is exactly what the
+    # split-out tail does: it rebuilds the lists from whatever is already in
+    # PrimeItems.tasker_root_elements, filling in translated "No projects
+    # found" placeholders when that is empty -- which is the right answer for
+    # a relabel-everything pass anyway.
+    refresh_tasker_object_pulldowns(the_view)
+
+
+def _reselect_single_item_menus(the_view: MyGui) -> None:
+    """Select the single Project/Profile/Task/Scene the view holds in the pulldowns that show it."""
+    # Map menu attributes to their target values for a clean batch update
+    menu_updates = []
+
+    for label in SINGLE_ITEM_LABELS:
+        name = getattr(the_view, f"single_{label.lower()}_name", "")
+        if name:
+            menu_updates = [
+                (f"specific_{label.lower()}_optionmenu", name),
+                (f"ai_{label.lower()}_optionmenu", name),
+            ]
+            break
+
+    # Batch update the dropdown values safely under the state lock.
+    # Via select_pulldown_option, since a Project's option is
+    # "Project: <name>" and a Profile's "Profile: <name>", not the
+    # bare name held in single_project_name/single_profile_name --
+    # assigning the bare name would leave the pulldown blank.
+    try:
+        the_view.is_updating = True  # Engage the lock
+        for attr_name, target_value in menu_updates:
+            if hasattr(the_view, attr_name):
+                menu_widget = getattr(the_view, attr_name)
+                if menu_widget:
+                    select_pulldown_option(menu_widget, target_value)
+    finally:
+        the_view.is_updating = False  # Always disengage the lock
 
 
 class SettingsEventHandlers:
@@ -413,47 +546,7 @@ class SettingsEventHandlers:
         """
         client = context.client
 
-        # Carry the tab the user is actually looking at across the rebuild.
-        #
-        # initialize_screen() re-selects self.tab_to_use, but nothing updates that when
-        # a tab is clicked -- it only ever holds what the settings file restored, or
-        # "Analyze" from the last analysis run (see analyze_event).  So a language
-        # switch used to land on whatever tab was saved rather than the one on screen.
-        # Read it off the live ui.tabs here, while the old layout is still standing.
-        selected_tab = selected_tab_name(the_view)
-        if selected_tab is not None:
-            the_view.tab_to_use = selected_tab
-
-        # Remove previous top-level layout elements (header/drawer/footer). NiceGUI
-        # moves those to be direct children of the q-layout (siblings of the page
-        # container), so they must be torn down explicitly rather than via
-        # `client.layout.clear()`, which would also destroy the page container itself.
-        #
-        # Skip anything already deleted.  Dialogs are siblings of the page container
-        # too -- create_popup_window() and friends only close() them, so every dialog
-        # ever opened is still sitting in this list -- and NiceGUI plants a hidden
-        # "canary" element for each one in whatever slot was active when the dialog
-        # was built (see Dialog.__init__), with a weakref.finalize that deletes the
-        # dialog once that canary is collected.  MapTasker's dialogs are built from
-        # drawer/content callbacks, so deleting a drawer below drops the canary's last
-        # reference and CPython runs the finalizer right there, mid-loop, taking those
-        # dialogs out of the list this loop is walking a snapshot of.  Deleting one a
-        # second time is what raised "ValueError: list.remove(x): x not in list".
-        for child in list(client.layout.default_slot.children):
-            if child is not client.page_container and not child.is_deleted:
-                child.delete()
-
-        # Clear the actual page content (this is where the new elements get built).
-        client.content.clear()
-
-        # Several widgets (e.g. ai_model_option, font_out_label) are only (re)created
-        # by helper functions that check "if the attribute is already set, reuse it"
-        # instead of always rebuilding. Now that their elements were torn down above,
-        # null out any such stale reference on the view so those helpers create fresh
-        # ones instead of touching an element NiceGUI considers deleted.
-        for attr_name, attr_value in list(vars(the_view).items()):
-            if getattr(attr_value, "is_deleted", False):
-                setattr(the_view, attr_name, None)
+        _tear_down_layout(the_view, client)
 
         # Rebuild inside the page content: NiceGUI requires top-level layout
         # elements (header/drawer/footer) to be created while it is the active slot.
@@ -464,84 +557,8 @@ class SettingsEventHandlers:
         # once this block exits and that stale context becomes active again.
         with client.content:
             initialize_screen(the_view)
-
-            # Redisplay current file onto the fresh layout.  Only when there is one: with
-            # nothing loaded the label as just built reads "No file loaded", which is the
-            # right thing to say, and display_current_file would replace it with a bare
-            # "Current File: ".
-            if the_view.file:
-                display_current_file(the_view, the_view.file)
-
-            # Restore settings values so that they are correctly displayed in the new UI instance
-            temp_args = {arg: getattr(the_view, arg) for arg in ARGUMENT_NAMES if hasattr(the_view, arg)}
-            the_view.extract_settings(temp_args)
-
-            # Trigger task limit label updates
-            if hasattr(self, "tasklimit_event"):
-                self.tasklimit_event(the_view.task_action_warning_limit)
-
-            # Reset the single item object tracking names. Guarded the same way as
-            # check_name's identical call: setting a pulldown's .value fires its
-            # on_change (single_project_name_event etc.), which re-enters check_name --
-            # harmless if that validates fine, but an infinite loop if it doesn't (e.g.
-            # a restored single_project_name pointing at a file that no longer exists).
-            try:
-                the_view.is_updating = True
-                set_tasker_object_names(the_view)
-            finally:
-                the_view.is_updating = False
-
-            # Reset single item dropdown select lists
-            update_tasker_object_menus(
-                the_view,
-                get_data=False,
-                reset_single_names=False,
-            )
-
-            # Handle upgrade buttons checks
-            check_new_version(the_view)
-
-            # Update the pull-down menus option items lists.
-            #
-            # refresh_tasker_object_pulldowns, not list_tasker_objects: the latter
-            # gates on load_xml(), which with nothing loaded yet goes off and opens
-            # the file picker, and reports the user's not having picked one as a red
-            # "Cancel button pressed." toast -- on a language switch, where no file
-            # was ever asked for.  (It also re-fetches from the Android device
-            # whenever android_ipaddr is set, which is just as unwanted here.)  The
-            # pulldowns are all this needs, and refreshing them is exactly what the
-            # split-out tail does: it rebuilds the lists from whatever is already in
-            # PrimeItems.tasker_root_elements, filling in translated "No projects
-            # found" placeholders when that is empty -- which is the right answer for
-            # a relabel-everything pass anyway.
-            refresh_tasker_object_pulldowns(the_view)
-
-            # Map menu attributes to their target values for a clean batch update
-            menu_updates = []
-
-            for label in SINGLE_ITEM_LABELS:
-                name = getattr(the_view, f"single_{label.lower()}_name", "")
-                if name:
-                    menu_updates = [
-                        (f"specific_{label.lower()}_optionmenu", name),
-                        (f"ai_{label.lower()}_optionmenu", name),
-                    ]
-                    break
-
-            # Batch update the dropdown values safely under the state lock.
-            # Via select_pulldown_option, since a Project's option is
-            # "Project: <name>" and a Profile's "Profile: <name>", not the
-            # bare name held in single_project_name/single_profile_name --
-            # assigning the bare name would leave the pulldown blank.
-            try:
-                the_view.is_updating = True  # Engage the lock
-                for attr_name, target_value in menu_updates:
-                    if hasattr(the_view, attr_name):
-                        menu_widget = getattr(the_view, attr_name)
-                        if menu_widget:
-                            select_pulldown_option(menu_widget, target_value)
-            finally:
-                the_view.is_updating = False  # Always disengage the lock
+            _restore_layout_state(self, the_view)
+            _reselect_single_item_menus(the_view)
 
             # Redo the contextual text labels values
             display_selected_object_labels(the_view)

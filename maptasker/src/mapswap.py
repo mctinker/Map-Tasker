@@ -63,6 +63,7 @@ from maptasker.src.varxref import _LOW_CONFIDENCE_LENGTH, VARIABLE_PATTERN
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.mapjump import Scope
     from maptasker.src.primitem import RunState
 
 
@@ -747,13 +748,7 @@ def plan_action_swap(old_key: str, new_key: str, project: str = "", *, state: Ru
     # `what` is also the Undo label, so the scope belongs in it: "Replace 'Flash' with
     # 'Notify'" sitting in the history of a run that only touched one Task would describe
     # a much bigger change than the one that can be taken back.
-    scope = current_scope(state=state)
-    if not scope.is_everything:
-        plan.what = f"{what} in {scope.phrase}"
-        plan.warnings.append(
-            f"Limited to {scope.phrase}, which is what the app is displaying.  Clear the single-item "
-            f"selection to replace across the whole configuration.",
-        )
+    _note_scope_limit(plan, what, state)
 
     fidelity, carry, reason = classify_swap(old_key, new_key, state=state)
     if fidelity == BLOCKED:
@@ -1471,57 +1466,21 @@ def _duplicate_context(record: object, condition: object, new_tag: str, already_
     return ""
 
 
-def plan_condition_replace(old_key: str, new_key: str, project: str = "", *, state: RunState) -> Plan:
-    """Every Profile context of one kind, and what replacing it with another would do.
+def _plan_condition_changes(
+    plan: Plan,
+    old_key: str,
+    new_key: str,
+    project: str,
+    carry: dict[str, str],
+    fidelity: str,
+    state: RunState,
+) -> int:
+    """Add a Change for every Profile context of the old kind (and a Skip for each that would be a duplicate).
 
-    `project` narrows exactly as the other three do.  Nothing is touched: each Change
-    carries the context element as its site and the old and new one-line renderings, so
-    the user reads 'Time 08:00 AM to 09:30 AM  ->  Day' per row rather than a tag name.
-
-    EVERY ROW ARRIVES TICKED, INCLUDING THE RESET ONES, which is where this parts company
-    with plan_action_swap -- deliberately, and for a reason that does not carry across:
-
-      For an action, RESET is the accident.  The user picked a target from a pulldown full
-      of pairs that DO carry the message text, and a row that quietly discards sixteen
-      arguments is a surprise they may not have read to the bottom of the list to find.
-
-      For a context, carrying nothing is what replacing one KIND with another means.  A
-      Time is not a Day; there is no correspondence to lose.  Every entry in the target
-      pulldown says 'a fresh, empty Day' before it is chosen, every row's before/after line
-      shows the settings going and the empty context arriving, and the plan says once,
-      loudly, that the new ones have to be filled in.  Unticking all of them by default
-      would leave the ordinary use of this feature -- 'these forty Profiles should trigger
-      on something else' -- to be re-ticked forty times.
-
-    What IS refused rather than ticked is a Profile that would end up with two Times, or
-    two Events, or two of any of _ONE_PER_PROFILE.  Those become Skips: the user cannot see
-    that shape is wrong by looking at the Map, so the tool must not write it.
+    Returns how many of the contexts being changed carry a name written for the old condition.
     """
-    old_name, new_name = _condition_name(old_key), _condition_name(new_key)
-    old_tag, _ = _split_condition(old_key)
+    old_name = _condition_name(old_key)
     new_tag, _ = _split_condition(new_key)
-
-    what = f"Replace Profile condition '{old_name}' with '{new_name}'"
-    if project:
-        what = f"{what} in Project '{project}'"
-    plan = Plan(what=what)
-
-    # The same scope note the other three carry, and for the same reason: `what` is the
-    # Undo label, so a plan that touched one Profile must not describe itself as touching
-    # the file.
-    scope = current_scope(state=state)
-    if not scope.is_everything:
-        plan.what = f"{what} in {scope.phrase}"
-        plan.warnings.append(
-            f"Limited to {scope.phrase}, which is what the app is displaying.  Clear the single-item "
-            f"selection to replace across the whole configuration.",
-        )
-
-    fidelity, carry, reason = classify_condition_swap(old_key, new_key, state=state)
-    if fidelity == BLOCKED:
-        plan.warnings.append(reason)
-        return plan
-
     index = mapfind.build_index(state=state)
     named = 0
 
@@ -1558,9 +1517,21 @@ def plan_condition_replace(old_key: str, new_key: str, project: str = "", *, sta
                     note=_condition_note(record, condition, new_key, carry, fidelity, state=state),
                 ),
             )
+    return named
 
-    plan.selected = set(range(len(plan.changes)))
 
+def _condition_replace_warnings(
+    plan: Plan,
+    old_key: str,
+    new_key: str,
+    carry: dict[str, str],
+    fidelity: str,
+    named: int,
+) -> None:
+    """The notes a condition replace ends with: arriving empty, what carries over, Events, and kept names."""
+    new_name = _condition_name(new_key)
+    old_tag, _ = _split_condition(old_key)
+    new_tag, _ = _split_condition(new_key)
     if plan.changes and not carry:
         plan.warnings.append(
             f"Each of these arrives EMPTY -- a new {new_name} exactly as 'Add Condition' writes one, with "
@@ -1582,6 +1553,56 @@ def plan_condition_replace(old_key: str, new_key: str, project: str = "", *, sta
             f"{named} of these carry a name written for the old condition.  Names are kept as they are -- "
             f"this tool does not rewrite prose -- so check the ones that describe what they watched for.",
         )
+
+
+def plan_condition_replace(old_key: str, new_key: str, project: str = "", *, state: RunState) -> Plan:
+    """Every Profile context of one kind, and what replacing it with another would do.
+
+    `project` narrows exactly as the other three do.  Nothing is touched: each Change
+    carries the context element as its site and the old and new one-line renderings, so
+    the user reads 'Time 08:00 AM to 09:30 AM  ->  Day' per row rather than a tag name.
+
+    EVERY ROW ARRIVES TICKED, INCLUDING THE RESET ONES, which is where this parts company
+    with plan_action_swap -- deliberately, and for a reason that does not carry across:
+
+      For an action, RESET is the accident.  The user picked a target from a pulldown full
+      of pairs that DO carry the message text, and a row that quietly discards sixteen
+      arguments is a surprise they may not have read to the bottom of the list to find.
+
+      For a context, carrying nothing is what replacing one KIND with another means.  A
+      Time is not a Day; there is no correspondence to lose.  Every entry in the target
+      pulldown says 'a fresh, empty Day' before it is chosen, every row's before/after line
+      shows the settings going and the empty context arriving, and the plan says once,
+      loudly, that the new ones have to be filled in.  Unticking all of them by default
+      would leave the ordinary use of this feature -- 'these forty Profiles should trigger
+      on something else' -- to be re-ticked forty times.
+
+    What IS refused rather than ticked is a Profile that would end up with two Times, or
+    two Events, or two of any of _ONE_PER_PROFILE.  Those become Skips: the user cannot see
+    that shape is wrong by looking at the Map, so the tool must not write it.
+    """
+    old_name, new_name = _condition_name(old_key), _condition_name(new_key)
+
+    what = f"Replace Profile condition '{old_name}' with '{new_name}'"
+    if project:
+        what = f"{what} in Project '{project}'"
+    plan = Plan(what=what)
+
+    # The same scope note the other three carry, and for the same reason: `what` is the
+    # Undo label, so a plan that touched one Profile must not describe itself as touching
+    # the file.
+    _note_scope_limit(plan, what, state)
+
+    fidelity, carry, reason = classify_condition_swap(old_key, new_key, state=state)
+    if fidelity == BLOCKED:
+        plan.warnings.append(reason)
+        return plan
+
+    named = _plan_condition_changes(plan, old_key, new_key, project, carry, fidelity, state)
+
+    plan.selected = set(range(len(plan.changes)))
+
+    _condition_replace_warnings(plan, old_key, new_key, carry, fidelity, named)
 
     return plan
 
@@ -1801,6 +1822,75 @@ def _creatable(action_element: Element, arg_id: str, state: RunState) -> bool:
     return bool(built) and built[0].element is not None
 
 
+def _note_scope_limit(plan: Plan, what: str, state: RunState) -> None:
+    """Say on a replace or swap plan when the app is displaying only part of the configuration.
+
+    `what` is the Undo label, so a plan that touched one Task or Profile must not describe
+    itself as touching the file: when a scope is in force the label says so too.
+    """
+    scope = current_scope(state=state)
+    if not scope.is_everything:
+        plan.what = f"{what} in {scope.phrase}"
+        plan.warnings.append(
+            f"Limited to {scope.phrase}, which is what the app is displaying.  Clear the single-item "
+            f"selection to replace across the whole configuration.",
+        )
+
+
+def _replace_plan_title(
+    action_name: str,
+    arg_name: str,
+    new_value: str,
+    match: str,
+    project: str,
+    *,
+    substitute: bool,
+) -> str:
+    """What the plan is called -- which is also its Undo label."""
+    what = (
+        f"Replace '{match}' with '{new_value}' in {action_name} {arg_name}"
+        if substitute
+        else f"Set {action_name} {arg_name} to '{new_value}'"
+    )
+    if match and not substitute:
+        what = f"{what}, where it contains '{match}'"
+    if project:
+        what = f"{what} in Project '{project}'"
+    return what
+
+
+def _argument_replace_problem(
+    argument: ArgumentCode,
+    arg_name: str,
+    *,
+    substitute: bool,
+    match: str,
+    state: RunState,
+) -> str:
+    """Why this replace cannot be planned at all, or "" if it can: a picker, or no text to look for."""
+    category = _category(argument, state=state)
+    if category not in _WRITABLE_CATEGORIES:
+        return (
+            f"{arg_name} is {category}: chosen from a picker rather than typed, so there is no value here to replace."
+        )
+    if substitute and not match:
+        return "Replacing text inside a value needs the text to look for."
+    return ""
+
+
+def _scan_actions_for_replace(job: _ArgumentReplace, action_key: str, project: str, state: RunState) -> None:
+    """Hand every action of the code, in the Project asked for, to the job to consider."""
+    for record in mapfind.build_index(state=state).objects:
+        if record.kind != TASK:
+            continue
+        if project and record.project != project:
+            continue
+        for found in record.actions:
+            if found.code != action_key[:-1] or found.element is None:
+                continue
+            job.consider(found.element, record.target.at_action(found.number))
+
+
 def plan_argument_replace(
     action_key: str,
     arg_id: str,
@@ -1847,38 +1937,19 @@ def plan_argument_replace(
     argument = next((entry for entry in _effective_args(action_key) if entry.arg_id == arg_id), None)
     arg_name = (argument.arg_name if argument else "") or f"arg{arg_id}"
 
-    what = (
-        f"Replace '{match}' with '{new_value}' in {action_name} {arg_name}"
-        if substitute
-        else f"Set {action_name} {arg_name} to '{new_value}'"
-    )
-    if match and not substitute:
-        what = f"{what}, where it contains '{match}'"
-    if project:
-        what = f"{what} in Project '{project}'"
+    what = _replace_plan_title(action_name, arg_name, new_value, match, project, substitute=substitute)
     plan = Plan(what=what)
 
     # The same scope note the other two carry, and for the same reason: `what` is the Undo
     # label, so a plan that touched one Task must not describe itself as touching the file.
-    scope = current_scope(state=state)
-    if not scope.is_everything:
-        plan.what = f"{what} in {scope.phrase}"
-        plan.warnings.append(
-            f"Limited to {scope.phrase}, which is what the app is displaying.  Clear the single-item "
-            f"selection to replace across the whole configuration.",
-        )
+    _note_scope_limit(plan, what, state)
 
     if argument is None:
         plan.warnings.append(f"'{action_name}' has no argument {arg_id}.")
         return plan
-    if _category(argument, state=state) not in _WRITABLE_CATEGORIES:
-        plan.warnings.append(
-            f"{arg_name} is {_category(argument, state=state)}: chosen from a picker rather than typed, so there is "
-            f"no value here to replace.",
-        )
-        return plan
-    if substitute and not match:
-        plan.warnings.append("Replacing text inside a value needs the text to look for.")
+    problem = _argument_replace_problem(argument, arg_name, substitute=substitute, match=match, state=state)
+    if problem:
+        plan.warnings.append(problem)
         return plan
 
     numeric = _category(argument, state=state) in ("Int", "Boolean")
@@ -1904,15 +1975,7 @@ def plan_argument_replace(
         detail=f"{action_name}, {arg_name}=",
         state=state,
     )
-    for record in mapfind.build_index(state=state).objects:
-        if record.kind != TASK:
-            continue
-        if project and record.project != project:
-            continue
-        for found in record.actions:
-            if found.code != action_key[:-1] or found.element is None:
-                continue
-            job.consider(found.element, record.target.at_action(found.number))
+    _scan_actions_for_replace(job, action_key, project, state)
 
     plan.selected = set(range(len(plan.changes)))
     if job.added:
@@ -2085,87 +2148,32 @@ def _rename_pattern(old_name: str) -> re.Pattern:
 #    BLOCKED_INDIRECT, listed with their Targets so the user can go and read them.
 
 
-def plan_variable_rename(
-    index: varxref.VariableIndex,
-    old_name: str,
-    owner: str | None,
-    new_name: str,
-    state: RunState,
-) -> Plan:
-    """Every place this variable is set or read, and what renaming it would do.
-
-    (old_name, owner) is varxref's own key: owner is the Task id for a local, "" for a
-    global.  Naming the instance is what makes the local case safe by default -- %i is a
-    different variable in each of the 59 Tasks that use it, and a rename that took only a
-    name would rewrite all 59 the first time somebody meant one.
-
-    Pass EVERY_INSTANCE as the owner to mean exactly that, on purpose: every instance of
-    the name in scope, however many Tasks they belong to.  "Rename the loop counter
-    throughout" is a real thing to want and the only way to say it -- but it is spelled
-    differently from the safe case rather than reachable by leaving an argument out.
-
-    Sites come from index.variables[(old_name, owner)].sets + .reads, which is one list
-    of every place the cross-reference already knows about: Task arguments, plugin
-    Bundles, action and Profile conditions, Legacy and Version 2 Scene bindings, and the
-    top-level <Variable> declaration.  That last one is why a rename cannot be done by
-    walking Tasks alone: leaving the declaration behind orphans the value in Tasker's
-    Variables tab.
-
-    Refuses outright, rather than warning:
-      - a new name that is not a legal Tasker name (VARIABLE_PATTERN must match the whole)
-      - a built-in (%BATT, %TIME) as either side; Tasker owns those
-      - a name of one or two characters, either side.  varxref holds these out of its own
-        totals as low-confidence for good reason: '%d' matches a strftime format inside a
-        Parse/Format DateTime and a printf escape inside a Run Shell, and a rename that
-        rewrote those would break a Task in a way no reading of the Map would reveal.
-
-    Warns, and proceeds:
-      - the scope change of item 2 above
-      - the merge of item 3
-      - a Tasker-set name (%par1, %err): renaming the reference does not rename what
-        Tasker sets, so the new name is simply never populated.
-    """
-    old_name = f"%{old_name.lstrip('%')}"
-    new_name = f"%{new_name.lstrip('%')}"
-
-    entries = _entries_to_rename(index, old_name, owner)
-
+def _rename_scope_phrase(index: varxref.VariableIndex, owner: str | None, entries: list) -> str:
+    """What the plan's title says about where the rename applies: " (3 instances)", " in Task X", or nothing."""
     scope_phrase = ""
     if owner is EVERY_INSTANCE and len(entries) > 1:
         scope_phrase = f" ({len(entries)} instances)"
     elif owner:
         location = index.scope_locations.get(owner)
         scope_phrase = f" in {location.label}" if location else f" in Task {owner}"
-    plan = Plan(what=f"Rename {old_name} to {new_name}{scope_phrase}")
+    return scope_phrase
 
-    # Worth more here than on a swap.  A rename that stops at the scope's edge leaves the
-    # configuration half-renamed -- the places inside still read the new name, the places
-    # outside still read the old one -- and unlike a swap, that is a broken configuration
-    # rather than a partly-done job.  So it is said as a warning, not just in the title.
-    displaying = current_scope(state=state)
-    if not displaying.is_everything:
-        plan.warnings.append(
-            f"Limited to {displaying.phrase}, which is what the app is displaying.  Uses of {old_name} "
-            f"anywhere else keep the old name -- which for a GLOBAL means the two halves stop agreeing.  "
-            f"Nor can {new_name} be checked for a clash outside this scope.  "
-            f"Clear the single-item selection to rename across the whole configuration.",
-        )
 
-    refusal = _rename_refusal(old_name, new_name)
-    if refusal:
-        plan.warnings.append(refusal)
-        return plan
+def _scope_limit_warning(displaying: Scope, old_name: str, new_name: str) -> str:
+    """The warning for a rename made while the app is displaying only part of the configuration."""
+    return (
+        f"Limited to {displaying.phrase}, which is what the app is displaying.  Uses of {old_name} "
+        f"anywhere else keep the old name -- which for a GLOBAL means the two halves stop agreeing.  "
+        f"Nor can {new_name} be checked for a clash outside this scope.  "
+        f"Clear the single-item selection to rename across the whole configuration."
+    )
 
-    if not entries:
-        # "in this configuration" would be a lie under a scope -- the variable may be used
-        # in a hundred places the scan was told not to look at.
-        where = displaying.phrase if not displaying.is_everything else "this configuration"
-        plan.warnings.append(f"{old_name} is not used anywhere in {where}.")
-        return plan
 
-    plan.warnings.extend(_rename_warnings(index, entries, old_name, new_name, owner))
+def _plan_rename_sites(plan: Plan, entries: list, old_name: str, pattern: re.Pattern, new_name: str) -> None:
+    """Add to the plan a change for every field the rename would rewrite, and a skip for every one it cannot.
 
-    pattern = _rename_pattern(old_name)
+    `entries` are the cross-reference entries being renamed (see _entries_to_rename).
+    """
     seen: set[tuple[int, tuple]] = set()
 
     # sets before reads, and both in scan order, so the preview reads down the file the
@@ -2216,6 +2224,80 @@ def plan_variable_rename(
         if before == after:
             continue  # The name is in this field's record but not in this particular value.
         plan.changes.append(Change(site=site, before=before, after=after))
+
+
+def plan_variable_rename(
+    index: varxref.VariableIndex,
+    old_name: str,
+    owner: str | None,
+    new_name: str,
+    state: RunState,
+) -> Plan:
+    """Every place this variable is set or read, and what renaming it would do.
+
+    (old_name, owner) is varxref's own key: owner is the Task id for a local, "" for a
+    global.  Naming the instance is what makes the local case safe by default -- %i is a
+    different variable in each of the 59 Tasks that use it, and a rename that took only a
+    name would rewrite all 59 the first time somebody meant one.
+
+    Pass EVERY_INSTANCE as the owner to mean exactly that, on purpose: every instance of
+    the name in scope, however many Tasks they belong to.  "Rename the loop counter
+    throughout" is a real thing to want and the only way to say it -- but it is spelled
+    differently from the safe case rather than reachable by leaving an argument out.
+
+    Sites come from index.variables[(old_name, owner)].sets + .reads, which is one list
+    of every place the cross-reference already knows about: Task arguments, plugin
+    Bundles, action and Profile conditions, Legacy and Version 2 Scene bindings, and the
+    top-level <Variable> declaration.  That last one is why a rename cannot be done by
+    walking Tasks alone: leaving the declaration behind orphans the value in Tasker's
+    Variables tab.
+
+    Refuses outright, rather than warning:
+      - a new name that is not a legal Tasker name (VARIABLE_PATTERN must match the whole)
+      - a built-in (%BATT, %TIME) as either side; Tasker owns those
+      - a name of one or two characters, either side.  varxref holds these out of its own
+        totals as low-confidence for good reason: '%d' matches a strftime format inside a
+        Parse/Format DateTime and a printf escape inside a Run Shell, and a rename that
+        rewrote those would break a Task in a way no reading of the Map would reveal.
+
+    Warns, and proceeds:
+      - the scope change of item 2 above
+      - the merge of item 3
+      - a Tasker-set name (%par1, %err): renaming the reference does not rename what
+        Tasker sets, so the new name is simply never populated.
+    """
+    old_name = f"%{old_name.lstrip('%')}"
+    new_name = f"%{new_name.lstrip('%')}"
+
+    entries = _entries_to_rename(index, old_name, owner)
+
+    scope_phrase = _rename_scope_phrase(index, owner, entries)
+    plan = Plan(what=f"Rename {old_name} to {new_name}{scope_phrase}")
+
+    # Worth more here than on a swap.  A rename that stops at the scope's edge leaves the
+    # configuration half-renamed -- the places inside still read the new name, the places
+    # outside still read the old one -- and unlike a swap, that is a broken configuration
+    # rather than a partly-done job.  So it is said as a warning, not just in the title.
+    displaying = current_scope(state=state)
+    if not displaying.is_everything:
+        plan.warnings.append(_scope_limit_warning(displaying, old_name, new_name))
+
+    refusal = _rename_refusal(old_name, new_name)
+    if refusal:
+        plan.warnings.append(refusal)
+        return plan
+
+    if not entries:
+        # "in this configuration" would be a lie under a scope -- the variable may be used
+        # in a hundred places the scan was told not to look at.
+        where = displaying.phrase if not displaying.is_everything else "this configuration"
+        plan.warnings.append(f"{old_name} is not used anywhere in {where}.")
+        return plan
+
+    plan.warnings.extend(_rename_warnings(index, entries, old_name, new_name, owner))
+
+    pattern = _rename_pattern(old_name)
+    _plan_rename_sites(plan, entries, old_name, pattern, new_name)
 
     declaration = _declaration_site(old_name, entries, (pattern, new_name), state=state)
     if declaration is not None:

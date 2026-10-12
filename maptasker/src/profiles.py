@@ -7,6 +7,7 @@
 #                                                                                      #
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 from maptasker.src import condition, objprops, tasks
@@ -205,33 +206,32 @@ def delete_non_blank_before_equals(text: str) -> str:
     return "".join(result)
 
 
-def set_name_to_condition(
-    profile_conditions: str,
-    profile_name: str,
-) -> tuple[str, str]:
-    """
-    Set the Profile name to the condition if it is not already set.
+# The condition kinds whose label is dropped from a Profile name made out of its conditions.
+_NAME_CONDITION_TYPES = (
+    # "State",
+    "Event",
+    # "Time",
+    # "Application",
+    # "Days of Week",
+    # "Location",
+    "Condition(s)",
+    "Active=Any",
+    "Class",
+    "Priority",
+)
+# What a condition name is cleaned of: the tags and spacing the conditions' HTML carries.
+_NAME_CLEANUPS = {
+    "<em>AND</em>": "",
+    "&nbsp;&nbsp;": " ",
+    "is set": "set",
+    "<br>": "",
+    " ,": ",",
+    ",  ": ", ",
+}
 
-        :param profile_conditions: The conditions of the profile.
-        :param profile_name: The current profile name.
-        :param profile_name_with_html: The HTML formatted profile name.
-        :return: Updated profile name and HTML formatted name.
-    """
-    condition_types = [
-        # "State",
-        "Event",
-        # "Time",
-        # "Application",
-        # "Days of Week",
-        # "Location",
-        "Condition(s)",
-        "Active=Any",
-        "Class",
-        "Priority",
-    ]
-    if not profile_name:
-        return profile_name
 
+def _split_conditions(profile_conditions: str) -> list[str]:
+    """A Profile's condition text broken at its colons, with the Priority and the extra spacing taken out."""
     # Remove 'Priority:n'
     profile_conditions = remove_substring_and_next(profile_conditions, "Priority:")
 
@@ -244,7 +244,7 @@ def set_name_to_condition(
     if pos != -1 and profile_conditions[pos - 1] != ";" and profile_conditions[pos + 12] != "&":
         profile_conditions = profile_conditions.replace("&nbsp;&nbsp;", " ", 1)
     # Break out the conditions.
-    conditions = (
+    return (
         profile_conditions.replace("&nbsp;&nbsp;Configuration Parameter(s):<br>", " ")
         .replace("&nbsp;", "")
         .split(
@@ -252,6 +252,9 @@ def set_name_to_condition(
         )
     )
 
+
+def _name_from_conditions(conditions: list[str]) -> str:
+    """The conditions joined into one name, each with its kind's label dropped."""
     new_name = ""
     # Go thru our list of conditions.  Repair all '=:=' strings.
     for cond in conditions[1:]:  # Start at second element
@@ -268,7 +271,7 @@ def set_name_to_condition(
 
         # Drop any conditions we don't want.
         modified_condition = ""
-        for condition_type in condition_types:
+        for condition_type in _NAME_CONDITION_TYPES:
             if new_cond.endswith(condition_type):
                 # If the condition is a type, then set the name to the condition
                 modified_condition += new_cond.replace(condition_type, "")
@@ -279,36 +282,52 @@ def set_name_to_condition(
         else:
             # If the condition is empty, then set the name to the condition
             new_name += new_cond.lstrip()
+    return new_name
+
+
+def _tidy_condition_name(new_name: str) -> str:
+    """A name made of conditions, cleaned of its HTML and cut to the length a Profile name may be."""
+    # Remove text in front of any '='
+    if "=" in new_name and not "=:=" in new_name:
+        new_name = delete_non_blank_before_equals(new_name)
+
+    # Get rid of priority
+    priority = new_name.find("Priority")
+    if priority != -1:
+        new_name = new_name[: priority + 2].rstrip()
+
+    # Italicize the name and clean it up.
+    for old, new in _NAME_CLEANUPS.items():
+        new_name = new_name.replace(old, new)
+    # new_name = f"<em>*{new_name}</em>"
+
+    # Truncate the name
+    if len(new_name) > TASK_NAME_MAX_LENGTH:
+        new_name = remove_html_tags(new_name, "")
+        new_name = new_name[:35].rstrip()
+    return new_name
+
+
+def set_name_to_condition(
+    profile_conditions: str,
+    profile_name: str,
+) -> tuple[str, str]:
+    """
+    Set the Profile name to the condition if it is not already set.
+
+        :param profile_conditions: The conditions of the profile.
+        :param profile_name: The current profile name.
+        :param profile_name_with_html: The HTML formatted profile name.
+        :return: Updated profile name and HTML formatted name.
+    """
+    if not profile_name:
+        return profile_name
+
+    new_name = _name_from_conditions(_split_conditions(profile_conditions))
 
     # If the Profile name is 'No Profile', then set it to the condition
     if new_name:
-        # Remove text in front of any '='
-        if "=" in new_name and not "=:=" in new_name:
-            new_name = delete_non_blank_before_equals(new_name)
-
-        # Get rid of priority
-        priority = new_name.find("Priority")
-        if priority != -1:
-            new_name = new_name[: priority + 2].rstrip()
-
-        # Italicize the name and clean it up.
-        replacements = {
-            "<em>AND</em>": "",
-            "&nbsp;&nbsp;": " ",
-            "is set": "set",
-            "<br>": "",
-            " ,": ",",
-            ",  ": ", ",
-        }
-
-        for old, new in replacements.items():
-            new_name = new_name.replace(old, new)
-        # new_name = f"<em>*{new_name}</em>"
-
-        # Truncate the name
-        if len(new_name) > TASK_NAME_MAX_LENGTH:
-            new_name = remove_html_tags(new_name, "")
-            new_name = new_name[:35].rstrip()
+        new_name = _tidy_condition_name(new_name)
 
     return f"*{new_name}"
 
@@ -373,6 +392,32 @@ def conditions_to_name(
 
 
 # Get the Profile's key attributes: limit, launcher task, run conditions
+def _profile_flags_html(profile: Element) -> str:
+    """The Profile's <flags> decoded for debug mode, in the launcher-task colour, or "" if it has none."""
+    # Display flags for debug mode, decoded: <flags> is a bitmask, and "flags: 43" tells a
+    # reader nothing that "flags: 43 (Hide In Notification, Collapsed, Ignore Settings, Run
+    # Exit Task On Startup)" does not.  The names come from objprops, which owns the bit
+    # layout, so this line and the Properties editor cannot disagree about what a value means.
+    flags = profile.find("flags")
+    if flags is None:
+        return ""
+    names = objprops.describe_flags(objprops.flag_bits(profile), objprops.PROFILE_FLAG_NAMES)
+    decoded = f" flags: {flags.text}" + (f" ({', '.join(names)})" if names else "")
+    return format_html("launcher_task_color", "", decoded, True)
+
+
+def _prettify_profile_extras(temp: str) -> str:
+    """Break the conditions, launcher and flags text into separate lines, indented one space."""
+    blank = "&nbsp;"
+    indentation = 1
+    # Break at comma
+    temp = temp.replace(", ", f"<br>{blank * indentation}")
+    # Break at paren
+    temp = temp.replace(" (", f"<br>{blank * indentation}  (")
+    # Break at bracket
+    return temp.replace(" [", f"<br>{blank * indentation}  [")
+
+
 def build_profile_line(
     profile: Element, config: RunConfig, project_name: str = "", task_names: list[str] | None = None, *, state: RunState
 ) -> str:
@@ -389,8 +434,6 @@ def build_profile_line(
 
     flags = ""
     condition_text = ""
-    blank = "&nbsp;"
-
     # Set up HTML to use
     disabled_profile_html = format_html(
         "disabled_profile_color",
@@ -413,18 +456,8 @@ def build_profile_line(
     launcher_xml = profile.find("ProfileVariable")
     launcher = launcher_task_html if launcher_xml is not None else ""
 
-    # Display flags for debug mode, decoded: <flags> is a bitmask, and "flags: 43" tells a
-    # reader nothing that "flags: 43 (Hide In Notification, Collapsed, Ignore Settings, Run
-    # Exit Task On Startup)" does not.  The names come from objprops, which owns the bit
-    # layout, so this line and the Properties editor cannot disagree about what a value means.
     if config.debug:
-        flags = profile.find("flags")
-        if flags is not None:
-            names = objprops.describe_flags(objprops.flag_bits(profile), objprops.PROFILE_FLAG_NAMES)
-            decoded = f" flags: {flags.text}" + (f" ({', '.join(names)})" if names else "")
-            flags = format_html("launcher_task_color", "", decoded, True)
-        else:
-            flags = ""
+        flags = _profile_flags_html(profile)
 
     # Get the Profile name
     profile_name_with_html, profile_name = get_profile_name(profile, config, project_name, task_names, state=state)
@@ -447,14 +480,7 @@ def build_profile_line(
     # Break it up into separate lines if we are doing pretty output
     temp = f"{condition_text} {launcher}{disabled} {flags}"
     if config.pretty:
-        indentation = len(unmodified_profile_name)
-        indentation = 1
-        # Break at comma
-        temp = temp.replace(", ", f"<br>{blank * indentation}")
-        # Break at paren
-        temp = temp.replace(" (", f"<br>{blank * indentation}  (")
-        # Break at bracket
-        temp = temp.replace(" [", f"<br>{blank * indentation}  [")
+        temp = _prettify_profile_extras(temp)
 
     # Okay, string it all together
     profile_info = f"{profile_name_with_html} {temp}"
@@ -580,6 +606,70 @@ def do_profile(
     )
 
 
+# The start of the first condition in a Profile line: the condition-colour span, then the first of these
+# labels -- which is what tells align_html_text how wide the first condition's label is.
+_CONDITION_START = re.compile(
+    r'(<span class="profile_condition_color">.*?)'
+    r"(\(Event:|\(State:|\(Time:|\(Application:|\(Days of Week:|\(Location:)",
+    re.DOTALL,
+)
+_CONDITION_LABELS = (
+    "State:",
+    "Event:",
+    "Time:",
+    "Application:",
+    "Days of Week:",
+    "Location:",
+)
+_BREAK_SPLIT = re.compile(r"(<br>)")
+_AND_TAG = re.compile(r"(<em>AND</em>)")
+
+
+def _align_condition_text(text: str, spaces_before_position: int, aligned_parts: list[str]) -> int:
+    """Add one condition line, indented to line up with the first, to `aligned_parts`.
+
+    Args:
+        text (str): the line, with its spacing already removed.
+        spaces_before_position (int): how far in the condition lines are indented so far.
+        aligned_parts (list[str]): the output so far, added to in place.
+
+    Returns:
+        int: the indentation for the lines that follow.  A '[DISABLED]' line is indented 8 less,
+        and so is every line after it.
+    """
+    # Check for <em>AND</em> and insert a break if found
+    and_match = _AND_TAG.search(text)
+    if and_match:
+        and_position = and_match.start(1)
+        # split the string at the AND tag
+        before_and = text[:and_position]
+        after_and = text[and_position + len("<em>AND</em>") :]
+        aligned_parts.append(before_and)
+        aligned_parts.append(
+            "&nbsp;" * (spaces_before_position + 1) + "<em>AND</em>",
+        )
+        aligned_parts.append("<br>")
+        aligned_parts.append(
+            "&nbsp;" * (spaces_before_position) + after_and,
+        )
+        return spaces_before_position
+
+    if "[&#9940;DISABLED]" in text:
+        spaces_before_position -= 8
+        # Add spacers since we removed them all.
+        text = text.replace(
+            "[&#9940;DISABLED]",
+            "[&#9940;&nbsp;DISABLED]",
+        )
+    # Adds the appropriate spacing before the text
+    if any(cond in text for cond in _CONDITION_LABELS):
+        new_space_before = spaces_before_position
+    else:
+        new_space_before = spaces_before_position + 8
+    aligned_parts.append("&nbsp;" * new_space_before + text)
+    return spaces_before_position
+
+
 def align_html_text(html_string: str) -> str:
     """
     Align the Profile condition arguments...
@@ -597,42 +687,14 @@ def align_html_text(html_string: str) -> str:
     Returns:
         The modified HTML string with added "&nbsp;" for alignment.
     """
-    import re
-
     # Find the starting position of the first occurrence of any of the target substrings
-    target_substrings = [
-        "\\(Event:",
-        "\\(State:",
-        "\\(Time:",
-        "\\(Application:",
-        "\\(Days of Week:",
-        "\\(Location:",
-    ]
-    conditions = [
-        "State:",
-        "Event:",
-        "Time:",
-        "Application:",
-        "Days of Week:",
-        "Location:",
-    ]
-    pattern = r'(<span class="profile_condition_color">.*?)(' + "|".join(target_substrings) + r")"
-    position_match = re.search(pattern, html_string, re.DOTALL)
+    position_match = _CONDITION_START.search(html_string)
 
     if not position_match:
         return html_string  # Return original if none of the substrings are found
 
-    position_start = position_match.start(2)
-    position_end = position_match.end(2)
-    # Calculate the number of spaces before the first occurrence
-    spaces_before_position = position_end - position_start
-
-    # Get the length of the profile name substring and add it to the spaces
-    # profile_name_start = html_string.find("Profile: ")
-    # profile_name_end = html_string.find("</span>", profile_name_start)
-    # profile_name_length = profile_name_end - profile_name_start
-    # Setup the intial spacing
-    spaces_before_position += 20
+    # The width of the first condition's label, plus the initial spacing.
+    spaces_before_position = position_match.end(2) - position_match.start(2) + 20
 
     # NOTE: do not derive any extra indentation from where 'Configuration Parameter(s):'
     # sits in the string.  That offset is a raw *markup* offset -- it counts every
@@ -649,7 +711,7 @@ def align_html_text(html_string: str) -> str:
     )
 
     # Split the string by <br> tags within the profile_condition_color span
-    parts = re.split(r"(<br>)", html_string)
+    parts = _BREAK_SPLIT.split(html_string)
     aligned_parts = [parts[0]]  # Keep the initial part unchanged
 
     # Go thru every other string in the list, starting with 1.
@@ -658,40 +720,10 @@ def align_html_text(html_string: str) -> str:
             aligned_parts.append("<br>")
 
         # Remove any and all spacing.  Ignore empty strings.
-        parts[i + 1] = parts[i + 1].replace("&nbsp;", "").strip()
-        if not parts[i + 1]:
+        text = parts[i + 1].replace("&nbsp;", "").strip()
+        if not text:
             continue
-
-        # Check for <em>AND</em> and insert a break if found
-        and_match = re.search(r"(<em>AND</em>)", parts[i + 1])
-        if and_match:
-            and_position = and_match.start(1)
-            # split the string at the AND tag
-            before_and = parts[i + 1][:and_position]
-            after_and = parts[i + 1][and_position + len("<em>AND</em>") :]
-            aligned_parts.append(before_and)
-            # aligned_parts.append("<br>")
-            aligned_parts.append(
-                "&nbsp;" * (spaces_before_position + 1) + "<em>AND</em>",
-            )
-            aligned_parts.append("<br>")
-            aligned_parts.append(
-                "&nbsp;" * (spaces_before_position) + after_and,
-            )
-        else:
-            if "[&#9940;DISABLED]" in parts[i + 1]:
-                spaces_before_position -= 8
-                # Add spacers since we removed them all (above).
-                parts[i + 1] = parts[i + 1].replace(
-                    "[&#9940;DISABLED]",
-                    "[&#9940;&nbsp;DISABLED]",
-                )
-            # Adds the appropriate spacing before the text
-            if any(cond in parts[i + 1] for cond in conditions):
-                new_space_before = spaces_before_position
-            else:
-                new_space_before = spaces_before_position + 8
-            aligned_parts.append("&nbsp;" * new_space_before + parts[i + 1])
+        spaces_before_position = _align_condition_text(text, spaces_before_position, aligned_parts)
     return "".join(aligned_parts)
 
 

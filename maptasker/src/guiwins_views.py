@@ -1719,6 +1719,130 @@ class NiceGuiTextView(TextViewSearch):
         self.scope_stale_label.set_visibility(bool(changed))
         self.scope_rebuild_button.set_visibility(bool(changed))
 
+    def _build_toolbar(self, is_diagram: bool) -> None:
+        """The toolbar above the text: Search, Clear, Find/Replace and Export (Map and Diagram), scrolling, wrap, and the Diagram's controls."""
+        with ui.row().classes("w-full items-center gap-2 p-2 mb-2 shrink-0") as self.gui_toolbar:
+            ui.label(f"{self.title}").classes("text-orange-500 font-bold mr-4")
+            self.search_input = ui.input(placeholder=translate_string("Search...")).classes("w-48")
+            search_button = ui.button(translate_string("Search"), on_click=self.search_event).classes("bg-blue-600")
+            with search_button:
+                ui.tooltip(
+                    translate_string(
+                        "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\n"
+                        "It will only show the first 200 instances of the search string.\n\n"
+                        "Click on the line number to go to that line in the text view box.\n\n"
+                        "The 'Clear' button will clear the search results.\n\n",
+                    ),
+                ).style("white-space: pre-wrap")
+            ui.button(translate_string("Clear"), on_click=self.master_gui.event_handlers.clear_event).classes(
+                "bg-blue-600",
+            )
+            # Structured search, alongside the text one rather than replacing it: the
+            # two answer different questions (see find_event).  Offered on the Map and
+            # the Diagram and nowhere else -- it answers with objects in the loaded
+            # configuration, which is what those two views draw; the Misc view shows
+            # reports, which have their own clickable rows already.
+            if self.is_map or is_diagram:
+                find_button = ui.button(translate_string("Find/Replace"), on_click=self.find_event).classes(
+                    "bg-blue-600",
+                )
+                with find_button:
+                    ui.tooltip(
+                        translate_string(
+                            "'Find/Replace' asks the loaded configuration a question rather than searching the "
+                            "text on screen: every Task performing a given action, every Profile a given "
+                            "trigger fires, everything that names a given app or Scene.\n\n"
+                            "The boxes combine -- pick a trigger and an action to find the Profiles that "
+                            "trigger that way and run a Task that does that.\n\n"
+                            "Results come back as a list of objects; click one to be taken to it.\n\n",
+                        ),
+                    ).style("white-space: pre-wrap")
+                # On the same two views as Find/Replace, and for the same reason: they draw
+                # the configuration, which is what an export is of (see mapexport).
+                _create_export_menu(self)
+            ui.separator().props("vertical")
+            ui.button(translate_string("Top"), on_click=lambda: self.scroll("top")).classes("bg-blue-600")
+            ui.button(translate_string("Bottom"), on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
+            ui.button(translate_string("Toggle Wrap"), on_click=self.toggle_wrap).classes("bg-blue-600")
+            if self.is_map:
+                self.map_message_label = ui.label(self.master_gui.state.view_limit_msg).classes(
+                    "text-orange-400 italic ml-4"
+                )
+            if is_diagram:
+                ui.separator().props("vertical")
+                # Held on the view, not left anonymous, so "Reset Options" can move it:
+                # this pulldown lives on the Diagram view's own toolbar rather than in the
+                # settings drawer, and a reset that changed the value without moving the
+                # control would leave the two disagreeing on screen.
+                self.profiles_per_line_select = (
+                    ui.select(
+                        options=[str(n) for n in range(11)],
+                        value=str(self.master_gui.profiles_per_line),
+                        label=translate_string("Profiles Per Line"),
+                        on_change=self._profiles_per_line_selected,
+                    )
+                    .classes("w-40")
+                    .props("dense")
+                )
+                _create_diagram_tools(self)
+                self.diagram_message_label = ui.label("").classes("text-orange-400 italic ml-4")
+                self._build_scope_badge()
+
+    def _build_scroll_area(self, is_popout: bool, is_diagram: bool, is_flow: bool) -> None:
+        """The scrollable area the text is streamed into, wrapped or not and styled for the kind of view."""
+        self.wrap_enabled = not (is_diagram or is_flow)
+        self.wrap_classes = "whitespace-pre-wrap break-words" if self.wrap_enabled else "whitespace-pre"
+
+        # min-h-0 lets this flex item shrink below its content's intrinsic size -- without it
+        # a flex column's default min-height:auto would keep growing the scroll area (and the
+        # page) to fit all the streamed-in content instead of scrolling internally.
+        scroll_height_classes = "flex-1 min-h-0" if is_popout else "h-[70vh]"
+
+        # Tailwind's text-sm utility (below) pairs a 14px font with a 20px line-height --
+        # comfortable for prose, but visibly loose for a dense box-drawn diagram. Tighten it
+        # for the Diagram view only; keep process_data()'s approx_px_per_line chunk-height
+        # estimate in sync with this so scrolling doesn't jump around as chunks pop in.
+        line_height_style = " line-height: 1.2;" if is_diagram or is_flow else ""
+
+        # The Map view renders MapTasker.html, every color in which was picked against the
+        # configured output background -- the same one frontmtr writes onto that file's
+        # <body>. The app's own page background is set from the dark-mode toggle instead,
+        # so the two disagreed: open the file and the output sits on Lavender, show the
+        # same output here and it sat on white. Anything the output colors near-matches
+        # (a TaskerNet description's white headings, say) then disappears. Use the
+        # configured background here too, so the view shows what the file shows.
+        # "!important" is needed, not decorative: the light-mode overrides injected by
+        # inject_shared_head_styles() force "background-color: #ffffff !important" onto
+        # every .q-scrollarea to keep macOS's system appearance from bleeding through, and
+        # a plain inline style loses to that. An important declaration in the style
+        # attribute is the one thing that outranks an important rule in a stylesheet, and
+        # it applies to this one scroll area rather than weakening the override for the
+        # drawers, cards and tab panels that rely on it.
+        background_style = ""
+        if self.title.startswith("Map"):
+            background = css_color(self.master_gui.state.colors_to_use.get("background_color", ""))
+            if background:
+                background_style = f" background-color: {background} !important;"
+
+        self.scroll_area = (
+            ui.scroll_area()
+            # min-w-0 keeps this a flex child that can't be stretched wider than its container by
+            # long unbreakable content; without it the default flex min-width:auto lets the box
+            # (and the whole page) grow past the viewport once the full content has streamed in.
+            .classes(
+                f"w-full max-w-full min-w-0 block {scroll_height_classes} "
+                f"border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
+            )
+            .style(
+                # The font the output was generated with, which process_data() then
+                # reconciles against the file it actually reads. Deliberately not
+                # master_gui.font -- see the note there on why that can be stale.
+                f"width: 100%; max-width: 100%; "
+                f"font-family: '{self.master_gui.state.program_arguments.font}', monospace;"
+                f"{line_height_style}{background_style}",
+            )
+        )
+
     def build_ui(self) -> None:
         """Builds the UI layout for the various text views, including toolbar and scrollable display area."""
 
@@ -1747,126 +1871,8 @@ class NiceGuiTextView(TextViewSearch):
 
         # Set the main container to a vertical layout with full width and height
         with container_context:
-            # Toolbar
-            with ui.row().classes("w-full items-center gap-2 p-2 mb-2 shrink-0") as self.gui_toolbar:
-                ui.label(f"{self.title}").classes("text-orange-500 font-bold mr-4")
-                self.search_input = ui.input(placeholder=translate_string("Search...")).classes("w-48")
-                search_button = ui.button(translate_string("Search"), on_click=self.search_event).classes("bg-blue-600")
-                with search_button:
-                    ui.tooltip(
-                        translate_string(
-                            "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\n"
-                            "It will only show the first 200 instances of the search string.\n\n"
-                            "Click on the line number to go to that line in the text view box.\n\n"
-                            "The 'Clear' button will clear the search results.\n\n",
-                        ),
-                    ).style("white-space: pre-wrap")
-                ui.button(translate_string("Clear"), on_click=self.master_gui.event_handlers.clear_event).classes(
-                    "bg-blue-600",
-                )
-                # Structured search, alongside the text one rather than replacing it: the
-                # two answer different questions (see find_event).  Offered on the Map and
-                # the Diagram and nowhere else -- it answers with objects in the loaded
-                # configuration, which is what those two views draw; the Misc view shows
-                # reports, which have their own clickable rows already.
-                if self.is_map or is_diagram:
-                    find_button = ui.button(translate_string("Find/Replace"), on_click=self.find_event).classes(
-                        "bg-blue-600",
-                    )
-                    with find_button:
-                        ui.tooltip(
-                            translate_string(
-                                "'Find/Replace' asks the loaded configuration a question rather than searching the "
-                                "text on screen: every Task performing a given action, every Profile a given "
-                                "trigger fires, everything that names a given app or Scene.\n\n"
-                                "The boxes combine -- pick a trigger and an action to find the Profiles that "
-                                "trigger that way and run a Task that does that.\n\n"
-                                "Results come back as a list of objects; click one to be taken to it.\n\n",
-                            ),
-                        ).style("white-space: pre-wrap")
-                    # On the same two views as Find/Replace, and for the same reason: they draw
-                    # the configuration, which is what an export is of (see mapexport).
-                    _create_export_menu(self)
-                ui.separator().props("vertical")
-                ui.button(translate_string("Top"), on_click=lambda: self.scroll("top")).classes("bg-blue-600")
-                ui.button(translate_string("Bottom"), on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
-                ui.button(translate_string("Toggle Wrap"), on_click=self.toggle_wrap).classes("bg-blue-600")
-                if self.is_map:
-                    self.map_message_label = ui.label(self.master_gui.state.view_limit_msg).classes(
-                        "text-orange-400 italic ml-4"
-                    )
-                if is_diagram:
-                    ui.separator().props("vertical")
-                    # Held on the view, not left anonymous, so "Reset Options" can move it:
-                    # this pulldown lives on the Diagram view's own toolbar rather than in the
-                    # settings drawer, and a reset that changed the value without moving the
-                    # control would leave the two disagreeing on screen.
-                    self.profiles_per_line_select = (
-                        ui.select(
-                            options=[str(n) for n in range(11)],
-                            value=str(self.master_gui.profiles_per_line),
-                            label=translate_string("Profiles Per Line"),
-                            on_change=self._profiles_per_line_selected,
-                        )
-                        .classes("w-40")
-                        .props("dense")
-                    )
-                    _create_diagram_tools(self)
-                    self.diagram_message_label = ui.label("").classes("text-orange-400 italic ml-4")
-                    self._build_scope_badge()
-
-            self.wrap_enabled = not (is_diagram or is_flow)
-            self.wrap_classes = "whitespace-pre-wrap break-words" if self.wrap_enabled else "whitespace-pre"
-
-            # min-h-0 lets this flex item shrink below its content's intrinsic size -- without it
-            # a flex column's default min-height:auto would keep growing the scroll area (and the
-            # page) to fit all the streamed-in content instead of scrolling internally.
-            scroll_height_classes = "flex-1 min-h-0" if is_popout else "h-[70vh]"
-
-            # Tailwind's text-sm utility (below) pairs a 14px font with a 20px line-height --
-            # comfortable for prose, but visibly loose for a dense box-drawn diagram. Tighten it
-            # for the Diagram view only; keep process_data()'s approx_px_per_line chunk-height
-            # estimate in sync with this so scrolling doesn't jump around as chunks pop in.
-            line_height_style = " line-height: 1.2;" if is_diagram or is_flow else ""
-
-            # The Map view renders MapTasker.html, every color in which was picked against the
-            # configured output background -- the same one frontmtr writes onto that file's
-            # <body>. The app's own page background is set from the dark-mode toggle instead,
-            # so the two disagreed: open the file and the output sits on Lavender, show the
-            # same output here and it sat on white. Anything the output colors near-matches
-            # (a TaskerNet description's white headings, say) then disappears. Use the
-            # configured background here too, so the view shows what the file shows.
-            # "!important" is needed, not decorative: the light-mode overrides injected by
-            # inject_shared_head_styles() force "background-color: #ffffff !important" onto
-            # every .q-scrollarea to keep macOS's system appearance from bleeding through, and
-            # a plain inline style loses to that. An important declaration in the style
-            # attribute is the one thing that outranks an important rule in a stylesheet, and
-            # it applies to this one scroll area rather than weakening the override for the
-            # drawers, cards and tab panels that rely on it.
-            background_style = ""
-            if self.title.startswith("Map"):
-                background = css_color(self.master_gui.state.colors_to_use.get("background_color", ""))
-                if background:
-                    background_style = f" background-color: {background} !important;"
-
-            self.scroll_area = (
-                ui.scroll_area()
-                # min-w-0 keeps this a flex child that can't be stretched wider than its container by
-                # long unbreakable content; without it the default flex min-width:auto lets the box
-                # (and the whole page) grow past the viewport once the full content has streamed in.
-                .classes(
-                    f"w-full max-w-full min-w-0 block {scroll_height_classes} "
-                    f"border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
-                )
-                .style(
-                    # The font the output was generated with, which process_data() then
-                    # reconciles against the file it actually reads. Deliberately not
-                    # master_gui.font -- see the note there on why that can be stale.
-                    f"width: 100%; max-width: 100%; "
-                    f"font-family: '{self.master_gui.state.program_arguments.font}', monospace;"
-                    f"{line_height_style}{background_style}",
-                )
-            )
+            self._build_toolbar(is_diagram)
+            self._build_scroll_area(is_popout, is_diagram, is_flow)
 
             # The window is about to be handed to the browser with nothing in it yet.  Say
             # what it is waiting for, right here in the first paint -- see _show_loading.

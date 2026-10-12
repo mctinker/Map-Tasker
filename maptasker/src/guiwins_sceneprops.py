@@ -1021,6 +1021,80 @@ def _render_scene_event_task_actions(
         ).style("white-space: pre-wrap")
 
 
+def _event_task_in_progress(
+    self: MyGui,
+    event: sceneedit_legacy.LegacySceneEvent,
+    task_state: dict,
+    scene_name: str,
+) -> tuple[taskedit.EditableTask, tuple | None] | None:
+    """The Task being composed for this event: the one the dialog already holds, or a fresh one.
+
+    Returns (the Task, what the dialog held for it or None), or None -- with the reason already
+    on screen -- when no Task can be started.
+    """
+    pending = task_state["pending"]
+    held = pending.get(event.tag)
+    if held is None:
+        default_name = f"{scene_name} {event.label}".strip() or event.label
+        # The ids of the other sub-tabs' Tasks-in-progress are spoken for even though nothing
+        # has registered them: without this all three would be handed the same id, and
+        # creating the second would overwrite the first in the Task tables.
+        created = taskedit.create_new_task(
+            default_name, "100", reserved_ids={task.task_id for task, _refs in pending.values()}, state=self.state
+        )
+        if isinstance(created, str):  # No backup loaded -- create_new_task's own message.
+            ui.label(translate_string(created)).classes("text-xs text-gray-500 italic")
+            return None
+        edited_task = created
+    else:
+        edited_task = held[0]
+    return edited_task, held
+
+
+def _render_create_event_task_button(
+    self: MyGui,
+    properties: Element,
+    event: sceneedit_legacy.LegacySceneEvent,
+    edited_task: taskedit.EditableTask,
+    field_refs: dict,
+    pending: dict,
+    rerender: Callable[[], None],
+) -> None:
+    """The Create Task button: register the composed Task, point the event at it, and redraw."""
+
+    def create_task() -> None:
+        def bind(new_task_id: str) -> None:
+            sceneedit_legacy.legacy_set_task_binding(properties, event.tag, new_task_id)
+
+        if self.event_handlers.create_scene_event_task_event(edited_task, field_refs, bind):
+            # It is a real Task now and the event points at it, so the next render loads it
+            # from the tables like any other binding.
+            pending.pop(event.tag, None)
+            rerender()
+
+    create_button = (
+        ui.button(
+            translate_string("Create Task"),
+            icon="add_task",
+            on_click=create_task,
+        )
+        .props("dense")
+        .classes("mt-2 bg-blue-600")
+    )
+    with create_button:
+        ui.tooltip(
+            translate_string(
+                "Adds this Task to the loaded configuration and points this event at it, the same "
+                "as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent "
+                "to Android.  Ok does it for you too, so this is only for creating it without "
+                "closing.\n"
+                "Until then the Task exists only in this window and Cancel discards it. Afterwards "
+                "it is a Task like any other -- Cancel takes the binding back but not the Task, and "
+                "Undo takes both.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
 def _render_scene_event_new_task(
     self: MyGui,
     properties: Element,
@@ -1055,22 +1129,11 @@ def _render_scene_event_new_task(
         ).classes("text-xs text-gray-500 italic")
         return
 
+    resolved = _event_task_in_progress(self, event, task_state, scene_name)
+    if resolved is None:
+        return
+    edited_task, held = resolved
     pending = task_state["pending"]
-    held = pending.get(event.tag)
-    if held is None:
-        default_name = f"{scene_name} {event.label}".strip() or event.label
-        # The ids of the other sub-tabs' Tasks-in-progress are spoken for even though nothing
-        # has registered them: without this all three would be handed the same id, and
-        # creating the second would overwrite the first in the Task tables.
-        created = taskedit.create_new_task(
-            default_name, "100", reserved_ids={task.task_id for task, _refs in pending.values()}, state=self.state
-        )
-        if isinstance(created, str):  # No backup loaded -- create_new_task's own message.
-            ui.label(translate_string(created)).classes("text-xs text-gray-500 italic")
-            return
-        edited_task = created
-    else:
-        edited_task = held[0]
 
     ui.label(
         translate_string(
@@ -1101,34 +1164,4 @@ def _render_scene_event_new_task(
 
     _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
 
-    def create_task() -> None:
-        def bind(new_task_id: str) -> None:
-            sceneedit_legacy.legacy_set_task_binding(properties, event.tag, new_task_id)
-
-        if self.event_handlers.create_scene_event_task_event(edited_task, field_refs, bind):
-            # It is a real Task now and the event points at it, so the next render loads it
-            # from the tables like any other binding.
-            pending.pop(event.tag, None)
-            rerender()
-
-    create_button = (
-        ui.button(
-            translate_string("Create Task"),
-            icon="add_task",
-            on_click=create_task,
-        )
-        .props("dense")
-        .classes("mt-2 bg-blue-600")
-    )
-    with create_button:
-        ui.tooltip(
-            translate_string(
-                "Adds this Task to the loaded configuration and points this event at it, the same "
-                "as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent "
-                "to Android.  Ok does it for you too, so this is only for creating it without "
-                "closing.\n"
-                "Until then the Task exists only in this window and Cancel discards it. Afterwards "
-                "it is a Task like any other -- Cancel takes the binding back but not the Task, and "
-                "Undo takes both.",
-            ),
-        ).style("white-space: pre-wrap")
+    _render_create_event_task_button(self, properties, event, edited_task, field_refs, pending, rerender)
