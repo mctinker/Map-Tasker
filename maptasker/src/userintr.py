@@ -66,6 +66,7 @@ from maptasker.src.guiwins_fix import build_fix_dialog
 from maptasker.src.guiwins_nav import forget_views, go_to_target, live_views, opening_view_in_a_new_window
 from maptasker.src.guiwins_refactor import build_refactor_dialog
 from maptasker.src.guiwins_restore import build_restore_dialog
+from maptasker.src.guiwins_taskstep import build_taskstep_dialog
 from maptasker.src.guiwins_tnupdate import build_tnupdate_dialog, check_links_at_startup
 from maptasker.src.guiwins_views import NiceGuiTextView, NiceGuiTreeView
 from maptasker.src.maputil2 import (
@@ -166,6 +167,8 @@ class MyGui:
     report_issue_button: ui.button
     # The TaskerNet Updates dialog while one is up (see taskernet_updates_event).
     tnupdate_dialog: ui.dialog | None
+    # The Task Stepper dialog while one is up (see task_stepper_event).
+    taskstep_dialog: ui.dialog | None
 
     def __init__(self: "MyGui", state: RunState | None = None) -> None:
         """Initialize the GUI and set up all necessary state and layout.
@@ -2060,10 +2063,38 @@ class MapTaskerEventHandlers(
 
             return go
 
-        dialog = build_firesim_dialog(make_jump, state=self.state)
+        dialog = build_firesim_dialog(make_jump, state=self.state, step_task=self.task_stepper_event)
         if dialog is None:
             return
         self.gui.firesim_dialog = dialog
+        dialog.open()
+
+    def task_stepper_event(self: "MapTaskerEventHandlers", task: str = "") -> None:
+        """Open the Task Stepper: dry-run one Task with the variables it starts with.
+
+        `task` is the Task to start with, when it is opened from somewhere that knows which (a line of What
+        Fires When).  Rebuilt on every press, for fire_simulator_event's reason: the Task picker is filled
+        from the configuration loaded at the moment of the press.
+        """
+        dialog = getattr(self.gui, "taskstep_dialog", None)
+        self.gui.taskstep_dialog = None
+        if dialog is not None:
+            with suppress_logged("Deleting the Task Stepper dialog"):
+                dialog.delete()
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
+            """One line's click: open what it names in a window of its own, keeping this one up."""
+
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        dialog = build_taskstep_dialog(make_jump, self.state, task)
+        if dialog is None:
+            return
+        self.gui.taskstep_dialog = dialog
         dialog.open()
 
     def _dismiss_restore_dialog(self: "MapTaskerEventHandlers") -> None:

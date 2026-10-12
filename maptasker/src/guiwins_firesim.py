@@ -26,6 +26,7 @@ from __future__ import annotations
 import time as clock
 from dataclasses import dataclass
 from datetime import datetime
+from functools import partial
 from typing import TYPE_CHECKING
 
 from nicegui import ui
@@ -98,12 +99,17 @@ def _picked(value: object) -> str | None:
     return str(value).strip()
 
 
-def build_firesim_dialog(make_jump: Callable, state: RunState) -> ui.dialog | None:
+def build_firesim_dialog(
+    make_jump: Callable,
+    state: RunState,
+    step_task: Callable[[str], None] | None = None,
+) -> ui.dialog | None:
     """Build and return the What Fires When? dialog, or None if nothing is loaded.
 
     `make_jump` turns a Target into a click handler, and is passed in rather than imported
     for guiwins_fix's reason: this module is reached FROM guiwins, and reaching back into it
-    would be a circular import.
+    would be a circular import.  `step_task` opens the Task Stepper on a Task by name, so a Task in the run
+    order can be walked from where it is listed -- passed in for the same reason.
     """
     if not state.tasker_root_elements.get("all_profiles"):
         ui.notify(
@@ -174,7 +180,7 @@ def build_firesim_dialog(make_jump: Callable, state: RunState) -> ui.dialog | No
                 return
             result = firesim.simulate(scenario, state=state)
             summary.set_text(_summary_text(result))
-            _draw(result, area, make_jump)
+            _draw(result, area, make_jump, step_task)
 
         def reset_to_now() -> None:
             date.value = clock.strftime("%Y-%m-%d")
@@ -225,7 +231,12 @@ def _heading(text: str, classes: str = "text-blue-600") -> None:
     ui.label(text).classes(f"text-sm font-bold mt-3 {classes}")
 
 
-def _draw(result: firesim.Simulation, area: ui.scroll_area, make_jump: Callable) -> None:
+def _draw(
+    result: firesim.Simulation,
+    area: ui.scroll_area,
+    make_jump: Callable,
+    step_task: Callable[[str], None] | None = None,
+) -> None:
     """Collisions, then the run order, then the Profiles by state."""
     area.clear()
     with area, ui.column().classes("w-full gap-1 p-1"):
@@ -260,6 +271,11 @@ def _draw(result: firesim.Simulation, area: ui.scroll_area, make_jump: Callable)
                         "font-mono text-xs text-gray-400 shrink-0",
                     )
                     _link(run.task, make_jump)
+                    if step_task is not None and run.task.name:
+                        ui.button(
+                            translate_string("Step"),
+                            on_click=partial(step_task, run.task.name),
+                        ).props("flat dense size=sm").tooltip(translate_string("Walk this Task in the Task Stepper."))
                     if run.tied:
                         ui.badge(translate_string("tied"), color="grey").props("outline")
                     if run.profile.state == firesim.POSSIBLE:

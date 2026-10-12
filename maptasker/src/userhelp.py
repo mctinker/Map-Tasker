@@ -241,6 +241,17 @@ TASKERNET_UPDATES_HELP_TEXT = (
     " notification tells you when it is done.  Stop ends the reading of TaskerNet's list early and compares yours"
     " with the part already read; Select All and Deselect All tick the whole list of possible matches.  \n"
 )
+TASKSTEP_HELP_TEXT = (
+    "- Task Stepper: Dry-run one Task.  Pick it, say what its variables hold when it starts (Suggest Inputs lists the"
+    " ones it reads before it sets them), and press Step: it walks the Task action by action and shows which If, Else"
+    " If, For and Goto branches it takes, which actions it skips, and what every variable holds after each step."
+    "  Variable Set, Add, Clear and Split, and the conditions Tasker's If offers, are simulated; Flash, Notify and the"
+    " like are shown with their variables filled in; anything that talks to the outside world is listed as not"
+    " simulated, and a variable it may have set is unknown.  A condition that depends on a variable with no value"
+    " stops the walk and names it -- or is treated as not set, true or false, as you choose -- and what an action that"
+    " is not simulated leaves behind can be typed in (5: %name = value).  Nothing runs on your phone and nothing in the"
+    " configuration changes; each Task in What Fires When? has a Step button that opens it here.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -270,5 +281,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(COMMAND_REFERENCE_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(COMMAND_REFERENCE_TEXT)}"
     )

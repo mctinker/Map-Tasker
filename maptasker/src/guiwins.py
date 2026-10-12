@@ -3015,6 +3015,11 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
             ),
         ).style("white-space: pre-wrap")
 
+    _create_simulation_buttons(self)
+
+
+def _create_simulation_buttons(self: MyGui) -> None:
+    """The two buttons that ask what the configuration WOULD do: What Fires When? and the Task Stepper."""
     # Under the other reports that read the configuration's behaviour, full width and
     # coloured through "color" for the reasons the buttons above give.
     fire_simulator_button = (
@@ -3035,6 +3040,29 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
                 "their Tasks start in, and where they collide.\n\nAnything the inputs do not "
                 "describe, such as an Event or a location, is treated as unknown, so a Profile that "
                 "depends on it is shown as possible and says what it is waiting on.",
+            ),
+        ).style("white-space: pre-wrap")
+
+    # Beside What Fires When because it is that report's next question: once a Profile has started a
+    # Task, what does the Task do?
+    task_stepper_button = (
+        ui.button(
+            translate_string("Task Stepper"),
+            color="teal",
+            on_click=self.event_handlers.task_stepper_event,
+            icon="skip_next",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with task_stepper_button:
+        ui.tooltip(
+            translate_string(
+                "Dry-run one Task: pick it, say what its variables hold when it starts, and see which If, "
+                "Else If, For and Goto branches it takes and what every variable holds after each "
+                "action.\n\nActions that talk to the outside world are listed as 'not simulated', and a "
+                "variable one of them may have set is treated as unknown rather than guessed.  Nothing is "
+                "run on your phone and nothing in the configuration changes.",
             ),
         ).style("white-space: pre-wrap")
 

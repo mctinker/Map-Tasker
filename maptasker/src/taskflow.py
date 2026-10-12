@@ -303,6 +303,21 @@ def _argument(action: Element, arg_id: str) -> str:
     return ""
 
 
+# The Goto types, public for the modules that walk a Task rather than only read it (taskstep).
+GOTO_ACTION_NUMBER = _GOTO_ACTION_NUMBER
+GOTO_ACTION_LABEL = _GOTO_ACTION_LABEL
+
+
+def action_argument(action: Element, arg_id: str) -> str:
+    """One of an action's arguments as text -- see _argument, which this is for other modules to call."""
+    return _argument(action, arg_id)
+
+
+def labels_of(steps: list[Step]) -> dict[str, list[int]]:
+    """{label: the indexes of every action carrying it} -- see _labels, which this is for other modules to call."""
+    return _labels(steps)
+
+
 def _condition_text(action: Element) -> str:
     """An action's <ConditionList sr="if"> as one short line, or "" when it has none.
 

@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file!
 ### Added
 
 - Added: The README is now also available in Simplified Chinese, Spanish, Hindi, French, Arabic, German, Danish, Finnish, Russian, Korean, and Japanese, with a language-switcher at the top of each version.
+- Added: A new __Task Stepper__ button dry-runs one Task: you give it the variables it starts with and it walks the Task action by action, showing which If, Else If, For and Goto branches it takes and what every variable holds after each step.  Actions that talk to the outside world are shown as not simulated and a condition that depends on one stops the walk instead of guessing; each Task listed in What Fires When? has a Step button that opens it here.
 - Added:
 
 ### Changed
