@@ -51,7 +51,16 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src import clock, mapfind, maputil2, profedit, sceneedit, sceneedit_v2, sessundo, taskedit, varxref
+from maptasker.src import (
+    clock,
+    mapfind,
+    maputil2,
+    profedit,
+    scenemodel,
+    sessundo,
+    taskedit,
+    varxref,
+)
 from maptasker.src.actionc import ArgumentCode, action_codes
 from maptasker.src.mapjump import PROFILE, TASK, VARIABLE, Row, Target, current_scope, text_report
 from maptasker.src.maputils import append_to_filename
@@ -2600,7 +2609,7 @@ def _rewrite_site(site: Site, pattern: re.Pattern | None = None, new_name: str =
     configuration has.
     """
     if site.kind == V2_SCENE:
-        value = _v2_value(site)
+        value = scenemodel.V2.property_value(site.element, site.path)
         return _flatten(value), _flatten(_substitute(value, pattern, new_name))
 
     before = _current_value(site)
@@ -2634,27 +2643,6 @@ def _flatten(value: object) -> str:
     if isinstance(value, str):
         return value
     return json.dumps(value, separators=(",", ":"), ensure_ascii=False)
-
-
-def _v2_layout_and_node(site: Site) -> tuple[object, dict | None, str]:
-    """(the decoded layout, the component the site points at, the property key).
-
-    Decoded fresh every time.  The layout a plan was built from is long gone by the time
-    anything is applied, and would be the wrong object to write into even if it were not:
-    what is on disk is the <lj> of the element, and that is what has to be edited.
-    """
-
-    layout = sceneedit.decode_v2_layout(site.element)
-    if layout is None:
-        return None, None, ""
-    node_path, key = site.path
-    return layout, sceneedit_v2.v2_node_at(layout, node_path), key
-
-
-def _v2_value(site: Site) -> object:
-    """The current value of the property a V2 site points at."""
-    _, node, key = _v2_layout_and_node(site)
-    return node.get(key) if node is not None else ""
 
 
 # ##################################################################################
@@ -2802,15 +2790,16 @@ def _write_site(site: Site, state: RunState) -> None:
     pattern, new_name = site.rename
 
     if site.kind == V2_SCENE:
-        layout, node, key = _v2_layout_and_node(site)
-        if node is None or key not in node:
-            # A layout that will not decode, or a path that no longer resolves.  Left
-            # alone rather than rebuilt, for the reason decode_v2_layout gives: a layout
-            # that cannot be read certainly should not be re-encoded over the original.
+        # Decoded fresh by the model every time: the layout a plan was built from is long gone
+        # by the time anything is applied, and what is on disk is the <lj> of the element.
+        if not scenemodel.V2.rewrite_property(
+            site.element, site.path, lambda value: _substitute(value, pattern, new_name)
+        ):
+            # A layout that will not decode, or a path that no longer resolves.  Left alone
+            # rather than rebuilt: a layout that cannot be read certainly should not be
+            # re-encoded over the original.
             unreachable = f"the Version 2 layout of {site.where.label} could not be read"
             raise ValueError(unreachable)
-        node[key] = _substitute(node[key], pattern, new_name)
-        sceneedit.encode_v2_layout(site.element, layout)
         return
 
     _set_value(site, pattern.sub(new_name, _current_value(site)), state=state)

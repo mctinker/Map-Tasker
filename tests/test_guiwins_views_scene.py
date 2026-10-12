@@ -19,7 +19,7 @@ from nicegui import core, events, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src import guiwins_views, sceneedit, sceneview
+from maptasker.src import guiwins_views, sceneedit, scenelayout, scenemodel, sceneview
 from maptasker.src.guiwins_views import NiceGuiSceneView, NiceGuiTreeView
 from maptasker.src.primitem import PrimeItems
 from tests.test_mapswap import _load
@@ -56,7 +56,7 @@ def _configuration() -> None:
 
 def _edited() -> sceneedit.EditableScene:
     if _built["version"] == "v2":
-        return sceneedit.create_new_scene("Fresh", sceneedit.SCENE_VERSION_V2, state=PrimeItems)
+        return sceneedit.create_new_scene("Fresh", scenemodel.SCENE_VERSION_V2, state=PrimeItems)
     return sceneedit.load_scene_for_edit(_built["scene"], state=PrimeItems)
 
 
@@ -68,7 +68,7 @@ def _page() -> None:
         _built["dialog"] = ui.dialog()
     _built["edited"] = _edited()
     if _built["version"] == "v2" and "v2_layout" not in _built["field_refs"]:
-        _built["field_refs"]["v2_layout"] = sceneedit.decode_v2_layout(_built["edited"].scene_element)
+        _built["field_refs"]["v2_layout"] = scenelayout.decode_v2_layout(_built["edited"].scene_element)
     _built["view"] = NiceGuiSceneView(gui, _built["edited"], _built["field_refs"], _built["dialog"])
 
 
@@ -413,7 +413,7 @@ async def test_an_unknown_screen_name_falls_back_to_the_first() -> None:
 @pytest.mark.asyncio
 async def test_a_version_2_preview_draws_the_layout_the_dialog_holds_not_the_one_last_saved() -> None:
     _built["version"] = "v2"
-    layout = sceneedit.v2_template_layout("Typed", "Dialog with buttons")
+    layout = scenelayout.v2_template_layout("Typed", "Dialog with buttons")
     _built["field_refs"] = {"v2_layout": layout}
     async with _open() as user:
         assert any(f"{sceneview.v2_component_count(layout)} component(s)" in text for text in _texts(user))
@@ -426,7 +426,7 @@ async def test_a_layout_that_cannot_be_read_says_so_instead_of_drawing_nothing()
 
     def page() -> None:
         _built["gui"] = SimpleNamespace(font="x", dark_mode=False, state=PrimeItems, content_container=ui.column())
-        edited = sceneedit.create_new_scene("Broken", sceneedit.SCENE_VERSION_V2, state=PrimeItems)
+        edited = sceneedit.create_new_scene("Broken", scenemodel.SCENE_VERSION_V2, state=PrimeItems)
         edited.scene_element.find("lj").text = "garbage"
         _built["view"] = NiceGuiSceneView(_built["gui"], edited, _built["field_refs"], None)
 
@@ -439,7 +439,7 @@ async def test_with_a_designer_behind_it_a_version_2_picture_is_a_reorder_surfac
     _built["version"] = "v2"
     seen: list = []
     _built["field_refs"] = {
-        "v2_layout": sceneedit.v2_template_layout("Typed", "Dialog with buttons"),
+        "v2_layout": scenelayout.v2_template_layout("Typed", "Dialog with buttons"),
         "v2_edit": {
             "handlers": {"v2select": lambda payload: seen.append(("select", payload))},
             "selection": {"path": (), "count": 1},

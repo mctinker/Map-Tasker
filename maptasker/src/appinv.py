@@ -722,3 +722,35 @@ def _adopt_cache(cache: dict) -> None:
 def _ensure_cache_loaded() -> None:
     if not _state.cache_loaded:
         _adopt_cache(read_cache())
+
+
+# Where the names come from.  Alongside the app's other tables rather than written into this
+# module, because it is a list of 550 strings and it is data: see the file's own _comment for
+# what was verified about it, and guiwins_designer_v2._build_icon_field for what the Scene designer does with it
+# (the Task editor's icon picker uses it too, to tell a Material glyph from a look-alike).
+_MATERIAL_ICON_NAMES_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "assets",
+    "json",
+    "material_icons.json",
+)
+_material_icon_names_cache: list[str] = []
+
+
+def material_icon_names() -> list[str]:
+    """Every Material icon the picker offers, by the ligature name its glyph is drawn by.
+
+    Read once and kept: the file is small, but the picker rebuilds its list on every keystroke
+    of its search box, and re-reading a file per keystroke is the kind of thing that makes a
+    dialog feel slow for no reason.
+
+    An empty list if the file is missing or unreadable -- the designer then offers no picker
+    and the icon field is typed into, which is exactly what it was before there was one.
+    """
+    if not _material_icon_names_cache:
+        try:
+            with open(_MATERIAL_ICON_NAMES_FILE, encoding="utf-8") as file:
+                _material_icon_names_cache.extend(json.load(file).get("icons", []))
+        except (OSError, ValueError):
+            return []
+    return _material_icon_names_cache

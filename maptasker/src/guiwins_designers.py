@@ -66,8 +66,8 @@ class SceneDesigner(Protocol):
 
 
 _DESIGNERS: dict[str, SceneDesigner] = {
-    sceneedit.SCENE_VERSION_LEGACY: LegacyDesigner(),
-    sceneedit.SCENE_VERSION_V2: V2Designer(),
+    scenemodel.SCENE_VERSION_LEGACY: LegacyDesigner(),
+    scenemodel.SCENE_VERSION_V2: V2Designer(),
 }
 
 

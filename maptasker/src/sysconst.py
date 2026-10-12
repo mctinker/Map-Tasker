@@ -472,6 +472,11 @@ SCENE_TAGS_TO_IGNORE = [
     "widthPort",
 ]
 
+# Tasker's own "not laid out for this orientation": what a Scene's size children and a Legacy
+# element's <geom> half hold when an orientation has no layout.  Every Version 2 Scene carries it
+# in all four size children too, since a V2 layout is declarative and has no canvas to size.
+UNSET_DIMENSION = "-1"
+
 SCENE_TASK_TYPES = {
     "checkchangeTask": "Check Change",
     "clickTask": "TAP",

@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
-from maptasker.src import sceneedit, sceneedit_v2, sceneview
+from maptasker.src import appinv, sceneedit, sceneedit_v2, scenelayout, sceneview
 from maptasker.src.guiwins_canvas import (
     _ACTIVE_CANVASES,
     _DESIGNER_SEQUENCE,
@@ -524,7 +524,7 @@ def _build_icon_dialog(field: ui.input) -> None:
     Replaces the field rather than inserting into it, unlike the Show When picker: a component
     has one icon, so a second pick is a correction and not an addition.
     """
-    names = sceneedit_v2.v2_icon_names()
+    names = appinv.material_icon_names()
     search = {"text": ""}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[640px] max-w-[760px] p-6"):
@@ -1481,7 +1481,7 @@ class V2Designer:
         /,
     ) -> None:
         """Mount the component-tree designer, or say the layout could not be read and leave it alone."""
-        layout = sceneedit.decode_v2_layout(edited_scene.scene_element)
+        layout = scenelayout.decode_v2_layout(edited_scene.scene_element)
         if layout is None:
             ui.label(
                 translate_string("This Scene's Version 2 layout could not be read, and will be left exactly as it is."),

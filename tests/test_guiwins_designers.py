@@ -18,7 +18,7 @@ import pytest
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src import guiwins_designer_legacy, guiwins_designer_v2, guiwins_designers, objprops, sceneedit
+from maptasker.src import guiwins_designer_legacy, guiwins_designer_v2, guiwins_designers, objprops, sceneedit, scenelayout
 from maptasker.src.primitem import RunState
 
 _LEGACY = ET.fromstring(  # noqa: S314  (fixture text, defined in this file)
@@ -33,7 +33,7 @@ _built: dict = {}
 def _v2_scene(*, decodable: bool = True) -> ET.Element:
     scene = ET.fromstring('<Scene sr="sceneNew"><nme>New</nme></Scene>')  # noqa: S314
     if decodable:
-        sceneedit.encode_v2_layout(scene, _LAYOUT)
+        scenelayout.encode_v2_layout(scene, _LAYOUT)
     else:
         ET.SubElement(scene, "lj").text = "not a layout"
     return scene

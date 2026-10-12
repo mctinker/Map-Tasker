@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 from maptasker.src import appinv, sessundo
 from maptasker.src.actionc import action_codes
-from maptasker.src.sysconst import SCENE_TASK_TYPES
+from maptasker.src.sysconst import SCENE_TASK_TYPES, UNSET_DIMENSION
 from maptasker.src.taskedit import (
     apply_arg_values,
     build_editable_args,
@@ -36,10 +36,12 @@ from maptasker.src.taskedit import (
     validate_arg_values,
 )
 
-# Tasker's own "not laid out for this orientation": what a Scene's size children and a
-# <geom>'s half hold when an orientation has no layout.  Every V2 Scene carries it in all
-# four size children too -- see sceneedit.NEW_SCENE_WIDTH_PORTRAIT and create_new_scene.
-UNSET_DIMENSION = "-1"
+# A brand-new *Legacy* Scene's portrait size, in the same units Tasker itself writes.  Portrait
+# gets a real default so a new Scene is visible at all; landscape gets UNSET_DIMENSION, which is
+# what Tasker uses for "not laid out for this orientation" (every Scene in this repo's sample data
+# that has never been opened in landscape carries -1 for both landscape dimensions).
+NEW_SCENE_WIDTH_PORTRAIT = "600"
+NEW_SCENE_HEIGHT_PORTRAIT = "800"
 
 
 # --------------------------------------------------------------------------------------
@@ -270,24 +272,6 @@ def legacy_snapshot(scene_element: Element) -> Element:
     several elements' sr attributes at once, would otherwise need.
     """
     return copy.deepcopy(scene_element)
-
-
-def legacy_restore(
-    scene_element: Element,
-    snapshot: Element,
-) -> None:
-    """Put a snapshot back, in place.
-
-    Replaces the live element's children and attributes rather than rebinding it, because
-    EditableScene, the dialog's field_refs and the save path all hold *this* element object;
-    swapping in the copy would leave every one of them editing something that is no longer
-    going to be saved.  The V2 designer does the same thing to its layout dict, for the same
-    reason.
-    """
-    scene_element[:] = list(snapshot)
-    scene_element.attrib.clear()
-    scene_element.attrib.update(snapshot.attrib)
-    scene_element.text = snapshot.text
 
 
 # --------------------------------------------------------------------------------------
@@ -1086,7 +1070,7 @@ def legacy_properties_restore(
     """Put a legacy_properties_snapshot back, and say whether there was anything to put back.
 
     In place -- children, attributes and text replaced rather than the element rebound -- for
-    the reason legacy_restore gives: the Scene copy holds this element object and so does
+    the reason editcommon.restore_element gives: the Scene copy holds this element object and so does
     anything rendered from it.
 
     Either end of the pair may be absent, and both are ordinary.  A snapshot of None means

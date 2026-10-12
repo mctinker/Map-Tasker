@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
-from maptasker.src import objprops, profedit, projedit, sceneedit, sceneedit_legacy, sessundo, taskedit
+from maptasker.src import objprops, profedit, projedit, sceneedit, sceneedit_legacy, scenelayout, sessundo, taskedit
 from maptasker.src.guiutils import (
     clear_single_item_view_names,
     display_current_file,
@@ -265,7 +265,7 @@ def _apply_scene_field_values(edited_scene: sceneedit.EditableScene, field_refs:
     by name.
 
     Sizes must be whole numbers; -1 is allowed and meaningful (Tasker's "this
-    orientation has no layout of its own", see sceneedit_legacy.UNSET_DIMENSION), so the
+    orientation has no layout of its own", see sysconst.UNSET_DIMENSION), so the
     check is "integer", not "positive integer".
     """
     errors = []
@@ -307,14 +307,14 @@ def _encode_v2_layout_if_edited(edited_scene: sceneedit.EditableScene, field_ref
     the two orderings equivalent.
 
     Encoding an untouched layout is a no-op in the only sense that matters: it reproduces
-    the original <lj> byte for byte (see sceneedit._V2_GZIP_LEVEL), so a dialog opened and
+    the original <lj> byte for byte (see scenelayout._GZIP_LEVEL), so a dialog opened and
     saved with nothing changed leaves the file exactly as it was.
     """
     layout = field_refs.get("v2_layout")
     if not isinstance(layout, dict):
         return
     layout["name"] = edited_scene.scene_element.findtext("nme", "") or layout.get("name", "")
-    sceneedit.encode_v2_layout(edited_scene.scene_element, layout)
+    scenelayout.encode_v2_layout(edited_scene.scene_element, layout)
 
 
 def _finish_new_scene(gui: MyGui, edited_scene: sceneedit.EditableScene, project_name: str) -> None:
@@ -1715,7 +1715,9 @@ class EditorEventHandlers:
         The prompt stays open if the Scene can't be built, so the choice isn't lost along
         with the error.
         """
-        new_scene = sceneedit.create_new_scene("", version, template or sceneedit.V2_DEFAULT_TEMPLATE, state=self.state)
+        new_scene = sceneedit.create_new_scene(
+            "", version, template or scenelayout.V2_DEFAULT_TEMPLATE, state=self.state
+        )
         if isinstance(new_scene, str):
             ui.notify(new_scene, type="warning")
             return

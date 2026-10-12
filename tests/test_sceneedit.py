@@ -19,7 +19,7 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import editcommon, sceneedit, sessundo
+from maptasker.src import editcommon, sceneedit, sceneedit_legacy, scenelayout, scenemodel, sessundo
 from maptasker.src.primitem import PrimeItems
 
 from tests.test_mapswap import _load
@@ -81,7 +81,7 @@ def _edit(name: str) -> sceneedit.EditableScene:
     return edited
 
 
-def _new(name: str, version: str = sceneedit.SCENE_VERSION_LEGACY, **kwargs: str) -> sceneedit.EditableScene:
+def _new(name: str, version: str = scenemodel.SCENE_VERSION_LEGACY, **kwargs: str) -> sceneedit.EditableScene:
     created = sceneedit.create_new_scene(name, version, state=PrimeItems, **kwargs)
     assert isinstance(created, sceneedit.EditableScene)
     return created
@@ -97,7 +97,7 @@ def _xml(element: ET.Element) -> str:
 
 def _v2_alpha() -> sceneedit.EditableScene:
     """A registered Version 2 Scene, so a rename has a layout name to keep in step."""
-    created = _new("Alpha", sceneedit.SCENE_VERSION_V2)
+    created = _new("Alpha", scenemodel.SCENE_VERSION_V2)
     sceneedit.register_new_scene(created, state=PrimeItems)
     return _edit("Alpha")
 
@@ -106,10 +106,10 @@ def _v2_alpha() -> sceneedit.EditableScene:
 # Which kind of Scene.
 # ##################################################################################
 def test_a_scene_with_a_layout_child_is_version_two() -> None:
-    assert sceneedit.is_v2_scene(_live("Dash")) is False
-    assert sceneedit.scene_version(_live("Dash")) == "Legacy"
-    assert sceneedit.is_v2_scene(_new("N", "Version 2").scene_element) is True
-    assert sceneedit.scene_version(_new("N", "Version 2").scene_element) == "Version 2"
+    assert scenemodel.is_v2_scene(_live("Dash")) is False
+    assert scenemodel.scene_version(_live("Dash")) == "Legacy"
+    assert scenemodel.is_v2_scene(_new("N", "Version 2").scene_element) is True
+    assert scenemodel.scene_version(_new("N", "Version 2").scene_element) == "Version 2"
 
 
 # ##################################################################################
@@ -119,17 +119,17 @@ def test_a_layout_survives_encoding_and_decoding() -> None:
     element = ET.Element("Scene")
     layout = {"root": {"type": "Column", "children": [{"type": "Text", "text": "café – ü"}]}, "name": "N"}
 
-    sceneedit.encode_v2_layout(element, layout)
+    scenelayout.encode_v2_layout(element, layout)
 
-    assert sceneedit.decode_v2_layout(element) == layout
+    assert scenelayout.decode_v2_layout(element) == layout
 
 
 def test_the_encoding_is_the_one_tasker_writes_so_an_untouched_scene_is_byte_identical() -> None:
     """Compact separators, gzip level 6 and a zeroed mtime: anything else makes every save differ."""
     element = ET.Element("Scene")
-    sceneedit.encode_v2_layout(element, {"a": 1, "b": [1, 2]})
+    scenelayout.encode_v2_layout(element, {"a": 1, "b": [1, 2]})
     first = element.findtext("lj")
-    sceneedit.encode_v2_layout(element, {"a": 1, "b": [1, 2]})
+    scenelayout.encode_v2_layout(element, {"a": 1, "b": [1, 2]})
 
     assert element.findtext("lj") == first
     raw = base64.b64decode(first)
@@ -141,15 +141,15 @@ def test_the_encoding_is_the_one_tasker_writes_so_an_untouched_scene_is_byte_ide
 
 def test_a_layout_that_cannot_be_read_is_none_and_is_left_alone() -> None:
     legacy = _live("Dash")
-    assert sceneedit.decode_v2_layout(legacy) is None
+    assert scenelayout.decode_v2_layout(legacy) is None
 
     broken = ET.Element("Scene")
     ET.SubElement(broken, "lj").text = "not base64 at all!!"
-    assert sceneedit.decode_v2_layout(broken) is None
+    assert scenelayout.decode_v2_layout(broken) is None
 
     empty = ET.Element("Scene")
     ET.SubElement(empty, "lj")
-    assert sceneedit.decode_v2_layout(empty) is None
+    assert scenelayout.decode_v2_layout(empty) is None
 
 
 @pytest.mark.parametrize(
@@ -157,7 +157,7 @@ def test_a_layout_that_cannot_be_read_is_none_and_is_left_alone() -> None:
     ["", "####", base64.b64encode(b"plain, not gzip").decode(), base64.b64encode(gzip.compress(b"{not json")).decode()],
 )
 def test_a_bad_encoding_is_reported_as_text_not_raised(bad: str) -> None:
-    result = sceneedit.decompress_gzip_json(bad)
+    result = scenelayout.decompress_gzip_json(bad)
 
     assert isinstance(result, str)
     assert result.startswith("An error occurred")
@@ -167,17 +167,17 @@ def test_a_layout_that_is_json_but_not_an_object_is_not_a_layout() -> None:
     element = ET.Element("Scene")
     ET.SubElement(element, "lj").text = base64.b64encode(gzip.compress(b"[1, 2]")).decode()
 
-    assert sceneedit.decode_v2_layout(element) is None
+    assert scenelayout.decode_v2_layout(element) is None
 
 
 def test_renaming_a_layout_that_cannot_be_read_leaves_it_as_it_was() -> None:
     broken = ET.Element("Scene")
     ET.SubElement(broken, "lj").text = "garbage"
 
-    sceneedit._rename_v2_layout(broken, "New")  # noqa: SLF001
+    scenelayout.rename_v2_layout(broken, "New")  # noqa: SLF001
 
     assert broken.findtext("lj") == "garbage"
-    sceneedit._rename_v2_layout(ET.Element("Scene"), "New")  # A Legacy Scene: nothing to do.  # noqa: SLF001
+    scenelayout.rename_v2_layout(ET.Element("Scene"), "New")  # A Legacy Scene: nothing to do.  # noqa: SLF001
 
 
 # ##################################################################################
@@ -206,7 +206,7 @@ def test_a_new_version_two_scene_has_no_canvas_and_a_layout_in_its_place() -> No
 
     assert _tags(element) == ["cdate", "edate", "heightLand", "heightPort", "lj", "nme", "widthLand", "widthPort"]
     assert [element.findtext(tag) for tag in ("widthPort", "heightPort", "widthLand", "heightLand")] == ["-1"] * 4
-    layout = sceneedit.decode_v2_layout(element)
+    layout = scenelayout.decode_v2_layout(element)
     assert layout["name"] == "V"
     assert layout["root"]["type"] == "Column"
     assert layout["root"]["children"] == []
@@ -217,14 +217,14 @@ def test_a_new_version_two_scene_has_no_canvas_and_a_layout_in_its_place() -> No
     [("Empty", "Column"), ("Titled dialog", "Column"), ("Dialog with buttons", "Column"), ("Full screen", "Scaffold")],
 )
 def test_each_version_two_template_makes_the_tree_it_names(template: str, root_type: str) -> None:
-    layout = sceneedit.decode_v2_layout(_new("T", "Version 2", template=template).scene_element)
+    layout = scenelayout.decode_v2_layout(_new("T", "Version 2", template=template).scene_element)
 
     assert layout["root"]["type"] == root_type
     assert layout["name"] == "T"
 
 
 def test_a_dialog_with_buttons_reports_which_button_was_pressed() -> None:
-    layout = sceneedit.v2_template_layout("D", "Dialog with buttons")
+    layout = scenelayout.v2_template_layout("D", "Dialog with buttons")
 
     row = layout["root"]["children"][-1]
     assert row["id"] == "button_row"
@@ -240,15 +240,15 @@ def test_a_dialog_with_buttons_reports_which_button_was_pressed() -> None:
         ("sd_button", "OK"),
     ]
     # A dialog without buttons has the header and body only.
-    assert [child["id"] for child in sceneedit.v2_template_layout("D", "Titled dialog")["root"]["children"]] == [
+    assert [child["id"] for child in scenelayout.v2_template_layout("D", "Titled dialog")["root"]["children"]] == [
         "header",
         "content",
     ]
 
 
 def test_an_unknown_template_is_a_blank_scene() -> None:
-    assert sceneedit.v2_template_layout("X", "Nonsense") == sceneedit.new_v2_layout("X")
-    assert sceneedit.V2_DEFAULT_TEMPLATE == "Empty"
+    assert scenelayout.v2_template_layout("X", "Nonsense") == scenelayout.new_v2_layout("X")
+    assert scenelayout.V2_DEFAULT_TEMPLATE == "Empty"
 
 
 def test_a_new_scene_needs_a_backup_and_a_kind_that_exists(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -302,7 +302,7 @@ def test_a_rename_writes_the_name_everywhere_the_scene_keeps_it() -> None:
     element = edited.scene_element
     assert element.findtext("nme") == "Beta"
     assert element.get("sr") == "sceneBeta"
-    assert sceneedit.decode_v2_layout(element)["name"] == "Beta"
+    assert scenelayout.decode_v2_layout(element)["name"] == "Beta"
     assert edited.scene_name == "Beta"
     assert element.findtext("edate") != "1"
 
@@ -439,7 +439,7 @@ def test_pending_element_renames_are_applied_to_the_tasks_at_this_point_and_no_o
     calls = []
     # The list is cleared once applied, so what it held has to be copied at the time.
     monkeypatch.setattr(
-        sceneedit, "apply_element_renames_to_tasks", lambda scene, renames, **_: calls.append((scene, list(renames)))
+        sceneedit_legacy, "apply_element_renames_to_tasks", lambda scene, renames, **_: calls.append((scene, list(renames)))
     )
     edited = _edit("Dash")
     edited.element_renames.append(("Old", "New"))
@@ -660,7 +660,7 @@ def test_pending_element_renames_count_as_a_change_and_are_dropped() -> None:
 def test_a_version_two_session_lives_in_its_layout_dict_and_cancel_reverts_that() -> None:
     edited = _v2_alpha()
     snapshot = sceneedit.session_snapshot(edited)
-    layout = sceneedit.decode_v2_layout(edited.scene_element)
+    layout = scenelayout.decode_v2_layout(edited.scene_element)
     original = json.loads(json.dumps(layout))
 
     # The element is untouched: the session's work is in the dict until a save encodes it.
@@ -673,6 +673,6 @@ def test_a_version_two_session_lives_in_its_layout_dict_and_cancel_reverts_that(
 def test_a_version_two_session_that_changed_nothing_has_nothing_to_undo() -> None:
     edited = _v2_alpha()
     snapshot = sceneedit.session_snapshot(edited)
-    layout = sceneedit.decode_v2_layout(edited.scene_element)
+    layout = scenelayout.decode_v2_layout(edited.scene_element)
 
     assert sceneedit.revert_session(edited, snapshot, layout) is False

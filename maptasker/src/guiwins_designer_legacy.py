@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 from nicegui import Event, ui
 
 from maptasker.src import objprops, sceneedit, sceneedit_legacy, sceneview
+from maptasker.src.editcommon import restore_element
 from maptasker.src.guiwins_canvas import (
     _ACTIVE_CANVASES,
     _DESIGNER_SEQUENCE,
@@ -430,7 +431,7 @@ class _LegacyDesigner:
     def restore(self) -> None:
         if not self.history:
             return
-        sceneedit_legacy.legacy_restore(self.scene_element, self.history.pop())
+        restore_element(self.scene_element, self.history.pop())
         # Undoing an Add takes the added element away with it, so anything the restored Scene
         # no longer has is dropped rather than left selected as a key naming nothing.
         self.set_selection(

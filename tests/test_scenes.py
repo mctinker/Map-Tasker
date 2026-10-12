@@ -26,7 +26,7 @@ import re
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import actionc, proclist, scenes, taskerd, varxref
+from maptasker.src import actionc, proclist, scenelayout, scenes, taskerd, varxref
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
@@ -150,7 +150,7 @@ def test_a_compressed_element_list_round_trips() -> None:
     """Base64 in, gzip out, JSON parsed -- the whole of a V2 Scene's contents arrive
     through this one function.
     """
-    assert scenes.decompress_gzip_json(_gzipped_json({"type": "Button", "text": "OK"})) == {
+    assert scenelayout.decompress_gzip_json(_gzipped_json({"type": "Button", "text": "OK"})) == {
         "type": "Button",
         "text": "OK",
     }
@@ -160,7 +160,7 @@ def test_an_undecodable_element_list_is_reported_not_raised() -> None:
     """A truncated or non-gzip <lj> must not stop the run: the rest of the configuration
     is still worth showing, and the caller prints this message beside the Scene.
     """
-    result = scenes.decompress_gzip_json("this is not base64 @@@")
+    result = scenelayout.decompress_gzip_json("this is not base64 @@@")
     assert isinstance(result, str)
     assert result.startswith("An error occurred")
 

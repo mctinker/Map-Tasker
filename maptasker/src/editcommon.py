@@ -39,6 +39,21 @@ if TYPE_CHECKING:
 _NO_BYTES = b""
 
 
+def restore_element(element: Element, snapshot: Element) -> None:
+    """Put a snapshot of an element back, in place.
+
+    Replaces the live element's children and attributes rather than rebinding it, because
+    whoever is editing it -- EditableScene, a dialog's field_refs, a Preview, the save path -- holds
+    *this* element object; swapping in the copy would leave every one of them working on something
+    that is no longer going to be saved.  Kind-agnostic: a Version 2 Scene's designer does the same
+    thing to its layout dict, for the same reason.
+    """
+    element[:] = list(snapshot)
+    element.attrib.clear()
+    element.attrib.update(snapshot.attrib)
+    element.text = snapshot.text
+
+
 def set_child_text(parent: Element, tag: str, text: str) -> None:
     """Set (creating if need be) one child's text.
 

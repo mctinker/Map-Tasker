@@ -10,7 +10,7 @@ from __future__ import annotations
 import html
 from typing import TYPE_CHECKING
 
-from maptasker.src import caches, tasks
+from maptasker.src import caches, scenelayout, scenemodel, tasks
 from maptasker.src.actionc import action_codes
 from maptasker.src.actione import action_results
 from maptasker.src.dirout import add_directory_item
@@ -18,13 +18,9 @@ from maptasker.src.mapjump import (
     SCENE,
     Target,
     anchor_html,
-    scene_component_part,
     scene_element_parts,
-    v2_property_holds_a_variable,
 )
 from maptasker.src.proclist import format_item, process_list
-from maptasker.src.sceneedit import decompress_gzip_json
-from maptasker.src.sceneedit_v2 import v2_child_slots, v2_flatten
 from maptasker.src.sysconst import (
     SCENE_TAGS_TO_IGNORE,
     SCENE_TASK_TYPES,
@@ -190,23 +186,11 @@ class SceneAnchors:
         anchor a line the other does not name.  A child slot is left out because varxref
         skips one too: its value is the whole subtree below it, and anchoring that would
         put an id on the "children:" line for every variable anywhere underneath.
-
-        sceneedit is imported here rather than at module scope for the reason varxref and
-        healthck give for theirs: it is the Scene editor, nothing else in the Map output
-        needs it, and it reaches back into this module for its decoder.
         """
         if not self.scene_name:
             return
 
-        for row in v2_flatten(layout):
-            child_slots = {slot for slot, _ in v2_child_slots(row.node)}
-            wanted = {
-                key: scene_component_part(row.path, key)
-                for key, value in row.node.items()
-                if key not in child_slots and v2_property_holds_a_variable(value)
-            }
-            if wanted:
-                self.component_parts[id(row.node)] = wanted
+        self.component_parts.update(scenemodel.V2.anchor_parts(layout))
 
     def mark(self, element: Element) -> None:
         """Write a Legacy element's anchor into the output, ahead of the line it belongs to.
@@ -260,7 +244,7 @@ def get_scene_elements(
 
     # Handle scene V2 compressed JSON element
     if element_type[0] == "lj":
-        json_data = decompress_gzip_json(child.text)
+        json_data = scenelayout.decompress_gzip_json(child.text)
 
         # Check for errors in decompression
         if isinstance(json_data, str) and json_data.startswith("An error occurred"):

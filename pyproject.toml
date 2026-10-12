@@ -481,12 +481,40 @@ layers = [
     maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
     firesim : folderwatch : parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
     profedit : profiles : proflint : proginit : projects : projedit :
-    property : readiness : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenemodel : scenes : servicec :
+    property : readiness : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenelayout : scenemodel : scenes : servicec :
     sessundo : share : shelsort : sysconst : taskactn : taskedit :
     taskerd : taskertables : taskervars : taskflow : taskstep : tasks : taskuniq :
     timecomp : timeline : tnfind : tnupdate : translator : twisty : userhelp : valcodes : varxref :
     xmldata : xmldiff
     """,
+]
+
+# A Scene is one of two kinds, and what a caller does with one should not depend on which.
+# scenemodel is where that is decided (see its header): the analyses, the editing core
+# (sceneedit), the Map output (scenes) and the bulk replace (mapswap) all ask it.  What is
+# left importing a kind's editor directly is the code that edits that kind and nothing else --
+# its designer, the property dialogs and the preview -- and this keeps it that list.
+[[tool.importlinter.contracts]]
+name = "Only the Legacy Scene designer and its dialogs import the Legacy Scene editor"
+type = "protected"
+protected_modules = ["maptasker.src.sceneedit_legacy"]
+allowed_importers = [
+    "maptasker.src.guiwins",
+    "maptasker.src.guiwins_designer_legacy",
+    "maptasker.src.guiwins_legacyarg",
+    "maptasker.src.guiwins_sceneprops",
+    "maptasker.src.scenemodel",
+    "maptasker.src.userintr_editors",
+]
+
+[[tool.importlinter.contracts]]
+name = "Only the Version 2 Scene designer and its preview import the Version 2 Scene editor"
+type = "protected"
+protected_modules = ["maptasker.src.sceneedit_v2"]
+allowed_importers = [
+    "maptasker.src.guiwins_designer_v2",
+    "maptasker.src.guiwins_views",
+    "maptasker.src.scenemodel",
 ]
 
 [[tool.importlinter.contracts]]

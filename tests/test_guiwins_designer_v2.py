@@ -21,7 +21,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src import guiwins_designer_v2, sceneedit, sceneedit_v2, sceneview
+from maptasker.src import guiwins_designer_v2, sceneedit, sceneedit_v2, scenelayout, sceneview
 from maptasker.src.primitem import PrimeItems
 from tests.test_mapfind import _FIXTURE_XML, _load
 
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 _built: dict = {}
 
-# Where things are in the stock layout (see sceneedit.v2_template_layout): root -> header, content, button_row.
+# Where things are in the stock layout (see scenelayout.v2_template_layout): root -> header, content, button_row.
 def _at(*indexes: int) -> tuple:
     """The path of the component reached by these child positions, from the root."""
     return tuple(part for index in indexes for part in ("children", index))
@@ -47,7 +47,7 @@ BUTTON_ROW = _at(2)
 
 
 def _layout() -> dict:
-    return sceneedit.v2_template_layout("Dialog", "Dialog with buttons")
+    return scenelayout.v2_template_layout("Dialog", "Dialog with buttons")
 
 
 @pytest.fixture(autouse=True)
@@ -936,7 +936,7 @@ def _scene(layout: dict | None) -> SimpleNamespace:
     if layout is None:
         ET.SubElement(element, "lj").text = "not a layout"
     else:
-        sceneedit.encode_v2_layout(element, layout)
+        scenelayout.encode_v2_layout(element, layout)
     return SimpleNamespace(scene_element=element, scene_name="Dialog")
 
 

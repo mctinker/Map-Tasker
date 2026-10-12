@@ -98,7 +98,7 @@ if TYPE_CHECKING:
 
     from maptasker.src.primitem import RunState
 
-# Tasker's "this orientation has no layout of its own" (sceneedit_legacy.UNSET_DIMENSION), which
+# Tasker's "this orientation has no layout of its own" (sysconst.UNSET_DIMENSION), which
 # appears both as a Scene dimension and inside a <geom>.
 UNSET = -1
 

@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
-from maptasker.src import appinv, deviceinv, objprops, profedit, sceneedit_v2, taskedit
+from maptasker.src import appinv, deviceinv, objprops, profedit, taskedit
 from maptasker.src.guiutils import (
     android_address_defaults,
     remember_android_address,
@@ -161,7 +161,7 @@ def _tasker_icon_glyph(icon: appinv.IconRef) -> str:
             # 'mw' is Material by definition.  The look-alike sets are only trusted when the
             # name is one the font is known to hold: an unknown ligature is drawn as its own
             # text, which is worse than a generic glyph.
-            if parts[0] == "mw" or candidate in sceneedit_v2.v2_icon_names():
+            if parts[0] == "mw" or candidate in appinv.material_icon_names():
                 return candidate
     return _ICON_KIND_GLYPHS.get(icon.kind, "image")
 

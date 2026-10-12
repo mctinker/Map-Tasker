@@ -34,26 +34,29 @@ TWO KINDS OF SCENE, and every function here has to know which it is holding:
   Version 2 (https://tasker.joaoapps.com/userguide/en/scenes_v2.html -- Tasker's
   own "Screen Builder") -- one <lj> child and no element children at all. <lj> is
   a whole component tree serialized as JSON, gzipped, then Base64'd; see
-  decode_v2_layout/encode_v2_layout, which are the only two functions that should
-  ever touch it. The layout is declarative (Column/Row/Scaffold with modifiers
+  scenelayout.decode_v2_layout/encode_v2_layout, which are the only two functions that
+  should ever touch it. The layout is declarative (Column/Row/Scaffold with modifiers
   and event handlers, not x/y geometry), so all four size children are -1 on
   every V2 Scene -- confirmed across all three in XML/backup.xml, which belong to
   a test Project, a dialog-builder Project and a torch-brightness Project.
 
-  is_v2_scene() is the check; scene_version() gives the display name. The two
-  are told apart purely by whether <lj> is there, which is also how
+  scenemodel.is_v2_scene() is the check; scenemodel.scene_version() gives the display
+  name. The two are told apart purely by whether <lj> is there, which is also how
   scenes.get_scene_elements decides how to render one.
 
   What each designer edits inside a Scene of its kind lives in a module of its own:
   sceneedit_legacy.py for the elements of a Legacy canvas, sceneedit_v2.py for the
   component tree of a V2 layout.  This module is the Scene as a whole -- loading,
-  creating, renaming, saving, deleting, reverting -- and imports both; neither of them
-  imports it.
+  creating, renaming, saving, deleting, reverting -- and it imports neither of them:
+  where the two kinds differ in any of those (the canvas a new Scene starts with, the
+  copy of the name inside a V2 layout, what Cancel puts back) it asks scenemodel.model_of
+  for the kind's answer.  The few modules that do import a kind's editor are held to a
+  list by an import-linter contract in pyproject.toml.
 
 The V2 layout JSON carries its own copy of the Scene's name, as a top-level
 "name" key alongside "root" -- so a V2 rename is not just an XML edit; the JSON
 has to be decoded, renamed, and re-encoded or the two disagree. apply_edits_to_scene
-does this; see _rename_v2_layout.
+asks the Scene's model to do this; see scenelayout.rename_v2_layout.
 
 NOT YET HANDLED, and the reason config.EDIT_SCENE defaults to False: a Scene's
 own contents -- a Legacy Scene's UI elements and the Tasks they fire (ClickTask
@@ -71,11 +74,7 @@ directly on the live tasker_root_elements tables (Delete), mirroring projedit.py
 
 from __future__ import annotations
 
-import base64
 import copy
-import gzip
-import io
-import json
 import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass, field
@@ -88,10 +87,10 @@ if TYPE_CHECKING:
 from maptasker.src import editcommon, piiscan, sessundo
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.presave import backup_local_file
-from maptasker.src.editcommon import touch_project_mdate
-from maptasker.src.sysconst import SCENE_TASK_TYPES
-from maptasker.src.sceneedit_legacy import UNSET_DIMENSION, apply_element_renames_to_tasks, legacy_restore
-from maptasker.src.sceneedit_v2 import _V2_ROOT_KEY
+from maptasker.src.editcommon import restore_element, touch_project_mdate
+from maptasker.src.sysconst import SCENE_TASK_TYPES, UNSET_DIMENSION
+from maptasker.src.scenelayout import V2_DEFAULT_TEMPLATE
+from maptasker.src.scenemodel import SCENE_VERSION_LEGACY, SCENE_VERSIONS, model_for_version, model_of
 
 # Destination folder on the Android device for Save To Android -- the Scene sibling of
 # projedit.ANDROID_PROJECT_LOCATION ("Tasker/projects"); see android_scene_path.
@@ -102,13 +101,6 @@ EXPORT = editcommon.EditorKind(
     extension=".scn.xml",
     android_location=ANDROID_SCENE_LOCATION,
 )
-# A brand-new *Legacy* Scene's size, in the same units Tasker itself writes.  Portrait gets
-# a real default so a new Scene is visible at all; landscape gets -1, which is what Tasker
-# uses for "not laid out for this orientation" (every Scene in this repo's sample data that
-# has never been opened in landscape carries -1 for both landscape dimensions).  A Version 2
-# Scene gets -1 for all four instead -- it has no canvas to size; see create_new_scene.
-NEW_SCENE_WIDTH_PORTRAIT = "600"
-NEW_SCENE_HEIGHT_PORTRAIT = "800"
 # The Scene's four size children, paired with the label the dialog shows for each.
 # The label lives here, next to the tag, rather than in guiwins, because three places
 # have to agree on this list and would otherwise drift: guiwins._build_scene_editor_body
@@ -121,28 +113,6 @@ SCENE_DIMENSION_FIELDS = (
     ("widthLand", "Width (landscape)"),
     ("heightLand", "Height (landscape)"),
 )
-
-# The two kinds of Scene (see this module's docstring).  These strings are what the Add
-# Scene version picker shows and what create_new_scene takes, so they are display names,
-# not internal codes -- there is no third value and nothing parses them.
-SCENE_VERSION_LEGACY = "Legacy"
-SCENE_VERSION_V2 = "Version 2"
-SCENE_VERSIONS = (SCENE_VERSION_LEGACY, SCENE_VERSION_V2)
-# The child holding a V2 Scene's whole component tree -- gzipped, Base64'd JSON.  Its
-# presence is the entire difference between the two kinds of Scene.
-V2_LAYOUT_TAG = "lj"
-# How Tasker itself encodes <lj>, matched byte-for-byte rather than guessed: compact JSON
-# separators (no spaces), gzip at level 6 with the mtime header zeroed.  Re-encoding all
-# three V2 Scenes in XML/backup.xml with exactly these settings reproduces Tasker's own
-# Base64 string character for character, which is the only way to be sure a Scene this app
-# rewrites is still the same file Tasker wrote.  (mtime especially: gzip stamps the current
-# time into the header by default, so without mtime=0 an untouched Scene's <lj> would come
-# out different on every single save.)
-_V2_JSON_SEPARATORS = (",", ":")
-_V2_GZIP_LEVEL = 6
-# The layout JSON's other top-level key beside sceneedit_v2._V2_ROOT_KEY's tree: the Scene's
-# own name, duplicated there by Tasker and therefore something a rename has to keep in step.
-_V2_NAME_KEY = "name"
 
 
 @dataclass
@@ -169,121 +139,6 @@ class EditableScene:
     element_renames: list[tuple[str, str]] = field(default_factory=list)
 
 
-def is_v2_scene(scene_element: Element) -> bool:
-    """Whether this is a Version 2 (Screen Builder) Scene rather than a Legacy one.
-
-    The <lj> child is the whole test, and it is a reliable one in both directions:
-    every V2 Scene has exactly one and no element children, every Legacy Scene has
-    element children and no <lj>.  scenes.get_scene_elements branches on the same
-    tag to decide how to render a Scene, so the two agree by construction.
-    """
-    return scene_element.find(V2_LAYOUT_TAG) is not None
-
-
-def scene_version(scene_element: Element) -> str:
-    """SCENE_VERSION_V2 or SCENE_VERSION_LEGACY -- the display name of what
-    is_v2_scene() decides.  Used for dialog titles and the pulldown-free "this is
-    what you are editing" line in the editor body.
-    """
-    return SCENE_VERSION_V2 if is_v2_scene(scene_element) else SCENE_VERSION_LEGACY
-
-
-def decompress_gzip_json(b64_string: str) -> dict | str:
-    """Decodes a Base64 string, decompresses it using Gzip, and parses the JSON.
-
-    This function reverses a common data pipeline where a JSON object is
-    serialized, compressed to save space, and encoded into Base64 for
-    safe transmission as text.
-
-    Args:
-        b64_string (str): A Base64-encoded string representing zlib-compressed
-            JSON data.
-
-    Returns:
-        dict|list|str: The parsed JSON data. The type depends on the structure
-            of the original JSON (usually a dictionary or list).
-        str: Returns an error message string if decoding, decompression,
-            or parsing fails.
-
-    Example:
-        >>> example_input = "eJyrViotTi1SslJQcs7PzffLzM8rSyzI0S9ITM5W0lFKzMkMDvIBAL06C9M="
-        >>> decompress_json(example_input)
-        {'status': 'success', 'data': [1, 2, 3]}
-    """
-    try:
-        # 1. Decode Base64 to bytes
-        compressed_data = base64.b64decode(b64_string)
-
-        # 2. Use BytesIO to treat the bytes like a file, then decompress with gzip
-        with gzip.GzipFile(fileobj=io.BytesIO(compressed_data)) as f:
-            decompressed_data = f.read()
-
-        # 3. Parse JSON
-        return json.loads(decompressed_data.decode("utf-8"))
-
-    except (ValueError, OSError, EOFError) as e:
-        # The whole of what this decode chain throws on bad input: binascii.Error and
-        # json.JSONDecodeError and UnicodeDecodeError are all ValueError, gzip.BadGzipFile
-        # is an OSError, and a truncated member is EOFError.  A TypeError here would be a
-        # bug in the caller and no longer disappears into this string.
-        return f"An error occurred: {e}"
-
-
-def decode_v2_layout(scene_element: Element) -> dict | None:
-    """The V2 Scene's component tree, decoded from <lj> into plain Python.
-
-    Returns None for a Legacy Scene (no <lj>), and also for an <lj> that won't
-    decode -- a corrupt or truncated one, or a future encoding this doesn't know.
-    Callers treat None as "nothing to show/change here" and leave the element
-    untouched, which is the safe answer either way: a layout that can't be read
-    certainly shouldn't be re-encoded over the top of the original.
-
-    Decoding itself is decompress_gzip_json, above, which the Map's Scene output
-    (scenes) decodes with too.  The encode half is encode_v2_layout, below.
-    """
-    layout_element = scene_element.find(V2_LAYOUT_TAG)
-    if layout_element is None or not layout_element.text:
-        return None
-
-    decoded = decompress_gzip_json(layout_element.text)
-    # decompress_gzip_json reports failure by returning its error message as a
-    # string rather than raising, so anything that isn't a dict is a failure.
-    return decoded if isinstance(decoded, dict) else None
-
-
-def encode_v2_layout(scene_element: Element, layout: dict) -> None:
-    """Writes a component tree back into the Scene's <lj>, encoded the way Tasker
-    itself does (see _V2_GZIP_LEVEL and the note above it -- this reproduces
-    Tasker's own output byte for byte, which is what makes an edit that changes
-    nothing leave the file unchanged).  Creates the <lj> child if it isn't there,
-    so this doubles as "make this a V2 Scene" for create_new_scene.
-    """
-    payload = json.dumps(layout, separators=_V2_JSON_SEPARATORS, ensure_ascii=False).encode("utf-8")
-    buffer = io.BytesIO()
-    with gzip.GzipFile(fileobj=buffer, mode="wb", compresslevel=_V2_GZIP_LEVEL, mtime=0) as gzip_file:
-        gzip_file.write(payload)
-    _set_child_text(scene_element, V2_LAYOUT_TAG, base64.b64encode(buffer.getvalue()).decode("ascii"))
-
-
-def _rename_v2_layout(scene_element: Element, new_name: str) -> None:
-    """Keeps a V2 Scene's embedded layout name in step with its <nme>.
-
-    Tasker stores the Scene's name twice -- once as the <nme> child, once as the
-    layout JSON's top-level "name" (all three V2 Scenes in XML/backup.xml carry
-    both, always agreeing).  Renaming only the XML leaves the two disagreeing
-    inside a single file, so this decodes, sets, and re-encodes.
-
-    No-op for a Legacy Scene, and for a V2 Scene whose <lj> won't decode -- see
-    decode_v2_layout on why a layout that can't be read is left alone rather than
-    overwritten.
-    """
-    layout = decode_v2_layout(scene_element)
-    if layout is None:
-        return
-    layout[_V2_NAME_KEY] = new_name
-    encode_v2_layout(scene_element, layout)
-
-
 def resolve_scene_by_name(scene_name: str, state: RunState) -> Element | None:
     """Look up a Scene's live XML element by its name (also its all_scenes key).
 
@@ -303,197 +158,6 @@ def load_scene_for_edit(scene_name: str, state: RunState) -> EditableScene | Non
     if live_element is None:
         return None
     return EditableScene(scene_name=scene_name, scene_element=copy.deepcopy(live_element))
-
-
-def new_v2_layout(name: str) -> dict:
-    """The component tree a brand-new Version 2 Scene starts with: a single
-    centred Column holding nothing, plus the Scene's name.
-
-    Modelled on the smallest real V2 Scene in XML/backup.xml (a torch-brightness
-    slider) with its one child removed -- same root
-    type, same keys, same order -- rather than invented, so what Tasker's Screen
-    Builder opens is a shape it already writes itself.  Deliberately no
-    "defaultDisplayMode": only one of the three real V2 Scenes sets it, so it is
-    optional and Tasker's own default is the right thing for a new Scene.
-    """
-    return {
-        _V2_ROOT_KEY: {
-            "type": "Column",
-            "id": "Column1",
-            "horizontalAlignment": "Center",
-            "verticalArrangement": "Center",
-            "children": [],
-        },
-        _V2_NAME_KEY: name,
-    }
-
-
-def _v2_dismiss_actions(label: str) -> list[dict]:
-    """The action list a dialog button runs: record which button was pressed, then close.
-
-    Copied from the 'Dialog' Scene's own close button rather than invented -- it writes
-    sd_button_index and sd_button before DismissLayout, and those two names are what the
-    dialog-builder Project's Task reads back afterwards. A template that used different
-    variable names would look right and return nothing.
-    """
-    return [
-        {"type": "SetVariable", "variable": "sd_button", "value": label},
-        {"type": "DismissLayout"},
-    ]
-
-
-def _v2_template_dialog(name: str, *, with_buttons: bool) -> dict:
-    """A titled dialog: header row with a title and a close button, then a content column.
-
-    This is the 'Dialog' Scene of the dialog-builder Project, reduced to its frame --
-    same root Column with the rounded border, same SpaceBetween header, same close button
-    behaviour -- with its runtime-injected body replaced by an ordinary Text the user can
-    edit or delete.
-    """
-    children: list[dict] = [
-        {
-            "type": "Row",
-            "id": "header",
-            "horizontalArrangement": "SpaceBetween",
-            "verticalAlignment": "Center",
-            "modifiers": [{"type": "FillWidth"}, {"type": "Padding", "all": "8"}],
-            "children": [
-                {"type": "Text", "id": "title_text", "text": "Title", "textSize": "22"},
-                {
-                    "type": "IconButton",
-                    "id": "close_button",
-                    "icon": "icon:Close",
-                    "contentScale": "FillBounds",
-                    "eventHandlers": {
-                        "handlers": [{"events": [{"type": "click"}], "actions": _v2_dismiss_actions("Close")}],
-                    },
-                },
-            ],
-        },
-        {
-            "type": "Column",
-            "id": "content",
-            "horizontalAlignment": "Center",
-            "verticalArrangement": "Center",
-            "spacing": "8",
-            "modifiers": [{"type": "FillWidth"}, {"type": "Padding", "horizontal": "16", "bottom": "8"}],
-            "children": [{"type": "Text", "id": "body_text", "text": "Body text"}],
-        },
-    ]
-
-    if with_buttons:
-        children.append(
-            {
-                "type": "Row",
-                "id": "button_row",
-                "horizontalArrangement": "End",
-                "verticalAlignment": "Center",
-                "spacing": "8",
-                "modifiers": [{"type": "FillWidth"}, {"type": "Padding", "all": "8"}],
-                "children": [
-                    {
-                        "type": "Button",
-                        "id": f"button_{index}",
-                        "text": label,
-                        "eventHandlers": {
-                            "handlers": [{"events": [{"type": "click"}], "actions": _v2_dismiss_actions(label)}],
-                        },
-                    }
-                    for index, label in enumerate(("Cancel", "OK"), start=1)
-                ],
-            },
-        )
-
-    return {
-        _V2_ROOT_KEY: {
-            "type": "Column",
-            "id": "root_column",
-            "horizontalAlignment": "Center",
-            "verticalArrangement": "Center",
-            "modifiers": [
-                {"type": "FillWidth"},
-                {"type": "Border", "color": "outline", "shape": "Rounded", "radius": "16"},
-            ],
-            "children": children,
-        },
-        _V2_NAME_KEY: name,
-    }
-
-
-def _v2_template_full_screen(name: str) -> dict:
-    """A full-screen app frame: top bar, bottom navigation, and a content column.
-
-    Modelled on the 'V2' Scene of a test Project -- the only real example of a Scaffold
-    in this repo's backup -- so the slot names (topBar / bottomBar / content) and the
-    NavigationItem shape match something Tasker demonstrably opens.
-    """
-    return {
-        _V2_ROOT_KEY: {
-            "type": "Scaffold",
-            "id": "Scaffold1",
-            "topBar": [
-                {
-                    "type": "TopAppBar",
-                    "id": "TopAppBar1",
-                    "title": [{"type": "Text", "id": "Text1", "text": "Title", "textSize": "22"}],
-                },
-            ],
-            "bottomBar": [
-                {
-                    "type": "NavigationBar",
-                    "id": "NavBar1",
-                    "content": [
-                        {"type": "NavigationItem", "id": f"NavItem{index}", "icon": icon, "label": label}
-                        for index, (icon, label) in enumerate(
-                            (("icon:Home", "Home"), ("icon:Search", "Search"), ("icon:Settings", "Settings")),
-                            start=1,
-                        )
-                    ],
-                },
-            ],
-            "content": [
-                {
-                    "type": "Column",
-                    "id": "Column1",
-                    "horizontalAlignment": "Center",
-                    "verticalArrangement": "Center",
-                    "children": [{"type": "Text", "id": "Text2", "text": "Content"}],
-                },
-            ],
-        },
-        _V2_NAME_KEY: name,
-    }
-
-
-# The starting points Add Scene offers for a Version 2 Scene, in the order it lists them.
-# Each entry is (label, description, builder).  Every one of these is traced to a Scene in
-# XML/backup.xml rather than composed from the schema, because the schema says what is
-# *possible* and these Scenes are evidence of what Tasker actually opens.
-V2_TEMPLATES: tuple[tuple[str, str, object], ...] = (
-    ("Empty", "A single centred Column to build in.", new_v2_layout),
-    (
-        "Titled dialog",
-        "Header with a title and close button, and a content area.",
-        lambda name: _v2_template_dialog(name, with_buttons=False),
-    ),
-    (
-        "Dialog with buttons",
-        "A titled dialog plus a Cancel / OK row that reports which was pressed.",
-        lambda name: _v2_template_dialog(name, with_buttons=True),
-    ),
-    ("Full screen", "Scaffold with a top bar, bottom navigation and content.", _v2_template_full_screen),
-)
-V2_DEFAULT_TEMPLATE = V2_TEMPLATES[0][0]
-
-
-def v2_template_layout(name: str, template: str) -> dict:
-    """Build the named template's component tree.  Falls back to the empty one for a name
-    that isn't offered, so a stale caller degrades to "blank Scene" rather than failing.
-    """
-    for label, _description, builder in V2_TEMPLATES:
-        if label == template:
-            return builder(name)
-    return new_v2_layout(name)
 
 
 def create_new_scene(
@@ -536,12 +200,11 @@ def create_new_scene(
 
     element_cls = type(state.xml_root)
     clean_name = name.strip()
-    is_v2 = version == SCENE_VERSION_V2
+    model = model_for_version(version)
     scene_element = element_cls("Scene", {"sr": f"scene{clean_name}"})
 
     now_millis = str(int(time.time() * 1000))
-    portrait_width = UNSET_DIMENSION if is_v2 else NEW_SCENE_WIDTH_PORTRAIT
-    portrait_height = UNSET_DIMENSION if is_v2 else NEW_SCENE_HEIGHT_PORTRAIT
+    portrait_width, portrait_height = model.portrait_size()
     for tag, text in (
         ("cdate", now_millis),
         ("edate", now_millis),
@@ -555,13 +218,8 @@ def create_new_scene(
         child.text = text
         scene_element.append(child)
 
-    if is_v2:
-        # encode_v2_layout appends <lj> at the end; move it into alphabetical
-        # position (after heightPort) so the child order matches a real V2 Scene's.
-        encode_v2_layout(scene_element, v2_template_layout(clean_name, template))
-        layout_element = scene_element.find(V2_LAYOUT_TAG)
-        scene_element.remove(layout_element)
-        scene_element.insert(list(scene_element).index(scene_element.find("nme")), layout_element)
+    # What the kind holds beyond that: nothing for Legacy, the template's <lj> for Version 2.
+    model.finish_new_scene(scene_element, clean_name, template)
 
     return EditableScene(scene_name=clean_name, scene_element=scene_element)
 
@@ -585,8 +243,8 @@ def apply_edits_to_scene(edited_scene: EditableScene, new_name: str, state: RunS
     "Big" and "Red" and neither would resolve.
 
     For a Version 2 Scene there is a third place the name lives -- inside the
-    <lj> layout JSON -- and _rename_v2_layout keeps it in step.  Nothing else in
-    this module has to know: for a Legacy Scene that call does nothing.
+    <lj> layout JSON -- and the Scene's model (scenemodel) keeps it in step.  Nothing
+    else in this module has to know: for a Legacy Scene that call does nothing.
     """
     errors = []
 
@@ -605,7 +263,7 @@ def apply_edits_to_scene(edited_scene: EditableScene, new_name: str, state: RunS
 
     _set_child_text(edited_scene.scene_element, "nme", new_name)
     edited_scene.scene_element.set("sr", f"scene{new_name}")
-    _rename_v2_layout(edited_scene.scene_element, new_name)
+    model_of(edited_scene.scene_element).rename(edited_scene.scene_element, new_name)
     touch_scene_edate(edited_scene.scene_element)
     # Keep scene_name in sync with the applied <nme> -- register_new_scene keys
     # all_scenes by it, so a brand-new Scene (created with name "") would
@@ -774,7 +432,7 @@ def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene, 
         # it as it was, and renaming a Scene has never rewritten those (see this module's
         # docstring), so the Scene name in a Task action is still the one it came in under.
         if edited_scene.element_renames:
-            apply_element_renames_to_tasks(old_name, edited_scene.element_renames, state=state)
+            model_of(edited_scene.scene_element).apply_element_renames(old_name, edited_scene.element_renames, state)
             edited_scene.element_renames.clear()
 
         live_element = entry["xml"]
@@ -1040,7 +698,7 @@ def revert_session(
     cancelled kept showing the new positions, which reads as Cancel having done nothing.
     Putting the copy back is what makes the two agree.
 
-    In place, and for the reason legacy_restore gives: EditableScene, the dialog's field_refs
+    In place, and for the reason editcommon.restore_element gives: EditableScene, the dialog's field_refs
     and the Preview all hold this element object.
 
     `layout` is the Version 2 designer's decoded tree (field_refs["v2_layout"]).  It has to be
@@ -1056,19 +714,11 @@ def revert_session(
     changed = ETW.tostring(edited_scene.scene_element) != ETW.tostring(snapshot) or bool(
         edited_scene.element_renames,
     )
-    # Decoded from the snapshot rather than from the restored element, which is the same
-    # content one step later, so the layout is read once and answers both questions below.
-    original_layout = decode_v2_layout(snapshot) if layout is not None else None
-    if not changed and isinstance(original_layout, dict):
-        # A Version 2 session leaves the element alone from beginning to end -- its work is
-        # in the dict until a save encodes it -- so comparing elements calls a reordered,
-        # retyped, half-rebuilt V2 layout "unchanged".  Asking the dict is what makes Cancel
-        # able to say it discarded something on the one kind of Scene where it always had.
-        changed = original_layout != layout
-
-    legacy_restore(edited_scene.scene_element, snapshot)
+    restore_element(edited_scene.scene_element, snapshot)
     edited_scene.element_renames.clear()
-    if isinstance(original_layout, dict):
-        layout.clear()
-        layout.update(original_layout)
-    return changed
+    # A Version 2 session leaves the element alone from beginning to end -- its work is in the
+    # layout dict until a save encodes it -- so comparing elements calls a reordered, retyped,
+    # half-rebuilt V2 layout "unchanged".  Asking the layout is what makes Cancel able to say it
+    # discarded something on the one kind of Scene where it always had.  Reverting it is the
+    # same call, so the snapshot is decoded once and answers both questions.
+    return model_of(snapshot).revert_layout(snapshot, layout) or changed

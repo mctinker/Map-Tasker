@@ -33,6 +33,8 @@ from maptasker.src import (
     mapjump,
     sceneedit,
     sceneedit_v2,
+    scenelayout,
+    scenemodel,
     sceneview,
 )
 from maptasker.src.format import css_color
@@ -928,7 +930,7 @@ class NiceGuiSceneView:
         self.field_refs = field_refs
         self.dialog = dialog
         self.title = f"{translate_string('Scene Preview')}: {edited_scene.scene_name}"
-        self.is_v2 = sceneedit.is_v2_scene(edited_scene.scene_element)
+        self.is_v2 = scenemodel.is_v2_scene(edited_scene.scene_element)
         self.options = sceneview.PreviewOptions()
         self.zoom = "Fit"
         self.screen = sceneview.V2_DEFAULT_SCREEN
@@ -1282,7 +1284,7 @@ class NiceGuiSceneView:
         """
         layout = self.field_refs.get("v2_layout")
         if not isinstance(layout, dict):
-            layout = sceneedit.decode_v2_layout(self.edited_scene.scene_element)
+            layout = scenelayout.decode_v2_layout(self.edited_scene.scene_element)
         if not isinstance(layout, dict):
             self._say(
                 "This Scene's Version 2 layout could not be read, so there is nothing to draw.",

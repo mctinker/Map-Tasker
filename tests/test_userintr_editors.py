@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from maptasker.src import projedit, profedit, sceneedit, sessundo, taskedit, userintr_editors
+from maptasker.src import profedit, projedit, sceneedit, scenelayout, scenemodel, sessundo, taskedit, userintr_editors
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
 from tests.test_mapswap import _load
@@ -253,14 +253,14 @@ def test_a_scene_dialog_with_no_size_fields_writes_nothing() -> None:
 
 
 def test_the_version_2_layout_the_designer_edited_is_written_back_under_the_scenes_current_name() -> None:
-    edited = sceneedit.create_new_scene("Fresh", sceneedit.SCENE_VERSION_V2, state=PrimeItems)
-    layout = sceneedit.decode_v2_layout(edited.scene_element)
+    edited = sceneedit.create_new_scene("Fresh", scenemodel.SCENE_VERSION_V2, state=PrimeItems)
+    layout = scenelayout.decode_v2_layout(edited.scene_element)
     layout["root"]["id"] = "renamed_root"
     edited.scene_element.find("nme").text = "Renamed"
 
     userintr_editors._encode_v2_layout_if_edited(edited, {"v2_layout": layout})
 
-    written = sceneedit.decode_v2_layout(edited.scene_element)
+    written = scenelayout.decode_v2_layout(edited.scene_element)
     assert written["root"]["id"] == "renamed_root"
     assert written["name"] == "Renamed", "the layout's own name follows <nme>, whichever was applied first"
     userintr_editors._encode_v2_layout_if_edited(edited, {})  # a Legacy Scene: nothing to do
@@ -1360,7 +1360,7 @@ def test_add_scene_with_no_backup_parsed_and_no_file_says_so(
     assert calls["build_add_scene_version_dialog"] == []
 
 
-@pytest.mark.parametrize("version", [sceneedit.SCENE_VERSION_LEGACY, sceneedit.SCENE_VERSION_V2])
+@pytest.mark.parametrize("version", [scenemodel.SCENE_VERSION_LEGACY, scenemodel.SCENE_VERSION_V2])
 def test_choosing_a_scene_kind_closes_the_prompt_and_opens_the_add_dialog_on_a_new_scene_of_that_kind(
     handlers: MapTaskerEventHandlers,
     gui: MagicMock,
@@ -1371,7 +1371,7 @@ def test_choosing_a_scene_kind_closes_the_prompt_and_opens_the_add_dialog_on_a_n
     handlers.add_scene_of_version_event(version, "", "Home", prompt)
     prompt.close.assert_called_once()
     ((args, kwargs),) = calls["build_add_scene_dialog"]
-    assert sceneedit.scene_version(args[1].scene_element) == version
+    assert scenemodel.scene_version(args[1].scene_element) == version
     assert kwargs == {"target_project_name": "Home"}
 
 
@@ -1383,7 +1383,7 @@ def test_a_scene_that_cannot_be_built_keeps_the_prompt_open(
 ) -> None:
     monkeypatch.setattr(sceneedit, "create_new_scene", lambda *a, **k: "No backup is loaded.")
     prompt = MagicMock()
-    handlers.add_scene_of_version_event(sceneedit.SCENE_VERSION_LEGACY, "", "Home", prompt)
+    handlers.add_scene_of_version_event(scenemodel.SCENE_VERSION_LEGACY, "", "Home", prompt)
     assert notices.of_type("warning") == ["No backup is loaded."]
     prompt.close.assert_not_called()
     assert calls["build_add_scene_dialog"] == []
@@ -1396,7 +1396,7 @@ def test_a_new_scene_is_registered_attached_to_its_project_and_selected(
     calls: dict,
     dialog: MagicMock,
 ) -> None:
-    created = sceneedit.create_new_scene("", sceneedit.SCENE_VERSION_LEGACY, state=PrimeItems)
+    created = sceneedit.create_new_scene("", scenemodel.SCENE_VERSION_LEGACY, state=PrimeItems)
     handlers.keep_new_scene_event(created, _scene_fields(name="Fresh Scene", widthPort="320", heightPort="480"), dialog)
     assert "Fresh Scene" in PrimeItems.tasker_root_elements["all_scenes"]
     assert "Fresh Scene" in _live_project("Home").findtext("scenes")
@@ -1409,7 +1409,7 @@ def test_a_new_scene_with_a_taken_name_or_a_bad_size_is_refused(
     notices: _Notices,
     dialog: MagicMock,
 ) -> None:
-    created = sceneedit.create_new_scene("", sceneedit.SCENE_VERSION_LEGACY, state=PrimeItems)
+    created = sceneedit.create_new_scene("", scenemodel.SCENE_VERSION_LEGACY, state=PrimeItems)
     handlers.keep_new_scene_event(created, _scene_fields(name="Panel"), dialog)
     assert notices.said("A Scene named 'Panel' already exists")
     handlers.keep_new_scene_event(created, _scene_fields(name="Other", widthPort="wide"), dialog)

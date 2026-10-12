@@ -2,35 +2,34 @@
 
 Split out of sceneedit.py, which held both kinds of Scene and had grown past 5,000 lines.
 A Version 2 Scene is a component tree -- Columns, Rows, Texts, Buttons -- decoded from the
-Scene's <lj> child (sceneedit.decode_v2_layout).  Everything here works on that decoded
+Scene's <lj> child (scenelayout.decode_v2_layout).  Everything here works on that decoded
 tree as a plain dict: the schema of what each component type can hold and set, the tree's
 addressing and flattening, the structural edits (add, delete, move, indent, duplicate), and
 a component's properties, state fields, modifiers, event handlers and variable bindings.
 
-It never touches XML, which is sceneedit's: decoding and re-encoding <lj>, and creating,
-renaming, saving and deleting a Scene as a whole.  sceneedit imports it, never the other way
-round.
+It never touches XML, which is scenelayout's (decoding and re-encoding <lj>) and sceneedit's
+(creating, renaming, saving and deleting a Scene as a whole).  Nothing in either imports it
+directly: scenemodel is what the rest of the program asks about a Scene of either kind.
 """
 
 from __future__ import annotations
 
 import copy
 import html
-import json
-import os
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from maptasker.src.maputil2 import is_html_colour, strip_html_tags, tasker_icon_name
+from maptasker.src.scenelayout import V2_ROOT_KEY
 from maptasker.src.sysconst import V2_MATERIAL_PALETTE
 from maptasker.src.taskervars import tasker_global_variable_names, tasker_global_variables
 
 if TYPE_CHECKING:
     from maptasker.src.primitem import RunState
 
-# The layout JSON's top-level key holding the component tree.  (Its sibling, the Scene's
-# name, is sceneedit._V2_NAME_KEY: only a rename, which is sceneedit's, ever touches it.)
-_V2_ROOT_KEY = "root"
+# The layout JSON's top-level key holding the component tree is scenelayout.V2_ROOT_KEY, imported
+# above: the one thing this module takes from the XML side.  (Its sibling, the Scene's name, is
+# scenelayout.V2_NAME_KEY: only a rename, which is scenelayout's, ever touches it.)
 
 
 # --------------------------------------------------------------------------------------
@@ -865,36 +864,6 @@ _V2_ICON_KEYS = ("icon",)
 # ligature names -- they are what the glyphs are drawn by -- and converts on the way in.
 V2_ICON_PREFIX = "icon:"
 
-# Where the names come from.  Alongside the app's other tables rather than written into this
-# module, because it is a list of 550 strings and it is data: see the file's own _comment for
-# what was verified about it, and _build_icon_field for what the designer does with it.
-_V2_ICON_NAMES_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "assets",
-    "json",
-    "material_icons.json",
-)
-_v2_icon_names_cache: list[str] = []
-
-
-def v2_icon_names() -> list[str]:
-    """Every Material icon the picker offers, by the ligature name its glyph is drawn by.
-
-    Read once and kept: the file is small, but the picker rebuilds its list on every keystroke
-    of its search box, and re-reading a file per keystroke is the kind of thing that makes a
-    dialog feel slow for no reason.
-
-    An empty list if the file is missing or unreadable -- the designer then offers no picker
-    and the icon field is typed into, which is exactly what it was before there was one.
-    """
-    if not _v2_icon_names_cache:
-        try:
-            with open(_V2_ICON_NAMES_FILE, encoding="utf-8") as file:
-                _v2_icon_names_cache.extend(json.load(file).get("icons", []))
-        except (OSError, ValueError):
-            return []
-    return _v2_icon_names_cache
-
 
 def v2_icon_reference(name: str) -> str:
     """A ligature name as the reference a Scene stores: "ac_unit" -> "icon:AcUnit"."""
@@ -988,9 +957,9 @@ def v2_flatten(layout: dict) -> list[V2TreeRow]:
                 if isinstance(child, dict):
                     walk(child, depth + 1, (*path, slot_key, index), slot_key)
 
-    root = layout.get(_V2_ROOT_KEY)
+    root = layout.get(V2_ROOT_KEY)
     if isinstance(root, dict):
-        walk(root, 0, (), _V2_ROOT_KEY)
+        walk(root, 0, (), V2_ROOT_KEY)
     return rows
 
 
@@ -998,7 +967,7 @@ def v2_node_at(layout: dict, path: tuple) -> dict | None:
     """The node a v2_flatten path points at, or None if the path no longer resolves
     (defence in depth -- phase 1 can't restructure the tree, so it always should).
     """
-    node = layout.get(_V2_ROOT_KEY)
+    node = layout.get(V2_ROOT_KEY)
     if not isinstance(node, dict):
         return None
     for slot_key, index in zip(path[::2], path[1::2], strict=False):

@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from maptasker.src import healthck, scenemodel, sceneedit, taskerd, varxref
+from maptasker.src import healthck, sceneedit, scenelayout, scenemodel, taskerd, varxref
 from maptasker.src.initparg import ProgramArguments
 from maptasker.src.mapjump import SCENE, Target
 from maptasker.src.primitem import PrimeItems
@@ -111,7 +111,7 @@ def _loaded(monkeypatch: pytest.MonkeyPatch) -> None:
     that overwrote it for good would break whichever of those ran next.
     """
     root = ET.fromstring(_BACKUP)  # noqa: S314  (fixture text, defined in this file)
-    sceneedit.encode_v2_layout(root.find("Scene[@sr='sceneNew Panel']"), _V2_LAYOUT)
+    scenelayout.encode_v2_layout(root.find("Scene[@sr='sceneNew Panel']"), _V2_LAYOUT)
     specs = json.loads(_ARG_SPECS.read_text(encoding="utf-8"))
     specs[str(len(specs))] = "ConditionList"
     tables = {
@@ -144,9 +144,9 @@ def _place(name: str) -> Target:
 # Which model
 # ##################################################################################
 def test_a_scene_is_given_the_model_of_its_own_kind() -> None:
-    """Told apart by <lj>, the way sceneedit.is_v2_scene decides it."""
-    assert scenemodel.model_of(_scene("Old Panel")).name == sceneedit.SCENE_VERSION_LEGACY
-    assert scenemodel.model_of(_scene("New Panel")).name == sceneedit.SCENE_VERSION_V2
+    """Told apart by <lj>, the way scenemodel.is_v2_scene decides it."""
+    assert scenemodel.model_of(_scene("Old Panel")).name == scenemodel.SCENE_VERSION_LEGACY
+    assert scenemodel.model_of(_scene("New Panel")).name == scenemodel.SCENE_VERSION_V2
 
 
 @pytest.mark.parametrize("name", ["Old Panel", "New Panel"])
@@ -279,3 +279,154 @@ def test_healthck_counts_both_kinds_of_scene_as_running_the_task_they_name() -> 
     healthck._index_scenes(index, state=PrimeItems)  # noqa: SLF001
     kinds = sorted(referrer.kind for referrer in index.task_referrers["7"])
     assert kinds == [healthck.BY_SCENE_COMPONENT, healthck.BY_SCENE_ELEMENT]
+
+
+# ##################################################################################
+# Editing and restoring: what the protocol covers beyond the analyses
+# ##################################################################################
+def _blank_scene() -> ET.Element:
+    """A freshly built Scene with the common children and nothing of its kind yet."""
+    scene = ET.Element("Scene", {"sr": "sceneFresh"})
+    for tag in ("cdate", "edate", "heightLand", "heightPort", "nme", "widthLand", "widthPort"):
+        ET.SubElement(scene, tag).text = "Fresh" if tag == "nme" else "1"
+    return scene
+
+
+def test_a_kind_is_found_by_name_for_a_scene_that_does_not_exist_yet() -> None:
+    """Add Scene asks for the kind by the display name its picker shows."""
+    assert scenemodel.model_for_version(scenemodel.SCENE_VERSION_LEGACY) is scenemodel.LEGACY
+    assert scenemodel.model_for_version(scenemodel.SCENE_VERSION_V2) is scenemodel.V2
+    assert scenemodel.SCENE_VERSIONS == (scenemodel.SCENE_VERSION_LEGACY, scenemodel.SCENE_VERSION_V2)
+
+
+def test_a_new_legacy_scene_gets_a_canvas_and_a_new_version_2_scene_does_not() -> None:
+    """A V2 layout is declarative, so all four sizes are -1; a Legacy Scene needs a real portrait canvas."""
+    assert scenemodel.LEGACY.portrait_size() == ("600", "800")
+    assert scenemodel.V2.portrait_size() == ("-1", "-1")
+
+
+def test_finishing_a_new_legacy_scene_adds_nothing() -> None:
+    scene = _blank_scene()
+    before = ET.tostring(scene)
+
+    scenemodel.LEGACY.finish_new_scene(scene, "Fresh", "Empty")
+
+    assert ET.tostring(scene) == before
+    assert not scenemodel.is_v2_scene(scene)
+
+
+def test_finishing_a_new_version_2_scene_puts_the_templates_layout_just_before_its_name() -> None:
+    """Where every real V2 Scene carries <lj>: after the sizes, ahead of <nme>."""
+    scene = _blank_scene()
+
+    scenemodel.V2.finish_new_scene(scene, "Fresh", "Titled dialog")
+
+    tags = [child.tag for child in scene]
+    assert tags.index(scenelayout.V2_LAYOUT_TAG) == tags.index("nme") - 1
+    layout = scenelayout.decode_v2_layout(scene)
+    assert layout["name"] == "Fresh"
+    assert layout == scenelayout.v2_template_layout("Fresh", "Titled dialog")
+    assert scenemodel.is_v2_scene(scene)
+
+
+def test_renaming_keeps_a_version_2_layouts_own_copy_of_the_name_and_leaves_a_legacy_scene_alone() -> None:
+    legacy, v2 = _scene("Old Panel"), _scene("New Panel")
+    legacy_before = ET.tostring(legacy)
+
+    scenemodel.model_of(legacy).rename(legacy, "Other")
+    scenemodel.model_of(v2).rename(v2, "Other")
+
+    assert ET.tostring(legacy) == legacy_before
+    assert scenelayout.decode_v2_layout(v2)["name"] == "Other"
+
+
+def test_renaming_a_scene_whose_layout_will_not_decode_leaves_it_untouched() -> None:
+    """A layout that cannot be read certainly should not be re-encoded over the original."""
+    scene = _scene("New Panel")
+    scene.find(scenelayout.V2_LAYOUT_TAG).text = "not a layout"
+
+    scenemodel.V2.rename(scene, "Other")
+
+    assert scene.find(scenelayout.V2_LAYOUT_TAG).text == "not a layout"
+
+
+def test_reverting_a_legacy_session_has_no_layout_to_revert() -> None:
+    assert scenemodel.LEGACY.revert_layout(_scene("Old Panel"), {"anything": 1}) is False
+
+
+def test_reverting_a_version_2_session_puts_the_working_tree_back_and_says_it_had_changed() -> None:
+    """The designer's work is in the decoded dict until a save, so that dict is what is put back."""
+    snapshot = _scene("New Panel")
+    working = scenelayout.decode_v2_layout(snapshot)
+    working["root"]["children"].clear()
+    working["extra"] = True
+
+    changed = scenemodel.V2.revert_layout(snapshot, working)
+
+    assert changed is True
+    assert working == _V2_LAYOUT
+
+
+def test_reverting_an_untouched_version_2_session_says_nothing_changed() -> None:
+    snapshot = _scene("New Panel")
+    working = scenelayout.decode_v2_layout(snapshot)
+
+    assert scenemodel.V2.revert_layout(snapshot, working) is False
+    assert working == _V2_LAYOUT
+
+
+def test_there_is_nothing_to_revert_without_a_working_tree_or_with_a_snapshot_that_will_not_decode() -> None:
+    snapshot = _scene("New Panel")
+    assert scenemodel.V2.revert_layout(snapshot, None) is False
+
+    broken = ET.fromstring("<Scene><nme>x</nme><lj>junk</lj></Scene>")  # noqa: S314
+    working = {"root": {}}
+    assert scenemodel.V2.revert_layout(broken, working) is False
+    assert working == {"root": {}}
+
+
+def test_the_properties_the_map_anchors_are_the_ones_the_analysis_reads() -> None:
+    """Both sides ask the same question of every property, so neither can name a line the other lacks."""
+    scene = _scene("New Panel")
+    layout = scenelayout.decode_v2_layout(scene)
+    anchored = {key for properties in scenemodel.V2.anchor_parts(layout).values() for key in properties}
+    read = {site.path[1] for site in scenemodel.V2.text_sites(scene, _place("New Panel"))}
+
+    assert read <= anchored  # every property the analysis can point at has a line to land on
+    assert {"text", "value", "eventHandlers"} <= anchored
+    assert "children" not in anchored
+
+
+def test_anchor_parts_are_keyed_by_the_identity_of_the_node_the_renderer_will_walk() -> None:
+    layout = scenelayout.decode_v2_layout(_scene("New Panel"))
+    heading = layout["root"]["children"][0]
+
+    parts = scenemodel.V2.anchor_parts(layout)
+
+    assert set(parts[id(heading)]) == {"text"}
+
+
+def test_a_version_2_property_is_read_and_rewritten_through_its_address() -> None:
+    scene = _scene("New Panel")
+    site = _texts("New Panel")["Hello %Who"]
+
+    assert scenemodel.V2.property_value(scene, site.path) == "Hello %Who"
+    assert scenemodel.V2.rewrite_property(scene, site.path, lambda text: text.replace("%Who", "%Whom")) is True
+    assert scenemodel.V2.property_value(scene, site.path) == "Hello %Whom"
+    # The rest of the layout is exactly as it was.
+    layout = scenelayout.decode_v2_layout(scene)
+    assert layout["root"]["children"][1]["value"] == "%Form"
+
+
+def test_a_property_that_cannot_be_reached_reads_as_empty_and_is_not_rewritten() -> None:
+    scene = _scene("New Panel")
+    before = scene.find(scenelayout.V2_LAYOUT_TAG).text
+
+    assert scenemodel.V2.property_value(scene, ((9, 9), "text")) == ""
+    assert scenemodel.V2.rewrite_property(scene, ((9, 9), "text"), str.upper) is False
+    assert scenemodel.V2.rewrite_property(scene, ((), "no such key"), str.upper) is False
+    assert scene.find(scenelayout.V2_LAYOUT_TAG).text == before
+
+    scene.find(scenelayout.V2_LAYOUT_TAG).text = "junk"
+    assert scenemodel.V2.property_value(scene, ((), "text")) == ""
+    assert scenemodel.V2.rewrite_property(scene, ((), "text"), str.upper) is False

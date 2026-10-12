@@ -46,6 +46,8 @@ from maptasker.src import (
     roundtrip,
     sceneedit,
     sceneedit_legacy,
+    scenelayout,
+    scenemodel,
     sessundo,
     taskedit,
     timeline,
@@ -1291,7 +1293,7 @@ def _build_scene_editor_body(
 
     with ui.row().classes("w-full items-center gap-2 mt-1"):
         ui.label(
-            f"{translate_string('Scene type')}: {translate_string(sceneedit.scene_version(scene_element))}",
+            f"{translate_string('Scene type')}: {translate_string(scenemodel.scene_version(scene_element))}",
         ).classes("text-sm text-gray-500 italic")
         ui.space()
         preview_button = ui.button(
@@ -1354,7 +1356,7 @@ def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> Non
         legacy = ui.button(
             translate_string("Legacy Scene"),
             on_click=lambda: self.event_handlers.add_scene_of_version_event(
-                sceneedit.SCENE_VERSION_LEGACY,
+                scenemodel.SCENE_VERSION_LEGACY,
                 "",
                 target_project_name,
                 version_dialog,
@@ -1376,14 +1378,14 @@ def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> Non
             ),
         ).classes("text-xs text-gray-500")
         with ui.column().classes("w-full gap-1 mt-1"):
-            for label, description, _builder in sceneedit.V2_TEMPLATES:
+            for label, description, _builder in scenelayout.V2_TEMPLATES:
                 with ui.row().classes("w-full items-center gap-2"):
                     # Bind the loop variable per iteration -- a bare closure over `label`
                     # would hand every button the last one.
                     ui.button(
                         translate_string(label),
                         on_click=lambda _e=None, chosen=label: self.event_handlers.add_scene_of_version_event(
-                            sceneedit.SCENE_VERSION_V2,
+                            scenemodel.SCENE_VERSION_V2,
                             chosen,
                             target_project_name,
                             version_dialog,
@@ -1423,7 +1425,7 @@ def build_add_scene_dialog(
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[800px] w-full p-6"):
         ui.label(
-            f"{translate_string('Add Scene')}: {translate_string(sceneedit.scene_version(edited_scene.scene_element))}",
+            f"{translate_string('Add Scene')}: {translate_string(scenemodel.scene_version(edited_scene.scene_element))}",
         ).classes("text-xl font-bold text-blue-600")
 
         if target_project_name:
