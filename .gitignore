@@ -18,6 +18,8 @@
 # repository, so they have to be tracked -- when they are not, every image
 # on the project page 404s.
 !documentation_images/
+# Translations of README.md, linked from the top of it as a language switcher.
+!README_translated/
 
 # unignore files: files and folders to not ignore
 !.gitignore

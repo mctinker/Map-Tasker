@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: The README is now also available in Simplified Chinese, Spanish, Hindi, French, Arabic, German, Danish, Finnish, Russian, Korean, and Japanese, with a language-switcher at the top of each version.
 - Added:
 
 ### Changed

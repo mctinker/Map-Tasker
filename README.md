@@ -14,10 +14,27 @@
 ![PyPI - License](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-black-000000.svg)](https://docs.astral.sh/ruff/formatter/)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-blue?logo=pytest)](https://docs.pytest.org/)
 [!["Buy Me A Coffee"](./documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
+
+<p align="center">
+  <b>Read this in:</b>
+  <a href="README.md">English</a> •
+  <a href="README_translated/README.zh-CN.md">简体中文</a> •
+  <a href="README_translated/README.es.md">Español</a> •
+  <a href="README_translated/README.hi.md">हिन्दी</a> •
+  <a href="README_translated/README.fr.md">Français</a> •
+  <a href="README_translated/README.ar.md">العربية</a> •
+  <a href="README_translated/README.de.md">Deutsch</a> •
+  <a href="README_translated/README.da.md">Dansk</a> •
+  <a href="README_translated/README.fi.md">Suomi</a> •
+  <a href="README_translated/README.ru.md">Русский</a> •
+  <a href="README_translated/README.ko.md">한국어</a> •
+  <a href="README_translated/README.ja.md">日本語</a>
+</p>
 
 ---
 
