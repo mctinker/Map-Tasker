@@ -194,6 +194,123 @@ def _round_trip_verified(
     return False
 
 
+async def _validate_chosen_file(
+    self: MyGui,
+    android_ipaddr: str,
+    android_port: str,
+    android_file: str,
+) -> tuple[int, str, str, str]:
+    """Fetch the file the user named from the device and check its XML.  Return code 0 if it is good, else 1.
+
+    Every request goes to run.io_bound, so the GUI stays responsive; a request that comes back None was
+    cancelled (see the note at the top of this file) and is a failure.
+    """
+    failed = 1, android_ipaddr, android_port, android_file
+    fetched = await run.io_bound(
+        http_request,
+        android_ipaddr,
+        android_port,
+        android_file,
+        "file",
+        "?download=1",
+    )
+    if fetched is None:  # cancelled -- see the note at the top of this file
+        return failed
+    return_code, _ = fetched
+    if return_code != 0:
+        return failed
+
+    # Validate the XML syntax structure
+    self.state.program_arguments.gui = True
+    validated = await run.io_bound(validate_xml_file, android_ipaddr, android_port, android_file, state=self.state)
+    if validated is None:  # cancelled -- see the note at the top of this file
+        return failed
+    return_code, error_message = validated
+    if return_code != 0:
+        self.display_message_box(error_message, "Red")
+        return failed
+    if self.state.backup_fetch_path:
+        self.display_message_box(
+            f"{translate_string('Backup file saved to')} {self.state.backup_fetch_path}",
+            "Green",
+        )
+    return 0, android_ipaddr, android_port, android_file
+
+
+def _mount_file_picker(self: MyGui, filelist: list) -> None:
+    """Draw the dropdown of the device's XML files, and a Cancel Entry button that puts it away again."""
+    # Clean slate the container before rendering the picker options
+    if hasattr(self, "android_container") and self.android_container:
+        self.android_container.clear()
+        self.android_container.classes(remove="hidden")
+    else:
+        # Fallback placeholder if no container container is declared
+        self.android_container = ui.column().classes("w-full gap-2 p-2")
+
+    # Mount the native interactive picking layout inside the container tree context
+    with self.android_container:
+        ui.separator().classes("my-2")
+
+        self.filelist_label = (
+            ui.label(translate_string("Select XML From Android Device:"))
+            .classes(
+                "text-xs font-bold text-purple-600 mt-1 self-start",
+            )
+            .tooltip(
+                translate_string(
+                    "This will reach out to your Android device to list the available XML files belonging to Tasker.",
+                ),
+            )
+        )
+
+        # OptionMenu transforms to a reactive NiceGUI ui.select dropdown
+        self.filelist_option = ui.select(
+            options=filelist,
+            label=translate_string("Available Android Backups"),
+            on_change=lambda e: self.event_handlers.file_selected_event(e.value),
+        ).classes("w-full q-mt-none")
+
+        # Flat modern action button to easily close the selection panel
+        ui.button(
+            translate_string("Cancel Entry"),
+            on_click=lambda: (self.android_container.clear(), self.android_container.classes(add="hidden")),
+        ).classes("text-xs w-full mt-2").props("outline color=negative dense")
+
+
+async def _offer_file_list(
+    self: MyGui,
+    android_ipaddr: str,
+    android_port: str,
+    android_file: str,
+) -> tuple[int, str, str, str]:
+    """List the device's XML files in a dropdown and suspend the fetch until one is picked (return code 2)."""
+    clear_android_buttons(self)
+
+    ui.notify(
+        translate_string("Listing the XML files on the Android device..."),
+        type="info",
+        timeout=1500,
+    )
+    listed = await run.io_bound(
+        deviceinv.get_list_of_files, android_ipaddr, android_port, deviceinv.FILE_LIST_DIRECTORY, state=self.state
+    )
+    if listed is None:  # cancelled -- see the note at the top of this file
+        return 1, android_ipaddr, android_port, android_file
+    return_code, filelist = listed
+    if return_code != 0:
+        self.display_message_box(filelist, "Red")
+        return 1, android_ipaddr, android_port, android_file
+
+    _mount_file_picker(self, filelist)
+
+    # Save connection details to state
+    self.android_ipaddr = android_ipaddr
+    self.android_port = android_port
+
+    # Return status code 2 to indicate layout suspension until user selects a file item.
+    return (2, "", "", "")
+
+
 async def validate_or_filelist_xml(
     self: MyGui,
     android_ipaddr: str,
@@ -211,104 +328,11 @@ async def validate_or_filelist_xml(
     """
     # 1. If a file is specified and we aren't explicitly listing files, validate it
     if len(android_file) != 0 and android_file != "" and not self.list_files:
-        fetched = await run.io_bound(
-            http_request,
-            android_ipaddr,
-            android_port,
-            android_file,
-            "file",
-            "?download=1",
-        )
-        if fetched is None:  # cancelled -- see the note at the top of this file
-            return 1, android_ipaddr, android_port, android_file
-        return_code, _ = fetched
-
-        # Validate the XML syntax structure
-        if return_code == 0:
-            self.state.program_arguments.gui = True
-            validated = await run.io_bound(
-                validate_xml_file, android_ipaddr, android_port, android_file, state=self.state
-            )
-            if validated is None:  # cancelled -- see the note at the top of this file
-                return 1, android_ipaddr, android_port, android_file
-            return_code, error_message = validated
-            if return_code != 0:
-                self.display_message_box(error_message, "Red")
-                return 1, android_ipaddr, android_port, android_file
-            if self.state.backup_fetch_path:
-                self.display_message_box(
-                    f"{translate_string('Backup file saved to')} {self.state.backup_fetch_path}",
-                    "Green",
-                )
-        else:
-            return 1, android_ipaddr, android_port, android_file
+        return await _validate_chosen_file(self, android_ipaddr, android_port, android_file)
 
     # 2. File location not provided or "List Files" requested.
     # Fetch the directory catalog and present a NiceGUI ui.select component.
-    else:
-        clear_android_buttons(self)
-
-        ui.notify(
-            translate_string("Listing the XML files on the Android device..."),
-            type="info",
-            timeout=1500,
-        )
-        listed = await run.io_bound(
-            deviceinv.get_list_of_files, android_ipaddr, android_port, deviceinv.FILE_LIST_DIRECTORY, state=self.state
-        )
-        if listed is None:  # cancelled -- see the note at the top of this file
-            return 1, android_ipaddr, android_port, android_file
-        return_code, filelist = listed
-        if return_code != 0:
-            self.display_message_box(filelist, "Red")
-            return 1, android_ipaddr, android_port, android_file
-
-        # Clean slate the container before rendering the picker options
-        if hasattr(self, "android_container") and self.android_container:
-            self.android_container.clear()
-            self.android_container.classes(remove="hidden")
-        else:
-            # Fallback placeholder if no container container is declared
-            self.android_container = ui.column().classes("w-full gap-2 p-2")
-
-        # Mount the native interactive picking layout inside the container tree context
-        with self.android_container:
-            ui.separator().classes("my-2")
-
-            self.filelist_label = (
-                ui.label(translate_string("Select XML From Android Device:"))
-                .classes(
-                    "text-xs font-bold text-purple-600 mt-1 self-start",
-                )
-                .tooltip(
-                    translate_string(
-                        "This will reach out to your Android device to list the available XML files belonging to Tasker.",
-                    ),
-                )
-            )
-
-            # OptionMenu transforms to a reactive NiceGUI ui.select dropdown
-            self.filelist_option = ui.select(
-                options=filelist,
-                label=translate_string("Available Android Backups"),
-                on_change=lambda e: self.event_handlers.file_selected_event(e.value),
-            ).classes("w-full q-mt-none")
-
-            # Flat modern action button to easily close the selection panel
-            ui.button(
-                translate_string("Cancel Entry"),
-                on_click=lambda: (self.android_container.clear(), self.android_container.classes(add="hidden")),
-            ).classes("text-xs w-full mt-2").props("outline color=negative dense")
-
-        # Save connection details to state
-        self.android_ipaddr = android_ipaddr
-        self.android_port = android_port
-
-        # Return status code 2 to indicate layout suspension until user selects a file item.
-        return (2, "", "", "")
-
-    # All checks passed successfully
-    return 0, android_ipaddr, android_port, android_file
+    return await _offer_file_list(self, android_ipaddr, android_port, android_file)
 
 
 @dataclass

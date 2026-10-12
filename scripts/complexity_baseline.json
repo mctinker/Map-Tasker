@@ -209,9 +209,6 @@
   "maptasker/src/userintr_android.py::AndroidEventHandlers.save_task_to_android_file_event": {
     "LINES": 108
   },
-  "maptasker/src/userintr_android.py::validate_or_filelist_xml": {
-    "LINES": 110
-  },
   "maptasker/src/userintr_settings.py::SettingsEventHandlers.rebuild_gui_layout": {
     "C901": 14,
     "LINES": 168,
