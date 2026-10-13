@@ -12,8 +12,8 @@ import json
 import sys
 
 import pytest
-from maptasker.src import parsearg
-from maptasker.src.sysconst import TYPES_OF_COLORS
+from maptasker.src.core import parsearg
+from maptasker.src.core.sysconst import TYPES_OF_COLORS
 
 
 @pytest.fixture(scope="module")

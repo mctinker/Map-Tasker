@@ -15,8 +15,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from maptasker.src import diagintr, guiwins_views
-from maptasker.src.guiwins_views import (
+from maptasker.src.gui import guiwins_views
+from maptasker.src.mapgen import diagintr
+from maptasker.src.gui.guiwins_views import (
     HTML_OPTIMIZE_PATTERN,
     _compress_blank_lines,
     _connectors_by_line,

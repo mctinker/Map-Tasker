@@ -21,10 +21,11 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import (
-    mapfind,
-    mapjump,
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.analysis import mapfind
+from maptasker.src.core import mapjump
+from maptasker.src.mapgen import taskerd, varxref
+from maptasker.src.mapops import (
     mapswap,
     mapswap_action,
     mapswap_argument,
@@ -32,11 +33,9 @@ from maptasker.src import (
     mapswap_model,
     mapswap_rename,
     mapswap_sites,
-    taskerd,
-    varxref,
 )
-from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK
+from maptasker.src.core.primitem import PrimeItems
 
 # Codes used below, named so the tests read as prose.
 FLASH = "548t"  # 16 arguments; Text=arg0, Title=arg3

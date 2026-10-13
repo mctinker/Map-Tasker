@@ -7,53 +7,37 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
-from maptasker.src import (
+from maptasker.src import clireports, runcli
+from maptasker.src.analysis import firesim, healthck, impact, mapfind
+from maptasker.src.core import dirout, mapjump, maputils, outdir, share, timeline
+from maptasker.src.edit import projedit, sessundo, taskedit, taskedit_save
+from maptasker.src.gui import guistate, guiutils, mapai, userintr
+from maptasker.src.mapgen import (
     bildhtml,
     caveats,
-    clireports,
     codelint,
     condition,
     diagram,
     diagutil,
-    dirout,
-    firesim,
     frontmtr,
     getbakup,
-    guistate,
-    guiutils,
-    healthck,
-    impact,
-    mapai,
     mapcache,
-    mapfind,
-    mapfix,
-    mapjump,
-    maprefac_duplicate,
-    maputils,
-    outdir,
     outline,
     proginit,
     projects,
-    projedit,
-    runcli,
-    sessundo,
-    share,
-    taskedit,
-    taskedit_save,
     taskerd,
     tasks,
-    timeline,
     twisty,
-    userintr,
     varxref,
 )
-from maptasker.src import property as prop
-from maptasker.src.actionc import load_arg_specs
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.lineout import LineOut
-from maptasker.src.mapjump import PROFILE, TASK, Target
-from maptasker.src.mtexcept import MapTaskerError
-from maptasker.src.primitem import (
+from maptasker.src.mapops import mapfix, maprefac_duplicate
+from maptasker.src.core import property as prop
+from maptasker.src.core.actionc import load_arg_specs
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.mapjump import PROFILE, TASK, Target
+from maptasker.src.core.mtexcept import MapTaskerError
+from maptasker.src.core.primitem import (
     MAP_OUTPUT_ATTRIBUTES,
     PrimeItems,
     PrimeItemsReset,
@@ -61,8 +45,8 @@ from maptasker.src.primitem import (
     initial_tasker_root_elements,
     reset_attributes,
 )
-from maptasker.src.runcfg import current_config
-from maptasker.src.sysconst import DIAGRAM_FILE as diagram_file
+from maptasker.src.core.runcfg import current_config
+from maptasker.src.core.sysconst import DIAGRAM_FILE as diagram_file
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 

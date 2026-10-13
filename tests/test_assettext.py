@@ -17,9 +17,9 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from maptasker.src import assettext, mapjump
+from maptasker.src.core import assettext, mapjump
 
-_SRC = Path(assettext.__file__).parent
+_SRC = Path(assettext.__file__).parent.parent
 _ASSETS = assettext.ASSETS_DIR
 
 
@@ -99,7 +99,7 @@ def _asset_calls() -> list[tuple[str, int, str, set[str] | None]]:
     variable are followed through the module-level constant that holds it.
     """
     calls = []
-    for path in sorted(_SRC.glob("*.py")):
+    for path in sorted(_SRC.rglob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"))
         constants = {
             node.targets[0].id: node.value.value

@@ -1,0 +1,670 @@
+#! /usr/bin/env python3
+
+#                                                                                      #
+# lineout: format the output for a line and adding it to an output queue (List)        #
+#                                                                                      #
+# MIT License   Refer to https://opensource.org/license/mit                            #
+"""_summary_
+The LineOut class is responsible for generating the output lines that will be displayed
+to the user.
+
+It has a method called refresh_our_output() that clears any existing output and
+generates new output starting with the heading, project name, and optionally the
+profile name if passed in.
+
+The add_style() method takes in a dictionary of styling details and returns a string
+with the appropriate HTML styling applied. This is used to add colors, fonts, etc.
+
+The format_line_list_item() method takes an element string and formats it with styling
+based on whether it is a Project, Profile, Task, Action, etc. It calls specific handler
+methods like handle_project(), handle_profile(), etc. to generate the properly formatted
+output line.
+
+So in summary, LineOut handles generating and formatting each line of output with
+styling and structure based on the type of element being displayed. The output lines
+are accumulated and ultimately used to generate the final HTML output file.
+"""
+
+from __future__ import annotations
+
+import re
+from typing import TYPE_CHECKING
+
+from maptasker.src.core.dirout import add_directory_item
+from maptasker.src.core.format import format_html
+from maptasker.src.core.maputils import fix_hyperlink_name
+from maptasker.src.core.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, reset_attributes
+from maptasker.src.core.runcfg import current_config
+from maptasker.src.core.sysconst import PROPERTIES_TAG, UNNAMED_ITEM, FormatLine, debug_out, logger
+from maptasker.src.core.xmldata import remove_html_tags
+from maptasker.src.mapgen.frontmtr import output_the_front_matter
+
+if TYPE_CHECKING:
+    from maptasker.src.core.initparg import ArgumentFields
+    from maptasker.src.core.primitem import RunState
+    from maptasker.src.core.runcfg import RunConfig
+
+# build_tooltip_span() (format.py) wraps a "Task:"/"Profile:"/etc. label in
+# <span class="hover-tooltip" data-tooltip="...">label</span> before it ever reaches
+# format_line_list_item() below. Its data-tooltip attribute routinely contains the text
+# "Project:"/"Profile:" (e.g. a Task's tooltip shows its owning Profile/Project), which
+# defeats format_line_list_item()'s plain substring/startswith dispatch checks -- a Task
+# line can get misrouted to handle_project() just because its tooltip mentions a Project.
+# Strip the wrapper before dispatch matching so the checks only ever see the real label.
+_HOVER_TOOLTIP_SPAN_RE = re.compile(r'<span class="hover-tooltip" data-tooltip="[^"]*">(.*?)</span>')
+
+# An action line as handle_action() receives it: mapjump's anchor (anchor_attribute), if the
+# action has one, and then the span carrying the action's color and indentation.
+_ACTION_ANCHOR_RE = re.compile(r'^id="[^"]*"\s*')
+_ACTION_SPAN_RE = re.compile(r"^<span\s+([^>]*)>")
+_SPAN_TAG_RE = re.compile(r"<span\b[^>]*>|</span\s*>", re.IGNORECASE)
+
+
+# Class definition for our output lines
+class LineOut:
+    """Class definition for our output lines"""
+
+    def __init__(self, config: RunConfig | None = None, state: RunState | None = None) -> None:
+        """
+        Initialize an object
+        Args:
+            self: The object being initialized
+            config (RunConfig | None): the settings to format lines by.  Left out, the settings
+                currently on PrimeItems are read, line by line, as they have always been --
+                which is what lets a scope that overrides one (overridden_config) be seen here.
+                Given one, only that is read: it cannot change under the object, and nothing
+                about the global has to be set up to use it.
+            state (RunState | None): the run state these lines belong to: its directory items,
+                its AI output, and the front matter and anchors written when the output is
+                started again.  Left out, PrimeItems -- which is what a LineOut that is
+                PrimeItems.output_lines is.
+        Returns:
+            None: Nothing is returned
+        - Initialize an empty list to store output lines
+        - The list will be used to store lines of text as the object is used"""
+        self.output_lines = []
+        self._config = config
+        self._state = state
+
+    @property
+    def state(self) -> RunState:
+        """The run state these lines belong to: the one this was given, else PrimeItems."""
+        return PrimeItems if self._state is None else self._state
+
+    @property
+    def settings(self) -> ArgumentFields:
+        """The settings lines are formatted by: the config this was given, else the state's live ones."""
+        return self.state.program_arguments if self._config is None else self._config
+
+    def refresh_our_output(
+        self,
+        include_the_profile: bool,
+        project_name: str,
+        profile_name: str,
+    ) -> None:
+        """
+        Refreshes the output by clearing existing output and starting anew.
+        Parameters:
+            include_the_profile (bool): Flag to indicate whether this is a Profile to be included.
+            project_name (str): Name of the Project, if any.
+            profile_name (str): Name of the Profile, if any.
+        Returns:
+            - None: No return value.
+        Processing Logic:
+            - Clears existing output and starts anew.
+            - Adds directory item.
+            - Starts Project list.
+            - Checks if Profile is to be included.
+            - Starts Profile list.
+            - Starts Project list."""
+        """
+        For whatever reason, we need to clear out the existing output and start anew.
+
+                :param include_the_profile: Boolean flag to indicate whether this is
+                    a Profile to be included
+                :param project_name: name of the Project, if any
+                :param profile_name: name of the Profile, if any
+                :return: nothing
+        """
+
+        # Clear whatever is already in the output queue
+        if self.settings.ai_analyze:
+            self.state.ai["output_lines"].clear()
+        self.output_lines.clear()
+
+        # Clear the directory, grand totals, etc.  emitted_anchors goes with them: the
+        # output those anchors were written into has just been thrown away, so every object
+        # about to be written again needs its anchor again (see PrimeItems.emitted_anchors).
+        reset_attributes(*MAP_OUTPUT_ATTRIBUTES, state=self.state)
+
+        # Display th starting information in beginning of output
+        output_the_front_matter(current_config(self.state) if self._config is None else self._config, state=self.state)
+
+        # Re-add the directory item
+        if self.settings.directory:
+            add_directory_item(
+                "projects",
+                project_name,
+                current_config(self.state) if self._config is None else self._config,
+                state=self.state,
+            )
+
+        # Start Project list
+        self.add_line_to_output(
+            2,
+            f"Project: {project_name}",
+            ["", "project_color", FormatLine.add_end_span],
+        )
+
+        # Are we to include the Profile?
+        if include_the_profile:
+            # Start Profile list
+            self.add_line_to_output(1, "", FormatLine.dont_format_line)
+            self.add_line_to_output(
+                2,
+                f"Profile: {profile_name}",
+                ["", "profile_color", FormatLine.add_end_span],
+            )
+            # Start Project list
+            self.add_line_to_output(1, "", FormatLine.dont_format_line)
+
+        # Generate an updated output line with HTML style details
+
+    # Input is a dictionary containing the requirements:
+    #  color - color to user
+    #  tab - CSS tab to use
+    #  font - the m,onospace font to use
+    #  element - the actual output line
+    def add_style(self, style_details: dict) -> str:
+        """
+        Add appropriate HTML style tags based on parameters in dictionary passed in
+            :param style_details: True if we are to output a list (<li>), False if not
+            :return: updated output line with style details added
+        """
+
+        line_with_style = ""
+        if style_details["tab"]:
+            # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
+            line_with_style = f'<div><span class="{style_details["color"]} {style_details["tab"]}">{style_details["element"]}</span></div>\n'
+
+        elif style_details["is_taskernet"]:
+            line_with_style = (
+                f'<p class="{style_details["tab"]} {style_details["color"]}">{style_details["element"]}</p><br>\n'
+            )
+            line_with_style = line_with_style.replace("<span></span>", "")
+
+        return line_with_style
+
+    #  Adds a directory link to the provided string.
+    def add_directory_link(self, arg1: str, element: str, arg3: str) -> str:
+        """
+        Adds a directory link to the provided string.
+        Args:
+            self: The class instance
+            arg1: First part of the string
+            element: Middle part of the string
+            arg3: Last part of the string
+        Returns:
+            String: The full string with directory link added if applicable
+        Processes the function:
+            - Checks if a directory is specified in arguments
+            - Gets the current directory item if set
+            - Generates the directory link HTML
+            - Concatenates all parts and returns the full string
+        """
+        directory = ""
+
+        if self.settings.directory and self.state.directory_items["current_item"]:
+            directory_item = self.state.directory_items["current_item"]
+            directory = f'<a id="{directory_item}"></a>\n'
+        return f"{directory}{arg1}{element}{arg3}"
+
+    # Find the color attribute/class and add the tab attribute to it.
+    def add_tab(self, tab: str, element: str) -> str:
+        r"""
+
+        This function adds a tab before the substring "_color" in a given element string.
+
+        Parameters:
+        - tab (str): The tab to be added before the "_color" substring.
+        - element (str): The element string in which the tab should be added before "_color".
+
+        Returns:
+        - str: The modified element string with the tab added before "_color".
+
+        Processing Logic:
+        - Find the position of the "_color" substring in the element string.
+        - Insert a tab before the "_color" substring using string slicing and concatenation.
+        - Return the modified element string.
+
+        Examples:
+        - Example usage of the function:
+
+            # Calling the function with tab = "\t" and element = 'background_color:"red"'
+            add_tab("tab_name", 'background_color:"red"')
+            # Output: 'tab_name background_color "red"'
+
+        """
+        color_pos = element.find('_color"')
+        # Nothing to add the tab to.  A line that has already been through here says
+        # 'class="..._color proftab"' rather than 'class="..._color"', and splicing at
+        # find()'s -1 used to take the line apart and leave tags such as "<br_color ...>"
+        # in the Map.
+        if color_pos == -1:
+            return element
+        return f'{element[0:color_pos]}_color {tab}"{element[(color_pos + 7) :]}'
+
+    # Add "Go to top" hyperlink to the element
+    def add_gototop_link(self, element: str) -> str:
+        """
+        Adds a "Go to top" link to the element if it's under 70 characters.
+        Otherwise, adds it after 5 blanks.
+        """
+        blank = "&nbsp;"
+        javacode = """<a href='#the_top'>Go to top</a><br>"""
+        return f"{element}{blank * 20}{javacode}" if len(element) < 70 else f"{element}{blank * 5}{javacode}"
+
+    # Given a text string to output, format it based on it's contents:
+    #   Project/Profile/Task/Actrion/Scene
+    def format_line_list_item(self, element: str) -> str:
+        """
+        Generate the output list (<li>) string based on the input XML <code> passed in
+
+        :param element: text string to be added to output
+        :return: the formatted text to add to the output queue
+        """
+
+        font = self.settings.font
+
+        # Dispatch on the label with any hover-tooltip wrapper stripped out (see
+        # _HOVER_TOOLTIP_SPAN_RE above) -- otherwise a Task's tooltip mentioning its
+        # Profile/Project can make these substring checks match the wrong branch,
+        # even though the actual element (still tooltip-wrapped) is what gets styled
+        # and returned below.
+        dispatch_text = _HOVER_TOOLTIP_SPAN_RE.sub(r"\1", element)
+
+        if "Project:" in dispatch_text or "Project has no Profiles" in dispatch_text:
+            return self.handle_project(element)
+
+        if "Profile:" in dispatch_text:
+            return self.handle_profile(element)
+
+        if (
+            dispatch_text.startswith("Task:")
+            or "&#45;&#45;Task:" in dispatch_text
+            or "Task: Properties" in dispatch_text
+        ):
+            return self.handle_task(element, font)
+
+        if dispatch_text.startswith("Scene:"):
+            return self.handle_scene(element, font)
+
+        if "Action:" in dispatch_text:
+            return self.handle_action(element)
+
+        if "TaskerNet " in dispatch_text:
+            return self.handle_taskernet(element)
+
+        # Must be additional item
+        return self.handle_additional(element)
+
+    # Insert the hyperlink target if doing a the directory
+    def handle_project(self, element: str) -> str:
+        """
+        Insert the hyperlink target if doing a the directory
+                Args:
+
+                    element (str): text to incorporate after the target
+
+                Returns:
+                    _type_: output text with hyperlink target embedded
+        """
+        element = self.add_gototop_link(element)
+        element = self.add_tab("projtab", element)
+        # The <br> is what separates one Project from whatever was above it.  A Project's
+        # own "...Properties..." line comes through here too, and that one belongs to the
+        # Project it follows rather than starting anything, so it goes without: the line
+        # brings a break of its own (see property.get_properties), and the two together
+        # left two blank lines between a Project and its properties where one is wanted.
+        separator = "" if f"Project:{PROPERTIES_TAG}" in element else "<br>"
+        return self.add_directory_link(separator, element, "\n")
+
+    # Handles profile element by adding directory link
+    def handle_profile(self, element: str) -> str:
+        """Handles profile element by adding directory link
+        Args:
+            element: Profile element to handle
+        Returns:
+            str: Formatted profile element with directory link
+        - Adds opening and closing tags for list item
+        - Calls method to add directory link
+        - Returns formatted string"""
+        element = self.add_gototop_link(element)
+        element = self.add_tab("proftab", element)
+        # Add the directory link to the Profile line.
+        # The <div> is what makes a line that wraps break at the Profile's own indent.
+        return self.add_directory_link("<br>", self.line_div(element), "<br>\n")
+
+    # Handle styling for a task element
+    def handle_task(self, element: str, font: str) -> str:
+        """Handle styling for a task element
+        Args:
+            element: Element name in one line
+            font: Font name in one line
+        Returns:]
+            style_details: Styled element details in one line
+        Processing Logic:
+            - Check if element name contains UNNAMED_ITEM
+            - Set color to "unknown_task_color" if true else "task_color"
+            - Add font and element details to style
+            - Return styled element from add_style method"""
+
+        element = self.add_gototop_link(element)
+        style_details = {
+            "tab": "tasktab",
+            "font": font,
+            "element": element,
+            "color": ("unknown_task_color" if UNNAMED_ITEM in element else "task_color"),
+        }
+        # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
+        return self.add_style(style_details)
+
+    # Handle Scene
+    def handle_scene(self, element: str, font: str) -> str:
+        r"""
+        This function handles a scene element by generating a string with HTML tags and style details. The function takes two parameters: element and font.
+
+        Parameters:
+        - element (str): The scene element that needs to be processed.
+        - font (str): The font to use for the scene element.
+
+        Returns:
+        - str: The processed string with HTML tags and style details.
+
+        Processing Logic:
+        - If the program_arguments "directory" and the directory_items "current_item" are both true, the function extracts the scene name from the element and assigns it to the variable scene_name.
+        - It then checks if any of the program_arguments "bold", "italicize", "highlight", or "underline" are true. If any of them are true, it calls the remove_html_tags() function to remove any name attributions from the scene name.
+        - The function assigns an empty string to the variable directory if the program_arguments "directory" and the directory_items "current_item" are both false.
+        - The function then creates a dictionary called style_details with details about the style of the scene element.
+        - It finally returns a formatted string with the directory and the result of calling the add_style() function with the style_details dictionary.
+
+        Examples:
+        - Example usage of the function:
+            handle_scene('Scene:&nbsp;1', 'Arial')
+            # Returns: '<a id="scenes_1"></a>\n<style=color:scene_color;font:Arial;element:Scene:&nbsp;1;>'
+        """
+        directory = ""
+        if self.settings.directory and self.state.directory_items["current_item"]:
+            # element's "Scene:" label may be wrapped in a hover-tooltip span (build_tooltip_span()
+            # in format.py), which puts a "</span>" between "Scene:" and "&nbsp;" and breaks a plain
+            # split on "Scene:&nbsp;" -- strip that wrapper first so this always finds the name.
+            unwrapped_element = _HOVER_TOOLTIP_SPAN_RE.sub(r"\1", element)
+            scene_name = f"scenes_{unwrapped_element.split('Scene:&nbsp;')[1]}"
+            # Get rid of any name attributions
+            if self.settings.bold or self.settings.italicize or self.settings.highlight or self.settings.underline:
+                scene_name = remove_html_tags(scene_name, "")
+
+            # Escaped like every other anchor built from a name the user chose: a "<" or
+            # a ">" in it would otherwise end this tag where it stands (see
+            # proclist.add_task_hyperlink).
+            directory = f'<a id="{fix_hyperlink_name(scene_name)}"></a>\n'
+        element = self.add_gototop_link(element)
+        style_details = {
+            "tab": "scenetab",
+            "color": "scene_color",
+            "font": font,
+            "element": element,
+        }
+
+        # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
+        return f"{directory}<br><div>{self.add_style(style_details)}</div>"
+
+    # Handles the action element.
+    def handle_action(self, element: str) -> str:
+        """
+        This function handles an action element by processing its contents and formatting it into HTML code.
+
+        Parameters:
+        - self: The object reference to the class instance.
+        - element (str): The action element that needs to be processed.
+
+        Returns:
+        - str: The formatted HTML code for the action element.
+
+        Processing Logic:
+        - First, the function generates the necessary number of whitespace characters for indentation.
+        - If the action element starts with "Action: ...", it checks for a continuation line.
+        - If there is a continuation line, it splits the element into the indentation level and the remaining part of the line.
+        - If the indentation level is 0, it sets an indentation of 5 spaces.
+        - Otherwise, it sets the indentation based on the specified level.
+        - It then replaces the "Action: ..." part of the line with the indentation and the continuation indicator.
+        - Finally, it formats the element into HTML code by adding a class and line break.
+
+        Examples:
+        - Usage of the function:
+
+            handler = ActionHandler()
+            element = "Action: ...indent=2item=Attribute"
+            formatted_element = handler.handle_action(element)
+            print(formatted_element)
+
+            Output:
+            <span class="actiontab"></span><span class="indentation">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Attribute</span><br>
+        """
+        blank = "&nbsp;"
+
+        # Is this a continuation line?  This logic handles continuation lines (not pretty)
+        if "Action: ..." in element:
+            if element[11:] == "":  # This catches valid lines that have "Action: ..." in them
+                return ""
+            # We have a continuation line: Action: ...indent=nitem=remaindertheline
+            # Example:
+            # '<span ...">Action: ...indent=2item=Attribute</span><span ...</span>>'
+            start1 = element.split("indent=")
+            start2 = start1[1].split("item=")  # Indentation amount
+
+            # Force an indent of at least 1
+            indentation = f"{'&nbsp;' * 5}" if start2[0] == "0" else f"{blank * (int(start2[0]) + 8)}"
+            # Add indentation for contination line
+            tmp = start1[0].replace(
+                "Action: ...",
+                f"{indentation}{start2[1]}",
+            )
+
+            element = tmp
+
+        # Add action tab to existing class.
+        element = self.add_tab("actiontab", element)
+
+        # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
+        return f"{self.line_div(element)}<br>\n"
+
+    def line_div(self, element: str) -> str:
+        """
+        Put one line of the Map in a <div> of its own, carrying its color and indentation.
+
+        The div is what keeps a long line wrapping inside its own block instead of back at
+        the left margin, and it has to carry the line's "..._color ...tab" class for the
+        wrapped text to line up under the first line.
+
+        That class used to get there by a trick: an action and a Profile were each written
+        as a "<div " left deliberately open, so that the line's own '<span class="..."'
+        would be swallowed by the browser as part of the div's attribute list.  It renders,
+        but only a browser's error recovery makes it render -- every action in the Map was
+        invalid markup, as was the '</span>' that used to be written after an action to
+        close a span that had never been opened.  Everything else that has to read the Map
+        rather than merely display it (the Markdown, JSON and PDF exports among them) had
+        to be taught to expect it.  The class is moved onto the div here instead, and the
+        span it came from, which now says nothing the div does not, goes with its end tag.
+
+        The id in front, when there is one, is the anchor mapjump puts on a Task action.
+        It stays at the front of the div's attributes, before the class, because that is
+        where the export's reader looks for the action number.
+
+            :param element: the line, anchor and opening span and all
+            :return: the line wrapped in a well-formed <div>
+        """
+        anchor = ""
+        found_anchor = _ACTION_ANCHOR_RE.match(element)
+        if found_anchor:
+            anchor = found_anchor.group(0)
+            element = element[found_anchor.end() :]
+
+        # No opening span to take the class from: keep the line in a plain div rather than
+        # invent markup for it.  Nothing in the Map takes this branch today.
+        opening_span = _ACTION_SPAN_RE.match(element)
+        if opening_span is None:
+            return f"<div {anchor}>{element}</div>" if anchor else f"<div>{element}</div>"
+
+        inside = element[opening_span.end() :]
+        end_of_span = self.matching_span_end(inside)
+        if end_of_span != -1:
+            inside = inside[:end_of_span] + inside[inside.index(">", end_of_span) + 1 :]
+        return f"<div {anchor}{opening_span.group(1).strip()}>{inside}</div>"
+
+    @staticmethod
+    def matching_span_end(text: str) -> int:
+        """
+        Find the "</span>" that closes a span already opened before this text begins.
+
+            :param text: what follows the opening tag of the span being matched
+            :return: the position of its end tag, or -1 if the span is never closed
+        """
+        depth = 0
+        for tag in _SPAN_TAG_RE.finditer(text):
+            if tag.group(0).startswith("</"):
+                if depth == 0:
+                    return tag.start()
+                depth -= 1
+            else:
+                depth += 1
+        return -1
+
+    # Handle taskernet
+    def handle_taskernet(self, element: str) -> str:
+        r"""
+        This function handles a taskernet by appending a given element to a new line.
+
+        Parameters:
+        - element (str): The element to be added to the taskernet.
+
+        Returns:
+        - str: The taskernet with the given element appended to a new line.
+
+        Processing Logic:
+        - The function takes in a string representing an element.
+        - It appends the element to a new line using the '\n' character.
+        - The modified taskernet is then returned.
+
+        Examples:
+        - Example usage of the function:
+
+            handle_taskernet("Task 1")
+            Output: "Task 1\n"
+            Explanation: The function appends the element "Task 1" to a new line and returns it as a taskernet.
+        """
+        return f"{element}\n"
+
+    # Handle additional elements and return a formatted list item string.
+    def handle_additional(self, element: str) -> str:
+        """
+        Handle additional elements and return a formatted list item string.
+
+        Parameters:
+            self: The instance of the class.
+            element: The element to be added to the list item string.
+
+        Returns:
+            A formatted list item string with the provided element.
+        """
+        return element
+
+        # Generate the output string based on the input XML <code> passed in
+
+    # Returns a formatted string for output based on the input codes
+    def format_line_out(self, element: str, lvl: int) -> str:
+        """
+        Start formatting the output line with appropriate HTML
+                :param element: the text line being formatted
+                :param lvl: the hierarchical list level for output- 0=heading,
+                    1=start list, 2= list item, 3= end list, 4= plain text
+                :return: modified output line
+
+        """
+
+        if lvl == 0:
+            # Heading / break
+
+            return f'<span class="normtab"></span>{element}<br>'
+
+        if lvl == 1:
+            # Start list
+            return f"{element}\n"
+
+        if lvl == 2:
+            # List item
+            if self.settings.twisty and "Scene:" in element:
+                return f"{self.format_line_list_item(element)}"
+            return self.format_line_list_item(element)
+
+        if lvl == 3:
+            # End list
+            return ""
+
+        if lvl == 5:
+            # Plain text
+            return f"{element}\n"
+        return element
+
+    # Write line of output
+    def add_line_to_output(
+        self,
+        list_level: int,
+        out_string: str,
+        format_line: list | FormatLine,
+    ) -> None:
+        """
+        Add line to the list of output lines.  The output entry is based on the
+        list_level and the contents of the output_str
+            :param list_level: level we are outputting
+            :param out_string: the string to add to the output
+            :param format_line: List if we need to first format the output line by
+                adding HTML to it. Empty if we are not to first format the line.
+                format_line[0] = text_before: The text to add before out_string.
+                format_line[1] = color_to_use: The color to use if formatting line
+                format_line[2] = add_span: Boolean to determine if a <span> tag
+                    should be added if formatting the line.
+            :return: none
+        """
+        # Format the output line by adding appropriate HTML.
+        if not isinstance(format_line, FormatLine):
+            out_string = format_html(
+                format_line[1],  # Color code
+                format_line[0],  # Text before.
+                out_string,  # Text after.
+                format_line[2],  # End span True or False
+            )
+
+        # Drop ID: nnn since we don't need it anymore
+        if "Task ID:" in out_string and self.settings.debug is False:
+            temp_element = out_string.split("Task ID:")
+            out_string = temp_element[0]
+
+        # # Add to Ai prompt if we are doing an Ai run.  Maker sure to remove all HTML tags first.
+        # if PrimeItems.program_arguments.ai_analyze:
+        #     # Format the output line.
+        #     PrimeItems.ai["output_lines"].append(remove_html_tags(out_string, ""))
+
+        # Go configure the output based on the contents of the element and the
+        #   list level. Call format_line before appending it.
+        self.output_lines.append(
+            self.format_line_out(
+                out_string,
+                list_level,
+            ),
+        )
+
+        # Log the generated output if in special debug mode
+        if debug_out:
+            debug_msg = f"out_string: {self.output_lines[-1]}"
+            logger.debug(debug_msg)

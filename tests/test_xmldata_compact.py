@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import defusedxml.ElementTree as ET
 import pytest
-from maptasker.src.xmldata import parse_tasker_xml, separate_attributes
+from maptasker.src.core.xmldata import parse_tasker_xml, separate_attributes
 
 COMPACT = (
     b'<TaskerData sr=""dvi="1"tv="6.7.6-beta">'

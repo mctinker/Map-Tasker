@@ -9,9 +9,9 @@
 
 import os
 
-from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, RunState, clear_single_items
+from maptasker.src.core.primitem import SINGLE_ITEM_SELECTORS, RunState, clear_single_items
+from maptasker.src.core.sysconst import DEBUG_PROGRAM, VIEW_LIMIT_DEFAULT
 from maptasker.src.runcli import process_cli
-from maptasker.src.sysconst import DEBUG_PROGRAM, VIEW_LIMIT_DEFAULT
 
 # The "Unlimited" the GUI's View Limit dropdown offers, as a number of lines.
 VIEW_LIMIT_UNLIMITED = 9999999

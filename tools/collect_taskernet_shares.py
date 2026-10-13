@@ -24,7 +24,7 @@ A share page is a small client over two unauthenticated JSON endpoints under
 taskernet.com/_ah/api/datashare/v1/.  `sharedata` answers with taskerproject:// (or taskerprofile://, ...)
 followed by base64 of gzipped Tasker XML -- the same thing the Import button reads.  The download counter
 is never switched on, so collecting does not inflate an author's numbers.  The endpoints are undocumented
-and may change; see maptasker/src/tnupdate.py, which uses the same two.
+and may change; see maptasker/src/mapops/tnupdate.py, which uses the same two.
 
 Shares are other people's work.  Collect them for your own reference and respect their authors' terms.
 

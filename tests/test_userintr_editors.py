@@ -17,11 +17,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from maptasker.src import (
+from maptasker.src.core import scenelayout
+from maptasker.src.edit import (
     profedit,
     projedit,
     sceneedit,
-    scenelayout,
     scenemodel,
     sessundo,
     taskedit,
@@ -29,10 +29,10 @@ from maptasker.src import (
     taskedit_apply,
     taskedit_model,
     taskedit_save,
-    userintr_editors,
 )
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
+from maptasker.src.gui import userintr_editors
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:
@@ -873,7 +873,7 @@ def test_cancelling_when_nothing_was_changed_is_silent(
 
 
 def sceneedit_legacy_properties(edited: sceneedit.EditableScene) -> object:
-    from maptasker.src import sceneedit_legacy
+    from maptasker.src.edit import sceneedit_legacy
 
     sceneedit_legacy.legacy_add_scene_properties(edited.scene_element, state=PrimeItems)
     return sceneedit_legacy.legacy_scene_properties(edited.scene_element)
@@ -1219,7 +1219,7 @@ async def test_project_save_to_current_file_stops_at_an_unapplied_field_a_bad_na
 # The Properties form
 # ##################################################################################
 def _properties(kind: str = "Project", name: str = "Home") -> tuple[object, dict]:
-    from maptasker.src import objprops
+    from maptasker.src.core import objprops
 
     element = _live_project(name)
     props = objprops.load_properties(kind, element)
@@ -1257,7 +1257,7 @@ def test_a_bad_property_value_is_reported_and_the_form_stays_up_without_running_
     dialog: MagicMock,
 ) -> None:
     props, fields = _properties()
-    from maptasker.src import objprops
+    from maptasker.src.core import objprops
 
     variable = objprops.add_variable(props)
     variable.find("pvn").text = ""
@@ -1273,7 +1273,7 @@ def test_a_variable_declared_twice_is_a_warning_not_a_refusal(
     notices: _Notices,
     dialog: MagicMock,
 ) -> None:
-    from maptasker.src import objprops
+    from maptasker.src.core import objprops
 
     props, fields = _properties()
     objprops.add_variable(props)
@@ -1290,7 +1290,7 @@ def test_cancel_drops_variables_never_named_and_says_how_many(
     notices: _Notices,
     dialog: MagicMock,
 ) -> None:
-    from maptasker.src import objprops
+    from maptasker.src.core import objprops
 
     props, _fields = _properties()
     objprops.add_variable(props)
@@ -1308,7 +1308,7 @@ def test_cancel_with_nothing_to_discard_is_silent(handlers: MapTaskerEventHandle
 
 
 def test_project_properties_are_carried_through_to_the_loaded_project(handlers: MapTaskerEventHandlers) -> None:
-    from maptasker.src import objprops
+    from maptasker.src.core import objprops
 
     edited = _edit_project()
     props = objprops.load_properties("Project", edited.project_element)

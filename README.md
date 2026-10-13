@@ -188,7 +188,15 @@ Refer to the [wiki](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output
 A brief overview of the main files and their purpose:
 
 - `maptasker/`: Contains the core application code.
-  - `maptasker/src/`: The main Python source files for MapTasker's logic.
+  - `maptasker/src/`: The main Python source files for MapTasker's logic, in sub-packages by layer
+    (a layer may import only the ones below it; `lint-imports` enforces it):
+    - `gui/`: the NiceGUI windows, dialogs and their event handlers.
+    - `device/`: what MapTasker does on the Android device, through Tasker's HTTP server.
+    - `mapops/`: bulk replace, refactor, repair, restore and draft; the TaskerNet and readiness tools.
+    - `analysis/`: read-only questions asked of a configuration.
+    - `mapgen/` and `edit/`: loading a backup and building the Map from it, and the Task, Profile, Project and Scene editors.
+    - `core/`: run state, the Tasker action tables and shared utilities.
+    - `mapit.py`, `progargs.py`, `runcli.py`, `rungui.py`, `clireports.py`: the entry points.
   - `maptasker/assets/`: Static assets like icons, images, and JSON data used by the application.
   - `maptasker/locale`: language files for translations.
 - `documentation_images/`: Images used within this README and other documentation.

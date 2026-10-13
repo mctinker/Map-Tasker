@@ -14,8 +14,9 @@ import re
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src import guiwins_trend, timeline
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core import timeline
+from maptasker.src.gui import guiwins_trend
+from maptasker.src.core.primitem import PrimeItems
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
@@ -227,7 +228,7 @@ async def test_a_second_look_reads_the_kept_figures_and_does_not_measure_again(
     async with _open() as user:
         await user.should_see("2 configurations measured.")
 
-    from maptasker.src import timecomp  # noqa: PLC0415
+    from maptasker.src.analysis import timecomp
 
     monkeypatch.setattr(timecomp, "configuration_of", lambda *_a, **_k: pytest.fail("measured again"))
     async with _open() as user:

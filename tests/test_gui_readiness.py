@@ -15,9 +15,12 @@ import xml.etree.ElementTree as ET
 import pytest
 from nicegui import ui
 
-from maptasker.src import guiwins, projedit, readiness, taskerd
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.edit import projedit
+from maptasker.src.gui import guiwins
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapops import readiness
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.primitem import PrimeItems
 from tests.test_gui_window import _button, _click, _open_window, fresh_session  # noqa: F401
 
 pytestmark = pytest.mark.asyncio

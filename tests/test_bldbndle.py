@@ -21,8 +21,8 @@ import textwrap
 
 import pytest
 
-from maptasker.src import bldbndle, bundle
-from maptasker.src.bldbndle import (
+from maptasker.src.core import bldbndle, bundle
+from maptasker.src.core.bldbndle import (
     build_bundles,
     get_bundles,
     load_existing_bundles,

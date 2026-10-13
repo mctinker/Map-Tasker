@@ -15,8 +15,8 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
-from maptasker.src.primitem import PrimeItems
-from maptasker.src import guiutils
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.gui import guiutils
 
 
 def _event_loop_running() -> bool:

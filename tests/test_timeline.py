@@ -25,10 +25,12 @@ from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import clock, diffload, taskerd, timecomp, timeline
-from maptasker.src.lineout import LineOut
-from maptasker.src.primitem import PrimeItems, initial_tasker_root_elements
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.analysis import diffload, timecomp
+from maptasker.src.core import clock, timeline
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 
 _LOADED_XML = """<TaskerData sr="" dvi="1" tv="6.5.6">
   <Project sr="proj0" ve="2"><cdate>1</cdate><id>1</id><name>Home</name>

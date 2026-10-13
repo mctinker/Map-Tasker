@@ -20,8 +20,9 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src import guiwins_profedit, profedit
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.edit import profedit
+from maptasker.src.gui import guiwins_profedit
+from maptasker.src.core.primitem import PrimeItems
 from tests.test_profedit import _XML
 from tests.test_mapswap import _load
 

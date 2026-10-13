@@ -11,8 +11,9 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src import guiwins_impact, impact
-from maptasker.src.primitem import RunState
+from maptasker.src.analysis import impact
+from maptasker.src.gui import guiwins_impact
+from maptasker.src.core.primitem import RunState
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 

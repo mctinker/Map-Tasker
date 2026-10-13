@@ -15,7 +15,7 @@ what it does so that a change to it is a decision rather than an accident.
 from __future__ import annotations
 
 import pytest
-from maptasker.src import format as fmt
+from maptasker.src.core import format as fmt
 
 _COLORS = {"background_color": "white", "action_label_color": "Black", "taskernet_color": "Blue"}
 

@@ -22,8 +22,10 @@ from __future__ import annotations
 import os
 
 import pytest
-from maptasker.src.primitem import PrimeItems
-from maptasker.src import devicetask, editcommon, presave, profedit, projedit, sceneedit, taskedit, taskedit_save
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core import editcommon, presave
+from maptasker.src.device import devicetask
+from maptasker.src.edit import profedit, projedit, sceneedit, taskedit, taskedit_save
 
 # Every editor, and the three things it is allowed to differ in.
 #   module, EXPORT kind, fallback word, extension, device folder, its own path helper
@@ -133,7 +135,7 @@ def fake_device(monkeypatch: pytest.MonkeyPatch) -> dict:
     'renders' counts how many times a render was asked for, which is what the
     address-first ordering test reads.
     """
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     state: dict = {"upload_result": (0, "ok"), "read_result": (0, b"<TaskerData/>"), "renders": 0, "upload_args": None}
 

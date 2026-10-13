@@ -13,9 +13,10 @@ import ast
 import pathlib
 
 import pytest
-from maptasker.src import bildhtml, maputils, primitem, taskerd, taskertables
-from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
-from maptasker.src.primitem import (
+from maptasker.src.core import maputils, primitem
+from maptasker.src.mapgen import bildhtml, taskerd, taskertables
+from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.core.primitem import (
     SESSION_ATTRIBUTES,
     SINGLE_ITEM_SELECTORS,
     PrimeItems,

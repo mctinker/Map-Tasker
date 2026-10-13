@@ -22,8 +22,9 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
-from maptasker.src import clock, tnfind, tnupdate
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core import clock
+from maptasker.src.mapops import tnfind, tnupdate
+from maptasker.src.core.primitem import PrimeItems
 
 from tests.test_tnupdate import _LOCAL_XML, _V2, _link, _load_local, _runtime, _share  # noqa: F401  (_runtime is the fixture)
 

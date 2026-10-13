@@ -12,12 +12,13 @@ import sys
 from pathlib import Path
 
 import pytest
-from maptasker.src import healthck, outdir
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.parsearg import runtime_parser
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import healthck
+from maptasker.src.core import outdir
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.parsearg import runtime_parser
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.runcli import process_extended_arguments
-from maptasker.src.sysconst import ARGUMENT_NAMES
+from maptasker.src.core.sysconst import ARGUMENT_NAMES
 
 
 @pytest.fixture(autouse=True)

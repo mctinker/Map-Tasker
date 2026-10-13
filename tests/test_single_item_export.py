@@ -16,9 +16,9 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-from maptasker.src.guiutils import single_item_export_selection
-from maptasker.src.primitem import PrimeItems, initial_tasker_root_elements
-from maptasker.src.userintr import MapTaskerEventHandlers
+from maptasker.src.gui.guiutils import single_item_export_selection
+from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
+from maptasker.src.gui.userintr import MapTaskerEventHandlers
 
 
 @pytest.fixture(autouse=True)

@@ -1,5 +1,5 @@
 {
-  "maptasker/src/actargs.py": {
+  "maptasker/src/mapgen/actargs.py": {
     "reportArgumentType": 19,
     "reportAssignmentType": 1,
     "reportAttributeAccessIssue": 4,
@@ -8,92 +8,92 @@
     "reportOperatorIssue": 1,
     "reportReturnType": 2
   },
-  "maptasker/src/action.py": {
+  "maptasker/src/core/action.py": {
     "reportArgumentType": 1,
     "reportOptionalMemberAccess": 7,
     "reportReturnType": 2
   },
-  "maptasker/src/actionc.py": {
+  "maptasker/src/core/actionc.py": {
     "reportArgumentType": 2,
     "reportCallIssue": 2
   },
-  "maptasker/src/actione.py": {
+  "maptasker/src/mapgen/actione.py": {
     "reportArgumentType": 5,
     "reportOptionalOperand": 1,
     "reportReturnType": 1
   },
-  "maptasker/src/actionr.py": {
+  "maptasker/src/mapgen/actionr.py": {
     "reportArgumentType": 10,
     "reportCallIssue": 6
   },
-  "maptasker/src/addcss.py": {
+  "maptasker/src/mapgen/addcss.py": {
     "reportAttributeAccessIssue": 8
   },
-  "maptasker/src/aiutils.py": {
+  "maptasker/src/core/aiutils.py": {
     "reportArgumentType": 2,
     "reportAttributeAccessIssue": 1
   },
-  "maptasker/src/bildhtml.py": {
+  "maptasker/src/mapgen/bildhtml.py": {
     "reportArgumentType": 2,
     "reportAttributeAccessIssue": 12,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/bldargs.py": {
+  "maptasker/src/core/bldargs.py": {
     "reportOptionalMemberAccess": 1
   },
-  "maptasker/src/bldbndle.py": {
+  "maptasker/src/core/bldbndle.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 1,
     "reportOptionalMemberAccess": 2
   },
-  "maptasker/src/caveats.py": {
+  "maptasker/src/mapgen/caveats.py": {
     "reportAttributeAccessIssue": 2
   },
-  "maptasker/src/clip.py": {
+  "maptasker/src/core/clip.py": {
     "reportOptionalSubscript": 4
   },
-  "maptasker/src/condition.py": {
+  "maptasker/src/mapgen/condition.py": {
     "reportArgumentType": 8,
     "reportOperatorIssue": 1,
     "reportOptionalMemberAccess": 8,
     "reportReturnType": 1
   },
-  "maptasker/src/condjoin.py": {
+  "maptasker/src/core/condjoin.py": {
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/console.py": {
+  "maptasker/src/core/console.py": {
     "reportArgumentType": 1,
     "reportCallIssue": 1
   },
-  "maptasker/src/debug.py": {
+  "maptasker/src/core/debug.py": {
     "reportAttributeAccessIssue": 9
   },
-  "maptasker/src/devicecheck.py": {
+  "maptasker/src/device/devicecheck.py": {
     "reportReturnType": 1
   },
-  "maptasker/src/devicefiles.py": {
+  "maptasker/src/device/devicefiles.py": {
     "reportReturnType": 1
   },
-  "maptasker/src/devicehelpers.py": {
+  "maptasker/src/device/devicehelpers.py": {
     "reportAttributeAccessIssue": 1
   },
-  "maptasker/src/deviceimport.py": {
+  "maptasker/src/device/deviceimport.py": {
     "reportReturnType": 1
   },
-  "maptasker/src/deviceinv.py": {
+  "maptasker/src/device/deviceinv.py": {
     "reportReturnType": 1
   },
-  "maptasker/src/deviceoffer.py": {
+  "maptasker/src/device/deviceoffer.py": {
     "reportReturnType": 2
   },
-  "maptasker/src/devicetask.py": {
+  "maptasker/src/device/devicetask.py": {
     "reportArgumentType": 1,
     "reportReturnType": 1
   },
-  "maptasker/src/deviceverify.py": {
+  "maptasker/src/device/deviceverify.py": {
     "reportArgumentType": 3
   },
-  "maptasker/src/diagram.py": {
+  "maptasker/src/mapgen/diagram.py": {
     "reportArgumentType": 10,
     "reportAssignmentType": 4,
     "reportAttributeAccessIssue": 3,
@@ -101,12 +101,12 @@
     "reportOptionalSubscript": 3,
     "reportReturnType": 9
   },
-  "maptasker/src/diagutil.py": {
+  "maptasker/src/mapgen/diagutil.py": {
     "reportArgumentType": 2,
     "reportOperatorIssue": 1,
     "reportReturnType": 2
   },
-  "maptasker/src/diffload.py": {
+  "maptasker/src/analysis/diffload.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 2,
     "reportCallIssue": 1,
@@ -114,129 +114,129 @@
     "reportInvalidTypeForm": 1,
     "reportReturnType": 1
   },
-  "maptasker/src/dirout.py": {
+  "maptasker/src/core/dirout.py": {
     "reportAttributeAccessIssue": 5
   },
-  "maptasker/src/editcommon.py": {
+  "maptasker/src/core/editcommon.py": {
     "reportReturnType": 1
   },
-  "maptasker/src/elemvals.py": {
+  "maptasker/src/core/elemvals.py": {
     "reportOptionalMemberAccess": 4
   },
-  "maptasker/src/format.py": {
+  "maptasker/src/core/format.py": {
     "reportAttributeAccessIssue": 5,
     "reportReturnType": 1
   },
-  "maptasker/src/frontmtr.py": {
+  "maptasker/src/mapgen/frontmtr.py": {
     "reportAttributeAccessIssue": 6
   },
-  "maptasker/src/getbakup.py": {
+  "maptasker/src/mapgen/getbakup.py": {
     "reportArgumentType": 1,
     "reportGeneralTypeIssues": 2,
     "reportReturnType": 5
   },
-  "maptasker/src/getfile.py": {
+  "maptasker/src/gui/getfile.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 2
   },
-  "maptasker/src/getputer.py": {
+  "maptasker/src/core/getputer.py": {
     "reportArgumentType": 3,
     "reportAttributeAccessIssue": 7,
     "reportGeneralTypeIssues": 1,
     "reportReturnType": 1
   },
-  "maptasker/src/globalvr.py": {
+  "maptasker/src/mapgen/globalvr.py": {
     "reportAttributeAccessIssue": 9,
     "reportGeneralTypeIssues": 1,
     "reportReturnType": 1
   },
-  "maptasker/src/guistate.py": {
+  "maptasker/src/gui/guistate.py": {
     "reportReturnType": 1
   },
-  "maptasker/src/guiutil2.py": {
+  "maptasker/src/gui/guiutil2.py": {
     "reportReturnType": 3
   },
-  "maptasker/src/guiutils.py": {
+  "maptasker/src/gui/guiutils.py": {
     "reportArgumentType": 4,
     "reportAttributeAccessIssue": 92,
     "reportGeneralTypeIssues": 1,
     "reportReturnType": 2
   },
-  "maptasker/src/guiwins.py": {
+  "maptasker/src/gui/guiwins.py": {
     "reportArgumentType": 17,
     "reportAttributeAccessIssue": 192,
     "reportOptionalMemberAccess": 1
   },
-  "maptasker/src/guiwins2.py": {
+  "maptasker/src/gui/guiwins2.py": {
     "reportAttributeAccessIssue": 5
   },
-  "maptasker/src/guiwins_designer_legacy.py": {
+  "maptasker/src/gui/guiwins_designer_legacy.py": {
     "reportArgumentType": 16,
     "reportAttributeAccessIssue": 7
   },
-  "maptasker/src/guiwins_designer_v2.py": {
+  "maptasker/src/gui/guiwins_designer_v2.py": {
     "reportArgumentType": 10
   },
-  "maptasker/src/guiwins_legacyarg.py": {
+  "maptasker/src/gui/guiwins_legacyarg.py": {
     "reportArgumentType": 4,
     "reportAttributeAccessIssue": 3
   },
-  "maptasker/src/guiwins_nav.py": {
+  "maptasker/src/gui/guiwins_nav.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 9
   },
-  "maptasker/src/guiwins_profedit.py": {
+  "maptasker/src/gui/guiwins_profedit.py": {
     "reportArgumentType": 11
   },
-  "maptasker/src/guiwins_restore.py": {
+  "maptasker/src/gui/guiwins_restore.py": {
     "reportArgumentType": 1
   },
-  "maptasker/src/guiwins_sceneprops.py": {
+  "maptasker/src/gui/guiwins_sceneprops.py": {
     "reportArgumentType": 4,
     "reportGeneralTypeIssues": 2,
     "reportIndexIssue": 2
   },
-  "maptasker/src/guiwins_search.py": {
+  "maptasker/src/gui/guiwins_search.py": {
     "reportAttributeAccessIssue": 1,
     "reportOptionalMemberAccess": 1,
     "reportReturnType": 1
   },
-  "maptasker/src/guiwins_taskedit.py": {
+  "maptasker/src/gui/guiwins_taskedit.py": {
     "reportArgumentType": 15,
     "reportGeneralTypeIssues": 4,
     "reportIndexIssue": 1
   },
-  "maptasker/src/guiwins_views.py": {
+  "maptasker/src/gui/guiwins_views.py": {
     "reportArgumentType": 9,
     "reportAttributeAccessIssue": 21,
     "reportGeneralTypeIssues": 2,
     "reportOptionalContextManager": 1,
     "reportOptionalMemberAccess": 4
   },
-  "maptasker/src/impact.py": {
+  "maptasker/src/analysis/impact.py": {
     "reportAttributeAccessIssue": 1,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/initparg.py": {
+  "maptasker/src/core/initparg.py": {
     "reportArgumentType": 53,
     "reportAttributeAccessIssue": 1,
     "reportReturnType": 1
   },
-  "maptasker/src/mapai.py": {
+  "maptasker/src/gui/mapai.py": {
     "reportAttributeAccessIssue": 4,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/mapask.py": {
+  "maptasker/src/analysis/mapask.py": {
     "reportAttributeAccessIssue": 5,
     "reportGeneralTypeIssues": 2
   },
-  "maptasker/src/mapcache.py": {
+  "maptasker/src/mapgen/mapcache.py": {
     "reportAttributeAccessIssue": 2
   },
-  "maptasker/src/mapfix.py": {
+  "maptasker/src/mapops/mapfix.py": {
     "reportOptionalCall": 1
   },
-  "maptasker/src/mapfonts.py": {
+  "maptasker/src/core/mapfonts.py": {
     "reportAttributeAccessIssue": 3,
     "reportOptionalMemberAccess": 1
   },
@@ -244,73 +244,73 @@
     "reportArgumentType": 6,
     "reportAttributeAccessIssue": 4
   },
-  "maptasker/src/mapjump.py": {
+  "maptasker/src/core/mapjump.py": {
     "reportAttributeAccessIssue": 2,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/maprefac_duplicate.py": {
+  "maptasker/src/mapops/maprefac_duplicate.py": {
     "reportArgumentType": 5,
     "reportAttributeAccessIssue": 5,
     "reportGeneralTypeIssues": 2
   },
-  "maptasker/src/maprefac_extract.py": {
+  "maptasker/src/mapops/maprefac_extract.py": {
     "reportOptionalSubscript": 1
   },
-  "maptasker/src/maprefac_model.py": {
+  "maptasker/src/mapops/maprefac_model.py": {
     "reportArgumentType": 1
   },
-  "maptasker/src/mapswap_condition.py": {
+  "maptasker/src/mapops/mapswap_condition.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 5,
     "reportCallIssue": 1
   },
-  "maptasker/src/mapswap_rename.py": {
+  "maptasker/src/mapops/mapswap_rename.py": {
     "reportArgumentType": 2
   },
-  "maptasker/src/mapswap_sites.py": {
+  "maptasker/src/mapops/mapswap_sites.py": {
     "reportArgumentType": 1,
     "reportGeneralTypeIssues": 1,
     "reportOptionalMemberAccess": 5
   },
-  "maptasker/src/maputil2.py": {
+  "maptasker/src/core/maputil2.py": {
     "reportAttributeAccessIssue": 3,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/maputils.py": {
+  "maptasker/src/core/maputils.py": {
     "reportAttributeAccessIssue": 3,
     "reportReturnType": 9
   },
-  "maptasker/src/objprops.py": {
+  "maptasker/src/core/objprops.py": {
     "reportOperatorIssue": 3
   },
-  "maptasker/src/outline.py": {
+  "maptasker/src/mapgen/outline.py": {
     "reportArgumentType": 10,
     "reportAttributeAccessIssue": 11,
     "reportCallIssue": 9
   },
-  "maptasker/src/parsearg.py": {
+  "maptasker/src/core/parsearg.py": {
     "reportArgumentType": 2
   },
-  "maptasker/src/piiscan.py": {
+  "maptasker/src/core/piiscan.py": {
     "reportAttributeAccessIssue": 1,
     "reportGeneralTypeIssues": 1,
     "reportReturnType": 1
   },
-  "maptasker/src/prefers.py": {
+  "maptasker/src/core/prefers.py": {
     "reportAttributeAccessIssue": 2
   },
-  "maptasker/src/proclist.py": {
+  "maptasker/src/mapgen/proclist.py": {
     "reportArgumentType": 5,
     "reportAttributeAccessIssue": 12,
     "reportIndexIssue": 1,
     "reportOperatorIssue": 1,
     "reportOptionalMemberAccess": 1
   },
-  "maptasker/src/profedit.py": {
+  "maptasker/src/edit/profedit.py": {
     "reportArgumentType": 5,
     "reportGeneralTypeIssues": 2
   },
-  "maptasker/src/profiles.py": {
+  "maptasker/src/mapgen/profiles.py": {
     "reportArgumentType": 2,
     "reportAssignmentType": 1,
     "reportAttributeAccessIssue": 6,
@@ -318,29 +318,29 @@
     "reportOptionalSubscript": 2,
     "reportReturnType": 3
   },
-  "maptasker/src/proflint.py": {
+  "maptasker/src/analysis/proflint.py": {
     "reportArgumentType": 6
   },
   "maptasker/src/progargs.py": {
     "reportArgumentType": 2
   },
-  "maptasker/src/proginit.py": {
+  "maptasker/src/mapgen/proginit.py": {
     "reportArgumentType": 2,
     "reportAttributeAccessIssue": 5,
     "reportReturnType": 2
   },
-  "maptasker/src/projects.py": {
+  "maptasker/src/mapgen/projects.py": {
     "reportArgumentType": 8,
     "reportAssignmentType": 1,
     "reportAttributeAccessIssue": 16,
     "reportReturnType": 3
   },
-  "maptasker/src/property.py": {
+  "maptasker/src/core/property.py": {
     "reportArgumentType": 19,
     "reportAttributeAccessIssue": 2,
     "reportReturnType": 1
   },
-  "maptasker/src/runcfg.py": {
+  "maptasker/src/core/runcfg.py": {
     "reportArgumentType": 107
   },
   "maptasker/src/runcli.py": {
@@ -354,19 +354,19 @@
     "reportAttributeAccessIssue": 1,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/sceneedit_legacy.py": {
+  "maptasker/src/edit/sceneedit_legacy.py": {
     "reportArgumentType": 4,
     "reportAttributeAccessIssue": 9,
     "reportCallIssue": 2
   },
-  "maptasker/src/sceneedit_v2.py": {
+  "maptasker/src/edit/sceneedit_v2.py": {
     "reportGeneralTypeIssues": 1,
     "reportOptionalMemberAccess": 1
   },
-  "maptasker/src/scenelayout.py": {
+  "maptasker/src/core/scenelayout.py": {
     "reportCallIssue": 1
   },
-  "maptasker/src/scenes.py": {
+  "maptasker/src/mapgen/scenes.py": {
     "reportArgumentType": 13,
     "reportAttributeAccessIssue": 21,
     "reportOperatorIssue": 2,
@@ -374,95 +374,95 @@
     "reportOptionalSubscript": 1,
     "reportReturnType": 1
   },
-  "maptasker/src/sceneview.py": {
+  "maptasker/src/gui/sceneview.py": {
     "reportCallIssue": 3
   },
-  "maptasker/src/sessundo.py": {
+  "maptasker/src/edit/sessundo.py": {
     "reportAttributeAccessIssue": 2
   },
-  "maptasker/src/share.py": {
+  "maptasker/src/core/share.py": {
     "reportAssignmentType": 1,
     "reportAttributeAccessIssue": 11
   },
-  "maptasker/src/shelsort.py": {
+  "maptasker/src/core/shelsort.py": {
     "reportArgumentType": 3,
     "reportAttributeAccessIssue": 1,
     "reportCallIssue": 1,
     "reportRedeclaration": 2
   },
-  "maptasker/src/taskactn.py": {
+  "maptasker/src/mapgen/taskactn.py": {
     "reportAttributeAccessIssue": 8,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/taskedit_apply.py": {
+  "maptasker/src/edit/taskedit_apply.py": {
     "reportOperatorIssue": 1,
     "reportOptionalMemberAccess": 2,
     "reportOptionalSubscript": 1
   },
-  "maptasker/src/taskedit_args.py": {
+  "maptasker/src/edit/taskedit_args.py": {
     "reportArgumentType": 3
   },
-  "maptasker/src/taskedit_save.py": {
+  "maptasker/src/edit/taskedit_save.py": {
     "reportArgumentType": 1
   },
-  "maptasker/src/taskerd.py": {
+  "maptasker/src/mapgen/taskerd.py": {
     "reportAttributeAccessIssue": 3,
     "reportReturnType": 4
   },
-  "maptasker/src/taskertables.py": {
+  "maptasker/src/mapgen/taskertables.py": {
     "reportArgumentType": 1,
     "reportAssignmentType": 1,
     "reportAttributeAccessIssue": 5
   },
-  "maptasker/src/tasks.py": {
+  "maptasker/src/mapgen/tasks.py": {
     "reportArgumentType": 2,
     "reportReturnType": 1
   },
-  "maptasker/src/taskuniq.py": {
+  "maptasker/src/mapgen/taskuniq.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 13
   },
-  "maptasker/src/timeline.py": {
+  "maptasker/src/core/timeline.py": {
     "reportArgumentType": 1,
     "reportCallIssue": 1,
     "reportInvalidTypeForm": 1,
     "reportReturnType": 1
   },
-  "maptasker/src/translator.py": {
+  "maptasker/src/core/translator.py": {
     "reportAttributeAccessIssue": 2
   },
-  "maptasker/src/twisty.py": {
+  "maptasker/src/mapgen/twisty.py": {
     "reportAttributeAccessIssue": 2
   },
-  "maptasker/src/userintr.py": {
+  "maptasker/src/gui/userintr.py": {
     "reportArgumentType": 8,
     "reportAttributeAccessIssue": 24,
     "reportReturnType": 1
   },
-  "maptasker/src/userintr_ai.py": {
+  "maptasker/src/gui/userintr_ai.py": {
     "reportArgumentType": 3,
     "reportAttributeAccessIssue": 28,
     "reportGeneralTypeIssues": 2
   },
-  "maptasker/src/userintr_android.py": {
+  "maptasker/src/gui/userintr_android.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 72,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/userintr_editors.py": {
+  "maptasker/src/gui/userintr_editors.py": {
     "reportArgumentType": 4,
     "reportAttributeAccessIssue": 69
   },
-  "maptasker/src/userintr_loading.py": {
+  "maptasker/src/gui/userintr_loading.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 16,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/userintr_reports.py": {
+  "maptasker/src/gui/userintr_reports.py": {
     "reportArgumentType": 5,
     "reportGeneralTypeIssues": 8
   },
-  "maptasker/src/userintr_settings.py": {
+  "maptasker/src/gui/userintr_settings.py": {
     "reportArgumentType": 3,
     "reportAttributeAccessIssue": 48,
     "reportGeneralTypeIssues": 7,
@@ -470,15 +470,15 @@
     "reportOptionalMemberAccess": 2,
     "reportReturnType": 1
   },
-  "maptasker/src/varxref.py": {
+  "maptasker/src/mapgen/varxref.py": {
     "reportArgumentType": 2,
     "reportGeneralTypeIssues": 1,
     "reportReturnType": 2
   },
-  "maptasker/src/xmldata.py": {
+  "maptasker/src/core/xmldata.py": {
     "reportAttributeAccessIssue": 2
   },
-  "maptasker/src/xmldiff.py": {
+  "maptasker/src/analysis/xmldiff.py": {
     "reportAttributeAccessIssue": 2
   },
   "scripts/noqa_ratchet.py": {

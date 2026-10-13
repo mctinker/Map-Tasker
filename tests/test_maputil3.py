@@ -12,7 +12,7 @@ import sys
 import types
 
 import pytest
-from maptasker.src import maputil3
+from maptasker.src.core import maputil3
 
 
 @pytest.fixture(autouse=True)

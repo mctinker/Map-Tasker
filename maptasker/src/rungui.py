@@ -20,19 +20,19 @@ from typing import TYPE_CHECKING, Any
 
 from nicegui import app, core, ui
 
-from maptasker.src import console
-from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
-from maptasker.src.error import error_handler, exit_program
-from maptasker.src.getputer import save_restore_args
-from maptasker.src.guistate import capture_gui_state, do_colors, live_selection, reapply_selection
-from maptasker.src.guiwins import inject_shared_head_styles
-from maptasker.src.guiwins_nav import register_finding_clicks
-from maptasker.src.guiwins_views import NiceGuiTextView
-from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
-from maptasker.src.sysconst import logger
+from maptasker.src.core import console
+from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
+from maptasker.src.core.error import error_handler, exit_program
+from maptasker.src.core.getputer import save_restore_args
+from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.core.sysconst import logger
+from maptasker.src.gui.guistate import capture_gui_state, do_colors, live_selection, reapply_selection
+from maptasker.src.gui.guiwins import inject_shared_head_styles
+from maptasker.src.gui.guiwins_nav import register_finding_clicks
+from maptasker.src.gui.guiwins_views import NiceGuiTextView
 
 if TYPE_CHECKING:
-    from maptasker.src.primitem import RunState
+    from maptasker.src.core.primitem import RunState
 
 # The port ui.run() gets.  DEFAULT_PORT is NiceGUI's own default and stays the port we use
 # whenever it is free, so the GUI keeps showing up at the same familiar URL.
@@ -313,7 +313,7 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
     # process_cli replaces program_arguments.  diagram writes a default into program_arguments
     # as it is imported, and at startup that write would be thrown away.
     if use_gui:
-        from maptasker.src.userintr import MyGui  # noqa: PLC0415
+        from maptasker.src.gui.userintr import MyGui  # noqa: PLC0415
 
     state.program_arguments.gui = True
 

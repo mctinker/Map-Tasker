@@ -16,8 +16,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-from maptasker.src import healthck, timecomp, timeline, trend
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import healthck, timecomp
+from maptasker.src.core import timeline
+from maptasker.src.mapops import trend
+from maptasker.src.core.primitem import PrimeItems
 
 from tests.test_taskstep import _act, _i, _s, disabled, end_for, end_if, flash, for_, if_, set_
 from tests.test_tnupdate import _load_local, _runtime  # noqa: F401  (_runtime is the fixture)

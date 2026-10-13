@@ -10,10 +10,12 @@ registry; loading a configuration (maputils.clear_tasker_data) and a full reset
 from __future__ import annotations
 
 import pytest
-from maptasker.src.primitem import PrimeItems
-from maptasker.src import appinv, bildhtml, caches, globalvr, mapcache, profedit, scenes, taskedit_addable
-from maptasker.src.maputils import clear_tasker_data
-from maptasker.src.primitem import PrimeItemsReset
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core import appinv, caches
+from maptasker.src.edit import profedit, taskedit_addable
+from maptasker.src.mapgen import bildhtml, globalvr, mapcache, scenes
+from maptasker.src.core.maputils import clear_tasker_data
+from maptasker.src.core.primitem import PrimeItemsReset
 
 # Every cache the package declares.  A new one is on the registry the moment it is declared,
 # so this list only has to grow when one is added -- and it fails if one is lost.

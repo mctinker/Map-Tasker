@@ -753,7 +753,7 @@ class CommandModel:
         """Parses every module in the source directory."""
         trees: dict[str, ast.AST] = {}
         sources: dict[str, list[str]] = {}
-        for path in sorted(self.source.glob("*.py")):
+        for path in sorted(self.source.rglob("*.py")):
             text = path.read_text(encoding="utf-8")
             try:
                 trees[path.name] = ast.parse(text, filename=str(path))

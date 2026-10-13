@@ -25,9 +25,11 @@ import importlib
 import pathlib
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import mapit, proginit, valcodes
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src import mapit
+from maptasker.src.core import valcodes
+from maptasker.src.mapgen import proginit
+from maptasker.src.core.primitem import PrimeItems
 
 
 def test_build_all_is_off() -> None:
@@ -86,8 +88,8 @@ def _stubbed(monkeypatch: pytest.MonkeyPatch) -> list:
         "validate_states_and_events",
         lambda code_type, url: calls.append(("validate", code_type, url, PrimeItems.program_arguments.debug)),
     )
-    import maptasker.src.bldargs as bldargs
-    import maptasker.src.bldbndle as bldbndle
+    import maptasker.src.core.bldargs as bldargs
+    import maptasker.src.core.bldbndle as bldbndle
 
     monkeypatch.setattr(bldbndle, "build_bundles", lambda: calls.append(("bundles",)))
     monkeypatch.setattr(bldargs, "build_arguments", lambda: calls.append(("arguments",)))

@@ -16,25 +16,25 @@ from collections import namedtuple
 
 import darkdetect
 
-from maptasker.src import console
-from maptasker.src.clip import clip_figure
-from maptasker.src.colors import get_and_set_the_color, validate_color
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL, GUI
-from maptasker.src.error import exit_program
-from maptasker.src.getputer import save_restore_args
-from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
-from maptasker.src.outdir import normalize_output_directory
-from maptasker.src.parsearg import runtime_parser
-from maptasker.src.primitem import RunState
-from maptasker.src.rungui import process_gui
-from maptasker.src.sysconst import (
+from maptasker.src.core import console
+from maptasker.src.core.clip import clip_figure
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL, GUI
+from maptasker.src.core.error import exit_program
+from maptasker.src.core.getputer import save_restore_args
+from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.core.outdir import normalize_output_directory
+from maptasker.src.core.parsearg import runtime_parser
+from maptasker.src.core.primitem import RunState
+from maptasker.src.core.sysconst import (
     MY_LICENSE,
     MY_VERSION,
     TYPES_OF_COLORS,
     Colors,
     logger,
 )
+from maptasker.src.mapgen.colors import get_and_set_the_color, validate_color
+from maptasker.src.rungui import process_gui
 
 
 # ################################################################################

@@ -19,9 +19,11 @@ from nicegui import core, events, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src import guiwins_views, sceneedit, scenelayout, scenemodel, sceneview
-from maptasker.src.guiwins_views import NiceGuiSceneView, NiceGuiTreeView
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core import scenelayout
+from maptasker.src.edit import sceneedit, scenemodel
+from maptasker.src.gui import guiwins_views, sceneview
+from maptasker.src.gui.guiwins_views import NiceGuiSceneView, NiceGuiTreeView
+from maptasker.src.core.primitem import PrimeItems
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:

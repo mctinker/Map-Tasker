@@ -37,18 +37,11 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import (
-    profedit,
-    projedit,
-    roundtrip,
-    taskedit,
-    taskedit_model,
-    taskedit_save,
-    taskerd,
-    userintr_android,
-)
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.edit import profedit, projedit, roundtrip, taskedit, taskedit_model, taskedit_save
+from maptasker.src.gui import userintr_android
+from maptasker.src.mapgen import taskerd
+from maptasker.src.core.primitem import PrimeItems
 
 # One Project owning one Profile, that Profile's Entry Task, a Scene the Project declares,
 # and the Task that Scene's button fires.  Small, but it is every relationship the four

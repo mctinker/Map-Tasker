@@ -24,11 +24,12 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import proflint, taskerd
-from maptasker.src.healthck import run_health_check
-from maptasker.src.mapjump import text_report
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.analysis import proflint
+from maptasker.src.mapgen import taskerd
+from maptasker.src.analysis.healthck import run_health_check
+from maptasker.src.core.mapjump import text_report
+from maptasker.src.core.primitem import PrimeItems
 
 # One Project holding, for each rule, the offending object and the sound one beside it.
 #

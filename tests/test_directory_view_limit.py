@@ -15,10 +15,10 @@ order in the table.
 from __future__ import annotations
 
 import pytest
-from maptasker.src.dirout import do_tasker_element, do_trailing_matters, unreachable_anchors
-from maptasker.src.lineout import LineOut
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.runcfg import RunConfig
+from maptasker.src.core.dirout import do_tasker_element, do_trailing_matters, unreachable_anchors
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.runcfg import RunConfig
 
 
 def anchor(anchor_id: str) -> str:

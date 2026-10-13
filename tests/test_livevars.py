@@ -14,9 +14,10 @@ import json
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import livevars, taskerd, varxref
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.gui import livevars
+from maptasker.src.mapgen import taskerd, varxref
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.primitem import PrimeItems
 
 # %Orphan is read and never set; %Dead is set and never read; %Both is set and read; %Kept is
 # declared in the Variables tab, so it is neither.

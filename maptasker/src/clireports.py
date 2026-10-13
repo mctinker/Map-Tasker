@@ -50,31 +50,16 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, NoReturn
 
-from maptasker.src import (
-    clock,
-    console,
-    diffload,
-    folderwatch,
-    healthck,
-    mapexport,
-    mapjump,
-    timecomp,
-    timeline,
-    trend,
-    xmldiff,
-)
-from maptasker.src.actionc import load_arg_specs
-from maptasker.src.bildhtml import build_html
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.frontmtr import output_the_front_matter
-from maptasker.src.getputer import save_restore_args
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.lineout import LineOut
-from maptasker.src.maputil2 import suppress_logged
-from maptasker.src.mtexcept import MapTaskerError
-from maptasker.src.outdir import normalize_output_directory
-from maptasker.src.outline import outline_the_configuration
-from maptasker.src.primitem import (
+from maptasker.src.analysis import diffload, folderwatch, healthck, timecomp, xmldiff
+from maptasker.src.core import clock, console, mapjump, timeline
+from maptasker.src.core.actionc import load_arg_specs
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.getputer import save_restore_args
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.maputil2 import suppress_logged
+from maptasker.src.core.mtexcept import MapTaskerError
+from maptasker.src.core.outdir import normalize_output_directory
+from maptasker.src.core.primitem import (
     MAP_OUTPUT_ATTRIBUTES,
     PrimeItems,
     PrimeItemsReset,
@@ -84,14 +69,20 @@ from maptasker.src.primitem import (
     initial_tasker_root_elements,
     reset_attributes,
 )
-from maptasker.src.runcfg import current_config
-from maptasker.src.sysconst import ERROR_FILE, TIMELINE_FILE, logger
-from maptasker.src.taskerd import get_the_xml_data
+from maptasker.src.core.runcfg import current_config
+from maptasker.src.core.sysconst import ERROR_FILE, TIMELINE_FILE, logger
+from maptasker.src.mapgen import mapexport
+from maptasker.src.mapgen.bildhtml import build_html
+from maptasker.src.mapgen.frontmtr import output_the_front_matter
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.mapgen.outline import outline_the_configuration
+from maptasker.src.mapgen.taskerd import get_the_xml_data
+from maptasker.src.mapops import trend
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from maptasker.src.primitem import RunState
+    from maptasker.src.core.primitem import RunState
 
 # ##################################################################################
 # The exit codes.  0-8 are the ones the command line already had (see parsearg's epilog);

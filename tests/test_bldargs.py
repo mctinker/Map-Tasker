@@ -14,8 +14,8 @@ import json
 from pathlib import Path
 
 import pytest
-from maptasker.src import bldargs, console
-from maptasker.src.actionc import action_codes
+from maptasker.src.core import bldargs, console
+from maptasker.src.core.actionc import action_codes
 
 _BACKUP = """<TaskerData sr="" dvi="1" tv="6.3.13">
   <Profile sr="prof1">

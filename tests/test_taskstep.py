@@ -23,8 +23,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from maptasker.src import taskstep
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import taskstep
+from maptasker.src.core.primitem import PrimeItems
 
 from tests.test_tnupdate import _load_local, _runtime  # noqa: F401  (_runtime is the fixture)
 

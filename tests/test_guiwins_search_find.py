@@ -16,9 +16,10 @@ from typing import TYPE_CHECKING
 import pytest
 from nicegui import ui
 
-from maptasker.src import guiwins_search, mapask, mapfind
-from maptasker.src.mapjump import TASK
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import mapask, mapfind
+from maptasker.src.gui import guiwins_search
+from maptasker.src.core.mapjump import TASK
+from maptasker.src.core.primitem import PrimeItems
 from tests.search_dialog import built, by_text, click, field, labels, links, open_dialog, press_find, select
 from tests.test_mapfind import _FIXTURE_XML, _load
 

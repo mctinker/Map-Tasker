@@ -14,8 +14,10 @@ import contextlib
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src import guiwins_fix, mapfix, sessundo
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.edit import sessundo
+from maptasker.src.gui import guiwins_fix
+from maptasker.src.mapops import mapfix
+from maptasker.src.core.primitem import PrimeItems
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation

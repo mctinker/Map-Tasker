@@ -20,9 +20,9 @@ import sys
 
 import pytest
 
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import console
-from maptasker.src.mtexcept import MapTaskerError
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core import console
+from maptasker.src.core.mtexcept import MapTaskerError
 
 
 # ##################################################################################
@@ -62,7 +62,7 @@ def test_exit_program_raises_rather_than_exiting() -> None:
 
     Imported inside the test because maputils pulls in a large part of the package.
     """
-    from maptasker.src.error import exit_program  # noqa: PLC0415
+    from maptasker.src.core.error import exit_program  # noqa: PLC0415
 
     with pytest.raises(MapTaskerError) as raised:
         exit_program(5)
@@ -75,7 +75,7 @@ def test_a_clean_shutdown_raises_too() -> None:
     If this returned normally instead, every caller written as "exit_program(0)" followed
     by unreachable code would run that code.
     """
-    from maptasker.src.error import exit_program  # noqa: PLC0415
+    from maptasker.src.core.error import exit_program  # noqa: PLC0415
 
     with pytest.raises(MapTaskerError) as raised:
         exit_program(0)
@@ -84,7 +84,7 @@ def test_a_clean_shutdown_raises_too() -> None:
 
 def test_a_caller_can_contain_it() -> None:
     """What a GUI button handler and diffload.load_for_comparison both rely on."""
-    from maptasker.src.error import exit_program  # noqa: PLC0415
+    from maptasker.src.core.error import exit_program  # noqa: PLC0415
 
     def guarded() -> str:
         try:
@@ -167,7 +167,7 @@ def test_a_message_is_shown_once_not_twice() -> None:
     capsys in-process, this test passes whether the NullHandler is there or not.
     """
     result = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", "from maptasker.src import console; console.warn('careful')"],
+        [sys.executable, "-c", "from maptasker.src.core import console; console.warn('careful')"],
         capture_output=True,
         text=True,
         check=True,
@@ -181,7 +181,7 @@ def test_debug_output_is_logged_but_not_shown(capsys: pytest.CaptureFixture, cap
 
     They stay in the log, where they are useful afterwards, and off the user's terminal.
     """
-    from maptasker.src.primitem import PrimeItems  # noqa: PLC0415
+    from maptasker.src.core.primitem import PrimeItems  # noqa: PLC0415
 
     PrimeItems.program_arguments = ProgramArguments(debug=False)
     with caplog.at_level(logging.DEBUG, logger="MapTasker"):
@@ -192,7 +192,7 @@ def test_debug_output_is_logged_but_not_shown(capsys: pytest.CaptureFixture, cap
 
 def test_debug_output_is_shown_when_debugging(capsys: pytest.CaptureFixture) -> None:
     """And it does appear for whoever asked for it."""
-    from maptasker.src.primitem import PrimeItems  # noqa: PLC0415
+    from maptasker.src.core.primitem import PrimeItems  # noqa: PLC0415
 
     PrimeItems.program_arguments = ProgramArguments(debug=True)
     console.debug("internal detail")

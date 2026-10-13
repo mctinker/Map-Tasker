@@ -9,10 +9,10 @@ here is which Tasks are handed to it and what is written around them.
 from __future__ import annotations
 
 import pytest
-from maptasker.src import taskuniq
-from maptasker.src.primitem import RunState
-from maptasker.src.runcfg import current_config
-from maptasker.src.sysconst import NO_PROJECT
+from maptasker.src.mapgen import taskuniq
+from maptasker.src.core.primitem import RunState
+from maptasker.src.core.runcfg import current_config
+from maptasker.src.core.sysconst import NO_PROJECT
 
 
 class _Output:

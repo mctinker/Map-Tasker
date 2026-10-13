@@ -19,15 +19,16 @@ import re
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import mapjump, piiscan, taskerd
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
-from maptasker.src.lineout import LineOut
-from maptasker.src.mapjump import PROJECT, TASK, Target
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.runcfg import current_config
-from maptasker.src.property import get_properties
-from maptasker.src.share import share
+from maptasker.src.core import mapjump, piiscan
+from maptasker.src.mapgen import taskerd
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.mapjump import PROJECT, TASK, Target
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.runcfg import current_config
+from maptasker.src.core.property import get_properties
+from maptasker.src.core.share import share
 
 # One of everything, with its clean counterpart alongside it.
 #
@@ -384,7 +385,7 @@ def test_an_untouched_export_is_untouched(loaded: ET.Element) -> None:
     Asserted through the renderer's own flag rather than by not calling redact_tree, because
     the default is the thing that could regress.
     """
-    from maptasker.src import projedit  # noqa: PLC0415  - imported here to keep the GUI stack out of the rest
+    from maptasker.src.edit import projedit
 
     plain = projedit.render_standalone_project_xml("Home", state=PrimeItems)
     assert "[REDACTED:" not in plain
@@ -401,7 +402,7 @@ def test_a_redacted_export_says_so(loaded: ET.Element) -> None:
     Whoever opens it next has no way of knowing it was edited, and an action reading
     [REDACTED:API-KEY] would otherwise look like a bug in the configuration.
     """
-    from maptasker.src import projedit  # noqa: PLC0415
+    from maptasker.src.edit import projedit
 
     exported = projedit.render_standalone_project_xml("Home", redact=True, state=PrimeItems)
     assert exported.startswith("<!--")

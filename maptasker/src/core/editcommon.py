@@ -1,0 +1,264 @@
+"""editcommon: the naming, XML-child and device-upload steps the four object editors do identically.
+
+projedit, profedit, taskedit and sceneedit each build an editable model of one kind of
+Tasker object and export it, and the export is the same export four times over: turn the
+object's name into a legal filename, work out where that file goes locally and on the
+device, and -- for Save To Android -- upload it and read it back to prove it landed.
+Only three things actually differ between them, and they are what EditorKind holds.
+
+Kept as a module of its own, below all four editors in the import order, because the
+duplication had already spread past them: devicetask and presave each re-spelled the
+illegal-character substitution too, both with a comment saying they would rather have
+imported it but that importing an editor would be a cycle.  Nothing here imports an
+editor, so that reason is gone and devicetask imports this instead.  The pattern itself,
+ILLEGAL_IN_FILENAME, lives in sysconst, and presave takes it from there: the upload below
+reaches presave through maputil2, so presave importing this module would close a loop.
+"""
+
+from __future__ import annotations
+
+import os
+import time
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from maptasker.src.core import maputil2, outdir
+
+# maputil2's upload and read-back are called through the module, not imported by name, so a
+# test that stands in for them on maputil2 is the one these calls reach.
+from maptasker.src.core.sysconst import ILLEGAL_IN_FILENAME
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from xml.etree.ElementTree import Element
+
+    from maptasker.src.core.primitem import RunState
+
+
+# What a failed upload's readback answers with when there is nothing to hand back.
+_NO_BYTES = b""
+
+
+def restore_element(element: Element, snapshot: Element) -> None:
+    """Put a snapshot of an element back, in place.
+
+    Replaces the live element's children and attributes rather than rebinding it, because
+    whoever is editing it -- EditableScene, a dialog's field_refs, a Preview, the save path -- holds
+    *this* element object; swapping in the copy would leave every one of them working on something
+    that is no longer going to be saved.  Kind-agnostic: a Version 2 Scene's designer does the same
+    thing to its layout dict, for the same reason.
+    """
+    element[:] = list(snapshot)
+    element.attrib.clear()
+    element.attrib.update(snapshot.attrib)
+    element.text = snapshot.text
+
+
+def set_child_text(parent: Element, tag: str, text: str) -> None:
+    """Set (creating if need be) one child's text.
+
+    Builds a new child with the parent's own class rather than ETW.SubElement: the tree
+    being edited is parsed by defusedxml, whose hardened XMLParser forces the pure-Python
+    Element implementation, and .append() enforces an exact type match -- so a
+    stdlib-class child would be refused.
+    """
+    child = parent.find(tag)
+    if child is None:
+        child = type(parent)(tag)
+        parent.append(child)
+    child.text = text
+
+
+def touch_project_mdate(project_element: Element) -> None:
+    """Stamps a Project's <mdate> with the current time -- real Tasker Projects
+    use <mdate> for "last modified", not <edate> the way Task/Profile do (see
+    projedit.create_new_project's docstring for the confirmation). Call this from
+    anything that mutates an already-registered Project's element:
+    projedit.apply_edits_to_project (Rename), profedit.add_profile_to_project/
+    add_task_to_project (Add Profile/Add Task attaching to this Project), and the Task
+    and Scene editors where they change a Project.  Here with set_child_text because
+    all four editors stamp a Project, and "how the timestamp is formatted" is worth
+    keeping in one place.
+    """
+    set_child_text(project_element, "mdate", str(int(time.time() * 1000)))
+
+
+def save_path_exists(output_path: str) -> bool:
+    """Whether a file already sits at this save path (would be silently overwritten)."""
+    return bool(output_path) and os.path.exists(output_path)
+
+
+def sanitize_filename(name: str, fallback: str) -> str:
+    """Strip characters illegal in filenames from an object's name (minimal, not a full slugify).
+
+    `fallback` is what a name with nothing left in it becomes -- one that was empty or
+    only whitespace.  A name of nothing BUT illegal characters does not reach it: those
+    are substituted, not dropped, so '<>|' sanitizes to '___' and keeps it.
+
+    Two different names can still sanitize onto one filename ("Wake: Up" and "Wake_ Up"
+    both become "Wake_ Up"), which is the collision the save buttons' overwrite prompt
+    exists to catch -- see EditorKind.android_path.
+    """
+    return ILLEGAL_IN_FILENAME.sub("_", name).strip() or fallback
+
+
+@dataclass(frozen=True)
+class EditorKind:
+    """What one editor's exports need to know that the other three's don't.
+
+    One instance per editor, built at import time beside that editor's own
+    ANDROID_*_LOCATION and named EXPORT in all four (projedit.EXPORT, profedit.EXPORT,
+    taskedit_save.EXPORT, sceneedit.EXPORT -- not PROJECT/PROFILE/TASK/SCENE, which mapjump
+    already uses for these same four kinds as plain strings).  Everything else about an
+    export is the same for all four and lives on this class.
+    """
+
+    # What a name with nothing usable left in it falls back to: "project", "task", ...
+    fallback: str
+    # The compound extension Tasker's own single-object exports use: ".prj.xml", ...
+    extension: str
+    # Destination folder on the Android device for Save To Android: "Tasker/projects", ...
+    android_location: str
+
+    def sanitize_filename(self, name: str) -> str:
+        """This kind's name-to-filename substitution, with its own fallback."""
+        return sanitize_filename(name, self.fallback)
+
+    def default_save_path(self, name: str, state: RunState) -> str:
+        """Default standalone-export path: {output folder}/{sanitized name}{extension}.
+
+        Uses the output folder (see outdir) rather than the loaded backup file's directory
+        -- the backup is picked from wherever the user keeps their XML (see
+        getxml_event/local_xml_start_directory in userintr_loading.py), which isn't
+        necessarily where an exported object should land.
+        """
+        return outdir.output_path(f"{self.sanitize_filename(name)}{self.extension}", state=state)
+
+    def android_path(self, name: str) -> str:
+        """The absolute path a Save To Android of this object would write to on the device.
+
+        Single source of truth for that path: the upload writes here and the GUI's
+        overwrite check reads it back through maputil2.read_android_file, so the two must
+        never drift apart.  Derived from the *sanitized* name, so two differently-named
+        objects can map to one file ("Home/Work" and "Home_Work" both become
+        "Home_Work") and a blank name lands on "{fallback}{extension}" -- the overwrite
+        prompt this feeds is the only thing standing between those collisions and silent
+        data loss, since /upload itself reports success either way.
+        """
+        return f"/{self.android_location}/{self.sanitize_filename(name)}{self.extension}"
+
+    def upload_and_verify(
+        self,
+        ip_address: str,
+        ip_port: str,
+        object_name: str,
+        render_bytes: Callable[[], bytes],
+    ) -> tuple[int, str, bytes]:
+        """Write the object onto the device's storage and hand back WHAT THE DEVICE NOW HOLDS.
+
+        Returns (0, device_file_path, bytes_read_back) or (return_code, error_message, b"").
+
+        THIS IS NOT AN IMPORT: nothing reaches Tasker's live configuration, Tasker does
+        not watch these directories, and the file simply sits there for the user or their
+        own device-side automation to pick up.  It also needs no authorization -- /upload
+        takes no Authorization header, so unlike the api/import route there is no key to
+        cache and no prompt on the device.  (taskedit_save.save_task_to_android does this write
+        and then imports what it wrote; that second step is Task-only and stays there.)
+
+        The readback is the point.  /upload answers 200 even for a nonexistent or bogus
+        location -- it silently creates missing folders and never reports failure at the
+        HTTP layer -- so a 200 alone proves nothing.  The bytes come back as the third
+        value rather than being compared and dropped because one caller posts them
+        onward: reading twice would leave the verified bytes and the imported bytes as
+        separate facts about the device, which is exactly the gap where they could differ.
+
+        `render_bytes` is called only once the address has been checked, so a missing IP
+        costs nothing.  Anything it raises -- ValueError, where the object has been
+        deleted since the dialog opened -- is the caller's to catch, since only the
+        caller knows whether its render can raise at all.
+        """
+        ip_address = ip_address.strip()
+        ip_port = ip_port.strip()
+        if not ip_address or not ip_port:
+            return 8, "Android IP address and port are required.", _NO_BYTES
+
+        xml_bytes = render_bytes()
+        device_path = self.android_path(object_name)
+        filename = device_path.rsplit("/", 1)[-1]
+
+        return_code, response = maputil2.http_upload_request(
+            ip_address,
+            ip_port,
+            self.android_location,
+            filename,
+            xml_bytes,
+        )
+        if return_code != 0:
+            return return_code, str(response), _NO_BYTES
+
+        # Retried rather than trusted: /upload is a Tasker Task writing to storage and this
+        # read is a second request answered by a second Task, so a write still settling
+        # answers 404 to a read that arrives too soon -- and failing on the first miss
+        # aborts a save whose file is on the device a moment later.  See
+        # maputil2.read_back_uploaded_file.
+        verify_code, verify_content = maputil2.read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
+        if verify_code != 0:
+            return 8, str(verify_content), _NO_BYTES
+
+        return 0, device_path, verify_content
+
+
+# ##################################################################################
+# Reading a node's arguments.  Shared by every analysis that has to know what a Tasker action,
+# condition or Scene element holds -- varxref, and the Scene models that varxref and healthck both
+# ask (scenemodel) -- so it lives below all of them.
+# ##################################################################################
+def string_arguments(action: Element) -> dict[str, str]:
+    """{arg id: text} for one action's or Scene element's arguments.
+
+    Matched on the "sr" attribute rather than child order, which Tasker does not
+    guarantee -- the same way taskedit.py and healthck.py reach an argument.
+
+    Covers both shapes an argument can take.  A text argument is <Str sr="argN">, but an
+    argument Tasker expects a NUMBER in holds <Int sr="argN"><var>%Volume</var></Int> when
+    the user has bound a variable to it instead of typing a figure.  Reading only the <Str>
+    children missed 833 of those in a real backup to hand, across 70 names -- every
+    variable driving a volume, a delay, a slider position or a screen brightness.
+    """
+    arguments = {}
+    for child in action.findall("Str"):
+        sr = child.attrib.get("sr", "")
+        if sr.startswith("arg"):
+            arguments[sr[3:]] = child.text or ""
+    for child in action.findall("Int"):
+        sr = child.attrib.get("sr", "")
+        bound = child.find("var")
+        if sr.startswith("arg") and bound is not None and bound.text:
+            # setdefault, not assignment: an argument is one or the other, and the <Str>
+            # reading is the one to keep if a file ever carries both.
+            arguments.setdefault(sr[3:], bound.text)
+    return arguments
+
+
+def argument_elements(node: Element) -> dict:
+    """{arg id: the element whose .text holds the value} -- what string_arguments reads.
+
+    Deliberately the same two shapes, in the same precedence, as that function: these two
+    have to agree about what an argument is, or a reference would be recorded against one
+    element and rewritten in another.
+
+    The <Int> case is why this is not simply "the child carrying that sr": a numeric
+    argument the user has bound a variable to holds it in a <var> child, so the <var> is
+    the element a rewrite has to touch, not the <Int> around it.
+    """
+    elements = {}
+    for child in node.findall("Str"):
+        sr = child.attrib.get("sr", "")
+        if sr.startswith("arg"):
+            elements[sr[3:]] = child
+    for child in node.findall("Int"):
+        sr = child.attrib.get("sr", "")
+        bound = child.find("var")
+        if sr.startswith("arg") and bound is not None and bound.text:
+            elements.setdefault(sr[3:], bound)
+    return elements

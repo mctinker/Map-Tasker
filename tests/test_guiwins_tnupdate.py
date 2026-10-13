@@ -17,10 +17,12 @@ import threading
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src import guiwins_tnupdate, sessundo, tnfind, tnupdate
-from maptasker.src import guiwins_tnfind
-from maptasker.src.guiwins_tnfind import build_find_dialog
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.edit import sessundo
+from maptasker.src.gui import guiwins_tnupdate
+from maptasker.src.mapops import tnfind, tnupdate
+from maptasker.src.gui import guiwins_tnfind
+from maptasker.src.gui.guiwins_tnfind import build_find_dialog
+from maptasker.src.core.primitem import PrimeItems
 from nicegui import context, core, ui
 from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction

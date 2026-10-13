@@ -9,7 +9,7 @@ Two things every test here relies on:
 
   * The page is built by _build_window, a function of this module.  user_simulation removes
     the module of every page function from sys.modules when it closes, unless that module's
-    name starts with 'tests.' -- handing it MyGui itself would evict maptasker.src.userintr
+    name starts with 'tests.' -- handing it MyGui itself would evict maptasker.src.gui.userintr
     and its parent packages, and every later test would import a second copy of PrimeItems.
   * Each window starts in a directory of its own, with a fresh run's arguments and no loaded
     backup.  MyGui() reads the settings file, the changelog and the AI error files from the
@@ -30,13 +30,14 @@ from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src import guiutils, guiwins, primitem
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
-from maptasker.src.getputer import save_restore_args
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import ARGUMENTS_FILE
+from maptasker.src.core import primitem
+from maptasker.src.gui import guiutils, guiwins
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
+from maptasker.src.core.getputer import save_restore_args
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import ARGUMENTS_FILE
 
 pytestmark = pytest.mark.asyncio
 
@@ -45,7 +46,7 @@ _built: dict = {}
 
 def _build_window() -> None:
     """The "/" page: the real window, kept where the test can reach it."""
-    from maptasker.src.userintr import MyGui  # noqa: PLC0415
+    from maptasker.src.gui.userintr import MyGui  # noqa: PLC0415
 
     _built["gui"] = MyGui()
 

@@ -14,11 +14,11 @@ import pickle
 from pathlib import Path
 
 import pytest
-from maptasker.src import getputer
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import (
+from maptasker.src.core import getputer
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import (
     ARGUMENT_NAMES,
     ARGUMENTS_FILE,
     GEMINI_MODELS,

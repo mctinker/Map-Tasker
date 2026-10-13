@@ -22,9 +22,9 @@ from __future__ import annotations
 import json
 import os
 
-from maptasker.src.actionc import action_codes
-from maptasker.src.actione import check_for_deprecation
-from maptasker.src.deprecate import depricated
+from maptasker.src.core.actionc import action_codes
+from maptasker.src.mapgen.actione import check_for_deprecation
+from maptasker.src.core.deprecate import depricated
 
 MARKER = "<em> (Is Deprecated)</em> "
 

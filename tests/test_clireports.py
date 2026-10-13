@@ -19,9 +19,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
-from maptasker.src import clireports, timeline
-from maptasker.src.primitem import PrimeItems, PrimeItemsReset
-from maptasker.src.sysconst import ARGUMENTS_FILE, ERROR_FILE
+from maptasker.src import clireports
+from maptasker.src.core import timeline
+from maptasker.src.core.primitem import PrimeItems, PrimeItemsReset
+from maptasker.src.core.sysconst import ARGUMENTS_FILE, ERROR_FILE
 
 from tests.test_healthck import _DEFECTIVE_XML
 
@@ -402,7 +403,7 @@ def test_save_also_writes_the_report_the_way_the_window_does(tmp_path: Path, cap
 
 
 def test_a_report_that_cannot_be_saved_is_exit_2(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("maptasker.src.healthck.write_health_check_report", lambda _rows, **_kw: "")
+    monkeypatch.setattr("maptasker.src.analysis.healthck.write_health_check_report", lambda _rows, **_kw: "")
 
     assert _run("-healthcheck", "-save", "-file", str(_backup(tmp_path))) == clireports.EXIT_OUTPUT_FAILED
 
@@ -459,7 +460,7 @@ def test_a_watch_is_stopped_cleanly_by_an_interrupt(tmp_path: Path, monkeypatch:
     def stop(*_args: object, **_kwargs: object) -> None:
         raise KeyboardInterrupt
 
-    monkeypatch.setattr("maptasker.src.folderwatch.watch", stop)
+    monkeypatch.setattr("maptasker.src.analysis.folderwatch.watch", stop)
 
     assert _run("-watch", str(folder)) == clireports.EXIT_OK
 

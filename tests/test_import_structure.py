@@ -52,26 +52,31 @@ _LARGEST_LOOP = 0
 
 def _import_graphs() -> tuple[dict[str, set[str]], dict[tuple[str, str], list[int]]]:
     """Module-level imports as {importer: {imported}}, and deferred ones as {(importer, imported): [lines]}."""
-    modules = {path.stem for path in _SRC.glob("*.py") if path.stem != "__init__"}
+    paths = {path.stem: path for path in _SRC.rglob("*.py") if path.stem != "__init__"}
+    modules = set(paths)
     module_level: dict[str, set[str]] = {module: set() for module in modules}
     deferred: dict[tuple[str, str], list[int]] = defaultdict(list)
 
     def imported(node: ast.AST) -> list[str]:
+        """The modules a statement imports, whichever sub-package they live in."""
         if isinstance(node, ast.ImportFrom) and node.module:
-            if node.module == "maptasker.src":
-                return [alias.name for alias in node.names if alias.name in modules]
-            if node.module.startswith("maptasker.src."):
-                return [name] if (name := node.module.split(".")[2]) in modules else []
+            parts = node.module.split(".")
+            if parts[:2] != ["maptasker", "src"]:
+                return []
+            if len(parts) >= 3 and parts[-1] in modules:  # from maptasker.src[.pkg].mod import name
+                return [parts[-1]]
+            # from maptasker.src[.pkg] import mod, mod2
+            return [alias.name for alias in node.names if alias.name in modules]
         if isinstance(node, ast.Import):
             return [
-                alias.name.split(".")[2]
+                parts[-1]
                 for alias in node.names
-                if alias.name.startswith("maptasker.src.") and alias.name.split(".")[2] in modules
+                if (parts := alias.name.split("."))[:2] == ["maptasker", "src"] and parts[-1] in modules
             ]
         return []
 
     for module in modules:
-        tree = ast.parse((_SRC / f"{module}.py").read_text(encoding="utf-8"))
+        tree = ast.parse(paths[module].read_text(encoding="utf-8"))
 
         def walk(nodes: list[ast.stmt], in_function: bool, module: str = module) -> None:
             for node in nodes:

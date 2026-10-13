@@ -19,8 +19,8 @@ from pathlib import Path
 
 import pytest
 import requests
-from maptasker.src import clock, console, maputils
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core import clock, console, maputils
+from maptasker.src.core.primitem import PrimeItems
 
 from tests.test_mapswap import _FIXTURE_XML, _load
 

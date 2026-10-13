@@ -20,10 +20,11 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
-from maptasker.src import console, mapai
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.primitem import RunState
-from maptasker.src.sysconst import ANALYSIS_FILE, ERROR_FILE
+from maptasker.src.core import console
+from maptasker.src.gui import mapai
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.primitem import RunState
+from maptasker.src.core.sysconst import ANALYSIS_FILE, ERROR_FILE
 
 
 @pytest.fixture

@@ -5,11 +5,11 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src import guistate
-from maptasker.src.guistate import live_selection
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import ARGUMENT_NAMES
+from maptasker.src.gui import guistate
+from maptasker.src.gui.guistate import live_selection
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import ARGUMENT_NAMES
 
 SELECTION_NAMES = ("single_project_name", "single_profile_name", "single_task_name", "single_scene_name")
 

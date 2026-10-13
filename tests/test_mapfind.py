@@ -15,10 +15,11 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import mapfind, taskerd
-from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.analysis import mapfind
+from maptasker.src.mapgen import taskerd
+from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK
+from maptasker.src.core.primitem import PrimeItems
 
 # Two Projects, and one object per facet with a near neighbour that must stay out of the
 # answer.

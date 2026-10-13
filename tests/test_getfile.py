@@ -3,7 +3,7 @@
 import os
 import platform
 
-from maptasker.src import getfile
+from maptasker.src.gui import getfile
 
 
 def test_windows_drives_needs_no_pywin32():

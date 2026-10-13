@@ -11,7 +11,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src import userintr_android
+from maptasker.src.gui import userintr_android
 
 IP, PORT, FILE = "192.168.0.5", "1821", "/sdcard/backup.xml"
 

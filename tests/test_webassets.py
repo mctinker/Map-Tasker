@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 
-from maptasker.src import webassets
+from maptasker.src.gui import webassets
 
 
 def test_an_asset_url_changes_when_the_file_does(tmp_path, monkeypatch) -> None:

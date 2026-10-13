@@ -26,10 +26,10 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import objprops
-from maptasker.src import property as prop
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.runcfg import current_config
+from maptasker.src.core import objprops
+from maptasker.src.core import property as prop
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.runcfg import current_config
 
 # The Atest2 export, trimmed to its properties and one condition: a repeat count of 5 and
 # <flags>12</flags>, which is Delete After Disable (mask 4) plus the Ignore Settings bit
@@ -153,7 +153,7 @@ def captured_output(monkeypatch):
     """The Map's output lines, captured instead of written."""
     from unittest.mock import MagicMock  # noqa: PLC0415
 
-    from maptasker.src.primitem import PrimeItems  # noqa: PLC0415
+    from maptasker.src.core.primitem import PrimeItems  # noqa: PLC0415
 
     lines: list[str] = []
     sink = MagicMock()

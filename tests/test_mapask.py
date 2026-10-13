@@ -16,9 +16,9 @@ import json
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src import mapask, mapfind
-from maptasker.src.mapjump import PROFILE
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import mapask, mapfind
+from maptasker.src.core.mapjump import PROFILE
+from maptasker.src.core.primitem import PrimeItems
 
 from tests.test_mapfind import _FIXTURE_XML, _load, _named
 

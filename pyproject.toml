@@ -152,7 +152,7 @@ src = ['src',]
 # The project's one logger lives in sysconst and is imported everywhere else.  Naming it
 # here lets ruff see that 'logger.exception(...)' records the traceback -- without it, a
 # broad except that does log its failure still trips BLE001.
-logger-objects = ["maptasker.src.sysconst.logger"]
+logger-objects = ["maptasker.src.core.sysconst.logger"]
 # PLW1514 (open() with no encoding=) is a preview rule.  On Windows the default encoding is
 # the locale's (cp1252), not UTF-8, so an open() with no encoding garbles or rejects a
 # non-ASCII Tasker name there and works fine on a Mac -- the kind of bug a Mac never shows.
@@ -286,62 +286,62 @@ max-complexity = 15
 # This list is a ratchet: fix a file, delete its line. Do not add to it.
 # Regenerate/verify with:  ruff check --statistics
 # ---------------------------------------------------------------------------
-'maptasker/src/aiutils.py' = ['ISC004']
-'maptasker/src/bldargs.py' = ['PERF401']
-'maptasker/src/clip.py' = ['PGH004']
-'maptasker/src/colors.py' = ['D100', 'PLR1722']
-'maptasker/src/condition.py' = ['RET504']
-'maptasker/src/deprecate.py' = ['D100']
+'maptasker/src/core/aiutils.py' = ['ISC004']
+'maptasker/src/core/bldargs.py' = ['PERF401']
+'maptasker/src/core/clip.py' = ['PGH004']
+'maptasker/src/mapgen/colors.py' = ['D100', 'PLR1722']
+'maptasker/src/mapgen/condition.py' = ['RET504']
+'maptasker/src/core/deprecate.py' = ['D100']
 # deviceinv.py was split by responsibility into the device* modules.  The helper-Task builders
 # return an EditableTask or an error string and were never annotated; the entries follow them,
 # and F811 (verify_profile_on_android defined twice, the first one dead) went with the duplicate.
-'maptasker/src/devicecheck.py' = ['ANN201']
-'maptasker/src/devicefiles.py' = ['ANN201']
-'maptasker/src/deviceimport.py' = ['ANN201']
-'maptasker/src/deviceinv.py' = ['ANN201']
-'maptasker/src/deviceoffer.py' = ['ANN201']
-'maptasker/src/devicetask.py' = ['ANN201']
-'maptasker/src/diagintr.py' = ['PLW2901']
-'maptasker/src/diagram.py' = ['PLW2901']
-'maptasker/src/format.py' = ['ARG002', 'S105']
-'maptasker/src/getfile.py' = ['ANN201', 'ANN202', 'D101', 'D102', 'N801', 'PLC0415']
-'maptasker/src/getputer.py' = ['PERF403']
-'maptasker/src/guiwins.py' = ['ARG001', 'ISC004']
+'maptasker/src/device/devicecheck.py' = ['ANN201']
+'maptasker/src/device/devicefiles.py' = ['ANN201']
+'maptasker/src/device/deviceimport.py' = ['ANN201']
+'maptasker/src/device/deviceinv.py' = ['ANN201']
+'maptasker/src/device/deviceoffer.py' = ['ANN201']
+'maptasker/src/device/devicetask.py' = ['ANN201']
+'maptasker/src/mapgen/diagintr.py' = ['PLW2901']
+'maptasker/src/mapgen/diagram.py' = ['PLW2901']
+'maptasker/src/core/format.py' = ['ARG002', 'S105']
+'maptasker/src/gui/getfile.py' = ['ANN201', 'ANN202', 'D101', 'D102', 'N801', 'PLC0415']
+'maptasker/src/core/getputer.py' = ['PERF403']
+'maptasker/src/gui/guiwins.py' = ['ARG001', 'ISC004']
 # guiwins.py was split by dialog family into the guiwins_* modules below. These are its
 # own backlog entries following the code out of it, not new debt -- the same oversized
 # dialog builders, now in the file they belong to. guiwins.py's own line shrank by three
 # rules in the move (PLR0912, RUF100, SIM117), and guiwins_canvas.py needs no line at all.
 # The second split, into guiwins_views/_search/_nav, took C901 and SLF001 with it: the
 # view the private attributes belong to, and the one function too complex, both went.
-'maptasker/src/guiwins_designer_v2.py' = ['SIM117']
-'maptasker/src/guiwins_search.py' = ['SLF001']
-'maptasker/src/guiwins_views.py' = ['ISC004', 'SLF001']
-'maptasker/src/mapai.py' = ['F811']
+'maptasker/src/gui/guiwins_designer_v2.py' = ['SIM117']
+'maptasker/src/gui/guiwins_search.py' = ['SLF001']
+'maptasker/src/gui/guiwins_views.py' = ['ISC004', 'SLF001']
+'maptasker/src/gui/mapai.py' = ['F811']
 'maptasker/src/mapit.py' = ['ANN001', 'ARG001']
-'maptasker/src/mapjump.py' = ['I001']
-'maptasker/src/maputil2.py' = ['A004']
-'maptasker/src/outline.py' = ['PLW2901', 'SIM102']
-'maptasker/src/prefers.py' = ['ISC001']
-'maptasker/src/profiles.py' = ['ARG001', 'PLC0415']
-'maptasker/src/projects.py' = ['ISC004']
-'maptasker/src/projedit.py' = ['ISC004']
-'maptasker/src/roundtrip.py' = ['D105']
-'maptasker/src/sceneedit.py' = ['I001']
+'maptasker/src/core/mapjump.py' = ['I001']
+'maptasker/src/core/maputil2.py' = ['A004']
+'maptasker/src/mapgen/outline.py' = ['PLW2901', 'SIM102']
+'maptasker/src/core/prefers.py' = ['ISC001']
+'maptasker/src/mapgen/profiles.py' = ['ARG001', 'PLC0415']
+'maptasker/src/mapgen/projects.py' = ['ISC004']
+'maptasker/src/edit/projedit.py' = ['ISC004']
+'maptasker/src/edit/roundtrip.py' = ['D105']
+'maptasker/src/edit/sceneedit.py' = ['I001']
 # sceneedit.py's own backlog entries, following the code that has them into its two halves.
-'maptasker/src/sceneedit_legacy.py' = ['ARG001']
-'maptasker/src/sceneedit_v2.py' = ['D102', 'D105', 'D107']
-'maptasker/src/sceneview.py' = ['D102', 'D107', 'F541', 'ISC001', 'RUF001', 'SIM117']
-'maptasker/src/servicec.py' = ['D100']
-'maptasker/src/shelsort.py' = ['D100']
+'maptasker/src/edit/sceneedit_legacy.py' = ['ARG001']
+'maptasker/src/edit/sceneedit_v2.py' = ['D102', 'D105', 'D107']
+'maptasker/src/gui/sceneview.py' = ['D102', 'D107', 'F541', 'ISC001', 'RUF001', 'SIM117']
+'maptasker/src/core/servicec.py' = ['D100']
+'maptasker/src/core/shelsort.py' = ['D100']
 # taskedit.py was split by responsibility into the taskedit_* modules; its own backlog entries
 # followed the code out of it, and the core no longer has one.
-'maptasker/src/taskedit_addable.py' = ['ANN001']
-'maptasker/src/taskedit_args.py' = ['ANN001', 'SIM108']
-'maptasker/src/taskedit_save.py' = ['ARG001']
-'maptasker/src/taskerd.py' = ['PLC0415']
+'maptasker/src/edit/taskedit_addable.py' = ['ANN001']
+'maptasker/src/edit/taskedit_args.py' = ['ANN001', 'SIM108']
+'maptasker/src/edit/taskedit_save.py' = ['ARG001']
+'maptasker/src/mapgen/taskerd.py' = ['PLC0415']
 # userintr.py's two entries moved with the Android handlers they belong to (see the guiwins
 # note above): userintr.py itself no longer violates either rule, so it has no line.
-'maptasker/src/userintr_android.py' = ['F841', 'RUF059']
+'maptasker/src/gui/userintr_android.py' = ['F841', 'RUF059']
 
 [tool.ruff.lint.pylint]
 # Ceilings, not targets: each is as low as the code allows, so the worst function in the
@@ -443,16 +443,21 @@ pythonPlatform = "Linux"
 venvPath = "."
 venv = ".venv"
 
-# Import layering, checked by import-linter ('lint-imports') in CI.  Three layers, each
-# allowed to import only the ones below it:
-#   entry points  -- start the program and pick CLI or GUI
-#   GUI           -- NiceGUI windows, dialogs and their event handlers
-#   core          -- reading, analysing, editing and reporting on a Tasker configuration
-# so a GUI module cannot be pulled into the core by accident, and the core stays usable by
-# the CLI and the tests without a web server.  Every module in maptasker.src must be in
-# exactly one layer ("exhaustive"): a new module fails the check until it is placed.
-# Import cycles, and the imports deferred into functions to break them, are ratcheted
-# separately by tests/test_import_structure.py.
+# Import layering, checked by import-linter ('lint-imports') in CI.  The source is split into
+# sub-packages of maptasker/src, each layer allowed to import only the ones below it:
+#   entry points  -- mapit, progargs, runcli, rungui, clireports: start the program, CLI or GUI
+#   gui           -- NiceGUI windows, dialogs and their event handlers
+#   device        -- what is done on the Android device, through Tasker's HTTP server
+#   mapops        -- bulk replace, refactor, repair, restore, draft; the TaskerNet and readiness tools
+#   analysis      -- read-only questions asked of a configuration
+#   mapgen : edit -- loading a backup and building the Map from it; the Task/Profile/Project/Scene
+#                    editors and Undo.  Siblings: each needs a little of the other.
+#   core          -- run state, the Tasker action tables, shared utilities
+# so a GUI module cannot be pulled into the core by accident, the core stays usable by the CLI
+# and the tests without a web server, and the Map builder never reaches up into an operation.
+# Every module in maptasker.src must be in exactly one layer ("exhaustive"): a new package fails
+# the check until it is placed.  Import cycles, and the imports deferred into functions to break
+# them, are ratcheted separately by tests/test_import_structure.py.
 [tool.importlinter]
 root_package = "maptasker"
 include_external_packages = true
@@ -462,46 +467,18 @@ include_external_packages = true
 exclude_type_checking_imports = true
 
 [[tool.importlinter.contracts]]
-name = "Entry points above the GUI, the GUI above the core"
+name = "Entry points above the GUI, the GUI above the operations, the operations above the core"
 type = "layers"
 containers = ["maptasker.src"]
 exhaustive = true
 layers = [
-    """
-    mapit : progargs : runcli : rungui : clireports
-    """,
-    """
-    getfile : guistate : guiutils : guiwins :
-    guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 : guiwins_designers : guiwins_draft : guiwins_editor :
-    guiwins_firesim : guiwins_fix : guiwins_impact : guiwins_legacyarg : guiwins_nav : guiwins_profedit :
-    guiwins_readiness : guiwins_refactor : guiwins_restore : guiwins_sceneprops : guiwins_search : guiwins_taskedit : guiwins_taskstep :
-    guiwins_tnfind : guiwins_tnupdate : guiwins_trend : guiwins_views : mapai : sceneview :
-    userintr : userintr_ai : userintr_android : userintr_editors :
-    userintr_loading : userintr_reports : userintr_settings : webassets
-    """,
-    """
-    actargs : action : caches : codelint : actionc : actiond : actione : actionr :
-    actiont : addcss : aiutils : apikeys : appinv : assettext : bildhtml :
-    bldargs : bldbndle : bundle : caveats : clip : clock :
-    colors : colrmode : condition : condjoin : config : console :
-    debug : deprecate : devicecheck : devicefiles : devicehelpers : deviceimport : deviceinv : deviceoffer :
-    devicetask : deviceverify : diagcnst : diagintr :
-    diagram : diagutil : diffload : dirout : editcommon : elemvals : error :
-    format : frontmtr : getbakup : getputer : globalvr :
-    guiutil2 : healthck : impact : initparg : lineout : livevars :
-    mapask : mapcache : mapdraft : mapexport : mapfind : mapfix : mapfonts :
-    mapjump : mappdf : maprefac : maprefac_duplicate : maprefac_extract : maprefac_model : maprefac_move : maprestore : mapswap : mapswap_action : mapswap_argument : mapswap_condition :
-    mapswap_model : mapswap_rename : mapswap_sites : maputil2 :
-    maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
-    firesim : folderwatch : parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
-    profedit : profiles : proflint : proginit : projects : projedit :
-    property : readiness : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenelayout : scenemodel : scenes : servicec :
-    sessundo : share : shelsort : sysconst : taskactn : taskedit : taskedit_addable : taskedit_apply : taskedit_args :
-    taskedit_model : taskedit_save :
-    taskerd : taskertables : taskervars : taskflow : taskstep : tasks : taskuniq :
-    timecomp : timeline : tnfind : tnupdate : translator : trend : twisty : userhelp : valcodes : varxref :
-    xmldata : xmldiff
-    """,
+    "mapit : progargs : runcli : rungui : clireports",
+    "gui",
+    "device",
+    "mapops",
+    "analysis",
+    "mapgen : edit",
+    "core",
 ]
 
 # A Scene is one of two kinds, and what a caller does with one should not depend on which.
@@ -512,24 +489,24 @@ layers = [
 [[tool.importlinter.contracts]]
 name = "Only the Legacy Scene designer and its dialogs import the Legacy Scene editor"
 type = "protected"
-protected_modules = ["maptasker.src.sceneedit_legacy"]
+protected_modules = ["maptasker.src.edit.sceneedit_legacy"]
 allowed_importers = [
-    "maptasker.src.guiwins",
-    "maptasker.src.guiwins_designer_legacy",
-    "maptasker.src.guiwins_legacyarg",
-    "maptasker.src.guiwins_sceneprops",
-    "maptasker.src.scenemodel",
-    "maptasker.src.userintr_editors",
+    "maptasker.src.gui.guiwins",
+    "maptasker.src.gui.guiwins_designer_legacy",
+    "maptasker.src.gui.guiwins_legacyarg",
+    "maptasker.src.gui.guiwins_sceneprops",
+    "maptasker.src.edit.scenemodel",
+    "maptasker.src.gui.userintr_editors",
 ]
 
 [[tool.importlinter.contracts]]
 name = "Only the Version 2 Scene designer and its preview import the Version 2 Scene editor"
 type = "protected"
-protected_modules = ["maptasker.src.sceneedit_v2"]
+protected_modules = ["maptasker.src.edit.sceneedit_v2"]
 allowed_importers = [
-    "maptasker.src.guiwins_designer_v2",
-    "maptasker.src.guiwins_views",
-    "maptasker.src.scenemodel",
+    "maptasker.src.gui.guiwins_designer_v2",
+    "maptasker.src.gui.guiwins_views",
+    "maptasker.src.edit.scenemodel",
 ]
 
 [[tool.importlinter.contracts]]
@@ -537,51 +514,15 @@ name = "Only the GUI and the entry points import NiceGUI"
 type = "protected"
 protected_modules = ["nicegui"]
 allowed_importers = [
-    "maptasker.src.getfile",
-    "maptasker.src.guistate",
-    "maptasker.src.guiutils",
-    "maptasker.src.guiwins",
-    "maptasker.src.guiwins2",
-    "maptasker.src.guiwins_canvas",
-    "maptasker.src.guiwins_designer_legacy",
-    "maptasker.src.guiwins_designer_v2",
-    "maptasker.src.guiwins_draft",
-    "maptasker.src.guiwins_editor",
-    "maptasker.src.guiwins_firesim",
-    "maptasker.src.guiwins_fix",
-    "maptasker.src.guiwins_impact",
-    "maptasker.src.guiwins_legacyarg",
-    "maptasker.src.guiwins_nav",
-    "maptasker.src.guiwins_profedit",
-    "maptasker.src.guiwins_readiness",
-    "maptasker.src.guiwins_refactor",
-    "maptasker.src.guiwins_restore",
-    "maptasker.src.guiwins_sceneprops",
-    "maptasker.src.guiwins_search",
-    "maptasker.src.guiwins_taskedit",
-    "maptasker.src.guiwins_taskstep",
-    "maptasker.src.guiwins_tnfind",
-    "maptasker.src.guiwins_tnupdate",
-    "maptasker.src.guiwins_trend",
-    "maptasker.src.guiwins_views",
-    "maptasker.src.mapai",
     "maptasker.src.mapit",
     "maptasker.src.progargs",
     "maptasker.src.runcli",
     "maptasker.src.rungui",
-    "maptasker.src.sceneview",
-    "maptasker.src.userintr",
-    "maptasker.src.userintr_ai",
-    "maptasker.src.userintr_android",
-    "maptasker.src.userintr_editors",
-    "maptasker.src.userintr_loading",
-    "maptasker.src.userintr_reports",
-    "maptasker.src.userintr_settings",
-    "maptasker.src.webassets",
+    "maptasker.src.gui",
 ]
 # restart_program_subprocess stops the GUI's own server when a restart is started from a
 # button.  It imports NiceGUI only when an event loop is running -- that is, only when the
 # GUI is up -- so the core still runs without it.
 ignore_imports = [
-    "maptasker.src.maputils -> nicegui",
+    "maptasker.src.core.maputils -> nicegui",
 ]

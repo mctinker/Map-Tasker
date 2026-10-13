@@ -19,11 +19,11 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import taskerd
-from maptasker.src.dirout import check_item
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.runcfg import RunConfig
+from maptasker.src.mapgen import taskerd
+from maptasker.src.core.dirout import check_item
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.runcfg import RunConfig
 
 # Two Projects that own one of everything each, so that "belongs to the selected Project"
 # has something to be wrong about.  OrphanSceneTask is in no Project's <tids> -- the shape

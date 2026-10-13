@@ -18,11 +18,12 @@ import sys
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src import console, runcli
-from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.primitem import RunState
-from maptasker.src.sysconst import TYPES_OF_COLORS
+from maptasker.src import runcli
+from maptasker.src.core import console
+from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.primitem import RunState
+from maptasker.src.core.sysconst import TYPES_OF_COLORS
 
 
 class _Stop(Exception):  # noqa: N818

@@ -13,8 +13,8 @@ from __future__ import annotations
 import copy
 
 import pytest
-from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
-from maptasker.src.sysconst import ARGUMENT_NAMES, TRANSIENT_ARGUMENTS
+from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.core.sysconst import ARGUMENT_NAMES, TRANSIENT_ARGUMENTS
 
 
 # ##################################################################################### #

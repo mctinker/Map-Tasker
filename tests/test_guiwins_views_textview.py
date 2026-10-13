@@ -20,10 +20,12 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src import diagintr, guiwins_views, mapexport, mapjump
-from maptasker.src.guiwins_views import NiceGuiTextView
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import DIAGRAM_FILE
+from maptasker.src.core import mapjump
+from maptasker.src.gui import guiwins_views
+from maptasker.src.mapgen import diagintr, mapexport
+from maptasker.src.gui.guiwins_views import NiceGuiTextView
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import DIAGRAM_FILE
 from tests.test_mapfind import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:

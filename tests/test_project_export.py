@@ -22,9 +22,10 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import projedit, taskerd
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.edit import projedit
+from maptasker.src.mapgen import taskerd
+from maptasker.src.core.primitem import PrimeItems
 
 # Home's Scene fires Tasks no <tids> and no Profile <mid0>/<mid1> mentions -- which is the
 # whole point of bundling them -- including one from a NESTED Scene and one anonymous inline
@@ -311,7 +312,7 @@ def test_an_anonymous_inline_task_is_not_chased() -> None:
     one (all 18 in this repo's backup), because it lives inside the Scene already and
     travels with it.  Looking for it would find nothing; the danger is only that it not be
     mistaken for a missing Task."""
-    from maptasker.src.sceneedit import scene_task_ids  # noqa: PLC0415
+    from maptasker.src.edit.sceneedit import scene_task_ids  # noqa: PLC0415
 
     assert scene_task_ids(_document("Home").find("Scene")) == ["30", "31", "32"]
 

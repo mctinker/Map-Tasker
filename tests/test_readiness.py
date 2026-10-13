@@ -19,10 +19,11 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import readiness, taskerd
-from maptasker.src.actionc import action_codes
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapops import readiness
+from maptasker.src.core.actionc import action_codes
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.primitem import PrimeItems
 
 TABLE = readiness.READINESS_FILE
 

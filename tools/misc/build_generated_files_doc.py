@@ -73,8 +73,8 @@ from wikipub import add_publish_arguments, publish
 HERE = Path(__file__).resolve().parent
 PROJECT_ROOT = HERE.parent.parent
 SOURCE_DIR = PROJECT_ROOT / "maptasker" / "src"
-SYSCONST = SOURCE_DIR / "sysconst.py"
-DEVICE_MODULE = SOURCE_DIR / "deviceinv.py"
+SYSCONST = SOURCE_DIR / "core" / "sysconst.py"
+DEVICE_MODULE = SOURCE_DIR / "device" / "deviceinv.py"
 OUTPUT_PAGE = HERE / "generated_output_files.md"
 # The wiki page the above is published as: <wiki>/Generated-Output.
 DEFAULT_PAGE_NAME = "Generated-Output"
@@ -500,7 +500,7 @@ def modules() -> list[Path]:
     Returns:
         list[Path]: the source files, sorted.
     """
-    return sorted(SOURCE_DIR.glob("*.py"))
+    return sorted(SOURCE_DIR.rglob("*.py"))
 
 
 def note_stamped_callers(

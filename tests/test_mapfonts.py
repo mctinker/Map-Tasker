@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from maptasker.src import mapfonts
+from maptasker.src.core import mapfonts
 
 
 def _discovery_that_raises(monkeypatch, error: BaseException) -> None:

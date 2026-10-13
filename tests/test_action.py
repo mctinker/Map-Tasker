@@ -21,11 +21,11 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from maptasker.src import action
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.lineout import LineOut
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core import action
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.primitem import PrimeItems
 
 IF_ACTION = "37"
 WAIT_UNTIL = "35"

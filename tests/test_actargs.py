@@ -19,11 +19,12 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import actargs, actionc
-from maptasker.src.actionr import get_action_results
-from maptasker.src.lineout import LineOut
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core import actionc
+from maptasker.src.mapgen import actargs
+from maptasker.src.mapgen.actionr import get_action_results
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.primitem import PrimeItems
 
 SET_TASKER_ICON = "138t"  # Icon(<Img>)=arg0
 NOTIFY = "523t"  # Icon(<Img>)=arg2, with Str/Int arguments around it

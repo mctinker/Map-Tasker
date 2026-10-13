@@ -15,8 +15,8 @@ the thing a user types "if" into.
 from __future__ import annotations
 
 import pytest
-from maptasker.src.primitem import PrimeItems
-from maptasker.src import taskedit_addable
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import taskedit_addable
 
 # A catalogue built to separate the three ranks on one query.  "set" is the whole of one
 # name, a whole word in three others, and buried inside two more.

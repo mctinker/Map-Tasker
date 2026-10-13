@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 
-from maptasker.src import objprops, sceneview
-from maptasker.src.condition import condition_app
+from maptasker.src.core import objprops
+from maptasker.src.gui import sceneview
+from maptasker.src.mapgen.condition import condition_app
 
 
 def _element(xml: str) -> ET.Element:

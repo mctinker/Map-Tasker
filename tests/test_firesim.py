@@ -14,9 +14,10 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 
 import pytest
-from maptasker.src import firesim, taskerd
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import firesim
+from maptasker.src.mapgen import taskerd
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.primitem import PrimeItems
 
 #   Profile 1 'Work Hours'  Time 09:00-17:00 AND Day Mon-Fri, priority 10.  Entry Task 50
 #                           turns WiFi Off.

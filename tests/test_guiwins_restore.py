@@ -19,8 +19,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src import guiwins_restore, sessundo, timecomp, timeline
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import timecomp
+from maptasker.src.core import timeline
+from maptasker.src.edit import sessundo
+from maptasker.src.gui import guiwins_restore
+from maptasker.src.core.primitem import PrimeItems
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation

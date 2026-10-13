@@ -56,7 +56,7 @@ def test_appending_xml_keeps_non_ascii_names_intact(tmp_path: Path) -> None:
     (tmp_path / "out.xml").write_text(header, encoding="utf-8")
     result = _run_checked(
         """
-        from maptasker.src.xmldata import append_files
+        from maptasker.src.core.xmldata import append_files
         append_files("in.xml", "out.xml")
         """,
         tmp_path,
@@ -68,8 +68,8 @@ def test_appending_xml_keeps_non_ascii_names_intact(tmp_path: Path) -> None:
 def test_the_run_counter_and_first_run_marker_use_an_explicit_encoding(tmp_path: Path) -> None:
     result = _run_checked(
         """
-        from maptasker.src import proginit
-        from maptasker.src.guiutils import is_first_run_today
+        from maptasker.src.mapgen import proginit
+        from maptasker.src.gui.guiutils import is_first_run_today
         proginit.write_counter()
         assert proginit.read_counter() >= 0
         assert is_first_run_today() is True
@@ -83,8 +83,8 @@ def test_the_run_counter_and_first_run_marker_use_an_explicit_encoding(tmp_path:
 def test_the_debug_log_keeps_non_ascii_text_intact(tmp_path: Path) -> None:
     result = _run_checked(
         f"""
-        from maptasker.src.primitem import PrimeItems
-        from maptasker.src.valcodes import debug_print
+        from maptasker.src.core.primitem import PrimeItems
+        from maptasker.src.core.valcodes import debug_print
         PrimeItems.program_arguments.debug = True
         debug_print({_NON_ASCII!r})
         """,

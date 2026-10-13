@@ -15,9 +15,9 @@ from unittest.mock import MagicMock
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src import guiwins
-from maptasker.src.primitem import RunState
-from maptasker.src.sessundo import Checkpoint
+from maptasker.src.gui import guiwins
+from maptasker.src.core.primitem import RunState
+from maptasker.src.edit.sessundo import Checkpoint
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 

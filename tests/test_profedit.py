@@ -20,8 +20,9 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import editcommon, profedit, sessundo
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core import editcommon
+from maptasker.src.edit import profedit, sessundo
+from maptasker.src.core.primitem import PrimeItems
 
 from tests.test_mapswap import _load
 

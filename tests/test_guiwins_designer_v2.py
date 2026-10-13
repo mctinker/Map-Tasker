@@ -21,8 +21,10 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src import guiwins_designer_v2, sceneedit, sceneedit_v2, scenelayout, sceneview
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core import scenelayout
+from maptasker.src.edit import sceneedit, sceneedit_v2
+from maptasker.src.gui import guiwins_designer_v2, sceneview
+from maptasker.src.core.primitem import PrimeItems
 from tests.test_mapfind import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:

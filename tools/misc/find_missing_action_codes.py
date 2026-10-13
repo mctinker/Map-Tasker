@@ -2,7 +2,7 @@
 
 import json
 
-from maptasker.src.actionc import action_codes
+from maptasker.src.core.actionc import action_codes
 
 # Extract set of 'display' values for fast lookup
 valid_display_values = {code.name for code in action_codes.values()}

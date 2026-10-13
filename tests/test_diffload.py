@@ -17,11 +17,12 @@ import os
 from pathlib import Path
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import diffload, taskerd
-from maptasker.src.lineout import LineOut
-from maptasker.src.primitem import PrimeItems, initial_tasker_root_elements
-from maptasker.src.sysconst import ERROR_FILE
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.analysis import diffload
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
+from maptasker.src.core.sysconst import ERROR_FILE
 
 _GOOD_XML = """<TaskerData sr="" dvi="1" tv="6.5.6">
   <Project sr="proj0" ve="2"><cdate>1</cdate><id>1</id><name>Loaded</name>
@@ -421,7 +422,7 @@ def test_original_of_uses_the_same_pattern_that_writes_the_names() -> None:
     A second copy of it over here would be free to drift away from the one that writes
     the file names, and the offer would quietly stop appearing.
     """
-    from maptasker.src.maputil2 import TIMESTAMP_SUFFIX_RE  # noqa: PLC0415
+    from maptasker.src.core.maputil2 import TIMESTAMP_SUFFIX_RE  # noqa: PLC0415
 
     assert TIMESTAMP_SUFFIX_RE.search("_20260721_143005")
     assert not TIMESTAMP_SUFFIX_RE.search("_2026072_143005")
@@ -431,7 +432,7 @@ def test_order_by_age_puts_the_older_file_first(tmp_path) -> None:
     """Whichever way round the user picked them, "added" means added in the newer file."""
     from datetime import UTC, datetime  # noqa: PLC0415
 
-    from maptasker.src.xmldiff import Configuration  # noqa: PLC0415
+    from maptasker.src.analysis.xmldiff import Configuration  # noqa: PLC0415
 
     early = Configuration(path="early.xml", tables={}, when=datetime(2026, 1, 1, tzinfo=UTC))
     late = Configuration(path="late.xml", tables={}, when=datetime(2026, 6, 1, tzinfo=UTC))
@@ -445,7 +446,7 @@ def test_order_by_age_keeps_the_given_order_without_timestamps() -> None:
 
     Guessing is worse than leaving it: the report header names both files either way.
     """
-    from maptasker.src.xmldiff import Configuration  # noqa: PLC0415
+    from maptasker.src.analysis.xmldiff import Configuration  # noqa: PLC0415
 
     first = Configuration(path="a.xml", tables={}, when=None)
     second = Configuration(path="b.xml", tables={}, when=None)
@@ -466,7 +467,7 @@ def test_write_comparison_report(tmp_path) -> None:
 
 def test_the_two_sides_compare(tmp_path) -> None:
     """The point of all of this: two Configurations that xmldiff can actually compare."""
-    from maptasker.src.xmldiff import compare  # noqa: PLC0415
+    from maptasker.src.analysis.xmldiff import compare  # noqa: PLC0415
 
     other, message = diffload.load_for_comparison(_write(tmp_path, "other.xml", _OTHER_XML), state=PrimeItems)
     assert message == ""

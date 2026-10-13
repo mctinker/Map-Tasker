@@ -18,10 +18,13 @@ from pathlib import Path
 
 import pytest
 
-from maptasker.src import healthck, sceneedit, scenelayout, scenemodel, taskerd, varxref
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src.mapjump import SCENE, Target
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import healthck
+from maptasker.src.core import scenelayout
+from maptasker.src.edit import sceneedit, scenemodel
+from maptasker.src.mapgen import taskerd, varxref
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.mapjump import SCENE, Target
+from maptasker.src.core.primitem import PrimeItems
 
 _ARG_SPECS = Path(__file__).resolve().parent.parent / "maptasker" / "assets" / "json" / "arg_specs.json"
 

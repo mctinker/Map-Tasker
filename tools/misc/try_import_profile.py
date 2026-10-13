@@ -46,7 +46,7 @@ import sys
 REPO = "/Users/mikrubin/MapTasker"
 sys.path.insert(0, REPO)
 
-from maptasker.src.primitem import PrimeItems  # noqa: E402
+from maptasker.src.core.primitem import PrimeItems  # noqa: E402
 
 
 def bootstrap(backup_path: str) -> None:
@@ -68,9 +68,9 @@ def bootstrap(backup_path: str) -> None:
             break
     PrimeItems.tasker_arg_specs = specs
 
-    from maptasker.src import taskerd
-    from maptasker.src.colrmode import set_color_mode
-    from maptasker.src.initparg import initialize_runtime_arguments
+    from maptasker.src.mapgen import taskerd
+    from maptasker.src.core.colrmode import set_color_mode
+    from maptasker.src.core.initparg import initialize_runtime_arguments
 
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.colors_to_use = set_color_mode("dark")
@@ -87,7 +87,8 @@ def main() -> int:
     backup = sys.argv[2] if len(sys.argv) > 2 else os.path.join(REPO, "XML", "backup.xml")
     bootstrap(backup)
 
-    from maptasker.src import deviceinv, profedit, projedit, sceneedit, taskedit_save
+    from maptasker.src.device import deviceinv
+    from maptasker.src.edit import profedit, projedit, sceneedit, taskedit_save
 
     if mode in ("build", "build-open", "build-intent", "build-open-project", "build-open-scene"):
         builder = {

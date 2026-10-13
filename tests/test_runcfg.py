@@ -25,13 +25,13 @@ import dataclasses
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.caveats import display_caveats
-from maptasker.src.dirout import check_profile, check_project, check_scene, check_task
-from maptasker.src.initparg import ProgramArguments, initialize_runtime_arguments
-from maptasker.src.lineout import LineOut
-from maptasker.src.nameattr import add_name_attribute
-from maptasker.src.primitem import PrimeItems, get_single_item_not_found, get_single_item_requested
-from maptasker.src.runcfg import RunConfig, current_config, overridden_config
+from maptasker.src.mapgen.caveats import display_caveats
+from maptasker.src.core.dirout import check_profile, check_project, check_scene, check_task
+from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.nameattr import add_name_attribute
+from maptasker.src.core.primitem import PrimeItems, get_single_item_not_found, get_single_item_requested
+from maptasker.src.core.runcfg import RunConfig, current_config, overridden_config
 
 # One Project owning one Profile, one Task and one Scene -- enough for the directory
 # filters, which decide by asking "is this the single item that was requested, or does it

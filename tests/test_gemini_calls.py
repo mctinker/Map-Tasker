@@ -14,8 +14,9 @@ import logging
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src import mapai, mapask
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import mapask
+from maptasker.src.gui import mapai
+from maptasker.src.core.primitem import PrimeItems
 
 AFC_OFF = {"automatic_function_calling": {"disable": True}}
 

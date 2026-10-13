@@ -28,10 +28,13 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import maprefac, maprefac_model, maprestore, sessundo, taskerd, xmldiff
-from maptasker.src.mapjump import actions_in_map_order
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.analysis import xmldiff
+from maptasker.src.edit import sessundo
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapops import maprefac, maprefac_model, maprestore
+from maptasker.src.core.mapjump import actions_in_map_order
+from maptasker.src.core.primitem import PrimeItems
 
 FLASH = "548"
 PERFORM_TASK = "130"

@@ -22,9 +22,9 @@ import pytest
 from keyring.backend import KeyringBackend
 from keyring.backends import fail
 from keyring.errors import PasswordDeleteError
-from maptasker.src import aiutils, apikeys
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import LEGACY_KEYFILE
+from maptasker.src.core import aiutils, apikeys
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import LEGACY_KEYFILE
 
 
 class MemoryKeyring(KeyringBackend):

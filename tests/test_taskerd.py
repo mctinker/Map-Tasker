@@ -22,13 +22,13 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import taskerd
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.lineout import LineOut
-from maptasker.src.mtexcept import MapTaskerError
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import UNNAMED_ITEM
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.mapgen import taskerd
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.mtexcept import MapTaskerError
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import UNNAMED_ITEM
 
 # An action's <label> is rendered through format_label, which reads real colors out of
 # colors_to_use -- an empty color table is a KeyError there, not a plain-text fallback.

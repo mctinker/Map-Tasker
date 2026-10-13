@@ -16,13 +16,15 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import diagintr, diagram, guiwins, mapjump, taskerd, userintr
-from maptasker.src.mapjump import PROFILE, PROJECT, TASK, Target, diagram_placement
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.runcfg import RunConfig, current_config
-from maptasker.src.sysconst import DIAGRAM_FILE
-from maptasker.src import guiwins_search, guiwins_views
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core import mapjump
+from maptasker.src.gui import guiwins, userintr
+from maptasker.src.mapgen import diagintr, diagram, taskerd
+from maptasker.src.core.mapjump import PROFILE, PROJECT, TASK, Target, diagram_placement
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.runcfg import RunConfig, current_config
+from maptasker.src.core.sysconst import DIAGRAM_FILE
+from maptasker.src.gui import guiwins_search, guiwins_views
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 _OTHER_PROFILE = Target(kind=PROFILE, key="11", name="Wind Down")
@@ -942,8 +944,8 @@ def test_both_ways_of_closing_the_views_use_the_one_sweep() -> None:
     them came to be missing the nesting the other needed too."""
     import inspect
 
-    from maptasker.src import guiwins as guiwins_module
-    from maptasker.src import userintr as userintr_module
+    from maptasker.src.gui import guiwins as guiwins_module
+    from maptasker.src.gui import userintr as userintr_module
 
     assert "close_popouts_js()" in inspect.getsource(userintr_module.MapTaskerEventHandlers.clear_view_event)
     assert "close_popouts_js(close_this_window=True)" in inspect.getsource(

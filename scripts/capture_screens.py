@@ -62,7 +62,7 @@ from unittest.mock import patch
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-    from maptasker.src.userintr import MyGui
+    from maptasker.src.gui.userintr import MyGui
 
     # playwright is only there when the script is run with it (see the usage above), so this
     # cannot resolve in the project's own environment; the page's methods are then unchecked.
@@ -118,7 +118,7 @@ def select_item(gui: MyGui, kind: str, name: str) -> None:
     The pulldown itself is moved too, the way select_single_item_export does it: the handler
     stores the selection but leaves the widget it came from to show it.
     """
-    from maptasker.src.guiutils import select_pulldown_option
+    from maptasker.src.gui.guiutils import select_pulldown_option
 
     gui.event_handlers.process_single_name_event(kind, name)
     optionmenu = getattr(gui, f"specific_{kind.lower()}_optionmenu", None)
@@ -133,13 +133,13 @@ def select_item(gui: MyGui, kind: str, name: str) -> None:
 
 def load_backup(gui: MyGui) -> None:
     """Load the synthetic backup the way 'Get Local XML File' does, once a file is picked."""
-    from maptasker.src.guiutils import (
+    from maptasker.src.core.maputils import clear_tasker_data
+    from maptasker.src.core.primitem import PrimeItems
+    from maptasker.src.gui.guiutils import (
         clear_single_item_view_names,
         reset_single_item_pulldowns,
         update_tasker_object_menus,
     )
-    from maptasker.src.maputils import clear_tasker_data
-    from maptasker.src.primitem import PrimeItems
 
     PrimeItems.file_to_get = os.environ.get(BACKUP_VARIABLE, str(SYNTHETIC_BACKUP))
     clear_tasker_data(state=PrimeItems)
@@ -169,7 +169,7 @@ def handler(
 
 def helper_tasks(_gui: MyGui) -> None:
     """The dialog that offers to install the helper Tasks on the device."""
-    from maptasker.src.guiwins import build_helper_tasks_dialog
+    from maptasker.src.gui.guiwins import build_helper_tasks_dialog
 
     build_helper_tasks_dialog(
         ["MapTasker Open Profile v1", "MapTasker Open Task v1"],
@@ -180,7 +180,7 @@ def helper_tasks(_gui: MyGui) -> None:
 
 def helpers_in_the_way(_gui: MyGui) -> None:
     """The dialog that says old helper Tasks are in the way of installing the new ones."""
-    from maptasker.src.guiwins import build_helpers_in_the_way_dialog
+    from maptasker.src.gui.guiwins import build_helpers_in_the_way_dialog
 
     build_helpers_in_the_way_dialog(
         ["MapTasker Open Profile v1", "MapTasker Open Task v1"], "192.168.0.210:1821", project_exists=True
@@ -189,15 +189,15 @@ def helpers_in_the_way(_gui: MyGui) -> None:
 
 def overwrite_confirm(_gui: MyGui) -> None:
     """The dialog that asks before overwriting a file that already exists."""
-    from maptasker.src.guiwins import build_overwrite_confirm_dialog
+    from maptasker.src.gui.guiwins import build_overwrite_confirm_dialog
 
     build_overwrite_confirm_dialog("/Users/you/Documents/MapTasker/Remind Me.tsk.xml", lambda: None)
 
 
 def round_trip_failed(_gui: MyGui) -> None:
     """The report shown when a save did not read back the same as what was written."""
-    from maptasker.src.guiwins import build_round_trip_report_dialog
-    from maptasker.src.roundtrip import RoundTripReport
+    from maptasker.src.edit.roundtrip import RoundTripReport
+    from maptasker.src.gui.guiwins import build_round_trip_report_dialog
 
     build_round_trip_report_dialog(RoundTripReport(error="sample problem, shown for this screenshot"))
 
@@ -435,8 +435,8 @@ def serve(port: int, root: Path) -> int:
         sys.exit("--serve is internal: the driver says which backup to load.")
     sys.path.insert(0, str(root))
 
+    from maptasker.src.core.primitem import PrimeItems
     from maptasker.src.mapit import mapit_all
-    from maptasker.src.primitem import PrimeItems
     from nicegui import ui
 
     real_run = ui.run
@@ -444,13 +444,13 @@ def serve(port: int, root: Path) -> int:
     patch.object(ui, "run", lambda *args, **kwargs: real_run(*args, **{**kwargs, "show": False, "port": port})).start()
 
     # The Map and Diagram buttons open a pop-out window; here the driver visits that page itself.
-    from maptasker.src import userintr
+    from maptasker.src.gui import userintr
 
     patch.object(userintr, "_open_popout_window", lambda *_args, **_kwargs: None).start()
 
     @ui.page("/capture/{name}")
     async def capture(name: str) -> None:
-        from maptasker.src.userintr import MyGui
+        from maptasker.src.gui.userintr import MyGui
 
         screen = SCREENS[name]
         gui = MyGui(PrimeItems)

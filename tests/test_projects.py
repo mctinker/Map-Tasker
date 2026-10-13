@@ -20,18 +20,29 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
-from maptasker.src import diagram, outline, proclist, profiles, projects, scenes, taskactn, taskerd, tasks, taskuniq
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.lineout import LineOut
-from maptasker.src.runcfg import current_config
-from maptasker.src.primitem import (
+from maptasker.src.mapgen import (
+    diagram,
+    outline,
+    proclist,
+    profiles,
+    projects,
+    scenes,
+    taskactn,
+    taskerd,
+    tasks,
+    taskuniq,
+)
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.runcfg import current_config
+from maptasker.src.core.primitem import (
     PrimeItems,
     initial_directory_items,
     initial_found_named_items,
     initial_grand_totals,
 )
-from maptasker.src.actionc import load_arg_specs
+from maptasker.src.core.actionc import load_arg_specs
 
 
 @pytest.fixture(autouse=True)

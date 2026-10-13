@@ -19,11 +19,14 @@ from typing import TYPE_CHECKING
 from unittest import mock
 
 import pytest
-from maptasker.src import actargs, healthck, plugchk, plugset, taskedit_args, taskerd
-from maptasker.src.actionc import action_codes
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src.mapjump import text_report
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import healthck, plugchk
+from maptasker.src.core import plugset
+from maptasker.src.edit import taskedit_args
+from maptasker.src.mapgen import actargs, taskerd
+from maptasker.src.core.actionc import action_codes
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.mapjump import text_report
+from maptasker.src.core.primitem import PrimeItems
 
 if TYPE_CHECKING:
     import pathlib

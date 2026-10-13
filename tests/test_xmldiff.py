@@ -23,8 +23,8 @@ import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
 
 import pytest
-from maptasker.src import taskerd
-from maptasker.src.xmldiff import (
+from maptasker.src.mapgen import taskerd
+from maptasker.src.analysis.xmldiff import (
     ADDED,
     CHANGED,
     REMOVED,

@@ -15,9 +15,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from maptasker.src import aiutils, getputer, sysconst, userintr_ai
-from maptasker.src.primitem import RunState
-from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
+from maptasker.src.core import aiutils, getputer, sysconst
+from maptasker.src.gui import userintr_ai
+from maptasker.src.core.primitem import RunState
+from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 
 
 # ##################################################################################

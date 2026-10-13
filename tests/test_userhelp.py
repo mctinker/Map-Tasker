@@ -16,11 +16,11 @@ from __future__ import annotations
 
 import pytest
 
-from maptasker.src import userhelp, userintr
-from maptasker.src.maputil2 import translate_string
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import VERSION
-from maptasker.src.translator import T
+from maptasker.src.gui import userhelp, userintr
+from maptasker.src.core.maputil2 import translate_string
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import VERSION
+from maptasker.src.core.translator import T
 
 # The pieces the GUI's help popups are built from, all of which the catalogs carry.
 # userhelp.COMMAND_REFERENCE_TEXT and OUTPUT_FOLDER_HELP_TEXT are deliberately not among them:

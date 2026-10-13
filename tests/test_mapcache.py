@@ -17,9 +17,9 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import mapcache, taskerd
-from maptasker.src.primitem import PrimeItems, initial_tasker_root_elements
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.mapgen import mapcache, taskerd
+from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 
 # One Project, one Profile, two Tasks and a Scene -- enough that a change can be made in
 # any of the four tables, plus a global variable and a Tasker setting, which are the parts
@@ -274,9 +274,9 @@ _SYNTHETIC_BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "da
 
 def _build_a_map(tmp_path) -> tuple[float, int]:
     """Build the Map the way the GUI does, and report (the file's mtime, its line count)."""
-    from maptasker.src.bildhtml import build_html  # noqa: PLC0415
-    from maptasker.src.frontmtr import output_the_front_matter  # noqa: PLC0415
-    from maptasker.src.runcfg import current_config  # noqa: PLC0415
+    from maptasker.src.mapgen.bildhtml import build_html  # noqa: PLC0415
+    from maptasker.src.mapgen.frontmtr import output_the_front_matter  # noqa: PLC0415
+    from maptasker.src.core.runcfg import current_config  # noqa: PLC0415
 
     PrimeItems.output_lines.output_lines.clear()
     output_the_front_matter(current_config(), state=PrimeItems)
@@ -288,11 +288,11 @@ def _build_a_map(tmp_path) -> tuple[float, int]:
 @pytest.fixture
 def _a_real_configuration(tmp_path, monkeypatch) -> None:
     """A whole loaded configuration and a GUI to build a Map for, in a directory of our own."""
-    from maptasker.src.actionc import load_arg_specs  # noqa: PLC0415
-    from maptasker.src.colrmode import set_color_mode  # noqa: PLC0415
-    from maptasker.src.initparg import initialize_runtime_arguments  # noqa: PLC0415
-    from maptasker.src.lineout import LineOut  # noqa: PLC0415
-    from maptasker.src.proginit import get_data_and_output_intro  # noqa: PLC0415
+    from maptasker.src.core.actionc import load_arg_specs  # noqa: PLC0415
+    from maptasker.src.core.colrmode import set_color_mode  # noqa: PLC0415
+    from maptasker.src.core.initparg import initialize_runtime_arguments  # noqa: PLC0415
+    from maptasker.src.mapgen.lineout import LineOut  # noqa: PLC0415
+    from maptasker.src.mapgen.proginit import get_data_and_output_intro  # noqa: PLC0415
 
     monkeypatch.chdir(tmp_path)
     PrimeItems.program_arguments = initialize_runtime_arguments()

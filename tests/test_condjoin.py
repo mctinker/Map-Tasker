@@ -11,7 +11,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.condjoin import boolean_operators, join_conditions
+from maptasker.src.core.condjoin import boolean_operators, join_conditions
 
 ABCD = ["A", "B", "C", "D"]
 

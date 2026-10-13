@@ -17,9 +17,10 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import codelint, healthck, taskerd, varxref
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import healthck
+from maptasker.src.mapgen import codelint, taskerd, varxref
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.primitem import PrimeItems
 
 
 # ##################################################################################

@@ -18,11 +18,11 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
-from maptasker.src import userintr_settings
-from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
-from maptasker.src.primitem import RunState
-from maptasker.src.sysconst import NOTIFY_TIMEOUT_DEFAULT, VIEW_LIMIT_DEFAULT
-from maptasker.src.userintr_settings import SettingsEventHandlers
+from maptasker.src.gui import userintr_settings
+from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
+from maptasker.src.core.primitem import RunState
+from maptasker.src.core.sysconst import NOTIFY_TIMEOUT_DEFAULT, VIEW_LIMIT_DEFAULT
+from maptasker.src.gui.userintr_settings import SettingsEventHandlers
 
 
 class _Handlers(SettingsEventHandlers):

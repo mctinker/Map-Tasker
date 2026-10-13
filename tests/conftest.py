@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from maptasker.src import outdir
+from maptasker.src.core import outdir
 
 
 @pytest.fixture(autouse=True)

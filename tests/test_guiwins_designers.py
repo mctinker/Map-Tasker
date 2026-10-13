@@ -18,8 +18,10 @@ import pytest
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src import guiwins_designer_legacy, guiwins_designer_v2, guiwins_designers, objprops, sceneedit, scenelayout
-from maptasker.src.primitem import RunState
+from maptasker.src.core import objprops, scenelayout
+from maptasker.src.edit import sceneedit
+from maptasker.src.gui import guiwins_designer_legacy, guiwins_designer_v2, guiwins_designers
+from maptasker.src.core.primitem import RunState
 
 _LEGACY = ET.fromstring(  # noqa: S314  (fixture text, defined in this file)
     '<Scene sr="sceneOld"><nme>Old</nme><widthPort>640</widthPort><heightPort>480</heightPort>'

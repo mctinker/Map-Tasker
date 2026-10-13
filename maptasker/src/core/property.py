@@ -1,0 +1,350 @@
+"""Handle Object Properties"""
+
+#! /usr/bin/env python3
+
+#                                                                                      #
+# property: get Project/Profile/Task properties and output them                        #
+#                                                                                      #
+import html
+from xml.etree.ElementTree import Element
+
+from maptasker.src.core import objprops
+from maptasker.src.core.error import rutroh_error
+from maptasker.src.core.mapjump import PROPERTIES_PART, Target, anchor_html
+from maptasker.src.core.primitem import RunState
+from maptasker.src.core.runcfg import RunConfig
+from maptasker.src.core.sysconst import PROPERTIES_TAG, FormatLine
+
+# The Profile-only settings this module reports beyond <cldm>, named by their
+# objprops.PropField key rather than by their tag.
+#
+# BY KEY BECAUSE OBJPROPS IS WHERE THE <flags> LAYOUT LIVES.  Five of the six are not tags
+# at all but bits of <flags>, and a second copy of that bit layout here is a second place to
+# get it wrong -- which is not hypothetical: two of those bits were in the wrong place until
+# Tasker's own values settled them.  Taking the label from the same table also stops the Map
+# and the Properties editor drifting into calling one setting two things -- which is exactly
+# what happened to <limit> (see get_properties).
+_PROFILE_PROPERTY_KEYS = (
+    "repeats",
+    "delete_after_disable",
+    "restore_settings",
+    "enforce_task_order",
+    "run_exit_task_on_startup",
+    "profile_showinnot",
+)
+
+
+# Helper function to get text safely
+def get_text(element: Element) -> str:
+    """Return value or"""
+    return element.text if element is not None else ""
+
+
+# Helper function to get text safely, as display data rather than as markup
+def get_display_text(element: Element) -> str:
+    """Return the element's text with any markup in it escaped so it displays as itself.
+
+    A variable's name/prompt/value is data a person typed into Tasker, not markup meant to
+    be rendered, and Tasker users routinely park a whole HTML document in one (a Scene V2
+    WebView's page, for instance).  Written into the map as-is, that document's own
+    '<style>' rules restyle the map itself -- one project variable holding a WebView page
+    whose CSS says 'body {display: flex; height: 100vh; background-color: transparent}'
+    was enough to collapse the entire Map view for its Project to a blank page -- and its
+    '<script>' runs in the map.  Escaping keeps the value visible as the text it is.
+
+    Args:
+        element (Element): the xml element holding the text, or None
+
+    Returns:
+        str: the element's text, safe to embed in the output
+    """
+    # get_text hands back the element's text verbatim, which is None for an empty tag
+    # (<pvd></pvd>, of which every variable in a backup has several).
+    return html.escape(get_text(element) or "")
+
+
+# Parse Property's variable and return its properties as a list of items
+def parse_variable(variable_header: Element) -> list:
+    """
+    Parses the variable header of a property tag and returns the properties of the variable.
+    Properties are identied in the XML with the tag: <xxxxVariable>, where xxxx is Project/Profile/Task
+
+    The items are returned rather than written out, so that get_properties() can fold them in
+    with the object's other properties (comment, keep-awake, collision handling) and output the
+    lot as a single "...Properties..." line.
+
+    Args:
+        variable_header (Element): The XML element representing the variable header.
+
+    Returns:
+        list: this variable's properties, one "Name:value" item per element, in the order Tasker
+            displays them
+    """
+    # Variable type definitions
+    variable_type_lookup = {
+        "yn": "Yes or No",
+        "t": "Text",
+        "b": "True or False",
+        "f": "File",
+        "n": "Number",
+        "onoff": "On or Off",
+        "fs": "File (System)",
+        "fss": "Files (System)",
+        "i": "Image",
+        "is": "Images",
+        "d": "Directory",
+        "ds": "Directory (System)",
+        "ws": "WiFi SSID",
+        "wm": "WiFi MAC",
+        "bn": "Bluetooth device's name",
+        "bm": "Bluetooth device's MAC",
+        "c": "Contact",
+        "cn": "Contact Number",
+        "cg": "Contact or Contact Group",
+        "ti": "Time",
+        "da": "Date",
+        "a": "App",
+        "as": "Apps",
+        "la": "Launcher",
+        "cl": "Color",
+        "ln": "Language",
+        "ttsv": "Text to Speech voice",
+        "can": "Calendar",
+        "cae": "Calendar Entry",
+        "tz": "Time Zone",
+        "ta": "Task",
+        "prf": "Profile",
+        "prj": "Project",
+        "scn": "Scene",
+        "cac": "User Certificate",
+    }
+    # Extract values from XML once
+    fields = {
+        "clearout": variable_header.find("clearout"),
+        "immutable": variable_header.find("immutable"),
+        "pvci": variable_header.find("pvci"),
+        "pvd": variable_header.find("pvd"),
+        "pvv": variable_header.find("pvv"),
+        "pvdn": variable_header.find("pvdn"),
+        "strout": variable_header.find("strout"),
+        "pvn": variable_header.find("pvn"),
+        "exportval": variable_header.find("exportval"),
+        "pvt": variable_header.find("pvt"),
+        "pvit": variable_header.find("pvt"),
+    }
+
+    # Mapping field values to output strings.  They are in the order as displayed in Tasker.
+    # Note: Task properties also show up in '<ProfileVariable' underneath the '<Task'.
+    components = [
+        "Show in Notification" if get_text(fields["pvit"]) == "t" else "",
+        f"Variable:{get_display_text(fields['pvn'])}" if get_text(fields["pvn"]) else "",
+        "Configure on Import" if get_text(fields["pvci"]) != "false" else "",
+        "Structured Variable (JSON, etc.)" if get_text(fields["strout"]) != "false" else "",
+        "Immutable" if get_text(fields["immutable"]) != "false" else "",
+        f"Clear Out:{get_display_text(fields['clearout'])}" if get_text(fields["clearout"]) != "false" else "",
+        f"Prompt:{get_display_text(fields['pvd'])}" if get_text(fields["pvd"]) else "",
+        f"Value:{get_display_text(fields['pvv'])}" if get_text(fields["pvv"]) else "",
+        f"Display Name:{get_display_text(fields['pvdn'])}" if get_text(fields["pvdn"]) else "",
+    ]
+
+    # Determine exported value
+    exported_value = "Same as Value" if get_text(fields["pvn"]) == "1" else get_display_text(fields["exportval"])
+    components.append(f"Exported Value:{exported_value}" if exported_value else "")
+
+    # Get the variable type
+    variable_type_code = get_text(fields["pvt"])
+    variable_type = variable_type_lookup.get(variable_type_code, variable_type_code)
+    if variable_type_code not in variable_type_lookup:
+        rutroh_error(f"Unknown variable type: {variable_type_code}")
+    # Make sure the 'type' goes at the beginning.
+    components.insert(0, f"Variable Type:{variable_type}" if variable_type else "")
+
+    # Drop the properties this variable doesn't have.
+    return [component for component in components if component]
+
+
+# Figure out which CSS attribute to insert into the output
+def get_css_attributes(property_tag: str) -> str:
+    """
+    Get the CSS attribute based on the property tag.
+
+    Args:
+        property_tag (str): The property tag to determine the CSS attribute for.
+
+    Returns:
+        str: The CSS attribute corresponding to the property tag.
+    """
+    if property_tag == "Project:":
+        css_attribute = "project_color"
+    elif property_tag == "Task:":
+        css_attribute = "task_color"
+    else:
+        css_attribute = "profile_color"
+
+    return css_attribute
+
+
+def profile_properties(header: Element) -> list:
+    """A Profile's Remaining Repeats, Delete After Disable, Restore Settings, Enforce Task
+    Order, Run Exit Task On Startup and Show In Notification, as "Label:value" items, and
+    only the ones set to something other than the value an untouched Profile has.
+
+    THAT LAST DISTINCTION IS WHAT KEEPS RESTORE SETTINGS OFF 4,892 LINES.  Its bit records
+    the negative and Tasker sets it on every Profile it creates, so "switched off" is not
+    news and only the 735 sample Profiles that have it switched ON are reported --
+    objprops.noteworthy_default, not spec.default, is the comparison that says so.
+
+    NOT GATED BEHIND HAVING VARIABLES, which is how Cooldown Time and the disabled state are
+    reported (see get_properties).  That gate is there because those two are on a great many
+    Profiles -- <limit> alone is on 4,103 of the 5,627 in the sample backups -- so reporting
+    them for their own sake would put a Properties line on two Profiles in every three.  These
+    six land on 1,267 of those 5,627, under a quarter, so each one costs a line only on a
+    Profile that has actually had it set.
+
+    Read through objprops, which is the module that knows where each of the six lives and
+    what its default is; the same read the Properties editor's own form is filled from, so
+    the Map cannot report one thing and the editor show another.
+
+    Args:
+        header (Element): the <Profile> element
+
+    Returns:
+        list: zero to five "Label:value" items, in the order the Properties editor shows them
+    """
+    values = objprops.scalar_values(objprops.load_properties(objprops.KIND_PROFILE, header))
+    specs = {spec.key: spec for spec in objprops.OBJECT_PROPERTIES[objprops.KIND_PROFILE]}
+    # A <flags> this build cannot parse says nothing about its bits.  It reads as every bit
+    # clear, which for Restore Settings means "switched on" -- so without this the Map would
+    # report a setting off the back of a value nobody can read (objprops.bitfield_is_readable).
+    readable = objprops.bitfield_is_readable(header)
+    return [
+        f"{specs[key].label}:{values[key]}"
+        for key in _PROFILE_PROPERTY_KEYS
+        if values[key]
+        and values[key] != objprops.noteworthy_default(specs[key])
+        and (readable or specs[key].bit is None)
+    ]
+
+
+# The tags get_properties below reads to build an object's "...Properties..." line.
+#
+# NAMED HERE, BESIDE THE CODE THAT READS THEM, BECAUSE A SECOND MODULE NEEDS THE SAME LIST.
+# piiscan reports a secret or an address found in an object's own properties and points the
+# finding at the line that shows it -- and "the line that shows it" is decided by exactly
+# this list.  A tag read here and not listed here would leave a finding pointing at a
+# Properties line that never mentions it; one listed and not read would send a finding to a
+# line that is not there at all.
+#
+# <ProfileVariable> is the subtree rather than a tag of its own: parse_variable displays
+# essentially all of its children, and a variable's value -- the place a shared
+# configuration is MEANT to keep its API key -- is one of them.
+PROPERTY_TAGS = frozenset({"pc", "stayawake", "rty", "cldm", "limit", "flags"})
+VARIABLE_TAG = "ProfileVariable"
+
+
+# Given the xml header to the Project/Profile/Task, get the properties belonging
+# to this header and write them out.
+def get_properties(
+    property_tag: str, header: Element, where: Target | None = None, *, config: RunConfig, state: RunState
+) -> None:
+    """
+
+    Args:
+        property_tag (str): Either "Project:", "Profile:", or "Task:"
+        header (Element): xml header to Project/Profile/Task
+        where (Target): the object these properties belong to, so the line can be marked as
+            somewhere a report finding can jump to.  None leaves it unmarked.
+        config (RunConfig): the run's settings (pretty)
+
+    Returns:
+        nothing
+    """
+    collision = ["Abort New Task", "Abort Existing Task", "Run Both Together"]
+
+    # Get our HTML / CSS attributes
+    css_attribute = get_css_attributes(property_tag)
+
+    # Gather every property of this object -- its comment, keep-awake and collision handling
+    # settings, and the properties of each of its variables -- into one list of items.  They
+    # all belong to the same "...Properties..." block, and go out as a single output line.
+    properties = []
+
+    # Get the item comment, if any.  Don't process it if we already have it
+    comment_xml = header.find("pc")
+    if comment_xml is not None:
+        properties.append(f"Comment:{comment_xml.text}")
+
+    keep_alive = header.find("stayawake")
+    if keep_alive is not None:
+        properties.append(f"Keep Device Awake:{keep_alive.text}")
+
+    collision_handling = header.find("rty")
+    if collision_handling is not None:
+        properties.append(f"Collision Handling:{collision[int(collision_handling.text)]}")
+
+    # Look for variables in the head XML object (Project/Profile/Task).
+    cooldown = ""
+    limit = ""
+    have_variable = False
+    _parse_variable = parse_variable
+    for item in header:
+        if item.tag == "cldm":
+            cooldown = item.text
+        if item.tag == "limit":
+            limit = item.text
+        if item.tag == "ProfileVariable":
+            properties.extend(_parse_variable(item))
+            have_variable = True
+
+    # Limit/cooldown belong to the object rather than to any one of its variables, so they go
+    # at the end of the block, listed once no matter how many variables it has (they used to be
+    # repeated for every one of them).  Still only reported alongside variables, as before:
+    # <limit>true</limit> is on most Profiles (228 of them in the sample backup), so listing it
+    # for its own sake would put a Properties line on nearly every Profile in the map.
+    if have_variable:
+        # <limit> IS THE DISABLED MARKER, NOT "Limit Repeats", which this line used to call
+        # it.  <limit>true</limit> is what profiles.py greys out in this same Map, healthck.py
+        # reports as DISABLED-PROFILE and the Edit Profile dialog's Enabled switch writes;
+        # limiting a Profile's repeats is a count in <repeats> (objprops).  Reporting it
+        # under the other setting's name made two thirds of the Profiles in a backup look as
+        # though they limited their repeats.
+        if limit:
+            properties.append(f"Disabled:{limit}")
+        if cooldown:
+            properties.append(f"Cooldown Time (seconds):{cooldown}")
+
+    # The rest of Tasker's own Profile Properties screen -- the repeat count, what happens
+    # when it runs out, and the five settings kept in <flags>.  A Profile only: <flags> is on no
+    # Project and no Task in the sample data, and the bits objprops names are a Profile's.
+    if property_tag == "Profile:":
+        properties.extend(profile_properties(header))
+
+    if not properties:
+        return
+
+    # Make it pretty: one property per line, lined up under the "...Properties..." header.
+    # Joining the items rather than replacing every "," in the finished line (which is what
+    # this used to do) keeps a comma belonging to the text itself -- one inside a comment or a
+    # variable's value, or the one in "Structured Variable (JSON, etc.)" -- from being turned
+    # into a line break.
+    if config.pretty:
+        blank = "&nbsp;"
+        number_of_blanks = 20 if property_tag == "Task:" else 23
+        separator = f"<br>{blank * number_of_blanks}"
+    else:
+        separator = ", "
+
+    # Mark the line's place before writing it, so a finding about one of these properties
+    # lands here rather than on the object's own line -- which, on a Project with several
+    # Profiles, is a long way above.  There is nothing finer to aim at: every property of
+    # an object goes out as ONE line, which is what the separator above is joining.
+    if where is not None and (anchor := anchor_html(where.at_part(PROPERTIES_PART), state=state)):
+        state.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
+
+    # Ok, output the properties as a single line.
+    out_string = f"<br>{property_tag}{PROPERTIES_TAG}" + separator.join(properties) + "<br>"
+    state.output_lines.add_line_to_output(
+        2,
+        out_string,
+        ["", css_attribute, FormatLine.add_end_span],
+    )

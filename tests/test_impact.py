@@ -17,10 +17,11 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import impact, taskerd
-from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, text_report
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.analysis import impact
+from maptasker.src.mapgen import taskerd
+from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK, text_report
+from maptasker.src.core.primitem import PrimeItems
 
 # Two Projects, so that a reference reaching across one Project's boundary into another
 # can be told from one that stays inside it.

@@ -37,10 +37,11 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import sceneedit, taskedit, taskedit_apply, taskedit_save
-from maptasker.src.primitem import PrimeItems
-from maptasker.src import guiwins_sceneprops, sceneedit_legacy
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.edit import sceneedit, taskedit, taskedit_apply, taskedit_save
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import sceneedit_legacy
+from maptasker.src.gui import guiwins_sceneprops
 
 # The backup the Scene tests load: hand-built, in tests/data, so they run anywhere -- CI included --
 # and hold nobody's configuration (see the comment at the top of the file).  The sweeps below also
@@ -394,7 +395,7 @@ def _load_sample_backup(path: str) -> ET.Element:
     the Event tabs resolve their Task through these tables, so a hand-built stub would not
     exercise the lookup that matters.
     """
-    from maptasker.src import taskerd  # noqa: PLC0415
+    from maptasker.src.mapgen import taskerd
 
     root = ET.parse(path).getroot()  # noqa: S314  (this repo's own sample data)
     PrimeItems.xml_root = root
@@ -732,7 +733,7 @@ def test_apply_to_task_puts_the_action_edits_into_the_loaded_configuration(monke
     """
     from unittest.mock import MagicMock  # noqa: PLC0415
 
-    from maptasker.src import userintr  # noqa: PLC0415
+    from maptasker.src.gui import userintr
 
     notified = []
     monkeypatch.setattr(userintr.ui, "notify", lambda message, **kwargs: notified.append((message, kwargs.get("type"))))
@@ -756,7 +757,7 @@ def test_a_rejected_value_is_reported_and_nothing_is_applied(monkeypatch, loaded
     """
     from unittest.mock import MagicMock  # noqa: PLC0415
 
-    from maptasker.src import userintr  # noqa: PLC0415
+    from maptasker.src.gui import userintr
 
     notified = []
     monkeypatch.setattr(userintr.ui, "notify", lambda message, **kwargs: notified.append((message, kwargs.get("type"))))
@@ -787,7 +788,7 @@ def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it
     from nicegui.client import Client  # noqa: PLC0415
     from nicegui.page import page  # noqa: PLC0415
 
-    from maptasker.src import guiwins_taskedit  # noqa: PLC0415
+    from maptasker.src.gui import guiwins_taskedit
 
     saved = dict(PrimeItems.tasker_root_elements)
     saved_specs = dict(PrimeItems.tasker_arg_specs)
@@ -1053,7 +1054,7 @@ def test_an_action_that_cannot_be_synthesized_is_refused_with_a_reason(sample_ac
     """Same rule as Add Task's picker, because it is the same code -- so an action the picker
     greys out cannot slip in by another route.
     """
-    from maptasker.src.taskedit_addable import classify_action_addability, list_addable_actions
+    from maptasker.src.edit.taskedit_addable import classify_action_addability, list_addable_actions
 
     refused = next(
         (row["action_key"] for row in list_addable_actions(state=PrimeItems) if not row["addable"]),
@@ -1151,7 +1152,7 @@ _PICKER_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 @pytest.fixture
 def picker_tables():
     """Four Tasks across two Projects, one of them owned by both and one by neither."""
-    from maptasker.src import taskerd  # noqa: PLC0415
+    from maptasker.src.mapgen import taskerd
 
     saved = dict(PrimeItems.tasker_root_elements)
     root = ET.fromstring(_PICKER_XML)  # noqa: S314  (fixture text, defined in this file)
@@ -1397,7 +1398,7 @@ def unbound_event(sample_backup, stub_gui, monkeypatch):
     Returns (render_event, properties, scene_name, pending, notified) where render_event(event)
     builds that sub-tab's panel and hands back its container.
     """
-    from maptasker.src import guiwins, userintr  # noqa: PLC0415
+    from maptasker.src.gui import guiwins, userintr
 
     root = sample_backup(_SYNTHETIC_BACKUP)
     PrimeItems.xml_root = root
@@ -1698,7 +1699,7 @@ def scene_properties_dialog(sample_backup, stub_gui, monkeypatch):
     from nicegui.client import Client  # noqa: PLC0415
     from nicegui.page import page  # noqa: PLC0415
 
-    from maptasker.src import guiwins, userintr  # noqa: PLC0415
+    from maptasker.src.gui import guiwins, userintr
 
     root = sample_backup(_SYNTHETIC_BACKUP)
     PrimeItems.xml_root = root

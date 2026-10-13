@@ -214,7 +214,7 @@ def _main() -> int:
         return 1
 
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    from maptasker.src.actionc import action_codes  # noqa: PLC0415
+    from maptasker.src.core.actionc import action_codes  # noqa: PLC0415
 
     current = serialize_table(action_codes)
     if os.path.exists(SNAPSHOT_PATH):

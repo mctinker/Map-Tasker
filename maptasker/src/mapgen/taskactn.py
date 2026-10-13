@@ -1,0 +1,305 @@
+#! /usr/bin/env python3
+"""
+taskactn: deal with Task Actions
+
+MIT License   Refer to https://opensource.org/license/mit
+"""
+
+#                                                                                      #
+# taskactn: deal with Task Actions                                                     #
+#                                                                                      #
+# MIT License   Refer to https://opensource.org/license/mit                            #
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import maptasker.src.mapgen.tasks as tasks  # noqa: PLR0402
+from maptasker.src.core.error import error_handler
+from maptasker.src.core.mapjump import TASK, Target, anchor_attribute
+from maptasker.src.core.maputils import (
+    count_consecutive_substr,
+    count_unique_substring,
+    get_value_if_match,
+)
+from maptasker.src.core.share import share
+from maptasker.src.core.sysconst import UNNAMED_ITEM, FormatLine
+from maptasker.src.mapgen.tasks import get_taskid_from_unnamed_task
+
+if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
+
+    from maptasker.src.core.primitem import RunState
+    from maptasker.src.core.runcfg import RunConfig
+UNNAMED = " (Unnamed)"
+
+
+def ensure_argument_alignment(taction: str) -> str:
+    """
+    Ensure that the arguments of the action are aligned correctly.
+    Args:
+        taction: {str}: Action text
+    Returns:
+        str: Correctly aligned action text
+    """
+    _count_consecutive_substr = count_consecutive_substr
+    action_breakdown = taction.replace("\n", "<br>").split("<br>")
+    if len(action_breakdown) > 1:
+        # Get the amount of spaces in the first argument and ensure it is the same amount for the rest of the args.
+        count_of_spaces = _count_consecutive_substr(action_breakdown[1], "&nbsp;")
+        correct_spacing = "&nbsp;" * count_of_spaces
+        for index, arg in enumerate(action_breakdown[2:]):
+            # action_breakdown[index + 2] = remove_html_tags(arg.strip(), "")
+            action_breakdown[index + 2] = arg.strip()
+            # Stop adding spacer if this is formatted html for label/taskernet desc.
+            if "text-decoration" in action_breakdown[index + 2]:
+                break
+
+            # Handle {DISABLED] task indicator at end of config parameters.
+            if action_breakdown[index + 2] == "[&#9940;DISABLED]</span>":
+                correct_spacing = "&nbsp;" * (count_of_spaces - 18)
+
+            # Now add the correct number of spaces to the start of the line
+            action_breakdown[index + 2] = f"{correct_spacing}{action_breakdown[index + 2].replace('&nbsp;', '')}"
+
+        # Put it all back together.
+        taction = "<br>".join(action_breakdown)
+    return taction
+
+
+# Go through list of actions and output them
+def output_list_of_actions(
+    action_count: int, alist: list, the_item: str, config: RunConfig, task_id: str = "", *, state: RunState
+) -> None:
+    """
+    Output the list of Task Actions
+
+    Parameters:
+        :param action_count: count of Task actions
+        :param alist: list of task actions
+        :param the_item: the specific Task's detailed line
+        :param config: the run's settings
+        :param task_id: id of the Task these Actions belong to, for the mapjump anchor
+
+    Returns: the count of the number of times the program has been called
+    """
+
+    # Anchor each action so a report finding naming one ("action 4") can be clicked and
+    # land on that action rather than on the top of a Task with two hundred of them.
+    #
+    # An id on the action's own line rather than an anchor element on a line of its own,
+    # which is how every other object here is anchored, for two reasons.  There are as many
+    # actions as there are lines in the Map, and a line apiece would roughly double the
+    # output -- and the view limit (see NiceGuiTextView) counts lines, so it would halve the
+    # size of configuration the Map view can show.  And an <a> written here would not
+    # survive anyway: see mapjump.anchor_attribute for what lineout.handle_action does to
+    # whatever it finds in this slot.
+    task_target = Target(TASK, task_id) if task_id else None
+
+    # Go through all Actions in Task Action list
+    _ensure_argument_alignment = ensure_argument_alignment
+    for taction in alist:
+        # 'taction' has the Action text, including all of it's arguments.
+        if taction is not None:
+            # Optimize spacing if 'pretty' is enabled or if this is a label with html
+            updated_action = _ensure_argument_alignment(taction) if config.pretty or "text-box" in taction else taction
+
+            # If Action continued ("...continued"), output it
+            if updated_action[:3] == "...":
+                state.output_lines.add_line_to_output(
+                    2,
+                    f"Action: {updated_action}",
+                    ["", "action_color", FormatLine.dont_add_end_span],
+                )
+            else:
+                # First remove one blank from action number if line number is > 99 and < 1000
+                updated_action = (
+                    updated_action.replace("&nbsp;", "", 1)
+                    if action_count > 99 and action_count < 1000
+                    else updated_action
+                )
+
+                #  Output the Action count = line number of action (fill to 2 leading zeros)
+                anchor = anchor_attribute(task_target.at_action(action_count), state=state) if task_target else ""
+                state.output_lines.add_line_to_output(
+                    2,
+                    f"Action: {str(action_count).zfill(2)}</span> {updated_action}",
+                    [anchor, "action_color", FormatLine.dont_add_end_span],
+                )
+                action_count += 1
+            if (
+                action_count == 2 and config.display_detail_level == 0 and UNNAMED in the_item
+            ):  # Just show first Task if unknown Task
+                break
+            if config.display_detail_level == 1 and UNNAMED not in the_item:
+                break
+
+    # Close Action list if doing straight print, no twisties
+    if not config.twisty:
+        state.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+
+
+def _find_task(the_item: str, list_type: str, state: RunState) -> tuple:
+    """Find the Task an output line is about, by its name or its id.
+
+    Returns:
+        The Task's xml element (None if it could not be found), its name and its id.
+    """
+    line_left_arrow_ascii = "&#11013;"
+    line_right_arrow_ascii = "&#11157;"
+    # Get the Task name so that we can get the Task xml element
+    # "--Task:" denotes a Task in a Scene which we will handle below
+    if UNNAMED in the_item:
+        index = the_item.find(UNNAMED)
+        task_name = the_item[: index + len(UNNAMED)]
+    else:
+        temp_id = "x" if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
+        # Cleanup the task name from any extra stuff added.
+        task_name = temp_id[0].split("&nbsp;")[0]
+        if line_left_arrow_ascii in task_name:
+            task_name = task_name.split(line_left_arrow_ascii)[0].strip()
+        elif line_right_arrow_ascii in task_name:
+            task_name = task_name.split(line_right_arrow_ascii)[0].strip()
+    # Find the Task
+    the_task, task_id = get_value_if_match(
+        state.tasker_root_elements["all_tasks"],
+        "name",
+        task_name,
+        "xml",
+    )
+
+    # Get the Task name from the ID if it wasn't found above.
+    if the_task is None and task_name == "x":
+        the_task = state.tasker_root_elements["all_tasks"][the_item]["xml"]
+        if the_task is None and UNNAMED_ITEM in the_item:
+            task_id = get_taskid_from_unnamed_task(the_item)
+            the_task = state.tasker_root_elements["all_tasks"][task_id]["xml"]
+        task_name = state.tasker_root_elements["all_tasks"][the_item]["name"]
+        task_id = the_item
+
+    # It is a valid Task.  If unknown and it is an Entry or Exit (valid) task, add it to the count of unnamed Tasks.
+    elif UNNAMED in the_item and ("Entry Task" in the_item or "Exit" in the_item):
+        state.task_count_unnamed += 1
+
+    # Still no Task?  The unnamed Task's name in the output line can carry display-only
+    # markup that defeats the name lookup above: 'pretty' inserts '<br>' in front of the
+    # '[' in a name like 'Media Control Cmd=Play [Simula....799 (Unnamed)' (see
+    # proclist.do_single_task).  Every unnamed Task name ends in '.{task id} (Unnamed)',
+    # so fall back to finding the Task by its ID.
+    if the_task is None and UNNAMED in task_name and "." in task_name:
+        task_id = get_taskid_from_unnamed_task(task_name)
+        if task_info := state.tasker_root_elements["all_tasks"].get(task_id):
+            the_task = task_info["xml"]
+            task_name = task_info["name"]
+    return the_task, task_name, task_id
+
+
+def _output_task_actions(
+    the_task: Element,
+    task_name: str,
+    task_id: str,
+    list_type: str,
+    the_item: str,
+    config: RunConfig,
+    state: RunState,
+) -> None:
+    """Output the Task's actions, if it has any, noting it if it has too many."""
+    # If we have Task Actions, then output them.  The action list is a list of the Action output lines already
+    # formatted.
+    if alist := tasks.get_actions(the_task, config, state=state):
+        # Track the task and action count if too many actions.
+        action_count = len(alist) - count_unique_substring(
+            alist,
+            "...indent=",
+        )
+        # Add the Task to our warning limit dictionary.
+        if (
+            config.task_action_warning_limit < 100
+            and action_count > config.task_action_warning_limit
+            and task_name not in state.task_action_warnings
+        ):
+            state.task_action_warnings[task_name] = {
+                "count": action_count,
+                "id": task_id,
+            }
+
+        # Start a list of Actions
+        state.output_lines.add_line_to_output(
+            1,
+            "",
+            FormatLine.dont_format_line,
+        )
+        action_count = 1
+
+        # Process any <Share> information from TaskerNet
+        if config.taskernet:
+            share(the_task, "tasktab", Target(TASK, task_id), state=state, config=config)
+            # Add a spacer if detail is 0
+            if config.display_detail_level == 0:
+                state.output_lines.add_line_to_output(
+                    0,
+                    "",
+                    FormatLine.dont_format_line,
+                )
+
+        output_list_of_actions(action_count, alist, the_item, config, task_id, state=state)
+        # End list if Scene Task
+        if "&#45;&#45;Task:" in list_type:
+            state.output_lines.add_line_to_output(
+                3,
+                "",
+                FormatLine.dont_format_line,
+            )
+            if config.twisty:
+                state.output_lines.add_line_to_output(
+                    3,
+                    "",
+                    FormatLine.dont_format_line,
+                )
+        # End the list of Actions
+        state.output_lines.add_line_to_output(
+            3,
+            "",
+            FormatLine.dont_format_line,
+        )
+
+
+# For this specific Task, get its Actions and output the Task and Actions
+def get_task_actions_and_output(
+    the_task: Element,
+    list_type: str,
+    the_item: str,
+    tasks_found: list[str],
+    config: RunConfig,
+    state: RunState,
+) -> None:
+    # If Unknown task or displaying more detail, then 'the_task' is not valid, and we have to find it.
+    """
+    Get task actions and output.
+    Args:
+        the_task: {Task xml element}: Task xml element
+        list_type: {str}: Type of list
+        the_item: {str}: Item being displayed
+        tasks_found: {list[str]}: Tasks found so far
+        config: {RunConfig}: the run's settings
+    Returns:
+        None: No return value
+    {Processing Logic}:
+    1. Check if task is unknown or detail level is high, find task ID
+    2. Get task xml element from ID
+    3. Get task actions from xml element
+    4. Output actions list with formatting
+    5. Handle errors if no task found
+    """
+    # If the Task is unnamed or we are doing more detail, find the Task.
+    if UNNAMED in the_item or config.display_detail_level > 0:
+        the_task, task_name, task_id = _find_task(the_item, list_type, state)
+
+        # Keep tabs on the tasks processed so far.
+        if task_id not in tasks_found:
+            tasks_found.append(task_id)
+
+        # Get Task actions
+        if the_task is not None:
+            _output_task_actions(the_task, task_name, task_id, list_type, the_item, config, state)
+        else:
+            error_handler("No Task found!!!", 0, state=state)

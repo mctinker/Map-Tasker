@@ -29,7 +29,7 @@ import json
 import os
 
 import pytest
-from maptasker.src.actionc import action_codes
+from maptasker.src.core.actionc import action_codes
 
 from tests.action_codes_snapshot import (
     diff_tables,

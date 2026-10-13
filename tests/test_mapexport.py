@@ -19,9 +19,10 @@ import re
 import zlib
 
 import pytest
-from maptasker.src import mapexport, mapfonts, mappdf
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import DIAGRAM_FILE
+from maptasker.src.core import mapfonts
+from maptasker.src.mapgen import mapexport, mappdf
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import DIAGRAM_FILE
 
 # One Project, holding a Profile with a Task, a Task in no Profile, and a Scene -- with the
 # directory before it and the totals after, which belong to no Project.

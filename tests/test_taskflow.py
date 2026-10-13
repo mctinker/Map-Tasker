@@ -20,10 +20,11 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import taskerd, taskflow
-from maptasker.src.mapjump import text_report
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.analysis import taskflow
+from maptasker.src.mapgen import taskerd
+from maptasker.src.core.mapjump import text_report
+from maptasker.src.core.primitem import PrimeItems
 
 # ##################################################################################
 # The fixture, assembled from these pieces so the shape of each Task is readable.
@@ -486,7 +487,7 @@ def test_health_check_folds_in_the_control_flow_findings() -> None:
     The tags travel unchanged, which is what lets one report be searched for FLOW- and
     VAR- alike.
     """
-    from maptasker.src.healthck import run_health_check  # noqa: PLC0415  (kept out of this module's imports)
+    from maptasker.src.analysis.healthck import run_health_check  # noqa: PLC0415  (kept out of this module's imports)
 
     _load(_FLOW_XML)
     rows, _ = run_health_check(state=PrimeItems)

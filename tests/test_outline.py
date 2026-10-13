@@ -10,10 +10,10 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import outline, profiles, taskerd
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.runcfg import current_config
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.mapgen import outline, profiles, taskerd
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.runcfg import current_config
 
 # Three Profiles share 'Caller', which performs 'Callee' exactly once.
 _SHARED_TASK_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">

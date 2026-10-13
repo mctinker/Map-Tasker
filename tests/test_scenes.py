@@ -26,12 +26,13 @@ import re
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import actionc, proclist, scenelayout, scenes, taskerd, varxref
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.lineout import LineOut
-from maptasker.src.primitem import PrimeItems, initial_directory_items, initial_found_named_items
-from maptasker.src.runcfg import current_config
+from maptasker.src.core import actionc, scenelayout
+from maptasker.src.mapgen import proclist, scenes, taskerd, varxref
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.primitem import PrimeItems, initial_directory_items, initial_found_named_items
+from maptasker.src.core.runcfg import current_config
 
 _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
   <Project sr="proj0"><name>Home</name><scenes>Panel,Dialog</scenes></Project>

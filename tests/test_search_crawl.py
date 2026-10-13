@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import json
 
-from maptasker.src import assettext, guiwins_search
+from maptasker.src.core import assettext
+from maptasker.src.gui import guiwins_search
 
 _PLACEHOLDERS = ("__SCROLL_AREA_ID__", "__SEARCH_TERM__", "__TERM_LENGTH__", "__CONTENT_TOKEN__")
 

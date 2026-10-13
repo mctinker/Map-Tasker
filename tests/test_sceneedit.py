@@ -19,8 +19,9 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import editcommon, sceneedit, sceneedit_legacy, scenelayout, scenemodel, sessundo
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core import editcommon, scenelayout
+from maptasker.src.edit import sceneedit, sceneedit_legacy, scenemodel, sessundo
+from maptasker.src.core.primitem import PrimeItems
 
 from tests.test_mapswap import _load
 

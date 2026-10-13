@@ -16,7 +16,7 @@ from types import SimpleNamespace
 
 import pytest
 import requests
-from maptasker.src import maputil2
+from maptasker.src.core import maputil2
 
 _WARNING = "made on the GUI event loop"
 

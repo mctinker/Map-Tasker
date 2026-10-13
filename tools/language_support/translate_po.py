@@ -15,7 +15,7 @@ import re
 import shutil
 
 from deep_translator import GoogleTranslator
-from maptasker.src.sysconst import (
+from maptasker.src.core.sysconst import (
     VERSION,
 )
 

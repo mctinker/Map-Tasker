@@ -19,18 +19,11 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from maptasker.src import (
-    appinv,
-    caches,
-    mapask,
-    mapdraft,
-    taskedit,
-    taskedit_addable,
-    taskedit_apply,
-    taskedit_model,
-    taskedit_save,
-)
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.analysis import mapask
+from maptasker.src.core import appinv, caches
+from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taskedit_model, taskedit_save
+from maptasker.src.mapops import mapdraft
+from maptasker.src.core.primitem import PrimeItems
 
 from tests.test_mapswap import _FIXTURE_XML, _load
 

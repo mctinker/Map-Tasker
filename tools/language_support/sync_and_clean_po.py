@@ -40,7 +40,7 @@ import sys
 import time
 from pathlib import Path
 
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.primitem import PrimeItems
 from ollama import chat
 
 # deep-translator issues its HTTP GET with no timeout, so a stalled connection to Google
@@ -140,7 +140,7 @@ def encode(text: str) -> str:
 def source_strings() -> set[str]:
     """This function scans all Python files in the target source directory (SRC_PATH) to find every string literal that requires translation."""
     found = set()
-    for py_file in sorted(SRC_PATH.glob("*.py")):
+    for py_file in sorted(SRC_PATH.rglob("*.py")):
         try:
             tree = ast.parse(py_file.read_text(encoding="utf-8"))
         except SyntaxError as e:
@@ -168,7 +168,7 @@ def source_strings() -> set[str]:
 def help_text_strings() -> set[str]:
     """The userhelp.py constants, which the AST scan above cannot see."""
     sys.path.insert(0, str(SRC_PATH.parent.parent))
-    from maptasker.src import userhelp  # noqa: PLC0415
+    from maptasker.src.gui import userhelp
 
     return {
         value

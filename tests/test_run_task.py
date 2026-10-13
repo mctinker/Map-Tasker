@@ -15,9 +15,10 @@ import xml.etree.ElementTree as ET
 from urllib.parse import unquote
 
 import pytest
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.primitem import PrimeItems
 import requests
-from maptasker.src import devicehelpers, devicetask, deviceverify, maputil2
+from maptasker.src.core import maputil2
+from maptasker.src.device import devicehelpers, devicetask, deviceverify
 
 from tests.test_deviceinv import _FIXTURE_XML, _load
 

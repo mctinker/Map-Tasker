@@ -28,10 +28,13 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import healthck, mapfix, sessundo, taskerd
-from maptasker.src.mapjump import actions_in_map_order
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.analysis import healthck
+from maptasker.src.edit import sessundo
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapops import mapfix
+from maptasker.src.core.mapjump import actions_in_map_order
+from maptasker.src.core.primitem import PrimeItems
 
 # Codes used below, named so the tests read as prose.
 WAIT = "30"

@@ -33,24 +33,25 @@ import sys
 
 from nicegui import app
 
-from maptasker.src import clireports, console
-from maptasker.src.actionc import load_arg_specs
-from maptasker.src.error import exit_program
-from maptasker.src.lineout import LineOut
-from maptasker.src.maputil2 import log_startup_values
-from maptasker.src.mtexcept import MapTaskerError
-from maptasker.src.primitem import PrimeItems, PrimeItemsReset, RunState
-from maptasker.src.progargs import get_program_arguments
-from maptasker.src.proginit import (
+from maptasker.src import clireports
+from maptasker.src.core import console
+from maptasker.src.core.actionc import load_arg_specs
+from maptasker.src.core.error import exit_program
+from maptasker.src.core.maputil2 import log_startup_values
+from maptasker.src.core.mtexcept import MapTaskerError
+from maptasker.src.core.primitem import PrimeItems, PrimeItemsReset, RunState
+from maptasker.src.core.sysconst import (
+    debug_file,
+    logger,
+)
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.mapgen.proginit import (
     check_versions,
     get_data_and_output_intro,
     rebuild_action_tables,
     setup_colors,
 )
-from maptasker.src.sysconst import (
-    debug_file,
-    logger,
-)
+from maptasker.src.progargs import get_program_arguments
 
 crash_debug = False
 

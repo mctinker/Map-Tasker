@@ -31,10 +31,9 @@ import xml.etree.ElementTree as ET
 import pytest
 from urllib.parse import parse_qs, unquote, urlparse
 
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src import (
-    appinv,
-    caches,
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core import appinv, caches, maputil2
+from maptasker.src.device import (
     devicecheck,
     devicefiles,
     devicehelpers,
@@ -43,16 +42,10 @@ from maptasker.src import (
     deviceoffer,
     devicetask,
     deviceverify,
-    maputil2,
-    taskedit,
-    taskedit_addable,
-    taskedit_apply,
-    taskedit_args,
-    taskedit_model,
-    taskedit_save,
-    taskerd,
 )
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taskedit_args, taskedit_model, taskedit_save
+from maptasker.src.mapgen import taskerd
+from maptasker.src.core.primitem import PrimeItems
 
 LAUNCH_APP = "20t"  # App=arg0
 KILL_APP = "18t"  # App=arg0
@@ -560,7 +553,7 @@ def device(monkeypatch: pytest.MonkeyPatch) -> _FakeRequests:
     """A stand-in Android device, a cache file of its own, and no module state carried in
     from another test.
     """
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -841,7 +834,7 @@ _NO_APPS_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 @pytest.fixture
 def no_apps_device(monkeypatch: pytest.MonkeyPatch) -> _FakeRequests:
     """The stand-in device again, but with a configuration that harvests no Applications."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -1170,7 +1163,7 @@ class _FakeFileListRequests:
 @pytest.fixture
 def file_list_device(monkeypatch: pytest.MonkeyPatch) -> _FakeFileListRequests:
     """A stand-in device with a loaded configuration -- Add Task needs one for the id."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeFileListRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -1259,7 +1252,7 @@ def test_the_imported_task_writes_a_payload_this_can_read_back(
 
 def test_a_device_that_never_writes_the_file_is_an_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """A Task that runs but produces nothing must not read as an empty configuration."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeFileListRequests(payload=None)
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -1315,7 +1308,7 @@ def test_a_listing_that_found_nothing_reads_as_nothing() -> None:
 @pytest.fixture
 def listed_files(monkeypatch: pytest.MonkeyPatch):  # noqa: ANN201
     """Lets a test say what the device reported, without a device or a fetch."""
-    from maptasker.src import devicefiles
+    from maptasker.src.device import devicefiles
 
     def _set(return_code: int, result: object) -> None:
         monkeypatch.setattr(
@@ -1330,7 +1323,7 @@ def listed_files(monkeypatch: pytest.MonkeyPatch):  # noqa: ANN201
 def test_the_storage_root_is_stripped_off_every_path(listed_files) -> None:  # noqa: ANN001
     """The 'file' route is rooted at the storage root, so a path that still carries it
     cannot be fetched -- see deviceinv's own note on the two spellings."""
-    from maptasker.src.devicefiles import get_list_of_files
+    from maptasker.src.device.devicefiles import get_list_of_files
 
     listed_files(0, ["/storage/emulated/0/Tasker/configs/user/backup.xml"])
 
@@ -1342,7 +1335,7 @@ def test_the_storage_root_is_stripped_off_every_path(listed_files) -> None:  # n
 
 def test_trashed_files_are_kept_out_of_the_list(listed_files) -> None:  # noqa: ANN001
     """Tasker's own trash is full of XML nobody wants offered as a configuration."""
-    from maptasker.src.devicefiles import get_list_of_files
+    from maptasker.src.device.devicefiles import get_list_of_files
 
     listed_files(
         0,
@@ -1362,7 +1355,7 @@ def test_a_name_with_a_comma_in_it_survives(listed_files) -> None:  # noqa: ANN0
     """The old route joined its paths with commas, so this file arrived as two.  Nothing
     splits on a comma any more, and a Tasker export named after a Project can easily have
     one in it ('Bonza, Jigsaw.prj.xml')."""
-    from maptasker.src.devicefiles import get_list_of_files
+    from maptasker.src.device.devicefiles import get_list_of_files
 
     listed_files(0, ["/storage/emulated/0/Tasker/Bonza, Jigsaw.prj.xml"])
 
@@ -1375,7 +1368,7 @@ def test_a_name_with_a_comma_in_it_survives(listed_files) -> None:  # noqa: ANN0
 def test_a_fetch_failure_is_passed_straight_through(listed_files) -> None:  # noqa: ANN001
     """The caller shows this message to the user, so it must be the fetch's own account of
     what went wrong rather than a generic one invented here."""
-    from maptasker.src.devicefiles import get_list_of_files
+    from maptasker.src.device.devicefiles import get_list_of_files
 
     listed_files(8, "Tasker did not report the Task afterwards.")
 
@@ -1387,7 +1380,7 @@ def test_a_fetch_failure_is_passed_straight_through(listed_files) -> None:  # no
 
 def test_a_listing_of_nothing_but_trash_is_an_error(listed_files) -> None:  # noqa: ANN001
     """An empty pulldown with a green 'success' behind it tells the user nothing."""
-    from maptasker.src.devicefiles import get_list_of_files
+    from maptasker.src.device.devicefiles import get_list_of_files
 
     listed_files(0, ["/storage/emulated/0/Tasker/.Trash/old.xml"])
 
@@ -1510,7 +1503,7 @@ class _FakeImportRequests:
 @pytest.fixture
 def import_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
     """A stand-in device with a loaded configuration -- Add Task needs one for the id."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -1593,7 +1586,7 @@ def test_a_staged_profile_still_settling_is_read_back_again(monkeypatch: pytest.
     through maputil2.read_back_uploaded_file now, the way every other upload in this program
     already did.
     """
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     class _SlowToSettle(_FakeImportRequests):
         """Answers the first read of the staged file with a 404, then behaves."""
@@ -1626,7 +1619,7 @@ def test_a_staged_profile_that_never_lands_still_stops_the_import(monkeypatch: p
     """Retrying is not believing: bytes that never match end as a failure, and nothing is
     handed to 'Import Data' -- importing an in-memory render at that point would be importing
     something other than the file this says it imports."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     class _NeverLands(_FakeImportRequests):
         """Answers every read of the staged file with something other than what was sent --
@@ -1746,7 +1739,7 @@ def test_the_import_task_is_not_installed_twice(import_device: _FakeImportReques
 def test_a_task_that_writes_nothing_reads_as_a_refused_import(monkeypatch: pytest.MonkeyPatch) -> None:
     """No answer file means 'Import Data' failed and stopped the Task.  Nothing was
     imported, and that is the one thing the message has to say."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests(payload=None)
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -1764,7 +1757,7 @@ def test_an_import_tasker_does_not_confirm_is_not_a_success(monkeypatch: pytest.
     """The helper got past 'Import Data' without failing and Tasker still reports no such
     Profile.  Reporting that as success is the failure this whole exchange is built to
     avoid -- the user would go looking for a Profile that is not there."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests(profiles_after=set())
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -1845,7 +1838,7 @@ MAPTASKER-END
 @pytest.fixture
 def open_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
     """The same stand-in device, answering for the 'Open File' helper's own files."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD)
     fake.result_filename = "maptasker_open_profile.txt"
@@ -1968,7 +1961,7 @@ def test_an_unconfirmed_offer_is_not_reported_as_a_save(monkeypatch: pytest.Monk
     the answer file lands whether or not anything is imported.  With no confirmation asked
     for, the message has to say the import is still pending -- shown as a completed save it
     would send the user looking for a Profile that is not there."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD, profiles_after=set())
     fake.result_filename = "maptasker_open_profile.txt"
@@ -1986,7 +1979,7 @@ def test_an_unconfirmed_offer_is_not_reported_as_a_save(monkeypatch: pytest.Monk
 def test_a_confirmation_that_never_comes_is_not_a_success(monkeypatch: pytest.MonkeyPatch) -> None:
     """The user declined, or has not picked the phone up.  Neither is the device's fault and
     neither is a success, so the message says so without blaming the device."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD, profiles_after=set())
     fake.result_filename = "maptasker_open_profile.txt"
@@ -2094,7 +2087,7 @@ MAPTASKER-END
 
 @pytest.fixture
 def intent_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests(payload=GOOD_INTENT_PAYLOAD)
     fake.result_filename = "maptasker_send_profile.txt"
@@ -2143,7 +2136,7 @@ def test_choosing_a_route_changes_which_task_runs(intent_device: _FakeImportRequ
 def test_a_route_reads_only_its_own_answer_file(monkeypatch: pytest.MonkeyPatch) -> None:
     """A device still holding the OTHER route's answer file must not be read as this one's
     success.  The header is what catches it."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD)  # the wrong route's payload
     fake.result_filename = "maptasker_send_profile.txt"
@@ -2163,7 +2156,7 @@ def test_the_intent_route_names_the_failure_only_it_has(monkeypatch: pytest.Monk
     only one that has to use one -- 'Open File' can hand out a content:// URI and this
     cannot.  A device that writes nothing back should point at that, and at the route that
     does not have the problem, rather than leaving the user guessing."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests(payload=None)
     fake.result_filename = "maptasker_send_profile.txt"
@@ -2202,7 +2195,7 @@ def test_both_routes_share_everything_around_the_task(intent_device: _FakeImport
 
 def test_the_endpoint_reaches_the_request(monkeypatch: pytest.MonkeyPatch) -> None:
     """The endpoint has to travel all the way to the URL, not just sit in the route."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     asked = []
 
@@ -2279,7 +2272,7 @@ def test_two_threads_suppressing_at_once_leave_the_streams_usable() -> None:
     restores what it saved.  Whatever it restores has to be a stream that still works."""
     import threading
 
-    from maptasker.src.maputil2 import suppress_stdout
+    from maptasker.src.core.maputil2 import suppress_stdout
 
     real_stdout, real_stderr = sys.stdout, sys.stderr
     first_inside, first_done = threading.Event(), threading.Event()
@@ -2340,7 +2333,7 @@ def test_opening_tasker_runs_its_own_task_and_reads_its_own_answer(monkeypatch: 
     """Its own Task name and its own answer file, for the reason every other route has them:
     reading another route's leftover answer as this one's would report a launch that never
     happened."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests(payload="MAPTASKER-LAUNCH-TASKER 1\nOFFERED\n/Tasker/scenes\nMAPTASKER-END\n")
     fake.result_filename = "maptasker_launch_tasker.txt"
@@ -2359,7 +2352,7 @@ def test_opening_tasker_runs_its_own_task_and_reads_its_own_answer(monkeypatch: 
 def test_another_routes_answer_is_not_read_as_a_launch(monkeypatch: pytest.MonkeyPatch) -> None:
     """The header is what catches it -- a device still holding an offer route's answer file
     must not be read as Tasker having been opened."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD)  # the wrong route's answer
     fake.result_filename = "maptasker_launch_tasker.txt"
@@ -2429,7 +2422,7 @@ class _FakeUploadRequests:
 
 
 def _save_task_file(monkeypatch: pytest.MonkeyPatch, fake: _FakeUploadRequests) -> tuple[int, str]:
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     monkeypatch.setattr(maputil2, "requests", fake)
     monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)  # the read-back settle
@@ -2468,7 +2461,7 @@ def test_a_task_file_that_did_not_land_is_not_called_a_save(monkeypatch: pytest.
 def test_the_three_kinds_write_to_three_sibling_folders() -> None:
     """One naming scheme, not three near-misses: a Task landing in /Tasker/profiles, or in a
     folder of its own invention, is the kind of thing nothing fails on and nobody finds."""
-    from maptasker.src import profedit, sceneedit
+    from maptasker.src.edit import profedit, sceneedit
 
     assert taskedit_save.android_task_path("A") == "/Tasker/tasks/A.tsk.xml"
     assert profedit.android_profile_path("A") == "/Tasker/profiles/A.prf.xml"
@@ -2514,7 +2507,7 @@ class _FakeImportViaFileRequests(_FakeUploadRequests):
 
 
 def _import_task(monkeypatch: pytest.MonkeyPatch, fake: _FakeImportViaFileRequests, **kwargs: object):
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     monkeypatch.setattr(maputil2, "requests", fake)
     monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)  # the read-back settle
@@ -2583,7 +2576,7 @@ def test_the_retry_reimports_the_file_rather_than_re_rendering(monkeypatch: pyte
     """The fallback when Tasker will not confirm the import.  It re-reads the file already
     written and verified, so the retry is the same request being retried -- re-rendering
     here would quietly make it a different one."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportViaFileRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -2609,7 +2602,7 @@ def test_a_write_still_settling_is_waited_for_rather_than_failed(monkeypatch: py
     writing to storage and the read-back is another answering a second request -- nothing
     orders the two -- so a read that arrives too early gets a 404 for a file that is on its
     way.  Failing on the first miss aborts a save that worked."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportViaFileRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -2638,7 +2631,7 @@ def test_a_write_still_settling_is_waited_for_rather_than_failed(monkeypatch: py
 def test_a_write_that_never_appears_is_still_a_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     """Waiting is not believing.  A file that never turns up must not be reported as saved --
     the retry exists to absorb a slow write, not to paper over a failed one."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportViaFileRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -2661,7 +2654,7 @@ def test_one_read_answers_both_questions(monkeypatch: pytest.MonkeyPatch) -> Non
     path, and the server example flashes on every miss -- so a first-time save put two
     'File doesn't exist' messages on the user's phone before writing anything.  One read
     answers both."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeImportViaFileRequests(served_back=b"<TaskerData>already there</TaskerData>")
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -2687,7 +2680,7 @@ def test_one_read_answers_both_questions(monkeypatch: pytest.MonkeyPatch) -> Non
 def test_each_kind_stages_into_the_folder_it_belongs_in() -> None:
     """The same folders the 'Save As File' button writes to, so a user browsing for the file
     being imported finds it beside the files they saved by hand."""
-    from maptasker.src import profedit, projedit
+    from maptasker.src.edit import profedit, projedit
 
     assert deviceoffer.OPEN_FILE_ROUTE.stage_location == profedit.ANDROID_PROFILE_LOCATION == "Tasker/profiles"
     assert deviceoffer.OPEN_PROJECT_ROUTE.stage_location == projedit.ANDROID_PROJECT_LOCATION == "Tasker/projects"
@@ -2715,7 +2708,7 @@ def test_the_staged_file_carries_the_objects_own_name() -> None:
     """Byte for byte the path the 'Save As File' button writes -- so the import and the file
     save are the same file, and a user browsing Tasker's own import screen sees the Profile
     they asked for rather than 'maptasker_import'."""
-    from maptasker.src import profedit, projedit
+    from maptasker.src.edit import profedit, projedit
 
     _filename, read_path, task_path = deviceoffer.OPEN_FILE_ROUTE.staged_file_paths("Morning")
     assert read_path == profedit.android_profile_path("Morning") == "/Tasker/profiles/Morning.prf.xml"
@@ -2729,7 +2722,7 @@ def test_a_name_that_is_no_filename_still_stages_somewhere() -> None:
     """Tasker names are free text and slashes are legal in them.  The same substitution the
     editors' own sanitize_filename makes -- spelled again in deviceinv because importing them
     would be a cycle, so a test is what holds the two together."""
-    from maptasker.src import profedit, projedit
+    from maptasker.src.edit import profedit, projedit
 
     for name in ("Wake: Up", "a/b", "", "  "):
         _filename, read_path, _task_path = deviceoffer.OPEN_FILE_ROUTE.staged_file_paths(name)
@@ -2763,7 +2756,7 @@ def test_every_kind_has_an_open_with_route_into_its_own_folder() -> None:
     the file the chooser is about is the file the user finds when the chooser cannot place
     it.  Held to the editors' own constants by this test rather than by an import, since
     those modules import from this one's callers."""
-    from maptasker.src import profedit, projedit, sceneedit, taskedit_save
+    from maptasker.src.edit import profedit, projedit, sceneedit, taskedit_save
 
     assert deviceoffer.OPEN_FILE_ROUTE.stage_location == profedit.ANDROID_PROFILE_LOCATION
     assert deviceoffer.OPEN_PROJECT_ROUTE.stage_location == projedit.ANDROID_PROJECT_LOCATION
@@ -2935,7 +2928,7 @@ def test_the_whole_task_list_is_asked_for_without_a_name_filter(monkeypatch: pyt
     """The server example's 'GET Tasks' handler matches 'name=' out of the request path and,
     with none there, works from every Task Tasker reports.  Sending one would ask about a
     single Task, which answers nothing about what is left over."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeTaskListRequests(["MapTasker Open Profile v1", "MapTasker Open Profile v4", "Morning Alarm"])
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -2954,7 +2947,7 @@ def test_the_whole_task_list_is_asked_for_without_a_name_filter(monkeypatch: pyt
 def test_a_device_that_cannot_be_asked_reports_rather_than_guesses(monkeypatch: pytest.MonkeyPatch) -> None:
     """An empty answer and an unanswerable question lead to opposite conclusions: 'nothing is
     left over' would be a quiet lie about a device that never replied."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     class _NoTaskList(_FakeTaskListRequests):
         def get(self, url: str, **kwargs: object) -> _FakeResponse:
@@ -3128,7 +3121,7 @@ class _FakeTasker:
 @pytest.fixture
 def tasker_device(monkeypatch: pytest.MonkeyPatch) -> _FakeTasker:
     """A stand-in device, with a loaded configuration for the helper Task's id."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeTasker()
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -3258,7 +3251,7 @@ def test_a_task_name_the_filter_cannot_carry_reads_the_whole_list(tasker_device:
 def test_the_whole_task_list_is_given_time_to_arrive(monkeypatch: pytest.MonkeyPatch) -> None:
     """Measured at 4.5 seconds for ~500 Tasks on an idle phone: the ordinary 5-second read timeout
     is not enough for it."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     timeouts: list = []
 
@@ -3471,7 +3464,7 @@ class _FakeRegexTasker(_FakeTasker):
 
 @pytest.fixture
 def regex_tasker(monkeypatch: pytest.MonkeyPatch) -> _FakeRegexTasker:
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeRegexTasker(["Wake Up", "$Taskaroo", "M$ Rewards"])
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -3615,7 +3608,7 @@ class _FakeHelperProjectDevice(_FakeTasker):
 @pytest.fixture
 def helper_project_device(monkeypatch: pytest.MonkeyPatch) -> _FakeHelperProjectDevice:
     """A stand-in device with no helpers on it, and a loaded configuration to build them from."""
-    from maptasker.src import maputil2
+    from maptasker.src.core import maputil2
 
     fake = _FakeHelperProjectDevice()
     monkeypatch.setattr(maputil2, "requests", fake)

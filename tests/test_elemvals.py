@@ -5,7 +5,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import elemvals
+from maptasker.src.core import elemvals
 
 
 def _element(inner: str = "") -> ET.Element:

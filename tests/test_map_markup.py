@@ -18,11 +18,11 @@ from __future__ import annotations
 import io
 
 import pytest
-from maptasker.src.initparg import ProgramArguments
-from maptasker.src.colrmode import set_color_mode
-from maptasker.src.format import SpanBalancer, format_label
-from maptasker.src.lineout import LineOut
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.format import SpanBalancer, format_label
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.primitem import PrimeItems
 
 
 def balanced(*pieces: str) -> str:

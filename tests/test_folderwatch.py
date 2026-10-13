@@ -13,7 +13,8 @@ import os
 from pathlib import Path
 
 import pytest
-from maptasker.src import folderwatch, timeline
+from maptasker.src.analysis import folderwatch
+from maptasker.src.core import timeline
 
 _SYNTHETIC_BACKUP = Path(__file__).parent / "data" / "synthetic_backup.xml"
 _NOW = 2_000_000_000.0  # The watcher's idea of the time, in seconds since the epoch.

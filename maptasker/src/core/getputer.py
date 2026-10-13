@@ -1,0 +1,377 @@
+"""Read/write the settings file"""
+
+#! /usr/bin/env python3
+
+#                                                                                      #
+# getputer: Save and restore program arguments                                         #
+#                                                                                      #
+from __future__ import annotations
+
+import contextlib
+import os
+import tempfile
+import tomllib
+from datetime import timedelta
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import tomli_w
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import BinaryIO
+
+    from maptasker.src.core.primitem import RunState
+
+from maptasker.src.core import console
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.error import error_handler
+from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.core.maputil2 import log_startup_values, translate_string
+from maptasker.src.core.maputils import reset_named_objects
+from maptasker.src.core.sysconst import (
+    ARGUMENT_NAMES,
+    ARGUMENTS_FILE,
+    LEGACY_SYSTEM_SETTINGS_FILE,
+    NOW_TIME,
+    RENAMED_AI_MODELS,
+    RETIRED_AI_MODEL_PREFIXES,
+    RETIRED_AI_NAMES,
+    TRANSIENT_ARGUMENTS,
+    logger,
+)
+
+twenty_four_hours_ago = NOW_TIME - timedelta(hours=25)
+
+
+# A saved choice of AI service that MapTasker no longer supports
+def drop_unsupported_ai_selection(program_arguments: dict) -> bool:
+    """Clear the saved AI service and model if they are ones MapTasker can no longer run.
+
+    A settings file saved while one was selected would otherwise bring it back on the Analyze tab,
+    where nothing could be done with it: the model is in no list, and no key is kept for it.
+    Cleared, the tab comes up as it does when no model has ever been chosen.
+
+    Args:
+        program_arguments (dict): the [program_arguments] table just read, changed in place.
+
+    Returns:
+        bool: True if a selection was cleared.
+    """
+    model = str(program_arguments.get("ai_model") or "").lower()
+    if program_arguments.get("ai_name") not in RETIRED_AI_NAMES and not model.startswith(RETIRED_AI_MODEL_PREFIXES):
+        return False
+    logger.info(
+        f"The saved AI selection ({program_arguments.get('ai_name')!r}, {program_arguments.get('ai_model')!r}) is "
+        "no longer supported, so it has been cleared.",
+    )
+    program_arguments["ai_name"] = ""
+    program_arguments["ai_model"] = ""
+    return True
+
+
+# Write a settings file in one indivisible step
+def write_atomically(target_file: str, write_settings: Callable[[BinaryIO], None]) -> None:
+    """Write a settings file via a temporary file, then swap it into place with os.replace().
+
+    Writing straight to the settings file leaves a window -- two of them, in the case of the
+    TOML file, which used to be truncated ('wb') and then reopened to be appended to ('ab') --
+    in which what is on disk is empty or half-written.  Any read landing in that window
+    (another MapTasker instance starting up, since every run saves settings) gets no
+    'program_arguments' table and silently falls back to defaults, and a crash inside the
+    window loses the user's settings for good.
+
+    os.replace() is atomic on POSIX and Windows, so a reader sees either the complete old
+    file or the complete new one -- never a partial one.  If write_settings raises, the
+    temporary file is discarded and the previous settings file is left untouched.
+
+    Args:
+        target_file: path of the settings file to end up with.
+        write_settings: called with the open binary temp file; does the actual writing.
+    """
+    target = Path(target_file)
+    # The temp file must share a filesystem with the target for os.replace to be atomic,
+    # so put it in the same directory rather than the system temp area.
+    temp_fd, temp_name = tempfile.mkstemp(dir=target.parent or Path(), prefix=f".{target.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(temp_fd, "wb") as temp_file:
+            write_settings(temp_file)
+            # Flush all the way to disk before the swap: os.replace only orders the rename,
+            # not the data behind it.
+            temp_file.flush()
+            os.fsync(temp_file.fileno())
+        # Replacing the file replaces its permissions too, and mkstemp deliberately makes
+        # owner-only (0600) files.  Carry the existing file's mode over so saving settings
+        # doesn't quietly change who can read them.
+        with contextlib.suppress(OSError):
+            os.chmod(temp_name, target.stat().st_mode & 0o7777)
+        os.replace(temp_name, target)
+    except BaseException:
+        # BaseException, not Exception, and deliberately so: this cleans up and RE-RAISES,
+        # swallowing nothing.  A Ctrl-C or a MapTaskerError partway through the write would
+        # otherwise leave the half-written ".MapTasker_Settings.toml.<random>.tmp" behind
+        # in the user's directory, once per interrupted save.
+        with contextlib.suppress(OSError):
+            os.unlink(temp_name)
+        raise
+
+
+# Settings file is corrupt.  Let user know and reset colors to use and program arguments
+def corrupted_file(program_arguments: dict, colors_to_use: dict) -> None:
+    """
+    Checks for corrupted settings file and handles error
+    Args:
+        program_arguments: Command line arguments
+        colors_to_use: Color settings
+    Returns:
+        None: Returns None
+    Processing Logic:
+        1. Checks settings file for corruption
+        2. Generates error message if corrupted
+        3. Returns error message and settings as dictionaries for GUI display
+        4. Does not restore corrupted settings, asks user to re-save"""
+    error_handler(
+        (
+            f"The settings file,  {ARGUMENTS_FILE} is"
+            " corrupt!  The old settings can not be restored.  A new settings file will be saved upon exit."
+        ),
+        0,
+    )
+    # Return the error as an entry in our dictionaries for display via te GUI,
+    # if needed.
+    program_arguments = colors_to_use = {
+        "msg": "The settings file is corrupt or not compatible with the new version of MapTasker!  The old settings can not be restored.  A new default settings file has been saved.",
+    }
+    return program_arguments, colors_to_use
+
+
+# Write out our runtime settings as a TOML file
+def save_arguments(
+    program_arguments: ProgramArguments | dict, colors_to_use: dict, new_file: str, state: RunState
+) -> None:
+    """
+    Save the program arguments, colors to use, and new file to a JSON file.
+
+    Args:
+        program_arguments (ProgramArguments | dict): The program arguments -- the live
+            ProgramArguments, or a dictionary of them read off the GUI.
+        colors_to_use (list): The colors to use.
+        new_file (str): The new file to save the data to.
+
+    Returns:
+        None
+    """
+    # In the event we set the single Project name due to a single Task or Profile name,
+    # then reset it before we do a save and exit.
+    reset_named_objects(state=state)
+
+    guidance = {
+        "Guidance": "Modify this file as needed below the entries [program_arguments] and [colors_to_use].  Run 'maptasker -h' for details.",
+    }
+
+    # Make sure apikey is hidden
+    program_arguments["ai_apikey"] = "Hidden"
+
+    # Never persist what this particular run happens to be doing.  The AI analysis save
+    # below happens while ai_analyze is still true (ai_analyze_event saves right before it
+    # runs the analysis), so without this the flag would stay true in the settings file for
+    # every session that follows.
+    for argument, resting_value in TRANSIENT_ARGUMENTS.items():
+        program_arguments[argument] = resting_value
+
+    # Force file object into a dictionary for json encoding
+    try:
+        if not isinstance(program_arguments["file"], str):
+            program_arguments["file"] = program_arguments["file"].name
+    except AttributeError:
+        program_arguments["file"] = ""
+
+    # The settings to save
+    user_args = {}
+    project_translated = translate_string("Project:")
+    profile_translated = translate_string("Profile:")
+    task_translated = translate_string("Task:")
+    for argument in ARGUMENT_NAMES:
+        # TOML chokes on 'None" values.
+        try:
+            if program_arguments[argument] is None:
+                logger.debug(f"{argument} is None.  Fix it!")
+                program_arguments[argument] = ""
+        except KeyError:
+            program_arguments[argument] = ""
+
+        # Make sure we don't save an item name of "None" in another language
+        if state.program_arguments.language != "English":
+            if translate_string(program_arguments[argument] == "None"):
+                program_arguments[argument] = ""
+            # Make sure we don't save translated prefixes
+            if isinstance(program_arguments[argument], str):
+                if program_arguments[argument].startswith(project_translated):
+                    program_arguments[argument] = program_arguments[argument].replace(f"{project_translated} ", "")
+                elif program_arguments[argument].startswith(profile_translated):
+                    program_arguments[argument] = program_arguments[argument].replace(f"{profile_translated}", "")
+                elif program_arguments[argument].startswith(task_translated):
+                    program_arguments[argument] = program_arguments[argument].replace(f"{task_translated} ", "")
+
+        # Okay, now capture the argument.
+        user_args[argument] = program_arguments[argument]
+
+    # Save dictionaries.  The guidance goes in the same write as everything else: two
+    # separate writes is exactly what used to leave a guidance-only file on disk for any
+    # reader (or crash) that landed between them.
+    settings = {
+        **guidance,
+        "program_arguments": dict(sorted(user_args.items())),  # Sort the program args first.
+        "colors_to_use": dict(sorted(colors_to_use.items())),  # Sort the colors next.
+        "last_run": state.last_run,
+    }
+
+    # Write out the guidance, user program arguments and colors in TOML format.
+    logger.info("Saving settings file with program args and colors...")
+    try:
+        write_atomically(new_file, lambda settings_file: tomli_w.dump(settings, settings_file))
+    except TypeError as e:
+        # The previous settings file is still intact -- write_atomically threw away the
+        # partial one -- so the user loses this save, not everything saved before it.
+        console.error(f"getputer tomli failure: {e}...one or more settings is 'None'!")
+
+    # Older versions also pickled a second settings file.  It never held anything, and loading
+    # a pickle runs whatever code has been put in it, so a leftover one is deleted unopened.
+    with contextlib.suppress(OSError):
+        os.remove(LEGACY_SYSTEM_SETTINGS_FILE)
+
+
+# Read the TOML file and return the settings.
+def read_toml_file(new_file: str, state: RunState) -> tuple[dict, dict]:
+    """
+    Reads a TOML file and returns the program arguments and colors to use.
+
+    Args:
+        new_file (str): The path to the TOML file.
+
+    Returns:
+        tuple[dict, dict]: A tuple containing the program arguments (a dictionary) and the colors to use (a dictionary).
+
+    Raises:
+        tomllib.TOMLDecodeError: If the TOML file is corrupted or does not exist.
+
+    Side Effects:
+        - If the TOML file does not contain a "last_run" key, the last run date is set to yesterday (25 hours+).
+        - If the TOML file does not contain a "colors_to_use" key, the colors to use are set to blank.
+        - If the TOML file does not contain a "program_arguments" key, the program arguments are initialized.
+        - If the TOML file is corrupted or does not exist, the function calls the "corrupted_file" function.
+
+    """
+    program_arguments = ""
+    colors_to_use = ""
+    with open(new_file, "rb") as f:
+        # Setup old date if date last used is not in TROML settings file.  Catch all possible errors with TOML file.
+        try:
+            # Colors to use
+            settings = tomllib.load(f)
+            try:
+                colors_to_use = settings["colors_to_use"]  # Get the colors to use
+            except KeyError:
+                colors_to_use = set_color_mode(
+                    "",
+                )  # If this hadn't been previously saved, set it to blank
+
+            # Get program arguments
+            try:
+                program_arguments = settings["program_arguments"]
+                # Tamil was listed as 'Tamali', and the language is saved by its name: carry an
+                # older settings file over rather than quietly falling back to English.
+                if program_arguments.get("language") == "Tamali":
+                    program_arguments["language"] = "Tamil"
+                # A model saved under a spelling that was listed wrongly (Google answers such a
+                # name with "404 NOT_FOUND"): carry it over to the real name.
+                if program_arguments.get("ai_model") in RENAMED_AI_MODELS:
+                    program_arguments["ai_model"] = RENAMED_AI_MODELS[program_arguments["ai_model"]]
+                drop_unsupported_ai_selection(program_arguments)
+                # Start log. file if debug is on.
+                if program_arguments["debug"]:
+                    log_startup_values(state=state)
+            except KeyError:
+                # A settings file with no [program_arguments] table at all.  Saves are
+                # atomic now, so this is either a hand-edited file or one left half-written
+                # by a version from before that -- worth saying so rather than quietly
+                # coming up with defaults and then saving them back over the file.
+                logger.error(f"No [program_arguments] found in {new_file}.  Falling back to default settings.")
+                program_arguments = initialize_runtime_arguments().as_dict()
+            try:
+                state.last_run = settings["last_run"]  # Get the last run date
+            except KeyError:
+                # If this hadn't been previously saved, set it to yesterday (25 hours+).
+                state.last_run = twenty_four_hours_ago
+
+            f.close()
+        except tomllib.TOMLDecodeError:  # no saved file
+            program_arguments, colors_to_use = corrupted_file(
+                program_arguments,
+                colors_to_use,
+            )
+
+    return program_arguments, colors_to_use
+
+
+# Read in the TOML runtime settings
+def read_arguments(
+    program_arguments: ProgramArguments | dict,
+    colors_to_use: dict,
+    new_file: str,
+    state: RunState,
+) -> tuple[ProgramArguments | dict, dict]:
+    """
+    Reads the program arguments, colors to use, old file, and new file.
+
+    Parameters:
+        program_arguments (ProgramArguments | dict): Unused: replaced by what is read.
+        colors_to_use (dict): A dictionary containing colors to use.
+        new_file (str): The path to the new file.
+
+    Returns:
+        tuple: the arguments -- a dictionary as read from the settings file, or the live
+            PrimeItems.program_arguments if there is no file -- and the colors.
+    """
+    # Read the user settings TOML file
+    if os.path.isfile(new_file):
+        program_arguments, colors_to_use = read_toml_file(new_file, state=state)
+    else:
+        program_arguments = state.program_arguments
+        colors_to_use = set_color_mode(program_arguments.appearance_mode)
+
+    # A run always starts out not doing any of the transient things, whatever a settings
+    # file written by an older version (or edited by hand) claims.
+    for argument, resting_value in TRANSIENT_ARGUMENTS.items():
+        if isinstance(program_arguments, (dict, ProgramArguments)) and (
+            argument not in program_arguments or program_arguments[argument] != resting_value
+        ):
+            logger.info(f"Ignoring saved '{argument}' and starting at {resting_value}.")
+            program_arguments[argument] = resting_value
+
+    return program_arguments, colors_to_use
+
+
+# Save and restore colors to use and program arguments
+def save_restore_args(
+    program_arguments: ProgramArguments | dict, colors_to_use: dict, to_save: bool = True, *, state: RunState
+) -> tuple[ProgramArguments | dict, dict]:
+    """
+    Save and restore colors to use and program arguments
+        :param program_arguments: program runtime arguments to save or restore into
+        :param colors_to_use: color dictionary to save or restore into
+        :param to_save: True if this is a save request, False is restore request
+        :return: program runtime arguments saved/restored, colors to use saved/restored
+    """
+    our_path = os.getcwd()
+    new_file = f"{our_path}{state.slash}{ARGUMENTS_FILE}"
+
+    # Saving?
+    if to_save:
+        save_arguments(program_arguments, colors_to_use, new_file, state=state)
+
+    # Restore dictionaries
+    else:
+        program_arguments, colors_to_use = read_arguments(program_arguments, colors_to_use, new_file, state=state)
+
+    return program_arguments, colors_to_use

@@ -20,7 +20,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src import guiutils, maputils
+from maptasker.src.core import maputils
+from maptasker.src.gui import guiutils
 
 
 class FakeCompletedProcess(SimpleNamespace):

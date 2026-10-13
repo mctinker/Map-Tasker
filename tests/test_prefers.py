@@ -10,10 +10,10 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from typing import TYPE_CHECKING
 
-from maptasker.src import prefers
-from maptasker.src.primitem import RunState
-from maptasker.src.runcfg import current_config
-from maptasker.src.servicec import service_codes
+from maptasker.src.core import prefers
+from maptasker.src.core.primitem import RunState
+from maptasker.src.core.runcfg import current_config
+from maptasker.src.core.servicec import service_codes
 
 if TYPE_CHECKING:
     import pytest
