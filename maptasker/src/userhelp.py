@@ -211,7 +211,8 @@ APIKEY_HELP_TEXT = (
     "Click on the 'Clear' button to clear a specific API key entry.  \n"
     "Select 'Ok' to save the changes or 'Cancel' to back out of the changes.  \n"
 )
-# The main help screen's three pieces, held apart because the version number sits between
+# The main help screen's pieces (the pointer to the wiki's Command Reference comes first, ahead of
+# INFO_TEXT), held apart because the version number sits between
 # the first two.  A msgid carrying the release number would be invalidated by every
 # release, so there is deliberately no constant holding the assembled screen -- see
 # build_help.
@@ -291,6 +292,6 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     """
     lookup = translate or (lambda text: text)
     return (
-        f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(COMMAND_REFERENCE_TEXT)}"
+        f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}"
     )

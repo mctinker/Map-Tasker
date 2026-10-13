@@ -305,6 +305,15 @@ def rich_text_to_html(message: str) -> str:
     return html_text
 
 
+# Run in the browser when text in a rich popup is clicked: a link goes to a new tab, anything else is left alone.
+OPEN_LINKS_IN_NEW_TAB = """(event) => {
+    const link = event.target.closest('a[href]');
+    if (!link) return;
+    event.preventDefault();
+    window.open(link.href, '_blank', 'noopener,noreferrer');
+}"""
+
+
 def create_popup_window(title: str, message: str = "", close_button: bool = False, rich: bool = False) -> ui.dialog:
     """Creates a modal dialog. Replaces PopupWindow and CTkToplevel.
 
@@ -322,7 +331,16 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
             # contain "**" or "<" is still drawn exactly as it reads.
             if rich:
                 # ui.html(rich_text_to_html(message)).classes(text_classes)
-                ui.markdown(message).classes(text_classes)
+                # An underscore inside a word (the 'MapTasker_Timeline' and 'MapTasker_Backups' folder
+                # names) is an italic marker to the Markdown renderer, which then italicized everything
+                # between the two.  Escape those, and only those: a real __italic__ run is untouched.
+                markdown = ui.markdown(re.sub(r"(?<=[A-Za-z0-9])_(?=[A-Za-z0-9])", r"\\_", message))
+                markdown.classes(text_classes)
+                # A link in the help (the Command Reference wiki, for one) opens in a tab of its
+                # own: following it in this one would take the browser away from the running GUI.
+                # Done as a click handler because the Markdown is sanitized in the browser, and
+                # that strips a target="_blank" written into the link itself.
+                markdown.on("click", js_handler=OPEN_LINKS_IN_NEW_TAB)
             else:
                 ui.label(message).classes(text_classes)
         if close_button:

@@ -6,25 +6,30 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 """Generate (and optionally publish) the MapTasker Command Reference wiki page.
 
-Every command MapTasker offers lives in the source as a NiceGUI widget: a
-``ui.button``/``ui.menu_item`` for the commands, ``ui.checkbox``/``ui.switch``/
-``ui.select``/``ui.toggle`` for the options that sit beside them, each with the
-tooltip that already explains it.  Rather than keep a second, hand-written copy of
-all that in a wiki page -- which goes stale the day a new command lands -- this
-reads the widgets straight out of the source with the ``ast`` module and writes the
-page from what it finds.  Nothing is imported and no GUI is started, so it runs
-anywhere the source tree does.
+The page is laid out like the GUI's own Help screen: the commands listed in
+userhelp.py's INFO_TEXT (and the notes the Help screen adds after it) are the page's
+table of contents, in the same order and with the same nesting, and every one of them
+is a hotlink to a section of its own further down.  The change log note at the end of
+the Help screen is left out.
 
-The hierarchy is worked out the same way: a widget's ``on_click`` handler is
-followed through the call graph until it reaches the function that builds the next
-dialog, and that dialog's own widgets become its children.  That is what turns
-'Import Into Tasker' into::
+Each section says more than the Help screen does.  Everything is read from the source
+with the ``ast`` module -- nothing is imported and no GUI is started, so it runs
+anywhere the source tree does:
 
-    Edit Profile > Save To Android > Import Into Tasker
+* the Help screen's own line for the command, and anything it says that is a warning
+  (a requirement, a limit, a 'Map and Diagram only') pulled out as a caveat;
+* the longer help texts that go with it (BACKUP_HELP_TEXT for 'Get XML from Android
+  Device', VIEW_HELP_TEXT for 'Display Views', and so on);
+* the command's NiceGUI widget -- a ``ui.button``/``ui.menu_item``, or a
+  ``ui.checkbox``/``ui.switch``/``ui.select``/``ui.toggle`` -- with the tooltip that
+  explains it, where it is in the window, and the dialog it opens.
+
+A widget's ``on_click`` handler is followed through the call graph until it reaches the
+function that builds the next dialog, and that dialog's own widgets become its commands.
 
 A command with nothing to say about it anywhere -- no tooltip, no line in the help
-text, no comment above it in the source -- is left off the page entirely and written
-to a log instead, so the gap is a list to work through rather than a page full of
+text, no comment above it in the source -- is not given a section and is written to a
+log instead, so the gap is a list to work through rather than a page full of
 "no description available".
 
 Run it whenever commands are added or changed.  It lives in 'tools/misc' and
@@ -87,10 +92,11 @@ TRANSLATORS = {"translate_string", "gettext", "_"}
 MAIN_SURFACE = "guiwins.py:initialize_screen"
 SURFACE_TITLES = {
     MAIN_SURFACE: "Main Window",
-    "guiwins.py:NiceGuiTextView.build_ui": "Map / Diagram / Tree View Toolbar",
-    "guiwins.py:NiceGuiTextView.find_event": "Find / Replace",
-    "guiwins.py:NiceGuiTextView._report_search_results": "Search Results",
-    "guiwins.py:NiceGuiSceneView.build_ui": "Scene Preview Window",
+    "guiwins_views.py:NiceGuiTextView._build_toolbar": "Map / Diagram / Tree View Toolbar",
+    "guiwins_search.py:_FindDialog.__init__": "Find / Replace",
+    "guiwins_search.py:_ReplaceTab.__init__": "Find / Replace (Replace Tab)",
+    "guiwins_search.py:TextViewSearch._report_search_results": "Search Results",
+    "guiwins_views.py:NiceGuiSceneView.build_ui": "Scene Preview Window",
     "guiwins.py:build_overwrite_confirm_dialog": "Overwrite Confirmation",
     "guiwins.py:build_if_variant_dialog": "Choose An If Variant",
     "guiwins.py:_build_fetch_apps_dialog": "Fetch Applications From Android Device",
@@ -118,7 +124,7 @@ STANDALONE_SURFACES = {
 # view toolbar is the same toolbar whether Map, Diagram or Tree drew it.
 WINDOW_SURFACES = {
     "guiwins.py:initialize_screen",
-    "guiwins.py:NiceGuiTextView.build_ui",
+    "guiwins_views.py:NiceGuiTextView._build_toolbar",
 }
 
 # Not a place a user goes: a message box whose only command is the one that closes it.
@@ -166,8 +172,9 @@ HELP_TEXT_MINIMUM = 200
 # How much of a --stats report to print before saying how much more there is.
 REPORT_LIMIT = 40
 
-# Command-line arguments are documented from this parser's own add_argument calls.
-CLI_SOURCE = "parsearg.py"
+# Command-line arguments are documented from the table parsearg.py builds its parser from,
+# found beside the source.
+CLI_TABLE = Path("assets") / "json" / "cli_arguments.json"
 
 
 # ##################################################################################
@@ -535,7 +542,7 @@ class ModuleScanner(ast.NodeVisitor):
         """The rows of a loop's table, when the loop walks one that can be read here.
 
         Either written out in the loop itself, or a module-level list of labels named
-        by it -- taskedit.IF_BLOCK_VARIANTS is a list of the four 'If' shapes, and one
+        by it -- taskedit_model.IF_BLOCK_VARIANTS is a list of the four 'If' shapes, and one
         button is built per entry.  A long list is data being listed, not a set of
         commands, so it is left alone.
         """
@@ -734,6 +741,7 @@ class CommandModel:
         self.hosts: dict[str, set[str]] = defaultdict(set)  # helper -> surfaces it draws into
         self.callsites: dict[str, list[ast.Call]] = defaultdict(list)
         self.help_text: dict[str, str] = {}
+        self.help_constants: dict[str, str] = {}  # The Help screen's pieces, by constant name.
         self.unlabelled: list[tuple[str, int]] = []  # Widgets named at runtime.
         self.undescribed: list[Widget] = []  # Widgets the source says nothing about.
         self._widget_cache: dict[str, list[Widget]] = {}
@@ -763,6 +771,7 @@ class CommandModel:
                 self.callsites[called].extend(calls)
             if module == HELP_SOURCE:
                 self.help_text = help_descriptions(tree)
+                self.help_constants = help_strings(tree)
         for function in self.funcs.values():
             self.by_name[function.name].append(function)
             if function.name == "__init__" and "." in function.qualname:  # Local_File_Picker(...)
@@ -797,7 +806,11 @@ class CommandModel:
         their host, and resolves what each widget opens.
         """
         self._resolve_passed_labels()
-        self.surfaces = {key: function for key, function in self.funcs.items() if function.widgets}
+        # The main window draws nothing itself now: it calls the helpers that draw the header,
+        # the drawers and the body, so it is a surface for them to be merged into.
+        self.surfaces = {
+            key: function for key, function in self.funcs.items() if function.widgets or key == MAIN_SURFACE
+        }
         self._merge_helpers()
         for key in list(self.surfaces):
             if key in self.hosts or key in EXCLUDED_SURFACES:
@@ -895,17 +908,38 @@ class CommandModel:
         one only ever reached from a click handler -- that is a dialog opening, not
         a section being drawn.  A helper two dialogs both draw belongs to both.
         """
-        for key, function in list(self.surfaces.items()):
-            for name in sorted(function.direct_calls - function.handler_calls):
-                for helper in self.lookup(name, near=key):
-                    if (
-                        helper.key in self.surfaces
-                        and helper.key != key
-                        and not helper.creates_dialog
-                        and helper.key not in SURFACE_TITLES
-                        and key not in self.hosts_of(helper.key)
-                    ):
-                        self.hosts[helper.key].add(key)
+        for key in list(self.surfaces):
+            for helper in self._drawn_by(key):
+                if (
+                    helper.key != key
+                    and (not helper.creates_dialog or key == MAIN_SURFACE)  # The body holds a picker dialog.
+                    and helper.key not in SURFACE_TITLES
+                    and key not in self.hosts_of(helper.key)
+                ):
+                    self.hosts[helper.key].add(key)
+
+    def _drawn_by(self, key: str) -> list[Func]:
+        """The surfaces a surface draws as it is built, directly or through a function that
+        only calls the ones which draw.
+
+        _create_object_action_rows() has no widgets of its own: it calls the helper that
+        makes each Edit/Add button.  The buttons are still the main window's.
+        """
+        function = self.funcs[key]
+        found: list[Func] = []
+        seen = {key}
+        queue = sorted(function.direct_calls - function.handler_calls)
+        while queue:
+            name = queue.pop(0)
+            for helper in self.lookup(name, near=key):
+                if helper.key in seen:
+                    continue
+                seen.add(helper.key)
+                if helper.key in self.surfaces:
+                    found.append(helper)
+                elif not helper.widgets and not helper.creates_dialog and helper.module == function.module:
+                    queue.extend(sorted(helper.direct_calls - helper.handler_calls))
+        return found
 
     def hosts_of(self, key: str, seen: set[str] | None = None) -> set[str]:
         """The surfaces a possibly-merged helper's widgets actually appear on."""
@@ -1148,6 +1182,23 @@ def help_descriptions(tree: ast.AST) -> dict[str, str]:
     return descriptions
 
 
+def help_strings(tree: ast.AST) -> dict[str, str]:
+    """Every module-level string constant in the help module, by name: INFO_TEXT,
+    BACKUP_HELP_TEXT and the rest.
+    """
+    strings: dict[str, str] = {}
+    for node in getattr(tree, "body", []):
+        if not isinstance(node, ast.Assign):
+            continue
+        text = literal_text(node.value)
+        if text is None:
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                strings[target.id] = text
+    return strings
+
+
 def name_variants(name: str) -> list[str]:
     """Every command one help line names: 'Add Project/Profile/Task/Scene' names four."""
     name = re.sub(r"\s*\(.*?\)\s*", " ", name).strip()
@@ -1166,27 +1217,38 @@ def name_variants(name: str) -> list[str]:
 # Command-line arguments
 # ##################################################################################
 def command_line_arguments(source: Path) -> list[dict]:
-    """The runtime arguments, read from the parser's own add_argument() calls."""
-    path = source / CLI_SOURCE
+    """The runtime arguments, read from the table parsearg.py builds its parser from."""
+    path = source.parent / CLI_TABLE
     if not path.exists():
         return []
-    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     arguments = []
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+    for entry in json.loads(path.read_text(encoding="utf-8")).get("arguments", []):
+        if entry.get("hidden"):
             continue
-        if node.func.attr != "add_argument":
+        if entry.get("expand") == "colors":  # One '-c<code>' per kind of thing that can be colored.
+            arguments.append(
+                {
+                    "flags": ["-c<code>"],
+                    "help": "Provide a valid color for one kind of item in the output.  Example: -cp Blue",
+                    "choices": "",
+                },
+            )
             continue
-        flags = [text for text in (literal_text(argument) for argument in node.args) if text]
-        if not flags:
-            continue
-        help_text = literal_text(keyword_of(node, "help")) or ""
-        choices = keyword_of(node, "choices")
-        choice_text = ""
-        if isinstance(choices, (ast.List, ast.Tuple)):
-            names = [literal_text(element) for element in choices.elts]
-            choice_text = ", ".join(name for name in names if name)
-        arguments.append({"flags": flags, "help": " ".join(help_text.split()), "choices": choice_text})
+        help_text = entry.get("help", "")
+        choices = entry.get("choices", "")
+        arguments.append(
+            {
+                "flags": entry["names"],
+                "help": "<br>".join(
+                    " ".join(line.split())
+                    for line in ([help_text] if isinstance(help_text, str) else help_text)
+                    if line.strip()
+                ),
+                "choices": "the available AI models"
+                if isinstance(choices, str) and choices
+                else ", ".join(str(choice) for choice in choices),
+            },
+        )
     arguments.sort(key=lambda argument: argument["flags"][0].lstrip("-").casefold())
     return arguments
 
@@ -1227,15 +1289,6 @@ def slug(text: str) -> str:
     return cleaned or "command"
 
 
-def heading_anchor(text: str) -> str:
-    """The anchor GitHub gives a Markdown heading, for linking to it.
-
-    Not slug(): GitHub drops punctuation but turns every space into its own hyphen,
-    so "Map / Diagram / Tree View Toolbar" is #map--diagram--tree-view-toolbar.
-    """
-    return re.sub(r"[^\w\- ]", "", text.casefold()).replace(" ", "-")
-
-
 def cell(text: str) -> str:
     """Text made safe for a Markdown table cell."""
     return text.replace("|", "\\|").replace("\n", " ").strip()
@@ -1251,13 +1304,6 @@ def first_sentence(text: str) -> str:
     return " ".join(sentence.split())
 
 
-def describe(text: str) -> list[str]:
-    """A tooltip split into the paragraphs it was written as."""
-    if not text:
-        return []
-    return [" ".join(block.split()) for block in text.strip().split("\n\n") if block.strip()]
-
-
 def flatten(nodes: list[Node]) -> list[Node]:
     """Depth-first: a command, then everything reachable from it."""
     ordered = []
@@ -1267,139 +1313,609 @@ def flatten(nodes: list[Node]) -> list[Node]:
     return ordered
 
 
+# ##################################################################################
+# The Help screen
+# ##################################################################################
+@dataclass
+class HelpEntry:
+    """One command, as the Help screen lists it."""
+
+    name: str
+    text: str = ""  # What the Help screen says about it, as written.
+    is_group: bool = False  # A heading ('Editing commands...') rather than a command.
+    options: list[tuple[str, str]] = field(default_factory=list)  # 'Level 0: ...' lines.
+    children: list[HelpEntry] = field(default_factory=list)
+    parent: HelpEntry | None = None
+    anchor: str = ""
+    nodes: list[Node] = field(default_factory=list)  # Its widgets in the GUI.
+    related: list[str] = field(default_factory=list)  # Longer help texts that go with it.
+    extra_caveats: list[str] = field(default_factory=list)
+
+    @property
+    def depth(self) -> int:
+        """How many entries it is nested beneath."""
+        return 0 if self.parent is None else self.parent.depth + 1
+
+    def within(self, name: str) -> bool:
+        """Whether this entry is, or sits beneath, the entry of that name."""
+        entry: HelpEntry | None = self
+        while entry:
+            if entry.name == name:
+                return True
+            entry = entry.parent
+        return False
+
+
+@dataclass
+class HelpDoc:
+    """The Help screen, taken apart."""
+
+    intro: list[str] = field(default_factory=list)
+    entries: list[HelpEntry] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+
+# The pieces build_help() joins into the Help screen, in its order.  COMMAND_REFERENCE_TEXT,
+# the Help screen's pointer to this very page, is left out.
+HELP_PIECES = (
+    "INFO_TEXT",
+    "OUTPUT_FOLDER_HELP_TEXT",
+    "TASKERNET_UPDATES_HELP_TEXT",
+    "TASKSTEP_HELP_TEXT",
+    "TREND_HELP_TEXT",
+)
+
+# The longer help texts that go with one command: what the command is called in the Help
+# screen (normalised), and the constants in userhelp.py that explain it further.
+RELATED_HELP = {
+    "get xml from android device": ("BACKUP_HELP_TEXT",),
+    "list xml files": ("LISTFILES_HELP_TEXT",),
+    "display views": ("VIEW_HELP_TEXT",),
+    "analyze tab": ("AI_HELP_TEXT",),
+    "view limit": ("VIEWLIMIT_HELP_TEXT",),
+    "show edit api key s": ("APIKEY_HELP_TEXT",),
+}
+
+# The group of commands that belongs to the Map/Diagram/Tree views' toolbar.
+TOOLBAR_GROUP = "Map / Diagram / Tree View Toolbar"
+
+# A note that closes the Help screen, and the commands it is a caveat of: the phrase to
+# look for in the note, and the (normalised) names of the commands it applies to.
+NOTE_APPLIES_TO = {"appearance mode": ("dark mode", "colors tab")}
+
+# Help lines that name a command in a sentence rather than a 'Name: text' pair, or head
+# a group of commands, and what each should be called.  Keyed by how the line begins.
+DISPLAY_NAMES = {
+    "display options are": ("Detail Level", "How much of each Task the output shows.  The levels are:"),
+    "display directory of hyperlinks": (
+        "Display Directory",
+        "Display a directory of hyperlinks at the beginning of the output.",
+    ),
+    "project/profile/task/scene names options": (
+        "Project/Profile/Task/Scene Names",
+        "Options to italicize, bold, underline and/or highlight the names of Projects, Profiles, Tasks and Scenes.",
+    ),
+    "indentation amount": ("Indentation", "The indentation amount for If/Then/Else Task Actions."),
+    "map/diagram/tree view toolbar": (
+        TOOLBAR_GROUP,
+        "The commands on the toolbar of the Map, Diagram and Tree views.",
+    ),
+    "add and edit projects": (
+        "Add, Edit and Save",
+        "Add and Edit Projects, Profiles, Tasks and Scenes directly in the GUI, with various save options.",
+    ),
+    "editing commands": ("Editing Commands", "Reverse and review the changes made to the loaded XML."),
+}
+
+# What a command is called in the GUI when that is not what the Help screen calls it:
+# the label the widget carries (normalised), keyed by the Help screen's name (normalised).
+WIDGET_ALIASES = {
+    "application settings save": ("save",),
+    "application settings restore": ("restore",),
+    "detail level": ("detail level",),
+    "indentation": ("indent option",),
+    "view limit": ("viewlimit optionmenu",),
+    "notification duration": ("notify timeout optionmenu",),
+    "font to use": ("font optionmenu",),
+}
+
+# The windows whose commands are the Map/Diagram/Tree toolbar's, which a command of the same
+# name elsewhere (Replace, Save Results...) must not be mistaken for.
+TOOLBAR_SURFACES = {
+    "guiwins_views.py:NiceGuiTextView._build_toolbar",
+    "guiwins_search.py:_FindDialog.__init__",
+    "guiwins_search.py:_ReplaceTab.__init__",
+    "guiwins_search.py:TextViewSearch._report_search_results",
+}
+
+# A description of more sentences than this is set out as a list rather than one block of text.
+LONG_DESCRIPTION = 4
+
+# How much of a caveat has to be said already for it to be a repeat of it.
+OVERLAP = 0.75
+
+# How many places, hover texts and dialog commands a section lists before saying 'and N more'.
+WHERE_LIMIT = 3
+HOVER_LIMIT = 3
+OPENS_LIMIT = 15
+
+# 'Name: what it does', or 'Name - what it does'.  The earlier of the two wins.
+HELP_PAIR = re.compile(r"^(.{2,70}?)(?:\s*:\s+|\s+-\s+)(\S.*)$")
+HELP_SUBPAIR = re.compile(r"^(\w{2,10})\s+-\s+(\S.*)$")  # 'Save - Save these settings...'
+HELP_LEVEL = re.compile(r"^(Level \d+)\s*[:=]\s*(.*)$")
+HELP_LOCATION = re.compile(r"^\((in [^()]*)\)\s*", re.IGNORECASE)  # '(in the Find/Replace window) ...'
+HELP_AVAILABILITY = re.compile(r"^\(([^()]*\bonly)\)\s*", re.IGNORECASE)  # '(Map and Diagram only) ...'
+
+# A sentence that warns of something: a requirement, a limit, or a place it is not offered.
+CAVEAT = re.compile(
+    r"\b(only (for|in|when|if|works?|available|offered|applies|one|a single)|(is|are|be|works?|applies|available"
+    r"|offered|exclusive|one) only|requires?|must|unless|cannot|can't|is not|are not|will not|isn't|aren't"
+    r"|not simulated|not offered|safety copy|overwrit\w*|exclusive|extended run times|up to \d+ seconds"
+    r"|will time ?out|allow a few seconds|not instant)\b",
+    re.IGNORECASE,
+)
+LIST_MARKER = re.compile(r"^(?:[-*o]|\d+-)\s+")
+NOTE_PREFIX = re.compile(r"^note:\s*", re.IGNORECASE)
+ABBREVIATION = re.compile(r"\b(e\.g|i\.e|etc|vs)\.", re.IGNORECASE)
+CHANGELOG = re.compile(r"change\s?log", re.IGNORECASE)
+
+
+def normalize(text: str) -> str:
+    """A name reduced to lower-case words, so 'Just Display Everything!' finds 'just display everything'."""
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", text.casefold()).split())
+
+
+def sentences(text: str) -> list[str]:
+    """Text split into its sentences, 'e.g.' and 'etc.' not counting as the end of one."""
+    protected = ABBREVIATION.sub(lambda match: match.group(0).replace(".", "\x00"), text)
+    parts = re.split(r"(?<=[.!?])\s+(?=[A-Z'\"(\[%*])", protected)
+    return [part.replace("\x00", ".").strip() for part in parts if part.strip()]
+
+
+def caveat_sentences(text: str) -> list[str]:
+    """Just the sentences of one line of a help text that warn of something."""
+    line = NOTE_PREFIX.sub("", LIST_MARKER.sub("", " ".join(text.split())))
+    return [sentence for sentence in split_caveats(line, keep_first=False)[1] if not sentence.endswith(":")]
+
+
+def sentence_case(text: str) -> str:
+    """A sentence that starts with a capital and ends with a full stop."""
+    text = text.strip()
+    if not text:
+        return text
+    text = text[0].upper() + text[1:]
+    text = text[:-3].rstrip() + "." if text.endswith("...") else text
+    return text if text[-1] in ".!?:" else f"{text}."
+
+
+def split_caveats(text: str, *, keep_first: bool = True) -> tuple[str, list[str]]:
+    """A command's text divided into what it does and what to watch out for.
+
+    The opening sentence is always what the command does, however many warnings it
+    contains, so a long first sentence is never moved wholesale into the caveats.  A
+    leading '(Map and Diagram only)' becomes a caveat of its own.
+    """
+    caveats: list[str] = []
+    availability = HELP_AVAILABILITY.match(text)
+    if availability:
+        caveats.append(f"{availability.group(1)[0].upper()}{availability.group(1)[1:]}.")
+        text = text[availability.end() :]
+    plain = []
+    for index, sentence in enumerate(sentences(text)):
+        if CAVEAT.search(sentence) and not (index == 0 and keep_first):
+            caveats.append(sentence_case(NOTE_PREFIX.sub("", sentence.strip("()").strip())))
+        else:
+            plain.append(sentence)
+    return " ".join(plain), caveats
+
+
+def unique_caveats(caveats: list[str], known: str = "") -> list[str]:
+    """Caveats with repeats removed, in the order first met.
+
+    One that largely restates a sentence already on the page -- `known`, or a caveat
+    already kept -- is a repeat even when it is worded a little differently: the
+    Help screen and the tooltip often both say it.
+    """
+    kept: list[str] = []
+    seen = [set(normalize(known).split())] if known else []
+    for caveat in caveats:
+        words = set(normalize(caveat).split())
+        if not words or any(len(words & earlier) / len(words) > OVERLAP for earlier in seen):
+            continue
+        kept.append(caveat)
+        seen.append(words)
+    return kept
+
+
+def help_lines(text: str) -> list[str]:
+    """A help text as Markdown: its numbered steps and dashes become lists, the rest paragraphs."""
+    lines: list[str] = []
+    previous_was_item = False
+    for raw in text.split("\n"):
+        line = raw.strip()
+        if not line:
+            continue
+        numbered = re.match(r"^(\d+)-\s*(.*)$", line)
+        if numbered:
+            item = f"{numbered.group(1)}. {numbered.group(2)}"
+        elif line.startswith("- "):
+            item = f"* {line[2:]}"
+        elif line.startswith("o "):
+            item = f"    * {line[2:]}"
+        else:
+            item = ""
+        if lines and not (item and previous_was_item):
+            lines.append("")
+        lines.append(item or line)
+        previous_was_item = bool(item)
+    return lines
+
+
+def match_names(entry: HelpEntry) -> list[str]:
+    """Every name the GUI could know a Help-screen command by, normalised.
+
+    'Add Project/Profile/Task/Scene' is four buttons; 'Zoom, Collapse All, Expand All,
+    Reset' is four more; 'Specific Name tab' is the tab called 'Specific Name'.
+    """
+    names = [normalize(entry.name), *[normalize(variant) for variant in name_variants(entry.name)]]
+    for part in re.split(r"\s*,\s*|\s+/\s+", entry.name):
+        names += [normalize(variant) for variant in name_variants(part)]
+    for alias in WIDGET_ALIASES.get(normalize(entry.name), ()):
+        names.append(alias)
+    return list(dict.fromkeys(name for name in names if name))
+
+
+def make_entry(text: str, parent: HelpEntry | None, *, group: bool = False) -> HelpEntry:
+    """A Help line made into an entry: its name, and what it says."""
+    text = " ".join(text.split())
+    pair = HELP_PAIR.match(text)
+    if pair:
+        name, body = pair.groups()
+        sub = HELP_SUBPAIR.match(body)
+        if sub:  # 'Application Settings: Save - Save these...' is the command 'Application Settings: Save'.
+            name, body = f"{name}: {sub.group(1)}", sub.group(2)
+    elif text.endswith(":"):
+        name, body = text[:-1], ""
+    else:
+        name, body = text.rstrip(". "), text
+    located = HELP_LOCATION.match(body)  # '(in the Find/Replace window) Type the question...'
+    if located:
+        body = f"{body[located.end() :].rstrip()} This is {located.group(1)}."
+    for start, (display, description) in DISPLAY_NAMES.items():
+        if normalize(name).startswith(normalize(start)):
+            name, body = display, description if group or not pair else body
+            break
+    entry = HelpEntry(
+        name=name.strip(),
+        text=sentence_case(body),
+        is_group=group or (not body and not pair),
+        parent=parent,
+    )
+    if parent:
+        parent.children.append(entry)
+    return entry
+
+
+class HelpParser:
+    """Reads the Help screen's outline, one line at a time."""
+
+    def __init__(self, doc: HelpDoc) -> None:
+        """Starts reading into a document."""
+        self.doc = doc
+        self.start_piece()
+
+    def start_piece(self) -> None:
+        """Each piece of the Help screen starts again from the left margin."""
+        self.top: HelpEntry | None = None
+        self.group: HelpEntry | None = None
+        self.last: HelpEntry | None = None
+        self.in_notes = False
+
+    def read(self, raw: str) -> None:
+        """Takes one line: a command, a command beneath one, a group, a note or more of the last."""
+        text = raw.strip()
+        if not text:
+            return
+        indent = len(raw) - len(raw.lstrip())
+        if indent == 0 and text.casefold().startswith("notes:"):
+            self.in_notes = True
+        elif self.in_notes:
+            self.read_note(text)
+        elif indent == 0 and text.startswith(("* ", "- ")):
+            self.top = self.last = make_entry(text[2:], None, group=text.endswith("...") and ": " not in text)
+            self.group = None
+            self.doc.entries.append(self.top)
+        elif indent == 0 and self.top is None:
+            self.doc.intro.append(text)
+        elif self.top is not None and self.last is not None:
+            self.read_indented(text, indent)
+
+    def read_note(self, text: str) -> None:
+        """One of the closing 'Notes:', which may run over more than a line."""
+        if text.startswith("- "):
+            self.doc.notes.append(text[2:].strip())
+        elif self.doc.notes:
+            self.doc.notes[-1] += f" {text}"
+
+    def read_indented(self, text: str, indent: int) -> None:
+        """A line beneath a command: a command of its own, a group heading, or more about the last."""
+        if indent <= 3 and text.startswith("- "):
+            self.last = make_entry(text[2:], self.group or self.top)
+        elif indent <= 3 and text.endswith("...") and not text.startswith("("):
+            self.group = self.last = make_entry(text, self.top, group=True)
+        elif indent <= 3 and text.startswith("(") and self.top:
+            self.top.text = f"{self.top.text} {text}".strip()
+        elif self.last:
+            level = HELP_LEVEL.match(text)
+            if level:
+                self.last.options.append((level.group(1), level.group(2)))
+            else:
+                self.last.text = f"{self.last.text} {text}".strip()
+
+
+def parse_help(constants: dict[str, str]) -> HelpDoc:
+    """The Help screen, as the outline it is written in.
+
+    A line starting '* ' (or '- ', in the pieces added after INFO_TEXT) is a command.  An
+    indented '- ' line is a command beneath it, and an indented line ending '...' heads a
+    group of them.  Anything else indented carries on the line above, or -- when it is
+    a '(note)' sitting at the level of the commands -- is a note about the whole tab.
+    The closing 'Notes:' are kept apart, minus the one that points at the change log.
+    """
+    doc = HelpDoc()
+    parser = HelpParser(doc)
+    for piece in HELP_PIECES:
+        parser.start_piece()
+        for raw in constants.get(piece, "").split("\n"):
+            parser.read(raw)
+    doc.notes = [note for note in doc.notes if not CHANGELOG.search(note)]
+    return doc
+
+
+def flatten_entries(entries: list[HelpEntry]) -> list[HelpEntry]:
+    """Depth-first: an entry, then the entries beneath it."""
+    ordered = []
+    for entry in entries:
+        ordered.append(entry)
+        ordered.extend(flatten_entries(entry.children))
+    return ordered
+
+
 class PageWriter:
-    """Renders the tree as one searchable Markdown page."""
+    """Renders the Help screen's commands as one searchable Markdown page."""
 
     def __init__(self, model: CommandModel, nodes: list[Node], version: str, page_name: str) -> None:
-        """Prepares to render one page from a command tree."""
+        """Prepares to render one page: reads the Help screen, then finds each of its
+        commands in the widget tree so that the page can say more than the Help does.
+        """
         self.model = model
         self.nodes = nodes
         self.flat = flatten(nodes)
         self.version = version
         self.page_name = page_name
-        self.anchors = self._anchors()
+        self.doc = parse_help(model.help_constants)
+        self.entries = flatten_entries(self.doc.entries)
+        self.attached_notes: set[str] = set()
+        self._assign_anchors()
+        self._attach_widgets()
+        self._attach_related_help()
+        self._attach_notes()
 
-    def _anchors(self) -> dict[int, str]:
-        """A unique anchor per command, keyed by the node itself."""
-        anchors: dict[int, str] = {}
+    # -- joining the Help screen to the rest of the source -------------------------
+    def _assign_anchors(self) -> None:
+        """A unique anchor per entry, and a way to find the entry a command name belongs to."""
         used: dict[str, int] = {}
-        for node in self.flat:
-            base = f"cmd-{slug(' '.join(node.path))}"
+        self.link_for: dict[str, str] = {}
+        for entry in self.entries:
+            base = f"cmd-{slug(entry.name)}"
             used[base] = used.get(base, 0) + 1
-            anchors[id(node)] = base if used[base] == 1 else f"{base}-{used[base]}"
-        return anchors
+            entry.anchor = base if used[base] == 1 else f"{base}-{used[base]}"
+            if entry.is_group:
+                continue
+            for name in match_names(entry):
+                self.link_for.setdefault(name, entry.anchor)
 
+    def _attach_widgets(self) -> None:
+        """Finds the widgets each command is in the GUI, so its hover text, its place in the
+        window and the dialog it opens can be added to the page.
+        """
+        by_label: dict[str, list[Node]] = defaultdict(list)
+        for node in self.flat:
+            by_label[normalize(node.widget.label)].append(node)
+        for entry in self.entries:
+            if entry.is_group:
+                continue
+            on_toolbar = entry.within(TOOLBAR_GROUP)
+            found: list[Node] = []
+            for name in match_names(entry):
+                found.extend(node for node in by_label.get(name, []) if (node.root in TOOLBAR_SURFACES) == on_toolbar)
+            main = [node for node in found if node.root == MAIN_SURFACE]
+            entry.nodes = list({id(node): node for node in (main or found)}.values())
+
+    def _attach_related_help(self) -> None:
+        """Adds the longer help text (BACKUP_HELP_TEXT, VIEW_HELP_TEXT...) that goes with a command."""
+        for entry in self.entries:
+            for constant in RELATED_HELP.get(normalize(entry.name), ()):
+                text = self.model.help_constants.get(constant, "")
+                if text:
+                    entry.related.append(text)
+
+    def _attach_notes(self) -> None:
+        """Hangs a general note on the commands it is about, as a caveat of theirs."""
+        for note in self.doc.notes:
+            for phrase, names in NOTE_APPLIES_TO.items():
+                if phrase not in note.casefold():
+                    continue
+                for entry in self.entries:
+                    if normalize(entry.name) in names:
+                        entry.extra_caveats.append(note)
+                        self.attached_notes.add(note)
+
+    # -- the page ----------------------------------------------------------------
     def render(self, arguments: list[dict]) -> str:
         """The whole page."""
         lines: list[str] = []
         lines += self._header()
-        lines += self._index()
-        lines += self._detail()
+        lines += self._contents(has_arguments=bool(arguments))
+        lines += ["## Commands", ""]
+        for entry in self.doc.entries:
+            lines += self._entry(entry)
         if arguments:
             lines += self._arguments(arguments)
+        lines += self._notes()
         lines += self._footer()
         return "\n".join(lines).rstrip() + "\n"
 
-    # -- sections ----------------------------------------------------------------
     def _header(self) -> list[str]:
-        """Title, what the page is, and how to search it."""
+        """Title, what MapTasker does, and how to use the page."""
         today = datetime.date.today().isoformat()
-        commands = sum(1 for node in self.flat if node.widget.kind in COMMAND_KINDS)
+        described = sum(1 for entry in self.entries if not entry.is_group)
         return [
             "# MapTasker Command Reference",
             "",
-            f"Every command, option and pulldown in the MapTasker user interface: **{len(self.flat)}** entries "
-            f"(**{commands}** of them commands) across **{len(self.model.roots())}** windows.",
+            *[f"{paragraph}\n" for paragraph in self.doc.intro],
+            f"This page describes each of the **{described}** commands, options and tabs in MapTasker's Help screen, "
+            "in the same order, with more detail on each and the caveats that go with it.",
             "",
             f"_Generated from the MapTasker {self.version} source on {today} by `build_command_wiki.py`._ "
             "_Do not edit this page by hand -- rerun that program instead._",
             "",
             "## How to use this page",
             "",
-            "* **Searching:** press `Ctrl`/`⌘` + `F` and type any part of a command's name. "
-            "Every command appears twice -- once in the alphabetical index, once in full under its window -- "
-            "so a search always lands on something.",
-            "* **Reading a path:** commands are written as the clicks that get you there. "
-            "`Edit Profile > Save To Android > Import Into Tasker` means click **Edit Profile**, "
-            "then **Save To Android** in the dialog that opens, then **Import Into Tasker**.",
-            "* **Kinds:** _Command_ is a button, _Menu item_ sits in a pulldown menu, "
-            "_Option_ is a checkbox or switch, _Pulldown_ is a list to choose from, and _Tab_ switches panels.",
-            "* **Descriptions** are the text MapTasker shows when you hover over the command.  Where a command "
-            "has no hover text, the description comes from MapTasker's own Help, or from the note written "
-            "beside it in the source -- which is said, where that is so.",
-            "",
-            "## Contents",
-            "",
-            "* [Command Index (A-Z)](#command-index-a-z)",
-            *[
-                f"* [{self.model.title_of(root)}](#{heading_anchor(self.model.title_of(root))})"
-                for root in self.model.roots()
-            ],
-            "* [Command-Line Arguments](#command-line-arguments)",
+            "* **Finding a command:** the Contents below lists the commands alphabetically.  Click a name to go to "
+            "its section, or press `Ctrl`/`⌘` + `F` and type any part of the name.  The sections themselves follow the "
+            "order of MapTasker's own Help screen.",
+            "* **Reading a section:** each says what the command does, where it is in the window, the text MapTasker "
+            "shows when you hover over it, and the dialog it opens.  Anything to watch out for -- a requirement, a "
+            "limit, a command offered in only some views -- is under **Caveats**.",
+            "* **Nesting:** a command that belongs to a tab or a toolbar is listed beneath it, and says so.",
             "",
         ]
 
-    def _index(self) -> list[str]:
-        """Every command in one alphabetical table."""
-        lines = [
-            "## Command Index (A-Z)",
-            "",
-            "| Command | Kind | Where it is | What it does |",
-            "| --- | --- | --- | --- |",
-        ]
-        for node in sorted(self.flat, key=lambda item: (item.widget.sort_key, " ".join(item.path))):
-            widget = node.widget
-            anchor = self.anchors[id(node)]
-            where = " &gt; ".join(node.path[:-1]) or self.model.title_of(node.root)
-            if node.root != MAIN_SURFACE and node.path[:-1]:
-                where = f"{self.model.title_of(node.root)} &gt; {where}"
-            lines.append(
-                f"| [{cell(widget.label)}](#{anchor}) | {ALL_KINDS.get(widget.kind, widget.kind)} "
-                f"| {cell(where)} | {cell(first_sentence(widget.tooltip))} |",
-            )
+    def _contents(self, *, has_arguments: bool) -> list[str]:
+        """The directory of hotlinks: every command in the Help screen, as it is nested there."""
+        lines = ["## Contents", ""]
+
+        def listing(entries: list[HelpEntry], depth: int) -> None:
+            for entry in entries:
+                lines.append(f"{'  ' * depth}* [{entry.name}](#{entry.anchor})")
+                listing(entry.children, depth + 1)
+
+        # The commands are alphabetical here to be found by name; below, and within a tab
+        # or a group, they stay in the order the Help screen gives them.
+        listing(sorted(self.doc.entries, key=lambda entry: entry.name.casefold().lstrip("'\"")), 0)
+        if has_arguments:
+            lines.append("* [Command-Line Arguments](#command-line-arguments)")
+        if self._unattached_notes():
+            lines.append("* [Notes](#notes)")
         lines.append("")
         return lines
 
-    def _detail(self) -> list[str]:
-        """Every command in full, grouped by the window it belongs to."""
-        lines: list[str] = []
-        by_root: dict[str, list[Node]] = defaultdict(list)
-        for node in self.flat:
-            by_root[node.root].append(node)
-        for root in self.model.roots():
-            title = self.model.title_of(root)
-            lines += [f"## {title}", ""]
-            if self.model.funcs[root].doc:
-                lines += [f"_{first_sentence(self.model.funcs[root].doc)}_", ""]
-            for node in by_root.get(root, []):
-                lines += self._entry(node, title)
+    def _entry(self, entry: HelpEntry) -> list[str]:
+        """One command in full: what it does, where it is, what it opens, and its caveats."""
+        plain, caveats = split_caveats(entry.text)
+        heading = "#" * min(3 + entry.depth, 6)
+        lines = [f'<a id="{entry.anchor}"></a>', f"{heading} {entry.name}", ""]
+        if entry.parent:
+            lines += [f"_Part of [{entry.parent.name}](#{entry.parent.anchor})._", ""]
+        lines += self._where(entry)
+        lines += self._description(plain)
+        if entry.options:
+            lines += [f"* **{key}:** {value}" for key, value in entry.options] + [""]
+        hovers, hover_caveats = self._hover_text(entry, plain)
+        if len(hovers) == 1:
+            lines += [f"**Hover text:** {hovers[0]}", ""]
+        elif hovers:
+            lines += ["**Hover text:**", "", *[f"* {hover}" for hover in hovers], ""]
+        lines += self._opens(entry)
+        for text in entry.related:
+            lines += ["**More detail:**", "", *help_lines(text), ""]
+            caveats += [sentence for line in text.split("\n") for sentence in caveat_sentences(line)]
+        caveats = unique_caveats(caveats + hover_caveats + entry.extra_caveats, known=plain)
+        if caveats:
+            lines += ["**Caveats:**", "", *[f"* {caveat}" for caveat in caveats], ""]
+        return lines + [line for child in entry.children for line in self._entry(child)]
+
+    @staticmethod
+    def _description(plain: str) -> list[str]:
+        """What a command does: a paragraph, or -- when the Help screen has a great deal to
+        say -- its opening sentence and then the rest one point to a line.
+        """
+        parts = sentences(plain)
+        if len(parts) <= LONG_DESCRIPTION:
+            return [plain, ""] if plain else []
+        return [parts[0], "", *[f"* {part}" for part in parts[1:]], ""]
+
+    def _where(self, entry: HelpEntry) -> list[str]:
+        """The one line saying what kind of thing this is and where it sits in the window."""
+        if not entry.nodes:
+            return []
+        kinds = sorted({ALL_KINDS.get(node.widget.kind, node.widget.kind) for node in entry.nodes})
+        places = []
+        for node in sorted(entry.nodes, key=lambda item: (item.root != MAIN_SURFACE, len(item.path))):
+            place = " &gt; ".join([self.model.title_of(node.root), *node.path[:-1]])
+            if place not in places:
+                places.append(place)
+        shown = places[:WHERE_LIMIT]
+        more = f" (and {len(places) - len(shown)} more)" if len(places) > len(shown) else ""
+        return [f"**Type:** {' / '.join(kinds)}  ", f"**Where:** {'; '.join(shown)}{more}", ""]
+
+    def _hover_text(self, entry: HelpEntry, plain: str) -> tuple[list[str], list[str]]:
+        """What MapTasker's own tooltips say about the command, where that adds to the Help screen.
+
+        A tooltip that only repeats the Help screen's line is left out, and the sentences of
+        a tooltip that warn of something are returned apart, as caveats.
+        """
+        known = normalize(f"{entry.text} {plain}")
+        hovers: list[str] = []
+        caveats: list[str] = []
+        seen: set[str] = set()
+        labels = {node.widget.label for node in entry.nodes}
+        for node in entry.nodes:
+            widget = node.widget
+            if widget.described_by != "tooltip" or normalize(widget.tooltip) in seen:
+                continue
+            seen.add(normalize(widget.tooltip))
+            if normalize(widget.tooltip) in known or (len(known) > 60 and known in normalize(widget.tooltip)):
+                continue
+            body, warned = split_caveats(" ".join(widget.tooltip.split()))
+            caveats += warned
+            if body:
+                hovers.append(f"**{widget.label}** -- {body}" if len(labels) > 1 else body)
+        return hovers[:HOVER_LIMIT], caveats
+
+    def _opens(self, entry: HelpEntry) -> list[str]:
+        """The dialog a command opens, and the commands in it, linking those the Help screen covers."""
+        titles = list(dict.fromkeys(node.opens_title for node in entry.nodes if node.opens_title))
+        if not titles:
+            return []
+        inside: dict[str, None] = {}
+        for node in entry.nodes:
+            for child in node.children:
+                label = child.widget.label
+                if label.casefold() not in COMMON_DESCRIPTIONS and self.link_for.get(normalize(label)) != entry.anchor:
+                    inside[label] = None
+        lines = [f"**Opens:** {', '.join(titles)}", ""]
+        if inside:
+            shown = list(inside)[:OPENS_LIMIT]
+            names = [
+                f"[{label}](#{self.link_for[normalize(label)]})" if normalize(label) in self.link_for else label
+                for label in shown
+            ]
+            more = f", and {len(inside) - len(shown)} more" if len(inside) > len(shown) else ""
+            lines += [f"**Commands in it:** {', '.join(names)}{more}", ""]
         return lines
 
-    def _entry(self, node: Node, window: str) -> list[str]:
-        """One command: its name, the path to it, and what it does."""
-        widget = node.widget
-        heading = "#" * min(3 + len(node.path) - 1, 6)
-        path = " &gt; ".join(node.path)
-        lines = [
-            f'<a id="{self.anchors[id(node)]}"></a>',
-            f"{heading} {widget.label}",
-            "",
-            f"**Path:** {window} &gt; {path}  ",
-            f"**Kind:** {ALL_KINDS.get(widget.kind, widget.kind)}",
-            "",
-        ]
-        if widget.described_by == "comment":
-            lines += ["_There is no tooltip on this one; this is the note written beside it in the source._", ""]
-        lines += [f"{paragraph}\n" for paragraph in describe(widget.tooltip)]
-        if node.opens_title:
-            if node.recursive:
-                lines += [f"Opens the **{node.opens_title}** dialog, which is documented above.", ""]
-            elif node.children:
-                lines += [f"Opens **{node.opens_title}**, whose own commands are listed beneath this one.", ""]
-            else:
-                lines += [f"Opens **{node.opens_title}**.", ""]
-        lines += [f"<sub>Source: `{widget.module}` line {widget.lineno}</sub>", ""]
-        return lines
+    def _unattached_notes(self) -> list[str]:
+        """The Help screen's closing notes that are not already a caveat on a command."""
+        return [note for note in self.doc.notes if note not in self.attached_notes]
+
+    def _notes(self) -> list[str]:
+        """The Help screen's closing notes, minus the one pointing at the change log."""
+        notes = self._unattached_notes()
+        if not notes:
+            return []
+        return ["## Notes", "", *[f"* {note}" for note in notes], ""]
 
     def _arguments(self, arguments: list[dict]) -> list[str]:
         """The command-line arguments, for running MapTasker without the GUI."""
@@ -1433,7 +1949,7 @@ class PageWriter:
             "To refresh it after commands are added or changed:",
             "",
             "```",
-            'python tools/misc/build_command_wiki.py --publish',
+            "python tools/misc/build_command_wiki.py --publish",
             "```",
             "",
         ]
@@ -1507,9 +2023,15 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def report(model: CommandModel, nodes: list[Node]) -> None:
+def report(model: CommandModel, nodes: list[Node], writer: PageWriter) -> None:
     """What was found, per window, plus anything that could not be documented."""
     flat = flatten(nodes)
+    commands = [entry for entry in writer.entries if not entry.is_group]
+    print(f"\nHelp screen: {len(commands)} commands, {len(writer.entries) - len(commands)} groups.")
+    bare = [entry.name for entry in commands if not entry.nodes]
+    print(f"{len(bare)} have no widget of that name in the GUI (their section is the Help screen's text alone):")
+    for name in bare[:REPORT_LIMIT]:
+        print(f"    {name}")
     print("\nWindows and dialogs:")
     for root in model.roots():
         count = sum(1 for node in flat if node.root == root)
@@ -1540,9 +2062,8 @@ def main(argv: list[str] | None = None) -> int:
     model = CommandModel(source, kinds)
     nodes = model.tree()
     arguments = [] if options.no_cli else command_line_arguments(source)
-    page = PageWriter(model, nodes, version_of(source), options.page_name).render(arguments)
-
-
+    writer = PageWriter(model, nodes, version_of(source), options.page_name)
+    page = writer.render(arguments)
     out = options.out or HERE / f"{options.page_name}.md"
     out.write_text(page, encoding="utf-8")
     print(f"Wrote {out} ({len(page.splitlines())} lines, {len(flatten(nodes))} entries).")
@@ -1568,7 +2089,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Wrote {options.json} ({len(payload)} entries).")
 
     if options.stats:
-        report(model, nodes)
+        report(model, nodes, writer)
 
     if options.publish:
         return publish(out, options.page_name, options.wiki_repo, options.dry_run, tool="build_command_wiki.py")

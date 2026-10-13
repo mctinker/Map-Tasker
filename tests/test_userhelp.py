@@ -82,7 +82,9 @@ def test_untranslated_screen_stays_english() -> None:
     screen = userhelp.build_help()
     assert userhelp.INFO_TEXT in screen
     assert screen.startswith(f"MapTasker {VERSION} {userhelp.HELP_HEADING}")
-    assert screen.endswith(userhelp.COMMAND_REFERENCE_TEXT)
+    assert screen.startswith(
+        f"MapTasker {VERSION} {userhelp.HELP_HEADING}  \n{userhelp.COMMAND_REFERENCE_TEXT}{userhelp.INFO_TEXT}",
+    )
 
 
 @pytest.mark.parametrize("name", TRANSLATED_HELP_PIECES)
