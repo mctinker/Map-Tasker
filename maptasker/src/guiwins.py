@@ -2726,6 +2726,7 @@ def _create_right_drawer(self: MyGui) -> None:
         _create_health_check_row(self)
 
         _create_history_buttons_section(self)
+        _create_trend_button(self)
 
         _create_analysis_buttons_section(self)
 
@@ -3003,6 +3004,30 @@ def _create_history_buttons_section(self: MyGui) -> None:
                 "lets you take each change on its own, previewed first and one press of Undo "
                 "afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; "
                 "nothing from your configuration leaves this computer.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
+def _create_trend_button(self: MyGui) -> None:
+    """Trend Dashboard, last among the buttons that read the history: is the configuration getting healthier or messier?"""
+    trend_button = (
+        ui.button(
+            translate_string("Trend Dashboard"),
+            color="teal",
+            on_click=self.event_handlers.trend_dashboard_event,
+            icon="trending_up",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with trend_button:
+        ui.tooltip(
+            translate_string(
+                "Is your configuration getting healthier or messier?  Measures every configuration the history "
+                "has kept -- Task length, nesting depth, how deep Perform Task calls go, and what the Health Check "
+                "finds -- and shows each number over time, for the whole configuration and for each "
+                "Project.\n\nEach configuration is measured once and the figures are kept, so only the first look "
+                "is slow."
             ),
         ).style("white-space: pre-wrap")
 

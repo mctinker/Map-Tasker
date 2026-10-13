@@ -1,4 +1,4 @@
-"""Run a Health Check, Compare, Changes Since, Export or folder watch from the command line."""
+"""Run a Health Check, Compare, Changes Since, Trend, Export or folder watch from the command line."""
 
 #! /usr/bin/env python3
 
@@ -10,6 +10,7 @@
 #   maptasker -healthcheck -file backup.xml                 problems in one backup
 #   maptasker -compare old.xml new.xml                      what differs between two
 #   maptasker -changes_since week -file backup.xml          what changed over a period
+#   maptasker -trend -file backup.xml                       is it getting healthier or messier?
 #   maptasker -export map -format md -file backup.xml       the Map (or the diagram) as a file
 #   maptasker -watch ~/TaskerBackups                        record each new backup in the history
 #
@@ -59,6 +60,7 @@ from maptasker.src import (
     mapjump,
     timecomp,
     timeline,
+    trend,
     xmldiff,
 )
 from maptasker.src.actionc import load_arg_specs
@@ -102,11 +104,11 @@ EXIT_NOT_A_BACKUP = 3  # A file is not a valid Tasker backup.
 EXIT_NO_FILE = 6  # No file, or a file that is not there.
 EXIT_BAD_OPTION = 7  # An option that does not make sense.
 EXIT_FOUND = 10  # The report ran and found something: problems, or differences.
-EXIT_NO_HISTORY = 11  # Changes Since had nothing earlier to compare against.
+EXIT_NO_HISTORY = 11  # Changes Since, or -trend, had nothing earlier to compare against.
 
 # The flags that make a run a command-line report, in the single-dash style the rest of the
 # command line uses.  Each is also accepted with two dashes.
-REPORT_FLAGS = ("healthcheck", "compare", "changes_since", "export", "watch")
+REPORT_FLAGS = ("healthcheck", "compare", "changes_since", "trend", "export", "watch")
 
 # Health Check: which findings make the run "find something" (EXIT_FOUND).
 FAIL_ON_ERROR = "error"
@@ -115,6 +117,9 @@ FAIL_ON_NEVER = "never"
 
 # The Map is built without the view limit: that is a limit on what a window is asked to show.
 _UNLIMITED = 9_999_999
+
+# What -trend -save writes its report to, stamped as the others are.
+TREND_FILE = "MapTasker_Trend.txt"
 
 # "3d": three days back.  The other periods are named (see _cutoff).
 _DAYS_BACK = re.compile(r"^(\d+)d$", re.IGNORECASE)
@@ -179,7 +184,8 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "The report is written to standard output; everything else goes to standard error.\n"
             "Exit codes: 0 done, nothing to report; 10 the report found something (problems, or\n"
-            "differences); 11 Changes Since had no earlier configuration to compare against;\n"
+            "differences, or -trend: the newest backup is messier); 11 Changes Since or -trend had\n"
+            "no earlier configuration to compare against;\n"
             "1 program error; 2 a file could not be written; 3 not a valid Tasker backup;\n"
             "6 no such file; 7 invalid option."
         ),
@@ -199,6 +205,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="show what changed since PERIOD: today, week, month, all, a date (YYYY-MM-DD) or Nd (e.g. 3d)",
     )
     chosen.add_argument(
+        "-trend",
+        action="store_true",
+        help="show whether the configuration is getting healthier or messier over the history "
+        "(see -file, -project); exits 10 if the newest backup made it messier",
+    )
+    chosen.add_argument(
         "-export",
         choices=(mapexport.MAP, mapexport.DIAGRAM),
         help="write the Map or the Diagram as a file (see -format), and print its path",
@@ -209,7 +221,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="record each new backup that appears in FOLDER in the history, until stopped",
     )
 
-    parser.add_argument("-file", help="the Tasker backup to use: a file, or a folder to use the newest .xml in")
+    parser.add_argument(
+        "-file",
+        help="the Tasker backup to use: a file, or a folder to use the newest .xml in "
+        "(-trend: only its name is used, to follow the backups of that file)",
+    )
+    parser.add_argument("-project", help="-trend: look at this Project alone, not the whole configuration")
     parser.add_argument("-outdir", help="the folder to write files into (see -save and -export)")
     parser.add_argument("-history_dir", help="the folder holding the history, if not MapTasker_Timeline here")
     parser.add_argument("-save", action="store_true", help="also save the report as a file, as the window does")
@@ -480,6 +497,34 @@ def _changes_since(options: argparse.Namespace, state: RunState) -> int:
     return EXIT_OK if result.nothing_changed else EXIT_FOUND
 
 
+def _trend(options: argparse.Namespace, state: RunState) -> int:
+    """Show how the configuration has moved over the history.  EXIT_FOUND if the newest backup made it messier.
+
+    Nothing is loaded: the history is the whole of the input.  `-file` only says WHICH file's backups to follow
+    (backup_20261011_111635.xml is a backup of backup.xml); without it every kept configuration is one.  The exit
+    code is about the LAST step -- did the newest backup make things worse than the one before? -- because that is
+    what a nightly job after `-watch` wants to be told, and the whole history is in the report for the rest.
+    """
+    followed = Path(options.file).name if options.file else None
+    series = trend.build_series(state, followed)
+    for problem in series.problems:
+        _note(f"Not measured: {problem}")
+    _report(trend.as_text(series, options.project))
+    if options.save:
+        _saved(
+            diffload.write_comparison_report(trend.as_text(series, options.project), TREND_FILE, state=state), "Trend"
+        )
+    if options.project:
+        points = [measures for _, measures in series.of_project(options.project) if measures is not None]
+        last_step = trend.judge(points[-2], points[-1]) if len(points) >= 2 else trend.Verdict(trend.TOO_FEW, [])
+    else:
+        _, last_step = trend.overall(series)
+    if last_step.label == trend.TOO_FEW:
+        _note("There are not yet two kept configurations to compare.  Run this again after the next backup.")
+        return EXIT_NO_HISTORY
+    return EXIT_FOUND if last_step.label == trend.MESSIER else EXIT_OK
+
+
 def _build_the_view(view: str, state: RunState) -> None:
     """Build the Map or the Diagram, as the window does, so that there is something to export."""
     arguments = state.program_arguments
@@ -568,6 +613,7 @@ _COMMANDS = (
     ("healthcheck", _health_check),
     ("compare", _compare),
     ("changes_since", _changes_since),
+    ("trend", _trend),
     ("export", _export),
     ("watch", _watch),
 )

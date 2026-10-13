@@ -85,7 +85,9 @@ def test_these_command_lines_are_left_to_the_window(argv: list[str]) -> None:
 # ##################################################################################
 # The report is on standard output, and everything else is not
 # ##################################################################################
-def test_the_health_check_is_on_stdout_and_the_status_is_on_stderr(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_the_health_check_is_on_stdout_and_the_status_is_on_stderr(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
     backup = _backup(tmp_path)
 
     code = _run("-healthcheck", "-file", str(backup))
@@ -213,7 +215,9 @@ def test_two_backups_that_differ_exit_10_and_say_what_changed(tmp_path: Path, ca
     assert "1 renamed" in out
 
 
-def test_compare_reads_the_same_whichever_way_round_they_are_given(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_compare_reads_the_same_whichever_way_round_they_are_given(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
     """Which is older is settled by the files' dates, as in the window."""
     older = _backup(tmp_path, "older.xml", modified=1_700_000_000)
     newer = _backup(tmp_path, "newer.xml", renamed="Remind Me RENAMED", modified=1_800_000_000)
@@ -346,7 +350,9 @@ def test_export_writes_the_file_and_prints_only_its_path(tmp_path: Path, capsys:
 
 
 @pytest.mark.parametrize(("view", "fmt"), [("map", "json"), ("diagram", "md"), ("diagram", "json")])
-def test_the_other_views_and_formats_export_too(tmp_path: Path, capsys: pytest.CaptureFixture, view: str, fmt: str) -> None:
+def test_the_other_views_and_formats_export_too(
+    tmp_path: Path, capsys: pytest.CaptureFixture, view: str, fmt: str
+) -> None:
     out_folder = tmp_path / "out"
     out_folder.mkdir()
 
@@ -367,7 +373,7 @@ def test_export_never_opens_a_browser(tmp_path: Path, monkeypatch: pytest.Monkey
 
 def test_export_leaves_the_users_settings_file_alone(tmp_path: Path) -> None:
     settings = tmp_path / ARGUMENTS_FILE
-    settings.write_text('[program_arguments]\ndisplay_detail_level = 2\n', encoding="utf-8")
+    settings.write_text("[program_arguments]\ndisplay_detail_level = 2\n", encoding="utf-8")
     before = settings.read_bytes()
 
     _run("-export", "map", "-detail", "4", "-file", str(_backup(tmp_path)), "-outdir", str(tmp_path))
@@ -405,7 +411,10 @@ def test_an_output_folder_that_cannot_be_used_is_exit_2(tmp_path: Path) -> None:
     not_a_folder = tmp_path / "file.txt"
     not_a_folder.write_text("x", encoding="utf-8")
 
-    assert _run("-healthcheck", "-file", str(_backup(tmp_path)), "-outdir", str(not_a_folder)) == clireports.EXIT_OUTPUT_FAILED
+    assert (
+        _run("-healthcheck", "-file", str(_backup(tmp_path)), "-outdir", str(not_a_folder))
+        == clireports.EXIT_OUTPUT_FAILED
+    )
 
 
 # ##################################################################################
@@ -503,3 +512,115 @@ def test_a_report_run_never_loads_the_gui(tmp_path: Path) -> None:
     )
 
     assert result.stdout.strip() == "False", result.stderr
+
+
+# ##################################################################################
+# -trend: is it getting healthier or messier?
+# ##################################################################################
+def _kept(tmp_path: Path, name: str, xml: str, day: int) -> None:
+    """Record one configuration in the history (the working directory's), as a backup taken on a day."""
+    from tests.test_trend import _at  # noqa: PLC0415
+
+    path = tmp_path / name
+    path.write_text(xml, encoding="utf-8")
+    assert timeline.record(str(path), when=_at(day)) is not None
+
+
+def _trend_configs() -> tuple[str, str]:
+    from tests.test_trend import config, flash, perform  # noqa: PLC0415
+
+    clean = config(Home={"A": (flash("a"),)}, Work={"B": (flash("b"),)})
+    messy = config(Home={"A": (perform("Gone"), perform("Gone2"))}, Work={"B": (flash("b"),)})
+    return clean, messy
+
+
+def test_trend_is_a_report_flag() -> None:
+    assert clireports.wants_report(["-trend"])
+    assert clireports.wants_report(["--trend", "-file", "backup.xml"])
+
+
+def test_a_newest_backup_that_is_messier_exits_10_and_prints_the_report(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    clean, messy = _trend_configs()
+    _kept(tmp_path, "backup_20260901_010101.xml", clean, 1)
+    _kept(tmp_path, "backup_20260902_010101.xml", messy, 2)
+
+    code = _run("-trend")
+
+    out = capsys.readouterr().out
+    assert code == clireports.EXIT_FOUND
+    assert out.startswith("MapTasker trend: The whole configuration")
+    assert "Since the one before:   Messier" in out
+
+
+def test_a_newest_backup_that_is_healthier_or_the_same_exits_0(tmp_path: Path) -> None:
+    clean, messy = _trend_configs()
+    _kept(tmp_path, "backup_20260901_010101.xml", messy, 1)
+    _kept(tmp_path, "backup_20260902_010101.xml", clean, 2)
+    assert _run("-trend") == clireports.EXIT_OK
+
+
+def test_one_kept_configuration_is_not_a_trend_and_says_so_on_standard_error(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    _kept(tmp_path, "backup.xml", _trend_configs()[0], 1)
+
+    code = _run("-trend")
+
+    captured = capsys.readouterr()
+    assert code == clireports.EXIT_NO_HISTORY
+    assert "not yet two kept configurations" in captured.err
+    assert "Not enough history" in captured.out
+
+
+def test_no_history_at_all_is_exit_11(capsys: pytest.CaptureFixture) -> None:
+    assert _run("-trend") == clireports.EXIT_NO_HISTORY
+
+
+def test_file_picks_which_files_backups_to_follow(tmp_path: Path) -> None:
+    """A tablet that got messier is not the phone getting messier."""
+    from tests.test_trend import config, flash, perform  # noqa: PLC0415
+
+    def home(*actions: str) -> str:
+        return config(Home={"A": actions})
+
+    # Each differs from the one before, or the history would not keep it (see timeline.record).
+    _kept(tmp_path, "backup_20260901_010101.xml", home(flash("1"), flash("2")), 1)
+    _kept(tmp_path, "tablet.xml", home(flash("x")), 2)
+    _kept(tmp_path, "backup_20260903_010101.xml", home(flash("1")), 3)  # the phone's Task got shorter
+    _kept(tmp_path, "tablet_20260904_010101.xml", home(perform("Gone"), perform("Gone2")), 4)  # the tablet got messier
+
+    assert _run("-trend", "-file", "backup.xml") == clireports.EXIT_OK
+    assert _run("-trend", "-file", "tablet.xml") == clireports.EXIT_FOUND
+
+
+def test_project_looks_at_one_project_alone(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    clean, messy = _trend_configs()
+    _kept(tmp_path, "backup_20260901_010101.xml", clean, 1)
+    _kept(tmp_path, "backup_20260902_010101.xml", messy, 2)
+
+    assert _run("-trend", "-project", "Home") == clireports.EXIT_FOUND
+    assert "Project 'Home'" in capsys.readouterr().out
+    assert _run("-trend", "-project", "Work") == clireports.EXIT_OK, "Work did not change"
+
+
+def test_save_writes_the_report_as_a_file(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    clean, messy = _trend_configs()
+    _kept(tmp_path, "backup_20260901_010101.xml", clean, 1)
+    _kept(tmp_path, "backup_20260902_010101.xml", messy, 2)
+
+    _run("-trend", "-save")
+
+    assert list(tmp_path.glob("MapTasker_Trend*.txt")), capsys.readouterr().err
+
+
+def test_a_trend_run_changes_nothing_in_the_history_it_did_not_have_to(tmp_path: Path) -> None:
+    clean, messy = _trend_configs()
+    _kept(tmp_path, "backup_20260901_010101.xml", clean, 1)
+    _kept(tmp_path, "backup_20260902_010101.xml", messy, 2)
+    before = [snapshot.digest for snapshot in timeline.snapshots()]
+
+    _run("-trend")
+
+    assert [snapshot.digest for snapshot in timeline.snapshots()] == before

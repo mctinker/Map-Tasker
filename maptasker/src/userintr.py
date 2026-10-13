@@ -68,6 +68,7 @@ from maptasker.src.guiwins_refactor import build_refactor_dialog
 from maptasker.src.guiwins_restore import build_restore_dialog
 from maptasker.src.guiwins_taskstep import build_taskstep_dialog
 from maptasker.src.guiwins_tnupdate import build_tnupdate_dialog, check_links_at_startup
+from maptasker.src.guiwins_trend import build_trend_dialog
 from maptasker.src.guiwins_views import NiceGuiTextView, NiceGuiTreeView
 from maptasker.src.maputil2 import (
     log_startup_values,
@@ -265,6 +266,8 @@ class MyGui:
     tnupdate_dialog: ui.dialog | None
     # The Task Stepper dialog while one is up (see task_stepper_event).
     taskstep_dialog: ui.dialog | None
+    # The Trend Dashboard dialog while one is up (see trend_dashboard_event).
+    trend_dialog: ui.dialog | None
 
     def __init__(self: "MyGui", state: RunState | None = None) -> None:
         """Initialize the GUI and set up all necessary state and layout.
@@ -2035,6 +2038,22 @@ class MapTaskerEventHandlers(
         if dialog is None:
             return
         self.gui.firesim_dialog = dialog
+        dialog.open()
+
+    def trend_dashboard_event(self: "MapTaskerEventHandlers") -> None:
+        """Open the Trend Dashboard: how the configuration's size, complexity and findings have moved over the history.
+
+        Rebuilt on every press, for fire_simulator_event's reason: the file it starts on is the one open now.
+        """
+        dialog = getattr(self.gui, "trend_dialog", None)
+        self.gui.trend_dialog = None
+        if dialog is not None:
+            with suppress_logged("Deleting the Trend Dashboard dialog"):
+                dialog.delete()
+        dialog = build_trend_dialog(self.state)
+        if dialog is None:
+            return
+        self.gui.trend_dialog = dialog
         dialog.open()
 
     def task_stepper_event(self: "MapTaskerEventHandlers", task: str = "") -> None:

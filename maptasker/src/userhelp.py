@@ -252,6 +252,17 @@ TASKSTEP_HELP_TEXT = (
     " is not simulated leaves behind can be typed in (5: %name = value).  Nothing runs on your phone and nothing in the"
     " configuration changes; each Task in What Fires When? has a Step button that opens it here.  \n"
 )
+TREND_HELP_TEXT = (
+    "- Trend Dashboard: Is your configuration getting healthier or messier?  Every configuration you load is kept"
+    " (see Changes Since...); this measures each one -- how long the longest Task is and how many are over 100 actions,"
+    " how deeply If and For blocks nest, how many Perform Tasks deep the longest chain of calls goes, and what the"
+    " Health Check finds -- and shows each number over time with a sparkline, for the whole configuration or for one"
+    " Project.  It says 'healthier' when something fell and nothing rose, 'messier' when something rose and nothing fell,"
+    " and 'about the same' otherwise; size is shown but never judged.  Each configuration is measured once and the"
+    " figures are kept, so only the first look is slow.  The check for plugins missing from your device is left out, as"
+    " it asks the device and not the backup.  From the command line, -trend [-file backup.xml] [-project NAME] prints"
+    " the same report and exits with 10 when the newest backup is messier than the one before.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -281,5 +292,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(COMMAND_REFERENCE_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(COMMAND_REFERENCE_TEXT)}"
     )

@@ -463,7 +463,7 @@ layers = [
     guiwins2 : guiwins_canvas : guiwins_designer_legacy : guiwins_designer_v2 : guiwins_designers : guiwins_draft : guiwins_editor :
     guiwins_firesim : guiwins_fix : guiwins_impact : guiwins_legacyarg : guiwins_nav : guiwins_profedit :
     guiwins_readiness : guiwins_refactor : guiwins_restore : guiwins_sceneprops : guiwins_search : guiwins_taskedit : guiwins_taskstep :
-    guiwins_tnfind : guiwins_tnupdate : guiwins_views : mapai : sceneview :
+    guiwins_tnfind : guiwins_tnupdate : guiwins_trend : guiwins_views : mapai : sceneview :
     userintr : userintr_ai : userintr_android : userintr_editors :
     userintr_loading : userintr_reports : userintr_settings : webassets
     """,
@@ -484,7 +484,7 @@ layers = [
     property : readiness : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenelayout : scenemodel : scenes : servicec :
     sessundo : share : shelsort : sysconst : taskactn : taskedit :
     taskerd : taskertables : taskervars : taskflow : taskstep : tasks : taskuniq :
-    timecomp : timeline : tnfind : tnupdate : translator : twisty : userhelp : valcodes : varxref :
+    timecomp : timeline : tnfind : tnupdate : translator : trend : twisty : userhelp : valcodes : varxref :
     xmldata : xmldiff
     """,
 ]
@@ -547,6 +547,7 @@ allowed_importers = [
     "maptasker.src.guiwins_taskstep",
     "maptasker.src.guiwins_tnfind",
     "maptasker.src.guiwins_tnupdate",
+    "maptasker.src.guiwins_trend",
     "maptasker.src.guiwins_views",
     "maptasker.src.mapai",
     "maptasker.src.mapit",

@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file!
 
 - Added: The README is now also available in Simplified Chinese, Spanish, Hindi, French, Arabic, German, Danish, Finnish, Russian, Korean, and Japanese, with a language-switcher at the top of each version.
 - Added: A new __Task Stepper__ button dry-runs one Task: you give it the variables it starts with and it walks the Task action by action, showing which If, Else If, For and Goto branches it takes and what every variable holds after each step.  Actions that talk to the outside world are shown as not simulated and a condition that depends on one stops the walk instead of guessing; each Task listed in What Fires When? has a Step button that opens it here.
+- Added: A new __Trend Dashboard__ button shows whether your configuration is getting healthier or messier: it measures every configuration the history has kept -- Task length, nesting depth, how deep Perform Task calls go and what the Health Check finds -- and charts each number over time, for the whole configuration and for each Project.  From the command line, `-trend` prints the same report and exits with 10 when the newest backup is messier than the one before, so a nightly job can flag it.
 - Added:
 
 ### Changed
