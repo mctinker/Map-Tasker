@@ -232,7 +232,7 @@ def test_no_unread_arg_eval_values() -> None:
     """No argument stores a string arg_eval that its arg_name shadows.
 
     actargs.action_args picks arg_name over a string arg_eval whenever arg_name is set,
-    and taskedit._display_arg_name does the same, so such a string cannot reach any
+    and taskedit_args.display_arg_name does the same, so such a string cannot reach any
     output -- it is data nothing can read.  Phase B deleted 957 of them, which changed
     not one line across the 380,954 rendered from the backups in XML/.
 

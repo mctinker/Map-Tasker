@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, ui
 
-from maptasker.src import sceneedit_legacy, taskedit
+from maptasker.src import sceneedit_legacy, taskedit_model
 from maptasker.src.guiwins_canvas import FIELD_COMMIT_DEBOUNCE_MS
 from maptasker.src.guiwins_taskedit import _dropdown_current_label
 from maptasker.src.maputil2 import translate_string
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from maptasker.src.primitem import RunState
 
 
-def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event], None]) -> None:
+def _render_legacy_colour_arg(arg: taskedit_model.EditableArg, commit: Callable[[Event], None]) -> None:
     """A Legacy element's colour: the same picker the V2 designer's colours use, over a value
     written the other way round.
 
@@ -74,7 +74,7 @@ def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event
 
 
 def _render_legacy_arg(
-    arg: taskedit.EditableArg,
+    arg: taskedit_model.EditableArg,
     on_applied: Callable[[], None],
     on_rename: Callable[[], None] | None = None,
     *,

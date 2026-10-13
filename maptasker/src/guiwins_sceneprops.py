@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
-from maptasker.src import sceneedit, sceneedit_legacy, sceneview, taskedit
+from maptasker.src import sceneedit, sceneedit_legacy, sceneview, taskedit, taskedit_addable, taskedit_model
 from maptasker.src.guiwins_canvas import FIELD_COMMIT_DEBOUNCE_MS
 from maptasker.src.guiwins_legacyarg import _render_legacy_arg
 from maptasker.src.guiwins_taskedit import (
@@ -393,7 +393,7 @@ class _ScenePropertiesDialog:
 
 def _render_scene_ui_tab(
     args: dict,
-    property_type: taskedit.EditableArg | None,
+    property_type: taskedit_model.EditableArg | None,
     scene_element: Element,
     field_refs: dict,
     rerender: Callable[[], None],
@@ -635,10 +635,10 @@ def _render_scene_action_item_picker(
 
     The same search/filter picker the Task editors use, over the same list -- what can go on
     an action bar is what can be added to a Task, because it is synthesized by the same code
-    (sceneedit_legacy.legacy_add_action_item -> taskedit.build_synthesized_args).  An action that
+    (sceneedit_legacy.legacy_add_action_item -> taskedit_addable.build_synthesized_args).  An action that
     cannot be synthesized is greyed out with its reason, exactly as it is there.
     """
-    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions(state=self.state)})
+    category_names = sorted({row["category_name"] for row in taskedit_addable.list_addable_actions(state=self.state)})
 
     ui.label(translate_string("Add an action bar item")).classes("text-sm font-bold mt-3")
     with ui.row().classes("w-full gap-4"):
@@ -656,7 +656,7 @@ def _render_scene_action_item_picker(
 
     def refresh_picker(_event: ui.event | None = None) -> None:
         picker_container.clear()
-        rows = taskedit.search_addable_actions(search_input.value, category_select.value, state=self.state)
+        rows = taskedit_addable.search_addable_actions(search_input.value, category_select.value, state=self.state)
         with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
             for row in rows:
                 if row["addable"]:
@@ -1026,7 +1026,7 @@ def _event_task_in_progress(
     event: sceneedit_legacy.LegacySceneEvent,
     task_state: dict,
     scene_name: str,
-) -> tuple[taskedit.EditableTask, tuple | None] | None:
+) -> tuple[taskedit_model.EditableTask, tuple | None] | None:
     """The Task being composed for this event: the one the dialog already holds, or a fresh one.
 
     Returns (the Task, what the dialog held for it or None), or None -- with the reason already
@@ -1055,7 +1055,7 @@ def _render_create_event_task_button(
     self: MyGui,
     properties: Element,
     event: sceneedit_legacy.LegacySceneEvent,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     field_refs: dict,
     pending: dict,
     rerender: Callable[[], None],

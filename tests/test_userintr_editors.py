@@ -17,7 +17,20 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from maptasker.src import profedit, projedit, sceneedit, scenelayout, scenemodel, sessundo, taskedit, userintr_editors
+from maptasker.src import (
+    profedit,
+    projedit,
+    sceneedit,
+    scenelayout,
+    scenemodel,
+    sessundo,
+    taskedit,
+    taskedit_addable,
+    taskedit_apply,
+    taskedit_model,
+    taskedit_save,
+    userintr_editors,
+)
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
 from tests.test_mapswap import _load
@@ -175,7 +188,7 @@ def _task_fields(name: str = "Noisy", priority: str = "", save_path: str = "") -
     return {"name": _Widget(name), "priority": _Widget(priority), "save_path": _Widget(save_path)}
 
 
-def _edit_task(name: str = "Noisy") -> taskedit.EditableTask:
+def _edit_task(name: str = "Noisy") -> taskedit_model.EditableTask:
     edited = taskedit.load_task_for_edit(name, state=PrimeItems)
     assert edited is not None
     return edited
@@ -505,7 +518,7 @@ def test_a_valid_rename_is_applied_at_once_and_the_dialog_follows_it(
 ) -> None:
     edited = _edit_task()
     label = _Label()
-    fields = _task_fields(save_path=taskedit.default_save_path("Noisy", PrimeItems))
+    fields = _task_fields(save_path=taskedit_save.default_save_path("Noisy", PrimeItems))
 
     handlers.confirm_rename_task_event(edited, fields, label, "Loud", dialog)
 
@@ -513,7 +526,7 @@ def test_a_valid_rename_is_applied_at_once_and_the_dialog_follows_it(
     assert "Noisy" not in PrimeItems.tasker_root_elements["all_tasks_by_name"]
     assert label.text == "Edit Task: Loud"
     assert fields["name"].value == "Loud", "Ok would otherwise rename it straight back"
-    assert fields["save_path"].value == taskedit.default_save_path("Loud", PrimeItems)
+    assert fields["save_path"].value == taskedit_save.default_save_path("Loud", PrimeItems)
     assert notices.said("Renamed to 'Loud'.")
     assert calls["refresh_tasker_object_pulldowns"] and calls["_select_renamed_item"][0][0][1:] == ("Task", "Loud")
     dialog.close.assert_called_once()
@@ -773,7 +786,7 @@ def test_stashing_snapshots_the_widgets_into_the_task_copy_without_touching_the_
     handlers: MapTaskerEventHandlers,
 ) -> None:
     edited = _edit_task()
-    key = taskedit.arg_key(edited.actions[0].act_number, edited.actions[0].args[0].arg_id)
+    key = taskedit_apply.arg_key(edited.actions[0].act_number, edited.actions[0].args[0].arg_id)
     handlers.stash_scene_event_task_edits(edited, {key: _Widget("changed text")})
     assert "changed text" in ET_text(edited.task_element)
     assert "changed text" not in ET_text(_live_task("Noisy"))
@@ -790,7 +803,7 @@ def test_applying_a_key_tasks_edits_keeps_them_without_closing_anything_or_touch
     notices: _Notices,
 ) -> None:
     edited = _edit_task()
-    key = taskedit.arg_key(edited.actions[0].act_number, edited.actions[0].args[0].arg_id)
+    key = taskedit_apply.arg_key(edited.actions[0].act_number, edited.actions[0].args[0].arg_id)
     handlers.apply_scene_key_task_event(edited, {key: _Widget("applied")})
     assert "applied" in ET_text(_live_task("Noisy"))
     assert notices.said("Changes kept for Task 'Noisy'")
@@ -802,7 +815,7 @@ def test_keeping_a_scenes_event_tasks_applies_bound_copies_and_creates_the_ones_
     calls: dict,
 ) -> None:
     bound = _edit_task()
-    key = taskedit.arg_key(bound.actions[0].act_number, bound.actions[0].args[0].arg_id)
+    key = taskedit_apply.arg_key(bound.actions[0].act_number, bound.actions[0].args[0].arg_id)
 
     composed = taskedit.create_new_task("From Event", "", state=PrimeItems)
     taskedit.add_action_to_task(composed, "548t", state=PrimeItems)
@@ -828,7 +841,7 @@ def test_keeping_scene_event_tasks_reports_a_rejected_edit_and_says_the_dialog_m
 ) -> None:
     bound = _edit_task()
     wait = taskedit.add_action_to_task(bound, "30t", state=PrimeItems)  # a Wait, whose MS must be a whole number
-    key = taskedit.arg_key(wait.act_number, "0")
+    key = taskedit_apply.arg_key(wait.act_number, "0")
     assert handlers.keep_scene_event_task_edits({"t": (bound, {key: _Widget("not a number")})}, {}, lambda *_a: None) is False
     assert notices.said("'MS' must be a whole number.")
     assert "<code>30</code>" not in ET_text(_live_task("Noisy")), "nothing of the rejected Task was applied"
@@ -1885,7 +1898,7 @@ def test_a_third_party_plugin_condition_warns_that_its_setup_is_done_in_tasker(
     notices: _Notices,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(taskedit, "tasker_configuration_warning", lambda element, name: f"{name} needs Tasker")
+    monkeypatch.setattr(taskedit_addable, "tasker_configuration_warning", lambda element, name: f"{name} needs Tasker")
     handlers.add_event_condition_to_profile_event(_edit_profile(), "7e")
     assert notices.of_type("warning") and "needs Tasker" in notices.of_type("warning")[0]
 
@@ -2178,7 +2191,7 @@ def _new_task_fields(name: str = "Fresh Task", save_path: str = "", project: str
     return {"name": _Widget(name), "priority": _Widget("100"), "save_path": _Widget(save_path), "target_project_name": project}
 
 
-def _new_task(actions: int = 1) -> taskedit.EditableTask:
+def _new_task(actions: int = 1) -> taskedit_model.EditableTask:
     created = taskedit.create_new_task("", "100", state=PrimeItems)
     for _ in range(actions):
         taskedit.add_action_to_task(created, "548t", state=PrimeItems)
@@ -2197,7 +2210,7 @@ def test_add_task_needs_a_project_then_opens_the_dialog_for_it(
     handlers.open_add_task_dialog_event()
     ((args, kwargs),) = calls["build_add_task_dialog"]
     assert kwargs == {"target_project_name": "Home"}
-    assert isinstance(args[1], taskedit.EditableTask)
+    assert isinstance(args[1], taskedit_model.EditableTask)
 
 
 def test_add_task_with_no_backup_loaded_says_so(
@@ -2239,13 +2252,13 @@ def test_a_plugin_action_warns_that_its_configuration_is_set_in_tasker(
     notices: _Notices,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(taskedit, "tasker_configuration_warning", lambda element, name: "configure it in Tasker")
+    monkeypatch.setattr(taskedit_addable, "tasker_configuration_warning", lambda element, name: "configure it in Tasker")
     handlers.add_action_to_new_task_event(_new_task(0), "548t")
     handlers.add_action_to_edit_task_event(_edit_task(), "548t", None)
     assert notices.of_type("warning") == ["configure it in Tasker"] * 2
 
 
-@pytest.mark.parametrize("variant", taskedit.IF_BLOCK_VARIANTS)
+@pytest.mark.parametrize("variant", taskedit_model.IF_BLOCK_VARIANTS)
 def test_an_if_block_adds_the_actions_its_variant_calls_for_and_returns_where_the_if_went(
     handlers: MapTaskerEventHandlers,
     variant: str,
@@ -2293,16 +2306,16 @@ def test_a_per_action_condition_is_written_shown_on_its_checkbox_and_closes_the_
     notices: _Notices,
 ) -> None:
     edited = _edit_task()
-    operator = next(iter(taskedit._IF_CONDITION_LABEL_TO_CODE))
+    operator = next(iter(taskedit_model.IF_CONDITION_LABEL_TO_CODE))
     checkbox, prompt = MagicMock(), MagicMock()
     handlers.set_action_condition_event(edited, 0, _Widget("%flag"), _Widget(operator), _Widget(" 1 "), prompt, checkbox)
-    assert taskedit.action_has_condition(edited.actions[0])
+    assert taskedit_apply.action_has_condition(edited.actions[0])
     checkbox.set_text.assert_called_once_with(f"If: %flag {operator} 1")
     assert notices.said("If condition set.")
     prompt.close.assert_called_once()
 
     handlers.remove_action_condition_event(edited, 0)
-    assert not taskedit.action_has_condition(edited.actions[0])
+    assert not taskedit_apply.action_has_condition(edited.actions[0])
 
 
 def test_a_per_action_condition_that_fails_validation_leaves_the_prompt_open(

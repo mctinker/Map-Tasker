@@ -216,7 +216,7 @@ def all_categories() -> tuple[Category, ...]:
 
 # How one place points at a Task or a Scene.  The index below records which sort each
 # reference is, because that is what decides whether a delete has to rewrite it: an id in
-# a Profile's <mid0> is unlinked by taskedit.delete_task, while a Perform Task naming the
+# a Profile's <mid0> is unlinked by taskedit_save.delete_task, while a Perform Task naming the
 # same Task by hand is left exactly where it is.  See impact.py, which turns that
 # distinction into "what breaks if I delete this".
 BY_PROFILE_LINK = "PROFILE-LINK"  # a Profile's <mid0>/<mid1> -- an id

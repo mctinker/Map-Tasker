@@ -4,7 +4,7 @@ Tasker stores an Application as a package name, a display label and an activity 
 and an icon as a name (a Tasker built-in), a name plus an icon pack, an installed app's
 launcher activity, or a %variable.  Neither is a value this tool can invent, which is why
 every argument declaring one was refused outright -- arg_specs.json categories 'App' (2)
-and 'Icon' (4) sit outside taskedit._SAFE_CATEGORIES, so classify_action_addability turned
+and 'Icon' (4) sit outside taskedit_addable._SAFE_CATEGORIES, so classify_action_addability turned
 away 22 Task actions and Profile Events on their account alone.
 
 They are not unknowable, though.  Two sources fill the inventory, and they are merged:
@@ -37,7 +37,7 @@ installed app -- so those two stay harvested-or-typed.  See app_icon_fetch_desig
 "icon gap".
 
 This was deviceinv's whole purpose until the work on the device grew up around it; that work
-now has deviceinv to itself.  Deliberately dependency-light: PrimeItems, sysconst,
+now has the device* modules to itself.  Deliberately dependency-light: PrimeItems, sysconst,
 editcommon's set_child_text and the standard library, nothing else.  taskedit, profedit and
 sceneedit import this, so anything this imported from them would be a cycle.
 """
@@ -390,7 +390,7 @@ caches.register(_state)
 def generation(state: RunState) -> int:
     """Bumped every time the inventory is rebuilt.
 
-    Addability depends on the inventory (see taskedit.classify_action_addability), and
+    Addability depends on the inventory (see taskedit_addable.classify_action_addability), and
     list_addable_actions memoizes addability on the grounds that its inputs are static for
     the process lifetime.  That stopped being true here, so the memo carries the generation
     it was built under and rebuilds when this moves.  Without it, loading a configuration

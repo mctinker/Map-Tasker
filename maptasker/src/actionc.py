@@ -36,7 +36,7 @@
 #   A *string* arg_eval is only ever read in two cases, so it is only stored in those  #
 #   two: when the argument is a Boolean (arg_type "3"), which actargs' Boolean case     #
 #   reads raw, and when arg_name is empty, where arg_eval is the label itself.          #
-#   Everywhere else arg_name wins -- actargs.action_args and taskedit._display_arg_name #
+#   Everywhere else arg_name wins -- actargs.action_args and taskedit_args.display_arg_name #
 #   both prefer it -- so a string arg_eval beside a non-empty arg_name is dead data,    #
 #   and tests/test_actionc_snapshot.py keeps it from coming back.  A *list* arg_eval    #
 #   is always read, whatever arg_name says.                                             #

@@ -62,7 +62,17 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src import clock, healthck, mapswap, maputil2, objprops, proflint, sessundo, taskedit
+from maptasker.src import (
+    clock,
+    healthck,
+    mapswap_model,
+    maputil2,
+    objprops,
+    proflint,
+    sessundo,
+    taskedit_addable,
+    taskedit_save,
+)
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import TASK, Row, Target, actions_in_map_order, text_report
 from maptasker.src.maputils import append_to_filename
@@ -236,7 +246,7 @@ class Fix:
     def identity(self) -> tuple:
         """What this repair points at, in a form that survives the plan being rebuilt.
 
-        mapswap.Change.identity's reason, unchanged: a preview is thrown away whenever the
+        mapswap_model.Change.identity's reason, unchanged: a preview is thrown away whenever the
         dialog closes, so a user's ticks can only be carried over by describing what they
         were ticking and never by remembering their POSITION in the list.
         """
@@ -546,7 +556,7 @@ def _create_timeout_argument(
 ) -> Element:
     """Write the timeout argument into an action that has never carried one.
 
-    Built through taskedit.build_synthesized_args -- the same function Add Action uses and
+    Built through taskedit_addable.build_synthesized_args -- the same function Add Action uses and
     the same one the Replace tab adds a missing argument with -- so the element is the shape
     Tasker writes rather than this module's idea of it.  No action key is passed, which is
     deliberate: given one that function also writes the plugin payload <Bundle>, and this is
@@ -559,14 +569,14 @@ def _create_timeout_argument(
         unbuildable = f"{_action_name(code)} has no timeout argument to add"
         raise ValueError(unbuildable)
 
-    built = taskedit.build_synthesized_args(type(action), action, [argument], state=state)
+    built = taskedit_addable.build_synthesized_args(type(action), action, [argument], state=state)
     if not built or built[0].element is None:
         unbuildable = f"a timeout cannot be written into '{_action_name(code)}' from nothing"
         raise ValueError(unbuildable)
     # In the order Tasker writes them, rather than appended at the end -- a new <Int
     # sr="arg1"> sitting after <Str sr="arg8"> is a screenful of moved lines in any diff of
     # the backup for one line of real change.
-    mapswap.order_action_children(action)
+    mapswap_model.order_action_children(action)
     return built[0].element
 
 
@@ -670,7 +680,7 @@ def _plan_goto(where: Target, state: RunState) -> Fix | Skip:
         if element is None:
             element = type(action)("Str", {"sr": f"arg{_GOTO_LABEL_ARG}", "ve": "3"})
             action.append(element)
-            mapswap.order_action_children(action)
+            mapswap_model.order_action_children(action)
         element.text = value
 
     return Fix(
@@ -693,7 +703,7 @@ def _plan_delete_task(where: Target, state: RunState) -> Fix | Skip:
     and none of those live in a Tasker backup, so "nothing in this file runs it" is not the
     same statement as "nothing runs it".
 
-    Deleted through taskedit.delete_task, which unlinks it from every Project's <tids> and
+    Deleted through taskedit_save.delete_task, which unlinks it from every Project's <tids> and
     from any Profile naming it -- the three things that have to happen together or the
     backup is left inconsistent.
 
@@ -726,7 +736,7 @@ def _plan_delete_task(where: Target, state: RunState) -> Fix | Skip:
         if current is None or current.get("id") != where.key:
             moved = f"'{name}' no longer names this Task -- nothing was deleted"
             raise ValueError(moved)
-        errors = taskedit.delete_task(name, state=state)
+        errors = taskedit_save.delete_task(name, state=state)
         if errors:
             raise ValueError(errors[0])
 

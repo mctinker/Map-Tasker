@@ -20,7 +20,19 @@ from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
-from maptasker.src import appinv, deviceinv, objprops, profedit, taskedit
+from maptasker.src import (
+    appinv,
+    deviceinv,
+    devicetask,
+    objprops,
+    profedit,
+    taskedit,
+    taskedit_addable,
+    taskedit_apply,
+    taskedit_args,
+    taskedit_model,
+    taskedit_save,
+)
 from maptasker.src.guiutils import (
     android_address_defaults,
     remember_android_address,
@@ -45,7 +57,7 @@ if TYPE_CHECKING:
 
 
 def _refresh_position_options(
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     position_select: ui.select,
     position_labels: dict[str, int | None],
 ) -> None:
@@ -82,7 +94,7 @@ def _action_indent_spaces(self: MyGui) -> int:
         return 4
 
 
-def _dropdown_current_label(arg: taskedit.EditableArg) -> str:
+def _dropdown_current_label(arg: taskedit_model.EditableArg) -> str:
     """The option to preselect for a dropdown arg: current_value is the index
     into dropdown_options (If Operator, Int lookups -- every dropdown in this
     codebase).
@@ -96,8 +108,8 @@ def _dropdown_current_label(arg: taskedit.EditableArg) -> str:
 
 def _render_task_name_field(
     _self: MyGui,
-    _action: taskedit.EditableAction,
-    arg: taskedit.EditableArg,
+    _action: taskedit_model.EditableAction,
+    arg: taskedit_model.EditableArg,
     key: str,
     field_refs: dict,
     state: RunState,
@@ -118,7 +130,7 @@ def _render_task_name_field(
     """
     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
 
-    task_names = taskedit.get_all_task_names(state=state)
+    task_names = taskedit_args.get_all_task_names(state=state)
     if not task_names:
         return
 
@@ -425,7 +437,7 @@ def build_run_task_on_android_dialog(
 
     The dialog stays open after a run, success or failure, so the Task can be run again with
     different %par1/%par2 values without re-entering the address.  The run itself waits for
-    the Task to finish, so it goes through run.io_bound -- see deviceinv.run_task_for_result.
+    the Task to finish, so it goes through run.io_bound -- see devicetask.run_task_for_result.
     """
     _RunTaskOnAndroidDialog(gui, task_name, has_pending_edits).build()
 
@@ -503,7 +515,7 @@ class _RunTaskOnAndroidDialog:
             ui.label(
                 translate_string(
                     f"Tasker's HTTP server cannot look up a name holding characters such as $ ( ) + or ?, so "
-                    f"this Task is run through a small helper Task, '{deviceinv.RUN_TASK_HELPER_NAME}', which "
+                    f"this Task is run through a small helper Task, '{devicetask.RUN_TASK_HELPER_NAME}', which "
                     "MapTasker installs on the device the first time.",
                 ),
             ).classes("text-sm text-gray-500 italic mt-1")
@@ -523,7 +535,7 @@ class _RunTaskOnAndroidDialog:
             ),
         ).classes("text-sm text-amber-700 dark:text-amber-500 mt-1")
 
-    def show_result(self, result: deviceinv.TaskRunResult) -> None:
+    def show_result(self, result: devicetask.TaskRunResult) -> None:
         """Show what a run came to: its return value, or why there is none."""
         self.result_column.clear()
         with self.result_column:
@@ -571,7 +583,7 @@ class _RunTaskOnAndroidDialog:
         self.result_column.set_visibility(False)
         try:
             result = await run.io_bound(
-                deviceinv.run_task_for_result,
+                devicetask.run_task_for_result,
                 ip_address,
                 ip_port,
                 self.task_name,
@@ -975,12 +987,12 @@ def _render_inventory_fetch(gui: MyGui, reason: str, on_fetched: Callable[[], No
 
     on_fetched re-draws whatever showed the refusal.  A fetch bumps deviceinv's generation,
     so a re-draw is enough for the caller that re-asks the question -- see
-    taskedit.list_addable_actions' memo, and reclassify_action_args for the callers whose
+    taskedit_addable.list_addable_actions' memo, and reclassify_action_args for the callers whose
     models were built before the fetch and have to be rebuilt rather than merely redrawn.
     """
-    if reason not in (taskedit.NO_APPS_REASON, taskedit.NO_ICONS_REASON):
+    if reason not in (taskedit_model.NO_APPS_REASON, taskedit_model.NO_ICONS_REASON):
         return
-    for_icons = reason == taskedit.NO_ICONS_REASON
+    for_icons = reason == taskedit_model.NO_ICONS_REASON
 
     async def fetch() -> None:
         await _build_fetch_apps_dialog(gui, on_fetched, for_icons=for_icons)
@@ -989,7 +1001,7 @@ def _render_inventory_fetch(gui: MyGui, reason: str, on_fetched: Callable[[], No
 
 
 def _after_inventory_fetch(
-    redraw: Callable[[], None], action: taskedit.EditableAction, state: RunState
+    redraw: Callable[[], None], action: taskedit_model.EditableAction, state: RunState
 ) -> Callable[[], None]:
     """What to do once a fetch has filled the inventory: re-ask this action's arguments
     what kind of widget they are, and then draw them again.
@@ -1001,7 +1013,7 @@ def _after_inventory_fetch(
     """
 
     def refresh() -> None:
-        taskedit.reclassify_action_args(action, state=state)
+        taskedit_args.reclassify_action_args(action, state=state)
         redraw()
 
     return refresh
@@ -1046,7 +1058,7 @@ def _render_addability_reason(gui: MyGui, reason: str, on_fetched: Callable[[], 
     button, same fetch, offered at the point where the user actually hits the wall.
 
     on_fetched re-runs whatever drew this row.  A fetch bumps deviceinv's generation, which
-    is what makes taskedit.list_addable_actions rebuild rather than answer from its memo,
+    is what makes taskedit_addable.list_addable_actions rebuild rather than answer from its memo,
     so re-running the picker is all it takes for the greyed-out row to turn into a button.
     """
     ui.label(reason).classes("text-xs text-gray-500 italic")
@@ -1055,7 +1067,7 @@ def _render_addability_reason(gui: MyGui, reason: str, on_fetched: Callable[[], 
 
 def _render_app_arg_field(
     gui: MyGui,
-    arg: taskedit.EditableArg,
+    arg: taskedit_model.EditableArg,
     key: str,
     field_refs: dict,
     value: str | None = None,
@@ -1084,7 +1096,7 @@ def _render_app_arg_field(
 
 def _render_icon_arg_field(
     gui: MyGui,
-    arg: taskedit.EditableArg,
+    arg: taskedit_model.EditableArg,
     key: str,
     field_refs: dict,
     value: str | None = None,
@@ -1113,7 +1125,7 @@ def _render_icon_arg_field(
 
 def build_action_condition_dialog(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     act_number: int,
     checkbox: ui.checkbox,
     condition_cache: dict[int, tuple[str, str, str]],
@@ -1129,8 +1141,8 @@ def build_action_condition_dialog(
     if action is None:
         return
 
-    prefill = condition_cache.get(act_number) or taskedit.get_action_condition_values(action)
-    operator_labels = [label for _code, label in taskedit.IF_CONDITION_OPERATORS]
+    prefill = condition_cache.get(act_number) or taskedit_apply.get_action_condition_values(action)
+    operator_labels = [label for _code, label in taskedit_model.IF_CONDITION_OPERATORS]
 
     with ui.dialog().props("persistent") as condition_dialog, ui.card().classes("min-w-[400px] p-6"):
         ui.label(f"If Condition -- {act_number}: {action.action_name}").classes("text-lg font-bold text-blue-600")
@@ -1164,8 +1176,8 @@ def build_action_condition_dialog(
 
 def _render_action_condition_checkbox(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
-    action: taskedit.EditableAction,
+    edited_task: taskedit_model.EditableTask,
+    action: taskedit_model.EditableAction,
     condition_cache: dict[int, tuple[str, str, str]],
 ) -> None:
     """Renders an action's per-action "If" checkbox in the Add/Edit Task action
@@ -1177,14 +1189,14 @@ def _render_action_condition_checkbox(
     read-only note instead -- replacing those from this single-condition
     prompt would silently drop the rest.
     """
-    condition_count = taskedit.action_condition_count(action)
+    condition_count = taskedit_apply.action_condition_count(action)
     if condition_count > 1:
         ui.label(
             f"Has {condition_count} chained If conditions -- not editable here.",
         ).classes("text-xs text-gray-500 italic")
         return
 
-    target, operator_label, value = taskedit.get_action_condition_values(action)
+    target, operator_label, value = taskedit_apply.get_action_condition_values(action)
     text = f"If: {target} {operator_label} {value}".rstrip() if condition_count else "If"
     checkbox = ui.checkbox(text, value=condition_count == 1).props("dense")
 
@@ -1193,8 +1205,8 @@ def _render_action_condition_checkbox(
             build_action_condition_dialog(self, edited_task, act_number, cb, condition_cache)
             return
         current = next((a for a in edited_task.actions if a.act_number == act_number), None)
-        if current is not None and taskedit.action_has_condition(current):
-            condition_cache[act_number] = taskedit.get_action_condition_values(current)
+        if current is not None and taskedit_apply.action_has_condition(current):
+            condition_cache[act_number] = taskedit_apply.get_action_condition_values(current)
         self.event_handlers.remove_action_condition_event(edited_task, act_number)
         cb.set_text(translate_string("If"))
 
@@ -1203,8 +1215,8 @@ def _render_action_condition_checkbox(
 
 def _render_continue_after_error_checkbox(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
-    action: taskedit.EditableAction,
+    edited_task: taskedit_model.EditableTask,
+    action: taskedit_model.EditableAction,
 ) -> None:
     """Renders an action's 'Continue Task After Error' checkbox in the Add/Edit
     Task action lists -- only for actions Tasker considers able to fail
@@ -1230,11 +1242,11 @@ def _render_plugin_configuration_warning(element: object, name: str) -> None:
     """Renders the standing "configure this in Tasker" warning on an action's or a
     condition's own panel, for a third-party plugin whose payload this tool can't
     edit -- nothing at all for anything else (see
-    taskedit.tasker_configuration_warning). Shown in all three action/condition
+    taskedit_addable.tasker_configuration_warning). Shown in all three action/condition
     lists (Edit Task, Add Task, Edit Profile's State/Event conditions), whether the
     item was just added from bundles.json or read from the loaded backup.
     """
-    warning = taskedit.tasker_configuration_warning(element, name)
+    warning = taskedit_addable.tasker_configuration_warning(element, name)
     if not warning:
         return
 
@@ -1249,13 +1261,13 @@ def build_if_variant_dialog(on_choice: Callable[[str], None]) -> None:
     """Prompts for how much of an If block to insert when the user picks the
     "If" action in an Add/Edit Task action picker: just the "If", "If" plus a
     matching "End If", or a full "If"/"Else"/"End If" skeleton -- see
-    taskedit.IF_BLOCK_VARIANTS/add_if_block_to_task. Fires on_choice(variant)
+    taskedit_model.IF_BLOCK_VARIANTS/add_if_block_to_task. Fires on_choice(variant)
     only when one is clicked; Cancel inserts nothing.
     """
     with ui.dialog().props("persistent") as variant_dialog, ui.card().classes("min-w-[300px] p-6"):
         ui.label(translate_string("Add 'If' Action")).classes("text-lg font-bold text-blue-600")
         ui.label(translate_string("Insert just the 'If', or a complete block?")).classes("text-sm mb-2")
-        for variant in taskedit.IF_BLOCK_VARIANTS:
+        for variant in taskedit_model.IF_BLOCK_VARIANTS:
             ui.button(
                 variant,
                 on_click=lambda v=variant: (variant_dialog.close(), on_choice(v)),
@@ -1278,7 +1290,7 @@ class _ActionPicker:
     def __init__(
         self,
         gui: MyGui,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         add_action: Callable[[str, int | None], int | None],
         add_if_block: Callable[[str, int | None], int | None],
         on_added: Callable[[int | None], None],
@@ -1311,7 +1323,9 @@ class _ActionPicker:
 
     def build(self) -> None:
         """Draws the search row, the Position dropdown and the (still empty) list of actions."""
-        category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions(state=self.gui.state)})
+        category_names = sorted(
+            {row["category_name"] for row in taskedit_addable.list_addable_actions(state=self.gui.state)}
+        )
         ui.label(translate_string("Add an action")).classes("text-sm font-bold mt-2")
         with ui.row().classes("w-full gap-4"):
             self.search_input = ui.input(translate_string("Search actions")).classes("flex-1")
@@ -1326,7 +1340,7 @@ class _ActionPicker:
     def refresh(self, _e: ui.event | None = None) -> None:
         """Redraws the list of actions to pick from, for the current search and category."""
         self.picker_container.clear()
-        rows = taskedit.search_addable_actions(
+        rows = taskedit_addable.search_addable_actions(
             self.search_input.value,
             self.category_select.value,
             state=self.gui.state,
@@ -1355,7 +1369,7 @@ class _ActionPicker:
         directly. Position is resolved when the choice lands, not at
         picker-click time -- same value, and the variant dialog is modal.
         """
-        if action_key == taskedit.IF_ACTION_KEY:
+        if action_key == taskedit_model.IF_ACTION_KEY:
             build_if_variant_dialog(
                 lambda variant: self.on_added(
                     self.add_if_block(variant, self.position_labels.get(self.position_select.value)),
@@ -1374,7 +1388,7 @@ class _ActionList:
     render_actions, and what an action's panel holds.
     """
 
-    def __init__(self, gui: MyGui, edited_task: taskedit.EditableTask, field_refs: dict) -> None:
+    def __init__(self, gui: MyGui, edited_task: taskedit_model.EditableTask, field_refs: dict) -> None:
         """
         Args:
             gui: The application window, which holds the event handlers and the run's state.
@@ -1419,7 +1433,7 @@ class _ActionList:
             del self.field_refs[key]
 
     def _render_action_header(
-        self, action: taskedit.EditableAction, nest_level: int, indent_spaces: int
+        self, action: taskedit_model.EditableAction, nest_level: int, indent_spaces: int
     ) -> ui.expansion:
         """The expansion an action's panel goes in, titled by its number and name, indented to its nesting."""
         # Indent with non-breaking spaces -- plain ones collapse in the rendered header.
@@ -1433,21 +1447,21 @@ class _ActionList:
             action_expansion.classes("bg-amber-100 dark:bg-amber-900 border-2 border-amber-400 rounded")
         return action_expansion
 
-    def _render_action_basics(self, action: taskedit.EditableAction) -> None:
+    def _render_action_basics(self, action: taskedit_model.EditableAction) -> None:
         """An action's Label, its If and Continue-After-Error checkboxes, and any warning about its plugin."""
-        self.field_refs[taskedit.label_key(action.act_number)] = ui.input(
+        self.field_refs[taskedit_apply.label_key(action.act_number)] = ui.input(
             translate_string("Label"),
-            value=taskedit.get_action_label(action),
+            value=taskedit_apply.get_action_label(action),
         ).classes("w-full")
-        if action.code != taskedit.IF_ACTION_CODE:
+        if action.code != taskedit_model.IF_ACTION_CODE:
             _render_action_condition_checkbox(self.gui, self.edited_task, action, self.condition_cache)
         _render_continue_after_error_checkbox(self.gui, self.edited_task, action)
         _render_plugin_configuration_warning(action.action_element, action.action_name)
 
     def _render_shared_argument(
         self,
-        action: taskedit.EditableAction,
-        arg: taskedit.EditableArg,
+        action: taskedit_model.EditableAction,
+        arg: taskedit_model.EditableArg,
         key: str,
     ) -> bool:
         """Draws an argument's widget if it is one of the kinds both dialogs draw alike.
@@ -1465,7 +1479,7 @@ class _ActionList:
                 value=_dropdown_current_label(arg),
                 label=arg.arg_name,
             ).classes("flex-1")
-        elif taskedit.is_perform_task_name_arg(action.code, arg):
+        elif taskedit_args.is_perform_task_name_arg(action.code, arg):
             _render_task_name_field(self.gui, action, arg, key, field_refs, state=self.gui.state)
         elif arg.widget_kind == "app_picker":
             _render_app_arg_field(self.gui, arg, key, field_refs)
@@ -1475,7 +1489,7 @@ class _ActionList:
             return False
         return True
 
-    def _render_argument_note(self, action: taskedit.EditableAction, arg: taskedit.EditableArg) -> None:
+    def _render_argument_note(self, action: taskedit_model.EditableAction, arg: taskedit_model.EditableArg) -> None:
         """The note under an argument that explains why it can't be edited here, if it has one."""
         if arg.readonly_note:
             _render_readonly_note(
@@ -1484,7 +1498,7 @@ class _ActionList:
                 _after_inventory_fetch(self.render_actions, action, state=self.gui.state),
             )
 
-    def _render_readonly_argument(self, action: taskedit.EditableAction, arg: taskedit.EditableArg) -> None:
+    def _render_readonly_argument(self, action: taskedit_model.EditableAction, arg: taskedit_model.EditableArg) -> None:
         """An argument that can't be edited here: shown as it is, with the note saying why, if any."""
         ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
         self._render_argument_note(action, arg)
@@ -1533,24 +1547,26 @@ class _NewTaskActionList(_ActionList):
                 with self._render_action_header(action, nest_level, indent_spaces):
                     self._render_action_basics(action)
                     for arg in action.args:
-                        key = taskedit.arg_key(action.act_number, arg.arg_id)
+                        key = taskedit_apply.arg_key(action.act_number, arg.arg_id)
                         with ui.row().classes("w-full items-center gap-2"):
                             self._render_argument(action, arg, key)
                     self._render_remove_button(action)
 
-    def _render_argument(self, action: taskedit.EditableAction, arg: taskedit.EditableArg, key: str) -> None:
+    def _render_argument(
+        self, action: taskedit_model.EditableAction, arg: taskedit_model.EditableArg, key: str
+    ) -> None:
         """The widget for one argument of an action in the list."""
         if self._render_shared_argument(action, arg, key):
             return
         if arg.widget_kind == "readonly":
             # A newly-added plugin action's payload (see
-            # taskedit._synthesize_bundle_arg): not editable here,
+            # taskedit_addable._synthesize_bundle_arg): not editable here,
             # and apply_arg_values skips it, so never a field_ref.
             self._render_readonly_argument(action, arg)
         else:  # "text" or "raw_fallback"
             self.field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
 
-    def _render_remove_button(self, action: taskedit.EditableAction) -> None:
+    def _render_remove_button(self, action: taskedit_model.EditableAction) -> None:
         """The button that takes an action out of the new Task."""
         ui.button(
             translate_string("Remove"),
@@ -1569,7 +1585,7 @@ class _EditTaskActionList(_ActionList):
     def __init__(
         self,
         gui: MyGui,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         list_classes: str,
     ) -> None:
@@ -1628,11 +1644,11 @@ class _EditTaskActionList(_ActionList):
                     if not action.args:
                         ui.label(translate_string("No editable arguments.")).classes("text-xs text-gray-500 italic")
                     for arg in action.args:
-                        key = taskedit.arg_key(action.act_number, arg.arg_id)
+                        key = taskedit_apply.arg_key(action.act_number, arg.arg_id)
                         with ui.row().classes("w-full items-center gap-2"):
                             self._render_argument(action, arg, key)
 
-    def _render_action_controls(self, action: taskedit.EditableAction, last_position: int) -> None:
+    def _render_action_controls(self, action: taskedit_model.EditableAction, last_position: int) -> None:
         """The Copy button, the Move-to box with its button, and the Delete button."""
         handlers = self.gui.event_handlers
         edited_task = self.edited_task
@@ -1679,7 +1695,7 @@ class _EditTaskActionList(_ActionList):
                 ),
             ).props("flat color=red dense")
 
-    def _render_enabled_switch(self, action: taskedit.EditableAction) -> None:
+    def _render_enabled_switch(self, action: taskedit_model.EditableAction) -> None:
         """The switch that enables or disables an action."""
         action_enabled_switch = ui.switch(
             value=taskedit.is_action_enabled(action),
@@ -1695,7 +1711,9 @@ class _EditTaskActionList(_ActionList):
             backward=lambda v: "Enabled" if v else "Disabled",
         )
 
-    def _render_argument(self, action: taskedit.EditableAction, arg: taskedit.EditableArg, key: str) -> None:
+    def _render_argument(
+        self, action: taskedit_model.EditableAction, arg: taskedit_model.EditableArg, key: str
+    ) -> None:
         """The widget for one argument of an action in the list."""
         if self._render_shared_argument(action, arg, key):
             return
@@ -1708,7 +1726,7 @@ class _EditTaskActionList(_ActionList):
 
 def _build_task_action_editor(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     field_refs: dict,
     *,
     list_classes: str = "w-full h-96 border rounded p-2",
@@ -1730,7 +1748,7 @@ def _build_task_action_editor(
     something reads them back (userintr_editors._task_arg_values) and applies them.  That split is
     the Edit Task dialog's, and every caller inherits it, so each needs its own Ok/Apply.
 
-    field_refs gains one entry per editable argument and label, keyed by taskedit.arg_key/
+    field_refs gains one entry per editable argument and label, keyed by taskedit_apply.arg_key/
     label_key, and its "act*" keys are cleared and rebuilt on every re-render -- Copy, Move
     and Delete all renumber the actions, so a stale key would apply a value to the wrong one.
 
@@ -1744,7 +1762,7 @@ def _build_task_action_editor(
 
 def _render_task_save_buttons(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     field_refs: dict,
     dialog: ui.dialog,
 ) -> None:
@@ -1798,7 +1816,7 @@ def _render_task_save_buttons(
 
 def _render_edit_task_buttons(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     field_refs: dict,
     dialog: ui.dialog,
     title_label: ui.label,
@@ -1862,7 +1880,7 @@ def _render_edit_task_buttons(
             ).style("white-space: pre-wrap")
 
 
-def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> None:
+def build_edit_task_dialog(self: MyGui, edited_task: taskedit_model.EditableTask) -> None:
     """Builds and opens the Edit Task dialog (Phase 1: name/priority; an "Add an
     action" search/filter picker -- the same one Add Task uses -- that can insert
     the new action before/after any existing one or at the end, not just append;
@@ -1914,7 +1932,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
 
         field_refs["save_path"] = ui.input(
             translate_string("Save as"),
-            value=taskedit.default_save_path(task_name, self.state),
+            value=taskedit_save.default_save_path(task_name, self.state),
         ).classes("w-full mt-2")
         build_redact_checkbox(field_refs)
 
@@ -1932,13 +1950,13 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
 
 def build_delete_task_dialog(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     parent_dialog: ui.dialog,
 ) -> None:
     """Confirms deletion of a Task. Like guiwins_profedit.build_delete_profile_dialog there is no
     Keep/Delete Contents choice -- a Task owns nothing below it -- but unlike a
     Profile, other things point *at* a Task, so the dialog spells out exactly
-    which references go away with it (see taskedit.delete_task): the owning
+    which references go away with it (see taskedit_save.delete_task): the owning
     Project(s)' Task list, and the Entry/Exit link of any Profile that runs it.
 
     Which of those references the delete repairs and which it leaves dangling is
@@ -1984,7 +2002,7 @@ def _make_save_path_sync(field_refs: dict, last_auto_path: dict, state: RunState
         # edit" apart via save_path's own on_change: NiceGUI fires that for
         # programmatic value sets too, so it would trip on the very first sync.)
         if field_refs["save_path"].value == last_auto_path["value"]:
-            new_path = taskedit.default_save_path(field_refs["name"].value, state)
+            new_path = taskedit_save.default_save_path(field_refs["name"].value, state)
             field_refs["save_path"].value = new_path
             last_auto_path["value"] = new_path
 
@@ -1993,7 +2011,7 @@ def _make_save_path_sync(field_refs: dict, last_auto_path: dict, state: RunState
 
 def _render_new_task_name_row(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     field_refs: dict,
     dialog: ui.dialog,
     sync_save_path: Callable[..., None],
@@ -2013,7 +2031,7 @@ def _render_new_task_name_row(
 
 def _render_new_task_buttons(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     field_refs: dict,
     dialog: ui.dialog,
     on_task_created: Callable[[str], None] | None,
@@ -2080,7 +2098,7 @@ def _render_new_task_buttons(
 
 def build_add_task_dialog(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     on_task_created: Callable[[str], None] | None = None,
     target_project_name: str = "",
 ) -> None:
@@ -2116,7 +2134,7 @@ def build_add_task_dialog(
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         ui.label(translate_string("Add Task")).classes("text-xl font-bold text-blue-600")
 
-        last_auto_path = {"value": taskedit.default_save_path("", self.state)}
+        last_auto_path = {"value": taskedit_save.default_save_path("", self.state)}
         sync_save_path = _make_save_path_sync(field_refs, last_auto_path, self.state)
 
         if target_project_name:

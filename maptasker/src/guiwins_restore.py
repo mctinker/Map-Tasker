@@ -20,7 +20,7 @@
 # Compare design put merging out of scope, and a Restore All button would be one.          #
 #                                                                                        #
 # THE RULE THIS IS BUILT AROUND is the Refactor dialog's: nothing is applied unseen.  A   #
-# row's button builds a maprefac.Plan and draws its preview; Apply takes that plan and no  #
+# row's button builds a maprefac_model.Plan and draws its preview; Apply takes that plan and no  #
 # other, and is only there while the preview is.  The preview is drawn from               #
 # maprefac.report_rows -- the same rows the Refactor dialog draws, so a restore's         #
 # refusal and warnings read exactly the way a Duplicate's do.                              #
@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
-from maptasker.src import maprefac, maprestore, timecomp, timeline
+from maptasker.src import maprefac, maprefac_model, maprestore, timecomp, timeline
 from maptasker.src.diffload import current_configuration
 from maptasker.src.maputil2 import translate_string
 
@@ -82,7 +82,7 @@ class _State:
     snapshot: timeline.Snapshot | None = None
     older: Configuration | None = None
     offer: maprestore.Offer | None = None
-    plan: maprefac.Plan | None = None
+    plan: maprefac_model.Plan | None = None
     # The row whose plan is on screen, so Apply knows which row it restored.
     previewed: maprestore.Candidate | None = None
     # Rows restored from this snapshot, by identity -- their buttons are drawn green.  Kept here
@@ -456,7 +456,7 @@ def draw_row(
             button.disable()
 
 
-def draw_preview(area: ui.scroll_area, plan: maprefac.Plan, make_jump: Callable) -> None:
+def draw_preview(area: ui.scroll_area, plan: maprefac_model.Plan, make_jump: Callable) -> None:
     """The plan, from maprefac.report_rows -- the same rows the Refactor dialog draws."""
     area.clear()
     with area, ui.column().classes("w-full gap-0 p-2"):

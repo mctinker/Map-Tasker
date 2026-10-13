@@ -39,7 +39,7 @@
 #
 # WHAT "UNTOUCHED" EXCLUDES, AND WHY IT IS EXACTLY ONE THING
 #
-# Three of the four renderers only deep-copy: taskedit.render_standalone_task_xml,
+# Three of the four renderers only deep-copy: taskedit_save.render_standalone_task_xml,
 # profedit.render_standalone_profile_xml and sceneedit.render_standalone_scene_xml put back
 # what they were given, so every object they emit -- including the one being exported -- is
 # subject to check 2.
@@ -77,7 +77,7 @@ from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as ET
 
-from maptasker.src import profedit, projedit, sceneedit, taskedit
+from maptasker.src import profedit, projedit, sceneedit, taskedit_save
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
@@ -86,7 +86,7 @@ if TYPE_CHECKING:
 
     from maptasker.src.primitem import RunState
     from maptasker.src.profedit import EditableProfile
-    from maptasker.src.taskedit import EditableTask
+    from maptasker.src.taskedit_model import EditableTask
 
 # The tag a standalone export wraps everything in, and the indent every renderer uses.
 # Both have to match the renderers exactly or check 1 fails on documents that are fine --
@@ -424,7 +424,7 @@ def verify_task(edited_task: EditableTask, state: RunState) -> RoundTripReport:
     """The Task about to go to the device, checked against the working copy it renders."""
 
     try:
-        rendered = taskedit.render_standalone_task_xml(edited_task, state=state)
+        rendered = taskedit_save.render_standalone_task_xml(edited_task, state=state)
     except (ValueError, AttributeError) as render_error:
         return RoundTripReport(error=f"the Task could not be rendered ({render_error})")
 

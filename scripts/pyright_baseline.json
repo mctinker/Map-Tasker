@@ -68,11 +68,30 @@
   "maptasker/src/debug.py": {
     "reportAttributeAccessIssue": 9
   },
+  "maptasker/src/devicecheck.py": {
+    "reportReturnType": 1
+  },
+  "maptasker/src/devicefiles.py": {
+    "reportReturnType": 1
+  },
+  "maptasker/src/devicehelpers.py": {
+    "reportAttributeAccessIssue": 1
+  },
+  "maptasker/src/deviceimport.py": {
+    "reportReturnType": 1
+  },
   "maptasker/src/deviceinv.py": {
-    "reportArgumentType": 5,
-    "reportAttributeAccessIssue": 1,
-    "reportRedeclaration": 1,
-    "reportReturnType": 7
+    "reportReturnType": 1
+  },
+  "maptasker/src/deviceoffer.py": {
+    "reportReturnType": 2
+  },
+  "maptasker/src/devicetask.py": {
+    "reportArgumentType": 1,
+    "reportReturnType": 1
+  },
+  "maptasker/src/deviceverify.py": {
+    "reportArgumentType": 3
   },
   "maptasker/src/diagram.py": {
     "reportArgumentType": 10,
@@ -229,16 +248,27 @@
     "reportAttributeAccessIssue": 2,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/maprefac.py": {
-    "reportArgumentType": 6,
-    "reportAttributeAccessIssue": 5,
-    "reportGeneralTypeIssues": 2,
-    "reportOptionalSubscript": 1
-  },
-  "maptasker/src/mapswap.py": {
+  "maptasker/src/maprefac_duplicate.py": {
     "reportArgumentType": 5,
     "reportAttributeAccessIssue": 5,
-    "reportCallIssue": 1,
+    "reportGeneralTypeIssues": 2
+  },
+  "maptasker/src/maprefac_extract.py": {
+    "reportOptionalSubscript": 1
+  },
+  "maptasker/src/maprefac_model.py": {
+    "reportArgumentType": 1
+  },
+  "maptasker/src/mapswap_condition.py": {
+    "reportArgumentType": 1,
+    "reportAttributeAccessIssue": 5,
+    "reportCallIssue": 1
+  },
+  "maptasker/src/mapswap_rename.py": {
+    "reportArgumentType": 2
+  },
+  "maptasker/src/mapswap_sites.py": {
+    "reportArgumentType": 1,
     "reportGeneralTypeIssues": 1,
     "reportOptionalMemberAccess": 5
   },
@@ -324,10 +354,6 @@
     "reportAttributeAccessIssue": 1,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/sceneedit.py": {
-    "reportCallIssue": 1,
-    "reportOptionalMemberAccess": 2
-  },
   "maptasker/src/sceneedit_legacy.py": {
     "reportArgumentType": 4,
     "reportAttributeAccessIssue": 9,
@@ -336,6 +362,9 @@
   "maptasker/src/sceneedit_v2.py": {
     "reportGeneralTypeIssues": 1,
     "reportOptionalMemberAccess": 1
+  },
+  "maptasker/src/scenelayout.py": {
+    "reportCallIssue": 1
   },
   "maptasker/src/scenes.py": {
     "reportArgumentType": 13,
@@ -365,11 +394,16 @@
     "reportAttributeAccessIssue": 8,
     "reportGeneralTypeIssues": 1
   },
-  "maptasker/src/taskedit.py": {
-    "reportArgumentType": 4,
+  "maptasker/src/taskedit_apply.py": {
     "reportOperatorIssue": 1,
     "reportOptionalMemberAccess": 2,
     "reportOptionalSubscript": 1
+  },
+  "maptasker/src/taskedit_args.py": {
+    "reportArgumentType": 3
+  },
+  "maptasker/src/taskedit_save.py": {
+    "reportArgumentType": 1
   },
   "maptasker/src/taskerd.py": {
     "reportAttributeAccessIssue": 3,

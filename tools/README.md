@@ -62,7 +62,7 @@ input for `translate_po.py`, not catalogs the app loads.
 | `version_copy.py` | Copies a directory, rewriting a string as it goes |
 | `find_missing_action_codes.py` | Lists Tasker action codes the mapper does not recognise |
 | `disp_msg.py` | Collects every `display_message_box` string in the source |
-| `try_import_profile.py` | Prototype harness for `deviceinv.import_profile_to_device` |
+| `try_import_profile.py` | Prototype harness for `deviceimport.import_profile_to_device` |
 | `trace.py`, `substr_analysis.py`, `substr_analysis1.py`, `top_argument_list.py`, `display_avail_cursors.py` | One-off analysis and debugging aids |
 
 `Command-Reference.md` is generated output, checked in because it is the copy

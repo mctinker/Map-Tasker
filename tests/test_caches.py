@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 from maptasker.src.primitem import PrimeItems
-from maptasker.src import appinv, bildhtml, caches, globalvr, mapcache, profedit, scenes, taskedit
+from maptasker.src import appinv, bildhtml, caches, globalvr, mapcache, profedit, scenes, taskedit_addable
 from maptasker.src.maputils import clear_tasker_data
 from maptasker.src.primitem import PrimeItemsReset
 
@@ -83,7 +83,7 @@ def test_loading_another_configuration_empties_every_cache(reset: object) -> Non
     mapcache._remembered.value = ("config", "settings", "MapTasker.html", (1, 2), 3)  # noqa: SLF001
     bildhtml._map_just_written.value = "MapTasker.html"  # noqa: SLF001
     scenes._carrying_scene_colour.value = True  # noqa: SLF001
-    stale_rows = taskedit._addable_actions.get("old generation", lambda: ["stale"])  # noqa: SLF001
+    stale_rows = taskedit_addable._addable_actions.get("old generation", lambda: ["stale"])  # noqa: SLF001
     stale_conditions = profedit._addable_condition_codes.get("old generation", dict)  # noqa: SLF001
 
     reset()
@@ -92,7 +92,7 @@ def test_loading_another_configuration_empties_every_cache(reset: object) -> Non
     assert globalvr._cross_reference_key.value == ""  # noqa: SLF001
     assert not mapcache.is_current("MapTasker.html", ("config", "settings"))
     assert bildhtml._map_just_written.value == ""  # noqa: SLF001
-    assert taskedit._addable_actions.get("old generation", list) is not stale_rows  # noqa: SLF001
+    assert taskedit_addable._addable_actions.get("old generation", list) is not stale_rows  # noqa: SLF001
     assert profedit._addable_condition_codes.get("old generation", dict) is not stale_conditions  # noqa: SLF001
 
 

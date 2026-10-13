@@ -19,7 +19,17 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from maptasker.src import appinv, caches, mapask, mapdraft, taskedit
+from maptasker.src import (
+    appinv,
+    caches,
+    mapask,
+    mapdraft,
+    taskedit,
+    taskedit_addable,
+    taskedit_apply,
+    taskedit_model,
+    taskedit_save,
+)
 from maptasker.src.primitem import PrimeItems
 
 from tests.test_mapswap import _FIXTURE_XML, _load
@@ -95,8 +105,8 @@ def _keys(plan: mapdraft.Plan) -> list[str]:
 # ##################################################################################
 def test_the_catalog_is_exactly_what_the_picker_lets_the_user_add(backup: None) -> None:
     catalog = {row["action_key"] for row in mapdraft.action_catalog(PrimeItems)}
-    addable = {row["action_key"] for row in taskedit.list_addable_actions(state=PrimeItems) if row["addable"]}
-    refused = {row["action_key"] for row in taskedit.list_addable_actions(state=PrimeItems) if not row["addable"]}
+    addable = {row["action_key"] for row in taskedit_addable.list_addable_actions(state=PrimeItems) if row["addable"]}
+    refused = {row["action_key"] for row in taskedit_addable.list_addable_actions(state=PrimeItems) if not row["addable"]}
 
     assert catalog == addable
     assert FLASH in catalog
@@ -231,7 +241,7 @@ def test_a_plan_of_actions_with_nothing_to_set_needs_no_second_question(backup: 
 # The first reply.
 # ##################################################################################
 def test_an_action_the_editor_cannot_build_is_dropped_and_said(backup: None) -> None:
-    refused = next(row["action_key"] for row in taskedit.list_addable_actions(state=PrimeItems) if not row["addable"])
+    refused = next(row["action_key"] for row in taskedit_addable.list_addable_actions(state=PrimeItems) if not row["addable"])
     plan = mapdraft.parse_plan(_plan(FLASH, "999999t", refused, "Teleport"), PrimeItems)
 
     assert _keys(plan) == [FLASH]
@@ -739,7 +749,7 @@ async def test_the_requested_reply_shape_reaches_the_provider(monkeypatch: pytes
 # ##################################################################################
 # Putting the draft in the editor.
 # ##################################################################################
-def _new_task() -> taskedit.EditableTask:
+def _new_task() -> taskedit_model.EditableTask:
     task = taskedit.create_new_task("", "100", state=PrimeItems)
     assert not isinstance(task, str)
     return task
@@ -762,7 +772,7 @@ def test_a_draft_is_built_the_way_a_hand_added_action_is(backup: None) -> None:
     assert [action.action_name for action in task.actions] == ["Flash", "Wait", "Array Process"]
 
     flash = task.actions[0]
-    assert taskedit.get_action_label(flash) == "greet"
+    assert taskedit_apply.get_action_label(flash) == "greet"
     # In the XML, where a save reads it from...
     assert flash.action_element.find("Str[@sr='arg0']").text == "Hello %city"
     assert flash.action_element.find("Int[@sr='arg1']").get("val") == "1"
@@ -850,7 +860,7 @@ def test_an_if_condition_that_fails_the_editors_check_is_left_empty_and_said(bac
     assert any("Step 1 (If)" in note and "defaults" in note for note in applied.notes)
     assert {arg.arg_id: arg.current_value for arg in task.actions[0].args}["if_lhs"] == ""
     # What did pass is still there.
-    assert taskedit.get_action_label(task.actions[0]) == "check"
+    assert taskedit_apply.get_action_label(task.actions[0]) == "check"
 
 
 def test_a_plugin_action_is_said_to_need_configuring(backup: None) -> None:
@@ -859,7 +869,7 @@ def test_a_plugin_action_is_said_to_need_configuring(backup: None) -> None:
         for row in mapdraft.action_catalog(PrimeItems)
         if (action := taskedit.add_action_to_task(_new_task(), row["action_key"], state=PrimeItems))
         and not isinstance(action, list)
-        and taskedit.needs_tasker_configuration(action.action_element)
+        and taskedit_addable.needs_tasker_configuration(action.action_element)
     )
     task = _new_task()
     applied = mapdraft.apply_draft(task, _draft(mapdraft.DraftStep(plugin)), PrimeItems)
@@ -872,7 +882,7 @@ def test_an_action_that_can_no_longer_be_added_is_said(backup: None, monkeypatch
     """What is addable follows the loaded inventory, which can change between asking and applying."""
     real = taskedit.add_action_to_task
 
-    def refusing(task: taskedit.EditableTask, key: str, position: int | None = None, *, state: object) -> object:
+    def refusing(task: taskedit_model.EditableTask, key: str, position: int | None = None, *, state: object) -> object:
         return ["Requires something that is gone."] if key == WAIT else real(task, key, position, state=state)
 
     monkeypatch.setattr(taskedit, "add_action_to_task", refusing)
@@ -905,8 +915,8 @@ def test_a_drafted_task_saves_like_any_other(backup: None) -> None:
         PrimeItems,
     )
 
-    assert taskedit.apply_edits_to_task(task, "Drafted", "100", {}, PrimeItems) == []
-    xml = taskedit.render_standalone_task_xml(task, state=PrimeItems)
+    assert taskedit_apply.apply_edits_to_task(task, "Drafted", "100", {}, PrimeItems) == []
+    xml = taskedit_save.render_standalone_task_xml(task, state=PrimeItems)
     assert "<nme>Drafted</nme>" in xml
     assert "<label>hi</label>" in xml
     assert "Hello" in xml

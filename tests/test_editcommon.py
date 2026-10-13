@@ -23,14 +23,14 @@ import os
 
 import pytest
 from maptasker.src.primitem import PrimeItems
-from maptasker.src import deviceinv, editcommon, presave, profedit, projedit, sceneedit, taskedit
+from maptasker.src import devicetask, editcommon, presave, profedit, projedit, sceneedit, taskedit, taskedit_save
 
 # Every editor, and the three things it is allowed to differ in.
 #   module, EXPORT kind, fallback word, extension, device folder, its own path helper
 EDITORS = [
     (projedit, "project", ".prj.xml", "Tasker/projects", "android_project_path", "default_project_save_path"),
     (profedit, "profile", ".prf.xml", "Tasker/profiles", "android_profile_path", "default_save_path"),
-    (taskedit, "task", ".tsk.xml", "Tasker/tasks", "android_task_path", "default_save_path"),
+    (taskedit_save, "task", ".tsk.xml", "Tasker/tasks", "android_task_path", "default_save_path"),
     (sceneedit, "scene", ".scn.xml", "Tasker/scenes", "android_scene_path", "default_scene_save_path"),
 ]
 IDS = [e[1] for e in EDITORS]
@@ -114,7 +114,7 @@ def test_the_non_editors_share_the_same_substitution() -> None:
     """
     assert presave.ILLEGAL_IN_FILENAME is editcommon.ILLEGAL_IN_FILENAME
     for name in ("Opener", "Wake: Up", "a/b", ""):
-        assert deviceinv.staged_paths("Tasker/tasks", name, "tsk.xml", "task")[1] == taskedit.android_task_path(name)
+        assert devicetask.staged_paths("Tasker/tasks", name, "tsk.xml", "task")[1] == taskedit_save.android_task_path(name)
 
 
 def test_set_child_text_is_one_function_not_four() -> None:
@@ -154,7 +154,7 @@ def fake_device(monkeypatch: pytest.MonkeyPatch) -> dict:
     for module, attribute in (
         (projedit, "render_standalone_project_xml"),
         (profedit, "render_standalone_profile_xml"),
-        (taskedit, "render_standalone_task_xml"),
+        (taskedit_save, "render_standalone_task_xml"),
         (sceneedit, "render_standalone_scene_xml"),
     ):
         monkeypatch.setattr(module, attribute, counted)
@@ -167,7 +167,7 @@ def _save_calls(ip: str, port: str) -> list[tuple[str, object]]:
         ("project", lambda: projedit.save_project_to_android("Home/Work", ip, port, state=PrimeItems)),
         ("profile", lambda: profedit.save_profile_to_android(None, ip, port, "Morning", state=PrimeItems)),
         ("scene", lambda: sceneedit.save_scene_to_android("Dialog", ip, port, state=PrimeItems)),
-        ("task", lambda: taskedit.save_task_to_android_file(None, ip, port, "Opener", state=PrimeItems)),
+        ("task", lambda: taskedit_save.save_task_to_android_file(None, ip, port, "Opener", state=PrimeItems)),
     ]
 
 
@@ -218,7 +218,7 @@ def test_the_task_upload_hands_back_what_the_device_holds(fake_device: dict) -> 
     api/import, so what reaches Tasker is provably the file in the folder rather than a
     second render nothing has checked.
     """
-    assert taskedit._put_task_file_on_android(None, "1.2.3.4", "1821", "Opener", state=PrimeItems) == (
+    assert taskedit_save._put_task_file_on_android(None, "1.2.3.4", "1821", "Opener", state=PrimeItems) == (
         0,
         "/Tasker/tasks/Opener.tsk.xml",
         b"<TaskerData/>",

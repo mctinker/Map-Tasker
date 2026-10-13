@@ -28,13 +28,9 @@ if TYPE_CHECKING:
 from maptasker.src import appinv, sessundo
 from maptasker.src.actionc import action_codes
 from maptasker.src.sysconst import SCENE_TASK_TYPES, UNSET_DIMENSION
-from maptasker.src.taskedit import (
-    apply_arg_values,
-    build_editable_args,
-    build_synthesized_args,
-    classify_action_addability,
-    validate_arg_values,
-)
+from maptasker.src.taskedit_addable import build_synthesized_args, classify_action_addability
+from maptasker.src.taskedit_apply import apply_arg_values, validate_arg_values
+from maptasker.src.taskedit_args import build_editable_args
 
 # A brand-new *Legacy* Scene's portrait size, in the same units Tasker itself writes.  Portrait
 # gets a real default so a new Scene is visible at all; landscape gets UNSET_DIMENSION, which is
@@ -56,7 +52,7 @@ NEW_SCENE_HEIGHT_PORTRAIT = "800"
 #
 # The property side costs almost nothing, because the schema already ships: an element's
 # arguments are <Int sr="argN">/<Str sr="argN"> children, which is the *identical* structure
-# a Task Action's arguments use, and taskedit.build_editable_args already turns that plus an
+# a Task Action's arguments use, and taskedit_args.build_editable_args already turns that plus an
 # actionc.action_codes entry into a list of typed, widget-classified fields.  It is documented
 # as depending only on that structure rather than on being a Task Action -- profedit already
 # reuses it for Profile conditions -- so a Scene element is the third caller, not a special
@@ -105,7 +101,7 @@ def legacy_element_label(element: Element) -> str:
 
 
 def legacy_element_args(element: Element, state: RunState) -> list:
-    """The element's editable arguments, as taskedit.EditableArg records.
+    """The element's editable arguments, as taskedit_model.EditableArg records.
 
     Empty for an element type actionc.py has no entry for -- a type from a newer Tasker.
     That is deliberately not the same as "no fields": the designer says so, and the element
@@ -205,7 +201,7 @@ def legacy_validate_arg(arg: object, value: str) -> list[str]:
 def legacy_set_arg(arg: object, value: str, state: RunState) -> None:
     """Write one inspector field back onto the XML element behind it.
 
-    Goes through taskedit.apply_arg_values rather than setting the attribute here, so the
+    Goes through taskedit_apply.apply_arg_values rather than setting the attribute here, so the
     per-widget write rules stay in exactly one place: a checkbox writes val="1"/"0", a
     dropdown writes the *index* of the chosen label and not the label, a variable-backed Int
     writes into its <var> child rather than its val attribute.  Reimplementing those four
@@ -617,7 +613,7 @@ def legacy_new_element(
 
     Returns the element, or a reason string if the type cannot be created (legacy_can_add).
 
-    Its arguments are synthesized from actionc.py's own table by taskedit.build_synthesized_args
+    Its arguments are synthesized from actionc.py's own table by taskedit_addable.build_synthesized_args
     -- the same function that builds a brand-new Task Action's arguments and a brand-new
     Profile condition's, so a Scene element gets exactly the defaults those get.  The one
     thing it does not write is an Img-typed argument, which it classifies as uneditable and
@@ -965,7 +961,7 @@ def legacy_task_choices(state: RunState) -> list[str]:
     """Every Task name in the loaded backup, sorted -- what a binding can be pointed at.
 
     The same list the Task editor's own 'Perform Task' picker offers
-    (taskedit.get_all_task_names), so the two never disagree about what exists.
+    (taskedit_args.get_all_task_names), so the two never disagree about what exists.
     """
     return sorted(state.tasker_root_elements.get("all_tasks_by_name", {}))
 
@@ -1474,7 +1470,7 @@ def legacy_action_items(properties: Element) -> list[LegacyActionItem]:
 
 
 def legacy_action_item_args(item: LegacyActionItem, state: RunState) -> list:
-    """The item's action's editable arguments, as taskedit.EditableArg records.
+    """The item's action's editable arguments, as taskedit_model.EditableArg records.
 
     Its <Action> is an ordinary Task action -- same <code> and <Int/Str sr="argN"> shape --
     so it goes through the same model the Task editor and the element inspector use, and an

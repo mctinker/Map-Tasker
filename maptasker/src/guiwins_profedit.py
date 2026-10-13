@@ -38,7 +38,7 @@ from maptasker.src.maputil2 import translate_string
 if TYPE_CHECKING:
     from nicegui.elements.select import Select
 
-    from maptasker.src import taskedit
+    from maptasker.src import taskedit_model
     from maptasker.src.userintr import MyGui
 
 
@@ -57,7 +57,7 @@ def _mark_unsupported_options(select_widget: ui.select, unsupported_values: set)
     """Greys out and blocks selection of any option in select_widget whose
     underlying value is in unsupported_values -- e.g. an Event/State condition
     code this tool can't synthesize from scratch (see
-    taskedit.classify_action_addability). NiceGUI's ui.select has no public
+    taskedit_addable.classify_action_addability). NiceGUI's ui.select has no public
     Python API for disabling individual options, so this reaches into the
     Quasar QSelect props it builds internally: each option becomes
     {"value": index, "label": ...}, and adding a "disable": True key there
@@ -321,7 +321,9 @@ class _ProfileEditorBody:
             with ui.row().classes("w-full items-center gap-2"):
                 self._render_argument(condition, arg, key)
 
-    def _render_argument(self, condition: profedit.EditableCondition, arg: taskedit.EditableArg, key: str) -> None:
+    def _render_argument(
+        self, condition: profedit.EditableCondition, arg: taskedit_model.EditableArg, key: str
+    ) -> None:
         """The widget for one State/Event argument, by the kind of widget the argument calls for."""
         field_refs = self.field_refs
         if arg.widget_kind == "checkbox":
@@ -354,7 +356,7 @@ class _ProfileEditorBody:
             ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
             self._render_argument_note(condition, arg)
 
-    def _render_argument_note(self, condition: profedit.EditableCondition, arg: taskedit.EditableArg) -> None:
+    def _render_argument_note(self, condition: profedit.EditableCondition, arg: taskedit_model.EditableArg) -> None:
         """The note under an argument that explains why it can't be edited here, if it has one."""
         if arg.readonly_note:
             _render_readonly_note(
@@ -549,7 +551,7 @@ class _ProfileEditorBody:
             # than being addable from the type name alone. Every code is listed (not
             # just the addable ones) so the user can see what exists, but any not
             # addable (e.g. a third-party plugin needing a Bundle/App payload this
-            # tool can't synthesize -- see taskedit.classify_action_addability) is
+            # tool can't synthesize -- see taskedit_addable.classify_action_addability) is
             # labeled "(Not Supported)" and greyed out/unselectable -- see
             # _mark_unsupported_options.
             event_type_picker = _build_code_type_picker(

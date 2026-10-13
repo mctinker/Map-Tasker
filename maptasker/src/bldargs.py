@@ -25,7 +25,7 @@ OWNER_SUFFIX = {"Event": "e", "State": "s", "Action": "t"}
 # PrimeItems.tasker_arg_specs: "0"=Int, "1"=Str).
 #
 # <Bundle> is deliberately NOT harvested. A plugin payload is already supplied from
-# bundles.json when an action/condition is synthesized (see taskedit._synthesize_bundle_arg),
+# bundles.json when an action/condition is synthesized (see taskedit_addable._synthesize_bundle_arg),
 # so declaring it would add nothing there -- and it would actively hurt the map output,
 # because actargs.get_bundle renders whatever <Bundle> the element has without looking at
 # which arg slot asked for it, so a second Bundle argument prints the same payload twice.
@@ -89,7 +89,7 @@ def find_missing_arguments(harvested: dict) -> dict:
             continue
 
         # An entry that redirects has no args of its own -- the target holds them (see
-        # taskedit.classify_action_addability), so that is what has to be added to.
+        # taskedit_addable.classify_action_addability), so that is what has to be added to.
         owner_key = action_code.redirect or key
         owner = action_codes.get(owner_key)
         if owner is None:
@@ -117,7 +117,7 @@ def harvested_argument(arg_id: str, arg_type: str) -> list:
     # The backup says an argument is there and what shape it has, but not what Tasker
     # calls it, so it gets a generic label. arg_eval must not be blank: it is the
     # display prefix, and xmldata.extract_string indexes its last character.  Left as
-    # the name too (arg_name=""), so taskedit._display_arg_name derives "Arg n" from it.
+    # the name too (arg_name=""), so taskedit_args.display_arg_name derives "Arg n" from it.
     return [arg_id, False, "", arg_type, f", Arg {arg_id}="]
 
 

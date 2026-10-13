@@ -259,7 +259,7 @@ def register_new_project(edited_project: EditableProject, state: RunState) -> No
     is caught by project_name_exists(). Call once, right after a successful
     Add Project (see userintr_editors.keep_new_project_event) -- there's no
     standalone-file/Save-To-Android path to also call this from, unlike
-    profedit.register_new_profile/taskedit.register_new_task.
+    profedit.register_new_profile/taskedit_save.register_new_task.
     """
     with sessundo.undoable(f"Add Project '{edited_project.project_name}'", state=state):
         state.tasker_root_elements.setdefault("all_projects", {})[edited_project.project_name] = {
@@ -410,7 +410,7 @@ def project_profile_names(project_name: str, state: RunState) -> list[str]:
     Project arrive' cannot be asked directly.  What it brings with it can be: a Project
     export bundles its Profiles (see render_standalone_project_xml), so those names are the
     question that stands in for the one the API will not answer.  See
-    deviceinv.offer_to_tasker, which takes exactly this list.
+    deviceoffer.offer_to_tasker, which takes exactly this list.
 
     Read off each Profile's own <nme>, NOT off the all_profiles table's "name" -- that one
     holds a name MAPTASKER made up for an unnamed Profile, built from its conditions

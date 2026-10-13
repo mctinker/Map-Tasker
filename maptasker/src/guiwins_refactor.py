@@ -43,7 +43,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
-from maptasker.src import maprefac
+from maptasker.src import maprefac, maprefac_duplicate, maprefac_extract, maprefac_model, maprefac_move
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK
 from maptasker.src.maputil2 import translate_string
 
@@ -322,7 +322,7 @@ class _RefactorDialog:
         self.preview_area.clear()
         self.summary.set_text("")
 
-    def draw(self, plan: maprefac.Plan) -> None:
+    def draw(self, plan: maprefac_model.Plan) -> None:
         """Draw the plan, from the same Rows that Save Preview writes to a file.
 
         Every row that points at something is a link, because the only way to judge a
@@ -633,7 +633,7 @@ def fill_options(widgets: dict, state: RunState) -> None:
 
     Extract's Task pulldown is the one that is NARROWED to the single-item selection -- and
     filled in outright when that leaves only one Task; every other pulldown here offers the
-    whole file and chooses nothing.  maprefac.extract_scope has the reasoning --
+    whole file and chooses nothing.  maprefac_model.extract_scope has the reasoning --
     in short, Extract is the only operation that reaches inside a Task, so it keeps the same
     contract as the Edit buttons beside this dialog, while the three that act on an object
     as a whole have no business being tied to what is selected for display.
@@ -652,7 +652,7 @@ def fill_options(widgets: dict, state: RunState) -> None:
     # Keyed on "exactly one offered" rather than on "a Task is selected", because those are
     # the same thing wherever it matters and the first also covers a Profile that runs only
     # one Task.  It can never guess: where there is a choice to make, it makes none.
-    scoped = maprefac.task_choices(maprefac.extract_scope(state=state), state=state)
+    scoped = maprefac.task_choices(maprefac_model.extract_scope(state=state), state=state)
     only_task = scoped[0][0] if len(scoped) == 1 else None
     widgets["extract_task"].set_options(dict(scoped), value=only_task)
 
@@ -672,7 +672,7 @@ def _describe_extract_scope(widgets: dict, state: RunState) -> None:
     scope, so the pulldown is not merely short but empty, and an empty pulldown with no
     explanation reads as a bug in the dialog rather than as an answer about the selection.
     """
-    scope = maprefac.extract_scope(state=state)
+    scope = maprefac_model.extract_scope(state=state)
     note = widgets["extract_scope_note"]
     if scope.is_everything:
         note.set_text("")
@@ -757,7 +757,7 @@ def _fill_duplicate_objects(widgets: dict, state: RunState) -> None:
     """Whatever kind of object is being duplicated, keyed the way its table keys it.
 
     Projects and Scenes by name, Profiles and Tasks by id -- the same split every table in
-    this program uses, and the one maprefac.plan_duplicate's `key` expects.
+    this program uses, and the one maprefac_duplicate.plan_duplicate's `key` expects.
     """
     kind = widgets["duplicate_kind"].value
     if not _stale(widgets, "duplicate", kind):
@@ -773,7 +773,7 @@ def _fill_duplicate_objects(widgets: dict, state: RunState) -> None:
     widgets["duplicate_object"].set_options(choices, value=None)
 
 
-def plan_for(mode_value: str, widgets: dict, state: RunState) -> maprefac.Plan | None:
+def plan_for(mode_value: str, widgets: dict, state: RunState) -> maprefac_model.Plan | None:
     """Build the plan the fields describe, or None if they do not describe one yet.
 
     Public because it is the only part of this module that is a decision rather than a
@@ -790,7 +790,7 @@ def plan_for(mode_value: str, widgets: dict, state: RunState) -> maprefac.Plan |
         if not task_id or first is None or last is None:
             return None
         first, last = sorted((int(first), int(last)))
-        return maprefac.plan_extract(
+        return maprefac_extract.plan_extract(
             task_id, list(range(first, last + 1)), widgets["extract_name"].value or "", state=state
         )
 
@@ -798,19 +798,19 @@ def plan_for(mode_value: str, widgets: dict, state: RunState) -> maprefac.Plan |
         task_id, call = widgets["inline_task"].value, widgets["inline_call"].value
         if not task_id or call is None:
             return None
-        return maprefac.plan_inline(task_id, int(call), state=state)
+        return maprefac_extract.plan_inline(task_id, int(call), state=state)
 
     if mode_value == MOVE:
         key, project = widgets["move_object"].value, widgets["move_project"].value
         if not key or not project:
             return None
-        return maprefac.plan_move(widgets["move_kind"].value, key, project, state=state)
+        return maprefac_move.plan_move(widgets["move_kind"].value, key, project, state=state)
 
     if mode_value == DUPLICATE:
         key = widgets["duplicate_object"].value
         if not key:
             return None
-        return maprefac.plan_duplicate(
+        return maprefac_duplicate.plan_duplicate(
             widgets["duplicate_kind"].value, key, widgets["duplicate_name"].value or "", state=state
         )
 

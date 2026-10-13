@@ -5,11 +5,11 @@
   "maptasker/src/debug.py::display_debug_info": {
     "LINES": 118
   },
-  "maptasker/src/deviceinv.py::import_profile_to_device": {
+  "maptasker/src/deviceimport.py::import_profile_to_device": {
     "LINES": 126,
     "PLR0913": 9
   },
-  "maptasker/src/deviceinv.py::offer_to_tasker": {
+  "maptasker/src/deviceoffer.py::offer_to_tasker": {
     "LINES": 103
   },
   "maptasker/src/diagram.py::output_the_task": {
@@ -54,7 +54,7 @@
   "maptasker/src/healthck.py::_limitations": {
     "LINES": 106
   },
-  "maptasker/src/maprefac.py::_plan_move_profile": {
+  "maptasker/src/maprefac_move.py::_plan_move_profile": {
     "LINES": 110
   },
   "maptasker/src/maputil2.py::http_post_request": {

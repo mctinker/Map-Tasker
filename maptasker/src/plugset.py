@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 
 # A Locale/Tasker-plugin payload carries a BLURB: the plugin's own summary of how it is
 # configured.  Its presence is what marks a <Bundle> as a third-party plugin's, rather than
-# the 'Output Variables' hint a built-in action carries (see taskedit.BLURB_TAG).
+# the 'Output Variables' hint a built-in action carries (see taskedit_addable.BLURB_TAG).
 BLURB_TAG = "com.twofortyfouram.locale.intent.extra.BLURB"
 
 # Where a plugin Action, Event or State names the plugin: <Bundle sr="arg0"> is its
@@ -106,7 +106,7 @@ class Decoded:
 def is_plugin(element: Element) -> bool:
     """Whether an Action, Event or State is a third-party plugin's.
 
-    The blurb test taskedit.needs_tasker_configuration makes, on the <Bundle> Tasker writes
+    The blurb test taskedit_addable.needs_tasker_configuration makes, on the <Bundle> Tasker writes
     directly under the item -- a condition's own <Bundle>, not one somewhere below it.
     """
     bundle = element.find("Bundle")

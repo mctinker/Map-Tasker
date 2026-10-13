@@ -10,7 +10,7 @@
 # do it, as a draft the user reads and edits before anything is saved.                   #
 #                                                                                        #
 # The model is given what the Add Task picker itself offers and nothing else -- the list  #
-# of actions this tool can build from scratch (taskedit.list_addable_actions), and, once  #
+# of actions this tool can build from scratch (taskedit_addable.list_addable_actions), and, once  #
 # it has chosen some, the arguments those actions really have, as the editor would show   #
 # them.  It is never shown the configuration, so what the user's Tasks hold stays out of  #
 # the prompt and the prompt stays one size whatever the backup.  That includes the names   #
@@ -49,7 +49,7 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src import taskedit
+from maptasker.src import taskedit, taskedit_addable, taskedit_apply, taskedit_args, taskedit_model
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapask import (
     LLAMA,
@@ -95,8 +95,8 @@ MAX_INLINE_OPTIONS = 12
 
 # The blocks the draft keeps balanced: opener -> closer.  If is the one whose middle can be
 # split with an Else.  Nothing else in the catalog opens something that has to be closed.
-_BLOCK_CLOSER = {taskedit.IF_ACTION_KEY: taskedit.END_IF_ACTION_KEY, "39t": "40t"}
-_BLOCK_NAME = {taskedit.IF_ACTION_KEY: "an If", "39t": "a For"}
+_BLOCK_CLOSER = {taskedit_model.IF_ACTION_KEY: taskedit_model.END_IF_ACTION_KEY, "39t": "40t"}
+_BLOCK_NAME = {taskedit_model.IF_ACTION_KEY: "an If", "39t": "a For"}
 
 # What a model says for a checkbox, in place of the "true"/"false" it was asked for.
 _YES = {"true", "1", "yes", "on", "y"}
@@ -160,9 +160,9 @@ DETAIL_SCHEMA = {
 # Tasker) is quietly not listed; the arguments left off a listed action are the rarely used ones,
 # and a model that names one anyway has it checked like any other.
 _COMMON_ACTIONS: dict[str, tuple[str, ...]] = {
-    taskedit.IF_ACTION_KEY: ("if_lhs", "if_op", "if_rhs"),
-    taskedit.ELSE_ACTION_KEY: (),
-    taskedit.END_IF_ACTION_KEY: (),
+    taskedit_model.IF_ACTION_KEY: ("if_lhs", "if_op", "if_rhs"),
+    taskedit_model.ELSE_ACTION_KEY: (),
+    taskedit_model.END_IF_ACTION_KEY: (),
     "39t": ("0", "1"),  # For: Variable, Items
     "40t": (),
     "547t": ("0", "1", "3"),  # Variable Set: Name, To, Do Maths
@@ -193,7 +193,14 @@ _COMMON_ACTIONS: dict[str, tuple[str, ...]] = {
     "304t": ("0",),  # Ringer Volume: Level
 }
 # What a small local model is always shown, whatever the description says.
-_BASIC_ACTIONS = (taskedit.IF_ACTION_KEY, taskedit.ELSE_ACTION_KEY, taskedit.END_IF_ACTION_KEY, "547t", "548t", "30t")
+_BASIC_ACTIONS = (
+    taskedit_model.IF_ACTION_KEY,
+    taskedit_model.ELSE_ACTION_KEY,
+    taskedit_model.END_IF_ACTION_KEY,
+    "547t",
+    "548t",
+    "30t",
+)
 
 _PRIMER = """\
 How Tasker Tasks work:
@@ -387,7 +394,7 @@ class Applied:
 # ##################################################################################
 def action_catalog(state: RunState) -> list[dict]:
     """The actions a draft may use: exactly the ones the Add Task picker lets the user add."""
-    return [row for row in taskedit.list_addable_actions(state=state) if row["addable"]]
+    return [row for row in taskedit_addable.list_addable_actions(state=state) if row["addable"]]
 
 
 def _catalog_text(rows: list[dict]) -> str:
@@ -506,7 +513,7 @@ def fillable_args(action_key: str, state: RunState, scratch: dict | None = None)
     return result
 
 
-def _fillable(action_code: str, arg: taskedit.EditableArg) -> FillableArg | None:
+def _fillable(action_code: str, arg: taskedit_model.EditableArg) -> FillableArg | None:
     """One editor argument as the model is told about it, or None if it is not one it can set."""
     if arg.widget_kind == "checkbox":
         return FillableArg(arg.arg_id, arg.arg_name, "checkbox")
@@ -514,7 +521,7 @@ def _fillable(action_code: str, arg: taskedit.EditableArg) -> FillableArg | None
         return FillableArg(arg.arg_id, arg.arg_name, "choice", tuple(arg.dropdown_options or ()))
     if arg.widget_kind in ("text", "raw_fallback"):
         kind = "number" if arg.backing_tag == "Int" and not arg.is_var else "text"
-        is_task_name = taskedit.is_perform_task_name_arg(action_code, arg)
+        is_task_name = taskedit_args.is_perform_task_name_arg(action_code, arg)
         return FillableArg(arg.arg_id, arg.arg_name, kind, is_task_name=is_task_name)
     return None
 
@@ -661,8 +668,8 @@ def _balanced(steps: list[PlanStep]) -> tuple[list[PlanStep], list[str]]:
         if key in _BLOCK_CLOSER:
             open_blocks.append(key)
             has_else.append(False)
-        elif key == taskedit.ELSE_ACTION_KEY:
-            if not open_blocks or open_blocks[-1] != taskedit.IF_ACTION_KEY or has_else[-1]:
+        elif key == taskedit_model.ELSE_ACTION_KEY:
+            if not open_blocks or open_blocks[-1] != taskedit_model.IF_ACTION_KEY or has_else[-1]:
                 notes.append("Left out an Else that was not inside an If.")
                 continue
             has_else[-1] = True
@@ -698,7 +705,7 @@ def _checked_value(arg: FillableArg, raw: object, state: RunState) -> tuple[str,
         return "", f"'{text}' is not a whole number"
     value = str(raw)[:MAX_VALUE]
     if arg.is_task_name:
-        chosen = canonical(value.strip(), taskedit.get_all_task_names(state))
+        chosen = canonical(value.strip(), taskedit_args.get_all_task_names(state))
         return (chosen, "") if chosen else ("", f"there is no Task named '{value.strip()}'")
     return value, ""
 
@@ -880,7 +887,7 @@ async def draft_task(description: str, settings: ModelSettings, state: RunState,
 # ##################################################################################
 # Putting the draft in the editor.
 # ##################################################################################
-def apply_draft(edited_task: taskedit.EditableTask, draft: Draft, state: RunState) -> Applied:
+def apply_draft(edited_task: taskedit_model.EditableTask, draft: Draft, state: RunState) -> Applied:
     """Append the drafted actions to an editor's working copy of a Task.
 
     Built with taskedit's own add_action_to_task, so each is the action a hand-added one
@@ -901,13 +908,13 @@ def apply_draft(edited_task: taskedit.EditableTask, draft: Draft, state: RunStat
         if first is None:
             first = action.act_number
         _set_values(action, step, where, notes, state)
-        if taskedit.needs_tasker_configuration(action.action_element):
-            notes.append(f"{where}: {taskedit.PLUGIN_CONFIGURATION_WARNING.format(name=action.action_name)}")
+        if taskedit_addable.needs_tasker_configuration(action.action_element):
+            notes.append(f"{where}: {taskedit_addable.PLUGIN_CONFIGURATION_WARNING.format(name=action.action_name)}")
     return Applied(first, added, tuple(notes))
 
 
 def _set_values(
-    action: taskedit.EditableAction,
+    action: taskedit_model.EditableAction,
     step: DraftStep,
     where: str,
     notes: list[str],
@@ -915,20 +922,20 @@ def _set_values(
 ) -> None:
     """Write one drafted action's label and argument values onto it, if they pass the editor's checks."""
     if step.label:
-        taskedit.set_action_label(action, step.label)
+        taskedit_apply.set_action_label(action, step.label)
     if not step.values:
         return
 
-    def key_for_arg(arg: taskedit.EditableArg) -> str:
-        return taskedit.arg_key(action.act_number, arg.arg_id)
+    def key_for_arg(arg: taskedit_model.EditableArg) -> str:
+        return taskedit_apply.arg_key(action.act_number, arg.arg_id)
 
     arg_values = {key_for_arg(arg): step.values[arg.arg_id] for arg in action.args if arg.arg_id in step.values}
-    errors = taskedit.validate_arg_values(action.args, key_for_arg, arg_values)
-    if action.code == taskedit.IF_ACTION_CODE:
-        errors += taskedit.validate_if_condition_values(action, key_for_arg, arg_values)
+    errors = taskedit_apply.validate_arg_values(action.args, key_for_arg, arg_values)
+    if action.code == taskedit_model.IF_ACTION_CODE:
+        errors += taskedit_apply.validate_if_condition_values(action, key_for_arg, arg_values)
     if errors:
         notes.extend(f"{where}: left at its defaults -- {error}" for error in errors)
         return
-    taskedit.apply_arg_values(action.args, key_for_arg, arg_values, state=state)
+    taskedit_apply.apply_arg_values(action.args, key_for_arg, arg_values, state=state)
     # The values now live in the XML; rebuild what the editor shows from it.
-    taskedit.reclassify_action_args(action, state=state)
+    taskedit_args.reclassify_action_args(action, state=state)

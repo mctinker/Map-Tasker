@@ -26,7 +26,19 @@ from typing import TYPE_CHECKING
 
 from nicegui import context, ui
 
-from maptasker.src import assettext, mapask, mapfind, mapjump, mapswap, varxref
+from maptasker.src import (
+    assettext,
+    mapask,
+    mapfind,
+    mapjump,
+    mapswap,
+    mapswap_action,
+    mapswap_argument,
+    mapswap_condition,
+    mapswap_model,
+    mapswap_rename,
+    varxref,
+)
 from maptasker.src.guiwins_nav import go_to_target
 from maptasker.src.maputil2 import suppress_logged, translate_string
 from maptasker.src.sysconst import logger
@@ -913,7 +925,7 @@ class _ReplaceTab:
                 "bg-blue-600 text-white px-4",
             )
 
-        self.source_select.set_options({key: label for key, label, _count in mapswap.source_choices(self.index)})
+        self.source_select.set_options({key: label for key, label, _count in mapswap_action.source_choices(self.index)})
         self.source_select.on_value_change(lambda: (self.fill_targets(), self.invalidate()))
         self.arg_action_select.on_value_change(lambda: (self.fill_arguments(), self.invalidate()))
         self.condition_select.on_value_change(lambda: (self.fill_condition_targets(), self.invalidate()))
@@ -1181,7 +1193,7 @@ class _ReplaceTab:
         # serialized to the browser and a variable's identity is the PAIR (name,
         # owner) -- there is no JSON key for a tuple, and flattening the two into
         # one string would need an escape for a separator that a Task name may
-        # legitimately contain.  The owner may be mapswap.EVERY_INSTANCE, which is
+        # legitimately contain.  The owner may be mapswap_rename.EVERY_INSTANCE, which is
         # the entry meaning "every instance of this name", and passes straight
         # through to plan_variable_rename as it stands.
         choices = self.held.get("variable_choices") or []
@@ -1235,7 +1247,7 @@ class _ReplaceTab:
             self.target_select.set_options({})
             return
         self.target_select.set_options(
-            {key: label for key, label, _fidelity in mapswap.fidelity_choices(source, state=self.state)},
+            {key: label for key, label, _fidelity in mapswap_action.fidelity_choices(source, state=self.state)},
             value=None,
         )
 
@@ -1253,7 +1265,7 @@ class _ReplaceTab:
             self.arg_select.set_options({})
             return
         self.arg_select.set_options(
-            {arg_id: label for arg_id, label, _refusal in mapswap.argument_choices(action, state=self.state)},
+            {arg_id: label for arg_id, label, _refusal in mapswap_argument.argument_choices(action, state=self.state)},
             value=None,
         )
 
@@ -1271,7 +1283,7 @@ class _ReplaceTab:
             self.condition_target_select.set_options({})
             return
         self.condition_target_select.set_options(
-            {key: label for key, label, _fidelity in mapswap.condition_targets(source, state=self.state)},
+            {key: label for key, label, _fidelity in mapswap_condition.condition_targets(source, state=self.state)},
             value=None,
         )
 
@@ -1283,14 +1295,14 @@ class _ReplaceTab:
         self.variable_row.set_visibility(self.mode.value == "variable")
         if self.mode.value == "argument" and not self.arg_action_select.options:
             self.arg_action_select.set_options(
-                {key: label for key, label, _count in mapswap.source_choices(self.index)},
+                {key: label for key, label, _count in mapswap_action.source_choices(self.index)},
             )
         if self.mode.value == "condition" and not self.condition_select.options:
             self.condition_select.set_options(
-                {key: label for key, label, _count in mapswap.condition_choices(self.index)},
+                {key: label for key, label, _count in mapswap_condition.condition_choices(self.index)},
             )
         if self.mode.value == "variable" and not self.held.get("variable_choices"):
-            choices = mapswap.variable_choices(self.variable_index())
+            choices = mapswap_rename.variable_choices(self.variable_index())
             self.held["variable_choices"] = choices
             self.variable_select.set_options(
                 {position: label for position, (_name, _owner, label) in enumerate(choices)},
@@ -1302,7 +1314,7 @@ class _ReplaceTab:
             self.new_name_input.set_autocomplete(sorted({name for name, _owner, _label in choices}))
         self.invalidate()
 
-    def ticker(self, plan: mapswap.Plan, position: int) -> Callable:
+    def ticker(self, plan: mapswap_model.Plan, position: int) -> Callable:
         """One preview row's tick box: put this change in or out of what Replace applies.
 
         A factory rather than a lambda built in the loop, for the usual reason: a
@@ -1322,7 +1334,7 @@ class _ReplaceTab:
 
         return ticked
 
-    def draw(self, plan: mapswap.Plan) -> None:
+    def draw(self, plan: mapswap_model.Plan) -> None:
         """Draw the plan: warnings, then what cannot be changed, then what can.
 
         Skips before changes because they are the part the user must read and the
@@ -1417,7 +1429,7 @@ class _ReplaceTab:
                     type="warning",
                 )
                 return
-            plan = mapswap.plan_action_swap(source, target, project, state=self.state)
+            plan = mapswap_action.plan_action_swap(source, target, project, state=self.state)
         elif kind == "argument":
             _, action, arg_id, new_value, match, project, substitute, add_missing = inputs
             if not action or not arg_id:
@@ -1426,7 +1438,7 @@ class _ReplaceTab:
                     type="warning",
                 )
                 return
-            plan = mapswap.plan_argument_replace(
+            plan = mapswap_argument.plan_argument_replace(
                 action, arg_id, new_value, match, project, substitute, add_missing, state=self.state
             )
             if plan.is_empty and not plan.skips and not plan.warnings:
@@ -1445,13 +1457,13 @@ class _ReplaceTab:
                     type="warning",
                 )
                 return
-            plan = mapswap.plan_condition_replace(source, target, project, state=self.state)
+            plan = mapswap_condition.plan_condition_replace(source, target, project, state=self.state)
         else:
             _, name, owner, new_name = inputs
             if not name or not new_name:
                 ui.notify(translate_string("Choose a variable, and type the new name."), type="warning")
                 return
-            plan = mapswap.plan_variable_rename(self.variable_index(), name, owner, new_name, state=self.state)
+            plan = mapswap_rename.plan_variable_rename(self.variable_index(), name, owner, new_name, state=self.state)
 
         if restore is not None:
             plan.restore_ticks(restore)

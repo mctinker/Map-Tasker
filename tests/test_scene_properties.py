@@ -24,7 +24,7 @@ The rendering tests build the real forms and walk the widget tree, because a map
 right in sceneedit and wired up wrongly in guiwins is still wrong on screen.  The Task half
 is tested at the seam the Event tabs use: resolving the bound Task BY ID (an unnamed Task's
 displayed name is one taskerd invents from its first action), and applying only the action
-edits, never the Name -- which is why taskedit.apply_action_edits_to_task exists beside
+edits, never the Name -- which is why taskedit_apply.apply_action_edits_to_task exists beside
 apply_edits_to_task.
 """
 
@@ -38,7 +38,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.initparg import ProgramArguments
-from maptasker.src import sceneedit, taskedit
+from maptasker.src import sceneedit, taskedit, taskedit_apply, taskedit_save
 from maptasker.src.primitem import PrimeItems
 from maptasker.src import guiwins_sceneprops, sceneedit_legacy
 
@@ -354,9 +354,9 @@ def test_applying_action_edits_leaves_the_task_name_alone(loaded_tasks):
     not fail for want of one either, which is what apply_edits_to_task would do here.
     """
     edited = taskedit.load_task_for_edit_by_id("269", state=PrimeItems)
-    key = taskedit.arg_key(edited.actions[0].act_number, "0")
+    key = taskedit_apply.arg_key(edited.actions[0].act_number, "0")
 
-    errors = taskedit.apply_action_edits_to_task(edited, {key: "goodbye"}, PrimeItems)
+    errors = taskedit_apply.apply_action_edits_to_task(edited, {key: "goodbye"}, PrimeItems)
 
     assert errors == []
     assert edited.task_element.find("nme") is None
@@ -367,18 +367,18 @@ def test_applying_action_edits_writes_the_argument_and_the_label(loaded_tasks):
     edited = taskedit.load_task_for_edit_by_id("268", state=PrimeItems)
     act_number = edited.actions[0].act_number
 
-    errors = taskedit.apply_action_edits_to_task(
+    errors = taskedit_apply.apply_action_edits_to_task(
         edited,
         {
-            taskedit.arg_key(act_number, "0"): "goodbye",
-            taskedit.label_key(act_number): "say it",
+            taskedit_apply.arg_key(act_number, "0"): "goodbye",
+            taskedit_apply.label_key(act_number): "say it",
         },
         PrimeItems,
     )
 
     assert errors == []
     assert edited.task_element.find("Action/Str[@sr='arg0']").text == "goodbye"
-    assert taskedit.get_action_label(edited.actions[0]) == "say it"
+    assert taskedit_apply.get_action_label(edited.actions[0]) == "say it"
     # Untouched by an action-only apply.
     assert edited.task_element.findtext("nme") == "Key Handler"
     assert edited.task_element.findtext("pri") == "50"
@@ -741,7 +741,7 @@ def test_apply_to_task_puts_the_action_edits_into_the_loaded_configuration(monke
     window.state = PrimeItems
     handlers = userintr.MapTaskerEventHandlers(window)
     edited = taskedit.load_task_for_edit_by_id("268", state=PrimeItems)
-    key = taskedit.arg_key(edited.actions[0].act_number, "0")
+    key = taskedit_apply.arg_key(edited.actions[0].act_number, "0")
 
     handlers.apply_scene_key_task_event(edited, {key: MagicMock(value="goodbye")})
 
@@ -760,9 +760,9 @@ def test_a_rejected_value_is_reported_and_nothing_is_applied(monkeypatch, loaded
 
     notified = []
     monkeypatch.setattr(userintr.ui, "notify", lambda message, **kwargs: notified.append((message, kwargs.get("type"))))
-    monkeypatch.setattr(taskedit, "apply_action_edits_to_task", lambda *_a, **_k: ["Nope."])
+    monkeypatch.setattr(taskedit_apply, "apply_action_edits_to_task", lambda *_a, **_k: ["Nope."])
     applied = []
-    monkeypatch.setattr(taskedit, "apply_edited_task_to_live_tree", lambda task, **_kw: applied.append(task))
+    monkeypatch.setattr(taskedit_save, "apply_edited_task_to_live_tree", lambda task, **_kw: applied.append(task))
 
     window = MagicMock()
     window.state = PrimeItems
@@ -1053,7 +1053,7 @@ def test_an_action_that_cannot_be_synthesized_is_refused_with_a_reason(sample_ac
     """Same rule as Add Task's picker, because it is the same code -- so an action the picker
     greys out cannot slip in by another route.
     """
-    from maptasker.src.taskedit import classify_action_addability, list_addable_actions  # noqa: PLC0415
+    from maptasker.src.taskedit_addable import classify_action_addability, list_addable_actions
 
     refused = next(
         (row["action_key"] for row in list_addable_actions(state=PrimeItems) if not row["addable"]),

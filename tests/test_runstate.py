@@ -19,8 +19,8 @@ from maptasker.src import (
     firesim,
     frontmtr,
     getbakup,
-    guiutils,
     guistate,
+    guiutils,
     healthck,
     impact,
     mapai,
@@ -28,7 +28,7 @@ from maptasker.src import (
     mapfind,
     mapfix,
     mapjump,
-    maprefac,
+    maprefac_duplicate,
     maputils,
     outdir,
     outline,
@@ -39,6 +39,7 @@ from maptasker.src import (
     sessundo,
     share,
     taskedit,
+    taskedit_save,
     taskerd,
     tasks,
     timeline,
@@ -493,7 +494,7 @@ def test_a_task_is_deleted_from_the_state_it_is_asked_of(tmp_path: object, monke
     global_tasks = dict(PrimeItems.tasker_root_elements["all_tasks"])
 
     assert taskedit.task_name_exists("Callee", state=state)
-    assert taskedit.delete_task("Callee", state=state) == []
+    assert taskedit_save.delete_task("Callee", state=state) == []
 
     assert not taskedit.task_name_exists("Callee", state=state)
     assert callee not in state.tasker_root_elements["all_tasks"]
@@ -560,7 +561,7 @@ def test_a_duplicate_is_planned_against_the_state_it_is_given(
     monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
     tasks_before = dict(state.tasker_root_elements["all_tasks_by_name"])
 
-    plan = maprefac.plan_duplicate(TASK, "20", state=state)
+    plan = maprefac_duplicate.plan_duplicate(TASK, "20", state=state)
 
     assert not plan.blocks
     assert plan.what

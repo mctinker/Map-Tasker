@@ -739,7 +739,7 @@ def validate(props: EditableProperties, values: dict[str, str]) -> list[str]:
 
     `values` is the dialog's snapshot: one entry per PropField.key, plus
     "var<n>_<tag>" per variable field.  Same all-or-nothing contract as
-    taskedit.apply_edits_to_task and profedit.apply_edits_to_profile -- when this
+    taskedit_apply.apply_edits_to_task and profedit.apply_edits_to_profile -- when this
     returns anything, apply_properties writes nothing.
     """
     errors: list[str] = []

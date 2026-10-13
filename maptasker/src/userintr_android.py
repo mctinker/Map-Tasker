@@ -24,7 +24,23 @@ from typing import TYPE_CHECKING
 
 from nicegui import context, run, ui
 
-from maptasker.src import deviceinv, presave, profedit, projedit, roundtrip, sceneedit, taskedit
+from maptasker.src import (
+    devicecheck,
+    devicefiles,
+    devicehelpers,
+    deviceoffer,
+    devicetask,
+    deviceverify,
+    presave,
+    profedit,
+    projedit,
+    roundtrip,
+    sceneedit,
+    taskedit,
+    taskedit_apply,
+    taskedit_model,
+    taskedit_save,
+)
 from maptasker.src.getbakup import validate_xml_file
 from maptasker.src.guiutils import (
     android_address_defaults,
@@ -94,14 +110,14 @@ async def _what_tasker_already_has(
     Called by all six device write paths (the five Save To Android handlers and
     _offer_into_tasker, which the three Import Into Tasker buttons share), right after their
     file-existence read, so one prompt answers every question.  The names come from the very
-    document being sent -- see deviceinv.names_in_export -- rendered once more for the purpose;
+    document being sent -- see devicecheck.names_in_export -- rendered once more for the purpose;
     a render that raises leaves the save to report it.
 
     `consequence` is added only when something IS there, because it describes what happens to
     those objects; a check that merely could not run has nothing to say about them.
 
     check_ids is the panel's "Check IDs" box.  Ticked, the device makes a fresh backup and both
-    questions are answered from it (deviceinv.check_against_device_backup) -- names included, so
+    questions are answered from it (devicecheck.check_against_device_backup) -- names included, so
     Projects need no helper of their own.  A backup that cannot be had is said so, and the names
     are then asked for the ordinary way, since that answer is still worth having.
     """
@@ -109,7 +125,7 @@ async def _what_tasker_already_has(
         xml = render_xml()
     except ValueError:
         return []
-    sent = deviceinv.names_in_export(xml)
+    sent = devicecheck.names_in_export(xml)
     if not any(sent.values()):
         return []
 
@@ -117,11 +133,11 @@ async def _what_tasker_already_has(
     id_lines: list[str] = []
     if check_ids:
         ui.notify("Taking a fresh backup on the device to check IDs -- this can take a little while.", type="info")
-        checked = await run.io_bound(deviceinv.check_against_device_backup, ip_address, ip_port, xml, state=state)
+        checked = await run.io_bound(devicecheck.check_against_device_backup, ip_address, ip_port, xml, state=state)
         if checked is None:  # cancelled -- see the note at the top of this file
             return []
         check, findings, problem = checked
-        id_lines = [f"Could not check IDs: {problem}"] if problem else deviceinv.describe_id_findings(findings)
+        id_lines = [f"Could not check IDs: {problem}"] if problem else devicecheck.describe_id_findings(findings)
 
     if check is None:
         if sent.get("Project"):
@@ -132,11 +148,11 @@ async def _what_tasker_already_has(
                 "a small MapTasker Task runs on the device for this.",
                 type="info",
             )
-        check = await run.io_bound(deviceinv.check_tasker_for_existing, ip_address, ip_port, sent, state=state)
+        check = await run.io_bound(devicecheck.check_tasker_for_existing, ip_address, ip_port, sent, state=state)
         if check is None:  # cancelled -- see the note at the top of this file
             return []
 
-    name_lines = deviceinv.describe_tasker_check(check)
+    name_lines = devicecheck.describe_tasker_check(check)
     if any(check.present.values()):
         name_lines.append(consequence)
     return [*name_lines, *id_lines]
@@ -292,7 +308,7 @@ async def _offer_file_list(
         timeout=1500,
     )
     listed = await run.io_bound(
-        deviceinv.get_list_of_files, android_ipaddr, android_port, deviceinv.FILE_LIST_DIRECTORY, state=self.state
+        devicefiles.get_list_of_files, android_ipaddr, android_port, devicefiles.FILE_LIST_DIRECTORY, state=self.state
     )
     if listed is None:  # cancelled -- see the note at the top of this file
         return 1, android_ipaddr, android_port, android_file
@@ -350,7 +366,7 @@ class IntoTaskerOffer:
     # Scene, /api/profiles for a Profile and -- since there is no /api/projects -- for the
     # Profiles a Project brings with it.
     confirm_names: list[str]
-    route: deviceinv.OfferRoute
+    route: deviceoffer.OfferRoute
     ip_address: str
     ip_port: str
     android_dialog: ui.dialog
@@ -365,7 +381,7 @@ class IntoTaskerOffer:
     # the file is in Tasker's own folder under its own name precisely so that it does -- but
     # only a Scene has one worth spelling out, since its import is several menus deep.
     by_hand: str = ""
-    # How long to keep asking whether the import arrived; 0 leaves deviceinv.await_import's
+    # How long to keep asking whether the import arrived; 0 leaves deviceverify.await_import's
     # own default, which suits an import screen already in front of the user.  A Scene passes
     # a longer one: its user has a file picker to work through.
     attempts: int = 0
@@ -498,7 +514,7 @@ class _IntoTaskerRun:
         """
         offer = self.offer
         return await run.io_bound(
-            deviceinv.import_is_confirmable,
+            deviceverify.import_is_confirmable,
             offer.ip_address,
             offer.ip_port,
             offer.confirm_names,
@@ -513,7 +529,7 @@ class _IntoTaskerRun:
         """
         offer = self.offer
         return await run.io_bound(
-            deviceinv.offer_to_tasker,
+            deviceoffer.offer_to_tasker,
             offer.xml_bytes,
             offer.object_name,
             offer.confirm_names,
@@ -527,7 +543,7 @@ class _IntoTaskerRun:
     def _where_the_file_is(self) -> str:
         """Where the file actually is, said in every message from here on.
 
-        The staged file carries the object's own name (deviceinv.staged_paths), and naming it is
+        The staged file carries the object's own name (devicetask.staged_paths), and naming it is
         what makes a handoff Tasker does not complete recoverable: the user finishes the import
         out of Tasker's own browser, which they can only do if they know which file it is.  Same
         reason import_scene_into_tasker_event names its file -- that route is nothing but this
@@ -571,7 +587,7 @@ class _IntoTaskerRun:
 
         # Runs on with the dialogs gone; all it can do now is report.
         outcome = await run.io_bound(
-            deviceinv.await_import,
+            deviceverify.await_import,
             offer.ip_address,
             offer.ip_port,
             offer.confirm_names,
@@ -764,7 +780,7 @@ class AndroidEventHandlers:
         """Report which of this program's own helper Tasks on the device are dead.
 
         Every helper is installed under a versioned name and never replaced -- Tasker's
-        api/import adds rather than replaces, so deviceinv._install_task_on_android installs
+        api/import adds rather than replaces, so devicetask.install_task_on_android installs
         only what is not already there -- which means each release leaves the previous
         generation behind in the user's own Task list.  Nothing breaks; it accumulates.
 
@@ -788,7 +804,7 @@ class AndroidEventHandlers:
 
         # Blocking -- a key fetch and a GET -- so it goes to a worker thread like every other
         # Android call from the GUI.
-        listed = await run.io_bound(deviceinv.stale_helper_tasks_on_device, ip_address, ip_port, state=self.state)
+        listed = await run.io_bound(devicehelpers.stale_helper_tasks_on_device, ip_address, ip_port, state=self.state)
         if listed is None:  # cancelled -- see the note at the top of this file
             return
         return_code, message, stale, current = listed
@@ -810,7 +826,7 @@ class AndroidEventHandlers:
         but inside one Project, the user can remove every one of them in Tasker with a single
         delete.  Imported by hand, and refused while any helper is already on the device,
         because Tasker rejects the whole Project if it already has one of its Tasks -- see
-        deviceinv.stage_helper_project.
+        devicehelpers.stage_helper_project.
 
         Reads the connection details out of the Get XML panel's own fields, as
         list_helper_tasks_event does.
@@ -831,14 +847,14 @@ class AndroidEventHandlers:
             return
         notify_watch_android_device()
 
-        result = await run.io_bound(deviceinv.stage_helper_project, ip_address, ip_port, state=self.state)
+        result = await run.io_bound(devicehelpers.stage_helper_project, ip_address, ip_port, state=self.state)
         # None, not a result: nicegui's run.io_bound answers None when the wait is cancelled or
         # the app is shutting down (see its own docstring), and nothing was staged in that case.
         if result is None:
             return
         if result.already_in_project:
             ui.notify(
-                f"Every helper Task is already in the '{deviceinv.HELPER_PROJECT_NAME}' Project in Tasker.  "
+                f"Every helper Task is already in the '{devicehelpers.HELPER_PROJECT_NAME}' Project in Tasker.  "
                 f"Deleting that Project removes all of them.",
                 type="positive",
                 multi_line=True,
@@ -857,13 +873,13 @@ class AndroidEventHandlers:
 
         self.gui.android_ipaddr = ip_address
         self.gui.android_port = ip_port
-        project = deviceinv.HELPER_PROJECT_NAME
+        project = devicehelpers.HELPER_PROJECT_NAME
 
         # A status line for a step only the user can take, so no timeout: the outcome below
         # takes it down.  See _offer_into_tasker's identical note.
         pending = ui.notification(
             f"{result.device_path} is on {ip_address}:{ip_port}.  In Tasker, long-press the Projects tab bar, "
-            f"choose Import Project and pick '{deviceinv.HELPER_PROJECT_NAME}.prj.xml'.",
+            f"choose Import Project and pick '{devicehelpers.HELPER_PROJECT_NAME}.prj.xml'.",
             type="info",
             timeout=None,
             close_button=True,
@@ -875,13 +891,13 @@ class AndroidEventHandlers:
         # The import itself is unaffected: the file is on the device and Tasker is doing its own
         # thing; all that is lost is this report of it.
         outcome = await run.io_bound(
-            deviceinv.await_import,
+            deviceverify.await_import,
             ip_address,
             ip_port,
-            sorted(deviceinv.current_helper_task_names(state=self.state)),
+            sorted(devicehelpers.current_helper_task_names(state=self.state)),
             f"Project '{project}'",
-            deviceinv.TASKS_ENDPOINT,
-            attempts=deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS,
+            devicetask.TASKS_ENDPOINT,
+            attempts=deviceverify.MANUAL_IMPORT_POLL_ATTEMPTS,
             staged_at=result.device_path,
         )
         # Guarded for the reason _offer_into_tasker gives: the pending notice may be gone by now.
@@ -896,7 +912,7 @@ class AndroidEventHandlers:
 
     def open_save_to_android_dialog_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         parent_dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
@@ -906,7 +922,7 @@ class AndroidEventHandlers:
 
     async def save_task_to_android_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         android_field_refs: dict,
         android_dialog: ui.dialog,
@@ -970,7 +986,7 @@ class AndroidEventHandlers:
             # The key is the one held for this device this session, so a device already asked --
             # by an earlier save, a fetch or an import -- is not prompted again.
             saved = await run.io_bound(
-                taskedit.save_task_to_android, edited_task, ip_address, ip_port, task_name, state=self.state
+                taskedit_save.save_task_to_android, edited_task, ip_address, ip_port, task_name, state=self.state
             )
             if saved is None:  # cancelled -- see the note at the top of this file
                 return
@@ -999,7 +1015,7 @@ class AndroidEventHandlers:
         # button asks and the user should be asked it once, in one wording, whichever button
         # they pressed -- see save_task_to_android_file_event's identical check, including
         # why the content comes back with the answer.
-        device_path = taskedit.android_task_path(task_name)
+        device_path = taskedit_save.android_task_path(task_name)
         read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
         if read is None:  # cancelled -- see the note at the top of this file
             return
@@ -1007,7 +1023,7 @@ class AndroidEventHandlers:
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
-            lambda: taskedit.render_standalone_task_xml(edited_task, state=self.state),
+            lambda: taskedit_save.render_standalone_task_xml(edited_task, state=self.state),
             _API_IMPORT_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
             state=self.state,
@@ -1023,7 +1039,7 @@ class AndroidEventHandlers:
 
     async def _confirm_task_upload(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         ip_address: str,
         ip_port: str,
         task_name: str,
@@ -1051,10 +1067,10 @@ class AndroidEventHandlers:
         # for a name that cannot find ('$Taskaroo') the object-list helper, since a Task
         # wrongly reported missing would be imported twice.  If that check fails, retry
         # the import once more from the file now sitting in /Tasker/tasks (see
-        # taskedit.save_task_to_android_directory's docstring for why a retry, not a
+        # taskedit_save.save_task_to_android_directory's docstring for why a retry, not a
         # different endpoint, is the only fallback that can help).
         confirmed = await run.io_bound(
-            deviceinv.confirm_task_on_android, ip_address, ip_port, task_name, auth_key, state=self.state
+            devicetask.confirm_task_on_android, ip_address, ip_port, task_name, auth_key, state=self.state
         )
         if confirmed is None:  # cancelled -- see the note at the top of this file
             return False
@@ -1062,7 +1078,7 @@ class AndroidEventHandlers:
             ui.notify(translate_string("Task Uploaded to Tasker") + landed, type="positive")
         else:
             retried = await run.io_bound(
-                taskedit.save_task_to_android_directory,
+                taskedit_save.save_task_to_android_directory,
                 edited_task,
                 ip_address,
                 ip_port,
@@ -1083,14 +1099,14 @@ class AndroidEventHandlers:
                 # LAST resort, not the route -- api/import needs no tap at all when it
                 # works, which for a Task it usually does.
                 offered = await run.io_bound(
-                    deviceinv.offer_to_tasker,
-                    taskedit.render_standalone_task_xml(edited_task, state=self.state).encode("utf-8"),
+                    deviceoffer.offer_to_tasker,
+                    taskedit_save.render_standalone_task_xml(edited_task, state=self.state).encode("utf-8"),
                     task_name,
                     [task_name],
                     ip_address,
                     ip_port,
                     wait_for_confirmation=False,
-                    route=deviceinv.OPEN_TASK_ROUTE,
+                    route=deviceoffer.OPEN_TASK_ROUTE,
                     state=self.state,
                 )
                 if offered is None:  # cancelled -- see the note at the top of this file
@@ -1112,7 +1128,7 @@ class AndroidEventHandlers:
 
     def _apply_task_for_android(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
     ) -> tuple[bool, bool]:
         """Validate and apply the parent dialog's fields, the same way a local Save does.
@@ -1130,7 +1146,7 @@ class AndroidEventHandlers:
         # for the registration step the callers end with.
         is_new_task = edited_task.task_id not in self.state.tasker_root_elements.get("all_tasks", {})
 
-        errors = taskedit.apply_edits_to_task(
+        errors = taskedit_apply.apply_edits_to_task(
             edited_task,
             field_refs["name"].value,
             field_refs["priority"].value,
@@ -1154,7 +1170,7 @@ class AndroidEventHandlers:
 
     async def save_task_to_android_file_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         android_field_refs: dict,
         android_dialog: ui.dialog,
@@ -1214,7 +1230,7 @@ class AndroidEventHandlers:
                 )
             # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
             saved = await run.io_bound(
-                taskedit.save_task_to_android_file, edited_task, ip_address, ip_port, task_name, state=self.state
+                taskedit_save.save_task_to_android_file, edited_task, ip_address, ip_port, task_name, state=self.state
             )
             if saved is None:  # cancelled -- see the note at the top of this file
                 return
@@ -1239,7 +1255,7 @@ class AndroidEventHandlers:
         # anything is there to clobber, and what it holds so it can be kept.  See
         # maputil2.read_android_file for why two reads was worse than one on the device as
         # well as here.  /upload clobbers silently, which is why this is asked at all.
-        device_path = taskedit.android_task_path(task_name)
+        device_path = taskedit_save.android_task_path(task_name)
         read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
         if read is None:  # cancelled -- see the note at the top of this file
             return
@@ -1247,7 +1263,7 @@ class AndroidEventHandlers:
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
-            lambda: taskedit.render_standalone_task_xml(edited_task, state=self.state),
+            lambda: taskedit_save.render_standalone_task_xml(edited_task, state=self.state),
             _FILE_WRITE_CONSEQUENCE,
             check_ids=_check_ids_ticked(android_field_refs),
             state=self.state,
@@ -1567,7 +1583,7 @@ class AndroidEventHandlers:
         The other button in this dialog (save_profile_to_android_event) writes a file to
         /Tasker/profiles that Tasker never reads.  This stages the same XML and has a helper
         Task hand it to Tasker, which brings up Tasker's ordinary import screen -- see
-        deviceinv.open_profile_on_device.
+        deviceoffer.open_profile_on_device.
 
         "OPEN WITH...", WHICH IS THE POINT, and that changed back on 2026-08-30.
 
@@ -1585,7 +1601,7 @@ class AndroidEventHandlers:
         VIEW with NO MIME TYPE.  The failing chooser was a chooser of text/xml apps because
         the intent asked for text/xml, and an app that claims '.prf.xml' declares a
         pathPattern and no mimeType -- which Android matches only against intents carrying no
-        type.  See deviceinv._OPEN_WITH_MIME_TYPE, which sets out that reasoning and is
+        type.  See deviceoffer._OPEN_WITH_MIME_TYPE, which sets out that reasoning and is
         honest that it is reasoning and not a measurement.
 
         So this is OPEN_FILE_ROUTE again, but not the same route: the user gets Android's
@@ -1669,9 +1685,9 @@ class AndroidEventHandlers:
                 object_name=profile_name,
                 # A Profile is confirmed by its own name -- the list of one the general case
                 # collapses to.  A Project's list is every Profile it owns; see
-                # deviceinv.offer_to_tasker.
+                # deviceoffer.offer_to_tasker.
                 confirm_names=[profile_name],
-                route=deviceinv.OPEN_FILE_ROUTE,
+                route=deviceoffer.OPEN_FILE_ROUTE,
                 ip_address=ip_address,
                 ip_port=ip_port,
                 android_dialog=android_dialog,
@@ -1718,7 +1734,7 @@ class AndroidEventHandlers:
         and a replacement leaves the name, the count and the enabled state exactly as they
         were.  A Project owning only unnamed Profiles has nothing askable at all (see
         projedit.project_profile_names).  Those are reported for what they are rather than
-        waited on -- see deviceinv.import_is_confirmable.
+        waited on -- see deviceverify.import_is_confirmable.
         """
         # ONE READ, TWO ANSWERS: whether anything is already at the path this is about to
         # write, and a copy of it for the safety copy below.  Asking twice is worse than it
@@ -1795,14 +1811,14 @@ class AndroidEventHandlers:
         WHAT THOSE FOUR HAVE IN COMMON is that every one of them carried a mime type or named
         a component.  The fifth thing -- an implicit VIEW with NO type, which is what a file
         manager's 'Open with' fires -- is the only one that lets an extension filter match at
-        all, and it had not been tried.  See deviceinv._OPEN_WITH_MIME_TYPE, which is honest
+        all, and it had not been tried.  See deviceoffer._OPEN_WITH_MIME_TYPE, which is honest
         that this is reasoning and not a measurement.  So a Scene is offered like every other
         kind now, and if the chooser comes up without Tasker in it the user is exactly where
         they were before, with the file named and the menu named.
 
         THE FILE CARRIES THE SCENE'S OWN NAME, because the name is what the user picks out of
         a list on their phone.  This route got there first; the other three have since caught
-        up, told which file at run time through %par1 (see deviceinv.run_task_on_android).
+        up, told which file at run time through %par1 (see devicetask.run_task_on_android).
         It is the same path 'Save As File' writes, so it asks that button's overwrite question
         and keeps its safety copy -- both of which _offer_into_tasker now does for all of
         them.
@@ -1846,7 +1862,7 @@ class AndroidEventHandlers:
         # 2026-08-30: every measured way of handing Tasker a '.scn.xml' had failed, so this
         # uploaded the file and merely opened Tasker, leaving the whole import to the user.
         # The "Open with..." is a third thing rather than a repeat of either failure -- see
-        # deviceinv.OPEN_SCENE_ROUTE and _OPEN_WITH_MIME_TYPE -- and it costs nothing if it
+        # deviceoffer.OPEN_SCENE_ROUTE and _OPEN_WITH_MIME_TYPE -- and it costs nothing if it
         # is wrong, because the by-hand instruction below is still there.
         #
         # Everything else _offer_into_tasker does a Scene wanted anyway: the overwrite
@@ -1859,14 +1875,14 @@ class AndroidEventHandlers:
                 ),
                 object_name=edited_scene.scene_name,
                 confirm_names=[edited_scene.scene_name],
-                route=deviceinv.OPEN_SCENE_ROUTE,
+                route=deviceoffer.OPEN_SCENE_ROUTE,
                 ip_address=ip_address,
                 ip_port=ip_port,
                 android_dialog=android_dialog,
                 parent_dialog=parent_dialog,
                 keep_edit=lambda: None,  # the edits are already in the live tree -- see the apply above
                 by_hand=(f"import it with Tasker's 'Scenes > Import One Scene' and pick '{edited_scene.scene_name}'"),
-                attempts=deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS,
+                attempts=deviceverify.MANUAL_IMPORT_POLL_ATTEMPTS,
                 check_ids=_check_ids_ticked(android_field_refs),
             ),
         )
@@ -1931,7 +1947,7 @@ class AndroidEventHandlers:
                 # at length: the user picks Tasker out of Android's own chooser rather than this
                 # program guessing what a '.prj.xml' resolves to.  A Project has exactly the same
                 # exposure to that guess as a Profile, so it makes the same choice.
-                route=deviceinv.OPEN_PROJECT_ROUTE,
+                route=deviceoffer.OPEN_PROJECT_ROUTE,
                 ip_address=ip_address,
                 ip_port=ip_port,
                 android_dialog=android_dialog,

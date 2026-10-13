@@ -1786,7 +1786,7 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
         # TaskerNet and keep enabled.  So this probe -- the gate in front of every
         # Android feature -- failed for anyone who had the server running perfectly
         # well but had never imported that Profile.  Nothing needs it any more (see
-        # deviceinv.fetch_file_list_from_device), and the probe should not either.
+        # devicefiles.fetch_file_list_from_device), and the probe should not either.
         return_code, _ = http_request(ipaddr, port, "/Tasker", "file", "")
         # 0 is a 200 and 6 is a 404 -- either way the server answered, which is the
         # whole question here.  Anything else is a connection failure, a timeout or a

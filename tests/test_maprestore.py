@@ -29,7 +29,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.initparg import ProgramArguments
-from maptasker.src import maprefac, maprestore, sessundo, taskerd, xmldiff
+from maptasker.src import maprefac, maprefac_model, maprestore, sessundo, taskerd, xmldiff
 from maptasker.src.mapjump import actions_in_map_order
 from maptasker.src.primitem import PrimeItems
 
@@ -189,7 +189,7 @@ def _candidate(kind: str, key: str) -> maprestore.Candidate:
     return matches[0]
 
 
-def _restore(kind: str, key: str, older: xmldiff.Configuration | None = None) -> maprefac.Plan:
+def _restore(kind: str, key: str, older: xmldiff.Configuration | None = None) -> maprefac_model.Plan:
     """Plan and apply the restore of one object; assert it went through; return the plan."""
     older = older or _older()
     plan = maprestore.plan_restore(_candidate(kind, key), older, FROM_WHEN, state=PrimeItems)

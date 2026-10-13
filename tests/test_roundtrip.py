@@ -38,7 +38,16 @@ from unittest.mock import patch
 
 import pytest
 from maptasker.src.initparg import ProgramArguments
-from maptasker.src import profedit, projedit, roundtrip, taskedit, taskerd, userintr_android
+from maptasker.src import (
+    profedit,
+    projedit,
+    roundtrip,
+    taskedit,
+    taskedit_model,
+    taskedit_save,
+    taskerd,
+    userintr_android,
+)
 from maptasker.src.primitem import PrimeItems
 
 # One Project owning one Profile, that Profile's Entry Task, a Scene the Project declares,
@@ -109,9 +118,9 @@ def _live(table: str, key: str) -> ET.Element:
     return PrimeItems.tasker_root_elements[table][key]["xml"]
 
 
-def _editable_task(task_id: str) -> taskedit.EditableTask:
+def _editable_task(task_id: str) -> taskedit_model.EditableTask:
     """An Edit Task dialog's working model over a live Task, with no edits made to it."""
-    return taskedit.EditableTask(task_id=task_id, task_element=_live("all_tasks", task_id))
+    return taskedit_model.EditableTask(task_id=task_id, task_element=_live("all_tasks", task_id))
 
 
 def _editable_profile(profile_id: str) -> profedit.EditableProfile:
@@ -212,7 +221,7 @@ def test_a_changed_value_names_the_object_and_the_path() -> None:
     """A report nobody can act on is not much better than no report.  When an object comes
     back different, the message has to say which object, where inside it, and what the two
     values were -- so this asserts the whole triple, not just that something failed."""
-    rendered = taskedit.render_standalone_task_xml(_editable_task("20"), state=PrimeItems)
+    rendered = taskedit_save.render_standalone_task_xml(_editable_task("20"), state=PrimeItems)
 
     report = roundtrip.verify_rendered(rendered.replace("<pri>100</pri>", "<pri>50</pri>"), state=PrimeItems)
 
@@ -226,7 +235,7 @@ def test_a_dropped_child_is_caught() -> None:
     """The other shape corruption takes: not a wrong value but a missing element.  Compared
     by position rather than resynchronized, so what is reported is the count -- which is the
     fact that matters when an Action has lost an argument."""
-    rendered = taskedit.render_standalone_task_xml(_editable_task("20"), state=PrimeItems)
+    rendered = taskedit_save.render_standalone_task_xml(_editable_task("20"), state=PrimeItems)
 
     report = roundtrip.verify_rendered(rendered.replace("\t\t<pri>100</pri>\n", ""), state=PrimeItems)
 

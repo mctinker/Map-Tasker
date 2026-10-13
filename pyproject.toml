@@ -292,7 +292,15 @@ max-complexity = 15
 'maptasker/src/colors.py' = ['D100', 'PLR1722']
 'maptasker/src/condition.py' = ['RET504']
 'maptasker/src/deprecate.py' = ['D100']
-'maptasker/src/deviceinv.py' = ['ANN201', 'F811']
+# deviceinv.py was split by responsibility into the device* modules.  The helper-Task builders
+# return an EditableTask or an error string and were never annotated; the entries follow them,
+# and F811 (verify_profile_on_android defined twice, the first one dead) went with the duplicate.
+'maptasker/src/devicecheck.py' = ['ANN201']
+'maptasker/src/devicefiles.py' = ['ANN201']
+'maptasker/src/deviceimport.py' = ['ANN201']
+'maptasker/src/deviceinv.py' = ['ANN201']
+'maptasker/src/deviceoffer.py' = ['ANN201']
+'maptasker/src/devicetask.py' = ['ANN201']
 'maptasker/src/diagintr.py' = ['PLW2901']
 'maptasker/src/diagram.py' = ['PLW2901']
 'maptasker/src/format.py' = ['ARG002', 'S105']
@@ -325,7 +333,11 @@ max-complexity = 15
 'maptasker/src/sceneview.py' = ['D102', 'D107', 'F541', 'ISC001', 'RUF001', 'SIM117']
 'maptasker/src/servicec.py' = ['D100']
 'maptasker/src/shelsort.py' = ['D100']
-'maptasker/src/taskedit.py' = ['ANN001', 'ARG001', 'SIM108', 'TC003']
+# taskedit.py was split by responsibility into the taskedit_* modules; its own backlog entries
+# followed the code out of it, and the core no longer has one.
+'maptasker/src/taskedit_addable.py' = ['ANN001']
+'maptasker/src/taskedit_args.py' = ['ANN001', 'SIM108']
+'maptasker/src/taskedit_save.py' = ['ARG001']
 'maptasker/src/taskerd.py' = ['PLC0415']
 # userintr.py's two entries moved with the Android handlers they belong to (see the guiwins
 # note above): userintr.py itself no longer violates either rule, so it has no line.
@@ -472,17 +484,20 @@ layers = [
     actiont : addcss : aiutils : apikeys : appinv : assettext : bildhtml :
     bldargs : bldbndle : bundle : caveats : clip : clock :
     colors : colrmode : condition : condjoin : config : console :
-    debug : deprecate : deviceinv : diagcnst : diagintr :
+    debug : deprecate : devicecheck : devicefiles : devicehelpers : deviceimport : deviceinv : deviceoffer :
+    devicetask : deviceverify : diagcnst : diagintr :
     diagram : diagutil : diffload : dirout : editcommon : elemvals : error :
     format : frontmtr : getbakup : getputer : globalvr :
     guiutil2 : healthck : impact : initparg : lineout : livevars :
     mapask : mapcache : mapdraft : mapexport : mapfind : mapfix : mapfonts :
-    mapjump : mappdf : maprefac : maprestore : mapswap : maputil2 :
+    mapjump : mappdf : maprefac : maprefac_duplicate : maprefac_extract : maprefac_model : maprefac_move : maprestore : mapswap : mapswap_action : mapswap_argument : mapswap_condition :
+    mapswap_model : mapswap_rename : mapswap_sites : maputil2 :
     maputil3 : maputils : mtexcept : nameattr : objprops : outdir : outline :
     firesim : folderwatch : parsearg : piiscan : plugchk : plugset : prefers : presave : primitem : proclist :
     profedit : profiles : proflint : proginit : projects : projedit :
     property : readiness : roundtrip : runcfg : sceneedit : sceneedit_legacy : sceneedit_v2 : scenelayout : scenemodel : scenes : servicec :
-    sessundo : share : shelsort : sysconst : taskactn : taskedit :
+    sessundo : share : shelsort : sysconst : taskactn : taskedit : taskedit_addable : taskedit_apply : taskedit_args :
+    taskedit_model : taskedit_save :
     taskerd : taskertables : taskervars : taskflow : taskstep : tasks : taskuniq :
     timecomp : timeline : tnfind : tnupdate : translator : trend : twisty : userhelp : valcodes : varxref :
     xmldata : xmldiff

@@ -1,4 +1,4 @@
-"""Run a Task on the Android device (deviceinv.run_task_for_result) Unit Tests
+"""Run a Task on the Android device (devicetask.run_task_for_result) Unit Tests
 
 No device is involved: maputil2's `requests` is replaced by a fake that answers the Tasker HTTP
 Server Example's 'POST Task' handler the way it does on a device -- 200 with the Task's return
@@ -17,7 +17,7 @@ from urllib.parse import unquote
 import pytest
 from maptasker.src.primitem import PrimeItems
 import requests
-from maptasker.src import deviceinv, maputil2
+from maptasker.src import devicehelpers, devicetask, deviceverify, maputil2
 
 from tests.test_deviceinv import _FIXTURE_XML, _load
 
@@ -101,7 +101,7 @@ class _FakeDevice:
         if not self._found(f"^{body['name']}$"):
             return _Response(400)
         name = body["name"]
-        if name == deviceinv.RUN_TASK_HELPER_NAME:
+        if name == devicetask.RUN_TASK_HELPER_NAME:
             # What its 'Perform Task' runs; its 'Return' of an unset result sends the variable's name.
             name = body["variables"]["mt_run_task"]
             return _Response(200, f"{self.tasks[name] or '%mt_run_result'}\n".encode())
@@ -121,7 +121,7 @@ def device(monkeypatch: pytest.MonkeyPatch) -> _FakeDevice:
 
 
 def test_a_task_that_returns_a_value_reports_it(device: _FakeDevice) -> None:
-    result = deviceinv.run_task_for_result(*_DEVICE, "Returns Text", state=PrimeItems)
+    result = devicetask.run_task_for_result(*_DEVICE, "Returns Text", state=PrimeItems)
     assert result.ok, result.error
     assert result.output == "hello world"
     assert device.run_bodies == [{"name": "Returns Text"}]
@@ -129,25 +129,25 @@ def test_a_task_that_returns_a_value_reports_it(device: _FakeDevice) -> None:
 
 def test_a_task_that_returns_nothing_reports_no_value(device: _FakeDevice) -> None:
     """The handler sends '%return' for an unset return value -- that is not the Task's output."""
-    result = deviceinv.run_task_for_result(*_DEVICE, "Returns Nothing", state=PrimeItems)
+    result = devicetask.run_task_for_result(*_DEVICE, "Returns Nothing", state=PrimeItems)
     assert result.ok, result.error
     assert result.output == ""
 
 
 def test_par1_and_par2_are_sent_only_when_given(device: _FakeDevice) -> None:
-    deviceinv.run_task_for_result(*_DEVICE, "Echo", par1="one", par2="two", state=PrimeItems)
-    deviceinv.run_task_for_result(*_DEVICE, "Echo", par2="two", state=PrimeItems)
+    devicetask.run_task_for_result(*_DEVICE, "Echo", par1="one", par2="two", state=PrimeItems)
+    devicetask.run_task_for_result(*_DEVICE, "Echo", par2="two", state=PrimeItems)
     assert device.run_bodies == [{"name": "Echo", "par1": "one", "par2": "two"}, {"name": "Echo", "par2": "two"}]
 
 
 def test_the_run_waits_longer_than_a_write(device: _FakeDevice) -> None:
     """api/tasks answers only once the Task has finished, so the run gets its own, longer timeout."""
-    deviceinv.run_task_for_result(*_DEVICE, "Echo", state=PrimeItems)
-    assert device.run_timeouts == [deviceinv.RUN_TASK_TIMEOUT_SECONDS]
+    devicetask.run_task_for_result(*_DEVICE, "Echo", state=PrimeItems)
+    assert device.run_timeouts == [devicetask.RUN_TASK_TIMEOUT_SECONDS]
 
 
 def test_a_task_the_device_does_not_have_is_named_as_missing(device: _FakeDevice) -> None:
-    result = deviceinv.run_task_for_result(*_DEVICE, "Only In The Editor", state=PrimeItems)
+    result = devicetask.run_task_for_result(*_DEVICE, "Only In The Editor", state=PrimeItems)
     assert not result.ok
     assert "no Task named 'Only In The Editor'" in result.error
     assert "Save To Android" in result.error
@@ -155,7 +155,7 @@ def test_a_task_the_device_does_not_have_is_named_as_missing(device: _FakeDevice
 
 def test_a_run_that_outlasts_the_timeout_says_it_may_still_be_running(device: _FakeDevice) -> None:
     device.timeout = True
-    result = deviceinv.run_task_for_result(*_DEVICE, "Returns Text", timeout=5, state=PrimeItems)
+    result = devicetask.run_task_for_result(*_DEVICE, "Returns Text", timeout=5, state=PrimeItems)
     assert not result.ok
     assert "did not answer within 5 seconds" in result.error
     assert "may still be running" in result.error
@@ -163,22 +163,22 @@ def test_a_run_that_outlasts_the_timeout_says_it_may_still_be_running(device: _F
 
 def test_a_rejected_key_is_replaced_and_the_run_retried_once(device: _FakeDevice) -> None:
     device.reject_keys = 1
-    result = deviceinv.run_task_for_result(*_DEVICE, "Returns Text", state=PrimeItems)
+    result = devicetask.run_task_for_result(*_DEVICE, "Returns Text", state=PrimeItems)
     assert result.ok, result.error
     assert device.keys_issued == 2
     assert len(device.run_bodies) == 2
 
 
 def test_no_task_name_is_refused_without_touching_the_device(device: _FakeDevice) -> None:
-    result = deviceinv.run_task_for_result(*_DEVICE, "   ", state=PrimeItems)
+    result = devicetask.run_task_for_result(*_DEVICE, "   ", state=PrimeItems)
     assert not result.ok
     assert device.run_bodies == []
     assert device.keys_issued == 0
 
 
 def test_only_the_handlers_own_newline_is_removed() -> None:
-    assert deviceinv.task_return_value(b"  indented \n\n") == "  indented \n"
-    assert deviceinv.task_return_value(b"%return\n") == ""
+    assert devicetask.task_return_value(b"  indented \n\n") == "  indented \n"
+    assert devicetask.task_return_value(b"%return\n") == ""
 
 
 # --------------------------------------------------------------------------------------
@@ -188,41 +188,41 @@ def test_only_the_handlers_own_newline_is_removed() -> None:
 
 def test_a_name_the_handler_cannot_match_runs_through_the_helper(device: _FakeDevice) -> None:
     """'$Taskaroo' is on the device, but ^$Taskaroo$ matches nothing -- so the helper runs it."""
-    result = deviceinv.run_task_for_result(*_DEVICE, "$Taskaroo", par1="one", state=PrimeItems)
+    result = devicetask.run_task_for_result(*_DEVICE, "$Taskaroo", par1="one", state=PrimeItems)
     assert result.ok, result.error
     assert result.output == "roo"
-    assert deviceinv.RUN_TASK_HELPER_NAME in device.imported
-    helper_runs = [body for body in device.run_bodies if body["name"] == deviceinv.RUN_TASK_HELPER_NAME]
+    assert devicetask.RUN_TASK_HELPER_NAME in device.imported
+    helper_runs = [body for body in device.run_bodies if body["name"] == devicetask.RUN_TASK_HELPER_NAME]
     assert helper_runs == [
-        {"name": deviceinv.RUN_TASK_HELPER_NAME, "par1": "one", "variables": {"mt_run_task": "$Taskaroo"}},
+        {"name": devicetask.RUN_TASK_HELPER_NAME, "par1": "one", "variables": {"mt_run_task": "$Taskaroo"}},
     ]
 
 
 def test_the_http_apis_whole_list_really_leaves_such_a_name_out(device: _FakeDevice) -> None:
     """Why the check goes to the object-list helper: the fake's GET api/tasks, like the device's,
     cannot report '$Taskaroo' however it is asked."""
-    return_code, message, names = deviceinv.fetch_task_names_from_device(*_DEVICE)
+    return_code, message, names = deviceverify.fetch_task_names_from_device(*_DEVICE)
     assert return_code == 0, message
     assert "$Taskaroo" not in names
     assert "Returns Text" in names
 
 
 def test_the_helper_is_installed_once(device: _FakeDevice) -> None:
-    deviceinv.run_task_for_result(*_DEVICE, "$Taskaroo", state=PrimeItems)
-    deviceinv.run_task_for_result(*_DEVICE, "$Taskaroo", state=PrimeItems)
-    assert device.imported.count(deviceinv.RUN_TASK_HELPER_NAME) == 1
+    devicetask.run_task_for_result(*_DEVICE, "$Taskaroo", state=PrimeItems)
+    devicetask.run_task_for_result(*_DEVICE, "$Taskaroo", state=PrimeItems)
+    assert device.imported.count(devicetask.RUN_TASK_HELPER_NAME) == 1
 
 
 def test_an_unmatchable_name_the_device_lacks_is_reported_without_running(device: _FakeDevice) -> None:
     """The helper would stop on 'Perform Task' and return nothing, which would read as success."""
-    result = deviceinv.run_task_for_result(*_DEVICE, "$Missing", state=PrimeItems)
+    result = devicetask.run_task_for_result(*_DEVICE, "$Missing", state=PrimeItems)
     assert not result.ok
     assert "no Task named '$Missing'" in result.error
-    assert all(body["name"] != deviceinv.RUN_TASK_HELPER_NAME for body in device.run_bodies)
+    assert all(body["name"] != devicetask.RUN_TASK_HELPER_NAME for body in device.run_bodies)
 
 
 def test_the_helper_returning_nothing_is_no_value(device: _FakeDevice) -> None:
-    result = deviceinv.run_task_for_result(*_DEVICE, "(Silent)", state=PrimeItems)
+    result = devicetask.run_task_for_result(*_DEVICE, "(Silent)", state=PrimeItems)
     assert result.ok, result.error
     assert result.output == ""
 
@@ -231,7 +231,7 @@ def test_the_helper_runs_the_named_task_the_way_the_handler_does() -> None:
     """The HTTP Server Example's own 'Perform Task', copied: %priority, a return variable, and
     passthrough -- which is what still delivers %par1 and %par2 to the Task it runs."""
     _load(_FIXTURE_XML)
-    built = deviceinv.build_run_task_helper(state=PrimeItems)
+    built = devicetask.build_run_task_helper(state=PrimeItems)
     assert not isinstance(built, str), built
 
     task = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
@@ -247,7 +247,7 @@ def test_the_helper_runs_the_named_task_the_way_the_handler_does() -> None:
 
 def test_the_helper_is_a_current_helper_task() -> None:
     """So 'List Helper Tasks' does not offer to delete it."""
-    assert deviceinv.RUN_TASK_HELPER_NAME in deviceinv.current_helper_task_names(state=PrimeItems)
+    assert devicetask.RUN_TASK_HELPER_NAME in devicehelpers.current_helper_task_names(state=PrimeItems)
 
 
 @pytest.mark.parametrize("name", ["$Taskaroo", "Wake (Up)", "a+b", "x|y", "Why?"])

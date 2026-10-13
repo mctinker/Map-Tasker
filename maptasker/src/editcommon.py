@@ -7,10 +7,10 @@ device, and -- for Save To Android -- upload it and read it back to prove it lan
 Only three things actually differ between them, and they are what EditorKind holds.
 
 Kept as a module of its own, below all four editors in the import order, because the
-duplication had already spread past them: deviceinv and presave each re-spelled the
+duplication had already spread past them: devicetask and presave each re-spelled the
 illegal-character substitution too, both with a comment saying they would rather have
 imported it but that importing an editor would be a cycle.  Nothing here imports an
-editor, so that reason is gone and deviceinv imports this instead.  The pattern itself,
+editor, so that reason is gone and devicetask imports this instead.  The pattern itself,
 ILLEGAL_IN_FILENAME, lives in sysconst, and presave takes it from there: the upload below
 reaches presave through maputil2, so presave importing this module would close a loop.
 """
@@ -108,7 +108,7 @@ class EditorKind:
 
     One instance per editor, built at import time beside that editor's own
     ANDROID_*_LOCATION and named EXPORT in all four (projedit.EXPORT, profedit.EXPORT,
-    taskedit.EXPORT, sceneedit.EXPORT -- not PROJECT/PROFILE/TASK/SCENE, which mapjump
+    taskedit_save.EXPORT, sceneedit.EXPORT -- not PROJECT/PROFILE/TASK/SCENE, which mapjump
     already uses for these same four kinds as plain strings).  Everything else about an
     export is the same for all four and lives on this class.
     """
@@ -162,7 +162,7 @@ class EditorKind:
         not watch these directories, and the file simply sits there for the user or their
         own device-side automation to pick up.  It also needs no authorization -- /upload
         takes no Authorization header, so unlike the api/import route there is no key to
-        cache and no prompt on the device.  (taskedit.save_task_to_android does this write
+        cache and no prompt on the device.  (taskedit_save.save_task_to_android does this write
         and then imports what it wrote; that second step is Task-only and stays there.)
 
         The readback is the point.  /upload answers 200 even for a nonexistent or bogus

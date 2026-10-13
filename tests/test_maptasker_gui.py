@@ -1168,7 +1168,7 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
     """Point the handler's collaborators at fakes and record what it did.
 
     `results` is what run.io_bound returns, in order: the pre-check (see
-    deviceinv.import_is_confirmable), the offer, then the confirmation if there is one.
+    deviceverify.import_is_confirmable), the offer, then the confirmation if there is one.
 
     `exists` is what the device says about the path the import is going to write -- False
     (nothing there) for the ordinary case, True or None to reach the overwrite prompt.  The
@@ -1281,11 +1281,11 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
 async def test_a_new_profile_is_waited_for_before_anything_is_claimed(monkeypatch, event_handler, profile_dialog_refs):
     """Two phases, and the second one is the one that counts.
 
-    The offer only opens a screen on the phone -- deviceinv.offer_to_tasker is called
+    The offer only opens a screen on the phone -- deviceoffer.offer_to_tasker is called
     with wait_for_confirmation=False precisely so the user is told that much straight away --
     and nothing goes into the loaded configuration until Tasker reports the Profile.
     """
-    from maptasker.src import deviceinv
+    from maptasker.src import deviceoffer, deviceverify
 
     field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (0, "Profile 'Watched' is now in Tasker")])
@@ -1300,14 +1300,14 @@ async def test_a_new_profile_is_waited_for_before_anything_is_claimed(monkeypatc
     )
 
     pre_check, offer, confirm = calls["io_bound"]
-    assert pre_check[0] is deviceinv.import_is_confirmable
-    assert offer[0] is deviceinv.offer_to_tasker
+    assert pre_check[0] is deviceverify.import_is_confirmable
+    assert offer[0] is deviceoffer.offer_to_tasker
     assert offer[2]["wait_for_confirmation"] is False
     # The "Open with..." route: Android's own chooser, which the user picks Tasker out of,
     # rather than this program guessing what a '.prf.xml' resolves to (2026-08-28 it guessed
     # wrong twice -- see import_profile_into_tasker_event).
-    assert offer[2]["route"] is deviceinv.OPEN_FILE_ROUTE
-    assert confirm[0] is deviceinv.await_import
+    assert offer[2]["route"] is deviceoffer.OPEN_FILE_ROUTE
+    assert confirm[0] is deviceverify.await_import
 
     assert len(calls["kept"]) == 1  # the edit reached the loaded configuration
     android_dialog.close.assert_called_once()
@@ -1452,7 +1452,7 @@ async def test_the_user_is_told_which_file_is_waiting_on_the_device(
     name said nothing about which Profile was in it.  Now it is the Profile's own name, so it
     goes in the notification and into await_import's giving-up message.
     """
-    from maptasker.src import deviceinv
+    from maptasker.src import deviceoffer, deviceverify
 
     field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (8, "Tasker has not reported it")])
@@ -1466,11 +1466,11 @@ async def test_the_user_is_told_which_file_is_waiting_on_the_device(
     )
 
     staged = "/storage/emulated/0/Tasker/profiles/Watched.prf.xml"
-    assert staged == deviceinv.SEND_INTENT_ROUTE.staged_file_paths("Watched")[2]
+    assert staged == deviceoffer.SEND_INTENT_ROUTE.staged_file_paths("Watched")[2]
     assert any(staged in message for message, _type in calls["notify"])
 
     _pre_check, _offer, confirm = calls["io_bound"]
-    assert confirm[0] is deviceinv.await_import
+    assert confirm[0] is deviceverify.await_import
     assert confirm[2]["staged_at"] == staged
 
 
@@ -1646,7 +1646,7 @@ async def test_a_project_is_offered_as_a_project(monkeypatch, event_handler, pro
     """The route is the whole difference at the device end: it stages the XML as
     '.prj.xml' rather than '.prf.xml', and the extension is what tells Tasker whether it is
     importing a Project or a Profile."""
-    from maptasker.src import deviceinv
+    from maptasker.src import deviceoffer
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (0, "Project 'Home' is now in Tasker")])
@@ -1662,7 +1662,7 @@ async def test_a_project_is_offered_as_a_project(monkeypatch, event_handler, pro
     )
 
     _pre_check, offer, _confirm = calls["io_bound"]
-    assert offer[2]["route"] is deviceinv.OPEN_PROJECT_ROUTE  # explicit -- see the Profile's note
+    assert offer[2]["route"] is deviceoffer.OPEN_PROJECT_ROUTE  # explicit -- see the Profile's note
     assert offer[1][1] == "Home"
 
 
@@ -1670,7 +1670,7 @@ async def test_a_project_is_offered_as_a_project(monkeypatch, event_handler, pro
 async def test_a_project_is_confirmed_through_the_profiles_it_owns(monkeypatch, event_handler, profile_dialog_refs):
     """There is no /api/projects to ask about the Project itself, so the names that go to
     the device are the Profiles it brings with it -- see projedit.project_profile_names."""
-    from maptasker.src import deviceinv
+    from maptasker.src import deviceverify
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (0, "Project 'Home' is now in Tasker")])
@@ -1686,7 +1686,7 @@ async def test_a_project_is_confirmed_through_the_profiles_it_owns(monkeypatch, 
     )
 
     pre_check, offer, confirm = calls["io_bound"]
-    assert pre_check[0] is deviceinv.import_is_confirmable
+    assert pre_check[0] is deviceverify.import_is_confirmable
     assert pre_check[1][2] == ["Watched", "Also Watched"]
     assert offer[1][2] == ["Watched", "Also Watched"]
     assert confirm[1][2] == ["Watched", "Also Watched"]
@@ -1748,7 +1748,7 @@ async def test_unapplied_project_edits_stop_it_before_the_device(monkeypatch, ev
 #
 # The "Open with..." is a third attempt rather than a repeat of either: an implicit VIEW
 # carrying NO type, which is the only one of the three an extension filter can match (see
-# deviceinv._OPEN_WITH_MIME_TYPE).  So a Scene goes through _offer_into_tasker like the other
+# deviceoffer._OPEN_WITH_MIME_TYPE).  So a Scene goes through _offer_into_tasker like the other
 # two, and everything that path already does -- the overwrite prompt, the safety copy,
 # staging under its own name -- it now gets for free.  The by-hand instruction stays in the
 # message, because that instruction is what this route used to be.
@@ -1806,7 +1806,7 @@ async def test_a_scene_is_sent_under_its_own_name(monkeypatch, event_handler, pr
     looking for.  This route got there first; the Profile and Project routes have since
     stopped staging one fixed 'maptasker_import' file too, and all three now stage through
     the same offer to the same path 'Save As File' writes."""
-    from maptasker.src import deviceinv, sceneedit
+    from maptasker.src import deviceoffer, sceneedit
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, _SCENE_RESULTS)
@@ -1814,16 +1814,16 @@ async def test_a_scene_is_sent_under_its_own_name(monkeypatch, event_handler, pr
     await _import_scene(event_handler, android_refs)
 
     _pre_check, offer, _confirm = calls["io_bound"]
-    assert offer[0] is deviceinv.offer_to_tasker
+    assert offer[0] is deviceoffer.offer_to_tasker
     assert offer[1][1] == "Dialog"  # the object name the staged file is named after
-    assert deviceinv.OPEN_SCENE_ROUTE.staged_file_paths("Dialog")[1] == sceneedit.android_scene_path("Dialog")
+    assert deviceoffer.OPEN_SCENE_ROUTE.staged_file_paths("Dialog")[1] == sceneedit.android_scene_path("Dialog")
 
 
 @pytest.mark.asyncio
 async def test_a_scene_is_confirmed_at_the_scenes_endpoint(monkeypatch, event_handler, profile_dialog_refs):
     """Unlike a Project, a Scene has an endpoint of its own -- Tasker's API reports Scenes by
     name -- so once the user has done the import by hand, it can still be confirmed."""
-    from maptasker.src import deviceinv
+    from maptasker.src import deviceoffer, devicetask, deviceverify
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, _SCENE_RESULTS)
@@ -1831,16 +1831,16 @@ async def test_a_scene_is_confirmed_at_the_scenes_endpoint(monkeypatch, event_ha
     await _import_scene(event_handler, android_refs)
 
     pre_check, offer, confirm = calls["io_bound"]
-    assert pre_check[0] is deviceinv.import_is_confirmable
-    assert pre_check[1][3] == deviceinv.SCENES_ENDPOINT
-    assert offer[2]["route"] is deviceinv.OPEN_SCENE_ROUTE
+    assert pre_check[0] is deviceverify.import_is_confirmable
+    assert pre_check[1][3] == devicetask.SCENES_ENDPOINT
+    assert offer[2]["route"] is deviceoffer.OPEN_SCENE_ROUTE
     assert confirm[1][2] == ["Dialog"]
-    assert confirm[1][4] == deviceinv.SCENES_ENDPOINT
+    assert confirm[1][4] == devicetask.SCENES_ENDPOINT
     # Five minutes, not the two an import screen gets: this user may be working a file
     # picker, and a timeout would tell them an import they are in the middle of did not
     # happen.
-    assert confirm[2]["attempts"] == deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS
-    assert deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS > 60
+    assert confirm[2]["attempts"] == deviceverify.MANUAL_IMPORT_POLL_ATTEMPTS
+    assert deviceverify.MANUAL_IMPORT_POLL_ATTEMPTS > 60
 
 
 @pytest.mark.asyncio
@@ -2046,19 +2046,19 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
         return True
 
     monkeypatch.setattr(userintr_android, "ping_android_device", fake_ping)
-    monkeypatch.setattr(userintr_android.taskedit, "apply_edits_to_task", lambda *_args: [])
+    monkeypatch.setattr(userintr_android.taskedit_apply, "apply_edits_to_task", lambda *_args: [])
     monkeypatch.setattr(userintr_android.taskedit, "task_name_exists", lambda _name, **_kw: False)
     monkeypatch.setattr(userintr_android, "_task_arg_values", lambda _refs: {})
     monkeypatch.setattr(userintr_editors, "refresh_tasker_object_pulldowns", lambda _gui: None)
     # Both halves of _keep_task_in_loaded_config: which one runs depends on whether the Task
     # is already registered, and the handler must do exactly one of them.
     monkeypatch.setattr(
-        userintr_android.taskedit,
+        userintr_android.taskedit_save,
         "apply_edited_task_to_live_tree",
         lambda _task, **_kw: calls["kept"].append("existing"),
     )
     monkeypatch.setattr(
-        userintr_android.taskedit,
+        userintr_android.taskedit_save,
         "register_new_task",
         lambda _task, name, **_kw: calls["kept"].append(f"new:{name}"),
     )
@@ -2079,7 +2079,7 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
         calls["uploaded"].append(name)
         return upload
 
-    monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android_file", fake_upload)
+    monkeypatch.setattr(userintr_android.taskedit_save, "save_task_to_android_file", fake_upload)
     monkeypatch.setattr(
         userintr_android,
         "build_overwrite_confirm_dialog",
@@ -2437,7 +2437,7 @@ async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(monkeypa
 
 def _inline_tasker_check(monkeypatch, check_for) -> list:
     """Run _what_tasker_already_has's worker call inline, answering with check_for(sent)."""
-    from maptasker.src import deviceinv, userintr
+    from maptasker.src import devicecheck, userintr
 
     notes: list = []
 
@@ -2447,9 +2447,9 @@ def _inline_tasker_check(monkeypatch, check_for) -> list:
     monkeypatch.setattr(userintr.run, "io_bound", inline)
     monkeypatch.setattr(userintr.ui, "notify", lambda message, **_kwargs: notes.append(message))
     monkeypatch.setattr(
-        userintr_android.deviceinv,
+        userintr_android.devicecheck,
         "check_tasker_for_existing",
-        lambda _ip, _port, sent, **_kw: deviceinv.TaskerCheck(sent, *check_for(sent)),
+        lambda _ip, _port, sent, **_kw: devicecheck.TaskerCheck(sent, *check_for(sent)),
     )
     return notes
 
@@ -2491,14 +2491,14 @@ async def test_nothing_in_tasker_means_no_lines_and_a_project_check_is_announced
 @pytest.mark.asyncio
 async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
     """Names and ids alike come from the fresh backup -- nothing is asked by name as well."""
-    from maptasker.src import deviceinv, userintr
+    from maptasker.src import devicecheck, userintr
 
     notes = _inline_tasker_check(monkeypatch, lambda _sent: pytest.fail("asked by name despite a backup"))
-    clash = deviceinv.IdFinding("Task", "Test1plus", "1209", "Task", "Atest1Plus", "1209")
+    clash = devicecheck.IdFinding("Task", "Test1plus", "1209", "Task", "Atest1Plus", "1209")
     monkeypatch.setattr(
-        userintr_android.deviceinv,
+        userintr_android.devicecheck,
         "check_against_device_backup",
-        lambda _ip, _port, _xml, **_kw: (deviceinv.TaskerCheck({"Task": ["Test1"]}, {"Task": ["Test1"]}, {}), [clash], ""),
+        lambda _ip, _port, _xml, **_kw: (devicecheck.TaskerCheck({"Task": ["Test1"]}, {"Task": ["Test1"]}, {}), [clash], ""),
     )
 
     lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
@@ -2513,7 +2513,7 @@ async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
     assert lines == [
         "Tasker already has the Task 'Test1'.",
         "CONSEQUENCE",
-        *deviceinv.describe_id_findings([clash]),
+        *devicecheck.describe_id_findings([clash]),
     ]
     assert notes and "fresh backup" in notes[0]
 
@@ -2525,7 +2525,7 @@ async def test_a_backup_that_cannot_be_had_falls_back_to_asking_by_name(monkeypa
 
     _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": ["Test1"]}, {}))
     monkeypatch.setattr(
-        userintr_android.deviceinv,
+        userintr_android.devicecheck,
         "check_against_device_backup",
         lambda _ip, _port, _xml, **_kw: (None, [], "Tasker did not answer."),
     )
@@ -2633,11 +2633,11 @@ async def test_the_task_import_asks_before_replacing_the_file_it_writes(
     calls = _patch_task_file_path(monkeypatch, exists=True)
     imported = []
     monkeypatch.setattr(
-        userintr_android.taskedit,
+        userintr_android.taskedit_save,
         "save_task_to_android",
         lambda *args, **_kwargs: (imported.append(args[3]), (0, args[3]))[1],
     )
-    monkeypatch.setattr(userintr_android.deviceinv, "confirm_task_on_android", lambda *_args, **_kw: True)
+    monkeypatch.setattr(userintr_android.devicetask, "confirm_task_on_android", lambda *_args, **_kw: True)
     field_refs, android_refs = task_dialog_refs
 
     await event_handler.save_task_to_android_event(
@@ -2670,20 +2670,20 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
     tried twice and Tasker still does not report the Task, the .tsk.xml is in /Tasker/tasks
     regardless -- written and read back before either attempt -- so the user gets the same
     "Open with..." chooser the other three kinds get instead of only bad news."""
-    from maptasker.src import deviceinv, userintr
+    from maptasker.src import deviceoffer, userintr
 
     calls = _patch_task_file_path(monkeypatch)
-    monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3]))
-    monkeypatch.setattr(userintr_android.deviceinv, "confirm_task_on_android", lambda *_args, **_kw: False)
+    monkeypatch.setattr(userintr_android.taskedit_save, "save_task_to_android", lambda *args, **_kwargs: (0, args[3]))
+    monkeypatch.setattr(userintr_android.devicetask, "confirm_task_on_android", lambda *_args, **_kw: False)
     monkeypatch.setattr(
-        userintr_android.taskedit,
+        userintr_android.taskedit_save,
         "save_task_to_android_directory",
         lambda *_args, **_kwargs: (8, "Tasker did not report the Task"),
     )
-    monkeypatch.setattr(userintr_android.taskedit, "render_standalone_task_xml", lambda _task, **_kw: "<TaskerData/>")
+    monkeypatch.setattr(userintr_android.taskedit_save, "render_standalone_task_xml", lambda _task, **_kw: "<TaskerData/>")
     offered: list = []
     monkeypatch.setattr(
-        userintr_android.deviceinv,
+        userintr_android.deviceoffer,
         "offer_to_tasker",
         lambda *args, **kwargs: (offered.append((args, kwargs)), (0, "screen is open"))[1],
     )
@@ -2700,7 +2700,7 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
     assert len(offered) == 1
     args, kwargs = offered[0]
     assert args[1] == "Opener"  # staged as Opener.tsk.xml, its own name
-    assert kwargs["route"] is deviceinv.OPEN_TASK_ROUTE
+    assert kwargs["route"] is deviceoffer.OPEN_TASK_ROUTE
     # Any warning, not the first: every Save To Android / Import Into Tasker path now
     # opens with the "watch your device" heads-up (guiutils.notify_watch_android_device).
     handed = [message for message, kind in calls["notify"] if kind == "warning"]
@@ -2716,8 +2716,8 @@ async def test_the_task_import_says_where_the_copy_was_left(monkeypatch, event_h
     from maptasker.src import userintr
 
     calls = _patch_task_file_path(monkeypatch)
-    monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3]))
-    monkeypatch.setattr(userintr_android.deviceinv, "confirm_task_on_android", lambda *_args, **_kw: True)
+    monkeypatch.setattr(userintr_android.taskedit_save, "save_task_to_android", lambda *args, **_kwargs: (0, args[3]))
+    monkeypatch.setattr(userintr_android.devicetask, "confirm_task_on_android", lambda *_args, **_kw: True)
     field_refs, android_refs = task_dialog_refs
 
     await event_handler.save_task_to_android_event(
@@ -2943,7 +2943,7 @@ def _android_panel(event_handler, ip="192.168.0.210", port="1821") -> None:
 @pytest.mark.asyncio
 async def test_the_helper_task_listing_reports_what_the_device_has(monkeypatch, event_handler):
     """The two lists together are the whole answer: what to delete, and what to leave."""
-    from maptasker.src import deviceinv
+    from maptasker.src import devicehelpers
 
     calls = _patch_helper_task_listing(
         monkeypatch,
@@ -2953,7 +2953,7 @@ async def test_the_helper_task_listing_reports_what_the_device_has(monkeypatch, 
 
     await event_handler.list_helper_tasks_event()
 
-    assert calls["io_bound"][0][0] is deviceinv.stale_helper_tasks_on_device
+    assert calls["io_bound"][0][0] is devicehelpers.stale_helper_tasks_on_device
     assert calls["io_bound"][0][1] == ("192.168.0.210", "1821")
     assert calls["dialog"] == [(["MapTasker Open Profile v1"], ["MapTasker Open Profile v4"], "192.168.0.210:1821")]
     # The connection is remembered, the way every other successful Android call remembers it.

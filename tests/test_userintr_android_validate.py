@@ -117,7 +117,7 @@ async def test_a_listing_that_fails_shows_the_reason_and_returns_one(
 ) -> None:
     monkeypatch.setattr(userintr_android, "clear_android_buttons", lambda _gui: None)
     monkeypatch.setattr(userintr_android, "ui", SimpleNamespace(notify=lambda *_a, **_k: None))
-    monkeypatch.setattr(userintr_android.deviceinv, "get_list_of_files", lambda *_a, **_k: (1, "device not found"))
+    monkeypatch.setattr(userintr_android.devicefiles, "get_list_of_files", lambda *_a, **_k: (1, "device not found"))
 
     result = await userintr_android.validate_or_filelist_xml(gui, IP, PORT, "")
 
@@ -132,7 +132,7 @@ async def test_a_listing_that_works_mounts_the_picker_and_suspends_the_fetch(
     mounted: list[list] = []
     monkeypatch.setattr(userintr_android, "clear_android_buttons", lambda _gui: None)
     monkeypatch.setattr(userintr_android, "ui", SimpleNamespace(notify=lambda *_a, **_k: None))
-    monkeypatch.setattr(userintr_android.deviceinv, "get_list_of_files", lambda *_a, **_k: (0, ["a.xml", "b.xml"]))
+    monkeypatch.setattr(userintr_android.devicefiles, "get_list_of_files", lambda *_a, **_k: (0, ["a.xml", "b.xml"]))
     monkeypatch.setattr(userintr_android, "_mount_file_picker", lambda _gui, files: mounted.append(files))
 
     result = await userintr_android.validate_or_filelist_xml(gui, IP, PORT, "")

@@ -35,7 +35,7 @@ def escape_xml_text(text: str) -> str:
     reads in the xml file: '&lt;' and '&gt;' stay '&lt;' and '&gt;' rather than
     being handed back as the '<' and '>' the parser decoded them into.
     '&' is escaped first (and so must be unescaped last -- see
-    taskedit._unescape_bundle_text, which reverses this to rebuild the xml), or a
+    taskedit_addable._unescape_bundle_text, which reverses this to rebuild the xml), or a
     value holding a literal '&lt;' (from an '&amp;lt;' in the file, of which this
     backup has plenty) would be indistinguishable from an escaped '<'.
     Args:

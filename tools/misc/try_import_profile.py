@@ -87,7 +87,7 @@ def main() -> int:
     backup = sys.argv[2] if len(sys.argv) > 2 else os.path.join(REPO, "XML", "backup.xml")
     bootstrap(backup)
 
-    from maptasker.src import deviceinv, profedit, projedit, sceneedit, taskedit
+    from maptasker.src import deviceinv, profedit, projedit, sceneedit, taskedit_save
 
     if mode in ("build", "build-open", "build-intent", "build-open-project", "build-open-scene"):
         builder = {
@@ -101,7 +101,7 @@ def main() -> int:
         if isinstance(built, str):
             print(f"FAILED: {built}")
             return 1
-        print(taskedit.render_standalone_task_xml(built))
+        print(taskedit_save.render_standalone_task_xml(built))
         return 0
 
     profile_name = sys.argv[3] if len(sys.argv) > 3 else ""

@@ -22,7 +22,20 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
-from maptasker.src import objprops, profedit, projedit, sceneedit, sceneedit_legacy, scenelayout, sessundo, taskedit
+from maptasker.src import (
+    objprops,
+    profedit,
+    projedit,
+    sceneedit,
+    sceneedit_legacy,
+    scenelayout,
+    sessundo,
+    taskedit,
+    taskedit_addable,
+    taskedit_apply,
+    taskedit_model,
+    taskedit_save,
+)
 from maptasker.src.guiutils import (
     clear_single_item_view_names,
     display_current_file,
@@ -339,7 +352,7 @@ def _finish_new_scene(gui: MyGui, edited_scene: sceneedit.EditableScene, project
 
 def _task_arg_values(field_refs: dict) -> dict[str, str]:
     """Snapshots field_refs' action-argument widgets into the string-keyed dict
-    taskedit.apply_edits_to_task expects -- shared by every Task-editing entry
+    taskedit_apply.apply_edits_to_task expects -- shared by every Task-editing entry
     point (Save, Save To Android, Ok, and Add Task's own Save/Ok), which all
     read the same live NiceGUI widget values the same way.
     """
@@ -388,13 +401,13 @@ def _object_property_values(field_refs: dict) -> dict[str, str]:
 def _notify_if_plugin_needs_configuration(element: object, name: str) -> None:
     """Warns, as a just-added Action/Event/State goes in, that it is a third-party
     plugin whose own configuration can only be set inside Tasker -- see
-    taskedit.tasker_configuration_warning, which decides whether one is warranted
+    taskedit_addable.tasker_configuration_warning, which decides whether one is warranted
     (nothing is shown for anything that isn't a plugin). The item's own panel in
     the dialog carries the same warning standing (guiwins.
     _render_plugin_configuration_warning); this is the moment-of-adding nudge, so
     it isn't missed in a long action list.
     """
-    warning = taskedit.tasker_configuration_warning(element, name)
+    warning = taskedit_addable.tasker_configuration_warning(element, name)
     if warning:
         ui.notify(warning, type="warning", multi_line=True, timeout=8000)
 
@@ -455,7 +468,7 @@ def reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool,
     return True, ""
 
 
-def _apply_edited_task(edited_task: taskedit.EditableTask, field_refs: dict, state: RunState) -> bool:
+def _apply_edited_task(edited_task: taskedit_model.EditableTask, field_refs: dict, state: RunState) -> bool:
     """Validates and applies an existing Task's field values into the live
     in-memory backup -- the shared body of keep_edited_task_event ("Ok") and
     save_edited_task_to_current_file_event ("Save To Current File"), which
@@ -463,7 +476,7 @@ def _apply_edited_task(edited_task: taskedit.EditableTask, field_refs: dict, sta
     notified to the user; returns False so the caller knows to stop there.
     """
     arg_values = _task_arg_values(field_refs)
-    errors = taskedit.apply_edits_to_task(
+    errors = taskedit_apply.apply_edits_to_task(
         edited_task,
         field_refs["name"].value,
         field_refs["priority"].value,
@@ -474,12 +487,12 @@ def _apply_edited_task(edited_task: taskedit.EditableTask, field_refs: dict, sta
         for error in errors:
             ui.notify(error, type="negative")
         return False
-    taskedit.apply_edited_task_to_live_tree(edited_task, state=state)
+    taskedit_save.apply_edited_task_to_live_tree(edited_task, state=state)
     return True
 
 
 def _validate_and_apply_new_task(
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     field_refs: dict,
     state: RunState,
     *,
@@ -501,7 +514,7 @@ def _validate_and_apply_new_task(
         conflict_errors.append(f"A Task named '{name_value}' already exists in this backup. Choose a different name.")
     if check_save_path:
         save_path = field_refs["save_path"].value.strip()
-        if taskedit.save_path_exists(save_path):
+        if taskedit_save.save_path_exists(save_path):
             conflict_errors.append(f"A file already exists at '{save_path}'. Choose a different name or location.")
     if conflict_errors:
         for error in conflict_errors:
@@ -509,7 +522,9 @@ def _validate_and_apply_new_task(
         return False, ""
 
     arg_values = _task_arg_values(field_refs)
-    errors = taskedit.apply_edits_to_task(edited_task, name_value, field_refs["priority"].value, arg_values, state)
+    errors = taskedit_apply.apply_edits_to_task(
+        edited_task, name_value, field_refs["priority"].value, arg_values, state
+    )
     if errors:
         for error in errors:
             ui.notify(error, type="negative")
@@ -520,7 +535,7 @@ def _validate_and_apply_new_task(
 
 def _finish_new_task(
     gui: MyGui,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     name_value: str,
     on_created: Callable[[str], None] | None,
     field_refs: dict | None = None,
@@ -542,7 +557,7 @@ def _finish_new_task(
     # links it to, and attaching it to its Project are one thing the user did.  undoable is
     # re-entrant, so the mutators' own blocks inside this one add nothing to the history.
     with sessundo.undoable(f"Add Task '{name_value}'", state=gui.state):
-        taskedit.register_new_task(edited_task, name_value, state=gui.state)
+        taskedit_save.register_new_task(edited_task, name_value, state=gui.state)
         if on_created is not None:
             on_created(edited_task.task_id)
         if target_project_name:
@@ -850,7 +865,7 @@ class EditorEventHandlers:
 
     def rename_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         title_label: ui.label,
     ) -> None:
@@ -874,7 +889,7 @@ class EditorEventHandlers:
 
     def confirm_rename_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         title_label: ui.label,
         new_name: str,
@@ -916,13 +931,15 @@ class EditorEventHandlers:
         # defaulted to for the old name -- a path the user typed themselves is
         # their choice and shouldn't be silently rewritten by a rename.
         save_path_field = field_refs.get("save_path")
-        if save_path_field is not None and save_path_field.value == taskedit.default_save_path(old_name, self.state):
-            save_path_field.value = taskedit.default_save_path(new_name, self.state)
+        if save_path_field is not None and save_path_field.value == taskedit_save.default_save_path(
+            old_name, self.state
+        ):
+            save_path_field.value = taskedit_save.default_save_path(new_name, self.state)
 
         ui.notify(f"Renamed to '{new_name}'.", type="positive")
         rename_dialog.close()
 
-    def delete_task_event(self, edited_task: taskedit.EditableTask, dialog: ui.dialog) -> None:
+    def delete_task_event(self, edited_task: taskedit_model.EditableTask, dialog: ui.dialog) -> None:
         """Opens the Delete Task confirmation dialog, nested inside Edit Task --
         see build_delete_task_dialog. Mirrors delete_profile_event/delete_project_event.
         """
@@ -935,7 +952,7 @@ class EditorEventHandlers:
         parent_dialog: ui.dialog,
     ) -> None:
         """Deletes the Task, along with every reference to it from the Projects
-        that own it and the Profiles that run it (see taskedit.delete_task) --
+        that own it and the Profiles that run it (see taskedit_save.delete_task) --
         then refreshes the pulldowns, resets the now-stale single-name selection,
         and closes both dialogs. Backs the confirmation dialog's "Delete Task"
         button; mirrors confirm_delete_profile_event. Both dialogs stay open on
@@ -945,7 +962,7 @@ class EditorEventHandlers:
         pointing at the name just deleted, and leaving it there would let Edit
         Task reopen on a Task that no longer resolves.
         """
-        errors = taskedit.delete_task(task_name, state=self.state)
+        errors = taskedit_save.delete_task(task_name, state=self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -960,7 +977,7 @@ class EditorEventHandlers:
 
     def save_edited_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         dialog: ui.dialog,
     ) -> None:
@@ -970,7 +987,7 @@ class EditorEventHandlers:
         """
         arg_values = _task_arg_values(field_refs)
 
-        errors = taskedit.apply_edits_to_task(
+        errors = taskedit_apply.apply_edits_to_task(
             edited_task,
             field_refs["name"].value,
             field_refs["priority"].value,
@@ -987,14 +1004,14 @@ class EditorEventHandlers:
 
         def _write() -> None:
             try:
-                safety_copy = taskedit.write_standalone_task_xml(
+                safety_copy = taskedit_save.write_standalone_task_xml(
                     edited_task, save_path, redact=redact, state=self.state
                 )
             except OSError as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
 
-            taskedit.apply_edited_task_to_live_tree(edited_task, state=self.state)
+            taskedit_save.apply_edited_task_to_live_tree(edited_task, state=self.state)
 
             # The write took a copy of anything already at that path (see presave);
             # say so, so the user knows where it went.
@@ -1004,14 +1021,14 @@ class EditorEventHandlers:
 
         # Unlike Add Task's Save, this export had no up-front save_path_exists
         # check (see _validate_and_apply_new_task) -- confirm rather than clobber.
-        if taskedit.save_path_exists(save_path):
+        if taskedit_save.save_path_exists(save_path):
             build_overwrite_confirm_dialog(f"'{save_path}'", _write)
             return
         _write()
 
     def stash_scene_event_task_edits(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
     ) -> None:
         """Snapshot an Event tab's argument and label widgets into the Task copy they belong
@@ -1028,7 +1045,7 @@ class EditorEventHandlers:
         be noise, and the same validation runs again -- and does report -- when the edits are
         actually applied.
         """
-        taskedit.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs), self.state)
+        taskedit_apply.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs), self.state)
 
     def keep_scene_event_task_edits(
         self,
@@ -1063,13 +1080,13 @@ class EditorEventHandlers:
         kept = True
         for edited_task, field_refs in bound_tasks.values():
             arg_values = _task_arg_values(field_refs)
-            errors = taskedit.apply_action_edits_to_task(edited_task, arg_values, self.state)
+            errors = taskedit_apply.apply_action_edits_to_task(edited_task, arg_values, self.state)
             if errors:
                 for error in errors:
                     ui.notify(error, type="negative")
                 kept = False
                 continue
-            taskedit.apply_edited_task_to_live_tree(edited_task, state=self.state)
+            taskedit_save.apply_edited_task_to_live_tree(edited_task, state=self.state)
 
         for tag, (edited_task, field_refs) in list(pending_tasks.items()):
             if not edited_task.actions:
@@ -1125,7 +1142,7 @@ class EditorEventHandlers:
 
     def create_scene_event_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         on_created: Callable[[str], None],
     ) -> bool:
@@ -1150,7 +1167,7 @@ class EditorEventHandlers:
 
     def apply_scene_key_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
     ) -> None:
         """Applies the Scene Properties KEY tab's Task action edits into the live
@@ -1164,18 +1181,18 @@ class EditorEventHandlers:
         Properties dialog is still being used and the Scene's own edits are still
         pending in it.
         """
-        errors = taskedit.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs), self.state)
+        errors = taskedit_apply.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs), self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
             return
-        taskedit.apply_edited_task_to_live_tree(edited_task, state=self.state)
+        taskedit_save.apply_edited_task_to_live_tree(edited_task, state=self.state)
         task_name = edited_task.task_element.findtext("nme", "") or edited_task.task_id
         ui.notify(f"{translate_string('Changes kept for Task')} '{task_name}'.", type="positive")
 
     def keep_edited_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         dialog: ui.dialog,
     ) -> None:
@@ -1192,7 +1209,7 @@ class EditorEventHandlers:
 
     async def save_edited_task_to_current_file_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         dialog: ui.dialog,
     ) -> None:
@@ -1234,7 +1251,7 @@ class EditorEventHandlers:
 
     def _keep_task_in_loaded_config(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         task_name: str,
         is_new_task: bool,
         on_created: Callable[[str], None] | None,
@@ -1247,11 +1264,11 @@ class EditorEventHandlers:
         one path and not the other would show up in the Edit Task picker only sometimes.
         """
         if is_new_task:
-            taskedit.register_new_task(edited_task, task_name, state=self.state)
+            taskedit_save.register_new_task(edited_task, task_name, state=self.state)
             if on_created is not None:
                 on_created(edited_task.task_id)
         else:
-            taskedit.apply_edited_task_to_live_tree(edited_task, state=self.state)
+            taskedit_save.apply_edited_task_to_live_tree(edited_task, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
 
     def open_add_project_dialog_event(self) -> None:
@@ -2553,7 +2570,7 @@ class EditorEventHandlers:
 
     def add_action_to_new_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         action_key: str,
         position: int | None = None,
     ) -> int | None:
@@ -2575,7 +2592,7 @@ class EditorEventHandlers:
 
     def add_if_block_to_new_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         variant: str,
         position: int | None = None,
     ) -> int | None:
@@ -2594,17 +2611,17 @@ class EditorEventHandlers:
             return None
         return result.act_number
 
-    def remove_action_from_new_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
+    def remove_action_from_new_task_event(self, edited_task: taskedit_model.EditableTask, act_number: int) -> None:
         """Removes an action from the in-progress new Task and renumbers the rest."""
         taskedit.remove_action_from_task(edited_task, act_number)
 
-    def delete_action_in_edit_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
+    def delete_action_in_edit_task_event(self, edited_task: taskedit_model.EditableTask, act_number: int) -> None:
         """Removes an action from an existing Task being edited and renumbers the rest."""
         taskedit.remove_action_from_task(edited_task, act_number)
 
     def add_action_to_edit_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         action_key: str,
         position: int | None,
     ) -> int | None:
@@ -2626,7 +2643,7 @@ class EditorEventHandlers:
 
     def add_if_block_to_edit_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         variant: str,
         position: int | None,
     ) -> int | None:
@@ -2645,13 +2662,13 @@ class EditorEventHandlers:
             return None
         return result.act_number
 
-    def copy_action_in_edit_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
+    def copy_action_in_edit_task_event(self, edited_task: taskedit_model.EditableTask, act_number: int) -> None:
         """Duplicates an action (inserted right after the original) in a Task being edited."""
         taskedit.copy_action_in_task(edited_task, act_number, state=self.state)
 
     def move_action_in_edit_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         act_number: int,
         new_position: int,
     ) -> None:
@@ -2660,7 +2677,7 @@ class EditorEventHandlers:
 
     def set_action_enabled_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         act_number: int,
         enabled: bool,
     ) -> None:
@@ -2669,7 +2686,7 @@ class EditorEventHandlers:
 
     def set_action_continue_after_error_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         act_number: int,
         continue_after_error: bool,
     ) -> None:
@@ -2681,7 +2698,7 @@ class EditorEventHandlers:
 
     def set_action_condition_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         act_number: int,
         target_input: ui.input,
         operator_select: ui.select,
@@ -2697,7 +2714,7 @@ class EditorEventHandlers:
         target = target_input.value or ""
         operator_label = operator_select.value or ""
         value = value_input.value or ""
-        errors = taskedit.set_action_condition(edited_task, act_number, target, operator_label, value)
+        errors = taskedit_apply.set_action_condition(edited_task, act_number, target, operator_label, value)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -2707,15 +2724,15 @@ class EditorEventHandlers:
         ui.notify(translate_string("If condition set."), type="positive")
         condition_dialog.close()
 
-    def remove_action_condition_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
+    def remove_action_condition_event(self, edited_task: taskedit_model.EditableTask, act_number: int) -> None:
         """Removes an action's per-action If condition -- backs unchecking the
         "If" checkbox (idempotent; a no-op if the action has none).
         """
-        taskedit.remove_action_condition(edited_task, act_number)
+        taskedit_apply.remove_action_condition(edited_task, act_number)
 
     def save_new_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
@@ -2733,7 +2750,7 @@ class EditorEventHandlers:
 
         save_path = field_refs["save_path"].value.strip()
         try:
-            safety_copy = taskedit.write_standalone_task_xml(edited_task, save_path, state=self.state)
+            safety_copy = taskedit_save.write_standalone_task_xml(edited_task, save_path, state=self.state)
         except OSError as e:
             ui.notify(f"Could not save file: {e}", type="negative")
             return
@@ -2748,7 +2765,7 @@ class EditorEventHandlers:
 
     def keep_new_task_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
@@ -2779,7 +2796,7 @@ class EditorEventHandlers:
 
     async def save_new_task_to_current_file_event(
         self,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,

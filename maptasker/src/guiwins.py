@@ -49,7 +49,7 @@ from maptasker.src import (
     scenelayout,
     scenemodel,
     sessundo,
-    taskedit,
+    taskedit_model,
     timeline,
     webassets,
 )
@@ -417,7 +417,7 @@ def _create_refactor_button(self: MyGui) -> None:
 
     NOT one of the per-kind Edit/Add pairs, and so not hidden with them: one dialog covers
     Projects, Profiles, Tasks and Scenes together, and which of them is selected decides
-    only what Extract offers (see maprefac.extract_scope), never whether the button works.
+    only what Extract offers (see maprefac_model.extract_scope), never whether the button works.
     """
     self.refactor_button = ui.button(
         translate_string("Refactor"),
@@ -641,7 +641,7 @@ def build_round_trip_report_dialog(report: roundtrip.RoundTripReport) -> None:
 
 def build_save_to_android_dialog(
     self: MyGui,
-    edited_task: taskedit.EditableTask,
+    edited_task: taskedit_model.EditableTask,
     field_refs: dict,
     parent_dialog: ui.dialog,
     on_created: Callable[[str], None] | None = None,
@@ -649,8 +649,8 @@ def build_save_to_android_dialog(
     """Prompts for the Android device's IP address and port, then either writes the
     current Task (name/priority/args as they stand in the parent dialog's fields)
     onto the device's storage under /Tasker/tasks as a standalone .tsk.xml file --
-    see taskedit.save_task_to_android_file -- or imports it directly into Tasker via
-    the HTTP API's POST /api/import -- see taskedit.save_task_to_android.  The same
+    see taskedit_save.save_task_to_android_file -- or imports it directly into Tasker via
+    the HTTP API's POST /api/import -- see taskedit_save.save_task_to_android.  The same
     two-button shape build_save_profile_to_android_dialog has, for the same reason.
     On success both this prompt and the parent (Edit/Add Task) dialog are closed.
 
@@ -1943,7 +1943,7 @@ def build_helper_tasks_dialog(stale: list[str], current: list[str], device: str)
 
     Why there are any: a helper's name carries a version because its BODY changes between
     releases and Tasker's api/import adds rather than replaces (see
-    deviceinv._install_task_on_android), so the previous one is left behind, running fine and
+    devicetask.install_task_on_android), so the previous one is left behind, running fine and
     doing the wrong thing if it were ever used.  Nothing breaks while they sit there; they
     are clutter in a list the user owns.
 
@@ -1990,7 +1990,7 @@ def build_helpers_in_the_way_dialog(present: list[str], device: str, project_exi
     """Names the helper Tasks that must be deleted before the 'MapTasker' Project can be imported.
 
     Tasker rejects a whole Project with 'Import failed.' if it already has any Task in it (see
-    deviceinv.stage_helper_project), so the file is not even written until these are gone.
+    devicehelpers.stage_helper_project), so the file is not even written until these are gone.
 
     project_exists says whether Tasker already has the 'MapTasker' Project, which changes what
     the user actually does: deleting that one Project takes the Tasks in it with it.  None means

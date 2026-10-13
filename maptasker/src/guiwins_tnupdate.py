@@ -42,7 +42,7 @@ from typing import TYPE_CHECKING, Literal
 
 from nicegui import context, run, ui
 
-from maptasker.src import diffload, maprefac, maprestore, tnupdate
+from maptasker.src import diffload, maprefac_model, maprestore, tnupdate
 from maptasker.src.guiwins_restore import draw_preview, draw_row, tip
 from maptasker.src.guiwins_tnfind import build_find_dialog
 from maptasker.src.maputil2 import translate_string
@@ -112,7 +112,7 @@ class _Held:
     """What the dialog is holding: the review on screen, the plan on screen, and what has been taken."""
 
     review: tnupdate.Review | None = None
-    plan: maprefac.Plan | None = None
+    plan: maprefac_model.Plan | None = None
     previewed: maprestore.Candidate | None = None
     applied: dict[tuple[str, str, str], maprestore.Candidate] = field(default_factory=dict)
     busy: bool = False

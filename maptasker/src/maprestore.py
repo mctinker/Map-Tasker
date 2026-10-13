@@ -19,7 +19,7 @@
 # PrimeItems.tasker_root_elements and nothing else, no GUI import, identity from mapjump. #
 # And it IS maprefac, in the part that matters: a restore is one change made of steps     #
 # that are meaningless apart (put the Task back, and put it back in its Project), so it   #
-# is planned as a maprefac.Plan, previewed through maprefac.report_rows, and applied by   #
+# is planned as a maprefac_model.Plan, previewed through maprefac.report_rows, and applied by   #
 # maprefac.apply -- nothing applied unseen, blocks refused twice, attachment re-checked,  #
 # and the whole restore one press of Undo.  A second copy of that machinery here is how   #
 # the two would come to disagree about what "safe to apply" means.                        #
@@ -41,7 +41,7 @@
 # without it, which is the same problem Duplicate solves: its id may have been handed to  #
 # something else since, and its name certainly may have.  So the answers are Duplicate's: #
 # the id space is Tasks' and Profiles' together (taskedit.next_unique_task_or_profile_id), #
-# and a name already taken gets maprefac.unique_name's treatment rather than a second     #
+# and a name already taken gets maprefac_duplicate.unique_name's treatment rather than a second     #
 # owner -- two Tasks sharing a name is a finding the Health Check exists to report.  The  #
 # one difference is that a restore KEEPS the old id when it is free, where a copy never   #
 # does: that id is the one Tasker on the device last knew the object by.                  #
@@ -63,7 +63,17 @@ import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- only for its Element
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src import maprefac, profedit, projedit, taskedit, xmldiff
+from maptasker.src import (
+    maprefac,
+    maprefac_duplicate,
+    maprefac_model,
+    profedit,
+    projedit,
+    taskedit,
+    taskedit_model,
+    taskedit_save,
+    xmldiff,
+)
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Target
 
@@ -83,7 +93,7 @@ if TYPE_CHECKING:
 BRING_BACK = "bring back"
 REVERT = "revert"
 
-# maprefac.Plan.kind for every plan built here.  maprefac's own four are what its dialog
+# maprefac_model.Plan.kind for every plan built here.  maprefac's own four are what its dialog
 # switches on; this is a fifth that only this module and its dialog ever see.
 RESTORE = "restore"
 
@@ -109,8 +119,8 @@ _TASK_LINKS = (("mid0", "Entry"), ("mid1", "Exit"))
 # "Perform Task" -- arg0 is the Task's NAME.  The one by-name reference to a Task, and so
 # the one a restore under a different name, or a revert to an older name, changes the
 # meaning of.
-_PERFORM_TASK_CODE = taskedit.PERFORM_TASK_ACTION_CODE
-_PERFORM_TASK_NAME_ARG = f"arg{taskedit.PERFORM_TASK_NAME_ARG_ID}"
+_PERFORM_TASK_CODE = taskedit_model.PERFORM_TASK_ACTION_CODE
+_PERFORM_TASK_NAME_ARG = f"arg{taskedit_model.PERFORM_TASK_NAME_ARG_ID}"
 
 # The word unique_name puts in brackets after a name something else has taken since.
 _RESTORED_SUFFIX = "restored"
@@ -507,8 +517,8 @@ def _resolve_links(older: Configuration, old_profile: Element, state: RunState) 
 # ##################################################################################
 
 
-def plan_restore(candidate: Candidate, older: Configuration, from_when: str, state: RunState) -> maprefac.Plan:
-    """The maprefac.Plan for one candidate: what it would do, or why it will not.
+def plan_restore(candidate: Candidate, older: Configuration, from_when: str, state: RunState) -> maprefac_model.Plan:
+    """The maprefac_model.Plan for one candidate: what it would do, or why it will not.
 
     `from_when` is how the snapshot names itself in prose ("backup.xml, 15-Sep-2026
     14:29:18") -- the heading says where the old version comes from, because "restore
@@ -520,19 +530,21 @@ def plan_restore(candidate: Candidate, older: Configuration, from_when: str, sta
     moment.  maprefac.apply re-checks the elements this closes over for the same reason.
     """
     if candidate.kind not in _KINDS:
-        return maprefac.Plan(
+        return maprefac_model.Plan(
             kind=RESTORE,
             what=f"Restore {candidate.where}",
-            blocks=[maprefac.Block("NOT-RESTORABLE", f"A {candidate.kind} cannot be restored from the history.")],
+            blocks=[maprefac_model.Block("NOT-RESTORABLE", f"A {candidate.kind} cannot be restored from the history.")],
         )
 
     table, _, _ = _KINDS[candidate.kind]
     old_entry = _old_table(older, table).get(candidate.key)
     if old_entry is None:
-        return maprefac.Plan(
+        return maprefac_model.Plan(
             kind=RESTORE,
             what=f"Restore {candidate.where}",
-            blocks=[maprefac.Block("NOT-IN-SNAPSHOT", "That object is not in the configuration history being read.")],
+            blocks=[
+                maprefac_model.Block("NOT-IN-SNAPSHOT", "That object is not in the configuration history being read.")
+            ],
         )
 
     if candidate.action == BRING_BACK:
@@ -546,7 +558,7 @@ def _restored_name(kind: str, wanted: str, state: RunState) -> tuple[str, str]:
     """(the name it can have, the warning if that is not the one it had).
 
     Duplicate's answer to a name somebody else holds: keep the name when it is free, and
-    give it maprefac.unique_name's '(restored)' variant when it is not -- never a second
+    give it maprefac_duplicate.unique_name's '(restored)' variant when it is not -- never a second
     object answering to the same name.
     """
     if not wanted:
@@ -558,7 +570,7 @@ def _restored_name(kind: str, wanted: str, state: RunState) -> tuple[str, str]:
     )
     if wanted not in taken:
         return wanted, ""
-    new_name = maprefac.unique_name(wanted, taken, _RESTORED_SUFFIX)
+    new_name = maprefac_duplicate.unique_name(wanted, taken, _RESTORED_SUFFIX)
     warning = f"Another {kind} is called '{wanted}' now, so this one comes back as '{new_name}'."
     if kind == "Task":
         warning += "  Every Perform Task that calls it by name still reaches the other one."
@@ -621,10 +633,10 @@ def _project_elements(projects: list[str], state: RunState) -> tuple:
     )
 
 
-def _project_steps(kind: str, projects: list[str]) -> list[maprefac.Step]:
+def _project_steps(kind: str, projects: list[str]) -> list[maprefac_model.Step]:
     """One step per Project the restored object goes back into, each a link to that Project."""
     return [
-        maprefac.Step(f"Add the {kind} back to Project '{name}'", Target(kind=PROJECT, key=name, name=name))
+        maprefac_model.Step(f"Add the {kind} back to Project '{name}'", Target(kind=PROJECT, key=name, name=name))
         for name in projects
     ]
 
@@ -635,7 +647,7 @@ def _plan_bring_back_task(
     old_entry: dict,
     from_when: str,
     state: RunState,
-) -> maprefac.Plan:
+) -> maprefac_model.Plan:
     """Put a deleted Task back, as it stood in the snapshot, in the Projects that held it."""
     old_element = old_entry["xml"]
     old_name = _text(old_element, "nme")
@@ -645,14 +657,14 @@ def _plan_bring_back_task(
     shown = new_name or table_name
     projects, project_warnings = _owners_for(older, candidate, state=state)
 
-    plan = maprefac.Plan(
+    plan = maprefac_model.Plan(
         kind=RESTORE,
         what=f"Bring back Task '{table_name}' from {from_when}",
         elements=_project_elements(projects, state=state),
     )
     plan.steps = [
-        maprefac.Step(f"Bring back Task '{shown}' with its {len(old_element.findall('Action'))} actions"),
-        *([maprefac.Step(id_step)] if id_step else []),
+        maprefac_model.Step(f"Bring back Task '{shown}' with its {len(old_element.findall('Action'))} actions"),
+        *([maprefac_model.Step(id_step)] if id_step else []),
         *_project_steps("Task", projects),
     ]
     plan.warnings = [w for w in (name_warning, *project_warnings) if w]
@@ -682,8 +694,8 @@ def _plan_bring_back_task(
         _set_child_text(element, "id", new_id)
         if new_name != old_name:
             _set_child_text(element, "nme", new_name)
-        taskedit.register_new_task(
-            taskedit.EditableTask(task_id=new_id, task_element=element), new_name or table_name, state=state
+        taskedit_save.register_new_task(
+            taskedit_model.EditableTask(task_id=new_id, task_element=element), new_name or table_name, state=state
         )
         _into_projects("tids", new_id, projects, state=state)
         return []
@@ -698,7 +710,7 @@ def _plan_bring_back_profile(
     old_entry: dict,
     from_when: str,
     state: RunState,
-) -> maprefac.Plan:
+) -> maprefac_model.Plan:
     """Put a deleted Profile back, with whichever of its Tasks are still here to run."""
     old_element = old_entry["xml"]
     old_name = _text(old_element, "nme")
@@ -708,15 +720,15 @@ def _plan_bring_back_profile(
     links = _resolve_links(older, old_element, state=state)
     projects, project_warnings = _owners_for(older, candidate, state=state)
 
-    plan = maprefac.Plan(
+    plan = maprefac_model.Plan(
         kind=RESTORE,
         what=f"Bring back Profile '{table_name}' from {from_when}",
         elements=_project_elements(projects, state=state),
     )
     plan.steps = [
-        maprefac.Step(f"Bring back Profile '{new_name or table_name}' with the conditions it had"),
-        *([maprefac.Step(id_step)] if id_step else []),
-        *(maprefac.Step(step) for step in links.steps),
+        maprefac_model.Step(f"Bring back Profile '{new_name or table_name}' with the conditions it had"),
+        *([maprefac_model.Step(id_step)] if id_step else []),
+        *(maprefac_model.Step(step) for step in links.steps),
         *_project_steps("Profile", projects),
     ]
     plan.warnings = [w for w in (name_warning, *links.warnings, *project_warnings) if w]
@@ -754,7 +766,7 @@ def _plan_bring_back_scene(
     old_entry: dict,
     from_when: str,
     state: RunState,
-) -> maprefac.Plan:
+) -> maprefac_model.Plan:
     """Put a deleted Scene back, under its own name or not at all.
 
     NOT renamed when its name is taken, unlike a Task or a Profile.  A Scene has no id: its
@@ -766,11 +778,11 @@ def _plan_bring_back_scene(
     scene_name = candidate.key
     what = f"Bring back Scene '{scene_name}' from {from_when}"
     if scene_name in _live_table("all_scenes", state=state):
-        return maprefac.Plan(
+        return maprefac_model.Plan(
             kind=RESTORE,
             what=what,
             blocks=[
-                maprefac.Block(
+                maprefac_model.Block(
                     "NAME-TAKEN",
                     f"A Scene called '{scene_name}' is in the configuration now.  A Scene is known by its name "
                     f"alone, so this one cannot come back beside it under another -- nothing would ever show "
@@ -784,9 +796,9 @@ def _plan_bring_back_scene(
     projects, project_warnings = _owners_for(older, candidate, state=state)
     missing = _missing_scene_tasks(old_element, state=state)
 
-    plan = maprefac.Plan(kind=RESTORE, what=what, elements=_project_elements(projects, state=state))
+    plan = maprefac_model.Plan(kind=RESTORE, what=what, elements=_project_elements(projects, state=state))
     plan.steps = [
-        maprefac.Step(f"Bring back Scene '{scene_name}' with its elements"),
+        maprefac_model.Step(f"Bring back Scene '{scene_name}' with its elements"),
         *_project_steps("Scene", projects),
     ]
     plan.warnings = list(project_warnings)
@@ -828,7 +840,7 @@ def _plan_revert_named(
     old_entry: dict,
     from_when: str,
     state: RunState,
-) -> maprefac.Plan:
+) -> maprefac_model.Plan:
     """Put a Task or a Profile back as it stood in the snapshot, in place, under its own id."""
     kind = candidate.kind
     table, _, _ = _KINDS[kind]
@@ -838,11 +850,11 @@ def _plan_revert_named(
     what = f"Put {kind} '{current_name}' back as it was on {from_when}"
 
     if live_entry is None:
-        return maprefac.Plan(
+        return maprefac_model.Plan(
             kind=RESTORE,
             what=what,
             blocks=[
-                maprefac.Block(
+                maprefac_model.Block(
                     "NOT-HERE",
                     f"That {kind} is no longer in the configuration -- it was deleted after this list was made.  "
                     f"Scan again and it will be offered to bring back instead.",
@@ -860,13 +872,13 @@ def _plan_revert_named(
     keep_current_name = bool(old_name) and old_name != live_own_name and holder not in (None, candidate.key)
     final_name = live_own_name if keep_current_name else old_name
 
-    plan = maprefac.Plan(kind=RESTORE, what=what, elements=(live_element,))
+    plan = maprefac_model.Plan(kind=RESTORE, what=what, elements=(live_element,))
     plan.steps = [
-        maprefac.Step(
+        maprefac_model.Step(
             f"Put everything about {kind} '{current_name}' back as it stood then",
             _live_target(kind, candidate.key, state=state),
         ),
-        *(maprefac.Step(f"    {detail}") for detail in candidate.details),
+        *(maprefac_model.Step(f"    {detail}") for detail in candidate.details),
     ]
     plan.warnings = [_UNDONE_WHOLE]
     if keep_current_name:
@@ -884,7 +896,7 @@ def _plan_revert_named(
 
     links = _resolve_links(older, old_element, state=state) if kind == "Profile" else None
     if links is not None:
-        plan.steps.extend(maprefac.Step(step) for step in links.steps)
+        plan.steps.extend(maprefac_model.Step(step) for step in links.steps)
         plan.warnings.extend(links.warnings)
 
     def run() -> list[str]:
@@ -928,7 +940,7 @@ def _plan_revert_scene(
     old_entry: dict,
     from_when: str,
     state: RunState,
-) -> maprefac.Plan:
+) -> maprefac_model.Plan:
     """Put a Scene back as it stood in the snapshot, in place.
 
     Never a rename: xmldiff matches Scenes by name, so a Scene on both sides has the same one
@@ -937,11 +949,11 @@ def _plan_revert_scene(
     live_entry = _live_table("all_scenes", state=state).get(candidate.key)
     what = f"Put Scene '{candidate.key}' back as it was on {from_when}"
     if live_entry is None:
-        return maprefac.Plan(
+        return maprefac_model.Plan(
             kind=RESTORE,
             what=what,
             blocks=[
-                maprefac.Block(
+                maprefac_model.Block(
                     "NOT-HERE",
                     "That Scene is no longer in the configuration -- it was deleted after this list was made.  "
                     "Scan again and it will be offered to bring back instead.",
@@ -951,13 +963,13 @@ def _plan_revert_scene(
 
     live_element = live_entry["xml"]
     old_element = old_entry["xml"]
-    plan = maprefac.Plan(kind=RESTORE, what=what, elements=(live_element,))
+    plan = maprefac_model.Plan(kind=RESTORE, what=what, elements=(live_element,))
     plan.steps = [
-        maprefac.Step(
+        maprefac_model.Step(
             f"Put every element of Scene '{candidate.key}' back as it stood then",
             _live_target("Scene", candidate.key, state=state),
         ),
-        *(maprefac.Step(f"    {detail}") for detail in candidate.details),
+        *(maprefac_model.Step(f"    {detail}") for detail in candidate.details),
     ]
     plan.warnings = [_UNDONE_WHOLE]
     missing = _missing_scene_tasks(old_element, state=state)
@@ -974,7 +986,7 @@ def _plan_revert_scene(
     return plan
 
 
-def restore(plan: maprefac.Plan, state: RunState) -> tuple[bool, list[str]]:
+def restore(plan: maprefac_model.Plan, state: RunState) -> tuple[bool, list[str]]:
     """Apply a restore.  maprefac.apply, under this module's name so the dialog reads right.
 
     Everything that makes apply() safe is maprefac's -- the blocks refused again, every

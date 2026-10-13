@@ -219,7 +219,7 @@ def _warn_if_on_event_loop(url: str) -> None:
     Log a request to the Android device that is about to be made on the GUI's event loop.
 
     Every request in this section blocks until the device answers or its timeout runs out,
-    and much of what is built on them (deviceinv's polling, read_back_uploaded_file) blocks
+    and much of what is built on them (devicetask's polling, read_back_uploaded_file) blocks
     for many seconds more.  nicegui runs the whole window on one event loop, so a request
     made there freezes every button, tab and notification until it returns.  The GUI hands
     them to run.io_bound, whose worker threads have no running event loop, and the command
@@ -274,7 +274,7 @@ _NAME_FILTER_UNSENDABLE = frozenset(".~")
 # different pattern from the name itself -- '$Taskaroo' asks for text after the end of the text,
 # which nothing is -- so the device answers that a Task it plainly has does not exist.  Reading the
 # whole list is no way round it: GET api/tasks builds that list by putting every name through the
-# same test and leaving out the ones that fail.  Only the object-list helper Task (deviceinv's
+# same test and leaving out the ones that fail.  Only the object-list helper Task (devicetask's
 # fetch_tasker_object_names, which uses Tasker's own 'Test Tasker') reports such a name.  '.' is
 # the one metacharacter left out here: it matches itself as well as anything else.
 _NAME_REGEX_SPECIALS = frozenset("\\^$|?*+()[]{}")
@@ -526,7 +526,7 @@ def read_back_uploaded_file(
 # real device, a single retry was always enough, so 3 attempts leaves margin without
 # making a genuinely-unreachable device wait long.  Without this, every save-to-Android
 # was a coin flip that failed before the import was ever attempted -- which is why the
-# import-level fallbacks (taskedit.save_task_to_android_directory and friends) could
+# import-level fallbacks (taskedit_save.save_task_to_android_directory and friends) could
 # never help: there was no request to retry, only a key that was never obtained.
 AUTH_KEY_MAX_ATTEMPTS = 3
 AUTH_KEY_RETRY_SECONDS = 0.5
@@ -702,10 +702,10 @@ def http_post_request(
         :param content_type: value for the 'Content-Type' header, when the endpoint cares
         what it is being sent.  api/import takes Task XML and has never needed one, but
         api/tasks takes a JSON task object and is entitled to be told so -- see
-        deviceinv.run_task_on_android, the one caller that passes this.  Left empty, no
+        devicetask.run_task_on_android, the one caller that passes this.  Left empty, no
         Content-Type header is sent at all, exactly as before.
         :param timeout: seconds to wait for the answer.  api/tasks answers only once the Task
-        it runs has finished, so a Task run for its result (deviceinv.run_task_for_result)
+        it runs has finished, so a Task run for its result (devicetask.run_task_for_result)
         waits longer than a write does.
         :return: return code, response: either a text string with an error message or
         the contents of the response
@@ -732,7 +732,7 @@ def http_post_request(
     if response.status_code == 401:
         # Distinct code (not the generic 8) so callers holding a cached auth_key
         # can tell "key was rejected" apart from other failures and retry with a
-        # freshly-fetched key (see taskedit.save_task_to_android).
+        # freshly-fetched key (see taskedit_save.save_task_to_android).
         return 9, "Android device rejected the API key (401 Unauthorized)."
 
     if response.status_code == 404:
@@ -942,7 +942,7 @@ def attached_elements(state: RunState) -> set[int]:
       added this session detached, and a replace or a refactor touching one refuses to run
       on a Task that is plainly there.
 
-      A deleted object is IN THE TREE AND NOT IN THE TABLES.  taskedit.delete_task drops
+      A deleted object is IN THE TREE AND NOT IN THE TABLES.  taskedit_save.delete_task drops
       it from the tables and leaves the tree's own child alone, because a save is what
       reaches the file and a save is driven by the tables -- so walking the tree alone (or
       the two together) calls a deleted Task attached, and a preview built before the

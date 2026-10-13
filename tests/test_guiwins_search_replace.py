@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import pytest
 from nicegui import ui
 
-from maptasker.src import guiwins_search, mapswap, sessundo
+from maptasker.src import guiwins_search, mapswap, mapswap_action, sessundo
 from maptasker.src.primitem import PrimeItems
 from tests.search_dialog import built, by_text, click, field, labels, open_dialog, select
 from tests.test_mapswap import _FIXTURE_XML, _RENAME_XML, FLASH, NOTIFY, _action, _load
@@ -165,7 +165,7 @@ async def test_preview_with_the_fields_empty_says_what_is_missing(mode: str, mes
 
 @pytest.mark.asyncio
 async def test_a_preview_draws_a_ticked_row_for_each_change_and_enables_replace() -> None:
-    expected = mapswap.plan_action_swap(FLASH, NOTIFY, "", state=PrimeItems)
+    expected = mapswap_action.plan_action_swap(FLASH, NOTIFY, "", state=PrimeItems)
     async with open_dialog() as user:
         await _replace_tab(user)
         await _preview_flash_to_notify(user)
@@ -179,7 +179,7 @@ async def test_a_preview_draws_a_ticked_row_for_each_change_and_enables_replace(
 
 @pytest.mark.asyncio
 async def test_touching_any_field_takes_the_preview_and_the_replace_button_away() -> None:
-    expected = mapswap.plan_action_swap(FLASH, NOTIFY, "", state=PrimeItems)
+    expected = mapswap_action.plan_action_swap(FLASH, NOTIFY, "", state=PrimeItems)
     async with open_dialog() as user:
         await _replace_tab(user)
         await _preview_flash_to_notify(user)
@@ -230,7 +230,7 @@ async def test_a_preview_that_changes_nothing_says_so_and_leaves_replace_off() -
 # ##################################################################################
 @pytest.mark.asyncio
 async def test_replace_applies_what_was_previewed_closes_the_dialog_and_redraws_the_view() -> None:
-    plan = mapswap.plan_action_swap(FLASH, NOTIFY, "", state=PrimeItems)
+    plan = mapswap_action.plan_action_swap(FLASH, NOTIFY, "", state=PrimeItems)
     codes_before = [_action("20", at).findtext("code") for at in range(2)]
     assert plan.changes, "the fixture is meant to offer a swap"
 

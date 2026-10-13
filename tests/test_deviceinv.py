@@ -32,7 +32,26 @@ import pytest
 from urllib.parse import parse_qs, unquote, urlparse
 
 from maptasker.src.initparg import ProgramArguments
-from maptasker.src import appinv, caches, deviceinv, maputil2, taskedit, taskerd
+from maptasker.src import (
+    appinv,
+    caches,
+    devicecheck,
+    devicefiles,
+    devicehelpers,
+    deviceimport,
+    deviceinv,
+    deviceoffer,
+    devicetask,
+    deviceverify,
+    maputil2,
+    taskedit,
+    taskedit_addable,
+    taskedit_apply,
+    taskedit_args,
+    taskedit_model,
+    taskedit_save,
+    taskerd,
+)
 from maptasker.src.primitem import PrimeItems
 
 LAUNCH_APP = "20t"  # App=arg0
@@ -379,7 +398,7 @@ def test_launch_app_is_not_addable_without_an_inventory(_nothing_loaded: None) -
     """With nothing to pick from, the refusal stands -- and says what is actually missing
     rather than the old blanket "this tool can't generate that kind of value".
     """
-    addable, reason = taskedit.classify_action_addability(LAUNCH_APP, state=PrimeItems)
+    addable, reason = taskedit_addable.classify_action_addability(LAUNCH_APP, state=PrimeItems)
     assert addable is False
     assert "Applications" in reason
 
@@ -387,7 +406,7 @@ def test_launch_app_is_not_addable_without_an_inventory(_nothing_loaded: None) -
 def test_loading_a_configuration_makes_launch_app_addable(loaded: None) -> None:
     """The 22 entries app_icon_fetch_design.md counts, by way of three of them."""
     for key in (LAUNCH_APP, KILL_APP, NOTIFY):
-        addable, reason = taskedit.classify_action_addability(key, state=PrimeItems)
+        addable, reason = taskedit_addable.classify_action_addability(key, state=PrimeItems)
         assert addable is True, f"{key}: {reason}"
 
 
@@ -396,13 +415,13 @@ def test_the_addable_action_memo_follows_the_inventory(_nothing_loaded: None) ->
     inputs never change, and one of them now does.  Without the generation check, the Add
     Action picker goes on offering the answer it computed before a configuration existed.
     """
-    before = {row["action_key"]: row["addable"] for row in taskedit.list_addable_actions(state=PrimeItems)}
+    before = {row["action_key"]: row["addable"] for row in taskedit_addable.list_addable_actions(state=PrimeItems)}
     assert before[LAUNCH_APP] is False
     assert before[FLASH] is True  # nothing to do with the inventory, addable throughout
 
     _load(_FIXTURE_XML)
 
-    after = {row["action_key"]: row["addable"] for row in taskedit.list_addable_actions(state=PrimeItems)}
+    after = {row["action_key"]: row["addable"] for row in taskedit_addable.list_addable_actions(state=PrimeItems)}
     assert after[LAUNCH_APP] is True
 
 
@@ -416,11 +435,11 @@ def test_a_synthesized_launch_app_writes_the_xml_tasker_writes(loaded: None) -> 
     edited_task = taskedit.create_new_task("Opener2", "3", state=PrimeItems)
     taskedit.add_action_to_task(edited_task, LAUNCH_APP, state=PrimeItems)
 
-    errors = taskedit.apply_edits_to_task(
+    errors = taskedit_apply.apply_edits_to_task(
         edited_task,
         "Opener2",
         "3",
-        {taskedit.arg_key(0, "0"): f"{WHATSAPP}, {MAPS}"},
+        {taskedit_apply.arg_key(0, "0"): f"{WHATSAPP}, {MAPS}"},
         PrimeItems,
     )
     assert errors == []
@@ -436,11 +455,11 @@ def test_a_synthesized_notify_writes_its_icon(loaded: None) -> None:
     edited_task = taskedit.create_new_task("Noisy2", "3", state=PrimeItems)
     taskedit.add_action_to_task(edited_task, NOTIFY, state=PrimeItems)
 
-    errors = taskedit.apply_edits_to_task(
+    errors = taskedit_apply.apply_edits_to_task(
         edited_task,
         "Noisy2",
         "3",
-        {taskedit.arg_key(0, "2"): f"spreadsheet@{CRYSTAL}"},
+        {taskedit_apply.arg_key(0, "2"): f"spreadsheet@{CRYSTAL}"},
         PrimeItems,
     )
     assert errors == []
@@ -656,7 +675,7 @@ def test_backing_the_switch_out_restores_the_bulk_task(
     built = deviceinv.build_helper_task(state=PrimeItems)
     assert not isinstance(built, str), built
 
-    codes = _codes(taskedit.render_standalone_task_xml(built, state=PrimeItems))
+    codes = _codes(taskedit_save.render_standalone_task_xml(built, state=PrimeItems))
     assert codes.count("815") == 3  # Package, App, Activity -- all in bulk
     assert "39" not in codes  # no For
     assert "344" not in codes  # no Test App
@@ -832,13 +851,13 @@ def no_apps_device(monkeypatch: pytest.MonkeyPatch) -> _FakeRequests:
 
 
 def test_the_refusal_the_gui_can_act_on_is_exactly_the_named_one(no_apps_device: _FakeRequests) -> None:
-    """Compared by equality against taskedit.NO_APPS_REASON, not by looking for a word in
+    """Compared by equality against taskedit_model.NO_APPS_REASON, not by looking for a word in
     it, so the two cannot drift apart without this failing.
     """
     assert appinv.apps(state=PrimeItems) == []
-    addable, reason = taskedit.classify_action_addability(LAUNCH_APP, state=PrimeItems)
+    addable, reason = taskedit_addable.classify_action_addability(LAUNCH_APP, state=PrimeItems)
     assert addable is False
-    assert reason == taskedit.NO_APPS_REASON
+    assert reason == taskedit_model.NO_APPS_REASON
 
 
 def test_a_fetch_opens_the_dead_end(no_apps_device: _FakeRequests) -> None:
@@ -847,16 +866,16 @@ def test_a_fetch_opens_the_dead_end(no_apps_device: _FakeRequests) -> None:
     With no Applications anywhere, 'Launch App' cannot be added, so its picker cannot be
     opened, so the picker's own fetch button cannot be reached.  A fetch from the refusal
     itself has to be enough to turn the row addable -- which it is only because the fetch
-    moves deviceinv's generation and taskedit.list_addable_actions rebuilds on that.
+    moves deviceinv's generation and taskedit_addable.list_addable_actions rebuilds on that.
     """
-    rows = {row["action_key"]: row for row in taskedit.list_addable_actions(state=PrimeItems)}
+    rows = {row["action_key"]: row for row in taskedit_addable.list_addable_actions(state=PrimeItems)}
     assert rows[LAUNCH_APP]["addable"] is False
-    assert rows[LAUNCH_APP]["reason"] == taskedit.NO_APPS_REASON
+    assert rows[LAUNCH_APP]["reason"] == taskedit_model.NO_APPS_REASON
 
     return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert return_code == 0, message
 
-    rows = {row["action_key"]: row for row in taskedit.list_addable_actions(state=PrimeItems)}
+    rows = {row["action_key"]: row for row in taskedit_addable.list_addable_actions(state=PrimeItems)}
     assert rows[LAUNCH_APP]["addable"] is True
 
 
@@ -869,10 +888,10 @@ def test_an_app_argument_with_nothing_to_offer_says_why(no_apps_device: _FakeReq
     """
     arg = next(a for a in taskedit.action_codes[LAUNCH_APP].args if a.arg_id == "0")
     element = ET.fromstring('<Action sr="act0"><App sr="arg0"/></Action>')  # noqa: S314
-    editable = taskedit.build_editable_args(element, [arg], state=PrimeItems)[0]
+    editable = taskedit_args.build_editable_args(element, [arg], state=PrimeItems)[0]
 
     assert editable.widget_kind == "readonly"
-    assert editable.readonly_note == taskedit.NO_APPS_REASON
+    assert editable.readonly_note == taskedit_model.NO_APPS_REASON
 
 
 # ##################################################################################
@@ -888,9 +907,9 @@ def test_the_icon_refusal_is_a_named_one_too(no_apps_device: _FakeRequests) -> N
     whose arg2 is an <Img> -- is refused for the icon reason, by equality.
     """
     assert appinv.icons(state=PrimeItems) == []
-    addable, reason = taskedit.classify_action_addability(NOTIFY, state=PrimeItems)
+    addable, reason = taskedit_addable.classify_action_addability(NOTIFY, state=PrimeItems)
     assert addable is False
-    assert reason == taskedit.NO_ICONS_REASON
+    assert reason == taskedit_model.NO_ICONS_REASON
 
 
 def test_a_fetch_opens_the_icon_dead_end(no_apps_device: _FakeRequests) -> None:
@@ -901,14 +920,14 @@ def test_a_fetch_opens_the_icon_dead_end(no_apps_device: _FakeRequests) -> None:
     to turn the row addable -- which it is, because every fetched application stands as an
     icon and the fetch moves deviceinv's generation.
     """
-    rows = {row["action_key"]: row for row in taskedit.list_addable_actions(state=PrimeItems)}
+    rows = {row["action_key"]: row for row in taskedit_addable.list_addable_actions(state=PrimeItems)}
     assert rows[NOTIFY]["addable"] is False
-    assert rows[NOTIFY]["reason"] == taskedit.NO_ICONS_REASON
+    assert rows[NOTIFY]["reason"] == taskedit_model.NO_ICONS_REASON
 
     return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert return_code == 0, message
 
-    rows = {row["action_key"]: row for row in taskedit.list_addable_actions(state=PrimeItems)}
+    rows = {row["action_key"]: row for row in taskedit_addable.list_addable_actions(state=PrimeItems)}
     assert rows[NOTIFY]["addable"] is True
 
 
@@ -973,13 +992,13 @@ def test_an_icon_argument_stops_being_read_only_once_the_icons_arrive(
     be offered beside that message instead of only inside a picker it cannot open.
     """
     action_xml = '<Action sr="act0" ve="7"><code>523</code><Img sr="arg2" ve="2"/></Action>'
-    action = taskedit._build_editable_action(ET.fromstring(action_xml), 0, state=PrimeItems)  # noqa: S314, SLF001
+    action = taskedit_args.build_editable_action(ET.fromstring(action_xml), 0, state=PrimeItems)  # noqa: S314, SLF001
     icon_arg = next(arg for arg in action.args if arg.arg_id == "2")
     assert icon_arg.widget_kind == "readonly"
-    assert icon_arg.readonly_note == taskedit.NO_ICONS_REASON
+    assert icon_arg.readonly_note == taskedit_model.NO_ICONS_REASON
 
     assert deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)[0] == 0
-    taskedit.reclassify_action_args(action, state=PrimeItems)
+    taskedit_args.reclassify_action_args(action, state=PrimeItems)
 
     icon_arg = next(arg for arg in action.args if arg.arg_id == "2")
     assert icon_arg.widget_kind == "icon_picker"
@@ -1128,7 +1147,7 @@ class _FakeFileListRequests:
         if "/api/auth" in url:
             return _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}')
         if "/api/tasks" in url:
-            listed = [{"name": deviceinv.FILE_LIST_TASK_NAME, "running": False}] if self.task_installed else []
+            listed = [{"name": devicefiles.FILE_LIST_TASK_NAME, "running": False}] if self.task_installed else []
             return _FakeResponse(200, json.dumps(listed).encode())
         if "maptasker_files.txt" in url:
             if self.payload is None:
@@ -1169,7 +1188,7 @@ def test_a_file_list_fetch_runs_the_whole_exchange_in_order(file_list_device: _F
     and unlike the app list, a file list is asked for over and over in one session, so a
     stale file is the normal case rather than the rare one.
     """
-    return_code, result = deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
+    return_code, result = devicefiles.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
     assert return_code == 0, result
 
     verbs_and_paths = [(verb, url.split("1821", 1)[1]) for verb, url in file_list_device.calls]
@@ -1185,7 +1204,7 @@ def test_a_file_list_fetch_runs_the_whole_exchange_in_order(file_list_device: _F
 
 def test_a_fetch_returns_the_paths_the_device_reported(file_list_device: _FakeFileListRequests) -> None:
     """Exactly as Tasker spelled them -- it is the caller that decides how it wants them."""
-    return_code, result = deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
+    return_code, result = devicefiles.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code == 0
     assert result == [
@@ -1198,7 +1217,7 @@ def test_the_listing_task_is_not_imported_twice(file_list_device: _FakeFileListR
     """api/import ADDS a Task of the same name rather than replacing it, so a fetch that
     imported unconditionally would leave a growing pile of identical Tasks behind."""
     file_list_device.task_installed = True
-    deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
+    devicefiles.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert not any(verb == "POST" and "/api/import" in url for verb, url in file_list_device.calls)
 
@@ -1207,12 +1226,12 @@ def test_the_imported_task_lists_xml_under_the_tasker_directory(file_list_device
     """What actually goes to the device.  'List Files' has to recurse -- the XML lives in
     Tasker's subdirectories, not in the directory named -- and has to filter to XML, or
     the pulldown fills with every file on the device."""
-    deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
+    devicefiles.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     imported = ET.fromstring(file_list_device.imported_xml)  # noqa: S314  (built by this program)
     list_files = imported.find(".//Action[code='446']")
     assert list_files is not None
-    assert list_files.findtext("Str[@sr='arg1']") == deviceinv.FILE_LIST_DIRECTORY
+    assert list_files.findtext("Str[@sr='arg1']") == devicefiles.FILE_LIST_DIRECTORY
     assert list_files.findtext("Str[@sr='arg2']") == "Files"
     assert list_files.findtext("Str[@sr='arg3']") == "*xml"
     assert list_files.find("Int[@sr='arg5']").get("val") == "1"  # Recurse
@@ -1225,7 +1244,7 @@ def test_the_imported_task_writes_a_payload_this_can_read_back(
     the rest append, so a re-run replaces the previous answer rather than growing it -- and
     the terminator is written last, which is what makes the poll's 'is it finished' check
     mean anything."""
-    deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
+    devicefiles.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     imported = ET.fromstring(file_list_device.imported_xml)  # noqa: S314
     writes = imported.findall(".//Action[code='410']")
@@ -1248,7 +1267,7 @@ def test_a_device_that_never_writes_the_file_is_an_error(monkeypatch: pytest.Mon
     maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
-    return_code, message = deviceinv.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
+    return_code, message = devicefiles.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code != 0
     assert "file list" in message
@@ -1257,7 +1276,7 @@ def test_a_device_that_never_writes_the_file_is_an_error(monkeypatch: pytest.Mon
 def test_a_payload_from_the_other_helper_task_is_refused() -> None:
     """Both helpers write a MAPTASKER-* file with the same terminator.  Reading one as the
     other would be a silent misparse, which is why the headers differ."""
-    paths, error = deviceinv.parse_file_list_payload(GOOD_PAYLOAD)
+    paths, error = devicefiles.parse_file_list_payload(GOOD_PAYLOAD)
 
     assert paths == []
     assert error
@@ -1265,7 +1284,7 @@ def test_a_payload_from_the_other_helper_task_is_refused() -> None:
 
 def test_an_unfinished_payload_is_refused() -> None:
     """No terminator means the Task was still writing -- a truncated list, not a short one."""
-    paths, error = deviceinv.parse_file_list_payload("MAPTASKER-FILES 1\nFILES\n/Tasker/a.xml\n")
+    paths, error = devicefiles.parse_file_list_payload("MAPTASKER-FILES 1\nFILES\n/Tasker/a.xml\n")
 
     assert paths == []
     assert "incomplete" in error
@@ -1274,7 +1293,7 @@ def test_an_unfinished_payload_is_refused() -> None:
 def test_a_listing_that_found_nothing_reads_as_nothing() -> None:
     """Tasker writes an unset variable out as its own name, so an empty listing arrives as
     the literal '%lfp_full_path' -- which must not become a file by that name."""
-    paths, error = deviceinv.parse_file_list_payload(
+    paths, error = devicefiles.parse_file_list_payload(
         "MAPTASKER-FILES 1\nFILES\n%lfp_full_path\nMAPTASKER-END\n",
     )
 
@@ -1283,7 +1302,7 @@ def test_a_listing_that_found_nothing_reads_as_nothing() -> None:
 
 
 # ##################################################################################
-# The tidying-up on top of the fetch (deviceinv.get_list_of_files).
+# The tidying-up on top of the fetch (devicefiles.get_list_of_files).
 #
 # Two jobs, both of which used to be tangled up with the old route's payload format: the
 # paths have to lose the storage-root prefix before the 'file' route can fetch them, and
@@ -1296,11 +1315,11 @@ def test_a_listing_that_found_nothing_reads_as_nothing() -> None:
 @pytest.fixture
 def listed_files(monkeypatch: pytest.MonkeyPatch):  # noqa: ANN201
     """Lets a test say what the device reported, without a device or a fetch."""
-    from maptasker.src import deviceinv
+    from maptasker.src import devicefiles
 
     def _set(return_code: int, result: object) -> None:
         monkeypatch.setattr(
-            deviceinv,
+            devicefiles,
             "fetch_file_list_from_device",
             lambda *_args, **_kwargs: (return_code, result),
         )
@@ -1311,7 +1330,7 @@ def listed_files(monkeypatch: pytest.MonkeyPatch):  # noqa: ANN201
 def test_the_storage_root_is_stripped_off_every_path(listed_files) -> None:  # noqa: ANN001
     """The 'file' route is rooted at the storage root, so a path that still carries it
     cannot be fetched -- see deviceinv's own note on the two spellings."""
-    from maptasker.src.deviceinv import get_list_of_files
+    from maptasker.src.devicefiles import get_list_of_files
 
     listed_files(0, ["/storage/emulated/0/Tasker/configs/user/backup.xml"])
 
@@ -1323,7 +1342,7 @@ def test_the_storage_root_is_stripped_off_every_path(listed_files) -> None:  # n
 
 def test_trashed_files_are_kept_out_of_the_list(listed_files) -> None:  # noqa: ANN001
     """Tasker's own trash is full of XML nobody wants offered as a configuration."""
-    from maptasker.src.deviceinv import get_list_of_files
+    from maptasker.src.devicefiles import get_list_of_files
 
     listed_files(
         0,
@@ -1343,7 +1362,7 @@ def test_a_name_with_a_comma_in_it_survives(listed_files) -> None:  # noqa: ANN0
     """The old route joined its paths with commas, so this file arrived as two.  Nothing
     splits on a comma any more, and a Tasker export named after a Project can easily have
     one in it ('Bonza, Jigsaw.prj.xml')."""
-    from maptasker.src.deviceinv import get_list_of_files
+    from maptasker.src.devicefiles import get_list_of_files
 
     listed_files(0, ["/storage/emulated/0/Tasker/Bonza, Jigsaw.prj.xml"])
 
@@ -1356,7 +1375,7 @@ def test_a_name_with_a_comma_in_it_survives(listed_files) -> None:  # noqa: ANN0
 def test_a_fetch_failure_is_passed_straight_through(listed_files) -> None:  # noqa: ANN001
     """The caller shows this message to the user, so it must be the fetch's own account of
     what went wrong rather than a generic one invented here."""
-    from maptasker.src.deviceinv import get_list_of_files
+    from maptasker.src.devicefiles import get_list_of_files
 
     listed_files(8, "Tasker did not report the Task afterwards.")
 
@@ -1368,7 +1387,7 @@ def test_a_fetch_failure_is_passed_straight_through(listed_files) -> None:  # no
 
 def test_a_listing_of_nothing_but_trash_is_an_error(listed_files) -> None:  # noqa: ANN001
     """An empty pulldown with a green 'success' behind it tells the user nothing."""
-    from maptasker.src.deviceinv import get_list_of_files
+    from maptasker.src.devicefiles import get_list_of_files
 
     listed_files(0, ["/storage/emulated/0/Tasker/.Trash/old.xml"])
 
@@ -1414,7 +1433,7 @@ class _FakeImportRequests:
     ) -> None:
         self.calls: list[tuple[str, str]] = []
         self.payload = payload
-        self.installed_tasks: set[str] = {deviceinv.IMPORT_PROFILE_TASK_NAME} if task_installed else set()
+        self.installed_tasks: set[str] = {deviceimport.IMPORT_PROFILE_TASK_NAME} if task_installed else set()
         # Which Profiles Tasker reports once the helper has run.  An empty set is the case
         # worth having: the Task ran to completion and Tasker still reports nothing new.
         self.profiles_after = {"Watched"} if profiles_after is None else profiles_after
@@ -1503,7 +1522,7 @@ def import_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
 
 def _import(device: _FakeImportRequests, **kwargs: object) -> tuple[int, str]:
     """The call under test, with the risk acknowledged -- see import_profile_to_device."""
-    return deviceinv.import_profile_to_device(
+    return deviceimport.import_profile_to_device(
         _STAGED_PROFILE_XML,
         "Watched",
         "192.168.0.210",
@@ -1519,7 +1538,7 @@ def test_an_import_that_is_not_acknowledged_never_touches_the_device(
     """The gate is the point of the gate: a caller that has not said it accepts an import
     whose effect on the rest of the configuration is unestablished gets nothing sent at
     all -- not an auth prompt on the device, not a Task installed, nothing."""
-    return_code, message = deviceinv.import_profile_to_device(
+    return_code, message = deviceimport.import_profile_to_device(
         _STAGED_PROFILE_XML,
         "Watched",
         "192.168.0.210",
@@ -1696,7 +1715,7 @@ def test_a_profile_tasker_already_has_is_refused(import_device: _FakeImportReque
 
     return_code, message = _import(import_device)
 
-    assert return_code == deviceinv.DUPLICATE_PROFILE_CODE
+    assert return_code == deviceimport.DUPLICATE_PROFILE_CODE
     assert "already has a Profile" in message
     assert not any("/upload" in url for _verb, url in import_device.calls)
     assert not any(verb == "POST" and "/api/tasks" in url for verb, url in import_device.calls)
@@ -1716,7 +1735,7 @@ def test_allow_existing_gets_past_that(import_device: _FakeImportRequests) -> No
 def test_the_import_task_is_not_installed_twice(import_device: _FakeImportRequests) -> None:
     """Same reason as every other helper: api/import adds rather than replaces, so a second
     import would leave a second identical Task behind."""
-    import_device.installed_tasks.add(deviceinv.IMPORT_PROFILE_TASK_NAME)
+    import_device.installed_tasks.add(deviceimport.IMPORT_PROFILE_TASK_NAME)
 
     return_code, message = _import(import_device)
 
@@ -1763,7 +1782,7 @@ def test_an_unknown_import_type_is_refused_rather_than_defaulted(import_device: 
     """apply_arg_values resolves a dropdown by label and falls back to index 0 for anything
     it does not recognize -- and index 0 of this dropdown is 'Task'.  Unchecked, a typo
     would quietly import the Profile XML as a Task instead of saying so."""
-    built = deviceinv.build_import_profile_task(import_type="Config", state=PrimeItems)
+    built = deviceimport.build_import_profile_task(import_type="Config", state=PrimeItems)
 
     assert isinstance(built, str)
     assert "Task, Configuration" in built
@@ -1776,10 +1795,10 @@ def test_the_source_argument_can_be_changed_without_editing_the_builder(
     Source's options are called and apply_arg_values can only ever reach 0 through it.  0 is
     what api/import sends and stays the default; a prototype should not make the question
     unaskable."""
-    built = deviceinv.build_import_profile_task(source_index="1", state=PrimeItems)
+    built = deviceimport.build_import_profile_task(source_index="1", state=PrimeItems)
     assert not isinstance(built, str), built
 
-    imported = ET.fromstring(taskedit.render_standalone_task_xml(built, state=PrimeItems))  # noqa: S314
+    imported = ET.fromstring(taskedit_save.render_standalone_task_xml(built, state=PrimeItems))  # noqa: S314
     assert imported.find(".//Action[code='153']/Int[@sr='arg1']").get("val") == "1"
 
 
@@ -1788,16 +1807,16 @@ def test_a_different_experiment_installs_a_differently_named_task(import_device:
     _install_task_on_android skips a name that is already on the device.  Sharing one name
     across settings would silently re-run the Task built with the previous ones -- the
     prototype would report on an experiment nobody asked for."""
-    import_device.installed_tasks.add(deviceinv.IMPORT_PROFILE_TASK_NAME)  # the default-named one is there
+    import_device.installed_tasks.add(deviceimport.IMPORT_PROFILE_TASK_NAME)  # the default-named one is there
 
-    return_code, message = _import(import_device, import_type=deviceinv.IMPORT_TYPE_TASK)
+    return_code, message = _import(import_device, import_type=deviceimport.IMPORT_TYPE_TASK)
     assert return_code == 0, message
 
     # Installed anyway, because it is not the same Task.
     assert any(verb == "POST" and "/api/import" in url for verb, url in import_device.calls)
     imported = ET.fromstring(import_device.imported_xml)  # noqa: S314
     assert imported.find(".//Action[code='153']/Int[@sr='arg0']").get("val") == "0"  # Task
-    assert imported.findtext(".//Task/nme") == f"{deviceinv.IMPORT_PROFILE_TASK_NAME} [Task/0]"
+    assert imported.findtext(".//Task/nme") == f"{deviceimport.IMPORT_PROFILE_TASK_NAME} [Task/0]"
 
 
 def test_the_default_experiment_keeps_the_plain_name(import_device: _FakeImportRequests) -> None:
@@ -1805,7 +1824,7 @@ def test_the_default_experiment_keeps_the_plain_name(import_device: _FakeImportR
     _import(import_device)
 
     imported = ET.fromstring(import_device.imported_xml)  # noqa: S314
-    assert imported.findtext(".//Task/nme") == deviceinv.IMPORT_PROFILE_TASK_NAME
+    assert imported.findtext(".//Task/nme") == deviceimport.IMPORT_PROFILE_TASK_NAME
 
 
 # ##################################################################################
@@ -1838,7 +1857,7 @@ def open_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
 
 
 def _open(device: _FakeImportRequests, **kwargs: object) -> tuple[int, str]:
-    return deviceinv.open_profile_on_device(
+    return deviceoffer.open_profile_on_device(
         _STAGED_PROFILE_XML,
         "Watched",
         "192.168.0.210",
@@ -1863,14 +1882,14 @@ def test_the_offer_uploads_under_the_profiles_own_name(open_device: _FakeImportR
 
 def test_the_run_tells_the_helper_which_file_to_open(open_device: _FakeImportRequests) -> None:
     """The path travels WITH the run, as par1 -- which the HTTP Server Example's own handler
-    unpacks into %par1 for the Task it runs (deviceinv.run_task_on_android quotes the
+    unpacks into %par1 for the Task it runs (devicetask.run_task_on_android quotes the
     actions).  Without it the helper would open whatever it was built with, which is the
     fixed filename this replaced."""
     return_code, message = _open(open_device)
     assert return_code == 0, message
 
     assert open_device.run_bodies[-1] == {
-        "name": deviceinv.OPEN_FILE_ROUTE.task_name,
+        "name": deviceoffer.OPEN_FILE_ROUTE.task_name,
         "par1": "/storage/emulated/0/Tasker/profiles/Watched.prf.xml",
     }
 
@@ -1918,7 +1937,7 @@ def test_the_offered_task_opens_the_staged_file_with_no_mime_type(open_device: _
     It used to send 'text/xml', and that is what a chooser of seven apps without Tasker in it
     was measured on: a filter that claims an extension declares a pathPattern and no
     android:mimeType, and Android matches those only against intents that carry no type.
-    Asking for text/xml gets text/xml viewers.  See deviceinv._OPEN_WITH_MIME_TYPE."""
+    Asking for text/xml gets text/xml viewers.  See deviceoffer._OPEN_WITH_MIME_TYPE."""
     _open(open_device)
 
     imported = ET.fromstring(open_device.imported_xml)  # noqa: S314  (built by this program)
@@ -1941,7 +1960,7 @@ def test_the_two_routes_do_not_share_an_answer_file(open_device: _FakeImportRequ
     writes = imported.findall(".//Action[code='410']")
     assert writes[0].findtext("Str[@sr='arg1']") == "MAPTASKER-OPEN-PROFILE 1"
     assert all(write.findtext("Str[@sr='arg0']") == "Tasker/maptasker_open_profile.txt" for write in writes)
-    assert deviceinv.OPEN_FILE_ROUTE.read_path != deviceinv._IMPORT_RESULT_READ_PATH  # noqa: SLF001
+    assert deviceoffer.OPEN_FILE_ROUTE.read_path != deviceimport._IMPORT_RESULT_READ_PATH  # noqa: SLF001
 
 
 def test_an_unconfirmed_offer_is_not_reported_as_a_save(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1985,14 +2004,14 @@ def test_a_confirmation_that_never_comes_is_not_a_success(monkeypatch: pytest.Mo
 def test_waiting_stops_as_soon_as_the_profile_appears(open_device: _FakeImportRequests) -> None:
     """The poll is for a person, so it is long -- two minutes.  It must not spend them on a
     device that already answered."""
-    return_code, message = deviceinv.await_import(
+    return_code, message = deviceverify.await_import(
         "192.168.0.210", "1821", ["Watched"], "Profile " + chr(39) + "Watched" + chr(39)
     )
     assert return_code != 0  # nothing imported yet
 
     open_device.installed_profiles = {"Watched"}
     before = len(open_device.calls)
-    return_code, message = deviceinv.await_import(
+    return_code, message = deviceverify.await_import(
         "192.168.0.210", "1821", ["Watched"], "Profile " + chr(39) + "Watched" + chr(39)
     )
 
@@ -2041,21 +2060,21 @@ def test_import_is_confirmable_keeps_could_not_ask_apart_from_absent(
 ) -> None:
     """Folding None into True would turn an unconfirmable import into a confirmed one --
     exactly the mistake the pre-check exists to prevent."""
-    assert deviceinv.import_is_confirmable("192.168.0.210", "1821", ["Watched"]) is True
+    assert deviceverify.import_is_confirmable("192.168.0.210", "1821", ["Watched"]) is True
 
     open_device.installed_profiles = {"Watched"}
-    assert deviceinv.import_is_confirmable("192.168.0.210", "1821", ["Watched"]) is False
+    assert deviceverify.import_is_confirmable("192.168.0.210", "1821", ["Watched"]) is False
 
-    monkeypatch.setattr(deviceinv, "auth_key_for", lambda _ip, _port: (8, "unreachable"))
-    assert deviceinv.import_is_confirmable("192.168.0.210", "1821", ["Watched"]) is None
+    monkeypatch.setattr(deviceverify, "auth_key_for", lambda _ip, _port: (8, "unreachable"))
+    assert deviceverify.import_is_confirmable("192.168.0.210", "1821", ["Watched"]) is None
 
 
 def test_nothing_to_ask_about_is_not_confirmed(open_device: _FakeImportRequests) -> None:
     """A Project owning only unnamed Profiles gives nothing the HTTP API can be asked about
     (see projedit.project_profile_names).  'No questions asked' must not read as 'confirmed'
     -- it is the one case where an empty answer and a good one look identical."""
-    assert deviceinv.import_is_confirmable("192.168.0.210", "1821", []) is False
-    assert deviceinv.import_is_confirmable("192.168.0.210", "1821", ["", "  "]) is False
+    assert deviceverify.import_is_confirmable("192.168.0.210", "1821", []) is False
+    assert deviceverify.import_is_confirmable("192.168.0.210", "1821", ["", "  "]) is False
 
 
 # ##################################################################################
@@ -2091,7 +2110,7 @@ def test_the_intent_is_the_shape_real_backups_use(intent_device: _FakeImportRequ
     Target=Activity (1), and the ones meant for a particular app name it in Package.  A
     Broadcast Receiver or a Service target would send it somewhere that cannot show an
     import screen, and neither failure would say so."""
-    return_code, message = _open(intent_device, route=deviceinv.SEND_INTENT_ROUTE)
+    return_code, message = _open(intent_device, route=deviceoffer.SEND_INTENT_ROUTE)
     assert return_code == 0, message
 
     imported = ET.fromstring(intent_device.imported_xml)  # noqa: S314  (built by this program)
@@ -2110,15 +2129,15 @@ def test_choosing_a_route_changes_which_task_runs(intent_device: _FakeImportRequ
     """The routes are separate Tasks with separate names, so a device can hold both and
     neither run is the other's.  Asking for one and getting the other would be invisible
     from here -- both write a MAPTASKER-* file and both end in the same terminator."""
-    _open(intent_device, route=deviceinv.SEND_INTENT_ROUTE)
+    _open(intent_device, route=deviceoffer.SEND_INTENT_ROUTE)
 
     imported = ET.fromstring(intent_device.imported_xml)  # noqa: S314
-    assert imported.findtext(".//Task/nme") == deviceinv.SEND_INTENT_ROUTE.task_name
+    assert imported.findtext(".//Task/nme") == deviceoffer.SEND_INTENT_ROUTE.task_name
     assert "102" not in _codes(intent_device.imported_xml)  # not the Open File Task
 
-    assert deviceinv.SEND_INTENT_ROUTE.read_path != deviceinv.OPEN_FILE_ROUTE.read_path
-    assert deviceinv.SEND_INTENT_ROUTE.header != deviceinv.OPEN_FILE_ROUTE.header
-    assert deviceinv.SEND_INTENT_ROUTE.task_name != deviceinv.OPEN_FILE_ROUTE.task_name
+    assert deviceoffer.SEND_INTENT_ROUTE.read_path != deviceoffer.OPEN_FILE_ROUTE.read_path
+    assert deviceoffer.SEND_INTENT_ROUTE.header != deviceoffer.OPEN_FILE_ROUTE.header
+    assert deviceoffer.SEND_INTENT_ROUTE.task_name != deviceoffer.OPEN_FILE_ROUTE.task_name
 
 
 def test_a_route_reads_only_its_own_answer_file(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2133,7 +2152,7 @@ def test_a_route_reads_only_its_own_answer_file(monkeypatch: pytest.MonkeyPatch)
     maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
-    return_code, message = _open(fake, route=deviceinv.SEND_INTENT_ROUTE)
+    return_code, message = _open(fake, route=deviceoffer.SEND_INTENT_ROUTE)
 
     assert return_code != 0
     assert "not a MapTasker import result" in message
@@ -2153,7 +2172,7 @@ def test_the_intent_route_names_the_failure_only_it_has(monkeypatch: pytest.Monk
     maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
-    return_code, message = _open(fake, route=deviceinv.SEND_INTENT_ROUTE)
+    return_code, message = _open(fake, route=deviceoffer.SEND_INTENT_ROUTE)
 
     assert return_code != 0
     assert "file://" in message
@@ -2164,7 +2183,7 @@ def test_both_routes_share_everything_around_the_task(intent_device: _FakeImport
     """Staging, the duplicate refusal and the confirmation wait are one implementation, not
     two -- the routes are data handed to one orchestrator.  Asserted through the intent
     route because the other one's tests would pass either way."""
-    return_code, message = _open(intent_device, route=deviceinv.SEND_INTENT_ROUTE)
+    return_code, message = _open(intent_device, route=deviceoffer.SEND_INTENT_ROUTE)
 
     assert return_code == 0, message
     assert intent_device.uploaded == _STAGED_PROFILE_XML  # the shared staging upload
@@ -2198,13 +2217,13 @@ def test_the_endpoint_reaches_the_request(monkeypatch: pytest.MonkeyPatch) -> No
     maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
-    deviceinv.import_is_confirmable("192.168.0.210", "1821", ["Dialog"], deviceinv.SCENES_ENDPOINT)
+    deviceverify.import_is_confirmable("192.168.0.210", "1821", ["Dialog"], devicetask.SCENES_ENDPOINT)
 
     assert "/api/scenes" in asked
     assert "/api/profiles" not in asked
 
 
-def _open_file_args(route: deviceinv.OfferRoute) -> tuple[str, str]:
+def _open_file_args(route: deviceoffer.OfferRoute) -> tuple[str, str]:
     """The staged path and mime type the route's helper Task hands to 'Open File'."""
     built = route.builder(state=PrimeItems)
     assert not isinstance(built, str), built
@@ -2214,7 +2233,7 @@ def _open_file_args(route: deviceinv.OfferRoute) -> tuple[str, str]:
     return action.findtext("Str[@sr='arg0']"), action.findtext("Str[@sr='arg1']")
 
 
-def _send_intent_args(route: deviceinv.OfferRoute) -> tuple[str, str, str]:
+def _send_intent_args(route: deviceoffer.OfferRoute) -> tuple[str, str, str]:
     """The mime type, data URI and package the route's helper Task sends ACTION_VIEW with."""
     built = route.builder(state=PrimeItems)
     assert not isinstance(built, str), built
@@ -2234,7 +2253,7 @@ def test_the_intent_names_a_class_and_not_just_a_package(import_device: _FakeImp
     package-only is not the fallback it claims to be -- it fails wherever implicit
     resolution fails, and looks identical from here.  Package AND class is an explicit
     component, delivered without matching anything."""
-    for route in (deviceinv.SEND_INTENT_ROUTE, deviceinv.SEND_INTENT_PROJECT_ROUTE):
+    for route in (deviceoffer.SEND_INTENT_ROUTE, deviceoffer.SEND_INTENT_PROJECT_ROUTE):
         _mime, _uri, package = _send_intent_args(route)
         built = route.builder(state=PrimeItems)
         task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
@@ -2304,7 +2323,7 @@ def test_opening_tasker_hands_over_nothing(import_device: _FakeImportRequests) -
     """ACTION_MAIN at an explicit component, and no data, no mime type: there is no file to
     hand over any more, and a VIEW with no data is not a launch.  If this ever grows a data
     argument again it has become the route that does not work."""
-    built = deviceinv.build_launch_tasker_task(state=PrimeItems)
+    built = deviceoffer.build_launch_tasker_task(state=PrimeItems)
     assert not isinstance(built, str), built
 
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
@@ -2330,10 +2349,10 @@ def test_opening_tasker_runs_its_own_task_and_reads_its_own_answer(monkeypatch: 
     maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
-    return_code, message = deviceinv.open_tasker_on_device("192.168.0.210", "1821", state=PrimeItems)
+    return_code, message = deviceoffer.open_tasker_on_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code == 0, message
-    assert ET.fromstring(fake.imported_xml).findtext(".//Task/nme") == deviceinv.LAUNCH_TASKER_TASK_NAME  # noqa: S314
+    assert ET.fromstring(fake.imported_xml).findtext(".//Task/nme") == deviceoffer.LAUNCH_TASKER_TASK_NAME  # noqa: S314
     assert any("maptasker_launch_tasker.txt" in url for verb, url in fake.calls if verb == "GET")
 
 
@@ -2349,7 +2368,7 @@ def test_another_routes_answer_is_not_read_as_a_launch(monkeypatch: pytest.Monke
     maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
-    return_code, message = deviceinv.open_tasker_on_device("192.168.0.210", "1821", state=PrimeItems)
+    return_code, message = deviceoffer.open_tasker_on_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code != 0
     assert "not a MapTasker launch result" in message
@@ -2364,11 +2383,11 @@ def test_a_scene_has_a_route_again_and_it_is_the_open_with_one() -> None:
     no type, which is the only one of the three that lets an extension filter match.  It is
     offered on that reasoning, and the by-hand instruction stays in the message for when it
     is wrong."""
-    assert deviceinv.OPEN_SCENE_ROUTE.stage_location == "Tasker/scenes"
-    assert deviceinv.OPEN_SCENE_ROUTE.extension == "scn.xml"
-    assert deviceinv.OPEN_SCENE_ROUTE.confirm_endpoint == deviceinv.SCENES_ENDPOINT == "api/scenes"
+    assert deviceoffer.OPEN_SCENE_ROUTE.stage_location == "Tasker/scenes"
+    assert deviceoffer.OPEN_SCENE_ROUTE.extension == "scn.xml"
+    assert deviceoffer.OPEN_SCENE_ROUTE.confirm_endpoint == devicetask.SCENES_ENDPOINT == "api/scenes"
     # Still there, and still what a device that cannot be handed a Scene falls back to.
-    assert callable(deviceinv.open_tasker_on_device)
+    assert callable(deviceoffer.open_tasker_on_device)
 
 
 # ##################################################################################
@@ -2417,7 +2436,7 @@ def _save_task_file(monkeypatch: pytest.MonkeyPatch, fake: _FakeUploadRequests) 
     _load(_FIXTURE_XML)
     edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)  # by NAME -- see load_task_for_edit
     assert edited_task is not None
-    return taskedit.save_task_to_android_file(edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems)
+    return taskedit_save.save_task_to_android_file(edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems)
 
 
 def test_a_task_file_goes_to_taskers_tasks_folder(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2428,8 +2447,8 @@ def test_a_task_file_goes_to_taskers_tasks_folder(monkeypatch: pytest.MonkeyPatc
     return_code, result = _save_task_file(monkeypatch, fake)
 
     assert return_code == 0, result
-    assert result == taskedit.android_task_path("Opener") == "/Tasker/tasks/Opener.tsk.xml"
-    assert fake.location == taskedit.ANDROID_TASK_LOCATION == "Tasker/tasks"
+    assert result == taskedit_save.android_task_path("Opener") == "/Tasker/tasks/Opener.tsk.xml"
+    assert fake.location == taskedit_save.ANDROID_TASK_LOCATION == "Tasker/tasks"
     assert fake.filename == "Opener.tsk.xml"
     assert fake.uploaded.startswith(b"<TaskerData")
 
@@ -2451,7 +2470,7 @@ def test_the_three_kinds_write_to_three_sibling_folders() -> None:
     folder of its own invention, is the kind of thing nothing fails on and nobody finds."""
     from maptasker.src import profedit, sceneedit
 
-    assert taskedit.android_task_path("A") == "/Tasker/tasks/A.tsk.xml"
+    assert taskedit_save.android_task_path("A") == "/Tasker/tasks/A.tsk.xml"
     assert profedit.android_profile_path("A") == "/Tasker/profiles/A.prf.xml"
     assert sceneedit.android_scene_path("A") == "/Tasker/scenes/A.scn.xml"
 
@@ -2460,9 +2479,9 @@ def test_a_task_name_that_is_no_filename_still_writes_somewhere(monkeypatch: pyt
     """Tasker names are free text and slashes are legal in them.  sanitize_filename is what
     keeps 'Wake: Up' from addressing a folder that does not exist -- and what makes two names
     collide onto one path, which is why the caller prompts before overwriting."""
-    assert taskedit.android_task_path("Wake: Up") == "/Tasker/tasks/Wake_ Up.tsk.xml"
-    assert taskedit.android_task_path("a/b") == "/Tasker/tasks/a_b.tsk.xml"
-    assert taskedit.android_task_path("") == "/Tasker/tasks/task.tsk.xml"  # the fallback name
+    assert taskedit_save.android_task_path("Wake: Up") == "/Tasker/tasks/Wake_ Up.tsk.xml"
+    assert taskedit_save.android_task_path("a/b") == "/Tasker/tasks/a_b.tsk.xml"
+    assert taskedit_save.android_task_path("") == "/Tasker/tasks/task.tsk.xml"  # the fallback name
 
 
 # ##################################################################################
@@ -2502,7 +2521,7 @@ def _import_task(monkeypatch: pytest.MonkeyPatch, fake: _FakeImportViaFileReques
     _load(_FIXTURE_XML)
     edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
     assert edited_task is not None
-    return taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", **kwargs, state=PrimeItems)
+    return taskedit_save.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", **kwargs, state=PrimeItems)
 
 
 def test_an_import_leaves_the_task_in_the_tasks_folder(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2527,7 +2546,7 @@ def test_the_import_posts_the_devices_bytes_and_not_a_second_render(monkeypatch:
     # The read-back doubles as the write's verify, so a device serving something else is a
     # failed write -- which is the other half of the contract, tested just below.  Here the
     # verify is neutralised so the import step itself can be observed.
-    monkeypatch.setattr(taskedit, "render_standalone_task_xml", lambda _task, **_kw: from_device.decode())
+    monkeypatch.setattr(taskedit_save, "render_standalone_task_xml", lambda _task, **_kw: from_device.decode())
     return_code, result = _import_task(monkeypatch, fake)
 
     assert return_code == 0, result
@@ -2572,7 +2591,7 @@ def test_the_retry_reimports_the_file_rather_than_re_rendering(monkeypatch: pyte
     edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
     fake.uploaded = b"<TaskerData>already on the device</TaskerData>"  # what the folder holds
 
-    return_code, result = taskedit.save_task_to_android_directory(
+    return_code, result = taskedit_save.save_task_to_android_directory(
         edited_task,
         "192.168.0.210",
         "1821",
@@ -2609,7 +2628,7 @@ def test_a_write_still_settling_is_waited_for_rather_than_failed(monkeypatch: py
 
     fake.get = slow_to_appear
     edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
-    return_code, result = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems)
+    return_code, result = taskedit_save.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems)
 
     assert return_code == 0, result
     assert misses[0] == 2  # it really did have to wait
@@ -2630,7 +2649,7 @@ def test_a_write_that_never_appears_is_still_a_failure(monkeypatch: pytest.Monke
     )
 
     edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
-    return_code, result = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems)
+    return_code, result = taskedit_save.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems)
 
     assert return_code != 0
     assert "could not confirm it landed correctly" in result
@@ -2670,12 +2689,12 @@ def test_each_kind_stages_into_the_folder_it_belongs_in() -> None:
     being imported finds it beside the files they saved by hand."""
     from maptasker.src import profedit, projedit
 
-    assert deviceinv.OPEN_FILE_ROUTE.stage_location == profedit.ANDROID_PROFILE_LOCATION == "Tasker/profiles"
-    assert deviceinv.OPEN_PROJECT_ROUTE.stage_location == projedit.ANDROID_PROJECT_LOCATION == "Tasker/projects"
+    assert deviceoffer.OPEN_FILE_ROUTE.stage_location == profedit.ANDROID_PROFILE_LOCATION == "Tasker/profiles"
+    assert deviceoffer.OPEN_PROJECT_ROUTE.stage_location == projedit.ANDROID_PROJECT_LOCATION == "Tasker/projects"
     # Both routes of a kind stage the same file -- they differ in how Tasker is asked to open
     # it, never in what it is asked to open.
-    assert deviceinv.SEND_INTENT_ROUTE.staged_file_paths("A") == deviceinv.OPEN_FILE_ROUTE.staged_file_paths("A")
-    assert deviceinv.SEND_INTENT_PROJECT_ROUTE.staged_file_paths("A") == deviceinv.OPEN_PROJECT_ROUTE.staged_file_paths(
+    assert deviceoffer.SEND_INTENT_ROUTE.staged_file_paths("A") == deviceoffer.OPEN_FILE_ROUTE.staged_file_paths("A")
+    assert deviceoffer.SEND_INTENT_PROJECT_ROUTE.staged_file_paths("A") == deviceoffer.OPEN_PROJECT_ROUTE.staged_file_paths(
         "A",
     )
 
@@ -2698,11 +2717,11 @@ def test_the_staged_file_carries_the_objects_own_name() -> None:
     they asked for rather than 'maptasker_import'."""
     from maptasker.src import profedit, projedit
 
-    _filename, read_path, task_path = deviceinv.OPEN_FILE_ROUTE.staged_file_paths("Morning")
+    _filename, read_path, task_path = deviceoffer.OPEN_FILE_ROUTE.staged_file_paths("Morning")
     assert read_path == profedit.android_profile_path("Morning") == "/Tasker/profiles/Morning.prf.xml"
     assert task_path == "/storage/emulated/0/Tasker/profiles/Morning.prf.xml"
 
-    _filename, read_path, _task_path = deviceinv.OPEN_PROJECT_ROUTE.staged_file_paths("Garden Watering")
+    _filename, read_path, _task_path = deviceoffer.OPEN_PROJECT_ROUTE.staged_file_paths("Garden Watering")
     assert read_path == projedit.android_project_path("Garden Watering") == "/Tasker/projects/Garden Watering.prj.xml"
 
 
@@ -2713,30 +2732,30 @@ def test_a_name_that_is_no_filename_still_stages_somewhere() -> None:
     from maptasker.src import profedit, projedit
 
     for name in ("Wake: Up", "a/b", "", "  "):
-        _filename, read_path, _task_path = deviceinv.OPEN_FILE_ROUTE.staged_file_paths(name)
+        _filename, read_path, _task_path = deviceoffer.OPEN_FILE_ROUTE.staged_file_paths(name)
         assert read_path == profedit.android_profile_path(name), name
         # A Project too, because the empty case is the one where they DIFFER: each editor
         # falls back to its own type's word, and the route gets there from its own label.
-        _filename, read_path, _task_path = deviceinv.OPEN_PROJECT_ROUTE.staged_file_paths(name)
+        _filename, read_path, _task_path = deviceoffer.OPEN_PROJECT_ROUTE.staged_file_paths(name)
         assert read_path == projedit.android_project_path(name), name
 
 
 def test_the_import_data_route_stages_the_same_way() -> None:
     """The Import Data prototype and the offer routes put a Profile in the same place under
     the same name -- one file per Profile, not one per route."""
-    assert deviceinv._PROFILE_STAGE_LOCATION == "Tasker/profiles"  # noqa: SLF001
-    assert deviceinv.staged_paths(  # noqa: SLF001
-        deviceinv._PROFILE_STAGE_LOCATION,
+    assert devicetask.PROFILE_STAGE_LOCATION == "Tasker/profiles"  # noqa: SLF001
+    assert devicetask.staged_paths(  # noqa: SLF001
+        devicetask.PROFILE_STAGE_LOCATION,
         "Morning",
-        deviceinv._PROFILE_EXTENSION,  # noqa: SLF001
+        deviceimport._PROFILE_EXTENSION,  # noqa: SLF001
         "profile",
-    ) == deviceinv.OPEN_FILE_ROUTE.staged_file_paths("Morning")
+    ) == deviceoffer.OPEN_FILE_ROUTE.staged_file_paths("Morning")
     # What the Task reads is part of its body and _install_task_on_android skips a name
     # already on the device, so changing it had to rename the Task -- see
     # test_the_helper_task_name_moved_with_what_the_task_opens for the offer routes' own.
-    assert deviceinv.IMPORT_PROFILE_TASK_NAME.endswith(" v3")
+    assert deviceimport.IMPORT_PROFILE_TASK_NAME.endswith(" v3")
     # ...and MapTasker's bookkeeping still stays out of the user's Profile folder.
-    assert deviceinv._IMPORT_RESULT_READ_PATH.startswith("/Tasker/maptasker_")  # noqa: SLF001
+    assert deviceimport._IMPORT_RESULT_READ_PATH.startswith("/Tasker/maptasker_")  # noqa: SLF001
 
 
 def test_every_kind_has_an_open_with_route_into_its_own_folder() -> None:
@@ -2744,19 +2763,19 @@ def test_every_kind_has_an_open_with_route_into_its_own_folder() -> None:
     the file the chooser is about is the file the user finds when the chooser cannot place
     it.  Held to the editors' own constants by this test rather than by an import, since
     those modules import from this one's callers."""
-    from maptasker.src import profedit, projedit, sceneedit, taskedit
+    from maptasker.src import profedit, projedit, sceneedit, taskedit_save
 
-    assert deviceinv.OPEN_FILE_ROUTE.stage_location == profedit.ANDROID_PROFILE_LOCATION
-    assert deviceinv.OPEN_PROJECT_ROUTE.stage_location == projedit.ANDROID_PROJECT_LOCATION
-    assert deviceinv.OPEN_SCENE_ROUTE.stage_location == sceneedit.ANDROID_SCENE_LOCATION
-    assert deviceinv.OPEN_TASK_ROUTE.stage_location == taskedit.ANDROID_TASK_LOCATION
+    assert deviceoffer.OPEN_FILE_ROUTE.stage_location == profedit.ANDROID_PROFILE_LOCATION
+    assert deviceoffer.OPEN_PROJECT_ROUTE.stage_location == projedit.ANDROID_PROJECT_LOCATION
+    assert deviceoffer.OPEN_SCENE_ROUTE.stage_location == sceneedit.ANDROID_SCENE_LOCATION
+    assert deviceoffer.OPEN_TASK_ROUTE.stage_location == taskedit_save.ANDROID_TASK_LOCATION
 
-    assert deviceinv.OPEN_SCENE_ROUTE.staged_file_paths("A")[1] == sceneedit.android_scene_path("A")
-    assert deviceinv.OPEN_TASK_ROUTE.staged_file_paths("A")[1] == taskedit.android_task_path("A")
+    assert deviceoffer.OPEN_SCENE_ROUTE.staged_file_paths("A")[1] == sceneedit.android_scene_path("A")
+    assert deviceoffer.OPEN_TASK_ROUTE.staged_file_paths("A")[1] == taskedit_save.android_task_path("A")
 
     # A Task confirms at its own endpoint; a Project still has none and borrows Profiles'.
-    assert deviceinv.OPEN_TASK_ROUTE.confirm_endpoint == deviceinv.TASKS_ENDPOINT == "api/tasks"
-    assert deviceinv.OPEN_PROJECT_ROUTE.confirm_endpoint == deviceinv.PROFILES_ENDPOINT
+    assert deviceoffer.OPEN_TASK_ROUTE.confirm_endpoint == devicetask.TASKS_ENDPOINT == "api/tasks"
+    assert deviceoffer.OPEN_PROJECT_ROUTE.confirm_endpoint == devicetask.PROFILES_ENDPOINT
 
 
 def test_only_the_open_with_route_drops_the_mime_type() -> None:
@@ -2768,12 +2787,12 @@ def test_only_the_open_with_route_drops_the_mime_type() -> None:
     matching -- it is what the receiver reads to know what it was handed, and dropping it
     there would lose information for no gain.
     """
-    built = deviceinv.OPEN_FILE_ROUTE.builder(state=PrimeItems)
+    built = deviceoffer.OPEN_FILE_ROUTE.builder(state=PrimeItems)
     assert not isinstance(built, str), built
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
     assert (task_xml.find(".//Action[code='102']").findtext("Str[@sr='arg1']") or "") == ""
 
-    built = deviceinv.SEND_INTENT_ROUTE.builder(state=PrimeItems)
+    built = deviceoffer.SEND_INTENT_ROUTE.builder(state=PrimeItems)
     assert not isinstance(built, str), built
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
     assert task_xml.find(".//Action[code='877']").findtext("Str[@sr='arg2']") == "text/xml"
@@ -2784,14 +2803,14 @@ def test_no_two_routes_share_an_answer_file() -> None:
     than unlikely: a Task route reading the Profile route's answer would report a stale
     Profile import as its own success."""
     routes = (
-        deviceinv.OPEN_FILE_ROUTE,
-        deviceinv.SEND_INTENT_ROUTE,
-        deviceinv.OPEN_PROJECT_ROUTE,
-        deviceinv.SEND_INTENT_PROJECT_ROUTE,
-        deviceinv.OPEN_SCENE_ROUTE,
-        deviceinv.SEND_INTENT_SCENE_ROUTE,
-        deviceinv.OPEN_TASK_ROUTE,
-        deviceinv.SEND_INTENT_TASK_ROUTE,
+        deviceoffer.OPEN_FILE_ROUTE,
+        deviceoffer.SEND_INTENT_ROUTE,
+        deviceoffer.OPEN_PROJECT_ROUTE,
+        deviceoffer.SEND_INTENT_PROJECT_ROUTE,
+        deviceoffer.OPEN_SCENE_ROUTE,
+        deviceoffer.SEND_INTENT_SCENE_ROUTE,
+        deviceoffer.OPEN_TASK_ROUTE,
+        deviceoffer.SEND_INTENT_TASK_ROUTE,
     )
     assert len({route.read_path for route in routes}) == len(routes)
     assert len({route.header for route in routes}) == len(routes)
@@ -2802,14 +2821,14 @@ def test_the_answer_files_stay_out_of_those_folders() -> None:
     """MapTasker's bookkeeping does not belong among the user's Profiles: a
     'maptasker_open_profile.txt' in the list they browse is litter in a place they look."""
     for route in (
-        deviceinv.OPEN_FILE_ROUTE,
-        deviceinv.SEND_INTENT_ROUTE,
-        deviceinv.OPEN_PROJECT_ROUTE,
-        deviceinv.SEND_INTENT_PROJECT_ROUTE,
-        deviceinv.OPEN_SCENE_ROUTE,
-        deviceinv.SEND_INTENT_SCENE_ROUTE,
-        deviceinv.OPEN_TASK_ROUTE,
-        deviceinv.SEND_INTENT_TASK_ROUTE,
+        deviceoffer.OPEN_FILE_ROUTE,
+        deviceoffer.SEND_INTENT_ROUTE,
+        deviceoffer.OPEN_PROJECT_ROUTE,
+        deviceoffer.SEND_INTENT_PROJECT_ROUTE,
+        deviceoffer.OPEN_SCENE_ROUTE,
+        deviceoffer.SEND_INTENT_SCENE_ROUTE,
+        deviceoffer.OPEN_TASK_ROUTE,
+        deviceoffer.SEND_INTENT_TASK_ROUTE,
     ):
         assert route.read_path.startswith("/Tasker/maptasker_")
         for folder in ("/profiles/", "/projects/", "/scenes/", "/tasks/"):
@@ -2823,14 +2842,14 @@ def test_the_helper_task_name_moved_with_what_the_task_opens() -> None:
     Tasker a file nothing writes any more.  v1 baked /Tasker, v2 baked the kind's folder, v3
     opens %par1.  Each change needed a new name."""
     for route in (
-        deviceinv.OPEN_FILE_ROUTE,
-        deviceinv.SEND_INTENT_ROUTE,
-        deviceinv.OPEN_PROJECT_ROUTE,
-        deviceinv.SEND_INTENT_PROJECT_ROUTE,
-        deviceinv.OPEN_SCENE_ROUTE,
-        deviceinv.SEND_INTENT_SCENE_ROUTE,
-        deviceinv.OPEN_TASK_ROUTE,
-        deviceinv.SEND_INTENT_TASK_ROUTE,
+        deviceoffer.OPEN_FILE_ROUTE,
+        deviceoffer.SEND_INTENT_ROUTE,
+        deviceoffer.OPEN_PROJECT_ROUTE,
+        deviceoffer.SEND_INTENT_PROJECT_ROUTE,
+        deviceoffer.OPEN_SCENE_ROUTE,
+        deviceoffer.SEND_INTENT_SCENE_ROUTE,
+        deviceoffer.OPEN_TASK_ROUTE,
+        deviceoffer.SEND_INTENT_TASK_ROUTE,
     ):
         assert route.task_name.endswith(" v4"), route.task_name
 
@@ -2850,25 +2869,25 @@ def test_the_current_helper_names_come_from_the_routes_themselves() -> None:
     """A hand-kept list is the thing that goes stale, and the failure is the dangerous
     direction: a version bump that updated the constant and not the list would report the
     Task now in use as dead and invite the user to delete the working one."""
-    current = deviceinv.current_helper_task_names(state=PrimeItems)
+    current = devicehelpers.current_helper_task_names(state=PrimeItems)
 
-    assert len(deviceinv.ALL_OFFER_ROUTES) == 8
-    for route in deviceinv.ALL_OFFER_ROUTES:
+    assert len(deviceoffer.ALL_OFFER_ROUTES) == 8
+    for route in deviceoffer.ALL_OFFER_ROUTES:
         assert route.task_name in current, route.task_name
     for standalone in (
-        deviceinv.IMPORT_PROFILE_TASK_NAME,
-        deviceinv.FILE_LIST_TASK_NAME,
-        deviceinv.LAUNCH_TASKER_TASK_NAME,
+        deviceimport.IMPORT_PROFILE_TASK_NAME,
+        devicefiles.FILE_LIST_TASK_NAME,
+        deviceoffer.LAUNCH_TASKER_TASK_NAME,
         deviceinv.HELPER_TASK_NAME,
     ):
         assert standalone in current
-    assert all(name.startswith(deviceinv.HELPER_TASK_PREFIX) for name in current)
+    assert all(name.startswith(devicehelpers.HELPER_TASK_PREFIX) for name in current)
 
 
 def test_only_this_programs_leftovers_are_called_stale() -> None:
     """Three ways to get this wrong, and each one is in here: naming a live helper, naming a
     Task the user wrote, and missing a leftover."""
-    current, stale = deviceinv.classify_helper_tasks(
+    current, stale = devicehelpers.classify_helper_tasks(
         [
             "MapTasker Open Profile v1",  # a leftover
             "MapTasker Open Profile v4",  # the one in use
@@ -2887,14 +2906,14 @@ def test_an_experiment_variant_of_the_current_prototype_is_not_stale() -> None:
     """_import_task_name spells the settings into the name ('... v3 [Task/0]').  That is this
     build's Task with one argument changed, not an older build's, and telling someone to
     delete the Task their experiment is running would lose the experiment."""
-    current, stale = deviceinv.classify_helper_tasks(
+    current, stale = devicehelpers.classify_helper_tasks(
         [
-            f"{deviceinv.IMPORT_PROFILE_TASK_NAME} [Task/0]",
+            f"{deviceimport.IMPORT_PROFILE_TASK_NAME} [Task/0]",
             "MapTasker Import Profile v1 [Task/0]",
         ],
     state=PrimeItems)
 
-    assert current == [f"{deviceinv.IMPORT_PROFILE_TASK_NAME} [Task/0]"]
+    assert current == [f"{deviceimport.IMPORT_PROFILE_TASK_NAME} [Task/0]"]
     assert stale == ["MapTasker Import Profile v1 [Task/0]"]
 
 
@@ -2923,7 +2942,7 @@ def test_the_whole_task_list_is_asked_for_without_a_name_filter(monkeypatch: pyt
     monkeypatch.setattr(time, "sleep", lambda _seconds: None)
     maputil2._auth_keys.clear()  # noqa: SLF001
 
-    return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("192.168.0.210", "1821", state=PrimeItems)
+    return_code, message, stale, current = devicehelpers.stale_helper_tasks_on_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code == 0, message
     assert stale == ["MapTasker Open Profile v1"]
@@ -2949,7 +2968,7 @@ def test_a_device_that_cannot_be_asked_reports_rather_than_guesses(monkeypatch: 
     monkeypatch.setattr(time, "sleep", lambda _seconds: None)
     maputil2._auth_keys.clear()  # noqa: SLF001
 
-    return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("192.168.0.210", "1821", state=PrimeItems)
+    return_code, message, stale, current = devicehelpers.stale_helper_tasks_on_device("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code != 0
     assert (stale, current) == ([], [])
@@ -2958,7 +2977,7 @@ def test_a_device_that_cannot_be_asked_reports_rather_than_guesses(monkeypatch: 
 
 def test_no_address_is_refused_before_the_device_is_touched() -> None:
     """The same refusal every other call here makes, in the same words."""
-    return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("", "", state=PrimeItems)
+    return_code, message, stale, current = devicehelpers.stale_helper_tasks_on_device("", "", state=PrimeItems)
 
     assert return_code != 0
     assert "IP address and port" in message
@@ -2998,7 +3017,7 @@ def _objects_payload(
 
 def test_an_exports_named_objects_are_read_by_kind() -> None:
     """Unnamed Profiles and Tasks have nothing Tasker could be asked about, so they are left out."""
-    assert deviceinv.names_in_export(_EXPORT.encode()) == {
+    assert devicecheck.names_in_export(_EXPORT.encode()) == {
         "Project": ["Test"],
         "Profile": ["Morning"],
         "Task": ["Test1", "Test1plus"],
@@ -3007,7 +3026,7 @@ def test_an_exports_named_objects_are_read_by_kind() -> None:
 
 
 def test_a_document_that_does_not_parse_has_nothing_to_ask_about() -> None:
-    assert not any(deviceinv.names_in_export("<TaskerData>").values())
+    assert not any(devicecheck.names_in_export("<TaskerData>").values())
 
 
 def test_an_object_list_reads_back_every_kind_with_whole_names() -> None:
@@ -3015,14 +3034,14 @@ def test_an_object_list_reads_back_every_kind_with_whole_names() -> None:
     A kind whose array was never set -- no Scenes here -- is simply empty."""
     payload = _objects_payload(projects="Base|~|Work, Home|~|Test", profiles="Morning|~|Night")
 
-    assert deviceinv.parse_object_list_payload(payload) == (
+    assert devicetask.parse_object_list_payload(payload) == (
         {"Project": ["Base", "Work, Home", "Test"], "Profile": ["Morning", "Night"], "Scene": [], "Task": ["Test1"]},
         "",
     )
 
 
 def test_a_project_named_like_a_heading_is_not_taken_for_one() -> None:
-    names, error = deviceinv.parse_object_list_payload(_objects_payload(projects="SCENES"))
+    names, error = devicetask.parse_object_list_payload(_objects_payload(projects="SCENES"))
 
     assert error == ""
     assert names["Project"] == ["SCENES"]
@@ -3042,16 +3061,16 @@ def test_a_project_named_like_a_heading_is_not_taken_for_one() -> None:
 def test_an_object_list_that_cannot_be_trusted_is_refused(payload: str, expected: str) -> None:
     """No Projects or no Tasks is refused, not read as 'none': every device has a Project, and this
     helper is itself a Task -- an empty list would make every one being saved look new."""
-    names, error = deviceinv.parse_object_list_payload(payload)
+    names, error = devicetask.parse_object_list_payload(payload)
     assert names == {}
     assert expected in error
 
 
 def test_the_object_list_helper_is_current_and_the_project_helper_it_replaced_is_not() -> None:
     """A helper missing from the current set is one the stale-helper report tells the user to delete."""
-    current, stale = deviceinv.classify_helper_tasks([deviceinv.OBJECT_LIST_TASK_NAME, "MapTasker List Projects v2"], state=PrimeItems)
+    current, stale = devicehelpers.classify_helper_tasks([devicetask.OBJECT_LIST_TASK_NAME, "MapTasker List Projects v2"], state=PrimeItems)
 
-    assert current == [deviceinv.OBJECT_LIST_TASK_NAME]
+    assert current == [devicetask.OBJECT_LIST_TASK_NAME]
     assert stale == ["MapTasker List Projects v2"]
 
 
@@ -3123,7 +3142,7 @@ def test_with_a_project_one_helper_run_answers_every_kind(tasker_device: _FakeTa
     """The case this exists for: an edited Project going back with one new Task in it.  The helper
     has to run for the Project, so its answer serves the Profiles, Scenes and Tasks too -- no
     endpoint is asked as well."""
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export(_EXPORT), state=PrimeItems)
+    check = devicecheck.check_tasker_for_existing("192.168.0.210", "1821", devicecheck.names_in_export(_EXPORT), state=PrimeItems)
 
     assert check.unchecked == {}
     assert check.present == {"Project": ["Test"], "Profile": ["Morning"], "Task": ["Test1"], "Scene": []}
@@ -3138,7 +3157,7 @@ def test_without_a_project_the_endpoints_answer_and_nothing_is_run(tasker_device
     """The same arrays, one request each -- a Task, Profile or Scene save does not wait on a Task run."""
     sent = {"Project": [], "Profile": ["Morning", "Night"], "Scene": ["Panel"], "Task": ["Test1", "Test1plus"]}
 
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", sent, state=PrimeItems)
+    check = devicecheck.check_tasker_for_existing("192.168.0.210", "1821", sent, state=PrimeItems)
 
     assert check.unchecked == {}
     assert check.present == {"Profile": ["Morning"], "Scene": [], "Task": ["Test1"]}
@@ -3149,10 +3168,10 @@ def test_the_object_list_helper_asks_test_tasker_for_every_kind(tasker_device: _
     """What actually goes to the device: per kind, 'Test Tasker' of that Type (Projects 11, Profiles
     5, Scenes 6, Tasks 7) into an array, and 'Variable Join' making it one |~|-joined line -- all
     before anything is written -- then the payload, terminator last."""
-    deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Project": ["Test"]}, state=PrimeItems)
+    devicecheck.check_tasker_for_existing("192.168.0.210", "1821", {"Project": ["Test"]}, state=PrimeItems)
 
     imported = ET.fromstring(tasker_device.imported_xml)  # noqa: S314  (built by this program)
-    assert imported.findtext(".//nme") == deviceinv.OBJECT_LIST_TASK_NAME
+    assert imported.findtext(".//nme") == devicetask.OBJECT_LIST_TASK_NAME
     actions = sorted(imported.findall(".//Action"), key=lambda action: int(action.get("sr")[3:]))
     assert [action.findtext("code") for action in actions] == ["347", "592"] * 4 + ["410"] * 10
     expected = [("11", "%mtprojects"), ("5", "%mtprofiles"), ("6", "%mtscenes"), ("7", "%mttasks")]
@@ -3181,7 +3200,7 @@ def test_a_helper_answer_that_cannot_be_read_leaves_every_kind_unchecked(tasker_
     unreadable answer covers every kind it was asked for."""
     tasker_device.objects_payload = _objects_payload(projects="%mtprojects")
 
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export(_EXPORT), state=PrimeItems)
+    check = devicecheck.check_tasker_for_existing("192.168.0.210", "1821", devicecheck.names_in_export(_EXPORT), state=PrimeItems)
 
     assert set(check.unchecked) == {"Project", "Profile", "Task", "Scene"}
     assert "did not report any Projects" in check.unchecked["Project"]
@@ -3191,7 +3210,7 @@ def test_a_helper_answer_that_cannot_be_read_leaves_every_kind_unchecked(tasker_
 def test_an_endpoint_that_cannot_answer_does_not_stop_the_others(tasker_device: _FakeTasker) -> None:
     tasker_device.failing.add("/api/profiles")
 
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Profile": ["Morning"], "Task": ["Test1"]}, state=PrimeItems)
+    check = devicecheck.check_tasker_for_existing("192.168.0.210", "1821", {"Profile": ["Morning"], "Task": ["Test1"]}, state=PrimeItems)
 
     assert "Profile" in check.unchecked
     assert "Profile" not in check.present
@@ -3202,7 +3221,7 @@ def test_tasks_are_asked_about_by_name_not_by_reading_the_whole_list(tasker_devi
     """The whole list makes the device look up every Task it has before it answers -- seconds, and
     past the read timeout on a busy phone, which is what reported a connection error on a device
     that was fine.  The names being sent go in the filter instead, all in one request."""
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Test1", "New Task/2"]}, state=PrimeItems)
+    check = devicecheck.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Test1", "New Task/2"]}, state=PrimeItems)
 
     assert check.unchecked == {}
     assert check.present == {"Task": ["Test1"]}
@@ -3217,7 +3236,7 @@ def test_a_name_the_server_reads_as_a_pattern_is_asked_of_the_helper(tasker_devi
     'Test Tasker' does not."""
     tasker_device.objects_payload = _objects_payload(tasks="Test1|~|$New Task")
 
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["$New Task", "Other"]}, state=PrimeItems)
+    check = devicecheck.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["$New Task", "Other"]}, state=PrimeItems)
 
     assert check.unchecked == {}
     assert check.present == {"Task": ["$New Task"]}
@@ -3229,7 +3248,7 @@ def test_a_task_name_the_filter_cannot_carry_reads_the_whole_list(tasker_device:
     name with a dot is looked for in the full list, where it is still found."""
     tasker_device.tasks = ["Updater - .check Connection"]
 
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Updater - .check Connection"]}, state=PrimeItems)
+    check = devicecheck.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Updater - .check Connection"]}, state=PrimeItems)
 
     assert check.present == {"Task": ["Updater - .check Connection"]}
     task_gets = [urlparse(url) for verb, url in tasker_device.calls if verb == "GET" and "/api/tasks" in url]
@@ -3247,29 +3266,29 @@ def test_the_whole_task_list_is_given_time_to_arrive(monkeypatch: pytest.MonkeyP
         timeouts.append(kwargs.get("timeout"))
         return 0, b"[]"
 
-    monkeypatch.setattr(deviceinv, "http_request", fake_http_request)
-    monkeypatch.setattr(deviceinv, "auth_key_for", lambda *_args: (0, "KEY"))
+    monkeypatch.setattr(deviceverify, "http_request", fake_http_request)
+    monkeypatch.setattr(deviceverify, "auth_key_for", lambda *_args: (0, "KEY"))
 
-    deviceinv.fetch_task_names_from_device("192.168.0.210", "1821")
+    deviceverify.fetch_task_names_from_device("192.168.0.210", "1821")
 
     assert timeouts == [maputil2.LIST_READ_TIMEOUT_SECONDS]
 
 
 def test_nothing_named_asks_the_device_nothing(tasker_device: _FakeTasker) -> None:
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export("<TaskerData/>"), state=PrimeItems)
+    check = devicecheck.check_tasker_for_existing("192.168.0.210", "1821", devicecheck.names_in_export("<TaskerData/>"), state=PrimeItems)
 
     assert not check.needs_prompt
     assert tasker_device.calls == []
 
 
 def test_the_prompt_lines_say_what_is_there_and_what_is_new() -> None:
-    check = deviceinv.TaskerCheck(
+    check = devicecheck.TaskerCheck(
         sent={"Project": ["Test"], "Profile": ["Morning"], "Task": [f"T{i}" for i in range(12)]},
         present={"Project": ["Test"], "Profile": [], "Task": [f"T{i}" for i in range(10)]},
         unchecked={"Scene": "Tasker did not answer."},
     )
 
-    lines = deviceinv.describe_tasker_check(check)
+    lines = devicecheck.describe_tasker_check(check)
 
     assert lines[0] == "Tasker already has the Project 'Test'."
     assert lines[1].startswith("Tasker already has 10 of the 12 Tasks: 'T0', 'T1',")
@@ -3307,10 +3326,10 @@ _SENT_FOR_IDS = """<TaskerData sr="" dvi="1" tv="6.7.6">
 </TaskerData>"""
 
 
-def _id_findings() -> list[deviceinv.IdFinding]:
-    sent = deviceinv._parse_tasker_xml(_SENT_FOR_IDS)  # noqa: SLF001
-    device = deviceinv._parse_tasker_xml(_DEVICE_BACKUP)  # noqa: SLF001
-    return deviceinv.compare_ids(sent, device)
+def _id_findings() -> list[devicecheck.IdFinding]:
+    sent = devicecheck.parse_tasker_xml(_SENT_FOR_IDS)  # noqa: SLF001
+    device = devicecheck.parse_tasker_xml(_DEVICE_BACKUP)  # noqa: SLF001
+    return devicecheck.compare_ids(sent, device)
 
 
 def test_ids_that_disagree_with_the_device_are_found_in_export_order() -> None:
@@ -3329,7 +3348,7 @@ def test_ids_that_disagree_with_the_device_are_found_in_export_order() -> None:
 
 
 def test_the_id_lines_put_clashes_first_and_say_what_each_group_risks() -> None:
-    lines = deviceinv.describe_id_findings(_id_findings())
+    lines = devicecheck.describe_id_findings(_id_findings())
 
     assert lines[:3] == [
         "ID uuid-320495f5 of the Project 'Test' being sent already belongs to the device's Project 'Test1'.",
@@ -3340,13 +3359,13 @@ def test_the_id_lines_put_clashes_first_and_say_what_each_group_risks() -> None:
     assert lines[4] == "The device has the Profile 'Atest1' under ID 1144; the one being sent has ID 1163."
     assert lines[5].startswith("Tasker may not treat")
     assert len(lines) == 6
-    assert deviceinv.describe_id_findings([]) == []
+    assert devicecheck.describe_id_findings([]) == []
 
 
 def test_a_long_list_of_clashes_is_counted_rather_than_listed() -> None:
-    findings = [deviceinv.IdFinding("Task", f"T{i}", str(i), "Task", f"D{i}", str(i)) for i in range(11)]
+    findings = [devicecheck.IdFinding("Task", f"T{i}", str(i), "Task", f"D{i}", str(i)) for i in range(11)]
 
-    lines = deviceinv.describe_id_findings(findings)
+    lines = devicecheck.describe_id_findings(findings)
 
     assert len(lines) == 10  # eight spelled out, the count, the risk
     assert lines[8] == "...and 3 more ID clashes."
@@ -3355,7 +3374,7 @@ def test_a_long_list_of_clashes_is_counted_rather_than_listed() -> None:
 def test_the_backup_exchange_runs_in_order_and_leaves_no_backup_behind(tasker_device: _FakeTasker) -> None:
     """The stale answer goes before the run, the download comes after the answer, and the
     backup -- the user's whole configuration -- is deleted from the device once read."""
-    return_code, message, content = deviceinv.fetch_device_backup("192.168.0.210", "1821", state=PrimeItems)
+    return_code, message, content = devicecheck.fetch_device_backup("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code == 0, message
     assert content.decode() == _DEVICE_BACKUP
@@ -3370,7 +3389,7 @@ def test_the_backup_exchange_runs_in_order_and_leaves_no_backup_behind(tasker_de
 def test_the_backup_task_backs_up_without_user_variables(tasker_device: _FakeTasker) -> None:
     """'Data Backup' to MapTasker's own file, relative to the storage root as Tasker's own Backup
     Task does it, variables and preferences left out; then the header and terminator."""
-    deviceinv.fetch_device_backup("192.168.0.210", "1821", state=PrimeItems)
+    devicecheck.fetch_device_backup("192.168.0.210", "1821", state=PrimeItems)
 
     imported = ET.fromstring(tasker_device.imported_xml)  # noqa: S314  (built by this program)
     backup = imported.find(".//Action[code='322']")
@@ -3386,7 +3405,7 @@ def test_a_backup_that_never_finishes_is_not_read(tasker_device: _FakeTasker) ->
     then would be an old one."""
     tasker_device.backup_result = None
 
-    return_code, _message, content = deviceinv.fetch_device_backup("192.168.0.210", "1821", state=PrimeItems)
+    return_code, _message, content = devicecheck.fetch_device_backup("192.168.0.210", "1821", state=PrimeItems)
 
     assert return_code != 0
     assert content == b""
@@ -3394,26 +3413,26 @@ def test_a_backup_that_never_finishes_is_not_read(tasker_device: _FakeTasker) ->
 
 
 def test_one_backup_answers_names_and_ids_without_the_project_helper(tasker_device: _FakeTasker) -> None:
-    check, findings, problem = deviceinv.check_against_device_backup("192.168.0.210", "1821", _SENT_FOR_IDS, state=PrimeItems)
+    check, findings, problem = devicecheck.check_against_device_backup("192.168.0.210", "1821", _SENT_FOR_IDS, state=PrimeItems)
 
     assert problem == ""
     assert check is not None
     assert check.present == {"Project": [], "Profile": ["Atest1"], "Task": ["Test1"]}
     assert len(findings) == 4
-    assert deviceinv.OBJECT_LIST_TASK_NAME not in tasker_device.installed
+    assert devicetask.OBJECT_LIST_TASK_NAME not in tasker_device.installed
 
 
 def test_a_backup_that_is_not_a_configuration_is_refused(tasker_device: _FakeTasker) -> None:
     tasker_device.backup = "<html><body>Not found</body></html>"
 
-    check, findings, problem = deviceinv.check_against_device_backup("192.168.0.210", "1821", _SENT_FOR_IDS, state=PrimeItems)
+    check, findings, problem = devicecheck.check_against_device_backup("192.168.0.210", "1821", _SENT_FOR_IDS, state=PrimeItems)
 
     assert (check, findings) == (None, [])
     assert "could not be read" in problem
 
 
 def test_the_id_check_helper_is_not_reported_as_a_leftover() -> None:
-    assert deviceinv.ID_CHECK_TASK_NAME in deviceinv.current_helper_task_names(state=PrimeItems)
+    assert devicecheck.ID_CHECK_TASK_NAME in devicehelpers.current_helper_task_names(state=PrimeItems)
 
 
 # ##################################################################################
@@ -3464,7 +3483,7 @@ def regex_tasker(monkeypatch: pytest.MonkeyPatch) -> _FakeRegexTasker:
 
 def test_the_task_list_really_leaves_a_regex_name_out(regex_tasker: _FakeRegexTasker) -> None:
     """Why confirm_task_on_android cannot use GET api/tasks for such a name, even unfiltered."""
-    return_code, message, names = deviceinv.fetch_task_names_from_device("192.168.0.210", "1821")
+    return_code, message, names = deviceverify.fetch_task_names_from_device("192.168.0.210", "1821")
 
     assert return_code == 0, message
     assert names == ["Wake Up"]
@@ -3476,12 +3495,12 @@ def test_a_saved_task_with_a_regex_name_is_confirmed_by_the_object_list(
 ) -> None:
     """Reporting it missing would make Save To Android import it a second time -- and api/import
     adds another Task of the same name rather than replacing the one already there."""
-    assert deviceinv.confirm_task_on_android("192.168.0.210", "1821", name, "TESTKEY", state=PrimeItems)
-    assert deviceinv.OBJECT_LIST_TASK_NAME in regex_tasker.installed
+    assert devicetask.confirm_task_on_android("192.168.0.210", "1821", name, "TESTKEY", state=PrimeItems)
+    assert devicetask.OBJECT_LIST_TASK_NAME in regex_tasker.installed
 
 
 def test_a_regex_name_the_device_lacks_is_still_reported_missing(regex_tasker: _FakeRegexTasker) -> None:
-    assert not deviceinv.confirm_task_on_android("192.168.0.210", "1821", "$NewTask", "TESTKEY", state=PrimeItems)
+    assert not devicetask.confirm_task_on_android("192.168.0.210", "1821", "$NewTask", "TESTKEY", state=PrimeItems)
 
 
 def test_a_regex_name_is_reported_missing_when_the_object_list_cannot_be_read(
@@ -3489,12 +3508,12 @@ def test_a_regex_name_is_reported_missing_when_the_object_list_cannot_be_read(
 ) -> None:
     regex_tasker.objects_payload = "MAPTASKER-OBJECTS 1\nPROJECTS\nBase\n"  # never finished
 
-    assert not deviceinv.confirm_task_on_android("192.168.0.210", "1821", "$Taskaroo", "TESTKEY", state=PrimeItems)
+    assert not devicetask.confirm_task_on_android("192.168.0.210", "1821", "$Taskaroo", "TESTKEY", state=PrimeItems)
 
 
 def test_an_ordinary_name_is_still_confirmed_without_the_helper(regex_tasker: _FakeRegexTasker) -> None:
     """The fast path stays: one filtered GET, nothing installed or run."""
-    assert deviceinv.confirm_task_on_android("192.168.0.210", "1821", "Wake Up", "TESTKEY", state=PrimeItems)
+    assert devicetask.confirm_task_on_android("192.168.0.210", "1821", "Wake Up", "TESTKEY", state=PrimeItems)
     assert not regex_tasker.installed
     assert not any(verb == "POST" for verb, _url in regex_tasker.calls)
 
@@ -3511,16 +3530,16 @@ def test_an_ordinary_name_is_still_confirmed_without_the_helper(regex_tasker: _F
 def test_the_helper_project_carries_every_current_helper_under_its_own_id(loaded: None) -> None:
     """Every builder mints its id without knowing about the others, so without renumbering
     they would all share one -- and <tids> would name a single Task."""
-    root = ET.fromstring(deviceinv.build_helper_project_xml(state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(devicehelpers.build_helper_project_xml(state=PrimeItems))  # noqa: S314
 
     project = root.find("Project")
     assert project is not None
-    assert project.findtext("name") == deviceinv.HELPER_PROJECT_NAME
+    assert project.findtext("name") == devicehelpers.HELPER_PROJECT_NAME
     assert project.get("sr") == "proj0"
     assert project.findtext("id")
 
     tasks = root.findall("Task")
-    assert {task.findtext("nme") for task in tasks} == deviceinv.current_helper_task_names(state=PrimeItems)
+    assert {task.findtext("nme") for task in tasks} == devicehelpers.current_helper_task_names(state=PrimeItems)
     ids = [task.findtext("id") for task in tasks]
     assert len(set(ids)) == len(ids)
     assert all(task.get("sr") == f"task{task.findtext('id')}" for task in tasks)
@@ -3534,7 +3553,7 @@ def test_the_helper_project_needs_a_loaded_backup() -> None:
     """Every helper's Task id comes from the loaded configuration, so without one there is
     nothing to number them against -- refused before the device is touched."""
     with pytest.raises(ValueError, match="Load a Tasker backup"):
-        deviceinv.build_helper_project_xml(state=PrimeItems)
+        devicehelpers.build_helper_project_xml(state=PrimeItems)
 
 
 def test_the_helper_project_numbers_past_the_devices_backup(loaded: None) -> None:
@@ -3542,12 +3561,12 @@ def test_the_helper_project_numbers_past_the_devices_backup(loaded: None) -> Non
     already given the user's own Task.  Tasker's automatic backup is read so the ids clear what
     the device holds too; a 'MapTasker' Project already there keeps its id."""
     device_backup = f"""<TaskerData sr="" dvi="1" tv="6.7.6">
-<Project sr="proj0" ve="2"><id>kept-project-uuid</id><name>{deviceinv.HELPER_PROJECT_NAME}</name></Project>
+<Project sr="proj0" ve="2"><id>kept-project-uuid</id><name>{devicehelpers.HELPER_PROJECT_NAME}</name></Project>
 <Task sr="task2209"><id>2209</id><nme>Test1plus</nme></Task>
 <Profile sr="prof4100"><id>4100</id><nme>Newest</nme></Profile>
 </TaskerData>"""
 
-    root = ET.fromstring(deviceinv.build_helper_project_xml(device_xml=device_backup, state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(devicehelpers.build_helper_project_xml(device_xml=device_backup, state=PrimeItems))  # noqa: S314
 
     ids = [int(task.findtext("id")) for task in root.findall("Task")]
     assert min(ids) == 4100 + taskedit.NEW_OBJECT_ID_HEADROOM + 1
@@ -3560,7 +3579,7 @@ def test_the_helper_project_numbers_past_the_devices_backup(loaded: None) -> Non
 def test_an_unreadable_device_backup_builds_nothing(loaded: None) -> None:
     """A caller that wants the loaded ids instead asks for them by passing no backup."""
     with pytest.raises(ValueError, match="could not be read"):
-        deviceinv.build_helper_project_xml(device_xml=b"not xml", state=PrimeItems)
+        devicehelpers.build_helper_project_xml(device_xml=b"not xml", state=PrimeItems)
 
 
 class _FakeHelperProjectDevice(_FakeTasker):
@@ -3611,7 +3630,7 @@ def test_the_helper_project_is_uploaded_without_installing_or_running_anything(
 ) -> None:
     """Every helper installed on the way would be a Task the Project carries that Tasker already
     has -- and Tasker refuses the whole Project for one of those (measured on a device)."""
-    result = deviceinv.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
+    result = devicehelpers.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
 
     assert result.ok, result.error
     assert result.device_path.endswith("/Tasker/projects/MapTasker.prj.xml")
@@ -3619,7 +3638,7 @@ def test_the_helper_project_is_uploaded_without_installing_or_running_anything(
     assert posts
     assert all("/upload" in url for url in posts)
     sent = ET.fromstring(helper_project_device.uploaded["MapTasker.prj.xml"])  # noqa: S314
-    assert {task.findtext("nme") for task in sent.findall("Task")} == deviceinv.current_helper_task_names(state=PrimeItems)
+    assert {task.findtext("nme") for task in sent.findall("Task")} == devicehelpers.current_helper_task_names(state=PrimeItems)
     assert min(int(task.findtext("id")) for task in sent.findall("Task")) > 5000
 
 
@@ -3627,12 +3646,12 @@ def test_helpers_already_on_the_device_are_named_and_nothing_is_written(
     helper_project_device: _FakeHelperProjectDevice,
 ) -> None:
     """Probe B on a real device: one helper Tasker already had, and the Project would not import."""
-    helper_project_device.tasks = [deviceinv.OPEN_PROJECT_ROUTE.task_name, "Mine"]
+    helper_project_device.tasks = [deviceoffer.OPEN_PROJECT_ROUTE.task_name, "Mine"]
 
-    result = deviceinv.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
+    result = devicehelpers.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
 
     assert not result.ok
-    assert result.helpers_present == (deviceinv.OPEN_PROJECT_ROUTE.task_name,)
+    assert result.helpers_present == (deviceoffer.OPEN_PROJECT_ROUTE.task_name,)
     assert not helper_project_device.uploaded
     assert not any(verb == "POST" for verb, _url in helper_project_device.calls)
     # Nothing was asked about Projects: the helper that answers that was not there to run, and
@@ -3646,10 +3665,10 @@ def test_helpers_already_in_the_project_are_reported_as_done(
     """Every helper there and a 'MapTasker' Project to hold them is the finished state, not a
     pile of Tasks to delete.  Asked with the object-listing helper, which is one of the helpers
     and so is already installed whenever this case arises -- nothing new goes on the device."""
-    helper_project_device.tasks = sorted(deviceinv.current_helper_task_names(state=PrimeItems))
-    helper_project_device.objects_payload = _objects_payload(projects=f"Base|~|{deviceinv.HELPER_PROJECT_NAME}")
+    helper_project_device.tasks = sorted(devicehelpers.current_helper_task_names(state=PrimeItems))
+    helper_project_device.objects_payload = _objects_payload(projects=f"Base|~|{devicehelpers.HELPER_PROJECT_NAME}")
 
-    result = deviceinv.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
+    result = devicehelpers.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
 
     assert result.already_in_project
     assert result.project_exists
@@ -3663,12 +3682,12 @@ def test_a_project_holding_only_some_helpers_still_names_the_ones_in_the_way(
 ) -> None:
     """A MapTasker that added a helper since the Project was imported: the Project is there, the
     new helper is not, and Tasker would refuse an import of the Project as it stands."""
-    helper_project_device.tasks = [deviceinv.OBJECT_LIST_TASK_NAME, deviceinv.FILE_LIST_TASK_NAME]
-    helper_project_device.objects_payload = _objects_payload(projects=deviceinv.HELPER_PROJECT_NAME)
+    helper_project_device.tasks = [devicetask.OBJECT_LIST_TASK_NAME, devicefiles.FILE_LIST_TASK_NAME]
+    helper_project_device.objects_payload = _objects_payload(projects=devicehelpers.HELPER_PROJECT_NAME)
 
-    result = deviceinv.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
+    result = devicehelpers.stage_helper_project("192.168.0.210", "1821", state=PrimeItems)
 
     assert not result.ok
     assert not result.already_in_project
     assert result.project_exists is True
-    assert result.helpers_present == (deviceinv.FILE_LIST_TASK_NAME, deviceinv.OBJECT_LIST_TASK_NAME)
+    assert result.helpers_present == (devicefiles.FILE_LIST_TASK_NAME, devicetask.OBJECT_LIST_TASK_NAME)

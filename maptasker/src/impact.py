@@ -46,7 +46,7 @@ _REPORT_WIDTH = 78
 # Which references each delete rewrites for itself.  Everything absent from this table is
 # left exactly as it is, pointing at what is about to stop existing.
 #
-# Deleting a Task unlinks it from every Profile's <mid0>/<mid1> (taskedit.delete_task), so
+# Deleting a Task unlinks it from every Profile's <mid0>/<mid1> (taskedit_save.delete_task), so
 # a Profile link is repaired rather than broken.  Deleting a PROJECT with its contents does
 # not: projedit.delete_profiles_and_tasks_of_project drops the Profiles and Tasks from the
 # lookup tables and stops there, so a Profile in some other Project that runs one of the

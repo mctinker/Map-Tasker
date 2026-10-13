@@ -169,7 +169,7 @@ def test_profile_link_is_repaired_not_broken() -> None:
     """A Task delete unlinks the Profiles that run it, so those links are not reported broken.
 
     The counter-example to every test above, and the reason the reference index records
-    what SORT each reference is: taskedit.delete_task rewrites this one.
+    what SORT each reference is: taskedit_save.delete_task rewrites this one.
     """
     assert "DANGLING-PROFILE-LINK" not in _tags(impact.analyze_delete(TASK, "Helper", state=PrimeItems))
 

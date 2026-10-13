@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
-from maptasker.src import mapask, mapdraft, taskedit
+from maptasker.src import mapask, mapdraft, taskedit, taskedit_model
 from maptasker.src.maputil2 import translate_string
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ class DraftRow:
     def __init__(
         self,
         gui: MyGui,
-        edited_task: taskedit.EditableTask,
+        edited_task: taskedit_model.EditableTask,
         field_refs: dict,
         dialog: ui.dialog,
         on_drafted: Callable[[int | None], None],
