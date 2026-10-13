@@ -93,7 +93,7 @@ def _stamped_name(file_name: str) -> str:
     return f"{base}_{stamp}{dot}{extensions}" if dot else f"{base}_{stamp}"
 
 
-def _copy_pattern(file_name: str) -> re.Pattern:
+def _copy_pattern(file_name: str) -> re.Pattern[str]:
     """Matches every safety copy previously made of `file_name` -- for pruning.
 
     Built from the same two halves _stamped_name joins, so the two cannot drift: anything

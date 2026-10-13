@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 from maptasker.src.core import objprops
 from maptasker.src.core.dirout import add_directory_item
+from maptasker.src.core.elemvals import child_text
 from maptasker.src.core.format import build_tooltip_span, format_html
 from maptasker.src.core.mapjump import PROFILE, Target, anchor_html
 from maptasker.src.core.nameattr import add_name_attribute
@@ -101,8 +102,7 @@ def get_profile_name(
         :return: Profile name with appropriate html and the profile name itself
     """
     # If we don't have the name, then set it to 'No Profile'
-    profile_id = profile.attrib.get("sr")
-    profile_id = profile_id[4:]
+    profile_id = profile.attrib["sr"][4:]
     if not (the_profile_name := state.tasker_root_elements["all_profiles"][profile_id]["name"]):
         the_profile_name = UNNAMED_ITEM
 
@@ -137,7 +137,7 @@ def get_profile_name(
 
     # If we are debugging, add the Profile ID
     if config.debug:
-        profile_id = profile.find("id").text
+        profile_id = child_text(profile, "id")
         profile_name_with_html = (
             f"{profile_name_with_html} {format_html('unknown_task_color', '', f', ID:{profile_id}', True)}"
         )
@@ -368,8 +368,7 @@ def conditions_to_name(
     )
     # Put this name back into the master profile dictionary in PrimeItems.
     # Add a unique identifier to the name: the profile id: profile_name.id
-    profile_id = profile.attrib.get("sr")
-    profile_id = profile_id[4:]
+    profile_id = profile.attrib["sr"][4:]
     # Add the profile id and unnamed portion
     profile_name = f"{profile_name.rstrip()}.{profile_id} {UNNAMED_ITEM}"
 

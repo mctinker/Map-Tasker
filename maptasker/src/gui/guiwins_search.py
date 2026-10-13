@@ -157,7 +157,7 @@ class TextViewSearch:
 
     def search_event(self) -> None:
         """Search for the input text inside the text views and display a clickable results popup."""
-        query = self.search_input.value.strip()
+        query = (self.search_input.value or "").strip()
         if not query:
             ui.notify(translate_string("Please enter a search term."), type="warning")
             return

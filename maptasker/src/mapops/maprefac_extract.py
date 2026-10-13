@@ -387,6 +387,12 @@ def plan_inline(task_id: str, action_number: int, state: RunState) -> Plan:
     if block is not None:
         return blocked(INLINE, what, block)
 
+    if called is None:  # _inline_block has already blocked a missing Task; this is for the type checker.
+        return blocked(
+            INLINE,
+            what,
+            Block("NO-SUCH-TASK", f"'{called_name}' is not a Task in this file.", where.at_action(action_number)),
+        )
     called_element = called["xml"]
     called_actions = actions_of(called_element)
     condition = call.find(_CONDITION_LIST)

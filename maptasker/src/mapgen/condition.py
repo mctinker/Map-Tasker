@@ -13,7 +13,7 @@ import maptasker.src.mapgen.actione as action_evaluate
 # action_codes: Master dictionary of Task action and Profile condition codes
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.debug import not_in_dictionary
-from maptasker.src.core.elemvals import get_priority
+from maptasker.src.core.elemvals import child_text, get_priority
 from maptasker.src.core.objprops import APP_FLAG_NAMES, APP_MATCH_FOREGROUND_APP_BIT, describe_flags, flag_bits
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import logger
@@ -215,12 +215,15 @@ def condition_event(
         :return: the formatted condition's output string
     """
     the_event_code = the_item.find("code")
+    if the_event_code is None:  # An Event with no <code> is not one Tasker wrote.
+        return f"{the_output_condition}Event: (no code)"
+    code_text = the_event_code.text or ""
 
     # Determine what the Event code is and return the actual Event text
-    event_code = f"{the_event_code.text}e" if "e" not in the_event_code.text else the_event_code.text
+    event_code = f"{code_text}e" if "e" not in code_text else code_text
     if event_code not in action_codes:
         # get_action_code reports it as 'not yet mapped' and displays what it can.
-        logger.debug(f"code:{the_event_code.text} not found in action codes!")
+        logger.debug(f"code:{code_text} not found in action codes!")
 
     # Get the event code and its arguments with spacing added for 'pretty' text
     # the_event_code.text = event_code
@@ -244,7 +247,7 @@ def condition_event(
     event = event.replace("\n", "<br>")
     the_output_condition = f"{the_output_condition}Event: {event}"
     if state.program_arguments.debug:  # if debugging then add the code
-        the_output_condition = f"{the_output_condition} (code:{the_event_code.text})"
+        the_output_condition = f"{the_output_condition} (code:{code_text})"
     return the_output_condition
 
 
@@ -285,9 +288,9 @@ def condition_loc(item: Element, condition: str) -> str:
             be formatted
         :return: the formatted condition's output string
     """
-    lat = item.find("lat").text
-    lon = item.find("long").text
-    rad = item.find("rad").text
+    lat = child_text(item, "lat")
+    lon = child_text(item, "long")
+    rad = child_text(item, "rad")
     if lat:
         return f"{condition}Location with latitude {lat} longitude {lon} radius {rad}"
     return ""

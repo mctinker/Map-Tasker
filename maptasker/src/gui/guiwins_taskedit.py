@@ -50,6 +50,8 @@ from maptasker.src.gui.guiwins_impact import build_impact_panel
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from nicegui.events import ValueChangeEventArguments
+
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
 
@@ -132,7 +134,7 @@ def _render_task_name_field(
     if not task_names:
         return
 
-    def fill_in_picked_task(e: ui.event) -> None:
+    def fill_in_picked_task(e: ValueChangeEventArguments) -> None:
         if e.value:
             field_refs[key].value = e.value
 
@@ -1198,7 +1200,9 @@ def _render_action_condition_checkbox(
     text = f"If: {target} {operator_label} {value}".rstrip() if condition_count else "If"
     checkbox = ui.checkbox(text, value=condition_count == 1).props("dense")
 
-    def on_toggle(e: ui.event, act_number: str = action.act_number, cb: ui.checkbox = checkbox) -> None:
+    def on_toggle(
+        e: ValueChangeEventArguments, act_number: str = action.act_number, cb: ui.checkbox = checkbox
+    ) -> None:
         if e.value:
             build_action_condition_dialog(self, edited_task, act_number, cb, condition_cache)
             return
@@ -1335,7 +1339,7 @@ class _ActionPicker:
         self.search_input.on_value_change(self.refresh)
         self.category_select.on_value_change(self.refresh)
 
-    def refresh(self, _e: ui.event | None = None) -> None:
+    def refresh(self, _e: object | None = None) -> None:
         """Redraws the list of actions to pick from, for the current search and category."""
         self.picker_container.clear()
         rows = taskedit_addable.search_addable_actions(
@@ -1992,7 +1996,7 @@ def _make_save_path_sync(field_refs: dict, last_auto_path: dict, state: RunState
         state: The run state whose output folder the path is worked out in.
     """
 
-    def sync_save_path(_e: ui.event | None = None) -> None:
+    def sync_save_path(_e: object | None = None) -> None:
         # Keep "Save as" in sync with the Task Name as the user types, so the
         # file actually lands under the name they gave the task -- but only
         # while it still holds what we last auto-computed; if the user has

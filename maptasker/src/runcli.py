@@ -10,9 +10,9 @@
 #  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
 #  "export TK_SILENCE_DEPRECATION = 1"                                                 #
 #                                                                                      #
+import argparse
 import contextlib
 import sys
-from collections import namedtuple
 
 import darkdetect
 
@@ -40,7 +40,7 @@ from maptasker.src.rungui import process_gui
 # ################################################################################
 # Determine if the argument is a list or string, and return the value as appropriate
 # ################################################################################
-def get_arg_if_in_list(args: list, the_argument: str) -> int:
+def get_arg_if_in_list(args: argparse.Namespace, the_argument: str) -> int:
     """
     Determine if the argument is a list or string, and return the value as appropriate
         Args:
@@ -75,11 +75,11 @@ def get_name_attributes(value: str, state: RunState) -> None:
 
 
 # Go through all boolean settings, get each and if have it then set value to True
-def get_and_set_booleans(args: list, state: RunState) -> None:
+def get_and_set_booleans(args: argparse.Namespace, state: RunState) -> None:
     """
     Go through all boolean settings, get each and if have it then set value to True
         Args:
-            args (namedtuple): runtime arguments namespace
+            args (argparse.Namespace): runtime arguments namespace
     """
     # Program runtime boolean arguments (long form and short form per argparse.py).
     # -e/-everything is not one of them: it is not a setting of its own but a shorthand for
@@ -113,7 +113,7 @@ def get_and_set_booleans(args: list, state: RunState) -> None:
 
 
 # Get the the other arguments
-def get_the_other_arguments(args: list, state: RunState) -> None:
+def get_the_other_arguments(args: argparse.Namespace, state: RunState) -> None:
     """
     Get the remainder of the arguments
         Args:
@@ -147,7 +147,7 @@ def set_everything(program_arguments: ProgramArguments) -> None:
     program_arguments.pretty = True
 
 
-def get_single_name(program_arguments: ProgramArguments, args: list) -> None:
+def get_single_name(program_arguments: ProgramArguments, args: argparse.Namespace) -> None:
     """
     A function that extracts single names from the provided arguments and updates the program arguments accordingly.
     Args:
@@ -170,7 +170,7 @@ def get_single_name(program_arguments: ProgramArguments, args: list) -> None:
         program_arguments.single_scene_name = the_name[0]
 
 
-def get_android_settings(program_arguments: ProgramArguments, args: list) -> None:
+def get_android_settings(program_arguments: ProgramArguments, args: argparse.Namespace) -> None:
     """
     A function to get Android settings based on the provided arguments.
     Args:
@@ -190,7 +190,7 @@ def get_android_settings(program_arguments: ProgramArguments, args: list) -> Non
             program_arguments.android_file = getattr(args, "android_file")
 
 
-def process_extended_arguments(args: list, state: RunState) -> None:
+def process_extended_arguments(args: argparse.Namespace, state: RunState) -> None:
     """
     Process extended arguments from the command line.
 
@@ -275,7 +275,7 @@ def process_extended_arguments(args: list, state: RunState) -> None:
 
 
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
-def get_runtime_arguments(args: list, state: RunState) -> None:
+def get_runtime_arguments(args: argparse.Namespace, state: RunState) -> None:
     """
     Function to get runtime arguments from the command line.
 
@@ -338,11 +338,11 @@ def display_version() -> None:
 
 
 # Get arguments from command line and put them to the proper settings
-def process_arguments(args: object, state: RunState) -> dict:
+def process_arguments(args: argparse.Namespace, state: RunState) -> None:
     """
     Get arguments from command line and put them to the proper settings
         Args:
-            args (object): program arguments passed from command line
+            args (argparse.Namespace): program arguments passed from command line
 
         Returns:
             None
@@ -367,11 +367,9 @@ def process_arguments(args: object, state: RunState) -> dict:
             else:
                 _get_and_set_the_color(f"-c{item}={the_name}", state=state)
 
-    return
-
 
 # Get arguments from saved file and restore them to the proper settings
-def restore_arguments(state: RunState) -> dict:
+def restore_arguments(state: RunState) -> None:
     """
     Get arguments from saved file and restore them to the proper settings
     """
@@ -383,7 +381,7 @@ def restore_arguments(state: RunState) -> dict:
     with contextlib.suppress(KeyError):
         # Map the prog_arg keys and values restored.  Settings this version does not know
         # (left by an older one, or the corrupt-file message) are skipped and logged.
-        state.program_arguments.restore(temp_arguments)
+        state.program_arguments.restore(dict(temp_arguments))
         state.program_arguments.display_detail_level = int(state.program_arguments.display_detail_level)
 
         # Map the colormap keys and values restored
@@ -391,23 +389,17 @@ def restore_arguments(state: RunState) -> dict:
             if key is not None:
                 state.colors_to_use[key] = value
 
-    return
-
 
 # Unit tests...
 # We're running a unit test. Get the unit test arguments and create the arg namespace.
 # We do this so that 1) we can run a unit test without command line arguments, and
 # 2) we can rerun over and over as many times as needed.
-def unit_test() -> namedtuple:  # noqa: PYI024
+def unit_test() -> argparse.Namespace:
     """
     We're running a unit test. Get the unit test arguments and create the arg namespace
             :return: args Namespace with arguments from run_test.py
     """
     single_names = ["project", "profile", "task", "scene"]
-
-    class Namespace:
-        def __init__(self: object, **kwargs: tuple) -> None:
-            self.__dict__.update(kwargs)
 
     # Setup default argument Namespace based on parsearg.py add_argument
     # Update this if adding a new program argument !!!
@@ -416,7 +408,7 @@ def unit_test() -> namedtuple:  # noqa: PYI024
 
     # single letter if the first name is a single letter, otherwise full name
     # Example: parser.add_argument( "-g","-gui",... then -g is the short name
-    args = Namespace(
+    args = argparse.Namespace(
         appearance=None,
         android_ipaddr="",
         android_file="",
@@ -486,8 +478,7 @@ def unit_test() -> namedtuple:  # noqa: PYI024
 
         # Handle display_detail_level, which requires an int
         elif new_arg[0] == "detail":
-            new_arg[1] = int(new_arg[1])
-            setattr(args, new_arg[0], new_arg[1])
+            setattr(args, new_arg[0], int(new_arg[1]))
 
         # For everything else, replace the default Namespace value with unit test value.
         elif new_arg[0] in single_names:

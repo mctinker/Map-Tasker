@@ -49,7 +49,7 @@ from maptasker.src.mapgen.frontmtr import output_the_front_matter
 if TYPE_CHECKING:
     from collections.abc import Coroutine
 
-    from nicegui import Event
+    from nicegui.events import ValueChangeEventArguments
 
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
@@ -95,8 +95,10 @@ class AIEventHandlers:
     # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
     # its window's.
     state: RunState
+    # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
+    gui: MyGui
 
-    def ai_model_selected_event(self: MapTaskerEventHandlers, event_value: Event) -> None:
+    def ai_model_selected_event(self: MapTaskerEventHandlers, event_value: ValueChangeEventArguments) -> None:
         """Updates the AI model based on dropdown selection."""
         if not event_value.value or self.gui.is_updating:
             return
@@ -400,7 +402,7 @@ class AIEventHandlers:
                 display_analyze_button(gui, 13, first_time=False)
 
     def ai_apikey_process_event(
-        self: MyGui,
+        self,
         dialog_container: APIKeyDialog,  # This is now accurately receiving your APIKeyDialog instance
         cancel: bool,
         clear: str,

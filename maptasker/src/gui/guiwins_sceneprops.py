@@ -655,7 +655,7 @@ def _render_scene_action_item_picker(
             return
         rerender()
 
-    def refresh_picker(_event: ui.event | None = None) -> None:
+    def refresh_picker(_event: object | None = None) -> None:
         picker_container.clear()
         rows = taskedit_addable.search_addable_actions(search_input.value, category_select.value, state=self.state)
         with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
@@ -864,7 +864,7 @@ def _render_task_picker(on_pick: Callable[[str], None], state: RunState) -> None
         project_select = ui.select(["All", *projects], value="All").classes("w-48")
     picker_container = ui.column().classes("w-full")
 
-    def refresh_picker(_event: ui.event | None = None) -> None:
+    def refresh_picker(_event: object | None = None) -> None:
         picker_container.clear()
         matches = taskedit.search_pickable_tasks(search_input.value, project_select.value, state=state)
         with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):

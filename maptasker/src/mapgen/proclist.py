@@ -714,7 +714,7 @@ def get_image(image: Element, title: str, key: str) -> str:
     element = image.find(key)
     if element is None:
         return ""
-    text = element.text
+    text = element.text or ""
     if "." in text:
         text = text.rsplit(".", 1)[1]
     return f"{title}={text} " if text else ""

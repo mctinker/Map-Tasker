@@ -47,7 +47,7 @@ def output_the_heading(config: RunConfig, state: RunState) -> None:
     # Get the screen dimensions from <dmetric> xml
     screen_element = state.xml_root.find("dmetric")
     screen_size = (
-        f"&nbsp;&nbsp;Device screen size: {screen_element.text.replace(',', ' X ')}"
+        f"&nbsp;&nbsp;Device screen size: {(screen_element.text or '').replace(',', ' X ')}"
         if screen_element is not None
         else ""
     )

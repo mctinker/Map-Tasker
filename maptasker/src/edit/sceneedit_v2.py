@@ -2105,7 +2105,7 @@ V2_MODIFIER_SCHEMA: dict[str, tuple[V2Prop, ...]] = {
     "Align": (V2Prop("alignment", "Alignment", "choice", ("Start", "Center", "End")),),
     # The one modifier whose value is a state field rather than a plain property: a weight is
     # picked off Compose's scale (V2_FONT_WEIGHTS), or worked out when the Scene is shown.
-    "Weight": (v2_state_field("amount").prop,),
+    "Weight": (next(field for field in V2_STATE_FIELDS if field.key == "amount").prop,),
     "AspectRatio": (V2Prop("ratio", "Ratio"),),
     "Alpha": (V2Prop("value", "Opacity", "number"),),
     # A fraction rather than a size: the samples' Scales are 0.7, 0.8, 0.9.  Only "all" is

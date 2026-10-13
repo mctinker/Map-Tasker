@@ -50,7 +50,7 @@ from __future__ import annotations
 import contextlib
 from dataclasses import FrozenInstanceError, dataclass, field, replace
 from types import MappingProxyType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core.initparg import ArgumentFields, ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
@@ -134,7 +134,7 @@ class RunConfig(ArgumentFields):
     @classmethod
     def from_dicts(
         cls,
-        program_arguments: Mapping[str, object] | None,
+        program_arguments: Mapping[str, object] | ProgramArguments | None,
         colors_to_use: Mapping[str, str] | None = None,
     ) -> RunConfig:
         """
@@ -153,7 +153,7 @@ class RunConfig(ArgumentFields):
                 RunConfig: the frozen configuration.
         """
         known = {name: value for name, value in (program_arguments or {}).items() if name in cls.NAME_SET}
-        return cls(**known, colors=colors_to_use or {})
+        return cls(**cast("dict[str, Any]", known), colors=colors_to_use or {})
 
     def with_changes(self, **overrides: object) -> RunConfig:
         """
@@ -210,7 +210,7 @@ class RunConfig(ArgumentFields):
         This is the one direction that is not pure, and it exists only as long as the
         globals do.  Nothing that has been given a RunConfig should need to call it.
         """
-        PrimeItems.program_arguments = ProgramArguments(**self.as_dict())
+        PrimeItems.program_arguments = ProgramArguments(**cast("dict[str, Any]", self.as_dict()))
         PrimeItems.colors_to_use = self.as_colors()
 
 

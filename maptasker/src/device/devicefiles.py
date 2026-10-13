@@ -254,7 +254,9 @@ def fetch_file_list_from_device(
 
 
 # List the XML files on the Android device
-def get_list_of_files(ip_address: str, ip_port: str, file_location: str, state: RunState) -> tuple:
+def get_list_of_files(
+    ip_address: str, ip_port: str, file_location: str, state: RunState
+) -> tuple[int, list[str] | str]:
     """Get the list of XML files on an Android device.
 
     Args:

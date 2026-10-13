@@ -235,7 +235,7 @@ def _intercept_socket_emit(state: RunState) -> None:
 
     # 2. Define the interception proxy function
     async def intercepted_sio_emit(
-        event: ui.Event,
+        event: str,
         data: dict | None = None,
         room: str | None = None,
         **kwargs: dict[str, Any],

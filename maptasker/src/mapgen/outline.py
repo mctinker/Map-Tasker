@@ -62,7 +62,7 @@ def bare_task_name(name: str) -> str:
 
 # Update Task with calls and called_by details
 def update_caller_and_called_tasks(
-    task: Element,
+    task: dict,
     perform_task_name: str,
     state: RunState,
 ) -> None:
@@ -70,7 +70,7 @@ def update_caller_and_called_tasks(
     """
     Updates the caller and called tasks lists
     Args:
-        task: {Task xml element}: Task xml element of the caller
+        task: {dict}: the caller's entry in the tables (it is indexed by "name")
         perform_task_name: {str}: Name of the task being performed/called
     Returns:
         None
@@ -119,7 +119,7 @@ def update_caller_and_called_tasks(
 # Go through the Task's Actions looking for any Perform Task actions.
 def do_task_actions(
     task_actions: list[Element],
-    task: Element,
+    task: dict,
     state: RunState,
 ) -> None:
     """
@@ -127,7 +127,7 @@ def do_task_actions(
 
     Args:
         task_actions: list[Element] - Task action elements.
-        task: Element - Task element.
+        task: dict - the Task's entry in the tables (indexed by "name" and "xml").
 
     Returns:
         None

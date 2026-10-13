@@ -27,7 +27,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, fields
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 from maptasker.src.core.config import (
     ANDROID_FILE,
@@ -138,7 +138,7 @@ class ArgumentFields:
     # a silent None.  Use attribute access wherever the name is written out in the code.
     # ---------------------------------------------------------------------------------
     @classmethod
-    def _check(cls, name: object) -> str:
+    def _check(cls, name: str) -> str:
         """
         Return name if it is a runtime argument, else raise KeyError.
 
@@ -217,7 +217,7 @@ class ProgramArguments(ArgumentFields):
                 KeyError: if any name is not a runtime argument.  Nothing is set in that
                     case: the names are all checked before any value is assigned.
         """
-        pairs = [*(other.items() if hasattr(other, "items") else other), *kwargs.items()]
+        pairs = [*(cast("Mapping[str, object]", other).items() if hasattr(other, "items") else other), *kwargs.items()]
         for name, _ in pairs:
             self._check(name)
         for name, value in pairs:
@@ -228,7 +228,7 @@ class ProgramArguments(ArgumentFields):
     # ---------------------------------------------------------------------------------
     def copy(self) -> ProgramArguments:
         """Return a copy, lists included."""
-        return ProgramArguments(**self.as_dict())
+        return ProgramArguments(**cast("dict[str, Any]", self.as_dict()))
 
     def restore(self, settings: Mapping[str, object]) -> list[str]:
         """

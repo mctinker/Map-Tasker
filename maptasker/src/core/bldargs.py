@@ -50,6 +50,8 @@ def get_backup_arguments(xml_file: str) -> dict:
         dict: {action_codes key: {arg id: element tag}} -- e.g. {"2078e": {"0": "Bundle", "1": "Str"}}
     """
     root = ET.parse(xml_file).getroot()
+    if root is None:
+        return {}
 
     # An arg slot can legitimately appear with different tags across occurrences (a
     # value written as <Str> in one action and <Int> in another), so count them and

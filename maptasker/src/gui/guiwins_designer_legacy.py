@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from nicegui import Event, ui
+from nicegui import ui
 
 from maptasker.src.core import objprops
 from maptasker.src.core.editcommon import restore_element
@@ -38,6 +38,8 @@ from maptasker.src.gui.guiwins_sceneprops import _build_scene_properties_dialog,
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from nicegui.events import GenericEventArguments, ValueChangeEventArguments
 
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
@@ -720,7 +722,7 @@ class _LegacyDesigner:
                 args=["shiftKey", "ctrlKey", "metaKey"],
             )
 
-    def click_row(self, event: Event, sr: str) -> None:
+    def click_row(self, event: GenericEventArguments, sr: str) -> None:
         """A click in the element list.
 
         Shift takes the whole range between the anchor and this row; Ctrl or Cmd toggles
@@ -770,7 +772,7 @@ class _LegacyDesigner:
         re-render on the first of them would take the box being typed into with it.
         """
 
-        def commit(event: Event, position: int = index) -> None:
+        def commit(event: ValueChangeEventArguments, position: int = index) -> None:
             # float() before int(): ui.number hands back a float, and "900.0" is not something
             # int() will parse.  Every typed geometry edit used to be dropped right here, in
             # silence -- the box showed the number, the element never moved, and selecting

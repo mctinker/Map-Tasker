@@ -834,6 +834,8 @@ class EditorEventHandlers:
     # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
     # its window's.
     state: RunState
+    # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
+    gui: MyGui
 
     def open_edit_task_dialog_event(self) -> None:
         """Opens the Edit Task dialog for the currently selected single Task name."""

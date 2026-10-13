@@ -20,6 +20,7 @@ import contextlib
 
 from maptasker.src.core.actiont import lookup_values
 from maptasker.src.core.condjoin import boolean_operators, join_conditions
+from maptasker.src.core.elemvals import child_text
 from maptasker.src.core.error import error_handler
 from maptasker.src.core.format import format_html, format_label
 from maptasker.src.core.shelsort import shell_sort
@@ -103,11 +104,11 @@ def evaluate_condition(child: Element) -> tuple[str, str, str]:
         "13": " not set",
     }
 
-    first_string = child.find("lhs").text
-    operation = child.find("op").text
+    first_string = child_text(child, "lhs") or ""
+    operation = child_text(child, "op") or ""
     the_operation = the_operations[operation]
-    if "set" not in the_operation and child.find("rhs").text is not None:  # No second string if "set/not" set
-        second_operation = child.find("rhs").text
+    second_operation = child_text(child, "rhs")
+    if "set" not in the_operation and second_operation is not None:  # No second string if "set/not" set
         # Correct any embedded html tags in text string.
         second_operation = second_operation.replace("<", "&lt;")
         second_operation = second_operation.replace(">", "&gt;")
@@ -345,7 +346,7 @@ def get_conditions(child: Element, the_action_code: str) -> str:
     keyword = "<em>UNTIL</em>" if the_action_code == "35" else "<em>IF</em>"  # Wait Until?
     conditions = []
     _evaluate_condition = evaluate_condition
-    for children in condition_list.findall("Condition"):
+    for children in condition_list.findall("Condition") if condition_list is not None else []:
         # Evaluate the condition to add to output
         string1, operator, string2 = _evaluate_condition(children)
         conditions.append(f"{keyword} {string1}{operator}{string2}")
@@ -412,7 +413,7 @@ def get_extra_stuff(
         extra_stuff = extra_stuff + format_html(
             "disabled_action_color",
             "",
-            f"&nbsp;&nbsp;code: {code_action.find('code').text}-",
+            f"&nbsp;&nbsp;code: {child_text(code_action, 'code')}-",
             True,
         )
 

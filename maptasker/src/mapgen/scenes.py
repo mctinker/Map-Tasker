@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from maptasker.src.core import caches, scenelayout
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.dirout import add_directory_item
+from maptasker.src.core.elemvals import child_text
 from maptasker.src.core.mapjump import (
     SCENE,
     Target,
@@ -268,15 +269,16 @@ def get_scene_elements(
     name_xml_element = child.find("Str")
     # Get the element's geometry
     geom = child.find("geom")
-    if geom is not None:
-        geometry_xml_element = child.find("geom").text
-        geometry = geometry_xml_element.split(",")
+    if geom is not None and geom.text is not None:
+        geometry = geom.text.split(",")
         geometry_text = f" ...with geometry {geometry[0]}x{geometry[1]} {geometry[2]}x{geometry[3]}"
     else:
         geometry_text = ""
 
     # Get the element name
-    element_name = "" if element_type[0] == "Properties" else f"'{name_xml_element.text}' "
+    element_name = (
+        "" if element_type[0] == "Properties" else f"'{name_xml_element.text if name_xml_element is not None else ''}' "
+    )
 
     # Mark this element's place so a report finding about it can be clicked and land here.
     if anchors is not None:
@@ -365,7 +367,7 @@ def process_list_element(
     # Get the task Action associated with this listitem
     action = child.find("Action")
     if action is not None:
-        label = child.find("label").text
+        label = child_text(child, "label")
         action_line = get_actions(child, config, state=state)
 
         # Now fix our indentation
@@ -630,7 +632,7 @@ def process_tasks(child: Element, tasks_found: list, config: RunConfig, state: R
             temp_task_list = [sub_child.text]
 
             # Only process Task if it is not a fake Task.
-            if temp_task_list[0][0] != "-":
+            if temp_task_list[0] and temp_task_list[0][0] != "-":
                 # Start a list
                 state.output_lines.add_line_to_output(
                     1,
@@ -805,7 +807,7 @@ def get_details(
                     )
 
                     # Okay, process this sub-scene
-                    _process_scene(scene.find("nme").text, [], sub_scene_element, 9, config, state=state)
+                    _process_scene(child_text(scene, "nme") or "", [], sub_scene_element, 9, config, state=state)
 
             # Process any Tasks as part of this Scene
             _process_tasks(child, tasks_found, config, state=state)

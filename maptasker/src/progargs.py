@@ -8,6 +8,7 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
 import os
+from typing import cast
 
 from maptasker.src.core.primitem import SINGLE_ITEM_SELECTORS, RunState, clear_single_items
 from maptasker.src.core.sysconst import DEBUG_PROGRAM, VIEW_LIMIT_DEFAULT
@@ -31,7 +32,7 @@ def resolve_view_limit(view_limit: object) -> int:
     if view_limit == "Unlimited":
         return VIEW_LIMIT_UNLIMITED
     try:
-        return int(view_limit)
+        return int(cast("str", view_limit))
     except (TypeError, ValueError):
         # Nothing usable (an empty or hand-edited settings file): the default stands.
         return VIEW_LIMIT_DEFAULT

@@ -314,8 +314,8 @@ async def _offer_file_list(
     if listed is None:  # cancelled -- see the note at the top of this file
         return 1, android_ipaddr, android_port, android_file
     return_code, filelist = listed
-    if return_code != 0:
-        self.display_message_box(filelist, "Red")
+    if return_code != 0 or not isinstance(filelist, list):
+        self.display_message_box(str(filelist), "Red")
         return 1, android_ipaddr, android_port, android_file
 
     _mount_file_picker(self, filelist)
@@ -595,7 +595,7 @@ class _IntoTaskerRun:
             subject,
             offer.route.confirm_endpoint,
             staged_at=self.device_path,
-            **({"attempts": offer.attempts} if offer.attempts else {}),
+            attempts=offer.attempts or deviceverify.CONFIRM_POLL_ATTEMPTS,
         )
         # Guarded, because this notification is likely to be GONE by now and through no
         # fault of anyone's: it carries a close button, it sits there for up to two minutes
@@ -625,6 +625,8 @@ class AndroidEventHandlers:
     # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
     # its window's.
     state: RunState
+    # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
+    gui: MyGui
 
     # ==========================================
     # ANDROID XML BACKUP EVENT HANDLERS
@@ -795,8 +797,8 @@ class AndroidEventHandlers:
         Reads the connection details out of the Get XML panel's own fields, since that is
         where they already are and this is a question about that same device.
         """
-        ip_address = self.gui.ip_entry.value if hasattr(self.gui, "ip_entry") and self.gui.ip_entry else ""
-        ip_port = self.gui.port_entry.value if hasattr(self.gui, "port_entry") and self.gui.port_entry else ""
+        ip_address = (self.gui.ip_entry.value or "") if hasattr(self.gui, "ip_entry") and self.gui.ip_entry else ""
+        ip_port = (self.gui.port_entry.value or "") if hasattr(self.gui, "port_entry") and self.gui.port_entry else ""
         ip_address, ip_port = ip_address.strip(), ip_port.strip()
         remember_android_address(self.gui, ip_address, ip_port)
 
@@ -832,8 +834,8 @@ class AndroidEventHandlers:
         Reads the connection details out of the Get XML panel's own fields, as
         list_helper_tasks_event does.
         """
-        ip_address = self.gui.ip_entry.value if hasattr(self.gui, "ip_entry") and self.gui.ip_entry else ""
-        ip_port = self.gui.port_entry.value if hasattr(self.gui, "port_entry") and self.gui.port_entry else ""
+        ip_address = (self.gui.ip_entry.value or "") if hasattr(self.gui, "ip_entry") and self.gui.ip_entry else ""
+        ip_port = (self.gui.port_entry.value or "") if hasattr(self.gui, "port_entry") and self.gui.port_entry else ""
         ip_address, ip_port = ip_address.strip(), ip_port.strip()
         remember_android_address(self.gui, ip_address, ip_port)
 
@@ -2091,10 +2093,12 @@ class AndroidEventHandlers:
         gui = self.gui
 
         # NICEGUI PARADIGM SHIFT: Replace legacy .get() calls with reactive .value properties
-        android_ipaddr = gui.ip_entry.value if hasattr(gui, "ip_entry") and gui.ip_entry else ""
-        android_port = gui.port_entry.value if hasattr(gui, "port_entry") and gui.port_entry else ""
+        android_ipaddr = (gui.ip_entry.value or "") if hasattr(gui, "ip_entry") and gui.ip_entry else ""
+        android_port = (gui.port_entry.value or "") if hasattr(gui, "port_entry") and gui.port_entry else ""
         android_file = (
-            "" if gui.list_files else (gui.file_entry.value if hasattr(gui, "file_entry") and gui.file_entry else "")
+            ""
+            if gui.list_files
+            else ((gui.file_entry.value or "") if hasattr(gui, "file_entry") and gui.file_entry else "")
         )
 
         if hasattr(self, "_validate_input"):

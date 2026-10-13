@@ -21,10 +21,10 @@ import contextlib
 import time
 import webbrowser
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
-from nicegui import Event, context, run, ui
+from nicegui import context, run, ui
 
 from maptasker.src.analysis.taskflow import (
     analyze_task_flow,
@@ -34,6 +34,7 @@ from maptasker.src.analysis.taskflow import (
 from maptasker.src.core import assettext, console, mapjump
 from maptasker.src.core.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 from maptasker.src.core.elemvals import get_ids
+from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.maputil2 import (
     log_startup_values,
     suppress_logged,
@@ -264,6 +265,198 @@ class MyGui:
     taskstep_dialog: ui.dialog | None
     # The Trend Dashboard dialog while one is up (see trend_dashboard_event).
     trend_dialog: ui.dialog | None
+    # Everything else the window keeps on itself, declared so the type checker knows it exists.
+    # Widgets are assigned once, when the layout is built (initialize_screen and the guiwins builders).
+    add_profile_button: ui.button
+    add_project_button: ui.button
+    add_scene_button: ui.button
+    add_task_button: ui.button
+    ai_apikey_and_model_lbl: ui.label
+    aimodel_extend_checkbox: ui.checkbox
+    analysis_button: ui.button
+    analysis_query_button: ui.button
+    android_button_row: ui.row
+    android_container: ui.column
+    android_query_button: ui.button
+    change_prompt_button: ui.button
+    close_tabs_on_exit_checkbox: ui.checkbox
+    coffee_button: ui.button
+    color_change: ui.label
+    color_objects_options: ui.select
+    color_picker_input: ui.color_input
+    compare_files_button: ui.button
+    conditions_checkbox: ui.checkbox
+    content_container: ui.column
+    current_file: ui.label
+    current_file_label: ui.label
+    currently_selected_label: ui.label
+    dark_mode_switch: ui.switch
+    debug_checkbox: ui.checkbox
+    directory_checkbox: ui.checkbox
+    display_help_button: ui.button
+    display_names_label: ui.label
+    dm_controller: ui.dark_mode
+    edit_history_button: ui.button
+    edit_profile_button: ui.button
+    edit_project_button: ui.button
+    edit_scene_button: ui.button
+    edit_task_button: ui.button
+    everything_checkbox: ui.checkbox
+    exit_button: ui.button
+    filelist_label: ui.label
+    filelist_option: ui.select
+    fix_findings_button: ui.button
+    font_label: ui.label
+    font_optionmenu: ui.select
+    get_android_help_button: ui.button
+    get_backup_button: ui.button
+    get_xml_button: ui.button
+    gui_ai_panel: ui.tab_panel
+    gui_color_panel: ui.tab_panel
+    gui_debug_panel: ui.tab_panel
+    gui_left_drawer: ui.left_drawer
+    gui_main_column: ui.column
+    gui_main_tabs_container: ui.tabs
+    gui_right_drawer: ui.right_drawer
+    gui_tab_panels: ui.tab_panels
+    gui_tasker_object_panel: ui.tab_panel
+    gui_view_toolbar: ui.row
+    health_check_button: ui.button
+    indent_label: ui.label
+    indent_option: ui.select
+    language_label: ui.label
+    language_optionmenu: ui.select
+    list_unnamed_items_checkbox: ui.checkbox
+    model_to_use_label: ui.label
+    notify_timeout_label: ui.label
+    notify_timeout_optionmenu: ui.select
+    open_view_in_new_window_checkbox: ui.checkbox
+    picker_dialog: ui.dialog
+    picker_engine: ui.color_picker
+    picker_title_label: ui.label
+    preferences_checkbox: ui.checkbox
+    pretty_checkbox: ui.checkbox
+    profile_buttons_row: ui.row
+    project_buttons_row: ui.row
+    redo_edit_button: ui.button
+    refactor_button: ui.button
+    reset_button: ui.button
+    restore_history_button: ui.button
+    run_task_button: ui.button
+    runtime_checkbox: ui.checkbox
+    scene_buttons_row: ui.row
+    scroll_area: ui.scroll_area
+    show_apikeys_button: ui.button
+    sidebar_detail_option: ui.select
+    specific_name_msg_label: ui.label
+    specific_profile_optionmenu: ui.select
+    specific_project_optionmenu: ui.select
+    specific_scene_optionmenu: ui.select
+    specific_task_optionmenu: ui.select
+    tab_analyze: ui.tab
+    tab_colors: ui.tab
+    tab_debug: ui.tab
+    tab_specific_name: ui.tab
+    task_action_label: ui.label
+    task_action_limit: ui.slider
+    task_buttons_row: ui.row
+    task_flow_button: ui.button
+    taskernet_checkbox: ui.checkbox
+    timeline_button: ui.button
+    twisty_checkbox: ui.checkbox
+    undo_edit_button: ui.button
+    undo_next_label: ui.label
+    upgrade_button: ui.button
+    upgrade_container: ui.column
+    variable_xref_button: ui.button
+    viewlimit_label: ui.label
+    viewlimit_optionmenu: ui.select
+    viewlimit_query_button: ui.button
+    whats_new_button: ui.button
+    bold_checkbox: ui.checkbox
+    highlight_checkbox: ui.checkbox
+    italicize_checkbox: ui.checkbox
+    underline_checkbox: ui.checkbox
+    font_out_label: ui.label
+    # The Get XML From Android Device section's widgets (userintr_android builds them).
+    ip_entry: ui.input
+    port_entry: ui.input
+    file_entry: ui.input
+    list_files_button: ui.button
+    list_files_query_button: ui.button
+    helper_tasks_button: ui.button
+    helper_project_button: ui.button
+    set_xml_details_button: ui.button
+    label_or: ui.label
+    # Plain values the settings and the event handlers keep.
+    android_check_ids: bool
+    android_verify: bool
+    close_tabs_on_exit: bool
+    default_font: str
+    doing_diagram: bool
+    event: bool
+    first_time: bool
+    font_table: dict
+    guiview: bool
+    map_in_progress: bool
+    open_view_in_new_window: bool
+    reset_debug_at_end: bool
+    scene_editor_session: dict
+    textview: Any
+    textviews: list
+    view_limit: int
+    # Set to None until the layout, the settings restore or a dialog gives them a value, and then
+    # set to a widget, a string or a flag; typed loosely for that reason rather than as the Optional that
+    # every use would then have to test.
+    _version_check: Any
+    ai_analysis: Any
+    ai_analysis_window: Any
+    ai_analyze_button: Any
+    ai_apikey: Any
+    ai_apikey_window: Any
+    ai_model_option: Any
+    ai_profile_label: Any
+    ai_project_label: Any
+    ai_prompt: Any
+    ai_scene_label: Any
+    ai_task_label: Any
+    appearance_mode: Any
+    bold: Any
+    color_lookup: Any
+    conditions: Any
+    dark_mode: Any
+    debug: Any
+    diagramview_window: Any
+    display_detail_level: Any
+    displaying_extended_list: Any
+    everything: Any
+    exit: Any
+    file: Any
+    fix_dialog: Any
+    font: Any
+    highlight: Any
+    indent: Any
+    is_map: Any
+    italicize: Any
+    mapview_window: Any
+    miscview_window: Any
+    named_item: Any
+    preferences: Any
+    refactor_dialog: Any
+    rerun: Any
+    reset: Any
+    restore_dialog: Any
+    single_name_status: Any
+    single_profile_name: Any
+    single_project_name: Any
+    single_scene_name: Any
+    single_task_name: Any
+    tab_to_use: Any
+    taskernet: Any
+    treeview_window: Any
+    twisty: Any
+    underline: Any
+    video_window: Any
 
     def __init__(self: "MyGui", state: RunState | None = None) -> None:
         """Initialize the GUI and set up all necessary state and layout.
@@ -879,7 +1072,7 @@ class MyGui:
 
         return True
 
-    def extract_settings(self, temp_args: dict) -> None:
+    def extract_settings(self, temp_args: ProgramArguments | dict) -> None:
         """
         Extract settings from arguments dictionary.  Invoke the argument's lamba routine to set the value and display message.
         Args:
@@ -2321,7 +2514,7 @@ class MapTaskerEventHandlers(
         )
 
     # Process the '?' List XML Files query button
-    def query_event(self: object, query_name: str) -> None:
+    def query_event(self, query_name: str) -> None:
         """Function to display help text for the query_event method.
         Parameters:
             - self (object): The object that the method is being called on.
@@ -2344,7 +2537,7 @@ class MapTaskerEventHandlers(
             "listfile": ("List Android Files Help", LISTFILES_HELP_TEXT),
             "apikey": ("API Key Help", APIKEY_HELP_TEXT),
         }
-        query_name = query_name.value if isinstance(query_name, Event) else str(query_name).lower()
+        query_name = str(query_name).lower()
         title, help_text = help_texts.get(
             query_name,
             ("", "No help available for this query."),

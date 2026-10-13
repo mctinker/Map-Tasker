@@ -23,7 +23,7 @@ import json
 import re
 from typing import TYPE_CHECKING, cast
 
-from nicegui import Event, run, ui
+from nicegui import run, ui
 
 from maptasker.src.core import assettext, mapjump, scenelayout
 from maptasker.src.core.format import css_color
@@ -61,6 +61,8 @@ from maptasker.src.gui.guiwins_search import (
 from maptasker.src.mapgen import diagintr, mapexport
 
 if TYPE_CHECKING:
+    from nicegui.events import ValueChangeEventArguments
+
     from maptasker.src.analysis import mapfind
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
@@ -98,7 +100,7 @@ def repaint_scene_previews(gui: MyGui, dialog: ui.dialog) -> None:
             view.render()
 
 
-def _scene_dialog_closed(gui: MyGui, dialog: ui.dialog, field_refs: dict, event: Event) -> None:
+def _scene_dialog_closed(gui: MyGui, dialog: ui.dialog, field_refs: dict, event: ValueChangeEventArguments) -> None:
     """One place every way of closing a Scene dialog goes through.
 
     Hung on the dialog's own value rather than on its buttons because there are eight of
@@ -1089,7 +1091,7 @@ class NiceGuiSceneView:
             translate_string("Round dragged positions and sizes to this many pixels."),
         )
 
-    def _snap_selected(self, event: Event) -> None:
+    def _snap_selected(self, event: ValueChangeEventArguments) -> None:
         editor = self.field_refs.get("legacy_edit")
         if isinstance(editor, dict):
             editor["snap"]["grid"] = int(event.value or 1)
@@ -1170,18 +1172,18 @@ class NiceGuiSceneView:
                 editor["orientation"]["landscape"] = bool(value)
         self.render()
 
-    def _zoom_selected(self, event: Event) -> None:
+    def _zoom_selected(self, event: ValueChangeEventArguments) -> None:
         self.zoom = str(event.value or "Fit")
         self.render()
 
-    def _density_selected(self, event: Event) -> None:
+    def _density_selected(self, event: ValueChangeEventArguments) -> None:
         try:
             self.options.density = float(event.value)
         except (TypeError, ValueError):
             self.options.density = sceneview.DEFAULT_DENSITY
         self.render()
 
-    def _screen_selected(self, event: Event) -> None:
+    def _screen_selected(self, event: ValueChangeEventArguments) -> None:
         self.screen = str(event.value or sceneview.V2_DEFAULT_SCREEN)
         self.render()
 
@@ -1706,7 +1708,7 @@ class NiceGuiTextView(TextViewSearch):
         changes, from a context that has no NiceGUI slot -- which is exactly why nothing here
         creates an element.
         """
-        if self.scope_label is None:
+        if self.scope_label is None or self.scope_stale_label is None or self.scope_rebuild_button is None:
             return
         drawn, changed = scope_badge_text(self.built_for, mapjump.current_scope(state=self.master_gui.state).phrase)
         self.scope_label.set_text(drawn)
@@ -1847,7 +1849,7 @@ class NiceGuiTextView(TextViewSearch):
         # rest of the main window's layout.
         is_popout = self.external_container is not None
 
-        if is_popout:
+        if self.external_container is not None:
             container_context = self.external_container
             container_context.classes("w-full h-screen flex flex-col p-0 m-0 gap-0")
         elif hasattr(self.master_gui, "content_container") and self.master_gui.content_container:

@@ -983,6 +983,9 @@ def apply(plan: Plan, state: RunState) -> tuple[int, list[str]]:
                     f"while this preview was open.  Skipped.",
                 )
                 continue
+            if fix.run is None:
+                logger.error(f"Fix for {fix.tag} at {fix.where.label} has nothing to run.")
+                continue
             try:
                 fix.run(plan.value_of(position))
             except (AttributeError, KeyError, TypeError, ValueError) as failure:

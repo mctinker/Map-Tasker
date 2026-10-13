@@ -93,7 +93,7 @@ def save_baseline(counts: Counter[str]) -> None:
 
 def main() -> int:
     """Compare the current noqa counts with the baseline; return the exit status."""
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     parser.add_argument("--update", action="store_true", help="lower the baseline to the current counts")
     options = parser.parse_args()
 

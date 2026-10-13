@@ -35,13 +35,13 @@ _PROFILE_PROPERTY_KEYS = (
 
 
 # Helper function to get text safely
-def get_text(element: Element) -> str:
+def get_text(element: Element | None) -> str:
     """Return value or"""
     return element.text if element is not None else ""
 
 
 # Helper function to get text safely, as display data rather than as markup
-def get_display_text(element: Element) -> str:
+def get_display_text(element: Element | None) -> str:
     """Return the element's text with any markup in it escaped so it displays as itself.
 
     A variable's name/prompt/value is data a person typed into Tasker, not markup meant to

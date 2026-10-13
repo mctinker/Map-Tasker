@@ -435,6 +435,46 @@ exclude_also = [
 [tool.pyright]
 include = ["maptasker/main.py", "maptasker/src", "scripts"]
 typeCheckingMode = "basic"
+# Strict mode, file by file.  Basic mode is what the baseline ratchets (see above); these files are
+# clean under strict as well, and tests/test_strict_typing.py keeps it that way for new ones: every
+# module in maptasker/src is either listed here or in scripts/strict_exempt.json, and a new module
+# may not be added to the second list -- it has to be written clean enough to be listed here.
+# Moving a module out of the exempt list into this one is the whole of paying one off.  (A module
+# whose dicts others index stays out, servicec for one: strict infers them more narrowly than basic.)
+strict = [
+    "maptasker/src/__init__.py",
+    "maptasker/src/analysis/__init__.py",
+    "maptasker/src/core/__init__.py",
+    "maptasker/src/core/actiont.py",
+    "maptasker/src/core/assettext.py",
+    "maptasker/src/core/caches.py",
+    "maptasker/src/core/clock.py",
+    "maptasker/src/core/config.py",
+    "maptasker/src/core/deprecate.py",
+    "maptasker/src/core/error.py",
+    "maptasker/src/core/maputil3.py",
+    "maptasker/src/core/mtexcept.py",
+    "maptasker/src/core/nameattr.py",
+    "maptasker/src/core/outdir.py",
+    "maptasker/src/core/presave.py",
+    "maptasker/src/core/taskervars.py",
+    "maptasker/src/core/translator.py",
+    "maptasker/src/device/__init__.py",
+    "maptasker/src/device/devicecheck.py",
+    "maptasker/src/device/devicefiles.py",
+    "maptasker/src/device/deviceimport.py",
+    "maptasker/src/edit/__init__.py",
+    "maptasker/src/edit/taskedit_model.py",
+    "maptasker/src/gui/__init__.py",
+    "maptasker/src/gui/guiwins_impact.py",
+    "maptasker/src/gui/userhelp.py",
+    "maptasker/src/gui/webassets.py",
+    "maptasker/src/mapgen/__init__.py",
+    "maptasker/src/mapgen/diagcnst.py",
+    "maptasker/src/mapops/__init__.py",
+    "maptasker/src/mapops/mapswap.py",
+    "maptasker/src/progargs.py",
+]
 # The oldest Python requires-python allows, so code that needs a newer one is an error.
 pythonVersion = "3.11"
 # Fixed rather than taken from the machine it runs on: platform-specific modules (winreg)

@@ -296,6 +296,8 @@ class Clip:
         for frame_index, frame_color_map in enumerate(self.frame_color_maps):
             for char_color_map in frame_color_map:
                 mo = map_regex.search(char_color_map)
+                if mo is None:  # Not a "row,column:character,color" entry: nothing to place.
+                    continue
                 row = int(mo[1])
                 column = int(mo[2])
                 color_1_text = mo[3]

@@ -20,6 +20,7 @@ from maptasker.src.edit.taskedit_model import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
 
@@ -132,7 +133,7 @@ def validate_if_condition_values(
     operator_label = arg_values.get(key_for_arg(op_arg))
     if operator_label is None:
         try:
-            operator_label = op_arg.dropdown_options[int(op_arg.current_value)]
+            operator_label = (op_arg.dropdown_options or [])[int(op_arg.current_value)]
         except (TypeError, ValueError, IndexError):
             operator_label = IF_CONDITION_OPERATOR_LABELS[0]
 
@@ -277,6 +278,13 @@ def remove_action_condition(edited_task: EditableTask, act_number: int) -> None:
         action.action_element.remove(condition_list)
 
 
+def _set_var_text(int_element: Element, value: str) -> None:
+    """Put value in the <var> child of a variable-backed <Int>; an <Int> without one has nowhere to put it."""
+    var_element = int_element.find("var")
+    if var_element is not None:
+        var_element.text = value
+
+
 def apply_arg_values(
     args: list[EditableArg],
     key_for_arg: Callable[[EditableArg], str],
@@ -304,15 +312,15 @@ def apply_arg_values(
             # index as a val attribute.
             arg.element.text = IF_CONDITION_LABEL_TO_CODE.get(value, "0")
         elif arg.widget_kind == "dropdown":
-            index = arg.dropdown_options.index(value) if value in arg.dropdown_options else 0
+            options = arg.dropdown_options or []
+            index = options.index(value) if value in options else 0
             arg.element.set("val", str(index))
         elif arg.backing_tag == "App":
             appinv.write_app_element(arg.element, appinv.parse_app_value(value, state=state))
         elif arg.backing_tag == "Img":
             appinv.write_icon_element(arg.element, appinv.parse_icon_value(value))
         elif arg.backing_tag == "Int" and arg.is_var:
-            var_element = arg.element.find("var")
-            var_element.text = value
+            _set_var_text(arg.element, value)
         elif arg.backing_tag == "Int":
             arg.element.set("val", value)
         elif arg.backing_tag == "Str":

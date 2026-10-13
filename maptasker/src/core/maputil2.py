@@ -18,6 +18,7 @@ import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/s
 from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
 from functools import lru_cache
+from typing import TypeVar
 
 import requests
 from requests.exceptions import ConnectionError, InvalidSchema, RequestException, Timeout
@@ -27,6 +28,9 @@ from maptasker.src.core.presave import backup_local_file
 from maptasker.src.core.primitem import PrimeItems, RunState
 from maptasker.src.core.sysconst import MY_VERSION, NOW_TIME, logger, logging
 from maptasker.src.core.translator import T
+
+# What an authorized request answers with, alongside its return code.
+_Response = TypeVar("_Response")
 
 # ==========================================
 # 1. TEXT & DATA PARSING
@@ -405,7 +409,7 @@ def http_request(
     request_parm: str,
     auth_key: str = "",
     timeout: float = _READ_TIMEOUT_SECONDS,
-) -> tuple[int, object]:
+) -> tuple[int, bytes | str]:
     """
     Issue HTTP Request to get the backup XML file from the Android device.
     Tasker's HTTP Server Example must be installed for this to work:
@@ -496,7 +500,7 @@ def read_back_uploaded_file(
     device_path: str,
     expected: bytes,
     attempts: int = _UPLOAD_SETTLE_ATTEMPTS,
-) -> tuple[int, object]:
+) -> tuple[int, bytes | str]:
     """Confirm /upload actually wrote `expected` to device_path.  (0, bytes_on_device) or
     (8, error_message).
 
@@ -654,8 +658,8 @@ def auth_key_for(ip_address: str, ip_port: str) -> tuple[int, str]:
 def request_with_auth_key(
     ip_address: str,
     ip_port: str,
-    request: Callable[[str], tuple[int, object]],
-) -> tuple[int, object]:
+    request: Callable[[str], tuple[int, _Response]],
+) -> tuple[int, _Response | str]:
     """An authorized request with this device's key, made once more with a fresh key if the device rejects it.
 
     `request` is called with the key and answers (return_code, response) the way
@@ -687,7 +691,7 @@ def http_post_request(
     auth_key: str = "",
     content_type: str = "",
     timeout: float = _WRITE_TIMEOUT_SECONDS,
-) -> tuple[int, object]:
+) -> tuple[int, bytes | str]:
     """
     Issue HTTP POST request to write a file (e.g. a standalone Task .tsk.xml) to the
     Android device, via the Tasker HTTP API.

@@ -2200,7 +2200,7 @@ def build_rename_dialog(
             ui.button(translate_string("Cancel"), on_click=rename_dialog.close).props("outline")
             ui.button(
                 translate_string("Rename"),
-                on_click=lambda: on_rename(name_input.value.strip(), rename_dialog),
+                on_click=lambda: on_rename((name_input.value or "").strip(), rename_dialog),
             ).classes("bg-blue-600")
 
     rename_dialog.open()
@@ -3679,9 +3679,10 @@ def _create_view_limit_section(self: MyGui) -> None:
 
     with ui.row().classes("w-full items-center gap-2"):
         temp_view_limit = getattr(self, "view_limit", str(VIEW_LIMIT_DEFAULT))
-        if temp_view_limit == 9999999:
-            self.view_limit = "Unlimited"
-        current_choice = str(getattr(self, "view_limit", VIEW_LIMIT_DEFAULT))
+        # The pulldown's wording for no limit; self.view_limit itself stays the number it is.
+        current_choice = (
+            "Unlimited" if temp_view_limit == 9999999 else str(getattr(self, "view_limit", VIEW_LIMIT_DEFAULT))
+        )
         self.viewlimit_optionmenu = ui.select(
             options=view_limit_options(current_choice),
             value=current_choice,

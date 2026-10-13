@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: The Restore From History help text no longer appears in italics. The folder names 'MapTasker_Timeline' and 'MapTasker_Backups' were being misread as italic markers.
+- Fixed: A backup that leaves out an element Tasker normally writes (a condition's operands, a Scene's size, a Profile's ID, an empty icon field) no longer stops the Map with an error. The missing value is shown blank instead.
 - Fixed:
 
 ### Known Issues

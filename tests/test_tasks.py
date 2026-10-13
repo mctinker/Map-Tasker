@@ -11,7 +11,8 @@ downstream re-derives it and nothing validates it, so an off-by-one in the inden
 bookkeeping does not fail: it redraws the Task's logic as a different Task's logic.
 
 Two tests here are marked xfail.  Both are pre-existing defects found while writing this
-file, not new breakage, and both are described at the test.
+file, not new breakage, and both are described at the test.  (A third, an empty icon field in
+get_image, was fixed along with the type-check baseline and is an ordinary test now.)
 """
 
 from __future__ import annotations
@@ -315,12 +316,6 @@ def test_an_unqualified_icon_field_is_shown_whole() -> None:
     assert proclist.get_image(image, "name", "nme") == "name=flashlight "
 
 
-@pytest.mark.xfail(
-    reason="Pre-existing defect: an empty element (<nme/>) has text None, and get_image does "
-    "'.' in text on it -- a TypeError rather than the empty string its own docstring promises. "
-    "Reached from get_icon_info for any Task whose <Img> carries an empty field.",
-    strict=False,
-)
 def test_an_empty_icon_field_is_skipped() -> None:
     """Tasker writes an empty element for a field that was cleared rather than dropping
     it, so this is a shape that reaches the parser from a real backup.

@@ -19,6 +19,17 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 
+def child_text(element: Element, tag: str) -> str | None:
+    """The text of element's child <tag>: None if there is no such child, or it has no text.
+
+    What `element.find(tag).text` is, without the AttributeError a missing child raises --
+    which is how a Tasker file that leaves out an element Tasker itself always writes (an
+    older version's, or a hand-edited one) used to stop a whole Map.
+    """
+    child = element.find(tag)
+    return None if child is None else child.text
+
+
 def get_ids(
     doing_head_xml_element: bool,
     head_xml_element: Element,
@@ -38,15 +49,13 @@ def get_ids(
     # Get Profiles by searching for <pids> element.  If not Profile IDs, just get Task IDs via <tids> xml element.
     ids_to_find = "pids" if doing_head_xml_element else "tids"
 
-    # Get the IDs.
-    try:
-        # Get a list of the Profiles for this head_xml_element
-        # An element with no text (a Project whose last Task was deleted is saved as <tids/>) reads
-        # back as None, which is "no IDs" and not something to split.
-        found_ids = head_xml_element.find(ids_to_find).text or ""
-    except AttributeError:  # head_xml_element has no Profile/Task IDs
-        if head_xml_element_name not in head_xml_elements_without_profiles:
-            head_xml_elements_without_profiles.append(head_xml_element_name)
+    # Get the IDs.  An element with no text (a Project whose last Task was deleted is saved as
+    # <tids/>) reads back as None, which is "no IDs" and not something to split.
+    ids_element = head_xml_element.find(ids_to_find)
+    if ids_element is not None:
+        found_ids = ids_element.text or ""
+    elif head_xml_element_name not in head_xml_elements_without_profiles:  # No Profile/Task IDs at all.
+        head_xml_elements_without_profiles.append(head_xml_element_name)
 
     return found_ids.split(",") if found_ids != "" else []
 
@@ -66,9 +75,9 @@ def get_kid_app(element: Element, state: RunState) -> str:
     if kid_element is None:
         return ""
 
-    kid_package = kid_element.find("pkg").text
-    kid_version = kid_element.find("vnme").text
-    kid_target = kid_element.find("vTarg").text
+    kid_package = child_text(kid_element, "pkg")
+    kid_version = child_text(kid_element, "vnme")
+    kid_target = child_text(kid_element, "vTarg")
     num_feature = num_plugin = 0
 
     for item in kid_element:  # Get any special features

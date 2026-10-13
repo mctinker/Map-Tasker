@@ -112,7 +112,7 @@ def update_analysis_button_color(gui: "MyGui") -> None:
 
 
 def display_model_pulldown(
-    gui_arg: any,
+    gui_arg: object,
     *_args: dict,
     extended_models: list[str] | None = None,
     **_kwargs: object,
@@ -126,13 +126,14 @@ def display_model_pulldown(
     fetches it off the event loop); None fetches it here when it is wanted.
     """
     # 1. Normalize the argument to find the true MyGui instance context
-    if hasattr(gui_arg, "gui") and gui_arg.gui.__class__.__name__ == "MyGui":
-        gui_instance = gui_arg.gui
+    window = getattr(gui_arg, "gui", None)
+    if window.__class__.__name__ == "MyGui":
+        gui_instance = cast("MyGui", window)
     elif hasattr(gui_arg, "client") or hasattr(gui_arg, "sender"):
         # It's a NiceGUI UI Event object; try to fetch from PrimeItems or a cross-reference
-        gui_instance = getattr(gui_arg.state, "mygui", gui_arg)
+        gui_instance = cast("MyGui", getattr(getattr(gui_arg, "state", None), "mygui", gui_arg))
     else:
-        gui_instance = gui_arg
+        gui_instance = cast("MyGui", gui_arg)
 
     # 2. Safety Fallback validation check
     if gui_instance.__class__.__name__ != "MyGui":
@@ -923,7 +924,7 @@ OBJECT_ACTION_ROWS = (
 )
 
 
-def selected_single_item_label(self: object) -> str:
+def selected_single_item_label(self: "MyGui") -> str:
     """The label ("Project"/"Profile"/"Task"/"Scene") of the single item currently
     selected in the 'Specific Name' tab, or "" when nothing is selected.
 
@@ -942,7 +943,7 @@ def selected_single_item_label(self: object) -> str:
     )
 
 
-def refresh_object_action_buttons(self: object) -> None:
+def refresh_object_action_buttons(self: "MyGui") -> None:
     """Show only the 'Specific Name' Edit/Add buttons the current selection can actually
     drive, and hide the rest, rows included.
 
@@ -968,7 +969,7 @@ def refresh_object_action_buttons(self: object) -> None:
             )
 
 
-def clear_single_item_view_names(self: object) -> None:
+def clear_single_item_view_names(self: "MyGui") -> None:
     """Clear every single_xxx_name on the view, leaving PrimeItems alone.
 
     For callers that only need the GUI's own idea of the current selection reset -- most
@@ -982,7 +983,7 @@ def clear_single_item_view_names(self: object) -> None:
         setattr(self, f"single_{label.lower()}_name", "")
 
 
-def clear_single_item_names(self: object) -> None:
+def clear_single_item_names(self: "MyGui") -> None:
     """Clear every single_xxx_name -- on the view and in PrimeItems.program_arguments --
     along with every found-flag.
 
@@ -993,7 +994,7 @@ def clear_single_item_names(self: object) -> None:
     clear_single_items()
 
 
-def reset_single_item_pulldowns(self: object, except_for: str = "") -> None:
+def reset_single_item_pulldowns(self: "MyGui", except_for: str = "") -> None:
     """Set every 'Specific Name' pulldown back to "None", optionally leaving one alone.
 
     Args:
@@ -1013,7 +1014,7 @@ def reset_single_item_pulldowns(self: object, except_for: str = "") -> None:
             optionmenu.update()
 
 
-def reapply_single_item_selections(self: object) -> None:
+def reapply_single_item_selections(self: "MyGui") -> None:
     """Re-point every 'Specific Name' pulldown at the option matching its current
     single_xxx_name, for pulldowns whose option lists have just been rebuilt.
 
@@ -1044,7 +1045,7 @@ def reapply_single_item_selections(self: object) -> None:
         self.is_updating = was_updating
 
 
-def reset_single_item_selection(self: object) -> None:
+def reset_single_item_selection(self: "MyGui") -> None:
     """Drop the current Project/Profile/Task/Scene selection everywhere it is held.
 
     A selection lives in three places, and each is its own way for a stale one to
@@ -1141,7 +1142,7 @@ def single_item_export_selection(file_path: str, state: RunState) -> tuple[str, 
     return (label, names[0]) if len(names) == 1 else ("", "")
 
 
-def set_tasker_object_names(self: object) -> None:
+def set_tasker_object_names(self: "MyGui") -> None:
     """Set names to display in pulldown menus based on current tasker object names."""
     # Translate the default values if possible
     none_text = window_state(self)._("None") if hasattr(window_state(self), "_") else "None"
@@ -1168,7 +1169,7 @@ def set_tasker_object_names(self: object) -> None:
     _set_default_names(self, defaults)
 
 
-def _set_single_item_name(self: object, label: str, name: str, defaults: dict) -> None:
+def _set_single_item_name(self: "MyGui", label: str, name: str, defaults: dict) -> None:
     """Select `name` in its own pulldown and put every other one back to its default.
 
     Args:
@@ -1199,7 +1200,7 @@ def _set_single_item_name(self: object, label: str, name: str, defaults: dict) -
             optionmenu.value = defaults[other.lower()]
 
 
-def _set_default_names(self: object, defaults: dict) -> None:
+def _set_default_names(self: "MyGui", defaults: dict) -> None:
     """Handles setting names when no specific name is available."""
     self.specific_name_msg = ""
     try:
@@ -1331,7 +1332,7 @@ def display_analyze_button(self: "MyGui", _row: int, first_time: bool) -> None:
 
 # Make sure the single named item exists...that it is a valid name
 def valid_item(
-    self: object,
+    self: "MyGui",
     the_name: str,
     element_name: str,
     debug: bool,
@@ -1470,7 +1471,7 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
                 rutroh_error(f"Error displaying {logo_name} logo: {e}")
 
 
-def set_ai_key(self: object, model: str) -> None:
+def set_ai_key(self: "MyGui", model: str) -> None:
     """
     Set the API key for the AI service based on the selected model.
 
@@ -1617,7 +1618,7 @@ def selected_tab_name(gui: object) -> str | None:
 
 
 # Reload the program
-def reload_gui(self: object) -> None:
+def reload_gui(self: "MyGui") -> None:
     """
     Reload the GUI by running a new process with the new program/version.
 

@@ -290,7 +290,7 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     Returns:
         str - the assembled help screen
     """
-    lookup = translate or (lambda text: text)
+    lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
         f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}"

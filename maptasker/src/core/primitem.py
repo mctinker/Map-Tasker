@@ -68,7 +68,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from maptasker.src.core import caches
 from maptasker.src.core.initparg import ArgumentFields, ProgramArguments
@@ -82,8 +82,12 @@ from maptasker.src.core.sysconst import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from xml.etree.ElementTree import Element, ElementTree
+
     from maptasker.src.core.runcfg import RunConfig
     from maptasker.src.edit.sessundo import Checkpoint
+    from maptasker.src.mapgen.lineout import LineOut
 
 # The single-named-item selectors: display only this one Project, or Profile, or Task,
 # or Scene.  Each entry maps the program_arguments key holding the requested name to its
@@ -197,6 +201,9 @@ class RunState:
     or set.
     """
 
+    # The translation function (gettext, or a stand-in) translator.T installs once a language is chosen.
+    _: Callable[[str], str]
+
     def __init__(self) -> None:
         """Give this instance its own copy of every attribute, at its declared default."""
 
@@ -221,11 +228,17 @@ class RunState:
 
     def _init_loaded_backup(self) -> None:
         """The backup that is loaded, the arguments it is read with, and what a failed read leaves."""
-        self.xml_tree = None
-        self.xml_root = None
+        # None until a backup is loaded (clear_tasker_data puts them back), and typed as what they are
+        # once it is: everything that walks the XML runs after a load, and declared Optional every one of
+        # those would be a false alarm.  The few that can run before one test for None themselves.
+        self.xml_tree: ElementTree = cast("ElementTree", None)
+        self.xml_root: Element = cast("Element", None)
         self.program_arguments: ProgramArguments = ProgramArguments()
         self.colors_to_use: dict = {}
-        self.output_lines = None
+        # None until mapit_all builds the LineOut for a run, and typed as the LineOut it is for every
+        # piece of code that renders the Map -- all of it runs after that.  The few that can run before
+        # (diffload, bildhtml) test for None themselves.  Declared Optional, this was 150 false alarms.
+        self.output_lines: LineOut = cast("LineOut", None)
         self.file_to_get = ""
         self.file_to_use = ""
         self.task_count_for_profile = 0

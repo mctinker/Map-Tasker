@@ -25,7 +25,6 @@ from maptasker.src.core.sysconst import (
 )
 from maptasker.src.core.xmldata import remove_html_tags
 from maptasker.src.gui.guiwins import create_popup_window
-from maptasker.src.gui.guiwins import create_popup_window as popupwindow
 
 ai_role = (
     "You are reviewing part of a Tasker configuration for the person who built it.  Tasker is an "
@@ -515,7 +514,7 @@ def get_ai_object() -> tuple:
 AI_PROMPT = "Analyze the following Tasker data"
 
 
-async def _run_analysis_in_background(popup: popupwindow, state: RunState) -> None:
+async def _run_analysis_in_background(popup: object, state: RunState) -> None:
     """
     This function contains the main analysis logic, now asynchronous
     to prevent blocking the NiceGUI event loop.
@@ -566,10 +565,10 @@ async def _run_analysis_in_background(popup: popupwindow, state: RunState) -> No
 
         # Remove the popup window using NiceGUI syntax
         if popup:
-            if hasattr(popup, "close"):
-                popup.close()
-            elif hasattr(popup, "dialog") and hasattr(popup.dialog, "close"):
-                popup.dialog.close()
+            # The dialog itself, or something that holds it (the AI popup used to be a wrapper).
+            closer = getattr(popup, "close", None) or getattr(getattr(popup, "dialog", None), "close", None)
+            if closer:
+                closer()
 
 
 # Map Ai: set up Ai query and call appropriate function based on the model.

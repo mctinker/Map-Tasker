@@ -20,9 +20,9 @@ from __future__ import annotations
 
 import contextlib
 import weakref
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeGuard
 
-from nicegui import Event, context, ui
+from nicegui import context, ui
 
 from maptasker.src.core import mapjump
 from maptasker.src.core.maputil2 import translate_string
@@ -32,6 +32,8 @@ if TYPE_CHECKING:
     import asyncio
     from collections.abc import Iterator
 
+    from nicegui.events import GenericEventArguments
+
     from maptasker.src.gui.guiwins_views import NiceGuiTextView
     from maptasker.src.gui.userintr import MyGui
 
@@ -39,7 +41,7 @@ if TYPE_CHECKING:
 # ##################################################################################
 # The rendered-view registry
 # ##################################################################################
-def element_is_live(element: object) -> bool:
+def element_is_live(element: object) -> TypeGuard[ui.element]:
     """Whether a NiceGUI element can still be safely interacted with -- it hasn't
     been deleted, and the client (the browser page) it was built for is still
     around.
@@ -324,7 +326,7 @@ def register_finding_clicks(master_gui: MyGui) -> None:
         return
     _FINDING_CLICK_CLIENTS.add(client)
 
-    async def jump(event: Event) -> None:
+    async def jump(event: GenericEventArguments) -> None:
         """Take one clicked report row to where it points."""
         target = mapjump.Target.from_token(str((event.args or {}).get("target", "")))
         if target is not None:

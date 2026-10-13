@@ -40,7 +40,7 @@ class EditableAction:
     act_number: int
     code: str
     action_name: str
-    args: list[EditableArg] = field(default_factory=list)
+    args: list[EditableArg] = field(default_factory=list[EditableArg])
 
 
 @dataclass
@@ -49,7 +49,7 @@ class EditableTask:
 
     task_id: str
     task_element: Element
-    actions: list[EditableAction] = field(default_factory=list)
+    actions: list[EditableAction] = field(default_factory=list[EditableAction])
 
 
 # The "If" action (code 37) has no Bundle/Int/Str args of its own -- its condition

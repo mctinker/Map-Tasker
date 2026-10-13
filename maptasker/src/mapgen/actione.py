@@ -66,7 +66,7 @@ def get_action_code(
     """
 
     # logger.debug(f"get action code:{code_child.text}{code_type}")
-    just_the_code = code_child.text
+    just_the_code = code_child.text or ""
     the_action_code_plus = just_the_code + code_type
 
     # See if this code is deprecated

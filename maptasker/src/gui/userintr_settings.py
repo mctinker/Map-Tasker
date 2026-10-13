@@ -14,7 +14,7 @@ and the settings are still read and written by getputer.
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from nicegui import context, run, ui
 
@@ -56,7 +56,8 @@ from maptasker.src.gui.guiwins_nav import element_is_live, live_views
 from maptasker.src.mapgen.outline import outline_the_configuration
 
 if TYPE_CHECKING:
-    from nicegui import Client, Event
+    from nicegui import Client
+    from nicegui.events import ValueChangeEventArguments
 
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
@@ -202,11 +203,13 @@ class SettingsEventHandlers:
     # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
     # its window's.
     state: RunState
+    # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
+    gui: MyGui
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
     # ==========================================
-    def detail_selected_event(self: MapTaskerEventHandlers, event_value: Event) -> None:
+    def detail_selected_event(self: MapTaskerEventHandlers, event_value: ValueChangeEventArguments | str | int) -> None:
         """
         NICEGUI PARADIGM SHIFT:
         Dropdown (ui.select) on_change events automatically pass an 'event' object.
@@ -317,7 +320,7 @@ class SettingsEventHandlers:
         # Check for errors
         with contextlib.suppress(KeyError):
             if temp_args["msg"]:
-                the_view.display_message_box(temp_args["msg"], "Red")
+                the_view.display_message_box(str(temp_args["msg"]), "Red")
                 temp_args["msg"] = ""
                 self.color_reset_event()
                 return
@@ -441,7 +444,7 @@ class SettingsEventHandlers:
             return  # Exit early to break the recursive loop!
 
         # 2. Safely extract the string name from NiceGUI Events or raw strings
-        font_name = font_selected.value if hasattr(font_selected, "value") else str(font_selected)
+        font_name = getattr(font_selected, "value", str(font_selected))
         if not font_name:
             return
 
@@ -497,12 +500,12 @@ class SettingsEventHandlers:
         """
         if self.gui.is_updating:
             return  # Exit early to break the recursive loop!
-        language = language.value.strip() if hasattr(language, "value") else str(language).strip()
+        language = str(getattr(language, "value", language)).strip()
         # Let everyone know we are setting the language
         self.state.language_set = True
 
         # Determine reference view (matches your event logic structure)
-        the_view = self if self.__class__.__name__ == "MyGui" else self.gui
+        the_view = cast("MyGui", self) if self.__class__.__name__ == "MyGui" else self.gui
         if the_view.language == language:
             return
 
@@ -581,7 +584,7 @@ class SettingsEventHandlers:
             # Forces the tab panel component container to process text and redraw updates
             ui.update()
 
-    def language_set_event(self, language: str | Event) -> None:
+    def language_set_event(self, language: str | ValueChangeEventArguments) -> None:
         """
         Set the language for the GUI. Comes here via 'restore_display' and 'language_set_event'.
         Uses the state lock to prevent recursive dropdown triggers.
@@ -589,8 +592,8 @@ class SettingsEventHandlers:
         Args:
             language: The language selected by the user.
         """
-        the_view = self if self.__class__.__name__ == "MyGui" else self.gui
-        language = language.value.strip() if hasattr(language, "value") else str(language).strip()
+        the_view = cast("MyGui", self) if self.__class__.__name__ == "MyGui" else self.gui
+        language = str(getattr(language, "value", language)).strip()
 
         # 1. Early exit if an automatic programmatic update loop is already active
         if getattr(the_view, "is_updating", False):
@@ -648,7 +651,7 @@ class SettingsEventHandlers:
         # Display message in the GUI
         the_view.display_message_box(message, "Green")
 
-    def tasklimit_event(self, slider_value: any) -> None:
+    def tasklimit_event(self, slider_value: ValueChangeEventArguments | float) -> None:
         """Handles the task limit slider change event safely using NiceGUI.
         Uses a state lock to prevent recursive updates.
         """
@@ -659,7 +662,7 @@ class SettingsEventHandlers:
             return
 
         # Determine if slider_value is a raw number or a NiceGUI Event object
-        value = int(slider_value.value if hasattr(slider_value, "value") else slider_value)
+        value = int(cast("float", getattr(slider_value, "value", slider_value)))
 
         the_view.task_action_warning_limit = value
 
@@ -694,7 +697,7 @@ class SettingsEventHandlers:
         )
         the_view.display_message_box(translate_string("Settings saved."), "Green")
 
-    def notify_timeout_event(self: object, choice: object) -> None:
+    def notify_timeout_event(self, choice: object) -> None:
         """Notification Duration pulldown, and the same key on restore.
 
         Takes either the label the pulldown shows ("10 seconds") or the milliseconds the
@@ -707,7 +710,7 @@ class SettingsEventHandlers:
         if getattr(guiview, "is_updating", False):
             return None
 
-        raw = choice.value if hasattr(choice, "value") else choice
+        raw = getattr(choice, "value", choice)
         by_label = {translate_string(label): milliseconds for label, milliseconds in NOTIFY_TIMEOUT_CHOICES}
         by_label.update(dict(NOTIFY_TIMEOUT_CHOICES))
 
@@ -774,14 +777,14 @@ class SettingsEventHandlers:
             f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory(state=self.state)}\n"
         )
 
-    def viewlimit_event(self: object, view_limit: str) -> None:
+    def viewlimit_event(self, view_limit: str) -> None:
         """View Limit Event handled safely without recursion."""
         guiview = self.gui
         if getattr(guiview, "is_updating", False):
             return
 
         # 1. Safely extract the raw string value from NiceGUI Event or raw string
-        view_limit_str = view_limit.value if hasattr(view_limit, "value") else str(view_limit)
+        view_limit_str = getattr(view_limit, "value", str(view_limit))
 
         # 2. Normalize values to match the options strings exactly
         if view_limit_str == "9999999" or view_limit_str == translate_string("Unlimited"):
@@ -930,7 +933,7 @@ class SettingsEventHandlers:
         the_view = self.gui
         self.state.colors_to_use = set_color_mode(the_view.appearance_mode)
         # Save our background color for later reuse
-        the_view.saved_background_color = make_hex_color(self.state.colors_to_use.get("background_color"))
+        the_view.saved_background_color = make_hex_color(self.state.colors_to_use.get("background_color", ""))
         the_view.color_lookup = {}
         the_view.display_message_box(
             translate_string("Tasker items set back to their default colors."),
@@ -977,7 +980,7 @@ class SettingsEventHandlers:
                 # 2. Run your default notification/logging formatting string
                 _select_deselect_checkbox(
                     checkbox,
-                    value,
+                    bool(value),
                     display_message,
                     display=False,
                 )
@@ -1131,7 +1134,7 @@ class SettingsEventHandlers:
             "Display Directory",
         )
 
-    def _update_font_labels(self, gui: any, font_name: str) -> None:
+    def _update_font_labels(self, gui: MyGui, font_name: str) -> None:
         """Helper subroutine to inject or update the toolbar's font indicator text."""
         font_use_text = translate_string("Monospaced Font To Use")
         label_text = f"{font_use_text}: {font_name}"

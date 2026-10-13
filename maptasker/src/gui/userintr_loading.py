@@ -119,6 +119,8 @@ class LoadingEventHandlers:
     # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
     # its window's.
     state: RunState
+    # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
+    gui: MyGui
 
     # Process single name selection/event
     def process_name_event(

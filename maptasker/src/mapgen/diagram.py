@@ -309,6 +309,8 @@ def _real_task_name(task_name: str) -> str:
 
 def _add_blank_lines_for_calls(output_task_lines: list, prime_task: dict | None, state: RunState) -> None:
     """Add a blank line afterwards for each called Task (one per task name) for yet-to-be-populated connectors."""
+    if prime_task is None:
+        return
     with contextlib.suppress(KeyError):
         for calls_task in prime_task["call_tasks"]:
             output_task_lines.append("")
@@ -377,7 +379,7 @@ def add_quotes(
         prime_task = None
 
     with contextlib.suppress(KeyError):
-        if prime_task["call_tasks"] is not None:
+        if prime_task is not None and prime_task["call_tasks"] is not None:
             # Flatten list of called tasks and surround each with a quote.
             call_tasks = f" [Calls {line_right_arrow} {flatten_with_quotes(prime_task['call_tasks'])}]"
 

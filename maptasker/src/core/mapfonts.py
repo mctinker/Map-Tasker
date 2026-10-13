@@ -529,6 +529,8 @@ def embeddable_font(text: str, preferred: str = "") -> EmbeddableFont | None:
                 break
     if best is None:
         return None
+    if best.path is None:  # Cannot happen: only faces with a path were considered above.
+        return None
     try:
         data = best.path.read_bytes()
         sfnt = _standalone_face(data, best.offset)

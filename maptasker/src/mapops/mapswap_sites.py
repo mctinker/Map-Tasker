@@ -47,7 +47,7 @@ def site_kind(reference: varxref.Reference) -> str:
     """Which sort of field a reference sits in -- for the preview's wording, and for the
     one case (write_site) where the rewrite genuinely differs.
     """
-    if reference.path:
+    if reference.path or reference.element is None:
         return V2_SCENE
     if reference.element.tag in ("lhs", "rhs"):
         return CONDITION
@@ -194,6 +194,9 @@ def rewrite_site(site: Site, pattern: re.Pattern | None = None, new_name: str = 
     # depend on what it holds now.
     if site.new_value is not None:
         return before, site.new_value
+    if pattern is None:
+        msg = "A Site needs either a new value or a pattern to replace with it."
+        raise ValueError(msg)
     return before, pattern.sub(new_name, before)
 
 

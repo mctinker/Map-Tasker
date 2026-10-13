@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 # We've read in the xml backup file.  Now save it for processing.
-def write_out_backup_file(file_contents: bin, state: RunState) -> None:
+def write_out_backup_file(file_contents: bytes | str, state: RunState) -> None:
     """
     We've read in the xml backup file.  Now save it for processing.
 
@@ -49,7 +49,7 @@ def write_out_backup_file(file_contents: bin, state: RunState) -> None:
     my_file_name = state.program_arguments.android_file[name_location:]
 
     # Convert the binary code to string
-    output_lines = file_contents.decode("utf-8")
+    output_lines = file_contents.decode("utf-8") if isinstance(file_contents, bytes) else file_contents
 
     # Set up the backup file full path
     the_backup_file = state.program_arguments.android_file
@@ -75,7 +75,7 @@ def write_out_backup_file(file_contents: bin, state: RunState) -> None:
 
 
 # Return the substring after the last occurance of a specific character in a string
-def substring_after_last(string: str, char: chr) -> str:
+def substring_after_last(string: str, char: str) -> str:
     """
     Return the substring after the last occurance of a specific character in a string
         Args:
@@ -130,7 +130,7 @@ def validate_xml(
     ip_address: str,
     android_file: str,
     return_code: int,
-    file_contents: str,
+    file_contents: bytes | str,
     state: RunState,
 ) -> tuple:
     # Run loop since we may have to rerun validation if unicode error
@@ -203,7 +203,7 @@ def validate_xml(
 
 
 # Read XML file and validate the XML.
-def validate_xml_file(ip_address: str, port: str, android_file: str, state: RunState) -> bool:
+def validate_xml_file(ip_address: str, port: str, android_file: str, state: RunState) -> tuple[int, str]:
     # Read the file
     """Validates an XML file from an Android device.
     Parameters:
@@ -211,12 +211,13 @@ def validate_xml_file(ip_address: str, port: str, android_file: str, state: RunS
         - port (str): Port number of the Android device.
         - android_file (str): Name of the XML file to be validated.
     Returns:
-        - bool: True if the file is valid, False if not.
+        - (return code, error message): (0, "") if the file is valid.
     Processing Logic:
         - Reads the file from the Android device.
         - Validates the XML file.
         - Checks if the file is Tasker XML.
         - Returns True if the file is valid, False if not."""
+    file_contents: bytes | str = ""  # Only fetched from a device; a local file is read by validate_xml itself.
     if ip_address:
         return_code, file_contents = http_request(
             ip_address,
@@ -226,7 +227,7 @@ def validate_xml_file(ip_address: str, port: str, android_file: str, state: RunS
             "?download=1",
         )
         if return_code != 0:
-            return 1, file_contents
+            return 1, str(file_contents)
     else:
         return_code = 0
 
@@ -239,6 +240,8 @@ def validate_xml_file(ip_address: str, port: str, android_file: str, state: RunS
         return 1, error_message
 
     # Make surre this is Tasker XML
+    if xml_tree is None:
+        return 1, f"File {android_file} could not be read.\n\nTry again."
     xml_root = xml_tree.getroot()
     if xml_root.tag != "TaskerData":
         return 0, f"File {android_file} is not valid Tasker XML.\n\nTry again."

@@ -89,6 +89,8 @@ def get_bundles(xml_file: str) -> dict:
               each value being {'Bundle': {the <Bundle> attributes and sub-tags}}
     """
     root = ET.parse(xml_file).getroot()
+    if root is None:
+        return {}
 
     # Map each element to its parent since ElementTree has no parent pointer.
     parent_of = {child: parent for parent in root.iter() for child in parent}
