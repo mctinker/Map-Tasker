@@ -25,6 +25,7 @@ from maptasker.src.edit.taskedit_model import (
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.core.actionc import ArgumentCode
     from maptasker.src.core.primitem import RunState
 
 
@@ -154,7 +155,7 @@ def build_editable_args(
     return editable_args
 
 
-def _plugin_settings_arg(action_element: Element, arg) -> EditableArg:
+def _plugin_settings_arg(action_element: Element, arg: ArgumentCode) -> EditableArg:
     """A plugin's settings, shown read-only as one line (see plugset.settings_summary).
 
     Still not editable -- the plugin checks its own settings when Tasker hands them over --
@@ -190,7 +191,7 @@ def _find_str_element(
     )
 
 
-def _readonly_arg(arg, note: str) -> EditableArg:
+def _readonly_arg(arg: ArgumentCode, note: str) -> EditableArg:
     return EditableArg(
         arg_id=arg.arg_id,
         arg_name=display_arg_name(arg),
@@ -295,14 +296,14 @@ def _build_if_action_args(action_element: Element) -> list[EditableArg]:
     return build_if_condition_args(conditions[0])
 
 
-def _lookup_key(arg) -> str | None:
+def _lookup_key(arg: ArgumentCode) -> str | None:
     """If this arg's eval is ['prefix', 'l', lookupkey], return the lookup key."""
     if isinstance(arg.arg_eval, list) and len(arg.arg_eval) > 2 and arg.arg_eval[1] == "l":
         return arg.arg_eval[2]
     return None
 
 
-def _is_checkbox_arg_eval(arg_eval) -> bool:
+def _is_checkbox_arg_eval(arg_eval: object) -> bool:
     """True when arg_eval marks a boolean 'selected' arg via actionc.py's "e"
     evaluation marker (["e", "name"] or ["", "e", "name"] -- see the evalargs
     legend at the top of actionc.py). This overrides the arg's declared
@@ -317,7 +318,7 @@ def _is_checkbox_arg_eval(arg_eval) -> bool:
     return len(arg_eval) > 1 and arg_eval[0] == "e"
 
 
-def display_arg_name(arg) -> str:
+def display_arg_name(arg: ArgumentCode) -> str:
     """The label to show for this arg in the GUI: arg.arg_name if it's set,
     else derived from arg.arg_eval's first entry (arg_eval[0] for a list --
     e.g. ["Priority=", "l", "4s"] -- or arg_eval itself for a plain string --
@@ -344,7 +345,7 @@ def display_arg_name(arg) -> str:
     return first_entry.removesuffix("=")
 
 
-def _classify_arg_widget(arg, state: RunState) -> tuple[str, str, list[str] | None]:
+def _classify_arg_widget(arg: ArgumentCode, state: RunState) -> tuple[str, str, list[str] | None]:
     """Pure schema classification of an ArgumentCode -- no XML/value involved.
 
     Returns (widget_kind, backing_tag, dropdown_options). Shared between reading an
@@ -380,7 +381,7 @@ def _classify_arg_widget(arg, state: RunState) -> tuple[str, str, list[str] | No
     return "readonly", "", None
 
 
-def _build_boolean_arg(action_element: Element, the_arg: str, arg, state: RunState) -> EditableArg:
+def _build_boolean_arg(action_element: Element, the_arg: str, arg: ArgumentCode, state: RunState) -> EditableArg:
     int_element = _find_int_element(action_element, the_arg)
     if int_element is None:
         return _readonly_arg(arg, "Not present in this action's XML.")
@@ -396,7 +397,7 @@ def _build_boolean_arg(action_element: Element, the_arg: str, arg, state: RunSta
     )
 
 
-def _build_int_arg(action_element: Element, the_arg: str, arg, state: RunState) -> EditableArg:
+def _build_int_arg(action_element: Element, the_arg: str, arg: ArgumentCode, state: RunState) -> EditableArg:
     int_element = _find_int_element(action_element, the_arg)
     if int_element is None:
         return _readonly_arg(arg, "Not present in this action's XML.")
@@ -442,7 +443,7 @@ def _build_int_arg(action_element: Element, the_arg: str, arg, state: RunState) 
     )
 
 
-def is_perform_task_name_arg(action_code: str, arg) -> bool:
+def is_perform_task_name_arg(action_code: str, arg: ArgumentCode | EditableArg) -> bool:
     """Whether this arg is the 'Perform Task' action's Name field (code 130,
     arg_id 0) -- the one field guiwins.py's Add/Edit Task dialogs offer an
     extra Task-picker dropdown alongside (see get_all_task_names), as a
@@ -466,7 +467,7 @@ def get_all_task_names(state: RunState) -> list[str]:
     return sorted(state.tasker_root_elements.get("all_tasks_by_name", {}))
 
 
-def _build_string_arg(action_element: Element, the_arg: str, arg, state: RunState) -> EditableArg:
+def _build_string_arg(action_element: Element, the_arg: str, arg: ArgumentCode, state: RunState) -> EditableArg:
     str_element = _find_str_element(action_element, the_arg)
     if str_element is None:
         return _readonly_arg(arg, "Not present in this action's XML.")
@@ -483,7 +484,7 @@ def _build_string_arg(action_element: Element, the_arg: str, arg, state: RunStat
     )
 
 
-def _build_app_arg(action_element: Element, the_arg: str, arg, state: RunState) -> EditableArg:
+def _build_app_arg(action_element: Element, the_arg: str, arg: ArgumentCode, state: RunState) -> EditableArg:
     """An <App sr="argN"> argument, as a field holding its package names.
 
     Read-only in two cases, both of which are what this argument did before it was
@@ -511,7 +512,7 @@ def _build_app_arg(action_element: Element, the_arg: str, arg, state: RunState) 
     )
 
 
-def _build_icon_arg(action_element: Element, the_arg: str, arg, state: RunState) -> EditableArg:
+def _build_icon_arg(action_element: Element, the_arg: str, arg: ArgumentCode, state: RunState) -> EditableArg:
     """An <Img sr="argN"> argument, as a field holding one icon reference -- see
     appinv.format_icon_value for how the four forms of one are spelled.  Falls back to
     read-only on the same two conditions as _build_app_arg, for the same reasons.
@@ -535,7 +536,7 @@ def _build_icon_arg(action_element: Element, the_arg: str, arg, state: RunState)
     )
 
 
-def build_default_arg(arg, state: RunState) -> EditableArg | None:
+def build_default_arg(arg: ArgumentCode, state: RunState) -> EditableArg | None:
     """Seed a default EditableArg for a brand-new action being synthesized (Add Task).
 
     Returns None for any Bundle-category arg -- on an addable action (see
@@ -554,10 +555,8 @@ def build_default_arg(arg, state: RunState) -> EditableArg | None:
     if widget_kind == "readonly":
         return None
 
-    if widget_kind in ("checkbox", "dropdown"):
-        current_value = "0"
-    else:  # "text" or "raw_fallback"
-        current_value = "0" if backing_tag == "Int" else ""
+    # A checkbox or dropdown starts at "0"; of the text kinds ("text", "raw_fallback"), an Int does.
+    current_value = "0" if widget_kind in ("checkbox", "dropdown") or backing_tag == "Int" else ""
 
     return EditableArg(
         arg_id=arg.arg_id,

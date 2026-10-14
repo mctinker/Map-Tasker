@@ -2585,7 +2585,6 @@ def test_the_retry_reimports_the_file_rather_than_re_rendering(monkeypatch: pyte
     fake.uploaded = b"<TaskerData>already on the device</TaskerData>"  # what the folder holds
 
     return_code, result = taskedit_save.save_task_to_android_directory(
-        edited_task,
         "192.168.0.210",
         "1821",
         "Opener",

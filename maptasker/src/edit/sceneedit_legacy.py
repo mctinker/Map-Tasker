@@ -559,7 +559,7 @@ def legacy_drawable_elements(scene_element: Element) -> list:
     return sorted(drawable, key=order)
 
 
-def _legacy_reindex(scene_element: Element, ordered: list) -> None:
+def _legacy_reindex(ordered: list) -> None:
     """Renumber this list of elements elements0..N-1, in place.
 
     Renumbering only.  The elements are deliberately NOT moved to match their new order in
@@ -688,7 +688,7 @@ def legacy_insert_element(
         scene_element.insert(list(scene_element).index(properties), element)
 
     ordered.insert(position, element)
-    _legacy_reindex(scene_element, ordered)
+    _legacy_reindex(ordered)
     return f"elements{position}"
 
 
@@ -708,7 +708,7 @@ def legacy_delete_element(scene_element: Element, sr: str) -> str:
     position = ordered.index(element)
     ordered.remove(element)
     scene_element.remove(element)
-    _legacy_reindex(scene_element, ordered)
+    _legacy_reindex(ordered)
     if not ordered:
         return ""
     return f"elements{min(position, len(ordered) - 1)}"
@@ -759,7 +759,7 @@ def legacy_restack(scene_element: Element, sr: str, position: int) -> str:
 
     ordered.remove(element)
     ordered.insert(target, element)
-    _legacy_reindex(scene_element, ordered)
+    _legacy_reindex(ordered)
     return f"elements{target}"
 
 

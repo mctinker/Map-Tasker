@@ -156,13 +156,13 @@ def _nodes(lines: list[str], placements: list, targets: dict, regions: list[dict
         target = targets.get(anchor)
         if target is None or length <= 0 or line >= len(lines):
             continue
-        column, length = _char_span(lines[line], column, length)
+        span_column, span_length = _char_span(lines[line], column, length)
         if target.kind == TASK:
             # Past the "└─ " the line is drawn with -- see _TASK_PREFIX.
-            if length <= _TASK_PREFIX:
+            if span_length <= _TASK_PREFIX:
                 continue
-            column, length = column + _TASK_PREFIX, length - _TASK_PREFIX
-        if length <= 0:
+            span_column, span_length = span_column + _TASK_PREFIX, span_length - _TASK_PREFIX
+        if span_length <= 0:
             continue
         project = target.key if target.kind == PROJECT else _project_at(regions, line)
         nodes.append(
@@ -171,8 +171,8 @@ def _nodes(lines: list[str], placements: list, targets: dict, regions: list[dict
                 "kind": target.kind,
                 "name": target.name,
                 "line": line,
-                "col": column,
-                "len": length,
+                "col": span_column,
+                "len": span_length,
                 "project": project,
                 "token": Target(
                     kind=target.kind,

@@ -139,11 +139,11 @@ class TextViewSearch:
     search_input: ui.input
     _content_token: int
     _last_search: tuple[str, list, int, bool] | None
-    _find_query: mapfind.Query | None
-    _find_ask: asyncio.Task | None
-    _find_dialog: ui.dialog | None
-    _replace_inputs: tuple | None
-    _replace_ticks: collections.Counter | None
+    find_query: mapfind.Query | None
+    find_ask: asyncio.Task | None
+    find_dialog: ui.dialog | None
+    replace_inputs: tuple | None
+    replace_ticks: collections.Counter | None
 
     def invalidate_search_cache(self) -> None:
         """Drops the cached search results, without touching the browser-side text index.
@@ -298,7 +298,7 @@ class TextViewSearch:
 
         results_dialog.open()
 
-    def _build_replace_tab(
+    def build_replace_tab(
         self,
         dialog: ui.dialog,
         index: mapfind.FindIndex,
@@ -311,7 +311,7 @@ class TextViewSearch:
         close on success, the mapfind index both pulldowns are built from, the jump handler
         a preview row's link uses, and the panel to build into.
 
-        `self` is used only to remember the inputs on the view (see _replace_inputs), which
+        `self` is used only to remember the inputs on the view (see replace_inputs), which
         is what lets a preview survive a click on one of its own rows.
 
         Returns whether it restored a previous Replace, so the caller can open the dialog
@@ -331,14 +331,14 @@ class TextViewSearch:
         """
         # Its question to the AI model goes with it.  Deleting a dialog raises no "hide", so
         # the dialog's own dispose() is not there to cancel it.
-        self._cancel_find_ask()
-        dialog = self._find_dialog
-        self._find_dialog = None
+        self.cancel_find_ask()
+        dialog = self.find_dialog
+        self.find_dialog = None
         if dialog is not None:
             with suppress_logged("Deleting the Find dialog"):
                 dialog.delete()
 
-    def _cancel_find_ask(self) -> None:
+    def cancel_find_ask(self) -> None:
         """Cancel the question the Find dialog has out with an AI model, if it has one.
 
         For when an answer would have nowhere to go or nobody waiting for it: the dialog
@@ -346,8 +346,8 @@ class TextViewSearch:
         through its async client, so cancelling the task drops the request where it waits
         instead of letting it run on to a reply nobody will read.
         """
-        task = self._find_ask
-        self._find_ask = None
+        task = self.find_ask
+        self.find_ask = None
         if task is not None and not task.done():
             task.cancel()
 
@@ -383,7 +383,7 @@ class TextViewSearch:
         # Held on the view for as long as it is on screen: this one may outlive the click
         # that dismissed it in every previous version -- a docked dialog stays up until the
         # user closes it -- and the next press of Find/Replace has to be able to find it.
-        self._find_dialog = dialog
+        self.find_dialog = dialog
         dialog.open()
 
 
@@ -462,7 +462,7 @@ class _FindDialog:
             # The Replace tab is built by its own method rather than inline.  It is the
             # larger half of this dialog and shares only the index, the panel and the jump
             # with the Find half -- which is exactly the seam, so that is where it is cut.
-            restored_replace = self.view._build_replace_tab(self.dialog, self.index, self.jump_to, replace_panel)
+            restored_replace = self.view.build_replace_tab(self.dialog, self.index, self.jump_to, replace_panel)
 
             with ui.row().classes("w-full justify-end mt-4 gap-2"):
                 ui.button(translate_string("Close"), on_click=self.dialog.close).classes("bg-red-500 text-white px-4")
@@ -486,7 +486,7 @@ class _FindDialog:
             if restored_replace:
                 tabs.set_value(replace_tab)
 
-            previous = self.view._find_query
+            previous = self.view.find_query
             if previous is not None:
                 self.fill(previous)
                 self.show(previous)
@@ -516,7 +516,7 @@ class _FindDialog:
         self.question_input.on("keydown.enter", self.ask)
         # The box's own 'X' takes the question back, and a question taken back is not
         # one to keep the model working on.
-        self.question_input.on("clear", self.view._cancel_find_ask)
+        self.question_input.on("clear", self.view.cancel_find_ask)
 
         with ui.row().classes("w-full justify-end mt-4 gap-2"):
             ui.button(translate_string("Find"), on_click=self.run).classes("bg-blue-600 text-white px-4")
@@ -648,7 +648,7 @@ class _FindDialog:
 
     def show(self, query: mapfind.Query) -> None:
         """Run the query and draw its answer."""
-        self.view._find_query = query
+        self.view.find_query = query
         self.produced.update(query=query, hits=[], total=0)
         self.results_area.clear()
         if query.is_empty:
@@ -774,14 +774,14 @@ class _FindDialog:
 
         self.ask_notes.set_visibility(False)
         # One question at a time: pressing Ask again replaces the one still out.
-        self.view._cancel_find_ask()
+        self.view.cancel_find_ask()
         # A task of its own rather than a plain await, so that closing the dialog
-        # or clearing the question can cancel it (_cancel_find_ask).  Every
+        # or clearing the question can cancel it (cancel_find_ask).  Every
         # provider is asked through its async client, so cancelling drops the
         # connection rather than leaving a request running for a reply nobody
         # is going to read.
         task = asyncio.create_task(mapask.translate(question, self.index, settings))
-        self.view._find_ask = task
+        self.view.find_ask = task
         self.ask_button.props(add="loading")
         try:
             translation = await task
@@ -799,8 +799,8 @@ class _FindDialog:
             ui.notify(str(error), type="negative", multi_line=True)
             return
         finally:
-            if self.view._find_ask is task:
-                self.view._find_ask = None
+            if self.view.find_ask is task:
+                self.view.find_ask = None
             if not getattr(self.dialog, "is_deleted", False):
                 self.ask_button.props(remove="loading")
         # Closed while the model was thinking: there is nothing left to fill in.
@@ -842,16 +842,16 @@ class _FindDialog:
 
     def dispose(self) -> None:
         """Forget this dialog and take it out of the page, and its question to the AI with it."""
-        if self.view._find_dialog is self.dialog:
-            self.view._find_dialog = None
+        if self.view.find_dialog is self.dialog:
+            self.view.find_dialog = None
             # Only this dialog's own: a question still out belongs to the dialog the
             # view holds, and one that has already been replaced was cancelled then.
-            self.view._cancel_find_ask()
+            self.view.cancel_find_ask()
         self.dialog.delete()
 
 
 class _ReplaceTab:
-    """The Find dialog's Replace tab -- see NiceGuiTextView._build_replace_tab.
+    """The Find dialog's Replace tab -- see NiceGuiTextView.build_replace_tab.
 
     Holds the tab's fields and the preview on screen, so that every handler can reach them.
     """
@@ -1099,7 +1099,7 @@ class _ReplaceTab:
         # Plan could not be remembered in its place anyway -- its Sites hold live elements,
         # and holding those across a reopen is the stale-handle case apply()'s own
         # attachment check exists to catch.
-        previous = self.view._replace_inputs
+        previous = self.view.replace_inputs
         if previous is None:
             return False
 
@@ -1107,7 +1107,7 @@ class _ReplaceTab:
         # on_value_change, which runs invalidate, which clears the remembered ticks --
         # so reading them afterwards would always find nothing, and the restore would
         # silently do half its job.
-        remembered = self.view._replace_ticks
+        remembered = self.view.replace_ticks
 
         kind = previous[0]
         self.mode.set_value(kind)
@@ -1227,7 +1227,7 @@ class _ReplaceTab:
         # The ticks go with the preview.  They describe changes to a question that is
         # no longer the one on screen, and carrying them into the next preview would
         # tick rows the user never looked at.
-        self.view._replace_ticks = None
+        self.view.replace_ticks = None
         self.replace_button.disable()
 
     def fill_targets(self) -> None:
@@ -1401,7 +1401,7 @@ class _ReplaceTab:
     def remember_ticks(self) -> None:
         """Keep the current tick boxes on the view, ready for the next reopen."""
         plan = self.held["plan"]
-        self.view._replace_ticks = plan.ticked_identities() if plan is not None else None
+        self.view.replace_ticks = plan.ticked_identities() if plan is not None else None
 
     def build_preview(self, restore: collections.Counter | None = None) -> None:
         """Build the plan for whatever the fields say, and show it.
@@ -1467,7 +1467,7 @@ class _ReplaceTab:
             plan.restore_ticks(restore)
 
         self.held.update(plan=plan, inputs=inputs)
-        self.view._replace_inputs = inputs
+        self.view.replace_inputs = inputs
         self.draw(plan)
         self.remember_ticks()
         if plan.changes:
@@ -1543,8 +1543,8 @@ class _ReplaceTab:
             # preview of a plan that has already been applied.  The remembered ticks go
             # with it: they belong to a plan there is no longer any reason to restore.
             self.held.update(variables=None, variable_choices=None, plan=None, inputs=None)
-            self.view._replace_inputs = None
-            self.view._replace_ticks = None
+            self.view.replace_inputs = None
+            self.view.replace_ticks = None
             self.replace_button.disable()
             self.dialog.close()
 

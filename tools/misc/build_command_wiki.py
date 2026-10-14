@@ -105,7 +105,7 @@ SURFACE_TITLES = {
     "guiwins2.py:APIKeyDialog.__init__": "AI API Key Entry",
     "guiutils.py:check_new_version": "New Version Notice",
     "guiutils.py:validate_or_filelist_xml": "Android XML File List",
-    "getfile.py:Local_File_Picker.__init__": "Local File Picker",
+    "getfile.py:LocalFilePicker.__init__": "Local File Picker",
     "userintr.py:MapTaskerEventHandlers.get_xml_from_android_event": "Get XML From Android Device",
     "userintr.py:MapTaskerEventHandlers.ai_prompt_event": "Change Prompt",
     "userintr.py:_choose_comparison_file": "Compare Files",
@@ -774,7 +774,7 @@ class CommandModel:
                 self.help_constants = help_strings(tree)
         for function in self.funcs.values():
             self.by_name[function.name].append(function)
-            if function.name == "__init__" and "." in function.qualname:  # Local_File_Picker(...)
+            if function.name == "__init__" and "." in function.qualname:  # LocalFilePicker(...)
                 self.by_name[function.qualname.rsplit(".", 2)[-2]].append(function)
 
     def lookup(self, name: str, near: str = "") -> list[Func]:
@@ -1043,7 +1043,7 @@ class CommandModel:
         It has to be a dialog of its own -- a helper that draws into the caller is not
         somewhere a user goes -- or one of the panels named in SURFACE_TITLES, which
         are places in their own right without being a ui.dialog (the Android file list
-        is drawn into the main window, and Local_File_Picker is a class).
+        is drawn into the main window, and LocalFilePicker is a class).
         """
         if not (function.creates_dialog or function.key in SURFACE_TITLES):
             return None
@@ -1330,6 +1330,7 @@ class HelpEntry:
     nodes: list[Node] = field(default_factory=list)  # Its widgets in the GUI.
     related: list[str] = field(default_factory=list)  # Longer help texts that go with it.
     extra_caveats: list[str] = field(default_factory=list)
+    known_issues: list[str] = field(default_factory=list)
 
     @property
     def depth(self) -> int:
@@ -1378,6 +1379,42 @@ RELATED_HELP = {
 
 # The group of commands that belongs to the Map/Diagram/Tree views' toolbar.
 TOOLBAR_GROUP = "Map / Diagram / Tree View Toolbar"
+
+# Commands the Help screen does not list but that have caveats of their own to be said somewhere:
+# the command, the Help-screen command it belongs to, and what it does.  The description is the
+# one the GUI itself shows beneath it.
+EXTRA_COMMANDS = {
+    "Draft with AI": (
+        "Add Project/Profile/Task/Scene",
+        "In the Add Task window, turns a description in plain words into actions.  The AI model chosen on the "
+        "Analyze tab drafts actions from the ones the editor can build, and they are added to the Task unsaved, "
+        "for you to review and edit.  Whatever the AI suggested that MapTasker is unable to build is listed beside "
+        "the draft, and a Stop button gives up on a slow model.",
+    ),
+}
+
+# What is known not to work well yet, by the command it concerns (the Help screen's name for it,
+# normalised).  These lived in Changelog.md's Known Issues until they were moved here, where
+# they sit with the command they are about.
+KNOWN_ISSUES = {
+    "taskernet updates": [
+        "It matches Tasks and Profiles by name, so one the author renames, or one with no name, can show up as "
+        "new rather than changed.",
+        "The first time you link a share, differences caused by Tasker rewriting it on import are listed along "
+        "with real ones; later updates list only what the author changed.",
+    ],
+    "draft with ai": [
+        "It is slow and often unusable on very small local models (such as tinyllama); a larger local model or a "
+        "cloud model is recommended.",
+        "It cannot choose an Application or an icon for an action, and a plugin action it picks still has to be "
+        "configured inside Tasker; both are left at their defaults for you to fill in.",
+    ],
+    "add edit and save": [
+        "Not all Task actions and Profile states or events editing are supported.  What remains unsupported is "
+        "third-party plugins: their settings are an opaque payload that only the plugin's own configurator "
+        "understands, so those still have to be set up inside Tasker.",
+    ],
+}
 
 # A note that closes the Help screen, and the commands it is a caveat of: the phrase to
 # look for in the note, and the (normalised) names of the commands it applies to.
@@ -1694,12 +1731,24 @@ class PageWriter:
         self.version = version
         self.page_name = page_name
         self.doc = parse_help(model.help_constants)
+        self._add_extra_commands()
         self.entries = flatten_entries(self.doc.entries)
         self.attached_notes: set[str] = set()
         self._assign_anchors()
         self._attach_widgets()
         self._attach_related_help()
         self._attach_notes()
+        self._attach_known_issues()
+
+    def _add_extra_commands(self) -> None:
+        """Gives the commands the Help screen leaves out, but that have known issues, a section
+        beneath the command they belong to.
+        """
+        existing = flatten_entries(self.doc.entries)
+        for name, (parent_name, text) in EXTRA_COMMANDS.items():
+            parent = next((entry for entry in existing if normalize(entry.name) == normalize(parent_name)), None)
+            if parent:
+                parent.children.append(HelpEntry(name=name, text=text, parent=parent))
 
     # -- joining the Help screen to the rest of the source -------------------------
     def _assign_anchors(self) -> None:
@@ -1739,6 +1788,11 @@ class PageWriter:
                 text = self.model.help_constants.get(constant, "")
                 if text:
                     entry.related.append(text)
+
+    def _attach_known_issues(self) -> None:
+        """Hangs each known issue on the command it is about."""
+        for entry in self.entries:
+            entry.known_issues = KNOWN_ISSUES.get(normalize(entry.name), [])
 
     def _attach_notes(self) -> None:
         """Hangs a general note on the commands it is about, as a caveat of theirs."""
@@ -1834,6 +1888,8 @@ class PageWriter:
         caveats = unique_caveats(caveats + hover_caveats + entry.extra_caveats, known=plain)
         if caveats:
             lines += ["**Caveats:**", "", *[f"* {caveat}" for caveat in caveats], ""]
+        if entry.known_issues:
+            lines += ["**Known issues:**", "", *[f"* {issue}" for issue in entry.known_issues], ""]
         return lines + [line for child in entry.children for line in self._entry(child)]
 
     @staticmethod

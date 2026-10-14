@@ -121,7 +121,7 @@ class RunConfig(ArgumentFields):
         msg = f"cannot delete field {name!r}"
         raise FrozenInstanceError(msg)
 
-    def __deepcopy__(self, memo: dict) -> RunConfig:
+    def __deepcopy__(self, _memo: dict) -> RunConfig:
         """
         A copy built through the constructor.  The default copy would put the fields
         back one by one after _sealed, and __setattr__ would refuse them.

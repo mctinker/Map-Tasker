@@ -615,12 +615,14 @@ def _build_material_colour_menu(field: ui.color_input) -> None:
     """
     with ui.menu().props("auto-close").classes("max-h-96"), ui.column().classes("gap-0 p-1"):
         for name, css in V2_MATERIAL_PALETTE.items():
-            with ui.item(on_click=lambda _e=None, n=name: field.set_value(n)).props("dense clickable"):
-                with ui.row().classes("items-center gap-2 no-wrap"):
-                    ui.element("div").style(f"{_V2_SWATCH_STYLE} background: {css};")
-                    ui.label(name).classes("text-sm font-mono")
-                    ui.space()
-                    ui.label(css).classes("text-xs text-gray-500 font-mono")
+            with (
+                ui.item(on_click=lambda _e=None, n=name: field.set_value(n)).props("dense clickable"),
+                ui.row().classes("items-center gap-2 no-wrap"),
+            ):
+                ui.element("div").style(f"{_V2_SWATCH_STYLE} background: {css};")
+                ui.label(name).classes("text-sm font-mono")
+                ui.space()
+                ui.label(css).classes("text-xs text-gray-500 font-mono")
 
 
 def _build_state_field(item: dict, field: sceneedit_v2.V2StateField, state: RunState) -> None:

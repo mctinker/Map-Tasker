@@ -55,7 +55,7 @@ async def test_with_nothing_loaded_find_says_so_and_opens_nothing() -> None:
     PrimeItems.tasker_root_elements = {"all_tasks": {}}
     async with open_dialog() as user:
         assert user.notify.contains("No XML file has been loaded.  Get an XML file first.")
-        assert built["view"]._find_dialog is None
+        assert built["view"].find_dialog is None
 
 
 @pytest.mark.asyncio
@@ -150,7 +150,7 @@ async def test_the_last_question_is_remembered_on_the_view_and_refilled_on_reope
     async with open_dialog() as user:
         field(user, "Text (name, label or argument)").value = "quietly"
         press_find(user)
-        remembered = built["view"]._find_query
+        remembered = built["view"].find_query
         assert remembered.text == "quietly"
 
         click(user, by_text(user, "Find")[0])
@@ -167,7 +167,7 @@ async def test_following_a_row_goes_to_its_object_and_docks_the_dialog_rather_th
     async with open_dialog() as user:
         field(user, "Text (name, label or argument)").value = "quietly"
         press_find(user)
-        dialog = built["view"]._find_dialog
+        dialog = built["view"].find_dialog
         assert "seamless" not in dialog.props
 
         row = links(user)[0]
@@ -232,12 +232,12 @@ async def test_a_save_that_fails_says_so(monkeypatch: pytest.MonkeyPatch) -> Non
 async def test_close_hides_the_dialog_and_the_next_find_replaces_it() -> None:
     async with open_dialog() as user:
         view = built["view"]
-        first = view._find_dialog
+        first = view.find_dialog
         click(user, by_text(user, "Close")[0])
         assert first.value is False
 
         click(user, by_text(user, "Find")[0])
-        assert view._find_dialog is not first
+        assert view.find_dialog is not first
         assert first.is_deleted, "a fresh dialog is built per press, so the old one is taken down, not stacked"
 
 
@@ -245,10 +245,10 @@ async def test_close_hides_the_dialog_and_the_next_find_replaces_it() -> None:
 async def test_dismissing_deletes_the_dialog_and_forgets_it() -> None:
     async with open_dialog() as user:
         view = built["view"]
-        dialog = view._find_dialog
+        dialog = view.find_dialog
         with user.client:
             view._dismiss_find_dialog()
-        assert view._find_dialog is None
+        assert view.find_dialog is None
         assert dialog.is_deleted
 
 
@@ -331,4 +331,4 @@ async def test_a_model_error_is_reported_and_leaves_the_boxes_alone(monkeypatch:
         await asyncio.sleep(0.1)
         assert user.notify.contains("The model did not answer.")
         assert field(user, "Text (name, label or argument)").value in (None, "")
-        assert built["view"]._find_ask is None
+        assert built["view"].find_ask is None

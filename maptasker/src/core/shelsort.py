@@ -15,6 +15,9 @@
 
 
 # Sort an Action list (Actions are not necessarily in numeric order in XML backup file).
+"""shelsort: shell sort, for ordering Actions, arguments and other miscellany."""
+
+
 def shell_sort(arr: list, do_arguments: bool, by_numeric: bool) -> None:
     """
     Sort the list in-place, ascending.

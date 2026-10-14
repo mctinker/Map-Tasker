@@ -23,6 +23,7 @@ from maptasker.src.edit.taskedit_model import (
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.core.actionc import ArgumentCode
     from maptasker.src.core.primitem import RunState
 
 # Keys in a bundles.json definition that are xml *attributes* rather than sub-tags.
@@ -103,7 +104,7 @@ def tasker_configuration_warning(element: Element, name: str) -> str:
     return PLUGIN_CONFIGURATION_WARNING.format(name=name) if needs_tasker_configuration(element) else ""
 
 
-def _is_plugin_bundle_arg(arg, state: RunState) -> bool:
+def _is_plugin_bundle_arg(arg: ArgumentCode, state: RunState) -> bool:
     """Whether an ArgumentCode is an opaque third-party plugin payload Bundle, as
     opposed to the informational 'Output Variables' Bundle hint (which needs no
     element written at all -- see build_default_arg).
@@ -208,7 +209,7 @@ def _synthesize_bundle_arg(
     )
 
 
-def _build_merged_plugin_arg(arg) -> EditableArg | None:
+def _build_merged_plugin_arg(arg: ArgumentCode) -> EditableArg | None:
     """Seed a default EditableArg for an action_codes argument that is declared as a
     Bundle but is *not* the payload slot bundles.json just filled.
 

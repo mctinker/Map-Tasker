@@ -35,7 +35,7 @@ from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.sysconst import TIMELINE_FILE
 from maptasker.src.gui import livevars
-from maptasker.src.gui.getfile import Local_File_Picker
+from maptasker.src.gui.getfile import LocalFilePicker
 from maptasker.src.gui.guistate import remember_setting
 from maptasker.src.gui.guiutils import (
     android_address_defaults,
@@ -96,9 +96,9 @@ async def _choose_comparison_file(gui: MyGui) -> str:
             return choice or ""
 
     # The ceiling stays at home no matter where we start, for the same reason getxml_event
-    # gives: Local_File_Picker's default upper_limit is whatever directory it opens in,
+    # gives: LocalFilePicker's default upper_limit is whatever directory it opens in,
     # which would leave the user unable to navigate up out of a remembered subdirectory.
-    result = await Local_File_Picker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
+    result = await LocalFilePicker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
     if not result:
         return ""
     # Deliberately NOT remember_local_xml_directory: that directory is where the file the

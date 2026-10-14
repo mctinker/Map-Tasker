@@ -267,81 +267,9 @@ max-complexity = 15
 # complexity_ratchet.py runs ruff to measure the functions, from the project's own interpreter.
 'scripts/complexity_ratchet.py' = ['S603']
 
-# ---------------------------------------------------------------------------
-# Deliberate, not debt. These stay.
-# ---------------------------------------------------------------------------
-# format.py parses CSS selectors; a local named 'token' holding ">" trips the
-# hardcoded-password heuristic. False positive.
-# (S105 is listed in the backlog block below alongside that file's real items.)
-
-# ---------------------------------------------------------------------------
-# LINT BACKLOG -- 195 pre-existing violations across 36 files.
-#
-# Ruff was configured in this project but never installed, so none of it had
-# ever run. Rather than ignore the rules globally -- which would let new code
-# introduce the same problems anywhere -- each rule is switched off only for the
-# specific file that already violates it. Every other file, and every new file,
-# is fully linted, so CI fails on any NEW violation.
-#
-# This list is a ratchet: fix a file, delete its line. Do not add to it.
-# Regenerate/verify with:  ruff check --statistics
-# ---------------------------------------------------------------------------
-'maptasker/src/core/aiutils.py' = ['ISC004']
-'maptasker/src/core/bldargs.py' = ['PERF401']
-'maptasker/src/core/clip.py' = ['PGH004']
-'maptasker/src/mapgen/colors.py' = ['D100', 'PLR1722']
-'maptasker/src/mapgen/condition.py' = ['RET504']
-'maptasker/src/core/deprecate.py' = ['D100']
-# deviceinv.py was split by responsibility into the device* modules.  The helper-Task builders
-# return an EditableTask or an error string and were never annotated; the entries follow them,
-# and F811 (verify_profile_on_android defined twice, the first one dead) went with the duplicate.
-'maptasker/src/device/devicecheck.py' = ['ANN201']
-'maptasker/src/device/devicefiles.py' = ['ANN201']
-'maptasker/src/device/deviceimport.py' = ['ANN201']
-'maptasker/src/device/deviceinv.py' = ['ANN201']
-'maptasker/src/device/deviceoffer.py' = ['ANN201']
-'maptasker/src/device/devicetask.py' = ['ANN201']
-'maptasker/src/mapgen/diagintr.py' = ['PLW2901']
-'maptasker/src/mapgen/diagram.py' = ['PLW2901']
-'maptasker/src/core/format.py' = ['ARG002', 'S105']
-'maptasker/src/gui/getfile.py' = ['ANN201', 'ANN202', 'D101', 'D102', 'N801', 'PLC0415']
-'maptasker/src/core/getputer.py' = ['PERF403']
-'maptasker/src/gui/guiwins.py' = ['ARG001', 'ISC004']
-# guiwins.py was split by dialog family into the guiwins_* modules below. These are its
-# own backlog entries following the code out of it, not new debt -- the same oversized
-# dialog builders, now in the file they belong to. guiwins.py's own line shrank by three
-# rules in the move (PLR0912, RUF100, SIM117), and guiwins_canvas.py needs no line at all.
-# The second split, into guiwins_views/_search/_nav, took C901 and SLF001 with it: the
-# view the private attributes belong to, and the one function too complex, both went.
-'maptasker/src/gui/guiwins_designer_v2.py' = ['SIM117']
-'maptasker/src/gui/guiwins_search.py' = ['SLF001']
-'maptasker/src/gui/guiwins_views.py' = ['ISC004', 'SLF001']
-'maptasker/src/gui/mapai.py' = ['F811']
-'maptasker/src/mapit.py' = ['ANN001', 'ARG001']
-'maptasker/src/core/mapjump.py' = ['I001']
-'maptasker/src/core/maputil2.py' = ['A004']
-'maptasker/src/mapgen/outline.py' = ['PLW2901', 'SIM102']
-'maptasker/src/core/prefers.py' = ['ISC001']
-'maptasker/src/mapgen/profiles.py' = ['ARG001', 'PLC0415']
-'maptasker/src/mapgen/projects.py' = ['ISC004']
-'maptasker/src/edit/projedit.py' = ['ISC004']
-'maptasker/src/edit/roundtrip.py' = ['D105']
-'maptasker/src/edit/sceneedit.py' = ['I001']
-# sceneedit.py's own backlog entries, following the code that has them into its two halves.
-'maptasker/src/edit/sceneedit_legacy.py' = ['ARG001']
-'maptasker/src/edit/sceneedit_v2.py' = ['D102', 'D105', 'D107']
-'maptasker/src/gui/sceneview.py' = ['D102', 'D107', 'F541', 'ISC001', 'RUF001', 'SIM117']
-'maptasker/src/core/servicec.py' = ['D100']
-'maptasker/src/core/shelsort.py' = ['D100']
-# taskedit.py was split by responsibility into the taskedit_* modules; its own backlog entries
-# followed the code out of it, and the core no longer has one.
-'maptasker/src/edit/taskedit_addable.py' = ['ANN001']
-'maptasker/src/edit/taskedit_args.py' = ['ANN001', 'SIM108']
-'maptasker/src/edit/taskedit_save.py' = ['ARG001']
-'maptasker/src/mapgen/taskerd.py' = ['PLC0415']
-# userintr.py's two entries moved with the Android handlers they belong to (see the guiwins
-# note above): userintr.py itself no longer violates either rule, so it has no line.
-'maptasker/src/gui/userintr_android.py' = ['F841', 'RUF059']
+# There is no per-file backlog any more.  Every rule is enforced in every file; a new
+# violation fails CI, and the fix belongs in the code rather than in a line added here.
+# What is exempted above is exempted on purpose (tests, scripts, __init__.py), with the reason.
 
 [tool.ruff.lint.pylint]
 # Ceilings, not targets: each is as low as the code allows, so the worst function in the

@@ -81,16 +81,17 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from maptasker.src.core.primitem import RunState
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.core.primitem import RunState
+
 from maptasker.src.core import editcommon, piiscan
-from maptasker.src.edit import sessundo
+from maptasker.src.core.editcommon import restore_element, touch_project_mdate
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
 from maptasker.src.core.presave import backup_local_file
-from maptasker.src.core.editcommon import restore_element, touch_project_mdate
-from maptasker.src.core.sysconst import SCENE_TASK_TYPES, UNSET_DIMENSION
 from maptasker.src.core.scenelayout import V2_DEFAULT_TEMPLATE
+from maptasker.src.core.sysconst import SCENE_TASK_TYPES, UNSET_DIMENSION
+from maptasker.src.edit import sessundo
 from maptasker.src.edit.scenemodel import SCENE_VERSION_LEGACY, SCENE_VERSIONS, model_for_version, model_of
 
 # Destination folder on the Android device for Save To Android -- the Scene sibling of

@@ -7,6 +7,8 @@
 #                                                                                      #
 
 
+"""servicec: the master lookup for a given Tasker Preferences <Service> xml statement."""
+
 service_codes = {
     # service code: name to display, preference section, display order
     "anm": {

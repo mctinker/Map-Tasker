@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.edit.taskedit_model import EditableTask
 
 
 from maptasker.src.core.appinv import AppEntry, _store_fetched_apps
@@ -232,7 +233,7 @@ def _add_paired_label_actions(add: Callable[[str, dict[str, str]], str]) -> str:
     )
 
 
-def build_helper_task(task_name: str = HELPER_TASK_NAME, *, state: RunState):
+def build_helper_task(task_name: str = HELPER_TASK_NAME, *, state: RunState) -> EditableTask | str:
     """Build the helper Task, out of taskedit's own Add-Task machinery.
 
     Returns an EditableTask, or an error message string if it could not be built (the same

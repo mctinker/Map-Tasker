@@ -1,4 +1,3 @@
-# ruff: noqa
 r"""
 DO NOT DELETE THE AUTHOR COPYRIGHT
 ©Connor Talbot 2021 - https://github.com/con-dog/clippy
@@ -65,6 +64,7 @@ import os
 import re
 import sys
 import time
+
 from maptasker.src.core import console
 from maptasker.src.core.primitem import PrimeItems
 
@@ -210,16 +210,14 @@ PIC_COLORS = [
 ]
 
 
-class ClipException(Exception):
+class ClipError(Exception):
     """Raise Exception if Clip class methods are misused"""
-
-    pass
 
 
 class Clip:
     """A class to manage all aspects of a clip."""
 
-    def __init__(self, source_folder, play_speed, play_cycles, color=False) -> None:
+    def __init__(self, source_folder: str, play_speed: int, play_cycles: int, color: bool = False) -> None:
         """Initialize instance of Tile"""
         sys.stdout.write(CURSOR_OFF)
         self._source_folder = source_folder
@@ -228,27 +226,32 @@ class Clip:
         self._color = color
 
         if not isinstance(self.play_cycles, int):
-            raise ClipException("play cycles must be an integer")
+            message = "play cycles must be an integer"
+            raise ClipError(message)
         if (self.play_cycles < 1) or (self.play_cycles > 1000):
-            raise ClipException("play cycles must be an integer from 1-1000")
+            message = "play cycles must be an integer from 1-1000"
+            raise ClipError(message)
         if not isinstance(play_speed, int):
-            raise ClipException("Speed must be an integer from 1-100")
+            message = "Speed must be an integer from 1-100"
+            raise ClipError(message)
         if (play_speed < 1) or (play_speed > 100):
-            raise ClipException("Speed must be an integer from 1-100")
+            message = "Speed must be an integer from 1-100"
+            raise ClipError(message)
         if not isinstance(self._color, bool):
-            raise ClipException('colorless by default - pass "True" for color')
+            message = 'colorless by default - pass "True" for color'
+            raise ClipError(message)
 
     @property
-    def source_folder(self):
+    def source_folder(self) -> str:
         """Instance read only property"""
         return self._source_folder
 
     @property
-    def color(self):
+    def color(self) -> bool:
         """Instance read only property"""
         return self._color
 
-    def get_frames(self):
+    def get_frames(self) -> None:
         """Get all the frame art from the ascii sub-directory in alphabetical
         order."""
         self.frames = []
@@ -256,19 +259,18 @@ class Clip:
             frame = []
             frame.extend(list(row) for row in line)
             self.frames.append(frame)
-        ...
 
-    def set_char_base_color(self):
+    def set_char_base_color(self) -> None:
         """Loop over each frames characters, and set them to defaults"""
         for f, frame in enumerate(self.frames):
-            for r, row in enumerate(frame):
+            for r in range(len(frame)):
                 for c, char in enumerate(self.frames[f][r]):
                     if char != PLACEHOLDER_CHAR:
                         self.frames[f][r][c] = f"{DEFAULT_FG}{DEFAULT_BG}{char}"
                     else:
                         self.frames[f][r][c] = PLACEHOLDER
 
-    def get_frame_color_maps(self):
+    def get_frame_color_maps(self) -> None:
         """Get all the color mappings from the color sub-directory in
         alphabetical order."""
         # Get the colors to map to ascii characters
@@ -278,7 +280,7 @@ class Clip:
         frame_color_map = [line for line in lines if line]
         self.frame_color_maps.append(frame_color_map)
 
-    def color_cells(self):
+    def color_cells(self) -> None:
         """Color the cells by mapping the frames color map to that frames
         characters"""
         map_regex = re.compile(
@@ -312,7 +314,7 @@ class Clip:
                 updated_char = f"{color_1}{color_2}{char}"
                 self.frames[frame_index][row][column] = updated_char
 
-    def play_clip(self):
+    def play_clip(self) -> None:
         """Loop through a clips frames to display it to screen at the given
         speed"""
         sys.stdout.flush()
@@ -326,14 +328,14 @@ class Clip:
             sys.stdout.write(CURSOR_UP * len(frame))
             time.sleep(self.play_speed)
 
-    def loop_clip(self):
+    def loop_clip(self) -> None:
         """Loop through the clip the given number of cycles"""
         while self.play_cycles > 1:
             self.play_clip()
             self.play_cycles -= 1
         sys.stdout.write(CURSOR_RESTORE_POS)  # restore cursor to saved position
 
-    def run(self):
+    def run(self) -> None:
         """
         Call instance functions to animate the frames to the screen and cycle
         the animation
@@ -349,7 +351,7 @@ class Clip:
         sys.stdout.write(f"{COLORS['F_WHT']}{COLORS['B_BLK']}")
 
 
-def clippy(path, speed, cycles, color):
+def clippy(path: str, speed: int, cycles: int, color: bool) -> None:
     """main function for module"""
     clip = Clip(path, speed, cycles, color)
     clip.run()
@@ -357,6 +359,7 @@ def clippy(path, speed, cycles, color):
 
 # if __name__ == "__main__":
 def clip_figure(figure: str, colored: bool) -> None:
+    """Animate the figure in the console (the splash shown for the CLI's clip option)."""
     # small_boat = "/clip/sea/boats/small_boat_1"  # Colors = True
     # boats = "/clip/sea/boats"  # Colors = False
     # dance = "/clip/dance"  # Colors = False

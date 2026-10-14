@@ -91,8 +91,10 @@ def start_ollama_server() -> tuple[bool, str]:
     if ollama is None:
         return (
             False,
-            f"The 'ollama' package is not installed.  Install it with: {AI_EXTRA_INSTALL_COMMAND}"
-            f", and Ollama itself from '{OLLAMA_DOWNLOAD_URL}'.",
+            (
+                f"The 'ollama' package is not installed.  Install it with: {AI_EXTRA_INSTALL_COMMAND}"
+                f", and Ollama itself from '{OLLAMA_DOWNLOAD_URL}'."
+            ),
         )
 
     # Already up?  Then this run has nothing to start: the Ollama desktop app, an earlier
@@ -132,8 +134,10 @@ def start_ollama_server() -> tuple[bool, str]:
 
     return (
         False,
-        f"The Ollama server did not start within {OLLAMA_STARTUP_TIMEOUT} seconds.  "
-        "Try running 'ollama serve' in a terminal, then try again.",
+        (
+            f"The Ollama server did not start within {OLLAMA_STARTUP_TIMEOUT} seconds.  "
+            "Try running 'ollama serve' in a terminal, then try again."
+        ),
     )
 
 

@@ -279,6 +279,7 @@ class Colour:
 
     @property
     def is_variable(self) -> bool:
+        """Whether the colour is a %variable, which has no colour to draw until Tasker runs."""
         return bool(self.variable)
 
 
@@ -315,6 +316,7 @@ class ElementArgs:
     """
 
     def __init__(self, element: Element) -> None:
+        """Hold the element whose arguments are to be read."""
         self._element = element
 
     def text(self, index: int, default: str = "") -> str:
@@ -365,6 +367,7 @@ class ElementArgs:
         return ("file", path) if path else ("", "")
 
     def colour(self, index: int, fallback: str = "transparent") -> Colour:
+        """The colour held at this argument."""
         return tasker_colour(self.text(index), fallback)
 
 
@@ -1269,7 +1272,7 @@ def _draw_slider(
                 f"position: absolute; {thumb} width: 14px; height: 14px;border-radius: 50%; background: #2563eb;",
             )
     if height >= 26:
-        ui.label(f"{minimum} – {maximum}  ({args.raw_number(4) or default})").style(
+        ui.label(f"{minimum} \u2013 {maximum}  ({args.raw_number(4) or default})").style(
             "position: absolute; left: 2px; bottom: 1px; font: 10px/1.2 monospace; color: rgba(71,85,105,0.95);",
         )
 
@@ -2969,21 +2972,23 @@ def _v2_draw_track(fractions: list[float]) -> None:
     range rather than as two unrelated dots.
     """
     low, high = min(fractions), max(fractions)
-    with ui.element("div").style("display: flex; align-items: center; width: 100%; height: 32px; padding: 0 8px;"):
-        with ui.element("div").style(
-            f"position: relative; width: 100%; height: 4px; border-radius: 999px;"
+    with (
+        ui.element("div").style("display: flex; align-items: center; width: 100%; height: 32px; padding: 0 8px;"),
+        ui.element("div").style(
+            "position: relative; width: 100%; height: 4px; border-radius: 999px;"
             f"background: {V2_MATERIAL_PALETTE['surfaceVariant']};",
-        ):
+        ),
+    ):
+        ui.element("div").style(
+            f"position: absolute; left: {round(low * 100, 1)}%; right: {round((1 - high) * 100, 1)}%;"
+            f"top: 0; bottom: 0; background: {V2_MATERIAL_PALETTE['primary']}; border-radius: 999px;",
+        )
+        for fraction in fractions:
             ui.element("div").style(
-                f"position: absolute; left: {round(low * 100, 1)}%; right: {round((1 - high) * 100, 1)}%;"
-                f"top: 0; bottom: 0; background: {V2_MATERIAL_PALETTE['primary']}; border-radius: 999px;",
+                f"position: absolute; left: calc({round(fraction * 100, 1)}% - 8px); top: -6px;"
+                f"width: 16px; height: 16px; border-radius: 50%;"
+                f"background: {V2_MATERIAL_PALETTE['primary']};",
             )
-            for fraction in fractions:
-                ui.element("div").style(
-                    f"position: absolute; left: calc({round(fraction * 100, 1)}% - 8px); top: -6px;"
-                    f"width: 16px; height: 16px; border-radius: 50%;"
-                    f"background: {V2_MATERIAL_PALETTE['primary']};",
-                )
 
 
 def _v2_draw_progress(node: dict, _options: PreviewOptions, _depth: int) -> None:
@@ -3018,8 +3023,8 @@ def _v2_draw_segmented_item(node: dict, _options: PreviewOptions, _depth: int) -
     """SegmentedButtonItem: one segment of that control."""
     is_selected = str(node.get("selected", "")).lower() == "true"
     with ui.element("div").style(
-        f"display: flex; align-items: center; justify-content: center; padding: 8px 16px; gap: 4px;"
-        f"box-sizing: border-box;"
+        "display: flex; align-items: center; justify-content: center; padding: 8px 16px; gap: 4px;"
+        "box-sizing: border-box;"
         + (f"background: {V2_MATERIAL_PALETTE['secondaryContainer']};" if is_selected else ""),
     ):
         if is_selected:

@@ -1066,24 +1066,30 @@ _VARIABLE_CHECKBOXES: tuple[tuple[str, str, str], ...] = (
     (
         "pvci",
         "Configure On Import",
-        "If you enable the option to configure on import you need to fill in a question that the "
-        "user will be asked when importing this into Tasker.  The value of this variable will "
-        "also be cleared when you export it so that private data is not mistakenly sent to other "
-        "users.",
+        (
+            "If you enable the option to configure on import you need to fill in a question that the "
+            "user will be asked when importing this into Tasker.  The value of this variable will "
+            "also be cleared when you export it so that private data is not mistakenly sent to other "
+            "users."
+        ),
     ),
     (
         "strout",
         "Structured Variables (JSON, etc)",
-        "Enable the 'Structured Variable' option if the variable is either JSON, HTML or XML so "
-        "that you can easily read its contents via the dot or square brackets notations.\n"
-        "For example if there's a %json variable and its contents are in the JSON format you "
-        "could use '%json.info' or '%json[info]' to get the value for the 'info' field.",
+        (
+            "Enable the 'Structured Variable' option if the variable is either JSON, HTML or XML so "
+            "that you can easily read its contents via the dot or square brackets notations.\n"
+            "For example if there's a %json variable and its contents are in the JSON format you "
+            "could use '%json.info' or '%json[info]' to get the value for the 'info' field."
+        ),
     ),
     (
         "immutable",
         "Immutable",
-        "If you enable the 'Immutable' option, the variable can be changed in Tasks, but will "
-        "reset to the value here when the Task ends.",
+        (
+            "If you enable the 'Immutable' option, the variable can be changed in Tasks, but will "
+            "reset to the value here when the Task ends."
+        ),
     ),
 )
 
@@ -1176,7 +1182,7 @@ def build_object_properties_dialog(
     self: MyGui,
     kind: str,
     element: Element,
-    parent_dialog: ui.dialog,
+    _parent_dialog: ui.dialog,
     on_applied: Callable[[], None] | None = None,
 ) -> None:
     """The Properties editor, shared by every Add/Edit dialog -- see the section comment.
@@ -2166,7 +2172,7 @@ def _parse_picked_date(value: object) -> date | None:
 
 
 def build_rename_dialog(
-    self: MyGui,
+    _gui: MyGui,
     item_type: str,
     current_name: str,
     on_rename: Callable[[str, ui.dialog], None],

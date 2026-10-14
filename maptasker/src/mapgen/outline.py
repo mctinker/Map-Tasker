@@ -331,7 +331,7 @@ def do_profile_tasks(
             arrow_to_use = arrow_to_use.replace("├", "└")
 
         # Get just the name
-        task_line = task_line.split("&nbsp;")
+        name_parts = task_line.split("&nbsp;")
 
         # Add any/all "Perform Task" indicators
         call_task = ""
@@ -352,10 +352,10 @@ def do_profile_tasks(
             )
 
         # Add the Task output line
-        task_line = f"{blank * 5}{arrow_to_use}{blank * 2}Task: {task_line[0]}{call_task}"
+        output_line = f"{blank * 5}{arrow_to_use}{blank * 2}Task: {name_parts[0]}{call_task}"
         _add_line_to_output(
             0,
-            task_line,
+            output_line,
             ["", "task_color", FormatLine.add_end_span],
         )
     return tasks_in_profile
@@ -571,16 +571,22 @@ def fix_project_name_for_single_name(state: RunState) -> None:
     Returns:
         None
     """
-    if not check_for_single_name(
-        state.tasker_root_elements["all_profiles"],
-        state.program_arguments.single_profile_name,
-        do_pids=True,
-        state=state,
-    ) and not check_for_single_name(
-        state.tasker_root_elements["all_tasks"], state.program_arguments.single_task_name, do_pids=False, state=state
+    if (
+        not check_for_single_name(
+            state.tasker_root_elements["all_profiles"],
+            state.program_arguments.single_profile_name,
+            do_pids=True,
+            state=state,
+        )
+        and not check_for_single_name(
+            state.tasker_root_elements["all_tasks"],
+            state.program_arguments.single_task_name,
+            do_pids=False,
+            state=state,
+        )
+        and (scene_name := state.program_arguments.single_scene_name)
     ):
-        if scene_name := state.program_arguments.single_scene_name:
-            state.program_arguments.single_project_name = find_owning_project_for_scene(scene_name, state=state)
+        state.program_arguments.single_project_name = find_owning_project_for_scene(scene_name, state=state)
 
 
 # Outline the Tasker Configuration

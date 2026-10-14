@@ -849,9 +849,11 @@ def delete_project(project_name: str, state: RunState, *, keep_contents: bool) -
     with sessundo.undoable(f"Delete Project '{project_name}'", state=state):
         if project_name == BASE_PROJECT_NAME and keep_contents:
             return [
-                f"'{BASE_PROJECT_NAME}' can't be deleted with 'Keep Contents' -- "
-                f"there's no other default Project to move its contents into. "
-                f"Use 'Delete Contents', or rename it first.",
+                (
+                    f"'{BASE_PROJECT_NAME}' can't be deleted with 'Keep Contents' -- "
+                    f"there's no other default Project to move its contents into. "
+                    f"Use 'Delete Contents', or rename it first."
+                ),
             ]
 
         all_projects = state.tasker_root_elements.get("all_projects", {})

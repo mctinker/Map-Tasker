@@ -40,9 +40,9 @@ from maptasker.src.core import assettext
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.primitem import get_single_item_requested
 from maptasker.src.core.sysconst import (
+    POPOUT_WINDOW_PREFIX,
     DISPLAY_DETAIL_LEVEL_all_parameters,
     DISPLAY_DETAIL_LEVEL_everything,
-    POPOUT_WINDOW_PREFIX,
 )
 
 if TYPE_CHECKING:

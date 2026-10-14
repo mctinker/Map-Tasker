@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.edit.taskedit_model import EditableTask
 
 PAYLOAD_TERMINATOR = "MAPTASKER-END"
 PAYLOAD_JOINER = "|~|"
@@ -222,7 +223,7 @@ def task_return_value(response: object) -> str:
     return "" if text.strip() in (_UNSET_RETURN, _RUN_TASK_RESULT_VARIABLE) else text
 
 
-def build_run_task_helper(task_name: str = RUN_TASK_HELPER_NAME, *, state: RunState):
+def build_run_task_helper(task_name: str = RUN_TASK_HELPER_NAME, *, state: RunState) -> EditableTask | str:
     """Build the Task that runs another Task by name and returns what it returned.
 
     Returns an EditableTask, or an error message string, like every other builder here.
@@ -535,7 +536,9 @@ SCENES_ENDPOINT = "api/scenes"
 TASKS_ENDPOINT = "api/tasks"
 
 
-def new_helper_task(task_name: str, state: RunState):
+def new_helper_task(
+    task_name: str, state: RunState
+) -> tuple[EditableTask, Callable[[str, dict[str, str]], str], dict[str, str]] | str:
     """An empty Task plus the `add` helper both offer builders use.
 
     Returns (edited_task, add, values) or an error message string.  Synthesized out of
@@ -561,7 +564,9 @@ def new_helper_task(task_name: str, state: RunState):
     return edited_task, add, values
 
 
-def finish_helper_task(edited_task, task_name: str, values: dict[str, str], state: RunState):  # noqa: ANN001
+def finish_helper_task(
+    edited_task: EditableTask, task_name: str, values: dict[str, str], state: RunState
+) -> EditableTask | str:
     """Apply the staged argument values.  Returns the EditableTask or an error message."""
 
     errors = taskedit_apply.apply_edits_to_task(edited_task, task_name, "100", values, state)
@@ -587,7 +592,7 @@ _OBJECT_LISTS = (
 _OBJECT_LIST_POLL_ATTEMPTS = 15
 
 
-def build_object_list_task(task_name: str = OBJECT_LIST_TASK_NAME, *, state: RunState):
+def build_object_list_task(task_name: str = OBJECT_LIST_TASK_NAME, *, state: RunState) -> EditableTask | str:
     """Build the Tasker-object-listing helper Task.  Returns an EditableTask, or an error message.
 
     Per kind in _OBJECT_LISTS, 'Test Tasker' into that kind's array and 'Variable Join' to make it
@@ -611,7 +616,7 @@ def build_reporting_task(
     result_write_path: str,
     payload_lines: tuple[str, ...],
     state: RunState,
-):
+) -> EditableTask | str:
     """A helper Task of its working actions followed by their payload, written a line at a time.
 
     Returns an EditableTask, or an error message.  The shape the Project list and the ID check

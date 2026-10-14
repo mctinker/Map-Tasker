@@ -43,11 +43,11 @@ class View(guiwins_search.TextViewSearch):
         self.search_input = ui.input(label="Search")
         self._content_token = 0
         self._last_search = None
-        self._find_query = None
-        self._find_ask = None
-        self._find_dialog = None
-        self._replace_inputs = None
-        self._replace_ticks = None
+        self.find_query = None
+        self.find_ask = None
+        self.find_dialog = None
+        self.replace_inputs = None
+        self.replace_ticks = None
 
 
 def page() -> None:

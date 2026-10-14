@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.edit.taskedit_model import EditableTask
 
 # ==========================================
 # What Tasker already has, of what is about to be sent
@@ -262,7 +263,7 @@ _ID_CHECK_POLL_ATTEMPTS = 30
 _TASK_PROFILE_IDS = "Task/Profile"
 
 
-def build_id_check_task(task_name: str = ID_CHECK_TASK_NAME, *, state: RunState):
+def build_id_check_task(task_name: str = ID_CHECK_TASK_NAME, *, state: RunState) -> EditableTask | str:
     """Build the backup-taking helper Task.  Returns an EditableTask, or an error message.
 
     'Data Backup' can fail (canfail), and a failed action stops the Task -- so the payload's

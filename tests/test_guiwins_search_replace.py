@@ -211,9 +211,9 @@ async def test_unticking_a_row_takes_it_out_of_what_is_applied_and_is_remembered
     async with open_dialog() as user:
         await _replace_tab(user)
         await _preview_flash_to_notify(user)
-        before = built["view"]._replace_ticks
+        before = built["view"].replace_ticks
         _ticks(user)[0].value = False
-        assert built["view"]._replace_ticks != before
+        assert built["view"].replace_ticks != before
 
 
 @pytest.mark.asyncio
@@ -239,7 +239,7 @@ async def test_replace_applies_what_was_previewed_closes_the_dialog_and_redraws_
     async with open_dialog() as user:
         await _replace_tab(user)
         await _preview_flash_to_notify(user)
-        dialog = built["view"]._find_dialog
+        dialog = built["view"].find_dialog
         click(user, _button(user, "Replace"))
         await asyncio.sleep(0.2)
 
@@ -247,7 +247,7 @@ async def test_replace_applies_what_was_previewed_closes_the_dialog_and_redraws_
         assert user.notify.contains("Undo is available.")
         assert dialog.value is False
         assert built["rebuilt"] == ["map"]
-        assert built["view"]._replace_inputs is None
+        assert built["view"].replace_inputs is None
     assert [_action("20", at).findtext("code") for at in range(2)] != codes_before
 
 

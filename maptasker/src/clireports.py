@@ -259,7 +259,6 @@ def _prepare(options: argparse.Namespace, state: RunState) -> None:
     PrimeItemsReset(state=state)
     state.headless = True
     state.slash = "\\" if platform.system() == "Windows" else "/"
-    state.windows_system = platform.system() == "Windows"
     load_arg_specs()
 
     state.program_arguments = initialize_runtime_arguments()

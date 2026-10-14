@@ -373,8 +373,10 @@ def _diagram_spans(
             (
                 start,
                 min(end, len(line)),
-                f'<span class="{diagintr.NODE_CLASS}" data-anchor="{node["anchor"]}" '
-                f'data-node="{node["index"]}" data-kind="{node["kind"]}" tabindex="0">',
+                (
+                    f'<span class="{diagintr.NODE_CLASS}" data-anchor="{node["anchor"]}" '
+                    f'data-node="{node["index"]}" data-kind="{node["kind"]}" tabindex="0">'
+                ),
             ),
         )
     claimed.sort()
@@ -437,20 +439,20 @@ def _create_diagram_tools(view: NiceGuiTextView) -> None:
     with ui.row().classes("items-center gap-1"):
         zoom_out = ui.button(
             icon="zoom_out",
-            on_click=lambda: view._diagram_command("zoom", 1 / 1.15),
+            on_click=lambda: view.diagram_command("zoom", 1 / 1.15),
         ).props(
             "flat dense",
         )
         with zoom_out:
             ui.tooltip(translate_string("Zoom out.  Ctrl/⌘ and the scroll wheel does the same."))
-        zoom_in = ui.button(icon="zoom_in", on_click=lambda: view._diagram_command("zoom", 1.15)).props(
+        zoom_in = ui.button(icon="zoom_in", on_click=lambda: view.diagram_command("zoom", 1.15)).props(
             "flat dense",
         )
         with zoom_in:
             ui.tooltip(translate_string("Zoom in.  Ctrl/⌘ and the scroll wheel does the same."))
         collapse = ui.button(
             icon="unfold_less",
-            on_click=lambda: view._diagram_command("collapse-all"),
+            on_click=lambda: view.diagram_command("collapse-all"),
         ).props(
             "flat dense",
         )
@@ -461,12 +463,12 @@ def _create_diagram_tools(view: NiceGuiTextView) -> None:
                     "One Project on its own collapses by clicking the top edge of its box.",
                 ),
             ).style("white-space: pre-wrap")
-        expand = ui.button(icon="unfold_more", on_click=lambda: view._diagram_command("expand-all")).props(
+        expand = ui.button(icon="unfold_more", on_click=lambda: view.diagram_command("expand-all")).props(
             "flat dense",
         )
         with expand:
             ui.tooltip(translate_string("Expand every collapsed Project."))
-        reset = ui.button(icon="restart_alt", on_click=lambda: view._diagram_command("reset")).props(
+        reset = ui.button(icon="restart_alt", on_click=lambda: view.diagram_command("reset")).props(
             "flat dense",
         )
         with reset:
@@ -1503,23 +1505,23 @@ class NiceGuiTextView(TextViewSearch):
         # The last structured question asked of this view (see find_event).  Held so that
         # re-opening Find comes back to the query whose result row the user just followed,
         # rather than to an empty dialog they have to fill in again.
-        self._find_query: mapfind.Query | None = None
+        self.find_query: mapfind.Query | None = None
         # The Find dialog's question out with an AI model, while it is out -- held on the view
         # rather than the dialog so that _dismiss_find_dialog, which deletes a dialog without
-        # its "hide" firing, can still cancel it (see _cancel_find_ask).
-        self._find_ask: asyncio.Task | None = None
+        # its "hide" firing, can still cancel it (see cancel_find_ask).
+        self.find_ask: asyncio.Task | None = None
         # The last Replace the user set up on this view -- ("action", old key, new key,
         # project) or ("variable", name, owner, new name).  The INPUTS, not the Plan: a
         # Plan holds live elements, and holding those across a dialog that may have been
         # reopened after another edit is the stale-handle bug apply()'s own attachment
         # check exists to catch.  Reopening rebuilds the plan from these instead.
-        self._replace_inputs: tuple | None = None
+        self.replace_inputs: tuple | None = None
         # The Find/Replace dialog this view currently has up, or None.  Held because that
         # dialog no longer always takes itself down: following one of its own rows docks it
         # to the right edge and leaves it there (see _FindDialog.dock), so a second press
         # of Find/Replace has to dispose of the one already on screen rather than build a
         # second one over it.
-        self._find_dialog: ui.dialog | None = None
+        self.find_dialog: ui.dialog | None = None
         # The "still working on it" banner this view shows itself while its content is
         # being read and streamed in (see _show_loading).  Created by build_ui below, so
         # it is part of the very first paint of the window rather than something that has
@@ -2148,7 +2150,7 @@ class NiceGuiTextView(TextViewSearch):
             status_id = f"c{self.diagram_state_label.id}" if hasattr(self, "diagram_state_label") else ""
             ui.run_javascript(diagintr.interaction_js(f"c{self.scroll_area.id}", status_id, diagram_model))
 
-    def _diagram_command(self, name: str, argument: float | None = None) -> None:
+    def diagram_command(self, name: str, argument: float | None = None) -> None:
         """Carry one of the Diagram toolbar's buttons to the view it belongs to."""
         with self.scroll_area:
             ui.run_javascript(diagintr.command_js(f"c{self.scroll_area.id}", name, argument))

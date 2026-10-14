@@ -1,5 +1,6 @@
 """File selection dialog for NiceGUI."""
 
+import ctypes
 import os
 import platform
 import string
@@ -12,13 +13,13 @@ def windows_drives() -> list[str]:
     """Return the drive roots on Windows, such as C: and D:, without needing pywin32."""
     if hasattr(os, "listdrives"):  # Python 3.12+
         return list(os.listdrives())
-    import ctypes
-
     bitmask = ctypes.windll.kernel32.GetLogicalDrives()
     return [f"{letter}:\\" for i, letter in enumerate(string.ascii_uppercase) if bitmask & (1 << i)]
 
 
-class Local_File_Picker(ui.dialog):
+class LocalFilePicker(ui.dialog):
+    """A modal dialog that lists the local filesystem and returns the file(s) the user picks."""
+
     def __init__(
         self,
         directory: str,
@@ -64,7 +65,8 @@ class Local_File_Picker(ui.dialog):
         self.update_grid()
         self.open()
 
-    def add_drives_toggle(self):
+    def add_drives_toggle(self) -> None:
+        """On Windows, add the toggle that switches between drives."""
         if platform.system() == "Windows":
             drives = windows_drives()
             if not drives:
@@ -72,11 +74,13 @@ class Local_File_Picker(ui.dialog):
             value = self.path.anchor if self.path.anchor in drives else drives[0]
             self.drives_toggle = ui.toggle(drives, value=value, on_change=self.update_drive)
 
-    def update_drive(self):
+    def update_drive(self) -> None:
+        """Move to the drive picked in the toggle."""
         self.path = Path(self.drives_toggle.value).expanduser()
         self.update_grid()
 
     def update_grid(self) -> None:
+        """Fill the grid with the current directory's entries, folders first."""
         paths = list(self.path.glob("*"))
         if not self.show_hidden_files:
             paths = [p for p in paths if not p.name.startswith(".")]
@@ -103,12 +107,13 @@ class Local_File_Picker(ui.dialog):
         self.grid.update()
 
     def handle_double_click(self, e: events.GenericEventArguments) -> None:
+        """Open a folder that was double-clicked, or choose a file that was."""
         self.path = Path(e.args["data"]["path"])
         if self.path.is_dir():
             self.update_grid()
         else:
             self.submit([str(self.path)])
 
-    async def _handle_ok(self):
+    async def _handle_ok(self) -> None:
         rows = await self.grid.get_selected_rows()
         self.submit([r["path"] for r in rows])

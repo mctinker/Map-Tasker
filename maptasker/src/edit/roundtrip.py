@@ -126,6 +126,7 @@ class Difference:
     now: str  # What came back out of the re-parse.
 
     def __str__(self) -> str:
+        """The difference as one line, for the report."""
         return f"{self.where}: was {self.was!r}, came back {self.now!r}"
 
 

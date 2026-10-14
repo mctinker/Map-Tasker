@@ -245,7 +245,7 @@ def caller_sketch() -> None:
 
     jump_to closes the dialog before jumping, and must -- the dialog is modal, so a jump
     behind it scrolls a view the user cannot see.  On the Find tab that is free: the query
-    is remembered on the view (self._find_query) and pressing Find again returns to the
+    is remembered on the view (self.find_query) and pressing Find again returns to the
     same list.  On the Replace tab it destroys the Plan, and a Plan cannot be remembered
     the way a Query can: its Sites hold live elements, and holding them across a dialog
     that may have been reopened after another edit is precisely the stale-handle bug
@@ -253,7 +253,7 @@ def caller_sketch() -> None:
 
     So the view remembers the INPUTS, not the Plan:
 
-        self._replace_inputs: tuple[str, str, str] | None    # old key, new key, project
+        self.replace_inputs: tuple[str, str, str] | None    # old key, new key, project
 
     and reopening the dialog restores the fields and rebuilds the Plan from scratch.  That
     is a second plan() -- one pass over the file, the same order as a Find -- and it is

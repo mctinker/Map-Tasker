@@ -511,7 +511,6 @@ def build_profile_line(
 # Process the Profile passed in.
 def do_profile(
     item: Element,
-    project: Element,
     project_name: str,
     profile: Element,
     list_of_found_tasks: list,
@@ -522,7 +521,6 @@ def do_profile(
         This function searches for a specific Profile and outputs its Tasks.
     Parameters:
         - item (Element): The current item being processed.
-        - project (Element): The current project being processed.
         - project_name (str): The name of the current project.
         - profile (Element): The current profile being processed.
         - list_of_found_tasks (list): A list of all found tasks.
@@ -729,7 +727,6 @@ def align_html_text(html_string: str) -> str:
 
 # Go through all Projects Profiles...and output them
 def process_profiles(
-    project: Element,
     project_name: str,
     profile_ids: list,
     list_of_found_tasks: list,
@@ -739,7 +736,6 @@ def process_profiles(
     """
     Go through Project's Profiles and output each
         all Tasker xml root elements, and a list of all output lines.
-        :param project: Project to process
         :param project_name: Project's name
         :param profile_ids: list of Profiles in Project
         :param list_of_found_tasks: list of Tasks found
@@ -753,7 +749,7 @@ def process_profiles(
         profile = state.tasker_root_elements["all_profiles"][item]["xml"]
         if profile is None:  # If Project has no profiles, skip
             return
-        specific_task = _do_profile(item, project, project_name, profile, list_of_found_tasks, config, state=state)
+        specific_task = _do_profile(item, project_name, profile, list_of_found_tasks, config, state=state)
 
         # Get out if doing a specific Task, and it was found, or not specific task but
         # found speficic Profile.  No need to process any more Profiles.

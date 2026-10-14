@@ -21,7 +21,8 @@ from functools import lru_cache
 from typing import TypeVar
 
 import requests
-from requests.exceptions import ConnectionError, InvalidSchema, RequestException, Timeout
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import InvalidSchema, RequestException, Timeout
 
 from maptasker.src.core import clock
 from maptasker.src.core.presave import backup_local_file
@@ -366,7 +367,7 @@ def _device_call(
             response = getattr(requests, method)(url, **request_arguments)
         except InvalidSchema:
             error_message, retryable = f"Request failed for url: {url} .  Invalid url!", False
-        except ConnectionError:
+        except RequestsConnectionError:
             error_message, retryable = f"Request failed for url: {url} .  Connection error! {unreachable}", True
         except Timeout:
             error_message, retryable = f"Request failed for url: {url} .  Timeout error.{timed_out}", True

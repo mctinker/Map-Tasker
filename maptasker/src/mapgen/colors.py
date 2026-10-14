@@ -4,6 +4,8 @@
 # colors: get and set the program colors                                               #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
+"""colors: get and set the program colors."""
+
 import json
 import os
 import string

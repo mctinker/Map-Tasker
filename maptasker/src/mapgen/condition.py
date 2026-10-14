@@ -195,10 +195,7 @@ def condition_state(
         condition_chunks.append(f", Condition(s): {evaluated_results['arg0']['value']}")
 
     # Collapse chunks
-    the_output_condition = "".join(condition_chunks)
-
-    return the_output_condition
-    # return ""
+    return "".join(condition_chunks)
 
 
 # Profile condition: Event

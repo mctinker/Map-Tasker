@@ -280,7 +280,6 @@ def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_k
 
 
 def save_task_to_android_directory(
-    edited_task: EditableTask,
     ip_address: str,
     ip_port: str,
     task_name: str,

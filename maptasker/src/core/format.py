@@ -792,18 +792,18 @@ def parse_selector(text: str) -> tuple | None:
         :param text: one selector, e.g. ".card h2" or "#notes > p"
         :return: a tuple of (combinator, (tag, classes, id)) pairs, or None
     """
-    tokens = text.replace(">", " > ").split()
+    pieces = text.replace(">", " > ").split()
     parts = []
     combinator = None
-    for token in tokens:
-        if token == ">":
+    for piece in pieces:
+        if piece == ">":
             # A child combinator with nothing to its left is malformed (CSS nesting writes
             # rules that way, and those belong to a parent rule we are not tracking).
             if not parts:
                 return None
             combinator = ">"
             continue
-        compound = COMPOUND_SELECTOR.fullmatch(token)
+        compound = COMPOUND_SELECTOR.fullmatch(piece)
         if not compound:
             return None
         tag = (compound.group(1) or "").lower()
@@ -1078,7 +1078,7 @@ class HTMLTextFormatter(HTMLParser):
         elif tag not in TAGS_WITH_NO_START_ACTION:
             self.handle_unknown_starttag(tag, attrs)
 
-    def _start_block(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_block(self, _tag: str, _attrs: list[tuple[str, str]]) -> None:
         """
         Handle the <div> and <section> tags.  Both are block-level containers: their own
         contribution is to start their contents on a fresh line, indented one level deeper
@@ -1088,7 +1088,7 @@ class HTMLTextFormatter(HTMLParser):
         self.div_depth += 1
         self._start_new_line()
 
-    def _start_image(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_image(self, _tag: str, attrs: list[tuple[str, str]]) -> None:
         """
         Handle the <img> tag.
 
@@ -1127,16 +1127,16 @@ class HTMLTextFormatter(HTMLParser):
             f'referrerpolicy="no-referrer" class="image-small"/>',
         )
 
-    def _start_style(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_style(self, _tag: str, _attrs: list[tuple[str, str]]) -> None:
         """Handle the <style> tag: what follows is a stylesheet, not text."""
         self.is_in_style = True
 
-    def _start_pre(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_pre(self, _tag: str, _attrs: list[tuple[str, str]]) -> None:
         """Handle the <pre> tag, adding the opening tag for clean formatting."""
         self.is_preformatted = True
         self._add_segment("<pre>")
 
-    def _start_font(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_font(self, _tag: str, attrs: list[tuple[str, str]]) -> None:
         """Handle the <font> tag, taking its color if it has one and it is one that stays in its attribute."""
         attrs_dict = dict(attrs)
         color = (attrs_dict.get("color") or "").lower()
@@ -1145,14 +1145,14 @@ class HTMLTextFormatter(HTMLParser):
         if color and not any(character in color for character in STYLE_ESCAPE_CHARACTERS):
             self.current_styles["color"] = color
 
-    def _start_link(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_link(self, _tag: str, attrs: list[tuple[str, str]]) -> None:
         """Handle the <a> tag.  An anchor without an href, or with one that is not safe to follow, is not a link."""
         href = safe_url(dict(attrs).get("href") or "")
         if href:
             self.current_styles["is_link"] = True
             self.current_styles["href"] = href
 
-    def _start_list(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_list(self, tag: str, _attrs: list[tuple[str, str]]) -> None:
         """Handle the <ul> and <ol> tags, which open a list one level deeper."""
         self.list_indent_level += 1
         self.list_types.append(tag)
@@ -1160,31 +1160,31 @@ class HTMLTextFormatter(HTMLParser):
             self.list_counter.append(0)
         self._add_segment(f"<{tag}>")
 
-    def _start_list_item(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_list_item(self, _tag: str, _attrs: list[tuple[str, str]]) -> None:
         """Handle the <li> tag, indenting it to the depth of its list."""
         leading_spaces = " " * count_trailing_blanks(self.rawdata, self.offset)
         indent = "  " * (self.list_indent_level - 1)
         self._add_segment(f"{indent}{leading_spaces}<li>")
 
-    def _start_table(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_table(self, _tag: str, _attrs: list[tuple[str, str]]) -> None:
         """Handle the <table> tag."""
         self.current_styles["is_table_cell"] = True
         self._add_segment("<table>")
 
-    def _start_table_heading(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_table_heading(self, _tag: str, _attrs: list[tuple[str, str]]) -> None:
         """Handle the <th> tag: the next piece of text is the heading's."""
         self.table_th = True
 
-    def _start_code(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_code(self, _tag: str, _attrs: list[tuple[str, str]]) -> None:
         """Handle the <code> tag: the next piece of text is the code."""
         self.code_tag = True
 
-    def _start_title(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_title(self, _tag: str, _attrs: list[tuple[str, str]]) -> None:
         """Handle the <title> tag, labeling its text -- but only if the tag is ever closed."""
         if self.rawdata.find("</title>", self.offset) != -1:
             self._add_segment("Title: ")
 
-    def _start_italic_caption(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def _start_italic_caption(self, tag: str, _attrs: list[tuple[str, str]]) -> None:
         """Handle the <legend> and <figcaption> tags: italic text, but only if the tag is ever closed."""
         if self.rawdata.find(f"</{tag}>", self.offset) != -1:
             self.current_styles["is_italic"] = True
@@ -1210,7 +1210,7 @@ class HTMLTextFormatter(HTMLParser):
         elif tag not in TAGS_WITH_NO_END_ACTION:
             self.handle_unknown_endtag(tag)
 
-    def _end_block(self, tag: str) -> None:
+    def _end_block(self, _tag: str) -> None:
         """
         Handle the </div> and </section> tags: end the content with a line of its own, and
         step the indent back out to the level of whatever contains it.
@@ -1218,7 +1218,7 @@ class HTMLTextFormatter(HTMLParser):
         self._start_new_line()
         self.div_depth = max(self.div_depth - 1, 0)
 
-    def _end_style(self, tag: str) -> None:
+    def _end_style(self, _tag: str) -> None:
         """
         Handle the </style> tag.  The rules gathered up are now complete, so work out what
         they select and add them to the ones in force for the rest of the description.
@@ -1228,16 +1228,16 @@ class HTMLTextFormatter(HTMLParser):
         self.stylesheet.extend(parse_stylesheet("".join(self.style_text)))
         self.style_text = []
 
-    def _end_pre(self, tag: str) -> None:
+    def _end_pre(self, _tag: str) -> None:
         """Handle the </pre> tag, closing the preformatted block."""
         self.is_preformatted = False
         self._add_segment("</pre>")
 
-    def _end_font(self, tag: str) -> None:
+    def _end_font(self, _tag: str) -> None:
         """Handle the </font> tag.  The color is cleared whether or not another <font> is still open."""
         self.current_styles["color"] = None
 
-    def _end_link(self, tag: str) -> None:
+    def _end_link(self, _tag: str) -> None:
         """Handle the </a> tag."""
         self.current_styles["is_link"] = False
         self.current_styles["href"] = None
@@ -1250,16 +1250,16 @@ class HTMLTextFormatter(HTMLParser):
             self.list_types.pop()
         self._add_segment(f"</{tag}>")
 
-    def _end_table(self, tag: str) -> None:
+    def _end_table(self, _tag: str) -> None:
         """Handle the </table> tag."""
         self._add_segment("</table>")
         self.current_styles["is_table_cell"] = False
 
-    def _end_table_heading(self, tag: str) -> None:
+    def _end_table_heading(self, _tag: str) -> None:
         """Handle the </th> tag."""
         self.table_th = False
 
-    def _end_code(self, tag: str) -> None:
+    def _end_code(self, _tag: str) -> None:
         """Handle the </code> tag."""
         self.code_tag = False
 
@@ -1290,7 +1290,7 @@ class HTMLTextFormatter(HTMLParser):
                 self.table_td = False
             self._add_segment(decoded_data)
 
-    def handle_unknown_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def handle_unknown_starttag(self, tag: str, _attrs: list[tuple[str, str]]) -> None:
         """
         Called when the parser finds a start tag that is not recognized by the
         other methods. Prints a message for debugging.
@@ -1622,11 +1622,11 @@ class HTMLTagDetector(HTMLParser):
         super().__init__()
         self.found_html_tags = False
 
-    def handle_starttag(self, tag: str, attrs: str) -> None:
+    def handle_starttag(self, _tag: str, _attrs: str) -> None:
         """Called when an opening tag is encountered."""
         self.found_html_tags = True
 
-    def handle_endtag(self, tag: str) -> None:
+    def handle_endtag(self, _tag: str) -> None:
         """Called when a closing tag is encountered."""
         self.found_html_tags = True
 

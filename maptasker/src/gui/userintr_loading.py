@@ -23,7 +23,7 @@ from nicegui import ui
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.maputils import clear_tasker_data
 from maptasker.src.core.sysconst import ALL_OBJECTS_MESSAGE
-from maptasker.src.gui.getfile import Local_File_Picker
+from maptasker.src.gui.getfile import LocalFilePicker
 from maptasker.src.gui.guistate import remember_setting
 from maptasker.src.gui.guiutils import (
     SINGLE_ITEM_LABELS,
@@ -54,7 +54,7 @@ def local_xml_start_directory(gui: MyGui) -> str:
     from the same place doesn't mean walking down to it again every time.  Falls back to
     the home directory when nothing has been picked yet, or when the remembered directory
     is no longer there (renamed, deleted, or on a drive that isn't mounted any more) --
-    Local_File_Picker would otherwise come up empty on a path it can't list.
+    LocalFilePicker would otherwise come up empty on a path it can't list.
 
         :param gui: the GUI object holding the remembered directory
         :return: directory to start the file picker in ('~' if there is nothing usable)
@@ -307,10 +307,10 @@ class LoadingEventHandlers:
         # Open the file picker in the directory the last XML file was taken from, falling
         # back to the home directory ('~').
         # The 'await' pauses this specific function until the user finishes picking a file.
-        # The ceiling stays at home no matter where we start: Local_File_Picker's default
+        # The ceiling stays at home no matter where we start: LocalFilePicker's default
         # upper_limit is whatever directory it opens in, which would leave the user unable
         # to navigate up out of a remembered subdirectory.
-        result = await Local_File_Picker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
+        result = await LocalFilePicker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
 
         # 3. Check if the user selected a file or canceled the dialog
         if result:

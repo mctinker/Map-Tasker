@@ -1378,19 +1378,21 @@ def mark_tasks_not_found(output_lines: list) -> None:
 
             # Go through list of calls to Tasks from this caller Task.
             track_task_name = []
+            # The line as it reads once earlier calls on it have been marked, which is what
+            # the nth-occurrence search below has to count in.
+            current_line = line
             for called_task_name in called_task_names:
                 # Get the called Task name.
-                called_task_name = called_task_name.lstrip()
-                called_task_name = called_task_name.split("]")
+                called_task = called_task_name.lstrip().split("]")
                 # Track the number of instances of the called Task.
-                called_name = called_task_name[0].replace("]", "")
+                called_name = called_task[0].replace("]", "")
                 called_name_no_delimeter = called_name.replace(task_delimeter, "")
                 # Add the task name to track it, and get the count of the number of times it appears in the line.
                 track_task_name.append(called_name_no_delimeter)
                 num_called_task = track_task_name.count(called_name_no_delimeter)
 
                 # Don't bother with variables since we know these won't be found.
-                if called_task_name[0][1] == "%":
+                if called_task[0][1] == "%":
                     continue
 
                 #  Find the "Called" Task line for the caller Task.
@@ -1411,23 +1413,23 @@ def mark_tasks_not_found(output_lines: list) -> None:
                 if not found_called_task:
                     # Find the nth occurance of the called Task
                     called_task_position = find_nth(
-                        line,
+                        current_line,
                         called_name,
                         num_called_task,
                         0,
                     )
                     end_of_called_task_position = called_task_position + len(
-                        called_task_name[0],
+                        called_task[0],
                     )
 
                     # Reconstruct the line
                     output_lines[caller_line_num] = (
                         output_lines[caller_line_num][:called_task_position]
-                        + called_task_name[0]
+                        + called_task[0]
                         + not_found
                         + output_lines[caller_line_num][end_of_called_task_position:]
                     )
-                    line = output_lines[caller_line_num]
+                    current_line = output_lines[caller_line_num]
 
 
 def mysizeof(my_dict: list) -> int:
@@ -2189,12 +2191,12 @@ def _write_diagram_file(config: RunConfig, state: RunState) -> tuple[list[str], 
                 first_project = False
 
             netmap_to_file_line[num] = len(final_lines)
-            line = remove_icon(line)
-            mapfile.write(f"{line}\n")
+            written = remove_icon(line)
+            mapfile.write(f"{written}\n")
             # A handful of netmap_output entries (e.g. the header hint) carry an embedded "\n"
             # of their own, which becomes two physical lines once written -- split the same way
             # here so final_lines stays row-for-row aligned with the file.
-            final_lines.extend(line.split("\n"))
+            final_lines.extend(written.split("\n"))
 
         # Say so in the diagram itself when it was cut short at the view limit (check_limit),
         # the way the Map view's file carries its own limit message -- the file is read on its

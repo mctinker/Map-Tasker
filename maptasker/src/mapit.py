@@ -30,6 +30,7 @@ import asyncio
 import functools
 import platform
 import sys
+from typing import Any
 
 from nicegui import app
 
@@ -104,7 +105,7 @@ def on_crash(exctype: object, value: str, traceback: list, *, state: RunState) -
             sys.__excepthook__(exctype, value, traceback)
 
 
-def handle_async_exceptions(loop, context) -> None:
+def handle_async_exceptions(_loop: asyncio.AbstractEventLoop, context: dict[str, Any]) -> None:
     """Custom handler for async loop background crashes."""
     exception = context.get("exception")
     message = context.get("message")
@@ -149,10 +150,8 @@ def start_up(state: RunState) -> None:
     # Get the OS so we know which directory slash to use (/ or \)
     if platform.system() == "Windows":
         state.slash = "\\"
-        state.windows_system = True
     else:
         state.slash = "/"
-        state.windows_system = False
 
     # Validate the runtime version of python
     check_versions()

@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.edit.taskedit_model import EditableTask
 
 # ==========================================
 # Offering a Profile or a Project to Tasker's own import screen
@@ -234,7 +235,7 @@ def build_open_file_task(
     mime_type: str = _OPEN_WITH_MIME_TYPE,
     *,
     state: RunState,
-):
+) -> EditableTask | str:
     """Build the Task that puts Android's "Open with..." chooser up for the staged file.
 
     'Open File' on the staged path, then the four writes that say it ran.
@@ -280,7 +281,7 @@ def build_send_intent_task(
     activity_class: str = _TASKER_MAIN_ACTIVITY,
     *,
     state: RunState,
-):
+) -> EditableTask | str:
     """Build the Task that sends Tasker an explicit ACTION_VIEW for the staged file.
 
     The same job build_open_file_task does, addressed rather than broadcast -- see the
@@ -501,7 +502,7 @@ _LAUNCH_READ_PATH = f"/{_LAUNCH_WRITE_PATH}"
 _LAUNCH_HEADER = "MAPTASKER-LAUNCH-TASKER 1"
 
 
-def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME, *, state: RunState):
+def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME, *, state: RunState) -> EditableTask | str:
     """Build the Task that brings Tasker to the foreground.  Returns an EditableTask, or an
     error message string, like every other builder here.
 

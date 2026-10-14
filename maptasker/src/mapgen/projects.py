@@ -130,7 +130,7 @@ def process_projects_and_their_profiles(
     # Only Profiles...?
     elif state.tasker_root_elements["all_profiles"]:
         state.task_count_unnamed = 0
-        process_profiles("", "None", state.tasker_root_elements["all_profiles"], found_tasks, config, state=state)
+        process_profiles("None", state.tasker_root_elements["all_profiles"], found_tasks, config, state=state)
         state.grand_totals["profiles"] += 1
 
     # Only Tasks...(and not Scenes too) e.g. only Tasks?
@@ -298,8 +298,10 @@ def do_tasks_in_project(
 
             # Format the output line
             task_output_lines = [
-                f"{our_task_name}&nbsp;&nbsp;&nbsp;<em>(Not referenced by any Profile in Project"
-                f" '{project_name}')</em>",
+                (
+                    f"{our_task_name}&nbsp;&nbsp;&nbsp;<em>(Not referenced by any Profile in Project"
+                    f" '{project_name}')</em>"
+                ),
             ]
 
             # Output the Task (we don't care about the returned value)
@@ -769,7 +771,7 @@ def process_project_profiles(
     # True if we have Profiles for this Project
     if profile_ids := get_profile_ids(project, project_name, projects_without_profiles):
         profile_count = len(profile_ids)
-        process_profiles(project, project_name, profile_ids, found_tasks, config, state=state)
+        process_profiles(project_name, profile_ids, found_tasks, config, state=state)
 
         # Are we searching for a single Profile and it wasn't found (result=True)?
         if is_single_profile_not_found(state=state):

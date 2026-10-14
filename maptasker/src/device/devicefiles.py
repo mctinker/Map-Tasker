@@ -20,6 +20,7 @@ from maptasker.src.edit import taskedit, taskedit_apply
 
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.edit.taskedit_model import EditableTask
 
 # ==========================================
 # Listing the device's XML files
@@ -89,7 +90,7 @@ _FILE_LIST_POLL_ATTEMPTS = 15
 
 def build_file_list_task(
     task_name: str = FILE_LIST_TASK_NAME, directory: str = FILE_LIST_DIRECTORY, *, state: RunState
-):
+) -> EditableTask | str:
     """Build the file-listing helper Task.  Returns an EditableTask, or an error message.
 
     Three actions: 'List Files' over `directory`, 'Variable Join' to collapse the array of

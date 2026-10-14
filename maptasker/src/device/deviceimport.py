@@ -29,6 +29,7 @@ from maptasker.src.edit import taskedit, taskedit_apply
 
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.edit.taskedit_model import EditableTask
 
 # ==========================================
 # Importing a Profile into Tasker's live configuration
@@ -138,7 +139,7 @@ def build_import_profile_task(
     source_index: str = _IMPORT_SOURCE_INDEX,
     *,
     state: RunState,
-):
+) -> EditableTask | str:
     """Build the Profile-importing helper Task.  Returns an EditableTask, or an error message.
 
     Three kinds of action: 'Read File' to pull the staged .prf.xml into a variable, 'Import

@@ -275,7 +275,7 @@
     "reportReturnType": 2
   },
   "maptasker/src/mapgen/projects.py": {
-    "reportArgumentType": 8,
+    "reportArgumentType": 7,
     "reportAssignmentType": 1,
     "reportReturnType": 3
   },

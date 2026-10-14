@@ -1082,7 +1082,6 @@ class AndroidEventHandlers:
         else:
             retried = await run.io_bound(
                 taskedit_save.save_task_to_android_directory,
-                edited_task,
                 ip_address,
                 ip_port,
                 task_name,
@@ -1114,7 +1113,7 @@ class AndroidEventHandlers:
                 )
                 if offered is None:  # cancelled -- see the note at the top of this file
                     return False
-                offer_code, offer_result = offered
+                offer_code, _ = offered
                 if offer_code == 0:
                     ui.notify(
                         f"Tasker did not report the Task ({fallback_result}), so it was handed to "
@@ -1858,8 +1857,6 @@ class AndroidEventHandlers:
         # Everything from here on is a request the device answers with an authorization
         # prompt of its own -- see guiutils.notify_watch_android_device.
         notify_watch_android_device()
-
-        scene_name = edited_scene.scene_name
 
         # The same offer the other two kinds get, and a Scene did not have one until
         # 2026-08-30: every measured way of handing Tasker a '.scn.xml' had failed, so this

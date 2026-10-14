@@ -1197,6 +1197,7 @@ class V2NestedProps:
     __slots__ = ("_container", "_node")
 
     def __init__(self, node: dict, container: str) -> None:
+        """Hold the node and the name of the container on it that this view reads and writes."""
         self._node = node
         self._container = container
 
@@ -1222,27 +1223,34 @@ class V2NestedProps:
             del self._node[self._container]
 
     def get(self, key: str, default: object = None) -> object:
+        """The value under this key, or the default."""
         return self._held.get(key, default)
 
     def items(self) -> object:
+        """The container's key/value pairs."""
         return self._held.items()
 
     def __contains__(self, key: str) -> bool:
+        """Whether the container holds this key."""
         return key in self._held
 
     def __getitem__(self, key: str) -> object:
+        """The value under this key; KeyError if it is not there."""
         return self._held[key]
 
     def __setitem__(self, key: str, value: object) -> None:
+        """Set the key, creating the container if the node never had one."""
         held = self._writable()
         if held is not None:
             held[key] = value
 
     def __delitem__(self, key: str) -> None:
+        """Remove the key if present, and the container itself once it is empty."""
         self._held.pop(key, None)
         self._prune()
 
     def pop(self, key: str, default: object = None) -> object:
+        """Remove the key and return what it held, or the default."""
         value = self._held.pop(key, default)
         self._prune()
         return value

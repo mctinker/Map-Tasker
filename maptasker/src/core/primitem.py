@@ -376,8 +376,6 @@ class RunState:
         self.diagram_connectors: dict = {}
         # The Tasks already written into the Outline (outline.py), so that each is written once.
         self.outline_tasks_mapped: list = []
-        # True on Windows; set at startup, together with slash (proginit).
-        self.windows_system = False
         self.tasker_arg_specs: dict = {}
         self.tasker_category_descriptions: dict = {}
         self.tasker_event_codes: dict = {}
@@ -447,7 +445,6 @@ SESSION_ATTRIBUTES = frozenset(
         "mygui",  # the running GUI
         "headless",  # whether this is a command-line report or export, set once at startup (clireports)
         "slash",  # the OS's path separator, set at startup (proginit)
-        "windows_system",  # likewise
         "tasker_arg_specs",  # Tasker's action argument specs, loaded once (actionc.load_arg_specs)
         "tasker_category_descriptions",  # likewise
         "tasker_event_codes",  # Tasker's event and state codes, fetched once (valcodes)
