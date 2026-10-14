@@ -296,8 +296,7 @@
     "reportAssignmentType": 1
   },
   "maptasker/src/mapgen/tasks.py": {
-    "reportArgumentType": 2,
-    "reportReturnType": 1
+    "reportArgumentType": 2
   },
   "maptasker/src/mapgen/taskuniq.py": {
     "reportArgumentType": 1

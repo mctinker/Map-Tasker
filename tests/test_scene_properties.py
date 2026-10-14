@@ -40,6 +40,7 @@ import pytest
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.edit import sceneedit, taskedit, taskedit_apply, taskedit_save
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import BASE_PROJECT_NAME
 from maptasker.src.edit import sceneedit_legacy
 from maptasker.src.gui import guiwins_sceneprops
 
@@ -1173,7 +1174,7 @@ def test_every_task_is_listed_once_with_the_project_that_owns_it(picker_tables):
     rows = taskedit.list_pickable_tasks(state=PrimeItems)
     assert [(row["name"], row["project_name"]) for row in rows] == [
         ("beta only", "Beta"),
-        ("Orphan", taskedit.NO_PROJECT_NAME),
+        ("Orphan", BASE_PROJECT_NAME),
         ("Shared Setup", "Alpha"),
         ("Wake Up", "Alpha"),
     ]
@@ -1192,7 +1193,7 @@ def test_searching_matches_part_of_a_name_whatever_its_case(picker_tables):
 
 def test_filtering_by_project_narrows_to_that_project(picker_tables):
     assert [row["name"] for row in taskedit.search_pickable_tasks("", "Beta", state=PrimeItems)] == ["beta only"]
-    assert [row["name"] for row in taskedit.search_pickable_tasks("", taskedit.NO_PROJECT_NAME, state=PrimeItems)] == ["Orphan"]
+    assert [row["name"] for row in taskedit.search_pickable_tasks("", BASE_PROJECT_NAME, state=PrimeItems)] == ["Orphan"]
     assert len(taskedit.search_pickable_tasks("", "All", state=PrimeItems)) == 4
 
 

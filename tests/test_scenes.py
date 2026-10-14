@@ -9,9 +9,6 @@ built it.  A Scene V1 element is a child element named for its type (<ButtonElem
 child.  Both shapes reach the same output, and only one of them is exercised by any
 backup a given developer happens to test against -- which is the argument for testing
 the pair of them here rather than trusting whichever one the sample file has.
-
-One test is marked xfail: a pre-existing defect found while writing this file, described
-at the test.
 """
 
 from __future__ import annotations
@@ -88,12 +85,6 @@ def test_a_scene_without_geometry_is_not_an_error() -> None:
     assert scenes.get_geometry(ET.fromstring("<Scene/>")) == (None, None)  # noqa: S314
 
 
-@pytest.mark.xfail(
-    reason="Pre-existing defect: process_scene unpacks 'height, width = get_geometry(scene)' "
-    "but get_geometry returns (width, height), so the two are transposed and the reported "
-    "'Width/Height' is the wrong way round for every Scene.",
-    strict=False,
-)
 def test_a_scene_reports_its_size_the_way_it_is_labelled() -> None:
     """The Panel Scene is 480 wide and 800 tall.  A line labelled "Width/Height" that
     reads "800 X 480" is not ambiguous, it is wrong -- and a portrait Scene reported as

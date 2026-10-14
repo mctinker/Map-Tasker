@@ -872,7 +872,7 @@ def process_scene(
     anchors = SceneAnchors(my_scene, scene, state=state) if scene_xml is None else SceneAnchors(state=state)
 
     # Get the Scene's geometry and display it
-    height, width = get_geometry(scene)
+    width, height = get_geometry(scene)
     state.output_lines.add_line_to_output(
         0,
         f"{blank * (indentation + 2)}Width/Height: {width} X {height}<br>",

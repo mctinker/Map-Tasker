@@ -24,6 +24,8 @@ MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
 NO_PROJECT = "-none found."
+# The Project Tasker keeps whatever belongs to no other Project in.
+BASE_PROJECT_NAME = "Base"
 UNNAMED_ITEM = "Unnamed"
 TASK_NAME_MAX_LENGTH = 35
 COUNTER_FILE = ".MapTasker_RunCount.txt"

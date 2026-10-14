@@ -53,10 +53,10 @@ from maptasker.src.core import editcommon, objprops, piiscan
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
 from maptasker.src.core.editcommon import touch_project_mdate
 from maptasker.src.core.presave import backup_local_file
+from maptasker.src.core.sysconst import BASE_PROJECT_NAME
 from maptasker.src.edit import sessundo
 from maptasker.src.edit.sceneedit import scene_task_ids
 
-BASE_PROJECT_NAME = "Base"
 # Destination folder on the Android device for Save To Android -- see android_project_path.
 ANDROID_PROJECT_LOCATION = "Tasker/projects"
 # What this editor's exports need that the other three's don't -- see editcommon.EditorKind.

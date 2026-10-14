@@ -842,8 +842,8 @@ def _render_task_picker(on_pick: Callable[[str], None], state: RunState) -> None
 
     The Project filter is the Task-side counterpart of the action picker's Category filter
     -- taskedit.search_pickable_tasks does the matching, on the same terms.  A Task no
-    Project owns is listed and filterable under "No Project", the same words
-    tasks.get_project_for_solo_task uses.
+    Project owns is listed and filterable under "Base", the same Project
+    tasks.get_project_for_solo_task attributes it to.
 
     `on_pick` is handed the chosen Task's NAME, not its id: that is what
     sceneedit_legacy.legacy_task_id_for_name and every other Task-by-name path in this app take, and

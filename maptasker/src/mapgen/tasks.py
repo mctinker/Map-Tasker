@@ -17,6 +17,7 @@ from maptasker.src.core.elemvals import get_ids
 from maptasker.src.core.error import error_handler, rutroh_error
 from maptasker.src.core.shelsort import shell_sort
 from maptasker.src.core.sysconst import (
+    BASE_PROJECT_NAME,
     UNNAMED_ITEM,
     pattern14,
 )
@@ -49,8 +50,10 @@ def replace_except_last(the_text: str, target: str, replacement: str) -> str:
     Returns:
         str: The modified text with all but the last occurrence of the target string replaced.
     """
-    parts = the_text.rsplit(target, 1)  # Split into two parts from the last occurrence
-    return parts[0].replace(target, replacement) + target.join(parts[1:])
+    before, separator, after = the_text.rpartition(target)  # Split at the last occurrence
+    if not separator:  # No occurrence at all: nothing to replace and nothing to keep.
+        return the_text
+    return before.replace(target, replacement) + separator + after
 
 
 def reformat_html(html_string: str) -> str:
@@ -241,22 +244,25 @@ def get_project_for_solo_task(
     the_task_id: str,
     projects_with_no_tasks: list,
     state: RunState,
-) -> tuple[str, Element]:
+) -> tuple[str, Element | None]:
     """
     Find the Project belonging to the Task id passed in
+
+    A Task that no Project lists belongs to the Base Project, which is where Tasker keeps
+    whatever has no other home.  The Base Project's element is returned when the backup has
+    one, and None when it does not.
+
     :param the_task_id: the ID of the Task
     :param projects_with_no_tasks: list of Projects that do not have any Tasks
     :return: name of the Project that belongs to this task and the Project xml element
     """
-    NO_PROJECT = "No Project"  # noqa: N806
-    project_name = NO_PROJECT
-    project_element = None
+    base_element = None
 
     all_projects = state.tasker_root_elements["all_projects"]
     if all_projects is not None:
         for project in all_projects:
-            project_element = state.tasker_root_elements["all_projects"][project]["xml"]
-            project_name = state.tasker_root_elements["all_projects"][project]["name"]
+            project_element = all_projects[project]["xml"]
+            project_name = all_projects[project]["name"]
             task_ids = get_ids(
                 False,
                 project_element,
@@ -265,8 +271,10 @@ def get_project_for_solo_task(
             )
             if the_task_id in task_ids:
                 return project_name, project_element
+            if project_name == BASE_PROJECT_NAME:
+                base_element = project_element
 
-    return project_name, project_element
+    return BASE_PROJECT_NAME, base_element
 
 
 def get_taskid_from_unnamed_task(unnamed_task: str) -> str:

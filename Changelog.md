@@ -25,6 +25,10 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: The Restore From History help text no longer appears in italics. The folder names 'MapTasker_Timeline' and 'MapTasker_Backups' were being misread as italic markers.
 - Fixed: A backup that leaves out an element Tasker normally writes (a condition's operands, a Scene's size, a Profile's ID, an empty icon field) no longer stops the Map with an error. The missing value is shown blank instead.
+- Fixed: A Scene's size in the Map now reads "Width/Height: 480 X 800" for a Scene 480 wide and 800 tall; the two numbers were swapped.
+- Fixed: A Task that no Project lists is now shown under the 'Base' Project, where Tasker keeps it, instead of under whichever Project came last. The Task picker in the Scene editor groups it under 'Base' as well.
+- Fixed: In pretty mode, the last parameter of an action's 'Configuration Parameter(s)' no longer loses its line break.
+- Fixed: A variable's properties line no longer says 'Show in Notification' for every Text variable, which is a setting variables do not have.
 - Fixed:
 
 ### Known Issues

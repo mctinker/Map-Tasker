@@ -36,6 +36,7 @@ if TYPE_CHECKING:
 
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
+from maptasker.src.core.sysconst import BASE_PROJECT_NAME
 from maptasker.src.edit import sessundo
 from maptasker.src.edit.taskedit_addable import (
     build_synthesized_args,
@@ -442,9 +443,8 @@ def set_action_continue_after_error(
             action.action_element.remove(se)
 
 
-# What a Task with no Project shows as in the picker's Project column and filter.  Same
-# words tasks.get_project_for_solo_task uses for the same state, so the two agree.
-NO_PROJECT_NAME = "No Project"
+# A Task no Project lists shows in the picker's Project column and filter as the Base
+# Project, the same as tasks.get_project_for_solo_task attributes it to, so the two agree.
 
 
 def list_pickable_tasks(state: RunState) -> list[dict]:
@@ -477,7 +477,7 @@ def list_pickable_tasks(state: RunState) -> list[dict]:
         {
             "name": name,
             "task_id": str(entry["id"]),
-            "project_name": project_of.get(str(entry["id"]), NO_PROJECT_NAME),
+            "project_name": project_of.get(str(entry["id"]), BASE_PROJECT_NAME),
         }
         for name, entry in root.get("all_tasks_by_name", {}).items()
         if name

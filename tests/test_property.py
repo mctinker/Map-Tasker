@@ -212,3 +212,29 @@ def test_a_task_is_never_asked_for_a_profiles_settings(captured_output) -> None:
     assert len(captured_output) == 1
     assert "Keep Device Awake:true" in captured_output[0]
     assert "Show In Notification" not in captured_output[0]
+
+
+def _variable(var_type: str, owner: str) -> ET.Element:
+    """A <ProfileVariable> as Tasker writes one: <pvt> is the variable's TYPE, <pvit> says which kind of
+    object owns it."""
+    return ET.fromstring(  # noqa: S314  (fixture text, defined in this file)
+        f"<ProfileVariable><pvn>%x</pvn><pvt>{var_type}</pvt><pvit>{owner}</pvit><pvv>1</pvv></ProfileVariable>",
+    )
+
+
+def test_a_variable_is_not_reported_as_shown_in_a_notification() -> None:
+    """A variable has no such setting: "Show In Notification" is a Task's and a Profile's, and
+    each is reported from its own tag.  The variable line used to say it for every Text
+    variable, because it read the variable's type (<pvt>, "t" for Text) where it meant to read
+    the owner (<pvit>) -- and the owner "t" would not have meant it either: that only says the
+    variable belongs to a Task.
+    """
+    for var_type, owner in (("t", "pj"), ("t", "t"), ("n", "t"), ("t", "pr")):
+        items = prop.parse_variable(_variable(var_type, owner))
+        assert "Show in Notification" not in items
+
+
+def test_a_variable_reports_its_type() -> None:
+    items = prop.parse_variable(_variable("t", "pj"))
+    assert items[0] == "Variable Type:Text"
+    assert "Variable:%x" in items

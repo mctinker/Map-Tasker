@@ -10,9 +10,10 @@ exists ONLY as the indentation this module computes while walking that list.  No
 downstream re-derives it and nothing validates it, so an off-by-one in the indent
 bookkeeping does not fail: it redraws the Task's logic as a different Task's logic.
 
-Two tests here are marked xfail.  Both are pre-existing defects found while writing this
-file, not new breakage, and both are described at the test.  (A third, an empty icon field in
-get_image, was fixed along with the type-check baseline and is an ordinary test now.)
+Three defects found while writing this file were first recorded here as expected failures:
+an empty icon field in get_image, a Task in no Project being attributed to the last Project,
+and replace_except_last dropping the last separator.  All three are fixed and are ordinary
+tests now.
 """
 
 from __future__ import annotations
@@ -267,17 +268,14 @@ def test_projects_without_tasks_are_collected_on_the_way_past() -> None:
     assert "Empty" in empty
 
 
-@pytest.mark.xfail(
-    reason="Pre-existing defect: the search falls out of its loop returning the LAST Project "
-    "it looked at rather than the NO_PROJECT default, so a Task belonging to no Project is "
-    "attributed to whichever Project happens to be last in the table.",
-    strict=False,
-)
-def test_a_task_in_no_project_is_not_attributed_to_one() -> None:
-    """Task 13 is in no Project's <tids>.  Naming a Project for it puts the Task under a
-    heading it does not belong to, which reads as a fact about the configuration.
+def test_a_task_in_no_project_belongs_to_the_base_project() -> None:
+    """Task 13 is in no Project's <tids>.  Tasker keeps whatever has no Project in the Base
+    Project, so that is where it is reported -- not under whichever Project is last in the
+    table, which would read as a fact about the configuration.
     """
-    assert tasks.get_project_for_solo_task("13", [], state=PrimeItems)[0] == "No Project"
+    name, element = tasks.get_project_for_solo_task("13", [], state=PrimeItems)
+    assert name == "Base"
+    assert element is None  # the fixture has no Project called Base to point at
 
 
 # ##################################################################################
@@ -345,18 +343,20 @@ def test_text_without_configuration_parameters_is_left_alone() -> None:
     assert tasks.reformat_html("Flash&nbsp;&nbsp;Text=hi") == "Flash&nbsp;&nbsp;Text=hi"
 
 
-@pytest.mark.xfail(
-    reason="Pre-existing defect: replace_except_last DELETES the final occurrence instead of "
-    "leaving it in place -- str.join over a one-element list puts no separator back. The last "
-    "line of a reformatted parameter block loses its line break as a result.",
-    strict=False,
-)
 def test_the_last_occurrence_is_kept_not_dropped() -> None:
     """The function's whole contract: replace every occurrence except the last, and leave
     that last one alone.
     """
     assert tasks.replace_except_last("a,b,c", ",", ";") == "a;b,c"
     assert tasks.replace_except_last("a,b", ",", ";") == "a,b"
+
+
+def test_a_single_occurrence_is_the_last_and_is_kept() -> None:
+    """With only one occurrence there is nothing to replace; the line break after it, in the
+    reformatted parameter block, has to survive.
+    """
+    assert tasks.replace_except_last("a<br>b", "<br>", "\n") == "a<br>b"
+    assert tasks.replace_except_last("a<br>b<br>c<br>d", "<br>", "\n") == "a\nb\nc<br>d"
 
 
 def test_text_without_the_target_is_unchanged() -> None:
