@@ -148,7 +148,7 @@ def test_unnamed_profile_name_is_italicised_but_its_id_is_not() -> None:
     so the italics mark the condition text only.
     """
     with_html, plain = profiles.get_profile_name(_profile("6"), current_config(), state=PrimeItems)
-    assert "<em>*from 800 to 00</em>" in with_html
+    assert "<em>*from 800</em>" in with_html  # a Time with a start and no end has no end to name
     assert "<em>" not in plain
 
 

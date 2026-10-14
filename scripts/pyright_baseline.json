@@ -230,8 +230,7 @@
     "reportArgumentType": 2
   },
   "maptasker/src/mapgen/condition.py": {
-    "reportArgumentType": 7,
-    "reportReturnType": 1
+    "reportArgumentType": 7
   },
   "maptasker/src/mapgen/diagram.py": {
     "reportArgumentType": 10,
@@ -307,7 +306,7 @@
   },
   "maptasker/src/mapit.py": {
     "reportArgumentType": 6,
-    "reportAttributeAccessIssue": 3
+    "reportAttributeAccessIssue": 1
   },
   "maptasker/src/mapops/maprefac_duplicate.py": {
     "reportArgumentType": 5,

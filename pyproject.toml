@@ -264,8 +264,10 @@ max-complexity = 15
 # MapTasker's is loaded, and playwright is only there for the driver half of the one file.
 # S603: the one subprocess it starts is this same script, from the project's own interpreter.
 'scripts/capture_screens.py' = ['PLC0415', 'S603']
-# complexity_ratchet.py runs ruff to measure the functions, from the project's own interpreter.
+# complexity_ratchet.py runs ruff to measure the functions, and coverage_ratchet.py runs coverage,
+# each from the project's own interpreter.
 'scripts/complexity_ratchet.py' = ['S603']
+'scripts/coverage_ratchet.py' = ['S603']
 
 # There is no per-file backlog any more.  Every rule is enforced in every file; a new
 # violation fails CI, and the fix belongs in the code rather than in a line added here.
@@ -333,11 +335,15 @@ skip_covered = true
 # Set from what CI measures: a checkout with no XML/, since XML/ holds personal Tasker
 # data and is not in the repository.  Every test that reads sample data reads
 # tests/data/synthetic_backup.xml, with any backups in XML/ only as extra material, so a
-# developer machine now measures the same as CI -- 57.5% on Python 3.11, 3.12 and 3.13
-# alike, with or without XML/.  The floor is a little under that, so a per-Python-version
-# difference cannot fail the build while a real regression does.
+# developer machine measures the same as CI, with or without XML/.  The floor is about two
+# points under what is measured, so a per-Python-version difference cannot fail the build
+# while a real regression does.
 #
 # Raise this as coverage improves -- it is meant to ratchet upward, never down.
+#
+# This is one number for the whole program, which lets a well-tested layer cover for a
+# neglected one.  scripts/coverage_ratchet.py holds each layer (gui, core, mapgen ...) to its
+# own floor in scripts/coverage_baseline.json as well; raise those with --update.
 #
 # History: 36 at 37.58% (754 tests) -> 44 at 45.41%, when the XML-parsing core
 # (taskerd/tasks/profiles/projects/scenes/action/actargs) gained direct tests and
@@ -349,8 +355,10 @@ skip_covered = true
 # -> 73 at 75.8% (3507 tests), once the Edit Profile dialogs, the Find/Replace and Search dialogs and the
 # Legacy and Version 2 Scene designers were driven through NiceGUI's user simulation
 # -> 78 at 80.6% (3788 tests), once the editor event handlers and the Map/Diagram/Scene-preview/Tree views were too.
+# -> 83 at 85.2% (4750 tests), once the start-up, crash handling, safety copies, AI model lists, condition and
+# action wording, and the GUI's plain logic and navigation had direct tests.
 # Set about two points under, as before.
-fail_under = 78
+fail_under = 83
 exclude_also = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",

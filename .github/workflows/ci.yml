@@ -59,6 +59,12 @@ jobs:
           --cov-report=xml
           --junitxml=junit-${{ matrix.python-version }}.xml
 
+      # fail_under is one number for the whole program, which lets a well-tested layer cover for
+      # a neglected one.  This holds each layer (gui, core, mapgen ...) to its own floor in
+      # scripts/coverage_baseline.json, read from the .coverage data the run above just made.
+      - name: Coverage by layer
+        run: uv run --no-sync python scripts/coverage_ratchet.py
+
       - name: Summarise coverage
         if: always()
         run: |
@@ -99,9 +105,9 @@ jobs:
       - name: Install dev dependencies
         run: uv sync --locked --group dev --group ai-dev
 
-      # Enforcement is scoped by [tool.ruff.lint.per-file-ignores] in pyproject.toml:
-      # the 39 files carrying pre-existing violations are exempted rule-by-rule, so
-      # this gate fails on any NEW violation and on any regression in a clean file.
+      # Every rule applies in every file: [tool.ruff.lint.per-file-ignores] in pyproject.toml
+      # holds only deliberate exemptions (tests, scripts, __init__.py), so this gate fails on
+      # any new violation.
       - name: ruff check
         run: uv run --no-sync ruff check --output-format=github
 

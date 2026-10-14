@@ -258,6 +258,15 @@ def _intercept_socket_emit(state: RunState) -> None:
     core.sio.emit = intercepted_sio_emit
 
 
+def _icons_dir() -> str:
+    """The folder the window's icons are in, found from the folder above this one.
+
+    Not by replacing "src" in this file's path, which also rewrote any "src" that happened to be
+    higher up (~/src/MapTasker/...).
+    """
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "icons")
+
+
 def _run_server(state: RunState, assets_dir: str) -> None:
     """Start the NiceGUI server, which blocks until it is shut down, and report why it could not start."""
     # 5. Start the server (This will now properly block without running main() twice)
@@ -363,8 +372,7 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
     _intercept_socket_emit(state)
 
     # 4. Point to the icon directory fore our favicon.
-    abspath = os.path.abspath(__file__)
-    assets_dir = os.path.dirname(abspath).replace("src", f"assets{state.slash}icons")
+    assets_dir = _icons_dir()
 
     # =========================================================================
 

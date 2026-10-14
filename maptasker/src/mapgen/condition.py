@@ -57,22 +57,20 @@ def condition_time(the_item: Element, the_output_condition: str) -> str:
             case "cname":
                 time_values["cname"] = f" Name={child.text}"
             case _:
-                return (
-                    f"{the_output_condition}{child.text} not yet mapped!",
-                    not_in_dictionary(
-                        "Condition Time",
-                        child.text,
-                    ),
-                )
+                not_in_dictionary("Condition Time", child.text)
+                return f"{the_output_condition}{child.text} not yet mapped!"
 
-    from_time = f"{time_values['fh']}:{time_values['fm'].zfill(2)}"
-    to_time = f"{time_values['th']}:{time_values['tm'].zfill(2)}"
+    # A time is only there if Tasker wrote an hour or a minute for it.  Padding the minutes
+    # first made every time look present ("00"), so a Profile whose times are variables was
+    # reported as running "from :00 to :00" and its variables were never reached.
+    from_time = f"{time_values['fh']}:{time_values['fm'].zfill(2)}" if time_values["fh"] or time_values["fm"] else ""
+    to_time = f"{time_values['th']}:{time_values['tm'].zfill(2)}" if time_values["th"] or time_values["tm"] else ""
     from_variable, to_variable = time_values["fromvar"], time_values["tovar"]
     rep = time_values["rep"]
 
-    if from_time.strip(":"):
+    if from_time:
         the_output_condition += f"Time: from {from_time}{rep}"
-        if to_time.strip(":"):
+        if to_time:
             the_output_condition += f" to {to_time}"
     elif from_variable or to_variable:
         the_output_condition += f"Time: from {from_variable} to {to_variable} {rep}"

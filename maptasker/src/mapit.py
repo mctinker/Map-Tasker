@@ -75,9 +75,12 @@ def on_crash(exctype: object, value: str, traceback: list, *, state: RunState) -
         - Redirect print/stderr to log for detailed crash information
     """
     if crash_debug:
-        if "does not support chat" in value.error:
+        # Only an AI provider's error carries an .error; any other exception must reach the
+        # stack trace below rather than crash the crash handler.
+        ai_error = str(getattr(value, "error", ""))
+        if "does not support chat" in ai_error:
             state.program_arguments.ai_analyze = False
-            console.error(value.error)
+            console.error(ai_error)
             return
         # sys.__excepthook__ is the default excepthook that prints the stack trace
         # So we use it directly if we want to see it

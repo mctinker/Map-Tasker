@@ -102,6 +102,10 @@ else
     run_gate "pytest + coverage" \
         uv run --no-sync pytest --cov=maptasker --cov-report=term-missing:skip-covered
 
+    # Each layer on its own against scripts/coverage_baseline.json, which fail_under (one
+    # number for the whole program) cannot see.  Reads the .coverage file the gate above made.
+    run_gate "coverage by layer" uv run --no-sync python scripts/coverage_ratchet.py
+
     # Build into a scratch directory so the working tree stays clean.
     DIST=$(mktemp -d)
     trap 'rm -rf "$DIST"' EXIT

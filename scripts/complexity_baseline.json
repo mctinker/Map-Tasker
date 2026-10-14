@@ -112,7 +112,7 @@
     "PLR0912": 15
   },
   "maptasker/src/rungui.py::process_gui": {
-    "LINES": 112
+    "LINES": 111
   },
   "scripts/capture_screens.py::capture_all": {
     "PLR0915": 60

@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: A Task that no Project lists is now shown under the 'Base' Project, where Tasker keeps it, instead of under whichever Project came last. The Task picker in the Scene editor groups it under 'Base' as well.
 - Fixed: In pretty mode, the last parameter of an action's 'Configuration Parameter(s)' no longer loses its line break.
 - Fixed: A variable's properties line no longer says 'Show in Notification' for every Text variable, which is a setting variables do not have.
+- Fixed: A Profile whose Time condition uses variables, such as sunrise and sunset, is now shown with those variables instead of "Time: from :00 to :00". A Time with a start and no end no longer shows an end time of 00.
+- Fixed: Running with the '-debug' option, an ordinary crash is now reported with its stack trace instead of failing again inside the crash report.
 - Fixed:
 
 ### Known Issues
