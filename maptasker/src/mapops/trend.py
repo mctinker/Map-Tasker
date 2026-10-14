@@ -59,6 +59,7 @@ import os
 import re
 import tempfile
 import threading
+from collections import Counter
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -76,7 +77,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 # Bumped when a release measures something more (or measures something differently).
-METRICS_VERSION = 1
+METRICS_VERSION = 2
 METRICS_FOLDER = "trend_metrics"
 
 # A Task with more actions than this is "long".  Tasker's own default for the warning limit the Health
@@ -95,6 +96,9 @@ TOO_FEW = "not enough history"
 
 # How many Projects the 'biggest movers' lists name in each direction.
 MOVERS_SHOWN = 5
+
+# How many of a messier Project's new problems are spelled out under it.
+NEW_PROBLEMS_SHOWN = 5
 
 # One measure at a time, so two dashboards (or a dashboard and a CLI run) cannot be inside diffload's
 # isolation window together.
@@ -131,6 +135,22 @@ class Measures:
 
 
 @dataclass
+class Problem:
+    """One error or warning the Health Check found in a Project, kept so a later look can say which ones are new."""
+
+    severity: str
+    tag: str
+    where: str
+    detail: str
+    key: str  # what makes it the same problem in another snapshot: its tag and the object it is about
+
+    @property
+    def is_error(self) -> bool:
+        """True for an error, false for a warning."""
+        return self.severity == healthck.ERROR
+
+
+@dataclass
 class SnapshotMetrics:
     """One kept configuration, measured."""
 
@@ -140,6 +160,8 @@ class SnapshotMetrics:
     total: Measures = field(default_factory=Measures)
     projects: dict[str, Measures] = field(default_factory=dict)
     version: int = METRICS_VERSION
+    # Each Project's errors and warnings (not the information findings, which are not "problems").
+    problems: dict[str, list[Problem]] = field(default_factory=dict)
 
     @property
     def moment(self) -> datetime:
@@ -161,6 +183,9 @@ class SnapshotMetrics:
             total=Measures(**raw["total"]),
             projects={name: Measures(**values) for name, values in raw["projects"].items()},
             version=raw["version"],
+            problems={
+                name: [Problem(**values) for values in found] for name, found in raw.get("problems", {}).items()
+            },
         )
 
 
@@ -275,17 +300,36 @@ def _count(counts: Measures, severity: str) -> None:
         counts.infos += 1
 
 
-def _findings_by_project(state: RunState) -> tuple[dict[str, Measures], Measures]:
-    """The Health Check's findings counted per Project, and in all.  Findings with no Project go in the total only."""
+def _problem_key(finding: healthck.Finding) -> str:
+    """What makes a finding the same one in another snapshot: its tag and the object it is about.
+
+    Not its detail, which can carry a number ("105 actions") that moves while the problem stays put.
+    """
+    target = finding.target
+    if target is None:
+        return f"{finding.tag}|{finding.where}"
+    return f"{finding.tag}|{target.kind}|{target.key}|{target.action}|{target.part}"
+
+
+def _findings_by_project(state: RunState) -> tuple[dict[str, Measures], Measures, dict[str, list[Problem]]]:
+    """The Health Check's findings counted per Project, and in all, with each Project's errors and warnings kept.
+
+    Findings with no Project go in the total only.
+    """
     index = healthck.collect_findings(plugchk.TAGS, state=state)
     per_project: dict[str, Measures] = {}
+    problems: dict[str, list[Problem]] = {}
     total = Measures()
     for finding in index.findings:
         _count(total, finding.severity)
         project = finding.target.project if finding.target is not None else ""
         if project:
             _count(per_project.setdefault(project, Measures()), finding.severity)
-    return per_project, total
+            if finding.severity in (healthck.ERROR, healthck.WARNING):
+                problems.setdefault(project, []).append(
+                    Problem(finding.severity, finding.tag, finding.where, finding.detail, _problem_key(finding))
+                )
+    return per_project, total, problems
 
 
 def _project_members(name: str, state: RunState) -> tuple[int, int, set[str]]:
@@ -296,8 +340,8 @@ def _project_members(name: str, state: RunState) -> tuple[int, int, set[str]]:
     return len(scope["all_profiles"]), len(scope["all_scenes"]), set(scope["all_tasks"])
 
 
-def measure_state(state: RunState) -> tuple[Measures, dict[str, Measures]]:
-    """Measure the configuration in `state`: (the whole of it, each Project).
+def measure_state(state: RunState) -> tuple[Measures, dict[str, Measures], dict[str, list[Problem]]]:
+    """Measure the configuration in `state`: (the whole of it, each Project, each Project's errors and warnings).
 
     Reads state.tasker_root_elements and nothing else.  `state` may be a stand-in built for the purpose (see
     measure_snapshot) -- nothing here writes to it.
@@ -306,7 +350,7 @@ def measure_state(state: RunState) -> tuple[Measures, dict[str, Measures]]:
     facts = _task_facts(state)
     by_name = {entry["name"]: task_id for task_id, entry in tables.get("all_tasks", {}).items() if entry["name"]}
     chains, recursive = _call_depths(facts, by_name)
-    per_project_findings, total_findings = _findings_by_project(state)
+    per_project_findings, total_findings, problems = _findings_by_project(state)
 
     projects: dict[str, Measures] = {}
     for name in tables.get("all_projects", {}):
@@ -320,7 +364,7 @@ def measure_state(state: RunState) -> tuple[Measures, dict[str, Measures]]:
     total = _measures_for(facts, facts, chains, recursive)
     total.profiles, total.scenes = len(tables.get("all_profiles", {})), len(tables.get("all_scenes", {}))
     total.errors, total.warnings, total.infos = total_findings.errors, total_findings.warnings, total_findings.infos
-    return total, projects
+    return total, projects, problems
 
 
 # ##################################################################################
@@ -381,8 +425,10 @@ def measure_snapshot(snapshot: timeline.Snapshot, state: RunState) -> tuple[Snap
     # xml_root is declared as None-only on RunState; the loaded value is an Element, set the way a load sets it.
     vars(stand_in).update(xml_root=configuration.root)
     stand_in.program_arguments = ProgramArguments(task_action_warning_limit=LONG_TASK_ACTIONS)
-    total, projects = measure_state(stand_in)
-    metrics = SnapshotMetrics(snapshot.digest, snapshot.when.isoformat(), snapshot.source, total, projects)
+    total, projects, problems = measure_state(stand_in)
+    metrics = SnapshotMetrics(
+        snapshot.digest, snapshot.when.isoformat(), snapshot.source, total, projects, problems=problems
+    )
     _keep(metrics, snapshot)
     return metrics, ""
 
@@ -560,6 +606,7 @@ class Mover:
     problems_after: int
     longest_before: int
     longest_after: int
+    new_problems: list[Problem] = field(default_factory=list)  # errors first; all of them, not just those shown
 
     @property
     def problem_delta(self) -> int:
@@ -570,6 +617,21 @@ class Mover:
     def longest_delta(self) -> int:
         """The longest Task's length, after minus before."""
         return self.longest_after - self.longest_before
+
+
+def new_problems(before: SnapshotMetrics, after: SnapshotMetrics, project: str) -> list[Problem]:
+    """The Project's errors and warnings in `after` that were not in `before`, errors first, as `after` words them.
+
+    Matched by tag and object, a copy at a time: a Project that had two of one finding and now has three has one new.
+    """
+    unmatched = Counter(problem.key for problem in before.problems.get(project, []))
+    new = []
+    for problem in after.problems.get(project, []):
+        if unmatched[problem.key] > 0:
+            unmatched[problem.key] -= 1
+        else:
+            new.append(problem)
+    return sorted(new, key=lambda problem: not problem.is_error)
 
 
 def movers(series: Series) -> tuple[list[Mover], list[Mover]]:
@@ -584,6 +646,7 @@ def movers(series: Series) -> tuple[list[Mover], list[Mover]]:
             last.projects[name].problems,
             first.projects[name].longest_task,
             last.projects[name].longest_task,
+            new_problems(first, last, name),
         )
         for name in sorted(first.projects.keys() & last.projects.keys(), key=str.casefold)
     ]
@@ -600,6 +663,16 @@ def movers(series: Series) -> tuple[list[Mover], list[Mover]]:
 # ##################################################################################
 # Saying it.
 # ##################################################################################
+def new_problem_lines(mover: Mover) -> list[str]:
+    """The Project's new problems, one line each, up to NEW_PROBLEMS_SHOWN, then '... and N more'."""
+    lines = [
+        f"{problem.severity} {problem.tag}: {problem.where}" for problem in mover.new_problems[:NEW_PROBLEMS_SHOWN]
+    ]
+    if len(mover.new_problems) > NEW_PROBLEMS_SHOWN:
+        lines.append(f"... and {len(mover.new_problems) - NEW_PROBLEMS_SHOWN} more")
+    return lines
+
+
 _COLUMNS = (
     ("Date", None),
     ("Prof", "profiles"),
@@ -625,10 +698,11 @@ def as_text(series: Series, project: str | None = None) -> str:
         whole, last_step = overall(series)
         lines += [f"Since the first kept:   {whole.summary()}", f"Since the one before:   {last_step.summary()}"]
         worse, better = movers(series)
-        lines += [
-            f"Messier:   {mover.name} (problems {mover.problem_delta:+d}, longest Task {mover.longest_delta:+d})"
-            for mover in worse
-        ]
+        for mover in worse:
+            lines.append(
+                f"Messier:   {mover.name} (problems {mover.problem_delta:+d}, longest Task {mover.longest_delta:+d})"
+            )
+            lines += [f"             new: {line}" for line in new_problem_lines(mover)]
         lines += [
             f"Healthier: {mover.name} (problems {mover.problem_delta:+d}, longest Task {mover.longest_delta:+d})"
             for mover in better

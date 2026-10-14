@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
+- Changed: The Trend Dashboard and the `-trend` report now list the new errors and warnings under each Project that got messier, instead of showing only a count such as "problems +3".  Up to five are shown per Project, followed by a count of any others.
 - Changed: The Map view, Diagram view, and Android backup fetch now tell you the exact file path they saved to, matching the other export and report features.
 - Changed:
 

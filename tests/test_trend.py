@@ -47,7 +47,8 @@ def config(**projects: dict[str, tuple[str, ...]]) -> str:
 
 def measure(tmp_path: Path, **projects: dict[str, tuple[str, ...]]) -> tuple[trend.Measures, dict[str, trend.Measures]]:
     _load_local(tmp_path, config(**projects))
-    return trend.measure_state(PrimeItems)
+    total, per_project, _ = trend.measure_state(PrimeItems)
+    return total, per_project
 
 
 @pytest.fixture(autouse=True)
@@ -452,6 +453,75 @@ def test_the_projects_that_moved_most_in_each_direction(tmp_path: Path) -> None:
     assert [mover.name for mover in worse] == ["Worse"]
     assert [mover.name for mover in better] == ["Better"]
     assert worse[0].problem_delta > 0 > better[0].problem_delta
+
+
+def test_a_messier_project_names_the_problems_that_are_new(tmp_path: Path) -> None:
+    _snapshot(tmp_path, "one.xml", config(Home={"A": (perform("Gone"),)}), _at(1))
+    _snapshot(tmp_path, "two.xml", config(Home={"A": (perform("Gone"), flash("x"), perform("Missing"))}), _at(2))
+
+    worse, _ = trend.movers(trend.build_series(PrimeItems))
+
+    assert worse[0].problem_delta == 1
+    assert len(worse[0].new_problems) == 1, "the first broken call was already there"
+    assert worse[0].new_problems[0].is_error
+
+
+def test_a_problem_that_moved_to_another_task_is_one_fixed_and_one_new(tmp_path: Path) -> None:
+    _snapshot(tmp_path, "one.xml", config(Home={"A": (perform("Gone"),), "B": (flash("b"),)}), _at(1))
+    _snapshot(tmp_path, "two.xml", config(Home={"A": (flash("a"),), "B": (perform("Gone"),)}), _at(2))
+
+    series = trend.build_series(PrimeItems)
+    new = trend.new_problems(series.points[0], series.points[1], "Home")
+
+    assert len(new) == 1
+    assert "B" in new[0].where
+
+
+def test_nothing_is_new_when_the_problems_are_the_same(tmp_path: Path) -> None:
+    _snapshot(tmp_path, "one.xml", config(Home={"A": (perform("Gone"),)}), _at(1))
+    _snapshot(tmp_path, "two.xml", config(Home={"A": (perform("Gone"), flash("x"))}), _at(2))
+
+    series = trend.build_series(PrimeItems)
+
+    assert trend.new_problems(series.points[0], series.points[1], "Home") == []
+
+
+def test_the_problems_are_kept_with_the_measurements(tmp_path: Path) -> None:
+    _snapshot(tmp_path, "one.xml", config(Home={"A": (perform("Gone"),)}), _at(1))
+    first = trend.build_series(PrimeItems).points[0]
+
+    again = trend.SnapshotMetrics.from_json(first.to_json())
+
+    assert again.problems == first.problems
+    assert again.problems["Home"], "the broken call is kept"
+
+
+def test_measurements_kept_before_problems_were_kept_still_read() -> None:
+    text = trend.SnapshotMetrics("d", _at(1).isoformat(), "x.xml").to_json()
+    old = text.replace(',"problems":{}', "")
+
+    assert trend.SnapshotMetrics.from_json(old).problems == {}
+
+
+def test_the_text_report_lists_the_new_problems_under_the_messier_project(tmp_path: Path) -> None:
+    _snapshot(tmp_path, "one.xml", config(Home={"A": (flash("a"),)}), _at(1))
+    _snapshot(tmp_path, "two.xml", config(Home={"A": (perform("Gone"), perform("Gone2"))}), _at(2))
+
+    text = trend.as_text(trend.build_series(PrimeItems))
+
+    assert "Messier:   Home" in text
+    assert text.count("new: ERROR") == 2
+
+
+def test_only_the_first_few_new_problems_are_spelled_out_and_the_rest_counted(tmp_path: Path) -> None:
+    calls = tuple(perform(f"Gone{number}") for number in range(trend.NEW_PROBLEMS_SHOWN + 3))
+    _snapshot(tmp_path, "one.xml", config(Home={"A": (flash("a"),)}), _at(1))
+    _snapshot(tmp_path, "two.xml", config(Home={"A": calls}), _at(2))
+
+    lines = trend.new_problem_lines(trend.movers(trend.build_series(PrimeItems))[0][0])
+
+    assert len(lines) == trend.NEW_PROBLEMS_SHOWN + 1
+    assert lines[-1] == "... and 3 more"
 
 
 # ##################################################################################

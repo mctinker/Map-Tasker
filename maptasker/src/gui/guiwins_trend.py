@@ -379,6 +379,10 @@ class _Dashboard:
                             f"{translate_string('problems')} {mover.problem_delta:+d}, "
                             f"{translate_string('longest Task')} {mover.longest_delta:+d}",
                         ).classes("text-xs text-gray-500")
+                    for line in trend.new_problem_lines(mover):
+                        ui.label(f"{translate_string('new')}: {line}").classes(
+                            "text-xs font-mono text-gray-500 pl-24",
+                        )
 
     def copy(self) -> None:
         """Put the dashboard on the clipboard as text."""
