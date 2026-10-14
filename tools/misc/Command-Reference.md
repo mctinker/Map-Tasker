@@ -4,9 +4,9 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **84** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **85** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 14.2.0 source on 2026-10-13 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 14.2.0 source on 2026-10-14 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -80,6 +80,7 @@ _Generated from the MapTasker 14.2.0 source on 2026-10-13 by `build_command_wiki
   * [List Unnamed Items](#cmd-list-unnamed-items)
   * [Add, Edit and Save](#cmd-add-edit-and-save)
     * [Add Project/Profile/Task/Scene](#cmd-add-project-profile-task-scene)
+      * [Draft with AI](#cmd-draft-with-ai)
     * [Edit Project/Profile/Task/Scene](#cmd-edit-project-profile-task-scene)
     * [Rename](#cmd-rename)
     * [Delete](#cmd-delete)
@@ -647,6 +648,10 @@ _Part of [Specific Name tab](#cmd-specific-name-tab)._
 
 Add and Edit Projects, Profiles, Tasks and Scenes directly in the GUI, with various save options.
 
+**Known issues:**
+
+* Not all Task actions and Profile states or events editing are supported.  What remains unsupported is third-party plugins: their settings are an opaque payload that only the plugin's own configurator understands, so those still have to be set up inside Tasker.
+
 <a id="cmd-add-project-profile-task-scene"></a>
 ##### Add Project/Profile/Task/Scene
 
@@ -658,6 +663,18 @@ _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 Create a new object and add it to the loaded XML.
 
 **Opens:** Add Project
+
+<a id="cmd-draft-with-ai"></a>
+###### Draft with AI
+
+_Part of [Add Project/Profile/Task/Scene](#cmd-add-project-profile-task-scene)._
+
+In the Add Task window, turns a description in plain words into actions. The AI model chosen on the Analyze tab drafts actions from the ones the editor can build, and they are added to the Task unsaved, for you to review and edit. Whatever the AI suggested that MapTasker is unable to build is listed beside the draft, and a Stop button gives up on a slow model.
+
+**Known issues:**
+
+* It is slow and often unusable on very small local models (such as tinyllama); a larger local model or a cloud model is recommended.
+* It cannot choose an Application or an icon for an action, and a plugin action it picks still has to be configured inside Tasker; both are left at their defaults for you to fill in.
 
 <a id="cmd-edit-project-profile-task-scene"></a>
 ##### Edit Project/Profile/Task/Scene
@@ -1170,6 +1187,11 @@ Link a Project, Profile, Task or Scene to the TaskerNet share it came from (past
 **Caveats:**
 
 * Find Links searches TaskerNet's public shares for the ones your Projects, Profiles, Tasks and Scenes came from and links those whose content agrees with yours -- a name alone is not enough, as different authors reuse names; partial matches are listed for you to tick.
+
+**Known issues:**
+
+* It matches Tasks and Profiles by name, so one the author renames, or one with no name, can show up as new rather than changed.
+* The first time you link a share, differences caused by Tasker rewriting it on import are listed along with real ones; later updates list only what the author changed.
 
 <a id="cmd-task-stepper"></a>
 ### Task Stepper
