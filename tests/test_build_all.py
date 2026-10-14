@@ -86,7 +86,7 @@ def _stubbed(monkeypatch: pytest.MonkeyPatch) -> list:
     monkeypatch.setattr(
         valcodes,
         "validate_states_and_events",
-        lambda code_type, url: calls.append(("validate", code_type, url, PrimeItems.program_arguments.debug)),
+        lambda code_type, url, state: calls.append(("validate", code_type, url, state.program_arguments.debug)),
     )
     import maptasker.src.core.bldargs as bldargs
     import maptasker.src.core.bldbndle as bldbndle
@@ -171,7 +171,7 @@ def test_validation_reports_a_code_the_table_lacks(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(PrimeItems, "tasker_state_codes", {}, raising=False)
     monkeypatch.setattr(valcodes, "java_constants_to_dict", lambda url: {"NOT_A_REAL_CODE": 999991})  # noqa: ARG005
     # debug_print appends to buildit.log in the working directory; keep it out of the repo.
-    monkeypatch.setattr(valcodes, "debug_print", lambda message: print(message))
+    monkeypatch.setattr(valcodes, "debug_print", lambda message, state=None: print(message))  # noqa: ARG005
 
     valcodes.validate_states_and_events("s", "https://example.invalid/StateCodes.java")
 

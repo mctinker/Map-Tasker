@@ -3,7 +3,7 @@
 from nicegui import ui
 
 from maptasker.src.core.maputil2 import translate_string
-from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.gui.guiutils import window_state
 
 
 class APIKeyDialog:
@@ -72,7 +72,7 @@ class APIKeyDialog:
             # Using password mode keeps keys masked out securely on screen
             input_widget = (
                 ui.input(
-                    value=PrimeItems.ai.get(placeholder_key, ""),
+                    value=window_state(self.my_gui).ai.get(placeholder_key, ""),
                     placeholder=translate_string("Not configured..."),
                 )
                 .props("password clearable")

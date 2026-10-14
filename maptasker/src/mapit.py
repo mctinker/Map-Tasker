@@ -159,7 +159,7 @@ def start_up(state: RunState) -> None:
     # Validate the runtime version of python
     check_versions()
 
-    load_arg_specs()
+    load_arg_specs(state=state)
 
     # NOTE: FOR DEVELOPMENT ONLY!!! 'build_all = True' ONLY WITH A NEW UPDATE OF TASKER!
     # It rebuilds tables from the network and a backup xml and then exits, so shipping it

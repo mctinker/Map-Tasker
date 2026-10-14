@@ -198,7 +198,7 @@ def get_first_action(task: Element, state: RunState) -> str:
     """
     # Build the Tasker argument codes dictionary if we don't yet have it.
     if not state.tasker_arg_specs:
-        load_arg_specs()
+        load_arg_specs(state=state)
 
     task_actions = task.findall("Action")
     if task_actions is not None:

@@ -292,8 +292,8 @@ def rebuild_action_tables(state: RunState) -> None:
     state.program_arguments.debug = True
 
     # Check the Event and State codes in the overlay against Tasker's own source.
-    validate_states_and_events("e", EVENT_CODES_URL)
-    validate_states_and_events("s", STATE_CODES_URL)
+    validate_states_and_events("e", EVENT_CODES_URL, state=state)
+    validate_states_and_events("s", STATE_CODES_URL, state=state)
     # Build the <Bundle> dictionary ('bundles.json') from the backup xml.
     build_bundles()
     # Add any arguments the backup xml uses that neither action code table declares.

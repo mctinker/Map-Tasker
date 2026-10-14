@@ -48,9 +48,13 @@ from __future__ import annotations
 import json
 import os
 from collections import namedtuple
+from typing import TYPE_CHECKING
 
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import logger
+
+if TYPE_CHECKING:
+    from maptasker.src.core.primitem import RunState
 
 # Define the namedtuples
 ActionCode = namedtuple(  # noqa: PYI024
@@ -169,32 +173,33 @@ def build_action_codes() -> dict:
 action_codes = build_action_codes()
 
 
-def load_arg_specs() -> None:
+def load_arg_specs(state: RunState | None = None) -> None:
     """
     Load the argument-type and action-category tables an action is mapped through.
 
     The action code table itself is built at import (action_codes, above).  These are the
-    two small lookups that table's numbers are resolved against, loaded into PrimeItems
+    two small lookups that table's numbers are resolved against, loaded onto the run state
     when first needed: at start-up (mapit.start_up), or by taskerd the first time it reads
-    an action.  Session state, the same whichever backup is loaded -- which is why it lives
-    here and not in taskerd, whose writes a comparison load has to be able to put back.
+    an action.  The same whichever backup is loaded -- which is why it lives here and not in
+    taskerd, whose writes a comparison load has to be able to put back.
 
     Args:
-        None
+        state (RunState | None): the run state to load them onto, or None for PrimeItems.
     Returns:
         None
     """
+    target = PrimeItems if state is None else state
     # Get the map of all Tasker task action argument types.
     try:
         with open(os.path.join(_JSON_DIR, "arg_specs.json"), encoding="utf-8") as file:
-            PrimeItems.tasker_arg_specs = json.load(file)
-            spec_number = len(PrimeItems.tasker_arg_specs)
+            target.tasker_arg_specs = json.load(file)
+            spec_number = len(target.tasker_arg_specs)
             # Add extras for new action specs
-            PrimeItems.tasker_arg_specs[str(spec_number)] = "ConditionList"
-            PrimeItems.tasker_arg_specs[str(spec_number + 1)] = "Img"
-            for key, value in PrimeItems.tasker_arg_specs.items():
+            target.tasker_arg_specs[str(spec_number)] = "ConditionList"
+            target.tasker_arg_specs[str(spec_number + 1)] = "Img"
+            for key, value in target.tasker_arg_specs.items():
                 if value == "String":
-                    PrimeItems.tasker_arg_specs[key] = "Str"
+                    target.tasker_arg_specs[key] = "Str"
                     break
     except FileNotFoundError:
         logger.error("arg_specs missing!")
@@ -203,6 +208,6 @@ def load_arg_specs() -> None:
     try:
         with open(os.path.join(_JSON_DIR, "category_descriptions.json"), encoding="utf-8") as file:
             for description in json.load(file):
-                PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
+                target.tasker_category_descriptions[description["code"]] = description["name"]
     except FileNotFoundError:
         logger.error("category_descriptions missing!")

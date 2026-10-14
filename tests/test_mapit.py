@@ -116,7 +116,7 @@ def started(monkeypatch: pytest.MonkeyPatch) -> list[str]:
     calls: list[str] = []
     monkeypatch.setattr(mapit, "log_startup_values", lambda state: calls.append("log"))
     monkeypatch.setattr(mapit, "check_versions", lambda: calls.append("versions"))
-    monkeypatch.setattr(mapit, "load_arg_specs", lambda: calls.append("specs"))
+    monkeypatch.setattr(mapit, "load_arg_specs", lambda state: calls.append("specs"))
     monkeypatch.setattr(mapit, "get_program_arguments", lambda state: calls.append("arguments"))
     monkeypatch.setattr(mapit, "setup_colors", lambda state: calls.append("colors") or {"c": "x"})
     monkeypatch.setattr(mapit, "get_data_and_output_intro", lambda force, state: calls.append("data") or 0)

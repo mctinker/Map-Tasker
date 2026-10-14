@@ -214,7 +214,7 @@ async def test_cancelling_the_question_cancels_the_request(
 )
 def test_the_provider_is_named_or_looked_up(ai: dict, ai_name: str, ai_model: str, provider: str) -> None:
     """The pulldown's recorded provider first, then whichever list holds the model."""
-    assert mapask.resolve_provider(ai_name, ai_model) == provider
+    assert mapask.resolve_provider(ai_name, ai_model, PrimeItems) == provider
 
 
 def test_settings_carry_the_providers_key(ai: dict) -> None:

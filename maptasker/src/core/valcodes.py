@@ -25,13 +25,19 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 import requests
 
 from maptasker.src.core import console
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.primitem import PrimeItems
+
+if TYPE_CHECKING:
+    from maptasker.src.core.primitem import RunState
 
 NEWLINE = "\n"
 
@@ -66,19 +72,20 @@ def java_constants_to_dict(url: str) -> dict:
     return constants
 
 
-def debug_print(message: str) -> None:
+def debug_print(message: str, state: RunState | None = None) -> None:
     """
     Prints a debug message if the debug mode is enabled.
 
     Args:
         message (str): The debug message to be printed.
+        state (RunState | None): the run whose debug setting decides, or None for PrimeItems.
 
     Returns:
         None
     """
     filename = "buildit.log"
 
-    if PrimeItems.program_arguments.debug:
+    if (PrimeItems if state is None else state).program_arguments.debug:
         console.say(message)
         try:
             # 2. Open the file in write mode ('w')
@@ -131,7 +138,7 @@ def format_columns(entries: list) -> str:
     )
 
 
-def validate_states_and_events(code_type: str, url: str) -> None:
+def validate_states_and_events(code_type: str, url: str, state: RunState | None = None) -> None:
     """
     Validates the state and event codes by fetching the Java source file from the given URL and converting the
     public static final int constants to a dictionary.
@@ -139,6 +146,7 @@ def validate_states_and_events(code_type: str, url: str) -> None:
     Args:
         code_type (str): The type of code to validate ('s' for states, 'e' for events).
         url (str): The URL of the Java source file containing the constants.
+        state (RunState | None): the run the codes are recorded on, or None for PrimeItems.
 
     Returns:
         None
@@ -147,13 +155,14 @@ def validate_states_and_events(code_type: str, url: str) -> None:
         requests.exceptions.RequestException: If there is an issue with the HTTP request.
     """
     missing_codes = []
+    run = PrimeItems if state is None else state
     # Get the data.
     if code_type == "s":
         code_name = "State"
-        target = PrimeItems.tasker_state_codes
+        target = run.tasker_state_codes
     else:
         code_name = "Event"
-        target = PrimeItems.tasker_event_codes
+        target = run.tasker_event_codes
 
     codes = java_constants_to_dict(url)
     target.update(codes)
@@ -162,7 +171,9 @@ def validate_states_and_events(code_type: str, url: str) -> None:
     for key, code in codes.items():
         modified_code = str(code) + code_type
         if code != -1 and modified_code not in action_codes:
-            debug_print(f"Tasker's {key} {code_name} code {code!s} not found in actionc table!  Needs to be added.")
+            debug_print(
+                f"Tasker's {key} {code_name} code {code!s} not found in actionc table!  Needs to be added.", state=state
+            )
 
     # Reverse the dictionary of Tasker codes
     reverse_codes = {v: k for k, v in codes.items()}
@@ -175,8 +186,11 @@ def validate_states_and_events(code_type: str, url: str) -> None:
             missing_codes.append(f"{code}{code_type}")
 
     if missing_codes:
-        debug_print("Note: Codes '6s' and '37s' are for older versions of Tasker (Prior to version 6)")
-        debug_print(f"Our action codes (actionc) not found in Tasker's {code_name} table: {', '.join(missing_codes)}")
+        debug_print("Note: Codes '6s' and '37s' are for older versions of Tasker (Prior to version 6)", state=state)
+        debug_print(
+            f"Our action codes (actionc) not found in Tasker's {code_name} table: {', '.join(missing_codes)}",
+            state=state,
+        )
 
     # Make sure Tasker code 'names' are the same as our actionc code 'names'
     mismatch_names = []
@@ -188,5 +202,5 @@ def validate_states_and_events(code_type: str, url: str) -> None:
                 f"{code_name} vs {action_codes[modified_code][2]}   <<< Tasker's name mismatch for actionc table code:{modified_code}.",
             )
     if mismatch_names:
-        debug_print("Tasker Code ... vs ... Our actionc Code")
-        debug_print(format_columns(mismatch_names))
+        debug_print("Tasker Code ... vs ... Our actionc Code", state=state)
+        debug_print(format_columns(mismatch_names), state=state)

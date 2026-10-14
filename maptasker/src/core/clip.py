@@ -66,7 +66,6 @@ import sys
 import time
 
 from maptasker.src.core import console
-from maptasker.src.core.primitem import PrimeItems
 
 # COLORS: FOREGROUND = F, BACKGROUND = B, Value = ANSI value
 COLORS = {
@@ -369,6 +368,6 @@ def clip_figure(figure: str, colored: bool) -> None:
 
     colored = True
 
-    my_output_dir = f"{os.getcwd()}{PrimeItems.slash}clip{PrimeItems.slash}{figure}"
+    my_output_dir = f"{os.getcwd()}{os.sep}clip{os.sep}{figure}"
     clippy(my_output_dir, 100, 3, colored)
     console.say("\a")  # Bell/alert

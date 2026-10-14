@@ -19,7 +19,7 @@ from maptasker.src.core.plugset import (
     decode_settings,
     plugin_package,
 )
-from maptasker.src.core.primitem import PrimeItems, RunState
+from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import FormatLine, logger
 from maptasker.src.core.xmldata import extract_integer, extract_string
 from maptasker.src.mapgen.actiond import process_condition_list
@@ -473,7 +473,7 @@ def action_args(
                     "MapTasker mapped IndexError error in action_args...action details not displayed"
                 )
                 return evaluated_results
-            argtype = PrimeItems.tasker_arg_specs[arg[3]]
+            argtype = state.tasker_arg_specs[arg[3]]
         except IndexError:
             # Where this arg sits in the "types" key, which can be non-sequential (e.g.
             # '1', '3', '4', '6').  Worked out here rather than for every arg on the way

@@ -35,12 +35,15 @@ import json
 import re
 from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from maptasker.src.analysis import mapfind
 from maptasker.src.core.aiutils import get_api_key, prepare_ollama_model
 from maptasker.src.core.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
-from maptasker.src.core.primitem import PrimeItems, RunState
 from maptasker.src.core.sysconst import logger
+
+if TYPE_CHECKING:
+    from maptasker.src.core.primitem import RunState
 
 # The providers, spelled the way the Analyze tab's model pulldown groups them and the way
 # mapai dispatches on them.
@@ -61,7 +64,7 @@ _PROVIDER_NAMES = {
     "ollama": LLAMA,
 }
 
-# Where PrimeItems.ai lists each provider's models, for a model whose provider was not named.
+# Where the run state's ai lists each provider's models, for a model whose provider was not named.
 _MODEL_LISTS = (
     (OPENAI, "openai_models"),
     (ANTHROPIC, "anthropic_models"),
@@ -69,7 +72,7 @@ _MODEL_LISTS = (
     (LLAMA, "llama_models"),
 )
 
-# Where PrimeItems.ai keeps each provider's API key.  Ollama runs locally and has none.
+# Where the run state's ai keeps each provider's API key.  Ollama runs locally and has none.
 _KEY_NAMES = {OPENAI: "openai_key", ANTHROPIC: "anthropic_key", GEMINI: "gemini_key"}
 
 # The boxes whose value must be one the configuration uses, in the order the prompt lists
@@ -216,7 +219,7 @@ def _bare_model(model: str) -> str:
     return (model or "").replace(" (installed)", "").strip()
 
 
-def resolve_provider(ai_name: str, ai_model: str) -> str:
+def resolve_provider(ai_name: str, ai_model: str, state: RunState) -> str:
     """Which provider serves the selected model, or "" if that cannot be told.
 
     The name the pulldown recorded is taken first, as guiutils.is_ollama_model takes it:
@@ -228,7 +231,7 @@ def resolve_provider(ai_name: str, ai_model: str) -> str:
         return named
     model = _bare_model(ai_model)
     for provider, list_name in _MODEL_LISTS:
-        if model in {_bare_model(entry) for entry in PrimeItems.ai.get(list_name, [])}:
+        if model in {_bare_model(entry) for entry in state.ai.get(list_name, [])}:
             return provider
     return ""
 
@@ -239,7 +242,7 @@ def model_settings(ai_name: str, ai_model: str, state: RunState) -> ModelSetting
     if not model or model == "None":
         message = "No AI model is selected.  Choose one on the Analyze tab first."
         raise AskError(message)
-    provider = resolve_provider(ai_name, model)
+    provider = resolve_provider(ai_name, model, state)
     if not provider:
         message = f"MapTasker cannot tell which AI service runs '{model}'.  Choose it again on the Analyze tab."
         raise AskError(message)

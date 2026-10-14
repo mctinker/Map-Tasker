@@ -311,12 +311,10 @@ def test_a_whole_map_is_built_on_a_state_of_its_own(tmp_path: object, monkeypatc
     """The Map, from the Projects down to the file it is written to, against a RunState that is
     not PrimeItems.  Only the output folder is still read from the global (outdir.py).
     """
-    load_arg_specs()
     monkeypatch.chdir(tmp_path)
     state = _outline_state(tmp_path, monkeypatch)
     state.headless = True  # Nobody is watching: do not open a browser.
-    state.tasker_arg_specs = PrimeItems.tasker_arg_specs
-    state.tasker_category_descriptions = PrimeItems.tasker_category_descriptions
+    load_arg_specs(state=state)
     PrimeItems.output_lines = LineOut()
     monkeypatch.setattr(PrimeItems.program_arguments, "output_directory", str(tmp_path))
     on_the_global = len(PrimeItems.output_lines.output_lines)
@@ -635,8 +633,8 @@ def test_a_profiles_state_and_event_conditions_are_read_with_the_state_it_is_giv
     """The State and Event handlers are reached through a table of functions, so a missing
     parameter shows only when a Profile that has one is read -- which the synthetic backup has not.
     """
-    load_arg_specs()
     state = RunState()
+    load_arg_specs(state=state)
     state.colors_to_use = set_color_mode("dark")
     profile = ET.fromstring(_CONDITIONS_XML)  # noqa: S314
 

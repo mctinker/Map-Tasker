@@ -11,19 +11,20 @@
 #                                                                                      #
 # Primary Items = global variables used throughout MapTasker
 #
-# PrimeItems is an instance of RunState, which holds the attributes listed below.  Code that
-# has been converted takes a RunState as a parameter (the Project, Profile, Task, Scene and Action
-# output, mapjump, and the Diagram code so far) and so can be run against one of its own; code that has not still reads the
-# PrimeItems instance, which a real run passes in.  See RunState.
+# PrimeItems is an instance of RunState, which holds the attributes listed below.  Code takes a
+# RunState as a parameter and reads and writes only that, so it can be run against one of its own
+# -- and two runs kept apart -- without the global; a real run passes PrimeItems in.  A fresh
+# RunState is a complete run: the argument-type tables, for one, are loaded onto the state it is
+# given (actionc.load_arg_specs).  See RunState.
 #
-# What is still read from PrimeItems directly, and why: only the SESSION_ATTRIBUTES below --
-# the language and translator (translator, maputil2.translate_string), Tasker's spec and code
-# tables (actionc, valcodes, actargs), the OS path separator (clip), the trace flag (guiutil2),
-# the AI model/key lists (mapask, guiwins2) -- plus the debug flag read by the logging helpers
-# underneath everything (console).  Those belong to the session, not to one run over one
-# backup, so there is nothing for a RunState of its own to hold.  The entry points (mapit_all,
-# clireports.run, MyGui, error_handler, current_config and so on) default their state to
-# PrimeItems.
+# What still names PrimeItems in code, and why, is listed in tests/test_global_state.py, which
+# fails on any other and on a listed one that has gone.  Two kinds.  The entry points -- mapit_all,
+# clireports.run, MyGui, error_handler, current_config and so on -- default their state to
+# PrimeItems, so a caller that leaves it out means "the run the program is on".  And the
+# SESSION_ATTRIBUTES below -- the language and translator (translator, maputil2.translate_string)
+# and the debug and trace switches the logging helpers read underneath everything (console,
+# guiutil2) -- belong to the process and not to one run over one backup, so there is nothing for a
+# RunState of its own to hold.
 #
 # What the module-level variables elsewhere are for: a few modules keep process-wide state
 # that is not a RunState's -- the terminal mute switch (console), the one-time registration
@@ -193,9 +194,9 @@ class RunState:
 
     PrimeItems, below, is the one the program runs on.  A function that is handed a RunState
     reads and writes only that, so it can be exercised -- or two runs kept apart -- without
-    the global: build a RunState() and pass it in.  What a function has not been converted to
-    take as a parameter still reads PrimeItems, so a fresh RunState is only a complete run
-    for code that has been.
+    the global: build a RunState() and pass it in.  Only the session-wide switches listed in
+    tests/test_global_state.py are still read from PrimeItems, so a fresh RunState is a
+    complete run once the tables it is given are loaded (actionc.load_arg_specs(state=...)).
 
     Every attribute is set per instance, in __init__, so no two RunStates share a dict, list
     or set.

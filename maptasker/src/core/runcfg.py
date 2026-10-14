@@ -202,17 +202,6 @@ class RunConfig(ArgumentFields):
         """
         return dict(self.colors)
 
-    def apply(self) -> None:
-        """
-        Write this configuration back onto PrimeItems, for the code that has not been
-        converted to take a config parameter.
-
-        This is the one direction that is not pure, and it exists only as long as the
-        globals do.  Nothing that has been given a RunConfig should need to call it.
-        """
-        PrimeItems.program_arguments = ProgramArguments(**cast("dict[str, Any]", self.as_dict()))
-        PrimeItems.colors_to_use = self.as_colors()
-
 
 def current_config(state: RunState | None = None) -> RunConfig:
     """
