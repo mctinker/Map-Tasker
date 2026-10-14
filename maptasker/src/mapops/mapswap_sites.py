@@ -65,12 +65,21 @@ def site_kind(reference: varxref.Reference) -> str:
     return BUNDLE
 
 
-def declaration_site(old_name: str, entries: list[varxref.Variable], rename: tuple, state: RunState) -> Site | None:
+def declaration_site(
+    old_name: str,
+    entries: list[varxref.Variable],
+    rename: tuple[re.Pattern[str], str],
+    state: RunState,
+    everywhere: bool = False,
+) -> Site | None:
     """The top-level <Variable> that declares this name, if the file carries one.
 
     Why a rename cannot be done by walking Tasks alone: Tasker's Variables tab holds the
     declaration and its value, and leaving it behind orphans the value under a name
     nothing uses any more.
+
+    `everywhere` is for a caller that reads the whole file whatever is selected on screen (the Refactor
+    dialog's variable mode), and so is entitled to the file-level entry as well.
     """
     if not any(entry.declared for entry in entries) or state.xml_root is None:
         return None
@@ -81,7 +90,7 @@ def declaration_site(old_name: str, entries: list[varxref.Variable], rename: tup
     # rename Tasker's Variables tab entry out from under every OTHER Task still using the
     # old name.  A scoped rename is partial by the user's own choice; this keeps it
     # partial in the safe direction.
-    if not current_scope(state=state).is_everything:
+    if not everywhere and not current_scope(state=state).is_everything:
         return None
     for element in state.xml_root.findall("Variable"):
         children = list(element)
@@ -164,7 +173,7 @@ def _create_argument(site: Site, value: str, state: RunState) -> None:
     order_action_children(site.element)
 
 
-def rewrite_site(site: Site, pattern: re.Pattern | None = None, new_name: str = "") -> tuple[str, str]:
+def rewrite_site(site: Site, pattern: re.Pattern[str] | None = None, new_name: str = "") -> tuple[str, str]:
     """(before, after) for one site, without writing anything.  The read half of apply().
 
     Per-kind, because a value does not live in the same place twice:

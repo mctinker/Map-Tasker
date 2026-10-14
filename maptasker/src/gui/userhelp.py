@@ -264,6 +264,16 @@ TREND_HELP_TEXT = (
     " it asks the device and not the backup.  From the command line, -trend [-file backup.xml] [-project NAME] prints"
     " the same report and exits with 10 when the newest backup is messier than the one before.  \n"
 )
+VARIABLE_HELP_TEXT = (
+    "- Refactor > Variable: Rename a variable everywhere it is used, or change it between global and local.  Tasker"
+    " reads the scope from the spelling -- all lower case is local to the running Task, any capital makes it a global"
+    " shared by everything -- so Make local and Make global change who can see the value, and the preview checks it"
+    " first.  It reads the whole configuration whatever is selected above, and refuses (naming the place) when the new"
+    " name is already a variable, when a Scene or a Profile's condition reads a global you are making local, or when"
+    " a Task reads it before setting it.  Several Tasks that shared a global each get a copy of their own, and a"
+    " local made global is shared by every Task: the preview says both.  Previewed before anything is done, and one"
+    " press of Undo afterwards.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -293,5 +303,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}"
     )

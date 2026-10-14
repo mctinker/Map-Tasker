@@ -6,7 +6,7 @@ import re
 from collections import Counter
 from typing import TYPE_CHECKING
 
-from maptasker.src.core.mapjump import current_scope
+from maptasker.src.core.mapjump import VARIABLE, Target, current_scope
 from maptasker.src.core.taskervars import tasker_global_variables
 from maptasker.src.mapgen import varxref
 from maptasker.src.mapgen.varxref import _LOW_CONFIDENCE_LENGTH, VARIABLE_PATTERN
@@ -40,13 +40,13 @@ def variable_choices(index: varxref.VariableIndex) -> list[tuple[str, str, str]]
     instances: Counter = Counter()
     totals: Counter = Counter()
     for (name, _owner), variable in index.variables.items():
-        if _rename_refusal(name, f"{name}_"):
+        if rename_refusal(name, f"{name}_"):
             continue
         instances[name] += 1
         totals[name] += len(variable.sets) + len(variable.reads)
 
     for (name, owner), variable in index.variables.items():
-        if _rename_refusal(name, f"{name}_"):
+        if rename_refusal(name, f"{name}_"):
             continue  # Refused whatever it would be renamed to.
         uses = len(variable.sets) + len(variable.reads)
         where = ""
@@ -105,7 +105,7 @@ def variable_choices(index: varxref.VariableIndex) -> list[tuple[str, str, str]]
 EVERY_INSTANCE = None
 
 
-def _rename_pattern(old_name: str) -> re.Pattern:
+def rename_pattern(old_name: str) -> re.Pattern[str]:
     """A pattern matching this name and nothing that merely starts with it.
 
     Also matches the subscripted and member forms, which are the same variable:
@@ -162,10 +162,27 @@ def _scope_limit_warning(displaying: Scope, old_name: str, new_name: str) -> str
     )
 
 
-def _plan_rename_sites(plan: Plan, entries: list, old_name: str, pattern: re.Pattern, new_name: str) -> None:
+def _place(reference: varxref.Reference) -> Target:
+    """Where a reference is, as a Target a click can jump to.
+
+    Every reference the scan records carries one.  The fallback names the place by its text rather than leaving
+    a Skip or a Site without one, which the preview would then fail to print.
+    """
+    if reference.target is not None:
+        return reference.target
+    return Target(kind=VARIABLE, key=reference.where, name=reference.where)
+
+
+def plan_rename_sites(
+    plan: Plan,
+    entries: list[varxref.Variable],
+    old_name: str,
+    pattern: re.Pattern[str],
+    new_name: str,
+) -> None:
     """Add to the plan a change for every field the rename would rewrite, and a skip for every one it cannot.
 
-    `entries` are the cross-reference entries being renamed (see _entries_to_rename).
+    `entries` are the cross-reference entries being renamed (see entries_to_rename).
     """
     seen: set[tuple[int, tuple]] = set()
 
@@ -177,7 +194,7 @@ def _plan_rename_sites(plan: Plan, entries: list, old_name: str, pattern: re.Pat
         if reference.element is None:
             plan.skips.append(
                 Skip(
-                    where=reference.target,
+                    where=_place(reference),
                     reason=BLOCKED_INDIRECT,
                     explanation=(
                         f"{reference.detail} -- this action produces {old_name} without naming it anywhere, "
@@ -190,7 +207,7 @@ def _plan_rename_sites(plan: Plan, entries: list, old_name: str, pattern: re.Pat
         if is_plugin_declaration(reference.element):
             plan.skips.append(
                 Skip(
-                    where=reference.target,
+                    where=_place(reference),
                     reason=BLOCKED_INDIRECT,
                     explanation=(
                         "this is the plugin's own declaration of the variables it produces, not a use of "
@@ -208,7 +225,7 @@ def _plan_rename_sites(plan: Plan, entries: list, old_name: str, pattern: re.Pat
         site = Site(
             kind=site_kind(reference),
             element=reference.element,
-            where=reference.target,
+            where=_place(reference),
             detail=reference.detail,
             path=reference.path,
             rename=(pattern, new_name),
@@ -262,7 +279,7 @@ def plan_variable_rename(
     old_name = f"%{old_name.lstrip('%')}"
     new_name = f"%{new_name.lstrip('%')}"
 
-    entries = _entries_to_rename(index, old_name, owner)
+    entries = entries_to_rename(index, old_name, owner)
 
     scope_phrase = _rename_scope_phrase(index, owner, entries)
     plan = Plan(what=f"Rename {old_name} to {new_name}{scope_phrase}")
@@ -275,7 +292,7 @@ def plan_variable_rename(
     if not displaying.is_everything:
         plan.warnings.append(_scope_limit_warning(displaying, old_name, new_name))
 
-    refusal = _rename_refusal(old_name, new_name)
+    refusal = rename_refusal(old_name, new_name)
     if refusal:
         plan.warnings.append(refusal)
         return plan
@@ -289,8 +306,8 @@ def plan_variable_rename(
 
     plan.warnings.extend(_rename_warnings(index, entries, old_name, new_name, owner))
 
-    pattern = _rename_pattern(old_name)
-    _plan_rename_sites(plan, entries, old_name, pattern, new_name)
+    pattern = rename_pattern(old_name)
+    plan_rename_sites(plan, entries, old_name, pattern, new_name)
 
     declaration = declaration_site(old_name, entries, (pattern, new_name), state=state)
     if declaration is not None:
@@ -309,7 +326,7 @@ def plan_variable_rename(
     return plan
 
 
-def _entries_to_rename(
+def entries_to_rename(
     index: varxref.VariableIndex,
     old_name: str,
     owner: str | None,
@@ -319,13 +336,13 @@ def _entries_to_rename(
     Ordered as varxref found them, so a plan over several instances still reads down the
     file the way the Map does rather than jumping between Tasks.
     """
-    if owner is not EVERY_INSTANCE:
+    if owner is not None:  # None is EVERY_INSTANCE
         entry = index.variables.get((old_name, owner))
         return [entry] if entry is not None else []
     return [entry for (name, _owner), entry in index.variables.items() if name == old_name]
 
 
-def _rename_refusal(old_name: str, new_name: str) -> str:
+def rename_refusal(old_name: str, new_name: str) -> str:
     """Why this rename must not be attempted at all, or "" if it may be.
 
     Refusals rather than warnings, because each of these produces a configuration that is
@@ -401,7 +418,7 @@ def _rename_warnings(
     # the same Task, so "does %tally already exist" has a different answer in each of them
     # and the first one that says yes is worth reporting.
     if becomes == varxref.LOCAL:
-        owners = [entry.owner for entry in entries] if owner is EVERY_INSTANCE else [owner]
+        owners = [entry.owner for entry in entries] if owner is None else [owner]
         existing = next(
             (found for key in owners if (found := index.variables.get((new_name, key))) is not None),
             None,
@@ -414,6 +431,17 @@ def _rename_warnings(
             f"{len(existing.reads)}.  This MERGES the two rather than renaming one: afterwards there is a "
             f"single variable, and everything that read {old_name} reads whatever {new_name} holds.",
         )
+
+    return warnings + side_effect_warnings(entries, old_name, new_name)
+
+
+def side_effect_warnings(entries: list[varxref.Variable], old_name: str, new_name: str) -> list[str]:
+    """What a rename cannot reach: a producer that never names the variable, and a value Tasker itself supplies.
+
+    Split out of _rename_warnings so the Refactor dialog's variable mode, which judges scope and name clashes
+    its own way, can say these same two things in the same words.
+    """
+    warnings: list[str] = []
 
     # Something produces it that this rename cannot reach.
     producers = {reference.detail for entry in entries for reference in entry.sets if reference.element is None}

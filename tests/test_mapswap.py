@@ -908,7 +908,7 @@ def test_rename_leaves_a_longer_name_that_merely_starts_the_same(variables) -> N
 
 def test_rename_keeps_a_subscript_or_member_suffix(variables) -> None:
     """'%Total(3)' and '%Total.length' name %Total and keep what follows them."""
-    pattern = mapswap_rename._rename_pattern("%Total")
+    pattern = mapswap_rename.rename_pattern("%Total")
     assert pattern.sub("%Sum", "%Total(%i) and %Total.length") == "%Sum(%i) and %Sum.length"
 
 

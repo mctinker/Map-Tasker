@@ -323,9 +323,6 @@
     "reportAttributeAccessIssue": 5,
     "reportCallIssue": 1
   },
-  "maptasker/src/mapops/mapswap_rename.py": {
-    "reportArgumentType": 2
-  },
   "maptasker/src/mapops/mapswap_sites.py": {
     "reportArgumentType": 1
   },

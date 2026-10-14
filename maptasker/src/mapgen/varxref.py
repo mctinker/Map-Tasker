@@ -362,7 +362,7 @@ class VariableIndex:
     # different thing entirely and older -- this one is "which objects were looked at".
     scope: Scope = field(default_factory=Scope)
 
-    def _scope_for(self, name: str) -> str:
+    def scope_for(self, name: str) -> str:
         """This name's scope, with what the file itself says taking precedence.
 
         Tasker's documented built-in list wins outright -- %BATT is Tasker's whatever a
@@ -386,7 +386,7 @@ class VariableIndex:
         no more the same variable than two Tasks are.  Keying them to the Scene keeps them
         apart, and lets the report group them under it.
         """
-        scope = self._scope_for(name)
+        scope = self.scope_for(name)
         owner = scope_id if scope == LOCAL else ""
         key = (name, owner)
         if key not in self.variables:

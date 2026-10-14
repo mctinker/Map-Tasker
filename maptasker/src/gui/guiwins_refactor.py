@@ -1,13 +1,14 @@
-"""guiwins_refactor: the Refactor dialog -- the four structural moves, with a preview."""
+"""guiwins_refactor: the Refactor dialog -- the structural moves and the variable rename and scope change, with a preview."""
 
 #! /usr/bin/env python3
 
 #                                                                                        #
 # guiwins_refactor: where maprefac hangs off the GUI.                                    #
 #                                                                                        #
-# One dialog, four modes, one preview area.  Extract a run of a Task's actions into a    #
+# One dialog, five modes, one preview area.  Extract a run of a Task's actions into a    #
 # Task of its own; inline a Perform Task; move a Task or a Profile to another Project;   #
-# duplicate a Project, Profile, Task or Scene.                                           #
+# duplicate a Project, Profile, Task or Scene; rename a variable, or change it between   #
+# global and local.                                                                      #
 #                                                                                        #
 # EVERYTHING BELOW IS ARRANGED AROUND ONE RULE, the same one the Replace tab is built    #
 # around: the Apply button is disabled until a preview exists FOR THE VALUES CURRENTLY   #
@@ -45,22 +46,31 @@ from nicegui import ui
 
 from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK
 from maptasker.src.core.maputil2 import translate_string
-from maptasker.src.mapops import maprefac, maprefac_duplicate, maprefac_extract, maprefac_model, maprefac_move
+from maptasker.src.mapgen import varxref
+from maptasker.src.mapops import (
+    maprefac,
+    maprefac_duplicate,
+    maprefac_extract,
+    maprefac_model,
+    maprefac_move,
+    maprefac_variable,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
 
     from maptasker.src.core.primitem import RunState
 
-# The four modes, in the order they are offered.  Extract first because it is the one
+# The five modes, in the order they are offered.  Extract first because it is the one
 # people come here for -- a Task that has grown too long is the reason anybody opens this.
-EXTRACT, INLINE, MOVE, DUPLICATE = "extract", "inline", "move", "duplicate"
+EXTRACT, INLINE, MOVE, DUPLICATE, VARIABLE = "extract", "inline", "move", "duplicate", "variable"
 
 _MODE_LABELS = {
     EXTRACT: "Extract actions",
     INLINE: "Inline a call",
     MOVE: "Move to a Project",
     DUPLICATE: "Duplicate",
+    VARIABLE: "Variable",
 }
 
 # One line under the toggle saying what the chosen mode does.  Worth the space: "Extract"
@@ -83,6 +93,17 @@ _MODE_BLURBS = {
         "Copy an object under a new name.  A Profile's Tasks and a Project's whole contents "
         "are copied too, and the copies' Perform Task calls point at the copies."
     ),
+    VARIABLE: (
+        "Rename a variable everywhere it is used, or turn a global into a Task's own local (or the reverse).  "
+        "Tasker reads the scope from the spelling, so the preview checks who else can see the variable."
+    ),
+}
+
+# What can be done to a variable, in the order offered.
+_VARIABLE_OPERATIONS = {
+    maprefac_variable.RENAME: "Rename",
+    maprefac_variable.TO_LOCAL: "Make local",
+    maprefac_variable.TO_GLOBAL: "Make global",
 }
 
 # What a Duplicate can be asked about.  Project first: it is the one whose result is least
@@ -211,7 +232,9 @@ class _RefactorDialog:
             "Inline a call -- the reverse: replace a 'Perform Task' with a copy of the actions "
             "of the Task it calls, leaving that Task where it is.\n\n"
             "Move to a Project -- change which Project owns a Task or a Profile.\n\n"
-            "Duplicate -- copy a Project, Profile, Task or Scene under a new name.\n\n",
+            "Duplicate -- copy a Project, Profile, Task or Scene under a new name.\n\n"
+            "Variable -- rename a variable in every action, condition and Scene that uses it, or change it "
+            "between global and local.  Always reads the whole configuration.\n\n",
         )
         self.blurb = ui.label(translate_string(_MODE_BLURBS[EXTRACT])).classes(
             "text-xs text-gray-500 italic mb-3 mt-1",
@@ -275,7 +298,10 @@ class _RefactorDialog:
         widgets["inline_task"].on_value_change(lambda: (_fill_calls(widgets, state=state), invalidate()))
         widgets["move_kind"].on_value_change(lambda: (_fill_move_objects(widgets, state=state), invalidate()))
         widgets["duplicate_kind"].on_value_change(lambda: (_fill_duplicate_objects(widgets, state=state), invalidate()))
+        widgets["variable_operation"].on_value_change(lambda: (_fill_variables(widgets, state=state), invalidate()))
+        widgets["variable"].on_value_change(lambda: (_suggest_name(widgets), invalidate()))
         for key in (
+            "variable_new_name",
             "extract_from",
             "extract_to",
             "extract_name",
@@ -309,6 +335,9 @@ class _RefactorDialog:
             widgets["duplicate_kind"].value,
             widgets["duplicate_object"].value,
             (widgets["duplicate_name"].value or "").strip(),
+            widgets["variable_operation"].value,
+            widgets["variable"].value,
+            (widgets["variable_new_name"].value or "").strip(),
         )
 
     def invalidate(self) -> None:
@@ -340,8 +369,9 @@ class _RefactorDialog:
             ),
         )
 
+        rows = maprefac.report_rows(plan)
         with self.preview_area, ui.column().classes("w-full gap-0 p-2"):
-            for row in maprefac.report_rows(plan)[:_PREVIEW_LINE_LIMIT]:
+            for row in rows[:_PREVIEW_LINE_LIMIT]:
                 if row.target is not None:
                     ui.link(row.text, "#").on("click", self.make_jump(row.target)).classes(
                         "text-blue-600 dark:text-blue-400 font-mono text-xs whitespace-pre "
@@ -351,6 +381,13 @@ class _RefactorDialog:
                     ui.label(row.text).classes(
                         "font-mono text-xs whitespace-pre " + _row_classes(row.text),
                     )
+            if len(rows) > _PREVIEW_LINE_LIMIT:
+                # Said rather than cut: a rename can touch hundreds of fields, and a preview that stops
+                # mid-list without saying so reads as the whole answer.
+                ui.label(
+                    f"... {len(rows) - _PREVIEW_LINE_LIMIT} more lines.  "
+                    f"{translate_string('Save Preview writes them all')}.",
+                ).classes("font-mono text-xs text-orange-600 dark:text-orange-400")
 
     def preview(self) -> None:
         """Build the plan for what is in the fields, and show it.
@@ -405,6 +442,8 @@ class _RefactorDialog:
         # nothing the user chose has changed: what changed is the configuration.
         self.widgets["filled"].clear()
         fill_options(self.widgets, state=self.state)
+        if self.mode.value == VARIABLE:
+            _fill_variables(self.widgets, state=self.state)
         await self.rebuild_view()
 
     def save_preview(self) -> None:
@@ -429,6 +468,10 @@ class _RefactorDialog:
         self.blurb.set_text(translate_string(_MODE_BLURBS.get(self.mode.value, "")))
         for key, row in self.widgets["rows"].items():
             row.set_visibility(key == self.mode.value)
+        if self.mode.value == VARIABLE:
+            # Filled when first wanted, not when the dialog opens: reading every variable in a large
+            # configuration is the one slow thing here, and the other four modes never need it.
+            _fill_variables(self.widgets, state=self.state)
         self.invalidate()
 
 
@@ -584,6 +627,41 @@ def _build_duplicate_row(widgets: dict) -> None:
         )
 
 
+def _build_variable_row(widgets: dict) -> None:
+    """Variable: what to do, to which variable, and what to call it."""
+    with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][VARIABLE]:
+        widgets["variable_operation"] = ui.toggle(
+            {key: translate_string(label) for key, label in _VARIABLE_OPERATIONS.items()},
+            value=maprefac_variable.RENAME,
+        ).props("dense")
+        _tip(
+            widgets["variable_operation"],
+            "Rename -- give the variable another name and keep its scope.\n\n"
+            "Make local -- turn a global into a variable private to each Task that uses it.  Refused if a "
+            "Scene or a Profile's condition reads it, if a Task reads it before setting it, or if the "
+            "Task already has a variable of that name.\n\n"
+            "Make global -- turn a Task's local into a global every Task and Scene shares.\n\n"
+            "Tasker takes the scope from the spelling: all lower case is local, any capital is global.\n\n",
+        )
+        widgets["variable"] = _select(
+            translate_string("Variable"),
+            "flex-1 min-w-[300px]",
+            "The variable to change.  A local belongs to one Task, so the same name can be offered once "
+            "per Task -- and once more for all of them together.",
+        )
+        widgets["variable_new_name"] = (
+            ui.input(label=translate_string("New name"))
+            .classes("flex-1 min-w-[200px]")
+            .props("dense")
+            .tooltip(
+                translate_string(
+                    "What the variable is to be called.  Filled in for you when you make a variable local "
+                    "or global; type your own if you prefer.  A name already in use is refused.",
+                ),
+            )
+        )
+
+
 def _build_mode_rows() -> dict:
     """Every mode's fields, built once and shown one row at a time.
 
@@ -599,6 +677,7 @@ def _build_mode_rows() -> dict:
     _build_inline_row(widgets)
     _build_move_row(widgets)
     _build_duplicate_row(widgets)
+    _build_variable_row(widgets)
 
     return widgets
 
@@ -773,6 +852,47 @@ def _fill_duplicate_objects(widgets: dict, state: RunState) -> None:
     widgets["duplicate_object"].set_options(choices, value=None)
 
 
+def _fill_variables(widgets: dict, state: RunState) -> None:
+    """The variables the chosen operation can be asked of.
+
+    Rebuilt from a fresh cross-reference each time the operation changes: Make local offers only globals and
+    Make global only locals, and a list built before an Apply would still offer the name just changed.
+    """
+    operation = widgets["variable_operation"].value
+    if not _stale(widgets, "variables", operation):
+        return
+    choices = maprefac_variable.variable_choices(varxref.build_index(state=state), operation)
+    widgets["variable"].set_options(dict(choices), value=None)
+
+
+def _suggest_name(widgets: dict) -> None:
+    """Fill in the spelling a scope change implies, and clear the box for a rename.
+
+    Gated like the dependent pulldowns (see _stale), for the same reason: a select built with_input re-emits its
+    value on events that are not changes, and a name the user has since edited should not be written over by one.
+    """
+    key, operation = widgets["variable"].value, widgets["variable_operation"].value
+    if not _stale(widgets, "suggestion", (operation, key)):
+        return
+    name = maprefac_variable.split_key(key)[0] if key else ""
+    widgets["variable_new_name"].set_value(maprefac_variable.suggested_name(operation, name) if name else "")
+
+
+def _plan_variable(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+    """The variable plan the fields describe, or None if a rename has no name yet.
+
+    A scope change needs no name typed: the box was filled in with the spelling the scope implies, and an empty
+    one means that same spelling.
+    """
+    key = widgets["variable"].value
+    operation = widgets["variable_operation"].value
+    new_name = (widgets["variable_new_name"].value or "").strip()
+    if not key or (operation == maprefac_variable.RENAME and not new_name):
+        return None
+    name, owner = maprefac_variable.split_key(key)
+    return maprefac_variable.plan_variable(operation, name, owner, new_name, state=state)
+
+
 def plan_for(mode_value: str, widgets: dict, state: RunState) -> maprefac_model.Plan | None:
     """Build the plan the fields describe, or None if they do not describe one yet.
 
@@ -784,34 +904,50 @@ def plan_for(mode_value: str, widgets: dict, state: RunState) -> maprefac_model.
     is blocked -- one is answered by a nudge, the other by a preview -- and the two must not
     be collapsed.  An empty box is the user's turn; a block is the tool's answer.
     """
-    if mode_value == EXTRACT:
-        task_id = widgets["extract_task"].value
-        first, last = widgets["extract_from"].value, widgets["extract_to"].value
-        if not task_id or first is None or last is None:
-            return None
-        first, last = sorted((int(first), int(last)))
-        return maprefac_extract.plan_extract(
-            task_id, list(range(first, last + 1)), widgets["extract_name"].value or "", state=state
-        )
+    planners = {
+        EXTRACT: _plan_extract,
+        INLINE: _plan_inline,
+        MOVE: _plan_move,
+        DUPLICATE: _plan_duplicate,
+        VARIABLE: _plan_variable,
+    }
+    planner = planners.get(mode_value)
+    return planner(widgets, state) if planner else None
 
-    if mode_value == INLINE:
-        task_id, call = widgets["inline_task"].value, widgets["inline_call"].value
-        if not task_id or call is None:
-            return None
-        return maprefac_extract.plan_inline(task_id, int(call), state=state)
 
-    if mode_value == MOVE:
-        key, project = widgets["move_object"].value, widgets["move_project"].value
-        if not key or not project:
-            return None
-        return maprefac_move.plan_move(widgets["move_kind"].value, key, project, state=state)
+def _plan_extract(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+    """Extract: the Task, the run of actions (either end first) and the new Task's name."""
+    task_id = widgets["extract_task"].value
+    first, last = widgets["extract_from"].value, widgets["extract_to"].value
+    if not task_id or first is None or last is None:
+        return None
+    first, last = sorted((int(first), int(last)))
+    return maprefac_extract.plan_extract(
+        task_id, list(range(first, last + 1)), widgets["extract_name"].value or "", state=state
+    )
 
-    if mode_value == DUPLICATE:
-        key = widgets["duplicate_object"].value
-        if not key:
-            return None
-        return maprefac_duplicate.plan_duplicate(
-            widgets["duplicate_kind"].value, key, widgets["duplicate_name"].value or "", state=state
-        )
 
-    return None
+def _plan_inline(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+    """Inline: the Task and which of its calls to fold back in."""
+    task_id, call = widgets["inline_task"].value, widgets["inline_call"].value
+    if not task_id or call is None:
+        return None
+    return maprefac_extract.plan_inline(task_id, int(call), state=state)
+
+
+def _plan_move(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+    """Move: the Task or Profile and the Project to put it in."""
+    key, project = widgets["move_object"].value, widgets["move_project"].value
+    if not key or not project:
+        return None
+    return maprefac_move.plan_move(widgets["move_kind"].value, key, project, state=state)
+
+
+def _plan_duplicate(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+    """Duplicate: the object and, optionally, what to call the copy."""
+    key = widgets["duplicate_object"].value
+    if not key:
+        return None
+    return maprefac_duplicate.plan_duplicate(
+        widgets["duplicate_kind"].value, key, widgets["duplicate_name"].value or "", state=state
+    )

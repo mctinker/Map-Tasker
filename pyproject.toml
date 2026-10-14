@@ -400,6 +400,7 @@ strict = [
     "maptasker/src/mapgen/__init__.py",
     "maptasker/src/mapgen/diagcnst.py",
     "maptasker/src/mapops/__init__.py",
+    "maptasker/src/mapops/maprefac_variable.py",
     "maptasker/src/mapops/mapswap.py",
     "maptasker/src/progargs.py",
 ]

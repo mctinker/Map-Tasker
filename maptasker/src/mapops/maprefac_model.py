@@ -34,6 +34,7 @@ EXTRACT = "extract"
 INLINE = "inline"
 MOVE = "move"
 DUPLICATE = "duplicate"
+VARIABLE = "variable"
 
 
 @dataclass(frozen=True)
