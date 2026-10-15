@@ -45,8 +45,21 @@ fi
 cd "$(dirname "$0")" || exit 1
 
 # Both generators are standard library only and read the version out of
-# pyproject.toml, so no virtual environment is needed. Let one already chosen win.
-PYTHON="${PYTHON:-python3}"
+# pyproject.toml, so no packages are needed -- but they do need the Python the project
+# does (3.11 or later), and the python3 on a Mac's PATH can be the system's 3.9. Use the
+# project's virtual environment when there is one. Let one already chosen win.
+if [ -z "${PYTHON:-}" ]; then
+    if [ -x .venv/bin/python ]; then
+        PYTHON=.venv/bin/python
+    else
+        PYTHON=python3
+    fi
+fi
+if ! "$PYTHON" -c 'import sys; sys.exit(sys.version_info < (3, 11))' 2>/dev/null; then
+    printf 'publish-wikis.sh: %s is %s; Python 3.11 or later is needed (set PYTHON to one).\n' \
+        "$PYTHON" "$("$PYTHON" --version 2>&1)" >&2
+    exit 2
+fi
 
 # Colour only when writing to a terminal, so piping to a file stays readable.
 if [ -t 1 ]; then

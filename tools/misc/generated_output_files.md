@@ -39,7 +39,9 @@ One per command that saves its results.  Each is stamped with the date and time 
 | `MapTasker_TaskerNet_date_time.txt` | Output folder | 'TaskerNet Updates' > 'Save Report' | What the author of a TaskerNet share changed since the version you have, and how your copy compares with the published one. |
 | `MapTasker_TaskFlow_date_time.txt` | Output folder | 'Task Flow' | Every Task's If/Else/For/Goto structure, linted. |
 | `MapTasker_Timeline_date_time.txt` | Output folder | 'Timeline' | What has changed in your own configuration since an earlier snapshot.  It is the comparison report under another name, so that 'what changed since Tuesday' does not land on top of a comparison of two separate files. |
+| `MapTasker_Trend_date_time.txt` | Current folder | -- | _Not yet described -- see build_generated_files_doc.py._ |
 | `MapTasker_VarXref_date_time.txt` | Output folder | 'Variables Xref' | Every variable, and everywhere it is set and read. |
+| `trend_metrics` | Current folder | -- | _Not yet described -- see build_generated_files_doc.py._ |
 
 ## Settings and remembered state
 
@@ -75,11 +77,6 @@ Written on the device by the Tasker helper Tasks, and read back by MapTasker ove
 | File | Written to | Produced by | What it holds |
 | :--- | :--- | :--- | :--- |
 | `maptasker_apps.txt` | Android device, 'Tasker/' | 'MapTasker Get Apps' | The device's installed applications: package, name and activity. |
-| `maptasker_files.txt` | Android device, 'Tasker/' | 'MapTasker List Files' | The files on the device. |
-| `maptasker_idcheck.txt` | Android device, 'Tasker/' | 'Import Into Tasker' | The result of checking ids after an import. |
-| `maptasker_import.txt` | Android device, 'Tasker/' | 'Import Into Tasker' | What the import did, handed back so MapTasker can report it. |
-| `maptasker_launch_tasker.txt` | Android device, 'Tasker/' | 'Open Tasker' | The result of asking the device to open Tasker. |
-| `maptasker_objects.txt` | Android device, 'Tasker/' | 'MapTasker List Tasker Objects' | Every Project, Profile, Scene and Task in one run.  Projects have no HTTP endpoint of their own, so this is the only way to get them. |
 
 ## Diagnostics
 
