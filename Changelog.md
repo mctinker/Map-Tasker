@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.1.2] 11-Oct-2026
+## [14.2.0] 15-Oct-2026
 
 ### Added
 
@@ -10,17 +10,16 @@ All notable changes to this project will be documented in this file!
 - Added: A new __Task Stepper__ button dry-runs one Task: you give it the variables it starts with and it walks the Task action by action, showing which If, Else If, For and Goto branches it takes and what every variable holds after each step.  Actions that talk to the outside world are shown as not simulated and a condition that depends on one stops the walk instead of guessing; each Task listed in What Fires When? has a Step button that opens it here.
 - Added: A new __Trend Dashboard__ button shows whether your configuration is getting healthier or messier: it measures every configuration the history has kept -- Task length, nesting depth, how deep Perform Task calls go and what the Health Check finds -- and charts each number over time, for the whole configuration and for each Project.  From the command line, `-trend` prints the same report and exits with 10 when the newest backup is messier than the one before, so a nightly job can flag it.
 - Added: Refactor has a new __Variable__ mode that renames a variable, or turns a global into a Task's own local (or the reverse), in every action, condition and Scene that uses it. The preview flags name clashes and any Task, Scene or Profile that would stop seeing the value, and the whole change is one Undo.
-- Added:
+- A detailed command reference is now available in the [wiki](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference). 
 
 ### Changed
 
 - Changed: The Trend Dashboard and the `-trend` report now list the new errors and warnings under each Project that got messier, instead of showing only a count such as "problems +3".  Up to five are shown per Project, followed by a count of any others.
 - Changed: The Map view, Diagram view, and Android backup fetch now tell you the exact file path they saved to, matching the other export and report features.
-- Changed:
 
 ### Removed
 
-- Removed:
+- Removed: Nothing removed.
 
 ### Fixed
 
@@ -32,7 +31,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: A variable's properties line no longer says 'Show in Notification' for every Text variable, which is a setting variables do not have.
 - Fixed: A Profile whose Time condition uses variables, such as sunrise and sunset, is now shown with those variables instead of "Time: from :00 to :00". A Time with a start and no end no longer shows an end time of 00.
 - Fixed: Running with the '-debug' option, an ordinary crash is now reported with its stack trace instead of failing again inside the crash report.
-- Fixed:
 
 ### Known Issues
 

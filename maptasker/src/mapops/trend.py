@@ -183,9 +183,7 @@ class SnapshotMetrics:
             total=Measures(**raw["total"]),
             projects={name: Measures(**values) for name, values in raw["projects"].items()},
             version=raw["version"],
-            problems={
-                name: [Problem(**values) for values in found] for name, found in raw.get("problems", {}).items()
-            },
+            problems={name: [Problem(**values) for values in found] for name, found in raw.get("problems", {}).items()},
         )
 
 

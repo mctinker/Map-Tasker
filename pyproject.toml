@@ -49,10 +49,10 @@ dependencies = [
 # them itself: `pip install "maptasker[ai]"` (or `uv add "maptasker[ai]"`) is how they arrive,
 # and maputil3.AI_EXTRA_INSTALL_COMMAND is what the program tells the user to run.
 ai = [
-    'anthropic>=1.13.0',
-    'google-genai>=2.29.0',
+    'anthropic>=1.14.0',
+    'google-genai>=2.31.0',
     'ollama>=0.6.3',
-    'openai>=3.28.0',
+    'openai>=3.31.0',
 ]
 
 [project.urls]
