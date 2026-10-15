@@ -177,7 +177,8 @@ async def test_the_table_has_a_row_for_each_snapshot_newest_first(tmp_path: Path
             for e in area.descendants()
             if isinstance(e, ui.label) and re.match(r"\d{2}-Sep-2026 \d{2}:\d{2}$", e.text)
         ]
-        assert dates == ["03-Sep-2026 08:00", "02-Sep-2026 08:00", "01-Sep-2026 08:00"]
+        # The snapshots are made at 12:00 UTC, which is a different clock time in each machine's own time zone.
+        assert dates == [f"{_at(day):%d-%b-%Y %H:%M}" for day in (3, 2, 1)]
 
 
 @pytest.mark.asyncio

@@ -42,8 +42,9 @@ def test_nothing_remembered_means_home() -> None:
 def test_a_picked_file_makes_its_folder_the_next_starting_point(monkeypatch: pytest.MonkeyPatch) -> None:
     remembered: list[tuple] = []
     monkeypatch.setattr(userintr_loading, "remember_setting", lambda gui, name, value: remembered.append((name, value)))
-    userintr_loading.remember_local_xml_directory(object(), "/home/me/backups/backup.xml")
-    assert remembered == [("local_xml_directory", "/home/me/backups")]
+    folder = Path("home", "me", "backups")  # Built, not typed, so it has this machine's separators.
+    userintr_loading.remember_local_xml_directory(object(), str(folder / "backup.xml"))
+    assert remembered == [("local_xml_directory", str(folder))]
 
 
 def test_no_file_picked_remembers_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
