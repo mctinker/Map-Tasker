@@ -69,7 +69,9 @@ def test_the_real_library_logs_no_function_calling_warning(
     monkeypatch.setattr(models.Models, "_logged_afc_warning", False)  # It warns once per process.
     monkeypatch.setattr(PrimeItems.program_arguments, "ai_model", "gemini-test", raising=False)
     client = genai.Client(api_key="not-a-real-key")
-    monkeypatch.setattr(client.models, "_generate_content", lambda **_kwargs: SimpleNamespace(text="an answer"))
+    monkeypatch.setattr(
+        client.models, "_generate_content", lambda **_kwargs: SimpleNamespace(text="an answer", candidates=[])
+    )
 
     with caplog.at_level(logging.INFO):
         assert mapai._process_gemini_response(client, "the query", state=PrimeItems) == "an answer"

@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: A variable's properties line no longer says 'Show in Notification' for every Text variable, which is a setting variables do not have.
 - Fixed: A Profile whose Time condition uses variables, such as sunrise and sunset, is now shown with those variables instead of "Time: from :00 to :00". A Time with a start and no end no longer shows an end time of 00.
 - Fixed: Running with the '-debug' option, an ordinary crash is now reported with its stack trace instead of failing again inside the crash report.
+- Fixed: In the Diagram view, a connector to a Task whose name ends in brackets, such as 'Disable State [Write/Refresh]', now starts below the calling Task instead of on the line above it. The extra spaces that had been left inside the 'Calls' and 'Called by' lists are gone too.
 
 ### Known Issues
 

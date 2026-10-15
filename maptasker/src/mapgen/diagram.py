@@ -829,6 +829,30 @@ def extract_with_subset(str1: str, str2: str) -> list:
     return result
 
 
+def _list_end(text: str) -> int:
+    """Where the bracketed list that `text` is the inside of ends: the position of its closing "]".
+
+    A called Task's own name can end in a bracketed word (e.g. "Disable State [Write/Refresh]"),
+    so the list ends at the first "]" that has no "[" before it, not at the first "]".
+
+    Args:
+        text (str): the line from just past the list's opening "[" and its "Calls ──▶ " or
+            "Called by ◄── " marker.
+
+    Returns:
+        int: the position of the closing "]", or -1 if the list is never closed.
+    """
+    depth = 0
+    for position, char in enumerate(text):
+        if char == "[":
+            depth += 1
+        elif char == "]":
+            if depth == 0:
+                return position
+            depth -= 1
+    return -1
+
+
 def get_index_setup(s: str, called_task_name: str) -> tuple:
     """
     Parse the 'calls' string and return a tuple of substrings and positions
@@ -856,10 +880,8 @@ def get_index_setup(s: str, called_task_name: str) -> tuple:
         return -1
 
     # Extract the relevant substring after "Calls ──▶ "
-    temp_line = s[start_search:].split("]", maxsplit=1)[0].strip()
-    close_bracket_pos = temp_line.find("]")
-    if close_bracket_pos != -1:
-        temp_line = temp_line[:close_bracket_pos]
+    list_end = _list_end(s[start_search:])
+    temp_line = (s[start_search : start_search + list_end] if list_end != -1 else s[start_search:]).strip()
 
     # Figure out how we are going to parse the 'calls' string
     delimiter = task_delimeter if task_delimeter in s else comma
@@ -1548,7 +1570,8 @@ def cleanup_task_names(output_lines: list, num: int, line: str) -> list:
 
         if call_position != -1:
             # Find the position of the closing bracket efficiently
-            brackets_position = output_lines[num].find("]", call_position + 8)
+            list_end = _list_end(output_lines[num][call_position + 8 :])
+            brackets_position = call_position + 8 + list_end if list_end != -1 else -1
 
             if brackets_position != -1:
                 # Calculate the number of occurrences and construct the new line
