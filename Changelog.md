@@ -2,36 +2,23 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.2.0] 15-Oct-2026
+## [14.2.1] ??-Oct-2026  # FIX
 
 ### Added
 
-- Added: The README is now also available in Simplified Chinese, Spanish, Hindi, French, Arabic, German, Danish, Finnish, Russian, Korean, and Japanese, with a language-switcher at the top of each version.
-- Added: A new __Task Stepper__ button dry-runs one Task: you give it the variables it starts with and it walks the Task action by action, showing which If, Else If, For and Goto branches it takes and what every variable holds after each step.  Actions that talk to the outside world are shown as not simulated and a condition that depends on one stops the walk instead of guessing; each Task listed in What Fires When? has a Step button that opens it here.
-- Added: A new __Trend Dashboard__ button shows whether your configuration is getting healthier or messier: it measures every configuration the history has kept -- Task length, nesting depth, how deep Perform Task calls go and what the Health Check finds -- and charts each number over time, for the whole configuration and for each Project.  From the command line, `-trend` prints the same report and exits with 10 when the newest backup is messier than the one before, so a nightly job can flag it.
-- Added: Refactor has a new __Variable__ mode that renames a variable, or turns a global into a Task's own local (or the reverse), in every action, condition and Scene that uses it. The preview flags name clashes and any Task, Scene or Profile that would stop seeing the value, and the whole change is one Undo.
-- A detailed command reference is now available in the [wiki](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference). 
+- Added:
 
 ### Changed
 
-- Changed: The Trend Dashboard and the `-trend` report now list the new errors and warnings under each Project that got messier, instead of showing only a count such as "problems +3".  Up to five are shown per Project, followed by a count of any others.
-- Changed: The Map view, Diagram view, and Android backup fetch now tell you the exact file path they saved to, matching the other export and report features.
+- Changed:
 
 ### Removed
 
-- Removed: Nothing removed.
+- Removed:
 
 ### Fixed
 
-- Fixed: The Restore From History help text no longer appears in italics. The folder names 'MapTasker_Timeline' and 'MapTasker_Backups' were being misread as italic markers.
-- Fixed: A backup that leaves out an element Tasker normally writes (a condition's operands, a Scene's size, a Profile's ID, an empty icon field) no longer stops the Map with an error. The missing value is shown blank instead.
-- Fixed: A Scene's size in the Map now reads "Width/Height: 480 X 800" for a Scene 480 wide and 800 tall; the two numbers were swapped.
-- Fixed: A Task that no Project lists is now shown under the 'Base' Project, where Tasker keeps it, instead of under whichever Project came last. The Task picker in the Scene editor groups it under 'Base' as well.
-- Fixed: In pretty mode, the last parameter of an action's 'Configuration Parameter(s)' no longer loses its line break.
-- Fixed: A variable's properties line no longer says 'Show in Notification' for every Text variable, which is a setting variables do not have.
-- Fixed: A Profile whose Time condition uses variables, such as sunrise and sunset, is now shown with those variables instead of "Time: from :00 to :00". A Time with a start and no end no longer shows an end time of 00.
-- Fixed: Running with the '-debug' option, an ordinary crash is now reported with its stack trace instead of failing again inside the crash report.
-- Fixed: In the Diagram view, a connector to a Task whose name ends in brackets, such as 'Disable State [Write/Refresh]', now starts below the calling Task instead of on the line above it. The extra spaces that had been left inside the 'Calls' and 'Called by' lists are gone too.
+- Fixed:
 
 ### Known Issues
 
@@ -45,6 +32,25 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
 
 ## Older History Logs
+
+## [14.2.0] 15-Oct-2026
+
+- Added: The README is now also available in Simplified Chinese, Spanish, Hindi, French, Arabic, German, Danish, Finnish, Russian, Korean, and Japanese, with a language-switcher at the top of each version.
+- Added: A new __Task Stepper__ button dry-runs one Task: you give it the variables it starts with and it walks the Task action by action, showing which If, Else If, For and Goto branches it takes and what every variable holds after each step.  Actions that talk to the outside world are shown as not simulated and a condition that depends on one stops the walk instead of guessing; each Task listed in What Fires When? has a Step button that opens it here.
+- Added: A new __Trend Dashboard__ button shows whether your configuration is getting healthier or messier: it measures every configuration the history has kept -- Task length, nesting depth, how deep Perform Task calls go and what the Health Check finds -- and charts each number over time, for the whole configuration and for each Project.  From the command line, `-trend` prints the same report and exits with 10 when the newest backup is messier than the one before, so a nightly job can flag it.
+- Added: Refactor has a new __Variable__ mode that renames a variable, or turns a global into a Task's own local (or the reverse), in every action, condition and Scene that uses it. The preview flags name clashes and any Task, Scene or Profile that would stop seeing the value, and the whole change is one Undo.
+- A detailed command reference is now available in the [wiki](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference). 
+- Changed: The Trend Dashboard and the `-trend` report now list the new errors and warnings under each Project that got messier, instead of showing only a count such as "problems +3".  Up to five are shown per Project, followed by a count of any others.
+- Changed: The Map view, Diagram view, and Android backup fetch now tell you the exact file path they saved to, matching the other export and report features.
+- Fixed: The Restore From History help text no longer appears in italics. The folder names 'MapTasker_Timeline' and 'MapTasker_Backups' were being misread as italic markers.
+- Fixed: A backup that leaves out an element Tasker normally writes (a condition's operands, a Scene's size, a Profile's ID, an empty icon field) no longer stops the Map with an error. The missing value is shown blank instead.
+- Fixed: A Scene's size in the Map now reads "Width/Height: 480 X 800" for a Scene 480 wide and 800 tall; the two numbers were swapped.
+- Fixed: A Task that no Project lists is now shown under the 'Base' Project, where Tasker keeps it, instead of under whichever Project came last. The Task picker in the Scene editor groups it under 'Base' as well.
+- Fixed: In pretty mode, the last parameter of an action's 'Configuration Parameter(s)' no longer loses its line break.
+- Fixed: A variable's properties line no longer says 'Show in Notification' for every Text variable, which is a setting variables do not have.
+- Fixed: A Profile whose Time condition uses variables, such as sunrise and sunset, is now shown with those variables instead of "Time: from :00 to :00". A Time with a start and no end no longer shows an end time of 00.
+- Fixed: Running with the '-debug' option, an ordinary crash is now reported with its stack trace instead of failing again inside the crash report.
+- Fixed: In the Diagram view, a connector to a Task whose name ends in brackets, such as 'Disable State [Write/Refresh]', now starts below the calling Task instead of on the line above it. The extra spaces that had been left inside the 'Calls' and 'Called by' lists are gone too.
 
 ## [14.1.2] 11-Oct-2026
 
