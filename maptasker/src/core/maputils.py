@@ -716,7 +716,18 @@ def restart_program_subprocess(state: RunState) -> None:
         # old process still holds the port that the freshly-spawned new process is
         # trying to bind to. NiceGUI itself always calls stop_and_exit() from a
         # separate thread (see nicegui/server.py) for this exact reason.
-        threading.Thread(target=stop_and_exit, daemon=True).start()
+        #
+        # Give NiceGUI's per-client outbox a moment to flush what the click handler just
+        # queued (e.g. the "Program updated.  Restarting..." message box).  Shutting down
+        # while the outbox is mid-batch cancels it with its remaining _emit() coroutines
+        # never awaited, which Python reports as "RuntimeWarning: coroutine
+        # 'Outbox._emit' was never awaited".  The handler has to return before the loop
+        # can send anything, so this wait must happen on the helper thread.
+        def _stop_after_flush() -> None:
+            time.sleep(0.5)
+            stop_and_exit()
+
+        threading.Thread(target=_stop_after_flush, daemon=True).start()
 
 
 def make_hex_color(color_string: str) -> str:
