@@ -6,7 +6,7 @@ Once the XML file is loaded, you can optionally edit your Projects, Profiles, Ta
 
 This page describes each of the **85** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 14.2.0 source on 2026-10-15 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 14.2.1 source on 2026-10-16 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -1187,12 +1187,16 @@ Link a Project, Profile, Task or Scene to the TaskerNet share it came from (past
 * An update is someone else's automation that will run on your phone, so read each preview before you take it.
 * The scan runs in the background -- close the window and carry on -- and a notification tells you when it is done.
 * Stop ends the reading of TaskerNet's list early and compares yours with the part already read; Select All and Deselect All tick the whole list of possible matches.
+* Each linked share shows when it was last checked, and Check Now ignores the 6 hours and checks every one.
 
 **Hover text:** Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find out when its author publishes a newer version. Shows what the author changed and lets you take each change on its own, previewed first and one press of Undo afterwards. Only the address of each linked share is sent to taskernet.com; nothing from your configuration leaves this computer.
 
 **Caveats:**
 
 * Find Links searches TaskerNet's public shares for the ones your Projects, Profiles, Tasks and Scenes came from and links those whose content agrees with yours -- a name alone is not enough, as different authors reuse names; partial matches are listed for you to tick.
+* Linked shares are also checked for a newer version automatically, without pressing Check Now: once when MapTasker starts and again each time the TaskerNet Updates window is opened, but only for a share that was last checked more than 6 hours ago.
+* A check is not repeated on a timer, so a MapTasker left running for days will not look again until the window is opened or Check Now is pressed.
+* A check reads only the share's publish date, changes nothing in your configuration, and when it fails the date of the last successful check is not replaced.
 
 **Known issues:**
 

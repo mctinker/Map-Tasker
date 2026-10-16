@@ -550,6 +550,21 @@ def describe_date(milliseconds: int) -> str:
     return datetime.fromtimestamp(milliseconds / 1000, tz=UTC).astimezone().strftime("%d-%b-%Y %H:%M")
 
 
+def describe_checked(checked: str) -> str:
+    """When TaskerNet was last asked about a link, as describe_date prints dates; "" if it never has been.
+
+    `checked` is the ISO time check_link recorded.  A time that will not parse is treated as never checked, the
+    same way Link.due does, rather than shown as something it is not.
+    """
+    if not checked:
+        return ""
+    try:
+        then = datetime.fromisoformat(checked)
+    except ValueError:
+        return ""
+    return then.astimezone().strftime("%d-%b-%Y %H:%M")
+
+
 # ##################################################################################
 # Finding what the link is attached to, here.
 # ##################################################################################

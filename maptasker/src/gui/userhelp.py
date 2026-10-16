@@ -240,7 +240,13 @@ TASKERNET_UPDATES_HELP_TEXT = (
     " whose content agrees with yours -- a name alone is not enough, as different authors reuse names; partial"
     " matches are listed for you to tick.  The scan runs in the background -- close the window and carry on -- and a"
     " notification tells you when it is done.  Stop ends the reading of TaskerNet's list early and compares yours"
-    " with the part already read; Select All and Deselect All tick the whole list of possible matches.  \n"
+    " with the part already read; Select All and Deselect All tick the whole list of possible matches.  Linked"
+    " shares are also checked for a newer version automatically, without pressing Check Now: once when MapTasker"
+    " starts and again each time the TaskerNet Updates window is opened, but only for a share that was last checked"
+    " more than 6 hours ago.  A check is not repeated on a timer, so a MapTasker left running for days will not look"
+    " again until the window is opened or Check Now is pressed.  Each linked share shows when it was last checked,"
+    " and Check Now ignores the 6 hours and checks every one.  A check reads only the share's publish date, changes"
+    " nothing in your configuration, and when it fails the date of the last successful check is not replaced.  \n"
 )
 TASKSTEP_HELP_TEXT = (
     "- Task Stepper: Dry-run one Task.  Pick it, say what its variables hold when it starts (Suggest Inputs lists the"

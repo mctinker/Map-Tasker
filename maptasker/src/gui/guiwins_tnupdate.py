@@ -102,6 +102,14 @@ def _status_text(link: tnupdate.Link) -> str:
     return translate_string("Not checked yet")
 
 
+def _checked_text(link: tnupdate.Link) -> str:
+    """When TaskerNet was last asked about this link, so the user can judge whether to ask again."""
+    when = tnupdate.describe_checked(link.checked)
+    if not when:
+        return translate_string("Never checked")
+    return f"{translate_string('Last checked')} {when}"
+
+
 def _row_tag(candidate: maprestore.Candidate) -> str:
     """The row's tag in the share's terms: what xmldiff calls 'removed' is something the author has and you do not."""
     kind = candidate.kind.upper()
@@ -360,6 +368,7 @@ class _UpdatesDialog:
                         "text-xs text-gray-500 italic",
                     )
                 ui.label(_status_text(link)).classes("text-xs " + _STATUS_CLASSES[link.status])
+                ui.label(_checked_text(link)).classes("text-xs text-gray-500")
                 if link.problem:
                     ui.label(link.problem).classes("text-xs text-red-500 break-all")
             review = ui.button(translate_string("Review"), on_click=partial(self.review, link))

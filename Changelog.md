@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: The note at the top of the Diagram no longer warns that icons can cause mis-alignment, since they are now lined up; it still warns about Chinese, Korean and Japanese characters.
+- Changed: Each share listed in TaskerNet Updates now shows when it was last checked, or 'Never checked', so you can tell whether another check is worth making.
 - Changed:
 
 ### Removed

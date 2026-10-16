@@ -22,6 +22,7 @@ version of it.
 
 from __future__ import annotations
 
+import re
 import base64
 import gzip
 import json
@@ -1108,3 +1109,13 @@ def test_a_profile_is_linked_to_a_task_that_came_in_with_it() -> None:
     profile = next(entry["xml"] for entry in _live("all_profiles").values() if entry["name"] == "Fresh Profile")
     entry = _live("all_tasks")[profile.findtext("mid0")]
     assert entry["name"] == "Fresh Task"
+
+
+def test_a_last_checked_time_is_shown_as_the_other_dates_are() -> None:
+    assert tnupdate.describe_checked("2026-10-07T15:38:00+00:00") != ""
+    assert re.fullmatch(r"\d{2}-[A-Za-z]{3}-\d{4} \d{2}:\d{2}", tnupdate.describe_checked("2026-10-07T15:38:00+00:00"))
+
+
+@pytest.mark.parametrize("checked", ["", "yesterday-ish"])
+def test_a_link_never_checked_or_with_an_unreadable_time_has_no_date(checked: str) -> None:
+    assert tnupdate.describe_checked(checked) == ""

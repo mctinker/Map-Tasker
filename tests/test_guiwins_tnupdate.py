@@ -228,6 +228,35 @@ async def test_opening_looks_for_newer_versions_and_says_which_link_has_one() ->
 
 
 @pytest.mark.asyncio
+async def test_each_link_says_when_it_was_last_checked() -> None:
+    """The date is there so the user can tell whether another check is worth making."""
+    link = _seed(latest=1_600_000_000_000)
+    link.checked = tnupdate.clock.now().isoformat()
+    _book().save()
+
+    async with _open() as user:
+        await user.should_see(f"Last checked {tnupdate.describe_checked(link.checked)}")
+
+
+@pytest.mark.asyncio
+async def test_a_check_that_found_something_updates_the_date_on_screen() -> None:
+    _seed()
+    _built["published"] = 1_700_000_000_000
+    async with _open() as user:
+        await user.should_see("Newer version published")
+        await user.should_see("Last checked")
+        await user.should_not_see("Never checked")
+
+
+@pytest.mark.asyncio
+async def test_a_link_that_could_not_be_checked_says_it_never_was() -> None:
+    _seed()
+    _built["offline"] = True
+    async with _open() as user:
+        await user.should_see("Never checked")
+
+
+@pytest.mark.asyncio
 async def test_a_link_checked_a_moment_ago_is_not_asked_again_on_opening() -> None:
     link = _seed(latest=1_600_000_000_000)
     link.checked = tnupdate.clock.now().isoformat()
@@ -701,7 +730,9 @@ async def test_select_all_and_deselect_all_work_on_the_whole_checklist(monkeypat
     monkeypatch.setattr(
         tnupdate,
         "fetch_public_page",
-        lambda token="": {"shares": [_listed("Project", "Pack", 5, "AAAAuser"), _listed("Project", "Pack", 9, "BBBBuser")]},  # noqa: ARG005
+        lambda token="": {
+            "shares": [_listed("Project", "Pack", 5, "AAAAuser"), _listed("Project", "Pack", 9, "BBBBuser")]
+        },  # noqa: ARG005
     )
 
     async with _open() as user:
@@ -728,7 +759,9 @@ async def test_select_all_and_deselect_all_work_on_the_whole_checklist(monkeypat
 
 
 @pytest.mark.asyncio
-async def test_stop_during_the_reading_still_gives_matches_and_says_the_list_was_cut_short(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_stop_during_the_reading_still_gives_matches_and_says_the_list_was_cut_short(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from tests.test_tnfind import _listed  # noqa: PLC0415
 
     _built["xml"] = _share()
