@@ -47,8 +47,7 @@ from __future__ import annotations
 
 import json
 import os
-from collections import namedtuple
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import logger
@@ -56,15 +55,28 @@ from maptasker.src.core.sysconst import logger
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
-# Define the namedtuples
-ActionCode = namedtuple(  # noqa: PYI024
-    "ActionCode",
-    ["redirect", "args", "name", "category", "canfail"],
-)
-ArgumentCode = namedtuple(  # noqa: PYI024
-    "ArgumentCode",
-    ["arg_id", "arg_required", "arg_name", "arg_type", "arg_eval"],
-)
+
+# The two records the tables are made of.  Fields are Any because the overlay file writes some of them as text and
+# the published one as numbers and booleans, and callers read them as they always have.
+class ActionCode(NamedTuple):
+    """One action, event or state: what it is called and the arguments it takes."""
+
+    redirect: Any
+    args: Any
+    name: Any
+    category: Any
+    canfail: Any
+
+
+class ArgumentCode(NamedTuple):
+    """One argument of an ActionCode."""
+
+    arg_id: Any
+    arg_required: Any
+    arg_name: Any
+    arg_type: Any
+    arg_eval: Any
+
 
 # Resolved off this file rather than the working directory: proginit chdir's into the
 # assets directory during start-up and several callers import this module from a test
@@ -142,7 +154,7 @@ def _overlay_entry(entry: dict) -> ActionCode:
     )
 
 
-def build_action_codes() -> dict:
+def build_action_codes() -> dict[str, ActionCode]:
     """The master action/condition table, assembled from the two json files.
 
     Sorted at the end because callers iterate this table to build user-facing pickers
@@ -170,7 +182,7 @@ def build_action_codes() -> dict:
     return dict(sorted(codes.items()))
 
 
-action_codes = build_action_codes()
+action_codes: dict[str, ActionCode] = build_action_codes()
 
 
 def load_arg_specs(state: RunState | None = None) -> None:

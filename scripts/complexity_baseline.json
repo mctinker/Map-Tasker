@@ -5,9 +5,6 @@
   "maptasker/src/analysis/healthck.py::_index_one_action": {
     "PLR0912": 13
   },
-  "maptasker/src/analysis/healthck.py::_limitations": {
-    "LINES": 106
-  },
   "maptasker/src/core/aiutils.py::get_llama_models": {
     "LINES": 103
   },

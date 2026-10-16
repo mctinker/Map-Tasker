@@ -199,7 +199,7 @@ def test_the_check_for_plugins_missing_from_the_device_is_left_out_because_it_as
     measure(tmp_path, Home={"A": (flash("a"),)})
 
     assert asked
-    assert set(asked[0]) == set(trend.plugchk.TAGS)
+    assert set(asked[0]) == set(trend.plugchk.TAGS | trend.resrefs.TAGS)
 
 
 def test_what_is_found_is_the_same_each_time_it_is_measured(tmp_path: Path) -> None:

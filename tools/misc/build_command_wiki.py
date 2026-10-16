@@ -1364,6 +1364,8 @@ HELP_PIECES = (
     "TASKERNET_UPDATES_HELP_TEXT",
     "TASKSTEP_HELP_TEXT",
     "TREND_HELP_TEXT",
+    "VARIABLE_HELP_TEXT",
+    "RESOURCES_HELP_TEXT",
 )
 
 # The longer help texts that go with one command: what the command is called in the Help

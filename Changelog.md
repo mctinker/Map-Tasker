@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: A new __Missing Resources__ button asks your Android device whether the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist, and lists the ones it does not have along with every place that uses each. The Health Check now reports those too (RESOURCE-MISSING) from the last time you checked.
 - Added:
 
 ### Changed

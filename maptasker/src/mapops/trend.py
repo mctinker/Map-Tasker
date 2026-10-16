@@ -23,9 +23,10 @@
 #                  name are followed: one whose name is built from a variable is decided on the   #
 #                  device, and a Task that (through others) calls itself is counted, not walked.   #
 #   findings       the Health Check's, as errors, warnings and information -- with one pass left    #
-#                  out, the check for plugins missing from the device's app list.  That one asks    #
-#                  the DEVICE, not the snapshot, so its answer would move from day to day while the  #
-#                  configuration stood still, and a trend has to move only when the file does.       #
+#                  out, the checks for plugins and resources (files, Scenes, apps) missing from the    #
+#                  device.  Those ask the DEVICE, not the snapshot, so their answers would move from   #
+#                  day to day while the configuration stood still, and a trend has to move only when   #
+#                  the file does.                                                                   #
 #                                                                                        #
 # Lower is better for everything but size, so "healthier" means those went down and "messier"     #
 # means they went up; where some rose and some fell it says about the same rather than netting     #
@@ -65,7 +66,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from maptasker.src.analysis import healthck, plugchk, taskflow, timecomp
+from maptasker.src.analysis import healthck, plugchk, resrefs, taskflow, timecomp
 from maptasker.src.core import timeline
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import actions_in_map_order
@@ -75,6 +76,7 @@ from maptasker.src.mapops import tnupdate
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+    from xml.etree.ElementTree import Element
 
 # Bumped when a release measures something more (or measures something differently).
 METRICS_VERSION = 2
@@ -216,7 +218,7 @@ def _task_facts(state: RunState) -> dict[str, _TaskFacts]:
     return facts
 
 
-def _calls_of(task_element: object) -> list[str]:
+def _calls_of(task_element: Element) -> list[str]:
     """The Tasks a Task performs by name.  A switched-off action is not a call, and a name with a variable in it is not followed."""
     calls = []
     for action in actions_in_map_order(task_element):
@@ -314,7 +316,7 @@ def _findings_by_project(state: RunState) -> tuple[dict[str, Measures], Measures
 
     Findings with no Project go in the total only.
     """
-    index = healthck.collect_findings(plugchk.TAGS, state=state)
+    index = healthck.collect_findings(plugchk.TAGS | resrefs.TAGS, state=state)
     per_project: dict[str, Measures] = {}
     problems: dict[str, list[Problem]] = {}
     total = Measures()

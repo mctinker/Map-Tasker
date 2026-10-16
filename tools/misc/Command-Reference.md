@@ -4,7 +4,7 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **85** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **87** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
 _Generated from the MapTasker 14.2.1 source on 2026-10-16 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
@@ -65,10 +65,12 @@ _Generated from the MapTasker 14.2.1 source on 2026-10-16 by `build_command_wiki
   * [Profiles Per Line](#cmd-profiles-per-line)
   * [Zoom, Collapse All, Expand All, Reset](#cmd-zoom-collapse-all-expand-all-reset)
   * [Rebuild](#cmd-rebuild)
+* [Missing Resources](#cmd-missing-resources)
 * [Notification Duration](#cmd-notification-duration)
 * [Open View In New Window](#cmd-open-view-in-new-window)
 * [Output Folder](#cmd-output-folder)
 * [Project/Profile/Task/Scene Names](#cmd-project-profile-task-scene-names)
+* [Refactor > Variable](#cmd-refactor-variable)
 * [Report Issue](#cmd-report-issue)
 * [Reset Options](#cmd-reset-options)
 * [Restore From History](#cmd-restore-from-history)
@@ -1234,6 +1236,32 @@ Is your configuration getting healthier or messier?
 * From the command line, -trend [-file backup.xml] [-project NAME] prints the same report and exits with 10 when the newest backup is messier than the one before.
 
 **Hover text:** Is your configuration getting healthier or messier? Measures every configuration the history has kept -- Task length, nesting depth, how deep Perform Task calls go, and what the Health Check finds -- and shows each number over time, for the whole configuration and for each Project. Each configuration is measured once and the figures are kept, so only the first look is slow.
+
+<a id="cmd-refactor-variable"></a>
+### Refactor > Variable
+
+Rename a variable everywhere it is used, or change it between global and local.
+
+* Tasker reads the scope from the spelling -- all lower case is local to the running Task, any capital makes it a global shared by everything -- so Make local and Make global change who can see the value, and the preview checks it first.
+* It reads the whole configuration whatever is selected above, and refuses (naming the place) when the new name is already a variable, when a Scene or a Profile's condition reads a global you are making local, or when a Task reads it before setting it.
+* Several Tasks that shared a global each get a copy of their own, and a local made global is shared by every Task: the preview says both.
+* Previewed before anything is done, and one press of Undo afterwards.
+
+<a id="cmd-missing-resources"></a>
+### Missing Resources
+
+**Type:** Command  
+**Where:** Main Window
+
+Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist on your Android device? Press Check Device and MapTasker asks the device -- it puts a small helper Task there, hands it the list of paths to test, fetches the installed apps and asks Tasker for its Scenes -- then lists what the device does not have, with every action or Profile that uses each one (click a line to go to it). The Health Check reports the same as RESOURCE-MISSING from the last check, and says when it was made. Nothing is changed on the device but the helper Task and two small files in its Tasker folder, and nothing in your configuration changes.
+
+**Hover text:** Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist on your Android device? Asks the device and lists the ones it does not have, with every place that uses each. The Health Check reports the same findings from the last time you checked.
+
+**Caveats:**
+
+* A path built from a variable, a wildcard and a web or content address cannot be tested and are listed as not checked; a path an action writes to is not tested, as it is not meant to exist yet; a ringtone, a Tasker icon and the images inside a Scene are not looked at.
+* Something is called missing only when every device you have checked lacks it.
+* Tasker must be running with the HTTP Server Example project active, and the device asks you to authorize the connection.
 
 ## Command-Line Arguments
 

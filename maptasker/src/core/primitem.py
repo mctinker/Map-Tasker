@@ -69,7 +69,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core import caches
 from maptasker.src.core.initparg import ArgumentFields, ProgramArguments
@@ -149,7 +149,7 @@ def initial_directory_items() -> dict:
     }
 
 
-def initial_tasker_root_elements() -> dict:
+def initial_tasker_root_elements() -> dict[str, Any]:
     """
     Build an empty tasker_root_elements dictionary -- no Tasker objects loaded.
 
@@ -343,7 +343,7 @@ class RunState:
         # configuration that is about to be replaced -- but not when a Diagram is drawn, which
         # leaves the flowchart as it was (it is not in DIAGRAM_ATTRIBUTES).
         self.taskflow_rows: list = []
-        self.tasker_root_elements: dict = initial_tasker_root_elements()
+        self.tasker_root_elements: dict[str, Any] = initial_tasker_root_elements()
         # The highest Task/Profile id in the file as it was loaded, set by taskerd.get_the_xml_data.
         # New ids are kept well above it -- see taskedit.NEW_OBJECT_ID_HEADROOM.  0 = nothing loaded.
         self.loaded_highest_object_id = 0

@@ -314,7 +314,9 @@ def _take_blanks(segment: str, count: int) -> tuple[str, int]:
 
     # A box is never touched; otherwise, the last resort.
     lone = [i for i, char in enumerate(segment) if char == blank and "\u2551" not in segment[i - 1 : i + 2]]
-    beside_punctuation = [i for i in lone if segment[i - 1 : i] in _punctuation or segment[i + 1 : i + 2] in _punctuation]
+    beside_punctuation = [
+        i for i in lone if segment[i - 1 : i] in _punctuation or segment[i + 1 : i + 2] in _punctuation
+    ]
     between_words = [i for i in lone if i not in beside_punctuation]
     chosen = (beside_punctuation[::-1] + between_words[::-1])[: count - taken]
     if len(chosen) < count - taken:

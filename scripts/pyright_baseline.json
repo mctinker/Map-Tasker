@@ -16,7 +16,7 @@
     "reportGeneralTypeIssues": 2
   },
   "maptasker/src/analysis/proflint.py": {
-    "reportArgumentType": 6
+    "reportArgumentType": 4
   },
   "maptasker/src/analysis/xmldiff.py": {
     "reportAttributeAccessIssue": 2
@@ -60,7 +60,7 @@
     "reportAttributeAccessIssue": 3
   },
   "maptasker/src/core/mapjump.py": {
-    "reportAttributeAccessIssue": 2,
+    "reportAttributeAccessIssue": 1,
     "reportGeneralTypeIssues": 1
   },
   "maptasker/src/core/maputils.py": {

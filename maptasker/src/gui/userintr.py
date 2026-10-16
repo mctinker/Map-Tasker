@@ -103,6 +103,7 @@ from maptasker.src.gui.guiwins_firesim import build_firesim_dialog
 from maptasker.src.gui.guiwins_fix import build_fix_dialog
 from maptasker.src.gui.guiwins_nav import forget_views, go_to_target, live_views, opening_view_in_a_new_window
 from maptasker.src.gui.guiwins_refactor import build_refactor_dialog
+from maptasker.src.gui.guiwins_resources import build_resources_dialog
 from maptasker.src.gui.guiwins_restore import build_restore_dialog
 from maptasker.src.gui.guiwins_taskstep import build_taskstep_dialog
 from maptasker.src.gui.guiwins_tnupdate import build_tnupdate_dialog, check_links_at_startup
@@ -265,6 +266,8 @@ class MyGui:
     taskstep_dialog: ui.dialog | None
     # The Trend Dashboard dialog while one is up (see trend_dashboard_event).
     trend_dialog: ui.dialog | None
+    # The Missing Resources dialog while one is up (see missing_resources_event).
+    resources_dialog: ui.dialog | None
     # Everything else the window keeps on itself, declared so the type checker knows it exists.
     # Widgets are assigned once, when the layout is built (initialize_screen and the guiwins builders).
     add_profile_button: ui.button
@@ -2227,6 +2230,33 @@ class MapTaskerEventHandlers(
         if dialog is None:
             return
         self.gui.firesim_dialog = dialog
+        dialog.open()
+
+    def missing_resources_event(self: "MapTaskerEventHandlers") -> None:
+        """Open Missing Resources: do the files, folders, images, sounds, Scenes and apps the actions use still exist?
+
+        Rebuilt on every press, for fire_simulator_event's reason: it opens on what the configuration loaded at the
+        moment of the press refers to.
+        """
+        dialog = getattr(self.gui, "resources_dialog", None)
+        self.gui.resources_dialog = None
+        if dialog is not None:
+            with suppress_logged("Deleting the Missing Resources dialog"):
+                dialog.delete()
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
+            """One row's click: open what it names in a window of its own, keeping this one up."""
+
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        dialog = build_resources_dialog(self.gui, make_jump)
+        if dialog is None:
+            return
+        self.gui.resources_dialog = dialog
         dialog.open()
 
     def trend_dashboard_event(self: "MapTaskerEventHandlers") -> None:

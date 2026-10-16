@@ -2735,6 +2735,7 @@ def _create_right_drawer(self: MyGui) -> None:
         )
         _create_view_buttons_section(self)
         _create_health_check_row(self)
+        _create_resources_button(self)
 
         _create_history_buttons_section(self)
         _create_trend_button(self)
@@ -3015,6 +3016,28 @@ def _create_history_buttons_section(self: MyGui) -> None:
                 "lets you take each change on its own, previewed first and one press of Undo "
                 "afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; "
                 "nothing from your configuration leaves this computer.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
+def _create_resources_button(self: MyGui) -> None:
+    """Missing Resources, under the Health Check it extends: do the files, Scenes and apps the actions use still exist?"""
+    resources_button = (
+        ui.button(
+            translate_string("Missing Resources"),
+            color="teal",
+            on_click=self.event_handlers.missing_resources_event,
+            icon="find_in_page",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with resources_button:
+        ui.tooltip(
+            translate_string(
+                "Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist on "
+                "your Android device?  Asks the device and lists the ones it does not have, with every place that "
+                "uses each.\n\nThe Health Check reports the same findings from the last time you checked."
             ),
         ).style("white-space: pre-wrap")
 

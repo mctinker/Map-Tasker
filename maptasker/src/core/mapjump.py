@@ -46,6 +46,8 @@ from maptasker.src.core.sysconst import (
 )
 
 if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
+
     from maptasker.src.core.primitem import RunState
 
 # What kind of thing a Target names.  Deliberately not an Enum: these are written into
@@ -293,7 +295,7 @@ def minimum_detail_level(target: Target) -> int:
     return 0
 
 
-def actions_in_map_order(task_element: object) -> list:
+def actions_in_map_order(task_element: Element) -> list[Element]:
     """A Task's actions in the order the Map numbers them.
 
     NOT document order.  Tasker writes a Task's actions as act0, act1, act10, act11, act12,
@@ -312,9 +314,9 @@ def actions_in_map_order(task_element: object) -> list:
     those too -- so they keep their document order at the end rather than raising.
     """
 
-    def position(item: tuple[int, object]) -> tuple[int, int, int]:
+    def position(item: tuple[int, Element]) -> tuple[int, int, int]:
         index, action = item
-        suffix = str(getattr(action, "attrib", {}).get("sr", ""))[3:]
+        suffix = str(action.attrib.get("sr", ""))[3:]
         return (0, int(suffix), index) if suffix.isdigit() else (1, 0, index)
 
     return [action for _, action in sorted(enumerate(task_element.findall("Action")), key=position)]

@@ -859,7 +859,7 @@ class _TaskScan:
     long_running: bool  # holds a loop or a wait, so a second trigger can arrive mid-run
 
 
-def _backward_gotos(steps: list[tuple[int, str, object]]) -> dict[int, int]:
+def _backward_gotos(steps: list[tuple[int, str, Element]]) -> dict[int, int]:
     """{action number: the earlier action it jumps back to} for every backwards Goto.
 
     A Goto aimed at an earlier action is a loop the block matcher cannot see -- Tasker's

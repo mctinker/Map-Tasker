@@ -280,6 +280,19 @@ VARIABLE_HELP_TEXT = (
     " local made global is shared by every Task: the preview says both.  Previewed before anything is done, and one"
     " press of Undo afterwards.  \n"
 )
+RESOURCES_HELP_TEXT = (
+    "- Missing Resources: Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still"
+    " exist on your Android device?  Press Check Device and MapTasker asks the device -- it puts a small helper Task"
+    " there, hands it the list of paths to test, fetches the installed apps and asks Tasker for its Scenes -- then"
+    " lists what the device does not have, with every action or Profile that uses each one (click a line to go to"
+    " it).  The Health Check reports the same as RESOURCE-MISSING from the last check, and says when it was made."
+    "  A path built from a variable, a wildcard and a web or content address cannot be tested and are listed as not"
+    " checked; a path an action writes to is not tested, as it is not meant to exist yet; a ringtone, a Tasker icon"
+    " and the images inside a Scene are not looked at.  Something is called missing only when every device you have"
+    " checked lacks it.  Tasker must be running with the HTTP Server Example project active, and the device asks you"
+    " to authorize the connection.  Nothing is changed on the device but the helper Task and two small files in its"
+    " Tasker folder, and nothing in your configuration changes.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -309,5 +322,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}"
     )

@@ -20,7 +20,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src.analysis import plugchk, proflint, taskflow
+from maptasker.src.analysis import plugchk, proflint, resrefs, taskflow
 from maptasker.src.core import clock, piiscan
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.mapjump import (
@@ -179,6 +179,11 @@ CATEGORIES: tuple[Category, ...] = (
     Category("MISSING-COLLISION", GROUP_BEHAVIOUR, "A long-running Task left on the default collision handling."),
     Category("NO-TIMEOUT", GROUP_BEHAVIOUR, "An action that can block for ever."),
     Category(plugchk.NOT_INSTALLED, GROUP_BEHAVIOUR, "A plugin missing from the app list fetched from the device."),
+    Category(
+        resrefs.MISSING,
+        GROUP_BEHAVIOUR,
+        "A file, folder, image, sound, Scene or app an action uses that the device does not have.",
+    ),
     Category("SECRET-API-KEY", GROUP_SECRETS, "An API key or access token."),
     Category("SECRET-TOKEN", GROUP_SECRETS, "A bearer token in an Authorization header."),
     Category("SECRET-PASSWORD", GROUP_SECRETS, "A password written into a value."),
@@ -199,6 +204,7 @@ _PASS_TAGS = {
     "variables": frozenset(f"VAR-{tag}" for tag in (varxref.NEAR_DUPLICATE, varxref.NEVER_SET, varxref.NEVER_READ)),
     "behaviour": proflint.TAGS,
     "plugins": plugchk.TAGS,
+    "resources": resrefs.TAGS,
     "secrets": piiscan.TAGS,
 }
 
@@ -309,6 +315,9 @@ class ReferenceIndex:
     # How many plugins the configuration uses, when there was no app list to check them
     # against -- see _check_plugins and the note _limitations prints for it.
     plugins_unchecked: int = 0
+    # How many distinct files, folders, images, sounds, Scenes and apps the configuration refers to, when no device
+    # had been checked for them -- see _check_resources and the note _limitations prints for it.
+    resources_unchecked: int = 0
     findings: list[Finding] = field(default_factory=list)
 
     def add(
@@ -931,6 +940,18 @@ def _check_plugins(index: ReferenceIndex, state: RunState) -> None:
     index.plugins_unchecked = plugchk.plugins_unchecked(state=state)
 
 
+def _check_resources(index: ReferenceIndex, state: RunState) -> None:
+    """Fold the check for files, folders, images, sounds, Scenes and apps the device lacks into this report.
+
+    Folded in for _check_plugins' reason: a question about the DEVICE, answered without going to it.  The answers
+    are the ones the Missing Resources check stored the last time it asked a phone (resstore), so a user who has
+    never run it gets no findings and a note saying why (see _limitations), not a clean bill of health.
+    """
+    for problem in resrefs.lint_problems(state=state):
+        index.add(problem.severity, problem.tag, problem.where, problem.detail, problem.target, problem.related)
+    index.resources_unchecked = resrefs.resources_unchecked(state=state)
+
+
 def _check_secrets(index: ReferenceIndex, state: RunState) -> None:
     """Fold the secrets and personal-details scan into this report.
 
@@ -1075,6 +1096,63 @@ def _build_report(
     return rows + [Row(line) for line in _limitations(index) + _not_run(skip)]
 
 
+def _device_check_notes(index: ReferenceIndex) -> list[str]:
+    """The closing notes for the checks that depend on what a device said earlier: plugins, and missing resources.
+
+    Each is one of two: a finding was reported (said how old the answer may be), or none could be because no device
+    had been asked (said how to ask).  Neither is printed for a check that was unticked, as nothing of its is left.
+    """
+    notes: list[str] = []
+    if any(item.tag in plugchk.TAGS for item in index.findings):
+        notes += [
+            "",
+            "NOTE ON PLUGINS",
+            "-" * _REPORT_WIDTH,
+            "A plugin reported not installed was missing from the app list last fetched",
+            "from the device, not from the device itself: an app installed since that",
+            "fetch is not on it.  Fetch the list again ('Refresh App List' in the Health",
+            "Check panel) before installing anything.",
+            "",
+        ]
+
+    if index.plugins_unchecked:
+        notes += [
+            "",
+            "NOTE ON PLUGINS",
+            "-" * _REPORT_WIDTH,
+            f"This configuration uses {index.plugins_unchecked} plugin(s), and none of them was checked",
+            "for being installed: no app list has been fetched from the device to check",
+            "them against.  Fetch one ('Refresh App List' in the Health Check panel) and",
+            "run the Health Check again.",
+            "",
+        ]
+
+    if any(item.tag in resrefs.TAGS for item in index.findings):
+        notes += [
+            "",
+            "NOTE ON MISSING RESOURCES",
+            "-" * _REPORT_WIDTH,
+            "A resource reported missing was not there when the device was last checked",
+            "('Missing Resources' in the main window), not necessarily now: a file put",
+            "back since is not on the list.  Check again before deleting anything.",
+            "",
+        ]
+
+    if index.resources_unchecked:
+        notes += [
+            "",
+            "NOTE ON MISSING RESOURCES",
+            "-" * _REPORT_WIDTH,
+            f"This configuration refers to {index.resources_unchecked} file(s), folder(s), image(s), sound(s),",
+            "Scene(s) and app(s), and none of them was checked for being on the device:",
+            "no device has been asked.  Run 'Missing Resources' in the main window and",
+            "run the Health Check again.",
+            "",
+        ]
+
+    return notes
+
+
 def _limitations(index: ReferenceIndex) -> list[str]:
     """The closing note on what this check cannot see.
 
@@ -1118,29 +1196,7 @@ def _limitations(index: ReferenceIndex) -> list[str]:
             "",
         ]
 
-    if any(item.tag in plugchk.TAGS for item in index.findings):
-        notes += [
-            "",
-            "NOTE ON PLUGINS",
-            "-" * _REPORT_WIDTH,
-            "A plugin reported not installed was missing from the app list last fetched",
-            "from the device, not from the device itself: an app installed since that",
-            "fetch is not on it.  Fetch the list again ('Refresh App List' in the Health",
-            "Check panel) before installing anything.",
-            "",
-        ]
-
-    if index.plugins_unchecked:
-        notes += [
-            "",
-            "NOTE ON PLUGINS",
-            "-" * _REPORT_WIDTH,
-            f"This configuration uses {index.plugins_unchecked} plugin(s), and none of them was checked",
-            "for being installed: no app list has been fetched from the device to check",
-            "them against.  Fetch one ('Refresh App List' in the Health Check panel) and",
-            "run the Health Check again.",
-            "",
-        ]
+    notes += _device_check_notes(index)
 
     if any(item.tag in piiscan.TAGS for item in index.findings):
         notes += [
@@ -1283,6 +1339,8 @@ def collect_findings(skip: Collection[str] = (), *, state: RunState) -> Referenc
         _check_behaviour(index, state=state)
     if not _PASS_TAGS["plugins"] <= skip:
         _check_plugins(index, state=state)
+    if not _PASS_TAGS["resources"] <= skip:
+        _check_resources(index, state=state)
     if not _PASS_TAGS["secrets"] <= skip:
         _check_secrets(index, state=state)
 

@@ -29,6 +29,7 @@ One per command that saves its results.  Each is stamped with the date and time 
 | File | Written to | Produced by | What it holds |
 | :--- | :--- | :--- | :--- |
 | `MapTasker_Analysis_date_time.txt` | Output folder | 'Run (AI) Analysis' | The analysis the AI model returned for your configuration. |
+| `maptasker_check_in.txt` | Current folder | -- | _Not yet described -- see build_generated_files_doc.py._ |
 | `MapTasker_Compare.txt` | Output folder | 'Compare Files' | What differs between two configurations. |
 | `MapTasker_Find_date_time.txt` | Output folder | 'Find' > 'Save Results' | The saved results of a search. |
 | `MapTasker_Fix_date_time.txt` | Output folder | 'Fix Findings' | What the repairs changed.  Kept apart from the Health Check report because that one says what is wrong and this one says what was done about it. |
@@ -36,11 +37,13 @@ One per command that saves its results.  Each is stamped with the date and time 
 | `MapTasker_HealthCheck_date_time.txt` | Output folder | 'Health Check' | What the check found wrong with the configuration. |
 | `MapTasker_Refactor_date_time.txt` | Output folder | 'Refactor' | The preview a refactoring operation was applied from, or declined. |
 | `MapTasker_Replace_date_time.txt` | Output folder | 'Find' > 'Replace' | The preview of a replacement: what would change, before anything does. |
+| `MapTasker_Resources_date_time.txt` | Output folder | 'Missing Resources' > Save Report | The files, folders, images, sounds, Scenes and apps the configuration uses that the device did not have, with every place that uses each. |
 | `MapTasker_TaskerNet_date_time.txt` | Output folder | 'TaskerNet Updates' > 'Save Report' | What the author of a TaskerNet share changed since the version you have, and how your copy compares with the published one. |
 | `MapTasker_TaskFlow_date_time.txt` | Output folder | 'Task Flow' | Every Task's If/Else/For/Goto structure, linted. |
 | `MapTasker_Timeline_date_time.txt` | Output folder | 'Timeline' | What has changed in your own configuration since an earlier snapshot.  It is the comparison report under another name, so that 'what changed since Tuesday' does not land on top of a comparison of two separate files. |
 | `MapTasker_Trend_date_time.txt` | Current folder | -- | _Not yet described -- see build_generated_files_doc.py._ |
 | `MapTasker_VarXref_date_time.txt` | Output folder | 'Variables Xref' | Every variable, and everywhere it is set and read. |
+| `Tasker` | Current folder | -- | _Not yet described -- see build_generated_files_doc.py._ |
 | `trend_metrics` | Current folder | -- | _Not yet described -- see build_generated_files_doc.py._ |
 
 ## Settings and remembered state
@@ -56,6 +59,7 @@ What MapTasker carries from one run to the next.  Deleting any of these costs yo
 | `.MapTasker_Settings.pkl` | Current folder | Older versions only | A second settings file that never held anything.  It is no longer written, and a leftover one is deleted unopened.  Hidden. |
 | `MapTasker_API_Keys.json` | Settings folder | Saving an AI API key | Only written on a machine with no system password store.  Otherwise the keys go to the Keychain on macOS, Credential Manager on Windows, and GNOME Keyring or KWallet on Linux, and this file is never created. |
 | `MapTasker_Apps.json` | Current folder | 'App not listed?' | The Application list fetched from the device, kept between runs and keyed by device.  Nothing is lost if you delete it; it is fetched again. |
+| `MapTasker_Resources.json` | Current folder | 'Missing Resources' | What the last check of the device found, per device, so the Health Check can report it without going to the phone.  Nothing is lost if you delete it; the check is run again. |
 | `MapTasker_Settings.toml` | Current folder | Every run | Your saved program settings.  You can edit it, but do not change a field's format -- an integer turned into a text string, say.  Incorrect values are ignored. |
 | `taskernet_catalogue.json` | Inside 'MapTasker_Timeline' | 'TaskerNet Updates' > 'Find Links' | TaskerNet's public listing of shares, kept for a week so that finding links does not read the whole listing again each time.  Delete it and it is fetched again. |
 | `taskernet_links.json` | Inside 'MapTasker_Timeline' | 'TaskerNet Updates' | Which TaskerNet share each linked Project, Profile, Task or Scene came from, and the version of it you have.  Only the share's address is kept, never your configuration.  Delete it and the links are lost; they can be made again. |

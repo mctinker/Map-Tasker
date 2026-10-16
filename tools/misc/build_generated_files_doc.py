@@ -187,6 +187,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "produced_by": "'Refactor'",
         "note": "The preview a refactoring operation was applied from, or declined.",
     },
+    "MapTasker_Resources.txt": {
+        "section": "Reports",
+        "location": OUTPUT,
+        "produced_by": "'Missing Resources' > Save Report",
+        "note": "The files, folders, images, sounds, Scenes and apps the configuration uses that the device did not have, with every place that uses each.",
+    },
     "MapTasker_Analysis.txt": {
         "section": "Reports",
         "location": OUTPUT,
@@ -241,6 +247,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "location": CURRENT,
         "produced_by": "'App not listed?'",
         "note": "The Application list fetched from the device, kept between runs and keyed by device.  Nothing is lost if you delete it; it is fetched again.",
+    },
+    "MapTasker_Resources.json": {
+        "section": "Settings and remembered state",
+        "location": CURRENT,
+        "produced_by": "'Missing Resources'",
+        "note": "What the last check of the device found, per device, so the Health Check can report it without going to the phone.  Nothing is lost if you delete it; the check is run again.",
     },
     "MapTasker_API_Keys.json": {
         "section": "Settings and remembered state",
