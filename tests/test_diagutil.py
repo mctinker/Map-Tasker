@@ -69,18 +69,16 @@ def test_an_icon_that_is_already_two_characters_long_needs_nothing() -> None:
     assert diagutil.icon_columns("\u21a9\ufe0f hi") == 0
 
 
-def test_wide_cjk_characters_are_left_to_the_box_which_already_widens_for_them() -> None:
-    assert diagutil.icon_columns("\u4e2d\u6587") == 0
+def test_each_chinese_japanese_or_korean_character_needs_the_column_it_occupies() -> None:
+    assert diagutil.icon_columns("\u4e2d\u6587") == 2
+    assert diagutil.icon_columns("\u6ed1\u52a8\u62fc\u56fev0.8") == 4
+    assert diagutil.icon_columns("\u3072\u3089\u304c\u306a \ud55c\uae00") == 6
 
 
 def test_icons_are_counted() -> None:
     assert diagutil.count_icons("a😀b🚀") == 2
     assert diagutil.count_icons("plain") == 0
 
-
-def test_cjk_characters_are_counted() -> None:
-    assert diagutil.count_cjk_characters("中文名 abc") == 3
-    assert diagutil.count_cjk_characters("abc") == 0
 
 
 def test_a_character_is_removed_by_position() -> None:
@@ -100,9 +98,17 @@ def test_a_line_with_an_arrow_and_no_icon_is_left_as_it_is() -> None:
     assert diagutil.remove_icon(line) == line
 
 
-def test_an_icon_beside_an_arrow_has_its_column_taken_back() -> None:
-    line = f"x😀{diagutil.bar} Task"
-    assert len(diagutil.remove_icon(line)) < len(line)
+def test_an_icon_before_a_connector_has_its_column_taken_back_from_the_blanks_in_front_of_it() -> None:
+    line = f"x😀   {diagutil.bar} Task"
+    assert diagutil.remove_icon(line) == f"x😀  {diagutil.bar} Task"
+
+
+def test_no_text_is_ever_removed_to_make_room() -> None:
+    line = f"x😀 {diagutil.bar} Task"
+    assert diagutil.remove_icon(line) == f"x😀{diagutil.bar} Task"
+    # With no blanks at all, the connector stays where it is rather than eating a word.
+    tight = f"x😀 yz😀{diagutil.bar}"
+    assert diagutil.remove_icon(tight) == tight
 
 
 def _columns(line: str) -> dict[int, str]:
@@ -166,7 +172,7 @@ def test_an_icon_is_found_whole_with_whatever_is_joined_onto_it(icon: str) -> No
 
 
 def test_plain_text_and_connectors_hold_no_icons() -> None:
-    assert diagutil.icon_spans("Task 1 \u2502\u25b2 \u2570\u25c4\u2500\u2500 \u4e2d\u6587") == []
+    assert diagutil.icon_spans("Task 1 \u2502\u25b2 \u2570\u25c4\u2500\u2500 abc") == []
 
 
 def test_a_symbol_and_its_picture_selector_is_already_two_columns_long() -> None:
@@ -216,7 +222,7 @@ def _drawn_width(line: str) -> int:
     return sum(2 if diagutil.is_double_width(char) else 1 for char in line)
 
 
-@pytest.mark.parametrize("name", ["\U0001f304", "Wake \U0001f304 Up", "\U0001f304 a \U0001f4be", "caf\u00e9", "\u21a9\ufe0f x"])
+@pytest.mark.parametrize("name", ["\U0001f304", "Wake \U0001f304 Up", "\U0001f304 a \U0001f4be", "caf\u00e9", "\u21a9\ufe0f x", "\u6ed1\u52a8\u62fc\u56fev0.8", "\u76d1\u63a7\u5fae\u535a \U0001f9e9"])
 def test_the_walls_of_a_box_holding_an_icon_are_under_its_borders(name: str) -> None:
     top, middle, bottom = diagutil.build_box(name, ["", "", ""], ENGLISH)[0]
 
@@ -225,7 +231,7 @@ def test_the_walls_of_a_box_holding_an_icon_are_under_its_borders(name: str) -> 
 
 def test_the_boxes_after_one_holding_an_icon_stay_in_line_with_it() -> None:
     lines = ["", "", ""]
-    for name in ("Wake", "\U0001f304", "Nightly"):
+    for name in ("Wake", "\U0001f304", "\u76d1\u63a7\u5fae\u535a", "Nightly"):
         lines = diagutil.build_box(name, lines, ENGLISH)[0]
 
     assert {_drawn_width(line) for line in lines} == {_drawn_width(lines[0])}

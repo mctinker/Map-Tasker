@@ -347,3 +347,9 @@ def test_the_chunks_of_a_text_view_have_no_gap_between_them() -> None:
 
     assert ".nicegui-scroll-area.mt-textview .q-scrollarea__content {\n    gap: 0;" in css
     assert "mt-textview" in inspect.getsource(guiwins_views.NiceGuiTextView._build_scroll_area)
+
+
+def test_a_chinese_character_in_a_diagram_line_is_held_to_two_columns_wide() -> None:
+    html = _wrap_diagram_line(0, "\u6ed1\u52a8 v0.8", {}, {}, {})
+
+    assert '<span class="mt-w">\u6ed1</span><span class="mt-w">\u52a8</span> v0.8' in html

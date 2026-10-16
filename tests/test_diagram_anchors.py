@@ -13,6 +13,7 @@ is at risk is a row that quietly stops meaning the line it used to mean.
 from __future__ import annotations
 
 import os
+import unicodedata
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -1019,7 +1020,7 @@ def test_the_interaction_script_carries_the_model_and_its_class_names() -> None:
     assert f'"line": "{diagintr.LINE_CLASS}"' in script
 
 
-@pytest.mark.parametrize("restored", ["\U0001f3d8", "\u21a9\ufe0f"])
+@pytest.mark.parametrize("restored", ["\U0001f3d8", "\u21a9\ufe0f", "\u6ed1\u52a8\u62fc\u56fe"])
 def test_connectors_stay_in_line_on_rows_that_carry_icons(tmp_path: object, restored: str) -> None:
     """An icon takes two columns on screen, so a connector after one has to give a blank back.
 
@@ -1047,7 +1048,8 @@ def test_connectors_stay_in_line_on_rows_that_carry_icons(tmp_path: object, rest
         for char in line:
             if char in "│▲▼╰╯╭╮":
                 columns.add(column)
-            column += 2 if ord(char) >= 0x1F000 else 1  # a symbol and its selector is two characters, two columns
+            # A symbol and its selector is two characters in two columns; an icon or a CJK character is one in two.
+            column += 2 if unicodedata.east_asian_width(char) in "WF" or ord(char) >= 0x1F000 else 1
         return columns
 
     columns = [drawn_columns(line) for line in lines]
