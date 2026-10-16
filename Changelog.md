@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Boxes and connectors are mis-aligned in the Diagram view if the line has one or more icons or names contain Chinese, Japanese or Korean characters.
+- Fixed: Choosing "Upgrade to latest version" on a Mac no longer prints a "coroutine was never awaited" warning in the console while MapTasker restarts. The program now lets its last on-screen message finish sending before it shuts down.
+- Fixed: Clicking a connector in the Diagram view now highlights only that connector, instead of running its horizontal lines on past the vertical one. The highlight is no longer drawn in bold, which made the corner and arrow characters wider than the rest of the diagram.
 - Fixed:
 
 ### Known Issues

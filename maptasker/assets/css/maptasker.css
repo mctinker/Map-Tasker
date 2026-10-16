@@ -208,10 +208,13 @@ body:not(.body--dark) .gap-4.mb-6 {
 .connector {
     cursor: pointer;
 }
+/* Not bold: the corner and arrow characters have no bold face in Menlo, so the browser
+   draws them from another font, about two thirds wider than a column.  A highlighted
+   run of 286 characters came out 474 columns long, running on past the connector it
+   belonged to.  The colours alone mark it. */
 .connector-highlight {
     background-color: #facc15 !important;
     color: #000000 !important;
-    font-weight: bold;
 }
 /* The Tasks a clicked connector joins.  An outline rather than a border: it takes up
    no room, so not one column of the diagram moves. */

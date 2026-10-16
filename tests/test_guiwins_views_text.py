@@ -353,3 +353,14 @@ def test_a_chinese_character_in_a_diagram_line_is_held_to_two_columns_wide() -> 
     html = _wrap_diagram_line(0, "\u6ed1\u52a8 v0.8", {}, {}, {})
 
     assert '<span class="mt-w">\u6ed1</span><span class="mt-w">\u52a8</span> v0.8' in html
+
+
+def test_a_highlighted_connector_is_not_bold() -> None:
+    """Bold box-drawing characters are drawn from a wider fallback font, which ran the highlight past the connector."""
+    from pathlib import Path
+
+    css = (Path(guiwins_views.__file__).parents[2] / "assets" / "css" / "maptasker.css").read_text(encoding="utf-8")
+    rule = css[css.index(".connector-highlight {") :].split("}", 1)[0]
+
+    assert "background-color" in rule
+    assert "font-weight" not in rule
