@@ -9,7 +9,6 @@
 from __future__ import annotations
 
 import re
-from string import printable
 from typing import TYPE_CHECKING
 
 from maptasker.src.core.mapfonts import is_double_width
@@ -120,7 +119,7 @@ def print_all(lines: list, state: RunState) -> None:
 
 
 # Chinese/Japanese/Korean characters.  These are double-width too, but print_box
-# compensates for them separately, so fix_icon must leave them alone.
+# compensates for them separately, so icon_columns must leave them alone.
 cjk_pattern = re.compile(r"[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]")
 
 
@@ -177,37 +176,12 @@ def print_box(name: str, title: str, indent: int, config: RunConfig, state: RunS
     full_name = f"{title} {name}{adder_space_name}"
 
     box = ["", "", ""]
-    box[0] = f"{filler}╔═{box_line * (len(full_name) + len(adder_space_boxline))}═╗"  # Box top
+    # An icon is drawn two columns wide but is one character, so the borders need the difference.
+    border_length = len(full_name) + icon_columns(full_name) + len(adder_space_boxline)
+    box[0] = f"{filler}╔═{box_line * border_length}═╗"  # Box top
     box[1] = f"{filler}║ {full_name} ║"  # Box middle
-    box[2] = f"{filler}╚═{box_line * (len(full_name) + len(adder_space_boxline))}═╝"  # Box bottom
+    box[2] = f"{filler}╚═{box_line * border_length}═╝"  # Box bottom
     print_3_lines(box, state=state)
-
-
-# We have an icon in our name.  Remove any padding as necessary
-def fix_icon(name: str) -> str:
-    """
-    Fixes icon characters in a name string.
-    Args:
-        name: The name string to fix icons in
-    Returns:
-        trailer: The fixed name string with icons handled
-    - Check each character in the name for icon characters
-    - If an icon character is found, determine how many columns it renders across
-    - Return a blank string trailer if the icon is double-width (it'll occupy an
-      extra monospace column that len(name) doesn't account for), else no trailer
-    """
-    trailer = ""
-    # We have at least one character that is probably an icon.
-    for char in name:
-        # CJK characters are double-width as well, but print_box already widens the box
-        # for them, so counting them here too would overshoot.
-        if char.strip() and set(char).difference(printable) and not cjk_pattern.match(char):
-            # A double-width icon renders across two monospace columns despite counting
-            # as a single character in len(name), which is what box_line_length is based on --
-            # add the missing column back so the box's right border still lines up.
-            trailer = blank if is_double_width(char) else ""
-            break
-    return trailer
 
 
 # Remove a character from a string at a specific location and return the modified
@@ -259,62 +233,161 @@ def count_icons(text: str) -> int:
     return len(icon_pattern.findall(text))
 
 
-# If an icon is found in the string passed in, remove it and return modified string.
+# The characters that have to stay in their column so a connector lines up with the one
+# above and/or below it.
+_vertical_connectors = f"{bar}{up_arrow}{down_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
+_box_wall = "║"
+
+
+# What can follow the character an icon starts with and still be part of the same icon: the
+# variation selector that turns a symbol into a picture, a skin tone, a keycap, or a joiner
+# followed by the next picture of a sequence.
+_icon_modifiers = "\ufe0f\u20e3\U0001f3fb\U0001f3fc\U0001f3fd\U0001f3fe\U0001f3ff"
+
+
+def icon_spans(text: str) -> list[tuple[int, int]]:
+    """Find the icons in a line, each as the (start, end) of the characters that draw it.
+
+    An icon is drawn as a picture two columns wide.  That is a wide character, or a narrow
+    symbol followed by the selector that asks for its picture (a gear, or an arrow turned
+    around), along with whatever is joined onto it.
+
+    Args:
+        text (str): The line to look through.
+
+    Returns:
+        list[tuple[int, int]]: The start and the position just past the end of each icon, in order.
+    """
+    spans = []
+    position = 0
+    while position < len(text):
+        char = text[position]
+        following = text[position + 1 : position + 2]
+        if char not in _icon_modifiers and not cjk_pattern.match(char) and (
+            (char.strip() and is_double_width(char)) or following == "\ufe0f"
+        ):
+            end = position + 1
+            while end < len(text) and (text[end] in _icon_modifiers or text[end] == "\u200d"):
+                # A joiner brings the next picture along with it.
+                end += 2 if text[end] == "\u200d" else 1
+            end = min(end, len(text))
+            spans.append((position, end))
+            position = end
+        else:
+            position += 1
+    return spans
+
+
+def icon_columns(text: str) -> int:
+    """Count the columns the icons in a string are drawn wider than it is long.
+
+    Args:
+        text (str): The string, such as the name that goes in a box.
+
+    Returns:
+        int: How much wider than len(text) the string is drawn.  Chinese/Japanese/Korean
+        characters are not counted: print_box and build_box allow for them on their own.
+    """
+    return sum(2 - (end - start) for start, end in icon_spans(text))
+
+
+def _extra_columns(text: str) -> list[tuple[int, int]]:
+    """Find where a line is wider or narrower on screen than it is long.
+
+    An icon is drawn two columns wide however many characters make it up.  A picture that is a
+    single character (a clock) is one column short of that, so everything to its right is drawn
+    one column further over than the same character on a line without one.  A picture made
+    of a symbol and its selector (a turned-around arrow) is already two characters long and
+    needs nothing, and one with a joiner in it is longer than it is wide.
+
+    Args:
+        text (str): The line to look through.
+
+    Returns:
+        list[tuple[int, int]]: The position just past each such icon (and each pair of
+        Chinese/Japanese/Korean characters, which print_box allows one column for), and how many
+        columns short of its length it is drawn -- negative if it is longer -- in order.
+    """
+    found = [(end, 2 - (end - start)) for start, end in icon_spans(text) if end - start != 2]
+    cjk_seen = 0
+    for position, char in enumerate(text):
+        if cjk_pattern.match(char):
+            cjk_seen += 1
+            if cjk_seen % 2 == 0:
+                found.append((position + 1, 1))
+    return sorted(found)
+
+
+def _blank_to_remove(text: str, start: int, end: int) -> int:
+    """Pick the blank to rub out between an icon and the next connector.
+
+    Args:
+        text (str): The line.
+        start (int): Where to start looking (just past the icon).
+        end (int): The next connector, which the blank must come before.
+
+    Returns:
+        int: The position of the blank, or -1 if there is none.  A gap of two or more blanks is
+        preferred, since a lone blank is most likely the space between two words.
+    """
+    gap = re.compile(r"  +").search(text, start, end)
+    if gap:
+        return gap.start()
+    # Only lone blanks.  Take the one nearest the connector, but never the one between two boxes.
+    for position in range(end - 1, start - 1, -1):
+        if text[position] == blank and _box_wall not in (text[position - 1], text[position + 1 : position + 2]):
+            return position
+    return -1
+
+
+# An icon takes two columns on screen but only one character in the line, which pushes every
+# connector to the right of it one column out of line with the connector above and below.
+# Take a blank back out after each icon to put them in line again.
 def remove_icon(text: str) -> str:
     """
-    Remove any icon characters from a string
+    Make up for the width of the icons in a line, so its connectors line up.
 
     Args:
         text (str): The input string
 
     Returns:
-        str: The string with icon characters removed
+        str: The string with a blank removed after each icon that is drawn wider than it is long
+        (and one put in for each that is drawn narrower), when it has a connector to its right.
+        The connectors to the left of an icon are not moved, and no text is removed.
     """
-
-    # If no arrow found in text, just return the line as is.
-    arrow_position: int = next(
-        (text.index(char) for char in arrows + bar if char in text),
-        0,
-    )
-    if arrow_position == 0:
+    # Nothing to line up unless there is a connector on the line.
+    if not any(char in text for char in _vertical_connectors):
         return text
 
-    # Remove a blank for every icon found on line with an arrow.
-    output: str = text
+    # Work from right to left so a change does not move the icons yet to be looked at.
+    for icon_end, extra in reversed(_extra_columns(text)):
+        start = icon_end
+        # An icon in a box: leave the box alone and shift what is to the right of it.
+        if text.count(_box_wall, 0, icon_end) % 2:
+            wall = text.find(_box_wall, icon_end)
+            if wall == -1:
+                continue
+            start = wall + 1
 
-    # If there are icons in the text...
-    icon_count = count_icons(text)
+        # The next connector to the right of the icon: that is what has to move.
+        end = next((i for i in range(start, len(text)) if text[i] in _vertical_connectors), -1)
+        if end == -1:
+            continue
 
-    # Handle Chinese, Korean and Japanese characters.
-    cjk_count = count_cjk_characters(text)
-    icon_count += cjk_count // 2
+        if extra < 0:
+            # Drawn narrower than it is long: give the connectors the columns back.
+            text = f"{text[:end]}{blank * -extra}{text[end:]}"
+            continue
 
-    if icon_count > 0:
-        got_it = False
-        for _ in range(icon_count):
-            # Drop here if there is at least one icon.  This will handle a single icon.
-            for find_arrow in directional_arrows + bar:
-                found_arrow = text.find(find_arrow)
-                if found_arrow != -1:
-                    # Remove the icon return the modified string
-                    text = remove_char(text, found_arrow - 1)
-                    got_it = True
-                    if cjk_count == 0:
-                        break
-                    # Make an effort to deal with chinese/etc.
-                    if find_arrow == bar:
-                        found_arrow = text.find(find_arrow, found_arrow + 1)
-                        if found_arrow != -1:
-                            # Remove the icon return the modified string
-                            text = remove_char(text, found_arrow - 1)
-                    # break
-        if got_it:
-            return text
+        position = _blank_to_remove(text, start, end)
+        if position == -1:
+            # No room: give up the icon itself, unless it is the name in a box.
+            if start != icon_end:
+                continue
+            position = icon_end - 1
+        text = text[:position] + text[position + 1 :]
 
-        # No arrows/bars found.  Just remove the first icon.
-        output = text[: arrow_position - icon_count] + text[arrow_position:]
-
-    return output
+    return text
 
 
 # Given a name, enclose it in a text box
@@ -347,11 +420,10 @@ def build_box(name: str, output_lines: list, config: RunConfig) -> tuple:
 
     filler = trailer = blank
 
-    # Deal with icon in the name
-    trailer = fix_icon(name) if set(name).difference(printable) else " "
-
-    # Set the box line length based on the translated name length
-    box_line_length = len(name)
+    # Set the box line length based on the translated name length.  An icon is one character
+    # but is drawn two columns wide, so the borders have to be longer than the name by the
+    # difference for the right wall to sit under them.
+    box_line_length = len(name) + icon_columns(name)
     if name == "No Profile" and config.language not in ("English", "Arabic"):
         name = translate_string(name)
         box_line_length = len(name)
@@ -368,7 +440,7 @@ def build_box(name: str, output_lines: list, config: RunConfig) -> tuple:
     output_lines[2] += f"{filler}{box_bottom}"
 
     # Calculate anchor position
-    position_for_anchor = len(output_lines[0]) - (len(name) + len(adder_space_name)) // 2 - 4
+    position_for_anchor = len(output_lines[0]) - (box_line_length + len(adder_space_name)) // 2 - 4
 
     return output_lines, position_for_anchor
 

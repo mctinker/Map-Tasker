@@ -59,6 +59,7 @@ from maptasker.src.gui.guiwins_search import (
     TextViewSearch,
 )
 from maptasker.src.mapgen import diagintr, mapexport
+from maptasker.src.mapgen.diagutil import icon_spans
 
 if TYPE_CHECKING:
     from nicegui.events import ValueChangeEventArguments
@@ -339,6 +340,28 @@ def _escape_html_text(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+# The class that holds an icon to exactly two columns (see .mt-w in maptasker.css).
+ICON_CLASS = "mt-w"
+
+
+def _escape_diagram_text(text: str) -> str:
+    """Escape a stretch of a Diagram line, with each icon in it fixed at two columns wide.
+
+    The diagram is laid out in Python on the basis that an icon takes two columns, but the
+    browser draws it at whatever width its picture font gives it -- in Menlo, about one and
+    two thirds -- so everything after an icon on the line would drift out of line with the
+    connectors above and below.  An element of the width the layout assumed puts it right.
+    """
+    pieces = []
+    cursor = 0
+    for start, end in icon_spans(text):
+        pieces.append(_escape_html_text(text[cursor:start]))
+        pieces.append(f'<span class="{ICON_CLASS}">{_escape_html_text(text[start:end])}</span>')
+        cursor = end
+    pieces.append(_escape_html_text(text[cursor:]))
+    return "".join(pieces)
+
+
 def _connectors_by_line(state: RunState) -> dict[int, list[tuple[int, int, int]]]:
     """Invert PrimeItems.diagram_connectors (id -> ranges) into line_num -> (start, end, id)."""
     by_line: dict[int, list[tuple[int, int, int]]] = {}
@@ -522,11 +545,11 @@ def _wrap_diagram_line(
         if start >= end:
             continue
         if start > cursor:
-            pieces.append(_escape_html_text(line[cursor:start]))
-        pieces.append(f"{opening}{_escape_html_text(line[start:end])}</span>")
+            pieces.append(_escape_diagram_text(line[cursor:start]))
+        pieces.append(f"{opening}{_escape_diagram_text(line[start:end])}</span>")
         cursor = end
     if cursor < len(line):
-        pieces.append(_escape_html_text(line[cursor:]))
+        pieces.append(_escape_diagram_text(line[cursor:]))
     if not pieces:
         pieces.append("&#8203;")
 
@@ -1829,7 +1852,7 @@ class NiceGuiTextView(TextViewSearch):
             # long unbreakable content; without it the default flex min-width:auto lets the box
             # (and the whole page) grow past the viewport once the full content has streamed in.
             .classes(
-                f"w-full max-w-full min-w-0 block {scroll_height_classes} "
+                f"mt-textview w-full max-w-full min-w-0 block {scroll_height_classes} "
                 f"border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
             )
             .style(

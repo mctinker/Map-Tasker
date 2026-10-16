@@ -10,6 +10,7 @@ where that is the point, and the properties that must hold for any input where i
 
 from __future__ import annotations
 
+import inspect
 import re
 from types import SimpleNamespace
 
@@ -330,3 +331,19 @@ def test_a_view_paints_itself_for_the_mode_the_window_is_in() -> None:
 def test_the_windows_own_background_wins_over_the_default() -> None:
     window = SimpleNamespace(dark_mode=True, color_lookup={"background": "#123456"})
     assert view_theme_colors(window) == ("#123456", "#ffffff")
+
+
+def test_an_icon_in_a_diagram_line_is_held_to_two_columns_wide() -> None:
+    html = _wrap_diagram_line(0, "Task \U0001f4be <x> \u2699\ufe0f \u2502", {}, {}, {})
+
+    assert '<span class="mt-w">\U0001f4be</span> &lt;x&gt; <span class="mt-w">\u2699\ufe0f</span> \u2502' in html
+
+
+def test_the_chunks_of_a_text_view_have_no_gap_between_them() -> None:
+    """NiceGUI puts a rem between the children of a scroll area, which showed as a blank line every 150 lines."""
+    from pathlib import Path
+
+    css = (Path(guiwins_views.__file__).parents[2] / "assets" / "css" / "maptasker.css").read_text(encoding="utf-8")
+
+    assert ".nicegui-scroll-area.mt-textview .q-scrollarea__content {\n    gap: 0;" in css
+    assert "mt-textview" in inspect.getsource(guiwins_views.NiceGuiTextView._build_scroll_area)

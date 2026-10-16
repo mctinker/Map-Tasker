@@ -56,15 +56,21 @@ def test_three_connectors_end_up_in_three_columns() -> None:
 # Icons and wide characters
 # ##################################################################################
 def test_a_plain_name_has_no_extra_column() -> None:
-    assert diagutil.fix_icon("hello") == ""
+    assert diagutil.icon_columns("hello") == 0
+    assert diagutil.icon_columns("caf\u00e9") == 0
 
 
 def test_a_double_width_icon_needs_the_column_it_occupies() -> None:
-    assert diagutil.fix_icon("😀 hi") == diagutil.blank
+    assert diagutil.icon_columns("\U0001f604 hi") == 1
+    assert diagutil.icon_columns("\U0001f304 a \U0001f304") == 2
+
+
+def test_an_icon_that_is_already_two_characters_long_needs_nothing() -> None:
+    assert diagutil.icon_columns("\u21a9\ufe0f hi") == 0
 
 
 def test_wide_cjk_characters_are_left_to_the_box_which_already_widens_for_them() -> None:
-    assert diagutil.fix_icon("中文") == ""
+    assert diagutil.icon_columns("\u4e2d\u6587") == 0
 
 
 def test_icons_are_counted() -> None:
@@ -99,6 +105,87 @@ def test_an_icon_beside_an_arrow_has_its_column_taken_back() -> None:
     assert len(diagutil.remove_icon(line)) < len(line)
 
 
+def _columns(line: str) -> dict[int, str]:
+    """Each connector's column as it is drawn: an icon takes two."""
+    columns, column = {}, 0
+    for char in line:
+        if char in diagutil._vertical_connectors:  # noqa: SLF001
+            columns[column] = char
+        column += 2 if diagutil.is_double_width(char) else 1
+    return columns
+
+
+def test_connectors_to_the_right_of_an_icon_stay_under_the_ones_above() -> None:
+    line = "    └─ PT Tasks [Called by 🏘] [Calls ──▶ PT Log]  │▲  │"
+    # Each connector is drawn one column further over than it would be without the icon.
+    fixed = diagutil.remove_icon(line)
+
+    assert sorted(_columns(fixed)) == [c - 1 for c in sorted(_columns(line))]
+    assert list(_columns(fixed).values()) == list(_columns(line).values())
+    # Only blanks went, and none from the text itself.
+    assert fixed.replace(" ", "") == line.replace(" ", "")
+    assert "[Calls ──▶ PT Log]" in fixed
+
+
+def test_a_connector_to_the_left_of_an_icon_is_not_moved() -> None:
+    line = "│   └─ Wake 🏘     │   │"
+    fixed = diagutil.remove_icon(line)
+
+    assert fixed.index(diagutil.bar) == 0
+    assert _columns(fixed)[len("│   └─ Wake ") + 2 + 5 - 1] == diagutil.bar
+
+
+def test_every_icon_gives_a_column_back_to_the_connectors_after_it() -> None:
+    line = "│ 🏘 Task 💾     │      │"
+    fixed = diagutil.remove_icon(line)
+
+    assert [c - 2 for c in sorted(_columns(line))][1:] == sorted(_columns(fixed))[1:]
+    assert min(_columns(fixed)) == 0
+
+
+def test_an_icon_with_no_connector_after_it_is_left_alone() -> None:
+    line = "│        └─ Wake 🏘    "
+
+    assert diagutil.remove_icon(line) == line
+
+
+def test_an_icon_in_a_box_leaves_the_box_as_drawn() -> None:
+    line = "║ Wake 💾 ║ ║ No Profile ║     │"
+    fixed = diagutil.remove_icon(line)
+
+    assert fixed.startswith("║ Wake 💾 ║ ║ No Profile ║")
+    assert list(_columns(fixed)) == [c - 1 for c in _columns(line)]
+
+
+@pytest.mark.parametrize(
+    "icon",
+    ["\U0001f4be", "\u23f0", "\u2699\ufe0f", "\u21a9\ufe0f", "\U0001f3de\ufe0f", "\U0001f44d\U0001f3fd", "1\ufe0f\u20e3"],
+)
+def test_an_icon_is_found_whole_with_whatever_is_joined_onto_it(icon: str) -> None:
+    assert diagutil.icon_spans(f"a {icon} b") == [(2, 2 + len(icon))]
+
+
+def test_plain_text_and_connectors_hold_no_icons() -> None:
+    assert diagutil.icon_spans("Task 1 \u2502\u25b2 \u2570\u25c4\u2500\u2500 \u4e2d\u6587") == []
+
+
+def test_a_symbol_and_its_picture_selector_is_already_two_columns_long() -> None:
+    # Three of them, as in 'Universal Error Display Sub \u21a9\ufe0f': each is two characters
+    # and drawn two columns wide, so nothing is taken back and the connectors stay put.
+    line = "\u2514\u2500 Sub \u21a9\ufe0f [Called by \u25c4\u2500\u2500 Sub \u21a9\ufe0f] [Calls \u2500\u2500\u25b6 Sub \u21a9\ufe0f]  \u25b2    \u2502 \u2502"
+
+    assert diagutil.remove_icon(line) == line
+
+
+def test_a_joined_picture_is_longer_than_it_is_wide_so_the_connectors_are_given_columns() -> None:
+    family = "\U0001f468\u200d\U0001f469\u200d\U0001f467"
+    line = f"Task {family}  \u2502"
+
+    fixed = diagutil.remove_icon(line)
+
+    assert list(_columns(line))[0] + 3 == list(_columns(fixed))[0]
+
+
 # ##################################################################################
 # A box around a name
 # ##################################################################################
@@ -123,6 +210,34 @@ def test_a_box_holding_an_icon_still_lines_up() -> None:
     top, middle, bottom = diagutil.build_box("😀 Wake", ["", "", ""], ENGLISH)[0]
     assert len(top) == len(bottom)
     assert middle.endswith("║")
+
+
+def _drawn_width(line: str) -> int:
+    return sum(2 if diagutil.is_double_width(char) else 1 for char in line)
+
+
+@pytest.mark.parametrize("name", ["\U0001f304", "Wake \U0001f304 Up", "\U0001f304 a \U0001f4be", "caf\u00e9", "\u21a9\ufe0f x"])
+def test_the_walls_of_a_box_holding_an_icon_are_under_its_borders(name: str) -> None:
+    top, middle, bottom = diagutil.build_box(name, ["", "", ""], ENGLISH)[0]
+
+    assert _drawn_width(top) == _drawn_width(middle) == _drawn_width(bottom)
+
+
+def test_the_boxes_after_one_holding_an_icon_stay_in_line_with_it() -> None:
+    lines = ["", "", ""]
+    for name in ("Wake", "\U0001f304", "Nightly"):
+        lines = diagutil.build_box(name, lines, ENGLISH)[0]
+
+    assert {_drawn_width(line) for line in lines} == {_drawn_width(lines[0])}
+    def columns(line: str, characters: str) -> list[int]:
+        found, column = [], 0
+        for char in line:
+            if char in characters:
+                found.append(column)
+            column += 2 if diagutil.is_double_width(char) else 1
+        return found
+
+    assert columns(lines[0], "\u2554\u2557") == columns(lines[1], "\u2551") == columns(lines[2], "\u255a\u255d")
 
 
 def test_a_box_holding_cjk_text_is_widened_for_it() -> None:

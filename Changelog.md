@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
+- Changed: The note at the top of the Diagram no longer warns that icons can cause mis-alignment, since they are now lined up; it still warns about Chinese, Korean and Japanese characters.
 - Changed:
 
 ### Removed
@@ -18,6 +19,9 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: The up-down connectors in the Diagram view now line up with the ones above and below them on lines that contain icons, instead of being off by one or more spaces. Icons are now held to exactly two columns wide, so this holds in fonts such as Menlo whose icons would otherwise draw at an in-between width.
+- Fixed: Boxes around Project, Profile and Scene names that contain an icon now have their right-hand wall under the box's top and bottom borders, instead of pushing it and every box after it out by a space.
+- Fixed: The Diagram view no longer shows a blank line every 150 lines (for example after the Task line at the end of the first block) that is not in the Diagram file. The Map view had the same stray gap between its blocks of text.
 - Fixed:
 
 ### Known Issues

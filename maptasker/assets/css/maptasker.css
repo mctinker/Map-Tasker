@@ -178,6 +178,15 @@ body:not(.body--dark) .gap-4.mb-6 {
     overflow-wrap: anywhere !important;
     word-break: break-word !important;
 }
+/* The text views (Map, Diagram, Misc) are streamed into the scroll area as a series
+   of chunks, each its own element.  NiceGUI lays a scroll area's children out in a
+   flex column with a one rem gap between them, which came out as a blank line in
+   the middle of the text at every chunk boundary -- 150 lines apart in the Diagram,
+   where it was not in the file and pulled the drawing apart.  The chunks are one
+   piece of text, so nothing goes between them. */
+.nicegui-scroll-area.mt-textview .q-scrollarea__content {
+    gap: 0;
+}
 /* Quasar's own QScrollArea stylesheet gives its internal content wrapper
    (".q-scrollarea__content", not directly reachable via ui.scroll_area().classes())
    "min-width: 100%" but no max-width -- so any wide-enough descendant (a table
@@ -248,6 +257,16 @@ body:not(.body--dark) .gap-4.mb-6 {
 }
 .mt-dnl {
     display: none;
+}
+/* An icon is one character wide in the text but the diagram is drawn on the basis
+   that it takes two columns, and the browser draws its picture at whatever width
+   the picture font gives it (about one and two thirds in Menlo).  Holding it to
+   two columns keeps everything after it on the line under the connectors above. */
+.mt-w {
+    display: inline-block;
+    width: 2ch;
+    text-align: center;
+    white-space: pre;
 }
 .mt-dline.mt-hidden {
     display: none;

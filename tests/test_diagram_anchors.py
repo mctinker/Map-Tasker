@@ -1017,3 +1017,42 @@ def test_the_interaction_script_carries_the_model_and_its_class_names() -> None:
     assert '"c1"' in script
     assert '"anchor": "a"' in script
     assert f'"line": "{diagintr.LINE_CLASS}"' in script
+
+
+@pytest.mark.parametrize("restored", ["\U0001f3d8", "\u21a9\ufe0f"])
+def test_connectors_stay_in_line_on_rows_that_carry_icons(tmp_path: object, restored: str) -> None:
+    """An icon takes two columns on screen, so a connector after one has to give a blank back.
+
+    Names with icons in them go on both ends of a call, and each connector drawn on one of
+    those rows has to sit in the same screen column as the connector on the row above or below.
+    """
+    xml = (
+        _DIAGRAM_XML.replace("<nme>Backup</nme>", "<nme>Backup \U0001f4be</nme>")
+        .replace("<nme>Restore</nme>", f"<nme>Restore {restored}</nme>")
+    )
+    tables = _load(xml, {"Backup \U0001f4be": [f"Restore {restored}"]})
+    lines = _render(
+        tmp_path,
+        {
+            "Home": {
+                "Wake Up": [{"xml": tables["all_tasks"]["20"]["xml"], "name": "Backup \U0001f4be"}],
+                "Wind Down": [{"xml": tables["all_tasks"]["21"]["xml"], "name": "Backup \U0001f4be"}],
+                "Nightly": [{"xml": tables["all_tasks"]["22"]["xml"], "name": f"Restore {restored}"}],
+            },
+        },
+    )
+
+    def drawn_columns(line: str) -> set[int]:
+        columns, column = set(), 0
+        for char in line:
+            if char in "│▲▼╰╯╭╮":
+                columns.add(column)
+            column += 2 if ord(char) >= 0x1F000 else 1  # a symbol and its selector is two characters, two columns
+        return columns
+
+    columns = [drawn_columns(line) for line in lines]
+    icon_rows = [row for row, line in enumerate(lines) if "\U0001f4be" in line or restored in line]
+    assert any(columns[row] for row in icon_rows)
+    for row in icon_rows:
+        neighbours = columns[row - 1] | columns[row + 1]
+        assert columns[row] <= neighbours, f"row {row}: {lines[row]!r}"
