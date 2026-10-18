@@ -20,6 +20,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.test_taskstep import _xml, else_, end_if, if_, set_
+from tests.test_taskstep_calls import perform, returning
 from tests.test_tnupdate import _load_local, _runtime  # noqa: F401  (_runtime is the fixture)
 
 if TYPE_CHECKING:
@@ -201,3 +202,48 @@ async def test_with_the_globals_box_cleared_they_are_not_used(tmp_path: Path) ->
         _press(user, _only(user, "Step"))
 
         await user.should_see("Needs a value.")
+
+
+_CALLS = _xml(
+    Caller=(perform("Callee", "5", into="%answer"), set_("%after", "%answer")),
+    Callee=(set_("%x", "%par1"), returning("%x"), set_("%never", "1")),
+)
+
+
+@pytest.mark.asyncio
+async def test_a_perform_task_is_walked_into_and_the_walk_says_where(tmp_path: Path) -> None:
+    _load_local(tmp_path, _CALLS)
+    _built["task"] = "Caller"
+    async with _open() as user:
+        _press(user, _only(user, "Step"))
+
+        await user.should_see("Finished.")
+        labels = _labels(user)
+        assert "in Task 'Callee'" in labels
+        assert "back in Task 'Caller'" in labels
+        assert any("%answer:" in label and "'5'" in label for label in labels)
+
+
+@pytest.mark.asyncio
+async def test_the_actions_a_called_task_never_reached_are_listed_under_its_name(tmp_path: Path) -> None:
+    _load_local(tmp_path, _CALLS)
+    _built["task"] = "Caller"
+    async with _open() as user:
+        _press(user, _only(user, "Step"))
+
+        await user.should_see("Never reached in Task 'Callee': 3")
+
+
+@pytest.mark.asyncio
+async def test_with_follow_perform_task_cleared_the_call_is_stepped_over(tmp_path: Path) -> None:
+    _load_local(tmp_path, _CALLS)
+    _built["task"] = "Caller"
+    async with _open() as user:
+        (box,) = [b for b in user.find(kind=ui.checkbox).elements if "Perform Task" in b.text]
+        assert box.value is True
+        box.set_value(False)
+        _press(user, _only(user, "Step"))
+
+        await user.should_see("Finished.")
+        assert "in Task 'Callee'" not in _labels(user)
+        assert any("not entered: following Perform Task is turned off" in label for label in _labels(user))

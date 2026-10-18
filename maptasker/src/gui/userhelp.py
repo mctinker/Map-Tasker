@@ -256,7 +256,11 @@ TASKSTEP_HELP_TEXT = (
     " like are shown with their variables filled in; anything that talks to the outside world is listed as not"
     " simulated, and a variable it may have set is unknown.  A condition that depends on a variable with no value"
     " stops the walk and names it -- or is treated as not set, true or false, as you choose -- and what an action that"
-    " is not simulated leaves behind can be typed in (5: %name = value).  Nothing runs on your phone and nothing in the"
+    " is not simulated leaves behind can be typed in (5: %name = value).  A Perform Task is walked into -- the called"
+    " Task's actions appear indented under the call, it is given %par1 and %par2, shares the globals, and hands back"
+    " its Return value (and its locals, if its Return passes them through) -- unless 'Follow Perform Task' is cleared,"
+    " or the Task cannot be found, is named by a variable with no value, or is nested more than 8 deep, in which case"
+    " the call is shown and its result is unknown.  Nothing runs on your phone and nothing in the"
     " configuration changes; each Task in What Fires When? has a Step button that opens it here.  \n"
 )
 TREND_HELP_TEXT = (

@@ -48,7 +48,12 @@
 #     what was decided and check it against the device.                                         #
 #   * A JavaScriptlet may change any variable.  The walk carries on assuming it did not, and says   #
 #     so against that step.                                                                  #
-#   * Perform Task is not entered.  Its Return Value Variable is unknown afterwards.                #
+#   * Perform Task IS entered, as a walk of its own nested under the call: the called Task gets       #
+#     %par1 and %par2 and starts with no locals of its own (unless the call passes them through),     #
+#     shares the globals, and gives back its Return value and -- if its Return passes them through --  #
+#     its locals.  Priority and timing are ignored, as they are everywhere here.  A call whose Task   #
+#     cannot be found or named, one nested too deep, or one with 'Follow Perform Task' turned off, is  #
+#     shown but not entered, and its Return Value Variable is unknown afterwards.                      #
 #   * Time passes in none of it: a Wait waits for nothing, and %TIMES and friends are not made up.  #
 #   * A Task that loops without end is cut off after max_steps actions and reported as such.        #
 #                                                                                        #
@@ -64,7 +69,7 @@ import fnmatch
 import math
 import operator
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any
 
 from maptasker.src.analysis import taskflow
@@ -106,6 +111,8 @@ POLICY_FALSE = "false"
 POLICIES = (POLICY_STOP, POLICY_UNSET, POLICY_TRUE, POLICY_FALSE)
 
 DEFAULT_MAX_STEPS = 500
+# How many Tasks deep Perform Task is followed.  Tasker allows more; a Task that calls itself needs a stop.
+DEFAULT_MAX_CALL_DEPTH = 8
 
 # Shown in place of a value the walk cannot know.
 UNKNOWN_TEXT = "(unknown)"
@@ -116,6 +123,13 @@ _FOR, _END_FOR = "39", "40"
 _GOTO, _STOP, _RETURN, _PERFORM = "135", "137", "126", "130"
 _VAR_SET, _VAR_ADD, _VAR_CLEAR, _VAR_SPLIT = "547", "888", "549", "590"
 _JAVASCRIPTLET = "129"
+# Perform Task's arguments (130) and Return's (126).  The passthrough and overwrite options are read as their
+# names say: Local Variable Passthrough hands the locals to the called Task (and Return's hands them back),
+# Limit Passthrough To names which, and a returned local replaces one the caller already has only when Return's
+# Replace On Passthrough or Perform Task's Allow Overwrite Variables says so.
+_PERFORM_NAME, _PERFORM_PAR1, _PERFORM_PAR2, _PERFORM_RETURN = "0", "2", "3", "4"
+_PERFORM_PASS, _PERFORM_LIMIT, _PERFORM_RESET, _PERFORM_OVERWRITE = "6", "7", "8", "9"
+_RETURN_VALUE, _RETURN_PASS, _RETURN_REPLACE, _RETURN_LIMIT = "0", "2", "3", "4"
 
 # Actions that put something on screen or make a sound and touch no variable.  They are "run"
 # in the sense of "would happen"; their text is shown with the variables filled in.
@@ -198,8 +212,13 @@ class Step:
     detail: str = ""
     changes: list[Change] = field(default_factory=list)
     variables: dict[str, str] = field(default_factory=dict)
-    # The block depth the action sits at, for indenting the display.
+    # The block depth the action sits at, for indenting the display.  A step of a Task performed from this one is
+    # indented a level further than the Perform Task that called it.
     depth: int = 0
+    # Which Task the action is in when it is not the one that was stepped, and where that Task is in the Map; "" and
+    # None for the Task itself.
+    task: str = ""
+    where: Target | None = None
 
 
 @dataclass
@@ -211,6 +230,9 @@ class Options:
     max_steps: int = DEFAULT_MAX_STEPS
     # What an action that is not simulated leaves behind, by the action's number: {5: {"http_data": "ok"}}.
     assumed: dict[int, dict[str, str]] = field(default_factory=dict)
+    # Whether a Perform Task is walked into, and how many Tasks deep.
+    follow_calls: bool = True
+    max_call_depth: int = DEFAULT_MAX_CALL_DEPTH
 
 
 @dataclass
@@ -228,11 +250,19 @@ class Trace:
     needed: list[str] = field(default_factory=list)
     # The numbers of the actions that were never reached -- the branches that did not run.
     not_reached: list[int] = field(default_factory=list)
+    # The same for each Task that was performed along the way, by name: what none of its calls reached.
+    callee_not_reached: dict[str, list[int]] = field(default_factory=dict)
 
     def as_text(self) -> str:
         """The walk as plain text, for a forum post or a bug report."""
         lines = [f"Task '{self.task}': {self.outcome}.  {self.message}".rstrip(), ""]
+        inside = ""
         for step in self.steps:
+            if step.task != inside:
+                inside = step.task
+                lines.append(
+                    f"{'  ' * max(step.depth - 1, 0)}-- {'in Task ' + repr(inside) if inside else 'back in ' + repr(self.task)} --"
+                )
             lines.append(f"{'  ' * step.depth}{step.number}. {step.name} [{step.status}]  {step.text}".rstrip())
             if step.detail:
                 lines.append(f"{'  ' * step.depth}     {step.detail}")
@@ -242,6 +272,11 @@ class Trace:
             )
         if self.not_reached:
             lines += ["", "Never reached: " + ", ".join(str(number) for number in self.not_reached)]
+        lines += [
+            f"Never reached in Task '{name}': " + ", ".join(str(number) for number in numbers)
+            for name, numbers in self.callee_not_reached.items()
+            if numbers
+        ]
         return "\n".join(lines)
 
 
@@ -289,6 +324,38 @@ class Variables:
             if key.startswith(name) and key[len(name) :].isdigit() and key not in self.unknown
         )
         return [value for _, value in found]
+
+    @staticmethod
+    def is_global(name: str) -> bool:
+        """Tasker's rule: a name with a capital in it is global, all lower case is local to the running Task."""
+        return name != name.lower()
+
+    def names(self) -> list[str]:
+        """Every name held, known or not."""
+        return list(dict.fromkeys([*self.values, *self.unknown]))
+
+    def copy_where(self, keep: Callable[[str], bool]) -> Variables:
+        """A new set holding only the names `keep` accepts, unknown marks and all."""
+        copy = Variables()
+        copy.absorb(self, keep, overwrite=True)
+        return copy
+
+    def drop_where(self, keep: Callable[[str], bool]) -> None:
+        """Take away every name `keep` accepts."""
+        for name in self.names():
+            if keep(name):
+                self.forget(name)
+
+    def absorb(self, source: Variables, keep: Callable[[str], bool], *, overwrite: bool) -> None:
+        """Take from `source` the names `keep` accepts; one already held is left alone unless `overwrite`."""
+        for name in source.names():
+            if not keep(name) or (not overwrite and name in self.names()):
+                continue
+            if name in source.unknown:
+                self.values.pop(name, None)
+                self.unknown.add(name)
+            else:
+                self.put(name, source.values[name])
 
     def snapshot(self) -> dict[str, str]:
         """Every variable and its value now, unknown ones shown as such."""
@@ -524,15 +591,73 @@ class _Loop:
     position: int = 0
 
 
+@dataclass
+class _Shared:
+    """What every walk in one dry run has in common: how many actions were walked, which Tasks are being performed.
+
+    A Task performed from the one being stepped is walked by a walk of its own, nested under the call, and the
+    budget of actions is one for the whole run -- a call that loops is cut off the same as a loop.
+    """
+
+    used: int = 0
+    chain: list[str] = field(default_factory=list)  # the keys of the Tasks being performed now, outermost first
+    reached: dict[str, set[int]] = field(default_factory=dict)  # per Task, the positions any walk of it reached
+    flows: dict[str, taskflow.Flow] = field(default_factory=dict)
+
+
+@dataclass
+class _Passthrough:
+    """What a Return asked to hand back to the Task that performed it."""
+
+    on: bool = False
+    limit: str = ""
+    replace: bool = False
+
+
+def _flag(text: str) -> bool:
+    """Whether a checkbox argument is on."""
+    return text.strip().lower() in ("1", "true")
+
+
+def _pass_filter(limit: str) -> Callable[[str], bool]:
+    """Which local variables a passthrough covers: all of them, or those named (with * and ? allowed) in `limit`."""
+    patterns = [part.strip().lstrip("%") for part in limit.split(",") if part.strip()]
+    if not patterns:
+        return lambda name: not Variables.is_global(name)
+    return lambda name: not Variables.is_global(name) and any(fnmatch.fnmatchcase(name, found) for found in patterns)
+
+
 class _Walk:
     """One dry run: the Task's structure, the variables, and where the walk is."""
 
-    def __init__(self, flow: taskflow.Flow, actions: list[Element], options: Options) -> None:
-        """`flow` is taskflow's reading of the Task, `actions` its action elements in the Map's order."""
+    def __init__(
+        self,
+        flow: taskflow.Flow,
+        actions: list[Element],
+        options: Options,
+        *,
+        state: RunState | None = None,
+        shared: _Shared | None = None,
+        variables: Variables | None = None,
+    ) -> None:
+        """`flow` is taskflow's reading of the Task, `actions` its action elements in the Map's order.
+
+        `state` is what a Perform Task looks the Task it names up in; without it calls are shown and not entered.
+        `shared` and `variables` are given to a walk of a Task being performed: the run's shared budget, and the
+        variables the call handed it.
+        """
         self.flow = flow
         self.actions = actions
         self.options = options
-        self.variables = Variables(options.variables)
+        self.state = state
+        self.root = shared is None
+        self.shared = shared if shared is not None else _Shared()
+        self.variables = variables if variables is not None else Variables(options.variables)
+        # What a Return in this Task handed back: the value, whether it depended on something unknown, and the
+        # passthrough it asked for.  None when the Task did not Return.
+        self.returned: str | None = None
+        self.returned_unknown = False
+        self.passthrough = _Passthrough()
         self.trace = Trace(task=flow.target.name, target=flow.target)
         self.loops: dict[int, _Loop] = {}
         self.visited: set[int] = set()
@@ -548,13 +673,16 @@ class _Walk:
     def run(self) -> Trace:
         """Walk from the first action until the Task ends, stops, needs something, or runs too long."""
         position: int | None = 0 if self.flow.steps else None
-        count = 0
-        while position is not None and not self.trace.message:
-            if count >= self.options.max_steps:
-                self._end(STEP_LIMIT, f"Stopped after {count} actions -- the Task may go round forever.")
-                break
-            count += 1
-            position = self._execute(position)
+        self.shared.chain.append(self.flow.target.key)
+        try:
+            while position is not None and not self.trace.message:
+                if self.shared.used >= self.options.max_steps:
+                    self._end(STEP_LIMIT, f"Stopped after {self.shared.used} actions -- the Task may go round forever.")
+                    break
+                self.shared.used += 1
+                position = self._execute(position)
+        finally:
+            self.shared.chain.pop()
         self._finish()
         return self.trace
 
@@ -563,9 +691,24 @@ class _Walk:
         if not self.trace.message and self.trace.outcome == FINISHED:
             self.trace.message = "Ran to the end of the Task."
         self.trace.variables = self.variables.snapshot()
-        self.trace.not_reached = [
-            step.number for index, step in enumerate(self.flow.steps) if index not in self.visited and not step.disabled
-        ]
+        key = self.flow.target.key
+        self.shared.reached.setdefault(key, set()).update(self.visited)
+        self.shared.flows[key] = self.flow
+        if self.root:
+            self._count_unreached(key)
+
+    def _count_unreached(self, key: str) -> None:
+        """The actions no walk reached: in the Task itself, and in each Task it performed."""
+        for other, flow in self.shared.flows.items():
+            missed = [
+                step.number
+                for index, step in enumerate(flow.steps)
+                if index not in self.shared.reached.get(other, set()) and not step.disabled
+            ]
+            if other == key:
+                self.trace.not_reached = missed
+            elif missed:
+                self.trace.callee_not_reached[flow.target.name] = missed
 
     def _end(self, outcome: str, message: str) -> None:
         """Record how the walk ended."""
@@ -698,6 +841,7 @@ class _Walk:
             _GOTO: self._goto,
             _STOP: self._stop,
             _RETURN: self._return,
+            _PERFORM: self._perform,
             _VAR_SET: self._variable_set,
             _VAR_ADD: self._variable_add,
             _VAR_CLEAR: self._variable_clear,
@@ -894,7 +1038,13 @@ class _Walk:
 
     def _return(self, _position: int, _step: taskflow.Step, action: Element) -> _Result:
         """Return: ends the Task and hands back a value."""
-        value, _ = self.variables.substitute(taskflow.action_argument(action, "0"))
+        value, needed = self.variables.substitute(taskflow.action_argument(action, _RETURN_VALUE))
+        self.returned, self.returned_unknown = value, bool(needed)
+        self.passthrough = _Passthrough(
+            _flag(taskflow.action_argument(action, _RETURN_PASS)),
+            self.variables.substitute(taskflow.action_argument(action, _RETURN_LIMIT))[0],
+            _flag(taskflow.action_argument(action, _RETURN_REPLACE)),
+        )
         return _Result(
             f"Return '{_shorten(value, 60)}'",
             ENDED,
@@ -903,6 +1053,113 @@ class _Walk:
             halt=RETURNED,
             message=f"Returned '{_shorten(value, 60)}'.",
         )
+
+    # -- Perform Task --------------------------------------------------------------
+    def _perform(self, position: int, step: taskflow.Step, action: Element) -> _Result:
+        """Perform Task: walk into the Task it names, if it can be found and named, and come back with what it gave."""
+        if not self.options.follow_calls or self.state is None:
+            return self._not_entered(step, action, "following Perform Task is turned off")
+        name, needed = self.variables.substitute(taskflow.action_argument(action, _PERFORM_NAME))
+        name = name.strip()
+        if needed or not name:
+            names = ", ".join(f"%{each}" for each in dict.fromkeys(needed))
+            return self._not_entered(
+                step, action, f"its Task name depends on {names}" if needed else "it names no Task"
+            )
+        found = find_task(name, self.state)
+        flow = taskflow.analyze_task_flow(found[0], state=self.state) if found is not None else None
+        if found is None or flow is None:
+            return self._not_entered(step, action, f"no Task named '{name}' is in the loaded configuration")
+        if len(self.shared.chain) > self.options.max_call_depth:
+            return self._not_entered(step, action, f"it is more than {self.options.max_call_depth} Tasks deep")
+        return self._call(position, step, action, flow, found[1])
+
+    def _not_entered(self, step: taskflow.Step, action: Element, why: str) -> _Result:
+        """A Perform Task that is shown and not walked into: what it returns is unknown."""
+        result = self._other(step, action)
+        result.detail = f"not entered: {why}" + (
+            f"; {result.detail.removeprefix('not simulated')}" if result.detail else ""
+        )
+        return result
+
+    def _call(
+        self, position: int, step: taskflow.Step, action: Element, flow: taskflow.Flow, element: Element
+    ) -> _Result:
+        """Walk the performed Task and fold what it did back into this one."""
+        if _flag(taskflow.action_argument(action, _PERFORM_RESET)):
+            self._forget_return_variable(action)
+        callee = _Walk(
+            flow,
+            actions_in_map_order(element),
+            replace(self.options, assumed={}),
+            state=self.state,
+            shared=self.shared,
+            variables=self._variables_for_call(action),
+        )
+        trace = callee.run()
+        self.trace.needed.extend(name for name in trace.needed if name not in self.trace.needed)
+        self._take_back(callee, action)
+        offset = self.flow.depth[position] + 1
+        for line in trace.steps:
+            line.depth += offset
+            line.task = line.task or trace.task
+            line.where = line.where or flow.target
+        halted = trace.outcome in (NEEDS_VALUE, STEP_LIMIT, FAILED)
+        return _Result(
+            self._describe(step, action),
+            RAN,
+            f"performed Task '{trace.task}': {self._how_it_ended(callee)}",
+            halt=trace.outcome if halted else "",
+            message=f"In Task '{trace.task}': {trace.message}" if halted else "",
+            after=trace.steps,
+        )
+
+    @staticmethod
+    def _how_it_ended(callee: _Walk) -> str:
+        """What a performed Task did, in a few words."""
+        outcome = callee.trace.outcome
+        if outcome == RETURNED:
+            return f"returned '{_shorten(callee.returned or '', 40)}'"
+        if outcome == STOPPED:
+            return "ended at a Stop"
+        return "ran to the end" if outcome == FINISHED else callee.trace.message
+
+    def _variables_for_call(self, action: Element) -> Variables:
+        """What the performed Task starts with: the globals, %par1 and %par2, and the locals the call passes through."""
+        given = self.variables.copy_where(Variables.is_global)
+        if _flag(taskflow.action_argument(action, _PERFORM_PASS)):
+            limit = self.variables.substitute(taskflow.action_argument(action, _PERFORM_LIMIT))[0]
+            given.absorb(self.variables, _pass_filter(limit), overwrite=True)
+        for name, argument in (("par1", _PERFORM_PAR1), ("par2", _PERFORM_PAR2)):
+            given.forget(name)
+            raw = taskflow.action_argument(action, argument)
+            if not raw:
+                continue
+            value, needed = self.variables.substitute(raw)
+            if needed:
+                given.mark_unknown(name)
+            else:
+                given.put(name, value)
+        return given
+
+    def _forget_return_variable(self, action: Element) -> None:
+        """Reset Return Variable: the variable that is to receive the result starts empty."""
+        if taskflow.action_argument(action, _PERFORM_RETURN):
+            self.variables.forget(self._target_name(action, _PERFORM_RETURN))
+
+    def _take_back(self, callee: _Walk, action: Element) -> None:
+        """Fold what a performed Task left into this one: its globals, the locals its Return passed through, its value."""
+        self.variables.drop_where(Variables.is_global)
+        self.variables.absorb(callee.variables, Variables.is_global, overwrite=True)
+        if callee.passthrough.on:
+            overwrite = callee.passthrough.replace or _flag(taskflow.action_argument(action, _PERFORM_OVERWRITE))
+            self.variables.absorb(callee.variables, _pass_filter(callee.passthrough.limit), overwrite=overwrite)
+        if callee.returned is not None and taskflow.action_argument(action, _PERFORM_RETURN):
+            name = self._target_name(action, _PERFORM_RETURN)
+            if callee.returned_unknown:
+                self.variables.mark_unknown(name)
+            else:
+                self.variables.put(name, callee.returned)
 
     # -- variables -----------------------------------------------------------------
     def _target_name(self, action: Element, arg: str = "0") -> str:
@@ -1026,7 +1283,7 @@ def step_task(name_or_id: str, state: RunState, options: Options | None = None) 
     flow = taskflow.analyze_task_flow(task_id, state=state)
     if flow is None:
         return None
-    return _Walk(flow, actions_in_map_order(element), options or Options()).run()
+    return _Walk(flow, actions_in_map_order(element), options or Options(), state=state).run()
 
 
 def inputs_needed(name_or_id: str, state: RunState) -> list[str]:

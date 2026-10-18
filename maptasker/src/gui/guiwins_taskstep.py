@@ -37,7 +37,8 @@ _BLURB = (
     "Pick a Task, say what its variables hold when it starts, and see which If, Else If, For and Goto branches it "
     "takes and what every variable holds after each action.  Actions that talk to the outside world are listed as "
     "'not simulated', and a variable one of them may have set is unknown rather than guessed -- a condition that "
-    "depends on it stops the walk, or is treated the way you choose below."
+    "depends on it stops the walk, or is treated the way you choose below.  A Perform Task is walked into, so you "
+    "see the called Task's own actions, what it was given and what it hands back."
 )
 
 _POLICIES = {
@@ -113,6 +114,7 @@ class _Stepper:
         self.starting: ui.textarea
         self.assumed: ui.textarea
         self.globals_box: ui.checkbox
+        self.follow_box: ui.checkbox
         self.policy: ui.select
         self.limit: ui.number
         self.summary: ui.label
@@ -150,6 +152,13 @@ class _Stepper:
             )
             self.globals_box = ui.checkbox(translate_string("Use the globals saved in the backup"), value=True).classes(
                 "text-xs",
+            )
+            self.follow_box = ui.checkbox(translate_string("Follow Perform Task"), value=True).classes("text-xs")
+            self.follow_box.tooltip(
+                translate_string(
+                    "Walk into each Task that a Perform Task calls, showing its actions indented under the call.  "
+                    "Turn it off to step over the calls: their results are then unknown.",
+                ),
             )
         with ui.row().classes("w-full gap-3 no-wrap"):
             self.starting = (
@@ -220,6 +229,7 @@ class _Stepper:
             policy=str(self.policy.value),
             max_steps=int(self.limit.value or taskstep.DEFAULT_MAX_STEPS),
             assumed=assumed,
+            follow_calls=bool(self.follow_box.value),
         )
 
     # ##############################################################################
@@ -256,10 +266,18 @@ class _Stepper:
                 ).classes(
                     "text-xs text-gray-500",
                 )
+            for name, numbers in trace.callee_not_reached.items():
+                ui.label(
+                    f"{translate_string('Never reached in Task')} '{name}': " + ", ".join(str(n) for n in numbers[:30])
+                ).classes("text-xs text-gray-500")
         self.walk_area.clear()
         with self.walk_area, ui.column().classes("w-full gap-0 p-1"):
+            inside = ""
             for step in trace.steps[:_STEP_LIMIT]:
-                self._row(step, trace.target)
+                if step.task != inside:
+                    inside = step.task
+                    self._heading(step, trace)
+                self._row(step, step.where or trace.target)
             if len(trace.steps) > _STEP_LIMIT:
                 ui.label(
                     f"...{len(trace.steps) - _STEP_LIMIT} {translate_string('more actions -- Copy As Text has them all')}"
@@ -269,6 +287,17 @@ class _Stepper:
         # What the Task itself changed, first, in the order it first did: the backup's globals can be hundreds.
         self.touched = list(dict.fromkeys(change.name for step in trace.steps for change in step.changes))
         self._show_variables(trace.steps[-1] if trace.steps else None, trace.variables)
+
+    def _heading(self, step: taskstep.Step, trace: taskstep.Trace) -> None:
+        """The line that says the walk has gone into a performed Task, or come back out of it."""
+        text = (
+            f"{translate_string('in Task')} '{step.task}'"
+            if step.task
+            else f"{translate_string('back in Task')} '{trace.task}'"
+        )
+        ui.label(text).classes("text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 mt-1").style(
+            f"padding-left:{max(step.depth - 1, 0) * 18 + 36}px",
+        )
 
     def _row(self, step: taskstep.Step, target: Target | None) -> None:
         """One action the walk met: where it is, what happened, and what changed.  Click it for the variables after it."""
