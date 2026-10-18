@@ -187,6 +187,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "produced_by": "'Refactor'",
         "note": "The preview a refactoring operation was applied from, or declined.",
     },
+    "MapTasker_Monitor.txt": {
+        "section": "Reports",
+        "location": OUTPUT,
+        "produced_by": "'Live Run Monitor' > Save Log",
+        "note": "What the Live Run Monitor saw on the device: each Profile that became active or inactive and each Task that started or finished, with the time to the millisecond.",
+    },
     "MapTasker_Resources.txt": {
         "section": "Reports",
         "location": OUTPUT,

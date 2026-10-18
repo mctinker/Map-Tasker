@@ -2750,6 +2750,7 @@ def _create_right_drawer(self: MyGui) -> None:
         with _drawer_section(self, "analyze", "Analyze", "analytics"):
             _create_resources_button(self)
             _create_analysis_buttons_section(self)
+            _create_monitor_button(self)
 
         ui.button(translate_string("Clear"), on_click=self.event_handlers.clear_view_event).classes(
             "bg-blue-500"
@@ -3066,6 +3067,29 @@ def _create_resources_button(self: MyGui) -> None:
                 "Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist on "
                 "your Android device?  Asks the device and lists the ones it does not have, with every place that "
                 "uses each.\n\nThe Health Check reports the same findings from the last time you checked."
+            ),
+        ).style("white-space: pre-wrap")
+
+
+def _create_monitor_button(self: MyGui) -> None:
+    """Live Run Monitor, under What Fires When and the Task Stepper, whose predictions it checks against the phone."""
+    monitor_button = (
+        ui.button(
+            translate_string("Live Run Monitor"),
+            color="teal",
+            on_click=self.event_handlers.live_monitor_event,
+            icon="monitor_heart",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with monitor_button:
+        ui.tooltip(
+            translate_string(
+                "Watch which Profiles and Tasks fire on your Android device as they do, and see them light up in "
+                "the Diagram.\n\nCompare what the device really has active with what What Fires When "
+                "predicted for the same moment.\n\nIt samples several times a second, so a Task that runs for a "
+                "moment can be missed.  Nothing on the device is changed but one small helper Task."
             ),
         ).style("white-space: pre-wrap")
 

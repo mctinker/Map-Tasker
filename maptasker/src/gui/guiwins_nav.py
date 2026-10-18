@@ -93,7 +93,7 @@ def register_view(master_gui: MyGui, view: object) -> None:
     master_gui.textview = view
 
 
-def live_views(master_gui: MyGui) -> list:
+def live_views(master_gui: MyGui) -> list[NiceGuiTextView]:
     """Every rendered view still safe to touch, oldest first, pruning any that died."""
     views = [view for view in getattr(master_gui, "textviews", None) or [] if view_is_live(view)]
     master_gui.textviews = views

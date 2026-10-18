@@ -35,6 +35,7 @@ One per command that saves its results.  Each is stamped with the date and time 
 | `MapTasker_Fix_date_time.txt` | Output folder | 'Fix Findings' | What the repairs changed.  Kept apart from the Health Check report because that one says what is wrong and this one says what was done about it. |
 | `MapTasker_Flowchart_date_time.txt` | Output folder | 'Task Flow' | The flowchart drawn for a single Task. |
 | `MapTasker_HealthCheck_date_time.txt` | Output folder | 'Health Check' | What the check found wrong with the configuration. |
+| `MapTasker_Monitor.txt` | Output folder | 'Live Run Monitor' > Save Log | What the Live Run Monitor saw on the device: each Profile that became active or inactive and each Task that started or finished, with the time to the millisecond. |
 | `MapTasker_Refactor_date_time.txt` | Output folder | 'Refactor' | The preview a refactoring operation was applied from, or declined. |
 | `MapTasker_Replace_date_time.txt` | Output folder | 'Find' > 'Replace' | The preview of a replacement: what would change, before anything does. |
 | `MapTasker_Resources_date_time.txt` | Output folder | 'Missing Resources' > Save Report | The files, folders, images, sounds, Scenes and apps the configuration uses that the device did not have, with every place that uses each. |

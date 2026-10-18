@@ -26,6 +26,7 @@ from urllib.parse import urlencode
 
 from nicegui import context, run, ui
 
+from maptasker.src.analysis import livemon
 from maptasker.src.analysis.taskflow import (
     analyze_task_flow,
     flowchart,
@@ -101,6 +102,7 @@ from maptasker.src.gui.guiutils import (
 from maptasker.src.gui.guiwins import create_popup_window, initialize_gui, initialize_screen, restore_appearance_mode
 from maptasker.src.gui.guiwins_firesim import build_firesim_dialog
 from maptasker.src.gui.guiwins_fix import build_fix_dialog
+from maptasker.src.gui.guiwins_monitor import build_monitor_dialog
 from maptasker.src.gui.guiwins_nav import forget_views, go_to_target, live_views, opening_view_in_a_new_window
 from maptasker.src.gui.guiwins_refactor import build_refactor_dialog
 from maptasker.src.gui.guiwins_resources import build_resources_dialog
@@ -268,6 +270,8 @@ class MyGui:
     trend_dialog: ui.dialog | None
     # The Missing Resources dialog while one is up (see missing_resources_event).
     resources_dialog: ui.dialog | None
+    # The Live Run Monitor dialog while one is up (see live_monitor_event).
+    monitor_dialog: ui.dialog | None
     # Everything else the window keeps on itself, declared so the type checker knows it exists.
     # Widgets are assigned once, when the layout is built (initialize_screen and the guiwins builders).
     add_profile_button: ui.button
@@ -2232,6 +2236,64 @@ class MapTaskerEventHandlers(
         if dialog is None:
             return
         self.gui.firesim_dialog = dialog
+        dialog.open()
+
+    async def bring_up_the_diagram_for_the_monitor(self: "MapTaskerEventHandlers", projects: set[str]) -> None:
+        """Build and open the Diagram the Live Run Monitor will light up: one that holds what has fired.
+
+        The Diagram button builds for whatever single Project, Profile or Task is selected in the main window, which
+        is the wrong Diagram to watch a phone with -- the objects that fire are mostly not the selected one.  So
+        this builds for the one Project everything seen so far belongs to, or for the whole configuration when
+        that is several (or nothing has been seen yet), and puts the selection back as it was: the overrides go into
+        program_arguments for this one build and are restored straight after, as rebuild_map_for_jump does.
+        """
+        scope = livemon.diagram_scope(projects)
+        overrides = dict.fromkeys(SELECTION_KEYS, "")
+        if scope:
+            overrides["single_project_name"] = scope
+        ui.notify(
+            f"{translate_string('Building the Diagram of')} "
+            f"{translate_string('Project') + ' ' + repr(scope) if scope else translate_string('the whole configuration')}"
+            " ...",
+            type="info",
+            position="top",
+        )
+        saved = {key: self.state.program_arguments[key] for key in overrides}
+        try:
+            with held_overrides(overrides, state=self.state):
+                await self.view_event("diagram", overrides=overrides)
+        finally:
+            self.state.program_arguments.update(saved)
+
+    async def live_monitor_event(self: "MapTaskerEventHandlers") -> None:
+        """Open the Live Run Monitor: which Profiles and Tasks fire on the phone, lit up in the Diagram as they do.
+
+        Rebuilt on every press, for fire_simulator_event's reason: it watches the configuration loaded at the moment
+        of the press.  An earlier one is stopped before it is taken down, so a monitor is never left asking the
+        phone with nothing on screen to stop it.
+        """
+        dialog = getattr(self.gui, "monitor_dialog", None)
+        monitor = getattr(dialog, "monitor", None)
+        self.gui.monitor_dialog = None
+        if monitor is not None:
+            await monitor.stop_monitoring()
+        if dialog is not None:
+            with suppress_logged("Deleting the Live Run Monitor dialog"):
+                dialog.delete()
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
+            """One row's click: open what it names in a window of its own, keeping this one up."""
+
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        dialog = build_monitor_dialog(self.gui, make_jump, self.bring_up_the_diagram_for_the_monitor)
+        if dialog is None:
+            return
+        self.gui.monitor_dialog = dialog
         dialog.open()
 
     def missing_resources_event(self: "MapTaskerEventHandlers") -> None:

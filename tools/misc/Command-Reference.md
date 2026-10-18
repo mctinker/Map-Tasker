@@ -4,7 +4,7 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **87** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **88** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
 _Generated from the MapTasker 14.2.1 source on 2026-10-18 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
@@ -53,6 +53,7 @@ _Generated from the MapTasker 14.2.1 source on 2026-10-18 by `build_command_wiki
 * [Indentation](#cmd-indentation)
 * [Just Display Everything](#cmd-just-display-everything)
 * [Language](#cmd-language)
+* [Live Run Monitor](#cmd-live-run-monitor)
 * [Map / Diagram / Tree View Toolbar](#cmd-map-diagram-tree-view-toolbar)
   * [Search](#cmd-search)
   * [Find/Replace](#cmd-find-replace)
@@ -1263,6 +1264,24 @@ Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles u
 * A path built from a variable, a wildcard and a web or content address cannot be tested and are listed as not checked; a path an action writes to is not tested, as it is not meant to exist yet; a ringtone, a Tasker icon and the images inside a Scene are not looked at.
 * Something is called missing only when every device you have checked lacks it.
 * Tasker must be running with the HTTP Server Example project active, and the device asks you to authorize the connection.
+
+<a id="cmd-live-run-monitor"></a>
+### Live Run Monitor
+
+**Type:** Command  
+**Where:** Main Window
+
+Watch which Profiles and Tasks fire on your Android device as they do.
+
+* Press Start and MapTasker puts a small helper Task on the device that looks at Tasker's own list of running Tasks and active Profiles several times a second and reports them back every few seconds; what became active, what started and what finished is logged (click a line to go to it), and with the Diagram open each is lit up there while it is on -- green while running or active, amber for a few seconds after -- and the Diagram scrolls to what has just fired.
+* Open Diagram builds the Diagram for the one Project everything seen so far belongs to, or for the whole configuration, whatever is selected in the main window.
+* Compare With What Fires When asks that feature which Profiles it says are active at the moment of the last look, and shows where the device disagrees.
+* It is sampling and not a feed, so a Task that runs for less than the gap between looks can be missed, and Tasker reports names, so two objects with one name light together.
+* Needs the interactive Diagram for the lights, and Tasker running with the HTTP Server Example project active.
+* Closing it stops the monitoring.
+* Nothing on the device is changed but the helper Task.
+
+**Hover text:** Watch which Profiles and Tasks fire on your Android device as they do, and see them light up in the Diagram. Compare what the device really has active with what What Fires When predicted for the same moment. It samples several times a second, so a Task that runs for a moment can be missed. Nothing on the device is changed but one small helper Task.
 
 ## Command-Line Arguments
 

@@ -297,6 +297,20 @@ RESOURCES_HELP_TEXT = (
     " to authorize the connection.  Nothing is changed on the device but the helper Task and two small files in its"
     " Tasker folder, and nothing in your configuration changes.  \n"
 )
+MONITOR_HELP_TEXT = (
+    "- Live Run Monitor: Watch which Profiles and Tasks fire on your Android device as they do.  Press Start and"
+    " MapTasker puts a small helper Task on the device that looks at Tasker's own list of running Tasks and active"
+    " Profiles several times a second and reports them back every few seconds; what became active, what started and"
+    " what finished is logged (click a line to go to it), and with the Diagram open each is lit up there while it is on"
+    " -- green while running or active, amber for a few seconds after -- and the Diagram scrolls to what has just"
+    " fired.  Open Diagram builds the Diagram for the one Project everything seen so far belongs to, or for the whole"
+    " configuration, whatever is selected in the main window.  Compare With What Fires When asks that"
+    " feature which Profiles it says are active at the moment of the last look, and shows where the device"
+    " disagrees.  It is sampling and not a feed, so a Task that runs for less than the gap between looks can be"
+    " missed, and Tasker reports names, so two objects with one name light together.  Needs the interactive Diagram"
+    " for the lights, and Tasker running with the HTTP Server Example project active.  Closing it stops the"
+    " monitoring.  Nothing on the device is changed but the helper Task.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -326,5 +340,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}"
     )
