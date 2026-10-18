@@ -6,7 +6,7 @@ Once the XML file is loaded, you can optionally edit your Projects, Profiles, Ta
 
 This page describes each of the **88** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 14.2.1 source on 2026-10-18 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.0.0 source on 2026-10-18 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -665,7 +665,7 @@ _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 Create a new object and add it to the loaded XML.
 
-**Opens:** Add Scene Version
+**Opens:** Add Project, Add Scene Version
 
 **Commands in it:** Legacy Scene
 
@@ -690,10 +690,6 @@ _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 **Where:** Main Window
 
 Modify the object currently selected in the pulldowns above.
-
-**Opens:** Add Scene Version
-
-**Commands in it:** Legacy Scene
 
 <a id="cmd-rename"></a>
 ##### Rename
@@ -762,10 +758,6 @@ _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 Run the Task selected above on your Android device and see what it returned.
 
-**Opens:** Add Scene Version
-
-**Commands in it:** Legacy Scene
-
 <a id="cmd-duplicate"></a>
 ##### Duplicate
 
@@ -784,7 +776,7 @@ Make a copy of the selected Scene element.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Main Window &gt; Edit Project &gt; Legacy Scene; Main Window &gt; Add Project &gt; Legacy Scene; Main Window &gt; Edit Profile &gt; Legacy Scene (and 6 more)
+**Where:** Main Window &gt; Add Scene &gt; Legacy Scene
 
 Display the Scene being edited as it will appear.
 

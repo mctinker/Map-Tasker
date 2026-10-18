@@ -869,6 +869,11 @@ class CommandModel:
 
         The calls to the helper are looked up and every label any of them passes is
         documented, since each is a real command: one helper, two callers, two names.
+        Each command takes the HANDLERS that same call passed as well.  A helper that draws
+        every Add and Edit button is called with a different handler each time, and a
+        command given all of them is credited with whichever dialog is found first -- which
+        was every Add button opening 'Add Scene Version', or 'Add Project', depending on the
+        order a set happened to come out in.
         """
         for function in self.funcs.values():
             if not any(widget.label_param for widget in function.widgets):
@@ -878,26 +883,47 @@ class CommandModel:
                 if not widget.label_param:
                     named.append(widget)
                     continue
-                labels = self._labels_from_callers(function, widget.label_param)
-                if not labels:
+                labelled = self._labelled_calls(function, widget.label_param)
+                if not labelled:
                     self.unlabelled.append((widget.module, widget.lineno))
-                named.extend(replace(widget, label=label, label_param="") for label in labels)
+                for label, calls in labelled.items():
+                    handlers = set()
+                    for call in calls:
+                        handlers |= self._handlers_at(function, widget, call)
+                    named.append(replace(widget, label=label, label_param="", handlers=tuple(sorted(handlers))))
             function.widgets = named
 
-    def _labels_from_callers(self, function: Func, parameter: str) -> list[str]:
-        """Every label passed for one argument of a helper, by anything that calls it."""
+    def _labelled_calls(self, function: Func, parameter: str) -> dict[str, list[ast.Call]]:
+        """Every label passed for one argument of a helper by anything that calls it, with the calls that passed it."""
         index = function.params.index(parameter)
         if function.params[0] in {"self", "cls"}:  # A method's call site does not pass it.
             index -= 1
-        labels = []
+        labels: dict[str, list[ast.Call]] = {}
         for call in self.callsites.get(function.name, []):
             argument = keyword_of(call, parameter)
             if argument is None and 0 <= index < len(call.args):
                 argument = call.args[index]
             text = literal_text(argument)
-            if is_nameable(text) and text not in labels:
-                labels.append(text)
+            if is_nameable(text):
+                labels.setdefault(text, []).append(call)
         return labels
+
+    @staticmethod
+    def _handlers_at(function: Func, widget: Widget, call: ast.Call) -> set[str]:
+        """What a widget's handlers are when the helper is called as `call`: a handler passed in is whatever it passed."""
+        resolved: set[str] = set()
+        for name in widget.handlers:
+            if name not in function.params:
+                resolved.add(name)
+                continue
+            index = function.params.index(name)
+            if function.params[0] in {"self", "cls"}:
+                index -= 1
+            argument = keyword_of(call, name)
+            if argument is None and 0 <= index < len(call.args):
+                argument = call.args[index]
+            resolved |= handler_names(argument)
+        return resolved
 
     def _merge_helpers(self) -> None:
         """Folds a widget-drawing helper into every surface that calls it.
@@ -982,7 +1008,7 @@ class CommandModel:
         not whatever the dialog itself can go on to open.
         """
         here = self.hosts_of(widget.owner) | {widget.owner}
-        queue = [(name, 0) for name in self._handlers_of(widget)]
+        queue = [(name, 0) for name in sorted(self._handlers_of(widget))]
         seen: set[str] = set()
         while queue:
             name, depth = queue.pop(0)

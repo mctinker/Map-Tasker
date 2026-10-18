@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.2.1] ??-Oct-2026  # FIX
+## [15.0.0] ??-Oct-2026  # FIX
 
 ### Added
 
