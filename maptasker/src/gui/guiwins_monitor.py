@@ -277,6 +277,17 @@ class _Monitor:
         self.worker = asyncio.create_task(self._watch(ip_address, ip_port))
         self.worker.add_done_callback(_report_failure)
 
+    def abandon(self) -> None:
+        """Give up without touching a widget: the page this monitor was drawn on is gone.
+
+        What stop_monitoring does to the buttons and the status line would raise on a deleted client, and
+        there is nobody to show them to; all that is needed is that nothing goes on asking the phone.
+        """
+        self.running = False
+        if self.worker is not None:
+            self.worker.cancel()
+            self.worker = None
+
     async def stop_monitoring(self) -> None:
         """Stop asking, and put the Diagram's lights out."""
         self.running = False

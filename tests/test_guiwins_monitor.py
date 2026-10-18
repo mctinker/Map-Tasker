@@ -483,3 +483,25 @@ async def test_with_scrolling_turned_off_the_diagram_is_lit_and_left_where_it_is
 
         script = next(script for script in _scripts if '"mt-task-20"' in script)
         assert "for (const anchor of [])" in script
+
+
+@pytest.mark.asyncio
+async def test_abandon_stops_the_asking_without_touching_a_widget() -> None:
+    """For a page that is gone: nothing more is asked of the phone, and no widget of the dead page is drawn on."""
+    _script((MORNING, "Morning", "Dawn", "90"))
+    async with _open() as user:
+        _press(user, "Start")
+        await _until(lambda: _asked)
+        monitor = _built["dialog"].monitor
+        status_before = [e.text for e in _elements(user, ui.label) if e.text.startswith("Monitoring")]
+
+        monitor.abandon()
+        asked = len(_asked)
+        await asyncio.sleep(0.3)
+
+        assert monitor.running is False
+        assert monitor.worker is None
+        assert len(_asked) <= asked + 1, "at most the window already in flight finishes"
+        assert [e.text for e in _elements(user, ui.label) if e.text.startswith("Monitoring")] == status_before, (
+            "the status line was not rewritten (stopping would have said 'Stopped.')"
+        )

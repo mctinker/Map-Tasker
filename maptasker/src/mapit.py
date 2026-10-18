@@ -32,7 +32,7 @@ import platform
 import sys
 from typing import Any
 
-from nicegui import app
+from nicegui import Client, app
 
 from maptasker.src import clireports
 from maptasker.src.core import console
@@ -126,6 +126,98 @@ def _install_async_exception_handler() -> None:
     asyncio.get_running_loop().set_exception_handler(handle_async_exceptions)
 
 
+# ##################################################################################
+# A browser tab that stops answering.
+#
+# A tab in the background can be suspended by the browser, and NiceGUI sees that as a dropped websocket:
+# the page's socket.io client then retries in a loop, connecting and dropping again, and each of those
+# retries is a disconnect the server hears about.  NiceGUI itself deletes the client once ui.run's
+# reconnect_timeout has passed with no connection -- but anything MapTasker started FOR that tab, such as
+# the Live Run Monitor asking the phone over and over, knows nothing of it and carries on.
+#
+# So there is one handler for a disconnect, and it does three things.  It waits out the reconnect
+# timeout plus a little, so a blip that mends itself is left alone.  It does nothing if the tab came
+# back, or the client is already gone.  And it never stacks: a flapping connection is a disconnect
+# every few seconds, and a wait started for each would be a pile of sleeping tasks, so a new disconnect
+# replaces the wait for the same tab and a reconnect cancels it.
+# ##################################################################################
+
+# Seconds past ui.run's reconnect_timeout to wait before calling a tab gone, so that NiceGUI's own
+# deletion of the client has happened first.
+DISCONNECT_GRACE_SECONDS = 5.0
+
+# The wait in progress for each tab that has dropped, by client id.
+_waiting: dict[str, asyncio.Task[None]] = {}
+
+# Whether the handlers are registered, so that starting up twice (as the tests do) registers them once.
+_installed = {"done": False}
+
+
+# NiceGUI's own default, for a handler that somehow runs before ui.run() has set the configured one.
+_DEFAULT_RECONNECT_TIMEOUT = 3.0
+
+
+def _reconnect_timeout() -> float:
+    """How long NiceGUI waits for a dropped tab before deleting its client -- what ui.run() was given."""
+    return float(getattr(app.config, "reconnect_timeout", _DEFAULT_RECONNECT_TIMEOUT))
+
+
+def _stop_waiting(client_id: str) -> None:
+    """Cancel the wait for a tab: it came back, or a newer disconnect has taken over."""
+    task = _waiting.pop(client_id, None)
+    if task is not None:
+        task.cancel()
+
+
+def _release_client_work(client: Client, state: RunState) -> None:
+    """Stop what MapTasker was doing for a tab that is not coming back.
+
+    The Live Run Monitor is the one thing that keeps running by itself -- it asks the phone every few seconds
+    -- and it has no way to know its page is gone.  It is told to give up without touching its widgets,
+    which belong to a client that no longer has a page.
+    """
+    monitor = getattr(getattr(getattr(state, "mygui", None), "monitor_dialog", None), "monitor", None)
+    if monitor is not None and getattr(getattr(monitor.dialog, "client", None), "id", None) == client.id:
+        monitor.abandon()
+        logger.info("A browser tab went away: the Live Run Monitor it was showing has been stopped.")
+
+
+async def _on_client_disconnect(client: Client, state: RunState) -> None:
+    """A tab dropped its connection: give it time to come back, and clean up after it if it does not."""
+    _stop_waiting(client.id)
+    me = asyncio.current_task()
+    if me is not None:
+        _waiting[client.id] = me
+    try:
+        await asyncio.sleep(_reconnect_timeout() + DISCONNECT_GRACE_SECONDS)
+    finally:
+        if _waiting.get(client.id) is me:
+            del _waiting[client.id]
+    if client.has_socket_connection or client.is_deleted:
+        return
+    _release_client_work(client, state)
+
+
+def _on_client_connect(client: Client) -> None:
+    """A tab connected -- or came back: whatever was waiting to clean up after it is no longer needed."""
+    _stop_waiting(client.id)
+
+
+def install_disconnect_handling(state: RunState) -> None:
+    """Register the handlers for a tab that drops and a tab that returns.  Safe to call more than once."""
+    if _installed["done"]:
+        return
+    _installed["done"] = True
+
+    # A function of exactly one parameter, not a partial: NiceGUI hands the client to a handler only when it takes
+    # one argument (it counts the parameters), and a partial that has the state bound still counts two.
+    async def on_disconnect(client: Client) -> None:
+        await _on_client_disconnect(client, state)
+
+    app.on_disconnect(on_disconnect)
+    app.on_connect(_on_client_connect)
+
+
 # Perform maptasker program initialization functions
 def start_up(state: RunState) -> None:
     # Get any arguments passed to program
@@ -215,6 +307,7 @@ def initialize_everything(state: RunState) -> tuple[list, list, list]:
     # "There is no current event loop" here under Python 3.14 instead of creating a spare one.
     if not app.is_started:
         app.on_startup(_install_async_exception_handler)
+    install_disconnect_handling(state)
 
     # Get colors to use, runtime arguments etc...all of our primary items we need
     # throughout
