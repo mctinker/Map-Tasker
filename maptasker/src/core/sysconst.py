@@ -73,11 +73,6 @@ LEGACY_SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
 # directory) because it is the same kind of thing: remembered, per-installation, and
 # no loss if it is deleted.
 APPS_CACHE_FILE = "MapTasker_Apps.json"
-# What the last Missing Resources check found on each device, kept between runs so the Health Check can
-# report it without going to the device -- see resstore.py.  Same place and same rules as the app list.
-RESOURCES_CACHE_FILE = "MapTasker_Resources.json"
-# The saved report of a Missing Resources check -- see resourcechk.py.
-RESOURCES_FILE = "MapTasker_Resources.txt"
 
 # What every Map/Diagram popout window is named, plus the view it holds: "maptasker_map",
 # "maptasker_diagram", and with "Open View In New Window" on a unique suffix after that.
@@ -342,6 +337,12 @@ DISABLED = " [&#9940;&nbsp;DISABLED]"  # &#9940 = "⛔"
 # embedded in TaskerNet descriptions and Task action labels (format.py).
 HOTLINK_STYLE = "color: #3399ff; text-decoration: underline;"
 
+# What the last Missing Resources check found on each device, kept between runs so the Health Check can
+# report it without going to the device -- see resstore.py.  Same place and same rules as the app list.
+RESOURCES_CACHE_FILE = "MapTasker_Resources.json"
+# The saved report of a Missing Resources check -- see resourcechk.py.
+RESOURCES_FILE = "MapTasker_Resources.txt"
+
 # Set up background color and border for tables
 TABLE_BACKGROUND_COLOR = "DarkSteelBlue" if darkdetect.isDark() else "PaleTurquois"
 TABLE_BORDER_COLOR = "DarkSlateGrey" if darkdetect.isDark() else "LightGrey"
@@ -433,12 +434,14 @@ RETIRED_AI_MODEL_PREFIXES = ("deepseek",)
 
 GEMINI_MODELS = [
     "gemini-3.1-flash-lite",
-    "gemini-3.6-flash",
+    "gemini-3.1-pro-preview",
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
-    "gemini-3.8-flash",
+    "gemini-3.6-flash",
     "gemini-3.7-flash",
+    "gemini-3.8-flash",
     "gemini-3.8-flash-lite",
+    "gemini-4-argon",
 ]
 MODEL_GROUPS = {
     "OpenAI": OPENAI_MODELS,

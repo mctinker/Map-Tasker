@@ -296,7 +296,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Map remaining Tasker preferences
 
-- [ ] Task Stepper: dry-run a Task action by action, showing which If, For and Goto branches run and what each variable holds
+- [x] Task Stepper: dry-run a Task action by action, showing which If, For and Goto branches run and what each variable holds
 
 - [ ] Live Run Monitor: stream which Profiles and Tasks fire on the phone and light them up in the Diagram view
 
@@ -308,13 +308,13 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Plain-English explanations in the Map: an AI-written, cached and editable one-line summary of each Profile and Task
 
-- [ ] Missing-resource checker: verify that the files, folders, images, sounds, Scenes and apps your actions reference still exist
+- [x] Missing-resource checker: verify that the files, folders, images, sounds, Scenes and apps your actions reference still exist
 
-- [ ] Complexity and trend dashboard: track Task length, nesting, call-chain depth and findings over time
+- [x] Complexity and trend dashboard: track Task length, nesting, call-chain depth and findings over time
 
 - [ ] Documentation site export: a linked set of Markdown or HTML pages, one per Project, Profile, Task and Scene, with call diagrams
 
-- [ ] Variable rename and scope assistant: rename a variable, or make a global local, everywhere it is used, as one Undo
+- [x] Variable rename and scope assistant: rename a variable, or make a global local, everywhere it is used, as one Undo
 
 ## Privacy Statement
 
