@@ -298,7 +298,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Task Stepper: dry-run a Task action by action, showing which If, For and Goto branches run and what each variable holds
 
-- [ ] Live Run Monitor: stream which Profiles and Tasks fire on the phone and light them up in the Diagram view
+- [x] Live Run Monitor: stream which Profiles and Tasks fire on the phone and light them up in the Diagram view
 
 - [ ] Three-way merge of two backups against a common ancestor, resolved conflict by conflict and undone in one step
 
