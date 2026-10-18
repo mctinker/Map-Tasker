@@ -2718,7 +2718,11 @@ def _create_right_drawer(self: MyGui) -> None:
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
-        ) as self.gui_right_drawer
+        )
+        # NiceGUI's drawer wraps its children, and a column that wraps starts a second column to the right
+        # of the first as soon as the buttons are taller than the window -- off-screen, behind a horizontal
+        # scroll bar.  Not wrapping makes the drawer scroll up and down instead.
+        .style("flex-wrap: nowrap") as self.gui_right_drawer
     ):
         ui.label(translate_string("Actions & Control")).classes("text-lg font-bold mb-2 self-center")
 
@@ -2734,13 +2738,18 @@ def _create_right_drawer(self: MyGui) -> None:
             "text-xs font-bold uppercase text-gray-400 mt-3 self-center",
         )
         _create_view_buttons_section(self)
+        # Health Check stays out where it can be seen -- it is the most used of these and the others
+        # (Fix Findings beside it, Missing Resources) are its follow-ups.  The rest are tucked into two
+        # sections that open with a click, so the drawer is a few lines tall until one is wanted.
         _create_health_check_row(self)
-        _create_resources_button(self)
 
-        _create_history_buttons_section(self)
-        _create_trend_button(self)
+        with _drawer_section(self, "history", "Compare & History", "history"):
+            _create_history_buttons_section(self)
+            _create_trend_button(self)
 
-        _create_analysis_buttons_section(self)
+        with _drawer_section(self, "analyze", "Analyze", "analytics"):
+            _create_resources_button(self)
+            _create_analysis_buttons_section(self)
 
         ui.button(translate_string("Clear"), on_click=self.event_handlers.clear_view_event).classes(
             "bg-blue-500"
@@ -2755,6 +2764,25 @@ def _create_right_drawer(self: MyGui) -> None:
         # gui_right_drawer itself rather than nesting inside a wrapper here, so the bottom
         # spacing (mt-auto) lives on the elements it creates, not on a container.
         add_logo(self, "coffee")
+
+
+def _drawer_section(self: MyGui, key: str, title: str, icon: str) -> ui.expansion:
+    """One collapsible group of buttons in the right drawer, closed until it is wanted.
+
+    Whether each section is open is kept on the window (drawer_sections), so a section the user opened stays
+    open when the drawer is drawn again -- a change of language or appearance rebuilds the page -- and is not
+    saved between sessions: they start folded, which is the point of having them.  `key` is the section's
+    identity; `title` is what the header says.
+    """
+    section = (
+        ui.expansion(translate_string(title), icon=icon, value=self.drawer_sections.get(key, False))
+        .classes(
+            "w-full rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 font-bold text-xs uppercase"
+        )
+        .props("dense dense-toggle")
+    )
+    section.on_value_change(lambda event: self.drawer_sections.__setitem__(key, bool(event.value)))
+    return section
 
 
 def _create_execution_section(self: MyGui) -> None:

@@ -494,6 +494,8 @@ class MyGui:
         self.output_directory_input: ui.input | None = None
         # The What Fires When? dialog while one is up -- see fire_simulator_event.
         self.firesim_dialog: ui.dialog | None = None
+        # Which sections of the right drawer are open, by key -- see guiwins._drawer_section.
+        self.drawer_sections: dict[str, bool] = {}
 
         # 1. Initialize settings and state
         initialize_gui(self)
