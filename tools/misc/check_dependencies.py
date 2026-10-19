@@ -55,8 +55,80 @@ def normalize_for_requirements(dep: str) -> str:
     return f"{pkg}{constraint}"
 
 
+PYPROJECT_FILE = Path(__file__).resolve().parents[2] / "pyproject.toml"
+
+# The only tables of pyproject.toml that declare packages: runtime and the 'ai' extra, and the groups.
+DEPENDENCY_TABLES = {"project", "project.optional-dependencies", "dependency-groups"}
+_TABLE_HEADER = re.compile(r"^\s*\[\[?([^\[\]]+)\]\]?\s*(?:#.*)?$")
+# One dependency on a line of its own: "name[extras]>=1.2", with the quote style, the comma and any
+# trailing comment kept as written.
+_DEPENDENCY_LINE = re.compile(
+    r"""^(?P<indent>\s*)(?P<quote>["'])(?P<name>[A-Za-z0-9_.-]+)(?P<extras>\[[^\]]*\])?"""
+    r"""(?P<spec>.*?)(?P=quote)(?P<tail>\s*,?\s*(?:#.*)?)$""",
+)
+
+
+def update_pyproject(changes: dict[str, str], pyproject_file: Path = PYPROJECT_FILE) -> int:
+    """
+    Apply version updates to pyproject.toml, in place, where each dependency is declared.
+
+    'changes' maps a dependency as read_dependencies() returned it (extras removed) to its updated
+    form.  Only the dependency's own line is touched, so every comment, the quote style, extras like
+    'pyright[nodejs]', the ordering and the rest of the file stay as they were.  A package that is
+    declared in more than one place (pytest, say) is updated in each.  Returns the lines changed.
+    """
+    if not changes:
+        return 0
+
+    with open(pyproject_file, encoding="utf-8", newline="") as f:
+        lines = f.read().splitlines(keepends=True)
+
+    table = ""
+    applied: set[str] = set()
+    count = 0
+    for index, raw in enumerate(lines):
+        line = raw.rstrip("\r\n")
+        ending = raw[len(line) :]
+
+        header = _TABLE_HEADER.match(line)
+        if header:
+            table = header.group(1).strip()
+            continue
+        if table not in DEPENDENCY_TABLES:
+            continue
+
+        m = _DEPENDENCY_LINE.match(line)
+        if not m:
+            continue
+        old = m["name"] + m["spec"]
+        new = changes.get(old)
+        if new is None:
+            continue
+
+        # new is 'name<op>version'; put back the extras that read_dependencies() removed.
+        new_spec = new[len(m["name"]) :]
+        if ";" in m["spec"] and ";" not in new_spec:
+            # Keep an environment marker such as "; sys_platform == 'win32'".
+            new_spec += m["spec"][m["spec"].index(";") :]
+        lines[index] = (
+            f"{m['indent']}{m['quote']}{m['name']}{m['extras'] or ''}{new_spec}{m['quote']}{m['tail']}{ending}"
+        )
+        applied.add(old)
+        count += 1
+
+    for old in changes.keys() - applied:
+        print(f"Not found in {pyproject_file.name}, so not updated there: {old}")
+
+    if count:
+        with open(pyproject_file, "w", encoding="utf-8", newline="") as f:
+            f.writelines(lines)
+    print(f"{pyproject_file.name}: {count} dependency line(s) updated")
+    return count
+
+
 def check_dependency_updates(dependencies: list, output_file: str, req_file: str) -> None:
     updated_dependencies = []
+    changes: dict[str, str] = {}  # dependency as declared -> its new version, for pyproject.toml
 
     for dep in dependencies:
         match = re.match(r"([a-zA-Z0-9_-]+)\s*\(?(.+?)?\)?$", dep)
@@ -66,7 +138,11 @@ def check_dependency_updates(dependencies: list, output_file: str, req_file: str
             continue
 
         package_name = match.group(1)
-        constraint = match.group(2)
+        # An environment marker ("; sys_platform == 'win32'") is not part of the version constraint
+        # and would make it unparseable, so set it aside and put it back on whatever is written.
+        constraint, _, marker = (match.group(2) or "").partition(";")
+        constraint = constraint.strip()
+        marker_suffix = f"; {marker.strip()}" if marker.strip() else ""
 
         operator, version_for_compare, full_constraint = parse_version_constraint(constraint)
 
@@ -102,9 +178,10 @@ def check_dependency_updates(dependencies: list, output_file: str, req_file: str
 
                 if full_constraint and "," in full_constraint:
                     # Multi-range dependency – preserve format
-                    new_dep = f"{package_name} ({full_constraint})"
+                    new_dep = f"{package_name} ({full_constraint}){marker_suffix}"
                 else:
-                    new_dep = f"{package_name}{operator}{latest_version_str}"
+                    new_dep = f"{package_name}{operator}{latest_version_str}{marker_suffix}"
+                    changes[dep] = new_dep
             else:
                 new_dep = dep
 
@@ -135,26 +212,33 @@ def check_dependency_updates(dependencies: list, output_file: str, req_file: str
 
     print(f"requirements.txt written to: {req_file}")
 
+    #
+    # UPDATE pyproject.toml, the one place the dependencies are declared
+    #
+    update_pyproject(changes)
+
 
 # === The dependency list ===
 # pyproject.toml is the one place dependencies are declared; this reads it rather than keeping
 # a copy that goes stale (it once still listed 'black' and lacked 'platformdirs').
 def read_dependencies() -> list[str]:
-    """Return every dependency in pyproject.toml: runtime, the 'ai' extra, then the dev group."""
-    pyproject = tomllib.loads((Path(__file__).resolve().parents[2] / "pyproject.toml").read_text(encoding="utf-8"))
+    """Return every dependency in pyproject.toml: runtime, every optional extra, and every dependency group."""
+    pyproject = tomllib.loads(PYPROJECT_FILE.read_text(encoding="utf-8"))
+    project = pyproject["project"]
     declared = [
-        *pyproject["project"]["dependencies"],
-        *pyproject["project"]["optional-dependencies"]["ai"],
-        # The dev group also holds {include-group = ...} tables; only the strings are packages.
-        *(d for d in pyproject["dependency-groups"]["dev"] if isinstance(d, str)),
+        *project.get("dependencies", []),
+        *(d for extra in project.get("optional-dependencies", {}).values() for d in extra),
+        # A group also holds {include-group = ...} tables; only the strings are packages.
+        *(d for group in pyproject.get("dependency-groups", {}).values() for d in group if isinstance(d, str)),
     ]
     # 'pyright[nodejs]>=1' -> 'pyright>=1': this only compares versions, and extras would
     # confuse the name/constraint split above.
-    return sorted({re.sub(r"\[.*?\]", "", d) for d in declared})
+    stripped = {re.sub(r"\[.*?\]", "", d) for d in declared}
+    # The project itself ('maptasker[ai]' in the ai-dev group) is not on PyPI to be checked.
+    own_name = re.compile(rf"^{re.escape(project['name'])}\b", re.IGNORECASE)
+    return sorted(d for d in stripped if not own_name.match(d))
 
 
-dependencies = read_dependencies()
-
-
-# Run & create output files
-check_dependency_updates(dependencies, "updated_dependencies.py", "requirements.txt")
+if __name__ == "__main__":
+    # Run & create output files, and apply the updates to pyproject.toml
+    check_dependency_updates(read_dependencies(), "updated_dependencies.py", "requirements.txt")
