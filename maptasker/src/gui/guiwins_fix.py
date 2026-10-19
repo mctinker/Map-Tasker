@@ -239,7 +239,9 @@ class _FixDialog:
             ui.button(translate_string("Deselect All"), on_click=lambda: self.set_all_categories(ticked=False)).props(
                 "outline",
             )
-            ui.button(translate_string("Continue"), on_click=self.choose_categories).classes("bg-blue-600 text-white px-4")
+            ui.button(translate_string("Continue"), on_click=self.choose_categories).classes(
+                "bg-blue-600 text-white px-4"
+            )
             ui.button(translate_string("Cancel"), on_click=self.dialog.close).classes("bg-red-500 text-white px-4")
 
     def show_chooser(self) -> None:
