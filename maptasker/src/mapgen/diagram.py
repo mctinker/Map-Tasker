@@ -67,6 +67,7 @@ from maptasker.src.mapgen.diagutil import (
     delete_hanging_bars,
     find_nth,
     fix_duplicate_up_down_locations,
+    icon_spans,
     include_heading,
     print_3_lines,
     print_all,
@@ -1055,6 +1056,45 @@ def _cells_to_ranges(cells: list[tuple[int, int]]) -> list[tuple[int, int, int]]
     return ranges
 
 
+def _display_geometry(lines: list) -> tuple[list, list, list]:
+    """Lay the lines out by the screen columns their characters are drawn in.
+
+    An icon, or a Chinese/Japanese/Korean character, is one character but two columns wide, and
+    remove_icon has taken blanks out of the lines to make up for that.  Connectors that line up on
+    screen therefore sit at different character positions on a row with one in it and a row
+    without, and a flood fill by character position loses the connector at that row.
+
+    Args:
+        lines: the finished Diagram lines.
+
+    Returns:
+        tuple[list, list, list]: the lines with each wide character spread over the two cells it is
+        drawn in, and for each line the character that each cell is, and the cell each character starts at.
+    """
+    display_lines, cell_to_char, char_to_cell = [], [], []
+    for line in lines:
+        spans = dict(icon_spans(line))
+        cells, chars, starts = [], [], []
+        position = 0
+        while position < len(line):
+            end = spans.get(position)
+            if end is None:
+                starts.append(len(cells))
+                cells.append(line[position])
+                chars.append(position)
+                position += 1
+                continue
+            # The whole icon is one wide character: two cells, the second one not a blank.
+            starts.extend([len(cells)] * (end - position))
+            cells.extend([line[position], "\x00"])
+            chars.extend([position, position])
+            position = end
+        display_lines.append("".join(cells))
+        cell_to_char.append(chars)
+        char_to_cell.append(starts)
+    return display_lines, cell_to_char, char_to_cell
+
+
 def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) -> dict:
     """
     Identify every Diagram-view connector -- the lines, corners and arrows joining a "calls" Task
@@ -1110,10 +1150,15 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
     calls_by_group: dict = {}
     group_id = 0
 
+    # Connectors are followed by the columns they are drawn in, and put back into character
+    # positions at the end, which is what the view slices the lines by.
+    cells_by_line, cell_to_char, char_to_cell = _display_geometry(lines)
+
     for row, col, call_index in seeds:
         seed_cell = find_diagram_connector_seed_cell(lines, row, col)
         if seed_cell is None:
             continue
+        seed_cell = (row, char_to_cell[row][seed_cell[1]])
         # A seed landing on a connector already grown from an earlier seed adds its call to
         # that group rather than being discarded: three seeds are dropped per call, and two
         # calls whose runs touch share the one group.
@@ -1123,7 +1168,7 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
                 calls_by_group[existing].append(call_index)
             continue
 
-        cells = _grow_connector(lines, seed_cell, visited)
+        cells = _grow_connector(cells_by_line, seed_cell, visited)
         groups[group_id] = cells
         calls_by_group[group_id] = [call_index]
         for cell in cells:
@@ -1131,7 +1176,9 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
         group_id += 1
 
     # Compact each group's cells into per-row (line_num, col_start, col_end) ranges.
-    ranges_by_group = {gid: _cells_to_ranges(cells) for gid, cells in groups.items()}
+    ranges_by_group = {
+        gid: _cells_to_ranges([(row, cell_to_char[row][cell]) for row, cell in cells]) for gid, cells in groups.items()
+    }
 
     state.diagram_connector_calls = calls_by_group
     return ranges_by_group
