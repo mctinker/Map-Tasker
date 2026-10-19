@@ -2,32 +2,24 @@
 
 All notable changes to this project will be documented in this file!
 
-## [15.0.0] 19-Oct-2026
+## [15.0.1] ??-Oct-2026  # FIX
 
 ### Added
 
-- Added: A new __Missing Resources__ button asks your Android device whether the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist, and lists the ones it does not have along with every place that uses each. The Health Check now reports those too (RESOURCE-MISSING) from the last time you checked.
-- Added: A new __Live Run Monitor__ button watches which Profiles and Tasks fire on your Android device as they do, logs each one, and lights them up in the Diagram while they run. It can also compare what the device really has active with what What Fires When predicted for the same moment.
+- Added:
 
 ### Changed
 
-- Changed: The note at the top of the Diagram no longer warns that icons can cause mis-alignment, since they are now lined up; it still warns about Chinese, Korean and Japanese characters.
-- Changed: Each share listed in TaskerNet Updates now shows when it was last checked, or 'Never checked', so you can tell whether another check is worth making.
-- Changed: The right-hand panel is shorter: its report buttons are grouped under two sections, 'Compare & History' and 'Analyze', that open with a click, while Health Check and Fix Findings stay in view. The panel also scrolls up and down on a short window instead of spilling into a second column off to the right.
-- Changed: The Task Stepper now walks into a Perform Task, showing the called Task's actions indented under the call, with the parameters it was given and the value it returns. Turn off 'Follow Perform Task' to step over calls instead.
-- Changed: Fix Findings now first asks which kinds of finding you want to fix, such as MISSING-COLLISION or NO-TIMEOUT, each with how many were found. Only the kinds you choose are scanned for and listed, and a Kinds button on the list takes you back to change the choice.
+- Changed: Fix Findings now says "There is nothing to fix." when the scan finds nothing, instead of showing a list of unusable tick boxes. Kinds of finding excluded in the Health Check settings are named as unavailable.
+- Changed:
 
 ### Removed
 
-- Removed: Nothing removed
+- Removed:
 
 ### Fixed
 
-- Fixed: Boxes and connectors are mis-aligned in the Diagram view if the line has one or more icons or names contain Chinese, Japanese or Korean characters.
-- Fixed: Choosing "Upgrade to latest version" on a Mac no longer prints a "coroutine was never awaited" warning in the console while MapTasker restarts. The program now lets its last on-screen message finish sending before it shuts down.
-- Fixed: Clicking a connector in the Diagram view now highlights only that connector, instead of running its horizontal lines on past the vertical one. The highlight is no longer drawn in bold, which made the corner and arrow characters wider than the rest of the diagram.
-- Fixed: When the browser suspends MapTasker's tab in the background and its connection keeps dropping and retrying, the server now waits for the tab to come back and, if it does not, stops anything it was doing for that tab (the Live Run Monitor no longer goes on asking your phone). Repeated drops of one tab no longer stack up waits.
-- Fixed: Clicking a connector in the Diagram view now highlights all of it, even where it passes a line containing an icon or Chinese, Japanese or Korean characters. It used to highlight only part of the connector, such as the horizontal line at one end.
+- Fixed:
 
 ### Known Issues
 
@@ -41,6 +33,21 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
 
 ## Older History Logs
+
+## [15.0.0] 19-Oct-2026
+
+- Added: A new __Missing Resources__ button asks your Android device whether the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist, and lists the ones it does not have along with every place that uses each. The Health Check now reports those too (RESOURCE-MISSING) from the last time you checked.
+- Added: A new __Live Run Monitor__ button watches which Profiles and Tasks fire on your Android device as they do, logs each one, and lights them up in the Diagram while they run. It can also compare what the device really has active with what What Fires When predicted for the same moment.
+- Changed: The note at the top of the Diagram no longer warns that icons can cause mis-alignment, since they are now lined up; it still warns about Chinese, Korean and Japanese characters.
+- Changed: Each share listed in TaskerNet Updates now shows when it was last checked, or 'Never checked', so you can tell whether another check is worth making.
+- Changed: The right-hand panel is shorter: its report buttons are grouped under two sections, 'Compare & History' and 'Analyze', that open with a click, while Health Check and Fix Findings stay in view. The panel also scrolls up and down on a short window instead of spilling into a second column off to the right.
+- Changed: The Task Stepper now walks into a Perform Task, showing the called Task's actions indented under the call, with the parameters it was given and the value it returns. Turn off 'Follow Perform Task' to step over calls instead.
+- Changed: Fix Findings now first asks which kinds of finding you want to fix, such as MISSING-COLLISION or NO-TIMEOUT, each with how many were found. Only the kinds you choose are scanned for and listed, and a Kinds button on the list takes you back to change the choice.
+- Fixed: Boxes and connectors are mis-aligned in the Diagram view if the line has one or more icons or names contain Chinese, Japanese or Korean characters.
+- Fixed: Choosing "Upgrade to latest version" on a Mac no longer prints a "coroutine was never awaited" warning in the console while MapTasker restarts. The program now lets its last on-screen message finish sending before it shuts down.
+- Fixed: Clicking a connector in the Diagram view now highlights only that connector, instead of running its horizontal lines on past the vertical one. The highlight is no longer drawn in bold, which made the corner and arrow characters wider than the rest of the diagram.
+- Fixed: When the browser suspends MapTasker's tab in the background and its connection keeps dropping and retrying, the server now waits for the tab to come back and, if it does not, stops anything it was doing for that tab (the Live Run Monitor no longer goes on asking your phone). Repeated drops of one tab no longer stack up waits.
+- Fixed: Clicking a connector in the Diagram view now highlights all of it, even where it passes a line containing an icon or Chinese, Japanese or Korean characters. It used to highlight only part of the connector, such as the horizontal line at one end.
 
 ## [14.2.0] 15-Oct-2026
 

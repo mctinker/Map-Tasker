@@ -169,6 +169,8 @@ class _FixDialog:
         # list this dialog used to open on.
         self.categories: set[str] = set(mapfix.FIXABLE_TAGS)
         self.boxes: dict[str, ui.checkbox] = {}
+        # The buttons that only mean something when there is a kind to choose.
+        self.choice_buttons: list[ui.button] = []
         self.dialog: ui.dialog
         self.summary: ui.label
         self.screen: _Screen
@@ -233,15 +235,17 @@ class _FixDialog:
         ui.label(translate_string(_CHOOSER_BLURB)).classes("text-xs text-gray-500 italic mb-2 mt-1")
         self.chooser_area = ui.scroll_area().classes("w-full h-[320px] border rounded dark:border-gray-700 mt-1")
         with ui.row().classes("w-full justify-end mt-4 gap-2"):
-            ui.button(translate_string("Select All"), on_click=lambda: self.set_all_categories(ticked=True)).props(
-                "outline",
-            )
-            ui.button(translate_string("Deselect All"), on_click=lambda: self.set_all_categories(ticked=False)).props(
-                "outline",
-            )
-            ui.button(translate_string("Continue"), on_click=self.choose_categories).classes(
-                "bg-blue-600 text-white px-4"
-            )
+            self.choice_buttons = [
+                ui.button(translate_string("Select All"), on_click=lambda: self.set_all_categories(ticked=True)).props(
+                    "outline",
+                ),
+                ui.button(
+                    translate_string("Deselect All"), on_click=lambda: self.set_all_categories(ticked=False)
+                ).props("outline"),
+                ui.button(translate_string("Continue"), on_click=self.choose_categories).classes(
+                    "bg-blue-600 text-white px-4"
+                ),
+            ]
             ui.button(translate_string("Cancel"), on_click=self.dialog.close).classes("bg-red-500 text-white px-4")
 
     def show_chooser(self) -> None:
@@ -249,11 +253,28 @@ class _FixDialog:
         skip = self.state.program_arguments.health_check_skip or []
         counts = mapfix.count_findings(skip, state=self.state)
 
+        excluded = [tag for tag in mapfix.FIXABLE_TAGS if tag in skip]
+        nothing_to_fix = not any(counts.get(tag) for tag in mapfix.FIXABLE_TAGS if tag not in skip)
+
         self.boxes.clear()
         self.chooser_area.clear()
         with self.chooser_area, ui.column().classes("w-full gap-1 p-1"):
+            if nothing_to_fix:
+                ui.label(translate_string("There is nothing to fix.")).classes("text-sm font-bold text-orange-500 ml-2")
+            if excluded:
+                ui.label(
+                    f"{translate_string('Excluded by the Health Check settings, and so unavailable')}: "
+                    f"{', '.join(excluded)}",
+                ).classes("text-xs text-gray-500 ml-2 mb-1")
+            # With nothing found there is nothing to tick: only the excluded kinds are listed, so
+            # that the user can see which of them is why a kind they expected is missing.
             for tag in mapfix.FIXABLE_TAGS:
-                self._draw_category(tag, counts.get(tag), tag in skip)
+                if not nothing_to_fix or tag in skip:
+                    self._draw_category(tag, counts.get(tag), tag in skip)
+
+        # Nothing to choose from means nothing to select, deselect or continue with.
+        for button in self.choice_buttons:
+            button.set_enabled(not nothing_to_fix)
 
         self.list_view.set_visibility(False)
         self.chooser_view.set_visibility(True)

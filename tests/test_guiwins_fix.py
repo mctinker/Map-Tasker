@@ -232,6 +232,34 @@ async def test_a_kind_with_nothing_to_fix_cannot_be_ticked() -> None:
 
 
 @pytest.mark.asyncio
+async def test_excluded_kinds_are_named_as_unavailable() -> None:
+    PrimeItems.program_arguments.health_check_skip = [mapfix.NO_TIMEOUT, mapfix.UNREFERENCED_TASK]
+    try:
+        async with _open(choose=False) as user:
+            said = " ".join(_labels(user))
+            assert "unavailable" in said
+            assert f"{mapfix.NO_TIMEOUT}, {mapfix.UNREFERENCED_TASK}" in said
+            assert "There is nothing to fix." not in _labels(user)
+    finally:
+        PrimeItems.program_arguments.health_check_skip = []
+
+
+@pytest.mark.asyncio
+async def test_nothing_found_says_so_and_offers_nothing_to_choose() -> None:
+    skipped = list(mapfix.FIXABLE_TAGS[1:])
+    PrimeItems.program_arguments.health_check_skip = skipped
+    try:
+        with pytest.MonkeyPatch.context() as patch:
+            patch.setattr(mapfix, "count_findings", lambda *_a, **_k: {})
+            async with _open(choose=False) as user:
+                assert "There is nothing to fix." in _labels(user)
+                assert len(_boxes(user)) == len(skipped)
+                assert not any(box.enabled for box in _boxes(user))
+    finally:
+        PrimeItems.program_arguments.health_check_skip = []
+
+
+@pytest.mark.asyncio
 async def test_kinds_goes_back_to_the_choice_and_keeps_the_ticks_on_what_is_still_listed() -> None:
     async with _open(choose=False) as user:
         for tag, box in _kind_boxes(user).items():
