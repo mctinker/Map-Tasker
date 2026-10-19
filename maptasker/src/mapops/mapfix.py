@@ -768,13 +768,41 @@ def _planner_for(tag: str, timeouts: dict[str, str], state: RunState) -> Callabl
     return None
 
 
-def plan_fixes(skip: Collection[str] = (), *, state: RunState) -> Plan:
+def count_findings(skip: Collection[str] = (), *, state: RunState) -> dict[str, int]:
+    """How many findings there are of each repairable kind, for the dialog that asks which to fix.
+
+    Counted from the findings themselves rather than from a plan: a plan stops at _PLAN_LIMIT
+    and turns some findings into refusals, and the number shown beside a kind has to be the
+    number the Health Check reports for it.  Only findings that name a Task are counted, as
+    plan_fixes only works on those.
+
+    Args:
+        skip: the health check's own skip list; those kinds are left out, as plan_fixes leaves them.
+        state: the run's state.
+
+    Returns:
+        A count for every tag in FIXABLE_TAGS that is not skipped, zero if there are none.
+    """
+    leave_out = set(skip) | {category.tag for category in healthck.all_categories() if category.tag not in FIXABLE_TAGS}
+    index = healthck.collect_findings(leave_out, state=state)
+    counts = {tag: 0 for tag in FIXABLE_TAGS if tag not in skip}
+    for finding in index.findings:
+        if finding.tag in counts and finding.target is not None and finding.target.kind == TASK:
+            counts[finding.tag] += 1
+    return counts
+
+
+def plan_fixes(skip: Collection[str] = (), *, only: Collection[str] | None = None, state: RunState) -> Plan:
     """Run the health check for the repairable categories and offer a repair for each finding.
 
     `skip` is the health check's own -- the categories the chooser panel has unticked, saved
     in the settings file.  Honoured here rather than ignored, so that a user who has said
     they do not care about unreferenced Tasks is not offered a list of Tasks to delete: the
     two panels answer the same question and must not disagree about what is being looked for.
+
+    `only` is the kinds the user has chosen to fix in the Fix Findings dialog, from
+    FIXABLE_TAGS; None means all of them.  Everything else is left out of the scan, the same
+    way `skip` is, so a kind that was not chosen is neither offered nor counted.
 
     Everything this cannot repair is left out of the scan entirely rather than scanned and
     filtered -- the secrets and variables passes are each a separate walk over the whole
@@ -791,6 +819,8 @@ def plan_fixes(skip: Collection[str] = (), *, state: RunState) -> Plan:
     it ticked would be promising something and then reporting it as an error.
     """
     leave_out = set(skip) | {category.tag for category in healthck.all_categories() if category.tag not in FIXABLE_TAGS}
+    if only is not None:
+        leave_out |= set(FIXABLE_TAGS) - set(only)
     index = healthck.collect_findings(leave_out, state=state)
 
     timeouts = proflint.timeout_arguments()

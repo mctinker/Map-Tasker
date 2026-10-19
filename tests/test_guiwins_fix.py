@@ -64,10 +64,13 @@ def _page() -> None:
 
 
 @contextlib.asynccontextmanager
-async def _open() -> AsyncIterator[User]:
+async def _open(*, choose: bool = True) -> AsyncIterator[User]:
+    """The dialog, opened.  It opens on the choice of what to fix; `choose` presses Continue on every kind."""
     try:
         async with user_simulation(root=_page) as user:
             await user.open("/")
+            if choose:
+                _press(user, "Continue")
             yield user
     finally:
         if core.app.is_started:
@@ -112,7 +115,7 @@ def _offer(ticked: set[int] | None = None) -> tuple[mapfix.Plan, str]:
 async def test_with_nothing_loaded_there_is_no_dialog_and_a_message() -> None:
     """A scan of no configuration is refused where the user will see it."""
     PrimeItems.tasker_root_elements = {"all_tasks": {}}
-    async with _open() as user:
+    async with _open(choose=False) as user:
         assert _built["dialog"] is None
         assert user.notify.contains("No XML file has been loaded.  Get an XML file first.")
 
@@ -150,6 +153,102 @@ async def test_what_cannot_be_repaired_is_listed_with_its_reason() -> None:
         assert f"Cannot be repaired here ({len(skips)})" in _labels(user)
         for skip in skips:
             assert skip.explanation in _labels(user)
+
+
+# ##################################################################################
+# Choosing what to fix
+# ##################################################################################
+def _kind_boxes(user: User) -> dict[str, ui.checkbox]:
+    """The checkbox of each kind of finding on the first step, by tag."""
+    found = sorted(_boxes(user), key=lambda box: box.id)  # a set comes back unordered; ids run in the order drawn
+    assert len(found) == len(mapfix.FIXABLE_TAGS)
+    return dict(zip(mapfix.FIXABLE_TAGS, found, strict=True))
+
+
+@pytest.mark.asyncio
+async def test_the_dialog_opens_on_the_kinds_of_finding_with_a_count_for_each() -> None:
+    """Nothing is listed until the user has said which kinds they want to fix."""
+    counts = mapfix.count_findings(state=PrimeItems)
+    assert all(counts[tag] for tag in mapfix.FIXABLE_TAGS), "the fixture is meant to hold every kind"
+    async with _open(choose=False) as user:
+        labels = _labels(user)
+        for tag in mapfix.FIXABLE_TAGS:
+            assert tag in labels
+            assert f"{counts[tag]} found" in labels
+        assert not [text for text in labels if " offered" in text], "no list yet"
+        assert all(box.value for box in _kind_boxes(user).values())
+
+
+@pytest.mark.asyncio
+async def test_only_the_kinds_ticked_are_listed() -> None:
+    """Untick everything but NO-TIMEOUT and the list holds those repairs and nothing else."""
+    async with _open(choose=False) as user:
+        for tag, box in _kind_boxes(user).items():
+            box.value = tag == mapfix.NO_TIMEOUT
+        _press(user, "Continue")
+
+        only = mapfix.plan_fixes(only={mapfix.NO_TIMEOUT}, state=PrimeItems)
+        assert only.fixes
+        assert _summary(user) == f"{only.tally()} ticked, {len(only.fixes)} offered"
+        assert len(_boxes(user)) == len(only.fixes)
+        labels = _labels(user)
+        assert mapfix.NO_TIMEOUT in labels
+        assert not [tag for tag in mapfix.FIXABLE_TAGS if tag != mapfix.NO_TIMEOUT and tag in labels]
+
+
+@pytest.mark.asyncio
+async def test_continuing_with_nothing_ticked_asks_for_a_kind_and_stays_on_the_choice() -> None:
+    async with _open(choose=False) as user:
+        for box in _kind_boxes(user).values():
+            box.value = False
+        _press(user, "Continue")
+
+        assert user.notify.contains("Tick at least one kind of finding first.")
+        assert not [text for text in _labels(user) if " offered" in text]
+
+
+@pytest.mark.asyncio
+async def test_select_all_and_deselect_all_work_on_the_kinds() -> None:
+    async with _open(choose=False) as user:
+        _press(user, "Deselect All")
+        assert not any(box.value for box in _kind_boxes(user).values())
+        _press(user, "Select All")
+        assert all(box.value for box in _kind_boxes(user).values())
+
+
+@pytest.mark.asyncio
+async def test_a_kind_with_nothing_to_fix_cannot_be_ticked() -> None:
+    """It could only produce an empty list."""
+    PrimeItems.program_arguments.health_check_skip = [mapfix.NO_TIMEOUT]
+    try:
+        async with _open(choose=False) as user:
+            boxes = _kind_boxes(user)
+            assert not boxes[mapfix.NO_TIMEOUT].enabled
+            assert not boxes[mapfix.NO_TIMEOUT].value
+            assert "left out of the Health Check" in _labels(user)
+            assert boxes[mapfix.MISSING_COLLISION].enabled
+    finally:
+        PrimeItems.program_arguments.health_check_skip = []
+
+
+@pytest.mark.asyncio
+async def test_kinds_goes_back_to_the_choice_and_keeps_the_ticks_on_what_is_still_listed() -> None:
+    async with _open(choose=False) as user:
+        for tag, box in _kind_boxes(user).items():
+            box.value = tag in {mapfix.NO_TIMEOUT, mapfix.MISSING_COLLISION}
+        _press(user, "Continue")
+        _press(user, "Tick None")
+        box = next(box for box in _boxes(user) if box.enabled)
+        UserInteraction(user, {box}, None).click()
+        said = _summary(user)
+
+        _press(user, "Kinds...")
+        assert not [text for text in _labels(user) if " offered" in text]
+        ticked = {tag for tag, box in _kind_boxes(user).items() if box.value}
+        assert ticked == {mapfix.NO_TIMEOUT, mapfix.MISSING_COLLISION}, "the choice is remembered"
+
+        _press(user, "Continue")
+        assert _summary(user) == said
 
 
 # ##################################################################################

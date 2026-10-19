@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file!
 - Changed: Each share listed in TaskerNet Updates now shows when it was last checked, or 'Never checked', so you can tell whether another check is worth making.
 - Changed: The right-hand panel is shorter: its report buttons are grouped under two sections, 'Compare & History' and 'Analyze', that open with a click, while Health Check and Fix Findings stay in view. The panel also scrolls up and down on a short window instead of spilling into a second column off to the right.
 - Changed: The Task Stepper now walks into a Perform Task, showing the called Task's actions indented under the call, with the parameters it was given and the value it returns. Turn off 'Follow Perform Task' to step over calls instead.
+- Changed: Fix Findings now first asks which kinds of finding you want to fix, such as MISSING-COLLISION or NO-TIMEOUT, each with how many were found. Only the kinds you choose are scanned for and listed, and a Kinds button on the list takes you back to change the choice.
 - Changed:
 
 ### Removed

@@ -68,6 +68,12 @@ _BLURB = (
     "action is a decision only you can make, and guessing at one would be worse than reporting it."
 )
 
+# What the first step says: which kinds of finding to look at before any of them is listed.
+_CHOOSER_BLURB = (
+    "Choose which kinds of finding to fix.  Only the kinds ticked are scanned for and listed, so the "
+    "next step is as long as you want it to be.  A kind with nothing to fix cannot be ticked."
+)
+
 # Said on the one control that arrives with nothing chosen, next to the thing that would
 # make its row tickable rather than only in the greyed-out tick box beside it.
 _UNDECIDED_TIP = (
@@ -158,12 +164,21 @@ class _FixDialog:
         # and holding one across a reopen is exactly the stale-handle case mapfix.apply's
         # attachment check exists to catch.
         self.held: dict = {"plan": None}
+        # The kinds of finding the user has chosen to fix.  Everything to begin with: the
+        # first step shows them all ticked, so pressing Continue is the same as the single
+        # list this dialog used to open on.
+        self.categories: set[str] = set(mapfix.FIXABLE_TAGS)
+        self.boxes: dict[str, ui.checkbox] = {}
         self.dialog: ui.dialog
         self.summary: ui.label
         self.screen: _Screen
+        self.chooser_view: ui.column
+        self.chooser_area: ui.scroll_area
+        self.list_view: ui.column
+        self.chosen_label: ui.label
 
     def build(self) -> ui.dialog:
-        """Draw the dialog and run the first scan."""
+        """Draw the dialog, which opens on the choice of what to fix, and nothing is scanned for until it is made."""
         # `persistent`, by the same rule as the Refactor and Find/Replace dialogs: a dialog
         # holding work in progress or asking for a decision leaves on a button and nothing else.
         # A list of half-made choices is both, and the pulldowns make it acute -- Quasar renders
@@ -173,33 +188,118 @@ class _FixDialog:
             title = self.title
             heading = f"{translate_string('Fix Findings')} -- {title}" if title else translate_string("Fix Findings")
             ui.label(heading).classes("text-lg font-bold text-blue-600")
-            ui.label(translate_string(_BLURB)).classes("text-xs text-gray-500 italic mb-2 mt-1")
 
-            self.summary = ui.label("").classes("text-sm font-bold text-orange-500")
-            list_area = ui.scroll_area().classes("w-full h-[460px] border rounded dark:border-gray-700 mt-1")
-            self.screen = _Screen(
-                area=list_area,
-                summary=self.summary,
-                jump=self.make_jump,
-                tick=self.ticker,
-                choose=self.chooser,
-            )
+            # Two steps in one card, one shown at a time.  The same dialog rather than a
+            # prompt in front of it, so there is one thing to close and one place the
+            # user's choices live -- and the list can send them back for another go.
+            self.chooser_view = ui.column().classes("w-full gap-1")
+            self.list_view = ui.column().classes("w-full gap-1")
 
-            _build_buttons(
-                self.dialog,
-                {
-                    "tick_all": lambda: self.set_all(ticked=True),
-                    "tick_none": lambda: self.set_all(ticked=False),
-                    "rescan": lambda: self.scan(restore=True),
-                    "apply": self.do_apply,
-                    "save_file": self.do_save,
-                    "save": lambda: _save_preview(self.held["plan"], self.state),
-                },
-            )
+            with self.chooser_view:
+                self._build_chooser()
 
-            self.scan()
+            with self.list_view:
+                ui.label(translate_string(_BLURB)).classes("text-xs text-gray-500 italic mb-2 mt-1")
+                self.chosen_label = ui.label("").classes("text-xs text-gray-500 font-mono")
+                self.summary = ui.label("").classes("text-sm font-bold text-orange-500")
+                list_area = ui.scroll_area().classes("w-full h-[460px] border rounded dark:border-gray-700 mt-1")
+                self.screen = _Screen(
+                    area=list_area,
+                    summary=self.summary,
+                    jump=self.make_jump,
+                    tick=self.ticker,
+                    choose=self.chooser,
+                )
+
+                _build_buttons(
+                    self.dialog,
+                    {
+                        "categories": self.show_chooser,
+                        "tick_all": lambda: self.set_all(ticked=True),
+                        "tick_none": lambda: self.set_all(ticked=False),
+                        "rescan": lambda: self.scan(restore=True),
+                        "apply": self.do_apply,
+                        "save_file": self.do_save,
+                        "save": lambda: _save_preview(self.held["plan"], self.state),
+                    },
+                )
+
+            self.show_chooser()
 
         return self.dialog
+
+    def _build_chooser(self) -> None:
+        """The first step's frame: what it asks, where the kinds are listed, and its buttons."""
+        ui.label(translate_string(_CHOOSER_BLURB)).classes("text-xs text-gray-500 italic mb-2 mt-1")
+        self.chooser_area = ui.scroll_area().classes("w-full h-[320px] border rounded dark:border-gray-700 mt-1")
+        with ui.row().classes("w-full justify-end mt-4 gap-2"):
+            ui.button(translate_string("Select All"), on_click=lambda: self.set_all_categories(ticked=True)).props(
+                "outline",
+            )
+            ui.button(translate_string("Deselect All"), on_click=lambda: self.set_all_categories(ticked=False)).props(
+                "outline",
+            )
+            ui.button(translate_string("Continue"), on_click=self.choose_categories).classes("bg-blue-600 text-white px-4")
+            ui.button(translate_string("Cancel"), on_click=self.dialog.close).classes("bg-red-500 text-white px-4")
+
+    def show_chooser(self) -> None:
+        """Show the choice of what to fix, counted afresh: the configuration may have changed since it was last shown."""
+        skip = self.state.program_arguments.health_check_skip or []
+        counts = mapfix.count_findings(skip, state=self.state)
+
+        self.boxes.clear()
+        self.chooser_area.clear()
+        with self.chooser_area, ui.column().classes("w-full gap-1 p-1"):
+            for tag in mapfix.FIXABLE_TAGS:
+                self._draw_category(tag, counts.get(tag), tag in skip)
+
+        self.list_view.set_visibility(False)
+        self.chooser_view.set_visibility(True)
+
+    def _draw_category(self, tag: str, count: int | None, skipped: bool) -> None:
+        """One kind of finding: a tick box, its tag, how many there are, and what fixing one does.
+
+        The tag is what the Health Check report and this dialog's list print, so "the NO-TIMEOUT
+        ones" is the same group in all three.  A kind with nothing to fix, or one the Health
+        Check has been told to leave out, cannot be ticked: it could only produce an empty list.
+        """
+        available = bool(count) and not skipped
+        with ui.row().classes("items-center gap-2 ml-2 no-wrap"):
+            box = ui.checkbox(value=available and tag in self.categories).props("dense")
+            if not available:
+                box.disable()
+            self.boxes[tag] = box
+            with ui.column().classes("gap-0"):
+                with ui.row().classes("items-baseline gap-2"):
+                    ui.label(tag).classes("font-mono text-xs font-bold text-orange-500")
+                    if skipped:
+                        note = translate_string("left out of the Health Check")
+                    else:
+                        note = f"{count} {translate_string('found')}" if count else translate_string("none found")
+                    ui.label(note).classes("text-xs text-gray-400")
+                ui.label(translate_string(mapfix.WHAT_IT_DOES.get(tag, ""))).classes("text-xs text-gray-500")
+
+    def set_all_categories(self, *, ticked: bool) -> None:
+        """Tick or untick every kind that has something to fix."""
+        for box in self.boxes.values():
+            if box.enabled:
+                box.value = ticked
+
+    def choose_categories(self) -> None:
+        """Continue: remember which kinds are ticked, and scan for those and no others."""
+        chosen = {tag for tag, box in self.boxes.items() if box.value}
+        if not chosen:
+            ui.notify(translate_string("Tick at least one kind of finding first."), type="warning")
+            return
+        self.categories = chosen
+        # In the order the list groups them, not the order they were ticked in.
+        self.chosen_label.set_text(
+            f"{translate_string('Fixing')}: {', '.join(tag for tag in mapfix.FIXABLE_TAGS if tag in chosen)}",
+        )
+        self.chooser_view.set_visibility(False)
+        self.list_view.set_visibility(True)
+        # Ticks and decisions already made on an earlier list come back for the findings that are still there.
+        self.scan(restore=self.held["plan"] is not None)
 
     def ticker(self, plan: mapfix.Plan, position: int) -> Callable:
         """One row's tick box: put this repair in or out of what Apply makes.
@@ -260,7 +360,11 @@ class _FixDialog:
             else {}
         )
 
-        plan = mapfix.plan_fixes(self.state.program_arguments.health_check_skip or [], state=self.state)
+        plan = mapfix.plan_fixes(
+            self.state.program_arguments.health_check_skip or [],
+            only=self.categories,
+            state=self.state,
+        )
         if previous is not None:
             plan.restore(ticks, values)
         self.held["plan"] = plan
@@ -526,6 +630,12 @@ def _build_buttons(dialog: ui.dialog, handlers: dict) -> None:
     Preview is worth pressing for the repairs you have decided against.
     """
     with ui.row().classes("w-full justify-end mt-4 gap-2"):
+        _tip(
+            ui.button(translate_string("Kinds..."), on_click=handlers["categories"]).props("outline"),
+            "Go back and choose which kinds of finding to fix.\n\n"
+            "Your ticks and decisions on the findings that are still in the list are kept.\n\n"
+            "Nothing is changed by pressing this.\n\n",
+        )
         _tip(
             ui.button(translate_string("Tick All"), on_click=handlers["tick_all"]).props("outline"),
             "Tick every repair that is ready to be made.\n\n"

@@ -300,6 +300,40 @@ def test_plan_honours_the_health_checks_own_skip_list(loaded: None) -> None:
     assert _positions(plan, mapfix.MISSING_COLLISION)
 
 
+def test_plan_only_looks_at_the_kinds_it_is_asked_for(loaded: None) -> None:
+    """The kinds the user has chosen to fix are the only ones offered, or refused."""
+    plan = mapfix.plan_fixes(only=[mapfix.NO_TIMEOUT], state=PrimeItems)
+
+    assert _positions(plan, mapfix.NO_TIMEOUT)
+    assert {fix.tag for fix in plan.fixes} == {mapfix.NO_TIMEOUT}
+    assert {skip.tag for skip in plan.skips} <= {mapfix.NO_TIMEOUT}
+
+
+def test_plan_with_no_only_looks_at_every_kind(loaded: None) -> None:
+    everything = mapfix.plan_fixes(only=None, state=PrimeItems)
+    default = mapfix.plan_fixes(state=PrimeItems)
+
+    assert [fix.identity for fix in everything.fixes] == [fix.identity for fix in default.fixes]
+    assert mapfix.plan_fixes(only=[], state=PrimeItems).is_empty
+
+
+def test_count_findings_counts_every_kind_the_plan_is_made_from(loaded: None) -> None:
+    counts = mapfix.count_findings(state=PrimeItems)
+    plan = mapfix.plan_fixes(state=PrimeItems)
+
+    assert set(counts) == set(mapfix.FIXABLE_TAGS)
+    for tag in mapfix.FIXABLE_TAGS:
+        offered = len(_positions(plan, tag)) + sum(1 for skip in plan.skips if skip.tag == tag)
+        assert counts[tag] == offered
+
+
+def test_count_findings_leaves_out_what_the_health_check_leaves_out(loaded: None) -> None:
+    counts = mapfix.count_findings([mapfix.NO_TIMEOUT], state=PrimeItems)
+
+    assert mapfix.NO_TIMEOUT not in counts
+    assert counts[mapfix.MISSING_COLLISION]
+
+
 def test_plan_offers_nothing_for_a_finding_it_cannot_repair(loaded: None) -> None:
     """A tag with no repair produces neither a fix nor a skip -- it is simply not this dialog's business."""
     plan = mapfix.plan_fixes(state=PrimeItems)
