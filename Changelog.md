@@ -2,13 +2,12 @@
 
 All notable changes to this project will be documented in this file!
 
-## [15.0.0] ??-Oct-2026  # FIX
+## [15.0.0] 19-Oct-2026
 
 ### Added
 
 - Added: A new __Missing Resources__ button asks your Android device whether the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist, and lists the ones it does not have along with every place that uses each. The Health Check now reports those too (RESOURCE-MISSING) from the last time you checked.
 - Added: A new __Live Run Monitor__ button watches which Profiles and Tasks fire on your Android device as they do, logs each one, and lights them up in the Diagram while they run. It can also compare what the device really has active with what What Fires When predicted for the same moment.
-- Added:
 
 ### Changed
 
@@ -17,11 +16,10 @@ All notable changes to this project will be documented in this file!
 - Changed: The right-hand panel is shorter: its report buttons are grouped under two sections, 'Compare & History' and 'Analyze', that open with a click, while Health Check and Fix Findings stay in view. The panel also scrolls up and down on a short window instead of spilling into a second column off to the right.
 - Changed: The Task Stepper now walks into a Perform Task, showing the called Task's actions indented under the call, with the parameters it was given and the value it returns. Turn off 'Follow Perform Task' to step over calls instead.
 - Changed: Fix Findings now first asks which kinds of finding you want to fix, such as MISSING-COLLISION or NO-TIMEOUT, each with how many were found. Only the kinds you choose are scanned for and listed, and a Kinds button on the list takes you back to change the choice.
-- Changed:
 
 ### Removed
 
-- Removed:
+- Removed: Nothing removed
 
 ### Fixed
 
@@ -30,7 +28,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Clicking a connector in the Diagram view now highlights only that connector, instead of running its horizontal lines on past the vertical one. The highlight is no longer drawn in bold, which made the corner and arrow characters wider than the rest of the diagram.
 - Fixed: When the browser suspends MapTasker's tab in the background and its connection keeps dropping and retrying, the server now waits for the tab to come back and, if it does not, stops anything it was doing for that tab (the Live Run Monitor no longer goes on asking your phone). Repeated drops of one tab no longer stack up waits.
 - Fixed: Clicking a connector in the Diagram view now highlights all of it, even where it passes a line containing an icon or Chinese, Japanese or Korean characters. It used to highlight only part of the connector, such as the horizontal line at one end.
-- Fixed:
 
 ### Known Issues
 
