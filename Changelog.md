@@ -38,7 +38,7 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
 ## [15.0.0] 19-Oct-2026
 
-- Added: A new __Missing Resources__ button asks your Android device whether the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist, and lists the ones it does not have along with every place that uses each. The Health Check now reports those too (RESOURCE-MISSING) from the last time you checked.
+- Added: A new __Missing Resources__ button asks your Android device whether the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist, and lists the ones it does not have along with every place that uses each.   
 - Added: A new __Live Run Monitor__ button watches which Profiles and Tasks fire on your Android device as they do, logs each one, and lights them up in the Diagram while they run. It can also compare what the device really has active with what What Fires When predicted for the same moment.
 - Changed: The note at the top of the Diagram no longer warns that icons can cause mis-alignment, since they are now lined up; it still warns about Chinese, Korean and Japanese characters.
 - Changed: Each share listed in TaskerNet Updates now shows when it was last checked, or 'Never checked', so you can tell whether another check is worth making.
@@ -186,7 +186,7 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 ## [14.0.2-14.0.3] 17-Sep-2026
 
 - Added: The Find tab of 'Find/Replace' can now take a question in plain words, such as "every Profile that fires on wifi at home", and have the AI model selected on the Analyze tab turn it into a search.  Only the values your configuration's pulldowns offer are sent to the model, never the configuration itself, and the search it writes is put into the boxes and run as if you had picked it, so the answer stays exact and anything it could not use is listed.
-- Added: __Export__ in the Map and Diagram views which saves what the view shows as a Markdown, JSON or PDF file in the current directory, so it can be read, shared or processed without MapTasker.  The PDF's text stays searchable and bookmarks every object, and the Diagram keeps its exact alignment in all three formats.
+- Added: __Export__ in the Map and Diagram views which saves what the view shows saves the views in as a Markdown, JSON or PDF file in the current directory, so it can be read, shared or processed without MapTasker.  The PDF's text stays searchable and bookmarks every object, and the Diagram keeps its exact alignment in all three formats.
 - Added: 'keyring' program  (installed automatically along with MapTasker) added to store and access passwords/API keys securely.
 - Changed: The 'Text' box in 'Find/Replace' now also matches what a Profile's Event and State contexts are set to, such as the network a 'Wifi Connected' context waits for.  Choosing that trigger and typing the network's name now finds the Profiles that fire on it.
 - Changed: Your AI API keys are now kept in your computer's own password store (the Keychain on macOS, Credential Manager on Windows, the Secret Service on Linux) instead of an unprotected file in the folder MapTasker was started from.  Keys saved by an earlier version are moved over automatically, and a computer with no password store keeps them in a file only your user account can read.
