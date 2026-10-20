@@ -30,10 +30,16 @@ if TYPE_CHECKING:
 
 _built: dict = {}
 _redrawn: list[bool] = []
+_saved: list[bool] = []
 
 
 async def _rebuild_view() -> None:
     _redrawn.append(True)
+
+
+async def _save_configuration() -> bool:
+    _saved.append(True)
+    return _built.get("save_answer", True)
 
 
 def _make_jump(_target: object) -> Callable[[], None]:
@@ -45,6 +51,7 @@ def _configuration():
     """The variable fixture loaded, with an empty undo history, and nothing selected on screen."""
     _built.clear()
     _redrawn.clear()
+    _saved.clear()
     sessundo.clear(PrimeItems)
     _load(_FIXTURE_XML)
     yield
@@ -52,7 +59,9 @@ def _configuration():
 
 
 def _page() -> None:
-    _built["dialog"] = guiwins_refactor.build_refactor_dialog("", _make_jump, _rebuild_view, PrimeItems)
+    _built["dialog"] = guiwins_refactor.build_refactor_dialog(
+        "", _make_jump, _rebuild_view, _save_configuration, PrimeItems
+    )
     if _built["dialog"] is not None:
         _built["dialog"].open()
 
@@ -193,3 +202,49 @@ async def test_changing_a_box_throws_the_preview_away() -> None:
 
         assert not _button(user, "Apply").enabled
         assert not any(text.startswith("WHAT WILL HAPPEN") for text in _shown(user))
+
+
+async def _preview_a_rename(user: User) -> None:
+    """Fill in a rename and press Preview, so there is a preview for Save To Current File to throw away."""
+    await _variable_mode(user, RENAME)
+    _select(user, "Variable").set_value(choice_key("%Count", ""))
+    _name_box(user).set_value("%Tally")
+    await asyncio.sleep(0)
+    UserInteraction(user, {_button(user, "Preview")}, None).click()
+    assert _button(user, "Apply").enabled
+
+
+@pytest.mark.asyncio
+async def test_save_to_current_file_saves_and_throws_the_preview_away_once_saved() -> None:
+    """The reload replaces the tree a preview points into, so a preview that survived it could not be applied."""
+    async with _open() as user:
+        await _preview_a_rename(user)
+        UserInteraction(user, {_button(user, "Save To Current File")}, None).click()
+        await _until(lambda: _saved)
+        await asyncio.sleep(0.1)
+        assert _saved == [True]
+        assert not _button(user, "Apply").enabled
+
+
+@pytest.mark.asyncio
+async def test_save_to_current_file_that_saved_nothing_leaves_the_preview_alone() -> None:
+    """Nothing was written and nothing changed, so there is nothing to rebuild."""
+    _built["save_answer"] = False
+    async with _open() as user:
+        await _preview_a_rename(user)
+        UserInteraction(user, {_button(user, "Save To Current File")}, None).click()
+        await _until(lambda: _saved)
+        await asyncio.sleep(0.1)
+        assert _button(user, "Apply").enabled
+
+
+@pytest.mark.asyncio
+async def test_the_dialog_stays_open_after_apply_so_the_save_can_be_pressed() -> None:
+    """A refactor is only in memory until it is saved; a window that closed on Apply would hide the button."""
+    async with _open() as user:
+        await _preview_a_rename(user)
+        UserInteraction(user, {_button(user, "Apply")}, None).click()
+        await _until(lambda: _redrawn)
+        assert _built["dialog"].value
+        UserInteraction(user, {_button(user, "Save To Current File")}, None).click()
+        await _until(lambda: _saved)

@@ -2027,7 +2027,9 @@ class MapTaskerEventHandlers(
             """
             refresh_tasker_object_pulldowns(self.gui)
 
-        dialog = build_refactor_dialog("", make_jump, refresh_after_apply, state=self.state)
+        dialog = build_refactor_dialog(
+            "", make_jump, refresh_after_apply, self.save_whole_configuration, state=self.state
+        )
         if dialog is None:
             return
         self.gui.refactor_dialog = dialog
@@ -2082,7 +2084,9 @@ class MapTaskerEventHandlers(
         dialog.open()
 
     async def save_whole_configuration(self: "MapTaskerEventHandlers") -> bool:
-        """The Fix Findings and Restore dialogs' 'Save To Current File'.  True when their list must be rebuilt.
+        """The 'Save To Current File' of the Refactor, Fix Findings, Restore and TaskerNet Updates dialogs.
+
+        Returns True when the dialog's list must be rebuilt.
 
         The same two steps, in the same order, as every Edit dialog's button of that name
         (see userintr_editors.save_edited_task_to_current_file_event): write the WHOLE

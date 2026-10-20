@@ -131,21 +131,25 @@ def build_refactor_dialog(
     title: str,
     make_jump: Callable,
     rebuild_view: Callable[[], Coroutine],
+    save_configuration: Callable[[], Coroutine],
     state: RunState,
 ) -> ui.dialog | None:
     """Build and return the Refactor dialog, or None if there is nothing loaded to refactor.
 
-    Takes the three things it needs from the view and nothing else -- what the view is
-    called, how to follow a preview row to the object it names, and how to redraw the view
-    once something has changed.  Passed in rather than imported: this module is reached
-    FROM guiwins, and reaching back into it for go_to_target would be a circular import for
-    two functions' worth of behaviour.
+    Takes the four things it needs from the view and nothing else -- what the view is
+    called, how to follow a preview row to the object it names, how to redraw the view
+    once something has changed, and how to write the configuration to a file.  Passed in
+    rather than imported: this module is reached FROM guiwins, and reaching back into it
+    for go_to_target would be a circular import for two functions' worth of behaviour.
+
+    `save_configuration` returns whether the dialog's pulldowns have to be refilled
+    afterwards; it reports its own outcome to the user (see userintr.save_whole_configuration).
     """
     if not state.tasker_root_elements.get("all_tasks"):
         ui.notify(translate_string("No XML file has been loaded.  Get an XML file first."), type="warning")
         return None
 
-    return _RefactorDialog(title, make_jump, rebuild_view, state).build()
+    return _RefactorDialog(title, make_jump, rebuild_view, save_configuration, state).build()
 
 
 class _RefactorDialog:
@@ -160,6 +164,7 @@ class _RefactorDialog:
         title: str,
         make_jump: Callable,
         rebuild_view: Callable[[], Coroutine],
+        save_configuration: Callable[[], Coroutine],
         state: RunState,
     ) -> None:
         """
@@ -167,11 +172,13 @@ class _RefactorDialog:
             title: What the view this was opened from is called, or "" from the main window.
             make_jump: How to follow a preview row to the object it names.
             rebuild_view: How to redraw the view once something has changed.
+            save_configuration: How to write the configuration to a file; returns whether to refill the pulldowns.
             state: The run's state.
         """
         self.title = title
         self.make_jump = make_jump
         self.rebuild_view = rebuild_view
+        self.save_configuration = save_configuration
         self.state = state
         # The plan on screen, and the field values it was built from.  Held in a dict
         # rather than as locals because every handler below both reads and writes it, and
@@ -241,7 +248,7 @@ class _RefactorDialog:
         )
 
     def _build_buttons(self) -> None:
-        """The row of buttons along the bottom: Preview, Apply, Save Preview and Close."""
+        """The row of buttons along the bottom: Preview, Apply, Save Preview, Save To Current File and Close."""
         with ui.row().classes("w-full justify-end mt-4 gap-2"):
             preview_button = ui.button(translate_string("Preview"), on_click=self.preview).classes(
                 "bg-blue-600 text-white px-4",
@@ -276,6 +283,16 @@ class _RefactorDialog:
                 "refusal names the actions that would have to be selected differently, and that "
                 "list does not survive closing this window.\n\n",
             )
+            save_file_button = ui.button(translate_string("Save To Current File"), on_click=self.do_save).classes(
+                "bg-green-600 text-white px-4",
+            )
+            _tip(
+                save_file_button,
+                "Write the refactors made so far -- and every other edit this session -- to a file.\n\n"
+                "Apply changes the loaded configuration and no file.  This writes the whole "
+                "configuration to a new, timestamped copy of the loaded file and switches to that copy; "
+                "the original file is never written to.\n\n",
+            )
             close_button = ui.button(translate_string("Close"), on_click=self.dialog.close).classes(
                 "bg-red-500 text-white px-4",
             )
@@ -283,7 +300,8 @@ class _RefactorDialog:
                 close_button,
                 "Close this window.\n\n"
                 "Nothing is changed: a refactor happens when Apply is pressed and at no other "
-                "time, so there is never anything left pending here.\n\n",
+                "time, so there is never anything left pending here.  A refactor that has been "
+                "applied but not saved is still in memory; use Save To Current File to keep it.\n\n",
             )
 
     def _watch_fields(self) -> None:
@@ -433,7 +451,8 @@ class _RefactorDialog:
             position="top",
         )
         self.invalidate()
-        self.dialog.close()
+        # Left open, as Fix Findings is: the refactor is only in memory until Save To Current File
+        # is pressed, and a window that closed here would put that button out of reach.
         # Refill the pulldowns before redrawing: a refactor is the one operation here
         # that ADDS and REMOVES objects, so unlike a Replace, every option in every
         # pulldown may now be stale -- a Task extracted into is not in the Task list,
@@ -445,6 +464,23 @@ class _RefactorDialog:
         if self.mode.value == VARIABLE:
             _fill_variables(self.widgets, state=self.state)
         await self.rebuild_view()
+
+    async def do_save(self) -> None:
+        """The Save To Current File button: write the refactors -- and every other edit this session -- to a file.
+
+        Apply changes the loaded configuration and no file, so without this the only way to get a
+        refactor onto disk was to open an editor on some unrelated object and press its own save.
+
+        The pulldowns are refilled when the save reports it should be, and must be: switching to
+        the saved copy reloads the whole configuration, so every element the options and any
+        preview are holding belongs to a tree nothing renders from any more.
+        """
+        if await self.save_configuration():
+            self.widgets["filled"].clear()
+            fill_options(self.widgets, state=self.state)
+            if self.mode.value == VARIABLE:
+                _fill_variables(self.widgets, state=self.state)
+            self.invalidate()
 
     def save_preview(self) -> None:
         """Write the preview to a file.

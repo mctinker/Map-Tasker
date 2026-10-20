@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: Fix Findings now says "There is nothing to fix." when the scan finds nothing, instead of showing a list of unusable tick boxes. Kinds of finding excluded in the Health Check settings are named as unavailable.
+- Changed: The Refactor window now has a Save To Current File button, so the refactors you apply can be saved to a new copy of your file instead of living only in memory. The window also stays open after Apply, so you can save straight away.
 - Changed:
 
 ### Removed
