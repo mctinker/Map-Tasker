@@ -26,9 +26,9 @@ the <clearout> class of bug.
 
 from __future__ import annotations
 
-import copy
 import functools
 import glob
+import itertools
 import os
 import xml.etree.ElementTree as ET
 
@@ -112,21 +112,43 @@ def _dialog_values(props: objprops.EditableProperties, fields: tuple[str, ...] =
 # --------------------------------------------------------------------------------------
 # The backstop: every object in the sample data survives a no-op edit unchanged.
 # --------------------------------------------------------------------------------------
-def _signature(element: ET.Element) -> list[tuple]:
-    """Everything ET.tostring would write for `element`, without the cost of writing it.
+def _unchanged(working: ET.Element, original: ET.Element) -> bool:
+    """Whether `working` says everything `original` does: tag, attributes in order, text and tail, throughout.
 
-    Serializing is ElementTree's pure-Python path and was most of this file's run time; walking
-    the tree into tuples says the same thing -- tag, attributes in order, text and tail -- several
-    times faster.  None and "" are folded together because the serializer cannot tell them apart.
+    The same thing ET.tostring would show, without the cost of writing it -- serializing is
+    ElementTree's pure-Python path, and was most of this file's run time.  Walking the two trees
+    together does without building a signature for either: the original is never copied into a
+    list of tuples (that was seconds of work and, kept for the run, millions of objects every later
+    test paid to have garbage-collected), and a difference stops the walk where it is found.  None
+    and "" are folded together because the serializer cannot tell them apart; attribute order is
+    only looked at when there are two or more to put in order.
     """
-    return [(e.tag, tuple(e.attrib.items()), e.text or "", e.tail or "") for e in element.iter()]
+    for new, old in itertools.zip_longest(working.iter(), original.iter()):
+        if new is None or old is None or new.tag != old.tag:
+            return False
+        if (new.text or "") != (old.text or "") or (new.tail or "") != (old.tail or ""):
+            return False
+        if new.attrib != old.attrib or (len(new.attrib) > 1 and list(new.attrib) != list(old.attrib)):
+            return False
+    return True
+
+
+def _clone(element: ET.Element) -> ET.Element:
+    """A copy of `element` and everything under it, to be written to without touching the original.
+
+    copy.deepcopy does the same in 2.3 times as long -- it is a memo-keeping walk that makes some
+    260 calls per object here -- and this is done to every object in the sample data, twice.
+    """
+    copy_of = ET.Element(element.tag, element.attrib)
+    copy_of.text, copy_of.tail = element.text, element.tail
+    copy_of.extend([_clone(child) for child in element])
+    return copy_of
 
 
 @functools.lru_cache(maxsize=1)
-def _sample_objects() -> tuple[tuple[str, str, ET.Element, list[tuple]], ...]:
-    """Parsed once and shared, each with its signature taken before anything touches it: the
-    round-trip test deep-copies before mutating, so the two parametrizations cannot see each
-    other's edits, and neither has to serialize the untouched original again."""
+def _sample_objects() -> tuple[tuple[str, str, ET.Element], ...]:
+    """Parsed once and shared, never edited: the round-trip test copies before mutating, so the
+    two parametrizations cannot see each other's edits."""
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     found = []
     # The synthetic backup always, so this runs on CI too; any real backups in XML/ as well.
@@ -141,8 +163,19 @@ def _sample_objects() -> tuple[tuple[str, str, ET.Element, list[tuple]], ...]:
             (objprops.KIND_PROJECT, "Project"),
             (objprops.KIND_PROFILE, "Profile"),
         ):
-            found.extend((os.path.basename(path), kind, element, _signature(element)) for element in root.iter(tag))
+            found.extend((os.path.basename(path), kind, element) for element in root.iter(tag))
     return tuple(found)
+
+
+@pytest.fixture(autouse=True, scope="module")
+def _let_go_of_the_sample_data():
+    """Drop the parsed sample backups once this file is done.
+
+    They are millions of objects, and everything that runs after this file would otherwise have
+    them to look after -- pytest collects garbage around every test.
+    """
+    yield
+    _sample_objects.cache_clear()
 
 
 @pytest.mark.parametrize("fields", [(), GUI_VARIABLE_FIELDS], ids=["every-field", "gui-subset"])
@@ -158,11 +191,11 @@ def test_a_no_op_edit_changes_no_object_in_the_sample_data(fields: tuple[str, ..
         pytest.skip("no sample XML in XML/ to measure against")
 
     changed = []
-    for source, kind, element, before in objects:
-        working = copy.deepcopy(element)
+    for source, kind, element in objects:
+        working = _clone(element)
         props = objprops.load_properties(kind, working)
         errors = objprops.apply_properties(props, _dialog_values(props, fields))
-        if errors or _signature(working) != before:
+        if errors or not _unchanged(working, element):
             changed.append(f"{source} {kind} {element.findtext('nme') or element.findtext('name')}: {errors}")
 
     assert not changed, f"{len(changed)} of {len(objects)} objects changed: {changed[:5]}"

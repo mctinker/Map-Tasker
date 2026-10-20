@@ -31,6 +31,7 @@ apply_edits_to_task.
 from __future__ import annotations
 
 import copy
+import functools
 import glob
 import json
 import os
@@ -210,17 +211,34 @@ def test_unticking_what_was_never_ticked_changes_nothing():
 # ==========================================
 # 3. THE BACKSTOP: EVERY SAMPLE PROPERTIES ELEMENT
 # ==========================================
-def _sample_properties_elements() -> list[ET.Element]:
-    """Every <PropertiesElement> in the synthetic backup and in any real ones in XML/, deep-copied so a
-    test can write."""
+@functools.lru_cache(maxsize=1)
+def _parsed_sample_properties_elements() -> tuple[ET.Element, ...]:
+    """Every <PropertiesElement> in the synthetic backup and in any real ones in XML/, parsed once.
+
+    Six tests sweep them, and each used to parse every backup in XML/ for itself -- seconds apiece.
+    Never written to: see _sample_properties_elements.
+    """
     found = []
     for path in [_SYNTHETIC_BACKUP, *sorted(glob.glob("XML/*.xml"))]:
         try:
             root = ET.parse(path).getroot()  # noqa: S314
         except ET.ParseError:
             continue
-        found.extend(copy.deepcopy(element) for element in root.iter("PropertiesElement"))
-    return found
+        found.extend(root.iter("PropertiesElement"))
+    return tuple(found)
+
+
+@pytest.fixture(autouse=True, scope="module")
+def _let_go_of_the_sample_data():
+    """Drop the parsed sample backups once this file is done, so the tests after it do not have them to
+    look after: pytest collects garbage around every test, and they are millions of objects."""
+    yield
+    _parsed_sample_properties_elements.cache_clear()
+
+
+def _sample_properties_elements() -> list[ET.Element]:
+    """Every sample <PropertiesElement>, each a copy so a test can write."""
+    return [copy.deepcopy(element) for element in _parsed_sample_properties_elements()]
 
 
 def test_setting_stop_event_to_what_it_already_is_leaves_every_sample_byte_identical():

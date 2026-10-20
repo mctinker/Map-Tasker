@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pytest
@@ -19,3 +20,19 @@ def _output_folder_is_the_working_directory(monkeypatch: pytest.MonkeyPatch) -> 
     Tests of outdir's own default undo this with monkeypatch.undo() or by patching platformdirs.
     """
     monkeypatch.setattr(outdir, "default_output_directory", Path.cwd)
+
+
+@pytest.fixture(autouse=True)
+def _no_designer_outlives_its_test() -> None:
+    """Empty the table of live Scene canvases after every test.
+
+    guiwins_canvas._ACTIVE_CANVASES maps each designer to its handlers and is never emptied, and a
+    handler is a bound method -- so every designer a test opened, with its whole page of elements, stayed
+    alive for the rest of the run.  Fifty-eight designer tests left two million objects behind, and
+    pytest collects garbage around every test: each of the thousands after them paid for the larger
+    heap, which is why unrelated tests ran several times slower here than on their own.
+    """
+    yield
+    canvas = sys.modules.get("maptasker.src.gui.guiwins_canvas")  # Not imported, so nothing to empty.
+    if canvas is not None:
+        canvas._ACTIVE_CANVASES.clear()  # noqa: SLF001
