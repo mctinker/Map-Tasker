@@ -59,6 +59,7 @@ from maptasker.src.gui.guiwins import (
     build_object_properties_dialog,
     build_overwrite_confirm_dialog,
     build_rename_dialog,
+    build_unsaved_deletion_dialog,
 )
 from maptasker.src.gui.guiwins_editor import PROJECT_REDACT_FIELD, REDACT_FIELD, SCENE_REDACT_FIELD
 from maptasker.src.gui.guiwins_profedit import (
@@ -76,7 +77,7 @@ from maptasker.src.gui.guiwins_views import NiceGuiSceneView, suspend_scene_edit
 from maptasker.src.mapgen.taskerd import get_the_xml_data
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Coroutine
 
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
@@ -836,6 +837,12 @@ class EditorEventHandlers:
     state: RunState
     # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
     gui: MyGui
+    # MapTaskerEventHandlers, which inherits this class, defines it (userintr.save_whole_configuration).
+    save_whole_configuration: Callable[[], Coroutine]
+
+    def _offer_save_after_delete(self, message: str) -> None:
+        """Offer Save To Current File once a delete has closed the dialog that held the only one."""
+        build_unsaved_deletion_dialog(message, self.save_whole_configuration)
 
     def open_edit_task_dialog_event(self) -> None:
         """Opens the Edit Task dialog for the currently selected single Task name."""
@@ -975,6 +982,7 @@ class EditorEventHandlers:
         ui.notify(f"Deleted Task '{task_name}'.", type="positive")
         confirm_dialog.close()
         parent_dialog.close()
+        self._offer_save_after_delete(f"Deleted Task '{task_name}'.")
 
     def save_edited_task_event(
         self,
@@ -1665,15 +1673,14 @@ class EditorEventHandlers:
         _reset_specific_name_selection(self.gui)
 
         if keep_contents:
-            ui.notify(
-                f"Deleted '{project_name}'. Its Profiles and Tasks were moved to '{projedit.BASE_PROJECT_NAME}'.",
-                type="positive",
-            )
+            said = f"Deleted '{project_name}'. Its Profiles and Tasks were moved to '{projedit.BASE_PROJECT_NAME}'."
         else:
-            ui.notify(f"Deleted '{project_name}' and everything it owned.", type="positive")
+            said = f"Deleted '{project_name}' and everything it owned."
+        ui.notify(said, type="positive")
 
         confirm_dialog.close()
         parent_dialog.close()
+        self._offer_save_after_delete(said)
 
     # -------------------------------------------------------------------------
     # Scene editing.
@@ -2053,6 +2060,7 @@ class EditorEventHandlers:
         ui.notify(f"Deleted Scene '{scene_name}'.", type="positive")
         confirm_dialog.close()
         parent_dialog.close()
+        self._offer_save_after_delete(f"Deleted Scene '{scene_name}'.")
 
     def open_edit_profile_dialog_event(self) -> None:
         """Opens the Edit Profile dialog for the currently selected single Profile name."""
@@ -2165,9 +2173,11 @@ class EditorEventHandlers:
         refresh_tasker_object_pulldowns(self.gui)
         _reset_specific_name_selection(self.gui)
 
-        ui.notify(f"Deleted Profile '{profile_name}'. Its Tasks were kept.", type="positive")
+        said = f"Deleted Profile '{profile_name}'. Its Tasks were kept."
+        ui.notify(said, type="positive")
         confirm_dialog.close()
         parent_dialog.close()
+        self._offer_save_after_delete(said)
 
     def open_add_profile_dialog_event(self) -> None:
         """Opens the Add Profile dialog for a brand-new Profile, attached to the

@@ -146,6 +146,7 @@ def calls(monkeypatch: pytest.MonkeyPatch) -> dict[str, list]:
         "build_add_scene_version_dialog",
         "build_edit_scene_dialog",
         "build_delete_scene_dialog",
+        "build_unsaved_deletion_dialog",
         "build_object_properties_dialog",
         "refresh_tasker_object_pulldowns",
         "select_pulldown_option",
@@ -218,13 +219,25 @@ def test_task_argument_values_skip_the_fields_that_are_not_arguments_and_spell_b
 
 
 def test_profile_condition_values_take_only_the_condition_fields() -> None:
-    fields = {"name": _Widget("N"), "cond0_fh": _Widget(8), "cond0_inv": _Widget(True), "entry_task_picker": _Widget("")}
+    fields = {
+        "name": _Widget("N"),
+        "cond0_fh": _Widget(8),
+        "cond0_inv": _Widget(True),
+        "entry_task_picker": _Widget(""),
+    }
     assert userintr_editors._profile_condition_values(fields) == {"cond0_fh": "8", "cond0_inv": "1"}
 
 
 def test_property_values_use_the_words_tasker_writes_and_keep_whole_numbers_whole() -> None:
     values = userintr_editors._object_property_values(
-        {"a": _Widget(True), "b": _Widget(False), "c": _Widget(None), "d": _Widget(50.0), "e": _Widget(2.5), "f": _Widget("x")},
+        {
+            "a": _Widget(True),
+            "b": _Widget(False),
+            "c": _Widget(None),
+            "d": _Widget(50.0),
+            "e": _Widget(2.5),
+            "f": _Widget("x"),
+        },
     )
     assert values == {"a": "true", "b": "false", "c": "", "d": "50", "e": "2.5", "f": "x"}
 
@@ -303,7 +316,11 @@ def test_with_no_pulldown_built_yet_the_cached_project_name_is_trusted(gui: Magi
 
 
 def test_a_selected_task_profile_or_scene_leads_to_the_project_that_owns_it(gui: MagicMock) -> None:
-    for attribute, name in (("single_task_name", "Noisy"), ("single_profile_name", "Morning"), ("single_scene_name", "Panel")):
+    for attribute, name in (
+        ("single_task_name", "Noisy"),
+        ("single_profile_name", "Morning"),
+        ("single_scene_name", "Panel"),
+    ):
         gui.single_project_name = gui.single_task_name = gui.single_profile_name = gui.single_scene_name = ""
         setattr(gui, attribute, name)
         assert userintr_editors._project_for_new_object(gui, "Profile") == ("Home", ""), attribute
@@ -351,7 +368,9 @@ def test_a_pulldown_option_is_found_by_exact_name_then_by_its_item_type_prefix_t
 def test_selecting_a_renamed_item_points_the_pulldown_at_it_and_runs_the_name_event_with_the_bare_name(
     gui: MagicMock,
 ) -> None:
-    gui.specific_project_optionmenu = SimpleNamespace(options=["None", "Project: Renamed"], value="", update=MagicMock())
+    gui.specific_project_optionmenu = SimpleNamespace(
+        options=["None", "Project: Renamed"], value="", update=MagicMock()
+    )
     seen_while_updating = []
     gui.event_handlers.process_name_event.side_effect = lambda *_a: seen_while_updating.append(gui.is_updating)
 
@@ -436,7 +455,9 @@ async def test_the_in_progress_notice_is_a_spinner_that_lets_the_loop_send_it_fi
     assert kwargs["spinner"] is True and kwargs["timeout"] is None
 
 
-def _stub_the_save(monkeypatch: pytest.MonkeyPatch, *, written: tuple = (True, "/tmp/copy.xml"), reloaded: tuple = (True, "")) -> MagicMock:
+def _stub_the_save(
+    monkeypatch: pytest.MonkeyPatch, *, written: tuple = (True, "/tmp/copy.xml"), reloaded: tuple = (True, "")
+) -> MagicMock:
     notice = MagicMock()
     monkeypatch.setattr(userintr_editors, "show_save_in_progress_notice", AsyncMock(return_value=notice))
     monkeypatch.setattr(userintr_editors, "write_full_backup_to_current_file", lambda state: written)
@@ -447,7 +468,9 @@ def _stub_the_save(monkeypatch: pytest.MonkeyPatch, *, written: tuple = (True, "
 # ##################################################################################
 # The Task editor
 # ##################################################################################
-def test_edit_task_with_none_selected_asks_for_one(handlers: MapTaskerEventHandlers, notices: _Notices, calls: dict) -> None:
+def test_edit_task_with_none_selected_asks_for_one(
+    handlers: MapTaskerEventHandlers, notices: _Notices, calls: dict
+) -> None:
     handlers.open_edit_task_dialog_event()
     assert notices.said("Select a single Task first")
     assert calls["build_edit_task_dialog"] == []
@@ -594,6 +617,26 @@ def test_deleting_a_task_that_does_not_exist_reports_it_and_keeps_both_dialogs_o
     confirm.close.assert_not_called()
     parent.close.assert_not_called()
     assert calls["_reset_specific_name_selection"] == []
+    assert calls["build_unsaved_deletion_dialog"] == []
+
+
+@pytest.mark.parametrize(
+    ("event", "name"),
+    [
+        ("confirm_delete_task_event", "Quiet"),
+        ("confirm_delete_profile_event", "Morning"),
+        ("confirm_delete_scene_event", "Panel"),
+    ],
+)
+def test_every_delete_offers_to_save_once_the_editor_has_closed(
+    handlers: MapTaskerEventHandlers,
+    calls: dict,
+    event: str,
+    name: str,
+) -> None:
+    getattr(handlers, event)(name, MagicMock(), MagicMock())
+    ((args, _kwargs),) = calls["build_unsaved_deletion_dialog"]
+    assert name in args[0]
 
 
 def test_ok_keeps_the_edit_in_the_loaded_configuration_and_closes_the_dialog(
@@ -603,7 +646,10 @@ def test_ok_keeps_the_edit_in_the_loaded_configuration_and_closes_the_dialog(
 ) -> None:
     edited = _edit_task()
     handlers.keep_edited_task_event(edited, _task_fields(name="Noisier", priority="3"), dialog)
-    assert "Noisier" in PrimeItems.tasker_root_elements["all_tasks_by_name"] or _live_task_by_id("20").findtext("nme") == "Noisier"
+    assert (
+        "Noisier" in PrimeItems.tasker_root_elements["all_tasks_by_name"]
+        or _live_task_by_id("20").findtext("nme") == "Noisier"
+    )
     assert _live_task_by_id("20").findtext("pri") == "3"
     assert notices.said("Changes kept.")
     dialog.close.assert_called_once()
@@ -822,7 +868,10 @@ def test_keeping_a_scenes_event_tasks_applies_bound_copies_and_creates_the_ones_
     empty = taskedit.create_new_task("Left Empty", "", state=PrimeItems)
 
     bound_to = []
-    pending = {"longclickTask": (composed, {"name": _Widget("From Event"), "priority": _Widget("")}), "other": (empty, {})}
+    pending = {
+        "longclickTask": (composed, {"name": _Widget("From Event"), "priority": _Widget("")}),
+        "other": (empty, {}),
+    }
     kept = handlers.keep_scene_event_task_edits(
         {"clickTask": (bound, {key: _Widget("via event")})},
         pending,
@@ -831,7 +880,9 @@ def test_keeping_a_scenes_event_tasks_applies_bound_copies_and_creates_the_ones_
 
     assert kept is True
     assert "via event" in ET_text(_live_task("Noisy"))
-    assert "Left Empty" not in PrimeItems.tasker_root_elements["all_tasks_by_name"], "an untouched sub-tab creates nothing"
+    assert "Left Empty" not in PrimeItems.tasker_root_elements["all_tasks_by_name"], (
+        "an untouched sub-tab creates nothing"
+    )
     assert "other" in pending, "and is left alone"
 
 
@@ -842,7 +893,10 @@ def test_keeping_scene_event_tasks_reports_a_rejected_edit_and_says_the_dialog_m
     bound = _edit_task()
     wait = taskedit.add_action_to_task(bound, "30t", state=PrimeItems)  # a Wait, whose MS must be a whole number
     key = taskedit_apply.arg_key(wait.act_number, "0")
-    assert handlers.keep_scene_event_task_edits({"t": (bound, {key: _Widget("not a number")})}, {}, lambda *_a: None) is False
+    assert (
+        handlers.keep_scene_event_task_edits({"t": (bound, {key: _Widget("not a number")})}, {}, lambda *_a: None)
+        is False
+    )
     assert notices.said("'MS' must be a whole number.")
     assert "<code>30</code>" not in ET_text(_live_task("Noisy")), "nothing of the rejected Task was applied"
 
@@ -868,7 +922,9 @@ def test_cancelling_when_nothing_was_changed_is_silent(
 ) -> None:
     edited = sceneedit.load_scene_for_edit("Panel", state=PrimeItems)
     snapshot = sceneedit_legacy_snapshot(sceneedit_legacy_properties(edited))
-    handlers.discard_scene_properties_event(edited.scene_element, snapshot, {"widthPort": "600"}, {"widthPort": _Widget("600")})
+    handlers.discard_scene_properties_event(
+        edited.scene_element, snapshot, {"widthPort": "600"}, {"widthPort": _Widget("600")}
+    )
     assert list(notices) == []
 
 
@@ -909,7 +965,9 @@ def test_creating_a_scene_events_task_with_a_taken_name_creates_nothing(
 ) -> None:
     created = taskedit.create_new_task("Opener", "", state=PrimeItems)
     bound = []
-    assert not handlers.create_scene_event_task_event(created, {"name": _Widget("Opener"), "priority": _Widget("")}, bound.append)
+    assert not handlers.create_scene_event_task_event(
+        created, {"name": _Widget("Opener"), "priority": _Widget("")}, bound.append
+    )
     assert bound == []
     assert notices.said("already exists")
 
@@ -1093,6 +1151,9 @@ def test_keep_contents_moves_the_profiles_and_tasks_to_base_and_says_where(
     assert calls["_reset_specific_name_selection"]
     confirm.close.assert_called_once()
     parent.close.assert_called_once()
+    ((args, _kwargs),) = calls["build_unsaved_deletion_dialog"]
+    assert f"moved to '{projedit.BASE_PROJECT_NAME}'" in args[0]
+    assert args[1] == handlers.save_whole_configuration, "closing the editor must not strand the deletion unsaved"
 
 
 def test_delete_contents_removes_everything_the_project_owned(
@@ -1300,7 +1361,9 @@ def test_cancel_drops_variables_never_named_and_says_how_many(
     dialog.close.assert_called_once()
 
 
-def test_cancel_with_nothing_to_discard_is_silent(handlers: MapTaskerEventHandlers, notices: _Notices, dialog: MagicMock) -> None:
+def test_cancel_with_nothing_to_discard_is_silent(
+    handlers: MapTaskerEventHandlers, notices: _Notices, dialog: MagicMock
+) -> None:
     props, _fields = _properties()
     handlers.cancel_object_properties_event(props, dialog)
     assert list(notices) == []
@@ -1312,7 +1375,9 @@ def test_project_properties_are_carried_through_to_the_loaded_project(handlers: 
 
     edited = _edit_project()
     props = objprops.load_properties("Project", edited.project_element)
-    objprops.apply_properties(props, {**objprops.scalar_values(props), "mdate": ""} if False else objprops.scalar_values(props))
+    objprops.apply_properties(
+        props, {**objprops.scalar_values(props), "mdate": ""} if False else objprops.scalar_values(props)
+    )
     handlers.apply_project_properties_event(edited)  # must not raise, and leaves a consistent live Project
     assert _live_project("Home").findtext("name") == "Home"
 
@@ -1488,7 +1553,9 @@ def test_previewing_hides_the_dialog_marks_it_suspended_and_draws_the_scene(
     assert gui.textview == "view"
 
 
-def test_previewing_without_a_dialog_just_draws(handlers: MapTaskerEventHandlers, gui: MagicMock, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_previewing_without_a_dialog_just_draws(
+    handlers: MapTaskerEventHandlers, gui: MagicMock, monkeypatch: pytest.MonkeyPatch
+) -> None:
     drawn = []
     monkeypatch.setattr(userintr_editors, "NiceGuiSceneView", lambda *args: drawn.append(args) or "view")
     handlers.preview_scene_event(_edit_scene(), _scene_fields())
@@ -1660,7 +1727,9 @@ def test_confirming_a_scene_delete_removes_it_from_its_projects_and_closes_both_
     parent.close.assert_called_once()
 
 
-def test_deleting_a_scene_that_does_not_exist_closes_nothing(handlers: MapTaskerEventHandlers, notices: _Notices, calls: dict) -> None:
+def test_deleting_a_scene_that_does_not_exist_closes_nothing(
+    handlers: MapTaskerEventHandlers, notices: _Notices, calls: dict
+) -> None:
     confirm, parent = MagicMock(), MagicMock()
     handlers.confirm_delete_scene_event("No Such Scene", confirm, parent)
     assert notices.of_type("negative")
@@ -1860,7 +1929,9 @@ def test_adding_a_task_from_inside_a_profile_links_it_as_that_type_when_it_is_cr
     assert edited.exit_task_id == "22" and redrawn == [True]
 
 
-def test_the_enabled_switch_and_the_condition_buttons_reach_the_working_copy(handlers: MapTaskerEventHandlers, notices: _Notices) -> None:
+def test_the_enabled_switch_and_the_condition_buttons_reach_the_working_copy(
+    handlers: MapTaskerEventHandlers, notices: _Notices
+) -> None:
     edited = _edit_profile()
     handlers.set_profile_enabled_event(edited, enabled=False)
     assert profedit.is_profile_enabled(edited) is False
@@ -1993,7 +2064,9 @@ def test_a_redacted_profile_export_says_so(
     tmp_path: Path,
 ) -> None:
     edited = _edit_profile()
-    fields = _profile_fields(save_path=str(tmp_path / "r.prf.xml"), edited=edited) | {userintr_editors.REDACT_FIELD: _Widget(True)}
+    fields = _profile_fields(save_path=str(tmp_path / "r.prf.xml"), edited=edited) | {
+        userintr_editors.REDACT_FIELD: _Widget(True)
+    }
     handlers.save_edited_profile_event(edited, fields, dialog)
     assert notices.said("were redacted")
 
@@ -2129,7 +2202,9 @@ async def test_a_new_profile_saved_to_the_current_file_is_registered_before_the_
     edited = _new_profile()
     fields = _profile_fields(name="Fresh", edited=edited)
     await handlers.save_new_profile_to_current_file_event(edited, fields, dialog)
-    assert "Fresh" in PrimeItems.tasker_root_elements["all_profiles_by_name"], "a failed write does not undo the registration"
+    assert "Fresh" in PrimeItems.tasker_root_elements["all_profiles_by_name"], (
+        "a failed write does not undo the registration"
+    )
     assert notices.said("Could not save to current file: disk full")
     dialog.close.assert_not_called()
 
@@ -2188,7 +2263,12 @@ def test_a_profile_kept_in_the_loaded_configuration_is_one_undo_step(
 # Add Task, and the action editors
 # ##################################################################################
 def _new_task_fields(name: str = "Fresh Task", save_path: str = "", project: str = "Home") -> dict:
-    return {"name": _Widget(name), "priority": _Widget("100"), "save_path": _Widget(save_path), "target_project_name": project}
+    return {
+        "name": _Widget(name),
+        "priority": _Widget("100"),
+        "save_path": _Widget(save_path),
+        "target_project_name": project,
+    }
 
 
 def _new_task(actions: int = 1) -> taskedit_model.EditableTask:
@@ -2252,7 +2332,9 @@ def test_a_plugin_action_warns_that_its_configuration_is_set_in_tasker(
     notices: _Notices,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(taskedit_addable, "tasker_configuration_warning", lambda element, name: "configure it in Tasker")
+    monkeypatch.setattr(
+        taskedit_addable, "tasker_configuration_warning", lambda element, name: "configure it in Tasker"
+    )
     handlers.add_action_to_new_task_event(_new_task(0), "548t")
     handlers.add_action_to_edit_task_event(_edit_task(), "548t", None)
     assert notices.of_type("warning") == ["configure it in Tasker"] * 2
@@ -2282,7 +2364,9 @@ def test_an_if_block_that_cannot_be_added_reports_why(
     assert notices.of_type("negative") == ["no If here"] * 2
 
 
-def test_actions_are_removed_copied_moved_enabled_and_set_to_continue_after_error(handlers: MapTaskerEventHandlers) -> None:
+def test_actions_are_removed_copied_moved_enabled_and_set_to_continue_after_error(
+    handlers: MapTaskerEventHandlers,
+) -> None:
     edited = _edit_task()
     handlers.copy_action_in_edit_task_event(edited, 0)
     assert len(edited.actions) == 3
@@ -2308,7 +2392,9 @@ def test_a_per_action_condition_is_written_shown_on_its_checkbox_and_closes_the_
     edited = _edit_task()
     operator = next(iter(taskedit_model.IF_CONDITION_LABEL_TO_CODE))
     checkbox, prompt = MagicMock(), MagicMock()
-    handlers.set_action_condition_event(edited, 0, _Widget("%flag"), _Widget(operator), _Widget(" 1 "), prompt, checkbox)
+    handlers.set_action_condition_event(
+        edited, 0, _Widget("%flag"), _Widget(operator), _Widget(" 1 "), prompt, checkbox
+    )
     assert taskedit_apply.action_has_condition(edited.actions[0])
     checkbox.set_text.assert_called_once_with(f"If: %flag {operator} 1")
     assert notices.said("If condition set.")

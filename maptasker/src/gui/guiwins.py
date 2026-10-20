@@ -2271,6 +2271,32 @@ def build_delete_project_dialog(
     confirm_dialog.open()
 
 
+def build_unsaved_deletion_dialog(message: str, save_configuration: Callable[[], Coroutine]) -> None:
+    """Says an object was deleted and offers to save, for the Delete Project/Profile/Task/Scene dialogs.
+
+    A delete closes the Edit dialog it was started from -- there is nothing left for that dialog to
+    edit -- and that dialog held the only Save To Current File button, so the deletion was in memory
+    and nowhere on disk with no way left to put it there.  This is that button's new home.  Closed
+    once the save has been made; left up when it was not, so it can be pressed again.
+
+    `save_configuration` is userintr.save_whole_configuration, which reports its own outcome.
+    """
+
+    async def save() -> None:
+        if await save_configuration():
+            dialog.close()
+
+    with ui.dialog() as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+        ui.label(message).classes("text-sm")
+        ui.label(translate_string("The deletion has not been saved to a file yet.")).classes(
+            "text-xs text-gray-500 italic",
+        )
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Close"), on_click=dialog.close).props("outline")
+            ui.button(translate_string("Save To Current File"), on_click=save).props("outline")
+    dialog.open()
+
+
 # ==========================================
 # 3. APPEARANCE
 # ==========================================
