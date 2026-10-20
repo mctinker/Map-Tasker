@@ -240,7 +240,33 @@ def _emit_v2_dragging(
 # it.  Both canvases exist in the DOM, both would receive the app-wide event, and an sr means
 # something different in each -- so the event says which root it came from and only that
 # designer answers.
-_ACTIVE_CANVASES: dict[str, dict[str, Callable]] = {}
+#
+# Weak, because the handlers are bound methods and a strong table would keep every designer ever
+# opened -- with its whole page of NiceGUI elements -- alive for the life of the program.  The strong
+# reference lives with whoever registered the table (the designer, and the Preview for its own),
+# so an entry disappears when its owner is torn down and not before.  See register_canvas.
+_ACTIVE_CANVASES: weakref.WeakValueDictionary[str, CanvasHandlers] = weakref.WeakValueDictionary()
+
+
+class CanvasHandlers(dict):
+    """One canvas's handler table, event name to handler.
+
+    A subclass only because a plain dict cannot be weakly referenced, which is what lets
+    _ACTIVE_CANVASES forget a designer that has gone.
+    """
+
+
+def register_canvas(root: str, handlers: dict[str, Callable]) -> CanvasHandlers:
+    """Make `handlers` the answer for `root` and return the table that holds them.
+
+    The caller must keep the returned table for as long as the canvas should answer: the entry
+    in _ACTIVE_CANVASES does not keep it alive.
+    """
+    table = CanvasHandlers(handlers)
+    _ACTIVE_CANVASES[root] = table
+    return table
+
+
 # How long a typed-into designer field waits, after the last keystroke, before committing.
 #
 # Quasar's own debounce, so the caret is never involved: it holds the value and emits once the

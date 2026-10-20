@@ -23,7 +23,6 @@ from maptasker.src.core.sysconst import SCENE_TASK_TYPES
 from maptasker.src.edit import sceneedit, sceneedit_legacy
 from maptasker.src.gui import sceneview
 from maptasker.src.gui.guiwins_canvas import (
-    _ACTIVE_CANVASES,
     _DESIGNER_SEQUENCE,
     CANVAS_DESIGNER_ROOT,
     DESIGNER_CANVAS_HEIGHT,
@@ -31,6 +30,7 @@ from maptasker.src.gui.guiwins_canvas import (
     _emit_canvas_editing,
     _emit_canvas_fit,
     _register_canvas_events,
+    register_canvas,
 )
 from maptasker.src.gui.guiwins_editor import _build_properties_button
 from maptasker.src.gui.guiwins_legacyarg import _render_legacy_arg
@@ -1141,11 +1141,16 @@ class _LegacyDesigner:
             self.render_canvas()
 
     def render(self) -> None:
-        _ACTIVE_CANVASES[self.root_class] = {
-            "select": self.select_from_canvas,
-            "geometry": self.set_geometry,
-            "nudge": self.nudge,
-        }
+        # Held on the designer as well as in field_refs: the registry only holds it weakly, and
+        # field_refs gives it up when the dialog closes while the designer can still be shown again.
+        self.canvas_handlers = register_canvas(
+            self.root_class,
+            {
+                "select": self.select_from_canvas,
+                "geometry": self.set_geometry,
+                "nudge": self.nudge,
+            },
+        )
         # What the Preview needs to be a second canvas over this same Scene, and why it is
         # handed these rather than copies of them -- the Version 2 designer publishes itself
         # the same way, for the same reasons (see field_refs["v2_edit"]):
@@ -1169,7 +1174,7 @@ class _LegacyDesigner:
         # Inspector are rebuilt as the drag lands rather than coming back showing the
         # geometry from before it.
         self.field_refs["legacy_edit"] = {
-            "handlers": _ACTIVE_CANVASES[self.root_class],
+            "handlers": self.canvas_handlers,
             "selection": self.selection,
             "snap": self.snap,
             "orientation": self.orientation,

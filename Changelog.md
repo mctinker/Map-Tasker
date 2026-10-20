@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: After deleting a Project, Profile, Task or Scene, you can now save the deletion to a new copy of your file. The Edit window that held the Save To Current File button closes on delete, so a small window with that button now appears in its place.
+- Fixed: Closing the Edit Scene window now releases everything the Scene designer had built. Previously each Edit Scene you opened stayed in memory until MapTasker was restarted.
 - Fixed:
 
 ### Known Issues

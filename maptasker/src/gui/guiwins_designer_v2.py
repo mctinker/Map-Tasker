@@ -23,11 +23,11 @@ from maptasker.src.core.sysconst import V2_MATERIAL_PALETTE
 from maptasker.src.edit import sceneedit, sceneedit_v2
 from maptasker.src.gui import sceneview
 from maptasker.src.gui.guiwins_canvas import (
-    _ACTIVE_CANVASES,
     _DESIGNER_SEQUENCE,
     _emit_v2_dragging,
     _register_canvas_events,
     _v2_selection_props,
+    register_canvas,
 )
 
 if TYPE_CHECKING:
@@ -1412,10 +1412,16 @@ class _V2Designer:
     def render(self) -> None:
         # Re-registered on every render because the handlers close over nothing that changes,
         # but the table is what a re-opened dialog's surface has to be found in again.
-        _ACTIVE_CANVASES[self.tree_root] = {
-            "v2select": self.select_from_surface,
-            "v2reorder": self.reorder_from_surface,
-        }
+        #
+        # Held on the designer as well as in field_refs: the registry only holds it weakly, and
+        # field_refs gives it up when the dialog closes while the designer can still be shown again.
+        self.canvas_handlers = register_canvas(
+            self.tree_root,
+            {
+                "v2select": self.select_from_surface,
+                "v2reorder": self.reorder_from_surface,
+            },
+        )
         # What the Preview needs to be the second surface over this same layout, and why it
         # is handed these three rather than a copy of them:
         #
@@ -1433,7 +1439,7 @@ class _V2Designer:
         # it is hidden: they end in render(), so the pane the Preview is covering is rebuilt
         # as the drag lands rather than coming back showing the order from before it.
         self.field_refs["v2_edit"] = {
-            "handlers": _ACTIVE_CANVASES[self.tree_root],
+            "handlers": self.canvas_handlers,
             "selection": self.selection,
             "rerender": self.render,
         }

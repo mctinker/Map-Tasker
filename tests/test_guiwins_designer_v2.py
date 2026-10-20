@@ -13,6 +13,8 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import copy
+import gc
+import weakref
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
@@ -23,7 +25,7 @@ from nicegui.testing.user_simulation import user_simulation
 
 from maptasker.src.core import scenelayout
 from maptasker.src.edit import sceneedit, sceneedit_v2
-from maptasker.src.gui import guiwins_designer_v2, sceneview
+from maptasker.src.gui import guiwins_canvas, guiwins_designer_v2, guiwins_views, sceneview
 from maptasker.src.core.primitem import PrimeItems
 from tests.test_mapfind import _FIXTURE_XML, _load
 
@@ -33,6 +35,7 @@ if TYPE_CHECKING:
     from nicegui.testing.user import User
 
 _built: dict = {}
+
 
 # Where things are in the stock layout (see scenelayout.v2_template_layout): root -> header, content, button_row.
 def _at(*indexes: int) -> tuple:
@@ -137,6 +140,34 @@ async def test_the_layout_dict_is_registered_where_a_save_will_find_it() -> None
     async with _open():
         assert _built["field_refs"]["v2_layout"] is _built["layout"]
         assert set(_built["field_refs"]["v2_edit"]) == {"handlers", "selection", "rerender"}
+
+
+@pytest.mark.asyncio
+async def test_a_designer_that_is_dropped_takes_its_canvas_entry_and_elements_with_it() -> None:
+    async with _open() as user:
+        designer = _built["designer"]
+        root = designer.tree_root
+        assert guiwins_canvas._ACTIVE_CANVASES[root] is designer.canvas_handlers
+        gone = [weakref.ref(designer), *(weakref.ref(e) for e in user.client.elements.values())]
+        user.client.delete()  # What the page going away does in the running app.
+        del designer, user
+    _built.clear()
+    gc.collect()
+    assert root not in guiwins_canvas._ACTIVE_CANVASES
+    assert [ref for ref in gone if ref() is not None] == []
+
+
+@pytest.mark.asyncio
+async def test_opening_the_designer_again_does_not_grow_the_canvas_table() -> None:
+    before = len(guiwins_canvas._ACTIVE_CANVASES)
+    for _ in range(3):
+        async with _open() as user:
+            assert len(guiwins_canvas._ACTIVE_CANVASES) == before + 1
+            user.client.delete()
+            del user
+        _built.update(designer=None, field_refs={})
+        gc.collect()
+    assert len(guiwins_canvas._ACTIVE_CANVASES) == before
 
 
 @pytest.mark.asyncio
@@ -402,8 +433,12 @@ async def test_picking_a_chip_inserts_that_element_and_selects_it() -> None:
         await _select(user, CONTENT)
         before = len(_paths())
         _press(user, "Add")
-        entry = next(entry for _g, entries in sceneedit_v2.v2_palette_for(_built["layout"], CONTENT)
-                     for entry, reason in entries if not reason and entry.node_type == "Text")
+        entry = next(
+            entry
+            for _g, entries in sceneedit_v2.v2_palette_for(_built["layout"], CONTENT)
+            for entry, reason in entries
+            if not reason and entry.node_type == "Text"
+        )
         _click(user, _button(user, entry.label))
         await asyncio.sleep(0.05)
         assert len(_paths()) == before + 1
@@ -435,7 +470,9 @@ async def test_the_sheet_filters_as_you_type_and_says_when_nothing_matches() -> 
         await _select(user, CONTENT)
         _press(user, "Add")
         search = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.input) and e.props.get("placeholder") == "Search elements"
+            e
+            for e in user.client.elements.values()
+            if isinstance(e, ui.input) and e.props.get("placeholder") == "Search elements"
         )
         before = len([e for e in user.client.elements.values() if isinstance(e, ui.button)])
         search.value = "text"
@@ -459,7 +496,9 @@ def _widget(user: User, kind: type, label: str) -> ui.element:
 def _after(user: User, kind: type, label: str, anchor: ui.element) -> ui.element:
     """The first widget of this kind labelled so that was drawn after `anchor` -- its own, among many alike."""
     found = [
-        e for e in user.client.elements.values() if isinstance(e, kind) and e.props.get("label") == label and e.id > anchor.id
+        e
+        for e in user.client.elements.values()
+        if isinstance(e, kind) and e.props.get("label") == label and e.id > anchor.id
     ]
     return min(found, key=lambda e: e.id)
 
@@ -553,7 +592,9 @@ async def test_a_category_remembers_whether_it_was_open_and_counts_what_is_fille
         await _select(user, TITLE)
         designer = _built["designer"]
         content = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.expansion) and e.props.get("label") == "Content"
+            e
+            for e in user.client.elements.values()
+            if isinstance(e, ui.expansion) and e.props.get("label") == "Content"
         )
         assert designer.expanded["category:Content"] is True or designer.expanded["category:Content"] is False
         content.value = not content.value
@@ -564,7 +605,9 @@ async def test_a_category_remembers_whether_it_was_open_and_counts_what_is_fille
         # Selecting another component keeps the section as it was left.
         await _select(user, _at(1, 0))
         reopened = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.expansion) and e.props.get("label") == "Content"
+            e
+            for e in user.client.elements.values()
+            if isinstance(e, ui.expansion) and e.props.get("label") == "Content"
         )
         assert reopened.value == content.value
 
@@ -623,7 +666,11 @@ async def test_modifiers_are_listed_in_order_with_their_count_in_the_heading() -
         assert f"Modifiers ({count})" in [
             e.props.get("label") for e in user.client.elements.values() if isinstance(e, ui.expansion)
         ]
-        assert [e.text for e in user.client.elements.values() if isinstance(e, ui.label) and e.text in ("FillWidth", "Border")]
+        assert [
+            e.text
+            for e in user.client.elements.values()
+            if isinstance(e, ui.label) and e.text in ("FillWidth", "Border")
+        ]
 
 
 @pytest.mark.asyncio
@@ -650,13 +697,15 @@ async def test_a_modifier_moves_down_and_back_up() -> None:
 async def test_the_open_state_of_the_modifiers_section_survives_the_rebuild_an_edit_causes() -> None:
     async with _open() as user:
         modifiers = next(
-            e for e in user.client.elements.values()
+            e
+            for e in user.client.elements.values()
             if isinstance(e, ui.expansion) and str(e.props.get("label", "")).startswith("Modifiers")
         )
         modifiers.value = True
         _click(user, _icon_buttons(user, "close")[0])
         rebuilt = next(
-            e for e in user.client.elements.values()
+            e
+            for e in user.client.elements.values()
             if isinstance(e, ui.expansion) and str(e.props.get("label", "")).startswith("Modifiers")
         )
         assert rebuilt.value is True
@@ -801,13 +850,15 @@ async def test_the_show_when_picker_inserts_a_variable_into_the_field_and_closes
         before = {e.id for e in user.client.elements.values()}
         # The append-slot button beside Show when opens the picker.
         opener = next(
-            e for e in user.client.elements.values()
+            e
+            for e in user.client.elements.values()
             if isinstance(e, ui.button) and e.props.get("icon") == "playlist_add" and e.parent_slot.parent is field
         )
         _click(user, opener)
         choice = sceneedit_v2.v2_show_when_choices(state=PrimeItems)[0][1][0]
         button = next(
-            e for e in user.client.elements.values()
+            e
+            for e in user.client.elements.values()
             if isinstance(e, ui.button) and e.id not in before and e.text == choice.label
         )
         _click(user, button)
@@ -825,12 +876,14 @@ async def test_the_show_when_picker_filters_by_what_is_typed_and_says_when_a_cat
         await _select(user, TITLE)
         field = _widget(user, ui.input, "Show when")
         opener = next(
-            e for e in user.client.elements.values()
+            e
+            for e in user.client.elements.values()
             if isinstance(e, ui.button) and e.props.get("icon") == "playlist_add" and e.parent_slot.parent is field
         )
         _click(user, opener)
         search = next(
-            e for e in user.client.elements.values()
+            e
+            for e in user.client.elements.values()
             if isinstance(e, ui.input) and e.props.get("placeholder") == "Search variables"
         )
         search.value = "zzzz-no-such-variable"
@@ -843,7 +896,8 @@ async def test_a_numeric_or_text_variable_property_has_a_select_variable_button(
         await _select(user, TITLE)
         field = _widget(user, ui.input, "Max lines")
         opener = next(
-            e for e in user.client.elements.values()
+            e
+            for e in user.client.elements.values()
             if isinstance(e, ui.button) and e.props.get("icon") == "playlist_add" and e.parent_slot.parent is field
         )
         _click(user, opener)
@@ -866,12 +920,15 @@ async def test_the_icon_picker_replaces_the_field_with_the_icon_chosen() -> None
         field = _widget(user, ui.input, "Icon")
         assert field.value == "icon:Close"
         opener = next(
-            e for e in user.client.elements.values()
+            e
+            for e in user.client.elements.values()
             if isinstance(e, ui.button) and e.props.get("icon") == "apps" and e.parent_slot.parent is field
         )
         _click(user, opener)
         assert "Pick an icon" in _texts(user)
-        tiles = [e for e in user.client.elements.values() if isinstance(e, ui.button) and e.props.get("stack") is not None]
+        tiles = [
+            e for e in user.client.elements.values() if isinstance(e, ui.button) and e.props.get("stack") is not None
+        ]
         assert 0 < len(tiles) <= guiwins_designer_v2._ICON_PREVIEW_LIMIT
         name = tiles[0].default_slot.children[1].text
         _click(user, tiles[0])
@@ -885,17 +942,22 @@ async def test_the_icon_picker_narrows_by_name_and_says_when_nothing_is_left() -
         await _select(user, CLOSE_BUTTON)
         field = _widget(user, ui.input, "Icon")
         opener = next(
-            e for e in user.client.elements.values()
+            e
+            for e in user.client.elements.values()
             if isinstance(e, ui.button) and e.props.get("icon") == "apps" and e.parent_slot.parent is field
         )
         _click(user, opener)
         search = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.input) and e.props.get("placeholder") == "Search icons"
+            e
+            for e in user.client.elements.values()
+            if isinstance(e, ui.input) and e.props.get("placeholder") == "Search icons"
         )
         search.value = "zzzz_no_such_icon"
         assert "Nothing here." in _texts(user)
         search.value = "close"
-        tiles = [e for e in user.client.elements.values() if isinstance(e, ui.button) and e.props.get("stack") is not None]
+        tiles = [
+            e for e in user.client.elements.values() if isinstance(e, ui.button) and e.props.get("stack") is not None
+        ]
         assert tiles
         assert all("close" in t.default_slot.children[1].text for t in tiles)
 
@@ -916,7 +978,8 @@ async def test_the_material_colour_menu_sets_a_role_by_name() -> None:
         colour = _widget(user, ui.color_input, "Colour")
         role = next(iter(guiwins_designer_v2.V2_MATERIAL_PALETTE))
         entries = [
-            e for e in user.client.elements.values()
+            e
+            for e in user.client.elements.values()
             if isinstance(e, ui.item)
             and colour in e.ancestors()
             and any(getattr(c, "text", None) == role for c in e.descendants())
@@ -981,3 +1044,44 @@ async def test_a_layout_that_cannot_be_read_is_said_to_be_left_exactly_as_it_is(
 
 def test_the_preview_says_a_version_2_layout_has_no_size_of_its_own() -> None:
     assert "no size of its own" in guiwins_designer_v2.V2Designer.preview_tooltip
+
+
+def _dialog_page() -> None:
+    _built["column"] = ui.column()
+
+
+@pytest.mark.asyncio
+async def test_a_scene_dialog_closed_for_good_leaves_nothing_of_its_designer_behind() -> None:
+    """Open, close and re-open Edit Scene the way the running app does, and count what is left."""
+    _built["scene"] = _scene(_layout())
+    gui = SimpleNamespace(scene_editor_session=None, textviews=[])
+    async with _open_dialog_page() as user:
+        elements, table = len(user.client.elements), len(guiwins_canvas._ACTIVE_CANVASES)
+        for opened in range(1, 4):
+            field_refs: dict = {}
+            with _built["column"], ui.dialog() as dialog, ui.card():
+                guiwins_designer_v2.V2Designer().build_body(
+                    SimpleNamespace(), _built["scene"], field_refs, dialog, PrimeItems
+                )
+            dialog.on_value_change(lambda e, d=dialog, f=field_refs: guiwins_views._scene_dialog_closed(gui, d, f, e))
+            dialog.open()
+            assert len(guiwins_canvas._ACTIVE_CANVASES) == table + 1
+            dialog.close()
+            await asyncio.sleep(0.05)
+            del dialog, field_refs
+            _built["designer"] = None  # The fixture's own capture of it.
+            gc.collect()
+            # NiceGUI leaves one empty placeholder div where a dialog was declared; the designer's page is gone.
+            assert len(user.client.elements) == elements + opened
+            assert len(guiwins_canvas._ACTIVE_CANVASES) == table
+
+
+@contextlib.asynccontextmanager
+async def _open_dialog_page() -> AsyncIterator[User]:
+    try:
+        async with user_simulation(root=_dialog_page) as user:
+            await user.open("/")
+            yield user
+    finally:
+        if core.app.is_started:
+            await core.app.stop()

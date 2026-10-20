@@ -36,13 +36,13 @@ from maptasker.src.core.sysconst import (
 from maptasker.src.edit import sceneedit, sceneedit_v2, scenemodel
 from maptasker.src.gui import sceneview
 from maptasker.src.gui.guiwins_canvas import (
-    _ACTIVE_CANVASES,
     CANVAS_PREVIEW_ROOT,
     _emit_canvas_editing,
     _emit_canvas_fit,
     _emit_v2_dragging,
     _emit_v2_hull,
     _register_canvas_events,
+    register_canvas,
 )
 from maptasker.src.gui.guiwins_designer_legacy import (
     _legacy_canvas_size,
@@ -128,6 +128,14 @@ def _scene_dialog_closed(gui: MyGui, dialog: ui.dialog, field_refs: dict, event:
     for key in ("v2_edit", "legacy_edit"):
         field_refs.pop(key, None)
     repaint_scene_previews(gui, dialog)
+    # And the dialog itself goes, which is what lets its designer go with it.  Hiding it left
+    # the whole page of elements in the client for good -- every Edit Scene ever opened -- and
+    # the designer's canvas entry (see guiwins_canvas._ACTIVE_CANVASES) with it.  Nothing
+    # comes back to a dialog closed for good: Edit Scene builds a fresh one from the Scene.
+    if session and session.get("dialog") is dialog:
+        gui.scene_editor_session = None
+    with suppress_logged("Deleting a closed Scene dialog"):
+        dialog.delete()
 
 
 def suspend_scene_editor_session(gui: MyGui, dialog: ui.dialog) -> None:
@@ -1244,10 +1252,14 @@ class NiceGuiSceneView:
             )
         self._apply_scale(width, height)
         if editing is not None:
-            _ACTIVE_CANVASES[CANVAS_PREVIEW_ROOT] = {
-                name: (lambda payload, which=name: self._legacy_from_canvas(which, payload))
-                for name in ("select", "geometry", "nudge")
-            }
+            # Kept on the view: the registry only holds the table weakly.
+            self._preview_handlers = register_canvas(
+                CANVAS_PREVIEW_ROOT,
+                {
+                    name: (lambda payload, which=name: self._legacy_from_canvas(which, payload))
+                    for name in ("select", "geometry", "nudge")
+                },
+            )
             _emit_canvas_editing(CANVAS_PREVIEW_ROOT, editing.snap)
         self._draw_legacy_caption(scene_element, width, height)
 
@@ -1322,10 +1334,14 @@ class NiceGuiSceneView:
         # that factor existed would be sized by whatever the last render happened to set.
         _emit_v2_hull(CANVAS_PREVIEW_ROOT, width, height)
         if editing is not None:
-            _ACTIVE_CANVASES[CANVAS_PREVIEW_ROOT] = {
-                "v2select": lambda payload: self._v2_from_canvas("v2select", payload),
-                "v2reorder": lambda payload: self._v2_from_canvas("v2reorder", payload),
-            }
+            # Kept on the view: the registry only holds the table weakly.
+            self._preview_handlers = register_canvas(
+                CANVAS_PREVIEW_ROOT,
+                {
+                    "v2select": lambda payload: self._v2_from_canvas("v2select", payload),
+                    "v2reorder": lambda payload: self._v2_from_canvas("v2reorder", payload),
+                },
+            )
             _emit_v2_dragging(
                 CANVAS_PREVIEW_ROOT,
                 f".{CANVAS_PREVIEW_ROOT} .mt-scene-canvas",
