@@ -232,10 +232,16 @@ async def test_each_link_says_when_it_was_last_checked() -> None:
     """The date is there so the user can tell whether another check is worth making."""
     link = _seed(latest=1_600_000_000_000)
     link.checked = tnupdate.clock.now().isoformat()
-    _book().save()
+    # default_book() reads the file afresh each time, so the link has to be put into the book that is
+    # saved -- otherwise what is saved was never checked, the dialog checks it as it opens, and the time
+    # it shows is its own, which differs from this one whenever the minute changes in between.
+    book = _book()
+    book.links[link.key] = link
+    book.save()
 
     async with _open() as user:
         await user.should_see(f"Last checked {tnupdate.describe_checked(link.checked)}")
+        assert _built["asked"] == []
 
 
 @pytest.mark.asyncio
