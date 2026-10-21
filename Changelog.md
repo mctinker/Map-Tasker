@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Choosing 'None' for a Project, Profile, Task or Scene in a language other than English is now saved as no selection, rather than being restored next time as an item with that name.
 - Fixed: A backup with an empty or impossible day or month in a Day condition, an empty collision-handling setting, or an empty Version 2 Scene layout no longer stops the Map with an error. A TaskerNet description followed by doubled blank lines no longer does either.
 - Fixed: Clicking Exit on Windows now ends MapTasker completely, instead of leaving the command window running. Your settings are still saved on the way out.
+- Fixed: The Variable Convert action now shows JSON Encode, and names its conversions as Tasker does: Base64 was shown as Base65, and Metres, Centimetres and Kilometres were spelled the American way.
 - Fixed:
 
 
