@@ -458,7 +458,7 @@ def merge_batch(batch: list[tuple[Path, ET.Element]]) -> ET.Element:
     return merged
 
 
-def combine_xml(source_dir: Path, output: Path, projects_per_file: int = 7) -> list[Path]:
+def combine_xml(source_dir: Path, output: Path, projects_per_file: int = 9) -> list[Path]:
     """Merge the shares in `source_dir` into numbered Tasker backups, `projects_per_file` Projects to a file.
 
     `output` names the first: XML/newxml.xml gives XML/newxml1.xml, XML/newxml2.xml, ...  Numbered files left
