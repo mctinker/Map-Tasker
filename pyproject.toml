@@ -1,6 +1,6 @@
 [project]
 name = "maptasker"
-version = "15.0.1"
+version = "15.0.2"
 description = "Utility to display/edit/analyze your entire Android 'Tasker' configuration in your browser."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
@@ -24,6 +24,11 @@ classifiers = [
     # "Development Status :: 6 - Mature",
     # "Development Status :: 7 - Inactive",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
@@ -89,6 +94,9 @@ exclude = [
 ]
 
 [tool.uv]
+# uv itself must be at least this version.  An older uv refuses to run, and CI's setup-uv
+# installs the newest uv that satisfies this, so locally and in CI stay on a current uv.
+required-version = ">=0.13.4"
 # `uv sync` installs these and no others: the development tools, without the AI libraries.
 # ai-dev and translate (dependency-groups, below) are opt-in with --group.
 default-groups = ["dev"]
@@ -118,6 +126,8 @@ dev = [
     "deep-translator>=1.11.4",
     "import-linter>=2.15",
     "matchify>=0.3.0",
+    # Declared so the lock tracks a current pip; pip-autoremove only pulls it in unpinned.
+    "pip>=26.2.2",
     "pip-autoremove>=0.10.0",
     "pyright[nodejs]>=1.1.414",
     "pytest>=9.1.1",
