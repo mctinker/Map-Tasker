@@ -408,7 +408,7 @@ class MyGui:
     map_in_progress: bool
     open_view_in_new_window: bool
     reset_debug_at_end: bool
-    scene_editor_session: dict
+    scene_editor_session: dict | None
     textview: Any
     textviews: list
     view_limit: int
