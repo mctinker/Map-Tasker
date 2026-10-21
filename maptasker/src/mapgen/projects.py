@@ -656,7 +656,7 @@ def is_single_profile_not_found(state: RunState) -> bool:
     Check if a single profile is not found based on program arguments and named items.
     Return a boolean indicating whether a single profile is not found.
     """
-    return state.program_arguments.single_profile_name and not state.found_named_items["single_profile_found"]
+    return bool(state.program_arguments.single_profile_name) and not state.found_named_items["single_profile_found"]
 
 
 # Add a line to the output with the message "<em>Project has no Profiles</em>" and some formatting.
@@ -696,14 +696,15 @@ def add_close_project_list_line_to_output(state: RunState) -> None:
 # Get this Project's details and output them
 # ################################################################################
 def get_profile_details_and_output(
-    project: str,
+    project: Element,
     project_name: str,
     config: RunConfig,
     state: RunState,
-) -> tuple[bool, int, str, bool]:
+) -> tuple[bool, int, bool]:
     """
     Get this Project's details and output them
         Args:
+            project (Element): the Project's XML element
             project_name (str): name of the project
             config (RunConfig): the run's settings
 

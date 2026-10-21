@@ -416,8 +416,8 @@ def _projected_condition_summary(
 
 
 def _condition_note(
-    record: object,
-    condition: object,
+    record: mapfind.ObjectRecord,
+    condition: mapfind.ConditionRecord,
     new_key: str,
     carry: dict[str, str],
     fidelity: str,
@@ -433,6 +433,8 @@ def _condition_note(
     """
     new_tag, new_code = _split_condition(new_key)
     element = condition.element
+    if element is None:  # The caller passes over conditions with no element.
+        return ""
     pieces = []
 
     if condition.key and new_code:
@@ -455,7 +457,9 @@ def _condition_note(
     return "; ".join(pieces)
 
 
-def _duplicate_context(record: object, condition: object, new_tag: str, already_planned: int) -> str:
+def _duplicate_context(
+    record: mapfind.ObjectRecord, condition: mapfind.ConditionRecord, new_tag: str, already_planned: int
+) -> str:
     """Why this Profile cannot take another context of the target kind, or "".
 
     See _ONE_PER_PROFILE.  Two ways it happens, and the second one only exists because a

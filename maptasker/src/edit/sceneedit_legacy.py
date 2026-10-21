@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.edit.taskedit_model import EditableArg
 
 from maptasker.src.core import appinv
 from maptasker.src.core.actionc import action_codes
@@ -129,7 +130,7 @@ _LEGACY_OPAQUE = "FF"
 _LEGACY_COLOUR_NAMES = ("color", "colour")
 
 
-def legacy_is_colour_arg(arg: object) -> bool:
+def legacy_is_colour_arg(arg: EditableArg) -> bool:
     """Whether this element argument holds a colour, and can be typed into.
 
     Decided by the argument's name -- "Text Color", "Border XColor", "Background_Color" --
@@ -191,7 +192,7 @@ def legacy_colour_from_css(value: str) -> str:
     return text
 
 
-def legacy_validate_arg(arg: object, value: str) -> list[str]:
+def legacy_validate_arg(arg: EditableArg, value: str) -> list[str]:
     """Whether this value may be written to this argument -- taskedit's own rule, so the
     Scene inspector rejects exactly what the Task editor rejects and with the same words.
     """
@@ -199,7 +200,7 @@ def legacy_validate_arg(arg: object, value: str) -> list[str]:
     return validate_arg_values([arg], lambda _arg: "value", {"value": str(value)})
 
 
-def legacy_set_arg(arg: object, value: str, state: RunState) -> None:
+def legacy_set_arg(arg: EditableArg, value: str, state: RunState) -> None:
     """Write one inspector field back onto the XML element behind it.
 
     Goes through taskedit_apply.apply_arg_values rather than setting the attribute here, so the
@@ -1427,12 +1428,12 @@ LEGACY_ACTION_ITEM_PLACEMENTS = {
 class LegacyActionItem:
     """One action-bar item: its element, and the three things the guide says it is made of."""
 
-    element: object
+    element: Element
     sr: str
     index: int
     label: str
     icon: str
-    action_element: object
+    action_element: Element | None
     action_name: str
 
     @property
@@ -1630,7 +1631,7 @@ def legacy_move_action_item(properties: Element, sr: str, offset: int) -> None:
     legacy_renumber_action_items(properties)
 
 
-def find_element_name_actions(scene_name: str, element_name: str, state: RunState) -> list[tuple[str, object]]:
+def find_element_name_actions(scene_name: str, element_name: str, state: RunState) -> list[tuple[str, Element]]:
     """The exact <Str> elements a rename would rewrite, as (Task name, Str element).
 
     STRICTER THAN find_element_name_references ON PURPOSE.  That one matches an action naming

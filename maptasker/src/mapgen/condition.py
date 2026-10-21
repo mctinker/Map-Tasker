@@ -57,7 +57,7 @@ def condition_time(the_item: Element, the_output_condition: str) -> str:
             case "cname":
                 time_values["cname"] = f" Name={child.text}"
             case _:
-                not_in_dictionary("Condition Time", child.text)
+                not_in_dictionary("Condition Time", child.text or "")
                 return f"{the_output_condition}{child.text} not yet mapped!"
 
     # A time is only there if Tasker wrote an hour or a minute for it.  Padding the minutes
@@ -114,12 +114,19 @@ def condition_day(the_item: Element, the_output_condition: str) -> str:
     results = {"wday": [], "mday": [], "mnth": [], "cname": ""}
 
     for child in the_item:
+        # A day, or a month, that is empty or out of range is left out rather than ending the Map
+        # with an error: it names nothing the condition could be on.
+        text = (child.text or "").strip()
+        number = int(text) if text.isdigit() else None
         if "wday" in child.tag:
-            results["wday"].append(weekdays[int(child.text) - 1])
+            if number is not None and 1 <= number <= len(weekdays):
+                results["wday"].append(weekdays[number - 1])
         elif "mday" in child.tag:
-            results["mday"].append(child.text)
+            if text:
+                results["mday"].append(text)
         elif "mnth" in child.tag:
-            results["mnth"].append(months[int(child.text)])
+            if number is not None and number < len(months):
+                results["mnth"].append(months[number])
         elif "cname" in child.tag:
             results["cname"] = f" ,Name={child.text}"
 

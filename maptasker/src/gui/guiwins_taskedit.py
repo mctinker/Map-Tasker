@@ -49,6 +49,7 @@ from maptasker.src.gui.guiwins_impact import build_impact_panel
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from xml.etree.ElementTree import Element
 
     from nicegui.events import ValueChangeEventArguments
 
@@ -1201,7 +1202,7 @@ def _render_action_condition_checkbox(
     checkbox = ui.checkbox(text, value=condition_count == 1).props("dense")
 
     def on_toggle(
-        e: ValueChangeEventArguments, act_number: str = action.act_number, cb: ui.checkbox = checkbox
+        e: ValueChangeEventArguments, act_number: int = action.act_number, cb: ui.checkbox = checkbox
     ) -> None:
         if e.value:
             build_action_condition_dialog(self, edited_task, act_number, cb, condition_cache)
@@ -1235,12 +1236,12 @@ def _render_continue_after_error_checkbox(
         on_change=lambda e, n=action.act_number: self.event_handlers.set_action_continue_after_error_event(
             edited_task,
             n,
-            e.value,
+            bool(e.value),
         ),
     ).props("dense")
 
 
-def _render_plugin_configuration_warning(element: object, name: str) -> None:
+def _render_plugin_configuration_warning(element: Element, name: str) -> None:
     """Renders the standing "configure this in Tasker" warning on an action's or a
     condition's own panel, for a third-party plugin whose payload this tool can't
     edit -- nothing at all for anything else (see
@@ -1272,7 +1273,7 @@ def build_if_variant_dialog(on_choice: Callable[[str], None]) -> None:
         for variant in taskedit_model.IF_BLOCK_VARIANTS:
             ui.button(
                 variant,
-                on_click=lambda v=variant: (variant_dialog.close(), on_choice(v)),
+                on_click=lambda _e=None, v=variant: (variant_dialog.close(), on_choice(v)),
             ).classes("w-full")
         with ui.row().classes("w-full justify-end mt-2"):
             ui.button(translate_string("Cancel"), on_click=variant_dialog.close).props("outline")
@@ -1343,7 +1344,7 @@ class _ActionPicker:
         """Redraws the list of actions to pick from, for the current search and category."""
         self.picker_container.clear()
         rows = taskedit_addable.search_addable_actions(
-            self.search_input.value,
+            self.search_input.value or "",
             self.category_select.value,
             state=self.gui.state,
         )
@@ -1352,7 +1353,7 @@ class _ActionPicker:
                 if row["addable"]:
                     ui.button(
                         f"{row['name']} ({row['category_name']})",
-                        on_click=lambda r=row: self.pick(r["action_key"]),
+                        on_click=lambda _e=None, r=row: self.pick(r["action_key"]),
                     ).props("flat align=left dense").classes("w-full justify-start")
                 else:
                     with ui.column().classes("w-full gap-0"):
@@ -1572,7 +1573,7 @@ class _NewTaskActionList(_ActionList):
         """The button that takes an action out of the new Task."""
         ui.button(
             translate_string("Remove"),
-            on_click=lambda n=action.act_number: (
+            on_click=lambda _e=None, n=action.act_number: (
                 self.clear_last_added(),
                 self.gui.event_handlers.remove_action_from_new_task_event(self.edited_task, n),
                 self.render_actions(),
@@ -1657,7 +1658,7 @@ class _EditTaskActionList(_ActionList):
         with ui.row().classes("w-full items-center gap-2 mb-2"):
             ui.button(
                 translate_string("Copy"),
-                on_click=lambda n=action.act_number: (
+                on_click=lambda _e=None, n=action.act_number: (
                     self.clear_last_added(),
                     handlers.copy_action_in_edit_task_event(edited_task, n),
                     self.render_actions(),
@@ -1676,7 +1677,7 @@ class _EditTaskActionList(_ActionList):
             )
             ui.button(
                 translate_string("Move"),
-                on_click=lambda n=action.act_number, target=move_to_input: (
+                on_click=lambda _e=None, n=action.act_number, target=move_to_input: (
                     self.clear_last_added(),
                     handlers.move_action_in_edit_task_event(
                         edited_task,
@@ -1689,7 +1690,7 @@ class _EditTaskActionList(_ActionList):
             ).props("flat color=orange dense")
             ui.button(
                 translate_string("Delete"),
-                on_click=lambda n=action.act_number: (
+                on_click=lambda _e=None, n=action.act_number: (
                     self.clear_last_added(),
                     handlers.delete_action_in_edit_task_event(edited_task, n),
                     self.render_actions(),
@@ -1704,7 +1705,7 @@ class _EditTaskActionList(_ActionList):
             on_change=lambda e, n=action.act_number: self.gui.event_handlers.set_action_enabled_event(
                 self.edited_task,
                 n,
-                e.value,
+                bool(e.value),
             ),
         ).classes("mb-2")
         action_enabled_switch.bind_text_from(

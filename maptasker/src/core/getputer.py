@@ -117,14 +117,14 @@ def write_atomically(target_file: str, write_settings: Callable[[BinaryIO], None
 
 
 # Settings file is corrupt.  Let user know and reset colors to use and program arguments
-def corrupted_file(program_arguments: dict, colors_to_use: dict) -> None:
+def corrupted_file(program_arguments: dict, colors_to_use: dict) -> tuple[dict, dict]:
     """
     Checks for corrupted settings file and handles error
     Args:
         program_arguments: Command line arguments
         colors_to_use: Color settings
     Returns:
-        None: Returns None
+        tuple[dict, dict]: The error as an entry in each of the two dictionaries
     Processing Logic:
         1. Checks settings file for corruption
         2. Generates error message if corrupted
@@ -182,8 +182,8 @@ def save_arguments(
     # Force file object into a dictionary for json encoding
     try:
         if not isinstance(program_arguments["file"], str):
-            program_arguments["file"] = program_arguments["file"].name
-    except AttributeError:
+            program_arguments["file"] = getattr(program_arguments["file"], "name", "")
+    except (AttributeError, KeyError):
         program_arguments["file"] = ""
 
     # The settings to save
@@ -202,16 +202,19 @@ def save_arguments(
 
         # Make sure we don't save an item name of "None" in another language
         if state.program_arguments.language != "English":
-            if translate_string(program_arguments[argument] == "None"):
+            # The comparison used to be inside the translate_string call, which handed it a True or a
+            # False to translate; "None" in the user's language was therefore never recognised.
+            if program_arguments[argument] in ("None", translate_string("None")):
                 program_arguments[argument] = ""
             # Make sure we don't save translated prefixes
-            if isinstance(program_arguments[argument], str):
-                if program_arguments[argument].startswith(project_translated):
-                    program_arguments[argument] = program_arguments[argument].replace(f"{project_translated} ", "")
-                elif program_arguments[argument].startswith(profile_translated):
-                    program_arguments[argument] = program_arguments[argument].replace(f"{profile_translated}", "")
-                elif program_arguments[argument].startswith(task_translated):
-                    program_arguments[argument] = program_arguments[argument].replace(f"{task_translated} ", "")
+            value = program_arguments[argument]
+            if isinstance(value, str):
+                if value.startswith(project_translated):
+                    program_arguments[argument] = value.replace(f"{project_translated} ", "")
+                elif value.startswith(profile_translated):
+                    program_arguments[argument] = value.replace(f"{profile_translated}", "")
+                elif value.startswith(task_translated):
+                    program_arguments[argument] = value.replace(f"{task_translated} ", "")
 
         # Okay, now capture the argument.
         user_args[argument] = program_arguments[argument]
@@ -262,8 +265,8 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[dict, dict]:
         - If the TOML file is corrupted or does not exist, the function calls the "corrupted_file" function.
 
     """
-    program_arguments = ""
-    colors_to_use = ""
+    program_arguments: dict = {}
+    colors_to_use: dict = {}
     with open(new_file, "rb") as f:
         # Setup old date if date last used is not in TROML settings file.  Catch all possible errors with TOML file.
         try:

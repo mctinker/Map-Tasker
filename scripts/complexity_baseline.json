@@ -20,11 +20,11 @@
   },
   "maptasker/src/core/property.py::get_properties": {
     "C901": 15,
-    "LINES": 104,
+    "LINES": 102,
     "PLR0912": 15
   },
   "maptasker/src/core/xmldata.py::extract_integer": {
-    "PLR0912": 14
+    "PLR0912": 13
   },
   "maptasker/src/device/deviceimport.py::import_profile_to_device": {
     "LINES": 126,
@@ -99,7 +99,7 @@
     "LINES": 101
   },
   "maptasker/src/mapgen/frontmtr.py::output_the_heading": {
-    "LINES": 104
+    "LINES": 102
   },
   "maptasker/src/mapops/maprefac_move.py::_plan_move_profile": {
     "LINES": 110

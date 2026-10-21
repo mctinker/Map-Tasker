@@ -4,7 +4,6 @@ import asyncio
 import contextlib
 import os
 from typing import TYPE_CHECKING, cast
-from xml.etree.ElementTree import Element
 
 from nicegui import run, ui
 
@@ -145,9 +144,9 @@ def display_model_pulldown(
         if gui_instance.displaying_extended_list is not None and gui_instance.displaying_extended_list:
             return  # Return if we are already displaying it.
         # Get the extended list...only if we are not in the middle of setting/changing the language.
-        if not gui_arg.state.language_set:
+        if not gui_instance.state.language_set:
             display_models = (
-                extended_models if extended_models is not None else get_extended_ai_model_list(state=gui_arg.state)
+                extended_models if extended_models is not None else get_extended_ai_model_list(state=gui_instance.state)
             )
             gui_instance.displaying_extended_list = True
         else:
@@ -172,7 +171,7 @@ def display_model_pulldown(
         gui_instance.ai_model_option.update()
     else:
         # Otherwise, if we are building it for the first time
-        current_model = [gui_arg.state.program_arguments.ai_model]
+        current_model = [gui_instance.state.program_arguments.ai_model]
         if not current_model or current_model not in display_models:
             current_model = ["None"]
         gui_instance.ai_model_option = (
@@ -763,13 +762,13 @@ def clear_android_buttons(self: "MyGui") -> None:
 def build_profiles(
     root: dict,
     profile_ids: list,
-    project: Element,
+    project: str,
     state: RunState,
 ) -> list:
     """Parameters:
         - root (dict): Dictionary containing all profiles and their tasks.
         - profile_ids (list): List of profile IDs to be processed.
-        - project (Element): The project xml element.
+        - project (str): The Project's name, which keys it in the table of Projects.
     Returns:
         - list: List of dictionaries containing profile names and their corresponding tasks.
     Processing Logic:
@@ -1471,7 +1470,7 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
                 rutroh_error(f"Error displaying {logo_name} logo: {e}")
 
 
-def set_ai_key(self: "MyGui", model: str) -> None:
+def set_ai_key(self: "MyGui", model: str) -> bool:
     """
     Set the API key for the AI service based on the selected model.
 
@@ -1757,7 +1756,7 @@ def remember_android_address_fields(
     """
 
     def keep() -> None:
-        remember_android_address(gui, ip_field.value, port_field.value)
+        remember_android_address(gui, ip_field.value or "", port_field.value or "")
 
     ip_field.on("blur", lambda _: keep())
     port_field.on("blur", lambda _: keep())

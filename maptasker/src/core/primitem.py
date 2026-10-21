@@ -84,6 +84,7 @@ from maptasker.src.core.sysconst import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from typing import TextIO
     from xml.etree.ElementTree import Element, ElementTree
 
     from maptasker.src.core.runcfg import RunConfig
@@ -240,7 +241,7 @@ class RunState:
         # piece of code that renders the Map -- all of it runs after that.  The few that can run before
         # (diffload, bildhtml) test for None themselves.  Declared Optional, this was 150 false alarms.
         self.output_lines: LineOut = cast("LineOut", None)
-        self.file_to_get = ""
+        self.file_to_get: str | TextIO | None = ""
         self.file_to_use = ""
         self.task_count_for_profile = 0
         self.displaying_named_tasks_not_in_profile = False
@@ -349,7 +350,7 @@ class RunState:
         self.loaded_highest_object_id = 0
         self.directories: list = []
         self.variables: dict = {}
-        self.current_project = ""
+        self.current_project: dict = {}  # the Project being processed: its table entry ({"xml", "name"}), or {} before one
         self.last_run = NOW_TIME
         self.mono_fonts: dict = {}
         self.slash = "/"
@@ -421,7 +422,7 @@ class RunState:
         self.languages_translated: dict[str, str] = {}
         self.language_set: bool = False
         # appearance_translated: ClassVar[dict[str, str]] = {}
-        self.mygui = None
+        self.mygui: Any = None  # the running MyGui, set by the GUI (core cannot import it)
         # True for a run with no person at the keyboard: a command-line report or export (see
         # clireports).  Such a run must not open the finished Map in a web browser, and must not
         # rewrite the settings file the GUI keeps -- what it was asked to do is not a change of

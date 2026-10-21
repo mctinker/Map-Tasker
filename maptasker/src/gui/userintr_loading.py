@@ -200,7 +200,7 @@ class LoadingEventHandlers:
 
             the_view.is_updating = False
 
-    def process_single_name_event(self, event_type: str, name_selected: str) -> None:
+    def process_single_name_event(self, event_type: str, name_selected: str | dict[str, str]) -> None:
         """Processes a name event for the given event type.
         Args:
             self: The class instance.
@@ -324,14 +324,15 @@ class LoadingEventHandlers:
             ui.notify(translate_string("File path saved successfully!"), type="positive")
 
             # Let everyone knmow which file we are working with
-            self.state.file_to_get = (
+            chosen_path = str(
                 AppState.selected_file_path[0]
                 if isinstance(AppState.selected_file_path, list)
                 else AppState.selected_file_path
             )
+            self.state.file_to_get = chosen_path
 
             # Open the picker here next time.
-            remember_local_xml_directory(gui, self.state.file_to_get)
+            remember_local_xml_directory(gui, chosen_path)
 
             clear_tasker_data(state=self.state)
             clear_single_item_view_names(gui)
@@ -364,7 +365,7 @@ class LoadingEventHandlers:
             # last, after the pulldowns have been rebuilt for the new file and
             # reset_single_names has cleared the previous file's selection, so this
             # selection is the one left standing.
-            self.select_single_item_export(self.state.file_to_get)
+            self.select_single_item_export(chosen_path)
 
         else:
             # Handle the case where the user hit "Cancel" or closed the dialog

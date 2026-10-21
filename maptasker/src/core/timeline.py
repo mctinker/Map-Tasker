@@ -136,7 +136,7 @@ class Snapshot:
 
 
 @contextlib.contextmanager
-def suppressed() -> None:
+def suppressed() -> Iterator[None]:
     """Do not record loads that happen inside this block.
 
     For diffload's isolation window.  The file being compared against goes through

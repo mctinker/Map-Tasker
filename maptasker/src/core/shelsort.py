@@ -17,6 +17,29 @@
 # Sort an Action list (Actions are not necessarily in numeric order in XML backup file).
 """shelsort: shell sort, for ordering Actions, arguments and other miscellany."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
+
+
+def _argument_order(element: Element) -> tuple[int, int]:
+    """<Action sr='act12'> / <Str sr='arg3'>: order by the number after the prefix.
+
+    An element whose 'sr' holds no number cannot be placed by it -- Tasker's 'if' argument is the
+    one that turns up in practice -- so those keep the order the file has them in, at the end.
+    Python's sort is stable, which is what keeps them there.
+    """
+    suffix = element.attrib.get("sr", "")[3:]
+    return (0, int(suffix)) if suffix.isdigit() else (1, 0)
+
+
+def _numeric_order(value: str | int) -> tuple[int, int]:
+    """Numbers as numbers: '10' after '9', not before it."""
+    return (0, int(value))
+
 
 def shell_sort(arr: list, do_arguments: bool, by_numeric: bool) -> None:
     """
@@ -29,23 +52,8 @@ def shell_sort(arr: list, do_arguments: bool, by_numeric: bool) -> None:
         None
     """
     if do_arguments:
-        # <Action sr='act12'> / <Str sr='arg3'>: order by the number after the prefix.
-        # An element whose 'sr' holds no number cannot be placed by it -- Tasker's 'if'
-        # argument is the one that turns up in practice -- so those keep the order the
-        # file has them in, at the end.  Python's sort is stable, which is what keeps
-        # them there.
-        def sort_key(element: object) -> tuple[int, int]:
-            suffix = element.attrib.get("sr", "")[3:]
-            return (0, int(suffix)) if suffix.isdigit() else (1, 0)
-
+        arr[:] = sorted(arr, key=_argument_order)
     elif by_numeric:
-
-        def sort_key(value: object) -> tuple[int, int]:
-            return (0, int(value))
-
+        arr[:] = sorted(arr, key=_numeric_order)
     else:
-
-        def sort_key(value: object) -> object:
-            return value
-
-    arr[:] = sorted(arr, key=sort_key)
+        arr[:] = sorted(arr)

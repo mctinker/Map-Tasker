@@ -20,6 +20,9 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Options with a short and a long spelling, such as -e and -everything, were read under the wrong name on Python 3.15, so they were ignored. Each is now read under the same name on every Python version.
+- Fixed: Choosing an indentation in the window now changes it. The choice used to be rejected with an error and the setting stayed at 4.
+- Fixed: Choosing 'None' for a Project, Profile, Task or Scene in a language other than English is now saved as no selection, rather than being restored next time as an item with that name.
+- Fixed: A backup with an empty or impossible day or month in a Day condition, an empty collision-handling setting, or an empty Version 2 Scene layout no longer stops the Map with an error. A TaskerNet description followed by doubled blank lines no longer does either.
 - Fixed:
 
 

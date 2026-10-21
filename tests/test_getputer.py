@@ -118,3 +118,21 @@ def test_a_model_that_was_never_misspelled_is_left_alone(program_arguments: Prog
 def test_no_gemini_model_is_listed_with_an_underscore() -> None:
     """Google's model names are hyphenated throughout; an underscore is a typo that 404s."""
     assert not [model for model in GEMINI_MODELS if "_" in model]
+
+
+@pytest.mark.parametrize("none_in_the_users_language", ["None", "Keine"])
+def test_nothing_selected_is_saved_as_nothing_in_any_language(
+    program_arguments: ProgramArguments, monkeypatch: pytest.MonkeyPatch, none_in_the_users_language: str
+) -> None:
+    """"None" in the pulldown means no selection, and is saved as empty so the next run does not go
+    looking for a Project called "Keine".  The check used to translate the result of a comparison
+    rather than compare with the translation, so only the English word was ever recognised."""
+    monkeypatch.setattr(getputer, "translate_string", lambda text: {"None": "Keine"}.get(text, text))
+    monkeypatch.setattr(program_arguments, "language", "German")
+    arguments = program_arguments.as_dict()
+    arguments["single_project_name"] = none_in_the_users_language
+
+    getputer.save_restore_args(arguments, set_color_mode("Dark"), to_save=True, state=PrimeItems)
+    restored, _ = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
+
+    assert restored["single_project_name"] == ""

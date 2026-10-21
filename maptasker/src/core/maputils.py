@@ -62,16 +62,18 @@ def validate_ip_address(address: str) -> bool:
 
 
 # Validate Port Number
-def validate_port(address: str, port_number: int) -> bool:
+def validate_port(address: str, port_number: str) -> int:
     """
     Validates a port number.
 
     Args:
         address (str): The address to connect to.
-        port_number (int): The port number to validate.
+        port_number (str): The port number to validate, as typed.
 
     Returns:
-        bool: True if the port number is valid, False otherwise.
+        int: 0 if the port number is valid (and, when an address is given, accepts a
+            connection); otherwise non-zero -- 1 for a number that is not a usable port, or
+            the error code of the failed connection.
     """
     if port_number.isdigit():
         port_int = int(port_number)
@@ -580,7 +582,7 @@ def append_to_filename(original_filename_with_type: str, text_to_append: str) ->
     return new_filename_without_extension + file_extension
 
 
-def get_timezone_from_ip() -> str:
+def get_timezone_from_ip() -> str | None:
     """
     Attempts to determine the current timezone using IP geolocation via ipinfo.io.
     Requires an internet connection.

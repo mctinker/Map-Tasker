@@ -16,7 +16,7 @@ from __future__ import annotations
 import contextlib
 import os
 import socket
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import app, core, ui
 
@@ -33,6 +33,7 @@ from maptasker.src.gui.guiwins_views import NiceGuiTextView
 
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.gui.userintr import MyGui
 
 # The port ui.run() gets.  DEFAULT_PORT is NiceGUI's own default and stays the port we use
 # whenever it is free, so the GUI keeps showing up at the same familiar URL.
@@ -73,7 +74,7 @@ def get_open_port(host: str = "127.0.0.1") -> int:
 # ################################################################################
 # Convert a value to integere, and if not an integer then use default value
 # ################################################################################
-def convert_to_integer(value_to_convert: str, default_value: int) -> int:
+def convert_to_integer(value_to_convert: object, default_value: int) -> int:
     """
     Convert a value to integere, and if not an integer then use default value
         Args:
@@ -82,10 +83,12 @@ def convert_to_integer(value_to_convert: str, default_value: int) -> int:
             default_value (int): The default to plug in if the value to convert
                 is not an integer
             :return: converted value as integer"""
-    try:
-        return int(value_to_convert)
-    except (ValueError, TypeError):
-        return default_value
+    if isinstance(value_to_convert, int | float | str):
+        try:
+            return int(value_to_convert)
+        except ValueError:
+            pass
+    return default_value
 
 
 # Get the program arguments from GUI
@@ -117,7 +120,7 @@ def save_gui_settings(user_input: object, state: RunState) -> None:
         state.program_arguments = initialize_runtime_arguments()
 
     # Move user_input values into our program_arguments dictionary and colors_to_use dictionary
-    capture_gui_state(user_input, {}, state=state)
+    capture_gui_state(cast("MyGui", user_input), {}, state=state)
 
     # Hide the Ai key so when settings are saved, it isn't written to toml file.
     ai_apikey = getattr(user_input, "ai_apikey", None)
@@ -249,7 +252,7 @@ def _intercept_socket_emit(state: RunState) -> None:
             if hasattr(my_gui_instance, "event") and my_gui_instance.event:
                 my_gui_instance.event = False  # Reset the event flag after processing
 
-                capture_gui_state(my_gui_instance, data, state=state)
+                capture_gui_state(my_gui_instance, data or {}, state=state)
 
         # Always forward execution to the original emitter so the browser communicates!
         await _original_sio_emit(event, data=data, room=room, **kwargs)

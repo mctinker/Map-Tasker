@@ -50,6 +50,7 @@ from maptasker.src.edit import sessundo
 from maptasker.src.mapgen.taskerd import get_the_xml_data
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from datetime import datetime
 
     from maptasker.src.core.primitem import RunState
@@ -245,7 +246,7 @@ def _modified_time(file_path: str) -> datetime | None:
 
 
 @contextlib.contextmanager
-def _parsed_in_isolation(file_path: str, state: RunState) -> _Parsed:
+def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
     """Run get_the_xml_data against another file with PrimeItems as its scratch storage.
 
     Yields a _Parsed.  Everything saved here is restored on the way out, including when

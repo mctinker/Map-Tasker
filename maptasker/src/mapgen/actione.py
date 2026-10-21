@@ -139,16 +139,16 @@ def fix_json(line_to_fix: str, text_to_match: str) -> str:
 
 
 # Make the action line pretty by aligning the arguments.
-def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
+def make_action_pretty(task_code_line: str, indent_amt: str) -> tuple[str, int]:
     """
     Makes the given task code line prettier by adding line breaks and indentation.
 
     Args:
         task_code_line (str): The task code line to be made prettier.
-        indent_amt (int): The amount of indentation to be added.
+        indent_amt (str): The indentation to be added, as the text to put in front.
 
     Returns:
-        str: The prettified task code line.
+        tuple[str, int]: The prettified task code line, and how far in its arguments are hung.
     """
 
     # Add our leading spaces (indent_amt) and extra spaces for the Task action name.
@@ -349,7 +349,7 @@ def build_action(
             ),
         )
         # Handle this situation in which we can't find the action code.
-        not_in_dictionary("Action", code_element.text)
+        not_in_dictionary("Action", code_element.text or "")
 
     # We have Task Action details
     else:

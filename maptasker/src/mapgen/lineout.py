@@ -28,7 +28,7 @@ are accumulated and ultimately used to generate the final HTML output file.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from maptasker.src.core.dirout import add_directory_item
 from maptasker.src.core.format import format_html
@@ -82,7 +82,7 @@ class LineOut:
             None: Nothing is returned
         - Initialize an empty list to store output lines
         - The list will be used to store lines of text as the object is used"""
-        self.output_lines = []
+        self.output_lines: list[str] = []
         self._config = config
         self._state = state
 
@@ -621,7 +621,7 @@ class LineOut:
         self,
         list_level: int,
         out_string: str,
-        format_line: list | FormatLine,
+        format_line: list[str | bool | FormatLine] | FormatLine,
     ) -> None:
         """
         Add line to the list of output lines.  The output entry is based on the
@@ -639,10 +639,10 @@ class LineOut:
         # Format the output line by adding appropriate HTML.
         if not isinstance(format_line, FormatLine):
             out_string = format_html(
-                format_line[1],  # Color code
-                format_line[0],  # Text before.
+                cast("str", format_line[1]),  # Color code
+                cast("str", format_line[0]),  # Text before.
                 out_string,  # Text after.
-                format_line[2],  # End span True or False
+                cast("bool | FormatLine", format_line[2]),  # End span: a bool, or the FormatLine member for one
             )
 
         # Drop ID: nnn since we don't need it anymore

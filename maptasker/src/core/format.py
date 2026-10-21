@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import html.entities
 import re
 from functools import lru_cache
 from html.parser import HTMLParser
@@ -16,6 +17,9 @@ from maptasker.src.core.sysconst import HOTLINK_STYLE, logger, pattern2, pattern
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
+    from typing import TextIO
+
+    from maptasker.src.core.sysconst import FormatLine
 
 
 # Given a line in the output queue, reformat it before writing to file
@@ -97,7 +101,7 @@ def format_html(
     color_code: str,
     text_before: str,
     text_after: str,
-    end_span: bool,
+    end_span: bool | FormatLine,
 ) -> str:
     """
     Plug in the html for color and font, along with the text
@@ -2018,11 +2022,14 @@ def count_trailing_blanks(text_string: str, position: int) -> int:
     Returns:
         The total number of blank spaces found.
     """
-    # Input validation
+    # Input validation.  These used to be returned as text from a function whose callers multiply the
+    # answer by a string, so a bad call ended in a confusing TypeError further on.
     if not isinstance(text_string, str):
-        return "Error: The first argument must be a string."
+        message = "The first argument must be a string."
+        raise TypeError(message)
     if not isinstance(position, int) or position < 0 or position > len(text_string):
-        return "Error: The second argument must be a valid integer position within the string."
+        message = "The second argument must be a valid integer position within the string."
+        raise ValueError(message)
 
     blank_count = 0
     # Start the loop from the character just before the given position
@@ -2137,7 +2144,7 @@ class BlankLineLimiter:
     else, every tag and every space, is written through exactly as it came in.
     """
 
-    def __init__(self, out_file: object, max_blank_lines: int = MAX_BLANK_LINES) -> None:
+    def __init__(self, out_file: TextIO, max_blank_lines: int = MAX_BLANK_LINES) -> None:
         """
         Wrap the file the Map is being written to.
             :param out_file: the open file to write through to
@@ -2279,7 +2286,7 @@ class SpanBalancer:
     looks changes -- the same DOM is reached either way, just written down properly.
     """
 
-    def __init__(self, out_file: object) -> None:
+    def __init__(self, out_file: TextIO) -> None:
         """
         Wrap the file the Map is being written to.
             :param out_file: the open file to write through to
@@ -2385,7 +2392,7 @@ class MapWriter:
     restate them.
     """
 
-    def __init__(self, out_file: object, max_blank_lines: int = MAX_BLANK_LINES) -> None:
+    def __init__(self, out_file: TextIO, max_blank_lines: int = MAX_BLANK_LINES) -> None:
         """
         Wrap the file the Map is being written to.
             :param out_file: the open file to write through to

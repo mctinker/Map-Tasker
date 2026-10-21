@@ -62,6 +62,8 @@ from maptasker.src.mapgen import diagintr, mapexport
 from maptasker.src.mapgen.diagutil import icon_spans
 
 if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
+
     from nicegui.events import ValueChangeEventArguments
 
     from maptasker.src.analysis import mapfind
@@ -837,7 +839,7 @@ class NiceGuiTreeView:
                     # Render the native responsive Tree component
                     # Injected custom fonts to preserve monospace formatting matches
                     self.tree = (
-                        ui.tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
+                        ui.tree(tree_data, label_key="label", children_key="children", tick_strategy=None)
                         .classes("w-full text-base")
                         .style(f"font-family: '{self.master_gui.font}', monospace;")
                     )
@@ -1416,7 +1418,7 @@ class NiceGuiSceneView:
                 fixed = None
         _emit_canvas_fit(CANVAS_PREVIEW_ROOT, width, height, fixed)
 
-    def _draw_legacy_caption(self, scene_element: object, width: int, height: int) -> None:
+    def _draw_legacy_caption(self, scene_element: Element, width: int, height: int) -> None:
         """Under the canvas: the Scene's own settings, the element count, and -- the part
         that matters -- what the drawing above is not able to tell the truth about.
         """
@@ -1491,11 +1493,14 @@ class NiceGuiSceneView:
 class NiceGuiTextView(TextViewSearch):
     """Replaces CTkTextview. Handles rendering MapTasker data using HTML."""
 
+    # The Diagram toolbar's caption, put there by the builder that makes the toolbar.
+    diagram_state_label: ui.label
+
     def __init__(
         self,
         master_gui: MyGui,
         title: str,
-        the_data: list | dict,
+        the_data: list | dict | str,
         container: ui.column | None = None,
         jump_to: str = "",
         map_scope: str = "",
@@ -1916,7 +1921,7 @@ class NiceGuiTextView(TextViewSearch):
             # what it is waiting for, right here in the first paint -- see _show_loading.
             self._show_loading()
 
-    async def process_data(self, the_data: dict | list) -> None:
+    async def process_data(self, the_data: dict | list | str) -> None:
         """Converts data to HTML chunks, preventing single-packet WebSocket buffer overruns.
 
         All ui.html() calls below pass sanitize=False: the content is this program's own
@@ -1969,7 +1974,7 @@ class NiceGuiTextView(TextViewSearch):
         self._process_fallback_data(the_data)
         self._mark_content_ready()
 
-    def _show_report(self, the_data: dict | list, html_style: str, is_flow: bool) -> None:
+    def _show_report(self, the_data: dict | list | str, html_style: str, is_flow: bool) -> None:
         """Show the Misc or Task Flow view: a report that has no generated file behind it."""
         # The Task Flow view is this renderer with the Diagram's habits: rows mapjump has
         # already made clickable, but a drawing rather than prose, so nothing may wrap
@@ -2250,7 +2255,7 @@ class NiceGuiTextView(TextViewSearch):
             return
         ui.notify(f"{translate_string('Exported to')} {path}", type="positive", position="top")
 
-    def extract_first_font_name(self: MyGui, text: str) -> str:
+    def extract_first_font_name(self, text: str) -> str:
         """
         Scans the given text to identify and return the font name
         following the very first 'font-family:' rule declaration.
@@ -2278,12 +2283,14 @@ class NiceGuiTextView(TextViewSearch):
 
         return "Font name not found"
 
-    def _process_fallback_data(self: MyGui, the_data: dict | list) -> None:
+    def _process_fallback_data(self, the_data: dict | list | str) -> None:
         """Fallback logic to assemble HTML content strings when the source file is missing."""
         # --- 2. FALLBACK DICTIONARY PROCESSING (Legacy Map View) ---
         # --- 3. FALLBACK LIST DATA PROCESSING (Other Views) ---
+        # A report arrives as one string; its lines are what the fallback lays out.
+        lines = the_data.splitlines() if isinstance(the_data, str) else the_data
         html_builder = (
-            _fallback_map_html(cast("dict", the_data)) if self.is_map else _fallback_lines_html(cast("list", the_data))
+            _fallback_map_html(cast("dict", the_data)) if self.is_map else _fallback_lines_html(cast("list", lines))
         )
 
         # --- 4. COMPRESS MULTIPLE BLANK LINES FOR FALLBACK DATA ---
@@ -2329,9 +2336,9 @@ class NiceGuiTextView(TextViewSearch):
         self.wrap_classes = new_classes
         ui.notify(f"Word wrap {'enabled' if self.wrap_enabled else 'disabled'} for {self.title}.", type="info")
 
-    def _profiles_per_line_selected(self, event: object) -> None:
+    def _profiles_per_line_selected(self, event: ValueChangeEventArguments | int | str) -> None:
         """Fires when the Diagram view's 'Profiles Per Line' pulldown selection changes."""
-        new_value = int(event.value if hasattr(event, "value") else event)
+        new_value = int(str(getattr(event, "value", event)))
         if new_value != self.master_gui.profiles_per_line:
             asyncio.create_task(self.master_gui.event_handlers.profiles_per_line_event(new_value))  # noqa: RUF006
 

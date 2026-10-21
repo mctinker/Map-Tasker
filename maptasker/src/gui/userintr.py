@@ -857,7 +857,7 @@ class MyGui:
         # (e.g. restored from CLI args or settings) -- see maputil2.py's identical
         # getattr(..., "name", ...) handling.
         file_name = getattr(self.state.file_to_get, "name", self.state.file_to_get)
-        if file_name:
+        if file_name and isinstance(file_name, str):
             self.display_and_set_file(file_name)
             self.android_file = self.android_ipaddr = self.android_port = ""
             clear_android_buttons(self)
@@ -1230,7 +1230,7 @@ class MyGui:
     def select_deselect_checkbox(
         self,
         checkbox: ui.checkbox,
-        checked: bool,
+        checked: object,
         argument_name: str,
         display: bool,
     ) -> str:
@@ -1266,7 +1266,7 @@ class MyGui:
         """
         # Read the value from the element directly.
         # Reading a value never fires an event in NiceGUI, so we don't need to suppress anything!
-        checkbox_value = checkbox.value
+        checkbox_value = bool(checkbox.value)
 
         self.inform_message(title, checkbox_value, "")
         return checkbox_value
@@ -1408,7 +1408,7 @@ class MyGui:
     def inform_message(
         self,
         toggle_name: str,
-        toggle_value: str,
+        toggle_value: bool | str | None,
         number_value: str,
     ) -> None:
         """
@@ -1942,7 +1942,7 @@ class MapTaskerEventHandlers(
         # no Project lists, a Task filed under none -- exactly the objects the reachability
         # findings are about -- and a variable, which the Map indexes per Project but the
         # cross-reference does not attribute to one.
-        overrides = dict.fromkeys(SELECTION_KEYS, "")
+        overrides: dict[str, object] = dict.fromkeys(SELECTION_KEYS, "")
         overrides["display_detail_level"] = level
         scope = mapjump.scope_for(target)
         if scope:
@@ -2252,7 +2252,7 @@ class MapTaskerEventHandlers(
         program_arguments for this one build and are restored straight after, as rebuild_map_for_jump does.
         """
         scope = livemon.diagram_scope(projects)
-        overrides = dict.fromkeys(SELECTION_KEYS, "")
+        overrides: dict[str, object] = dict.fromkeys(SELECTION_KEYS, "")
         if scope:
             overrides["single_project_name"] = scope
         ui.notify(
@@ -2501,7 +2501,7 @@ class MapTaskerEventHandlers(
         for textview in live_views(self.gui):
             self._clear_one_view(textview)
 
-    def _clear_one_view(self, textview: object) -> None:
+    def _clear_one_view(self, textview: NiceGuiTextView) -> None:
         """Clears one rendered view's search box and un-highlights its matches."""
         if hasattr(textview, "search_input"):
             textview.search_input.set_value("")

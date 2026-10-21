@@ -78,6 +78,7 @@ from maptasker.src.mapgen.taskerd import get_the_xml_data
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
+    from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
@@ -398,7 +399,7 @@ def _object_property_values(field_refs: dict) -> dict[str, str]:
     return values
 
 
-def _notify_if_plugin_needs_configuration(element: object, name: str) -> None:
+def _notify_if_plugin_needs_configuration(element: Element, name: str) -> None:
     """Warns, as a just-added Action/Event/State goes in, that it is a third-party
     plugin whose own configuration can only be set inside Tasker -- see
     taskedit_addable.tasker_configuration_warning, which decides whether one is warranted
@@ -1113,8 +1114,8 @@ class EditorEventHandlers:
 
     def discard_scene_properties_event(
         self,
-        scene_element: object,
-        properties_snapshot: object,
+        scene_element: Element,
+        properties_snapshot: Element | None,
         geometry_snapshot: dict,
         field_refs: dict,
     ) -> None:
@@ -1427,8 +1428,8 @@ class EditorEventHandlers:
     def open_object_properties_event(
         self,
         kind: str,
-        element: object,
-        parent_dialog: ui.dialog,
+        element: Element,
+        parent_dialog: ui.dialog | None,
         on_applied: Callable[[], None] | None = None,
     ) -> None:
         """Open the Properties editor over whichever Add/Edit dialog asked for it."""

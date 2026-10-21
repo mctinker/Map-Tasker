@@ -654,7 +654,7 @@ def v2_state_value(field: V2StateField, value: object, state: str = "") -> str:
     return str(value).strip() if state in ("", current) else ""
 
 
-def v2_set_state(field: V2StateField, node: dict, state: str, value: str = "") -> None:
+def v2_set_state(field: V2StateField, node: V2Props, state: str, value: str = "") -> None:
     """Write a state field from the state chosen and, for the two open states, whatever is in
     that state's box.
 
@@ -1256,7 +1256,11 @@ class V2NestedProps:
         return value
 
 
-def v2_prop_dict(node: dict, prop: V2Prop) -> dict | V2NestedProps:
+# What a property is read from and written to: the node itself, or the nested object it lives in.
+V2Props = dict | V2NestedProps
+
+
+def v2_prop_dict(node: dict, prop: V2Prop) -> V2Props:
     """What to read and write this property on: the node itself, or the nested object it
     lives in.  The one call the inspector needs to make to stop caring where a property sits.
     """
@@ -1331,7 +1335,7 @@ def _coerce_like(existing: object, text: str) -> object:
     return text
 
 
-def v2_set_prop(node: dict, key: str, text: str) -> None:
+def v2_set_prop(node: V2Props, key: str, text: str) -> None:
     """Write one inspector field back onto its node, in place.
 
     In place is the whole point: assigning an existing key leaves it at its original

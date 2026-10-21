@@ -34,10 +34,23 @@ _PROFILE_PROPERTY_KEYS = (
 )
 
 
+_COLLISION_NAMES = ("Abort New Task", "Abort Existing Task", "Run Both Together")
+
+
+def _collision_name(text: str | None) -> str:
+    """The collision handling a <rty> value stands for.
+
+    An empty or unrecognised value reads as the first, which is how elemvals.get_collision reads it;
+    indexing the list with int() of the text ended the Map with an error on an empty tag.
+    """
+    chosen = (text or "").strip()
+    return _COLLISION_NAMES[int(chosen)] if chosen in {"0", "1", "2"} else _COLLISION_NAMES[0]
+
+
 # Helper function to get text safely
 def get_text(element: Element | None) -> str:
     """Return value or"""
-    return element.text if element is not None else ""
+    return (element.text or "") if element is not None else ""
 
 
 # Helper function to get text safely, as display data rather than as markup
@@ -257,8 +270,6 @@ def get_properties(
     Returns:
         nothing
     """
-    collision = ["Abort New Task", "Abort Existing Task", "Run Both Together"]
-
     # Get our HTML / CSS attributes
     css_attribute = get_css_attributes(property_tag)
 
@@ -278,7 +289,7 @@ def get_properties(
 
     collision_handling = header.find("rty")
     if collision_handling is not None:
-        properties.append(f"Collision Handling:{collision[int(collision_handling.text)]}")
+        properties.append(f"Collision Handling:{_collision_name(collision_handling.text)}")
 
     # Look for variables in the head XML object (Project/Profile/Task).
     cooldown = ""

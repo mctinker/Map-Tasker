@@ -394,7 +394,7 @@ class VariableIndex:
         return self.variables[key]
 
 
-def _looks_built_in(body: str) -> str:
+def _looks_built_in(body: str) -> bool:
     """Whether an undocumented name still has the shape of one of Tasker's own.
 
     globalvr's list was transcribed from a page that predates %HUMIDITY, %SDK, %ROOT and
@@ -1356,7 +1356,7 @@ def _variable_block(variable: Variable, live: LiveValues | None = None) -> list[
 
 def _counts_by_scope(index: VariableIndex) -> dict[str, int]:
     """How many variables of each scope, ignoring the too-short names."""
-    counts = dict.fromkeys((GLOBAL, LOCAL, BUILTIN, TASKER_SET), 0)
+    counts: dict[str, int] = dict.fromkeys((GLOBAL, LOCAL, BUILTIN, TASKER_SET), 0)
     for variable in index.variables.values():
         if not _is_low_confidence(variable.name):
             counts[variable.scope] += 1

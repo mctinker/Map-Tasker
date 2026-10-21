@@ -26,11 +26,13 @@ This is the main coordinator module that kicks-off the other components that lau
 #                                                                                      #
 # Reference: https://github.com/Taskomater/Tasker-XML-Info                             #
 #                                                                                      #
+from __future__ import annotations
+
 import asyncio
 import functools
 import platform
 import sys
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from nicegui import Client, app
 
@@ -54,11 +56,16 @@ from maptasker.src.mapgen.proginit import (
 )
 from maptasker.src.progargs import get_program_arguments
 
+if TYPE_CHECKING:
+    from types import TracebackType
+
 crash_debug = False
 
 
 # Handle program error gracefully if not in debug mode
-def on_crash(exctype: object, value: str, traceback: list, *, state: RunState) -> None:
+def on_crash(
+    exctype: type[BaseException], value: BaseException, traceback: TracebackType | None, *, state: RunState
+) -> None:
     # Display the crash report if in debug mode
     """
     Handle runtime errors

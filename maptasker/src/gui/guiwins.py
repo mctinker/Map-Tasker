@@ -31,7 +31,7 @@ import re
 import time
 from collections import deque
 from datetime import date
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import app, ui
 
@@ -211,7 +211,7 @@ def install_notification_timeout() -> None:
             # window forever, so the close button comes with the choice rather than being a
             # second thing to remember.
             kwargs.setdefault("close_button", True)
-        original(message, **kwargs)
+        original(message, **cast("dict[str, Any]", kwargs))
 
     ui.notify = notify
     _NOTIFY_WRAPPED = True
@@ -531,11 +531,10 @@ def _android_device_fields(gui: MyGui) -> dict:
     """
     default_ip, default_port = android_address_defaults(gui)
 
-    fields = {
-        "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
-        "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
-    }
-    remember_android_address_fields(gui, fields["ip_address"], fields["ip_port"])
+    ip_address = ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full")
+    ip_port = ui.input(translate_string("Port"), value=default_port).classes("w-full")
+    fields: dict[str, ui.element] = {"ip_address": ip_address, "ip_port": ip_port}
+    remember_android_address_fields(gui, ip_address, ip_port)
     verify = (
         ui.checkbox(
             translate_string("Verify"),
@@ -791,7 +790,7 @@ def _build_edit_project_fields(
     # to tell an already-applied field from an unapplied one.
     enabled_switch = ui.switch(
         value=projedit.is_project_enabled(edited_project),
-        on_change=lambda e: self.event_handlers.set_project_enabled_event(edited_project, e.value),
+        on_change=lambda e: self.event_handlers.set_project_enabled_event(edited_project, bool(e.value)),
     ).classes("mt-2")
     enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
     with enabled_switch:
@@ -1182,7 +1181,7 @@ def build_object_properties_dialog(
     self: MyGui,
     kind: str,
     element: Element,
-    _parent_dialog: ui.dialog,
+    _parent_dialog: ui.dialog | None,
     on_applied: Callable[[], None] | None = None,
 ) -> None:
     """The Properties editor, shared by every Add/Edit dialog -- see the section comment.
@@ -2651,7 +2650,7 @@ def _create_header(self: MyGui) -> None:
         self.dark_mode_switch = ui.switch(
             translate_string("Dark Mode"),
             value=STARTUP_DARK_MODE,
-            on_change=lambda e: apply_appearance_mode(self, e.value),
+            on_change=lambda e: apply_appearance_mode(self, bool(e.value)),
         )
 
 
@@ -3569,7 +3568,7 @@ def _create_colors_tab(self: MyGui) -> None:
             ui.color_input(
                 label=translate_string("Choose Hex Color"),
                 value="#3f99ff",
-                on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value),
+                on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value or ""),
             )
             .classes("w-64 mb-0")
             .props("dense")
@@ -3762,7 +3761,7 @@ def _create_language_selection_section(self: MyGui) -> None:
     )
 
     # This returns a list of English language keys, e.g., ["English", "German", "French"]
-    languages = sort_languages_with_priority(self.state.languages.keys())
+    languages = sort_languages_with_priority(list(self.state.languages))
 
     # ui.select's "value" (what on_change reports, and what must be assigned to select
     # a specific entry) is always the dict KEY, never the displayed label -- so map each

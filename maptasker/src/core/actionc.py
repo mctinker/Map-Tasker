@@ -47,7 +47,7 @@ from __future__ import annotations
 
 import json
 import os
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, cast
 
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import logger
@@ -56,26 +56,27 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 
-# The two records the tables are made of.  Fields are Any because the overlay file writes some of them as text and
-# the published one as numbers and booleans, and callers read them as they always have.
-class ActionCode(NamedTuple):
-    """One action, event or state: what it is called and the arguments it takes."""
-
-    redirect: Any
-    args: Any
-    name: Any
-    category: Any
-    canfail: Any
-
-
+# The two records the tables are made of.  An argument's evaluation is either a string (its name,
+# or the formula that says how to read it) or a list of the pieces of one -- see the notes at the
+# top of this file.
 class ArgumentCode(NamedTuple):
     """One argument of an ActionCode."""
 
-    arg_id: Any
-    arg_required: Any
-    arg_name: Any
-    arg_type: Any
-    arg_eval: Any
+    arg_id: str
+    arg_required: bool
+    arg_name: str
+    arg_type: str
+    arg_eval: str | list[str]
+
+
+class ActionCode(NamedTuple):
+    """One action, event or state: what it is called and the arguments it takes."""
+
+    redirect: str
+    args: list[ArgumentCode]
+    name: str
+    category: str
+    canfail: str
 
 
 # Resolved off this file rather than the working directory: proginit chdir's into the
@@ -87,13 +88,13 @@ PUBLISHED_ACTIONS_FILE = os.path.join(_JSON_DIR, "task_all_actions.json")
 OVERLAY_FILE = os.path.join(_JSON_DIR, "action_overlay.json")
 
 
-def _read(path: str) -> dict | list:
+def _read(path: str) -> object:
     """Load one of the two table files.
 
     Args:
         path (str): file to read.
     Returns:
-        dict | list: its parsed contents.
+        object: its parsed contents -- a dict for the overlay, a list for the published actions.
     """
     try:
         with open(path, encoding="utf-8") as file:
@@ -166,11 +167,11 @@ def build_action_codes() -> dict[str, ActionCode]:
     Returns:
         dict: {code key: ActionCode}, in sorted key order.
     """
-    overlay = _read(OVERLAY_FILE)
+    overlay = cast("dict[str, dict]", _read(OVERLAY_FILE))
     arg_evals = overlay["eval"]
 
     codes = {}
-    for action in _read(PUBLISHED_ACTIONS_FILE):
+    for action in cast("list[dict]", _read(PUBLISHED_ACTIONS_FILE)):
         key = f"{action['code']}t"
         codes[key] = _published_entry(action, arg_evals.get(key, {}))
 

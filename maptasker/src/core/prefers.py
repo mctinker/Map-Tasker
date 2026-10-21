@@ -45,8 +45,9 @@ def process_service(
     output_service_name = output_service_name.ljust(45, ".")
 
     # If value is a selected item from list, get the item
-    if "values" in service_codes[service_name]:
-        service_value = service_codes[service_name]["values"][int(service_value)]
+    choices = service_codes[service_name].get("values")
+    if choices is not None:
+        service_value = choices[int(service_value)]
 
     # Handle special cases
     # Tasker icon default is "cust_notification"

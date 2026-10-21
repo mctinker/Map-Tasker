@@ -45,24 +45,19 @@ blank = "&nbsp;"
 
 
 # Get the Scene's geometry
-def get_geometry(scene_element: Element) -> tuple[str, str]:
+def get_geometry(scene_element: Element) -> tuple[str | None, str | None]:
     """
     Get the Scene's geometry
         :param scene_element: xml element of the Scene <Scene sr="scene...
-        :return: width and height
+        :return: width and height, each None where the Scene does not carry one
     """
-    height = width = "none"
     height = scene_element.find("heightPort")
-    if height is not None:
-        height = height.text
     width = scene_element.find("widthPort")
-    if width is not None:
-        width = width.text
-    return width, height
+    return (None if width is None else width.text), (None if height is None else height.text)
 
 
 def process_recursive_json(
-    data: str, indentation: str, current_depth: int = 0, anchors: SceneAnchors | None = None, *, state: RunState
+    data: object, indentation: int, current_depth: int = 0, anchors: SceneAnchors | None = None, *, state: RunState
 ) -> None:
     """
     Recursively processes JSON data and adds it to PrimeItems output.
@@ -85,10 +80,10 @@ def process_recursive_json(
         """
         return html.escape(str(text))
 
-    def mark(key: str) -> None:
+    def mark(node: dict, key: str) -> None:
         """Anchor the line about to be written, when this dict is a component."""
         if anchors is not None:
-            anchors.mark_property(data, key)
+            anchors.mark_property(node, key)
 
     if isinstance(data, dict):
         # A Scene V2 element is identified by its "type" key.  Output the type first and
@@ -97,7 +92,7 @@ def process_recursive_json(
         items = list(data.items())
         type_value = data.get("type")
         if type_value is not None and not isinstance(type_value, (dict, list)):
-            mark("type")
+            mark(data, "type")
             state.output_lines.add_line_to_output(
                 0,
                 f"{blank * ((3 + indentation) + (current_depth * 3))}type: {escaped(type_value)}",
@@ -109,7 +104,7 @@ def process_recursive_json(
         for key, value in items:
             # Calculate dynamic indentation: base (3) + parent + (3 per depth level)
             current_indent = (3 + indentation) + (current_depth * 3)
-            mark(key)
+            mark(data, key)
 
             if isinstance(value, dict):
                 # Print the key and indicate it's a nested object
@@ -247,10 +242,10 @@ def get_scene_elements(
 
     # Handle scene V2 compressed JSON element
     if element_type[0] == "lj":
-        json_data = scenelayout.decompress_gzip_json(child.text)
+        json_data = scenelayout.decompress_gzip_json(child.text or "")  # an empty <lj/> has no text
 
-        # Check for errors in decompression
-        if isinstance(json_data, str) and json_data.startswith("An error occurred"):
+        # A string is what decompress_gzip_json answers when it could not decode the layout.
+        if isinstance(json_data, str):
             state.output_lines.add_line_to_output(
                 0,
                 f"{blank * (3 + indentation)}Scene V2 compressed JSON element could not be processed: {json_data}",
@@ -629,10 +624,11 @@ def process_tasks(child: Element, tasks_found: list, config: RunConfig, state: R
         #  Scene's element?
         if tag_in_type(sub_child.tag, False):  # e.g. clickTask?
             # Start Scene's Task list
-            temp_task_list = [sub_child.text]
+            scene_task_id = sub_child.text
+            temp_task_list = [scene_task_id]
 
             # Only process Task if it is not a fake Task.
-            if temp_task_list[0] and temp_task_list[0][0] != "-":
+            if scene_task_id and scene_task_id[0] != "-":
                 # Start a list
                 state.output_lines.add_line_to_output(
                     1,
@@ -641,16 +637,16 @@ def process_tasks(child: Element, tasks_found: list, config: RunConfig, state: R
                 )
                 # Get the name of Task
                 task_element, task_name = tasks.get_task_name(
-                    sub_child.text, tasks_found, temp_task_list, "", config, state=state
+                    scene_task_id, tasks_found, temp_task_list, "", config, state=state
                 )
 
                 # reset to task name since get_task_name changes its value
-                temp_task_list = [sub_child.text]
+                temp_task_list = [scene_task_id]
 
                 # Add the Scene Task to the directory if unnamed.
                 if "(Unnamed)" in task_name:
                     task_name = adjust_name_and_add_to_directory(
-                        task_name, temp_task_list[0], TASK_NAME_MAX_LENGTH, state=state, config=config
+                        task_name, scene_task_id, TASK_NAME_MAX_LENGTH, state=state, config=config
                     )
 
                 # If Task is related to the scene Properties, some of the names change.
@@ -846,7 +842,7 @@ def process_properties(
 def process_scene(
     my_scene: str,
     tasks_found: list[str],
-    scene_xml: Element,
+    scene_xml: Element | None,
     indentation: int,
     config: RunConfig,
     state: RunState,

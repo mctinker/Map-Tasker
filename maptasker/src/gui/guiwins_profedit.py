@@ -145,7 +145,7 @@ class _ProfileEditorBody:
         with ui.row().classes("w-full items-center gap-4"):
             enabled_switch = ui.switch(
                 value=profedit.is_profile_enabled(edited_profile),
-                on_change=lambda e: gui.event_handlers.set_profile_enabled_event(edited_profile, e.value),
+                on_change=lambda e: gui.event_handlers.set_profile_enabled_event(edited_profile, bool(e.value)),
             )
             enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
 
@@ -201,7 +201,7 @@ class _ProfileEditorBody:
         ui.label(current_name).classes("flex-1")
         ui.button(
             translate_string("Unlink"),
-            on_click=lambda lt=link_type: (
+            on_click=lambda _e=None, lt=link_type: (
                 self.gui.event_handlers.unlink_task_from_profile_event(self.edited_profile, lt),
                 self.render_task_links(),
             ),
@@ -221,7 +221,7 @@ class _ProfileEditorBody:
         self.field_refs[f"{link_type.lower()}_task_picker"] = picker
         ui.button(
             translate_string("Link"),
-            on_click=lambda lt=link_type, p=picker: (
+            on_click=lambda _e=None, lt=link_type, p=picker: (
                 self.gui.event_handlers.link_task_to_profile_event(self.edited_profile, lt, p.value),
                 self.render_task_links(),
             ),
@@ -232,7 +232,7 @@ class _ProfileEditorBody:
         # moment it's created -- see open_add_task_for_profile_link_event.
         ui.button(
             translate_string("Add Task"),
-            on_click=lambda lt=link_type: self.gui.event_handlers.open_add_task_for_profile_link_event(
+            on_click=lambda _e=None, lt=link_type: self.gui.event_handlers.open_add_task_for_profile_link_event(
                 self.edited_profile,
                 lt,
                 self.render_task_links,
@@ -288,7 +288,7 @@ class _ProfileEditorBody:
         with ui.expansion(header).classes("w-full"):
             ui.button(
                 translate_string("Delete Condition"),
-                on_click=lambda ci=condition.cond_index: (
+                on_click=lambda _e=None, ci=condition.cond_index: (
                     self.gui.event_handlers.remove_condition_from_profile_event(self.edited_profile, ci),
                     self.render_conditions(),
                 ),
@@ -441,18 +441,18 @@ class _ProfileEditorBody:
         with ui.row().classes("w-full gap-2 mb-2"):
             ui.button(
                 translate_string("All"),
-                on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(
+                on_click=lambda _e=None, boxes=weekday_checkboxes: set_weekday_checkboxes(
                     boxes,
                     set(range(1, 8)),
                 ),
             ).props("flat dense")
             ui.button(
                 translate_string("None"),
-                on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(boxes, set()),
+                on_click=lambda _e=None, boxes=weekday_checkboxes: set_weekday_checkboxes(boxes, set()),
             ).props("flat dense")
             ui.button(
                 translate_string("Odd"),
-                on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(
+                on_click=lambda _e=None, boxes=weekday_checkboxes: set_weekday_checkboxes(
                     boxes,
                     {1, 3, 5, 7},
                 ),
@@ -500,7 +500,7 @@ class _ProfileEditorBody:
             self._render_app_entry(condition, entry_index, entry)
         ui.button(
             translate_string("Add App Entry"),
-            on_click=lambda ci=condition.cond_index: (
+            on_click=lambda _e=None, ci=condition.cond_index: (
                 self.gui.event_handlers.add_app_entry_event(self.edited_profile, ci),
                 self.render_conditions(),
             ),
@@ -531,7 +531,7 @@ class _ProfileEditorBody:
             _render_app_entry_pick_button(self.gui, field_refs, pkg_key, label_key, cls_key)
             ui.button(
                 translate_string("Remove"),
-                on_click=lambda ci=condition.cond_index, ei=entry_index: (
+                on_click=lambda _e=None, ci=condition.cond_index, ei=entry_index: (
                     self.gui.event_handlers.remove_app_entry_event(self.edited_profile, ci, ei),
                     self.render_conditions(),
                 ),

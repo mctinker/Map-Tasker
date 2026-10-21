@@ -96,19 +96,19 @@ def get_scene_element_names(scene: Element) -> list[str]:
 # Given an item, build output line for Task or Scene
 # ################################################################################
 def format_task_or_scene(
-    list_type: list,
+    list_type: str,
     the_item: str,
     config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
     *,
     state: RunState,
-) -> tuple:
+) -> tuple[str, str]:
     """
     Given an item, build output line for Task or Scene
     Args:
 
-        list_type (list): Either "Task:" or "Scene:"
+        list_type (str): Either "Task:" or "Scene:"
         the_item (str): text for Task or Scene
         config (RunConfig): the run's settings
         project_name (str): name of the Project the Task belongs to (for the "Task:" tooltip)
@@ -443,7 +443,7 @@ def item_anchor(list_type: str, the_item: str, the_task: Element | None, state: 
 def format_item(
     list_type: str,
     the_item: str,
-    the_list: list,
+    the_list: list | str,
     the_task: Element | None,
     config: RunConfig,
     project_name: str = "",
@@ -793,7 +793,7 @@ def output_task_list(
     list_of_tasks: list,
     project_name: str,
     profile_name: str,
-    task_output_lines: str,
+    task_output_lines: list,
     list_of_found_tasks: list,
     do_extra: bool,
     config: RunConfig,
@@ -807,7 +807,7 @@ def output_task_list(
             list_of_tasks (list): list of Tasks to output.
             project_name (str): name of the owning Projeect
             profile_name (str): name of the owning Profile
-            task_output_lines (str): the output lines for the Tasks
+            task_output_lines (list): the output lines for the Tasks
             list_of_found_tasks (list): list of Tasks found so far
             do_extra (bool): True to output extra info.
             config (RunConfig): the run's settings.

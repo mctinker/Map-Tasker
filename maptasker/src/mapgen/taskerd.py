@@ -23,7 +23,7 @@ __all__ = ["build_tasker_tables", "get_first_action", "get_the_xml_data", "move_
 # Load all of the Projects, Profiles and Tasks into a format we can easily
 # navigate through.
 # Optimized
-def get_the_xml_data(state: RunState) -> bool:
+def get_the_xml_data(state: RunState) -> int:
     # Put this code into a while loop in the event we have to re-call it again.
     """Gets the XML data from a Tasker backup file and returns it in a dictionary.
     Parameters:
@@ -41,7 +41,11 @@ def get_the_xml_data(state: RunState) -> bool:
         - Checks for valid Tasker backup file.
         - Moves all data into dictionaries.
         - Returns all data in a dictionary."""
-    file_to_parse = state.file_to_get.name
+    # The open file, whose .name is its path -- or, where something stored the path itself, that.
+    file_to_parse = getattr(state.file_to_get, "name", state.file_to_get)
+    if not isinstance(file_to_parse, str) or not file_to_parse:
+        error_handler("There is no Tasker backup file to read.", 1, state=state)
+        return 1
     counter = 0
 
     # # Count the lines to see if we should issue a status.

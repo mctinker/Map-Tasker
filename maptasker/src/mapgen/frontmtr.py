@@ -115,9 +115,7 @@ def output_the_heading(config: RunConfig, state: RunState) -> None:
             f" with file location: {config.android_file}"
         )
     elif config.debug or not config.file:
-        filename = isinstance(state.file_to_get, str)
-        filename = state.file_to_get.name if not filename else state.file_to_get
-        source_file = filename
+        source_file = getattr(state.file_to_get, "name", state.file_to_get)  # an open file's .name is its path
     else:
         source_file = config.file
     # Add source to output

@@ -83,7 +83,7 @@ def unique_name(base: str, taken: set[str], suffix: str = "copy") -> str:
     return candidate
 
 
-def _copy_task_element(task_element: Element, new_id: str, new_name: str) -> object:
+def _copy_task_element(task_element: Element, new_id: str, new_name: str) -> Element:
     """A deep copy of a Task, under a new id and name, ready to register.
 
     <cdate> is left as the original's -- when this Task's actions were first written is a
@@ -98,7 +98,7 @@ def _copy_task_element(task_element: Element, new_id: str, new_name: str) -> obj
     return element
 
 
-def _copy_profile_element(profile_element: Element, new_id: str, new_name: str) -> object:
+def _copy_profile_element(profile_element: Element, new_id: str, new_name: str) -> Element:
     """A deep copy of a Profile, under a new id and name.  The Task links are left for the caller."""
     element = copy.deepcopy(profile_element)
     element.set("sr", f"prof{new_id}")
@@ -121,7 +121,7 @@ def _copy_scene_element(scene_element: Element, new_name: str) -> object:
     return element
 
 
-def _repoint_names(element: object, tasks: dict[str, str], scenes: dict[str, str]) -> int:
+def _repoint_names(element: Element, tasks: dict[str, str], scenes: dict[str, str]) -> int:
     """Rewrite by-name references inside a copied object to point at the copies.  Returns how many.
 
     Walks every <Action> anywhere beneath, which reaches a Scene's own inline anonymous

@@ -69,7 +69,8 @@ def share(root_element: Element, tab: str, where: Target | None = None, *, confi
             if "TaskerNet description:" in item:
                 break
             if item == "<br>" and state.output_lines.output_lines[num - 1] == "<br>":
-                state.output_lines.output_lines.remove(num)
+                # By position: remove() takes a value, and `num` is an index, so this raised ValueError.
+                del state.output_lines.output_lines[num]
                 break
             if tab != "proftab" and item.endswith("<br><br>"):
                 state.output_lines.output_lines[-1] = item.replace(

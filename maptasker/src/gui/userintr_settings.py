@@ -431,7 +431,7 @@ class SettingsEventHandlers:
             "Display TaskerNet Information",
         )
 
-    def font_event(self, font_selected: str) -> None:
+    def font_event(self, font_selected: ValueChangeEventArguments | str) -> None:
         """
         Sets the font for the GUI using NiceGUI properties.
         Args:
@@ -473,12 +473,15 @@ class SettingsEventHandlers:
         the_view.display_message_box(f"{set_to_text} {font_name}", "Green")
 
     # Process the Identation Amount selection
-    def indent_selected_event(self, ident_amount: str) -> None:
+    def indent_selected_event(self, ident_amount: ValueChangeEventArguments | str) -> None:
         """Indent selected text or code block without recursive loops."""
         the_view = self.gui
         if getattr(the_view, "is_updating", False):
             return
 
+        # The pulldown reports its choice in an event; a caller may hand the text itself.  Taking
+        # int() of the event raised TypeError, so choosing an indentation changed nothing.
+        ident_amount = str(getattr(ident_amount, "value", ident_amount))
         the_view.indent = int(ident_amount)
 
         if hasattr(the_view, "indent_option") and the_view.indent_option:
@@ -490,7 +493,7 @@ class SettingsEventHandlers:
 
         the_view.display_message_box(f"Indentation Amount set to {ident_amount}", "green")
 
-    def language_selected_event(self, language: str) -> None:
+    def language_selected_event(self, language: ValueChangeEventArguments | str) -> None:
         """
         Set the language for the GUI and redisplay everything using NiceGUI.
         Uses a state lock to prevent recursive dropdown triggers.
@@ -697,7 +700,7 @@ class SettingsEventHandlers:
         )
         the_view.display_message_box(translate_string("Settings saved."), "Green")
 
-    def notify_timeout_event(self, choice: object) -> None:
+    def notify_timeout_event(self, choice: object) -> str | None:
         """Notification Duration pulldown, and the same key on restore.
 
         Takes either the label the pulldown shows ("10 seconds") or the milliseconds the
@@ -777,7 +780,7 @@ class SettingsEventHandlers:
             f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory(state=self.state)}\n"
         )
 
-    def viewlimit_event(self, view_limit: str) -> None:
+    def viewlimit_event(self, view_limit: ValueChangeEventArguments | str) -> None:
         """View Limit Event handled safely without recursion."""
         guiview = self.gui
         if getattr(guiview, "is_updating", False):

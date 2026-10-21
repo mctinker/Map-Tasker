@@ -38,6 +38,7 @@ from maptasker.src.gui.guiwins_sceneprops import _build_scene_properties_dialog,
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from xml.etree.ElementTree import Element
 
     from nicegui.events import GenericEventArguments, ValueChangeEventArguments
 
@@ -47,7 +48,7 @@ if TYPE_CHECKING:
 
 def _build_rename_legacy_element_dialog(
     edited_scene: sceneedit.EditableScene,
-    element: object,
+    element: Element,
     on_renamed: Callable[[str, str, bool], None],
     state: RunState,
 ) -> None:
@@ -74,9 +75,8 @@ def _build_rename_legacy_element_dialog(
         Never rewritten and never can be: the pattern is evaluated by Tasker at run time, so
         whether it currently catches this element is not a question the file can answer.
     """
-    old_name = (
-        (element.find("Str[@sr='arg0']").text or "").strip() if element.find("Str[@sr='arg0']") is not None else ""
-    )
+    name_argument = element.find("Str[@sr='arg0']")
+    old_name = (name_argument.text or "").strip() if name_argument is not None else ""
     rewritable = sceneedit_legacy.find_element_name_actions(edited_scene.scene_name, old_name, state=state)
     rewritable_tasks = sorted({task_name for task_name, _argument in rewritable})
     loose_tasks = sceneedit_legacy.find_element_name_references(edited_scene.scene_name, old_name, state=state)
@@ -131,7 +131,7 @@ def _build_rename_legacy_element_dialog(
 
 
 def _build_add_legacy_element_dialog(
-    _scene_element: object,
+    _scene_element: Element,
     on_pick: Callable[[str], None],
 ) -> None:
     """The Legacy Scene's "Add Element" dialog -- the same shape as the Version 2 one above,
@@ -179,7 +179,7 @@ class _AddLegacyElementDialog:
             search_input = (
                 ui.input(
                     placeholder=translate_string("Search elements"),
-                    on_change=lambda e: self.search_changed(e.value),
+                    on_change=lambda e: self.search_changed(e.value or ""),
                 )
                 .props("outlined dense clearable autofocus")
                 .classes("w-full mt-2")
@@ -762,7 +762,7 @@ class _LegacyDesigner:
         first, last = sorted((order.index(anchor), order.index(sr)))
         self.select(*(key for key in order[first : last + 1] if key != anchor), anchor)
 
-    def geometry_input(self, label: str, index: int, element: object, box: tuple) -> None:
+    def geometry_input(self, label: str, index: int, element: Element, box: tuple[int, int, int, int]) -> None:
         """One of the four geometry boxes.  Typing a number and dragging the element are the
         same operation on the same value, so they go through the same legacy_set_geometry and
         land on the same undo stack.
@@ -787,7 +787,9 @@ class _LegacyDesigner:
             self.snapshot()
             values = list(current)
             values[position] = number
-            sceneedit_legacy.legacy_set_geometry(element, tuple(values), landscape=self.orientation["landscape"])
+            sceneedit_legacy.legacy_set_geometry(
+                element, (values[0], values[1], values[2], values[3]), landscape=self.orientation["landscape"]
+            )
             self.repaint()
 
         ui.number(translate_string(label), value=box[index], format="%d", on_change=commit).props(
@@ -866,7 +868,7 @@ class _LegacyDesigner:
         self.render_background(element)
         self.render_item_layout(element)
 
-    def render_item_layout(self, element: object) -> None:
+    def render_item_layout(self, element: Element) -> None:
         """The Scene inside this element, if it has one.
 
         A List and a Spinner each carry a whole nested Scene that is the layout of one row.
@@ -916,7 +918,7 @@ class _LegacyDesigner:
             )
         self.render()
 
-    def render_tasks(self, element: object) -> None:
+    def render_tasks(self, element: Element) -> None:
         """What this element does when it is used.
 
         A Legacy element's behaviour is entirely in these children -- there is no equivalent
@@ -972,7 +974,7 @@ class _LegacyDesigner:
                         )
             for tag in waiting:
                 with ui.row().classes("w-full items-center gap-1 no-wrap"):
-                    ui.label(translate_string(SCENE_TASK_TYPES.get(tag, tag))).classes("text-xs w-28 shrink-0")
+                    ui.label(translate_string(SCENE_TASK_TYPES.get(tag) or tag)).classes("text-xs w-28 shrink-0")
                     ui.select(
                         choices,
                         value=None,
@@ -989,7 +991,7 @@ class _LegacyDesigner:
                 with add_binding, ui.menu():
                     for tag in unused:
                         ui.menu_item(
-                            translate_string(SCENE_TASK_TYPES.get(tag, tag)),
+                            translate_string(SCENE_TASK_TYPES.get(tag) or tag),
                             on_click=lambda _e=None, t=tag: self.open_pending(t),
                         ).props("dense")
 
@@ -1028,7 +1030,7 @@ class _LegacyDesigner:
         self.expanded["tasks"] = True
         self.render()
 
-    def render_background(self, element: object) -> None:
+    def render_background(self, element: Element) -> None:
         """The element's background sub-element -- a whole RectElement inside it, and where
         most of a real Scene's colour lives.
 
@@ -1306,7 +1308,7 @@ class _LegacyDesigner:
             ).classes("text-xs text-gray-500 italic")
 
 
-def _build_item_layout_dialog(self: MyGui, holder: object, on_closed: Callable[[], None]) -> None:
+def _build_item_layout_dialog(self: MyGui, holder: Element, on_closed: Callable[[], None]) -> None:
     """Edit the Scene inside a List or a Spinner, in a designer of its own.
 
     The nested thing really is a Scene -- its own <nme>, its own widthPort/heightPort, its

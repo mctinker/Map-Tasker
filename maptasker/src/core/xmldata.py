@@ -5,16 +5,23 @@
 #                                                                                      #
 # xmldata: deal with the xml data                                                      #
 #                                                                                      #
+from __future__ import annotations
+
 import io
 import os
 import re
 import shutil
-from xml.etree.ElementTree import Element, ElementTree
+from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree
 
 from maptasker.src.core.action import drop_trailing_comma, process_xml_list
 from maptasker.src.core.maputil2 import translate_string
+
+if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element, ElementTree
+
+    from maptasker.src.core.actionc import ArgumentCode
 
 
 # See if the xml tag is one of the predefined types and return result
@@ -74,8 +81,8 @@ def tag_in_type(tag: str, flag: bool) -> bool:
 def extract_integer(
     code_action: Element,
     the_arg: str,
-    argeval: str,
-    arg: list,
+    argeval: str | list[str],
+    arg: ArgumentCode,
 ) -> str:
     """
     Extract an integer value from an XML action element.
@@ -84,7 +91,7 @@ def extract_integer(
         code_action (XML element): The XML action element to search.
         the_arg (str): The name of the argument to search for.
         argeval (str | list): The evaluation to perform on the integer.
-        arg: (list): The list of arguments for this action from action_codes.
+        arg (ArgumentCode): This argument, from action_codes.
 
     Returns:
         str: The result of the integer evaluation.
@@ -127,7 +134,7 @@ def extract_integer(
         final_result = " ".join(result)
 
     # Argument evaluation is a string.
-    elif isinstance(argeval, str):
+    else:
         # If eval is missing, just use the argujment name.
         if not argeval:
             argeval = arg.arg_name
@@ -147,22 +154,20 @@ def extract_integer(
             if argeval[-1] != "=":
                 argeval += "="
             final_result = argeval + the_int_value
-    else:
-        final_result = argeval + the_int_value
 
     # Drop trailing comma if necessary
     return drop_trailing_comma([final_result])[0] if final_result else ""
 
 
 # Extracts and returns the text from the given argument as a string.
-def extract_string(action: Element, arg: str, argeval: str) -> str:
+def extract_string(action: Element, arg: str, argeval: str | list[str]) -> str:
     """
     Extracts a string from an XML action element.
 
     Args:
         action (XML element): The XML action element to search.
         arg (str): The name of the string argument to search for.
-        argeval (str): The prefix to add to the matched string.
+        argeval (str | list[str]): The prefix to add to the matched string.
 
     Returns:
         str: Extracted string with prefix or an empty string.
@@ -181,9 +186,10 @@ def extract_string(action: Element, arg: str, argeval: str) -> str:
         return ""  # No matching element found
 
     # Extract text value with prefix
-    new_argeval = f"{argeval}=" if argeval[-1] != "=" else argeval
+    prefix = argeval if isinstance(argeval, str) else str(argeval)
+    new_argeval = prefix if prefix.endswith("=") else f"{prefix}="
     extracted_text = (
-        f"{argeval}(carriage return)" if str_element.text == "\n" else f"{new_argeval}{str_element.text or ''}"
+        f"{prefix}(carriage return)" if str_element.text == "\n" else f"{new_argeval}{str_element.text or ''}"
     )
 
     # Drop trailing comma if necessary

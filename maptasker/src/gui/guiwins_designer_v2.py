@@ -93,7 +93,7 @@ class _AddElementDialog:
             search_input = (
                 ui.input(
                     placeholder=translate_string("Search elements"),
-                    on_change=lambda e: self.search_changed(e.value),
+                    on_change=lambda e: self.search_changed(e.value or ""),
                 )
                 .props("outlined dense clearable autofocus")
                 .classes("w-full mt-2")
@@ -285,7 +285,7 @@ def _render_show_when_groups(
 
 
 def _build_show_when_dialog(
-    field: ui.input,
+    field: ui.input | ui.color_input,
     groups: list[tuple[str, list[sceneedit_v2.V2ShowWhenChoice]]] | None = None,
     title: str = "Insert into Show When",
     *,
@@ -342,7 +342,9 @@ def _build_show_when_dialog(
         # box below the list it filters is a search box nobody finds.  Its on_change closes
         # over search_changed, defined below and resolved at call time.
         search_input = (
-            ui.input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
+            ui.input(
+                placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value or "")
+            )
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -391,7 +393,7 @@ _V2_CATEGORY_ICONS: dict[str, str] = {
 }
 
 
-def _variable_picker_button(field: ui.input, label: str, state: RunState) -> None:
+def _variable_picker_button(field: ui.input | ui.color_input, label: str, state: RunState) -> None:
     """The Select Variable half of a property that can either be filled in or pointed at a
     variable -- a Text's own text, a max lines of %line_budget, a shadow the theme decides.
 
@@ -413,7 +415,7 @@ def _variable_picker_button(field: ui.input, label: str, state: RunState) -> Non
         ui.tooltip(translate_string("Pick from the Scene's environment and global variables."))
 
 
-def _build_colour_field(item: dict, prop: sceneedit_v2.V2Prop, state: RunState) -> None:
+def _build_colour_field(item: sceneedit_v2.V2Props, prop: sceneedit_v2.V2Prop, state: RunState) -> None:
     """A Version 2 colour property: type a name or a #hex value, pick one off the wheel, or
     take one of Material's own roles from the menu.  A "colorvar" property adds a fourth way --
     point it at a variable and let the phone decide.
@@ -457,7 +459,7 @@ def _build_colour_field(item: dict, prop: sceneedit_v2.V2Prop, state: RunState) 
         if prop.kind == "colorvar":
             _variable_picker_button(field, prop.label, state=state)
 
-    def colour_changed(node: dict, key: str, text: str) -> None:
+    def colour_changed(node: sceneedit_v2.V2Props, key: str, text: str) -> None:
         sceneedit_v2.v2_set_prop(node, key, text)
         resolved = sceneview.v2_swatch_colour(text)
         swatch.style(f"background: {resolved or 'transparent'};")
@@ -477,7 +479,7 @@ def _build_colour_field(item: dict, prop: sceneedit_v2.V2Prop, state: RunState) 
 _ICON_PREVIEW_LIMIT = 120
 
 
-def _build_icon_field(item: dict, prop: sceneedit_v2.V2Prop) -> None:
+def _build_icon_field(item: sceneedit_v2.V2Props, prop: sceneedit_v2.V2Prop) -> None:
     """A Version 2 icon property: type a reference, or pick a Material icon by its picture.
 
     Typed into as well as picked from, because an icon reference is not only ever a Material
@@ -508,7 +510,7 @@ def _build_icon_field(item: dict, prop: sceneedit_v2.V2Prop) -> None:
         with pick_button:
             ui.tooltip(translate_string("Pick a Material icon."))
 
-    def icon_changed(node: dict, key: str, text: str) -> None:
+    def icon_changed(node: sceneedit_v2.V2Props, key: str, text: str) -> None:
         sceneedit_v2.v2_set_prop(node, key, text)
         glyph.name = sceneview.v2_icon(text)
 
@@ -540,7 +542,7 @@ def _build_icon_dialog(field: ui.input) -> None:
             dialog.close()
 
         search_input = (
-            ui.input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
+            ui.input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value or ""))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -625,7 +627,7 @@ def _build_material_colour_menu(field: ui.color_input) -> None:
                 ui.label(css).classes("text-xs text-gray-500 font-mono")
 
 
-def _build_state_field(item: dict, field: sceneedit_v2.V2StateField, state: RunState) -> None:
+def _build_state_field(item: sceneedit_v2.V2Props, field: sceneedit_v2.V2StateField, state: RunState) -> None:
     """One of the Screen Builder's state properties -- Enabled, Content format: a pulldown of
     its states, and, for Dynamic only, the text or %variable to be evaluated when the Scene is
     shown.

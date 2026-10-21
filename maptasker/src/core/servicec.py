@@ -9,7 +9,21 @@
 
 """servicec: the master lookup for a given Tasker Preferences <Service> xml statement."""
 
-service_codes = {
+from __future__ import annotations
+
+from typing import NotRequired, TypedDict
+
+
+class ServiceCode(TypedDict):
+    """One Preferences <Service> statement: what to call it and where it goes."""
+
+    display: str
+    section: int
+    num: float
+    values: NotRequired[dict[int, str]]  # For a setting chosen from a list: the choices, by number
+
+
+service_codes: dict[str, ServiceCode] = {
     # service code: name to display, preference section, display order
     "anm": {
         "display": "Animations",

@@ -70,7 +70,7 @@ atexit.register(write_counter)
 
 
 # Prompt user to select the backup xml file to use.
-def prompt_for_backup_file(_dir_path: str, state: RunState) -> None:
+def prompt_for_backup_file(_dir_path: Path | str, state: RunState) -> None:
     """
     Prompt user to select a backup file
     Args:
@@ -95,7 +95,7 @@ def prompt_for_backup_file(_dir_path: str, state: RunState) -> None:
 
 # Open and read the Tasker backup XML file
 # Return the file name for use for
-def open_and_get_backup_xml_file(state: RunState) -> dict:
+def open_and_get_backup_xml_file(state: RunState) -> None:
     """
     Open the Tasker backup file and return the file object
     """
@@ -109,7 +109,7 @@ def open_and_get_backup_xml_file(state: RunState) -> dict:
 
         # If no backup file and we're coming from the GUI, then return to GUI.
         if backup_file_name is None and state.program_arguments.gui:
-            return None
+            return
 
         # Make sure we automatically use the file we just fetched
         state.program_arguments.file = backup_file_name
@@ -133,8 +133,9 @@ def open_and_get_backup_xml_file(state: RunState) -> dict:
 
     # See if we already have the file
     if state.program_arguments.file:
-        filename = isinstance(state.program_arguments.file, str)
-        filename = state.program_arguments.file.name if not filename else state.program_arguments.file
+        # The GUI keeps the open file itself here; a command line run keeps the path.
+        given = state.program_arguments.file
+        filename = given if isinstance(given, str) else getattr(given, "name", "")
 
         # We already have the file name...open it.
         try:
@@ -226,8 +227,9 @@ def get_data_and_output_intro(do_front_matter: bool, state: RunState) -> int:
         # Go get all the xml data
         return_code = get_the_xml_data(state=state)
 
-        # Close the file
-        state.file_to_get.close()
+        # Close the file.  By now it is the open file, but a failed open leaves a path or nothing.
+        if (close := getattr(state.file_to_get, "close", None)) is not None:
+            close()
 
     # Output the inital info: head, source, etc. ...if it hasn't already been output.
     if return_code == 0 and do_front_matter and not state.output_lines.output_lines:

@@ -610,8 +610,8 @@ def _impossible_day(element: Element) -> str:
     the month with no month beside it happens in some month, and a month with no day in it
     happens every year.  31 September is the one that gets typed by accident.
     """
-    days = [int(child.text) for child in element if child.tag.startswith("mday") and (child.text or "").isdigit()]
-    months = [int(child.text) for child in element if child.tag.startswith("mnth") and (child.text or "").isdigit()]
+    days = [int(text) for child in element if child.tag.startswith("mday") and (text := child.text or "").isdigit()]
+    months = [int(text) for child in element if child.tag.startswith("mnth") and (text := child.text or "").isdigit()]
     if not days or not months:
         return ""
     months = [month for month in months if 0 <= month < len(_DAYS_IN_MONTH)]

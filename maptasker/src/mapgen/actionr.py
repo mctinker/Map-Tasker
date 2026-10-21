@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import maptasker.src.core.action as get_action
 from maptasker.src.core.format import format_html
@@ -30,6 +30,7 @@ from maptasker.src.mapgen.actargs import action_args
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.core.actionc import ActionCode
     from maptasker.src.core.primitem import RunState
 
 
@@ -155,7 +156,7 @@ def fix_config_parameters(s: str, target: str, replacement: str) -> str:
 # Then evaluate the data against the master dictionary of actions.
 def get_action_results(
     the_action_code_plus: str,
-    action_codes: Element,
+    action_codes: dict[str, ActionCode],
     code_action: Element,
     action_type: bool,
     deprecated: str = "",
@@ -178,7 +179,7 @@ def get_action_results(
     our_action_code = action_codes[the_action_code_plus]
 
     # Setup default evaluation results as empty list
-    evaluated_results = defaultdict(list)
+    evaluated_results: defaultdict[str, Any] = defaultdict(list)
     evaluated_results["returning_something"] = False
 
     program_arguments = state.program_arguments
@@ -189,7 +190,8 @@ def get_action_results(
         and program_arguments.display_detail_level != DISPLAY_DETAIL_LEVEL_all_tasks
     ):
         # Process the Task action arguments
-        evaluated_results = action_args(the_action_code_plus, action_codes, code_action, evaluated_results, state=state)
+        # Filled in place; what it returns is this same dict.
+        action_args(the_action_code_plus, action_codes, code_action, evaluated_results, state=state)
 
     # If we have results from evaluation, then go put them in their appropriate order
     if evaluated_results["returning_something"]:

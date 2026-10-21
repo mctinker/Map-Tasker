@@ -238,3 +238,11 @@ def test_a_variable_reports_its_type() -> None:
     items = prop.parse_variable(_variable("t", "pj"))
     assert items[0] == "Variable Type:Text"
     assert "Variable:%x" in items
+
+
+@pytest.mark.parametrize(("flag", "said"), [("0", "Abort New Task"), ("1", "Abort Existing Task"), ("2", "Run Both Together"), ("", "Abort New Task"), ("9", "Abort New Task")])
+def test_a_collision_setting_that_is_empty_or_unknown_reads_as_the_first(captured_output, flag: str, said: str) -> None:
+    """The properties line used to index the table with int() of the tag, so an empty <rty/> ended the Map."""
+    task = ET.fromstring(f"<Task sr='task1'><nme>T</nme><rty>{flag}</rty></Task>")  # noqa: S314
+    prop.get_properties("Task:", task, config=current_config(), state=PrimeItems)
+    assert f"Collision Handling:{said}" in captured_output[0]

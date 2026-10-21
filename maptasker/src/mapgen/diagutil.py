@@ -88,19 +88,13 @@ def print_3_lines(lines: list, state: RunState) -> None:
     """
     Prints 3 lines from a list of items
     Args:
-        lines: List of line numbers to print
+        lines: The three lines of text to add
     Returns:
         None: Does not return anything
-    - Check if lines is a list
-    - Loop through first 3 items of lines list
-    - Print corresponding item from PrimesItems.netmap_output
+    - Add each of the first 3 items of lines to the netmap output
     """
-    do_list = isinstance(lines, list)
     for line in range(3):
-        if do_list:
-            add_output_line(lines[line], state=state)
-        else:
-            add_output_line(line, state=state)
+        add_output_line(lines[line], state=state)
 
 
 # Given a list of text strings, print all of them.
@@ -414,9 +408,9 @@ def build_box(name: str, output_lines: list, config: RunConfig) -> tuple:
 # Trace backwards in the output, inserting a bar (|) through right arrows.
 def add_bar_above_lines(
     output_lines: list,
-    line_to_modify: str,
+    line_to_modify: int,
     called_task_position: int,
-) -> list:
+) -> None:
     """
     Adds a bar above the specified line in the output lines.
     Args:
@@ -424,7 +418,7 @@ def add_bar_above_lines(
         line_to_modify: Line number to add bar above
         called_task_position: Position of calling task
     Returns:
-        output_lines: Output lines with bar added above specified line
+        None: output_lines is changed in place
     - Find the line number to insert bar above by subtracting 1 from input line number
     - Iterate through output lines from beginning
     - When line number matches specified line, insert bar string above it
@@ -602,14 +596,14 @@ def fix_duplicate_up_down_locations(call_table: dict) -> dict:
 
 
 # Build a sorted list of all caller Tasks and their called Tasks.
-def build_call_table(output_lines: list, config: RunConfig) -> list:
+def build_call_table(output_lines: list, config: RunConfig) -> dict:
     """
     Build a sorted list of all caller Tasks and their called Tasks.
         Args:
             output_lines (list): List of output lines
             config (RunConfig): the run's settings (language)
         Returns:
-            list: Caller/Called Task list.
+            dict: The connectors, keyed by caller and called Task.
     Processing Logic:
     - Go through all output lines looking for caller Tasks.
     - Check each line for a "Calls" indicator to find caller Tasks

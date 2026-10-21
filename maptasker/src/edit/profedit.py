@@ -40,7 +40,7 @@ import re
 import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
@@ -88,7 +88,7 @@ NEW_PROFILE_FLAGS = str((1 << objprops.PROFILE_COLLAPSED_BIT) | (1 << objprops.P
 
 # 1=Sunday..7=Saturday, matching condition.py's own condition_day -- index 0 is
 # unused (the day numbers are 1-based) so the GUI can index this directly by day number.
-WEEKDAY_NAMES = (None, "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+WEEKDAY_NAMES = ("", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 # 0=January..11=December, matching condition.py's own condition_day (months[int(child.text)],
 # no -1 -- unlike weekdays, months are 0-based), so index lines up directly with the mnthN value.
 MONTH_NAMES = (
@@ -755,16 +755,16 @@ def _write_pending_condition_edit(
     """Write what _pending_condition_edit found for one condition onto it."""
     cond_type, payload = update
     if cond_type == "Time":
-        _write_time_field_values(condition, payload)
+        _write_time_field_values(condition, cast("dict[str, str]", payload))
     elif cond_type == "Loc":
-        _write_loc_field_values(condition, payload)
+        _write_loc_field_values(condition, cast("dict[str, str]", payload))
     elif cond_type == "Day":
-        weekdays, months, month_days = payload
+        weekdays, months, month_days = cast("tuple[list, list, list]", payload)
         _write_day_selected_weekdays(condition, weekdays)
         _write_day_selected_months(condition, months)
         _write_day_selected_month_days(condition, month_days)
     elif cond_type == "App":
-        _write_app_entries(condition, payload)
+        _write_app_entries(condition, cast("list[dict[str, str]]", payload))
     elif cond_type == "StateEvent":
         taskedit_apply.apply_arg_values(
             condition.args,
@@ -801,8 +801,8 @@ _TIME_VAR_RE = re.compile(r"^%\S+$")
 
 def _int_or_zero(text: str | None) -> int:
     try:
-        return int(text)
-    except (TypeError, ValueError):
+        return int(text or "")
+    except ValueError:
         return 0
 
 
@@ -879,7 +879,11 @@ def _write_time_or_var(
     hour_tag: str,
     minute_tag: str,
 ) -> None:
-    kind, parsed = _classify_time_or_var(raw_value)
+    classified = _classify_time_or_var(raw_value)
+    if classified is None:  # The values are validated before they are written; this is a caller that did not.
+        message = f"'{raw_value}' is neither a time of day nor a %variable"
+        raise ValueError(message)
+    kind, parsed = classified
     if kind == "var":
         _set_child_text(element, var_tag, parsed)
         for tag in (hour_tag, minute_tag):

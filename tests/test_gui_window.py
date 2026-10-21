@@ -185,6 +185,22 @@ async def test_ticking_an_option_changes_the_setting(caplog: pytest.LogCaptureFi
     _no_errors_logged(caplog)
 
 
+async def test_choosing_an_indentation_changes_it(caplog: pytest.LogCaptureFixture) -> None:
+    """The pulldown hands its handler an event, not the text.  The handler took int() of the event,
+    which raised, so choosing an indentation was logged as an error and changed nothing."""
+    async with _open_window() as (user, gui):
+        assert gui.indent == 4
+
+        gui.indent_option.set_value("7")
+        for _ in range(40):
+            if gui.indent == 7:
+                break
+            await asyncio.sleep(0.05)
+
+        assert gui.indent == 7
+    _no_errors_logged(caplog)
+
+
 async def test_save_settings_writes_what_the_window_shows(tmp_path, caplog: pytest.LogCaptureFixture) -> None:
     """Pressing Save (Application Settings) puts the window's choices in the settings file, and says so."""
     async with _open_window() as (user, gui):

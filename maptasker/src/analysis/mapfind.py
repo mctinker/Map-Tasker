@@ -295,6 +295,12 @@ class _Object:
     conditions: list[_Condition] = field(default_factory=list)  # Profiles: their contexts
 
 
+# The two records, under names other modules may use: mapswap works on the conditions a scan found
+# and the Profile each belongs to, and should not have to import an underscore name to say so.
+ConditionRecord = _Condition
+ObjectRecord = _Object
+
+
 @dataclass
 class FindIndex:
     """Everything in the loaded configuration a query can be asked about.

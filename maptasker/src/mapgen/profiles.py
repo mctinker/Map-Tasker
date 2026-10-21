@@ -66,6 +66,8 @@ def get_profile_tasks(
         if "mid" in tag:
             task_type = "Exit" if tag == "mid1" else "Entry"
             task_id = child.text
+            if not task_id:  # A <mid0/> that names no Task has nothing to look up.
+                continue
 
             if task_id not in found_tasks_list:
                 state.task_count_for_profile += 1
@@ -312,14 +314,14 @@ def _tidy_condition_name(new_name: str) -> str:
 def set_name_to_condition(
     profile_conditions: str,
     profile_name: str,
-) -> tuple[str, str]:
+) -> str:
     """
     Set the Profile name to the condition if it is not already set.
 
         :param profile_conditions: The conditions of the profile.
         :param profile_name: The current profile name.
         :param profile_name_with_html: The HTML formatted profile name.
-        :return: Updated profile name and HTML formatted name.
+        :return: The name made from the conditions, starred; "" if there is no name to set.
     """
     if not profile_name:
         return profile_name
@@ -340,7 +342,7 @@ def conditions_to_name(
     profile_name_with_html: str,
     config: RunConfig,
     state: RunState,
-) -> tuple[str, str]:
+) -> tuple[str, str, str]:
     """
     Update the profile name and its HTML representation based on the profile's conditions.
 
@@ -359,8 +361,8 @@ def conditions_to_name(
 
     Returns
     -------
-    tuple[str, str]
-        A tuple containing the updated HTML-formatted profile name and the updated profile name.
+    tuple[str, str, str]
+        The HTML-formatted profile name, the updated profile name, and the conditions (made pretty if asked).
     """
     profile_name = set_name_to_condition(
         profile_conditions,

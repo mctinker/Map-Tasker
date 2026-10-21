@@ -230,7 +230,7 @@ def _build_properties_button(
     self: MyGui,
     kind: str,
     element: Element,
-    parent_dialog: ui.dialog,
+    parent_dialog: ui.dialog | None,
     on_applied: Callable[[], None] | None = None,
     opener: Callable[[], None] | None = None,
 ) -> ui.button:

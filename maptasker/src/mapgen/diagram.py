@@ -76,8 +76,6 @@ from maptasker.src.mapgen.diagutil import (
 )
 
 if TYPE_CHECKING:
-    from xml.etree.ElementTree import Element
-
     from maptasker.src.core.primitem import RunState
     from maptasker.src.core.runcfg import RunConfig
 
@@ -348,11 +346,11 @@ def add_quotes(
     last_upward_bar: list,
     task: dict,
     task_type: str,
-    called_by_tasks: list,
+    called_by_tasks: str,
     position_for_anchor: int,
     found_tasks: list,
     state: RunState,
-) -> tuple:
+) -> tuple[list, list, list]:
     """
     Add quotes to called Tasks.
 
@@ -361,12 +359,12 @@ def add_quotes(
         last_upward_bar (int): The position of the last upward | in the output.
         task (dict): Task details: xml element, name, etc.
         task_type (str): Entry or Exit
-        called_by_tasks (list): List of Tasks this Task is called by.
+        called_by_tasks (str): The "[Called by ...]" text for this Task, or "".
         position_for_anchor (int): Location of the anchor point for the Task.
         found_tasks (list): List of Tasks found so far.
 
     Returns:
-        tuple: Tuple containing the updated output_task_lines, last_upward_bar, and found_tasks.
+        tuple: Tuple containing the updated found_tasks, last_upward_bar, and output_task_lines.
     """
     call_tasks = ""
     task_name = task["name"]
@@ -425,10 +423,10 @@ def output_the_task(
     output_task_lines: list,
     last_upward_bar: list,
     task_type: str,
-    called_by_tasks: list,
+    called_by_tasks: str,
     position_for_anchor: int,
     state: RunState,
-) -> tuple[bool, int]:
+) -> tuple[list, list, list]:
     """
     Add the Task to the output list.
         Args:
@@ -438,11 +436,11 @@ def output_the_task(
             output_task_lines (list): List of output lines to add to.
             last_upward_bar (list): Position of last upward | in the output.
             task_type (str): Entry or Exit
-            called_by_tasks (list): List of Tasks this Task is called by.
+            called_by_tasks (str): The "[Called by ...]" text for this Task, or "".
             position_for_anchor (int): Location of the anchor point for the Task.
 
         Returns:
-            tuple[bool, int]: found_tasks, last_upward_bar
+            tuple[list, list, list]: found_tasks, last_upward_bar, output_task_lines
     """
     # We have a full row of Profiles.  Print the Tasks out.
     if print_tasks:
@@ -660,7 +658,7 @@ def print_all_scenes(scenes: list, config: RunConfig, state: RunState) -> None:
     for task in task_list:
         # Output the Task
         _found_tasks, _last_upward_bar, output_task_lines = output_the_task(
-            True, [], task[0], output_task_lines, task[1] + 15, "", "", task[1], state=state
+            True, [], task[0], output_task_lines, [], "", "", task[1], state=state
         )
     if task_list:
         _flush_tasks(output_task_lines, state=state)
@@ -675,7 +673,7 @@ def do_tasks_with_no_profile(
     profile_counter: int,
     config: RunConfig,
     state: RunState,
-) -> tuple:
+) -> tuple[list, list]:
     """
     Process Tasks not in any Profile
     Args:
@@ -854,7 +852,7 @@ def _list_end(text: str) -> int:
     return -1
 
 
-def get_index_setup(s: str, called_task_name: str) -> tuple:
+def get_index_setup(s: str, called_task_name: str) -> tuple[list, list] | None:
     """
     Parse the 'calls' string and return a tuple of substrings and positions
 
@@ -863,9 +861,10 @@ def get_index_setup(s: str, called_task_name: str) -> tuple:
         called_task_name (str): The name of the task being called
 
     Returns:
-        tuple: A tuple of two values. The first value is a list of substrings
+        tuple | None: A tuple of two values. The first value is a list of substrings
             extracted from the string, and the second value is a list of positions
-            of the called task name in the string.
+            of the called task name in the string.  None if the string has no
+            "Calls" list to look in.
 
     Processing Logic:
         - Split the string into substrings based on the task delimeter
@@ -878,7 +877,7 @@ def get_index_setup(s: str, called_task_name: str) -> tuple:
     start_search = s.find(search_marker) + 9
     # Early exit if the marker is not found
     if start_search == -1 + len(search_marker):
-        return -1
+        return None
 
     # Extract the relevant substring after "Calls ──▶ "
     list_end = _list_end(s[start_search:])
@@ -937,7 +936,10 @@ def get_index_by_middle_char_position(
                                                                                  ╰ (this '3rd' line) result = 3
     """
     # Setup for getting the index.
-    substrings, positions = get_index_setup(s, called_task_name)
+    setup = get_index_setup(s, called_task_name)
+    if setup is None:  # No "Calls" list in this line, so the called Task is nowhere in it.
+        return -1
+    substrings, positions = setup
 
     # Now get the index of this specific, called task based on it's middle character position...
     # bisect.bisect_left(sorted_list, number) returns the index at which number should be inserted in sorted_list to maintain its order.
@@ -1185,7 +1187,7 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
 
 
 # Add up and down arrows to the connection points.
-def add_down_and_up_arrows(connectors: dict, output_lines: list, config: RunConfig, state: RunState) -> None:
+def add_down_and_up_arrows(connectors: dict, output_lines: list, config: RunConfig, state: RunState) -> tuple[int, int]:
     """
     Adds down and up arrows between caller and called tasks.
     Args:
@@ -1335,7 +1337,7 @@ def draw_arrows_to_called_task(
     called_task_lookup: dict,
     config: RunConfig,
     state: RunState,
-) -> None:
+) -> dict:
     """
     Draw arrows to called Task from Task doing the calling.
         Args:
@@ -1501,15 +1503,15 @@ def mark_tasks_not_found(output_lines: list) -> None:
                     current_line = output_lines[caller_line_num]
 
 
-def mysizeof(my_dict: list) -> int:
+def mysizeof(my_dict: dict) -> int:
     """
-    Calculate the total size of a list in bytes, including the size of all its elements.
+    Count the entries in a dictionary.
 
     Args:
-        my_dict (list): The dictionary to calculate the size of.
+        my_dict (dict): The dictionary to count.
 
     Returns:
-        int: The total size of the list in bytes.
+        int: The number of entries.
     """
     total = 0
     for _, _ in my_dict.items():
@@ -1522,7 +1524,9 @@ def furthest_connector_line(connector: dict) -> int:
     return max(connector["caller_line_num"], connector["called_line_num"])
 
 
-def check_limit(call_table: dict, output_lines: list, _progress_bar: dict, config: RunConfig, state: RunState) -> None:
+def check_limit(
+    call_table: dict, output_lines: list, _progress_bar: dict, config: RunConfig, state: RunState
+) -> tuple[int | None, dict]:
     """
     Cut the diagram short at the view limit rather than refusing to draw it at all.
 
@@ -1663,14 +1667,14 @@ def cleanup_dangling_elbows(output_lines: list, num: int) -> list:
 MISSING_BAR_PATTERN = re.compile(f"({re.escape(straight_line)}) (?={re.escape(straight_line)})")
 
 
-def cleanup_missing_straight_lines(output_lines: list, num: str, line: str) -> list:
+def cleanup_missing_straight_lines(output_lines: list, num: int, line: str) -> list:
     """
     Add missing straight lines in which there is one or more blanks before "╯" or missing bars: "straight_line space straight_line".
     Replace the space with a straight line and replace all single-quotes with a blank.
     If last position is a bracket, just continue.
     Args:
         output_lines (list): List of strings representing the output lines.
-        num (str): The current line number.
+        num (int): The current line number.
         line (str): The current line string.
     Returns:
         list: The modified list of strings.
@@ -1692,8 +1696,7 @@ def cleanup_missing_straight_lines(output_lines: list, num: str, line: str) -> l
     if line.endswith("]"):
         line = line.replace(task_delimeter, "")
 
-    # Save back to the array (ensuring the index is an integer)
-    output_lines[int(num)] = line
+    output_lines[num] = line
 
     return output_lines
 
@@ -1831,7 +1834,7 @@ def find_first_substring_position(string: str, substrings: list) -> tuple:
     return None, -1
 
 
-def add_blanks_above_called_tasks(output_lines: list, state: RunState) -> None:
+def add_blanks_above_called_tasks(output_lines: list, state: RunState) -> list:
     # Go through and add blanks above called tasks, one for each caller.
     """
     Goes through the output lines and adds a blank line above each called task line
@@ -1872,7 +1875,7 @@ def add_blanks_above_called_tasks(output_lines: list, state: RunState) -> None:
 
 
 # If Task line has any "Task Call" Task actions, fill it with arrows.
-def handle_calls(output_lines: list, progress: dict, config: RunConfig, state: RunState) -> None:
+def handle_calls(output_lines: list, progress: dict, config: RunConfig, state: RunState) -> list:
     """
     Handle calls in output lines from parsing
     Args:
@@ -1951,25 +1954,25 @@ def handle_calls(output_lines: list, progress: dict, config: RunConfig, state: R
 
 # Build the Profile box.
 def build_profile_box(
-    profile: Element,
+    profile: str,
     profile_counter: int,
     output_profile_lines: list,
     output_task_lines: list,
     print_tasks: bool,
     config: RunConfig,
     state: RunState,
-) -> tuple:
+) -> tuple[list, list, int, bool, int]:
     """
     Builds a profile box for a given profile
     Args:
-        profile: Profile to add to box
+        profile: The Profile's name, to put in the box
         profile_counter: Counter for profile columns
         output_profile_lines: Running list of profile box lines
         output_task_lines: Running list of task lines
         print_tasks: Flag for printing tasks
         config: the run's settings (profiles_per_line)
     Returns:
-        output_profile_lines, output_task_lines, print_tasks: Updated outputs
+        output_profile_lines, output_task_lines, position_for_anchor, print_tasks, profile_counter: Updated outputs
     Processing Logic:
        1. Check if profile_counter exceeds column limit
        2. If so, print current columns and reset counters

@@ -6,8 +6,10 @@
 # actargs: process Task "Action" arguments                                             #
 #                                                                                      #
 
+from __future__ import annotations
+
 import html
-from xml.etree.ElementTree import Element
+from typing import TYPE_CHECKING
 
 import maptasker.src.core.action as get_action
 from maptasker.src.core.condjoin import join_conditions
@@ -19,18 +21,23 @@ from maptasker.src.core.plugset import (
     decode_settings,
     plugin_package,
 )
-from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import FormatLine, logger
 from maptasker.src.core.xmldata import extract_integer, extract_string
 from maptasker.src.mapgen.actiond import process_condition_list
+
+if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
+
+    from maptasker.src.core.actionc import ActionCode, ArgumentCode
+    from maptasker.src.core.primitem import RunState
 
 blank = "&nbsp;"
 
 
 def process_clean_string(
-    clean_string: bool,
+    clean_string: str,
     code_action: Element,
-    arg: tuple,
+    arg: ArgumentCode,
     evaluated_results: dict,
     blank: str,
     state: RunState,
@@ -117,7 +124,7 @@ def get_plugin_settings(vals: Element, already_shown: str = "") -> str:
 def get_bundle(
     code_action: Element,
     evaluated_results: dict,
-    arg: str,
+    arg: ArgumentCode,
     state: RunState,
 ) -> dict:
     """
@@ -189,8 +196,8 @@ def get_bundle(
 # Given an <argn> element, evaluate it's contents based on our Action code dictionary
 def evaluate_argument(
     evaluated_results: dict,
-    arg: object,
-    argeval: list,
+    arg: ArgumentCode,
+    argeval: str | list[str],
     argtype: str,
     code_action: Element,
     state: RunState,
@@ -200,8 +207,8 @@ def evaluate_argument(
 
     Args:
         evaluated_results (dict): Stores evaluation results.
-        arg (object): Argument object.
-        argeval (list): Argument evaluation criteria.
+        arg (ArgumentCode): The argument, as the action table holds it.
+        argeval (str | list[str]): Argument evaluation criteria.
         argtype (str): Argument type.
         code_action (Element): XML code action.
 
@@ -248,11 +255,9 @@ def evaluate_argument(
         case "ConditionList":
             extract_condition(evaluated_results, arg, argeval, code_action)
 
-        case "Img":
-            extract_image(evaluated_results, code_action, argeval, arg)
-
-        case "Icon":
-            extract_image(evaluated_results, code_action, argeval, arg)
+        # An icon is labelled with a string; a list evaluation means nothing to one.
+        case "Img" | "Icon":
+            extract_image(evaluated_results, code_action, argeval if isinstance(argeval, str) else arg.arg_name, arg)
 
         case "Bundle":
             get_bundle(code_action, evaluated_results, arg, state=state)
@@ -314,7 +319,7 @@ def extract_image(
     evaluated_results: dict,
     code_action: Element,
     argeval: str,
-    arg: str,
+    arg: ArgumentCode,
 ) -> None:
     """
     Extract this argument's icon into the evaluated results.
@@ -323,7 +328,7 @@ def extract_image(
         evaluated_results: dict - The dictionary containing the evaluation results
         code_action: Element - The Action's parsed XML element
         argeval: str - The argument evaluation string
-        arg: str - The argument number
+        arg: ArgumentCode - The argument
     Returns:
         None - No return value
     Processing Logic:
@@ -356,18 +361,18 @@ def extract_image(
 # Get condition releated details from action xml
 def extract_condition(
     evaluated_results: dict,
-    arg: str,
-    argeval: str,
-    code_action: str,
+    arg: ArgumentCode | str,
+    argeval: str | list[str],
+    code_action: Element,
 ) -> None:
     # Get argument
     """
     Extracts the condition from the code action.
     Args:
         evaluated_results: dict - The dictionary containing the evaluated results
-        arg: str - The argument to extract
-        argeval: str - The argument evaluation
-        code_action: str - The code action string
+        arg: ArgumentCode | str - The argument to extract, or just its number
+        argeval: str | list[str] - The argument evaluation
+        code_action: Element - The Action's parsed XML element
     Returns:
         None - No return, modifies evaluated_results in place
     Processing Logic:
@@ -383,12 +388,14 @@ def extract_condition(
 
     # Chain the conditions, grouped by Tasker's And/Or precedence
     conditions = [f"{condition[0]}{condition[1]}{condition[2]}" for condition in condition_list]
-    evaluated_results[f"arg{arg}"]["value"] = f" {join_conditions(conditions, boolean_list)}" if conditions else ""
+    # Keyed by the argument's number, as extract_argument keyed it: `arg` itself is the whole table
+    # entry when this is reached through evaluate_argument, and f"arg{arg}" was then not a key.
+    evaluated_results[f"arg{arg[0]}"]["value"] = f" {join_conditions(conditions, boolean_list)}" if conditions else ""
 
 
 # Get the argument details from action xml
 # Get the argument details from action xml
-def extract_argument(evaluated_results: dict, arg: str, argeval: str) -> None:
+def extract_argument(evaluated_results: dict, arg: ArgumentCode | str, argeval: str | list[str]) -> None:
     """
     Extracts an argument from evaluated results
     Args:
@@ -439,11 +446,11 @@ def handle_missing_code(the_action_code_plus: str, index: int, state: RunState) 
 # Go through the arguments and parse each one based on its argument 'type'
 def action_args(
     the_action_code_plus: str,
-    action_codes: list,
+    action_codes: dict[str, ActionCode],
     code_action: Element,
     evaluated_results: dict,
     state: RunState,
-) -> list:
+) -> dict:
     """
     Go through the arguments and parse each one based on its argument 'type'
 
