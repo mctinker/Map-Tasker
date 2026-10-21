@@ -6,7 +6,7 @@ Once the XML file is loaded, you can optionally edit your Projects, Profiles, Ta
 
 This page describes each of the **88** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.0.0 source on 2026-10-18 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.0.1 source on 2026-10-21 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -393,7 +393,7 @@ Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scen
 **Type:** Command  
 **Where:** Main Window
 
-Repair the Health Check findings that have an obvious fix -- set a long-running Task's collision handling, give a blocking action a timeout, close an 'If' or 'For' that is never closed, point a broken 'Goto' at a label the Task actually carries, and delete a Task nothing in the file runs. Every repair is listed with what it would change before anything is done, you tick only the ones you want, and however many you make it is one press of Undo afterwards.
+Repair the Health Check findings that have an obvious fix -- set a long-running Task's collision handling, give a blocking action a timeout, close an 'If' or 'For' that is never closed, point a broken 'Goto' at a label the Task actually carries, and delete a Task nothing in the file runs. You first choose which kinds of finding to fix, so only those are scanned for and listed. Every repair is listed with what it would change before anything is done, you tick only the ones you want, and however many you make it is one press of Undo afterwards.
 
 **Hover text:** Repair the Health Check findings that have an obvious fix: set a long Task's collision handling, give a blocking action a timeout, close an 'If' that is never closed, point a broken 'Goto' at a label that exists, delete a Task nothing runs. Everything is shown before anything is done, you tick what you want, and the whole lot is one press of Undo afterwards.
 
@@ -798,7 +798,7 @@ Write the object out to a standalone XML file of your choosing.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Add Profile Buttons; Build; Buttons (and 5 more)
+**Where:** Add Profile Buttons; Build; Buttons (and 6 more)
 
 Write the entire configuration to a new, timestamped file beside the loaded one.
 
