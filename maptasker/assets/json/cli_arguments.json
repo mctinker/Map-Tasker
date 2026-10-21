@@ -39,15 +39,15 @@
     {"names": ["-debug"], "help": "Print and log debug information", "action": "store_true"},
     {"names": ["-detail"], "help": ["Level of detail to display:", "   0 = display simple Project/Profile/Task/Scene names only with no details", "   1 = display all Task action details for unknown Tasks only", "   2 = display full Task action name on every Task", "   3 = display full Task action details on every Task with action details", "   4 = detail level 3 plus global variables", "   5 = detail level 4 plus Scene element UI details (default).", "   Example: '-detail 2' for Task action names only", ""], "choices": [0, 1, 2, 3, 4, 5], "nargs": 1, "default": 3, "required": false, "type": "int"},
     {"names": ["-directory"], "help": "Display a directory of hotlinks for all Projects/Profiles/Tasks/Scenes.", "action": "store_true"},
-    {"names": ["-e", "-everything"], "help": [" Display everything: full detail, Profile/Task conditions,", "TaskerNet information, directory, etc..", ""], "action": "store_true", "group": "everything"},
+    {"names": ["-e", "-everything"], "dest": "e", "help": [" Display everything: full detail, Profile/Task conditions,", "TaskerNet information, directory, etc..", ""], "action": "store_true", "group": "everything"},
     {"names": ["-file"], "help": [" Directory and file name of Tasker XML file to analyze.", "Example: -file ~/Downloads/backup.xml", ""], "nargs": 1, "required": false},
     {"names": ["-font"], "help": [" Name of monospaced font to use in output (default = 'Courier').", "Enter font name of 'help' for a list of valid fonts.", ""], "nargs": 1, "required": false, "type": "font"},
-    {"names": ["-g", "-gui"], "help": ["Prompt for (these) settings via the graphical user interface (GUI):", "   This argument overrides all other arguments.", ""], "action": "store_true"},
-    {"names": ["-i", "-indent"], "help": "Number of spaces to indent Task If/Then/Else Actions (default = 4)", "nargs": 1, "default": 4, "required": false, "type": "indent"},
+    {"names": ["-g", "-gui"], "dest": "g", "help": ["Prompt for (these) settings via the graphical user interface (GUI):", "   This argument overrides all other arguments.", ""], "action": "store_true"},
+    {"names": ["-i", "-indent"], "dest": "i", "help": "Number of spaces to indent Task If/Then/Else Actions (default = 4)", "nargs": 1, "default": 4, "required": false, "type": "indent"},
     {"names": ["-guiview"], "hidden": true, "action": "store_true"},
     {"names": ["-view_limit"], "hidden": true, "required": false, "type": "view_limit", "metavar": "LIMIT"},
     {"names": ["-names"], "help": ["Display all Projects/Profiles/Tasks/Scenes in bold, underlined, italicized and/or highlighted text.", "   Example: names underline italicize", ""], "choices": ["bold", "highlight", "underline", "italicize"], "nargs": "+", "default": "", "required": false},
-    {"names": ["-o", "-outline"], "help": [" Display configuration outline of Projects, Profiles, Tasks and Scenes, and", "display the configuraion Map (MapTasker_map.txt) in the default text editor\"", ""], "action": "store_true"},
+    {"names": ["-o", "-outline"], "dest": "o", "help": [" Display configuration outline of Projects, Profiles, Tasks and Scenes, and", "display the configuraion Map (MapTasker_map.txt) in the default text editor\"", ""], "action": "store_true"},
     {"names": ["-outdir"], "help": [" Folder to write reports, exports and the Map/Diagram files to", "(default = a MapTasker folder in your Documents folder).", "    Example: -outdir ~/MapTasker_Reports", ""], "nargs": 1, "required": false},
     {"names": ["-preferences"], "help": "Display Tasker preferences", "action": "store_true"},
     {"names": ["-pretty"], "help": "Make output prettier (one argument/parameter per line)", "action": "store_true"},
@@ -59,8 +59,8 @@
     {"names": ["-runtime"], "help": "Display all runtime arguments/settings at the top of the output.", "action": "store_true"},
     {"names": ["-taskernet"], "help": "Display any TaskerNet information for Projects/Profiles.", "action": "store_true"},
     {"names": ["-twisty"], "help": "Hide Task's details under 'twisty' ➤. Click on twisty to display details.", "action": "store_true", "group": "everything"},
-    {"names": ["-v", "-version"], "help": "Display the program version and license information.", "action": "store_true"},
+    {"names": ["-v", "-version"], "dest": "v", "help": "Display the program version and license information.", "action": "store_true"},
     {"expand": "colors", "group": "color"},
-    {"names": ["-ch", "-colorhelp"], "help": "Display a list of valid color names.", "action": "store_true", "group": "color"}
+    {"names": ["-ch", "-colorhelp"], "dest": "ch", "help": "Display a list of valid color names.", "action": "store_true", "group": "color"}
   ]
 }

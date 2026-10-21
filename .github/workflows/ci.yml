@@ -25,7 +25,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         # pyproject requires-python = ">=3.11, <4.0"
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
         # One Windows job, on the newest Python: enough to catch path, drive-letter and
         # per-user-folder differences (outdir's Documents folder, apikeys' %APPDATA%)
         # without tripling the matrix.

@@ -111,3 +111,21 @@ def test_runtime_parser_reads_the_command_line(monkeypatch: pytest.MonkeyPatch) 
 
     assert args.debug is True
     assert args.detail == [4]
+
+
+@pytest.mark.parametrize(
+    ("short", "long"),
+    [("e", "everything"), ("g", "gui"), ("i", "indent"), ("o", "outline"), ("v", "version"), ("ch", "colorhelp")],
+)
+def test_an_option_with_two_spellings_is_read_under_its_short_name_on_every_python(short: str, long: str) -> None:
+    """Python 3.15 names an option after its longest single-dash spelling, not its first.
+
+    The program reads args.e, args.g and so on, so on 3.15 -everything and the rest were silently
+    ignored until the table said which name to use.  Either spelling sets the one attribute.
+    """
+    value = ["4"] if short == "i" else []
+    for spelling in (f"-{short}", f"-{long}"):
+        args = _parse(spelling, *value)
+        assert hasattr(args, short)
+        assert not hasattr(args, long) or long == short
+        assert getattr(args, short)

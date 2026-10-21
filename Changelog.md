@@ -2,25 +2,25 @@
 
 All notable changes to this project will be documented in this file!
 
-## [15.0.1] 21-Oct-2026
+## [15.0.2] ??-Oct-2026  # FIX
 
 ### Added
 
-- Added: Fix Findings now prompts for the specific categories of Health Check 'findings' to fix, allowing you to selectively fix only certain categories.
+- Added: Python 3.15 is now supported.
+- Added:
 
 ### Changed
 
-- Changed: Fix Findings now says "There is nothing to fix." when the scan finds nothing, instead of showing a list of unusable tick boxes. Kinds of finding excluded in the Health Check settings are named as unavailable.
-- Changed: The Refactor window now has a Save To Current File button, so the refactors you apply can be saved to a new copy of your file instead of living only in memory. The window also stays open after Apply, so you can save straight away.
+- Changed:
 
 ### Removed
 
-- Removed: Nothing removed
+- Removed:
 
 ### Fixed
 
-- Fixed: After deleting a Project, Profile, Task or Scene, you can now save the deletion to a new copy of your file. The Edit window that held the Save To Current File button closes on delete, so a small window with that button now appears in its place.
-- Fixed: Closing the Edit Scene window now releases everything the Scene designer had built. Previously each Edit Scene you opened stayed in memory until MapTasker was restarted.
+- Fixed: Options with a short and a long spelling, such as -e and -everything, were read under the wrong name on Python 3.15, so they were ignored. Each is now read under the same name on every Python version.
+- Fixed:
 
 
 ### Known Issues
@@ -35,6 +35,14 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
 
 ## Older History Logs
+
+## [15.0.1] 21-Oct-2026
+
+- Added: Fix Findings now prompts for the specific categories of Health Check 'findings' to fix, allowing you to selectively fix only certain categories.
+- Changed: Fix Findings now says "There is nothing to fix." when the scan finds nothing, instead of showing a list of unusable tick boxes. Kinds of finding excluded in the Health Check settings are named as unavailable.
+- Changed: The Refactor window now has a Save To Current File button, so the refactors you apply can be saved to a new copy of your file instead of living only in memory. The window also stays open after Apply, so you can save straight away.
+- Fixed: After deleting a Project, Profile, Task or Scene, you can now save the deletion to a new copy of your file. The Edit window that held the Save To Current File button closes on delete, so a small window with that button now appears in its place.
+- Fixed: Closing the Edit Scene window now releases everything the Scene designer had built. Previously each Edit Scene you opened stayed in memory until MapTasker was restarted.
 
 ## [15.0.0] 19-Oct-2026
 
