@@ -168,6 +168,7 @@ ARGUMENT_NAMES = {
     "bold": "Bold Names",
     "close_tabs_on_exit": "Close Tabs on Exit",
     "open_view_in_new_window": "Open View In New Window",
+    "prebuild_map": "Pre-Build The Map",
     "conditions": "Display Project/Profile/Task Conditions",
     "debug": "Debug Mode",
     "directory": "Display Directory",

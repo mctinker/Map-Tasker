@@ -116,6 +116,7 @@ class ArgumentFields:
     # --- GUI window behavior ---------------------------------------------------------
     close_tabs_on_exit: bool = False  # Close the browser tabs when MapTasker exits
     open_view_in_new_window: bool = False  # Open the Map/Diagram/Tree view in a new window
+    prebuild_map: bool = False  # Build the Map in the background once a file is loaded
 
     # --- How we were invoked ---------------------------------------------------------
     gui: bool = False  # Use the GUI for the runtime and color options

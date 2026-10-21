@@ -187,6 +187,35 @@ def remember(path: str, output_lines: int, built_from: tuple[str, str]) -> None:
     _remembered.value = (built_from[0], built_from[1], _same_path(path), identity, output_lines)
 
 
+def settle(path: str, now: tuple[str, str]) -> bool:
+    """Say that the Map at `path`, just built, is the Map a request made right now would be given.
+
+    A first build settles the configuration as it goes, and edits the settings in passing (see
+    digests()), so a request made after it -- taken against the configuration and the settings as
+    they now stand -- never matches the record made against the ones it started from, and the
+    second Map of a session is built for nothing.  That is right for a build someone is waiting
+    on: its output is whatever the first one made.  It wastes a build made ahead of time, whose
+    whole point is that the first request after it finds it.
+
+    So the caller that built ahead of time says so, and gives the digests a request would take
+    now, which is what the record is moved to.  The caller owns two things that make that true:
+    that the settings are what a request would take (the window's own, read again), and that
+    nothing edited the configuration while the build ran, since an edit and the settling look the
+    same to a digest.
+
+    :param path: where the Map was written
+    :param now: what a request made now would be built from (digests)
+    :return: True if the record was moved, False if there was no record of this Map to move
+    """
+    if _remembered.value is None:
+        return False
+    _, _, remembered_path, identity, lines = _remembered.value
+    if remembered_path != _same_path(path) or identity != _file_identity(path):
+        return False
+    _remembered.value = (now[0], now[1], remembered_path, identity, lines)
+    return True
+
+
 def is_current(path: str, wanted: tuple[str, str]) -> bool:
     """Is the Map at `path` the one that building `wanted` would produce?"""
     if _remembered.value is None:

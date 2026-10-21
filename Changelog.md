@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file!
 ### Added
 
 - Added: Python 3.15 is now supported.
+- Added: A 'Pre-Build The Map' checkbox under 'Open View In New Window' builds the Map in the background as soon as a file is loaded and whenever you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once. It is off by default, and a Map button pressed while it is still building waits for it.
 - Added:
 
 ### Changed

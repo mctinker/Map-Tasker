@@ -311,6 +311,15 @@ MONITOR_HELP_TEXT = (
     " for the lights, and Tasker running with the HTTP Server Example project active.  Closing it stops the"
     " monitoring.  Nothing on the device is changed but the helper Task.  \n"
 )
+PREBUILD_HELP_TEXT = (
+    "* Pre-Build The Map: Build the Map in the background as soon as a file has been loaded, and again each time you"
+    " choose a different single Project, Profile, Task or Scene (or go back to none), so that the Map button"
+    " has nothing left to do and the Map opens at once.  It builds only while nothing else is being shown, and with"
+    " the settings the window holds then: change one of them (or edit the configuration) before pressing Map and the"
+    " Map is built again, as it would have been without this.  Pressing Map or Diagram while it is still building"
+    " waits for it to finish.  Off by default, because it uses the computer for a few seconds after every file is"
+    " loaded or item chosen, whether or not you go on to ask for the Map.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -340,5 +349,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}"
     )

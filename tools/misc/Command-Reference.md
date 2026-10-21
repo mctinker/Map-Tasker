@@ -4,9 +4,9 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **88** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **89** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.0.1 source on 2026-10-21 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.0.2 source on 2026-10-21 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -70,6 +70,7 @@ _Generated from the MapTasker 15.0.1 source on 2026-10-21 by `build_command_wiki
 * [Notification Duration](#cmd-notification-duration)
 * [Open View In New Window](#cmd-open-view-in-new-window)
 * [Output Folder](#cmd-output-folder)
+* [Pre-Build The Map](#cmd-pre-build-the-map)
 * [Project/Profile/Task/Scene Names](#cmd-project-profile-task-scene-names)
 * [Refactor > Variable](#cmd-refactor-variable)
 * [Report Issue](#cmd-report-issue)
@@ -1274,6 +1275,16 @@ Watch which Profiles and Tasks fire on your Android device as they do.
 * Nothing on the device is changed but the helper Task.
 
 **Hover text:** Watch which Profiles and Tasks fire on your Android device as they do, and see them light up in the Diagram. Compare what the device really has active with what What Fires When predicted for the same moment. It samples several times a second, so a Task that runs for a moment can be missed. Nothing on the device is changed but one small helper Task.
+
+<a id="cmd-pre-build-the-map"></a>
+### Pre-Build The Map
+
+**Type:** Option  
+**Where:** Main Window
+
+Build the Map in the background as soon as a file has been loaded, and again each time you choose a different single Project, Profile, Task or Scene (or go back to none), so that the Map button has nothing left to do and the Map opens at once. It builds only while nothing else is being shown, and with the settings the window holds then: change one of them (or edit the configuration) before pressing Map and the Map is built again, as it would have been without this. Pressing Map or Diagram while it is still building waits for it to finish. Off by default, because it uses the computer for a few seconds after every file is loaded or item chosen, whether or not you go on to ask for the Map.
+
+**Hover text:** When enabled, the Map is built in the background as soon as a file has been loaded, and again each time you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once. When disabled, the Map is built when you ask for it. Pressing Map or Diagram while it is still building waits for it to finish. Changing a setting, or editing the configuration, before you press Map means it is built again. It uses the computer for a few seconds after each file is loaded or item chosen, whether or not you go on to ask for the Map.
 
 ## Command-Line Arguments
 

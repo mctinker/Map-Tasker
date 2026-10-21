@@ -340,3 +340,75 @@ def test_an_edited_configuration_is_built_again(tmp_path) -> None:
     rebuilt_mtime, _ = _build_a_map(tmp_path)
 
     assert rebuilt_mtime != settled_mtime, "an edited configuration was shown the old Map"
+
+
+# ##################################################################################
+# A Map built ahead of time: the very next request is the one that must find it.
+# ##################################################################################
+@pytest.mark.usefixtures("_a_real_configuration")
+def test_a_map_built_ahead_of_time_is_found_by_the_first_request(tmp_path) -> None:
+    """Without settle() the request after the first build builds again; with it, it is the third that waited for nothing."""
+    first_mtime, first_lines = _build_a_map(tmp_path)
+    assert mapcache.settle(str(tmp_path / "MapTasker.html"), mapcache.digests(state=PrimeItems))
+
+    second_mtime, second_lines = _build_a_map(tmp_path)
+
+    assert second_mtime == first_mtime, "the Map built ahead of time was built again when asked for"
+    assert second_lines == first_lines
+
+
+@pytest.mark.usefixtures("_a_real_configuration")
+def test_a_request_is_still_built_when_the_map_was_not_built_ahead_of_time(tmp_path) -> None:
+    """The cost the feature removes: the second build of a session is a real one."""
+    first_mtime, _ = _build_a_map(tmp_path)
+
+    second_mtime, _ = _build_a_map(tmp_path)
+
+    assert second_mtime != first_mtime
+
+
+@pytest.mark.usefixtures("_a_real_configuration")
+def test_an_edit_after_a_map_built_ahead_of_time_is_built_again(tmp_path) -> None:
+    """Settling vouches for the configuration the build left, not for whatever comes after."""
+    first_mtime, _ = _build_a_map(tmp_path)
+    mapcache.settle(str(tmp_path / "MapTasker.html"), mapcache.digests(state=PrimeItems))
+
+    task = next(iter(PrimeItems.tasker_root_elements["all_tasks"].values()))
+    task["name"] = f"{task['name']} (edited)"
+    rebuilt_mtime, _ = _build_a_map(tmp_path)
+
+    assert rebuilt_mtime != first_mtime
+
+
+def test_there_is_nothing_to_settle_before_a_map_has_been_remembered(tmp_path) -> None:
+    assert not mapcache.settle(_map_file(tmp_path), mapcache.digests(state=PrimeItems))
+
+
+def test_a_map_file_that_has_been_written_to_since_is_not_settled(tmp_path) -> None:
+    path = _map_file(tmp_path)
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
+    _map_file(tmp_path, "<html>something else wrote this</html>")
+
+    assert not mapcache.settle(path, mapcache.digests(state=PrimeItems))
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
+
+
+def test_a_different_file_is_not_settled(tmp_path) -> None:
+    path = _map_file(tmp_path)
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
+    other = tmp_path / "Other.html"
+    other.write_text("x", encoding="utf-8")
+
+    assert not mapcache.settle(str(other), mapcache.digests(state=PrimeItems))
+
+
+def test_settling_keeps_the_settings_the_map_was_built_from(tmp_path) -> None:
+    """A changed setting is still a different Map, settled or not."""
+    path = _map_file(tmp_path)
+    mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
+    assert mapcache.settle(path, mapcache.digests(state=PrimeItems))
+    assert mapcache.is_current(path, mapcache.digests(state=PrimeItems))
+
+    PrimeItems.program_arguments.font = "Arial"
+
+    assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))

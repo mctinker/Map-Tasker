@@ -354,6 +354,8 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
 # to remember to refresh these buttons.  Asking sessundo four times a second costs two list
 # lookups and cannot be forgotten.
 UNDO_BUTTONS_POLL_SECONDS = 0.25
+# How often the Pre-Build The Map checkbox looks for a configuration that has just been loaded.
+PREBUILD_POLL_SECONDS = 1.0
 
 
 def build_edit_history_dialog(state: RunState) -> None:
@@ -2507,6 +2509,7 @@ def _initialize_feature_flags(self: MyGui) -> None:
     self.save = False
     self.close_tabs_on_exit = False
     self.open_view_in_new_window = False
+    self.prebuild_map = False
     # The Save To Android panels' checkboxes.  Set here because every whole-settings save reads
     # each ARGUMENT_NAMES entry straight off the GUI, and a missing one would stop the save.
     self.android_verify = False
@@ -2871,6 +2874,29 @@ def _create_execution_section(self: MyGui) -> None:
                 "it gets opened once the view has finished building rather than the instant you click.",
             ),
         ).style("white-space: pre-wrap")
+
+    self.prebuild_map_checkbox = (
+        ui.checkbox(translate_string("Pre-Build The Map"))
+        .bind_value(self, "prebuild_map")
+        .props("dense")
+        .classes("text-xs mt-0")
+        .style("margin-top:-6px")
+    )
+    with self.prebuild_map_checkbox:
+        ui.tooltip(
+            translate_string(
+                "When enabled, the Map is built in the background as soon as a file has been loaded, and "
+                "again each time you choose a different single Project, Profile, Task or Scene, so "
+                "the Map button opens it at once.\n\nWhen disabled, the Map is built when you ask for it.\n\n"
+                "Pressing Map or Diagram while it is still building waits for it to finish.  Changing a "
+                "setting, or editing the configuration, before you press Map means it is built again.  "
+                "It uses the computer for a few seconds after each file is loaded or item chosen, whether "
+                "or not you go on to ask for the Map.",
+            ),
+        ).style("white-space: pre-wrap")
+    # Looks every moment or two for a configuration it has not yet built the Map of -- a file
+    # that has just been loaded, however it was: the file picker, the Android fetch, Undo.
+    ui.timer(PREBUILD_POLL_SECONDS, self.event_handlers.prebuild_tick)
 
 
 def _create_view_buttons_section(self: MyGui) -> None:

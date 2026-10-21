@@ -128,6 +128,7 @@ from maptasker.src.gui.userintr_editors import (
     show_save_in_progress_notice,
 )
 from maptasker.src.gui.userintr_loading import LoadingEventHandlers
+from maptasker.src.gui.userintr_prebuild import PrebuildEventHandlers
 from maptasker.src.gui.userintr_reports import ReportEventHandlers
 from maptasker.src.gui.userintr_settings import SettingsEventHandlers
 from maptasker.src.mapgen.bildhtml import build_html
@@ -338,6 +339,7 @@ class MyGui:
     notify_timeout_label: ui.label
     notify_timeout_optionmenu: ui.select
     open_view_in_new_window_checkbox: ui.checkbox
+    prebuild_map_checkbox: ui.checkbox
     picker_dialog: ui.dialog
     picker_engine: ui.color_picker
     picker_title_label: ui.label
@@ -407,6 +409,7 @@ class MyGui:
     guiview: bool
     map_in_progress: bool
     open_view_in_new_window: bool
+    prebuild_map: bool
     reset_debug_at_end: bool
     scene_editor_session: dict | None
     textview: Any
@@ -1611,6 +1614,7 @@ class MapTaskerEventHandlers(
     AndroidEventHandlers,
     EditorEventHandlers,
     LoadingEventHandlers,
+    PrebuildEventHandlers,
     ReportEventHandlers,
     SettingsEventHandlers,
 ):
@@ -1660,9 +1664,55 @@ class MapTaskerEventHandlers(
         """
         # max_limit = 9999999
         window_title = f"{view_type.capitalize()} View"
+
+        # A Map being built ahead of time (see userintr_prebuild) is using the run state this
+        # view is about to rewrite -- the output lines, the totals, the settings -- so this waits
+        # for it, before it touches any of them.  What it waits for is most of what pressing Map
+        # would have done, and the Map is there when it is over.
+        if self.prebuild_running():
+            waiting = _busy_banner(
+                f"{translate_string('Building the')} {window_title}.  {translate_string('Please stand by ...')}",
+            )
+            try:
+                await self.wait_for_prebuild()
+            finally:
+                _clear_busy_banner(waiting)
+
         self.gui.event = True  # Set the event flag to True
         logger.info(f"GUI: Switching to {window_title}")
 
+        self.get_ready_to_build(overrides)
+
+        # Counted so that nothing is built ahead of time while this is built for real.
+        with self.view_in_progress():
+            await self._show_the_view(view_type, window_title, goto)
+
+    async def _show_the_view(self: "MapTaskerEventHandlers", view_type: str, window_title: str, goto: str) -> None:
+        """Build the view asked for and open it."""
+        # Map view
+        if view_type == "map":
+            await self._view_map(window_title, goto)
+
+        # Setup diagram view.
+        elif view_type in ("diagram", "misc"):
+            if view_type == "diagram":
+                await self._view_diagram()
+            else:
+                self._view_misc()
+
+        elif view_type == "tree":
+            self._view_tree()
+        else:
+            self._view_invalid()
+
+    def get_ready_to_build(self: "MapTaskerEventHandlers", overrides: dict | None) -> None:
+        """Put the run state in the condition every Map, Diagram and Tree build starts from.
+
+        What view_event does before it builds, and what a Map built ahead of time does too --
+        which is why it is one thing: the settings a build takes are part of what the Map is
+        remembered by (see mapcache), so a Map built ahead of time is only found by a press if the
+        two took them the same way.  See view_event for 'overrides'.
+        """
         gui = self.gui
         self.state.view_limit = gui.view_limit if hasattr(gui, "view_limit") else VIEW_LIMIT_DEFAULT
 
@@ -1704,22 +1754,6 @@ class MapTaskerEventHandlers(
         #    no mapjump anchors at all and a clicked finding has nothing to land on.
         #  - task_action_warnings: the "too many actions" list, accumulated the same way.
         reset_attributes(*MAP_OUTPUT_ATTRIBUTES)
-
-        # Map view
-        if view_type == "map":
-            await self._view_map(window_title, goto)
-
-        # Setup diagram view.
-        elif view_type in ("diagram", "misc"):
-            if view_type == "diagram":
-                await self._view_diagram()
-            else:
-                self._view_misc()
-
-        elif view_type == "tree":
-            self._view_tree()
-        else:
-            self._view_invalid()
 
     async def _view_map(self: "MapTaskerEventHandlers", window_title: str, goto: str) -> None:
         """Build the Map and open it in a window of its own."""
