@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import functools
 import ipaddress
 import os
 import re
@@ -234,33 +235,24 @@ def reset_named_objects(state: RunState) -> None:
             return
 
 
+@functools.lru_cache(maxsize=16)
+def _repeats_of(substr: str) -> re.Pattern[str]:
+    """The pattern that finds a stretch of `substr` repeated back to back, as long a stretch as there is."""
+    return re.compile(f"(?:{re.escape(substr)})+")
+
+
 # Count the number of consecutive occurrences of a substring within a main string.
 def count_consecutive_substr(main_str: str, substr: str) -> int:
     """
     Count the maximum consecutive occurrences of 'substr' inside 'main_str'.
-    Highly optimized: performs a single linear scan with no repeated .find() calls.
+
+    Asked once for every action in the configuration, of an indentation spelled in "&nbsp;"s, so
+    the scan is the regular expression engine's rather than a loop of our own.
     """
     if not main_str or not substr:
         return 0
 
-    sub_len = len(substr)
-    max_count = 0
-    count = 0
-
-    i = 0
-    end = len(main_str)
-
-    while i <= end - sub_len:
-        # Direct substring match without slicing
-        if main_str.startswith(substr, i):
-            count += 1
-            i += sub_len
-        else:
-            max_count = max(max_count, count)
-            count = 0
-            i += 1
-
-    return max(max_count, count)
+    return max(map(len, _repeats_of(substr).findall(main_str)), default=0) // len(substr)
 
 
 def pretty(d: dict, indent: int = 0) -> None:

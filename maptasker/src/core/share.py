@@ -62,10 +62,13 @@ def share(root_element: Element, tab: str, where: Target | None = None, *, confi
             FormatLine.dont_format_line,
         )
 
-        # Now get rid of the last duplicate <br> lines at the bottom of the output.
-        for num, item in reversed(
-            list(enumerate(state.output_lines.output_lines)),
-        ):
+        # Now get rid of the last duplicate <br> lines at the bottom of the output.  Walked
+        # back by position: the loop stops at the first thing it recognises, usually within
+        # a few lines of the end, so a copy of every line of the output so far -- which is
+        # what enumerating a list of it made, on every call -- is a cost that grows with the Map.
+        lines = state.output_lines.output_lines
+        for num in range(len(lines) - 1, -1, -1):
+            item = lines[num]
             if "TaskerNet description:" in item:
                 break
             if item == "<br>" and state.output_lines.output_lines[num - 1] == "<br>":

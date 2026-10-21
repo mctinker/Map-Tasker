@@ -5,7 +5,7 @@ and everything they draw with.  What is here:
 
   * The three view classes.
   * What the text view streams its content through -- the HTML clean-up applied to the
-    Map file (HTML_OPTIMIZE_PATTERN) and the splitter that cuts it into socket-sized
+    Map file (optimize_map_html, which does what HTML_OPTIMIZE_PATTERN says) and the splitter that cuts it into socket-sized
     chunks without leaving an element open across a cut (split_for_streaming).
   * The Diagram's own drawing: connector spans, line wrapping, and its toolbar.
   * The toolbar's scope badge, and the Scene editor session -- the hand-off that lets the
@@ -224,9 +224,84 @@ def optimize_html(match: re.Match) -> str:
     return HTML_REPLACEMENT_MAP[match.group(0)]
 
 
+# The pieces HTML_OPTIMIZE_PATTERN is made of, taken one at a time -- see optimize_map_html.
+TAG_THEN_NEWLINES = re.compile(r">[ \t]*[\r\n]+")
+NEWLINES_THEN_TAG = re.compile(r"[\r\n]+[ \t]*(?=<)")
+SEVERAL_NEWLINES = re.compile(r"[\r\n]{2,}")
+
+# What a browser makes of "&nbsp;", written as the character itself.
+NO_BREAK_SPACE = "\u00a0"
+
+
+def _join_lines_next_to_tags(text: str) -> str:
+    """What NEWLINES_THEN_TAG and SEVERAL_NEWLINES do to `text`, in one pass over its lines.
+
+    Both are scans for a newline, and the Map has a hundred thousand of them in twenty
+    megabytes of text, so the regular expressions spent their time looking.  str.split finds
+    the same newlines at the speed of memchr; what is left is a loop over the lines.
+
+    Only for text without a carriage return, which the Map has none of -- the caller sends
+    anything else to the regular expressions.
+
+    :param text: the Map's html, with the newlines that follow a tag already gone
+    :return: the text with every newline that precedes a tag gone, and each other run of newlines
+        down to one
+    """
+    lines = text.split("\n")
+    kept = [lines[0]]
+    pending = False  # newlines seen since the last line that had something on it
+    for line in lines[1:]:
+        pending = True
+        if not line:
+            continue
+        pending = False
+        # A newline that touches a tag goes, along with the white space between them;
+        # anything else is the author's own and stays, as the one line break it asks for.
+        stripped = line.lstrip(" \t")
+        if stripped.startswith("<"):
+            kept.append(stripped)
+        else:
+            kept.append("\n")
+            kept.append(line)
+    if pending:
+        kept.append("\n")
+    return "".join(kept)
+
+
+def optimize_map_html(text: str) -> str:
+    """Make the Map file ready for the browser: HTML_OPTIMIZE_PATTERN's changes, and shorter spaces.
+
+    The text this returns is the text HTML_OPTIMIZE_PATTERN.sub(optimize_html, text) returns,
+    with the indentation's "&nbsp;"s written as the character they stand for.  Two reasons for
+    each change, and both are about how long a large Map takes to appear:
+
+      * The pattern is an alternation that starts with a look-behind, which leaves the regular
+        expression engine no character to search for, so it tried every position of twenty
+        megabytes: over a second.  Cut into its three pieces, each with a character to look
+        for, and with the newlines left to str.split, the same changes take about a tenth of it.
+
+      * Sixty percent of the Map is "&nbsp;" -- its indentation is spelled that way, at six
+        bytes a space.  The character itself is two bytes, and is what the browser makes of the
+        entity, so the page that comes of it is the same one, from half the text to send and
+        to parse: the Map reaches the screen in about half the time.
+
+    :param text: the Map's html, as it was written
+    :return: the html to hand to the browser
+    """
+    for heading, replacement in HTML_REPLACEMENT_MAP.items():
+        text = text.replace(heading, replacement)
+    text = TAG_THEN_NEWLINES.sub(">", text)
+    if "\r" in text:
+        text = SEVERAL_NEWLINES.sub("\n", NEWLINES_THEN_TAG.sub("", text))
+    else:
+        text = _join_lines_next_to_tags(text)
+    return text.replace("&nbsp;", NO_BREAK_SPACE)
+
+
 # How the Map is cut up for the browser (see split_for_streaming).
 #
-# 256KB a piece, which on a large configuration is of the order of a hundred pieces: small
+# 256KB a piece, which on a large configuration is of the order of fifty pieces (the Map has
+# had its "&nbsp;"s shortened by then, see optimize_map_html): small
 # enough that the browser can put the top of the Map on screen while the rest is still
 # arriving, and few enough that the per-piece cost -- an element, a websocket message and
 # the tags re-stated across the cut -- stays in the noise.
@@ -291,7 +366,7 @@ def split_for_streaming(html: str, budget: int = STREAM_CHUNK_BYTES) -> list[str
     """Cut the Map into pieces the browser can render one at a time.
 
     WHY THIS IS NOT A SPLIT ON LINES.  It was, and the line it split on had already been
-    taken out.  The view splits the file after HTML_OPTIMIZE_PATTERN has run over it, and
+    taken out.  The view splits the file after optimize_map_html has run over it, and
     what that pattern removes is precisely the newline between one tag and the next -- so
     a Map of twenty megabytes arrived here as a couple of hundred "lines" and left as a
     single piece.  One element holding the whole Map is the worst shape it could be in:
@@ -1959,7 +2034,7 @@ class NiceGuiTextView(TextViewSearch):
                 # clicking a connector highlights the right one -- so skip the HTML-specific/blank-line
                 # collapsing optimizations here; they aren't meaningful for plain text anyway.
                 if not is_diagram:
-                    final_html = HTML_OPTIMIZE_PATTERN.sub(optimize_html, final_html)
+                    final_html = optimize_map_html(final_html)
 
             html_style = self._style_for_file_font(final_html, is_diagram)
             chunks, diagram_model, connectors_by_line = self._chunk_view_html(final_html, is_diagram)

@@ -11,6 +11,7 @@ where that is the point, and the properties that must hold for any input where i
 from __future__ import annotations
 
 import inspect
+import random
 import re
 from types import SimpleNamespace
 
@@ -31,6 +32,7 @@ from maptasker.src.gui.guiwins_views import (
     _StyleCollector,
     _wrap_diagram_line,
     optimize_html,
+    optimize_map_html,
     scope_badge_text,
     split_for_streaming,
     view_theme_colors,
@@ -62,6 +64,41 @@ def test_the_two_headings_are_swapped_for_the_smaller_ones_the_view_uses() -> No
     directory = '<h2><span class="normtab"></span>Directory</h2>'
     assert _optimized(directory) == '<h6><span class="normtab"></span>Directory</h6>'
     assert _optimized("<h2>Something else</h2>") == "<h2>Something else</h2>"
+
+
+def _the_pattern_then_shorter_spaces(html: str) -> str:
+    """The definition of optimize_map_html: what the pattern does, and then the entity written as its character."""
+    return _optimized(html).replace("&nbsp;", "\u00a0")
+
+
+def test_the_fast_clean_up_is_the_pattern_with_shorter_spaces() -> None:
+    samples = [
+        "",
+        "\n",
+        "a\n\n",
+        "\n<b>x</b>",
+        "<div>one</div>\n<div>two</div>\n",
+        "<b>text</b>  \r\n<i>next</i>",
+        "first\n\n\nsecond",
+        "a\n \n<b>",
+        "<h2>MapTasker</h2>\n<br>&nbsp;&nbsp;&nbsp;Task\n&nbsp;",
+        '<h2><span class="normtab"></span>Directory</h2>\n\n',
+    ]
+    for sample in samples:
+        assert optimize_map_html(sample) == _the_pattern_then_shorter_spaces(sample), repr(sample)
+
+
+def test_the_fast_clean_up_agrees_with_the_pattern_on_any_mix_of_text_tags_and_newlines() -> None:
+    pieces = ["a", "\n", "\r\n", " ", "\t", "<b>", "</b>", ">", "<", "&nbsp;", "<h2>MapTasker</h2>", "\r", "word"]
+    chooser = random.Random(20261021)
+    for _ in range(20000):
+        sample = "".join(chooser.choice(pieces) for _ in range(chooser.randint(1, 14)))
+        assert optimize_map_html(sample) == _the_pattern_then_shorter_spaces(sample), repr(sample)
+
+
+def test_the_indentation_is_written_as_the_character_a_browser_makes_of_the_entity() -> None:
+    assert optimize_map_html("<b>&nbsp;&nbsp;&nbsp;x</b>") == "<b>\u00a0\u00a0\u00a0x</b>"
+    assert "&nbsp;" not in optimize_map_html("&nbsp;" * 50)
 
 
 # ##################################################################################
