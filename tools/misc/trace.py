@@ -1,3 +1,6 @@
+import os
+import sys
+
 # Define the output file for the trace log
 TRACE_LOG_FILE = "trace_log.txt"
 
@@ -76,6 +79,5 @@ def my_trace_function(frame, event, arg):
     return my_trace_function
     
 # --- Start Tracing Here ---
-global start_tracing
 start_tracing = True
 sys.settrace(my_trace_function)  # Activate the trace function
