@@ -246,13 +246,11 @@ def _intercept_socket_emit(state: RunState) -> None:
         # Grab your active MyGui instance securely from global state tracking
         my_gui_instance = getattr(state, "mygui", None)
 
-        if my_gui_instance:  # noqa: SIM102
-            # You have full structural access to your MyGui class properties here!
-            # Save program arguments and colors to use in PrimeItems
-            if hasattr(my_gui_instance, "event") and my_gui_instance.event:
-                my_gui_instance.event = False  # Reset the event flag after processing
+        # Save program arguments and colors to use in PrimeItems, once for each change the window flagged.
+        if my_gui_instance and getattr(my_gui_instance, "event", False):
+            my_gui_instance.event = False  # Reset the event flag after processing
 
-                capture_gui_state(my_gui_instance, data or {}, state=state)
+            capture_gui_state(my_gui_instance, data or {}, state=state)
 
         # Always forward execution to the original emitter so the browser communicates!
         await _original_sio_emit(event, data=data, room=room, **kwargs)

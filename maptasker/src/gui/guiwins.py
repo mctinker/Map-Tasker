@@ -3334,20 +3334,22 @@ def _create_main_body(self: MyGui) -> None:
                 _create_analyze_tab_content(self, ui.tab_panel(self.tab_analyze))
 
             # --- TAB 4: ASSISTANCE: help buttons plus the debug aids (MINIMIZED SPACING) ---
-            with ui.tab_panel(self.tab_debug).classes("p-2 m-0") as self.gui_debug_panel:  # noqa: SIM117
-                with ui.column().classes("gap-1"):
-                    _create_help_options_section(self)
-                    self.debug_checkbox = (
-                        ui.checkbox(translate_string("Debug Mode")).bind_value(self, "debug").classes("text-xs")
-                    )
-                    self.runtime_checkbox = (
-                        ui.checkbox(translate_string("Display Runtime Settings"))
-                        .bind_value(self, "runtime")
-                        .classes("text-xs")
-                    )
-                    with ui.row().classes("gap-2 mt-2"):
-                        ui.button(translate_string("Display Log"), on_click=display_notification_log)
-                        ui.button(translate_string("Clear Log"), on_click=clear_notification_log)
+            with (
+                ui.tab_panel(self.tab_debug).classes("p-2 m-0") as self.gui_debug_panel,
+                ui.column().classes("gap-1"),
+            ):
+                _create_help_options_section(self)
+                self.debug_checkbox = (
+                    ui.checkbox(translate_string("Debug Mode")).bind_value(self, "debug").classes("text-xs")
+                )
+                self.runtime_checkbox = (
+                    ui.checkbox(translate_string("Display Runtime Settings"))
+                    .bind_value(self, "runtime")
+                    .classes("text-xs")
+                )
+                with ui.row().classes("gap-2 mt-2"):
+                    ui.button(translate_string("Display Log"), on_click=display_notification_log)
+                    ui.button(translate_string("Clear Log"), on_click=clear_notification_log)
 
         self.content_container = ui.column().classes("w-full max-w-full min-w-0 p-0 m-0 mt-6")
 

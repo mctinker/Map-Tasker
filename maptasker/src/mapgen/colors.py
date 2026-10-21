@@ -54,9 +54,7 @@ def print_list(title: str, parse_items: list) -> None:
 
 
 # Validate the color name provided.  If color name is 'h', simply display all the colors
-# The "h" branch ends in exit_program, which never returns -- but ruff cannot see the
-# NoReturn on it from another module, hence the RET503 exemption.
-def validate_color(the_color: str) -> object:  # noqa: RET503
+def validate_color(the_color: str) -> bool:
     """
     Validate the color name provided.
         If color name is 'h', simply display all the colors and exit.
@@ -83,6 +81,7 @@ def validate_color(the_color: str) -> object:  # noqa: RET503
     # is on screen.  exit_program rather than exit() so the GUI and the test suite survive
     # somebody asking for it (see maputils.exit_program).
     exit_program(0)
+    return False  # Not reached: exit_program does not return.  Said here for readers that cannot see its NoReturn.
 
 
 # Get the runtime option for a color change and set it

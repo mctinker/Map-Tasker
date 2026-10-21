@@ -126,7 +126,7 @@ _APP_CONTEXT = "App"
 
 # How a Time/Day/Location context reads as a facet value.  These carry no code, so unlike
 # an Event or a State there is nothing finer to offer than the kind itself.
-_PLAIN_TRIGGER_LABELS = {
+PLAIN_TRIGGER_LABELS = {
     "Time": "Time",
     "Day": "Day",
     "Loc": "Location",
@@ -562,12 +562,12 @@ def _index_profiles(index: FindIndex, project_of_profile: dict[str, str], scope:
                 index.catalog[TRIGGER][value] += 1
                 settings.extend(_string_arguments(child).values())
             elif child.tag in _TIME_CONTEXTS:
-                value = _PLAIN_TRIGGER_LABELS[child.tag]
+                value = PLAIN_TRIGGER_LABELS[child.tag]
                 record.triggers.append((value, value))
                 index.catalog[TRIGGER][value] += 1
             elif child.tag == _APP_CONTEXT:
                 labels = _app_labels(child)
-                value = _PLAIN_TRIGGER_LABELS[_APP_CONTEXT]
+                value = PLAIN_TRIGGER_LABELS[_APP_CONTEXT]
                 record.triggers.append((value, f"{value}: {', '.join(labels)}" if labels else value))
                 index.catalog[TRIGGER][value] += 1
                 for label in labels:

@@ -333,7 +333,6 @@ def process_sub_elements(
                     f"<br>{blank * 12}Key Event {line_out}<br>",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
-    return  # noqa: PLR1711
 
 
 # Process the Properties ListElementItem element.

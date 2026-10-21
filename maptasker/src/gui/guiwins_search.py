@@ -263,32 +263,34 @@ class TextViewSearch:
             ).classes("text-xs text-gray-500 italic mb-4")
 
             # Create a clear scroll area container for the results rows list matching the active theme font
-            with ui.scroll_area().classes(  # noqa: SIM117
-                "w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded",
+            with (
+                ui.scroll_area().classes(
+                    "w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded",
+                ),
+                ui.column().classes("w-full gap-1"),
             ):
-                with ui.column().classes("w-full gap-1"):
-                    for item in found_items:
-                        # Localized function referencing the cross-linked runtime element reference
-                        def make_jump_callback(target_id: str = item["elementId"]) -> None:
-                            return lambda: (
-                                results_dialog.close(),
-                                client.run_javascript(search_jump_js(target_id)),
-                            )
+                for item in found_items:
+                    # Localized function referencing the cross-linked runtime element reference
+                    def make_jump_callback(target_id: str = item["elementId"]) -> None:
+                        return lambda: (
+                            results_dialog.close(),
+                            client.run_javascript(search_jump_js(target_id)),
+                        )
 
-                        with ui.row().classes(
-                            "w-full items-center py-1 border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-950 px-2 rounded transition-colors",
-                        ):
-                            # Active click hotlink index line label
-                            ui.link(f"Line #{item['lineNumber']}", "#").on(
-                                "click",
-                                make_jump_callback(),
-                            ).classes(
-                                "text-blue-600 dark:text-blue-400 font-bold font-mono text-sm mr-4 shrink-0 decoration-dotted hover:underline",
-                            )
-                            # Text context content preview box
-                            ui.label(item["text"]).classes(
-                                "text-sm font-mono truncate text-gray-800 dark:text-gray-200",
-                            )
+                    with ui.row().classes(
+                        "w-full items-center py-1 border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-950 px-2 rounded transition-colors",
+                    ):
+                        # Active click hotlink index line label
+                        ui.link(f"Line #{item['lineNumber']}", "#").on(
+                            "click",
+                            make_jump_callback(),
+                        ).classes(
+                            "text-blue-600 dark:text-blue-400 font-bold font-mono text-sm mr-4 shrink-0 decoration-dotted hover:underline",
+                        )
+                        # Text context content preview box
+                        ui.label(item["text"]).classes(
+                            "text-sm font-mono truncate text-gray-800 dark:text-gray-200",
+                        )
 
             # Footer window management close control
             with ui.row().classes("w-full justify-end mt-4"):

@@ -7,7 +7,6 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 import atexit
 import sys
-from collections import namedtuple
 from json import dumps, loads
 from pathlib import Path
 
@@ -26,16 +25,6 @@ from maptasker.src.core.sysconst import (
 from maptasker.src.mapgen.frontmtr import output_the_front_matter
 from maptasker.src.mapgen.getbakup import get_backup_file
 from maptasker.src.mapgen.taskerd import get_the_xml_data
-
-# Define the action code fields and arguments.
-ActionCode = namedtuple(  # noqa: PYI024
-    "ActionCode",
-    ("redirect", "args", "name", "category", "canfail"),
-)
-ArgumentCode = namedtuple(  # noqa: PYI024
-    "ArgumentCode",
-    ["arg_id", "arg_required", "arg_name", "arg_type", "arg_eval"],
-)
 
 
 # Use a counter to determine if this is the first time run.

@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import maptasker.src.mapgen.tasks as tasks  # noqa: PLR0402
 from maptasker.src.core.error import error_handler
 from maptasker.src.core.mapjump import TASK, Target, anchor_attribute
 from maptasker.src.core.maputils import (
@@ -23,6 +22,7 @@ from maptasker.src.core.maputils import (
 )
 from maptasker.src.core.share import share
 from maptasker.src.core.sysconst import UNNAMED_ITEM, FormatLine
+from maptasker.src.mapgen import tasks
 from maptasker.src.mapgen.tasks import get_taskid_from_unnamed_task
 
 if TYPE_CHECKING:

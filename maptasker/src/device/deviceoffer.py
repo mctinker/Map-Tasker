@@ -394,7 +394,7 @@ def _build_offer_routes(
     """
     key = label.lower()
 
-    def route(verb: str, builder, hint: str) -> OfferRoute:  # noqa: ANN001
+    def route(verb: str, builder: Callable[..., object], hint: str) -> OfferRoute:
         # v4 since 2026-08-30, when the Open route stopped sending a mime type (see
         # _OPEN_WITH_MIME_TYPE); v3 was the same day, when the staged path stopped being
         # baked in and became %par1.  THE VERSION IN THE NAME IS LOAD-BEARING, and this is

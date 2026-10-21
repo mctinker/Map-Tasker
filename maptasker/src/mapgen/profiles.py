@@ -172,13 +172,13 @@ def remove_substring_and_next(
         if start_index != -1:
             end_index = start_index + len(substring) + chars_to_remove_after
             return main_string[:start_index] + main_string[end_index:]
-        return main_string  # noqa: TRY300
     except IndexError:
         # Handle the case where the substring is at or near the end
         end_index = start_index + len(substring)
         return main_string[:start_index]
     except TypeError:
         return main_string
+    return main_string
 
 
 def delete_non_blank_before_equals(text: str) -> str:

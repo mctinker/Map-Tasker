@@ -5,6 +5,9 @@ These are pure Python functions pulled out to avoid circular imports.
 """
 
 import os
+from collections.abc import Callable
+from types import FrameType
+from typing import cast
 
 import requests
 
@@ -46,7 +49,7 @@ def sort_languages_with_priority(languages: list) -> list:
     return sorted_langs
 
 
-def my_trace_function(frame, event, arg) -> None:  # noqa: ANN001
+def my_trace_function(frame: FrameType, event: str, arg: object) -> Callable[..., object]:
     """
     Custom trace function that logs execution details.
 
@@ -102,7 +105,7 @@ def my_trace_function(frame, event, arg) -> None:  # noqa: ANN001
     elif event == "return":
         log_message = f"RETURN: {os.path.basename(filename)}:{lineno} Exiting function: {func_name}() (Returned: {arg})"
     elif event == "exception":
-        exc_type, exc_value, _ = arg
+        exc_type, exc_value, _ = cast("tuple[type[BaseException], BaseException, object]", arg)
         log_message = (
             f"EXCEPTION: {os.path.basename(filename)}:{lineno} {func_name}() - {exc_type.__name__}: {exc_value}"
         )

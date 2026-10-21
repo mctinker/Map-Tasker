@@ -590,11 +590,6 @@ def get_timezone_from_ip() -> str | None:
         data = response.json()
 
         timezone_name = data.get("timezone")
-        if timezone_name:
-            logger.info(f"Discovered timezone via IP: {timezone_name}")
-            return timezone_name
-        logger.debug("Timezone information not found in IP geolocation data.")
-        return None  # noqa: TRY300
     except requests.exceptions.RequestException as e:
         logger.debug(f"Error connecting to geolocation service or getting data: {e}")
         return None
@@ -604,6 +599,12 @@ def get_timezone_from_ip() -> str | None:
         # decoded list rather than a dict raises AttributeError.
         logger.debug(f"An unexpected error occurred during IP geolocation: {e}")
         return None
+
+    if timezone_name:
+        logger.info(f"Discovered timezone via IP: {timezone_name}")
+        return timezone_name
+    logger.debug("Timezone information not found in IP geolocation data.")
+    return None
 
 
 def get_current_local_time_auto_timezone() -> datetime:
@@ -620,7 +621,6 @@ def get_current_local_time_auto_timezone() -> datetime:
             logger.info(f"\nAutomatically determined current local time: {now_aware}")
             logger.info(f"Timezone info: {now_aware.tzinfo}")
             logger.info(f"Offset from UTC: {now_aware.utcoffset()}")
-            return now_aware  # noqa: TRY300
         except ZoneInfoNotFoundError:
             logger.debug(
                 f"Error: Discovered timezone '{timezone_string}' is not recognized by zoneinfo.",
@@ -631,6 +631,8 @@ def get_current_local_time_auto_timezone() -> datetime:
             # raises ZoneInfoNotFoundError (caught above) for one that simply is not there.
             logger.debug(f"Error creating timezone-aware datetime: {e}")
             return clock.now()
+        else:
+            return now_aware
     else:
         logger.debug(
             "\nCould not determine timezone automatically. Falling back to the system's local time.",
@@ -663,11 +665,10 @@ def rename_file(old_file_path: str, new_file_path: str) -> bool:
 
         os.rename(old_file_path, new_file_path)
         rutroh_error(f"File '{old_file_path}' successfully renamed to '{new_file_path}'.")
-
-        return True  # noqa: TRY300
     except OSError as e:
         rutroh_error(f"Error renaming file: {e}")
         return False
+    return True
 
 
 def restart_program_subprocess(state: RunState) -> None:

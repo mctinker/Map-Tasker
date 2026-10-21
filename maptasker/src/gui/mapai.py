@@ -442,9 +442,9 @@ def open_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
         return
 
     # 2. Extract the specific classes needed
-    OpenAI = openai_lib.OpenAI  # noqa: N806
+    client_class = openai_lib.OpenAI
 
-    client = OpenAI(api_key=api_key)
+    client = client_class(api_key=api_key)
     process_ai_query_and_response(client, query, ai_object, item, state=state)
 
 
@@ -546,7 +546,7 @@ async def _run_analysis_in_background(popup: object, state: RunState) -> None:
         # Get the targeted worker function
         ai_func = name_function_map.get(
             ai_name,
-            lambda *args, **kwargs: error_handler("Invalid model selected (AI name is blank).", 12, state=state),  # noqa: ARG005
+            lambda *_args, **_kwargs: error_handler("Invalid model selected (AI name is blank).", 12, state=state),
         )
 
         # Use NiceGUI's run.io_bound to run the AI function in a separate thread so it doesn't block the main event

@@ -626,12 +626,12 @@ def _wrap_diagram_line(
     pieces = []
     cursor = 0
     for start, end, opening in _diagram_spans(line_num, line, connectors_by_line, nodes_by_line):
-        start = max(start, cursor)  # noqa: PLW2901
-        if start >= end:
+        begin = max(start, cursor)
+        if begin >= end:
             continue
-        if start > cursor:
-            pieces.append(_escape_diagram_text(line[cursor:start]))
-        pieces.append(f"{opening}{_escape_diagram_text(line[start:end])}</span>")
+        if begin > cursor:
+            pieces.append(_escape_diagram_text(line[cursor:begin]))
+        pieces.append(f"{opening}{_escape_diagram_text(line[begin:end])}</span>")
         cursor = end
     if cursor < len(line):
         pieces.append(_escape_diagram_text(line[cursor:]))
@@ -1647,6 +1647,9 @@ class NiceGuiTextView(TextViewSearch):
         # to arrive over the socket afterwards.
         self._loading_row: ui.element | None = None
         self._loading_label: ui.label | None = None
+        # Tasks this view starts and does not wait for.  asyncio keeps only a weak reference to a
+        # running task, so one nobody holds can be collected before it finishes.
+        self._background_tasks: set[asyncio.Task] = set()
         self.build_ui()
         register_view(master_gui, self)
         # Schedule the coroutine into the active event loop safely
@@ -2040,10 +2043,11 @@ class NiceGuiTextView(TextViewSearch):
             chunks, diagram_model, connectors_by_line = self._chunk_view_html(final_html, is_diagram)
             await self._stream_chunks(chunks, html_style, is_diagram)
             await self._finish_view(diagram_model, connectors_by_line)
-            return  # noqa: TRY300
 
         except FileNotFoundError:
             pass
+        else:
+            return
 
         # Apply the fallback generation if the file does not exist
         self._process_fallback_data(the_data)
@@ -2415,7 +2419,10 @@ class NiceGuiTextView(TextViewSearch):
         """Fires when the Diagram view's 'Profiles Per Line' pulldown selection changes."""
         new_value = int(str(getattr(event, "value", event)))
         if new_value != self.master_gui.profiles_per_line:
-            asyncio.create_task(self.master_gui.event_handlers.profiles_per_line_event(new_value))  # noqa: RUF006
+            task = asyncio.create_task(self.master_gui.event_handlers.profiles_per_line_event(new_value))
+            self._background_tasks.add(task)
+            task.add_done_callback(self._background_tasks.discard)
+            task.add_done_callback(_report_view_failure)
 
     def reload_diagram(self) -> None:
         """Clears and re-streams the Diagram view's content in place after it has been

@@ -9,7 +9,7 @@
     "LINES": 103
   },
   "maptasker/src/core/debug.py::display_debug_info": {
-    "LINES": 118
+    "LINES": 117
   },
   "maptasker/src/core/getputer.py::save_arguments": {
     "C901": 14,

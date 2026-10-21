@@ -2733,14 +2733,14 @@ class MapTaskerEventHandlers(
         create_popup_window(translate_string("What's New?"), message, close_button=True, rich=True)
 
     # Front-end event handlers
-    def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:
+    def _handle_event(self, event_method: str, view_name: str, *args: object) -> None:
         """
         Internal method to handle events based on event method and view name.
 
         Parameters:
             event_method (str): The name of the event method to call.
             view_name (str): The name of the view to apply the event to.
-            *args (str): Additional arguments to pass to the event method.
+            *args (object): Additional arguments to pass to the event method.
 
         Returns:
             None

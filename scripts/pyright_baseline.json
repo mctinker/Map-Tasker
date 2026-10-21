@@ -73,9 +73,6 @@
   "maptasker/src/gui/guistate.py": {
     "reportReturnType": 1
   },
-  "maptasker/src/gui/guiutil2.py": {
-    "reportReturnType": 3
-  },
   "maptasker/src/gui/guiwins2.py": {
     "reportAttributeAccessIssue": 5
   },

@@ -454,11 +454,9 @@ def do_the_outline(network: dict, config: RunConfig, state: RunState) -> None:
     if not state.tasker_root_elements["all_projects"] and (
         state.tasker_root_elements["all_profiles"] or state.tasker_root_elements["all_tasks"]
     ):
-        pids = []
         tids = []
         # Get the Profile and Task IDs
-        for key in state.tasker_root_elements["all_profiles"]:
-            pids.append(key)  # noqa: PERF402
+        pids = list(state.tasker_root_elements["all_profiles"])
         for key in state.tasker_root_elements["all_tasks"]:
             tids.append(key)
             # If no Profile at this point, let user know and return.

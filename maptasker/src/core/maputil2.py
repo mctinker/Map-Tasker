@@ -159,7 +159,7 @@ _SUPPRESS_LOCK = threading.Lock()
 
 
 @contextmanager
-def suppress_stdout() -> Generator:  # type: ignore  # noqa: PGH003
+def suppress_stdout() -> Generator[None, None, None]:
     """
     Context manager that suppresses the standard output during its execution.
 
@@ -841,8 +841,8 @@ def log_startup_values(state: RunState) -> None:
     Log the runtime arguments and color mappings
     """
     setup_logging()  # Get logging going
-    logger.info(f"{MY_VERSION} {str(NOW_TIME)}")  # noqa: RUF010
-    logger.info(f"sys.argv:{str(sys.argv)}")  # noqa: RUF010
+    logger.info(f"{MY_VERSION} {NOW_TIME!s}")
+    logger.info(f"sys.argv:{sys.argv!s}")
     for key, value in state.program_arguments.items():
         logger.info(f"{key}: {value}")
     for key, value in state.colors_to_use.items():

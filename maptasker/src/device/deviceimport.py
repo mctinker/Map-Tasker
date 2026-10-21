@@ -29,7 +29,7 @@ from maptasker.src.edit import taskedit, taskedit_apply
 
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
-    from maptasker.src.edit.taskedit_model import EditableTask
+    from maptasker.src.edit.taskedit_model import EditableAction, EditableTask
 
 # ==========================================
 # Importing a Profile into Tasker's live configuration
@@ -170,7 +170,7 @@ def build_import_profile_task(
 
     values: dict[str, str] = {}
 
-    def add(action_key: str, args: dict[str, str]):  # noqa: ANN202
+    def add(action_key: str, args: dict[str, str]) -> EditableAction | str:
         """Append one action and stage its argument values.  Returns the action, or an
         error message -- unlike build_helper_task's `add`, which only ever needs the error,
         because one of the actions here has an argument that cannot be set through

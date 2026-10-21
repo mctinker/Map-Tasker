@@ -114,7 +114,7 @@ def _condition_name(key: str) -> str:
     """
     tag, code_key = _split_condition(key)
     if not code_key:
-        return mapfind._PLAIN_TRIGGER_LABELS.get(tag, tag)  # noqa: SLF001
+        return mapfind.PLAIN_TRIGGER_LABELS.get(tag, tag)
     entry = action_codes.get(code_key)
     return f"{tag}: {entry.name if entry else f'code {code_key[:-1]}'}"
 

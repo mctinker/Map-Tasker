@@ -477,19 +477,14 @@ def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
                 next_char = next_string[char_position]
 
                 # Check if the next string has the right pattern (" ", box_line, right_arrow_corner_down)
-                if next_char in (" ", box_line, right_arrow_corner_down):  # noqa: SIM102
-                    if (
-                        char_position + 1 < next_string_len
-                        and next_string[char_position + 1]
-                        in (
-                            " ",
-                            box_line,
-                            right_arrow_corner_down,
-                        )
-                        and next_string[char_position - 1] != up_arrow
-                    ):
-                        # Perform the string replacement
-                        strings[i] = strings[i][:char_position] + replacement_char + strings[i][char_position + 1 :]
+                if (
+                    next_char in (" ", box_line, right_arrow_corner_down)
+                    and char_position + 1 < next_string_len
+                    and next_string[char_position + 1] in (" ", box_line, right_arrow_corner_down)
+                    and next_string[char_position - 1] != up_arrow
+                ):
+                    # Perform the string replacement
+                    strings[i] = strings[i][:char_position] + replacement_char + strings[i][char_position + 1 :]
     return strings
 
 

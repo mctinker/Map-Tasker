@@ -555,12 +555,13 @@ class HTMLDocumentSanitizer(HTMLParser):
             attribute = name.lower()
             if attribute not in ALLOWED_ATTRIBUTES or value is None:
                 continue
+            cleaned = value
             if attribute == "style":
-                value = safe_style(value)  # noqa: PLW2901
+                cleaned = safe_style(value)
             elif attribute in ("href", "src"):
-                value = safe_url(value)  # noqa: PLW2901
-            if value:
-                kept.append(f'{attribute}="{html.escape(value, quote=True)}"')
+                cleaned = safe_url(value)
+            if cleaned:
+                kept.append(f'{attribute}="{html.escape(cleaned, quote=True)}"')
         return f" {' '.join(kept)}" if kept else ""
 
     def sanitized(self) -> str:

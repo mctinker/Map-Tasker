@@ -98,12 +98,12 @@ def display_debug_info(config: RunConfig, state: RunState) -> None:
     mydict = {i: mydict[i] for i in mykeys}
 
     # Go through dictionary of arguments and output each one.
-    for key, value in mydict.items():
+    for key in mydict:
         try:
             line_formatted_to_length = format_line_debug(ARGUMENT_NAMES[key], 40)
-            value = arguments[key]  # noqa: PLW2901
+            value = arguments[key]
             if value is None or value == "":
-                value = "None"  # noqa: PLW2901
+                value = "None"
             # Set color for value
             color_to_use = "unknown_task_color" if not value or value == "None" else "heading_color"
             state.output_lines.add_line_to_output(
@@ -133,13 +133,12 @@ def display_debug_info(config: RunConfig, state: RunState) -> None:
             )
             continue
         # Highlight background color.  Otherwise it won't be visible
-        if key == "background_color":
-            value = f"<mark>{value} (highlighted for visibility)</mark>"  # noqa: PLW2901
+        shown = f"<mark>{value} (highlighted for visibility)</mark>" if key == "background_color" else value
         # Convert the name of the color to the color
         the_color = format_html(
             key,
             "",
-            value,
+            shown,
             True,
         )
 

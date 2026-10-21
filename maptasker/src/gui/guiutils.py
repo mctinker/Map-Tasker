@@ -3,7 +3,7 @@
 import asyncio
 import contextlib
 import os
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Protocol, cast
 
 from nicegui import run, ui
 
@@ -49,6 +49,14 @@ from maptasker.src.mapgen.tasks import get_taskid_from_unnamed_task
 
 if TYPE_CHECKING:
     from maptasker.src.gui.userintr import MyGui
+
+
+class WindowOwner(Protocol):
+    """Anything that holds the window and its run state: MapTaskerEventHandlers, or one of the
+    mixins it is made of."""
+
+    gui: "MyGui"
+    state: RunState
 
 
 def window_state(window: object) -> RunState:
@@ -306,7 +314,7 @@ def update_tasker_object_menus(self: "MyGui", get_data: bool = False, reset_sing
 
 
 # Provide a pulldown list for the selection of a Profile name
-def list_tasker_objects(self) -> bool:  # noqa: ANN001
+def list_tasker_objects(self: "MyGui") -> bool:
     """
     Lists the projects, profiles and tasks available in the XML file.  The list for each will appear in a pulldown option list.
 
@@ -329,7 +337,7 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     return refresh_tasker_object_pulldowns(self)
 
 
-def refresh_tasker_object_pulldowns(self) -> bool:  # noqa: ANN001
+def refresh_tasker_object_pulldowns(self: "MyGui") -> bool:
     """Recomputes the Project/Profile/Task pulldown option lists from whatever
     is currently in PrimeItems.tasker_root_elements and pushes them into the
     'Specific Name' tab's pulldown widgets.
@@ -440,7 +448,7 @@ def display_object_pulldowns(
 
 
 # Get all Projects, Profiles and Tasks to display
-def get_tasker_objects(self) -> tuple:  # noqa: ANN001
+def get_tasker_objects(self: "MyGui") -> tuple:
     """
     Retrieves the projects, profiles, tasks and Scenes available in the XML file.
 
@@ -813,16 +821,17 @@ def build_profiles(
         profile_list.append({"name": profile_name, "children": task_list})
 
     # Now add tasks that are not found in any Profile that belong to the Project
-    no_profile_tasks = []
     task_ids = get_ids(
         False,
         state.tasker_root_elements["all_projects"][project]["xml"],
         project,
         [],
     )
-    for task_id in task_ids:
-        if root["all_tasks"][task_id]["name"] not in found_tasks:
-            no_profile_tasks.append(root["all_tasks"][task_id]["name"])  # noqa: PERF401
+    no_profile_tasks = [
+        root["all_tasks"][task_id]["name"]
+        for task_id in task_ids
+        if root["all_tasks"][task_id]["name"] not in found_tasks
+    ]
     if no_profile_tasks:
         profile_list.append({"name": translate_string("No Profile"), "children": no_profile_tasks})
 
@@ -1502,7 +1511,7 @@ def set_ai_key(self: "MyGui", model: str) -> bool:
 
 
 # Display startup messages which are a carryover from the last run.
-def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
+def display_error_file_and_ai_response(self: "MyGui | WindowOwner") -> None:
     """
         Displays messages from the last run.
     #
@@ -1526,7 +1535,7 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
     logger.info("Displaying messages from last run.")
     # By class name, as display_model_pulldown does, rather than isinstance: userintr imports
     # this module, so importing MyGui here would tie guiutils back into a loop with it.
-    gui = self if self.__class__.__name__ == "MyGui" else self.gui
+    gui = cast("MyGui", self if self.__class__.__name__ == "MyGui" else self.gui)
 
     analysis_response = ""
     error_msg = ""
@@ -1568,9 +1577,6 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
             gui.display_message_box(self.state.error_msg, "Red")
         # The next error starts from the default: show its code.
         self.state.error_show_code = True
-
-    if hasattr(gui, "tab_to_use") and hasattr(gui, "main_tabs_container"):
-        gui.main_tabs_container.set_value = gui.tab_to_use
 
 
 # Write out the changelog defined in guiutils after updating the app from pypi.
@@ -1809,14 +1815,6 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
         if device_is_reachable is None:
             return False
 
-        # Handle connectivity breakdown state safely
-        error_msg = (
-            f"{translate_string('Error')}: {translate_string('Android device at')} {ipaddr}:{port} "
-            f"{translate_string('is unreachable')}. {translate_string('Check your IP/Port and verify the Tasker HTTP server is running')}."
-        )
-        self.display_message_box(error_msg, "Red")
-        return False  # noqa: TRY300
-
     except Exception as e:
         # Deliberately broad: reported to the user in the window rather than raised, since
         # this gates every Android feature.  An unreachable device never gets here (it is a
@@ -1825,9 +1823,17 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
         self.display_message_box(f"Ping execution failure: {e!s}", "Red")
         return False
 
+    # Handle connectivity breakdown state safely
+    error_msg = (
+        f"{translate_string('Error')}: {translate_string('Android device at')} {ipaddr}:{port} "
+        f"{translate_string('is unreachable')}. {translate_string('Check your IP/Port and verify the Tasker HTTP server is running')}."
+    )
+    self.display_message_box(error_msg, "Red")
+    return False
+
 
 # Read the change log file, add it to the messages to be displayed and then remove it.
-def check_for_changelog(self) -> None:  # noqa: ANN001
+def check_for_changelog(self: "MyGui") -> None:
     """Function to check for a changelog file and add its contents to a message if the current version is correct.
     Parameters:
         - self (object): The object that the function is being called on.

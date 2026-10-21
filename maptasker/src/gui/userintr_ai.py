@@ -511,5 +511,7 @@ class AIEventHandlers:
         # Updates NiceGUI visual rendering colors reactively
         update_analysis_button_color(gui)
 
-    def ai_apikey_get_event(self, cancel: bool, clear: bool) -> None:  # noqa: D102
+    def ai_apikey_get_event(self, cancel: bool, clear: str) -> None:
+        """The API Keys dialog's Ok (cancel False) and Cancel (cancel True) buttons, and the Clear button
+        beside each key (clear names the key to clear, "" for none)."""
         self._handle_event("ai_apikey_process_event", "ai_apikey_window", cancel, clear)

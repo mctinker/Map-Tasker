@@ -102,16 +102,16 @@ def _confirmed_single_project_name(gui: MyGui) -> str:
 
     Each Project option is f"{translate_string('Project:')} {name}" (see
     MyGui.build_the_tree), so its prefix is whatever the current language calls
-    a Project -- "Projekt: " in German, "Projet: " in French, "プロジェクト： "
-    in Japanese. This gate used to look for a hardcoded "Project: ", which
+    a Project -- "Projekt: " in German, "Projet: " in French, "プロジェクト" and a
+    fullwidth colon (U+FF1A) in Japanese. This gate used to look for a hardcoded "Project: ", which
     matched nothing in any other language, so it closed on a Project that was
     plainly selected and Edit Project/Add Profile/Add Task refused to open.
 
     The option is rebuilt through translate_string here rather than parsed
     apart, because parsing means picking a separator and the separator is
-    itself translated -- Japanese uses a fullwidth '：', so splitting on ": "
+    itself translated -- Japanese uses a fullwidth colon, so splitting on ": "
     silently fails for exactly the languages this is meant to fix.
-    """  # noqa: RUF002
+    """
     name = getattr(gui, "single_project_name", "")
     if not name:
         return ""
