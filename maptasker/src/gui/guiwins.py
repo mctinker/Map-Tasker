@@ -28,12 +28,14 @@ from __future__ import annotations
 import html
 import inspect
 import re
+import threading
 import time
 from collections import deque
 from datetime import date
 from typing import TYPE_CHECKING, Any, cast
 
-from nicegui import app, ui
+from nicegui import ui
+from nicegui.core import stop_and_exit
 
 from maptasker.src.analysis import healthck
 from maptasker.src.core import appinv, clock, mapjump, objprops, scenelayout, timeline
@@ -3584,14 +3586,28 @@ async def get_rid_of_windows_and_exit(self: MyGui, _delete_all: bool = True) -> 
         # script itself opened, so this window may refuse to close if it wasn't launched via
         # window.open() -- that's an unavoidable browser security restriction, not a bug.
         # Must be awaited: run_javascript() only sends its payload once the event loop gets a
-        # chance to run the background task it schedules -- and app.shutdown() below tears down
+        # chance to run the background task it schedules -- and the shutdown below tears down
         # that same event loop. Without awaiting, shutdown can win the race and the browser never
         # receives the command, so the tabs are left open. window.close()-ing this tab itself may
         # tear down the connection before a response comes back, hence the timeout/suppress.
         with suppress_logged("Closing the pop-out windows"):
             await ui.run_javascript(mapjump.close_popouts_js(close_this_window=True), timeout=2.0)
     ui.notify(translate_string("Shutting down MapTasker..."), type="warning")
-    app.shutdown()
+    logger.info("Exit button pressed.  Shutting down the GUI server.")
+
+    # Not app.shutdown(): that only asks uvicorn to stop, and uvicorn first waits for every open
+    # connection to drain.  On Windows a browser connection that has gone away without closing
+    # (a "ghost" connection) never drains, so the server never stops, ui.run() never returns, and
+    # the command window is left running with MapTasker still in it (NiceGUI #5443).
+    # stop_and_exit() runs the shutdown handlers (which save the settings) and then ends the
+    # process outright.  It blocks on the event loop's own thread, so it must be called from
+    # another thread -- as NiceGUI itself does -- and after a moment for the notification above
+    # to reach the browser.
+    def _stop_after_flush() -> None:
+        time.sleep(0.5)
+        stop_and_exit()
+
+    threading.Thread(target=_stop_after_flush, daemon=True).start()
 
 
 def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
