@@ -12,7 +12,6 @@ All notable changes to this project will be documented in this file!
 - Added:
 
 ### Changed
-### Changed
 
 - Changed: The Map view now appears sooner on a large configuration. Preparing the Map for the window takes a fraction of the time, and the Map is smaller to send to the browser; the Map itself looks the same.
 - Changed:
