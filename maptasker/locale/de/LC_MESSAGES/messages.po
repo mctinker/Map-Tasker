@@ -3201,42 +3201,29 @@ msgid "Pre-Build The Map"
 msgstr "Die Karte vorab erstellen"
 msgid "When enabled, the Map is built in the background as soon as a file has been loaded, and again each time you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once.\n\nWhen disabled, the Map is built when you ask for it.\n\nPressing Map or Diagram while it is still building waits for it to finish.  Changing a setting, or editing the configuration, before you press Map means it is built again.  It uses the computer for a few seconds after each file is loaded or item chosen, whether or not you go on to ask for the Map."
 msgstr "Wenn aktiviert, wird die Karte im Hintergrund erstellt, sobald eine Datei geladen wurde, und jedes Mal, wenn Sie ein anderes einzelnes Projekt, Profil, eine Aufgabe oder eine Szene auswählen, sodass die Schaltfläche \"Karte\" sie sofort öffnet.\n\nWenn die Karte deaktiviert ist, wird sie erstellt, wenn Sie danach fragen.\n\nDas Drücken von \"Karte\" oder \"Diagramm\", während die Erstellung noch läuft, führt zu einer Warte, bis sie abgeschlossen ist. Das Ändern einer Einstellung oder das Bearbeiten der Konfiguration, bevor Sie \"Karte\" drücken, führt dazu, dass sie erneut erstellt wird. Sie benötigt einige Sekunden nach dem Laden einer Datei oder der Auswahl eines Elements, unabhängig davon, ob Sie danach die Karte anfordern oder nicht."
-
 msgid "- Import With Dependencies: Bring a Project, Profile, Task or Scene in from another backup together with everything it needs.  Choose the other file, find what you want in the list, and press Preview on its row.  A Task brings the Tasks it performs and the Scenes it shows; a Scene brings the Tasks its elements run; a Profile brings the Tasks it runs; a Project brings everything it lists -- and in each case what those need in turn, and the global variables they use.  The preview says what will be copied, what will be used instead because this file already has the same thing, and what will be copied under a new name -- 'Setup (imported)' -- because this file has a different Task of the same name; every call inside what is brought is then pointed at the new name, so it does what it did where it came from.  Tasks and Profiles get new ids, and every link to them follows.  Choose where they are filed: a Project of this file, or a new one.  Nothing already in this file is changed apart from that Project listing more members, and the import is one press of Undo.  Importing the same thing again brings nothing the second time.  Not followed: a call whose name is built from a variable, and what is inside a Version 2 Scene's layout.  Plugins the objects use are listed, but not checked.  Nothing is sent anywhere.  \n"
 msgstr "- Import mit Abhängigkeiten: Bringen Sie ein Projekt, einen Profil, eine Aufgabe oder eine Szene aus einem anderen Backup zusammen mit allem, was es benötigt, import. Wählen Sie die andere Datei aus, finden Sie, was Sie in der Liste suchen, und klicken Sie auf \"Vorschau\" in ihrer Zeile. Eine Aufgabe enthält die Aufgaben, die sie ausführt, und die Szenen, die sie anzeigt; eine Szene enthält die Aufgaben, die ihre Elemente ausführen; ein Profil enthält die Aufgaben, die es ausführt; ein Projekt enthält alles, was es auflistet – und in jedem Fall die benötigten Ressourcen und die globalen Variablen, die es verwendet. Die Vorschau zeigt, was kopiert wird, was stattdessen verwendet wird, weil diese Datei bereits das gleiche enthält, und was unter einem neuen Namen kopiert wird – \"Einrichtung (importiert)\" – weil diese Datei eine andere Aufgabe mit demselben Namen hat; alle Aufrufe innerhalb dessen, was importiert wurde, werden dann auf den neuen Namen verweisen, so dass sie das tun, was sie zuvor getan haben, wo sie ursprünglich waren. Aufgaben und Profile erhalten neue IDs, und alle Verknüpfungen zu ihnen werden ebenfalls aktualisiert. Wählen Sie, wo sie gespeichert werden sollen: ein Projekt dieser Datei oder eine neue Datei. Nichts in dieser Datei ändert sich, außer dass das Projekt mehr Mitglieder auflistet, und der Import erfolgt mit einem einzigen Klick auf \"Rückgängig\". Das erneute Importieren desselben Inhalts hat keinen Effekt beim zweiten Mal. Nicht berücksichtigt: ein Aufruf, dessen Name aus einer Variablen besteht, und die Struktur einer Szene der Version 2. Die von den Objekten verwendeten Plugins werden aufgelistet, aber nicht überprüft. Nichts wird an einen Ort gesendet.\n"
-
 msgid "Bring a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use.\n\nShows what would be copied, renamed and left alone before anything happens.  A Task or Scene this file already has, and that is identical, is used rather than copied.\n\nNothing already in this file is changed, and the whole import is one press of Undo."
 msgstr "Importieren Sie ein Projekt, einen Profil, eine Aufgabe oder eine Szene aus einem anderen Backup zusammen mit allem, was es benötigt: den Aufgaben, die es ausführt, den Szenen, die es anzeigt, und den Aufgaben, die diese ausführen, sowie den globalen Variablen, die sie verwenden.\n\nZeigt, was kopiert, umbenannt und unverändert gelassen würde, bevor etwas passiert. Anstatt eine Kopie zu erstellen, wird eine Aufgabe oder Szene verwendet, die bereits in dieser Datei vorhanden ist und identisch ist.\n\nNichts in dieser Datei wird verändert, und der gesamte Import erfolgt mit einem einzigen \"Undo\"-Befehl."
-
 msgid "Bring the global variables this file lacks"
 msgstr "Fügen Sie die globalen Variablen hinzu, die diese Datei nicht enthält."
-
 msgid "Find by name"
 msgstr "Nach Name suchen"
-
 msgid "Import With Dependencies"
 msgstr "Importieren mit Abhängigkeiten"
-
 msgid "Import cancelled."
 msgstr "Import storniert."
-
 msgid "Importing from"
 msgstr "Import aus"
-
 msgid "Nothing matches."
 msgstr "Nichts passt."
-
 msgid "Press 'Preview' on a row first."
 msgstr "Drücken Sie zuerst auf \"Vorschau\" in einer Zeile."
-
 msgid "Put a Task, Profile or Scene in"
 msgstr "Fügen Sie eine Aufgabe, ein Profil oder eine Szene hinzu"
-
 msgid "That is the file already loaded.  Choose a different one to import from."
 msgstr "Diese Datei wurde bereits geladen. Wählen Sie eine andere Datei zum Importieren aus."
-
 msgid "has no Projects, Profiles, Tasks or Scenes to bring in."
 msgstr "hat keine Projekte, Profile, Aufgaben oder Szenen, die importiert werden sollen."
-
 msgid "more.  Choose a kind or type part of a name to narrow the list."
 msgstr "mehr. Wählen Sie eine bestimmte Art oder einen bestimmten Teil eines Namens aus, um die Liste zu verkleinern."

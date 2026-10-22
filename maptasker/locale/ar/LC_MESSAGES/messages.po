@@ -3217,42 +3217,29 @@ msgid "Pre-Build The Map"
 msgstr "تخطيط وتصميم الخريطة مسبقًا"
 msgid "When enabled, the Map is built in the background as soon as a file has been loaded, and again each time you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once.\n\nWhen disabled, the Map is built when you ask for it.\n\nPressing Map or Diagram while it is still building waits for it to finish.  Changing a setting, or editing the configuration, before you press Map means it is built again.  It uses the computer for a few seconds after each file is loaded or item chosen, whether or not you go on to ask for the Map."
 msgstr "عند تفعيلها، يتم إنشاء الخريطة في الخلفية بمجرد تحميل ملف، وعند كل مرة تختار فيها مشروعًا أو ملفًا أو مهمة أو مشهدًا مختلفًا، تفتح زر الخريطة تلقائيًا.\n\nعند تعطيلها، يتم إنشاء الخريطة عند طلبها.\n\nعند الضغط على زر \"خريطة\" أو \"رسم بياني\" أثناء بناء الخريطة، يتم الانتظار حتى تنتهي. تغيير إعداد أو تعديل التكوين قبل الضغط على زر \"خريطة\" يعني أنه سيتم إنشاؤها مرة أخرى. تستخدم الحاسوب لبضع ثوانٍ بعد تحميل كل ملف أو اختيار عنصر، سواء قمت بطلب الخريطة أو لم تقم بذلك."
-
 msgid "- Import With Dependencies: Bring a Project, Profile, Task or Scene in from another backup together with everything it needs.  Choose the other file, find what you want in the list, and press Preview on its row.  A Task brings the Tasks it performs and the Scenes it shows; a Scene brings the Tasks its elements run; a Profile brings the Tasks it runs; a Project brings everything it lists -- and in each case what those need in turn, and the global variables they use.  The preview says what will be copied, what will be used instead because this file already has the same thing, and what will be copied under a new name -- 'Setup (imported)' -- because this file has a different Task of the same name; every call inside what is brought is then pointed at the new name, so it does what it did where it came from.  Tasks and Profiles get new ids, and every link to them follows.  Choose where they are filed: a Project of this file, or a new one.  Nothing already in this file is changed apart from that Project listing more members, and the import is one press of Undo.  Importing the same thing again brings nothing the second time.  Not followed: a call whose name is built from a variable, and what is inside a Version 2 Scene's layout.  Plugins the objects use are listed, but not checked.  Nothing is sent anywhere.  \n"
 msgstr "- الاستيراد مع الاعتمادات: قم باستيراد مشروع أو ملف تعريف أو مهمة أو مشهد من نسخة احتياطية أخرى، بالإضافة إلى كل ما تحتاجه. اختر الملف الآخر، وابحث عن ما تريد في القائمة، واضغط على \"المعاينة\" في الصف الخاص به. المهمة تجلب المهام التي تنفذها والمشاهد التي تعرضها؛ المشهد يجلب المهام التي تعمل فيها العناصر؛ ملف التعريف يجلب المهام التي تعمل بها؛ المشروع يجلب كل ما يسجله – وفي كل حالة، ما تحتاجه، والمتغيرات العامة التي يستخدمها. تعرض المعاينة ما سيتم نسخه، وما سيتم استخدامه بدلاً من ذلك لأن هذا الملف يحتوي بالفعل على نفس الشيء، وما سيتم نسخه تحت اسم جديد – \"الإعداد (الاستيراد)\" – لأن هذا الملف يحتوي على مهمة مختلفة بنفس الاسم؛ ثم يتم توجيه كل استدعاء داخل ما تم استيراده إلى الاسم الجديد، بحيث يقوم بما كان يقوم به في المكان الذي أتى منه. تحصل المهام وملفات التعريف على معرفات جديدة، ويتبع كل رابط إليها. اختر مكان حفظها: مشروع لهذا الملف، أو مشروع جديد. لا يتم تغيير أي شيء موجود بالفعل في هذا الملف، باستثناء إضافة المزيد من الأعضاء في المشروع، و\"الاستيراد\" هو مجرد نقرة على \"التراجع\". لا يؤدي استيراد نفس الشيء مرة أخرى إلى أي شيء في المرة الثانية. غير متبع: استدعاء اسمه مبني من متغير، وهيكل المشهد في الإصدار 2. يتم سرد المكونات التي يستخدمها الإضافات، ولكن لا يتم التحقق منها. لا يتم إرسال أي شيء إلى أي مكان.\n"
-
 msgid "Bring a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use.\n\nShows what would be copied, renamed and left alone before anything happens.  A Task or Scene this file already has, and that is identical, is used rather than copied.\n\nNothing already in this file is changed, and the whole import is one press of Undo."
 msgstr "احضِر مشروعًا أو ملفًا أو مهمة أو مشهدًا من نسخة احتياطية أخرى، مع كل ما تحتاجه: المهام التي يقوم بها، والمشاهد التي يعرضها، والمهام التي تعمل، والمتغيرات العالمية التي يستخدمها.\n\nيعرض ما سيتم نسخه، وتغيير اسمه، وتركها كما هي قبل حدوث أي شيء. يتم استخدام مهمة أو مشهد موجود بالفعل في هذا الملف، وهو مطابق تمامًا، بدلاً من نسخه.\n\nلا يتم تغيير أي شيء موجود بالفعل في هذا الملف، والعملية بأكملها تتم بنقرة واحدة على \"إلغاء\"."
-
 msgid "Bring the global variables this file lacks"
 msgstr "أضف المتغيرات العالمية التي يفتقر إليها هذا الملف."
-
 msgid "Find by name"
 msgstr "ابحث بالاسم"
-
 msgid "Import With Dependencies"
 msgstr "استيراد مع تبعيات"
-
 msgid "Import cancelled."
 msgstr "تم إلغاء الاستيراد."
-
 msgid "Importing from"
 msgstr "الاستيراد من"
-
 msgid "Nothing matches."
 msgstr "لا يوجد شيء مطابق."
-
 msgid "Press 'Preview' on a row first."
 msgstr "اضغط على زر \"المعاينة\" أولاً في الصف."
-
 msgid "Put a Task, Profile or Scene in"
 msgstr "أضف مهمة أو ملف تعريف أو مشهد في"
-
 msgid "That is the file already loaded.  Choose a different one to import from."
 msgstr "هذا الملف قد تم تحميله بالفعل. اختر ملفًا آخر لاستيراده."
-
 msgid "has no Projects, Profiles, Tasks or Scenes to bring in."
 msgstr "لا توجد فيه مشاريع أو ملفات تعريف أو مهام أو مشاهد لإدخالها."
-
 msgid "more.  Choose a kind or type part of a name to narrow the list."
 msgstr "أكثر. اختر جزءًا أو نوعًا من اسم لتضييق نطاق القائمة."
