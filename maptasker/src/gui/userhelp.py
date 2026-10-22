@@ -320,6 +320,20 @@ PREBUILD_HELP_TEXT = (
     " waits for it to finish.  Off by default, because it uses the computer for a few seconds after every file is"
     " loaded or item chosen, whether or not you go on to ask for the Map.  \n"
 )
+CARRY_HELP_TEXT = (
+    "- Import With Dependencies: Bring a Project, Profile, Task or Scene in from another backup together with"
+    " everything it needs.  Choose the other file, find what you want in the list, and press Preview on its row.  A"
+    " Task brings the Tasks it performs and the Scenes it shows; a Scene brings the Tasks its elements run; a Profile"
+    " brings the Tasks it runs; a Project brings everything it lists -- and in each case what those need in turn, and"
+    " the global variables they use.  The preview says what will be copied, what will be used instead because this file"
+    " already has the same thing, and what will be copied under a new name -- 'Setup (imported)' -- because this file"
+    " has a different Task of the same name; every call inside what is brought is then pointed at the new name, so it"
+    " does what it did where it came from.  Tasks and Profiles get new ids, and every link to them follows.  Choose where"
+    " they are filed: a Project of this file, or a new one.  Nothing already in this file is changed apart from that"
+    " Project listing more members, and the import is one press of Undo.  Importing the same thing again brings nothing"
+    " the second time.  Not followed: a call whose name is built from a variable, and what is inside a Version 2 Scene's"
+    " layout.  Plugins the objects use are listed, but not checked.  Nothing is sent anywhere.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -349,5 +363,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}"
     )

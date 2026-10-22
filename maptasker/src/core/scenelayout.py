@@ -27,7 +27,7 @@ import base64
 import gzip
 import io
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.editcommon import set_child_text
 
@@ -95,7 +95,7 @@ def decompress_gzip_json(b64_string: str) -> dict | str:
         return f"An error occurred: {e}"
 
 
-def decode_v2_layout(scene_element: Element) -> dict | None:
+def decode_v2_layout(scene_element: Element) -> dict[str, Any] | None:
     """The V2 Scene's component tree, decoded from <lj> into plain Python.
 
     Returns None for a Legacy Scene (no <lj>), and also for an <lj> that won't

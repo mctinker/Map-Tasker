@@ -30,7 +30,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import run, ui
 
@@ -44,6 +44,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
 
     from maptasker.src.analysis.xmldiff import Configuration
+    from maptasker.src.core.mapjump import Target
     from maptasker.src.core.primitem import RunState
 
 # How many rows are drawn.  Every row is a button and a link, and a history compared against
@@ -458,7 +459,11 @@ def draw_row(
             button.disable()
 
 
-def draw_preview(area: ui.scroll_area, plan: maprefac_model.Plan, make_jump: Callable) -> None:
+def draw_preview(
+    area: ui.scroll_area,
+    plan: maprefac_model.Plan,
+    make_jump: Callable[[Target], Callable[[], Coroutine[Any, Any, None]]],
+) -> None:
     """The plan, from maprefac.report_rows -- the same rows the Refactor dialog draws."""
     area.clear()
     with area, ui.column().classes("w-full gap-0 p-2"):

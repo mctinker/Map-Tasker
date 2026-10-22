@@ -8,8 +8,10 @@ All notable changes to this project will be documented in this file!
 
 - Added: Python 3.15 is now supported.
 - Added: A 'Pre-Build The Map' checkbox under 'Open View In New Window' builds the Map in the background as soon as a file is loaded and whenever you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once. It is off by default, and a Map button pressed while it is still building waits for it.
+- Added: __Import With Dependencies__ brings a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use. Every import is previewed first, gives what it brings new ids and names where this file already has something different, and is one press of Undo.
 - Added:
 
+### Changed
 ### Changed
 
 - Changed: The Map view now appears sooner on a large configuration. Preparing the Map for the window takes a fraction of the time, and the Map is smaller to send to the browser; the Map itself looks the same.

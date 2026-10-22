@@ -4,9 +4,9 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **89** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **90** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.0.2 source on 2026-10-21 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.0.2 source on 2026-10-22 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -50,6 +50,7 @@ _Generated from the MapTasker 15.0.2 source on 2026-10-21 by `build_command_wiki
   * [Cancel Entry](#cmd-cancel-entry)
 * [Health Check](#cmd-health-check)
 * [Hide Task Details under Twisty](#cmd-hide-task-details-under-twisty)
+* [Import With Dependencies](#cmd-import-with-dependencies)
 * [Indentation](#cmd-indentation)
 * [Just Display Everything](#cmd-just-display-everything)
 * [Language](#cmd-language)
@@ -1285,6 +1286,29 @@ Watch which Profiles and Tasks fire on your Android device as they do.
 Build the Map in the background as soon as a file has been loaded, and again each time you choose a different single Project, Profile, Task or Scene (or go back to none), so that the Map button has nothing left to do and the Map opens at once. It builds only while nothing else is being shown, and with the settings the window holds then: change one of them (or edit the configuration) before pressing Map and the Map is built again, as it would have been without this. Pressing Map or Diagram while it is still building waits for it to finish. Off by default, because it uses the computer for a few seconds after every file is loaded or item chosen, whether or not you go on to ask for the Map.
 
 **Hover text:** When enabled, the Map is built in the background as soon as a file has been loaded, and again each time you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once. When disabled, the Map is built when you ask for it. Pressing Map or Diagram while it is still building waits for it to finish. Changing a setting, or editing the configuration, before you press Map means it is built again. It uses the computer for a few seconds after each file is loaded or item chosen, whether or not you go on to ask for the Map.
+
+<a id="cmd-import-with-dependencies"></a>
+### Import With Dependencies
+
+**Type:** Command  
+**Where:** Main Window
+
+Bring a Project, Profile, Task or Scene in from another backup together with everything it needs.
+
+* Choose the other file, find what you want in the list, and press Preview on its row.
+* A Task brings the Tasks it performs and the Scenes it shows; a Scene brings the Tasks its elements run; a Profile brings the Tasks it runs; a Project brings everything it lists -- and in each case what those need in turn, and the global variables they use.
+* The preview says what will be copied, what will be used instead because this file already has the same thing, and what will be copied under a new name -- 'Setup (imported)' -- because this file has a different Task of the same name; every call inside what is brought is then pointed at the new name, so it does what it did where it came from.
+* Tasks and Profiles get new ids, and every link to them follows.
+* Choose where they are filed: a Project of this file, or a new one.
+* Nothing already in this file is changed apart from that Project listing more members, and the import is one press of Undo.
+* Importing the same thing again brings nothing the second time.
+* Not followed: a call whose name is built from a variable, and what is inside a Version 2 Scene's layout.
+* Plugins the objects use are listed, but not checked.
+* Nothing is sent anywhere.
+
+**Hover text:** Bring a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use. Shows what would be copied, renamed and left alone before anything happens. A Task or Scene this file already has, and that is identical, is used rather than copied. Nothing already in this file is changed, and the whole import is one press of Undo.
+
+**Opens:** Local File Picker
 
 ## Command-Line Arguments
 

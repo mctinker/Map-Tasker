@@ -122,6 +122,7 @@ from maptasker.src.gui.userhelp import (
 )
 from maptasker.src.gui.userintr_ai import AIEventHandlers
 from maptasker.src.gui.userintr_android import AndroidEventHandlers
+from maptasker.src.gui.userintr_carry import CarryEventHandlers
 from maptasker.src.gui.userintr_editors import (
     EditorEventHandlers,
     reload_saved_copy_and_refresh,
@@ -265,6 +266,8 @@ class MyGui:
     report_issue_button: ui.button
     # The TaskerNet Updates dialog while one is up (see taskernet_updates_event).
     tnupdate_dialog: ui.dialog | None
+    carry_dialog: ui.dialog | None
+    import_with_dependencies_button: ui.button
     # The Task Stepper dialog while one is up (see task_stepper_event).
     taskstep_dialog: ui.dialog | None
     # The Trend Dashboard dialog while one is up (see trend_dashboard_event).
@@ -1612,6 +1615,7 @@ def _single_selection_still_exists(gui: MyGui) -> bool:
 class MapTaskerEventHandlers(
     AIEventHandlers,
     AndroidEventHandlers,
+    CarryEventHandlers,
     EditorEventHandlers,
     LoadingEventHandlers,
     PrebuildEventHandlers,

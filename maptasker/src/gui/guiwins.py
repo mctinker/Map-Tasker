@@ -3100,6 +3100,32 @@ def _create_history_buttons_section(self: MyGui) -> None:
                 "nothing from your configuration leaves this computer.",
             ),
         ).style("white-space: pre-wrap")
+    _create_import_button(self)
+
+
+def _create_import_button(self: MyGui) -> None:
+    """Import With Dependencies, under TaskerNet Updates: one more way of bringing an object in from another file."""
+    self.import_with_dependencies_button = (
+        ui.button(
+            translate_string("Import With Dependencies"),
+            color="teal",
+            on_click=self.event_handlers.import_with_dependencies_event,
+            icon="move_to_inbox",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with self.import_with_dependencies_button:
+        ui.tooltip(
+            translate_string(
+                "Bring a Project, Profile, Task or Scene in from another backup together with everything it "
+                "needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global "
+                "variables they use.\n\nShows what would be copied, renamed and left alone before anything "
+                "happens.  A Task or Scene this file already has, and that is identical, is used rather than "
+                "copied.\n\nNothing already in this file is changed, and the whole import is one press of "
+                "Undo.",
+            ),
+        ).style("white-space: pre-wrap")
 
 
 def _create_resources_button(self: MyGui) -> None:

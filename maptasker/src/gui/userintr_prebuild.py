@@ -48,6 +48,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import run
 
+from maptasker.src.analysis import diffload
 from maptasker.src.core.maputil2 import suppress_logged
 from maptasker.src.core.outdir import output_path
 from maptasker.src.core.primitem import clear_error
@@ -201,6 +202,7 @@ class PrebuildEventHandlers:
         """
         state = self.state
         edits_before = tuple(sessundo.history(state))
+        windows_before = diffload.isolation_windows()
         built = False
         with suppress_logged("Building the Map ahead of time"):
             self.get_ready_to_build(None)
@@ -217,6 +219,8 @@ class PrebuildEventHandlers:
                 # The build reads the selection as it goes, so a Map built while it was changed is
                 # neither one.
                 and self._selection() == selection
+                # Another file read in while this ran swaps the tables and the output lines this reads for its own.
+                and diffload.isolation_windows() == windows_before
             ):
                 # The settings a press would take now, read the way a press reads them.
                 self.get_ready_to_build(None)

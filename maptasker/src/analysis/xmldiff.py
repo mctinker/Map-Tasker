@@ -20,7 +20,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from maptasker.src.core import clock
 from maptasker.src.core.actionc import action_codes
@@ -115,7 +115,7 @@ class Configuration(NamedTuple):
     """
 
     path: str
-    tables: dict
+    tables: dict[str, Any]
     # Both default so a caller that only needs the object tables -- diffload's own
     # order_by_age, which just reads 'when' -- can build one without them.  A missing
     # root simply means the global Variables and Settings are not compared.

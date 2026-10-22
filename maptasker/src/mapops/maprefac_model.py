@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core import mapjump
 from maptasker.src.core.actionc import action_codes
@@ -135,12 +135,12 @@ def blocked(kind: str, what: str, *blocks: Block) -> Plan:
 # ##################################################################################
 
 
-def _tables(state: RunState) -> dict:
+def _tables(state: RunState) -> dict[str, Any]:
     """The four object tables, whatever state the program is in."""
     return state.tasker_root_elements or {}
 
 
-def object_table(name: str, state: RunState) -> dict:
+def object_table(name: str, state: RunState) -> dict[str, Any]:
     """One object table -- all_tasks, all_profiles, all_projects, all_scenes -- or {}."""
     return _tables(state=state).get(name) or {}
 
@@ -201,7 +201,7 @@ def profile_target(profile_id: str, state: RunState) -> Target:
     )
 
 
-def actions_of(task_element: Element) -> list:
+def actions_of(task_element: Element) -> list[Element]:
     """A Task's actions in the order Tasker runs them.
 
     mapjump's, not findall("Action")'s.  Tasker orders actions by the numeric suffix of
@@ -286,7 +286,7 @@ def now_millis() -> str:
 # ##################################################################################
 
 
-def variable_names(elements: list) -> set[str]:
+def variable_names(elements: list[Element]) -> set[str]:
     """Every variable name mentioned anywhere inside these elements, whatever its scope.
 
     Walks text and attribute values both: an <Int sr="arg1"><var>%priority</var></Int> puts

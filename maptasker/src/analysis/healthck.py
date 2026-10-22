@@ -351,7 +351,7 @@ class ReferenceIndex:
         self.findings.append(Finding(severity, tag, location, text, pieces, jump, related or []))
 
 
-def _scene_name_args() -> dict[str, str]:
+def scene_name_args() -> dict[str, str]:
     """{action code: arg id} for every action that names a Scene.
 
     Derived from the action table rather than listed here, so an action added to
@@ -610,7 +610,7 @@ def _index_actions(index: ReferenceIndex, state: RunState) -> None:
     Task look unused.
     """
     all_tasks = state.tasker_root_elements["all_tasks"]
-    scene_args = _scene_name_args()
+    scene_args = scene_name_args()
 
     for task_id, task in all_tasks.items():
         where = Target(TASK, task_id, task["name"], index.project_of_task.get(task_id, ""))
@@ -630,7 +630,7 @@ def _index_scene_inline_actions(index: ReferenceIndex, state: RunState) -> None:
     Scene button's inline task read as unused, and a Task called only from one read as
     unreferenced.
     """
-    scene_args = _scene_name_args()
+    scene_args = scene_name_args()
 
     for scene_name, scene in state.tasker_root_elements["all_scenes"].items():
         scene_target = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))

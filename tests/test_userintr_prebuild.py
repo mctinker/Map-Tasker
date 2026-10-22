@@ -373,6 +373,20 @@ async def test_a_map_is_not_vouched_for_when_another_file_was_loaded_meanwhile(s
 
 
 @pytest.mark.asyncio
+async def test_a_map_is_not_vouched_for_when_another_file_was_read_in_meanwhile(seen: SimpleNamespace) -> None:
+    """Reading a second file borrows the tables and the output lines the build is reading."""
+    handlers = _Handlers(_state())
+    windows = [0]
+    seen.build = lambda: windows.__setitem__(0, windows[0] + 1)
+
+    with patch.object(userintr_prebuild.diffload, "isolation_windows", lambda: windows[0]):
+        await _look_until_started(handlers)
+
+    assert seen.settled == []
+    assert seen.forgotten == [True]
+
+
+@pytest.mark.asyncio
 async def test_a_build_that_reported_an_error_is_dropped(seen: SimpleNamespace) -> None:
     state = _state()
     handlers = _Handlers(state)

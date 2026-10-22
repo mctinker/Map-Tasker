@@ -106,6 +106,15 @@ def current_configuration(state: RunState) -> Configuration:
     )
 
 
+# How many times another file has been parsed in isolation, since the program started.
+_windows = [0]
+
+
+def isolation_windows() -> int:
+    """How many times another file has been read in so far -- each borrows the program's tables (see _parsed_in_isolation)."""
+    return _windows[0]
+
+
 def loaded_file_path(state: RunState) -> str:
     """The path of the XML file currently loaded, or "" if there is none.
 
@@ -129,6 +138,8 @@ def load_for_comparison(file_path: str, state: RunState) -> tuple[Configuration 
     if not file_path:
         return None, "No file was chosen to compare against."
 
+    # Counted, so that a build on another thread can tell it read the scratch tables meanwhile.
+    _windows[0] += 1
     with _parsed_in_isolation(file_path, state=state) as parsed:
         if parsed.return_code != 0:
             return None, _failure_message(parsed, file_path, state=state)
