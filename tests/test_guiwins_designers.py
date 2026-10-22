@@ -15,15 +15,14 @@ import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 
 import pytest
+from maptasker.src.core import objprops, scenelayout
+from maptasker.src.core.primitem import RunState
+from maptasker.src.edit import sceneedit
+from maptasker.src.gui import guiwins_designer_legacy, guiwins_designer_v2, guiwins_designers
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src.core import objprops, scenelayout
-from maptasker.src.edit import sceneedit
-from maptasker.src.gui import guiwins_designer_legacy, guiwins_designer_v2, guiwins_designers
-from maptasker.src.core.primitem import RunState
-
-_LEGACY = ET.fromstring(  # noqa: S314  (fixture text, defined in this file)
+_LEGACY = ET.fromstring(
     '<Scene sr="sceneOld"><nme>Old</nme><widthPort>640</widthPort><heightPort>480</heightPort>'
     "<widthLand>-1</widthLand></Scene>",
 )
@@ -33,7 +32,7 @@ _built: dict = {}
 
 
 def _v2_scene(*, decodable: bool = True) -> ET.Element:
-    scene = ET.fromstring('<Scene sr="sceneNew"><nme>New</nme></Scene>')  # noqa: S314
+    scene = ET.fromstring('<Scene sr="sceneNew"><nme>New</nme></Scene>')
     if decodable:
         scenelayout.encode_v2_layout(scene, _LAYOUT)
     else:

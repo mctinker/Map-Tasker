@@ -15,9 +15,9 @@ from datetime import datetime
 
 import pytest
 from maptasker.src.analysis import firesim
-from maptasker.src.mapgen import taskerd
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapgen import taskerd
 
 #   Profile 1 'Work Hours'  Time 09:00-17:00 AND Day Mon-Fri, priority 10.  Entry Task 50
 #                           turns WiFi Off.
@@ -104,7 +104,7 @@ _MONDAY = datetime.fromisoformat("2026-09-28T10:00")  # naive: a Time condition 
 @pytest.fixture(autouse=True)
 def _loaded() -> None:
     """Build the PrimeItems lookup tables from the fixture, the way taskerd does from a file."""
-    root = ET.fromstring(_SIM_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_SIM_XML)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)

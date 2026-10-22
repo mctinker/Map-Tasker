@@ -9,8 +9,8 @@ from __future__ import annotations
 import json
 
 import pytest
-from maptasker.src.mapgen import colors
 from maptasker.src.core.error import MapTaskerError
+from maptasker.src.mapgen import colors
 
 
 def test_every_named_color_is_valid() -> None:

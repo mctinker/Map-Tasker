@@ -91,7 +91,7 @@ _FIXTURE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 
 def _task(name: str) -> ET.Element:
-    root = ET.fromstring(_FIXTURE_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_FIXTURE_XML)
     return next(task for task in root.iter("Task") if task.findtext("nme") == name)
 
 
@@ -155,7 +155,7 @@ def _sample_objects() -> tuple[tuple[str, str, ET.Element], ...]:
     synthetic = os.path.join(here, "tests", "data", "synthetic_backup.xml")
     for path in [synthetic, *sorted(glob.glob(os.path.join(here, "XML", "*.xml")))]:
         try:
-            root = ET.parse(path).getroot()  # noqa: S314  (this repo's own sample data)
+            root = ET.parse(path).getroot()
         except ET.ParseError:
             continue
         for kind, tag in (
@@ -479,7 +479,7 @@ def test_profile_scalars_are_written_ahead_of_the_conditions() -> None:
     TRIGGER it: conditions are uppercase-tagged and the scalars are lowercase, so
     set_child_text_in_tag_order always places them ahead of every condition.
     """
-    profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    profile = ET.fromstring(_PROFILE_XML)
     props = objprops.load_properties(objprops.KIND_PROFILE, profile)
     values = dict(objprops.scalar_values(props))
     values.update({"pc": "a note", "cldm": "00:00:05:00", "pri": "40"})
@@ -495,7 +495,7 @@ def test_profile_scalars_are_written_ahead_of_the_conditions() -> None:
 
 
 def test_a_profile_priority_outside_the_slider_range_is_refused() -> None:
-    profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    profile = ET.fromstring(_PROFILE_XML)
     props = objprops.load_properties(objprops.KIND_PROFILE, profile)
     values = dict(objprops.scalar_values(props))
     values["pri"] = "51"
@@ -549,7 +549,7 @@ _ATEST_PROFILE_XML = """<Profile sr="prof858" ve="2">
 
 
 def _atest_profile() -> ET.Element:
-    return ET.fromstring(_ATEST_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    return ET.fromstring(_ATEST_PROFILE_XML)
 
 
 def _profile_values(profile: ET.Element) -> tuple[objprops.EditableProperties, dict]:
@@ -673,7 +673,7 @@ def test_the_editor_never_touches_the_disabled_marker() -> None:
         props, values = _profile_values(profile)
         assert "limit" not in values, "no field may be bound to the disabled marker"
 
-        values.update({key: "true" for key in _FLAGS_FIELDS})
+        values.update(dict.fromkeys(_FLAGS_FIELDS, "true"))
         values["delete_after_disable"] = "false"
         assert objprops.apply_properties(props, values) == []
         assert profile.findtext("limit") == start
@@ -700,7 +700,7 @@ def test_restore_settings_switched_off_is_not_a_property_a_profile_has() -> None
     counting it would have almost every Profile in a backup claim properties it has not got.
     Switched ON is the state worth noticing, and 735 sample Profiles are in it.
     """
-    profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    profile = ET.fromstring(_PROFILE_XML)
     ET.SubElement(profile, "flags").text = "10"  # mask 2 + mask 8, Tasker's new-Profile value
     assert objprops.has_properties(objprops.KIND_PROFILE, profile) is False
 
@@ -713,7 +713,7 @@ def test_an_unreadable_flags_value_claims_no_bit_backed_property() -> None:
     on" -- so without objprops.bitfield_is_readable a Profile whose <flags> nobody can read
     would claim a property off the back of it.
     """
-    profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    profile = ET.fromstring(_PROFILE_XML)
     ET.SubElement(profile, "flags").text = "not a number"
     assert objprops.has_properties(objprops.KIND_PROFILE, profile) is False
 
@@ -772,7 +772,7 @@ def test_flags_is_not_created_by_a_profile_that_has_none() -> None:
     a build that took "true" for "write the bit" would stamp <flags>25</flags> onto the 41
     sample Profiles that have no <flags> at all.
     """
-    profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    profile = ET.fromstring(_PROFILE_XML)
     props, values = _profile_values(profile)
     assert values["delete_after_disable"] == "false"
     assert values["run_exit_task_on_startup"] == "false"
@@ -821,7 +821,7 @@ def test_the_repeat_group_lands_in_taskers_child_order() -> None:
     rather than appended -- alphabetically among the lowercase children and ahead of every
     condition, which is what keeps condition.py from counting one as a context.
     """
-    profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    profile = ET.fromstring(_PROFILE_XML)
     props, values = _profile_values(profile)
     values.update({"repeats": "3", "delete_after_disable": "true"})
 
@@ -845,7 +845,7 @@ def test_a_flags_bit_on_its_own_counts_as_having_properties() -> None:
     every Profile with a <flags> (5,586 of the 5,627 samples) would claim properties it has
     not got, 4,009 of them for the value Tasker gives a brand-new Profile.
     """
-    profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    profile = ET.fromstring(_PROFILE_XML)
     # 10 is Tasker's own new-Profile value: mask 2, which no field owns, plus mask 8, which
     # Restore Settings owns and reads as the state Tasker leaves (see its tasker_default).
     ET.SubElement(profile, "flags").text = "10"

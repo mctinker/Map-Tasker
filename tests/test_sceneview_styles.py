@@ -13,14 +13,14 @@ from maptasker.src.gui import sceneview
 
 
 def _args(inner: str) -> sceneview.ElementArgs:
-    return sceneview.ElementArgs(ET.fromstring(f"<RectElement>{inner}</RectElement>"))  # noqa: S314
+    return sceneview.ElementArgs(ET.fromstring(f"<RectElement>{inner}</RectElement>"))
 
 
 # ##################################################################################
 # Colours
 # ##################################################################################
 def test_tasker_writes_the_alpha_first_and_css_wants_it_last() -> None:
-    """"#CA33DD20" is a green at 79% opacity; handed to CSS unchanged it would be a blue-grey at 12%."""
+    """ "#CA33DD20" is a green at 79% opacity; handed to CSS unchanged it would be a blue-grey at 12%."""
     colour = sceneview.tasker_colour("#CA33DD20")
     assert colour.css == "rgba(51,221,32,0.792)"
     assert colour.known

@@ -19,14 +19,14 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 import pytest
+from maptasker.src.core import scenelayout
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import sceneedit_v2
+from maptasker.src.gui import guiwins_canvas, guiwins_designer_v2, guiwins_views, sceneview
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src.core import scenelayout
-from maptasker.src.edit import sceneedit, sceneedit_v2
-from maptasker.src.gui import guiwins_canvas, guiwins_designer_v2, guiwins_views, sceneview
-from maptasker.src.core.primitem import PrimeItems
 from tests.test_mapfind import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -424,7 +424,7 @@ async def test_add_opens_the_sheet_and_says_where_the_element_will_go() -> None:
         _press(user, "Add")
         texts = [e.text for e in user.client.elements.values() if isinstance(e, ui.label)]
         assert "Add Element" in texts
-        assert any(text.startswith("Adds inside") or text.startswith("Adds after") for text in texts)
+        assert any(text.startswith(("Adds inside", "Adds after")) for text in texts)
 
 
 @pytest.mark.asyncio
@@ -997,7 +997,7 @@ async def test_the_material_colour_menu_sets_a_role_by_name() -> None:
 def _scene(layout: dict | None) -> SimpleNamespace:
     import xml.etree.ElementTree as ET
 
-    element = ET.fromstring('<Scene sr="sceneNew"><nme>Dialog</nme></Scene>')  # noqa: S314
+    element = ET.fromstring('<Scene sr="sceneNew"><nme>Dialog</nme></Scene>')
     if layout is None:
         ET.SubElement(element, "lj").text = "not a layout"
     else:

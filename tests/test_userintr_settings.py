@@ -18,10 +18,10 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
-from maptasker.src.gui import userintr_settings
 from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import NOTIFY_TIMEOUT_DEFAULT, VIEW_LIMIT_DEFAULT
+from maptasker.src.gui import userintr_settings
 from maptasker.src.gui.userintr_settings import SettingsEventHandlers
 
 
@@ -237,7 +237,7 @@ def test_a_font_change_made_by_the_program_is_ignored(handlers: _Handlers, gui: 
 def test_the_font_label_is_not_built_when_there_is_nowhere_to_put_it(handlers: _Handlers) -> None:
     """A window with no toolbar yet is not an error."""
     bare = SimpleNamespace(font_out_label=None, gui_view_toolbar=None)
-    handlers._update_font_labels(bare, "Monaco")  # noqa: SLF001
+    handlers._update_font_labels(bare, "Monaco")
     assert bare.font_out_label is None
 
 

@@ -98,7 +98,9 @@ def test_the_uncoloured_playback_never_reads_the_colour_map(capsys: pytest.Captu
     assert not hasattr(animation, "frame_color_maps")
 
 
-def test_the_splash_runs_and_rings_the_bell(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+def test_the_splash_runs_and_rings_the_bell(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     said: list[str] = []
     monkeypatch.setattr(clip.console, "say", said.append)
     monkeypatch.setattr(PrimeItems, "slash", "/")

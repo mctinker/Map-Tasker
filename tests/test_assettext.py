@@ -26,7 +26,7 @@ _ASSETS = assettext.ASSETS_DIR
 def _forget_loaded_files() -> None:
     """Empty every cache the loader keeps, so a test's files are read afresh."""
     assettext.text.cache_clear()
-    assettext._pieces.cache_clear()  # noqa: SLF001
+    assettext._pieces.cache_clear()
     assettext.placeholders.cache_clear()
 
 
@@ -184,7 +184,7 @@ def test_every_script_parses_as_javascript(asset: str, tmp_path: Path) -> None:
     wrapped = tmp_path / "script.js"
     wrapped.write_text(f"(function () {{\n{body}\n}});\n", encoding="utf-8")
 
-    result = subprocess.run(["node", "--check", str(wrapped)], capture_output=True, text=True, check=False)  # noqa: S603, S607
+    result = subprocess.run(["node", "--check", str(wrapped)], capture_output=True, text=True, check=False)
 
     assert result.returncode == 0, f"{asset}: {result.stderr}"
 

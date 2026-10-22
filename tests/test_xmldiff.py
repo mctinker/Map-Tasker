@@ -23,7 +23,6 @@ import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
 
 import pytest
-from maptasker.src.mapgen import taskerd
 from maptasker.src.analysis.xmldiff import (
     ADDED,
     CHANGED,
@@ -32,6 +31,7 @@ from maptasker.src.analysis.xmldiff import (
     Configuration,
     compare,
 )
+from maptasker.src.mapgen import taskerd
 
 # ##################################################################################
 # The fixtures.
@@ -220,7 +220,7 @@ def _configuration(xml_text: str, path: str) -> Configuration:
     action).  Those reach into PrimeItems and need a fully initialised program_arguments;
     every object in these fixtures is named, so there is nothing for them to do anyway.
     """
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     tables = {
         "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
         "all_profiles": taskerd.move_xml_to_table(root.findall("Profile"), True, "nme"),
@@ -772,14 +772,20 @@ def test_a_task_that_differs_only_in_its_priority_says_so() -> None:
 
 def test_a_task_variable_is_named_by_what_it_is_called_and_its_secret_is_hidden() -> None:
     action = '<Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">hi</Str></Action>'
-    variable = '<ProfileVariable sr="pv0"><pvn>%api_key</pvn><pvv>sk-' + 'oPqrg1qC1H2rqg4NPIcNT3Blbk' + 'FJCedjzdl5caPz6Q0SWJ4r</pvv></ProfileVariable>'
+    variable = (
+        '<ProfileVariable sr="pv0"><pvn>%api_key</pvn><pvv>sk-'
+        "oPqrg1qC1H2rqg4NPIcNT3Blbk"
+        "FJCedjzdl5caPz6Q0SWJ4r</pvv></ProfileVariable>"
+    )
     text, _ = _tasks(
         f"<Task sr='t'><id>20</id><nme>Runner</nme>{action}</Task>",
         f"<Task sr='t'><id>20</id><nme>Runner</nme>{variable}{action}</Task>",
     )
 
     assert "variable %api_key value:" in text
-    assert "sk-" + "oPqrg1qC1H2rqg4NPIcNT3Blbk" + "FJCedjzdl5caPz6Q0SWJ4r" not in text, "a report is pasted into forum posts"
+    assert "sk-" + "oPqrg1qC1H2rqg4NPIcNT3Blbk" + "FJCedjzdl5caPz6Q0SWJ4r" not in text, (
+        "a report is pasted into forum posts"
+    )
     assert "[REDACTED" in text
 
 

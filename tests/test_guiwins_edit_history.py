@@ -11,13 +11,13 @@ from __future__ import annotations
 import contextlib
 from datetime import UTC, datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock
 from typing import TYPE_CHECKING
+from unittest.mock import MagicMock
 
 import pytest
-from maptasker.src.gui import guiwins
 from maptasker.src.core.primitem import RunState
 from maptasker.src.edit.sessundo import Checkpoint
+from maptasker.src.gui import guiwins
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 
@@ -84,7 +84,7 @@ async def test_the_undo_buttons_follow_the_state_of_their_own_window() -> None:
     def page() -> None:
         for name, state in (("edited", edited), ("untouched", untouched)):
             window = SimpleNamespace(state=state, event_handlers=MagicMock())
-            guiwins._create_undo_section(window)  # noqa: SLF001
+            guiwins._create_undo_section(window)
             built[name] = window
 
     async with _open(page) as user:

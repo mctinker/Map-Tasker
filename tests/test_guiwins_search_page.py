@@ -13,11 +13,9 @@ import asyncio
 from typing import TYPE_CHECKING
 
 import pytest
-from nicegui import ui
+from maptasker.src.gui import guiwins_search
 from nicegui.client import Client
 
-from maptasker.src.gui import guiwins_search
-from maptasker.src.core.primitem import PrimeItems
 from tests.search_dialog import built, by_text, click, field, labels, links, open_page
 from tests.test_mapfind import _FIXTURE_XML, _load
 

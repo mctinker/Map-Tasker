@@ -10,6 +10,21 @@ import pytest
 from maptasker.src import clireports, runcli
 from maptasker.src.analysis import firesim, healthck, impact, mapfind
 from maptasker.src.core import dirout, mapjump, maputils, outdir, share, timeline
+from maptasker.src.core import property as prop
+from maptasker.src.core.actionc import load_arg_specs
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.mapjump import PROFILE, TASK, Target
+from maptasker.src.core.mtexcept import MapTaskerError
+from maptasker.src.core.primitem import (
+    MAP_OUTPUT_ATTRIBUTES,
+    PrimeItems,
+    PrimeItemsReset,
+    RunState,
+    initial_tasker_root_elements,
+    reset_attributes,
+)
+from maptasker.src.core.runcfg import current_config
+from maptasker.src.core.sysconst import DIAGRAM_FILE as diagram_file
 from maptasker.src.edit import projedit, sessundo, taskedit, taskedit_save
 from maptasker.src.gui import guistate, guiutils, mapai, userintr
 from maptasker.src.mapgen import (
@@ -30,23 +45,8 @@ from maptasker.src.mapgen import (
     twisty,
     varxref,
 )
-from maptasker.src.mapops import mapfix, maprefac_duplicate
-from maptasker.src.core import property as prop
-from maptasker.src.core.actionc import load_arg_specs
-from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.mapgen.lineout import LineOut
-from maptasker.src.core.mapjump import PROFILE, TASK, Target
-from maptasker.src.core.mtexcept import MapTaskerError
-from maptasker.src.core.primitem import (
-    MAP_OUTPUT_ATTRIBUTES,
-    PrimeItems,
-    PrimeItemsReset,
-    RunState,
-    initial_tasker_root_elements,
-    reset_attributes,
-)
-from maptasker.src.core.runcfg import current_config
-from maptasker.src.core.sysconst import DIAGRAM_FILE as diagram_file
+from maptasker.src.mapops import mapfix, maprefac_duplicate
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 
@@ -115,8 +115,8 @@ def test_a_diagram_object_is_recorded_on_the_state_it_is_given() -> None:
     """The box is noted and then flushed to its rows, all without the global being set up."""
     state = RunState()
     diagutil.add_output_line("header", state=state)
-    diagram._note_box(_PROFILE, "║ Wake Up", state=state)  # noqa: SLF001
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=state)  # noqa: SLF001
+    diagram._note_box(_PROFILE, "║ Wake Up", state=state)
+    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=state)
 
     assert state.diagram_object_seeds[_PROFILE.anchor][0] == 2
     assert PrimeItems.diagram_object_seeds == {}
@@ -158,7 +158,7 @@ def test_the_owning_profile_is_found_in_the_state_it_is_asked_of() -> None:
     """The tables are the state's own: the global holds none of this Task or Profile."""
     state = RunState()
     state.tasker_root_elements["all_tasks"] = {"13": {"xml": None, "name": "Remind Me"}}
-    profile = ET.fromstring('<Profile sr="prof5"><id>5</id><mid0>13</mid0><nme>Morning</nme></Profile>')  # noqa: S314
+    profile = ET.fromstring('<Profile sr="prof5"><id>5</id><mid0>13</mid0><nme>Morning</nme></Profile>')
     state.tasker_root_elements["all_profiles"] = {"5": {"xml": profile, "name": "Morning"}}
 
     assert maputils.find_owning_profile("Remind Me", state=state) == "Morning"
@@ -168,7 +168,7 @@ def test_the_owning_profile_is_found_in_the_state_it_is_asked_of() -> None:
 def _loaded_state() -> RunState:
     """A run state holding a (tiny) backup and an empty output, and nothing on the global."""
     state = RunState()
-    state.xml_root = ET.fromstring('<TaskerData sr="" dvi="1" tv="6.3.13"/>')  # noqa: S314
+    state.xml_root = ET.fromstring('<TaskerData sr="" dvi="1" tv="6.3.13"/>')
     state.output_lines = LineOut(state=state)
     state.file_to_get = "backup.xml"
     return state
@@ -188,7 +188,7 @@ def test_the_front_matter_is_written_into_the_state_it_is_given() -> None:
 def test_a_taskernet_description_is_written_into_the_state_it_is_given() -> None:
     state = _loaded_state()
     config = current_config().with_changes(colors=set_color_mode("dark"))
-    root = ET.fromstring(  # noqa: S314
+    root = ET.fromstring(
         "<Task><Share><d>Turns the lights on</d><g>lights</g></Share></Task>",
     )
 
@@ -221,7 +221,7 @@ def test_the_caveats_are_written_into_the_state_it_is_given() -> None:
 
 def test_a_profiles_properties_are_written_into_the_state_it_is_given() -> None:
     state = _loaded_state()
-    profile = ET.fromstring('<Profile sr="prof5"><id>5</id><flags>12</flags><nme>Morning</nme></Profile>')  # noqa: S314
+    profile = ET.fromstring('<Profile sr="prof5"><id>5</id><flags>12</flags><nme>Morning</nme></Profile>')
     before = len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0
 
     prop.get_properties("Profile:", profile, config=current_config(), state=state)
@@ -636,7 +636,7 @@ def test_a_profiles_state_and_event_conditions_are_read_with_the_state_it_is_giv
     state = RunState()
     load_arg_specs(state=state)
     state.colors_to_use = set_color_mode("dark")
-    profile = ET.fromstring(_CONDITIONS_XML)  # noqa: S314
+    profile = ET.fromstring(_CONDITIONS_XML)
 
     text = condition.parse_profile_condition(profile, state=state)
 
@@ -749,14 +749,14 @@ def test_the_diagram_pending_notes_belong_to_the_state_they_were_noted_on() -> N
     first, second = RunState(), RunState()
     for state in (first, second):
         diagutil.add_output_line("header", state=state)
-    diagram._note_box(_PROFILE, "║ Wake Up", state=first)  # noqa: SLF001
+    diagram._note_box(_PROFILE, "║ Wake Up", state=first)
 
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=second)  # noqa: SLF001
+    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=second)
 
     assert second.diagram_object_seeds == {}
     assert len(first.diagram_pending_boxes) == 1
 
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=first)  # noqa: SLF001
+    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=first)
 
     assert first.diagram_object_seeds[_PROFILE.anchor][0] == 2
     assert first.diagram_pending_boxes == []

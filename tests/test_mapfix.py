@@ -28,13 +28,13 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.analysis import healthck
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.mapjump import actions_in_map_order
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sessundo
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import mapfix
-from maptasker.src.core.mapjump import actions_in_map_order
-from maptasker.src.core.primitem import PrimeItems
 
 # Codes used below, named so the tests read as prose.
 WAIT = "30"
@@ -176,14 +176,14 @@ def _load(xml_text: str) -> None:
     to decide what an argument is, and an argument synthesized without it comes out wrong
     rather than failing.
     """
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.xml_tree = ET.ElementTree(root)
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
 
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         specs = json.load(handle)
     specs[str(len(specs))] = "ConditionList"  # proginit appends this one; see its own note.
     PrimeItems.tasker_arg_specs = specs

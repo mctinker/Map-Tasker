@@ -36,7 +36,9 @@ def test_the_next_port_up_is_used_when_the_default_is_taken(monkeypatch: pytest.
     assert busy < found <= busy + 20
 
 
-def test_when_every_port_is_taken_the_default_is_handed_back_to_report_the_clash(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_when_every_port_is_taken_the_default_is_handed_back_to_report_the_clash(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     logged: list[str] = []
     monkeypatch.setattr(rungui.logger, "error", logged.append)
 
@@ -203,7 +205,7 @@ async def _emit_through_the_interceptor(monkeypatch: pytest.MonkeyPatch, state: 
 
 
 def test_everything_still_reaches_the_browser(monkeypatch: pytest.MonkeyPatch) -> None:
-    import asyncio  # noqa: PLC0415
+    import asyncio
 
     state = SimpleNamespace(mygui=None)
     sent = asyncio.run(_emit_through_the_interceptor(monkeypatch, state))
@@ -211,7 +213,7 @@ def test_everything_still_reaches_the_browser(monkeypatch: pytest.MonkeyPatch) -
 
 
 def test_a_changed_window_has_its_state_captured_once(monkeypatch: pytest.MonkeyPatch) -> None:
-    import asyncio  # noqa: PLC0415
+    import asyncio
 
     captured: list[object] = []
     monkeypatch.setattr(rungui, "capture_gui_state", lambda gui, data, state: captured.append(data))

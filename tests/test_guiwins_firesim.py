@@ -34,7 +34,7 @@ def _page() -> None:
     jumps: list = _built.setdefault("jumps", [])
     steps: list = _built.setdefault("steps", [])
     _built["dialog"] = guiwins_firesim.build_firesim_dialog(
-        lambda target: (lambda: jumps.append(target.label)),
+        lambda target: lambda: jumps.append(target.label),
         PrimeItems,
         step_task=steps.append,
     )

@@ -21,12 +21,12 @@ from unittest import mock
 import pytest
 from maptasker.src.analysis import healthck, plugchk
 from maptasker.src.core import plugset
-from maptasker.src.edit import taskedit_args
-from maptasker.src.mapgen import actargs, taskerd
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import text_report
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import taskedit_args
+from maptasker.src.mapgen import actargs, taskerd
 
 if TYPE_CHECKING:
     import pathlib
@@ -44,7 +44,7 @@ def _vals(fields: dict[str, str], blurb: str = "") -> str:
 
 def _action(package: str, fields: dict[str, str], blurb: str = "", code: str = "1040876951") -> ET.Element:
     """A plugin action: <Bundle> in arg0, the plugin's package in arg1, its screen in arg2."""
-    return ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    return ET.fromstring(
         f'<Action sr="act0" ve="7"><code>{code}</code><Bundle sr="arg0">{_vals(fields, blurb)}</Bundle>'
         f'<Str sr="arg1" ve="3">{package}</Str><Str sr="arg2" ve="3">{package}.Config</Str></Action>',
     )
@@ -75,7 +75,7 @@ def test_a_built_in_actions_output_variables_bundle_is_not_a_plugin() -> None:
     """HTTP Request and friends carry a <Bundle> too, listing the variables they set.  It has
     no blurb, and it is not a plugin however many arguments sit beside it.
     """
-    action = ET.fromstring(  # noqa: S314
+    action = ET.fromstring(
         '<Action sr="act0" ve="7"><code>339</code><Bundle sr="arg0"><Vals sr="val">'
         "<net.dinglisch.android.tasker.RELEVANT_VARIABLES>x</net.dinglisch.android.tasker.RELEVANT_VARIABLES>"
         '</Vals></Bundle><Str sr="arg1" ve="3">https://example.com</Str></Action>',
@@ -266,12 +266,14 @@ def test_a_decoded_plugin_still_leads_with_its_blurb_in_the_map() -> None:
 def test_the_editor_shows_what_a_plugin_is_set_to() -> None:
     """Still read-only, but no longer a blank box."""
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         PrimeItems.tasker_arg_specs = json.load(handle)
     action = _action("com.joaomgcd.join", _JOIN_PUSH, "Device: Kitchen Tablet", code="774351906")
     entry = action_codes["774351906t"]
     effective = action_codes[entry.redirect].args if entry.redirect else entry.args
-    settings = next(arg for arg in taskedit_args.build_editable_args(action, effective, state=PrimeItems) if arg.arg_id == "0")
+    settings = next(
+        arg for arg in taskedit_args.build_editable_args(action, effective, state=PrimeItems) if arg.arg_id == "0"
+    )
     assert settings.widget_kind == "readonly"
     assert settings.current_value.startswith("Device: Kitchen Tablet; ")
     assert "Title: Door" in settings.current_value
@@ -303,7 +305,7 @@ _ONE_DEVICE = {"192.0.2.1:1821": ("2026-09-01 10:00:00", frozenset({"com.joaomgc
 @pytest.fixture(autouse=True)
 def _loaded() -> None:
     """Build the PrimeItems tables from the fixture, the way taskerd does from a file."""
-    root = ET.fromstring(_CONFIG_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_CONFIG_XML)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)

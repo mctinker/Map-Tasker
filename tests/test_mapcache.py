@@ -18,8 +18,8 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
-from maptasker.src.mapgen import mapcache, taskerd
 from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
+from maptasker.src.mapgen import mapcache, taskerd
 
 # One Project, one Profile, two Tasks and a Scene -- enough that a change can be made in
 # any of the four tables, plus a global variable and a Tasker setting, which are the parts
@@ -47,7 +47,7 @@ _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 def _load(xml_text: str) -> None:
     """Build the PrimeItems lookup tables from XML text, the way taskerd does from a file."""
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.xml_root = root
     PrimeItems.tasker_root_elements = {
         "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
@@ -274,9 +274,9 @@ _SYNTHETIC_BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "da
 
 def _build_a_map(tmp_path) -> tuple[float, int]:
     """Build the Map the way the GUI does, and report (the file's mtime, its line count)."""
-    from maptasker.src.mapgen.bildhtml import build_html  # noqa: PLC0415
-    from maptasker.src.mapgen.frontmtr import output_the_front_matter  # noqa: PLC0415
-    from maptasker.src.core.runcfg import current_config  # noqa: PLC0415
+    from maptasker.src.core.runcfg import current_config
+    from maptasker.src.mapgen.bildhtml import build_html
+    from maptasker.src.mapgen.frontmtr import output_the_front_matter
 
     PrimeItems.output_lines.output_lines.clear()
     output_the_front_matter(current_config(), state=PrimeItems)
@@ -288,11 +288,11 @@ def _build_a_map(tmp_path) -> tuple[float, int]:
 @pytest.fixture
 def _a_real_configuration(tmp_path, monkeypatch) -> None:
     """A whole loaded configuration and a GUI to build a Map for, in a directory of our own."""
-    from maptasker.src.core.actionc import load_arg_specs  # noqa: PLC0415
-    from maptasker.src.core.colrmode import set_color_mode  # noqa: PLC0415
-    from maptasker.src.core.initparg import initialize_runtime_arguments  # noqa: PLC0415
-    from maptasker.src.mapgen.lineout import LineOut  # noqa: PLC0415
-    from maptasker.src.mapgen.proginit import get_data_and_output_intro  # noqa: PLC0415
+    from maptasker.src.core.actionc import load_arg_specs
+    from maptasker.src.core.colrmode import set_color_mode
+    from maptasker.src.core.initparg import initialize_runtime_arguments
+    from maptasker.src.mapgen.lineout import LineOut
+    from maptasker.src.mapgen.proginit import get_data_and_output_intro
 
     monkeypatch.chdir(tmp_path)
     PrimeItems.program_arguments = initialize_runtime_arguments()
@@ -303,7 +303,7 @@ def _a_real_configuration(tmp_path, monkeypatch) -> None:
     PrimeItems.colors_to_use = set_color_mode("dark")
     PrimeItems.output_lines = LineOut()
     PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-    PrimeItems.file_to_get = open(_SYNTHETIC_BACKUP)
+    PrimeItems.file_to_get = open(_SYNTHETIC_BACKUP, encoding="utf-8")
     load_arg_specs()
     get_data_and_output_intro(True, state=PrimeItems)
     yield

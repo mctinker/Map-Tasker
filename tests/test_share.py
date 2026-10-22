@@ -22,7 +22,7 @@ def test_a_doubled_line_break_at_the_end_is_taken_out_by_position() -> None:
     and so raised ValueError whenever there was a doubled break to remove."""
     state = SimpleNamespace(output_lines=_output("heading", "<br>", "<br>"))
 
-    share(ET.fromstring("<Task><Share/></Task>"), "tasktab", config=None, state=state)  # noqa: S314
+    share(ET.fromstring("<Task><Share/></Task>"), "tasktab", config=None, state=state)
 
     lines = state.output_lines.output_lines
     assert lines.count("<br>") == 1  # one of the pair is gone
@@ -32,7 +32,7 @@ def test_a_doubled_line_break_at_the_end_is_taken_out_by_position() -> None:
 def test_a_single_line_break_is_left_alone() -> None:
     state = SimpleNamespace(output_lines=_output("heading", "<br>"))
 
-    share(ET.fromstring("<Task><Share/></Task>"), "tasktab", config=None, state=state)  # noqa: S314
+    share(ET.fromstring("<Task><Share/></Task>"), "tasktab", config=None, state=state)
 
     assert state.output_lines.output_lines.count("<br>") == 1
 
@@ -40,6 +40,6 @@ def test_a_single_line_break_is_left_alone() -> None:
 def test_a_task_without_a_share_element_writes_nothing() -> None:
     state = SimpleNamespace(output_lines=_output("heading"))
 
-    share(ET.fromstring("<Task/>"), "tasktab", config=None, state=state)  # noqa: S314
+    share(ET.fromstring("<Task/>"), "tasktab", config=None, state=state)
 
     assert state.output_lines.output_lines == ["heading"]

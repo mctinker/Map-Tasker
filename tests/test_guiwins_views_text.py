@@ -16,9 +16,7 @@ import re
 from types import SimpleNamespace
 
 import pytest
-
 from maptasker.src.gui import guiwins_views
-from maptasker.src.mapgen import diagintr
 from maptasker.src.gui.guiwins_views import (
     HTML_OPTIMIZE_PATTERN,
     _compress_blank_lines,
@@ -37,6 +35,7 @@ from maptasker.src.gui.guiwins_views import (
     split_for_streaming,
     view_theme_colors,
 )
+from maptasker.src.mapgen import diagintr
 
 
 def _optimized(html: str) -> str:
@@ -56,7 +55,9 @@ def test_a_newline_touching_a_tag_is_the_files_formatting_and_goes() -> None:
 
 def test_a_newline_with_text_on_both_sides_is_the_authors_and_stays_as_one_line_break() -> None:
     assert _optimized("first line\nsecond line") == "first line\nsecond line"
-    assert _optimized("first\n\n\nsecond") == "first\nsecond", "a run of written newlines is the one break they asked for"
+    assert _optimized("first\n\n\nsecond") == "first\nsecond", (
+        "a run of written newlines is the one break they asked for"
+    )
 
 
 def test_the_two_headings_are_swapped_for_the_smaller_ones_the_view_uses() -> None:
@@ -112,8 +113,8 @@ def _text(html: str) -> str:
 def _balanced(piece: str) -> bool:
     """Every element a piece opens, it closes (void elements and the frame aside)."""
     stack: list[str] = []
-    for closing, name, self_closing in guiwins_views.HTML_ELEMENT.findall(piece):
-        name = name.lower()
+    for closing, tag, self_closing in guiwins_views.HTML_ELEMENT.findall(piece):
+        name = tag.lower()
         if name in guiwins_views.VOID_ELEMENTS or name in guiwins_views.FRAME_ELEMENTS or self_closing:
             continue
         if closing:
@@ -278,7 +279,9 @@ def test_only_the_tags_the_map_uses_survive_escaping_and_the_rest_are_shown_as_t
     assert _escape_text_except_html("<script>alert(1)</script>") == "&lt;script&gt;alert(1)&lt;/script&gt;"
     assert _escape_text_except_html("if a < b and b > c") == "if a &lt; b and b &gt; c"
     assert _escape_text_except_html("<iframe src='x'>") == "&lt;iframe src='x'&gt;"
-    assert _escape_text_except_html("<A HREF='#x'>link</A>") == "<A HREF='#x'>link</A>", "tag names are matched without case"
+    assert _escape_text_except_html("<A HREF='#x'>link</A>") == "<A HREF='#x'>link</A>", (
+        "tag names are matched without case"
+    )
 
 
 def test_a_style_block_arriving_a_line_at_a_time_becomes_one_style_element() -> None:
@@ -308,12 +311,16 @@ def test_the_map_fallback_makes_a_div_per_line_and_a_span_per_colour() -> None:
     }
     lines = _fallback_map_html(data)
     assert lines[0] == "<div><span style='color: red;'>Project: </span><span style='color: blue;'>Home</span></div>"
-    assert lines[1] == "<div><span style='color: inherit;'>a &lt; b</span></div>", "no colour for a segment means inherit"
+    assert lines[1] == "<div><span style='color: inherit;'>a &lt; b</span></div>", (
+        "no colour for a segment means inherit"
+    )
     assert "<b>kept</b>" in lines[2]
 
 
 def test_css_in_the_maps_lines_becomes_a_style_element_instead_of_text() -> None:
-    lines = _fallback_map_html({0: {"text": [".x { color: red; }"], "color": []}, 1: {"text": ["real"], "color": ["red"]}})
+    lines = _fallback_map_html(
+        {0: {"text": [".x { color: red; }"], "color": []}, 1: {"text": ["real"], "color": ["red"]}}
+    )
     assert lines[0] == "<style>.x { color: red; }</style>"
     assert lines[1].startswith("<div>")
 
@@ -327,7 +334,7 @@ def test_the_other_views_fallback_escapes_each_line_and_keeps_blank_ones_as_spac
 
 
 def test_the_fallback_drops_the_empty_markers_and_triple_quotes_the_generator_leaves() -> None:
-    lines = _fallback_lines_html(['"""text"""', "<div>\n</div>\"\"\"", "<div>  </tr>\n</div>\"\"\""])
+    lines = _fallback_lines_html(['"""text"""', '<div>\n</div>"""', '<div>  </tr>\n</div>"""'])
     assert lines[0] == "<div>text</div>"
 
 
@@ -355,8 +362,14 @@ def test_a_selection_that_has_changed_since_is_named_beside_the_old_one() -> Non
         "Drawn for Project 'Home'",
         "-- now showing Task 'Wake Up'",
     )
-    assert scope_badge_text("Project 'Home'", "") == ("Drawn for Project 'Home'", "-- now showing the whole configuration")
-    assert scope_badge_text("", "Scene 'Panel'") == ("Drawn for the whole configuration", "-- now showing Scene 'Panel'")
+    assert scope_badge_text("Project 'Home'", "") == (
+        "Drawn for Project 'Home'",
+        "-- now showing the whole configuration",
+    )
+    assert scope_badge_text("", "Scene 'Panel'") == (
+        "Drawn for the whole configuration",
+        "-- now showing Scene 'Panel'",
+    )
 
 
 def test_a_view_paints_itself_for_the_mode_the_window_is_in() -> None:

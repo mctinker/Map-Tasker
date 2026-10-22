@@ -26,7 +26,7 @@ from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import TYPES_OF_COLORS
 
 
-class _Stop(Exception):  # noqa: N818
+class _Stop(Exception):
     """Stands in for exit_program, which ends the run."""
 
 

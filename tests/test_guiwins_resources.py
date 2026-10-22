@@ -177,7 +177,7 @@ async def test_the_refresh_checkbox_decides_whether_the_app_list_is_fetched(monk
     monkeypatch.setattr(
         deviceresource,
         "check_device",
-        lambda _ip, _port, _refs, *, refresh_apps, state: asked.append(refresh_apps) or _outcome(),  # noqa: ARG005
+        lambda _ip, _port, _refs, *, refresh_apps, state: asked.append(refresh_apps) or _outcome(),
     )
     async with _open() as user:
         (box,) = user.find(kind=ui.checkbox).elements
@@ -203,7 +203,7 @@ async def test_a_row_naming_a_place_is_a_link_into_the_map() -> None:
 
 @pytest.mark.asyncio
 async def test_save_report_writes_the_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    monkeypatch.setattr(resrefs, "output_path", lambda name, state: str(tmp_path / name))  # noqa: ARG005
+    monkeypatch.setattr(resrefs, "output_path", lambda name, state: str(tmp_path / name))
     _answer(PHONE, data=False)
     async with _open() as user:
         UserInteraction(user, {_button(user, "Save Report")}, None).click()

@@ -10,12 +10,11 @@ registry; loading a configuration (maputils.clear_tasker_data) and a full reset
 from __future__ import annotations
 
 import pytest
-from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core import appinv, caches
+from maptasker.src.core.maputils import clear_tasker_data
+from maptasker.src.core.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.edit import profedit, taskedit_addable
 from maptasker.src.mapgen import bildhtml, globalvr, mapcache, scenes
-from maptasker.src.core.maputils import clear_tasker_data
-from maptasker.src.core.primitem import PrimeItemsReset
 
 # Every cache the package declares.  A new one is on the registry the moment it is declared,
 # so this list only has to grow when one is added -- and it fails if one is lost.
@@ -80,22 +79,22 @@ def test_every_cache_the_package_declares_is_registered() -> None:
 )
 def test_loading_another_configuration_empties_every_cache(reset: object) -> None:
     """Both ways the program starts over leave nothing of the last configuration behind."""
-    globalvr._cross_reference.value = {"%Stale": object()}  # noqa: SLF001
-    globalvr._cross_reference_key.value = "old configuration"  # noqa: SLF001
-    mapcache._remembered.value = ("config", "settings", "MapTasker.html", (1, 2), 3)  # noqa: SLF001
-    bildhtml._map_just_written.value = "MapTasker.html"  # noqa: SLF001
-    scenes._carrying_scene_colour.value = True  # noqa: SLF001
-    stale_rows = taskedit_addable._addable_actions.get("old generation", lambda: ["stale"])  # noqa: SLF001
-    stale_conditions = profedit._addable_condition_codes.get("old generation", dict)  # noqa: SLF001
+    globalvr._cross_reference.value = {"%Stale": object()}
+    globalvr._cross_reference_key.value = "old configuration"
+    mapcache._remembered.value = ("config", "settings", "MapTasker.html", (1, 2), 3)
+    bildhtml._map_just_written.value = "MapTasker.html"
+    scenes._carrying_scene_colour.value = True
+    stale_rows = taskedit_addable._addable_actions.get("old generation", lambda: ["stale"])
+    stale_conditions = profedit._addable_condition_codes.get("old generation", dict)
 
     reset()
 
-    assert globalvr._cross_reference.value is None  # noqa: SLF001
-    assert globalvr._cross_reference_key.value == ""  # noqa: SLF001
+    assert globalvr._cross_reference.value is None
+    assert globalvr._cross_reference_key.value == ""
     assert not mapcache.is_current("MapTasker.html", ("config", "settings"))
-    assert bildhtml._map_just_written.value == ""  # noqa: SLF001
-    assert taskedit_addable._addable_actions.get("old generation", list) is not stale_rows  # noqa: SLF001
-    assert profedit._addable_condition_codes.get("old generation", dict) is not stale_conditions  # noqa: SLF001
+    assert bildhtml._map_just_written.value == ""
+    assert taskedit_addable._addable_actions.get("old generation", list) is not stale_rows
+    assert profedit._addable_condition_codes.get("old generation", dict) is not stale_conditions
 
 
 def test_a_scene_left_open_by_a_failed_build_does_not_open_the_next() -> None:
@@ -103,9 +102,9 @@ def test_a_scene_left_open_by_a_failed_build_does_not_open_the_next() -> None:
     and closed as it finishes; a build that failed in between left it held, and the next
     build began by closing a <span> it had never opened.
     """
-    scenes._carrying_scene_colour.value = True  # noqa: SLF001  as a failed build leaves it
+    scenes._carrying_scene_colour.value = True
     clear_tasker_data(state=PrimeItems)
-    assert scenes._carrying_scene_colour.value is False  # noqa: SLF001
+    assert scenes._carrying_scene_colour.value is False
 
 
 def test_the_inventory_generation_only_goes_up() -> None:

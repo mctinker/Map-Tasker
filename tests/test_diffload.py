@@ -17,12 +17,12 @@ import os
 from pathlib import Path
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.analysis import diffload
-from maptasker.src.mapgen import taskerd
-from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 from maptasker.src.core.sysconst import ERROR_FILE
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapgen.lineout import LineOut
 
 _GOOD_XML = """<TaskerData sr="" dvi="1" tv="6.5.6">
   <Project sr="proj0" ve="2"><cdate>1</cdate><id>1</id><name>Loaded</name>
@@ -75,7 +75,7 @@ def _load_as_current(path: str) -> None:
     tests are about what happens to a genuinely loaded configuration, and a hand-built
     one would not have been through the same passes.
     """
-    with open(path) as handle:  # noqa: PTH123, SIM115
+    with open(path, encoding="utf-8") as handle:
         PrimeItems.file_to_get = handle
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
         assert taskerd.get_the_xml_data(state=PrimeItems) == 0
@@ -105,7 +105,9 @@ def _runtime(tmp_path, monkeypatch):
     these tests assert on whether it is there afterwards.
     """
     monkeypatch.chdir(tmp_path)
-    PrimeItems.program_arguments = ProgramArguments(gui=True, debug=False, directory=False, pretty=False, display_detail_level=3, file="")
+    PrimeItems.program_arguments = ProgramArguments(
+        gui=True, debug=False, directory=False, pretty=False, display_detail_level=3, file=""
+    )
     PrimeItems.error_code = 0
     PrimeItems.error_msg = ""
     PrimeItems.directory_items = {"current_item": "", "projects": [], "profiles": [], "tasks": [], "scenes": []}
@@ -191,7 +193,9 @@ def test_a_malformed_file_reports_and_does_not_exit(tmp_path) -> None:
 
 def test_a_non_tasker_file_is_named_as_such(tmp_path) -> None:
     """Valid XML that is not a Tasker backup gets its own message, not "invalid XML"."""
-    configuration, message = diffload.load_for_comparison(_write(tmp_path, "other.xml", _NOT_TASKER_XML), state=PrimeItems)
+    configuration, message = diffload.load_for_comparison(
+        _write(tmp_path, "other.xml", _NOT_TASKER_XML), state=PrimeItems
+    )
     assert configuration is None
     assert "not a valid Tasker backup file" in message or "not a Tasker backup file" in message
 
@@ -248,7 +252,7 @@ def test_an_exception_inside_the_window_still_restores(tmp_path) -> None:
     with more than one yield in it, which an earlier draft of this module had.
     """
     before = _snapshot()
-    with pytest.raises(RuntimeError, match="boom"):  # noqa: PT012
+    with pytest.raises(RuntimeError, match="boom"):
         with diffload._parsed_in_isolation(_write(tmp_path, "other.xml", _OTHER_XML), state=PrimeItems):
             raise RuntimeError("boom")
 
@@ -310,12 +314,12 @@ def test_a_bad_file_leaves_no_error_file_behind(tmp_path) -> None:
 
 def test_a_pre_existing_error_file_survives(tmp_path) -> None:
     """A real error waiting to be shown is not collateral damage of a comparison."""
-    with open(ERROR_FILE, "wb") as error_file:  # noqa: PTH123
+    with open(ERROR_FILE, "wb") as error_file:
         error_file.write(b"a real error\n1\n")
 
     diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML), state=PrimeItems)
 
-    with open(ERROR_FILE, "rb") as error_file:  # noqa: PTH123
+    with open(ERROR_FILE, "rb") as error_file:
         assert error_file.read() == b"a real error\n1\n"
 
 
@@ -391,7 +395,7 @@ def test_loaded_file_path_handles_a_plain_string() -> None:
 # The pieces the GUI event is built out of.
 # ##################################################################################
 def test_original_of_finds_the_file_a_save_copy_came_from(tmp_path) -> None:
-    """"Save To Current File" writes backup_20260721_143005.xml next to backup.xml.
+    """ "Save To Current File" writes backup_20260721_143005.xml next to backup.xml.
 
     Both halves stay on disk, which is what makes "what did my own edit change?"
     answerable with no file picker at all.
@@ -422,7 +426,7 @@ def test_original_of_uses_the_same_pattern_that_writes_the_names() -> None:
     A second copy of it over here would be free to drift away from the one that writes
     the file names, and the offer would quietly stop appearing.
     """
-    from maptasker.src.core.maputil2 import TIMESTAMP_SUFFIX_RE  # noqa: PLC0415
+    from maptasker.src.core.maputil2 import TIMESTAMP_SUFFIX_RE
 
     assert TIMESTAMP_SUFFIX_RE.search("_20260721_143005")
     assert not TIMESTAMP_SUFFIX_RE.search("_2026072_143005")
@@ -430,9 +434,9 @@ def test_original_of_uses_the_same_pattern_that_writes_the_names() -> None:
 
 def test_order_by_age_puts_the_older_file_first(tmp_path) -> None:
     """Whichever way round the user picked them, "added" means added in the newer file."""
-    from datetime import UTC, datetime  # noqa: PLC0415
+    from datetime import UTC, datetime
 
-    from maptasker.src.analysis.xmldiff import Configuration  # noqa: PLC0415
+    from maptasker.src.analysis.xmldiff import Configuration
 
     early = Configuration(path="early.xml", tables={}, when=datetime(2026, 1, 1, tzinfo=UTC))
     late = Configuration(path="late.xml", tables={}, when=datetime(2026, 6, 1, tzinfo=UTC))
@@ -446,7 +450,7 @@ def test_order_by_age_keeps_the_given_order_without_timestamps() -> None:
 
     Guessing is worse than leaving it: the report header names both files either way.
     """
-    from maptasker.src.analysis.xmldiff import Configuration  # noqa: PLC0415
+    from maptasker.src.analysis.xmldiff import Configuration
 
     first = Configuration(path="a.xml", tables={}, when=None)
     second = Configuration(path="b.xml", tables={}, when=None)
@@ -467,7 +471,7 @@ def test_write_comparison_report(tmp_path) -> None:
 
 def test_the_two_sides_compare(tmp_path) -> None:
     """The point of all of this: two Configurations that xmldiff can actually compare."""
-    from maptasker.src.analysis.xmldiff import compare  # noqa: PLC0415
+    from maptasker.src.analysis.xmldiff import compare
 
     other, message = diffload.load_for_comparison(_write(tmp_path, "other.xml", _OTHER_XML), state=PrimeItems)
     assert message == ""

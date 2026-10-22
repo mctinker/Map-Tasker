@@ -96,7 +96,9 @@ def test_the_font_choices_are_what_the_font_module_offers(monkeypatch: pytest.Mo
     assert guiutil2.get_font_choices() == {"Menlo": "Menlo"}
 
 
-def test_a_font_search_that_fails_never_takes_the_window_down(monkeypatch: pytest.MonkeyPatch, reported: list[str]) -> None:
+def test_a_font_search_that_fails_never_takes_the_window_down(
+    monkeypatch: pytest.MonkeyPatch, reported: list[str]
+) -> None:
     def broken(_proportional: bool) -> dict:
         raise RuntimeError("fontconfig exploded")
 
@@ -148,7 +150,7 @@ def test_an_exception_is_logged_by_type_and_message(tracing: Path) -> None:
 
 
 def test_code_that_is_not_a_file_is_not_traced(tracing: Path) -> None:
-    frame = eval("sys._getframe()", {"sys": sys})  # noqa: S307  (a frame whose file is "<string>")
+    frame = eval("sys._getframe()", {"sys": sys})
     assert guiutil2.my_trace_function(frame, "line", None) is guiutil2.my_trace_function
     assert not tracing.exists()
 

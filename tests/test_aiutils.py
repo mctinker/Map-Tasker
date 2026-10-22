@@ -42,7 +42,7 @@ class _Ollama:
             return answer
         return {"models": [{"model": name} for name in self.models]}
 
-    def pull(self, name: str, stream: bool = False) -> list[dict]:  # noqa: FBT001, FBT002
+    def pull(self, name: str, stream: bool = False) -> list[dict]:
         if self.pull_failure:
             raise self.pull_failure
         self.pulled.append(name)

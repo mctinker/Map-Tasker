@@ -14,12 +14,12 @@ import asyncio
 from typing import TYPE_CHECKING
 
 import pytest
-from nicegui import ui
-
 from maptasker.src.analysis import mapask, mapfind
-from maptasker.src.gui import guiwins_search
 from maptasker.src.core.mapjump import TASK
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.gui import guiwins_search
+from nicegui import ui
+
 from tests.search_dialog import built, by_text, click, field, labels, links, open_dialog, press_find, select
 from tests.test_mapfind import _FIXTURE_XML, _load
 
@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from nicegui.testing.user import User
+
 
 @pytest.fixture(autouse=True)
 def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -15,12 +15,11 @@ exactly what has no other symptom.
 from __future__ import annotations
 
 import pytest
-
-from maptasker.src.gui import userhelp, userintr
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import VERSION
 from maptasker.src.core.translator import T
+from maptasker.src.gui import userhelp, userintr
 
 # The pieces the GUI's help popups are built from, all of which the catalogs carry.
 # userhelp.COMMAND_REFERENCE_TEXT and OUTPUT_FOLDER_HELP_TEXT are deliberately not among them:

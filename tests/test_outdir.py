@@ -17,8 +17,8 @@ from maptasker.src.core import outdir
 from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.parsearg import runtime_parser
 from maptasker.src.core.primitem import PrimeItems
-from maptasker.src.runcli import process_extended_arguments
 from maptasker.src.core.sysconst import ARGUMENT_NAMES
+from maptasker.src.runcli import process_extended_arguments
 
 
 @pytest.fixture(autouse=True)

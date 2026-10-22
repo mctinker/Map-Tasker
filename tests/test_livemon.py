@@ -299,7 +299,7 @@ def test_putting_the_lights_out_is_the_same_script_with_nothing_lit() -> None:
 
 
 def _predict(hour: int, minute: int = 30) -> firesim.Simulation:
-    return firesim.simulate(firesim.Scenario(datetime(2026, 10, 19, hour, minute)), PrimeItems)  # noqa: DTZ001
+    return firesim.simulate(firesim.Scenario(datetime(2026, 10, 19, hour, minute)), PrimeItems)
 
 
 def test_a_device_that_does_as_predicted_agrees() -> None:
@@ -344,7 +344,7 @@ def test_a_profile_that_fires_at_a_single_time_is_not_judged_even_when_predicted
     index = _load_fixture()
     dawn = index.profiles["Dawn"][0]
     prediction = firesim.Simulation(
-        firesim.Scenario(datetime(2026, 10, 19, 6, 30)),  # noqa: DTZ001
+        firesim.Scenario(datetime(2026, 10, 19, 6, 30)),
         active=[firesim.ProfileResult(dawn, firesim.ACTIVE, [], 5, True, None, None)],
     )
 

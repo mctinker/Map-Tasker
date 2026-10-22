@@ -24,12 +24,12 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core import actionc, scenelayout
-from maptasker.src.mapgen import proclist, scenes, taskerd, varxref
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.initparg import initialize_runtime_arguments
-from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.core.primitem import PrimeItems, initial_directory_items, initial_found_named_items
 from maptasker.src.core.runcfg import current_config
+from maptasker.src.mapgen import proclist, scenes, taskerd, varxref
+from maptasker.src.mapgen.lineout import LineOut
 
 _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
   <Project sr="proj0"><name>Home</name><scenes>Panel,Dialog</scenes></Project>
@@ -52,7 +52,7 @@ def _loaded() -> None:
     PrimeItems.named_task_count_total = 0
     PrimeItems.directory_items = initial_directory_items()
     PrimeItems.emitted_anchors = set()
-    PrimeItems.xml_root = ET.fromstring(_XML)  # noqa: S314  (fixture text, defined in this file)
+    PrimeItems.xml_root = ET.fromstring(_XML)
     taskerd.build_tasker_tables(state=PrimeItems)
 
 
@@ -82,7 +82,7 @@ def test_geometry_is_read_width_first() -> None:
 
 def test_a_scene_without_geometry_is_not_an_error() -> None:
     """A Scene that has never been opened in the editor carries no size."""
-    assert scenes.get_geometry(ET.fromstring("<Scene/>")) == (None, None)  # noqa: S314
+    assert scenes.get_geometry(ET.fromstring("<Scene/>")) == (None, None)
 
 
 def test_a_scene_reports_its_size_the_way_it_is_labelled() -> None:
@@ -99,7 +99,7 @@ def test_a_scene_reports_its_size_the_way_it_is_labelled() -> None:
 # ##################################################################################
 def test_scene_v1_elements_are_listed_by_name_and_type() -> None:
     """A V1 element is a child named for its type, with its own name in the first <Str>."""
-    scene = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    scene = ET.fromstring(
         "<Scene><nme>Panel</nme>"
         "<ButtonElement><Str>OK</Str></ButtonElement>"
         "<TextElement><Str>Heading</Str></TextElement>"
@@ -110,7 +110,7 @@ def test_scene_v1_elements_are_listed_by_name_and_type() -> None:
 
 def test_an_unnamed_element_is_listed_by_type_alone() -> None:
     """An element the user never named would otherwise be listed as "'' (Text)"."""
-    scene = ET.fromstring("<Scene><TextElement><Str></Str></TextElement></Scene>")  # noqa: S314
+    scene = ET.fromstring("<Scene><TextElement><Str></Str></TextElement></Scene>")
     assert proclist.get_scene_element_names(scene) == ["Text"]
 
 
@@ -118,7 +118,7 @@ def test_the_scenes_own_settings_are_not_listed_as_elements() -> None:
     """<nme>, <heightPort> and <PropertiesElement> are the Scene's own properties, not
     things on it.  Listing them tells the reader the screen has controls it does not.
     """
-    scene = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    scene = ET.fromstring(
         "<Scene><nme>Panel</nme><heightPort>800</heightPort><widthPort>480</widthPort>"
         "<PropertiesElement><Str>props</Str></PropertiesElement>"
         "<ButtonElement><Str>OK</Str></ButtonElement>"
@@ -131,7 +131,7 @@ def test_a_scene_v2_element_row_is_not_listed_as_an_element() -> None:
     """<lj> is the whole V2 element list compressed into one child.  Treated as an
     element it becomes a single meaningless row called "lj".
     """
-    scene = ET.fromstring(f"<Scene><lj>{_gzipped_json([])}</lj></Scene>")  # noqa: S314
+    scene = ET.fromstring(f"<Scene><lj>{_gzipped_json([])}</lj></Scene>")
     assert proclist.get_scene_element_names(scene) == []
 
 
@@ -182,7 +182,9 @@ def test_markup_in_a_scene_v2_property_is_shown_as_text_not_run() -> None:
     """A WebView component's content is a whole page.  Written into the Map as it stands it is
     markup in the Map, <script> and all, rather than a line saying what the component holds.
     """
-    scenes.process_recursive_json({"type": "WebView", "content": "<script>go()</script>", "a<b": 1}, 0, state=PrimeItems)
+    scenes.process_recursive_json(
+        {"type": "WebView", "content": "<script>go()</script>", "a<b": 1}, 0, state=PrimeItems
+    )
     output = _output()
     assert "content: &lt;script&gt;go()&lt;/script&gt;" in output
     assert "a&lt;b: 1" in output
@@ -201,7 +203,7 @@ def test_a_scene_v2_row_that_will_not_decode_says_so_in_the_output() -> None:
     """The reader has to be told the Scene's contents could not be read -- a Scene
     silently listed with no elements looks like an empty Scene.
     """
-    scenes.get_scene_elements(ET.fromstring("<lj>not valid at all @@@</lj>"), 0, state=PrimeItems)  # noqa: S314
+    scenes.get_scene_elements(ET.fromstring("<lj>not valid at all @@@</lj>"), 0, state=PrimeItems)
     assert "could not be processed" in _output()
 
 
@@ -213,20 +215,16 @@ def test_a_projects_scenes_are_found_by_name() -> None:
     only link between the two -- a Scene element says nothing about its Project.
     """
     assert scenes.process_project_scenes(
-        PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
-        [],
-        current_config(),
-    state=PrimeItems)
+        PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"], [], current_config(), state=PrimeItems
+    )
     assert PrimeItems.scene_count == 2
 
 
 def test_a_project_with_no_scenes_reports_none() -> None:
     """Most Projects have no Scenes at all, so this is the common path."""
     assert not scenes.process_project_scenes(
-        PrimeItems.tasker_root_elements["all_projects"]["Bare"]["xml"],
-        [],
-        current_config(),
-    state=PrimeItems)
+        PrimeItems.tasker_root_elements["all_projects"]["Bare"]["xml"], [], current_config(), state=PrimeItems
+    )
 
 
 def test_asking_for_one_scene_narrows_the_project_to_it() -> None:
@@ -235,10 +233,8 @@ def test_asking_for_one_scene_narrows_the_project_to_it() -> None:
     """
     PrimeItems.program_arguments.single_scene_name = "Dialog"
     assert scenes.process_project_scenes(
-        PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
-        [],
-        current_config(),
-    state=PrimeItems)
+        PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"], [], current_config(), state=PrimeItems
+    )
     assert PrimeItems.scene_count == 1
     assert PrimeItems.found_named_items["single_scene_found"] is True
 
@@ -253,21 +249,18 @@ def test_asking_for_one_scene_narrows_the_project_to_it() -> None:
 # all, silently, which is the same bug this ordering assumption would cause against a
 # backup written by a future Tasker.  The same trap as get_profile_tasks; see
 # test_profiles.py.
-_BUTTON = (
-    '<ButtonElement sr="but1"><clickTask>10</clickTask><Str>OK</Str><geom>0,0,100,50</geom></ButtonElement>'
-)
+_BUTTON = '<ButtonElement sr="but1"><clickTask>10</clickTask><Str>OK</Str><geom>0,0,100,50</geom></ButtonElement>'
 _TEXT = '<TextElement sr="txt1"><Str>Label</Str><geom>0,60,100,20</geom></TextElement>'
 # The same element with the arguments Tasker really writes, so its output line is the full
 # one -- name, value and the rest -- rather than the stub a bare <Str> produces.
 _TEXT_WITH_VARIABLE = (
-    '<TextElement sr="txt1"><Str sr="arg0" ve="3">Notes</Str>'
-    '<Str sr="arg1" ve="3">%NotesNobodySets</Str></TextElement>'
+    '<TextElement sr="txt1"><Str sr="arg0" ve="3">Notes</Str><Str sr="arg1" ve="3">%NotesNobodySets</Str></TextElement>'
 )
 
 
 def _scene_with(elements: str) -> ET.Element:
     """A Scene carrying the given elements, loaded so its Tasks resolve."""
-    PrimeItems.xml_root = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    PrimeItems.xml_root = ET.fromstring(
         '<TaskerData sr="" dvi="1" tv="6.3.13">'
         f'<Scene sr="scene0"><nme>Panel</nme><heightPort>800</heightPort><widthPort>480</widthPort>{elements}</Scene>'
         '<Task sr="task10"><id>10</id><nme>Clicked</nme></Task>'
@@ -289,7 +282,9 @@ def test_each_scene_element_is_listed_with_its_geometry() -> None:
 
 def test_an_element_without_geometry_is_still_listed() -> None:
     """An element that has never been positioned has no <geom>, and must not be dropped."""
-    scenes.get_details(_scene_with('<TextElement sr="t"><Str>Bare</Str></TextElement>'), [], current_config(), 0, state=PrimeItems)
+    scenes.get_details(
+        _scene_with('<TextElement sr="t"><Str>Bare</Str></TextElement>'), [], current_config(), 0, state=PrimeItems
+    )
     assert "'Bare' Element of type Text" in _output()
 
 
@@ -381,10 +376,8 @@ def test_asking_for_a_scene_this_project_does_not_have_finds_nothing() -> None:
     """
     PrimeItems.program_arguments.single_scene_name = "Nonexistent"
     assert not scenes.process_project_scenes(
-        PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"],
-        [],
-        current_config(),
-    state=PrimeItems)
+        PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"], [], current_config(), state=PrimeItems
+    )
     assert PrimeItems.found_named_items["single_scene_found"] is False
 
 
@@ -407,7 +400,7 @@ def _anchors_written() -> list[str]:
 
 def _v2_scene_with(layout: dict) -> None:
     """The Panel Scene as a Version 2 one: its components in a gzipped <lj>, loaded."""
-    PrimeItems.xml_root = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    PrimeItems.xml_root = ET.fromstring(
         '<TaskerData sr="" dvi="1" tv="6.3.13">'
         '<Project sr="proj0"><name>Home</name><scenes>Panel</scenes></Project>'
         '<Scene sr="scene0"><nme>Panel</nme><heightPort>800</heightPort><widthPort>480</widthPort>'
@@ -466,7 +459,9 @@ def test_a_scene_element_finding_lands_on_that_element() -> None:
     _render_scene(_TEXT_WITH_VARIABLE)
 
     finding = next(
-        suspect for suspect in varxref.suspects(varxref.build_index(state=PrimeItems)) if suspect.subject == "%NotesNobodySets"
+        suspect
+        for suspect in varxref.suspects(varxref.build_index(state=PrimeItems))
+        if suspect.subject == "%NotesNobodySets"
     )
     place = finding.places[0]
     assert place.label.endswith("Scene 'Panel' element Text 'Notes'")
@@ -564,7 +559,9 @@ def test_a_v2_component_finding_lands_on_the_property_that_holds_the_variable() 
     scenes.process_scene("Panel", [], None, 0, current_config(), state=PrimeItems)
 
     finding = next(
-        suspect for suspect in varxref.suspects(varxref.build_index(state=PrimeItems)) if suspect.subject == "%V2NobodySets"
+        suspect
+        for suspect in varxref.suspects(varxref.build_index(state=PrimeItems))
+        if suspect.subject == "%V2NobodySets"
     )
     place = finding.places[0]
     assert place.label.endswith("Scene 'Panel' component Text '%V2NobodySets' text")
@@ -580,7 +577,7 @@ def test_a_v2_layout_that_will_not_decode_writes_no_anchors() -> None:
     """A corrupt <lj> is reported and moved past.  Anchors for components nobody could
     read would be ids pointing at lines that were never written.
     """
-    PrimeItems.xml_root = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    PrimeItems.xml_root = ET.fromstring(
         '<TaskerData sr="" dvi="1" tv="6.3.13">'
         '<Scene sr="scene0"><nme>Panel</nme><lj>not valid at all @@@</lj></Scene>'
         "</TaskerData>",

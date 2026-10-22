@@ -16,15 +16,15 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 import pytest
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import profedit
+from maptasker.src.gui import guiwins_profedit
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src.edit import profedit
-from maptasker.src.gui import guiwins_profedit
-from maptasker.src.core.primitem import PrimeItems
-from tests.test_profedit import _XML
 from tests.test_mapswap import _load
+from tests.test_profedit import _XML
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable
@@ -118,9 +118,7 @@ def _pickers(user: User) -> list[ui.select]:
 
 def _select(user: User, label: str) -> ui.select:
     """The select with this label, shown or not -- user.find only sees what is on screen."""
-    (found,) = (
-        e for e in user.client.elements.values() if isinstance(e, ui.select) and e.props.get("label") == label
-    )
+    (found,) = (e for e in user.client.elements.values() if isinstance(e, ui.select) and e.props.get("label") == label)
     return found
 
 
@@ -155,7 +153,7 @@ async def test_each_edit_button_reports_its_event_with_this_profile() -> None:
         ):
             _built["calls"].clear()
             _press(user, label)
-            ((name, profile, *_rest),) = _calls(event)
+            ((_name, profile, *_rest),) = _calls(event)
             assert profile is edited, label
 
 
@@ -211,7 +209,7 @@ async def test_each_add_button_reports_its_event_with_the_new_profile() -> None:
         ):
             _built["calls"].clear()
             _press(user, label)
-            ((name, profile, *_rest),) = _calls(event)
+            ((_name, profile, *_rest),) = _calls(event)
             assert profile is created, label
 
 

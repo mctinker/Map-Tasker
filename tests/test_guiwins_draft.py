@@ -17,10 +17,10 @@ from unittest.mock import MagicMock
 
 import pytest
 from maptasker.src.analysis import mapask
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import taskedit
 from maptasker.src.gui import guiwins_draft, guiwins_taskedit
 from maptasker.src.mapops import mapdraft
-from maptasker.src.core.primitem import PrimeItems
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation

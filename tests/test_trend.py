@@ -18,8 +18,8 @@ from pathlib import Path
 import pytest
 from maptasker.src.analysis import healthck, timecomp
 from maptasker.src.core import timeline
-from maptasker.src.mapops import trend
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapops import trend
 
 from tests.test_taskstep import _act, _i, _s, disabled, end_for, end_if, flash, for_, if_, set_
 from tests.test_tnupdate import _load_local, _runtime  # noqa: F401  (_runtime is the fixture)
@@ -52,7 +52,7 @@ def measure(tmp_path: Path, **projects: dict[str, tuple[str, ...]]) -> tuple[tre
 
 
 @pytest.fixture(autouse=True)
-def _history(tmp_path: Path, _runtime: None):  # noqa: PT019, F811
+def _history(tmp_path: Path, _runtime: None):  # noqa: F811
     """Keep the history in a folder of the test's own, and put the default back.
 
     After _runtime, which loads a configuration and so records it: that load belongs in the working directory's
@@ -321,7 +321,7 @@ def test_a_snapshot_that_cannot_be_read_is_reported_and_the_rest_are_still_measu
 
 
 def test_stop_ends_the_series_between_snapshots_with_what_was_measured(tmp_path: Path) -> None:
-    import threading  # noqa: PLC0415
+    import threading
 
     for day in (1, 2, 3):
         _snapshot(tmp_path, f"b{day}.xml", config(Home={"A": tuple(flash(str(n)) for n in range(day))}), _at(day))

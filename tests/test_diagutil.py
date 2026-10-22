@@ -80,7 +80,6 @@ def test_icons_are_counted() -> None:
     assert diagutil.count_icons("plain") == 0
 
 
-
 def test_a_character_is_removed_by_position() -> None:
     assert diagutil.remove_char("abcd", 1) == "acd"
 
@@ -115,7 +114,7 @@ def _columns(line: str) -> dict[int, str]:
     """Each connector's column as it is drawn: an icon takes two."""
     columns, column = {}, 0
     for char in line:
-        if char in diagutil._vertical_connectors:  # noqa: SLF001
+        if char in diagutil._vertical_connectors:
             columns[column] = char
         column += 2 if diagutil.is_double_width(char) else 1
     return columns
@@ -165,7 +164,15 @@ def test_an_icon_in_a_box_leaves_the_box_as_drawn() -> None:
 
 @pytest.mark.parametrize(
     "icon",
-    ["\U0001f4be", "\u23f0", "\u2699\ufe0f", "\u21a9\ufe0f", "\U0001f3de\ufe0f", "\U0001f44d\U0001f3fd", "1\ufe0f\u20e3"],
+    [
+        "\U0001f4be",
+        "\u23f0",
+        "\u2699\ufe0f",
+        "\u21a9\ufe0f",
+        "\U0001f3de\ufe0f",
+        "\U0001f44d\U0001f3fd",
+        "1\ufe0f\u20e3",
+    ],
 )
 def test_an_icon_is_found_whole_with_whatever_is_joined_onto_it(icon: str) -> None:
     assert diagutil.icon_spans(f"a {icon} b") == [(2, 2 + len(icon))]
@@ -222,7 +229,18 @@ def _drawn_width(line: str) -> int:
     return sum(2 if diagutil.is_double_width(char) else 1 for char in line)
 
 
-@pytest.mark.parametrize("name", ["\U0001f304", "Wake \U0001f304 Up", "\U0001f304 a \U0001f4be", "caf\u00e9", "\u21a9\ufe0f x", "\u6ed1\u52a8\u62fc\u56fev0.8", "\u76d1\u63a7\u5fae\u535a \U0001f9e9"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "\U0001f304",
+        "Wake \U0001f304 Up",
+        "\U0001f304 a \U0001f4be",
+        "caf\u00e9",
+        "\u21a9\ufe0f x",
+        "\u6ed1\u52a8\u62fc\u56fev0.8",
+        "\u76d1\u63a7\u5fae\u535a \U0001f9e9",
+    ],
+)
 def test_the_walls_of_a_box_holding_an_icon_are_under_its_borders(name: str) -> None:
     top, middle, bottom = diagutil.build_box(name, ["", "", ""], ENGLISH)[0]
 
@@ -235,6 +253,7 @@ def test_the_boxes_after_one_holding_an_icon_stay_in_line_with_it() -> None:
         lines = diagutil.build_box(name, lines, ENGLISH)[0]
 
     assert {_drawn_width(line) for line in lines} == {_drawn_width(lines[0])}
+
     def columns(line: str, characters: str) -> list[int]:
         found, column = [], 0
         for char in line:
@@ -259,9 +278,7 @@ def test_the_no_profile_box_is_translated_for_other_languages(monkeypatch: pytes
 
 
 @pytest.mark.parametrize("language", ["English", "Arabic"])
-def test_the_no_profile_box_is_left_alone_in_english_and_arabic(
-    monkeypatch: pytest.MonkeyPatch, language: str
-) -> None:
+def test_the_no_profile_box_is_left_alone_in_english_and_arabic(monkeypatch: pytest.MonkeyPatch, language: str) -> None:
     monkeypatch.setattr(diagutil, "translate_string", lambda text: pytest.fail("not translated"))
     lines, _ = diagutil.build_box("No Profile", ["", "", ""], SimpleNamespace(language=language))
     assert "No Profile" in lines[1]

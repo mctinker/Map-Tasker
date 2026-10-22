@@ -25,19 +25,18 @@ import logging
 from collections.abc import AsyncIterator
 
 import pytest
-from nicegui import core, ui
-from nicegui.testing.user import User
-from nicegui.testing.user_interaction import UserInteraction
-from nicegui.testing.user_simulation import user_simulation
-
 from maptasker.src.core import primitem
-from maptasker.src.gui import guiutils, guiwins
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import ARGUMENTS_FILE
+from maptasker.src.gui import guiutils, guiwins
+from nicegui import core, ui
+from nicegui.testing.user import User
+from nicegui.testing.user_interaction import UserInteraction
+from nicegui.testing.user_simulation import user_simulation
 
 pytestmark = pytest.mark.asyncio
 
@@ -46,7 +45,7 @@ _built: dict = {}
 
 def _build_window() -> None:
     """The "/" page: the real window, kept where the test can reach it."""
-    from maptasker.src.gui.userintr import MyGui  # noqa: PLC0415
+    from maptasker.src.gui.userintr import MyGui
 
     _built["gui"] = MyGui()
 
@@ -58,13 +57,13 @@ def fresh_session(tmp_path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(PrimeItems, "program_arguments", initialize_runtime_arguments())
     for name in primitem.LOADED_CONFIGURATION_ATTRIBUTES:
-        monkeypatch.setattr(PrimeItems, name, copy.deepcopy(primitem._RUN_DEFAULTS[name]))  # noqa: SLF001
+        monkeypatch.setattr(PrimeItems, name, copy.deepcopy(primitem._RUN_DEFAULTS[name]))
     monkeypatch.setattr(PrimeItems, "slash", "/")
     monkeypatch.setattr(PrimeItems, "mygui", None)
     monkeypatch.setattr(PrimeItems, "colors_to_use", {})
     monkeypatch.setattr(PrimeItems, "language_set", False)
     monkeypatch.setattr(PrimeItems, "languages_translated", dict(PrimeItems.languages_translated))
-    monkeypatch.setitem(guiwins._NOTIFY_TIMEOUT, "ms", guiwins._NOTIFY_TIMEOUT["ms"])  # noqa: SLF001
+    monkeypatch.setitem(guiwins._NOTIFY_TIMEOUT, "ms", guiwins._NOTIFY_TIMEOUT["ms"])
     # The daily PyPI check is scheduled only on the day's first run; this is never it.
     monkeypatch.setattr(guiutils, "is_first_run_today", lambda *_args, **_kwargs: False)
     had_translator, translator = hasattr(PrimeItems, "_"), getattr(PrimeItems, "_", None)
@@ -122,7 +121,11 @@ async def _wait_for_notification(user: User, message: str) -> None:
 
 
 def _no_errors_logged(caplog: pytest.LogCaptureFixture) -> None:
-    errors = [f"{record.name}: {record.getMessage()}" for record in caplog.get_records("call") if record.levelno >= logging.ERROR]
+    errors = [
+        f"{record.name}: {record.getMessage()}"
+        for record in caplog.get_records("call")
+        if record.levelno >= logging.ERROR
+    ]
     assert not errors, errors
 
 
@@ -131,7 +134,15 @@ async def test_the_window_opens_with_its_tabs_and_main_buttons(caplog: pytest.Lo
     async with _open_window() as (user, gui):
         for tab in ("Specific Name", "Colors", "Analyze", "Assistance"):
             await user.should_see(kind=ui.tab, content=tab)
-        for button in ("Get Local XML File", "Get XML from Android Device", "Map", "Diagram", "Tree", "Reset Options", "Exit"):
+        for button in (
+            "Get Local XML File",
+            "Get XML from Android Device",
+            "Map",
+            "Diagram",
+            "Tree",
+            "Reset Options",
+            "Exit",
+        ):
             await user.should_see(kind=ui.button, content=button)
         # The Application Settings pair, matched exactly: their labels are substrings of others.
         _button(user, "Save")
@@ -188,7 +199,7 @@ async def test_ticking_an_option_changes_the_setting(caplog: pytest.LogCaptureFi
 async def test_choosing_an_indentation_changes_it(caplog: pytest.LogCaptureFixture) -> None:
     """The pulldown hands its handler an event, not the text.  The handler took int() of the event,
     which raised, so choosing an indentation was logged as an error and changed nothing."""
-    async with _open_window() as (user, gui):
+    async with _open_window() as (_user, gui):
         assert gui.indent == 4
 
         gui.indent_option.set_value("7")

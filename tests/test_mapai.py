@@ -21,10 +21,10 @@ from types import SimpleNamespace
 import httpx
 import pytest
 from maptasker.src.core import console
-from maptasker.src.gui import mapai
 from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import ANALYSIS_FILE, ERROR_FILE
+from maptasker.src.gui import mapai
 
 
 @pytest.fixture
@@ -110,7 +110,7 @@ def test_google_is_asked_by_listing_models_with_the_key(monkeypatch: pytest.Monk
     library = _fake_genai(listing=[SimpleNamespace(name="models/gemini-3.5-flash")])
     monkeypatch.setattr(mapai, "import_optional", lambda *_: library)
 
-    assert mapai._gemini_key_works("the-key") is True  # noqa: SLF001
+    assert mapai._gemini_key_works("the-key") is True
     assert library.seen["api_key"] == "the-key"
 
 
@@ -122,17 +122,17 @@ def test_a_key_google_refuses_or_cannot_be_asked_about_is_not_valid(
     failure: Exception, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(mapai, "import_optional", lambda *_: _fake_genai(listing=failure))
-    assert mapai._gemini_key_works("the-key") is False  # noqa: SLF001
+    assert mapai._gemini_key_works("the-key") is False
 
 
 def test_no_key_at_all_is_never_sent_to_google(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(mapai, "import_optional", lambda *_: pytest.fail("the library was loaded"))
-    assert mapai._gemini_key_works("") is False  # noqa: SLF001
+    assert mapai._gemini_key_works("") is False
 
 
 def test_gemini_without_its_library_has_no_valid_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(mapai, "import_optional", lambda *_: None)
-    assert mapai._gemini_key_works("the-key") is False  # noqa: SLF001
+    assert mapai._gemini_key_works("the-key") is False
 
 
 @pytest.mark.parametrize("service", ["deepseek_key", "api_key", "anything_else", ""])
@@ -308,7 +308,7 @@ def test_openai_is_sent_the_role_and_the_query_and_the_stream_is_joined(state: R
     client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
     state.program_arguments.ai_model = "gpt-5"
 
-    assert mapai._process_openai_response(client, "the query", state=state) == "It does this."  # noqa: SLF001
+    assert mapai._process_openai_response(client, "the query", state=state) == "It does this."
     assert sent["model"] == "gpt-5"
     assert sent["stream"] is True
     assert sent["messages"][0] == {"role": "system", "content": mapai.ai_role}
@@ -322,7 +322,7 @@ def test_the_o1_models_take_their_role_as_a_user_message(state: RunState) -> Non
     )
     state.program_arguments.ai_model = "o1-preview"
 
-    mapai._process_openai_response(client, "q", state=state)  # noqa: SLF001
+    mapai._process_openai_response(client, "q", state=state)
 
     assert sent["messages"][0]["role"] == "user"
 
@@ -343,7 +343,7 @@ def test_anthropic_gets_room_to_think_and_only_the_text_blocks_are_kept(state: R
 
     client = SimpleNamespace(messages=SimpleNamespace(create=create))
 
-    assert mapai._process_anthropic_response(client, "the query", state=state) == "Part one. Part two."  # noqa: SLF001
+    assert mapai._process_anthropic_response(client, "the query", state=state) == "Part one. Part two."
     assert sent["model"] == "claude-sonnet-5"
     assert sent["max_tokens"] == 16000
     assert sent["system"] == mapai.ai_role
@@ -360,13 +360,15 @@ def test_every_current_claude_model_is_asked_the_same_way(state: RunState, model
     sent = {}
     client = SimpleNamespace(
         messages=SimpleNamespace(
-            create=lambda **kwargs: sent.update(kwargs)
-            or SimpleNamespace(content=[SimpleNamespace(type="text", text="ok")], stop_reason="end_turn"),
+            create=lambda **kwargs: (
+                sent.update(kwargs)
+                or SimpleNamespace(content=[SimpleNamespace(type="text", text="ok")], stop_reason="end_turn")
+            ),
         ),
     )
     state.program_arguments.ai_model = model
 
-    assert mapai._process_anthropic_response(client, "q", state=state) == "ok"  # noqa: SLF001
+    assert mapai._process_anthropic_response(client, "q", state=state) == "ok"
     assert sent["model"] == model
     # None of the options the newer models refuse: no sampling settings, no thinking budget, no forced tool.
     assert not {"temperature", "top_p", "top_k", "thinking", "tool_choice"} & set(sent)
@@ -375,7 +377,7 @@ def test_every_current_claude_model_is_asked_the_same_way(state: RunState, model
 def test_a_claude_reply_that_ran_out_of_room_says_so(state: RunState) -> None:
     client = _anthropic_client(stop_reason="max_tokens")
 
-    reply = mapai._process_anthropic_response(client, "q", state=state)  # noqa: SLF001
+    reply = mapai._process_anthropic_response(client, "q", state=state)
 
     assert reply.startswith("Some analysis.")
     assert "cut short" in reply
@@ -389,7 +391,7 @@ def test_a_claude_that_declines_is_reported_as_declining_not_as_an_empty_analysi
     )
     client = SimpleNamespace(messages=SimpleNamespace(create=lambda **kwargs: message))
 
-    reply = mapai._process_anthropic_response(client, "q", state=state)  # noqa: SLF001
+    reply = mapai._process_anthropic_response(client, "q", state=state)
 
     assert reply == "The model declined to analyze this (cyber).  Try another model."
 
@@ -397,7 +399,7 @@ def test_a_claude_that_declines_is_reported_as_declining_not_as_an_empty_analysi
 def test_a_decline_with_no_category_still_says_so(state: RunState) -> None:
     client = _anthropic_client(stop_reason="refusal", stop_details=None)
 
-    assert "declined to analyze this." in mapai._process_anthropic_response(client, "q", state=state)  # noqa: SLF001
+    assert "declined to analyze this." in mapai._process_anthropic_response(client, "q", state=state)
 
 
 def test_gemini_is_given_no_tools_to_call(state: RunState) -> None:
@@ -410,7 +412,7 @@ def test_gemini_is_given_no_tools_to_call(state: RunState) -> None:
     client = SimpleNamespace(models=SimpleNamespace(generate_content=generate))
     state.program_arguments.ai_model = "gemini-3-pro"
 
-    assert mapai._process_gemini_response(client, "the query", state=state) == "Gemini says."  # noqa: SLF001
+    assert mapai._process_gemini_response(client, "the query", state=state) == "Gemini says."
     assert sent["config"] == {"automatic_function_calling": {"disable": True}}
     assert sent["contents"].endswith("the query")
     assert sent["contents"].startswith(mapai.ai_role)
@@ -726,7 +728,7 @@ def test_each_ai_name_runs_its_own_worker(state: RunState, worker: SimpleNamespa
     state.program_arguments.ai_name = name
     state.output_lines.output_lines = ["Task: Noisy", "Action: 1"]
 
-    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))  # noqa: SLF001
+    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))
 
     assert [call[0] for call in worker.ran] == [getattr(mapai, function)]
 
@@ -738,7 +740,7 @@ def test_an_ai_name_that_is_not_a_supported_service_runs_nothing_and_says_so(
     state.program_arguments.ai_name = name
     state.output_lines.output_lines = ["Task: Noisy", "Action: 1"]
 
-    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))  # noqa: SLF001
+    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))
 
     assert worker.ran[0][0] is not mapai.open_ai
     # The lookup falls back to a function that reports the problem, run in the worker thread.
@@ -750,7 +752,7 @@ def test_the_query_names_the_object_carries_the_prompt_and_every_line(state: Run
     state.output_lines.output_lines = ["Task: Noisy", "Action: 1", "Action: 2"]
     state.program_arguments.ai_prompt = "Explain it"
 
-    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))  # noqa: SLF001
+    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))
 
     _function, args, kwargs = worker.ran[0]
     query, ai_object, item = args
@@ -765,7 +767,7 @@ def test_the_query_names_the_object_carries_the_prompt_and_every_line(state: Run
 def test_a_prompt_that_already_ends_in_a_colon_is_not_given_another(state: RunState, worker: SimpleNamespace) -> None:
     state.program_arguments.ai_prompt = "Explain it:"
 
-    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))  # noqa: SLF001
+    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))
 
     assert "Explain it:" in worker.ran[0][1][0]
     assert "::" not in worker.ran[0][1][0]
@@ -774,7 +776,7 @@ def test_a_prompt_that_already_ends_in_a_colon_is_not_given_another(state: RunSt
 def test_no_prompt_means_the_default_one(state: RunState, worker: SimpleNamespace) -> None:
     state.program_arguments.ai_prompt = ""
 
-    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))  # noqa: SLF001
+    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))
 
     assert mapai.AI_PROMPT in worker.ran[0][1][0]
 
@@ -790,7 +792,7 @@ def test_the_popup_is_closed_and_analysis_marked_done_whatever_happens(
     state.program_arguments.ai_analyze = True
 
     with pytest.raises(RuntimeError, match="worker died"):
-        asyncio.run(mapai._run_analysis_in_background(popup, state=state))  # noqa: SLF001
+        asyncio.run(mapai._run_analysis_in_background(popup, state=state))
 
     assert popup.closed is True
     assert state.program_arguments.ai_analyze is False
@@ -799,19 +801,19 @@ def test_the_popup_is_closed_and_analysis_marked_done_whatever_happens(
 def test_a_popup_that_holds_its_dialog_is_closed_through_it(state: RunState, worker: SimpleNamespace) -> None:
     popup = SimpleNamespace(dialog=_Popup())
 
-    asyncio.run(mapai._run_analysis_in_background(popup, state=state))  # noqa: SLF001
+    asyncio.run(mapai._run_analysis_in_background(popup, state=state))
 
     assert popup.dialog.closed is True
 
 
 def test_no_popup_is_no_problem(state: RunState, worker: SimpleNamespace) -> None:
-    asyncio.run(mapai._run_analysis_in_background(None, state=state))  # noqa: SLF001
+    asyncio.run(mapai._run_analysis_in_background(None, state=state))
 
 
 def test_a_blank_ai_name_is_reported_not_run(state: RunState, worker: SimpleNamespace, reported: list) -> None:
     state.program_arguments.ai_name = ""
 
-    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))  # noqa: SLF001
+    asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))
     worker.ran[0][0]("q", "Task", "t", state=state)  # What io_bound would have run.
 
     assert reported == [("Invalid model selected (AI name is blank).", 12)]

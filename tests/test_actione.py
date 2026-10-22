@@ -18,7 +18,7 @@ def _state(*, pretty: bool) -> object:
 
 
 def _element(text: str) -> ET.Element:
-    return ET.fromstring(text)  # noqa: S314  (fixture text, defined in this file)
+    return ET.fromstring(text)
 
 
 # ##################################################################################

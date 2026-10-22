@@ -10,7 +10,7 @@ from maptasker.src.core import elemvals
 
 
 def _element(inner: str = "") -> ET.Element:
-    return ET.fromstring(f"<Task>{inner}</Task>")  # noqa: S314  (fixture text, defined in this file)
+    return ET.fromstring(f"<Task>{inner}</Task>")
 
 
 @pytest.mark.parametrize("function", [elemvals.get_collision, elemvals.get_awake])

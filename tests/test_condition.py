@@ -11,7 +11,7 @@ from maptasker.src.mapgen import condition
 
 
 def _element(text: str) -> ET.Element:
-    return ET.fromstring(text)  # noqa: S314  (fixture text, defined in this file)
+    return ET.fromstring(text)
 
 
 @pytest.fixture(autouse=True)
@@ -160,7 +160,9 @@ def test_a_profile_with_no_conditions_has_none() -> None:
     assert condition.parse_profile_condition(_element("<Profile><nme>x</nme><id>1</id></Profile>"), PrimeItems) == ""
 
 
-@pytest.mark.parametrize("bad", ["<wday/>", "<wday>0</wday>", "<wday>8</wday>", "<wday>x</wday>", "<mnth/>", "<mnth>12</mnth>", "<mday/>"])
+@pytest.mark.parametrize(
+    "bad", ["<wday/>", "<wday>0</wday>", "<wday>8</wday>", "<wday>x</wday>", "<mnth/>", "<mnth>12</mnth>", "<mday/>"]
+)
 def test_a_day_condition_with_an_empty_or_impossible_value_is_still_worded(bad: str) -> None:
     """Tasker writes what it writes; one odd value must not end the whole Map with an error."""
     said = condition.condition_day(_element(f"<Day><wday>2</wday>{bad}<cname>n</cname></Day>"), "")

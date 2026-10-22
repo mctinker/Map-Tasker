@@ -33,7 +33,7 @@ class _Output:
 
 
 def _setting(name: str, value: str, kind: str = "s") -> ET.Element:
-    return ET.fromstring(f"<Setting><n>{name}</n><t>{kind}</t><v>{value}</v></Setting>")  # noqa: S314
+    return ET.fromstring(f"<Setting><n>{name}</n><t>{kind}</t><v>{value}</v></Setting>")
 
 
 def _state(*settings: ET.Element) -> RunState:
@@ -125,7 +125,7 @@ def test_a_setting_missing_a_part_ends_the_run(monkeypatch: pytest.MonkeyPatch) 
     """<Setting> without its <v> means the backup is damaged; guessing would hide that."""
     seen = {}
     monkeypatch.setattr(prefers, "error_handler", lambda message, code, state: seen.update(message=message, code=code))
-    broken = ET.fromstring("<Setting><n>anm</n><t>s</t></Setting>")  # noqa: S314
+    broken = ET.fromstring("<Setting><n>anm</n><t>s</t></Setting>")
     state = _state(broken)
     prefers.process_preferences([], current_config(state), state=state)
     assert seen["code"] == 3

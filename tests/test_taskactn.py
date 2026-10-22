@@ -242,8 +242,6 @@ def test_the_taskernet_description_is_written_when_asked_for(monkeypatch: pytest
     monkeypatch.setattr(taskactn, "share", lambda *args, **kwargs: shared.append(args))
     state = _state(_tasks())
 
-    taskactn.get_task_actions_and_output(
-        None, "Task:", f"Wake Up{B}Task ID: 11", [], _config(taskernet=True), state
-    )
+    taskactn.get_task_actions_and_output(None, "Task:", f"Wake Up{B}Task ID: 11", [], _config(taskernet=True), state)
 
     assert len(shared) == 1

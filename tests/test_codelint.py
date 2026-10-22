@@ -18,9 +18,9 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.analysis import healthck
-from maptasker.src.mapgen import codelint, taskerd, varxref
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapgen import codelint, taskerd, varxref
 
 
 # ##################################################################################
@@ -172,7 +172,7 @@ setGlobal('Result', t * 2);</Str>
 @pytest.fixture(autouse=True)
 def _loaded() -> None:
     """Build the PrimeItems tables from the fixture, the way taskerd does from a file."""
-    root = ET.fromstring(_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_XML)
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)
     tables = {

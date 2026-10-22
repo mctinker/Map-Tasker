@@ -12,8 +12,8 @@ from types import SimpleNamespace
 
 import pytest
 from maptasker.src.analysis import impact
-from maptasker.src.gui import guiwins_impact
 from maptasker.src.core.primitem import RunState
+from maptasker.src.gui import guiwins_impact
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 
@@ -62,18 +62,18 @@ async def _draw() -> list[str]:
 def test_a_delete_that_breaks_something_is_red() -> None:
     """The one case the colour exists for."""
     analysis = impact.Impact("x", consequences=[_consequence(impact.BREAKS)])
-    assert guiwins_impact._summary_classes(analysis) == guiwins_impact._BREAKS_CLASSES  # noqa: SLF001
+    assert guiwins_impact._summary_classes(analysis) == guiwins_impact._BREAKS_CLASSES
 
 
 def test_a_delete_that_only_changes_things_is_amber_not_red() -> None:
     """A warning that fires on everything stops meaning anything on the delete that matters."""
     analysis = impact.Impact("x", consequences=[_consequence(impact.CHANGES)])
-    assert guiwins_impact._summary_classes(analysis) == guiwins_impact._CHANGES_CLASSES  # noqa: SLF001
+    assert guiwins_impact._summary_classes(analysis) == guiwins_impact._CHANGES_CLASSES
 
 
 def test_a_delete_that_affects_nothing_is_green() -> None:
     """Nothing else points at it."""
-    assert guiwins_impact._summary_classes(impact.Impact("x")) == guiwins_impact._CLEAN_CLASSES  # noqa: SLF001
+    assert guiwins_impact._summary_classes(impact.Impact("x")) == guiwins_impact._CLEAN_CLASSES
 
 
 # ##################################################################################

@@ -21,14 +21,13 @@ import tempfile
 import xml.etree.ElementTree as ET
 
 import pytest
-
-from maptasker.src.core.initparg import ProgramArguments
-from maptasker.src.mapgen import taskerd
 from maptasker.src.core.colrmode import set_color_mode
-from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import UNNAMED_ITEM
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapgen.lineout import LineOut
 
 # An action's <label> is rendered through format_label, which reads real colors out of
 # colors_to_use -- an empty color table is a KeyError there, not a plain-text fallback.
@@ -45,7 +44,9 @@ def _prime_items(tmp_path, monkeypatch) -> None:
     in whatever directory the tests happened to be run from.
     """
     monkeypatch.chdir(tmp_path)
-    PrimeItems.program_arguments = ProgramArguments(debug=False, directory=False, pretty=False, gui=False, display_detail_level=3)
+    PrimeItems.program_arguments = ProgramArguments(
+        debug=False, directory=False, pretty=False, gui=False, display_detail_level=3
+    )
     PrimeItems.colors_to_use = set_color_mode("dark")
     PrimeItems.output_lines = LineOut()
     PrimeItems.error_msg = ""
@@ -53,7 +54,7 @@ def _prime_items(tmp_path, monkeypatch) -> None:
 
 def _build(body: str) -> dict:
     """Build the lookup tables from the given <TaskerData> body, as a loaded file would."""
-    PrimeItems.xml_root = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    PrimeItems.xml_root = ET.fromstring(
         f'<TaskerData sr="" dvi="1" tv="6.3.13">{body}</TaskerData>',
     )
     taskerd.build_tasker_tables(state=PrimeItems)
@@ -168,7 +169,7 @@ def test_named_objects_are_left_alone() -> None:
     tables = _build(
         f'<Task sr="task10"><id>10</id><nme>Wake Up</nme>{FLASH}</Task>'
         '<Profile sr="prof5"><id>5</id><nme>Morning</nme>'
-        "<Time sr=\"con0\"><fh>8</fh><fm>0</fm></Time></Profile>",
+        '<Time sr="con0"><fh>8</fh><fm>0</fm></Time></Profile>',
     )
     assert tables["all_tasks"]["10"]["name"] == "Wake Up"
     assert tables["all_profiles"]["5"]["name"] == "Morning"
@@ -184,8 +185,7 @@ def test_by_name_tables_map_names_back_to_ids() -> None:
     by the name it is actually displayed under.
     """
     tables = _build(
-        '<Profile sr="prof5"><id>5</id><nme>Morning</nme></Profile>'
-        f'<Task sr="task11"><id>11</id>{FLASH}</Task>',
+        f'<Profile sr="prof5"><id>5</id><nme>Morning</nme></Profile><Task sr="task11"><id>11</id>{FLASH}</Task>',
     )
     assert tables["all_profiles_by_name"]["Morning"]["id"] == "5"
     assert tables["all_tasks_by_name"]["Flash Text=hello.11 (Unnamed)"]["id"] == "11"
@@ -230,7 +230,7 @@ def test_get_first_action_reads_act0_not_document_order() -> None:
     the one that runs first.  Taking the first <Action> in the file instead would name a
     Task after an action from the middle of it.
     """
-    task = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    task = ET.fromstring(
         '<Task sr="task1"><id>1</id>'
         '<Action sr="act1"><code>548</code><Str sr="arg0">second</Str></Action>'
         '<Action sr="act0"><code>548</code><Str sr="arg0">first</Str></Action>'
@@ -241,7 +241,7 @@ def test_get_first_action_reads_act0_not_document_order() -> None:
 
 def test_get_first_action_of_a_task_without_one_is_empty() -> None:
     """No act0 is not an error -- the caller turns the empty string into ".<id> (Unnamed)"."""
-    task = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    task = ET.fromstring(
         '<Task sr="task1"><id>1</id><Action sr="act1"><code>548</code><Str sr="arg0">x</Str></Action></Task>',
     )
     assert taskerd.get_first_action(task, state=PrimeItems) == ""
@@ -251,7 +251,7 @@ def test_get_first_action_is_truncated() -> None:
     """This is a name in a list, not the action's own line: an action with a long
     argument would otherwise push the whole column open.
     """
-    task = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    task = ET.fromstring(
         f'<Task sr="task1"><id>1</id><Action sr="act0"><code>548</code><Str sr="arg0">{"x" * 200}</Str></Action></Task>',
     )
     result = taskerd.get_first_action(task, state=PrimeItems)
@@ -264,11 +264,11 @@ def test_get_first_action_is_truncated() -> None:
 # ##################################################################################
 def _load_file(text: str) -> int:
     """Write the text to a temporary file and load it the way the program does."""
-    handle = tempfile.NamedTemporaryFile("w", suffix=".xml", delete=False)  # noqa: SIM115
+    handle = tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".xml", delete=False)
     try:
         handle.write(text)
         handle.close()
-        with open(handle.name) as opened:
+        with open(handle.name, encoding="utf-8") as opened:
             PrimeItems.file_to_get = opened
             return taskerd.get_the_xml_data(state=PrimeItems)
     finally:
@@ -277,7 +277,10 @@ def _load_file(text: str) -> int:
 
 def test_a_backup_file_loads_and_builds_the_tables() -> None:
     """The whole path, from a file on disk to the tables -- 0 means loaded."""
-    assert _load_file('<TaskerData sr="" dvi="1" tv="6.3.13"><Task sr="task1"><id>1</id><nme>T</nme></Task></TaskerData>') == 0
+    assert (
+        _load_file('<TaskerData sr="" dvi="1" tv="6.3.13"><Task sr="task1"><id>1</id><nme>T</nme></Task></TaskerData>')
+        == 0
+    )
     assert PrimeItems.tasker_root_elements["all_tasks"]["1"]["name"] == "T"
 
 

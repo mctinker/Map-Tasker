@@ -151,7 +151,17 @@ translate = [
 ]
 
 [tool.ruff]
-include = ["pyproject.toml", "maptasker/main.py", "maptasker/src/**/*.py", "scripts/**/*.py"]
+# tests/ and tools/ are linted and formatted too, under a lighter rule set (see per-file-ignores):
+# correctness, imports, encodings and formatting apply to them as to the source, while the rules
+# that are about the product's own documentation, typing style and defensive coding do not.
+include = [
+    "pyproject.toml",
+    "maptasker/main.py",
+    "maptasker/src/**/*.py",
+    "scripts/**/*.py",
+    "tests/**/*.py",
+    "tools/**/*.py",
+]
 respect-gitignore = true
 line-length = 120
 show-fixes = true
@@ -266,7 +276,34 @@ max-complexity = 15
 [tool.ruff.lint.per-file-ignores]
 # https://docs.astral.sh/ruff/rules/
 '__init__.py' = ['F401','F403','F405',]
-'tests/*' = ['ANN', 'ARG', 'INP001', 'S101',]
+# Tests are held to correctness, imports, encodings and formatting, not to the product's own style:
+#   D        every test is named for what it checks; a docstring on each is the name said twice
+#   SLF001   a test reaches into what it is testing, which is the point of it
+#   PLC0415  several import inside the test on purpose: a fresh interpreter, or after a patch
+#   PT018    one assert per condition is a taste, and a composite one reads fine
+#   PT019    a fixture used for its effect, listed as a parameter
+#   EM, TRY  the wording of an exception a test raises to fail
+#   S        bandit is about what ships; tests build XML and temp files freely
+#   PLR, C901 a long linear test is not a complexity problem
+#   PT       pytest style: composite asserts, raises blocks, fixtures listed for their effect
+#   TC       type-only imports in a TYPE_CHECKING block: tests import what they use at run time
+#   SIM, C4, PERF, PLW0108, RUF015, RUF007   rewrites that make an assertion harder to read
+#   RUF001-3 a test holds the Unicode it is testing, ambiguous characters included
+#   N, PYI, A006, DTZ, T20   naming and fakes: a stand-in's __enter__, a lambda argument called type,
+#            a naive datetime in a fixture, a print captured by capsys
+'tests/*' = [
+    'ANN', 'ARG', 'INP001', 'S101',
+    'D', 'SLF001', 'PLC0415', 'PT', 'EM', 'TRY', 'S', 'PLR', 'C901',
+    'TC', 'SIM', 'C4', 'PERF', 'PLW0108', 'RUF015', 'RUF007', 'RUF001', 'RUF002', 'RUF003',
+    'N', 'PYI', 'A006', 'DTZ', 'T20',
+]
+# Maintainer tools are run by hand and report by printing.  Documentation, bandit and the
+# defensive-coding rules are the source's concern; correctness, imports, encodings (PLW1514 is
+# the one that matters: a Windows run reads files in the locale's encoding) and formatting still apply.
+'tools/*' = [
+    'ANN', 'ARG', 'INP001', 'D', 'T20', 'S', 'EM', 'TRY', 'PLC0415', 'SLF001', 'PLR', 'C901', 'BLE',
+    'TC', 'ISC', 'SIM', 'C4', 'PERF', 'RUF001', 'RUF002', 'RUF003', 'N', 'DTZ',
+]
 # scripts/ holds maintainer command-line tools, not a package, and they report by printing.
 'scripts/*' = ['INP001', 'T201']
 # capture_screens.py imports MapTasker inside its functions on purpose: serve() puts the chosen
@@ -379,7 +416,10 @@ exclude_also = [
 # Checks that the annotations ruff's ANN rules require are actually right.  Enforced by
 # scripts/typecheck_ratchet.py against scripts/pyright_baseline.json, so only new errors fail.
 [tool.pyright]
-include = ["maptasker/main.py", "maptasker/src", "scripts"]
+# tests/ and tools/ are checked too.  The errors tests carry are mostly stand-ins handed where the real
+# type goes (a SimpleNamespace for a RunState, a MagicMock for a window), which is deliberate, so they sit in
+# scripts/pyright_baseline.json like any other and only NEW ones fail.
+include = ["maptasker/main.py", "maptasker/src", "scripts", "tests", "tools"]
 typeCheckingMode = "basic"
 # Strict mode, file by file.  Basic mode is what the baseline ratchets (see above); these files are
 # clean under strict as well, and tests/test_strict_typing.py keeps it that way for new ones: every

@@ -41,14 +41,14 @@ def test_one_condition_and_none() -> None:
 
 def test_joiners_are_read_wherever_tasker_put_them() -> None:
     """<boolN> may sit between its pair or after every Condition; a missing one is And."""
-    between = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    between = ET.fromstring(
         '<ConditionList sr="if"><Condition sr="c0"/><bool0>Or</bool0><Condition sr="c1"/>'
         '<bool1>And2</bool1><Condition sr="c2"/></ConditionList>',
     )
-    after = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    after = ET.fromstring(
         '<ConditionList sr="if"><Condition sr="c0"/><Condition sr="c1"/><Condition sr="c2"/>'
         "<bool0>Or</bool0><bool1>And2</bool1></ConditionList>",
     )
     assert boolean_operators(between, 3) == ["Or", "And2"]
     assert boolean_operators(after, 3) == ["Or", "And2"]
-    assert boolean_operators(ET.fromstring('<ConditionList sr="if"/>'), 3) == ["And", "And"]  # noqa: S314
+    assert boolean_operators(ET.fromstring('<ConditionList sr="if"/>'), 3) == ["And", "And"]

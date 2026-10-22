@@ -89,13 +89,25 @@ def handlers(monkeypatch: pytest.MonkeyPatch) -> tuple[LoadingEventHandlers, Mag
     handler = LoadingEventHandlers()
     handler.gui = gui
     handler.state = state
-    calls: dict[str, list] = {name: [] for name in (
-        "clear", "reset", "menus", "button", "colour", "badges",
-    )}
+    calls: dict[str, list] = {
+        name: []
+        for name in (
+            "clear",
+            "reset",
+            "menus",
+            "button",
+            "colour",
+            "badges",
+        )
+    }
     monkeypatch.setattr(userintr_loading, "clear_single_item_names", lambda g: calls["clear"].append(g))
-    monkeypatch.setattr(userintr_loading, "reset_single_item_pulldowns", lambda g, except_for: calls["reset"].append(except_for))
+    monkeypatch.setattr(
+        userintr_loading, "reset_single_item_pulldowns", lambda g, except_for: calls["reset"].append(except_for)
+    )
     monkeypatch.setattr(userintr_loading, "update_tasker_object_menus", lambda g, **kw: calls["menus"].append(kw))
-    monkeypatch.setattr(userintr_loading, "display_analyze_button", lambda g, row, first_time: calls["button"].append(row))
+    monkeypatch.setattr(
+        userintr_loading, "display_analyze_button", lambda g, row, first_time: calls["button"].append(row)
+    )
     monkeypatch.setattr(userintr_loading, "update_analysis_button_color", lambda g: calls["colour"].append(g))
     monkeypatch.setattr(userintr_loading, "refresh_scope_badges", lambda g: calls["badges"].append(g))
     return handler, gui, calls

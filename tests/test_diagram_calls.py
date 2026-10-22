@@ -56,7 +56,7 @@ def test_the_list_ends_at_its_own_closing_bracket() -> None:
     ],
 )
 def test_list_end(text: str, expected: int) -> None:
-    assert diagram._list_end(text) == expected  # noqa: SLF001
+    assert diagram._list_end(text) == expected
 
 
 def test_padding_for_removed_delimiters_goes_after_the_whole_list() -> None:
@@ -93,7 +93,13 @@ def test_a_connector_is_followed_through_a_row_whose_blanks_were_taken_out_for_a
 
 def test_a_connector_is_not_joined_to_a_neighbour_that_only_looks_adjacent_in_the_text() -> None:
     """Without an icon, a bar one character over really is a different connector."""
-    lines = ["  \u256d\u25c4\u2500\u2500\u256e", "      \u2502", "     \u2502", "      \u2502", "  \u2570\u25ba\u2500\u2500\u256f"]
+    lines = [
+        "  \u256d\u25c4\u2500\u2500\u256e",
+        "      \u2502",
+        "     \u2502",
+        "      \u2502",
+        "  \u2570\u25ba\u2500\u2500\u256f",
+    ]
 
     groups = diagram.compute_diagram_connector_groups(lines, [(4, 6, 0)], state=SimpleNamespace())
 
@@ -101,7 +107,7 @@ def test_a_connector_is_not_joined_to_a_neighbour_that_only_looks_adjacent_in_th
 
 
 def test_the_screen_columns_of_a_line_are_laid_out_for_wide_characters() -> None:
-    display, cell_to_char, char_to_cell = diagram._display_geometry(["a\U0001f504b\u2502"])  # noqa: SLF001
+    display, cell_to_char, char_to_cell = diagram._display_geometry(["a\U0001f504b\u2502"])
 
     assert display == ["a\U0001f504\x00b\u2502"]
     assert cell_to_char == [[0, 1, 1, 2, 3]]

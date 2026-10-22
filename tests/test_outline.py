@@ -11,9 +11,9 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
-from maptasker.src.mapgen import outline, profiles, taskerd
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.runcfg import current_config
+from maptasker.src.mapgen import outline, profiles, taskerd
 
 # Three Profiles share 'Caller', which performs 'Callee' exactly once.
 _SHARED_TASK_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
@@ -30,7 +30,7 @@ _SHARED_TASK_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 @pytest.mark.parametrize("indent", [4, 0])
 def test_a_task_shared_by_several_profiles_calls_once(monkeypatch: pytest.MonkeyPatch, indent: int) -> None:
     """Each Profile's copy of the Task carries a decorated name; all of them are one Task."""
-    root = ET.fromstring(_SHARED_TASK_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_SHARED_TASK_XML)
     tables = {
         "all_projects": {},
         "all_profiles": taskerd.move_xml_to_table(root.findall("Profile"), True, "nme"),
@@ -38,14 +38,18 @@ def test_a_task_shared_by_several_profiles_calls_once(monkeypatch: pytest.Monkey
         "all_scenes": {},
         "all_services": [],
     }
-    tables["all_tasks_by_name"] = {task["name"]: {"xml": task["xml"], "id": key} for key, task in tables["all_tasks"].items()}
+    tables["all_tasks_by_name"] = {
+        task["name"]: {"xml": task["xml"], "id": key} for key, task in tables["all_tasks"].items()
+    }
     monkeypatch.setattr(PrimeItems, "xml_root", root)
     monkeypatch.setattr(PrimeItems, "tasker_root_elements", tables)
     monkeypatch.setattr(PrimeItems, "outline_tasks_mapped", [], raising=False)  # Created by do_the_outline.
     monkeypatch.setattr(
         PrimeItems,
         "program_arguments",
-        ProgramArguments(debug=False, display_detail_level=3, indent=indent, single_profile_name="", single_task_name=""),
+        ProgramArguments(
+            debug=False, display_detail_level=3, indent=indent, single_profile_name="", single_task_name=""
+        ),
     )
 
     for profile in tables["all_profiles"].values():

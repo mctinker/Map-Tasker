@@ -18,11 +18,11 @@ from __future__ import annotations
 import io
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.format import SpanBalancer, format_label
-from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapgen.lineout import LineOut
 
 
 def balanced(*pieces: str) -> str:
@@ -192,6 +192,8 @@ def test_a_table_left_open_in_a_description_is_closed_inside_its_box() -> None:
 @pytest.mark.usefixtures("_colors")
 def test_markup_the_author_closed_is_not_closed_again() -> None:
     """Only what is still open gets an end tag."""
-    label = format_label("<h6>TaskerNet description: <small>fine print</small> and <big>more</big>", PrimeItems.colors_to_use)
+    label = format_label(
+        "<h6>TaskerNet description: <small>fine print</small> and <big>more</big>", PrimeItems.colors_to_use
+    )
     assert label.count("</small>") == 1
     assert label.count("</big>") == 1

@@ -58,7 +58,7 @@ def seen() -> SimpleNamespace:
     """Everything the build touches, replaced and recorded.  `edits` is what the undo history reports."""
     record = SimpleNamespace(built=[], settled=[], forgotten=[], cleared=[], edits=[("one", 1)], build=None)
 
-    async def io_bound(function, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003, ANN202
+    async def io_bound(function, *args, **kwargs):
         return function(*args, **kwargs)
 
     def build_html(file_to_get: str, state: object) -> int:
@@ -230,7 +230,9 @@ async def test_two_windows_that_disagree_about_the_box_do_not_build_in_circles(s
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("item", ["single_project_name", "single_profile_name", "single_task_name", "single_scene_name"])
+@pytest.mark.parametrize(
+    "item", ["single_project_name", "single_profile_name", "single_task_name", "single_scene_name"]
+)
 async def test_choosing_a_single_item_builds_again(seen: SimpleNamespace, item: str) -> None:
     handlers = _Handlers(_state())
     await _look_until_started(handlers)
@@ -438,7 +440,7 @@ def _event_handlers() -> MapTaskerEventHandlers:
     window.state = _state()
     handlers = MapTaskerEventHandlers(window)
     handlers.get_ready_to_build = MagicMock()  # type: ignore[method-assign]
-    handlers._show_the_view = AsyncMock()  # type: ignore[method-assign]  # noqa: SLF001
+    handlers._show_the_view = AsyncMock()  # type: ignore[method-assign]
     return handlers
 
 
@@ -463,7 +465,7 @@ async def test_a_press_waits_for_the_build_before_it_touches_the_run_state() -> 
         await press
 
     assert order == ["the build finished", "the press prepared"]
-    handlers._show_the_view.assert_awaited_once()  # type: ignore[attr-defined]  # noqa: SLF001
+    handlers._show_the_view.assert_awaited_once()  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -485,7 +487,7 @@ async def test_a_view_being_built_is_counted_for_exactly_as_long_as_it_takes() -
     async def show(*_args: object) -> None:
         during.append(_building.views)
 
-    handlers._show_the_view = show  # type: ignore[method-assign]  # noqa: SLF001
+    handlers._show_the_view = show  # type: ignore[method-assign]
 
     await handlers.view_event("map")
 
@@ -496,7 +498,7 @@ async def test_a_view_being_built_is_counted_for_exactly_as_long_as_it_takes() -
 @pytest.mark.asyncio
 async def test_the_count_comes_down_when_the_view_fails() -> None:
     handlers = _event_handlers()
-    handlers._show_the_view = AsyncMock(side_effect=RuntimeError("no"))  # type: ignore[method-assign]  # noqa: SLF001
+    handlers._show_the_view = AsyncMock(side_effect=RuntimeError("no"))  # type: ignore[method-assign]
 
     with pytest.raises(RuntimeError):
         await handlers.view_event("map")
@@ -508,8 +510,8 @@ async def test_the_count_comes_down_when_the_view_fails() -> None:
 # The setting
 # ##################################################################################
 def test_the_setting_is_saved_and_off_by_default() -> None:
-    from maptasker.src.core.initparg import ProgramArguments  # noqa: PLC0415
-    from maptasker.src.core.sysconst import ARGUMENT_NAMES  # noqa: PLC0415
+    from maptasker.src.core.initparg import ProgramArguments
+    from maptasker.src.core.sysconst import ARGUMENT_NAMES
 
     assert "prebuild_map" in ARGUMENT_NAMES
     assert ProgramArguments().prebuild_map is False
@@ -525,7 +527,7 @@ async def test_a_second_set_of_handlers_does_not_build_while_the_first_is_buildi
     release = asyncio.Event()
     seen.build = None
 
-    async def io_bound(function, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003, ANN202
+    async def io_bound(function, *args, **kwargs):
         await release.wait()
         return function(*args, **kwargs)
 
@@ -565,14 +567,15 @@ async def test_a_press_in_one_window_waits_for_a_build_started_by_another(seen: 
     release = asyncio.Event()
     order: list[str] = []
 
-    async def io_bound(function, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003, ANN202
+    async def io_bound(function, *args, **kwargs):
         await release.wait()
         order.append("the build finished")
         return function(*args, **kwargs)
 
     handlers.get_ready_to_build.side_effect = lambda _overrides: order.append("the press prepared")  # type: ignore[attr-defined]
-    with patch.object(userintr_prebuild.run, "io_bound", io_bound), patch(
-        "maptasker.src.gui.userintr._busy_banner", return_value=None
+    with (
+        patch.object(userintr_prebuild.run, "io_bound", io_bound),
+        patch("maptasker.src.gui.userintr._busy_banner", return_value=None),
     ):
         other.prebuild_tick()
         other.prebuild_tick()

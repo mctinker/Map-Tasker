@@ -15,11 +15,11 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.analysis import mapfind
-from maptasker.src.mapgen import taskerd
+from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapgen import taskerd
 
 # Two Projects, and one object per facet with a near neighbour that must stay out of the
 # answer.
@@ -142,7 +142,7 @@ _FIXTURE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 def _load(xml_text: str) -> None:
     """Build the PrimeItems lookup tables from XML text, the way taskerd does from a file."""
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")

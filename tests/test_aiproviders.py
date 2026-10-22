@@ -14,10 +14,9 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from maptasker.src.core import aiutils, getputer, sysconst
-from maptasker.src.gui import userintr_ai
 from maptasker.src.core.primitem import RunState
+from maptasker.src.gui import userintr_ai
 from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 
 
@@ -143,7 +142,9 @@ def test_a_failure_to_list_gives_the_built_in_list_and_says_why(run: RunState, m
     assert any("401" in message for message in reported)
 
 
-def test_a_bug_while_listing_is_not_mistaken_for_a_failed_request(run: RunState, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_bug_while_listing_is_not_mistaken_for_a_failed_request(
+    run: RunState, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setattr(aiutils, "import_optional", lambda *_: _fake_anthropic(raises=AttributeError("a bug")))
     run.ai["anthropic_key"] = "sk-ant"
 
@@ -155,7 +156,9 @@ def test_a_bug_while_listing_is_not_mistaken_for_a_failed_request(run: RunState,
 def test_no_library_or_no_claude_model_gives_the_built_in_list(
     run: RunState, monkeypatch: pytest.MonkeyPatch, library: str | None
 ) -> None:
-    monkeypatch.setattr(aiutils, "import_optional", lambda *_: None if library is None else _fake_anthropic(ids=["other"]))
+    monkeypatch.setattr(
+        aiutils, "import_optional", lambda *_: None if library is None else _fake_anthropic(ids=["other"])
+    )
     run.ai["anthropic_key"] = "sk-ant"
 
     assert aiutils.get_anthropic_models(state=run) == sorted(sysconst.ANTHROPIC_EXTENDED_MODELS)
@@ -187,7 +190,9 @@ def test_the_name_ollama_knows_a_model_by(asked: str, installed: list[str], expe
 class _FakeOllama:
     """The ollama package: a list of installed models, and a pull that reports progress."""
 
-    def __init__(self, installed: list[str], *, pull_steps: list[str] | None = None, pull_error: Exception | None = None):
+    def __init__(
+        self, installed: list[str], *, pull_steps: list[str] | None = None, pull_error: Exception | None = None
+    ):
         self.installed = installed
         self.pull_steps = pull_steps or []
         self.pull_error = pull_error
@@ -250,7 +255,10 @@ def test_a_model_that_cannot_be_downloaded_says_why(server: SimpleNamespace) -> 
 def test_a_server_that_will_not_start_is_the_reason_given(server: SimpleNamespace) -> None:
     server.start = (False, "Ollama is not installed.  Please install the Ollama app.")
 
-    assert aiutils.prepare_ollama_model("llama3.1") == (None, "Ollama is not installed.  Please install the Ollama app.")
+    assert aiutils.prepare_ollama_model("llama3.1") == (
+        None,
+        "Ollama is not installed.  Please install the Ollama app.",
+    )
 
 
 def test_a_server_that_stops_answering_before_the_list_is_reported(server: SimpleNamespace) -> None:

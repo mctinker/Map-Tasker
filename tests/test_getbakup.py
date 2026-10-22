@@ -9,8 +9,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src.mapgen import getbakup
 from maptasker.src.core.primitem import RunState
+from maptasker.src.mapgen import getbakup
 
 if TYPE_CHECKING:
     from pathlib import Path

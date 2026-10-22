@@ -141,7 +141,7 @@ def test_each_endpoint_reads_its_statuses_its_own_way(
 ) -> None:
     """The shared request is only the asking; what an answer means stays with each endpoint."""
     answer = SimpleNamespace(status_code=status, content=b"<Task/>")
-    reply = lambda *_args, **_kwargs: answer  # noqa: E731
+    reply = lambda *_args, **_kwargs: answer
     monkeypatch.setattr(maputil2, "requests", SimpleNamespace(get=reply, post=reply, delete=reply))
 
     assert _REQUESTS[request_kind]()[0] == return_code

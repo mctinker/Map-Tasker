@@ -21,9 +21,9 @@ from pathlib import Path
 import pytest
 from maptasker.src.analysis import mapask
 from maptasker.src.core import appinv, caches
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taskedit_model, taskedit_save
 from maptasker.src.mapops import mapdraft
-from maptasker.src.core.primitem import PrimeItems
 
 from tests.test_mapswap import _FIXTURE_XML, _load
 
@@ -99,7 +99,9 @@ def _keys(plan: mapdraft.Plan) -> list[str]:
 def test_the_catalog_is_exactly_what_the_picker_lets_the_user_add(backup: None) -> None:
     catalog = {row["action_key"] for row in mapdraft.action_catalog(PrimeItems)}
     addable = {row["action_key"] for row in taskedit_addable.list_addable_actions(state=PrimeItems) if row["addable"]}
-    refused = {row["action_key"] for row in taskedit_addable.list_addable_actions(state=PrimeItems) if not row["addable"]}
+    refused = {
+        row["action_key"] for row in taskedit_addable.list_addable_actions(state=PrimeItems) if not row["addable"]
+    }
 
     assert catalog == addable
     assert FLASH in catalog
@@ -234,7 +236,9 @@ def test_a_plan_of_actions_with_nothing_to_set_needs_no_second_question(backup: 
 # The first reply.
 # ##################################################################################
 def test_an_action_the_editor_cannot_build_is_dropped_and_said(backup: None) -> None:
-    refused = next(row["action_key"] for row in taskedit_addable.list_addable_actions(state=PrimeItems) if not row["addable"])
+    refused = next(
+        row["action_key"] for row in taskedit_addable.list_addable_actions(state=PrimeItems) if not row["addable"]
+    )
     plan = mapdraft.parse_plan(_plan(FLASH, "999999t", refused, "Teleport"), PrimeItems)
 
     assert _keys(plan) == [FLASH]
@@ -723,7 +727,7 @@ async def test_the_requested_reply_shape_reaches_the_provider(monkeypatch: pytes
         def __init__(self, api_key: str) -> None:
             self.messages = Messages()
 
-        async def __aenter__(self) -> AsyncAnthropic:  # noqa: PYI034
+        async def __aenter__(self) -> AsyncAnthropic:
             return self
 
         async def __aexit__(self, *_: object) -> None:

@@ -44,7 +44,10 @@ _KEPT_DEFERRED = {
     ("proginit", "bldargs"): "Rebuilds the action tables from the network, only when asked; tests patch it there.",
     ("proginit", "bldbndle"): "Rebuilds the action tables from the backup, only when asked; tests patch it there.",
     ("proginit", "valcodes"): "Checks the codes against the network, only when asked; tests patch it there.",
-    ("rungui", "userintr"): "Loads the GUI modules when the GUI starts: at startup, diagram's import-time default is discarded.",
+    (
+        "rungui",
+        "userintr",
+    ): "Loads the GUI modules when the GUI starts: at startup, diagram's import-time default is discarded.",
 }
 
 _LARGEST_LOOP = 0

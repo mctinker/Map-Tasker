@@ -403,7 +403,7 @@ def test_restarting_starts_a_new_copy_with_the_same_arguments_and_exits(monkeypa
 async def test_restarting_from_inside_the_event_loop_stops_the_server_on_another_thread(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import nicegui.core  # noqa: PLC0415
+    import nicegui.core
 
     started = _restart_harness(monkeypatch)
     stopped = []
@@ -420,7 +420,7 @@ async def test_restarting_from_inside_the_event_loop_stops_the_server_on_another
     for _ in range(50):
         if stopped:
             break
-        import asyncio  # noqa: PLC0415
+        import asyncio
 
         await asyncio.sleep(0.02)
     assert stopped == [1]

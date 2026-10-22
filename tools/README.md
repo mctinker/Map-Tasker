@@ -3,14 +3,13 @@
 Maintainer utilities. **Nothing here is part of the MapTasker package.**
 
 None of it is imported by `maptasker/`, shipped in the wheel, or exercised by
-the test suite. It is the ad-hoc tooling used to build the wiki, keep the
-translation catalogs in step with the code, and answer the occasional question
-about the codebase. Read a script's docstring before running it; several take a
-path and edit files in place.
+the production code. It is the maintainer tooling used to build the wiki and keep
+the translation catalogs in step with the code. Read a script's docstring before
+running it; several take a path and edit files in place.
 
-These are also outside the lint gate. `[tool.ruff]` in `pyproject.toml` covers
-`maptasker/` and `scripts/`, not `tools/` -- product code is held to the
-project's standard, one-off tools are not.
+These are held to the project's lint and format gates (`[tool.ruff]` covers
+`tools/` as well as `maptasker/` and `scripts/`), with a few relaxed rules for
+one-off scripts listed in `pyproject.toml`.
 
 ## language_support/
 
@@ -22,9 +21,6 @@ use them:
 | --- | --- |
 | `sync_and_clean_po.py` | Brings every catalog up to date and repairs it, in seven stages |
 | `translate_po.py` | Machine-translates untranslated entries (Google Translate) |
-| `translate_text_lines_to_po.py` | Turns a plain list of strings into catalog entries |
-| `find_english_msgstr_liners.py` | Reports translations that are still English |
-| `replace_line_in_po.py`, `reset_messages_po_file.py` | Small catalog edits |
 | `po_to_mo.sh` | Compiles every `messages.po` to the `messages.mo` the app loads |
 
 `sync_and_clean_po.py` is the one to reach for after adding a
@@ -57,13 +53,11 @@ input for `translate_po.py`, not catalogs the app loads.
 | Script | What it does |
 | --- | --- |
 | `build_command_wiki.py` | Generates `Command-Reference.md` and optionally publishes it to the wiki |
-| `check_dependencies.py` | Reports outdated project dependencies |
-| `version_backup.py` | Zips the working tree to a backup directory |
-| `version_copy.py` | Copies a directory, rewriting a string as it goes |
-| `find_missing_action_codes.py` | Lists Tasker action codes the mapper does not recognise |
-| `disp_msg.py` | Collects every `display_message_box` string in the source |
-| `try_import_profile.py` | Prototype harness for `deviceimport.import_profile_to_device` |
-| `trace.py`, `substr_analysis.py`, `substr_analysis1.py`, `top_argument_list.py`, `display_avail_cursors.py` | One-off analysis and debugging aids |
+| `build_runtime_options_wiki.py` | Generates `Runtime-Options.md` and optionally publishes it |
+| `build_generated_files_doc.py` | Generates the Generated-Output wiki page from `generated_output_files.md` |
+| `wikipub.py` | The publishing helper the three generators share |
+
+`publish-wikis.sh` at the repository root runs all three.
 
 `Command-Reference.md` is generated output, checked in because it is the copy
 published to the wiki. `no_description.log` is a per-run diagnostic and is

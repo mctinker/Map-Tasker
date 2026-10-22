@@ -20,7 +20,6 @@ import os
 import textwrap
 
 import pytest
-
 from maptasker.src.core import bldbndle, bundle
 from maptasker.src.core.bldbndle import (
     build_bundles,

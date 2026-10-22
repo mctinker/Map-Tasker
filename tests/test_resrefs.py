@@ -115,13 +115,13 @@ _FIXTURE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 def _load(xml_text: str) -> None:
     """Build the PrimeItems lookup tables from XML text, the way taskerd does from a file."""
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.xml_tree = ET.ElementTree(root)
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         specs = json.load(handle)
     specs[str(len(specs))] = "ConditionList"
     PrimeItems.tasker_arg_specs = specs
@@ -383,7 +383,7 @@ def test_a_problem_met_while_asking_is_in_the_report() -> None:
 
 
 def test_the_report_is_written_to_a_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(resrefs, "output_path", lambda name, state: str(tmp_path / name))  # noqa: ARG005
+    monkeypatch.setattr(resrefs, "output_path", lambda name, state: str(tmp_path / name))
     _answer(PHONE, data=False)
 
     path = resrefs.write_report(resrefs.report_rows(resrefs.collect(PrimeItems)), PrimeItems)

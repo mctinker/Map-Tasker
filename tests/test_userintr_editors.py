@@ -16,8 +16,8 @@ from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from maptasker.src.core import scenelayout
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import (
     profedit,
     projedit,
@@ -31,8 +31,8 @@ from maptasker.src.edit import (
     taskedit_save,
 )
 from maptasker.src.gui import userintr_editors
-from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
+
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:
@@ -115,7 +115,7 @@ def notices(monkeypatch: pytest.MonkeyPatch) -> _Notices:
     monkeypatch.setattr(
         userintr_editors.ui,
         "notify",
-        lambda message, *_a, type="info", **_k: heard.append((str(message), type)),  # noqa: A002
+        lambda message, *_a, type="info", **_k: heard.append((str(message), type)),
     )
     return heard
 
@@ -838,7 +838,7 @@ def test_stashing_snapshots_the_widgets_into_the_task_copy_without_touching_the_
     assert "changed text" not in ET_text(_live_task("Noisy"))
 
 
-def ET_text(element: object) -> str:  # noqa: N802
+def ET_text(element: object) -> str:
     import xml.etree.ElementTree as ET
 
     return ET.tostring(element, encoding="unicode")

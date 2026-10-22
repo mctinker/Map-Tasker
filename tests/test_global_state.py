@@ -30,7 +30,10 @@ _SOURCE = _ROOT / "maptasker"
 # (file, function) -> why it may name PrimeItems.
 _ALLOWED: dict[tuple[str, str], str] = {
     # Fallbacks: the state parameter may be left out, and then it is PrimeItems.
-    ("maptasker/src/mapit.py", "mapit_all"): "FALLBACK: the console script and `python -m maptasker.main` give no state",
+    (
+        "maptasker/src/mapit.py",
+        "mapit_all",
+    ): "FALLBACK: the console script and `python -m maptasker.main` give no state",
     ("maptasker/src/clireports.py", "run"): "FALLBACK: a report asked for on the command line gives no state",
     ("maptasker/src/core/error.py", "error_handler"): "FALLBACK: errors are reported from places that hold no state",
     ("maptasker/src/core/runcfg.py", "current_config"): "FALLBACK: a snapshot of the global settings by default",
@@ -38,13 +41,31 @@ _ALLOWED: dict[tuple[str, str], str] = {
     ("maptasker/src/core/actionc.py", "load_arg_specs"): "FALLBACK: start-up loads them onto the run it is starting",
     ("maptasker/src/core/valcodes.py", "debug_print"): "FALLBACK: a developer tool, run with no state of its own",
     ("maptasker/src/core/valcodes.py", "validate_states_and_events"): "FALLBACK: as debug_print",
-    ("maptasker/src/gui/userintr.py", "__init__"): "FALLBACK: the window shows the program's run unless it is given one",
-    ("maptasker/src/mapgen/lineout.py", "state"): "FALLBACK: a LineOut made without a state belongs to the program's run",
+    (
+        "maptasker/src/gui/userintr.py",
+        "__init__",
+    ): "FALLBACK: the window shows the program's run unless it is given one",
+    (
+        "maptasker/src/mapgen/lineout.py",
+        "state",
+    ): "FALLBACK: a LineOut made without a state belongs to the program's run",
     # Session: belongs to the process, not to one run over one backup.
-    ("maptasker/src/core/console.py", "_in_debug_mode"): "SESSION: the debug switch the logging helpers read underneath everything",
-    ("maptasker/src/core/translator.py", "set_language"): "SESSION: the language and the translation function it installs",
-    ("maptasker/src/core/maputil2.py", "translate_string"): "SESSION: translates with the function the language installed",
-    ("maptasker/src/gui/guiutil2.py", "my_trace_function"): "SESSION: the trace switch for sys.settrace, which is per process",
+    (
+        "maptasker/src/core/console.py",
+        "_in_debug_mode",
+    ): "SESSION: the debug switch the logging helpers read underneath everything",
+    (
+        "maptasker/src/core/translator.py",
+        "set_language",
+    ): "SESSION: the language and the translation function it installs",
+    (
+        "maptasker/src/core/maputil2.py",
+        "translate_string",
+    ): "SESSION: translates with the function the language installed",
+    (
+        "maptasker/src/gui/guiutil2.py",
+        "my_trace_function",
+    ): "SESSION: the trace switch for sys.settrace, which is per process",
     ("maptasker/src/gui/guiutils.py", "window_state"): "SESSION: what a window with no state of its own falls back on",
 }
 

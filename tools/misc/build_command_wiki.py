@@ -384,7 +384,7 @@ class ModuleScanner(ast.NodeVisitor):
         self._register_inner(node, qualname, key)
         # Deliberately not recursing further: the widgets inside all belong to this one.
 
-    visit_AsyncFunctionDef = visit_FunctionDef  # noqa: N815  (the ast API's own name)
+    visit_AsyncFunctionDef = visit_FunctionDef
 
     def _register_inner(self, node: ast.FunctionDef, qualname: str, owner: str) -> None:
         """Registers every function defined inside this one, for handler resolution only."""
@@ -411,12 +411,7 @@ class ModuleScanner(ast.NodeVisitor):
         # A call written inside a lambda or an inner def is a callback: it happens when
         # something else fires it, not when this function runs.  Which of those to ignore
         # depends on the question -- see direct_calls and own_calls.
-        deferred = {
-            id(inner)
-            for outer in ast.walk(node)
-            if isinstance(outer, ast.Lambda)
-            for inner in ast.walk(outer)
-        }
+        deferred = {id(inner) for outer in ast.walk(node) if isinstance(outer, ast.Lambda) for inner in ast.walk(outer)}
         callbacks = deferred | {
             id(inner)
             for outer in ast.walk(node)
@@ -1039,8 +1034,10 @@ class CommandModel:
         The two Application pickers share one 'App not listed?' button, drawn by a
         helper that is told what to do when it is clicked::
 
-            _render_fetch_apps_button(fetch_then_reopen)   # in the picker
-            def _render_fetch_apps_button(on_click): ...   # the button lives here
+            _render_fetch_apps_button(fetch_then_reopen)  # in the picker
+
+
+            def _render_fetch_apps_button(on_click): ...  # the button lives here
 
         The handler is 'on_click', which names nothing on its own, so the calls to the
         helper are looked up and whatever each passes for that argument is used instead.
@@ -2086,10 +2083,10 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            '  python tools/misc/build_command_wiki.py            write the page\n'
-            '  python tools/misc/build_command_wiki.py --stats    ... and report what was found\n'
-            '  python tools/misc/build_command_wiki.py --publish  ... and push it to the wiki\n'
-            '  python tools/misc/build_command_wiki.py --publish --dry-run   show what would be pushed\n'
+            "  python tools/misc/build_command_wiki.py            write the page\n"
+            "  python tools/misc/build_command_wiki.py --stats    ... and report what was found\n"
+            "  python tools/misc/build_command_wiki.py --publish  ... and push it to the wiki\n"
+            "  python tools/misc/build_command_wiki.py --publish --dry-run   show what would be pushed\n"
         ),
     )
     parser.add_argument("--source", type=Path, default=None, help="MapTasker source directory.")

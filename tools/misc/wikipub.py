@@ -51,8 +51,8 @@ def run_git(arguments: list[str], cwd: Path) -> subprocess.CompletedProcess:
         subprocess.CompletedProcess: the finished command, its output captured.  The
             return code is not checked here; the caller decides what a failure means.
     """
-    return subprocess.run(  # noqa: S603
-        ["git", *arguments],  # noqa: S607
+    return subprocess.run(
+        ["git", *arguments],
         cwd=cwd,
         capture_output=True,
         text=True,

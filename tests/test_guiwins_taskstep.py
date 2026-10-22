@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 from maptasker.src.analysis import taskstep
-from maptasker.src.gui import guiwins_taskstep
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.gui import guiwins_taskstep
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation

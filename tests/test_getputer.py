@@ -35,7 +35,9 @@ def program_arguments(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Progra
     return arguments
 
 
-def test_saving_settings_writes_the_toml_file_and_nothing_else(program_arguments: ProgramArguments, tmp_path: Path) -> None:
+def test_saving_settings_writes_the_toml_file_and_nothing_else(
+    program_arguments: ProgramArguments, tmp_path: Path
+) -> None:
     """There is one settings file now."""
     getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True, state=PrimeItems)
 
@@ -124,7 +126,7 @@ def test_no_gemini_model_is_listed_with_an_underscore() -> None:
 def test_nothing_selected_is_saved_as_nothing_in_any_language(
     program_arguments: ProgramArguments, monkeypatch: pytest.MonkeyPatch, none_in_the_users_language: str
 ) -> None:
-    """"None" in the pulldown means no selection, and is saved as empty so the next run does not go
+    """ "None" in the pulldown means no selection, and is saved as empty so the next run does not go
     looking for a Project called "Keine".  The check used to translate the result of a comparison
     rather than compare with the translation, so only the English word was ever recognised."""
     monkeypatch.setattr(getputer, "translate_string", lambda text: {"None": "Keine"}.get(text, text))

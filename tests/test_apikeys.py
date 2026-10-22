@@ -312,7 +312,10 @@ def test_keys_that_are_all_still_supported_are_not_rewritten(store: MemoryKeyrin
     store.entries[entry] = json.dumps({"openai_key": "sk-openai"})
     writes: list[str] = []
     original = store.set_password
-    store.set_password = lambda service, username, password: (writes.append(username), original(service, username, password))[1]
+    store.set_password = lambda service, username, password: (
+        writes.append(username),
+        original(service, username, password),
+    )[1]
 
     apikeys.load_api_keys()
 

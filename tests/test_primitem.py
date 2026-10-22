@@ -14,7 +14,6 @@ import pathlib
 
 import pytest
 from maptasker.src.core import maputils, primitem
-from maptasker.src.mapgen import bildhtml, taskerd, taskertables
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.core.primitem import (
     SESSION_ATTRIBUTES,
@@ -26,6 +25,7 @@ from maptasker.src.core.primitem import (
     initial_tasker_root_elements,
     reset_attributes,
 )
+from maptasker.src.mapgen import bildhtml, taskerd, taskertables
 
 # The translation function: installed by translator.set_language and tested for with hasattr,
 # so it has to be missing until then and cannot be declared.
@@ -73,7 +73,7 @@ def test_everything_the_program_uses_on_prime_items_is_declared() -> None:
 def test_every_attribute_is_either_reset_or_kept_for_the_session() -> None:
     """Nothing is in both, nothing is in neither, and the session list names only real attributes."""
     run_defaults = set(primitem._RUN_DEFAULTS)
-    assert SESSION_ATTRIBUTES <= _declared()
+    assert _declared() >= SESSION_ATTRIBUTES
     assert run_defaults.isdisjoint(SESSION_ATTRIBUTES)
     assert run_defaults | SESSION_ATTRIBUTES == _declared()
 

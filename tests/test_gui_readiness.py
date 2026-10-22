@@ -13,14 +13,14 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from nicegui import ui
-
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import projedit
 from maptasker.src.gui import guiwins
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import readiness
-from maptasker.src.core.initparg import ProgramArguments
-from maptasker.src.core.primitem import PrimeItems
+from nicegui import ui
+
 from tests.test_gui_window import _button, _click, _open_window, fresh_session  # noqa: F401
 
 pytestmark = pytest.mark.asyncio
@@ -42,7 +42,7 @@ _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 
 def _load_configuration() -> None:
-    root = ET.fromstring(_XML)  # noqa: S314
+    root = ET.fromstring(_XML)
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
@@ -57,7 +57,7 @@ def _load_configuration() -> None:
     }
 
 
-async def _open_edit_project(user, gui) -> None:  # noqa: ANN001
+async def _open_edit_project(user, gui) -> None:
     """The Edit Project dialog for 'Home', built the way Edit Project builds it."""
     _load_configuration()
     edited = projedit.load_project_for_edit("Home", state=gui.state)

@@ -20,15 +20,15 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core import mapjump, piiscan
-from maptasker.src.mapgen import taskerd
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
-from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.core.mapjump import PROJECT, TASK, Target
 from maptasker.src.core.primitem import PrimeItems
-from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.property import get_properties
+from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.share import share
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapgen.lineout import LineOut
 
 # One of everything, with its clean counterpart alongside it.
 #
@@ -144,7 +144,7 @@ def _load(xml_text: str) -> ET.Element:
     test_healthck._load, plus all_services: this module is the one that reads Tasker's own
     preferences, and a backup carries them.
     """
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)
@@ -336,9 +336,9 @@ def test_a_redacted_export_keeps_working(loaded: ET.Element) -> None:
     A redacted file that Tasker imports and then does nothing with is worse than no
     redaction at all -- the user has shared it believing it works.
     """
-    before = [(element.tag, element.text) for element in loaded.iter() if element.tag in piiscan._REFERENCE_TAGS]  # noqa: SLF001
+    before = [(element.tag, element.text) for element in loaded.iter() if element.tag in piiscan._REFERENCE_TAGS]
     piiscan.redact_tree(loaded)
-    after = [(element.tag, element.text) for element in loaded.iter() if element.tag in piiscan._REFERENCE_TAGS]  # noqa: SLF001
+    after = [(element.tag, element.text) for element in loaded.iter() if element.tag in piiscan._REFERENCE_TAGS]
     assert before == after
 
     # And the Perform Task that names one of those Tasks still names it.
@@ -412,12 +412,12 @@ def test_a_redacted_export_says_so(loaded: ET.Element) -> None:
 
     # Still a well-formed document, comment and all -- the whole point of a redacted export
     # is that it can be imported by whoever it was shared with.
-    ET.fromstring(exported)  # noqa: S314
+    ET.fromstring(exported)
 
 
 def test_the_notice_is_a_legal_comment() -> None:
     """'--' cannot appear inside an XML comment, and the notice quotes the tag names."""
-    notice = piiscan.redact_rendered(ET.fromstring("<TaskerData />"))  # noqa: S314
+    notice = piiscan.redact_rendered(ET.fromstring("<TaskerData />"))
     assert notice.startswith("<!--")
     assert notice.rstrip().endswith("-->")
     assert "--" not in notice[4:-4]
@@ -456,7 +456,7 @@ def shared_problems() -> list[piiscan.Problem]:
 
 
 def test_an_address_in_a_taskernet_description_says_where_it_is(shared_problems: list) -> None:
-    """"This object's own properties" is true of it and no use: it is the wording that made
+    """ "This object's own properties" is true of it and no use: it is the wording that made
     a real finding read as a false alarm.
     """
     finding = next(problem for problem in shared_problems if problem.tag == "PII-EMAIL")
@@ -483,7 +483,13 @@ def test_the_map_writes_the_anchor_that_finding_points_at(shared_problems: list)
     PrimeItems.output_lines = LineOut()
     PrimeItems.emitted_anchors = set()
 
-    share(PrimeItems.tasker_root_elements["all_tasks"]["30"]["xml"], "tasktab", Target(TASK, "30"), config=current_config(), state=PrimeItems)
+    share(
+        PrimeItems.tasker_root_elements["all_tasks"]["30"]["xml"],
+        "tasktab",
+        Target(TASK, "30"),
+        config=current_config(),
+        state=PrimeItems,
+    )
     output = "".join(PrimeItems.output_lines.output_lines)
 
     assert f'<a id="{finding.where.anchor}" class="mt-anchor"' in output
@@ -563,16 +569,20 @@ def test_the_map_writes_the_properties_anchor_a_finding_points_at(property_probl
     """The other half of the contract: an id one side writes and the other does not is a
     click that goes nowhere.  Held against each other here rather than assumed.
     """
-    finding = next(
-        problem for problem in property_problems if problem.where.anchor == "mt-project-Server-eproperties"
-    )
+    finding = next(problem for problem in property_problems if problem.where.anchor == "mt-project-Server-eproperties")
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.program_arguments.display_detail_level = mapjump.minimum_detail_level(finding.where)
     PrimeItems.colors_to_use = set_color_mode("dark")
     PrimeItems.output_lines = LineOut()
     PrimeItems.emitted_anchors = set()
 
-    get_properties("Project:", PrimeItems.tasker_root_elements["all_projects"]["Server"]["xml"], finding.where, config=current_config(), state=PrimeItems)
+    get_properties(
+        "Project:",
+        PrimeItems.tasker_root_elements["all_projects"]["Server"]["xml"],
+        finding.where,
+        config=current_config(),
+        state=PrimeItems,
+    )
     output = "".join(PrimeItems.output_lines.output_lines)
 
     assert f'<a id="{finding.where.anchor}" class="mt-anchor"' in output
@@ -594,7 +604,9 @@ def test_what_is_not_on_the_properties_line_still_names_the_object() -> None:
     shows on the Task's own line.  Aiming those at a Properties line they are not on would
     be the same defect pointing the other way.
     """
-    _load(_PROPERTIES_XML.replace("<pc>owner is tasks@example.com</pc>", '<Kid sr="Kid"><vnme>b@example.com</vnme></Kid>'))
+    _load(
+        _PROPERTIES_XML.replace("<pc>owner is tasks@example.com</pc>", '<Kid sr="Kid"><vnme>b@example.com</vnme></Kid>')
+    )
     places = {problem.where.anchor for problem in piiscan.lint_problems(state=PrimeItems) if problem.tag == "PII-EMAIL"}
     assert "mt-task-41" in places
     assert "mt-task-41-eproperties" not in places

@@ -162,5 +162,540 @@
   "maptasker/src/rungui.py": {
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 1
+  },
+  "tests/conftest.py": {
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/search_dialog.py": {
+    "reportAttributeAccessIssue": 1,
+    "reportOptionalMemberAccess": 2
+  },
+  "tests/test_actargs.py": {
+    "reportArgumentType": 1
+  },
+  "tests/test_actione.py": {
+    "reportArgumentType": 12
+  },
+  "tests/test_ai_analysis_query.py": {
+    "reportArgumentType": 2,
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_ai_model_lists.py": {
+    "reportArgumentType": 2,
+    "reportAttributeAccessIssue": 3
+  },
+  "tests/test_aiutils.py": {
+    "reportArgumentType": 17,
+    "reportAttributeAccessIssue": 5
+  },
+  "tests/test_anchor_names.py": {
+    "reportAttributeAccessIssue": 1
+  },
+  "tests/test_apikeys.py": {
+    "reportAssignmentType": 1,
+    "reportAttributeAccessIssue": 1,
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_assettext.py": {
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_bldbndle.py": {
+    "reportOperatorIssue": 11
+  },
+  "tests/test_build_all.py": {
+    "reportArgumentType": 1,
+    "reportAttributeAccessIssue": 1
+  },
+  "tests/test_build_command_wiki.py": {
+    "reportArgumentType": 1,
+    "reportOptionalMemberAccess": 3
+  },
+  "tests/test_caches.py": {
+    "reportArgumentType": 1,
+    "reportCallIssue": 1
+  },
+  "tests/test_clip.py": {
+    "reportArgumentType": 3
+  },
+  "tests/test_clireports.py": {
+    "reportArgumentType": 1,
+    "reportInvalidTypeForm": 1,
+    "reportOperatorIssue": 1,
+    "reportOptionalMemberAccess": 6,
+    "reportReturnType": 1
+  },
+  "tests/test_coverage_ratchet.py": {
+    "reportArgumentType": 1,
+    "reportOptionalMemberAccess": 2
+  },
+  "tests/test_device_requests.py": {
+    "reportAttributeAccessIssue": 1
+  },
+  "tests/test_deviceinv.py": {
+    "reportArgumentType": 26,
+    "reportAttributeAccessIssue": 18,
+    "reportCallIssue": 5,
+    "reportInvalidTypeForm": 1,
+    "reportOperatorIssue": 1,
+    "reportOptionalMemberAccess": 35,
+    "reportOptionalSubscript": 1,
+    "reportReturnType": 4
+  },
+  "tests/test_devicemonitor.py": {
+    "reportAttributeAccessIssue": 7
+  },
+  "tests/test_deviceresource.py": {
+    "reportAttributeAccessIssue": 1,
+    "reportOptionalMemberAccess": 3
+  },
+  "tests/test_diagram_anchors.py": {
+    "reportArgumentType": 2,
+    "reportAttributeAccessIssue": 1
+  },
+  "tests/test_diagram_calls.py": {
+    "reportArgumentType": 2,
+    "reportGeneralTypeIssues": 1
+  },
+  "tests/test_diagutil.py": {
+    "reportArgumentType": 10
+  },
+  "tests/test_diffload.py": {
+    "reportArgumentType": 2,
+    "reportAttributeAccessIssue": 3,
+    "reportOptionalMemberAccess": 3
+  },
+  "tests/test_directory_scope.py": {
+    "reportArgumentType": 2,
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_directory_view_limit.py": {
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_editcommon.py": {
+    "reportArgumentType": 3,
+    "reportAttributeAccessIssue": 11,
+    "reportCallIssue": 4
+  },
+  "tests/test_elemvals.py": {
+    "reportArgumentType": 9,
+    "reportCallIssue": 1
+  },
+  "tests/test_error_show_code.py": {
+    "reportArgumentType": 3,
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_firesim.py": {
+    "reportOptionalMemberAccess": 2
+  },
+  "tests/test_folderwatch.py": {
+    "reportInvalidTypeForm": 1,
+    "reportOptionalMemberAccess": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_format_html.py": {
+    "reportArgumentType": 8,
+    "reportOperatorIssue": 1,
+    "reportOptionalOperand": 1
+  },
+  "tests/test_gui_readiness.py": {
+    "reportArgumentType": 1
+  },
+  "tests/test_gui_window.py": {
+    "reportAttributeAccessIssue": 22,
+    "reportOptionalContextManager": 1
+  },
+  "tests/test_guistate_selection.py": {
+    "reportArgumentType": 5
+  },
+  "tests/test_guiutil2.py": {
+    "reportArgumentType": 15,
+    "reportCallIssue": 1
+  },
+  "tests/test_guiutils_logic.py": {
+    "reportArgumentType": 24
+  },
+  "tests/test_guiwins_designer_legacy.py": {
+    "reportArgumentType": 30,
+    "reportAttributeAccessIssue": 7,
+    "reportOptionalContextManager": 3,
+    "reportOptionalMemberAccess": 39,
+    "reportReturnType": 1
+  },
+  "tests/test_guiwins_designer_v2.py": {
+    "reportArgumentType": 13,
+    "reportAttributeAccessIssue": 29,
+    "reportOptionalMemberAccess": 47,
+    "reportOptionalSubscript": 32
+  },
+  "tests/test_guiwins_designers.py": {
+    "reportArgumentType": 2
+  },
+  "tests/test_guiwins_draft.py": {
+    "reportArgumentType": 1,
+    "reportAttributeAccessIssue": 1
+  },
+  "tests/test_guiwins_edit_history.py": {
+    "reportArgumentType": 1
+  },
+  "tests/test_guiwins_firesim.py": {
+    "reportAttributeAccessIssue": 6
+  },
+  "tests/test_guiwins_fix.py": {
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_guiwins_impact.py": {
+    "reportArgumentType": 2
+  },
+  "tests/test_guiwins_monitor.py": {
+    "reportArgumentType": 1,
+    "reportCallIssue": 1
+  },
+  "tests/test_guiwins_nav.py": {
+    "reportArgumentType": 4
+  },
+  "tests/test_guiwins_profedit.py": {
+    "reportArgumentType": 14,
+    "reportAttributeAccessIssue": 2,
+    "reportInvalidTypeForm": 1,
+    "reportOptionalMemberAccess": 2,
+    "reportReturnType": 2
+  },
+  "tests/test_guiwins_search_find.py": {
+    "reportArgumentType": 4,
+    "reportOptionalContextManager": 1,
+    "reportOptionalMemberAccess": 1
+  },
+  "tests/test_guiwins_search_replace.py": {
+    "reportArgumentType": 1,
+    "reportAssignmentType": 1,
+    "reportCallIssue": 1,
+    "reportInvalidTypeForm": 1,
+    "reportOptionalMemberAccess": 5,
+    "reportReturnType": 1
+  },
+  "tests/test_guiwins_taskstep.py": {
+    "reportAttributeAccessIssue": 6
+  },
+  "tests/test_guiwins_tnupdate.py": {
+    "reportAssertAlwaysTrue": 1,
+    "reportOptionalMemberAccess": 5
+  },
+  "tests/test_guiwins_trend.py": {
+    "reportOptionalSubscript": 2
+  },
+  "tests/test_guiwins_views_scene.py": {
+    "reportArgumentType": 29,
+    "reportAttributeAccessIssue": 1,
+    "reportOptionalContextManager": 1,
+    "reportOptionalMemberAccess": 2,
+    "reportReturnType": 2
+  },
+  "tests/test_guiwins_views_text.py": {
+    "reportArgumentType": 6
+  },
+  "tests/test_guiwins_views_textview.py": {
+    "reportArgumentType": 11,
+    "reportOptionalContextManager": 2,
+    "reportOptionalMemberAccess": 1
+  },
+  "tests/test_healthck.py": {
+    "reportArgumentType": 1
+  },
+  "tests/test_impact.py": {
+    "reportOptionalMemberAccess": 2
+  },
+  "tests/test_initparg.py": {
+    "reportAttributeAccessIssue": 2
+  },
+  "tests/test_livevars.py": {
+    "reportArgumentType": 1
+  },
+  "tests/test_main.py": {
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_mapai.py": {
+    "reportArgumentType": 1,
+    "reportAttributeAccessIssue": 1,
+    "reportCallIssue": 1
+  },
+  "tests/test_mapask.py": {
+    "reportArgumentType": 5,
+    "reportOperatorIssue": 1
+  },
+  "tests/test_mapcache.py": {
+    "reportInvalidTypeForm": 2,
+    "reportOptionalMemberAccess": 1,
+    "reportReturnType": 2
+  },
+  "tests/test_mapdraft.py": {
+    "reportArgumentType": 1,
+    "reportGeneralTypeIssues": 3,
+    "reportIndexIssue": 2,
+    "reportOptionalMemberAccess": 2,
+    "reportOptionalSubscript": 2
+  },
+  "tests/test_mapexport.py": {
+    "reportOperatorIssue": 3,
+    "reportOptionalMemberAccess": 8
+  },
+  "tests/test_mapfind.py": {
+    "reportArgumentType": 1
+  },
+  "tests/test_mapfix.py": {
+    "reportArgumentType": 1,
+    "reportAttributeAccessIssue": 1,
+    "reportInvalidTypeForm": 1,
+    "reportOptionalMemberAccess": 6,
+    "reportReturnType": 1
+  },
+  "tests/test_mapit.py": {
+    "reportArgumentType": 12
+  },
+  "tests/test_mapit_disconnect.py": {
+    "reportArgumentType": 21,
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_maprefac.py": {
+    "reportArgumentType": 1,
+    "reportAttributeAccessIssue": 2,
+    "reportInvalidTypeForm": 2,
+    "reportOptionalMemberAccess": 10,
+    "reportReturnType": 2
+  },
+  "tests/test_maprefac_variable.py": {
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_maprestore.py": {
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_mapswap.py": {
+    "reportArgumentType": 1,
+    "reportInvalidTypeForm": 1,
+    "reportOptionalMemberAccess": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_maptasker_gui.py": {
+    "reportArgumentType": 3,
+    "reportAttributeAccessIssue": 4,
+    "reportOptionalSubscript": 3
+  },
+  "tests/test_maputils_helpers.py": {
+    "reportArgumentType": 6
+  },
+  "tests/test_objprops.py": {
+    "reportArgumentType": 2,
+    "reportOptionalMemberAccess": 15
+  },
+  "tests/test_parsearg_table.py": {
+    "reportArgumentType": 2
+  },
+  "tests/test_piiscan.py": {
+    "reportAttributeAccessIssue": 2,
+    "reportOptionalMemberAccess": 3
+  },
+  "tests/test_plugins.py": {
+    "reportArgumentType": 5
+  },
+  "tests/test_prefers.py": {
+    "reportAttributeAccessIssue": 3
+  },
+  "tests/test_primitem.py": {
+    "reportArgumentType": 1,
+    "reportAttributeAccessIssue": 2
+  },
+  "tests/test_profedit.py": {
+    "reportArgumentType": 23,
+    "reportAttributeAccessIssue": 16,
+    "reportCallIssue": 1,
+    "reportGeneralTypeIssues": 1,
+    "reportOperatorIssue": 5,
+    "reportOptionalMemberAccess": 13,
+    "reportReturnType": 1
+  },
+  "tests/test_profile_conditions.py": {
+    "reportArgumentType": 6
+  },
+  "tests/test_proginit.py": {
+    "reportAttributeAccessIssue": 5,
+    "reportOptionalMemberAccess": 5
+  },
+  "tests/test_project_export.py": {
+    "reportArgumentType": 1,
+    "reportOptionalMemberAccess": 1,
+    "reportReturnType": 2
+  },
+  "tests/test_projects.py": {
+    "reportArgumentType": 1
+  },
+  "tests/test_projedit.py": {
+    "reportArgumentType": 8,
+    "reportAttributeAccessIssue": 6,
+    "reportCallIssue": 1,
+    "reportOperatorIssue": 4,
+    "reportOptionalMemberAccess": 6
+  },
+  "tests/test_property.py": {
+    "reportArgumentType": 4
+  },
+  "tests/test_roundtrip.py": {
+    "reportArgumentType": 1,
+    "reportOperatorIssue": 1,
+    "reportOptionalMemberAccess": 5
+  },
+  "tests/test_run_task.py": {
+    "reportArgumentType": 2,
+    "reportOptionalMemberAccess": 8
+  },
+  "tests/test_runcfg.py": {
+    "reportArgumentType": 15,
+    "reportAttributeAccessIssue": 1,
+    "reportIndexIssue": 1,
+    "reportInvalidTypeForm": 1,
+    "reportOptionalMemberAccess": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_runcli.py": {
+    "reportArgumentType": 25,
+    "reportReturnType": 1
+  },
+  "tests/test_rungui.py": {
+    "reportArgumentType": 7
+  },
+  "tests/test_runstate.py": {
+    "reportArgumentType": 7,
+    "reportOperatorIssue": 7,
+    "reportOptionalMemberAccess": 4
+  },
+  "tests/test_scene_properties.py": {
+    "reportArgumentType": 12,
+    "reportOptionalIterable": 2,
+    "reportOptionalMemberAccess": 35,
+    "reportReturnType": 2
+  },
+  "tests/test_sceneedit.py": {
+    "reportArgumentType": 2,
+    "reportCallIssue": 1,
+    "reportOperatorIssue": 6,
+    "reportOptionalMemberAccess": 1,
+    "reportOptionalSubscript": 7
+  },
+  "tests/test_scenemodel.py": {
+    "reportArgumentType": 6,
+    "reportAttributeAccessIssue": 1,
+    "reportOptionalMemberAccess": 6,
+    "reportOptionalSubscript": 6
+  },
+  "tests/test_scenes.py": {
+    "reportOptionalMemberAccess": 8
+  },
+  "tests/test_share.py": {
+    "reportArgumentType": 6
+  },
+  "tests/test_silent_exceptions.py": {
+    "reportArgumentType": 2
+  },
+  "tests/test_single_item_export.py": {
+    "reportArgumentType": 1,
+    "reportAttributeAccessIssue": 3
+  },
+  "tests/test_taskactn.py": {
+    "reportArgumentType": 42
+  },
+  "tests/test_taskflow.py": {
+    "reportArgumentType": 1,
+    "reportReturnType": 2
+  },
+  "tests/test_tasks.py": {
+    "reportArgumentType": 1
+  },
+  "tests/test_taskstep.py": {
+    "reportArgumentType": 8
+  },
+  "tests/test_taskuniq.py": {
+    "reportAttributeAccessIssue": 10
+  },
+  "tests/test_timeline.py": {
+    "reportArgumentType": 6,
+    "reportCallIssue": 1,
+    "reportOptionalMemberAccess": 5
+  },
+  "tests/test_tnupdate.py": {
+    "reportArgumentType": 3,
+    "reportAssertAlwaysTrue": 2,
+    "reportAttributeAccessIssue": 1
+  },
+  "tests/test_trend.py": {
+    "reportArgumentType": 6,
+    "reportOptionalOperand": 1
+  },
+  "tests/test_upgrade.py": {
+    "reportArgumentType": 1
+  },
+  "tests/test_userhelp.py": {
+    "reportArgumentType": 1,
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_userintr_android_validate.py": {
+    "reportArgumentType": 9,
+    "reportCallIssue": 1
+  },
+  "tests/test_userintr_editors.py": {
+    "reportArgumentType": 56,
+    "reportAttributeAccessIssue": 33,
+    "reportCallIssue": 1,
+    "reportInvalidTypeForm": 1,
+    "reportOptionalMemberAccess": 13,
+    "reportOptionalSubscript": 3,
+    "reportReturnType": 3
+  },
+  "tests/test_userintr_loading.py": {
+    "reportArgumentType": 9,
+    "reportAttributeAccessIssue": 1
+  },
+  "tests/test_userintr_prebuild.py": {
+    "reportGeneralTypeIssues": 3,
+    "reportInvalidTypeForm": 2,
+    "reportReturnType": 2
+  },
+  "tests/test_userintr_settings.py": {
+    "reportArgumentType": 6,
+    "reportAttributeAccessIssue": 7,
+    "reportOperatorIssue": 1,
+    "reportOptionalMemberAccess": 1
+  },
+  "tests/test_version_check.py": {
+    "reportArgumentType": 3
+  },
+  "tests/test_view_limit_argument.py": {
+    "reportInvalidTypeForm": 1,
+    "reportReturnType": 1
+  },
+  "tests/test_xmldata_compact.py": {
+    "reportOptionalMemberAccess": 4
+  },
+  "tools/language_support/sync_and_clean_po.py": {
+    "reportOptionalMemberAccess": 1
+  },
+  "tools/language_support/translate_po.py": {
+    "reportReturnType": 1
+  },
+  "tools/misc/build_command_wiki.py": {
+    "reportArgumentType": 5,
+    "reportAssignmentType": 1,
+    "reportAttributeAccessIssue": 3,
+    "reportGeneralTypeIssues": 1
   }
 }

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 from maptasker.src.core.initparg import initialize_runtime_arguments
-from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.sysconst import FormatLine
+from maptasker.src.mapgen.lineout import LineOut
 
 _LINE = "Remind Me&nbsp;&nbsp;Task ID: 12"
 

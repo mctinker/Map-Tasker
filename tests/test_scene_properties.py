@@ -39,10 +39,9 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
-from maptasker.src.edit import sceneedit, taskedit, taskedit_apply, taskedit_save
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import BASE_PROJECT_NAME
-from maptasker.src.edit import sceneedit_legacy
+from maptasker.src.edit import sceneedit, sceneedit_legacy, taskedit, taskedit_apply, taskedit_save
 from maptasker.src.gui import guiwins_sceneprops
 
 # The backup the Scene tests load: hand-built, in tests/data, so they run anywhere -- CI included --
@@ -90,7 +89,7 @@ _SCENE_XML_NO_FILTER = """<Scene sr="Plain">
 
 def _properties(scene_xml: str) -> ET.Element:
     """The <PropertiesElement> of a Scene given as text."""
-    return ET.fromstring(scene_xml).find("PropertiesElement")  # noqa: S314
+    return ET.fromstring(scene_xml).find("PropertiesElement")
 
 
 # ==========================================
@@ -221,7 +220,7 @@ def _parsed_sample_properties_elements() -> tuple[ET.Element, ...]:
     found = []
     for path in [_SYNTHETIC_BACKUP, *sorted(glob.glob("XML/*.xml"))]:
         try:
-            root = ET.parse(path).getroot()  # noqa: S314
+            root = ET.parse(path).getroot()
         except ET.ParseError:
             continue
         found.extend(root.iter("PropertiesElement"))
@@ -324,8 +323,8 @@ def loaded_tasks():
     saved = dict(PrimeItems.tasker_root_elements)
     saved_specs = dict(PrimeItems.tasker_arg_specs)
     PrimeItems.tasker_arg_specs = _load_arg_specs()
-    named = ET.fromstring(_TASK_XML)  # noqa: S314
-    unnamed = ET.fromstring(_UNNAMED_TASK_XML)  # noqa: S314
+    named = ET.fromstring(_TASK_XML)
+    unnamed = ET.fromstring(_UNNAMED_TASK_XML)
     PrimeItems.tasker_root_elements["all_tasks"] = {
         "268": {"xml": named, "name": "Key Handler"},
         "269": {"xml": unnamed, "name": "Flash hello.269 (Unnamed)"},
@@ -416,7 +415,7 @@ def _load_sample_backup(path: str) -> ET.Element:
     """
     from maptasker.src.mapgen import taskerd
 
-    root = ET.parse(path).getroot()  # noqa: S314  (this repo's own sample data)
+    root = ET.parse(path).getroot()
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
     PrimeItems.tasker_arg_specs = _load_arg_specs()
@@ -450,8 +449,8 @@ def _render(gui, target, render, *args):
     this file is not run alone, which is the worst way for it to fail.
     """
     ui = pytest.importorskip("nicegui").ui
-    from nicegui.client import Client  # noqa: PLC0415
-    from nicegui.page import page  # noqa: PLC0415
+    from nicegui.client import Client
+    from nicegui.page import page
 
     with Client(page("/")):
         container = ui.column()
@@ -478,7 +477,7 @@ def stub_gui():
     """Enough of a MyGui for the forms: they read .indent and hold .event_handlers in a
     lambda that no test presses.
     """
-    from unittest.mock import MagicMock  # noqa: PLC0415
+    from unittest.mock import MagicMock
 
     gui = MagicMock()
     gui.state = PrimeItems
@@ -514,8 +513,7 @@ def test_the_screen_has_taskers_own_three_tabs(sample_backup, stub_gui):
     labels are translated to, since the selected-tab bookkeeping is keyed on the name.
     """
     ui = pytest.importorskip("nicegui").ui
-    from unittest.mock import MagicMock  # noqa: PLC0415
-
+    from unittest.mock import MagicMock
 
     root = sample_backup(_SYNTHETIC_BACKUP)
     scene = next(s for s in root.iter("Scene") if s.find("PropertiesElement") is not None)
@@ -527,13 +525,17 @@ def test_the_screen_has_taskers_own_three_tabs(sample_backup, stub_gui):
     original_open = ui.dialog.open
     ui.dialog.open = lambda self: opened.append(self)
     try:
-        _render(stub_gui, edited, lambda gui, target: guiwins_sceneprops._build_scene_properties_dialog(gui, target, {}))
+        _render(
+            stub_gui, edited, lambda gui, target: guiwins_sceneprops._build_scene_properties_dialog(gui, target, {})
+        )
     finally:
         ui.dialog.open = original_open
 
     names = [tab._props.get("name") for tab in _descendants(opened[-1]) if isinstance(tab, ui.tab)]
     assert names[:3] == ["UI", "Actions", "Event"]
-    assert names[3:] == [event.label for event in sceneedit_legacy.LEGACY_SCENE_EVENTS] == ["Key", "Home Tap", "Tab Tap"]
+    assert (
+        names[3:] == [event.label for event in sceneedit_legacy.LEGACY_SCENE_EVENTS] == ["Key", "Home Tap", "Tab Tap"]
+    )
 
 
 def test_the_key_panel_offers_the_keys_filter_and_stop_event(key_event_tab):
@@ -573,7 +575,9 @@ def test_the_key_panel_documents_the_variables_the_guide_lists(key_event_tab):
 def test_the_bound_tasks_actions_are_listed_below_it(key_event_tab):
     """The bound Task's actions, in the editor the Edit Task dialog is made of."""
     container, properties, ui = key_event_tab
-    expected = taskedit.load_task_for_edit_by_id(properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG), state=PrimeItems)
+    expected = taskedit.load_task_for_edit_by_id(
+        properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG), state=PrimeItems
+    )
 
     headers = [e._props.get("label", "") for e in _descendants(container) if isinstance(e, ui.expansion)]
 
@@ -629,7 +633,9 @@ def test_an_event_the_scene_type_rules_out_still_shows_what_is_bound(sample_back
         sceneedit_legacy.LEGACY_SCENE_TYPE_OVERLAY,
     )
     home_tap = sceneedit_legacy.LEGACY_SCENE_EVENTS[1]
-    sceneedit_legacy.legacy_set_task_binding(properties, home_tap.tag, properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG))
+    sceneedit_legacy.legacy_set_task_binding(
+        properties, home_tap.tag, properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG)
+    )
 
     container = _render(stub_gui, properties, guiwins_sceneprops._render_scene_event, home_tap, lambda: None)
 
@@ -681,7 +687,7 @@ def _first_row_inputs(container, ui):
 
 
 def test_each_row_carries_the_guides_three_controls(actions_tab):
-    """"icon button", "label text" and "action button" -- an icon field, a label field, and
+    """ "icon button", "label text" and "action button" -- an icon field, a label field, and
     the item's action with its own arguments.
     """
     container, properties, ui = actions_tab
@@ -747,10 +753,10 @@ def test_a_scene_that_is_not_an_activity_is_told_so_but_keeps_its_items(sample_b
 # 6. APPLYING FROM THE TAB
 # ==========================================
 def test_apply_to_task_puts_the_action_edits_into_the_loaded_configuration(monkeypatch, loaded_tasks):
-    """"Apply to Task" is the tab's Ok: the working copy replaces the live one in the Task
+    """ "Apply to Task" is the tab's Ok: the working copy replaces the live one in the Task
     tables, so every view built from them shows the edit.
     """
-    from unittest.mock import MagicMock  # noqa: PLC0415
+    from unittest.mock import MagicMock
 
     from maptasker.src.gui import userintr
 
@@ -774,7 +780,7 @@ def test_a_rejected_value_is_reported_and_nothing_is_applied(monkeypatch, loaded
     """All-or-nothing, like the Edit Task dialog's Ok: a validation error leaves the loaded
     configuration exactly as it was.
     """
-    from unittest.mock import MagicMock  # noqa: PLC0415
+    from unittest.mock import MagicMock
 
     from maptasker.src.gui import userintr
 
@@ -802,12 +808,11 @@ def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it
     to still build, over real Tasks, with every action listed.
     """
     ui = pytest.importorskip("nicegui").ui
-    from unittest.mock import MagicMock  # noqa: PLC0415
-
-    from nicegui.client import Client  # noqa: PLC0415
-    from nicegui.page import page  # noqa: PLC0415
+    from unittest.mock import MagicMock
 
     from maptasker.src.gui import guiwins_taskedit
+    from nicegui.client import Client
+    from nicegui.page import page
 
     saved = dict(PrimeItems.tasker_root_elements)
     saved_specs = dict(PrimeItems.tasker_arg_specs)
@@ -816,9 +821,7 @@ def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it
         _load_sample_backup(_SYNTHETIC_BACKUP)
         # A Task with a real name and something in it -- an empty one would prove nothing.
         named = [
-            name
-            for name in PrimeItems.tasker_root_elements["all_tasks_by_name"]
-            if name and "(Unnamed)" not in name
+            name for name in PrimeItems.tasker_root_elements["all_tasks_by_name"] if name and "(Unnamed)" not in name
         ]
         if not named:
             pytest.skip("no named Tasks in the sample backup")
@@ -928,9 +931,14 @@ def test_the_three_event_tabs_are_the_guides_three():
 
 
 def test_key_is_for_dialogs_and_activities_only():
-    """"Available only for Dialog and Activity scenes." """
-    assert sceneedit_legacy.legacy_scene_event_availability(_typed(sceneedit_legacy.LEGACY_SCENE_TYPE_DIALOG), _KEY) == ""
-    assert sceneedit_legacy.legacy_scene_event_availability(_typed(sceneedit_legacy.LEGACY_SCENE_TYPE_ACTIVITY), _KEY) == ""
+    """ "Available only for Dialog and Activity scenes." """
+    assert (
+        sceneedit_legacy.legacy_scene_event_availability(_typed(sceneedit_legacy.LEGACY_SCENE_TYPE_DIALOG), _KEY) == ""
+    )
+    assert (
+        sceneedit_legacy.legacy_scene_event_availability(_typed(sceneedit_legacy.LEGACY_SCENE_TYPE_ACTIVITY), _KEY)
+        == ""
+    )
     assert (
         sceneedit_legacy.legacy_scene_event_availability(_typed(sceneedit_legacy.LEGACY_SCENE_TYPE_OVERLAY), _KEY)
         == "Available only for Dialog and Activity scenes."
@@ -938,7 +946,7 @@ def test_key_is_for_dialogs_and_activities_only():
 
 
 def test_home_tap_needs_an_activity_and_an_icon():
-    """"Available only for Activity scenes and when an Icon has been specified in the UI tab." """
+    """ "Available only for Activity scenes and when an Icon has been specified in the UI tab." """
     activity = _typed(sceneedit_legacy.LEGACY_SCENE_TYPE_ACTIVITY)
     assert (
         sceneedit_legacy.legacy_scene_event_availability(activity, _HOME_TAP)
@@ -950,13 +958,11 @@ def test_home_tap_needs_an_activity_and_an_icon():
     assert sceneedit_legacy.legacy_scene_event_availability(activity, _HOME_TAP) == ""
 
     dialog = _typed(sceneedit_legacy.LEGACY_SCENE_TYPE_DIALOG)
-    assert (
-        sceneedit_legacy.legacy_scene_event_availability(dialog, _HOME_TAP) == "Available only for Activity scenes."
-    )
+    assert sceneedit_legacy.legacy_scene_event_availability(dialog, _HOME_TAP) == "Available only for Activity scenes."
 
 
 def test_tab_tap_needs_an_activity_and_tab_labels():
-    """"Available only for Activity scenes and when one or more Tab Labels have been
+    """ "Available only for Activity scenes and when one or more Tab Labels have been
     specified in the UI tab." -- and an empty <Str sr="arg7" /> is not a Tab Label, which is
     what every Scene in the sample data that has none carries.
     """
@@ -1038,10 +1044,10 @@ def test_the_items_read_as_the_guides_three_controls(sample_action_items):
 
 
 def test_the_placement_follows_taskers_overflow_rules():
-    """"just an icon" -> main bar; "icon and label" -> if there is room; "just a label" ->
+    """ "just an icon" -> main bar; "icon and label" -> if there is room; "just a label" ->
     overflow.  Tasker stores none of this, so it is derived or it is invisible.
     """
-    make = lambda icon, label: sceneedit_legacy.LegacyActionItem(  # noqa: E731
+    make = lambda icon, label: sceneedit_legacy.LegacyActionItem(
         element=None,
         sr="item0",
         index=0,
@@ -1174,7 +1180,7 @@ def picker_tables():
     from maptasker.src.mapgen import taskerd
 
     saved = dict(PrimeItems.tasker_root_elements)
-    root = ET.fromstring(_PICKER_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_PICKER_XML)
     tables = {
         "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
         "all_tasks": taskerd.move_xml_to_table(root.findall("Task"), True, "nme"),
@@ -1211,12 +1217,16 @@ def test_searching_matches_part_of_a_name_whatever_its_case(picker_tables):
 
 def test_filtering_by_project_narrows_to_that_project(picker_tables):
     assert [row["name"] for row in taskedit.search_pickable_tasks("", "Beta", state=PrimeItems)] == ["beta only"]
-    assert [row["name"] for row in taskedit.search_pickable_tasks("", BASE_PROJECT_NAME, state=PrimeItems)] == ["Orphan"]
+    assert [row["name"] for row in taskedit.search_pickable_tasks("", BASE_PROJECT_NAME, state=PrimeItems)] == [
+        "Orphan"
+    ]
     assert len(taskedit.search_pickable_tasks("", "All", state=PrimeItems)) == 4
 
 
 def test_the_two_filters_apply_together(picker_tables):
-    assert [row["name"] for row in taskedit.search_pickable_tasks("shared", "Alpha", state=PrimeItems)] == ["Shared Setup"]
+    assert [row["name"] for row in taskedit.search_pickable_tasks("shared", "Alpha", state=PrimeItems)] == [
+        "Shared Setup"
+    ]
     assert taskedit.search_pickable_tasks("shared", "Beta", state=PrimeItems) == []
 
 
@@ -1231,7 +1241,7 @@ def test_the_list_is_live_rather_than_memoized(picker_tables):
 
 def _click(button) -> None:
     """Fire a NiceGUI button's click handler, the way the browser would."""
-    from unittest.mock import MagicMock  # noqa: PLC0415
+    from unittest.mock import MagicMock
 
     for listener in button._event_listeners.values():
         if listener.type == "click":
@@ -1252,9 +1262,7 @@ def test_the_event_panel_picks_a_task_the_way_add_an_action_picks_one(key_event_
 
     rows = taskedit.list_pickable_tasks(state=PrimeItems)
     buttons = [
-        e._props.get("label")
-        for e in _descendants(container)
-        if isinstance(e, ui.button) and e._props.get("label")
+        e._props.get("label") for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label")
     ]
     for row in rows:
         assert f"{row['name']} ({row['project_name']})" in buttons
@@ -1291,18 +1299,14 @@ def test_typing_in_the_search_box_narrows_the_rows(key_event_tab):
 
     matches = taskedit.search_pickable_tasks(wanted, state=PrimeItems)
     assert 0 < len(matches) < len(taskedit.list_pickable_tasks(state=PrimeItems)), "the search must actually narrow"
-    assert _task_rows_on_screen(container, ui) == {
-        f"{row['name']} ({row['project_name']})" for row in matches
-    }
+    assert _task_rows_on_screen(container, ui) == {f"{row['name']} ({row['project_name']})" for row in matches}
 
 
 def test_choosing_a_project_narrows_the_rows(key_event_tab):
     container, _properties, ui = key_event_tab
     project = taskedit.list_pickable_tasks(state=PrimeItems)[0]["project_name"]
 
-    project_select = next(
-        e for e in _descendants(container) if isinstance(e, ui.select) and e.options[:1] == ["All"]
-    )
+    project_select = next(e for e in _descendants(container) if isinstance(e, ui.select) and e.options[:1] == ["All"])
     project_select.value = project
 
     matches = taskedit.search_pickable_tasks("", project, state=PrimeItems)
@@ -1312,16 +1316,14 @@ def test_choosing_a_project_narrows_the_rows(key_event_tab):
         # single Project the right answer is all of them.
         assert len(matches) < len(everything)
     assert matches
-    assert _task_rows_on_screen(container, ui) == {
-        f"{row['name']} ({row['project_name']})" for row in matches
-    }
+    assert _task_rows_on_screen(container, ui) == {f"{row['name']} ({row['project_name']})" for row in matches}
 
 
 def test_clicking_a_row_binds_that_task_to_the_event(key_event_tab):
     container, properties, ui = key_event_tab
     rerendered = []
     # The panel was built with a no-op rerender; rebuild it with one we can watch.
-    from unittest.mock import MagicMock  # noqa: PLC0415
+    from unittest.mock import MagicMock
 
     gui = MagicMock()
     gui.state = PrimeItems
@@ -1337,13 +1339,14 @@ def test_clicking_a_row_binds_that_task_to_the_event(key_event_tab):
         )
 
     wanted = next(
-        row for row in taskedit.list_pickable_tasks(state=PrimeItems) if row["task_id"] != properties.findtext("keyTask")
+        row
+        for row in taskedit.list_pickable_tasks(state=PrimeItems)
+        if row["task_id"] != properties.findtext("keyTask")
     )
     button = next(
         e
         for e in _descendants(panel)
-        if isinstance(e, ui.button)
-        and e._props.get("label") == f"{wanted['name']} ({wanted['project_name']})"
+        if isinstance(e, ui.button) and e._props.get("label") == f"{wanted['name']} ({wanted['project_name']})"
     )
 
     _click(button)
@@ -1369,9 +1372,7 @@ def test_an_anonymous_binding_is_not_offered_a_picker(sample_backup, stub_gui):
     )
 
     assert "Pick a Task" not in [e.text for e in _descendants(container) if isinstance(e, ui.label)]
-    assert "Search Tasks" not in [
-        e._props.get("label") for e in _descendants(container) if isinstance(e, ui.input)
-    ]
+    assert "Search Tasks" not in [e._props.get("label") for e in _descendants(container) if isinstance(e, ui.input)]
 
 
 def test_the_bound_task_is_named_even_when_its_entry_has_no_name(sample_backup, stub_gui):
@@ -1428,9 +1429,7 @@ def unbound_event(sample_backup, stub_gui, monkeypatch):
             properties.remove(bound)
 
     scene_name = next(
-        scene.findtext("nme", "")
-        for scene in root.iter("Scene")
-        if scene.find("PropertiesElement") is not None
+        scene.findtext("nme", "") for scene in root.iter("Scene") if scene.find("PropertiesElement") is not None
     )
 
     notified = []
@@ -1544,7 +1543,9 @@ def test_creating_registers_the_task_and_points_the_event_at_it(unbound_event, e
 
     container = render_event(event)
     _click(_picker_button(container, ui, "Flash ("))
-    _click(next(e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == "Create Task"))
+    _click(
+        next(e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == "Create Task")
+    )
 
     new_id = properties.findtext(event.tag)
     assert new_id
@@ -1564,7 +1565,9 @@ def test_the_new_task_joins_the_project_the_scene_belongs_to(unbound_event):
 
     container = render_event(sceneedit_legacy.LEGACY_SCENE_EVENTS[0])
     _click(_picker_button(container, ui, "Flash ("))
-    _click(next(e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == "Create Task"))
+    _click(
+        next(e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == "Create Task")
+    )
 
     owner = sceneedit.project_owning_scene(scene_name, state=PrimeItems)
     assert owner
@@ -1588,7 +1591,9 @@ def test_a_name_another_task_already_has_is_refused_and_nothing_is_lost(unbound_
     )
     name_field.value = taken
 
-    _click(next(e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == "Create Task"))
+    _click(
+        next(e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == "Create Task")
+    )
 
     assert properties.find(key.tag) is None
     assert any("already exists" in message for message, _kind in notified)
@@ -1713,19 +1718,22 @@ def scene_properties_dialog(sample_backup, stub_gui, monkeypatch):
     therefore what Cancel has to put back (see _render_scene_geometry).
     """
     ui = pytest.importorskip("nicegui").ui
-    from unittest.mock import MagicMock  # noqa: PLC0415
-
-    from nicegui.client import Client  # noqa: PLC0415
-    from nicegui.page import page  # noqa: PLC0415
+    from unittest.mock import MagicMock
 
     from maptasker.src.gui import guiwins, userintr
+    from nicegui.client import Client
+    from nicegui.page import page
 
     root = sample_backup(_SYNTHETIC_BACKUP)
     PrimeItems.xml_root = root
     # One that already fires a key Task, so the bound-Task half is exercised for real; the
     # tests about composing a new one strip the bindings off it themselves.
     scene = next(
-        (s for s in root.iter("Scene") if s.find(f"PropertiesElement/{sceneedit_legacy.LEGACY_KEY_TASK_TAG}") is not None),
+        (
+            s
+            for s in root.iter("Scene")
+            if s.find(f"PropertiesElement/{sceneedit_legacy.LEGACY_KEY_TASK_TAG}") is not None
+        ),
         None,
     )
     if scene is None:
@@ -1746,7 +1754,9 @@ def scene_properties_dialog(sample_backup, stub_gui, monkeypatch):
         with Client(page("/")):
             container = ui.column()
             with container:
-                guiwins_sceneprops._build_scene_properties_dialog(stub_gui, edited, {} if field_refs is None else field_refs)
+                guiwins_sceneprops._build_scene_properties_dialog(
+                    stub_gui, edited, {} if field_refs is None else field_refs
+                )
         return opened[-1]
 
     return open_dialog, scene, notified
@@ -1760,20 +1770,14 @@ def _exact_button(container, label):
     dialog's old "Close" found, which is a way to conclude a bug is still there when it is not.
     """
     ui = pytest.importorskip("nicegui").ui
-    return next(
-        e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == label
-    )
+    return next(e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == label)
 
 
 def _event_panel(dialog):
     """The Event tab's panel.  Scoped, because the Actions tab holds an action picker too and
     an unscoped search finds that one first."""
     ui = pytest.importorskip("nicegui").ui
-    return next(
-        e
-        for e in _descendants(dialog)
-        if isinstance(e, ui.tab_panel) and e._props.get("name") == "Event"
-    )
+    return next(e for e in _descendants(dialog) if isinstance(e, ui.tab_panel) and e._props.get("name") == "Event")
 
 
 def _add_action(container, prefix="Flash ("):
@@ -1847,9 +1851,7 @@ def test_an_argument_typed_under_an_event_survives_ok(scene_properties_dialog):
     panel = _event_panel(dialog)
     _add_action(panel)
     # The new Flash action's Text argument.
-    text_field = next(
-        e for e in _descendants(panel) if isinstance(e, ui.input) and e._props.get("label") == "Text"
-    )
+    text_field = next(e for e in _descendants(panel) if isinstance(e, ui.input) and e._props.get("label") == "Text")
     text_field.value = "hello from the Key event"
     _click(_exact_button(dialog, "Ok"))
 
@@ -2039,7 +2041,7 @@ def test_cancel_takes_away_a_task_binding_made_in_the_dialog(scene_properties_di
 
 
 def test_cancel_takes_away_properties_that_were_added_in_the_dialog(scene_properties_dialog):
-    """"Add scene properties" on a Scene that had none is as much a change as any other, and
+    """ "Add scene properties" on a Scene that had none is as much a change as any other, and
     a Scene that started without a <PropertiesElement> has to end without one.
     """
     open_dialog, scene, _notified = scene_properties_dialog
@@ -2062,12 +2064,11 @@ def test_cancel_puts_the_geometry_boxes_back(scene_properties_dialog):
     ui = pytest.importorskip("nicegui").ui
     open_dialog, _scene, _notified = scene_properties_dialog
 
-    from nicegui.client import Client  # noqa: PLC0415
-    from nicegui.page import page  # noqa: PLC0415
+    from nicegui.client import Client
+    from nicegui.page import page
 
-    with Client(page("/")):
-        with ui.column():
-            field_refs = {key: ui.input(label, value="-1") for key, label in sceneedit.SCENE_DIMENSION_FIELDS}
+    with Client(page("/")), ui.column():
+        field_refs = {key: ui.input(label, value="-1") for key, label in sceneedit.SCENE_DIMENSION_FIELDS}
 
     dialog = open_dialog(field_refs)
     width = next(

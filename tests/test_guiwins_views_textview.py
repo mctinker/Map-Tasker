@@ -16,16 +16,16 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 import pytest
+from maptasker.src.core import mapjump
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import DIAGRAM_FILE
+from maptasker.src.gui import guiwins_views
+from maptasker.src.gui.guiwins_views import NiceGuiTextView
+from maptasker.src.mapgen import diagintr, mapexport
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from maptasker.src.core import mapjump
-from maptasker.src.gui import guiwins_views
-from maptasker.src.mapgen import diagintr, mapexport
-from maptasker.src.gui.guiwins_views import NiceGuiTextView
-from maptasker.src.core.primitem import PrimeItems
-from maptasker.src.core.sysconst import DIAGRAM_FILE
 from tests.test_mapfind import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -431,7 +431,9 @@ async def test_a_diagram_with_connectors_wires_their_highlighting_and_says_so(mo
 
 
 @pytest.mark.asyncio
-async def test_a_diagram_with_names_to_click_wires_the_interaction_and_says_how_to_use_it(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_a_diagram_with_names_to_click_wires_the_interaction_and_says_how_to_use_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     model = {"nodes": [{"col": 0, "len": 4, "anchor": "a", "index": 0, "kind": "task"}], "folds": {}}
     monkeypatch.setattr(diagintr, "model", lambda state: model)
     monkeypatch.setattr(diagintr, "nodes_by_line", lambda m: {2: m["nodes"]})
@@ -447,7 +449,9 @@ async def test_a_diagram_with_names_to_click_wires_the_interaction_and_says_how_
 
 
 @pytest.mark.asyncio
-async def test_the_limit_message_replaces_the_hint_when_the_diagram_was_cut_short(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_the_limit_message_replaces_the_hint_when_the_diagram_was_cut_short(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _write(DIAGRAM_FILE, _DIAGRAM_LINES)
     monkeypatch.setattr(PrimeItems, "diagram_limit_msg", "Only 100 Profiles drawn.")
     async with _open(_make("Diagram View", [])) as user:
@@ -455,13 +459,21 @@ async def test_the_limit_message_replaces_the_hint_when_the_diagram_was_cut_shor
 
 
 @pytest.mark.asyncio
-async def test_the_diagram_toolbar_buttons_send_their_commands_to_this_views_page(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_the_diagram_toolbar_buttons_send_their_commands_to_this_views_page(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     sent = []
     monkeypatch.setattr(diagintr, "command_js", lambda root, name, argument: sent.append((name, argument)) or "CMD")
     async with _open(_make("Diagram View", [])) as user:
         for icon in ("zoom_in", "zoom_out", "unfold_less", "unfold_more", "restart_alt"):
             _click(user, next(b for b in _all(user, ui.button) if b.props.get("icon") == icon))
-        assert sent == [("zoom", 1.15), ("zoom", 1 / 1.15), ("collapse-all", None), ("expand-all", None), ("reset", None)]
+        assert sent == [
+            ("zoom", 1.15),
+            ("zoom", 1 / 1.15),
+            ("collapse-all", None),
+            ("expand-all", None),
+            ("reset", None),
+        ]
 
 
 @pytest.mark.asyncio
@@ -497,13 +509,15 @@ async def test_changing_profiles_per_line_asks_the_window_to_rebuild_for_the_new
 @pytest.mark.asyncio
 async def test_a_diagram_drawn_for_what_is_still_selected_has_no_stale_notice(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(mapjump, "current_scope", lambda state: SimpleNamespace(phrase="Project 'Home'"))
-    async with _open(_make("Diagram View", [], built_for="Project 'Home'")) as user:
+    async with _open(_make("Diagram View", [], built_for="Project 'Home'")):
         view = _built["view"]
         assert view.scope_stale_label.visible is False and view.scope_rebuild_button.visible is False
 
 
 @pytest.mark.asyncio
-async def test_a_diagram_whose_selection_has_moved_on_says_so_and_offers_a_rebuild(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_a_diagram_whose_selection_has_moved_on_says_so_and_offers_a_rebuild(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     phrase = {"now": "Project 'Home'"}
     monkeypatch.setattr(mapjump, "current_scope", lambda state: SimpleNamespace(phrase=phrase["now"]))
     async with _open(_make("Diagram View", [], built_for="Project 'Home'")) as user:

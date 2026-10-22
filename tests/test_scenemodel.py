@@ -17,14 +17,13 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
-
 from maptasker.src.analysis import healthck
 from maptasker.src.core import scenelayout
-from maptasker.src.edit import sceneedit, scenemodel
-from maptasker.src.mapgen import taskerd, varxref
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import SCENE, Target
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import scenemodel
+from maptasker.src.mapgen import taskerd, varxref
 
 _ARG_SPECS = Path(__file__).resolve().parent.parent / "maptasker" / "assets" / "json" / "arg_specs.json"
 
@@ -88,17 +87,21 @@ _V2_LAYOUT = {
     },
 }
 
-_BACKUP = """<TaskerData sr="" dvi="1" tv="6.3.13">
+_BACKUP = (
+    """<TaskerData sr="" dvi="1" tv="6.3.13">
   <Project sr="proj0" ve="2"><name>Home</name><tids>7</tids><scenes>Old Panel,New Panel</scenes></Project>
   <Task sr="task7" ve="2"><id>7</id><nme>Do It</nme>
     <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">done</Str></Action>
   </Task>
-""" + _LEGACY.format(ok="7") + """
+"""
+    + _LEGACY.format(ok="7")
+    + """
   <Scene sr="sceneNew Panel"><nme>New Panel</nme>
     <widthPort>-1</widthPort><heightPort>-1</heightPort><widthLand>-1</widthLand><heightLand>-1</heightLand>
   </Scene>
 </TaskerData>
 """
+)
 
 
 def _scene(name: str) -> ET.Element:
@@ -113,7 +116,7 @@ def _loaded(monkeypatch: pytest.MonkeyPatch) -> None:
     leave their configuration behind and a few of them read what an earlier one left, so a module
     that overwrote it for good would break whichever of those ran next.
     """
-    root = ET.fromstring(_BACKUP)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_BACKUP)
     scenelayout.encode_v2_layout(root.find("Scene[@sr='sceneNew Panel']"), _V2_LAYOUT)
     specs = json.loads(_ARG_SPECS.read_text(encoding="utf-8"))
     specs[str(len(specs))] = "ConditionList"
@@ -279,7 +282,7 @@ def test_healthck_counts_both_kinds_of_scene_as_running_the_task_they_name() -> 
     """Task 7 is run by a Legacy element (by id) and a V2 component (by name) -- both are referrers."""
     index = healthck.ReferenceIndex()
     index.project_of_scene = {"Old Panel": "Home", "New Panel": "Home"}
-    healthck._index_scenes(index, state=PrimeItems)  # noqa: SLF001
+    healthck._index_scenes(index, state=PrimeItems)
     kinds = sorted(referrer.kind for referrer in index.task_referrers["7"])
     assert kinds == [healthck.BY_SCENE_COMPONENT, healthck.BY_SCENE_ELEMENT]
 
@@ -382,7 +385,7 @@ def test_there_is_nothing_to_revert_without_a_working_tree_or_with_a_snapshot_th
     snapshot = _scene("New Panel")
     assert scenemodel.V2.revert_layout(snapshot, None) is False
 
-    broken = ET.fromstring("<Scene><nme>x</nme><lj>junk</lj></Scene>")  # noqa: S314
+    broken = ET.fromstring("<Scene><nme>x</nme><lj>junk</lj></Scene>")
     working = {"root": {}}
     assert scenemodel.V2.revert_layout(broken, working) is False
     assert working == {"root": {}}

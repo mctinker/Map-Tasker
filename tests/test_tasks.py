@@ -21,13 +21,13 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.mapgen import proclist, taskerd, tasks
+from maptasker.src.core.actionc import load_arg_specs
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.initparg import initialize_runtime_arguments
-from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.core.primitem import PrimeItems, initial_found_named_items
 from maptasker.src.core.runcfg import current_config
-from maptasker.src.core.actionc import load_arg_specs
+from maptasker.src.mapgen import proclist, taskerd, tasks
+from maptasker.src.mapgen.lineout import LineOut
 
 _IF = '<Action sr="act{n}"><code>37</code><ConditionList sr="if"><Condition sr="c0"><lhs>%a</lhs><op>0</op><rhs>1</rhs></Condition></ConditionList></Action>'
 _ELSE = '<Action sr="act{n}"><code>43</code></Action>'
@@ -40,12 +40,10 @@ _FLASH = '<Action sr="act{n}"><code>548</code><Str sr="arg0">hi</Str></Action>'
 # real Tasks -- a Goto looping back to an action labelled "If ..." is the usual way to
 # write a loop.
 _FLASH_LABELLED_IF = (
-    '<Action sr="act{n}"><code>548</code><label>If Last of Data: Request Chart?</label>'
-    '<Str sr="arg0">hi</Str></Action>'
+    '<Action sr="act{n}"><code>548</code><label>If Last of Data: Request Chart?</label><Str sr="arg0">hi</Str></Action>'
 )
 _FLASH_LABELLED_END_IF = (
-    '<Action sr="act{n}"><code>548</code><label>End If no more Data is waiting</label>'
-    '<Str sr="arg0">hi</Str></Action>'
+    '<Action sr="act{n}"><code>548</code><label>End If no more Data is waiting</label><Str sr="arg0">hi</Str></Action>'
 )
 _GOTO_TO_IF_LABEL = (
     '<Action sr="act{n}"><code>135</code><Int sr="arg0" val="1"/><Int sr="arg1" val="1"/>'
@@ -77,14 +75,14 @@ def _loaded() -> None:
     PrimeItems.output_lines = LineOut()
     PrimeItems.found_named_items = initial_found_named_items()
     PrimeItems.task_count_unnamed = 0
-    PrimeItems.xml_root = ET.fromstring(_XML)  # noqa: S314  (fixture text, defined in this file)
+    PrimeItems.xml_root = ET.fromstring(_XML)
     taskerd.build_tasker_tables(state=PrimeItems)
 
 
 def _task_of(*actions: str) -> ET.Element:
     """One <Task> whose actions are numbered in order, so map order is document order."""
     numbered = "".join(action.format(n=index) for index, action in enumerate(actions))
-    return ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    return ET.fromstring(
         f'<Task sr="task99"><id>99</id><nme>Fixture</nme>{numbered}</Task>',
     )
 
@@ -112,7 +110,10 @@ def test_a_task_with_no_actions_produces_no_lines() -> None:
     """An empty Task is legal -- Tasker writes one for a Task the user created and never
     filled in -- and must not be an error or a blank line.
     """
-    assert tasks.get_actions(ET.fromstring('<Task sr="task99"><id>99</id></Task>'), current_config(), state=PrimeItems) == []  # noqa: S314
+    assert (
+        tasks.get_actions(ET.fromstring('<Task sr="task99"><id>99</id></Task>'), current_config(), state=PrimeItems)
+        == []
+    )
 
 
 def test_actions_inside_an_if_are_indented_under_it() -> None:
@@ -127,7 +128,9 @@ def test_nesting_goes_deeper_and_comes_back_out() -> None:
     """Two levels in and two levels back out.  A de-indent that trims the wrong amount
     leaves everything after the inner block permanently shifted.
     """
-    lines = tasks.get_actions(_task_of(_IF, _FOR, _FLASH, _END_FOR, _FLASH, _END_IF, _FLASH), current_config(), state=PrimeItems)
+    lines = tasks.get_actions(
+        _task_of(_IF, _FOR, _FLASH, _END_FOR, _FLASH, _END_IF, _FLASH), current_config(), state=PrimeItems
+    )
     assert [_indent_of(line) for line in lines] == [0, 1, 2, 1, 1, 0, 0]
 
 
@@ -154,7 +157,9 @@ def test_a_label_that_reads_like_an_if_does_not_open_a_block() -> None:
     Task's outer level -- read the label as an If and everything below it is drawn
     inside a block the Task does not have.
     """
-    lines = tasks.get_actions(_task_of(_FLASH, _FLASH_LABELLED_IF, _GOTO_TO_IF_LABEL, _FLASH), current_config(), state=PrimeItems)
+    lines = tasks.get_actions(
+        _task_of(_FLASH, _FLASH_LABELLED_IF, _GOTO_TO_IF_LABEL, _FLASH), current_config(), state=PrimeItems
+    )
     assert [_indent_of(line) for line in lines] == [0, 0, 0, 0]
 
 
@@ -162,7 +167,9 @@ def test_a_label_that_reads_like_an_end_if_does_not_close_a_block() -> None:
     """The same in the other direction: a labelled action inside an If must not pop the
     block out from under the actions that follow it.
     """
-    lines = tasks.get_actions(_task_of(_IF, _FLASH_LABELLED_END_IF, _FLASH, _END_IF, _FLASH), current_config(), state=PrimeItems)
+    lines = tasks.get_actions(
+        _task_of(_IF, _FLASH_LABELLED_END_IF, _FLASH, _END_IF, _FLASH), current_config(), state=PrimeItems
+    )
     assert [_indent_of(line) for line in lines] == [0, 1, 1, 0, 0]
 
 
@@ -170,7 +177,7 @@ def test_actions_are_sorted_by_their_number_not_document_order() -> None:
     """Tasker does not promise to store actions in order -- sr="actN" is the order they
     run in.  Rendering them in file order shows the Task doing things in the wrong order.
     """
-    task = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    task = ET.fromstring(
         '<Task sr="task99"><id>99</id>'
         '<Action sr="act1"><code>548</code><Str sr="arg0">second</Str></Action>'
         '<Action sr="act0"><code>548</code><Str sr="arg0">first</Str></Action>'
@@ -221,7 +228,9 @@ def test_only_the_first_sighting_of_an_unnamed_task_is_counted() -> None:
     tasks.entry_or_exit_task([], "", "Entry", "", False, "13", current_config(), state=PrimeItems)
     assert PrimeItems.task_count_unnamed == 1
 
-    tasks.entry_or_exit_task([], "", "Entry", "", True, "13", current_config(), state=PrimeItems)  # a duplicate sighting
+    tasks.entry_or_exit_task(
+        [], "", "Entry", "", True, "13", current_config(), state=PrimeItems
+    )  # a duplicate sighting
     assert PrimeItems.task_count_unnamed == 1
 
 
@@ -285,7 +294,7 @@ def test_a_task_icon_is_summarised() -> None:
     """An icon is stored as a package, a class and a name, each fully qualified.  Only
     the last segment of each is worth showing beside a Task name.
     """
-    task = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    task = ET.fromstring(
         "<Task><Img><nme>com.foo.bar</nme><pkg>net.dinglisch.android.taskerm</pkg></Img></Task>",
     )
     assert proclist.get_icon_info(task) == "[Icon Info(pkg=taskerm name=bar)]"
@@ -295,13 +304,13 @@ def test_a_task_without_an_icon_shows_nothing() -> None:
     """Most Tasks have no icon, so this is the common path -- an empty "[Icon Info()]"
     on every Task line would be noise on every line.
     """
-    assert proclist.get_icon_info(ET.fromstring("<Task/>")) == ""  # noqa: S314
+    assert proclist.get_icon_info(ET.fromstring("<Task/>")) == ""
     assert proclist.get_icon_info(None) == ""
 
 
 def test_an_icon_field_that_is_absent_is_skipped() -> None:
     """get_image is called once per field and most icons set only some of them."""
-    image = ET.fromstring("<Img><pkg>a.b.c</pkg></Img>")  # noqa: S314
+    image = ET.fromstring("<Img><pkg>a.b.c</pkg></Img>")
     assert proclist.get_image(image, "pkg", "pkg") == "pkg=c "
     assert proclist.get_image(image, "class", "cls") == ""
 
@@ -310,7 +319,7 @@ def test_an_unqualified_icon_field_is_shown_whole() -> None:
     """Only the segment after the last '.' is shown, and a value with no '.' in it is
     already that segment -- taking the split unconditionally would drop it entirely.
     """
-    image = ET.fromstring("<Img><nme>flashlight</nme></Img>")  # noqa: S314
+    image = ET.fromstring("<Img><nme>flashlight</nme></Img>")
     assert proclist.get_image(image, "name", "nme") == "name=flashlight "
 
 
@@ -318,7 +327,7 @@ def test_an_empty_icon_field_is_skipped() -> None:
     """Tasker writes an empty element for a field that was cleared rather than dropping
     it, so this is a shape that reaches the parser from a real backup.
     """
-    image = ET.fromstring("<Img><nme></nme><pkg>a.b.c</pkg></Img>")  # noqa: S314
+    image = ET.fromstring("<Img><nme></nme><pkg>a.b.c</pkg></Img>")
     assert proclist.get_image(image, "name", "nme") == ""
 
 

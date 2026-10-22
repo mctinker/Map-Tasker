@@ -25,11 +25,11 @@ import importlib
 import pathlib
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src import mapit
 from maptasker.src.core import valcodes
-from maptasker.src.mapgen import proginit
+from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapgen import proginit
 
 
 def test_build_all_is_off() -> None:
@@ -44,8 +44,7 @@ def test_build_all_is_off() -> None:
     assignments = [
         node
         for node in ast.walk(start_up)
-        if isinstance(node, ast.Assign)
-        and any(isinstance(t, ast.Name) and t.id == "build_all" for t in node.targets)
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "build_all" for t in node.targets)
     ]
     assert len(assignments) == 1, "expected exactly one 'build_all =' in start_up"
     assert assignments[0].value.value is False, "build_all must not be committed as True"
@@ -61,9 +60,7 @@ def test_the_deferred_imports_resolve() -> None:
     nothing in the suite noticed, because this branch is never taken.
     """
     tree = ast.parse(pathlib.Path(proginit.__file__).read_text(encoding="utf-8"))
-    rebuild = next(
-        n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "rebuild_action_tables"
-    )
+    rebuild = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "rebuild_action_tables")
     imports = [n for n in ast.walk(rebuild) if isinstance(n, ast.ImportFrom)]
     assert imports, "rebuild_action_tables should import its dependencies at call time"
 
@@ -153,7 +150,7 @@ def test_java_constants_are_parsed(monkeypatch: pytest.MonkeyPatch) -> None:
         def raise_for_status(self) -> None:
             """Nothing to raise for a stubbed 200."""
 
-    monkeypatch.setattr(valcodes.requests, "get", lambda url, timeout: _Response())  # noqa: ARG005
+    monkeypatch.setattr(valcodes.requests, "get", lambda url, timeout: _Response())
     assert valcodes.java_constants_to_dict("https://example.invalid/StateCodes.java") == {
         "BATTERY_LEVEL": 10,
         "NOT_A_REAL_CODE": 999991,
@@ -161,7 +158,9 @@ def test_java_constants_are_parsed(monkeypatch: pytest.MonkeyPatch) -> None:
     }
 
 
-def test_validation_reports_a_code_the_table_lacks(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture) -> None:
+def test_validation_reports_a_code_the_table_lacks(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+) -> None:
     """A code Tasker publishes that the overlay does not carry is called out by name.
 
     This is the whole point of the exercise: it is how a new Tasker release's Events and
@@ -169,9 +168,9 @@ def test_validation_reports_a_code_the_table_lacks(monkeypatch: pytest.MonkeyPat
     """
     monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments(debug=True), raising=False)
     monkeypatch.setattr(PrimeItems, "tasker_state_codes", {}, raising=False)
-    monkeypatch.setattr(valcodes, "java_constants_to_dict", lambda url: {"NOT_A_REAL_CODE": 999991})  # noqa: ARG005
+    monkeypatch.setattr(valcodes, "java_constants_to_dict", lambda url: {"NOT_A_REAL_CODE": 999991})
     # debug_print appends to buildit.log in the working directory; keep it out of the repo.
-    monkeypatch.setattr(valcodes, "debug_print", lambda message, state=None: print(message))  # noqa: ARG005
+    monkeypatch.setattr(valcodes, "debug_print", lambda message, state=None: print(message))
 
     valcodes.validate_states_and_events("s", "https://example.invalid/StateCodes.java")
 

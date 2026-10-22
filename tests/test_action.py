@@ -20,12 +20,11 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-
 from maptasker.src.core import action
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.initparg import initialize_runtime_arguments
-from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapgen.lineout import LineOut
 
 IF_ACTION = "37"
 WAIT_UNTIL = "35"
@@ -40,13 +39,13 @@ def _settings() -> None:
 
 
 def _condition(lhs: str = "%a", op: str = "0", rhs: str = "5", ref: str = "c0") -> ET.Element:
-    return ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    return ET.fromstring(
         f'<Condition sr="{ref}"><lhs>{lhs}</lhs><op>{op}</op><rhs>{rhs}</rhs></Condition>',
     )
 
 
 def _action_with(inner: str, code: str = IF_ACTION) -> ET.Element:
-    return ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    return ET.fromstring(
         f'<Action sr="act0"><code>{code}</code>{inner}</Action>',
     )
 
@@ -79,7 +78,7 @@ def test_each_comparison_operator_is_mapped(op: str, operator: str) -> None:
 
 @pytest.mark.parametrize("op", ["12", "13"])
 def test_a_set_test_has_nothing_on_its_right(op: str) -> None:
-    """"is set" and "not set" test whether a variable exists at all -- there is no second
+    """ "is set" and "not set" test whether a variable exists at all -- there is no second
     operand, and <rhs> holds whatever was last typed into the field.  Showing it turns
     "If %x is set" into "If %x is set 5".
     """
@@ -99,8 +98,8 @@ def test_angle_brackets_in_a_value_are_escaped() -> None:
     """The comparison value is user text and goes straight into an HTML page.  A value
     containing < or > would otherwise be swallowed by the browser as a tag.
     """
-    condition = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
-        "<Condition sr=\"c0\"><lhs>%a</lhs><op>0</op><rhs>&lt;b&gt;bold</rhs></Condition>",
+    condition = ET.fromstring(
+        '<Condition sr="c0"><lhs>%a</lhs><op>0</op><rhs>&lt;b&gt;bold</rhs></Condition>',
     )
     assert action.evaluate_condition(condition)[2] == "&lt;b&gt;bold"
 
@@ -123,7 +122,7 @@ def test_conditions_are_joined_by_the_boolean_between_them() -> None:
         '<ConditionList sr="if">'
         f"{ET.tostring(_condition()).decode()}"
         "<boolOr>or</boolOr>"
-        f'{ET.tostring(_condition(lhs="%b", op="1", rhs="2", ref="c1")).decode()}'
+        f"{ET.tostring(_condition(lhs='%b', op='1', rhs='2', ref='c1')).decode()}"
         "</ConditionList>"
     )
     result = action.get_conditions(_action_with(conditions), IF_ACTION)
@@ -138,7 +137,7 @@ def test_and_is_not_rendered_as_or() -> None:
         '<ConditionList sr="if">'
         f"{ET.tostring(_condition()).decode()}"
         "<boolAnd>and</boolAnd>"
-        f'{ET.tostring(_condition(lhs="%b", ref="c1")).decode()}'
+        f"{ET.tostring(_condition(lhs='%b', ref='c1')).decode()}"
         "</ConditionList>"
     )
     assert " AND " in action.get_conditions(_action_with(conditions), IF_ACTION)
@@ -151,8 +150,8 @@ def test_booleans_written_after_all_the_conditions() -> None:
     conditions = (
         '<ConditionList sr="if">'
         f"{ET.tostring(_condition()).decode()}"
-        f'{ET.tostring(_condition(lhs="%b", op="1", rhs="2", ref="c1")).decode()}'
-        f'{ET.tostring(_condition(lhs="%c", ref="c2")).decode()}'
+        f"{ET.tostring(_condition(lhs='%b', op='1', rhs='2', ref='c1')).decode()}"
+        f"{ET.tostring(_condition(lhs='%c', ref='c2')).decode()}"
         "<bool0>Or</bool0><bool1>And</bool1>"
         "</ConditionList>"
     )
@@ -190,8 +189,8 @@ def test_an_action_label_is_shown() -> None:
     saying why the action is there.
     """
     assert "why this is here" in action.get_label_disabled_condition(
-        _action_with("<label>why this is here</label>"),
-    state=PrimeItems)
+        _action_with("<label>why this is here</label>"), state=PrimeItems
+    )
 
 
 def test_a_remote_action_says_so() -> None:
@@ -211,7 +210,7 @@ def test_an_action_with_no_code_is_skipped() -> None:
     """Every action has a <code>; one without is a malformed element, and reading on
     would attribute the next action's details to it.
     """
-    assert action.get_label_disabled_condition(ET.fromstring('<Action sr="act0"/>'), state=PrimeItems) == ""  # noqa: S314
+    assert action.get_label_disabled_condition(ET.fromstring('<Action sr="act0"/>'), state=PrimeItems) == ""
 
 
 # ##################################################################################
@@ -252,9 +251,8 @@ def test_arguments_are_found_and_ordered_by_number() -> None:
     """Arguments are matched to their meanings positionally, so document order is not
     good enough -- sr="argN" is the order, and a backup need not store them sorted.
     """
-    element = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
-        '<Action sr="act0"><code>1</code><label>L</label>'
-        '<Str sr="arg1">b</Str><Int sr="arg0" val="1"/></Action>',
+    element = ET.fromstring(
+        '<Action sr="act0"><code>1</code><label>L</label><Str sr="arg1">b</Str><Int sr="arg0" val="1"/></Action>',
     )
     arguments, types, positions = action.get_args(element, ["label", "code"])
     assert arguments == ["arg0", "arg1"]
@@ -264,7 +262,7 @@ def test_arguments_are_found_and_ordered_by_number() -> None:
 
 def test_an_action_with_no_arguments_finds_none() -> None:
     """Plenty of actions take none, and the caller checks the list rather than a flag."""
-    element = ET.fromstring('<Action sr="act0"><code>1</code><label>L</label></Action>')  # noqa: S314
+    element = ET.fromstring('<Action sr="act0"><code>1</code><label>L</label></Action>')
     assert action.get_args(element, ["label", "code"]) == ([], [], 0)
 
 

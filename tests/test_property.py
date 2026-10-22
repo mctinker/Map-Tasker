@@ -55,7 +55,7 @@ _PROFILE_XML = """<Profile sr="prof858" ve="2">
 
 def _profile(**overrides: str) -> ET.Element:
     """The fixture Profile, with any child's text replaced or any child removed (pass None)."""
-    profile = ET.fromstring(_PROFILE_XML)  # noqa: S314  (fixture text, defined in this file)
+    profile = ET.fromstring(_PROFILE_XML)
     for tag, text in overrides.items():
         child = profile.find(tag)
         if text is None:
@@ -151,9 +151,9 @@ def test_the_labels_are_the_ones_the_properties_editor_shows() -> None:
 @pytest.fixture
 def captured_output(monkeypatch):
     """The Map's output lines, captured instead of written."""
-    from unittest.mock import MagicMock  # noqa: PLC0415
+    from unittest.mock import MagicMock
 
-    from maptasker.src.core.primitem import PrimeItems  # noqa: PLC0415
+    from maptasker.src.core.primitem import PrimeItems
 
     lines: list[str] = []
     sink = MagicMock()
@@ -204,7 +204,7 @@ def test_a_task_is_never_asked_for_a_profiles_settings(captured_output) -> None:
     """<flags> is on no Task and no Project in the sample data, and the bits objprops names
     are a Profile's.  Reading one off anything else would be inventing a setting.
     """
-    task = ET.fromstring(  # noqa: S314  (fixture text, defined in this file)
+    task = ET.fromstring(
         "<Task sr='task1'><nme>T</nme><flags>13</flags><stayawake>true</stayawake></Task>",
     )
     prop.get_properties("Task:", task, config=current_config(), state=PrimeItems)
@@ -217,7 +217,7 @@ def test_a_task_is_never_asked_for_a_profiles_settings(captured_output) -> None:
 def _variable(var_type: str, owner: str) -> ET.Element:
     """A <ProfileVariable> as Tasker writes one: <pvt> is the variable's TYPE, <pvit> says which kind of
     object owns it."""
-    return ET.fromstring(  # noqa: S314  (fixture text, defined in this file)
+    return ET.fromstring(
         f"<ProfileVariable><pvn>%x</pvn><pvt>{var_type}</pvt><pvit>{owner}</pvit><pvv>1</pvv></ProfileVariable>",
     )
 
@@ -240,9 +240,18 @@ def test_a_variable_reports_its_type() -> None:
     assert "Variable:%x" in items
 
 
-@pytest.mark.parametrize(("flag", "said"), [("0", "Abort New Task"), ("1", "Abort Existing Task"), ("2", "Run Both Together"), ("", "Abort New Task"), ("9", "Abort New Task")])
+@pytest.mark.parametrize(
+    ("flag", "said"),
+    [
+        ("0", "Abort New Task"),
+        ("1", "Abort Existing Task"),
+        ("2", "Run Both Together"),
+        ("", "Abort New Task"),
+        ("9", "Abort New Task"),
+    ],
+)
 def test_a_collision_setting_that_is_empty_or_unknown_reads_as_the_first(captured_output, flag: str, said: str) -> None:
     """The properties line used to index the table with int() of the tag, so an empty <rty/> ended the Map."""
-    task = ET.fromstring(f"<Task sr='task1'><nme>T</nme><rty>{flag}</rty></Task>")  # noqa: S314
+    task = ET.fromstring(f"<Task sr='task1'><nme>T</nme><rty>{flag}</rty></Task>")
     prop.get_properties("Task:", task, config=current_config(), state=PrimeItems)
     assert f"Collision Handling:{said}" in captured_output[0]

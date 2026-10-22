@@ -169,6 +169,8 @@ def test_the_committed_floors_are_for_layers_that_exist() -> None:
     """A floor for a package that was renamed or removed would otherwise fail the build with no
     way to meet it."""
     floors = json.loads((_ROOT / "scripts" / "coverage_baseline.json").read_text(encoding="utf-8"))
-    packages = {path.name for path in (_ROOT / "maptasker" / "src").iterdir() if path.is_dir() and path.name != "__pycache__"}
+    packages = {
+        path.name for path in (_ROOT / "maptasker" / "src").iterdir() if path.is_dir() and path.name != "__pycache__"
+    }
     assert set(floors) <= packages | {ratchet.ENTRY}
     assert all(isinstance(value, int) and 0 <= value <= 100 for value in floors.values())

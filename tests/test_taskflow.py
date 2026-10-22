@@ -20,11 +20,11 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.analysis import taskflow
-from maptasker.src.mapgen import taskerd
+from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import text_report
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapgen import taskerd
 
 # ##################################################################################
 # The fixture, assembled from these pieces so the shape of each Task is readable.
@@ -107,7 +107,7 @@ _FLOW_XML = f"""<TaskerData sr="" dvi="1" tv="6.3.13">
 
 def _load(xml_text: str) -> None:
     """Build the PrimeItems lookup tables from XML text, the way taskerd does from a file."""
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)
@@ -487,7 +487,7 @@ def test_health_check_folds_in_the_control_flow_findings() -> None:
     The tags travel unchanged, which is what lets one report be searched for FLOW- and
     VAR- alike.
     """
-    from maptasker.src.analysis.healthck import run_health_check  # noqa: PLC0415  (kept out of this module's imports)
+    from maptasker.src.analysis.healthck import run_health_check
 
     _load(_FLOW_XML)
     rows, _ = run_health_check(state=PrimeItems)

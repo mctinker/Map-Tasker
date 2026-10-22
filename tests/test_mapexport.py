@@ -20,9 +20,9 @@ import zlib
 
 import pytest
 from maptasker.src.core import mapfonts
-from maptasker.src.mapgen import mapexport, mappdf
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import DIAGRAM_FILE
+from maptasker.src.mapgen import mapexport, mappdf
 
 # One Project, holding a Profile with a Task, a Task in no Profile, and a Scene -- with the
 # directory before it and the totals after, which belong to no Project.
@@ -127,7 +127,13 @@ def test_every_object_is_read_with_its_name() -> None:
     ]
     # "Task: Properties..." is drawn at a Task's indent but is the Task's details, and the
     # TaskerNet description (taskernet_color tasktab) is not a Task either.
-    assert objects == [("project", "Home"), ("profile", "*Battery Full"), ("task", "Alert"), ("task", "Loose"), ("scene", "Popup")]
+    assert objects == [
+        ("project", "Home"),
+        ("profile", "*Battery Full"),
+        ("task", "Alert"),
+        ("task", "Loose"),
+        ("scene", "Popup"),
+    ]
 
 
 def test_actions_keep_their_numbers_and_alignment() -> None:
@@ -364,7 +370,12 @@ def _body_of_type(objects: dict[int, bytes], marker: bytes) -> bytes:
 
 def _content(objects: dict[int, bytes], page: int = 0) -> bytes:
     """The drawing instructions of the page at index `page`."""
-    kids = [int(number) for number in re.findall(rb"(\d+) 0 R", re.search(rb"/Kids \[([^\]]*)\]", _body_of_type(objects, b"/Type /Pages")).group(1))]
+    kids = [
+        int(number)
+        for number in re.findall(
+            rb"(\d+) 0 R", re.search(rb"/Kids \[([^\]]*)\]", _body_of_type(objects, b"/Type /Pages")).group(1)
+        )
+    ]
     contents = int(re.search(rb"/Contents (\d+) 0 R", objects[kids[page]]).group(1))
     return _stream(objects[contents])
 
@@ -391,7 +402,9 @@ def test_a_bookmark_leads_to_the_page_its_line_is_on() -> None:
     """75 lines of 8 point text fit a Letter page, so line 150 starts the third."""
     lines = [mappdf.Line(f"line {number}") for number in range(200)]
     objects = _objects(mappdf.render(lines, title="Pages", font=None, bookmarks=[mappdf.Bookmark("Here", 150)]))
-    kids = re.findall(rb"(\d+) 0 R", re.search(rb"/Kids \[([^\]]*)\]", _body_of_type(objects, b"/Type /Pages")).group(1))
+    kids = re.findall(
+        rb"(\d+) 0 R", re.search(rb"/Kids \[([^\]]*)\]", _body_of_type(objects, b"/Type /Pages")).group(1)
+    )
     assert len(kids) == 3
     item = _body_of_type(objects, b"/Title")
     assert re.search(rb"/Dest \[(\d+) 0 R", item).group(1) == kids[2]
@@ -428,7 +441,9 @@ def test_an_embedded_font_draws_the_diagram_searchably() -> None:
 # ##################################################################################
 # Exporting a view
 # ##################################################################################
-def test_export_view_writes_each_format(monkeypatch: pytest.MonkeyPatch, tmp_path: os.PathLike, no_system_fonts: None) -> None:
+def test_export_view_writes_each_format(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: os.PathLike, no_system_fonts: None
+) -> None:
     """Each view, in each format, from the file it is displayed from."""
     monkeypatch.chdir(tmp_path)
     with pytest.raises(mapexport.ExportError):

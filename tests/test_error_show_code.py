@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 from maptasker.src.core import error
-from maptasker.src.gui import guiutils
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.gui import guiutils
 
 
 @pytest.fixture(autouse=True)

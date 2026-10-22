@@ -22,13 +22,12 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-
-from maptasker.src.mapgen import profiles, taskerd
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.initparg import initialize_runtime_arguments
-from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.core.primitem import PrimeItems, initial_found_named_items
 from maptasker.src.core.runcfg import current_config
+from maptasker.src.mapgen import profiles, taskerd
+from maptasker.src.mapgen.lineout import LineOut
 
 # <mid0>/<mid1> before <nme>, the way Tasker writes a Profile -- see the module docstring.
 _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
@@ -56,7 +55,7 @@ def _loaded() -> None:
     PrimeItems.output_lines = LineOut()
     PrimeItems.task_count_for_profile = 0
     PrimeItems.task_count_unnamed = 0
-    PrimeItems.xml_root = ET.fromstring(_XML)  # noqa: S314  (fixture text, defined in this file)
+    PrimeItems.xml_root = ET.fromstring(_XML)
     taskerd.build_tasker_tables(state=PrimeItems)
 
 
@@ -86,7 +85,7 @@ def test_task_search_stops_at_the_profile_name() -> None:
     more Tasks.  Asserted so that the stop condition is a decision and not an accident
     -- a Profile whose Tasks come after its name would silently lose them.
     """
-    profile = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    profile = ET.fromstring(
         '<Profile sr="prof9"><id>9</id><nme>Named First</nme><mid0>10</mid0></Profile>',
     )
     assert profiles.get_profile_tasks(profile, [], [], current_config(), state=PrimeItems) == []
@@ -121,7 +120,7 @@ def test_bookkeeping_tags_are_not_mistaken_for_tasks() -> None:
     not Tasks.  <limit> in particular is the disabled flag, and reading it as a Task id
     would look up a Task called "true".
     """
-    profile = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    profile = ET.fromstring(
         '<Profile sr="prof9"><id>9</id><cdate>1</cdate><edate>2</edate>'
         "<flags>x</flags><limit>true</limit><mid0>10</mid0></Profile>",
     )
@@ -156,7 +155,9 @@ def test_profile_label_carries_a_tooltip_of_its_project_and_tasks() -> None:
     """A Profile line shows the condition, not the Tasks -- so the Tasks it fires, and
     the Project it belongs to, are on the label's hover tooltip instead.
     """
-    with_html, _ = profiles.get_profile_name(_profile("5"), current_config(), "Home", ["Entry Task", "Exit Task"], state=PrimeItems)
+    with_html, _ = profiles.get_profile_name(
+        _profile("5"), current_config(), "Home", ["Entry Task", "Exit Task"], state=PrimeItems
+    )
     assert 'class="hover-tooltip"' in with_html
     assert "Project: Home" in with_html
     assert "Entry Task" in with_html

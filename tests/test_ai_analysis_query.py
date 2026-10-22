@@ -12,9 +12,9 @@ import os
 from types import SimpleNamespace
 
 import pytest
+from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 from maptasker.src.gui import mapai, userintr_ai
 from maptasker.src.mapgen import mapcache
-from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 
 _SYNTHETIC_BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "synthetic_backup.xml")
 
@@ -22,11 +22,11 @@ _SYNTHETIC_BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "da
 @pytest.fixture
 def _a_loaded_configuration(tmp_path, monkeypatch) -> None:
     """The synthetic backup loaded, with a GUI up, in a directory of our own."""
-    from maptasker.src.core.actionc import load_arg_specs  # noqa: PLC0415
-    from maptasker.src.core.colrmode import set_color_mode  # noqa: PLC0415
-    from maptasker.src.core.initparg import initialize_runtime_arguments  # noqa: PLC0415
-    from maptasker.src.mapgen.lineout import LineOut  # noqa: PLC0415
-    from maptasker.src.mapgen.proginit import get_data_and_output_intro  # noqa: PLC0415
+    from maptasker.src.core.actionc import load_arg_specs
+    from maptasker.src.core.colrmode import set_color_mode
+    from maptasker.src.core.initparg import initialize_runtime_arguments
+    from maptasker.src.mapgen.lineout import LineOut
+    from maptasker.src.mapgen.proginit import get_data_and_output_intro
 
     monkeypatch.chdir(tmp_path)
     PrimeItems.program_arguments = initialize_runtime_arguments()
@@ -36,7 +36,7 @@ def _a_loaded_configuration(tmp_path, monkeypatch) -> None:
     PrimeItems.colors_to_use = set_color_mode("dark")
     PrimeItems.output_lines = LineOut()
     PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-    PrimeItems.file_to_get = open(_SYNTHETIC_BACKUP)
+    PrimeItems.file_to_get = open(_SYNTHETIC_BACKUP, encoding="utf-8")
     load_arg_specs()
     get_data_and_output_intro(True, state=PrimeItems)
     yield

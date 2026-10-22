@@ -14,10 +14,10 @@ import json
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.gui import livevars
-from maptasker.src.mapgen import taskerd, varxref
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.gui import livevars
+from maptasker.src.mapgen import taskerd, varxref
 
 # %Orphan is read and never set; %Dead is set and never read; %Both is set and read; %Kept is
 # declared in the Variables tab, so it is neither.
@@ -59,7 +59,7 @@ def _encoded(text: str) -> str:
 
 @pytest.fixture(autouse=True)
 def _loaded() -> None:
-    root = ET.fromstring(_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_XML)
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)
     tables = {
@@ -212,9 +212,7 @@ def test_a_declared_global_that_has_drifted_from_the_file_says_so() -> None:
 
 def test_a_long_multiline_value_is_one_short_line() -> None:
     """A value is folded onto one line and cut, so one global cannot swamp the report."""
-    shown = varxref._shown_value(  # noqa: SLF001
-        "first line\n" + "x" * 100
-    )
+    shown = varxref._shown_value("first line\n" + "x" * 100)
     assert "\n" not in shown
     assert len(shown) < 70
     assert shown.endswith("...'")

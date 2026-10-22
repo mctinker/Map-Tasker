@@ -145,7 +145,7 @@ def test_an_address_with_an_ampersand_is_written_with_it_escaped() -> None:
 def test_an_outside_link_opens_in_a_new_tab_and_an_in_page_one_does_not(href: str, opens_new_tab: bool) -> None:
     label = _label(f'<a href="{href}">go</a>')
 
-    assert (f'target="_blank" rel="noopener noreferrer"' in label) is opens_new_tab
+    assert ('target="_blank" rel="noopener noreferrer"' in label) is opens_new_tab
     assert f'href="{href}"' in label
 
 
@@ -372,7 +372,7 @@ def test_a_label_that_is_a_document_is_passed_through_after_its_lead_in() -> Non
     ],
 )
 def test_the_background_of_a_style_is_the_last_color_it_names(style: str, expected: str) -> None:
-    assert fmt._background_from_style(style) == expected  # noqa: SLF001
+    assert fmt._background_from_style(style) == expected
 
 
 # ##################################################################################
@@ -501,9 +501,9 @@ def test_a_rule_keeps_its_declarations_and_source_order() -> None:
 def test_a_block_is_matched_to_its_own_closing_brace() -> None:
     css = "@media x { a { b: c } } p{d:e}"
 
-    assert fmt._matching_brace(css, css.index("{")) == css.index("} p") + 0 or True  # noqa: SLF001
-    assert fmt._matching_brace("a{b", 1) == 3  # noqa: SLF001
-    assert fmt._matching_brace("a{b}c", 1) == 3  # noqa: SLF001
+    assert fmt._matching_brace(css, css.index("{")) == css.index("} p") + 0 or True
+    assert fmt._matching_brace("a{b", 1) == 3
+    assert fmt._matching_brace("a{b}c", 1) == 3
 
 
 _STACK = [("html", frozenset(), None), ("div", frozenset({"card"}), "main"), ("p", frozenset(), None)]

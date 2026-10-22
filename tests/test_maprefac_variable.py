@@ -183,14 +183,14 @@ _FIXTURE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 def _load(xml_text: str) -> None:
     """Build the PrimeItems lookup tables from XML text, the way taskerd does from a file."""
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.xml_tree = ET.ElementTree(root)
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
 
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         specs = json.load(handle)
     specs[str(len(specs))] = "ConditionList"  # proginit appends this one; see its own note.
     PrimeItems.tasker_arg_specs = specs

@@ -26,7 +26,7 @@ _window = SimpleNamespace(drawer_sections={})
 
 def _page() -> None:
     for key, title in (("history", "Compare & History"), ("analyze", "Analyze")):
-        with guiwins._drawer_section(_window, key, title, "history"):  # type: ignore[arg-type]  # noqa: SLF001
+        with guiwins._drawer_section(_window, key, title, "history"):  # type: ignore[arg-type]
             ui.button(f"{title} button")
 
 

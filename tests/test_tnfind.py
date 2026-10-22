@@ -23,8 +23,8 @@ from pathlib import Path
 
 import pytest
 from maptasker.src.core import clock
-from maptasker.src.mapops import tnfind, tnupdate
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapops import tnfind, tnupdate
 
 from tests.test_tnupdate import _LOCAL_XML, _V2, _link, _load_local, _runtime, _share  # noqa: F401  (_runtime is the fixture)
 
@@ -76,7 +76,7 @@ def _no_delay(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_what_differs_between_two_copies_of_one_thing_is_left_out_of_its_signature() -> None:
-    import defusedxml.ElementTree as ET  # noqa: N817
+    import defusedxml.ElementTree as ET
 
     first = ET.fromstring(
         '<Task><id>1</id><cdate>5</cdate><nme>A</nme><Action><code>548</code><Str sr="arg0">hi</Str></Action></Task>'
@@ -585,7 +585,7 @@ def test_there_is_a_ceiling_on_how_many_shares_one_scan_downloads(
 def test_a_listing_read_to_its_end_lately_is_reused_without_asking_taskernet(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(tnupdate, "fetch_public_page", lambda token="": pytest.fail("the listing was read again"))  # noqa: ARG005
+    monkeypatch.setattr(tnupdate, "fetch_public_page", lambda token="": pytest.fail("the listing was read again"))
     pack = _entry("Project", "Pack")
 
     result, _, _ = _scan(tmp_path, monkeypatch, [pack], {_key(pack): _share()})
@@ -778,7 +778,9 @@ def test_a_possible_match_whose_date_taskernet_will_not_give_is_still_offered(
 # ----------------------------------------------------------------------------------
 
 
-def test_stopping_while_the_list_is_read_still_compares_what_was_read(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_stopping_while_the_list_is_read_still_compares_what_was_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Stop ends the READING.  What had been read is set beside what you have, and what agrees is linked."""
     _no_delay(monkeypatch)
     stop = threading.Event()
@@ -793,7 +795,15 @@ def test_stopping_while_the_list_is_read_still_compares_what_was_read(tmp_path: 
     book = _book(tmp_path)
     progress = tnfind.Progress()
 
-    result = tnfind.scan(PrimeItems, book, refresh=True, progress=progress, stop=stop, path=tmp_path / "cat.json", fetch=lambda _ref: _share())
+    result = tnfind.scan(
+        PrimeItems,
+        book,
+        refresh=True,
+        progress=progress,
+        stop=stop,
+        path=tmp_path / "cat.json",
+        fetch=lambda _ref: _share(),
+    )
 
     assert result.listing_stopped
     assert not result.catalogue_complete
@@ -822,19 +832,31 @@ def test_a_second_stop_ends_the_comparing(tmp_path: Path, monkeypatch: pytest.Mo
     monkeypatch.setattr(tnupdate, "fetch_public_page", page)
     monkeypatch.setattr(tnupdate, "fetch_info", lambda ref: tnupdate.ShareInfo(1, ref.name, "", 0, 0))
 
-    result = tnfind.scan(PrimeItems, _book(tmp_path), refresh=True, progress=tnfind.Progress(), stop=stop, path=tmp_path / "cat.json", fetch=fetch)
+    result = tnfind.scan(
+        PrimeItems,
+        _book(tmp_path),
+        refresh=True,
+        progress=tnfind.Progress(),
+        stop=stop,
+        path=tmp_path / "cat.json",
+        fetch=fetch,
+    )
 
     assert result.listing_stopped
     assert result.stopped
     assert calls["fetched"] == 1, "the Task's share was never fetched"
 
 
-def test_stopping_before_anything_was_read_has_nothing_to_compare(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_stopping_before_anything_was_read_has_nothing_to_compare(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     stop = threading.Event()
     stop.set()
-    monkeypatch.setattr(tnupdate, "fetch_public_page", lambda token="": pytest.fail("a page was read after Stop"))  # noqa: ARG005
+    monkeypatch.setattr(tnupdate, "fetch_public_page", lambda token="": pytest.fail("a page was read after Stop"))
 
-    result = tnfind.scan(PrimeItems, _book(tmp_path), refresh=True, progress=tnfind.Progress(), stop=stop, path=tmp_path / "cat.json")
+    result = tnfind.scan(
+        PrimeItems, _book(tmp_path), refresh=True, progress=tnfind.Progress(), stop=stop, path=tmp_path / "cat.json"
+    )
 
     assert result.stopped
     assert not result.listing_stopped

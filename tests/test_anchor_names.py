@@ -37,9 +37,9 @@ def written(output_lines: object) -> str:
 @pytest.fixture(autouse=True)
 def _runtime(monkeypatch) -> None:
     """Enough of a run for the two writers below, and the directory turned on."""
-    from maptasker.src.core.colrmode import set_color_mode  # noqa: PLC0415
-    from maptasker.src.core.initparg import initialize_runtime_arguments  # noqa: PLC0415
-    from maptasker.src.mapgen.lineout import LineOut  # noqa: PLC0415
+    from maptasker.src.core.colrmode import set_color_mode
+    from maptasker.src.core.initparg import initialize_runtime_arguments
+    from maptasker.src.mapgen.lineout import LineOut
 
     # The real set of runtime arguments, with only what these tests care about changed:
     # picking keys by hand here just means chasing a KeyError for each one the writers
@@ -134,7 +134,7 @@ def test_a_warning_points_at_the_task_by_id(monkeypatch) -> None:
     used to point at an anchor that was never written.  The id-keyed anchor is there
     whatever the settings.
     """
-    from maptasker.src.core.maputils import display_task_warnings  # noqa: PLC0415
+    from maptasker.src.core.maputils import display_task_warnings
 
     PrimeItems.program_arguments.task_action_warning_limit = 28
     monkeypatch.setattr(

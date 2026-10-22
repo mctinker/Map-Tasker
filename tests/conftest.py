@@ -36,4 +36,4 @@ def _no_designer_outlives_its_test() -> None:
     yield
     canvas = sys.modules.get("maptasker.src.gui.guiwins_canvas")  # Not imported, so nothing to empty.
     if canvas is not None:
-        canvas._ACTIVE_CANVASES.clear()  # noqa: SLF001
+        canvas._ACTIVE_CANVASES.clear()

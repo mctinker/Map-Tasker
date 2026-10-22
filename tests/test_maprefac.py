@@ -27,13 +27,13 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
-from maptasker.src.edit import sessundo, taskedit_save
-from maptasker.src.gui import guiwins_refactor
-from maptasker.src.mapgen import taskerd
-from maptasker.src.mapops import maprefac, maprefac_duplicate, maprefac_extract, maprefac_model, maprefac_move
-from maptasker.src.gui.guiwins_nav import opening_view_in_a_new_window
 from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK, actions_in_map_order
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import sessundo, taskedit_save
+from maptasker.src.gui import guiwins_refactor
+from maptasker.src.gui.guiwins_nav import opening_view_in_a_new_window
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapops import maprefac, maprefac_duplicate, maprefac_extract, maprefac_model, maprefac_move
 from nicegui import binding
 
 # Codes used below, named so the tests read as prose.
@@ -189,14 +189,14 @@ def _load(xml_text: str) -> None:
     to decide what an argument is, and a Task created without it comes out wrong rather
     than failing.
     """
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.xml_tree = ET.ElementTree(root)
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
 
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         specs = json.load(handle)
     specs[str(len(specs))] = "ConditionList"  # proginit appends this one; see its own note.
     PrimeItems.tasker_arg_specs = specs
@@ -963,7 +963,8 @@ def test_the_dialog_asks_for_the_range_the_user_selected(loaded: None) -> None:
     plan = guiwins_refactor.plan_for(
         guiwins_refactor.EXTRACT,
         _widgets(extract_task="20", extract_from="3", extract_to="5", extract_name="Loud Part"),
-    state=PrimeItems)
+        state=PrimeItems,
+    )
     assert plan is not None
     assert not plan.is_blocked
     assert maprefac.apply(plan, state=PrimeItems) == (True, [])
@@ -975,7 +976,8 @@ def test_the_dialog_does_not_mind_which_end_was_picked_first(loaded: None) -> No
     plan = guiwins_refactor.plan_for(
         guiwins_refactor.EXTRACT,
         _widgets(extract_task="20", extract_from="5", extract_to="3", extract_name="Loud Part"),
-    state=PrimeItems)
+        state=PrimeItems,
+    )
     assert plan is not None
     assert not plan.is_blocked
 
@@ -1003,9 +1005,8 @@ def test_a_falsy_field_value_is_not_mistaken_for_an_empty_box(loaded: None) -> N
     and is answered by it, rather than being swallowed here as a form that is not filled in.
     """
     plan = guiwins_refactor.plan_for(
-        guiwins_refactor.INLINE,
-        _widgets(inline_task="20", inline_call="0"),
-    state=PrimeItems)
+        guiwins_refactor.INLINE, _widgets(inline_task="20", inline_call="0"), state=PrimeItems
+    )
     assert plan is not None  # reached the engine rather than returning None
     assert plan.blocks[0].reason == "NO-ACTION"
 
@@ -1043,19 +1044,28 @@ def _displaying(**selection: str) -> None:
 def test_extract_offers_only_the_task_being_displayed(loaded: None) -> None:
     """A single Task selected puts that Task in scope and nothing else."""
     _displaying(single_task_name="Morning")
-    assert [task_id for task_id, _ in maprefac.task_choices(maprefac_model.extract_scope(state=PrimeItems), state=PrimeItems)] == ["20"]
+    assert [
+        task_id
+        for task_id, _ in maprefac.task_choices(maprefac_model.extract_scope(state=PrimeItems), state=PrimeItems)
+    ] == ["20"]
 
 
 def test_extract_offers_the_tasks_of_the_profile_being_displayed(loaded: None) -> None:
     """Dusk runs Task 22 as its Entry Task and Task 21 as its Exit Task; both are in scope."""
     _displaying(single_profile_name="Dusk")
-    assert sorted(task_id for task_id, _ in maprefac.task_choices(maprefac_model.extract_scope(state=PrimeItems), state=PrimeItems)) == ["21", "22"]
+    assert sorted(
+        task_id
+        for task_id, _ in maprefac.task_choices(maprefac_model.extract_scope(state=PrimeItems), state=PrimeItems)
+    ) == ["21", "22"]
 
 
 def test_extract_offers_the_tasks_of_the_project_being_displayed(loaded: None) -> None:
     """Not asked for, but it falls out of the same rule and must not surprise."""
     _displaying(single_project_name="Home")
-    assert sorted(task_id for task_id, _ in maprefac.task_choices(maprefac_model.extract_scope(state=PrimeItems), state=PrimeItems)) == [
+    assert sorted(
+        task_id
+        for task_id, _ in maprefac.task_choices(maprefac_model.extract_scope(state=PrimeItems), state=PrimeItems)
+    ) == [
         "20",
         "21",
         "22",
@@ -1075,7 +1085,9 @@ def test_extract_offers_nothing_for_a_scene(loaded: None) -> None:
 def test_extract_offers_every_task_when_nothing_is_selected(loaded: None) -> None:
     """Nothing selected is not a scope at all."""
     assert maprefac_model.extract_scope(state=PrimeItems).is_everything
-    assert len(maprefac.task_choices(maprefac_model.extract_scope(state=PrimeItems), state=PrimeItems)) == len(maprefac.task_choices(state=PrimeItems))
+    assert len(maprefac.task_choices(maprefac_model.extract_scope(state=PrimeItems), state=PrimeItems)) == len(
+        maprefac.task_choices(state=PrimeItems)
+    )
 
 
 def test_extract_refuses_a_task_that_is_not_on_screen(loaded: None) -> None:
@@ -1229,7 +1241,7 @@ def bound() -> tuple[_Gui, _Checkbox]:
 def _settle(times: int = 6) -> None:
     """Run the binding loop the way NiceGUI's timer would, several turns of it."""
     for _ in range(times):
-        binding._refresh_step()  # noqa: SLF001  (the loop body; there is no public entry point)
+        binding._refresh_step()
 
 
 def test_a_jump_turns_the_option_on_and_the_checkbox_follows(bound: tuple) -> None:

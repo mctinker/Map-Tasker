@@ -12,7 +12,7 @@ B = "&nbsp;"
 
 
 def _element(text: str) -> ET.Element:
-    return ET.fromstring(text)  # noqa: S314  (fixture text, defined in this file)
+    return ET.fromstring(text)
 
 
 # ##################################################################################
@@ -68,7 +68,9 @@ def test_an_unnamed_profile_is_recorded_under_its_id() -> None:
     profile = _element("<Profile sr='prof12'/>")
     config = SimpleNamespace(directory=False, pretty=False)
 
-    html_name, name, conditions = profiles.conditions_to_name(profile, "Time: from 9:00", "x", "<b>x</b>", config, state)
+    html_name, name, conditions = profiles.conditions_to_name(
+        profile, "Time: from 9:00", "x", "<b>x</b>", config, state
+    )
 
     assert html_name == "<b>x</b>"
     assert name.endswith(".12 Unnamed")

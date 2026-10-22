@@ -22,23 +22,23 @@ version of it.
 
 from __future__ import annotations
 
-import re
 import base64
 import gzip
 import json
+import re
 from datetime import timedelta
 from pathlib import Path
 
 import httpx
 import pytest
 from maptasker.src.core import clock
-from maptasker.src.edit import sessundo
-from maptasker.src.mapgen import taskerd
-from maptasker.src.mapops import maprestore, tnupdate
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.initparg import ProgramArguments
-from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
+from maptasker.src.edit import sessundo
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapgen.lineout import LineOut
+from maptasker.src.mapops import maprestore, tnupdate
 
 USER = "AS35m8ne7oO4s+aDx/wlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn"
 LINK = (
@@ -495,7 +495,7 @@ def test_the_first_unreachable_check_ends_the_run_but_a_missing_share_does_not(t
 
 def test_checking_counts_the_links_with_something_newer(tmp_path: Path) -> None:
     book = tnupdate.LinkBook(tmp_path / "links.json")
-    for name, seen, latest in (("a", 1, 2), ("b", 2, 2), ("c", 1, 5)):
+    for name, seen, _latest in (("a", 1, 2), ("b", 2, 2), ("c", 1, 5)):
         book.add("Task", name, LINK.replace("Project", "Task")).seen_ms = seen
 
     def check(link: tnupdate.Link) -> bool:

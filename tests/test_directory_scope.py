@@ -19,11 +19,11 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.mapgen import taskerd
 from maptasker.src.core.dirout import check_item
 from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.runcfg import RunConfig
+from maptasker.src.mapgen import taskerd
 
 # Two Projects that own one of everything each, so that "belongs to the selected Project"
 # has something to be wrong about.  OrphanSceneTask is in no Project's <tids> -- the shape
@@ -64,7 +64,7 @@ def tasker_data() -> None:
     saved_elements = PrimeItems.tasker_root_elements
     saved_arguments = PrimeItems.program_arguments
     PrimeItems.program_arguments = initialize_runtime_arguments()
-    PrimeItems.xml_root = ET.fromstring(  # noqa: S314  (fixture text, defined in this file)
+    PrimeItems.xml_root = ET.fromstring(
         f'<TaskerData sr="" dvi="1" tv="6.3.13">{_XML}</TaskerData>',
     )
     taskerd.build_tasker_tables(state=PrimeItems)

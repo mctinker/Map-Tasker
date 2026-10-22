@@ -17,12 +17,11 @@ import threading
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src.edit import sessundo
-from maptasker.src.gui import guiwins_tnupdate
-from maptasker.src.mapops import tnfind, tnupdate
-from maptasker.src.gui import guiwins_tnfind
-from maptasker.src.gui.guiwins_tnfind import build_find_dialog
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import sessundo
+from maptasker.src.gui import guiwins_tnfind, guiwins_tnupdate
+from maptasker.src.gui.guiwins_tnfind import build_find_dialog
+from maptasker.src.mapops import tnfind, tnupdate
 from nicegui import context, core, ui
 from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
@@ -33,14 +32,13 @@ from tests.test_tnupdate import _V2, LINK, _info, _live, _runtime, _share  # noq
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable
-    from pathlib import Path
 
 
 _built: dict = {}
 
 
 @pytest.fixture(autouse=True)
-def _network(monkeypatch: pytest.MonkeyPatch, _runtime: None) -> None:  # noqa: F811, PT019
+def _network(monkeypatch: pytest.MonkeyPatch, _runtime: None) -> None:  # noqa: F811
     """TaskerNet replaced by two answers the tests set: what is published, and what it says."""
     guiwins_tnfind._JOBS.clear()  # a scan from one test must not be picked up by the next
     _built.clear()
@@ -313,7 +311,7 @@ async def test_review_lists_what_the_author_changed_and_nothing_else() -> None:
 
         # Morning, the anonymous Task, Helper (renamed) and Dawn were changed; Brand New is new.
         assert len(_buttons(user, "Take this")) == 5
-        assert any("TASK-NEW" == label for label in _labels(user))
+        assert any(label == "TASK-NEW" for label in _labels(user))
         assert any(label.startswith("Removed by the author") and "Dusk" in label for label in _labels(user))
 
 
@@ -551,12 +549,12 @@ async def test_the_check_made_as_the_dialog_opens_does_not_put_a_notice_up(monke
 # ##################################################################################
 def _listing(monkeypatch: pytest.MonkeyPatch, *names: str) -> None:
     """TaskerNet's public list: one page holding a Project share of each name, by the publisher in LINK."""
-    from tests.test_tnfind import _listed  # noqa: PLC0415  (only these tests need it)
+    from tests.test_tnfind import _listed
 
     monkeypatch.setattr(
         tnupdate,
         "fetch_public_page",
-        lambda token="": {"shares": [_listed("Project", name) for name in names]},  # noqa: ARG005
+        lambda token="": {"shares": [_listed("Project", name) for name in names]},
     )
 
 
@@ -584,7 +582,7 @@ async def test_find_links_links_what_agrees_and_shows_it_in_the_list_behind(monk
 async def test_find_links_offers_a_possible_match_and_links_it_only_when_ticked(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from tests.test_tnfind import _HALF  # noqa: PLC0415
+    from tests.test_tnfind import _HALF
 
     _built["xml"] = _HALF
     _listing(monkeypatch, "Pack")
@@ -630,7 +628,7 @@ def _close_of_find_links(user: User) -> ui.button:
 
 def _slow_listing(monkeypatch: pytest.MonkeyPatch, release: threading.Event, *names: str) -> list[str]:
     """A public list that does not answer until `release` is set; returns the tokens it was asked for."""
-    from tests.test_tnfind import _listed  # noqa: PLC0415
+    from tests.test_tnfind import _listed
 
     asked: list[str] = []
 
@@ -730,7 +728,7 @@ async def test_a_stopped_background_scan_says_so_in_its_notification(monkeypatch
 
 @pytest.mark.asyncio
 async def test_select_all_and_deselect_all_work_on_the_whole_checklist(monkeypatch: pytest.MonkeyPatch) -> None:
-    from tests.test_tnfind import _HALF, _listed  # noqa: PLC0415
+    from tests.test_tnfind import _HALF, _listed
 
     _built["xml"] = _HALF
     monkeypatch.setattr(
@@ -738,7 +736,7 @@ async def test_select_all_and_deselect_all_work_on_the_whole_checklist(monkeypat
         "fetch_public_page",
         lambda token="": {
             "shares": [_listed("Project", "Pack", 5, "AAAAuser"), _listed("Project", "Pack", 9, "BBBBuser")]
-        },  # noqa: ARG005
+        },
     )
 
     async with _open() as user:
@@ -768,7 +766,7 @@ async def test_select_all_and_deselect_all_work_on_the_whole_checklist(monkeypat
 async def test_stop_during_the_reading_still_gives_matches_and_says_the_list_was_cut_short(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from tests.test_tnfind import _listed  # noqa: PLC0415
+    from tests.test_tnfind import _listed
 
     _built["xml"] = _share()
     release = threading.Event()

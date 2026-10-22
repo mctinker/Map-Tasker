@@ -21,8 +21,8 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core import editcommon
-from maptasker.src.edit import profedit, sessundo
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import profedit, sessundo
 
 from tests.test_mapswap import _load
 
@@ -413,7 +413,7 @@ def test_a_new_link_goes_before_the_name_where_tasker_puts_it() -> None:
 def test_a_link_is_appended_when_there_is_no_name_yet() -> None:
     element = ET.Element("Profile")
 
-    profedit._set_profile_task_link(element, "mid0", "5")  # noqa: SLF001
+    profedit._set_profile_task_link(element, "mid0", "5")
 
     assert [(child.tag, child.text) for child in element] == [("mid0", "5")]
 
@@ -471,7 +471,7 @@ def test_disabling_and_enabling_write_and_remove_the_limit() -> None:
     ],
 )
 def test_a_time_is_a_twelve_hour_clock_time_or_a_variable(raw: str, expected: tuple[str, str] | None) -> None:
-    assert profedit._classify_time_or_var(raw) == expected  # noqa: SLF001
+    assert profedit._classify_time_or_var(raw) == expected
 
 
 @pytest.mark.parametrize(
@@ -486,7 +486,7 @@ def test_a_time_is_a_twelve_hour_clock_time_or_a_variable(raw: str, expected: tu
     ],
 )
 def test_a_twenty_four_hour_time_reads_as_twelve(hour: int, minute: int, text: str) -> None:
-    assert profedit._format_12_hour(hour, minute) == text  # noqa: SLF001
+    assert profedit._format_12_hour(hour, minute) == text
 
 
 def test_a_time_condition_reads_for_display() -> None:
@@ -519,7 +519,7 @@ def test_garbage_in_the_hour_and_minute_reads_as_midnight() -> None:
     condition.condition_element.find("fm").text = None
 
     assert profedit.get_time_field_values(condition)["start_time"] == "12:00 AM"
-    assert profedit._int_or_zero(None) == 0  # noqa: SLF001
+    assert profedit._int_or_zero(None) == 0
 
 
 def _time_values(**changes: str) -> dict[str, str]:
@@ -637,7 +637,7 @@ def test_a_bad_location_is_refused(changes: dict[str, str], fragment: str) -> No
 
 
 def test_a_negative_coordinate_is_fine() -> None:
-    assert profedit._validate_loc_field_values({"lat": "-33.9", "long": "-151.2", "rad": "0"}) == []  # noqa: SLF001
+    assert profedit._validate_loc_field_values({"lat": "-33.9", "long": "-151.2", "rad": "0"}) == []
 
 
 # ##################################################################################
@@ -863,7 +863,7 @@ def test_an_existing_file_is_noticed(tmp_path: os.PathLike) -> None:
 def test_the_export_is_the_profile_and_its_tasks_under_one_root() -> None:
     xml = profedit.render_standalone_profile_xml(_edit("Morning"), state=PrimeItems)
 
-    root = ET.fromstring(xml)  # noqa: S314
+    root = ET.fromstring(xml)
     assert root.tag == "TaskerData"
     assert root.get("tv") == "6.3.13"
     assert [child.tag for child in root] == ["Profile", "Task", "Task"]
@@ -874,13 +874,13 @@ def test_the_export_is_the_profile_and_its_tasks_under_one_root() -> None:
 
 
 def test_a_task_used_for_entry_and_exit_is_bundled_once() -> None:
-    root = ET.fromstring(profedit.render_standalone_profile_xml(_edit("Apps"), state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(profedit.render_standalone_profile_xml(_edit("Apps"), state=PrimeItems))
 
     assert len(root.findall("Task")) == 1
 
 
 def test_a_profile_with_no_tasks_exports_alone() -> None:
-    root = ET.fromstring(profedit.render_standalone_profile_xml(_edit("Triggers"), state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(profedit.render_standalone_profile_xml(_edit("Triggers"), state=PrimeItems))
 
     assert [child.tag for child in root] == ["Profile"]
 
@@ -889,7 +889,7 @@ def test_a_linked_task_that_is_gone_is_left_out() -> None:
     edited = _edit("Morning")
     profedit.link_task_to_profile(edited, "9999", "Entry")
 
-    root = ET.fromstring(profedit.render_standalone_profile_xml(edited, state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(profedit.render_standalone_profile_xml(edited, state=PrimeItems))
 
     assert [task.findtext("nme") for task in root.findall("Task")] == ["Exit"]
 
@@ -898,7 +898,7 @@ def test_the_export_is_of_the_edited_copy() -> None:
     edited = _edit("Morning")
     assert profedit.apply_edits_to_profile(edited, "Renamed", _time_values(), state=PrimeItems) == []
 
-    root = ET.fromstring(profedit.render_standalone_profile_xml(edited, state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(profedit.render_standalone_profile_xml(edited, state=PrimeItems))
 
     assert root.find("Profile").findtext("nme") == "Renamed"
     assert _live("Morning").findtext("nme") == "Morning"
@@ -939,7 +939,7 @@ def test_writing_a_new_file_has_nothing_to_copy(tmp_path: os.PathLike) -> None:
 
 
 def test_an_unwritable_path_raises(tmp_path: os.PathLike) -> None:
-    with pytest.raises(OSError):  # noqa: PT011
+    with pytest.raises(OSError):
         profedit.write_standalone_profile_xml(
             _edit("Morning"), str(tmp_path / "no" / "such" / "x.xml"), state=PrimeItems
         )

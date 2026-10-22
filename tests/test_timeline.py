@@ -25,12 +25,12 @@ from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.analysis import diffload, timecomp
 from maptasker.src.core import clock, timeline
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapgen.lineout import LineOut
-from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 
 _LOADED_XML = """<TaskerData sr="" dvi="1" tv="6.5.6">
   <Project sr="proj0" ve="2"><cdate>1</cdate><id>1</id><name>Home</name>
@@ -73,7 +73,7 @@ def _write(tmp_path: Path, name: str, text: str) -> str:
 
 def _load_as_current(path: str) -> int:
     """Load a file the way MapTasker does -- which is also what records a snapshot."""
-    with open(path) as handle:  # noqa: PTH123, SIM115
+    with open(path, encoding="utf-8") as handle:
         PrimeItems.file_to_get = handle
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
         return taskerd.get_the_xml_data(state=PrimeItems)
@@ -83,7 +83,9 @@ def _load_as_current(path: str) -> int:
 def _runtime(tmp_path, monkeypatch):
     """A believable runtime, and a working directory of our own for the history folder."""
     monkeypatch.chdir(tmp_path)
-    PrimeItems.program_arguments = ProgramArguments(gui=True, debug=False, directory=False, pretty=False, display_detail_level=3, file="")
+    PrimeItems.program_arguments = ProgramArguments(
+        gui=True, debug=False, directory=False, pretty=False, display_detail_level=3, file=""
+    )
     PrimeItems.error_code = 0
     PrimeItems.error_msg = ""
     PrimeItems.directory_items = {"current_item": "", "projects": [], "profiles": [], "tasks": [], "scenes": []}
@@ -141,7 +143,7 @@ def test_reloading_an_unchanged_configuration_adds_nothing(tmp_path) -> None:
 
 
 def test_the_same_configuration_under_another_name_adds_nothing(tmp_path) -> None:
-    """"Save To Current File" leaves the original and a timestamped copy side by side
+    """ "Save To Current File" leaves the original and a timestamped copy side by side
     (caveats.md item 6).  Loading both is one configuration under two names, and comparing
     by content rather than by path is what keeps the pair out of the history twice.
     """
@@ -228,7 +230,7 @@ def test_the_history_is_capped(tmp_path, monkeypatch) -> None:
 # Reading the history back.
 # ##################################################################################
 def test_since_picks_the_newest_entry_no_later_than_the_cutoff() -> None:
-    """"What changed since Tuesday" wants the configuration as it stood on Tuesday."""
+    """ "What changed since Tuesday" wants the configuration as it stood on Tuesday."""
     now = clock.now()
     for days, text in ((20, "Alpha"), (10, "Beta"), (2, "Gamma")):
         timeline.record(_named(text), when=now - timedelta(days=days))
@@ -421,7 +423,7 @@ _NOON = datetime(2026, 9, 9, 14, 30, 0).astimezone()
 
 
 def test_today_starts_at_midnight_not_24_hours_ago() -> None:
-    """"What changed today" means since this morning.  A rolling 24 hours would report
+    """ "What changed today" means since this morning.  A rolling 24 hours would report
     yesterday evening's edits as today's, which is not what was asked.
     """
     assert timeline.cutoff_for(timeline.TODAY, now=_NOON) == datetime(2026, 9, 9, 0, 0, 0).astimezone()

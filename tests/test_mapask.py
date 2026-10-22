@@ -260,7 +260,7 @@ async def test_anthropic_is_sent_the_schema_as_its_system_prompt(monkeypatch: py
             sent["api_key"] = api_key
             self.messages = Messages()
 
-        async def __aenter__(self) -> AsyncAnthropic:  # noqa: PYI034
+        async def __aenter__(self) -> AsyncAnthropic:
             return self
 
         async def __aexit__(self, *_: object) -> None:
@@ -301,7 +301,7 @@ def _fake_anthropic(monkeypatch: pytest.MonkeyPatch) -> dict:
         def __init__(self, api_key: str) -> None:
             self.messages = Messages()
 
-        async def __aenter__(self) -> AsyncAnthropic:  # noqa: PYI034
+        async def __aenter__(self) -> AsyncAnthropic:
             return self
 
         async def __aexit__(self, *_: object) -> None:
@@ -375,7 +375,7 @@ async def test_a_reasoning_model_that_refuses_the_effort_is_asked_again_without_
         def __init__(self, api_key: str) -> None:
             self.chat = SimpleNamespace(completions=Completions())
 
-        async def __aenter__(self) -> AsyncOpenAI:  # noqa: PYI034
+        async def __aenter__(self) -> AsyncOpenAI:
             return self
 
         async def __aexit__(self, *_: object) -> None:
@@ -401,7 +401,7 @@ async def test_an_option_a_model_refuses_is_dropped_and_the_question_asked_again
         calls.append("without")
         return "reply"
 
-    assert await mapask._first_that_works("an option", refused, plain) == "reply"  # noqa: SLF001
+    assert await mapask._first_that_works("an option", refused, plain) == "reply"
     assert calls == ["with", "without"]
 
 
@@ -412,7 +412,7 @@ async def test_the_last_attempt_is_not_caught() -> None:
         raise RuntimeError(message)
 
     with pytest.raises(RuntimeError, match="down"):
-        await mapask._first_that_works("an option", broken)  # noqa: SLF001
+        await mapask._first_that_works("an option", broken)
 
 
 # ##################################################################################
@@ -470,7 +470,9 @@ async def test_openai_is_sent_the_rules_as_the_system_message_and_the_client_is_
 ) -> None:
     sent = _fake_openai(monkeypatch, reply='{"app": ""}')
 
-    reply = await mapask.ask_model(mapask.ModelSettings(mapask.OPENAI, "gpt-5.5", "sk-openai"), "the rules", "the question")
+    reply = await mapask.ask_model(
+        mapask.ModelSettings(mapask.OPENAI, "gpt-5.5", "sk-openai"), "the rules", "the question"
+    )
 
     assert reply == '{"app": ""}'
     assert sent["api_key"] == "sk-openai"
@@ -493,7 +495,9 @@ async def test_the_o1_models_are_sent_the_rules_as_a_user_message(monkeypatch: p
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(("model", "takes_effort"), [("gpt-5.5", True), ("o3", True), ("o4-mini", True), ("gpt-4o", False)])
+@pytest.mark.parametrize(
+    ("model", "takes_effort"), [("gpt-5.5", True), ("o3", True), ("o4-mini", True), ("gpt-4o", False)]
+)
 async def test_reasoning_effort_goes_only_to_the_openai_models_that_reason(
     monkeypatch: pytest.MonkeyPatch, model: str, takes_effort: bool
 ) -> None:
@@ -550,7 +554,9 @@ async def test_gemini_is_sent_the_rules_as_its_system_instruction_and_asked_for_
 ) -> None:
     sent = _fake_gemini(monkeypatch, reply='{"app": ""}')
 
-    reply = await mapask.ask_model(mapask.ModelSettings(mapask.GEMINI, "gemini-3.5-flash", "AIza-k"), "the rules", "the question")
+    reply = await mapask.ask_model(
+        mapask.ModelSettings(mapask.GEMINI, "gemini-3.5-flash", "AIza-k"), "the rules", "the question"
+    )
 
     assert reply == '{"app": ""}'
     assert sent["api_key"] == "AIza-k"
@@ -603,7 +609,9 @@ async def test_a_gemini_whose_client_cannot_be_closed_is_still_answered(monkeypa
     assert "closed" not in sent
 
 
-def _fake_ollama(monkeypatch: pytest.MonkeyPatch, *, prepared: tuple = ("llama3.2:latest", ""), refuse_schema: bool = False) -> dict:
+def _fake_ollama(
+    monkeypatch: pytest.MonkeyPatch, *, prepared: tuple = ("llama3.2:latest", ""), refuse_schema: bool = False
+) -> dict:
     seen: dict = {"chats": []}
 
     class AsyncClient:
@@ -615,7 +623,9 @@ def _fake_ollama(monkeypatch: pytest.MonkeyPatch, *, prepared: tuple = ("llama3.
             return {"message": {"content": '{"app": ""}'}}
 
     monkeypatch.setattr(mapask, "_library", lambda *_: SimpleNamespace(AsyncClient=AsyncClient))
-    monkeypatch.setattr(mapask, "prepare_ollama_model", lambda name: seen.setdefault("prepared", []).append(name) or prepared)
+    monkeypatch.setattr(
+        mapask, "prepare_ollama_model", lambda name: seen.setdefault("prepared", []).append(name) or prepared
+    )
     return seen
 
 
@@ -654,10 +664,12 @@ async def test_an_ollama_too_old_to_take_a_schema_is_asked_again_with_json(monke
 
 
 @pytest.mark.asyncio
-async def test_a_local_model_that_cannot_be_made_ready_says_why_and_is_not_asked(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_a_local_model_that_cannot_be_made_ready_says_why_and_is_not_asked(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     seen = _fake_ollama(monkeypatch, prepared=(None, "Ollama is not installed."))
 
-    with pytest.raises(mapask.AskError, match="Ollama is not installed."):
+    with pytest.raises(mapask.AskError, match=r"Ollama is not installed\."):
         await mapask.ask_model(mapask.ModelSettings(mapask.LLAMA, "llama3.2"), "s", "u")
 
     assert seen["chats"] == []

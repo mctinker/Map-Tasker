@@ -21,9 +21,11 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.analysis import mapfind
 from maptasker.src.core import mapjump
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen import taskerd, varxref
 from maptasker.src.mapops import (
     mapswap,
@@ -34,8 +36,6 @@ from maptasker.src.mapops import (
     mapswap_rename,
     mapswap_sites,
 )
-from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK
-from maptasker.src.core.primitem import PrimeItems
 
 # Codes used below, named so the tests read as prose.
 FLASH = "548t"  # 16 arguments; Text=arg0, Title=arg3
@@ -155,13 +155,13 @@ def _load(xml_text: str) -> None:
     these tests does: it is the table that says arg_type '2' means an App, and without it
     every argument reads as an unknown category and nothing carries anywhere.
     """
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
 
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         specs = json.load(handle)
     specs[str(len(specs))] = "ConditionList"  # proginit appends this one; see its own note.
     PrimeItems.tasker_arg_specs = specs
@@ -269,7 +269,10 @@ def test_the_target_pulldown_offers_every_level_and_hides_nothing(loaded: None) 
     assert mapswap_model.BLOCKED in levels
     assert FLASH not in {key for key, _, _ in choices}  # replacing an action with itself
 
-    ranks = [{mapswap_model.EXACT: 0, mapswap_model.MAPPED: 1, mapswap_model.RESET: 2, mapswap_model.BLOCKED: 3}[f] for _, _, f in choices]
+    ranks = [
+        {mapswap_model.EXACT: 0, mapswap_model.MAPPED: 1, mapswap_model.RESET: 2, mapswap_model.BLOCKED: 3}[f]
+        for _, _, f in choices
+    ]
     assert ranks == sorted(ranks)
     blocked_labels = [label for _, label, fidelity in choices if fidelity == mapswap_model.BLOCKED]
     assert blocked_labels
@@ -553,7 +556,9 @@ def test_adding_is_only_offered_where_nothing_is_being_matched(loaded) -> None:
     """A value filter cannot match a field that does not exist, and there is nothing inside
     a missing value to substitute -- so the switch says so rather than quietly doing
     nothing with it."""
-    filtered = mapswap_argument.plan_argument_replace(FLASH, FLASH_TITLE, "Summary", match="Report", add_missing=True, state=PrimeItems)
+    filtered = mapswap_argument.plan_argument_replace(
+        FLASH, FLASH_TITLE, "Summary", match="Report", add_missing=True, state=PrimeItems
+    )
 
     assert all(change.site.kind != mapswap_model.NEW_ARG for change in filtered.changes)
     assert any("only be ADDED" in warning for warning in filtered.warnings)
@@ -567,7 +572,7 @@ def test_without_the_switch_a_missing_argument_says_what_would_add_it(loaded) ->
 
 
 def test_a_value_filter_narrows_to_the_actions_that_hold_it(loaded) -> None:
-    """"Every Flash that says 'bare'" -- the difference between a scalpel and a hammer."""
+    """ "Every Flash that says 'bare'" -- the difference between a scalpel and a hammer."""
     plan = mapswap_argument.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="bare", state=PrimeItems)
 
     assert [change.before for change in plan.changes] == ["bare"]
@@ -588,7 +593,9 @@ def test_substituting_changes_only_the_matched_text(loaded) -> None:
     Setting the value would throw away the rest of it -- '%n' here -- which for a Flash
     holding a variable is the difference between an edit and a loss.
     """
-    plan = mapswap_argument.plan_argument_replace(FLASH, FLASH_TEXT, "Finished", match="Done", substitute=True, state=PrimeItems)
+    plan = mapswap_argument.plan_argument_replace(
+        FLASH, FLASH_TEXT, "Finished", match="Done", substitute=True, state=PrimeItems
+    )
 
     assert [change.after for change in plan.changes] == ["Finished: %n"]
 
@@ -636,7 +643,9 @@ def test_a_picker_argument_is_refused_with_its_reason(loaded) -> None:
     assert not plan.changes
     assert any("picker" in warning for warning in plan.warnings)
     # And the pulldown says the same thing before the user gets this far.
-    refusals = {arg_id: refusal for arg_id, _label, refusal in mapswap_argument.argument_choices(LAUNCH_APP, state=PrimeItems)}
+    refusals = {
+        arg_id: refusal for arg_id, _label, refusal in mapswap_argument.argument_choices(LAUNCH_APP, state=PrimeItems)
+    }
     assert refusals[LAUNCH_APP_APP]
 
 
@@ -658,7 +667,9 @@ def test_an_action_already_holding_the_new_value_is_not_a_change(loaded) -> None
 
 def test_applying_an_argument_replace_rewrites_the_configuration(loaded) -> None:
     """End to end, on the shape a Flash's Text actually has."""
-    plan = mapswap_argument.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="Done", substitute=True, state=PrimeItems)
+    plan = mapswap_argument.plan_argument_replace(
+        FLASH, FLASH_TEXT, "Ready", match="Done", substitute=True, state=PrimeItems
+    )
     changed, errors = mapswap.apply(plan, state=PrimeItems)
 
     assert (changed, errors) == (1, [])
@@ -670,7 +681,9 @@ def test_an_argument_replace_says_what_it_is_in_one_line(loaded) -> None:
     """`what` is the preview's header AND the Undo label, so it has to read as a sentence
     about what was done -- 'Set Flash Text to ...' rather than '548t arg0'."""
     setting = mapswap_argument.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", state=PrimeItems)
-    substituting = mapswap_argument.plan_argument_replace(FLASH, FLASH_TEXT, "Ready", match="Done", substitute=True, state=PrimeItems)
+    substituting = mapswap_argument.plan_argument_replace(
+        FLASH, FLASH_TEXT, "Ready", match="Done", substitute=True, state=PrimeItems
+    )
 
     assert setting.what == "Set Flash Text to 'Ready'"
     assert substituting.what == "Replace 'Done' with 'Ready' in Flash Text"
@@ -752,7 +765,7 @@ _RENAME_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 
 @pytest.fixture
-def variables() -> "varxref.VariableIndex":
+def variables() -> varxref.VariableIndex:
     """The variable cross-reference for the rename fixture."""
     _load(_RENAME_XML)
     return varxref.build_index(state=PrimeItems)
@@ -858,6 +871,7 @@ def test_a_value_naming_a_variable_is_a_read_not_a_set(variables) -> None:
     Project assigns to them, and VAR-NEVER-SET is decided by exactly that -- a wrong set
     silences a real finding.
     """
+
     def offered(references: list) -> list:
         return [reference for reference in references if reference.element.tag == "pvv"]
 
@@ -993,11 +1007,11 @@ def test_a_plugins_declaration_of_its_outputs_is_skipped_not_rewritten(variables
     Rewriting it would edit the plugin's description of itself and change nothing about
     what it actually sets -- 4313 of these sit in one real backup, so this is not an edge.
     """
-    element = ET.fromstring(  # noqa: S314
-        '<net.dinglisch.android.tasker.RELEVANT_VARIABLES>x</net.dinglisch.android.tasker.RELEVANT_VARIABLES>',
+    element = ET.fromstring(
+        "<net.dinglisch.android.tasker.RELEVANT_VARIABLES>x</net.dinglisch.android.tasker.RELEVANT_VARIABLES>",
     )
     assert mapswap_sites.is_plugin_declaration(element)
-    assert not mapswap_sites.is_plugin_declaration(ET.fromstring('<Str sr="arg0">x</Str>'))  # noqa: S314
+    assert not mapswap_sites.is_plugin_declaration(ET.fromstring('<Str sr="arg0">x</Str>'))
 
 
 # ##################################################################################
@@ -1093,11 +1107,19 @@ def test_a_rename_is_confined_to_the_selected_object(variables, _no_selection) -
     """%Total is used in a Task, a Profile context and a Scene; selecting the Task drops
     the other two out of the plan entirely.
     """
-    everywhere = mapswap_rename.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
+    everywhere = mapswap_rename.plan_variable_rename(
+        varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems
+    )
     assert {change.site.where.kind for change in everywhere.changes} >= {TASK, PROFILE, SCENE}
 
     PrimeItems.program_arguments.single_task_name = "Adder"
-    scoped = mapswap_rename.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
+    scoped = mapswap_rename.plan_variable_rename(
+        varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems),
+        "%Total",
+        "",
+        "%Sum",
+        state=PrimeItems,
+    )
     assert {change.site.where.kind for change in scoped.changes} == {TASK}
     assert {change.site.where.key for change in scoped.changes} == {"30"}
     assert 0 < len(scoped.changes) < len(everywhere.changes)
@@ -1109,18 +1131,34 @@ def test_a_scoped_rename_leaves_the_variables_tab_declaration_alone(variables, _
     Renaming it from inside a single Task would rename Tasker's Variables tab entry out
     from under every other Task still using the old name.
     """
-    assert any(change.site.kind == mapswap_model.DECLARATION for change in
-               mapswap_rename.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems).changes)
+    assert any(
+        change.site.kind == mapswap_model.DECLARATION
+        for change in mapswap_rename.plan_variable_rename(
+            varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems
+        ).changes
+    )
 
     PrimeItems.program_arguments.single_task_name = "Adder"
-    scoped = mapswap_rename.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
+    scoped = mapswap_rename.plan_variable_rename(
+        varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems),
+        "%Total",
+        "",
+        "%Sum",
+        state=PrimeItems,
+    )
     assert not any(change.site.kind == mapswap_model.DECLARATION for change in scoped.changes)
 
 
 def test_a_scoped_rename_warns_that_it_leaves_the_rest_alone(variables, _no_selection) -> None:
     """A half-renamed global is a broken configuration, not a partly-done job."""
     PrimeItems.program_arguments.single_task_name = "Adder"
-    plan = mapswap_rename.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
+    plan = mapswap_rename.plan_variable_rename(
+        varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems),
+        "%Total",
+        "",
+        "%Sum",
+        state=PrimeItems,
+    )
     assert any("keep the old name" in warning for warning in plan.warnings)
 
 
@@ -1153,7 +1191,9 @@ def test_replacing_a_variable_with_an_existing_one_merges_and_says_so(variables,
     single object, and it is what the target pulldown offers.  What the user is told is
     the consequence, since it is not what the word "rename" suggests.
     """
-    plan = mapswap_rename.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Totals", state=PrimeItems)
+    plan = mapswap_rename.plan_variable_rename(
+        varxref.build_index(state=PrimeItems), "%Total", "", "%Totals", state=PrimeItems
+    )
     assert plan.changes
     merge = [warning for warning in plan.warnings if "MERGES" in warning]
     assert merge
@@ -1166,7 +1206,13 @@ def test_a_scoped_substitution_changes_only_the_selected_object(variables, _no_s
     nothing outside it.
     """
     PrimeItems.program_arguments.single_task_name = "Adder"
-    plan = mapswap_rename.plan_variable_rename(varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems), "%Total", "", "%Totals", state=PrimeItems)
+    plan = mapswap_rename.plan_variable_rename(
+        varxref.build_index(mapjump.current_scope(state=PrimeItems), state=PrimeItems),
+        "%Total",
+        "",
+        "%Totals",
+        state=PrimeItems,
+    )
     changed, errors = mapswap.apply(plan, state=PrimeItems)
     assert errors == []
     assert changed == len(plan.changes)
@@ -1207,7 +1253,9 @@ def test_ticks_are_carried_by_what_they_point_at_not_by_position(variables) -> N
     Ticks restored by position would then select different changes from the ones the user
     chose -- silently, and in a plan that is about to be applied.
     """
-    plan = mapswap_rename.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
+    plan = mapswap_rename.plan_variable_rename(
+        varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems
+    )
     assert len(plan.changes) > 2
 
     plan.selected = {0, 2}
@@ -1215,7 +1263,9 @@ def test_ticks_are_carried_by_what_they_point_at_not_by_position(variables) -> N
     wanted = {plan.changes[0].identity, plan.changes[2].identity}
 
     # Rebuild, with the list deliberately reordered to stand in for a tree that moved.
-    rebuilt = mapswap_rename.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
+    rebuilt = mapswap_rename.plan_variable_rename(
+        varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems
+    )
     rebuilt.changes.reverse()
     rebuilt.restore_ticks(remembered)
 
@@ -1228,11 +1278,15 @@ def test_restoring_ticks_overrides_the_defaults_in_both_directions(variables) ->
     Merging with the defaults instead would un-tick the RESET rows a user had gone through
     and enabled one at a time -- the exact work this is meant to preserve.
     """
-    plan = mapswap_rename.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
+    plan = mapswap_rename.plan_variable_rename(
+        varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems
+    )
     plan.selected = {1}
     remembered = plan.ticked_identities()
 
-    rebuilt = mapswap_rename.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
+    rebuilt = mapswap_rename.plan_variable_rename(
+        varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems
+    )
     assert rebuilt.selected == set(range(len(rebuilt.changes)))  # all ticked by default
     rebuilt.restore_ticks(remembered)
 
@@ -1246,7 +1300,9 @@ def test_indistinguishable_changes_are_restored_by_count(variables) -> None:
     So "two of these were ticked" is the whole of what they chose, and a Counter restores
     it exactly -- where a set would collapse the pair and lose one of the ticks.
     """
-    plan = mapswap_rename.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
+    plan = mapswap_rename.plan_variable_rename(
+        varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems
+    )
     duplicated = mapswap_model.Change(
         site=plan.changes[0].site,
         before=plan.changes[0].before,
@@ -1267,11 +1323,15 @@ def test_ticks_from_a_different_question_do_not_leak_across(variables) -> None:
     """Identities name the object, the field and the value, so a plan for another
     variable cannot match them and comes back at its own defaults.
     """
-    counter = mapswap_rename.plan_variable_rename(varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems)
+    counter = mapswap_rename.plan_variable_rename(
+        varxref.build_index(state=PrimeItems), "%Total", "", "%Sum", state=PrimeItems
+    )
     counter.selected = {0}
     remembered = counter.ticked_identities()
 
-    other = mapswap_rename.plan_variable_rename(varxref.build_index(state=PrimeItems), "%counter", "30", "%tally", state=PrimeItems)
+    other = mapswap_rename.plan_variable_rename(
+        varxref.build_index(state=PrimeItems), "%counter", "30", "%tally", state=PrimeItems
+    )
     other.restore_ticks(remembered)
     assert other.selected == set()
 
@@ -1321,7 +1381,9 @@ def test_the_all_instances_entry_leads_its_own_group(variables) -> None:
 def test_every_instance_renames_them_all(variables) -> None:
     """One call covering both Tasks, where naming an owner covers only that one."""
     one = mapswap_rename.plan_variable_rename(variables, "%counter", "30", "%tally", state=PrimeItems)
-    every = mapswap_rename.plan_variable_rename(variables, "%counter", mapswap_rename.EVERY_INSTANCE, "%tally", state=PrimeItems)
+    every = mapswap_rename.plan_variable_rename(
+        variables, "%counter", mapswap_rename.EVERY_INSTANCE, "%tally", state=PrimeItems
+    )
 
     assert {change.site.where.key for change in one.changes} == {"30"}
     assert {change.site.where.key for change in every.changes} == {"30", "31"}
@@ -1334,7 +1396,9 @@ def test_renaming_every_instance_of_a_local_says_how_many_it_is(variables) -> No
 
     The count is the only thing on screen that says how far it reaches.
     """
-    plan = mapswap_rename.plan_variable_rename(variables, "%counter", mapswap_rename.EVERY_INSTANCE, "%tally", state=PrimeItems)
+    plan = mapswap_rename.plan_variable_rename(
+        variables, "%counter", mapswap_rename.EVERY_INSTANCE, "%tally", state=PrimeItems
+    )
     local_warning = [warning for warning in plan.warnings if "separate variables" in warning]
     assert local_warning
     assert "2 separate variables" in local_warning[0]
@@ -1342,7 +1406,9 @@ def test_renaming_every_instance_of_a_local_says_how_many_it_is(variables) -> No
 
 def test_every_instance_applies_across_the_objects_it_named(variables) -> None:
     """End to end: both Tasks rewritten, and %counter gone from the file."""
-    plan = mapswap_rename.plan_variable_rename(variables, "%counter", mapswap_rename.EVERY_INSTANCE, "%tally", state=PrimeItems)
+    plan = mapswap_rename.plan_variable_rename(
+        variables, "%counter", mapswap_rename.EVERY_INSTANCE, "%tally", state=PrimeItems
+    )
     changed, errors = mapswap.apply(plan, state=PrimeItems)
     assert errors == []
     assert changed == len(plan.changes)
@@ -1397,10 +1463,15 @@ def test_the_source_pulldown_offers_the_contexts_the_file_actually_uses(loaded: 
     """Tasker's whole table of Events and States runs to 174 entries, nearly none of which
     are in the file in front of the user -- and the count beside each is also how many
     places a swap would touch."""
-    choices = dict((key, count) for key, _label, count in mapswap_condition.condition_choices(mapfind.build_index(state=PrimeItems)))
+    choices = dict(
+        (key, count)
+        for key, _label, count in mapswap_condition.condition_choices(mapfind.build_index(state=PrimeItems))
+    )
 
     assert choices == {"Time": 2, VARIABLE_VALUE: 2, DISPLAY_STATE: 1, AIRPLANE_MODE: 1}
-    labels = {key: label for key, label, _count in mapswap_condition.condition_choices(mapfind.build_index(state=PrimeItems))}
+    labels = {
+        key: label for key, label, _count in mapswap_condition.condition_choices(mapfind.build_index(state=PrimeItems))
+    }
     assert labels[DISPLAY_STATE].startswith("State: Display State")
 
 
@@ -1433,7 +1504,9 @@ def test_a_plugin_context_with_no_recorded_payload_is_blocked_with_its_reason(lo
     """An opaque payload has no empty form a plugin will accept -- bundles.json either has the
     definition or nothing can be written."""
     blocked = next(
-        key for key, _label, fidelity in mapswap_condition.condition_targets("Time", state=PrimeItems) if fidelity == mapswap_model.BLOCKED
+        key
+        for key, _label, fidelity in mapswap_condition.condition_targets("Time", state=PrimeItems)
+        if fidelity == mapswap_model.BLOCKED
     )
     plan = mapswap_condition.plan_condition_replace("Time", blocked, state=PrimeItems)
 

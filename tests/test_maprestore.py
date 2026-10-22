@@ -28,13 +28,13 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.analysis import xmldiff
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.mapjump import actions_in_map_order
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sessundo
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import maprefac, maprefac_model, maprestore
-from maptasker.src.core.mapjump import actions_in_map_order
-from maptasker.src.core.primitem import PrimeItems
 
 FLASH = "548"
 PERFORM_TASK = "130"
@@ -142,7 +142,7 @@ def _tables(root: ET.Element) -> dict:
 
 def _older() -> xmldiff.Configuration:
     """The snapshot, parsed with its own Element class, as a comparison side."""
-    parser = ET.XMLParser(target=ET.TreeBuilder(element_factory=_SnapshotElement))  # noqa: S314  (fixture text)
+    parser = ET.XMLParser(target=ET.TreeBuilder(element_factory=_SnapshotElement))
     parser.feed(_OLDER_XML)
     root = parser.close()
     return xmldiff.Configuration(path="snapshot", tables=_tables(root), root=root)
@@ -157,13 +157,13 @@ def _newer() -> xmldiff.Configuration:
 def loaded() -> None:
     """The newer configuration open, with an empty undo history."""
     sessundo.clear(PrimeItems)
-    root = ET.fromstring(_NEWER_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_NEWER_XML)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.xml_tree = ET.ElementTree(root)
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         specs = json.load(handle)
     specs[str(len(specs))] = "ConditionList"
     PrimeItems.tasker_arg_specs = specs
@@ -187,7 +187,11 @@ def _tids() -> list[str]:
 
 def _candidate(kind: str, key: str) -> maprestore.Candidate:
     """The one candidate the list offers for this object."""
-    matches = [c for c in maprestore.candidates(_older(), _newer(), state=PrimeItems).candidates if (c.kind, c.key) == (kind, key)]
+    matches = [
+        c
+        for c in maprestore.candidates(_older(), _newer(), state=PrimeItems).candidates
+        if (c.kind, c.key) == (kind, key)
+    ]
     assert len(matches) == 1, f"expected one candidate for {kind} {key}, got {len(matches)}"
     return matches[0]
 
@@ -204,7 +208,7 @@ def _restore(kind: str, key: str, older: xmldiff.Configuration | None = None) ->
 
 def _add_task(task_id: str, name: str) -> None:
     """Put another Task into the configuration open now -- the thing a restore must not overwrite."""
-    element = ET.fromstring(f'<Task sr="task{task_id}" ve="2"><id>{task_id}</id><nme>{name}</nme></Task>')  # noqa: S314
+    element = ET.fromstring(f'<Task sr="task{task_id}" ve="2"><id>{task_id}</id><nme>{name}</nme></Task>')
     _live("all_tasks")[task_id] = {"xml": element, "name": name}
     _live("all_tasks_by_name")[name] = {"xml": element, "id": task_id}
 
@@ -290,7 +294,9 @@ def test_task_comes_back_on_its_own_id_and_in_its_project(loaded: None) -> None:
     assert "21" in _tids()
     assert [a.findtext("code") for a in actions_in_map_order(_live("all_tasks")["21"]["xml"])] == [FLASH]
     # And the comparison no longer has it as removed -- which is the whole claim.
-    assert ("Task", "21") not in {(c.kind, c.key) for c in maprestore.candidates(_older(), _newer(), state=PrimeItems).candidates}
+    assert ("Task", "21") not in {
+        (c.kind, c.key) for c in maprestore.candidates(_older(), _newer(), state=PrimeItems).candidates
+    }
 
 
 def test_restored_element_is_of_the_live_trees_class(loaded: None) -> None:
@@ -319,7 +325,7 @@ def test_task_whose_id_was_taken_comes_back_on_a_new_one(loaded: None) -> None:
 
 def test_task_whose_id_a_profile_holds_comes_back_on_a_new_one(loaded: None) -> None:
     """Tasks and Profiles draw from one id space -- a free Task id is not enough."""
-    profile = ET.fromstring('<Profile sr="prof21" ve="2"><id>21</id><nme>Holder</nme></Profile>')  # noqa: S314
+    profile = ET.fromstring('<Profile sr="prof21" ve="2"><id>21</id><nme>Holder</nme></Profile>')
     _live("all_profiles")["21"] = {"xml": profile, "name": "Holder"}
 
     _restore("Task", "21")
@@ -444,7 +450,7 @@ def test_scene_comes_back_under_its_own_name_and_in_its_project(loaded: None) ->
 def test_scene_whose_name_is_taken_is_refused_not_renamed(loaded: None) -> None:
     """A Scene is its name: one brought back as 'Panel (restored)' is one nothing can show."""
     candidate = _candidate("Scene", "Panel")
-    element = ET.fromstring('<Scene sr="scenePanel"><nme>Panel</nme></Scene>')  # noqa: S314
+    element = ET.fromstring('<Scene sr="scenePanel"><nme>Panel</nme></Scene>')
     _live("all_scenes")["Panel"] = {"xml": element, "name": "Panel"}
 
     plan = maprestore.plan_restore(candidate, _older(), FROM_WHEN, state=PrimeItems)

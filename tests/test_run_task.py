@@ -15,9 +15,9 @@ import xml.etree.ElementTree as ET
 from urllib.parse import unquote
 
 import pytest
-from maptasker.src.core.primitem import PrimeItems
 import requests
 from maptasker.src.core import maputil2
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import devicehelpers, devicetask, deviceverify
 
 from tests.test_deviceinv import _FIXTURE_XML, _load
@@ -85,7 +85,7 @@ class _FakeDevice:
 
     def post(self, url: str, data: bytes = b"", timeout: float = 0, **_kwargs: object) -> _Response:
         if url.endswith("/api/import"):
-            name = ET.fromstring(data).findtext(".//nme")  # noqa: S314  (built by the code under test)
+            name = ET.fromstring(data).findtext(".//nme")
             self.imported.append(name)
             self.tasks[name] = ""
             return _Response(200, b"{}")
@@ -235,7 +235,7 @@ def test_the_helper_runs_the_named_task_the_way_the_handler_does() -> None:
     built = devicetask.build_run_task_helper(state=PrimeItems)
     assert not isinstance(built, str), built
 
-    task = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
+    task = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
     perform = task.find("Action[code='130']")
     assert perform.findtext("Str[@sr='arg0']") == "%mt_run_task"
     assert perform.findtext("Int[@sr='arg1']/var") == "%priority"

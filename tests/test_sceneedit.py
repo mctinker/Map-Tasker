@@ -20,8 +20,8 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core import editcommon, scenelayout
-from maptasker.src.edit import sceneedit, sceneedit_legacy, scenemodel, sessundo
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import sceneedit, sceneedit_legacy, scenemodel, sessundo
 
 from tests.test_mapswap import _load
 
@@ -175,10 +175,10 @@ def test_renaming_a_layout_that_cannot_be_read_leaves_it_as_it_was() -> None:
     broken = ET.Element("Scene")
     ET.SubElement(broken, "lj").text = "garbage"
 
-    scenelayout.rename_v2_layout(broken, "New")  # noqa: SLF001
+    scenelayout.rename_v2_layout(broken, "New")
 
     assert broken.findtext("lj") == "garbage"
-    scenelayout.rename_v2_layout(ET.Element("Scene"), "New")  # A Legacy Scene: nothing to do.  # noqa: SLF001
+    scenelayout.rename_v2_layout(ET.Element("Scene"), "New")  # A Legacy Scene: nothing to do.
 
 
 # ##################################################################################
@@ -365,9 +365,9 @@ def test_adding_to_a_project_that_is_not_there_does_nothing() -> None:
 def test_the_scene_names_of_a_project_ignore_blanks() -> None:
     element = ET.fromstring("<Project><scenes>A,,B,</scenes></Project>")
 
-    assert sceneedit._project_scene_names(element) == ["A", "B"]  # noqa: SLF001
-    assert sceneedit._project_scene_names(ET.fromstring("<Project/>")) == []  # noqa: SLF001
-    assert sceneedit._project_scene_names(ET.fromstring("<Project><scenes/></Project>")) == []  # noqa: SLF001
+    assert sceneedit._project_scene_names(element) == ["A", "B"]
+    assert sceneedit._project_scene_names(ET.fromstring("<Project/>")) == []
+    assert sceneedit._project_scene_names(ET.fromstring("<Project><scenes/></Project>")) == []
 
 
 def test_the_first_project_that_lists_a_scene_owns_it() -> None:
@@ -379,11 +379,11 @@ def test_the_first_project_that_lists_a_scene_owns_it() -> None:
 def test_a_scenes_list_is_removed_when_the_last_scene_goes_rather_than_left_empty() -> None:
     element = ET.fromstring("<Project><scenes>A</scenes></Project>")
 
-    sceneedit._set_project_scene_names(element, [])  # noqa: SLF001
+    sceneedit._set_project_scene_names(element, [])
     assert element.find("scenes") is None
-    sceneedit._set_project_scene_names(element, [])  # Nothing there to remove.  # noqa: SLF001
+    sceneedit._set_project_scene_names(element, [])  # Nothing there to remove.
 
-    sceneedit._set_project_scene_names(element, ["A", "B"])  # noqa: SLF001
+    sceneedit._set_project_scene_names(element, ["A", "B"])
     assert element.findtext("scenes") == "A,B"
 
 
@@ -440,7 +440,9 @@ def test_pending_element_renames_are_applied_to_the_tasks_at_this_point_and_no_o
     calls = []
     # The list is cleared once applied, so what it held has to be copied at the time.
     monkeypatch.setattr(
-        sceneedit_legacy, "apply_element_renames_to_tasks", lambda scene, renames, **_: calls.append((scene, list(renames)))
+        sceneedit_legacy,
+        "apply_element_renames_to_tasks",
+        lambda scene, renames, **_: calls.append((scene, list(renames))),
     )
     edited = _edit("Dash")
     edited.element_renames.append(("Old", "New"))
@@ -524,7 +526,7 @@ def test_the_tasks_a_scene_fires_are_listed_in_document_order_and_inline_ones_ar
 
 
 def test_the_export_is_the_screen_metric_the_scene_and_the_tasks_it_fires_once_each() -> None:
-    root = ET.fromstring(sceneedit.render_standalone_scene_xml("Dash", state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(sceneedit.render_standalone_scene_xml("Dash", state=PrimeItems))
 
     assert root.attrib == {"sr": "", "dvi": "1", "tv": "6.3.13"}
     assert [(child.tag, child.findtext("nme")) for child in root] == [
@@ -539,7 +541,7 @@ def test_the_export_is_the_screen_metric_the_scene_and_the_tasks_it_fires_once_e
 def test_a_backup_with_no_screen_metric_exports_without_one(monkeypatch: pytest.MonkeyPatch) -> None:
     PrimeItems.xml_root.remove(PrimeItems.xml_root.find("dmetric"))
 
-    root = ET.fromstring(sceneedit.render_standalone_scene_xml("Dash", state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(sceneedit.render_standalone_scene_xml("Dash", state=PrimeItems))
 
     assert root.find("dmetric") is None
 
@@ -547,7 +549,7 @@ def test_a_backup_with_no_screen_metric_exports_without_one(monkeypatch: pytest.
 def test_a_task_that_is_not_in_the_backup_is_skipped() -> None:
     del PrimeItems.tasker_root_elements["all_tasks"]["26"]
 
-    root = ET.fromstring(sceneedit.render_standalone_scene_xml("Dash", state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(sceneedit.render_standalone_scene_xml("Dash", state=PrimeItems))
 
     assert [task.findtext("nme") for task in root.findall("Task")] == ["Clicked"]
 

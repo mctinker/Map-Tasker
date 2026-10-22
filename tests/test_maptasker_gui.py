@@ -31,23 +31,21 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.analysis import timecomp
 from maptasker.src.core import clock, timeline
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.mapfonts import get_monospaced_fonts
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import TIMELINE_FILE
+from maptasker.src.gui import guiwins, userintr_android, userintr_editors
 from maptasker.src.gui.guiutils import (
     SINGLE_ITEM_LABELS,
     clear_single_item_view_names,
     is_no_selection,
     reset_single_item_selection,
 )
-from maptasker.src.gui import guiwins
 from maptasker.src.gui.guiwins import document_language_html, set_document_language_js
 from maptasker.src.gui.guiwins_views import NiceGuiTextView
-from maptasker.src.core.mapfonts import get_monospaced_fonts
-from maptasker.src.core.primitem import PrimeItems
-from maptasker.src.core.sysconst import TIMELINE_FILE
-from maptasker.src.gui import userintr_android
-from maptasker.src.gui import userintr_editors
 from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 
 # Taken before the autouse tasker_has_nothing fixture stubs it, for the tests of the check itself.
@@ -84,7 +82,6 @@ def tasker_has_nothing(monkeypatch):
     which is a real request.  Stubbed to 'nothing there' so each test sees only the prompt it is
     about; the tests of that check replace this with an answer of their own.
     """
-    from maptasker.src.gui import userintr
 
     async def nothing(_ip, _port, _render, _consequence, **_options) -> list[str]:
         return []
@@ -204,7 +201,7 @@ def gui_with_selection():
 # ==========================================
 def _optimized(raw_html: str) -> str:
     """The Map view's own pass over the file it reads, as process_data runs it."""
-    from maptasker.src.gui.guiwins_views import HTML_OPTIMIZE_PATTERN, optimize_html  # noqa: PLC0415
+    from maptasker.src.gui.guiwins_views import HTML_OPTIMIZE_PATTERN, optimize_html
 
     return HTML_OPTIMIZE_PATTERN.sub(optimize_html, raw_html)
 
@@ -251,14 +248,14 @@ def test_a_run_of_written_newlines_is_one_line_break():
 # ==========================================
 def _split(html: str, budget: int) -> list:
     """The view's own splitter."""
-    from maptasker.src.gui.guiwins_views import split_for_streaming  # noqa: PLC0415
+    from maptasker.src.gui.guiwins_views import split_for_streaming
 
     return split_for_streaming(html, budget)
 
 
 def _rendered_text(pieces: list) -> str:
     """What the pieces say, with the markup taken out -- what the reader ends up seeing."""
-    import re  # noqa: PLC0415
+    import re
 
     return re.sub(r"<[^>]*>", "", "".join(pieces))
 
@@ -469,7 +466,7 @@ def command_line_view_limit():
 
 def test_the_offered_limits_are_left_alone_for_one_of_their_own():
     """A choice already on the pulldown adds nothing to it."""
-    from maptasker.src.gui.guiwins import VIEW_LIMIT_CHOICES, view_limit_options  # noqa: PLC0415
+    from maptasker.src.gui.guiwins import VIEW_LIMIT_CHOICES, view_limit_options
 
     assert view_limit_options("25000") == list(VIEW_LIMIT_CHOICES)
     assert view_limit_options("Unlimited") == list(VIEW_LIMIT_CHOICES)
@@ -477,7 +474,7 @@ def test_the_offered_limits_are_left_alone_for_one_of_their_own():
 
 def test_a_limit_of_its_own_is_offered_in_numeric_order():
     """A limit given with -view_limit has to be on the pulldown for it to be shown."""
-    from maptasker.src.gui.guiwins import view_limit_options  # noqa: PLC0415
+    from maptasker.src.gui.guiwins import view_limit_options
 
     assert view_limit_options("250")[0] == "250"
     assert view_limit_options("12345")[2] == "12345"  # Between 10000 and 15000.
@@ -577,7 +574,7 @@ async def test_view_event_map_execution_flow(
     thread and then opens a '/popout/map' page -- so the handoff and the popout are what
     identify the path, rather than a textview being assigned.
     """
-    from maptasker.src.gui.userintr import build_html  # noqa: PLC0415
+    from maptasker.src.gui.userintr import build_html
 
     mock_gui_instance.view_limit = 5000
     PrimeItems.xml_root = MagicMock()  # Map refuses to run without loaded XML.
@@ -1241,7 +1238,9 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
     )
     monkeypatch.setattr(userintr_android.profedit, "render_standalone_profile_xml", lambda _p, **_kw: "<TaskerData/>")
     monkeypatch.setattr(userintr_android.projedit, "render_standalone_project_xml", lambda _n, **_kw: "<TaskerData/>")
-    monkeypatch.setattr(userintr_android.projedit, "project_profile_names", lambda _n, **_kw: ["Watched", "Also Watched"])
+    monkeypatch.setattr(
+        userintr_android.projedit, "project_profile_names", lambda _n, **_kw: ["Watched", "Also Watched"]
+    )
     monkeypatch.setattr(userintr_android, "_unapplied_project_edits", lambda _refs: [])
     monkeypatch.setattr(userintr_android.sceneedit, "render_standalone_scene_xml", lambda _n, **_kw: "<TaskerData/>")
     monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s, **_kw: None)
@@ -1256,6 +1255,7 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
         "_keep_profile_in_loaded_config",
         lambda _self, *args: calls["kept"].append(args),
     )
+
     def fake_notify(message, **kwargs) -> None:
         calls["notify"].append((message, kwargs.get("type")))
         calls["in_slot"].append(_FakeClient.depth > 0)
@@ -1719,7 +1719,6 @@ async def test_unapplied_project_edits_stop_it_before_the_device(monkeypatch, ev
     """Same guard save_project_to_android_event has, for the same reason: this exports the
     Project from the live tree by name, so a dialog field that was never applied would be
     dropped silently from what reaches the phone.  It has to fail before anything is sent."""
-    from maptasker.src.gui import userintr
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")])
@@ -1913,7 +1912,6 @@ async def test_the_scene_edits_are_applied_before_the_export(monkeypatch, event_
     by name, while the dialog edits a deep copy whose V2 layout nothing writes back until a
     save handler runs.  Without the apply, an element added a moment ago is simply absent
     from the file that reaches the phone."""
-    from maptasker.src.gui import userintr
 
     applied = []
     _field_refs, android_refs = profile_dialog_refs
@@ -1937,7 +1935,6 @@ async def test_a_scene_that_fails_validation_never_reaches_the_device(
 ):
     """Applying first is also what makes a bad field stop this before anything is sent,
     rather than after -- same order save_scene_to_android_event uses."""
-    from maptasker.src.gui import userintr
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")])
@@ -2153,8 +2150,6 @@ def test_every_save_to_android_path_warns_about_the_device_prompts() -> None:
     import ast
     import inspect
 
-    from maptasker.src.gui import userintr
-
     handlers = {
         "save_task_to_android_event",
         "save_task_to_android_file_event",
@@ -2189,7 +2184,9 @@ def test_a_save_to_android_panel_option_is_kept_for_the_next_session(monkeypatch
         "save_restore_args",
         lambda args, colors, to_save=False, **_kw: (written.append((dict(args), to_save)), (args, colors))[1],
     )
-    monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments(android_verify=False, android_check_ids=False))
+    monkeypatch.setattr(
+        PrimeItems, "program_arguments", ProgramArguments(android_verify=False, android_check_ids=False)
+    )
     gui = MagicMock()
     gui.state = PrimeItems
 
@@ -2249,8 +2246,8 @@ def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch) ->
 
 def test_the_last_android_address_is_a_saved_setting() -> None:
     """In ARGUMENT_NAMES, so every whole-settings save (Exit, Save Settings, a map run) writes it."""
-    from maptasker.src.core.initparg import initialize_runtime_arguments  # noqa: PLC0415
-    from maptasker.src.core.sysconst import ARGUMENT_NAMES  # noqa: PLC0415
+    from maptasker.src.core.initparg import initialize_runtime_arguments
+    from maptasker.src.core.sysconst import ARGUMENT_NAMES
 
     defaults = initialize_runtime_arguments()
     for name in ("android_last_ipaddr", "android_last_port"):
@@ -2266,8 +2263,6 @@ def test_no_save_to_android_path_calls_the_device_on_the_event_loop() -> None:
     above gives: the next handler gets written by copying one of these."""
     import ast
     import inspect
-
-    from maptasker.src.gui import userintr
 
     paths = {
         "save_task_to_android_event",
@@ -2339,8 +2334,6 @@ def test_every_device_write_asks_tasker_what_it_already_has() -> None:
     import ast
     import inspect
 
-    from maptasker.src.gui import userintr
-
     paths = {
         "save_task_to_android_event",
         "save_task_to_android_file_event",
@@ -2366,7 +2359,11 @@ def test_every_device_write_asks_tasker_what_it_already_has() -> None:
     }
     assert asks == paths, f"no Tasker check, or no check_ids, in: {sorted(paths - asks)}"
 
-    importers = {"import_profile_into_tasker_event", "import_project_into_tasker_event", "import_scene_into_tasker_event"}
+    importers = {
+        "import_profile_into_tasker_event",
+        "import_project_into_tasker_event",
+        "import_scene_into_tasker_event",
+    }
     # The box travels in the IntoTaskerOffer each importer hands to _offer_into_tasker.
     passes_box = {
         node.name
@@ -2391,7 +2388,6 @@ def test_every_device_write_asks_tasker_what_it_already_has() -> None:
 
 @pytest.mark.asyncio
 async def test_the_check_ids_box_reaches_the_tasker_check(monkeypatch, event_handler, task_dialog_refs):
-    from maptasker.src.gui import userintr
 
     _patch_task_file_path(monkeypatch)
     asked: list = []
@@ -2414,7 +2410,6 @@ async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(monkeypa
     """A missing file used to mean no prompt.  Tasker already having the Task is now a reason
     of its own -- nothing is uploaded until it is answered, and the prompt says it is Tasker,
     not a file, that has it."""
-    from maptasker.src.gui import userintr
 
     calls = _patch_task_file_path(monkeypatch, exists=False)
     lines = ["Tasker already has the Task 'Opener'.", userintr_android._FILE_WRITE_CONSEQUENCE]
@@ -2465,7 +2460,9 @@ _ONE_PROJECT = '<TaskerData sr=""><Project sr="proj0"><name>Test</name></Project
 async def test_tasker_lines_end_with_what_happens_to_the_objects(monkeypatch):
     notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": ["Test1"]}, {}))
 
-    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_TASK, "CONSEQUENCE", state=PrimeItems)
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
+        "192.168.0.210", "1821", lambda: _ONE_TASK, "CONSEQUENCE", state=PrimeItems
+    )
 
     assert lines == ["Tasker already has the Task 'Test1'.", "CONSEQUENCE"]
     assert notes == []  # no Project, so no helper Task to warn about
@@ -2476,7 +2473,9 @@ async def test_a_check_that_could_not_run_prompts_without_a_consequence(monkeypa
     """Nothing is known to be there, so there is nothing to say will happen to it."""
     _inline_tasker_check(monkeypatch, lambda _sent: ({}, {"Task": "Tasker did not answer."}))
 
-    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_TASK, "CONSEQUENCE", state=PrimeItems)
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
+        "192.168.0.210", "1821", lambda: _ONE_TASK, "CONSEQUENCE", state=PrimeItems
+    )
 
     assert lines == ["Could not check which Tasks Tasker already has: Tasker did not answer."]
 
@@ -2485,7 +2484,9 @@ async def test_a_check_that_could_not_run_prompts_without_a_consequence(monkeypa
 async def test_nothing_in_tasker_means_no_lines_and_a_project_check_is_announced(monkeypatch):
     notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Project": []}, {}))
 
-    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_PROJECT, "CONSEQUENCE", state=PrimeItems)
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
+        "192.168.0.210", "1821", lambda: _ONE_PROJECT, "CONSEQUENCE", state=PrimeItems
+    )
 
     assert lines == []
     assert notes and "Projects" in notes[0]
@@ -2495,14 +2496,17 @@ async def test_nothing_in_tasker_means_no_lines_and_a_project_check_is_announced
 async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
     """Names and ids alike come from the fresh backup -- nothing is asked by name as well."""
     from maptasker.src.device import devicecheck
-    from maptasker.src.gui import userintr
 
     notes = _inline_tasker_check(monkeypatch, lambda _sent: pytest.fail("asked by name despite a backup"))
     clash = devicecheck.IdFinding("Task", "Test1plus", "1209", "Task", "Atest1Plus", "1209")
     monkeypatch.setattr(
         userintr_android.devicecheck,
         "check_against_device_backup",
-        lambda _ip, _port, _xml, **_kw: (devicecheck.TaskerCheck({"Task": ["Test1"]}, {"Task": ["Test1"]}, {}), [clash], ""),
+        lambda _ip, _port, _xml, **_kw: (
+            devicecheck.TaskerCheck({"Task": ["Test1"]}, {"Task": ["Test1"]}, {}),
+            [clash],
+            "",
+        ),
     )
 
     lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
@@ -2525,7 +2529,6 @@ async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
 @pytest.mark.asyncio
 async def test_a_backup_that_cannot_be_had_falls_back_to_asking_by_name(monkeypatch):
     """The id answer is lost, and said to be; the name answer is still worth having."""
-    from maptasker.src.gui import userintr
 
     _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": ["Test1"]}, {}))
     monkeypatch.setattr(
@@ -2632,7 +2635,6 @@ async def test_the_task_import_asks_before_replacing_the_file_it_writes(
     """The import writes /Tasker/tasks/<name>.tsk.xml and imports that, so it clobbers the
     same path 'Save As File' does -- and has to ask the same question, in the same words,
     whichever button the user pressed."""
-    from maptasker.src.gui import userintr
 
     calls = _patch_task_file_path(monkeypatch, exists=True)
     imported = []
@@ -2675,7 +2677,6 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
     regardless -- written and read back before either attempt -- so the user gets the same
     "Open with..." chooser the other three kinds get instead of only bad news."""
     from maptasker.src.device import deviceoffer
-    from maptasker.src.gui import userintr
 
     calls = _patch_task_file_path(monkeypatch)
     monkeypatch.setattr(userintr_android.taskedit_save, "save_task_to_android", lambda *args, **_kwargs: (0, args[3]))
@@ -2685,7 +2686,9 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
         "save_task_to_android_directory",
         lambda *_args, **_kwargs: (8, "Tasker did not report the Task"),
     )
-    monkeypatch.setattr(userintr_android.taskedit_save, "render_standalone_task_xml", lambda _task, **_kw: "<TaskerData/>")
+    monkeypatch.setattr(
+        userintr_android.taskedit_save, "render_standalone_task_xml", lambda _task, **_kw: "<TaskerData/>"
+    )
     offered: list = []
     monkeypatch.setattr(
         userintr_android.deviceoffer,
@@ -2718,7 +2721,6 @@ async def test_the_task_import_says_where_the_copy_was_left(monkeypatch, event_h
     """The copy is the point of the change and the user has no other way to learn it is
     there -- an import that silently leaves a file behind is a file nobody knows to look
     for."""
-    from maptasker.src.gui import userintr
 
     calls = _patch_task_file_path(monkeypatch)
     monkeypatch.setattr(userintr_android.taskedit_save, "save_task_to_android", lambda *args, **_kwargs: (0, args[3]))
@@ -2801,16 +2803,22 @@ def _patch_object_save_path(monkeypatch, kind: str, exists=False, upload=(0, "/T
             "_keep_profile_in_loaded_config",
             lambda _self, *_args: None,
         )
-        monkeypatch.setattr(userintr_android.profedit, "android_profile_path", lambda name: f"/Tasker/profiles/{name}.prf.xml")
+        monkeypatch.setattr(
+            userintr_android.profedit, "android_profile_path", lambda name: f"/Tasker/profiles/{name}.prf.xml"
+        )
         monkeypatch.setattr(userintr_android.profedit, "save_profile_to_android", record)
     elif kind == "project":
         monkeypatch.setattr(userintr_android, "_unapplied_project_edits", lambda _refs: [])
-        monkeypatch.setattr(userintr_android.projedit, "android_project_path", lambda name: f"/Tasker/projects/{name}.prj.xml")
+        monkeypatch.setattr(
+            userintr_android.projedit, "android_project_path", lambda name: f"/Tasker/projects/{name}.prj.xml"
+        )
         monkeypatch.setattr(userintr_android.projedit, "save_project_to_android", record)
     else:
         monkeypatch.setattr(userintr_android, "_apply_scene_field_values", lambda _s, _refs: [])
         monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s, **_kw: None)
-        monkeypatch.setattr(userintr_android.sceneedit, "android_scene_path", lambda name: f"/Tasker/scenes/{name}.scn.xml")
+        monkeypatch.setattr(
+            userintr_android.sceneedit, "android_scene_path", lambda name: f"/Tasker/scenes/{name}.scn.xml"
+        )
         monkeypatch.setattr(userintr_android.sceneedit, "save_scene_to_android", record)
     return calls
 
@@ -3000,7 +3008,7 @@ def test_a_restored_profile_shows_in_a_pulldown_that_lists_names_bare():
     """An exported single-Profile XML has no Project, so get_tasker_objects lists the
     Profile names bare -- the restore path's guessed "Profile: <name>" matches nothing
     there and used to leave the pulldown showing only its "Profile" label."""
-    from maptasker.src.gui.guiutils import display_object_pulldowns  # noqa: PLC0415
+    from maptasker.src.gui.guiutils import display_object_pulldowns
 
     gui = _gui_with_pulldowns({})
     gui.single_profile_name = "$NewProfile"
@@ -3015,7 +3023,7 @@ def test_a_restored_profile_shows_in_a_pulldown_that_lists_names_bare():
 def test_a_restored_profile_shows_in_a_pulldown_that_lists_names_prefixed():
     """The same selection against a full backup, where the Profile options do carry the
     "Profile: " head."""
-    from maptasker.src.gui.guiutils import display_object_pulldowns  # noqa: PLC0415
+    from maptasker.src.gui.guiutils import display_object_pulldowns
 
     gui = _gui_with_pulldowns({})
     gui.single_profile_name = "$NewProfile"
@@ -3028,7 +3036,7 @@ def test_a_restored_profile_shows_in_a_pulldown_that_lists_names_prefixed():
 
 def test_rebuilding_the_lists_leaves_an_unselected_pulldown_alone():
     """Nothing selected stays nothing selected -- the re-point must not invent one."""
-    from maptasker.src.gui.guiutils import display_object_pulldowns  # noqa: PLC0415
+    from maptasker.src.gui.guiutils import display_object_pulldowns
 
     gui = _gui_with_pulldowns({})
 
@@ -3042,7 +3050,7 @@ def test_the_selection_is_repointed_without_firing_the_change_handlers():
     """Assigning a select's .value fires its on_change, which would re-enter the
     single_xxx_name_event handlers -- so the re-point runs under the is_updating lock
     and hands it back as it found it."""
-    from maptasker.src.gui.guiutils import reapply_single_item_selections  # noqa: PLC0415
+    from maptasker.src.gui.guiutils import reapply_single_item_selections
 
     gui = _gui_with_pulldowns({"Profile": ["None", "$NewProfile"]})
     gui.single_profile_name = "$NewProfile"

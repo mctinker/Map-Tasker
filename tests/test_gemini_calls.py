@@ -15,8 +15,8 @@ from types import SimpleNamespace
 
 import pytest
 from maptasker.src.analysis import mapask
-from maptasker.src.gui import mapai
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.gui import mapai
 
 AFC_OFF = {"automatic_function_calling": {"disable": True}}
 
@@ -64,7 +64,7 @@ def test_the_real_library_logs_no_function_calling_warning(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     genai = pytest.importorskip("google.genai")
-    from google.genai import models  # noqa: PLC0415
+    from google.genai import models
 
     monkeypatch.setattr(models.Models, "_logged_afc_warning", False)  # It warns once per process.
     monkeypatch.setattr(PrimeItems.program_arguments, "ai_model", "gemini-test", raising=False)

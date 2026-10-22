@@ -22,9 +22,9 @@ import pytest
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.core.parsearg import runtime_parser, validate_view_limit
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import VIEW_LIMIT_DEFAULT
 from maptasker.src.progargs import VIEW_LIMIT_UNLIMITED, resolve_view_limit
 from maptasker.src.runcli import process_extended_arguments
-from maptasker.src.core.sysconst import VIEW_LIMIT_DEFAULT
 
 
 @pytest.fixture

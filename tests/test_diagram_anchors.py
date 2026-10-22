@@ -17,15 +17,14 @@ import unicodedata
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core import mapjump
-from maptasker.src.gui import guiwins, userintr
-from maptasker.src.mapgen import diagintr, diagram, taskerd
+from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import PROFILE, PROJECT, TASK, Target, diagram_placement
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.runcfg import RunConfig, current_config
 from maptasker.src.core.sysconst import DIAGRAM_FILE
-from maptasker.src.gui import guiwins_search, guiwins_views
+from maptasker.src.gui import guiwins_search, guiwins_views, userintr
+from maptasker.src.mapgen import diagintr, diagram, taskerd
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 _OTHER_PROFILE = Target(kind=PROFILE, key="11", name="Wind Down")
@@ -49,8 +48,8 @@ def _clean_slate() -> None:
 def test_a_box_lands_on_the_middle_of_its_three_lines() -> None:
     """A box is drawn as a top, a name and a bottom; only the middle line names it."""
     diagram.add_output_line("header", state=PrimeItems)
-    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)  # noqa: SLF001
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)  # noqa: SLF001
+    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)
+    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)
 
     row, _snippet = PrimeItems.diagram_object_seeds[_PROFILE.anchor]
     assert row == 2
@@ -59,9 +58,9 @@ def test_a_box_lands_on_the_middle_of_its_three_lines() -> None:
 
 def test_several_boxes_on_one_row_all_land_on_it() -> None:
     """Six Profiles side by side share the line, and each is recorded on it."""
-    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)  # noqa: SLF001
-    diagram._note_box(_OTHER_PROFILE, "║ Wind Down", state=PrimeItems)  # noqa: SLF001
-    diagram._flush_boxes(["top", "║ Wake Up ║ ║ Wind Down ║", "bottom"], state=PrimeItems)  # noqa: SLF001
+    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)
+    diagram._note_box(_OTHER_PROFILE, "║ Wind Down", state=PrimeItems)
+    diagram._flush_boxes(["top", "║ Wake Up ║ ║ Wind Down ║", "bottom"], state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds[_PROFILE.anchor][0] == 1
     assert PrimeItems.diagram_object_seeds[_OTHER_PROFILE.anchor][0] == 1
@@ -69,10 +68,10 @@ def test_several_boxes_on_one_row_all_land_on_it() -> None:
 
 def test_a_flush_clears_what_it_fixed() -> None:
     """Notes belong to the buffer being flushed, never to the next one."""
-    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)  # noqa: SLF001
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)  # noqa: SLF001
-    diagram._note_box(_OTHER_PROFILE, "║ Wind Down", state=PrimeItems)  # noqa: SLF001
-    diagram._flush_boxes(["top", "║ Wind Down ║", "bottom"], state=PrimeItems)  # noqa: SLF001
+    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)
+    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)
+    diagram._note_box(_OTHER_PROFILE, "║ Wind Down", state=PrimeItems)
+    diagram._flush_boxes(["top", "║ Wind Down ║", "bottom"], state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds[_PROFILE.anchor][0] == 1
     assert PrimeItems.diagram_object_seeds[_OTHER_PROFILE.anchor][0] == 4
@@ -82,9 +81,9 @@ def test_task_lines_keep_their_place_within_the_buffer() -> None:
     """A Task's row is where its line sits in the run of Task lines, not where it was noted."""
     diagram.add_output_line("header", state=PrimeItems)
     buffer = ["└─ Backup", "", "└─ Restore"]
-    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)  # noqa: SLF001
-    diagram._note_task(2, _TWIN, "└─ Restore", state=PrimeItems)  # noqa: SLF001
-    diagram._flush_tasks(buffer, state=PrimeItems)  # noqa: SLF001
+    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)
+    diagram._note_task(2, _TWIN, "└─ Restore", state=PrimeItems)
+    diagram._flush_tasks(buffer, state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 1
     assert PrimeItems.diagram_object_seeds[_TWIN.anchor][0] == 3
@@ -92,9 +91,9 @@ def test_task_lines_keep_their_place_within_the_buffer() -> None:
 
 def test_two_tasks_of_one_name_are_recorded_separately() -> None:
     """The whole point of recording positions rather than matching text."""
-    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)  # noqa: SLF001
-    diagram._note_task(1, _TWIN, "└─ Backup", state=PrimeItems)  # noqa: SLF001
-    diagram._flush_tasks(["└─ Backup", "└─ Backup"], state=PrimeItems)  # noqa: SLF001
+    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)
+    diagram._note_task(1, _TWIN, "└─ Backup", state=PrimeItems)
+    diagram._flush_tasks(["└─ Backup", "└─ Backup"], state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 0
     assert PrimeItems.diagram_object_seeds[_TWIN.anchor][0] == 1
@@ -102,10 +101,10 @@ def test_two_tasks_of_one_name_are_recorded_separately() -> None:
 
 def test_the_first_drawing_of_a_task_is_the_one_kept() -> None:
     """A Task run by two Profiles is drawn twice; a jump goes to the first, as in the Map."""
-    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)  # noqa: SLF001
-    diagram._flush_tasks(["└─ Backup"], state=PrimeItems)  # noqa: SLF001
-    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)  # noqa: SLF001
-    diagram._flush_tasks(["└─ Backup"], state=PrimeItems)  # noqa: SLF001
+    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)
+    diagram._flush_tasks(["└─ Backup"], state=PrimeItems)
+    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)
+    diagram._flush_tasks(["└─ Backup"], state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 0
 
@@ -116,7 +115,7 @@ def test_the_first_drawing_of_a_task_is_the_one_kept() -> None:
 def test_a_remap_moves_every_object_with_its_line() -> None:
     """add_blanks_above_called_tasks and the bar sweep both shift rows under the objects."""
     PrimeItems.diagram_object_seeds = {"a": (5, "x"), "b": (9, "y")}
-    diagram._remap_object_seeds({5: 12, 9: 20}, state=PrimeItems)  # noqa: SLF001
+    diagram._remap_object_seeds({5: 12, 9: 20}, state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds == {"a": (12, "x"), "b": (20, "y")}
 
@@ -124,7 +123,7 @@ def test_a_remap_moves_every_object_with_its_line() -> None:
 def test_a_remap_drops_an_object_whose_line_is_gone() -> None:
     """A row with no new home was swept away, and pointing at it would point at a stranger."""
     PrimeItems.diagram_object_seeds = {"a": (5, "x"), "b": (9, "y")}
-    diagram._remap_object_seeds({5: 5}, state=PrimeItems)  # noqa: SLF001
+    diagram._remap_object_seeds({5: 5}, state=PrimeItems)
 
     assert set(PrimeItems.diagram_object_seeds) == {"a"}
 
@@ -132,7 +131,7 @@ def test_a_remap_drops_an_object_whose_line_is_gone() -> None:
 def test_the_view_limit_cut_drops_what_is_past_it() -> None:
     """A diagram cut short does not hold the objects it never got to."""
     PrimeItems.diagram_object_seeds = {"a": (5, "x"), "b": (40, "y")}
-    diagram._keep_object_seeds_before(40, state=PrimeItems)  # noqa: SLF001
+    diagram._keep_object_seeds_before(40, state=PrimeItems)
 
     assert set(PrimeItems.diagram_object_seeds) == {"a"}
 
@@ -143,7 +142,7 @@ def test_the_view_limit_cut_drops_what_is_past_it() -> None:
 def test_a_box_is_placed_as_the_whole_box() -> None:
     """A Profile is highlighted as the box the eye reads it as, walls included."""
     line = "     ║ Project: Home ║"
-    column, length = diagram._place(line, "║ Project: Home", boxed=True)  # noqa: SLF001
+    column, length = diagram._place(line, "║ Project: Home", boxed=True)
 
     assert line[column : column + length] == "║ Project: Home ║"
 
@@ -151,7 +150,7 @@ def test_a_box_is_placed_as_the_whole_box() -> None:
 def test_a_task_is_placed_as_its_drawn_name() -> None:
     """A Task line's name ends where the recorded text ends -- there is no box to close."""
     line = "        └─ Backup [Calls ──▶ Restore]"
-    column, length = diagram._place(line, "└─ Backup", boxed=False)  # noqa: SLF001
+    column, length = diagram._place(line, "└─ Backup", boxed=False)
 
     assert line[column : column + length] == "└─ Backup"
 
@@ -164,7 +163,7 @@ def test_a_column_is_counted_the_way_a_browser_counts_it() -> None:
     configurations do.
     """
     line = "\U0001f3d8\U0001f3d8 └─ Backup"  # Two astral characters before the name.
-    column, length = diagram._place(line, "└─ Backup", boxed=False)  # noqa: SLF001
+    column, length = diagram._place(line, "└─ Backup", boxed=False)
 
     # Python would say 3; the browser, counting UTF-16 code units, says 5.
     assert column == 5
@@ -180,12 +179,12 @@ def test_a_name_that_cannot_be_placed_answers_with_the_whole_line() -> None:
     The line is still the right one to be taken to, so (0, 0) is returned and the Diagram
     view reads it as "highlight all of it" rather than as a failure.
     """
-    assert diagram._place("nothing like it here", "└─ Backup", boxed=False) == (0, 0)  # noqa: SLF001
+    assert diagram._place("nothing like it here", "└─ Backup", boxed=False) == (0, 0)
 
 
 def test_an_unclosed_box_still_places_the_name() -> None:
     """A box the line is too short to close is placed as the name alone, not as the rest of the line."""
-    column, length = diagram._place("  ║ Wake Up", "║ Wake Up", boxed=True)  # noqa: SLF001
+    column, length = diagram._place("  ║ Wake Up", "║ Wake Up", boxed=True)
 
     assert (column, length) == (2, 9)
 
@@ -259,11 +258,21 @@ def _load(xml: str, calls: dict) -> dict:
     and the caller/called links outline.py's own pass would have filled in ('calls' maps a
     Task name to the names it calls, which is what makes an arrow get drawn).
     """
-    root = ET.fromstring(xml)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml)
     PrimeItems.xml_root = root
     PrimeItems.slash = "/"
     PrimeItems.output_lines = _Output()
-    PrimeItems.program_arguments = ProgramArguments(language="English", profiles_per_line=6, debug=False, pretty=False, directory=False, guiview=False, gui=False, view_limit=10000, display_detail_level=3)
+    PrimeItems.program_arguments = ProgramArguments(
+        language="English",
+        profiles_per_line=6,
+        debug=False,
+        pretty=False,
+        directory=False,
+        guiview=False,
+        gui=False,
+        view_limit=10000,
+        display_detail_level=3,
+    )
     tables = {
         "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
         "all_profiles": taskerd.move_xml_to_table(root.findall("Profile"), True, "nme"),
@@ -624,7 +633,7 @@ def test_a_fold_leaves_the_project_box_standing(modelled: tuple[list[str], dict]
 
     kept = lines[home["start"] : home["fold"]]
 
-    assert len(kept) == 3  # noqa: PLR2004  A box is a top border, a name and a bottom border.
+    assert len(kept) == 3
     assert "Project: Home" in kept[1]
     assert home["line"] in diagintr.folds_by_line(model)
 
@@ -684,8 +693,8 @@ def test_a_chain_of_calls_crosses_a_project_boundary(modelled: tuple[list[str], 
 def _rendered(lines: list[str], model: dict) -> list[str]:
     """Every line of the diagram as the Diagram view writes it into the page."""
     nodes, folds = diagintr.nodes_by_line(model), diagintr.folds_by_line(model)
-    connectors = guiwins_views._connectors_by_line(state=PrimeItems)  # noqa: SLF001
-    return [guiwins_views._wrap_diagram_line(num, line, connectors, nodes, folds) for num, line in enumerate(lines)]  # noqa: SLF001
+    connectors = guiwins_views._connectors_by_line(state=PrimeItems)
+    return [guiwins_views._wrap_diagram_line(num, line, connectors, nodes, folds) for num, line in enumerate(lines)]
 
 
 def test_every_rendered_line_is_an_element_that_keeps_its_own_newline(
@@ -703,7 +712,7 @@ def test_every_rendered_line_is_an_element_that_keeps_its_own_newline(
 
     for num, markup in enumerate(rendered):
         assert markup.startswith(f'<span class="{diagintr.LINE_CLASS}" data-line="{num}"')
-        assert markup.endswith("<span class=\"mt-dnl\">\n</span></span>")
+        assert markup.endswith('<span class="mt-dnl">\n</span></span>')
     # An empty line still has to occupy one: an empty block has no height, and the blank
     # lines in a diagram are the ones the connectors are drawn down.
     assert "&#8203;" in _rendered([""], {"nodes": [], "regions": []})[0]
@@ -733,7 +742,7 @@ def test_a_name_and_a_connector_never_claim_the_same_character() -> None:
     line = "──── Backup ────"
     node = {"anchor": _BACKUP.anchor, "index": 0, "kind": TASK, "col": 5, "len": 6}
 
-    spans = guiwins_views._diagram_spans(0, line, {0: [(0, len(line), 7)]}, {0: [node]})  # noqa: SLF001
+    spans = guiwins_views._diagram_spans(0, line, {0: [(0, len(line), 7)]}, {0: [node]})
 
     # In column order, never overlapping, and the name's span is exactly the name.
     assert [(start, end) for start, end, _ in spans] == [(0, 5), (5, 11), (11, 16)]
@@ -1027,9 +1036,8 @@ def test_connectors_stay_in_line_on_rows_that_carry_icons(tmp_path: object, rest
     Names with icons in them go on both ends of a call, and each connector drawn on one of
     those rows has to sit in the same screen column as the connector on the row above or below.
     """
-    xml = (
-        _DIAGRAM_XML.replace("<nme>Backup</nme>", "<nme>Backup \U0001f4be</nme>")
-        .replace("<nme>Restore</nme>", f"<nme>Restore {restored}</nme>")
+    xml = _DIAGRAM_XML.replace("<nme>Backup</nme>", "<nme>Backup \U0001f4be</nme>").replace(
+        "<nme>Restore</nme>", f"<nme>Restore {restored}</nme>"
     )
     tables = _load(xml, {"Backup \U0001f4be": [f"Restore {restored}"]})
     lines = _render(

@@ -119,17 +119,17 @@ def read_parser(parser: argparse.ArgumentParser) -> list[Option]:
         list[Option]: the options.  -h itself is left out; the page says so once.
     """
     belongs: dict[int, str] = {}
-    for group in parser._action_groups:  # noqa: SLF001
-        for action in group._group_actions:  # noqa: SLF001
+    for group in parser._action_groups:
+        for action in group._group_actions:
             belongs[id(action)] = group.title or ""
 
     exclusive: dict[int, list[argparse.Action]] = {}
-    for group in parser._mutually_exclusive_groups:  # noqa: SLF001
-        for action in group._group_actions:  # noqa: SLF001
-            exclusive[id(action)] = list(group._group_actions)  # noqa: SLF001
+    for group in parser._mutually_exclusive_groups:
+        for action in group._group_actions:
+            exclusive[id(action)] = list(group._group_actions)
 
     options = []
-    for action in parser._actions:  # noqa: SLF001
+    for action in parser._actions:
         if not action.option_strings or "-h" in action.option_strings or action.help == SUPPRESSED:
             continue
         others = [other.option_strings[0] for other in exclusive.get(id(action), []) if other is not action]
@@ -307,8 +307,8 @@ def exit_codes(parser: argparse.ArgumentParser) -> str:
 def load_parsers() -> tuple[argparse.ArgumentParser, argparse.ArgumentParser]:
     """The program's two parsers, imported from the source tree this tool lives in."""
     sys.path.insert(0, str(PROJECT_ROOT))
-    from maptasker.src import clireports  # noqa: PLC0415  (needs the path set above)
-    from maptasker.src.core import parsearg  # noqa: PLC0415
+    from maptasker.src import clireports
+    from maptasker.src.core import parsearg
 
     return parsearg.build_parser(), clireports.build_parser()
 

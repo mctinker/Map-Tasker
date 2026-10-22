@@ -353,7 +353,7 @@ def test_conditions_are_joined_by_taskers_precedence(tmp_path: Path) -> None:
     ],
 )
 def test_joining_three_valued(values: list, joiners: list, expected: bool | None) -> None:
-    assert taskstep._join(values, joiners) is expected  # noqa: SLF001
+    assert taskstep._join(values, joiners) is expected
 
 
 # ##################################################################################
@@ -766,7 +766,7 @@ def test_anything_that_is_not_arithmetic_is_refused_not_evaluated(expression: st
     ("number", "text"), [(9.0, "9"), (2.5, "2.5"), (1 / 3, "0.333"), (2.0004, "2"), (-1.5, "-1.5")]
 )
 def test_numbers_are_written_as_tasker_writes_them(number: float, text: str) -> None:
-    assert taskstep._format(number) == text  # noqa: SLF001
+    assert taskstep._format(number) == text
 
 
 # ##################################################################################

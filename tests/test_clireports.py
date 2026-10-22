@@ -322,7 +322,7 @@ def test_a_period_that_is_not_one_is_exit_7(tmp_path: Path, period: str) -> None
     [("3d", 3), ("10D", 10), ("today", None), ("week", 7), ("month", 30), ("all", "all"), ("2026-09-01", "date")],
 )
 def test_the_periods_that_are_understood(period: str, days_back: object) -> None:
-    cutoff = clireports._cutoff(period)  # noqa: SLF001
+    cutoff = clireports._cutoff(period)
 
     if days_back == "all":
         assert cutoff is None
@@ -469,7 +469,7 @@ def test_a_watch_is_stopped_cleanly_by_an_interrupt(tmp_path: Path, monkeypatch:
 # Through the real entry point, in a process of its own
 # ##################################################################################
 def _command_line(*argv: str, cwd: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(  # noqa: S603
+    return subprocess.run(
         [sys.executable, "-m", "maptasker.main", *argv],
         cwd=cwd,
         capture_output=True,
@@ -502,7 +502,7 @@ def test_the_real_command_line_reports_a_missing_file_with_exit_6(tmp_path: Path
 def test_a_report_run_never_loads_the_gui(tmp_path: Path) -> None:
     """A scheduled job on a machine with no display should not start the GUI framework to read a file."""
     script = "import sys; import maptasker.src.clireports; print('nicegui' in sys.modules)"
-    result = subprocess.run(  # noqa: S603
+    result = subprocess.run(
         [sys.executable, "-c", script],
         cwd=tmp_path,
         capture_output=True,
@@ -520,7 +520,7 @@ def test_a_report_run_never_loads_the_gui(tmp_path: Path) -> None:
 # ##################################################################################
 def _kept(tmp_path: Path, name: str, xml: str, day: int) -> None:
     """Record one configuration in the history (the working directory's), as a backup taken on a day."""
-    from tests.test_trend import _at  # noqa: PLC0415
+    from tests.test_trend import _at
 
     path = tmp_path / name
     path.write_text(xml, encoding="utf-8")
@@ -528,7 +528,7 @@ def _kept(tmp_path: Path, name: str, xml: str, day: int) -> None:
 
 
 def _trend_configs() -> tuple[str, str]:
-    from tests.test_trend import config, flash, perform  # noqa: PLC0415
+    from tests.test_trend import config, flash, perform
 
     clean = config(Home={"A": (flash("a"),)}, Work={"B": (flash("b"),)})
     messy = config(Home={"A": (perform("Gone"), perform("Gone2"))}, Work={"B": (flash("b"),)})
@@ -581,7 +581,7 @@ def test_no_history_at_all_is_exit_11(capsys: pytest.CaptureFixture) -> None:
 
 def test_file_picks_which_files_backups_to_follow(tmp_path: Path) -> None:
     """A tablet that got messier is not the phone getting messier."""
-    from tests.test_trend import config, flash, perform  # noqa: PLC0415
+    from tests.test_trend import config, flash, perform
 
     def home(*actions: str) -> str:
         return config(Home={"A": actions})

@@ -16,8 +16,8 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core import editcommon, objprops
-from maptasker.src.edit import projedit, sessundo
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.edit import projedit, sessundo
 
 from tests.test_mapswap import _load
 
@@ -370,8 +370,8 @@ def test_a_project_that_is_not_there_has_no_profiles() -> None:
 
 
 def test_a_projects_scenes_are_read_by_name_and_trimmed() -> None:
-    assert projedit._project_scene_names(_live("Home")) == ["Dash", "Missing"]  # noqa: SLF001
-    assert projedit._project_scene_names(_live("Bare")) == []  # noqa: SLF001
+    assert projedit._project_scene_names(_live("Home")) == ["Dash", "Missing"]
+    assert projedit._project_scene_names(_live("Bare")) == []
 
 
 # ##################################################################################
@@ -398,7 +398,7 @@ def test_an_existing_file_is_noticed(tmp_path: os.PathLike) -> None:
 def test_a_project_without_an_id_or_mdate_is_given_them_in_alphabetical_place() -> None:
     element = ET.fromstring("<Project><cdate>1</cdate><name>N</name><pids>1</pids><Img/></Project>")
 
-    projedit._ensure_project_identity(element)  # noqa: SLF001
+    projedit._ensure_project_identity(element)
 
     assert _tags(element) == ["cdate", "id", "mdate", "name", "pids", "Img"]
     assert len(element.findtext("id")) == 36
@@ -408,7 +408,7 @@ def test_a_project_without_an_id_or_mdate_is_given_them_in_alphabetical_place() 
 def test_a_project_that_has_them_keeps_them() -> None:
     element = ET.fromstring("<Project><id>keep</id><mdate>7</mdate><name>N</name></Project>")
 
-    projedit._ensure_project_identity(element)  # noqa: SLF001
+    projedit._ensure_project_identity(element)
 
     assert (element.findtext("id"), element.findtext("mdate")) == ("keep", "7")
     assert _tags(element) == ["id", "mdate", "name"]
@@ -417,7 +417,7 @@ def test_a_project_that_has_them_keeps_them() -> None:
 def test_an_element_with_no_simple_children_still_gets_an_identity() -> None:
     element = ET.fromstring("<Project><Img/></Project>")
 
-    projedit._ensure_project_identity(element)  # noqa: SLF001
+    projedit._ensure_project_identity(element)
 
     assert {"id", "mdate"} <= set(_tags(element))
 
@@ -425,7 +425,7 @@ def test_an_element_with_no_simple_children_still_gets_an_identity() -> None:
 def test_the_exported_copy_is_renumbered_and_has_its_pids_before_its_tids() -> None:
     element = ET.fromstring("<Project sr='proj9'><id>1</id><mdate>1</mdate><tids>1</tids><pids>2</pids></Project>")
 
-    copy_ = projedit._exportable_project_copy(element)  # noqa: SLF001
+    copy_ = projedit._exportable_project_copy(element)
 
     assert copy_.get("sr") == "proj0"
     assert _tags(copy_) == ["id", "mdate", "pids", "tids"]
@@ -438,7 +438,7 @@ def test_tasks_are_taken_from_the_project_then_its_profiles_then_its_scenes_once
     all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
     scene = PrimeItems.tasker_root_elements["all_scenes"]["Dash"]["xml"]
 
-    ids = projedit._export_task_ids(live, ["101", "100", "404"], all_profiles, [scene])  # noqa: SLF001
+    ids = projedit._export_task_ids(live, ["101", "100", "404"], all_profiles, [scene])
 
     # <tids> first as listed, then Entry/Exit Tasks in Profile order, then a Scene's; no duplicates, and
     # the Scene's anonymous inline Task (a negative id) is not looked for.
@@ -446,7 +446,7 @@ def test_tasks_are_taken_from_the_project_then_its_profiles_then_its_scenes_once
 
 
 def test_the_export_is_in_the_order_tasker_writes_it() -> None:
-    root = ET.fromstring(projedit.render_standalone_project_xml("Home", state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(projedit.render_standalone_project_xml("Home", state=PrimeItems))
 
     assert root.attrib == {"sr": "", "dvi": "1", "tv": "6.3.13"}
     assert [(child.tag, child.findtext("nme") or child.findtext("name") or child.text) for child in root] == [
@@ -472,14 +472,14 @@ def test_the_export_starts_at_the_root_and_ends_with_one_newline() -> None:
 
 
 def test_a_project_with_no_scenes_exports_no_screen_metric() -> None:
-    root = ET.fromstring(projedit.render_standalone_project_xml("Base", state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(projedit.render_standalone_project_xml("Base", state=PrimeItems))
 
     assert root.find("dmetric") is None
     assert [child.tag for child in root] == ["Profile", "Project", "Task"]
 
 
 def test_a_dangling_id_or_scene_is_skipped_not_an_error() -> None:
-    root = ET.fromstring(projedit.render_standalone_project_xml("Home", state=PrimeItems))  # noqa: S314
+    root = ET.fromstring(projedit.render_standalone_project_xml("Home", state=PrimeItems))
 
     # Profile 999 and the Scene "Missing" are not in the backup, so nothing is bundled for them;
     # the Project element itself is exported as it is, still naming them.

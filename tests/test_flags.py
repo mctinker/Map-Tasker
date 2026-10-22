@@ -22,7 +22,7 @@ from maptasker.src.mapgen.condition import condition_app
 
 
 def _element(xml: str) -> ET.Element:
-    return ET.fromstring(xml)  # noqa: S314  (fixture text, defined in this file)
+    return ET.fromstring(xml)
 
 
 # --------------------------------------------------------------------------------------

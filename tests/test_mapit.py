@@ -164,7 +164,9 @@ def test_startup_clears_a_diagram_request_left_over_from_a_previous_run(started:
 
 
 @pytest.mark.parametrize(("system", "slash"), [("Windows", "\\"), ("Darwin", "/"), ("Linux", "/")])
-def test_startup_works_out_the_path_separator(started: list[str], monkeypatch: pytest.MonkeyPatch, system: str, slash: str) -> None:
+def test_startup_works_out_the_path_separator(
+    started: list[str], monkeypatch: pytest.MonkeyPatch, system: str, slash: str
+) -> None:
     monkeypatch.setattr(mapit.platform, "system", lambda: system)
     state = _fresh_state()
     mapit.start_up(state)
@@ -213,7 +215,9 @@ def test_a_unit_test_run_starts_with_no_colours(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setattr(mapit.app, "on_startup", lambda _handler: None)
     monkeypatch.setattr(sys, "excepthook", sys.excepthook)
     monkeypatch.setattr(sys, "argv", ["maptasker", "-test=yes"])
-    state = SimpleNamespace(colors_to_use=["leftover"], program_arguments=SimpleNamespace(debug=False), output_lines=None)
+    state = SimpleNamespace(
+        colors_to_use=["leftover"], program_arguments=SimpleNamespace(debug=False), output_lines=None
+    )
 
     mapit.initialize_everything(state)
 

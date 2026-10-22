@@ -79,11 +79,23 @@ def targets() -> dict[str, int]:
     return table
 
 
+# Linted and formatted, but not held to the complexity targets: a test is long and linear on purpose,
+# and a maintainer tool is run by hand.  The targets are for the program.
+_NOT_MEASURED = {"tests", "tools"}
+
+
 def linted_files() -> list[Path]:
-    """The Python files ruff lints, per the include list in pyproject.toml."""
+    """The Python files ruff lints per the include list in pyproject.toml, less tests/ and tools/."""
     config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     patterns = config["tool"]["ruff"]["include"]
-    return sorted({path for pattern in patterns for path in ROOT.glob(pattern) if path.suffix == ".py"})
+    return sorted(
+        {
+            path
+            for pattern in patterns
+            for path in ROOT.glob(pattern)
+            if path.suffix == ".py" and path.relative_to(ROOT).parts[0] not in _NOT_MEASURED
+        }
+    )
 
 
 def ruff_findings(limits: dict[str, int]) -> list[dict]:

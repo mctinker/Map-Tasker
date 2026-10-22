@@ -14,13 +14,13 @@ import asyncio
 from typing import TYPE_CHECKING
 
 import pytest
-from nicegui import ui
-
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sessundo
 from maptasker.src.gui import guiwins_search
 from maptasker.src.mapops import mapswap, mapswap_action
-from maptasker.src.core.primitem import PrimeItems
-from tests.search_dialog import built, by_text, click, field, labels, open_dialog, select
+from nicegui import ui
+
+from tests.search_dialog import built, by_text, click, field, labels, open_dialog
 from tests.test_mapswap import _FIXTURE_XML, _RENAME_XML, FLASH, NOTIFY, _action, _load
 
 if TYPE_CHECKING:
@@ -110,9 +110,9 @@ async def test_replace_starts_disabled_and_offers_what_the_configuration_holds()
         assert not _button(user, "Replace").enabled
         offered = set(_replace_select(user, "Replace this action").options)
         assert {FLASH, "20t"} <= offered
-        assert "Change one thing everywhere it appears." in " ".join(
-            text for text in labels(user)
-        ) or any(text.startswith("Change one thing") for text in labels(user))
+        assert "Change one thing everywhere it appears." in " ".join(text for text in labels(user)) or any(
+            text.startswith("Change one thing") for text in labels(user)
+        )
 
 
 @pytest.mark.asyncio

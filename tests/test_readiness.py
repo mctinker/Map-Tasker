@@ -19,11 +19,11 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.mapgen import taskerd
-from maptasker.src.mapops import readiness
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapgen import taskerd
+from maptasker.src.mapops import readiness
 
 TABLE = readiness.READINESS_FILE
 
@@ -115,7 +115,7 @@ def _task(name: str, *actions: str) -> str:
 
 
 def _document(*children: str, tv: str = "6.3.13") -> ET.Element:
-    return ET.fromstring(f'<TaskerData sr="" dvi="1" tv="{tv}">{"".join(children)}</TaskerData>')  # noqa: S314
+    return ET.fromstring(f'<TaskerData sr="" dvi="1" tv="{tv}">{"".join(children)}</TaskerData>')
 
 
 def _check(*children: str, **kwargs: str) -> readiness.Readiness:
@@ -447,12 +447,12 @@ _PROJECT_XML = f"""<TaskerData sr="" dvi="1" tv="6.3.13">
 
 @pytest.fixture
 def loaded() -> None:
-    root = ET.fromstring(_PROJECT_XML)  # noqa: S314
+    root = ET.fromstring(_PROJECT_XML)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         specs = json.load(handle)
     PrimeItems.tasker_arg_specs = specs
     PrimeItems.tasker_root_elements = {

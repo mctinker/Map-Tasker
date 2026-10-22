@@ -144,7 +144,7 @@ def source_strings() -> set[str]:
         try:
             tree = ast.parse(py_file.read_text(encoding="utf-8"))
         except SyntaxError as e:
-            print(f"[Skipping] {py_file.name} does not parse: {e}")  # noqa: T201
+            print(f"[Skipping] {py_file.name} does not parse: {e}")
             continue
 
         for node in ast.walk(tree):
@@ -214,7 +214,7 @@ def get_key_by_value(dictionary: dict, target_value: str) -> str | None:
 
 def ai_translate(target_lang: str, text: str) -> str | None:
     """Translate text with the local Ollama chat model.  Returns None if it fails."""
-    print("Using AI translator (Ollama) for translation:", text)  # noqa: T201
+    print("Using AI translator (Ollama) for translation:", text)
 
     # Try the target_lang directly, or try converting hyphen to underscore as fallback
     target_lang_name = (
@@ -240,11 +240,11 @@ def ai_translate(target_lang: str, text: str) -> str | None:
         elif isinstance(response, dict):
             translated_text = response.get("message", {}).get("content", "").strip()
 
-        print("      AI translation:", translated_text)  # noqa: T201
+        print("      AI translation:", translated_text)
         return translated_text if translated_text else None
 
-    except Exception as e:  # noqa: BLE001
-        print(f"    [AI Error] Ollama chat failed: {e}")  # noqa: T201
+    except Exception as e:
+        print(f"    [AI Error] Ollama chat failed: {e}")
         return None
 
 
@@ -258,11 +258,11 @@ def google_translate_with_retry(translator: GoogleTranslator, text: str) -> str 
             translated = translator.translate(text)
             # deep-translator returns None when the translation matches the input
             # (common for 'Save', 'Ok', etc.) -- that means "no change needed".
-            return text if translated is None else translated  # noqa: TRY300
+            return text if translated is None else translated
 
         except TooManyRequests:
             wait = THROTTLE_BACKOFF_SECONDS * attempt
-            print(f"    [Throttled] waiting {wait}s before retry {attempt}/{MAX_ATTEMPTS}")  # noqa: T201
+            print(f"    [Throttled] waiting {wait}s before retry {attempt}/{MAX_ATTEMPTS}")
             time.sleep(wait)
 
         except (TimeoutError, requests.exceptions.RequestException, OSError) as e:
@@ -280,7 +280,7 @@ def google_translate_with_retry(translator: GoogleTranslator, text: str) -> str 
             )
             break
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             print(f"    [Error] {type(e).__name__}: {e}")
             break
 
@@ -404,7 +404,7 @@ def sync_language(
     translator = None
     try:
         translator = GoogleTranslator(source="en", target=target_lang)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"  [Error] could not create GoogleTranslator for {lang_dir} (AI translator only): {e}")
 
     added = failed = 0
@@ -669,7 +669,7 @@ def repair_urls(msgid: str, msgstr: str) -> tuple[str, list[tuple[str, str]]]:
 
     changes = []
     result = msgstr
-    for english, translated in zip(expected, found):
+    for english, translated in zip(expected, found, strict=False):
         if translated == english:
             continue
         if translated.startswith(english):
@@ -826,7 +826,7 @@ def fix_quotes_in_file(file_path: Path) -> None:
 
         print(f"Processed: {file_path}")
 
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"Error processing {file_path}: {e}")
 
 
@@ -874,7 +874,7 @@ def strip_blank_lines_in_file(file_path: Path) -> None:
 
         print(f"Processed: {file_path}")
 
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"Error processing {file_path}: {e}")
 
 

@@ -17,11 +17,11 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.analysis import impact
-from maptasker.src.mapgen import taskerd
+from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK, text_report
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapgen import taskerd
 
 # Two Projects, so that a reference reaching across one Project's boundary into another
 # can be told from one that stays inside it.
@@ -93,7 +93,7 @@ _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 def _load(xml_text: str) -> None:
     """Build the PrimeItems lookup tables from XML text, the way taskerd does from a file."""
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)
@@ -244,7 +244,9 @@ def test_already_dead_task_is_not_reported() -> None:
 def test_project_scenes_are_left_in_no_project() -> None:
     """A Project's Scenes are neither moved nor deleted, under either choice."""
     for keep in (True, False):
-        found = _tagged(impact.analyze_delete(PROJECT, "Home", keep_contents=keep, state=PrimeItems), "SCENE-LEFT-ADRIFT")
+        found = _tagged(
+            impact.analyze_delete(PROJECT, "Home", keep_contents=keep, state=PrimeItems), "SCENE-LEFT-ADRIFT"
+        )
         assert sorted(item.target.key for item in found) == ["Menu", "Solo"]
 
 
@@ -291,7 +293,9 @@ def test_what_goes_is_stated_for_every_kind() -> None:
     assert "linked Task(s) are kept" in " ".join(impact.analyze_delete(PROFILE, "Wake", state=PrimeItems).goes)
     assert "the Tasks they fire are kept" in " ".join(impact.analyze_delete(SCENE, "Menu", state=PrimeItems).goes)
     assert "move into 'Base'" in " ".join(impact.analyze_delete(PROJECT, "Home", state=PrimeItems).goes)
-    assert "deleted with it" in " ".join(impact.analyze_delete(PROJECT, "Home", keep_contents=False, state=PrimeItems).goes)
+    assert "deleted with it" in " ".join(
+        impact.analyze_delete(PROJECT, "Home", keep_contents=False, state=PrimeItems).goes
+    )
 
 
 def test_object_that_is_already_gone() -> None:

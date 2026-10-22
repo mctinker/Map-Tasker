@@ -16,7 +16,7 @@ from pathlib import Path
 from maptasker.src.analysis import taskstep
 from maptasker.src.core.primitem import PrimeItems
 
-from tests.test_taskstep import _act, _i, _s, _xml, else_, end_if, flash, for_, end_for, if_, lines, return_, set_, stop
+from tests.test_taskstep import _act, _i, _s, _xml, else_, end_for, end_if, flash, for_, if_, lines, set_, stop
 from tests.test_tnupdate import _load_local, _runtime  # noqa: F401  (_runtime is the fixture)
 
 

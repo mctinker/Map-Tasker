@@ -38,10 +38,10 @@ from unittest.mock import patch
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import profedit, projedit, roundtrip, taskedit, taskedit_model, taskedit_save
 from maptasker.src.gui import userintr_android
 from maptasker.src.mapgen import taskerd
-from maptasker.src.core.primitem import PrimeItems
 
 # One Project owning one Profile, that Profile's Entry Task, a Scene the Project declares,
 # and the Task that Scene's button fires.  Small, but it is every relationship the four
@@ -93,7 +93,7 @@ line two\tafter a tab</Str>
 @pytest.fixture(autouse=True)
 def loaded() -> None:
     """The PrimeItems tables, built from the fixture the way taskerd builds them from a file."""
-    root = ET.fromstring(_FIXTURE_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_FIXTURE_XML)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
@@ -185,7 +185,7 @@ def test_the_exempt_project_is_still_renumbered() -> None:
     because sr="proj7" in the backup becomes sr="proj0" in the export.  Asserting the
     rewrite happens is what keeps the exemption honest -- if the renumber were ever dropped,
     this test says so instead of the exemption silently covering for it."""
-    exported = ET.fromstring(projedit.render_standalone_project_xml("Home", state=PrimeItems))  # noqa: S314
+    exported = ET.fromstring(projedit.render_standalone_project_xml("Home", state=PrimeItems))
 
     assert _live("all_projects", "Home").get("sr") == "proj7"
     assert exported.find("Project").get("sr") == "proj0"
@@ -268,7 +268,7 @@ def test_reindenting_the_export_is_not_a_difference() -> None:
     export is re-indented with tabs.  Every object in every export would fail if that
     counted, so the fixed-point check has to compare the export against a re-render of
     ITSELF rather than against the file."""
-    compact = ET.fromstring(_FIXTURE_XML.replace("\n\t", "").replace("\n", ""))  # noqa: S314
+    compact = ET.fromstring(_FIXTURE_XML.replace("\n\t", "").replace("\n", ""))
     PrimeItems.xml_root = compact
     PrimeItems.tasker_root_elements["all_tasks"] = taskerd.move_xml_to_table(compact.findall("Task"), True, "nme")
 
@@ -298,7 +298,8 @@ def test_an_object_with_nothing_to_compare_against_is_reported_not_failed() -> N
     honest answer; failing the save over it would block a legitimate one."""
     report = roundtrip.verify_rendered(
         '<TaskerData sr="" dvi="1" tv="6.3.13">\n\t<Task sr="task99">\n\t\t<id>99</id>\n\t</Task>\n</TaskerData>\n',
-    state=PrimeItems)
+        state=PrimeItems,
+    )
 
     assert report.ok
     assert report.unchecked == ("Task '99'",)
@@ -338,7 +339,7 @@ def test_an_unticked_verify_does_not_even_render() -> None:
     never happens -- for a Project export that is every Profile, Scene and Task in it."""
     called = []
 
-    assert userintr_android._round_trip_verified(_panel(ticked=False), lambda: called.append(1))  # noqa: SLF001
+    assert userintr_android._round_trip_verified(_panel(ticked=False), lambda: called.append(1))
     assert called == []
 
 
@@ -346,7 +347,7 @@ def test_a_ticked_verify_that_passes_lets_the_save_through_and_says_so() -> None
     """A user who ticked this wants to be told it ran.  Without the message, a check that
     passed and a checkbox that did nothing look exactly alike."""
     with patch.object(userintr_android, "ui") as fake_ui:
-        verified = userintr_android._round_trip_verified  # noqa: SLF001
+        verified = userintr_android._round_trip_verified
         allowed = verified(_panel(ticked=True), lambda: roundtrip.verify_project("Home", state=PrimeItems))
 
     assert allowed
@@ -363,7 +364,7 @@ def test_a_ticked_verify_that_fails_stops_the_save_before_the_device_is_touched(
         patch.object(userintr_android, "ui") as fake_ui,
         patch.object(userintr_android, "build_round_trip_report_dialog") as fake_dialog,
     ):
-        verified = userintr_android._round_trip_verified  # noqa: SLF001
+        verified = userintr_android._round_trip_verified
         allowed = verified(_panel(ticked=True), lambda: roundtrip.verify_task(_editable_task("20"), state=PrimeItems))
 
     assert not allowed
@@ -374,4 +375,4 @@ def test_a_ticked_verify_that_fails_stops_the_save_before_the_device_is_touched(
 def test_a_panel_without_the_checkbox_is_not_a_failure() -> None:
     """Belt and braces for a caller that has not been given the field yet -- an absent
     checkbox reads as unticked, not as a save to refuse."""
-    assert userintr_android._round_trip_verified({}, lambda: roundtrip.verify_project("Home", state=PrimeItems))  # noqa: SLF001
+    assert userintr_android._round_trip_verified({}, lambda: roundtrip.verify_project("Home", state=PrimeItems))

@@ -28,11 +28,11 @@ def _parse(*argv: str) -> argparse.Namespace:
 
 def test_every_type_group_and_choice_the_table_names_exists(table: dict) -> None:
     for entry in table["arguments"]:
-        assert entry.get("type", "str") in parsearg._ARGUMENT_TYPES  # noqa: SLF001
+        assert entry.get("type", "str") in parsearg._ARGUMENT_TYPES
         if "group" in entry:
             assert entry["group"] in table["groups"]
         if isinstance(entry.get("choices"), str):
-            assert entry["choices"] in parsearg._ARGUMENT_CHOICES  # noqa: SLF001
+            assert entry["choices"] in parsearg._ARGUMENT_CHOICES
         assert ("names" in entry) != ("expand" in entry)
 
 
@@ -44,7 +44,7 @@ def test_no_option_is_named_twice(table: dict) -> None:
 
 def test_the_options_the_program_has_always_had_are_all_there() -> None:
     parser = parsearg.build_parser()
-    options = {name for action in parser._actions for name in action.option_strings}  # noqa: SLF001
+    options = {name for action in parser._actions for name in action.option_strings}
 
     for name in (
         "-ai_model", "-android_ipaddr", "-android_port", "-android_file", "-appearance", "-conditions", "-debug",
@@ -89,9 +89,9 @@ def test_what_the_table_forbids_is_refused(argv: list[str], capsys: pytest.Captu
 
 def test_the_ai_models_offered_are_the_ones_the_program_knows() -> None:
     parser = parsearg.build_parser()
-    action = next(action for action in parser._actions if "-ai_model" in action.option_strings)  # noqa: SLF001
+    action = next(action for action in parser._actions if "-ai_model" in action.option_strings)
 
-    assert list(action.choices) == parsearg._ARGUMENT_CHOICES["@ai_models"]()  # noqa: SLF001
+    assert list(action.choices) == parsearg._ARGUMENT_CHOICES["@ai_models"]()
     assert len(action.choices) > 10
 
 

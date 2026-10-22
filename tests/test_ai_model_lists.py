@@ -14,10 +14,9 @@ from types import ModuleType, SimpleNamespace
 
 import httpx
 import pytest
-
 from maptasker.src.core import aiutils
-from maptasker.src.gui import userintr_ai
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.gui import userintr_ai
 
 
 def _a_window(*, initialization: bool) -> tuple[SimpleNamespace, list[str]]:

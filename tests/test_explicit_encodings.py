@@ -36,7 +36,7 @@ def _run_checked(script: str, tmp_path: Path) -> subprocess.CompletedProcess[str
     # Windows cannot initialise Winsock (so "import asyncio" fails) without SYSTEMROOT.
     if "SYSTEMROOT" in os.environ:
         env["SYSTEMROOT"] = os.environ["SYSTEMROOT"]
-    return subprocess.run(  # noqa: S603
+    return subprocess.run(
         [sys.executable, "-X", "warn_default_encoding", "-c", prelude + textwrap.dedent(script)],
         cwd=tmp_path,
         capture_output=True,

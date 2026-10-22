@@ -10,12 +10,11 @@ import contextlib
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
+from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.gui import guiwins_search
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
-
-from maptasker.src.gui import guiwins_search
-from maptasker.src.core.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator

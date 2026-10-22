@@ -8,7 +8,6 @@ unreadable system actually raises.
 from __future__ import annotations
 
 import pytest
-
 from maptasker.src.core import mapfonts
 
 

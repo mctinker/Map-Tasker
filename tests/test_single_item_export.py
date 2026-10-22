@@ -16,8 +16,8 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-from maptasker.src.gui.guiutils import single_item_export_selection
 from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
+from maptasker.src.gui.guiutils import single_item_export_selection
 from maptasker.src.gui.userintr import MapTaskerEventHandlers
 
 
@@ -37,7 +37,10 @@ def _loaded_export() -> None:
 
 def test_project_export_selects_its_project() -> None:
     """The ordinary case: name in front of ".prj" is the Project's own name."""
-    assert single_item_export_selection("/backups/Home Automation.prj.xml", state=PrimeItems) == ("Project", "Home Automation")
+    assert single_item_export_selection("/backups/Home Automation.prj.xml", state=PrimeItems) == (
+        "Project",
+        "Home Automation",
+    )
 
 
 @pytest.mark.parametrize(
@@ -62,7 +65,10 @@ def test_full_backup_selects_nothing() -> None:
 def test_renamed_export_still_selects_the_only_object_of_its_type() -> None:
     """The file was renamed after export, so its name matches nothing in the XML.  A
     .prj export holds one Project, and that one is still the answer."""
-    assert single_item_export_selection("/backups/old copy of home.prj.xml", state=PrimeItems) == ("Project", "Home Automation")
+    assert single_item_export_selection("/backups/old copy of home.prj.xml", state=PrimeItems) == (
+        "Project",
+        "Home Automation",
+    )
 
 
 def test_renamed_export_gives_up_when_the_type_is_ambiguous() -> None:
@@ -101,7 +107,7 @@ def test_no_file_selects_nothing(file_path: str | None) -> None:
     assert single_item_export_selection(file_path, state=PrimeItems) == ("", "")
 
 
-def test_an_open_file_object_is_read_the_same_as_a_path(tmp_path) -> None:  # noqa: ANN001
+def test_an_open_file_object_is_read_the_same_as_a_path(tmp_path) -> None:
     """PrimeItems.file_to_get is a path string when getxml_event first assigns it and an
     open file object once the load has been through it, and the caller passes whichever
     it finds.  Reading str() of a file object instead of its .name would take the tag out
@@ -191,11 +197,11 @@ def test_the_pulldown_is_set_under_the_is_updating_guard() -> None:
     """Assigning .value fires the widget's on_change, which would re-enter
     process_name_event for the selection just made -- and the flag has to be put back
     afterwards, or every later pulldown event is swallowed."""
-    handler, pulldown = _handler_with_pulldowns(["None", "Project: Home Automation"])
+    handler, _pulldown = _handler_with_pulldowns(["None", "Project: Home Automation"])
     seen = []
     original = FakeSelect.update
 
-    def record_flag(self) -> None:  # noqa: ANN001
+    def record_flag(self) -> None:
         seen.append(handler.gui.is_updating)
         original(self)
 

@@ -25,13 +25,13 @@ import dataclasses
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.mapgen.caveats import display_caveats
 from maptasker.src.core.dirout import check_profile, check_project, check_scene, check_task
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
-from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.core.nameattr import add_name_attribute
 from maptasker.src.core.primitem import PrimeItems, get_single_item_not_found, get_single_item_requested
 from maptasker.src.core.runcfg import RunConfig, current_config, overridden_config
+from maptasker.src.mapgen.caveats import display_caveats
+from maptasker.src.mapgen.lineout import LineOut
 
 # One Project owning one Profile, one Task and one Scene -- enough for the directory
 # filters, which decide by asking "is this the single item that was requested, or does it
@@ -51,7 +51,7 @@ def tasker_data() -> None:
     to stand these up.  That is the remaining global, and naming it here is the point.
     """
     saved = PrimeItems.tasker_root_elements
-    root = ET.fromstring(_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_XML)
     projects = {project.find("name").text: {"xml": project} for project in root.findall("Project")}
     PrimeItems.tasker_root_elements = {
         "all_projects": projects,

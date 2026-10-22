@@ -34,7 +34,7 @@ def view(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     monkeypatch.setattr(guiutils, "ui", MagicMock())
     monkeypatch.setattr(guiutils, "translate_string", lambda text: text)
 
-    async def io_bound(function, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003, ANN202
+    async def io_bound(function, *args, **kwargs):
         return await asyncio.to_thread(function, *args, **kwargs)
 
     monkeypatch.setattr(guiutils.run, "io_bound", io_bound)
@@ -51,17 +51,23 @@ def _check(view: SimpleNamespace) -> None:
     asyncio.run(page_build())
 
 
-def test_pypi_is_asked_on_a_worker_thread_not_the_event_loop(view: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_pypi_is_asked_on_a_worker_thread_not_the_event_loop(
+    view: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """The one call that blocks runs where there is no event loop for it to freeze."""
     asked_with_loop_running = []
-    monkeypatch.setattr(guiutils, "is_new_version", lambda **_kw: asked_with_loop_running.append(_event_loop_running()) or True)
+    monkeypatch.setattr(
+        guiutils, "is_new_version", lambda **_kw: asked_with_loop_running.append(_event_loop_running()) or True
+    )
 
     _check(view)
 
     assert asked_with_loop_running == [False]
 
 
-def test_starting_the_check_returns_before_pypi_is_asked(view: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_starting_the_check_returns_before_pypi_is_asked(
+    view: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """check_new_version only schedules the check, so the page build carries straight on."""
     asked = []
     monkeypatch.setattr(guiutils, "is_new_version", lambda **_kw: asked.append(True) or False)

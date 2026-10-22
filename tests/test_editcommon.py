@@ -22,8 +22,8 @@ from __future__ import annotations
 import os
 
 import pytest
-from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core import editcommon, presave
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import devicetask
 from maptasker.src.edit import profedit, projedit, sceneedit, taskedit, taskedit_save
 
@@ -48,7 +48,7 @@ def test_each_editor_declares_only_what_makes_it_different(
     default: str,
 ) -> None:
     """Each editor's EXPORT holds its three differences and nothing else."""
-    assert module.EXPORT == editcommon.EditorKind(fallback=fallback, extension=extension, android_location=folder)
+    assert editcommon.EditorKind(fallback=fallback, extension=extension, android_location=folder) == module.EXPORT
     # The public names the GUI and the tests already call must still be there.
     assert callable(getattr(module, android))
     assert callable(getattr(module, default))
@@ -58,10 +58,10 @@ def test_each_editor_declares_only_what_makes_it_different(
 def test_sanitize_is_the_same_substitution_in_all_four(
     module: object,
     fallback: str,
-    extension: str,  # noqa: ARG001
-    folder: str,  # noqa: ARG001
-    android: str,  # noqa: ARG001
-    default: str,  # noqa: ARG001
+    extension: str,
+    folder: str,
+    android: str,
+    default: str,
 ) -> None:
     """Same characters replaced, same way, in every editor -- only the fallback differs."""
     assert module.sanitize_filename("Wake: Up") == "Wake_ Up"
@@ -95,11 +95,11 @@ def test_save_and_device_paths_differ_only_in_extension_and_folder(
 @pytest.mark.parametrize(("module", "fallback", "extension", "folder", "android", "default"), EDITORS, ids=IDS)
 def test_save_path_exists_agrees_everywhere(
     module: object,
-    fallback: str,  # noqa: ARG001
-    extension: str,  # noqa: ARG001
-    folder: str,  # noqa: ARG001
-    android: str,  # noqa: ARG001
-    default: str,  # noqa: ARG001
+    fallback: str,
+    extension: str,
+    folder: str,
+    android: str,
+    default: str,
 ) -> None:
     """An empty path is not an existing file, in all four."""
     assert module.save_path_exists("") is False
@@ -116,7 +116,9 @@ def test_the_non_editors_share_the_same_substitution() -> None:
     """
     assert presave.ILLEGAL_IN_FILENAME is editcommon.ILLEGAL_IN_FILENAME
     for name in ("Opener", "Wake: Up", "a/b", ""):
-        assert devicetask.staged_paths("Tasker/tasks", name, "tsk.xml", "task")[1] == taskedit_save.android_task_path(name)
+        assert devicetask.staged_paths("Tasker/tasks", name, "tsk.xml", "task")[1] == taskedit_save.android_task_path(
+            name
+        )
 
 
 def test_set_child_text_is_one_function_not_four() -> None:
@@ -143,7 +145,7 @@ def fake_device(monkeypatch: pytest.MonkeyPatch) -> dict:
         state["upload_args"] = (ip, port, location, filename, data)
         return state["upload_result"]
 
-    def fake_read(ip: str, port: str, path: str, sent: bytes) -> tuple:  # noqa: ARG001
+    def fake_read(ip: str, port: str, path: str, sent: bytes) -> tuple:
         return state["read_result"]
 
     monkeypatch.setattr(maputil2, "http_upload_request", fake_upload)
@@ -228,7 +230,7 @@ def test_the_task_upload_hands_back_what_the_device_holds(fake_device: dict) -> 
 
 
 def test_a_render_that_raises_is_reported_by_the_kinds_that_can_raise(
-    fake_device: dict,  # noqa: ARG001
+    fake_device: dict,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Project and Scene render from the live tables by name, so the object can be gone
@@ -245,4 +247,7 @@ def test_a_render_that_raises_is_reported_by_the_kinds_that_can_raise(
         8,
         "Project 'Home/Work' no longer exists.",
     )
-    assert sceneedit.save_scene_to_android("Dialog", "1.2.3.4", "1821", state=PrimeItems) == (8, "Project 'Home/Work' no longer exists.")
+    assert sceneedit.save_scene_to_android("Dialog", "1.2.3.4", "1821", state=PrimeItems) == (
+        8,
+        "Project 'Home/Work' no longer exists.",
+    )

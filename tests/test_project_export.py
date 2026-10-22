@@ -23,9 +23,9 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import projedit
 from maptasker.src.mapgen import taskerd
-from maptasker.src.core.primitem import PrimeItems
 
 # Home's Scene fires Tasks no <tids> and no Profile <mid0>/<mid1> mentions -- which is the
 # whole point of bundling them -- including one from a NESTED Scene and one anonymous inline
@@ -103,13 +103,13 @@ _FIXTURE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 @pytest.fixture(autouse=True)
 def loaded() -> None:
     """The PrimeItems tables, built from the fixture the way taskerd does from a file."""
-    root = ET.fromstring(_FIXTURE_XML)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(_FIXTURE_XML)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
 
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         specs = json.load(handle)
     specs[str(len(specs))] = "ConditionList"
     specs[str(len(specs))] = "Img"
@@ -131,7 +131,7 @@ def _exported(project_name: str) -> ET.Element:
 
 def _document(project_name: str) -> ET.Element:
     """The whole exported <TaskerData> document."""
-    return ET.fromstring(projedit.render_standalone_project_xml(project_name, state=PrimeItems))  # noqa: S314
+    return ET.fromstring(projedit.render_standalone_project_xml(project_name, state=PrimeItems))
 
 
 def test_the_project_keeps_the_id_tasker_imports_by() -> None:
@@ -165,7 +165,7 @@ def test_a_synthesized_id_is_a_uuid_like_every_real_one() -> None:
     """Matching create_new_project and every real Project.  A Project <id> is a UUID, not
     the small integer a Task or Profile uses -- which is also what makes it unconditionally
     collision-free against those."""
-    import uuid  # noqa: PLC0415
+    import uuid
 
     uuid.UUID(_exported("Spare").findtext("id"))  # raises if it is not one
 
@@ -312,7 +312,7 @@ def test_an_anonymous_inline_task_is_not_chased() -> None:
     one (all 18 in this repo's backup), because it lives inside the Scene already and
     travels with it.  Looking for it would find nothing; the danger is only that it not be
     mistaken for a missing Task."""
-    from maptasker.src.edit.sceneedit import scene_task_ids  # noqa: PLC0415
+    from maptasker.src.edit.sceneedit import scene_task_ids
 
     assert scene_task_ids(_document("Home").find("Scene")) == ["30", "31", "32"]
 

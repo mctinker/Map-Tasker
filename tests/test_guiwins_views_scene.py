@@ -15,15 +15,15 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
-from nicegui import core, events, ui
-from nicegui.testing.user_interaction import UserInteraction
-from nicegui.testing.user_simulation import user_simulation
-
 from maptasker.src.core import scenelayout
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sceneedit, scenemodel
 from maptasker.src.gui import guiwins_views, sceneview
 from maptasker.src.gui.guiwins_views import NiceGuiSceneView, NiceGuiTreeView
-from maptasker.src.core.primitem import PrimeItems
+from nicegui import core, ui
+from nicegui.testing.user_interaction import UserInteraction
+from nicegui.testing.user_simulation import user_simulation
+
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:
@@ -117,7 +117,9 @@ def _texts(user: User) -> list[str]:
 
 def _editor_for_legacy(calls: list) -> dict:
     return {
-        "handlers": {name: (lambda payload, n=name: calls.append((n, payload))) for name in ("select", "geometry", "nudge")},
+        "handlers": {
+            name: (lambda payload, n=name: calls.append((n, payload))) for name in ("select", "geometry", "nudge")
+        },
         "selection": {"sr": "elements1", "srs": ("elements1",)},
         "snap": {"grid": 5},
         "orientation": {"landscape": False},
@@ -203,7 +205,9 @@ async def test_a_legacy_preview_is_titled_with_the_scene_and_offers_its_own_cont
         assert {"Zoom", "Text density"} <= {s.props.get("label") for s in _all(user, ui.select)}
         assert {"Landscape", "Bounds", "Tasks"} <= {s.text for s in _all(user, ui.switch)}
         assert "Screen" not in {s.props.get("label") for s in _all(user, ui.select)}, "that is the Version 2 control"
-        assert "Snap" not in {s.props.get("label") for s in _all(user, ui.select)}, "no designer behind it, nothing to drag"
+        assert "Snap" not in {s.props.get("label") for s in _all(user, ui.select)}, (
+            "no designer behind it, nothing to drag"
+        )
 
 
 @pytest.mark.asyncio
@@ -236,7 +240,12 @@ async def test_the_view_is_registered_as_the_current_one() -> None:
 
 @pytest.mark.asyncio
 async def test_a_scene_with_no_landscape_layout_has_its_landscape_switch_off() -> None:
-    _load(_XML.replace("<widthLand>800</widthLand><heightLand>600</heightLand>", "<widthLand>-1</widthLand><heightLand>-1</heightLand>"))
+    _load(
+        _XML.replace(
+            "<widthLand>800</widthLand><heightLand>600</heightLand>",
+            "<widthLand>-1</widthLand><heightLand>-1</heightLand>",
+        )
+    )
     async with _open() as user:
         assert not _switch(user, "Landscape").enabled
 
@@ -248,7 +257,12 @@ async def test_landscape_redraws_at_the_landscape_size_and_a_missing_size_says_s
         assert _built["view"].options.landscape is True
         assert any(text.startswith("800 x 600 pixels") for text in _texts(user))
 
-    _load(_XML.replace("<widthLand>800</widthLand><heightLand>600</heightLand>", "<widthLand>-1</widthLand><heightLand>-1</heightLand>"))
+    _load(
+        _XML.replace(
+            "<widthLand>800</widthLand><heightLand>600</heightLand>",
+            "<widthLand>-1</widthLand><heightLand>-1</heightLand>",
+        )
+    )
     async with _open() as user:
         _built["view"]._set_option("landscape", True)
         assert any("has no landscape layout" in text for text in _texts(user))
@@ -279,7 +293,9 @@ async def test_an_unreadable_density_falls_back_to_the_default() -> None:
 
 
 @pytest.mark.asyncio
-async def test_a_percentage_zoom_is_passed_to_the_fit_and_an_unreadable_one_means_fit(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_a_percentage_zoom_is_passed_to_the_fit_and_an_unreadable_one_means_fit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     fits = []
     monkeypatch.setattr(guiwins_views, "_emit_canvas_fit", lambda root, width, height, fixed=None: fits.append(fixed))
     async with _open():
@@ -479,7 +495,10 @@ def _tree_page() -> None:
 
 
 _ITEMS = [
-    {"name": "Project: Home", "children": [{"name": "Profile:&nbsp;Morning", "children": ["Task: Wake&nbsp;Up", "Action &#9940; off"]}]},
+    {
+        "name": "Project: Home",
+        "children": [{"name": "Profile:&nbsp;Morning", "children": ["Task: Wake&nbsp;Up", "Action &#9940; off"]}],
+    },
     "plain string &#11013; left &#11157; right",
 ]
 

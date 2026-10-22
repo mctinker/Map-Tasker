@@ -20,6 +20,16 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
+from maptasker.src.core.actionc import load_arg_specs
+from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.primitem import (
+    PrimeItems,
+    initial_directory_items,
+    initial_found_named_items,
+    initial_grand_totals,
+)
+from maptasker.src.core.runcfg import current_config
 from maptasker.src.mapgen import (
     diagram,
     outline,
@@ -32,17 +42,7 @@ from maptasker.src.mapgen import (
     tasks,
     taskuniq,
 )
-from maptasker.src.core.colrmode import set_color_mode
-from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.mapgen.lineout import LineOut
-from maptasker.src.core.runcfg import current_config
-from maptasker.src.core.primitem import (
-    PrimeItems,
-    initial_directory_items,
-    initial_found_named_items,
-    initial_grand_totals,
-)
-from maptasker.src.core.actionc import load_arg_specs
 
 
 @pytest.fixture(autouse=True)
@@ -62,7 +62,7 @@ def _clean_globals() -> None:
 
 def _load(body: str) -> None:
     """Load a <TaskerData> body into the lookup tables, the way taskerd does from a file."""
-    PrimeItems.xml_root = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    PrimeItems.xml_root = ET.fromstring(
         f'<TaskerData sr="" dvi="1" tv="6.3.13">{body}</TaskerData>',
     )
     taskerd.build_tasker_tables(state=PrimeItems)

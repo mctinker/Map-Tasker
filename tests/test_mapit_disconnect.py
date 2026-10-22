@@ -49,11 +49,11 @@ def _state(monitor: _Monitor | None) -> SimpleNamespace:
 def _short_waits(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(mapit, "DISCONNECT_GRACE_SECONDS", 0.05)
     monkeypatch.setattr(mapit, "_reconnect_timeout", lambda: 0.05)
-    mapit._waiting.clear()  # noqa: SLF001
+    mapit._waiting.clear()
     yield
-    for task in list(mapit._waiting.values()):  # noqa: SLF001
+    for task in list(mapit._waiting.values()):
         task.cancel()
-    mapit._waiting.clear()  # noqa: SLF001
+    mapit._waiting.clear()
 
 
 async def _settle() -> None:
@@ -65,7 +65,7 @@ async def test_a_tab_that_does_not_come_back_has_its_monitor_stopped() -> None:
     client = _Client()
     monitor = _Monitor(client)
 
-    await mapit._on_client_disconnect(client, _state(monitor))  # noqa: SLF001
+    await mapit._on_client_disconnect(client, _state(monitor))
 
     assert monitor.abandoned == 1
 
@@ -74,7 +74,7 @@ async def test_a_tab_that_does_not_come_back_has_its_monitor_stopped() -> None:
 async def test_a_tab_that_is_back_when_the_wait_ends_is_left_alone() -> None:
     client = _Client()
     monitor = _Monitor(client)
-    task = asyncio.create_task(mapit._on_client_disconnect(client, _state(monitor)))  # noqa: SLF001
+    task = asyncio.create_task(mapit._on_client_disconnect(client, _state(monitor)))
     await asyncio.sleep(0.01)
     client.has_socket_connection = True
     await task
@@ -86,16 +86,16 @@ async def test_a_tab_that_is_back_when_the_wait_ends_is_left_alone() -> None:
 async def test_a_tab_that_connects_again_cancels_the_wait() -> None:
     client = _Client()
     monitor = _Monitor(client)
-    task = asyncio.create_task(mapit._on_client_disconnect(client, _state(monitor)))  # noqa: SLF001
+    task = asyncio.create_task(mapit._on_client_disconnect(client, _state(monitor)))
     await asyncio.sleep(0.01)
-    assert "c1" in mapit._waiting  # noqa: SLF001
+    assert "c1" in mapit._waiting
 
-    mapit._on_client_connect(client)  # noqa: SLF001
+    mapit._on_client_connect(client)
     with pytest.raises(asyncio.CancelledError):
         await task
 
     assert monitor.abandoned == 0
-    assert mapit._waiting == {}  # noqa: SLF001
+    assert mapit._waiting == {}
 
 
 @pytest.mark.asyncio
@@ -104,10 +104,10 @@ async def test_a_connection_that_flaps_leaves_one_wait_not_a_pile() -> None:
     monitor = _Monitor(client)
     tasks = []
     for _ in range(6):
-        tasks.append(asyncio.create_task(mapit._on_client_disconnect(client, _state(monitor))))  # noqa: SLF001
+        tasks.append(asyncio.create_task(mapit._on_client_disconnect(client, _state(monitor))))
         await asyncio.sleep(0.005)
 
-    assert len(mapit._waiting) == 1  # noqa: SLF001
+    assert len(mapit._waiting) == 1
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     assert sum(isinstance(result, asyncio.CancelledError) for result in results) == 5
@@ -117,13 +117,10 @@ async def test_a_connection_that_flaps_leaves_one_wait_not_a_pile() -> None:
 @pytest.mark.asyncio
 async def test_each_tab_has_its_own_wait() -> None:
     first, second = _Client("a"), _Client("b")
-    tasks = [
-        asyncio.create_task(mapit._on_client_disconnect(client, _state(None)))  # noqa: SLF001
-        for client in (first, second)
-    ]
+    tasks = [asyncio.create_task(mapit._on_client_disconnect(client, _state(None))) for client in (first, second)]
     await asyncio.sleep(0.01)
 
-    assert set(mapit._waiting) == {"a", "b"}  # noqa: SLF001
+    assert set(mapit._waiting) == {"a", "b"}
     await asyncio.gather(*tasks)
 
 
@@ -132,7 +129,7 @@ async def test_another_tabs_monitor_is_not_stopped() -> None:
     gone, other = _Client("gone"), _Client("other", connected=True)
     monitor = _Monitor(other)
 
-    await mapit._on_client_disconnect(gone, _state(monitor))  # noqa: SLF001
+    await mapit._on_client_disconnect(gone, _state(monitor))
 
     assert monitor.abandoned == 0
 
@@ -142,41 +139,41 @@ async def test_a_client_that_is_already_deleted_is_left_alone() -> None:
     client = _Client(deleted=True)
     monitor = _Monitor(client)
 
-    await mapit._on_client_disconnect(client, _state(monitor))  # noqa: SLF001
+    await mapit._on_client_disconnect(client, _state(monitor))
 
     assert monitor.abandoned == 0
 
 
 @pytest.mark.asyncio
 async def test_with_no_monitor_or_no_window_a_disconnect_is_just_a_wait() -> None:
-    await mapit._on_client_disconnect(_Client(), _state(None))  # noqa: SLF001
-    await mapit._on_client_disconnect(_Client("x"), SimpleNamespace(mygui=None))  # noqa: SLF001
+    await mapit._on_client_disconnect(_Client(), _state(None))
+    await mapit._on_client_disconnect(_Client("x"), SimpleNamespace(mygui=None))
 
 
 def test_the_wait_is_longer_than_nicegus_own_reconnect_timeout() -> None:
     """So NiceGUI has deleted the client by the time this looks: it adds to the timeout rather than replacing it."""
-    source = inspect.getsource(mapit._on_client_disconnect)  # noqa: SLF001
+    source = inspect.getsource(mapit._on_client_disconnect)
 
     assert "_reconnect_timeout() + DISCONNECT_GRACE_SECONDS" in source
 
 
 def test_the_timeout_is_the_one_ui_run_was_given_or_nicegus_default(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.undo()  # the autouse fixture replaced it
-    assert mapit._reconnect_timeout() > 0  # noqa: SLF001
+    assert mapit._reconnect_timeout() > 0
     monkeypatch.setattr(app.config, "reconnect_timeout", 10.0, raising=False)
-    assert mapit._reconnect_timeout() == 10.0  # noqa: SLF001
+    assert mapit._reconnect_timeout() == 10.0
 
 
 def test_the_handlers_are_registered_once_and_nicegui_can_call_them() -> None:
-    before = (len(app._disconnect_handlers), len(app._connect_handlers))  # noqa: SLF001
+    before = (len(app._disconnect_handlers), len(app._connect_handlers))
 
     mapit.install_disconnect_handling(SimpleNamespace(mygui=None))
     mapit.install_disconnect_handling(SimpleNamespace(mygui=None))
 
-    after = (len(app._disconnect_handlers), len(app._connect_handlers))  # noqa: SLF001
+    after = (len(app._disconnect_handlers), len(app._connect_handlers))
     assert after[0] - before[0] <= 1
     assert after[1] - before[1] <= 1
-    registered = app._disconnect_handlers[-1]  # noqa: SLF001
+    registered = app._disconnect_handlers[-1]
     # NiceGUI passes the client only to a handler of exactly one parameter (a functools.partial with the state bound
     # counts two, and was called with none).
     assert [p.name for p in inspect.signature(registered).parameters.values()] == ["client"]
@@ -202,12 +199,12 @@ async def test_a_real_nicegui_disconnect_reaches_the_handler_with_its_client(mon
             mapit.install_disconnect_handling(PrimeItems)  # the simulation starts with an app of its own
             client = list(Client.instances.values())[-1]
             # What Client.handle_disconnect does for each registered handler (the simulated user has no socket).
-            for handler in core.app._disconnect_handlers:  # noqa: SLF001
+            for handler in core.app._disconnect_handlers:
                 client.safe_invoke(handler)
             await asyncio.sleep(0.05)
 
-            assert client.id in mapit._waiting  # noqa: SLF001
-            mapit._on_client_connect(client)  # noqa: SLF001
+            assert client.id in mapit._waiting
+            mapit._on_client_connect(client)
     finally:
         with contextlib.suppress(Exception):
             if core.app.is_started:

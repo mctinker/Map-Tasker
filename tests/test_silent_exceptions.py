@@ -12,9 +12,9 @@ import logging
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src.mapgen.actionr import get_results_in_arg_order
-from maptasker.src.gui.guiutils import _set_single_item_name
 from maptasker.src.core.maputil2 import suppress_logged
+from maptasker.src.gui.guiutils import _set_single_item_name
+from maptasker.src.mapgen.actionr import get_results_in_arg_order
 
 
 # ---------------------------------------------------------------- suppress_logged

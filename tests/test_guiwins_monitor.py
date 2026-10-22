@@ -39,7 +39,7 @@ _windows: list[devicemonitor.Window] = []
 _asked: list[int] = []
 _opened: list[set[str]] = []
 
-MORNING = datetime(2026, 10, 19, 6, 30).timestamp() * 1000  # noqa: DTZ001
+MORNING = datetime(2026, 10, 19, 6, 30).timestamp() * 1000
 
 
 def _window(*looks: tuple[float, str, str, str]) -> devicemonitor.Window:
@@ -62,12 +62,12 @@ def _configuration(monkeypatch: pytest.MonkeyPatch) -> None:
     _opened.clear()
     _load(_FIXTURE_XML)
 
-    def sample_window(_ip: str, _port: str, samples: int, *, state: object) -> devicemonitor.Window:  # noqa: ARG001
+    def sample_window(_ip: str, _port: str, samples: int, *, state: object) -> devicemonitor.Window:
         _asked.append(samples)
         time.sleep(0.02)
         return _windows.pop(0) if len(_windows) > 1 else _windows[0]
 
-    async def run_javascript(script: str, timeout: float = 5) -> dict[str, int]:  # noqa: ARG001
+    async def run_javascript(script: str, timeout: float = 5) -> dict[str, int]:
         _scripts.append(script)
         return {"nodes": 5, "lit": 1}
 
@@ -82,7 +82,7 @@ def _configuration(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(guiwins_monitor, "remember_android_address_fields", lambda *_a, **_k: None)
 
 
-async def _no_diagram(script: str, timeout: float = 5) -> dict[str, int]:  # noqa: ARG001
+async def _no_diagram(script: str, timeout: float = 5) -> dict[str, int]:
     """A window with no Diagram in it: it has no named objects to light."""
     return {"nodes": 0, "lit": 0}
 
@@ -272,7 +272,7 @@ async def test_a_diagram_open_in_another_window_is_lit_and_nothing_is_said_again
 async def test_a_diagram_that_has_none_of_them_to_light_is_said_to_be_the_wrong_one() -> None:
     _script((MORNING, "Morning", "", "90"))
 
-    async def nothing_lit(script: str, timeout: float = 5) -> dict[str, int]:  # noqa: ARG001
+    async def nothing_lit(script: str, timeout: float = 5) -> dict[str, int]:
         return {"nodes": 40, "lit": 0}
 
     _built["windows"] = [SimpleNamespace(run_javascript=nothing_lit)]
@@ -286,7 +286,7 @@ async def test_a_diagram_that_has_none_of_them_to_light_is_said_to_be_the_wrong_
 async def test_a_window_that_does_not_answer_is_one_more_window_with_nothing_to_light() -> None:
     _script((MORNING, "Morning", "Dawn", "90"))
 
-    async def hung(script: str, timeout: float = 5) -> dict[str, int]:  # noqa: ARG001
+    async def hung(script: str, timeout: float = 5) -> dict[str, int]:
         raise TimeoutError
 
     _built["windows"] = [SimpleNamespace(run_javascript=hung), _built["windows"][1]]
@@ -326,7 +326,7 @@ async def test_a_device_that_keeps_failing_ends_the_monitoring(monkeypatch: pyte
         await _until(lambda: user.notify.contains("Connection error"))
         await _until(lambda: "Stopped." in _texts(user))
 
-        assert len(calls) == guiwins_monitor._FAILURES_ALLOWED  # noqa: SLF001
+        assert len(calls) == guiwins_monitor._FAILURES_ALLOWED
         assert _button(user, "Start").enabled
 
 
@@ -384,7 +384,7 @@ async def test_save_log_writes_what_was_seen(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(
         diffload,
         "write_comparison_report",
-        lambda text, name, *, state: written.append((name, text)) or "/tmp/MapTasker_Monitor.txt",  # noqa: ARG005, S108
+        lambda text, name, *, state: written.append((name, text)) or "/tmp/MapTasker_Monitor.txt",
     )
     _script((MORNING, "Morning", "Dawn", "90"))
     async with _open() as user:

@@ -18,13 +18,12 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core import actionc
+from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen import actargs
 from maptasker.src.mapgen.actionr import get_action_results
 from maptasker.src.mapgen.lineout import LineOut
-from maptasker.src.core.primitem import PrimeItems
 
 SET_TASKER_ICON = "138t"  # Icon(<Img>)=arg0
 NOTIFY = "523t"  # Icon(<Img>)=arg2, with Str/Int arguments around it
@@ -32,7 +31,7 @@ NOTIFY = "523t"  # Icon(<Img>)=arg2, with Str/Int arguments around it
 
 def _map_icon(img_xml: str, code: str = "138", action_code: str = SET_TASKER_ICON) -> str:
     """The mapped line for one action carrying the given <Img>."""
-    action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    action = ET.fromstring(
         f'<Action sr="act0" ve="7"><code>{code}</code>{img_xml}</Action>',
     )
     return get_action_results(action_code, actionc.action_codes, action, False, state=PrimeItems)
@@ -42,7 +41,7 @@ def _map_icon(img_xml: str, code: str = "138", action_code: str = SET_TASKER_ICO
 def _specs() -> None:
     """The argument-type table proginit loads, which is what says arg_type '4' is an Icon."""
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         specs = json.load(handle)
     specs[str(len(specs))] = "ConditionList"  # proginit appends these two; see its own note.
     specs[str(len(specs))] = "Img"
@@ -118,7 +117,7 @@ def test_icon_is_paired_with_its_own_argument() -> None:
     """Notify's icon is arg2, sitting among Str and Int arguments: the <Img> is matched by
     its sr= and lands in argument order, not first or last.
     """
-    action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    action = ET.fromstring(
         '<Action sr="act0" ve="7"><code>523</code>'
         '<Str sr="arg0" ve="3">Title here</Str><Str sr="arg1" ve="3">Text here</Str>'
         '<Img sr="arg2" ve="2"><nme>mw_navigation_apps</nme></Img>'
@@ -139,7 +138,7 @@ SET_WIDGET_LABEL = "155t"  # Name=arg0, Label=arg1
 
 def test_goto_label_argument_maps() -> None:
     """Goto's label is arg2, and is displayed alongside its Type and Number."""
-    action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    action = ET.fromstring(
         '<Action sr="act12" ve="7"><code>135</code>'
         '<Int sr="arg0" val="1"/><Int sr="arg1" val="1"/>'
         '<Str sr="arg2" ve="3">Log Profile Names</Str></Action>',
@@ -150,7 +149,7 @@ def test_goto_label_argument_maps() -> None:
 
 def test_label_argument_is_not_the_actions_own_label() -> None:
     """The action's <label> is its own note and never stands in for the argument."""
-    action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    action = ET.fromstring(
         '<Action sr="act12" ve="7"><code>135</code>'
         "<label>Jump back to the top</label>"
         '<Int sr="arg0" val="1"/><Int sr="arg1" val="1"/>'
@@ -163,7 +162,7 @@ def test_label_argument_is_not_the_actions_own_label() -> None:
 
 def test_set_widget_label_maps_its_label() -> None:
     """Goto is not alone: every action naming an argument "Label" lost it the same way."""
-    action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    action = ET.fromstring(
         '<Action sr="act2" ve="7"><code>155</code>'
         '<Str sr="arg0" ve="3">Allow Macro Toggle</Str>'
         '<Str sr="arg1" ve="3">Macros Off</Str></Action>',
@@ -187,7 +186,7 @@ def test_set_widget_label_maps_its_label() -> None:
 
 def _bundle_result(inner: str, arg: str = "0") -> dict:
     """get_bundle's result for one action carrying the given bundle XML."""
-    action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+    action = ET.fromstring(
         f'<Action sr="act0" ve="7"><code>1</code>{inner}</Action>',
     )
     return actargs.get_bundle(action, {"returning_something": True}, arg, state=PrimeItems)
@@ -232,7 +231,7 @@ _PUSHBULLET = (
     "<com.pushbullet.android.tasker.ACCOUNT_NAME-type>java.lang.String</com.pushbullet.android.tasker.ACCOUNT_NAME-type>"
     "<com.pushbullet.android.tasker.TITLE>Tect</com.pushbullet.android.tasker.TITLE>"
     "<com.pushbullet.android.tasker.TARGET_EMAIL>&lt;null&gt;</com.pushbullet.android.tasker.TARGET_EMAIL>"
-    "<com.twofortyfouram.locale.intent.extra.BLURB>Push a note titled \"Tect\"."
+    '<com.twofortyfouram.locale.intent.extra.BLURB>Push a note titled "Tect".'
     "</com.twofortyfouram.locale.intent.extra.BLURB>"
     "<net.dinglisch.android.tasker.subbundled>true</net.dinglisch.android.tasker.subbundled>"
     "</Vals></Bundle>"

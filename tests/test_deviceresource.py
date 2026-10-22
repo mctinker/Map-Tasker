@@ -52,13 +52,13 @@ _FIXTURE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 
 def _load(xml_text: str) -> None:
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.xml_tree = ET.ElementTree(root)
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
     specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file) as handle:
+    with open(specs_file, encoding="utf-8") as handle:
         specs = json.load(handle)
     specs[str(len(specs))] = "ConditionList"
     PrimeItems.tasker_arg_specs = specs
@@ -310,11 +310,11 @@ class _Apps:
         self.fail = fail
         self.fetched = 0
 
-    def fetch(self, ip_address: str, ip_port: str, state: object) -> tuple[int, str]:  # noqa: ARG002
+    def fetch(self, ip_address: str, ip_port: str, state: object) -> tuple[int, str]:
         self.fetched += 1
         if self.fail:
             return 8, self.fail
-        appinv._store_fetched_apps(  # noqa: SLF001
+        appinv._store_fetched_apps(
             f"{ip_address}:{ip_port}",
             [appinv.AppEntry(pkg=package, label="", cls="") for package in sorted(self.packages)],
         )
@@ -337,7 +337,7 @@ def _check(
     monkeypatch.setattr(
         deviceresource,
         "fetch_tasker_object_names",
-        lambda _ip, _port, state: (8, scenes_fail, {}) if scenes_fail else (0, "", {"Scene": scenes}),  # noqa: ARG005
+        lambda _ip, _port, state: (8, scenes_fail, {}) if scenes_fail else (0, "", {"Scene": scenes}),
     )
     outcome = deviceresource.check_device(*ADDRESS, resrefs.collect(PrimeItems), refresh_apps=refresh, state=PrimeItems)
     return outcome, apps
@@ -374,7 +374,7 @@ def test_what_the_check_stored_is_what_the_health_check_reports(monkeypatch: pyt
 
 
 def test_the_app_list_already_fetched_is_used_when_not_asked_to_refresh(monkeypatch: pytest.MonkeyPatch) -> None:
-    appinv._store_fetched_apps(DEVICE, [appinv.AppEntry(pkg="com.here.app", label="", cls="")])  # noqa: SLF001
+    appinv._store_fetched_apps(DEVICE, [appinv.AppEntry(pkg="com.here.app", label="", cls="")])
     outcome, apps = _check(monkeypatch, existing=set(), packages={"com.never.used"}, scenes=["Panel"], refresh=False)
 
     assert apps.fetched == 0

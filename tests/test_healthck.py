@@ -22,10 +22,7 @@ import xml.etree.ElementTree as ET
 from unittest import mock
 
 import pytest
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.analysis import healthck, plugchk, proflint, resrefs, taskflow
-from maptasker.src.core import piiscan
-from maptasker.src.mapgen import codelint, taskerd
 from maptasker.src.analysis.healthck import (
     CATEGORIES,
     ERROR,
@@ -34,8 +31,11 @@ from maptasker.src.analysis.healthck import (
     run_health_check,
     write_health_check_report,
 )
+from maptasker.src.core import piiscan
+from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import text_report
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.mapgen import codelint, taskerd
 
 # One Project holding a sound Profile, a sound Task and a Scene, plus one of every
 # defect.  Ids are deliberately spread out so a wrong lookup shows up as a miss rather
@@ -182,7 +182,7 @@ _UNREFERENCED_TASK_NAMES = {"Dead", "Owned"}
 
 def _load(xml_text: str) -> None:
     """Build the PrimeItems lookup tables from XML text, the way taskerd does from a file."""
-    root = ET.fromstring(xml_text)  # noqa: S314  (fixture text, defined in this file)
+    root = ET.fromstring(xml_text)
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)
@@ -799,7 +799,7 @@ def test_every_tag_the_folded_in_passes_raise_is_offered(report: str) -> None:
 
 def test_every_category_offered_is_one_that_can_be_raised() -> None:
     """And the other direction, so the panel does not offer a check that no longer exists."""
-    from maptasker.src.analysis.healthck import _PASS_TAGS  # noqa: PLC0415
+    from maptasker.src.analysis.healthck import _PASS_TAGS
 
     own = {
         "BROKEN-TID-REF",

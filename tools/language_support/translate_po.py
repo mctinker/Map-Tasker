@@ -74,7 +74,7 @@ msgstr ''
     """
     try:
         translator = GoogleTranslator(source=source_lang, target=target_lang)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"Error translating '{target_lang}: {e}")
         return
     trans_count = 0
@@ -292,7 +292,7 @@ def check_and_append_to_file(filepath: str, target_string: str) -> bool:
     # 1. READ and CHECK phase
     try:
         # Open in read mode ('r')
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             # print(f"Searching for '{target_string}' in '{filepath}'...")
 
             # Read line by line for efficiency
@@ -317,8 +317,8 @@ def check_and_append_to_file(filepath: str, target_string: str) -> bool:
             with open(filepath, "a", encoding="utf-8") as f:
                 # Add a newline character before and after for clean formatting
                 f.write(f"{target_string}\n")
-            # print(f"➕ String NOT found. Appended: '{target_string}' to {filepath}.")  # noqa: RUF003
-            return True  # noqa: TRY300
+            # print(f"➕ String NOT found. Appended: '{target_string}' to {filepath}.")
+            return True
 
         except OSError as e:
             print(f"❌ Error writing to file {filepath}: {e}")
