@@ -132,28 +132,28 @@ def event_handler() -> MapTaskerEventHandlers:
     window = MagicMock()
     window.state = PrimeItems
     handler = MapTaskerEventHandlers(window)
-    handler.process_single_name_event = MagicMock()
+    handler.loading.process_single_name_event = MagicMock()
     return handler
 
 
 def test_handler_selects_the_exported_object(event_handler: MapTaskerEventHandlers) -> None:
     """'Get Local XML File' and both Android fetch paths all end in this call."""
-    event_handler.select_single_item_export("/backups/Home Automation.prj.xml")
-    event_handler.process_single_name_event.assert_called_once_with("Project", "Home Automation")
+    event_handler.loading.select_single_item_export("/backups/Home Automation.prj.xml")
+    event_handler.loading.process_single_name_event.assert_called_once_with("Project", "Home Automation")
 
 
 def test_handler_reads_an_android_device_path(event_handler: MapTaskerEventHandlers) -> None:
     """The Android paths hand over the file's location on the device rather than a local
     path.  Only the file's own name is read, so the two are the same job."""
-    event_handler.select_single_item_export("/storage/emulated/0/Tasker/configs/user/Sunset.prf.xml")
-    event_handler.process_single_name_event.assert_called_once_with("Profile", "Sunset")
+    event_handler.loading.select_single_item_export("/storage/emulated/0/Tasker/configs/user/Sunset.prf.xml")
+    event_handler.loading.process_single_name_event.assert_called_once_with("Profile", "Sunset")
 
 
 def test_handler_leaves_a_full_backup_alone(event_handler: MapTaskerEventHandlers) -> None:
     """The common case, and the one that must not change: a backup selects nothing, so
     the whole configuration is displayed."""
-    event_handler.select_single_item_export("/storage/emulated/0/Tasker/configs/user/backup.xml")
-    event_handler.process_single_name_event.assert_not_called()
+    event_handler.loading.select_single_item_export("/storage/emulated/0/Tasker/configs/user/backup.xml")
+    event_handler.loading.process_single_name_event.assert_not_called()
 
 
 class FakeSelect:
@@ -178,7 +178,7 @@ def _handler_with_pulldowns(project_options: list) -> tuple[MapTaskerEventHandle
     pulldown = FakeSelect(project_options)
     gui.specific_project_optionmenu = pulldown
     handler = MapTaskerEventHandlers(gui)
-    handler.process_single_name_event = MagicMock()
+    handler.loading.process_single_name_event = MagicMock()
     return handler, pulldown
 
 
@@ -188,7 +188,7 @@ def test_the_pulldown_itself_shows_the_selection() -> None:
     picking from it has already set it.  Nothing picked here, so the Project would be
     selected everywhere while its pulldown still read "None"."""
     handler, pulldown = _handler_with_pulldowns(["None", "Project: Home Automation"])
-    handler.select_single_item_export("/backups/Home Automation.prj.xml")
+    handler.loading.select_single_item_export("/backups/Home Automation.prj.xml")
     assert pulldown.value == "Project: Home Automation"
     assert pulldown.updated
 
@@ -207,7 +207,7 @@ def test_the_pulldown_is_set_under_the_is_updating_guard() -> None:
 
     FakeSelect.update = record_flag
     try:
-        handler.select_single_item_export("/backups/Home Automation.prj.xml")
+        handler.loading.select_single_item_export("/backups/Home Automation.prj.xml")
     finally:
         FakeSelect.update = original
 
@@ -218,6 +218,6 @@ def test_the_pulldown_is_set_under_the_is_updating_guard() -> None:
 def test_a_full_backup_leaves_the_pulldown_alone() -> None:
     """Nothing selected means nothing touched -- the pulldown stays on "None"."""
     handler, pulldown = _handler_with_pulldowns(["None", "Project: Home Automation"])
-    handler.select_single_item_export("/backups/backup.xml")
+    handler.loading.select_single_item_export("/backups/backup.xml")
     assert pulldown.value == "None"
     assert not pulldown.updated

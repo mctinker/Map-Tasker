@@ -1,8 +1,8 @@
 """Settings and appearance event handlers: the output options, colors, fonts, language and settings files.
 
 Split out of userintr.py the same way userintr_android.py, userintr_ai.py and userintr_editors.py
-were.  SettingsEventHandlers is a mixin that MapTaskerEventHandlers inherits, so gui.event_handlers
-keeps every name the window's controls are wired to: the output options (detail level, conditions,
+were.  SettingsEventHandlers is a group of MapTaskerEventHandlers (gui.event_handlers.settings)
+that holds every name the window's controls are wired to: the output options (detail level, conditions,
 directory, twisty and the rest), name styling, indent, font, colors, language, the view and action
 limits, the notification timeout, and the Save, Restore and Reset buttons.
 
@@ -48,13 +48,13 @@ from maptasker.src.gui.guiutils import (
 from maptasker.src.gui.guiwins import NOTIFY_TIMEOUT_CHOICES, set_notification_timeout, view_limit_options
 from maptasker.src.gui.guiwins_drawers import initialize_screen, set_document_language_js
 from maptasker.src.gui.guiwins_nav import element_is_live, live_views
+from maptasker.src.gui.userintr_group import HandlerGroup
 from maptasker.src.mapgen.outline import outline_the_configuration
 
 if TYPE_CHECKING:
     from nicegui import Client
     from nicegui.events import ValueChangeEventArguments
 
-    from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 
 
@@ -121,8 +121,8 @@ def _restore_layout_state(handlers: MapTaskerEventHandlers, the_view: MyGui) -> 
     the_view.extract_settings(temp_args)
 
     # Trigger task limit label updates
-    if hasattr(handlers, "tasklimit_event"):
-        handlers.tasklimit_event(the_view.task_action_warning_limit)
+    if hasattr(handlers.settings, "tasklimit_event"):
+        handlers.settings.tasklimit_event(the_view.task_action_warning_limit)
 
     # Reset the single item object tracking names. Guarded the same way as
     # check_name's identical call: setting a pulldown's .value fires its
@@ -191,20 +191,13 @@ def _reselect_single_item_menus(the_view: MyGui) -> None:
         the_view.is_updating = False  # Always disengage the lock
 
 
-class SettingsEventHandlers:
-    """The settings handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
-    handler is reached through self, just as it was before these moved here."""
-
-    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
-    # its window's.
-    state: RunState
-    # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
-    gui: MyGui
+class SettingsEventHandlers(HandlerGroup):
+    """The settings handlers: reached as hub.settings; self.hub is the rest of the window's handlers, self.gui the window."""
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
     # ==========================================
-    def detail_selected_event(self: MapTaskerEventHandlers, event_value: ValueChangeEventArguments | str | int) -> None:
+    def detail_selected_event(self, event_value: ValueChangeEventArguments | str | int) -> None:
         """
         NICEGUI PARADIGM SHIFT:
         Dropdown (ui.select) on_change events automatically pass an 'event' object.
@@ -234,7 +227,7 @@ class SettingsEventHandlers:
         self.gui.sidebar_detail_option.update()
         self.gui.is_updating = False
 
-    def reset_settings_event(self: MapTaskerEventHandlers) -> None:
+    def reset_settings_event(self) -> None:
         """Put every setting back to its default and rebuild the window to show it."""
         the_view = self.gui
         previous_language = the_view.language
@@ -503,7 +496,7 @@ class SettingsEventHandlers:
         self.state.language_set = True
 
         # Determine reference view (matches your event logic structure)
-        the_view = cast("MyGui", self) if self.__class__.__name__ == "MyGui" else self.gui
+        the_view = self.gui
         if the_view.language == language:
             return
 
@@ -513,8 +506,7 @@ class SettingsEventHandlers:
         # switch) would double-translate it into a string that matches no known language
         # key, causing language_set_event() to fall back to "English" and leaving the
         # pulldown showing the wrong (or blank) selection.
-        if hasattr(self, "language_set_event"):
-            self.language_set_event(language)
+        self.language_set_event(language)
 
         # Reset selection checkboxes / extended list flags safely using the lock flag
         the_view.displaying_extended_list = None  # Force pulldown to be recreated.
@@ -529,7 +521,7 @@ class SettingsEventHandlers:
         # fired from (see rebuild_gui_layout).
         ui.timer(0.01, lambda: self.rebuild_gui_layout(the_view), once=True)
 
-    def rebuild_gui_layout(self: MapTaskerEventHandlers, the_view: MyGui, announce: str = "") -> None:
+    def rebuild_gui_layout(self, the_view: MyGui, announce: str = "") -> None:
         """Tear the whole layout down and build it again from the view's current settings.
 
         Used by anything that changes settings wholesale rather than one control at a time:
@@ -558,7 +550,7 @@ class SettingsEventHandlers:
         # once this block exits and that stale context becomes active again.
         with client.content:
             initialize_screen(the_view)
-            _restore_layout_state(self, the_view)
+            _restore_layout_state(self.hub, the_view)
             _reselect_single_item_menus(the_view)
 
             # Redo the contextual text labels values
@@ -590,7 +582,7 @@ class SettingsEventHandlers:
         Args:
             language: The language selected by the user.
         """
-        the_view = cast("MyGui", self) if self.__class__.__name__ == "MyGui" else self.gui
+        the_view = self.gui
         language = str(getattr(language, "value", language)).strip()
 
         # 1. Early exit if an automatic programmatic update loop is already active
@@ -737,7 +729,7 @@ class SettingsEventHandlers:
                 guiview.is_updating = False
         return f"{translate_string('Notification Duration')} {translate_string('set to')} {display_value}\n"
 
-    def output_directory_event(self: MapTaskerEventHandlers, event: object = None) -> None:
+    def output_directory_event(self, event: object = None) -> None:
         """The 'Output Folder' box: Enter or leaving the box, and its 'Default' button (with "").
 
         The folder is checked before it is taken -- made if it is not there, and refused with
@@ -766,7 +758,7 @@ class SettingsEventHandlers:
             )
         _show_output_directory(guiview)
 
-    def output_directory_restored(self: MapTaskerEventHandlers, folder: str) -> str:
+    def output_directory_restored(self, folder: str) -> str:
         """Put a restored 'Output Folder' into its box, and say where output will go."""
         guiview = self.gui
         guiview.output_directory = folder or ""
@@ -833,7 +825,7 @@ class SettingsEventHandlers:
             )
 
             # Plug in the selected color for the selected named item
-            the_view.event_handlers.extract_color_from_event(color_value, color_selected_item)
+            the_view.event_handlers.settings.extract_color_from_event(color_value, color_selected_item)
 
             # --- DYNAMIC LIVE REFRESH ---
             # If a Map/Diagram view is currently rendered on screen, update it instantly rather
@@ -990,7 +982,7 @@ class SettingsEventHandlers:
         # level (an int) on the GUI; only the pulldown itself takes the string, its options
         # being strings.
         detail_level_str = str(DEFAULT_DISPLAY_DETAIL_LEVEL)
-        mygui.event_handlers.detail_selected_event(DEFAULT_DISPLAY_DETAIL_LEVEL)
+        mygui.event_handlers.settings.detail_selected_event(DEFAULT_DISPLAY_DETAIL_LEVEL)
 
         # Safely force the Dropdown select component visual match if it exists
         if hasattr(mygui, "sidebar_detail_option") and mygui.sidebar_detail_option:

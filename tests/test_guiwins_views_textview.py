@@ -87,7 +87,7 @@ def _gui(**extra: object) -> SimpleNamespace:
     handlers = SimpleNamespace(
         clear_event=lambda: _built["cleared"].append(True),
         view_event=view_event,
-        profiles_per_line_event=profiles_per_line_event,
+        settings=SimpleNamespace(profiles_per_line_event=profiles_per_line_event),
     )
     return SimpleNamespace(
         state=PrimeItems,

@@ -1,10 +1,9 @@
 """Android event handlers: fetching a backup off the device, Save To Android and Import Into Tasker.
 
-Split out of userintr.py, which had grown past 8,600 lines.  AndroidEventHandlers is a mixin:
-MapTaskerEventHandlers inherits it, so every gui.event_handlers.<name> the window wires up
-still finds its handler, and a handler here still reaches every other one through self --
-_keep_task_in_loaded_config, _keep_profile_in_loaded_config and select_single_item_export
-among them.
+Split out of userintr.py, which had grown past 8,600 lines.  AndroidEventHandlers is a group
+of MapTaskerEventHandlers (gui.event_handlers.android), and a handler here reaches the others
+through self.hub -- keep_task_in_loaded_config and keep_profile_in_loaded_config on the editors,
+select_single_item_export on the loading group.
 
 What these handlers ask the device through lives here as well: the check of what Tasker
 already has, the Verify checkbox and the overwrite prompt's options.  A test that stands in
@@ -70,6 +69,7 @@ from maptasker.src.gui.userintr_fields import (
     task_arg_values,
     unapplied_project_edits,
 )
+from maptasker.src.gui.userintr_group import HandlerGroup
 from maptasker.src.mapgen.getbakup import validate_xml_file
 
 if TYPE_CHECKING:
@@ -283,7 +283,7 @@ def _mount_file_picker(self: MyGui, filelist: list) -> None:
         self.filelist_option = ui.select(
             options=filelist,
             label=translate_string("Available Android Backups"),
-            on_change=lambda e: self.event_handlers.file_selected_event(e.value),
+            on_change=lambda e: self.event_handlers.loading.file_selected_event(e.value),
         ).classes("w-full q-mt-none")
 
         # Flat modern action button to easily close the selection panel
@@ -617,15 +617,8 @@ class _IntoTaskerRun:
             ui.notify(message, type="positive" if return_code == 0 else "warning")
 
 
-class AndroidEventHandlers:
-    """The Android handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
-    handler is reached through self, just as it was before these moved here."""
-
-    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
-    # its window's.
-    state: RunState
-    # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
-    gui: MyGui
+class AndroidEventHandlers(HandlerGroup):
+    """The Android handlers: reached as hub.android; self.hub is the rest of the window's handlers, self.gui the window."""
 
     # ==========================================
     # ANDROID XML BACKUP EVENT HANDLERS
@@ -670,7 +663,7 @@ class AndroidEventHandlers:
             # Inline Button Row 1 (List XML & Query Help Button)
             with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
                 gui.list_files_button = (
-                    ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
+                    ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.android.list_files_event)
                     .style("background-color: #D62CFF; color: white;")
                     .classes("flex-grow text-xs")
                 )
@@ -688,7 +681,7 @@ class AndroidEventHandlers:
                 gui.helper_tasks_button = (
                     ui.button(
                         translate_string("List Helper Tasks"),
-                        on_click=gui.event_handlers.list_helper_tasks_event,
+                        on_click=gui.event_handlers.android.list_helper_tasks_event,
                     )
                     .props("flat dense color=primary")
                     .classes("flex-grow text-xs")
@@ -712,7 +705,7 @@ class AndroidEventHandlers:
                 gui.helper_project_button = (
                     ui.button(
                         translate_string("Put Helper Tasks in 'MapTasker' Project"),
-                        on_click=gui.event_handlers.install_helper_project_event,
+                        on_click=gui.event_handlers.android.install_helper_project_event,
                     )
                     .props("flat dense color=primary")
                     .classes("flex-grow text-xs")
@@ -754,7 +747,7 @@ class AndroidEventHandlers:
             gui.set_xml_details_button = (
                 ui.button(
                     translate_string("Click Here to Set XML Details"),
-                    on_click=gui.event_handlers.fetch_backup_event,
+                    on_click=gui.event_handlers.android.fetch_backup_event,
                 )
                 .style("background-color: #D62CFF; color: white;")
                 .classes("w-full mt-3 font-bold text-xs py-2")
@@ -774,9 +767,9 @@ class AndroidEventHandlers:
             the_view.list_files_button.set_text(translate_string("List Files Selected"))
 
         # Trigger the fetch execution routing
-        if hasattr(the_view.event_handlers, "fetch_backup_event"):
+        if hasattr(the_view.event_handlers.android, "fetch_backup_event"):
             # --- CRITICAL FIX: Added 'await' here ---
-            await the_view.event_handlers.fetch_backup_event()
+            await the_view.event_handlers.android.fetch_backup_event()
 
     async def list_helper_tasks_event(self) -> None:
         """Report which of this program's own helper Tasks on the device are dead.
@@ -1001,7 +994,7 @@ class AndroidEventHandlers:
             self.gui.android_ipaddr = ip_address
             self.gui.android_port = ip_port
 
-            self._keep_task_in_loaded_config(edited_task, task_name, is_new_task, on_created)
+            self.hub.editors.keep_task_in_loaded_config(edited_task, task_name, is_new_task, on_created)
 
             # `copied and` matters: on a failure safety_copy holds the reason, not a path.
             replaced = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
@@ -1244,7 +1237,7 @@ class AndroidEventHandlers:
             self.gui.android_ipaddr = ip_address
             self.gui.android_port = ip_port
 
-            self._keep_task_in_loaded_config(edited_task, task_name, is_new_task, on_created)
+            self.hub.editors.keep_task_in_loaded_config(edited_task, task_name, is_new_task, on_created)
 
             # `copied and` matters: on a failure safety_copy holds the reason, not a path.
             saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
@@ -1488,7 +1481,7 @@ class AndroidEventHandlers:
             self.gui.android_ipaddr = ip_address
             self.gui.android_port = ip_port
 
-            self._keep_profile_in_loaded_config(edited_profile, profile_name, is_new_profile, project_name)
+            self.hub.editors.keep_profile_in_loaded_config(edited_profile, profile_name, is_new_profile, project_name)
 
             # `copied and` matters: on a failure safety_copy holds the reason, not a path.
             saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
@@ -1693,7 +1686,7 @@ class AndroidEventHandlers:
                 ip_port=ip_port,
                 android_dialog=android_dialog,
                 parent_dialog=parent_dialog,
-                keep_edit=lambda: self._keep_profile_in_loaded_config(
+                keep_edit=lambda: self.hub.editors.keep_profile_in_loaded_config(
                     edited_profile,
                     profile_name,
                     is_new_profile,
@@ -2097,12 +2090,6 @@ class AndroidEventHandlers:
             else ((gui.file_entry.value or "") if hasattr(gui, "file_entry") and gui.file_entry else "")
         )
 
-        if hasattr(self, "_validate_input"):
-            error_msg = self._validate_input(android_ipaddr, android_port)
-            if error_msg:
-                gui.display_message_box(error_msg, "Red")
-                return
-
         # Kept whether or not the device answers: the next try, in this session or the next,
         # should start from what was typed rather than from the default.
         remember_android_address(gui, android_ipaddr, android_port)
@@ -2131,12 +2118,9 @@ class AndroidEventHandlers:
             return
 
         # Commit validated settings data properties down to our internal tracking state structures
-        if hasattr(self, "_update_internal_state"):
-            self._update_internal_state(android_ipaddr, android_port, android_file)
-        else:
-            gui.android_ipaddr = android_ipaddr
-            gui.android_port = android_port
-            gui.android_file = android_file
+        gui.android_ipaddr = android_ipaddr
+        gui.android_port = android_port
+        gui.android_file = android_file
 
         # A different backup is now the source, so the Project/Profile/Task/Scene picked
         # from the previous one is no longer a meaningful filter, and the pulldowns are
@@ -2153,13 +2137,10 @@ class AndroidEventHandlers:
 
         # And, as on every other path that loads a file, a single-object export selects
         # the one object it holds.
-        self.select_single_item_export(android_file)
+        self.hub.loading.select_single_item_export(android_file)
 
         # Trigger final visual confirmation UI updates
-        if hasattr(self, "_display_backup_summary"):
-            self._display_backup_summary()
-        else:
-            gui.display_message_box(translate_string("Android configuration details matched successfully!"), "Green")
+        gui.display_message_box(translate_string("Android configuration details matched successfully!"), "Green")
 
 
 def _report_offer_failure(task: asyncio.Task) -> None:

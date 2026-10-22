@@ -44,7 +44,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from nicegui import run
 
@@ -56,6 +56,7 @@ from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.sysconst import logger
 from maptasker.src.edit import sessundo
 from maptasker.src.gui.guistate import SELECTION_KEYS
+from maptasker.src.gui.userintr_group import HandlerGroup
 from maptasker.src.mapgen import mapcache
 from maptasker.src.mapgen.bildhtml import build_html
 from maptasker.src.mapgen.frontmtr import output_the_front_matter
@@ -63,8 +64,6 @@ from maptasker.src.mapgen.frontmtr import output_the_front_matter
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from maptasker.src.core.primitem import RunState
-    from maptasker.src.gui.userintr import MyGui
 
 # The tables that say a configuration is loaded, any one of which is enough to have a Map of.
 _OBJECT_TABLES = ("all_projects", "all_profiles", "all_tasks")
@@ -108,21 +107,12 @@ class _Building:
 _building = _Building()
 
 
-class PrebuildEventHandlers:
-    """The Pre-Build The Map handlers MapTaskerEventHandlers inherits: self.gui is the window, and the
-    preparation a build starts with is reached through self, as view_event reaches it."""
+class PrebuildEventHandlers(HandlerGroup):
+    """The Pre-Build The Map handlers: reached as hub.prebuild.  The preparation a build starts with is the
+    hub's get_ready_to_build, as view_event uses it."""
 
-    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
-    # its window's.
-    state: RunState
-    gui: MyGui
     # Whether this window's box was ticked at its last look.
     was_ticked: bool = False
-
-    if TYPE_CHECKING:
-
-        def get_ready_to_build(self, overrides: dict[str, Any] | None) -> None:
-            """MapTaskerEventHandlers's: the condition a build starts from, shared with view_event."""
 
     @contextlib.contextmanager
     def view_in_progress(self) -> Generator[None, None, None]:
@@ -205,7 +195,7 @@ class PrebuildEventHandlers:
         windows_before = diffload.isolation_windows()
         built = False
         with suppress_logged("Building the Map ahead of time"):
-            self.get_ready_to_build(None)
+            self.hub.get_ready_to_build(None)
             selection = self._selection()
             state.output_lines.output_lines.clear()
             output_the_front_matter(current_config(state), state=state)
@@ -223,7 +213,7 @@ class PrebuildEventHandlers:
                 and diffload.isolation_windows() == windows_before
             ):
                 # The settings a press would take now, read the way a press reads them.
-                self.get_ready_to_build(None)
+                self.hub.get_ready_to_build(None)
                 built = mapcache.settle(output_path("MapTasker.html", state=state), mapcache.digests(state=state))
         if not built:
             mapcache.forget()

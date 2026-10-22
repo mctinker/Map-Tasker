@@ -81,7 +81,7 @@ def reapply_selection(gui: MyGui, item_type: str, name: str) -> None:
     if not item_type:
         return
     with suppress_logged("Selecting the named item in the GUI"):
-        gui.event_handlers.process_name_event(item_type, name)
+        gui.event_handlers.loading.process_name_event(item_type, name)
 
 
 # Get the colors to use.

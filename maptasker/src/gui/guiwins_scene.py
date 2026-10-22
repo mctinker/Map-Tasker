@@ -72,7 +72,7 @@ def _build_scene_editor_body(
         preview_button = ui.button(
             translate_string("Preview"),
             icon="visibility",
-            on_click=lambda: _self.event_handlers.preview_scene_event(edited_scene, field_refs, dialog),
+            on_click=lambda: _self.event_handlers.editors.preview_scene_event(edited_scene, field_refs, dialog),
         ).props("dense outline")
         if dialog is not None:
             # Whatever this dialog changes, the picture it opened has to hear about when it
@@ -128,7 +128,7 @@ def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> Non
         ).classes("text-xs text-gray-500")
         legacy = ui.button(
             translate_string("Legacy Scene"),
-            on_click=lambda: self.event_handlers.add_scene_of_version_event(
+            on_click=lambda: self.event_handlers.editors.add_scene_of_version_event(
                 scenemodel.SCENE_VERSION_LEGACY,
                 "",
                 target_project_name,
@@ -157,7 +157,7 @@ def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> Non
                     # would hand every button the last one.
                     ui.button(
                         translate_string(label),
-                        on_click=lambda _e=None, chosen=label: self.event_handlers.add_scene_of_version_event(
+                        on_click=lambda _e=None, chosen=label: self.event_handlers.editors.add_scene_of_version_event(
                             scenemodel.SCENE_VERSION_V2,
                             chosen,
                             target_project_name,
@@ -214,7 +214,7 @@ def build_add_scene_dialog(
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             ui.button(
                 translate_string("Ok"),
-                on_click=lambda: self.event_handlers.keep_new_scene_event(edited_scene, field_refs, dialog),
+                on_click=lambda: self.event_handlers.editors.keep_new_scene_event(edited_scene, field_refs, dialog),
             ).classes("bg-blue-600")
 
     dialog.open()
@@ -289,11 +289,11 @@ def _build_edit_scene_buttons(
             ).style("white-space: pre-wrap")
         ui.button(
             translate_string("Delete Scene"),
-            on_click=lambda: self.event_handlers.delete_scene_event(edited_scene, dialog),
+            on_click=lambda: self.event_handlers.editors.delete_scene_event(edited_scene, dialog),
         ).classes("bg-red-500 text-white")
         rename_scene_button = ui.button(
             translate_string("Rename"),
-            on_click=lambda: self.event_handlers.rename_scene_event(edited_scene, dialog),
+            on_click=lambda: self.event_handlers.editors.rename_scene_event(edited_scene, dialog),
         ).classes("bg-blue-600")
         with rename_scene_button:
             ui.tooltip(
@@ -308,11 +308,11 @@ def _build_edit_scene_buttons(
             ).style("white-space: pre-wrap")
         ui.button(
             translate_string("Ok"),
-            on_click=lambda: self.event_handlers.save_edited_scene_event(edited_scene, field_refs, dialog),
+            on_click=lambda: self.event_handlers.editors.save_edited_scene_event(edited_scene, field_refs, dialog),
         ).props("outline")
         scene_to_current_file = ui.button(
             translate_string("Save To Current File"),
-            on_click=lambda: self.event_handlers.save_scene_to_current_file_event(
+            on_click=lambda: self.event_handlers.editors.save_scene_to_current_file_event(
                 edited_scene,
                 field_refs,
                 dialog,
@@ -333,7 +333,7 @@ def _build_edit_scene_buttons(
             ).style("white-space: pre-wrap")
         scene_to_android = ui.button(
             translate_string("Save To Android"),
-            on_click=lambda: self.event_handlers.open_save_scene_to_android_dialog_event(
+            on_click=lambda: self.event_handlers.android.open_save_scene_to_android_dialog_event(
                 edited_scene,
                 field_refs,
                 dialog,
@@ -354,7 +354,7 @@ def _build_edit_scene_buttons(
             ).style("white-space: pre-wrap")
         export_scene = ui.button(
             translate_string("Export Scene"),
-            on_click=lambda: self.event_handlers.save_scene_event(edited_scene, field_refs, dialog),
+            on_click=lambda: self.event_handlers.editors.save_scene_event(edited_scene, field_refs, dialog),
         ).classes("bg-blue-600")
         with export_scene:
             ui.tooltip(
@@ -451,7 +451,7 @@ def build_delete_scene_dialog(
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(
                 translate_string("Delete Scene"),
-                on_click=lambda: self.event_handlers.confirm_delete_scene_event(
+                on_click=lambda: self.event_handlers.editors.confirm_delete_scene_event(
                     scene_name,
                     confirm_dialog,
                     parent_dialog,
@@ -487,7 +487,7 @@ def build_save_scene_to_android_dialog(
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
                 translate_string("Save As File"),
-                on_click=lambda: self.event_handlers.save_scene_to_android_event(
+                on_click=lambda: self.event_handlers.android.save_scene_to_android_event(
                     edited_scene,
                     field_refs,
                     android_field_refs,
@@ -509,7 +509,7 @@ def build_save_scene_to_android_dialog(
             # guiwins_profedit.build_save_profile_to_android_dialog for why these are two buttons.
             import_into_tasker = ui.button(
                 translate_string("Import Into Tasker"),
-                on_click=lambda: self.event_handlers.import_scene_into_tasker_event(
+                on_click=lambda: self.event_handlers.android.import_scene_into_tasker_event(
                     edited_scene,
                     field_refs,
                     android_field_refs,

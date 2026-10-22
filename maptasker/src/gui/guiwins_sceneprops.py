@@ -339,7 +339,7 @@ class _ScenePropertiesDialog:
             if properties is not None:
                 sceneedit_legacy.legacy_set_task_binding(properties, event_tag, new_task_id)
 
-        if not self.gui.event_handlers.keep_scene_event_task_edits(self.bound_tasks, self.pending_tasks, bind):
+        if not self.gui.event_handlers.editors.keep_scene_event_task_edits(self.bound_tasks, self.pending_tasks, bind):
             self.render()
             return
         self.dialog.close()
@@ -357,7 +357,7 @@ class _ScenePropertiesDialog:
         self.flushers.clear()
         self.bound_tasks.clear()
         self.pending_tasks.clear()
-        self.gui.event_handlers.discard_scene_properties_event(
+        self.gui.event_handlers.editors.discard_scene_properties_event(
             self.scene_element,
             self.properties_snapshot,
             self.geometry_snapshot,
@@ -995,7 +995,7 @@ def _render_scene_event_task_actions(
     field_refs: dict = {}
     task_state["bound"][held_key] = (edited_task, field_refs)
     task_state["flushers"].append(
-        lambda: self.event_handlers.stash_scene_event_task_edits(edited_task, field_refs),
+        lambda: self.event_handlers.editors.stash_scene_event_task_edits(edited_task, field_refs),
     )
 
     _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
@@ -1004,7 +1004,7 @@ def _render_scene_event_task_actions(
         ui.button(
             translate_string("Apply to Task"),
             icon="task_alt",
-            on_click=lambda: self.event_handlers.apply_scene_key_task_event(edited_task, field_refs),
+            on_click=lambda: self.event_handlers.editors.apply_scene_key_task_event(edited_task, field_refs),
         )
         .props("dense")
         .classes("mt-2 bg-blue-600")
@@ -1067,7 +1067,7 @@ def _render_create_event_task_button(
         def bind(new_task_id: str) -> None:
             sceneedit_legacy.legacy_set_task_binding(properties, event.tag, new_task_id)
 
-        if self.event_handlers.create_scene_event_task_event(edited_task, field_refs, bind):
+        if self.event_handlers.editors.create_scene_event_task_event(edited_task, field_refs, bind):
             # It is a real Task now and the event points at it, so the next render loads it
             # from the tables like any other binding.
             pending.pop(event.tag, None)
@@ -1160,7 +1160,7 @@ def _render_scene_event_new_task(
     }
     pending[event.tag] = (edited_task, field_refs)
     task_state["flushers"].append(
-        lambda: self.event_handlers.stash_scene_event_task_edits(edited_task, field_refs),
+        lambda: self.event_handlers.editors.stash_scene_event_task_edits(edited_task, field_refs),
     )
 
     _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)

@@ -26,11 +26,10 @@ from maptasker.src.gui.userintr_settings import SettingsEventHandlers
 
 
 class _Handlers(SettingsEventHandlers):
-    """The mixin on its own, holding the window and the run the way MapTaskerEventHandlers does."""
+    """The group on its own, over a stand-in for the hub that holds the window and the run."""
 
     def __init__(self, gui: MagicMock, state: RunState) -> None:
-        self.gui = gui
-        self.state = state
+        super().__init__(SimpleNamespace(gui=gui, state=state, settings=self))  # type: ignore[arg-type]
 
 
 @pytest.fixture
@@ -45,7 +44,7 @@ def gui() -> MagicMock:
 def handlers(gui: MagicMock) -> _Handlers:
     """The handlers over that window and a RunState of their own."""
     handlers = _Handlers(gui, RunState())
-    gui.event_handlers = handlers
+    gui.event_handlers = handlers.hub
     return handlers
 
 
@@ -103,7 +102,7 @@ def test_the_detail_level_is_always_an_int_whatever_it_arrives_as(
     given: object,
 ) -> None:
     """A pulldown event, a restored string and an int all leave the same int -- the settings file reads it back."""
-    handlers.detail_selected_event(given)
+    handlers.detail_selected_event(given)  # type: ignore[arg-type]
     assert gui.display_detail_level == 4
     assert gui.sidebar_detail_option.value == "4"
     assert gui.is_updating is False
@@ -112,7 +111,7 @@ def test_the_detail_level_is_always_an_int_whatever_it_arrives_as(
 def test_a_level_nobody_can_convert_leaves_the_current_one(handlers: _Handlers, gui: MagicMock) -> None:
     """An empty pulldown must not replace a number with something no comparison can take."""
     gui.display_detail_level = 3
-    handlers.detail_selected_event(SimpleNamespace(value=""))
+    handlers.detail_selected_event(SimpleNamespace(value=""))  # type: ignore[arg-type]
     assert gui.display_detail_level == 3
 
 
@@ -479,11 +478,11 @@ def test_resetting_colours_puts_back_the_modes_own_and_forgets_the_picks(handler
 def test_a_colour_picked_with_no_category_chosen_is_ignored(handlers: _Handlers, gui: MagicMock) -> None:
     """Nothing to colour."""
     gui.color_objects_options = None
-    gui.event_handlers.extract_color_from_event = MagicMock()
+    gui.event_handlers.settings.extract_color_from_event = MagicMock()
 
     handlers.handle_color_pick_event("#ff0000")
 
-    gui.event_handlers.extract_color_from_event.assert_not_called()
+    gui.event_handlers.settings.extract_color_from_event.assert_not_called()
 
 
 # ##################################################################################

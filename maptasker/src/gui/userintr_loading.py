@@ -1,14 +1,14 @@
 """Loading event handlers: opening a backup file, and choosing the one Project, Profile, Task or Scene to show.
 
 Split out of userintr.py the same way userintr_android.py, userintr_ai.py, userintr_editors.py and
-userintr_settings.py were.  LoadingEventHandlers is a mixin that MapTaskerEventHandlers inherits, so
-gui.event_handlers keeps every name the window's controls are wired to: 'Get Local XML File' and the
+userintr_settings.py were.  LoadingEventHandlers is a group of MapTaskerEventHandlers
+(gui.event_handlers.loading) that holds the names the window's controls are wired to: 'Get Local XML File' and the
 file then chosen, the 'Specific Name' tab's four pulldowns and its 'List Unnamed Items' checkbox,
 and selecting the object a single-object export holds once it has been loaded.
 
 They belong together because loading a file decides what can be selected: every path that loads
 one ends by resetting the selection or by selecting the export's own object.  Fetching a backup off
-the Android device is in userintr_android, which calls select_single_item_export here through self.
+the Android device is in userintr_android, which calls select_single_item_export here through self.hub.loading.
 local_xml_start_directory lives here as well, and userintr imports it back for the file picker the
 Compare button opens.
 """
@@ -40,10 +40,10 @@ from maptasker.src.gui.guiutils import (
     update_tasker_object_menus,
 )
 from maptasker.src.gui.guiwins_views import refresh_scope_badges
+from maptasker.src.gui.userintr_group import HandlerGroup
 from maptasker.src.mapgen.getbakup import validate_xml_file
 
 if TYPE_CHECKING:
-    from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
 
 
@@ -112,15 +112,8 @@ class AppState:
     selected_file_path = None
 
 
-class LoadingEventHandlers:
-    """The loading handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
-    handler is reached through self, just as it was before these moved here."""
-
-    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
-    # its window's.
-    state: RunState
-    # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
-    gui: MyGui
+class LoadingEventHandlers(HandlerGroup):
+    """The loading handlers: reached as hub.loading; self.hub is the rest of the window's handlers, self.gui the window."""
 
     # Process single name selection/event
     def process_name_event(
@@ -215,7 +208,7 @@ class LoadingEventHandlers:
             name_selected = name_selected["label"]
         if name_selected.startswith(f"{event_type}: "):
             name_selected = name_selected.replace(f"{event_type}: ", "")
-        the_view.event_handlers.process_name_event(event_type, name_selected)
+        the_view.event_handlers.loading.process_name_event(event_type, name_selected)
 
     def select_single_item_export(self, file_path: str) -> None:
         """Select the one object a single-object export holds, if that is what was loaded.

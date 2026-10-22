@@ -503,7 +503,7 @@ def build_delete_project_dialog(
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(
                 translate_string("Keep Contents"),
-                on_click=lambda: self.event_handlers.keep_contents_delete_project_event(
+                on_click=lambda: self.event_handlers.editors.keep_contents_delete_project_event(
                     project_name,
                     confirm_dialog,
                     parent_dialog,
@@ -511,7 +511,7 @@ def build_delete_project_dialog(
             ).props("outline")
             ui.button(
                 translate_string("Delete Contents"),
-                on_click=lambda: self.event_handlers.delete_contents_delete_project_event(
+                on_click=lambda: self.event_handlers.editors.delete_contents_delete_project_event(
                     project_name,
                     confirm_dialog,
                     parent_dialog,

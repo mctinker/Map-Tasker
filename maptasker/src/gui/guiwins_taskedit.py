@@ -1161,7 +1161,7 @@ def build_action_condition_dialog(
             ).props("outline")
             ui.button(
                 translate_string("Ok"),
-                on_click=lambda: self.event_handlers.set_action_condition_event(
+                on_click=lambda: self.event_handlers.editors.set_action_condition_event(
                     edited_task,
                     act_number,
                     target_input,
@@ -1210,7 +1210,7 @@ def _render_action_condition_checkbox(
         current = next((a for a in edited_task.actions if a.act_number == act_number), None)
         if current is not None and taskedit_apply.action_has_condition(current):
             condition_cache[act_number] = taskedit_apply.get_action_condition_values(current)
-        self.event_handlers.remove_action_condition_event(edited_task, act_number)
+        self.event_handlers.editors.remove_action_condition_event(edited_task, act_number)
         cb.set_text(translate_string("If"))
 
     checkbox.on_value_change(on_toggle)
@@ -1233,7 +1233,7 @@ def _render_continue_after_error_checkbox(
     ui.checkbox(
         translate_string("Continue Task After Error"),
         value=taskedit.action_continues_after_error(action),
-        on_change=lambda e, n=action.act_number: self.event_handlers.set_action_continue_after_error_event(
+        on_change=lambda e, n=action.act_number: self.event_handlers.editors.set_action_continue_after_error_event(
             edited_task,
             n,
             bool(e.value),
@@ -1516,12 +1516,12 @@ class _NewTaskActionList(_ActionList):
         self.picker = _ActionPicker(
             gui,
             self.edited_task,
-            lambda action_key, position: gui.event_handlers.add_action_to_new_task_event(
+            lambda action_key, position: gui.event_handlers.editors.add_action_to_new_task_event(
                 self.edited_task,
                 action_key,
                 position,
             ),
-            lambda variant, position: gui.event_handlers.add_if_block_to_new_task_event(
+            lambda variant, position: gui.event_handlers.editors.add_if_block_to_new_task_event(
                 self.edited_task,
                 variant,
                 position,
@@ -1575,7 +1575,7 @@ class _NewTaskActionList(_ActionList):
             translate_string("Remove"),
             on_click=lambda _e=None, n=action.act_number: (
                 self.clear_last_added(),
-                self.gui.event_handlers.remove_action_from_new_task_event(self.edited_task, n),
+                self.gui.event_handlers.editors.remove_action_from_new_task_event(self.edited_task, n),
                 self.render_actions(),
                 self.picker.refresh_positions(),
             ),
@@ -1608,12 +1608,12 @@ class _EditTaskActionList(_ActionList):
         self.picker = _ActionPicker(
             gui,
             self.edited_task,
-            lambda action_key, position: gui.event_handlers.add_action_to_edit_task_event(
+            lambda action_key, position: gui.event_handlers.editors.add_action_to_edit_task_event(
                 self.edited_task,
                 action_key,
                 position,
             ),
-            lambda variant, position: gui.event_handlers.add_if_block_to_edit_task_event(
+            lambda variant, position: gui.event_handlers.editors.add_if_block_to_edit_task_event(
                 self.edited_task,
                 variant,
                 position,
@@ -1660,7 +1660,7 @@ class _EditTaskActionList(_ActionList):
                 translate_string("Copy"),
                 on_click=lambda _e=None, n=action.act_number: (
                     self.clear_last_added(),
-                    handlers.copy_action_in_edit_task_event(edited_task, n),
+                    handlers.editors.copy_action_in_edit_task_event(edited_task, n),
                     self.render_actions(),
                     self.picker.refresh_positions(),
                 ),
@@ -1679,7 +1679,7 @@ class _EditTaskActionList(_ActionList):
                 translate_string("Move"),
                 on_click=lambda _e=None, n=action.act_number, target=move_to_input: (
                     self.clear_last_added(),
-                    handlers.move_action_in_edit_task_event(
+                    handlers.editors.move_action_in_edit_task_event(
                         edited_task,
                         n,
                         int(target.value) if target.value is not None else n,
@@ -1692,7 +1692,7 @@ class _EditTaskActionList(_ActionList):
                 translate_string("Delete"),
                 on_click=lambda _e=None, n=action.act_number: (
                     self.clear_last_added(),
-                    handlers.delete_action_in_edit_task_event(edited_task, n),
+                    handlers.editors.delete_action_in_edit_task_event(edited_task, n),
                     self.render_actions(),
                     self.picker.refresh_positions(),
                 ),
@@ -1702,7 +1702,7 @@ class _EditTaskActionList(_ActionList):
         """The switch that enables or disables an action."""
         action_enabled_switch = ui.switch(
             value=taskedit.is_action_enabled(action),
-            on_change=lambda e, n=action.act_number: self.gui.event_handlers.set_action_enabled_event(
+            on_change=lambda e, n=action.act_number: self.gui.event_handlers.editors.set_action_enabled_event(
                 self.edited_task,
                 n,
                 bool(e.value),
@@ -1772,7 +1772,7 @@ def _render_task_save_buttons(
     """The Edit Task dialog's two ways of keeping the edits beyond the session: Save To Current File and Save To Android."""
     task_to_current_file = ui.button(
         translate_string("Save To Current File"),
-        on_click=lambda: self.event_handlers.save_edited_task_to_current_file_event(
+        on_click=lambda: self.event_handlers.editors.save_edited_task_to_current_file_event(
             edited_task,
             field_refs,
             dialog,
@@ -1793,7 +1793,7 @@ def _render_task_save_buttons(
         ).style("white-space: pre-wrap")
     task_to_android = ui.button(
         translate_string("Save To Android"),
-        on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
+        on_click=lambda: self.event_handlers.android.open_save_to_android_dialog_event(
             edited_task,
             field_refs,
             dialog,
@@ -1830,7 +1830,7 @@ def _render_edit_task_buttons(
         ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
         delete_task_button = ui.button(
             translate_string("Delete Task"),
-            on_click=lambda: self.event_handlers.delete_task_event(edited_task, dialog),
+            on_click=lambda: self.event_handlers.editors.delete_task_event(edited_task, dialog),
         ).classes("bg-red-500 text-white")
         with delete_task_button:
             ui.tooltip(
@@ -1842,7 +1842,7 @@ def _render_edit_task_buttons(
             )
         rename_task_button = ui.button(
             translate_string("Rename"),
-            on_click=lambda: self.event_handlers.rename_task_event(edited_task, field_refs, title_label),
+            on_click=lambda: self.event_handlers.editors.rename_task_event(edited_task, field_refs, title_label),
         ).classes("bg-blue-600")
         with rename_task_button:
             ui.tooltip(
@@ -1854,7 +1854,7 @@ def _render_edit_task_buttons(
             )
         ui.button(
             translate_string("Ok"),
-            on_click=lambda: self.event_handlers.keep_edited_task_event(edited_task, field_refs, dialog),
+            on_click=lambda: self.event_handlers.editors.keep_edited_task_event(edited_task, field_refs, dialog),
         ).props("outline")
         _render_task_save_buttons(self, edited_task, field_refs, dialog)
         run_on_android = ui.button(
@@ -1875,7 +1875,7 @@ def _render_edit_task_buttons(
             ).style("white-space: pre-wrap")
         task_save = ui.button(
             translate_string("Export Task"),
-            on_click=lambda: self.event_handlers.save_edited_task_event(edited_task, field_refs, dialog),
+            on_click=lambda: self.event_handlers.editors.save_edited_task_event(edited_task, field_refs, dialog),
         ).classes("bg-blue-600")
         with task_save:
             ui.tooltip(
@@ -1978,7 +1978,7 @@ def build_delete_task_dialog(
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(
                 translate_string("Delete Task"),
-                on_click=lambda: self.event_handlers.confirm_delete_task_event(
+                on_click=lambda: self.event_handlers.editors.confirm_delete_task_event(
                     task_name,
                     confirm_dialog,
                     parent_dialog,
@@ -2044,7 +2044,7 @@ def _render_new_task_buttons(
         ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
         ui.button(
             translate_string("Ok"),
-            on_click=lambda: self.event_handlers.keep_new_task_event(
+            on_click=lambda: self.event_handlers.editors.keep_new_task_event(
                 edited_task,
                 field_refs,
                 dialog,
@@ -2053,7 +2053,7 @@ def _render_new_task_buttons(
         ).props("outline")
         new_task_to_current_file = ui.button(
             translate_string("Save To Current File"),
-            on_click=lambda: self.event_handlers.save_new_task_to_current_file_event(
+            on_click=lambda: self.event_handlers.editors.save_new_task_to_current_file_event(
                 edited_task,
                 field_refs,
                 dialog,
@@ -2075,7 +2075,7 @@ def _render_new_task_buttons(
             ).style("white-space: pre-wrap")
         ui.button(
             translate_string("Save To Android"),
-            on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
+            on_click=lambda: self.event_handlers.android.open_save_to_android_dialog_event(
                 edited_task,
                 field_refs,
                 dialog,
@@ -2084,7 +2084,7 @@ def _render_new_task_buttons(
         ).props("outline")
         export_task = ui.button(
             translate_string("Export Task"),
-            on_click=lambda: self.event_handlers.save_new_task_event(
+            on_click=lambda: self.event_handlers.editors.save_new_task_event(
                 edited_task,
                 field_refs,
                 dialog,

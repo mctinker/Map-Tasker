@@ -432,4 +432,4 @@ def select_renamed_item(gui: MyGui, item_type: str, new_name: str) -> None:
     # The bare name, not the pulldown's prefixed label -- process_name_event
     # stores it in single_{project,profile,task}_name/PrimeItems.program_arguments,
     # where every consumer expects the name on its own.
-    gui.event_handlers.process_name_event(item_type, new_name)
+    gui.event_handlers.loading.process_name_event(item_type, new_name)

@@ -86,9 +86,7 @@ def handlers(monkeypatch: pytest.MonkeyPatch) -> tuple[LoadingEventHandlers, Mag
     gui.is_updating = False
     gui.check_name.return_value = True
     state = SimpleNamespace(program_arguments={})
-    handler = LoadingEventHandlers()
-    handler.gui = gui
-    handler.state = state
+    handler = LoadingEventHandlers(SimpleNamespace(gui=gui, state=state))  # type: ignore[arg-type]
     calls: dict[str, list] = {
         name: []
         for name in (
@@ -155,18 +153,18 @@ def test_a_placeholder_entry_is_ignored(handlers: tuple, empty: str) -> None:
 def test_a_name_arrives_with_or_without_its_kind_in_front(handlers: tuple) -> None:
     handler, gui, _calls = handlers
     handler.process_single_name_event("Project", "Project: Home")
-    gui.event_handlers.process_name_event.assert_called_with("Project", "Home")
+    gui.event_handlers.loading.process_name_event.assert_called_with("Project", "Home")
     handler.process_single_name_event("Project", {"label": "Project: Away"})
-    gui.event_handlers.process_name_event.assert_called_with("Project", "Away")
+    gui.event_handlers.loading.process_name_event.assert_called_with("Project", "Away")
     handler.process_single_name_event("Task", "Wake Up")
-    gui.event_handlers.process_name_event.assert_called_with("Task", "Wake Up")
+    gui.event_handlers.loading.process_name_event.assert_called_with("Task", "Wake Up")
 
 
 @pytest.mark.parametrize("kind", ["Project", "Profile", "Task", "Scene"])
 def test_each_pulldown_routes_to_its_own_kind(handlers: tuple, kind: str) -> None:
     handler, gui, _calls = handlers
     getattr(handler, f"single_{kind.lower()}_name_event")("Name")
-    gui.event_handlers.process_name_event.assert_called_once_with(kind, "Name")
+    gui.event_handlers.loading.process_name_event.assert_called_once_with(kind, "Name")
 
 
 @pytest.mark.parametrize("kind", ["Project", "Profile", "Task", "Scene"])
@@ -174,7 +172,7 @@ def test_a_pulldown_changed_by_the_program_is_not_treated_as_a_choice(handlers: 
     handler, gui, _calls = handlers
     gui.is_updating = True
     getattr(handler, f"single_{kind.lower()}_name_event")("Name")
-    gui.event_handlers.process_name_event.assert_not_called()
+    gui.event_handlers.loading.process_name_event.assert_not_called()
 
 
 # ##################################################################################
@@ -184,7 +182,7 @@ def test_a_full_backup_selects_nothing(handlers: tuple, monkeypatch: pytest.Monk
     handler, gui, _calls = handlers
     monkeypatch.setattr(userintr_loading, "single_item_export_selection", lambda path, state: ("", ""))
     handler.select_single_item_export("backup.xml")
-    gui.event_handlers.process_name_event.assert_not_called()
+    gui.event_handlers.loading.process_name_event.assert_not_called()
 
 
 def test_a_single_object_export_selects_that_object_and_its_pulldown(
@@ -197,7 +195,7 @@ def test_a_single_object_export_selects_that_object_and_its_pulldown(
 
     handler.select_single_item_export("Home.prj.xml")
 
-    gui.event_handlers.process_name_event.assert_called_once_with("Project", "Home")
+    gui.event_handlers.loading.process_name_event.assert_called_once_with("Project", "Home")
     assert picked == [(gui.specific_project_optionmenu, "Home")]
     gui.specific_project_optionmenu.update.assert_called_once()
     assert gui.is_updating is False
@@ -210,4 +208,4 @@ def test_an_export_whose_pulldown_is_not_on_screen_is_still_selected(
     monkeypatch.setattr(userintr_loading, "single_item_export_selection", lambda path, state: ("Scene", "Panel"))
     gui.specific_scene_optionmenu = None
     handler.select_single_item_export("Panel.scn.xml")
-    gui.event_handlers.process_name_event.assert_called_once_with("Scene", "Panel")
+    gui.event_handlers.loading.process_name_event.assert_called_once_with("Scene", "Panel")

@@ -438,7 +438,7 @@ def test_detail_selected_event(event_handler, mock_gui_instance):
     mock_event = MagicMock()
     mock_event.value = "5"
 
-    event_handler.detail_selected_event(mock_event)
+    event_handler.settings.detail_selected_event(mock_event)
 
     # An int on the GUI object -- every reader of display_detail_level compares it
     # numerically -- and the string the pulldown's own options are made of.
@@ -451,12 +451,12 @@ def test_viewlimit_normalization(event_handler, mock_gui_instance):
     mock_gui_instance.is_updating = False
 
     # Test text conversion boundary values
-    event_handler.viewlimit_event(MagicMock(value="Unlimited"))
+    event_handler.settings.viewlimit_event(MagicMock(value="Unlimited"))
     assert mock_gui_instance.view_limit == 9999999
     assert mock_gui_instance.viewlimit_optionmenu.value == "Unlimited"
 
     # Test digit conversions
-    event_handler.viewlimit_event(MagicMock(value="25000"))
+    event_handler.settings.viewlimit_event(MagicMock(value="25000"))
     assert mock_gui_instance.view_limit == 25000
 
 
@@ -493,7 +493,7 @@ def test_the_pulldown_is_given_the_limit_it_is_asked_to_show(event_handler, mock
     mock_gui_instance.is_updating = False
     mock_gui_instance.viewlimit_optionmenu = FakeSelect("10000", ["5000", "10000", "Unlimited"])
 
-    event_handler.viewlimit_event("250")
+    event_handler.settings.viewlimit_event("250")
 
     assert mock_gui_instance.view_limit == 250
     assert mock_gui_instance.viewlimit_optionmenu.value == "250"
@@ -547,7 +547,7 @@ def test_twisty_versus_everything_mutual_exclusivity(event_handler, mock_gui_ins
     mock_gui_instance.twisty_checkbox.value = True
     mock_gui_instance.everything = True  # Conflict flag activated
 
-    event_handler.twisty_event()
+    event_handler.settings.twisty_event()
 
     assert mock_gui_instance.twisty is False
     mock_gui_instance.twisty_checkbox.set_value.assert_called_with(False)
@@ -632,7 +632,7 @@ async def test_ai_analyze_event_missing_model_safeguard(_mock_ui, event_handler,
     """
     mock_gui_instance.ai_model = ""  # No LLM specified
 
-    await event_handler.ai_analyze_event()
+    await event_handler.ai.ai_analyze_event()
 
     mock_gui_instance.display_message_box.assert_called_once_with("No model selected.", "Orange")
 
@@ -646,7 +646,7 @@ def test_extract_color_from_event(event_handler, mock_gui_instance):
     mock_gui_instance.color_lookup = {}
 
     # Emulate shifting "Projects" label to hex format color definitions
-    event_handler.extract_color_from_event("#ff00ff", "Projects")
+    event_handler.settings.extract_color_from_event("#ff00ff", "Projects")
 
     assert mock_gui_instance.color_lookup["project_color"] == "#ff00ff"
     assert PrimeItems.colors_to_use["project_color"] == "#ff00ff"
@@ -852,7 +852,7 @@ async def test_compare_refuses_with_nothing_loaded(event_handler, mock_gui_insta
     chooser = AsyncMock()
     try:
         with patch("maptasker.src.gui.userintr_reports._choose_comparison_file", chooser):
-            await event_handler.compare_files_event()
+            await event_handler.reports.compare_files_event()
     finally:
         PrimeItems.tasker_root_elements = previous
 
@@ -869,7 +869,7 @@ async def test_compare_cancelled_does_nothing(event_handler, mock_gui_instance, 
         _choose_comparison_file=AsyncMock(return_value=""),
         write_comparison_report=writer,
     ):
-        await event_handler.compare_files_event()
+        await event_handler.reports.compare_files_event()
 
     writer.assert_not_called()
     mock_gui_instance.display_message_box.assert_not_called()
@@ -888,7 +888,7 @@ async def test_compare_refuses_the_file_already_loaded(event_handler, mock_gui_i
         loaded_file_path=MagicMock(return_value="/loaded/backup.xml"),
         load_for_comparison=loader,
     ):
-        await event_handler.compare_files_event()
+        await event_handler.reports.compare_files_event()
 
     loader.assert_not_called()
     assert "already loaded" in mock_gui_instance.display_message_box.call_args[0][0]
@@ -902,7 +902,7 @@ async def test_compare_reports_a_file_that_would_not_load(event_handler, mock_gu
         load_for_comparison=MagicMock(return_value=(None, "backup.xml could not be read.")),
         NiceGuiTextView=view,
     ):
-        await event_handler.compare_files_event()
+        await event_handler.reports.compare_files_event()
 
     mock_gui_instance.display_message_box.assert_called_once_with("backup.xml could not be read.", "Red")
     view.assert_not_called()
@@ -914,7 +914,7 @@ async def test_compare_saves_and_displays(event_handler, mock_gui_instance, _loa
     view = MagicMock()
     order = MagicMock(side_effect=lambda a, b: (a, b))
     with _patched_collaborators(NiceGuiTextView=view, order_by_age=order):
-        await event_handler.compare_files_event()
+        await event_handler.reports.compare_files_event()
 
     order.assert_called_once()
     assert "Comparison saved as" in mock_gui_instance.display_message_box.call_args[0][0]
@@ -934,7 +934,7 @@ async def test_compare_escapes_the_report_for_display(event_handler, mock_gui_in
         compare=MagicMock(return_value=("Task '<b>' & co", {"ADDED": 1, "REMOVED": 0, "RENAMED": 0, "CHANGED": 0})),
         NiceGuiTextView=view,
     ):
-        await event_handler.compare_files_event()
+        await event_handler.reports.compare_files_event()
 
     assert view.call_args.kwargs["the_data"] == "Task &#x27;&lt;b&gt;&#x27; &amp; co"
 
@@ -947,7 +947,7 @@ async def test_compare_says_so_when_the_files_match(event_handler, mock_gui_inst
         compare=MagicMock(return_value=("no differences", {"ADDED": 0, "REMOVED": 0, "RENAMED": 0, "CHANGED": 0})),
         ui=fake_ui,
     ):
-        await event_handler.compare_files_event()
+        await event_handler.reports.compare_files_event()
 
     notifications = [call.args[0] for call in fake_ui.notify.call_args_list]
     assert any("same configuration" in text for text in notifications)
@@ -959,7 +959,7 @@ async def test_compare_still_displays_when_the_save_fails(event_handler, mock_gu
     went wrong -- the same call healthck's writer makes."""
     view = MagicMock()
     with _patched_collaborators(write_comparison_report=MagicMock(return_value=""), NiceGuiTextView=view):
-        await event_handler.compare_files_event()
+        await event_handler.reports.compare_files_event()
 
     assert "could not be saved" in mock_gui_instance.display_message_box.call_args[0][0]
     view.assert_called_once()
@@ -1000,9 +1000,9 @@ async def test_the_button_asks_how_far_back_before_doing_anything(event_handler,
     """Clicking it opens the picker; nothing is compared until a period is chosen."""
     dialog = MagicMock()
     with patch("maptasker.src.gui.userintr_reports.build_changes_since_dialog", dialog):
-        await event_handler.timeline_event()
+        await event_handler.reports.timeline_event()
 
-    dialog.assert_called_once_with(event_handler.report_changes_since)
+    dialog.assert_called_once_with(event_handler.reports.report_changes_since)
 
 
 @pytest.mark.asyncio
@@ -1015,7 +1015,7 @@ async def test_the_button_refuses_with_nothing_loaded(event_handler, mock_gui_in
     dialog = MagicMock()
     try:
         with patch("maptasker.src.gui.userintr_reports.build_changes_since_dialog", dialog):
-            await event_handler.timeline_event()
+            await event_handler.reports.timeline_event()
     finally:
         PrimeItems.tasker_root_elements = previous
 
@@ -1031,7 +1031,7 @@ async def test_the_chosen_period_is_what_gets_reported(event_handler, mock_gui_i
     writer = MagicMock(return_value="MapTasker_Timeline_01-01-2026_00-00-00.txt")
 
     with _patched_timeline(result, writer) as (io_bound, view, _notify):
-        await event_handler.report_changes_since(timeline.THIS_WEEK)
+        await event_handler.reports.report_changes_since(timeline.THIS_WEEK)
 
     # Off the event loop: expanding and re-parsing a snapshot is megabytes of work.
     io_bound.assert_awaited_once()
@@ -1059,7 +1059,7 @@ async def test_every_period_the_picker_offers_reaches_the_report(event_handler, 
 
     for period in timeline.PERIOD_LABELS:
         with _patched_timeline(result) as (io_bound, _view, _notify):
-            await event_handler.report_changes_since(period, chosen_date)
+            await event_handler.reports.report_changes_since(period, chosen_date)
         cutoff = io_bound.await_args[0][1]
         if period == timeline.ALL:
             assert cutoff is None, "All must reach back as far as the history goes"
@@ -1074,7 +1074,7 @@ async def test_the_report_explains_itself_when_there_is_no_history(event_handler
     result = timecomp.Comparison(problem="No configuration history has been recorded yet.")
 
     with _patched_timeline(result) as (_io_bound, view, _notify):
-        await event_handler.report_changes_since(timeline.THIS_WEEK)
+        await event_handler.reports.report_changes_since(timeline.THIS_WEEK)
 
     view.assert_not_called()
     assert "No configuration history" in mock_gui_instance.display_message_box.call_args[0][0]
@@ -1086,7 +1086,7 @@ async def test_the_report_passes_on_a_short_history_note(event_handler, mock_gui
     result = timecomp.Comparison(report="what changed", counts={"ADDED": 1}, note="does not reach back that far")
 
     with _patched_timeline(result) as (_io_bound, view, notify):
-        await event_handler.report_changes_since(timeline.THIS_MONTH)
+        await event_handler.reports.report_changes_since(timeline.THIS_MONTH)
 
     view.assert_called_once()
     assert any("does not reach back" in str(call) for call in notify.notify.call_args_list)
@@ -1098,7 +1098,7 @@ async def test_the_report_says_so_when_nothing_changed(event_handler, mock_gui_i
     result = timecomp.Comparison(report="a header and nothing else", counts={"ADDED": 0, "CHANGED": 0})
 
     with _patched_timeline(result) as (_io_bound, view, notify):
-        await event_handler.report_changes_since(timeline.TODAY)
+        await event_handler.reports.report_changes_since(timeline.TODAY)
 
     view.assert_called_once()
     assert any("Nothing has changed" in str(call) for call in notify.notify.call_args_list)
@@ -1110,7 +1110,7 @@ async def test_the_report_still_displays_when_the_save_fails(event_handler, mock
     result = timecomp.Comparison(report="what changed", counts={"ADDED": 1})
 
     with _patched_timeline(result, MagicMock(return_value="")) as (_io_bound, view, _notify):
-        await event_handler.report_changes_since(timeline.ALL)
+        await event_handler.reports.report_changes_since(timeline.ALL)
 
     assert "could not be saved" in mock_gui_instance.display_message_box.call_args[0][0]
     view.assert_called_once()
@@ -1253,13 +1253,13 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
     monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s, **_kw: None)
     monkeypatch.setattr(userintr_android, "apply_scene_field_values", lambda _s, _refs: [])
     monkeypatch.setattr(
-        userintr.MapTaskerEventHandlers,
+        userintr_android.AndroidEventHandlers,
         "_apply_profile_for_android",
         lambda _self, _profile, _refs: (True, False, ""),
     )
     monkeypatch.setattr(
-        userintr.MapTaskerEventHandlers,
-        "_keep_profile_in_loaded_config",
+        userintr_editors.EditorEventHandlers,
+        "keep_profile_in_loaded_config",
         lambda _self, *args: calls["kept"].append(args),
     )
 
@@ -1299,7 +1299,7 @@ async def test_a_new_profile_is_waited_for_before_anything_is_claimed(monkeypatc
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (0, "Profile 'Watched' is now in Tasker")])
     android_dialog, parent_dialog = MagicMock(), MagicMock()
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1336,7 +1336,7 @@ async def test_a_file_already_on_the_device_is_asked_about_first(monkeypatch, ev
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")], exists=True)
     android_dialog, parent_dialog = MagicMock(), MagicMock()
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1363,7 +1363,7 @@ async def test_a_destination_that_cannot_be_checked_still_asks(monkeypatch, even
     field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")], exists=None)
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1391,7 +1391,7 @@ async def test_confirming_the_overwrite_copies_the_file_it_replaces(
         exists=True,
     )
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1430,7 +1430,7 @@ async def test_an_offer_run_from_the_prompt_still_has_somewhere_to_draw(
         exists=True,
     )
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1465,7 +1465,7 @@ async def test_the_user_is_told_which_file_is_waiting_on_the_device(
     field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (8, "Tasker has not reported it")])
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1494,7 +1494,7 @@ async def test_the_panel_goes_as_soon_as_the_device_answers(monkeypatch, event_h
     _patch_import_path(monkeypatch, [True, (0, "screen is open"), (8, "may have been declined")])
     android_dialog, parent_dialog = MagicMock(), MagicMock()
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1519,7 +1519,7 @@ async def test_a_confirmation_that_never_comes_does_not_discard_the_edit(
     field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (8, "may have been declined")])
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1541,7 +1541,7 @@ async def test_an_unconfirmable_import_is_never_waited_on(monkeypatch, event_han
     calls = _patch_import_path(monkeypatch, [False, (0, "screen is open")])
     android_dialog, parent_dialog = MagicMock(), MagicMock()
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1566,7 +1566,7 @@ async def test_an_unreachable_pre_check_is_not_read_as_absent(monkeypatch, event
     field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [None, (0, "screen is open")])
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1585,7 +1585,7 @@ async def test_a_failed_offer_never_reaches_the_confirmation(monkeypatch, event_
     field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (8, "Tasker could not open the file")])
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1607,7 +1607,7 @@ async def test_the_waiting_message_is_taken_down_by_the_outcome(monkeypatch, eve
     field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (0, "Profile 'Watched' is now in Tasker")])
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1627,7 +1627,7 @@ async def test_the_replace_message_stays_because_nothing_follows_it(monkeypatch,
     field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [False, (0, "screen is open")])
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -1661,7 +1661,7 @@ async def test_a_project_is_offered_as_a_project(monkeypatch, event_handler, pro
     edited_project = MagicMock()
     edited_project.project_name = "Home"
 
-    await event_handler.import_project_into_tasker_event(
+    await event_handler.android.import_project_into_tasker_event(
         edited_project,
         {},
         android_refs,
@@ -1685,7 +1685,7 @@ async def test_a_project_is_confirmed_through_the_profiles_it_owns(monkeypatch, 
     edited_project = MagicMock()
     edited_project.project_name = "Home"
 
-    await event_handler.import_project_into_tasker_event(
+    await event_handler.android.import_project_into_tasker_event(
         edited_project,
         {},
         android_refs,
@@ -1710,7 +1710,7 @@ async def test_a_project_has_no_edit_to_keep(monkeypatch, event_handler, profile
     edited_project = MagicMock()
     edited_project.project_name = "Home"
 
-    await event_handler.import_project_into_tasker_event(
+    await event_handler.android.import_project_into_tasker_event(
         edited_project,
         {},
         android_refs,
@@ -1733,7 +1733,7 @@ async def test_unapplied_project_edits_stop_it_before_the_device(monkeypatch, ev
     edited_project = MagicMock()
     edited_project.project_name = "Home"
 
-    await event_handler.import_project_into_tasker_event(
+    await event_handler.android.import_project_into_tasker_event(
         edited_project,
         {},
         android_refs,
@@ -1775,7 +1775,7 @@ _SCENE_RESULTS = [
 async def _import_scene(event_handler, android_refs, scene_name: str = "Dialog") -> None:
     edited_scene = MagicMock()
     edited_scene.scene_name = scene_name
-    await event_handler.import_scene_into_tasker_event(
+    await event_handler.android.import_scene_into_tasker_event(
         edited_scene,
         {},
         android_refs,
@@ -1949,7 +1949,7 @@ async def test_a_scene_that_fails_validation_never_reaches_the_device(
     edited_scene = MagicMock()
     edited_scene.scene_name = "Dialog"
 
-    await event_handler.import_scene_into_tasker_event(
+    await event_handler.android.import_scene_into_tasker_event(
         edited_scene,
         {},
         android_refs,
@@ -2009,7 +2009,7 @@ async def test_a_profile_notification_carries_no_such_advice(monkeypatch, event_
     field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (1, "not seen")])
 
-    await event_handler.import_profile_into_tasker_event(
+    await event_handler.android.import_profile_into_tasker_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -2058,7 +2058,7 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
     monkeypatch.setattr(userintr_editors, "refresh_tasker_object_pulldowns", lambda _gui: None)
     monkeypatch.setattr(userintr_fields, "refresh_tasker_object_pulldowns", lambda _gui: None)
     monkeypatch.setattr(userintr_finish, "refresh_tasker_object_pulldowns", lambda _gui: None)
-    # Both halves of _keep_task_in_loaded_config: which one runs depends on whether the Task
+    # Both halves of keep_task_in_loaded_config: which one runs depends on whether the Task
     # is already registered, and the handler must do exactly one of them.
     monkeypatch.setattr(
         userintr_android.taskedit_save,
@@ -2104,7 +2104,7 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
 async def _save_task_file(event_handler, task_dialog_refs) -> tuple:
     field_refs, android_refs = task_dialog_refs
     android_dialog, parent_dialog = MagicMock(), MagicMock()
-    await event_handler.save_task_to_android_file_event(
+    await event_handler.android.save_task_to_android_file_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -2657,7 +2657,7 @@ async def test_the_task_import_asks_before_replacing_the_file_it_writes(
     monkeypatch.setattr(userintr_android.devicetask, "confirm_task_on_android", lambda *_args, **_kw: True)
     field_refs, android_refs = task_dialog_refs
 
-    await event_handler.save_task_to_android_event(
+    await event_handler.android.save_task_to_android_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -2708,7 +2708,7 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
     )
     field_refs, android_refs = task_dialog_refs
 
-    await event_handler.save_task_to_android_event(
+    await event_handler.android.save_task_to_android_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -2738,7 +2738,7 @@ async def test_the_task_import_says_where_the_copy_was_left(monkeypatch, event_h
     monkeypatch.setattr(userintr_android.devicetask, "confirm_task_on_android", lambda *_args, **_kw: True)
     field_refs, android_refs = task_dialog_refs
 
-    await event_handler.save_task_to_android_event(
+    await event_handler.android.save_task_to_android_event(
         MagicMock(),
         field_refs,
         android_refs,
@@ -2803,15 +2803,15 @@ def _patch_object_save_path(monkeypatch, kind: str, exists=False, upload=(0, "/T
 
     if kind == "profile":
         monkeypatch.setattr(
-            userintr.MapTaskerEventHandlers,
+            userintr_android.AndroidEventHandlers,
             "_apply_profile_for_android",
             lambda _self, _profile, _refs: (True, False, ""),
         )
         # What the Profile does with the loaded configuration afterwards is its own business
         # and its own tests -- this is about the one read of the device path.
         monkeypatch.setattr(
-            userintr.MapTaskerEventHandlers,
-            "_keep_profile_in_loaded_config",
+            userintr_editors.EditorEventHandlers,
+            "keep_profile_in_loaded_config",
             lambda _self, *_args: None,
         )
         monkeypatch.setattr(
@@ -2839,9 +2839,9 @@ async def _save_object(event_handler, kind: str, android_refs) -> None:
     edited.project_name = "Home"
     edited.scene_name = "Dialog"
     handler = {
-        "profile": event_handler.save_profile_to_android_event,
-        "project": event_handler.save_project_to_android_event,
-        "scene": event_handler.save_scene_to_android_event,
+        "profile": event_handler.android.save_profile_to_android_event,
+        "project": event_handler.android.save_project_to_android_event,
+        "scene": event_handler.android.save_scene_to_android_event,
     }[kind]
     await handler(edited, {"name": _FakeField("Watched")}, android_refs, MagicMock(), MagicMock())
 
@@ -2975,7 +2975,7 @@ async def test_the_helper_task_listing_reports_what_the_device_has(monkeypatch, 
     )
     _android_panel(event_handler)
 
-    await event_handler.list_helper_tasks_event()
+    await event_handler.android.list_helper_tasks_event()
 
     assert calls["io_bound"][0][0] is devicehelpers.stale_helper_tasks_on_device
     assert calls["io_bound"][0][1] == ("192.168.0.210", "1821")
@@ -2991,7 +2991,7 @@ async def test_a_device_that_would_not_answer_opens_no_dialog(monkeypatch, event
     calls = _patch_helper_task_listing(monkeypatch, (8, "Connection error", [], []))
     _android_panel(event_handler)
 
-    await event_handler.list_helper_tasks_event()
+    await event_handler.android.list_helper_tasks_event()
 
     assert calls["dialog"] == []
     assert any("Connection error" in message for message, kind in calls["notify"] if kind == "negative")

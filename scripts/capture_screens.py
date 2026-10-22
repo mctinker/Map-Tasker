@@ -120,7 +120,7 @@ def select_item(gui: MyGui, kind: str, name: str) -> None:
     """
     from maptasker.src.gui.guiutils import select_pulldown_option
 
-    gui.event_handlers.process_single_name_event(kind, name)
+    gui.event_handlers.loading.process_single_name_event(kind, name)
     optionmenu = getattr(gui, f"specific_{kind.lower()}_optionmenu", None)
     if optionmenu is not None:
         gui.is_updating = True

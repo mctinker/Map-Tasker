@@ -901,7 +901,7 @@ class NiceGuiTextView(TextViewSearch):
         """Fires when the Diagram view's 'Profiles Per Line' pulldown selection changes."""
         new_value = int(str(getattr(event, "value", event)))
         if new_value != self.master_gui.profiles_per_line:
-            task = asyncio.create_task(self.master_gui.event_handlers.profiles_per_line_event(new_value))
+            task = asyncio.create_task(self.master_gui.event_handlers.settings.profiles_per_line_event(new_value))
             self._background_tasks.add(task)
             task.add_done_callback(self._background_tasks.discard)
             task.add_done_callback(_report_view_failure)

@@ -261,11 +261,11 @@ def build_object_properties_dialog(
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(
                 translate_string("Cancel"),
-                on_click=lambda: self.event_handlers.cancel_object_properties_event(props, dialog),
+                on_click=lambda: self.event_handlers.editors.cancel_object_properties_event(props, dialog),
             ).props("outline")
             ui.button(
                 translate_string("Ok"),
-                on_click=lambda: self.event_handlers.keep_object_properties_event(
+                on_click=lambda: self.event_handlers.editors.keep_object_properties_event(
                     props,
                     field_refs,
                     dialog,

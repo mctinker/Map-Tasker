@@ -26,8 +26,8 @@ def _a_window(*, initialization: bool) -> tuple[SimpleNamespace, list[str]]:
     async def extended_models_event() -> None:
         started.append("fetch")
 
-    gui = SimpleNamespace(initialization=initialization, event_handlers=SimpleNamespace())
-    gui.event_handlers.extended_models_event = extended_models_event
+    gui = SimpleNamespace(initialization=initialization, event_handlers=SimpleNamespace(ai=SimpleNamespace()))
+    gui.event_handlers.ai.extended_models_event = extended_models_event
     return gui, started
 
 

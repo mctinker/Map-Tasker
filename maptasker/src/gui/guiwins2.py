@@ -37,7 +37,7 @@ class APIKeyDialog:
                 # OK Button
                 ui.button(
                     translate_string("OK"),
-                    on_click=lambda: self.my_gui.event_handlers.ai_apikey_get_event(cancel=False, clear=""),
+                    on_click=lambda: self.my_gui.event_handlers.ai.ai_apikey_get_event(cancel=False, clear=""),
                 ).classes("bg-blue-600 text-white px-6")
 
                 # Help/Query Button
@@ -48,7 +48,7 @@ class APIKeyDialog:
                 # Cancel Button
                 ui.button(
                     translate_string("Cancel"),
-                    on_click=lambda: self.my_gui.event_handlers.ai_apikey_get_event(cancel=True, clear=""),
+                    on_click=lambda: self.my_gui.event_handlers.ai.ai_apikey_get_event(cancel=True, clear=""),
                 ).classes("bg-red-500 text-white px-6")
 
     def open(self) -> None:
@@ -85,7 +85,7 @@ class APIKeyDialog:
             # Clear button action
             ui.button(
                 translate_string("Clear"),
-                on_click=lambda: self.my_gui.event_handlers.ai_apikey_get_event(
+                on_click=lambda: self.my_gui.event_handlers.ai.ai_apikey_get_event(
                     cancel=False,
                     clear=placeholder_key,
                 ),

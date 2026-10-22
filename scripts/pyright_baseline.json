@@ -106,21 +106,10 @@
     "reportArgumentType": 1
   },
   "maptasker/src/gui/userintr_ai.py": {
-    "reportAttributeAccessIssue": 4,
-    "reportGeneralTypeIssues": 1
-  },
-  "maptasker/src/gui/userintr_android.py": {
-    "reportAttributeAccessIssue": 8
+    "reportAttributeAccessIssue": 3
   },
   "maptasker/src/gui/userintr_loading.py": {
     "reportAttributeAccessIssue": 1
-  },
-  "maptasker/src/gui/userintr_reports.py": {
-    "reportGeneralTypeIssues": 8
-  },
-  "maptasker/src/gui/userintr_settings.py": {
-    "reportAttributeAccessIssue": 1,
-    "reportGeneralTypeIssues": 5
   },
   "maptasker/src/mapgen/bildhtml.py": {
     "reportArgumentType": 2
@@ -665,8 +654,7 @@
     "reportReturnType": 3
   },
   "tests/test_userintr_loading.py": {
-    "reportArgumentType": 9,
-    "reportAttributeAccessIssue": 1
+    "reportArgumentType": 9
   },
   "tests/test_userintr_prebuild.py": {
     "reportGeneralTypeIssues": 3,
@@ -675,7 +663,6 @@
   },
   "tests/test_userintr_settings.py": {
     "reportArgumentType": 6,
-    "reportAttributeAccessIssue": 7,
     "reportOperatorIssue": 1,
     "reportOptionalMemberAccess": 1
   },

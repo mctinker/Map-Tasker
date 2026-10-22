@@ -35,12 +35,14 @@ class _Handlers(PrebuildEventHandlers):
     """The pre-build handlers with a window that has the box ticked, and the preparation stubbed."""
 
     def __init__(self, state: SimpleNamespace, *, ticked: bool = True) -> None:
-        self.state = state  # type: ignore[assignment]
-        self.gui = SimpleNamespace(prebuild_map=ticked)  # type: ignore[assignment]
         self.prepared: list[object] = []
-
-    def get_ready_to_build(self, overrides: dict | None) -> None:
-        self.prepared.append(overrides)
+        hub = SimpleNamespace(
+            state=state,
+            gui=SimpleNamespace(prebuild_map=ticked),
+            get_ready_to_build=self.prepared.append,
+            prebuild=self,
+        )
+        super().__init__(hub)  # type: ignore[arg-type]
 
 
 @pytest.fixture(autouse=True)
@@ -566,7 +568,7 @@ async def test_a_view_built_in_one_window_holds_off_the_build_in_another(seen: S
     state = _state()
     pressing, idle = _event_handlers(), _Handlers(state)
 
-    with pressing.view_in_progress():
+    with pressing.prebuild.view_in_progress():
         await _look_until_started(idle)
         assert _building.task is None
 

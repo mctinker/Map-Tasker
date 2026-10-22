@@ -260,7 +260,7 @@ def _build_properties_button(
         icon="tune",
         on_click=opener
         or (
-            lambda: self.event_handlers.open_object_properties_event(
+            lambda: self.event_handlers.editors.open_object_properties_event(
                 kind,
                 element,
                 parent_dialog,

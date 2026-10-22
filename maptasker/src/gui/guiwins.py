@@ -636,7 +636,7 @@ def build_save_to_android_dialog(
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
                 translate_string("Save As File"),
-                on_click=lambda: self.event_handlers.save_task_to_android_file_event(
+                on_click=lambda: self.event_handlers.android.save_task_to_android_file_event(
                     edited_task,
                     field_refs,
                     android_field_refs,
@@ -660,7 +660,7 @@ def build_save_to_android_dialog(
             # checkbox.  A Task's import half is the one that needs no tap on the device.
             import_into_tasker = ui.button(
                 translate_string("Import Into Tasker"),
-                on_click=lambda: self.event_handlers.save_task_to_android_event(
+                on_click=lambda: self.event_handlers.android.save_task_to_android_event(
                     edited_task,
                     field_refs,
                     android_field_refs,

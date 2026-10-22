@@ -185,7 +185,7 @@ def _create_left_drawer(self: MyGui) -> None:
                 options=["0", "1", "2", "3", "4", "5"],
                 value=str(self.display_detail_level),
                 label=translate_string("Detail Level"),
-                on_change=self.event_handlers.detail_selected_event,
+                on_change=self.event_handlers.settings.detail_selected_event,
             )
             .tooltip(translate_string("0 = least detail, 5 = most detail."))
             .classes("w-full")
@@ -195,7 +195,7 @@ def _create_left_drawer(self: MyGui) -> None:
         # Core Feature Checkboxes
         self.everything_checkbox = ui.checkbox(
             translate_string("Just Display Everything!"),
-            on_change=self.event_handlers.everything_event,
+            on_change=self.event_handlers.settings.everything_event,
         ).tooltip(
             translate_string(
                 "Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, and Prettier Output.",
@@ -204,7 +204,7 @@ def _create_left_drawer(self: MyGui) -> None:
 
         self.conditions_checkbox = ui.checkbox(
             translate_string("Display Conditions"),
-            on_change=self.event_handlers.condition_event,
+            on_change=self.event_handlers.settings.condition_event,
         ).tooltip(
             translate_string(
                 "Enables the display of Profile Conditions (e.g. State, Event, etc.) details in the output.",
@@ -213,17 +213,17 @@ def _create_left_drawer(self: MyGui) -> None:
 
         self.taskernet_checkbox = ui.checkbox(
             translate_string("Display TaskerNet Info"),
-            on_change=self.event_handlers.taskernet_event,
+            on_change=self.event_handlers.settings.taskernet_event,
         ).tooltip(translate_string("Enables the display of TaskerNet Descriptions in the output."))
 
         self.preferences_checkbox = ui.checkbox(
             translate_string("Display Tasker Preferences"),
-            on_change=self.event_handlers.preferences_event,
+            on_change=self.event_handlers.settings.preferences_event,
         ).tooltip(translate_string("Enables the display a breakdown of the Tasker system Preferences in the output."))
 
         self.twisty_checkbox = ui.checkbox(
             translate_string("Hide Task Details Under Twisty"),
-            on_change=self.event_handlers.twisty_event,
+            on_change=self.event_handlers.settings.twisty_event,
         ).tooltip(
             translate_string(
                 "When enabled, Task details are hidden under a twisty (expand/collapse) control in the output.",
@@ -232,12 +232,12 @@ def _create_left_drawer(self: MyGui) -> None:
 
         self.directory_checkbox = ui.checkbox(
             translate_string("Display Directory"),
-            on_change=self.event_handlers.directory_event,
+            on_change=self.event_handlers.settings.directory_event,
         ).tooltip(translate_string("Enables the display of the Project/Profile/Task/Scene Directory in the output."))
 
         self.pretty_checkbox = ui.checkbox(
             translate_string("Display Prettier Output"),
-            on_change=self.event_handlers.pretty_event,
+            on_change=self.event_handlers.settings.pretty_event,
         ).tooltip(translate_string("Enables the display of aligned text in the output."))
 
         create_name_display_options_section(self)
@@ -333,7 +333,7 @@ def _create_execution_section(self: MyGui) -> None:
     self.get_xml_button = ui.button(
         translate_string("Get Local XML File"),
         color=get_file_color,
-        on_click=self.event_handlers.getxml_event,
+        on_click=self.event_handlers.loading.getxml_event,
         icon="folder",
     ).classes(f"w-full justify-center {blink_class}")
     with self.get_xml_button:
@@ -405,7 +405,7 @@ def _create_execution_section(self: MyGui) -> None:
         ).style("white-space: pre-wrap")
     # Looks every moment or two for a configuration it has not yet built the Map of -- a file
     # that has just been loaded, however it was: the file picker, the Android fetch, Undo.
-    ui.timer(PREBUILD_POLL_SECONDS, self.event_handlers.prebuild_tick)
+    ui.timer(PREBUILD_POLL_SECONDS, self.event_handlers.prebuild.prebuild_tick)
 
 
 def _create_view_buttons_section(self: MyGui) -> None:
@@ -462,7 +462,7 @@ def _create_health_check_row(self: MyGui) -> None:
             ui.button(
                 translate_string("Health Check"),
                 color="teal",
-                on_click=self.event_handlers.health_check_event,
+                on_click=self.event_handlers.reports.health_check_event,
                 icon="health_and_safety",
             )
             .classes("flex-1 justify-center")
@@ -518,7 +518,7 @@ def _create_history_buttons_section(self: MyGui) -> None:
         ui.button(
             translate_string("Compare Files"),
             color="teal",
-            on_click=self.event_handlers.compare_files_event,
+            on_click=self.event_handlers.reports.compare_files_event,
             icon="difference",
         )
         .classes("w-full justify-center")
@@ -543,7 +543,7 @@ def _create_history_buttons_section(self: MyGui) -> None:
         ui.button(
             translate_string("Changes Since..."),
             color="teal",
-            on_click=self.event_handlers.timeline_event,
+            on_click=self.event_handlers.reports.timeline_event,
             icon="history",
         )
         .classes("w-full justify-center")
@@ -618,7 +618,7 @@ def _create_import_button(self: MyGui) -> None:
         ui.button(
             translate_string("Import With Dependencies"),
             color="teal",
-            on_click=self.event_handlers.import_with_dependencies_event,
+            on_click=self.event_handlers.carry.import_with_dependencies_event,
             icon="move_to_inbox",
         )
         .classes("w-full justify-center")
@@ -718,7 +718,7 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
         self.variable_xref_button = ui.button(
             translate_string("Variable Xref"),
             color="teal",
-            on_click=self.event_handlers.variable_xref_event,
+            on_click=self.event_handlers.reports.variable_xref_event,
             icon="manage_search",
         ).classes("flex-grow justify-center")
         with self.variable_xref_button:
@@ -736,7 +736,7 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
         variable_xref_live_button = ui.button(
             translate_string("Xref Live"),
             color="teal",
-            on_click=self.event_handlers.variable_xref_live_event,
+            on_click=self.event_handlers.reports.variable_xref_live_event,
             icon="sensors",
         ).classes("flex-grow justify-center")
         with variable_xref_live_button:
@@ -758,7 +758,7 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
         ui.button(
             translate_string("Task Flow"),
             color="teal",
-            on_click=self.event_handlers.task_flow_event,
+            on_click=self.event_handlers.reports.task_flow_event,
             icon="account_tree",
         )
         .classes("w-full justify-center")

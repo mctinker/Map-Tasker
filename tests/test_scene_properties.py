@@ -769,7 +769,7 @@ def test_apply_to_task_puts_the_action_edits_into_the_loaded_configuration(monke
     edited = taskedit.load_task_for_edit_by_id("268", state=PrimeItems)
     key = taskedit_apply.arg_key(edited.actions[0].act_number, "0")
 
-    handlers.apply_scene_key_task_event(edited, {key: MagicMock(value="goodbye")})
+    handlers.editors.apply_scene_key_task_event(edited, {key: MagicMock(value="goodbye")})
 
     live = PrimeItems.tasker_root_elements["all_tasks"]["268"]["xml"]
     assert live.find("Action/Str[@sr='arg0']").text == "goodbye"
@@ -793,7 +793,7 @@ def test_a_rejected_value_is_reported_and_nothing_is_applied(monkeypatch, loaded
     window = MagicMock()
     window.state = PrimeItems
     handlers = userintr.MapTaskerEventHandlers(window)
-    handlers.apply_scene_key_task_event(taskedit.load_task_for_edit_by_id("268", state=PrimeItems), {})
+    handlers.editors.apply_scene_key_task_event(taskedit.load_task_for_edit_by_id("268", state=PrimeItems), {})
 
     assert applied == []
     assert notified == [("Nope.", "negative")]

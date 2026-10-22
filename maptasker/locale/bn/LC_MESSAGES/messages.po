@@ -3237,3 +3237,42 @@ msgid "Pre-Build The Map"
 msgstr "ম্যাপ তৈরি করার আগে"
 msgid "When enabled, the Map is built in the background as soon as a file has been loaded, and again each time you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once.\n\nWhen disabled, the Map is built when you ask for it.\n\nPressing Map or Diagram while it is still building waits for it to finish.  Changing a setting, or editing the configuration, before you press Map means it is built again.  It uses the computer for a few seconds after each file is loaded or item chosen, whether or not you go on to ask for the Map."
 msgstr "যখন এটি চালু করা হয়, তখন ফাইলটি লোড করার সাথে সাথেই ম্যাপটি ব্যাকগ্রাউন্ডে তৈরি হয়ে যায়, এবং প্রতিবার আপনি যখন অন্য কোনো প্রোজেক্ট, প্রোফাইল, টাস্ক বা দৃশ্য নির্বাচন করেন, তখন ম্যাপের বোতামটি স্বয়ংক্রিয়ভাবে সেটি খোলে।\n\nযখন এটি বন্ধ করা হয়, তখন ম্যাপটি তৈরি করার জন্য আপনাকে বিশেষভাবে অনুরোধ করতে হবে।\n\nম্যাপ বা ডায়াগ্রামের বোতামে ক্লিক করার সময়, যদি ম্যাপ তৈরি হওয়ার প্রক্রিয়া চলতে থাকে, তবে এটি সম্পূর্ণ হওয়ার জন্য অপেক্ষা করতে হবে। ম্যাপের বোতামে ক্লিক করার আগে কোনো সেটিংস পরিবর্তন করা বা কনফিগারেশন সম্পাদনা করলে, ম্যাপটি আবার তৈরি হবে। ফাইল লোড করার বা আইটেম নির্বাচন করার পরে, কম্পিউটার কয়েক সেকেন্ডের জন্য ব্যবহৃত হবে, এমনকি আপনি ম্যাপের জন্য বিশেষভাবে অনুরোধ না করলেও।"
+
+msgid "- Import With Dependencies: Bring a Project, Profile, Task or Scene in from another backup together with everything it needs.  Choose the other file, find what you want in the list, and press Preview on its row.  A Task brings the Tasks it performs and the Scenes it shows; a Scene brings the Tasks its elements run; a Profile brings the Tasks it runs; a Project brings everything it lists -- and in each case what those need in turn, and the global variables they use.  The preview says what will be copied, what will be used instead because this file already has the same thing, and what will be copied under a new name -- 'Setup (imported)' -- because this file has a different Task of the same name; every call inside what is brought is then pointed at the new name, so it does what it did where it came from.  Tasks and Profiles get new ids, and every link to them follows.  Choose where they are filed: a Project of this file, or a new one.  Nothing already in this file is changed apart from that Project listing more members, and the import is one press of Undo.  Importing the same thing again brings nothing the second time.  Not followed: a call whose name is built from a variable, and what is inside a Version 2 Scene's layout.  Plugins the objects use are listed, but not checked.  Nothing is sent anywhere.  \n"
+msgstr "- নির্ভরতা সহ ইম্পোর্ট: অন্য ব্যাকআপ থেকে একটি প্রজেক্ট, প্রোফাইল, টাস্ক বা সিনকে এবং এর প্রয়োজনীয় সবকিছু নিয়ে আনুন। অন্য ফাইলটি নির্বাচন করুন, তালিকা থেকে আপনি যা চান তা খুঁজে বের করুন এবং তারপর সেটির সারিতে \"প্রভিউ\" বোতামে ক্লিক করুন। একটি টাস্ক সেই কাজগুলি দেখায় এবং যে দৃশ্যগুলি এটি প্রদর্শন করে; একটি সিন সেই কাজগুলি দেখায় যা এর উপাদানগুলি চালায়; একটি প্রোফাইল সেই কাজগুলি দেখায় যা এটি চালায়; একটি প্রজেক্ট সেই সবকিছু দেখায় যা এটি তালিকাভুক্ত করে - এবং প্রতিটি ক্ষেত্রে, সেগুলি কী কী প্রয়োজন এবং তারা যে গ্লোবাল ভেরিয়েবলগুলি ব্যবহার করে। \"প্রভিউ\" অপশনটি দেখায় যে কী কপি করা হবে, কী বিকল্প হিসাবে ব্যবহার করা হবে (যেহেতু এই ফাইলটিতে ইতিমধ্যে একই জিনিস রয়েছে), এবং কী নতুন নামে কপি করা হবে - \"সেটআপ (ইম্পোর্ট)\" - কারণ এই ফাইলটিতে একই নামের অন্য একটি টাস্ক রয়েছে; এছাড়াও, প্রতিটি ক্ষেত্রে, যে ফাইল থেকে সেগুলি আনা হয়েছে, সেই অনুযায়ী নতুন নামের দিকে নির্দেশ করা হয়, যাতে সেগুলি আগের স্থানে যেমন কাজ করে, তেমনই কাজ করে। টাস্ক এবং প্রোফাইলগুলির নতুন আইডি তৈরি করা হয়, এবং সেগুলিগুলির সাথে সম্পর্কিত সমস্ত লিঙ্কও অনুসরণ করা হয়। ফাইলটিকে কোন স্থানে সংরক্ষণ করতে চান: এই ফাইলের একটি প্রজেক্ট, অথবা একটি নতুন প্রজেক্ট। শুধুমাত্র এই প্রজেক্টটিকে তালিকাভুক্ত করার মাধ্যমে ফাইলের অন্যান্য সদস্যদের পরিবর্তন করা হয়, এবং ইম্পোর্ট করার জন্য একবার \"আনডু\" বোতামে ক্লিক করলেই কাজ হয়ে যায়। একই জিনিস আবার ইম্পোর্ট করলে দ্বিতীয়বার কোনো পরিবর্তন হয় না। অনুসরণ করা হয় না: এমন একটি কল, যার নাম কোনো ভেরিয়েবল থেকে তৈরি হয়েছে, এবং ভার্সন 2-এর সিন-এর লেআউট। যে অবজেক্টগুলি প্লাগইন ব্যবহার করে, সেগুলির তালিকা দেওয়া হয়েছে, কিন্তু সেগুলি পরীক্ষা করা হয়নি। কোনো কিছু পাঠানো হয় না।\n"
+
+msgid "Bring a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use.\n\nShows what would be copied, renamed and left alone before anything happens.  A Task or Scene this file already has, and that is identical, is used rather than copied.\n\nNothing already in this file is changed, and the whole import is one press of Undo."
+msgstr "অন্যান্য ব্যাকআপ থেকে একটি প্রজেক্ট, প্রোফাইল, টাস্ক বা দৃশ্য নিয়ে আসুন, সেই সাথে এটির প্রয়োজনীয় সবকিছু: যে কাজগুলো এটি করে, যে দৃশ্যগুলো এটি দেখায় এবং যে টাস্কগুলো সেটি চালায়, এবং যে গ্লোবাল ভেরিয়েবলগুলো তারা ব্যবহার করে।\n\nএখানে দেখানো হবে যে কী কপি করা হবে, কীভাবে নামকরণ করা হবে এবং কোনো পরিবর্তন না করে ফাইলটি அப்படியே রাখা হবে। যদি এই ফাইলে আগে থেকেই একটি টাস্ক বা দৃশ্য থাকে এবং সেটি হুবহু একই হয়, তবে সেটি কপি না করে ব্যবহার করা হবে।\n\nফাইলটিতে আগে থেকে থাকা কোনো কিছু পরিবর্তন করা হবে না, এবং সম্পূর্ণ ইম্পোর্ট করার জন্য শুধু \"আনডু\" বোতামটি চাপলেই কাজ হয়ে যাবে।"
+
+msgid "Bring the global variables this file lacks"
+msgstr "এই ফাইলটিতে অনুপস্থিত গ্লোবাল ভেরিয়েবলগুলি যুক্ত করুন।"
+
+msgid "Find by name"
+msgstr "নাম দিয়ে অনুসন্ধান করুন"
+
+msgid "Import With Dependencies"
+msgstr "নির্ভরশীলতা সহ ইম্পোর্ট"
+
+msgid "Import cancelled."
+msgstr "আমদানি বাতিল করা হয়েছে।"
+
+msgid "Importing from"
+msgstr "আমদানি"
+
+msgid "Nothing matches."
+msgstr "কোনো কিছুই উপযুক্ত নয়।"
+
+msgid "Press 'Preview' on a row first."
+msgstr "প্রথমে একটি সারিতে 'পূর্বVIEW' বোতামটি চাপুন।"
+
+msgid "Put a Task, Profile or Scene in"
+msgstr "একটি কাজ, প্রোফাইল অথবা দৃশ্য তৈরি করুন"
+
+msgid "That is the file already loaded.  Choose a different one to import from."
+msgstr "এটি ইতিমধ্যেই ফাইলটি লোড করা আছে। অন্য একটি ফাইল নির্বাচন করুন, যা আপনি ইম্পোর্ট করতে চান।"
+
+msgid "has no Projects, Profiles, Tasks or Scenes to bring in."
+msgstr "কোনো প্রকল্প, প্রোফাইল, কাজ বা দৃশ্য যুক্ত করার মতো কিছু নেই।"
+
+msgid "more.  Choose a kind or type part of a name to narrow the list."
+msgstr "আরও। নামের একটি নির্দিষ্ট অংশ বা ধরণ নির্বাচন করে তালিকাটিকে সংক্ষিপ্ত করুন।"

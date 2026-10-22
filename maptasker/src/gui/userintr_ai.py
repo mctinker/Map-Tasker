@@ -1,9 +1,8 @@
 """AI event handlers: the model and prompt pickers, the API keys dialog and the Analyze button.
 
-Split out of userintr.py the same way userintr_android.py was.  AIEventHandlers is a mixin that
-MapTaskerEventHandlers inherits, so gui.event_handlers keeps every name the window wires up,
-and a handler here reaches the others through self -- the API keys dialog's buttons arrive
-through MapTaskerEventHandlers._handle_event, which stays in userintr.
+Split out of userintr.py the same way userintr_android.py was.  AIEventHandlers is a group
+of MapTaskerEventHandlers (gui.event_handlers.ai), and a handler here reaches the rest through
+self.hub -- the API keys dialog's buttons arrive through ai_apikey_get_event.
 
 The AI work itself is not here: mapai runs an analysis, aiutils lists the models and apikeys
 keeps the keys.  This is only what the window's AI controls do when they are used.
@@ -43,6 +42,7 @@ from maptasker.src.gui.guiutils import (
 )
 from maptasker.src.gui.guiwins2 import APIKeyDialog
 from maptasker.src.gui.mapai import get_ai_object, map_ai, valid_api_key
+from maptasker.src.gui.userintr_group import HandlerGroup
 from maptasker.src.mapgen.bildhtml import build_html
 from maptasker.src.mapgen.frontmtr import output_the_front_matter
 
@@ -51,8 +51,7 @@ if TYPE_CHECKING:
 
     from nicegui.events import ValueChangeEventArguments
 
-    from maptasker.src.core.primitem import RunState
-    from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
+    from maptasker.src.gui.userintr import MyGui
 
 
 async def build_analysis_lines(gui: MyGui) -> bool:
@@ -88,17 +87,10 @@ async def build_analysis_lines(gui: MyGui) -> bool:
     return True
 
 
-class AIEventHandlers:
-    """The AI handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
-    handler is reached through self, just as it was before these moved here."""
+class AIEventHandlers(HandlerGroup):
+    """The AI handlers: reached as hub.ai; self.hub is the rest of the window's handlers, self.gui the window."""
 
-    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
-    # its window's.
-    state: RunState
-    # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
-    gui: MyGui
-
-    def ai_model_selected_event(self: MapTaskerEventHandlers, event_value: ValueChangeEventArguments) -> None:
+    def ai_model_selected_event(self, event_value: ValueChangeEventArguments) -> None:
         """Updates the AI model based on dropdown selection."""
         if not event_value.value or self.gui.is_updating:
             return
@@ -249,7 +241,7 @@ class AIEventHandlers:
         """
         if gui.initialization:
             return None
-        return gui.event_handlers.extended_models_event()
+        return gui.event_handlers.ai.extended_models_event()
 
     async def extended_models_event(self) -> None:
         """
@@ -514,4 +506,4 @@ class AIEventHandlers:
     def ai_apikey_get_event(self, cancel: bool, clear: str) -> None:
         """The API Keys dialog's Ok (cancel False) and Cancel (cancel True) buttons, and the Clear button
         beside each key (clear names the key to clear, "" for none)."""
-        self._handle_event("ai_apikey_process_event", "ai_apikey_window", cancel, clear)
+        self.ai_apikey_process_event(self.gui.ai_apikey_window, cancel, clear)

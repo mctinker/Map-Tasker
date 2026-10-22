@@ -52,7 +52,7 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             ui.button(
                 translate_string("Ok"),
-                on_click=lambda: self.event_handlers.keep_new_project_event(edited_project, field_refs, dialog),
+                on_click=lambda: self.event_handlers.editors.keep_new_project_event(edited_project, field_refs, dialog),
             ).classes("bg-blue-600")
 
     dialog.open()
@@ -108,7 +108,7 @@ def _build_edit_project_fields(
     # to tell an already-applied field from an unapplied one.
     enabled_switch = ui.switch(
         value=projedit.is_project_enabled(edited_project),
-        on_change=lambda e: self.event_handlers.set_project_enabled_event(edited_project, bool(e.value)),
+        on_change=lambda e: self.event_handlers.editors.set_project_enabled_event(edited_project, bool(e.value)),
     ).classes("mt-2")
     enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
     with enabled_switch:
@@ -129,7 +129,7 @@ def _build_edit_project_fields(
         objprops.KIND_PROJECT,
         edited_project.project_element,
         dialog,
-        on_applied=lambda: self.event_handlers.apply_project_properties_event(edited_project),
+        on_applied=lambda: self.event_handlers.editors.apply_project_properties_event(edited_project),
     )
 
     field_refs["project_save_path"] = ui.input(
@@ -160,11 +160,11 @@ def _build_edit_project_buttons(
         ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
         ui.button(
             translate_string("Delete Project"),
-            on_click=lambda: self.event_handlers.delete_project_event(edited_project, dialog),
+            on_click=lambda: self.event_handlers.editors.delete_project_event(edited_project, dialog),
         ).classes("bg-red-500 text-white")
         rename_project_button = ui.button(
             translate_string("Rename"),
-            on_click=lambda: self.event_handlers.rename_project_event(edited_project, dialog),
+            on_click=lambda: self.event_handlers.editors.rename_project_event(edited_project, dialog),
         ).classes("bg-blue-600")
         with rename_project_button:
             ui.tooltip(
@@ -175,7 +175,7 @@ def _build_edit_project_buttons(
             )
         project_to_current_file = ui.button(
             translate_string("Save To Current File"),
-            on_click=lambda: self.event_handlers.save_project_to_current_file_event(
+            on_click=lambda: self.event_handlers.editors.save_project_to_current_file_event(
                 edited_project,
                 field_refs,
                 dialog,
@@ -196,7 +196,7 @@ def _build_edit_project_buttons(
             ).style("white-space: pre-wrap")
         project_to_android = ui.button(
             translate_string("Save To Android"),
-            on_click=lambda: self.event_handlers.open_save_project_to_android_dialog_event(
+            on_click=lambda: self.event_handlers.android.open_save_project_to_android_dialog_event(
                 edited_project,
                 field_refs,
                 dialog,
@@ -218,7 +218,7 @@ def _build_edit_project_buttons(
             ).style("white-space: pre-wrap")
         save_single_project = ui.button(
             translate_string("Export Project"),
-            on_click=lambda: self.event_handlers.save_project_event(edited_project, field_refs, dialog),
+            on_click=lambda: self.event_handlers.editors.save_project_event(edited_project, field_refs, dialog),
         ).classes("bg-blue-600")
         with save_single_project:
             ui.tooltip(
@@ -276,7 +276,7 @@ def build_save_project_to_android_dialog(
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
                 translate_string("Save As File"),
-                on_click=lambda: self.event_handlers.save_project_to_android_event(
+                on_click=lambda: self.event_handlers.android.save_project_to_android_event(
                     edited_project,
                     field_refs,
                     android_field_refs,
@@ -299,7 +299,7 @@ def build_save_project_to_android_dialog(
             # with a checkbox.
             import_into_tasker = ui.button(
                 translate_string("Import Into Tasker"),
-                on_click=lambda: self.event_handlers.import_project_into_tasker_event(
+                on_click=lambda: self.event_handlers.android.import_project_into_tasker_event(
                     edited_project,
                     field_refs,
                     android_field_refs,

@@ -375,7 +375,7 @@ async def test_a_model_chosen_without_its_service_is_run_by_the_name_the_analysi
 ) -> None:
     analysis.gui.ai_model = model
 
-    await analysis.handlers.ai_analyze_event()
+    await analysis.handlers.ai.ai_analyze_event()
 
     assert analysis.ran == [(named, model)], "mapai looks the service up by this exact spelling"
 
@@ -385,6 +385,6 @@ async def test_a_service_the_pulldown_named_is_kept(analysis: SimpleNamespace) -
     analysis.gui.ai_model = "claude-opus-5-5"
     analysis.gui.ai_name = "Anthropic"
 
-    await analysis.handlers.ai_analyze_event()
+    await analysis.handlers.ai.ai_analyze_event()
 
     assert analysis.ran == [("Anthropic", "claude-opus-5-5")]

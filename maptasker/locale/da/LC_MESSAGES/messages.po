@@ -3219,3 +3219,42 @@ msgid "Pre-Build The Map"
 msgstr "Forbered kortet"
 msgid "When enabled, the Map is built in the background as soon as a file has been loaded, and again each time you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once.\n\nWhen disabled, the Map is built when you ask for it.\n\nPressing Map or Diagram while it is still building waits for it to finish.  Changing a setting, or editing the configuration, before you press Map means it is built again.  It uses the computer for a few seconds after each file is loaded or item chosen, whether or not you go on to ask for the Map."
 msgstr "Når den er aktiveret, oprettes kortet i baggrunden, så snart en fil er indlæst, og igen hver gang du vælger et andet projekt, profil, opgave eller scene, så kort-knappen åbner det øjeblikkeligt.\n\nNår den er deaktiveret, oprettes kortet, når du beder om det.\n\nNår du trykker på \"Kort\" eller \"Diagram\", mens det stadig oprettes, venter det på, at det er færdigt. Hvis du ændrer en indstilling eller redigerer konfigurationen, før du trykker på \"Kort\", oprettes det igen. Det bruger computeren i et par sekunder efter hver fil er indlæst eller element er valgt, uanset om du derefter beder om kortet eller ej."
+
+msgid "- Import With Dependencies: Bring a Project, Profile, Task or Scene in from another backup together with everything it needs.  Choose the other file, find what you want in the list, and press Preview on its row.  A Task brings the Tasks it performs and the Scenes it shows; a Scene brings the Tasks its elements run; a Profile brings the Tasks it runs; a Project brings everything it lists -- and in each case what those need in turn, and the global variables they use.  The preview says what will be copied, what will be used instead because this file already has the same thing, and what will be copied under a new name -- 'Setup (imported)' -- because this file has a different Task of the same name; every call inside what is brought is then pointed at the new name, so it does what it did where it came from.  Tasks and Profiles get new ids, and every link to them follows.  Choose where they are filed: a Project of this file, or a new one.  Nothing already in this file is changed apart from that Project listing more members, and the import is one press of Undo.  Importing the same thing again brings nothing the second time.  Not followed: a call whose name is built from a variable, and what is inside a Version 2 Scene's layout.  Plugins the objects use are listed, but not checked.  Nothing is sent anywhere.  \n"
+msgstr "- Importer med afhængigheder: Importer et projekt, en profil, en opgave eller en scene fra et andet backup sammen med alt, hvad den har brug for. Vælg den anden fil, find det, du ønsker i listen, og tryk på \"Forhåndsvis\" i dens række. En opgave bringer de opgaver, den udfører, og de scener, den viser; en scene bringer de opgaver, dens elementer kører; en profil bringer de opgaver, den kører; et projekt bringer alt, den lister – og i hvert tilfælde, hvad disse har brug for, samt de globale variabler, de bruger. Forhåndsvisningen viser, hvad der vil blive kopieret, hvad der vil blive brugt i stedet, fordi denne fil allerede har det samme, og hvad der vil blive kopieret med et nyt navn – \"Opsætning (importeret)\" – fordi denne fil har en anden opgave med samme navn; hver kald indenfor det, der importeres, peges derefter på det nye navn, så det udfører, hvad det gjorde, hvor det kom fra. Opgaver og profiler får nye ID'er, og alle links til dem følges. Vælg, hvor de skal gemmes: et projekt af denne fil, eller et nyt. Intet i denne fil ændres udover at projektet viser flere medlemmer, og importen er et enkelt \"Fortæl\" (undo). At importere det samme igen giver intet den anden gang. Ikke fulgt: et kald, hvis navn er bygget af en variabel, og hvad der er inde i en Scene fra Version 2's layout. De objekter, der bruges, er listet, men ikke kontrolleret. Intet sendes nogen steder.\n"
+
+msgid "Bring a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use.\n\nShows what would be copied, renamed and left alone before anything happens.  A Task or Scene this file already has, and that is identical, is used rather than copied.\n\nNothing already in this file is changed, and the whole import is one press of Undo."
+msgstr "Importer et projekt, en profil, en opgave eller en scene fra en anden backup, sammen med alt, hvad den har brug for: de opgaver, den udfører, de scener, den viser, og de opgaver, de kører, samt de globale variabler, den bruger.\n\nViser, hvad der vil blive kopieret, omdøbt og efterladt uændret, før noget sker. I stedet for at kopiere, bruges en eksisterende opgave eller scene i dette fil, der er identisk.\n\nIntet i denne fil ændres, og hele importprocessen kan udføres med et enkelt \"Fortæl\" (Undo) klik."
+
+msgid "Bring the global variables this file lacks"
+msgstr "Indfør de globale variabler, som denne fil mangler."
+
+msgid "Find by name"
+msgstr "Find efter navn"
+
+msgid "Import With Dependencies"
+msgstr "Importer med afhængigheder"
+
+msgid "Import cancelled."
+msgstr "Import er annulleret."
+
+msgid "Importing from"
+msgstr "Import fra"
+
+msgid "Nothing matches."
+msgstr "Intet passer."
+
+msgid "Press 'Preview' on a row first."
+msgstr "Tryk på \"Forhåndsvisning\" i en række først."
+
+msgid "Put a Task, Profile or Scene in"
+msgstr "Indsæt en opgave, profil eller scene i"
+
+msgid "That is the file already loaded.  Choose a different one to import from."
+msgstr "Det er den fil, der allerede er indlæst. Vælg en anden for at importere den."
+
+msgid "has no Projects, Profiles, Tasks or Scenes to bring in."
+msgstr "har ingen projekter, profiler, opgaver eller scener at importere."
+
+msgid "more.  Choose a kind or type part of a name to narrow the list."
+msgstr "flere. Vælg en bestemt del eller type af et navn for at indsnævre listen."

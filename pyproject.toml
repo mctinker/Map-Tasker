@@ -464,6 +464,7 @@ strict = [
     "maptasker/src/gui/guiwins_resources.py",
     "maptasker/src/gui/userhelp.py",
     "maptasker/src/gui/userintr_carry.py",
+    "maptasker/src/gui/userintr_group.py",
     "maptasker/src/gui/userintr_prebuild.py",
     "maptasker/src/gui/webassets.py",
     "maptasker/src/mapgen/__init__.py",

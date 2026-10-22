@@ -53,10 +53,17 @@ if TYPE_CHECKING:
 
 class WindowOwner(Protocol):
     """Anything that holds the window and its run state: MapTaskerEventHandlers, or one of the
-    mixins it is made of."""
+    handler groups it is made of."""
 
-    gui: "MyGui"
-    state: RunState
+    @property
+    def gui(self) -> "MyGui":
+        """The window."""
+        ...
+
+    @property
+    def state(self) -> RunState:
+        """The run state the window shows."""
+        ...
 
 
 def window_state(window: object) -> RunState:
@@ -187,7 +194,7 @@ def display_model_pulldown(
                 options=display_models,
                 value=current_model,
                 label=translate_string("AI Model"),
-                on_change=gui_instance.event_handlers.ai_model_selected_event,
+                on_change=gui_instance.event_handlers.ai.ai_model_selected_event,
             )
             .classes("w-64")
             .tooltip(translate_string("Select the model belonging to the AI you wish to use."))

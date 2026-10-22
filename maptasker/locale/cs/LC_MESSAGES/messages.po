@@ -3233,3 +3233,42 @@ msgid "Pre-Build The Map"
 msgstr "Příprava mapy"
 msgid "When enabled, the Map is built in the background as soon as a file has been loaded, and again each time you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once.\n\nWhen disabled, the Map is built when you ask for it.\n\nPressing Map or Diagram while it is still building waits for it to finish.  Changing a setting, or editing the configuration, before you press Map means it is built again.  It uses the computer for a few seconds after each file is loaded or item chosen, whether or not you go on to ask for the Map."
 msgstr "Po aktivaci se mapa vytváří na pozadí, jakmile je načten soubor, a znovu při každém výběru jiného projektu, profilu, úkolu nebo scény, takže tlačítko \"Mapa\" ji okamžitě otevře.\n\nPo deaktivaci se mapa vytvoří, až ji požádáte.\n\nStisknutím tlačítka \"Mapa\" nebo \"Diagram\", zatímco se mapa vytváří, se počká, až bude dokončena. Změna nastavení nebo úprava konfigurace před stisknutím tlačítka \"Mapa\" způsobí, že se mapa znovu vytvoří. Využívá počítač na několik sekund po načtení každého souboru nebo výběru položky, a to i v případě, že se později požádáte o zobrazení mapy."
+
+msgid "- Import With Dependencies: Bring a Project, Profile, Task or Scene in from another backup together with everything it needs.  Choose the other file, find what you want in the list, and press Preview on its row.  A Task brings the Tasks it performs and the Scenes it shows; a Scene brings the Tasks its elements run; a Profile brings the Tasks it runs; a Project brings everything it lists -- and in each case what those need in turn, and the global variables they use.  The preview says what will be copied, what will be used instead because this file already has the same thing, and what will be copied under a new name -- 'Setup (imported)' -- because this file has a different Task of the same name; every call inside what is brought is then pointed at the new name, so it does what it did where it came from.  Tasks and Profiles get new ids, and every link to them follows.  Choose where they are filed: a Project of this file, or a new one.  Nothing already in this file is changed apart from that Project listing more members, and the import is one press of Undo.  Importing the same thing again brings nothing the second time.  Not followed: a call whose name is built from a variable, and what is inside a Version 2 Scene's layout.  Plugins the objects use are listed, but not checked.  Nothing is sent anywhere.  \n"
+msgstr "- Import s závislostmi: Importujte projekt, profil, úkol nebo scénu z jiné zálohy spolu se vším, co potřebuje. Vyberte soubor, najděte, co chcete, a klikněte na tlačítko Předhlížení u jeho řádku. Úkol přináší úkoly, které provádí, a scény, které zobrazuje; scéna přináší úkoly, které její prvky provádějí; profil přináší úkoly, které provádí; projekt přináší vše, co uvádí – a v každém případě, co to vše potřebuje, a globální proměnné, které používají. Předhlížení ukazuje, co bude zkopírováno, co bude použito místo toho, protože tento soubor již obsahuje stejnou věc, a co bude zkopírováno pod novým názvem – „Nastavení (importováno)“ – protože tento soubor obsahuje úkol se stejným jménem; poté všechny volání uvnitř importovaného obsahu ukazují na nový název, takže fungují tak, jak fungovaly, odkud pocházejí. Úkoly a profily získají nové ID, a všechny odkazy na ně jsou následovány. Vyberte, kam je uložíte: do projektu tohoto souboru, nebo do nového. Žádné prvky v tomto souboru se nezmění, kromě toho, že projekt uvádí více členů, a import se provede jedním kliknutím na tlačítko Zrušit. Opakované importování stejné věci nic nepřinese. Není sledováno: volání, jehož název je sestaven z proměnné, a struktura scény ve verzi 2. Seznamy pluginů, které objekty používají, jsou uvedeny, ale nejsou kontrolovány. Nic není odesláno nikam.\n"
+
+msgid "Bring a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use.\n\nShows what would be copied, renamed and left alone before anything happens.  A Task or Scene this file already has, and that is identical, is used rather than copied.\n\nNothing already in this file is changed, and the whole import is one press of Undo."
+msgstr "Přiveďte projekt, profil, úkol nebo scénu z jiné zálohy spolu se vším, co potřebuje: úkoly, které provádí, scény, které zobrazuje, a úkoly, které tyto spouští, a globální proměnné, které používají.\n\nZobrazuje, co by bylo zkopírováno, přejmenováno a ponecháno tak, jak je, předtím, než se něco stane. Pokud tento soubor již obsahuje úkol nebo scénu, které jsou identické, používají se ty, místo aby byly kopírovány.\n\nŽádná data v tomto souboru se nemění a celý import se provede jedním kliknutím na \"Undo\"."
+
+msgid "Bring the global variables this file lacks"
+msgstr "Přidejte globální proměnné, které tento soubor postrádá."
+
+msgid "Find by name"
+msgstr "Najít podle jména"
+
+msgid "Import With Dependencies"
+msgstr "Import s závislostmi"
+
+msgid "Import cancelled."
+msgstr "Import zrušen."
+
+msgid "Importing from"
+msgstr "Import z"
+
+msgid "Nothing matches."
+msgstr "Nic se neshoduje."
+
+msgid "Press 'Preview' on a row first."
+msgstr "Nejdříve stiskněte tlačítko „Náhled“ v daném řádku."
+
+msgid "Put a Task, Profile or Scene in"
+msgstr "Přidejte úkol, profil nebo scénu do"
+
+msgid "That is the file already loaded.  Choose a different one to import from."
+msgstr "Tento soubor je již načten. Vyberte jiný, ze kterého chcete importovat."
+
+msgid "has no Projects, Profiles, Tasks or Scenes to bring in."
+msgstr "nemá žádné projekty, profily, úkoly nebo scény, které by měl importovat."
+
+msgid "more.  Choose a kind or type part of a name to narrow the list."
+msgstr "více. Vyberte konkrétní část jména, abyste zúžili seznam."

@@ -145,7 +145,7 @@ class _ProfileEditorBody:
         with ui.row().classes("w-full items-center gap-4"):
             enabled_switch = ui.switch(
                 value=profedit.is_profile_enabled(edited_profile),
-                on_change=lambda e: gui.event_handlers.set_profile_enabled_event(edited_profile, bool(e.value)),
+                on_change=lambda e: gui.event_handlers.editors.set_profile_enabled_event(edited_profile, bool(e.value)),
             )
             enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
 
@@ -202,7 +202,7 @@ class _ProfileEditorBody:
         ui.button(
             translate_string("Unlink"),
             on_click=lambda _e=None, lt=link_type: (
-                self.gui.event_handlers.unlink_task_from_profile_event(self.edited_profile, lt),
+                self.gui.event_handlers.editors.unlink_task_from_profile_event(self.edited_profile, lt),
                 self.render_task_links(),
             ),
         ).props("flat color=red dense")
@@ -222,7 +222,7 @@ class _ProfileEditorBody:
         ui.button(
             translate_string("Link"),
             on_click=lambda _e=None, lt=link_type, p=picker: (
-                self.gui.event_handlers.link_task_to_profile_event(self.edited_profile, lt, p.value),
+                self.gui.event_handlers.editors.link_task_to_profile_event(self.edited_profile, lt, p.value),
                 self.render_task_links(),
             ),
         ).props("flat color=blue dense")
@@ -232,7 +232,7 @@ class _ProfileEditorBody:
         # moment it's created -- see open_add_task_for_profile_link_event.
         ui.button(
             translate_string("Add Task"),
-            on_click=lambda _e=None, lt=link_type: self.gui.event_handlers.open_add_task_for_profile_link_event(
+            on_click=lambda _e=None, lt=link_type: self.gui.event_handlers.editors.open_add_task_for_profile_link_event(
                 self.edited_profile,
                 lt,
                 self.render_task_links,
@@ -289,7 +289,7 @@ class _ProfileEditorBody:
             ui.button(
                 translate_string("Delete Condition"),
                 on_click=lambda _e=None, ci=condition.cond_index: (
-                    self.gui.event_handlers.remove_condition_from_profile_event(self.edited_profile, ci),
+                    self.gui.event_handlers.editors.remove_condition_from_profile_event(self.edited_profile, ci),
                     self.render_conditions(),
                 ),
             ).props("flat color=red dense").classes("mb-2")
@@ -501,7 +501,7 @@ class _ProfileEditorBody:
         ui.button(
             translate_string("Add App Entry"),
             on_click=lambda _e=None, ci=condition.cond_index: (
-                self.gui.event_handlers.add_app_entry_event(self.edited_profile, ci),
+                self.gui.event_handlers.editors.add_app_entry_event(self.edited_profile, ci),
                 self.render_conditions(),
             ),
         ).props("flat color=blue dense")
@@ -532,7 +532,7 @@ class _ProfileEditorBody:
             ui.button(
                 translate_string("Remove"),
                 on_click=lambda _e=None, ci=condition.cond_index, ei=entry_index: (
-                    self.gui.event_handlers.remove_app_entry_event(self.edited_profile, ci, ei),
+                    self.gui.event_handlers.editors.remove_app_entry_event(self.edited_profile, ci, ei),
                     self.render_conditions(),
                 ),
             ).props("flat color=red dense")
@@ -577,11 +577,11 @@ class _ProfileEditorBody:
         """Adds the kind of condition the pickers are set to, then redraws the conditions."""
         handlers = self.gui.event_handlers
         if type_picker.value == "Event":
-            handlers.add_event_condition_to_profile_event(self.edited_profile, event_picker.value)
+            handlers.editors.add_event_condition_to_profile_event(self.edited_profile, event_picker.value)
         elif type_picker.value == "State":
-            handlers.add_state_condition_to_profile_event(self.edited_profile, state_picker.value)
+            handlers.editors.add_state_condition_to_profile_event(self.edited_profile, state_picker.value)
         else:
-            handlers.add_condition_to_profile_event(self.edited_profile, type_picker.value)
+            handlers.editors.add_condition_to_profile_event(self.edited_profile, type_picker.value)
         self.render_conditions()
 
 
@@ -658,7 +658,7 @@ def _build_edit_profile_buttons(
         ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
         delete_profile_button = ui.button(
             translate_string("Delete Profile"),
-            on_click=lambda: self.event_handlers.delete_profile_event(edited_profile, dialog),
+            on_click=lambda: self.event_handlers.editors.delete_profile_event(edited_profile, dialog),
         ).classes("bg-red-500 text-white")
         with delete_profile_button:
             ui.tooltip(
@@ -669,7 +669,7 @@ def _build_edit_profile_buttons(
             )
         rename_profile_button = ui.button(
             translate_string("Rename"),
-            on_click=lambda: self.event_handlers.rename_profile_event(edited_profile, field_refs, title_label),
+            on_click=lambda: self.event_handlers.editors.rename_profile_event(edited_profile, field_refs, title_label),
         ).classes("bg-blue-600")
         with rename_profile_button:
             ui.tooltip(
@@ -681,11 +681,11 @@ def _build_edit_profile_buttons(
             )
         ui.button(
             translate_string("Ok"),
-            on_click=lambda: self.event_handlers.keep_edited_profile_event(edited_profile, field_refs, dialog),
+            on_click=lambda: self.event_handlers.editors.keep_edited_profile_event(edited_profile, field_refs, dialog),
         ).props("outline")
         profile_to_current_file = ui.button(
             translate_string("Save To Current File"),
-            on_click=lambda: self.event_handlers.save_edited_profile_to_current_file_event(
+            on_click=lambda: self.event_handlers.editors.save_edited_profile_to_current_file_event(
                 edited_profile,
                 field_refs,
                 dialog,
@@ -706,7 +706,7 @@ def _build_edit_profile_buttons(
             ).style("white-space: pre-wrap")
         profile_to_android = ui.button(
             translate_string("Save To Android"),
-            on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
+            on_click=lambda: self.event_handlers.android.open_save_profile_to_android_dialog_event(
                 edited_profile,
                 field_refs,
                 dialog,
@@ -727,7 +727,7 @@ def _build_edit_profile_buttons(
             ).style("white-space: pre-wrap")
         export = ui.button(
             translate_string("Export Profile"),
-            on_click=lambda: self.event_handlers.save_edited_profile_event(edited_profile, field_refs, dialog),
+            on_click=lambda: self.event_handlers.editors.save_edited_profile_event(edited_profile, field_refs, dialog),
         ).classes("bg-blue-600")
         with export:
             ui.tooltip(
@@ -777,7 +777,7 @@ def build_save_profile_to_android_dialog(
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
                 translate_string("Save As File"),
-                on_click=lambda: self.event_handlers.save_profile_to_android_event(
+                on_click=lambda: self.event_handlers.android.save_profile_to_android_event(
                     edited_profile,
                     field_refs,
                     android_field_refs,
@@ -802,7 +802,7 @@ def build_save_profile_to_android_dialog(
             # differ -- a ticked box would hide all three.
             import_into_tasker = ui.button(
                 translate_string("Import Into Tasker"),
-                on_click=lambda: self.event_handlers.import_profile_into_tasker_event(
+                on_click=lambda: self.event_handlers.android.import_profile_into_tasker_event(
                     edited_profile,
                     field_refs,
                     android_field_refs,
@@ -854,7 +854,7 @@ def build_delete_profile_dialog(
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(
                 translate_string("Delete Profile"),
-                on_click=lambda: self.event_handlers.confirm_delete_profile_event(
+                on_click=lambda: self.event_handlers.editors.confirm_delete_profile_event(
                     profile_name,
                     confirm_dialog,
                     parent_dialog,
@@ -913,11 +913,11 @@ def _build_add_profile_buttons(
         ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
         ui.button(
             translate_string("Ok"),
-            on_click=lambda: self.event_handlers.keep_new_profile_event(edited_profile, field_refs, dialog),
+            on_click=lambda: self.event_handlers.editors.keep_new_profile_event(edited_profile, field_refs, dialog),
         ).props("outline")
         new_profile_to_current_file = ui.button(
             translate_string("Save To Current File"),
-            on_click=lambda: self.event_handlers.save_new_profile_to_current_file_event(
+            on_click=lambda: self.event_handlers.editors.save_new_profile_to_current_file_event(
                 edited_profile,
                 field_refs,
                 dialog,
@@ -938,7 +938,7 @@ def _build_add_profile_buttons(
             ).style("white-space: pre-wrap")
         profile_to_android = ui.button(
             translate_string("Save To Android"),
-            on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
+            on_click=lambda: self.event_handlers.android.open_save_profile_to_android_dialog_event(
                 edited_profile,
                 field_refs,
                 dialog,
@@ -959,7 +959,7 @@ def _build_add_profile_buttons(
             ).style("white-space: pre-wrap")
         export_prof = ui.button(
             translate_string("Export Profile"),
-            on_click=lambda: self.event_handlers.save_new_profile_event(edited_profile, field_refs, dialog),
+            on_click=lambda: self.event_handlers.editors.save_new_profile_event(edited_profile, field_refs, dialog),
         ).classes("bg-blue-600")
         with export_prof:
             ui.tooltip(

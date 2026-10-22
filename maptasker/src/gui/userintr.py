@@ -1,20 +1,24 @@
 """Code to manage the graphical user interface using NiceGUI.
 
-MapTaskerEventHandlers, the class every button and pulldown in the window is wired to, is being
-split by feature so that this file stops being the one place every handler lives:
+MapTaskerEventHandlers, the class every button and pulldown in the window is wired to, is made of
+groups by feature so that this file stops being the one place every handler lives:
 
     userintr_ai.py        the AI model and prompt pickers, the API keys dialog, Analyze
     userintr_android.py   fetching a backup off the device, Save To Android, Import Into Tasker
+    userintr_carry.py     Import With Dependencies
     userintr_editors.py   the Task, Profile, Scene and Project editors and Object Properties
     userintr_loading.py   opening a backup file, and the Specific Name tab's single-object selection
+    userintr_prebuild.py  building the Map ahead of time
     userintr_reports.py   Health Check, Variable Cross-Reference, Task Flow, Compare, Changes Since
     userintr_settings.py  the output options, colors, fonts, language, and Save/Restore/Reset
 
-Each feature's handlers are a mixin that MapTaskerEventHandlers inherits, so gui.event_handlers
-keeps every name it had.  A handler that moves takes its helpers with it, including one it shares
-with code still here: this file imports that back from the new module, as it does
-local_xml_start_directory.  None of those modules imports this one except for type checking --
-this file imports them at the top, so an import at the top of theirs would close the loop.
+Each group is an object of its own (see userintr_group.HandlerGroup) that MapTaskerEventHandlers
+holds as an attribute, so the window wires a button to gui.event_handlers.<group>.<name>; what is
+left on MapTaskerEventHandlers itself is what the groups share.  A handler that moves takes its
+helpers with it, including one it shares with code still here: this file imports that back from the
+new module, as it does local_xml_start_directory.  None of those modules imports this one except for
+type checking -- this file imports them at the top, so an import at the top of theirs would close the
+loop.
 """
 
 import contextlib
@@ -210,7 +214,7 @@ RESTORE_ANDROID_LABELS = {
     "android_port": "Android Get XML Port Number",
     "android_file": "Android Get XML File Location",
 }
-# Setting -> the event handler that takes the value and applies it.
+# Setting -> the settings handler that takes the value and applies it.
 RESTORE_EVENT_HANDLERS = {
     "display_detail_level": "detail_selected_event",
     "font": "font_event",
@@ -534,7 +538,7 @@ class MyGui:
 
         # Now restore the settings and update the fields if not resetting.
         if not self.state.program_arguments.reset:
-            self.event_handlers.restore_settings_event()
+            self.event_handlers.settings.restore_settings_event()
 
             # 3. Synchronize runtime arguments
             if self.color_lookup and not self.state.colors_to_use:
@@ -629,7 +633,7 @@ class MyGui:
         if view_limit is None:
             return
         self.state.cli_view_limit = None
-        self.event_handlers.viewlimit_event(str(view_limit))
+        self.event_handlers.settings.viewlimit_event(str(view_limit))
 
     def set_defaults(self: "MyGui") -> None:
         """Initializes all the default variables that MapTasker relies on."""
@@ -708,8 +712,8 @@ class MyGui:
             return
 
         # These two own a pulldown in the settings drawer and know how to move it.
-        handlers.viewlimit_event(str(VIEW_LIMIT_DEFAULT))
-        handlers.notify_timeout_event(NOTIFY_TIMEOUT_DEFAULT)
+        handlers.settings.viewlimit_event(str(VIEW_LIMIT_DEFAULT))
+        handlers.settings.notify_timeout_event(NOTIFY_TIMEOUT_DEFAULT)
 
         # Profiles Per Line is not in the drawer -- it sits on the Diagram view's own toolbar,
         # and there can be one on each open Diagram view ("Open View In New Window").  Its own
@@ -771,7 +775,7 @@ class MyGui:
         saved_duration = self.state.program_arguments.notify_timeout
         if saved_duration is not None:
             # The pulldown does not exist yet; notify_timeout_event skips it when it is absent.
-            self.event_handlers.notify_timeout_event(saved_duration)
+            self.event_handlers.settings.notify_timeout_event(saved_duration)
 
     # Utility functions
     def display_message_box(self: "MyGui", message: str, color: str) -> None:
@@ -1215,7 +1219,7 @@ class MyGui:
         if key in RESTORE_ANDROID_LABELS:
             return True, f"{translate_string(RESTORE_ANDROID_LABELS[key])} {translate_string('set to')} {value}\n"
         if key in RESTORE_EVENT_HANDLERS:
-            return True, getattr(self.event_handlers, RESTORE_EVENT_HANDLERS[key])(value)
+            return True, getattr(self.event_handlers.settings, RESTORE_EVENT_HANDLERS[key])(value)
         if key in RESTORE_SINGLE_NAMES:
             return True, self.process_single_name_restore(RESTORE_SINGLE_NAMES[key], value)
         if key == "appearance_mode":
@@ -1611,37 +1615,42 @@ def _single_selection_still_exists(gui: MyGui) -> bool:
     return True
 
 
-class MapTaskerEventHandlers(
-    AIEventHandlers,
-    AndroidEventHandlers,
-    CarryEventHandlers,
-    EditorEventHandlers,
-    LoadingEventHandlers,
-    PrebuildEventHandlers,
-    ReportEventHandlers,
-    SettingsEventHandlers,
-):
+class MapTaskerEventHandlers:
     """
     Handles all UI interactions (button clicks, dropdown changes, toggles).
     Decouples logic from the main UI drawing routines.
+
+    The handlers of each feature are a group of their own, held here as an attribute -- hub.ai,
+    hub.android, hub.carry, hub.editors, hub.loading, hub.prebuild, hub.reports, hub.settings -- and
+    what is defined on this class is what two or more of them share: the Map, Diagram and Tree views,
+    saving the whole configuration, and the edit history.  Each group reaches this class as self.hub,
+    and another group as self.hub.<group>.
     """
 
-    def __init__(self: "MapTaskerEventHandlers", gui_instance: MyGui) -> None:
+    def __init__(self, gui_instance: MyGui) -> None:
         """Initialize MapTaskerEventHandlers with a reference to the main MyGui instance."""
         # We store a reference to the main MyGui instance so we can read
         # checkbox states, inputs, and update the UI elements.
         self.gui = gui_instance
+        self.ai = AIEventHandlers(self)
+        self.android = AndroidEventHandlers(self)
+        self.carry = CarryEventHandlers(self)
+        self.editors = EditorEventHandlers(self)
+        self.loading = LoadingEventHandlers(self)
+        self.prebuild = PrebuildEventHandlers(self)
+        self.reports = ReportEventHandlers(self)
+        self.settings = SettingsEventHandlers(self)
 
     @property
-    def state(self: "MapTaskerEventHandlers") -> RunState:
-        """The run state the window shows and edits: its own, which the handler mixins read."""
+    def state(self) -> RunState:
+        """The run state the window shows and edits: its own, which the handler groups read."""
         return self.gui.state
 
     # ==========================================
     # 2. Display View: Map, Diagram, Misc or Tree
     # ==========================================
     async def view_event(
-        self: "MapTaskerEventHandlers",
+        self,
         view_type: str,
         goto: str = "",
         overrides: dict | None = None,
@@ -1672,12 +1681,12 @@ class MapTaskerEventHandlers(
         # view is about to rewrite -- the output lines, the totals, the settings -- so this waits
         # for it, before it touches any of them.  What it waits for is most of what pressing Map
         # would have done, and the Map is there when it is over.
-        if self.prebuild_running():
+        if self.prebuild.prebuild_running():
             waiting = _busy_banner(
                 f"{translate_string('Building the')} {window_title}.  {translate_string('Please stand by ...')}",
             )
             try:
-                await self.wait_for_prebuild()
+                await self.prebuild.wait_for_prebuild()
             finally:
                 _clear_busy_banner(waiting)
 
@@ -1687,10 +1696,10 @@ class MapTaskerEventHandlers(
         self.get_ready_to_build(overrides)
 
         # Counted so that nothing is built ahead of time while this is built for real.
-        with self.view_in_progress():
+        with self.prebuild.view_in_progress():
             await self._show_the_view(view_type, window_title, goto)
 
-    async def _show_the_view(self: "MapTaskerEventHandlers", view_type: str, window_title: str, goto: str) -> None:
+    async def _show_the_view(self, view_type: str, window_title: str, goto: str) -> None:
         """Build the view asked for and open it."""
         # Map view
         if view_type == "map":
@@ -1708,7 +1717,7 @@ class MapTaskerEventHandlers(
         else:
             self._view_invalid()
 
-    def get_ready_to_build(self: "MapTaskerEventHandlers", overrides: dict | None) -> None:
+    def get_ready_to_build(self, overrides: dict[str, Any] | None) -> None:
         """Put the run state in the condition every Map, Diagram and Tree build starts from.
 
         What view_event does before it builds, and what a Map built ahead of time does too --
@@ -1758,7 +1767,7 @@ class MapTaskerEventHandlers(
         #  - task_action_warnings: the "too many actions" list, accumulated the same way.
         reset_attributes(*MAP_OUTPUT_ATTRIBUTES)
 
-    async def _view_map(self: "MapTaskerEventHandlers", window_title: str, goto: str) -> None:
+    async def _view_map(self, window_title: str, goto: str) -> None:
         """Build the Map and open it in a window of its own."""
         gui = self.gui
         if self.state.xml_root is None:
@@ -1843,7 +1852,7 @@ class MapTaskerEventHandlers(
         finally:
             _clear_busy_banner(building)
 
-    async def _view_diagram(self: "MapTaskerEventHandlers") -> None:
+    async def _view_diagram(self) -> None:
         """Build the Diagram and open it in a window of its own."""
         gui = self.gui
         if self.state.tasker_root_elements["all_projects"] or self.state.tasker_root_elements["all_profiles"]:
@@ -1894,7 +1903,7 @@ class MapTaskerEventHandlers(
                 "Orange",
             )
 
-    def _view_misc(self: "MapTaskerEventHandlers") -> None:
+    def _view_misc(self) -> None:
         """Open the Misc view, which finds its own content."""
         gui = self.gui
         gui.display_message_box(
@@ -1907,7 +1916,7 @@ class MapTaskerEventHandlers(
             the_data=[],
         )
 
-    def _view_tree(self: "MapTaskerEventHandlers") -> None:
+    def _view_tree(self) -> None:
         """Show the Tree view, or say there is nothing to show it of."""
         gui = self.gui
         tree_data = gui.build_the_tree()
@@ -1917,7 +1926,7 @@ class MapTaskerEventHandlers(
             gui.display_message_box(translate_string("No Project(s) Found in XML!"), "Red")
             return
 
-    def _view_invalid(self: "MapTaskerEventHandlers") -> None:
+    def _view_invalid(self) -> None:
         """Say that the view asked for is not one there is."""
         gui = self.gui
         ui.notify(
@@ -1930,7 +1939,7 @@ class MapTaskerEventHandlers(
             "Red",
         )
 
-    def clear_view_event(self: "MapTaskerEventHandlers") -> None:
+    def clear_view_event(self) -> None:
         """Clears the current view and resets the textview, closing any open Map/Diagram popout tabs."""
         if hasattr(self.gui, "content_container") and self.gui.content_container:
             self.gui.content_container.clear()
@@ -1952,7 +1961,7 @@ class MapTaskerEventHandlers(
         ui.run_javascript(mapjump.close_popouts_js())
         ui.notify(translate_string("View cleared."), type="info", position="bottom")
 
-    async def rebuild_map_for_jump(self: "MapTaskerEventHandlers", target: mapjump.Target) -> None:
+    async def rebuild_map_for_jump(self, target: mapjump.Target) -> None:
         """Build a Map that holds this object, and open it scrolled to it.
 
         What a clicked report finding falls back to when no Map on screen can show it --
@@ -2023,7 +2032,7 @@ class MapTaskerEventHandlers(
         finally:
             self.state.program_arguments.update(saved)
 
-    def refactor_event(self: "MapTaskerEventHandlers") -> None:
+    def refactor_event(self) -> None:
         """Open the Refactor dialog: the structural moves, with a preview.
 
         Lives on the main window beside Edit/Add and the Undo group rather than on the Map
@@ -2072,7 +2081,7 @@ class MapTaskerEventHandlers(
         self.gui.refactor_dialog = dialog
         dialog.open()
 
-    def fix_findings_event(self: "MapTaskerEventHandlers") -> None:
+    def fix_findings_event(self) -> None:
         """Open the Fix Findings dialog: the Health Check's findings, with a repair for each.
 
         Lives beside the Health Check button rather than inside its report, because the
@@ -2120,7 +2129,7 @@ class MapTaskerEventHandlers(
         self.gui.fix_dialog = dialog
         dialog.open()
 
-    async def save_whole_configuration(self: "MapTaskerEventHandlers") -> bool:
+    async def save_whole_configuration(self) -> bool:
         """The 'Save To Current File' of the Refactor, Fix Findings, Restore and TaskerNet Updates dialogs.
 
         Returns True when the dialog's list must be rebuilt.
@@ -2179,7 +2188,7 @@ class MapTaskerEventHandlers(
         )
         return True
 
-    def restore_history_event(self: "MapTaskerEventHandlers") -> None:
+    def restore_history_event(self) -> None:
         """Open the Restore From History dialog: bring a deleted object back, or undo an edit.
 
         Beside Changes Since because it is the other half of that report -- the report says
@@ -2212,7 +2221,7 @@ class MapTaskerEventHandlers(
         self.gui.restore_dialog = dialog
         dialog.open()
 
-    def taskernet_updates_event(self: "MapTaskerEventHandlers") -> None:
+    def taskernet_updates_event(self) -> None:
         """Open the TaskerNet Updates dialog: linked shares, what their authors changed, and taking it.
 
         Beside Restore From History because it is that dialog's other source: both bring an
@@ -2243,7 +2252,7 @@ class MapTaskerEventHandlers(
         self.gui.tnupdate_dialog = dialog
         dialog.open()
 
-    def _dismiss_tnupdate_dialog(self: "MapTaskerEventHandlers") -> None:
+    def _dismiss_tnupdate_dialog(self) -> None:
         """Take down the TaskerNet Updates dialog if one is still up -- see _dismiss_restore_dialog."""
         dialog = getattr(self.gui, "tnupdate_dialog", None)
         self.gui.tnupdate_dialog = None
@@ -2251,7 +2260,7 @@ class MapTaskerEventHandlers(
             with suppress_logged("Deleting the TaskerNet Updates dialog"):
                 dialog.delete()
 
-    def fire_simulator_event(self: "MapTaskerEventHandlers") -> None:
+    def fire_simulator_event(self) -> None:
         """Open the What Fires When? dialog: pick a moment, see which Profiles it makes active.
 
         Rebuilt on every press, for fix_findings_event's reason, and more simply here: the
@@ -2279,7 +2288,7 @@ class MapTaskerEventHandlers(
         self.gui.firesim_dialog = dialog
         dialog.open()
 
-    async def bring_up_the_diagram_for_the_monitor(self: "MapTaskerEventHandlers", projects: set[str]) -> None:
+    async def bring_up_the_diagram_for_the_monitor(self, projects: set[str]) -> None:
         """Build and open the Diagram the Live Run Monitor will light up: one that holds what has fired.
 
         The Diagram button builds for whatever single Project, Profile or Task is selected in the main window, which
@@ -2306,7 +2315,7 @@ class MapTaskerEventHandlers(
         finally:
             self.state.program_arguments.update(saved)
 
-    async def live_monitor_event(self: "MapTaskerEventHandlers") -> None:
+    async def live_monitor_event(self) -> None:
         """Open the Live Run Monitor: which Profiles and Tasks fire on the phone, lit up in the Diagram as they do.
 
         Rebuilt on every press, for fire_simulator_event's reason: it watches the configuration loaded at the moment
@@ -2337,7 +2346,7 @@ class MapTaskerEventHandlers(
         self.gui.monitor_dialog = dialog
         dialog.open()
 
-    def missing_resources_event(self: "MapTaskerEventHandlers") -> None:
+    def missing_resources_event(self) -> None:
         """Open Missing Resources: do the files, folders, images, sounds, Scenes and apps the actions use still exist?
 
         Rebuilt on every press, for fire_simulator_event's reason: it opens on what the configuration loaded at the
@@ -2364,7 +2373,7 @@ class MapTaskerEventHandlers(
         self.gui.resources_dialog = dialog
         dialog.open()
 
-    def trend_dashboard_event(self: "MapTaskerEventHandlers") -> None:
+    def trend_dashboard_event(self) -> None:
         """Open the Trend Dashboard: how the configuration's size, complexity and findings have moved over the history.
 
         Rebuilt on every press, for fire_simulator_event's reason: the file it starts on is the one open now.
@@ -2380,7 +2389,7 @@ class MapTaskerEventHandlers(
         self.gui.trend_dialog = dialog
         dialog.open()
 
-    def task_stepper_event(self: "MapTaskerEventHandlers", task: str = "") -> None:
+    def task_stepper_event(self, task: str = "") -> None:
         """Open the Task Stepper: dry-run one Task with the variables it starts with.
 
         `task` is the Task to start with, when it is opened from somewhere that knows which (a line of What
@@ -2408,7 +2417,7 @@ class MapTaskerEventHandlers(
         self.gui.taskstep_dialog = dialog
         dialog.open()
 
-    def _dismiss_restore_dialog(self: "MapTaskerEventHandlers") -> None:
+    def _dismiss_restore_dialog(self) -> None:
         """Take down the Restore dialog if one is still up -- see _dismiss_fix_dialog."""
         dialog = getattr(self.gui, "restore_dialog", None)
         self.gui.restore_dialog = None
@@ -2416,7 +2425,7 @@ class MapTaskerEventHandlers(
             with suppress_logged("Deleting the Restore dialog"):
                 dialog.delete()
 
-    def _dismiss_fix_dialog(self: "MapTaskerEventHandlers") -> None:
+    def _dismiss_fix_dialog(self) -> None:
         """Take down the Fix Findings dialog if one is still up.
 
         Deleted rather than closed, for _dismiss_refactor_dialog's reason: a fresh dialog is
@@ -2428,7 +2437,7 @@ class MapTaskerEventHandlers(
             with suppress_logged("Deleting the Fix Findings dialog"):
                 dialog.delete()
 
-    def _dismiss_refactor_dialog(self: "MapTaskerEventHandlers") -> None:
+    def _dismiss_refactor_dialog(self) -> None:
         """Take down the Refactor dialog if one is still up.
 
         Deleted rather than closed: a fresh dialog is built per press, so the one being
@@ -2442,7 +2451,7 @@ class MapTaskerEventHandlers(
             with suppress_logged("Deleting the Refactor dialog"):
                 dialog.delete()
 
-    def _step_edit_history(self: "MapTaskerEventHandlers", *, forwards: bool) -> None:
+    def _step_edit_history(self, *, forwards: bool) -> None:
         """Shared body of the Undo and Redo buttons -- the two differ only in which way
         they walk the history and what they say afterwards.
 
@@ -2473,15 +2482,15 @@ class MapTaskerEventHandlers(
         action = translate_string("Redid") if forwards else translate_string("Undid")
         ui.notify(f"{action}: {message}", type="positive")
 
-    def undo_edit_event(self: "MapTaskerEventHandlers") -> None:
+    def undo_edit_event(self) -> None:
         """Take back the last change made to the loaded configuration -- see sessundo."""
         self._step_edit_history(forwards=False)
 
-    def redo_edit_event(self: "MapTaskerEventHandlers") -> None:
+    def redo_edit_event(self) -> None:
         """Put back the last change Undo took away -- see sessundo."""
         self._step_edit_history(forwards=True)
 
-    def _draw_task_flowchart(self: "MapTaskerEventHandlers", gui: "MyGui") -> None:
+    def draw_task_flowchart(self, gui: "MyGui") -> None:
         """Draw the single selected Task as a flowchart in its own window, if one is chosen.
 
         Silent about there being no chart when no single Task is selected -- said as a hint
@@ -2734,20 +2743,3 @@ class MapTaskerEventHandlers(
             message = translate_string("An error occurred reading the changelog file.")
 
         create_popup_window(translate_string("What's New?"), message, close_button=True, rich=True)
-
-    # Front-end event handlers
-    def _handle_event(self, event_method: str, view_name: str, *args: object) -> None:
-        """
-        Internal method to handle events based on event method and view name.
-
-        Parameters:
-            event_method (str): The name of the event method to call.
-            view_name (str): The name of the view to apply the event to.
-            *args (object): Additional arguments to pass to the event method.
-
-        Returns:
-            None
-        """
-        method = getattr(self, event_method)
-        view = getattr(self.gui, view_name)
-        method(view, *args)

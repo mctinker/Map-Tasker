@@ -5,8 +5,8 @@
 #                                                                                        #
 # userintr_carry: pick the other backup, read it, and open the dialog that imports from it.   #
 #                                                                                        #
-# A mixin that MapTaskerEventHandlers inherits, like the report handlers, so the button is wired to   #
-# gui.event_handlers.import_with_dependencies_event.  The work is mapcarry's and the dialog is       #
+# A group of MapTaskerEventHandlers, like the report handlers, so the button is wired to             #
+# gui.event_handlers.carry.import_with_dependencies_event.  The work is mapcarry's and the dialog is       #
 # guiwins_carry's; this is only what neither of them can do -- ask for a file, and hand the dialog    #
 # the ways to follow a row, bring the window up to date and save.                                    #
 #                                                                                        #
@@ -25,30 +25,18 @@ from maptasker.src.gui.getfile import LocalFilePicker
 from maptasker.src.gui.guiutils import refresh_tasker_object_pulldowns
 from maptasker.src.gui.guiwins_carry import build_carry_dialog
 from maptasker.src.gui.guiwins_nav import go_to_target, opening_view_in_a_new_window
+from maptasker.src.gui.userintr_group import HandlerGroup
 from maptasker.src.gui.userintr_loading import local_xml_start_directory
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
 
     from maptasker.src.core import mapjump
-    from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
 
 
-class CarryEventHandlers:
-    """The Import With Dependencies handlers MapTaskerEventHandlers inherits: self.gui is the window."""
-
-    state: RunState
-    gui: MyGui
-
-    if TYPE_CHECKING:
-
-        async def wait_for_prebuild(self) -> None:
-            """PrebuildEventHandlers's: return when no Map is being built ahead of time."""
-
-        async def save_whole_configuration(self) -> bool:
-            """MapTaskerEventHandlers's: write the whole configuration to a new copy and switch to it."""
-            raise NotImplementedError
+class CarryEventHandlers(HandlerGroup):
+    """The Import With Dependencies handlers: reached as hub.carry; self.hub is the rest of the window's handlers."""
 
     async def import_with_dependencies_event(self) -> None:
         """Ask which backup to import from, read it, and open the dialog that lists what it holds.
@@ -69,7 +57,7 @@ class CarryEventHandlers:
 
         # Reading another file borrows the program's shared tables for a moment (see diffload), which is
         # not something to do under a Map that is being built ahead of time on another thread.
-        await self.wait_for_prebuild()
+        await self.hub.prebuild.wait_for_prebuild()
 
         path = await _choose_file_to_import_from(gui)
         if not path:
@@ -110,7 +98,7 @@ class CarryEventHandlers:
             make_jump,
             self.import_with_dependencies_event,
             refresh_after_apply,
-            self.save_whole_configuration,
+            self.hub.save_whole_configuration,
             state=self.state,
         )
         if dialog is None:

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import contextlib
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.core.primitem import PrimeItems
@@ -35,12 +35,19 @@ _built: dict = {}
 
 
 class _Recorder:
-    """Stands in for the window's event handlers: every attribute is a function that records its call."""
+    """Stands in for the window's event handlers: every attribute is a function that records its call.
+
+    A handler group (editors, android ...) is this same recorder, so the call is recorded by its name alone."""
+
+    _GROUPS = frozenset({"ai", "android", "carry", "editors", "loading", "prebuild", "reports", "settings"})
 
     def __init__(self, calls: list[tuple]) -> None:
         self._calls = calls
 
-    def __getattr__(self, name: str) -> Callable:
+    def __getattr__(self, name: str) -> Any:
+        if name in self._GROUPS:
+            return self
+
         def record(*args: object) -> None:
             self._calls.append((name, *args))
 

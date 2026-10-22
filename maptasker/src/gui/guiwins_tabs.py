@@ -51,7 +51,7 @@ def create_specific_name_tab(self: MyGui) -> None:
     self.list_unnamed_items_checkbox = (
         ui.checkbox(
             translate_string("List Unnamed Items"),
-            on_change=self.event_handlers.list_unnamed_items_event,
+            on_change=self.event_handlers.loading.list_unnamed_items_event,
         )
         .classes("mt-1 text-xs")
         .tooltip(
@@ -71,7 +71,7 @@ def _create_specific_name_pulldowns(self: MyGui) -> None:
         self.specific_project_optionmenu = (
             ui.select(
                 [none_translatesd],
-                on_change=lambda e: self.event_handlers.single_project_name_event(e.value) if e.value else None,
+                on_change=lambda e: self.event_handlers.loading.single_project_name_event(e.value) if e.value else None,
                 label=translate_string("Project"),
                 with_input=True,
             )
@@ -83,7 +83,7 @@ def _create_specific_name_pulldowns(self: MyGui) -> None:
         self.specific_profile_optionmenu = (
             ui.select(
                 [none_translatesd],
-                on_change=lambda e: self.event_handlers.single_profile_name_event(e.value) if e.value else None,
+                on_change=lambda e: self.event_handlers.loading.single_profile_name_event(e.value) if e.value else None,
                 label=translate_string("Profile"),
                 with_input=True,
             )
@@ -95,7 +95,7 @@ def _create_specific_name_pulldowns(self: MyGui) -> None:
         self.specific_task_optionmenu = (
             ui.select(
                 [none_translatesd],
-                on_change=lambda e: self.event_handlers.single_task_name_event(e.value) if e.value else None,
+                on_change=lambda e: self.event_handlers.loading.single_task_name_event(e.value) if e.value else None,
                 label=translate_string("Task"),
                 with_input=True,
             )
@@ -107,7 +107,7 @@ def _create_specific_name_pulldowns(self: MyGui) -> None:
         self.specific_scene_optionmenu = (
             ui.select(
                 [none_translatesd],
-                on_change=lambda e: self.event_handlers.single_scene_name_event(e.value) if e.value else None,
+                on_change=lambda e: self.event_handlers.loading.single_scene_name_event(e.value) if e.value else None,
                 label=translate_string("Scene"),
                 with_input=True,
             )
@@ -150,28 +150,28 @@ def _create_object_action_rows(self: MyGui) -> None:
     with ui.column().classes("flex-1 min-w-0 gap-0 m-0 p-0"):
         with ui.row().classes("w-full gap-2 m-0 p-0") as self.project_buttons_row:
             self.edit_project_button = _object_action_button(
-                translate_string("Edit Project"), handlers.open_edit_project_dialog_event
+                translate_string("Edit Project"), handlers.editors.open_edit_project_dialog_event
             )
             self.add_project_button = _object_action_button(
-                translate_string("Add Project"), handlers.open_add_project_dialog_event
+                translate_string("Add Project"), handlers.editors.open_add_project_dialog_event
             )
         with ui.row().classes("w-full gap-2 m-0 p-0") as self.profile_buttons_row:
             self.edit_profile_button = _object_action_button(
-                translate_string("Edit Profile"), handlers.open_edit_profile_dialog_event
+                translate_string("Edit Profile"), handlers.editors.open_edit_profile_dialog_event
             )
             self.add_profile_button = _object_action_button(
-                translate_string("Add Profile"), handlers.open_add_profile_dialog_event
+                translate_string("Add Profile"), handlers.editors.open_add_profile_dialog_event
             )
         with ui.row().classes("w-full gap-2 m-0 p-0") as self.task_buttons_row:
             self.edit_task_button = _object_action_button(
-                translate_string("Edit Task"), handlers.open_edit_task_dialog_event
+                translate_string("Edit Task"), handlers.editors.open_edit_task_dialog_event
             )
             self.add_task_button = _object_action_button(
-                translate_string("Add Task"), handlers.open_add_task_dialog_event
+                translate_string("Add Task"), handlers.editors.open_add_task_dialog_event
             )
             self.run_task_button = _object_action_button(
                 translate_string("Run On Android"),
-                handlers.open_run_task_on_android_dialog_event,
+                handlers.editors.open_run_task_on_android_dialog_event,
             ).tooltip(
                 translate_string(
                     "Run the selected Task on your Android device and see what it returned.",
@@ -185,10 +185,10 @@ def _create_object_action_rows(self: MyGui) -> None:
         if EDIT_SCENE:
             with ui.row().classes("w-full gap-2 m-0 p-0") as self.scene_buttons_row:
                 self.edit_scene_button = _object_action_button(
-                    translate_string("Edit Scene"), handlers.open_edit_scene_dialog_event
+                    translate_string("Edit Scene"), handlers.editors.open_edit_scene_dialog_event
                 )
                 self.add_scene_button = _object_action_button(
-                    translate_string("Add Scene"), handlers.open_add_scene_dialog_event
+                    translate_string("Add Scene"), handlers.editors.open_add_scene_dialog_event
                 )
 
 
@@ -233,7 +233,7 @@ def create_colors_tab(self: MyGui) -> None:
     ui.label(translate_string("Theme Configuration")).classes("text-base mb-1")
     ui.button(
         translate_string("Reset to Default Colors"),
-        on_click=self.event_handlers.color_reset_event,
+        on_click=self.event_handlers.settings.color_reset_event,
     ).classes("bg-blue-500 text-xs py-1")
 
     self.color_change = ui.label(translate_string("Select a category to modify its color.")).classes(
@@ -273,7 +273,7 @@ def create_colors_tab(self: MyGui) -> None:
             ui.color_input(
                 label=translate_string("Choose Hex Color"),
                 value="#3f99ff",
-                on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value or ""),
+                on_change=lambda e: self.event_handlers.settings.handle_color_pick_event(e.value or ""),
             )
             .classes("w-64 mb-0")
             .props("dense")
@@ -321,16 +321,16 @@ def create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
         with ui.row().classes("items-center gap-4 mb-4"):
             self.show_apikeys_button = ui.button(
                 translate_string("Show/Edit API Key(s)"),
-                on_click=self.event_handlers.ai_apikey_event,
+                on_click=self.event_handlers.ai.ai_apikey_event,
             )
             self.change_prompt_button = ui.button(
                 translate_string("Change Prompt"),
-                on_click=self.event_handlers.ai_prompt_event,
+                on_click=self.event_handlers.ai.ai_prompt_event,
             )
 
             self.analysis_button = ui.button(
                 translate_string("Run Analysis"),
-                on_click=self.event_handlers.ai_analyze_event,
+                on_click=self.event_handlers.ai.ai_analyze_event,
             )
             update_analysis_button_color(self)
             self.analysis_query_button = ui.button(
@@ -348,7 +348,7 @@ def create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
             # Extra model list checkbox with chained tooltip
             self.aimodel_extend_checkbox = (
                 ui.checkbox(
-                    translate_string("Extended"), on_change=lambda: self.event_handlers.extended_models_changed(self)
+                    translate_string("Extended"), on_change=lambda: self.event_handlers.ai.extended_models_changed(self)
                 )
                 .tooltip(
                     translate_string(
@@ -386,18 +386,18 @@ def create_name_display_options_section(self: MyGui) -> None:
     checkbox_configs = [
         (
             "bold_checkbox",
-            handlers.names_bold_event,
+            handlers.settings.names_bold_event,
             translate_string("Bold"),
             "Bold and Italicize are mutually exclusive in the Map view.",
         ),
         (
             "italicize_checkbox",
-            handlers.names_italicize_event,
+            handlers.settings.names_italicize_event,
             translate_string("Italicize"),
             "Italicize and Bold are mutually exclusive in the Map view.",
         ),
-        ("highlight_checkbox", handlers.names_highlight_event, translate_string("Highlight"), None),
-        ("underline_checkbox", handlers.names_underline_event, translate_string("Underline"), None),
+        ("highlight_checkbox", handlers.settings.names_highlight_event, translate_string("Highlight"), None),
+        ("underline_checkbox", handlers.settings.names_underline_event, translate_string("Underline"), None),
     ]
 
     # 3. Batch Creation inside a highly condensed 2-Column Grid Layout
@@ -432,7 +432,7 @@ def create_task_action_limit_section(self: MyGui) -> None:
         max=100,
         step=1,
         value=100,
-        on_change=self.event_handlers.tasklimit_event,
+        on_change=self.event_handlers.settings.tasklimit_event,
     ).classes(
         "w-full px-2 accent-green-600 py-0 my-0 gap-y-0",
     )
@@ -459,7 +459,7 @@ def create_indentation_section(self: MyGui) -> None:
     self.indent_option = ui.select(
         options=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
         value="4",  # Default initial value matching your original comments
-        on_change=self.event_handlers.indent_selected_event,
+        on_change=self.event_handlers.settings.indent_selected_event,
     ).classes("w-full leading-none py-0 my-0 gap-y-0")
     with self.indent_option:
         ui.tooltip(
@@ -492,7 +492,7 @@ def create_language_selection_section(self: MyGui) -> None:
     self.language_optionmenu = ui.select(
         options=language_options,
         value=self.language,
-        on_change=self.event_handlers.language_selected_event,
+        on_change=self.event_handlers.settings.language_selected_event,
     ).classes("w-full")
 
 
@@ -511,7 +511,7 @@ def create_view_limit_section(self: MyGui) -> None:
         self.viewlimit_optionmenu = ui.select(
             options=view_limit_options(current_choice),
             value=current_choice,
-            on_change=self.event_handlers.viewlimit_event,
+            on_change=self.event_handlers.settings.viewlimit_event,
         ).classes("flex-grow")
         with self.viewlimit_optionmenu:
             ui.tooltip(
@@ -552,7 +552,7 @@ def create_notification_duration_section(self: MyGui) -> None:
         self.notify_timeout_optionmenu = ui.select(
             options=[translate_string(label) for label, _ms in NOTIFY_TIMEOUT_CHOICES],
             value=translate_string(labels.get(current, fallback)),
-            on_change=self.event_handlers.notify_timeout_event,
+            on_change=self.event_handlers.settings.notify_timeout_event,
         ).classes("flex-grow")
         with self.notify_timeout_optionmenu:
             ui.tooltip(
@@ -587,8 +587,8 @@ def create_output_directory_section(self: MyGui) -> None:
             )
             .props("dense clearable")
             .classes("flex-grow")
-            .on("keydown.enter", handlers.output_directory_event)
-            .on("blur", handlers.output_directory_event)
+            .on("keydown.enter", handlers.settings.output_directory_event)
+            .on("blur", handlers.settings.output_directory_event)
         )
         with self.output_directory_input:
             ui.tooltip(
@@ -601,7 +601,7 @@ def create_output_directory_section(self: MyGui) -> None:
             ).style("white-space: pre-wrap")
         ui.button(
             translate_string("Default"),
-            on_click=lambda: handlers.output_directory_event(""),
+            on_click=lambda: handlers.settings.output_directory_event(""),
         ).props("dense").classes("bg-blue-600 text-white")
 
 
@@ -613,7 +613,7 @@ def create_settings_buttons_section(self: MyGui) -> None:
     with self.gui_left_drawer:
         self.reset_button = ui.button(
             translate_string("Reset Options"),
-            on_click=handlers.reset_settings_event,
+            on_click=handlers.settings.reset_settings_event,
         ).classes(
             "w-full bg-blue-600 text-white mt-2",
         )
@@ -635,7 +635,7 @@ def create_settings_buttons_section(self: MyGui) -> None:
     with ui.row().classes("w-full gap-2 mt-0 justify-center no-wrap"):
         self.save_settings_button = ui.button(
             translate_string("Save"),
-            on_click=handlers.save_settings_event,
+            on_click=handlers.settings.save_settings_event,
         ).classes(
             "bg-indigo-600 text-white justify-center",
         )
@@ -644,7 +644,7 @@ def create_settings_buttons_section(self: MyGui) -> None:
 
         self.restore_settings_button = ui.button(
             translate_string("Restore"),
-            on_click=handlers.restore_settings_event,
+            on_click=handlers.settings.restore_settings_event,
         ).classes(
             "bg-indigo-600 text-white justify-center",
         )
@@ -699,7 +699,7 @@ def create_font_section(self: MyGui) -> None:
     self.font_optionmenu = ui.select(
         options=font_items,
         value=current_font,
-        on_change=self.event_handlers.font_event,
+        on_change=self.event_handlers.settings.font_event,
     ).classes("w-64")
     with self.font_optionmenu:
         ui.tooltip(
@@ -727,7 +727,7 @@ def create_file_and_message_buttons_section(self: MyGui) -> None:
             self.get_backup_button = (
                 ui.button(
                     translate_string("Get XML from Android Device"),
-                    on_click=self.event_handlers.get_xml_from_android_event,
+                    on_click=self.event_handlers.android.get_xml_from_android_event,
                 )
                 .style("background-color: #246FB6; border-color: #6563ff; border-width: 2px; color: white;")
                 .classes("mt-0 ml-0 font-bold flex-grow text-xs")

@@ -1,12 +1,12 @@
 """Report event handlers: the Health Check, Variable Cross-Reference, Task Flow, Compare and Changes Since reports.
 
 Split out of userintr.py the same way the other userintr_* modules were.  ReportEventHandlers is a
-mixin that MapTaskerEventHandlers inherits, so gui.event_handlers keeps every name the report
+group of MapTaskerEventHandlers (gui.event_handlers.reports) that holds every name the report
 buttons are wired to.  Each handler gathers what its report needs and hands the work to the module
 that builds it: healthck, varxref, taskflow, xmldiff and timeline.
 
 The Task Flow flowchart's own window is not here.  task_flow_event draws it through
-_draw_task_flowchart, which stays in userintr beside view_event, because the two open their popout
+draw_task_flowchart, which stays in userintr beside view_event, because the two open their popout
 windows the same way.
 """
 
@@ -44,14 +44,14 @@ from maptasker.src.gui.guiutils import (
 )
 from maptasker.src.gui.guiwins_dialogs import build_changes_since_dialog, build_health_check_dialog
 from maptasker.src.gui.guiwins_textview import NiceGuiTextView
+from maptasker.src.gui.userintr_group import HandlerGroup
 from maptasker.src.gui.userintr_loading import local_xml_start_directory
 from maptasker.src.mapgen.varxref import build_report, run_variable_xref, suspects, write_variable_xref_report
 
 if TYPE_CHECKING:
     from datetime import date
 
-    from maptasker.src.core.primitem import RunState
-    from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
+    from maptasker.src.gui.userintr import MyGui
 
 
 async def _choose_comparison_file(gui: MyGui) -> str:
@@ -107,16 +107,10 @@ async def _choose_comparison_file(gui: MyGui) -> str:
     return result[0] if isinstance(result, (list, tuple)) else result
 
 
-class ReportEventHandlers:
-    """The report handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
-    handler is reached through self, just as it was before these moved here."""
+class ReportEventHandlers(HandlerGroup):
+    """The report handlers: reached as hub.reports; self.hub is the rest of the window's handlers, self.gui the window."""
 
-    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
-    # its window's.
-    state: RunState
-    gui: MyGui
-
-    def health_check_event(self: MapTaskerEventHandlers) -> None:
+    def health_check_event(self) -> None:
         """Ask which categories to report, then scan, display and save.
 
         The panel comes first rather than after the scan for two reasons: it is the answer
@@ -135,7 +129,7 @@ class ReportEventHandlers:
 
         build_health_check_dialog(self.run_health_check_for, self.save_health_check_skip, gui, state=self.state)
 
-    def save_health_check_skip(self: MapTaskerEventHandlers, skip: list[str]) -> None:
+    def save_health_check_skip(self, skip: list[str]) -> None:
         """Remember which Health Check categories to leave out, in the settings file.
 
         The GUI's own copy is updated along with program_arguments: the GUI was handed the
@@ -146,7 +140,7 @@ class ReportEventHandlers:
         remember_setting(self.gui, "health_check_skip", skip)
         save_restore_args(self.state.program_arguments, self.state.colors_to_use, to_save=True, state=self.state)
 
-    def run_health_check_for(self: MapTaskerEventHandlers, skip: list[str]) -> None:
+    def run_health_check_for(self, skip: list[str]) -> None:
         """Run the check for the categories the panel left ticked, and show the report.
 
         Nothing is saved here: the panel has already saved every change as it was made,
@@ -187,7 +181,7 @@ class ReportEventHandlers:
                 position="bottom",
             )
 
-    def variable_xref_event(self: MapTaskerEventHandlers) -> None:
+    def variable_xref_event(self) -> None:
         """Build the variable where-used index, display it and save it to a file."""
         if not self.state.tasker_root_elements["all_tasks"]:
             self.gui.display_message_box(
@@ -306,7 +300,7 @@ class ReportEventHandlers:
                 position="bottom",
             )
 
-    def task_flow_event(self: MapTaskerEventHandlers) -> None:
+    def task_flow_event(self) -> None:
         """Read every Task's control flow, display the report, and draw the chosen Task.
 
         Two things from one button, because they are two halves of one question.  The
@@ -342,7 +336,7 @@ class ReportEventHandlers:
             the_data=mapjump.html_report(rows),
         )
 
-        self._draw_task_flowchart(gui)
+        self.hub.draw_task_flowchart(gui)
 
         if not counts[ERROR] and not counts[WARNING]:
             ui.notify(translate_string("Task Flow found no control-flow problems."), type="positive")
@@ -353,7 +347,7 @@ class ReportEventHandlers:
                 position="bottom",
             )
 
-    async def compare_files_event(self: MapTaskerEventHandlers) -> None:
+    async def compare_files_event(self) -> None:
         """Compare another XML file against the loaded one, display the report and save it."""
         gui = self.gui
         if not self.state.tasker_root_elements["all_tasks"]:
@@ -413,7 +407,7 @@ class ReportEventHandlers:
         if not any(counts.values()):
             ui.notify(translate_string("The two files hold the same configuration."), type="positive")
 
-    async def timeline_event(self: MapTaskerEventHandlers) -> None:
+    async def timeline_event(self) -> None:
         """Ask how far back to look, then report what has changed since then.
 
         The "nothing loaded" guard is here rather than in the report below, and rather
@@ -431,7 +425,7 @@ class ReportEventHandlers:
         build_changes_since_dialog(self.report_changes_since)
 
     async def report_changes_since(
-        self: MapTaskerEventHandlers,
+        self,
         period: str,
         on_date: date | None = None,
     ) -> None:

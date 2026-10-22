@@ -67,7 +67,7 @@ def _page() -> None:
     gui = MagicMock()
     gui.state = PrimeItems
     gui.indent = 4
-    gui.event_handlers.add_action_to_new_task_event.side_effect = lambda task, key, pos: (
+    gui.event_handlers.editors.add_action_to_new_task_event.side_effect = lambda task, key, pos: (
         taskedit.add_action_to_task(task, key, pos, state=PrimeItems).act_number
     )
     task = taskedit.create_new_task("", "100", state=PrimeItems)

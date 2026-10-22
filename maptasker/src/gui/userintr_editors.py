@@ -1,7 +1,7 @@
 """Editor event handlers: the Task, Profile, Scene and Project editors and the Object Properties form.
 
 Split out of userintr.py the same way userintr_android.py and userintr_ai.py were.
-EditorEventHandlers is a mixin that MapTaskerEventHandlers inherits, so gui.event_handlers keeps
+EditorEventHandlers is a group of MapTaskerEventHandlers (gui.event_handlers.editors) that holds
 every name the dialogs are wired to -- Add, Edit, Rename, Delete, Ok, Save and Save To Current
 File for each kind of object, the action and condition editors inside them, and Object Properties.
 
@@ -96,30 +96,19 @@ from maptasker.src.gui.userintr_finish import (
     validate_and_apply_new_profile,
     validate_and_apply_new_task,
 )
+from maptasker.src.gui.userintr_group import HandlerGroup
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Coroutine
+    from collections.abc import Callable
     from xml.etree.ElementTree import Element
 
-    from maptasker.src.core.primitem import RunState
-    from maptasker.src.gui.userintr import MyGui
 
-
-class EditorEventHandlers:
-    """The editor handlers MapTaskerEventHandlers inherits: self.gui is the window, and every other
-    handler is reached through self, just as it was before these moved here."""
-
-    # The run state the window shows: MapTaskerEventHandlers, which inherits this class, answers with
-    # its window's.
-    state: RunState
-    # The window these handlers act on; MapTaskerEventHandlers, which inherits this class, sets it.
-    gui: MyGui
-    # MapTaskerEventHandlers, which inherits this class, defines it (userintr.save_whole_configuration).
-    save_whole_configuration: Callable[[], Coroutine]
+class EditorEventHandlers(HandlerGroup):
+    """The editor handlers: reached as hub.editors; self.hub is the rest of the window's handlers, self.gui the window."""
 
     def _offer_save_after_delete(self, message: str) -> None:
         """Offer Save To Current File once a delete has closed the dialog that held the only one."""
-        build_unsaved_deletion_dialog(message, self.save_whole_configuration)
+        build_unsaved_deletion_dialog(message, self.hub.save_whole_configuration)
 
     def open_edit_task_dialog_event(self) -> None:
         """Opens the Edit Task dialog for the currently selected single Task name."""
@@ -535,7 +524,7 @@ class EditorEventHandlers:
         ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
-    def _keep_task_in_loaded_config(
+    def keep_task_in_loaded_config(
         self,
         edited_task: taskedit_model.EditableTask,
         task_name: str,
@@ -1798,7 +1787,7 @@ class EditorEventHandlers:
         ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
-    def _keep_profile_in_loaded_config(
+    def keep_profile_in_loaded_config(
         self,
         edited_profile: profedit.EditableProfile,
         profile_name: str,

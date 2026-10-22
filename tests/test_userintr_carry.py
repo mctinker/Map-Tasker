@@ -54,7 +54,7 @@ async def _press(handlers: MapTaskerEventHandlers, **options: object) -> SimpleN
     """Press the button with everything outside the handler patched; return what was patched."""
     picker, start, reader, builder, ui = _patched(**options)  # type: ignore[arg-type]
     with picker as picked, start, reader as read, builder as built, ui:
-        await handlers.import_with_dependencies_event()
+        await handlers.carry.import_with_dependencies_event()
     return SimpleNamespace(picker=picked, read=read, built=built)
 
 
@@ -130,7 +130,7 @@ async def test_a_dialog_that_could_not_be_built_is_not_opened_or_remembered() ->
     nothing = MagicMock()
     picker, start, reader, _builder, ui = _patched()
     with picker, start, reader, ui, patch.object(userintr_carry, "build_carry_dialog", MagicMock(return_value=None)):
-        await handlers.import_with_dependencies_event()
+        await handlers.carry.import_with_dependencies_event()
 
     assert handlers.gui.carry_dialog is None
     nothing.open.assert_not_called()
@@ -154,7 +154,7 @@ async def test_another_file_is_not_read_while_a_map_is_being_built_ahead_of_time
     try:
         with picker, start, reader as read, builder, ui:
             read.side_effect = lambda *_a, **_k: (order.append("the file was read"), ("SOURCE", ""))[1]
-            press = asyncio.create_task(handlers.import_with_dependencies_event())
+            press = asyncio.create_task(handlers.carry.import_with_dependencies_event())
             await asyncio.sleep(0.02)
             assert order == []
             release.set()
