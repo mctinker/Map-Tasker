@@ -9,7 +9,7 @@ import maptasker.src.mapgen.taskuniq as special_tasks
 from maptasker.src.core import caches, console, outdir
 from maptasker.src.core.dirout import output_directory, unreachable_anchors
 from maptasker.src.core.error import error_handler, exit_program, rutroh_error
-from maptasker.src.core.format import MapWriter, format_line
+from maptasker.src.core.format import format_line
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.maputil2 import translate_string
@@ -18,6 +18,7 @@ from maptasker.src.core.maputils import (
     display_task_warnings,
     restart_program_subprocess,
 )
+from maptasker.src.core.mapwriter import MapWriter
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import (
     PrimeItemsReset,
@@ -263,7 +264,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str, state: RunState) -
                 )
                 logger.info(msg_text)
                 state.view_limit_msg = (
-                    msg_text  # Read by the Map view's message field (see guiwins_views.NiceGuiTextView).
+                    msg_text  # Read by the Map view's message field (see guiwins_textview.NiceGuiTextView).
                 )
                 break  # Don't output more than the view limit
 

@@ -80,7 +80,7 @@ def html_colour_names() -> frozenset[str]:
 
     Taken from Pillow's own table rather than written out here, because that table IS the
     CSS/X11 list a browser uses and a hand-copied one is a list that can quietly be wrong.
-    Pillow is already a hard dependency (see pyproject.toml, and format.py, which parses
+    Pillow is already a hard dependency (see pyproject.toml, and htmlsafe.py, which parses
     colours with it).
     """
     from PIL import ImageColor  # noqa: PLC0415

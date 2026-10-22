@@ -96,8 +96,11 @@
   "maptasker/src/gui/mapai.py": {
     "reportAttributeAccessIssue": 3
   },
-  "maptasker/src/gui/sceneview.py": {
-    "reportCallIssue": 3
+  "maptasker/src/gui/sceneview_v2.py": {
+    "reportCallIssue": 1
+  },
+  "maptasker/src/gui/sceneview_v2style.py": {
+    "reportCallIssue": 2
   },
   "maptasker/src/gui/userintr.py": {
     "reportArgumentType": 1

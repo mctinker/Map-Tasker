@@ -23,8 +23,8 @@ from maptasker.src.core.mapjump import PROFILE, PROJECT, TASK, Target, diagram_p
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.runcfg import RunConfig, current_config
 from maptasker.src.core.sysconst import DIAGRAM_FILE
-from maptasker.src.gui import guiwins_search, guiwins_views, userintr
-from maptasker.src.mapgen import diagintr, diagram, taskerd
+from maptasker.src.gui import guiwins_diagram, guiwins_search, guiwins_views, userintr
+from maptasker.src.mapgen import diagarrows, diagintr, diagram, diagrecord, taskerd
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 _OTHER_PROFILE = Target(kind=PROFILE, key="11", name="Wind Down")
@@ -48,8 +48,8 @@ def _clean_slate() -> None:
 def test_a_box_lands_on_the_middle_of_its_three_lines() -> None:
     """A box is drawn as a top, a name and a bottom; only the middle line names it."""
     diagram.add_output_line("header", state=PrimeItems)
-    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)
+    diagrecord.note_box(_PROFILE, "║ Wake Up", state=PrimeItems)
+    diagrecord.flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)
 
     row, _snippet = PrimeItems.diagram_object_seeds[_PROFILE.anchor]
     assert row == 2
@@ -58,9 +58,9 @@ def test_a_box_lands_on_the_middle_of_its_three_lines() -> None:
 
 def test_several_boxes_on_one_row_all_land_on_it() -> None:
     """Six Profiles side by side share the line, and each is recorded on it."""
-    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)
-    diagram._note_box(_OTHER_PROFILE, "║ Wind Down", state=PrimeItems)
-    diagram._flush_boxes(["top", "║ Wake Up ║ ║ Wind Down ║", "bottom"], state=PrimeItems)
+    diagrecord.note_box(_PROFILE, "║ Wake Up", state=PrimeItems)
+    diagrecord.note_box(_OTHER_PROFILE, "║ Wind Down", state=PrimeItems)
+    diagrecord.flush_boxes(["top", "║ Wake Up ║ ║ Wind Down ║", "bottom"], state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds[_PROFILE.anchor][0] == 1
     assert PrimeItems.diagram_object_seeds[_OTHER_PROFILE.anchor][0] == 1
@@ -68,10 +68,10 @@ def test_several_boxes_on_one_row_all_land_on_it() -> None:
 
 def test_a_flush_clears_what_it_fixed() -> None:
     """Notes belong to the buffer being flushed, never to the next one."""
-    diagram._note_box(_PROFILE, "║ Wake Up", state=PrimeItems)
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)
-    diagram._note_box(_OTHER_PROFILE, "║ Wind Down", state=PrimeItems)
-    diagram._flush_boxes(["top", "║ Wind Down ║", "bottom"], state=PrimeItems)
+    diagrecord.note_box(_PROFILE, "║ Wake Up", state=PrimeItems)
+    diagrecord.flush_boxes(["top", "║ Wake Up ║", "bottom"], state=PrimeItems)
+    diagrecord.note_box(_OTHER_PROFILE, "║ Wind Down", state=PrimeItems)
+    diagrecord.flush_boxes(["top", "║ Wind Down ║", "bottom"], state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds[_PROFILE.anchor][0] == 1
     assert PrimeItems.diagram_object_seeds[_OTHER_PROFILE.anchor][0] == 4
@@ -81,9 +81,9 @@ def test_task_lines_keep_their_place_within_the_buffer() -> None:
     """A Task's row is where its line sits in the run of Task lines, not where it was noted."""
     diagram.add_output_line("header", state=PrimeItems)
     buffer = ["└─ Backup", "", "└─ Restore"]
-    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)
-    diagram._note_task(2, _TWIN, "└─ Restore", state=PrimeItems)
-    diagram._flush_tasks(buffer, state=PrimeItems)
+    diagrecord.note_task(0, _TASK, "└─ Backup", state=PrimeItems)
+    diagrecord.note_task(2, _TWIN, "└─ Restore", state=PrimeItems)
+    diagrecord.flush_tasks(buffer, state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 1
     assert PrimeItems.diagram_object_seeds[_TWIN.anchor][0] == 3
@@ -91,9 +91,9 @@ def test_task_lines_keep_their_place_within_the_buffer() -> None:
 
 def test_two_tasks_of_one_name_are_recorded_separately() -> None:
     """The whole point of recording positions rather than matching text."""
-    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)
-    diagram._note_task(1, _TWIN, "└─ Backup", state=PrimeItems)
-    diagram._flush_tasks(["└─ Backup", "└─ Backup"], state=PrimeItems)
+    diagrecord.note_task(0, _TASK, "└─ Backup", state=PrimeItems)
+    diagrecord.note_task(1, _TWIN, "└─ Backup", state=PrimeItems)
+    diagrecord.flush_tasks(["└─ Backup", "└─ Backup"], state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 0
     assert PrimeItems.diagram_object_seeds[_TWIN.anchor][0] == 1
@@ -101,10 +101,10 @@ def test_two_tasks_of_one_name_are_recorded_separately() -> None:
 
 def test_the_first_drawing_of_a_task_is_the_one_kept() -> None:
     """A Task run by two Profiles is drawn twice; a jump goes to the first, as in the Map."""
-    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)
-    diagram._flush_tasks(["└─ Backup"], state=PrimeItems)
-    diagram._note_task(0, _TASK, "└─ Backup", state=PrimeItems)
-    diagram._flush_tasks(["└─ Backup"], state=PrimeItems)
+    diagrecord.note_task(0, _TASK, "└─ Backup", state=PrimeItems)
+    diagrecord.flush_tasks(["└─ Backup"], state=PrimeItems)
+    diagrecord.note_task(0, _TASK, "└─ Backup", state=PrimeItems)
+    diagrecord.flush_tasks(["└─ Backup"], state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds[_TASK.anchor][0] == 0
 
@@ -115,7 +115,7 @@ def test_the_first_drawing_of_a_task_is_the_one_kept() -> None:
 def test_a_remap_moves_every_object_with_its_line() -> None:
     """add_blanks_above_called_tasks and the bar sweep both shift rows under the objects."""
     PrimeItems.diagram_object_seeds = {"a": (5, "x"), "b": (9, "y")}
-    diagram._remap_object_seeds({5: 12, 9: 20}, state=PrimeItems)
+    diagrecord.remap_object_seeds({5: 12, 9: 20}, state=PrimeItems)
 
     assert PrimeItems.diagram_object_seeds == {"a": (12, "x"), "b": (20, "y")}
 
@@ -123,7 +123,7 @@ def test_a_remap_moves_every_object_with_its_line() -> None:
 def test_a_remap_drops_an_object_whose_line_is_gone() -> None:
     """A row with no new home was swept away, and pointing at it would point at a stranger."""
     PrimeItems.diagram_object_seeds = {"a": (5, "x"), "b": (9, "y")}
-    diagram._remap_object_seeds({5: 5}, state=PrimeItems)
+    diagrecord.remap_object_seeds({5: 5}, state=PrimeItems)
 
     assert set(PrimeItems.diagram_object_seeds) == {"a"}
 
@@ -131,7 +131,7 @@ def test_a_remap_drops_an_object_whose_line_is_gone() -> None:
 def test_the_view_limit_cut_drops_what_is_past_it() -> None:
     """A diagram cut short does not hold the objects it never got to."""
     PrimeItems.diagram_object_seeds = {"a": (5, "x"), "b": (40, "y")}
-    diagram._keep_object_seeds_before(40, state=PrimeItems)
+    diagrecord.keep_object_seeds_before(40, state=PrimeItems)
 
     assert set(PrimeItems.diagram_object_seeds) == {"a"}
 
@@ -142,7 +142,7 @@ def test_the_view_limit_cut_drops_what_is_past_it() -> None:
 def test_a_box_is_placed_as_the_whole_box() -> None:
     """A Profile is highlighted as the box the eye reads it as, walls included."""
     line = "     ║ Project: Home ║"
-    column, length = diagram._place(line, "║ Project: Home", boxed=True)
+    column, length = diagrecord.place_in_line(line, "║ Project: Home", boxed=True)
 
     assert line[column : column + length] == "║ Project: Home ║"
 
@@ -150,7 +150,7 @@ def test_a_box_is_placed_as_the_whole_box() -> None:
 def test_a_task_is_placed_as_its_drawn_name() -> None:
     """A Task line's name ends where the recorded text ends -- there is no box to close."""
     line = "        └─ Backup [Calls ──▶ Restore]"
-    column, length = diagram._place(line, "└─ Backup", boxed=False)
+    column, length = diagrecord.place_in_line(line, "└─ Backup", boxed=False)
 
     assert line[column : column + length] == "└─ Backup"
 
@@ -163,7 +163,7 @@ def test_a_column_is_counted_the_way_a_browser_counts_it() -> None:
     configurations do.
     """
     line = "\U0001f3d8\U0001f3d8 └─ Backup"  # Two astral characters before the name.
-    column, length = diagram._place(line, "└─ Backup", boxed=False)
+    column, length = diagrecord.place_in_line(line, "└─ Backup", boxed=False)
 
     # Python would say 3; the browser, counting UTF-16 code units, says 5.
     assert column == 5
@@ -179,12 +179,12 @@ def test_a_name_that_cannot_be_placed_answers_with_the_whole_line() -> None:
     The line is still the right one to be taken to, so (0, 0) is returned and the Diagram
     view reads it as "highlight all of it" rather than as a failure.
     """
-    assert diagram._place("nothing like it here", "└─ Backup", boxed=False) == (0, 0)
+    assert diagrecord.place_in_line("nothing like it here", "└─ Backup", boxed=False) == (0, 0)
 
 
 def test_an_unclosed_box_still_places_the_name() -> None:
     """A box the line is too short to close is placed as the name alone, not as the rest of the line."""
-    column, length = diagram._place("  ║ Wake Up", "║ Wake Up", boxed=True)
+    column, length = diagrecord.place_in_line("  ║ Wake Up", "║ Wake Up", boxed=True)
 
     assert (column, length) == (2, 9)
 
@@ -693,8 +693,8 @@ def test_a_chain_of_calls_crosses_a_project_boundary(modelled: tuple[list[str], 
 def _rendered(lines: list[str], model: dict) -> list[str]:
     """Every line of the diagram as the Diagram view writes it into the page."""
     nodes, folds = diagintr.nodes_by_line(model), diagintr.folds_by_line(model)
-    connectors = guiwins_views._connectors_by_line(state=PrimeItems)
-    return [guiwins_views._wrap_diagram_line(num, line, connectors, nodes, folds) for num, line in enumerate(lines)]
+    connectors = guiwins_diagram.diagram_connectors_by_line(state=PrimeItems)
+    return [guiwins_diagram.wrap_diagram_line(num, line, connectors, nodes, folds) for num, line in enumerate(lines)]
 
 
 def test_every_rendered_line_is_an_element_that_keeps_its_own_newline(
@@ -742,7 +742,7 @@ def test_a_name_and_a_connector_never_claim_the_same_character() -> None:
     line = "──── Backup ────"
     node = {"anchor": _BACKUP.anchor, "index": 0, "kind": TASK, "col": 5, "len": 6}
 
-    spans = guiwins_views._diagram_spans(0, line, {0: [(0, len(line), 7)]}, {0: [node]})
+    spans = guiwins_diagram._diagram_spans(0, line, {0: [(0, len(line), 7)]}, {0: [node]})
 
     # In column order, never overlapping, and the name's span is exactly the name.
     assert [(start, end) for start, end, _ in spans] == [(0, 5), (5, 11), (11, 16)]
@@ -765,7 +765,7 @@ def test_a_run_crossing_a_wide_bundle_of_bars_is_still_one_connector() -> None:
     lines = ["    " + "│" * bars, crossed, "    " + "│" * bars]
     seeds = [(1, 0, 7), (1, width - 1, 7)]  # Both ends of the run, as the drawing drops them.
 
-    groups = diagram.compute_diagram_connector_groups(lines, seeds, state=PrimeItems)
+    groups = diagarrows.compute_diagram_connector_groups(lines, seeds, state=PrimeItems)
 
     own = [ranges for ranges in groups.values() if any(col == 0 for _, col, _ in ranges)]
     assert len(own) == 1
@@ -954,12 +954,12 @@ def test_both_ways_of_closing_the_views_use_the_one_sweep() -> None:
     them came to be missing the nesting the other needed too."""
     import inspect
 
-    from maptasker.src.gui import guiwins as guiwins_module
+    from maptasker.src.gui import guiwins_tabs
     from maptasker.src.gui import userintr as userintr_module
 
     assert "close_popouts_js()" in inspect.getsource(userintr_module.MapTaskerEventHandlers.clear_view_event)
     assert "close_popouts_js(close_this_window=True)" in inspect.getsource(
-        guiwins_module.get_rid_of_windows_and_exit,
+        guiwins_tabs.get_rid_of_windows_and_exit,
     )
 
 

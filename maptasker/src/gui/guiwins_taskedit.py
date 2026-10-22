@@ -120,7 +120,7 @@ def _render_task_name_field(
     that -- when an option is chosen -- overwrites the text input with that
     Task's name. Either/or: whichever the user touches last is what's saved,
     since Save only ever reads the text input's own field_refs entry (this
-    dropdown is deliberately never added to field_refs, so _task_arg_values
+    dropdown is deliberately never added to field_refs, so task_arg_values
     can't see it).
 
     A plain ui.select with Quasar's "new-value-mode" was tried first so a
@@ -1748,7 +1748,7 @@ def _build_task_action_editor(
     WHAT LANDS WHEN.  Adding, copying, moving, deleting, enabling and the If condition are
     written straight onto edited_task -- the working copy -- as they are done.  Argument
     values and labels are NOT: they sit in the widgets recorded in field_refs until
-    something reads them back (userintr_editors._task_arg_values) and applies them.  That split is
+    something reads them back (userintr_fields.task_arg_values) and applies them.  That split is
     the Edit Task dialog's, and every caller inherits it, so each needs its own Ok/Apply.
 
     field_refs gains one entry per editable argument and label, keyed by taskedit_apply.arg_key/
@@ -1901,7 +1901,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit_model.EditableTask
     field_refs: dict = {}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
-        # Kept as a local (not in field_refs -- _task_arg_values reads .value off
+        # Kept as a local (not in field_refs -- task_arg_values reads .value off
         # every entry there, which a ui.label doesn't have) so Rename can retitle
         # the still-open dialog: see rename_task_event.
         title_label = ui.label(f"{translate_string('Edit Task')}: {task_name}").classes(
@@ -1910,7 +1910,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit_model.EditableTask
 
         with ui.row().classes("w-full gap-4"):
             # Read-only: an existing Task is renamed only through the Rename
-            # button's prompt (guiwins.build_rename_dialog), which is the one path that
+            # button's prompt (guiwins_dialogs.build_rename_dialog), which is the one path that
             # rejects a name another Task already has. Rename writes the new
             # name back into this field so Ok/Save, which still read it, don't
             # apply the pre-rename name over the top.
@@ -2127,7 +2127,7 @@ def build_add_task_dialog(
     target_project_name is the single Project the top-level "Add Task" button
     requires be selected before this dialog opens (see
     userintr_editors.open_add_task_dialog_event) -- stored in field_refs (not a widget;
-    there's nothing here for the user to change) purely so _finish_new_task can
+    there's nothing here for the user to change) purely so finish_new_task can
     read it back and add the new Task's id to that Project's <tids> once it's
     registered. Left "" for open_add_task_for_profile_link_event's nested
     dialog, which doesn't attach to a Project at all.

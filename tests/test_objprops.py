@@ -35,7 +35,7 @@ import xml.etree.ElementTree as ET
 import pytest
 from maptasker.src.core import objprops
 
-# The variable fields guiwins._build_variable_panel actually creates widgets for.  Anything
+# The variable fields guiwins_props._build_variable_panel actually creates widgets for.  Anything
 # outside this list reaches objprops only as "not supplied" and must survive untouched --
 # see test_a_field_with_no_widget_is_preserved.
 GUI_VARIABLE_FIELDS = (

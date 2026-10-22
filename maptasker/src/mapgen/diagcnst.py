@@ -28,7 +28,7 @@ left_arrow_corner_up = "╮"
 # Every character a Diagram-view connector (the lines joining a "calls" Task to its
 # "called by" Task) can be made of, and which side(s) of each character continue the
 # connector's path -- (row, col) deltas -- for identifying a connector's full shape
-# directly from the rendered text. See diagram.compute_diagram_connector_groups().
+# directly from the rendered text. See diagarrows.compute_diagram_connector_groups().
 #
 # Ordinary tree/outline hierarchy guide lines are drawn with these same characters (e.g.
 # "│"), so character identity alone can't tell a "calls" connector apart from one of

@@ -19,7 +19,7 @@ single character of what is drawn:
 
 This module turns those into one model -- nodes, regions and edges, all in the rendered
 file's own line/column coordinates -- and into the browser-side code that acts on it.  The
-view then wraps the named spans in elements (guiwins_views._wrap_diagram_line) and everything
+view then wraps the named spans in elements (guiwins_diagram.wrap_diagram_line) and everything
 else is done against the model: a click resolves to a node, a fold resolves to a region, a
 chain is walked over the edges.
 
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 # The class every clickable object name in the Diagram carries, and the ones the
-# interactions add to it.  Styled in guiwins.inject_shared_head_styles.
+# interactions add to it.  Styled in guiwins_drawers.inject_shared_head_styles.
 NODE_CLASS = "mt-dnode"  # A clickable object name.
 LINE_CLASS = "mt-dline"  # One line of the diagram, its own newline included.
 CHAIN_CLASS = "mt-chain"  # A name in the call chain being followed.
@@ -120,7 +120,7 @@ def _char_span(line: str, column: int, length: int) -> tuple[int, int]:
 
     Positions are recorded in UTF-16 code units, because that is what the browser counts a
     string index in and the jump into the Diagram hands them straight to it (see
-    diagram._place).  The renderer, though, slices the Python string, which counts code
+    diagrecord.place_in_line).  The renderer, though, slices the Python string, which counts code
     points -- and the two differ by one for every emoji in a Task name.  Converted here,
     once, rather than leaving two column systems in play in the same line of markup.
     """
@@ -140,7 +140,7 @@ def _nodes(lines: list[str], placements: list, targets: dict, regions: list[dict
     first.  They share an anchor, so they share a token and a chain and a jump; what differs
     is only where each one sits.
 
-    An object the diagram recorded but could not place on its line (see diagram._place,
+    An object the diagram recorded but could not place on its line (see diagrecord.place_in_line,
     which answers (0, 0) when icon trimming rubbed out part of the name it was looking for)
     is left out rather than given the whole line: a whole-line click target would swallow
     clicks meant for the connectors and the other objects drawn on that same line.

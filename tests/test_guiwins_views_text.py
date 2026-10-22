@@ -16,25 +16,26 @@ import re
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src.gui import guiwins_views
-from maptasker.src.gui.guiwins_views import (
-    HTML_OPTIMIZE_PATTERN,
-    _compress_blank_lines,
-    _connectors_by_line,
+from maptasker.src.gui import guiwins_mapstream, guiwins_textview, guiwins_views
+from maptasker.src.gui.guiwins_diagram import (
     _diagram_spans,
     _escape_html_text,
+    diagram_connectors_by_line,
+    wrap_diagram_line,
+)
+from maptasker.src.gui.guiwins_mapstream import (
+    HTML_OPTIMIZE_PATTERN,
     _escape_text_except_html,
-    _fallback_lines_html,
-    _fallback_map_html,
     _is_css_line,
     _StyleCollector,
-    _wrap_diagram_line,
+    compress_blank_lines,
+    fallback_lines_html,
+    fallback_map_html,
     optimize_html,
     optimize_map_html,
-    scope_badge_text,
     split_for_streaming,
-    view_theme_colors,
 )
+from maptasker.src.gui.guiwins_views import scope_badge_text, view_theme_colors
 from maptasker.src.mapgen import diagintr
 
 
@@ -113,16 +114,16 @@ def _text(html: str) -> str:
 def _balanced(piece: str) -> bool:
     """Every element a piece opens, it closes (void elements and the frame aside)."""
     stack: list[str] = []
-    for closing, tag, self_closing in guiwins_views.HTML_ELEMENT.findall(piece):
+    for closing, tag, self_closing in guiwins_mapstream.HTML_ELEMENT.findall(piece):
         name = tag.lower()
-        if name in guiwins_views.VOID_ELEMENTS or name in guiwins_views.FRAME_ELEMENTS or self_closing:
+        if name in guiwins_mapstream.VOID_ELEMENTS or name in guiwins_mapstream.FRAME_ELEMENTS or self_closing:
             continue
         if closing:
             if not stack or stack[-1] != name:
                 return False
             stack.pop()
         else:
-            if stack and stack[-1] == "p" and name in guiwins_views.CLOSE_AN_OPEN_PARAGRAPH:
+            if stack and stack[-1] == "p" and name in guiwins_mapstream.CLOSE_AN_OPEN_PARAGRAPH:
                 stack.pop()  # a browser closes an open paragraph when a block starts
             stack.append(name)
     return not stack
@@ -192,8 +193,8 @@ def test_text_is_escaped_for_html_with_the_ampersand_first() -> None:
 
 def test_connectors_are_inverted_from_by_id_to_by_line() -> None:
     state = SimpleNamespace(diagram_connectors={7: [(3, 0, 5), (4, 0, 5)], 9: [(3, 6, 9)]})
-    assert _connectors_by_line(state) == {3: [(0, 5, 7), (6, 9, 9)], 4: [(0, 5, 7)]}
-    assert _connectors_by_line(SimpleNamespace()) == {}
+    assert diagram_connectors_by_line(state) == {3: [(0, 5, 7), (6, 9, 9)], 4: [(0, 5, 7)]}
+    assert diagram_connectors_by_line(SimpleNamespace()) == {}
 
 
 _NODE = {"col": 3, "len": 6, "anchor": "task_1", "index": 4, "kind": "task"}
@@ -228,25 +229,25 @@ def test_a_node_that_starts_beyond_the_end_of_the_line_is_ignored() -> None:
 
 def test_a_line_is_one_element_with_the_text_between_its_spans_escaped() -> None:
     node = {"col": 0, "len": 1, "anchor": "t1", "index": 1, "kind": "task"}
-    html = _wrap_diagram_line(5, "x <b> y", {}, {5: [node]}, {})
+    html = wrap_diagram_line(5, "x <b> y", {}, {5: [node]}, {})
     assert html.startswith(f'<span class="{diagintr.LINE_CLASS}" data-line="5">')
     assert " &lt;b&gt; y" in html, "text outside the spans is escaped"
     assert '<span class="mt-dnl">\n</span></span>' in html, "the newline stays in the text for the search index, hidden"
 
 
 def test_a_blank_line_carries_a_zero_width_space_so_it_keeps_its_height() -> None:
-    html = _wrap_diagram_line(1, "", {}, {}, {})
+    html = wrap_diagram_line(1, "", {}, {}, {})
     assert "&#8203;" in html
 
 
 def test_a_line_that_opens_a_fold_says_so() -> None:
-    html = _wrap_diagram_line(2, "Project", {}, {}, {2: "proj_1"})
+    html = wrap_diagram_line(2, "Project", {}, {}, {2: "proj_1"})
     assert 'data-fold="proj_1" data-fold-state="open"' in html
-    assert "data-fold" not in _wrap_diagram_line(3, "Project", {}, {}, {2: "proj_1"})
+    assert "data-fold" not in wrap_diagram_line(3, "Project", {}, {}, {2: "proj_1"})
 
 
 def test_connector_runs_become_spans_carrying_their_id() -> None:
-    html = _wrap_diagram_line(0, "│  │", {0: [(0, 1, 42), (3, 4, 43)]}, {}, {})
+    html = wrap_diagram_line(0, "│  │", {0: [(0, 1, 42), (3, 4, 43)]}, {}, {})
     assert 'data-connector-id="42"' in html and 'data-connector-id="43"' in html
     assert html.count('class="connector"') == 2
 
@@ -309,7 +310,7 @@ def test_the_map_fallback_makes_a_div_per_line_and_a_span_per_colour() -> None:
         1: {"text": ["a < b"], "color": []},
         2: {"text": ["<b>kept</b>"], "color": ["green"]},
     }
-    lines = _fallback_map_html(data)
+    lines = fallback_map_html(data)
     assert lines[0] == "<div><span style='color: red;'>Project: </span><span style='color: blue;'>Home</span></div>"
     assert lines[1] == "<div><span style='color: inherit;'>a &lt; b</span></div>", (
         "no colour for a segment means inherit"
@@ -318,7 +319,7 @@ def test_the_map_fallback_makes_a_div_per_line_and_a_span_per_colour() -> None:
 
 
 def test_css_in_the_maps_lines_becomes_a_style_element_instead_of_text() -> None:
-    lines = _fallback_map_html(
+    lines = fallback_map_html(
         {0: {"text": [".x { color: red; }"], "color": []}, 1: {"text": ["real"], "color": ["red"]}}
     )
     assert lines[0] == "<style>.x { color: red; }</style>"
@@ -326,7 +327,7 @@ def test_css_in_the_maps_lines_becomes_a_style_element_instead_of_text() -> None
 
 
 def test_the_other_views_fallback_escapes_each_line_and_keeps_blank_ones_as_spacers() -> None:
-    lines = _fallback_lines_html(["plain", "", "a < b", "<br><br>", "line\r\n"])
+    lines = fallback_lines_html(["plain", "", "a < b", "<br><br>", "line\r\n"])
     assert lines[0] == "<div>plain</div>"
     assert lines[1] == "<div>&nbsp;</div>"
     assert lines[2] == "<div>a &lt; b</div>"
@@ -334,16 +335,16 @@ def test_the_other_views_fallback_escapes_each_line_and_keeps_blank_ones_as_spac
 
 
 def test_the_fallback_drops_the_empty_markers_and_triple_quotes_the_generator_leaves() -> None:
-    lines = _fallback_lines_html(['"""text"""', '<div>\n</div>"""', '<div>  </tr>\n</div>"""'])
+    lines = fallback_lines_html(['"""text"""', '<div>\n</div>"""', '<div>  </tr>\n</div>"""'])
     assert lines[0] == "<div>text</div>"
 
 
 def test_runs_of_blank_lines_in_the_fallback_are_squeezed_to_one() -> None:
-    squeezed = _compress_blank_lines("<p>a</p><div></div><div>&nbsp;</div><div> </div><p>b</p>")
+    squeezed = compress_blank_lines("<p>a</p><div></div><div>&nbsp;</div><div> </div><p>b</p>")
     assert squeezed == "<p>a</p><p>b</p>"
-    assert _compress_blank_lines("a\n\n\n\nb") == "a\nb"
-    assert _compress_blank_lines("a<br><br><br>b") == "a<br>b"
-    assert _compress_blank_lines("a<div></div>b") == "a<div></div>b", "a single empty div is left alone"
+    assert compress_blank_lines("a\n\n\n\nb") == "a\nb"
+    assert compress_blank_lines("a<br><br><br>b") == "a<br>b"
+    assert compress_blank_lines("a<div></div>b") == "a<div></div>b", "a single empty div is left alone"
 
 
 # ##################################################################################
@@ -384,7 +385,7 @@ def test_the_windows_own_background_wins_over_the_default() -> None:
 
 
 def test_an_icon_in_a_diagram_line_is_held_to_two_columns_wide() -> None:
-    html = _wrap_diagram_line(0, "Task \U0001f4be <x> \u2699\ufe0f \u2502", {}, {}, {})
+    html = wrap_diagram_line(0, "Task \U0001f4be <x> \u2699\ufe0f \u2502", {}, {}, {})
 
     assert '<span class="mt-w">\U0001f4be</span> &lt;x&gt; <span class="mt-w">\u2699\ufe0f</span> \u2502' in html
 
@@ -396,11 +397,11 @@ def test_the_chunks_of_a_text_view_have_no_gap_between_them() -> None:
     css = (Path(guiwins_views.__file__).parents[2] / "assets" / "css" / "maptasker.css").read_text(encoding="utf-8")
 
     assert ".nicegui-scroll-area.mt-textview .q-scrollarea__content {\n    gap: 0;" in css
-    assert "mt-textview" in inspect.getsource(guiwins_views.NiceGuiTextView._build_scroll_area)
+    assert "mt-textview" in inspect.getsource(guiwins_textview.NiceGuiTextView._build_scroll_area)
 
 
 def test_a_chinese_character_in_a_diagram_line_is_held_to_two_columns_wide() -> None:
-    html = _wrap_diagram_line(0, "\u6ed1\u52a8 v0.8", {}, {}, {})
+    html = wrap_diagram_line(0, "\u6ed1\u52a8 v0.8", {}, {}, {})
 
     assert '<span class="mt-w">\u6ed1</span><span class="mt-w">\u52a8</span> v0.8' in html
 

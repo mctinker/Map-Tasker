@@ -5,11 +5,11 @@ EditorEventHandlers is a mixin that MapTaskerEventHandlers inherits, so gui.even
 every name the dialogs are wired to -- Add, Edit, Rename, Delete, Ok, Save and Save To Current
 File for each kind of object, the action and condition editors inside them, and Object Properties.
 
-The four editors moved together because they share their helpers: reading a dialog's fields
-back (_task_arg_values, _profile_condition_values, _apply_scene_field_values), putting a new
-object into the loaded configuration (_finish_new_task and its siblings), and reselecting an
-object after a rename (_select_renamed_item).  Those helpers live here, beside the handlers that
-use them, and the Save To Android handlers in userintr_android import the field readers from here.
+The four editors moved together because they share their helpers, which are now modules of their own:
+userintr_fields reads a dialog's fields back (task_arg_values, profile_condition_values,
+apply_scene_field_values), and userintr_finish puts a new object into the loaded configuration
+(finish_new_task and its siblings) and reselects an object after a rename (select_renamed_item).
+The Save To Android handlers in userintr_android import the field readers from userintr_fields.
 
 The dialogs themselves are built in guiwins and its guiwins_* modules, and the edits are made
 to the XML by taskedit, profedit, sceneedit and projedit.  This is what the dialogs' buttons do.
@@ -17,15 +17,12 @@ to the XML by taskedit, profedit, sceneedit and projedit.  This is what the dial
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
 
 from nicegui import ui
 
 from maptasker.src.core import objprops, scenelayout
 from maptasker.src.core.maputil2 import translate_string, write_full_backup_to_current_file
-from maptasker.src.core.maputils import find_owning_project, find_owning_project_for_scene, find_owning_project_for_task
-from maptasker.src.core.sysconst import logger
 from maptasker.src.edit import (
     profedit,
     projedit,
@@ -33,48 +30,72 @@ from maptasker.src.edit import (
     sceneedit_legacy,
     sessundo,
     taskedit,
-    taskedit_addable,
     taskedit_apply,
     taskedit_model,
     taskedit_save,
 )
 from maptasker.src.gui.guiutils import (
-    clear_single_item_view_names,
-    display_current_file,
     get_xml,
-    is_no_selection,
     refresh_tasker_object_pulldowns,
-    reset_single_item_pulldowns,
-    select_pulldown_option,
 )
-from maptasker.src.gui.guiwins import (
-    EDIT_PROJECT_INERT_FIELDS,
-    build_add_project_dialog,
-    build_add_scene_dialog,
-    build_add_scene_version_dialog,
+from maptasker.src.gui.guiwins_dialogs import (
     build_delete_project_dialog,
-    build_delete_scene_dialog,
-    build_edit_project_dialog,
-    build_edit_scene_dialog,
-    build_object_properties_dialog,
     build_overwrite_confirm_dialog,
     build_rename_dialog,
     build_unsaved_deletion_dialog,
 )
-from maptasker.src.gui.guiwins_editor import PROJECT_REDACT_FIELD, REDACT_FIELD, SCENE_REDACT_FIELD
+from maptasker.src.gui.guiwins_editor import PROJECT_REDACT_FIELD, SCENE_REDACT_FIELD
 from maptasker.src.gui.guiwins_profedit import (
     build_add_profile_dialog,
     build_delete_profile_dialog,
     build_edit_profile_dialog,
 )
+from maptasker.src.gui.guiwins_project import (
+    build_add_project_dialog,
+    build_edit_project_dialog,
+)
+from maptasker.src.gui.guiwins_props import build_object_properties_dialog
+from maptasker.src.gui.guiwins_scene import (
+    build_add_scene_dialog,
+    build_add_scene_version_dialog,
+    build_delete_scene_dialog,
+    build_edit_scene_dialog,
+)
+from maptasker.src.gui.guiwins_sceneview import NiceGuiSceneView, suspend_scene_editor_session, suspended_scene_editor
 from maptasker.src.gui.guiwins_taskedit import (
     build_add_task_dialog,
     build_delete_task_dialog,
     build_edit_task_dialog,
     build_run_task_on_android_dialog,
 )
-from maptasker.src.gui.guiwins_views import NiceGuiSceneView, suspend_scene_editor_session, suspended_scene_editor
-from maptasker.src.mapgen.taskerd import get_the_xml_data
+from maptasker.src.gui.userintr_fields import (
+    apply_scene_field_values,
+    confirmed_single_project_name,
+    confirmed_single_scene_name,
+    finish_new_scene,
+    link_pending_task_pickers,
+    object_property_values,
+    profile_condition_values,
+    project_for_new_object,
+    redact_requested,
+    redacted_note,
+    task_arg_values,
+    unapplied_project_edits,
+)
+from maptasker.src.gui.userintr_finish import (
+    apply_edited_profile,
+    apply_edited_task,
+    finish_new_profile,
+    finish_new_project,
+    finish_new_task,
+    notify_if_plugin_needs_configuration,
+    reload_saved_copy_and_refresh,
+    reset_specific_name_selection,
+    select_renamed_item,
+    show_save_in_progress_notice,
+    validate_and_apply_new_profile,
+    validate_and_apply_new_task,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
@@ -82,751 +103,6 @@ if TYPE_CHECKING:
 
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
-
-
-def _confirmed_single_project_name(gui: MyGui) -> str:
-    """Returns gui.single_project_name, but only if the Specific Name tab's own
-    Project pulldown currently lists it among its options -- not just because
-    the cached attribute happens to be set.
-
-    gui.single_project_name can be set (e.g. restored from a previous
-    session's saved settings, via process_single_name_restore) before that
-    pulldown's own options list has been populated with real Project names --
-    it starts as a placeholder ["None"] and only gets replaced once
-    refresh_tasker_object_pulldowns runs, which happens *after* settings
-    restore in MyGui.__init__. The pulldown then keeps showing nothing/"None"
-    selected even though the cached name is still set underneath, silently
-    satisfying the Add Task/Add Profile "select a Project first" gate despite
-    the user seeing no selection at all in that pulldown. Requiring the name
-    to actually appear in the pulldown's current options closes that gap.
-
-    Each Project option is f"{translate_string('Project:')} {name}" (see
-    MyGui.build_the_tree), so its prefix is whatever the current language calls
-    a Project -- "Projekt: " in German, "Projet: " in French, "プロジェクト" and a
-    fullwidth colon (U+FF1A) in Japanese. This gate used to look for a hardcoded "Project: ", which
-    matched nothing in any other language, so it closed on a Project that was
-    plainly selected and Edit Project/Add Profile/Add Task refused to open.
-
-    The option is rebuilt through translate_string here rather than parsed
-    apart, because parsing means picking a separator and the separator is
-    itself translated -- Japanese uses a fullwidth colon, so splitting on ": "
-    silently fails for exactly the languages this is meant to fix.
-    """
-    name = getattr(gui, "single_project_name", "")
-    if not name:
-        return ""
-    widget = getattr(gui, "specific_project_optionmenu", None)
-    options = getattr(widget, "options", None) if widget is not None else None
-    # No pulldown yet is not evidence of a bad name -- only a populated list is.
-    if options is None:
-        return name
-    # Bare name covers the pulldown's unprefixed form; the second is how the
-    # Project list itself is built.
-    return name if name in options or f"{translate_string('Project:')} {name}" in options else ""
-
-
-def _confirmed_single_scene_name(gui: MyGui) -> str:
-    """Returns gui.single_scene_name, but only if the Specific Name tab's own
-    Scene pulldown currently lists it -- the Scene twin of
-    _confirmed_single_project_name, guarding the identical gap (a name restored
-    from a previous session's settings before the pulldown was ever populated,
-    see that function for the full account).
-
-    Simpler than its Project counterpart in one way: the Scene pulldown lists
-    bare names, not "Scene: name" (guiutils.get_tasker_objects builds it straight
-    from all_scenes' keys, the same way it builds the Task list), so there is no
-    translated prefix to reconstruct.
-    """
-    name = getattr(gui, "single_scene_name", "")
-    if not name:
-        return ""
-    widget = getattr(gui, "specific_scene_optionmenu", None)
-    options = getattr(widget, "options", None) if widget is not None else None
-    # No pulldown yet is not evidence of a bad name -- only a populated list is.
-    if options is None:
-        return name
-    return name if name in options else ""
-
-
-def _project_for_new_object(gui: MyGui, item_label: str) -> tuple[str, str]:
-    """The Project a new Profile/Task/Scene should be attached to, given whatever the
-    'Specific Name' tab currently has selected, plus the message to tell the user when
-    there isn't one.
-
-    Returns (project_name, "") when a Project was worked out, or ("", message) when
-    none could be -- callers notify with the message and go no further.
-
-    A selected Project is used as-is.  The other three selections are mutually exclusive
-    with it (see process_name_event), so with a Profile, Task or Scene selected there is
-    no Project selection to read -- but there is still exactly one Project that owns the
-    selected object, and that is the one the new object belongs in.  Resolving it here is
-    what lets "Add Profile"/"Add Task"/"Add Scene" work straight off a Profile/Task/Scene
-    selection instead of stopping to demand a Project the user has already implied.
-
-    item_label names the *new* object ("Profile"/"Task"/"Scene") purely for the message.
-
-    An object with no owning Project is a real possibility rather than an oversight -- a
-    Task attached to no Project at all, a Scene no Project lists -- so that case keeps
-    asking for a Project, naming the object that led nowhere so it is clear why.
-    """
-    if project_name := _confirmed_single_project_name(gui):
-        return project_name, ""
-
-    select_a_project = translate_string("Select a single Project first (Project pulldown above).")
-
-    # Whichever of the other three is selected, and how to get from it to its Project.
-    for label, resolve in (
-        ("Profile", find_owning_project),
-        ("Task", find_owning_project_for_task),
-        ("Scene", find_owning_project_for_scene),
-    ):
-        selected_name = getattr(gui, f"single_{label.lower()}_name", "")
-        if is_no_selection(selected_name):
-            continue
-        if owning_project := resolve(selected_name, state=gui.state):
-            return owning_project, ""
-        no_owner = translate_string("does not belong to a Project, so there is nowhere to attach a new")
-        return "", (
-            f"{translate_string(label)} '{selected_name}' {no_owner} "
-            f"{translate_string(item_label)}.  {select_a_project}"
-        )
-
-    return "", select_a_project
-
-
-def _redact_requested(field_refs: dict, key: str = REDACT_FIELD) -> bool:
-    """Whether this export's "Redact secrets" box is ticked.
-
-    Read through a helper rather than off the widget, because the four Edit dialogs file
-    the box under three different keys (see guiwins_editor.build_redact_checkbox) and because a
-    dialog that has not been given one at all -- Add Task and Add Profile, which export
-    something the user has only just typed in -- must read as "no" rather than raise.
-    """
-    checkbox = field_refs.get(key)
-    return bool(getattr(checkbox, "value", False))
-
-
-def _redacted_note(redact: bool) -> str:
-    """The sentence a save adds to its "saved" message when it redacted on the way out.
-
-    Worth saying every time.  A redacted file is one the user is about to hand to somebody
-    else, and the two things they need to know -- that it is not importable as-is, and that
-    the redaction is a first pass rather than a promise -- are exactly the things that are
-    invisible once the dialog has closed.
-    """
-    if not redact:
-        return ""
-    return (
-        " Secrets and personal details were redacted: the comment at the top of the file "
-        "lists what went. Read it before sharing -- a secret that looks like an ordinary "
-        "word cannot be recognized."
-    )
-
-
-def _unapplied_project_edits(field_refs: dict) -> list[str]:
-    """Guards the Edit Project dialog's two by-name saves against a field being added to
-    it without the apply step those saves would then need.  Returns error strings, empty
-    when there is nothing to worry about -- same contract as _apply_scene_field_values.
-
-    Both Project saves render from the live tree by name (projedit.write_standalone_
-    project_xml and .save_project_to_android each take project_name, not the edited copy),
-    so anything the dialog holds that has not been written back to that tree does not reach
-    the file.  Today nothing does: the dialog has a read-only Name and an export path, both
-    listed in guiwins.EDIT_PROJECT_INERT_FIELDS, and this returns nothing.
-
-    It exists for the next editable field added there.  That field will work everywhere it
-    is visible -- typed into, previewed, read back -- and be quietly missing from the
-    exported .prj.xml and the upload, with no error to trace, exactly as an added Scene
-    component was missing from both before those handlers learned to apply first.  Failing
-    the save and naming the field turns half a day of that into one message.
-
-    Deliberately a deny-list of what is known inert rather than an allow-list of what looks
-    editable: a new field is caught by being unrecognised, so nothing has to predict what
-    kind of widget it will be, and silence here always means "somebody checked".
-    """
-    unknown = sorted(set(field_refs) - EDIT_PROJECT_INERT_FIELDS)
-    if not unknown:
-        return []
-
-    logger.error(f"Edit Project dialog has unapplied editable field(s): {', '.join(unknown)}")
-    return [
-        (
-            f"Cannot save Project: the field(s) {', '.join(unknown)} are edited in this dialog but "
-            "are not written to the Project before it is saved, so saving now would leave them out. "
-            "See guiwins.EDIT_PROJECT_INERT_FIELDS."
-        ),
-    ]
-
-
-def _apply_scene_field_values(edited_scene: sceneedit.EditableScene, field_refs: dict) -> list[str]:
-    """Writes the Add/Edit Scene dialog's non-name widgets back onto the Scene
-    copy, and returns a list of error strings (empty on success, and nothing is
-    written when it is non-empty -- the same all-or-nothing contract
-    sceneedit.apply_edits_to_scene uses).
-
-    Today that is the four size fields guiwins._build_scene_editor_body puts up
-    for a Legacy Scene.  A Version 2 Scene has no size at all -- its layout is
-    declarative, so that function builds no size inputs for one -- and this
-    silently writes nothing for it: the widgets simply aren't in field_refs, and
-    the loop skips what isn't there.  That is the intended contract between the
-    two, not an oversight; it means a V2 Scene can never be given a canvas size
-    by this path, however the dialog changes.
-
-    They are validated here rather than in the dialog builder because that runs
-    once, when the dialog opens, and what needs checking is what the user typed
-    afterward.  Anything that function grows later is read back here -- these two
-    are a matched pair and the only two places the Scene body's widgets are known
-    by name.
-
-    Sizes must be whole numbers; -1 is allowed and meaningful (Tasker's "this
-    orientation has no layout of its own", see sysconst.UNSET_DIMENSION), so the
-    check is "integer", not "positive integer".
-    """
-    errors = []
-    pending: dict[str, str] = {}
-
-    for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
-        widget = field_refs.get(key)
-        if widget is None:
-            continue
-        value = str(widget.value).strip()
-        try:
-            int(value)
-        except ValueError:
-            errors.append(f"{translate_string(label)} must be a whole number (-1 for no layout).")
-            continue
-        pending[key] = value
-
-    if errors:
-        return errors
-
-    sceneedit.set_scene_dimensions(edited_scene, pending)
-    _encode_v2_layout_if_edited(edited_scene, field_refs)
-    return []
-
-
-def _encode_v2_layout_if_edited(edited_scene: sceneedit.EditableScene, field_refs: dict) -> None:
-    """Writes the Version 2 designer's live layout dict back into the Scene's <lj>.
-
-    The designer edits that dict in place as the user types (guiwins_designer_v2._build_v2_designer),
-    so by the time a save button runs, every property change is already in it and this is
-    the single step that makes them real.  A Legacy Scene has no "v2_layout" in field_refs
-    and this does nothing.
-
-    Re-syncs the layout's embedded "name" from <nme> first, because both this and
-    sceneedit.apply_edits_to_scene write to <lj> and the save handlers call them in
-    different orders: Rename applies the name (which re-encodes the layout it decodes
-    itself) and then lands here, so encoding a stale in-memory copy would put the old name
-    straight back. Taking the name from the element -- the one place both agree on -- makes
-    the two orderings equivalent.
-
-    Encoding an untouched layout is a no-op in the only sense that matters: it reproduces
-    the original <lj> byte for byte (see scenelayout._GZIP_LEVEL), so a dialog opened and
-    saved with nothing changed leaves the file exactly as it was.
-    """
-    layout = field_refs.get("v2_layout")
-    if not isinstance(layout, dict):
-        return
-    layout["name"] = edited_scene.scene_element.findtext("nme", "") or layout.get("name", "")
-    scenelayout.encode_v2_layout(edited_scene.scene_element, layout)
-
-
-def _finish_new_scene(gui: MyGui, edited_scene: sceneedit.EditableScene, project_name: str) -> None:
-    """Registers a validated, applied new Scene into the live in-memory backup,
-    attaches it to its Project, and refreshes the pulldowns -- the Add Scene
-    counterpart of _finish_new_profile, and attaching for the same reason: a
-    Scene the owning Project's <scenes> doesn't name is invisible to every view
-    (see sceneedit.add_scene_to_project).
-    """
-    # One step to take back, not two: registering the Scene and attaching it to its
-    # Project are one thing the user did.  undoable is re-entrant, so the mutators'
-    # own blocks inside this one add nothing to the history.
-    with sessundo.undoable(f"Add Scene '{edited_scene.scene_name}'", state=gui.state):
-        sceneedit.register_new_scene(edited_scene, state=gui.state)
-        sceneedit.add_scene_to_project(edited_scene.scene_name, project_name, state=gui.state)
-    refresh_tasker_object_pulldowns(gui)
-
-    # Select the new Scene as the app-wide single-Scene filter and show it in the
-    # pulldown -- also clears any stale single Project/Profile/Task selection.
-    select_pulldown_option(gui.specific_scene_optionmenu, edited_scene.scene_name)
-
-
-def _task_arg_values(field_refs: dict) -> dict[str, str]:
-    """Snapshots field_refs' action-argument widgets into the string-keyed dict
-    taskedit_apply.apply_edits_to_task expects -- shared by every Task-editing entry
-    point (Save, Save To Android, Ok, and Add Task's own Save/Ok), which all
-    read the same live NiceGUI widget values the same way.
-    """
-    arg_values = {}
-    for key, widget in field_refs.items():
-        # Everything in field_refs that is NOT an action argument has to be named here --
-        # this sweeps the whole dict, so a widget added to the dialog and forgotten below
-        # is applied to the Task as an argument called whatever its key happens to be.
-        # REDACT_FIELD is one of those: it says how this export is written, not what the
-        # Task holds.
-        if key in ("name", "priority", "save_path", "target_project_name", REDACT_FIELD):
-            continue
-        value = widget.value
-        arg_values[key] = "1" if value is True else "0" if value is False else str(value)
-    return arg_values
-
-
-def _object_property_values(field_refs: dict) -> dict[str, str]:
-    """Snapshots the Properties dialog's widgets into the string-keyed dict
-    objprops.apply_properties expects.
-
-    Booleans become "true"/"false" rather than _task_arg_values' "1"/"0": these go
-    straight into tags Tasker writes as the words (<immutable>false</immutable>,
-    <stayawake>true</stayawake>), and objprops compares them against PropField.default,
-    which is in the same spelling.
-
-    A ui.number left empty has value None, which has to read back as "" (no priority
-    set) rather than the string "None".
-    """
-    values = {}
-    for key, widget in field_refs.items():
-        value = widget.value
-        if value is True or value is False:
-            values[key] = "true" if value else "false"
-        elif value is None:
-            values[key] = ""
-        elif isinstance(value, float) and value.is_integer():
-            # ui.number hands back a float even with format="%.0f" -- 50.0 must not
-            # become "50.0" in <pri>.
-            values[key] = str(int(value))
-        else:
-            values[key] = str(value)
-    return values
-
-
-def _notify_if_plugin_needs_configuration(element: Element, name: str) -> None:
-    """Warns, as a just-added Action/Event/State goes in, that it is a third-party
-    plugin whose own configuration can only be set inside Tasker -- see
-    taskedit_addable.tasker_configuration_warning, which decides whether one is warranted
-    (nothing is shown for anything that isn't a plugin). The item's own panel in
-    the dialog carries the same warning standing (guiwins.
-    _render_plugin_configuration_warning); this is the moment-of-adding nudge, so
-    it isn't missed in a long action list.
-    """
-    warning = taskedit_addable.tasker_configuration_warning(element, name)
-    if warning:
-        ui.notify(warning, type="warning", multi_line=True, timeout=8000)
-
-
-async def show_save_in_progress_notice() -> ui.notification:
-    """Tell the user a Save To Current File has started, before the (blocking) save does.
-
-    A large configuration can take a few seconds to render, write and reload, and every step
-    of that runs on NiceGUI's event loop: a notification only queued before it would not
-    reach the browser until the whole save was over.  The short sleep hands the loop back
-    long enough for the message to be sent first.  The caller dismisses the returned
-    notification once the save has finished or failed, so it never outlives the work.
-    """
-    notice = ui.notification(
-        translate_string("Save to current file in progress"),
-        type="ongoing",
-        spinner=True,
-        timeout=None,
-        position="top",
-    )
-    await asyncio.sleep(0.15)
-    return notice
-
-
-def reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool, str]:
-    """After Save To Current File writes a new, timestamped copy of the backup
-    (see maputil2.write_full_backup_to_current_file -- the original file it
-    was loaded from is never touched), switches the app over to that copy so
-    it -- not the untouched original -- becomes "the current file" for any
-    further editing/saving: re-parses it through the same load path
-    open_and_get_backup_xml_file uses (open() the file, then
-    taskerd.get_the_xml_data()), updates the Current File display, and
-    refreshes the Project/Profile/Task pulldowns from the freshly loaded data.
-
-    Public because the Fix Findings dialog saves the same way the four Edit
-    dialogs do (see userintr.fix_findings_event).  It is the same two steps in
-    the same order there; what differs is only what each caller does between
-    them and afterwards, which is why this is shared and the sequence around
-    it is not.
-
-    Returns (True, "") on success, or (False, error_message) if the reload
-    itself fails -- the copy was still written to disk either way; only the
-    app's in-memory state failed to switch over to it.
-    """
-    try:
-        gui.state.file_to_get = open(new_file_path, encoding="utf-8")
-    except OSError as e:
-        return False, str(e)
-
-    gui.state.program_arguments.file = new_file_path
-    return_code = get_the_xml_data(state=gui.state)
-    if return_code != 0:
-        return False, f"Failed to load '{new_file_path}' (code {return_code})."
-
-    gui.file = new_file_path
-    display_current_file(gui, new_file_path)
-    refresh_tasker_object_pulldowns(gui)
-    return True, ""
-
-
-def _apply_edited_task(edited_task: taskedit_model.EditableTask, field_refs: dict, state: RunState) -> bool:
-    """Validates and applies an existing Task's field values into the live
-    in-memory backup -- the shared body of keep_edited_task_event ("Ok") and
-    save_edited_task_to_current_file_event ("Save To Current File"), which
-    differ only in what happens after this succeeds. Any error is already
-    notified to the user; returns False so the caller knows to stop there.
-    """
-    arg_values = _task_arg_values(field_refs)
-    errors = taskedit_apply.apply_edits_to_task(
-        edited_task,
-        field_refs["name"].value,
-        field_refs["priority"].value,
-        arg_values,
-        state,
-    )
-    if errors:
-        for error in errors:
-            ui.notify(error, type="negative")
-        return False
-    taskedit_save.apply_edited_task_to_live_tree(edited_task, state=state)
-    return True
-
-
-def _validate_and_apply_new_task(
-    edited_task: taskedit_model.EditableTask,
-    field_refs: dict,
-    state: RunState,
-    *,
-    check_save_path: bool = False,
-) -> tuple[bool, str]:
-    """Validates a brand-new Task's Name (and, if check_save_path, its Save
-    path) for conflicts, then applies its field values -- the shared
-    validation+apply step of every Add Task success path (Ok, Save, Save To
-    Current File), before each goes on to do its own thing with the result
-    (see _finish_new_task). Returns (True, name_value) on success, or
-    (False, "") if anything failed (errors already notified).
-    """
-    if not edited_task.actions:
-        ui.notify(translate_string("This Task has no actions yet."), type="warning")
-
-    name_value = field_refs["name"].value.strip()
-    conflict_errors = []
-    if taskedit.task_name_exists(name_value, state=state):
-        conflict_errors.append(f"A Task named '{name_value}' already exists in this backup. Choose a different name.")
-    if check_save_path:
-        save_path = field_refs["save_path"].value.strip()
-        if taskedit_save.save_path_exists(save_path):
-            conflict_errors.append(f"A file already exists at '{save_path}'. Choose a different name or location.")
-    if conflict_errors:
-        for error in conflict_errors:
-            ui.notify(error, type="negative")
-        return False, ""
-
-    arg_values = _task_arg_values(field_refs)
-    errors = taskedit_apply.apply_edits_to_task(
-        edited_task, name_value, field_refs["priority"].value, arg_values, state
-    )
-    if errors:
-        for error in errors:
-            ui.notify(error, type="negative")
-        return False, ""
-
-    return True, name_value
-
-
-def _finish_new_task(
-    gui: MyGui,
-    edited_task: taskedit_model.EditableTask,
-    name_value: str,
-    on_created: Callable[[str], None] | None,
-    field_refs: dict | None = None,
-) -> None:
-    """Registers a validated, applied new Task into the live in-memory backup,
-    fires on_created (see build_add_task_dialog), attaches it to the target
-    Project's <tids> if one was required and selected before the top-level
-    "Add Task" dialog opened (field_refs["target_project_name"] -- see
-    userintr.open_add_task_dialog_event and profedit.add_task_to_project;
-    empty for the nested-in-Profile-edit Add Task flow, which doesn't attach
-    to a Project at all), and refreshes the Project/Profile/Task pulldowns --
-    the common tail of every Add Task success path, run once
-    _validate_and_apply_new_task has succeeded (and, for Save, only after its
-    standalone file write has too).
-    """
-    target_project_name = field_refs.get("target_project_name") if field_refs else None
-
-    # One step to take back, not two or three: registering the Task, whatever on_created
-    # links it to, and attaching it to its Project are one thing the user did.  undoable is
-    # re-entrant, so the mutators' own blocks inside this one add nothing to the history.
-    with sessundo.undoable(f"Add Task '{name_value}'", state=gui.state):
-        taskedit_save.register_new_task(edited_task, name_value, state=gui.state)
-        if on_created is not None:
-            on_created(edited_task.task_id)
-        if target_project_name:
-            profedit.add_task_to_project(edited_task.task_id, target_project_name, state=gui.state)
-
-    refresh_tasker_object_pulldowns(gui)
-
-    # Only for the top-level Add Task flow (target_project_name set, see
-    # open_add_task_dialog_event) -- the nested Entry/Exit Task picker inside
-    # Add/Edit Profile (open_add_task_for_profile_link_event) never sets it,
-    # and selecting the new Task as the app-wide single-Task filter there
-    # would be a surprising side effect of just picking an Entry/Exit Task.
-    if target_project_name:
-        select_pulldown_option(gui.specific_task_optionmenu, name_value)
-
-
-def _profile_condition_values(field_refs: dict) -> dict[str, str]:
-    """Snapshots field_refs' condition-field widgets into the string-keyed dict
-    profedit.apply_edits_to_profile expects -- shared by every Profile-editing
-    entry point (Save, Save To Android, Ok), same reasoning as _task_arg_values.
-    """
-    condition_values = {}
-    for key, widget in field_refs.items():
-        if not key.startswith("cond"):
-            continue
-        value = widget.value
-        condition_values[key] = "1" if value is True else "0" if value is False else str(value)
-    return condition_values
-
-
-def _link_pending_task_pickers(edited_profile: profedit.EditableProfile, field_refs: dict, state: RunState) -> None:
-    """Links in whatever's currently picked in the Entry/Exit "Choose a Task"
-    dropdown even if the user never clicked its separate "Link" button --
-    picking a Task in that dropdown reads as "done" to a user, so Save/Ok/
-    Save To Android shouldn't silently discard it and then complain the
-    Entry/Exit Task is missing (see profedit.validate_new_profile_requirements)
-    just because the extra confirmation click didn't happen. field_refs only
-    has "{entry,exit}_task_picker" while that Task is still unlinked (see
-    guiwins_profedit._build_profile_editor_body) -- already-linked ones have nothing to do here.
-    """
-    for link_type in ("Entry", "Exit"):
-        picker = field_refs.get(f"{link_type.lower()}_task_picker")
-        if picker is None or not picker.value:
-            continue
-        resolved = taskedit.resolve_task_by_name(picker.value, state=state)
-        if resolved is not None:
-            task_id, _ = resolved
-            profedit.link_task_to_profile(edited_profile, task_id, link_type)
-
-
-def _apply_edited_profile(edited_profile: profedit.EditableProfile, field_refs: dict, state: RunState) -> bool:
-    """Validates and applies an existing Profile's field values into the live
-    in-memory backup -- the shared body of keep_edited_profile_event ("Ok")
-    and save_edited_profile_to_current_file_event ("Save To Current File"),
-    which differ only in what happens after this succeeds. Any error is
-    already notified to the user; returns False so the caller knows to stop there.
-    """
-    _link_pending_task_pickers(edited_profile, field_refs, state=state)
-    condition_values = _profile_condition_values(field_refs)
-    errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values, state=state)
-    if errors:
-        for error in errors:
-            ui.notify(error, type="negative")
-        return False
-    profedit.apply_edited_profile_to_live_tree(edited_profile, state=state)
-    return True
-
-
-def _validate_and_apply_new_profile(
-    edited_profile: profedit.EditableProfile,
-    field_refs: dict,
-    state: RunState,
-    *,
-    check_save_path: bool = False,
-) -> tuple[bool, str, str]:
-    """Validates a brand-new Profile's Name and Project (and, if
-    check_save_path, its Save path) for conflicts, then applies its field
-    values -- the shared validation+apply step of every Add Profile success
-    path (Ok, Save, Save To Current File), before each goes on to do its own
-    thing with the result (see _finish_new_profile). Returns
-    (True, name_value, project_name) on success, or (False, "", "") if
-    anything failed (errors already notified).
-    """
-    _link_pending_task_pickers(edited_profile, field_refs, state=state)
-
-    name_value = field_refs["name"].value.strip()
-    project_name = field_refs.get("target_project_name", "")
-
-    conflict_errors = []
-    if profedit.profile_name_exists(name_value, state=state):
-        conflict_errors.append(
-            f"A Profile named '{name_value}' already exists in this backup. Choose a different name.",
-        )
-    if check_save_path:
-        save_path = field_refs["save_path"].value.strip()
-        if profedit.save_path_exists(save_path):
-            conflict_errors.append(f"A file already exists at '{save_path}'. Choose a different name or location.")
-    if not project_name:
-        conflict_errors.append(
-            "Choose a Project first -- a Profile has to belong to one to show up anywhere in the app.",
-        )
-    conflict_errors.extend(profedit.validate_new_profile_requirements(edited_profile))
-    if conflict_errors:
-        for error in conflict_errors:
-            ui.notify(error, type="negative")
-        return False, "", ""
-
-    condition_values = _profile_condition_values(field_refs)
-    errors = profedit.apply_edits_to_profile(edited_profile, name_value, condition_values, state=state)
-    if errors:
-        for error in errors:
-            ui.notify(error, type="negative")
-        return False, "", ""
-
-    return True, name_value, project_name
-
-
-def _finish_new_profile(
-    gui: MyGui,
-    edited_profile: profedit.EditableProfile,
-    name_value: str,
-    project_name: str,
-) -> None:
-    """Registers a validated, applied new Profile into the live in-memory
-    backup, attaches it to its Project, and refreshes the Project/Profile/
-    Task pulldowns -- the common tail of every Add Profile success path, run
-    once _validate_and_apply_new_profile has succeeded (and, for Save, only
-    after its standalone file write has too).
-    """
-    # One step to take back, not two: registering the Profile and attaching it to its
-    # Project are one thing the user did.  undoable is re-entrant, so the mutators'
-    # own blocks inside this one add nothing to the history.
-    with sessundo.undoable(f"Add Profile '{name_value}'", state=gui.state):
-        profedit.register_new_profile(edited_profile, name_value, state=gui.state)
-        profedit.add_profile_to_project(edited_profile, project_name, state=gui.state)
-    refresh_tasker_object_pulldowns(gui)
-
-    # Select the new Profile as the app-wide single-Profile filter and show it
-    # in the pulldown -- also clears any stale single Project/Task selection.
-    select_pulldown_option(gui.specific_profile_optionmenu, name_value)
-
-
-def _finish_new_project(gui: MyGui, edited_project: projedit.EditableProject) -> None:
-    """Registers a validated, applied new Project into the live in-memory
-    backup and refreshes the Project/Profile/Task pulldowns -- the Add
-    Project counterpart of _finish_new_profile. No Project-attachment step
-    (unlike _finish_new_profile's add_profile_to_project) -- a Project has no
-    parent of its own.
-    """
-    projedit.register_new_project(edited_project, state=gui.state)
-    refresh_tasker_object_pulldowns(gui)
-
-    # Select the new Project as the app-wide single-Project filter and show it
-    # in the pulldown -- also clears any stale single Profile/Task selection.
-    select_pulldown_option(gui.specific_project_optionmenu, edited_project.project_name)
-
-
-def _reset_specific_name_selection(gui: MyGui) -> None:
-    """Clears the single Project/Profile/Task selection and resets all three
-    'Specific Name' pulldowns to "None" -- for when a Delete removes the
-    currently-selected name out from under them. Anything that merely *renames*
-    it uses _select_renamed_item instead: the object is still there, so it stays
-    selected under its new name.
-    Mirrors the identical guarded reset in process_single_name_restore's
-    invalid-name branch: the is_updating guard stops setting .value here from
-    re-entering the single_xxx_name_event handlers for a name that no longer
-    resolves to anything.
-    """
-    clear_single_item_view_names(gui)
-    try:
-        gui.is_updating = True
-        reset_single_item_pulldowns(gui)
-    finally:
-        gui.is_updating = False
-
-
-def _pulldown_option_for_name(optionmenu: ui.select, item_type: str, new_name: str) -> str:
-    """The exact option string this 'Specific Name' pulldown lists for a
-    Project/Profile/Task called new_name -- what its .value has to be set to for
-    the selection to actually show.
-
-    The three pulldowns don't label their entries the same way. The Task one
-    lists plain names (guiutils.get_tasker_objects builds it straight from
-    all_tasks_by_name's keys), but the Project and Profile ones list them
-    prefixed with the item type -- "Project: $NewProject1", "Profile: My
-    Profile" -- built by MyGui.build_the_tree and guiutils.build_profiles
-    respectively. Assigning the bare name to those two sets a value that isn't
-    among the select's options, and NiceGUI then renders nothing at all, leaving
-    just the widget's own "Project"/"Profile" label showing as though nothing
-    were selected. (process_single_name_event strips that same prefix back off
-    when the user picks one by hand, which is the mirror image of this.)
-
-    Resolved against the widget's live options rather than by rebuilding the
-    prefix here, so it stays right whatever those two functions do with it --
-    including translation (both build their heads through translate_string).
-    Exact match first, then the translated "<type>: <name>" form, then any
-    option whose tail is exactly ": <name>". Falls back to the bare name if the
-    options don't have it at all -- no worse than not looking.
-    """
-    options = [option for option in (getattr(optionmenu, "options", None) or []) if isinstance(option, str)]
-    if new_name in options:
-        return new_name
-
-    prefixed = f"{translate_string(f'{item_type}:')} {new_name}"
-    if prefixed in options:
-        return prefixed
-
-    tail = f": {new_name}"
-    return next((option for option in options if option.endswith(tail)), new_name)
-
-
-def _select_renamed_item(gui: MyGui, item_type: str, new_name: str) -> None:
-    """Makes a just-renamed Project/Profile/Task the current single item and
-    points its 'Specific Name' pulldown at the new name -- the Rename
-    counterpart to _reset_specific_name_selection, which the rename handlers
-    used to call. Clearing the selection was only ever right because the
-    pulldown still held the *old* name; the object itself is still there and
-    still the one the user is working on, so following the rename is the
-    better answer than dropping the selection on the floor.
-
-    Also called by the three Save To Current File handlers, which apply the
-    Name field the same way "Ok" does and then rebuild the pulldowns by
-    re-parsing the file they just wrote -- so they must re-select *after* that
-    reload, and with the name that was actually applied. A save that didn't
-    change the name re-selects the same name, which is a harmless no-op.
-
-    item_type is "Project"/"Profile"/"Task", matching process_name_event's own
-    vocabulary and the specific_{project,profile,task}_optionmenu attribute names.
-
-    Two steps, in this order:
-
-    1. Point the pulldown at the new name -- as the option string that pulldown
-       actually lists it under, which for Project/Profile is not the bare name
-       (see _pulldown_option_for_name). It has to be set directly -- nothing
-       else does it (process_name_event only ever resets the *other* two, since
-       normally the user picking the name is what set this one). Guarded by
-       is_updating for the usual reason (see _reset_specific_name_selection):
-       assigning .value fires the select's on_change, which would re-enter
-       single_*_name_event for the name we're about to hand to
-       process_name_event anyway. The option lists must already have been
-       rebuilt (refresh_tasker_object_pulldowns) or the new name isn't among
-       this select's options yet and the assignment shows blank.
-
-    2. Run the rename through process_name_event, exactly as if the user had
-       just picked the new name from that pulldown -- it re-validates the name,
-       sets single_{project,profile,task}_name plus the matching
-       PrimeItems.program_arguments entry that the Map/Diagram/Tree runs read,
-       clears the other two selections (single-item selection is mutually
-       exclusive), and refreshes the "Display only ..." label.
-
-    No-op if the pulldown widget doesn't exist yet (defense in depth -- by the
-    time an Edit dialog is open the 'Specific Name' tab has long been built).
-    """
-    optionmenu = getattr(gui, f"specific_{item_type.lower()}_optionmenu", None)
-    if optionmenu is None:
-        return
-
-    try:
-        gui.is_updating = True
-        optionmenu.value = _pulldown_option_for_name(optionmenu, item_type, new_name)
-        optionmenu.update()
-    finally:
-        gui.is_updating = False
-
-    # The bare name, not the pulldown's prefixed label -- process_name_event
-    # stores it in single_{project,profile,task}_name/PrimeItems.program_arguments,
-    # where every consumer expects the name on its own.
-    gui.event_handlers.process_name_event(item_type, new_name)
 
 
 class EditorEventHandlers:
@@ -908,7 +184,7 @@ class EditorEventHandlers:
         renames the Task in the live in-memory backup right away (see
         taskedit.rename_task_in_live_tree), then refreshes the pulldowns and
         re-selects the Task under its new name, so it stays the current single
-        Task and its pulldown follows the rename (see _select_renamed_item).
+        Task and its pulldown follows the rename (see select_renamed_item).
         Backs the prompt's "Rename" button; mirrors
         confirm_rename_profile_event. The prompt stays open on any error, with
         what was typed still in it to fix.
@@ -929,7 +205,7 @@ class EditorEventHandlers:
 
         old_name = taskedit.rename_task_in_live_tree(edited_task, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
-        _select_renamed_item(self.gui, "Task", new_name)
+        select_renamed_item(self.gui, "Task", new_name)
 
         title_label.set_text(f"Edit Task: {new_name}")
         # Ok/Save still read this field and apply whatever is in it, so leaving
@@ -978,7 +254,7 @@ class EditorEventHandlers:
             return
 
         refresh_tasker_object_pulldowns(self.gui)
-        _reset_specific_name_selection(self.gui)
+        reset_specific_name_selection(self.gui)
 
         ui.notify(f"Deleted Task '{task_name}'.", type="positive")
         confirm_dialog.close()
@@ -995,7 +271,7 @@ class EditorEventHandlers:
         edited Task out as a standalone .tsk.xml file. Dialog stays open on any error
         so the user's in-progress edits aren't lost.
         """
-        arg_values = _task_arg_values(field_refs)
+        arg_values = task_arg_values(field_refs)
 
         errors = taskedit_apply.apply_edits_to_task(
             edited_task,
@@ -1010,7 +286,7 @@ class EditorEventHandlers:
             return
 
         save_path = field_refs["save_path"].value
-        redact = _redact_requested(field_refs)
+        redact = redact_requested(field_refs)
 
         def _write() -> None:
             try:
@@ -1026,11 +302,11 @@ class EditorEventHandlers:
             # The write took a copy of anything already at that path (see presave);
             # say so, so the user knows where it went.
             replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
-            ui.notify(f"Saved to {save_path}.{replaced_note}{_redacted_note(redact)}", type="positive")
+            ui.notify(f"Saved to {save_path}.{replaced_note}{redacted_note(redact)}", type="positive")
             dialog.close()
 
         # Unlike Add Task's Save, this export had no up-front save_path_exists
-        # check (see _validate_and_apply_new_task) -- confirm rather than clobber.
+        # check (see validate_and_apply_new_task) -- confirm rather than clobber.
         if taskedit_save.save_path_exists(save_path):
             build_overwrite_confirm_dialog(f"'{save_path}'", _write)
             return
@@ -1055,7 +331,7 @@ class EditorEventHandlers:
         be noise, and the same validation runs again -- and does report -- when the edits are
         actually applied.
         """
-        taskedit_apply.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs), self.state)
+        taskedit_apply.apply_action_edits_to_task(edited_task, task_arg_values(field_refs), self.state)
 
     def keep_scene_event_task_edits(
         self,
@@ -1089,7 +365,7 @@ class EditorEventHandlers:
         """
         kept = True
         for edited_task, field_refs in bound_tasks.values():
-            arg_values = _task_arg_values(field_refs)
+            arg_values = task_arg_values(field_refs)
             errors = taskedit_apply.apply_action_edits_to_task(edited_task, arg_values, self.state)
             if errors:
                 for error in errors:
@@ -1168,10 +444,10 @@ class EditorEventHandlers:
         Returns True if the Task now exists; False leaves the panel alone with the errors
         already notified, so nothing typed is lost.
         """
-        applied, name_value = _validate_and_apply_new_task(edited_task, field_refs, state=self.state)
+        applied, name_value = validate_and_apply_new_task(edited_task, field_refs, state=self.state)
         if not applied:
             return False
-        _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
+        finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
         ui.notify(f"{translate_string('Created Task')} '{name_value}'.", type="positive")
         return True
 
@@ -1191,7 +467,7 @@ class EditorEventHandlers:
         Properties dialog is still being used and the Scene's own edits are still
         pending in it.
         """
-        errors = taskedit_apply.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs), self.state)
+        errors = taskedit_apply.apply_action_edits_to_task(edited_task, task_arg_values(field_refs), self.state)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -1212,7 +488,7 @@ class EditorEventHandlers:
         backs the "Ok" button, which keeps the edit for this session only. Dialog
         stays open on any error so the user's in-progress edits aren't lost.
         """
-        if not _apply_edited_task(edited_task, field_refs, state=self.state):
+        if not apply_edited_task(edited_task, field_refs, state=self.state):
             return
         ui.notify(translate_string("Changes kept."), type="positive")
         dialog.close()
@@ -1236,9 +512,9 @@ class EditorEventHandlers:
         rename too -- and the reload rebuilds the pulldowns from the file, which
         would leave the Task pulldown on the old name. Re-selects the Task under
         whatever name was actually applied, after the reload, the same way the
-        Rename button does (see _select_renamed_item).
+        Rename button does (see select_renamed_item).
         """
-        if not _apply_edited_task(edited_task, field_refs, state=self.state):
+        if not apply_edited_task(edited_task, field_refs, state=self.state):
             return
         notice = await show_save_in_progress_notice()
         success, result = write_full_backup_to_current_file(state=self.state)
@@ -1255,7 +531,7 @@ class EditorEventHandlers:
         # apply_edits_to_task actually wrote (stripped), i.e. the one now in the
         # reloaded tables and the pulldown's options.
         if applied_name := edited_task.task_element.findtext("nme", ""):
-            _select_renamed_item(self.gui, "Task", applied_name)
+            select_renamed_item(self.gui, "Task", applied_name)
         ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
@@ -1333,7 +609,7 @@ class EditorEventHandlers:
                 ui.notify(error, type="negative")
             return
 
-        _finish_new_project(self.gui, edited_project)
+        finish_new_project(self.gui, edited_project)
 
         ui.notify(translate_string("Project added."), type="positive")
         dialog.close()
@@ -1341,7 +617,7 @@ class EditorEventHandlers:
     def open_edit_project_dialog_event(self) -> None:
         """Opens the Edit Project dialog for the currently selected single Project name."""
         the_view = self.gui
-        project_name = _confirmed_single_project_name(the_view)
+        project_name = confirmed_single_project_name(the_view)
         if not project_name:
             ui.notify(translate_string("Select a single Project first (Project pulldown above)."), type="warning")
             return
@@ -1386,7 +662,7 @@ class EditorEventHandlers:
         renaming the Project in the live in-memory backup (moving its
         all_projects entry to the new name -- see
         projedit.rename_project_in_live_tree), making it the current single
-        Project under that name (see _select_renamed_item), then closing both
+        Project under that name (see select_renamed_item), then closing both
         the prompt and the Edit Project dialog. The prompt stays open on any
         error, with what was typed still in it to fix.
 
@@ -1406,7 +682,7 @@ class EditorEventHandlers:
 
         projedit.rename_project_in_live_tree(old_name, edited_project, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
-        _select_renamed_item(self.gui, "Project", new_name)
+        select_renamed_item(self.gui, "Project", new_name)
 
         ui.notify(f"Renamed to '{new_name}'.", type="positive")
         rename_dialog.close()
@@ -1422,7 +698,7 @@ class EditorEventHandlers:
 
     # ----------------------------------------------------------------------------------
     # Object Properties -- the panel Project/Profile/Task/Scene share.  What it edits is
-    # in objprops.py and the form is guiwins.build_object_properties_dialog; these three
+    # in objprops.py and the form is guiwins_props.build_object_properties_dialog; these three
     # are the whole of the wiring.
     # ----------------------------------------------------------------------------------
     def open_object_properties_event(
@@ -1454,7 +730,7 @@ class EditorEventHandlers:
         the whole story puts the rest -- only Edit Project has one, and the checkpoint for
         that path is taken inside it (projedit.apply_properties_to_live_tree).
         """
-        values = _object_property_values(field_refs)
+        values = object_property_values(field_refs)
         errors = objprops.apply_properties(props, values)
         if errors:
             for error in errors:
@@ -1514,7 +790,7 @@ class EditorEventHandlers:
         in-progress edit isn't lost.
 
         Follows the rename the same way the Rename button does
-        (_select_renamed_item), so the Project stays selected under its new
+        (select_renamed_item), so the Project stays selected under its new
         name -- but only after the reload, never before: this path replaces
         every table wholesale by re-parsing the file it just wrote (see
         reload_saved_copy_and_refresh), so a selection made beforehand would
@@ -1525,9 +801,9 @@ class EditorEventHandlers:
 
         Guarded like the dialog's other two saves: the apply below covers the Name and
         nothing else, so a field added without extending it would be left out of the
-        backup this writes -- see _unapplied_project_edits.
+        backup this writes -- see unapplied_project_edits.
         """
-        errors = _unapplied_project_edits(field_refs)
+        errors = unapplied_project_edits(field_refs)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -1556,7 +832,7 @@ class EditorEventHandlers:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
 
-        _select_renamed_item(self.gui, "Project", name_value)
+        select_renamed_item(self.gui, "Project", name_value)
         ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
@@ -1578,16 +854,16 @@ class EditorEventHandlers:
         Dialog stays open on any error so the user's in-progress edit isn't lost.
 
         Guarded against a field being added to the dialog without the apply that a
-        by-name render would then need -- see _unapplied_project_edits.
+        by-name render would then need -- see unapplied_project_edits.
         """
-        errors = _unapplied_project_edits(field_refs)
+        errors = unapplied_project_edits(field_refs)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
             return
 
         save_path = field_refs["project_save_path"].value.strip()
-        redact = _redact_requested(field_refs, PROJECT_REDACT_FIELD)
+        redact = redact_requested(field_refs, PROJECT_REDACT_FIELD)
 
         def _write() -> None:
             try:
@@ -1602,7 +878,7 @@ class EditorEventHandlers:
             # say so, so the user knows where it went.
             replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
             ui.notify(
-                f"Saved Project '{edited_project.project_name}' to {save_path}.{replaced_note}{_redacted_note(redact)}",
+                f"Saved Project '{edited_project.project_name}' to {save_path}.{replaced_note}{redacted_note(redact)}",
                 type="positive",
             )
             dialog.close()
@@ -1671,7 +947,7 @@ class EditorEventHandlers:
             return
 
         refresh_tasker_object_pulldowns(self.gui)
-        _reset_specific_name_selection(self.gui)
+        reset_specific_name_selection(self.gui)
 
         if keep_contents:
             said = f"Deleted '{project_name}'. Its Profiles and Tasks were moved to '{projedit.BASE_PROJECT_NAME}'."
@@ -1705,7 +981,7 @@ class EditorEventHandlers:
         Scene type only to be told afterwards that nothing was loaded.
         """
         the_view = self.gui
-        project_name, no_project_message = _project_for_new_object(the_view, "Scene")
+        project_name, no_project_message = project_for_new_object(the_view, "Scene")
         if not project_name:
             ui.notify(no_project_message, type="warning")
             return
@@ -1771,7 +1047,7 @@ class EditorEventHandlers:
             )
             return
 
-        errors = sceneedit.apply_edits_to_scene(edited_scene, name_value, state=self.state) + _apply_scene_field_values(
+        errors = sceneedit.apply_edits_to_scene(edited_scene, name_value, state=self.state) + apply_scene_field_values(
             edited_scene,
             field_refs,
         )
@@ -1780,7 +1056,7 @@ class EditorEventHandlers:
                 ui.notify(error, type="negative")
             return
 
-        _finish_new_scene(self.gui, edited_scene, field_refs["target_project_name"])
+        finish_new_scene(self.gui, edited_scene, field_refs["target_project_name"])
 
         ui.notify(translate_string("Scene added."), type="positive")
         dialog.close()
@@ -1788,7 +1064,7 @@ class EditorEventHandlers:
     def open_edit_scene_dialog_event(self) -> None:
         """Opens the Edit Scene dialog for the currently selected single Scene name."""
         the_view = self.gui
-        scene_name = _confirmed_single_scene_name(the_view)
+        scene_name = confirmed_single_scene_name(the_view)
         if not scene_name:
             ui.notify(translate_string("Select a single Scene first (Scene pulldown above)."), type="warning")
             return
@@ -1817,7 +1093,7 @@ class EditorEventHandlers:
         dialog: ui.dialog | None = None,
     ) -> None:
         """Draws the Scene being edited as a picture in the main content column.  Backs the
-        "Preview" button on both Scene dialogs (guiwins._build_scene_editor_body).
+        "Preview" button on both Scene dialogs (guiwins_scene._build_scene_editor_body).
 
         The dialog is closed first and handed to the view, which puts a "Back to Editor"
         button up to re-open it.  It has to be: content_container is behind the dialog's
@@ -1836,7 +1112,7 @@ class EditorEventHandlers:
             #
             # MARKED BEFORE THE CLOSE, NOT AFTER.  Closing fires the dialog's own value-change
             # handler synchronously, and that handler repaints any preview this dialog left on
-            # screen (guiwins_views._scene_dialog_closed).  Marking afterwards would leave it looking
+            # screen (guiwins_sceneview._scene_dialog_closed).  Marking afterwards would leave it looking
             # at a session that still said "not suspended", so it would take a close *on its
             # way to building a new preview* for a close that had finished with one, and
             # repaint the outgoing view into a container about to be cleared.
@@ -1860,7 +1136,7 @@ class EditorEventHandlers:
         (sceneedit.load_scene_for_edit), so without this the size changes stay in
         the copy and vanish with the dialog.
         """
-        errors = _apply_scene_field_values(edited_scene, field_refs)
+        errors = apply_scene_field_values(edited_scene, field_refs)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -1921,7 +1197,7 @@ class EditorEventHandlers:
 
         sceneedit.apply_edited_scene_to_live_tree(old_name, edited_scene, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
-        _select_renamed_item(self.gui, "Scene", new_name)
+        select_renamed_item(self.gui, "Scene", new_name)
 
         ui.notify(f"Renamed to '{new_name}'.", type="positive")
         rename_dialog.close()
@@ -1946,7 +1222,7 @@ class EditorEventHandlers:
         every table wholesale by re-parsing the file it just wrote, so a selection
         made beforehand would point at state that no longer exists a moment later.
         """
-        errors = _apply_scene_field_values(edited_scene, field_refs)
+        errors = apply_scene_field_values(edited_scene, field_refs)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -1966,7 +1242,7 @@ class EditorEventHandlers:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
 
-        _select_renamed_item(self.gui, "Scene", edited_scene.scene_name)
+        select_renamed_item(self.gui, "Scene", edited_scene.scene_name)
         ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
@@ -1995,7 +1271,7 @@ class EditorEventHandlers:
         """
         save_path = field_refs["scene_save_path"].value.strip()
 
-        errors = _apply_scene_field_values(edited_scene, field_refs)
+        errors = apply_scene_field_values(edited_scene, field_refs)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -2003,7 +1279,7 @@ class EditorEventHandlers:
 
         sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene, state=self.state)
 
-        redact = _redact_requested(field_refs, SCENE_REDACT_FIELD)
+        redact = redact_requested(field_refs, SCENE_REDACT_FIELD)
 
         def _write() -> None:
             try:
@@ -2018,7 +1294,7 @@ class EditorEventHandlers:
             # say so, so the user knows where it went.
             replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
             ui.notify(
-                f"Saved Scene '{edited_scene.scene_name}' to {save_path}.{replaced_note}{_redacted_note(redact)}",
+                f"Saved Scene '{edited_scene.scene_name}' to {save_path}.{replaced_note}{redacted_note(redact)}",
                 type="positive",
             )
             dialog.close()
@@ -2056,7 +1332,7 @@ class EditorEventHandlers:
             return
 
         refresh_tasker_object_pulldowns(self.gui)
-        _reset_specific_name_selection(self.gui)
+        reset_specific_name_selection(self.gui)
 
         ui.notify(f"Deleted Scene '{scene_name}'.", type="positive")
         confirm_dialog.close()
@@ -2115,7 +1391,7 @@ class EditorEventHandlers:
         profedit.rename_profile_in_live_tree), then refreshes the pulldowns and
         re-selects the Profile under its new name, so it stays the current
         single Profile and its pulldown follows the rename (see
-        _select_renamed_item). Backs the prompt's "Rename" button; mirrors
+        select_renamed_item). Backs the prompt's "Rename" button; mirrors
         confirm_rename_task_event exactly, including leaving the Edit Profile
         dialog open and renaming *only* the name, so the conditions and
         Entry/Exit Task links still being edited stay pending until Ok/Save.
@@ -2128,7 +1404,7 @@ class EditorEventHandlers:
 
         old_name = profedit.rename_profile_in_live_tree(edited_profile, state=self.state)
         refresh_tasker_object_pulldowns(self.gui)
-        _select_renamed_item(self.gui, "Profile", new_name)
+        select_renamed_item(self.gui, "Profile", new_name)
 
         title_label.set_text(f"{translate_string('Edit Profile')}: {new_name}")
         # Keeps Ok/Save from re-applying the pre-rename name -- see
@@ -2172,7 +1448,7 @@ class EditorEventHandlers:
             return
 
         refresh_tasker_object_pulldowns(self.gui)
-        _reset_specific_name_selection(self.gui)
+        reset_specific_name_selection(self.gui)
 
         said = f"Deleted Profile '{profile_name}'. Its Tasks were kept."
         ui.notify(said, type="positive")
@@ -2190,7 +1466,7 @@ class EditorEventHandlers:
         know which Project it belongs to.
         """
         the_view = self.gui
-        project_name, no_project_message = _project_for_new_object(the_view, "Profile")
+        project_name, no_project_message = project_for_new_object(the_view, "Profile")
         if not project_name:
             ui.notify(no_project_message, type="warning")
             return
@@ -2288,7 +1564,7 @@ class EditorEventHandlers:
             for error in result:
                 ui.notify(error, type="negative")
             return
-        _notify_if_plugin_needs_configuration(result.condition_element, profedit.get_condition_display_name(result))
+        notify_if_plugin_needs_configuration(result.condition_element, profedit.get_condition_display_name(result))
 
     def add_state_condition_to_profile_event(self, edited_profile: profedit.EditableProfile, state_key: str) -> None:
         """Synthesizes and appends a new State condition to the Profile being edited."""
@@ -2300,7 +1576,7 @@ class EditorEventHandlers:
             for error in result:
                 ui.notify(error, type="negative")
             return
-        _notify_if_plugin_needs_configuration(result.condition_element, profedit.get_condition_display_name(result))
+        notify_if_plugin_needs_configuration(result.condition_element, profedit.get_condition_display_name(result))
 
     def add_app_entry_event(self, edited_profile: profedit.EditableProfile, cond_index: int) -> None:
         """Adds a blank app entry to an App condition being edited."""
@@ -2329,8 +1605,8 @@ class EditorEventHandlers:
         the edited Profile out as a standalone .prf.xml file. Dialog stays open on
         any error so the user's in-progress edits aren't lost.
         """
-        _link_pending_task_pickers(edited_profile, field_refs, state=self.state)
-        condition_values = _profile_condition_values(field_refs)
+        link_pending_task_pickers(edited_profile, field_refs, state=self.state)
+        condition_values = profile_condition_values(field_refs)
 
         errors = profedit.apply_edits_to_profile(
             edited_profile, field_refs["name"].value, condition_values, state=self.state
@@ -2341,7 +1617,7 @@ class EditorEventHandlers:
             return
 
         save_path = field_refs["save_path"].value
-        redact = _redact_requested(field_refs)
+        redact = redact_requested(field_refs)
 
         def _write() -> None:
             try:
@@ -2357,11 +1633,11 @@ class EditorEventHandlers:
             # The write took a copy of anything already at that path (see presave);
             # say so, so the user knows where it went.
             replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
-            ui.notify(f"Saved to {save_path}.{replaced_note}{_redacted_note(redact)}", type="positive")
+            ui.notify(f"Saved to {save_path}.{replaced_note}{redacted_note(redact)}", type="positive")
             dialog.close()
 
         # Unlike Add Profile's Save, this export had no up-front save_path_exists
-        # check (see _validate_and_apply_new_profile) -- confirm rather than clobber.
+        # check (see validate_and_apply_new_profile) -- confirm rather than clobber.
         if profedit.save_path_exists(save_path):
             build_overwrite_confirm_dialog(f"'{save_path}'", _write)
             return
@@ -2379,7 +1655,7 @@ class EditorEventHandlers:
         dialog -- backs the "Ok" button, which keeps the edit for this session
         only. Dialog stays open on any error so the user's in-progress edits aren't lost.
         """
-        if not _apply_edited_profile(edited_profile, field_refs, state=self.state):
+        if not apply_edited_profile(edited_profile, field_refs, state=self.state):
             return
         ui.notify(translate_string("Changes kept."), type="positive")
         dialog.close()
@@ -2403,7 +1679,7 @@ class EditorEventHandlers:
         the reload -- same reasoning as
         save_edited_task_to_current_file_event's.
         """
-        if not _apply_edited_profile(edited_profile, field_refs, state=self.state):
+        if not apply_edited_profile(edited_profile, field_refs, state=self.state):
             return
         notice = await show_save_in_progress_notice()
         success, result = write_full_backup_to_current_file(state=self.state)
@@ -2417,7 +1693,7 @@ class EditorEventHandlers:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
         if applied_name := edited_profile.profile_element.findtext("nme", ""):
-            _select_renamed_item(self.gui, "Profile", applied_name)
+            select_renamed_item(self.gui, "Profile", applied_name)
         ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
@@ -2432,7 +1708,7 @@ class EditorEventHandlers:
         save_new_task_event exactly. Dialog stays open on any error so the user's
         in-progress work isn't lost.
         """
-        ok, name_value, project_name = _validate_and_apply_new_profile(
+        ok, name_value, project_name = validate_and_apply_new_profile(
             edited_profile, field_refs, check_save_path=True, state=self.state
         )
         if not ok:
@@ -2445,7 +1721,7 @@ class EditorEventHandlers:
             ui.notify(f"Could not save file: {e}", type="negative")
             return
 
-        _finish_new_profile(self.gui, edited_profile, name_value, project_name)
+        finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
         # The write took a copy of anything already at that path (see presave);
         # say so, so the user knows where it went.
@@ -2470,11 +1746,11 @@ class EditorEventHandlers:
         profedit.add_profile_to_project) but not the save path, since no file
         is written.
         """
-        ok, name_value, project_name = _validate_and_apply_new_profile(edited_profile, field_refs, state=self.state)
+        ok, name_value, project_name = validate_and_apply_new_profile(edited_profile, field_refs, state=self.state)
         if not ok:
             return
 
-        _finish_new_profile(self.gui, edited_profile, name_value, project_name)
+        finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
         ui.notify(
             translate_string(
@@ -2502,11 +1778,11 @@ class EditorEventHandlers:
         failed disk write is reported but doesn't undo the registration
         already done (same as Ok, which never touches disk at all).
         """
-        ok, name_value, project_name = _validate_and_apply_new_profile(edited_profile, field_refs, state=self.state)
+        ok, name_value, project_name = validate_and_apply_new_profile(edited_profile, field_refs, state=self.state)
         if not ok:
             return
 
-        _finish_new_profile(self.gui, edited_profile, name_value, project_name)
+        finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
         notice = await show_save_in_progress_notice()
         success, result = write_full_backup_to_current_file(state=self.state)
@@ -2532,7 +1808,7 @@ class EditorEventHandlers:
         """Put the edit into MapTasker's own loaded configuration, once the device has it.
 
         Grouped into one undo step so registering a Profile and attaching it to its Project
-        are one thing to take back rather than two -- same reason _finish_new_profile does.
+        are one thing to take back rather than two -- same reason finish_new_profile does.
         """
         with sessundo.undoable(
             f"Add Profile '{profile_name}'" if is_new_profile else f"Edit Profile '{profile_name}'", state=self.state
@@ -2549,11 +1825,11 @@ class EditorEventHandlers:
         currently selected single Project (see the Project pulldown in the
         Specific Name tab). A Project must already be selected -- the new
         Task is attached directly to it (added to its <tids>, see
-        _finish_new_task) rather than through a Profile, so there's no other
+        finish_new_task) rather than through a Profile, so there's no other
         way to know which Project it belongs to.
         """
         the_view = self.gui
-        project_name, no_project_message = _project_for_new_object(the_view, "Task")
+        project_name, no_project_message = project_for_new_object(the_view, "Task")
         if not project_name:
             ui.notify(no_project_message, type="warning")
             return
@@ -2599,7 +1875,7 @@ class EditorEventHandlers:
             for error in result:
                 ui.notify(error, type="negative")
             return None
-        _notify_if_plugin_needs_configuration(result.action_element, result.action_name)
+        notify_if_plugin_needs_configuration(result.action_element, result.action_name)
         return result.act_number
 
     def add_if_block_to_new_task_event(
@@ -2650,7 +1926,7 @@ class EditorEventHandlers:
             for error in result:
                 ui.notify(error, type="negative")
             return None
-        _notify_if_plugin_needs_configuration(result.action_element, result.action_name)
+        notify_if_plugin_needs_configuration(result.action_element, result.action_name)
         return result.act_number
 
     def add_if_block_to_edit_task_event(
@@ -2756,7 +2032,7 @@ class EditorEventHandlers:
         on_created, if given, is called with the new Task's id once it's
         registered -- see build_add_task_dialog's on_task_created.
         """
-        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs, check_save_path=True, state=self.state)
+        ok, name_value = validate_and_apply_new_task(edited_task, field_refs, check_save_path=True, state=self.state)
         if not ok:
             return
 
@@ -2767,7 +2043,7 @@ class EditorEventHandlers:
             ui.notify(f"Could not save file: {e}", type="negative")
             return
 
-        _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
+        finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
 
         # The write took a copy of anything already at that path (see presave);
         # say so, so the user knows where it went.
@@ -2794,11 +2070,11 @@ class EditorEventHandlers:
         on_created, if given, is called with the new Task's id once it's
         registered -- see build_add_task_dialog's on_task_created.
         """
-        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs, state=self.state)
+        ok, name_value = validate_and_apply_new_task(edited_task, field_refs, state=self.state)
         if not ok:
             return
 
-        _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
+        finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
 
         ui.notify(
             translate_string("Task kept for this session only -- use 'Save To Current File' to keep it permanently."),
@@ -2825,11 +2101,11 @@ class EditorEventHandlers:
         failed disk write is reported but doesn't undo the registration
         already done (same as Ok, which never touches disk at all).
         """
-        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs, state=self.state)
+        ok, name_value = validate_and_apply_new_task(edited_task, field_refs, state=self.state)
         if not ok:
             return
 
-        _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
+        finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
 
         notice = await show_save_in_progress_notice()
         success, result = write_full_backup_to_current_file(state=self.state)

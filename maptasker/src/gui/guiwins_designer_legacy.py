@@ -21,7 +21,7 @@ from maptasker.src.core.editcommon import restore_element
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.sysconst import SCENE_TASK_TYPES
 from maptasker.src.edit import sceneedit, sceneedit_legacy
-from maptasker.src.gui import sceneview
+from maptasker.src.gui import sceneview, sceneview_legacy
 from maptasker.src.gui.guiwins_canvas import (
     _DESIGNER_SEQUENCE,
     CANVAS_DESIGNER_ROOT,
@@ -291,7 +291,7 @@ def _legacy_canvas_size(
     Shared by the designer and the Preview so the two never disagree about how big the Scene
     is.  The fields are only present in a dialog that built them, so a missing widget means
     "use the Scene's own value", not an error -- the same contract
-    userintr_editors._apply_scene_field_values relies on.
+    userintr_fields.apply_scene_field_values relies on.
     """
     width_key, height_key = ("widthLand", "heightLand") if landscape else ("widthPort", "heightPort")
     typed: dict[str, int] = {}
@@ -324,7 +324,7 @@ def _build_legacy_designer(
     THE CANVAS IS THE EDITOR.  The V2 designer is a tree because a V2 layout is a tree; a
     Legacy Scene is a pixel canvas where every element states its own x,y,w,h, so the natural
     way to edit one is to drag it.  That canvas already existed as the read-only Preview
-    (sceneview.draw_scene), and this passes it a CanvasEditing to turn it into a surface --
+    (sceneview_legacy.draw_scene), and this passes it a CanvasEditing to turn it into a surface --
     the same drawing code, so what the user edits is exactly what the Preview showed them.
 
     Three panes, all rebuilt on every change: the canvas, an element list in z-order, and a
@@ -685,7 +685,7 @@ class _LegacyDesigner:
         width, height = size
         options = sceneview.PreviewOptions(landscape=self.orientation["landscape"], show_tasks=False)
         with self.canvas_pane:
-            sceneview.draw_scene(
+            sceneview_legacy.draw_scene(
                 self.scene_element,
                 width,
                 height,

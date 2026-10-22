@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import io
 
-from maptasker.src.core.format import MAX_BLANK_LINES, BlankLineLimiter
+from maptasker.src.core.mapwriter import MAX_BLANK_LINES, BlankLineLimiter
 
 
 def written(*pieces: str, max_blank_lines: int = MAX_BLANK_LINES) -> str:

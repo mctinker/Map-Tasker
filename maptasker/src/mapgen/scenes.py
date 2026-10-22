@@ -522,7 +522,7 @@ def format_and_output_arguments(
 # them the same colour.  Nothing about that is visible -- a colour inside the same colour
 # looks like the colour -- but the browser lays out and paints that whole tower for every
 # line under it, and nothing can be cut into pieces at a point where hundreds of elements
-# are open (see guiwins_views.split_for_streaming).
+# are open (see guiwins_mapstream.split_for_streaming).
 #
 # So there is at most one at a time now: opening the next closes the last, and the Scene
 # closes the final one on its way out (get_details).  What is inside which changes; what

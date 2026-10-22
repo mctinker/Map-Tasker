@@ -2,7 +2,7 @@
 
 One panel rather than four, for the reason the analysis behind it is one module rather than
 four: what a delete reaches is a question about the configuration, not about which editor
-happens to be asking.  The four dialogs -- guiwins.build_delete_project_dialog and
+happens to be asking.  The four dialogs -- guiwins_dialogs.build_delete_project_dialog and
 build_delete_scene_dialog, guiwins_profedit.build_delete_profile_dialog and
 guiwins_taskedit.build_delete_task_dialog -- each used to work out their own counts and
 word their own sentence about them; all four now call this instead and get the same

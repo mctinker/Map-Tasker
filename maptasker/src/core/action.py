@@ -22,7 +22,8 @@ from maptasker.src.core.actiont import lookup_values
 from maptasker.src.core.condjoin import boolean_operators, join_conditions
 from maptasker.src.core.elemvals import child_text
 from maptasker.src.core.error import error_handler
-from maptasker.src.core.format import format_html, format_label
+from maptasker.src.core.format import format_html
+from maptasker.src.core.htmllabel import format_label
 from maptasker.src.core.shelsort import shell_sort
 from maptasker.src.core.sysconst import (
     DISABLED,

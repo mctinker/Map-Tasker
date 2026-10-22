@@ -531,9 +531,9 @@ name = "Only the Legacy Scene designer and its dialogs import the Legacy Scene e
 type = "protected"
 protected_modules = ["maptasker.src.edit.sceneedit_legacy"]
 allowed_importers = [
-    "maptasker.src.gui.guiwins",
     "maptasker.src.gui.guiwins_designer_legacy",
     "maptasker.src.gui.guiwins_legacyarg",
+    "maptasker.src.gui.guiwins_scene",
     "maptasker.src.gui.guiwins_sceneprops",
     "maptasker.src.edit.scenemodel",
     "maptasker.src.gui.userintr_editors",
@@ -542,11 +542,24 @@ allowed_importers = [
 [[tool.importlinter.contracts]]
 name = "Only the Version 2 Scene designer and its preview import the Version 2 Scene editor"
 type = "protected"
-protected_modules = ["maptasker.src.edit.sceneedit_v2"]
+protected_modules = [
+    "maptasker.src.edit.sceneedit_v2",
+    "maptasker.src.edit.sceneedit_v2events",
+    "maptasker.src.edit.sceneedit_v2nodes",
+    "maptasker.src.edit.sceneedit_v2props",
+    "maptasker.src.edit.sceneedit_v2state",
+    "maptasker.src.edit.sceneedit_v2tree",
+]
 allowed_importers = [
     "maptasker.src.gui.guiwins_designer_v2",
-    "maptasker.src.gui.guiwins_views",
+    "maptasker.src.gui.guiwins_sceneview",
     "maptasker.src.edit.scenemodel",
+    "maptasker.src.edit.sceneedit_v2",
+    "maptasker.src.edit.sceneedit_v2events",
+    "maptasker.src.edit.sceneedit_v2nodes",
+    "maptasker.src.edit.sceneedit_v2props",
+    "maptasker.src.edit.sceneedit_v2state",
+    "maptasker.src.edit.sceneedit_v2tree",
 ]
 
 [[tool.importlinter.contracts]]

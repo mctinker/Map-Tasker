@@ -756,7 +756,7 @@ def clear_android_buttons(self: "MyGui") -> None:
             setattr(self, attr, None)
 
     # 4. The "Get XML from Android Device" button (self.get_backup_button, built in
-    # _create_file_and_message_buttons_section in guiwins.py) is deliberately left alone.
+    # create_file_and_message_buttons_section in guiwins_tabs.py) is deliberately left alone.
     #
     # This used to delete and rebuild it here, which was never necessary -- opening the Android
     # panel doesn't remove that button, it only adds a panel underneath, so it is still sitting
@@ -921,7 +921,7 @@ OBJECT_ACTION_BUTTONS = (
     ("add_scene_button", ("Project", "Scene")),
 )
 
-# The rows those buttons sit in, in the order guiwins.initialize_screen builds them, and
+# The rows those buttons sit in, in the order guiwins_drawers.initialize_screen builds them, and
 # which buttons are in each.  A row with nothing left to show is hidden along with its
 # buttons, so the tab closes up rather than keeping an empty gap where the pair was.
 OBJECT_ACTION_ROWS = (
@@ -1603,7 +1603,7 @@ def selected_tab_name(gui: object) -> str | None:
     That name is what tab_to_use records and what initialize_screen hands back to
     ui.tabs.set_value() to reselect the tab, so it is deliberately the tab's English
     *name* rather than its translated label (see the note where the tabs are built in
-    guiwins.initialize_screen).
+    guiwins_drawers.initialize_screen).
 
     ui.tabs reports its value two different ways -- the name, as a plain string, once the
     user has clicked a tab, but the ui.tab object itself while the value is still the one

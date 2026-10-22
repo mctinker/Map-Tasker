@@ -28,7 +28,7 @@ apply_properties writes onto whatever element it is handed:
     the live tree BY NAME (projedit.write_standalone_project_xml(project_name, ...) and
     .save_project_to_android(project_name, ...)), so a property left on the copy alone
     would be silently dropped from the exported file and the upload -- the bug the
-    EDIT_PROJECT_INERT_FIELDS comment above guiwins.build_edit_project_dialog warns
+    EDIT_PROJECT_INERT_FIELDS comment above guiwins_project.build_edit_project_dialog warns
     about.  Both elements are written rather than just the live one because a Rename
     registers the COPY as the live element (rename_project_in_live_tree), so a property
     that existed only on the live element would be dropped by the next rename.  This is

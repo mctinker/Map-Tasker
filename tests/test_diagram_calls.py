@@ -11,7 +11,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src.mapgen import diagram
+from maptasker.src.mapgen import diagarrows, diagclean
 from maptasker.src.mapgen.diagcnst import task_delimeter
 
 PLAIN = "Freeze - Long Press Dialog"
@@ -34,14 +34,14 @@ def _middle_of(line: str, name: str) -> int:
 def test_a_called_task_with_a_bracket_in_its_name_is_found_in_the_list(delimited: bool) -> None:
     line = _caller_line(PLAIN, BRACKETED, delimited=delimited)
 
-    assert diagram.get_index_by_middle_char_position(line, _middle_of(line, PLAIN), PLAIN) == 1
-    assert diagram.get_index_by_middle_char_position(line, _middle_of(line, BRACKETED), BRACKETED) == 2
+    assert diagarrows.get_index_by_middle_char_position(line, _middle_of(line, PLAIN), PLAIN) == 1
+    assert diagarrows.get_index_by_middle_char_position(line, _middle_of(line, BRACKETED), BRACKETED) == 2
 
 
 def test_the_list_ends_at_its_own_closing_bracket() -> None:
     line = _caller_line(PLAIN, BRACKETED, delimited=False)
 
-    substrings, _ = diagram.get_index_setup(line, BRACKETED)
+    substrings, _ = diagarrows.get_index_setup(line, BRACKETED)
 
     assert substrings == [PLAIN, BRACKETED]
 
@@ -56,14 +56,14 @@ def test_the_list_ends_at_its_own_closing_bracket() -> None:
     ],
 )
 def test_list_end(text: str, expected: int) -> None:
-    assert diagram._list_end(text) == expected
+    assert diagarrows.bracket_list_end(text) == expected
 
 
 def test_padding_for_removed_delimiters_goes_after_the_whole_list() -> None:
     line = _caller_line(PLAIN, BRACKETED, delimited=True)
     output_lines = [line]
 
-    diagram.cleanup_task_names(output_lines, 0, line)
+    diagclean.cleanup_task_names(output_lines, 0, line)
 
     assert output_lines[0] == _caller_line(PLAIN, BRACKETED, delimited=False) + " " * 4
 
@@ -83,7 +83,7 @@ def test_a_connector_is_followed_through_a_row_whose_blanks_were_taken_out_for_a
     ]
     state = SimpleNamespace()
 
-    groups = diagram.compute_diagram_connector_groups(lines, [(4, 6, 0)], state=state)
+    groups = diagarrows.compute_diagram_connector_groups(lines, [(4, 6, 0)], state=state)
 
     assert list(groups) == [0]
     covered = {row for row, _, _ in groups[0]}
@@ -101,13 +101,13 @@ def test_a_connector_is_not_joined_to_a_neighbour_that_only_looks_adjacent_in_th
         "  \u2570\u25ba\u2500\u2500\u256f",
     ]
 
-    groups = diagram.compute_diagram_connector_groups(lines, [(4, 6, 0)], state=SimpleNamespace())
+    groups = diagarrows.compute_diagram_connector_groups(lines, [(4, 6, 0)], state=SimpleNamespace())
 
     assert all(row != 2 for gid in groups for row, _, _ in groups[gid])
 
 
 def test_the_screen_columns_of_a_line_are_laid_out_for_wide_characters() -> None:
-    display, cell_to_char, char_to_cell = diagram._display_geometry(["a\U0001f504b\u2502"])
+    display, cell_to_char, char_to_cell = diagarrows._display_geometry(["a\U0001f504b\u2502"])
 
     assert display == ["a\U0001f504\x00b\u2502"]
     assert cell_to_char == [[0, 1, 1, 2, 3]]

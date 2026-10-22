@@ -65,7 +65,7 @@ are carried along verbatim by every function here but cannot be edited. Renaming
 a Scene also does not rewrite Task actions that name it (Show Scene, Hide Scene,
 Destroy Scene all take the Scene name as a string argument); those keep pointing
 at the old name. Both are the "details to be provided later" this sketch leaves
-room for -- see guiwins._build_scene_editor_body, the one place a dialog body
+room for -- see guiwins_scene._build_scene_editor_body, the one place a dialog body
 for them has to go.
 
 Never touches PrimeItems.xml_tree -- edits happen on a deep copy (Add/Rename) or
@@ -105,8 +105,8 @@ EXPORT = editcommon.EditorKind(
 )
 # The Scene's four size children, paired with the label the dialog shows for each.
 # The label lives here, next to the tag, rather than in guiwins, because three places
-# have to agree on this list and would otherwise drift: guiwins._build_scene_editor_body
-# builds one input per entry, userintr_editors._apply_scene_field_values validates them and names
+# have to agree on this list and would otherwise drift: guiwins_scene._build_scene_editor_body
+# builds one input per entry, userintr_fields.apply_scene_field_values validates them and names
 # them in its error messages, and set_scene_dimensions writes them back.  The labels are
 # English source strings -- every consumer runs them through translate_string.
 SCENE_DIMENSION_FIELDS = (
@@ -172,7 +172,7 @@ def create_new_scene(
 
     version is SCENE_VERSION_LEGACY or SCENE_VERSION_V2 -- the choice the Add
     Scene button prompts for before this is ever called (see
-    guiwins.build_add_scene_version_dialog).  It decides two things, and they go
+    guiwins_scene.build_add_scene_version_dialog).  It decides two things, and they go
     together:
 
       * V2 gets an <lj> child holding new_v2_layout(); Legacy gets none.
@@ -290,7 +290,7 @@ def set_scene_dimensions(edited_scene: EditableScene, dimensions: dict[str, str]
     path -- and because unlike the name, a size can't collide with anything, so
     there is nothing here to validate against the rest of the backup.  Whether
     the values are well-formed is the caller's business (see
-    userintr_editors._apply_scene_field_values, which checks them before calling this).
+    userintr_fields.apply_scene_field_values, which checks them before calling this).
     """
     for tag, value in dimensions.items():
         _set_child_text(edited_scene.scene_element, tag, value)

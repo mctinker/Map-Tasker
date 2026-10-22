@@ -19,7 +19,7 @@ from nicegui import ui
 
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.edit import sceneedit, sceneedit_legacy, taskedit, taskedit_addable, taskedit_model
-from maptasker.src.gui import sceneview
+from maptasker.src.gui import sceneview_legacy
 from maptasker.src.gui.guiwins_canvas import FIELD_COMMIT_DEBOUNCE_MS
 from maptasker.src.gui.guiwins_legacyarg import _render_legacy_arg
 from maptasker.src.gui.guiwins_taskedit import (
@@ -103,13 +103,13 @@ def _scene_properties_summary(scene_element: Element) -> str:
     """A one-line "this is what is set" for the designer's Scene Properties panel, which is
     a signpost to the form rather than the form (see render_scene_properties).
 
-    Reuses sceneview.scene_properties -- the same (label, value) rows the Preview captions
+    Reuses sceneview_legacy.scene_properties -- the same (label, value) rows the Preview captions
     its picture with -- so the panel and the picture cannot describe the same Scene
     differently.  What the Event and Actions tabs hold is added on the end -- which events
     fire a Task, whether a key press is swallowed, and how many action bar items there are --
     because none of it is something the Preview reports.
     """
-    rows = [f"{translate_string(label)}: {value}" for label, value in sceneview.scene_properties(scene_element)]
+    rows = [f"{translate_string(label)}: {value}" for label, value in sceneview_legacy.scene_properties(scene_element)]
     properties = sceneedit_legacy.legacy_scene_properties(scene_element)
     if properties is not None:
         fired = [
@@ -462,7 +462,7 @@ def _render_scene_geometry(
     These are NOT properties of the <PropertiesElement> -- they are the Scene's own
     <widthPort>/<heightPort>/<widthLand>/<heightLand> children, and the Scene dialog behind
     this one already has an input for each.  So these DRIVE THOSE WIDGETS rather than
-    writing the XML: userintr_editors._apply_scene_field_values reads exactly those four field_refs
+    writing the XML: userintr_fields.apply_scene_field_values reads exactly those four field_refs
     entries at save time, so a value written straight to the element here would be
     overwritten by whatever the dialog's own boxes still held.  One source of truth, and
     the two stay level whichever is typed into.
@@ -1155,7 +1155,7 @@ def _render_scene_event_new_task(
         # Attach it to the Project the Scene itself belongs to, the way the top-level Add Task
         # attaches to the Project that was selected before it opened.  A Task in no Project's
         # <tids> runs but appears in no generated view of any Project.  "" when the Scene
-        # belongs to none, which _finish_new_task reads as "nothing to attach to".
+        # belongs to none, which finish_new_task reads as "nothing to attach to".
         "target_project_name": sceneedit.project_owning_scene(scene_name, state=self.state),
     }
     pending[event.tag] = (edited_task, field_refs)

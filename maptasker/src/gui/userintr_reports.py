@@ -42,8 +42,8 @@ from maptasker.src.gui.guiutils import (
     remember_android_address,
     remember_android_address_fields,
 )
-from maptasker.src.gui.guiwins import build_changes_since_dialog, build_health_check_dialog
-from maptasker.src.gui.guiwins_views import NiceGuiTextView
+from maptasker.src.gui.guiwins_dialogs import build_changes_since_dialog, build_health_check_dialog
+from maptasker.src.gui.guiwins_textview import NiceGuiTextView
 from maptasker.src.gui.userintr_loading import local_xml_start_directory
 from maptasker.src.mapgen.varxref import build_report, run_variable_xref, suspects, write_variable_xref_report
 

@@ -8,7 +8,8 @@
 
 from xml.etree.ElementTree import Element
 
-from maptasker.src.core.format import format_html, format_label
+from maptasker.src.core.format import format_html
+from maptasker.src.core.htmllabel import format_label
 from maptasker.src.core.mapjump import TASKERNET_PART, Target, anchor_html
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.runcfg import RunConfig

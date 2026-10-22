@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import context, ui
 
-from maptasker.src.gui import sceneview
+from maptasker.src.gui import sceneview_v2
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 # ==========================================
 # The Scene canvas, shared by the read-only Preview and the Legacy designer.
 #
-# Both draw the same thing (sceneview.draw_scene) at the Scene's true pixel size and then
+# Both draw the same thing (sceneview_legacy.draw_scene) at the Scene's true pixel size and then
 # scale the whole canvas to fit.  The fitting has to happen in the browser -- the width to
 # fit into is the viewport's, which the server does not know -- so it goes out as JavaScript,
 # and the two callers scope it to their own wrapper class because a Preview and a designer
@@ -120,7 +120,13 @@ def _emit_v2_hull(root: str, width: int, height: int) -> None:
     does not change -- so nothing here accumulates across renders.
     """
     _call_canvas(
-        "hull", root, width, height, sceneview.V2_HULL_PADDING, sceneview.V2_COMPONENT_CLASS, sceneview.V2_HULL_CLASS
+        "hull",
+        root,
+        width,
+        height,
+        sceneview_v2.V2_HULL_PADDING,
+        sceneview_v2.V2_COMPONENT_CLASS,
+        sceneview_v2.V2_HULL_CLASS,
     )
 
 
@@ -169,7 +175,7 @@ def _v2_selection_props(selection: dict) -> str:
     contents -- still comes back with the run that is selected *now*.  See _emit_v2_dragging.
     """
     return (
-        f'data-mt-v2-sel="{sceneview.v2_encode_path(selection["path"])}" '
+        f'data-mt-v2-sel="{sceneview_v2.v2_encode_path(selection["path"])}" '
         f'data-mt-v2-count="{max(1, int(selection["count"]))}"'
     )
 
@@ -192,7 +198,7 @@ def _emit_v2_dragging(
     afterwards -- re-nesting is what the In/Out buttons are for, and this cannot do it.
 
     WHAT THE BROWSER KNOWS is two string tests, which is why paths are sent as strings (see
-    sceneview.v2_encode_path): two components are siblings when their paths agree up to the
+    sceneview_v2.v2_encode_path): two components are siblings when their paths agree up to the
     last separator, and one is inside another when its path starts with the other's plus a
     separator.  No component types, no slot rules, no schema -- all of that stays in Python.
 
@@ -276,7 +282,7 @@ def register_canvas(root: str, handlers: dict[str, Callable]) -> CanvasHandlers:
 #
 # It is here because a commit repaints the canvas, and a canvas is not a cheap thing to
 # repaint: every element is redrawn, and a Text element holding HTML or a Web element holding a
-# page is a sandboxed frame that reloads with it (see sceneview._html_frame).  Doing that once
+# page is a sandboxed frame that reloads with it (see sceneview_legacy.html_frame).  Doing that once
 # per '#FF8800' rather than eight times is the difference between a redraw and a flicker.
 FIELD_COMMIT_DEBOUNCE_MS = 350
 # Which clients have had the three canvas events subscribed.
@@ -297,7 +303,7 @@ _DESIGNER_SEQUENCE = itertools.count(1)
 def _register_canvas_events() -> None:
     """Subscribe the three canvas events for this page, once.
 
-    Called from guiwins.initialize_screen, while the layout is still being built -- not left to the
+    Called from guiwins_drawers.initialize_screen, while the layout is still being built -- not left to the
     first designer that opens.  ui.on adds its listener to client.layout, and by the time a
     dialog opens the browser has long had that element: a listener appearing on an element it
     already knows is what made NiceGUI re-render the whole layout and log "Event listeners

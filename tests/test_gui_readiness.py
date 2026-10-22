@@ -16,7 +16,7 @@ import pytest
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import projedit
-from maptasker.src.gui import guiwins
+from maptasker.src.gui import guiwins_project
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import readiness
 from nicegui import ui
@@ -62,7 +62,7 @@ async def _open_edit_project(user, gui) -> None:
     _load_configuration()
     edited = projedit.load_project_for_edit("Home", state=gui.state)
     with user.client:
-        guiwins.build_edit_project_dialog(gui, edited)
+        guiwins_project.build_edit_project_dialog(gui, edited)
 
 
 async def test_the_button_sits_with_the_redact_box_in_the_project_dialog() -> None:

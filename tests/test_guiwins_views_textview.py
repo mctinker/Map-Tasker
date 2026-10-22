@@ -1,4 +1,4 @@
-"""The Map, Diagram, Misc and Task Flow text view (guiwins_views.NiceGuiTextView), built on NiceGUI's user simulation.
+"""The Map, Diagram, Misc and Task Flow text view (guiwins_textview.NiceGuiTextView), built on NiceGUI's user simulation.
 
 The html it shows is made elsewhere and the helpers that prepare it are test_guiwins_views_text's.  This is the view itself:
 the toolbar each kind of view gets, the progress banner that stands in until the last piece has arrived, the way the Map's
@@ -19,8 +19,8 @@ import pytest
 from maptasker.src.core import mapjump
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import DIAGRAM_FILE
-from maptasker.src.gui import guiwins_views
-from maptasker.src.gui.guiwins_views import NiceGuiTextView
+from maptasker.src.gui import guiwins_mapstream, guiwins_textview, guiwins_views
+from maptasker.src.gui.guiwins_textview import NiceGuiTextView
 from maptasker.src.mapgen import diagintr, mapexport
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
@@ -258,7 +258,7 @@ async def test_a_task_flow_view_shows_the_report_built_from_its_rows(monkeypatch
 @pytest.mark.asyncio
 async def test_a_report_with_clickable_findings_has_them_wired(monkeypatch: pytest.MonkeyPatch) -> None:
     wired = []
-    monkeypatch.setattr(guiwins_views, "enable_finding_clicks", lambda view: wired.append(view))
+    monkeypatch.setattr(guiwins_textview, "enable_finding_clicks", lambda view: wired.append(view))
     async with _open(_make("Misc View", [f'<span class="{mapjump.FINDING_CLASS}">x</span>'])):
         assert wired == [_built["view"]]
 
@@ -266,7 +266,7 @@ async def test_a_report_with_clickable_findings_has_them_wired(monkeypatch: pyte
 @pytest.mark.asyncio
 async def test_a_report_with_no_findings_wires_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
     wired = []
-    monkeypatch.setattr(guiwins_views, "enable_finding_clicks", lambda view: wired.append(view))
+    monkeypatch.setattr(guiwins_textview, "enable_finding_clicks", lambda view: wired.append(view))
     async with _open(_make("Misc View", ["plain"])):
         assert wired == []
 
@@ -352,8 +352,8 @@ def test_the_first_font_named_in_a_text_is_found_and_stripped_of_quotes() -> Non
 
 @pytest.mark.asyncio
 async def test_a_large_map_is_streamed_in_several_pieces(monkeypatch: pytest.MonkeyPatch) -> None:
-    original = guiwins_views.split_for_streaming
-    monkeypatch.setattr(guiwins_views, "split_for_streaming", lambda html: original(html, budget=600))
+    original = guiwins_mapstream.split_for_streaming
+    monkeypatch.setattr(guiwins_textview, "split_for_streaming", lambda html: original(html, budget=600))
     _write("MapTasker.html", _MAP_HTML)
     async with _open(_make("Map View", {})) as user:
         pieces = _all(user, ui.html)
@@ -440,7 +440,7 @@ async def test_a_diagram_with_names_to_click_wires_the_interaction_and_says_how_
     monkeypatch.setattr(diagintr, "folds_by_line", lambda m: {})
     monkeypatch.setattr(diagintr, "interaction_js", lambda *args: "INTERACTION_JS")
     registered = []
-    monkeypatch.setattr(guiwins_views, "register_finding_clicks", lambda gui: registered.append(gui))
+    monkeypatch.setattr(guiwins_textview, "register_finding_clicks", lambda gui: registered.append(gui))
     _write(DIAGRAM_FILE, _DIAGRAM_LINES)
     async with _open(_make("Diagram View", [])) as user:
         assert "INTERACTION_JS" in _built["scripts"]
@@ -611,7 +611,7 @@ async def test_export_runs_off_the_event_loop_and_says_where_the_file_went(monke
         called.append((function, args, kwargs))
         return "/out/Map.md"
 
-    monkeypatch.setattr(guiwins_views.run, "io_bound", io_bound)
+    monkeypatch.setattr(guiwins_textview.run, "io_bound", io_bound)
     async with _open(_make("Map View", {})) as user:
         with user.client:
             await _built["view"].export_event(mapexport.MAP, "md")
@@ -630,7 +630,7 @@ async def test_an_export_that_cannot_be_made_or_saved_is_reported_and_one_that_r
             raise outcome["value"]
         return outcome["value"]
 
-    monkeypatch.setattr(guiwins_views.run, "io_bound", io_bound)
+    monkeypatch.setattr(guiwins_textview.run, "io_bound", io_bound)
     async with _open(_make("Map View", {})) as user:
         with user.client:
             await _built["view"].export_event(mapexport.MAP, "pdf")

@@ -9,7 +9,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.gui import sceneview
+from maptasker.src.gui import sceneview, sceneview_legacy, sceneview_v2style, sceneview_v2text
 
 
 def _args(inner: str) -> sceneview.ElementArgs:
@@ -90,31 +90,31 @@ def test_an_image_is_an_icon_a_file_or_nothing() -> None:
 # A rectangle
 # ##################################################################################
 def test_a_rectangle_with_a_fill_is_filled() -> None:
-    assert sceneview._rect_style(_args("<Str sr='arg2'>#FF336699</Str>")) == "background: rgba(51,102,153,1.0);"
+    assert sceneview_legacy._rect_style(_args("<Str sr='arg2'>#FF336699</Str>")) == "background: rgba(51,102,153,1.0);"
 
 
 def test_a_rectangle_with_no_colour_draws_no_background() -> None:
-    assert sceneview._rect_style(_args("")) == ""
+    assert sceneview_legacy._rect_style(_args("")) == ""
 
 
 def test_a_variable_fill_is_hatched_not_guessed() -> None:
-    assert sceneview.VARIABLE_FILL in sceneview._rect_style(_args("<Str sr='arg2'>%Fill</Str>"))
+    assert sceneview.VARIABLE_FILL in sceneview_legacy._rect_style(_args("<Str sr='arg2'>%Fill</Str>"))
 
 
 def test_a_shader_with_two_colours_is_a_gradient() -> None:
-    style = sceneview._rect_style(
+    style = sceneview_legacy._rect_style(
         _args("<Int sr='arg1' val='1'/><Str sr='arg2'>#FFFF0000</Str><Str sr='arg3'>#FF0000FF</Str>")
     )
     assert style.startswith("background: linear-gradient(to right, ")
 
 
 def test_a_border_has_a_width_and_a_colour() -> None:
-    style = sceneview._rect_style(_args("<Int sr='arg4' val='2'/><Str sr='arg5'>#FF0000FF</Str>"))
+    style = sceneview_legacy._rect_style(_args("<Int sr='arg4' val='2'/><Str sr='arg5'>#FF0000FF</Str>"))
     assert "border: 2px solid rgba(0,0,255,1.0);" in style
 
 
 def test_a_border_with_no_colour_gets_a_neutral_one() -> None:
-    assert "rgba(148,163,184,0.9)" in sceneview._rect_style(_args("<Int sr='arg4' val='1'/>"))
+    assert "rgba(148,163,184,0.9)" in sceneview_legacy._rect_style(_args("<Int sr='arg4' val='1'/>"))
 
 
 @pytest.mark.parametrize(
@@ -129,7 +129,7 @@ def test_a_border_with_no_colour_gets_a_neutral_one() -> None:
     ],
 )
 def test_the_corner_radius_applies_to_the_corners_asked_for(corners: int, expected: str) -> None:
-    style = sceneview._rect_style(_args(f"<Int sr='arg6' val='8'/><Int sr='arg7' val='{corners}'/>"))
+    style = sceneview_legacy._rect_style(_args(f"<Int sr='arg6' val='8'/><Int sr='arg7' val='{corners}'/>"))
     assert f"border-radius: {expected};" in style
 
 
@@ -150,11 +150,11 @@ def test_the_corner_radius_applies_to_the_corners_asked_for(corners: int, expect
     ],
 )
 def test_a_length_is_the_first_usable_key_in_pixels(source: dict, keys: tuple, expected: str) -> None:
-    assert sceneview._v2_number(source, *keys) == expected
+    assert sceneview_v2style.v2_number(source, *keys) == expected
 
 
 def test_padding_composes_the_way_compose_does() -> None:
-    style = sceneview._v2_padding({"horizontal": "8", "bottom": "2"})
+    style = sceneview_v2style._v2_padding({"horizontal": "8", "bottom": "2"})
     assert "padding-left: 8px;" in style
     assert "padding-right: 8px;" in style
     assert "padding-bottom: 2px;" in style
@@ -162,22 +162,22 @@ def test_padding_composes_the_way_compose_does() -> None:
 
 
 def test_a_size_given_as_all_sets_both_sides() -> None:
-    assert sceneview._v2_size({"all": "40"}) == "width: 40px; height: 40px; flex: none;"
+    assert sceneview_v2style._v2_size({"all": "40"}) == "width: 40px; height: 40px; flex: none;"
 
 
 def test_a_size_given_separately_sets_each() -> None:
-    assert sceneview._v2_size({"width": "10", "height": "20"}) == "width: 10px;height: 20px;flex: none;"
-    assert sceneview._v2_size({"width": "10"}) == "width: 10px;flex: none;"
+    assert sceneview_v2style._v2_size({"width": "10", "height": "20"}) == "width: 10px;height: 20px;flex: none;"
+    assert sceneview_v2style._v2_size({"width": "10"}) == "width: 10px;flex: none;"
 
 
 def test_a_size_with_nothing_usable_sets_nothing() -> None:
-    assert sceneview._v2_size({"width": "%w"}) == ""
-    assert sceneview._v2_size({}) == ""
+    assert sceneview_v2style._v2_size({"width": "%w"}) == ""
+    assert sceneview_v2style._v2_size({}) == ""
 
 
 def test_maximum_sizes_become_max_properties() -> None:
-    assert sceneview._v2_size_in({"maxWidth": "100", "maxHeight": "50"}) == "max-width: 100px;max-height: 50px;"
-    assert sceneview._v2_size_in({}) == ""
+    assert sceneview_v2style._v2_size_in({"maxWidth": "100", "maxHeight": "50"}) == "max-width: 100px;max-height: 50px;"
+    assert sceneview_v2style._v2_size_in({}) == ""
 
 
 @pytest.mark.parametrize(
@@ -185,7 +185,7 @@ def test_maximum_sizes_become_max_properties() -> None:
     [("0.5", "opacity: 0.5;"), ("2", "opacity: 1.0;"), ("-1", "opacity: 0.0;"), ("faint", ""), ("", "")],
 )
 def test_alpha_is_held_between_zero_and_one(value: str, expected: str) -> None:
-    assert sceneview._v2_alpha({"value": value}) == expected
+    assert sceneview_v2style._v2_alpha({"value": value}) == expected
 
 
 @pytest.mark.parametrize(
@@ -203,7 +203,7 @@ def test_alpha_is_held_between_zero_and_one(value: str, expected: str) -> None:
     ],
 )
 def test_a_font_weight_is_a_name_or_a_number_css_knows(amount: str, expected: str) -> None:
-    assert sceneview._v2_weight({"amount": amount}) == expected
+    assert sceneview_v2style._v2_weight({"amount": amount}) == expected
 
 
 @pytest.mark.parametrize(
@@ -211,13 +211,13 @@ def test_a_font_weight_is_a_name_or_a_number_css_knows(amount: str, expected: st
     [("0.5", "50%"), ("", "100%"), ("junk", "100%"), ("3", "100%"), ("-1", "0%")],
 )
 def test_a_fill_takes_a_fraction_of_the_space(fraction: str, expected: str) -> None:
-    assert sceneview._v2_fraction({"fraction": fraction}) == expected
+    assert sceneview_v2style._v2_fraction({"fraction": fraction}) == expected
 
 
 def test_a_circle_is_round_whatever_its_radius_says() -> None:
-    assert sceneview._v2_shape({"shape": "Circle", "radius": "4"}) == "border-radius: 50%;"
-    assert sceneview._v2_shape({"shape": "Rounded", "radius": "4"}) == "border-radius: 4px;"
-    assert sceneview._v2_shape({"shape": "Rounded"}) == ""
+    assert sceneview_v2style._v2_shape({"shape": "Circle", "radius": "4"}) == "border-radius: 50%;"
+    assert sceneview_v2style._v2_shape({"shape": "Rounded", "radius": "4"}) == "border-radius: 4px;"
+    assert sceneview_v2style._v2_shape({"shape": "Rounded"}) == ""
 
 
 # ##################################################################################
@@ -240,8 +240,8 @@ def test_a_circle_is_round_whatever_its_radius_says() -> None:
     ],
 )
 def test_an_action_is_described_in_a_line(action: dict, expected: str) -> None:
-    assert sceneview._v2_action_text(action) == expected
+    assert sceneview_v2style._v2_action_text(action) == expected
 
 
 def test_markup_is_taken_off_and_entities_put_back() -> None:
-    assert sceneview._v2_plain_text("Tom &amp; <b>Jerry</b>") == "Tom & Jerry"
+    assert sceneview_v2text._v2_plain_text("Tom &amp; <b>Jerry</b>") == "Tom & Jerry"

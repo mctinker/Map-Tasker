@@ -37,15 +37,22 @@ from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapfonts import get_monospaced_fonts
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import TIMELINE_FILE
-from maptasker.src.gui import guiwins, userintr_android, userintr_editors
+from maptasker.src.gui import (
+    guiwins,
+    guiwins_dialogs,
+    userintr_android,
+    userintr_editors,
+    userintr_fields,
+    userintr_finish,
+)
 from maptasker.src.gui.guiutils import (
     SINGLE_ITEM_LABELS,
     clear_single_item_view_names,
     is_no_selection,
     reset_single_item_selection,
 )
-from maptasker.src.gui.guiwins import document_language_html, set_document_language_js
-from maptasker.src.gui.guiwins_views import NiceGuiTextView
+from maptasker.src.gui.guiwins_drawers import document_language_html, set_document_language_js
+from maptasker.src.gui.guiwins_textview import NiceGuiTextView
 from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 
 # Taken before the autouse tasker_has_nothing fixture stubs it, for the tests of the check itself.
@@ -201,7 +208,7 @@ def gui_with_selection():
 # ==========================================
 def _optimized(raw_html: str) -> str:
     """The Map view's own pass over the file it reads, as process_data runs it."""
-    from maptasker.src.gui.guiwins_views import HTML_OPTIMIZE_PATTERN, optimize_html
+    from maptasker.src.gui.guiwins_mapstream import HTML_OPTIMIZE_PATTERN, optimize_html
 
     return HTML_OPTIMIZE_PATTERN.sub(optimize_html, raw_html)
 
@@ -248,7 +255,7 @@ def test_a_run_of_written_newlines_is_one_line_break():
 # ==========================================
 def _split(html: str, budget: int) -> list:
     """The view's own splitter."""
-    from maptasker.src.gui.guiwins_views import split_for_streaming
+    from maptasker.src.gui.guiwins_mapstream import split_for_streaming
 
     return split_for_streaming(html, budget)
 
@@ -1128,7 +1135,7 @@ def test_the_picked_date_is_read_or_refused(picked, expected):
     """A malformed or absent value is None, not an exception -- _confirm turns None into
     "Choose a date first" and leaves the dialog open, which is the recoverable answer.
     """
-    assert guiwins._parse_picked_date(picked) == expected
+    assert guiwins_dialogs._parse_picked_date(picked) == expected
 
 
 # ==========================================
@@ -1241,10 +1248,10 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
     monkeypatch.setattr(
         userintr_android.projedit, "project_profile_names", lambda _n, **_kw: ["Watched", "Also Watched"]
     )
-    monkeypatch.setattr(userintr_android, "_unapplied_project_edits", lambda _refs: [])
+    monkeypatch.setattr(userintr_android, "unapplied_project_edits", lambda _refs: [])
     monkeypatch.setattr(userintr_android.sceneedit, "render_standalone_scene_xml", lambda _n, **_kw: "<TaskerData/>")
     monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s, **_kw: None)
-    monkeypatch.setattr(userintr_android, "_apply_scene_field_values", lambda _s, _refs: [])
+    monkeypatch.setattr(userintr_android, "apply_scene_field_values", lambda _s, _refs: [])
     monkeypatch.setattr(
         userintr.MapTaskerEventHandlers,
         "_apply_profile_for_android",
@@ -1722,7 +1729,7 @@ async def test_unapplied_project_edits_stop_it_before_the_device(monkeypatch, ev
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")])
-    monkeypatch.setattr(userintr_android, "_unapplied_project_edits", lambda _refs: ["Colour was never applied."])
+    monkeypatch.setattr(userintr_android, "unapplied_project_edits", lambda _refs: ["Colour was never applied."])
     edited_project = MagicMock()
     edited_project.project_name = "Home"
 
@@ -1938,7 +1945,7 @@ async def test_a_scene_that_fails_validation_never_reaches_the_device(
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")])
-    monkeypatch.setattr(userintr_android, "_apply_scene_field_values", lambda _s, _refs: ["Width must be a number."])
+    monkeypatch.setattr(userintr_android, "apply_scene_field_values", lambda _s, _refs: ["Width must be a number."])
     edited_scene = MagicMock()
     edited_scene.scene_name = "Dialog"
 
@@ -2047,8 +2054,10 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
     monkeypatch.setattr(userintr_android, "ping_android_device", fake_ping)
     monkeypatch.setattr(userintr_android.taskedit_apply, "apply_edits_to_task", lambda *_args: [])
     monkeypatch.setattr(userintr_android.taskedit, "task_name_exists", lambda _name, **_kw: False)
-    monkeypatch.setattr(userintr_android, "_task_arg_values", lambda _refs: {})
+    monkeypatch.setattr(userintr_android, "task_arg_values", lambda _refs: {})
     monkeypatch.setattr(userintr_editors, "refresh_tasker_object_pulldowns", lambda _gui: None)
+    monkeypatch.setattr(userintr_fields, "refresh_tasker_object_pulldowns", lambda _gui: None)
+    monkeypatch.setattr(userintr_finish, "refresh_tasker_object_pulldowns", lambda _gui: None)
     # Both halves of _keep_task_in_loaded_config: which one runs depends on whether the Task
     # is already registered, and the handler must do exactly one of them.
     monkeypatch.setattr(
@@ -2312,7 +2321,7 @@ async def test_the_overwrite_prompt_waits_for_a_save_that_is_a_coroutine(monkeyp
     wait for them -- so pressing Overwrite must run it to the end, not start it and drop it.
     The local exports are still plain functions, and still have to work."""
     fake_ui = MagicMock()
-    monkeypatch.setattr(guiwins, "ui", fake_ui)
+    monkeypatch.setattr(guiwins_dialogs, "ui", fake_ui)
     ran: list = []
 
     async def device_save() -> None:
@@ -2321,7 +2330,9 @@ async def test_the_overwrite_prompt_waits_for_a_save_that_is_a_coroutine(monkeyp
 
     for on_confirm in (device_save, lambda: ran.append("function")):
         fake_ui.button.reset_mock()
-        guiwins.build_overwrite_confirm_dialog("'/Tasker/tasks/Opener.tsk.xml' on the Android device", on_confirm)
+        guiwins_dialogs.build_overwrite_confirm_dialog(
+            "'/Tasker/tasks/Opener.tsk.xml' on the Android device", on_confirm
+        )
         overwrite = next(call for call in fake_ui.button.call_args_list if call.args[0] == "Overwrite")
         await overwrite.kwargs["on_click"]()
 
@@ -2808,13 +2819,13 @@ def _patch_object_save_path(monkeypatch, kind: str, exists=False, upload=(0, "/T
         )
         monkeypatch.setattr(userintr_android.profedit, "save_profile_to_android", record)
     elif kind == "project":
-        monkeypatch.setattr(userintr_android, "_unapplied_project_edits", lambda _refs: [])
+        monkeypatch.setattr(userintr_android, "unapplied_project_edits", lambda _refs: [])
         monkeypatch.setattr(
             userintr_android.projedit, "android_project_path", lambda name: f"/Tasker/projects/{name}.prj.xml"
         )
         monkeypatch.setattr(userintr_android.projedit, "save_project_to_android", record)
     else:
-        monkeypatch.setattr(userintr_android, "_apply_scene_field_values", lambda _s, _refs: [])
+        monkeypatch.setattr(userintr_android, "apply_scene_field_values", lambda _s, _refs: [])
         monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s, **_kw: None)
         monkeypatch.setattr(
             userintr_android.sceneedit, "android_scene_path", lambda name: f"/Tasker/scenes/{name}.scn.xml"

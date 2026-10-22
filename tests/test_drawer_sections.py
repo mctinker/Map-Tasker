@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src.gui import guiwins
+from maptasker.src.gui import guiwins_drawers
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 
@@ -26,7 +26,7 @@ _window = SimpleNamespace(drawer_sections={})
 
 def _page() -> None:
     for key, title in (("history", "Compare & History"), ("analyze", "Analyze")):
-        with guiwins._drawer_section(_window, key, title, "history"):  # type: ignore[arg-type]
+        with guiwins_drawers._drawer_section(_window, key, title, "history"):  # type: ignore[arg-type]
             ui.button(f"{title} button")
 
 

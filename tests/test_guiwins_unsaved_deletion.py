@@ -7,7 +7,7 @@ import contextlib
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src.gui import guiwins
+from maptasker.src.gui import guiwins_dialogs
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
@@ -27,7 +27,7 @@ async def _save() -> bool:
 
 
 def _page() -> None:
-    guiwins.build_unsaved_deletion_dialog("Deleted Task 'Quiet'.", _save)
+    guiwins_dialogs.build_unsaved_deletion_dialog("Deleted Task 'Quiet'.", _save)
 
 
 @contextlib.asynccontextmanager

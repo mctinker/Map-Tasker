@@ -169,7 +169,7 @@ def handler(
 
 def helper_tasks(_gui: MyGui) -> None:
     """The dialog that offers to install the helper Tasks on the device."""
-    from maptasker.src.gui.guiwins import build_helper_tasks_dialog
+    from maptasker.src.gui.guiwins_dialogs import build_helper_tasks_dialog
 
     build_helper_tasks_dialog(
         ["MapTasker Open Profile v1", "MapTasker Open Task v1"],
@@ -180,7 +180,7 @@ def helper_tasks(_gui: MyGui) -> None:
 
 def helpers_in_the_way(_gui: MyGui) -> None:
     """The dialog that says old helper Tasks are in the way of installing the new ones."""
-    from maptasker.src.gui.guiwins import build_helpers_in_the_way_dialog
+    from maptasker.src.gui.guiwins_dialogs import build_helpers_in_the_way_dialog
 
     build_helpers_in_the_way_dialog(
         ["MapTasker Open Profile v1", "MapTasker Open Task v1"], "192.168.0.210:1821", project_exists=True
@@ -189,7 +189,7 @@ def helpers_in_the_way(_gui: MyGui) -> None:
 
 def overwrite_confirm(_gui: MyGui) -> None:
     """The dialog that asks before overwriting a file that already exists."""
-    from maptasker.src.gui.guiwins import build_overwrite_confirm_dialog
+    from maptasker.src.gui.guiwins_dialogs import build_overwrite_confirm_dialog
 
     build_overwrite_confirm_dialog("/Users/you/Documents/MapTasker/Remind Me.tsk.xml", lambda: None)
 

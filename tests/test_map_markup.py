@@ -19,8 +19,9 @@ import io
 
 import pytest
 from maptasker.src.core.colrmode import set_color_mode
-from maptasker.src.core.format import SpanBalancer, format_label
+from maptasker.src.core.htmllabel import format_label
 from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.mapwriter import SpanBalancer
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen.lineout import LineOut
 

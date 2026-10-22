@@ -32,7 +32,7 @@ from maptasker.src.mapgen import (
     caveats,
     codelint,
     condition,
-    diagram,
+    diagrecord,
     diagutil,
     frontmtr,
     getbakup,
@@ -115,8 +115,8 @@ def test_a_diagram_object_is_recorded_on_the_state_it_is_given() -> None:
     """The box is noted and then flushed to its rows, all without the global being set up."""
     state = RunState()
     diagutil.add_output_line("header", state=state)
-    diagram._note_box(_PROFILE, "║ Wake Up", state=state)
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=state)
+    diagrecord.note_box(_PROFILE, "║ Wake Up", state=state)
+    diagrecord.flush_boxes(["top", "║ Wake Up ║", "bottom"], state=state)
 
     assert state.diagram_object_seeds[_PROFILE.anchor][0] == 2
     assert PrimeItems.diagram_object_seeds == {}
@@ -749,14 +749,14 @@ def test_the_diagram_pending_notes_belong_to_the_state_they_were_noted_on() -> N
     first, second = RunState(), RunState()
     for state in (first, second):
         diagutil.add_output_line("header", state=state)
-    diagram._note_box(_PROFILE, "║ Wake Up", state=first)
+    diagrecord.note_box(_PROFILE, "║ Wake Up", state=first)
 
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=second)
+    diagrecord.flush_boxes(["top", "║ Wake Up ║", "bottom"], state=second)
 
     assert second.diagram_object_seeds == {}
     assert len(first.diagram_pending_boxes) == 1
 
-    diagram._flush_boxes(["top", "║ Wake Up ║", "bottom"], state=first)
+    diagrecord.flush_boxes(["top", "║ Wake Up ║", "bottom"], state=first)
 
     assert first.diagram_object_seeds[_PROFILE.anchor][0] == 2
     assert first.diagram_pending_boxes == []

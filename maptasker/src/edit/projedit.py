@@ -310,8 +310,8 @@ def set_project_enabled(edited_project: EditableProject, enabled: bool, state: R
     element as well as the edited copy, and does it the moment the toggle is
     flipped rather than at save time.  Both of Edit Project's saves render from
     the live tree by name (write_standalone_project_xml/save_project_to_android
-    take project_name, not this copy -- see guiwins.EDIT_PROJECT_INERT_FIELDS and
-    userintr_editors._unapplied_project_edits for the trap that creates), and "Save To
+    take project_name, not this copy -- see guiwins_project.EDIT_PROJECT_INERT_FIELDS and
+    userintr_fields.unapplied_project_edits for the trap that creates), and "Save To
     Current File" writes the whole live backup, so a disable left on the copy
     alone would be missing from all three.  Applying immediately also matches
     what the rest of this dialog already does: Rename and Delete both hit the

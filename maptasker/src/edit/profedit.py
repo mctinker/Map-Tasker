@@ -1282,7 +1282,7 @@ def add_task_to_project(task_id: str, project_name: str, state: RunState) -> Non
     add_profile_to_project, for Tasks instead of Profiles. Call once, right
     after taskedit_save.register_new_task, for the top-level "Add Task" button
     (see userintr_editors.open_add_task_dialog_event, which requires a single Project
-    already be selected, and userintr_editors._finish_new_task, which calls this with
+    already be selected, and userintr_finish.finish_new_task, which calls this with
     it).
 
     Real Tasker backups list every Task belonging to a Project in <tids> --

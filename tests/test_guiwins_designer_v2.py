@@ -21,8 +21,8 @@ from typing import TYPE_CHECKING
 import pytest
 from maptasker.src.core import scenelayout
 from maptasker.src.core.primitem import PrimeItems
-from maptasker.src.edit import sceneedit_v2
-from maptasker.src.gui import guiwins_canvas, guiwins_designer_v2, guiwins_views, sceneview
+from maptasker.src.edit import sceneedit_v2, sceneedit_v2nodes, sceneedit_v2state, sceneedit_v2tree
+from maptasker.src.gui import guiwins_canvas, guiwins_designer_v2, guiwins_sceneview, sceneview_v2
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
@@ -116,15 +116,15 @@ def _row(user: User, path: tuple) -> ui.label:
 
 
 def _paths() -> list[tuple]:
-    return [row.path for row in sceneedit_v2.v2_flatten(_built["layout"])]
+    return [row.path for row in sceneedit_v2tree.v2_flatten(_built["layout"])]
 
 
 def _ids() -> list[str]:
-    return [row.label for row in sceneedit_v2.v2_flatten(_built["layout"])]
+    return [row.label for row in sceneedit_v2tree.v2_flatten(_built["layout"])]
 
 
 def _node(path: tuple) -> dict | None:
-    return sceneedit_v2.v2_node_at(_built["layout"], path)
+    return sceneedit_v2tree.v2_node_at(_built["layout"], path)
 
 
 async def _select(user: User, path: tuple) -> None:
@@ -213,7 +213,7 @@ async def test_clicking_a_row_selects_it_highlights_it_and_enables_the_toolbar()
 async def test_the_inspector_is_headed_by_the_selected_components_label() -> None:
     async with _open() as user:
         await _select(user, CONTENT)
-        heading = sceneedit_v2.v2_node_label(_node(CONTENT))
+        heading = sceneedit_v2tree.v2_node_label(_node(CONTENT))
         assert heading in [e.text for e in user.client.elements.values() if isinstance(e, ui.label)]
 
 
@@ -222,11 +222,11 @@ async def test_shift_extending_a_selection_takes_the_siblings_between_and_nothin
     async with _open():
         designer = _built["designer"]
         designer.select(HEADER)
-        designer.select_from_surface({"path": sceneview.v2_encode_path(BUTTON_ROW), "extend": True})
+        designer.select_from_surface({"path": sceneview_v2.v2_encode_path(BUTTON_ROW), "extend": True})
         assert designer.selection == {"path": HEADER, "count": 3}
 
         # Into another container: no run could reach there, so it is a fresh selection of that component.
-        designer.select_from_surface({"path": sceneview.v2_encode_path(TITLE), "extend": True})
+        designer.select_from_surface({"path": sceneview_v2.v2_encode_path(TITLE), "extend": True})
         assert designer.selection == {"path": TITLE, "count": 1}
 
 
@@ -365,7 +365,7 @@ async def test_delete_removes_the_component_selects_nothing_and_can_be_undone() 
 
 @pytest.mark.asyncio
 async def test_delete_warns_when_a_task_addresses_the_component_by_id(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(sceneedit_v2, "find_component_id_references", lambda *_a, **_k: ["Fetcher", "Quiet"])
+    monkeypatch.setattr(sceneedit_v2nodes, "find_component_id_references", lambda *_a, **_k: ["Fetcher", "Quiet"])
     async with _open() as user:
         await _select(user, BODY_TEXT)
         _press(user, "Delete")
@@ -377,7 +377,7 @@ async def test_delete_warns_when_a_task_addresses_the_component_by_id(monkeypatc
 async def test_a_delete_the_model_refuses_is_reported_and_leaves_the_layout_alone(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(sceneedit_v2, "v2_delete_node", lambda *_a, **_k: ["The root can't be deleted."])
+    monkeypatch.setattr(sceneedit_v2nodes, "v2_delete_node", lambda *_a, **_k: ["The root can't be deleted."])
     async with _open() as user:
         original = copy.deepcopy(_built["layout"])
         await _select(user, BODY_TEXT)
@@ -435,7 +435,7 @@ async def test_picking_a_chip_inserts_that_element_and_selects_it() -> None:
         _press(user, "Add")
         entry = next(
             entry
-            for _g, entries in sceneedit_v2.v2_palette_for(_built["layout"], CONTENT)
+            for _g, entries in sceneedit_v2nodes.v2_palette_for(_built["layout"], CONTENT)
             for entry, reason in entries
             if not reason and entry.node_type == "Text"
         )
@@ -449,7 +449,7 @@ async def test_picking_a_chip_inserts_that_element_and_selects_it() -> None:
 async def test_picking_a_blocked_chip_explains_instead_of_inserting() -> None:
     blocked = [
         (entry, reason)
-        for _g, entries in sceneedit_v2.v2_palette_for(_layout(), CLOSE_BUTTON)
+        for _g, entries in sceneedit_v2nodes.v2_palette_for(_layout(), CLOSE_BUTTON)
         for entry, reason in entries
         if reason
     ]
@@ -566,8 +566,8 @@ async def test_a_state_property_writes_the_state_it_was_given() -> None:
         picker = _widget(user, ui.select, "Enabled")
         state = next(option for option in picker.options if option and option != sceneedit_v2.V2_DYNAMIC_STATE)
         picker.value = state
-        field = sceneedit_v2.v2_state_field("enabled")
-        assert sceneedit_v2.v2_state_of(field, _node(TITLE).get("enabled", "")) == state
+        field = sceneedit_v2state.v2_state_field("enabled")
+        assert sceneedit_v2state.v2_state_of(field, _node(TITLE).get("enabled", "")) == state
 
 
 @pytest.mark.asyncio
@@ -633,7 +633,7 @@ async def test_the_component_id_is_renamed_on_blur_and_kept_unique() -> None:
 
 @pytest.mark.asyncio
 async def test_a_component_addressed_by_id_from_a_task_says_so(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(sceneedit_v2, "find_component_id_references", lambda *_a, **_k: ["Fetcher"])
+    monkeypatch.setattr(sceneedit_v2nodes, "find_component_id_references", lambda *_a, **_k: ["Fetcher"])
     async with _open() as user:
         await _select(user, BODY_TEXT)
         assert "Addressed by id from: Fetcher" in _texts(user)
@@ -855,7 +855,7 @@ async def test_the_show_when_picker_inserts_a_variable_into_the_field_and_closes
             if isinstance(e, ui.button) and e.props.get("icon") == "playlist_add" and e.parent_slot.parent is field
         )
         _click(user, opener)
-        choice = sceneedit_v2.v2_show_when_choices(state=PrimeItems)[0][1][0]
+        choice = sceneedit_v2state.v2_show_when_choices(state=PrimeItems)[0][1][0]
         button = next(
             e
             for e in user.client.elements.values()
@@ -863,7 +863,7 @@ async def test_the_show_when_picker_inserts_a_variable_into_the_field_and_closes
         )
         _click(user, button)
         await asyncio.sleep(0.1)
-        assert field.value == sceneedit_v2.v2_insert_show_when("a b", choice.value, None)[0]
+        assert field.value == sceneedit_v2state.v2_insert_show_when("a b", choice.value, None)[0]
         assert _node(TITLE)["showWhen"] == field.value
         dialog = next(e for e in user.client.elements.values() if isinstance(e, ui.dialog) and e.id > field.id)
         assert dialog.value is False, "closed on the pick so the result is visible"
@@ -932,7 +932,7 @@ async def test_the_icon_picker_replaces_the_field_with_the_icon_chosen() -> None
         assert 0 < len(tiles) <= guiwins_designer_v2._ICON_PREVIEW_LIMIT
         name = tiles[0].default_slot.children[1].text
         _click(user, tiles[0])
-        assert field.value == sceneedit_v2.v2_icon_reference(name)
+        assert field.value == sceneedit_v2tree.v2_icon_reference(name)
         assert _node(CLOSE_BUTTON)["icon"] == field.value
 
 
@@ -1030,7 +1030,7 @@ async def _open_mounted() -> AsyncIterator[User]:
 async def test_a_scene_dialog_mounts_the_designer_over_the_scenes_own_layout() -> None:
     _built["scene"] = _scene(_layout())
     async with _open_mounted() as user:
-        assert f"Scene Components ({len(sceneedit_v2.v2_flatten(_layout()))})" in _texts(user)
+        assert f"Scene Components ({len(sceneedit_v2tree.v2_flatten(_layout()))})" in _texts(user)
         assert _built["field_refs"]["v2_layout"]["root"]["id"] == "root_column"
 
 
@@ -1063,7 +1063,9 @@ async def test_a_scene_dialog_closed_for_good_leaves_nothing_of_its_designer_beh
                 guiwins_designer_v2.V2Designer().build_body(
                     SimpleNamespace(), _built["scene"], field_refs, dialog, PrimeItems
                 )
-            dialog.on_value_change(lambda e, d=dialog, f=field_refs: guiwins_views._scene_dialog_closed(gui, d, f, e))
+            dialog.on_value_change(
+                lambda e, d=dialog, f=field_refs: guiwins_sceneview._scene_dialog_closed(gui, d, f, e)
+            )
             dialog.open()
             assert len(guiwins_canvas._ACTIVE_CANVASES) == table + 1
             dialog.close()

@@ -7,7 +7,7 @@ directory, twisty and the rest), name styling, indent, font, colors, language, t
 limits, the notification timeout, and the Save, Restore and Reset buttons.
 
 rebuild_gui_layout moved with them: it is how Reset and a change of language redraw the window,
-and nothing else calls it.  The window itself is still laid out by guiwins.initialize_screen,
+and nothing else calls it.  The window itself is still laid out by guiwins_drawers.initialize_screen,
 and the settings are still read and written by getputer.
 """
 
@@ -45,13 +45,8 @@ from maptasker.src.gui.guiutils import (
     set_tasker_object_names,
     update_tasker_object_menus,
 )
-from maptasker.src.gui.guiwins import (
-    NOTIFY_TIMEOUT_CHOICES,
-    initialize_screen,
-    set_document_language_js,
-    set_notification_timeout,
-    view_limit_options,
-)
+from maptasker.src.gui.guiwins import NOTIFY_TIMEOUT_CHOICES, set_notification_timeout, view_limit_options
+from maptasker.src.gui.guiwins_drawers import initialize_screen, set_document_language_js
 from maptasker.src.gui.guiwins_nav import element_is_live, live_views
 from maptasker.src.mapgen.outline import outline_the_configuration
 
@@ -636,7 +631,7 @@ class SettingsEventHandlers:
 
         # 2. Change the menu dropdown value safely using the lock flag. The dropdown's
         # options are a {english_key: translated_label} dict (see
-        # _create_language_selection_section in guiwins.py), so its "value" must be the
+        # create_language_selection_section in guiwins_tabs.py), so its "value" must be the
         # English key -- assigning the translated label here would match no option and
         # leave the pulldown showing blank.
         if hasattr(the_view, "language_optionmenu") and the_view.language_optionmenu:

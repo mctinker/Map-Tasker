@@ -53,7 +53,7 @@
     "C901": 14,
     "PLR0912": 14
   },
-  "maptasker/src/gui/sceneview.py::_draw_item_layout": {
+  "maptasker/src/gui/sceneview_legacy.py::_draw_item_layout": {
     "PLR0913": 9
   },
   "maptasker/src/gui/userintr.py::MyGui.check_name": {
@@ -92,7 +92,7 @@
   "maptasker/src/gui/userintr_android.py::AndroidEventHandlers.save_task_to_android_file_event": {
     "LINES": 108
   },
-  "maptasker/src/mapgen/diagram.py::output_the_task": {
+  "maptasker/src/mapgen/diagprint.py::output_the_task": {
     "PLR0913": 9
   },
   "maptasker/src/mapgen/diagutil.py::get_task_details_and_save": {

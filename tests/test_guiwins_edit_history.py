@@ -84,7 +84,7 @@ async def test_the_undo_buttons_follow_the_state_of_their_own_window() -> None:
     def page() -> None:
         for name, state in (("edited", edited), ("untouched", untouched)):
             window = SimpleNamespace(state=state, event_handlers=MagicMock())
-            guiwins._create_undo_section(window)
+            guiwins.create_undo_section(window)
             built[name] = window
 
     async with _open(page) as user:

@@ -18,8 +18,9 @@ import pytest
 from maptasker.src.core import scenelayout
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sceneedit, scenemodel
-from maptasker.src.gui import guiwins_views, sceneview
-from maptasker.src.gui.guiwins_views import NiceGuiSceneView, NiceGuiTreeView
+from maptasker.src.gui import guiwins_sceneview, sceneview, sceneview_v2, sceneview_v2base
+from maptasker.src.gui.guiwins_sceneview import NiceGuiSceneView
+from maptasker.src.gui.guiwins_views import NiceGuiTreeView
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
@@ -136,29 +137,29 @@ def _window() -> SimpleNamespace:
 
 def test_previewing_marks_the_session_suspended_but_only_for_the_dialog_that_stepped_aside() -> None:
     gui = _window()
-    guiwins_views.suspend_scene_editor_session(gui, "OTHER")
+    guiwins_sceneview.suspend_scene_editor_session(gui, "OTHER")
     assert gui.scene_editor_session["suspended"] is False
-    guiwins_views.suspend_scene_editor_session(gui, "D")
+    guiwins_sceneview.suspend_scene_editor_session(gui, "D")
     assert gui.scene_editor_session["suspended"] is True
-    guiwins_views.suspend_scene_editor_session(SimpleNamespace(), "D")  # a window with no session: nothing to mark
+    guiwins_sceneview.suspend_scene_editor_session(SimpleNamespace(), "D")  # a window with no session: nothing to mark
 
 
 def test_a_suspended_editor_is_handed_back_once_and_only_for_its_own_scene() -> None:
     gui = _window()
-    assert guiwins_views.suspended_scene_editor(gui, "Panel") is None, "nothing is suspended yet"
-    guiwins_views.suspend_scene_editor_session(gui, "D")
-    assert guiwins_views.suspended_scene_editor(gui, "Other") is None
-    assert guiwins_views.suspended_scene_editor(gui, "Panel") == "D"
-    assert guiwins_views.suspended_scene_editor(gui, "Panel") is None, "marked resumed, so not handed back twice"
-    assert guiwins_views.suspended_scene_editor(SimpleNamespace(), "Panel") is None
+    assert guiwins_sceneview.suspended_scene_editor(gui, "Panel") is None, "nothing is suspended yet"
+    guiwins_sceneview.suspend_scene_editor_session(gui, "D")
+    assert guiwins_sceneview.suspended_scene_editor(gui, "Other") is None
+    assert guiwins_sceneview.suspended_scene_editor(gui, "Panel") == "D"
+    assert guiwins_sceneview.suspended_scene_editor(gui, "Panel") is None, "marked resumed, so not handed back twice"
+    assert guiwins_sceneview.suspended_scene_editor(SimpleNamespace(), "Panel") is None
 
 
 def test_going_back_to_the_editor_clears_the_mark() -> None:
     gui = _window()
-    guiwins_views.suspend_scene_editor_session(gui, "D")
-    guiwins_views._resume_scene_editor_session(gui, "D")
+    guiwins_sceneview.suspend_scene_editor_session(gui, "D")
+    guiwins_sceneview._resume_scene_editor_session(gui, "D")
     assert gui.scene_editor_session["suspended"] is False
-    guiwins_views._resume_scene_editor_session(gui, "OTHER")  # someone else's dialog: left alone
+    guiwins_sceneview._resume_scene_editor_session(gui, "OTHER")  # someone else's dialog: left alone
 
 
 @pytest.mark.asyncio
@@ -172,7 +173,7 @@ async def test_closing_the_dialog_repaints_only_the_previews_it_launched_and_sto
         repainted = []
         view.render = lambda: repainted.append(True)
 
-        guiwins_views._scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=False))
+        guiwins_sceneview._scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=False))
 
         assert field_refs == {"other": 3}, "its handlers outlive the dialog and would take drags into a finished editor"
         assert repainted == [True]
@@ -186,11 +187,11 @@ async def test_opening_the_dialog_or_hiding_it_for_a_preview_repaints_nothing() 
         repainted = []
         view.render = lambda: repainted.append(True)
         field_refs = {"legacy_edit": {}}
-        guiwins_views._scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=True))
+        guiwins_sceneview._scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=True))
         assert repainted == [] and "legacy_edit" in field_refs, "opening is not closing"
 
         gui.scene_editor_session = {"dialog": dialog, "name": "Panel", "suspended": True}
-        guiwins_views._scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=False))
+        guiwins_sceneview._scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=False))
         assert repainted == [] and "legacy_edit" in field_refs, "a preview is holding it hidden: that is not the end"
 
 
@@ -297,7 +298,9 @@ async def test_a_percentage_zoom_is_passed_to_the_fit_and_an_unreadable_one_mean
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     fits = []
-    monkeypatch.setattr(guiwins_views, "_emit_canvas_fit", lambda root, width, height, fixed=None: fits.append(fixed))
+    monkeypatch.setattr(
+        guiwins_sceneview, "_emit_canvas_fit", lambda root, width, height, fixed=None: fits.append(fixed)
+    )
     async with _open():
         view = _built["view"]
         view.zoom = "150%"
@@ -400,7 +403,7 @@ async def test_a_version_2_preview_offers_a_screen_not_a_density() -> None:
 async def test_the_caption_names_the_screen_the_layout_was_laid_out_in() -> None:
     _built["version"] = "v2"
     async with _open() as user:
-        name, width, height = sceneview.V2_SCREENS[0]
+        name, width, height = sceneview_v2base.V2_SCREENS[0]
         assert any(text.startswith(f"Drawn in {name} {width} x {height} dp") for text in _texts(user))
         assert any(text.startswith("The screen size is this preview's") for text in _texts(user))
 
@@ -410,7 +413,7 @@ async def test_choosing_another_screen_or_landscape_changes_the_frame() -> None:
     _built["version"] = "v2"
     async with _open() as user:
         view = _built["view"]
-        tablet = next(screen for screen in sceneview.V2_SCREENS if screen[0] == "Tablet")
+        tablet = next(screen for screen in sceneview_v2base.V2_SCREENS if screen[0] == "Tablet")
         _select(user, "Screen").value = "Tablet"
         assert view._screen_size() == (tablet[1], tablet[2])
         _switch(user, "Landscape").value = True
@@ -424,7 +427,7 @@ async def test_an_unknown_screen_name_falls_back_to_the_first() -> None:
     async with _open():
         view = _built["view"]
         view.screen = "Mystery"
-        _name, width, height = sceneview.V2_SCREENS[0]
+        _name, width, height = sceneview_v2base.V2_SCREENS[0]
         assert view._screen_size() == (width, height)
 
 
@@ -434,7 +437,7 @@ async def test_a_version_2_preview_draws_the_layout_the_dialog_holds_not_the_one
     layout = scenelayout.v2_template_layout("Typed", "Dialog with buttons")
     _built["field_refs"] = {"v2_layout": layout}
     async with _open() as user:
-        assert any(f"{sceneview.v2_component_count(layout)} component(s)" in text for text in _texts(user))
+        assert any(f"{sceneview_v2.v2_component_count(layout)} component(s)" in text for text in _texts(user))
 
 
 @pytest.mark.asyncio

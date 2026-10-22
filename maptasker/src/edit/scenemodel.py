@@ -53,7 +53,7 @@ from maptasker.src.core.mapjump import (
     v2_strings,
 )
 from maptasker.src.core.sysconst import SCENE_TASK_TYPES, UNSET_DIMENSION
-from maptasker.src.edit import sceneedit_legacy, sceneedit_v2
+from maptasker.src.edit import sceneedit_legacy, sceneedit_v2events, sceneedit_v2tree
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -314,8 +314,8 @@ class V2Model:
         anywhere underneath.
         """
         parts: dict[int, dict[str, str]] = {}
-        for row in sceneedit_v2.v2_flatten(layout):
-            child_slots = {slot for slot, _ in sceneedit_v2.v2_child_slots(row.node)}
+        for row in sceneedit_v2tree.v2_flatten(layout):
+            child_slots = {slot for slot, _ in sceneedit_v2tree.v2_child_slots(row.node)}
             wanted = {
                 key: scene_component_part(row.path, key)
                 for key, value in row.node.items()
@@ -335,7 +335,7 @@ class V2Model:
         if layout is None:
             return ""
         node_path, key = path
-        node = sceneedit_v2.v2_node_at(layout, node_path)
+        node = sceneedit_v2tree.v2_node_at(layout, node_path)
         return node.get(key) if node is not None else ""
 
     def rewrite_property(self, scene_element: Element, path: tuple, transform: Callable[[object], object]) -> bool:
@@ -349,7 +349,7 @@ class V2Model:
         if layout is None:
             return False
         node_path, key = path
-        node = sceneedit_v2.v2_node_at(layout, node_path)
+        node = sceneedit_v2tree.v2_node_at(layout, node_path)
         if node is None or key not in node:
             return False
         node[key] = transform(node[key])
@@ -374,8 +374,8 @@ class V2Model:
         if layout is None:
             return
 
-        for row in sceneedit_v2.v2_flatten(layout):
-            child_slots = {slot for slot, _ in sceneedit_v2.v2_child_slots(row.node)}
+        for row in sceneedit_v2tree.v2_flatten(layout):
+            child_slots = {slot for slot, _ in sceneedit_v2tree.v2_child_slots(row.node)}
             for key, value in row.node.items():
                 if key in child_slots:
                     continue
@@ -413,8 +413,8 @@ class V2Model:
         if layout is None:
             return
 
-        for row in sceneedit_v2.v2_flatten(layout):
-            for handler in sceneedit_v2.v2_handlers(row.node):
+        for row in sceneedit_v2tree.v2_flatten(layout):
+            for handler in sceneedit_v2events.v2_handlers(row.node):
                 for action in handler.get("actions") or ():
                     if not isinstance(action, dict) or action.get("type") != "RunTask":
                         continue

@@ -308,7 +308,7 @@ class Reference:
     # RELEVANT_VARIABLES is named nowhere in the file.
     element: Element | None = None
     # Version 2 Scenes only, whose values live inside a gzipped JSON blob rather than in
-    # an element: (component path, property key), which sceneedit_v2.v2_node_at resolves
+    # an element: (component path, property key), which sceneedit_v2tree.v2_node_at resolves
     # against a freshly decoded layout.  `element` is the <Scene> itself for these.
     path: tuple = ()
 

@@ -27,9 +27,9 @@ from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.core.sysconst import logger
 from maptasker.src.gui.guistate import capture_gui_state, do_colors, live_selection, reapply_selection
-from maptasker.src.gui.guiwins import inject_shared_head_styles
+from maptasker.src.gui.guiwins_drawers import inject_shared_head_styles
 from maptasker.src.gui.guiwins_nav import register_finding_clicks
-from maptasker.src.gui.guiwins_views import NiceGuiTextView
+from maptasker.src.gui.guiwins_textview import NiceGuiTextView
 
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState

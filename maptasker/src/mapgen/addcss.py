@@ -11,7 +11,7 @@ import contextlib
 from typing import TYPE_CHECKING
 
 from maptasker.src.core import assettext
-from maptasker.src.core.format import is_dark_color
+from maptasker.src.core.htmlsafe import is_dark_color
 from maptasker.src.core.sysconst import FONT_FAMILY, SPACE_COUNT1, SPACE_COUNT2, SPACE_COUNT3, FormatLine
 
 if TYPE_CHECKING:

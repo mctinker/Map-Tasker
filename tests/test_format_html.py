@@ -16,16 +16,17 @@ from __future__ import annotations
 
 import pytest
 from maptasker.src.core import format as fmt
+from maptasker.src.core import htmllabel, htmlsafe, htmlstyle, htmltext, mapwriter
 
 _COLORS = {"background_color": "white", "action_label_color": "Black", "taskernet_color": "Blue"}
 
 
 def _label(text: str) -> str:
-    return fmt.format_label(text, _COLORS)
+    return htmllabel.format_label(text, _COLORS)
 
 
 def _segments(text: str) -> list[dict]:
-    return fmt.parse_html_to_text_segments(text)
+    return htmltext.parse_html_to_text_segments(text)
 
 
 def _texts(text: str) -> list[str]:
@@ -204,7 +205,7 @@ def test_an_image_data_uri_is_kept_and_any_other_data_uri_is_not() -> None:
     ["http://a.com/x", "HTTPS://a", "mailto:a@b", "#top", "/p", "./p", "../p", "page.html", "a/b:c", "//host/x"],
 )
 def test_a_url_with_a_safe_scheme_or_none_passes_unchanged(url: str) -> None:
-    assert fmt.safe_url(url) == url
+    assert htmlsafe.safe_url(url) == url
 
 
 @pytest.mark.parametrize(
@@ -221,35 +222,35 @@ def test_a_url_with_a_safe_scheme_or_none_passes_unchanged(url: str) -> None:
     ],
 )
 def test_a_url_that_could_run_or_is_not_known_is_refused(url: str) -> None:
-    assert fmt.safe_url(url) == ""
+    assert htmlsafe.safe_url(url) == ""
 
 
 def test_whitespace_that_browsers_ignore_inside_a_scheme_does_not_hide_it() -> None:
-    assert fmt.safe_url("jav\tascr\nipt:alert(1)") == ""
-    assert fmt.safe_url("  https://ok.com  ") == "https://ok.com"
+    assert htmlsafe.safe_url("jav\tascr\nipt:alert(1)") == ""
+    assert htmlsafe.safe_url("  https://ok.com  ") == "https://ok.com"
 
 
 def test_an_image_url_allows_image_data_and_nothing_else_data() -> None:
-    assert fmt.image_source("data:image/png;base64,AAA") == "data:image/png;base64,AAA"
+    assert htmlsafe.image_source("data:image/png;base64,AAA") == "data:image/png;base64,AAA"
     assert (
-        fmt.image_source("DATA:IMAGE/png;base64,AAA") == "DATA:IMAGE/png;base64,AAA"
+        htmlsafe.image_source("DATA:IMAGE/png;base64,AAA") == "DATA:IMAGE/png;base64,AAA"
     )  # Schemes are not case sensitive.
-    assert fmt.image_source("data:text/html;base64,AAA") == ""
-    assert fmt.image_source("https://x.com/a.png") == "https://x.com/a.png"
-    assert fmt.image_source("javascript:x") == ""
+    assert htmlsafe.image_source("data:text/html;base64,AAA") == ""
+    assert htmlsafe.image_source("https://x.com/a.png") == "https://x.com/a.png"
+    assert htmlsafe.image_source("javascript:x") == ""
 
 
 def test_an_inline_style_loses_only_the_declarations_that_reach_outside_it() -> None:
     style = "color: red; background:url(http://x/y); width: expression(alert(1)); x: javascript:y; margin:0;;"
 
-    assert fmt.safe_style(style) == "color: red; margin:0"
-    assert fmt.safe_style("@import 'x'; behavior: url(x)") == ""
-    assert fmt.safe_style("") == ""
+    assert htmlsafe.safe_style(style) == "color: red; margin:0"
+    assert htmlsafe.safe_style("@import 'x'; behavior: url(x)") == ""
+    assert htmlsafe.safe_style("") == ""
 
 
 def test_escaped_text_escapes_only_what_is_markup() -> None:
-    assert fmt.escaped_text("a < b & c > d \"q\" 'r'") == "a &lt; b &amp; c &gt; d \"q\" 'r'"
-    assert fmt.escaped_text("") == ""
+    assert htmlsafe.escaped_text("a < b & c > d \"q\" 'r'") == "a &lt; b &amp; c &gt; d \"q\" 'r'"
+    assert htmlsafe.escaped_text("") == ""
 
 
 # ##################################################################################
@@ -264,7 +265,7 @@ _DOCUMENT = (
 
 
 def test_a_document_keeps_its_structure_and_loses_what_could_act() -> None:
-    result = fmt.embed_html_document(_DOCUMENT)
+    result = htmlsafe.embed_html_document(_DOCUMENT)
 
     assert "<h1" in result
     assert "<b>there</b>" in result
@@ -279,59 +280,59 @@ def test_a_document_keeps_its_structure_and_loses_what_could_act() -> None:
 
 
 def test_a_bold_tag_is_a_b_tag_in_a_document_too() -> None:
-    assert "<b>x</b>" in fmt.embed_html_document("<html><body><bold>x</bold> y</body></html>")
+    assert "<b>x</b>" in htmlsafe.embed_html_document("<html><body><bold>x</bold> y</body></html>")
 
 
 def test_a_document_is_wrapped_in_a_container_that_carries_its_body_style() -> None:
-    result = fmt.embed_html_document(_DOCUMENT)
+    result = htmlsafe.embed_html_document(_DOCUMENT)
 
     assert result.startswith('<div style="background:#111; padding:4px; color: #e8e8ea; white-space: normal;')
     assert result.endswith("</div>")
 
 
 def test_a_document_that_states_a_color_keeps_it_and_one_on_a_light_background_gets_dark_text() -> None:
-    stated = fmt.embed_html_document('<body style="background:#111; color: pink">x</body>')
-    light = fmt.embed_html_document('<body style="background: #fafafa">x</body>')
-    none = fmt.embed_html_document("<body>x</body>")
+    stated = htmlsafe.embed_html_document('<body style="background:#111; color: pink">x</body>')
+    light = htmlsafe.embed_html_document('<body style="background: #fafafa">x</body>')
+    none = htmlsafe.embed_html_document("<body>x</body>")
 
     assert "color: pink" in stated
     assert "#e8e8ea" not in stated
-    assert f"color: {fmt.DARK_TEXT}" in light
+    assert f"color: {htmlsafe.DARK_TEXT}" in light
     assert "color:" not in none.split(";")[0] or "white-space" in none
 
 
 def test_a_document_with_nothing_in_it_is_nothing() -> None:
-    assert fmt.embed_html_document("<html><body></body></html>") == ""
-    assert fmt.embed_html_document("<body><script>alert(1)</script></body>") == ""
+    assert htmlsafe.embed_html_document("<html><body></body></html>") == ""
+    assert htmlsafe.embed_html_document("<body><script>alert(1)</script></body>") == ""
 
 
 def test_a_document_with_no_body_is_taken_as_it_is() -> None:
-    assert "<p>no body <i>x</i></p>" in fmt.embed_html_document("<p>no body <i>x")
+    assert "<p>no body <i>x</i></p>" in htmlsafe.embed_html_document("<p>no body <i>x")
 
 
 def test_a_pre_block_keeps_its_line_breaks_as_the_one_escape_later_stages_leave_alone() -> None:
-    result = fmt.embed_html_document("<body><pre>one\ntwo\r\nthree</pre><p>a\n   b</p></body>")
+    result = htmlsafe.embed_html_document("<body><pre>one\ntwo\r\nthree</pre><p>a\n   b</p></body>")
 
     assert "<pre>one&#10;two&#10;three</pre>" in result
     assert "<p>a b</p>" in result
 
 
 def test_tags_left_open_are_closed() -> None:
-    assert fmt.embed_html_document("<body><div><p>text").count("</p></div>") >= 1
+    assert htmlsafe.embed_html_document("<body><div><p>text").count("</p></div>") >= 1
 
 
 def test_a_closing_tag_closes_what_was_opened_inside_it() -> None:
-    result = fmt.embed_html_document("<body><div><span><b>x</div>after</body>")
+    result = htmlsafe.embed_html_document("<body><div><span><b>x</div>after</body>")
 
     assert "<div><span><b>x</b></span></div>after" in result
 
 
 def test_a_stray_closing_tag_is_ignored() -> None:
-    assert "</i>" not in fmt.embed_html_document("<body>a</i>b</body>")
+    assert "</i>" not in htmlsafe.embed_html_document("<body>a</i>b</body>")
 
 
 def test_a_self_closing_tag_does_not_join_the_open_list() -> None:
-    result = fmt.embed_html_document("<body><br/><img src='https://x/a.png'/>t</body>")
+    result = htmlsafe.embed_html_document("<body><br/><img src='https://x/a.png'/>t</body>")
 
     assert "<br>" in result
     assert "</br>" not in result
@@ -349,7 +350,7 @@ def test_a_self_closing_tag_does_not_join_the_open_list() -> None:
     ],
 )
 def test_a_document_starts_where_its_marker_does(text: str, expected: int) -> None:
-    assert fmt.html_document_start(text) == expected
+    assert htmlsafe.html_document_start(text) == expected
 
 
 def test_a_label_that_is_a_document_is_passed_through_after_its_lead_in() -> None:
@@ -372,7 +373,7 @@ def test_a_label_that_is_a_document_is_passed_through_after_its_lead_in() -> Non
     ],
 )
 def test_the_background_of_a_style_is_the_last_color_it_names(style: str, expected: str) -> None:
-    assert fmt._background_from_style(style) == expected
+    assert htmlsafe._background_from_style(style) == expected
 
 
 # ##################################################################################
@@ -390,7 +391,7 @@ def test_the_background_of_a_style_is_the_last_color_it_names(style: str, expect
     ],
 )
 def test_a_bare_hex_color_gets_its_hash(color: str, expected: str) -> None:
-    assert fmt.css_color(color) == expected
+    assert htmlsafe.css_color(color) == expected
 
 
 @pytest.mark.parametrize(
@@ -405,44 +406,44 @@ def test_a_bare_hex_color_gets_its_hash(color: str, expected: str) -> None:
     ],
 )
 def test_dark_colors_are_dark(color: str, dark: bool) -> None:
-    assert fmt.is_dark_color(color) is dark
+    assert htmlsafe.is_dark_color(color) is dark
 
 
 @pytest.mark.parametrize("color", ["bogus", "linear-gradient(red, blue)", "var(--x)", "", "rgba(1,2)"])
 def test_a_color_that_cannot_be_resolved_counts_as_light(color: str) -> None:
-    assert fmt.is_dark_color(color) is False
+    assert htmlsafe.is_dark_color(color) is False
 
 
 def test_contrast_runs_from_one_to_twenty_one() -> None:
-    assert fmt.contrast_ratio("black", "white") == pytest.approx(21.0)
-    assert fmt.contrast_ratio("white", "white") == pytest.approx(1.0)
-    assert fmt.contrast_ratio("white", "black") == fmt.contrast_ratio("black", "white")
-    assert 2.0 < fmt.contrast_ratio("#9090aa", "white") < 3.5
+    assert htmlsafe.contrast_ratio("black", "white") == pytest.approx(21.0)
+    assert htmlsafe.contrast_ratio("white", "white") == pytest.approx(1.0)
+    assert htmlsafe.contrast_ratio("white", "black") == htmlsafe.contrast_ratio("black", "white")
+    assert 2.0 < htmlsafe.contrast_ratio("#9090aa", "white") < 3.5
 
 
 @pytest.mark.parametrize(("color", "background"), [("bogus", "white"), ("black", "bogus"), ("", "white")])
 def test_contrast_of_something_unresolvable_is_none(color: str, background: str) -> None:
-    assert fmt.contrast_ratio(color, background) is None
+    assert htmlsafe.contrast_ratio(color, background) is None
 
 
 def test_a_color_unreadable_on_the_background_falls_back_to_the_default() -> None:
     light = {"background_color": "white"}
 
-    assert fmt.legible_color("white", "Black", light) == "Black"
-    assert fmt.legible_color("#fefefe", "Black", light) == "Black"
-    assert fmt.legible_color("navy", "Black", light) == "navy"
-    assert fmt.legible_color("#9090aa", "Black", light) == "#9090aa"  # Low contrast, but not gone.
+    assert htmlsafe.legible_color("white", "Black", light) == "Black"
+    assert htmlsafe.legible_color("#fefefe", "Black", light) == "Black"
+    assert htmlsafe.legible_color("navy", "Black", light) == "navy"
+    assert htmlsafe.legible_color("#9090aa", "Black", light) == "#9090aa"  # Low contrast, but not gone.
 
 
 def test_a_color_nobody_can_judge_is_left_alone() -> None:
-    assert fmt.legible_color("bogus", "Black", {"background_color": "white"}) == "bogus"
-    assert fmt.legible_color("white", "Black", {}) == "white"
-    assert fmt.legible_color("white", "Black", {"background_color": ""}) == "white"
+    assert htmlsafe.legible_color("bogus", "Black", {"background_color": "white"}) == "bogus"
+    assert htmlsafe.legible_color("white", "Black", {}) == "white"
+    assert htmlsafe.legible_color("white", "Black", {"background_color": ""}) == "white"
 
 
 def test_no_color_asked_for_means_the_default() -> None:
-    assert fmt.legible_color(None, "Black", {"background_color": "white"}) == "Black"
-    assert fmt.legible_color("", "Black", {}) == "Black"
+    assert htmlsafe.legible_color(None, "Black", {"background_color": "white"}) == "Black"
+    assert htmlsafe.legible_color("", "Black", {}) == "Black"
 
 
 # ##################################################################################
@@ -450,28 +451,30 @@ def test_no_color_asked_for_means_the_default() -> None:
 # ##################################################################################
 @pytest.mark.parametrize("text", ["> p", "a:hover", "a[href]", "p + p", "p ~ p", "", "   ", "a::before"])
 def test_a_selector_that_cannot_be_decided_is_refused_whole(text: str) -> None:
-    assert fmt.parse_selector(text) is None
+    assert htmlstyle.parse_selector(text) is None
 
 
 def test_a_selector_is_compounds_joined_by_combinators() -> None:
-    assert fmt.parse_selector(".card h2") == (
+    assert htmlstyle.parse_selector(".card h2") == (
         (None, (None, frozenset({"card"}), None)),
         (" ", ("h2", frozenset(), None)),
     )
-    assert fmt.parse_selector("#a > p.b.c") == (
+    assert htmlstyle.parse_selector("#a > p.b.c") == (
         (None, (None, frozenset(), "a")),
         (">", ("p", frozenset({"b", "c"}), None)),
     )
-    assert fmt.parse_selector("P") == ((None, ("p", frozenset(), None)),)  # Tag names are not case sensitive.
-    assert fmt.parse_selector("*") == ((None, (None, frozenset(), None)),)
-    assert fmt.parse_selector("a>b") == fmt.parse_selector("a > b")
+    assert htmlstyle.parse_selector("P") == ((None, ("p", frozenset(), None)),)  # Tag names are not case sensitive.
+    assert htmlstyle.parse_selector("*") == ((None, (None, frozenset(), None)),)
+    assert htmlstyle.parse_selector("a>b") == htmlstyle.parse_selector("a > b")
 
 
 def test_specificity_counts_ids_then_classes_then_tags() -> None:
-    assert fmt.selector_specificity(fmt.parse_selector("#a > p.b.c")) == (1, 2, 1)
-    assert fmt.selector_specificity(fmt.parse_selector("div p")) == (0, 0, 2)
-    assert fmt.selector_specificity(fmt.parse_selector("*")) == (0, 0, 0)
-    assert fmt.selector_specificity(fmt.parse_selector("#a")) > fmt.selector_specificity(fmt.parse_selector(".a.b.c"))
+    assert htmlstyle.selector_specificity(htmlstyle.parse_selector("#a > p.b.c")) == (1, 2, 1)
+    assert htmlstyle.selector_specificity(htmlstyle.parse_selector("div p")) == (0, 0, 2)
+    assert htmlstyle.selector_specificity(htmlstyle.parse_selector("*")) == (0, 0, 0)
+    assert htmlstyle.selector_specificity(htmlstyle.parse_selector("#a")) > htmlstyle.selector_specificity(
+        htmlstyle.parse_selector(".a.b.c")
+    )
 
 
 @pytest.mark.parametrize(
@@ -488,11 +491,11 @@ def test_specificity_counts_ids_then_classes_then_tags() -> None:
     ],
 )
 def test_a_stylesheet_gives_the_rules_that_can_be_evaluated(css: str, count: int) -> None:
-    assert len(fmt.parse_stylesheet(css)) == count
+    assert len(htmlstyle.parse_stylesheet(css)) == count
 
 
 def test_a_rule_keeps_its_declarations_and_source_order() -> None:
-    rules = fmt.parse_stylesheet("p{color:red} .a{color:blue}")
+    rules = htmlstyle.parse_stylesheet("p{color:red} .a{color:blue}")
 
     assert [declarations for _, _, declarations in rules] == ["color:red", "color:blue"]
     assert [specificity for specificity, _, _ in rules] == [(0, 0, 1), (0, 1, 0)]
@@ -501,9 +504,9 @@ def test_a_rule_keeps_its_declarations_and_source_order() -> None:
 def test_a_block_is_matched_to_its_own_closing_brace() -> None:
     css = "@media x { a { b: c } } p{d:e}"
 
-    assert fmt._matching_brace(css, css.index("{")) == css.index("} p") + 0 or True
-    assert fmt._matching_brace("a{b", 1) == 3
-    assert fmt._matching_brace("a{b}c", 1) == 3
+    assert htmlstyle._matching_brace(css, css.index("{")) == css.index("} p") + 0 or True
+    assert htmlstyle._matching_brace("a{b", 1) == 3
+    assert htmlstyle._matching_brace("a{b}c", 1) == 3
 
 
 _STACK = [("html", frozenset(), None), ("div", frozenset({"card"}), "main"), ("p", frozenset(), None)]
@@ -529,11 +532,11 @@ _STACK = [("html", frozenset(), None), ("div", frozenset({"card"}), "main"), ("p
     ],
 )
 def test_a_selector_is_matched_right_to_left_against_the_open_elements(selector: str, matches: bool) -> None:
-    assert fmt.selector_matches(fmt.parse_selector(selector), _STACK) is matches
+    assert htmlstyle.selector_matches(htmlstyle.parse_selector(selector), _STACK) is matches
 
 
 def test_nothing_matches_with_no_element_open() -> None:
-    assert fmt.selector_matches(fmt.parse_selector("p"), []) is False
+    assert htmlstyle.selector_matches(htmlstyle.parse_selector("p"), []) is False
 
 
 # ##################################################################################
@@ -573,7 +576,7 @@ def test_normal_inside_bold_un_bolds_it_for_the_length_of_the_element() -> None:
     assert [(s["text"], s["styles"]["is_bold"]) for s in segments] == [("one ", True), ("two", False), (" three", True)]
 
 
-@pytest.mark.parametrize("color", sorted(fmt.UNRENDERABLE_COLORS))
+@pytest.mark.parametrize("color", sorted(htmltext.UNRENDERABLE_COLORS))
 def test_a_color_that_names_no_color_leaves_the_default(color: str) -> None:
     assert _styles(f'<span style="color:{color}">gone</span>', "gone")["color"] is None
 
@@ -664,17 +667,17 @@ def test_nested_blocks_are_flattened_without_a_blank_line_per_tag() -> None:
     [("<b>x</b>", True), ("a < b", False), ("plain", False), ("<unknown>", True), ("1 </b> 2", True)],
 )
 def test_html_is_noticed_where_there_is_some(text: str, has_html: bool) -> None:
-    assert fmt.contains_html(text) is has_html
+    assert htmltext.contains_html(text) is has_html
 
 
 def test_a_label_left_open_is_closed_where_it_matters() -> None:
-    assert fmt.close_left_open_tags("<ul><li>x") == "</li></ul>"
-    assert fmt.close_left_open_tags("<ul><li>x</li></ul>") == ""
-    assert fmt.close_left_open_tags("<table><tr><td>x</td>") == "</tr></table>"
-    assert fmt.close_left_open_tags("<span>a<b>b") == ""  # Not among the tags that swallow what follows.
-    assert fmt.close_left_open_tags("a</b>") == ""
+    assert htmllabel.close_left_open_tags("<ul><li>x") == "</li></ul>"
+    assert htmllabel.close_left_open_tags("<ul><li>x</li></ul>") == ""
+    assert htmllabel.close_left_open_tags("<table><tr><td>x</td>") == "</tr></table>"
+    assert htmllabel.close_left_open_tags("<span>a<b>b") == ""  # Not among the tags that swallow what follows.
+    assert htmllabel.close_left_open_tags("a</b>") == ""
     # Closing an outer one closes what was opened inside it.
-    assert fmt.close_left_open_tags("<table><tr><td>x</table>") == ""
+    assert htmllabel.close_left_open_tags("<table><tr><td>x</table>") == ""
 
 
 # ##################################################################################
@@ -706,9 +709,9 @@ def test_embedded_html_gets_a_break_and_indentation_from_its_document_onward() -
 
 
 def test_trailing_blanks_are_counted_back_from_a_position() -> None:
-    assert fmt.count_trailing_blanks("a   lmrk", 4) == 3
-    assert fmt.count_trailing_blanks("lmrk", 0) == 0
-    assert fmt.count_trailing_blanks("abc", 3) == 0
+    assert mapwriter.count_trailing_blanks("a   lmrk", 4) == 3
+    assert mapwriter.count_trailing_blanks("lmrk", 0) == 0
+    assert mapwriter.count_trailing_blanks("abc", 3) == 0
 
 
 def test_a_span_is_added_only_when_there_is_text_after() -> None:

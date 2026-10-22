@@ -253,7 +253,7 @@ class RunState:
         self.view_limit_msg = (
             ""  # Set by bildhtml.write_out_the_file when output hits view_limit; read by the Map view's message field.
         )
-        # The Diagram view's equivalent: set by diagram.check_limit when the diagram is cut short at
+        # The Diagram view's equivalent: set by diagclean.check_limit when the diagram is cut short at
         # the view limit, read by the Diagram view's message field.  Kept separate from
         # view_limit_msg so a truncated Map cannot leave its message showing on an untruncated
         # Diagram (the two views are built from separate runs).
@@ -295,7 +295,7 @@ class RunState:
         self.diagram_object_seeds: dict = {}
         # Which object each of those anchors IS: {anchor: mapjump.Target}.  Held apart from the
         # positions because a position is remapped four times before the diagram is written and
-        # an identity never is -- see diagram._record.  Read once, when the interactive Diagram
+        # an identity never is -- see diagrecord.record_at_row.  Read once, when the interactive Diagram
         # view's model is assembled, and emptied straight afterwards.
         self.diagram_object_targets: dict = {}
         # Every drawing of every object, not just the first: [(anchor, row, drawn text)] while
@@ -310,7 +310,7 @@ class RunState:
         # how a run of box-drawing characters is traced back to the two Tasks it joins.
         self.diagram_call_edges: dict = {}
         # Which calls each finished connector belongs to: {connector group id: [call index, ...]}.
-        # Filled by diagram.compute_diagram_connector_groups, as the other half of the same fact.
+        # Filled by diagarrows.compute_diagram_connector_groups, as the other half of the same fact.
         self.diagram_connector_calls: dict = {}
         # The whole of what the interactive Diagram view acts on -- nodes, foldable Project
         # regions and call edges, all in the rendered file's coordinates.  Assembled by
@@ -318,7 +318,7 @@ class RunState:
         self.diagram_model: dict = {}
         # The Diagram's Profile and Scene boxes and Task lines that have been drawn but not yet
         # flushed to a row of netmap_output: what each box/Task IS, held until the row it will
-        # land on is known (see diagram._note_box and _flush_boxes).  Emptied with the rest of
+        # land on is known (see diagrecord.note_box and flush_boxes).  Emptied with the rest of
         # the Diagram's records.
         self.diagram_pending_boxes: list = []
         self.diagram_pending_tasks: list = []

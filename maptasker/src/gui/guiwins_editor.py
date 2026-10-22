@@ -243,9 +243,9 @@ def _build_properties_button(
     this button.  See that function for why the two could not be one.
 
     Deliberately NOT registered in the caller's field_refs.  The Task dialog's
-    _task_arg_values reads .value off every entry there and a button has none; and for
+    task_arg_values reads .value off every entry there and a button has none; and for
     the Project dialog an unrecognised field_refs entry is what
-    userintr_editors._unapplied_project_edits fails the save on.  Nothing needs to be registered
+    userintr_fields.unapplied_project_edits fails the save on.  Nothing needs to be registered
     anyway -- the properties dialog applies onto the element itself, which is what both
     the save and editor_state() already read.
 

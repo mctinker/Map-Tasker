@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
     from nicegui.events import GenericEventArguments
 
-    from maptasker.src.gui.guiwins_views import NiceGuiTextView
+    from maptasker.src.gui.guiwins_textview import NiceGuiTextView
     from maptasker.src.gui.userintr import MyGui
 
 

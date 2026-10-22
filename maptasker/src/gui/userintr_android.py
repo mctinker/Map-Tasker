@@ -11,8 +11,8 @@ already has, the Verify checkbox and the overwrite prompt's options.  A test tha
 for one of those patches this module, not userintr.
 
 Five helpers come from userintr_editors, because the Task, Profile, Scene and Project editors
-share them with these handlers: _task_arg_values, _profile_condition_values,
-_link_pending_task_pickers, _apply_scene_field_values and _unapplied_project_edits.  A test that
+share them with these handlers: task_arg_values, profile_condition_values,
+link_pending_task_pickers, apply_scene_field_values and unapplied_project_edits.  A test that
 stands in for one of them patches this module's own name for it.
 """
 
@@ -54,22 +54,21 @@ from maptasker.src.gui.guiutils import (
     remember_android_address_fields,
     update_tasker_object_menus,
 )
-from maptasker.src.gui.guiwins import (
+from maptasker.src.gui.guiwins import build_round_trip_report_dialog, build_save_to_android_dialog
+from maptasker.src.gui.guiwins_dialogs import (
     build_helper_tasks_dialog,
     build_helpers_in_the_way_dialog,
     build_overwrite_confirm_dialog,
-    build_round_trip_report_dialog,
-    build_save_project_to_android_dialog,
-    build_save_scene_to_android_dialog,
-    build_save_to_android_dialog,
 )
 from maptasker.src.gui.guiwins_profedit import build_save_profile_to_android_dialog
-from maptasker.src.gui.userintr_editors import (
-    _apply_scene_field_values,
-    _link_pending_task_pickers,
-    _profile_condition_values,
-    _task_arg_values,
-    _unapplied_project_edits,
+from maptasker.src.gui.guiwins_project import build_save_project_to_android_dialog
+from maptasker.src.gui.guiwins_scene import build_save_scene_to_android_dialog
+from maptasker.src.gui.userintr_fields import (
+    apply_scene_field_values,
+    link_pending_task_pickers,
+    profile_condition_values,
+    task_arg_values,
+    unapplied_project_edits,
 )
 from maptasker.src.mapgen.getbakup import validate_xml_file
 
@@ -160,7 +159,7 @@ async def _what_tasker_already_has(
 
 
 def _check_ids_ticked(android_field_refs: dict) -> bool:
-    """The Save To Android panel's "Check IDs" box -- see guiwins._android_device_fields."""
+    """The Save To Android panel's "Check IDs" box -- see guiwins.android_device_fields."""
     checkbox = android_field_refs.get("check_ids")
     return bool(checkbox is not None and checkbox.value)
 
@@ -748,7 +747,7 @@ class AndroidEventHandlers:
             #
             # Deliberately NOT self.get_backup_button: that name belongs to the "Get XML from
             # Android Device" button in the drawer above (see
-            # _create_file_and_message_buttons_section in guiwins.py), which stays on screen the
+            # create_file_and_message_buttons_section in guiwins_tabs.py), which stays on screen the
             # whole time this panel is open. Reusing the name here overwrote the reference to it,
             # so clear_android_buttons() then deleted this button while believing it had deleted
             # that one -- leaving the original in place and adding a second one every time.
@@ -1152,7 +1151,7 @@ class AndroidEventHandlers:
             edited_task,
             field_refs["name"].value,
             field_refs["priority"].value,
-            _task_arg_values(field_refs),
+            task_arg_values(field_refs),
             self.state,
         )
         if errors:
@@ -1315,7 +1314,7 @@ class AndroidEventHandlers:
         upload then fails, which is the same state clicking "Ok" first would leave --
         and clicking "Ok" first is exactly what this saves the user from having to do.
         """
-        errors = _apply_scene_field_values(edited_scene, field_refs)
+        errors = apply_scene_field_values(edited_scene, field_refs)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -1536,8 +1535,8 @@ class AndroidEventHandlers:
         this had to be one implementation -- a second copy would drift, and the way it would
         drift is one button validating something the other does not.
         """
-        _link_pending_task_pickers(edited_profile, field_refs, state=self.state)
-        condition_values = _profile_condition_values(field_refs)
+        link_pending_task_pickers(edited_profile, field_refs, state=self.state)
+        condition_values = profile_condition_values(field_refs)
 
         errors = profedit.apply_edits_to_profile(
             edited_profile, field_refs["name"].value, condition_values, state=self.state
@@ -1831,7 +1830,7 @@ class AndroidEventHandlers:
         from the file that reaches the phone.  It also means a bad field stops this before
         the device is contacted.
         """
-        errors = _apply_scene_field_values(edited_scene, field_refs)
+        errors = apply_scene_field_values(edited_scene, field_refs)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -1910,7 +1909,7 @@ class AndroidEventHandlers:
         Confirmation goes through the Project's own Profiles, because Tasker's HTTP API has
         no /api/projects to ask about the Project itself; see projedit.project_profile_names.
         """
-        errors = _unapplied_project_edits(field_refs)
+        errors = unapplied_project_edits(field_refs)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -1965,7 +1964,7 @@ class AndroidEventHandlers:
     ) -> None:
         """Opens the IP/port prompt for writing this Project onto the Android device.
         The Edit Project dialog's field_refs go with it for the upload's guard -- see
-        _unapplied_project_edits.
+        unapplied_project_edits.
         """
         build_save_project_to_android_dialog(self.gui, edited_project, field_refs, parent_dialog)
 
@@ -1987,9 +1986,9 @@ class AndroidEventHandlers:
         That "no apply step" is an assertion about the dialog, not a permanent fact
         about Projects, so it is checked rather than assumed: the guard runs before the
         device is contacted, so a field added without its apply fails here instead of
-        putting an incomplete Project on the phone.  See _unapplied_project_edits.
+        putting an incomplete Project on the phone.  See unapplied_project_edits.
         """
-        errors = _unapplied_project_edits(field_refs)
+        errors = unapplied_project_edits(field_refs)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")

@@ -99,7 +99,8 @@ from maptasker.src.gui.guiutils import (
     update_analysis_button_color,
     valid_item,
 )
-from maptasker.src.gui.guiwins import create_popup_window, initialize_gui, initialize_screen, restore_appearance_mode
+from maptasker.src.gui.guiwins import create_popup_window, initialize_gui, restore_appearance_mode
+from maptasker.src.gui.guiwins_drawers import initialize_screen
 from maptasker.src.gui.guiwins_firesim import build_firesim_dialog
 from maptasker.src.gui.guiwins_fix import build_fix_dialog
 from maptasker.src.gui.guiwins_monitor import build_monitor_dialog
@@ -108,9 +109,10 @@ from maptasker.src.gui.guiwins_refactor import build_refactor_dialog
 from maptasker.src.gui.guiwins_resources import build_resources_dialog
 from maptasker.src.gui.guiwins_restore import build_restore_dialog
 from maptasker.src.gui.guiwins_taskstep import build_taskstep_dialog
+from maptasker.src.gui.guiwins_textview import NiceGuiTextView
 from maptasker.src.gui.guiwins_tnupdate import build_tnupdate_dialog, check_links_at_startup
 from maptasker.src.gui.guiwins_trend import build_trend_dialog
-from maptasker.src.gui.guiwins_views import NiceGuiTextView, NiceGuiTreeView
+from maptasker.src.gui.guiwins_views import NiceGuiTreeView
 from maptasker.src.gui.userhelp import (
     AI_HELP_TEXT,
     APIKEY_HELP_TEXT,
@@ -123,11 +125,8 @@ from maptasker.src.gui.userhelp import (
 from maptasker.src.gui.userintr_ai import AIEventHandlers
 from maptasker.src.gui.userintr_android import AndroidEventHandlers
 from maptasker.src.gui.userintr_carry import CarryEventHandlers
-from maptasker.src.gui.userintr_editors import (
-    EditorEventHandlers,
-    reload_saved_copy_and_refresh,
-    show_save_in_progress_notice,
-)
+from maptasker.src.gui.userintr_editors import EditorEventHandlers
+from maptasker.src.gui.userintr_finish import reload_saved_copy_and_refresh, show_save_in_progress_notice
 from maptasker.src.gui.userintr_loading import LoadingEventHandlers
 from maptasker.src.gui.userintr_prebuild import PrebuildEventHandlers
 from maptasker.src.gui.userintr_reports import ReportEventHandlers
@@ -180,7 +179,7 @@ RESTORE_KEYS_TO_IGNORE = frozenset(
         # widget of its own to restore it into.
         "local_xml_directory",
         # Likewise only read when a Save To Android panel opens -- see
-        # guiwins._android_device_fields.
+        # guiwins.android_device_fields.
         "android_check_ids",
         "android_verify",
         # Only read when an Android dialog opens -- see guiutils.android_address_defaults.
@@ -500,11 +499,11 @@ class MyGui:
         self.state = PrimeItems if state is None else state
         self.initialization = True
         # The 'Output Folder' box, once the layout has built it -- see
-        # guiwins._create_output_directory_section.
+        # guiwins_tabs.create_output_directory_section.
         self.output_directory_input: ui.input | None = None
         # The What Fires When? dialog while one is up -- see fire_simulator_event.
         self.firesim_dialog: ui.dialog | None = None
-        # Which sections of the right drawer are open, by key -- see guiwins._drawer_section.
+        # Which sections of the right drawer are open, by key -- see guiwins_drawers._drawer_section.
         self.drawer_sections: dict[str, bool] = {}
 
         # 1. Initialize settings and state

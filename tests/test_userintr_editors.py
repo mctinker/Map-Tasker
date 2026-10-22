@@ -30,7 +30,7 @@ from maptasker.src.edit import (
     taskedit_model,
     taskedit_save,
 )
-from maptasker.src.gui import userintr_editors
+from maptasker.src.gui import userintr_editors, userintr_fields, userintr_finish
 from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 
 from tests.test_mapswap import _load
@@ -71,8 +71,8 @@ _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 
 # The two helpers the `calls` fixture stubs for every other test, as they really are -- for the tests of the helpers.
-_REAL_SELECT_RENAMED_ITEM = userintr_editors._select_renamed_item
-_REAL_RESET_SELECTION = userintr_editors._reset_specific_name_selection
+_REAL_SELECT_RENAMED_ITEM = userintr_finish.select_renamed_item
+_REAL_RESET_SELECTION = userintr_finish.reset_specific_name_selection
 
 
 class _Widget(SimpleNamespace):
@@ -150,10 +150,12 @@ def calls(monkeypatch: pytest.MonkeyPatch) -> dict[str, list]:
         "build_object_properties_dialog",
         "refresh_tasker_object_pulldowns",
         "select_pulldown_option",
-        "_select_renamed_item",
-        "_reset_specific_name_selection",
+        "select_renamed_item",
+        "reset_specific_name_selection",
     ):
-        monkeypatch.setattr(userintr_editors, name, record(name))
+        for module in (userintr_editors, userintr_fields, userintr_finish):
+            if hasattr(module, name):  # the helpers moved out of userintr_editors call these too
+                monkeypatch.setattr(module, name, record(name))
     return seen
 
 
@@ -204,13 +206,13 @@ def test_task_argument_values_skip_the_fields_that_are_not_arguments_and_spell_b
         "priority": _Widget("5"),
         "save_path": _Widget("p"),
         "target_project_name": "Home",
-        userintr_editors.REDACT_FIELD: _Widget(True),
+        userintr_fields.REDACT_FIELD: _Widget(True),
         "act0_arg0": _Widget("text"),
         "act0_arg1": _Widget(True),
         "act0_arg2": _Widget(False),
         "act0_arg3": _Widget(7),
     }
-    assert userintr_editors._task_arg_values(fields) == {
+    assert userintr_fields.task_arg_values(fields) == {
         "act0_arg0": "text",
         "act0_arg1": "1",
         "act0_arg2": "0",
@@ -225,11 +227,11 @@ def test_profile_condition_values_take_only_the_condition_fields() -> None:
         "cond0_inv": _Widget(True),
         "entry_task_picker": _Widget(""),
     }
-    assert userintr_editors._profile_condition_values(fields) == {"cond0_fh": "8", "cond0_inv": "1"}
+    assert userintr_fields.profile_condition_values(fields) == {"cond0_fh": "8", "cond0_inv": "1"}
 
 
 def test_property_values_use_the_words_tasker_writes_and_keep_whole_numbers_whole() -> None:
-    values = userintr_editors._object_property_values(
+    values = userintr_fields.object_property_values(
         {
             "a": _Widget(True),
             "b": _Widget(False),
@@ -243,18 +245,18 @@ def test_property_values_use_the_words_tasker_writes_and_keep_whole_numbers_whol
 
 
 def test_redaction_is_read_from_whichever_key_the_dialog_filed_it_under_and_defaults_to_no() -> None:
-    assert userintr_editors._redact_requested({}) is False
-    assert userintr_editors._redact_requested({userintr_editors.REDACT_FIELD: _Widget(True)}) is True
-    assert userintr_editors._redact_requested({"custom": _Widget(True)}, key="custom") is True
-    assert userintr_editors._redacted_note(False) == ""
-    assert "redacted" in userintr_editors._redacted_note(True)
+    assert userintr_fields.redact_requested({}) is False
+    assert userintr_fields.redact_requested({userintr_fields.REDACT_FIELD: _Widget(True)}) is True
+    assert userintr_fields.redact_requested({"custom": _Widget(True)}, key="custom") is True
+    assert userintr_fields.redacted_note(False) == ""
+    assert "redacted" in userintr_fields.redacted_note(True)
 
 
 def test_an_unrecognised_field_in_the_edit_project_dialog_fails_the_save_and_names_it() -> None:
-    inert = {key: _Widget() for key in userintr_editors.EDIT_PROJECT_INERT_FIELDS}
-    assert userintr_editors._unapplied_project_edits(inert) == []
+    inert = {key: _Widget() for key in userintr_fields.EDIT_PROJECT_INERT_FIELDS}
+    assert userintr_fields.unapplied_project_edits(inert) == []
 
-    errors = userintr_editors._unapplied_project_edits({**inert, "new_field": _Widget(), "another": _Widget()})
+    errors = userintr_fields.unapplied_project_edits({**inert, "new_field": _Widget(), "another": _Widget()})
     assert len(errors) == 1
     assert "another, new_field" in errors[0]
 
@@ -262,19 +264,19 @@ def test_an_unrecognised_field_in_the_edit_project_dialog_fails_the_save_and_nam
 def test_scene_sizes_are_validated_together_and_written_only_when_all_are_whole_numbers() -> None:
     edited = sceneedit.load_scene_for_edit("Panel", state=PrimeItems)
     good = {"widthPort": _Widget("640"), "heightPort": _Widget(" 480 "), "widthLand": _Widget("-1")}
-    assert userintr_editors._apply_scene_field_values(edited, good) == []
+    assert userintr_fields.apply_scene_field_values(edited, good) == []
     assert edited.scene_element.findtext("widthPort") == "640"
     assert edited.scene_element.findtext("heightPort") == "480"
 
     bad = {"widthPort": _Widget("wide"), "heightPort": _Widget("700"), "widthLand": _Widget("also bad")}
-    errors = userintr_editors._apply_scene_field_values(edited, bad)
+    errors = userintr_fields.apply_scene_field_values(edited, bad)
     assert len(errors) == 2
     assert edited.scene_element.findtext("heightPort") == "480", "nothing is written when anything is refused"
 
 
 def test_a_scene_dialog_with_no_size_fields_writes_nothing() -> None:
     edited = sceneedit.load_scene_for_edit("Panel", state=PrimeItems)
-    assert userintr_editors._apply_scene_field_values(edited, {}) == []
+    assert userintr_fields.apply_scene_field_values(edited, {}) == []
     assert edited.scene_element.findtext("widthPort") == "600"
 
 
@@ -284,12 +286,12 @@ def test_the_version_2_layout_the_designer_edited_is_written_back_under_the_scen
     layout["root"]["id"] = "renamed_root"
     edited.scene_element.find("nme").text = "Renamed"
 
-    userintr_editors._encode_v2_layout_if_edited(edited, {"v2_layout": layout})
+    userintr_fields._encode_v2_layout_if_edited(edited, {"v2_layout": layout})
 
     written = scenelayout.decode_v2_layout(edited.scene_element)
     assert written["root"]["id"] == "renamed_root"
     assert written["name"] == "Renamed", "the layout's own name follows <nme>, whichever was applied first"
-    userintr_editors._encode_v2_layout_if_edited(edited, {})  # a Legacy Scene: nothing to do
+    userintr_fields._encode_v2_layout_if_edited(edited, {})  # a Legacy Scene: nothing to do
 
 
 # ##################################################################################
@@ -298,13 +300,13 @@ def test_the_version_2_layout_the_designer_edited_is_written_back_under_the_scen
 def test_a_selected_project_is_used_when_the_pulldown_still_lists_it(gui: MagicMock) -> None:
     gui.single_project_name = "Home"
     gui.specific_project_optionmenu = SimpleNamespace(options=["None", "Project: Home"])
-    assert userintr_editors._project_for_new_object(gui, "Task") == ("Home", "")
+    assert userintr_fields.project_for_new_object(gui, "Task") == ("Home", "")
 
 
 def test_a_project_name_the_pulldown_no_longer_lists_does_not_count_as_selected(gui: MagicMock) -> None:
     gui.single_project_name = "Gone"
     gui.specific_project_optionmenu = SimpleNamespace(options=["None", "Project: Home"])
-    project, message = userintr_editors._project_for_new_object(gui, "Task")
+    project, message = userintr_fields.project_for_new_object(gui, "Task")
     assert project == ""
     assert "Select a single Project first" in message
 
@@ -312,7 +314,7 @@ def test_a_project_name_the_pulldown_no_longer_lists_does_not_count_as_selected(
 def test_with_no_pulldown_built_yet_the_cached_project_name_is_trusted(gui: MagicMock) -> None:
     gui.single_project_name = "Home"
     gui.specific_project_optionmenu = None
-    assert userintr_editors._confirmed_single_project_name(gui) == "Home"
+    assert userintr_fields.confirmed_single_project_name(gui) == "Home"
 
 
 def test_a_selected_task_profile_or_scene_leads_to_the_project_that_owns_it(gui: MagicMock) -> None:
@@ -323,32 +325,32 @@ def test_a_selected_task_profile_or_scene_leads_to_the_project_that_owns_it(gui:
     ):
         gui.single_project_name = gui.single_task_name = gui.single_profile_name = gui.single_scene_name = ""
         setattr(gui, attribute, name)
-        assert userintr_editors._project_for_new_object(gui, "Profile") == ("Home", ""), attribute
+        assert userintr_fields.project_for_new_object(gui, "Profile") == ("Home", ""), attribute
 
 
 def test_an_object_that_belongs_to_no_project_says_so_and_still_asks_for_one(gui: MagicMock) -> None:
     PrimeItems.tasker_root_elements["all_projects"]["Home"]["xml"].find("tids").text = ""
     gui.single_task_name = "Quiet"  # listed only in the Project's <tids>, which was just emptied
-    project, message = userintr_editors._project_for_new_object(gui, "Profile")
+    project, message = userintr_fields.project_for_new_object(gui, "Profile")
     assert project == ""
     assert "Task 'Quiet' does not belong to a Project" in message
     assert "Select a single Project first" in message
 
 
 def test_with_nothing_selected_it_asks_for_a_project(gui: MagicMock) -> None:
-    assert userintr_editors._project_for_new_object(gui, "Scene")[0] == ""
+    assert userintr_fields.project_for_new_object(gui, "Scene")[0] == ""
 
 
 def test_a_scene_name_is_confirmed_against_its_own_pulldown(gui: MagicMock) -> None:
     gui.single_scene_name = "Panel"
     gui.specific_scene_optionmenu = SimpleNamespace(options=["None", "Panel"])
-    assert userintr_editors._confirmed_single_scene_name(gui) == "Panel"
+    assert userintr_fields.confirmed_single_scene_name(gui) == "Panel"
     gui.specific_scene_optionmenu = SimpleNamespace(options=["None"])
-    assert userintr_editors._confirmed_single_scene_name(gui) == ""
+    assert userintr_fields.confirmed_single_scene_name(gui) == ""
     gui.specific_scene_optionmenu = None
-    assert userintr_editors._confirmed_single_scene_name(gui) == "Panel"
+    assert userintr_fields.confirmed_single_scene_name(gui) == "Panel"
     gui.single_scene_name = ""
-    assert userintr_editors._confirmed_single_scene_name(gui) == ""
+    assert userintr_fields.confirmed_single_scene_name(gui) == ""
 
 
 # ##################################################################################
@@ -356,13 +358,13 @@ def test_a_scene_name_is_confirmed_against_its_own_pulldown(gui: MagicMock) -> N
 # ##################################################################################
 def test_a_pulldown_option_is_found_by_exact_name_then_by_its_item_type_prefix_then_by_tail() -> None:
     plain = SimpleNamespace(options=["None", "Quiet"])
-    assert userintr_editors._pulldown_option_for_name(plain, "Task", "Quiet") == "Quiet"
+    assert userintr_finish._pulldown_option_for_name(plain, "Task", "Quiet") == "Quiet"
     prefixed = SimpleNamespace(options=["None", "Project: Home"])
-    assert userintr_editors._pulldown_option_for_name(prefixed, "Project", "Home") == "Project: Home"
+    assert userintr_finish._pulldown_option_for_name(prefixed, "Project", "Home") == "Project: Home"
     other_language = SimpleNamespace(options=["None", "Projekt: Home"])
-    assert userintr_editors._pulldown_option_for_name(other_language, "Project", "Home") == "Projekt: Home"
-    assert userintr_editors._pulldown_option_for_name(prefixed, "Project", "Nowhere") == "Nowhere"
-    assert userintr_editors._pulldown_option_for_name(SimpleNamespace(), "Task", "x") == "x"
+    assert userintr_finish._pulldown_option_for_name(other_language, "Project", "Home") == "Projekt: Home"
+    assert userintr_finish._pulldown_option_for_name(prefixed, "Project", "Nowhere") == "Nowhere"
+    assert userintr_finish._pulldown_option_for_name(SimpleNamespace(), "Task", "x") == "x"
 
 
 def test_selecting_a_renamed_item_points_the_pulldown_at_it_and_runs_the_name_event_with_the_bare_name(
@@ -394,8 +396,8 @@ def test_deleting_the_selected_object_clears_every_selection_with_the_guard_up(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     cleared, reset = [], []
-    monkeypatch.setattr(userintr_editors, "clear_single_item_view_names", lambda g: cleared.append(g))
-    monkeypatch.setattr(userintr_editors, "reset_single_item_pulldowns", lambda g: reset.append(g.is_updating))
+    monkeypatch.setattr(userintr_finish, "clear_single_item_view_names", lambda g: cleared.append(g))
+    monkeypatch.setattr(userintr_finish, "reset_single_item_pulldowns", lambda g: reset.append(g.is_updating))
 
     _REAL_RESET_SELECTION(gui)
 
@@ -415,11 +417,13 @@ def test_a_saved_copy_replaces_the_loaded_file_and_the_pulldowns_are_rebuilt_fro
     copy = tmp_path / "backup_copy.xml"
     copy.write_text(_XML, encoding="utf-8")
     shown, refreshed = [], []
-    monkeypatch.setattr(userintr_editors, "get_the_xml_data", lambda state: 0)
-    monkeypatch.setattr(userintr_editors, "display_current_file", lambda g, path: shown.append(path))
+    monkeypatch.setattr(userintr_finish, "get_the_xml_data", lambda state: 0)
+    monkeypatch.setattr(userintr_finish, "display_current_file", lambda g, path: shown.append(path))
     monkeypatch.setattr(userintr_editors, "refresh_tasker_object_pulldowns", lambda g: refreshed.append(g))
+    monkeypatch.setattr(userintr_fields, "refresh_tasker_object_pulldowns", lambda g: refreshed.append(g))
+    monkeypatch.setattr(userintr_finish, "refresh_tasker_object_pulldowns", lambda g: refreshed.append(g))
 
-    assert userintr_editors.reload_saved_copy_and_refresh(gui, str(copy)) == (True, "")
+    assert userintr_finish.reload_saved_copy_and_refresh(gui, str(copy)) == (True, "")
 
     assert PrimeItems.program_arguments.file == str(copy)
     assert gui.file == str(copy)
@@ -432,13 +436,13 @@ def test_a_copy_that_cannot_be_opened_or_parsed_is_reported_and_leaves_the_windo
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    ok, error = userintr_editors.reload_saved_copy_and_refresh(gui, str(tmp_path / "missing.xml"))
+    ok, error = userintr_finish.reload_saved_copy_and_refresh(gui, str(tmp_path / "missing.xml"))
     assert ok is False and error
 
     present = tmp_path / "copy.xml"
     present.write_text(_XML, encoding="utf-8")
-    monkeypatch.setattr(userintr_editors, "get_the_xml_data", lambda state: 7)
-    ok, error = userintr_editors.reload_saved_copy_and_refresh(gui, str(present))
+    monkeypatch.setattr(userintr_finish, "get_the_xml_data", lambda state: 7)
+    ok, error = userintr_finish.reload_saved_copy_and_refresh(gui, str(present))
     assert (ok, "code 7" in error) == (False, True)
     PrimeItems.file_to_get.close()
 
@@ -449,7 +453,7 @@ async def test_the_in_progress_notice_is_a_spinner_that_lets_the_loop_send_it_fi
 ) -> None:
     made = []
     monkeypatch.setattr(userintr_editors.ui, "notification", lambda *a, **k: made.append((a, k)) or "notice")
-    assert await userintr_editors.show_save_in_progress_notice() == "notice"
+    assert await userintr_finish.show_save_in_progress_notice() == "notice"
     ((args, kwargs),) = made
     assert "in progress" in args[0]
     assert kwargs["spinner"] is True and kwargs["timeout"] is None
@@ -460,8 +464,10 @@ def _stub_the_save(
 ) -> MagicMock:
     notice = MagicMock()
     monkeypatch.setattr(userintr_editors, "show_save_in_progress_notice", AsyncMock(return_value=notice))
+    monkeypatch.setattr(userintr_finish, "show_save_in_progress_notice", AsyncMock(return_value=notice))
     monkeypatch.setattr(userintr_editors, "write_full_backup_to_current_file", lambda state: written)
     monkeypatch.setattr(userintr_editors, "reload_saved_copy_and_refresh", lambda g, path: reloaded)
+    monkeypatch.setattr(userintr_finish, "reload_saved_copy_and_refresh", lambda g, path: reloaded)
     return notice
 
 
@@ -551,7 +557,7 @@ def test_a_valid_rename_is_applied_at_once_and_the_dialog_follows_it(
     assert fields["name"].value == "Loud", "Ok would otherwise rename it straight back"
     assert fields["save_path"].value == taskedit_save.default_save_path("Loud", PrimeItems)
     assert notices.said("Renamed to 'Loud'.")
-    assert calls["refresh_tasker_object_pulldowns"] and calls["_select_renamed_item"][0][0][1:] == ("Task", "Loud")
+    assert calls["refresh_tasker_object_pulldowns"] and calls["select_renamed_item"][0][0][1:] == ("Task", "Loud")
     dialog.close.assert_called_once()
 
 
@@ -601,7 +607,7 @@ def test_confirming_a_delete_removes_the_task_clears_the_selection_and_closes_bo
     handlers.confirm_delete_task_event("Quiet", confirm, parent)
     assert "Quiet" not in PrimeItems.tasker_root_elements["all_tasks_by_name"]
     assert notices.said("Deleted Task 'Quiet'.")
-    assert calls["refresh_tasker_object_pulldowns"] and calls["_reset_specific_name_selection"]
+    assert calls["refresh_tasker_object_pulldowns"] and calls["reset_specific_name_selection"]
     confirm.close.assert_called_once()
     parent.close.assert_called_once()
 
@@ -616,7 +622,7 @@ def test_deleting_a_task_that_does_not_exist_reports_it_and_keeps_both_dialogs_o
     assert notices.of_type("negative")
     confirm.close.assert_not_called()
     parent.close.assert_not_called()
-    assert calls["_reset_specific_name_selection"] == []
+    assert calls["reset_specific_name_selection"] == []
     assert calls["build_unsaved_deletion_dialog"] == []
 
 
@@ -743,7 +749,7 @@ def test_a_redacted_save_says_what_was_redacted(
     tmp_path: Path,
 ) -> None:
     fields = _task_fields(save_path=str(tmp_path / "r.tsk.xml"))
-    fields[userintr_editors.REDACT_FIELD] = _Widget(True)
+    fields[userintr_fields.REDACT_FIELD] = _Widget(True)
     handlers.save_edited_task_event(_edit_task(), fields, dialog)
     assert notices.said("Secrets and personal details were redacted")
 
@@ -762,7 +768,7 @@ async def test_save_to_current_file_applies_the_edit_writes_the_copy_loads_it_an
 
     assert _live_task_by_id("20").findtext("nme") == "Noisier"
     notice.dismiss.assert_called_once()
-    assert calls["_select_renamed_item"][0][0][1:] == ("Task", "Noisier")
+    assert calls["select_renamed_item"][0][0][1:] == ("Task", "Noisier")
     assert notices.said("The original file was left unchanged.")
     dialog.close.assert_called_once()
 
@@ -1101,7 +1107,7 @@ def test_a_project_rename_moves_it_follows_it_and_closes_both_dialogs(
     handlers.confirm_rename_project_event(_edit_project(), "Houses", prompt, parent)
     assert "Houses" in PrimeItems.tasker_root_elements["all_projects"]
     assert "Home" not in PrimeItems.tasker_root_elements["all_projects"]
-    assert calls["_select_renamed_item"][0][0][1:] == ("Project", "Houses")
+    assert calls["select_renamed_item"][0][0][1:] == ("Project", "Houses")
     assert notices.said("Renamed to 'Houses'.")
     prompt.close.assert_called_once()
     parent.close.assert_called_once()
@@ -1148,7 +1154,7 @@ def test_keep_contents_moves_the_profiles_and_tasks_to_base_and_says_where(
     handlers.keep_contents_delete_project_event("Home", confirm, parent)
     assert "Home" not in PrimeItems.tasker_root_elements["all_projects"]
     assert notices.said(f"moved to '{projedit.BASE_PROJECT_NAME}'")
-    assert calls["_reset_specific_name_selection"]
+    assert calls["reset_specific_name_selection"]
     confirm.close.assert_called_once()
     parent.close.assert_called_once()
     ((args, _kwargs),) = calls["build_unsaved_deletion_dialog"]
@@ -1176,11 +1182,11 @@ def test_a_project_delete_the_model_refuses_is_reported_and_closes_nothing(
     assert notices.of_type("negative")
     confirm.close.assert_not_called()
     parent.close.assert_not_called()
-    assert calls["_reset_specific_name_selection"] == []
+    assert calls["reset_specific_name_selection"] == []
 
 
 def _project_fields(name: str = "Home", save_path: str = "") -> dict:
-    return {key: _Widget() for key in userintr_editors.EDIT_PROJECT_INERT_FIELDS} | {
+    return {key: _Widget() for key in userintr_fields.EDIT_PROJECT_INERT_FIELDS} | {
         "name": _Widget(name),
         "project_save_path": _Widget(save_path),
     }
@@ -1248,7 +1254,7 @@ async def test_project_save_to_current_file_applies_the_name_writes_loads_and_fo
     await handlers.save_project_to_current_file_event(_edit_project(), _project_fields(name="Houses"), dialog)
     assert "Houses" in PrimeItems.tasker_root_elements["all_projects"]
     notice.dismiss.assert_called_once()
-    assert calls["_select_renamed_item"][0][0][1:] == ("Project", "Houses")
+    assert calls["select_renamed_item"][0][0][1:] == ("Project", "Houses")
     dialog.close.assert_called_once()
 
 
@@ -1267,6 +1273,7 @@ async def test_project_save_to_current_file_stops_at_an_unapplied_field_a_bad_na
     written.assert_not_called()
 
     monkeypatch.setattr(userintr_editors, "show_save_in_progress_notice", AsyncMock(return_value=MagicMock()))
+    monkeypatch.setattr(userintr_finish, "show_save_in_progress_notice", AsyncMock(return_value=MagicMock()))
     await handlers.save_project_to_current_file_event(_edit_project(), _project_fields(), dialog)
     assert notices.said("Could not save to current file: disk full")
 
@@ -1610,7 +1617,7 @@ def test_a_scene_rename_moves_it_in_every_project_that_lists_it_and_closes_both(
     handlers.confirm_rename_scene_event(_edit_scene(), "Board", prompt, parent)
     assert "Board" in PrimeItems.tasker_root_elements["all_scenes"]
     assert _live_project("Home").findtext("scenes") == "Board"
-    assert calls["_select_renamed_item"][0][0][1:] == ("Scene", "Board")
+    assert calls["select_renamed_item"][0][0][1:] == ("Scene", "Board")
     prompt.close.assert_called_once()
     parent.close.assert_called_once()
 
@@ -1676,7 +1683,7 @@ async def test_scene_save_to_current_file_applies_writes_loads_and_reselects(
     _stub_the_save(monkeypatch)
     await handlers.save_scene_to_current_file_event(_edit_scene(), _scene_fields(widthPort="650"), dialog)
     assert _live_scene().findtext("widthPort") == "650"
-    assert calls["_select_renamed_item"][0][0][1:] == ("Scene", "Panel")
+    assert calls["select_renamed_item"][0][0][1:] == ("Scene", "Panel")
     dialog.close.assert_called_once()
 
 
@@ -1722,7 +1729,7 @@ def test_confirming_a_scene_delete_removes_it_from_its_projects_and_closes_both_
     handlers.confirm_delete_scene_event("Panel", confirm, parent)
     assert "Panel" not in PrimeItems.tasker_root_elements["all_scenes"]
     assert "Panel" not in (_live_project("Home").findtext("scenes") or "")
-    assert calls["_reset_specific_name_selection"] and notices.said("Deleted Scene 'Panel'.")
+    assert calls["reset_specific_name_selection"] and notices.said("Deleted Scene 'Panel'.")
     confirm.close.assert_called_once()
     parent.close.assert_called_once()
 
@@ -1822,7 +1829,7 @@ def test_a_profile_rename_is_applied_at_once_and_the_dialog_follows_it(
     assert "Dawn" in label.text
     assert fields["name"].value == "Dawn"
     assert fields["save_path"].value == profedit.default_save_path("Dawn", PrimeItems)
-    assert calls["_select_renamed_item"][0][0][1:] == ("Profile", "Dawn")
+    assert calls["select_renamed_item"][0][0][1:] == ("Profile", "Dawn")
     dialog.close.assert_called_once()
 
 
@@ -1853,7 +1860,7 @@ def test_delete_profile_opens_the_confirmation_and_confirming_keeps_its_tasks(
     handlers.confirm_delete_profile_event("Morning", confirm, parent)
     assert "Morning" not in PrimeItems.tasker_root_elements["all_profiles_by_name"]
     assert "Noisy" in PrimeItems.tasker_root_elements["all_tasks_by_name"]
-    assert notices.said("Its Tasks were kept.") and calls["_reset_specific_name_selection"]
+    assert notices.said("Its Tasks were kept.") and calls["reset_specific_name_selection"]
     confirm.close.assert_called_once()
     parent.close.assert_called_once()
 
@@ -2065,7 +2072,7 @@ def test_a_redacted_profile_export_says_so(
 ) -> None:
     edited = _edit_profile()
     fields = _profile_fields(save_path=str(tmp_path / "r.prf.xml"), edited=edited) | {
-        userintr_editors.REDACT_FIELD: _Widget(True)
+        userintr_fields.REDACT_FIELD: _Widget(True)
     }
     handlers.save_edited_profile_event(edited, fields, dialog)
     assert notices.said("were redacted")
@@ -2082,7 +2089,7 @@ async def test_profile_save_to_current_file_applies_writes_loads_and_reselects(
     edited = _edit_profile()
     fields = _profile_fields(name="Dawn", edited=edited)
     await handlers.save_edited_profile_to_current_file_event(edited, fields, dialog)
-    assert calls["_select_renamed_item"][0][0][1:] == ("Profile", "Dawn")
+    assert calls["select_renamed_item"][0][0][1:] == ("Profile", "Dawn")
     dialog.close.assert_called_once()
 
 

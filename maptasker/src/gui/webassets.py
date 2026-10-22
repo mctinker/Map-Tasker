@@ -2,7 +2,7 @@
 
 They live under maptasker/assets as ordinary .css/.js/.png files -- so an editor highlights and
 lints them -- and are served over HTTP from one NiceGUI static route.  Every page links the
-stylesheet and script from its <head> (guiwins.inject_shared_head_styles), and after the first
+stylesheet and script from its <head> (guiwins_drawers.inject_shared_head_styles), and after the first
 page the browser has both cached, which is cheaper than the inline <style> each page used to
 carry and far cheaper than resending the canvas script over the websocket on every re-render.
 """

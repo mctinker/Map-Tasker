@@ -81,7 +81,7 @@ _KEYED_BY_ID = frozenset({PROFILE, TASK})
 # thing" (see anchor_attribute for the other way an id gets written).
 ANCHOR_CLASS = "mt-anchor"
 
-# The class the jump puts on whatever it lands on.  Styled in guiwins.inject_shared_head_styles.
+# The class the jump puts on whatever it lands on.  Styled in guiwins_drawers.inject_shared_head_styles.
 HIGHLIGHT_CLASS = "mt-jump-target"
 
 # How many colon-separated fields Target.token writes.  Named so that adding one cannot be
@@ -367,7 +367,7 @@ def scene_element_parts(scene_element: object) -> dict[int, str]:
 
 
 # What a Version 2 Scene's ROOT component is called in an anchor.  Its own path is empty
-# (sceneedit_v2.v2_flatten starts it at ()), and an empty part means "no part at all" -- which
+# (sceneedit_v2tree.v2_flatten starts it at ()), and an empty part means "no part at all" -- which
 # would send every finding about the root component to the top of the Scene.  Not a slot
 # key a path can otherwise begin with: a path's first step names a slot INSIDE the root.
 _V2_ROOT_PART = "root"
@@ -407,7 +407,7 @@ def scene_component_part(path: tuple, key: str = "") -> str:
 
     A V2 Scene keeps its components in a gzipped JSON blob rather than in child elements,
     so there is no "sr" name to key them by -- what identifies a component is its position
-    in the component tree, which is exactly what sceneedit_v2.v2_flatten hands out as a path
+    in the component tree, which is exactly what sceneedit_v2tree.v2_flatten hands out as a path
     of alternating slot key and index.  ("children", 0, "children", 2) becomes
     "children/0/children/2", and the property named on top of it: "...#text".
 
@@ -774,7 +774,7 @@ REVEAL_ANCESTORS_JS = assettext.text("js/reveal_ancestors.js")
 # Defined here rather than where it is used because two different things now need it: the
 # jump a clicked report finding asks for (below), and the Map's own hyperlinks, which the
 # view takes over so that they can reach a line the browser has not laid out yet (see
-# guiwins_views.NiceGuiTextView._enable_in_page_links).
+# guiwins_textview.NiceGuiTextView._enable_in_page_links).
 RESOLVE_TARGET_JS = assettext.render("js/resolve_target.js", ANCHOR_CLASS=repr(ANCHOR_CLASS))
 
 

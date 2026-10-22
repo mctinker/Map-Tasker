@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING
 
 from maptasker.src.core import clock
 from maptasker.src.core.debug import display_debug_info
-from maptasker.src.core.format import css_color, format_html
+from maptasker.src.core.format import format_html
+from maptasker.src.core.htmlsafe import css_color
 from maptasker.src.core.prefers import get_preferences
 from maptasker.src.core.sysconst import MY_VERSION, NORMAL_TAB, FormatLine
 from maptasker.src.mapgen.addcss import add_css

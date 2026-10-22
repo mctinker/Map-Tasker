@@ -19,7 +19,7 @@ from maptasker.src.core import objprops
 from maptasker.src.core.mapjump import PROFILE
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.edit import profedit
-from maptasker.src.gui.guiwins import _android_device_fields
+from maptasker.src.gui.guiwins import android_device_fields
 from maptasker.src.gui.guiwins_editor import (
     PendingChangesBanner,
     _build_properties_button,
@@ -217,7 +217,7 @@ class _ProfileEditorBody:
         # Registered under a fixed key (not cleared/rebuilt like the cond*
         # keys) so Save/Ok/Save To Android can link in whatever's currently
         # picked here even if the user never clicked "Link" separately --
-        # see userintr_editors._link_pending_task_pickers.
+        # see userintr_fields.link_pending_task_pickers.
         self.field_refs[f"{link_type.lower()}_task_picker"] = picker
         ui.button(
             translate_string("Link"),
@@ -639,7 +639,7 @@ def _build_edit_profile_fields(
     # Add/Delete Condition, Link/Unlink Task, the Enabled toggle and a Rename all land on
     # the working copy's element as they happen; every condition's own fields wait in
     # field_refs until a save reads them, as does whatever is sitting picked but not yet
-    # linked in an Entry/Exit Task picker (see userintr_editors._link_pending_task_pickers) --
+    # linked in an Entry/Exit Task picker (see userintr_fields.link_pending_task_pickers) --
     # which is a pending change too, since a save would apply it.  See guiwins_editor.editor_state.
     pending_changes = PendingChangesBanner()
     pending_changes.watch(dialog, lambda: editor_state(edited_profile.profile_element, field_refs))
@@ -772,7 +772,7 @@ def build_save_profile_to_android_dialog(
     """
     with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Profile To Android Device")).classes("text-lg font-bold text-blue-600")
-        android_field_refs = _android_device_fields(self)
+        android_field_refs = android_device_fields(self)
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
@@ -834,7 +834,7 @@ def build_delete_profile_dialog(
     edited_profile: profedit.EditableProfile,
     parent_dialog: ui.dialog,
 ) -> None:
-    """Confirms deletion of a Profile. Unlike guiwins.build_delete_project_dialog there is
+    """Confirms deletion of a Profile. Unlike guiwins_dialogs.build_delete_project_dialog there is
     no Keep/Delete Contents choice -- a Profile doesn't own its Entry/Exit Tasks
     (see profedit.delete_profile), so they are always kept, and the dialog says so
     explicitly rather than leaving the user to guess what "delete" reaches.
@@ -986,7 +986,7 @@ def build_add_profile_dialog(
     button requires be selected before this dialog opens (see
     userintr_editors.open_add_profile_dialog_event) -- stored in field_refs (not a
     widget; there's nothing here for the user to change) purely so
-    _validate_and_apply_new_profile/save_profile_to_android_event can read it
+    validate_and_apply_new_profile/save_profile_to_android_event can read it
     back and attach the new Profile to that Project (see
     profedit.add_profile_to_project) once it's registered. A Profile only
     shows up in the Project/Profile/Task pulldowns, Map, Diagram, or Tree
