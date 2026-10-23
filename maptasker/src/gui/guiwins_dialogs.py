@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import inspect
 from datetime import date
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -339,7 +339,7 @@ def build_overwrite_confirm_dialog(
     confirm_dialog.open()
 
 
-def build_changes_since_dialog(on_choose: Callable[[str, date | None], Coroutine]) -> None:
+def build_changes_since_dialog(on_choose: Callable[[str, date | None], Coroutine[Any, Any, None]]) -> None:
     """Asks how far back "Changes Since..." should look, then hands the answer over.
 
     The periods and what they resolve to are timeline's (see timeline.PERIOD_LABELS and
@@ -521,7 +521,7 @@ def build_delete_project_dialog(
     confirm_dialog.open()
 
 
-def build_unsaved_deletion_dialog(message: str, save_configuration: Callable[[], Coroutine]) -> None:
+def build_unsaved_deletion_dialog(message: str, save_configuration: Callable[[], Coroutine[Any, Any, Any]]) -> None:
     """Says an object was deleted and offers to save, for the Delete Project/Profile/Task/Scene dialogs.
 
     A delete closes the Edit dialog it was started from -- there is nothing left for that dialog to

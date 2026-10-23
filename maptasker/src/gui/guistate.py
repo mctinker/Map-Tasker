@@ -18,7 +18,7 @@ imports either of them at run time.
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.maputil2 import suppress_logged
@@ -205,13 +205,13 @@ def _apply_remembered_settings(gui: MyGui) -> None:
             setattr(gui, name, gui.state.program_arguments[name])
 
 
-def gui_settings(gui: MyGui) -> dict:
+def gui_settings(gui: MyGui) -> dict[str, Any]:
     """The settings to save, read off a MyGui instance -- with remember_setting's values in force."""
     _apply_remembered_settings(gui)
     return {name: getattr(gui, name) for name in ARGUMENT_NAMES}
 
 
-def capture_gui_state(user_input: MyGui, data: dict, state: RunState) -> None:
+def capture_gui_state(user_input: MyGui, data: dict[str, Any], state: RunState) -> None:
     """Capture the current state of the GUI and save it to PrimeItems.
     Parameters:
         - user_input (MyGui): The user input object containing GUI state.

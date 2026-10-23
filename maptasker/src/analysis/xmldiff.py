@@ -1053,7 +1053,7 @@ def _compare_named_values(kind: str, was: dict[str, str], now: dict[str, str], e
     )
 
 
-def _counts(entries: list[Entry]) -> dict:
+def _counts(entries: list[Entry]) -> dict[str, int]:
     """How many entries of each category."""
     return {category: sum(1 for entry in entries if entry.category == category) for category in _CATEGORIES}
 
@@ -1153,7 +1153,7 @@ def _build_report(
     return "\n".join(lines)
 
 
-def compare(older: Configuration, newer: Configuration) -> tuple[str, dict]:
+def compare(older: Configuration, newer: Configuration) -> tuple[str, dict[str, int]]:
     """Compare two configurations.  Returns (report text, counts by category).
 
     "Added" means present in 'newer', so the caller is expected to have sorted the two by

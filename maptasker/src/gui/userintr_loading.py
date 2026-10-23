@@ -16,7 +16,7 @@ Compare button opens.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from nicegui import ui
 
@@ -109,7 +109,7 @@ class AppState:
     """Initialize the variable to hold the selected file path.
     This is a class variable that can be accessed and modified from anywhere in the code."""
 
-    selected_file_path = None
+    selected_file_path: str | list[str] | None = None
 
 
 class LoadingEventHandlers(HandlerGroup):
@@ -309,7 +309,8 @@ class LoadingEventHandlers(HandlerGroup):
         if result:
             # Save the exact file location and name to our variable
             # (local_file_picker returns a tuple if multiple=True, or a string if multiple=False)
-            AppState.selected_file_path = result[0] if isinstance(result, tuple) else result
+            picked = cast("str | list[str] | tuple[str, ...]", result)
+            AppState.selected_file_path = picked[0] if isinstance(picked, tuple) else picked
 
             # Update the UI to reflect the saved variable
             gui.current_file.text = f"Saved Variable: {AppState.selected_file_path}"
@@ -317,11 +318,7 @@ class LoadingEventHandlers(HandlerGroup):
             ui.notify(translate_string("File path saved successfully!"), type="positive")
 
             # Let everyone knmow which file we are working with
-            chosen_path = str(
-                AppState.selected_file_path[0]
-                if isinstance(AppState.selected_file_path, list)
-                else AppState.selected_file_path
-            )
+            chosen_path = picked[0] if isinstance(picked, (list, tuple)) else picked
             self.state.file_to_get = chosen_path
 
             # Open the picker here next time.
@@ -364,7 +361,7 @@ class LoadingEventHandlers(HandlerGroup):
             # Handle the case where the user hit "Cancel" or closed the dialog
             ui.notify(translate_string("File selection canceled."), type="warning")
 
-    def file_selected_event(self, android_file: str) -> None:
+    def file_selected_event(self, android_file: str | dict[str, str]) -> None:
         """
         User has selected a specific Android XML file from a pulldown menu context.
         Removes absolute pixel offsets and handles notifications natively using NiceGUI.
@@ -415,10 +412,6 @@ class LoadingEventHandlers(HandlerGroup):
             # Clear input fields out and hide the layout strip cleanly
             the_view.android_container.clear()
             the_view.android_container.classes(add="hidden")
-
-        # Execute fallback labels updates
-        if hasattr(the_view, "display_backup_details"):
-            the_view.display_backup_details()
 
         # Fully reload and populate the Projects/Profiles/Tasks selection dropdown lists
         update_tasker_object_menus(the_view, get_data=True, reset_single_names=True)

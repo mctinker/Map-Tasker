@@ -105,12 +105,6 @@
   "maptasker/src/gui/userintr.py": {
     "reportArgumentType": 1
   },
-  "maptasker/src/gui/userintr_ai.py": {
-    "reportAttributeAccessIssue": 3
-  },
-  "maptasker/src/gui/userintr_loading.py": {
-    "reportAttributeAccessIssue": 1
-  },
   "maptasker/src/mapgen/bildhtml.py": {
     "reportArgumentType": 2
   },

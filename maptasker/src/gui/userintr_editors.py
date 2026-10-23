@@ -17,7 +17,7 @@ to the XML by taskedit, profedit, sceneedit and projedit.  This is what the dial
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -140,7 +140,7 @@ class EditorEventHandlers(HandlerGroup):
     def rename_task_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         title_label: ui.label,
     ) -> None:
         """Opens the Rename prompt for this Task, nested inside Edit Task -- see
@@ -164,7 +164,7 @@ class EditorEventHandlers(HandlerGroup):
     def confirm_rename_task_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         title_label: ui.label,
         new_name: str,
         rename_dialog: ui.dialog,
@@ -253,7 +253,7 @@ class EditorEventHandlers(HandlerGroup):
     def save_edited_task_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Edit Task dialog's field values, then writes the
@@ -304,7 +304,7 @@ class EditorEventHandlers(HandlerGroup):
     def stash_scene_event_task_edits(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
     ) -> None:
         """Snapshot an Event tab's argument and label widgets into the Task copy they belong
         to, WITHOUT touching the loaded configuration.
@@ -324,8 +324,8 @@ class EditorEventHandlers(HandlerGroup):
 
     def keep_scene_event_task_edits(
         self,
-        bound_tasks: dict,
-        pending_tasks: dict,
+        bound_tasks: dict[str, Any],
+        pending_tasks: dict[str, Any],
         bind: Callable[[str, str], None],
     ) -> bool:
         """Put every Task edited under a Scene Properties Event tab into the loaded
@@ -381,8 +381,8 @@ class EditorEventHandlers(HandlerGroup):
         self,
         scene_element: Element,
         properties_snapshot: Element | None,
-        geometry_snapshot: dict,
-        field_refs: dict,
+        geometry_snapshot: dict[str, Any],
+        field_refs: dict[str, Any],
     ) -> None:
         """Cancel in the Scene Properties dialog: put the Scene's <PropertiesElement> back the
         way that dialog found it, and its geometry boxes with it.
@@ -418,7 +418,7 @@ class EditorEventHandlers(HandlerGroup):
     def create_scene_event_task_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         on_created: Callable[[str], None],
     ) -> bool:
         """Registers the Task being composed under a Scene Properties Event tab and hands
@@ -443,7 +443,7 @@ class EditorEventHandlers(HandlerGroup):
     def apply_scene_key_task_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
     ) -> None:
         """Applies the Scene Properties KEY tab's Task action edits into the live
         in-memory backup -- what "Apply to Task" does (see
@@ -468,7 +468,7 @@ class EditorEventHandlers(HandlerGroup):
     def keep_edited_task_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Edit Task dialog's field values into the live
@@ -485,7 +485,7 @@ class EditorEventHandlers(HandlerGroup):
     async def save_edited_task_to_current_file_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Edit Task dialog's field values (same as
@@ -555,7 +555,7 @@ class EditorEventHandlers(HandlerGroup):
         # See open_add_task_dialog_event's identical self-healing load: the toolbar's
         # "Current File" only means a filename is known, not that it's been parsed
         # into PrimeItems.xml_root yet.
-        if self.state.xml_root is None:
+        if not self.state.backup_loaded:
             if not self.state.file_to_get and getattr(the_view, "file", ""):
                 self.state.file_to_get = the_view.file
             if not self.state.file_to_get or get_xml(the_view.debug, the_view.appearance_mode, state=self.state) != 0:
@@ -575,7 +575,7 @@ class EditorEventHandlers(HandlerGroup):
     def keep_new_project_event(
         self,
         edited_project: projedit.EditableProject,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Add Project dialog's Name field, registers
@@ -703,7 +703,7 @@ class EditorEventHandlers(HandlerGroup):
     def keep_object_properties_event(
         self,
         props: objprops.EditableProperties,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
         on_applied: Callable[[], None] | None = None,
     ) -> None:
@@ -764,7 +764,7 @@ class EditorEventHandlers(HandlerGroup):
     async def save_project_to_current_file_event(
         self,
         edited_project: projedit.EditableProject,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Edit Project dialog's Name field (same as
@@ -828,7 +828,7 @@ class EditorEventHandlers(HandlerGroup):
     def save_project_event(
         self,
         edited_project: projedit.EditableProject,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Writes the Project -- every Profile and Task it owns -- out as a
@@ -978,7 +978,7 @@ class EditorEventHandlers(HandlerGroup):
         # See open_add_task_dialog_event's identical self-healing load: the toolbar's
         # "Current File" only means a filename is known, not that it's been parsed
         # into PrimeItems.xml_root yet.
-        if self.state.xml_root is None:
+        if not self.state.backup_loaded:
             if not self.state.file_to_get and getattr(the_view, "file", ""):
                 self.state.file_to_get = the_view.file
             if not self.state.file_to_get or get_xml(the_view.debug, the_view.appearance_mode, state=self.state) != 0:
@@ -1019,7 +1019,7 @@ class EditorEventHandlers(HandlerGroup):
     def keep_new_scene_event(
         self,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Add Scene dialog's fields, registers the new
@@ -1078,7 +1078,7 @@ class EditorEventHandlers(HandlerGroup):
     def preview_scene_event(
         self,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog | None = None,
     ) -> None:
         """Draws the Scene being edited as a picture in the main content column.  Backs the
@@ -1112,7 +1112,7 @@ class EditorEventHandlers(HandlerGroup):
     def save_edited_scene_event(
         self,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Applies the Edit Scene dialog's editable fields to the live in-memory
@@ -1195,7 +1195,7 @@ class EditorEventHandlers(HandlerGroup):
     async def save_scene_to_current_file_event(
         self,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Applies the dialog's editable fields, then writes the *entire* current
@@ -1238,7 +1238,7 @@ class EditorEventHandlers(HandlerGroup):
     def save_scene_event(
         self,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Applies the Edit Scene dialog's edits, then writes the Scene out as a
@@ -1346,7 +1346,7 @@ class EditorEventHandlers(HandlerGroup):
     def rename_profile_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         title_label: ui.label,
     ) -> None:
         """Opens the Rename prompt for this Profile, nested inside Edit Profile
@@ -1370,7 +1370,7 @@ class EditorEventHandlers(HandlerGroup):
     def confirm_rename_profile_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         title_label: ui.label,
         new_name: str,
         rename_dialog: ui.dialog,
@@ -1463,7 +1463,7 @@ class EditorEventHandlers(HandlerGroup):
         # See open_add_task_dialog_event's identical self-healing load: the toolbar's
         # "Current File" only means a filename is known, not that it's been parsed
         # into PrimeItems.xml_root yet.
-        if self.state.xml_root is None:
+        if not self.state.backup_loaded:
             if not self.state.file_to_get and getattr(the_view, "file", ""):
                 self.state.file_to_get = the_view.file
             if not self.state.file_to_get or get_xml(the_view.debug, the_view.appearance_mode, state=self.state) != 0:
@@ -1587,7 +1587,7 @@ class EditorEventHandlers(HandlerGroup):
     def save_edited_profile_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Edit Profile dialog's field values, then writes
@@ -1635,7 +1635,7 @@ class EditorEventHandlers(HandlerGroup):
     def keep_edited_profile_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Edit Profile dialog's field values into the
@@ -1652,7 +1652,7 @@ class EditorEventHandlers(HandlerGroup):
     async def save_edited_profile_to_current_file_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Edit Profile dialog's field values (same as
@@ -1689,7 +1689,7 @@ class EditorEventHandlers(HandlerGroup):
     def save_new_profile_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Add Profile dialog's field values, then writes
@@ -1721,7 +1721,7 @@ class EditorEventHandlers(HandlerGroup):
     def keep_new_profile_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Add Profile dialog's field values, then
@@ -1752,7 +1752,7 @@ class EditorEventHandlers(HandlerGroup):
     async def save_new_profile_to_current_file_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
     ) -> None:
         """Validates and applies the Add Profile dialog's field values,
@@ -1828,7 +1828,7 @@ class EditorEventHandlers(HandlerGroup):
         # parsed into PrimeItems.xml_root yet (see the same self-healing load in
         # MyGui.__init__). Load it now rather than let create_new_task below
         # confusingly report "no file loaded" while a file is plainly shown.
-        if self.state.xml_root is None:
+        if not self.state.backup_loaded:
             if not self.state.file_to_get and getattr(the_view, "file", ""):
                 self.state.file_to_get = the_view.file
             if not self.state.file_to_get or get_xml(the_view.debug, the_view.appearance_mode, state=self.state) != 0:
@@ -2010,7 +2010,7 @@ class EditorEventHandlers(HandlerGroup):
     def save_new_task_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
     ) -> None:
@@ -2043,7 +2043,7 @@ class EditorEventHandlers(HandlerGroup):
     def keep_new_task_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
     ) -> None:
@@ -2074,7 +2074,7 @@ class EditorEventHandlers(HandlerGroup):
     async def save_new_task_to_current_file_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
     ) -> None:

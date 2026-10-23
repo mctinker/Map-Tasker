@@ -11,7 +11,7 @@ and the Properties button -- comes from guiwins_editor.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -88,7 +88,7 @@ def _mark_unsupported_options(select_widget: ui.select, unsupported_values: set)
 def _build_profile_editor_body(
     self: MyGui,
     edited_profile: profedit.EditableProfile,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     parent_dialog: ui.dialog,
 ) -> None:
     """Renders a Profile's Enabled/Disabled toggle, Entry/Exit Task Link/Unlink
@@ -609,7 +609,7 @@ def _build_code_type_picker(rows: list[dict], label: str, type_picker: Select, s
 def _build_edit_profile_fields(
     self: MyGui,
     edited_profile: profedit.EditableProfile,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
 ) -> ui.label:
     """The Edit Profile dialog's title and fields: Name, the shared editor body, Save as, redact and the banner.
@@ -649,7 +649,7 @@ def _build_edit_profile_fields(
 def _build_edit_profile_buttons(
     self: MyGui,
     edited_profile: profedit.EditableProfile,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
     title_label: ui.label,
 ) -> None:
@@ -759,7 +759,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
 def build_save_profile_to_android_dialog(
     self: MyGui,
     edited_profile: profedit.EditableProfile,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     parent_dialog: ui.dialog,
 ) -> None:
     """Prompts for the Android device's IP address and port, then writes the
@@ -867,7 +867,7 @@ def build_delete_profile_dialog(
 def _build_add_profile_fields(
     self: MyGui,
     edited_profile: profedit.EditableProfile,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
     target_project_name: str,
 ) -> None:
@@ -905,7 +905,7 @@ def _build_add_profile_fields(
 def _build_add_profile_buttons(
     self: MyGui,
     edited_profile: profedit.EditableProfile,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
 ) -> None:
     """The Add Profile dialog's button row: Cancel, Ok, the two saves and Export."""

@@ -127,7 +127,7 @@ def update_analysis_button_color(gui: "MyGui") -> None:
 
 def display_model_pulldown(
     gui_arg: object,
-    *_args: dict,
+    *_args: object,
     extended_models: list[str] | None = None,
     **_kwargs: object,
 ) -> None:
@@ -242,7 +242,7 @@ def prefix_and_sort(strings: list[str], name: str) -> list[str]:
     return prefixed_strings
 
 
-def get_extended_ai_model_list(state: RunState) -> list:
+def get_extended_ai_model_list(state: RunState) -> list[str]:
     """Retrieves and compiles an extended list of available AI models from various providers.
 
     This function fetches models from OpenAI, Anthropic, and Gemini (assuming respective

@@ -1026,7 +1026,7 @@ def _current_xml_file(state: RunState) -> str:
     return path if isinstance(path, str) and path else "(unknown)"
 
 
-def _counts(findings: list[Finding]) -> dict:
+def _counts(findings: list[Finding]) -> dict[str, int]:
     """How many findings of each severity."""
     return {severity: sum(1 for item in findings if item.severity == severity) for severity in _SEVERITY_ORDER}
 
@@ -1353,7 +1353,7 @@ def collect_findings(skip: Collection[str] = (), *, state: RunState) -> Referenc
     return index
 
 
-def run_health_check(skip: Collection[str] = (), *, state: RunState) -> tuple[list[Row], dict]:
+def run_health_check(skip: Collection[str] = (), *, state: RunState) -> tuple[list[Row], dict[str, int]]:
     """Scan the loaded configuration and return (report rows, counts by severity).
 
     Rows rather than finished text: the caller saves them as plain text and shows them as

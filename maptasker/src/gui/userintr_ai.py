@@ -10,7 +10,7 @@ keeps the keys.  This is only what the window's AI controls do when they are use
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import run, ui
 
@@ -90,21 +90,22 @@ async def build_analysis_lines(gui: MyGui) -> bool:
 class AIEventHandlers(HandlerGroup):
     """The AI handlers: reached as hub.ai; self.hub is the rest of the window's handlers, self.gui the window."""
 
-    def ai_model_selected_event(self, event_value: ValueChangeEventArguments) -> None:
+    def ai_model_selected_event(self, event_value: ValueChangeEventArguments[Any]) -> None:
         """Updates the AI model based on dropdown selection."""
-        if not event_value.value or self.gui.is_updating:
+        selected: Any = event_value.value
+        if not selected or self.gui.is_updating:
             return
 
         # 1. Parse out the raw model and provider name for the backend logic
-        if isinstance(event_value.value, str):
-            if ":" in event_value.value:
-                self.gui.ai_model = event_value.value.split(":", 1)[1].strip()
-                self.gui.ai_name = event_value.value.split(":")[0].strip()
+        if isinstance(selected, str):
+            if ":" in selected:
+                self.gui.ai_model = selected.split(":", 1)[1].strip()
+                self.gui.ai_name = selected.split(":")[0].strip()
             else:
-                self.gui.ai_model = event_value.value.strip()
+                self.gui.ai_model = selected.strip()
             self.state.program_arguments.ai_name = self.gui.ai_name
-        elif isinstance(event_value.value, list):
-            self.gui.ai_model = event_value.value[0]
+        elif isinstance(selected, list):
+            self.gui.ai_model = cast("list[str]", selected)[0]
 
         logger.info(f"AI Model changed to: {self.gui.ai_model}")
 
@@ -437,9 +438,9 @@ class AIEventHandlers(HandlerGroup):
         # 3. GET THE RETURNED API KEYS
         # This will now succeed because dialog_container points to the class object containing attributes
         api_keys = {
-            "openai_key": dialog_container.entry_openai_key.value,
-            "anthropic_key": dialog_container.entry_anthropic_key.value,
-            "gemini_key": dialog_container.entry_gemini_key.value,
+            "openai_key": dialog_container.openai_key.value,
+            "anthropic_key": dialog_container.anthropic_key.value,
+            "gemini_key": dialog_container.gemini_key.value,
         }
 
         apikey_changed = False

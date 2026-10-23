@@ -892,7 +892,7 @@ def _current_xml_file(state: RunState) -> str:
     return path if isinstance(path, str) and path else "(unknown)"
 
 
-def _counts(found: list[Problem]) -> dict:
+def _counts(found: list[Problem]) -> dict[str, int]:
     """How many problems of each severity."""
     return {severity: sum(1 for item in found if item.severity == severity) for severity in _SEVERITY_ORDER}
 
@@ -942,7 +942,7 @@ def _header_rows(title: str, state: RunState) -> list[Row]:
     ]
 
 
-def run_task_flow_check(state: RunState) -> tuple[list[Row], dict]:
+def run_task_flow_check(state: RunState) -> tuple[list[Row], dict[str, int]]:
     """Scan every loaded Task's control flow and return (report rows, counts by severity).
 
     Rows rather than finished text, for the reason healthck gives: the caller saves them as

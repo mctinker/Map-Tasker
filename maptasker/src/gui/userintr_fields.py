@@ -6,7 +6,7 @@ the same fields for Save To Android."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core import scenelayout
 from maptasker.src.core.maputil2 import translate_string
@@ -132,7 +132,7 @@ def project_for_new_object(gui: MyGui, item_label: str) -> tuple[str, str]:
     return "", select_a_project
 
 
-def redact_requested(field_refs: dict, key: str = REDACT_FIELD) -> bool:
+def redact_requested(field_refs: dict[str, Any], key: str = REDACT_FIELD) -> bool:
     """Whether this export's "Redact secrets" box is ticked.
 
     Read through a helper rather than off the widget, because the four Edit dialogs file
@@ -161,7 +161,7 @@ def redacted_note(redact: bool) -> str:
     )
 
 
-def unapplied_project_edits(field_refs: dict) -> list[str]:
+def unapplied_project_edits(field_refs: dict[str, Any]) -> list[str]:
     """Guards the Edit Project dialog's two by-name saves against a field being added to
     it without the apply step those saves would then need.  Returns error strings, empty
     when there is nothing to worry about -- same contract as apply_scene_field_values.
@@ -196,7 +196,7 @@ def unapplied_project_edits(field_refs: dict) -> list[str]:
     ]
 
 
-def apply_scene_field_values(edited_scene: sceneedit.EditableScene, field_refs: dict) -> list[str]:
+def apply_scene_field_values(edited_scene: sceneedit.EditableScene, field_refs: dict[str, Any]) -> list[str]:
     """Writes the Add/Edit Scene dialog's non-name widgets back onto the Scene
     copy, and returns a list of error strings (empty on success, and nothing is
     written when it is non-empty -- the same all-or-nothing contract
@@ -220,7 +220,7 @@ def apply_scene_field_values(edited_scene: sceneedit.EditableScene, field_refs: 
     orientation has no layout of its own", see sysconst.UNSET_DIMENSION), so the
     check is "integer", not "positive integer".
     """
-    errors = []
+    errors: list[str] = []
     pending: dict[str, str] = {}
 
     for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
@@ -243,7 +243,7 @@ def apply_scene_field_values(edited_scene: sceneedit.EditableScene, field_refs: 
     return []
 
 
-def _encode_v2_layout_if_edited(edited_scene: sceneedit.EditableScene, field_refs: dict) -> None:
+def _encode_v2_layout_if_edited(edited_scene: sceneedit.EditableScene, field_refs: dict[str, Any]) -> None:
     """Writes the Version 2 designer's live layout dict back into the Scene's <lj>.
 
     The designer edits that dict in place as the user types (guiwins_designer_v2._build_v2_designer),
@@ -262,9 +262,10 @@ def _encode_v2_layout_if_edited(edited_scene: sceneedit.EditableScene, field_ref
     the original <lj> byte for byte (see scenelayout._GZIP_LEVEL), so a dialog opened and
     saved with nothing changed leaves the file exactly as it was.
     """
-    layout = field_refs.get("v2_layout")
-    if not isinstance(layout, dict):
+    found = field_refs.get("v2_layout")
+    if not isinstance(found, dict):
         return
+    layout = cast("dict[str, Any]", found)
     layout["name"] = edited_scene.scene_element.findtext("nme", "") or layout.get("name", "")
     scenelayout.encode_v2_layout(edited_scene.scene_element, layout)
 
@@ -289,13 +290,13 @@ def finish_new_scene(gui: MyGui, edited_scene: sceneedit.EditableScene, project_
     select_pulldown_option(gui.specific_scene_optionmenu, edited_scene.scene_name)
 
 
-def task_arg_values(field_refs: dict) -> dict[str, str]:
+def task_arg_values(field_refs: dict[str, Any]) -> dict[str, str]:
     """Snapshots field_refs' action-argument widgets into the string-keyed dict
     taskedit_apply.apply_edits_to_task expects -- shared by every Task-editing entry
     point (Save, Save To Android, Ok, and Add Task's own Save/Ok), which all
     read the same live NiceGUI widget values the same way.
     """
-    arg_values = {}
+    arg_values: dict[str, str] = {}
     for key, widget in field_refs.items():
         # Everything in field_refs that is NOT an action argument has to be named here --
         # this sweeps the whole dict, so a widget added to the dialog and forgotten below
@@ -309,7 +310,7 @@ def task_arg_values(field_refs: dict) -> dict[str, str]:
     return arg_values
 
 
-def object_property_values(field_refs: dict) -> dict[str, str]:
+def object_property_values(field_refs: dict[str, Any]) -> dict[str, str]:
     """Snapshots the Properties dialog's widgets into the string-keyed dict
     objprops.apply_properties expects.
 
@@ -321,7 +322,7 @@ def object_property_values(field_refs: dict) -> dict[str, str]:
     A ui.number left empty has value None, which has to read back as "" (no priority
     set) rather than the string "None".
     """
-    values = {}
+    values: dict[str, str] = {}
     for key, widget in field_refs.items():
         value = widget.value
         if value is True or value is False:
@@ -337,12 +338,12 @@ def object_property_values(field_refs: dict) -> dict[str, str]:
     return values
 
 
-def profile_condition_values(field_refs: dict) -> dict[str, str]:
+def profile_condition_values(field_refs: dict[str, Any]) -> dict[str, str]:
     """Snapshots field_refs' condition-field widgets into the string-keyed dict
     profedit.apply_edits_to_profile expects -- shared by every Profile-editing
     entry point (Save, Save To Android, Ok), same reasoning as task_arg_values.
     """
-    condition_values = {}
+    condition_values: dict[str, str] = {}
     for key, widget in field_refs.items():
         if not key.startswith("cond"):
             continue
@@ -351,7 +352,9 @@ def profile_condition_values(field_refs: dict) -> dict[str, str]:
     return condition_values
 
 
-def link_pending_task_pickers(edited_profile: profedit.EditableProfile, field_refs: dict, state: RunState) -> None:
+def link_pending_task_pickers(
+    edited_profile: profedit.EditableProfile, field_refs: dict[str, Any], state: RunState
+) -> None:
     """Links in whatever's currently picked in the Entry/Exit "Choose a Task"
     dropdown even if the user never clicked its separate "Link" button --
     picking a Task in that dropdown reads as "done" to a user, so Save/Ok/

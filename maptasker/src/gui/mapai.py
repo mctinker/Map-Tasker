@@ -499,7 +499,7 @@ def gemini_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
 
 
 # Determine the Tasker single-named object name (Task, Profile or Project) and item name.
-def get_ai_object() -> tuple:
+def get_ai_object() -> tuple[str, str]:
     """
     Determine the Tasker single-named object name (Task, Profile, Project or Scene) and
     item name.

@@ -5,7 +5,7 @@ both.  The designers themselves are guiwins_designer_legacy and guiwins_designer
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -35,7 +35,7 @@ _SCENE_TYPE_OVERLAY = sceneedit_legacy.LEGACY_SCENE_TYPE_OVERLAY
 def _build_scene_editor_body(
     _self: MyGui,
     edited_scene: sceneedit.EditableScene,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog | None = None,
     *,
     state: RunState,
@@ -223,7 +223,7 @@ def build_add_scene_dialog(
 def _build_edit_scene_fields(
     self: MyGui,
     edited_scene: sceneedit.EditableScene,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
 ) -> None:
     """The Edit Scene dialog's title and fields: Name, the designers, Save as and the share checks.
@@ -271,7 +271,7 @@ def _build_edit_scene_fields(
 def _build_edit_scene_buttons(
     self: MyGui,
     edited_scene: sceneedit.EditableScene,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
     cancel: Callable[[], None],
 ) -> None:
@@ -464,7 +464,7 @@ def build_delete_scene_dialog(
 def build_save_scene_to_android_dialog(
     self: MyGui,
     edited_scene: sceneedit.EditableScene,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     parent_dialog: ui.dialog,
 ) -> None:
     """Prompts for the Android device's IP address and port, then writes the

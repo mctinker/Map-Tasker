@@ -13,7 +13,7 @@ import tempfile
 import tomllib
 from datetime import timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import tomli_w
 
@@ -357,8 +357,12 @@ def read_arguments(
 
 # Save and restore colors to use and program arguments
 def save_restore_args(
-    program_arguments: ProgramArguments | dict, colors_to_use: dict, to_save: bool = True, *, state: RunState
-) -> tuple[ProgramArguments | dict, dict]:
+    program_arguments: ProgramArguments | dict[str, Any],
+    colors_to_use: dict[str, str],
+    to_save: bool = True,
+    *,
+    state: RunState,
+) -> tuple[ProgramArguments | dict[str, Any], dict[str, str]]:
     """
     Save and restore colors to use and program arguments
         :param program_arguments: program runtime arguments to save or restore into

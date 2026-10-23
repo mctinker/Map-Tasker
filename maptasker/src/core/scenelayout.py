@@ -117,7 +117,7 @@ def decode_v2_layout(scene_element: Element) -> dict[str, Any] | None:
     return decoded if isinstance(decoded, dict) else None
 
 
-def encode_v2_layout(scene_element: Element, layout: dict) -> None:
+def encode_v2_layout(scene_element: Element, layout: dict[str, Any]) -> None:
     """Writes a component tree back into the Scene's <lj>, encoded the way Tasker
     itself does (see _GZIP_LEVEL and the note above it -- this reproduces
     Tasker's own output byte for byte, which is what makes an edit that changes

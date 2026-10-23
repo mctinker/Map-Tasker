@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import html
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from nicegui import run, ui
 
@@ -104,7 +104,8 @@ async def _choose_comparison_file(gui: MyGui) -> str:
     # Deliberately NOT remember_local_xml_directory: that directory is where the file the
     # user is working ON comes from, and picking something to compare against -- an archive
     # folder, a download -- should not move it.
-    return result[0] if isinstance(result, (list, tuple)) else result
+    picked = cast("str | list[str] | tuple[str, ...]", result)
+    return picked[0] if isinstance(picked, (list, tuple)) else picked
 
 
 class ReportEventHandlers(HandlerGroup):

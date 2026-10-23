@@ -9,7 +9,7 @@
 import darkdetect
 
 
-def set_color_mode(appearance_mode: str) -> dict:
+def set_color_mode(appearance_mode: str) -> dict[str, str]:
     """
     Given the color mode to use (dark or light), set the colors appropriately
        :param appearance_mode: color mode: dark or light

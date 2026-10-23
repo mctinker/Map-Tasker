@@ -104,7 +104,7 @@ SINGLE_ITEM_SELECTORS = (
 )
 
 
-def initial_found_named_items() -> dict:
+def initial_found_named_items() -> dict[str, bool]:
     """
     Build a fresh found_named_items dictionary, every flag False.
 
@@ -209,7 +209,7 @@ class RunState:
     def __init__(self) -> None:
         """Give this instance its own copy of every attribute, at its declared default."""
 
-        self.ai = {
+        self.ai: dict[str, Any] = {
             "do_ai": False,
             "ai_name": "",
             "model": "",
@@ -228,6 +228,12 @@ class RunState:
         self._init_editing_session()
         self._init_session()
 
+    @property
+    def backup_loaded(self) -> bool:
+        """True once a backup has been read: xml_root is typed as the Element it is then, so a test for
+        None has to be written here, where the type checker is told it is a real question."""
+        return cast("Element | None", self.xml_root) is not None
+
     def _init_loaded_backup(self) -> None:
         """The backup that is loaded, the arguments it is read with, and what a failed read leaves."""
         # None until a backup is loaded (clear_tasker_data puts them back), and typed as what they are
@@ -236,7 +242,7 @@ class RunState:
         self.xml_tree: ElementTree = cast("ElementTree", None)
         self.xml_root: Element = cast("Element", None)
         self.program_arguments: ProgramArguments = ProgramArguments()
-        self.colors_to_use: dict = {}
+        self.colors_to_use: dict[str, str] = {}
         # None until mapit_all builds the LineOut for a run, and typed as the LineOut it is for every
         # piece of code that renders the Map -- all of it runs after that.  The few that can run before
         # (diffload, bildhtml) test for None themselves.  Declared Optional, this was 150 false alarms.

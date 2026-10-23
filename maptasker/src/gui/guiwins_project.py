@@ -5,7 +5,7 @@ panel share the scaffolding guiwins holds."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -78,7 +78,7 @@ EDIT_PROJECT_INERT_FIELDS: frozenset[str] = frozenset({"name", "project_save_pat
 def _build_edit_project_fields(
     self: MyGui,
     edited_project: projedit.EditableProject,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
 ) -> None:
     """The Edit Project dialog's title and fields: Name, the Enabled switch, Properties, Save as and the share checks.
@@ -152,7 +152,7 @@ def _build_edit_project_fields(
 def _build_edit_project_buttons(
     self: MyGui,
     edited_project: projedit.EditableProject,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
 ) -> None:
     """The Edit Project dialog's button row: Cancel, Delete, Rename, the two saves and Export."""
@@ -253,7 +253,7 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
 def build_save_project_to_android_dialog(
     self: MyGui,
     edited_project: projedit.EditableProject,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     parent_dialog: ui.dialog,
 ) -> None:
     """Prompts for the Android device's IP address and port, then writes the

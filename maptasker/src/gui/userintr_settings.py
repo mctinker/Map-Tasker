@@ -14,7 +14,7 @@ and the settings are still read and written by getputer.
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import context, run, ui
 
@@ -55,6 +55,7 @@ if TYPE_CHECKING:
     from nicegui import Client
     from nicegui.events import ValueChangeEventArguments
 
+    from maptasker.src.core.initparg import ProgramArguments
     from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 
 
@@ -197,7 +198,7 @@ class SettingsEventHandlers(HandlerGroup):
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
     # ==========================================
-    def detail_selected_event(self, event_value: ValueChangeEventArguments | str | int) -> None:
+    def detail_selected_event(self, event_value: ValueChangeEventArguments[Any] | str | int) -> None:
         """
         NICEGUI PARADIGM SHIFT:
         Dropdown (ui.select) on_change events automatically pass an 'event' object.
@@ -289,7 +290,7 @@ class SettingsEventHandlers(HandlerGroup):
         """
         the_view = self.gui
         the_view.set_defaults()  # Reset all values
-        temp_args = {}
+        temp_args: ProgramArguments | dict[str, Any] = {}
         the_view.color_lookup = {}
         # Restore all changes that have been saved
         temp_args, the_view.color_lookup = save_restore_args(
@@ -419,7 +420,7 @@ class SettingsEventHandlers(HandlerGroup):
             "Display TaskerNet Information",
         )
 
-    def font_event(self, font_selected: ValueChangeEventArguments | str) -> None:
+    def font_event(self, font_selected: ValueChangeEventArguments[Any] | str) -> None:
         """
         Sets the font for the GUI using NiceGUI properties.
         Args:
@@ -461,7 +462,7 @@ class SettingsEventHandlers(HandlerGroup):
         the_view.display_message_box(f"{set_to_text} {font_name}", "Green")
 
     # Process the Identation Amount selection
-    def indent_selected_event(self, ident_amount: ValueChangeEventArguments | str) -> None:
+    def indent_selected_event(self, ident_amount: ValueChangeEventArguments[Any] | str) -> None:
         """Indent selected text or code block without recursive loops."""
         the_view = self.gui
         if getattr(the_view, "is_updating", False):
@@ -481,7 +482,7 @@ class SettingsEventHandlers(HandlerGroup):
 
         the_view.display_message_box(f"Indentation Amount set to {ident_amount}", "green")
 
-    def language_selected_event(self, language: ValueChangeEventArguments | str) -> None:
+    def language_selected_event(self, language: ValueChangeEventArguments[Any] | str) -> None:
         """
         Set the language for the GUI and redisplay everything using NiceGUI.
         Uses a state lock to prevent recursive dropdown triggers.
@@ -574,7 +575,7 @@ class SettingsEventHandlers(HandlerGroup):
             # Forces the tab panel component container to process text and redraw updates
             ui.update()
 
-    def language_set_event(self, language: str | ValueChangeEventArguments) -> None:
+    def language_set_event(self, language: str | ValueChangeEventArguments[Any]) -> None:
         """
         Set the language for the GUI. Comes here via 'restore_display' and 'language_set_event'.
         Uses the state lock to prevent recursive dropdown triggers.
@@ -641,7 +642,7 @@ class SettingsEventHandlers(HandlerGroup):
         # Display message in the GUI
         the_view.display_message_box(message, "Green")
 
-    def tasklimit_event(self, slider_value: ValueChangeEventArguments | float) -> None:
+    def tasklimit_event(self, slider_value: ValueChangeEventArguments[Any] | float) -> None:
         """Handles the task limit slider change event safely using NiceGUI.
         Uses a state lock to prevent recursive updates.
         """
@@ -767,7 +768,7 @@ class SettingsEventHandlers(HandlerGroup):
             f"{translate_string('Output Folder')} {translate_string('set to')} {output_directory(state=self.state)}\n"
         )
 
-    def viewlimit_event(self, view_limit: ValueChangeEventArguments | str) -> None:
+    def viewlimit_event(self, view_limit: ValueChangeEventArguments[Any] | str) -> None:
         """View Limit Event handled safely without recursion."""
         guiview = self.gui
         if getattr(guiview, "is_updating", False):

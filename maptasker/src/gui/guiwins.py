@@ -610,7 +610,7 @@ def build_round_trip_report_dialog(report: roundtrip.RoundTripReport) -> None:
 def build_save_to_android_dialog(
     self: MyGui,
     edited_task: taskedit_model.EditableTask,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     parent_dialog: ui.dialog,
     on_created: Callable[[str], None] | None = None,
 ) -> None:

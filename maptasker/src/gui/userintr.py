@@ -430,7 +430,9 @@ class MyGui:
     ai_analyze_button: Any
     ai_apikey: Any
     ai_apikey_window: Any
+    ai_model: str
     ai_model_option: Any
+    ai_name: str
     ai_profile_label: Any
     ai_project_label: Any
     ai_prompt: Any
@@ -1090,7 +1092,7 @@ class MyGui:
 
         return True
 
-    def extract_settings(self, temp_args: ProgramArguments | dict) -> None:
+    def extract_settings(self, temp_args: ProgramArguments | dict[str, Any]) -> None:
         """
         Extract settings from arguments dictionary.  Invoke the argument's lamba routine to set the value and display message.
         Args:

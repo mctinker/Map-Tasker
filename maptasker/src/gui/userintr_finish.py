@@ -6,7 +6,7 @@ copy, and reselecting an object after a rename so the pulldowns follow it."""
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
@@ -109,7 +109,7 @@ def reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool,
     return True, ""
 
 
-def apply_edited_task(edited_task: taskedit_model.EditableTask, field_refs: dict, state: RunState) -> bool:
+def apply_edited_task(edited_task: taskedit_model.EditableTask, field_refs: dict[str, Any], state: RunState) -> bool:
     """Validates and applies an existing Task's field values into the live
     in-memory backup -- the shared body of keep_edited_task_event ("Ok") and
     save_edited_task_to_current_file_event ("Save To Current File"), which
@@ -134,7 +134,7 @@ def apply_edited_task(edited_task: taskedit_model.EditableTask, field_refs: dict
 
 def validate_and_apply_new_task(
     edited_task: taskedit_model.EditableTask,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     state: RunState,
     *,
     check_save_path: bool = False,
@@ -150,7 +150,7 @@ def validate_and_apply_new_task(
         ui.notify(translate_string("This Task has no actions yet."), type="warning")
 
     name_value = field_refs["name"].value.strip()
-    conflict_errors = []
+    conflict_errors: list[str] = []
     if taskedit.task_name_exists(name_value, state=state):
         conflict_errors.append(f"A Task named '{name_value}' already exists in this backup. Choose a different name.")
     if check_save_path:
@@ -179,7 +179,7 @@ def finish_new_task(
     edited_task: taskedit_model.EditableTask,
     name_value: str,
     on_created: Callable[[str], None] | None,
-    field_refs: dict | None = None,
+    field_refs: dict[str, Any] | None = None,
 ) -> None:
     """Registers a validated, applied new Task into the live in-memory backup,
     fires on_created (see build_add_task_dialog), attaches it to the target
@@ -215,7 +215,7 @@ def finish_new_task(
         select_pulldown_option(gui.specific_task_optionmenu, name_value)
 
 
-def apply_edited_profile(edited_profile: profedit.EditableProfile, field_refs: dict, state: RunState) -> bool:
+def apply_edited_profile(edited_profile: profedit.EditableProfile, field_refs: dict[str, Any], state: RunState) -> bool:
     """Validates and applies an existing Profile's field values into the live
     in-memory backup -- the shared body of keep_edited_profile_event ("Ok")
     and save_edited_profile_to_current_file_event ("Save To Current File"),
@@ -235,7 +235,7 @@ def apply_edited_profile(edited_profile: profedit.EditableProfile, field_refs: d
 
 def validate_and_apply_new_profile(
     edited_profile: profedit.EditableProfile,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     state: RunState,
     *,
     check_save_path: bool = False,
@@ -253,7 +253,7 @@ def validate_and_apply_new_profile(
     name_value = field_refs["name"].value.strip()
     project_name = field_refs.get("target_project_name", "")
 
-    conflict_errors = []
+    conflict_errors: list[str] = []
     if profedit.profile_name_exists(name_value, state=state):
         conflict_errors.append(
             f"A Profile named '{name_value}' already exists in this backup. Choose a different name.",
@@ -364,7 +364,8 @@ def _pulldown_option_for_name(optionmenu: ui.select, item_type: str, new_name: s
     option whose tail is exactly ": <name>". Falls back to the bare name if the
     options don't have it at all -- no worse than not looking.
     """
-    options = [option for option in (getattr(optionmenu, "options", None) or []) if isinstance(option, str)]
+    shown = cast("list[object]", getattr(optionmenu, "options", None) or [])
+    options = [option for option in shown if isinstance(option, str)]
     if new_name in options:
         return new_name
 

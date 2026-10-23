@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import context, run, ui
 
@@ -158,25 +158,25 @@ async def _what_tasker_already_has(
     return [*name_lines, *id_lines]
 
 
-def _check_ids_ticked(android_field_refs: dict) -> bool:
+def _check_ids_ticked(android_field_refs: dict[str, Any]) -> bool:
     """The Save To Android panel's "Check IDs" box -- see guiwins.android_device_fields."""
     checkbox = android_field_refs.get("check_ids")
     return bool(checkbox is not None and checkbox.value)
 
 
-def _overwrite_prompt_options(exists: bool | None, tasker_lines: list[str]) -> dict:
+def _overwrite_prompt_options(exists: bool | None, tasker_lines: list[str]) -> dict[str, Any]:
     """build_overwrite_confirm_dialog's keyword arguments for a device write: the file's own
     answer, plus Tasker's lines only when there are some -- a prompt with none is the file
     prompt exactly as it always was.
     """
-    options: dict = {"unknown": exists is None}
+    options: dict[str, Any] = {"unknown": exists is None}
     if tasker_lines:
         options.update(file_absent=exists is False, tasker_lines=tasker_lines)
     return options
 
 
 def _round_trip_verified(
-    android_field_refs: dict,
+    android_field_refs: dict[str, Any],
     verifier: Callable[[], roundtrip.RoundTripReport],
 ) -> bool:
     """The Save To Android panel's "Verify" checkbox, answered.  False stops the save.
@@ -253,7 +253,7 @@ async def _validate_chosen_file(
     return 0, android_ipaddr, android_port, android_file
 
 
-def _mount_file_picker(self: MyGui, filelist: list) -> None:
+def _mount_file_picker(self: MyGui, filelist: list[str]) -> None:
     """Draw the dropdown of the device's XML files, and a Cancel Entry button that puts it away again."""
     # Clean slate the container before rendering the picker options
     if hasattr(self, "android_container") and self.android_container:
@@ -637,7 +637,7 @@ class AndroidEventHandlers(HandlerGroup):
         # 2. Extract Fallback Default Values
         android_ipaddr, android_port = android_address_defaults(gui)
 
-        if gui.android_file == "" or gui.android_file is None:
+        if not gui.android_file:
             android_file = "/Tasker/configs/user/backup.xml".replace("/", self.state.slash)
         else:
             android_file = gui.android_file.replace("/", self.state.slash)
@@ -834,7 +834,7 @@ class AndroidEventHandlers(HandlerGroup):
         # Checked before the device is touched: the helpers are built out of the loaded
         # configuration, and a Project that cannot be built should not put an authorization
         # prompt on the phone.
-        if self.state.xml_root is None:
+        if not self.state.backup_loaded:
             ui.notify("Load a Tasker backup file first (building the helper Tasks needs it).", type="negative")
             return
 
@@ -908,7 +908,7 @@ class AndroidEventHandlers(HandlerGroup):
     def open_save_to_android_dialog_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         parent_dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
     ) -> None:
@@ -918,8 +918,8 @@ class AndroidEventHandlers(HandlerGroup):
     async def save_task_to_android_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
-        android_field_refs: dict,
+        field_refs: dict[str, Any],
+        android_field_refs: dict[str, Any],
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
@@ -1123,7 +1123,7 @@ class AndroidEventHandlers(HandlerGroup):
     def _apply_task_for_android(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
     ) -> tuple[bool, bool]:
         """Validate and apply the parent dialog's fields, the same way a local Save does.
 
@@ -1165,8 +1165,8 @@ class AndroidEventHandlers(HandlerGroup):
     async def save_task_to_android_file_event(
         self,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
-        android_field_refs: dict,
+        field_refs: dict[str, Any],
+        android_field_refs: dict[str, Any],
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
@@ -1274,7 +1274,7 @@ class AndroidEventHandlers(HandlerGroup):
     def open_save_scene_to_android_dialog_event(
         self,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         parent_dialog: ui.dialog,
     ) -> None:
         """Opens the Save Scene To Android prompt, nested inside Edit Scene -- see
@@ -1286,8 +1286,8 @@ class AndroidEventHandlers(HandlerGroup):
     async def save_scene_to_android_event(
         self,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
-        android_field_refs: dict,
+        field_refs: dict[str, Any],
+        android_field_refs: dict[str, Any],
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -1401,7 +1401,7 @@ class AndroidEventHandlers(HandlerGroup):
     def open_save_profile_to_android_dialog_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         parent_dialog: ui.dialog,
     ) -> None:
         """Opens the IP/port prompt for importing this Profile into Tasker on the Android device."""
@@ -1410,8 +1410,8 @@ class AndroidEventHandlers(HandlerGroup):
     async def save_profile_to_android_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
-        android_field_refs: dict,
+        field_refs: dict[str, Any],
+        android_field_refs: dict[str, Any],
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -1516,7 +1516,7 @@ class AndroidEventHandlers(HandlerGroup):
     def _apply_profile_for_android(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
     ) -> tuple[bool, bool, str]:
         """Validate and apply the parent dialog's fields, the same way a local Save does.
 
@@ -1546,7 +1546,7 @@ class AndroidEventHandlers(HandlerGroup):
         is_new_profile = "target_project_name" in field_refs
         project_name = field_refs.get("target_project_name", "") if is_new_profile else ""
         if is_new_profile:
-            new_profile_errors = []
+            new_profile_errors: list[str] = []
             if profedit.profile_name_exists(field_refs["name"].value.strip(), state=self.state):
                 new_profile_errors.append(
                     f"A Profile named '{field_refs['name'].value.strip()}' already exists in this backup. "
@@ -1567,8 +1567,8 @@ class AndroidEventHandlers(HandlerGroup):
     async def import_profile_into_tasker_event(
         self,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
-        android_field_refs: dict,
+        field_refs: dict[str, Any],
+        android_field_refs: dict[str, Any],
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -1780,8 +1780,8 @@ class AndroidEventHandlers(HandlerGroup):
     async def import_scene_into_tasker_event(
         self,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
-        android_field_refs: dict,
+        field_refs: dict[str, Any],
+        android_field_refs: dict[str, Any],
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -1882,8 +1882,8 @@ class AndroidEventHandlers(HandlerGroup):
     async def import_project_into_tasker_event(
         self,
         edited_project: projedit.EditableProject,
-        field_refs: dict,
-        android_field_refs: dict,
+        field_refs: dict[str, Any],
+        android_field_refs: dict[str, Any],
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -1952,7 +1952,7 @@ class AndroidEventHandlers(HandlerGroup):
     def open_save_project_to_android_dialog_event(
         self,
         edited_project: projedit.EditableProject,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         parent_dialog: ui.dialog,
     ) -> None:
         """Opens the IP/port prompt for writing this Project onto the Android device.
@@ -1964,8 +1964,8 @@ class AndroidEventHandlers(HandlerGroup):
     async def save_project_to_android_event(
         self,
         edited_project: projedit.EditableProject,
-        field_refs: dict,
-        android_field_refs: dict,
+        field_refs: dict[str, Any],
+        android_field_refs: dict[str, Any],
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -2143,7 +2143,7 @@ class AndroidEventHandlers(HandlerGroup):
         gui.display_message_box(translate_string("Android configuration details matched successfully!"), "Green")
 
 
-def _report_offer_failure(task: asyncio.Task) -> None:
+def _report_offer_failure(task: asyncio.Task[None]) -> None:
     """Log whatever the spawned import offer raised, instead of losing it.
 
     Cancellation is ordinary -- a page that went away while the offer was in flight -- and
