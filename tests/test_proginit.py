@@ -5,16 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen import proginit
-
-
-@pytest.fixture
-def errors(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, int]]:
-    """error_handler replaced by a recorder, because the real one ends the run for most codes."""
-    seen: list[tuple[str, int]] = []
-    monkeypatch.setattr(proginit, "error_handler", lambda message, code, **_kw: seen.append((message, code)))
-    return seen
 
 
 # ##################################################################################
@@ -43,29 +36,23 @@ def test_the_count_is_written_for_the_next_run(tmp_path: Path, monkeypatch: pyte
 # ##################################################################################
 # Finding the backup file
 # ##################################################################################
-def test_no_file_chosen_ends_a_command_line_run(errors: list, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("gui", [False, True])
+def test_no_file_chosen_is_an_error_whoever_is_asking(gui: bool, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Raised either way; whether that ends the run or goes back to the window is the caller's to say."""
     monkeypatch.setattr(PrimeItems, "file_to_get", None)
-    monkeypatch.setattr(PrimeItems.program_arguments, "gui", False)
-    proginit.prompt_for_backup_file("", state=PrimeItems)
-    assert errors == [("Backup file selection canceled.  Program ended.", 6)]
+    monkeypatch.setattr(PrimeItems.program_arguments, "gui", gui)
+    with pytest.raises(MapTaskerError) as raised:
+        proginit.prompt_for_backup_file("", state=PrimeItems)
+    assert raised.value.message == "Backup file selection canceled.  Program ended."
+    assert raised.value.exit_code == 6
 
 
-def test_no_file_chosen_in_the_window_returns_to_the_window(errors: list, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(PrimeItems, "file_to_get", None)
-    monkeypatch.setattr(PrimeItems, "error_code", 0)
-    monkeypatch.setattr(PrimeItems.program_arguments, "gui", True)
-    proginit.prompt_for_backup_file("", state=PrimeItems)
-    assert errors == []
-    assert PrimeItems.error_code == 5
-
-
-def test_a_file_already_open_needs_no_prompt(errors: list, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_file_already_open_needs_no_prompt(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(PrimeItems, "file_to_get", object())
     proginit.prompt_for_backup_file("", state=PrimeItems)
-    assert errors == []
 
 
-def test_a_named_file_is_opened(tmp_path: Path, errors: list, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_named_file_is_opened(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     backup = tmp_path / "backup.xml"
     backup.write_text("<TaskerData/>", encoding="utf-8")
     monkeypatch.setattr(PrimeItems.program_arguments, "android_ipaddr", "")
@@ -77,10 +64,9 @@ def test_a_named_file_is_opened(tmp_path: Path, errors: list, monkeypatch: pytes
         assert PrimeItems.file_to_get.read() == "<TaskerData/>"
     finally:
         PrimeItems.file_to_get.close()
-    assert errors == []
 
 
-def test_a_file_object_is_opened_by_its_name(tmp_path: Path, errors: list, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_file_object_is_opened_by_its_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The GUI hands over a file it has already opened; the name is what is reopened."""
     backup = tmp_path / "backup.xml"
     backup.write_text("<TaskerData/>", encoding="utf-8")
@@ -94,19 +80,18 @@ def test_a_file_object_is_opened_by_its_name(tmp_path: Path, errors: list, monke
         PrimeItems.file_to_get.close()
 
 
-def test_a_file_that_is_not_there_is_an_error(tmp_path: Path, errors: list, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_file_that_is_not_there_is_an_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(PrimeItems.program_arguments, "android_ipaddr", "")
     monkeypatch.setattr(PrimeItems.program_arguments, "file", str(tmp_path / "missing.xml"))
 
-    proginit.open_and_get_backup_xml_file(state=PrimeItems)
+    with pytest.raises(MapTaskerError) as raised:
+        proginit.open_and_get_backup_xml_file(state=PrimeItems)
 
-    assert errors[0][1] == 6
-    assert "missing.xml not found" in errors[0][0]
+    assert raised.value.exit_code == 6
+    assert "missing.xml not found" in raised.value.message
 
 
-def test_a_file_that_cannot_be_read_is_a_warning_then_a_prompt(
-    tmp_path: Path, errors: list, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_a_file_that_cannot_be_read_is_an_error_that_says_so(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     def refuse(*_args: object, **_kwargs: object) -> None:
         raise PermissionError("denied")
 
@@ -114,20 +99,22 @@ def test_a_file_that_cannot_be_read_is_a_warning_then_a_prompt(
     monkeypatch.setattr(PrimeItems.program_arguments, "file", str(tmp_path / "locked.xml"))
     monkeypatch.setattr("builtins.open", refuse)
 
-    proginit.open_and_get_backup_xml_file(state=PrimeItems)
+    with pytest.raises(MapTaskerError) as raised:
+        proginit.open_and_get_backup_xml_file(state=PrimeItems)
 
-    assert errors[0][1] == 100
-    assert errors[-1] == ("Backup file selection canceled.  Program ended.", 6)  # nothing opened, so it prompts
+    assert raised.value.exit_code == 6
+    assert "locked.xml not accessible" in raised.value.message
 
 
-def test_with_no_file_at_all_the_user_is_asked(errors: list, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_with_no_file_at_all_there_is_nothing_to_open(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(PrimeItems.program_arguments, "android_ipaddr", "")
     monkeypatch.setattr(PrimeItems.program_arguments, "file", "")
     monkeypatch.setattr(PrimeItems.program_arguments, "gui", False)
 
-    proginit.open_and_get_backup_xml_file(state=PrimeItems)
+    with pytest.raises(MapTaskerError) as raised:
+        proginit.open_and_get_backup_xml_file(state=PrimeItems)
 
-    assert errors == [("Backup file selection canceled.  Program ended.", 6)]
+    assert (raised.value.message, raised.value.exit_code) == ("Backup file selection canceled.  Program ended.", 6)
 
 
 def _from_device(monkeypatch: pytest.MonkeyPatch, fetched: str | None, *, gui: bool) -> None:
@@ -139,9 +126,7 @@ def _from_device(monkeypatch: pytest.MonkeyPatch, fetched: str | None, *, gui: b
     monkeypatch.setattr(proginit, "get_backup_file", lambda state: fetched)
 
 
-def test_a_backup_fetched_from_the_device_is_the_file_used(
-    tmp_path: Path, errors: list, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_a_backup_fetched_from_the_device_is_the_file_used(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     backup = tmp_path / "backup.xml"
     backup.write_text("<TaskerData/>", encoding="utf-8")
     _from_device(monkeypatch, str(backup), gui=False)
@@ -155,12 +140,20 @@ def test_a_backup_fetched_from_the_device_is_the_file_used(
         PrimeItems.file_to_get.close()
 
 
-def test_a_failed_device_fetch_in_the_window_goes_back_to_the_window(
-    errors: list, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_a_device_fetch_that_raises_is_not_caught_here(monkeypatch: pytest.MonkeyPatch) -> None:
+    """get_backup_file says why it failed (code 8); what that means in the window is the window's to decide."""
     _from_device(monkeypatch, None, gui=True)
-    assert proginit.open_and_get_backup_xml_file(state=PrimeItems) is None
-    assert errors == []
+
+    def fail(state: object) -> str:
+        message = "The device did not answer."
+        raise MapTaskerError(message, 8)
+
+    monkeypatch.setattr(proginit, "get_backup_file", fail)
+
+    with pytest.raises(MapTaskerError) as raised:
+        proginit.open_and_get_backup_xml_file(state=PrimeItems)
+
+    assert raised.value.exit_code == 8
 
 
 # ##################################################################################
@@ -183,21 +176,15 @@ def test_the_system_appearance_keeps_a_colour_the_user_already_chose(monkeypatch
 # The Python version
 # ##################################################################################
 def test_a_supported_python_is_left_alone(monkeypatch: pytest.MonkeyPatch) -> None:
-    exits: list[int] = []
-    monkeypatch.setattr(proginit, "exit_program", exits.append)
     monkeypatch.setattr(proginit.sys, "version", "3.12.1 (main, Jan 1 2026)")
     proginit.check_versions()
-    assert exits == []
 
 
-def test_an_old_python_ends_the_run_with_a_failure_status(monkeypatch: pytest.MonkeyPatch) -> None:
-    exits: list[int] = []
-    shown: list[str] = []
-    monkeypatch.setattr(proginit, "exit_program", exits.append)
-    monkeypatch.setattr(proginit.console, "error", shown.append)
+def test_an_old_python_is_an_error_with_a_failure_status(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(proginit.sys, "version", "3.10.4 (main, Jan 1 2026)")
 
-    proginit.check_versions()
+    with pytest.raises(MapTaskerError) as raised:
+        proginit.check_versions()
 
-    assert exits == [1]
-    assert "3.11" in shown[0]
+    assert raised.value.exit_code == 1
+    assert "3.11" in raised.value.message

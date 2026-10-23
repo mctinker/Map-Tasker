@@ -19,7 +19,7 @@
 #
 # What still names PrimeItems in code, and why, is listed in tests/test_global_state.py, which
 # fails on any other and on a listed one that has gone.  Two kinds.  The entry points -- mapit_all,
-# clireports.run, MyGui, error_handler, current_config and so on -- default their state to
+# clireports.run, MyGui, record_error, current_config and so on -- default their state to
 # PrimeItems, so a caller that leaves it out means "the run the program is on".  And the
 # SESSION_ATTRIBUTES below -- the language and translator (translator, maputil2.translate_string)
 # and the debug and trace switches the logging helpers read underneath everything (console,
@@ -254,7 +254,7 @@ class RunState:
         self.error_code = 0
         self.error_msg = ""
         # Whether the GUI adds "with return code N" to error_msg.  False for an error whose code
-        # says nothing to the user (a library that is not installed); see error.error_handler.
+        # says nothing to the user (a library that is not installed); see error.record_error.
         self.error_show_code = True
         self.view_limit_msg = (
             ""  # Set by bildhtml.write_out_the_file when output hits view_limit; read by the Map view's message field.

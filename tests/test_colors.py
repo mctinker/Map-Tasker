@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 
 import pytest
-from maptasker.src.core.error import MapTaskerError
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.mapgen import colors
 
 

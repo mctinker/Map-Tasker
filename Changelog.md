@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Clicking Exit on Windows now ends MapTasker completely, instead of leaving the command window running. Your settings are still saved on the way out.
 - Fixed: The Variable Convert action now shows JSON Encode, and names its conversions as Tasker does: Base64 was shown as Base65, and Metres, Centimetres and Kilometres were spelled the American way.
 - Fixed: Running 'maptasker -reset' doesn't reset the settings as it should.
+- Fixed: A command-line run that stops on a problem, such as a missing backup file or an invalid option, now says what the problem was instead of ending silently. A backup file that cannot be opened is now reported as such.
 
 
 ### Known Issues

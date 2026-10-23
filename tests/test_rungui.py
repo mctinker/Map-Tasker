@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 from maptasker.src import rungui
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems
 
 
@@ -152,18 +153,16 @@ def test_the_server_is_started_on_the_loopback_only(monkeypatch: pytest.MonkeyPa
 
 
 def test_a_port_already_in_use_ends_the_run_with_a_clear_message(monkeypatch: pytest.MonkeyPatch) -> None:
-    reported: list[tuple] = []
-
     def refuse(**_kwargs: object) -> None:
         raise OSError("[Errno 48] Address already in use")
 
     monkeypatch.setattr(rungui.ui, "run", refuse)
-    monkeypatch.setattr(rungui, "error_handler", lambda message, code, state: reported.append((message, code)))
 
-    rungui._run_server(PrimeItems, "/assets")
+    with pytest.raises(MapTaskerError) as raised:
+        rungui._run_server(PrimeItems, "/assets")
 
-    assert reported[0][1] == 100
-    assert "Address already in use" in reported[0][0]
+    assert raised.value.exit_code == 0, "said as it stands, and the process ends quietly"
+    assert "Address already in use" in raised.value.message
 
 
 def test_any_other_failure_to_start_is_only_logged(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -174,9 +173,8 @@ def test_any_other_failure_to_start_is_only_logged(monkeypatch: pytest.MonkeyPat
 
     monkeypatch.setattr(rungui.ui, "run", refuse)
     monkeypatch.setattr(rungui.logger, "error", logged.append)
-    monkeypatch.setattr(rungui, "error_handler", lambda *_a, **_k: pytest.fail("nothing to report"))
 
-    rungui._run_server(PrimeItems, "/assets")
+    rungui._run_server(PrimeItems, "/assets")  # returns instead of raising
 
     assert "permission denied" in logged[0]
 

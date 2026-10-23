@@ -19,10 +19,11 @@ from maptasker.src.core.aiutils import (
 )
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.elemvals import get_ids
-from maptasker.src.core.error import rutroh_error
+from maptasker.src.core.error import record_error, rutroh_error
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.maputil2 import http_request, suppress_logged, translate_string
 from maptasker.src.core.maputils import get_pypi_version, restart_program_subprocess
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.outdir import output_path
 from maptasker.src.core.primitem import SINGLE_ITEM_SELECTORS, PrimeItems, RunState, clear_single_items
 from maptasker.src.core.runcfg import current_config
@@ -722,7 +723,13 @@ def get_xml(debug: bool, appearance_mode: str, state: RunState) -> int:
     state.colors_to_use = set_color_mode(appearance_mode)
     state.output_lines = LineOut()
 
-    return get_data_and_output_intro(True, state=state)
+    # The window is the edge: a backup that cannot be read is a message in it and a window that is
+    # still there, so the error is recorded (see error.record_error) and its code handed back.
+    try:
+        get_data_and_output_intro(True, state=state)
+    except MapTaskerError as error:
+        return record_error(error, state)
+    return 0
 
 
 # Clear all buttons associated with fetching the backup file from Android device

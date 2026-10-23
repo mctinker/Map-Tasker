@@ -39,7 +39,7 @@ from nicegui import Client, app
 from maptasker.src import clireports
 from maptasker.src.core import console
 from maptasker.src.core.actionc import load_arg_specs
-from maptasker.src.core.error import exit_program
+from maptasker.src.core.error import close_logfile, record_error
 from maptasker.src.core.maputil2 import log_startup_values
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems, PrimeItemsReset, RunState
@@ -266,7 +266,7 @@ def start_up(state: RunState) -> None:
     build_all = False
     if build_all:
         rebuild_action_tables(state=state)
-        exit_program(0)
+        raise MapTaskerError(exit_code=0)
     # END OF DEVELOPMENT CODE
 
     # Get runtime arguments (from CLI or GUI)
@@ -285,7 +285,12 @@ def start_up(state: RunState) -> None:
 
     # Get the XML data and output the front matter
     if state.file_to_get or state.program_arguments.file:
-        _ = get_data_and_output_intro(True, state=state)  # Force the front matter to be created.
+        # Force the front matter to be created.  The window is about to open and show what is wrong with
+        # the file it was given, so a file that cannot be read is recorded for it rather than ending the run.
+        try:
+            get_data_and_output_intro(True, state=state)
+        except MapTaskerError as error:
+            record_error(error, state)
 
 
 # Set up the major variables used within this program, and set up crash routine
@@ -374,16 +379,18 @@ def mapit_all(state: RunState | None = None) -> int:
         _, _, _ = initialize_everything(state=state)
     except MapTaskerError as error:
         # The top of the process, and the only place that turns "MapTasker cannot carry
-        # on" back into an exit status.  Everything below here raises rather than exits
-        # (see maputils.exit_program) precisely so that this decision is made once, here,
-        # where it is known that MapTasker really is the whole program.
+        # on" back into an exit status.  Everything below here raises rather than exits,
+        # precisely so that this decision is made once, here, where it is known that
+        # MapTasker really is the whole program.
         #
-        # A message is only shown for a genuine failure.  A clean shutdown -- the GUI's
-        # Exit button, "-v" having printed the version -- arrives here too, carrying code
-        # 0, and has already said whatever it had to say.
-        if error.exit_code and error.message:
-            console.error(error.message)
+        # What it says is up to the code: a failure is an error, and a clean stop that has
+        # something to tell (a library that is not there, a file it cannot open) is told as
+        # it stands.  A clean shutdown with nothing to add -- the GUI's Exit button, "-v"
+        # having printed the version -- arrives here too, carrying code 0, and says nothing.
+        if error.message:
+            (console.error if error.exit_code else console.say)(error.message)
         logger.debug(f"mapit_all exiting with code {error.exit_code}: {error.message}")
+        close_logfile()
         return error.exit_code
 
     # Code drops down here upon exit of the GUI.

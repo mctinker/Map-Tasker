@@ -528,13 +528,18 @@ async def test_the_analysis_map_is_built_with_the_flag_that_keeps_a_cached_map_o
 
 
 @pytest.mark.asyncio
-async def test_a_map_that_halts_is_reported_with_its_exit_code(build: SimpleNamespace) -> None:
-    build.raises = MapTaskerError("stop", 12)
+@pytest.mark.parametrize(
+    ("error", "reason"), [(MapTaskerError("stop", 12), "stop"), (MapTaskerError(exit_code=12), "code 12")]
+)
+async def test_a_map_that_halts_says_why_in_its_own_words_or_by_its_exit_code(
+    build: SimpleNamespace, error: MapTaskerError, reason: str
+) -> None:
+    build.raises = error
     window = _building_window()
 
     assert await userintr_ai.build_analysis_lines(window) is False
 
-    assert "code 12" in window.display_message_box.call_args.args[0]
+    assert window.display_message_box.call_args.args[0] == f"Analysis halted building the Map ({reason})."
 
 
 @pytest.mark.asyncio

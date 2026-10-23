@@ -8,7 +8,7 @@ import webbrowser
 import maptasker.src.mapgen.taskuniq as special_tasks
 from maptasker.src.core import caches, console, outdir
 from maptasker.src.core.dirout import output_directory, unreachable_anchors
-from maptasker.src.core.error import error_handler, exit_program, rutroh_error
+from maptasker.src.core.error import rutroh_error
 from maptasker.src.core.format import format_line
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.initparg import initialize_runtime_arguments
@@ -29,7 +29,6 @@ from maptasker.src.core.primitem import (
 from maptasker.src.core.runcfg import RunConfig, current_config, overridden_config
 from maptasker.src.core.sysconst import (
     NORMAL_TAB,
-    Colors,
     DISPLAY_DETAIL_LEVEL_all_tasks,
     DISPLAY_DETAIL_LEVEL_all_variables,
     FormatLine,
@@ -107,7 +106,7 @@ def build_html(file_to_get: str, state: RunState) -> int:
 
     Side Effects:
         - Prints debug messages to stdout if debug mode is active.
-        - Calls `exit_program` directly if `PrimeItems.error_code` is greater than 0.
+        - Raises MapTaskerError with the recorded error if `error_code` is greater than 0.
         - Updates `PrimeItems.file_to_get` with the provided `file_to_get` value.
         - Gathers Tasker variables globally if the display detail level warrants it.
         - Modifies global states via `projects.process_projects_and_their_profiles`
@@ -121,8 +120,8 @@ def build_html(file_to_get: str, state: RunState) -> int:
     console.debug(">>>  MapTasker is in debug mode.  <<<")
 
     if state.error_code > 0:
-        # We have a error.  Spit it out and exit.
-        exit_program(state.error_code)
+        # An error is already recorded from an earlier load.  Say it again, and stop.
+        raise MapTaskerError(state.error_msg, state.error_code, show_code=state.error_show_code)
 
     if state.xml_root is None:
         # Code 6 is "nothing to read".  Raised rather than sys.exit()ed because this runs
@@ -193,7 +192,7 @@ def restart_program(state: RunState) -> None:
         - Call ourselves and exit after the last call."""
 
     restart_program_subprocess(state=state)
-    exit_program(0)  # This should never be called.
+    raise MapTaskerError(exit_code=0)  # The new process is the program now.
 
 
 # Handle "rerun" request
@@ -379,12 +378,9 @@ def display_output(my_output_dir: str, my_file_name: str, state: RunState) -> No
                 f"file:{state.slash * 2}{my_output_dir}{my_file_name}",
                 new=2,
             )
-        except webbrowser.Error:
-            error_handler(
-                "Error: Failed to open output in browser: your browser is not supported.",
-                1,
-                state=state,
-            )
+        except webbrowser.Error as error:
+            message = "Error: Failed to open output in browser: your browser is not supported."
+            raise MapTaskerError(message, 1) from error
 
 
 # We've displayed Projects etc.. Now display the back matter
@@ -428,9 +424,7 @@ def display_back_matter(state: RunState) -> None:
     missing_label, missing_name = get_single_item_not_found(state=state)
     if missing_label:
         if program_arguments.guiview:
-            state.error_code = 1
-            state.error_msg = translate_string("Error: Single item specified but not found!  Try again.")
-            return
+            raise MapTaskerError(translate_string("Error: Single item specified but not found!  Try again."), 1)
         clean_up_and_exit(missing_label, missing_name, state=state)
 
     # Display warning for Task with too many actions
@@ -451,13 +445,9 @@ def display_back_matter(state: RunState) -> None:
     # If not output directory, cleanup and exit.
     logger.debug(f"output directory:{my_output_dir}")
     if my_output_dir is None:
-        error_handler(
-            f"{Colors.Yellow}MapTasker canceled.  An error occurred.  Program canceled.",
-            0,
-            state=state,
-        )
         clean_up_memory(state=state)
-        exit_program(2)
+        message = "MapTasker canceled.  An error occurred.  Program canceled."
+        raise MapTaskerError(message, 2)
 
     # Finally, write out all of the output that is queued up.
     my_file_name = f"{state.slash}MapTasker.html"
@@ -522,12 +512,11 @@ def clean_up_and_exit(
 
     # Clear our current list of output lines.
     state.output_lines.output_lines.clear()
-    # Spit out the error
-    error_handler(f'{name} "{profile_or_task_name}" not found!!', 5, state=state)
     # Clean up all memory
     clean_up_memory(state=state)
-    # Exit with code "item" not found.
-    exit_program(5)
+    # Stop with code "item" not found, and say which.
+    message = f'{name} "{profile_or_task_name}" not found!!'
+    raise MapTaskerError(message, 5)
 
 
 # Clean up our memory hogs
@@ -577,9 +566,8 @@ def check_single_item(state: RunState) -> None:
         if not name or state.found_named_items[found_key]:
             continue
         if state.program_arguments.gui:
-            state.error_code = 1
-            state.error_msg = f"{label} {name} was not found."
-            return
+            message = f"{label} {name} was not found."
+            raise MapTaskerError(message, 1)
         rutroh_error(f"The {label} '{name}' was not found.")
         clean_up_and_exit(label, name, state=state)
 

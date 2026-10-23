@@ -78,7 +78,7 @@ def _load_as_current(path: str) -> None:
     with open(path, encoding="utf-8") as handle:
         PrimeItems.file_to_get = handle
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-        assert taskerd.get_the_xml_data(state=PrimeItems) == 0
+        taskerd.get_the_xml_data(state=PrimeItems)
 
 
 def _snapshot() -> dict:
@@ -101,7 +101,7 @@ def _snapshot() -> dict:
 def _runtime(tmp_path, monkeypatch):
     """A believable runtime: a loaded configuration, and a working directory of our own.
 
-    chdir matters -- error_handler writes ERROR_FILE into the current directory, and
+    chdir matters -- record_error writes ERROR_FILE into the current directory, and
     these tests assert on whether it is there afterwards.
     """
     monkeypatch.chdir(tmp_path)
@@ -172,12 +172,10 @@ def test_a_derived_profile_name_lands_on_the_other_file_not_the_loaded_one(tmp_p
 def test_a_malformed_file_reports_and_does_not_exit(tmp_path) -> None:
     """A corrupt comparison file must never take the program down.
 
-    taskerd hands a parse failure to error_handler, which outside GUI mode ends in
-    exit_program.  This test runs with "gui" False precisely so that a regression there
-    shows up here rather than as a quiet pass, and asserts the flag was put back
-    afterwards.  exit_program raises MapTaskerError rather than calling sys.exit, so a
-    regression is now a failed test instead of a killed test session -- but the thing
-    being guarded is the same: a bad comparison file must not end the run.
+    taskerd raises MapTaskerError for a parse failure.  This test runs with "gui" False
+    precisely so that a regression -- an error let through, as it would be for a run with
+    no window -- shows up here rather than as a quiet pass, and asserts the flag was put
+    back afterwards.  The thing being guarded: a bad comparison file must not end the run.
     """
     PrimeItems.program_arguments.gui = False
     before = _snapshot()
@@ -277,9 +275,9 @@ def test_the_user_file_is_never_the_one_parsed(tmp_path, monkeypatch) -> None:
     parsed_paths = []
     real_get_the_xml_data = diffload.get_the_xml_data
 
-    def spy(*, state: object) -> int:
+    def spy(*, state: object) -> None:
         parsed_paths.append(PrimeItems.file_to_get.name)
-        return real_get_the_xml_data(state=state)
+        real_get_the_xml_data(state=state)
 
     monkeypatch.setattr(diffload, "get_the_xml_data", spy)
     configuration, message = diffload.load_for_comparison(other, state=PrimeItems)

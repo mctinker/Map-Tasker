@@ -81,7 +81,7 @@ def start_ollama_server() -> tuple[bool, str]:
     server by hand.
 
     Reports nothing itself: the two callers differ on what a failure means (an analysis says so
-    through error_handler, the model pulldown only logs it and falls back to its stock list), so
+    by raising MapTaskerError, the model pulldown only logs it and falls back to its stock list), so
     the reason is handed back for them to deal with.
 
     Returns:

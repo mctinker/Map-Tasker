@@ -12,7 +12,7 @@ import string
 from functools import cache
 
 from maptasker.src.core import console
-from maptasker.src.core.error import error_handler, exit_program
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import TYPES_OF_COLOR_NAMES, logger
 
@@ -78,10 +78,9 @@ def validate_color(the_color: str) -> bool:
         print_list(f"\n{family} color names:", names)
     print_list("\nAny color:", ANY_COLOR)
     # The colour list IS the run when "-ch" is given: there is nothing else to do once it
-    # is on screen.  exit_program rather than exit() so the GUI and the test suite survive
-    # somebody asking for it (see maputils.exit_program).
-    exit_program(0)
-    return False  # Not reached: exit_program does not return.  Said here for readers that cannot see its NoReturn.
+    # is on screen.  Raised rather than exit()ed so the GUI and the test suite survive
+    # somebody asking for it; mapit_all turns it into a clean exit.
+    raise MapTaskerError(exit_code=0)
 
 
 # Get the runtime option for a color change and set it
@@ -95,21 +94,16 @@ def get_and_set_the_color(the_arg: str, state: RunState) -> None:
     the_color_option = the_arg[2:].split("=")
     color_type = the_color_option[0]
     if len(the_color_option) < 2:  # Do we have the second parameter?
-        error_handler(f"{the_arg} has an invalid 'color'.  See the help (-ch)!", 7, state=state)
+        message = f"{the_arg} has an invalid 'color'.  See the help (-ch)!"
+        raise MapTaskerError(message, 7)
     if color_type not in TYPES_OF_COLOR_NAMES:
-        error_handler(
-            (f"{color_type} is an invalid type for 'color'.  See the help (-h)!  Exit code 7"),
-            7,
-            state=state,
-        )
+        message = f"{color_type} is an invalid type for 'color'.  See the help (-h)!"
+        raise MapTaskerError(message, 7)
     desired_color = the_color_option[1]
     logger.debug(f" desired_color:{desired_color}")
     if validate_color(desired_color):  # If the color provided is valid...
         # match color_type:
         state.colors_to_use[TYPES_OF_COLOR_NAMES[color_type]] = desired_color
     else:
-        error_handler(
-            (f"MapTasker...invalid color specified: {desired_color} for 'c{the_color_option[0]}'!"),
-            7,
-            state=state,
-        )
+        message = f"MapTasker...invalid color specified: {desired_color} for 'c{the_color_option[0]}'!"
+        raise MapTaskerError(message, 7)

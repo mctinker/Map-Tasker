@@ -13,8 +13,8 @@ from pathlib import Path
 from maptasker.src.core import console
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.config import DARK_MODE, GUI
-from maptasker.src.core.error import error_handler, exit_program
 from maptasker.src.core.maputil2 import translate_string
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState, clear_error
 from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.sysconst import (
@@ -64,22 +64,12 @@ def prompt_for_backup_file(_dir_path: Path | str, state: RunState) -> None:
     Prompt user to select a backup file
     Args:
         dir_path (str): Path to initial directory for file selection dialog
-    Returns:
-        None: No value is returned
-    Processing Logic:
-        - Try to open a file selection dialog to choose an XML backup file
-        - Set a flag if any exception occurs or no file is selected
-        - Check the flag and call an error handler if running without GUI
-        - Set an error code if running with GUI
+    Raises:
+        MapTaskerError: code 6, when no file was chosen.
     """
-    file_error = False
-
     if state.file_to_get is None:
-        file_error = True
-    if file_error and not state.program_arguments.gui:
-        error_handler("Backup file selection canceled.  Program ended.", 6, state=state)
-    elif file_error:
-        state.error_code = 5
+        message = "Backup file selection canceled.  Program ended."
+        raise MapTaskerError(message, 6)
 
 
 # Open and read the Tasker backup XML file
@@ -96,10 +86,6 @@ def open_and_get_backup_xml_file(state: RunState) -> None:
     ):
         backup_file_name = get_backup_file(state=state)
 
-        # If no backup file and we're coming from the GUI, then return to GUI.
-        if backup_file_name is None and state.program_arguments.gui:
-            return
-
         # Make sure we automatically use the file we just fetched
         state.program_arguments.file = backup_file_name
 
@@ -109,11 +95,11 @@ def open_and_get_backup_xml_file(state: RunState) -> None:
     state.file_to_get = None
 
     # Reset any error left over from an earlier, unrelated failed load attempt (e.g. a
-    # missing file from a previous session) -- error_handler sets PrimeItems.error_code
-    # but nothing ever clears it back to 0 on success, so get_data_and_output_intro's own
-    # "if PrimeItems.error_code > 0: return PrimeItems.error_code" check would otherwise
-    # keep rejecting every subsequent load (even a brand new, valid file the user just
-    # picked via "Get Local XML File") with that stale error, forever.
+    # missing file from a previous session): the window records the last one on the run state
+    # (see error.record_error) and nothing else puts error_code back to 0, so build_html's own
+    # check for a pending error would otherwise keep rejecting every subsequent load -- even a
+    # brand new, valid file the user just picked via "Get Local XML File" -- with that stale
+    # error, forever.
     clear_error(state)
 
     # Get current directory
@@ -130,16 +116,14 @@ def open_and_get_backup_xml_file(state: RunState) -> None:
         try:
             state.file_to_get = open(filename, encoding="utf-8")
             # PrimeItems.file_to_get is now an open file object that can be read from.
-        except FileNotFoundError:
-            file_not_found = filename
-            error_handler(f"XML file {file_not_found} not found.", 6, state=state)
-        except PermissionError:
-            error_handler(f"XML file {filename} not accessible.", 100, state=state)
-            prompt_for_backup_file(dir_path, state=state)
+        except FileNotFoundError as error:
+            message = f"XML file {filename} not found."
+            raise MapTaskerError(message, 6) from error
+        except PermissionError as error:
+            message = f"XML file {filename} not accessible."
+            raise MapTaskerError(message, 6) from error
     else:
         prompt_for_backup_file(dir_path, state=state)
-
-    return
 
 
 # Build color dictionary
@@ -173,14 +157,15 @@ def setup_colors(state: RunState) -> dict:
 
 
 # Open and read xml and output the introduction/heading matter
-def get_data_and_output_intro(do_front_matter: bool, state: RunState) -> int:
+def get_data_and_output_intro(do_front_matter: bool, state: RunState) -> None:
     """
     Gets data from Tasker backup file and outputs introductory information.
 
     Args:
         do_front_matter (bool): True = output the front matter, False = don't bother
-    Returns:
-        int: 0 if okay, non-zero if error (error code)
+    Raises:
+        MapTaskerError: when there is no file to read or it is not a Tasker backup.  The window and the
+            command line decide what that means; see error.report_error.
 
     Processing Logic:
     - Opens and reads the Tasker backup XML file
@@ -190,7 +175,6 @@ def get_data_and_output_intro(do_front_matter: bool, state: RunState) -> int:
     """
     # Only get the XML if we don't already have it.
     tasker_root_elements = state.tasker_root_elements
-    return_code = 0
     if (
         not tasker_root_elements["all_projects"]
         and not tasker_root_elements["all_profiles"]
@@ -210,22 +194,18 @@ def get_data_and_output_intro(do_front_matter: bool, state: RunState) -> int:
 
         # Open and read the file...
         open_and_get_backup_xml_file(state=state)
-        if state.error_code > 0:
-            return state.error_code
 
-        # Go get all the xml data
-        return_code = get_the_xml_data(state=state)
-
-        # Close the file.  By now it is the open file, but a failed open leaves a path or nothing.
-        if (close := getattr(state.file_to_get, "close", None)) is not None:
-            close()
+        # Go get all the xml data, and close the file whether or not it could be read.  By now it is the
+        # open file, but a failed open leaves a path or nothing.
+        try:
+            get_the_xml_data(state=state)
+        finally:
+            if (close := getattr(state.file_to_get, "close", None)) is not None:
+                close()
 
     # Output the inital info: head, source, etc. ...if it hasn't already been output.
-    if return_code == 0 and do_front_matter and not state.output_lines.output_lines:
+    if do_front_matter and not state.output_lines.output_lines:
         output_the_front_matter(current_config(state), state=state)
-        return 0
-
-    return return_code
 
 
 # Make sure we have the appropriate version of Python
@@ -238,7 +218,7 @@ def check_versions() -> None:
         None: Does not return anything
     - It gets the Python version and splits it into major, minor, and patch numbers
     - It checks if the major version is less than 3 or the major is 3 and minor is less than 11
-    - If the check fails, it logs and prints an error message and exits
+    - If the check fails, it raises MapTaskerError
     """
     msg = ""
     version = sys.version
@@ -248,10 +228,9 @@ def check_versions() -> None:
         msg = f"Python version {sys.version} is not supported.  Please use Python 3.11 or greater."
     if msg:
         # Code 1, not 0: an unsupported interpreter is a failed run, and the exit status
-        # is what a shell script wrapping MapTasker actually tests.  exit_program rather
-        # than exit() so this is survivable when MapTasker is not the whole process.
-        console.error(msg)
-        exit_program(1)
+        # is what a shell script wrapping MapTasker actually tests.  Raised rather than exit()ed
+        # so this is survivable when MapTasker is not the whole process; mapit_all says why.
+        raise MapTaskerError(msg, 1)
 
 
 # Where Tasker publishes the Event and State code constants.

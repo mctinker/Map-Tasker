@@ -70,7 +70,7 @@ from maptasker.src.core.primitem import (
     reset_attributes,
 )
 from maptasker.src.core.runcfg import current_config
-from maptasker.src.core.sysconst import ERROR_FILE, TIMELINE_FILE, logger
+from maptasker.src.core.sysconst import TIMELINE_FILE, logger
 from maptasker.src.mapgen import mapexport
 from maptasker.src.mapgen.bildhtml import build_html
 from maptasker.src.mapgen.frontmtr import output_the_front_matter
@@ -308,30 +308,6 @@ def _apply_saved_settings(state: RunState) -> None:
         state.colors_to_use.update({key: value for key, value in saved_colors.items() if key is not None})
 
 
-@contextlib.contextmanager
-def _error_file_left_alone() -> Iterator[None]:
-    """Leave the error file as it was.
-
-    With the GUI's error handling on (see _load_backup) a failed load writes the reason to a
-    file in the current directory, which the GUI reads at start-up and shows as an error from
-    a previous session.  A scheduled report that found a bad backup must not be the reason
-    someone is greeted with an error when they next open the window.
-    """
-    path = Path(ERROR_FILE)
-    try:
-        before = path.read_bytes() if path.exists() else None
-    except OSError:
-        before = None
-    try:
-        yield
-    finally:
-        with contextlib.suppress(OSError):
-            if before is None:
-                path.unlink(missing_ok=True)
-            else:
-                path.write_bytes(before)
-
-
 def _resolve_backup(text: str | None) -> Path:
     """The backup file to use: the file named, or the newest .xml in the folder named."""
     if not text:
@@ -354,24 +330,20 @@ def _load_backup(text: str | None, state: RunState) -> Path:
     The load is taskerd's own, so it records the backup in the history exactly as opening it
     in the window does -- a scheduled report is also a way of keeping the history up to date.
 
-    The GUI's error handling is on for the load and off again after: with it, a bad file is
-    RECORDED (PrimeItems.error_msg) and the load returns, where without it the error handler
-    ends the run with a bare exit code and no reason to give.
+    A file that is not a backup makes the load raise MapTaskerError, and its message is the reason
+    the run ends on.  Nothing is recorded for a window to find, so there is none to leave alone.
     """
     path = _resolve_backup(text)
     arguments = state.program_arguments
     arguments.file = str(path)
-    with _error_file_left_alone(), console.muted():
-        arguments.gui = True
-        with path.open(encoding="utf-8") as opened:
-            try:
-                _put_on_primeitems(file_to_get=opened, tasker_root_elements=initial_tasker_root_elements(), state=state)
-                clear_error(state)
-                return_code = get_the_xml_data(state=state)
-            finally:
-                arguments.gui = False
-    if return_code != 0:
-        raise _ReportError(EXIT_NOT_A_BACKUP, state.error_msg or f"{path} is not a valid Tasker backup file.")
+    with console.muted(), path.open(encoding="utf-8") as opened:
+        _put_on_primeitems(file_to_get=opened, tasker_root_elements=initial_tasker_root_elements(), state=state)
+        clear_error(state)
+        try:
+            get_the_xml_data(state=state)
+        except MapTaskerError as error:
+            message = error.message or f"{path} is not a valid Tasker backup file."
+            raise _ReportError(EXIT_NOT_A_BACKUP, message) from error
     sys.stderr.write(f"MapTasker: loaded {path}\n")
     return path
 
@@ -637,8 +609,8 @@ def run(argv: list[str], state: RunState | None = None) -> int:
         console.error(f"MapTasker: {failure.message}")
         return failure.code
     except MapTaskerError as error:
-        # exit_program's own message is usually empty (the reason went to the log or the
-        # window, and there is no window): say what can be said, and where the rest is.
+        # A stop that carries no message (the reason went to the log, and there is no window): say what
+        # can be said, and where the rest is.
         console.error(f"MapTasker: {error.message or 'The run could not be completed.  See the MapTasker log.'}")
         return error.exit_code or EXIT_ERROR
     except OSError as error:

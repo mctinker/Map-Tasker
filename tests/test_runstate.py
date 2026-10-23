@@ -281,7 +281,7 @@ def _outline_state(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> RunStat
     state.output_lines = LineOut(state=state)
     with backup.open(encoding="utf-8") as opened:
         state.file_to_get = opened
-        assert taskerd.get_the_xml_data(state=state) == 0
+        taskerd.get_the_xml_data(state=state)
     state.file_to_get = str(backup)
     return state
 
@@ -359,7 +359,7 @@ def test_a_run_is_started_and_its_file_read_on_a_state_of_its_own(
     state.program_arguments.file = str(backup)
     root_before, lines_before = PrimeItems.xml_root, len(PrimeItems.output_lines.output_lines)
 
-    assert proginit.get_data_and_output_intro(True, state=state) == 0
+    proginit.get_data_and_output_intro(True, state=state)
 
     assert set(state.tasker_root_elements["all_tasks"]) == {"20", "21"}
     assert "6.3.13" in state.heading

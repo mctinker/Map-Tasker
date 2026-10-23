@@ -36,16 +36,21 @@ class MapTaskerError(Exception):
         exit_code: what the process should exit with if this reaches the top.  0 is a
             legitimate value -- a clean, deliberate shutdown is still a request to stop
             unwinding, and the GUI's own "Exit" button is exactly that.
+        show_code: whether the window adds "with return code N" to the message.  False
+            when the message says everything there is to say -- a library that is not
+            installed -- and a number would only leave the user wondering what it means.
     """
 
-    def __init__(self, message: str = "", exit_code: int = 1) -> None:
+    def __init__(self, message: str = "", exit_code: int = 1, *, show_code: bool = True) -> None:
         """Record what went wrong and what the process should exit with.
 
         Args:
             message: the human-readable reason.  Defaults to a generic one built from
                 the code, so str(error) is never empty.
             exit_code: the process exit status this maps to.
+            show_code: whether the GUI shows the code beside the message.
         """
         super().__init__(message or f"MapTasker stopped with code {exit_code}.")
         self.message = message
         self.exit_code = exit_code
+        self.show_code = show_code

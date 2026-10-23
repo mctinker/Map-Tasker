@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from maptasker.src.core.error import error_handler
+from maptasker.src.core import console
 from maptasker.src.core.mapjump import TASK, Target, anchor_attribute
 from maptasker.src.core.maputils import (
     count_consecutive_substr,
@@ -302,4 +302,4 @@ def get_task_actions_and_output(
         if the_task is not None:
             _output_task_actions(the_task, task_name, task_id, list_type, the_item, config, state)
         else:
-            error_handler("No Task found!!!", 0, state=state)
+            console.say("No Task found!!!")

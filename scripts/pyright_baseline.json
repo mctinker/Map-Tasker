@@ -108,9 +108,6 @@
   "maptasker/src/mapgen/bildhtml.py": {
     "reportArgumentType": 2
   },
-  "maptasker/src/mapgen/getbakup.py": {
-    "reportReturnType": 1
-  },
   "maptasker/src/mapgen/globalvr.py": {
     "reportGeneralTypeIssues": 1,
     "reportReturnType": 1
@@ -273,7 +270,7 @@
     "reportCallIssue": 1
   },
   "tests/test_error_show_code.py": {
-    "reportArgumentType": 3,
+    "reportArgumentType": 2,
     "reportInvalidTypeForm": 1,
     "reportReturnType": 1
   },

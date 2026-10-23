@@ -14,8 +14,9 @@ from typing import TYPE_CHECKING
 import defusedxml.ElementTree as ET
 
 from maptasker.src.core import console
-from maptasker.src.core.error import error_handler
+from maptasker.src.core.error import report_error
 from maptasker.src.core.maputil2 import http_request
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.sysconst import logger
 from maptasker.src.core.xmldata import parse_tasker_xml, rewrite_xml
 from maptasker.src.mapgen.taskerd import get_the_xml_data
@@ -35,11 +36,8 @@ def write_out_backup_file(file_contents: bytes | str, state: RunState) -> None:
     # Store the output in the current directory
     my_output_dir = getcwd()
     if my_output_dir is None:
-        error_handler(
-            "MapTasker canceled.  An error occurred in getbakup.  Program canceled.",
-            2,
-            state=state,
-        )
+        message = "MapTasker canceled.  An error occurred in getbakup.  Program canceled."
+        raise MapTaskerError(message, 2)
 
     # We must get just the file name and type since we will be using this to save it to our local path.
     # This is the file we will do all of our processing against...the local file fetched from the Android device.
@@ -113,10 +111,7 @@ def get_backup_file(state: RunState) -> str:
 
     if return_code != 0:
         logger.debug(f"return_code:{return_code}")
-        if state.program_arguments.gui:
-            state.error_code = return_code
-            return None
-        error_handler(str(file_contents), 8, state=state)
+        raise MapTaskerError(str(file_contents), 8)
 
     # Write the XML file to local storage.
     write_out_backup_file(file_contents, state=state)
@@ -172,9 +167,13 @@ def validate_xml(
 
             # We don't have the file yet.  Lets get it.
             else:
-                return_code = _get_the_xml_data(state=state)
-                if return_code != 0:
-                    return state.error_msg, None
+                try:
+                    _get_the_xml_data(state=state)
+                except MapTaskerError as error:
+                    # The window is waiting on this answer, so it is recorded and handed back as
+                    # a message rather than raised past it.
+                    report_error(error, state)
+                    return error.message, None
 
             # Run the XML file through the XML parser to validate it.
             try:

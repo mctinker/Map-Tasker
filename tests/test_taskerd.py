@@ -262,7 +262,7 @@ def test_get_first_action_is_truncated() -> None:
 # ##################################################################################
 # get_the_xml_data -- the file, and what happens when it is not a backup
 # ##################################################################################
-def _load_file(text: str) -> int:
+def _load_file(text: str) -> None:
     """Write the text to a temporary file and load it the way the program does."""
     handle = tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".xml", delete=False)
     try:
@@ -270,17 +270,14 @@ def _load_file(text: str) -> int:
         handle.close()
         with open(handle.name, encoding="utf-8") as opened:
             PrimeItems.file_to_get = opened
-            return taskerd.get_the_xml_data(state=PrimeItems)
+            taskerd.get_the_xml_data(state=PrimeItems)
     finally:
         os.unlink(handle.name)
 
 
 def test_a_backup_file_loads_and_builds_the_tables() -> None:
-    """The whole path, from a file on disk to the tables -- 0 means loaded."""
-    assert (
-        _load_file('<TaskerData sr="" dvi="1" tv="6.3.13"><Task sr="task1"><id>1</id><nme>T</nme></Task></TaskerData>')
-        == 0
-    )
+    """The whole path, from a file on disk to the tables -- nothing raised means loaded."""
+    _load_file('<TaskerData sr="" dvi="1" tv="6.3.13"><Task sr="task1"><id>1</id><nme>T</nme></Task></TaskerData>')
     assert PrimeItems.tasker_root_elements["all_tasks"]["1"]["name"] == "T"
 
 
@@ -293,7 +290,7 @@ def test_a_load_records_the_files_highest_task_or_profile_id() -> None:
         '<Task sr="task1208"><id>1208</id><nme>T</nme></Task>'
         "</TaskerData>"
     )
-    assert _load_file(xml) == 0
+    _load_file(xml)
     assert PrimeItems.loaded_highest_object_id == 1210
 
 
@@ -302,16 +299,19 @@ def test_a_file_that_is_not_a_tasker_backup_is_refused() -> None:
     mistake.  Parsing it as one would build empty tables and show an empty map, which
     looks like a backup with nothing in it rather than like the wrong file.
     """
-    assert _load_file("<NotTasker><something/></NotTasker>") == 3
+    with pytest.raises(MapTaskerError) as raised:
+        _load_file("<NotTasker><something/></NotTasker>")
+    assert raised.value.exit_code == 3
 
 
-def test_the_gui_is_told_why_a_file_was_refused() -> None:
-    """The GUI has no console to print to: it shows error_msg, so the reason has to be
-    put there or the file simply fails to load with nothing said.
+def test_the_reason_a_file_was_refused_travels_with_the_error() -> None:
+    """The GUI has no console to print to: it shows the message, so the reason has to be
+    in the error or the file simply fails to load with nothing said.
     """
     PrimeItems.program_arguments.gui = True
-    assert _load_file("<NotTasker><something/></NotTasker>") == 3
-    assert PrimeItems.error_msg == "Invalid Tasker backup XML file"
+    with pytest.raises(MapTaskerError) as raised:
+        _load_file("<NotTasker><something/></NotTasker>")
+    assert raised.value.message == "Invalid Tasker backup XML file"
 
 
 def test_a_corrupt_file_stops_the_run() -> None:

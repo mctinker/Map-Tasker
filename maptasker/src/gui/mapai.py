@@ -13,9 +13,9 @@ from nicegui import run
 
 from maptasker.src.core import console
 from maptasker.src.core.aiutils import OLLAMA_DOWNLOAD_URL, get_api_key, ollama_errors, prepare_ollama_model
-from maptasker.src.core.error import error_handler
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.outdir import output_path
 from maptasker.src.core.primitem import RunState, get_single_item_requested
 from maptasker.src.core.sysconst import (
@@ -200,18 +200,15 @@ def local_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
     """
     ollama = import_optional("ollama", "ollama")
     if ollama is None:  # The library is not installed; import_optional has said how to get it.
-        error_handler(
+        message = (
             f"Ollama support could not be loaded.  Install the AI libraries with: {AI_EXTRA_INSTALL_COMMAND}"
-            f", and Ollama itself from '{OLLAMA_DOWNLOAD_URL}'.",
-            12,
-            show_code=False,
-            state=state,
+            f", and Ollama itself from '{OLLAMA_DOWNLOAD_URL}'."
         )
-        return
+        raise MapTaskerError(message, 12, show_code=False)
 
     if state.program_arguments.ai_model == "None":
-        error_handler("No model selected.", 12, state=state)
-        return
+        message = "No model selected."
+        raise MapTaskerError(message, 12)
 
     console.say(f"Model: {state.program_arguments.ai_model}")
     # Make sure we don't come back if this fails.
@@ -221,16 +218,15 @@ def local_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
     # something to end the analysis thread with a traceback over: say what is wrong.
     model, reason = prepare_ollama_model(state.program_arguments.ai_model)
     if model is None:
-        error_handler(reason, 12, show_code=False, state=state)
-        return
+        raise MapTaskerError(reason, 12, show_code=False)
 
     messages = [{"role": "system", "content": ai_role}, {"role": "user", "content": query}]
     try:
         reply = ollama.Client().chat(model=model, messages=messages)
         response = reply["message"]["content"]
     except (*ollama_errors(), KeyError, TypeError, ValueError) as e:
-        error_handler(f"Ai analysis error: {e}.  Try again.", 12, state=state)
-        return
+        message = f"Ai analysis error: {e}.  Try again."
+        raise MapTaskerError(message, 12) from e
 
     # The response is queued up in the error file, for display back in the GUI.
     record_response(response, ai_object, item, state=state)
@@ -353,13 +349,14 @@ def process_ai_query_and_response(
         "Gemini": _process_gemini_response,
     }
 
+    process_function = ai_processors.get(name)
+    if process_function is None:
+        message = "Invalid AI name selected."
+        raise MapTaskerError(message, 12)
+
     try:
-        process_function = ai_processors.get(name)
-        if process_function:
-            response = process_function(client, query, state=state)
-            record_response(response, ai_object, item, state=state)
-        else:
-            error_handler("Invalid AI name selected.", 12, state=state)
+        response = process_function(client, query, state=state)
+        record_response(response, ai_object, item, state=state)
     except Exception as e:
         # Deliberately broad: four AI providers, four unrelated exception hierarchies --
         # handle_ai_error exists precisely to turn any of them into a sentence, so
@@ -423,13 +420,8 @@ def open_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
         None: This function does not return anything.
     """
     if state.program_arguments.ai_analyze and not module_is_available("openai"):
-        error_handler(
-            f"Module 'openai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}",
-            12,
-            show_code=False,
-            state=state,
-        )
-        return
+        message = f"Module 'openai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}"
+        raise MapTaskerError(message, 12, show_code=False)
 
     api_key = state.program_arguments.ai_apikey
     if api_key == "Hidden":
@@ -462,13 +454,8 @@ def claude_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
     """
     anthropic = import_optional("anthropic", "anthropic")
     if anthropic is None:
-        error_handler(
-            f"Module 'anthropic' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}",
-            12,
-            show_code=False,
-            state=state,
-        )
-        return
+        message = f"Module 'anthropic' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}"
+        raise MapTaskerError(message, 12, show_code=False)
     client = anthropic.Anthropic(api_key=state.program_arguments.ai_apikey)
     process_ai_query_and_response(client, query, ai_object, item, state=state)
 
@@ -487,13 +474,8 @@ def gemini_ai(query: str, ai_object: str, item: str, state: RunState) -> None:
     """
     genai = import_optional("google-genai", "google.genai")
     if genai is None:
-        error_handler(
-            f"Module 'google-genai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}",
-            12,
-            show_code=False,
-            state=state,
-        )
-        return
+        message = f"Module 'google-genai' not found. Install it with: {AI_EXTRA_INSTALL_COMMAND}"
+        raise MapTaskerError(message, 12, show_code=False)
     client = genai.Client(api_key=state.program_arguments.ai_apikey)
     process_ai_query_and_response(client, query, ai_object, item, state=state)
 
@@ -512,6 +494,12 @@ def get_ai_object() -> tuple[str, str]:
 
 # Default AI prompt..
 AI_PROMPT = "Analyze the following Tasker data"
+
+
+def _no_ai_selected(*_args: object, **_kwargs: object) -> None:
+    """Stand in for the analysis when the model chosen names no provider."""
+    message = "Invalid model selected (AI name is blank)."
+    raise MapTaskerError(message, 12)
 
 
 async def _run_analysis_in_background(popup: object, state: RunState) -> None:
@@ -544,10 +532,7 @@ async def _run_analysis_in_background(popup: object, state: RunState) -> None:
         ai_name = state.program_arguments.ai_name
 
         # Get the targeted worker function
-        ai_func = name_function_map.get(
-            ai_name,
-            lambda *_args, **_kwargs: error_handler("Invalid model selected (AI name is blank).", 12, state=state),
-        )
+        ai_func = name_function_map.get(ai_name, _no_ai_selected)
 
         # Use NiceGUI's run.io_bound to run the AI function in a separate thread so it doesn't block the main event
         # loop.  In this way, the popup window can be displayed while the AI processing is happening in the background.

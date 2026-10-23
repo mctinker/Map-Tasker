@@ -8,9 +8,8 @@
 import defusedxml.ElementTree as ET
 
 from maptasker.src.core import timeline
-from maptasker.src.core.error import error_handler
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
-from maptasker.src.core.sysconst import FormatLine
 from maptasker.src.core.xmldata import parse_tasker_xml, rewrite_xml
 from maptasker.src.edit import sessundo
 from maptasker.src.mapgen.taskertables import build_tasker_tables, get_first_action, move_xml_to_table
@@ -23,29 +22,27 @@ __all__ = ["build_tasker_tables", "get_first_action", "get_the_xml_data", "move_
 # Load all of the Projects, Profiles and Tasks into a format we can easily
 # navigate through.
 # Optimized
-def get_the_xml_data(state: RunState) -> int:
+def get_the_xml_data(state: RunState) -> None:
     # Put this code into a while loop in the event we have to re-call it again.
-    """Gets the XML data from a Tasker backup file and returns it in a dictionary.
+    """Read the Tasker backup file into the run state's tables.
+
     Parameters:
-        - None
-    Returns:
-        - int: 0 if successful, 1 if bad XML, 2 if not a Tasker backup file, 3 if not a valid Tasker backup file.
+        - state: the run state, whose file_to_get names the backup and which receives the tables.
+    Raises:
+        - MapTaskerError: code 1 when there is no file to read or it is not well-formed XML, code 3
+          when it is XML but not a Tasker backup.  The caller decides what a failed load means --
+          a message in the window, or the end of a command-line run.
     Processing Logic:
-        - Put code into a while loop in case it needs to be re-called.
-        - Defines XML parser with ISO encoding.
         - If encoding error, rewrites XML with proper encoding and tries again.
-        - If any other error, logs and exits.
-        - Returns 1 if bad XML and not in GUI mode.
-        - Returns 1 if bad XML and in GUI mode.
         - Gets XML root.
         - Checks for valid Tasker backup file.
         - Moves all data into dictionaries.
-        - Returns all data in a dictionary."""
+    """
     # The open file, whose .name is its path -- or, where something stored the path itself, that.
     file_to_parse = getattr(state.file_to_get, "name", state.file_to_get)
     if not isinstance(file_to_parse, str) or not file_to_parse:
-        error_handler("There is no Tasker backup file to read.", 1, state=state)
-        return 1
+        message = "There is no Tasker backup file to read."
+        raise MapTaskerError(message, 1)
     counter = 0
 
     # # Count the lines to see if we should issue a status.
@@ -64,16 +61,18 @@ def get_the_xml_data(state: RunState) -> int:
         except (ET.ParseError, UnicodeDecodeError) as e:
             counter += 1
             if counter > 2 or isinstance(e, ET.ParseError):
-                error_handler(f"Error in {file_to_parse}: {e}", 1, state=state)
-                return 1
+                message = f"Error in {file_to_parse}: {e}"
+                raise MapTaskerError(message, 1) from e
             _rewrite_xml(file_to_parse)
 
     if state.xml_tree is None:
-        return 1 if not state.program_arguments.gui else _handle_gui_error("Bad XML file", state=state)
+        message = "Bad XML file"
+        raise MapTaskerError(message, 1)
 
     state.xml_root = state.xml_tree.getroot()
     if state.xml_root.tag != "TaskerData":
-        return _handle_gui_error("Invalid Tasker backup XML file", code=3, state=state)
+        message = "Invalid Tasker backup XML file"
+        raise MapTaskerError(message, 3)
 
     # A different configuration is now the loaded one, so the session's undo history no
     # longer describes it -- see sessundo.clear() for what undoing into another file's
@@ -108,11 +107,3 @@ def get_the_xml_data(state: RunState) -> int:
         ),
         default=0,
     )
-    return 0
-
-
-def _handle_gui_error(message: str, code: int = 1, *, state: RunState) -> int:
-    state.output_lines.add_line_to_output(0, message, FormatLine.dont_format_line)
-    if state.program_arguments.gui:
-        state.error_msg = message
-    return code

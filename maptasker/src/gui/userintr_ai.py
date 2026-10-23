@@ -17,6 +17,7 @@ from nicegui import run, ui
 from maptasker.src.core.aiutils import get_api_key
 from maptasker.src.core.apikeys import fallback_file, save_api_keys
 from maptasker.src.core.config import AI_PROMPT
+from maptasker.src.core.error import record_error
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.mtexcept import MapTaskerError
@@ -78,13 +79,25 @@ async def build_analysis_lines(gui: MyGui) -> bool:
     try:
         await run.io_bound(build_html, "", state=gui.state)
     except MapTaskerError as error:
-        gui.display_message_box(f"Analysis halted building the Map (code {error.exit_code}).", "Red")
+        reason = error.message or f"code {error.exit_code}"
+        gui.display_message_box(f"Analysis halted building the Map ({reason}).", "Red")
         return False
     if getattr(gui.state, "error_code", 0) > 0:
         gui.display_message_box(f"Analysis halted building the Map: {gui.state.error_msg}", "Orange")
         clear_error()
         return False
     return True
+
+
+def _ai_name_for_model(model: str) -> str:
+    """The name map_ai dispatches on, for a model whose AI was not named."""
+    if model.startswith("gemini"):
+        return "Gemini"
+    if model.startswith("claude"):
+        return "Anthropic"
+    if model.startswith(("gpt", "o1", "o3", "o4")):
+        return "OpenAI"
+    return "LLAMA"
 
 
 class AIEventHandlers(HandlerGroup):
@@ -333,14 +346,7 @@ class AIEventHandlers(HandlerGroup):
 
             # Make sure we have the ai name, spelled the way map_ai dispatches on it.
             if not gui.ai_name:
-                if gui.ai_model.startswith("gemini"):
-                    gui.ai_name = "Gemini"
-                elif gui.ai_model.startswith("claude"):
-                    gui.ai_name = "Anthropic"
-                elif gui.ai_model.startswith(("gpt", "o1", "o3", "o4")):
-                    gui.ai_name = "OpenAI"
-                else:
-                    gui.ai_name = "LLAMA"
+                gui.ai_name = _ai_name_for_model(gui.ai_model)
             self.state.program_arguments.ai_name = gui.ai_name
 
             # Do the analysis.  First save our windows and settings.
@@ -362,6 +368,10 @@ class AIEventHandlers(HandlerGroup):
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             try:
                 await map_ai(state=self.state)
+            except MapTaskerError as error:
+                # The analysis could not be made (no library, no model ...).  Recorded as the window
+                # shows an error, and displayed with the rest of what the run left, just below.
+                record_error(error, self.state)
             finally:
                 # The analysis is over, so stop saying it is running.  map_ai clears its own
                 # PrimeItems copy of the flag; this is the view's, which every later save and

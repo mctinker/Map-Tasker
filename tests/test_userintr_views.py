@@ -199,16 +199,21 @@ async def test_a_map_longer_than_the_view_limit_says_it_was_truncated(seen: Simp
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    ("code", "message", "colour"),
+    ("error", "message", "colour"),
     [
-        (6, "Map view creation skipped: No valid XML source found or action canceled.", "Orange"),
-        (12, "Map processing halted with system code: 12", "Red"),
+        (
+            MapTaskerError("stop", 6),
+            "Map view creation skipped: No valid XML source found or action canceled.",
+            "Orange",
+        ),
+        (MapTaskerError("It broke.", 3), "Map processing error: It broke.", "Orange"),
+        (MapTaskerError(exit_code=12), "Map processing halted with system code: 12", "Red"),
     ],
 )
 async def test_a_build_that_halts_says_why_and_still_clears_the_banner(
-    seen: SimpleNamespace, code: int, message: str, colour: str
+    seen: SimpleNamespace, error: MapTaskerError, message: str, colour: str
 ) -> None:
-    seen.raises = MapTaskerError("stop", code)
+    seen.raises = error
     handlers = _handlers()
     _loaded(handlers)
 

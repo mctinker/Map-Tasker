@@ -17,14 +17,19 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import httpx
 import pytest
 from maptasker.src.core import console
 from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import ANALYSIS_FILE, ERROR_FILE
 from maptasker.src.gui import mapai
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 @pytest.fixture
@@ -46,11 +51,17 @@ def _error_text(tmp_path: Path) -> str:
 
 
 @pytest.fixture
-def reported(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, int]]:
-    """error_handler records what it was told instead of ending the run."""
-    errors: list[tuple[str, int]] = []
-    monkeypatch.setattr(mapai, "error_handler", lambda message, code, **_: errors.append((message, code)))
-    return errors
+def reported() -> Callable[..., list[tuple[str, int]]]:
+    """Run something that reports a failure by raising it, and say what it reported: [(message, code)]."""
+
+    def run(call: Callable[..., object], *args: object, **kwargs: object) -> list[tuple[str, int]]:
+        try:
+            call(*args, **kwargs)
+        except MapTaskerError as error:
+            return [(error.message, error.exit_code)]
+        return []
+
+    return run
 
 
 # ##################################################################################
@@ -447,12 +458,12 @@ def test_each_ai_name_goes_to_its_own_processor(
     assert called == ["OpenAI", "Anthropic", "Gemini"]
 
 
-def test_a_name_no_processor_knows_is_reported(state: RunState, reported: list) -> None:
+def test_a_name_no_processor_knows_is_reported(state: RunState, reported: Callable[..., list]) -> None:
     state.program_arguments.ai_name = "Nobody"
 
-    mapai.process_ai_query_and_response(object(), "q", "Task", "t", state=state)
+    errors = reported(mapai.process_ai_query_and_response, object(), "q", "Task", "t", state=state)
 
-    assert reported == [("Invalid AI name selected.", 12)]
+    assert errors == [("Invalid AI name selected.", 12)]
 
 
 def test_any_failure_becomes_a_sentence_in_the_error_file_not_a_traceback(
@@ -563,28 +574,28 @@ def test_openai_uses_the_key_it_was_given_when_it_is_not_hidden(
     [("claude_ai", "Module 'anthropic' not found"), ("gemini_ai", "Module 'google-genai' not found")],
 )
 def test_a_provider_that_is_not_installed_is_reported_with_how_to_install_it(
-    state: RunState, reported: list, monkeypatch: pytest.MonkeyPatch, starter: str, needs_message: str
+    state: RunState, reported: Callable[..., list], monkeypatch: pytest.MonkeyPatch, starter: str, needs_message: str
 ) -> None:
     monkeypatch.setattr(mapai, "import_optional", lambda *_: None)
     monkeypatch.setattr(mapai, "process_ai_query_and_response", lambda *args, **kwargs: pytest.fail("a query was sent"))
 
-    getattr(mapai, starter)("q", "Task", "t", state=state)
+    errors = reported(getattr(mapai, starter), "q", "Task", "t", state=state)
 
-    assert needs_message in reported[0][0]
-    assert mapai.AI_EXTRA_INSTALL_COMMAND in reported[0][0]
-    assert reported[0][1] == 12
+    assert needs_message in errors[0][0]
+    assert mapai.AI_EXTRA_INSTALL_COMMAND in errors[0][0]
+    assert errors[0][1] == 12
 
 
 def test_openai_that_is_not_installed_is_reported_before_the_key_is_looked_up(
-    state: RunState, reported: list, monkeypatch: pytest.MonkeyPatch
+    state: RunState, reported: Callable[..., list], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     state.program_arguments.ai_analyze = True
     monkeypatch.setattr(mapai, "module_is_available", lambda name: False)
     monkeypatch.setattr(mapai, "get_api_key", lambda state: pytest.fail("the keyring was asked"))
 
-    mapai.open_ai("q", "Task", "t", state=state)
+    errors = reported(mapai.open_ai, "q", "Task", "t", state=state)
 
-    assert "Module 'openai' not found" in reported[0][0]
+    assert "Module 'openai' not found" in errors[0][0]
 
 
 def test_a_library_that_cannot_be_loaded_ends_quietly_for_openai(
@@ -644,50 +655,53 @@ def test_a_local_model_answers_and_the_answer_is_recorded(
     assert state.program_arguments.ai_analyze is False  # So a failure does not come back round.
 
 
-def test_a_local_model_that_is_not_chosen_is_reported(state: RunState, reported: list, local: SimpleNamespace) -> None:
+def test_a_local_model_that_is_not_chosen_is_reported(
+    state: RunState, reported: Callable[..., list], local: SimpleNamespace
+) -> None:
     state.program_arguments.ai_model = "None"
 
-    mapai.local_ai("q:x", "Task", "t", state=state)
+    errors = reported(mapai.local_ai, "q:x", "Task", "t", state=state)
 
-    assert reported == [("No model selected.", 12)]
+    assert errors == [("No model selected.", 12)]
     assert local.prepared == []
 
 
 def test_a_model_that_cannot_be_made_ready_is_reported_with_the_reason(
-    state: RunState, reported: list, local: SimpleNamespace
+    state: RunState, reported: Callable[..., list], local: SimpleNamespace
 ) -> None:
     local.result = (None, "Ollama is not installed.  Please install the Ollama app from 'https://ollama.com/download'.")
     state.program_arguments.ai_model = "llama3"
 
-    mapai.local_ai("q:x", "Task", "t", state=state)
+    errors = reported(mapai.local_ai, "q:x", "Task", "t", state=state)
 
-    assert reported == [(local.result[1], 12)]
+    assert errors == [(local.result[1], 12)]
     assert local.ollama.asked == {}, "nothing was asked"
     assert state.program_arguments.ai_analyze is False
 
 
 @pytest.mark.parametrize("failure", [ConnectionError("refused"), KeyError("message"), TypeError("bad reply")])
-def test_a_local_model_that_fails_while_answering_is_reported_not_raised(
-    state: RunState, reported: list, local: SimpleNamespace, failure: Exception
+def test_a_local_model_that_fails_while_answering_is_reported_as_one_error(
+    state: RunState, reported: Callable[..., list], local: SimpleNamespace, failure: Exception
 ) -> None:
     local.ollama = _fake_ollama(raises=failure)
     state.program_arguments.ai_model = "llama3"
 
-    mapai.local_ai("q:x", "Task", "t", state=state)
+    errors = reported(mapai.local_ai, "q:x", "Task", "t", state=state)
 
-    assert reported and "Ai analysis error:" in reported[0][0]
+    assert errors and "Ai analysis error:" in errors[0][0]
 
 
 def test_the_local_libraries_failing_to_load_is_reported_with_how_to_fix_it(
-    state: RunState, reported: list, monkeypatch: pytest.MonkeyPatch
+    state: RunState, reported: Callable[..., list], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(mapai, "import_optional", lambda *_: None)
 
-    mapai.local_ai("q:x", "Task", "t", state=state)
+    errors = reported(mapai.local_ai, "q:x", "Task", "t", state=state)
 
-    assert "Ollama support could not be loaded" in reported[0][0]
-    assert mapai.AI_EXTRA_INSTALL_COMMAND in reported[0][0]
-    assert mapai.OLLAMA_DOWNLOAD_URL in reported[0][0]
+    assert "Ollama support could not be loaded" in errors[0][0]
+    assert mapai.AI_EXTRA_INSTALL_COMMAND in errors[0][0]
+    assert mapai.OLLAMA_DOWNLOAD_URL in errors[0][0]
+    assert errors[0][1] == 12
 
 
 # ##################################################################################
@@ -735,7 +749,7 @@ def test_each_ai_name_runs_its_own_worker(state: RunState, worker: SimpleNamespa
 
 @pytest.mark.parametrize("name", ["DeepSeek", "Deepseek", "", "Nobody"])
 def test_an_ai_name_that_is_not_a_supported_service_runs_nothing_and_says_so(
-    state: RunState, worker: SimpleNamespace, reported: list, name: str
+    state: RunState, worker: SimpleNamespace, reported: Callable[..., list], name: str
 ) -> None:
     state.program_arguments.ai_name = name
     state.output_lines.output_lines = ["Task: Noisy", "Action: 1"]
@@ -744,8 +758,8 @@ def test_an_ai_name_that_is_not_a_supported_service_runs_nothing_and_says_so(
 
     assert worker.ran[0][0] is not mapai.open_ai
     # The lookup falls back to a function that reports the problem, run in the worker thread.
-    worker.ran[0][0]("q", "Task", "Noisy", state=state)
-    assert reported and "Invalid model selected" in reported[-1][0]
+    errors = reported(worker.ran[0][0], "q", "Task", "Noisy", state=state)
+    assert errors and "Invalid model selected" in errors[-1][0]
 
 
 def test_the_query_names_the_object_carries_the_prompt_and_every_line(state: RunState, worker: SimpleNamespace) -> None:
@@ -810,13 +824,15 @@ def test_no_popup_is_no_problem(state: RunState, worker: SimpleNamespace) -> Non
     asyncio.run(mapai._run_analysis_in_background(None, state=state))
 
 
-def test_a_blank_ai_name_is_reported_not_run(state: RunState, worker: SimpleNamespace, reported: list) -> None:
+def test_a_blank_ai_name_is_reported_not_run(
+    state: RunState, worker: SimpleNamespace, reported: Callable[..., list]
+) -> None:
     state.program_arguments.ai_name = ""
 
     asyncio.run(mapai._run_analysis_in_background(_Popup(), state=state))
-    worker.ran[0][0]("q", "Task", "t", state=state)  # What io_bound would have run.
+    errors = reported(worker.ran[0][0], "q", "Task", "t", state=state)  # What io_bound would have run.
 
-    assert reported == [("Invalid model selected (AI name is blank).", 12)]
+    assert errors == [("Invalid model selected (AI name is blank).", 12)]
 
 
 def test_map_ai_shows_a_popup_then_runs_the_analysis(

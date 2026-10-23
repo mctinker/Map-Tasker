@@ -4,75 +4,85 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING
 
 from maptasker.src.core import console
-from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import ERROR_FILE, Colors, logger
 
 if TYPE_CHECKING:
+    from maptasker.src.core.mtexcept import MapTaskerError
     from maptasker.src.core.primitem import RunState
 
 
-def error_handler(error_message: str, exit_code: int, *, show_code: bool = True, state: RunState | None = None) -> None:
-    """
-    Error handler: print and log the error.  Exit with error code if provided
-        :param error_message: text of error to print and log
-        :param exit_code: error code to exit with
-        :param show_code: whether the GUI shows the code beside the message.  Pass False when
-            the message says everything there is to say -- a library that is not installed --
-            and a number would only leave the user wondering what it means.  A run from the
-            command line still ends with the code.
-        :param state: the run state the error is recorded on (error_code, error_msg), or None for
-            PrimeItems
+def record_error(error: MapTaskerError, state: RunState | None = None) -> int:
+    """Log an error that stopped a build, and leave it where the window will find it.
+
+    The library modules do not report their errors; they raise MapTaskerError and leave it to
+    whoever started the work to decide what a failure means there.  This is the report, for the
+    places where the answer is "tell the user, and carry on" -- the window's own loads and builds:
+
+      * it is logged (on the terminal only where there is someone watching one: a debug run
+        outside the GUI, or code 5, the Task or Profile that was asked for and is not there);
+      * in the GUI, it is written to ERROR_FILE, which the window reads on the next run, and set
+        on the run state (error_code, error_msg, error_show_code) for the caller that looks.
+
+    It never raises.  Code 0 is a deliberate stop rather than a failure, and is not recorded.
+
+    Args:
+        error: what the library raised.
+        state: the run state the error is recorded on, or None for PrimeItems.
+
+    Returns:
+        int: the error's code, which is what the loading functions hand back to their callers.
     """
     target = PrimeItems if state is None else state
-    # Add our heading to more easily identify the problem
-    if exit_code in {0, 99}:
-        final_error_message = f"{Colors.Green}{error_message}"
-    # Warning?
-    elif exit_code == 100:
-        final_error_message = f"{Colors.Yellow}{error_message}"
+    code = error.exit_code
+    if not 0 < code < 100:
+        return code
+    message = error.message or str(error)
+
+    final_error_message = f"{Colors.Red}MapTasker error: {message}"
+    if (target.program_arguments and target.program_arguments.debug and not target.program_arguments.gui) or code == 5:
+        console.error(final_error_message)
     else:
-        final_error_message = f"{Colors.Red}MapTasker error: {error_message}"
+        logger.debug(final_error_message)
 
-    # Process an error?
-    if exit_code > 0 and exit_code < 100:
-        # Show it on the terminal only where there is a user watching one: in GUI mode the
-        # message goes to the window instead (just below).  Either way it is recorded --
-        # console.error logs what it shows, and logger.debug covers the quiet case.
-        if (
-            target.program_arguments and target.program_arguments.debug and not target.program_arguments.gui
-        ) or exit_code == 5:
-            console.error(final_error_message)
-        else:
-            logger.debug(final_error_message)
+    if target.program_arguments and target.program_arguments.gui:
+        # Written for userintr, to display on entry or on a rerun.
+        with open(ERROR_FILE, "w", encoding="utf-8") as error_file:
+            error_file.write(f"{message}\n")
+            if error.show_code:
+                error_file.write(f"{code}\n")
+        target.error_code = code
+        target.error_msg = message
+        target.error_show_code = error.show_code
+    return code
 
-        # If coming from GUI, set error info. and return to GUI.
-        if target.program_arguments and target.program_arguments.gui:
-            # Write the rror to file for use by userinter (e.g. on rerun), so userintr can display error on entry.
-            with open(ERROR_FILE, "w", encoding="utf-8") as error_file:
-                error_file.write(f"{error_message}\n")
-                if show_code:
-                    error_file.write(f"{exit_code}\n")
-            # Set error info. for GUI to display.
-            target.error_code = exit_code
-            target.error_msg = error_message
-            target.error_show_code = show_code
-            return
-        # Not coming from GUI.  Stop the run, carrying the code with it.
-        exit_program(exit_code)
 
-    # If exit code is 100, then the user closed the window
-    elif exit_code == 100:
-        console.say(final_error_message)
-        exit_program(0)
+def report_error(error: MapTaskerError, state: RunState | None = None) -> int:
+    """The edge of a load or a build that has a window to go back to: record the error, or let it go on up.
 
-    # return code 0
-    else:
-        console.say(final_error_message)
-        return
+    In the GUI a failed load is a message in the window and a window that is still there, so the error
+    is recorded and its code returned, for the callers that branch on one.  Anywhere else -- a run with
+    no window, or a stop that is not a failure (code 0, a deliberate shutdown) -- there is nobody to
+    go back to, and it goes on up to the top of the process.
+
+    Args:
+        error: what the library raised.
+        state: the run state the error is recorded on, or None for PrimeItems.
+
+    Returns:
+        int: the error's code, when it was recorded.
+
+    Raises:
+        MapTaskerError: the same error, when there is no window or it was not a failure.
+    """
+    target = PrimeItems if state is None else state
+    code = record_error(error, state)
+    if code == 0 or not (target.program_arguments and target.program_arguments.gui):
+        raise error
+    return code
 
 
 def rutroh_error(message: str) -> None:
@@ -95,33 +105,3 @@ def close_logfile() -> None:
         for handler in target.handlers[:]:  # Iterate over a copy to avoid issues during modification
             handler.close()  # Close the stream associated with the handler
             target.removeHandler(handler)  # Remove the handler from the logger
-
-
-def exit_program(return_code: int = 0) -> NoReturn:
-    """Stop the run, from anywhere, without stopping the interpreter.
-
-    This used to be close_logfile() followed by sys.exit(), and every caller below it in
-    this package inherited that: a Task name that did not match, a missing output
-    directory, a corrupt XML file: each ended the process outright.
-
-    That is only ever right when MapTasker is the whole program.  It no longer always is.
-    The same functions run underneath a NiceGUI event loop, where SystemExit raised in a
-    `run.io_bound` worker takes the server down instead of the one build that failed, and
-    under pytest, where it ends the test session instead of the test.  diffload even had
-    to force "gui" on solely to steer taskerd's error path away from here.
-
-    So this raises MapTaskerError, which is an ordinary Exception and can therefore be
-    caught, and mapit.mapit_all -- the top of the process -- turns it back into an exit
-    status.  Callers need no change: control still leaves at the call, and the code still
-    travels with it.
-
-    Args:
-        return_code: the status the process should end on if nothing catches this.  0 is
-            a normal, deliberate shutdown and is raised just the same, because the point
-            is to stop unwinding, not to report a failure.
-
-    Raises:
-        MapTaskerError: always.  This function has no normal return.
-    """
-    close_logfile()
-    raise MapTaskerError(exit_code=return_code)

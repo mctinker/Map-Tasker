@@ -22,11 +22,11 @@ from nicegui import app, core, ui
 
 from maptasker.src.core import console
 from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
-from maptasker.src.core.error import error_handler, exit_program
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.sysconst import logger
-from maptasker.src.gui.guistate import capture_gui_state, do_colors, live_selection, reapply_selection
+from maptasker.src.gui.guistate import capture_gui_state, live_selection, reapply_selection
 from maptasker.src.gui.guiwins_drawers import inject_shared_head_styles
 from maptasker.src.gui.guiwins_nav import register_finding_clicks
 from maptasker.src.gui.guiwins_textview import NiceGuiTextView
@@ -287,11 +287,8 @@ def _run_server(state: RunState, assets_dir: str) -> None:
     except OSError as e:
         logger.error(f"Error starting GUI: {e}")
         if "Address already in use" in str(e):
-            error_handler(
-                "Error: Address already in use. Please close any other instances of MapTasker or change the port.",
-                100,  # Force an exit.,
-                state=state,
-            )
+            message = "Error: Address already in use. Please close any other instances of MapTasker or change the port."
+            raise MapTaskerError(message, 0) from e  # Code 0: said as it stands, and the process ends quietly.
     except KeyboardInterrupt:
         # Ctrl-C: the shutdown hook above has saved the settings; carry on to the normal exit.
         logger.info("GUI interrupted from the keyboard.")
@@ -393,18 +390,13 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
 
     # If the user closed the window/browser without the UI building
     if not user_input:
-        error_handler("Program exited. Goodbye.", 0, state=state)
-        exit_program(0)
+        message = "Program exited. Goodbye."
+        raise MapTaskerError(message, 0)
 
     # Normally already done by the shutdown hook; this catches a server that stopped without
     # running it.
     save_gui_settings(user_input, state=state)
 
-    # Spit out the message and log it.
-    error_handler("Program exited. Goodbye.", 0, state=state)
-
-    # Call it quits.
-    exit_program(0)
-
-    # Return the program arguments and colors to use.
-    return (state.program_arguments, do_colors(user_input))
+    # Call it quits, with a word of goodbye: mapit_all, the top of the process, says it.
+    message = "Program exited. Goodbye."
+    raise MapTaskerError(message, 0)

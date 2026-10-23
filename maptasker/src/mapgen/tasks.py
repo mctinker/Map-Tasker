@@ -14,7 +14,7 @@ import defusedxml.ElementTree  # Need for type hints
 import maptasker.src.mapgen.actione as action_evaluate
 from maptasker.src.core import console
 from maptasker.src.core.elemvals import get_ids
-from maptasker.src.core.error import error_handler, rutroh_error
+from maptasker.src.core.error import rutroh_error
 from maptasker.src.core.shelsort import shell_sort
 from maptasker.src.core.sysconst import (
     BASE_PROJECT_NAME,
@@ -108,7 +108,7 @@ def get_actions(current_task: Element, config: RunConfig, state: RunState) -> li
         task_actions = current_task.findall("Action")
     except defusedxml.DefusedXmlException:
         console.debug(f"tasks.py current Task: {current_task}")
-        error_handler("Error: No action found!!!", 0, state=state)
+        console.say("Error: No action found!!!")
         return []
 
     if not task_actions:

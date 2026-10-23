@@ -28,6 +28,7 @@ import pytest
 from maptasker.src.analysis import diffload, timecomp
 from maptasker.src.core import clock, timeline
 from maptasker.src.core.initparg import ProgramArguments
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapgen.lineout import LineOut
@@ -71,12 +72,12 @@ def _write(tmp_path: Path, name: str, text: str) -> str:
     return str(path)
 
 
-def _load_as_current(path: str) -> int:
+def _load_as_current(path: str) -> None:
     """Load a file the way MapTasker does -- which is also what records a snapshot."""
     with open(path, encoding="utf-8") as handle:
         PrimeItems.file_to_get = handle
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-        return taskerd.get_the_xml_data(state=PrimeItems)
+        taskerd.get_the_xml_data(state=PrimeItems)
 
 
 @pytest.fixture(autouse=True)
@@ -100,7 +101,7 @@ def test_loading_a_file_records_it(tmp_path) -> None:
     """The whole premise: no button, no setting -- loading a configuration keeps it."""
     assert timeline.snapshots() == []
 
-    assert _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML)) == 0
+    _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML))
 
     held = timeline.snapshots()
     assert len(held) == 1
@@ -170,7 +171,8 @@ def test_a_configuration_that_comes_back_is_recorded_again(tmp_path) -> None:
 
 def test_a_failed_load_is_not_recorded(tmp_path) -> None:
     """Nothing was loaded, so there is no configuration to have a history of."""
-    assert _load_as_current(_write(tmp_path, "bad.xml", _MALFORMED_XML)) != 0
+    with pytest.raises(MapTaskerError):
+        _load_as_current(_write(tmp_path, "bad.xml", _MALFORMED_XML))
     assert timeline.snapshots() == []
 
 
@@ -374,7 +376,7 @@ def test_a_history_folder_that_cannot_be_made_does_not_break_the_load(tmp_path, 
 
     monkeypatch.setattr(Path, "mkdir", refuse)
 
-    assert _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML)) == 0
+    _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML))
     assert timeline.snapshots() == []
 
 
@@ -382,7 +384,7 @@ def test_an_unreadable_source_file_does_not_break_the_load(tmp_path, monkeypatch
     """record() digests the file itself; a failure there is silent by design."""
     monkeypatch.setattr(timeline, "_digest_of", lambda _path: "")
 
-    assert _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML)) == 0
+    _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML))
     assert timeline.snapshots() == []
 
 

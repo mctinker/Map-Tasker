@@ -39,13 +39,14 @@ from maptasker.src.analysis.xmldiff import Configuration
 from maptasker.src.core import clock, timeline
 from maptasker.src.core.maputil2 import TIMESTAMP_SUFFIX_RE
 from maptasker.src.core.maputils import append_to_filename
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.outdir import output_path
 from maptasker.src.core.primitem import (
     LOADED_CONFIGURATION_ATTRIBUTES,
     clear_error,
     initial_tasker_root_elements,
 )
-from maptasker.src.core.sysconst import COMPARE_FILE, ERROR_FILE, logger
+from maptasker.src.core.sysconst import COMPARE_FILE, logger
 from maptasker.src.edit import sessundo
 from maptasker.src.mapgen.taskerd import get_the_xml_data
 
@@ -55,8 +56,8 @@ if TYPE_CHECKING:
 
     from maptasker.src.core.primitem import RunState
 
-# What get_the_xml_data returns, and what to tell the user about each.  Its own docstring
-# documents these; a bare number in the GUI would tell nobody anything.
+# The code a MapTaskerError from get_the_xml_data carries, and what to tell the user about each.  Its own
+# docstring documents these; a bare number in the GUI would tell nobody anything.
 _RETURN_CODE_MESSAGES = {
     1: "could not be parsed -- it is not valid XML.",
     2: "is not a Tasker backup file.",
@@ -87,7 +88,7 @@ class _Parsed(NamedTuple):
 
 # program_arguments keys this forces for the duration of an isolated load.  See
 # _parsed_in_isolation for why each one has to be forced rather than merely saved.
-_FORCED_ARGUMENTS = {"gui": True, "directory": False}
+_FORCED_ARGUMENTS = {"directory": False}
 
 
 def current_configuration(state: RunState) -> Configuration:
@@ -272,14 +273,11 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
     comparable.  Parsing a copy makes that impossible by construction rather than by
     hoping the encoding is fine.
 
-    "gui" is forced True for the duration so that a parse error is RECORDED rather than
-    raised: taskerd calls error_handler, which in GUI mode puts the reason on PrimeItems
-    and returns, and outside it goes to exit_program.  That used to be sys.exit, which
-    would have taken the whole program down over a bad file picked for comparison --
-    unsaved edits and all.  exit_program raises MapTaskerError now, which the except
-    below would catch anyway, so this is no longer the only thing standing between a
-    corrupt comparison file and a dead process.  It is still the better path: an error
-    recorded on PrimeItems carries the reason this function has to return.
+    A file that will not parse makes get_the_xml_data raise MapTaskerError, and the except
+    below turns it into the verdict this function hands back -- the code the error carries,
+    and its message for the user -- without recording anything on the run: a corrupt file
+    picked for comparison must not leave an error behind for the next startup to show as
+    though the user's own configuration had failed.
 
     "directory" is forced False because conditions_to_name calls add_directory_item when
     it is on, which would append the other file's Profiles to the live directory list.
@@ -300,10 +298,9 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
     # get_the_xml_data clears the session's undo history, because a load normally means a
     # different configuration is open now.  This load does not -- see sessundo.save_history.
     saved_undo_history = sessundo.save_history(state)
-    # _handle_gui_error appends the failure to the running output, which belongs to the
-    # map being built for the file the user actually has open.
+    # The load can add to the running output, which belongs to the map being built for the file
+    # the user actually has open.
     saved_output = list(state.output_lines.output_lines) if state.output_lines is not None else None
-    saved_error_file = _read_error_file()
 
     scratch = None
     opened = None
@@ -326,20 +323,19 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
             # anyone ran would file the other file into the history of the one they are
             # working on.  Only this call can record: it is the load.
             with timeline.suppressed():
-                return_code = get_the_xml_data(state=state)
-            parsed = _Parsed(return_code, state.tasker_root_elements, state.xml_root, scratch)
+                get_the_xml_data(state=state)
+            parsed = _Parsed(0, state.tasker_root_elements, state.xml_root, scratch)
+        except MapTaskerError as error:
+            # A verdict on the file's content: its code says which, and its message says where.
+            state.error_msg = error.message
+            parsed = _Parsed(error.exit_code, initial_tasker_root_elements(), None, scratch or "")
         except Exception as error:
             # Deliberately every exception, not just OSError.  The contract this module
             # owes its caller is that picking a bad file to compare against produces a
             # message and leaves the loaded configuration alone -- so anything the parse
             # can throw has to become that message.
             #
-            # Not hypothetical: taskerd's own error path calls
-            # PrimeItems.output_lines.add_line_to_output, and output_lines is None until
-            # a map has been built (guiutils/mapit construct the LineOut).  A malformed
-            # file picked before the user has rendered anything therefore comes back as
-            # an AttributeError from inside the error handler rather than as a return
-            # code.  A missing file, an unreadable one and a failed copy arrive here too.
+            # A missing file, an unreadable one and a failed copy arrive here.
             logger.exception("Comparison file could not be read")
             state.error_msg = str(error)
             parsed = _Parsed(_LOAD_FAILED, initial_tasker_root_elements(), None, scratch or "")
@@ -366,44 +362,15 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
         state.program_arguments.update(saved_arguments)
         if saved_output is not None:
             state.output_lines.output_lines = saved_output
-        _restore_error_file(saved_error_file)
 
 
 def _scratch_copy(file_path: str) -> str:
     """A throwaway copy of the file to parse, in the system temp directory.
 
     Named after the original so anything that surfaces the path -- a log line, an
-    error_handler message -- still says which file went wrong.
+    error message -- still says which file went wrong.
     """
     handle, scratch = tempfile.mkstemp(prefix="MapTasker_compare_", suffix=f"_{os.path.basename(file_path)}")
     os.close(handle)
     shutil.copyfile(file_path, scratch)
     return scratch
-
-
-def _read_error_file() -> bytes | None:
-    """The current contents of the error file, or None if there is not one.
-
-    With "gui" forced True, a failed parse makes error_handler write ERROR_FILE, which
-    userintr reads on entry to show an error from a previous session.  Left there, a
-    comparison file that would not load would greet the user at next startup as though
-    their own configuration had failed.
-    """
-    try:
-        with open(ERROR_FILE, "rb") as error_file:
-            return error_file.read()
-    except OSError:
-        return None
-
-
-def _restore_error_file(contents: bytes | None) -> None:
-    """Put the error file back as it was -- rewritten, or removed if there was none."""
-    try:
-        if contents is None:
-            if os.path.exists(ERROR_FILE):
-                os.unlink(ERROR_FILE)
-        else:
-            with open(ERROR_FILE, "wb") as error_file:
-                error_file.write(contents)
-    except OSError as error:
-        logger.error(f"Error file could not be restored after a comparison: {error}")

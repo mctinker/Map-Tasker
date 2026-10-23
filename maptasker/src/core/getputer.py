@@ -25,7 +25,6 @@ if TYPE_CHECKING:
 
 from maptasker.src.core import console
 from maptasker.src.core.colrmode import set_color_mode
-from maptasker.src.core.error import error_handler
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.core.maputil2 import log_startup_values, translate_string
 from maptasker.src.core.maputils import reset_named_objects
@@ -130,12 +129,9 @@ def corrupted_file(program_arguments: dict, colors_to_use: dict) -> tuple[dict, 
         2. Generates error message if corrupted
         3. Returns error message and settings as dictionaries for GUI display
         4. Does not restore corrupted settings, asks user to re-save"""
-    error_handler(
-        (
-            f"The settings file,  {ARGUMENTS_FILE} is"
-            " corrupt!  The old settings can not be restored.  A new settings file will be saved upon exit."
-        ),
-        0,
+    console.say(
+        f"The settings file,  {ARGUMENTS_FILE} is"
+        " corrupt!  The old settings can not be restored.  A new settings file will be saved upon exit.",
     )
     # Return the error as an entry in our dictionaries for display via te GUI,
     # if needed.

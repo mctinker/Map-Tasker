@@ -8,15 +8,13 @@ the day an entry in it changed shape.
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from typing import TYPE_CHECKING
 
+import pytest
 from maptasker.src.core import prefers
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.servicec import service_codes
-
-if TYPE_CHECKING:
-    import pytest
 
 
 class _Output:
@@ -121,15 +119,14 @@ def test_only_the_preferences_it_knows_are_listed_unless_debugging() -> None:
     assert "value:7" in mentions[0]
 
 
-def test_a_setting_missing_a_part_ends_the_run(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_setting_missing_a_part_is_an_error() -> None:
     """<Setting> without its <v> means the backup is damaged; guessing would hide that."""
-    seen = {}
-    monkeypatch.setattr(prefers, "error_handler", lambda message, code, state: seen.update(message=message, code=code))
     broken = ET.fromstring("<Setting><n>anm</n><t>s</t></Setting>")
     state = _state(broken)
-    prefers.process_preferences([], current_config(state), state=state)
-    assert seen["code"] == 3
-    assert "corrupt" in seen["message"]
+    with pytest.raises(MapTaskerError) as raised:
+        prefers.process_preferences([], current_config(state), state=state)
+    assert raised.value.exit_code == 3
+    assert "corrupt" in raised.value.message
 
 
 def test_get_preferences_prints_each_section_heading_once_in_tasker_order() -> None:

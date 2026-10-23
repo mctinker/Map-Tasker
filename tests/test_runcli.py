@@ -22,12 +22,13 @@ from maptasker.src import runcli
 from maptasker.src.core import console
 from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import TYPES_OF_COLORS
 
 
 class _Stop(Exception):
-    """Stands in for exit_program, which ends the run."""
+    """Stands in for validate_color, which ends the run after showing the help."""
 
 
 @pytest.fixture
@@ -73,19 +74,6 @@ def _args(**given: object) -> SimpleNamespace:
     values.update({f"c{key}": None for key in TYPES_OF_COLORS})
     values.update(given)
     return SimpleNamespace(**values)
-
-
-@pytest.fixture
-def no_exit(monkeypatch: pytest.MonkeyPatch) -> list[int]:
-    """exit_program raises instead of ending the test run; the codes it was given are recorded."""
-    codes: list[int] = []
-
-    def stop(code: int = 0) -> None:
-        codes.append(code)
-        raise _Stop
-
-    monkeypatch.setattr(runcli, "exit_program", stop)
-    return codes
 
 
 # ##################################################################################
@@ -290,17 +278,15 @@ def test_everything_is_applied_before_the_single_names_and_the_detail_it_sets_st
     assert state.program_arguments.single_task_name == "Noisy"
 
 
-def test_the_version_is_shown_and_the_run_ends(
-    state: RunState, no_exit: list[int], monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_the_version_is_shown_and_the_run_ends(state: RunState, monkeypatch: pytest.MonkeyPatch) -> None:
     said: list[str] = []
     monkeypatch.setattr(console, "say", said.append)
     monkeypatch.setattr(runcli, "clip_figure", lambda *_: said.append("figure"))
 
-    with pytest.raises(_Stop):
+    with pytest.raises(MapTaskerError) as raised:
         runcli.process_extended_arguments(_args(v=True), state=state)
 
-    assert no_exit == [0]
+    assert raised.value.exit_code == 0
     assert any(runcli.MY_VERSION in line and runcli.MY_LICENSE in line for line in said)
     assert "figure" in said
 

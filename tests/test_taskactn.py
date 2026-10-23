@@ -189,14 +189,14 @@ def test_an_unnamed_task_is_found_through_its_id_when_markup_hides_its_name() ->
 # ##################################################################################
 # Writing a whole Task
 # ##################################################################################
-def test_a_task_not_found_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
-    reported: list[tuple] = []
-    monkeypatch.setattr(taskactn, "error_handler", lambda *args, **kwargs: reported.append(args))
+def test_a_task_not_found_is_said_not_raised(monkeypatch: pytest.MonkeyPatch) -> None:
+    said: list[str] = []
+    monkeypatch.setattr(taskactn.console, "say", said.append)
     state = _state(_tasks())
 
     taskactn.get_task_actions_and_output(None, "Task:", "Nobody", [], _config(), state)
 
-    assert reported == [("No Task found!!!", 0)]
+    assert said == ["No Task found!!!"]
 
 
 def test_a_found_task_is_remembered_and_its_actions_written(monkeypatch: pytest.MonkeyPatch) -> None:

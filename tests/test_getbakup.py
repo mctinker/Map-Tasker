@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
 from maptasker.src.mapgen import getbakup
 
@@ -40,13 +41,6 @@ def _device_answers(monkeypatch: pytest.MonkeyPatch, return_code: int, contents:
 
     monkeypatch.setattr(getbakup, "http_request", fake)
     return asked
-
-
-def _fail_with(monkeypatch: pytest.MonkeyPatch) -> list:
-    """Make error_handler record instead of ending the program."""
-    said: list = []
-    monkeypatch.setattr(getbakup, "error_handler", lambda message, code, state: said.append((message, code)))
-    return said
 
 
 # ##################################################################################
@@ -98,16 +92,14 @@ def test_a_command_line_fetch_downloads_then_saves(
     assert (tmp_path / "backup.xml").read_bytes() == _GOOD
 
 
-def test_a_failed_download_ends_the_run_with_the_devices_reason(
+def test_a_failed_download_is_an_error_with_the_devices_reason(
     state: RunState, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Exit code 8 and the message the device layer produced, not a vague 'failed'."""
     _device_answers(monkeypatch, 8, "Unable to get XML from Android device.")
-    said = _fail_with(monkeypatch)
-    # error_handler really exits; here it returns, so the write that follows gets the message text.
-    monkeypatch.setattr(getbakup, "write_out_backup_file", lambda *_args, **_kwargs: None)
-    getbakup.get_backup_file(state=state)
-    assert said == [("Unable to get XML from Android device.", 8)]
+    with pytest.raises(MapTaskerError) as raised:
+        getbakup.get_backup_file(state=state)
+    assert (raised.value.message, raised.value.exit_code) == ("Unable to get XML from Android device.", 8)
 
 
 # ##################################################################################

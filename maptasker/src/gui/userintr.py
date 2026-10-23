@@ -39,6 +39,7 @@ from maptasker.src.analysis.taskflow import (
 from maptasker.src.core import assettext, console, mapjump
 from maptasker.src.core.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 from maptasker.src.core.elemvals import get_ids
+from maptasker.src.core.error import record_error
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.maputil2 import (
     log_startup_values,
@@ -829,8 +830,10 @@ class MyGui:
 
                 # Get the XML
                 self.state.program_arguments.gui = True
-                return_code = get_the_xml_data(state=self.state)
-                if return_code != 0:
+                try:
+                    get_the_xml_data(state=self.state)
+                except MapTaskerError as error:
+                    record_error(error, self.state)
                     return False
 
         return True
@@ -1803,15 +1806,17 @@ class MapTaskerEventHandlers:
                 # "except SystemExit" and had to be: build_html and everything under it
                 # ended the process outright on any error.  They raise this now, which
                 # is an ordinary Exception, so a failed build is one failed build --
-                # the window stays up and says what happened.
-                error_code_extracted = e.exit_code
-                if error_code_extracted == 6:
+                # the window stays up and says what happened, in the error's own words
+                # when it has any.
+                if e.exit_code == 6:
                     gui.display_message_box(
                         translate_string("Map view creation skipped: No valid XML source found or action canceled."),
                         "Orange",
                     )
+                elif e.message:
+                    gui.display_message_box(f"Map processing error: {e.message}", "Orange")
                 else:
-                    gui.display_message_box(f"Map processing halted with system code: {error_code_extracted}", "Red")
+                    gui.display_message_box(f"Map processing halted with system code: {e.exit_code}", "Red")
                 return
 
             # Check if an entry-point processing failure occurred during build_html
@@ -1864,7 +1869,12 @@ class MapTaskerEventHandlers:
             )
 
             # Offload the configuration outliner to an IO-bound thread safely
-            await run.io_bound(outline_the_configuration, state=self.state)
+            try:
+                await run.io_bound(outline_the_configuration, state=self.state)
+            except MapTaskerError as error:
+                reason = error.message or f"system code: {error.exit_code}"
+                gui.display_message_box(f"Diagram processing error: {reason}", "Orange")
+                return
 
             # Check if an entry-point processing failure occurred (e.g. check_limit() in
             # diagram.py tripping the view_limit) during outline_the_configuration(). Unlike

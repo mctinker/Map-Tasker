@@ -21,9 +21,9 @@ import contextlib
 from maptasker.src.core.actiont import lookup_values
 from maptasker.src.core.condjoin import boolean_operators, join_conditions
 from maptasker.src.core.elemvals import child_text
-from maptasker.src.core.error import error_handler
 from maptasker.src.core.format import format_html
 from maptasker.src.core.htmllabel import format_label
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.shelsort import shell_sort
 from maptasker.src.core.sysconst import (
     DISABLED,
@@ -249,11 +249,8 @@ def process_xml_list(
             )
             break
 
-        error_handler(
-            f"action.py get_xml_int_argument_to_value failed - this_element:{this_element} {arguments}",
-            1,
-        )
-        break
+        message = f"action.py get_xml_int_argument_to_value failed - this_element:{this_element} {arguments}"
+        raise MapTaskerError(message, 1)
 
 
 # Get Task's label, disabled flag and any conditions

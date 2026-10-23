@@ -17,6 +17,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from maptasker.src.core import scenelayout
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import (
     profedit,
@@ -441,7 +442,11 @@ def test_a_copy_that_cannot_be_opened_or_parsed_is_reported_and_leaves_the_windo
 
     present = tmp_path / "copy.xml"
     present.write_text(_XML, encoding="utf-8")
-    monkeypatch.setattr(userintr_finish, "get_the_xml_data", lambda state: 7)
+
+    def refuse(state: object) -> None:
+        raise MapTaskerError(exit_code=7)
+
+    monkeypatch.setattr(userintr_finish, "get_the_xml_data", refuse)
     ok, error = userintr_finish.reload_saved_copy_and_refresh(gui, str(present))
     assert (ok, "code 7" in error) == (False, True)
     PrimeItems.file_to_get.close()

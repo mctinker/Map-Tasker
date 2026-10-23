@@ -10,7 +10,9 @@ from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
+from maptasker.src.core.error import record_error
 from maptasker.src.core.maputil2 import translate_string
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.edit import (
     profedit,
     projedit,
@@ -99,9 +101,11 @@ def reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool,
         return False, str(e)
 
     gui.state.program_arguments.file = new_file_path
-    return_code = get_the_xml_data(state=gui.state)
-    if return_code != 0:
-        return False, f"Failed to load '{new_file_path}' (code {return_code})."
+    try:
+        get_the_xml_data(state=gui.state)
+    except MapTaskerError as error:
+        record_error(error, gui.state)
+        return False, f"Failed to load '{new_file_path}' ({error.message or f'code {error.exit_code}'})."
 
     gui.file = new_file_path
     display_current_file(gui, new_file_path)

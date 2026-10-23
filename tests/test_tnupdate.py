@@ -122,7 +122,7 @@ def _load_local(tmp_path: Path, xml: str) -> None:
     with open(_write(tmp_path, "local.xml", xml), encoding="utf-8") as handle:
         PrimeItems.file_to_get = handle
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-        assert taskerd.get_the_xml_data(state=PrimeItems) == 0
+        taskerd.get_the_xml_data(state=PrimeItems)
 
 
 @pytest.fixture(autouse=True)

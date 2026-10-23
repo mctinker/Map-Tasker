@@ -20,9 +20,9 @@ from maptasker.src.core import console
 from maptasker.src.core.clip import clip_figure
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL, GUI
-from maptasker.src.core.error import exit_program
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.outdir import normalize_output_directory
 from maptasker.src.core.parsearg import runtime_parser
 from maptasker.src.core.primitem import RunState
@@ -334,7 +334,7 @@ def display_version() -> None:
     console.say(f"{color_to_use}{MY_VERSION}, under license {MY_LICENSE}\033[0m")
     console.say("")
     clip_figure("castles", False)
-    exit_program(0)
+    raise MapTaskerError(exit_code=0)
 
 
 # Get arguments from command line and put them to the proper settings

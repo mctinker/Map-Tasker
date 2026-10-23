@@ -13,9 +13,9 @@ import os
 from argparse import ArgumentParser
 
 from maptasker.src.core import console
-from maptasker.src.core.error import error_handler
 from maptasker.src.core.mapfonts import get_monospaced_fonts
 from maptasker.src.core.maputils import validate_ip_address, validate_port
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.sysconst import (
     ANTHROPIC_MODELS,
     GEMINI_MODELS,
@@ -67,11 +67,7 @@ def validate_vars(var1: str, var2: int, var3: str) -> None:
         - If any of the above conditions are True, raise an error"""
     if (var1 and not var2 and not var3) or (not var1 and var2 and not var3) or (not var1 and not var2 and var3):
         msg = "The -android_ipaddr, -android_port and -xandroid_file options are mutually inclusive.  If one is specified, they each must have a value."
-        error_handler(msg, 7)
-        # raise argparse.ArgumentTypeError(msg)
-        # raise MutuallyInclusiveArgumentError(
-        #     "The -android_ipaddr, -android_port and -xandroid_file options are mutually inclusive.  If one is specified, they each must have a value."
-        # )
+        raise MapTaskerError(msg, 7)
 
 
 # ################################################################################
@@ -89,8 +85,7 @@ def ipaddr_validation(ip_address: str) -> str:
     - If valid, simply return IP address string"""
     if ip_address != "" and not validate_ip_address(ip_address):
         msg = f"Invalid TCP IP address.  You specified {ip_address}."
-        error_handler(msg, 7)
-        # raise argparse.ArgumentTypeError(msg) from ValueError
+        raise MapTaskerError(msg, 7)
 
     return ip_address
 
@@ -110,8 +105,7 @@ def port_validation(port_number: str) -> str:
     - If valid, simply return IP address string"""
     if port_number != "" and validate_port("", port_number) != 0:
         msg = f"Invalid port number.  You specified {port_number}."
-        error_handler(msg, 7)
-        # raise argparse.ArgumentTypeError(msg) from ValueError
+        raise MapTaskerError(msg, 7)
 
     return port_number
 
@@ -133,8 +127,7 @@ def indentation_validation(x: int) -> int:
     x = int(x)
     if x > 10:
         msg = f"Maximum indentation is 10.  You specified {x}."
-        error_handler(msg, 7)
-        # raise argparse.ArgumentTypeError(msg)
+        raise MapTaskerError(msg, 7)
     return x
 
 
@@ -157,9 +150,8 @@ def font_validation(x: str) -> str:
     valid_fonts.extend(f for f in get_monospaced_fonts() if f not in valid_fonts)
     if x != "help" and x not in valid_fonts:
         msg = f"Invalid or non-monospace font name '{x}'."
-        error_handler(msg, 7)
-        # raise argparse.ArgumentTypeError(msg)
-    elif x == "help":
+        raise MapTaskerError(msg, 7)
+    if x == "help":
         console.say(f"Valid monospace fonts:  {', '.join(valid_fonts)}")
     return x
 
@@ -180,8 +172,7 @@ def file_validation(file: str) -> str:
     """
     if file != "" and "xml" not in file:
         msg = f"Invalid android file location '{file}'.  Missing the backup '.xml' extension."
-        error_handler(msg, 7)
-        # raise argparse.ArgumentTypeError(msg)
+        raise MapTaskerError(msg, 7)
     return file
 
 

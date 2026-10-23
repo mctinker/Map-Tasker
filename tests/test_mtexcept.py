@@ -54,43 +54,36 @@ def test_it_defaults_to_a_failing_code() -> None:
 
 
 # ##################################################################################
-# exit_program -- the funnel nearly every stop goes through
+# Raising it -- how every stop is made
 # ##################################################################################
-def test_exit_program_raises_rather_than_exiting() -> None:
-    """The one change that fixes the whole class of problem.
-
-    Imported inside the test because maputils pulls in a large part of the package.
-    """
-    from maptasker.src.core.error import exit_program
-
-    with pytest.raises(MapTaskerError) as raised:
-        exit_program(5)
-    assert raised.value.exit_code == 5
+def test_it_carries_the_message_and_whether_to_show_the_code() -> None:
+    """The window shows the message, and the code only when it means something to the reader."""
+    shown = MapTaskerError("no file", 6)
+    assert (shown.message, shown.exit_code, shown.show_code) == ("no file", 6, True)
+    assert MapTaskerError("not installed", 12, show_code=False).show_code is False
 
 
-def test_a_clean_shutdown_raises_too() -> None:
+def test_a_clean_shutdown_is_raised_too() -> None:
     """Code 0 is still a request to stop unwinding -- the GUI's Exit button is exactly that.
 
-    If this returned normally instead, every caller written as "exit_program(0)" followed
-    by unreachable code would run that code.
+    If it returned normally instead, every caller written as "raise, then carry on" would run the
+    code after it.
     """
-    from maptasker.src.core.error import exit_program
-
     with pytest.raises(MapTaskerError) as raised:
-        exit_program(0)
+        message = "bye"
+        raise MapTaskerError(message, 0)
     assert raised.value.exit_code == 0
 
 
 def test_a_caller_can_contain_it() -> None:
     """What a GUI button handler and diffload.load_for_comparison both rely on."""
-    from maptasker.src.core.error import exit_program
 
     def guarded() -> str:
         try:
-            exit_program(2)
+            message = "stopped"
+            raise MapTaskerError(message, 2)
         except Exception:  # noqa: BLE001
             return "still running"
-        return "unreachable"
 
     assert guarded() == "still running"
 
@@ -219,3 +212,41 @@ def test_muting_restores_the_previous_state_rather_than_unmuting() -> None:
     finally:
         console.unmute()
     assert not console.is_muted()
+
+
+# ##################################################################################
+# What the top of the process tells the user
+# ##################################################################################
+def _stopped_with(monkeypatch: pytest.MonkeyPatch, error: MapTaskerError) -> int:
+    from maptasker.src import mapit
+
+    def stop(**_kw: object) -> None:
+        raise error
+
+    monkeypatch.setattr(mapit, "initialize_everything", stop)
+    return mapit.mapit_all()
+
+
+def test_a_failure_is_told_on_the_error_stream(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture) -> None:
+    """A command-line run used to end silently on most errors; the reason is now what it ends with."""
+    assert _stopped_with(monkeypatch, MapTaskerError("Invalid IP address.", 7)) == 7
+    captured = capsys.readouterr()
+    assert "Invalid IP address." in captured.err
+    assert captured.out == ""
+
+
+def test_a_stop_that_is_not_a_failure_is_told_as_it_stands(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+) -> None:
+    assert _stopped_with(monkeypatch, MapTaskerError("Program exited. Goodbye.", 0)) == 0
+    captured = capsys.readouterr()
+    assert "Program exited. Goodbye." in captured.out
+    assert captured.err == ""
+
+
+def test_a_stop_with_nothing_to_say_says_nothing(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+) -> None:
+    assert _stopped_with(monkeypatch, MapTaskerError(exit_code=0)) == 0
+    captured = capsys.readouterr()
+    assert (captured.out, captured.err) == ("", "")

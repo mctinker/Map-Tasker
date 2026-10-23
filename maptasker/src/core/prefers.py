@@ -9,8 +9,8 @@
 import re
 from operator import itemgetter
 
-from maptasker.src.core.error import error_handler
 from maptasker.src.core.format import format_html
+from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.runcfg import RunConfig
 from maptasker.src.core.servicec import service_codes
@@ -155,7 +155,8 @@ def process_preferences(temp_output_lines: list, config: RunConfig, state: RunSt
                 dummy_num += 1
         # Invalid <Setting> xml element
         else:
-            error_handler("Error: the backup xml file is corrupt.  Program terminated.", 3, state=state)
+            message = "Error: the backup xml file is corrupt.  Program terminated."
+            raise MapTaskerError(message, 3)
 
 
 def get_preferences(config: RunConfig, state: RunState) -> None:
