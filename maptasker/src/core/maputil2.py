@@ -253,7 +253,11 @@ def _warn_if_on_event_loop(url: str) -> None:
 
 # How long each kind of request to the Android device waits for an answer, in seconds.
 _READ_TIMEOUT_SECONDS = 5
-_AUTH_TIMEOUT_SECONDS = 8
+# Asking for a key puts an approval prompt on the device, and the request is not answered until
+# the user has dealt with it.  Thirty seconds is how long the HTTP Server Example's own 'GET Auth'
+# Task is given to answer (see LIST_READ_TIMEOUT_SECONDS), so waiting any less gives up on a
+# request the device is still working on.
+_AUTH_TIMEOUT_SECONDS = 30
 _WRITE_TIMEOUT_SECONDS = 15
 _DELETE_TIMEOUT_SECONDS = 10
 # A request Tasker answers by working through its whole configuration -- GET api/tasks with no
@@ -350,8 +354,9 @@ def _device_call(
 
     `requests` is this module's global, looked up as the call is made, which is what lets a test
     stand a fake device in for it.  `unreachable` and `timed_out` finish the connection-error and
-    timeout messages with what the caller was doing.  `retryable` is False only for a malformed
-    URL, which asking again will never fix.
+    timeout messages with what the caller was doing.  `retryable` is False for a malformed
+    URL, which asking again will never fix, and for a timeout: the device may still be working on the
+    request, so asking again starts a second piece of work beside the first rather than waiting for it.
 
     Callers test `response is None`, never the response's truth: requests.Response is falsy for any
     status of 400 or more, so truth-testing it would send every HTTP error down the failure branch.
@@ -370,7 +375,7 @@ def _device_call(
         except RequestsConnectionError:
             error_message, retryable = f"Request failed for url: {url} .  Connection error! {unreachable}", True
         except Timeout:
-            error_message, retryable = f"Request failed for url: {url} .  Timeout error.{timed_out}", True
+            error_message, retryable = f"Request failed for url: {url} .  Timeout error.{timed_out}", False
         except RequestException as e:
             # The base of everything requests raises, the three above included.
             error_message, retryable = f"Request failed for url: {url}, error: {e} .", True
@@ -525,6 +530,11 @@ def read_back_uploaded_file(
     return 8, last
 
 
+# A request that TIMES OUT is not retried (see _device_call).  The 'GET Auth' Task asks the user to
+# approve the request on the device and answers when they have, so a second request starts a second
+# prompt beside the first, and the first prompt's answer then goes to a request that has already
+# closed: Tasker reports 'Sending response to invalid request id' for step 41 of that Task.
+#
 # Tasker's /api/auth does not answer deterministically: on a device that is set up
 # correctly and reachable, it still returns 403 {"authorized": false} for roughly half
 # of all requests, then authorizes the very next identical request.  Measured against a
@@ -545,7 +555,12 @@ def _request_android_auth_key(url: str) -> tuple[int, str, bool]:
     AUTH_KEY_MAX_ATTEMPTS comment above.  A malformed URL or a well-formed response that
     simply has no key in it will never change, so those are reported immediately.
     """
-    response, error_message, retryable = _device_call("get", url, timeout=_AUTH_TIMEOUT_SECONDS)
+    response, error_message, retryable = _device_call(
+        "get",
+        url,
+        timeout=_AUTH_TIMEOUT_SECONDS,
+        timed_out="  The device may be waiting for you to approve MapTasker's request on its screen.",
+    )
     if response is None:
         return 8, error_message, retryable
 

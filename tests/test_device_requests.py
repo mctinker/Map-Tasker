@@ -152,13 +152,17 @@ def test_each_endpoint_reads_its_statuses_its_own_way(
     [
         (requests.exceptions.InvalidSchema("no"), False),
         (requests.exceptions.ConnectionError("no"), True),
-        (requests.exceptions.Timeout("no"), True),
+        (requests.exceptions.Timeout("no"), False),  # the device may still be waiting on its user
     ],
 )
-def test_only_a_malformed_url_is_not_worth_asking_for_a_key_again(
+def test_only_a_refused_connection_is_worth_asking_for_a_key_again(
     monkeypatch: pytest.MonkeyPatch, error: Exception, retryable: bool
 ) -> None:
-    """get_android_auth_key retries a failure unless asking again could not possibly help."""
+    """get_android_auth_key retries a failure only if asking again could help.
+
+    Not a malformed URL, and not a timeout: a request still waiting for the user to approve it on
+    the device would be answered after the retry had started a second prompt.
+    """
     monkeypatch.setattr(maputil2, "requests", _Failing(error))
 
     assert maputil2._request_android_auth_key("http://192.168.0.210:1821/api/auth")[2] is retryable
@@ -352,3 +356,22 @@ def test_a_tasker_name_filter_carries_every_character_the_server_can_match(names
 def test_a_name_with_a_dot_or_tilde_cannot_be_filtered_on(name: str) -> None:
     """The server decodes '%2E' and '%7E' before matching, so the filter would ask about a shorter name."""
     assert maputil2.tasker_name_query(["Fine", name]) is None
+
+
+def test_a_key_request_that_times_out_is_made_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A second request would put a second prompt on the device and orphan the first one's answer."""
+    calls: list[dict[str, object]] = []
+
+    def slow(_url: str, **kwargs: object) -> None:
+        calls.append(kwargs)
+        raise requests.exceptions.Timeout("no")
+
+    monkeypatch.setattr(maputil2, "requests", SimpleNamespace(get=slow))
+    monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)
+
+    return_code, message = maputil2.get_android_auth_key(*_DEVICE)
+
+    assert return_code == 8
+    assert "approve" in message
+    assert len(calls) == 1
+    assert calls[0]["timeout"] == maputil2._AUTH_TIMEOUT_SECONDS == 30
