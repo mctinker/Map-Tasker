@@ -119,7 +119,7 @@ def test_unnamed_profile_is_named_for_its_conditions() -> None:
     tables = _build('<Profile sr="prof6"><id>6</id><Time sr="con0"><fh>8</fh><fm>0</fm></Time></Profile>')
     name = tables["all_profiles"]["6"]["name"]
     assert name.endswith(f".6 {UNNAMED_ITEM}")
-    assert "800" in name  # the 8:00 time condition it was named after
+    assert "8:00" in name  # the time condition it was named after, colon and all
 
 
 def test_unnamed_profile_name_carries_no_markup() -> None:

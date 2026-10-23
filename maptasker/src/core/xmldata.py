@@ -77,6 +77,38 @@ def tag_in_type(tag: str, flag: bool) -> bool:
     return (flag and tag in scene_task_element_types) or (not flag and tag in scene_task_click_types)  # Boolean
 
 
+# An argument whose evaluation is a list: its value is a code, and the list says what the code means.
+def evaluate_listed_value(argeval: list[str], value: str, the_arg: str, arg: ArgumentCode | None) -> str:
+    """
+    Say what an argument's value means, according to the list its table entry carries.
+
+    The list is either ["", "e", "text"] -- the value is a flag, and the text is shown when it is
+    set -- or ["prefix", "l", "key"] -- the value is a position in the lookup table for the key.
+
+    Args:
+        argeval (list[str]): The argument's evaluation, from the action table.
+        value (str): The argument's value as the XML holds it.
+        the_arg (str): The name of the argument (e.g. 'arg3'), for the error message.
+        arg (ArgumentCode | None): This argument, from action_codes; its name labels a lookup.
+
+    Returns:
+        str: What the value means, with the trailing comma the list's pieces leave.
+    """
+    result: list[str] = []
+    name = arg[2] if arg is not None else ""
+    if len(argeval) > 1:
+        # Handle the special case of "e" by adding a space before the value..expects a blank in element 0.
+        new_argeval = ["", "e", argeval[1]] if argeval[0] == "e" else argeval
+        # Handle special case of 'l' lookup.
+        new_argeval = [f"{name}=", "l", argeval[2]] if name and argeval[1] == "l" else new_argeval
+    else:
+        new_argeval = argeval
+
+    # Process the argument evaluation
+    process_xml_list([new_argeval], 0, value, result, [the_arg])
+    return " ".join(result)
+
+
 # We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
 def extract_integer(
     code_action: Element,
@@ -120,18 +152,7 @@ def extract_integer(
 
     # Aeguement evaluation is a list
     if isinstance(argeval, list):
-        result = []
-        if len(argeval) > 1:
-            # Handle the special case of "e" by adding a space before the value..expects a blank in element 0.
-            new_argeval = ["", "e", argeval[1]] if argeval[0] == "e" else argeval
-            # Handle special case of 'l' lookup.
-            new_argeval = [f"{arg[2]}=", "l", argeval[2]] if arg[2] and argeval[1] == "l" else new_argeval
-        else:
-            new_argeval = argeval
-
-        # Process the argument evaluation
-        process_xml_list([new_argeval], 0, the_int_value, result, [the_arg])
-        final_result = " ".join(result)
+        final_result = evaluate_listed_value(argeval, the_int_value, the_arg, arg)
 
     # Argument evaluation is a string.
     else:
@@ -160,18 +181,27 @@ def extract_integer(
 
 
 # Extracts and returns the text from the given argument as a string.
-def extract_string(action: Element, arg: str, argeval: str | list[str]) -> str:
+def extract_string(
+    action: Element,
+    arg: str,
+    argeval: str | list[str],
+    argument: ArgumentCode | None = None,
+) -> str:
     """
     Extracts a string from an XML action element.
 
     Args:
         action (XML element): The XML action element to search.
         arg (str): The name of the string argument to search for.
-        argeval (str | list[str]): The prefix to add to the matched string.
+        argeval (str | list[str]): The prefix to add to the matched string, or the list that says what
+            its value means (see evaluate_listed_value).
+        argument (ArgumentCode | None): This argument, from action_codes, when the evaluation is a list.
 
     Returns:
         str: Extracted string with prefix or an empty string.
     """
+    if isinstance(argeval, list):
+        return _extract_listed_string(action, arg, argeval, argument)
 
     # Find the first matching <Str> element with the desired 'sr' attribute.  Walks the
     # action's children directly rather than building the list of every <Str> first --
@@ -186,7 +216,7 @@ def extract_string(action: Element, arg: str, argeval: str | list[str]) -> str:
         return ""  # No matching element found
 
     # Extract text value with prefix
-    prefix = argeval if isinstance(argeval, str) else str(argeval)
+    prefix = argeval
     new_argeval = prefix if prefix.endswith("=") else f"{prefix}="
     extracted_text = (
         f"{prefix}(carriage return)" if str_element.text == "\n" else f"{new_argeval}{str_element.text or ''}"
@@ -194,6 +224,45 @@ def extract_string(action: Element, arg: str, argeval: str | list[str]) -> str:
 
     # Drop trailing comma if necessary
     return drop_trailing_comma([extracted_text])[0] if extracted_text else ""
+
+
+# A string argument whose table entry carries a list evaluation, rather than a prefix.
+def _extract_listed_string(
+    action: Element,
+    arg: str,
+    argeval: list[str],
+    argument: ArgumentCode | None,
+) -> str:
+    """
+    The meaning of a string argument that is really a code.
+
+    The table calls these arguments strings, but what they hold is a code (a flag, or a position in a
+    lookup) that the list in the table says how to read -- and Tasker writes some of them as <Int>
+    rather than <Str>.  So the value is taken from either, and a %variable is shown as it stands.
+
+    Args:
+        action (XML element): The XML action element to search.
+        arg (str): The name of the argument to search for (e.g. 'arg3').
+        argeval (list[str]): The evaluation from the action table.
+        argument (ArgumentCode | None): This argument, from action_codes.
+
+    Returns:
+        str: What the value means, or an empty string if the argument is not there or is empty.
+    """
+    element = next(
+        (child for child in action if child.tag in {"Str", "Int"} and child.get("sr") == arg),
+        None,
+    )
+    if element is None:
+        return ""
+    value = (element.text if element.tag == "Str" else element.get("val") or element.findtext("var")) or ""
+    value = value.strip()
+    if not value:
+        return ""
+
+    # A flag that is not set leaves nothing but its separator behind.
+    result = evaluate_listed_value(argeval, value, arg, argument)
+    return drop_trailing_comma([result])[0].strip() if result else ""
 
 
 def is_tasker_object(text: str, blank_trailer: bool) -> bool:

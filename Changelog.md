@@ -28,6 +28,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: The Variable Convert action now shows JSON Encode, and names its conversions as Tasker does: Base64 was shown as Base65, and Metres, Centimetres and Kilometres were spelled the American way.
 - Fixed: Running 'maptasker -reset' doesn't reset the settings as it should.
 - Fixed: A command-line run that stops on a problem, such as a missing backup file or an invalid option, now says what the problem was instead of ending silently. A backup file that cannot be opened is now reported as such.
+- Fixed: A Profile named from its conditions now keeps the colons in a time, so it reads 'from 9:00 to 17:00' rather than 'from 900 to 1700'.
+- Fixed: Event and State settings that Tasker stores as a code, such as the Priority of Battery Changed, now show what the code means instead of the raw list text. A setting that holds a variable is shown as that variable, rather than failing.
 - Fixed: Getting an API key from your Android device now waits up to 30 seconds for you to approve the request on the phone, and no longer asks again while it waits. Before, the repeated requests made Tasker report "Sending response to invalid request id" from its 'GET Auth' Profile on the ANdroid device.
 
 

@@ -103,12 +103,13 @@ def output_list_of_actions(
             # Optimize spacing if 'pretty' is enabled or if this is a label with html
             updated_action = _ensure_argument_alignment(taction) if config.pretty or "text-box" in taction else taction
 
-            # If Action continued ("...continued"), output it
+            # If Action continued ("...continued"), output it.  The line closes its own span (add_end_span), as
+            # does the first line below: the span the Action's arguments leave open is closed by the end of the line.
             if updated_action[:3] == "...":
                 state.output_lines.add_line_to_output(
                     2,
                     f"Action: {updated_action}",
-                    ["", "action_color", FormatLine.dont_add_end_span],
+                    ["", "action_color", FormatLine.add_end_span],
                 )
             else:
                 # First remove one blank from action number if line number is > 99 and < 1000
@@ -123,7 +124,7 @@ def output_list_of_actions(
                 state.output_lines.add_line_to_output(
                     2,
                     f"Action: {str(action_count).zfill(2)}</span> {updated_action}",
-                    [anchor, "action_color", FormatLine.dont_add_end_span],
+                    [anchor, "action_color", FormatLine.add_end_span],
                 )
                 action_count += 1
             if (

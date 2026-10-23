@@ -297,3 +297,10 @@ def test_a_flag_that_is_on_is_named() -> None:
     is on IS the value, so the label alone is what goes on the line.
     """
     assert action.evaluate_action_setting([False, "1", "Enabled"]) == ["Enabled"]
+
+
+def test_a_lookup_given_a_variable_shows_the_variable_instead_of_failing() -> None:
+    """A %variable is resolved on the phone; there is nothing to look up, and nothing to stop the Map for."""
+    results: list[str] = []
+    action.process_xml_list([["Mode=", "l", "135"]], 0, "%mode", results, ["arg0"])
+    assert results == ["Mode=%mode, "]

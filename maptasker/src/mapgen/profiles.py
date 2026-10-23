@@ -233,6 +233,10 @@ _NAME_CLEANUPS = {
 }
 
 
+# A colon that separates a condition from its label, and not one between two digits.
+_CONDITION_COLON = re.compile(r"(?<!\d):|:(?!\d)")
+
+
 def _split_conditions(profile_conditions: str) -> list[str]:
     """A Profile's condition text broken at its colons, with the Priority and the extra spacing taken out."""
     # Remove 'Priority:n'
@@ -246,13 +250,10 @@ def _split_conditions(profile_conditions: str) -> list[str]:
     pos = profile_conditions.find("&nbsp;&nbsp;")
     if pos != -1 and profile_conditions[pos - 1] != ";" and profile_conditions[pos + 12] != "&":
         profile_conditions = profile_conditions.replace("&nbsp;&nbsp;", " ", 1)
-    # Break out the conditions.
-    return (
-        profile_conditions.replace("&nbsp;&nbsp;Configuration Parameter(s):<br>", " ")
-        .replace("&nbsp;", "")
-        .split(
-            ":",
-        )
+    # Break out the conditions, at every colon but the one inside a time (9:00): that is part of what the
+    # condition says, and the name made of the pieces has no other way to get it back.
+    return _CONDITION_COLON.split(
+        profile_conditions.replace("&nbsp;&nbsp;Configuration Parameter(s):<br>", " ").replace("&nbsp;", ""),
     )
 
 

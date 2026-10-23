@@ -8,13 +8,9 @@ from __future__ import annotations
 
 import html
 from itertools import zip_longest
-from typing import TYPE_CHECKING
 
 from maptasker.src.core.mapwriter import count_trailing_blanks
-from maptasker.src.core.sysconst import pattern2, pattern8, pattern10, pattern15
-
-if TYPE_CHECKING:
-    from maptasker.src.core.sysconst import FormatLine
+from maptasker.src.core.sysconst import FormatLine, pattern2, pattern8, pattern10, pattern15
 
 
 # Given a line in the output queue, reformat it before writing to file
@@ -103,18 +99,9 @@ def format_html(
         :param color_code: the code to use to find the color in colormap
         :param text_before: text to insert before the color/font html
         :param text_after: text to insert after the color/font html
-        :param end_span: True=add </span> at end, False=don't add </span> at end
+        :param end_span: True or FormatLine.add_end_span=add </span> at end, False or FormatLine.dont_add_end_span=don't
         :return: string with text formatted with color and font
     """
-    # Worth knowing before changing anything here: most callers pass a FormatLine member
-    # rather than a bool, and an Enum member is true whichever value it carries -- so
-    # "FormatLine.dont_add_end_span" reads as "do add one" and the </span> goes on anyway.
-    # That has been the behavior for as long as there has been output, and the strings this
-    # builds are taken apart again further on (finalize_action_details splits an action at
-    # its newlines), so what looks like a one-line fix moves text about as well as tags.
-    # The spare end tags it leaves are dealt with where they do no harm: SpanBalancer drops
-    # the ones that close nothing as the file is written.
-    #
     # Determine and get the color to use.
     # Return completed HTML with color, font and text with text after
     if text_after:
@@ -123,7 +110,7 @@ def format_html(
         # has no adverse impact to the output other than an extra span that is overridden.
 
         # Set up the trailing HTML to include
-        trailing_span = "</span>" if end_span else ""
+        trailing_span = "</span>" if end_span in {True, FormatLine.add_end_span} else ""
         return f'{text_before}<span class="{color_code}">{text_after}{trailing_span}'
 
     # No text after...just return it.

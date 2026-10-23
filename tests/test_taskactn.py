@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 
 import pytest
+from maptasker.src.core.sysconst import FormatLine
 from maptasker.src.mapgen import taskactn
 
 B = "&nbsp;"
@@ -96,6 +97,9 @@ def test_a_continued_line_is_written_without_a_number() -> None:
     state = _state()
     taskactn.output_list_of_actions(1, ["Flash", "...more of it"], "Task", _config(), state=state)
     assert _written(state)[:2] == ["Action: 01</span> Flash", "Action: ...more of it"]
+    # The span the Action's arguments leave open is closed by the end of the line, so both kinds say so.
+    formats = [spec[2] for _level, _text, spec in state.output_lines.lines[:2]]
+    assert formats == [FormatLine.add_end_span, FormatLine.add_end_span]
 
 
 def test_a_three_digit_action_gives_up_a_blank_to_stay_in_line() -> None:

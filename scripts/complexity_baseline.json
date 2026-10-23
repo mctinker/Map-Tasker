@@ -23,9 +23,6 @@
     "LINES": 102,
     "PLR0912": 15
   },
-  "maptasker/src/core/xmldata.py::extract_integer": {
-    "PLR0912": 13
-  },
   "maptasker/src/device/deviceimport.py::import_profile_to_device": {
     "LINES": 126,
     "PLR0913": 9

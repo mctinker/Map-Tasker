@@ -18,7 +18,7 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src.core import actionc
+from maptasker.src.core import actionc, xmldata
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen import actargs
@@ -296,3 +296,53 @@ def test_an_unmapped_action_code_is_reported_rather_than_guessed() -> None:
     """
     assert actargs.handle_missing_code("999t", 2, state=PrimeItems) == ""
     assert "not mapped" in "".join(PrimeItems.output_lines.output_lines)
+
+
+# ##################################################################################
+# A string argument whose table entry carries a list evaluation
+# ##################################################################################
+# 24 entries in the action table call an argument a string and then give it a list -- a flag or a
+# lookup -- to read it by.  The list was printed as it stood: ['Priority=', 'l', '4s']=1.
+def _map_event(code: str, argument_xml: str) -> str:
+    """The mapped line for one Event carrying the given argument."""
+    event = ET.fromstring(f'<Event sr="con0" ve="2"><code>{code}</code>{argument_xml}</Event>')
+    return get_action_results(f"{code}e", actionc.action_codes, event, False, state=PrimeItems)
+
+
+@pytest.mark.parametrize(
+    ("argument_xml", "shown"),
+    [
+        ('<Str sr="arg0">0</Str>', "Priority=Highest"),
+        ('<Str sr="arg0">2</Str>', "Priority=Normal"),
+        ('<Int sr="arg0" val="1"/>', "Priority=High"),
+        ('<Str sr="arg0">%priority</Str>', "Priority=%priority"),
+    ],
+)
+def test_a_string_that_is_a_lookup_shows_what_the_lookup_says(argument_xml: str, shown: str) -> None:
+    result = _map_event("203", argument_xml)
+    assert result.endswith(shown)
+    assert "['" not in result
+
+
+def test_a_string_that_is_a_flag_shows_its_text_only_when_it_is_set() -> None:
+    assert "Structure Output (JSON, etc) (selected)" in _map_event("1668911626", '<Str sr="arg3">1</Str>')
+    unset = _map_event("1668911626", '<Str sr="arg3">0</Str>')
+    assert "Structure Output" not in unset
+    assert "['" not in unset
+
+
+def test_no_string_argument_prints_the_list_it_was_given() -> None:
+    """All 24 of them, whatever they are given."""
+    specs = PrimeItems.tasker_arg_specs
+    listed = [
+        (code, argument)
+        for code, action in actionc.action_codes.items()
+        for argument in action.args
+        if specs.get(argument.arg_type) == "Str" and isinstance(argument.arg_eval, list)
+    ]
+    assert listed, "the table no longer has any; this test can go"
+    for code, argument in listed:
+        for value in ("0", "1", "2", "%v"):
+            action = ET.fromstring(f'<Event><Str sr="arg{argument.arg_id}">{value}</Str></Event>')
+            text = xmldata.extract_string(action, f"arg{argument.arg_id}", argument.arg_eval, argument)
+            assert "['" not in text, (code, argument.arg_id, value, text)

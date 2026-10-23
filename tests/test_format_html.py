@@ -17,6 +17,7 @@ from __future__ import annotations
 import pytest
 from maptasker.src.core import format as fmt
 from maptasker.src.core import htmllabel, htmlsafe, htmlstyle, htmltext, mapwriter
+from maptasker.src.core.sysconst import FormatLine
 
 _COLORS = {"background_color": "white", "action_label_color": "Black", "taskernet_color": "Blue"}
 
@@ -718,3 +719,20 @@ def test_a_span_is_added_only_when_there_is_text_after() -> None:
     assert fmt.format_html("project_color", "before", "text", True) == 'before<span class="project_color">text</span>'
     assert fmt.format_html("project_color", "before", "text", False) == 'before<span class="project_color">text'
     assert fmt.format_html("project_color", "before", "", True) == ""
+
+
+# Most callers say whether a line closes its span with a FormatLine member rather than a bool, and an
+# Enum member is true whatever it holds: "dont_add_end_span" used to read as "do add one", and the
+# spare </span> was left for the span balancer to drop.
+@pytest.mark.parametrize(
+    ("end_span", "closed"),
+    [
+        (True, True),
+        (False, False),
+        (FormatLine.add_end_span, True),
+        (FormatLine.dont_add_end_span, False),
+    ],
+)
+def test_a_formatline_member_means_what_it_says(end_span: bool | FormatLine, closed: bool) -> None:
+    line = fmt.format_html("project_color", "", "text", end_span)
+    assert line.endswith("</span>") is closed

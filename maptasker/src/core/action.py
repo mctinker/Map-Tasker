@@ -237,6 +237,9 @@ def process_xml_list(
                 try:
                     mapped_value = lookup_values[lookup_key][int(the_int_value)]
                     match_results.append(f"{the_list[idx - 2]}{mapped_value}, ")
+                except ValueError:
+                    # Not a number: a %variable, resolved on the phone.  Shown as it stands.
+                    match_results.append(f"{the_list[idx - 2]}{the_int_value}, ")
                 except (KeyError, IndexError):
                     match_results.append(
                         f"MapTasker 'mapped' error: int {the_int_value} not in lookup_values "

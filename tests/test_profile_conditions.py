@@ -172,3 +172,25 @@ def test_a_continuation_of_a_condition_is_pushed_in_further() -> None:
     parts: list[str] = []
     profiles._align_condition_text("Set=AC", 30, parts)
     assert parts == [B * 38 + "Set=AC"]
+
+
+# A time's colon is part of the time.  The conditions are broken at their colons to get at the pieces,
+# and the name is made of the pieces put back together -- so a split at the time's colon lost it, and a
+# Profile named after its conditions read "from 900 to 1700".
+def test_a_time_is_not_broken_at_its_colon() -> None:
+    parts = profiles._split_conditions("Time: from 9:00 to 17:00")
+    assert parts == ["Time", " from 9:00 to 17:00"]
+
+
+def test_a_name_made_of_a_time_keeps_the_colons_of_it() -> None:
+    assert profiles.set_name_to_condition("Time: from 9:00 to 17:00", "x") == "*from 9:00 to 17:00"
+
+
+def test_every_time_in_the_conditions_keeps_its_colons() -> None:
+    name = profiles.set_name_to_condition(f"Day: Mon{B}Time: from 22:30 until 6:15", "x")
+    assert "from 22:30 until 6:15" in name
+
+
+def test_a_label_followed_by_a_number_is_still_broken_at_its_colon() -> None:
+    """Only a colon with a digit on each side is a time."""
+    assert profiles._split_conditions("Net: 5G") == ["Net", " 5G"]

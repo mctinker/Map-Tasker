@@ -233,7 +233,7 @@ def evaluate_argument(
             # displayed alongside the action by action.py, so nothing here reads it: doing so
             # used to swallow those arguments whole and show the action's label (usually
             # nothing at all) in their place.
-            evaluated_string = extract_string(code_action, the_arg, argeval)
+            evaluated_string = extract_string(code_action, the_arg, argeval, arg)
             evaluated_results[the_arg] = {
                 "value": html.escape(evaluated_string),
             }
