@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [15.0.2] ??-Oct-2026  # FIX
+## [15.0.2] 25-Oct-2026
 
 ### Added
 
@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: A backup with an empty or impossible day or month in a Day condition, an empty collision-handling setting, or an empty Version 2 Scene layout no longer stops the Map with an error. A TaskerNet description followed by doubled blank lines no longer does either.
 - Fixed: Clicking Exit on Windows now ends MapTasker completely, instead of leaving the command window running. Your settings are still saved on the way out.
 - Fixed: The Variable Convert action now shows JSON Encode, and names its conversions as Tasker does: Base64 was shown as Base65, and Metres, Centimetres and Kilometres were spelled the American way.
-- Fixed: Running 'maptasker -reset' now starts fresh, with the saved settings ignored. Before, the saved settings were restored anyway and nothing was reset.
+- Fixed: Running 'maptasker -reset' doesn't reset the settings as it should.
 
 
 ### Known Issues
