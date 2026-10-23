@@ -405,7 +405,10 @@ skip_covered = true
 # -> 83 at 85.2% (4750 tests), once the start-up, crash handling, safety copies, AI model lists, condition and
 # action wording, and the GUI's plain logic and navigation had direct tests.
 # Set about two points under, as before.
-fail_under = 83
+# -> 87 at 89.3% (5650 tests), once the GUI's handlers and dialogs (the AI, report and view handlers, the
+# Application and icon pickers, the Health Check, Rename, Delete and Overwrite dialogs, the Scene preview's drawers)
+# had direct tests of their own.
+fail_under = 87
 exclude_also = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",
