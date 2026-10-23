@@ -553,8 +553,13 @@ def process_cli(state: RunState) -> None:
 
     logger.debug(f"Program arguments: {args}")
 
-    # Restore runtime arguments if we are not doing a reset and not doing the GUI and there is a settings file to restore.
-    restore_arguments(state=state)
+    # Restore the saved runtime arguments, unless -reset asked to start fresh.  The flag goes on
+    # the arguments here because the window reads it there (it skips restoring the saved
+    # settings and the saved language), and nothing else puts it there on that path.
+    if getattr(args, "reset", False):
+        state.program_arguments.reset = True
+    else:
+        restore_arguments(state=state)
 
     # Decide GUI versus command line.  This has to come after restore_arguments(), which
     # replaces program_arguments wholesale with what the settings file holds -- so the
