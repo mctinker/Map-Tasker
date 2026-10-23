@@ -9,16 +9,14 @@ All notable changes to this project will be documented in this file!
 - Added: Python 3.15 is now supported.
 - Added: A 'Pre-Build The Map' checkbox under 'Open View In New Window' builds the Map in the background as soon as a file is loaded and whenever you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once. It is off by default, and a Map button pressed while it is still building waits for it.
 - Added: __Import With Dependencies__ brings a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use. Every import is previewed first, gives what it brings new ids and names where this file already has something different, and is one press of Undo.
-- Added:
 
 ### Changed
 
 - Changed: The Map view now appears sooner on a large configuration. Preparing the Map for the window takes a fraction of the time, and the Map is smaller to send to the browser; the Map itself looks the same.
-- Changed:
 
 ### Removed
 
-- Removed:
+- Removed: Nothing removed
 
 ### Fixed
 
@@ -29,7 +27,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Clicking Exit on Windows now ends MapTasker completely, instead of leaving the command window running. Your settings are still saved on the way out.
 - Fixed: The Variable Convert action now shows JSON Encode, and names its conversions as Tasker does: Base64 was shown as Base65, and Metres, Centimetres and Kilometres were spelled the American way.
 - Fixed: Running 'maptasker -reset' now starts fresh, with the saved settings ignored. Before, the saved settings were restored anyway and nothing was reset.
-- Fixed:
 
 
 ### Known Issues
