@@ -6,7 +6,7 @@ Once the XML file is loaded, you can optionally edit your Projects, Profiles, Ta
 
 This page describes each of the **90** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.0.2 source on 2026-10-22 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.0.2 source on 2026-10-25 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -117,7 +117,7 @@ _Generated from the MapTasker 15.0.2 source on 2026-10-22 by `build_command_wiki
 ### Detail Level
 
 **Type:** Pulldown  
-**Where:** Main Window
+**Where:** Left Drawer
 
 How much of each Task the output shows. The levels are:
 
@@ -134,7 +134,7 @@ How much of each Task the output shows. The levels are:
 ### Just Display Everything
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Left Drawer
 
 Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.
 
@@ -144,7 +144,7 @@ Turns on the display of conditions, TaskerNet information, preferences, pretty o
 ### Display Conditions
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Left Drawer
 
 Turn on the display of Profile and Task conditions.
 
@@ -154,7 +154,7 @@ Turn on the display of Profile and Task conditions.
 ### Display TaskerNet Info
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Left Drawer
 
 If available, display TaskerNet publishing information.
 
@@ -164,7 +164,7 @@ If available, display TaskerNet publishing information.
 ### Display Tasker Preferences
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Left Drawer
 
 Display Tasker's system Preferences.
 
@@ -174,7 +174,7 @@ Display Tasker's system Preferences.
 ### Hide Task Details under Twisty
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Left Drawer
 
 Hide Task information within ► and click to display.
 
@@ -184,7 +184,7 @@ Hide Task information within ► and click to display.
 ### Display Directory
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Left Drawer
 
 Display a directory of hyperlinks at the beginning of the output.
 
@@ -194,7 +194,7 @@ Display a directory of hyperlinks at the beginning of the output.
 ### Display Prettier Output
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Left Drawer
 
 Make the output more human-readable by adding newlines and indentation for all arguments.
 
@@ -214,7 +214,7 @@ Display a warning if the Task has more than the specified number of actions.
 ### Indentation
 
 **Type:** Pulldown  
-**Where:** Main Window
+**Where:** Left Drawer
 
 The indentation amount for If/Then/Else Task Actions.
 
@@ -229,7 +229,7 @@ Select the language to be used for the output. The default is English.
 ### Font To Use
 
 **Type:** Pulldown  
-**Where:** Main Window
+**Where:** Left Drawer
 
 Change the monospace font used for the output.
 
@@ -243,7 +243,7 @@ Change the monospace font used for the output.
 ### View Limit
 
 **Type:** Pulldown  
-**Where:** Main Window
+**Where:** Left Drawer
 
 Control the amount of processing time used when generating the view.
 
@@ -270,7 +270,7 @@ The 'View Limit' is a means to control the amount of processing time used when g
 ### Notification Duration
 
 **Type:** Pulldown  
-**Where:** Main Window
+**Where:** Left Drawer
 
 How long a pop-up message stays on screen before it disappears. 'Until dismissed' keeps every message up until you close it.
 
@@ -280,7 +280,7 @@ How long a pop-up message stays on screen before it disappears. 'Until dismissed
 ### Dark Mode
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Header
 
 Switch the GUI between light and dark appearance.
 
@@ -292,17 +292,20 @@ Switch the GUI between light and dark appearance.
 ### Reset Options
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer; Toolbar
 
 Clear everything and start anew.
 
-**Hover text:** Reset all of the options to their default values, including colors, font used, and other settings. The currently loaded XML will be cleared out.
+**Hover text:**
+
+* **Reset Options** -- Reset all of the options to their default values, including colors, font used, and other settings. The currently loaded XML will be cleared out.
+* **Reset** -- Back to the whole diagram: no zoom, nothing folded, nothing filtered.
 
 <a id="cmd-get-local-xml-file"></a>
 ### Get Local XML File
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Fetch the backup/exported XML file from your local drive.
 
@@ -314,7 +317,7 @@ Fetch the backup/exported XML file from your local drive.
 ### Application Settings: Save
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Save these settings for later use.
 
@@ -322,7 +325,7 @@ Save these settings for later use.
 ### Application Settings: Restore
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Restore the settings from a previously saved session.
 
@@ -330,7 +333,7 @@ Restore the settings from a previously saved session.
 ### Report Issue
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Open the GitHub Issues page in your browser to report a problem or suggestion to the developer.
 
@@ -373,7 +376,7 @@ The Tree View has the following behavior:
 ### Clear
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** AI API Key Entry; Right Drawer; Toolbar
 
 Clear the Map/Diagram/Tree view data currently held and displayed.
 
@@ -381,7 +384,7 @@ Clear the Map/Diagram/Tree view data currently held and displayed.
 ### Health Check
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems. It also reports how your configuration will behave on the device: two Profiles watching the same trigger whose Tasks set the same thing opposite ways, a Profile whose conditions can never all be true, Tasks that poll in a loop, Profiles that keep a radio or sensor scanning or fire on a short timer, long-running Tasks left on the default collision handling, and actions that can block for ever because no timeout was set. Click a finding to be taken to it in the Map.
 
@@ -393,7 +396,7 @@ Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scen
 ### Fix Findings
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Repair the Health Check findings that have an obvious fix -- set a long-running Task's collision handling, give a blocking action a timeout, close an 'If' or 'For' that is never closed, point a broken 'Goto' at a label the Task actually carries, and delete a Task nothing in the file runs. You first choose which kinds of finding to fix, so only those are scanned for and listed. Every repair is listed with what it would change before anything is done, you tick only the ones you want, and however many you make it is one press of Undo afterwards.
 
@@ -407,7 +410,7 @@ Repair the Health Check findings that have an obvious fix -- set a long-running 
 ### Compare Files
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Compare another XML file against the loaded one to see what was added, removed, renamed and changed.
 
@@ -419,7 +422,7 @@ Compare another XML file against the loaded one to see what was added, removed, 
 ### Changes Since...
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Show what has changed in your configuration since a moment you choose -- today, this week, this month, everything kept, or a specific date. Every configuration you load is kept, compressed, in the 'MapTasker_Timeline' folder in the current directory, so there is no file to find.
 
@@ -431,7 +434,7 @@ Show what has changed in your configuration since a moment you choose -- today, 
 ### Restore From History
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Bring back a Task, Profile or Scene that has been deleted, or put one back as it was before it was edited, from any configuration kept in that history. One object at a time: each restore is previewed before anything is done, says what it leaves for you to do (a Profile to relink, say), and is one press of Undo afterwards.
 
@@ -441,7 +444,7 @@ Bring back a Task, Profile or Scene that has been deleted, or put one back as it
 ### Variable Xref
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names are likely typos.
 
@@ -451,7 +454,7 @@ Trace every %variable in the loaded XML: where each one is set, where it is read
 ### Task Flow
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach. With a single Task chosen in 'Specific Name', that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on. Click any line of it to be taken to that action in the Map.
 
@@ -461,7 +464,7 @@ Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop
 ### What Fires When?
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Pick a moment -- a date and time, the Wi-Fi network the device is on, the app in front and the battery level -- and see which Profiles it makes active, the order their entry Tasks start in (highest priority first), and where they collide: two Profiles whose Tasks set the same thing opposite ways, or one Task started by two Profiles at once. Anything the inputs do not describe, such as an Event, a location or a %variable, is treated as unknown, so a Profile that depends on it is shown as possible, with what it is waiting on. Click any name to be taken to it in the Map.
 
@@ -479,7 +482,7 @@ Pick a moment -- a date and time, the Wi-Fi network the device is on, the app in
 ### Open View In New Window
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Open each Map/Diagram request in its own new window/tab rather than reusing that view's existing one.
 
@@ -493,7 +496,7 @@ Open each Map/Diagram request in its own new window/tab rather than reusing that
 ### Close Tabs On Exit
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Have 'Exit' also close the main MapTasker window and any Map/Diagram windows/tabs it opened.
 
@@ -503,7 +506,7 @@ Have 'Exit' also close the main MapTasker window and any Map/Diagram windows/tab
 ### Get XML from Android Device
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Fetch the backup/exported XML file from Android device. You will be asked for the IP address and port number for your Android device, as well as the file location on the device.
 
@@ -594,7 +597,7 @@ Back out of the Android fetch process.
 ### Specific Name tab
 
 **Type:** Tab  
-**Where:** Main Window
+**Where:** Main
 
 Enter a single, specific named item to display.
 
@@ -640,7 +643,7 @@ Enter a specific Scene to display. Its owning Project's heading and the.
 _Part of [Specific Name tab](#cmd-specific-name-tab)._
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Main
 
 Include unnamed Profiles and Tasks in the four pulldowns above.
 
@@ -663,7 +666,7 @@ Add and Edit Projects, Profiles, Tasks and Scenes directly in the GUI, with vari
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main; Build
 
 Create a new object and add it to the loaded XML.
 
@@ -689,7 +692,7 @@ In the Add Task window, turns a description in plain words into actions. The AI 
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main
 
 Modify the object currently selected in the pulldowns above.
 
@@ -740,7 +743,7 @@ The comments and variables Tasker keeps against a Project, Profile or Task, and 
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main
 
 Make the structural changes Add, Edit and Delete cannot -- pull a run of a Task's actions out into a Task of its own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object. Previewed before anything is done, and one press of Undo afterwards.
 
@@ -756,9 +759,11 @@ Make the structural changes Add, Edit and Delete cannot -- pull a run of a Task'
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main; Render Edit Task Buttons
 
 Run the Task selected above on your Android device and see what it returned.
+
+**Hover text:** Runs this Task on your Android device and shows what it returned, or the error. The device runs the Task as Tasker already has it: use 'Save To Android' first to run your edits.
 
 <a id="cmd-duplicate"></a>
 ##### Duplicate
@@ -778,7 +783,7 @@ Make a copy of the selected Scene element.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Main Window &gt; Add Scene &gt; Legacy Scene
+**Where:** Buttons; Draw Row; Main &gt; Add Scene &gt; Legacy Scene
 
 Display the Scene being edited as it will appear.
 
@@ -788,11 +793,11 @@ Display the Scene being edited as it will appear.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer; Toolbar
 
 Write the object out to a standalone XML file of your choosing.
 
-**Hover text:** Save these settings for later use.
+**Hover text:** **Save** -- Save these settings for later use.
 
 <a id="cmd-save-to-current-file"></a>
 ##### Save To Current File
@@ -850,11 +855,13 @@ Reverse and review the changes made to the loaded XML.
 _Part of [Editing Commands](#cmd-editing-commands)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Item Layout; Main
 
 Back out the most recent Add/Edit/Delete/Rename change made to the loaded XML. This changes what is loaded, not any file.
 
 **Hover text:** Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels. This changes what is loaded, not any file: nothing on disk or on the Android device is touched.
+
+**Opens:** Build
 
 <a id="cmd-redo"></a>
 ##### Redo
@@ -862,7 +869,7 @@ Back out the most recent Add/Edit/Delete/Rename change made to the loaded XML. T
 _Part of [Editing Commands](#cmd-editing-commands)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main
 
 Reapply the change most recently backed out by 'Undo'.
 
@@ -872,7 +879,7 @@ Reapply the change most recently backed out by 'Undo'.
 _Part of [Editing Commands](#cmd-editing-commands)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main
 
 List every change made to the loaded XML this session, newest first.
 
@@ -882,7 +889,7 @@ List every change made to the loaded XML this session, newest first.
 ### Colors tab
 
 **Type:** Tab  
-**Where:** Main Window
+**Where:** Main
 
 Select colors for various elements of the display. (e.g. color for Projects, Profiles, Tasks, etc.).
 
@@ -896,7 +903,7 @@ Select colors for various elements of the display. (e.g. color for Projects, Pro
 _Part of [Colors tab](#cmd-colors-tab)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main
 
 Restore every color to its default value.
 
@@ -904,7 +911,7 @@ Restore every color to its default value.
 ### Analyze tab
 
 **Type:** Tab  
-**Where:** Main Window
+**Where:** Main
 
 Run the analysis for a Project, Profile, Task or Scene against an Ai model.
 
@@ -957,7 +964,7 @@ Select 'Ok' to save the changes or 'Cancel' to back out of the changes.
 _Part of [Analyze tab](#cmd-analyze-tab)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main
 
 Modify the prompt sent to the AI model.
 
@@ -969,7 +976,7 @@ Modify the prompt sent to the AI model.
 _Part of [Analyze tab](#cmd-analyze-tab)._
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main
 
 Submit the selected Project/Profile/Task and prompt to the selected model.
 
@@ -979,7 +986,7 @@ Submit the selected Project/Profile/Task and prompt to the selected model.
 _Part of [Analyze tab](#cmd-analyze-tab)._
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Main
 
 List all available models rather than just the default set.
 
@@ -993,7 +1000,7 @@ List all available models rather than just the default set.
 ### Assistance tab
 
 **Type:** Tab  
-**Where:** Main Window
+**Where:** Main
 
 Display Help and Get Android Help, the Display Runtime Settings option, Debug mode, and the notification log.
 
@@ -1007,12 +1014,7 @@ The commands on the toolbar of the Map, Diagram and Tree views.
 
 _Part of [Map / Diagram / Tree View Toolbar](#cmd-map-diagram-tree-view-toolbar)._
 
-**Type:** Command  
-**Where:** Map / Diagram / Tree View Toolbar
-
 Highlight every instance of the case-insensitive text entered in the search box, up to the first 200. Click a line number to go to that line.
-
-**Hover text:** The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data. It will only show the first 200 instances of the search string. Click on the line number to go to that line in the text view box. The 'Clear' button will clear the search results.
 
 <a id="cmd-find-replace"></a>
 #### Find/Replace
@@ -1020,11 +1022,9 @@ Highlight every instance of the case-insensitive text entered in the search box,
 _Part of [Map / Diagram / Tree View Toolbar](#cmd-map-diagram-tree-view-toolbar)._
 
 **Type:** Command / Tab  
-**Where:** Map / Diagram / Tree View Toolbar; Find / Replace; Find / Replace (Replace Tab)
+**Where:** Find / Replace; Find / Replace (Replace Tab)
 
 Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene. Click a result to be taken to it.
-
-**Hover text:** **Find/Replace** -- 'Find/Replace' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene. The boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that. Results come back as a list of objects; click one to be taken to it.
 
 **Caveats:**
 
@@ -1065,9 +1065,6 @@ Save the 'Find/Replace' results to a text file.
 
 _Part of [Map / Diagram / Tree View Toolbar](#cmd-map-diagram-tree-view-toolbar)._
 
-**Type:** Command  
-**Where:** Map / Diagram / Tree View Toolbar
-
 Save what the view shows to a file in the current directory, as Markdown, JSON or PDF.
 
 **Caveats:**
@@ -1086,18 +1083,12 @@ Jump to the beginning or the end of the displayed output.
 
 _Part of [Map / Diagram / Tree View Toolbar](#cmd-map-diagram-tree-view-toolbar)._
 
-**Type:** Command  
-**Where:** Map / Diagram / Tree View Toolbar
-
 Turn line wrapping on or off in the displayed output.
 
 <a id="cmd-profiles-per-line"></a>
 #### Profiles Per Line
 
 _Part of [Map / Diagram / Tree View Toolbar](#cmd-map-diagram-tree-view-toolbar)._
-
-**Type:** Pulldown  
-**Where:** Map / Diagram / Tree View Toolbar
 
 The number of Profiles drawn side-by-side on a single line.
 
@@ -1110,12 +1101,7 @@ The number of Profiles drawn side-by-side on a single line.
 
 _Part of [Map / Diagram / Tree View Toolbar](#cmd-map-diagram-tree-view-toolbar)._
 
-**Type:** Command  
-**Where:** Map / Diagram / Tree View Toolbar
-
 Zoom the diagram in or out, fold every Project down to its title bar or open them all again, or go back to the whole diagram with nothing zoomed or folded.
-
-**Hover text:** Back to the whole diagram: no zoom, nothing folded, nothing filtered.
 
 **Caveats:**
 
@@ -1125,9 +1111,6 @@ Zoom the diagram in or out, fold every Project down to its title bar or open the
 #### Rebuild
 
 _Part of [Map / Diagram / Tree View Toolbar](#cmd-map-diagram-tree-view-toolbar)._
-
-**Type:** Command  
-**Where:** Map / Diagram / Tree View Toolbar
 
 Offered when the Diagram was drawn for a different selection than the one chosen now; it draws the Diagram again for the current one.
 
@@ -1139,7 +1122,7 @@ Offered when the Diagram was drawn for a different selection than the one chosen
 ### Display Help
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main
 
 Display this help text.
 
@@ -1147,7 +1130,7 @@ Display this help text.
 ### Get Android Help
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Main
 
 Display the help for fetching the XML file from your Android device.
 
@@ -1160,7 +1143,7 @@ Display the help specific to the section in which the button appears.
 ### Exit
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Exit the program (quit).
 
@@ -1173,7 +1156,7 @@ Reports (Health Check, Fix, Find, Compare and the rest), view exports and the Ma
 ### TaskerNet Updates
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Link a Project, Profile, Task or Scene to the TaskerNet share it came from (paste the share's address and say which of yours it is), and MapTasker tells you when its author publishes a newer version -- when you start it, and whenever you press Check Now.
 
@@ -1204,7 +1187,7 @@ Link a Project, Profile, Task or Scene to the TaskerNet share it came from (past
 ### Task Stepper
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Dry-run one Task. Pick it, say what its variables hold when it starts (Suggest Inputs lists the ones it reads before it sets them), and press Step: it walks the Task action by action and shows which If, Else If, For and Goto branches it takes, which actions it skips, and what every variable holds after each step. Nothing runs on your phone and nothing in the configuration changes; each Task in What Fires When? has a Step button that opens it here.
 
@@ -1221,7 +1204,7 @@ Dry-run one Task. Pick it, say what its variables hold when it starts (Suggest I
 ### Trend Dashboard
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Is your configuration getting healthier or messier?
 
@@ -1247,7 +1230,7 @@ Rename a variable everywhere it is used, or change it between global and local.
 ### Missing Resources
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist on your Android device? Press Check Device and MapTasker asks the device -- it puts a small helper Task there, hands it the list of paths to test, fetches the installed apps and asks Tasker for its Scenes -- then lists what the device does not have, with every action or Profile that uses each one (click a line to go to it). The Health Check reports the same as RESOURCE-MISSING from the last check, and says when it was made. Nothing is changed on the device but the helper Task and two small files in its Tasker folder, and nothing in your configuration changes.
 
@@ -1263,7 +1246,7 @@ Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles u
 ### Live Run Monitor
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Watch which Profiles and Tasks fire on your Android device as they do.
 
@@ -1281,7 +1264,7 @@ Watch which Profiles and Tasks fire on your Android device as they do.
 ### Pre-Build The Map
 
 **Type:** Option  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Build the Map in the background as soon as a file has been loaded, and again each time you choose a different single Project, Profile, Task or Scene (or go back to none), so that the Map button has nothing left to do and the Map opens at once. It builds only while nothing else is being shown, and with the settings the window holds then: change one of them (or edit the configuration) before pressing Map and the Map is built again, as it would have been without this. Pressing Map or Diagram while it is still building waits for it to finish. Off by default, because it uses the computer for a few seconds after every file is loaded or item chosen, whether or not you go on to ask for the Map.
 
@@ -1291,7 +1274,7 @@ Build the Map in the background as soon as a file has been loaded, and again eac
 ### Import With Dependencies
 
 **Type:** Command  
-**Where:** Main Window
+**Where:** Right Drawer
 
 Bring a Project, Profile, Task or Scene in from another backup together with everything it needs.
 
