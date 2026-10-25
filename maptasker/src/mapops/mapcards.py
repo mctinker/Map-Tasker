@@ -44,6 +44,7 @@ from functools import cache
 from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.actionc import action_codes
+from maptasker.src.core.taskervars import tasker_global_variable_names
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Mapping
@@ -252,6 +253,61 @@ def rank(description: str, rows: list[Row], limit: int) -> list[Row]:
     totals = _scores(wanted, [_document(row) for row in rows])
     best = sorted(totals, key=lambda number: (-totals[number], len(rows[number]["name"]), rows[number]["name"]))
     return [rows[number] for number in best[:limit]]
+
+
+# ##################################################################################
+# Names: Tasker's own variables, and the user's.
+# ##################################################################################
+_CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
+
+# The shortest name that is taken as mentioned just by appearing in the description.
+_MENTION_MIN = 3
+
+
+def name_terms(name: str) -> list[str]:
+    """The terms of a name a person chose -- 'WakeUp', 'wake_up' and 'Wake up' all give the same ones."""
+    return terms(_CAMEL.sub(" ", name.replace("%", " ").replace("_", " ")))
+
+
+def rank_names(description: str, names: Collection[str], limit: int) -> list[str]:
+    """The names a description seems to mean, best first: one it mentions outright, or shares a word with.
+
+    A name nothing in the description points to is not returned however well it might fit, because
+    what is returned is what gets shown to a model, and a user's names are not shown without cause.
+    """
+    mentioned = description.casefold()
+    listed = sorted(set(names))
+    named = [
+        name
+        for name in listed
+        if len(name.strip("%")) >= _MENTION_MIN
+        and re.search(rf"(?<![0-9a-z]){re.escape(name.casefold())}(?![0-9a-z])", mentioned)
+    ]
+    wanted = set(terms(description))
+    documents = [Counter(name_terms(name)) for name in listed]
+    totals = _scores(wanted, documents)
+    shared = sorted(totals, key=lambda number: (-totals[number], listed[number]))
+    ranked = named + [listed[number] for number in shared if listed[number] not in named]
+    return ranked[:limit]
+
+
+def builtin_variables(description: str, limit: int) -> list[tuple[str, str]]:
+    """Tasker's own variables a description seems to be about, as (name, what it holds), best first."""
+    entries = sorted(tasker_global_variable_names.items())
+    wanted = set(terms(description))
+    if not wanted:
+        return []
+    documents: list[Counter[str]] = []
+    for name, label in entries:
+        document: Counter[str] = Counter()
+        for term in terms(label):
+            document[term] += _NAME_WEIGHT
+        for term in name_terms(name):
+            document[term] += _PHRASE_WEIGHT
+        documents.append(document)
+    totals = _scores(wanted, documents)
+    best = sorted(totals, key=lambda number: (-totals[number], entries[number][0]))
+    return [entries[number] for number in best[:limit]]
 
 
 # ##################################################################################

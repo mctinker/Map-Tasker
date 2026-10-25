@@ -41,7 +41,7 @@ def _setup(monkeypatch: pytest.MonkeyPatch) -> None:
     """The fixture backup loaded, an AI model chosen, and a model that has not been asked."""
     _load(_FIXTURE_XML)
     _built.clear()
-    _built.update(asked=[], draft=mapdraft.Draft("", ()), settings_error=None, wait=None)
+    _built.update(asked=[], shared=[], draft=mapdraft.Draft("", ()), settings_error=None, wait=None)
     monkeypatch.setattr(guiwins_draft.mapask, "model_settings", _model_settings)
     monkeypatch.setattr(guiwins_draft.mapdraft, "draft_task", _draft_task)
 
@@ -52,8 +52,15 @@ def _model_settings(*_: object, **__: object) -> mapask.ModelSettings:
     return _SETTINGS
 
 
-async def _draft_task(description: str, settings: mapask.ModelSettings, state: object) -> mapdraft.Draft:
+async def _draft_task(
+    description: str,
+    settings: mapask.ModelSettings,
+    state: object,
+    *,
+    share_names: bool = False,
+) -> mapdraft.Draft:
     _built["asked"].append(description)
+    _built["shared"].append(share_names)
     if _built["wait"] is not None:
         try:
             await _built["wait"]()
@@ -67,9 +74,11 @@ def _page() -> None:
     gui = MagicMock()
     gui.state = PrimeItems
     gui.indent = 4
+    gui.draft_share_names = False
     gui.event_handlers.editors.add_action_to_new_task_event.side_effect = lambda task, key, pos: (
         taskedit.add_action_to_task(task, key, pos, state=PrimeItems).act_number
     )
+    _built["gui"] = gui
     task = taskedit.create_new_task("", "100", state=PrimeItems)
     _built["task"] = task
     guiwins_taskedit.build_add_task_dialog(gui, task)
@@ -333,3 +342,34 @@ async def test_a_slow_question_says_so_and_can_be_stopped() -> None:
 
         assert _listed(user) == []
         assert "loading" not in _button(user, "Draft")._props
+
+
+def _share_box(user: User) -> ui.checkbox:
+    (box,) = [element for element in user.find(kind=ui.checkbox).elements if "names of my Tasks" in element.text]
+    return box
+
+
+@pytest.mark.asyncio
+async def test_the_names_of_the_users_tasks_are_not_shared_unless_the_box_is_ticked() -> None:
+    _built["draft"] = mapdraft.Draft("", (mapdraft.DraftStep("548t"),))
+    async with _open() as user:
+        assert _share_box(user).value is False
+        _description(user).value = "run my Cleanup task"
+        _press(user, "Draft")
+        await _until(lambda: _built["asked"])
+
+        assert _built["shared"] == [False]
+
+
+@pytest.mark.asyncio
+async def test_ticking_the_box_shares_the_names_and_is_remembered() -> None:
+    _built["draft"] = mapdraft.Draft("", (mapdraft.DraftStep("548t"),))
+    async with _open() as user:
+        _share_box(user).value = True
+        _description(user).value = "run my Cleanup task"
+        _press(user, "Draft")
+        await _until(lambda: _built["asked"])
+
+        assert _built["shared"] == [True]
+        # The choice outlasts the dialog: the window it belongs to is told.
+        assert _built["gui"].draft_share_names is True

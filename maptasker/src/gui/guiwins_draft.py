@@ -62,6 +62,7 @@ class DraftRow:
         self.description: ui.input
         self.button: ui.button
         self.stop: ui.button
+        self.share_names: ui.checkbox
         self.progress: ui.label
         self.notes: ui.label
 
@@ -89,6 +90,19 @@ class DraftRow:
                 "They are added below, unsaved, for you to review and edit.",
             ),
         ).classes("text-xs text-gray-500 italic")
+        # Names of the user's own Tasks and variables are theirs to share, so the box starts unticked and
+        # what they choose is remembered for the session.  What is sent is said under it.
+        self.share_names = ui.checkbox(
+            translate_string("Also tell the AI the names of my Tasks and variables that the description mentions"),
+            value=getattr(self.gui, "draft_share_names", False) is True,
+            on_change=lambda event: setattr(self.gui, "draft_share_names", bool(event.value)),
+        ).classes("text-xs")
+        self.share_names.tooltip(
+            translate_string(
+                "Only names are sent, and only the few your description seems to mean -- never a value, an action "
+                "or a Profile. They go to the AI service you chose. A model on this computer is always given them.",
+            ),
+        )
         # Said while the model works, since a slow one looks no different from a stuck one.
         self.progress = ui.label("").classes("text-xs text-gray-600 dark:text-gray-400 italic")
         self.progress.set_visibility(False)
@@ -134,7 +148,9 @@ class DraftRow:
         self.notes.set_visibility(False)
         # One question at a time: pressing Draft again replaces the one still out.
         self.cancel()
-        task = asyncio.create_task(mapdraft.draft_task(description, settings, gui.state))
+        task = asyncio.create_task(
+            mapdraft.draft_task(description, settings, gui.state, share_names=bool(self.share_names.value)),
+        )
         self.pending = task
         self.button.props(add="loading")
         self._working(True, settings)

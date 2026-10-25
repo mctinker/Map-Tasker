@@ -619,7 +619,6 @@ async def test_a_description_of_common_actions_is_drafted_in_one_question(backup
         asked.append((settings, user))
         return _plan(
             {"action": FLASH, "purpose": "say hello", "label": "  greet ", "args": {"0": "Hello", "1": "true"}},
-            "Teleport",
             {"action": WAIT, "args": {"1": "5"}},
             name="Hello",
             unexpressed="'when I get home' is a Profile",
@@ -636,7 +635,7 @@ async def test_a_description_of_common_actions_is_drafted_in_one_question(backup
         mapdraft.DraftStep(FLASH, "greet", {"0": "Hello", "1": "1"}),
         mapdraft.DraftStep(WAIT, "", {"1": "5"}),
     )
-    assert draft.unknown == ("Teleport",)
+    assert draft.unknown == ()
     assert draft.unexpressed == "'when I get home' is a Profile"
     assert not draft.is_empty
 

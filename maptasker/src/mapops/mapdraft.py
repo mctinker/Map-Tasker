@@ -13,9 +13,13 @@
 # of actions this tool can build from scratch (taskedit_addable.list_addable_actions), and, once  #
 # it has chosen some, the arguments those actions really have, as the editor would show   #
 # them.  It is never shown the configuration, so what the user's Tasks hold stays out of  #
-# the prompt and the prompt stays one size whatever the backup.  That includes the names   #
-# of the Tasks: a "Perform Task" is given a name only if the user's own description names  #
-# one, and the name is then checked against the loaded Tasks here, not by the model.      #
+# the prompt and the prompt stays one size whatever the backup.  The one thing of the      #
+# user's that can be added is NAMES -- of their Tasks and global variables, and only the few  #
+# the description mentions or shares a word with -- and only if they say so (a tick box in     #
+# the dialog), or the model runs on this computer; otherwise a "Perform Task" is given a name   #
+# only if the description itself names one.  Either way the name is then checked against the   #
+# loaded Tasks here, not by the model.  Tasker's own variables are the same for everyone, so   #
+# the ones a description seems to be about are always mentioned.                            #
 #                                                                                        #
 # ONE QUESTION FOR MOST DRAFTS, TWO FOR THE REST.  The catalog is a few hundred actions     #
 # and each has its own arguments, so showing the arguments of all of them would bury the    #
@@ -36,7 +40,9 @@
 # catalog is dropped and SAID to have been dropped, an argument the action does not have   #
 # likewise, and a value is checked the way the editor checks one typed by hand: a number   #
 # has to be a number, a choice has to be one of the choices, a checkbox a yes or a no.     #
-# A block the model left open ("If" with no "End If") is closed, and says so.  What        #
+# A block the model left open ("If" with no "End If") is closed, and says so.  A reply with    #
+# something wrong in it is sent back ONCE, with what was wrong, and the corrected reply is used  #
+# only if it is better (fewer problems); a small model on this computer is not asked again.  What  #
 # survives is built with the same functions the picker uses, so a drafted action is the    #
 # very element a hand-added one would be -- and it goes into the editor's own working     #
 # copy, where nothing is kept until the user presses Ok.                                  #
@@ -101,6 +107,12 @@ MAX_RELATED_ARGS = 12
 # Likewise the most options of one choice, which is more than a common action's: it is worth listing
 # what 'Sort Alpha' is among when the description asks for a sort.
 MAX_RELATED_OPTIONS = 40
+# How many Tasker built-in variables, and how many of the user's own Task and variable names, a question
+# mentions at most: only the ones the description seems to be about.
+MAX_BUILTIN_VARIABLES = 8
+MAX_NAMES = 10
+# How much of a reply that is sent back to be corrected is repeated to the model.
+MAX_REPLY_SHOWN = 6000
 # The most options of a choice that are listed beside a common action; one with more is asked
 # about in the second call, where there is room to list them.
 MAX_INLINE_OPTIONS = 12
@@ -284,8 +296,8 @@ takes a whole number only. A "checkbox" takes "true" or "false". A "choice" take
 options, copied exactly.
   - In an If, "Target" is a variable (such as %WIFI) or plain text, "Operator" is one of its \
 options, copied exactly ("=" for "is" or "equals"), and "Value" is what it is compared with.
-  - A "Perform Task" Name is the name of a Task that already exists, and you are not told which \
-Tasks there are: give it only if the description names one, exactly as written there.
+  - A "Perform Task" Name is the name of a Task that already exists: give it only if the description \
+names one, exactly as written there, or one of the Tasks listed under the user's own names fits it.
   - The text, number or value the description gives goes in "args", not only in "purpose": a \
 step with a blank "args" keeps the action's defaults and does nothing useful.
 
@@ -312,9 +324,9 @@ argument takes a whole number only. A "checkbox" takes "true" or "false". A "cho
 one of the options listed, copied exactly.
   - In an If, the argument "Target" is a variable (such as %WIFI) or plain text, "Operator" is \
 one of its options and "Value" is what it is compared with.
-  - A "Perform Task" Name is the name of a Task that already exists, and you are not told \
-which Tasks there are: give it only if the description names one, exactly as written there, \
-and otherwise leave it out.
+  - A "Perform Task" Name is the name of a Task that already exists: give it only if the \
+description names one, exactly as written there, or one of the Tasks listed under the user's own \
+names fits it, and otherwise leave it out.
   - Never invent an argument id or an option.
   - Variables are written %name, and a text argument may use them.
   - Reply with one JSON object and nothing else, with exactly one key: "steps".
@@ -512,17 +524,63 @@ def listed_with_arguments(
     return listed
 
 
+def declared_variable_names(state: RunState) -> list[str]:
+    """The names of the global variables the backup declares, which is all that is read of them: never a value."""
+    root = state.xml_root
+    names = set()
+    for element in root.findall("Variable") if root is not None else ():
+        children = list(element)
+        name = (children[0].text or "").strip() if children else ""
+        if name.startswith("%"):
+            names.add(name)
+    return sorted(names)
+
+
+def _one_line(name: str) -> str:
+    """A name of the user's as one short line, whatever it holds."""
+    return " ".join(name.split())[:MAX_NAME]
+
+
+def context_lines(description: str, state: RunState, *, share_names: bool = False) -> list[str]:
+    """What the model is told besides the actions: the Tasker variables the description seems to be about, and
+    -- only if the user allows it -- the names of their own Tasks and global variables it seems to mean.
+
+    The built-in variables are Tasker's, the same for everyone.  The user's names are theirs: they are
+    not sent unless 'share_names' is set, and then only the few the description mentions or shares a
+    word with, as names alone -- no value, no action, no Profile.
+    """
+    lines: list[str] = []
+    builtin = mapcards.builtin_variables(description, MAX_BUILTIN_VARIABLES)
+    if builtin:
+        shown = "; ".join(f"{name} ({label})" for name, label in builtin)
+        lines += [f"Tasker built-in variables that may be relevant: {shown}", ""]
+    if share_names:
+        tasks = mapcards.rank_names(description, taskedit_args.get_all_task_names(state), MAX_NAMES)
+        variables = mapcards.rank_names(description, declared_variable_names(state), MAX_NAMES)
+        if tasks or variables:
+            lines.append("Names from the user's own configuration (use one only if the description means it):")
+            if tasks:
+                lines.append("Tasks: " + "; ".join(_one_line(name) for name in tasks))
+            if variables:
+                lines.append("Global variables: " + "; ".join(_one_line(name) for name in variables))
+            lines.append("")
+    return lines
+
+
 def build_plan_prompt(
     description: str,
     state: RunState,
     scratch: dict | None = None,
     *,
     compact: bool = False,
+    share_names: bool = False,
 ) -> tuple[str, str]:
     """(system prompt, user message) for the first question: which actions, in what order, and their arguments.
 
     'compact' is for a model with room for little: no argument lists and only the actions that
     look relevant, so everything it chooses has its arguments asked for in the second question.
+    'share_names' lets the user's own Task and variable names the description seems to mean into
+    the question (see context_lines).
     """
     rows = action_catalog(state)
     if compact:
@@ -545,6 +603,7 @@ def build_plan_prompt(
         )
     system = _PLAN_INSTRUCTIONS.format(max_steps=MAX_STEPS, primer=primer, given=given, arguments=arguments)
     parts = ["Actions you may use:", listing, ""]
+    parts += context_lines(description, state, share_names=share_names)
     if not compact:
         parts += _examples_text(description, state, scratch)
     parts.append(f"Description: {description.strip()}")
@@ -607,6 +666,8 @@ def build_detail_prompt(
     state: RunState,
     scratch: dict | None = None,
     answered: Collection[int] = (),
+    *,
+    share_names: bool = False,
 ) -> tuple[str, str] | None:
     """(system prompt, user message) for the second question, or None if no step has an argument to set.
 
@@ -636,6 +697,7 @@ def build_detail_prompt(
     lines = [
         f"Description: {description.strip()}",
         "",
+        *context_lines(description, state, share_names=share_names),
         "Steps, numbered from 1:",
         *(json.dumps(step, ensure_ascii=False) for step in steps),
     ]
@@ -888,8 +950,45 @@ def _checked_values(
 # ##################################################################################
 # Asking.
 # ##################################################################################
-async def draft_task(description: str, settings: ModelSettings, state: RunState, ask: Asker = ask_model) -> Draft:
+def _problems(plan: Plan, dropped: list[str]) -> list[str]:
+    """What is wrong with a first reply, as a sentence each: the actions it made up, and what had to be dropped."""
+    problems = [
+        f"'{name}' is not an action in the list. Use a key copied from the list, or leave that part out "
+        'and say so in "unexpressed".'
+        for name in plan.unknown
+    ]
+    problems += plan.adjusted
+    problems += dropped
+    return problems
+
+
+def _repair_message(user: str, reply: str, problems: list[str]) -> str:
+    """The first question again, with the reply it got and what was wrong with it."""
+    listed = "\n".join(f"  - {problem}" for problem in problems)
+    return (
+        f"{user}\n\nYour previous reply was:\n{reply.strip()[:MAX_REPLY_SHOWN]}\n\n"
+        f"It had these problems:\n{listed}\n\n"
+        "Reply again with the whole corrected JSON object, and nothing else."
+    )
+
+
+async def draft_task(
+    description: str,
+    settings: ModelSettings,
+    state: RunState,
+    ask: Asker = ask_model,
+    *,
+    share_names: bool = False,
+) -> Draft:
     """Draft a Task from a description in plain words.
+
+    'share_names' lets the names of the user's own Tasks and global variables that the description
+    seems to mean into the question.  A model on this computer is always given them, as they go no
+    further; for any other it is the user's choice, and off unless they made it.
+
+    A reply with something wrong in it -- an action that does not exist, a value that is not allowed,
+    a block left open, or no JSON at all -- is sent back once with what was wrong, and the corrected
+    one is used if it is better.  Nothing is asked a third time.
 
     A coroutine, so that the caller can run it as a task and cancel it, which cancels the
     request to the model with it -- see mapask.translate.  'ask' is the model call, a
@@ -911,10 +1010,11 @@ async def draft_task(description: str, settings: ModelSettings, state: RunState,
     # A model on this computer is held to the short prompt and given longer to answer; one in the
     # cloud is asked not to deliberate over what is a lookup.
     compact = settings.provider == LLAMA
+    share_names = share_names or compact
     timeout = LOCAL_ASK_TIMEOUT if compact else ASK_TIMEOUT
     scratch: dict = {}
 
-    system, user = build_plan_prompt(description, state, scratch, compact=compact)
+    system, user = build_plan_prompt(description, state, scratch, compact=compact, share_names=share_names)
     plan_settings = dataclasses.replace(
         settings,
         schema=PLAN_SCHEMA,
@@ -924,8 +1024,29 @@ async def draft_task(description: str, settings: ModelSettings, state: RunState,
     )
     reply = await ask(plan_settings, system, user)
     logger.debug(f"mapdraft: {settings.model} planned {reply!r}")
-    plan = parse_plan(reply, state)
+    try:
+        plan = parse_plan(reply, state)
+    except AskError as error:
+        if compact:
+            raise
+        reply = await ask(plan_settings, system, _repair_message(user, reply, [str(error)]))
+        logger.debug(f"mapdraft: {settings.model} planned again {reply!r}")
+        plan = parse_plan(reply, state)
     steps, dropped = settle_plan(plan, state, scratch)
+
+    # One more try for a reply with something wrong in it -- not for a small model, which is slow enough.
+    problems = _problems(plan, dropped)
+    if problems and not compact:
+        again = await ask(plan_settings, system, _repair_message(user, reply, problems))
+        logger.debug(f"mapdraft: {settings.model} corrected {again!r}")
+        try:
+            better = parse_plan(again, state)
+        except AskError:
+            better = None
+        if better is not None and better.steps:
+            better_steps, better_dropped = settle_plan(better, state, scratch)
+            if len(_problems(better, better_dropped)) < len(problems):
+                plan, steps, dropped = better, better_steps, better_dropped
 
     # The arguments of the actions listed with theirs were asked for with the steps; the others are asked
     # for now.  So is a listed action that was given none, though it has some listed: a Flash with no text
@@ -936,7 +1057,11 @@ async def draft_task(description: str, settings: ModelSettings, state: RunState,
         for number, (planned, drafted) in enumerate(zip(plan.steps, steps, strict=True))
         if planned.action_key in listed and (drafted.values or not listed[planned.action_key])
     }
-    detail = build_detail_prompt(description, plan, state, scratch, answered) if plan.steps else None
+    detail = (
+        build_detail_prompt(description, plan, state, scratch, answered, share_names=share_names)
+        if plan.steps
+        else None
+    )
     if detail is not None:
         system, user = detail
         detail_settings = dataclasses.replace(
