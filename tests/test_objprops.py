@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import functools
 import glob
-import itertools
 import os
 import xml.etree.ElementTree as ET
 
@@ -121,27 +120,52 @@ def _unchanged(working: ET.Element, original: ET.Element) -> bool:
     list of tuples (that was seconds of work and, kept for the run, millions of objects every later
     test paid to have garbage-collected), and a difference stops the walk where it is found.  None
     and "" are folded together because the serializer cannot tell them apart; attribute order is
-    only looked at when there are two or more to put in order.
+    only looked at when there are two or more to put in order.  A subtree _clone left shared is the very same
+    element on both sides, so it is passed over rather than walked.
     """
-    for new, old in itertools.zip_longest(working.iter(), original.iter()):
-        if new is None or old is None or new.tag != old.tag:
+    pending = [(working, original)]
+    while pending:
+        new, old = pending.pop()
+        if new is old:
+            continue  # shared by _clone, so it is the same element and cannot differ
+        if new.tag != old.tag or len(new) != len(old):
             return False
         if (new.text or "") != (old.text or "") or (new.tail or "") != (old.tail or ""):
             return False
         if new.attrib != old.attrib or (len(new.attrib) > 1 and list(new.attrib) != list(old.attrib)):
             return False
+        pending.extend(zip(new, old, strict=True))
     return True
 
 
 def _clone(element: ET.Element) -> ET.Element:
-    """A copy of `element` and everything under it, to be written to without touching the original.
+    """A copy of `element` that apply_properties can write to without touching the original.
 
-    copy.deepcopy does the same in 2.3 times as long -- it is a memo-keeping walk that makes some
-    260 calls per object here -- and this is done to every object in the sample data, twice.
+    Only as deep as an edit reaches.  apply_properties sets, inserts and removes the object's own
+    child tags, and rewrites the children of each <ProfileVariable>; it never goes into an Action,
+    a Condition or anything else below a child.  So the object and its direct children are copied,
+    the <ProfileVariable>s all the way down, and everything underneath the other children is shared
+    with the original.  Copying the lot was most of this test's run time -- millions of elements
+    over the sample backups, twice -- and nothing in the shared part is ever written to.
     """
     copy_of = ET.Element(element.tag, element.attrib)
     copy_of.text, copy_of.tail = element.text, element.tail
-    copy_of.extend([_clone(child) for child in element])
+    for child in element:
+        if child.tag == "ProfileVariable":
+            copy_of.append(_deep_clone(child))
+            continue
+        shallow = ET.Element(child.tag, child.attrib)
+        shallow.text, shallow.tail = child.text, child.tail
+        shallow.extend(child)
+        copy_of.append(shallow)
+    return copy_of
+
+
+def _deep_clone(element: ET.Element) -> ET.Element:
+    """A copy of `element` and everything under it (copy.deepcopy does the same in 2.3 times as long)."""
+    copy_of = ET.Element(element.tag, element.attrib)
+    copy_of.text, copy_of.tail = element.text, element.tail
+    copy_of.extend([_deep_clone(child) for child in element])
     return copy_of
 
 
