@@ -283,15 +283,17 @@ Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 ## To-do-liste (i ingen bestemt rækkefølge)
 
-- [ ] Readiness Check (beredskabskontrol)
+- [x] Readiness Check (beredskabskontrol)
 
 - [x] Understøttelse af yderligere plugins
 
+- [x] Import med afhængigheder (Import with Dependencies)
+
 - [ ] Kortlæg resterende Tasker-indstillinger
 
-- [ ] Task Stepper: "dry-run" en Task action for action, og vis hvilke If-, For- og Goto-forgreninger der køres, og hvad hver variabel indeholder
+- [x] Task Stepper: "dry-run" en Task action for action, og vis hvilke If-, For- og Goto-forgreninger der køres, og hvad hver variabel indeholder
 
-- [ ] Live Run Monitor: strøm live, hvilke Profiles og Tasks der udløses på telefonen, og markér dem i Diagram-visningen
+- [x] Live Run Monitor: strøm live, hvilke Profiles og Tasks der udløses på telefonen, og markér dem i Diagram-visningen
 
 - [ ] Tre-vejs-sammenlægning (three-way merge) af to backups i forhold til en fælles forfader, løst konflikt for konflikt og kan fortrydes i ét trin
 
@@ -301,13 +303,13 @@ Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Forklaringer i almindeligt sprog i Map'en: en AI-skrevet, cachelagret og redigerbar en-linjes opsummering af hver Profile og Task
 
-- [ ] Kontrol af manglende ressourcer: bekræft, at de filer, mapper, billeder, lyde, Scenes og apps, dine actions refererer til, stadig findes
+- [x] Kontrol af manglende ressourcer: bekræft, at de filer, mapper, billeder, lyde, Scenes og apps, dine actions refererer til, stadig findes
 
-- [ ] Kompleksitets- og trend-dashboard: følg Task-længde, indlejring, kalde-kædedybde og fund over tid
+- [x] Kompleksitets- og trend-dashboard: følg Task-længde, indlejring, kalde-kædedybde og fund over tid
 
 - [ ] Eksport af dokumentationswebsted: et sammenkoblet sæt Markdown- eller HTML-sider, én pr. Project, Profile, Task og Scene, med kaldediagrammer
 
-- [ ] Assistent til omdøbning og scope af variabler: omdøb en variabel, eller lav en global til en lokal, alle steder den bruges, som én fortrydelig handling
+- [x] Assistent til omdøbning og scope af variabler: omdøb en variabel, eller lav en global til en lokal, alle steder den bruges, som én fortrydelig handling
 
 ## Erklæring om privatliv
 

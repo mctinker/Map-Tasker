@@ -290,9 +290,11 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 ## To-Do List (in no particular order)
 
-- [ ] Readiness Check
+- [x] Readiness Check
 
 - [x] Support additional plugins
+
+- [x] Import with Dependencies
 
 - [ ] Map remaining Tasker preferences
 

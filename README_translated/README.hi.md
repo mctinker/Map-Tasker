@@ -283,15 +283,17 @@ Llama आधारित मॉडल [Ollama](https://ollama.com/) के म�
 
 ## टू-डू लिस्ट (किसी विशेष क्रम में नहीं)
 
-- [ ] Readiness Check
+- [x] Readiness Check
 
 - [x] अतिरिक्त plugins का समर्थन
 
+- [x] निर्भरताओं (dependencies) के साथ इम्पोर्ट (Import with Dependencies)
+
 - [ ] बाकी Tasker preferences को मैप करना
 
-- [ ] Task Stepper: किसी Task को action-by-action "dry-run" करना, यह दिखाते हुए कि कौन-सी If, For और Goto branches चलती हैं और हर variable में क्या मान है
+- [x] Task Stepper: किसी Task को action-by-action "dry-run" करना, यह दिखाते हुए कि कौन-सी If, For और Goto branches चलती हैं और हर variable में क्या मान है
 
-- [ ] Live Run Monitor: फ़ोन पर कौन-से Profiles और Tasks ट्रिगर हो रहे हैं इसे लाइव स्ट्रीम करना और उन्हें Diagram view में हाइलाइट करना
+- [x] Live Run Monitor: फ़ोन पर कौन-से Profiles और Tasks ट्रिगर हो रहे हैं इसे लाइव स्ट्रीम करना और उन्हें Diagram view में हाइलाइट करना
 
 - [ ] दो बैकअप का उनके किसी सामान्य पूर्वज (common ancestor) के सापेक्ष three-way merge, जिसे conflict-by-conflict हल किया जाए और एक ही चरण में undo किया जा सके
 
@@ -301,13 +303,13 @@ Llama आधारित मॉडल [Ollama](https://ollama.com/) के म�
 
 - [ ] Map में सरल भाषा में व्याख्या: हर Profile और Task का एक AI-लिखित, cached और संपादन योग्य एक-लाइन सारांश
 
-- [ ] Missing-resource checker: यह जाँचें कि आपके actions द्वारा संदर्भित फ़ाइलें, फ़ोल्डर, इमेज, साउंड, Scenes और apps अभी भी मौजूद हैं
+- [x] Missing-resource checker: यह जाँचें कि आपके actions द्वारा संदर्भित फ़ाइलें, फ़ोल्डर, इमेज, साउंड, Scenes और apps अभी भी मौजूद हैं
 
-- [ ] जटिलता और trend dashboard: समय के साथ Task की लंबाई, nesting, call-chain depth और findings को ट्रैक करना
+- [x] जटिलता और trend dashboard: समय के साथ Task की लंबाई, nesting, call-chain depth और findings को ट्रैक करना
 
 - [ ] Documentation site export: एक-दूसरे से लिंक किए गए Markdown या HTML पेजों का एक सेट, हर Project, Profile, Task और Scene के लिए एक, साथ में call diagrams
 
-- [ ] Variable rename और scope assistant: किसी variable का नाम बदलें, या किसी global को local बनाएं, हर जगह जहाँ वह उपयोग होता है, और इसे एक ही Undo के रूप में करें
+- [x] Variable rename और scope assistant: किसी variable का नाम बदलें, या किसी global को local बनाएं, हर जगह जहाँ वह उपयोग होता है, और इसे एक ही Undo के रूप में करें
 
 ## गोपनीयता विवरण (Privacy Statement)
 

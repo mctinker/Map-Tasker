@@ -283,15 +283,17 @@ Consulte el documento de [Advertencias (Caveats)](https://github.com/mctinker/Ma
 
 ## Lista de tareas pendientes (sin un orden particular)
 
-- [ ] Comprobación de preparación (Readiness Check)
+- [x] Comprobación de preparación (Readiness Check)
 
 - [x] Soporte para complementos adicionales
 
+- [x] Importación con dependencias (Import with Dependencies)
+
 - [ ] Mapear las preferencias restantes de Tasker
 
-- [ ] Task Stepper: simular paso a paso una Tarea, acción por acción, mostrando qué ramas If, For y Goto se ejecutan y qué contiene cada variable
+- [x] Task Stepper: simular paso a paso una Tarea, acción por acción, mostrando qué ramas If, For y Goto se ejecutan y qué contiene cada variable
 
-- [ ] Live Run Monitor: transmitir en vivo qué Perfiles y Tareas se activan en el teléfono y resaltarlos en la vista de Diagrama
+- [x] Live Run Monitor: transmitir en vivo qué Perfiles y Tareas se activan en el teléfono y resaltarlos en la vista de Diagrama
 
 - [ ] Fusión a tres bandas de dos copias de seguridad respecto a un ancestro común, resuelta conflicto por conflicto y deshecha en un solo paso
 
@@ -301,13 +303,13 @@ Consulte el documento de [Advertencias (Caveats)](https://github.com/mctinker/Ma
 
 - [ ] Explicaciones en lenguaje sencillo dentro del Mapa: un resumen de una línea, escrito por IA, en caché y editable, de cada Perfil y Tarea
 
-- [ ] Comprobador de recursos faltantes: verifique que los archivos, carpetas, imágenes, sonidos, Escenas y aplicaciones a los que hacen referencia sus acciones aún existen
+- [x] Comprobador de recursos faltantes: verifique que los archivos, carpetas, imágenes, sonidos, Escenas y aplicaciones a los que hacen referencia sus acciones aún existen
 
-- [ ] Panel de complejidad y tendencias: siga a lo largo del tiempo la longitud de las Tareas, el anidamiento, la profundidad de la cadena de llamadas y los hallazgos
+- [x] Panel de complejidad y tendencias: siga a lo largo del tiempo la longitud de las Tareas, el anidamiento, la profundidad de la cadena de llamadas y los hallazgos
 
 - [ ] Exportación a sitio de documentación: un conjunto enlazado de páginas Markdown o HTML, una por cada Proyecto, Perfil, Tarea y Escena, con diagramas de llamadas
 
-- [ ] Asistente de renombrado y alcance de variables: renombre una variable, o convierta una global en local, en todos los lugares donde se usa, como un único paso que se puede deshacer
+- [x] Asistente de renombrado y alcance de variables: renombre una variable, o convierta una global en local, en todos los lugares donde se usa, como un único paso que se puede deshacer
 
 ## Declaración de privacidad
 

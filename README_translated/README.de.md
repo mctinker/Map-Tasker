@@ -283,15 +283,17 @@ Einzelheiten finden Sie im Dokument [Caveats](https://github.com/mctinker/Map-Ta
 
 ## To-Do-Liste (in keiner bestimmten Reihenfolge)
 
-- [ ] Readiness Check (Bereitschaftsprüfung)
+- [x] Readiness Check (Bereitschaftsprüfung)
 
 - [x] Unterstützung zusätzlicher Plugins
 
+- [x] Import mit Abhängigkeiten (Import with Dependencies)
+
 - [ ] Verbleibende Tasker-Einstellungen abbilden
 
-- [ ] Task Stepper: eine Task Action für Action als "Trockenlauf" simulieren und zeigen, welche If-, For- und Goto-Zweige ausgeführt werden und was jede Variable enthält
+- [x] Task Stepper: eine Task Action für Action als "Trockenlauf" simulieren und zeigen, welche If-, For- und Goto-Zweige ausgeführt werden und was jede Variable enthält
 
-- [ ] Live Run Monitor: live streamen, welche Profiles und Tasks auf dem Telefon ausgelöst werden, und sie in der Diagram-Ansicht hervorheben
+- [x] Live Run Monitor: live streamen, welche Profiles und Tasks auf dem Telefon ausgelöst werden, und sie in der Diagram-Ansicht hervorheben
 
 - [ ] Drei-Wege-Zusammenführung (Three-way merge) zweier Backups gegenüber einem gemeinsamen Vorfahren, Konflikt für Konflikt gelöst und in einem Schritt rückgängig gemacht
 
@@ -301,13 +303,13 @@ Einzelheiten finden Sie im Dokument [Caveats](https://github.com/mctinker/Map-Ta
 
 - [ ] Erklärungen in einfacher Sprache in der Map: eine von KI geschriebene, zwischengespeicherte und bearbeitbare Ein-Zeilen-Zusammenfassung jedes Profile und jeder Task
 
-- [ ] Fehlende-Ressourcen-Prüfer: überprüfen, ob die Dateien, Ordner, Bilder, Töne, Scenes und Apps, auf die Ihre Actions verweisen, noch existieren
+- [x] Fehlende-Ressourcen-Prüfer: überprüfen, ob die Dateien, Ordner, Bilder, Töne, Scenes und Apps, auf die Ihre Actions verweisen, noch existieren
 
-- [ ] Komplexitäts- und Trend-Dashboard: Verfolgen von Task-Länge, Verschachtelung, Aufruf-Kettentiefe und Befunden im Zeitverlauf
+- [x] Komplexitäts- und Trend-Dashboard: Verfolgen von Task-Länge, Verschachtelung, Aufruf-Kettentiefe und Befunden im Zeitverlauf
 
 - [ ] Export einer Dokumentationswebsite: ein verlinkter Satz von Markdown- oder HTML-Seiten, eine pro Project, Profile, Task und Scene, mit Aufrufdiagrammen
 
-- [ ] Assistent zum Umbenennen und für den Geltungsbereich von Variablen: eine Variable umbenennen oder eine globale in eine lokale umwandeln, überall dort, wo sie verwendet wird, als ein einziges Undo
+- [x] Assistent zum Umbenennen und für den Geltungsbereich von Variablen: eine Variable umbenennen oder eine globale in eine lokale umwandeln, überall dort, wo sie verwendet wird, als ein einziges Undo
 
 ## Datenschutzerklärung
 

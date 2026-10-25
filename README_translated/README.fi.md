@@ -283,15 +283,17 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 
 ## Tehtävälista (ei erityisessä järjestyksessä)
 
-- [ ] Readiness Check (valmiustarkistus)
+- [x] Readiness Check (valmiustarkistus)
 
 - [x] Lisäplugareiden tuki
 
+- [x] Tuonti riippuvuuksineen (Import with Dependencies)
+
 - [ ] Jäljellä olevien Tasker-asetusten (preferences) kartoittaminen
 
-- [ ] Task Stepper: "kuivaharjoittele" Task toiminto toiminnolta, näyttäen mitkä If-, For- ja Goto-haarat suoritetaan ja mitä kukin muuttuja sisältää
+- [x] Task Stepper: "kuivaharjoittele" Task toiminto toiminnolta, näyttäen mitkä If-, For- ja Goto-haarat suoritetaan ja mitä kukin muuttuja sisältää
 
-- [ ] Live Run Monitor: toista suoratoistona, mitkä Profiles ja Tasks laukeavat puhelimessa, ja korosta ne Diagram-näkymässä
+- [x] Live Run Monitor: toista suoratoistona, mitkä Profiles ja Tasks laukeavat puhelimessa, ja korosta ne Diagram-näkymässä
 
 - [ ] Kolmisuuntainen yhdistäminen (three-way merge) kahdesta varmuuskopiosta suhteessa yhteiseen esivanhempaan, ratkaistuna konflikti konfliktilta ja peruutettavissa yhdellä askeleella
 
@@ -301,13 +303,13 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 
 - [ ] Yksinkertaisella kielellä selitykset Map-näkymässä: AI:n kirjoittama, välimuistitettu ja muokattava yhden rivin yhteenveto joka Profilesta ja Taskista
 
-- [ ] Puuttuvien resurssien tarkistin: varmista, että actions-toimintojesi viittaamat tiedostot, kansiot, kuvat, äänet, Scenet ja sovellukset ovat edelleen olemassa
+- [x] Puuttuvien resurssien tarkistin: varmista, että actions-toimintojesi viittaamat tiedostot, kansiot, kuvat, äänet, Scenet ja sovellukset ovat edelleen olemassa
 
-- [ ] Monimutkaisuuden ja trendien hallintapaneeli: seuraa Task-pituutta, sisäkkäisyyttä, kutsuketjun syvyyttä ja havaintoja ajan myötä
+- [x] Monimutkaisuuden ja trendien hallintapaneeli: seuraa Task-pituutta, sisäkkäisyyttä, kutsuketjun syvyyttä ja havaintoja ajan myötä
 
 - [ ] Dokumentaatiosivuston vienti: toisiinsa linkitetty joukko Markdown- tai HTML-sivuja, yksi joka Projectia, Profilea, Taskia ja Scenea kohden, kutsukaavioiden kanssa
 
-- [ ] Muuttujien uudelleennimeämis- ja scope-avustaja: nimeä muuttuja uudelleen, tai muuta globaali paikalliseksi, kaikkialla missä sitä käytetään, yhtenä peruutettavana toimintona
+- [x] Muuttujien uudelleennimeämis- ja scope-avustaja: nimeä muuttuja uudelleen, tai muuta globaali paikalliseksi, kaikkialla missä sitä käytetään, yhtenä peruutettavana toimintona
 
 ## Tietosuojaseloste
 

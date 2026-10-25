@@ -283,15 +283,17 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 
 ## Liste de tâches à faire (sans ordre particulier)
 
-- [ ] Readiness Check (vérification de l'état de préparation)
+- [x] Readiness Check (vérification de l'état de préparation)
 
 - [x] Prise en charge de plugins supplémentaires
 
+- [x] Importation avec dépendances (Import with Dependencies)
+
 - [ ] Cartographier les préférences Tasker restantes
 
-- [ ] Task Stepper : exécuter une Task action par action en « mode simulation », en montrant quelles branches If, For et Goto s'exécutent et ce que contient chaque variable
+- [x] Task Stepper : exécuter une Task action par action en « mode simulation », en montrant quelles branches If, For et Goto s'exécutent et ce que contient chaque variable
 
-- [ ] Live Run Monitor : diffuser en direct les Profiles et Tasks déclenchés sur le téléphone et les mettre en évidence dans la vue Diagram
+- [x] Live Run Monitor : diffuser en direct les Profiles et Tasks déclenchés sur le téléphone et les mettre en évidence dans la vue Diagram
 
 - [ ] Fusion à trois voies (three-way merge) de deux sauvegardes par rapport à un ancêtre commun, résolue conflit par conflit et annulable en une seule étape
 
@@ -301,13 +303,13 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 
 - [ ] Explications en langage simple dans la Map : un résumé en une ligne de chaque Profile et Task, rédigé par IA, mis en cache et modifiable
 
-- [ ] Vérificateur de ressources manquantes : vérifier que les fichiers, dossiers, images, sons, Scenes et applications référencés par vos actions existent toujours
+- [x] Vérificateur de ressources manquantes : vérifier que les fichiers, dossiers, images, sons, Scenes et applications référencés par vos actions existent toujours
 
-- [ ] Tableau de bord de complexité et de tendances : suivre dans le temps la longueur des Tasks, l'imbrication, la profondeur des chaînes d'appel et les constats
+- [x] Tableau de bord de complexité et de tendances : suivre dans le temps la longueur des Tasks, l'imbrication, la profondeur des chaînes d'appel et les constats
 
 - [ ] Export vers un site de documentation : un ensemble de pages Markdown ou HTML reliées entre elles, une par Project, Profile, Task et Scene, avec des diagrammes d'appel
 
-- [ ] Assistant de renommage et de portée des variables : renommer une variable, ou transformer une variable globale en locale, partout où elle est utilisée, en un seul Undo
+- [x] Assistant de renommage et de portée des variables : renommer une variable, ou transformer une variable globale en locale, partout où elle est utilisée, en un seul Undo
 
 ## Déclaration de confidentialité
 
