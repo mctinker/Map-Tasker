@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: __Draft with AI__ now tells the AI model what the actions that best match your description do, along with their settings, so it picks the right action more often and usually needs only one request.
+- Changed: __Draft with AI__ now also shows the AI model a few worked examples of descriptions like yours, so it copies how actions fit together, such as closing an If or looping over a list.
 - Changed:
 
 ### Removed

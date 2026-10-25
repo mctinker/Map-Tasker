@@ -309,6 +309,7 @@ def test_the_actions_that_best_match_are_listed_with_their_arguments_and_what_th
     _, user = mapdraft.build_plan_prompt("replace the dashes in %text with spaces", PrimeItems)
     before, _, after = user.partition("## Best matches for this description")
     best, _, others = after.partition("## Other actions")
+    others = others.partition("Examples of replies")[0]
 
     assert "598t Variable Search Replace: 0 Variable (text); 1 Search (text)" in best
     assert "Replace With (text)" in best

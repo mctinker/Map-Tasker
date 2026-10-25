@@ -23,11 +23,14 @@
 # actions WITH their arguments, the twenty or so other actions that best match the           #
 # description WITH theirs (see mapcards, which also says in a sentence what each is for), and  #
 # the rest of the catalog by name alone; it chooses the steps and fills in the arguments of   #
-# every action it was shown them for.  A second call, for the arguments of only the steps      #
-# chosen from the rest of the catalog, is made only if there are any -- so "flash hello, wait  #
-# five seconds" costs one round trip, and the wait is what matters most.  A small local model  #
-# gets neither the long list nor the arguments: a handful of actions matching the            #
-# description's words, and the same second call.                                            #
+# every action it was shown them for.  Beside the description go the two or three worked      #
+# examples nearest to it (mapcards.similar_recipes), and the actions they use are listed with   #
+# their arguments too, so an example never uses an action the question does not show.        #
+# A second call, for the arguments of only the steps chosen from the rest of the catalog, is  #
+# made only if there are any -- so "flash hello, wait five seconds" costs one round trip, and  #
+# the wait is what matters most.  A small local model gets neither the long list, the         #
+# arguments nor the examples: a handful of actions matching the description's words, and the   #
+# same second call.                                                                         #
 #                                                                                        #
 # What comes back is not trusted, exactly as in mapask.  An action that is not in the      #
 # catalog is dropped and SAID to have been dropped, an argument the action does not have   #
@@ -94,7 +97,10 @@ MAX_CANDIDATES = 25
 # How many of the best-matching actions a cloud model is shown in full, and the most arguments one
 # may have to be shown that way; an action with more is shown by name and asked about next.
 MAX_RELATED = 20
-MAX_RELATED_ARGS = 10
+MAX_RELATED_ARGS = 12
+# Likewise the most options of one choice, which is more than a common action's: it is worth listing
+# what 'Sort Alpha' is among when the description asks for a sort.
+MAX_RELATED_OPTIONS = 40
 # The most options of a choice that are listed beside a common action; one with more is asked
 # about in the second call, where there is room to list them.
 MAX_INLINE_OPTIONS = 12
@@ -263,7 +269,8 @@ _GIVEN_FULL = """\
 You are given the common actions with the arguments they take, then the other actions that best \
 match the description, some with their arguments too, and then every remaining action the editor \
 can build, each as "key name" under its category. Under an action, an indented line says what it is \
-for. Prefer an action from the first two lists when one does the job."""
+for. Prefer an action from the first two lists when one does the job. Examples of replies to similar \
+descriptions may follow the actions: copy how they fit actions together, not their values."""
 _GIVEN_SHORT = """\
 You are given some of the actions the editor can build, each as "key name"."""
 
@@ -464,6 +471,11 @@ def _candidates(description: str, rows: list[dict]) -> list[dict]:
     return basics + chosen
 
 
+def example_recipes(description: str, state: RunState) -> list[mapcards.Recipe]:
+    """The worked examples nearest to a description, using only actions the editor can build."""
+    return mapcards.similar_recipes(description, available={row["action_key"] for row in action_catalog(state)})
+
+
 def related_actions(
     description: str,
     state: RunState,
@@ -473,15 +485,19 @@ def related_actions(
 
     An action maps to its arguments when it can be listed in full -- few enough arguments, and none
     with a long list of choices -- and to None when it can only be named, its arguments being
-    asked about in the second question.  Order is best match first.
+    asked about in the second question.  Best match first, then any action the examples use that
+    the ranking did not already bring in.
     """
     common = set(_COMMON_ACTIONS)
     rows = [row for row in action_catalog(state) if row["action_key"] not in common]
+    keys = [row["action_key"] for row in mapcards.rank(description, rows, MAX_RELATED)]
+    for recipe in example_recipes(description, state):
+        keys += [key for key in recipe.action_keys if key not in common and key not in keys]
     related: dict[str, list[FillableArg] | None] = {}
-    for row in mapcards.rank(description, rows, MAX_RELATED):
-        args = fillable_args(row["action_key"], state, scratch)
-        fits = len(args) <= MAX_RELATED_ARGS and all(len(arg.options) <= MAX_INLINE_OPTIONS for arg in args)
-        related[row["action_key"]] = args if fits else None
+    for key in keys:
+        args = fillable_args(key, state, scratch)
+        fits = len(args) <= MAX_RELATED_ARGS and all(len(arg.options) <= MAX_RELATED_OPTIONS for arg in args)
+        related[key] = args if fits else None
     return related
 
 
@@ -528,8 +544,25 @@ def build_plan_prompt(
             if part
         )
     system = _PLAN_INSTRUCTIONS.format(max_steps=MAX_STEPS, primer=primer, given=given, arguments=arguments)
-    user = "\n".join(["Actions you may use:", listing, "", f"Description: {description.strip()}"])
-    return system, user
+    parts = ["Actions you may use:", listing, ""]
+    if not compact:
+        parts += _examples_text(description, state, scratch)
+    parts.append(f"Description: {description.strip()}")
+    return system, "\n".join(parts)
+
+
+def _examples_text(description: str, state: RunState, scratch: dict | None) -> list[str]:
+    """The lines of the worked examples nearest a description, or none if nothing is near."""
+    recipes = example_recipes(description, state)
+    if not recipes:
+        return []
+    shown = {
+        key: {arg.arg_id for arg in args} for key, args in listed_with_arguments(description, state, scratch).items()
+    }
+    lines = ["Examples of replies to similar descriptions:"]
+    for recipe in recipes:
+        lines += [mapcards.example_text(recipe, shown), ""]
+    return lines
 
 
 def fillable_args(action_key: str, state: RunState, scratch: dict | None = None) -> list[FillableArg]:

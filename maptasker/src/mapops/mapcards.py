@@ -1,4 +1,4 @@
-"""mapcards: what a model is told about an action, and which actions a description is about."""
+"""mapcards: what a model is told about an action, and which actions and examples a description is about."""
 
 #! /usr/bin/env python3
 
@@ -21,6 +21,12 @@
 # counts: no model is asked, nothing is downloaded, and the same description always picks the  #
 # same actions.  An action with no card is still found by its name.                         #
 #                                                                                        #
+# draft_recipes.json is the other half: worked examples, a description and the draft that    #
+# answers it.  A rule ("close every If") is followed less reliably than an example is copied,  #
+# so the few recipes nearest the user's description are shown beside it (similar_recipes,      #
+# found the same way).  The same recipes are what the tests build through the whole pipeline,   #
+# and what an optional live run scores a model against.                                      #
+#                                                                                        #
 # Same contract as mapdraft: no GUI import.                                                #
 #                                                                                        #
 # MIT License   Refer to https://opensource.org/license/mit                               #
@@ -33,9 +39,14 @@ import math
 import os
 import re
 from collections import Counter, defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cache
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+from maptasker.src.core.actionc import action_codes
+
+if TYPE_CHECKING:
+    from collections.abc import Collection, Mapping
 
 # A catalog row, as taskedit_addable lists them: action_key, name, category_name and so on.
 Row = dict[str, Any]
@@ -43,6 +54,15 @@ Row = dict[str, Any]
 CARDS_FILE = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "json", "action_cards.json"),
 )
+
+RECIPES_FILE = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "json", "draft_recipes.json"),
+)
+
+# How many recipes are shown with a question, and how near the best one another has to score to be
+# shown too: a recipe a third as relevant as the best is noise, not a second example.
+MAX_RECIPES = 3
+RECIPE_CUTOFF = 0.4
 
 # How much a word counts for, by where it was found: an action's name says most about it.
 _NAME_WEIGHT = 3
@@ -198,21 +218,14 @@ def _document(row: Row) -> Counter[str]:
     return document
 
 
-def rank(description: str, rows: list[Row], limit: int) -> list[Row]:
-    """The rows (catalog rows, as taskedit_addable lists them) that best match a description, best first.
-
-    Only rows that share at least one term with the description are returned, so a description
-    with nothing in it that any action is about gets none rather than the first few alphabetically.
-    Ties go to the shorter name and then the name, so the order is the same on every run.
-    """
-    wanted = set(terms(description))
-    if not wanted or not rows:
-        return []
-    documents = [_document(row) for row in rows]
+def _scores(wanted: Collection[str], documents: list[Counter[str]]) -> dict[int, float]:
+    """BM25 of each document that shares a term with 'wanted', by the document's position."""
+    totals: defaultdict[int, float] = defaultdict(float)
+    if not documents:
+        return totals
     lengths = [sum(document.values()) for document in documents]
     average = (sum(lengths) / len(lengths)) or 1.0
-    count = len(rows)
-    totals: defaultdict[int, float] = defaultdict(float)
+    count = len(documents)
     for term in wanted:
         holders = sum(term in document for document in documents)
         if not holders:
@@ -223,5 +236,137 @@ def rank(description: str, rows: list[Row], limit: int) -> list[Row]:
             if frequency:
                 norm = frequency * (_K1 + 1) / (frequency + _K1 * (1 - _B + _B * lengths[number] / average))
                 totals[number] += idf * norm
+    return totals
+
+
+def rank(description: str, rows: list[Row], limit: int) -> list[Row]:
+    """The rows (catalog rows, as taskedit_addable lists them) that best match a description, best first.
+
+    Only rows that share at least one term with the description are returned, so a description
+    with nothing in it that any action is about gets none rather than the first few alphabetically.
+    Ties go to the shorter name and then the name, so the order is the same on every run.
+    """
+    wanted = set(terms(description))
+    if not wanted or not rows:
+        return []
+    totals = _scores(wanted, [_document(row) for row in rows])
     best = sorted(totals, key=lambda number: (-totals[number], len(rows[number]["name"]), rows[number]["name"]))
     return [rows[number] for number in best[:limit]]
+
+
+# ##################################################################################
+# Worked examples.
+# ##################################################################################
+@dataclass(frozen=True)
+class RecipeStep:
+    """One action of a recipe: which, what for, and the arguments it sets by the id the editor gives each."""
+
+    action: str
+    purpose: str = ""
+    label: str = ""
+    args: Mapping[str, str] = field(default_factory=lambda: {})  # noqa: PIE807
+
+
+@dataclass(frozen=True)
+class Recipe:
+    """A description and the draft that answers it."""
+
+    recipe_id: str
+    description: str
+    steps: tuple[RecipeStep, ...]
+    name: str = ""
+    unexpressed: str = ""
+    # Other ways of saying it, matched against like the description.
+    also: tuple[str, ...] = ()
+    # One more way of saying it, never matched against: what a test asks to see whether a description
+    # the recipe has not seen still finds it.
+    held_out: str = ""
+
+    @property
+    def action_keys(self) -> list[str]:
+        """The actions the recipe uses, in order, each once."""
+        return list(dict.fromkeys(step.action for step in self.steps))
+
+
+def _recipe_step(raw: dict[str, Any]) -> RecipeStep:
+    """One step as draft_recipes.json writes it."""
+    given: dict[str, Any] = raw.get("args", {})
+    args = {str(key): str(value) for key, value in given.items()}
+    return RecipeStep(raw["action"], raw.get("purpose", ""), raw.get("label", ""), args)
+
+
+@cache
+def recipes() -> tuple[Recipe, ...]:
+    """draft_recipes.json, in the order it is written, read the first time it is wanted."""
+    with open(RECIPES_FILE, encoding="utf-8") as file:
+        raw = json.load(file)["recipes"]
+    return tuple(
+        Recipe(
+            recipe_id=item["id"],
+            description=item["description"],
+            steps=tuple(_recipe_step(step) for step in item["steps"]),
+            name=item.get("name", ""),
+            unexpressed=item.get("unexpressed", ""),
+            also=tuple(item.get("also", ())),
+            held_out=item.get("held_out", ""),
+        )
+        for item in raw
+    )
+
+
+def _recipe_document(recipe: Recipe) -> Counter[str]:
+    """The weighted terms of one recipe: what it answers, other ways of saying it, then what it uses."""
+    document: Counter[str] = Counter()
+    for term in terms(recipe.description):
+        document[term] += _NAME_WEIGHT
+    for phrase in recipe.also:
+        for term in terms(phrase):
+            document[term] += _PHRASE_WEIGHT
+    for step in recipe.steps:
+        code = action_codes.get(step.action)
+        for term in terms(f"{code.name if code else ''} {step.purpose}"):
+            document[term] += _SENTENCE_WEIGHT
+    return document
+
+
+def similar_recipes(
+    description: str, limit: int = MAX_RECIPES, available: Collection[str] | None = None
+) -> list[Recipe]:
+    """The recipes whose descriptions are nearest to this one, nearest first.
+
+    'available' are the action keys the editor can build; a recipe that uses one that is not among
+    them is left out, since an example may not teach an action the model cannot use.  Only recipes at
+    least RECIPE_CUTOFF as relevant as the best are returned, and none if nothing is shared.
+    """
+    wanted = set(terms(description))
+    pool = [recipe for recipe in recipes() if available is None or set(recipe.action_keys) <= set(available)]
+    if not wanted or not pool:
+        return []
+    totals = _scores(wanted, [_recipe_document(recipe) for recipe in pool])
+    if not totals:
+        return []
+    best = sorted(totals, key=lambda number: (-totals[number], pool[number].recipe_id))
+    top = totals[best[0]]
+    return [pool[number] for number in best[:limit] if totals[number] >= top * RECIPE_CUTOFF]
+
+
+def example_text(recipe: Recipe, shown: Mapping[str, Collection[str]]) -> str:
+    """A recipe as the model reads it: its description, then the reply that answers it, as JSON.
+
+    'shown' maps an action key to the ids of the arguments the question lists for it.  An argument
+    that was not listed is left out of the example, as is every argument of an action that was not
+    listed at all, so that the example never does what the question's own rules say not to.
+    """
+    steps: list[dict[str, object]] = []
+    for step in recipe.steps:
+        listed = set(shown.get(step.action, ()))
+        steps.append(
+            {
+                "action": step.action,
+                "purpose": step.purpose,
+                "label": step.label,
+                "args": [{"id": key, "value": value} for key, value in step.args.items() if key in listed],
+            },
+        )
+    reply: dict[str, object] = {"name": recipe.name, "steps": steps, "unexpressed": recipe.unexpressed}
+    return f"Description: {recipe.description}\nReply: {json.dumps(reply, ensure_ascii=False)}"

@@ -1,0 +1,1370 @@
+{
+ "_comment": [
+  "Worked examples for 'Draft with AI' (mapcards.similar_recipes): a description and the draft that answers it.",
+  "The nearest few to a user's description are shown to the model beside it, because an example teaches how",
+  "actions fit together -- a loop, a closed If, a value in the right argument -- better than a rule does.",
+  "'description' and 'also' are matched against the user's words; 'held_out' is never matched and is for",
+  "tests, which ask whether a differently-worded description still finds its recipe.",
+  "'args' are keyed by the id the editor gives each argument; tests build every recipe through the real",
+  "pipeline, so one that names a missing action, argument or choice fails there."
+ ],
+ "recipes": [
+  {
+   "id": "battery-low-else",
+   "description": "if the battery is below 20 notify me 'Battery low', otherwise flash 'Battery OK'",
+   "also": [
+    "check the battery level and warn me when it is low",
+    "alert on low battery else confirm it is fine"
+   ],
+   "held_out": "when my charge drops under twenty percent send a notification saying Battery low, if not show Battery OK",
+   "name": "Battery check",
+   "steps": [
+    {
+     "action": "37t",
+     "purpose": "if the battery is below 20",
+     "label": "",
+     "args": {
+      "if_lhs": "%BATT",
+      "if_op": "<",
+      "if_rhs": "20"
+     }
+    },
+    {
+     "action": "523t",
+     "purpose": "notify: Battery low",
+     "label": "",
+     "args": {
+      "0": "Battery low"
+     }
+    },
+    {
+     "action": "43t",
+     "purpose": "otherwise",
+     "label": "",
+     "args": {}
+    },
+    {
+     "action": "548t",
+     "purpose": "show Battery OK",
+     "label": "",
+     "args": {
+      "0": "Battery OK"
+     }
+    },
+    {
+     "action": "38t",
+     "purpose": "end the If",
+     "label": "",
+     "args": {}
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "nested-if",
+   "description": "if wifi is on and the battery is above 50, say 'Syncing'",
+   "also": [
+    "only when both wifi is on and the charge is over 50 speak Syncing",
+    "two conditions: wifi on, battery greater than 50"
+   ],
+   "held_out": "speak the word Syncing provided wireless is enabled and the battery exceeds fifty",
+   "name": "Sync announcement",
+   "steps": [
+    {
+     "action": "37t",
+     "purpose": "if WiFi is on",
+     "label": "",
+     "args": {
+      "if_lhs": "%WIFI",
+      "if_op": "=",
+      "if_rhs": "on"
+     }
+    },
+    {
+     "action": "37t",
+     "purpose": "and the battery is above 50",
+     "label": "",
+     "args": {
+      "if_lhs": "%BATT",
+      "if_op": ">",
+      "if_rhs": "50"
+     }
+    },
+    {
+     "action": "559t",
+     "purpose": "say Syncing",
+     "label": "",
+     "args": {
+      "0": "Syncing"
+     }
+    },
+    {
+     "action": "38t",
+     "purpose": "end the battery If",
+     "label": "",
+     "args": {}
+    },
+    {
+     "action": "38t",
+     "purpose": "end the WiFi If",
+     "label": "",
+     "args": {}
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "for-each",
+   "description": "for each of apple, banana and cherry flash its name",
+   "also": [
+    "loop over a list of fruit and show each one",
+    "repeat for every item in a comma separated list"
+   ],
+   "held_out": "go through apple, banana, cherry one by one and pop up each",
+   "name": "Show each fruit",
+   "steps": [
+    {
+     "action": "39t",
+     "purpose": "for each fruit",
+     "label": "",
+     "args": {
+      "0": "%item",
+      "1": "apple,banana,cherry"
+     }
+    },
+    {
+     "action": "548t",
+     "purpose": "show the fruit",
+     "label": "",
+     "args": {
+      "0": "%item"
+     }
+    },
+    {
+     "action": "40t",
+     "purpose": "end the For",
+     "label": "",
+     "args": {}
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "count-in-loop",
+   "description": "set %count to 0, add 1 to it three times in a loop, then flash the total",
+   "also": [
+    "count up with a loop",
+    "increment a counter inside a for loop and show the result"
+   ],
+   "held_out": "start a counter at zero, bump it by one for each of three passes, then display what it ended at",
+   "name": "Count to three",
+   "steps": [
+    {
+     "action": "547t",
+     "purpose": "set %count to 0",
+     "label": "",
+     "args": {
+      "0": "%count",
+      "1": "0"
+     }
+    },
+    {
+     "action": "39t",
+     "purpose": "three times",
+     "label": "",
+     "args": {
+      "0": "%n",
+      "1": "1,2,3"
+     }
+    },
+    {
+     "action": "888t",
+     "purpose": "add 1 to %count",
+     "label": "",
+     "args": {
+      "0": "%count",
+      "1": "1"
+     }
+    },
+    {
+     "action": "40t",
+     "purpose": "end the For",
+     "label": "",
+     "args": {}
+    },
+    {
+     "action": "548t",
+     "purpose": "show the total",
+     "label": "",
+     "args": {
+      "0": "Total: %count"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "do-maths",
+   "description": "set %total to %price times %qty and say it",
+   "also": [
+    "multiply two variables and read out the result",
+    "calculate a value with variables then speak it"
+   ],
+   "held_out": "work out price multiplied by quantity into a variable called total and announce it aloud",
+   "name": "Total cost",
+   "steps": [
+    {
+     "action": "547t",
+     "purpose": "set %total to %price*%qty",
+     "label": "",
+     "args": {
+      "0": "%total",
+      "1": "%price*%qty",
+      "3": "true"
+     }
+    },
+    {
+     "action": "559t",
+     "purpose": "say the total",
+     "label": "",
+     "args": {
+      "0": "The total is %total"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "http-get",
+   "description": "fetch https://api.example.com/status and flash the reply",
+   "also": [
+    "call a web api and show what comes back",
+    "download a url and display the response"
+   ],
+   "held_out": "make a GET call to https://api.example.com/status then pop up the response body",
+   "name": "Check status",
+   "steps": [
+    {
+     "action": "339t",
+     "purpose": "GET https://api.example.com/status",
+     "label": "",
+     "args": {
+      "1": "GET",
+      "2": "https://api.example.com/status"
+     }
+    },
+    {
+     "action": "548t",
+     "purpose": "show the reply",
+     "label": "",
+     "args": {
+      "0": "%http_data"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "http-post",
+   "description": "post the text %msg to https://example.com/hook",
+   "also": [
+    "send data to a webhook",
+    "http post with a body"
+   ],
+   "held_out": "send %msg in the body of a POST request to the webhook at https://example.com/hook",
+   "name": "Post to hook",
+   "steps": [
+    {
+     "action": "339t",
+     "purpose": "POST %msg to https://example.com/hook",
+     "label": "",
+     "args": {
+      "1": "POST",
+      "2": "https://example.com/hook",
+      "5": "%msg"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "wait-say",
+   "description": "wait 30 seconds then say 'Time is up'",
+   "also": [
+    "pause half a minute and then speak",
+    "delay and announce"
+   ],
+   "held_out": "after a thirty second delay read aloud Time is up",
+   "name": "Time is up",
+   "steps": [
+    {
+     "action": "30t",
+     "purpose": "wait 30 seconds",
+     "label": "",
+     "args": {
+      "1": "30"
+     }
+    },
+    {
+     "action": "559t",
+     "purpose": "say Time is up",
+     "label": "",
+     "args": {
+      "0": "Time is up"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "wait-minutes-notify",
+   "description": "wait 2 minutes then notify me with the title Tea and the text Ready",
+   "also": [
+    "tea timer notification",
+    "after a delay post a notification"
+   ],
+   "held_out": "give me a notification headed Tea saying Ready once two minutes have gone by",
+   "name": "Tea timer",
+   "steps": [
+    {
+     "action": "30t",
+     "purpose": "wait 2 minutes",
+     "label": "",
+     "args": {
+      "2": "2"
+     }
+    },
+    {
+     "action": "523t",
+     "purpose": "notify: Tea, Ready",
+     "label": "",
+     "args": {
+      "0": "Tea",
+      "1": "Ready"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "torch-blink",
+   "description": "turn the torch on for 2 seconds then off",
+   "also": [
+    "flash the flashlight briefly",
+    "light on, delay, light off"
+   ],
+   "held_out": "switch the flashlight on, hold for a couple of seconds, then switch it off again",
+   "name": "Torch pulse",
+   "steps": [
+    {
+     "action": "511t",
+     "purpose": "torch on",
+     "label": "",
+     "args": {
+      "0": "true"
+     }
+    },
+    {
+     "action": "30t",
+     "purpose": "wait 2 seconds",
+     "label": "",
+     "args": {
+      "1": "2"
+     }
+    },
+    {
+     "action": "511t",
+     "purpose": "torch off",
+     "label": "",
+     "args": {
+      "0": "false"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "mute-volumes",
+   "description": "set the media volume to 0 and the ringer volume to 0",
+   "also": [
+    "silence music and ringtone",
+    "turn the sound all the way down"
+   ],
+   "held_out": "make both the music level and the ringtone level zero",
+   "name": "Mute",
+   "steps": [
+    {
+     "action": "307t",
+     "purpose": "media volume 0",
+     "label": "",
+     "args": {
+      "0": "0"
+     }
+    },
+    {
+     "action": "304t",
+     "purpose": "ringer volume 0",
+     "label": "",
+     "args": {
+      "0": "0"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "perform-task",
+   "description": "run the task Cleanup with the parameter hello and flash what it returns",
+   "also": [
+    "call another task and use its result",
+    "perform a task passing %par1 and take a return value"
+   ],
+   "held_out": "execute the Cleanup task handing it hello, then pop up its returned value",
+   "name": "Run Cleanup",
+   "steps": [
+    {
+     "action": "130t",
+     "purpose": "run Cleanup with hello",
+     "label": "",
+     "args": {
+      "0": "Cleanup",
+      "2": "hello",
+      "4": "%result"
+     }
+    },
+    {
+     "action": "548t",
+     "purpose": "show the result",
+     "label": "",
+     "args": {
+      "0": "%result"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "stop-unset",
+   "description": "stop if %par1 is not set, otherwise flash it",
+   "also": [
+    "bail out early when a parameter is missing",
+    "guard clause on an empty variable"
+   ],
+   "held_out": "quit straight away when %par1 has no value; if it does, pop it up",
+   "name": "Need a parameter",
+   "steps": [
+    {
+     "action": "37t",
+     "purpose": "if %par1 is not set",
+     "label": "",
+     "args": {
+      "if_lhs": "%par1",
+      "if_op": "Not Set"
+     }
+    },
+    {
+     "action": "137t",
+     "purpose": "stop",
+     "label": "",
+     "args": {}
+    },
+    {
+     "action": "38t",
+     "purpose": "end the If",
+     "label": "",
+     "args": {}
+    },
+    {
+     "action": "548t",
+     "purpose": "show %par1",
+     "label": "",
+     "args": {
+      "0": "%par1"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "trigger-only",
+   "description": "when I get home turn on wifi and say welcome",
+   "also": [
+    "at 8am turn on the lights",
+    "when the charger is plugged in do something"
+   ],
+   "held_out": "as soon as I arrive at my house enable wireless and speak a greeting that says welcome",
+   "name": "Arrive home",
+   "steps": [
+    {
+     "action": "425t",
+     "purpose": "turn WiFi on",
+     "label": "",
+     "args": {
+      "0": "true"
+     }
+    },
+    {
+     "action": "559t",
+     "purpose": "say welcome",
+     "label": "",
+     "args": {
+      "0": "Welcome"
+     }
+    }
+   ],
+   "unexpressed": "'When I get home' is a trigger: attach this Task to a Profile."
+  },
+  {
+   "id": "time-now",
+   "description": "put the current time as HH:mm in %now and say it",
+   "also": [
+    "tell me the time",
+    "say what the clock time is",
+    "put the current date or time in a variable"
+   ],
+   "held_out": "get the clock time in hours and minutes into a variable called now and read it out",
+   "name": "Say the time",
+   "steps": [
+    {
+     "action": "394t",
+     "purpose": "current time as HH:mm into %now",
+     "label": "",
+     "args": {
+      "1": "Now (Current Date and Time)",
+      "5": "HH:mm",
+      "7": "%now"
+     }
+    },
+    {
+     "action": "559t",
+     "purpose": "say the time",
+     "label": "",
+     "args": {
+      "0": "It is %now"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "append-log",
+   "description": "append the line 'Done' with the date to /sdcard/log.txt",
+   "also": [
+    "write a log entry to a file",
+    "add text to the end of a file"
+   ],
+   "held_out": "add a new line saying Done plus today's date at the bottom of the file /sdcard/log.txt",
+   "name": "Log done",
+   "steps": [
+    {
+     "action": "410t",
+     "purpose": "append 'Done %DATE' to /sdcard/log.txt",
+     "label": "",
+     "args": {
+      "0": "/sdcard/log.txt",
+      "1": "Done %DATE",
+      "2": "true",
+      "3": "true"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "read-file",
+   "description": "read /sdcard/notes.txt into %notes and flash it",
+   "also": [
+    "load a text file and show it",
+    "show the contents of a file"
+   ],
+   "held_out": "open the file /sdcard/notes.txt, keep its text in a variable called notes, and display that",
+   "name": "Show notes",
+   "steps": [
+    {
+     "action": "417t",
+     "purpose": "read /sdcard/notes.txt into %notes",
+     "label": "",
+     "args": {
+      "0": "/sdcard/notes.txt",
+      "1": "%notes"
+     }
+    },
+    {
+     "action": "548t",
+     "purpose": "show the notes",
+     "label": "",
+     "args": {
+      "0": "%notes"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "ask-name",
+   "description": "ask me my name and say hello to them",
+   "also": [
+    "prompt the user to type something and use the answer",
+    "get text input from a dialog"
+   ],
+   "held_out": "pop up a box asking what my name is, then greet whatever I typed",
+   "name": "Greet by name",
+   "steps": [
+    {
+     "action": "360t",
+     "purpose": "ask for the name into %name",
+     "label": "",
+     "args": {
+      "1": "Name",
+      "2": "What is your name?",
+      "8": "%name"
+     }
+    },
+    {
+     "action": "559t",
+     "purpose": "say hello to the name",
+     "label": "",
+     "args": {
+      "0": "Hello %name"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "do-not-disturb",
+   "description": "turn on do not disturb",
+   "also": [
+    "silence all interruptions",
+    "enable dnd"
+   ],
+   "held_out": "enable the no interruptions mode",
+   "name": "Do not disturb",
+   "steps": [
+    {
+     "action": "312t",
+     "purpose": "no interruptions",
+     "label": "",
+     "args": {
+      "0": "No Interruptions"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "vibrate-dim",
+   "description": "set the phone to vibrate and set the brightness to 20",
+   "also": [
+    "vibrate mode and a dim screen",
+    "quiet and dark"
+   ],
+   "held_out": "put the ringer on vibrate and turn the screen brightness down to 20",
+   "name": "Quiet and dim",
+   "steps": [
+    {
+     "action": "313t",
+     "purpose": "vibrate mode",
+     "label": "",
+     "args": {
+      "0": "Vibrate"
+     }
+    },
+    {
+     "action": "810t",
+     "purpose": "brightness 20",
+     "label": "",
+     "args": {
+      "0": "20"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "browse-url",
+   "description": "open example.com in the browser",
+   "also": [
+    "go to a website",
+    "launch a web page"
+   ],
+   "held_out": "take me to the web page example.com",
+   "name": "Open example",
+   "steps": [
+    {
+     "action": "104t",
+     "purpose": "open https://example.com",
+     "label": "",
+     "args": {
+      "0": "https://example.com"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "send-sms",
+   "description": "text 555-0100 saying I'm running late",
+   "also": [
+    "send a text message to a number",
+    "sms someone"
+   ],
+   "held_out": "send an sms to 555-0100 that reads I'm running late",
+   "name": "Running late",
+   "steps": [
+    {
+     "action": "41t",
+     "purpose": "text 555-0100",
+     "label": "",
+     "args": {
+      "0": "555-0100",
+      "1": "I'm running late"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "copy-clipboard",
+   "description": "copy %city to the clipboard",
+   "also": [
+    "put a variable on the clipboard",
+    "set the clipboard text"
+   ],
+   "held_out": "place the value of %city on the clipboard",
+   "name": "Copy city",
+   "steps": [
+    {
+     "action": "105t",
+     "purpose": "copy %city",
+     "label": "",
+     "args": {
+      "0": "%city"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "where-am-i",
+   "description": "get my location and flash the coordinates",
+   "also": [
+    "find where the phone is and display latitude and longitude",
+    "show my position"
+   ],
+   "held_out": "work out where I am and pop up the latitude and longitude",
+   "name": "Where am I",
+   "steps": [
+    {
+     "action": "366t",
+     "purpose": "get the location",
+     "label": "",
+     "args": {}
+    },
+    {
+     "action": "548t",
+     "purpose": "show the coordinates",
+     "label": "",
+     "args": {
+      "0": "%gl_latitude, %gl_longitude"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "sort-list",
+   "description": "make a list of pear, apple and fig, sort it and flash it",
+   "also": [
+    "create an array, sort it and show it",
+    "alphabetise a list"
+   ],
+   "held_out": "build an array with pear, apple, fig, put it in alphabetical order and display it",
+   "name": "Sorted fruit",
+   "steps": [
+    {
+     "action": "354t",
+     "purpose": "array %fruit of pear, apple, fig",
+     "label": "",
+     "args": {
+      "0": "%fruit",
+      "1": "pear,apple,fig",
+      "2": ","
+     }
+    },
+    {
+     "action": "369t",
+     "purpose": "sort it",
+     "label": "",
+     "args": {
+      "0": "%fruit",
+      "1": "Sort Alpha"
+     }
+    },
+    {
+     "action": "592t",
+     "purpose": "join it with commas",
+     "label": "",
+     "args": {
+      "0": "%fruit",
+      "1": ", "
+     }
+    },
+    {
+     "action": "548t",
+     "purpose": "show it",
+     "label": "",
+     "args": {
+      "0": "%fruit"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "split-text",
+   "description": "split %line at the commas and flash the first part",
+   "also": [
+    "break text apart on a separator",
+    "csv field"
+   ],
+   "held_out": "cut the text in %line wherever there is a comma and pop up the first piece",
+   "name": "First field",
+   "steps": [
+    {
+     "action": "590t",
+     "purpose": "split %line on commas",
+     "label": "",
+     "args": {
+      "0": "%line",
+      "1": ","
+     }
+    },
+    {
+     "action": "548t",
+     "purpose": "show the first part",
+     "label": "",
+     "args": {
+      "0": "%line1"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "dice",
+   "description": "pick a random number from 1 to 6 and if it is 6 say Jackpot",
+   "also": [
+    "roll a die",
+    "random number with a special outcome"
+   ],
+   "held_out": "throw a six sided dice and announce Jackpot should it come up six",
+   "name": "Dice",
+   "steps": [
+    {
+     "action": "545t",
+     "purpose": "random 1 to 6 into %roll",
+     "label": "",
+     "args": {
+      "0": "%roll",
+      "1": "1",
+      "2": "6"
+     }
+    },
+    {
+     "action": "37t",
+     "purpose": "if it is 6",
+     "label": "",
+     "args": {
+      "if_lhs": "%roll",
+      "if_op": "= (Numeric)",
+      "if_rhs": "6"
+     }
+    },
+    {
+     "action": "559t",
+     "purpose": "say Jackpot",
+     "label": "",
+     "args": {
+      "0": "Jackpot"
+     }
+    },
+    {
+     "action": "38t",
+     "purpose": "end the If",
+     "label": "",
+     "args": {}
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "airplane-cycle",
+   "description": "turn on airplane mode, wait 5 seconds, then turn it off",
+   "also": [
+    "toggle flight mode to reset the radios",
+    "restart the connection"
+   ],
+   "held_out": "enable flight mode, pause five seconds, and disable it again",
+   "name": "Reset radios",
+   "steps": [
+    {
+     "action": "333t",
+     "purpose": "airplane mode on",
+     "label": "",
+     "args": {
+      "0": "true"
+     }
+    },
+    {
+     "action": "30t",
+     "purpose": "wait 5 seconds",
+     "label": "",
+     "args": {
+      "1": "5"
+     }
+    },
+    {
+     "action": "333t",
+     "purpose": "airplane mode off",
+     "label": "",
+     "args": {
+      "0": "false"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "compose-email",
+   "description": "email boss@example.com with the subject Report and the message Attached soon",
+   "also": [
+    "write an email",
+    "open the mail app with a message ready"
+   ],
+   "held_out": "start an email addressed to boss@example.com, subject Report, saying Attached soon",
+   "name": "Email the boss",
+   "steps": [
+    {
+     "action": "125t",
+     "purpose": "email boss@example.com",
+     "label": "",
+     "args": {
+      "0": "boss@example.com",
+      "1": "Report",
+      "2": "Attached soon"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "pause-music",
+   "description": "pause the music",
+   "also": [
+    "stop the song for now",
+    "pause whatever is playing"
+   ],
+   "held_out": "pause the track that is playing",
+   "name": "Pause music",
+   "steps": [
+    {
+     "action": "443t",
+     "purpose": "pause",
+     "label": "",
+     "args": {
+      "0": "Pause"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "hotspot-on",
+   "description": "turn on the hotspot and switch wifi off",
+   "also": [
+    "share my connection",
+    "tethering on, wifi off"
+   ],
+   "held_out": "enable the portable hotspot and disable wireless",
+   "name": "Hotspot on",
+   "steps": [
+    {
+     "action": "113t",
+     "purpose": "hotspot on",
+     "label": "",
+     "args": {
+      "0": "true"
+     }
+    },
+    {
+     "action": "425t",
+     "purpose": "WiFi off",
+     "label": "",
+     "args": {
+      "0": "false"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "wait-until",
+   "description": "wait until 8:30 then say good morning",
+   "also": [
+    "hold off until a time of day",
+    "do something at 8:30"
+   ],
+   "held_out": "pause until half past eight and speak a morning greeting",
+   "name": "Good morning",
+   "steps": [
+    {
+     "action": "35t",
+     "purpose": "wait until 08:30",
+     "label": "",
+     "args": {
+      "2": "30",
+      "3": "8"
+     }
+    },
+    {
+     "action": "559t",
+     "purpose": "say good morning",
+     "label": "",
+     "args": {
+      "0": "Good morning"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "say-battery",
+   "description": "say the battery level",
+   "also": [
+    "speak my charge",
+    "read out the battery percentage"
+   ],
+   "held_out": "read aloud how much charge is left",
+   "name": "Battery level",
+   "steps": [
+    {
+     "action": "559t",
+     "purpose": "say the level",
+     "label": "",
+     "args": {
+      "0": "Battery is %BATT percent"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "clear-variable",
+   "description": "clear the variable %count",
+   "also": [
+    "delete a variable",
+    "forget a variable's value"
+   ],
+   "held_out": "remove %count",
+   "name": "Clear count",
+   "steps": [
+    {
+     "action": "549t",
+     "purpose": "clear %count",
+     "label": "",
+     "args": {
+      "0": "%count"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "launch-app",
+   "description": "launch the Spotify app",
+   "also": [
+    "open an application",
+    "start an app"
+   ],
+   "held_out": "bring up Spotify",
+   "name": "Open Spotify",
+   "steps": [
+    {
+     "action": "20t",
+     "purpose": "launch Spotify",
+     "label": "",
+     "args": {}
+    }
+   ],
+   "unexpressed": "The app is chosen in the editor after the draft is added."
+  },
+  {
+   "id": "set-alarm",
+   "description": "set an alarm for 7:15 labelled Wake up",
+   "also": [
+    "wake me at a certain time",
+    "create an alarm"
+   ],
+   "held_out": "make an alarm go off at quarter past seven called Wake up",
+   "name": "Wake up alarm",
+   "steps": [
+    {
+     "action": "566t",
+     "purpose": "alarm at 7:15",
+     "label": "",
+     "args": {
+      "0": "7",
+      "1": "15",
+      "2": "Wake up"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "timer",
+   "description": "start a 10 minute timer",
+   "also": [
+    "countdown ten minutes",
+    "kitchen timer"
+   ],
+   "held_out": "begin a countdown of ten minutes",
+   "name": "Ten minute timer",
+   "steps": [
+    {
+     "action": "543t",
+     "purpose": "timer for 600 seconds",
+     "label": "",
+     "args": {
+      "0": "600"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "calendar-event",
+   "description": "add a calendar event called Dentist",
+   "also": [
+    "put an appointment in my calendar",
+    "new event"
+   ],
+   "held_out": "create an entry named Dentist in the calendar",
+   "name": "Dentist event",
+   "steps": [
+    {
+     "action": "567t",
+     "purpose": "event titled Dentist",
+     "label": "",
+     "args": {
+      "2": "Dentist"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "replace-text",
+   "description": "replace the commas in %text with semicolons",
+   "also": [
+    "swap one character for another in a variable",
+    "search and replace in text"
+   ],
+   "held_out": "in %text change every comma to a semicolon",
+   "name": "Commas to semicolons",
+   "steps": [
+    {
+     "action": "598t",
+     "purpose": "replace ',' with ';' in %text",
+     "label": "",
+     "args": {
+      "0": "%text",
+      "1": ",",
+      "6": "true",
+      "7": ";"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "long-flash",
+   "description": "show a long message 'Backup complete'",
+   "also": [
+    "display a toast for longer",
+    "pop up a message that stays on screen"
+   ],
+   "held_out": "put up Backup complete so it lingers",
+   "name": "Backup message",
+   "steps": [
+    {
+     "action": "548t",
+     "purpose": "show Backup complete for longer",
+     "label": "",
+     "args": {
+      "0": "Backup complete",
+      "1": "true"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "matches-text",
+   "description": "if %status matches ok flash 'Fine'",
+   "also": [
+    "compare text with a pattern",
+    "check whether a variable equals a word"
+   ],
+   "held_out": "when the value in %status is ok, pop up Fine",
+   "name": "Status check",
+   "steps": [
+    {
+     "action": "37t",
+     "purpose": "if %status matches ok",
+     "label": "",
+     "args": {
+      "if_lhs": "%status",
+      "if_op": "~ (Matches)",
+      "if_rhs": "ok"
+     }
+    },
+    {
+     "action": "548t",
+     "purpose": "show Fine",
+     "label": "",
+     "args": {
+      "0": "Fine"
+     }
+    },
+    {
+     "action": "38t",
+     "purpose": "end the If",
+     "label": "",
+     "args": {}
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "count-flash-wait",
+   "description": "flash the numbers 1 to 3 with a second between them",
+   "also": [
+    "show a countdown message",
+    "loop with a pause each time"
+   ],
+   "held_out": "pop up one, two and three in turn, pausing a second after each",
+   "name": "Count 1 to 3",
+   "steps": [
+    {
+     "action": "39t",
+     "purpose": "for each number",
+     "label": "",
+     "args": {
+      "0": "%n",
+      "1": "1,2,3"
+     }
+    },
+    {
+     "action": "548t",
+     "purpose": "show the number",
+     "label": "",
+     "args": {
+      "0": "%n"
+     }
+    },
+    {
+     "action": "30t",
+     "purpose": "wait 1 second",
+     "label": "",
+     "args": {
+      "1": "1"
+     }
+    },
+    {
+     "action": "40t",
+     "purpose": "end the For",
+     "label": "",
+     "args": {}
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "ensure-wifi",
+   "description": "if %WIFI is off turn it on, wait 10 seconds, then flash 'Online'",
+   "also": [
+    "enable wifi if needed and confirm",
+    "turn something on only when it is off"
+   ],
+   "held_out": "should wireless be disabled switch it on, hold ten seconds, then say Online on screen",
+   "name": "Ensure wifi",
+   "steps": [
+    {
+     "action": "37t",
+     "purpose": "if WiFi is off",
+     "label": "",
+     "args": {
+      "if_lhs": "%WIFI",
+      "if_op": "=",
+      "if_rhs": "off"
+     }
+    },
+    {
+     "action": "425t",
+     "purpose": "turn WiFi on",
+     "label": "",
+     "args": {
+      "0": "true"
+     }
+    },
+    {
+     "action": "38t",
+     "purpose": "end the If",
+     "label": "",
+     "args": {}
+    },
+    {
+     "action": "30t",
+     "purpose": "wait 10 seconds",
+     "label": "",
+     "args": {
+      "1": "10"
+     }
+    },
+    {
+     "action": "548t",
+     "purpose": "show Online",
+     "label": "",
+     "args": {
+      "0": "Online"
+     }
+    }
+   ],
+   "unexpressed": ""
+  },
+  {
+   "id": "notify-title-text",
+   "description": "notify me with the title Reminder and the text Take your pills",
+   "also": [
+    "post a notification",
+    "remind me with a notification"
+   ],
+   "held_out": "show a status bar alert headed Reminder that says Take your pills",
+   "name": "Pill reminder",
+   "steps": [
+    {
+     "action": "523t",
+     "purpose": "notify: Reminder, Take your pills",
+     "label": "",
+     "args": {
+      "0": "Reminder",
+      "1": "Take your pills"
+     }
+    }
+   ],
+   "unexpressed": ""
+  }
+ ]
+}
