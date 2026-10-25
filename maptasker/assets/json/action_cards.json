@@ -1,0 +1,1602 @@
+{
+ "_comment": [
+  "What a model is told about an action when a Task is drafted from a description (mapcards, mapdraft).",
+  "'name' must be the action's name in actionc: a test fails if one drifts.",
+  "'does' is one plain sentence on what the action is for; 'phrases' are the words a person might use",
+  "for it (they decide which actions a description is matched with); 'note' is a pitfall worth a line.",
+  "The arguments are never written here: they are read off the editor, so they cannot drift."
+ ],
+ "cards": {
+  "15t": {
+   "name": "Lock",
+   "does": "Show Tasker's own lock screen that needs a code to dismiss.",
+   "phrases": [
+    "passcode",
+    "pin screen",
+    "code lock"
+   ]
+  },
+  "16t": {
+   "name": "System Lock",
+   "does": "Lock the device now.",
+   "phrases": [
+    "lock the phone",
+    "lock screen now",
+    "secure"
+   ]
+  },
+  "18t": {
+   "name": "Kill App",
+   "does": "Force-stop an app.",
+   "phrases": [
+    "close app",
+    "stop app",
+    "quit app",
+    "end app"
+   ]
+  },
+  "20t": {
+   "name": "Launch App",
+   "does": "Open an installed app.",
+   "phrases": [
+    "open app",
+    "start app",
+    "run app",
+    "launch application"
+   ],
+   "note": "The app itself is chosen in the editor and is not set by a draft."
+  },
+  "22t": {
+   "name": "Load Last App",
+   "does": "Go back to the app that was open before.",
+   "phrases": [
+    "previous app",
+    "switch back"
+   ]
+  },
+  "25t": {
+   "name": "Go Home",
+   "does": "Go to the home screen.",
+   "phrases": [
+    "home screen",
+    "launcher",
+    "leave app"
+   ]
+  },
+  "30t": {
+   "name": "Wait",
+   "does": "Pause the Task for a length of time.",
+   "phrases": [
+    "delay",
+    "pause",
+    "sleep",
+    "hold on",
+    "after"
+   ],
+   "note": "Set only the unit asked for: Seconds for seconds, Minutes for minutes. MS is milliseconds."
+  },
+  "35t": {
+   "name": "Wait Until",
+   "does": "Pause until a time of day, rather than for a length of time.",
+   "phrases": [
+    "wait until",
+    "until 8pm",
+    "hold until",
+    "at a specific time"
+   ],
+   "note": "To wait for a length of time use Wait."
+  },
+  "41t": {
+   "name": "Send SMS",
+   "does": "Send a text message to a phone number.",
+   "phrases": [
+    "text message",
+    "sms",
+    "text someone",
+    "message"
+   ]
+  },
+  "46t": {
+   "name": "Create Scene",
+   "does": "Build a custom screen (Scene) in memory, to show later.",
+   "phrases": [
+    "make a scene",
+    "custom dialog"
+   ]
+  },
+  "47t": {
+   "name": "Show Scene",
+   "does": "Show a Scene on the screen.",
+   "phrases": [
+    "display scene",
+    "open scene",
+    "overlay"
+   ]
+  },
+  "48t": {
+   "name": "Hide Scene",
+   "does": "Hide a Scene without removing it.",
+   "phrases": [
+    "close scene overlay"
+   ]
+  },
+  "49t": {
+   "name": "Destroy Scene",
+   "does": "Remove a Scene from memory.",
+   "phrases": [
+    "close scene",
+    "delete scene"
+   ]
+  },
+  "59t": {
+   "name": "Reboot",
+   "does": "Restart or shut down the phone (needs root).",
+   "phrases": [
+    "restart",
+    "power off",
+    "shut down",
+    "reboot"
+   ]
+  },
+  "61t": {
+   "name": "Vibrate",
+   "does": "Vibrate the phone for a time in milliseconds.",
+   "phrases": [
+    "buzz",
+    "haptic",
+    "shake"
+   ],
+   "note": "Time is in milliseconds: 1000 is one second."
+  },
+  "62t": {
+   "name": "Vibrate Pattern",
+   "does": "Vibrate in a pattern of buzzes and pauses.",
+   "phrases": [
+    "buzz pattern",
+    "haptic pattern"
+   ]
+  },
+  "90t": {
+   "name": "Call",
+   "does": "Place a phone call.",
+   "phrases": [
+    "phone",
+    "dial",
+    "ring",
+    "call someone"
+   ],
+   "note": "Tick Auto Dial to call at once; otherwise it only opens the dialler."
+  },
+  "95t": {
+   "name": "Call Block",
+   "does": "Block calls from a number or all calls.",
+   "phrases": [
+    "reject call",
+    "ignore calls"
+   ]
+  },
+  "100t": {
+   "name": "Search",
+   "does": "Start a web search.",
+   "phrases": [
+    "google",
+    "look up",
+    "search for"
+   ]
+  },
+  "101t": {
+   "name": "Take Photo",
+   "does": "Take a picture with the camera and save it to a file.",
+   "phrases": [
+    "camera",
+    "picture",
+    "snap",
+    "selfie",
+    "photo"
+   ]
+  },
+  "102t": {
+   "name": "Open File",
+   "does": "Open a file in the app that handles its type.",
+   "phrases": [
+    "view file",
+    "open document",
+    "open pdf",
+    "open photo"
+   ]
+  },
+  "104t": {
+   "name": "Browse URL",
+   "does": "Open a web address in the browser.",
+   "phrases": [
+    "open website",
+    "open link",
+    "go to page",
+    "web page"
+   ],
+   "note": "Write the address in full, starting http:// or https://."
+  },
+  "105t": {
+   "name": "Set Clipboard",
+   "does": "Put text on the clipboard.",
+   "phrases": [
+    "copy",
+    "copy to clipboard",
+    "clipboard"
+   ]
+  },
+  "109t": {
+   "name": "Set Wallpaper",
+   "does": "Change the wallpaper to an image.",
+   "phrases": [
+    "background image",
+    "home screen picture"
+   ]
+  },
+  "111t": {
+   "name": "Compose MMS",
+   "does": "Open the messaging app with a picture message already written.",
+   "phrases": [
+    "send photo message"
+   ]
+  },
+  "113t": {
+   "name": "WiFi Tether (Hotspot)",
+   "does": "Turn the phone's Wi-Fi hotspot on or off.",
+   "phrases": [
+    "hotspot",
+    "tethering",
+    "share internet",
+    "portable hotspot"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "114t": {
+   "name": "USB Tether",
+   "does": "Turn USB tethering on or off.",
+   "phrases": [
+    "share internet by cable"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "116t": {
+   "name": "HTTP Post",
+   "does": "Send data to a web address with a POST.",
+   "phrases": [
+    "post",
+    "submit",
+    "send data",
+    "upload"
+   ]
+  },
+  "117t": {
+   "name": "HTTP Head",
+   "does": "Fetch only the headers of a web address.",
+   "phrases": [
+    "check url",
+    "ping website"
+   ]
+  },
+  "118t": {
+   "name": "HTTP Get",
+   "does": "Fetch a web address with a simple GET.",
+   "phrases": [
+    "download",
+    "fetch",
+    "web page",
+    "get url"
+   ],
+   "note": "HTTP Request is the more flexible choice for an API."
+  },
+  "119t": {
+   "name": "Open Map",
+   "does": "Open the map app at a place or address.",
+   "phrases": [
+    "navigate",
+    "directions",
+    "show on map",
+    "maps"
+   ]
+  },
+  "123t": {
+   "name": "Run Shell",
+   "does": "Run a shell command and keep its output.",
+   "phrases": [
+    "command line",
+    "terminal",
+    "shell",
+    "bash",
+    "adb",
+    "root command"
+   ]
+  },
+  "125t": {
+   "name": "Compose Email",
+   "does": "Open the email app with a message already written.",
+   "phrases": [
+    "send email",
+    "write email",
+    "email someone",
+    "mail"
+   ]
+  },
+  "126t": {
+   "name": "Return",
+   "does": "End the Task and hand a value back to the Task that performed it.",
+   "phrases": [
+    "give back",
+    "result",
+    "output"
+   ]
+  },
+  "129t": {
+   "name": "JavaScriptlet",
+   "does": "Run a few lines of JavaScript right in the Task.",
+   "phrases": [
+    "js",
+    "javascript",
+    "code",
+    "script",
+    "calculation",
+    "custom code",
+    "json parse"
+   ]
+  },
+  "130t": {
+   "name": "Perform Task",
+   "does": "Run another Task by name, optionally passing it values and taking one back.",
+   "phrases": [
+    "call task",
+    "run task",
+    "start task",
+    "subroutine",
+    "invoke"
+   ],
+   "note": "Values passed arrive in the other Task as %par1 and %par2. Only name a Task the description names."
+  },
+  "131t": {
+   "name": "JavaScript",
+   "does": "Run a JavaScript file.",
+   "phrases": [
+    "js",
+    "script file"
+   ]
+  },
+  "135t": {
+   "name": "Goto",
+   "does": "Jump to another action in the same Task, by action number.",
+   "phrases": [
+    "jump",
+    "skip to",
+    "loop back"
+   ]
+  },
+  "137t": {
+   "name": "Stop",
+   "does": "End the Task here, without running the rest of it.",
+   "phrases": [
+    "exit",
+    "quit",
+    "abort",
+    "halt",
+    "end task"
+   ]
+  },
+  "142t": {
+   "name": "Edit Task",
+   "does": "Change the actions of a Task while Tasker runs.",
+   "phrases": [
+    "modify task"
+   ]
+  },
+  "150t": {
+   "name": "Keyguard",
+   "does": "Turn the lock screen on or off.",
+   "phrases": [
+    "disable lock screen",
+    "unlock",
+    "skip lock screen"
+   ]
+  },
+  "159t": {
+   "name": "Profile Status",
+   "does": "Turn a named Profile on or off.",
+   "phrases": [
+    "enable profile",
+    "disable profile",
+    "switch profile"
+   ]
+  },
+  "165t": {
+   "name": "Cancel Alarm",
+   "does": "Cancel an alarm.",
+   "phrases": [
+    "remove alarm",
+    "turn off alarm"
+   ]
+  },
+  "171t": {
+   "name": "Beep",
+   "does": "Play a short beep.",
+   "phrases": [
+    "tone",
+    "bleep",
+    "sound",
+    "ding"
+   ]
+  },
+  "175t": {
+   "name": "Power Mode",
+   "does": "Switch battery saver on, off or toggle it.",
+   "phrases": [
+    "battery saver",
+    "low power",
+    "power saving"
+   ]
+  },
+  "176t": {
+   "name": "Take Screenshot",
+   "does": "Save a picture of the screen to a file.",
+   "phrases": [
+    "screen capture",
+    "screengrab"
+   ]
+  },
+  "177t": {
+   "name": "Haptic Feedback",
+   "does": "Give a short tap of haptic feedback.",
+   "phrases": [
+    "tap",
+    "click feel"
+   ]
+  },
+  "192t": {
+   "name": "Play Ringtone",
+   "does": "Play a ringtone or alarm sound.",
+   "phrases": [
+    "play sound",
+    "ringtone",
+    "alert tone"
+   ]
+  },
+  "200t": {
+   "name": "All Settings",
+   "does": "Open Android's main settings screen.",
+   "phrases": [
+    "settings app",
+    "preferences"
+   ]
+  },
+  "206t": {
+   "name": "WIFI Settings",
+   "does": "Open Android's Wi-Fi settings screen; it does not change Wi-Fi itself.",
+   "phrases": [
+    "wifi preferences screen"
+   ]
+  },
+  "218t": {
+   "name": "Bluetooth Settings",
+   "does": "Open Android's Bluetooth settings screen; it does not change Bluetooth itself.",
+   "phrases": [
+    "bluetooth preferences screen"
+   ]
+  },
+  "222t": {
+   "name": "Display Settings",
+   "does": "Open Android's display settings screen.",
+   "phrases": [
+    "screen preferences"
+   ]
+  },
+  "232t": {
+   "name": "Sound Settings",
+   "does": "Open Android's sound settings screen.",
+   "phrases": [
+    "volume preferences"
+   ]
+  },
+  "248t": {
+   "name": "Turn Off",
+   "does": "Turn the screen off.",
+   "phrases": [
+    "screen off",
+    "sleep the screen",
+    "blank screen"
+   ]
+  },
+  "249t": {
+   "name": "System Screenshot",
+   "does": "Take a screenshot the way the system does.",
+   "phrases": [
+    "screen capture",
+    "screengrab"
+   ]
+  },
+  "250t": {
+   "name": "Compose SMS",
+   "does": "Open the messaging app with a text already written, to be sent by hand.",
+   "phrases": [
+    "draft text",
+    "prepare sms"
+   ]
+  },
+  "254t": {
+   "name": "Speakerphone",
+   "does": "Turn the speakerphone on or off.",
+   "phrases": [
+    "loudspeaker",
+    "hands free"
+   ]
+  },
+  "294t": {
+   "name": "Bluetooth",
+   "does": "Turn Bluetooth on or off.",
+   "phrases": [
+    "bt"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "301t": {
+   "name": "Mic Mute",
+   "does": "Mute or unmute the microphone.",
+   "phrases": [
+    "microphone",
+    "mute mic"
+   ]
+  },
+  "303t": {
+   "name": "Alarm Volume",
+   "does": "Set the volume of alarms.",
+   "phrases": [
+    "alarm sound level"
+   ],
+   "note": "Level is 0 to 15."
+  },
+  "304t": {
+   "name": "Ringer Volume",
+   "does": "Set the volume of the ringer.",
+   "phrases": [
+    "ringtone volume",
+    "phone volume"
+   ],
+   "note": "Level is 0 to 15."
+  },
+  "305t": {
+   "name": "Notification Volume",
+   "does": "Set the volume of notifications.",
+   "phrases": [
+    "notification sound level"
+   ],
+   "note": "Level is 0 to 15."
+  },
+  "306t": {
+   "name": "In-Call Volume",
+   "does": "Set the volume during phone calls.",
+   "phrases": [
+    "call volume",
+    "earpiece volume"
+   ],
+   "note": "Level is 0 to 15."
+  },
+  "307t": {
+   "name": "Media Volume",
+   "does": "Set the volume of music, video and games.",
+   "phrases": [
+    "music volume",
+    "sound level",
+    "louder",
+    "quieter"
+   ],
+   "note": "Level is 0 to 15."
+  },
+  "308t": {
+   "name": "System Volume",
+   "does": "Set the volume of system sounds.",
+   "phrases": [
+    "touch sounds level"
+   ],
+   "note": "Level is 0 to 15."
+  },
+  "310t": {
+   "name": "Silent Mode",
+   "does": "Switch silent mode off or to vibrate.",
+   "phrases": [
+    "mute ringer"
+   ]
+  },
+  "312t": {
+   "name": "Interrupt Mode",
+   "does": "Set Do Not Disturb: none, priority only, alarms only, or allow all.",
+   "phrases": [
+    "do not disturb",
+    "dnd",
+    "quiet",
+    "priority",
+    "interruptions",
+    "focus"
+   ]
+  },
+  "313t": {
+   "name": "Sound Mode",
+   "does": "Set the phone to normal, vibrate or silent.",
+   "phrases": [
+    "silent",
+    "mute phone",
+    "vibrate mode",
+    "ringer mode",
+    "sound profile"
+   ]
+  },
+  "314t": {
+   "name": "Authentication Dialog",
+   "does": "Ask the user to confirm with fingerprint, face or PIN.",
+   "phrases": [
+    "biometric",
+    "fingerprint",
+    "verify identity"
+   ]
+  },
+  "317t": {
+   "name": "NFC",
+   "does": "Turn NFC on or off.",
+   "phrases": [
+    "near field"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "318t": {
+   "name": "Force Rotation",
+   "does": "Force the screen into portrait or landscape.",
+   "phrases": [
+    "landscape",
+    "portrait",
+    "orientation"
+   ]
+  },
+  "320t": {
+   "name": "Ping",
+   "does": "Test whether a host answers over the network.",
+   "phrases": [
+    "is the server up",
+    "reachable",
+    "connectivity"
+   ]
+  },
+  "332t": {
+   "name": "GPS",
+   "does": "Turn GPS on or off.",
+   "phrases": [
+    "satellite",
+    "location services"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "333t": {
+   "name": "Airplane Mode",
+   "does": "Turn airplane (flight) mode on or off.",
+   "phrases": [
+    "flight mode",
+    "radios off"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "339t": {
+   "name": "HTTP Request",
+   "does": "Call a web address (GET, POST and so on) and keep the reply.",
+   "phrases": [
+    "web request",
+    "api",
+    "rest",
+    "fetch",
+    "download page",
+    "post json",
+    "webhook",
+    "curl",
+    "url"
+   ],
+   "note": "The reply body is in %http_data and the status in %http_response_code. Put one header per line as Name:value."
+  },
+  "340t": {
+   "name": "Bluetooth Connection",
+   "does": "Connect to or disconnect from a paired Bluetooth device.",
+   "phrases": [
+    "pair",
+    "connect headphones",
+    "connect speaker",
+    "disconnect bluetooth"
+   ]
+  },
+  "342t": {
+   "name": "Test File",
+   "does": "Test whether a file exists, its size or its type, and keep the answer in a variable.",
+   "phrases": [
+    "file exists",
+    "does file exist",
+    "check file"
+   ]
+  },
+  "351t": {
+   "name": "HTTP Auth",
+   "does": "Set a username and password for web requests.",
+   "phrases": [
+    "basic auth",
+    "login to api"
+   ]
+  },
+  "354t": {
+   "name": "Array Set",
+   "does": "Create an array variable from a list of values.",
+   "phrases": [
+    "array",
+    "list",
+    "create list",
+    "items"
+   ]
+  },
+  "355t": {
+   "name": "Array Push",
+   "does": "Add a value to an array variable.",
+   "phrases": [
+    "append to list",
+    "add to array",
+    "push",
+    "add item"
+   ]
+  },
+  "356t": {
+   "name": "Array Pop",
+   "does": "Remove a value from an array variable.",
+   "phrases": [
+    "remove from list",
+    "take item",
+    "pop"
+   ]
+  },
+  "357t": {
+   "name": "Array Clear",
+   "does": "Empty an array variable.",
+   "phrases": [
+    "clear list",
+    "empty array"
+   ]
+  },
+  "358t": {
+   "name": "Bluetooth Info",
+   "does": "Read information about a Bluetooth device.",
+   "phrases": [
+    "bluetooth device status",
+    "battery of headphones"
+   ]
+  },
+  "360t": {
+   "name": "Input Dialog",
+   "does": "Ask the user to type something, and keep the answer in a variable.",
+   "phrases": [
+    "prompt",
+    "ask for text",
+    "enter text",
+    "user input",
+    "type something"
+   ]
+  },
+  "361t": {
+   "name": "Dark Mode",
+   "does": "Turn the system dark theme on or off.",
+   "phrases": [
+    "dark theme",
+    "night theme"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "364t": {
+   "name": "Test Next Alarm",
+   "does": "Find out when the next alarm will go off.",
+   "phrases": [
+    "next alarm time"
+   ]
+  },
+  "365t": {
+   "name": "Tasker Function",
+   "does": "Call one of Tasker's built-in functions, such as a math or text function.",
+   "phrases": [
+    "function",
+    "round",
+    "abs",
+    "sqrt",
+    "math function",
+    "uppercase"
+   ]
+  },
+  "366t": {
+   "name": "Get Location v2",
+   "does": "Find the phone's position with the newer location service; the result is in %gl_latitude and %gl_longitude.",
+   "phrases": [
+    "where am i",
+    "coordinates",
+    "latitude",
+    "longitude",
+    "current location",
+    "gps"
+   ]
+  },
+  "369t": {
+   "name": "Array Process",
+   "does": "Sort, reverse, shuffle or remove duplicates from an array variable.",
+   "phrases": [
+    "sort",
+    "shuffle",
+    "reverse",
+    "unique",
+    "deduplicate"
+   ]
+  },
+  "372t": {
+   "name": "Sensor Info",
+   "does": "Read a phone sensor such as light, proximity or the compass.",
+   "phrases": [
+    "light sensor",
+    "accelerometer",
+    "compass",
+    "orientation sensor"
+   ]
+  },
+  "376t": {
+   "name": "Share File",
+   "does": "Offer a file to the Android share sheet.",
+   "phrases": [
+    "send file",
+    "share with app"
+   ]
+  },
+  "377t": {
+   "name": "Text/Image Dialog",
+   "does": "Show a dialog with text or an image.",
+   "phrases": [
+    "show picture",
+    "show text box"
+   ]
+  },
+  "378t": {
+   "name": "List Dialog",
+   "does": "Show a list for the user to choose from.",
+   "phrases": [
+    "choose from list",
+    "pick one",
+    "selection",
+    "menu of choices",
+    "select item"
+   ]
+  },
+  "384t": {
+   "name": "Device Control (Power Menu Action)",
+   "does": "Open the power menu or run a power-menu action.",
+   "phrases": [
+    "power button",
+    "shut down menu"
+   ]
+  },
+  "389t": {
+   "name": "Multiple Variables Set",
+   "does": "Set several variables at once from lists of names and values.",
+   "phrases": [
+    "many variables",
+    "several variables",
+    "set multiple"
+   ]
+  },
+  "390t": {
+   "name": "Pick Input Dialog",
+   "does": "Ask the user to pick a date, time, colour or similar value.",
+   "phrases": [
+    "date picker",
+    "time picker",
+    "colour picker"
+   ]
+  },
+  "391t": {
+   "name": "Progress Dialog",
+   "does": "Show a progress bar dialog.",
+   "phrases": [
+    "loading",
+    "progress bar",
+    "working"
+   ]
+  },
+  "393t": {
+   "name": "Arrays Merge",
+   "does": "Combine two array variables into one.",
+   "phrases": [
+    "merge lists",
+    "combine arrays"
+   ]
+  },
+  "394t": {
+   "name": "Parse/Format DateTime",
+   "does": "Get the date or time in a chosen format, convert between formats, or add days, hours and so on.",
+   "phrases": [
+    "date",
+    "time",
+    "today",
+    "now",
+    "tomorrow",
+    "yesterday",
+    "timestamp",
+    "format date",
+    "clock",
+    "weekday",
+    "add days",
+    "current time"
+   ],
+   "note": "Leave Input Type as Now for the current date and time; Output Format uses letters such as yyyy-MM-dd HH:mm."
+  },
+  "396t": {
+   "name": "Simple Match/Regex",
+   "does": "Test text against a pattern or regular expression and keep the matches.",
+   "phrases": [
+    "regex",
+    "regular expression",
+    "match",
+    "contains",
+    "pattern",
+    "extract with regex"
+   ]
+  },
+  "398t": {
+   "name": "Connect To WiFi",
+   "does": "Connect to a named Wi-Fi network.",
+   "phrases": [
+    "join wifi",
+    "switch network",
+    "ssid",
+    "connect to router"
+   ]
+  },
+  "400t": {
+   "name": "Move",
+   "does": "Move or rename a file or folder.",
+   "phrases": [
+    "rename file",
+    "relocate file"
+   ]
+  },
+  "404t": {
+   "name": "Copy File",
+   "does": "Copy a file to another place.",
+   "phrases": [
+    "duplicate file",
+    "back up file",
+    "backup"
+   ]
+  },
+  "405t": {
+   "name": "Copy Dir",
+   "does": "Copy a folder and what is in it.",
+   "phrases": [
+    "duplicate folder",
+    "back up folder"
+   ]
+  },
+  "406t": {
+   "name": "Delete File",
+   "does": "Delete a file.",
+   "phrases": [
+    "remove file",
+    "erase file"
+   ]
+  },
+  "408t": {
+   "name": "Delete Directory",
+   "does": "Delete a folder.",
+   "phrases": [
+    "remove folder",
+    "erase folder"
+   ]
+  },
+  "409t": {
+   "name": "Create Directory",
+   "does": "Make a new folder.",
+   "phrases": [
+    "make folder",
+    "new folder",
+    "mkdir"
+   ]
+  },
+  "410t": {
+   "name": "Write File",
+   "does": "Write text to a file, replacing it or adding to it.",
+   "phrases": [
+    "save to file",
+    "save text",
+    "log to file",
+    "append to file",
+    "create file",
+    "export"
+   ]
+  },
+  "412t": {
+   "name": "List Files",
+   "does": "List the files in a folder into an array variable.",
+   "phrases": [
+    "directory listing",
+    "files in folder",
+    "find files"
+   ]
+  },
+  "415t": {
+   "name": "Read Line",
+   "does": "Read one line of a text file.",
+   "phrases": [
+    "get line",
+    "nth line"
+   ]
+  },
+  "417t": {
+   "name": "Read File",
+   "does": "Read a text file into a variable.",
+   "phrases": [
+    "load file",
+    "open text file",
+    "get file contents"
+   ]
+  },
+  "418t": {
+   "name": "Get Calendar Events",
+   "does": "Read the events in the calendar into variables.",
+   "phrases": [
+    "agenda",
+    "upcoming events",
+    "what is on my calendar"
+   ]
+  },
+  "420t": {
+   "name": "Zip",
+   "does": "Compress files into a zip archive.",
+   "phrases": [
+    "compress",
+    "archive",
+    "make zip"
+   ]
+  },
+  "422t": {
+   "name": "UnZip",
+   "does": "Extract a zip archive.",
+   "phrases": [
+    "extract",
+    "decompress",
+    "open archive"
+   ]
+  },
+  "424t": {
+   "name": "Get Battery Info",
+   "does": "Read battery details such as level, temperature and health into variables.",
+   "phrases": [
+    "battery level",
+    "charging",
+    "battery health",
+    "power"
+   ]
+  },
+  "425t": {
+   "name": "WiFi",
+   "does": "Turn Wi-Fi on or off.",
+   "phrases": [
+    "wireless",
+    "wlan",
+    "wi-fi"
+   ],
+   "note": "Tick Set to turn it on; leave it off to turn it off."
+  },
+  "432t": {
+   "name": "Get Network Info",
+   "does": "Read details of the current network: Wi-Fi name, signal, IP address.",
+   "phrases": [
+    "ssid",
+    "ip address",
+    "signal strength",
+    "connection info"
+   ]
+  },
+  "433t": {
+   "name": "Mobile Data",
+   "does": "Turn mobile data on or off.",
+   "phrases": [
+    "cellular",
+    "4g",
+    "5g",
+    "lte",
+    "data connection"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "443t": {
+   "name": "Media Control",
+   "does": "Play, pause, skip or stop whatever media app is playing.",
+   "phrases": [
+    "pause music",
+    "next song",
+    "previous track",
+    "resume playback",
+    "spotify",
+    "youtube"
+   ]
+  },
+  "445t": {
+   "name": "Music Play",
+   "does": "Play a music file.",
+   "phrases": [
+    "play song",
+    "play music",
+    "play audio file"
+   ]
+  },
+  "446t": {
+   "name": "Get Files/Folders Properties",
+   "does": "Read the size, date and other properties of files.",
+   "phrases": [
+    "file size",
+    "file date",
+    "modified time",
+    "exists"
+   ]
+  },
+  "447t": {
+   "name": "Music Play Dir",
+   "does": "Play the music in a folder.",
+   "phrases": [
+    "play folder",
+    "play playlist"
+   ]
+  },
+  "448t": {
+   "name": "Array Compare",
+   "does": "Compare two arrays and find what they share or lack.",
+   "phrases": [
+    "diff",
+    "intersection",
+    "common items"
+   ]
+  },
+  "449t": {
+   "name": "Music Stop",
+   "does": "Stop the music Tasker is playing.",
+   "phrases": [
+    "stop music",
+    "stop song"
+   ]
+  },
+  "451t": {
+   "name": "Music Skip",
+   "does": "Skip forward or back in the music Tasker is playing.",
+   "phrases": [
+    "next track"
+   ]
+  },
+  "455t": {
+   "name": "Record Audio",
+   "does": "Record sound from the microphone to a file.",
+   "phrases": [
+    "voice memo",
+    "record voice",
+    "record sound"
+   ]
+  },
+  "473t": {
+   "name": "Get Sunrise/Sunset Times",
+   "does": "Find today's sunrise and sunset for a location.",
+   "phrases": [
+    "sunrise",
+    "sunset",
+    "dawn",
+    "dusk",
+    "daylight",
+    "sun"
+   ]
+  },
+  "479t": {
+   "name": "Show Scene v2",
+   "does": "Show a version 2 Scene on the screen.",
+   "phrases": [
+    "display scene",
+    "open scene",
+    "overlay"
+   ]
+  },
+  "480t": {
+   "name": "Dismiss Scene v2",
+   "does": "Close a version 2 Scene.",
+   "phrases": [
+    "close scene"
+   ]
+  },
+  "511t": {
+   "name": "Torch",
+   "does": "Turn the camera flashlight on or off.",
+   "phrases": [
+    "flashlight",
+    "light",
+    "lamp"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "512t": {
+   "name": "Status Bar",
+   "does": "Expand or collapse the notification panel.",
+   "phrases": [
+    "pull down notifications",
+    "notification shade"
+   ]
+  },
+  "513t": {
+   "name": "Close System Dialogs",
+   "does": "Close any open system dialog or the notification panel.",
+   "phrases": [
+    "dismiss dialog"
+   ]
+  },
+  "523t": {
+   "name": "Notify",
+   "does": "Post a notification in the status bar with a title and text.",
+   "phrases": [
+    "notification",
+    "alert me",
+    "remind",
+    "status bar"
+   ],
+   "note": "Give a Title or Text; both may use variables."
+  },
+  "543t": {
+   "name": "Start System Timer",
+   "does": "Start the Android clock's countdown timer.",
+   "phrases": [
+    "countdown",
+    "timer",
+    "kitchen timer",
+    "set a timer"
+   ]
+  },
+  "545t": {
+   "name": "Variable Randomize",
+   "does": "Set a variable to a random whole number between a minimum and a maximum.",
+   "phrases": [
+    "random",
+    "dice",
+    "roll",
+    "pick a number",
+    "chance"
+   ]
+  },
+  "547t": {
+   "name": "Variable Set",
+   "does": "Store a value in a variable.",
+   "phrases": [
+    "set variable",
+    "assign",
+    "store",
+    "remember",
+    "save value",
+    "counter"
+   ],
+   "note": "Tick Do Maths to make the value a calculation such as %count+1."
+  },
+  "548t": {
+   "name": "Flash",
+   "does": "Show a short pop-up message (a toast) on the screen.",
+   "phrases": [
+    "toast",
+    "message",
+    "show text",
+    "display text",
+    "tell me",
+    "alert"
+   ],
+   "note": "Tick Long to keep it on screen longer."
+  },
+  "549t": {
+   "name": "Variable Clear",
+   "does": "Delete a variable.",
+   "phrases": [
+    "unset",
+    "remove variable",
+    "reset",
+    "forget"
+   ]
+  },
+  "550t": {
+   "name": "Popup",
+   "does": "Show a pop-up box with a title and text over the screen.",
+   "phrases": [
+    "dialog box",
+    "pop up window",
+    "message box"
+   ]
+  },
+  "559t": {
+   "name": "Say",
+   "does": "Speak text aloud with text-to-speech.",
+   "phrases": [
+    "speak",
+    "read aloud",
+    "voice",
+    "announce",
+    "talk"
+   ]
+  },
+  "566t": {
+   "name": "Set Alarm",
+   "does": "Set an alarm in the clock app.",
+   "phrases": [
+    "wake me",
+    "alarm clock",
+    "wake up at"
+   ]
+  },
+  "567t": {
+   "name": "Calendar Insert",
+   "does": "Add an event to the calendar.",
+   "phrases": [
+    "new event",
+    "appointment",
+    "meeting",
+    "schedule",
+    "add to calendar"
+   ]
+  },
+  "590t": {
+   "name": "Variable Split",
+   "does": "Split a variable's text into parts at a separator, as %name1, %name2 and so on.",
+   "phrases": [
+    "split",
+    "separate",
+    "divide",
+    "tokenize",
+    "csv",
+    "comma separated",
+    "break apart"
+   ]
+  },
+  "592t": {
+   "name": "Variable Join",
+   "does": "Join the parts of an array variable into one text.",
+   "phrases": [
+    "join",
+    "concatenate",
+    "combine",
+    "glue",
+    "merge parts"
+   ]
+  },
+  "596t": {
+   "name": "Variable Convert",
+   "does": "Convert a variable: bytes to megabytes, a date to seconds, upper or lower case, Base64, URL encoding, hashes.",
+   "phrases": [
+    "convert",
+    "base64",
+    "encode",
+    "decode",
+    "uppercase",
+    "lowercase",
+    "hex",
+    "md5",
+    "url encode",
+    "units"
+   ]
+  },
+  "597t": {
+   "name": "Variable Section",
+   "does": "Take part of a variable's text: from a position, for a length.",
+   "phrases": [
+    "substring",
+    "section",
+    "part of text",
+    "first characters",
+    "last characters",
+    "trim",
+    "left",
+    "right",
+    "slice"
+   ]
+  },
+  "598t": {
+   "name": "Variable Search Replace",
+   "does": "Search the text in a variable, optionally with a regular expression, and replace what matches.",
+   "phrases": [
+    "replace",
+    "find and replace",
+    "substitute",
+    "remove text",
+    "strip",
+    "delete characters",
+    "regex replace"
+   ]
+  },
+  "657t": {
+   "name": "Record Audio Stop",
+   "does": "Stop a recording.",
+   "phrases": [
+    "end recording"
+   ]
+  },
+  "667t": {
+   "name": "SQL Query",
+   "does": "Run a SQL query on a database file.",
+   "phrases": [
+    "database",
+    "sqlite",
+    "select"
+   ]
+  },
+  "697t": {
+   "name": "Shut Up",
+   "does": "Stop any speech that is in progress.",
+   "phrases": [
+    "stop talking",
+    "silence speech",
+    "cancel say"
+   ]
+  },
+  "699t": {
+   "name": "Say To File",
+   "does": "Turn text into spoken audio and save it as a file.",
+   "phrases": [
+    "text to speech file",
+    "record speech"
+   ]
+  },
+  "731t": {
+   "name": "Take Call",
+   "does": "Answer an incoming call.",
+   "phrases": [
+    "pick up",
+    "accept call",
+    "answer the phone"
+   ]
+  },
+  "733t": {
+   "name": "End Call",
+   "does": "Hang up the current call.",
+   "phrases": [
+    "hang up",
+    "drop call",
+    "terminate call"
+   ]
+  },
+  "779t": {
+   "name": "Notify Cancel",
+   "does": "Remove a notification that Notify posted.",
+   "phrases": [
+    "dismiss notification",
+    "clear notification",
+    "remove notification"
+   ]
+  },
+  "806t": {
+   "name": "Turn On",
+   "does": "Turn the screen on.",
+   "phrases": [
+    "wake the screen",
+    "wake up",
+    "light up screen"
+   ]
+  },
+  "808t": {
+   "name": "Auto Brightness",
+   "does": "Turn automatic screen brightness on or off.",
+   "phrases": [
+    "adaptive brightness"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "810t": {
+   "name": "Display Brightness",
+   "does": "Set the screen brightness.",
+   "phrases": [
+    "dim",
+    "brighten",
+    "screen light",
+    "backlight"
+   ],
+   "note": "Level is 0 to 255."
+  },
+  "812t": {
+   "name": "Display Timeout",
+   "does": "Set how long the screen stays on before it turns off.",
+   "phrases": [
+    "screen timeout",
+    "sleep after",
+    "screen off time"
+   ]
+  },
+  "815t": {
+   "name": "List Apps",
+   "does": "List the installed apps into an array variable.",
+   "phrases": [
+    "installed apps",
+    "all apps"
+   ]
+  },
+  "820t": {
+   "name": "Stay On",
+   "does": "Keep the screen on while the phone is plugged in.",
+   "phrases": [
+    "stay awake",
+    "keep awake",
+    "never sleep"
+   ]
+  },
+  "822t": {
+   "name": "Display AutoRotate",
+   "does": "Turn automatic screen rotation on or off.",
+   "phrases": [
+    "auto rotate",
+    "orientation lock",
+    "rotation lock"
+   ]
+  },
+  "877t": {
+   "name": "Send Intent",
+   "does": "Send an Android intent to start an app screen or send a broadcast to another app.",
+   "phrases": [
+    "intent",
+    "broadcast",
+    "deep link",
+    "activity"
+   ]
+  },
+  "888t": {
+   "name": "Variable Add",
+   "does": "Add a number to a variable.",
+   "phrases": [
+    "increment",
+    "plus",
+    "count up",
+    "add one",
+    "increase"
+   ]
+  },
+  "890t": {
+   "name": "Variable Subtract",
+   "does": "Subtract a number from a variable.",
+   "phrases": [
+    "decrement",
+    "minus",
+    "count down",
+    "reduce"
+   ]
+  },
+  "902t": {
+   "name": "Get Location",
+   "does": "Find where the phone is, using GPS or the network, into location variables such as %LOC.",
+   "phrases": [
+    "where am i",
+    "gps position",
+    "coordinates",
+    "latitude",
+    "longitude",
+    "current location"
+   ]
+  },
+  "905t": {
+   "name": "Location Mode",
+   "does": "Set Android's location mode (off, device only, battery saving, high accuracy).",
+   "phrases": [
+    "location accuracy"
+   ]
+  },
+  "988t": {
+   "name": "Car Mode",
+   "does": "Turn car mode on or off.",
+   "phrases": [
+    "driving mode"
+   ],
+   "note": "Tick Set to turn it on."
+  },
+  "989t": {
+   "name": "Night Mode",
+   "does": "Set the system's night mode.",
+   "phrases": [
+    "night theme",
+    "day night"
+   ]
+  }
+ }
+}

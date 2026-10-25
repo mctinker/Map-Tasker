@@ -20,12 +20,14 @@
 # ONE QUESTION FOR MOST DRAFTS, TWO FOR THE REST.  The catalog is a few hundred actions     #
 # and each has its own arguments, so showing the arguments of all of them would bury the    #
 # question.  The first call is given a primer on how Tasks work, a short list of the common  #
-# actions WITH their arguments, and the rest of the catalog by name alone; it chooses the    #
-# steps and fills in the arguments of the common ones.  A second call, for the arguments of  #
-# only the steps chosen from the rest of the catalog, is made only if there are any -- so     #
-# "flash hello, wait five seconds" costs one round trip, and the wait is what matters most.  #
-# A small local model gets neither the long list nor the arguments: a handful of actions     #
-# matching the description's words, and the same second call.                                #
+# actions WITH their arguments, the twenty or so other actions that best match the           #
+# description WITH theirs (see mapcards, which also says in a sentence what each is for), and  #
+# the rest of the catalog by name alone; it chooses the steps and fills in the arguments of   #
+# every action it was shown them for.  A second call, for the arguments of only the steps      #
+# chosen from the rest of the catalog, is made only if there are any -- so "flash hello, wait  #
+# five seconds" costs one round trip, and the wait is what matters most.  A small local model  #
+# gets neither the long list nor the arguments: a handful of actions matching the            #
+# description's words, and the same second call.                                            #
 #                                                                                        #
 # What comes back is not trusted, exactly as in mapask.  An action that is not in the      #
 # catalog is dropped and SAID to have been dropped, an argument the action does not have   #
@@ -45,7 +47,6 @@ from __future__ import annotations
 
 import dataclasses
 import json
-import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -62,6 +63,7 @@ from maptasker.src.analysis.mapask import (
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.sysconst import logger
 from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taskedit_args, taskedit_model
+from maptasker.src.mapops import mapcards
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -89,6 +91,10 @@ ASK_TIMEOUT = 120.0
 LOCAL_ASK_TIMEOUT = 600.0
 # How many actions a small local model is shown, and the actions it is always shown.
 MAX_CANDIDATES = 25
+# How many of the best-matching actions a cloud model is shown in full, and the most arguments one
+# may have to be shown that way; an action with more is shown by name and asked about next.
+MAX_RELATED = 20
+MAX_RELATED_ARGS = 10
 # The most options of a choice that are listed beside a common action; one with more is asked
 # about in the second call, where there is room to list them.
 MAX_INLINE_OPTIONS = 12
@@ -254,15 +260,18 @@ list of objects with "action", "purpose", "label" and "args"), "unexpressed".
 """
 
 _GIVEN_FULL = """\
-You are given the common actions with the arguments they take, and then every other action the \
-editor can build, each as "key name" under its category."""
+You are given the common actions with the arguments they take, then the other actions that best \
+match the description, some with their arguments too, and then every remaining action the editor \
+can build, each as "key name" under its category. Under an action, an indented line says what it is \
+for. Prefer an action from the first two lists when one does the job."""
 _GIVEN_SHORT = """\
 You are given some of the actions the editor can build, each as "key name"."""
 
 _ARGUMENTS_FULL = """\
-  - "args": for a common action, a list of {"id", "value"} for the arguments the step has to \
-set, using only the ids listed for it; leave out every argument it does not need, which keeps its \
-default. For any other action give [] -- its arguments are asked for next.
+  - "args": for an action listed with arguments, a list of {"id", "value"} for the arguments the \
+step has to set, using only the ids listed for it; leave out every argument it does not need, which \
+keeps its default. For any action listed without arguments give [] -- its arguments, if it has \
+any, are asked for next.
   - A "text" argument takes any text, and may use variables such as %city. A "number" argument \
 takes a whole number only. A "checkbox" takes "true" or "false". A "choice" takes one of its \
 options, copied exactly.
@@ -424,12 +433,16 @@ def common_actions(state: RunState, scratch: dict | None = None) -> dict[str, li
     return common
 
 
-def _common_text(common: dict[str, list[FillableArg]]) -> str:
-    """The common actions as the model reads them: 'key name', then each argument it may set."""
-    lines = ["## Common actions, with their arguments"]
-    for key, args in common.items():
-        shown = "; ".join(f"{arg.arg_id} {arg.name} ({_kind_for_prompt(arg)})" for arg in args)
+def _listing_text(heading: str, listed: dict[str, list[FillableArg] | None]) -> str:
+    """Actions as the model reads them: 'key name', then each argument it may set, then what the action is for.
+
+    An action whose arguments are None is listed by name alone, to be asked about next.
+    """
+    lines = [heading]
+    for key, args in listed.items():
+        shown = "; ".join(f"{arg.arg_id} {arg.name} ({_kind_for_prompt(arg)})" for arg in args or ())
         lines.append(f"{key} {action_codes[key].name}" + (f": {shown}" if shown else ""))
+        lines += mapcards.card_lines(key)
     return "\n".join(lines)
 
 
@@ -441,22 +454,46 @@ def _kind_for_prompt(arg: FillableArg) -> str:
 def _candidates(description: str, rows: list[dict]) -> list[dict]:
     """The few actions that most plausibly do what a description says, for a model with no room for them all.
 
-    By the words they share with the description: a word of four letters or more, or its first
-    four letters, found in an action's name or category.  The actions every Task is likely to
-    need are always included.  Only what is SHOWN is limited -- what comes back is checked
-    against the whole catalog.
+    Ranked by mapcards on the words of the description against each action's name and card.  The
+    actions every Task is likely to need are always included.  Only what is SHOWN is limited --
+    what comes back is checked against the whole catalog.
     """
-    words = {word[:4] for word in re.findall(r"[a-z]{4,}", description.casefold())}
-    scored = []
-    for row in rows:
-        haystack = f"{row['name']} {row['category_name']}".casefold()
-        score = sum(word in haystack for word in words)
-        if score:
-            scored.append((-score, row["name"], row))
-    chosen = [row for _score, _name, row in sorted(scored, key=lambda item: item[:2])[:MAX_CANDIDATES]]
+    chosen = mapcards.rank(description, rows, MAX_CANDIDATES)
     keys = {row["action_key"] for row in chosen}
     basics = [row for row in rows if row["action_key"] in _BASIC_ACTIONS and row["action_key"] not in keys]
     return basics + chosen
+
+
+def related_actions(
+    description: str,
+    state: RunState,
+    scratch: dict | None = None,
+) -> dict[str, list[FillableArg] | None]:
+    """The actions outside the common list that best match a description, with their arguments where they fit.
+
+    An action maps to its arguments when it can be listed in full -- few enough arguments, and none
+    with a long list of choices -- and to None when it can only be named, its arguments being
+    asked about in the second question.  Order is best match first.
+    """
+    common = set(_COMMON_ACTIONS)
+    rows = [row for row in action_catalog(state) if row["action_key"] not in common]
+    related: dict[str, list[FillableArg] | None] = {}
+    for row in mapcards.rank(description, rows, MAX_RELATED):
+        args = fillable_args(row["action_key"], state, scratch)
+        fits = len(args) <= MAX_RELATED_ARGS and all(len(arg.options) <= MAX_INLINE_OPTIONS for arg in args)
+        related[row["action_key"]] = args if fits else None
+    return related
+
+
+def listed_with_arguments(
+    description: str,
+    state: RunState,
+    scratch: dict | None = None,
+) -> dict[str, list[FillableArg]]:
+    """Every action the first question lists WITH its arguments: the common ones, and the best matches that fit."""
+    listed = dict(common_actions(state, scratch))
+    listed.update({key: args for key, args in related_actions(description, state, scratch).items() if args is not None})
+    return listed
 
 
 def build_plan_prompt(
@@ -478,12 +515,17 @@ def build_plan_prompt(
     else:
         primer, given, arguments = _PRIMER, _GIVEN_FULL, _ARGUMENTS_FULL
         common = common_actions(state, scratch)
+        related = related_actions(description, state, scratch)
+        listed = set(common) | set(related)
         listing = "\n\n".join(
-            [
-                _common_text(common),
+            part
+            for part in (
+                _listing_text("## Common actions, with their arguments", common),
+                _listing_text("## Best matches for this description", related) if related else "",
                 "## Other actions",
-                _catalog_text([r for r in rows if r["action_key"] not in common]),
-            ],
+                _catalog_text([r for r in rows if r["action_key"] not in listed]),
+            )
+            if part
         )
     system = _PLAN_INSTRUCTIONS.format(max_steps=MAX_STEPS, primer=primer, given=given, arguments=arguments)
     user = "\n".join(["Actions you may use:", listing, "", f"Description: {description.strip()}"])
@@ -545,14 +587,16 @@ def build_detail_prompt(
         args = fillable_args(step.action_key, state, scratch)
         if not args:
             continue
-        steps.append(
-            {
-                "step": number + 1,
-                "action": action_codes[step.action_key].name,
-                "purpose": step.purpose,
-                "args": [_arg_for_prompt(arg) for arg in args],
-            },
-        )
+        shown: dict[str, object] = {
+            "step": number + 1,
+            "action": action_codes[step.action_key].name,
+            "purpose": step.purpose,
+        }
+        card = mapcards.cards().get(step.action_key)
+        if card is not None and card.note:
+            shown["note"] = card.note
+        shown["args"] = [_arg_for_prompt(arg) for arg in args]
+        steps.append(shown)
     if not steps:
         return None
 
@@ -850,14 +894,14 @@ async def draft_task(description: str, settings: ModelSettings, state: RunState,
     plan = parse_plan(reply, state)
     steps, dropped = settle_plan(plan, state, scratch)
 
-    # The arguments of the common actions were asked for with the steps; the others are asked for now.
-    # So is a common action that was given none, though it has some listed: a Flash with no text
+    # The arguments of the actions listed with theirs were asked for with the steps; the others are asked
+    # for now.  So is a listed action that was given none, though it has some listed: a Flash with no text
     # is a model that put the text in the step's purpose, not one that meant it to say nothing.
-    common = {} if compact else common_actions(state, scratch)
+    listed = {} if compact else listed_with_arguments(description, state, scratch)
     answered = {
         number
         for number, (planned, drafted) in enumerate(zip(plan.steps, steps, strict=True))
-        if planned.action_key in common and (drafted.values or not common[planned.action_key])
+        if planned.action_key in listed and (drafted.values or not listed[planned.action_key])
     }
     detail = build_detail_prompt(description, plan, state, scratch, answered) if plan.steps else None
     if detail is not None:

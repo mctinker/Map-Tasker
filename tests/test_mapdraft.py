@@ -21,9 +21,10 @@ from pathlib import Path
 import pytest
 from maptasker.src.analysis import mapask
 from maptasker.src.core import appinv, caches
+from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taskedit_model, taskedit_save
-from maptasker.src.mapops import mapdraft
+from maptasker.src.mapops import mapcards, mapdraft
 
 from tests.test_mapswap import _FIXTURE_XML, _load
 
@@ -166,7 +167,7 @@ def test_a_small_model_is_shown_a_short_prompt_with_what_looks_relevant(backup: 
     assert len(system) + len(user) < 4000
     assert f"{FLASH} Flash" in user  # always shown
     assert "61t Vibrate" in user  # a word of the description
-    assert "511t Torch" not in user  # nothing in the name says flashlight; it is simply not guessed at
+    assert "511t Torch" in user  # nothing in its name says flashlight; its card does
     assert "Common actions" not in user
     assert '"args" is always []' in system
 
@@ -230,6 +231,133 @@ def test_a_perform_task_is_not_shown_the_names_of_the_users_tasks(backup: None) 
 
 def test_a_plan_of_actions_with_nothing_to_set_needs_no_second_question(backup: None) -> None:
     assert mapdraft.build_detail_prompt("lock", _plan_of(SYSTEM_LOCK, ELSE), PrimeItems) is None
+
+
+# ##################################################################################
+# What the model knows about an action (mapcards) and the actions that best match a description.
+# ##################################################################################
+def test_every_card_is_for_an_action_that_exists_under_the_name_it_gives() -> None:
+    """A card that outlives a renamed or removed action would describe the wrong one to a model."""
+    for key, card in mapcards.cards().items():
+        raw = json.loads(Path(mapcards.CARDS_FILE).read_text(encoding="utf-8"))["cards"][key]
+        assert key in action_codes, key
+        assert raw["name"] == action_codes[key].name, key
+        assert card.does.endswith("."), key
+        assert card.phrases or len(card.does) > 20, key
+
+
+def test_a_card_never_says_what_an_actions_arguments_are() -> None:
+    """The arguments are read off the editor; a card that listed them would be a second, drifting, copy."""
+    for key, card in mapcards.cards().items():
+        assert set(json.loads(Path(mapcards.CARDS_FILE).read_text(encoding="utf-8"))["cards"][key]) <= {
+            "name",
+            "does",
+            "phrases",
+            "note",
+        }, key
+        assert "args" not in card.does.casefold().split(), key
+
+
+@pytest.mark.parametrize(
+    ("description", "expected"),
+    [
+        ("replace the dashes in %text with spaces", "598t"),  # Variable Search Replace
+        ("base64 encode the secret", "596t"),  # Variable Convert
+        ("tell me when the sun goes down", None),
+        ("what time is sunrise", "473t"),
+        ("set do not disturb", "312t"),  # Interrupt Mode
+        ("ask the user to type their name", "360t"),  # Input Dialog
+        ("wait until 8pm", "35t"),  # Wait Until, not Wait
+        ("check whether the file exists", "342t"),  # Test File
+        ("turn the screen off", "248t"),
+        ("sort the list", "369t"),  # Array Process
+    ],
+)
+def test_the_action_a_description_is_about_is_among_the_best_matches(
+    backup: None,
+    description: str,
+    expected: str | None,
+) -> None:
+    rows = [row for row in mapdraft.action_catalog(PrimeItems) if row["action_key"] not in mapdraft._COMMON_ACTIONS]
+    best = [row["action_key"] for row in mapcards.rank(description, rows, mapdraft.MAX_RELATED)]
+
+    if expected is not None:
+        assert expected in best, best
+        assert best.index(expected) < 5
+    else:
+        assert best  # nothing is claimed about it, but the words still find something
+
+
+def test_the_best_matches_are_the_same_every_time_and_a_description_with_no_words_gets_none(backup: None) -> None:
+    rows = mapdraft.action_catalog(PrimeItems)
+
+    assert mapcards.rank("copy the file", rows, 10) == mapcards.rank("copy the file", rows, 10)
+    assert mapcards.rank("", rows, 10) == []
+    assert mapcards.rank("the and of to", rows, 10) == []
+    assert mapcards.rank("zzzzqqq", rows, 10) == []
+    assert len(mapcards.rank("file", rows, 3)) == 3
+
+
+def test_words_are_matched_whatever_their_ending() -> None:
+    assert mapcards.terms("vibrating")[0] == mapcards.terms("vibrates")[0] == mapcards.terms("vibrate")[0]
+    assert mapcards.terms("shutting")[0] == mapcards.terms("shut")[0]
+    assert "do_not" not in mapcards.terms("do not disturb")  # stop words are not terms ...
+    assert "not_disturb" in mapcards.terms("do not disturb")  # ... and the neighbours that remain are a term
+
+
+def test_the_actions_that_best_match_are_listed_with_their_arguments_and_what_they_are_for(backup: None) -> None:
+    _, user = mapdraft.build_plan_prompt("replace the dashes in %text with spaces", PrimeItems)
+    before, _, after = user.partition("## Best matches for this description")
+    best, _, others = after.partition("## Other actions")
+
+    assert "598t Variable Search Replace: 0 Variable (text); 1 Search (text)" in best
+    assert "Replace With (text)" in best
+    assert "replace what matches" in best  # the card's sentence, under the action
+    # Listed once: not again among the common ones, nor by name among the rest.
+    assert "598t" not in before
+    assert "598t" not in others
+    assert user.count("\n598t ") == 1
+
+
+def test_a_common_action_is_told_its_pitfall_and_is_not_listed_twice(backup: None) -> None:
+    _, user = mapdraft.build_plan_prompt("lower the media volume", PrimeItems)
+
+    assert user.count("\n307t ") == 1
+    assert "Level is 0 to 15." in user
+    best = user.partition("## Best matches for this description")[2].partition("## Other actions")[0]
+    assert "307t" not in best
+
+
+def test_nothing_of_the_users_is_added_to_the_prompt_by_the_best_matches(backup: None) -> None:
+    system, user = mapdraft.build_plan_prompt("write the text to a file and run the Noisy task", PrimeItems)
+
+    assert "## Best matches for this description" in user
+    for private in ("Noisy", "Opener", "Quiet", "Done: %n", "flash the total", "com.spotify"):
+        assert private not in system.replace("Noisy", "") + user.replace("run the Noisy task", "")
+
+
+def test_an_action_with_too_many_arguments_is_named_not_listed(backup: None, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mapdraft, "MAX_RELATED_ARGS", 1)
+
+    related = mapdraft.related_actions("replace the dashes in %text with spaces", PrimeItems)
+
+    assert related["598t"] is None
+    assert "598t" not in mapdraft.listed_with_arguments("replace the dashes in %text with spaces", PrimeItems)
+    _, user = mapdraft.build_plan_prompt("replace the dashes in %text with spaces", PrimeItems)
+    assert "\n598t Variable Search Replace\n" in user
+    assert "replace what matches" in user
+
+
+def test_the_second_prompt_repeats_a_cards_pitfall(backup: None) -> None:
+    plan = mapdraft.Plan("", (mapdraft.PlanStep("307t", "quieter"), mapdraft.PlanStep(FLASH, "say hi")))
+    _, user = mapdraft.build_detail_prompt("quieter, say hi", plan, PrimeItems)
+    lines = [json.loads(line) for line in user.splitlines() if line.startswith("{")]
+
+    assert lines[0]["note"] == "Level is 0 to 15."
+    assert "note" in lines[1]  # Flash has one too
+    plan = mapdraft.Plan("", (mapdraft.PlanStep(WAIT, "pause"),))
+    _, user = mapdraft.build_detail_prompt("pause", plan, PrimeItems)
+    assert "note" in json.loads(user.splitlines()[-1])
 
 
 # ##################################################################################
@@ -510,6 +638,39 @@ async def test_a_description_of_common_actions_is_drafted_in_one_question(backup
     assert draft.unknown == ("Teleport",)
     assert draft.unexpressed == "'when I get home' is a Profile"
     assert not draft.is_empty
+
+
+@pytest.mark.asyncio
+async def test_an_action_listed_among_the_best_matches_needs_no_second_question(backup: None) -> None:
+    asked = []
+
+    async def model(settings: mapask.ModelSettings, system: str, user: str) -> str:
+        asked.append(user)
+        return _plan({"action": "598t", "args": {"0": "%text", "1": "-", "6": "true", "7": "_"}})
+
+    draft = await mapdraft.draft_task("replace the dashes in %text with spaces", _SETTINGS, PrimeItems, ask=model)
+
+    assert len(asked) == 1
+    assert draft.steps == (mapdraft.DraftStep("598t", "", {"0": "%text", "1": "-", "6": "1", "7": "_"}),)
+    assert not draft.dropped
+
+
+@pytest.mark.asyncio
+async def test_an_action_only_named_among_the_best_matches_is_asked_about_next(
+    backup: None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(mapdraft, "MAX_RELATED_ARGS", 1)
+    asked = []
+
+    async def model(settings: mapask.ModelSettings, system: str, user: str) -> str:
+        asked.append(user)
+        return _plan("598t") if len(asked) == 1 else _detail((1, "", {"0": "%text", "1": "-"}))
+
+    draft = await mapdraft.draft_task("replace the dashes in %text with spaces", _SETTINGS, PrimeItems, ask=model)
+
+    assert len(asked) == 2
+    assert draft.steps == (mapdraft.DraftStep("598t", "", {"0": "%text", "1": "-"}),)
 
 
 @pytest.mark.asyncio
