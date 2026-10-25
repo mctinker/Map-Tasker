@@ -2,35 +2,23 @@
 
 All notable changes to this project will be documented in this file!
 
-## [15.0.2] 25-Oct-2026
+## [15.0.3] ??-Oct-2026  # FIX
 
 ### Added
 
-- Added: Python 3.15 is now supported.
-- Added: A 'Pre-Build The Map' checkbox under 'Open View In New Window' builds the Map in the background as soon as a file is loaded and whenever you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once. It is off by default, and a Map button pressed while it is still building waits for it.
-- Added: __Import With Dependencies__ brings a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use. Every import is previewed first, gives what it brings new ids and names where this file already has something different, and is one press of Undo.
+- Added:
 
 ### Changed
 
-- Changed: The Map view now appears sooner on a large configuration. Preparing the Map for the window takes a fraction of the time, and the Map is smaller to send to the browser; the Map itself looks the same.
+- Changed:
 
 ### Removed
 
-- Removed: Nothing removed
+- Removed:
 
 ### Fixed
 
-- Fixed: Options with a short and a long spelling, such as -e and -everything, were read under the wrong name on Python 3.15, so they were ignored. Each is now read under the same name on every Python version.
-- Fixed: Choosing an indentation in the window now changes it. The choice used to be rejected with an error and the setting stayed at 4.
-- Fixed: Choosing 'None' for a Project, Profile, Task or Scene in a language other than English is now saved as no selection, rather than being restored next time as an item with that name.
-- Fixed: A backup with an empty or impossible day or month in a Day condition, an empty collision-handling setting, or an empty Version 2 Scene layout no longer stops the Map with an error. A TaskerNet description followed by doubled blank lines no longer does either.
-- Fixed: Clicking Exit on Windows now ends MapTasker completely, instead of leaving the command window running. Your settings are still saved on the way out.
-- Fixed: The Variable Convert action now shows JSON Encode, and names its conversions as Tasker does: Base64 was shown as Base65, and Metres, Centimetres and Kilometres were spelled the American way.
-- Fixed: Running 'maptasker -reset' doesn't reset the settings as it should.
-- Fixed: A command-line run that stops on a problem, such as a missing backup file or an invalid option, now says what the problem was instead of ending silently. A backup file that cannot be opened is now reported as such.
-- Fixed: A Profile named from its conditions now keeps the colons in a time, so it reads 'from 9:00 to 17:00' rather than 'from 900 to 1700'.
-- Fixed: Event and State settings that Tasker stores as a code, such as the Priority of Battery Changed, now show what the code means instead of the raw list text. A setting that holds a variable is shown as that variable, rather than failing.
-- Fixed: Getting an API key from your Android device now waits up to 30 seconds for you to approve the request on the phone, and no longer asks again while it waits. Before, the repeated requests made Tasker report "Sending response to invalid request id" from its 'GET Auth' Profile on the ANdroid device.
+- Fixed:
 
 
 ### Known Issues
@@ -45,6 +33,24 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
 
 ## Older History Logs
+
+## [15.0.2] 25-Oct-2026
+
+- Added: Python 3.15 is now supported.
+- Added: A 'Pre-Build The Map' checkbox under 'Open View In New Window' builds the Map in the background as soon as a file is loaded and whenever you choose a different single Project, Profile, Task or Scene, so the Map button opens it at once. It is off by default, and a Map button pressed while it is still building waits for it.
+- Added: __Import With Dependencies__ brings a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use. Every import is previewed first, gives what it brings new ids and names where this file already has something different, and is one press of Undo.
+- Changed: The Map view now appears sooner on a large configuration. Preparing the Map for the window takes a fraction of the time, and the Map is smaller to send to the browser; the Map itself looks the same.
+- Fixed: Options with a short and a long spelling, such as -e and -everything, were read under the wrong name on Python 3.15, so they were ignored. Each is now read under the same name on every Python version.
+- Fixed: Choosing an indentation in the window now changes it. The choice used to be rejected with an error and the setting stayed at 4.
+- Fixed: Choosing 'None' for a Project, Profile, Task or Scene in a language other than English is now saved as no selection, rather than being restored next time as an item with that name.
+- Fixed: A backup with an empty or impossible day or month in a Day condition, an empty collision-handling setting, or an empty Version 2 Scene layout no longer stops the Map with an error. A TaskerNet description followed by doubled blank lines no longer does either.
+- Fixed: Clicking Exit on Windows now ends MapTasker completely, instead of leaving the command window running. Your settings are still saved on the way out.
+- Fixed: The Variable Convert action now shows JSON Encode, and names its conversions as Tasker does: Base64 was shown as Base65, and Metres, Centimetres and Kilometres were spelled the American way.
+- Fixed: Running 'maptasker -reset' doesn't reset the settings as it should.
+- Fixed: A command-line run that stops on a problem, such as a missing backup file or an invalid option, now says what the problem was instead of ending silently. A backup file that cannot be opened is now reported as such.
+- Fixed: A Profile named from its conditions now keeps the colons in a time, so it reads 'from 9:00 to 17:00' rather than 'from 900 to 1700'.
+- Fixed: Event and State settings that Tasker stores as a code, such as the Priority of Battery Changed, now show what the code means instead of the raw list text. A setting that holds a variable is shown as that variable, rather than failing.
+- Fixed: Getting an API key from your Android device now waits up to 30 seconds for you to approve the request on the phone, and no longer asks again while it waits. Before, the repeated requests made Tasker report "Sending response to invalid request id" from its 'GET Auth' Profile on the ANdroid device.
 
 ## [15.0.1] 21-Oct-2026
 
