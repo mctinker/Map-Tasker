@@ -8,6 +8,9 @@ from pathlib import Path
 import pytest
 from maptasker.src.core import outdir
 
+# Fixtures several modules share; see the module.
+pytest_plugins = ["tests.shared_fixtures"]
+
 
 @pytest.fixture(autouse=True)
 def _output_folder_is_the_working_directory(monkeypatch: pytest.MonkeyPatch) -> None:

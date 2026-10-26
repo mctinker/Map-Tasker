@@ -10,111 +10,16 @@ reported as one that will not fire.
 
 from __future__ import annotations
 
-import xml.etree.ElementTree as ET
 from datetime import datetime
 
 import pytest
 from maptasker.src.analysis import firesim
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
-from maptasker.src.mapgen import taskerd
-
-#   Profile 1 'Work Hours'  Time 09:00-17:00 AND Day Mon-Fri, priority 10.  Entry Task 50
-#                           turns WiFi Off.
-#   Profile 2 'Office'      Wifi Connected to Office/Office-5G.  Entry Task 51 turns WiFi On
-#                           -> a SETTING collision with Profile 1 at 10:00 on a weekday.
-#   Profile 3 'Low Battery' Battery Level 0-20.  Entry Task 52.
-#   Profile 4 'Maps'        App Maps.  Entry Task 52 too -> SAME-TASK with Profile 3;
-#                           Task 52 is 'Abort Existing Task'.
-#   Profile 5 'Night'       Time 22:00-06:00, which wraps past midnight.
-#   Profile 6 'Chime'       Time 08:00-12:00 repeating every 30 minutes.
-#   Profile 7 'Notified'    an Event -> never more than possible.
-#   Profile 8 'Switched Off' disabled.
-#   Profile 9 'Away'        Wifi Connected to Home, inverted.
-#   Profile 10 'Sunset'     Time from a variable -> unknown.
-_SIM_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
-  <Project sr="proj0" ve="2">
-    <name>Home</name>
-    <pids>1,2,3,4,5,6,7,8,9,10</pids>
-    <tids>50,51,52,53</tids>
-  </Project>
-  <Profile sr="prof1" ve="2">
-    <id>1</id><nme>Work Hours</nme><mid0>50</mid0><pri>10</pri>
-    <Time sr="con0"><fh>9</fh><fm>0</fm><th>17</th><tm>0</tm></Time>
-    <Day sr="con1"><wday0>2</wday0><wday1>3</wday1><wday2>4</wday2><wday3>5</wday3><wday4>6</wday4></Day>
-  </Profile>
-  <Profile sr="prof2" ve="2">
-    <id>2</id><nme>Office</nme><mid0>51</mid0>
-    <State sr="con0" ve="2"><code>160</code><Str sr="arg0" ve="3">Office/Office-5G</Str>
-      <Str sr="arg1" ve="3"/><Str sr="arg2" ve="3"/><Int sr="arg3" val="2"/></State>
-  </Profile>
-  <Profile sr="prof3" ve="2">
-    <id>3</id><nme>Low Battery</nme><mid0>52</mid0>
-    <State sr="con0" ve="2"><code>140</code><Int sr="arg0" val="0"/><Int sr="arg1" val="20"/></State>
-  </Profile>
-  <Profile sr="prof4" ve="2">
-    <id>4</id><nme>Maps</nme><mid0>52</mid0>
-    <App sr="con0" ve="2"><cls0>com.google.android.maps.MapsActivity</cls0><flags>2</flags>
-      <label0>Maps</label0><pkg0>com.google.android.apps.maps</pkg0></App>
-  </Profile>
-  <Profile sr="prof5" ve="2">
-    <id>5</id><nme>Night</nme><mid0>53</mid0>
-    <Time sr="con0"><fh>22</fh><fm>0</fm><th>6</th><tm>0</tm></Time>
-  </Profile>
-  <Profile sr="prof6" ve="2">
-    <id>6</id><nme>Chime</nme><mid0>53</mid0>
-    <Time sr="con0"><fh>8</fh><fm>0</fm><rep>2</rep><repval>30</repval><th>12</th><tm>0</tm></Time>
-  </Profile>
-  <Profile sr="prof7" ve="2">
-    <id>7</id><nme>Notified</nme><mid0>53</mid0>
-    <Event sr="con0" ve="2"><code>461</code></Event>
-  </Profile>
-  <Profile sr="prof8" ve="2">
-    <id>8</id><nme>Switched Off</nme><limit>true</limit><mid0>53</mid0>
-    <Time sr="con0"><fh>0</fh><fm>0</fm><th>23</th><tm>59</tm></Time>
-  </Profile>
-  <Profile sr="prof9" ve="2">
-    <id>9</id><nme>Away</nme><mid0>53</mid0>
-    <State sr="con0" ve="2"><code>160</code><pin>true</pin><Str sr="arg0" ve="3">Home</Str>
-      <Str sr="arg1" ve="3"/><Str sr="arg2" ve="3"/></State>
-  </Profile>
-  <Profile sr="prof10" ve="2">
-    <id>10</id><nme>Sunset</nme><mid0>53</mid0>
-    <Time sr="con0"><fromvar>%SunsetTime</fromvar><tovar>%SunriseTime</tovar></Time>
-  </Profile>
-  <Task sr="task50"><id>50</id><nme>Wifi Off</nme>
-    <Action sr="act0" ve="7"><code>425</code><Int sr="arg0" val="0"/></Action>
-  </Task>
-  <Task sr="task51"><id>51</id><nme>Wifi On</nme>
-    <Action sr="act0" ve="7"><code>425</code><Int sr="arg0" val="1"/></Action>
-  </Task>
-  <Task sr="task52"><id>52</id><nme>Shared</nme><rty>1</rty>
-    <Action sr="act0" ve="7"><code>30</code><Int sr="arg1" val="5"/></Action>
-  </Task>
-  <Task sr="task53"><id>53</id><nme>Quiet</nme>
-    <Action sr="act0" ve="7"><code>30</code><Int sr="arg1" val="1"/></Action>
-  </Task>
-</TaskerData>
-"""
 
 # Monday 28 September 2026.
+pytestmark = pytest.mark.usefixtures("_loaded")
+
 _MONDAY = datetime.fromisoformat("2026-09-28T10:00")  # naive: a Time condition reads local time
-
-
-@pytest.fixture(autouse=True)
-def _loaded() -> None:
-    """Build the PrimeItems lookup tables from the fixture, the way taskerd does from a file."""
-    root = ET.fromstring(_SIM_XML)
-    PrimeItems.file_to_get = "fixture.xml"
-    PrimeItems.xml_root = root
-    PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100)
-    PrimeItems.tasker_root_elements = {
-        "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
-        "all_profiles": taskerd.move_xml_to_table(root.findall("Profile"), True, "nme"),
-        "all_tasks": taskerd.move_xml_to_table(root.findall("Task"), True, "nme"),
-        "all_scenes": taskerd.move_xml_to_table(root.findall("Scene"), False, "nme"),
-        "all_services": [],
-    }
 
 
 def _states(scenario: firesim.Scenario) -> dict[str, str]:

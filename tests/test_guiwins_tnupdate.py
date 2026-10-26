@@ -28,7 +28,9 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_notify import UserNotify
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.test_tnupdate import _V2, LINK, _info, _live, _runtime, _share  # noqa: F401  (_runtime is the fixture)
+from tests.test_tnupdate import _V2, LINK, _info, _live, _share
+
+pytestmark = pytest.mark.usefixtures("_runtime")
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable
@@ -38,7 +40,7 @@ _built: dict = {}
 
 
 @pytest.fixture(autouse=True)
-def _network(monkeypatch: pytest.MonkeyPatch, _runtime: None) -> None:  # noqa: F811
+def _network(monkeypatch: pytest.MonkeyPatch, _runtime: None) -> None:
     """TaskerNet replaced by two answers the tests set: what is published, and what it says."""
     guiwins_tnfind._JOBS.clear()  # a scan from one test must not be picked up by the next
     _built.clear()

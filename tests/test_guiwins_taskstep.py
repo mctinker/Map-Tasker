@@ -19,9 +19,11 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.shared_fixtures import _load_local
 from tests.test_taskstep import _xml, else_, end_if, if_, set_
 from tests.test_taskstep_calls import perform, returning
-from tests.test_tnupdate import _load_local, _runtime  # noqa: F401  (_runtime is the fixture)
+
+pytestmark = pytest.mark.usefixtures("_runtime")
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable

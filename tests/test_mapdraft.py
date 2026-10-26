@@ -21,13 +21,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 from maptasker.src.analysis import mapask
-from maptasker.src.core import appinv, caches
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taskedit_model, taskedit_save
 from maptasker.src.mapops import mapcards, mapdraft
-
-from tests.test_mapswap import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -46,23 +43,6 @@ ARRAY_PROCESS = "369t"  # arg1 Type -- a choice
 SYSTEM_LOCK = "16t"  # no arguments at all
 
 _SETTINGS = mapask.ModelSettings(mapask.ANTHROPIC, "claude-sonnet-5", "test-key")
-
-
-@pytest.fixture
-def backup(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """test_mapswap's fixture backup, loaded: its Tasks are Noisy, Opener and Quiet.
-
-    With a small, known list of fetched Applications, kept in a cache file of its own.  What is
-    addable follows the Application and icon inventory (Notify, one of the common actions, has an
-    icon argument), and the inventory includes whatever MapTasker_Apps.json sits in the current
-    directory -- so without this, the catalog these tests read was the maintainer's phone locally
-    and an empty one on a CI checkout, and the same test passed in one place and failed in the other.
-    """
-    cache = tmp_path / "MapTasker_Apps.json"
-    cache.write_text(json.dumps({"devices": {"test:1821": {"apps": [{"pkg": "com.test.app", "label": "Test"}]}}}))
-    monkeypatch.setattr(appinv, "cache_path", lambda: str(cache))
-    caches.clear_all()
-    _load(_FIXTURE_XML)
 
 
 def _detail_prompt(

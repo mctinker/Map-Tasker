@@ -21,7 +21,7 @@ from maptasker.src.analysis import mapask
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapops import mapcards, mapdraft
 
-from tests.test_mapdraft import FLASH, IF, WAIT, _detail_prompt, _plan, backup  # noqa: F401  (backup is a fixture)
+from tests.test_mapdraft import FLASH, IF, WAIT, _detail_prompt, _plan
 
 _HI = {"action": FLASH, "args": {"0": "Hi"}}
 _WAIT = {"action": WAIT, "args": {"1": "5"}}
@@ -35,7 +35,7 @@ _SECRET = "hunter2-secret-value"
 
 
 @pytest.fixture
-def variables(backup: None, monkeypatch: pytest.MonkeyPatch) -> None:  # noqa: F811
+def variables(backup: None, monkeypatch: pytest.MonkeyPatch) -> None:
     """Global variables in the loaded backup, one with a value that must never be sent, and a Task list of known names."""
     for name in ("%Total", "%HomeCity", "%Password"):
         element = ET.SubElement(PrimeItems.xml_root, "Variable", {"sr": "var0"})
@@ -70,7 +70,7 @@ def test_a_description_about_no_tasker_variable_gets_none() -> None:
     assert len(mapcards.builtin_variables("date", 2)) == 2
 
 
-def test_the_variables_are_mentioned_with_what_they_hold_and_without_any_consent(backup: None) -> None:  # noqa: F811
+def test_the_variables_are_mentioned_with_what_they_hold_and_without_any_consent(backup: None) -> None:
     _, user = mapdraft.build_plan_prompt("say the battery level", PrimeItems)
 
     assert "Tasker built-in variables that may be relevant: " in user
@@ -78,7 +78,7 @@ def test_the_variables_are_mentioned_with_what_they_hold_and_without_any_consent
     assert "Names from the user's own configuration" not in user
 
 
-def test_a_small_model_is_mentioned_the_variables_too(backup: None) -> None:  # noqa: F811
+def test_a_small_model_is_mentioned_the_variables_too(backup: None) -> None:
     _, user = mapdraft.build_plan_prompt("say the battery level", PrimeItems, compact=True)
 
     assert "%BATT (Battery Level)" in user
@@ -240,7 +240,7 @@ def _answers(*replies: str) -> tuple[list[tuple[mapask.ModelSettings, str]], map
 
 
 @pytest.mark.asyncio
-async def test_an_action_that_does_not_exist_is_sent_back_and_the_correction_used(backup: None) -> None:  # noqa: F811
+async def test_an_action_that_does_not_exist_is_sent_back_and_the_correction_used(backup: None) -> None:
     asked, model = _answers(_plan(_HI, "Teleport"), _plan(_HI, _WAIT))
 
     draft = await mapdraft.draft_task("flash then wait", _CLOUD, PrimeItems, ask=model)
@@ -256,7 +256,7 @@ async def test_an_action_that_does_not_exist_is_sent_back_and_the_correction_use
 
 
 @pytest.mark.asyncio
-async def test_the_second_try_gets_the_same_shape_of_reply_asked_for(backup: None) -> None:  # noqa: F811
+async def test_the_second_try_gets_the_same_shape_of_reply_asked_for(backup: None) -> None:
     asked, model = _answers(_plan("Teleport", _HI), _plan(_HI))
 
     await mapdraft.draft_task("flash", _CLOUD, PrimeItems, ask=model)
@@ -266,7 +266,7 @@ async def test_the_second_try_gets_the_same_shape_of_reply_asked_for(backup: Non
 
 
 @pytest.mark.asyncio
-async def test_a_value_that_was_not_allowed_is_sent_back_with_the_reason(backup: None) -> None:  # noqa: F811
+async def test_a_value_that_was_not_allowed_is_sent_back_with_the_reason(backup: None) -> None:
     asked, model = _answers(
         _plan({"action": WAIT, "args": {"1": "five"}}),
         _plan({"action": WAIT, "args": {"1": "5"}}),
@@ -280,7 +280,7 @@ async def test_a_value_that_was_not_allowed_is_sent_back_with_the_reason(backup:
 
 
 @pytest.mark.asyncio
-async def test_an_if_left_open_is_sent_back(backup: None) -> None:  # noqa: F811
+async def test_an_if_left_open_is_sent_back(backup: None) -> None:
     asked, model = _answers(_plan(_IF, _HI), _plan(_IF, _HI, "38t"))
 
     draft = await mapdraft.draft_task("flash if", _CLOUD, PrimeItems, ask=model)
@@ -291,7 +291,7 @@ async def test_an_if_left_open_is_sent_back(backup: None) -> None:  # noqa: F811
 
 
 @pytest.mark.asyncio
-async def test_a_correction_that_is_no_better_is_not_used(backup: None) -> None:  # noqa: F811
+async def test_a_correction_that_is_no_better_is_not_used(backup: None) -> None:
     first = _plan(_HI, "Teleport")
     asked, model = _answers(first, _plan("Teleport", "Warp", "Beam"))
 
@@ -303,7 +303,7 @@ async def test_a_correction_that_is_no_better_is_not_used(backup: None) -> None:
 
 
 @pytest.mark.asyncio
-async def test_a_correction_that_is_not_a_draft_is_not_used(backup: None) -> None:  # noqa: F811
+async def test_a_correction_that_is_not_a_draft_is_not_used(backup: None) -> None:
     asked, model = _answers(_plan(_HI, "Teleport"), "I am sorry, I cannot do that.")
 
     draft = await mapdraft.draft_task("flash", _CLOUD, PrimeItems, ask=model)
@@ -314,7 +314,7 @@ async def test_a_correction_that_is_not_a_draft_is_not_used(backup: None) -> Non
 
 
 @pytest.mark.asyncio
-async def test_a_correction_with_nothing_in_it_is_not_used(backup: None) -> None:  # noqa: F811
+async def test_a_correction_with_nothing_in_it_is_not_used(backup: None) -> None:
     _asked, model = _answers(_plan(_HI, "Teleport"), _plan())
 
     draft = await mapdraft.draft_task("flash", _CLOUD, PrimeItems, ask=model)
@@ -323,7 +323,7 @@ async def test_a_correction_with_nothing_in_it_is_not_used(backup: None) -> None
 
 
 @pytest.mark.asyncio
-async def test_a_reply_with_no_json_is_sent_back_once(backup: None) -> None:  # noqa: F811
+async def test_a_reply_with_no_json_is_sent_back_once(backup: None) -> None:
     asked, model = _answers("Sure! Here you go.", _plan(_HI))
 
     draft = await mapdraft.draft_task("flash", _CLOUD, PrimeItems, ask=model)
@@ -334,7 +334,7 @@ async def test_a_reply_with_no_json_is_sent_back_once(backup: None) -> None:  # 
 
 
 @pytest.mark.asyncio
-async def test_two_replies_with_no_json_are_an_error_and_nothing_is_asked_a_third_time(backup: None) -> None:  # noqa: F811
+async def test_two_replies_with_no_json_are_an_error_and_nothing_is_asked_a_third_time(backup: None) -> None:
     asked, model = _answers("no", "still no")
 
     with pytest.raises(mapask.AskError):
@@ -344,7 +344,7 @@ async def test_two_replies_with_no_json_are_an_error_and_nothing_is_asked_a_thir
 
 
 @pytest.mark.asyncio
-async def test_a_draft_is_never_corrected_more_than_once(backup: None) -> None:  # noqa: F811
+async def test_a_draft_is_never_corrected_more_than_once(backup: None) -> None:
     asked, model = _answers(_plan("Teleport", "Warp", FLASH), _plan("Teleport", _HI), _plan(_HI))
 
     draft = await mapdraft.draft_task("flash", _CLOUD, PrimeItems, ask=model)
@@ -356,7 +356,7 @@ async def test_a_draft_is_never_corrected_more_than_once(backup: None) -> None: 
 
 
 @pytest.mark.asyncio
-async def test_a_clean_reply_is_not_sent_back(backup: None) -> None:  # noqa: F811
+async def test_a_clean_reply_is_not_sent_back(backup: None) -> None:
     asked, model = _answers(_plan(_HI, _WAIT))
 
     await mapdraft.draft_task("flash then wait", _CLOUD, PrimeItems, ask=model)
@@ -365,7 +365,7 @@ async def test_a_clean_reply_is_not_sent_back(backup: None) -> None:  # noqa: F8
 
 
 @pytest.mark.asyncio
-async def test_a_model_on_this_computer_is_not_asked_again(backup: None) -> None:  # noqa: F811
+async def test_a_model_on_this_computer_is_not_asked_again(backup: None) -> None:
     asked, model = _answers(_plan("Teleport"), _plan(_HI))
 
     draft = await mapdraft.draft_task("flash", _LOCAL, PrimeItems, ask=model)
@@ -375,7 +375,7 @@ async def test_a_model_on_this_computer_is_not_asked_again(backup: None) -> None
 
 
 @pytest.mark.asyncio
-async def test_a_small_model_that_sends_no_json_is_an_error_at_once(backup: None) -> None:  # noqa: F811
+async def test_a_small_model_that_sends_no_json_is_an_error_at_once(backup: None) -> None:
     asked, model = _answers("no", _plan(_HI))
 
     with pytest.raises(mapask.AskError):
@@ -385,7 +385,7 @@ async def test_a_small_model_that_sends_no_json_is_an_error_at_once(backup: None
 
 
 @pytest.mark.asyncio
-async def test_the_part_of_the_reply_that_is_repeated_is_cut(backup: None) -> None:  # noqa: F811
+async def test_the_part_of_the_reply_that_is_repeated_is_cut(backup: None) -> None:
     long = json.dumps({"name": "x" * 20000, "steps": [{"action": "Teleport", "purpose": "", "label": "", "args": []}]})
     asked, model = _answers(long, _plan(_HI))
 

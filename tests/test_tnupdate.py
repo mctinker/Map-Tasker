@@ -32,47 +32,19 @@ from pathlib import Path
 import httpx
 import pytest
 from maptasker.src.core import clock
-from maptasker.src.core.colrmode import set_color_mode
-from maptasker.src.core.initparg import ProgramArguments
-from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
+from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sessundo
-from maptasker.src.mapgen import taskerd
-from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.mapops import maprestore, tnupdate
+
+from tests.shared_fixtures import _load_local
+
+pytestmark = pytest.mark.usefixtures("_runtime")
 
 USER = "AS35m8ne7oO4s+aDx/wlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn"
 LINK = (
     "https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn"
     "&id=Project%3APack"
 )
-
-# ##################################################################################
-# The configuration open now.  Its ids (20-22, 100-101) share nothing with the share's (5-12),
-# which is the whole point: that is what an import does.
-#
-#   Project Pack     Profiles Dawn (runs the anonymous Task 22) and Dusk (runs Morning).
-#                    Tasks Morning, Helper, and the anonymous one.
-#   Project Other    Task Elsewhere -- belongs to something else, and must never be offered.
-#
-# Dawn is enabled here (flags 10, no <limit>): the importer switched it on.
-# ##################################################################################
-_LOCAL_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
-  <Project sr="proj0" ve="2"><name>Pack</name><pids>100,101</pids><tids>20,21</tids></Project>
-  <Project sr="proj1" ve="2"><name>Other</name><tids>50</tids></Project>
-  <Profile sr="prof100" ve="2"><cdate>1</cdate><flags>10</flags><id>100</id><mid0>22</mid0><nme>Dawn</nme>
-    <Time sr="con0"><fh>6</fh></Time></Profile>
-  <Profile sr="prof101" ve="2"><cdate>1</cdate><flags>10</flags><id>101</id><mid0>20</mid0><nme>Dusk</nme>
-    <Time sr="con0"><fh>18</fh></Time></Profile>
-  <Task sr="task20" ve="2"><id>20</id><nme>Morning</nme>
-    <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">hello</Str></Action></Task>
-  <Task sr="task21" ve="2"><id>21</id><nme>Helper</nme>
-    <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">helping</Str></Action></Task>
-  <Task sr="task22" ve="2"><id>22</id>
-    <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">anon</Str></Action></Task>
-  <Task sr="task50" ve="2"><id>50</id><nme>Elsewhere</nme>
-    <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">not mine</Str></Action></Task>
-</TaskerData>
-"""
 
 
 def _share(*, dawn_hour: str = "6", morning: str = "hello", anon: str = "anon", helper: str = "Helper") -> str:
@@ -109,42 +81,6 @@ _V2 = """<TaskerData sr="" dvi="1" tv="6.2.0-beta">
     <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">new</Str></Action></Task>
 </TaskerData>
 """
-
-
-def _write(tmp_path: Path, name: str, text: str) -> str:
-    path = tmp_path / name
-    path.write_text(text, encoding="utf-8")
-    return str(path)
-
-
-def _load_local(tmp_path: Path, xml: str) -> None:
-    """Load `xml` as the configuration open now, the way MapTasker loads one."""
-    with open(_write(tmp_path, "local.xml", xml), encoding="utf-8") as handle:
-        PrimeItems.file_to_get = handle
-        PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-        taskerd.get_the_xml_data(state=PrimeItems)
-
-
-@pytest.fixture(autouse=True)
-def _runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """A believable runtime with the local configuration loaded the way MapTasker loads one."""
-    monkeypatch.chdir(tmp_path)
-    sessundo.clear(PrimeItems)
-    PrimeItems.program_arguments = ProgramArguments(
-        gui=True, debug=False, directory=False, pretty=False, display_detail_level=3, file="", language="English"
-    )
-    PrimeItems.error_code = 0
-    PrimeItems.error_msg = ""
-    PrimeItems.directory_items = {"current_item": "", "projects": [], "profiles": [], "tasks": [], "scenes": []}
-    PrimeItems.output_lines = LineOut()
-    PrimeItems.colors_to_use = set_color_mode("light")
-    specs_file = Path(__file__).parent.parent / "maptasker" / "assets" / "json" / "arg_specs.json"
-    specs = json.loads(specs_file.read_text(encoding="utf-8"))
-    specs[str(len(specs))] = "ConditionList"
-    PrimeItems.tasker_arg_specs = specs
-    _load_local(tmp_path, _LOCAL_XML)
-    yield
-    sessundo.clear(PrimeItems)
 
 
 def _link(kind: str = "Project", name: str = "Pack", share: str = LINK) -> tnupdate.Link:

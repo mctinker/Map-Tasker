@@ -320,7 +320,7 @@ class RecipeStep:
     action: str
     purpose: str = ""
     label: str = ""
-    args: Mapping[str, str] = field(default_factory=lambda: {})  # noqa: PIE807
+    args: Mapping[str, str] = field(default_factory=dict[str, str])
 
 
 @dataclass(frozen=True)

@@ -21,8 +21,10 @@ from maptasker.src.core import timeline
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapops import trend
 
+from tests.shared_fixtures import _load_local
 from tests.test_taskstep import _act, _i, _s, disabled, end_for, end_if, flash, for_, if_, set_
-from tests.test_tnupdate import _load_local, _runtime  # noqa: F401  (_runtime is the fixture)
+
+pytestmark = pytest.mark.usefixtures("_runtime")
 
 
 def perform(name: str) -> str:
@@ -52,7 +54,7 @@ def measure(tmp_path: Path, **projects: dict[str, tuple[str, ...]]) -> tuple[tre
 
 
 @pytest.fixture(autouse=True)
-def _history(tmp_path: Path, _runtime: None):  # noqa: F811
+def _history(tmp_path: Path, _runtime: None):
     """Keep the history in a folder of the test's own, and put the default back.
 
     After _runtime, which loads a configuration and so records it: that load belongs in the working directory's

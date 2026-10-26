@@ -15,7 +15,6 @@ import inspect
 from types import SimpleNamespace
 
 import pytest
-from maptasker import src  # noqa: F401  (the package under test)
 from maptasker.src import mapit
 from nicegui import app
 

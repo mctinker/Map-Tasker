@@ -26,8 +26,6 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import taskedit, taskedit_args
 from maptasker.src.mapops import mapcards, mapdraft
 
-from tests.test_mapdraft import backup  # noqa: F401  (a fixture: the fixture backup, loaded)
-
 _SETTINGS = mapask.ModelSettings(mapask.ANTHROPIC, "claude-sonnet-5", "test-key")
 _RECIPES = mapcards.recipes()
 _IDS = [recipe.recipe_id for recipe in _RECIPES]
@@ -144,7 +142,7 @@ def test_the_recipes_cover_the_shapes_a_model_gets_wrong() -> None:
 @pytest.mark.asyncio
 @pytest.mark.parametrize("recipe", _RECIPES, ids=_IDS)
 async def test_a_recipe_is_drafted_exactly_as_written_with_nothing_dropped(
-    backup: None,  # noqa: F811
+    backup: None,
     tasks: None,
     recipe: mapcards.Recipe,
 ) -> None:
@@ -162,7 +160,7 @@ async def test_a_recipe_is_drafted_exactly_as_written_with_nothing_dropped(
 
 @pytest.mark.parametrize("recipe", _RECIPES, ids=_IDS)
 def test_a_recipe_builds_into_the_editor_without_a_note(
-    backup: None,  # noqa: F811
+    backup: None,
     tasks: None,
     recipe: mapcards.Recipe,
 ) -> None:
@@ -187,7 +185,7 @@ def test_a_recipe_builds_into_the_editor_without_a_note(
 # ##################################################################################
 @pytest.mark.parametrize("recipe", _RECIPES, ids=_IDS)
 def test_a_recipe_asked_about_finds_itself_with_every_argument_shown(
-    backup: None,  # noqa: F811
+    backup: None,
     recipe: mapcards.Recipe,
 ) -> None:
     """The example for its own description loses no argument: each is one the question listed for its action."""
@@ -213,14 +211,14 @@ def test_a_recipe_found_by_its_own_description_comes_first() -> None:
         assert mapcards.similar_recipes(recipe.description)[0].recipe_id == recipe.recipe_id
 
 
-def test_a_description_that_nothing_resembles_gets_no_examples(backup: None) -> None:  # noqa: F811
+def test_a_description_that_nothing_resembles_gets_no_examples(backup: None) -> None:
     assert mapcards.similar_recipes("zzzz qqqq") == []
     _, user = mapdraft.build_plan_prompt("zzzz qqqq", PrimeItems)
 
     assert "Examples of replies" not in user
 
 
-def test_the_examples_are_the_nearest_few_and_come_before_the_description(backup: None) -> None:  # noqa: F811
+def test_the_examples_are_the_nearest_few_and_come_before_the_description(backup: None) -> None:
     description = "wait 10 seconds then say 'Hi'"
     _, user = mapdraft.build_plan_prompt(description, PrimeItems)
 
@@ -229,14 +227,14 @@ def test_the_examples_are_the_nearest_few_and_come_before_the_description(backup
     assert user.endswith(f"Description: {description}")
 
 
-def test_a_small_model_is_shown_no_examples(backup: None) -> None:  # noqa: F811
+def test_a_small_model_is_shown_no_examples(backup: None) -> None:
     _, user = mapdraft.build_plan_prompt("wait 10 seconds then say 'Hi'", PrimeItems, compact=True)
 
     assert "Examples of replies" not in user
     assert "Reply:" not in user
 
 
-def test_an_example_never_does_what_the_questions_rules_forbid(backup: None) -> None:  # noqa: F811
+def test_an_example_never_does_what_the_questions_rules_forbid(backup: None) -> None:
     """An action listed without arguments is given [] -- so the example gives it none either."""
     recipe = next(recipe for recipe in _RECIPES if recipe.recipe_id == "ask-name")
 
@@ -249,7 +247,7 @@ def test_an_example_never_does_what_the_questions_rules_forbid(backup: None) -> 
     assert narrower[1]["args"] == []  # an argument that was not listed is left out too
 
 
-def test_the_actions_an_example_uses_are_listed_with_their_arguments(backup: None) -> None:  # noqa: F811
+def test_the_actions_an_example_uses_are_listed_with_their_arguments(backup: None) -> None:
     description = "ask me my name and say hello to them"
     related = mapdraft.related_actions(description, PrimeItems)
     listed = mapdraft.listed_with_arguments(description, PrimeItems)
@@ -259,7 +257,7 @@ def test_the_actions_an_example_uses_are_listed_with_their_arguments(backup: Non
     assert {"8", "2"} <= {arg.arg_id for arg in listed["360t"]}
 
 
-def test_an_example_is_left_out_if_the_editor_cannot_build_what_it_uses(backup: None) -> None:  # noqa: F811
+def test_an_example_is_left_out_if_the_editor_cannot_build_what_it_uses(backup: None) -> None:
     everything = mapcards.similar_recipes("ask me my name and say hello to them")
     without_input_dialog = mapcards.similar_recipes(
         "ask me my name and say hello to them",
@@ -270,7 +268,7 @@ def test_an_example_is_left_out_if_the_editor_cannot_build_what_it_uses(backup: 
     assert all("360t" not in recipe.action_keys for recipe in without_input_dialog)
 
 
-def test_the_examples_carry_nothing_of_the_users(backup: None) -> None:  # noqa: F811
+def test_the_examples_carry_nothing_of_the_users(backup: None) -> None:
     system, user = mapdraft.build_plan_prompt("flash the total", PrimeItems)
 
     for private in ("Noisy", "Opener", "Quiet", "Done: %n", "flash the total's", "com.spotify"):
@@ -278,7 +276,7 @@ def test_the_examples_carry_nothing_of_the_users(backup: None) -> None:  # noqa:
 
 
 @pytest.mark.asyncio
-async def test_a_description_with_examples_is_still_drafted_in_one_question(backup: None) -> None:  # noqa: F811
+async def test_a_description_with_examples_is_still_drafted_in_one_question(backup: None) -> None:
     asked = []
     recipe = next(recipe for recipe in _RECIPES if recipe.recipe_id == "wait-say")
 
@@ -297,7 +295,7 @@ async def test_a_description_with_examples_is_still_drafted_in_one_question(back
 # The scoring, and an opt-in run against a real model.
 # ##################################################################################
 @pytest.mark.asyncio
-async def test_a_model_that_gets_it_wrong_scores_low(backup: None, tasks: None) -> None:  # noqa: F811
+async def test_a_model_that_gets_it_wrong_scores_low(backup: None, tasks: None) -> None:
     recipe = _RECIPES[0]
     other = _RECIPES[1]
 
@@ -317,7 +315,7 @@ _KEYS = {
 @pytest.mark.asyncio
 @pytest.mark.skipif(not _LIVE, reason="set MAPTASKER_DRAFT_EVAL=<provider>:<model> to score a real model")
 async def test_a_real_model_drafts_the_recipes_from_their_held_out_wording(
-    backup: None,  # noqa: F811
+    backup: None,
     tasks: None,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

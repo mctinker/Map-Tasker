@@ -427,23 +427,24 @@ def append_blank(path: Path, strings: list[str]) -> None:
             file.write(f'\nmsgid {encode(msgid)}\nmsgstr ""\n')
 
 
-_sync_tool: ModuleType | None = None
+_loaded_tools: dict[str, ModuleType] = {}  # sync_and_clean_po, once it has been loaded
 
 
 def load_sync_tool(locale: Path) -> ModuleType:
     """sync_and_clean_po.py, pointed at this tree.  It needs the "ai" extra and deep-translator, so only --fix loads it."""
-    global _sync_tool  # noqa: PLW0603  (loaded once, on first use)
-    if _sync_tool is None:
+    if "sync" not in _loaded_tools:
         path = Path(__file__).with_name("sync_and_clean_po.py")
         spec = importlib.util.spec_from_file_location("sync_and_clean_po", path)
         if spec is None or spec.loader is None:
             message = f"cannot load {path}"
             raise ImportError(message)
-        _sync_tool = importlib.util.module_from_spec(spec)
+        module = importlib.util.module_from_spec(spec)
         sys.path.insert(0, str(ROOT))
-        spec.loader.exec_module(_sync_tool)
-    vars(_sync_tool).update(SRC_PATH=SOURCE, LOCALE_PATH=locale)  # the stages read these as globals
-    return _sync_tool
+        spec.loader.exec_module(module)
+        _loaded_tools["sync"] = module
+    tool = _loaded_tools["sync"]
+    vars(tool).update(SRC_PATH=SOURCE, LOCALE_PATH=locale)  # the stages read these as globals
+    return tool
 
 
 def translate_missing(results: list[Findings], locale: Path) -> int:

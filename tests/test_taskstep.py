@@ -26,7 +26,9 @@ import pytest
 from maptasker.src.analysis import taskstep
 from maptasker.src.core.primitem import PrimeItems
 
-from tests.test_tnupdate import _load_local, _runtime  # noqa: F401  (_runtime is the fixture)
+from tests.shared_fixtures import _load_local
+
+pytestmark = pytest.mark.usefixtures("_runtime")
 
 # ##################################################################################
 # Building Tasks.

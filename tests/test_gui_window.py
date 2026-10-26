@@ -20,27 +20,24 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import copy
 import logging
 from collections.abc import AsyncIterator
 
 import pytest
-from maptasker.src.core import primitem
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import ARGUMENTS_FILE
-from maptasker.src.gui import guiutils, guiwins
 from nicegui import core, ui
 from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-pytestmark = pytest.mark.asyncio
+from tests.shared_fixtures import _built
 
-_built: dict = {}
+pytestmark = [pytest.mark.asyncio, pytest.mark.usefixtures("fresh_session")]
 
 
 def _build_window() -> None:
@@ -48,31 +45,6 @@ def _build_window() -> None:
     from maptasker.src.gui.userintr import MyGui
 
     _built["gui"] = MyGui()
-
-
-@pytest.fixture(autouse=True)
-def fresh_session(tmp_path, monkeypatch: pytest.MonkeyPatch):
-    """A working directory of its own, a fresh run, nothing loaded -- and everything the window
-    changes on the way up put back afterwards, so no other test inherits it."""
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(PrimeItems, "program_arguments", initialize_runtime_arguments())
-    for name in primitem.LOADED_CONFIGURATION_ATTRIBUTES:
-        monkeypatch.setattr(PrimeItems, name, copy.deepcopy(primitem._RUN_DEFAULTS[name]))
-    monkeypatch.setattr(PrimeItems, "slash", "/")
-    monkeypatch.setattr(PrimeItems, "mygui", None)
-    monkeypatch.setattr(PrimeItems, "colors_to_use", {})
-    monkeypatch.setattr(PrimeItems, "language_set", False)
-    monkeypatch.setattr(PrimeItems, "languages_translated", dict(PrimeItems.languages_translated))
-    monkeypatch.setitem(guiwins._NOTIFY_TIMEOUT, "ms", guiwins._NOTIFY_TIMEOUT["ms"])
-    # The daily PyPI check is scheduled only on the day's first run; this is never it.
-    monkeypatch.setattr(guiutils, "is_first_run_today", lambda *_args, **_kwargs: False)
-    had_translator, translator = hasattr(PrimeItems, "_"), getattr(PrimeItems, "_", None)
-    _built.clear()
-    yield tmp_path
-    if had_translator:
-        PrimeItems._ = translator
-    elif hasattr(PrimeItems, "_"):
-        del PrimeItems._
 
 
 @contextlib.asynccontextmanager

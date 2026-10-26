@@ -21,9 +21,9 @@ from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import readiness
 from nicegui import ui
 
-from tests.test_gui_window import _button, _click, _open_window, fresh_session  # noqa: F401
+from tests.test_gui_window import _button, _click, _open_window
 
-pytestmark = pytest.mark.asyncio
+pytestmark = [pytest.mark.asyncio, pytest.mark.usefixtures("fresh_session")]
 
 _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
   <Project sr="proj0" ve="2">

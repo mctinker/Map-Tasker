@@ -13,11 +13,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from maptasker.src.analysis import taskstep
 from maptasker.src.core.primitem import PrimeItems
 
+from tests.shared_fixtures import _load_local
 from tests.test_taskstep import _act, _i, _s, _xml, else_, end_for, end_if, flash, for_, if_, lines, set_, stop
-from tests.test_tnupdate import _load_local, _runtime  # noqa: F401  (_runtime is the fixture)
+
+pytestmark = pytest.mark.usefixtures("_runtime")
 
 
 def perform(

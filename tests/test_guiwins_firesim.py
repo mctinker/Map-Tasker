@@ -18,14 +18,12 @@ from maptasker.src.gui import guiwins_firesim
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.test_firesim import _loaded  # noqa: F401  (_loaded is the fixture)
-
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable
 
     from nicegui.testing.user import User
 
-pytestmark = pytest.mark.asyncio
+pytestmark = [pytest.mark.asyncio, pytest.mark.usefixtures("_loaded")]
 
 _built: dict = {}
 

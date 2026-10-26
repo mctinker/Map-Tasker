@@ -23,18 +23,15 @@ would ever see.
 
 from __future__ import annotations
 
-import json
-import os
 import xml.etree.ElementTree as ET
 
-import pytest
 from maptasker.src.analysis import xmldiff
-from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import actions_in_map_order
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sessundo
-from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import maprefac, maprefac_model, maprestore
+
+from tests.shared_fixtures import _tables
 
 FLASH = "548"
 PERFORM_TASK = "130"
@@ -86,58 +83,9 @@ _OLDER_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 </TaskerData>
 """
 
-# The configuration open now.
-#
-#   Task 20 'Morning' edited: one Flash gone, a Perform Task 'Helper' added -- so bringing
-#   Helper back is bringing back something a call is still waiting for.
-#   Task 23 renamed to 'New Name' AND edited -- two xmldiff entries, one revert.
-#   Task 30 added, the %Global value changed, Project Gone deleted -- all three differences
-#   the list must decline to offer, and count.
-_NEWER_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
-  <Variable sr="v0"><n>%Global</n><v>2</v></Variable>
-  <Project sr="proj0" ve="2">
-    <name>Home</name>
-    <id>p-home</id>
-    <pids>100</pids>
-    <tids>20,23,30</tids>
-  </Project>
-  <Profile sr="prof100" ve="2"><id>100</id><nme>Dawn</nme><mid0>20</mid0>
-    <Time sr="con0"><fh>6</fh><fm>0</fm><th>7</th><tm>0</tm></Time></Profile>
-  <Task sr="task20" ve="2"><id>20</id><nme>Morning</nme>
-    <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">hello</Str></Action>
-    <Action sr="act1" ve="7"><code>130</code><Str sr="arg0" ve="3">Helper</Str></Action>
-  </Task>
-  <Task sr="task23" ve="2"><id>23</id><nme>New Name</nme>
-    <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">original</Str></Action>
-    <Action sr="act1" ve="7"><code>548</code><Str sr="arg0" ve="3">added later</Str></Action>
-  </Task>
-  <Task sr="task30" ve="2"><id>30</id><nme>Added</nme>
-    <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">new</Str></Action>
-  </Task>
-</TaskerData>
-"""
-
 
 class _SnapshotElement(ET.Element):
     """The snapshot's own Element class -- deliberately not the live tree's."""
-
-
-def _tables(root: ET.Element) -> dict:
-    """PrimeItems-shaped tables for one parsed root, the way taskerd builds them."""
-    tables = {
-        "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
-        "all_profiles": taskerd.move_xml_to_table(root.findall("Profile"), True, "nme"),
-        "all_tasks": taskerd.move_xml_to_table(root.findall("Task"), True, "nme"),
-        "all_scenes": taskerd.move_xml_to_table(root.findall("Scene"), False, "nme"),
-        "all_services": [],
-    }
-    tables["all_profiles_by_name"] = {
-        profile["name"]: {"xml": profile["xml"], "id": key} for key, profile in tables["all_profiles"].items()
-    }
-    tables["all_tasks_by_name"] = {
-        task["name"]: {"xml": task["xml"], "id": key} for key, task in tables["all_tasks"].items() if task["name"]
-    }
-    return tables
 
 
 def _older() -> xmldiff.Configuration:
@@ -151,25 +99,6 @@ def _older() -> xmldiff.Configuration:
 def _newer() -> xmldiff.Configuration:
     """The configuration open now, as a comparison side."""
     return xmldiff.Configuration(path="now", tables=PrimeItems.tasker_root_elements, root=PrimeItems.xml_root)
-
-
-@pytest.fixture
-def loaded() -> None:
-    """The newer configuration open, with an empty undo history."""
-    sessundo.clear(PrimeItems)
-    root = ET.fromstring(_NEWER_XML)
-    PrimeItems.file_to_get = "fixture.xml"
-    PrimeItems.xml_root = root
-    PrimeItems.xml_tree = ET.ElementTree(root)
-    PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
-    specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file, encoding="utf-8") as handle:
-        specs = json.load(handle)
-    specs[str(len(specs))] = "ConditionList"
-    PrimeItems.tasker_arg_specs = specs
-    PrimeItems.tasker_root_elements = _tables(root)
-    yield
-    sessundo.clear(PrimeItems)
 
 
 # ##################################################################################

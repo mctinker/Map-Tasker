@@ -144,7 +144,7 @@
     "reportArgumentType": 1
   },
   "tests/test_gui_window.py": {
-    "reportAttributeAccessIssue": 22,
+    "reportAttributeAccessIssue": 21,
     "reportOptionalContextManager": 1
   },
   "tests/test_guistate_selection.py": {
@@ -308,10 +308,6 @@
     "reportReturnType": 2
   },
   "tests/test_maprefac_variable.py": {
-    "reportInvalidTypeForm": 1,
-    "reportReturnType": 1
-  },
-  "tests/test_maprestore.py": {
     "reportInvalidTypeForm": 1,
     "reportReturnType": 1
   },

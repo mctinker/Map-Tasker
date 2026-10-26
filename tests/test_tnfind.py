@@ -26,7 +26,10 @@ from maptasker.src.core import clock
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapops import tnfind, tnupdate
 
-from tests.test_tnupdate import _LOCAL_XML, _V2, _link, _load_local, _runtime, _share  # noqa: F401  (_runtime is the fixture)
+from tests.shared_fixtures import _LOCAL_XML, _load_local
+from tests.test_tnupdate import _share
+
+pytestmark = pytest.mark.usefixtures("_runtime")
 
 PUBLISHER = "AS35m8ne7oO4s+aDx/wlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn"
 

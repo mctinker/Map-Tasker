@@ -27,7 +27,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.test_maprestore import _older, loaded  # noqa: F401  (loaded is the fixture the tests below ask for)
+from tests.test_maprestore import _older
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable
@@ -148,7 +148,7 @@ async def test_with_nothing_loaded_there_is_no_dialog_and_a_message() -> None:
 
 
 @pytest.mark.asyncio
-async def test_with_no_history_there_is_no_dialog_and_a_message(loaded: None) -> None:  # noqa: F811
+async def test_with_no_history_there_is_no_dialog_and_a_message(loaded: None) -> None:
     """A configuration no file has ever been loaded from has nothing behind it to restore from."""
     _built["snapshots"] = []
     async with _open() as user:
@@ -157,7 +157,7 @@ async def test_with_no_history_there_is_no_dialog_and_a_message(loaded: None) ->
 
 
 @pytest.mark.asyncio
-async def test_the_newest_snapshot_is_chosen_first_and_its_rows_are_listed(loaded: None) -> None:  # noqa: F811
+async def test_the_newest_snapshot_is_chosen_first_and_its_rows_are_listed(loaded: None) -> None:
     """Newest first, because it is the one most often wanted; its differences are the rows."""
     async with _open() as user:
         await _listed(user)
@@ -170,7 +170,7 @@ async def test_the_newest_snapshot_is_chosen_first_and_its_rows_are_listed(loade
 
 
 @pytest.mark.asyncio
-async def test_choosing_another_snapshot_reads_that_one(loaded: None) -> None:  # noqa: F811
+async def test_choosing_another_snapshot_reads_that_one(loaded: None) -> None:
     """The pulldown is the way back to something that was gone before this file was loaded."""
     async with _open() as user:
         await _listed(user)
@@ -183,7 +183,7 @@ async def test_choosing_another_snapshot_reads_that_one(loaded: None) -> None:  
 
 
 @pytest.mark.asyncio
-async def test_a_snapshot_that_cannot_be_read_says_why_instead_of_listing_nothing(loaded: None) -> None:  # noqa: F811
+async def test_a_snapshot_that_cannot_be_read_says_why_instead_of_listing_nothing(loaded: None) -> None:
     """An empty list would read as 'nothing was lost'."""
     _built["problem"] = "That snapshot is damaged."
     async with _open() as user:
@@ -195,7 +195,7 @@ async def test_a_snapshot_that_cannot_be_read_says_why_instead_of_listing_nothin
 # Previewing: nothing is applied unseen
 # ##################################################################################
 @pytest.mark.asyncio
-async def test_apply_is_greyed_out_until_a_preview_is_up(loaded: None) -> None:  # noqa: F811
+async def test_apply_is_greyed_out_until_a_preview_is_up(loaded: None) -> None:
     """Apply makes the plan on screen and no other, so with none on screen it is not there to press."""
     async with _open() as user:
         await _listed(user)
@@ -203,7 +203,7 @@ async def test_apply_is_greyed_out_until_a_preview_is_up(loaded: None) -> None: 
 
 
 @pytest.mark.asyncio
-async def test_restore_this_draws_a_preview_and_changes_nothing(loaded: None) -> None:  # noqa: F811
+async def test_restore_this_draws_a_preview_and_changes_nothing(loaded: None) -> None:
     """Pressing a row only plans.  The configuration is exactly as it was."""
     tasks_before = dict(PrimeItems.tasker_root_elements["all_tasks"])
     async with _open() as user:
@@ -217,7 +217,7 @@ async def test_restore_this_draws_a_preview_and_changes_nothing(loaded: None) ->
 
 
 @pytest.mark.asyncio
-async def test_cancel_preview_takes_the_preview_and_apply_away(loaded: None) -> None:  # noqa: F811
+async def test_cancel_preview_takes_the_preview_and_apply_away(loaded: None) -> None:
     """The preview goes, and with it the only plan Apply could have made."""
     async with _open() as user:
         await _listed(user)
@@ -233,7 +233,7 @@ async def test_cancel_preview_takes_the_preview_and_apply_away(loaded: None) -> 
 # Applying
 # ##################################################################################
 @pytest.mark.asyncio
-async def test_apply_restores_one_object_rebuilds_the_window_and_lists_again(loaded: None) -> None:  # noqa: F811
+async def test_apply_restores_one_object_rebuilds_the_window_and_lists_again(loaded: None) -> None:
     """One object, undoable, the window refreshed -- and the row restored stays, with a green button."""
     async with _open() as user:
         await _listed(user)
@@ -257,7 +257,7 @@ async def test_apply_restores_one_object_rebuilds_the_window_and_lists_again(loa
 # Saving
 # ##################################################################################
 @pytest.mark.asyncio
-async def test_save_to_current_file_asks_the_view_to_save(loaded: None) -> None:  # noqa: F811
+async def test_save_to_current_file_asks_the_view_to_save(loaded: None) -> None:
     """Written by the view, which reports its own outcome; the dialog only asks."""
     async with _open() as user:
         await _listed(user)
@@ -267,7 +267,7 @@ async def test_save_to_current_file_asks_the_view_to_save(loaded: None) -> None:
 
 
 @pytest.mark.asyncio
-async def test_close_closes_the_dialog(loaded: None) -> None:  # noqa: F811
+async def test_close_closes_the_dialog(loaded: None) -> None:
     """Closing leaves the configuration alone."""
     async with _open() as user:
         await _listed(user)

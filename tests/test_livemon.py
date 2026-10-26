@@ -13,7 +13,6 @@ from datetime import datetime
 
 from maptasker.src.analysis import firesim, livemon
 from maptasker.src.core.primitem import PrimeItems
-from maptasker.src.mapgen import taskerd  # noqa: F401  (the fixture loader's own import)
 
 from tests.test_resrefs import _load
 

@@ -21,7 +21,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.test_tnupdate import _runtime  # noqa: F401  (_runtime is the fixture)
+pytestmark = pytest.mark.usefixtures("_runtime")
 from tests.test_trend import _at, _snapshot, config, flash, perform
 
 if TYPE_CHECKING:
@@ -34,7 +34,7 @@ _built: dict = {}
 
 
 @pytest.fixture(autouse=True)
-def _history(tmp_path: Path, _runtime: None):  # noqa: F811
+def _history(tmp_path: Path, _runtime: None):
     """A history folder of the test's own, after _runtime's own load has been recorded elsewhere."""
     _built.clear()
     timeline.use_history_folder(tmp_path / "history")
