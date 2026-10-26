@@ -19,7 +19,7 @@ use them:
 
 | Script | What it does |
 | --- | --- |
-| `check_catalogs.py` | **Run this periodically.** Checks every catalog against the source and, with `--fix`, brings them up to date |
+| `check_catalogs.py` | **Run this periodically.** Checks every catalog against the source, and every translated README against `README.md`, and with `--fix` brings them up to date |
 | `sync_and_clean_po.py` | Brings every catalog up to date and repairs it, in seven stages |
 | `translate_po.py` | Machine-translates untranslated entries (Google Translate) |
 | `po_to_mo.sh` | Compiles every `messages.po` to the `messages.mo` the app loads |
@@ -32,6 +32,7 @@ python tools/language_support/check_catalogs.py                      # look
 python tools/language_support/check_catalogs.py --fix                # translate what is missing, repair, recompile
 python tools/language_support/check_catalogs.py --fix --no-translate # add it blank (shown in English) and translate later
 python tools/language_support/check_catalogs.py --lang de --verbose  # one language, every string listed
+python tools/language_support/check_catalogs.py --readme-only        # only the translated READMEs (or --catalogs-only)
 ```
 
 It reports a string the program asks for that a catalog lacks; a string the program translates through a variable
@@ -43,6 +44,13 @@ stages below over what was translated, and recompiles the `.mo` files. It never 
 in a catalog are mostly reverse entries (`Nada` -> `None`) that turn a language the user typed in their own words
 back into English. Machine translation of a single word has no context -- check the short ones it adds (`Finish`, the
 program's spelling of the language Finnish, comes back as the verb). A placeholder it can only report.
+
+It also checks `README_translated/README.<code>.md` against `README.md`, block by block (paragraph, list, table, code
+block ...): a block the English has and the translation lacks, one whose links, images, code or table shape differ, one
+only the translation has, a missing note after the title pointing back to the English, and blocks still in English.
+`--fix` adds, replaces and drops those, and translates what is in English, with code, URLs and link targets protected from
+the translator (a line that loses one stays in English and is retried next run). With `--no-translate` the English goes in
+as it is. Rewriting a file also tidies its blank lines, and machine translation is a start -- read it before a release.
 
 `sync_and_clean_po.py` is the one to reach for after adding a
 `translate_string()` call or rewording a help screen, and the one to run when a
