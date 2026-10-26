@@ -19,9 +19,30 @@ use them:
 
 | Script | What it does |
 | --- | --- |
+| `check_catalogs.py` | **Run this periodically.** Checks every catalog against the source and, with `--fix`, brings them up to date |
 | `sync_and_clean_po.py` | Brings every catalog up to date and repairs it, in seven stages |
 | `translate_po.py` | Machine-translates untranslated entries (Google Translate) |
 | `po_to_mo.sh` | Compiles every `messages.po` to the `messages.mo` the app loads |
+
+`check_catalogs.py` is the one to run now and then (after adding a `translate_string()` call, rewording a help
+screen, and before a release). On its own it only reports, one line a language, and exits 1 if anything needs doing:
+
+```
+python tools/language_support/check_catalogs.py                      # look
+python tools/language_support/check_catalogs.py --fix                # translate what is missing, repair, recompile
+python tools/language_support/check_catalogs.py --fix --no-translate # add it blank (shown in English) and translate later
+python tools/language_support/check_catalogs.py --lang de --verbose  # one language, every string listed
+```
+
+It reports a string the program asks for that a catalog lacks; a string the program translates through a variable
+(the language names, say) that nearly every catalog holds and one does not; a blank translation; a msgid defined
+twice; a placeholder (`{count}`, `%s`) the translation lost; a `msgctxt` entry, which the program never looks up; and a
+`messages.mo` that no longer says what its `.po` says. `--fix` removes the duplicates, makes context entries plain,
+translates and adds what is missing (Ollama first, then Google: it needs the `ai` extra and a network), runs the repair
+stages below over what was translated, and recompiles the `.mo` files. It never deletes a translation: the "orphans"
+in a catalog are mostly reverse entries (`Nada` -> `None`) that turn a language the user typed in their own words
+back into English. Machine translation of a single word has no context -- check the short ones it adds (`Finish`, the
+program's spelling of the language Finnish, comes back as the verb). A placeholder it can only report.
 
 `sync_and_clean_po.py` is the one to reach for after adding a
 `translate_string()` call or rewording a help screen, and the one to run when a

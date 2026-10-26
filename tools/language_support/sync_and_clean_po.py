@@ -61,8 +61,9 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 
-SRC_PATH = Path("/Users/mikrubin/MapTasker/maptasker/src")
-LOCALE_PATH = Path("/Users/mikrubin/MapTasker/maptasker/locale")
+# Relative to this file, so the tool runs from any checkout -- check_catalogs.py points these at its own tree.
+SRC_PATH = Path(__file__).resolve().parents[2] / "maptasker" / "src"
+LOCALE_PATH = Path(__file__).resolve().parents[2] / "maptasker" / "locale"
 
 # Function names that mean "this string is user-visible and must be translated".
 TRANSLATE_FUNCS = {"translate_string", "_translate", "_"}
