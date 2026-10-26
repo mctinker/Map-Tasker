@@ -17,8 +17,9 @@ env:
 jobs:
   test:
     # The Ubuntu jobs keep their original names ("test (py3.11)" ...) so any branch
-    # protection rule that requires them still matches; the Windows job adds "windows, ".
-    name: test (${{ matrix.os == 'windows-latest' && 'windows, ' || '' }}py${{ matrix.python-version }})
+    # protection rule that requires them still matches; the Windows and macOS jobs add
+    # "windows, " and "macos, ".
+    name: test (${{ matrix.os == 'windows-latest' && 'windows, ' || matrix.os == 'macos-latest' && 'macos, ' || '' }}py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -26,14 +27,19 @@ jobs:
         os: [ubuntu-latest]
         # pyproject requires-python = ">=3.11, <4.0"
         python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
-        # One Windows job, on the newest Python: enough to catch path, drive-letter and
-        # per-user-folder differences (outdir's Documents folder, apikeys' %APPDATA%)
-        # without tripling the matrix.
+        # One Windows job and one macOS job, on the newest Python the CI matrix shares with a
+        # release: enough to catch path, drive-letter and per-user-folder differences
+        # (outdir's Documents folder, apikeys' %APPDATA%) without tripling the matrix.  macOS is
+        # where the program is developed and where most users run it: font discovery
+        # (mapfonts), the Documents and Application Support folders, the Keychain behind the
+        # password store, and the case-insensitive filesystem all differ from Linux.
         include:
           - os: windows-latest
             python-version: "3.13"
+          - os: macos-latest
+            python-version: "3.13"
     # Git Bash on Windows, so the steps below (the coverage summary's { ... } >> redirect
-    # in particular) run the same on both systems.
+    # in particular) run the same on every system.
     defaults:
       run:
         shell: bash
@@ -80,8 +86,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          # Artifact names must be unique within a run, and Ubuntu and Windows both run 3.13.
-          name: reports-${{ matrix.os == 'windows-latest' && 'windows-' || '' }}py${{ matrix.python-version }}
+          # Artifact names must be unique within a run, and all three systems run 3.13.
+          name: reports-${{ matrix.os == 'windows-latest' && 'windows-' || matrix.os == 'macos-latest' && 'macos-' || '' }}py${{ matrix.python-version }}
           path: |
             coverage.xml
             junit-${{ matrix.python-version }}.xml

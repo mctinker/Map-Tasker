@@ -7,7 +7,7 @@
 #
 #   ./run-ci.sh              run every gate
 #   ./run-ci.sh --fix        format and auto-fix lint first, then run every gate
-#   ./run-ci.sh --quick      skip the test and build gates (the slow ones)
+#   ./run-ci.sh --quick      skip the test, audit and build gates (the slow ones)
 #
 # Keep this in step with .github/workflows/ci.yml when either changes.
 
@@ -95,7 +95,7 @@ run_gate "import layers" uv run --no-sync lint-imports
 run_gate "ruff format --check" uv run --no-sync ruff format --check
 
 if [ "$QUICK" -eq 1 ]; then
-    printf '%s\n\n' "${DIM}skipping test and build gates (--quick)${RESET}"
+    printf '%s\n\n' "${DIM}skipping test, audit and build gates (--quick)${RESET}"
 else
     # The coverage floor lives in [tool.coverage.report] fail_under, so this
     # gate fails on a coverage regression as well as on a failing test.
@@ -105,6 +105,9 @@ else
     # Each layer on its own against scripts/coverage_baseline.json, which fail_under (one
     # number for the whole program) cannot see.  Reads the .coverage file the gate above made.
     run_gate "coverage by layer" uv run --no-sync python scripts/coverage_ratchet.py
+
+    # The locked versions against the vulnerability databases.  Needs a network, like the build.
+    run_gate "dependency audit" ./scripts/dependency_audit.sh
 
     # Build into a scratch directory so the working tree stays clean.
     DIST=$(mktemp -d)

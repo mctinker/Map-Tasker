@@ -28,6 +28,8 @@
 !LICENSE
 !README.md
 !README_PyPl.md
+# How the source is laid out and what keeps it that way; the one place that says it all.
+!ARCHITECTURE.md
 !pyproject.toml
 !generated_output_files.md
 # Tracked so CI can `uv sync --locked` and get byte-identical dependencies.

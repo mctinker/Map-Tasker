@@ -1,0 +1,36 @@
+name: Dependency audit
+
+# What CI tests is what uv.lock pins, so that is what is audited: every package MapTasker runs
+# on (and the optional "ai" extra), at the pinned version, against the known-vulnerability
+# databases.  See scripts/dependency_audit.sh.
+#
+# Not part of ci.yml, because a vulnerability is published on its own schedule and has nothing
+# to do with the change being tested: put there, it would fail an unrelated pull request the
+# day an advisory appeared.  So it runs when the dependencies change, to keep a bad one out,
+# and weekly, to notice one that has gone bad since.
+
+on:
+  push:
+    paths: ["uv.lock", "pyproject.toml", "scripts/dependency_audit.sh", ".github/workflows/audit.yml"]
+  pull_request:
+    paths: ["uv.lock", "pyproject.toml", "scripts/dependency_audit.sh", ".github/workflows/audit.yml"]
+  schedule:
+    - cron: "17 6 * * 1" # Mondays, 06:17 UTC
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: audit dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: pip-audit the locked versions
+        run: ./scripts/dependency_audit.sh

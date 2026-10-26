@@ -1,0 +1,18 @@
+# Keeps the pinned dependencies (uv.lock) and the workflow actions current.  Dependabot opens the
+# pull request; CI tests it and the dependency audit (.github/workflows/audit.yml) vets it.
+version: 2
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Patch and minor releases of everything together, so the lock moves in one reviewed step
+    # a week rather than in a pull request per package; a major release is its own.
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
