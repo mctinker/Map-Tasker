@@ -1,15 +1,22 @@
 """GUI Window Classes and Definitions (NiceGUI Version)"""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from nicegui import ui
 
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.gui.guiutils import window_state
 
+if TYPE_CHECKING:
+    from maptasker.src.gui.userintr import MyGui
+
 
 class APIKeyDialog:
     """Manages the AI API Keys popup using a NiceGUI modal dialog."""
 
-    def __init__(self, master_gui: object) -> None:
+    def __init__(self, master_gui: MyGui) -> None:
         """Initialize the NiceGUI dialog container."""
         self.master = master_gui
         self.my_gui = master_gui

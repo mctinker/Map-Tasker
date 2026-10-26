@@ -81,7 +81,7 @@ def get_profile_tasks(
                 state.found_named_items["single_task_found"] = True
                 profile_name = the_profile.find("nme")
                 if profile_name is not None:
-                    state.program_arguments.single_profile_name = profile_name.text
+                    state.program_arguments.single_profile_name = profile_name.text or ""
                 break
 
         elif tag == "nme":

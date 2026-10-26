@@ -34,8 +34,8 @@ def get_ids(
     doing_head_xml_element: bool,
     head_xml_element: Element,
     head_xml_element_name: str,
-    head_xml_elements_without_profiles: list,
-) -> list:
+    head_xml_elements_without_profiles: list[str],
+) -> list[str]:
     """
     Find either head_xml_element 'pids' (Profile IDs) or 'tids' (Task IDs)
     :param doing_head_xml_element: True if looking for Profile IDs, False if Task IDs.
@@ -60,7 +60,7 @@ def get_ids(
     return found_ids.split(",") if found_ids != "" else []
 
 
-def get_kid_app(element: Element, state: RunState) -> str:
+def get_kid_app(element: Element | None, state: RunState) -> str:
     """
     Get any associated Kid Application info and return it
         :param element: root element to search for <Kid>
@@ -105,7 +105,7 @@ def get_kid_app(element: Element, state: RunState) -> str:
     return kid_app_info
 
 
-def get_priority(element: Element, event: bool) -> str:
+def get_priority(element: Element | None, event: bool) -> str:
     """
     Get any associated priority for the Task/Profile
         :param element: root element to search for
@@ -122,7 +122,7 @@ def get_priority(element: Element, event: bool) -> str:
     return f"&nbsp;&nbsp;[Priority: {priority_element.text}]"
 
 
-def get_collision(element: Element) -> str:
+def get_collision(element: Element | None) -> str:
     """
     Get any Task collision setting
         :param element: root element to search for
@@ -145,7 +145,7 @@ def get_collision(element: Element) -> str:
     return f"&nbsp;&nbsp;[Collision: {collision_text}]"
 
 
-def get_awake(element: Element) -> str:
+def get_awake(element: Element | None) -> str:
     """
     Get any Task Stay Awake (Keep Device Awake) setting
         :param element: root element to search for

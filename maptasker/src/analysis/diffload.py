@@ -53,6 +53,7 @@ from maptasker.src.mapgen.taskerd import get_the_xml_data
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from datetime import datetime
+    from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
 
@@ -82,7 +83,7 @@ class _Parsed(NamedTuple):
 
     return_code: int
     tables: dict
-    root: object | None
+    root: Element | None
     scratch: str
 
 

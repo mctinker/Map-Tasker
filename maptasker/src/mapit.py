@@ -301,7 +301,7 @@ def initialize_everything(state: RunState) -> tuple[list, list, list]:
     """
     # Reset colors to use if running unit test
     if "-test=yes" in sys.argv:
-        state.colors_to_use = []
+        state.colors_to_use = {}
 
     # Check to see if we might be coming from another program (e.g. run_test.py), and we are not generating a map view.
     # If so, re-initialize PrimeItems since it is still carrying the values from the last test/run.

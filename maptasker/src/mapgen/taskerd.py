@@ -69,7 +69,11 @@ def get_the_xml_data(state: RunState) -> None:
         message = "Bad XML file"
         raise MapTaskerError(message, 1)
 
-    state.xml_root = state.xml_tree.getroot()
+    root = state.xml_tree.getroot()
+    if root is None:
+        message = "Bad XML file"
+        raise MapTaskerError(message, 1)
+    state.xml_root = root
     if state.xml_root.tag != "TaskerData":
         message = "Invalid Tasker backup XML file"
         raise MapTaskerError(message, 3)

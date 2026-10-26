@@ -313,15 +313,15 @@ class HTMLDocumentSanitizer(HTMLParser):
     def __init__(self) -> None:
         """Initialize the sanitizer."""
         super().__init__()
-        self.parts = []
+        self.parts: list[str] = []
         # Depth of nesting inside a dropped element, whose content goes with it.
         self.dropped_depth = 0
         # Tags left open, so the result can be closed off properly however ragged the input.
-        self.open_tags = []
+        self.open_tags: list[str] = []
         # Depth of nesting inside <pre>, where whitespace is content rather than layout.
         self.preformatted_depth = 0
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Emit an allowed tag with its safe attributes; drop or unwrap anything else."""
         tag = TAG_ALIASES.get(tag, tag)
         if tag in DROPPED_ELEMENTS:
@@ -340,7 +340,7 @@ class HTMLDocumentSanitizer(HTMLParser):
             self.open_tags.append(tag)
             self.parts.append(f"<{tag}{attributes}>")
 
-    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """A self-closing tag opens and closes in one go, so it never joins the open list."""
         tag = TAG_ALIASES.get(tag, tag)
         if tag in DROPPED_ELEMENTS or self.dropped_depth or tag not in ALLOWED_ELEMENTS:
@@ -391,9 +391,9 @@ class HTMLDocumentSanitizer(HTMLParser):
             text = WHITESPACE_RUN.sub(" ", text)
         self.parts.append(text)
 
-    def _safe_attributes(self, attrs: list[tuple[str, str]]) -> str:
+    def _safe_attributes(self, attrs: list[tuple[str, str | None]]) -> str:
         """Render the attributes worth keeping, as a string ready to follow a tag name."""
-        kept = []
+        kept: list[str] = []
         for name, value in attrs:
             attribute = name.lower()
             if attribute not in ALLOWED_ATTRIBUTES or value is None:

@@ -26,12 +26,9 @@ def count_trailing_blanks(text_string: str, position: int) -> int:
     Returns:
         The total number of blank spaces found.
     """
-    # Input validation.  These used to be returned as text from a function whose callers multiply the
-    # answer by a string, so a bad call ended in a confusing TypeError further on.
-    if not isinstance(text_string, str):
-        message = "The first argument must be a string."
-        raise TypeError(message)
-    if not isinstance(position, int) or position < 0 or position > len(text_string):
+    # Input validation.  A bad position used to be returned as text from a function whose callers multiply
+    # the answer by a string, so a bad call ended in a confusing TypeError further on.
+    if position < 0 or position > len(text_string):
         message = "The second argument must be a valid integer position within the string."
         raise ValueError(message)
 
@@ -190,7 +187,7 @@ class BlankLineLimiter:
         if not text:
             return
 
-        pieces = []
+        pieces: list[str] = []
         position = 0
         for tag in HTML_TAG.finditer(text):
             between = text[position : tag.start()]
@@ -329,7 +326,7 @@ class SpanBalancer:
         if not text:
             return
 
-        pieces = []
+        pieces: list[str] = []
         position = 0
         for tag in HTML_TAG.finditer(text):
             pieces.append(text[position : tag.start()])
@@ -438,7 +435,7 @@ class MapWriter:
 
         limiter = self.limiter
         balancer = self.balancer
-        pieces = []
+        pieces: list[str] = []
         position = 0
         for tag in HTML_TAG.finditer(text):
             between = text[position : tag.start()]

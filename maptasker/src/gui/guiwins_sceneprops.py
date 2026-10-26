@@ -13,7 +13,8 @@
 #
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import functools
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
@@ -299,7 +300,7 @@ class _ScenePropertiesDialog:
         # and a translated label would make `showing` unreadable in every language
         # but English and stop matching the moment the language changed.
         with ui.tabs(
-            value=showing["tab"],
+            value=cast("Any", showing["tab"]),  # a tab's name; NiceGUI types it as the tab itself
             on_change=lambda event: showing.__setitem__("tab", str(event.value)),
         ).classes("w-full") as tabs:
             for name in _SCENE_TABS:
@@ -657,13 +658,15 @@ def _render_scene_action_item_picker(
 
     def refresh_picker(_event: object | None = None) -> None:
         picker_container.clear()
-        rows = taskedit_addable.search_addable_actions(search_input.value, category_select.value, state=self.state)
+        rows = taskedit_addable.search_addable_actions(
+            search_input.value or "", category_select.value, state=self.state
+        )
         with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
             for row in rows:
                 if row["addable"]:
                     ui.button(
                         f"{row['name']} ({row['category_name']})",
-                        on_click=lambda r=row: add_item(r["action_key"]),
+                        on_click=functools.partial(add_item, row["action_key"]),
                     ).props("flat align=left dense").classes("w-full justify-start")
                 else:
                     with ui.column().classes("w-full gap-0"):
@@ -703,7 +706,7 @@ def _render_scene_event_tab(
     if showing["event"] not in events:
         showing["event"] = sceneedit_legacy.LEGACY_SCENE_EVENTS[0].label
 
-    with ui.tabs(value=showing["event"]).classes("w-full mt-2") as event_tabs:
+    with ui.tabs(value=cast("Any", showing["event"])).classes("w-full mt-2") as event_tabs:
         for event in sceneedit_legacy.LEGACY_SCENE_EVENTS:
             ui.tab(event.label, label=translate_string(event.label))
     event_body = ui.column().classes("w-full")
@@ -866,14 +869,14 @@ def _render_task_picker(on_pick: Callable[[str], None], state: RunState) -> None
 
     def refresh_picker(_event: object | None = None) -> None:
         picker_container.clear()
-        matches = taskedit.search_pickable_tasks(search_input.value, project_select.value, state=state)
+        matches = taskedit.search_pickable_tasks(search_input.value or "", project_select.value, state=state)
         with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
             if not matches:
                 ui.label(translate_string("No Task matches.")).classes("text-xs text-gray-500 italic")
             for row in matches:
                 ui.button(
                     f"{row['name']} ({row['project_name']})",
-                    on_click=lambda r=row: on_pick(r["name"]),
+                    on_click=functools.partial(on_pick, row["name"]),
                 ).props("flat align=left dense").classes("w-full justify-start")
 
     search_input.on_value_change(refresh_picker)

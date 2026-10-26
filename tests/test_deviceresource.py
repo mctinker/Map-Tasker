@@ -314,7 +314,7 @@ class _Apps:
         self.fetched += 1
         if self.fail:
             return 8, self.fail
-        appinv._store_fetched_apps(
+        appinv.store_fetched_apps(
             f"{ip_address}:{ip_port}",
             [appinv.AppEntry(pkg=package, label="", cls="") for package in sorted(self.packages)],
         )
@@ -374,7 +374,7 @@ def test_what_the_check_stored_is_what_the_health_check_reports(monkeypatch: pyt
 
 
 def test_the_app_list_already_fetched_is_used_when_not_asked_to_refresh(monkeypatch: pytest.MonkeyPatch) -> None:
-    appinv._store_fetched_apps(DEVICE, [appinv.AppEntry(pkg="com.here.app", label="", cls="")])
+    appinv.store_fetched_apps(DEVICE, [appinv.AppEntry(pkg="com.here.app", label="", cls="")])
     outcome, apps = _check(monkeypatch, existing=set(), packages={"com.never.used"}, scenes=["Panel"], refresh=False)
 
     assert apps.fetched == 0

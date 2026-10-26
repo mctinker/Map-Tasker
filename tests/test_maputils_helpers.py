@@ -247,11 +247,6 @@ def test_a_suffix_goes_before_the_extension() -> None:
     assert maputils.append_to_filename(".hidden", "_x") == ".hidden_x"
 
 
-def test_a_filename_that_is_not_text_is_refused() -> None:
-    assert maputils.append_to_filename(None, "_x") is None
-    assert maputils.append_to_filename("a.txt", 5) is None
-
-
 @pytest.mark.parametrize(
     ("given", "expected"),
     [
@@ -367,11 +362,6 @@ def test_a_rename_that_the_system_refuses_is_reported_not_raised(tmp_path: Path)
 
     assert maputils.rename_file(str(old), str(tmp_path / "no" / "such" / "dir" / "new.txt")) is False
     assert old.exists()
-
-
-def test_a_rename_needs_two_names() -> None:
-    assert maputils.rename_file(None, "x") is False
-    assert maputils.rename_file("x", None) is False
 
 
 def _restart_harness(monkeypatch: pytest.MonkeyPatch) -> dict:

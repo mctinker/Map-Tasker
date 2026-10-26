@@ -339,7 +339,7 @@ class OfferRoute:
     label: str  # "Profile" / "Project" / "Scene" -- how this reads in a message to the user
     confirm_endpoint: str  # where an import of this kind can be asked about afterwards
     task_name: str
-    builder: Callable[..., object]  # takes the run state it builds the Task for: builder(state=...)
+    builder: Callable[..., EditableTask | str]  # takes the run state it builds the Task for: builder(state=...)
     stage_location: str
     extension: str  # 'prf.xml' / 'prj.xml' -- what tells Tasker what it is looking at
     read_path: str
@@ -394,7 +394,7 @@ def _build_offer_routes(
     """
     key = label.lower()
 
-    def route(verb: str, builder: Callable[..., object], hint: str) -> OfferRoute:
+    def route(verb: str, builder: Callable[..., EditableTask | str], hint: str) -> OfferRoute:
         # v4 since 2026-08-30, when the Open route stopped sending a mime type (see
         # _OPEN_WITH_MIME_TYPE); v3 was the same day, when the staged path stopped being
         # baked in and became %par1.  THE VERSION IN THE NAME IS LOAD-BEARING, and this is
@@ -406,13 +406,17 @@ def _build_offer_routes(
         task_name = f"MapTasker {verb} {label} v4"
         write_path = f"{_BOOKKEEPING_LOCATION}/maptasker_{verb.lower()}_{key}.txt"
         header = f"MAPTASKER-{verb.upper()}-{label.upper()} 1"
+
+        def build(state: RunState) -> EditableTask | str:
+            return builder(task_name, STAGE_PATH_PARAMETER, write_path, header, state=state)
+
         return OfferRoute(
             label=label,
             confirm_endpoint=confirm_endpoint,
             task_name=task_name,
             # No path handed to the builder: it builds with %par1 and is told the real one
             # when it is run.
-            builder=lambda state: builder(task_name, STAGE_PATH_PARAMETER, write_path, header, state=state),
+            builder=build,
             stage_location=stage_location,
             extension=extension,
             read_path=f"/{write_path}",

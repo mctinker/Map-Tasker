@@ -370,7 +370,7 @@ _GOTO = "135"
 _CONTROL_FLOW = (_IF, _ELSE, _END_IF, _FOR, _END_FOR, _GOTO)
 
 
-def control_flow_imbalance(numbered: list[tuple[int, object]]) -> str:
+def control_flow_imbalance(numbered: list[tuple[int, Element]]) -> str:
     """Why this run of actions cannot stand alone, or "" when it can.
 
     A run is self-contained when every If and every For it opens is also closed inside it,

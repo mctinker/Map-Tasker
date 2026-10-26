@@ -47,7 +47,7 @@ from __future__ import annotations
 
 import json
 import os
-from typing import TYPE_CHECKING, NamedTuple, cast
+from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import logger
@@ -107,7 +107,7 @@ def _read(path: str) -> object:
         raise RuntimeError(message) from error
 
 
-def _published_entry(action: dict, arg_evals: dict) -> ActionCode:
+def _published_entry(action: dict[str, Any], arg_evals: dict[str, Any]) -> ActionCode:
     """One ActionCode out of a task_all_actions.json entry.
 
     Arguments are ordered by arg_id, which is what the table has always used and what
@@ -120,6 +120,7 @@ def _published_entry(action: dict, arg_evals: dict) -> ActionCode:
     Returns:
         ActionCode: the assembled entry.
     """
+    args: list[dict[str, Any]] = action["args"]
     return ActionCode(
         redirect="",  # No published code redirects; all 133 redirects live in the overlay.
         args=[
@@ -130,7 +131,7 @@ def _published_entry(action: dict, arg_evals: dict) -> ActionCode:
                 arg_type=str(arg["type"]),
                 arg_eval=arg_evals.get(str(arg["id"]), ""),
             )
-            for arg in sorted(action["args"], key=lambda arg: int(arg["id"]))
+            for arg in sorted(args, key=lambda arg: int(arg["id"]))
         ],
         name=action["name"],
         category=str(action["categoryCode"]),
@@ -138,7 +139,7 @@ def _published_entry(action: dict, arg_evals: dict) -> ActionCode:
     )
 
 
-def _overlay_entry(entry: dict) -> ActionCode:
+def _overlay_entry(entry: dict[str, Any]) -> ActionCode:
     """One ActionCode out of an action_overlay.json 'extra' entry.
 
     Args:
@@ -167,11 +168,11 @@ def build_action_codes() -> dict[str, ActionCode]:
     Returns:
         dict: {code key: ActionCode}, in sorted key order.
     """
-    overlay = cast("dict[str, dict]", _read(OVERLAY_FILE))
+    overlay = cast("dict[str, dict[str, Any]]", _read(OVERLAY_FILE))
     arg_evals = overlay["eval"]
 
-    codes = {}
-    for action in cast("list[dict]", _read(PUBLISHED_ACTIONS_FILE)):
+    codes: dict[str, ActionCode] = {}
+    for action in cast("list[dict[str, Any]]", _read(PUBLISHED_ACTIONS_FILE)):
         key = f"{action['code']}t"
         codes[key] = _published_entry(action, arg_evals.get(key, {}))
 

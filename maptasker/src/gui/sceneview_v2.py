@@ -5,6 +5,8 @@ path and editing state the designer's canvas reads back live with them."""
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from nicegui import ui
 
 from maptasker.src.core.maputil2 import translate_string
@@ -30,6 +32,9 @@ from maptasker.src.gui.sceneview_v2text import (
     v2_text_style,
     v2_tooltip,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def v2_layout_summary(layout: dict) -> list[tuple[str, str]]:
@@ -963,7 +968,7 @@ def _v2_float(value: object, default: float) -> float:
         return default
 
 
-_V2_DRAWERS: dict[str, object] = {
+_V2_DRAWERS: dict[str, Callable[[dict, PreviewOptions, int], None]] = {
     "Column": _v2_draw_column,
     "Row": _v2_draw_row,
     "FlowRow": _v2_draw_flow_row,

@@ -25,7 +25,7 @@ import contextlib
 import time
 import webbrowser
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlencode
 
 from nicegui import context, run, ui
@@ -1122,7 +1122,8 @@ class MyGui:
                 if key == "debug" and value:
                     log_startup_values(state=self.state)
                 # Make the modification based on the specfic setting
-                _ = self.restore_display(key, value)
+                # A saved value is whatever type the setting is (str, int, bool); its handler reads it as one.
+                _ = self.restore_display(key, cast("Any", value))
                 # # Now display the setting and act on it if necessary.
                 # if new_message := self.restore_display(key, value):
                 #     self.display_message_box(f"{new_message}\n", "Green")

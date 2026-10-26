@@ -75,7 +75,7 @@ from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taske
 from maptasker.src.mapops import mapcards
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
+    from collections.abc import Collection, Mapping
 
     from maptasker.src.core.primitem import RunState
 
@@ -452,7 +452,7 @@ def common_actions(state: RunState, scratch: dict | None = None) -> dict[str, li
     return common
 
 
-def _listing_text(heading: str, listed: dict[str, list[FillableArg] | None]) -> str:
+def _listing_text(heading: str, listed: Mapping[str, list[FillableArg] | None]) -> str:
     """Actions as the model reads them: 'key name', then each argument it may set, then what the action is for.
 
     An action whose arguments are None is listed by name alone, to be asked about next.

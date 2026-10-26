@@ -194,6 +194,9 @@ def rewrite_site(site: Site, pattern: re.Pattern[str] | None = None, new_name: s
     configuration has.
     """
     if site.kind == V2_SCENE:
+        if pattern is None:
+            msg = "A Version 2 Scene site needs a pattern to replace with."
+            raise ValueError(msg)
         value = scenemodel.V2.property_value(site.element, site.path)
         return _flatten(value), _flatten(_substitute(value, pattern, new_name))
 

@@ -50,7 +50,7 @@ def check_for_deprecation(the_action_code_plus: str) -> str:
 
 # Given an action code, evaluate it for display.
 def get_action_code(
-    code_child: Element,
+    code_child: Element | None,
     code_action: Element,
     action_type: bool,
     code_type: str,
@@ -66,7 +66,7 @@ def get_action_code(
     """
 
     # logger.debug(f"get action code:{code_child.text}{code_type}")
-    just_the_code = code_child.text or ""
+    just_the_code = (code_child.text if code_child is not None else "") or ""
     the_action_code_plus = just_the_code + code_type
 
     # See if this code is deprecated
@@ -283,7 +283,7 @@ def finalize_action_details(
 def build_action(
     alist: list,
     task_code_line: str,
-    code_element: Element,
+    code_element: Element | None,
     indent: int,
     indent_amt: str,
     state: RunState,
@@ -344,12 +344,12 @@ def build_action(
             format_html(
                 "unknown_task_color",
                 "",
-                f"Action {code_element.text}: not yet mapped",
+                f"Action {code_element.text if code_element is not None else ''}: not yet mapped",
                 True,
             ),
         )
         # Handle this situation in which we can't find the action code.
-        not_in_dictionary("Action", code_element.text or "")
+        not_in_dictionary("Action", (code_element.text if code_element is not None else "") or "")
 
     # We have Task Action details
     else:

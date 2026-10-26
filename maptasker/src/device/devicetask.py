@@ -437,7 +437,7 @@ def install_task_on_android(
     ip_port: str,
     auth_key: str,
     task_name: str,
-    builder: Callable[[], object],
+    builder: Callable[[], EditableTask | str],
     state: RunState,
 ) -> tuple[int, str]:
     """Put one of MapTasker's helper Tasks on the device, if it isn't there already.

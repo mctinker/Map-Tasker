@@ -76,7 +76,7 @@ SEPARATOR_TEXT = "\x00"
 _remembered: caches.Slot[tuple | None] = caches.Slot("mapcache.remembered", None)
 
 
-def _absorb(digest: object, element: "Element | None") -> None:
+def _absorb(digest: hashlib.blake2b, element: "Element | None") -> None:
     """Fold one xml element, and everything inside it, into the digest.
 
     Gathered into one string per element and hashed in a single go rather than fed to the

@@ -30,6 +30,8 @@ from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK, Row, Targe
 from maptasker.src.mapgen import varxref
 
 if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
+
     from maptasker.src.core.primitem import RunState
 
 # Severity ordering is the order consequences are reported in, worst first.
@@ -167,7 +169,7 @@ class Impact:
 # mutate, and every one of them imports the others, while this has to stay a pure
 # reader that healthck's own tests can stand up without a GUI.
 # ##################################################################################
-def _list_of(project_element: object, tag: str) -> list[str]:
+def _list_of(project_element: Element, tag: str) -> list[str]:
     """A Project's <pids>/<tids>/<scenes> as a list ([] when it holds none).
 
     The filter is what stops an empty element being read as one member whose name is the
@@ -187,7 +189,7 @@ def _projects_listing(tag: str, value: str, state: RunState) -> list[str]:
     )
 
 
-def _profile_task_ids(profile_element: object) -> list[str]:
+def _profile_task_ids(profile_element: Element) -> list[str]:
     """The Task ids a Profile links as its Entry/Exit Task, deduplicated, in order.
 
     dict.fromkeys rather than a set: a Profile may legitimately use one Task for both its

@@ -231,7 +231,7 @@ class TextViewSearch:
         found_items: list,
         total_matches: int,
         was_truncated: bool,
-        client: object,
+        client: Client,
     ) -> None:
         """Announces a set of search results and builds the clickable results dialog for them.
 
@@ -271,7 +271,7 @@ class TextViewSearch:
             ):
                 for item in found_items:
                     # Localized function referencing the cross-linked runtime element reference
-                    def make_jump_callback(target_id: str = item["elementId"]) -> None:
+                    def make_jump_callback(target_id: str = item["elementId"]) -> Callable[[], object]:
                         return lambda: (
                             results_dialog.close(),
                             client.run_javascript(search_jump_js(target_id)),

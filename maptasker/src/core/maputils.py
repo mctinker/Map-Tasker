@@ -21,7 +21,7 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 from zoneinfo import (
     ZoneInfo,
     ZoneInfoNotFoundError,
@@ -39,6 +39,8 @@ from maptasker.src.core.primitem import clear_single_items
 from maptasker.src.core.sysconst import HOTLINK_STYLE, FormatLine, logger
 
 if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
+
     from maptasker.src.core.primitem import RunState
     from maptasker.src.core.runcfg import RunConfig
 
@@ -255,7 +257,7 @@ def count_consecutive_substr(main_str: str, substr: str) -> int:
     return max(map(len, _repeats_of(substr).findall(main_str)), default=0) // len(substr)
 
 
-def pretty(d: dict, indent: int = 0) -> None:
+def pretty(d: dict[Any, Any], indent: int = 0) -> None:
     """
     Print out a dictionary in a human-readable format.
 
@@ -267,12 +269,12 @@ def pretty(d: dict, indent: int = 0) -> None:
     for key, value in d.items():
         console.debug("\t" * indent + str(key))
         if isinstance(value, dict):
-            _pretty(value, indent + 1)
+            _pretty(cast("dict[Any, Any]", value), indent + 1)
         else:
             console.debug("\t" * (indent + 1) + str(value))
 
 
-def find_all_positions(string: str, substring: str, start_position: int = 0) -> list:
+def find_all_positions(string: str, substring: str, start_position: int = 0) -> list[int]:
     """
     Finds all positions of a substring in a string.
 
@@ -282,10 +284,10 @@ def find_all_positions(string: str, substring: str, start_position: int = 0) -> 
         start_position (int, optional): The position to start the search from. Defaults to 0.
 
     Returns:
-        list: A list of all positions of the substring in the string.
+        list[int]: A list of all positions of the substring in the string.
     """
 
-    positions = []
+    positions: list[int] = []
     start = start_position
     while True:
         pos = string.find(substring, start)
@@ -375,11 +377,11 @@ def fix_hyperlink_name(name: str) -> str:
 
 
 def get_value_if_match(
-    data: dict,
+    data: dict[str, dict[str, Any]],
     match_key: str,
     match_value: str,
     return_key: str,
-) -> str | None:
+) -> tuple[Element | None, str | None]:
     """
     Retrieve a specific value from a dictionary if another value matches a given string.
 
@@ -390,7 +392,7 @@ def get_value_if_match(
     - return_key (str): The key whose value to return if a match is found.
 
     Returns:
-    - The value associated with return_key if a match is found, else None.
+    - (the value associated with return_key, the key it was found under) if a match is found, else (None, None).
     """
     for key, item in data.items():
         if item[match_key] == match_value:
@@ -415,7 +417,7 @@ def clear_tasker_data(state: RunState) -> None:
     caches.clear_all()
 
 
-def count_unique_substring(string_list: list, substring: str) -> int:
+def count_unique_substring(string_list: list[str], substring: str) -> int:
     """
     Counts the number of strings in a list that contain a given substring,
     assuming each string has at most one instance of the substring.
@@ -551,17 +553,8 @@ def append_to_filename(original_filename_with_type: str, text_to_append: str) ->
         text_to_append (str): The text string to append to the filename (e.g., "_new").
 
     Returns:
-        str: The new filename with the text appended, or None if the input is invalid.
+        str: The new filename with the text appended.
     """
-    if not isinstance(original_filename_with_type, str) or not isinstance(
-        text_to_append,
-        str,
-    ):
-        logger.error(
-            "Error: Both original_filename_with_type and text_to_append must be strings.",
-        )
-        return None
-
     # Use os.path.splitext to separate the filename and its extension
     filename_without_extension, file_extension = os.path.splitext(
         original_filename_with_type,
@@ -653,10 +646,6 @@ def rename_file(old_file_path: str, new_file_path: str) -> bool:
     Returns:
         bool: True if the file was successfully renamed, False otherwise.
     """
-    if not isinstance(old_file_path, str) or not isinstance(new_file_path, str):
-        rutroh_error("Error: Both old_file_path and new_file_path must be strings.")
-        return False
-
     try:
         # Check if the old file exists before attempting to rename
         if not os.path.exists(old_file_path):

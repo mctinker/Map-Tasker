@@ -54,11 +54,16 @@ def get_variables(configuration: str = "", *, state: RunState) -> None:
     # Save each in a dictionary.
     # Loop through the variables.
     for variable in global_variables:
+        # Each starts afresh, so a <Variable> missing a child cannot borrow the last one's name or value.
+        variable_name = ""
+        variable_value = ""
         for num, child in enumerate(variable):
             if num == 0:
-                variable_name = child.text
+                variable_name = child.text or ""
             else:
-                variable_value = child.text
+                variable_value = child.text or ""
+        if not variable_name:
+            continue
 
         # Format the output.  The value is data somebody stored in Tasker, not markup meant
         # to be rendered, so escape it before adding any of our own: a variable holding a
@@ -149,7 +154,7 @@ def _variable_anchor(name: str, wanted: bool) -> str:
     return f' id="{Target(VARIABLE, name).anchor}"' if wanted else ""
 
 
-def print_the_variables(color_to_use: str, project: Element, config: RunConfig, state: RunState) -> None:
+def print_the_variables(color_to_use: str, project: Element | str, config: RunConfig, state: RunState) -> list[str]:
     """Parameters:
         - color_to_use (str): The color to use for the table definition.
         - project (Element): The project to use, if applicable.
@@ -205,7 +210,7 @@ def print_the_variables(color_to_use: str, project: Element, config: RunConfig, 
 
 
 # Print variables by adding them to the output.
-def output_variables(heading: str, project: Element, config: RunConfig, state: RunState) -> None:
+def output_variables(heading: str, project: Element | str, config: RunConfig, state: RunState) -> None:
     """
     Print variables by adding them to the output.
         Args:

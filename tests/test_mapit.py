@@ -221,4 +221,4 @@ def test_a_unit_test_run_starts_with_no_colours(monkeypatch: pytest.MonkeyPatch)
 
     mapit.initialize_everything(state)
 
-    assert state.colors_to_use == []
+    assert state.colors_to_use == {}

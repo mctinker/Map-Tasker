@@ -56,7 +56,7 @@ from maptasker.src.core.initparg import ArgumentFields, ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Mapping
+    from collections.abc import Generator, Mapping
 
     from maptasker.src.core.primitem import RunState
 
@@ -121,7 +121,7 @@ class RunConfig(ArgumentFields):
         msg = f"cannot delete field {name!r}"
         raise FrozenInstanceError(msg)
 
-    def __deepcopy__(self, _memo: dict) -> RunConfig:
+    def __deepcopy__(self, _memo: dict[int, object]) -> RunConfig:
         """
         A copy built through the constructor.  The default copy would put the fields
         back one by one after _sealed, and __setattr__ would refuse them.
@@ -221,7 +221,7 @@ def current_config(state: RunState | None = None) -> RunConfig:
 
 
 @contextlib.contextmanager
-def overridden_config(*, state: RunState | None = None, **overrides: object) -> Iterator[RunConfig]:
+def overridden_config(*, state: RunState | None = None, **overrides: object) -> Generator[RunConfig]:
     """
     Run a block with some settings temporarily changed, then put them back.
 

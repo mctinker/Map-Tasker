@@ -18,7 +18,7 @@ They are not unknowable, though.  Two sources fill the inventory, and they are m
     write them to a file this program already knows how to read back -- and MapTasker
     builds and installs that helper Task itself, out of the very Add-Task machinery this
     module exists to unblock (see deviceinv.fetch_apps_from_device, which hands what the
-    device returned to _store_fetched_apps here).  The result is cached per device in
+    device returned to store_fetched_apps here).  The result is cached per device in
     MapTasker_Apps.json, and nothing is ever fetched unless the user asks.
 
 Without a fetch, the inventory is what you already automate, not everything installed.  An
@@ -655,7 +655,7 @@ def fetched_packages() -> dict[str, tuple[str, frozenset[str]]]:
     return packages
 
 
-def _store_fetched_apps(device: str, entries: list[AppEntry]) -> str:
+def store_fetched_apps(device: str, entries: list[AppEntry]) -> str:
     """Record one device's fetched Applications, replacing whatever it reported last time.
 
     Replaced rather than merged, for that device: a merge would keep an app the user has

@@ -32,6 +32,7 @@ from typing import TYPE_CHECKING, Any
 from maptasker.src.core.editcommon import set_child_text
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from xml.etree.ElementTree import Element
 
 # The layout JSON's top-level key holding the component tree.  (Its sibling, the Scene's
@@ -54,7 +55,7 @@ _GZIP_LEVEL = 6
 V2_NAME_KEY = "name"
 
 
-def decompress_gzip_json(b64_string: str) -> dict | str:
+def decompress_gzip_json(b64_string: str) -> dict[str, Any] | str:
     """Decodes a Base64 string, decompresses it using Gzip, and parses the JSON.
 
     This function reverses a common data pipeline where a JSON object is
@@ -150,7 +151,7 @@ def rename_v2_layout(scene_element: Element, new_name: str) -> None:
     encode_v2_layout(scene_element, layout)
 
 
-def new_v2_layout(name: str) -> dict:
+def new_v2_layout(name: str) -> dict[str, Any]:
     """The component tree a brand-new Version 2 Scene starts with: a single
     centred Column holding nothing, plus the Scene's name.
 
@@ -173,7 +174,7 @@ def new_v2_layout(name: str) -> dict:
     }
 
 
-def _v2_dismiss_actions(label: str) -> list[dict]:
+def _v2_dismiss_actions(label: str) -> list[dict[str, Any]]:
     """The action list a dialog button runs: record which button was pressed, then close.
 
     Copied from the 'Dialog' Scene's own close button rather than invented -- it writes
@@ -187,7 +188,7 @@ def _v2_dismiss_actions(label: str) -> list[dict]:
     ]
 
 
-def _v2_template_dialog(name: str, *, with_buttons: bool) -> dict:
+def _v2_template_dialog(name: str, *, with_buttons: bool) -> dict[str, Any]:
     """A titled dialog: header row with a title and a close button, then a content column.
 
     This is the 'Dialog' Scene of the dialog-builder Project, reduced to its frame --
@@ -195,7 +196,7 @@ def _v2_template_dialog(name: str, *, with_buttons: bool) -> dict:
     behaviour -- with its runtime-injected body replaced by an ordinary Text the user can
     edit or delete.
     """
-    children: list[dict] = [
+    children: list[dict[str, Any]] = [
         {
             "type": "Row",
             "id": "header",
@@ -265,7 +266,7 @@ def _v2_template_dialog(name: str, *, with_buttons: bool) -> dict:
     }
 
 
-def _v2_template_full_screen(name: str) -> dict:
+def _v2_template_full_screen(name: str) -> dict[str, Any]:
     """A full-screen app frame: top bar, bottom navigation, and a content column.
 
     Modelled on the 'V2' Scene of a test Project -- the only real example of a Scaffold
@@ -314,7 +315,7 @@ def _v2_template_full_screen(name: str) -> dict:
 # Each entry is (label, description, builder).  Every one of these is traced to a Scene in
 # XML/backup.xml rather than composed from the schema, because the schema says what is
 # *possible* and these Scenes are evidence of what Tasker actually opens.
-V2_TEMPLATES: tuple[tuple[str, str, object], ...] = (
+V2_TEMPLATES: tuple[tuple[str, str, Callable[[str], dict[str, Any]]], ...] = (
     ("Empty", "A single centred Column to build in.", new_v2_layout),
     (
         "Titled dialog",
@@ -331,7 +332,7 @@ V2_TEMPLATES: tuple[tuple[str, str, object], ...] = (
 V2_DEFAULT_TEMPLATE = V2_TEMPLATES[0][0]
 
 
-def v2_template_layout(name: str, template: str) -> dict:
+def v2_template_layout(name: str, template: str) -> dict[str, Any]:
     """Build the named template's component tree.  Falls back to the empty one for a name
     that isn't offered, so a stale caller degrades to "blank Scene" rather than failing.
     """

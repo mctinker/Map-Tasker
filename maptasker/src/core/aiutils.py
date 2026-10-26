@@ -3,13 +3,13 @@
 #                                                                                      #
 # mapai: Ai support                                                                    #
 #                                                                                      #
-import importlib.util
+import importlib
 import shutil
 import subprocess
 import time
-from collections.abc import Callable
-from contextlib import suppress
+from collections.abc import Callable, Iterable
 from types import ModuleType
+from typing import cast
 
 import httpx
 
@@ -65,7 +65,7 @@ def ollama_is_responding(ollama: object) -> bool:
         bool: True if the server answered, False for any reason it did not.
     """
     try:
-        ollama.list()
+        cast("ModuleType", ollama).list()
     except ollama_errors():
         return False
     return True
@@ -222,7 +222,7 @@ def prepare_ollama_model(name: str, say: Callable[[str], None] = console.say) ->
     return wanted, ""
 
 
-def get_openai_models(state: RunState) -> list:
+def get_openai_models(state: RunState) -> list[str]:
     """
     Lists all available OpenAI models that can be called from Python,
     with a focus on models suitable for programming hints (like for Android Tasker).
@@ -283,7 +283,7 @@ def get_openai_models(state: RunState) -> list:
     ]
 
 
-def contains_any_substring_loop(main_string: str, substrings: str) -> bool:
+def contains_any_substring_loop(main_string: str, substrings: Iterable[str]) -> bool:
     """
     Checks if a main_string contains any of the provided substrings using a for loop.
 
@@ -297,7 +297,7 @@ def contains_any_substring_loop(main_string: str, substrings: str) -> bool:
     return any(sub in main_string for sub in substrings)  # No substring was found
 
 
-def get_anthropic_models(state: RunState) -> list:
+def get_anthropic_models(state: RunState) -> list[str]:
     """
     Lists the Claude models the Analyze tab's extended list offers.
 
@@ -332,7 +332,7 @@ def get_anthropic_models(state: RunState) -> list:
     return claude or sorted(ANTHROPIC_EXTENDED_MODELS)
 
 
-def get_gemini_models(state: RunState) -> list:
+def get_gemini_models(state: RunState) -> list[str]:
     """
     Lists all available Gemini models that can be called from Python,
     with a focus on models suitable for programming hints (like for Android Tasker).
@@ -343,8 +343,7 @@ def get_gemini_models(state: RunState) -> list:
     bad_models = {"text", "image", "vision", "tts"}
 
     # Get the API key
-    with suppress(KeyError):
-        api_key = state.ai["gemini_key"]
+    api_key = state.ai.get("gemini_key", "")
     if not api_key:
         return GEMINI_MODELS
 
@@ -363,7 +362,7 @@ def get_gemini_models(state: RunState) -> list:
 
         # 3. Iterate and print the model names
         # The models.list() returns a generator, so we iterate over it.
-        models_to_keep = []
+        models_to_keep: list[str] = []
         model_count = 0
         for model in all_models._page:  # noqa: SLF001
             model_name = model.name[7:]
@@ -427,8 +426,8 @@ def mark_installed_models(catalog: list[str], installed: list[str], suffix: str 
     # Tagged name -> the name to show for it, so each installed model is looked at once.
     installed_by_tag = {tagged_model_name(name): name for name in installed}
 
-    marked = []
-    accounted_for = set()
+    marked: list[str] = []
+    accounted_for: set[str] = set()
     for entry in catalog:
         tag = tagged_model_name(entry)
         if tag in installed_by_tag:
@@ -443,7 +442,7 @@ def mark_installed_models(catalog: list[str], installed: list[str], suffix: str 
     return marked
 
 
-def get_llama_models() -> list:
+def get_llama_models() -> list[str]:
     """
     Returns a list of names of Ollama AI models that are typically used for coding.
 

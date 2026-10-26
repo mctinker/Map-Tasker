@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import contextlib
 import weakref
-from typing import TYPE_CHECKING, TypeGuard
+from typing import TYPE_CHECKING, TypeGuard, cast
 
 from nicegui import context, ui
 
@@ -66,7 +66,7 @@ def element_is_live(element: object) -> TypeGuard[ui.element]:
     if not element or getattr(element, "is_deleted", False):
         return False
     try:
-        client = element.client
+        client = cast("ui.element", element).client
     except RuntimeError:
         return False
     return not getattr(client, "is_deleted", False)

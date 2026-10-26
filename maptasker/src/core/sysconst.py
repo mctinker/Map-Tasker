@@ -13,12 +13,11 @@ import logging
 import re
 from enum import Enum
 
-import darkdetect
+import darkdetect  # pyright: ignore[reportMissingTypeStubs]  (no stubs are published for it)
 
 from maptasker.src.core import clock
 
 # Global constants
-UNNAMED_ITEM = "(Unnamed)"
 VERSION = importlib.metadata.version("maptasker")
 MY_VERSION = f"MapTasker version {VERSION}"
 
@@ -467,9 +466,9 @@ VIEW_LIMIT_DEFAULT = 10000
 NOTIFY_TIMEOUT_DEFAULT = 5000
 
 # Number of spaces to substitute &nbsp; for <blanktab> CSS in the output. [spaces, 'pixels']
-SPACE_COUNT1 = [16, "155"]
-SPACE_COUNT2 = [25, "160"]
-SPACE_COUNT3 = [50, "200"]
+SPACE_COUNT1: tuple[int, str] = (16, "155")
+SPACE_COUNT2: tuple[int, str] = (25, "160")
+SPACE_COUNT3: tuple[int, str] = (50, "200")
 
 # A Scene's child tags that describe the Scene itself -- its name, sizes, dates and flags --
 # rather than one of its UI elements, so every walk over a Scene's elements skips them.

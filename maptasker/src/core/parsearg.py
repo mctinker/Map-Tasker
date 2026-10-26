@@ -11,6 +11,8 @@ import argparse
 import json
 import os
 from argparse import ArgumentParser
+from collections.abc import Callable
+from typing import Any, Protocol
 
 from maptasker.src.core import console
 from maptasker.src.core.mapfonts import get_monospaced_fonts
@@ -204,12 +206,21 @@ _ARGUMENT_CHOICES = {
 _NOT_ARGPARSE = {"names", "group", "hidden", "comment"}
 
 
+class _TakesArguments(Protocol):
+    """What the parser and each of its groups have in common: options can be added to it."""
+
+    @property
+    def add_argument(self) -> Callable[..., object]:
+        """The method that adds an option."""
+        ...
+
+
 def _text(value: str | list[str]) -> str:
     """A string from the table, which stores a multi-line one as a list of its lines."""
     return value if isinstance(value, str) else "\n".join(value)
 
 
-def _argument_keywords(entry: dict) -> dict:
+def _argument_keywords(entry: dict[str, Any]) -> dict[str, Any]:
     """The keyword arguments add_argument is called with for one entry of the table."""
     keywords = {key: value for key, value in entry.items() if key not in _NOT_ARGPARSE}
     if entry.get("hidden"):
@@ -223,7 +234,7 @@ def _argument_keywords(entry: dict) -> dict:
     return keywords
 
 
-def _add_color_arguments(group: argparse._ArgumentGroup) -> None:
+def _add_color_arguments(group: _TakesArguments) -> None:
     """One '-c<kind>' option for each kind of thing that can be colored."""
     for key, value in TYPES_OF_COLORS.items():
         group.add_argument(
@@ -254,9 +265,9 @@ def build_parser() -> ArgumentParser:
 
     # A group is made when the first option in it is, which is also where it is first
     # listed: the order of the table is the order of the help.
-    groups: dict[str, argparse._ActionsContainer] = {}
+    groups: dict[str, _TakesArguments] = {}
 
-    def group_for(name: str) -> argparse._ActionsContainer:
+    def group_for(name: str) -> _TakesArguments:
         if name not in groups:
             spec = table["groups"][name]
             groups[name] = (
@@ -289,12 +300,8 @@ def runtime_parser() -> argparse.Namespace:
     """
     parser = build_parser()
     args = parser.parse_args()
-    if args is None:
-        # No arguments provide
-        parser.print_help()
-
     # Make certain that if android args entered, they are inclusive.
-    elif args.android_ipaddr or args.android_port or args.android_file:
+    if args.android_ipaddr or args.android_port or args.android_file:
         validate_vars(
             args.android_ipaddr[0],
             args.android_port[0],

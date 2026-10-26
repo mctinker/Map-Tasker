@@ -55,7 +55,7 @@ def live_selection(state: RunState) -> tuple[str, str]:
     """
     for key in SELECTION_KEYS:
         name = state.program_arguments[key]
-        if name and name != "None":
+        if isinstance(name, str) and name and name != "None":
             return key.removeprefix("single_").removesuffix("_name").capitalize(), name
     return "", ""
 

@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from maptasker.src.edit.taskedit_model import EditableTask
 
 
-from maptasker.src.core.appinv import AppEntry, _store_fetched_apps
+from maptasker.src.core.appinv import AppEntry, store_fetched_apps
 from maptasker.src.core.maputil2 import (
     auth_key_for,
     device_address,
@@ -178,7 +178,7 @@ def parse_device_payload(text: str) -> tuple[list[AppEntry], str]:
         logger.info(f"Android app activities ({len(activities)}) do not line up with packages; ignoring.")
         activities = []
 
-    entries = []
+    entries: list[AppEntry] = []
     for index, package in enumerate(packages):
         if not package:
             continue
@@ -378,7 +378,7 @@ def fetch_apps_from_device(ip_address: str, ip_port: str, state: RunState) -> tu
     if error:
         return 8, error
 
-    cache_error = _store_fetched_apps(key, entries)
+    cache_error = store_fetched_apps(key, entries)
     labelled = sum(1 for entry in entries if entry.label)
     summary = f"{len(entries)} applications fetched from {key}"
     summary += f" ({labelled} with names)." if labelled else " (package names only)."

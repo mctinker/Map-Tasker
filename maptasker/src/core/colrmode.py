@@ -6,7 +6,7 @@
 # colrmode: set the program colors based on color mode: dark or light                  #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
-import darkdetect
+import darkdetect  # pyright: ignore[reportMissingTypeStubs]  (no stubs are published for it)
 
 
 def set_color_mode(appearance_mode: str) -> dict[str, str]:

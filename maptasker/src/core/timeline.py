@@ -64,7 +64,7 @@ from maptasker.src.core.editcommon import sanitize_filename
 from maptasker.src.core.sysconst import logger
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator
 
 # Where the history lives, in the current runtime directory -- the same place every other
 # thing this program writes for the user goes (the map, the health check, the comparison
@@ -136,7 +136,7 @@ class Snapshot:
 
 
 @contextlib.contextmanager
-def suppressed() -> Iterator[None]:
+def suppressed() -> Generator[None]:
     """Do not record loads that happen inside this block.
 
     For diffload's isolation window.  The file being compared against goes through
@@ -315,7 +315,7 @@ def earliest() -> Snapshot | None:
 
 
 @contextlib.contextmanager
-def expanded(snapshot: Snapshot) -> Iterator[str]:
+def expanded(snapshot: Snapshot) -> Generator[str]:
     """The snapshot decompressed to a temporary .xml file, removed on the way out.
 
     A file on disk because that is what the loader takes: diffload hands taskerd a path

@@ -20,7 +20,7 @@ from maptasker.src.core.sysconst import FormatLine
 def process_service(
     service_name: str,
     service_value: str,
-    temp_output_lines: list,
+    temp_output_lines: list[tuple[float, str]],
 ) -> None:
     """
     We have a service xml element that we have mapped as a preference.  Process it.
@@ -69,7 +69,7 @@ def process_service(
     # Add the service name to the output list
     #  Prefix it by the "num" number, since we will be sorting by this number
     temp_output_lines.append(
-        [
+        (
             service_codes[service_name]["num"],
             (
                 format_html(
@@ -82,12 +82,12 @@ def process_service(
                     True,
                 )
             ),
-        ],
+        ),
     )
 
 
 # Go through all of the <service> xml elements to process the Tasker preferences.
-def process_preferences(temp_output_lines: list, config: RunConfig, state: RunState) -> None:
+def process_preferences(temp_output_lines: list[tuple[float, str]], config: RunConfig, state: RunState) -> None:
     """
     Go through all of the <service> xml elements to process the Tasker preferences.
         :param temp_output_lines: list of service/preference output lines
@@ -101,7 +101,7 @@ def process_preferences(temp_output_lines: list, config: RunConfig, state: RunSt
     # No preferences if doing single object
     if not state.tasker_root_elements["all_services"]:
         temp_output_lines.append(
-            [
+            (
                 dummy_num,
                 format_html(
                     "preferences_color",
@@ -109,7 +109,7 @@ def process_preferences(temp_output_lines: list, config: RunConfig, state: RunSt
                     "Preferences not found in this XML file.  Most likely due to a single Project/Profile/Task/Scene only display.",
                     True,
                 ),
-            ],
+            ),
         )
         return
 
@@ -135,10 +135,10 @@ def process_preferences(temp_output_lines: list, config: RunConfig, state: RunSt
                 # Add a blank line if this is the first unmapped item
                 if first_time:
                     first_time = False
-                    temp_output_lines.append([dummy_num, "<br>"])
+                    temp_output_lines.append((dummy_num, "<br>"))
                 # Add the output details to our list of output stuff
                 temp_output_lines.append(
-                    [
+                    (
                         dummy_num,
                         _format_html(
                             "preferences_color",
@@ -150,7 +150,7 @@ def process_preferences(temp_output_lines: list, config: RunConfig, state: RunSt
                             ),
                             True,
                         ),
-                    ],
+                    ),
                 )
                 dummy_num += 1
         # Invalid <Setting> xml element
@@ -181,7 +181,7 @@ def get_preferences(config: RunConfig, state: RunState) -> None:
         "Misc > Debugging",
         "Unlisted",
     ]
-    temp_output_lines = []
+    temp_output_lines: list[tuple[float, str]] = []
 
     # Output title line
     state.output_lines.add_line_to_output(

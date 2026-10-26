@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.edit.taskedit_model import EditableTask
 
 # ==========================================
 # The helper Tasks this program leaves on the device
@@ -61,14 +62,14 @@ if TYPE_CHECKING:
 HELPER_TASK_PREFIX = "MapTasker "
 
 
-def current_helper_builders(state: RunState) -> dict[str, Callable[[], object]]:
+def current_helper_builders(state: RunState) -> dict[str, Callable[[], EditableTask | str]]:
     """Every helper Task THIS build installs, by name, with the builder that makes it.
 
     The one list of helpers: current_helper_task_names reads its names off it and the
     'MapTasker' Project is built from its builders, so a helper added here is both reported
     as in use and bundled into the Project, and one left out is neither.
     """
-    builders: dict[str, Callable[[], object]] = {
+    builders: dict[str, Callable[[], EditableTask | str]] = {
         route.task_name: functools.partial(route.builder, state=state) for route in ALL_OFFER_ROUTES
     }
     builders.update(
@@ -194,7 +195,7 @@ def build_helper_project_xml(
     missing one would leave that one to be installed loose later, which is what this is for
     avoiding -- or if device_xml is not a backup that can be read.
     """
-    if state.xml_root is None:
+    if not state.backup_loaded:
         msg = "Load a Tasker backup file first (building the helper Tasks needs it)."
         raise ValueError(msg)
 
@@ -212,7 +213,7 @@ def build_helper_project_xml(
         _highest_object_id(device) + taskedit.NEW_OBJECT_ID_HEADROOM + 1 if device is not None else 0,
     )
 
-    task_elements = []
+    task_elements: list[Element] = []
     task_ids: list[str] = []
     for name, builder in sorted(current_helper_builders(state=state).items()):
         built = builder()
@@ -223,7 +224,8 @@ def build_helper_project_xml(
         task_ids.append(task_id)
         element = built.task_element
         element.set("sr", f"task{task_id}")
-        element.find("id").text = task_id
+        if (id_element := element.find("id")) is not None:
+            id_element.text = task_id
         task_elements.append(element)
 
     element_cls = type(state.xml_root)

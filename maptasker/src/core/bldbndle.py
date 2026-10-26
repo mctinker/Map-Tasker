@@ -67,7 +67,7 @@ def element_to_dict(element: Element) -> Any:  # noqa: ANN401
 
     # A branch: keep its attributes (<Bundle sr="arg0">, <Vals sr="val">) then map
     # each sub-tag to its value, making a list if the tag repeats.
-    result = dict(element.attrib)
+    result: dict[str, Any] = dict(element.attrib)
     for child in children:
         value = "" if child.tag == BLANK_OUT_TAG else element_to_dict(child)
         if child.tag in result:

@@ -1,151 +1,4 @@
 {
-  "maptasker/src/analysis/impact.py": {
-    "reportAttributeAccessIssue": 1,
-    "reportGeneralTypeIssues": 1
-  },
-  "maptasker/src/analysis/mapask.py": {
-    "reportAttributeAccessIssue": 5,
-    "reportGeneralTypeIssues": 2
-  },
-  "maptasker/src/analysis/xmldiff.py": {
-    "reportAttributeAccessIssue": 2
-  },
-  "maptasker/src/core/action.py": {
-    "reportReturnType": 1
-  },
-  "maptasker/src/core/aiutils.py": {
-    "reportArgumentType": 2,
-    "reportAttributeAccessIssue": 1
-  },
-  "maptasker/src/core/bldbndle.py": {
-    "reportArgumentType": 1,
-    "reportAttributeAccessIssue": 1
-  },
-  "maptasker/src/core/condjoin.py": {
-    "reportGeneralTypeIssues": 1
-  },
-  "maptasker/src/core/console.py": {
-    "reportArgumentType": 1,
-    "reportCallIssue": 1
-  },
-  "maptasker/src/core/editcommon.py": {
-    "reportReturnType": 1
-  },
-  "maptasker/src/core/mapfonts.py": {
-    "reportAttributeAccessIssue": 3
-  },
-  "maptasker/src/core/mapjump.py": {
-    "reportAttributeAccessIssue": 1,
-    "reportGeneralTypeIssues": 1
-  },
-  "maptasker/src/core/maputils.py": {
-    "reportReturnType": 2
-  },
-  "maptasker/src/core/objprops.py": {
-    "reportOperatorIssue": 3
-  },
-  "maptasker/src/core/parsearg.py": {
-    "reportArgumentType": 1
-  },
-  "maptasker/src/core/piiscan.py": {
-    "reportAttributeAccessIssue": 1,
-    "reportReturnType": 1
-  },
-  "maptasker/src/core/scenelayout.py": {
-    "reportCallIssue": 1
-  },
-  "maptasker/src/core/share.py": {
-    "reportAssignmentType": 1
-  },
-  "maptasker/src/device/devicehelpers.py": {
-    "reportAttributeAccessIssue": 1
-  },
-  "maptasker/src/device/devicetask.py": {
-    "reportArgumentType": 1
-  },
-  "maptasker/src/edit/taskedit_args.py": {
-    "reportArgumentType": 3
-  },
-  "maptasker/src/gui/getfile.py": {
-    "reportArgumentType": 1,
-    "reportAttributeAccessIssue": 2
-  },
-  "maptasker/src/gui/guistate.py": {
-    "reportReturnType": 1
-  },
-  "maptasker/src/gui/guiwins2.py": {
-    "reportAttributeAccessIssue": 5
-  },
-  "maptasker/src/gui/guiwins_designer_v2.py": {
-    "reportArgumentType": 1
-  },
-  "maptasker/src/gui/guiwins_nav.py": {
-    "reportAttributeAccessIssue": 1
-  },
-  "maptasker/src/gui/guiwins_restore.py": {
-    "reportArgumentType": 1
-  },
-  "maptasker/src/gui/guiwins_sceneprops.py": {
-    "reportArgumentType": 4,
-    "reportIndexIssue": 2
-  },
-  "maptasker/src/gui/guiwins_search.py": {
-    "reportAttributeAccessIssue": 1,
-    "reportReturnType": 1
-  },
-  "maptasker/src/gui/mapai.py": {
-    "reportAttributeAccessIssue": 3
-  },
-  "maptasker/src/gui/sceneview_v2.py": {
-    "reportCallIssue": 1
-  },
-  "maptasker/src/gui/sceneview_v2style.py": {
-    "reportCallIssue": 2
-  },
-  "maptasker/src/gui/userintr.py": {
-    "reportArgumentType": 1
-  },
-  "maptasker/src/mapgen/bildhtml.py": {
-    "reportArgumentType": 2
-  },
-  "maptasker/src/mapgen/globalvr.py": {
-    "reportGeneralTypeIssues": 1,
-    "reportReturnType": 1
-  },
-  "maptasker/src/mapgen/mapcache.py": {
-    "reportAttributeAccessIssue": 2
-  },
-  "maptasker/src/mapgen/profiles.py": {
-    "reportAttributeAccessIssue": 1
-  },
-  "maptasker/src/mapgen/proginit.py": {
-    "reportAttributeAccessIssue": 1
-  },
-  "maptasker/src/mapgen/taskactn.py": {
-    "reportGeneralTypeIssues": 1
-  },
-  "maptasker/src/mapgen/taskerd.py": {
-    "reportAttributeAccessIssue": 1
-  },
-  "maptasker/src/mapgen/taskertables.py": {
-    "reportArgumentType": 1
-  },
-  "maptasker/src/mapgen/tasks.py": {
-    "reportArgumentType": 2
-  },
-  "maptasker/src/mapit.py": {
-    "reportAttributeAccessIssue": 1
-  },
-  "maptasker/src/mapops/maprefac_model.py": {
-    "reportArgumentType": 1
-  },
-  "maptasker/src/mapops/mapswap_sites.py": {
-    "reportArgumentType": 1
-  },
-  "maptasker/src/rungui.py": {
-    "reportArgumentType": 1,
-    "reportAttributeAccessIssue": 1
-  },
   "tests/conftest.py": {
     "reportInvalidTypeForm": 1,
     "reportReturnType": 1
@@ -220,7 +73,7 @@
   },
   "tests/test_deviceinv.py": {
     "reportArgumentType": 26,
-    "reportAttributeAccessIssue": 18,
+    "reportAttributeAccessIssue": 14,
     "reportCallIssue": 5,
     "reportInvalidTypeForm": 1,
     "reportOperatorIssue": 1,
@@ -248,7 +101,7 @@
   },
   "tests/test_diffload.py": {
     "reportArgumentType": 2,
-    "reportAttributeAccessIssue": 3,
+    "reportAttributeAccessIssue": 2,
     "reportOptionalMemberAccess": 3
   },
   "tests/test_directory_scope.py": {
@@ -266,7 +119,7 @@
     "reportCallIssue": 4
   },
   "tests/test_elemvals.py": {
-    "reportArgumentType": 9,
+    "reportArgumentType": 6,
     "reportCallIssue": 1
   },
   "tests/test_error_show_code.py": {
@@ -421,7 +274,6 @@
   },
   "tests/test_mapdraft.py": {
     "reportArgumentType": 1,
-    "reportGeneralTypeIssues": 3,
     "reportIndexIssue": 2,
     "reportOptionalMemberAccess": 2,
     "reportOptionalSubscript": 2
@@ -475,7 +327,7 @@
     "reportOptionalSubscript": 3
   },
   "tests/test_maputils_helpers.py": {
-    "reportArgumentType": 6
+    "reportArgumentType": 2
   },
   "tests/test_objprops.py": {
     "reportArgumentType": 2,

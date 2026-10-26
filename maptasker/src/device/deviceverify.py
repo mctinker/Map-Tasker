@@ -8,6 +8,7 @@ the phone).  Blocking; a caller on the GUI's event loop must hand it to run.io_b
 from __future__ import annotations
 
 import json
+from typing import Any, cast
 from urllib.parse import quote
 
 from maptasker.src.core.maputil2 import (
@@ -30,6 +31,13 @@ CONFIRM_POLL_ATTEMPTS = 60
 # two minutes that suit an import screen already in front of them would time out on someone
 # who is doing exactly what they were asked to do, and say the import had not happened.
 MANUAL_IMPORT_POLL_ATTEMPTS = 150
+
+
+def _entries(reported: object) -> list[dict[str, Any]] | None:
+    """The objects in a JSON list the device answered with, or None if it did not answer with a list."""
+    if not isinstance(reported, list):
+        return None
+    return [cast("dict[str, Any]", entry) for entry in cast("list[object]", reported) if isinstance(entry, dict)]
 
 
 def verify_names_on_android(
@@ -63,10 +71,10 @@ def verify_names_on_android(
         reported = json.loads(response)
     except (ValueError, TypeError):
         return None
-    if not isinstance(reported, list):
+    if (entries := _entries(reported)) is None:
         return None
 
-    found = {entry.get("name") for entry in reported if isinstance(entry, dict)}
+    found = {entry.get("name") for entry in entries}
     return {name for name in names if name in found}
 
 
@@ -229,10 +237,10 @@ def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, st
         reported = json.loads(response)
     except (ValueError, TypeError):
         return 8, "The device's Task list was not readable as JSON.", []
-    if not isinstance(reported, list):
+    if (entries := _entries(reported)) is None:
         return 8, "The device's Task list was not the list of Tasks it should be.", []
 
-    return 0, "", [entry.get("name", "") for entry in reported if isinstance(entry, dict)]
+    return 0, "", [entry.get("name", "") for entry in entries]
 
 
 def task_names_on_device(ip_address: str, ip_port: str, names: list[str]) -> tuple[int, str, list[str]]:
@@ -261,7 +269,7 @@ def task_names_on_device(ip_address: str, ip_port: str, names: list[str]) -> tup
         reported = json.loads(response)
     except (ValueError, TypeError):
         return 8, "The device's Task list was not readable as JSON.", []
-    if not isinstance(reported, list):
+    if (entries := _entries(reported)) is None:
         return 8, "The device's Task list was not the list of Tasks it should be.", []
 
-    return 0, "", [entry.get("name", "") for entry in reported if isinstance(entry, dict)]
+    return 0, "", [entry.get("name", "") for entry in entries]

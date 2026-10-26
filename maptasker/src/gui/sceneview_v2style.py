@@ -5,9 +5,14 @@ handlers, actions and bindings a component carries."""
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from maptasker.src.core.sysconst import V2_MATERIAL_PALETTE
 from maptasker.src.gui.sceneview import VARIABLE_FILL
 from maptasker.src.gui.sceneview_v2base import V2_ALIGNMENT, v2_colour
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 # ------------------------------------------------------------------
@@ -244,7 +249,7 @@ def _v2_scale(modifier: dict) -> str:
 # tooltip instead (see v2_tooltip): WindowDrag is behaviour rather than appearance -- a
 # picture cannot show that a window can be dragged -- and an unrecognised one is not going to
 # be invented.
-_V2_MODIFIER_CSS: dict[str, object] = {
+_V2_MODIFIER_CSS: dict[str, Callable[[dict], str]] = {
     "FillWidth": lambda m: f"width: {_v2_fraction(m)};",
     "FillHeight": lambda m: f"height: {_v2_fraction(m)};",
     "FillSize": lambda m: f"width: {_v2_fraction(m)}; height: {_v2_fraction(m)};",
@@ -270,7 +275,7 @@ _V2_MODIFIER_CSS: dict[str, object] = {
 # `transform` takes a *list* of functions and the styles here are concatenated: written as
 # ordinary declarations, a component carrying both a Rotate and a Scale would keep only
 # whichever came last.  Gathered instead, and emitted as one transform in modifier order.
-_V2_MODIFIER_TRANSFORM: dict[str, object] = {
+_V2_MODIFIER_TRANSFORM: dict[str, Callable[[dict], str]] = {
     "Offset": _v2_offset,
     "Rotate": _v2_rotate,
     "Scale": _v2_scale,

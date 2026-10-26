@@ -17,6 +17,7 @@ from __future__ import annotations
 import platform
 import struct
 import subprocess
+import sys
 import unicodedata
 from functools import lru_cache
 from pathlib import Path
@@ -56,7 +57,7 @@ def _face_offsets(data: bytes) -> list[int]:
 def _table_directory(data: bytes, offset: int) -> dict[bytes, tuple[int, int]]:
     """Return {table tag: (offset, length)} for the face starting at `offset`."""
     num_tables = struct.unpack(">H", data[offset + 4 : offset + 6])[0]
-    directory = {}
+    directory: dict[bytes, tuple[int, int]] = {}
     for i in range(num_tables):
         entry = offset + 12 + i * 16
         tag, _checksum, table_offset, length = struct.unpack(">4sIII", data[entry : entry + 16])
@@ -257,6 +258,8 @@ class _Face:
 # ##################################################################################
 def _windows_font_files() -> list[Path]:
     """Return the font files listed in the Windows registry."""
+    if sys.platform != "win32":
+        return []
     import winreg  # noqa: PLC0415 - Windows-only module; importing it elsewhere fails.
 
     reg_key = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts"
@@ -285,7 +288,7 @@ def _linux_font_files() -> list[Path]:
     except (OSError, subprocess.SubprocessError):
         return _scan_font_dirs([Path("/usr/share/fonts"), Path("/usr/local/share/fonts"), Path.home() / ".fonts"])
 
-    files = []
+    files: list[Path] = []
     for line in output.splitlines():
         # fc-list emits "<path>: <family>"; the path is everything before the first colon.
         path = Path(line.split(":", 1)[0].strip())
@@ -296,7 +299,7 @@ def _linux_font_files() -> list[Path]:
 
 def _scan_font_dirs(dirs: list[Path]) -> list[Path]:
     """Return every font file found under the given directories."""
-    files = []
+    files: list[Path] = []
     for directory in dirs:
         if directory.exists():
             files.extend(path for path in directory.rglob("*") if path.suffix.lower() in FONT_SUFFIXES)

@@ -258,7 +258,7 @@ def _scene_task_ids(scene: Element) -> list[str]:
 
 def _source_variables(source: Configuration) -> dict[str, Element]:
     """The other file's global variables, by name -- the <Variable> elements directly under its root."""
-    root = cast("Element | None", source.root)
+    root = source.root
     if root is None:
         return {}
     return {(child.findtext("n") or "").strip(): child for child in root.findall("Variable")}

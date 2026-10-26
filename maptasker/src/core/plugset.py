@@ -36,7 +36,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -144,7 +144,7 @@ def _json_keys(vals: Element) -> set[str]:
     return set(listed) | {_PARAMETERS}
 
 
-def _parsed(text: str) -> dict | None:
+def _parsed(text: str) -> dict[str, Any] | None:
     """A JSON field's document, or None if it is not one."""
     if not text.startswith("{"):
         return None
@@ -152,7 +152,7 @@ def _parsed(text: str) -> dict | None:
         document = json.loads(text)
     except ValueError:
         return None
-    return document if isinstance(document, dict) else None
+    return cast("dict[str, Any]", document) if isinstance(document, dict) else None
 
 
 # A list a plugin keeps in one field is written in Tasker's own encoding for one:
@@ -190,13 +190,15 @@ def _shown(value: object) -> str:
         if text.startswith(_STRING_ARRAY):
             return ", ".join(item.strip() for item in _STRING_ARRAY_ITEM.findall(text) if item.strip())
         return "" if text in ("", BUNDLE_UNSET, "false") else text
-    if isinstance(value, list) and value and not any(isinstance(item, (dict, list)) for item in value):
-        return ", ".join(text for text in (_shown(item) for item in value) if text)
+    if isinstance(value, list):
+        items = cast("list[object]", value)
+        if items and not any(isinstance(item, (dict, list)) for item in items):
+            return ", ".join(text for text in (_shown(item) for item in items) if text)
     rendered = json.dumps(value, separators=(",", ":"), ensure_ascii=False) if value else ""
     return rendered if len(rendered) <= _LONGEST_VALUE else f"{rendered[: _LONGEST_VALUE - 3]}..."
 
 
-def _flatten(document: dict, parent: str = "") -> list[tuple[str, str, object]]:
+def _flatten(document: dict[str, Any], parent: str = "") -> list[tuple[str, str, object]]:
     """[(field, parent, value)] for every leaf of a JSON settings document.
 
     A plugin's screen groups its settings under headings ("advancedSettings", "textSettings"),
@@ -208,7 +210,7 @@ def _flatten(document: dict, parent: str = "") -> list[tuple[str, str, object]]:
         if key in _PLUMBING:
             continue
         if isinstance(value, dict):
-            leaves += _flatten(value, key)
+            leaves += _flatten(cast("dict[str, Any]", value), key)
         else:
             leaves.append((key, parent, value))
     return leaves
@@ -432,7 +434,7 @@ def _join_filters(fields: dict[str, str], labels: _Labels) -> list[tuple[str, st
     a switch belongs to its filter, and read on its own ("FilterTitleRegex=true") it says
     nothing about what is being matched.
     """
-    lines = []
+    lines: list[tuple[str, str]] = []
     for what in _JOIN_FILTERS:
         base = f"Filter{what}"
         value = fields.pop(base, "")

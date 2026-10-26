@@ -80,6 +80,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from xml.etree.ElementTree import Element
 
+    from maptasker.src.core.actionc import ActionCode
     from maptasker.src.core.primitem import RunState
 
 # Two of healthck's three grading words, spelled out rather than imported (see the
@@ -187,7 +188,7 @@ def _is_coordinate_pair(text: str) -> bool:
         latitude, longitude = (float(part) for part in text.split(","))
     except ValueError:
         return False
-    return abs(latitude) <= 90 and abs(longitude) <= 180 and (latitude or longitude)
+    return abs(latitude) <= 90 and abs(longitude) <= 180 and bool(latitude or longitude)
 
 
 def _is_phone(text: str) -> bool:
@@ -494,7 +495,7 @@ def _action_code(action: Element) -> str:
     return (code.text or "").strip() if code is not None else ""
 
 
-def _action_entry(code: str) -> object | None:
+def _action_entry(code: str) -> ActionCode | None:
     """actionc.py's record for a Task action code, following the plugin redirect.
 
     proflint._action_name's hop, kept because the argument names this module reads live on
@@ -570,7 +571,7 @@ class _Collector:
 
     def problems(self) -> list[Problem]:
         """The tally as one Problem per thing found per place."""
-        found = []
+        found: list[Problem] = []
         for (where, place, (tag, severity, what)), count in self._counts.items():
             times = "" if count == 1 else f" {count} times"
             found.append(Problem(severity, tag, where, f"{what}  Found{times} in {place}.  {_ADVICE}"))
@@ -785,7 +786,7 @@ def _scan_variables(collect: _Collector, state: RunState) -> None:
     them, and from the XML rather than PrimeItems.variables, whose values globalvr has
     already HTML-escaped for display.
     """
-    if state.xml_root is None:
+    if not state.backup_loaded:
         return
     for variable in state.xml_root.findall("Variable"):
         children = list(variable)
@@ -967,7 +968,7 @@ def redact_tree(root: Element) -> Redaction:
     """
     counts: dict[str, int] = {}
 
-    actions = set()
+    actions: set[int] = set()
     for action in root.iter("Action"):
         actions.add(id(action))
         for element in action.iter():

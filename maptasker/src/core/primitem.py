@@ -118,12 +118,12 @@ def initial_found_named_items() -> dict[str, bool]:
 # needs its *own* dictionary (and, for directory_items, its own lists), since these get
 # mutated in place -- appended to and cleared -- throughout a run.  A shared constant
 # would alias every "reset" back onto the same object.
-def initial_grand_totals() -> dict:
+def initial_grand_totals() -> dict[str, int]:
     """
     Build a fresh grand_totals dictionary, every count zero.
 
     Returns:
-        dict: the running Project/Profile/Task/Scene counts for a run.
+        dict[str, int]: the running Project/Profile/Task/Scene counts for a run.
     """
     return {
         "projects": 0,
@@ -134,12 +134,12 @@ def initial_grand_totals() -> dict:
     }
 
 
-def initial_directory_items() -> dict:
+def initial_directory_items() -> dict[str, Any]:
     """
     Build a fresh directory_items dictionary, every hyperlink list empty.
 
     Returns:
-        dict: the per-item-type directory hyperlink lists for a run.
+        dict[str, Any]: the per-item-type directory hyperlink lists for a run.
     """
     return {
         "current_item": "",
@@ -172,6 +172,11 @@ def initial_tasker_root_elements() -> dict[str, Any]:
     }
 
 
+def _no_checkpoints() -> list[Checkpoint]:
+    """An empty list for a new UndoHistory's undo and redo stacks."""
+    return []
+
+
 @dataclass
 class UndoHistory:
     """The Undo and Redo stacks for one run state's loaded configuration (see sessundo).
@@ -185,8 +190,8 @@ class UndoHistory:
     restore_history can hand the lot over and put it back in one piece.
     """
 
-    undo: list[Checkpoint] = field(default_factory=list)
-    redo: list[Checkpoint] = field(default_factory=list)
+    undo: list[Checkpoint] = field(default_factory=_no_checkpoints)
+    redo: list[Checkpoint] = field(default_factory=_no_checkpoints)
     depth: int = 0
 
 
@@ -278,56 +283,56 @@ class RunState:
 
     def _init_output(self) -> None:
         """What one run's output is built from: the running totals, the directory, and the Diagram's records."""
-        self.found_named_items: dict = initial_found_named_items()
-        self.grand_totals: dict = initial_grand_totals()
-        self.directory_items: dict = initial_directory_items()
+        self.found_named_items: dict[str, bool] = initial_found_named_items()
+        self.grand_totals: dict[str, int] = initial_grand_totals()
+        self.directory_items: dict[str, Any] = initial_directory_items()
         # Every mapjump anchor id written into the Map so far this run.  An id may appear in a
         # document only once, and a Task listed by two Profiles (or by a Profile and again in
         # "Tasks not in any Profile") is output twice -- so the second sighting is written
         # without an anchor and a jump lands on the Task's first appearance.  Emptied wherever
         # directory_items is, and for the same reason: both describe one run's output, and
         # refresh_our_output throws that output away and starts it again mid-run.
-        self.emitted_anchors: set = set()
+        self.emitted_anchors: set[str] = set()
         # Where each object ended up in the Diagram that was last built: {mapjump anchor id:
         # (line, column, length)}, in the coordinates of the rendered diagram file, with column
         # and length counted in UTF-16 code units so the browser can use them as given.  Filled
         # by diagram.network_map; read by mapjump.diagram_placement so a Find result or a report
         # finding can be taken to the Diagram as precisely as it is taken to the Map.  Empty
         # until a Diagram has been built, which is the same thing as "no Diagram to jump into".
-        self.diagram_anchors: dict = {}
+        self.diagram_anchors: dict[str, tuple[int, int, int]] = {}
         # The same, mid-build and before the positions are final: {anchor: (row, drawn text)}
         # in netmap_output's own line numbering.  Lives on PrimeItems rather than in diagram.py
         # only so that it is emptied wherever the rest of a run's output is.
-        self.diagram_object_seeds: dict = {}
+        self.diagram_object_seeds: dict[str, tuple[int, str]] = {}
         # Which object each of those anchors IS: {anchor: mapjump.Target}.  Held apart from the
         # positions because a position is remapped four times before the diagram is written and
         # an identity never is -- see diagrecord.record_at_row.  Read once, when the interactive Diagram
         # view's model is assembled, and emptied straight afterwards.
-        self.diagram_object_targets: dict = {}
+        self.diagram_object_targets: dict[str, Any] = {}
         # Every drawing of every object, not just the first: [(anchor, row, drawn text)] while
         # the diagram is being built, and [(anchor, line, column, length)] once it is written.
         # diagram_anchors above answers "where does a jump to this object land"; this answers
         # "which pieces of the drawing ARE this object", which is a different question wherever
         # the Diagram draws one twice -- a Task run by two Profiles, or fired by a Scene as well.
-        self.diagram_object_placements: list = []
+        self.diagram_object_placements: list[tuple[Any, ...]] = []
         # Every call the Diagram drew a connector for: {call index: {caller_row, called_row,
         # caller_name, called_name, project}}, in the rendered file's line numbering by the time
         # the diagram is finished.  The call index is what each connector seed carries, which is
         # how a run of box-drawing characters is traced back to the two Tasks it joins.
-        self.diagram_call_edges: dict = {}
+        self.diagram_call_edges: dict[int, dict[str, Any]] = {}
         # Which calls each finished connector belongs to: {connector group id: [call index, ...]}.
         # Filled by diagarrows.compute_diagram_connector_groups, as the other half of the same fact.
-        self.diagram_connector_calls: dict = {}
+        self.diagram_connector_calls: dict[int, list[int]] = {}
         # The whole of what the interactive Diagram view acts on -- nodes, foldable Project
         # regions and call edges, all in the rendered file's coordinates.  Assembled by
         # diagintr.build_model once the diagram is written; read by the view when it renders.
-        self.diagram_model: dict = {}
+        self.diagram_model: dict[str, Any] = {}
         # The Diagram's Profile and Scene boxes and Task lines that have been drawn but not yet
         # flushed to a row of netmap_output: what each box/Task IS, held until the row it will
         # land on is known (see diagrecord.note_box and flush_boxes).  Emptied with the rest of
         # the Diagram's records.
-        self.diagram_pending_boxes: list = []
-        self.diagram_pending_tasks: list = []
+        self.diagram_pending_boxes: list[Any] = []
+        self.diagram_pending_tasks: list[Any] = []
 
     def _init_editing_session(self) -> None:
         """What the GUI keeps about the configuration it is editing: its Undo history and its settings."""
@@ -337,7 +342,7 @@ class RunState:
         # program_arguments while it runs (guistate.held_overrides), and the names of the
         # settings that win over every window's own copy (guistate.remember_setting).  Both
         # are about the GUI that is showing this state, not about one build.
-        self.held_overrides: dict = {}
+        self.held_overrides: dict[str, Any] = {}
         self.remembered_settings: set[str] = set()
 
     def _init_session(self) -> None:
@@ -349,18 +354,20 @@ class RunState:
         # way).  Emptied by a reset, with the rest of a run's state, because it describes a
         # configuration that is about to be replaced -- but not when a Diagram is drawn, which
         # leaves the flowchart as it was (it is not in DIAGRAM_ATTRIBUTES).
-        self.taskflow_rows: list = []
+        self.taskflow_rows: list[Any] = []
         self.tasker_root_elements: dict[str, Any] = initial_tasker_root_elements()
         # The highest Task/Profile id in the file as it was loaded, set by taskerd.get_the_xml_data.
         # New ids are kept well above it -- see taskedit.NEW_OBJECT_ID_HEADROOM.  0 = nothing loaded.
         self.loaded_highest_object_id = 0
-        self.directories: list = []
-        self.variables: dict = {}
-        self.current_project: dict = {}  # the Project being processed: its table entry ({"xml", "name"}), or {} before one
+        self.directories: list[Any] = []
+        self.variables: dict[str, Any] = {}
+        self.current_project: dict[
+            str, Any
+        ] = {}  # the Project being processed: its table entry ({"xml", "name"}), or {} before one
         self.last_run = NOW_TIME
-        self.mono_fonts: dict = {}
+        self.mono_fonts: dict[str, Any] = {}
         self.slash = "/"
-        self.task_action_warnings: dict = {}
+        self.task_action_warnings: dict[str, Any] = {}
         self.task_count_unnamed = 0
         self.task_count_no_profile = 0
         self.named_task_count_total = 0
@@ -377,17 +384,17 @@ class RunState:
         self.cli_view_limit = None
         # The Diagram as it is being drawn: its lines, how often each called Task is drawn, and where
         # each connector between them starts -- all emptied by diagram.py before it draws.
-        self.netmap_output: list = []
-        self.called_task_tracker: dict = {}
-        self.diagram_connector_seeds: list = []
+        self.netmap_output: list[str] = []
+        self.called_task_tracker: dict[str, dict[str, int]] = {}
+        self.diagram_connector_seeds: list[Any] = []
         # The finished connectors the Diagram view draws: {connector id: its ranges} (see guiwins).
-        self.diagram_connectors: dict = {}
+        self.diagram_connectors: dict[Any, Any] = {}
         # The Tasks already written into the Outline (outline.py), so that each is written once.
-        self.outline_tasks_mapped: list = []
-        self.tasker_arg_specs: dict = {}
-        self.tasker_category_descriptions: dict = {}
-        self.tasker_event_codes: dict = {}
-        self.tasker_state_codes: dict = {}
+        self.outline_tasks_mapped: list[str] = []
+        self.tasker_arg_specs: dict[str, str] = {}
+        self.tasker_category_descriptions: dict[int, str] = {}
+        self.tasker_event_codes: dict[str, Any] = {}
+        self.tasker_state_codes: dict[str, Any] = {}
         self.trace: bool = False
         self.languages: dict[str, str] = {
             "English": "en",

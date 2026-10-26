@@ -7,6 +7,11 @@
 #                                                                                      #
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
+
 # Tasker's boolean operators from lowest to highest precedence (Tasker userguide, Action
 # Edit, "If Conditions"): And, Or, And+ and Or+, the last two stored as "And2"/"Or2".  So
 # "A | B & C | D" is "(A | B) & (C | D)" -- Or binds tighter than And, unlike most
@@ -16,14 +21,18 @@ _PRECEDENCE = {"and": 0, "or": 1, "xor": 1, "and2": 2, "or2": 3}
 _DISPLAY = {"and": "AND", "or": "OR", "xor": "XOR", "and2": "AND", "or2": "OR"}
 
 
-def boolean_operators(condition_list: object, condition_count: int) -> list[str]:
+def boolean_operators(condition_list: Element | None, condition_count: int) -> list[str]:
     """The joiners between a <ConditionList>'s Conditions, in order: one fewer than the Conditions.
 
     <boolN> joins Condition N to Condition N+1.  Tasker writes it either between the pair or,
     in newer backups, after the last Condition, so the joiners are read in document order
     rather than in passing.  A missing or empty joiner is Tasker's default, And.
     """
-    joiners = [(child.text or "And").strip() or "And" for child in condition_list if "bool" in child.tag]
+    joiners = [
+        (child.text or "And").strip() or "And"
+        for child in (condition_list if condition_list is not None else ())
+        if "bool" in child.tag
+    ]
     joiners = joiners[: max(condition_count - 1, 0)]
     return joiners + ["And"] * (max(condition_count - 1, 0) - len(joiners))
 

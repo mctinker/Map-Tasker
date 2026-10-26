@@ -293,6 +293,8 @@ class _RestoreDialog:
             self.summary.set_text("")
             ui.notify(translate_string(problem), type="negative")
             return
+        if older is None or offer is None:
+            return
         held.older, held.offer = older, offer
         self._draw_list(offer)
 

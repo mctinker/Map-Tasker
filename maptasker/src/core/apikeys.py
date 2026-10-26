@@ -29,7 +29,7 @@ import pickle
 import sys
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, NoReturn, cast
 
 import keyring
 from keyring.errors import KeyringError, PasswordDeleteError
@@ -174,10 +174,10 @@ def _forget_retired_keys(text: str, keys: dict[str, str]) -> None:
         keys (dict[str, str]): the keys that were taken out of it, one entry per API_KEY_NAMES.
     """
     try:
-        contents = json.loads(text) if text else {}
+        contents = _as_mapping(json.loads(text) if text else {})
     except ValueError:
         return
-    if not isinstance(contents, dict) or not any(name in contents for name in RETIRED_KEY_NAMES):
+    if not any(name in contents for name in RETIRED_KEY_NAMES):
         return
     try:
         _write_store(keys)
@@ -239,6 +239,11 @@ def _read_key_file(key_file: Path) -> dict[str, str]:
     return keys
 
 
+def _as_mapping(loaded: object) -> dict[str, object]:
+    """What JSON or a pickle gave back, as a dict -- or an empty one if it is anything else."""
+    return cast("dict[str, object]", loaded) if isinstance(loaded, dict) else {}
+
+
 def _parse_keys(text: str, source: str) -> dict[str, str]:
     """
     Pick the keys out of the JSON text kept in the password store or the fallback file.
@@ -251,12 +256,10 @@ def _parse_keys(text: str, source: str) -> dict[str, str]:
         dict[str, str]: the keys, one entry per API_KEY_NAMES -- "" for any that is missing or unusable.
     """
     try:
-        contents = json.loads(text)
+        contents = _as_mapping(json.loads(text))
     except ValueError as error:
         if text:
             logger.error("%s could not be read (%s).", source, error)
-        contents = {}
-    if not isinstance(contents, dict):
         contents = {}
     return {name: value if isinstance(value := contents.get(name), str) else "" for name in API_KEY_NAMES}
 
@@ -394,5 +397,6 @@ def _read_legacy_key_file(legacy_file: Path) -> dict[str, str] | None:
         return None
 
     # 'claude_key' is what the Anthropic key was saved as before it became 'anthropic_key'.
-    contents = {**contents, "anthropic_key": contents.get("anthropic_key") or contents.get("claude_key")}
+    known = cast("dict[str, object]", contents)
+    contents = {**known, "anthropic_key": known.get("anthropic_key") or known.get("claude_key")}
     return {name: value if isinstance(value := contents.get(name), str) else "" for name in API_KEY_NAMES}

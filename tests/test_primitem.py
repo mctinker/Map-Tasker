@@ -89,7 +89,7 @@ def test_a_reset_empties_what_a_run_filled_and_keeps_the_session() -> None:
     PrimeItems.netmap_output = ["║ Wake Up ║"]  # was not declared at all
     PrimeItems.program_arguments = ProgramArguments(debug=True)
     PrimeItems.slash = "\\"
-    PrimeItems.tasker_arg_specs = {"548": ["Text"]}
+    PrimeItems.tasker_arg_specs = {"548": "Text"}
     PrimeItems.view_limit = 25
 
     PrimeItemsReset()
@@ -103,7 +103,7 @@ def test_a_reset_empties_what_a_run_filled_and_keeps_the_session() -> None:
     assert PrimeItems.program_arguments == ProgramArguments()
     # The session's settings are not the run's to throw away.
     assert PrimeItems.slash == "\\"
-    assert PrimeItems.tasker_arg_specs == {"548": ["Text"]}
+    assert PrimeItems.tasker_arg_specs == {"548": "Text"}
     assert PrimeItems.view_limit == 25
 
 

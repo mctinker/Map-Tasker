@@ -510,6 +510,11 @@ OBJECT_PROPERTIES: dict[str, tuple[PropField, ...]] = {
 }
 
 
+def _no_elements() -> list[Element]:
+    """An empty list for a new EditableProperties to keep its variables in."""
+    return []
+
+
 @dataclass
 class EditableProperties:
     """The properties of ONE object, opened for editing.
@@ -524,7 +529,7 @@ class EditableProperties:
 
     kind: str
     element: Element
-    variables: list[Element] = field(default_factory=list)
+    variables: list[Element] = field(default_factory=_no_elements)
 
 
 # --------------------------------------------------------------------------------------
@@ -583,6 +588,14 @@ def bitfield_is_readable(element: Element, tag: str = PROFILE_FLAGS_TAG) -> bool
     return text == "" or text.isdigit()
 
 
+def _bit_mask(spec: PropField) -> int:
+    """The mask of the bit a bit-backed property is stored in."""
+    if spec.bit is None:
+        message = f"{spec.key} is not stored in a bit"
+        raise ValueError(message)
+    return 1 << spec.bit
+
+
 def _bit_value(spec: PropField, element: Element) -> str:
     """A bit-backed property as the "true"/"false" the dialog deals in.
 
@@ -590,7 +603,7 @@ def _bit_value(spec: PropField, element: Element) -> str:
     After Disable (a bit that records the setting) and Enforce Task Order (a bit that
     records its negative) the same code -- see PropField.
     """
-    return _NEGATED[spec.default] if flag_bits(element, spec.tag) & (1 << spec.bit) else spec.default
+    return _NEGATED[spec.default] if flag_bits(element, spec.tag) & _bit_mask(spec) else spec.default
 
 
 def noteworthy_default(spec: PropField) -> str:
@@ -657,7 +670,7 @@ def scalar_values(props: EditableProperties) -> dict[str, str]:
     only in what it shows, and apply_properties converts back.  Getting that wrong writes
     '<rty>Abort Existing Task</rty>' where Tasker expects '<rty>1</rty>'.
     """
-    values = {}
+    values: dict[str, str] = {}
     for spec in OBJECT_PROPERTIES.get(props.kind, ()):
         if spec.bit is not None:
             values[spec.key] = _bit_value(spec, props.element)
@@ -918,9 +931,9 @@ def _apply_flag_bits(props: EditableProperties, values: dict[str, str]) -> None:
             # supplies a subset.
             continue
         if raw == spec.default:
-            updated &= ~(1 << spec.bit)
+            updated &= ~_bit_mask(spec)
         else:
-            updated |= 1 << spec.bit
+            updated |= _bit_mask(spec)
 
     if updated == current and props.element.find(tag) is not None:
         return

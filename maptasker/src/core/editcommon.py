@@ -202,7 +202,7 @@ class EditorKind:
         # aborts a save whose file is on the device a moment later.  See
         # maputil2.read_back_uploaded_file.
         verify_code, verify_content = maputil2.read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
-        if verify_code != 0:
+        if verify_code != 0 or not isinstance(verify_content, bytes):
             return 8, str(verify_content), _NO_BYTES
 
         return 0, device_path, verify_content
@@ -225,7 +225,7 @@ def string_arguments(action: Element) -> dict[str, str]:
     children missed 833 of those in a real backup to hand, across 70 names -- every
     variable driving a volume, a delay, a slider position or a screen brightness.
     """
-    arguments = {}
+    arguments: dict[str, str] = {}
     for child in action.findall("Str"):
         sr = child.attrib.get("sr", "")
         if sr.startswith("arg"):
@@ -240,7 +240,7 @@ def string_arguments(action: Element) -> dict[str, str]:
     return arguments
 
 
-def argument_elements(node: Element) -> dict:
+def argument_elements(node: Element) -> dict[str, Element]:
     """{arg id: the element whose .text holds the value} -- what string_arguments reads.
 
     Deliberately the same two shapes, in the same precedence, as that function: these two
@@ -251,7 +251,7 @@ def argument_elements(node: Element) -> dict:
     argument the user has bound a variable to holds it in a <var> child, so the <var> is
     the element a rewrite has to touch, not the <Int> around it.
     """
-    elements = {}
+    elements: dict[str, Element] = {}
     for child in node.findall("Str"):
         sr = child.attrib.get("sr", "")
         if sr.startswith("arg"):

@@ -32,6 +32,8 @@ from maptasker.src.gui.guiwins_nav import register_finding_clicks
 from maptasker.src.gui.guiwins_textview import NiceGuiTextView
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
 
@@ -234,14 +236,14 @@ def _intercept_socket_emit(state: RunState) -> None:
     # Intercept all interactions with the UI to save MyGui to PrimeItems and shared_state
     # from nicegui import app, core, ui
     # 1. Save a reference to NiceGUI's core Socket.IO emitter function
-    _original_sio_emit = core.sio.emit
+    _original_sio_emit = cast("Callable[..., Awaitable[None]]", core.sio.emit)
 
     # 2. Define the interception proxy function
     async def intercepted_sio_emit(
         event: str,
         data: dict | None = None,
         room: str | None = None,
-        **kwargs: dict[str, Any],
+        **kwargs: object,
     ) -> None:
         # Grab your active MyGui instance securely from global state tracking
         my_gui_instance = getattr(state, "mygui", None)
@@ -256,7 +258,7 @@ def _intercept_socket_emit(state: RunState) -> None:
         await _original_sio_emit(event, data=data, room=room, **kwargs)
 
     # 3. Apply the monkey-patch directly to the core server emitter instance
-    core.sio.emit = intercepted_sio_emit
+    cast("Any", core.sio).emit = intercepted_sio_emit
 
 
 def _icons_dir() -> str:

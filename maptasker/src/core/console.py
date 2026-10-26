@@ -17,7 +17,8 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import logger
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator
+    from typing import TextIO
 
 # Whether anything written here reaches a terminal.  The log is written either way --
 # muting silences the console, never the record.  Off by default: MapTasker normally IS
@@ -48,7 +49,7 @@ def is_muted() -> bool:
 
 
 @contextlib.contextmanager
-def muted() -> Iterator[None]:
+def muted() -> Generator[None]:
     """Silence the console for the duration of a block, then put it back as it was.
 
     Restores the previous state rather than unconditionally unmuting, so nesting this
@@ -82,7 +83,7 @@ def _in_debug_mode() -> bool:
     return False
 
 
-def _emit(message: str, level: int, stream: object, end: str, flush: bool) -> None:
+def _emit(message: str, level: int, stream: TextIO, end: str, flush: bool) -> None:
     """Log a message, and put it on the terminal unless the console is muted."""
     logger.log(level, message)
     if _muted:

@@ -29,7 +29,7 @@ def share(root_element: Element, tab: str, where: Target | None = None, *, confi
         :param config: the run's settings (the colors the description is drawn in)
     """
     # Get the <share> element, if any
-    share_element: Element = root_element.find("Share")
+    share_element: Element | None = root_element.find("Share")
     if share_element is not None:
         #  We have a <Share> .  Find the description
         description_element = share_element.find("d")

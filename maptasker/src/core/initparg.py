@@ -111,7 +111,7 @@ class ArgumentFields:
     # The categories the user unticked in the Health Check panel, by tag.  Stored as what
     # to LEAVE OUT so a category added in a later release arrives reported rather than
     # silently hidden -- see healthck.CATEGORIES.
-    health_check_skip: list[str] = field(default_factory=list)
+    health_check_skip: list[str] = field(default_factory=list[str])
 
     # --- GUI window behavior ---------------------------------------------------------
     close_tabs_on_exit: bool = False  # Close the browser tabs when MapTasker exits
@@ -189,10 +189,10 @@ class ArgumentFields:
         Return the arguments as a plain dictionary -- the shape the settings file is
         written from.  A copy, lists included: changing it does not change self.
         """
-        arguments = {}
+        arguments: dict[str, object] = {}
         for name in self.NAMES:
-            value = getattr(self, name)
-            arguments[name] = list(value) if isinstance(value, list) else value
+            value: object = getattr(self, name)
+            arguments[name] = list(cast("list[object]", value)) if isinstance(value, list) else value
         return arguments
 
 
@@ -247,7 +247,7 @@ class ProgramArguments(ArgumentFields):
                 list[str]: the names that were ignored, for the caller to report if it
                     wants to.
         """
-        ignored = []
+        ignored: list[str] = []
         for name, value in settings.items():
             if name in self.NAME_SET:
                 setattr(self, name, value)

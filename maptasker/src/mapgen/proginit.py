@@ -183,7 +183,9 @@ def get_data_and_output_intro(do_front_matter: bool, state: RunState) -> None:
     ):
         # We don't yet have the data.  Let's get it.
         if not state.program_arguments.file:
-            state.program_arguments.file = state.file_to_get if state.file_to_use == "" else state.file_to_use
+            chosen = state.file_to_get if state.file_to_use == "" else state.file_to_use
+            # By name: what is reopened (see open_and_get_backup_xml_file) is the file the name points at.
+            state.program_arguments.file = chosen if isinstance(chosen, str) else str(getattr(chosen, "name", ""))
 
         # Only display message box if we don't yet have the file name,
         # if this is not the first time ever that we have run (run_counter < 1),

@@ -322,7 +322,7 @@ def actions_in_map_order(task_element: Element) -> list[Element]:
     return [action for _, action in sorted(enumerate(task_element.findall("Action")), key=position)]
 
 
-def scene_element_parts(scene_element: object) -> dict[int, str]:
+def scene_element_parts(scene_element: Element) -> dict[int, str]:
     """{id(element): the key its anchor uses} for every element the Map anchors in one Scene.
 
     Here for the reason actions_in_map_order is here: two sides have to agree about how the
@@ -349,7 +349,7 @@ def scene_element_parts(scene_element: object) -> dict[int, str]:
     """
     parts: dict[int, str] = {}
 
-    def walk(parent: object, prefix: str) -> None:
+    def walk(parent: Element, prefix: str) -> None:
         used: dict[str, int] = {}
         for child in parent:
             if not child.tag.endswith("Element"):
@@ -541,7 +541,7 @@ class Scope:
         }.get(kind, frozenset())
 
 
-def _members(project_element: object, tag: str) -> list[str]:
+def _members(project_element: Element, tag: str) -> list[str]:
     """A Project's comma-separated member list -- its Profile ids, Task ids or Scene names."""
     child = project_element.find(tag)
     raw = (child.text or "").strip() if child is not None else ""

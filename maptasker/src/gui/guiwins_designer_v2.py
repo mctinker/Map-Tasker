@@ -240,7 +240,7 @@ def _native_input_script(field_id: int) -> str:
     )
 
 
-async def _caret_position(field: ui.input) -> int | None:
+async def _caret_position(field: ui.input | ui.color_input) -> int | None:
     """Where the cursor is sitting in the field, asked of the browser.
 
     It has to be asked for rather than remembered: the caret lives in the DOM, and NiceGUI's

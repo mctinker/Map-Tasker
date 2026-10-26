@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Iterator, Mapping
+from typing import Any
 
 # Resolved off this file rather than the working directory: proginit chdir's into the
 # assets directory during start-up (see actionc._JSON_DIR).
@@ -28,13 +29,13 @@ BUNDLES_FILE = os.path.normpath(
 )
 
 
-def read_bundles(path: str = BUNDLES_FILE) -> dict:
+def read_bundles(path: str = BUNDLES_FILE) -> dict[str, dict[str, Any]]:
     """Read a bundles file.
 
     Args:
         path (str): the json file to read.
     Returns:
-        dict: {owning <code> + 'e'/'s'/'t': {'Bundle': {attributes and sub-tags}}}.
+        dict[str, dict[str, Any]]: {owning <code> + 'e'/'s'/'t': {'Bundle': {attributes and sub-tags}}}.
     Raises:
         RuntimeError: if the file is missing or is not json -- every plugin action would
             otherwise look like one with no recorded definition, which would read as data.
@@ -50,7 +51,7 @@ def read_bundles(path: str = BUNDLES_FILE) -> dict:
         raise RuntimeError(message) from error
 
 
-class LazyBundles(Mapping):
+class LazyBundles(Mapping[str, dict[str, Any]]):
     """A read-only dict of the recorded bundles that is not read from disk until it is used."""
 
     def __init__(self, path: str = BUNDLES_FILE) -> None:
@@ -59,10 +60,10 @@ class LazyBundles(Mapping):
             path (str): the json file the table is read from, on first use.
         """
         self._path = path
-        self._table: dict | None = None
+        self._table: dict[str, dict[str, Any]] | None = None
 
     @property
-    def table(self) -> dict:
+    def table(self) -> dict[str, dict[str, Any]]:
         """The table itself, read the first time it is asked for."""
         if self._table is None:
             self._table = read_bundles(self._path)
@@ -72,7 +73,7 @@ class LazyBundles(Mapping):
         """Forget what was read, so that the next lookup reads the file again (after bldbndle rewrote it)."""
         self._table = None
 
-    def __getitem__(self, key: str) -> dict:
+    def __getitem__(self, key: str) -> dict[str, Any]:
         """The recorded definition for an owning code, as the dict it always was."""
         return self.table[key]
 

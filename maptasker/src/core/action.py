@@ -51,7 +51,7 @@ WANTED_ACTION_ELEMENTS = frozenset(
 def get_args(
     action: Element,
     ignore_list: list,
-) -> tuple[list, list, list]:
+) -> tuple[list, list, list[str] | int]:
     """
     Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
     This is only called if the action code is not already in our master dictionary actionc.py
@@ -60,7 +60,7 @@ def get_args(
         :return: list of arguments, list of argument types, list of argument position (numeric part of <argn>)
     """
     arguments, argument_types, master_list = [], [], []
-    arg_nums = 0
+    arg_nums: list[str] | int = 0  # 0 when the action has no arguments
     for child in action:
         if child.tag in ignore_list:  # Ignore certain tags
             continue
@@ -122,7 +122,7 @@ def evaluate_condition(child: Element) -> tuple[str, str, str]:
 # ################################################################################
 # Given an action line, remove the last trailing comma.
 # ################################################################################
-def drop_trailing_comma(match_results: list) -> list:
+def drop_trailing_comma(match_results: list[str]) -> list[str]:
     """
     Delete any trailing comma from the end of the list of strings.
             :param match_results: a list of strings to check.
@@ -145,7 +145,7 @@ def drop_trailing_comma(match_results: list) -> list:
 #   0: True=it is a string, False it is an integer,
 #   1: the value to test
 #   2: the value to plug in if it meets the test
-def evaluate_action_setting(*args: list) -> list:
+def evaluate_action_setting(*args: list[str | bool]) -> list[str]:
     """Evaluates action settings and returns results.
     Define a class for converting string '1' setting to its value.
     Args:
@@ -173,10 +173,10 @@ def evaluate_action_setting(*args: list) -> list:
 
 ## Given a required value logic and its position, evaluate the found integer and add
 def process_xml_list(
-    names: list,
+    names: list[list[str]],
     arg_location: int,
     the_int_value: str,
-    match_results: list,
+    match_results: list[str],
     arguments: list[str],
 ) -> None:
     """

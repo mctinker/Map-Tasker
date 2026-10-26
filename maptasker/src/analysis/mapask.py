@@ -39,10 +39,12 @@ from typing import TYPE_CHECKING
 
 from maptasker.src.analysis import mapfind
 from maptasker.src.core.aiutils import get_api_key, prepare_ollama_model
-from maptasker.src.core.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
+from maptasker.src.core.maputil3 import AI_EXTRA_INSTALL_COMMAND, AiClient, import_optional
 from maptasker.src.core.sysconst import logger
 
 if TYPE_CHECKING:
+    from types import ModuleType
+
     from maptasker.src.core.primitem import RunState
 
 # The providers, spelled the way the Analyze tab's model pulldown groups them and the way
@@ -379,7 +381,7 @@ def parse_reply(reply: str, index: mapfind.FindIndex) -> Translation:
 # ##################################################################################
 # Asking.
 # ##################################################################################
-def _library(pypi_name: str, import_path: str) -> object:
+def _library(pypi_name: str, import_path: str) -> ModuleType:
     """A provider's library, or an AskError if it is not installed."""
     module = import_optional(pypi_name, import_path)
     if module is None:
@@ -393,7 +395,7 @@ def _library(pypi_name: str, import_path: str) -> object:
 # it only stops waiting, while the thread runs on to a reply nobody will read.  A request
 # made by an asyncio task is abandoned where it waits when the task is cancelled: its
 # connection is closed, and the provider stops generating the reply.
-async def _chat_completion(client: object, model: str, system: str, user: str, **extra: object) -> str:
+async def _chat_completion(client: AiClient, model: str, system: str, user: str, **extra: object) -> str:
     """One OpenAI chat completion."""
     # The o1 family refuses a system message; mapai makes the same allowance for it.
     role = "user" if "o1" in model else "system"

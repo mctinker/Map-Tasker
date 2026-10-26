@@ -21,7 +21,7 @@ from maptasker.src.analysis import mapask
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapops import mapcards, mapdraft
 
-from tests.test_mapdraft import FLASH, IF, WAIT, _plan, backup  # noqa: F401  (backup is a fixture)
+from tests.test_mapdraft import FLASH, IF, WAIT, _detail_prompt, _plan, backup  # noqa: F401  (backup is a fixture)
 
 _HI = {"action": FLASH, "args": {"0": "Hi"}}
 _WAIT = {"action": WAIT, "args": {"1": "5"}}
@@ -161,8 +161,8 @@ def test_a_name_with_a_line_break_in_it_stays_one_line(variables: None, monkeypa
 def test_the_second_question_is_told_the_names_too_only_with_consent(variables: None) -> None:
     plan = mapdraft.Plan("", (mapdraft.PlanStep("130t", "run Cleanup"),))
 
-    _, without = mapdraft.build_detail_prompt("run Cleanup", plan, PrimeItems)
-    _, shared = mapdraft.build_detail_prompt("run Cleanup", plan, PrimeItems, share_names=True)
+    _, without = _detail_prompt("run Cleanup", plan, PrimeItems)
+    _, shared = _detail_prompt("run Cleanup", plan, PrimeItems, share_names=True)
 
     assert "Tasks: Cleanup" not in without
     assert "Tasks: Cleanup" in shared

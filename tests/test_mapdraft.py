@@ -17,6 +17,7 @@ import asyncio
 import json
 from dataclasses import replace
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from maptasker.src.analysis import mapask
@@ -27,6 +28,11 @@ from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taske
 from maptasker.src.mapops import mapcards, mapdraft
 
 from tests.test_mapswap import _FIXTURE_XML, _load
+
+if TYPE_CHECKING:
+    from collections.abc import Collection
+
+    from maptasker.src.core.primitem import RunState
 
 # The actions used below, named so the tests read as prose.
 IF, ELSE, END_IF = "37t", "43t", "38t"
@@ -57,6 +63,20 @@ def backup(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(appinv, "cache_path", lambda: str(cache))
     caches.clear_all()
     _load(_FIXTURE_XML)
+
+
+def _detail_prompt(
+    description: str,
+    plan: mapdraft.Plan,
+    state: RunState,
+    answered: Collection[int] = (),
+    *,
+    share_names: bool = False,
+) -> tuple[str, str]:
+    """The second prompt, for a test that expects there to be one to ask."""
+    prompts = mapdraft.build_detail_prompt(description, plan, state, answered=answered, share_names=share_names)
+    assert prompts is not None
+    return prompts
 
 
 def _plan(*steps: object, name: str = "", unexpressed: str = "") -> str:
@@ -200,13 +220,13 @@ def test_the_second_prompt_shows_only_the_chosen_steps_arguments(backup: None) -
         "",
         (mapdraft.PlanStep(FLASH, "say hello"), mapdraft.PlanStep(SYSTEM_LOCK), mapdraft.PlanStep(WAIT, "wait 5s")),
     )
-    system, user = mapdraft.build_detail_prompt("say hello then wait", plan, PrimeItems)
+    system, user = _detail_prompt("say hello then wait", plan, PrimeItems)
 
     assert "say hello" in user
     assert '"step": 1' in user
     assert '"step": 3' in user
     # Unless the first question has already listed an action's arguments, in which case it is not asked again.
-    _, partly = mapdraft.build_detail_prompt("say hello then wait", plan, PrimeItems, answered={0})
+    _, partly = _detail_prompt("say hello then wait", plan, PrimeItems, answered={0})
     assert '"step": 1' not in partly
     assert '"step": 3' in partly
     assert mapdraft.build_detail_prompt("x", plan, PrimeItems, answered={0, 2}) is None
@@ -220,7 +240,7 @@ def test_the_second_prompt_shows_only_the_chosen_steps_arguments(backup: None) -
 def test_a_perform_task_is_not_shown_the_names_of_the_users_tasks(backup: None) -> None:
     """A name in the description is checked here, afterwards; the configuration stays out of the prompt."""
     plan = mapdraft.Plan("", (mapdraft.PlanStep(PERFORM_TASK, "run the Noisy one"),))
-    system, user = mapdraft.build_detail_prompt("run Noisy", plan, PrimeItems)
+    system, user = _detail_prompt("run Noisy", plan, PrimeItems)
 
     assert "Perform Task" in user
     assert "Opener" not in system + user
@@ -351,13 +371,13 @@ def test_an_action_with_too_many_arguments_is_named_not_listed(backup: None, mon
 
 def test_the_second_prompt_repeats_a_cards_pitfall(backup: None) -> None:
     plan = mapdraft.Plan("", (mapdraft.PlanStep("307t", "quieter"), mapdraft.PlanStep(FLASH, "say hi")))
-    _, user = mapdraft.build_detail_prompt("quieter, say hi", plan, PrimeItems)
+    _, user = _detail_prompt("quieter, say hi", plan, PrimeItems)
     lines = [json.loads(line) for line in user.splitlines() if line.startswith("{")]
 
     assert lines[0]["note"] == "Level is 0 to 15."
     assert "note" in lines[1]  # Flash has one too
     plan = mapdraft.Plan("", (mapdraft.PlanStep(WAIT, "pause"),))
-    _, user = mapdraft.build_detail_prompt("pause", plan, PrimeItems)
+    _, user = _detail_prompt("pause", plan, PrimeItems)
     assert "note" in json.loads(user.splitlines()[-1])
 
 

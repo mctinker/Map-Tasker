@@ -119,7 +119,7 @@ class Configuration(NamedTuple):
     # Both default so a caller that only needs the object tables -- diffload's own
     # order_by_age, which just reads 'when' -- can build one without them.  A missing
     # root simply means the global Variables and Settings are not compared.
-    root: object | None = None
+    root: Element | None = None
     when: datetime | None = None
 
 

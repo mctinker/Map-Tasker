@@ -19,7 +19,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
@@ -41,7 +41,7 @@ def _numeric_order(value: str | int) -> tuple[int, int]:
     return (0, int(value))
 
 
-def shell_sort(arr: list, do_arguments: bool, by_numeric: bool) -> None:
+def shell_sort(arr: list[Any], do_arguments: bool, by_numeric: bool) -> None:
     """
     Sort the list in-place, ascending.
     Args:

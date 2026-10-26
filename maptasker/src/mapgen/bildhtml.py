@@ -562,7 +562,7 @@ def check_single_item(state: RunState) -> None:
         ("single_project_name", "single_project_found", "Project"),
         ("single_profile_name", "single_profile_found", "Profile"),
     ):
-        name = state.program_arguments[name_key]
+        name = str(state.program_arguments[name_key] or "")
         if not name or state.found_named_items[found_key]:
             continue
         if state.program_arguments.gui:

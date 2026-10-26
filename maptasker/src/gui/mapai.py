@@ -14,7 +14,7 @@ from nicegui import run
 from maptasker.src.core import console
 from maptasker.src.core.aiutils import OLLAMA_DOWNLOAD_URL, get_api_key, ollama_errors, prepare_ollama_model
 from maptasker.src.core.maputil2 import translate_string
-from maptasker.src.core.maputil3 import AI_EXTRA_INSTALL_COMMAND, import_optional
+from maptasker.src.core.maputil3 import AI_EXTRA_INSTALL_COMMAND, AiClient, import_optional
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.outdir import output_path
 from maptasker.src.core.primitem import RunState, get_single_item_requested
@@ -261,7 +261,7 @@ def process_error(error: str, ai_object: str, item: str, state: RunState) -> Non
     error_file.close()
 
 
-def _process_openai_response(client: object, query: str, state: RunState) -> str:
+def _process_openai_response(client: AiClient, query: str, state: RunState) -> str:
     """Helper function to process OpenAI responses."""
     model = state.program_arguments.ai_model
     role = ai_role
@@ -278,7 +278,7 @@ def _process_openai_response(client: object, query: str, state: RunState) -> str
     return "".join(chunk.choices[0].delta.content or "" for chunk in stream_feed)
 
 
-def _process_anthropic_response(client: object, query: str, state: RunState) -> str:
+def _process_anthropic_response(client: AiClient, query: str, state: RunState) -> str:
     """Helper function to process Anthropic (Claude) responses."""
     message = client.messages.create(
         model=state.program_arguments.ai_model,
@@ -301,7 +301,7 @@ def _process_anthropic_response(client: object, query: str, state: RunState) -> 
     return text
 
 
-def _process_gemini_response(client: object, query: str, state: RunState) -> str:
+def _process_gemini_response(client: AiClient, query: str, state: RunState) -> str:
     """Helper function to process Gemini responses."""
     model = state.program_arguments.ai_model
     role = ai_role

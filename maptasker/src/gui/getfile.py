@@ -4,13 +4,17 @@ import ctypes
 import os
 import platform
 import string
+import sys
 from pathlib import Path
+from types import EllipsisType
 
 from nicegui import events, ui
 
 
 def windows_drives() -> list[str]:
-    """Return the drive roots on Windows, such as C: and D:, without needing pywin32."""
+    """Return the drive roots on Windows, such as C: and D:, without needing pywin32 (none anywhere else)."""
+    if sys.platform != "win32":
+        return []
     if hasattr(os, "listdrives"):  # Python 3.12+
         return list(os.listdrives())
     bitmask = ctypes.windll.kernel32.GetLogicalDrives()
@@ -24,7 +28,7 @@ class LocalFilePicker(ui.dialog):
         self,
         directory: str,
         *,
-        upper_limit: str | None = ...,
+        upper_limit: str | EllipsisType | None = ...,
         multiple: bool = False,
         show_hidden_files: bool = False,
     ) -> None:

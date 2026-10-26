@@ -77,7 +77,7 @@ def get_display_text(element: Element | None) -> str:
 
 
 # Parse Property's variable and return its properties as a list of items
-def parse_variable(variable_header: Element) -> list:
+def parse_variable(variable_header: Element) -> list[str]:
     """
     Parses the variable header of a property tag and returns the properties of the variable.
     Properties are identied in the XML with the tag: <xxxxVariable>, where xxxx is Project/Profile/Task
@@ -195,7 +195,7 @@ def get_css_attributes(property_tag: str) -> str:
     return css_attribute
 
 
-def profile_properties(header: Element) -> list:
+def profile_properties(header: Element) -> list[str]:
     """A Profile's Remaining Repeats, Delete After Disable, Restore Settings, Enforce Task
     Order, Run Exit Task On Startup and Show In Notification, as "Label:value" items, and
     only the ones set to something other than the value an untouched Profile has.
@@ -276,7 +276,7 @@ def get_properties(
     # Gather every property of this object -- its comment, keep-awake and collision handling
     # settings, and the properties of each of its variables -- into one list of items.  They
     # all belong to the same "...Properties..." block, and go out as a single output line.
-    properties = []
+    properties: list[str] = []
 
     # Get the item comment, if any.  Don't process it if we already have it
     comment_xml = header.find("pc")
@@ -298,9 +298,9 @@ def get_properties(
     _parse_variable = parse_variable
     for item in header:
         if item.tag == "cldm":
-            cooldown = item.text
+            cooldown = item.text or ""
         if item.tag == "limit":
-            limit = item.text
+            limit = item.text or ""
         if item.tag == "ProfileVariable":
             properties.extend(_parse_variable(item))
             have_variable = True

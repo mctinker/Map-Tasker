@@ -37,7 +37,7 @@ def build_editable_action(action_element: Element, act_number: int, state: RunSt
     elements rather than the source action's.
     """
     code_element = action_element.find("code")
-    code = code_element.text if code_element is not None else ""
+    code = (code_element.text if code_element is not None else "") or ""
 
     action_code = action_codes.get(f"{code}t")
     if action_code is None:

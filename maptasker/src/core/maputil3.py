@@ -12,10 +12,16 @@ None and the user is told, once, what to install.
 
 import importlib
 from types import ModuleType
+from typing import Any, TypeAlias
 
 from maptasker.src.core import console
 
 AI_EXTRA_INSTALL_COMMAND = 'pip install "maptasker[ai]"'
+
+# A provider's client object.  The libraries are imported by name at run time and may not be installed, so
+# the code that calls them cannot name their types; this says that, rather than "any object" (which no
+# call can be made on).
+AiClient: TypeAlias = Any
 
 # The packages already reported missing, so a caller that asks again -- a model list rebuilt
 # on every visit to the AI dialog, say -- does not repeat the same message.
