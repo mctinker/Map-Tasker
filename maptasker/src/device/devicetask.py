@@ -177,7 +177,6 @@ def run_task_on_android(
         ip_port,
         "",
         "api/tasks",
-        "",
         json.dumps(body).encode("utf-8"),
         auth_key,
         content_type="application/json",

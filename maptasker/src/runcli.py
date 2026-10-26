@@ -236,33 +236,37 @@ def process_extended_arguments(args: argparse.Namespace, state: RunState) -> Non
     # Get Android device info for fetching the backup xml file
     get_android_settings(program_arguments, args)
 
-    # Appearance
+    _apply_look_settings(program_arguments, args)
+    _apply_file_settings(program_arguments, args)
+
+
+def _first_of(value: str | list[str]) -> str:
+    """The argument itself, or the first of them when the parser handed back a list."""
+    return value[0] if isinstance(value, list) else value
+
+
+def _apply_look_settings(program_arguments: ProgramArguments, args: argparse.Namespace) -> None:
+    """The appearance, indentation and font the command line asked for, if it did."""
     if appearance := getattr(args, "appearance"):
         program_arguments.appearance_mode = appearance
 
-    # Indentation amount
     if indent := get_arg_if_in_list(args, "i"):
         program_arguments.indent = indent
 
-    # Font
     if font := getattr(args, "font"):
-        if isinstance(font, list):
-            program_arguments.font = font[0]
-        else:
-            program_arguments.font = font
+        program_arguments.font = _first_of(font)
 
-    # File
+
+def _apply_file_settings(program_arguments: ProgramArguments, args: argparse.Namespace) -> None:
+    """The file to read, where to put the output, and how much of the Map to show, if the command line said."""
     if file := getattr(args, "file"):
-        if isinstance(file, list):
-            program_arguments.file = file[0]
-        else:
-            program_arguments.file = file
+        program_arguments.file = _first_of(file)
 
     # Output folder.  Checked and made absolute here, as the GUI does, so an unusable folder
     # is reported now rather than at the first report, and a saved setting does not change
     # meaning when MapTasker is next started from somewhere else.
     if outdir := getattr(args, "outdir", None):
-        folder, problem = normalize_output_directory(outdir[0] if isinstance(outdir, list) else outdir)
+        folder, problem = normalize_output_directory(_first_of(outdir))
         if problem:
             console.say(f"{problem}  Using the default output folder.")
         else:

@@ -987,12 +987,41 @@ class MyGui:
         Profile added via the Add dialog's "Ok" (kept in memory only, never
         written to the backup file) that a restart has since discarded.
         """
-        # 1. Local caching for speed
-        _translate = translate_string
+        error_message = self._name_problem(the_name, element_name)
+
+        # 5. Handle Errors
+        if error_message:
+            if quiet_if_missing:
+                # A restored-from-settings name that's gone is routine, not an
+                # emergency: e.g. a Task added last session with "Ok" was only
+                # ever registered in memory, so this session's file doesn't
+                # have it. Toast and clear rather than throwing up the
+                # full-screen error view.
+                self.display_message_box(
+                    f'The saved {element_name} selection "{the_name}" was not found in the current file '
+                    f"(it may have been added last session but never saved). The selection has been cleared.",
+                    "Orange",
+                )
+            else:
+                self.textview = NiceGuiTextView(
+                    self,
+                    title="Misc View",
+                    the_data=error_message,
+                )
+            clear_single_item_view_names(self)
+            return False
+
+        self._say_name_accepted(the_name, element_name)
+        return True
+
+    def _name_problem(self: "MyGui", the_name: str, element_name: str) -> list[str] | None:
+        """Why this single-item name cannot be used, as the lines to show, or None if it can.
+
+        Also clears what the name left behind when the file it was meant for is gone.
+        """
         _prime = self.state
         error_message = None
 
-        # 2. Check for missing name (Early exit potential)
         if not the_name:
             error_message = [
                 f"Either the name entered for the {element_name} is blank or the 'Cancel' button was clicked.\n",
@@ -1058,29 +1087,12 @@ class MyGui:
                     error_message = [
                         f"{front_error} but it was not found in {file_name}! All Projects, Profiles and Tasks will be displayed.\n",
                     ]
+        return error_message
 
-        # 5. Handle Errors
-        if error_message:
-            if quiet_if_missing:
-                # A restored-from-settings name that's gone is routine, not an
-                # emergency: e.g. a Task added last session with "Ok" was only
-                # ever registered in memory, so this session's file doesn't
-                # have it. Toast and clear rather than throwing up the
-                # full-screen error view.
-                self.display_message_box(
-                    f'The saved {element_name} selection "{the_name}" was not found in the current file '
-                    f"(it may have been added last session but never saved). The selection has been cleared.",
-                    "Orange",
-                )
-            else:
-                self.textview = NiceGuiTextView(
-                    self,
-                    title="Misc View",
-                    the_data=error_message,
-                )
-            clear_single_item_view_names(self)
-            return False
-
+    def _say_name_accepted(self: "MyGui", the_name: str, element_name: str) -> None:
+        """Say in the message box that the name was taken (or, for "None", that all are shown)."""
+        _translate = translate_string
+        _prime = self.state
         # 6. Success Logic (Minimized translations)
         none_text = _translate("None")
         if the_name == none_text:
@@ -1092,8 +1104,6 @@ class MyGui:
             text1 = _translate("Display only the")
             text2 = _translate("overrides any previous set name")
             self.display_message_box(f"{text1} '{the_name}' {localized_el} ({text2}).", "Green")
-
-        return True
 
     def extract_settings(self, temp_args: ProgramArguments | dict[str, Any]) -> None:
         """

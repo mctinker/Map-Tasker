@@ -33,7 +33,7 @@ import copy
 import os
 import shutil
 import tempfile
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from maptasker.src.analysis.xmldiff import Configuration
 from maptasker.src.core import clock, timeline
@@ -355,14 +355,19 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
             setattr(state, name, value)
         sessundo.restore_history(saved_undo_history, state)
         state.directory_items = saved_directory
-        for key, value in saved_directory_contents.items():
-            if isinstance(saved_directory.get(key), list):
-                saved_directory[key][:] = value
-            else:
-                saved_directory[key] = value
+        _restore_directory(saved_directory, saved_directory_contents)
         state.program_arguments.update(saved_arguments)
         if saved_output is not None:
             state.output_lines.output_lines = saved_output
+
+
+def _restore_directory(directory: dict[str, Any], contents: dict[str, Any]) -> None:
+    """Put what the directory held back into it, in place -- the same dict, and the same lists in it."""
+    for key, value in contents.items():
+        if isinstance(directory.get(key), list):
+            directory[key][:] = value
+        else:
+            directory[key] = value
 
 
 def _scratch_copy(file_path: str) -> str:

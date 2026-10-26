@@ -706,6 +706,39 @@ def _offer_sent_message(subject: str, key: str, landed: str, *, already_there: b
     )
 
 
+def _names_to_confirm(
+    ip_address: str, ip_port: str, confirm_names: list[str], route: OfferRoute, auth_key: str
+) -> tuple[list[str], bool]:
+    """The names to wait for, and whether waiting for them can mean anything.
+
+    Asked BEFORE the import, because afterwards the answer is worthless -- see
+    import_is_confirmable.  Nothing is gated on it; it only decides what can be said at the end.
+    """
+    wanted = [name.strip() for name in confirm_names if name and name.strip()]
+    present_before = verify_names_on_android(ip_address, ip_port, route.confirm_endpoint, wanted, auth_key)
+    return wanted, bool(wanted) and present_before == set()
+
+
+def _install_and_hand_off(
+    ip_address: str,
+    ip_port: str,
+    xml_bytes: bytes,
+    object_name: str,
+    route: OfferRoute,
+    auth_key: str,
+    *,
+    state: RunState,
+) -> tuple[int, str, str]:
+    """Install the route's helper Task if the device lacks it, then hand the XML over: (code, message, API key)."""
+    return_code, message = install_task_on_android(
+        ip_address, ip_port, auth_key, route.task_name, functools.partial(route.builder, state=state), state=state
+    )
+    if return_code != 0:
+        return return_code, message, auth_key
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
+    return _hand_offer_to_device(ip_address, ip_port, xml_bytes, object_name, route, auth_key)
+
+
 def offer_to_tasker(
     xml_bytes: bytes,
     object_name: str,
@@ -768,21 +801,11 @@ def offer_to_tasker(
     if return_code != 0:
         return return_code, auth_key
 
-    # Asked BEFORE the import, because afterwards the answer is worthless -- see
-    # import_is_confirmable.  Nothing is gated on it; it only decides what can be said at
-    # the end.
-    wanted = [name.strip() for name in confirm_names if name and name.strip()]
-    present_before = verify_names_on_android(ip_address, ip_port, route.confirm_endpoint, wanted, auth_key)
-    confirmable = bool(wanted) and present_before == set()
+    wanted, confirmable = _names_to_confirm(ip_address, ip_port, confirm_names, route, auth_key)
 
-    return_code, message = install_task_on_android(
-        ip_address, ip_port, auth_key, route.task_name, functools.partial(route.builder, state=state), state=state
+    return_code, message, auth_key = _install_and_hand_off(
+        ip_address, ip_port, xml_bytes, object_name, route, auth_key, state=state
     )
-    if return_code != 0:
-        return return_code, message
-    auth_key = held_auth_key(ip_address, ip_port) or auth_key
-
-    return_code, message, auth_key = _hand_offer_to_device(ip_address, ip_port, xml_bytes, object_name, route, auth_key)
     if return_code != 0:
         return return_code, message
     stage_task_path = message

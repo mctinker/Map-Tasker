@@ -110,7 +110,7 @@ def format_html(
         # has no adverse impact to the output other than an extra span that is overridden.
 
         # Set up the trailing HTML to include
-        trailing_span = "</span>" if end_span in {True, FormatLine.add_end_span} else ""
+        trailing_span = "</span>" if end_span is True or end_span is FormatLine.add_end_span else ""
         return f'{text_before}<span class="{color_code}">{text_after}{trailing_span}'
 
     # No text after...just return it.

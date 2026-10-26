@@ -638,6 +638,24 @@ def _build_material_colour_menu(field: ui.color_input) -> None:
                 ui.label(css).classes("text-xs text-gray-500 font-mono")
 
 
+def _state_value_input(
+    label: str,
+    value: str,
+    *,
+    shown_for: str,
+    state_select: ui.select,
+    write: Callable[[], None],
+) -> ui.input:
+    """The box that holds a state's value, shown only while that state is the one chosen."""
+    box = (
+        ui.input(translate_string(label), value=value, on_change=lambda _e=None: write())
+        .props("dense")
+        .classes("w-full")
+    )
+    box.bind_visibility_from(state_select, "value", backward=lambda chosen: chosen == shown_for)
+    return box
+
+
 def _build_state_field(item: sceneedit_v2props.V2Props, field: sceneedit_v2.V2StateField, state: RunState) -> None:
     """One of the Screen Builder's state properties -- Enabled, Content format: a pulldown of
     its states, and, for Dynamic only, the text or %variable to be evaluated when the Scene is
@@ -699,34 +717,19 @@ def _build_state_field(item: sceneedit_v2props.V2Props, field: sceneedit_v2.V2St
             translate_string("Dynamic and Select Variable are worked out when the Scene is shown."),
         )
 
-    dynamic_input = (
-        ui.input(
-            translate_string("Dynamic value"),
-            value=sceneedit_v2state.v2_state_value(field, stored, sceneedit_v2.V2_DYNAMIC_STATE),
-            on_change=lambda _e=None: write(),
-        )
-        .props("dense")
-        .classes("w-full")
+    dynamic_input = _state_value_input(
+        "Dynamic value",
+        sceneedit_v2state.v2_state_value(field, stored, sceneedit_v2.V2_DYNAMIC_STATE),
+        shown_for=sceneedit_v2.V2_DYNAMIC_STATE,
+        state_select=state_select,
+        write=write,
     )
-    dynamic_input.bind_visibility_from(
-        state_select,
-        "value",
-        backward=lambda value: value == sceneedit_v2.V2_DYNAMIC_STATE,
-    )
-
-    variable_input = (
-        ui.input(
-            translate_string("Variable"),
-            value=sceneedit_v2state.v2_state_value(field, stored, sceneedit_v2.V2_VARIABLE_STATE),
-            on_change=lambda _e=None: write(),
-        )
-        .props("dense")
-        .classes("w-full")
-    )
-    variable_input.bind_visibility_from(
-        state_select,
-        "value",
-        backward=lambda value: value == sceneedit_v2.V2_VARIABLE_STATE,
+    variable_input = _state_value_input(
+        "Variable",
+        sceneedit_v2state.v2_state_value(field, stored, sceneedit_v2.V2_VARIABLE_STATE),
+        shown_for=sceneedit_v2.V2_VARIABLE_STATE,
+        state_select=state_select,
+        write=write,
     )
     # Shows what was picked, and re-opens the picker: the prompt on choosing the state is the
     # way in, but a variable chosen by mistake needs a way back that isn't "select a different

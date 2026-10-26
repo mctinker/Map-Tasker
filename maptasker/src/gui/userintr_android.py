@@ -73,7 +73,7 @@ from maptasker.src.gui.userintr_group import HandlerGroup
 from maptasker.src.mapgen.getbakup import validate_xml_file
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable
 
     from nicegui.client import Client
 
@@ -156,6 +156,27 @@ async def _what_tasker_already_has(
     if any(check.present.values()):
         name_lines.append(consequence)
     return [*name_lines, *id_lines]
+
+
+@dataclass(frozen=True)
+class _FileSave:
+    """What differs between saving a Task, a Scene, a Profile and a Project as a file on the device.
+
+    Everything else about those four saves is the same, and is AndroidEventHandlers._save_file_to_device.
+    """
+
+    subject: str  # "Task", "Scene", "Profile" or "Project": how the success message reads
+    device_path: str  # where /upload will put it
+    verify: Callable[[], roundtrip.RoundTripReport]  # the Verify box's check
+    render: Callable[[], str | bytes]  # the XML it would write, to ask Tasker what it already has
+    save: Callable[..., Any]  # uploads and reads back; run on a worker thread
+    before_address: tuple[Any, ...]  # what `save` is given ahead of the device's address ...
+    after_address: tuple[Any, ...] = ()  # ... and after it
+    after_saved: Callable[[], None] | None = None  # what to keep in the loaded configuration once it is there
+    consequence: str = _FILE_WRITE_CONSEQUENCE  # what the prompt says happens to what Tasker already has
+    # Says how it went, instead of the plain "saved": (ip address, port, where it landed, the note about the
+    # copy it replaced) -> False to leave the dialogs open.  The Task import uses it to wait for Tasker.
+    report: Callable[[str, str, str, str], Awaitable[bool]] | None = None
 
 
 def _check_ids_ticked(android_field_refs: dict[str, Any]) -> bool:
@@ -644,114 +665,135 @@ class AndroidEventHandlers(HandlerGroup):
 
         # 3. Mount text input fields and control action items into the view hierarchy
         with gui.android_container:
-            ui.label(translate_string("Configure Android Connection:")).classes(
-                "text-sm font-bold text-blue-500 mb-1 self-start",
-            )
+            self._mount_connection_fields(android_ipaddr, android_port, android_file)
+            self._mount_list_files_row()
+            self._mount_helper_task_rows()
+            self._mount_cancel_row()
+            self._mount_set_details_button()
 
-            # Form Fields
-            gui.ip_entry = ui.input(label=translate_string("1-TCP/IP Address:"), value=android_ipaddr).classes(
-                "w-full q-py-none",
-            )
-            gui.port_entry = ui.input(label=translate_string("2-Port Number:"), value=android_port).classes(
-                "w-full q-py-none",
-            )
-            remember_android_address_fields(gui, gui.ip_entry, gui.port_entry)
-            gui.file_entry = ui.input(label=translate_string("3-File Location:"), value=android_file).classes(
-                "w-full q-py-none",
-            )
+    def _mount_connection_fields(self, android_ipaddr: str, android_port: str, android_file: str) -> None:
+        """The address, port and file the backup is fetched from."""
+        gui = self.gui
+        ui.label(translate_string("Configure Android Connection:")).classes(
+            "text-sm font-bold text-blue-500 mb-1 self-start",
+        )
 
-            # Inline Button Row 1 (List XML & Query Help Button)
-            with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
-                gui.list_files_button = (
-                    ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.android.list_files_event)
-                    .style("background-color: #D62CFF; color: white;")
-                    .classes("flex-grow text-xs")
-                )
+        # Form Fields
+        gui.ip_entry = ui.input(label=translate_string("1-TCP/IP Address:"), value=android_ipaddr).classes(
+            "w-full q-py-none",
+        )
+        gui.port_entry = ui.input(label=translate_string("2-Port Number:"), value=android_port).classes(
+            "w-full q-py-none",
+        )
+        remember_android_address_fields(gui, gui.ip_entry, gui.port_entry)
+        gui.file_entry = ui.input(label=translate_string("3-File Location:"), value=android_file).classes(
+            "w-full q-py-none",
+        )
 
-                gui.list_files_query_button = (
-                    ui.button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
-                    .style("background-color: #246FB6; color: #ffd941;")
-                    .classes("w-10 min-w-[40px] text-xs")
-                )
-
-            # Housekeeping, and it lives here because this is where the device's address
-            # already is -- see list_helper_tasks_event for what accumulates and why nothing
-            # can delete it from this end.
-            with ui.row().classes("w-full items-center mt-1"):
-                gui.helper_tasks_button = (
-                    ui.button(
-                        translate_string("List Helper Tasks"),
-                        on_click=gui.event_handlers.android.list_helper_tasks_event,
-                    )
-                    .props("flat dense color=primary")
-                    .classes("flex-grow text-xs")
-                )
-                with gui.helper_tasks_button:
-                    ui.tooltip(
-                        translate_string(
-                            "Lists the 'MapTasker ...' Tasks this program has installed on the Android "
-                            "device, and says which are left over from an earlier version.\n\n"
-                            "Each one is installed under a versioned name and never replaced -- Tasker's "
-                            "import adds a second Task rather than replacing the first -- so old ones stay "
-                            "behind in your Task list.  They do no harm; they are clutter.\n\n"
-                            "Delete the ones it names from Tasker's own Tasks tab.  Nothing here can do it "
-                            "for you: Tasker's HTTP API has no way to delete a Task.",
-                        ),
-                    ).style("white-space: pre-wrap")
-
-            # The other half of the housekeeping: gathering every helper into one Project, so
-            # the user can remove them all with one delete -- see install_helper_project_event.
-            with ui.row().classes("w-full items-center"):
-                gui.helper_project_button = (
-                    ui.button(
-                        translate_string("Put Helper Tasks in 'MapTasker' Project"),
-                        on_click=gui.event_handlers.android.install_helper_project_event,
-                    )
-                    .props("flat dense color=primary")
-                    .classes("flex-grow text-xs")
-                )
-                with gui.helper_project_button:
-                    ui.tooltip(
-                        translate_string(
-                            "Puts every helper Task this version of MapTasker uses into one Project file, "
-                            "'MapTasker.prj.xml', in /Tasker/projects on the device.  Import it in Tasker: "
-                            "long-press the Projects tab bar and choose Import Project.\n\n"
-                            "Once they are in that Project, deleting the 'MapTasker' Project in Tasker removes "
-                            "all of them at once.  MapTasker puts back any it needs the next time it is used.\n\n"
-                            "Tasker refuses the whole Project if it already has any of these Tasks, so any "
-                            "helper Tasks already on the device are listed first for you to delete manu.",
-                        ),
-                    ).style("white-space: pre-wrap")
-
-            # Inline Button Row 2 (.or. Separator and Cancel Action)
-            with ui.row().classes("w-full items-center justify-center gap-2 mt-1"):
-                gui.label_or = ui.label(translate_string(".or.")).classes("text-xs text-gray-400 italic")
-
-                # Close button clears the contents and re-hides the panel drawer clean
-                ui.button(
-                    translate_string("Cancel Entry"),
-                    on_click=lambda: (
-                        gui.android_container.clear(),
-                        gui.android_container.classes(add="hidden"),
-                    ),
-                ).classes("text-xs").props("flat color=negative dense")
-
-            # Master Set XML Backup execution button.
-            #
-            # Deliberately NOT self.get_backup_button: that name belongs to the "Get XML from
-            # Android Device" button in the drawer above (see
-            # create_file_and_message_buttons_section in guiwins_tabs.py), which stays on screen the
-            # whole time this panel is open. Reusing the name here overwrote the reference to it,
-            # so clear_android_buttons() then deleted this button while believing it had deleted
-            # that one -- leaving the original in place and adding a second one every time.
-            gui.set_xml_details_button = (
-                ui.button(
-                    translate_string("Click Here to Set XML Details"),
-                    on_click=gui.event_handlers.android.fetch_backup_event,
-                )
+    def _mount_list_files_row(self) -> None:
+        """The List XML Files button, and the ? beside it."""
+        gui = self.gui
+        # Inline Button Row 1 (List XML & Query Help Button)
+        with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
+            gui.list_files_button = (
+                ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.android.list_files_event)
                 .style("background-color: #D62CFF; color: white;")
-                .classes("w-full mt-3 font-bold text-xs py-2")
+                .classes("flex-grow text-xs")
             )
+
+            gui.list_files_query_button = (
+                ui.button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
+                .style("background-color: #246FB6; color: #ffd941;")
+                .classes("w-10 min-w-[40px] text-xs")
+            )
+
+    def _mount_helper_task_rows(self) -> None:
+        """The two housekeeping buttons for the helper Tasks MapTasker leaves on the device."""
+        gui = self.gui
+        # Housekeeping, and it lives here because this is where the device's address
+        # already is -- see list_helper_tasks_event for what accumulates and why nothing
+        # can delete it from this end.
+        with ui.row().classes("w-full items-center mt-1"):
+            gui.helper_tasks_button = (
+                ui.button(
+                    translate_string("List Helper Tasks"),
+                    on_click=gui.event_handlers.android.list_helper_tasks_event,
+                )
+                .props("flat dense color=primary")
+                .classes("flex-grow text-xs")
+            )
+            with gui.helper_tasks_button:
+                ui.tooltip(
+                    translate_string(
+                        "Lists the 'MapTasker ...' Tasks this program has installed on the Android "
+                        "device, and says which are left over from an earlier version.\n\n"
+                        "Each one is installed under a versioned name and never replaced -- Tasker's "
+                        "import adds a second Task rather than replacing the first -- so old ones stay "
+                        "behind in your Task list.  They do no harm; they are clutter.\n\n"
+                        "Delete the ones it names from Tasker's own Tasks tab.  Nothing here can do it "
+                        "for you: Tasker's HTTP API has no way to delete a Task.",
+                    ),
+                ).style("white-space: pre-wrap")
+
+        # The other half of the housekeeping: gathering every helper into one Project, so
+        # the user can remove them all with one delete -- see install_helper_project_event.
+        with ui.row().classes("w-full items-center"):
+            gui.helper_project_button = (
+                ui.button(
+                    translate_string("Put Helper Tasks in 'MapTasker' Project"),
+                    on_click=gui.event_handlers.android.install_helper_project_event,
+                )
+                .props("flat dense color=primary")
+                .classes("flex-grow text-xs")
+            )
+            with gui.helper_project_button:
+                ui.tooltip(
+                    translate_string(
+                        "Puts every helper Task this version of MapTasker uses into one Project file, "
+                        "'MapTasker.prj.xml', in /Tasker/projects on the device.  Import it in Tasker: "
+                        "long-press the Projects tab bar and choose Import Project.\n\n"
+                        "Once they are in that Project, deleting the 'MapTasker' Project in Tasker removes "
+                        "all of them at once.  MapTasker puts back any it needs the next time it is used.\n\n"
+                        "Tasker refuses the whole Project if it already has any of these Tasks, so any "
+                        "helper Tasks already on the device are listed first for you to delete manu.",
+                    ),
+                ).style("white-space: pre-wrap")
+
+    def _mount_cancel_row(self) -> None:
+        """The ".or." and Cancel Entry row."""
+        gui = self.gui
+        # Inline Button Row 2 (.or. Separator and Cancel Action)
+        with ui.row().classes("w-full items-center justify-center gap-2 mt-1"):
+            gui.label_or = ui.label(translate_string(".or.")).classes("text-xs text-gray-400 italic")
+
+            # Close button clears the contents and re-hides the panel drawer clean
+            ui.button(
+                translate_string("Cancel Entry"),
+                on_click=lambda: (
+                    gui.android_container.clear(),
+                    gui.android_container.classes(add="hidden"),
+                ),
+            ).classes("text-xs").props("flat color=negative dense")
+
+    def _mount_set_details_button(self) -> None:
+        """The button that takes the details above and fetches the backup."""
+        gui = self.gui
+        # Master Set XML Backup execution button.
+        #
+        # Deliberately NOT self.get_backup_button: that name belongs to the "Get XML from
+        # Android Device" button in the drawer above (see
+        # create_file_and_message_buttons_section in guiwins_tabs.py), which stays on screen the
+        # whole time this panel is open. Reusing the name here overwrote the reference to it,
+        # so clear_android_buttons() then deleted this button while believing it had deleted
+        # that one -- leaving the original in place and adding a second one every time.
+        gui.set_xml_details_button = (
+            ui.button(
+                translate_string("Click Here to Set XML Details"),
+                on_click=gui.event_handlers.android.fetch_backup_event,
+            )
+            .style("background-color: #D62CFF; color: white;")
+            .classes("w-full mt-3 font-bold text-xs py-2")
+        )
 
     async def list_files_event(self) -> None:
         """
@@ -943,94 +985,37 @@ class AndroidEventHandlers(HandlerGroup):
         if not ok:
             return
 
-        ip_address = android_field_refs["ip_address"].value.strip()
-        ip_port = android_field_refs["ip_port"].value.strip()
-        remember_android_address(self.gui, ip_address, ip_port)
-
-        # The panel's "Verify" checkbox, answered before the device is touched at all:
-        # a document that cannot be read back unchanged is refused here rather than
-        # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_task(edited_task, state=self.state)):
-            return
-
-        if not await ping_android_device(self.gui, ip_address, ip_port):
-            return
-
-        # Everything from here on is a request the device answers with an authorization
-        # prompt of its own -- see guiutils.notify_watch_android_device.
-        notify_watch_android_device()
-
         task_name = field_refs["name"].value.strip()
-
-        async def _import() -> None:
-            # Every request to the device below blocks for seconds, so each one goes to a
-            # worker thread; the notifications and the dialogs stay here, on the event loop.
-            #
-            # The import writes /Tasker/tasks/<name>.tsk.xml and imports THAT, so it
-            # clobbers whatever is at that path exactly as 'Save As File' does -- and gets
-            # the same safety copy of it, from the same single read of the path.  A copy that
-            # fails is reported and the import goes ahead; see presave's module comment for
-            # why it must never block one.
-            copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
-            if not copied:
-                ui.notify(
-                    f"Could not copy the file already on the device first: {safety_copy}",
-                    type="warning",
-                )
-
-            # The key is the one held for this device this session, so a device already asked --
-            # by an earlier save, a fetch or an import -- is not prompted again.
-            saved = await run.io_bound(
-                taskedit_save.save_task_to_android, edited_task, ip_address, ip_port, task_name, state=self.state
-            )
-            if saved is None:  # cancelled -- see the note at the top of this file
-                return
-            return_code, result = saved
-            if return_code != 0:
-                ui.notify(f"Could not save to Android device: {result}", type="negative")
-                return
-
-            # Remember the connection details for next time, same as the Get XML dialog does.
-            self.gui.android_ipaddr = ip_address
-            self.gui.android_port = ip_port
-
-            self.hub.editors.keep_task_in_loaded_config(edited_task, task_name, is_new_task, on_created)
-
-            # `copied and` matters: on a failure safety_copy holds the reason, not a path.
-            replaced = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
-            landed = f" A copy was left on the device at {device_path}.{replaced}"
-
-            if not await self._confirm_task_upload(edited_task, ip_address, ip_port, task_name, landed):
-                return
-
-            android_dialog.close()
-            parent_dialog.close()
-
-        # Asked here rather than inside taskedit, because it is the same question the file
-        # button asks and the user should be asked it once, in one wording, whichever button
-        # they pressed -- see save_task_to_android_file_event's identical check, including
-        # why the content comes back with the answer.
         device_path = taskedit_save.android_task_path(task_name)
-        read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
-        if read is None:  # cancelled -- see the note at the top of this file
-            return
-        exists, already_there = read
-        tasker_lines = await _what_tasker_already_has(
-            ip_address,
-            ip_port,
-            lambda: taskedit_save.render_standalone_task_xml(edited_task, state=self.state),
-            _API_IMPORT_CONSEQUENCE,
-            check_ids=_check_ids_ticked(android_field_refs),
-            state=self.state,
+
+        async def confirm(ip_address: str, ip_port: str, _result: str, replaced: str) -> bool:
+            landed = f" A copy was left on the device at {device_path}.{replaced}"
+            return await self._confirm_task_upload(edited_task, ip_address, ip_port, task_name, landed)
+
+        # The import writes /Tasker/tasks/<name>.tsk.xml and imports THAT, so it clobbers whatever is
+        # at that path exactly as 'Save As File' does -- and is asked the same question, once, in one
+        # wording, whichever button was pressed.  The key for the import is the one held for this
+        # device this session, so a device already asked -- by an earlier save, a fetch or an import --
+        # is not prompted again.
+        await self._save_file_to_device(
+            _FileSave(
+                subject="Task",
+                device_path=device_path,
+                verify=lambda: roundtrip.verify_task(edited_task, state=self.state),
+                render=lambda: taskedit_save.render_standalone_task_xml(edited_task, state=self.state),
+                save=taskedit_save.save_task_to_android,
+                before_address=(edited_task,),
+                after_address=(task_name,),
+                after_saved=lambda: self.hub.editors.keep_task_in_loaded_config(
+                    edited_task, task_name, is_new_task, on_created
+                ),
+                consequence=_API_IMPORT_CONSEQUENCE,
+                report=confirm,
+            ),
+            android_field_refs,
+            android_dialog,
+            parent_dialog,
         )
-        if exists is not False or tasker_lines:
-            build_overwrite_confirm_dialog(
-                f"'{device_path}' on the Android device",
-                _import,
-                **_overwrite_prompt_options(exists, tasker_lines),
-            )
-            return
-        await _import()
 
     async def _confirm_task_upload(
         self,
@@ -1189,6 +1174,36 @@ class AndroidEventHandlers(HandlerGroup):
         if not ok:
             return
 
+        task_name = field_refs["name"].value.strip()
+        await self._save_file_to_device(
+            _FileSave(
+                subject="Task",
+                device_path=taskedit_save.android_task_path(task_name),
+                verify=lambda: roundtrip.verify_task(edited_task, state=self.state),
+                render=lambda: taskedit_save.render_standalone_task_xml(edited_task, state=self.state),
+                save=taskedit_save.save_task_to_android_file,
+                before_address=(edited_task,),
+                after_address=(task_name,),
+                after_saved=lambda: self.hub.editors.keep_task_in_loaded_config(
+                    edited_task, task_name, is_new_task, on_created
+                ),
+            ),
+            android_field_refs,
+            android_dialog,
+            parent_dialog,
+        )
+
+    async def _reach_device(
+        self,
+        android_field_refs: dict[str, Any],
+        verify: Callable[[], roundtrip.RoundTripReport],
+    ) -> tuple[str, str] | None:
+        """The steps every Save To Android and Import Into Tasker button takes before it touches the device.
+
+        Remembers the address the user typed, answers the panel's "Verify" checkbox, pings the device
+        and warns about the authorization prompts that follow.  Returns (ip address, port), or None
+        when any step has stopped the save -- the reason has already been shown.
+        """
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
         remember_android_address(self.gui, ip_address, ip_port)
@@ -1196,80 +1211,114 @@ class AndroidEventHandlers(HandlerGroup):
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
         # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_task(edited_task, state=self.state)):
-            return
+        if not _round_trip_verified(android_field_refs, verify):
+            return None
 
         if not await ping_android_device(self.gui, ip_address, ip_port):
-            return
+            return None
 
         # Everything from here on is a request the device answers with an authorization
         # prompt of its own -- see guiutils.notify_watch_android_device.
         notify_watch_android_device()
+        return ip_address, ip_port
 
-        task_name = field_refs["name"].value.strip()
+    async def _save_file_to_device(
+        self,
+        spec: _FileSave,
+        android_field_refs: dict[str, Any],
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Everything the four "Save As File" buttons do that does not depend on what is saved.
 
-        async def _upload() -> None:
-            # Keep whatever is already at that path before /upload writes over it -- the
-            # device keeps no versions and has no undo, so this is the only copy of it there
-            # will ever be.  The bytes come from the existence check above rather than from a
-            # second GET: the Tasker HTTP Server Example flashes 'File doesn't exist' on the
-            # phone for every miss, so asking twice put two of them on screen for one save.
-            # A copy that fails is reported and the save goes ahead -- presave's module
-            # comment says why it must never block one.
-            copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
-            if not copied:
-                ui.notify(
-                    f"Could not copy the file already on the device first: {safety_copy}",
-                    type="warning",
-                )
-            # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
-            saved = await run.io_bound(
-                taskedit_save.save_task_to_android_file, edited_task, ip_address, ip_port, task_name, state=self.state
-            )
-            if saved is None:  # cancelled -- see the note at the top of this file
-                return
-            return_code, result = saved
-            if return_code != 0:
-                ui.notify(f"Could not save to Android device: {result}", type="negative")
-                return
+        Checks the Verify box, pings the device, finds out what is already at the path (and what
+        Tasker already has), asks before overwriting, and uploads.  The android prompt dialog stays
+        open on any error, so the user's connection details are not lost; on success both it and
+        the parent Edit/Add dialog close.
+        """
+        address = await self._reach_device(android_field_refs, spec.verify)
+        if address is None:
+            return
+        ip_address, ip_port = address
 
-            # Remember the connection details for next time, same as the Get XML dialog does.
-            self.gui.android_ipaddr = ip_address
-            self.gui.android_port = ip_port
-
-            self.hub.editors.keep_task_in_loaded_config(edited_task, task_name, is_new_task, on_created)
-
-            # `copied and` matters: on a failure safety_copy holds the reason, not a path.
-            saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
-            ui.notify(f"Task saved to Android device at {result}.{saved_note}", type="positive")
-            android_dialog.close()
-            parent_dialog.close()
-
-        # ONE read of the path, answering both questions the write needs answered: whether
-        # anything is there to clobber, and what it holds so it can be kept.  See
-        # maputil2.read_android_file for why two reads was worse than one on the device as
-        # well as here.  /upload clobbers silently, which is why this is asked at all.
-        device_path = taskedit_save.android_task_path(task_name)
-        read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        # /upload overwrites silently and answers 200 either way, so the only way to know is
+        # to read the destination back first -- one read, which answers both what is there
+        # and what it holds, so the safety copy needs no second GET of its own (see
+        # maputil2.read_android_file).  None = couldn't tell, which still prompts rather than
+        # risking a silent clobber.
+        read = await run.io_bound(read_android_file, ip_address, ip_port, spec.device_path)
         if read is None:  # cancelled -- see the note at the top of this file
             return
         exists, already_there = read
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
-            lambda: taskedit_save.render_standalone_task_xml(edited_task, state=self.state),
-            _FILE_WRITE_CONSEQUENCE,
+            spec.render,
+            spec.consequence,
             check_ids=_check_ids_ticked(android_field_refs),
             state=self.state,
         )
+
+        async def upload() -> None:
+            await self._upload_file_to_device(spec, ip_address, ip_port, already_there, android_dialog, parent_dialog)
+
         if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(
-                f"'{device_path}' on the Android device",
-                _upload,
+                f"'{spec.device_path}' on the Android device",
+                upload,
                 **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
-        await _upload()
+        await upload()
+
+    async def _upload_file_to_device(
+        self,
+        spec: _FileSave,
+        ip_address: str,
+        ip_port: str,
+        already_there: bytes,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Keep what is at the path, upload over it, and say how it went (the last step of _save_file_to_device)."""
+        # Keep whatever is already at that path before /upload writes over it -- the device keeps
+        # no versions and has no undo, so this is the only copy of it there will ever be.  The
+        # bytes come from the existence check rather than from a second GET: the Tasker HTTP
+        # Server Example flashes 'File doesn't exist' on the phone for every miss, so asking
+        # twice put two of them on screen for one save.  A copy that fails is reported and the
+        # save goes ahead -- presave's module comment says why it must never block one.
+        copied, safety_copy = presave.save_android_safety_copy(spec.device_path, already_there)
+        if not copied:
+            ui.notify(
+                f"Could not copy the file already on the device first: {safety_copy}",
+                type="warning",
+            )
+        # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
+        saved = await run.io_bound(
+            spec.save, *spec.before_address, ip_address, ip_port, *spec.after_address, state=self.state
+        )
+        if saved is None:  # cancelled -- see the note at the top of this file
+            return
+        return_code, result = saved
+        if return_code != 0:
+            ui.notify(f"Could not save to Android device: {result}", type="negative")
+            return
+
+        # Remember the connection details for next time, same as the Get XML dialog does.
+        self.gui.android_ipaddr = ip_address
+        self.gui.android_port = ip_port
+
+        if spec.after_saved is not None:
+            spec.after_saved()
+
+        # `copied and` matters: on a failure safety_copy holds the reason, not a path.
+        replaced = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
+        if spec.report is None:
+            ui.notify(f"{spec.subject} saved to Android device at {result}.{replaced}", type="positive")
+        elif not await spec.report(ip_address, ip_port, result, replaced):
+            return
+        android_dialog.close()
+        parent_dialog.close()
 
     def open_save_scene_to_android_dialog_event(
         self,
@@ -1313,90 +1362,22 @@ class AndroidEventHandlers(HandlerGroup):
                 ui.notify(error, type="negative")
             return
 
-        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene, state=self.state)
+        scene_name = edited_scene.scene_name
+        sceneedit.apply_edited_scene_to_live_tree(scene_name, edited_scene, state=self.state)
 
-        ip_address = android_field_refs["ip_address"].value.strip()
-        ip_port = android_field_refs["ip_port"].value.strip()
-        remember_android_address(self.gui, ip_address, ip_port)
-
-        # The panel's "Verify" checkbox, answered before the device is touched at all:
-        # a document that cannot be read back unchanged is refused here rather than
-        # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(
-            android_field_refs, lambda: roundtrip.verify_scene(edited_scene.scene_name, state=self.state)
-        ):
-            return
-
-        if not await ping_android_device(self.gui, ip_address, ip_port):
-            return
-
-        # Everything from here on is a request the device answers with an authorization
-        # prompt of its own -- see guiutils.notify_watch_android_device.
-        notify_watch_android_device()
-
-        async def _upload() -> None:
-            # Keep whatever is already at that path before /upload writes over it.  The
-            # device keeps no versions and has no undo, so this is the only copy of it there
-            # will ever be; it is kept here rather than left beside the original -- see
-            # presave.save_android_safety_copy.  The bytes come from the existence check
-            # below rather than from a second GET, because the Tasker HTTP Server Example
-            # flashes 'File doesn't exist' on the phone for every miss (its /file handler
-            # runs Test File first -- see its file-system Profile), so asking twice put two
-            # of them on screen for one save.  A copy that fails is reported and the save
-            # goes ahead: presave's module comment says why it must never block one.
-            copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
-            if not copied:
-                ui.notify(
-                    f"Could not copy the file already on the device first: {safety_copy}",
-                    type="warning",
-                )
-            # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
-            saved = await run.io_bound(
-                sceneedit.save_scene_to_android, edited_scene.scene_name, ip_address, ip_port, state=self.state
-            )
-            if saved is None:  # cancelled -- see the note at the top of this file
-                return
-            return_code, result = saved
-            if return_code != 0:
-                ui.notify(f"Could not save to Android device: {result}", type="negative")
-                return
-
-            # Remember the connection details for next time, same as the Get XML dialog does.
-            self.gui.android_ipaddr = ip_address
-            self.gui.android_port = ip_port
-
-            # `copied and` matters: on a failure safety_copy holds the reason, not a path.
-            saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
-            ui.notify(f"Scene saved to Android device at {result}.{saved_note}", type="positive")
-            android_dialog.close()
-            parent_dialog.close()
-
-        # /upload overwrites silently and answers 200 either way, so the only way to know is
-        # to read the destination back first -- one read, which answers both what is there
-        # and what it holds, so the safety copy above needs no second GET of its own (see
-        # maputil2.read_android_file).  None = couldn't tell, which still prompts rather than
-        # risking a silent clobber.
-        device_path = sceneedit.android_scene_path(edited_scene.scene_name)
-        read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
-        if read is None:  # cancelled -- see the note at the top of this file
-            return
-        exists, already_there = read
-        tasker_lines = await _what_tasker_already_has(
-            ip_address,
-            ip_port,
-            lambda: sceneedit.render_standalone_scene_xml(edited_scene.scene_name, state=self.state),
-            _FILE_WRITE_CONSEQUENCE,
-            check_ids=_check_ids_ticked(android_field_refs),
-            state=self.state,
+        await self._save_file_to_device(
+            _FileSave(
+                subject="Scene",
+                device_path=sceneedit.android_scene_path(scene_name),
+                verify=lambda: roundtrip.verify_scene(scene_name, state=self.state),
+                render=lambda: sceneedit.render_standalone_scene_xml(scene_name, state=self.state),
+                save=sceneedit.save_scene_to_android,
+                before_address=(scene_name,),
+            ),
+            android_field_refs,
+            android_dialog,
+            parent_dialog,
         )
-        if exists is not False or tasker_lines:
-            build_overwrite_confirm_dialog(
-                f"'{device_path}' on the Android device",
-                _upload,
-                **_overwrite_prompt_options(exists, tasker_lines),
-            )
-            return
-        await _upload()
 
     def open_save_profile_to_android_dialog_event(
         self,
@@ -1429,89 +1410,24 @@ class AndroidEventHandlers(HandlerGroup):
         if not ok:
             return
 
-        ip_address = android_field_refs["ip_address"].value.strip()
-        ip_port = android_field_refs["ip_port"].value.strip()
-        remember_android_address(self.gui, ip_address, ip_port)
-
-        # The panel's "Verify" checkbox, answered before the device is touched at all:
-        # a document that cannot be read back unchanged is refused here rather than
-        # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(
-            android_field_refs, lambda: roundtrip.verify_profile(edited_profile, state=self.state)
-        ):
-            return
-
-        if not await ping_android_device(self.gui, ip_address, ip_port):
-            return
-
-        # Everything from here on is a request the device answers with an authorization
-        # prompt of its own -- see guiutils.notify_watch_android_device.
-        notify_watch_android_device()
-
         profile_name = field_refs["name"].value.strip()
-
-        async def _upload() -> None:
-            # Keep whatever is already at that path before /upload writes over it.  The
-            # device keeps no versions and has no undo, so this is the only copy of it there
-            # will ever be; it is kept here rather than left beside the original -- see
-            # presave.save_android_safety_copy.  The bytes come from the existence check
-            # below rather than from a second GET, because the Tasker HTTP Server Example
-            # flashes 'File doesn't exist' on the phone for every miss (its /file handler
-            # runs Test File first -- see its file-system Profile), so asking twice put two
-            # of them on screen for one save.  A copy that fails is reported and the save
-            # goes ahead: presave's module comment says why it must never block one.
-            copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
-            if not copied:
-                ui.notify(
-                    f"Could not copy the file already on the device first: {safety_copy}",
-                    type="warning",
-                )
-            # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
-            saved = await run.io_bound(
-                profedit.save_profile_to_android, edited_profile, ip_address, ip_port, profile_name, state=self.state
-            )
-            if saved is None:  # cancelled -- see the note at the top of this file
-                return
-            return_code, result = saved
-            if return_code != 0:
-                ui.notify(f"Could not save to Android device: {result}", type="negative")
-                return
-
-            # Remember the connection details for next time, same as the Get XML dialog does.
-            self.gui.android_ipaddr = ip_address
-            self.gui.android_port = ip_port
-
-            self.hub.editors.keep_profile_in_loaded_config(edited_profile, profile_name, is_new_profile, project_name)
-
-            # `copied and` matters: on a failure safety_copy holds the reason, not a path.
-            saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
-            ui.notify(f"Profile saved to Android device at {result}.{saved_note}", type="positive")
-            android_dialog.close()
-            parent_dialog.close()
-
-        # See save_project_to_android_event's identical check -- /upload clobbers silently,
-        # and one read answers both of the questions the write needs answered.
-        device_path = profedit.android_profile_path(profile_name)
-        read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
-        if read is None:  # cancelled -- see the note at the top of this file
-            return
-        exists, already_there = read
-        tasker_lines = await _what_tasker_already_has(
-            ip_address,
-            ip_port,
-            lambda: profedit.render_standalone_profile_xml(edited_profile, state=self.state),
-            _FILE_WRITE_CONSEQUENCE,
-            check_ids=_check_ids_ticked(android_field_refs),
-            state=self.state,
+        await self._save_file_to_device(
+            _FileSave(
+                subject="Profile",
+                device_path=profedit.android_profile_path(profile_name),
+                verify=lambda: roundtrip.verify_profile(edited_profile, state=self.state),
+                render=lambda: profedit.render_standalone_profile_xml(edited_profile, state=self.state),
+                save=profedit.save_profile_to_android,
+                before_address=(edited_profile,),
+                after_address=(profile_name,),
+                after_saved=lambda: self.hub.editors.keep_profile_in_loaded_config(
+                    edited_profile, profile_name, is_new_profile, project_name
+                ),
+            ),
+            android_field_refs,
+            android_dialog,
+            parent_dialog,
         )
-        if exists is not False or tasker_lines:
-            build_overwrite_confirm_dialog(
-                f"'{device_path}' on the Android device",
-                _upload,
-                **_overwrite_prompt_options(exists, tasker_lines),
-            )
-            return
-        await _upload()
 
     def _apply_profile_for_android(
         self,
@@ -1604,37 +1520,9 @@ class AndroidEventHandlers(HandlerGroup):
         not in that chooser, the file is in /Tasker/profiles under the Profile's own name and
         the message says so -- see the `waiting` line in _offer_into_tasker.
 
-        TWO PHASES, BECAUSE THERE IS A PERSON IN THE MIDDLE
-
-        Opening the screen and importing are not the same event, and 'Open File' returns
-        without waiting for the decision.  So this reports the screen being up as soon as it
-        is up -- rather than leaving the user watching a spinner while their phone waits for
-        them -- and then waits separately for Tasker to actually report the Profile.
-
-        Both dialogs close as soon as the device answers -- once the import screen is up on
-        the phone there is nothing left here to do, and a panel that outlives the response
-        is a panel the user has to dismiss for no reason.  The confirmation runs on after
-        them and reports what the device did.
-
-        The edit is kept in the loaded configuration at that same moment, not held back
-        until the confirmation lands.  With the dialogs gone there is no retry surface left,
-        so discarding it on a poll that timed out -- and the poll times out for reasons that
-        say nothing about the edit, a phone still in a pocket above all -- would be silent
-        data loss rather than caution.
-
-        A PROFILE TASKER ALREADY HAS CANNOT BE CONFIRMED AT ALL
-
-        The confirmation is 'does Tasker report a Profile of this name', and for a Profile
-        that was already there that is true before the user touches anything -- so waiting
-        for it would report success the moment it was asked, Cancel included.  There is no
-        second signal to use: Tasker offers to REPLACE in that case (which is why nothing
-        refuses a duplicate any more), and a replacement leaves the name, the count and the
-        enabled state exactly as they were.
-
-        So that case is not waited on.  It is reported for what it is -- the screen is open,
-        Tasker will ask about replacing, MapTasker cannot see the answer -- and the edit is
-        kept in the loaded configuration, because the alternative is throwing away the
-        user's own edit over a device answer that is never coming.
+        What happens after the screen is up -- the two phases, why both dialogs close at once and
+        the edit is kept at that moment, and why a Profile Tasker already has cannot be confirmed
+        -- is _offer_into_tasker's, which this and the Project and Scene buttons share.
 
         THE OVERWRITE IS ASKED ABOUT AND COPIED, and both changed on 2026-08-30.  Neither
         used to be, because what an import overwrote was MapTasker's own
@@ -1651,24 +1539,12 @@ class AndroidEventHandlers(HandlerGroup):
         if not ok:
             return
 
-        ip_address = android_field_refs["ip_address"].value.strip()
-        ip_port = android_field_refs["ip_port"].value.strip()
-        remember_android_address(self.gui, ip_address, ip_port)
-
-        # The panel's "Verify" checkbox, answered before the device is touched at all:
-        # a document that cannot be read back unchanged is refused here rather than
-        # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(
+        address = await self._reach_device(
             android_field_refs, lambda: roundtrip.verify_profile(edited_profile, state=self.state)
-        ):
+        )
+        if address is None:
             return
-
-        if not await ping_android_device(self.gui, ip_address, ip_port):
-            return
-
-        # Everything from here on is a request the device answers with an authorization
-        # prompt of its own -- see guiutils.notify_watch_android_device.
-        notify_watch_android_device()
+        ip_address, ip_port = address
 
         profile_name = field_refs["name"].value.strip()
         profile_xml = profedit.render_standalone_profile_xml(edited_profile, state=self.state).encode("utf-8")
@@ -1831,24 +1707,12 @@ class AndroidEventHandlers(HandlerGroup):
 
         sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene, state=self.state)
 
-        ip_address = android_field_refs["ip_address"].value.strip()
-        ip_port = android_field_refs["ip_port"].value.strip()
-        remember_android_address(self.gui, ip_address, ip_port)
-
-        # The panel's "Verify" checkbox, answered before the device is touched at all:
-        # a document that cannot be read back unchanged is refused here rather than
-        # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(
+        address = await self._reach_device(
             android_field_refs, lambda: roundtrip.verify_scene(edited_scene.scene_name, state=self.state)
-        ):
+        )
+        if address is None:
             return
-
-        if not await ping_android_device(self.gui, ip_address, ip_port):
-            return
-
-        # Everything from here on is a request the device answers with an authorization
-        # prompt of its own -- see guiutils.notify_watch_android_device.
-        notify_watch_android_device()
+        ip_address, ip_port = address
 
         # The same offer the other two kinds get, and a Scene did not have one until
         # 2026-08-30: every measured way of handing Tasker a '.scn.xml' had failed, so this
@@ -1908,24 +1772,12 @@ class AndroidEventHandlers(HandlerGroup):
                 ui.notify(error, type="negative")
             return
 
-        ip_address = android_field_refs["ip_address"].value.strip()
-        ip_port = android_field_refs["ip_port"].value.strip()
-        remember_android_address(self.gui, ip_address, ip_port)
-
-        # The panel's "Verify" checkbox, answered before the device is touched at all:
-        # a document that cannot be read back unchanged is refused here rather than
-        # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(
+        address = await self._reach_device(
             android_field_refs, lambda: roundtrip.verify_project(edited_project.project_name, state=self.state)
-        ):
+        )
+        if address is None:
             return
-
-        if not await ping_android_device(self.gui, ip_address, ip_port):
-            return
-
-        # Everything from here on is a request the device answers with an authorization
-        # prompt of its own -- see guiutils.notify_watch_android_device.
-        notify_watch_android_device()
+        ip_address, ip_port = address
 
         project_name = edited_project.project_name
         project_xml = projedit.render_standalone_project_xml(project_name, state=self.state).encode("utf-8")
@@ -1987,88 +1839,20 @@ class AndroidEventHandlers(HandlerGroup):
                 ui.notify(error, type="negative")
             return
 
-        ip_address = android_field_refs["ip_address"].value.strip()
-        ip_port = android_field_refs["ip_port"].value.strip()
-        remember_android_address(self.gui, ip_address, ip_port)
-
-        # The panel's "Verify" checkbox, answered before the device is touched at all:
-        # a document that cannot be read back unchanged is refused here rather than
-        # written half-way there.  Costs nothing when the box is unticked.
-        if not _round_trip_verified(
-            android_field_refs, lambda: roundtrip.verify_project(edited_project.project_name, state=self.state)
-        ):
-            return
-
-        if not await ping_android_device(self.gui, ip_address, ip_port):
-            return
-
-        # Everything from here on is a request the device answers with an authorization
-        # prompt of its own -- see guiutils.notify_watch_android_device.
-        notify_watch_android_device()
-
-        async def _upload() -> None:
-            # Keep whatever is already at that path before /upload writes over it.  The
-            # device keeps no versions and has no undo, so this is the only copy of it there
-            # will ever be; it is kept here rather than left beside the original -- see
-            # presave.save_android_safety_copy.  The bytes come from the existence check
-            # below rather than from a second GET, because the Tasker HTTP Server Example
-            # flashes 'File doesn't exist' on the phone for every miss (its /file handler
-            # runs Test File first -- see its file-system Profile), so asking twice put two
-            # of them on screen for one save.  A copy that fails is reported and the save
-            # goes ahead: presave's module comment says why it must never block one.
-            copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
-            if not copied:
-                ui.notify(
-                    f"Could not copy the file already on the device first: {safety_copy}",
-                    type="warning",
-                )
-            # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
-            saved = await run.io_bound(
-                projedit.save_project_to_android, edited_project.project_name, ip_address, ip_port, state=self.state
-            )
-            if saved is None:  # cancelled -- see the note at the top of this file
-                return
-            return_code, result = saved
-            if return_code != 0:
-                ui.notify(f"Could not save to Android device: {result}", type="negative")
-                return
-
-            # Remember the connection details for next time, same as the Get XML dialog does.
-            self.gui.android_ipaddr = ip_address
-            self.gui.android_port = ip_port
-
-            # `copied and` matters: on a failure safety_copy holds the reason, not a path.
-            saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
-            ui.notify(f"Project saved to Android device at {result}.{saved_note}", type="positive")
-            android_dialog.close()
-            parent_dialog.close()
-
-        # /upload overwrites silently and answers 200 either way, so the only way to know is
-        # to read the destination back first -- one read, which answers both what is there
-        # and what it holds, so the safety copy above needs no second GET of its own (see
-        # maputil2.read_android_file).  None = couldn't tell, which still prompts rather than
-        # risking a silent clobber.
-        device_path = projedit.android_project_path(edited_project.project_name)
-        read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
-        if read is None:  # cancelled -- see the note at the top of this file
-            return
-        exists, already_there = read
-        tasker_lines = await _what_tasker_already_has(
-            ip_address,
-            ip_port,
-            lambda: projedit.render_standalone_project_xml(edited_project.project_name, state=self.state),
-            _FILE_WRITE_CONSEQUENCE,
-            check_ids=_check_ids_ticked(android_field_refs),
-            state=self.state,
+        project_name = edited_project.project_name
+        await self._save_file_to_device(
+            _FileSave(
+                subject="Project",
+                device_path=projedit.android_project_path(project_name),
+                verify=lambda: roundtrip.verify_project(project_name, state=self.state),
+                render=lambda: projedit.render_standalone_project_xml(project_name, state=self.state),
+                save=projedit.save_project_to_android,
+                before_address=(project_name,),
+            ),
+            android_field_refs,
+            android_dialog,
+            parent_dialog,
         )
-        if exists is not False or tasker_lines:
-            build_overwrite_confirm_dialog(
-                f"'{device_path}' on the Android device",
-                _upload,
-                **_overwrite_prompt_options(exists, tasker_lines),
-            )
-            return
-        await _upload()
 
     async def fetch_backup_event(self) -> None:
         """

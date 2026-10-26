@@ -83,6 +83,62 @@ def output_orphan_single_scene(config: RunConfig, state: RunState) -> None:
 
 
 # process_projects: go through all Projects Profiles...and output them
+def _output_single_unnamed_task(config: RunConfig, state: RunState) -> None:
+    """Output the one unnamed Task that was asked for, under the Profile and Project that own it."""
+    task_name = config.single_task_name
+    task_id = get_taskid_from_unnamed_task(task_name)
+    unnamed_task = state.tasker_root_elements["all_tasks"][task_id]
+    task_list = [{"xml": unnamed_task["xml"], "name": task_name}]
+    task_output_lines = [" "]
+    # Get/set the Profile name
+    profile_name = profile if (profile := find_owning_profile(task_name, state=state)) else "No Profile"
+    # Get/set the Project name.
+    project_name = project if (project := find_owning_project(profile_name, state=state)) else "N/A"
+
+    # Output the unnamed Task
+    output_task_list(task_list, project_name, profile_name, task_output_lines, [], True, config, state=state)
+
+
+def _output_only_tasks(config: RunConfig, state: RunState) -> None:
+    """A backup with Tasks and nothing else to hang them from: output them all, and count them."""
+    # Build a "list" of Tasks consisting of the Tasks off our troot Task list,
+    task_list = []
+    task_output_lines = []
+    for task in state.tasker_root_elements["all_tasks"]:
+        task_list.append(
+            {
+                "xml": state.tasker_root_elements["all_tasks"][task]["xml"],
+                "name": state.tasker_root_elements["all_tasks"][task]["name"],
+            },
+        )
+        task_output_lines.append(" ")
+        if state.tasker_root_elements["all_tasks"][task]["name"]:
+            state.grand_totals["named_tasks"] += 1
+        else:
+            state.grand_totals["unnamed_tasks"] += 1
+    output_task_list(task_list, "Unknown", "", task_output_lines, [], True, config, state=state)
+
+
+def _output_only_scenes(config: RunConfig, state: RunState) -> list:
+    """A backup with Scenes and nothing else: output them all (or just the one asked for), count them, and
+    return the Tasks found in them -- these replace the ones found so far, as they always have."""
+    scene_list = []
+    found_tasks: list = []
+    single_scene_name = config.single_scene_name
+    for scene in state.tasker_root_elements["all_scenes"]:
+        scene_name = state.tasker_root_elements["all_scenes"][scene]["name"]
+        # Only after a single Scene?  Skip everything else.
+        if single_scene_name and scene_name != single_scene_name:
+            continue
+        scene_list.append(scene_name)
+        state.grand_totals["scenes"] += 1
+    if scene_list:
+        if single_scene_name:
+            state.found_named_items["single_scene_found"] = True
+        process_scene_list(scene_list, found_tasks, config, state=state)
+    return found_tasks
+
+
 def process_projects_and_their_profiles(
     found_tasks: list,
     projects_without_profiles: list,
@@ -110,18 +166,7 @@ def process_projects_and_their_profiles(
     if (
         config.single_task_name is not None and UNNAMED_ITEM in config.single_task_name and config.list_unnamed_items
     ) and state.tasker_root_elements["all_tasks_by_name"]:
-        task_name = config.single_task_name
-        task_id = get_taskid_from_unnamed_task(task_name)
-        unnamed_task = state.tasker_root_elements["all_tasks"][task_id]
-        task_list = [{"xml": unnamed_task["xml"], "name": task_name}]
-        task_output_lines = [" "]
-        # Get/set the Profile name
-        profile_name = profile if (profile := find_owning_profile(task_name, state=state)) else "No Profile"
-        # Get/set the Project name.
-        project_name = project if (project := find_owning_project(profile_name, state=state)) else "N/A"
-
-        # Output the unnamed Task
-        output_task_list(task_list, project_name, profile_name, task_output_lines, [], True, config, state=state)
+        _output_single_unnamed_task(config, state=state)
 
     # Process Projects only if there are Projects
     elif state.tasker_root_elements["all_projects"]:
@@ -135,39 +180,11 @@ def process_projects_and_their_profiles(
 
     # Only Tasks...(and not Scenes too) e.g. only Tasks?
     elif state.tasker_root_elements["all_tasks"] and not state.tasker_root_elements["all_scenes"]:
-        # Build a "list" of Tasks consisting of the Tasks off our troot Task list,
-        task_list = []
-        task_output_lines = []
-        for task in state.tasker_root_elements["all_tasks"]:
-            task_list.append(
-                {
-                    "xml": state.tasker_root_elements["all_tasks"][task]["xml"],
-                    "name": state.tasker_root_elements["all_tasks"][task]["name"],
-                },
-            )
-            task_output_lines.append(" ")
-            if state.tasker_root_elements["all_tasks"][task]["name"]:
-                state.grand_totals["named_tasks"] += 1
-            else:
-                state.grand_totals["unnamed_tasks"] += 1
-        output_task_list(task_list, "Unknown", "", task_output_lines, [], True, config, state=state)
+        _output_only_tasks(config, state=state)
 
     # Only Scene...?
     elif state.tasker_root_elements["all_scenes"]:
-        scene_list = []
-        found_tasks = []
-        single_scene_name = config.single_scene_name
-        for scene in state.tasker_root_elements["all_scenes"]:
-            scene_name = state.tasker_root_elements["all_scenes"][scene]["name"]
-            # Only after a single Scene?  Skip everything else.
-            if single_scene_name and scene_name != single_scene_name:
-                continue
-            scene_list.append(scene_name)
-            state.grand_totals["scenes"] += 1
-        if scene_list:
-            if single_scene_name:
-                state.found_named_items["single_scene_found"] = True
-            process_scene_list(scene_list, found_tasks, config, state=state)
+        found_tasks = _output_only_scenes(config, state=state)
 
     # A single Scene that no Project lists still exists in all_scenes -- output it on
     # its own rather than reporting it as not found.  (The branch above covers a backup

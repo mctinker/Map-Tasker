@@ -699,6 +699,38 @@ def ensure_unique_up_down_location(
 
 
 # Complete Task details and save them in call_table
+def _call_geometry(caller_line_num: int, called_line_num: int) -> tuple[str, str, str, str, int, int, int, int]:
+    """Which way a call goes and what it is drawn with: arrow, its two corners, the fill, where it starts,
+    how many lines it spans, the first line to measure and how many lines to measure."""
+    if called_line_num > caller_line_num:
+        # Going down.
+        start_line = caller_line_num
+        line_count = called_line_num - caller_line_num
+        return (
+            down_arrow,
+            left_arrow_corner_up,
+            right_arrow_corner_up,
+            right_arrow,
+            start_line,
+            line_count,
+            start_line + 1,
+            line_count - 1,
+        )
+    # Going up.
+    start_line = called_line_num
+    line_count = caller_line_num - called_line_num
+    return (
+        up_arrow,
+        left_arrow_corner_up,
+        right_arrow_corner_up,
+        left_arrow,
+        start_line,
+        line_count,
+        start_line,
+        line_count + 1,
+    )
+
+
 def get_task_details_and_save(
     output_lines: list,
     call_table: dict,
@@ -736,26 +768,9 @@ def get_task_details_and_save(
 
     # Determine if the called Task is below or above the calling Task and set
     # the arrow location accordingly.
-    if called_line_num > caller_line_num:
-        # Going down.
-        arrow = down_arrow
-        upper_corner_arrow = left_arrow_corner_up
-        lower_corner_arrow = right_arrow_corner_up
-        fill_arrow = right_arrow
-        start_line = caller_line_num
-        line_count = called_line_num - caller_line_num
-        up_down_start = start_line + 1
-        line_range = line_count - 1
-    else:
-        # Going up.
-        arrow = up_arrow
-        upper_corner_arrow = left_arrow_corner_up
-        lower_corner_arrow = right_arrow_corner_up
-        fill_arrow = left_arrow
-        start_line = called_line_num
-        line_count = caller_line_num - called_line_num
-        up_down_start = start_line
-        line_range = line_count + 1
+    arrow, upper_corner_arrow, lower_corner_arrow, fill_arrow, start_line, line_count, up_down_start, line_range = (
+        _call_geometry(caller_line_num, called_line_num)
+    )
 
     # Find the outside boundary for the range of lines to traverse between "caller" and "called".
     # Up_down location is the pos of the "called" Task name "calls ..."

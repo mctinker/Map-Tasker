@@ -735,6 +735,29 @@ def apply_appearance_mode(self: MyGui, is_dark: bool) -> None:
     ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")
 
     # --- 4. Apply styles to every named widget that exists ---
+    _style_named_widgets(self, drawer_bg, bg, fg)
+
+    # --- 5. CRITICAL FIX: Force the text view's gui_toolbar color update ---
+    _style_open_views(self, bg, fg, is_dark=is_dark)
+
+    # --- 6. CRITICAL FIX: Force the main body gui_view_toolbar color update (Current File: backup.xml ...---
+    _style_toolbar(getattr(self, "gui_view_toolbar", None), "#1e293b", is_dark=is_dark)
+
+
+# The toolbars are cyan in light mode and a shade of the window's own in dark mode.
+_LIGHT_TOOLBAR = "background-color: #00ffff !important; color: #000000 !important;"
+
+
+def _style_toolbar(toolbar: ui.element | None, dark_background: str, *, is_dark: bool) -> None:
+    """Colour a toolbar for the mode, if the window has it."""
+    if toolbar:
+        toolbar.style(
+            f"background-color: {dark_background} !important; color: #ffffff !important;" if is_dark else _LIGHT_TOOLBAR
+        )
+
+
+def _style_named_widgets(self: MyGui, drawer_bg: str, bg: str, fg: str) -> None:
+    """The drawers and panels the window keeps by name, in the mode's colours."""
     for attr in ("gui_left_drawer", "gui_right_drawer"):
         widget = getattr(self, attr, None)
         if widget:
@@ -755,9 +778,10 @@ def apply_appearance_mode(self: MyGui, is_dark: bool) -> None:
         if widget:
             widget.style(f"background-color: {bg} !important; color: {fg} !important;")
 
-    # --- 5. CRITICAL FIX: Force the text view's gui_toolbar color update ---
-    # Every open view, not just the newest: "Open View In New Window" can leave
-    # several Map/Diagram tabs on screen, and they all have to follow the theme.
+
+def _style_open_views(self: MyGui, bg: str, fg: str, *, is_dark: bool) -> None:
+    """Every open view, not just the newest: "Open View In New Window" can leave
+    several Map/Diagram tabs on screen, and they all have to follow the theme."""
     for textview in live_views(self):
         # The Tree view colours its whole container itself (card included) rather than
         # leaving it to the stylesheet -- see NiceGuiTreeView.apply_theme.
@@ -769,20 +793,7 @@ def apply_appearance_mode(self: MyGui, is_dark: bool) -> None:
             scroll_area.style(f"background-color: {bg} !important;")
 
         # Map / Diagram / Tree View >  Search / Clear / Top / Bottom Toolbar
-        tv_toolbar = getattr(textview, "gui_toolbar", None)
-        if tv_toolbar:
-            if is_dark:
-                tv_toolbar.style("background-color: #1f2937 !important; color: #ffffff !important;")
-            else:
-                tv_toolbar.style("background-color: #00ffff !important; color: #000000 !important;")
-
-    # --- 6. CRITICAL FIX: Force the main body gui_view_toolbar color update (Current File: backup.xml ...---
-    view_toolbar = getattr(self, "gui_view_toolbar", None)
-    if view_toolbar:
-        if is_dark:
-            view_toolbar.style("background-color: #1e293b !important; color: #ffffff !important;")
-        else:
-            view_toolbar.style("background-color: #00ffff !important; color: #000000 !important;")
+        _style_toolbar(getattr(textview, "gui_toolbar", None), "#1f2937", is_dark=is_dark)
 
 
 def restore_appearance_mode(self: MyGui, appearance_mode: str | None) -> str:

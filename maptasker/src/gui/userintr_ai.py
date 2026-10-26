@@ -336,54 +336,64 @@ class AIEventHandlers(HandlerGroup):
             gui.single_profile_name = ""
         # Do we have a single item identified?
         if any(getattr(gui, f"single_{label.lower()}_name", "") for label in SINGLE_ITEM_LABELS):
-            gui.ai_analyze = True
-            text1 = translate_string("Running")
-            text2 = translate_string("analysis with model")
-            gui.display_message_box(
-                f"{text1} {gui.ai_name} {text2} {gui.ai_model}.",
-                "Green",
-            )
+            await self._run_analysis()
+        else:
+            self._say_no_single_item()
 
-            # Make sure we have the ai name, spelled the way map_ai dispatches on it.
-            if not gui.ai_name:
-                gui.ai_name = _ai_name_for_model(gui.ai_model)
-            self.state.program_arguments.ai_name = gui.ai_name
+    async def _run_analysis(self) -> None:
+        """Build the selected object's Map, have the model analyse it, and show what came back."""
+        gui = self.gui
+        gui.ai_analyze = True
+        text1 = translate_string("Running")
+        text2 = translate_string("analysis with model")
+        gui.display_message_box(
+            f"{text1} {gui.ai_name} {text2} {gui.ai_model}.",
+            "Green",
+        )
 
-            # Do the analysis.  First save our windows and settings.
-            _, _ = save_restore_args(gui_settings(gui), gui.color_lookup, to_save=True, state=self.state)
+        # Make sure we have the ai name, spelled the way map_ai dispatches on it.
+        if not gui.ai_name:
+            gui.ai_name = _ai_name_for_model(gui.ai_model)
+        self.state.program_arguments.ai_name = gui.ai_name
 
-            # The analysis is of the selected object's Map, so build it first.
-            if not await build_analysis_lines(gui):
-                gui.ai_analyze = False
-                return
+        # Do the analysis.  First save our windows and settings.
+        _, _ = save_restore_args(gui_settings(gui), gui.color_lookup, to_save=True, state=self.state)
 
-            # Now make certain we have the api key set for the model we are using.
-            self.state.program_arguments.ai_apikey = gui.ai_apikey
-            self.state.program_arguments.ai_model = gui.ai_model
-            # Save the current tab
-            gui.tab_to_use = "Analyze"
+        # The analysis is of the selected object's Map, so build it first.
+        if not await build_analysis_lines(gui):
+            gui.ai_analyze = False
+            return
 
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # Ok, run the analysis.  Await the execution of map_ai() so control doesn't leak early!
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            try:
-                await map_ai(state=self.state)
-            except MapTaskerError as error:
-                # The analysis could not be made (no library, no model ...).  Recorded as the window
-                # shows an error, and displayed with the rest of what the run left, just below.
-                record_error(error, self.state)
-            finally:
-                # The analysis is over, so stop saying it is running.  map_ai clears its own
-                # PrimeItems copy of the flag; this is the view's, which every later save and
-                # every rerun copies back into PrimeItems (see rungui.process_gui).  In a
-                # 'finally' because an analysis that failed is just as over as one that worked.
-                gui.ai_analyze = False
+        # Now make certain we have the api key set for the model we are using.
+        self.state.program_arguments.ai_apikey = gui.ai_apikey
+        self.state.program_arguments.ai_model = gui.ai_model
+        # Save the current tab
+        gui.tab_to_use = "Analyze"
 
-            # Display messages from the AI run.
-            display_error_file_and_ai_response(self)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # Ok, run the analysis.  Await the execution of map_ai() so control doesn't leak early!
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        try:
+            await map_ai(state=self.state)
+        except MapTaskerError as error:
+            # The analysis could not be made (no library, no model ...).  Recorded as the window
+            # shows an error, and displayed with the rest of what the run left, just below.
+            record_error(error, self.state)
+        finally:
+            # The analysis is over, so stop saying it is running.  map_ai clears its own
+            # PrimeItems copy of the flag; this is the view's, which every later save and
+            # every rerun copies back into PrimeItems (see rungui.process_gui).  In a
+            # 'finally' because an analysis that failed is just as over as one that worked.
+            gui.ai_analyze = False
 
+        # Display messages from the AI run.
+        display_error_file_and_ai_response(self)
+
+    def _say_no_single_item(self) -> None:
+        """Tell the user why there is nothing to analyse: no file loaded, or not one object chosen."""
+        gui = self.gui
         # Test if no XML data loaded
-        elif (
+        if (
             not self.state.tasker_root_elements["all_projects"]
             and not self.state.tasker_root_elements["all_profiles"]
             and not self.state.tasker_root_elements["all_tasks"]
@@ -392,17 +402,17 @@ class AIEventHandlers(HandlerGroup):
                 translate_string("No projects, profiles, or tasks have been loaded!  Load some XML and try again."),
                 "Orange",
             )
+            return
         # No single item has been selected.
-        else:
-            gui.display_message_box(
-                translate_string("Single Project/Profile/Task has not been selected!  Select only one and try again."),
-                "Orange",
-            )
-            # Get the Profile or Task to analyze
-            # If there are no Profiles or Tasks, redisplay the Analyze button
-            if not list_tasker_objects(gui):
-                # Drop here if we don't have any XML loaded yet.
-                display_analyze_button(gui, 13, first_time=False)
+        gui.display_message_box(
+            translate_string("Single Project/Profile/Task has not been selected!  Select only one and try again."),
+            "Orange",
+        )
+        # Get the Profile or Task to analyze
+        # If there are no Profiles or Tasks, redisplay the Analyze button
+        if not list_tasker_objects(gui):
+            # Drop here if we don't have any XML loaded yet.
+            display_analyze_button(gui, 13, first_time=False)
 
     def ai_apikey_process_event(
         self,
@@ -413,7 +423,6 @@ class AIEventHandlers(HandlerGroup):
         """
         Process the AI API Dialog key event.
         """
-        apikeys_to_validate = ["openai_key", "anthropic_key", "gemini_key"]
         gui = self.gui  # self is MapTaskerEventHandlers, my_gui is MyGui
 
         if not dialog_container:
@@ -430,22 +439,55 @@ class AIEventHandlers(HandlerGroup):
 
         # 2. Handle Clear Event
         if clear:
-            apikey_entry = f"entry_{clear}"
-            if hasattr(dialog_container, apikey_entry):
-                entry_field = getattr(dialog_container, apikey_entry)
-                entry_field.set_value("")
-
-                text = translate_string("API key cleared.")
-                gui.display_message_box(
-                    f"{clear.replace('_key', '').title()} {text}",
-                    "LimeGreen",
-                )
-                # Only the entry is cleared.  The key itself goes when 'Ok' saves the
-                # dialog -- a blank entry is a change like any other -- and stays if
-                # 'Cancel' backs out, as the dialog's help says.
+            self._clear_api_key_entry(dialog_container, clear)
             return
 
-        # 3. GET THE RETURNED API KEYS
+        # 3. GET THE RETURNED API KEYS, validate them and commit the changes
+        apikey_changed = self._commit_api_keys(dialog_container)
+        if apikey_changed is None:
+            return  # One was invalid, and has been said so.
+
+        # 4. Save the keys if they have modified state
+        if apikey_changed:
+            self._save_api_keys()
+
+            # Refresh keys on the GUI instance and update context-conditional state flags
+            set_ai_key(gui, gui.ai_model)
+
+            # Redisplay the UI dependencies
+            display_analyze_button(gui, 13, first_time=False)
+            display_selected_object_labels(gui)
+        else:
+            gui.display_message_box(translate_string("No API keys changed."), "LimeGreen")
+
+        # 5. Close the window view
+        dialog_container.close()
+
+        # Updates NiceGUI visual rendering colors reactively
+        update_analysis_button_color(gui)
+
+    def _clear_api_key_entry(self, dialog_container: APIKeyDialog, clear: str) -> None:
+        """Blank the entry beside a key's Clear button."""
+        apikey_entry = f"entry_{clear}"
+        if hasattr(dialog_container, apikey_entry):
+            entry_field = getattr(dialog_container, apikey_entry)
+            entry_field.set_value("")
+
+            text = translate_string("API key cleared.")
+            self.gui.display_message_box(
+                f"{clear.replace('_key', '').title()} {text}",
+                "LimeGreen",
+            )
+            # Only the entry is cleared.  The key itself goes when 'Ok' saves the
+            # dialog -- a blank entry is a change like any other -- and stays if
+            # 'Cancel' backs out, as the dialog's help says.
+
+    def _commit_api_keys(self, dialog_container: APIKeyDialog) -> bool | None:
+        """Take the keys the dialog holds into the state, saying what became of each.
+
+        Returns whether any key changed, or None when one was invalid -- the reason has been shown and
+        nothing after it was taken.
+        """
         # This will now succeed because dialog_container points to the class object containing attributes
         api_keys = {
             "openai_key": dialog_container.openai_key.value,
@@ -454,19 +496,17 @@ class AIEventHandlers(HandlerGroup):
         }
 
         apikey_changed = False
-        _valid_api_key = valid_api_key
-        _display_message_box = gui.display_message_box
+        _display_message_box = self.gui.display_message_box
 
-        # 4. Iterate over keys and validate/commit changes
         for key, value in api_keys.items():
             if self.state.ai.get(key, "") != value:  # Check if the key value changed
                 # Validate the length/format of the key if it has a value
-                if value and key in apikeys_to_validate and not _valid_api_key(key, value):
+                if value and not valid_api_key(key, value):
                     text = translate_string("API key is invalid!")
                     error_msg = f"{key.replace('_key', '').title()} {text}"
                     _display_message_box(error_msg, "Red")
                     ui.notify(error_msg, type="negative")
-                    return
+                    return None
 
                 # Commit change to state
                 self.state.ai[key] = value
@@ -483,36 +523,23 @@ class AIEventHandlers(HandlerGroup):
                     f"{key.replace('_', ' ').title()} {text}",
                     "LimeGreen",
                 )
+        return apikey_changed
 
-        # 5. Save the keys if they have modified state
-        if apikey_changed:
-            try:
-                in_password_store = save_api_keys(self.state.ai)
-            except OSError as error:
-                text = translate_string("The API keys could not be saved:")
-                _display_message_box(f"{text} {error}", "Red")
-                ui.notify(f"{text} {error}", type="negative")
-            else:
-                if not in_password_store:
-                    text = translate_string(
-                        "No password store was available, so the API keys were saved to a file only you can read:"
-                    )
-                    _display_message_box(f"{text} {fallback_file()}", "Orange")
-
-            # Refresh keys on the GUI instance and update context-conditional state flags
-            set_ai_key(gui, gui.ai_model)
-
-            # Redisplay the UI dependencies
-            display_analyze_button(gui, 13, first_time=False)
-            display_selected_object_labels(gui)
+    def _save_api_keys(self) -> None:
+        """Write the keys to the password store, or say why they could not be written."""
+        _display_message_box = self.gui.display_message_box
+        try:
+            in_password_store = save_api_keys(self.state.ai)
+        except OSError as error:
+            text = translate_string("The API keys could not be saved:")
+            _display_message_box(f"{text} {error}", "Red")
+            ui.notify(f"{text} {error}", type="negative")
         else:
-            gui.display_message_box(translate_string("No API keys changed."), "LimeGreen")
-
-        # 6. Close the window view
-        dialog_container.close()
-
-        # Updates NiceGUI visual rendering colors reactively
-        update_analysis_button_color(gui)
+            if not in_password_store:
+                text = translate_string(
+                    "No password store was available, so the API keys were saved to a file only you can read:"
+                )
+                _display_message_box(f"{text} {fallback_file()}", "Orange")
 
     def ai_apikey_get_event(self, cancel: bool, clear: str) -> None:
         """The API Keys dialog's Ok (cancel False) and Cancel (cancel True) buttons, and the Clear button

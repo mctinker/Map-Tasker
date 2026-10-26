@@ -271,7 +271,7 @@ multiline-quotes = 'double'
 [tool.ruff.lint.mccabe]
 # A ceiling, and as low as the code allows: the worst function sits at it.  The target for new code
 # is lower; see [tool.complexity-ratchet] below and scripts/complexity_ratchet.py.
-max-complexity = 15
+max-complexity = 12
 
 [tool.ruff.lint.per-file-ignores]
 # https://docs.astral.sh/ruff/rules/
@@ -323,13 +323,13 @@ max-complexity = 15
 [tool.ruff.lint.pylint]
 # Ceilings, not targets: each is as low as the code allows, so the worst function in the
 # project sits right at it and a function any worse than that fails.  They were 15, 20, 10
-# and 120 until the largest functions were split up.  What new code is held to is lower still:
-# see [tool.complexity-ratchet] below and scripts/complexity_ratchet.py, which also keeps the
-# functions that are over it from growing.
-max-args = 9
-max-branches = 15
+# and 120, and then 9, 15 and 60, as the largest functions were split up.  What new code is held
+# to is lower still: see [tool.complexity-ratchet] below and scripts/complexity_ratchet.py, which
+# also keeps the functions that are over it from growing.
+max-args = 8
+max-branches = 12
 max-returns = 9
-max-statements = 60
+max-statements = 50
 max-locals = 20
 max-nested-blocks = 10
 
@@ -338,11 +338,11 @@ max-nested-blocks = 10
 # in scripts/complexity_baseline.json; that list can only shrink.  Fix a function and lower it
 # with `uv run python scripts/complexity_ratchet.py --update`.
 [tool.complexity-ratchet]
-statements = 50  # ruff PLR0915, the pylint default
-branches = 12  # ruff PLR0912, the pylint default
-complexity = 12  # ruff C901
+statements = 40  # ruff PLR0915 (pylint's default is 50)
+branches = 11  # ruff PLR0912 (pylint's default is 12)
+complexity = 11  # ruff C901
 arguments = 8  # ruff PLR0913
-lines = 100  # first line of the def to its last, which ruff has no rule for
+lines = 90  # first line of the def to its last, which ruff has no rule for
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = 'all'

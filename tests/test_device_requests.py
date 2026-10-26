@@ -78,7 +78,7 @@ def test_a_request_with_no_event_loop_is_not_logged(caplog: pytest.LogCaptureFix
 # --------------------------------------------------------------------------------------
 _REQUESTS = {
     "get": lambda: maputil2.http_request("192.168.0.210", "1821", "/Tasker/x.xml", "file", ""),
-    "post": lambda: maputil2.http_post_request("192.168.0.210", "1821", "", "api/import", "", b"<Task/>", "KEY"),
+    "post": lambda: maputil2.http_post_request("192.168.0.210", "1821", "", "api/import", b"<Task/>", "KEY"),
     "upload": lambda: maputil2.http_upload_request("192.168.0.210", "1821", "Tasker/tasks", "x.tsk.xml", b"<Task/>"),
     "delete": lambda: maputil2.http_delete_request("192.168.0.210", "1821", "/Tasker/x.txt", "KEY"),
 }
@@ -235,7 +235,7 @@ class _KeyDevice:
 def _keyed_import() -> tuple[int, object]:
     return maputil2.request_with_auth_key(
         *_DEVICE,
-        lambda key: maputil2.http_post_request(*_DEVICE, "", "api/import", "", b"<Task/>", key),
+        lambda key: maputil2.http_post_request(*_DEVICE, "", "api/import", b"<Task/>", key),
     )
 
 

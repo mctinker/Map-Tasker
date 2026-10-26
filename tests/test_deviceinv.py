@@ -1793,7 +1793,9 @@ def test_a_different_experiment_installs_a_differently_named_task(import_device:
     prototype would report on an experiment nobody asked for."""
     import_device.installed_tasks.add(deviceimport.IMPORT_PROFILE_TASK_NAME)  # the default-named one is there
 
-    return_code, message = _import(import_device, import_type=deviceimport.IMPORT_TYPE_TASK)
+    return_code, message = _import(
+        import_device, settings=deviceimport.ImportSettings(import_type=deviceimport.IMPORT_TYPE_TASK)
+    )
     assert return_code == 0, message
 
     # Installed anyway, because it is not the same Task.

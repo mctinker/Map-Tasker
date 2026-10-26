@@ -956,7 +956,7 @@ def _draw_list(
     """ListElement: 1 Source, 2/3 Selection Mode, 5 Horizontal Space, 6 Vertical Space --
     and, at arg4, a whole nested <Scene> that is the layout of one row.
     """
-    _draw_item_layout(element, args, "arg4", width, height, options, depth, translate_string("List"), state=state)
+    _draw_item_layout(element, args, "arg4", (width, height), options, depth, translate_string("List"), state=state)
 
 
 def _draw_spinner(
@@ -969,15 +969,14 @@ def _draw_spinner(
     state: RunState,
 ) -> None:
     """SpinnerElement: 1 Source, 2 Variable, and the item layout <Scene> at arg3."""
-    _draw_item_layout(element, args, "arg3", width, height, options, depth, translate_string("Spinner"), state=state)
+    _draw_item_layout(element, args, "arg3", (width, height), options, depth, translate_string("Spinner"), state=state)
 
 
 def _draw_item_layout(
     element: Element,
     args: ElementArgs,
     slot: str,
-    width: int,
-    height: int,
+    size: tuple[int, int],
     options: PreviewOptions,
     depth: int,
     kind: str,
@@ -991,6 +990,7 @@ def _draw_item_layout(
     which is what the nested Scene is.  Recursion is capped at MAX_ITEM_DEPTH; a template
     that itself holds a List draws that inner one as a labelled box.
     """
+    width, height = size
     nested = element.find(f"Scene[@sr='{slot}']/Scene[@sr='val']")
     source = _enum(lookup_values["ListElement1"], args.number(1))
     variable = args.text(2)

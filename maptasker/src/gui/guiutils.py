@@ -126,6 +126,47 @@ def update_analysis_button_color(gui: "MyGui") -> None:
     button.props(f"color={'green' if ready else 'red'}")
 
 
+def _window_from(gui_arg: object) -> "MyGui | None":
+    """The MyGui window a handler's first argument stands for, or None (logged) if it is not one."""
+    window = getattr(gui_arg, "gui", None)
+    if window.__class__.__name__ == "MyGui":
+        gui_instance = cast("MyGui", window)
+    elif hasattr(gui_arg, "client") or hasattr(gui_arg, "sender"):
+        # It's a NiceGUI UI Event object; try to fetch from PrimeItems or a cross-reference
+        gui_instance = cast("MyGui", getattr(getattr(gui_arg, "state", None), "mygui", gui_arg))
+    else:
+        gui_instance = cast("MyGui", gui_arg)
+
+    if gui_instance.__class__.__name__ != "MyGui":
+        logger.error(f"display_model_pulldown received an invalid GUI context object: {type(gui_arg)}")
+        return None
+    return gui_instance
+
+
+def _models_to_display(gui_instance: "MyGui", extended_models: list[str] | None) -> list[str] | None:
+    """The model names the pulldown should hold, or None if it already holds them."""
+    predefined = sorted(model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name))
+
+    # An extended list was asked for.
+    if gui_instance.ai_model_extended_list and not gui_instance.initialization:
+        if gui_instance.displaying_extended_list is not None and gui_instance.displaying_extended_list:
+            return None
+        # Get the extended list...only if we are not in the middle of setting/changing the language.
+        if gui_instance.state.language_set:
+            return predefined
+        models = (
+            extended_models if extended_models is not None else get_extended_ai_model_list(state=gui_instance.state)
+        )
+        gui_instance.displaying_extended_list = True
+        return models
+
+    # Just the pre-defined model names.
+    if gui_instance.displaying_extended_list is not None and not gui_instance.displaying_extended_list:
+        return None
+    gui_instance.displaying_extended_list = False
+    return predefined
+
+
 def display_model_pulldown(
     gui_arg: object,
     *_args: object,
@@ -140,45 +181,13 @@ def display_model_pulldown(
     `extended_models` is the extended list already fetched (see extended_models_event, which
     fetches it off the event loop); None fetches it here when it is wanted.
     """
-    # 1. Normalize the argument to find the true MyGui instance context
-    window = getattr(gui_arg, "gui", None)
-    if window.__class__.__name__ == "MyGui":
-        gui_instance = cast("MyGui", window)
-    elif hasattr(gui_arg, "client") or hasattr(gui_arg, "sender"):
-        # It's a NiceGUI UI Event object; try to fetch from PrimeItems or a cross-reference
-        gui_instance = cast("MyGui", getattr(getattr(gui_arg, "state", None), "mygui", gui_arg))
-    else:
-        gui_instance = cast("MyGui", gui_arg)
-
-    # 2. Safety Fallback validation check
-    if gui_instance.__class__.__name__ != "MyGui":
-        logger.error(f"display_model_pulldown received an invalid GUI context object: {type(gui_arg)}")
+    gui_instance = _window_from(gui_arg)
+    if gui_instance is None:
         return
 
-    # Add the list of models.  If this is a request for an extended list, then get the extended list.
-    if gui_instance.ai_model_extended_list and not gui_instance.initialization:
-        if gui_instance.displaying_extended_list is not None and gui_instance.displaying_extended_list:
-            return  # Return if we are already displaying it.
-        # Get the extended list...only if we are not in the middle of setting/changing the language.
-        if not gui_instance.state.language_set:
-            display_models = (
-                extended_models if extended_models is not None else get_extended_ai_model_list(state=gui_instance.state)
-            )
-            gui_instance.displaying_extended_list = True
-        else:
-            # Not a request to build the extended, or we are in the middle of changing the language.
-            display_models = sorted(
-                model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
-            )
-
-    # Just display the pre-defined model names.
-    else:
-        if gui_instance.displaying_extended_list is not None and not gui_instance.displaying_extended_list:
-            return  # Return if we are already displaying it.
-        display_models = sorted(
-            model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
-        )
-        gui_instance.displaying_extended_list = False
+    display_models = _models_to_display(gui_instance, extended_models)
+    if display_models is None:
+        return  # Already showing the list that was asked for.
 
     # If the select dropdown already exists on the GUI instance, just update its options
     if hasattr(gui_instance, "ai_model_option") and gui_instance.ai_model_option:
@@ -456,6 +465,36 @@ def display_object_pulldowns(
 
 
 # Get all Projects, Profiles and Tasks to display
+def _projects_and_profiles(self: "MyGui") -> tuple[list[str], list[str]]:
+    """The names of the Projects and of the Profiles, from the tree of Tasker objects."""
+    projects: list[str] = []
+    profiles: list[str] = []
+    tree_data = self.build_the_tree()
+    # If no tree data, then we don't have any Projects.  Just get the Profiles and Tasks.
+    if not tree_data:
+        profiles = [value["name"] for value in self.state.tasker_root_elements["all_profiles"].values()]
+    # We have the Tasker objects.  Collect all Projects and Profiles from the tree data.
+    else:
+        for project in tree_data:
+            projects.append(project["name"])
+            for profile in project["children"]:
+                with contextlib.suppress(TypeError):
+                    profiles.append(profile["name"])
+    return projects, profiles
+
+
+def _task_names_to_display(self: "MyGui") -> list[str]:
+    """The Task names for the GUI pulldown: sorted, without the unnamed ones unless they are wanted."""
+    tasks_to_display = list(self.state.tasker_root_elements["all_tasks_by_name"])
+    if not tasks_to_display:
+        return [translate_string("No tasks found")]
+    if not self.list_unnamed_items:
+        # Remove unnamed Tasks, and duplicates.
+        tasks_to_display = list({task for task in tasks_to_display if UNNAMED_ITEM not in task})
+    tasks_to_display.sort()
+    return tasks_to_display
+
+
 def get_tasker_objects(self: "MyGui") -> tuple:
     """
     Retrieves the projects, profiles, tasks and Scenes available in the XML file.
@@ -468,23 +507,7 @@ def get_tasker_objects(self: "MyGui") -> tuple:
             - list: A list of task names to display.
             - list: A list of Scene names to display.
     """
-    projects_to_display = []
-    profiles = []
-    tasks = []
-    # Build the tree of Tasker objects
-    tree_data = self.build_the_tree()
-    # If no tree data, then we don't have any Projects.  Just get the Profiles and Tasks.
-    if not tree_data:
-        profiles = [value["name"] for value in self.state.tasker_root_elements["all_profiles"].values()]
-        # tasks = [value["name"] for value in PrimeItems.tasker_root_elements["all_tasks"].values()]
-    # We have the Tasker objects.  Collect all Projects, Profiles and Tasks from the tree data.
-    else:
-        for project in tree_data:
-            projects_to_display.append(project["name"])
-            for profile in project["children"]:
-                with contextlib.suppress(TypeError):
-                    profiles.append(profile["name"])
-                    tasks.extend(profile["children"])
+    projects_to_display, profiles = _projects_and_profiles(self)
 
     # Clean up the object lists by removing anonymous or missing objects.
     if self.list_unnamed_items:
@@ -496,24 +519,7 @@ def get_tasker_objects(self: "MyGui") -> tuple:
     if not profiles_to_display:
         profiles_to_display = [translate_string("No profiles found")]
 
-    # Build list of Task names to display in the GUI pulldown.
-    tasks_to_display = list(self.state.tasker_root_elements["all_tasks_by_name"])
-
-    # Check for no tasks.
-    if not tasks_to_display:
-        tasks_to_display = [translate_string("No tasks found")]
-    else:
-        if not self.list_unnamed_items:
-            # Remove unnamed Tasks from the list.
-            new_task_list = []
-            for task in tasks_to_display:
-                if UNNAMED_ITEM in task:
-                    continue
-                # If the task is not in the list of tasks, add it to the new list.
-                new_task_list.append(task)
-            # Remove duplicates and sort the list.
-            tasks_to_display = list(set(new_task_list))
-        tasks_to_display.sort()
+    tasks_to_display = _task_names_to_display(self)
 
     # Build the list of Scene names.  all_scenes is keyed by Scene name (see
     # taskerd.get_the_xml_data), so its keys are the list -- no prefix, like Tasks.

@@ -66,7 +66,7 @@ if TYPE_CHECKING:
 
     # playwright is only there when the script is run with it (see the usage above), so this
     # cannot resolve in the project's own environment; the page's methods are then unchecked.
-    from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
+    from playwright.sync_api import BrowserContext, Page  # pyright: ignore[reportMissingImports]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # The tree MapTasker is run from.  Normally this one; --root points it at another checkout (a
@@ -539,15 +539,8 @@ def inspect_labels(page: Page) -> None:
     print("\n".join(f"    {label}" for label in labels))
 
 
-def capture_all(names: list[str], output: Path, scale: float, root: Path, inspect: bool = False) -> int:
-    """Capture each named screen into `output`.  Returns 1 if any failed, else 0."""
-    from playwright.sync_api import Error as PlaywrightError  # pyright: ignore[reportMissingImports]
-    from playwright.sync_api import sync_playwright  # pyright: ignore[reportMissingImports]
-
-    output.mkdir(parents=True, exist_ok=True)
-    port = free_port()
-    workdir = Path(tempfile.mkdtemp(prefix="maptasker_capture_"))
-    log_path = workdir / "server.log"
+def isolated_environment(workdir: Path, root: Path) -> dict[str, str]:
+    """The environment the server runs in: a home of its own, with the synthetic backup in it."""
     home = workdir / "home"
     for folder in ("Desktop", "Documents", "Downloads"):
         (home / folder).mkdir(parents=True)
@@ -555,7 +548,7 @@ def capture_all(names: list[str], output: Path, scale: float, root: Path, inspec
     backup = home / "Documents" / "synthetic_backup.xml"
     shutil.copyfile(root / "tests" / "data" / "synthetic_backup.xml", backup)
     # Isolated from the user's own data -- see the module docstring.
-    environment = {
+    return {
         **{
             key: value
             for key, value in os.environ.items()
@@ -567,6 +560,47 @@ def capture_all(names: list[str], output: Path, scale: float, root: Path, inspec
         ISOLATION_FLAG: "1",
         BACKUP_VARIABLE: str(backup),
     }
+
+
+def capture_screen(context: BrowserContext, port: int, name: str, output: Path, *, inspect: bool) -> bool:
+    """Open one screen in a page of its own and photograph it (or, inspecting, list its labels).  False if it failed."""
+    from playwright.sync_api import Error as PlaywrightError  # pyright: ignore[reportMissingImports]
+
+    screen = SCREENS[name]
+    page = context.new_page()
+    try:
+        page.goto(f"http://127.0.0.1:{port}/capture/{name}")
+        page.wait_for_function(f"document.body.dataset.{READY_ATTRIBUTE} === '1'", timeout=30_000)
+        page.add_style_tag(content=HIDE_TOASTS)
+        if screen.url:
+            page.goto(f"http://127.0.0.1:{port}{screen.url}")
+        for text in screen.clicks:
+            click(page, text)
+        settle(page, screen)
+        if inspect:
+            print(f"  {name}:")
+            inspect_labels(page)
+            return True
+        target = output / f"{name}.png"
+        page.screenshot(path=str(target))
+        print(f"  ok    {target.name}")
+    except PlaywrightError as error:  # report it and carry on with the rest
+        print(f"  FAIL  {name}: {str(error).splitlines()[0]}")
+        return False
+    finally:
+        page.close()
+    return True
+
+
+def capture_all(names: list[str], output: Path, scale: float, root: Path, inspect: bool = False) -> int:
+    """Capture each named screen into `output`.  Returns 1 if any failed, else 0."""
+    from playwright.sync_api import sync_playwright  # pyright: ignore[reportMissingImports]
+
+    output.mkdir(parents=True, exist_ok=True)
+    port = free_port()
+    workdir = Path(tempfile.mkdtemp(prefix="maptasker_capture_"))
+    log_path = workdir / "server.log"
+    environment = isolated_environment(workdir, root)
     failures: list[str] = []
 
     with log_path.open("w") as log:
@@ -587,30 +621,7 @@ def capture_all(names: list[str], output: Path, scale: float, root: Path, inspec
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(channel="chrome", headless=True)
             context = browser.new_context(viewport=VIEWPORT, device_scale_factor=scale)
-            for name in names:
-                screen = SCREENS[name]
-                page = context.new_page()
-                try:
-                    page.goto(f"http://127.0.0.1:{port}/capture/{name}")
-                    page.wait_for_function(f"document.body.dataset.{READY_ATTRIBUTE} === '1'", timeout=30_000)
-                    page.add_style_tag(content=HIDE_TOASTS)
-                    if screen.url:
-                        page.goto(f"http://127.0.0.1:{port}{screen.url}")
-                    for text in screen.clicks:
-                        click(page, text)
-                    settle(page, screen)
-                    if inspect:
-                        print(f"  {name}:")
-                        inspect_labels(page)
-                        continue
-                    target = output / f"{name}.png"
-                    page.screenshot(path=str(target))
-                    print(f"  ok    {target.name}")
-                except PlaywrightError as error:  # report it and carry on with the rest
-                    failures.append(name)
-                    print(f"  FAIL  {name}: {str(error).splitlines()[0]}")
-                finally:
-                    page.close()
+            failures.extend(name for name in names if not capture_screen(context, port, name, output, inspect=inspect))
             browser.close()
     finally:
         server.terminate()

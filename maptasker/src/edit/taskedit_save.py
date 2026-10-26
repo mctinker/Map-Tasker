@@ -177,7 +177,7 @@ def save_task_to_android(
     return_code, response = request_with_auth_key(
         ip_address,
         ip_port,
-        lambda auth_key: http_post_request(ip_address, ip_port, "", "api/import", "", xml_bytes, auth_key),
+        lambda auth_key: http_post_request(ip_address, ip_port, "", "api/import", xml_bytes, auth_key),
     )
     if return_code != 0:
         return return_code, str(response)
@@ -320,7 +320,6 @@ def save_task_to_android_directory(
         ip_port,
         "",
         "api/import",
-        "",
         xml_bytes,
         auth_key,
     )

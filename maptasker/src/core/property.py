@@ -255,27 +255,12 @@ VARIABLE_TAG = "ProfileVariable"
 
 # Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out.
-def get_properties(
-    property_tag: str, header: Element, where: Target | None = None, *, config: RunConfig, state: RunState
-) -> None:
+def _gather_properties(property_tag: str, header: Element) -> list[str]:
+    """Every property of this object as "Label:value" items: its comment, keep-awake and collision
+    handling settings, the repeat settings of a Profile, and the properties of each of its variables.
+
+    They all belong to the same "...Properties..." block, and go out as a single output line.
     """
-
-    Args:
-        property_tag (str): Either "Project:", "Profile:", or "Task:"
-        header (Element): xml header to Project/Profile/Task
-        where (Target): the object these properties belong to, so the line can be marked as
-            somewhere a report finding can jump to.  None leaves it unmarked.
-        config (RunConfig): the run's settings (pretty)
-
-    Returns:
-        nothing
-    """
-    # Get our HTML / CSS attributes
-    css_attribute = get_css_attributes(property_tag)
-
-    # Gather every property of this object -- its comment, keep-awake and collision handling
-    # settings, and the properties of each of its variables -- into one list of items.  They
-    # all belong to the same "...Properties..." block, and go out as a single output line.
     properties: list[str] = []
 
     # Get the item comment, if any.  Don't process it if we already have it
@@ -327,7 +312,28 @@ def get_properties(
     # Project and no Task in the sample data, and the bits objprops names are a Profile's.
     if property_tag == "Profile:":
         properties.extend(profile_properties(header))
+    return properties
 
+
+def get_properties(
+    property_tag: str, header: Element, where: Target | None = None, *, config: RunConfig, state: RunState
+) -> None:
+    """
+
+    Args:
+        property_tag (str): Either "Project:", "Profile:", or "Task:"
+        header (Element): xml header to Project/Profile/Task
+        where (Target): the object these properties belong to, so the line can be marked as
+            somewhere a report finding can jump to.  None leaves it unmarked.
+        config (RunConfig): the run's settings (pretty)
+
+    Returns:
+        nothing
+    """
+    # Get our HTML / CSS attributes
+    css_attribute = get_css_attributes(property_tag)
+
+    properties = _gather_properties(property_tag, header)
     if not properties:
         return
 

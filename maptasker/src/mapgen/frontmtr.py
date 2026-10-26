@@ -23,6 +23,21 @@ if TYPE_CHECKING:
 
 
 # Add the heading matter to the output: heading, source, screen size, etc.
+def _source_description(config: RunConfig, state: RunState) -> str:
+    """Where the backup came from: the device it was fetched from, or the file it was read from."""
+    # Did we restore the backup from Android?
+    if config.fetched_backup_from_android:
+        return (
+            "From Android device"
+            f" TCP IP address:{config.android_ipaddr}"
+            f" on port:{config.android_port}"
+            f" with file location: {config.android_file}"
+        )
+    if config.debug or not config.file:
+        return str(getattr(state.file_to_get, "name", state.file_to_get))  # an open file's .name is its path
+    return str(config.file)
+
+
 def output_the_heading(config: RunConfig, state: RunState) -> None:
     """
     Display the heading and source file details
@@ -31,15 +46,6 @@ def output_the_heading(config: RunConfig, state: RunState) -> None:
             config (RunConfig): the run's settings -- colors, highlighting, and where the
                 XML was read from.
     """
-    #    window_dimensions = """
-    # <p id="mywin"></p>
-    # <script>
-    # var w = window.innerWidth;
-    # var h = window.innerHeight;
-    # var x = document.getElementById("mywin");
-    # x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
-    # </script>"""
-
     # Check if Ai analysis running.
     ai_message = " Ai Analysis Run" if config.ai_analyze else ""
 
@@ -63,11 +69,7 @@ def output_the_heading(config: RunConfig, state: RunState) -> None:
     else:
         background_color_html = ""
 
-    # Output date and time if in debug mode
-    # now_for_output = NOW_TIME.strftime("%d-%B-%Y %H:%M:%S")
-    current_time = clock.now()
-    # formatted_time = current_time.strftime('%H:%M:%S')
-    now_for_output = current_time.strftime("%d-%B-%Y %H:%M:%S")
+    now_for_output = clock.now().strftime("%d-%B-%Y %H:%M:%S")
 
     # Format the output heading
     heading_color = "heading_color"
@@ -89,13 +91,6 @@ def output_the_heading(config: RunConfig, state: RunState) -> None:
         )
     )
 
-    # Add script to get window dimensions
-    # PrimeItems.output_lines.add_line_to_output(
-    #    0,
-    #    window_dimensions,
-    #    FormatLine.dont_format_line,
-    # )
-
     # Add a blank line
     state.output_lines.add_line_to_output(
         0,
@@ -106,19 +101,7 @@ def output_the_heading(config: RunConfig, state: RunState) -> None:
     # Add css
     add_css(config, state=state)
 
-    # Display where the source file came from
-    # Did we restore the backup from Android?
-    if config.fetched_backup_from_android:
-        source_file = (
-            "From Android device"
-            f" TCP IP address:{config.android_ipaddr}"
-            f" on port:{config.android_port}"
-            f" with file location: {config.android_file}"
-        )
-    elif config.debug or not config.file:
-        source_file = getattr(state.file_to_get, "name", state.file_to_get)  # an open file's .name is its path
-    else:
-        source_file = config.file
+    source_file = _source_description(config, state)
     # Add source to output
     state.output_lines.add_line_to_output(
         0,

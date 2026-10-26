@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.mapjump import PROFILE, PROJECT, TASK, Target
 from maptasker.src.edit import projedit
@@ -213,6 +213,73 @@ def _move_task_warnings(task_id: str, task_name: str, owners: list[str], to_proj
     return warnings
 
 
+def _move_name_collisions(
+    profile_id: str, entry: dict[str, Any], travelling: list[str], to_project: str, state: RunState
+) -> list[Block]:
+    """What stops the move: a Profile or a travelling Task that would arrive under a name the Project has.
+
+    Nothing may arrive in the Project under a name something there already has: not the Profile, and not
+    any Task that travels with it.  A Task already listed by the target is not arriving, so it is not a
+    collision with itself.
+    """
+    profile_name = entry.get("name", "") or profile_id
+    tasks = object_table("all_tasks", state=state)
+    blocks: list[Block] = []
+    profile_namesake = _namesake_in("all_profiles", "pids", profile_id, entry.get("name", ""), to_project, state=state)
+    if profile_namesake:
+        blocks.append(
+            Block(
+                "NAME-TAKEN",
+                f"Project '{to_project}' already has a different Profile named '{profile_name}'.  Rename one "
+                f"of them first.",
+                profile_target(profile_namesake, state=state),
+            ),
+        )
+    for task_id in travelling:
+        task_name = tasks.get(task_id, {}).get("name", "")
+        task_namesake = _namesake_in("all_tasks", "tids", task_id, task_name, to_project, state=state)
+        if task_namesake:
+            blocks.append(
+                Block(
+                    "NAME-TAKEN",
+                    f"Profile '{profile_name}' runs Task '{task_name}', which would move with it, and Project "
+                    f"'{to_project}' already has a different Task of that name.  Perform Task calls a Task by "
+                    f"name, so two of them in one Project would leave every call to either ambiguous.  Rename "
+                    f"one of them first.",
+                    task_target(task_namesake, state=state),
+                ),
+            )
+    return blocks
+
+
+def _move_steps(
+    profile_name: str, owners: list[str], to_project: str, travelling: list[str], state: RunState
+) -> list[Step]:
+    """What moving the Profile does, in the order it is told to the user."""
+    return [
+        *(
+            Step(f"Remove Profile '{profile_name}' from Project '{owner}'", Target(kind=PROJECT, key=owner))
+            for owner in owners
+            if owner != to_project
+        ),
+        *(
+            []
+            if to_project in owners
+            else [
+                Step(f"Add Profile '{profile_name}' to Project '{to_project}'", Target(kind=PROJECT, key=to_project)),
+            ]
+        ),
+        *(
+            Step(
+                f"Move its Task '{object_table('all_tasks', state=state).get(task_id, {}).get('name', '') or task_id}' "
+                f"to Project '{to_project}' as well",
+                task_target(task_id, state=state),
+            )
+            for task_id in travelling
+        ),
+    ]
+
+
 def _plan_move_profile(profile_id: str, to_project: str, state: RunState) -> Plan:
     """Move one Profile's Project membership, and its Tasks' with it where that is safe."""
     entry = object_table("all_profiles", state=state).get(profile_id)
@@ -258,61 +325,11 @@ def _plan_move_profile(profile_id: str, to_project: str, state: RunState) -> Pla
     }
     travelling = [task_id for task_id in task_ids if not shared[task_id]]
 
-    # Nothing may arrive in the Project under a name something there already has: not the
-    # Profile, and not any Task that travels with it.  A Task already listed by the target
-    # is not arriving, so it is not a collision with itself.
-    tasks = object_table("all_tasks", state=state)
-    blocks = []
-    profile_namesake = _namesake_in("all_profiles", "pids", profile_id, entry.get("name", ""), to_project, state=state)
-    if profile_namesake:
-        blocks.append(
-            Block(
-                "NAME-TAKEN",
-                f"Project '{to_project}' already has a different Profile named '{profile_name}'.  Rename one "
-                f"of them first.",
-                profile_target(profile_namesake, state=state),
-            ),
-        )
-    for task_id in travelling:
-        task_name = tasks.get(task_id, {}).get("name", "")
-        task_namesake = _namesake_in("all_tasks", "tids", task_id, task_name, to_project, state=state)
-        if task_namesake:
-            blocks.append(
-                Block(
-                    "NAME-TAKEN",
-                    f"Profile '{profile_name}' runs Task '{task_name}', which would move with it, and Project "
-                    f"'{to_project}' already has a different Task of that name.  Perform Task calls a Task by "
-                    f"name, so two of them in one Project would leave every call to either ambiguous.  Rename "
-                    f"one of them first.",
-                    task_target(task_namesake, state=state),
-                ),
-            )
-    if blocks:
+    if blocks := _move_name_collisions(profile_id, entry, travelling, to_project, state=state):
         return blocked(MOVE, what, *blocks)
 
     plan = Plan(kind=MOVE, what=what, elements=(profile_element,))
-    plan.steps = [
-        *(
-            Step(f"Remove Profile '{profile_name}' from Project '{owner}'", Target(kind=PROJECT, key=owner))
-            for owner in owners
-            if owner != to_project
-        ),
-        *(
-            []
-            if to_project in owners
-            else [
-                Step(f"Add Profile '{profile_name}' to Project '{to_project}'", Target(kind=PROJECT, key=to_project)),
-            ]
-        ),
-        *(
-            Step(
-                f"Move its Task '{object_table('all_tasks', state=state).get(task_id, {}).get('name', '') or task_id}' "
-                f"to Project '{to_project}' as well",
-                task_target(task_id, state=state),
-            )
-            for task_id in travelling
-        ),
-    ]
+    plan.steps = _move_steps(profile_name, owners, to_project, travelling, state=state)
     plan.warnings = _move_profile_warnings(shared, to_project, state=state)
 
     def run() -> list[str]:

@@ -296,43 +296,14 @@ def _run_server(state: RunState, assets_dir: str) -> None:
         logger.info("GUI interrupted from the keyboard.")
 
 
-def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]:
-    # global MyGui
-    """Parameters:
-        - use_gui (bool): Flag to indicate whether to use GUI or not.
-    Returns:
-        - tuple[ProgramArguments, dict]: Tuple containing program arguments and colors to use.
-    Processing Logic:
-        - Import MyGui if use_gui is True.
-        - Set flag to indicate GUI usage.
-        - Display GUI and get user input.
-        - Initialize runtime arguments if not already set.
-        - If user clicks "Exit" button, save settings and exit program.
-        - If user closes window, cancel program.
-        - If user clicks "Run" button, get input from GUI variables.
-        - Set program arguments in dictionary.
-        - Convert display_detail_level and indent to integers.
-        - Get font from GUI.
-        - Return program arguments and colors to use."""
-    # CODE STARTS HERE
-    logger.info("starting")
+def _register_root_page(
+    state: RunState,
+    shared_state: dict[str, Any],
+    app_lock: dict[str, bool],
+    window_class: type[MyGui],
+) -> None:
+    """Serve the window at "/": build it on the first visit, and rebuild it from the saved settings on a refresh."""
 
-    # Imported here rather than at the top so that userintr, and the GUI modules it brings in,
-    # load when the GUI starts -- not when rungui is imported, which is at startup, before
-    # process_cli replaces program_arguments.  diagram writes a default into program_arguments
-    # as it is imported, and at startup that write would be thrown away.
-    if use_gui:
-        from maptasker.src.gui.userintr import MyGui  # noqa: PLC0415
-
-    state.program_arguments.gui = True
-
-    # 1. Create a dictionary to hold our UI instance so we can retrieve it after the server closes
-    shared_state = {}
-
-    # Create a lock to prevent the browser from building the app multiple times
-    app_lock = {"is_built": False}
-
-    # 2. EXPLICITLY define the root page.
     @ui.page("/")
     def map_tasker_root() -> None:
         restart = False
@@ -351,7 +322,7 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
                 del shared_state["user_input"]
 
         # Safely instantiate or overwrite the UI instance
-        shared_state["user_input"] = MyGui(state)
+        shared_state["user_input"] = window_class(state)
         # Mark as built so the application tracks that initialization has occurred
         app_lock["is_built"] = True
         if restart:
@@ -364,6 +335,42 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
             if carried_name:
                 message += f" Still showing {carried_type}: {carried_name}."
             ui.notify(message, color="orange", position="bottom")
+
+
+def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]:
+    """Run the GUI until it is closed, save its settings, and end the run.
+
+    Serves the one page the window lives on, intercepts what the server sends the browser so the
+    window's state is captured as it changes, and saves the settings on the way out however the
+    server was told to stop.
+
+    Args:
+        use_gui (bool): whether to import and build the window (False only in tests).
+        state (RunState): the run the window works on.
+
+    Raises:
+        MapTaskerError: always, with code 0, once the window is closed -- the GUI never returns
+            arguments to run with; mapit_all, the top of the process, says goodbye.
+    """
+    logger.info("starting")
+
+    # Imported here rather than at the top so that userintr, and the GUI modules it brings in,
+    # load when the GUI starts -- not when rungui is imported, which is at startup, before
+    # process_cli replaces program_arguments.  diagram writes a default into program_arguments
+    # as it is imported, and at startup that write would be thrown away.
+    if use_gui:
+        from maptasker.src.gui.userintr import MyGui  # noqa: PLC0415
+
+    state.program_arguments.gui = True
+
+    # 1. Create a dictionary to hold our UI instance so we can retrieve it after the server closes
+    shared_state = {}
+
+    # Create a lock to prevent the browser from building the app multiple times
+    app_lock = {"is_built": False}
+
+    # 2. EXPLICITLY define the root page.
+    _register_root_page(state, shared_state, app_lock, MyGui)
 
     _register_popout_page(state)
 

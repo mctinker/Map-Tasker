@@ -72,7 +72,7 @@
     "reportAttributeAccessIssue": 1
   },
   "tests/test_deviceinv.py": {
-    "reportArgumentType": 26,
+    "reportArgumentType": 25,
     "reportAttributeAccessIssue": 14,
     "reportCallIssue": 5,
     "reportInvalidTypeForm": 1,

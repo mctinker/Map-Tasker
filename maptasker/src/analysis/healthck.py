@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.analysis import plugchk, proflint, resrefs, taskflow
 from maptasker.src.core import clock, piiscan
@@ -547,54 +547,89 @@ def _index_one_action(
         return
 
     if code == _PERFORM_TASK_CODE:
-        called = _string_argument(action, "0")
-        if _is_resolvable(called):
-            entry = all_tasks_by_name.get(called)
-            if entry:
-                index.task_referrers[entry["id"]].append(Referrer(BY_PERFORM_TASK, where.at_action(number)))
-            else:
-                # Printed as the calling Task, jumped to as the action inside it: the
-                # location is what the reader needs to recognise, the action is where the
-                # fix is made, and on a Task of two hundred actions those are far apart.
-                index.add(
-                    ERROR,
-                    "BROKEN-PERFORM-TASK",
-                    where,
-                    f"action {number} (Perform Task) calls '{called}', which is not in this file.",
-                    target=where.at_action(number),
-                )
-
+        _index_perform_task(index, action, number, where, all_tasks_by_name)
     elif code in _WIDGET_NAME_CODES:
-        widget_name = _string_argument(action, _WIDGET_NAME_CODES[code])
-        if _is_resolvable(widget_name):
-            entry = all_tasks_by_name.get(widget_name)
-            if entry:
-                index.task_referrers[entry["id"]].append(
-                    Referrer(BY_WIDGET, where.at_action(number), "(home screen widget)"),
-                )
-
+        _index_widget(index, action, code, number, where, all_tasks_by_name)
     elif code in scene_args:
-        scene_name = _string_argument(action, scene_args[code])
-        if not scene_name or scene_name.startswith(_INLINE_LAYOUT_PREFIXES):
-            return
-        if not _is_resolvable(scene_name):
-            # A Scene named by a variable ("%Which_Scene") is chosen on the device, so this
-            # action could be showing ANY Scene in the file.  That makes it impossible to
-            # prove a Scene unused, which is why the count is kept: UNUSED-SCENE reports
-            # itself as unreliable when this is non-zero rather than quietly listing Scenes
-            # that are shown every day under a name only Tasker can work out.
-            index.variable_scene_references += 1
-            return
-        if scene_name in all_scenes:
-            index.scene_referrers[scene_name].append(Referrer(BY_SCENE_ACTION, where.at_action(number)))
-        else:
-            index.add(
-                ERROR,
-                "BROKEN-SCENE-ACTION",
-                where,
-                f"action {number} refers to Scene '{scene_name}', which is not in this file.",
-                target=where.at_action(number),
-            )
+        _index_scene_action(index, action, scene_args[code], number, where, all_scenes)
+
+
+def _index_perform_task(
+    index: ReferenceIndex,
+    action: Element,
+    number: int,
+    where: Target,
+    all_tasks_by_name: dict[str, Any],
+) -> None:
+    """Record the Task a Perform Task action calls, or that there is no such Task."""
+    called = _string_argument(action, "0")
+    if not _is_resolvable(called):
+        return
+    entry = all_tasks_by_name.get(called)
+    if entry:
+        index.task_referrers[entry["id"]].append(Referrer(BY_PERFORM_TASK, where.at_action(number)))
+    else:
+        # Printed as the calling Task, jumped to as the action inside it: the
+        # location is what the reader needs to recognise, the action is where the
+        # fix is made, and on a Task of two hundred actions those are far apart.
+        index.add(
+            ERROR,
+            "BROKEN-PERFORM-TASK",
+            where,
+            f"action {number} (Perform Task) calls '{called}', which is not in this file.",
+            target=where.at_action(number),
+        )
+
+
+def _index_widget(
+    index: ReferenceIndex,
+    action: Element,
+    code: str,
+    number: int,
+    where: Target,
+    all_tasks_by_name: dict[str, Any],
+) -> None:
+    """Record the Task a home screen widget action runs."""
+    widget_name = _string_argument(action, _WIDGET_NAME_CODES[code])
+    if not _is_resolvable(widget_name):
+        return
+    entry = all_tasks_by_name.get(widget_name)
+    if entry:
+        index.task_referrers[entry["id"]].append(
+            Referrer(BY_WIDGET, where.at_action(number), "(home screen widget)"),
+        )
+
+
+def _index_scene_action(
+    index: ReferenceIndex,
+    action: Element,
+    argument: str,
+    number: int,
+    where: Target,
+    all_scenes: dict[str, Any],
+) -> None:
+    """Record the Scene a Scene action shows, hides or destroys, or that there is no such Scene."""
+    scene_name = _string_argument(action, argument)
+    if not scene_name or scene_name.startswith(_INLINE_LAYOUT_PREFIXES):
+        return
+    if not _is_resolvable(scene_name):
+        # A Scene named by a variable ("%Which_Scene") is chosen on the device, so this
+        # action could be showing ANY Scene in the file.  That makes it impossible to
+        # prove a Scene unused, which is why the count is kept: UNUSED-SCENE reports
+        # itself as unreliable when this is non-zero rather than quietly listing Scenes
+        # that are shown every day under a name only Tasker can work out.
+        index.variable_scene_references += 1
+        return
+    if scene_name in all_scenes:
+        index.scene_referrers[scene_name].append(Referrer(BY_SCENE_ACTION, where.at_action(number)))
+    else:
+        index.add(
+            ERROR,
+            "BROKEN-SCENE-ACTION",
+            where,
+            f"action {number} refers to Scene '{scene_name}', which is not in this file.",
+            target=where.at_action(number),
+        )
 
 
 def _index_actions(index: ReferenceIndex, state: RunState) -> None:

@@ -57,40 +57,8 @@ def format_line_debug(text: str, width: int) -> str:
 # ################################################################################
 # Display the program arguments and colors to use in output for debug purposes
 # ################################################################################
-def display_debug_info(config: RunConfig, state: RunState) -> None:
-    """
-    Output our runtime arguments
-
-        Args:
-            config (RunConfig): the run's settings -- these are what get listed.
-    """
-
-    # Add blank line
-    state.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
-
-    # Identify the output as debug stuff
-    output_debug_line("Start", state=state)
-    if config.debug:
-        state.output_lines.add_line_to_output(
-            0,
-            f"sys.argv (runtime arguments):{sys.argv!s}",
-            ["", "disabled_profile_color", FormatLine.add_end_span],
-        )
-        state.output_lines.add_line_to_output(
-            0,
-            f"Debug...Current Path: {os.getcwd()}",
-            ["", "disabled_profile_color", FormatLine.add_end_span],
-        )
-        console.debug(f"Debug...Current Path: {os.getcwd()}")
-    # print(
-    #     "__file__={0:<35} | __name__={1:<25} | __package__={2:<25}".format(
-    #         __file__, __name__, str(__package__)
-    #     )
-    # )
-    # print(sys.argv)
-    # # Verify Python version.
-    # print("Python version ", sys.version)
-
+def _list_arguments(config: RunConfig, state: RunState) -> None:
+    """One line for each runtime argument, sorted by name."""
     # Copy our dictionary of runtime arguments and sort it alphabetically
     arguments = config.as_dict()
     mydict = ARGUMENT_NAMES.copy()
@@ -119,10 +87,10 @@ def display_debug_info(config: RunConfig, state: RunState) -> None:
                 ["", "heading_color", FormatLine.add_end_span],
             )
             logger.debug(f"MapTasker Error ... {msg}")
-    state.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
-    # Do colors to use in output
 
+def _list_colors(config: RunConfig, state: RunState) -> None:
+    """One line for each color the output is drawn in."""
     # Get our color names by reversing the lookup dictionary
     color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
     # Go through each color
@@ -153,19 +121,35 @@ def display_debug_info(config: RunConfig, state: RunState) -> None:
             ["", "heading_color", FormatLine.add_end_span],
         )
 
-    # Get a total count of action_code entries in our dictionary.
-    # from maptasker.src.core.actionc import action_codes
-    # num = sum(1 for key, value in action_codes.items())
-    # PrimeItems.output_lines.add_line_to_output(
-    #
-    #             0,
-    #             format_html(
-    #                 color_to_use,
-    #                 "",
-    #                 f"Number of Task Action codes = {num}",
-    #                 True,
-    #             ),
-    #         )
+
+def display_debug_info(config: RunConfig, state: RunState) -> None:
+    """
+    Output our runtime arguments
+
+        Args:
+            config (RunConfig): the run's settings -- these are what get listed.
+    """
+
+    # Add blank line
+    state.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
+
+    # Identify the output as debug stuff
+    output_debug_line("Start", state=state)
+    if config.debug:
+        state.output_lines.add_line_to_output(
+            0,
+            f"sys.argv (runtime arguments):{sys.argv!s}",
+            ["", "disabled_profile_color", FormatLine.add_end_span],
+        )
+        state.output_lines.add_line_to_output(
+            0,
+            f"Debug...Current Path: {os.getcwd()}",
+            ["", "disabled_profile_color", FormatLine.add_end_span],
+        )
+        console.debug(f"Debug...Current Path: {os.getcwd()}")
+    _list_arguments(config, state)
+    state.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
+    _list_colors(config, state)
 
     # Finalize debug info
     output_debug_line("End", state=state)

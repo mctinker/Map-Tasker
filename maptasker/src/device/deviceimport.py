@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 from maptasker.src.core import maputil2
 from maptasker.src.core.actiont import lookup_values
@@ -107,6 +107,18 @@ _IMPORT_DATA_TYPE_LOOKUP = "153"  # actiont.lookup_values key for that Type drop
 IMPORT_TYPE_CONFIGURATION = "Configuration"  # index 1
 IMPORT_TYPE_TASK = "Task"  # index 0 -- what api/import itself sends; here to test against
 _IMPORT_SOURCE_INDEX = "0"
+
+
+class ImportSettings(NamedTuple):
+    """The two things about the import that are still open questions, so each run can try a different pair."""
+
+    import_type: str = IMPORT_TYPE_CONFIGURATION
+    source_index: str = _IMPORT_SOURCE_INDEX
+
+
+DEFAULT_IMPORT_SETTINGS = ImportSettings()
+
+
 # Where the .prf.xml lands on the device between being uploaded and being imported.  Named
 # for MapTasker so it cannot collide with a variable of the user's own, as the Applications
 # helper's are.
@@ -330,15 +342,14 @@ def _validate_import_request(
     return ""
 
 
-def import_profile_to_device(  # noqa: PLR0911
+def import_profile_to_device(
     profile_xml: bytes,
     profile_name: str,
     ip_address: str,
     ip_port: str,
     acknowledged_risk: bool = False,
     allow_existing: bool = False,
-    import_type: str = IMPORT_TYPE_CONFIGURATION,
-    source_index: str = _IMPORT_SOURCE_INDEX,
+    settings: ImportSettings = DEFAULT_IMPORT_SETTINGS,
     *,
     state: RunState,
 ) -> tuple[int, str]:
@@ -355,7 +366,7 @@ def import_profile_to_device(  # noqa: PLR0911
         allow_existing: proceed even though Tasker already reports a Profile of this name.
             False refuses, because a Configuration import may well add a second one rather
             than replace the first.
-        import_type, source_index: the two open questions, as arguments.  Changing either
+        settings: the two open questions (import type, source index), as arguments.  Changing either
             installs a differently-NAMED helper Task -- see _import_task_name -- so one
             experiment cannot be run with the Task another one left behind.
 
@@ -382,56 +393,16 @@ def import_profile_to_device(  # noqa: PLR0911
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
     profile_name = profile_name.strip()
-    if refusal := _validate_import_request(profile_xml, profile_name, ip_address, ip_port):
-        return 8, refusal
-
-    key = device_address(ip_address, ip_port)
-    return_code, auth_key = auth_key_for(ip_address, ip_port)
+    return_code, auth_key = _ready_to_import(profile_xml, profile_name, ip_address, ip_port, allow_existing)
     if return_code != 0:
         return return_code, auth_key
 
-    # Before anything is uploaded or run: a name Tasker already knows.  Checked here rather
-    # than left to the import because the import may not object -- see the duplicates note
-    # in the section comment above.
-    if refusal := _refuse_duplicate_profile(ip_address, ip_port, profile_name, auth_key, allow_existing):
-        return DUPLICATE_PROFILE_CODE, refusal
-
-    # Named for the settings it is built with, not just for the job it does -- see
-    # _import_task_name for why a shared name would make the prototype lie.
-    task_name = _import_task_name(import_type, source_index)
-    return_code, message = install_task_on_android(
-        ip_address,
-        ip_port,
-        auth_key,
-        task_name,
-        lambda: build_import_profile_task(task_name, import_type, source_index, state=state),
-        state=state,
+    return_code, message = _run_import_task(
+        ip_address, ip_port, auth_key, profile_xml, profile_name, settings, state=state
     )
     if return_code != 0:
         return return_code, message
     auth_key = held_auth_key(ip_address, ip_port) or auth_key
-
-    # Clear the last answer first, for the reason fetch_apps_from_device gives: a stale one
-    # left in place would be read as this run's.  Its own failure is not fatal.
-    delete_code, delete_error = http_delete_request(ip_address, ip_port, _IMPORT_RESULT_READ_PATH, auth_key)
-    if delete_code != 0:
-        logger.info(f"Could not clear {_IMPORT_RESULT_READ_PATH} before importing: {delete_error}")
-
-    return_code, message = _stage_profile_xml(ip_address, ip_port, profile_xml, profile_name)
-    if return_code != 0:
-        return return_code, message
-    stage_task_path = message
-
-    # The staged path goes over WITH the run, as %par1 -- one installed helper, a different
-    # file each time.  See run_task_on_android.
-    return_code, message = request_with_auth_key(
-        ip_address,
-        ip_port,
-        lambda auth_key: run_task_on_android(ip_address, ip_port, task_name, auth_key, stage_task_path),
-    )
-    auth_key = held_auth_key(ip_address, ip_port) or auth_key
-    if return_code != 0:
-        return return_code, message
 
     text, error = poll_for_result(
         ip_address,
@@ -455,4 +426,69 @@ def import_profile_to_device(  # noqa: PLR0911
             "afterwards.  Check Tasker on the device before importing it again."
         )
 
-    return 0, f"'{profile_name}' was imported into Tasker on {key}."
+    return 0, f"'{profile_name}' was imported into Tasker on {device_address(ip_address, ip_port)}."
+
+
+def _ready_to_import(
+    profile_xml: bytes, profile_name: str, ip_address: str, ip_port: str, allow_existing: bool
+) -> tuple[int, str]:
+    """Everything that can refuse an import before anything is sent: (0, the API key) or (the code, why not)."""
+    if refusal := _validate_import_request(profile_xml, profile_name, ip_address, ip_port):
+        return 8, refusal
+
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
+    if return_code != 0:
+        return return_code, auth_key
+
+    # Before anything is uploaded or run: a name Tasker already knows.  Checked here rather
+    # than left to the import because the import may not object -- see the duplicates note
+    # in the section comment above.
+    if refusal := _refuse_duplicate_profile(ip_address, ip_port, profile_name, auth_key, allow_existing):
+        return DUPLICATE_PROFILE_CODE, refusal
+    return 0, auth_key
+
+
+def _run_import_task(
+    ip_address: str,
+    ip_port: str,
+    auth_key: str,
+    profile_xml: bytes,
+    profile_name: str,
+    settings: ImportSettings,
+    *,
+    state: RunState,
+) -> tuple[int, str]:
+    """Install the helper Task, stage the .prf.xml and run the Task: (0, "") or (the code, why not)."""
+    # Named for the settings it is built with, not just for the job it does -- see
+    # _import_task_name for why a shared name would make the prototype lie.
+    task_name = _import_task_name(settings.import_type, settings.source_index)
+    return_code, message = install_task_on_android(
+        ip_address,
+        ip_port,
+        auth_key,
+        task_name,
+        lambda: build_import_profile_task(task_name, settings.import_type, settings.source_index, state=state),
+        state=state,
+    )
+    if return_code != 0:
+        return return_code, message
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
+
+    # Clear the last answer first, for the reason fetch_apps_from_device gives: a stale one
+    # left in place would be read as this run's.  Its own failure is not fatal.
+    delete_code, delete_error = http_delete_request(ip_address, ip_port, _IMPORT_RESULT_READ_PATH, auth_key)
+    if delete_code != 0:
+        logger.info(f"Could not clear {_IMPORT_RESULT_READ_PATH} before importing: {delete_error}")
+
+    return_code, message = _stage_profile_xml(ip_address, ip_port, profile_xml, profile_name)
+    if return_code != 0:
+        return return_code, message
+    stage_task_path = message
+
+    # The staged path goes over WITH the run, as %par1 -- one installed helper, a different
+    # file each time.  See run_task_on_android.
+    return request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda auth_key: run_task_on_android(ip_address, ip_port, task_name, auth_key, stage_task_path),
+    )

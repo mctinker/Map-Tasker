@@ -972,6 +972,55 @@ def _repair_message(user: str, reply: str, problems: list[str]) -> str:
     )
 
 
+@dataclass(frozen=True)
+class _PlanQuestion:
+    """The first question and what it is asked with, which draft_task asks once or twice over."""
+
+    ask: Asker
+    settings: ModelSettings
+    system: str
+    user: str
+    state: RunState
+    scratch: dict
+
+
+async def _first_plan(question: _PlanQuestion, *, compact: bool) -> tuple[Plan, str]:
+    """The model's plan, and the reply it came from; a reply that is not one is sent back once (not to a small model)."""
+    reply = await question.ask(question.settings, question.system, question.user)
+    logger.debug(f"mapdraft: {question.settings.model} planned {reply!r}")
+    try:
+        return parse_plan(reply, question.state), reply
+    except AskError as error:
+        if compact:
+            raise
+        reply = await question.ask(
+            question.settings, question.system, _repair_message(question.user, reply, [str(error)])
+        )
+        logger.debug(f"mapdraft: {question.settings.model} planned again {reply!r}")
+        return parse_plan(reply, question.state), reply
+
+
+async def _corrected_plan(
+    question: _PlanQuestion,
+    reply: str,
+    drafted: tuple[Plan, list[DraftStep], list[str]],
+    problems: list[str],
+) -> tuple[Plan, list[DraftStep], list[str]]:
+    """The plan, its steps and what was dropped -- or those of a corrected reply, if that has fewer problems."""
+    again = await question.ask(question.settings, question.system, _repair_message(question.user, reply, problems))
+    logger.debug(f"mapdraft: {question.settings.model} corrected {again!r}")
+    try:
+        better = parse_plan(again, question.state)
+    except AskError:
+        return drafted
+    if not better.steps:
+        return drafted
+    better_steps, better_dropped = settle_plan(better, question.state, question.scratch)
+    if len(_problems(better, better_dropped)) < len(problems):
+        return better, better_steps, better_dropped
+    return drafted
+
+
 async def draft_task(
     description: str,
     settings: ModelSettings,
@@ -1022,31 +1071,14 @@ async def draft_task(
         effort="low",
         timeout=timeout,
     )
-    reply = await ask(plan_settings, system, user)
-    logger.debug(f"mapdraft: {settings.model} planned {reply!r}")
-    try:
-        plan = parse_plan(reply, state)
-    except AskError as error:
-        if compact:
-            raise
-        reply = await ask(plan_settings, system, _repair_message(user, reply, [str(error)]))
-        logger.debug(f"mapdraft: {settings.model} planned again {reply!r}")
-        plan = parse_plan(reply, state)
+    question = _PlanQuestion(ask, plan_settings, system, user, state, scratch)
+    plan, reply = await _first_plan(question, compact=compact)
     steps, dropped = settle_plan(plan, state, scratch)
 
     # One more try for a reply with something wrong in it -- not for a small model, which is slow enough.
     problems = _problems(plan, dropped)
     if problems and not compact:
-        again = await ask(plan_settings, system, _repair_message(user, reply, problems))
-        logger.debug(f"mapdraft: {settings.model} corrected {again!r}")
-        try:
-            better = parse_plan(again, state)
-        except AskError:
-            better = None
-        if better is not None and better.steps:
-            better_steps, better_dropped = settle_plan(better, state, scratch)
-            if len(_problems(better, better_dropped)) < len(problems):
-                plan, steps, dropped = better, better_steps, better_dropped
+        plan, steps, dropped = await _corrected_plan(question, reply, (plan, steps, dropped), problems)
 
     # The arguments of the actions listed with theirs were asked for with the steps; the others are asked
     # for now.  So is a listed action that was given none, though it has some listed: a Flash with no text

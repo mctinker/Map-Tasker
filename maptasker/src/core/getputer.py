@@ -142,6 +142,45 @@ def corrupted_file(program_arguments: dict, colors_to_use: dict) -> tuple[dict, 
 
 
 # Write out our runtime settings as a TOML file
+def _settings_to_save(program_arguments: ProgramArguments | dict, state: RunState) -> dict:
+    """Every setting the file holds, cleaned for it: no None, no "None" or translated prefix in another language.
+
+    Cleans the dictionary it is given as it goes, which is what the caller's own copy has always had done to it.
+    """
+    user_args = {}
+    project_translated = translate_string("Project:")
+    profile_translated = translate_string("Profile:")
+    task_translated = translate_string("Task:")
+    for argument in ARGUMENT_NAMES:
+        # TOML chokes on 'None" values.
+        try:
+            if program_arguments[argument] is None:
+                logger.debug(f"{argument} is None.  Fix it!")
+                program_arguments[argument] = ""
+        except KeyError:
+            program_arguments[argument] = ""
+
+        # Make sure we don't save an item name of "None" in another language
+        if state.program_arguments.language != "English":
+            # The comparison used to be inside the translate_string call, which handed it a True or a
+            # False to translate; "None" in the user's language was therefore never recognised.
+            if program_arguments[argument] in ("None", translate_string("None")):
+                program_arguments[argument] = ""
+            # Make sure we don't save translated prefixes
+            value = program_arguments[argument]
+            if isinstance(value, str):
+                if value.startswith(project_translated):
+                    program_arguments[argument] = value.replace(f"{project_translated} ", "")
+                elif value.startswith(profile_translated):
+                    program_arguments[argument] = value.replace(f"{profile_translated}", "")
+                elif value.startswith(task_translated):
+                    program_arguments[argument] = value.replace(f"{task_translated} ", "")
+
+        # Okay, now capture the argument.
+        user_args[argument] = program_arguments[argument]
+    return user_args
+
+
 def save_arguments(
     program_arguments: ProgramArguments | dict, colors_to_use: dict, new_file: str, state: RunState
 ) -> None:
@@ -183,37 +222,7 @@ def save_arguments(
         program_arguments["file"] = ""
 
     # The settings to save
-    user_args = {}
-    project_translated = translate_string("Project:")
-    profile_translated = translate_string("Profile:")
-    task_translated = translate_string("Task:")
-    for argument in ARGUMENT_NAMES:
-        # TOML chokes on 'None" values.
-        try:
-            if program_arguments[argument] is None:
-                logger.debug(f"{argument} is None.  Fix it!")
-                program_arguments[argument] = ""
-        except KeyError:
-            program_arguments[argument] = ""
-
-        # Make sure we don't save an item name of "None" in another language
-        if state.program_arguments.language != "English":
-            # The comparison used to be inside the translate_string call, which handed it a True or a
-            # False to translate; "None" in the user's language was therefore never recognised.
-            if program_arguments[argument] in ("None", translate_string("None")):
-                program_arguments[argument] = ""
-            # Make sure we don't save translated prefixes
-            value = program_arguments[argument]
-            if isinstance(value, str):
-                if value.startswith(project_translated):
-                    program_arguments[argument] = value.replace(f"{project_translated} ", "")
-                elif value.startswith(profile_translated):
-                    program_arguments[argument] = value.replace(f"{profile_translated}", "")
-                elif value.startswith(task_translated):
-                    program_arguments[argument] = value.replace(f"{task_translated} ", "")
-
-        # Okay, now capture the argument.
-        user_args[argument] = program_arguments[argument]
+    user_args = _settings_to_save(program_arguments, state)
 
     # Save dictionaries.  The guidance goes in the same write as everything else: two
     # separate writes is exactly what used to leave a guidance-only file on disk for any

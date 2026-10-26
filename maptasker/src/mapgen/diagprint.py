@@ -168,8 +168,7 @@ def output_the_task(
     task: dict,
     output_task_lines: list,
     last_upward_bar: list,
-    task_type: str,
-    called_by_tasks: str,
+    task_labels: tuple[str, str],
     position_for_anchor: int,
     state: RunState,
 ) -> tuple[list, list, list]:
@@ -181,13 +180,13 @@ def output_the_task(
             task (dict): Task details: xml element, name, etc.
             output_task_lines (list): List of output lines to add to.
             last_upward_bar (list): Position of last upward | in the output.
-            task_type (str): Entry or Exit
-            called_by_tasks (str): The "[Called by ...]" text for this Task, or "".
+            task_labels (tuple[str, str]): Entry or Exit, and the "[Called by ...]" text for this Task (or "").
             position_for_anchor (int): Location of the anchor point for the Task.
 
         Returns:
             tuple[list, list, list]: found_tasks, last_upward_bar, output_task_lines
     """
+    task_type, called_by_tasks = task_labels
     # We have a full row of Profiles.  Print the Tasks out.
     if print_tasks:
         if output_task_lines:
@@ -273,8 +272,7 @@ def print_all_tasks(
             task,
             output_task_lines,
             last_upward_bar,
-            task_type,
-            called_by_tasks,
+            (task_type, called_by_tasks),
             position_for_anchor,
             state=state,
         )
@@ -404,7 +402,7 @@ def print_all_scenes(scenes: list, config: RunConfig, state: RunState) -> None:
     for task in task_list:
         # Output the Task
         _found_tasks, _last_upward_bar, output_task_lines = output_the_task(
-            True, [], task[0], output_task_lines, [], "", "", task[1], state=state
+            True, [], task[0], output_task_lines, [], ("", ""), task[1], state=state
         )
     if task_list:
         flush_tasks(output_task_lines, state=state)

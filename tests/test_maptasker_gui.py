@@ -2160,28 +2160,27 @@ def test_every_save_to_android_path_warns_about_the_device_prompts() -> None:
     import inspect
 
     handlers = {
-        "save_task_to_android_event",
-        "save_task_to_android_file_event",
-        "save_profile_to_android_event",
+        # What the four Save As File buttons and the Task import share.
+        "_save_file_to_device",
         "import_profile_into_tasker_event",
-        "save_project_to_android_event",
         "import_project_into_tasker_event",
-        "save_scene_to_android_event",
         "import_scene_into_tasker_event",
     }
     tree = ast.parse(inspect.getsource(userintr_android))
-    warns = {
-        node.name
-        for node in ast.walk(tree)
-        if isinstance(node, ast.AsyncFunctionDef)
-        and node.name in handlers
-        and any(
-            isinstance(call.func, ast.Name) and call.func.id == "notify_watch_android_device"
-            for call in ast.walk(node)
-            if isinstance(call, ast.Call)
+    functions = {node.name: node for node in ast.walk(tree) if isinstance(node, ast.AsyncFunctionDef)}
+
+    def calls(function: ast.AsyncFunctionDef, name: str) -> bool:
+        return any(
+            isinstance(call, ast.Call)
+            and (call.func.id if isinstance(call.func, ast.Name) else getattr(call.func, "attr", None)) == name
+            for call in ast.walk(function)
         )
-    }
-    assert warns == handlers, f"no device warning in: {sorted(handlers - warns)}"
+
+    # The warning is given once, by the step that every one of them takes before the device is touched ...
+    assert calls(functions["_reach_device"], "notify_watch_android_device")
+    # ... so what has to hold is that none of them gets to the device any other way.
+    missing = sorted(name for name in handlers if not calls(functions[name], "_reach_device"))
+    assert not missing, f"no device warning in: {missing}"
 
 
 def test_a_save_to_android_panel_option_is_kept_for_the_next_session(monkeypatch) -> None:
@@ -2279,6 +2278,9 @@ def test_no_save_to_android_path_calls_the_device_on_the_event_loop() -> None:
         "save_profile_to_android_event",
         "save_project_to_android_event",
         "save_scene_to_android_event",
+        # What the four Save As File buttons share.
+        "_save_file_to_device",
+        "_upload_file_to_device",
         "_offer_into_tasker",
         # What _offer_into_tasker hands the rest of an import to: the steps of _IntoTaskerRun.
         "run_offer",
@@ -2340,17 +2342,13 @@ async def test_the_overwrite_prompt_waits_for_a_save_that_is_a_coroutine(monkeyp
 
 
 def test_every_device_write_asks_tasker_what_it_already_has() -> None:
-    """Five Save To Android handlers and _offer_into_tasker, which the three Import Into Tasker
-    buttons share.  Read off the source for the reason the warning test above gives."""
+    """The one write path the four Save As File buttons and the Task import share, and
+    _offer_into_tasker, which the three Import Into Tasker buttons share.  Read off the source for the reason the warning test above gives."""
     import ast
     import inspect
 
     paths = {
-        "save_task_to_android_event",
-        "save_task_to_android_file_event",
-        "save_profile_to_android_event",
-        "save_project_to_android_event",
-        "save_scene_to_android_event",
+        "_save_file_to_device",  # the four Save As File buttons and the Task import share it
         "_offer_into_tasker",
     }
     tree = ast.parse(inspect.getsource(userintr_android))

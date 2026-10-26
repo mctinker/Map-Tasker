@@ -775,6 +775,35 @@ class _FindDialog:
             return
 
         self.ask_notes.set_visibility(False)
+        translation = await self._translate(question, settings)
+        if translation is None:
+            return
+        self._show_notes(translation)
+
+        if translation.query.is_empty:
+            # Not handed to show(), whose warning is about boxes left empty by hand.
+            # The previous answer goes too: left up, it would read as this one's.
+            self.produced.update(query=None, hits=[], total=0)
+            self.summary.set_text("")
+            self.results_area.clear()
+            ui.notify(
+                translate_string(
+                    "The question could not be turned into a search.  Try naming an action, "
+                    "a trigger, an app or a Scene.",
+                ),
+                type="warning",
+                multi_line=True,
+            )
+            return
+        self.fill(translation.query)
+        self.show(translation.query)
+
+    async def _translate(self, question: str, settings: mapask.ModelSettings) -> mapask.Translation | None:
+        """The model's translation of the question, or None if it was cancelled, failed or came too late.
+
+        None has already been told to the user, except for a dialog that was closed meanwhile, which
+        has nowhere left to say anything.
+        """
         # One question at a time: pressing Ask again replaces the one still out.
         self.view.cancel_find_ask()
         # A task of its own rather than a plain await, so that closing the dialog
@@ -796,10 +825,10 @@ class _FindDialog:
             # has nowhere left to say so, and needs no telling.
             if not getattr(self.dialog, "is_deleted", False):
                 ui.notify(translate_string("The question to the AI model was cancelled."), type="info")
-            return
+            return None
         except mapask.AskError as error:
             ui.notify(str(error), type="negative", multi_line=True)
-            return
+            return None
         finally:
             if self.view.find_ask is task:
                 self.view.find_ask = None
@@ -807,9 +836,13 @@ class _FindDialog:
                 self.ask_button.props(remove="loading")
         # Closed while the model was thinking: there is nothing left to fill in.
         if getattr(self.dialog, "is_deleted", False):
-            return
+            return None
 
-        notes = []
+        return translation
+
+    def _show_notes(self, translation: mapask.Translation) -> None:
+        """Say above the boxes what the model offered that the search cannot use."""
+        notes: list[str] = []
         if translation.unknown:
             notes.append(
                 f"{translate_string('Left out, as this configuration does not use it')}: "
@@ -823,24 +856,6 @@ class _FindDialog:
             notes.append(f"{translate_string('Not expressible as a search')}: {translation.unexpressed}")
         self.ask_notes.set_text("\n".join(notes))
         self.ask_notes.set_visibility(bool(notes))
-
-        if translation.query.is_empty:
-            # Not handed to show(), whose warning is about boxes left empty by hand.
-            # The previous answer goes too: left up, it would read as this one's.
-            self.produced.update(query=None, hits=[], total=0)
-            self.summary.set_text("")
-            self.results_area.clear()
-            ui.notify(
-                translate_string(
-                    "The question could not be turned into a search.  Try naming an action, "
-                    "a trigger, an app or a Scene.",
-                ),
-                type="warning",
-                multi_line=True,
-            )
-            return
-        self.fill(translation.query)
-        self.show(translation.query)
 
     def dispose(self) -> None:
         """Forget this dialog and take it out of the page, and its question to the AI with it."""

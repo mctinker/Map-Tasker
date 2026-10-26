@@ -1,113 +1,102 @@
 {
   "maptasker/src/analysis/diffload.py::_parsed_in_isolation": {
-    "LINES": 104
+    "LINES": 100,
+    "PLR0915": 43
   },
-  "maptasker/src/analysis/healthck.py::_index_one_action": {
-    "PLR0912": 13
+  "maptasker/src/core/maputil2.py::render_full_backup_xml": {
+    "LINES": 99
   },
-  "maptasker/src/core/aiutils.py::get_llama_models": {
-    "LINES": 103
+  "maptasker/src/core/primitem.py::RunState._init_session": {
+    "LINES": 96
   },
-  "maptasker/src/core/debug.py::display_debug_info": {
-    "LINES": 117
+  "maptasker/src/core/property.py::_gather_properties": {
+    "C901": 12
   },
-  "maptasker/src/core/getputer.py::save_arguments": {
-    "C901": 14,
-    "PLR0912": 13
+  "maptasker/src/core/property.py::parse_variable": {
+    "LINES": 95
   },
-  "maptasker/src/core/maputil2.py::http_post_request": {
-    "PLR0913": 9
+  "maptasker/src/device/deviceimport.py::build_import_profile_task": {
+    "C901": 12,
+    "LINES": 94
   },
-  "maptasker/src/core/property.py::get_properties": {
-    "C901": 15,
-    "LINES": 102,
-    "PLR0912": 15
-  },
-  "maptasker/src/device/deviceimport.py::import_profile_to_device": {
-    "LINES": 126,
-    "PLR0913": 9
+  "maptasker/src/device/deviceinv.py::build_helper_task": {
+    "C901": 12
   },
   "maptasker/src/device/deviceoffer.py::offer_to_tasker": {
-    "LINES": 103
+    "LINES": 93
   },
-  "maptasker/src/gui/guiutils.py::display_model_pulldown": {
-    "PLR0912": 13
+  "maptasker/src/edit/taskedit_addable.py::classify_action_addability": {
+    "C901": 12,
+    "PLR0912": 12
   },
-  "maptasker/src/gui/guiutils.py::get_tasker_objects": {
-    "PLR0912": 14
+  "maptasker/src/edit/taskedit_apply.py::apply_arg_values": {
+    "C901": 12
   },
-  "maptasker/src/gui/guiwins.py::apply_appearance_mode": {
-    "C901": 13,
-    "PLR0912": 14
+  "maptasker/src/gui/guiwins_drawers.py::_create_history_buttons_section": {
+    "LINES": 100
   },
-  "maptasker/src/gui/guiwins_designer_v2.py::_build_state_field": {
-    "LINES": 101
+  "maptasker/src/gui/guiwins_firesim.py::_draw": {
+    "C901": 12
   },
-  "maptasker/src/gui/guiwins_sceneprops.py::_render_scene_actions_tab": {
-    "LINES": 103
+  "maptasker/src/gui/guiwins_firesim.py::build_firesim_dialog": {
+    "LINES": 99
   },
-  "maptasker/src/gui/guiwins_search.py::_FindDialog.ask": {
-    "C901": 14,
-    "PLR0912": 14
+  "maptasker/src/gui/guiwins_scene.py::_build_edit_scene_buttons": {
+    "LINES": 96
   },
-  "maptasker/src/gui/sceneview_legacy.py::_draw_item_layout": {
-    "PLR0913": 9
+  "maptasker/src/gui/guiwins_sceneprops.py::_render_scene_event": {
+    "C901": 12,
+    "LINES": 95
   },
-  "maptasker/src/gui/userintr.py::MyGui.check_name": {
-    "LINES": 120,
-    "PLR0912": 14
+  "maptasker/src/gui/guiwins_sceneprops.py::_render_scene_event_task_actions": {
+    "LINES": 98
   },
-  "maptasker/src/gui/userintr_ai.py::AIEventHandlers.ai_analyze_event": {
-    "LINES": 108
+  "maptasker/src/gui/guiwins_search.py::_FindDialog.__init__": {
+    "LINES": 95
   },
-  "maptasker/src/gui/userintr_ai.py::AIEventHandlers.ai_apikey_process_event": {
-    "LINES": 109,
-    "PLR0912": 13
+  "maptasker/src/gui/guiwins_search.py::_ReplaceTab.build_preview": {
+    "PLR0912": 12
   },
-  "maptasker/src/gui/userintr_android.py::AndroidEventHandlers.get_xml_from_android_event": {
-    "LINES": 129
+  "maptasker/src/gui/userintr.py::MyGui.__init__": {
+    "LINES": 99
+  },
+  "maptasker/src/gui/userintr.py::MyGui.process_single_name_restore": {
+    "LINES": 100
   },
   "maptasker/src/gui/userintr_android.py::AndroidEventHandlers.import_profile_into_tasker_event": {
-    "LINES": 131
+    "LINES": 91
   },
-  "maptasker/src/gui/userintr_android.py::AndroidEventHandlers.import_scene_into_tasker_event": {
-    "LINES": 101
+  "maptasker/src/gui/userintr_android.py::AndroidEventHandlers.install_helper_project_event": {
+    "LINES": 91
   },
-  "maptasker/src/gui/userintr_android.py::AndroidEventHandlers.save_profile_to_android_event": {
-    "LINES": 105
+  "maptasker/src/mapgen/bildhtml.py::write_out_the_file": {
+    "LINES": 97
   },
-  "maptasker/src/gui/userintr_android.py::AndroidEventHandlers.save_project_to_android_event": {
-    "LINES": 108
+  "maptasker/src/mapgen/diagarrows.py::draw_arrows_to_called_task": {
+    "LINES": 97
   },
-  "maptasker/src/gui/userintr_android.py::AndroidEventHandlers.save_scene_to_android_event": {
-    "LINES": 114
+  "maptasker/src/mapgen/profiles.py::do_profile": {
+    "LINES": 93
   },
-  "maptasker/src/gui/userintr_android.py::AndroidEventHandlers.save_task_to_android_event": {
-    "LINES": 116
+  "maptasker/src/mapgen/scenes.py::process_recursive_json": {
+    "C901": 12
   },
-  "maptasker/src/gui/userintr_android.py::AndroidEventHandlers.save_task_to_android_file_event": {
-    "LINES": 108
+  "maptasker/src/mapops/mapdraft.py::draft_task": {
+    "LINES": 95
   },
-  "maptasker/src/mapgen/diagprint.py::output_the_task": {
-    "PLR0913": 9
+  "maptasker/src/mapops/maprefac_extract.py::plan_inline": {
+    "LINES": 92
   },
-  "maptasker/src/mapgen/diagutil.py::get_task_details_and_save": {
-    "LINES": 101
+  "maptasker/src/mapops/mapswap_action.py::plan_action_swap": {
+    "C901": 12
   },
-  "maptasker/src/mapgen/frontmtr.py::output_the_heading": {
-    "LINES": 102
+  "maptasker/src/mapops/mapswap_action.py::swap_one_action": {
+    "LINES": 91
   },
-  "maptasker/src/mapops/maprefac_move.py::_plan_move_profile": {
-    "LINES": 110
+  "maptasker/src/mapops/mapswap_argument.py::plan_argument_replace": {
+    "LINES": 98
   },
-  "maptasker/src/runcli.py::process_extended_arguments": {
-    "C901": 13,
-    "PLR0912": 15
-  },
-  "maptasker/src/rungui.py::process_gui": {
-    "LINES": 106
-  },
-  "scripts/capture_screens.py::capture_all": {
-    "PLR0915": 60
+  "maptasker/src/runcli.py::unit_test": {
+    "LINES": 93
   }
 }

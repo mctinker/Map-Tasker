@@ -503,6 +503,69 @@ def _render_scene_geometry(
                 bind(key)
 
 
+def _render_scene_action_item(
+    self: MyGui,
+    properties: Element,
+    item: sceneedit_legacy.LegacyActionItem,
+    last: int,
+    rerender: Callable[[], None],
+) -> None:
+    """One action bar item: its reordering and delete buttons, icon, label and the action it runs."""
+    header = f"{item.index}: {item.label or translate_string('(no label)')} -- {item.action_name}"
+    with ui.expansion(header).classes("w-full"):
+        with ui.row().classes("w-full items-center gap-2"):
+            ui.button(
+                icon="arrow_upward",
+                on_click=lambda _e=None, sr=item.sr: _move_scene_action_item(properties, sr, -1, rerender),
+            ).props("dense flat size=sm").set_enabled(item.index > 0)
+            ui.button(
+                icon="arrow_downward",
+                on_click=lambda _e=None, sr=item.sr: _move_scene_action_item(properties, sr, 1, rerender),
+            ).props("dense flat size=sm").set_enabled(item.index < last)
+            ui.button(
+                translate_string("Delete"),
+                icon="delete",
+                on_click=lambda _e=None, sr=item.sr: _remove_scene_action_item(properties, sr, rerender),
+            ).props("dense flat size=sm color=negative")
+            ui.label(translate_string(item.placement)).classes("text-xs text-gray-500 italic")
+
+        with ui.row().classes("w-full items-center gap-2"):
+            icon_field = (
+                ui.input(
+                    translate_string("Icon"),
+                    value=sceneedit_legacy.legacy_action_item_icon(item),
+                )
+                .props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}")
+                .classes("flex-1")
+            )
+            icon_field.on_value_change(
+                lambda event, it=item: sceneedit_legacy.legacy_set_action_item_icon(it, str(event.value or "")),
+            )
+            ui.button(
+                translate_string("Pick"),
+                icon="image",
+                on_click=lambda _e=None, field=icon_field: _build_tasker_icon_picker_dialog(field, self),
+            ).props("flat dense size=sm")
+
+        ui.input(
+            translate_string("Label"),
+            value=item.label,
+            on_change=lambda event, it=item: sceneedit_legacy.legacy_set_action_item_label(it, str(event.value or "")),
+        ).props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}").classes("w-full")
+
+        item_args = sceneedit_legacy.legacy_action_item_args(item, state=self.state)
+        if item.action_element is None:
+            ui.label(translate_string("This item has no action.")).classes("text-xs text-gray-500 italic")
+        elif not item_args:
+            ui.label(
+                f"{item.action_name}: {translate_string('no editable arguments.')}",
+            ).classes("text-xs text-gray-500 italic")
+        else:
+            ui.label(f"{translate_string('Action')}: {item.action_name}").classes("text-sm font-bold mt-2")
+            for arg in item_args:
+                _render_legacy_arg(arg, lambda: None, name_editable=True, state=self.state)
+
+
 def _render_scene_actions_tab(
     self: MyGui,
     properties: Element,
@@ -549,61 +612,7 @@ def _render_scene_actions_tab(
 
     last = len(items) - 1
     for item in items:
-        header = f"{item.index}: {item.label or translate_string('(no label)')} -- {item.action_name}"
-        with ui.expansion(header).classes("w-full"):
-            with ui.row().classes("w-full items-center gap-2"):
-                ui.button(
-                    icon="arrow_upward",
-                    on_click=lambda _e=None, sr=item.sr: _move_scene_action_item(properties, sr, -1, rerender),
-                ).props("dense flat size=sm").set_enabled(item.index > 0)
-                ui.button(
-                    icon="arrow_downward",
-                    on_click=lambda _e=None, sr=item.sr: _move_scene_action_item(properties, sr, 1, rerender),
-                ).props("dense flat size=sm").set_enabled(item.index < last)
-                ui.button(
-                    translate_string("Delete"),
-                    icon="delete",
-                    on_click=lambda _e=None, sr=item.sr: _remove_scene_action_item(properties, sr, rerender),
-                ).props("dense flat size=sm color=negative")
-                ui.label(translate_string(item.placement)).classes("text-xs text-gray-500 italic")
-
-            with ui.row().classes("w-full items-center gap-2"):
-                icon_field = (
-                    ui.input(
-                        translate_string("Icon"),
-                        value=sceneedit_legacy.legacy_action_item_icon(item),
-                    )
-                    .props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}")
-                    .classes("flex-1")
-                )
-                icon_field.on_value_change(
-                    lambda event, it=item: sceneedit_legacy.legacy_set_action_item_icon(it, str(event.value or "")),
-                )
-                ui.button(
-                    translate_string("Pick"),
-                    icon="image",
-                    on_click=lambda _e=None, field=icon_field: _build_tasker_icon_picker_dialog(field, self),
-                ).props("flat dense size=sm")
-
-            ui.input(
-                translate_string("Label"),
-                value=item.label,
-                on_change=lambda event, it=item: sceneedit_legacy.legacy_set_action_item_label(
-                    it, str(event.value or "")
-                ),
-            ).props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}").classes("w-full")
-
-            item_args = sceneedit_legacy.legacy_action_item_args(item, state=self.state)
-            if item.action_element is None:
-                ui.label(translate_string("This item has no action.")).classes("text-xs text-gray-500 italic")
-            elif not item_args:
-                ui.label(
-                    f"{item.action_name}: {translate_string('no editable arguments.')}",
-                ).classes("text-xs text-gray-500 italic")
-            else:
-                ui.label(f"{translate_string('Action')}: {item.action_name}").classes("text-sm font-bold mt-2")
-                for arg in item_args:
-                    _render_legacy_arg(arg, lambda: None, name_editable=True, state=self.state)
+        _render_scene_action_item(self, properties, item, last, rerender)
 
     _render_scene_action_item_picker(self, properties, rerender)
 

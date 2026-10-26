@@ -702,7 +702,6 @@ def http_post_request(
     ip_port: str,
     file_location: str,
     request_name: str,
-    request_parm: str,
     file_content: bytes,
     auth_key: str = "",
     content_type: str = "",
@@ -715,7 +714,6 @@ def http_post_request(
         :param ip_port: port the Android device's Tasker HTTP API is listening on
         :param file_location: path (directory + filename) to write on the Android device
         :param request_name: the Tasker HTTP API endpoint to target (e.g. "api/import")
-        :param request_parm: any additional query string to append to the URL
         :param file_content: raw bytes of the file to post as the request body
         :param auth_key: API key from get_android_auth_key(), sent as the raw
         'Authorization' header value (no "Bearer " prefix)
@@ -730,7 +728,7 @@ def http_post_request(
         :return: return code, response: either a text string with an error message or
         the contents of the response
     """
-    url = _device_url(ip_address, ip_port, f"{request_name}{file_location}{request_parm}")
+    url = _device_url(ip_address, ip_port, f"{request_name}{file_location}")
     response, error_message, _ = _device_call(
         "post",
         url,
