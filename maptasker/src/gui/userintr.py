@@ -11,6 +11,7 @@ groups by feature so that this file stops being the one place every handler live
     userintr_prebuild.py  building the Map ahead of time
     userintr_reports.py   Health Check, Variable Cross-Reference, Task Flow, Compare, Changes Since
     userintr_settings.py  the output options, colors, fonts, language, and Save/Restore/Reset
+    userintr_tasktests.py the Task Tests dialog, and running the tests after every edit
 
 Each group is an object of its own (see userintr_group.HandlerGroup) that MapTaskerEventHandlers
 holds as an attribute, so the window wires a button to gui.event_handlers.<group>.<name>; what is
@@ -30,7 +31,7 @@ from urllib.parse import urlencode
 
 from nicegui import context, run, ui
 
-from maptasker.src.analysis import livemon
+from maptasker.src.analysis import livemon, taskcases
 from maptasker.src.analysis.taskflow import (
     analyze_task_flow,
     flowchart,
@@ -136,6 +137,7 @@ from maptasker.src.gui.userintr_loading import LoadingEventHandlers
 from maptasker.src.gui.userintr_prebuild import PrebuildEventHandlers
 from maptasker.src.gui.userintr_reports import ReportEventHandlers
 from maptasker.src.gui.userintr_settings import SettingsEventHandlers
+from maptasker.src.gui.userintr_tasktests import TaskTestEventHandlers
 from maptasker.src.mapgen.bildhtml import build_html
 from maptasker.src.mapgen.frontmtr import output_the_front_matter
 from maptasker.src.mapgen.outline import outline_the_configuration
@@ -274,6 +276,9 @@ class MyGui:
     import_with_dependencies_button: ui.button
     # The Task Stepper dialog while one is up (see task_stepper_event).
     taskstep_dialog: ui.dialog | None
+    # The Task Tests dialog while one is up (see TaskTestEventHandlers.task_tests_event).
+    tasktests_dialog: ui.dialog | None
+    task_tests_button: ui.button
     # The Trend Dashboard dialog while one is up (see trend_dashboard_event).
     trend_dialog: ui.dialog | None
     # The Missing Resources dialog while one is up (see missing_resources_event).
@@ -1637,7 +1642,7 @@ class MapTaskerEventHandlers:
     Decouples logic from the main UI drawing routines.
 
     The handlers of each feature are a group of their own, held here as an attribute -- hub.ai,
-    hub.android, hub.carry, hub.editors, hub.loading, hub.prebuild, hub.reports, hub.settings -- and
+    hub.android, hub.carry, hub.editors, hub.loading, hub.prebuild, hub.reports, hub.settings, hub.tasktests -- and
     what is defined on this class is what two or more of them share: the Map, Diagram and Tree views,
     saving the whole configuration, and the edit history.  Each group reaches this class as self.hub,
     and another group as self.hub.<group>.
@@ -1656,6 +1661,7 @@ class MapTaskerEventHandlers:
         self.prebuild = PrebuildEventHandlers(self)
         self.reports = ReportEventHandlers(self)
         self.settings = SettingsEventHandlers(self)
+        self.tasktests = TaskTestEventHandlers(self)
 
     @property
     def state(self) -> RunState:
@@ -2412,11 +2418,11 @@ class MapTaskerEventHandlers:
         self.gui.trend_dialog = dialog
         dialog.open()
 
-    def task_stepper_event(self, task: str = "") -> None:
+    def task_stepper_event(self, task: str = "", case: taskcases.Case | None = None) -> None:
         """Open the Task Stepper: dry-run one Task with the variables it starts with.
 
         `task` is the Task to start with, when it is opened from somewhere that knows which (a line of What
-        Fires When).  Rebuilt on every press, for fire_simulator_event's reason: the Task picker is filled
+        Fires When); `case` a saved test to open it on, with its values filled in (a row of Task Tests).  Rebuilt on every press, for fire_simulator_event's reason: the Task picker is filled
         from the configuration loaded at the moment of the press.
         """
         dialog = getattr(self.gui, "taskstep_dialog", None)
@@ -2434,7 +2440,7 @@ class MapTaskerEventHandlers:
 
             return go
 
-        dialog = build_taskstep_dialog(make_jump, self.state, task)
+        dialog = build_taskstep_dialog(make_jump, self.state, task, case)
         if dialog is None:
             return
         self.gui.taskstep_dialog = dialog

@@ -83,6 +83,7 @@ MapTasker_Map.txt
 MapTasker_Apps.json
 MapTasker_Apps.jsontemp
 MapTasker_Resources.json
+MapTasker_TaskTests.json
 MapTasker_HealthCheck_*.txt
 MapTasker_Fix_*.txt
 MapTasker_VarXref_*.txt

@@ -4,9 +4,9 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **90** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **91** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.0.2 source on 2026-10-25 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.0.3 source on 2026-10-27 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -104,6 +104,7 @@ _Generated from the MapTasker 15.0.2 source on 2026-10-25 by `build_command_wiki
 * [Task Action Limit](#cmd-task-action-limit)
 * [Task Flow](#cmd-task-flow)
 * [Task Stepper](#cmd-task-stepper)
+* [Task Tests](#cmd-task-tests)
 * [TaskerNet Updates](#cmd-taskernet-updates)
 * [Trend Dashboard](#cmd-trend-dashboard)
 * [Variable Xref](#cmd-variable-xref)
@@ -561,7 +562,7 @@ Click on the 'Cancel Entry' button to back out of this fetch process.
 _Part of [Get XML from Android Device](#cmd-get-xml-from-android-device)._
 
 **Type:** Command  
-**Where:** Get Xml From Android
+**Where:** Mount List Files Row
 
 List the XML files found on the Android device so you can select one rather than typing its location.
 
@@ -589,7 +590,7 @@ Allow a few seconds: installing the Task (once), running it and reading back its
 _Part of [Get XML from Android Device](#cmd-get-xml-from-android-device)._
 
 **Type:** Command  
-**Where:** Get Xml From Android; Mount File Picker
+**Where:** Mount Cancel Row; Mount File Picker
 
 Back out of the Android fetch process.
 
@@ -724,7 +725,7 @@ Give the object being edited a new name.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Item Layout; Render; Tasker Icon Picker (and 1 more)
+**Where:** Delete All; Item Layout; Render (and 2 more)
 
 Remove the object being edited from the loaded XML.
 
@@ -1292,6 +1293,28 @@ Bring a Project, Profile, Task or Scene in from another backup together with eve
 **Hover text:** Bring a Project, Profile, Task or Scene in from another backup together with everything it needs: the Tasks it performs, the Scenes it shows and the Tasks those run, and the global variables they use. Shows what would be copied, renamed and left alone before anything happens. A Task or Scene this file already has, and that is identical, is used rather than copied. Nothing already in this file is changed, and the whole import is one press of Undo.
 
 **Opens:** Local File Picker
+
+<a id="cmd-task-tests"></a>
+### Task Tests
+
+**Type:** Command  
+**Where:** Right Drawer
+
+Keep a Task Stepper run as a named test, and run every test again after each edit.
+
+* Step a Task with the values it starts with and press Save As Test: you choose the name, which of the variables the Task set to keep, whether to keep what it showed, said and sent (the text of each Flash, notification and web request, with the variables filled in), and whether to keep the route it took (off by default, because it also fails when an action is added above a branch).
+* Task Tests lists every saved test and runs them all when it opens; a test that no longer passes says in words what moved -- a variable that is now a different value, an action that no longer happens or has changed.
+* Keep New Result saves what the Task does now in the test's place, for a change you meant, and Delete All removes every test listed, after asking.
+* Tests are found by the Task's name and kept in MapTasker_TaskTests.json in the current directory.
+* A test of a Task that reads a global variable uses the value the backup holds, so it also notices when that moves.
+* Nothing is run on your phone.
+
+**Hover text:** Run the tests you have saved from the Task Stepper: a Task, the values it started with and what it did -- how it ended, the variables it set, and what it showed and sent. They are run again after every edit, Fix Findings pass, refactor or import, and you are told if a Task no longer does what it did.
+
+**Caveats:**
+
+* They are run again by themselves after every edit, Fix Findings pass, refactor, restore, import, Undo and Redo, and you are told only if one fails.
+* A test whose Task is not in the open file is counted apart from a failure.
 
 ## Command-Line Arguments
 

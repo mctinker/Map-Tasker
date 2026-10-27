@@ -117,6 +117,9 @@ DEFAULT_MAX_CALL_DEPTH = 8
 # Shown in place of a value the walk cannot know.
 UNKNOWN_TEXT = "(unknown)"
 
+# What a step says when the action puts something on screen or makes a sound and the walk only shows it.
+SHOWN_DETAIL = "shown, not performed"
+
 # Tasker's action codes the walk interprets itself.
 _IF, _ELSE, _END_IF = "37", "43", "38"
 _FOR, _END_FOR = "39", "40"
@@ -888,7 +891,7 @@ class _Walk:
         """An action the walk does not interpret: shown, with what it may leave behind marked unknown."""
         text = self._describe(step, action)
         if step.code in _SHOWN_ONLY:
-            return _Result(text, RAN, "shown, not performed")
+            return _Result(text, RAN, SHOWN_DETAIL)
         outputs = _outputs(step.code, action)
         for name in outputs:
             self.variables.mark_unknown(name)
@@ -1376,6 +1379,20 @@ def parse_assignments(text: str) -> tuple[dict[str, str], list[str]]:
         elif value.strip():
             found[name] = value.strip()
     return found, bad
+
+
+def format_assignments(values: dict[str, str]) -> str:
+    """Variables as the starting box holds them, one '%name = value' per line -- parse_assignments' inverse."""
+    return "\n".join(f"%{name.lstrip('%')} = {value}" for name, value in values.items())
+
+
+def format_assumed(assumed: dict[int, dict[str, str]]) -> str:
+    """What un-simulated actions leave, as the box holds it: '5: %name = value' -- parse_assumed's inverse."""
+    return "\n".join(
+        f"{number}: %{name.lstrip('%')} = {value}"
+        for number, values in assumed.items()
+        for name, value in values.items()
+    )
 
 
 def parse_assumed(text: str) -> tuple[dict[int, dict[str, str]], list[str]]:

@@ -24,8 +24,9 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
-from maptasker.src.analysis import taskstep
+from maptasker.src.analysis import taskcases, taskstep
 from maptasker.src.core.maputil2 import translate_string
+from maptasker.src.gui.guiwins_taskcases import ask_to_save_test
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -79,35 +80,50 @@ def build_taskstep_dialog(
     make_jump: Callable,
     state: RunState,
     task: str = "",
+    case: taskcases.Case | None = None,
 ) -> ui.dialog | None:
     """Build and return the Task Stepper dialog, or None if there are no Tasks loaded.
 
     `make_jump` turns a Target into a click handler, passed in rather than imported for guiwins_fix's reason.
-    `task` is the Task to start with, when the dialog is opened from somewhere that knows which.
+    `task` is the Task to start with, when the dialog is opened from somewhere that knows which.  `case` is a saved
+    test to open it on: its Task, and the values it starts with, filled in and ready to step.
     """
     names = taskstep.named_tasks(state)
     if not names:
         ui.notify(translate_string("No XML file with Tasks has been loaded.  Get an XML file first."), type="warning")
         return None
-    return _Stepper(make_jump, state, names, task if task in names else names[0]).build()
+    wanted = case.task if case is not None else task
+    return _Stepper(make_jump, state, names, wanted if wanted in names else names[0], case).build()
 
 
 class _Stepper:
     """The Task Stepper dialog: its widgets, and the handlers that work on them."""
 
-    def __init__(self, make_jump: Callable, state: RunState, names: list[str], task: str) -> None:
+    def __init__(
+        self,
+        make_jump: Callable,
+        state: RunState,
+        names: list[str],
+        task: str,
+        case: taskcases.Case | None = None,
+    ) -> None:
         """
         Args:
             make_jump: How to follow a line to the action it names.
             state: The run's state.
             names: The Tasks that can be picked.
             task: The one picked to start with.
+            case: A saved test to fill the controls in from, if the dialog was opened on one.
         """
         self.make_jump = make_jump
         self.state = state
         self.names = names
         self.task = task
+        self.case = case
         self.trace: taskstep.Trace | None = None
+        # The Task and the starting values the walk on screen was made with -- what Save As Test keeps.
+        self.walked: tuple[str, taskcases.Setup] | None = None
+        self.save_button: ui.button
         self.touched: list[str] = []
         self.dialog: ui.dialog
         self.picker: ui.select
@@ -135,8 +151,20 @@ class _Stepper:
             self.variables_heading = ui.label("").classes("text-xs font-bold text-blue-600 mt-2")
             self.variables_area = ui.scroll_area().classes("w-full h-[110px] border rounded dark:border-gray-700")
             with ui.row().classes("w-full justify-end mt-3 gap-2"):
+                self.save_button = ui.button(
+                    translate_string("Save As Test"), icon="fact_check", on_click=self.save_test
+                )
+                self.save_button.props("outline").disable()
+                self.save_button.tooltip(
+                    translate_string(
+                        "Keep this run as a named test: the Task, the values it started with and what it did.  "
+                        "Task Tests runs every saved test again after each edit.",
+                    ),
+                )
                 ui.button(translate_string("Copy As Text"), on_click=self.copy).props("outline")
                 ui.button(translate_string("Close"), on_click=self.dialog.close).classes("bg-red-500 text-white px-4")
+        if self.case is not None:
+            self.fill_from(self.case)
         return self.dialog
 
     def _build_inputs(self) -> None:
@@ -214,23 +242,32 @@ class _Stepper:
         if not wanted:
             ui.notify(translate_string("This Task reads no variable before it sets it."), type="info")
 
-    def _options(self) -> taskstep.Options | None:
-        """What the controls say, or None -- with a message -- when a line of them cannot be read."""
+    def _setup(self) -> taskcases.Setup | None:
+        """What the controls say as a Setup, or None -- with a message -- when a line of them cannot be read."""
         starting, bad_start = taskstep.parse_assignments(self.starting.value or "")
         assumed, bad_assumed = taskstep.parse_assumed(self.assumed.value or "")
         if bad_start or bad_assumed:
             shown = "; ".join((bad_start + bad_assumed)[:3])
             ui.notify(f"{translate_string('These lines could not be read')}: {shown}", type="warning")
             return None
-        values = taskstep.global_values(self.state) if self.globals_box.value else {}
-        values.update(starting)
-        return taskstep.Options(
-            variables=values,
-            policy=str(self.policy.value),
-            max_steps=int(self.limit.value or taskstep.DEFAULT_MAX_STEPS),
+        return taskcases.Setup(
+            variables=starting,
             assumed=assumed,
+            policy=str(self.policy.value),
             follow_calls=bool(self.follow_box.value),
+            use_globals=bool(self.globals_box.value),
+            max_steps=int(self.limit.value or taskstep.DEFAULT_MAX_STEPS),
         )
+
+    def fill_from(self, case: taskcases.Case) -> None:
+        """Put a saved test's values in the controls, ready to step."""
+        setup = case.setup
+        self.starting.set_value(taskstep.format_assignments(setup.variables))
+        self.assumed.set_value(taskstep.format_assumed(setup.assumed))
+        self.policy.set_value(setup.policy)
+        self.follow_box.set_value(setup.follow_calls)
+        self.globals_box.set_value(setup.use_globals)
+        self.limit.set_value(setup.max_steps)
 
     # ##############################################################################
     # Walking, and showing the walk.
@@ -238,15 +275,25 @@ class _Stepper:
 
     def step(self) -> None:
         """Walk the chosen Task and draw what it did."""
-        options = self._options()
-        if options is None:
+        setup = self._setup()
+        if setup is None:
             return
-        trace = taskstep.step_task(str(self.picker.value), self.state, options)
+        task = str(self.picker.value)
+        trace = taskstep.step_task(task, self.state, setup.options(self.state))
         if trace is None:
             ui.notify(translate_string("That Task is not in the configuration that is loaded."), type="negative")
             return
         self.trace = trace
+        self.walked = (task, setup)
+        self.save_button.enable()
         self._draw(trace)
+
+    def save_test(self) -> None:
+        """Keep the walk on screen as a test."""
+        if self.trace is None or self.walked is None:
+            ui.notify(translate_string("Press Step first."), type="warning")
+            return
+        ask_to_save_test(self.walked[0], self.walked[1], self.trace)
 
     def _draw(self, trace: taskstep.Trace) -> None:
         """The outcome, what it needed, and the walk."""

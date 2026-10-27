@@ -343,6 +343,11 @@ RESOURCES_CACHE_FILE = "MapTasker_Resources.json"
 # The saved report of a Missing Resources check -- see resourcechk.py.
 RESOURCES_FILE = "MapTasker_Resources.txt"
 
+# The Task test cases the user has saved -- see taskcases.py.  Kept in the current directory, beside the settings.
+TASK_TESTS_FILE = "MapTasker_TaskTests.json"
+# The saved report of a run of them.
+TASK_TESTS_REPORT_FILE = "MapTasker_TaskTests.txt"
+
 # Set up background color and border for tables
 TABLE_BACKGROUND_COLOR = "DarkSteelBlue" if darkdetect.isDark() else "PaleTurquois"
 TABLE_BORDER_COLOR = "DarkSlateGrey" if darkdetect.isDark() else "LightGrey"

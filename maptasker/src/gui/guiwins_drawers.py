@@ -50,6 +50,10 @@ if TYPE_CHECKING:
 # =========================================================================
 # Initialize the GUI screen layout using NiceGUI with split sidebars and main content area.
 # =========================================================================
+# How often the window looks at the edit history to run the Task tests again after an edit.
+TASK_TESTS_POLL_SECONDS = 1.0
+
+
 def document_language_html(state: RunState) -> str:
     """Head markup declaring the GUI's language and asking the browser not to translate it.
 
@@ -827,6 +831,33 @@ def _create_simulation_buttons(self: MyGui) -> None:
                 "run on your phone and nothing in the configuration changes.",
             ),
         ).style("white-space: pre-wrap")
+    _create_task_tests_button(self)
+
+
+def _create_task_tests_button(self: MyGui) -> None:
+    """Task Tests, under the Task Stepper whose runs it keeps -- and the timer that runs them all after an edit."""
+    self.task_tests_button = (
+        ui.button(
+            translate_string("Task Tests"),
+            color="teal",
+            on_click=self.event_handlers.tasktests.task_tests_event,
+            icon="fact_check",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with self.task_tests_button:
+        ui.tooltip(
+            translate_string(
+                "Run the tests you have saved from the Task Stepper: a Task, the values it started with and what "
+                "it did -- how it ended, the variables it set, and what it showed and sent.\n\nThey are run again "
+                "after every edit, Fix Findings pass, refactor or import, and you are told if a Task no longer does "
+                "what it did.",
+            ),
+        ).style("white-space: pre-wrap")
+    # Looked at every moment or two: what is cheap when nothing has been edited, and the one place that cannot
+    # miss an edit, since every one is a checkpoint in the history Undo reads.
+    ui.timer(TASK_TESTS_POLL_SECONDS, self.event_handlers.tasktests.edit_tick)
 
 
 def _create_main_body(self: MyGui) -> None:

@@ -334,6 +334,21 @@ CARRY_HELP_TEXT = (
     " the second time.  Not followed: a call whose name is built from a variable, and what is inside a Version 2 Scene's"
     " layout.  Plugins the objects use are listed, but not checked.  Nothing is sent anywhere.  \n"
 )
+TASKTESTS_HELP_TEXT = (
+    "- Task Tests: Keep a Task Stepper run as a named test, and run every test again after each edit.  Step a Task with the"
+    " values it starts with and press Save As Test: you choose the name, which of the variables the Task set to keep,"
+    " whether to keep what it showed, said and sent (the text of each Flash, notification and web request, with the"
+    " variables filled in), and whether to keep the route it took (off by default, because it also fails when an action"
+    " is added above a branch).  Task Tests lists every saved test and runs them all when it opens; a test that no longer"
+    " passes says in words what moved -- a variable that is now a different value, an action that no longer happens or"
+    " has changed.  They are run again by themselves after every edit, Fix Findings pass, refactor, restore, import,"
+    " Undo and Redo, and you are told only if one fails.  Keep New Result saves what the Task does now in the test's"
+    " place, for a change you meant, and Delete All removes every test listed, after asking.  A test whose Task is not in"
+    " the open file is counted apart from a failure.  Tests"
+    " are found by the Task's name and kept in MapTasker_TaskTests.json in the current directory.  A test of a Task that"
+    " reads a global variable uses the value the backup holds, so it also notices when that moves.  Nothing is run on"
+    " your phone.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -363,5 +378,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}"
     )

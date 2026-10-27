@@ -1392,6 +1392,7 @@ HELP_PIECES = (
     "MONITOR_HELP_TEXT",
     "PREBUILD_HELP_TEXT",
     "CARRY_HELP_TEXT",
+    "TASKTESTS_HELP_TEXT",
 )
 
 # The longer help texts that go with one command: what the command is called in the Help
