@@ -357,6 +357,7 @@ def test_a_run_is_started_and_its_file_read_on_a_state_of_its_own(
     state.colors_to_use = set_color_mode("dark")
     state.output_lines = LineOut(state=state)
     state.program_arguments.file = str(backup)
+    PrimeItems.output_lines = LineOut()  # The global's own, which the run on `state` has to leave alone.
     root_before, lines_before = PrimeItems.xml_root, len(PrimeItems.output_lines.output_lines)
 
     proginit.get_data_and_output_intro(True, state=state)

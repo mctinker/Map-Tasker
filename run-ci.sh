@@ -99,8 +99,9 @@ if [ "$QUICK" -eq 1 ]; then
 else
     # The coverage floor lives in [tool.coverage.report] fail_under, so this
     # gate fails on a coverage regression as well as on a failing test.
+    # -n auto spreads the tests over the cores, as ci.yml does.
     run_gate "pytest + coverage" \
-        uv run --no-sync pytest --cov=maptasker --cov-report=term-missing:skip-covered
+        uv run --no-sync pytest -n auto --cov=maptasker --cov-report=term-missing:skip-covered
 
     # Each layer on its own against scripts/coverage_baseline.json, which fail_under (one
     # number for the whole program) cannot see.  Reads the .coverage file the gate above made.

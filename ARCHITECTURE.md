@@ -96,14 +96,21 @@ increase shows up in review with its reason.
 
 `.github/workflows/ci.yml`, on every push and pull request:
 
-* **test** -- the suite with coverage on Ubuntu for Python 3.11 to 3.15, and on Windows and macOS for 3.13 (paths,
-  per-user folders, font discovery, the password store and the filesystem all differ), then the per-layer coverage floors.
+* **test** -- the suite, in parallel (`pytest -n auto`, from pytest-xdist), with coverage on Ubuntu for Python 3.11 to 3.15,
+  and on Windows and macOS for 3.13 (paths, per-user folders, font discovery, the password store and the filesystem all
+  differ), then the per-layer coverage floors.
 * **lint** -- ruff, the three ratchets, import layers and the format check.
 * **build distribution** -- `uv build` and `twine check`.
 
 `.github/workflows/audit.yml` runs the dependency audit whenever the lock file changes and every Monday, since an
 advisory is published on its own schedule and has nothing to do with the change being tested.  Dependabot
 (`.github/dependabot.yml`) opens a weekly pull request for the locked dependencies and the workflow actions.
+
+Tests run in parallel, so none may depend on the one before it.  `tests/conftest.py` puts `PrimeItems` back to what it was
+after every test, and anything else a test changes -- the working directory, the environment, a module attribute -- is
+monkeypatched or kept in `tmp_path`.  A test that needs a loaded backup loads it itself, and the name of a parametrized
+case must be the same in every process (xdist fails if two workers collect different names).  Plain `pytest` still runs
+them serially, which is the way to debug one.
 
 `./run-ci.sh` runs the same gates locally (`--quick` skips the slow ones; `--fix` formats first).  Keep it in step with
 `ci.yml`.

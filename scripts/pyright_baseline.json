@@ -73,13 +73,12 @@
   },
   "tests/test_deviceinv.py": {
     "reportArgumentType": 25,
-    "reportAttributeAccessIssue": 14,
+    "reportAttributeAccessIssue": 13,
     "reportCallIssue": 5,
-    "reportInvalidTypeForm": 1,
     "reportOperatorIssue": 1,
     "reportOptionalMemberAccess": 35,
     "reportOptionalSubscript": 1,
-    "reportReturnType": 4
+    "reportReturnType": 3
   },
   "tests/test_devicemonitor.py": {
     "reportAttributeAccessIssue": 7

@@ -32,7 +32,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 import pytest
 from maptasker.src.core import appinv, caches, maputil2
 from maptasker.src.core.initparg import ProgramArguments
-from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 from maptasker.src.device import (
     devicecheck,
     devicefiles,
@@ -163,6 +163,17 @@ def _isolated_inventory(monkeypatch: pytest.MonkeyPatch, tmp_path: object) -> No
     caches.clear_all()
 
 
+def _load_arg_specs() -> None:
+    """The argument specs, as proginit loads them: the table that says what kind of value each argument takes."""
+    specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
+    with open(specs_file, encoding="utf-8") as handle:
+        specs = json.load(handle)
+    # Both of proginit's own additions -- see its arg_specs load, and _ICON_CATEGORIES.
+    specs[str(len(specs))] = "ConditionList"
+    specs[str(len(specs))] = "Img"
+    PrimeItems.tasker_arg_specs = specs
+
+
 def _load(xml_text: str) -> None:
     """Build the PrimeItems tables from XML text, the way taskerd does from a file.
 
@@ -174,14 +185,7 @@ def _load(xml_text: str) -> None:
     PrimeItems.file_to_get = "fixture.xml"
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
-
-    specs_file = os.path.join(os.path.dirname(__file__), "..", "maptasker", "assets", "json", "arg_specs.json")
-    with open(specs_file, encoding="utf-8") as handle:
-        specs = json.load(handle)
-    # Both of proginit's own additions -- see its arg_specs load, and _ICON_CATEGORIES.
-    specs[str(len(specs))] = "ConditionList"
-    specs[str(len(specs))] = "Img"
-    PrimeItems.tasker_arg_specs = specs
+    _load_arg_specs()
 
     tables = {
         "all_projects": taskerd.move_xml_to_table(root.findall("Project"), False, "name"),
@@ -211,8 +215,8 @@ def _nothing_loaded() -> None:
     Icon argument used to look like permanently.
     """
     PrimeItems.xml_root = None
-    yield
-    PrimeItems.xml_root = None
+    PrimeItems.tasker_root_elements = initial_tasker_root_elements()
+    _load_arg_specs()
 
 
 def _packages(entries: list[appinv.AppEntry]) -> list[str]:
@@ -2767,7 +2771,7 @@ def test_every_kind_has_an_open_with_route_into_its_own_folder() -> None:
     assert deviceoffer.OPEN_PROJECT_ROUTE.confirm_endpoint == devicetask.PROFILES_ENDPOINT
 
 
-def test_only_the_open_with_route_drops_the_mime_type() -> None:
+def test_only_the_open_with_route_drops_the_mime_type(loaded: None) -> None:
     """The two routes want opposite things from a mime type, so the change is scoped to one.
 
     Open File is matched against every filter on the device, and a type excludes the

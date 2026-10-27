@@ -155,7 +155,14 @@ def test_a_layout_that_cannot_be_read_is_none_and_is_left_alone() -> None:
 
 @pytest.mark.parametrize(
     "bad",
-    ["", "####", base64.b64encode(b"plain, not gzip").decode(), base64.b64encode(gzip.compress(b"{not json")).decode()],
+    [
+        pytest.param("", id="empty"),
+        pytest.param("####", id="not-base64"),
+        pytest.param(base64.b64encode(b"plain, not gzip").decode(), id="not-gzip"),
+        # mtime=0, and a fixed id: the gzip header holds the time, and a test name that changes between
+        # processes is two different tests to pytest-xdist's workers.
+        pytest.param(base64.b64encode(gzip.compress(b"{not json", mtime=0)).decode(), id="not-json"),
+    ],
 )
 def test_a_bad_encoding_is_reported_as_text_not_raised(bad: str) -> None:
     result = scenelayout.decompress_gzip_json(bad)

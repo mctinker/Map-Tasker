@@ -57,9 +57,13 @@ jobs:
       - name: Install project and test dependencies
         run: uv sync --locked --group test
 
+      # -n auto: one worker per core, which is what the runner has to give.  No single test is slow, so the
+      # time is spread evenly; tests/conftest.py puts PrimeItems back after each one, so none depends on
+      # the one before.  pytest-cov combines the workers' coverage.
       - name: Run tests with coverage
         run: >
           uv run --no-sync pytest
+          -n auto
           --cov=maptasker
           --cov-report=term-missing:skip-covered
           --cov-report=xml
