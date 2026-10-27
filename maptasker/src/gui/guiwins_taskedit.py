@@ -1852,10 +1852,22 @@ def _render_edit_task_buttons(
                     "open so you can carry on editing.",
                 ),
             )
-        ui.button(
+        edit_task_ok = ui.button(
             translate_string("Ok"),
             on_click=lambda: self.event_handlers.editors.keep_edited_task_event(edited_task, field_refs, dialog),
         ).props("outline")
+        with edit_task_ok:
+            ui.tooltip(
+                translate_string(
+                    "Applies the changes made in this dialog to the loaded backup, right now, and closes the "
+                    "dialog.\n\n"
+                    "They are kept for this session only: no file is written and nothing is sent to your Android "
+                    "device. Use 'Save To Current File' or 'Save To Android' to keep them. One press of Undo takes "
+                    "the change back.\n\n"
+                    "If something cannot be applied, such as a name another Task already has, the dialog stays "
+                    "open and says why, so your edits are not lost.",
+                ),
+            ).style("white-space: pre-wrap")
         _render_task_save_buttons(self, edited_task, field_refs, dialog)
         run_on_android = ui.button(
             translate_string("Run On Android"),
@@ -2042,7 +2054,7 @@ def _render_new_task_buttons(
     """The Add Task dialog's row of buttons: Cancel, Ok and the several Saves."""
     with ui.row().classes("w-full justify-end gap-2 mt-4"):
         ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
-        ui.button(
+        add_task_ok = ui.button(
             translate_string("Ok"),
             on_click=lambda: self.event_handlers.editors.keep_new_task_event(
                 edited_task,
@@ -2051,6 +2063,18 @@ def _render_new_task_buttons(
                 on_created=on_task_created,
             ),
         ).props("outline")
+        with add_task_ok:
+            ui.tooltip(
+                translate_string(
+                    "Adds the new Task to the loaded backup and closes this dialog. When you opened this from "
+                    "the Add Task button, it is listed under the Project you had selected.\n\n"
+                    "It is kept for this session only: no file is written and nothing is sent to your Android "
+                    "device. Use 'Save To Current File' or 'Save To Android' to keep it. One press of Undo takes it "
+                    "back.\n\n"
+                    "If the name is already used by another Task, the dialog stays open and says why, so your "
+                    "work is not lost.",
+                ),
+            ).style("white-space: pre-wrap")
         new_task_to_current_file = ui.button(
             translate_string("Save To Current File"),
             on_click=lambda: self.event_handlers.editors.save_new_task_to_current_file_event(

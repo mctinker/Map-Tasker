@@ -50,10 +50,22 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
-            ui.button(
+            add_project_ok = ui.button(
                 translate_string("Ok"),
                 on_click=lambda: self.event_handlers.editors.keep_new_project_event(edited_project, field_refs, dialog),
             ).classes("bg-blue-600")
+            with add_project_ok:
+                ui.tooltip(
+                    translate_string(
+                        "Adds the new Project to the loaded backup, right now, selects it in the Project pulldown "
+                        "and closes this dialog.\n\n"
+                        "It is kept for this session only: no file is written and nothing is sent to your Android "
+                        "device. To keep it, use 'Save To Current File' in any Edit dialog, which saves the whole "
+                        "backup. One press of Undo takes it back.\n\n"
+                        "If the name is empty or another Project already has it, the dialog stays open and says "
+                        "why, so your work is not lost.",
+                    ),
+                ).style("white-space: pre-wrap")
 
     dialog.open()
 

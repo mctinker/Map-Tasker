@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 - Changed: __Draft with AI__ now also shows the AI model a few worked examples of descriptions like yours, so it copies how actions fit together, such as closing an If or looping over a list.
 - Changed: __Draft with AI__ now sends a draft back to the AI model once, with what was wrong, when it used an action that does not exist or a value that is not allowed, and it mentions the Tasker variables your description is about. A new tick box lets you also share the names of your own Tasks and variables that the description mentions; it is off unless you tick it.
 - Changed: The networking libraries MapTasker depends on (aiohttp, urllib3 and certifi) are updated to releases that fix known security vulnerabilities.
+- Changed: The Ok button in the Add and Edit panels for Profiles and Tasks, and in Add Project, now has hover text saying that it puts the change into the open backup for this session only, that Undo takes it back, and that the panel stays open if it cannot be done.
 - Changed:
 
 ### Removed

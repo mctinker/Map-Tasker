@@ -646,6 +646,31 @@ def _build_edit_profile_fields(
     return title_label
 
 
+def _build_edit_profile_ok_button(
+    self: MyGui,
+    edited_profile: profedit.EditableProfile,
+    field_refs: dict[str, Any],
+    dialog: ui.dialog,
+) -> None:
+    """The Edit Profile dialog's Ok button, with the hover text that says what it keeps and what it does not."""
+    edit_profile_ok = ui.button(
+        translate_string("Ok"),
+        on_click=lambda: self.event_handlers.editors.keep_edited_profile_event(edited_profile, field_refs, dialog),
+    ).props("outline")
+    with edit_profile_ok:
+        ui.tooltip(
+            translate_string(
+                "Applies the changes made in this dialog to the loaded backup, right now, and closes the "
+                "dialog.\n\n"
+                "They are kept for this session only: no file is written and nothing is sent to your Android "
+                "device. Use 'Save To Current File' or 'Save To Android' to keep them. One press of Undo takes "
+                "the change back.\n\n"
+                "If something cannot be applied, such as a name another Profile already has, the dialog stays "
+                "open and says why, so your edits are not lost.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
 def _build_edit_profile_buttons(
     self: MyGui,
     edited_profile: profedit.EditableProfile,
@@ -679,10 +704,7 @@ def _build_edit_profile_buttons(
                     "open so you can carry on editing.",
                 ),
             )
-        ui.button(
-            translate_string("Ok"),
-            on_click=lambda: self.event_handlers.editors.keep_edited_profile_event(edited_profile, field_refs, dialog),
-        ).props("outline")
+        _build_edit_profile_ok_button(self, edited_profile, field_refs, dialog)
         profile_to_current_file = ui.button(
             translate_string("Save To Current File"),
             on_click=lambda: self.event_handlers.editors.save_edited_profile_to_current_file_event(
@@ -911,10 +933,22 @@ def _build_add_profile_buttons(
     """The Add Profile dialog's button row: Cancel, Ok, the two saves and Export."""
     with ui.row().classes("w-full justify-end gap-2 mt-4"):
         ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
-        ui.button(
+        add_profile_ok = ui.button(
             translate_string("Ok"),
             on_click=lambda: self.event_handlers.editors.keep_new_profile_event(edited_profile, field_refs, dialog),
         ).props("outline")
+        with add_profile_ok:
+            ui.tooltip(
+                translate_string(
+                    "Adds the new Profile to the loaded backup, in the Project you chose, and closes this "
+                    "dialog.\n\n"
+                    "It is kept for this session only: no file is written and nothing is sent to your Android "
+                    "device. Use 'Save To Current File' or 'Save To Android' to keep it. One press of Undo takes it "
+                    "back.\n\n"
+                    "If the name is already used by another Profile, or no Project was chosen, the dialog stays "
+                    "open and says why, so your work is not lost.",
+                ),
+            ).style("white-space: pre-wrap")
         new_profile_to_current_file = ui.button(
             translate_string("Save To Current File"),
             on_click=lambda: self.event_handlers.editors.save_new_profile_to_current_file_event(
