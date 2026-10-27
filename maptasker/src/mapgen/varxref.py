@@ -48,7 +48,6 @@ from maptasker.src.core.mapjump import (
     Scope,
     Target,
     actions_in_map_order,
-    describe,
     text_report,
 )
 from maptasker.src.core.maputils import append_to_filename
@@ -434,11 +433,6 @@ def _element_text(element: Element, tag: str) -> str:
     """The text of a child element, stripped, or "" if it is missing or empty."""
     child = element.find(tag)
     return (child.text or "").strip() if child is not None else ""
-
-
-def _describe_task(name: str, task_id: str) -> str:
-    """Task 'Wake Up' (id 118), or Task (id 118) [unnamed]."""
-    return describe("Task", name, task_id)
 
 
 def _project_membership(tag: str, state: RunState) -> dict[str, str]:

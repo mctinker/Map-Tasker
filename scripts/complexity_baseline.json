@@ -7,7 +7,7 @@
     "LINES": 99
   },
   "maptasker/src/core/primitem.py::RunState._init_session": {
-    "LINES": 96
+    "LINES": 95
   },
   "maptasker/src/core/property.py::_gather_properties": {
     "C901": 12

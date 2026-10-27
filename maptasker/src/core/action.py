@@ -24,7 +24,6 @@ from maptasker.src.core.elemvals import child_text
 from maptasker.src.core.format import format_html
 from maptasker.src.core.htmllabel import format_label
 from maptasker.src.core.mtexcept import MapTaskerError
-from maptasker.src.core.shelsort import shell_sort
 from maptasker.src.core.sysconst import (
     DISABLED,
     FONT_FAMILY,
@@ -37,50 +36,6 @@ from maptasker.src.core.sysconst import (
 WANTED_ACTION_ELEMENTS = frozenset(
     ("code", "label", "on", "ConditionList", "remoteDevice", "remoteTimeout"),
 )
-
-
-# Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
-#  This is only called if the action code is not already in our master dictionary
-#   actionc.py
-# Input:
-#   action: list of actions or parameters
-#   ignore_list: xml to ignore (e.g. label, on, etc.
-# Output:
-#   arg_lst: list of sorted args as numbers only (e.g. 'arg' removed from 'arg0')
-#   type_list: list of sorted types (e.g. 'Int', 'Str', etc.)
-def get_args(
-    action: Element,
-    ignore_list: list,
-) -> tuple[list, list, list[str] | int]:
-    """
-    Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
-    This is only called if the action code is not already in our master dictionary actionc.py
-        :param action: xml element pointing to <actn> Action element
-        :param ignore_list: list of strings/elements to ignore (e.g. "label")
-        :return: list of arguments, list of argument types, list of argument position (numeric part of <argn>)
-    """
-    arguments, argument_types, master_list = [], [], []
-    arg_nums: list[str] | int = 0  # 0 when the action has no arguments
-    for child in action:
-        if child.tag in ignore_list:  # Ignore certain tags
-            continue
-        action_arg = child.attrib.get("sr")
-        if action_arg is not None:
-            master_list.append(child)  # Build out list of args
-    # If we have args then sort them and convert to string
-    if master_list:
-        # Sort args by their number (e.g. arg0, arg1, arg2, ...)
-        shell_sort(master_list, True, False)
-        # Now go through args and build our "type" and "arg" lists
-        for child in master_list:
-            argument_types.append(child.tag)  # one of: 'Str' 'Int' 'Bundle' 'App'
-            arguments.append(child.attrib.get("sr"))
-        # Build list of arg position only (numeric part of argn)
-        arg_nums = [
-            str(ind) for ind, x in enumerate(arguments)
-        ]  # Build list of arg position only (numeric part of argn)
-
-    return arguments, argument_types, arg_nums
 
 
 # Evaluate the If statement and return the operation

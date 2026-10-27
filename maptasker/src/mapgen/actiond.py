@@ -13,8 +13,6 @@ import maptasker.src.core.action as get_action
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
-IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
-
 
 # Given a child xml element, determine if it is a boolean of condtion
 # add return if in a list

@@ -423,6 +423,34 @@ exclude_also = [
 
 # Checks that the annotations ruff's ANN rules require are actually right.  Enforced by
 # scripts/typecheck_ratchet.py against scripts/pyright_baseline.json, so only new errors fail.
+[tool.vulture]
+# Dead code: functions, methods, classes, attributes and constants that nothing in maptasker/src
+# refers to.  Run it with `uv run vulture`.  scripts/dead_code_ratchet.py holds what it still finds
+# to scripts/dead_code_baseline.json, so only NEW dead code fails CI.  The names below are the ones
+# vulture reports wrongly: something calls them by a route it cannot follow.
+paths = ["maptasker/src"]
+min_confidence = 60
+# NiceGUI calls a page function when the browser asks for its route.
+ignore_decorators = ["@ui.page*"]
+ignore_names = [
+    # html.parser.HTMLParser calls these by name as it reads the markup.
+    "handle_starttag",
+    "handle_startendtag",
+    "handle_endtag",
+    "handle_entityref",
+    "handle_charref",
+    # pickle.Unpickler.find_class, overridden to refuse every class (apikeys).
+    "find_class",
+    # Reached by name from a table of strings (userintr's settings-restore handlers).
+    "output_directory_restored",
+    # Used only inside the string annotation "MyGui | WindowOwner".
+    "WindowOwner",
+    # console's switch for an embedder to silence the terminal; muted() is the way in here.
+    "mute",
+    "unmute",
+    "is_muted",
+]
+
 [tool.pyright]
 # tests/ and tools/ are checked too.  The errors tests carry are mostly stand-ins handed where the real
 # type goes (a SimpleNamespace for a RunState, a MagicMock for a window), which is deliberate, so they sit in

@@ -18,15 +18,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from maptasker.src.analysis.diffload import current_configuration, load_for_comparison
 from maptasker.src.analysis.xmldiff import compare
-from maptasker.src.core import clock, timeline
+from maptasker.src.core import timeline
 from maptasker.src.core.sysconst import logger
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from maptasker.src.analysis.xmldiff import Configuration
     from maptasker.src.core.primitem import RunState
 
@@ -112,8 +113,3 @@ def changes_since(cutoff: datetime | None, newer: Configuration | None = None, *
 
     report, counts = compare(older_configuration, newer)
     return Comparison(report=report, counts=counts, older=older_snapshot, note=note)
-
-
-def changes_over_last(days: int, newer: Configuration | None = None, *, state: RunState) -> Comparison:
-    """changes_since, counted back in whole days -- "this week" is days=7."""
-    return changes_since(clock.now() - timedelta(days=days), newer, state=state)

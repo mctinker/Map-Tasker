@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING
 
 from maptasker.src.core.mapfonts import is_double_width
 from maptasker.src.core.maputil2 import translate_string
-from maptasker.src.core.sysconst import icon_pattern
 from maptasker.src.mapgen.diagcnst import (
     angle,
     bar,
@@ -35,10 +34,6 @@ from maptasker.src.mapgen.diagcnst import (
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
     from maptasker.src.core.runcfg import RunConfig
-
-arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
-directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
-
 
 # Define additional "printable" characters to allow.
 # extra_cars: set[str] = set(f"│└─╔═║╚╝╗▶◄{arrows}")
@@ -150,55 +145,6 @@ def print_box(name: str, title: str, indent: int, config: RunConfig, state: RunS
     box[1] = f"{filler}║ {full_name} ║"  # Box middle
     box[2] = f"{filler}╚═{box_line * border_length}═╝"  # Box bottom
     print_3_lines(box, state=state)
-
-
-# Remove a character from a string at a specific location and return the modified
-# string.
-def remove_char(text: str, index: int) -> str:
-    """
-    Remove character from string at given index and return modified string
-
-    Args:
-        text (str): The input string
-        index (int): The index to remove the character at
-
-    Returns:
-        str: String with character removed at given index
-    """
-    if text[:index].endswith(
-        "]",
-    ):  # If we hit a close bracket (valid char), don't truncate it.
-        return text[: index + 1] + text[index + 1 :]
-    return text[:index] + text[index + 1 :]
-
-
-def count_icons(text: str) -> int:
-    # Define a regex pattern for icons (emojis and symbols)
-    """
-    Count the number of icons in the text string.
-
-    Args:
-        text (str): The input string
-
-    Returns:
-        int: The number of icons in the text string
-
-    Icons are defined as any character in the following Unicode ranges:
-
-    - Emoticons, Transport & Map Symbols (U0001F300-U0001F5FF)
-    - Emoticons (U0001F600-U0001F64F)
-    - Transport & Map Symbols (U0001F680-U0001F6FF)
-    - Alchemical Symbols (U0001F700-U0001F77F)
-    - Geometric Shapes Extended (U0001F780-U0001F7FF)
-    - Supplemental Arrows-C (U0001F800-U0001F8FF)
-    - Supplemental Symbols and Pictographs (U0001F900-U0001F9FF)
-    - Chess Symbols (U0001FA00-U0001FA6F)
-    - Symbols and Pictographs Extended-A (U0001FA70-U0001FAFF)
-
-    This function returns the count of all characters in the input string
-    that match any of these ranges.
-    """
-    return len(icon_pattern.findall(text))
 
 
 # The characters that have to stay in their column so a connector lines up with the one
@@ -462,9 +408,6 @@ def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
     for i in range(len(strings) - 2, -1, -1):
         # Cache the next string to avoid repeated access
         next_string = strings[i + 1]
-        # Ignore lines with icons
-        # icon_count = len(icon_pattern.findall(next_string))
-
         next_string_len = len(next_string)
 
         # Find all occurrences of 'char' in the current string

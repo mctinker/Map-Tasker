@@ -39,8 +39,6 @@ from maptasker.src.core.primitem import PrimeItems
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
-NEWLINE = "\n"
-
 
 def java_constants_to_dict(url: str) -> dict:
     """

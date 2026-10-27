@@ -482,9 +482,6 @@ _DECODERS: dict[str, Callable[[Element, str], Decoded]] = {
     "com.github.db1996.taskerha": _home_assistant,
 }
 
-# The plugins decode_settings reads, for the help text and the tests.
-DECODED_PACKAGES = frozenset(_DECODERS)
-
 
 def decode_settings(vals: Element, package: str, blurb: str = "") -> Decoded | None:
     """A known plugin's settings, read; None for any other plugin.

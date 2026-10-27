@@ -403,7 +403,6 @@ def diagram_scope(projects: Iterable[str]) -> str:
 # ##################################################################################
 # The prediction.
 # ##################################################################################
-AGREES = "agrees"
 UNEXPECTED = "unexpected"
 MISSING = "missing"
 

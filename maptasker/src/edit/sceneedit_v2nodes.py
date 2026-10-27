@@ -458,14 +458,6 @@ def v2_delete_node(layout: dict, path: tuple) -> list[str]:
     return []
 
 
-def v2_move_node(layout: dict, path: tuple, offset: int) -> tuple | None:
-    """Move a component up or down among its siblings; returns its new path, or None if
-    it can't move that way (already first/last, or it's the root).  Reordering matters:
-    a slot's list order is the order the components lay out on screen.
-    """
-    return v2_move_run(layout, path, 1, offset)
-
-
 def _v2_splice_run(layout: dict, path: tuple, count: int, insert_at: int) -> tuple | None:
     """Lift `count` consecutive siblings starting at `path` out of their slot and put them
     back at `insert_at`, and return the run's new first path.

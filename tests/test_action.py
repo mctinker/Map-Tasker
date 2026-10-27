@@ -245,28 +245,6 @@ def test_an_empty_app_field_gets_no_label() -> None:
 
 
 # ##################################################################################
-# Argument discovery, for action codes not in the master table
-# ##################################################################################
-def test_arguments_are_found_and_ordered_by_number() -> None:
-    """Arguments are matched to their meanings positionally, so document order is not
-    good enough -- sr="argN" is the order, and a backup need not store them sorted.
-    """
-    element = ET.fromstring(
-        '<Action sr="act0"><code>1</code><label>L</label><Str sr="arg1">b</Str><Int sr="arg0" val="1"/></Action>',
-    )
-    arguments, types, positions = action.get_args(element, ["label", "code"])
-    assert arguments == ["arg0", "arg1"]
-    assert types == ["Int", "Str"]
-    assert positions == ["0", "1"]
-
-
-def test_an_action_with_no_arguments_finds_none() -> None:
-    """Plenty of actions take none, and the caller checks the list rather than a flag."""
-    element = ET.fromstring('<Action sr="act0"><code>1</code><label>L</label></Action>')
-    assert action.get_args(element, ["label", "code"]) == ([], [], 0)
-
-
-# ##################################################################################
 # The small string helpers the argument lines are assembled with
 # ##################################################################################
 def test_the_trailing_comma_of_the_last_argument_is_dropped() -> None:

@@ -1,0 +1,234 @@
+{
+  "maptasker/src/analysis/mapask.py": {
+    "unused variable 'max_tokens'": 1
+  },
+  "maptasker/src/core/actionc.py": {
+    "unused variable 'arg_required'": 1
+  },
+  "maptasker/src/core/bundle.py": {
+    "unused method 'reload'": 1
+  },
+  "maptasker/src/core/caches.py": {
+    "unused function 'registered_names'": 1
+  },
+  "maptasker/src/core/initparg.py": {
+    "unused method 'from_dict'": 1,
+    "unused variable 'icon_alignement'": 1
+  },
+  "maptasker/src/core/sysconst.py": {
+    "unused variable 'BOLD'": 1,
+    "unused variable 'DISPLAY_DETAIL_LEVEL_anon_tasks_only'": 1,
+    "unused variable 'DISPLAY_DETAIL_LEVEL_summary'": 1,
+    "unused variable 'Green'": 1,
+    "unused variable 'White'": 1,
+    "unused variable 'dont_add_end_span'": 1
+  },
+  "maptasker/src/device/devicecheck.py": {
+    "unused property 'needs_prompt'": 1
+  },
+  "maptasker/src/device/deviceimport.py": {
+    "unused function 'import_profile_to_device'": 1,
+    "unused variable 'IMPORT_TYPE_TASK'": 1
+  },
+  "maptasker/src/device/deviceoffer.py": {
+    "unused function 'open_profile_on_device'": 1,
+    "unused function 'open_project_on_device'": 1,
+    "unused function 'open_tasker_on_device'": 1
+  },
+  "maptasker/src/edit/sceneedit_v2.py": {
+    "unused variable 'V2_SHOW_WHEN_GROUPS'": 1
+  },
+  "maptasker/src/gui/guiutils.py": {
+    "unused attribute 'ai_profile_label'": 2,
+    "unused attribute 'ai_project_label'": 2,
+    "unused attribute 'ai_scene_label'": 2,
+    "unused attribute 'ai_task_label'": 2,
+    "unused attribute 'coffee_button'": 1,
+    "unused attribute 'upgrade_button'": 1,
+    "unused attribute 'whats_new_button'": 1
+  },
+  "maptasker/src/gui/guiwins.py": {
+    "unused attribute 'ai_analysis'": 1,
+    "unused attribute 'ai_analysis_window'": 1,
+    "unused attribute 'diagramview_window'": 1,
+    "unused attribute 'font_table'": 1,
+    "unused attribute 'map_in_progress'": 1,
+    "unused attribute 'mapview_window'": 1,
+    "unused attribute 'miscview_window'": 1,
+    "unused attribute 'named_item'": 1,
+    "unused attribute 'outline'": 1,
+    "unused attribute 'reset_debug_at_end'": 1,
+    "unused attribute 'saved_background_color'": 1,
+    "unused attribute 'treeview_window'": 1,
+    "unused attribute 'video_window'": 1
+  },
+  "maptasker/src/gui/guiwins2.py": {
+    "unused attribute 'master'": 1
+  },
+  "maptasker/src/gui/guiwins_drawers.py": {
+    "unused attribute 'debug_checkbox'": 1,
+    "unused attribute 'exit_button'": 1,
+    "unused attribute 'gui_ai_panel'": 1,
+    "unused attribute 'gui_color_panel'": 1,
+    "unused attribute 'gui_debug_panel'": 1,
+    "unused attribute 'gui_main_column'": 1,
+    "unused attribute 'gui_tab_panels'": 1,
+    "unused attribute 'gui_tasker_object_panel'": 1,
+    "unused attribute 'picker_engine'": 1,
+    "unused attribute 'picker_title_label'": 1,
+    "unused attribute 'runtime_checkbox'": 1
+  },
+  "maptasker/src/gui/guiwins_mapstream.py": {
+    "unused function 'optimize_html'": 1,
+    "unused variable 'HTML_OPTIMIZE_PATTERN'": 1
+  },
+  "maptasker/src/gui/guiwins_sceneview.py": {
+    "unused attribute '_preview_handlers'": 2
+  },
+  "maptasker/src/gui/guiwins_search.py": {
+    "unused attribute '_search'": 1
+  },
+  "maptasker/src/gui/guiwins_tabs.py": {
+    "unused attribute 'add_profile_button'": 1,
+    "unused attribute 'add_project_button'": 1,
+    "unused attribute 'add_scene_button'": 1,
+    "unused attribute 'add_task_button'": 1,
+    "unused attribute 'analysis_query_button'": 1,
+    "unused attribute 'android_button_row'": 1,
+    "unused attribute 'android_query_button'": 1,
+    "unused attribute 'change_prompt_button'": 1,
+    "unused attribute 'color_picker_input'": 1,
+    "unused attribute 'display_help_button'": 1,
+    "unused attribute 'display_names_label'": 1,
+    "unused attribute 'edit_profile_button'": 1,
+    "unused attribute 'edit_project_button'": 1,
+    "unused attribute 'edit_scene_button'": 1,
+    "unused attribute 'edit_task_button'": 1,
+    "unused attribute 'font_label'": 1,
+    "unused attribute 'get_android_help_button'": 1,
+    "unused attribute 'indent_label'": 1,
+    "unused attribute 'model_to_use_label'": 1,
+    "unused attribute 'notify_timeout_label'": 1,
+    "unused attribute 'profile_buttons_row'": 1,
+    "unused attribute 'project_buttons_row'": 1,
+    "unused attribute 'run_task_button'": 1,
+    "unused attribute 'scene_buttons_row'": 1,
+    "unused attribute 'show_apikeys_button'": 1,
+    "unused attribute 'task_buttons_row'": 1,
+    "unused attribute 'viewlimit_label'": 1,
+    "unused attribute 'viewlimit_query_button'": 1
+  },
+  "maptasker/src/gui/guiwins_textview.py": {
+    "unused attribute 'map_message_label'": 1
+  },
+  "maptasker/src/gui/userintr.py": {
+    "unused attribute 'named_item'": 1,
+    "unused attribute 'outline'": 1,
+    "unused attribute 'saved_background_color'": 2,
+    "unused variable '__package__dialog'": 1,
+    "unused variable 'add_profile_button'": 1,
+    "unused variable 'add_project_button'": 1,
+    "unused variable 'add_scene_button'": 1,
+    "unused variable 'add_task_button'": 1,
+    "unused variable 'ai_analysis'": 1,
+    "unused variable 'ai_analysis_window'": 1,
+    "unused variable 'ai_profile_label'": 1,
+    "unused variable 'ai_project_label'": 1,
+    "unused variable 'ai_scene_label'": 1,
+    "unused variable 'ai_task_label'": 1,
+    "unused variable 'analysis_query_button'": 1,
+    "unused variable 'android_button_row'": 1,
+    "unused variable 'android_query_button'": 1,
+    "unused variable 'change_prompt_button'": 1,
+    "unused variable 'coffee_button'": 1,
+    "unused variable 'color_picker_input'": 1,
+    "unused variable 'debug_checkbox'": 1,
+    "unused variable 'diagramview_window'": 1,
+    "unused variable 'display_help_button'": 1,
+    "unused variable 'display_names_label'": 1,
+    "unused variable 'edit_profile_button'": 1,
+    "unused variable 'edit_project_button'": 1,
+    "unused variable 'edit_scene_button'": 1,
+    "unused variable 'edit_task_button'": 1,
+    "unused variable 'exit_button'": 1,
+    "unused variable 'filelist_label'": 1,
+    "unused variable 'filelist_option'": 1,
+    "unused variable 'font_label'": 1,
+    "unused variable 'font_table'": 1,
+    "unused variable 'get_android_help_button'": 1,
+    "unused variable 'gui_ai_panel'": 1,
+    "unused variable 'gui_color_panel'": 1,
+    "unused variable 'gui_debug_panel'": 1,
+    "unused variable 'gui_main_column'": 1,
+    "unused variable 'gui_tab_panels'": 1,
+    "unused variable 'gui_tasker_object_panel'": 1,
+    "unused variable 'indent_label'": 1,
+    "unused variable 'label_or'": 1,
+    "unused variable 'list_files_query_button'": 1,
+    "unused variable 'map_in_progress'": 1,
+    "unused variable 'mapview_window'": 1,
+    "unused variable 'miscview_window'": 1,
+    "unused variable 'model_to_use_label'": 1,
+    "unused variable 'named_item'": 1,
+    "unused variable 'notify_timeout_label'": 1,
+    "unused variable 'picker_engine'": 1,
+    "unused variable 'picker_title_label'": 1,
+    "unused variable 'profile_buttons_row'": 1,
+    "unused variable 'project_buttons_row'": 1,
+    "unused variable 'reset_debug_at_end'": 1,
+    "unused variable 'run_task_button'": 1,
+    "unused variable 'runtime_checkbox'": 1,
+    "unused variable 'scene_buttons_row'": 1,
+    "unused variable 'set_xml_details_button'": 1,
+    "unused variable 'show_apikeys_button'": 1,
+    "unused variable 'task_buttons_row'": 1,
+    "unused variable 'treeview_window'": 1,
+    "unused variable 'upgrade_button'": 1,
+    "unused variable 'video_window'": 1,
+    "unused variable 'viewlimit_label'": 1,
+    "unused variable 'viewlimit_query_button'": 1,
+    "unused variable 'whats_new_button'": 1
+  },
+  "maptasker/src/gui/userintr_android.py": {
+    "unused attribute 'filelist_label'": 1,
+    "unused attribute 'filelist_option'": 1,
+    "unused attribute 'label_or'": 1,
+    "unused attribute 'list_files_query_button'": 1,
+    "unused attribute 'set_xml_details_button'": 1
+  },
+  "maptasker/src/gui/userintr_settings.py": {
+    "unused attribute 'saved_background_color'": 3
+  },
+  "maptasker/src/mapit.py": {
+    "unused function 'mapit_all'": 1
+  },
+  "maptasker/src/mapops/mapcards.py": {
+    "unused variable 'held_out'": 1
+  },
+  "maptasker/src/mapops/mapswap.py": {
+    "unused function 'caller_sketch'": 1
+  },
+  "maptasker/src/mapops/mapswap_model.py": {
+    "unused variable 'BLOCKED_DETACHED'": 1
+  },
+  "maptasker/src/mapops/readiness.py": {
+    "unused property 'needs_nothing'": 1
+  },
+  "maptasker/src/mapops/tnfind.py": {
+    "unused attribute 'catalogue_age_days'": 1,
+    "unused variable 'catalogue_age_days'": 1
+  },
+  "maptasker/src/mapops/tnupdate.py": {
+    "unused property 'identical'": 1
+  },
+  "maptasker/src/mapops/trend.py": {
+    "unused attribute 'call_chain'": 1,
+    "unused attribute 'deepest_task'": 1,
+    "unused attribute 'long_tasks'": 1,
+    "unused attribute 'longest_task_name'": 1,
+    "unused variable 'call_chain'": 1,
+    "unused variable 'deepest_task'": 1,
+    "unused variable 'long_tasks'": 1,
+    "unused variable 'longest_task_name'": 1
+  }
+}

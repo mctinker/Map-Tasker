@@ -378,7 +378,6 @@ def test_the_book_finds_a_task_s_cases_and_a_name_nothing_has(tmp_path: Path) ->
         ]
     )
 
-    assert [case.name for case in book.for_task("T")] == ["a", "b"]
     assert book.unused_name("a") == "a 3"
     assert book.unused_name("fresh") == "fresh"
 

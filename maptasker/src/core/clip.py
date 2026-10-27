@@ -118,8 +118,6 @@ PLACEHOLDER = f"{PLACEHOLDER_COLOR}{PLACEHOLDER_CHAR}"
 
 # CURSOR ANSI ESCAPE PATTERNS
 CURSOR_UP = "\033[1A"  # moves cursor up one line
-CURSOR_DOWN = "\033[1B"  # moves cursor up one line
-CURSOR_RESET = "\033[u"  # resets the cursor
 CURSOR_OFF = "\033[?25l"  # makes cursor invisible
 CURSOR_ON = "\033[?25h"  # makes cursor visible
 CURSOR_SAVE_POS = "\033[s"  # saves cursor position

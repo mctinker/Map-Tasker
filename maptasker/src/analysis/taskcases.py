@@ -342,10 +342,6 @@ class CaseBook:
         self.cases = kept
         return removed
 
-    def for_task(self, task: str) -> list[Case]:
-        """The cases that are about this Task."""
-        return [case for case in self.cases if case.task == task]
-
     def unused_name(self, wanted: str) -> str:
         """`wanted`, or 'wanted 2', 'wanted 3' ... when a case already has it."""
         names = {case.name for case in self.cases}

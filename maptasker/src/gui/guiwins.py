@@ -31,7 +31,6 @@ these modules -- see any of their docstrings for which calls those are and why.
 
 from __future__ import annotations
 
-import html
 import re
 import time
 from collections import deque
@@ -237,38 +236,6 @@ def clear_notification_log() -> None:
 # search results view, the colour picker.  Nothing is lost by dismissing those, and making a
 # message you have finished reading demand a button press is just friction.
 # ==========================================
-# The whole of the markup a popup message may carry, for `rich=True` below.
-#
-# Deliberately NOT Markdown, even though ui.markdown() is right there.  The help text is
-# built out of lines that begin with "* " as bullets and carries paths like
-# 'MapTasker_Backups' (userhelp.py); Markdown would turn the first into list items and the
-# second into an italic run, and -- the reason that matters most here -- it re-flows text,
-# which would undo the leading indentation whitespace-pre-wrap exists to preserve.
-#
-# So the markers are DOUBLED, which is what keeps them clear of the help text's own single
-# "*" bullets, and the conversion is this one pass and nothing else.  A run may not cross a
-# line break: an unclosed "**" then spoils at most its own line rather than swallowing the
-# rest of the screen as bold.
-RICH_TEXT_MARKUP = (
-    (re.compile(r"\*\*([^\n]+?)\*\*"), r"<b>\1</b>"),
-    (re.compile(r"__([^\n]+?)__"), r"<i>\1</i>"),
-)
-
-
-def rich_text_to_html(message: str) -> str:
-    """Escape `message`, then turn its **bold** and __italic__ markers into HTML.
-
-    The escape is not optional and has to come first.  The help screen has the fetched
-    changelog appended to it (userintr.query_event) and that is text off the network -- it
-    reaches the browser as characters to draw, never as markup to run.  Escaping first also
-    means the markers are the only markup that can survive, so help text that says "<b>"
-    displays "<b>".
-    """
-    html_text = html.escape(message)
-    for pattern, replacement in RICH_TEXT_MARKUP:
-        html_text = pattern.sub(replacement, html_text)
-    return html_text
-
 
 # Run in the browser when text in a rich popup is clicked: a link goes to a new tab, anything else is left alone.
 OPEN_LINKS_IN_NEW_TAB = """(event) => {
@@ -295,7 +262,6 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
             # ui.label, which cannot render markup at all, so a message that happens to
             # contain "**" or "<" is still drawn exactly as it reads.
             if rich:
-                # ui.html(rich_text_to_html(message)).classes(text_classes)
                 # An underscore inside a word (the 'MapTasker_Timeline' and 'MapTasker_Backups' folder
                 # names) is an italic marker to the Markdown renderer, which then italicized everything
                 # between the two.  Escape those, and only those: a real __italic__ run is untouched.

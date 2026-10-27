@@ -301,17 +301,11 @@ def since(cutoff: datetime) -> Snapshot | None:
     None when the history does not reach back that far.  Deliberately not "the oldest
     snapshot instead": a report headed "since last week" that quietly compared against
     three months ago would be answering a question nobody asked.  The caller says so and
-    offers what there is -- see earliest().
+    offers what there is (the oldest of snapshots()).
     """
     cutoff = clock.aware(cutoff)
     reachable = [snapshot for snapshot in snapshots() if snapshot.when <= cutoff]
     return reachable[-1] if reachable else None
-
-
-def earliest() -> Snapshot | None:
-    """The oldest snapshot held, or None when the history is empty."""
-    held = snapshots()
-    return held[0] if held else None
 
 
 @contextlib.contextmanager

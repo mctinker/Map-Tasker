@@ -88,10 +88,6 @@ if TYPE_CHECKING:
     from maptasker.src.edit.profedit import EditableProfile
     from maptasker.src.edit.taskedit_model import EditableTask
 
-# The tag a standalone export wraps everything in, and the indent every renderer uses.
-# Both have to match the renderers exactly or check 1 fails on documents that are fine --
-# see _reserialize.
-TASKERDATA_TAG = "TaskerData"
 RENDER_INDENT = "\t"
 
 # The tag each kind of object is found under in a rendered document, paired with the child

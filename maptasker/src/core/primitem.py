@@ -58,7 +58,6 @@
 #  mono_fonts = the font pulldown's choices, {font name: label shown}
 #  grand_totals = used for trcaking number of Projects/Profiles/Tasks/Scenes
 #  tasker_root_elements points to our root xml for Projects/Profiles/Tasks/Scenes
-#  directories = points to our directory items if we are displaying a directory
 #  variables = Tasker variables.
 #  current_project = current Project being processed
 #  last_run = date of last run (set by restore_settings)
@@ -359,7 +358,6 @@ class RunState:
         # The highest Task/Profile id in the file as it was loaded, set by taskerd.get_the_xml_data.
         # New ids are kept well above it -- see taskedit.NEW_OBJECT_ID_HEADROOM.  0 = nothing loaded.
         self.loaded_highest_object_id = 0
-        self.directories: list[Any] = []
         self.variables: dict[str, Any] = {}
         self.current_project: dict[
             str, Any

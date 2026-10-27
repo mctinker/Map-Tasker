@@ -811,19 +811,10 @@ def _duplicate_detail(
     return pieces
 
 
-def _where_each_is(identifiers: list[str], project_of: dict[str, str]) -> str:
-    """ "id 42 in Project 'Home', id 91 in Project 'Work'" -- each copy and where it lives.
-
-    Sorted by Project so copies sharing one are named together, which is what makes the
-    same-Project case readable at a glance.
-    """
-    return ", ".join(text for text, _ in _each_copy(identifiers, project_of))
-
-
 def _each_copy(identifiers: list[str], project_of: dict[str, str]) -> list[tuple[str, str]]:
-    """The (phrase, id) pairs _where_each_is joins, in the order it joins them.
+    """Each copy of a duplicated name as a (phrase, id) pair, sorted by Project so copies sharing one sit together.
 
-    Kept apart from the joining so the rendered report can make each copy clickable in
+    Pairs rather than one joined string so the rendered report can make each copy clickable in
     place: DUPLICATE-NAME is a finding about a name, so its location line has nothing to
     point at, and the copies named here are the only places to go.
     """

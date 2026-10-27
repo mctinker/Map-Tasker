@@ -267,19 +267,6 @@ RE_FONT = re.compile(r"</font>")
 
 clean = re.compile("<.*?>")
 
-icon_pattern = re.compile(
-    r"[\U0001F300-\U0001F5FF]|"  # Emoticons, Transport & Map Symbols
-    r"[\U0001F600-\U0001F64F]|"  # Emoticons
-    r"[\U0001F680-\U0001F6FF]|"  # Transport & Map Symbols
-    r"[\U0001F700-\U0001F77F]|"  # Alchemical Symbols
-    r"[\U0001F780-\U0001F7FF]|"  # Geometric Shapes Extended
-    r"[\U0001F800-\U0001F8FF]|"  # Supplemental Arrows-C
-    r"[\U0001F900-\U0001F9FF]|"  # Supplemental Symbols and Pictographs
-    r"[\U0001FA00-\U0001FA6F]|"  # Chess Symbols
-    r"[\U0001FA70-\U0001FAFF]"  # Symbols and Pictographs Extended-A
-    r"[\u4E00-\u9FFF]",  # CJK Unified Ideographs (Simplified Chinese)
-)
-
 
 # ASCII Color Definitions
 class Colors:
@@ -521,9 +508,6 @@ SCENE_TASK_TYPES = {
 
 # GUI Tab Names
 TAB_NAMES = ["Specific Name", "Colors", "Analyze", "Assistance"]
-
-# Default GUI Window Dimensions: Width x Height + X_offset + Y_offset (no spaces)
-DEFAULT_GUI_WINDOW = "1129x1044+698+145"
 
 # Material 3's baseline light scheme -- what a colour named by role ("outline",
 # "onSecondaryContainer") resolves to here.

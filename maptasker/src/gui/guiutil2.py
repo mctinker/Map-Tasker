@@ -21,9 +21,6 @@ from maptasker.src.core.mapfonts import get_font_choices as get_font_selections
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import logger
 
-# Change-type prefixes recognized in the Changelog (see get_changelog_file)
-CHANGELOG_CHANGE_TYPES = ("Added", "Changed", "Fixed", "Removed")
-
 # Define the output file for the trace log
 TRACE_LOG_FILE = "trace_log.txt"
 # Function to clear the log file at the start (optional)

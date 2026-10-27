@@ -443,7 +443,6 @@ class HTMLTextFormatter(HTMLParser):
                 self.table_th = False
             elif self.code_tag:
                 decoded_data = "<code>" + decoded_data + "</code>"
-                self.table_td = False
             self._add_segment(decoded_data)
 
     def handle_unknown_starttag(self, tag: str, _attrs: list[tuple[str, str]]) -> None:
@@ -785,10 +784,6 @@ class HTMLTagDetector(HTMLParser):
     def handle_endtag(self, _tag: str) -> None:
         """Called when a closing tag is encountered."""
         self.found_html_tags = True
-
-    def reset_detector(self) -> None:
-        """Resets the detector for reuse."""
-        self.found_html_tags = False
 
 
 def contains_html(text_string: str) -> bool:

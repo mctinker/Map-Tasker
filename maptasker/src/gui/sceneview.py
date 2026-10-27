@@ -104,11 +104,6 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 
-# Tasker's "this orientation has no layout of its own" (sysconst.UNSET_DIMENSION), which
-# appears both as a Scene dimension and inside a <geom>.
-UNSET = -1
-
-
 # sp -> px.  See this module's docstring: not a fact about the Scene, a property of the
 # device it would be shown on, so it is a default rather than a constant.
 DEFAULT_DENSITY = 2.75

@@ -142,6 +142,12 @@ jobs:
       - name: typecheck ratchet
         run: uv run --no-sync python scripts/typecheck_ratchet.py
 
+      # vulture ([tool.vulture] in pyproject.toml) finds functions, methods, attributes and constants
+      # nothing refers to.  What it still finds is listed in scripts/dead_code_baseline.json: this fails
+      # on any new one, and on a removed one until the baseline is lowered to match (--update).
+      - name: dead code ratchet
+        run: uv run --no-sync python scripts/dead_code_ratchet.py
+
       # [tool.importlinter] in pyproject.toml: entry points above the GUI, the GUI above the
       # core, and NiceGUI imported only by the GUI. Every module has to be placed in a layer,
       # so a new one fails here until it is.

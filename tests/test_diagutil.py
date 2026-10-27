@@ -75,25 +75,12 @@ def test_each_chinese_japanese_or_korean_character_needs_the_column_it_occupies(
     assert diagutil.icon_columns("\u3072\u3089\u304c\u306a \ud55c\uae00") == 6
 
 
-def test_icons_are_counted() -> None:
-    assert diagutil.count_icons("a😀b🚀") == 2
-    assert diagutil.count_icons("plain") == 0
-
-
-def test_a_character_is_removed_by_position() -> None:
-    assert diagutil.remove_char("abcd", 1) == "acd"
-
-
-def test_a_closing_bracket_is_never_the_character_removed() -> None:
-    assert diagutil.remove_char("ab]cd", 3) == "ab]cd"
-
-
 def test_a_line_with_no_arrow_is_left_as_it_is() -> None:
     assert diagutil.remove_icon("plain text, no arrow") == "plain text, no arrow"
 
 
 def test_a_line_with_an_arrow_and_no_icon_is_left_as_it_is() -> None:
-    line = f"Task {diagutil.arrows[0]} other"
+    line = f"Task {diagutil.down_arrow} other"
     assert diagutil.remove_icon(line) == line
 
 
