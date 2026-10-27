@@ -35,6 +35,7 @@ from maptasker.src.gui.guiwins_taskedit import (
     _render_plugin_configuration_warning,
     _render_readonly_note,
 )
+from maptasker.src.gui.guiwins_tndesc import build_taskernet_description_button
 
 if TYPE_CHECKING:
     from nicegui.elements.select import Select
@@ -159,6 +160,13 @@ class _ProfileEditorBody:
             # caller's `with ui.dialog()` block, and the Properties editor needs to know which
             # dialog it is opening over.  See build_edit_profile_dialog/build_add_profile_dialog.
             _build_properties_button(gui, objprops.KIND_PROFILE, edited_profile.profile_element, self.parent_dialog)
+            # The working copy again, and for the same reason: Add and Edit Profile save through it.
+            build_taskernet_description_button(
+                gui,
+                objprops.KIND_PROFILE,
+                edited_profile.profile_element,
+                edited_profile.profile_element.findtext("nme", ""),
+            )
 
         self.tasks_container = ui.column().classes("w-full")
         self.render_task_links()

@@ -20,6 +20,7 @@ from maptasker.src.gui.guiwins_editor import (
     editor_state,
 )
 from maptasker.src.gui.guiwins_readiness import build_share_checks
+from maptasker.src.gui.guiwins_tndesc import build_taskernet_description_button
 from maptasker.src.mapops import readiness
 
 if TYPE_CHECKING:
@@ -47,6 +48,10 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
         # rather than a copy of it -- so properties set before the Project exists are
         # already on it once it does.
         _build_properties_button(self, objprops.KIND_PROJECT, edited_project.project_element, dialog)
+
+        # No on_applied either, for the same reason: register_new_project stores this element, so a
+        # description written onto it now is on the Project once it exists.
+        build_taskernet_description_button(self, objprops.KIND_PROJECT, edited_project.project_element)
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
@@ -142,6 +147,17 @@ def _build_edit_project_fields(
         edited_project.project_element,
         dialog,
         on_applied=lambda: self.event_handlers.editors.apply_project_properties_event(edited_project),
+    )
+
+    # Immediate too, and for the same reason: both by-name saves render from the live tree, so a
+    # description left on the copy would be missing from the export and the upload.  Like the
+    # Properties button it is kept out of field_refs, which unapplied_project_edits would fail on.
+    build_taskernet_description_button(
+        self,
+        objprops.KIND_PROJECT,
+        edited_project.project_element,
+        project_name,
+        on_applied=lambda: self.event_handlers.editors.apply_project_share_event(edited_project),
     )
 
     field_refs["project_save_path"] = ui.input(

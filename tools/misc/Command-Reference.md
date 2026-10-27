@@ -4,7 +4,7 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **92** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **93** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
 _Generated from the MapTasker 15.1.0 source on 2026-10-27 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
@@ -106,6 +106,7 @@ _Generated from the MapTasker 15.1.0 source on 2026-10-27 by `build_command_wiki
 * [Task Flow](#cmd-task-flow)
 * [Task Stepper](#cmd-task-stepper)
 * [Task Tests](#cmd-task-tests)
+* [TaskerNet Description](#cmd-taskernet-description)
 * [TaskerNet Updates](#cmd-taskernet-updates)
 * [Trend Dashboard](#cmd-trend-dashboard)
 * [Variable Xref](#cmd-variable-xref)
@@ -378,7 +379,7 @@ The Tree View has the following behavior:
 ### Clear
 
 **Type:** Command  
-**Where:** AI API Key Entry; Right Drawer; Toolbar
+**Where:** AI API Key Entry; Buttons; Right Drawer (and 1 more)
 
 Clear the Map/Diagram/Tree view data currently held and displayed.
 
@@ -1337,6 +1338,26 @@ One report of everything the loaded configuration reaches outside the phone with
 
 * It opens with a count of each kind and the actions worth a look -- a command run as root, a request over plain http to somewhere that is not your own network, an address built from a variable, an action carrying a key or password -- then every host contacted and how many places use it, then the full list by Project and Task.
 * Keys and passwords found in an address or command are replaced by a placeholder in the report, so it is safer to share than the backup, but a secret with no recognizable shape is not found.
+
+<a id="cmd-taskernet-description"></a>
+### TaskerNet Description
+
+Add or edit the description anybody sees before importing a Project, Profile or Task from TaskerNet.
+
+* Every Add and Edit dialog for those three has an Add TaskerNet Description button (Edit TaskerNet Description once there is one) beside its Properties button.
+* Tasker says only that a description can use HTML formatting and some small images, so plain text works too.
+* The window has a button for each tag real TaskerNet descriptions use -- bold, italic, underline, color, code, paragraph, line break, rule, bullets, numbers, headings, link, image and table -- which wrap whatever is selected in the box, or put a placeholder there for you to type over.
+* Nothing blocks Ok, so a description with a problem is kept and the problem is said again.
+* Clear then Ok takes the description off the object.
+* For a Task or a Profile the description is kept with the other changes in the dialog and saved with them; for a Project being edited it reaches the loaded backup as soon as you press Ok, as Properties do.
+* Search categories and the other TaskerNet flags already on an object are never changed.
+* Nothing is sent to TaskerNet or your phone.
+
+**Caveats:**
+
+* Link and Image use the address typed below the box, and Add Line Breaks puts a <br/> on every line that does not already end a tag, since a line end in HTML is only a space.
+* As you type, the HTML is checked: an unclosed tag, a tag nothing else uses, a script, an event handler or a link that is not to a web page, an email address or a TaskerNet share (taskershare://), and an image stored inside the description rather than linked to, which Tasker's 'small images' does not allow.
+* Below it is a preview made by the code that draws the Map, so it shows what the Map will show; TaskerNet's own page is not drawn here and may differ.
 
 ## Command-Line Arguments
 

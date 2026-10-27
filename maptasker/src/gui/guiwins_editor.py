@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ETW
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -134,9 +134,9 @@ PENDING_CHANGES_IGNORED_FIELDS: frozenset[str] = frozenset(
 
 def editor_state(
     element: Element,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     *extra: object,
-) -> tuple:
+) -> tuple[object, ...]:
     """Everything about an Edit dialog that a change could show up in, as one comparable
     value -- see the section comment above for what this is for.
 

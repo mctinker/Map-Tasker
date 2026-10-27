@@ -6,6 +6,7 @@
 # share: process TaskerNet "Share" information                                         #
 #                                                                                      #
 
+from collections.abc import Mapping
 from xml.etree.ElementTree import Element
 
 from maptasker.src.core.format import format_html
@@ -87,6 +88,20 @@ def share(root_element: Element, tab: str, where: Target | None = None, *, confi
 # ################################################################################
 # Process the description <d> element
 # ################################################################################
+def description_html(text: str | None, colors: Mapping[str, str]) -> str:
+    """One TaskerNet description as the Map draws it: formatted as if it were a label with embedded html.
+
+    A function of its own so that what the TaskerNet Description editor previews is made by
+    the very code that makes what the Map shows, and cannot drift from it.
+    """
+    return (
+        format_label(f"<h6>TaskerNet description: {text}", colors=colors)
+        .replace("action_label_color", "taskernet_color")
+        .replace(" ...with label:", "")
+        .replace("\n", "<br>")
+    )
+
+
 def description_element_output(
     description_element: Element, tab: str, where: Target | None = None, *, config: RunConfig, state: RunState
 ) -> None:
@@ -106,16 +121,8 @@ def description_element_output(
     if where is not None and (anchor := anchor_html(where.at_part(TASKERNET_PART), state=state)):
         state.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
-    # Format the description as if it is a label with embedded html/
-    out_string = (
-        format_label(f"<h6>TaskerNet description: {description_element.text}", colors=config.colors)
-        .replace("action_label_color", "taskernet_color")
-        .replace(" ...with label:", "")
-        .replace("\n", "<br>")
-    )
-
     # Add the tab CSS call to the color.
-    out_string = state.output_lines.add_tab(tab, out_string)
+    out_string = state.output_lines.add_tab(tab, description_html(description_element.text, config.colors))
 
     # Output the description line.
     state.output_lines.add_line_to_output(

@@ -46,6 +46,7 @@ from maptasker.src.gui.guiwins_editor import (
     editor_state,
 )
 from maptasker.src.gui.guiwins_impact import build_impact_panel
+from maptasker.src.gui.guiwins_tndesc import build_taskernet_description_button
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -1939,6 +1940,8 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit_model.EditableTask
             # reaches the live tree, the export and the upload alike -- and Cancel here
             # still discards it.  See objprops.py's module docstring.
             _build_properties_button(self, objprops.KIND_TASK, edited_task.task_element, dialog)
+            # Beside it, on the same working copy: see the note above.
+            build_taskernet_description_button(self, objprops.KIND_TASK, edited_task.task_element, task_name)
 
         # The picker and the action list -- see _build_task_action_editor, which this
         # dialog is where they came from.  Nothing here needs its render_actions back:
@@ -2042,6 +2045,7 @@ def _render_new_task_name_row(
         # copy of it, and every save path deep-copies it at write time, so properties
         # set before the Task exists are still on it once it does.
         _build_properties_button(self, objprops.KIND_TASK, edited_task.task_element, dialog)
+        build_taskernet_description_button(self, objprops.KIND_TASK, edited_task.task_element)
 
 
 def _render_new_task_buttons(

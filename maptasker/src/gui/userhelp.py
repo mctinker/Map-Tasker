@@ -363,6 +363,25 @@ OUTBOUND_HELP_TEXT = (
     " written in some other action, such as a Variable Set holding a server, is listed apart because a later request"
     " may use it.  Nothing is contacted and nothing on your phone is changed.  \n"
 )
+TNDESC_HELP_TEXT = (
+    "- TaskerNet Description: Add or edit the description anybody sees before importing a Project, Profile or Task from"
+    " TaskerNet.  Every Add and Edit dialog for those three has an Add TaskerNet Description button (Edit TaskerNet"
+    " Description once there is one) beside its Properties button.  Tasker says only that a description can use HTML"
+    " formatting and some small images, so plain text works too.  The window has a button for each tag real TaskerNet"
+    " descriptions use -- bold, italic, underline, color, code, paragraph, line break, rule, bullets, numbers, headings,"
+    " link, image and table -- which wrap whatever is selected in the box, or put a placeholder there for you to type"
+    " over.  Link and Image use the address typed below the box, and Add Line Breaks puts a <br/> on every line that"
+    " does not already end a tag, since a line end in HTML is only a space.  As you type, the HTML is checked: an"
+    " unclosed tag, a tag nothing else uses, a script, an event handler or a link that is not to a web page, an email"
+    " address or a TaskerNet share (taskershare://), and an image stored inside the description rather than linked to,"
+    " which Tasker's 'small images' does not allow.  Below it is a preview made by the code that draws the Map, so it"
+    " shows what the Map will show; TaskerNet's own page is not drawn here and may differ.  Nothing blocks Ok, so a"
+    " description with a problem is kept and the problem is said again.  Clear then Ok takes the description off the"
+    " object.  For a Task or a Profile the description is kept with the other changes in the dialog and saved with"
+    " them; for a Project being edited it reaches the loaded backup as soon as you press Ok, as Properties do.  Search"
+    " categories and the other TaskerNet flags already on an object are never changed.  Nothing is sent to TaskerNet"
+    " or your phone.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -392,5 +411,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}"
     )

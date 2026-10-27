@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
-from maptasker.src.core import objprops, scenelayout
+from maptasker.src.core import objprops, scenelayout, tndesc
 from maptasker.src.core.maputil2 import translate_string, write_full_backup_to_current_file
 from maptasker.src.edit import (
     profedit,
@@ -745,6 +745,47 @@ class EditorEventHandlers(HandlerGroup):
         reason: there is no later moment at which a by-name save could pick this up.
         """
         projedit.apply_properties_to_live_tree(edited_project, state=self.state)
+
+    def keep_taskernet_description_event(
+        self,
+        element: Element,
+        text: str,
+        dialog: ui.dialog,
+        on_applied: Callable[[], None] | None = None,
+        on_kept: Callable[[], None] | None = None,
+    ) -> None:
+        """Ok in the TaskerNet Description editor: write it onto the element, run the caller's follow-up, close.
+
+        Nothing blocks the Ok -- a description with an unclosed tag is still a description, and
+        the editor has been saying so as it was typed -- but a WARNING-grade problem is said
+        again here, so it is not walked away from.  No undo checkpoint is taken for a Task or a
+        Profile, for the Properties editor's reason: the edit lands on the working copy, where
+        the live configuration has not changed yet.  `on_applied` is where Edit Project's
+        checkpoint is taken (projedit.apply_share_to_live_tree).
+        """
+        tndesc.set_description(element, text)
+        if on_applied is not None:
+            on_applied()
+        if on_kept is not None:
+            on_kept()
+
+        problems = [issue for issue in tndesc.check(text) if issue.severity == tndesc.WARNING]
+        if problems:
+            ui.notify(
+                translate_string("TaskerNet description kept, but check its HTML:") + f" {problems[0].message}",
+                type="warning",
+            )
+        else:
+            ui.notify(translate_string("TaskerNet description kept."), type="positive")
+        dialog.close()
+
+    def apply_project_share_event(self, edited_project: projedit.EditableProject) -> None:
+        """Edit Project's on_applied for the TaskerNet description: carry it through to the live element.
+
+        Immediate, as apply_project_properties_event is and for the same reason: there is no later
+        moment at which a by-name save could pick it up.  See projedit.apply_share_to_live_tree.
+        """
+        projedit.apply_share_to_live_tree(edited_project, state=self.state)
 
     def cancel_object_properties_event(
         self,

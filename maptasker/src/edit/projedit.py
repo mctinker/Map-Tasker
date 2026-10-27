@@ -49,7 +49,7 @@ if TYPE_CHECKING:
 
     from maptasker.src.core.primitem import RunState
 
-from maptasker.src.core import editcommon, objprops, piiscan
+from maptasker.src.core import editcommon, objprops, piiscan, tndesc
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
 from maptasker.src.core.editcommon import touch_project_mdate
 from maptasker.src.core.presave import backup_local_file
@@ -372,6 +372,27 @@ def apply_properties_to_live_tree(edited_project: EditableProject, state: RunSta
     with sessundo.undoable(f"Edit Project '{edited_project.project_name}' properties", state=state):
         if live_element is not None and live_element is not edited_project.project_element:
             objprops.mirror_properties(objprops.KIND_PROJECT, edited_project.project_element, live_element)
+            touch_project_mdate(live_element)
+        touch_project_mdate(edited_project.project_element)
+
+
+def apply_share_to_live_tree(edited_project: EditableProject, state: RunState) -> None:
+    """Carry the TaskerNet description just written onto the Project copy through to the LIVE element.
+
+    The TaskerNet description's counterpart of apply_properties_to_live_tree, and needed for
+    exactly the reasons that one gives: both of Edit Project's saves render from the live tree
+    by name and "Save To Current File" writes the live backup, so a description left on the
+    copy alone would be missing from all three -- and a Rename registers the copy as the live
+    element, so one written only to the live element would be dropped by the next Rename.
+    Both are written; a no-op for a Project that is not registered yet, whose copy
+    register_new_project stores as it stands.
+
+    <mdate> is stamped because this is a modification.
+    """
+    live_element = resolve_project_by_name(edited_project.project_name, state=state)
+    with sessundo.undoable(f"Edit Project '{edited_project.project_name}' TaskerNet description", state=state):
+        if live_element is not None and live_element is not edited_project.project_element:
+            tndesc.mirror_share(edited_project.project_element, live_element)
             touch_project_mdate(live_element)
         touch_project_mdate(edited_project.project_element)
 
