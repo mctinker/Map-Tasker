@@ -316,6 +316,10 @@ max-complexity = 12
 # each from the project's own interpreter.
 'scripts/complexity_ratchet.py' = ['S603']
 'scripts/coverage_ratchet.py' = ['S603']
+# perf_check.py runs itself, in a process of its own for each timing, from the project's own interpreter (S603);
+# and times the steps of a command-line run by calling the setup that run is made of, which clireports keeps to itself
+# because nothing else is meant to start a run that way (SLF001).
+'scripts/perf_check.py' = ['S603', 'SLF001']
 
 # There is no per-file backlog any more.  Every rule is enforced in every file; a new
 # violation fails CI, and the fix belongs in the code rather than in a line added here.

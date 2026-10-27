@@ -76,6 +76,8 @@ htmlcov
 # Everything the scripts write into scripts/Reports.  Reports are made from a real Tasker
 # backup, and two of them once carried API keys from it into a commit.
 scripts/Reports/
+# The timings of a backup of your own, which perf_check.py compares against (-backup).  A backup is personal.
+scripts/perf_baseline_local.json
 MapTasker.html
 MapTasker_Map.txt
 MapTasker_Apps.json

@@ -1,0 +1,11 @@
+{
+  "inputs": {
+    "synthetic x200": {
+      "diagram": 4.407,
+      "load": 0.587,
+      "map": 3.493
+    }
+  },
+  "note": "Timings in units of a fixed piece of Python work; see scripts/perf_check.py.",
+  "python": "3.13.16"
+}

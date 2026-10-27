@@ -89,6 +89,7 @@ increase shows up in review with its reason.
 | typecheck ratchet | pyright (basic mode) errors per file and rule, for the source, `scripts`, `tests` and `tools` | `scripts/pyright_baseline.json` | `python scripts/typecheck_ratchet.py` |
 | strict typing | the modules in `[tool.pyright] strict` are clean under pyright's strict mode; `scripts/strict_exempt.json` lists those not yet, and may only shrink.  A new module is written strict-clean (`tests/test_strict_typing.py`).  The plan for the rest, by layer, is in `pyproject.toml` above the list | `scripts/strict_exempt.json` | `pyright` |
 | coverage | `fail_under` for the whole program, and a floor per layer (a well-tested layer cannot cover for a neglected one) | `scripts/coverage_baseline.json` | `pytest --cov=maptasker` then `python scripts/coverage_ratchet.py` |
+| build speed | the Map and Diagram build times, against a copy of `tests/data` scaled up, in units of a fixed piece of Python work so the machine does not matter; more than 25% slower fails | `scripts/perf_baseline.json` | `python scripts/perf_check.py` |
 | import layers | the table above | `[tool.importlinter]` | `lint-imports` |
 | dependency audit | the versions pinned in `uv.lock` against the known-vulnerability databases | -- | `scripts/dependency_audit.sh` |
 

@@ -107,6 +107,10 @@ else
     # number for the whole program) cannot see.  Reads the .coverage file the gate above made.
     run_gate "coverage by layer" uv run --no-sync python scripts/coverage_ratchet.py
 
+    # How long the Map and the Diagram take to build, against scripts/perf_baseline.json.  Timed in
+    # units of a fixed piece of Python work, so a busy machine does not fail it; ~20 s.
+    run_gate "build speed" uv run --no-sync python scripts/perf_check.py
+
     # The locked versions against the vulnerability databases.  Needs a network, like the build.
     run_gate "dependency audit" ./scripts/dependency_audit.sh
 

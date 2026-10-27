@@ -154,6 +154,38 @@ jobs:
       - name: ruff format --check
         run: uv run --no-sync ruff format --check
 
+  # How long the Map and the Diagram take to build (scripts/perf_check.py), against scripts/perf_baseline.json.
+  # Timed in units of a fixed piece of Python work, so a slower machine does not fail it -- but the
+  # baseline was recorded on a developer's Mac, and a hosted runner is a different processor.  Until a
+  # baseline recorded here proves steady (`python scripts/perf_check.py --update` on this job's output),
+  # it reports without failing the workflow; run-ci.sh makes it a gate on the machine that recorded it.
+  performance:
+    name: build speed
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install project and test dependencies
+        run: uv sync --locked --group test
+
+      - name: Time the Map and the Diagram
+        run: |
+          uv run --no-sync python scripts/perf_check.py | tee perf.txt
+          {
+            echo "### Build speed (Python 3.13, ${{ runner.os }})"
+            echo '```'
+            cat perf.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   build:
     name: build distribution
     runs-on: ubuntu-latest
