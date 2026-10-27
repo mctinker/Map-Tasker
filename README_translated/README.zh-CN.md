@@ -340,14 +340,14 @@ AI 分析功能仅在图形界面中可用。您只能针对单个 Project、Pro
 
 **报告错误：**
 
-- 如果您发现任何问题，请在 [GitHub Issues 页面](https://github.com/mctinker/Map-Tasker/issues) 上创建一个问题。
+- 如果您发现任何问题，请在 [GitHub Issues 页面](https://github.com/mctinker/Map-Tasker/issues) 上创建问题。
 - 尽可能提供详细信息：
   - 重现该问题的步骤。
   - 预期行为与实际行为。
   - 您的操作系统和 Python 版本。
   - MapTasker 版本。
-  - 与您的 Tasker XML 文件的相关部分（如果适用，并确保其中不包含任何敏感信息）。
-  - 如果使用 `-debug` 选项生成文件，则会生成名为 `maptasker.log` 的文件。
+  - 与您的 Tasker XML 文件的相关部分（如果适用，并且确保其中不包含任何敏感信息）。
+  - 如果使用 `-debug` 选项生成 `maptasker.log` 文件。
 
 **提出改进建议：**
 

@@ -200,9 +200,9 @@ A brief overview of the main files and their purpose:
   - `maptasker/assets/`: Static assets like icons, images, and JSON data used by the application.
   - `maptasker/locale`: language files for translations.
 - `documentation_images/`: Images used within this README and other documentation.
-- `tools/`: utilities used during development. 
+- `tools/`: Utilities used during development.
 - `tests/`: Contains test scripts and related files for ensuring code quality.
-- `maptasker/main.py`: The entry point behind the `maptasker` command.  From a cloned repository, run `python -m maptasker.main`.
+- `maptasker/main.py`: The entry point behind the `maptasker` command. From a cloned repository, run `python -m maptasker.main`.
 - `LICENSE`: The MIT License file for the project.
 - `README.md`: This file.
 - `Changelog.md`: A log of changes made in each version.
