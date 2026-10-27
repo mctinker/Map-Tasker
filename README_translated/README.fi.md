@@ -8,14 +8,15 @@
 <div align="center">
 
 ![PyPI](https://img.shields.io/pypi/v/maptasker)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
-![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
+![PyPI - Lataukset](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
+![Lataukset](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
 ![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
-![PyPI - License](https://img.shields.io/pypi/l/maptasker)
+![PyPI - Lisenssi](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[!["Buy Me A Coffee"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
+[![Koodityyli: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-blue?logo=pytest)](https://docs.pytest.org/)
+[!["Osta minulle kahvia"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
 
@@ -98,7 +99,6 @@ Taskerin varmuuskopio tai muu Taskerin viety XML voidaan joko latata manuaalises
 
 &nbsp;&nbsp;&nbsp;Tämä vaatii voimassa olevan API-avaimen, jos käytät palvelinpohjaista analyysiä, ja/tai Ollaman asentamisen paikallista analyysiä varten (katso [huomautus 3](#3)).
 
-
 ## Asennus
 
 Tämä ohjelma ja kaikki sen esivaatimukset vievät noin 230 Mt tilaa. Suositellaan asentamista virtuaaliympäristöön (vaihtoehto 2).
@@ -120,7 +120,7 @@ Tämä ohjelma ja kaikki sen esivaatimukset vievät noin 230 Mt tilaa. Suositell
   - `pip install maptasker`
 
   ...tai...
-  
+
   uv:n kautta...
   - `cd xxx`, missä 'xxx' on hakemisto, johon haluat asettaa virtuaaliympäristön.
   - `uv venv`
@@ -134,7 +134,7 @@ Tämä ohjelma ja kaikki sen esivaatimukset vievät noin 230 Mt tilaa. Suositell
      ```python -m pip install "maptasker[ai]" -U```
                  ...TAI...
      ```uv add "maptasker[ai]"```
-  
+
 ## Käyttö
 
 - Syötä komento:
@@ -181,25 +181,32 @@ MapTasker tuottaa useita tulostetiedostoja, sekä työpöydälle että Android-l
 
 Katso [wiki](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output) saadaksesi täydellisen luettelon MapTaskerin tuottamista tulosteista.
 
-
 ## Lisää: [[Ajonaikaiset asetukset]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Esimerkkejä ajonaikaisista asetuksista]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Esimerkkituloste]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
 ## Projektin rakenne
 
 Lyhyt yleiskatsaus päätiedostoista ja niiden tarkoituksesta:
 
-- `maptasker/`: Sisältää sovelluksen ydinkoodin.
-  - `maptasker/src/`: MapTaskerin logiikan pääasialliset Python-lähdetiedostot.
-  - `maptasker/assets/`: Sovelluksen käyttämät staattiset resurssit, kuten kuvakkeet, kuvat ja JSON-data.
-  - `maptasker/locale`: käännöksiin käytettävät kielitiedostot.
-- `documentation_images/`: Tässä README-tiedostossa ja muussa dokumentaatiossa käytetyt kuvat.
-- `tools/`: kehityksen aikana käytetyt apuohjelmat.
-- `tests/`: Sisältää testiskriptit ja niihin liittyvät tiedostot koodin laadun varmistamiseksi.
-- `maptasker/main.py`: `maptasker`-komennon takana oleva sisäänpääsypiste. Kloonatusta repositoriosta ajetaan `python -m maptasker.main`.
-- `LICENSE`: Projektin MIT-lisenssitiedosto.
-- `README.md`: Tämä tiedosto (alkuperäinen englanninkielinen).
-- `Changelog.md`: Loki muutoksista, jotka on tehty joka versiossa.
-- `pyproject.toml`: Projektin metatiedot ja build-järjestelmän asetukset.
+- `maptasker/`: Sisältää sovelluksen perusohjelmakoodin.
+  - `maptasker/src/`: Pääasialliset Python-lähtekooditiedostot MapTaskerin logiikalle, jaettuna alipaketteihin kerroksittain.
+    (yksi kerros voi tuoda vain alempana olevat; `lint-imports` varmistaa tämän):
+    - `gui/`: NiceGUI:n ikkunat, dialogit ja niiden tapahtumankäsittelijät.
+    - `device/`: Mitä MapTasker tekee Android-laitteella, käyttäen Taskerin HTTP-palvelua.
+    - `mapops/`: massinen korvaaminen, uudelleenjärjestely, korjaaminen, palauttaminen ja suunnittelu; sekä TaskerNet- ja valmiusvälineet.
+    - `analysis/`: kysymyksiä, jotka on asetuksen yhteydessä ja joihin vastauksia ei voida muuttaa.
+    - `mapgen/` ja `edit/`: varmuuskopion lataaminen ja kartan rakentaminen sen pohjalta, sekä tehtävän, profiilin, projektin ja kohtauksen editointityökalut.
+    - `core/`: tilanne, Tasker-toimintojen taulukot ja jaetut työkalut.
+    - `mapit.py`, `progargs.py`, `runcli.py`, `rungui.py`, `clireports.py`: pääsykohteet.
+  - `maptasker/assets/`: Staattiset resurssit, kuten ikoon, kuvat ja JSON-tiedot, joita sovellus käyttää.
+  - `maptasker/locale`: kielilähteet käännösten tekemiseen.
+- `documentation_images/`: Kuvia, jo käytetään tässä README-tiedostossa ja muussa dokumentaatiossa.
+- `tools/`: kehityksen aikana käytetyt työkalut.
+- `tests/`: Sisältää testausohjelmia ja niihin liittyviä tiedostoja, joilla varmistetaan koodin laatu.
+- `maptasker/main.py`: Komennon `maptasker` taustalla oleva lähtökohta. Kloonatusta arkistosta käynnistä `python -m maptasker.main`.
+- `LICENSE`: Projektille tarkoitettu MIT-lisenssitiedosto.
+- `README.md`: Tämä tiedosto.
+- `Changelog.md`: Muutosten kirjaus jokaisessa versiossa.
+- `pyproject.toml`: Projektin metadatan ja rakennusjärjestelmän asetukset.
 
 ## Lisenssi
 
@@ -274,12 +281,10 @@ Llama-pohjaiset mallit on tuettuja [Ollaman](https://ollama.com/) kautta, joka s
 
 AI-tukimoduuleja ei asenneta oletuksena, kun MapTasker asennetaan. Sen sijaan ne asennetaan dynaamisesti, kun tiettyä AI-pyyntöä käytetään ensimmäistä kertaa. Tällä tavalla, jos et aio käyttää AI:ta, sinulle ei koidu tätä ylimääräistä kuormaa.
 
-
 ## Sovelluksen muokkaukseen ja analyysiin liittyvät varoitukset
 **MapTaskerin muokkaukseen ja analyysiin liittyvät varoitukset**
 
 Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-dokumentti saadaksesi lisätietoja.
-
 
 ## Tehtävälista (ei erityisessä järjestyksessä)
 
@@ -290,6 +295,8 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 - [x] Tuonti riippuvuuksineen (Import with Dependencies)
 
 - [ ] Jäljellä olevien Tasker-asetusten (preferences) kartoittaminen
+
+- [ ] Määritä jäljellä olevat Taskerin asetukset
 
 - [x] Task Stepper: "kuivaharjoittele" Task toiminto toiminnolta, näyttäen mitkä If-, For- ja Goto-haarat suoritetaan ja mitä kukin muuttuja sisältää
 

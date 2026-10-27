@@ -8,13 +8,14 @@
 <div align="center">
 
 ![PyPI](https://img.shields.io/pypi/v/maptasker)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
-![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
+![PyPI - 下载](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
+![下载](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
 ![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
-![PyPI - License](https://img.shields.io/pypi/l/maptasker)
+![PyPI - 许可证](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![代码风格：ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-blue?logo=pytest)](https://docs.pytest.org/)
 [!["Buy Me A Coffee"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
@@ -98,7 +99,6 @@ Tasker 的备份文件或其他 Tasker 导出的 XML 文件，既可以手动上
 
 &nbsp;&nbsp;&nbsp;如果使用基于服务器的分析，则需要有效的 API 密钥；如需进行本地分析，则需要安装 Ollama（参见[注 3](#3)）。
 
-
 ## 安装
 
 本程序及其所有依赖项将占用约 230MB 的空间。建议将其安装在虚拟环境中（选项 2）。
@@ -120,7 +120,7 @@ Tasker 的备份文件或其他 Tasker 导出的 XML 文件，既可以手动上
   - `pip install maptasker`
 
   ...或者...
-  
+
   通过 uv 安装...
   - `cd xxx`，其中 "xxx" 是您想要建立虚拟环境的目录。
   - `uv venv`
@@ -134,7 +134,7 @@ Tasker 的备份文件或其他 Tasker 导出的 XML 文件，既可以手动上
      ```python -m pip install "maptasker[ai]" -U```
                  ...或者...
      ```uv add "maptasker[ai]"```
-  
+
 ## 使用方法
 
 - 输入以下命令：
@@ -181,7 +181,6 @@ MapTasker 会在桌面和 Android 设备上生成多种输出文件。
 
 有关 MapTasker 生成的输出的完整列表，请参阅[维基百科（wiki）](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output)。
 
-
 ## 更多内容： [[运行时选项]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[运行时选项示例]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[示例输出]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
 ## 项目结构
@@ -189,17 +188,25 @@ MapTasker 会在桌面和 Android 设备上生成多种输出文件。
 以下是主要文件及其用途的简要概述：
 
 - `maptasker/`：包含核心应用程序代码。
-  - `maptasker/src/`：MapTasker 逻辑的主要 Python 源文件。
-  - `maptasker/assets/`：应用程序使用的静态资源，如图标、图片和 JSON 数据。
+  - `maptasker/src/`：MapTasker 的主要 Python 源代码文件，按层级组织在子包中
+    (每一层只能导入其下方层级的内容；`lint-imports` 强制执行此规则)：
+    - `gui/`：NiceGUI 的窗口、对话框及其事件处理程序。
+    - `device/`：MapTasker 在 Android 设备上的功能，是通过 Tasker 的 HTTP 服务器实现的。
+    - `mapops/`：批量替换、重构、修复、恢复和编写；以及 TaskerNet 和相关工具。
+    - `analysis/`：配置中提出的只读问题。
+    - `mapgen/` 和 `edit/`：从备份中加载地图，并使用地图、任务、配置文件、项目和场景编辑器来构建地图。
+    - `core/`：运行状态，Tasker的动作表和共享实用工具。
+    - `mapit.py`、`progargs.py`、`runcli.py`、`rungui.py`、`clireports.py`：入口点。
+  - `maptasker/assets/`：应用程序使用的静态资源，例如图标、图片和 JSON 数据。
   - `maptasker/locale`：用于翻译的语言文件。
-- `documentation_images/`：本 README 及其他文档中使用的图片。
+- `documentation_images/`：本 README 文件及其他文档中使用的图片。
 - `tools/`：开发过程中使用的工具。
-- `tests/`：包含用于保证代码质量的测试脚本及相关文件。
-- `maptasker/main.py`：`maptasker` 命令背后的入口点。若使用克隆下来的仓库，请运行 `python -m maptasker.main`。
-- `LICENSE`：本项目的 MIT 许可证文件。
-- `README.md`：本文件（英文原版）。
-- `Changelog.md`：记录每个版本所做更改的日志。
-- `pyproject.toml`：项目元数据及构建系统配置。
+- `tests/`：包含用于确保代码质量的测试脚本和相关文件。
+- `maptasker/main.py`：这是在执行 `maptasker` 命令之后的入口。 从克隆的仓库中运行 `python -m maptasker.main`。
+- `LICENSE`：该项目的 MIT 许可证文件。
+- `README.md`：这个文件。
+- `Changelog.md`：记录每个版本的修改内容。
+- `pyproject.toml`：项目元数据和构建系统配置。
 
 ## 许可证
 
@@ -274,12 +281,10 @@ AI 分析功能仅在图形界面中可用。您只能针对单个 Project、Pro
 
 支持 AI 功能的模块默认不会随 MapTasker 一起安装。相反，它们会在您首次使用特定的 AI 请求时被动态安装。这样一来，如果您不打算使用 AI 功能，就不会产生相应的额外开销。
 
-
 ## 应用程序编辑与分析注意事项
 **MapTasker 编辑与分析注意事项**
 
 详情请参阅[注意事项（Caveats）](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)文档。
-
 
 ## 待办事项列表（排列不分先后）
 
@@ -288,6 +293,8 @@ AI 分析功能仅在图形界面中可用。您只能针对单个 Project、Pro
 - [x] 支持更多插件
 
 - [x] 带依赖项导入（Import with Dependencies）
+
+- [x] 任务测试 - 在对任务进行更改之前和之后，存储和比较任务步骤的会话。
 
 - [ ] 映射剩余的 Tasker 偏好设置
 
@@ -333,14 +340,14 @@ AI 分析功能仅在图形界面中可用。您只能针对单个 Project、Pro
 
 **报告错误：**
 
-- 如果您发现了错误，请在 [GitHub Issues 页面](https://github.com/mctinker/Map-Tasker/issues)上提交一个 issue。
-- 请尽可能提供详细信息：
-  - 重现该错误的步骤。
+- 如果您发现任何问题，请在 [GitHub Issues 页面](https://github.com/mctinker/Map-Tasker/issues) 上创建一个问题。
+- 尽可能提供详细信息：
+  - 重现该问题的步骤。
   - 预期行为与实际行为。
-  - 您的操作系统及 Python 版本。
-  - MapTasker 的版本。
-  - 您的 Tasker XML 文件中相关的部分（如适用，并请确保不包含任何敏感信息）。
-  - 如果使用 `-debug` 选项生成了 `maptasker.log` 文件，请附上该文件。
+  - 您的操作系统和 Python 版本。
+  - MapTasker 版本。
+  - 与您的 Tasker XML 文件的相关部分（如果适用，并确保其中不包含任何敏感信息）。
+  - 如果使用 `-debug` 选项生成文件，则会生成名为 `maptasker.log` 的文件。
 
 **提出改进建议：**
 

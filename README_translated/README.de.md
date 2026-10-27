@@ -11,10 +11,11 @@
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
 ![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
 ![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
-![PyPI - License](https://img.shields.io/pypi/l/maptasker)
+![PyPI - Lizenz](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Code Style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-blue?logo=pytest)](https://docs.pytest.org/)
 [!["Buy Me A Coffee"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
@@ -98,7 +99,6 @@ Das Tasker-Backup oder eine andere von Tasker exportierte XML-Datei kann entwede
 
 &nbsp;&nbsp;&nbsp;Dies erfordert einen gültigen API-Schlüssel bei Verwendung der serverbasierten Analyse und/oder die Installation von Ollama für die lokale Analyse (siehe [Hinweis 3](#3)).
 
-
 ## Installation
 
 Dieses Programm und alle seine Voraussetzungen benötigen etwa 230 MB Speicherplatz. Es wird empfohlen, es in einer virtuellen Umgebung zu installieren (Option 2).
@@ -120,7 +120,7 @@ Dieses Programm und alle seine Voraussetzungen benötigen etwa 230 MB Speicherpl
   - `pip install maptasker`
 
   ...oder...
-  
+
   über uv...
   - `cd xxx`, wobei 'xxx' das Verzeichnis ist, in dem Sie die virtuelle Umgebung einrichten möchten.
   - `uv venv`
@@ -134,7 +134,7 @@ Dieses Programm und alle seine Voraussetzungen benötigen etwa 230 MB Speicherpl
      ```python -m pip install "maptasker[ai]" -U```
                  ...ODER...
      ```uv add "maptasker[ai]"```
-  
+
 ## Verwendung
 
 - Geben Sie den Befehl ein:
@@ -181,25 +181,32 @@ MapTasker erzeugt mehrere Ausgabedateien, sowohl auf dem Desktop als auch auf de
 
 Eine vollständige Liste der von MapTasker erzeugten Ausgabe finden Sie im [Wiki](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output).
 
-
 ## Mehr: [[Laufzeitoptionen]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Beispiele für Laufzeitoptionen]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Beispielausgabe]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
 ## Projektstruktur
 
 Ein kurzer Überblick über die wichtigsten Dateien und ihren Zweck:
 
-- `maptasker/`: Enthält den Kerncode der Anwendung.
-  - `maptasker/src/`: Die wichtigsten Python-Quelldateien für die Logik von MapTasker.
-  - `maptasker/assets/`: Statische Ressourcen wie Symbole, Bilder und JSON-Daten, die von der Anwendung verwendet werden.
+- `maptasker/`: Enthält den Hauptanwendungscode.
+  - `maptasker/src/`: Die Haupt-Python-Quelldateien für die Logik von MapTasker, in Unterpaketen nach Schicht organisiert.
+    (eine Schicht kann nur die darunter liegenden importieren; `lint-imports` erzwingt dies):
+    - `gui/`: Die NiceGUI-Fenster, Dialoge und ihre Ereignisbehandler.
+    - `device/`: Was die App MapTasker auf dem Android-Gerät über den HTTP-Server von Tasker tut.
+    - `mapops/`: umfassende Ersetzung, Neugestaltung, Reparatur, Wiederherstellung und Entwurf; sowie die Werkzeuge für TaskerNet und die Überprüfung der Einsatzbereitschaft.
+    - `analysis/`: Frage, die nur zur Lesezugriff bestimmt ist und sich auf eine Konfiguration bezieht.
+    - `mapgen/` und `edit/`: Wiederherstellung aus einer Sicherung und Erstellung der Karte, sowie der Task-, Profil-, Projekt- und Szene-Editoren.
+    - `core/`: Zustand, Tasker-Aktionstabellen und gemeinsame Hilfsprogramme.
+    - `mapit.py`, `progargs.py`, `runcli.py`, `rungui.py`, `clireports.py`: die Eintrittspunkte.
+  - `maptasker/assets/`: Statische Assets wie Icons, Bilder und JSON-Daten, die von der Anwendung verwendet werden.
   - `maptasker/locale`: Sprachdateien für Übersetzungen.
-- `documentation_images/`: In dieser README und anderer Dokumentation verwendete Bilder.
-- `tools/`: während der Entwicklung verwendete Hilfsprogramme.
-- `tests/`: Enthält Testskripte und zugehörige Dateien zur Sicherstellung der Codequalität.
-- `maptasker/main.py`: Der Einstiegspunkt hinter dem Befehl `maptasker`. Führen Sie aus einem geklonten Repository `python -m maptasker.main` aus.
-- `LICENSE`: Die MIT-Lizenzdatei des Projekts.
-- `README.md`: Diese Datei (das englische Original).
-- `Changelog.md`: Ein Protokoll der in jeder Version vorgenommenen Änderungen.
-- `pyproject.toml`: Projektmetadaten und Build-System-Konfiguration.
+- `documentation_images/`: Bilder, die in dieser README-Datei und anderen Dokumentationen verwendet werden.
+- `tools/`: Werkzeuge, die während der Entwicklung verwendet wurden.
+- `tests/`: Enthält Testskripte und zugehörige Dateien, die zur Sicherstellung der Codequalität verwendet werden.
+- `maptasker/main.py`: Der Einstiegspunkt hinter dem Befehl `maptasker`. Verwenden Sie `python -m maptasker.main`, nachdem Sie ein Repository kloniert haben.
+- `LICENSE`: Die Lizenzdatei für das Projekt (MIT-Lizenz).
+- `README.md`: Diese Datei.
+- `Changelog.md`: Ein Protokoll aller Änderungen, die in jeder Version vorgenommen wurden.
+- `pyproject.toml`: Projektmetadaten und Konfiguration des Build-Systems.
 
 ## Lizenz
 
@@ -274,12 +281,10 @@ Llama-basierte Modelle werden über [Ollama](https://ollama.com/) unterstützt, 
 
 Die unterstützenden KI-Module werden bei der Installation von MapTasker nicht standardmäßig installiert. Stattdessen werden sie dynamisch bei der ersten Verwendung der jeweiligen KI-Anfrage installiert. Auf diese Weise entsteht Ihnen kein zusätzlicher Aufwand, wenn Sie nicht planen, KI zu verwenden.
 
-
 ## Hinweise zur Bearbeitung und Analyse der Anwendung
 **MapTasker-Hinweise zur Bearbeitung und Analyse**
 
 Einzelheiten finden Sie im Dokument [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt).
-
 
 ## To-Do-Liste (in keiner bestimmten Reihenfolge)
 
@@ -288,6 +293,8 @@ Einzelheiten finden Sie im Dokument [Caveats](https://github.com/mctinker/Map-Ta
 - [x] Unterstützung zusätzlicher Plugins
 
 - [x] Import mit Abhängigkeiten (Import with Dependencies)
+
+- [x] Aufgaben-Tests – Speichern und Vergleichen von Aufgaben-Schritt-Sitzungen vor und nach Änderungen an der Aufgabe
 
 - [ ] Verbleibende Tasker-Einstellungen abbilden
 

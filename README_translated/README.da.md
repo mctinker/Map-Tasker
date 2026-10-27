@@ -14,7 +14,8 @@
 ![PyPI - License](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Kode stil: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-blue?logo=pytest)](https://docs.pytest.org/)
 [!["Buy Me A Coffee"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
@@ -98,7 +99,6 @@ Taskers backup-fil eller andet Tasker-eksporteret XML kan enten uploades manuelt
 
 &nbsp;&nbsp;&nbsp;Dette kræver en gyldig API-nøgle, hvis du bruger den serverbaserede analyse, og/eller at Ollama er installeret til lokal analyse (se [Note 3](#3)).
 
-
 ## Installation
 
 Dette program og alle dets forudsætninger vil kræve omkring 230 MB plads. Det anbefales at installere det i et virtuelt miljø (valgmulighed 2).
@@ -120,7 +120,7 @@ Dette program og alle dets forudsætninger vil kræve omkring 230 MB plads. Det 
   - `pip install maptasker`
 
   ...eller...
-  
+
   via uv...
   - `cd xxx`, hvor 'xxx' er den mappe, du vil opsætte det virtuelle miljø i.
   - `uv venv`
@@ -134,7 +134,7 @@ Dette program og alle dets forudsætninger vil kræve omkring 230 MB plads. Det 
      ```python -m pip install "maptasker[ai]" -U```
                  ...ELLER...
      ```uv add "maptasker[ai]"```
-  
+
 ## Anvendelse
 
 - Indtast kommandoen:
@@ -181,25 +181,32 @@ MapTasker genererer en række outputfiler, både på skrivebordet og på Android
 
 Se [wikien](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output) for en komplet liste over MapTaskers genererede output.
 
-
 ## Mere: [[Kørselsindstillinger]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Eksempler på kørselsindstillinger]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Eksempel på output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
 ## Projektstruktur
 
 Et kort overblik over de vigtigste filer og deres formål:
 
-- `maptasker/`: Indeholder kerneapplikationskoden.
-  - `maptasker/src/`: De vigtigste Python-kildefiler til MapTaskers logik.
-  - `maptasker/assets/`: Statiske ressourcer såsom ikoner, billeder og JSON-data, som applikationen bruger.
-  - `maptasker/locale`: sprogfiler til oversættelser.
-- `documentation_images/`: Billeder brugt i denne README og anden dokumentation.
-- `tools/`: hjælpeprogrammer brugt under udvikling.
-- `tests/`: Indeholder testscripts og relaterede filer for at sikre kodekvaliteten.
-- `maptasker/main.py`: Indgangspunktet bag kommandoen `maptasker`. Fra et klonet repository, kør `python -m maptasker.main`.
-- `LICENSE`: Projektets MIT-licensfil.
-- `README.md`: Denne fil (den oprindelige engelske udgave).
-- `Changelog.md`: En log over ændringer foretaget i hver version.
-- `pyproject.toml`: Projektmetadata og build-system-konfiguration.
+- `maptasker/`: Indeholder den kerneapplikationskode.
+  - `maptasker/src/`: De primære Python-kildefiler for MapTaskers logik, organiseret i underpakker efter lag.
+    (et lag kan kun importere de, der er under det; `lint-imports` håndhæver dette):
+    - `gui/`: NiceGUI's vinduer, dialoger og deres eventhåndter.
+    - `device/`: Hvad MapTasker gør på Android-enheden, via Taskers HTTP-server.
+    - `mapops/`: masse-erstatning, refaktorering, reparation, gendannelse og udarbejdelse; samt TaskerNet og værktøjerne til at sikre klarhed.
+    - `analysis/`: spørgsmål, der kun kan læses, og som er stillet i forbindelse med en konfiguration.
+    - `mapgen/` og `edit/`: Indlæsning af en backup og opbygning af kortet ud fra den, samt brug af redigeringsværktøjerne til opgaver, profiler, projekter og scener.
+    - `core/`: tilstand, Tasker-handlingsarkivet og fælles værktøjer.
+    - `mapit.py`, `progargs.py`, `runcli.py`, `rungui.py`, `clireports.py`: de indgangspunkter.
+  - `maptasker/assets/`: Statiske ressourcer som ikoner, billeder og JSON-data, som anvendes af applikationen.
+  - `maptasker/locale`: Sprogfiler til oversættelser.
+- `documentation_images/`: Billeder, der er brugt i denne README og anden dokumentation.
+- `tools/`: Værktøjer, der blev brugt under udviklingen.
+- `tests/`: Indeholder testscripts og relaterede filer til at sikre kodekvalitet.
+- `maptasker/main.py`: Det indgangspunkt, der ligger bag kommandoen `maptasker`. Fra en klonet repository, skal du køre `python -m maptasker.main`.
+- `LICENSE`: Licensfilen for projektet (MIT-licensen).
+- `README.md`: Denne fil.
+- `Changelog.md`: En log over de ændringer, der er foretaget i hver version.
+- `pyproject.toml`: Projektdetaljer og konfiguration af bygge-systemet.
 
 ## Licens
 
@@ -274,12 +281,10 @@ Llama-baserede modeller understøttes via [Ollama](https://ollama.com/), som du 
 
 De understøttende AI-moduler installeres ikke som standard, når MapTasker installeres. I stedet installeres de dynamisk ved første brug af den specifikke AI-anmodning. På denne måde pådrager du dig ikke denne overhead, hvis du ikke planlægger at bruge AI.
 
-
 ## Forbehold ved redigering og analyse af applikationen
 **MapTasker-forbehold ved redigering og analyse**
 
 Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt) for detaljer.
-
 
 ## To-do-liste (i ingen bestemt rækkefølge)
 
@@ -288,6 +293,8 @@ Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 - [x] Understøttelse af yderligere plugins
 
 - [x] Import med afhængigheder (Import with Dependencies)
+
+- [x] Opgaver – Gem og sammenlign opgaver i "Task stepper"-sessioner før og efter ændringer i opgaven
 
 - [ ] Kortlæg resterende Tasker-indstillinger
 

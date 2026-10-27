@@ -8,14 +8,15 @@
 <div align="center">
 
 ![PyPI](https://img.shields.io/pypi/v/maptasker)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
-![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
-![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
-![PyPI - License](https://img.shields.io/pypi/l/maptasker)
+![PyPI - डाउनलोड](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
+![डाउनलोड](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
+![पायथन](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
+![PyPI - लाइसेंस](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[!["Buy Me A Coffee"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
+[![कोड शैली: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-blue?logo=pytest)](https://docs.pytest.org/)
+[!["मुझे एक कॉफ़ी खरीदें"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
 
@@ -98,7 +99,6 @@ Tasker बैकअप या अन्य Tasker एक्सपोर्ट �
 
 &nbsp;&nbsp;&nbsp;सर्वर-आधारित विश्लेषण के लिए एक वैध API key, और/या लोकल विश्लेषण के लिए Ollama इंस्टॉल होना आवश्यक है (देखें [नोट 3](#3))।
 
-
 ## इंस्टॉलेशन
 
 इस प्रोग्राम और इसकी सभी आवश्यक चीज़ों के लिए लगभग 230MB जगह चाहिए होगी। इसे एक वर्चुअल एनवायरनमेंट में इंस्टॉल करने की सलाह दी जाती है (विकल्प 2)।
@@ -120,7 +120,7 @@ Tasker बैकअप या अन्य Tasker एक्सपोर्ट �
   - `pip install maptasker`
 
   ...या...
-  
+
   uv के माध्यम से...
   - `cd xxx`, जहाँ 'xxx' वह डायरेक्टरी है जिसमें आप वर्चुअल एनवायरनमेंट सेट करना चाहते हैं।
   - `uv venv`
@@ -134,7 +134,7 @@ Tasker बैकअप या अन्य Tasker एक्सपोर्ट �
      ```python -m pip install "maptasker[ai]" -U```
                  ...या...
      ```uv add "maptasker[ai]"```
-  
+
 ## उपयोग (Usage)
 
 - कमांड डालें:
@@ -181,25 +181,32 @@ MapTasker डेस्कटॉप और Android डिवाइस दोन�
 
 MapTasker द्वारा जनरेट किए गए आउटपुट की पूरी सूची के लिए [wiki](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output) देखें।
 
-
 ## अधिक जानकारी: [[रनटाइम विकल्प]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[रनटाइम विकल्पों के उदाहरण]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[नमूना आउटपुट]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
 ## प्रोजेक्ट संरचना
 
 मुख्य फ़ाइलों और उनके उद्देश्य का संक्षिप्त अवलोकन:
 
-- `maptasker/`: मुख्य एप्लिकेशन कोड शामिल है।
-  - `maptasker/src/`: MapTasker के लॉजिक के लिए मुख्य Python सोर्स फ़ाइलें।
-  - `maptasker/assets/`: एप्लिकेशन द्वारा उपयोग किए जाने वाले स्टैटिक एसेट्स जैसे आइकन, इमेज और JSON डेटा।
-  - `maptasker/locale`: अनुवादों के लिए भाषा फ़ाइलें।
-- `documentation_images/`: इस README और अन्य दस्तावेज़ीकरण में उपयोग की गई इमेज।
-- `tools/`: विकास के दौरान उपयोग की जाने वाली utilities।
-- `tests/`: कोड की गुणवत्ता सुनिश्चित करने के लिए टेस्ट स्क्रिप्ट्स और संबंधित फ़ाइलें शामिल हैं।
-- `maptasker/main.py`: `maptasker` कमांड के पीछे का entry point। किसी clone की गई रिपॉज़िटरी से, `python -m maptasker.main` चलाएँ।
-- `LICENSE`: प्रोजेक्ट की MIT License फ़ाइल।
-- `README.md`: यह फ़ाइल (मूल अंग्रेज़ी)।
-- `Changelog.md`: हर संस्करण में किए गए बदलावों का लॉग।
-- `pyproject.toml`: प्रोजेक्ट मेटाडेटा और बिल्ड सिस्टम कॉन्फ़िगरेशन।
+- `maptasker/`: Contains the core application code.
+  - `maptasker/src/`: The main Python source files for MapTasker's logic, in sub-packages by layer
+    (एक परत केवल नीचे की परतों से डेटा आयात कर सकती है; `lint-imports` इसे लागू करता है):
+    - `gui/`: the NiceGUI windows, dialogs and their event handlers.
+    - `device/`: what MapTasker does on the Android device, through Tasker's HTTP server.
+    - `mapops/`: bulk replace, refactor, repair, restore and draft; the TaskerNet and readiness tools.
+    - `analysis/`: read-only questions asked of a configuration.
+    - `mapgen/` and `edit/`: loading a backup and building the Map from it, and the Task, Profile, Project and Scene editors.
+    - `core/`: run state, the Tasker action tables and shared utilities.
+    - `mapit.py`, `progargs.py`, `runcli.py`, `rungui.py`, `clireports.py`: ये प्रवेश बिंदु हैं।
+  - `maptasker/assets/`: Static assets like icons, images, and JSON data used by the application.
+  - `maptasker/locale`: अनुवाद के लिए भाषा फाइलें।
+- `documentation_images/`: Images used within this README and other documentation.
+- `tools/`: utilities used during development. 
+- `tests/`: Contains test scripts and related files for ensuring code quality.
+- `maptasker/main.py`: The entry point behind the `maptasker` command.  From a cloned repository, run `python -m maptasker.main`.
+- `LICENSE`: The MIT License file for the project.
+- `README.md`: This file.
+- `Changelog.md`: A log of changes made in each version.
+- `pyproject.toml`: Project metadata and build system configuration.
 
 ## लाइसेंस (License)
 
@@ -274,12 +281,10 @@ Llama आधारित मॉडल [Ollama](https://ollama.com/) के म�
 
 सहायक AI मॉड्यूल MapTasker इंस्टॉल करते समय डिफ़ॉल्ट रूप से इंस्टॉल नहीं होते। इसके बजाय, वे विशेष AI रिक्वेस्ट के पहली बार उपयोग किए जाने पर डायनामिक रूप से इंस्टॉल होते हैं। इस तरह, यदि आप AI का उपयोग करने की योजना नहीं बनाते हैं, तो आपको इसका ओवरहेड नहीं उठाना पड़ता।
 
-
 ## एप्लिकेशन संपादन और विश्लेषण संबंधी सावधानियाँ
 **MapTasker संपादन और विश्लेषण संबंधी सावधानियाँ**
 
 विवरण के लिए [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt) दस्तावेज़ देखें।
-
 
 ## टू-डू लिस्ट (किसी विशेष क्रम में नहीं)
 
@@ -288,6 +293,8 @@ Llama आधारित मॉडल [Ollama](https://ollama.com/) के म�
 - [x] अतिरिक्त plugins का समर्थन
 
 - [x] निर्भरताओं (dependencies) के साथ इम्पोर्ट (Import with Dependencies)
+
+- [x] कार्य परीक्षण - कार्य में किए गए परिवर्तनों से पहले और बाद में, कार्य चरणों के सत्रों को संग्रहीत और तुलना करें।
 
 - [ ] बाकी Tasker preferences को मैप करना
 
@@ -333,14 +340,14 @@ Llama आधारित मॉडल [Ollama](https://ollama.com/) के म�
 
 **बग रिपोर्ट करना:**
 
-- यदि आपको कोई bug मिलता है, तो कृपया [GitHub Issues page](https://github.com/mctinker/Map-Tasker/issues) पर एक issue खोलें।
-- जितना संभव हो उतना विवरण शामिल करें:
-  - bug को reproduce करने के चरण।
-  - अपेक्षित व्यवहार (expected behavior) और वास्तविक व्यवहार (actual behavior)।
-  - आपका operating system और Python version।
-  - MapTasker version।
-  - आपकी Tasker XML फ़ाइल के संबंधित हिस्से (यदि लागू हो, और यह सुनिश्चित करें कि इसमें कोई संवेदनशील जानकारी शामिल न हो)।
-  - यदि `-debug` विकल्प के साथ generate की गई हो तो `maptasker.log` फ़ाइल।
+- यदि आपको कोई त्रुटि मिलती है, तो कृपया [GitHub Issues पेज](https://github.com/mctinker/Map-Tasker/issues) पर एक समस्या दर्ज करें।
+- जितनी संभव हो उतनी विस्तृत जानकारी शामिल करें:
+  - समस्या को दोहराने के चरण।
+  - अपेक्षित व्यवहार और वास्तविक व्यवहार।
+  - आपका ऑपरेटिंग सिस्टम और पायथन संस्करण।
+  - मैपटास्कर संस्करण।
+  - आपके टास्कर XML फ़ाइल के प्रासंगिक भाग (यदि लागू हो, और सुनिश्चित करें कि इसमें कोई संवेदनशील जानकारी शामिल न हो)।
+  - यदि `maptasker.log` फ़ाइल को `-debug` विकल्प के साथ बनाया गया है, तो।
 
 **सुधार सुझाना:**
 

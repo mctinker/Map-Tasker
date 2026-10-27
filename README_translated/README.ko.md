@@ -8,13 +8,14 @@
 <div align="center">
 
 ![PyPI](https://img.shields.io/pypi/v/maptasker)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
-![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
-![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
-![PyPI - License](https://img.shields.io/pypi/l/maptasker)
+![PyPI - 다운로드](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
+![다운로드](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
+![파이썬](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
+![PyPI - 라이선스](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![코드 스타일: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-blue?logo=pytest)](https://docs.pytest.org/)
 [!["Buy Me A Coffee"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
@@ -98,7 +99,6 @@ Tasker 백업 또는 기타 Tasker 내보내기 XML은 수동으로 PC/Mac/Linux
 
 &nbsp;&nbsp;&nbsp;서버 기반 분석을 사용하는 경우 유효한 API 키가 필요하며, 로컬 분석을 위해서는 Ollama 설치가 필요합니다 (참고 [노트 3](#3)).
 
-
 ## 설치
 
 이 프로그램과 모든 전제 조건은 약 230MB의 공간을 차지합니다. 가상 환경(옵션 2)에 설치하는 것이 권장됩니다.
@@ -120,7 +120,7 @@ Tasker 백업 또는 기타 Tasker 내보내기 XML은 수동으로 PC/Mac/Linux
   - `pip install maptasker`
 
   ...또는...
-  
+
   uv를 통해...
   - `cd xxx`, 여기서 'xxx'는 가상 환경을 설정할 디렉터리입니다.
   - `uv venv`
@@ -134,7 +134,7 @@ Tasker 백업 또는 기타 Tasker 내보내기 XML은 수동으로 PC/Mac/Linux
      ```python -m pip install "maptasker[ai]" -U```
                  ...또는...
      ```uv add "maptasker[ai]"```
-  
+
 ## 사용법
 
 - 다음 명령을 입력하세요:
@@ -181,25 +181,32 @@ MapTasker는 데스크톱과 Android 기기 모두에 여러 출력 파일을 �
 
 MapTasker가 생성하는 출력의 전체 목록은 [위키(wiki)](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output)를 참조하세요.
 
-
 ## 더 보기: [[런타임 옵션]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[런타임 옵션 예시]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[샘플 출력]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
 ## 프로젝트 구조
 
 주요 파일과 그 용도에 대한 간략한 개요입니다:
 
-- `maptasker/`: 핵심 애플리케이션 코드를 포함합니다.
-  - `maptasker/src/`: MapTasker 로직을 위한 주요 Python 소스 파일입니다.
-  - `maptasker/assets/`: 애플리케이션에서 사용하는 아이콘, 이미지, JSON 데이터와 같은 정적 리소스입니다.
-  - `maptasker/locale`: 번역에 사용되는 언어 파일입니다.
-- `documentation_images/`: 이 README 및 기타 문서에 사용되는 이미지입니다.
-- `tools/`: 개발 중에 사용되는 유틸리티입니다.
-- `tests/`: 코드 품질을 보장하기 위한 테스트 스크립트와 관련 파일을 포함합니다.
-- `maptasker/main.py`: `maptasker` 명령 뒤에 있는 진입점입니다. 클론한 리포지토리에서는 `python -m maptasker.main`을 실행하세요.
-- `LICENSE`: 프로젝트의 MIT 라이선스 파일입니다.
-- `README.md`: 이 파일(영어 원본)입니다.
-- `Changelog.md`: 각 버전에서 이루어진 변경 사항의 로그입니다.
-- `pyproject.toml`: 프로젝트 메타데이터 및 빌드 시스템 구성입니다.
+- `maptasker/`: 핵심 애플리케이션 코드 포함.
+  - `maptasker/src/`: MapTasker의 로직을 위한 주요 파이썬 소스 파일, 계층별 하위 패키지로 구성됨
+    (하나의 층은 그 위에 있는 층에서만 데이터를 가져올 수 있으며, `lint-imports`는 이를 강제합니다):
+    - `gui/`: NiceGUI 창, 대화 상자 및 해당 이벤트 처리기.
+    - `device/`: Tasker 앱이 안드로이드 장치에서 Tasker의 HTTP 서버를 통해 수행하는 작업.
+    - `mapops/`: 대량 교체, 리팩토링, 수리, 복구 및 초안 작성; TaskerNet 및 준비 도구.
+    - `analysis/`: 구성에 대해 묻는 읽기 전용 질문
+    - `mapgen/` 및 `edit/`: 백업 로드 및 맵 생성, 그리고 맵, 프로필, 프로젝트 및 시퀀스 편집기 사용.
+    - `core/`: 실행 상태, Tasker 액션 테이블 및 공유 유틸리티.
+    - `mapit.py`, `progargs.py`, `runcli.py`, `rungui.py`, `clireports.py`: 진입 지점.
+  - `maptasker/assets/`: 애플리케이션에서 사용되는 아이콘, 이미지, JSON 데이터와 같은 정적 자산.
+  - `maptasker/locale`: 번역을 위한 언어 파일.
+- `documentation_images/`: 이 README 및 기타 문서에 사용된 이미지.
+- `tools/`: 개발 과정에서 사용된 도구.
+- `tests/`: 코드 품질을 보장하기 위한 테스트 스크립트 및 관련 파일 포함.
+- `maptasker/main.py`: `maptasker` 명령 뒤에 위치한 진입 지점입니다. 복제된 저장소에서 `python -m maptasker.main`를 실행합니다.
+- `LICENSE`: 이 프로젝트에 사용되는 MIT 라이선스 파일.
+- `README.md`: 이 파일.
+- `Changelog.md`: 각 버전에서 이루어진 변경 사항의 기록.
+- `pyproject.toml`: 프로젝트 메타데이터 및 빌드 시스템 설정.
 
 ## 라이선스
 
@@ -274,12 +281,10 @@ Llama 기반 모델은 [Ollama](https://ollama.com/)를 통해 지원되며, 데
 
 AI 지원 모듈은 MapTasker를 설치할 때 기본적으로 설치되지 않습니다. 대신 특정 AI 요청을 처음 사용할 때 동적으로 설치됩니다. 이러한 방식으로 AI를 사용할 계획이 없다면 그에 따른 오버헤드가 발생하지 않습니다.
 
-
 ## 애플리케이션 편집 및 분석 주의 사항
 **MapTasker 편집 및 분석 주의 사항**
 
 자세한 내용은 [주의 사항(Caveats)](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt) 문서를 참조하세요.
-
 
 ## 할 일 목록 (특정 순서 없음)
 
@@ -288,6 +293,8 @@ AI 지원 모듈은 MapTasker를 설치할 때 기본적으로 설치되지 않�
 - [x] 추가 플러그인 지원
 
 - [x] 종속성 포함 가져오기 (Import with Dependencies)
+
+- [x] 작업 테스트 - 작업 단계별 세션을 변경 전후로 저장하고 비교
 
 - [ ] 남은 Tasker 환경설정 매핑
 
@@ -333,14 +340,14 @@ AI 지원 모듈은 MapTasker를 설치할 때 기본적으로 설치되지 않�
 
 **버그 신고:**
 
-- 버그를 발견하면 [GitHub Issues 페이지](https://github.com/mctinker/Map-Tasker/issues)에서 issue를 열어 주세요.
-- 가능한 한 많은 세부 정보를 포함하세요:
-  - 버그를 재현하는 단계.
-  - 예상 동작과 실제 동작.
-  - 사용 중인 운영체제 및 Python 버전.
+- 버그를 발견하신 경우, [GitHub Issues 페이지](https://github.com/mctinker/Map-Tasker/issues)에 문제를 제기해 주시기 바랍니다.
+- 가능한 한 자세한 정보를 포함해 주세요:
+  - 버그를 재현하는 방법
+  - 예상되는 동작 및 실제 동작
+  - 사용 중인 운영체제 및 파이썬 버전.
   - MapTasker 버전.
-  - Tasker XML 파일의 관련 부분(해당하는 경우, 민감한 정보가 포함되지 않도록 주의).
-  - `-debug` 옵션으로 생성된 경우 `maptasker.log` 파일.
+  - 귀하의 Tasker XML 파일의 관련 부분 (해당하는 경우, 그리고 민감한 정보가 포함되지 않도록 주의).
+  - `maptasker.log` 파일이 `-debug` 옵션으로 생성된 경우.
 
 **개선 사항 제안:**
 

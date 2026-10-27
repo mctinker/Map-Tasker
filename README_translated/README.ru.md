@@ -8,13 +8,14 @@
 <div align="center">
 
 ![PyPI](https://img.shields.io/pypi/v/maptasker)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
-![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
+![PyPI - Количество загрузок](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
+![Количество загрузок](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
 ![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
-![PyPI - License](https://img.shields.io/pypi/l/maptasker)
+![PyPI - Лицензия](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Стиль кода: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-blue?logo=pytest)](https://docs.pytest.org/)
 [!["Buy Me A Coffee"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
@@ -98,7 +99,6 @@
 
 &nbsp;&nbsp;&nbsp;Для этого требуется действительный API-ключ при использовании серверного анализа и/или установка Ollama для локального анализа (см. [примечание 3](#3)).
 
-
 ## Установка
 
 Эта программа и все её необходимые компоненты займут около 230 МБ места. Рекомендуется устанавливать её в виртуальное окружение (вариант 2).
@@ -120,7 +120,7 @@
   - `pip install maptasker`
 
   ...или...
-  
+
   через uv...
   - `cd xxx`, где 'xxx' — это каталог, в котором вы хотите настроить виртуальное окружение.
   - `uv venv`
@@ -134,7 +134,7 @@
      ```python -m pip install "maptasker[ai]" -U```
                  ...ИЛИ...
      ```uv add "maptasker[ai]"```
-  
+
 ## Использование
 
 - Введите команду:
@@ -181,7 +181,6 @@ MapTasker создаёт ряд выходных файлов как на раб
 
 Обратитесь к [вики (wiki)](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output) для полного списка выходных данных, создаваемых MapTasker.
 
-
 ## Подробнее: [[Параметры времени выполнения]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Примеры параметров времени выполнения]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Пример вывода]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
 ## Структура проекта
@@ -189,16 +188,24 @@ MapTasker создаёт ряд выходных файлов как на раб
 Краткий обзор основных файлов и их назначения:
 
 - `maptasker/`: Содержит основной код приложения.
-  - `maptasker/src/`: Основные исходные файлы Python для логики MapTasker.
-  - `maptasker/assets/`: Статические ресурсы, такие как значки, изображения и данные JSON, используемые приложением.
-  - `maptasker/locale`: языковые файлы для переводов.
-- `documentation_images/`: Изображения, используемые в этом README и другой документации.
-- `tools/`: утилиты, используемые во время разработки.
-- `tests/`: Содержит тестовые скрипты и связанные файлы для обеспечения качества кода.
-- `maptasker/main.py`: Точка входа для команды `maptasker`. Из клонированного репозитория выполните `python -m maptasker.main`.
+  - `maptasker/src/`: Основные файлы Python, содержащие логику работы MapTasker, организованные в подпакеты по слоям.
+    (слой может импортировать только те элементы, которые находятся ниже него; `lint-imports` обеспечивает это):
+    - `gui/`: окна, диалоги и обработчики событий в NiceGUI.
+    - `device/`: Что делает приложение MapTasker на Android-устройстве, используя HTTP-сервер Tasker.
+    - `mapops/`: массовая замена, рефакторинг, исправление, восстановление и разработка; инструменты TaskerNet и инструменты оценки готовности.
+    - `analysis/`: вопросы, задаваемые при конфигурации, которые не могут быть изменены.
+    - `mapgen/` и `edit/`: загрузка резервной копии и создание карты на её основе, а также работа с редакторами задач, профилей, проектов и сцен.
+    - `core/`: состояние выполнения, таблицы действий Tasker и общие утилиты.
+    - `mapit.py`, `progargs.py`, `runcli.py`, `rungui.py`, `clireports.py`: точки входа.
+  - `maptasker/assets/`: Статические ресурсы, такие как иконки, изображения и данные в формате JSON, используемые приложением.
+  - `maptasker/locale`: файлы с переводом для различных языков.
+- `documentation_images/`: Изображения, используемые в этом файле README и в других документах.
+- `tools/`: инструменты, использовавшиеся в процессе разработки.
+- `tests/`: Содержит скрипты для тестирования и связанные с ними файлы, предназначенные для обеспечения качества кода.
+- `maptasker/main.py`: Точка входа, расположенная за командой `maptasker`. Запустите `python -m maptasker.main`, используя клонированный репозиторий.
 - `LICENSE`: Файл лицензии MIT для проекта.
-- `README.md`: Этот файл (оригинал на английском языке).
-- `Changelog.md`: Журнал изменений, внесённых в каждой версии.
+- `README.md`: Этот файл.
+- `Changelog.md`: Журнал изменений, внесенных в каждой версии.
 - `pyproject.toml`: Метаданные проекта и конфигурация системы сборки.
 
 ## Лицензия
@@ -274,12 +281,10 @@ MapTasker создаёт ряд выходных файлов как на раб
 
 Вспомогательные модули ИИ не устанавливаются по умолчанию при установке MapTasker. Вместо этого они устанавливаются динамически при первом использовании конкретного запроса к ИИ. Таким образом, если вы не планируете использовать ИИ, вы не понесёте эти дополнительные затраты.
 
-
 ## Предостережения по редактированию и анализу приложения
 **Предостережения MapTasker по редактированию и анализу**
 
 Подробности см. в документе [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt).
-
 
 ## Список задач (без определённого порядка)
 
@@ -288,6 +293,8 @@ MapTasker создаёт ряд выходных файлов как на раб
 - [x] Поддержка дополнительных плагинов
 
 - [x] Импорт с зависимостями (Import with Dependencies)
+
+- [x] Тесты задач – Сохранение и сравнение сессий выполнения задач до и после внесения изменений в задачу.
 
 - [ ] Отображение оставшихся настроек Tasker (preferences)
 

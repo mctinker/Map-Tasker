@@ -8,14 +8,15 @@
 <div align="center">
 
 ![PyPI](https://img.shields.io/pypi/v/maptasker)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
-![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
-![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
-![PyPI - License](https://img.shields.io/pypi/l/maptasker)
+![PyPI - التنزيلات](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
+![التنزيلات](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
+![بايثون](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
+![PyPI - الترخيص](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[!["Buy Me A Coffee"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
+[![أسلوب الكود: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-blue?logo=pytest)](https://docs.pytest.org/)
+[!["اشترِ لي قهوة"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
 
@@ -100,7 +101,6 @@
 
 &nbsp;&nbsp;&nbsp;يتطلب هذا مفتاح API صالحًا في حال استخدام التحليل المستند إلى خادم، و/أو تثبيت Ollama للتحليل المحلي (انظر [الملاحظة 3](#3)).
 
-
 ## التثبيت
 
 سيستغرق هذا البرنامج وجميع متطلباته الأساسية حوالي 230 ميجابايت من المساحة. يُوصى بتثبيته في بيئة افتراضية (الخيار 2).
@@ -122,7 +122,7 @@
   - `pip install maptasker`
 
   ...أو...
-  
+
   عبر uv...
   - `cd xxx`، حيث 'xxx' هو المجلد الذي تريد إنشاء البيئة الافتراضية فيه.
   - `uv venv`
@@ -136,7 +136,7 @@
      ```python -m pip install "maptasker[ai]" -U```
                  ...أو...
      ```uv add "maptasker[ai]"```
-  
+
 ## الاستخدام
 
 - أدخل الأمر:
@@ -183,25 +183,32 @@ maptasker -watch ~/TaskerBackups                        # تسجيل كل نسخ
 
 راجع [الويكي (wiki)](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output) للحصول على قائمة كاملة بالمخرجات التي يُنتجها MapTasker.
 
-
 ## للمزيد: [[خيارات وقت التشغيل]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[أمثلة على خيارات وقت التشغيل]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[نموذج مخرجات]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
 ## بنية المشروع
 
 نظرة سريعة على الملفات الرئيسية والغرض منها:
 
-- `maptasker/`: يحتوي على الكود الأساسي للتطبيق.
-  - `maptasker/src/`: ملفات مصدر Python الرئيسية لمنطق MapTasker.
-  - `maptasker/assets/`: الموارد الثابتة مثل الأيقونات والصور وبيانات JSON التي يستخدمها التطبيق.
-  - `maptasker/locale`: ملفات اللغة المستخدمة في الترجمات.
-- `documentation_images/`: الصور المستخدمة في هذا الملف وفي وثائق أخرى.
-- `tools/`: أدوات تُستخدم أثناء التطوير.
-- `tests/`: يحتوي على سكريبتات الاختبار والملفات المرتبطة بها لضمان جودة الكود.
-- `maptasker/main.py`: نقطة الدخول الخاصة بأمر `maptasker`. من مستودع تم استنساخه (clone)، شغّل `python -m maptasker.main`.
-- `LICENSE`: ملف ترخيص MIT للمشروع.
-- `README.md`: هذا الملف (النسخة الإنجليزية الأصلية).
-- `Changelog.md`: سجل بالتغييرات التي تمت في كل إصدار.
-- `pyproject.toml`: بيانات المشروع الوصفية وتكوين نظام البناء (build system).
+- `maptasker/`: يحتوي على كود التطبيق الأساسي.
+  - `maptasker/src/`: الملفات المصدر الرئيسية للغة بايثون الخاصة ببرنامج MapTasker، وهي منظمة في وحدات فرعية حسب الطبقات.
+    (يمكن للطبقة استيراد العناصر الموجودة فقط أسفلها؛ ويفرض نظام `lint-imports` ذلك).
+    - `gui/`: نوافذ و مربعات الحوار ومُعالجات الأحداث الخاصة بـ NiceGUI.
+    - `device/`: ما الذي يفعله تطبيق MapTasker على جهاز Android، من خلال خادم HTTP الخاص بـ Tasker.
+    - `mapops/`: عمليات الاستبدال المجمّعة، وإعادة الهيكلة، والإصلاح، والاستعادة، وكتابة المستندات؛ بالإضافة إلى أدوات TaskerNet وأدوات الاستعداد.
+    - `analysis/`: أسئلة للقراءة فقط، يتم طرحها على إعداد معين.
+    - `mapgen/` و `edit/`: تحميل نسخة احتياطية وإنشاء الخريطة من خلالها، بالإضافة إلى أدوات التحرير الخاصة بالمهمة والملف الشخصي والمشروع والمشهد.
+    - `core/`: حالة التشغيل، وجداول إجراءات Tasker، وأدوات المساعدة المشتركة.
+    - `mapit.py`، `progargs.py`، `runcli.py`، `rungui.py`، `clireports.py`: نقاط الدخول.
+  - `maptasker/assets/`: الموارد الثابتة مثل الأيقونات والصور والبيانات بتنسيق JSON التي تستخدمها التطبيق.
+  - ملفات اللغة للترجمة: `maptasker/locale`.
+- `documentation_images/`: الصور المستخدمة في هذا الملف ووثائق أخرى.
+- `tools/`: الأدوات المستخدمة أثناء التطوير.
+- `tests/`: يحتوي على نصوص الاختبار والملفات المرتبطة بها، وذلك لضمان جودة الكود.
+- `maptasker/main.py`: نقطة الدخول التي تسبق أمر `maptasker`. من مستودع مطابق، قم بتشغيل `python -m maptasker.main`.
+- ملف ترخيص MIT الخاص بالمشروع: `LICENSE`.
+- `README.md`: هذا الملف.
+- `Changelog.md`: سجل التغييرات التي تم إجراؤها في كل نسخة.
+- `pyproject.toml`: بيانات المشروع وإعدادات نظام البناء.
 
 ## الترخيص
 
@@ -276,12 +283,10 @@ maptasker -watch ~/TaskerBackups                        # تسجيل كل نسخ
 
 لا تُثبَّت وحدات دعم الذكاء الاصطناعي تلقائيًا عند تثبيت MapTasker. بل تُثبَّت ديناميكيًا عند أول استخدام لطلب الذكاء الاصطناعي المحدَّد. وبهذه الطريقة، إذا كنت لا تخطط لاستخدام الذكاء الاصطناعي، فلن تتحمّل هذا العبء الإضافي.
 
-
 ## تحذيرات تحرير وتحليل التطبيق
 **تحذيرات تحرير وتحليل MapTasker**
 
 راجع وثيقة [التحذيرات (Caveats)](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt) للحصول على التفاصيل.
-
 
 ## قائمة المهام المستقبلية (بدون ترتيب معيّن)
 
@@ -290,6 +295,8 @@ maptasker -watch ~/TaskerBackups                        # تسجيل كل نسخ
 - [x] دعم إضافات (plugins) إضافية
 
 - [x] الاستيراد مع التبعيات (Import with Dependencies)
+
+- [x] اختبارات المهام - تخزين ومقارنة جلسات المهام قبل وبعد إجراء تغييرات على المهام.
 
 - [ ] إضافة تفضيلات Tasker المتبقية إلى الخريطة
 

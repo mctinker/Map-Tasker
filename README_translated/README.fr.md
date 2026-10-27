@@ -8,14 +8,15 @@
 <div align="center">
 
 ![PyPI](https://img.shields.io/pypi/v/maptasker)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
-![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
+![PyPI - Téléchargements](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
+![Téléchargements](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
 ![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
-![PyPI - License](https://img.shields.io/pypi/l/maptasker)
+![PyPI - Licence](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[!["Buy Me A Coffee"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
+[![Style de code : ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![pytest](https://img.shields.io/badge/tested%20with-pytest-blue?logo=pytest)](https://docs.pytest.org/)
+[!["Achetez-moi une tasse de café"](../documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
 
@@ -98,7 +99,6 @@ Le fichier de sauvegarde Tasker, ou tout autre XML exporté par Tasker, peut êt
 
 &nbsp;&nbsp;&nbsp;Cela nécessite une clé API valide si vous utilisez l'analyse basée sur serveur, et/ou l'installation d'Ollama pour l'analyse locale (voir la [Note 3](#3)).
 
-
 ## Installation
 
 Ce programme et l'ensemble de ses prérequis occuperont environ 230 Mo d'espace. Il est recommandé de l'installer dans un environnement virtuel (option 2).
@@ -120,7 +120,7 @@ Ce programme et l'ensemble de ses prérequis occuperont environ 230 Mo d'espace.
   - `pip install maptasker`
 
   ...ou...
-  
+
   via uv...
   - `cd xxx`, où « xxx » est le répertoire dans lequel vous souhaitez configurer l'environnement virtuel.
   - `uv venv`
@@ -134,7 +134,7 @@ Ce programme et l'ensemble de ses prérequis occuperont environ 230 Mo d'espace.
      ```python -m pip install "maptasker[ai]" -U```
                  ...OU...
      ```uv add "maptasker[ai]"```
-  
+
 ## Utilisation
 
 - Entrez la commande :
@@ -181,25 +181,32 @@ MapTasker génère plusieurs fichiers de sortie, à la fois sur l'ordinateur et 
 
 Consultez le [wiki](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output) pour une liste complète des sorties générées par MapTasker.
 
-
 ## Plus d'informations : [[Options d'exécution]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Exemples d'options d'exécution]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Exemple de sortie]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
 ## Structure du projet
 
 Un bref aperçu des principaux fichiers et de leur objectif :
 
-- `maptasker/` : Contient le code principal de l'application.
-  - `maptasker/src/` : Les principaux fichiers source Python pour la logique de MapTasker.
-  - `maptasker/assets/` : Ressources statiques telles que les icônes, les images et les données JSON utilisées par l'application.
+- `maptasker/` : Contient le code de l'application principale.
+  - `maptasker/src/` : Les principaux fichiers sources Python pour la logique de MapTasker, organisés en sous-packages par couches.
+    (une couche peut importer uniquement celles situées en dessous ; `lint-imports` garantit cela)
+    - `gui/` : les fenêtres, les boîtes de dialogue et leurs gestionnaires d'événements de NiceGUI.
+    - `device/` : ce que fait l'application MapTasker sur l'appareil Android, grâce au serveur HTTP de Tasker.
+    - `mapops/` : remplacement en masse, refonte, réparation, restauration et rédaction ; ainsi que les outils TaskerNet et de préparation.
+    - `analysis/` : questions de lecture seule posées lors de la configuration.
+    - `mapgen/` et `edit/` : chargement d'une sauvegarde et création de la carte à partir de celle-ci, ainsi que des éditeurs de tâches, de profils, de projets et de scènes.
+    - `core/` : état d'exécution, les tables d'actions de Tasker et les utilitaires partagés.
+    - `mapit.py`, `progargs.py`, `runcli.py`, `rungui.py`, `clireports.py` : les points d'entrée.
+  - `maptasker/assets/` : Les actifs statiques tels que les icônes, les images et les données JSON utilisés par l'application.
   - `maptasker/locale` : fichiers de langue pour les traductions.
-- `documentation_images/` : Images utilisées dans ce README et dans d'autres documents.
-- `tools/` : utilitaires utilisés pendant le développement.
-- `tests/` : Contient les scripts de test et les fichiers associés garantissant la qualité du code.
-- `maptasker/main.py` : Le point d'entrée derrière la commande `maptasker`. Depuis un dépôt cloné, exécutez `python -m maptasker.main`.
-- `LICENSE` : Le fichier de licence MIT du projet.
-- `README.md` : Ce fichier (version anglaise originale).
+- `documentation_images/` : Images utilisées dans ce fichier README et dans d'autres documents.
+- `tools/` : outils utilisés pendant le développement.
+- `tests/` : Contient des scripts de test et des fichiers associés, destinés à garantir la qualité du code.
+- `maptasker/main.py` : Le point d'entrée après la commande `maptasker`. À partir d'un dépôt cloné, exécutez `python -m maptasker.main`.
+- `LICENSE` : Le fichier de licence MIT pour le projet.
+- `README.md` : Ce fichier.
 - `Changelog.md` : Un journal des modifications apportées à chaque version.
-- `pyproject.toml` : Métadonnées du projet et configuration du système de build.
+- `pyproject.toml` : Métadonnées du projet et configuration du système de construction.
 
 ## Licence
 
@@ -274,12 +281,10 @@ Les modèles basés sur Llama sont pris en charge via [Ollama](https://ollama.co
 
 Les modules d'IA ne sont pas installés par défaut lors de l'installation de MapTasker. Ils sont plutôt installés dynamiquement lors de la première utilisation de la requête IA spécifique. Ainsi, si vous ne prévoyez pas d'utiliser l'IA, vous n'encourez pas cette surcharge.
 
-
 ## Mises en garde relatives à l'édition et à l'analyse de l'application
 **Mises en garde relatives à l'édition et à l'analyse de MapTasker**
 
 Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt) pour plus de détails.
-
 
 ## Liste de tâches à faire (sans ordre particulier)
 
@@ -288,6 +293,8 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 - [x] Prise en charge de plugins supplémentaires
 
 - [x] Importation avec dépendances (Import with Dependencies)
+
+- [x] Tests de tâches - Sauvegarder et comparer les sessions de tâches avant et après les modifications apportées à la tâche.
 
 - [ ] Cartographier les préférences Tasker restantes
 
