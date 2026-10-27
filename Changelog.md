@@ -6,8 +6,8 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: 'Task Tests' keeps a Task Stepper run as a named test -- the Task, the values it started with, and what it did -- and runs every saved test again after each edit, Fix Findings pass, refactor, restore, import or Undo. You are told only when a Task no longer does what it did, and in words: which variable changed, or which Flash or web request is different.
-- Added:
+- Added: __Task Tests__ keeps a Task Stepper run as a named test -- the Task, the values it started with, and what it did -- and runs every saved test again after each edit, Fix Findings pass, refactor, restore, import or Undo. You are told only when a Task no longer does what it did, and in words: which variable changed, or which Flash or web request is different.
+- Added: __Save As Test__ added to Task Stepper to save the stepper results for use by Task Tests.
 
 ### Changed
 

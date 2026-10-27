@@ -296,6 +296,8 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Import with Dependencies
 
+- [x] Task Tests - Store and compare Task stepper sessions before and after changes to the Task
+
 - [ ] Map remaining Tasker preferences
 
 - [x] Task Stepper: dry-run a Task action by action, showing which If, For and Goto branches run and what each variable holds
