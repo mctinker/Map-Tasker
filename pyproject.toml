@@ -488,6 +488,7 @@ strict = [
     "maptasker/src/__init__.py",
     "maptasker/src/analysis/__init__.py",
     "maptasker/src/analysis/livemon.py",
+    "maptasker/src/analysis/outbound.py",
     "maptasker/src/analysis/resrefs.py",
     "maptasker/src/analysis/taskcases.py",
     "maptasker/src/core/__init__.py",

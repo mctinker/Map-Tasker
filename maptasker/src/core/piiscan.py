@@ -411,6 +411,22 @@ def redact_in_text(value: str) -> tuple[str, list[Finding]]:
     return redacted, found
 
 
+def redact_credentials_in_text(value: str) -> str:
+    """The string with only its credentials replaced -- keys, tokens, passwords -- and the rest left.
+
+    For the report that has to SHOW a thing in order to be useful: the Outbound Inventory prints
+    the address an action calls, and an address is exactly where a key is most often pasted.
+    Its readers want the host and the path; they never want the key, and a report is the kind
+    of file that gets attached to a forum post.  An email address or a phone number is the
+    destination of a message action and is left alone, which is why this is not redact_in_text.
+    """
+    redacted = value
+    for item in reversed(find_in_text(value)):
+        if item.rule.severity == WARNING:
+            redacted = redacted[: item.start] + item.rule.placeholder + redacted[item.end :]
+    return redacted
+
+
 # ##################################################################################
 # The things no regular expression finds: fields Tasker itself labels.
 # ##################################################################################
@@ -635,6 +651,46 @@ def _scan_action(collect: _Collector, where: Target, action: Element) -> None:
         value = _scannable(element)
         if value:
             collect.text(where, "this action's settings", value)
+
+
+def credentials_in_action(action: Element) -> list[str]:
+    """The kinds of credential one action carries, as the labels the placeholders use.
+
+    What the Outbound Inventory asks of this module: not "what is wrong with the file" but "is
+    THIS action about to send a key somewhere".  It reads the action exactly as _scan_action
+    does -- a field Tasker calls Password on the strength of its name, everything else through
+    the one rule table -- and keeps only WARNING-grade findings, the ones that would let
+    somebody else act as you.  An email address in a message is not a credential, and an
+    inventory that flagged every recipient would drown the one request that carries a token.
+
+    Each label once, in the order first met: ["PASSWORD", "API-KEY"].  [] for a clean action.
+    """
+    code = _action_code(action)
+    arguments = {id(child): child for child in action if str(child.attrib.get("sr", "")).startswith("arg")}
+    found: list[str] = []
+    for child in arguments.values():
+        found.extend(_argument_credentials(code, child))
+    for element in action.iter():
+        if element is not action and id(element) not in arguments:
+            found.extend(_warning_labels(_scannable(element)))
+    return list(dict.fromkeys(found))
+
+
+def _warning_labels(value: str) -> list[str]:
+    """The labels of the WARNING-grade rules that match a string."""
+    return [item.rule.label for item in find_in_text(value) if item.rule.severity == WARNING]
+
+
+def _argument_credentials(code: str, child: Element) -> list[str]:
+    """The credentials one argument holds: a field Tasker calls Password on its name, otherwise by pattern."""
+    argument = str(child.attrib["sr"])
+    if (code, argument) in _NAME_ARGUMENTS:
+        return []
+    value = child.text or ""
+    credential = _credential_field(code, argument)
+    if credential and not _is_empty_or_variable(value):
+        return [credential[1]]
+    return _warning_labels(value)
 
 
 # Where Tasker keeps what was written about an object when it was published to TaskerNet:

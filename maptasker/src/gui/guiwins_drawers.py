@@ -781,7 +781,33 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
             ),
         ).style("white-space: pre-wrap")
 
+    _create_outbound_button(self)
     _create_simulation_buttons(self)
+
+
+def _create_outbound_button(self: MyGui) -> None:
+    """Outbound Inventory, last of the reports that read the whole configuration: what does it send, call or run?"""
+    outbound_button = (
+        ui.button(
+            translate_string("Outbound Inventory"),
+            color="teal",
+            on_click=self.event_handlers.reports.outbound_event,
+            icon="travel_explore",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with outbound_button:
+        ui.tooltip(
+            translate_string(
+                "List everything the configuration reaches outside the phone with, Project by Project: every "
+                "URL and host it contacts, and every SMS, call, shell command, root command and Intent it "
+                "sends.\n\nThe actions worth a look come first -- a command run as root, a request over plain "
+                "http, an address built from a variable, an action carrying a key or password.  Keys found in "
+                "an address are replaced in the report.\n\nResults are displayed here and saved to a text file "
+                "in the Output Folder.",
+            ),
+        ).style("white-space: pre-wrap")
 
 
 def _create_simulation_buttons(self: MyGui) -> None:

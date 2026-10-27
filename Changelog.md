@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file!
 
 - Added: __Task Tests__ keeps a Task Stepper run as a named test -- the Task, the values it started with, and what it did -- and runs every saved test again after each edit, Fix Findings pass, refactor, restore, import or Undo. You are told only when a Task no longer does what it did, and in words: which variable changed, or which Flash or web request is different.
 - Added: __Save As Test__ added to Task Stepper to save the stepper results for use by Task Tests.
+- Added: __Outbound Inventory__ lists, Project by Project, every URL and host your actions contact and every SMS, call, shell command, root command and Intent they send, with the risky ones first: a root command, a request over plain http, an address built from a variable, or an action carrying a key or password. Keys found in an address are replaced in the report, so it is safer to share.
+- Added:
 
 ### Changed
 

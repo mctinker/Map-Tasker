@@ -64,6 +64,8 @@ DIAGRAM_EXPORT_FILE = "MapTasker_Diagram_Export"
 # flowchart is a picture of a single Task, and each is written whenever it is built.
 TASKFLOW_FILE = "MapTasker_TaskFlow.txt"
 FLOWCHART_FILE = "MapTasker_Flowchart.txt"
+# The inventory of everything the configuration reaches outside itself with -- see outbound.py.
+OUTBOUND_FILE = "MapTasker_Outbound.txt"
 # Older versions pickled a second settings file here, apart from MapTasker_Settings.toml.  It
 # never held anything and is no longer written; getputer deletes a leftover one, unopened.
 LEGACY_SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"

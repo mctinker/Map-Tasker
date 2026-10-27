@@ -4,9 +4,9 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **91** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **92** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.0.3 source on 2026-10-27 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.1.0 source on 2026-10-27 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -70,6 +70,7 @@ _Generated from the MapTasker 15.0.3 source on 2026-10-27 by `build_command_wiki
 * [Missing Resources](#cmd-missing-resources)
 * [Notification Duration](#cmd-notification-duration)
 * [Open View In New Window](#cmd-open-view-in-new-window)
+* [Outbound Inventory](#cmd-outbound-inventory)
 * [Output Folder](#cmd-output-folder)
 * [Pre-Build The Map](#cmd-pre-build-the-map)
 * [Project/Profile/Task/Scene Names](#cmd-project-profile-task-scene-names)
@@ -1315,6 +1316,27 @@ Keep a Task Stepper run as a named test, and run every test again after each edi
 
 * They are run again by themselves after every edit, Fix Findings pass, refactor, restore, import, Undo and Redo, and you are told only if one fails.
 * A test whose Task is not in the open file is counted apart from a failure.
+
+<a id="cmd-outbound-inventory"></a>
+### Outbound Inventory
+
+**Type:** Command  
+**Where:** Right Drawer
+
+One report of everything the loaded configuration reaches outside the phone with, Project by Project.
+
+* It lists every Task action that sends a web request or downloads (HTTP Request, Get, Post, Head, Browse URL, HTTP Auth, Ping, Google Drive), sends or composes an SMS, MMS or email, makes a call or diverts calls, runs a shell command, runs a command as root, sends an Intent, or is one of the plugin actions that go online, and says where each one goes.
+* Click any line to see that action in the Map view.
+* An action that is turned off is listed and not counted.
+* An address written in some other action, such as a Variable Set holding a server, is listed apart because a later request may use it.
+* Nothing is contacted and nothing on your phone is changed.
+
+**Hover text:** List everything the configuration reaches outside the phone with, Project by Project: every URL and host it contacts, and every SMS, call, shell command, root command and Intent it sends. The actions worth a look come first -- a command run as root, a request over plain http, an address built from a variable, an action carrying a key or password. Keys found in an address are replaced in the report. Results are displayed here and saved to a text file in the Output Folder.
+
+**Caveats:**
+
+* It opens with a count of each kind and the actions worth a look -- a command run as root, a request over plain http to somewhere that is not your own network, an address built from a variable, an action carrying a key or password -- then every host contacted and how many places use it, then the full list by Project and Task.
+* Keys and passwords found in an address or command are replaced by a placeholder in the report, so it is safer to share than the backup, but a secret with no recognizable shape is not found.
 
 ## Command-Line Arguments
 

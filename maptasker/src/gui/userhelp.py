@@ -349,6 +349,20 @@ TASKTESTS_HELP_TEXT = (
     " reads a global variable uses the value the backup holds, so it also notices when that moves.  Nothing is run on"
     " your phone.  \n"
 )
+OUTBOUND_HELP_TEXT = (
+    "- Outbound Inventory: One report of everything the loaded configuration reaches outside the phone with, Project by"
+    " Project.  It lists every Task action that sends a web request or downloads (HTTP Request, Get, Post, Head, Browse"
+    " URL, HTTP Auth, Ping, Google Drive), sends or composes an SMS, MMS or email, makes a call or diverts calls, runs"
+    " a shell command, runs a command as root, sends an Intent, or is one of the plugin actions that go online, and"
+    " says where each one goes.  It opens with a count of each kind and the actions worth a look -- a command run as"
+    " root, a request over plain http to somewhere that is not your own network, an address built from a variable,"
+    " an action carrying a key or password -- then every host contacted and how many places use it, then the full list"
+    " by Project and Task.  Click any line to see that action in the Map view.  Keys and passwords found in an address"
+    " or command are replaced by a placeholder in the report, so it is safer to share than the backup, but a secret"
+    " with no recognizable shape is not found.  An action that is turned off is listed and not counted.  An address"
+    " written in some other action, such as a Variable Set holding a server, is listed apart because a later request"
+    " may use it.  Nothing is contacted and nothing on your phone is changed.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -378,5 +392,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}"
     )

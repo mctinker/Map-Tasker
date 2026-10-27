@@ -341,6 +341,55 @@ def test_a_task_flow_report_that_could_not_be_written_says_so(
 
 
 # ##################################################################################
+# Outbound Inventory
+# ##################################################################################
+def test_outbound_with_nothing_loaded_asks_for_a_file(seen: SimpleNamespace) -> None:
+    handlers = _handlers(loaded=False)
+
+    handlers.reports.outbound_event()
+
+    assert "No XML file has been loaded" in _said(handlers)[0][0]
+    assert seen.views == []
+
+
+@pytest.mark.parametrize(
+    ("counts", "told"),
+    [
+        ({"total": 0, "flagged": 0}, ("Outbound Inventory found nothing that reaches outside.", "positive")),
+        ({"total": 4, "flagged": 0}, ("Click an action to see it in the Map view.", "info")),
+        (
+            {"total": 4, "flagged": 2},
+            ("Some actions are worth a look.  Click one to see it in the Map view.", "warning"),
+        ),
+    ],
+)
+def test_outbound_saves_shows_and_says_how_it_went(
+    seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch, counts: dict[str, int], told: tuple
+) -> None:
+    monkeypatch.setattr(userintr_reports, "run_outbound_inventory", lambda state: ([SimpleNamespace()], counts))
+    monkeypatch.setattr(userintr_reports, "write_outbound_report", lambda rows, state: seen.saved_as)
+    handlers = _handlers()
+
+    handlers.reports.outbound_event()
+
+    assert _said(handlers) == [("Outbound Inventory saved as /out/report.txt", "Green")]
+    assert seen.views == [("Misc View", "<html 1 rows>")]
+    assert seen.notified == [told]
+
+
+def test_an_outbound_report_that_could_not_be_written_says_so(
+    seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(userintr_reports, "run_outbound_inventory", lambda state: ([], {"total": 0, "flagged": 0}))
+    monkeypatch.setattr(userintr_reports, "write_outbound_report", lambda rows, state: "")
+    handlers = _handlers()
+
+    handlers.reports.outbound_event()
+
+    assert _said(handlers) == [("Outbound Inventory report could not be saved.", "Red")]
+
+
+# ##################################################################################
 # Compare
 # ##################################################################################
 @pytest.fixture
