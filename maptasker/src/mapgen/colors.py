@@ -34,7 +34,7 @@ def color_names() -> dict[str, list[str]]:
 
 
 # Given a list [x,y,z] , print as x y z
-def print_list(title: str, parse_items: list) -> None:
+def print_list(title: str, parse_items: list[str]) -> None:
     """
     Given a list [x,y,z] , print as x y z
         :param title: the heading to output

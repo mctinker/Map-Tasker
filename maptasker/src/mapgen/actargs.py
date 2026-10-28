@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 import html
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import maptasker.src.core.action as get_action
 from maptasker.src.core.condjoin import join_conditions
@@ -38,7 +38,7 @@ def process_clean_string(
     clean_string: str,
     code_action: Element,
     arg: ArgumentCode,
-    evaluated_results: dict,
+    evaluated_results: dict[str, Any],
     blank: str,
     state: RunState,
 ) -> None:
@@ -107,7 +107,7 @@ def get_plugin_settings(vals: Element, already_shown: str = "") -> str:
 
     The generic reading, for every plugin plugset does not know -- see get_bundle.
     """
-    settings = []
+    settings: list[str] = []
     for child in vals:
         if child.tag == already_shown or child.tag.endswith(BUNDLE_TYPE_SUFFIX):
             continue
@@ -123,10 +123,10 @@ def get_plugin_settings(vals: Element, already_shown: str = "") -> str:
 ## We have a <bundle>.   Process it
 def get_bundle(
     code_action: Element,
-    evaluated_results: dict,
+    evaluated_results: dict[str, Any],
     arg: ArgumentCode,
     state: RunState,
-) -> dict:
+) -> dict[str, Any]:
     """
     Extracts a bundle value from an XML code action.
 
@@ -195,13 +195,13 @@ def get_bundle(
 
 # Given an <argn> element, evaluate it's contents based on our Action code dictionary
 def evaluate_argument(
-    evaluated_results: dict,
+    evaluated_results: dict[str, Any],
     arg: ArgumentCode,
     argeval: str | list[str],
     argtype: str,
     code_action: Element,
     state: RunState,
-) -> dict:
+) -> dict[str, Any]:
     """
     Extracts action arguments from an XML code action.
 
@@ -316,7 +316,7 @@ def format_image(child: Element) -> str:
 
 
 def extract_image(
-    evaluated_results: dict,
+    evaluated_results: dict[str, Any],
     code_action: Element,
     argeval: str,
     arg: ArgumentCode,
@@ -360,7 +360,7 @@ def extract_image(
 
 # Get condition releated details from action xml
 def extract_condition(
-    evaluated_results: dict,
+    evaluated_results: dict[str, Any],
     arg: ArgumentCode | str,
     argeval: str | list[str],
     code_action: Element,
@@ -395,7 +395,7 @@ def extract_condition(
 
 # Get the argument details from action xml
 # Get the argument details from action xml
-def extract_argument(evaluated_results: dict, arg: ArgumentCode | str, argeval: str | list[str]) -> None:
+def extract_argument(evaluated_results: dict[str, Any], arg: ArgumentCode | str, argeval: str | list[str]) -> None:
     """
     Extracts an argument from evaluated results
     Args:
@@ -448,9 +448,9 @@ def action_args(
     the_action_code_plus: str,
     action_codes: dict[str, ActionCode],
     code_action: Element,
-    evaluated_results: dict,
+    evaluated_results: dict[str, Any],
     state: RunState,
-) -> dict:
+) -> dict[str, Any]:
     """
     Go through the arguments and parse each one based on its argument 'type'
 

@@ -16,6 +16,7 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 #
 import re
+from typing import Any
 from xml.etree.ElementTree import Element
 
 from maptasker.src.core.actionc import load_arg_specs
@@ -30,7 +31,7 @@ from maptasker.src.mapgen.profiles import conditions_to_name
 
 # Convert list of xml to dictionary
 # Optimized
-def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
+def move_xml_to_table(all_xml: list[Element], get_id: bool, name_qualifier: str) -> dict[str, dict[str, Any]]:
     """
     Given a list of Profile/Task/Scene elements, find each name and store the element and name in a dictionary.
         :param all_xml: the head xml element for Profile/Task/Scene
@@ -38,7 +39,7 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
         :param name_qualifier: the qualifier to find the element's name.
         :return: dictionary that we created
     """
-    new_table = {}
+    new_table: dict[str, dict[str, Any]] = {}
     for item in all_xml:
         # Get the element name
         name_element = item.find(name_qualifier)
@@ -144,10 +145,9 @@ def _index_tasks_by_name(state: RunState) -> None:
         }
 
     # Sort them for easier debug.
-    temp = sorted(state.tasker_root_elements["all_tasks"].items())
-    state.tasker_root_elements["all_tasks"] = dict(temp)
-    temp = sorted(state.tasker_root_elements["all_tasks_by_name"].items())
-    state.tasker_root_elements["all_tasks_by_name"] = dict(temp)
+    for table in ("all_tasks", "all_tasks_by_name"):
+        entries: dict[str, Any] = state.tasker_root_elements[table]
+        state.tasker_root_elements[table] = dict(sorted(entries.items()))
 
 
 def build_tasker_tables(state: RunState) -> None:
@@ -201,33 +201,24 @@ def get_first_action(task: Element, state: RunState) -> str:
     if not state.tasker_arg_specs:
         load_arg_specs(state=state)
 
-    task_actions = task.findall("Action")
-    if task_actions is not None:
-        have_first_action = False
-        # Go through Actions looking for the first one ("act0")
-        for action in task_actions:
-            action_number = action.attrib.get("sr")
-            if action_number == "act0":
-                have_first_action = True
-                break
+    # The first Action is the one with sr="act0".
+    action = next((candidate for candidate in task.findall("Action") if candidate.attrib.get("sr") == "act0"), None)
+    if action is None:
+        return ""
 
-        if not have_first_action:
-            return ""
-
-        # Now get the Action code
-        child = action.find("code")
-        the_result = get_action_code(child, action, True, "t", state=state)
-        clean_text = strip_html_tags(the_result)
-        clean_text = (
-            clean_text.replace("&nbsp;&nbsp;", "&nbsp;")
-            .replace("( ", "(")
-            .replace("(", "")
-            .replace(")", "")
-            .replace("&nbsp;", " ")
-            .replace("...with label: ", "")
-            .replace("&lt;", "{")
-            .replace("&gt;", "}")
-        )
-        # Truncate the string at 30 charatcers.
-        return truncate_string(clean_text, 30)
-    return ""
+    # Now get the Action code
+    child = action.find("code")
+    the_result = get_action_code(child, action, True, "t", state=state)
+    clean_text = strip_html_tags(the_result)
+    clean_text = (
+        clean_text.replace("&nbsp;&nbsp;", "&nbsp;")
+        .replace("( ", "(")
+        .replace("(", "")
+        .replace(")", "")
+        .replace("&nbsp;", " ")
+        .replace("...with label: ", "")
+        .replace("&lt;", "{")
+        .replace("&gt;", "}")
+    )
+    # Truncate the string at 30 charatcers.
+    return truncate_string(clean_text, 30)

@@ -26,6 +26,7 @@ from maptasker.src.mapgen import tasks
 from maptasker.src.mapgen.tasks import get_taskid_from_unnamed_task
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
@@ -68,7 +69,13 @@ def ensure_argument_alignment(taction: str) -> str:
 
 # Go through list of actions and output them
 def output_list_of_actions(
-    action_count: int, alist: list, the_item: str, config: RunConfig, task_id: str = "", *, state: RunState
+    action_count: int,
+    alist: Sequence[str | None],
+    the_item: str,
+    config: RunConfig,
+    task_id: str = "",
+    *,
+    state: RunState,
 ) -> None:
     """
     Output the list of Task Actions
@@ -139,7 +146,7 @@ def output_list_of_actions(
         state.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
-def _find_task(the_item: str, list_type: str, state: RunState) -> tuple:
+def _find_task(the_item: str, list_type: str, state: RunState) -> tuple[Element | None, str, str]:
     """Find the Task an output line is about, by its name or its id.
 
     Returns:
@@ -195,7 +202,7 @@ def _find_task(the_item: str, list_type: str, state: RunState) -> tuple:
         if task_info := state.tasker_root_elements["all_tasks"].get(task_id):
             the_task = task_info["xml"]
             task_name = task_info["name"]
-    return the_task, task_name, task_id
+    return the_task, task_name, task_id or ""
 
 
 def _output_task_actions(
@@ -270,7 +277,7 @@ def _output_task_actions(
 
 # For this specific Task, get its Actions and output the Task and Actions
 def get_task_actions_and_output(
-    the_task: Element,
+    the_task: Element | None,
     list_type: str,
     the_item: str,
     tasks_found: list[str],

@@ -18,7 +18,7 @@ import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/s
 from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
 from functools import lru_cache
-from typing import TypeVar
+from typing import Any, TypeVar, cast
 
 import requests
 from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -329,7 +329,7 @@ def _auth_headers(auth_key: str = "", content_type: str = "") -> dict[str, str] 
     The API key from get_android_auth_key goes as the raw 'Authorization' value, with no
     "Bearer " prefix; a Content-Type only when the endpoint cares what it is sent.
     """
-    headers = {}
+    headers: dict[str, str] = {}
     if auth_key:
         headers["Authorization"] = auth_key
     if content_type:
@@ -976,8 +976,8 @@ def attached_elements(state: RunState) -> set[int]:
     """
     reachable: set[int] = set()
 
-    root = state.xml_root
-    if root is not None:
+    if state.backup_loaded:
+        root = state.xml_root
         reachable.add(id(root))
         for child in root:
             if child.tag in _TABLE_OF_TAG:
@@ -985,8 +985,9 @@ def attached_elements(state: RunState) -> set[int]:
             reachable.update(id(element) for element in child.iter())
 
     for table in _TABLE_OF_TAG.values():
-        for item in (state.tasker_root_elements.get(table) or {}).values():
-            element = item.get("xml") if isinstance(item, dict) else item
+        entries: dict[str, Any] = state.tasker_root_elements.get(table) or {}
+        for item in entries.values():
+            element: ETW.Element | None = cast("dict[str, Any]", item).get("xml") if isinstance(item, dict) else item
             if element is None:
                 continue
             reachable.update(id(descendant) for descendant in element.iter())
@@ -1035,13 +1036,13 @@ def _element_match_key(element: ETW.Element, tag: str) -> str | None:
 
 
 def _reconcile_children(
-    children: list,
+    children: list[ETW.Element],
     tag: str,
     table_name: str,
     state: RunState,
     *,
     indent: bool,
-) -> list:
+) -> list[ETW.Element]:
     """Reconcile one tag's children of the rendered root with the lookup table that holds that tag.
 
     Returns:
@@ -1053,13 +1054,13 @@ def _reconcile_children(
     # a tree child whose key is in it is REPLACED by the table's version, a key in it
     # that no tree child carries is APPENDED as something newly added, and a tree child
     # whose key is NOT in it has been DELETED and is dropped.
-    current_by_key = {}
+    current_by_key: dict[str, ETW.Element] = {}
     # Table entries with no match key at all: never seen in practice -- every
     # Project/Profile/Task in this repo's own sample backup has an <id> and every
     # Scene an <nme> -- but they cannot be matched, so they are carried along as
     # additions rather than risking two different key-less elements colliding on a
     # shared None key.
-    keyless_additions = []
+    keyless_additions: list[ETW.Element] = []
     for entry in state.tasker_root_elements.get(table_name, {}).values():
         current_element = copy.deepcopy(entry["xml"]) if indent else entry["xml"]
         current_key = _element_match_key(current_element, tag)
@@ -1078,8 +1079,8 @@ def _reconcile_children(
     # that tree wrote the deleted item back out, so "delete the Task, Save To Current
     # File" produced a file with the Task still in it, and reloading it brought the
     # Task back.  Silently: nothing in the GUI said the delete had not taken.
-    rebuilt = []
-    matched_keys = set()
+    rebuilt: list[ETW.Element] = []
+    matched_keys: set[str] = set()
     last_index_of_tag = -1
     for child in children:
         if child.tag != tag:
@@ -1181,7 +1182,7 @@ def render_full_backup_xml(state: RunState, *, indent: bool = True) -> str:
     Raises:
         ValueError: if no backup is loaded (PrimeItems.xml_root is None).
     """
-    if state.xml_root is None:
+    if not state.backup_loaded:
         msg = "No backup data is currently loaded."
         raise ValueError(msg)
 
@@ -1259,7 +1260,7 @@ def write_full_backup_to_current_file(state: RunState) -> tuple[bool, str]:
     if not file_path or not isinstance(file_path, str):
         return False, "No backup file is currently loaded to save back to."
 
-    if state.xml_root is None:
+    if not state.backup_loaded:
         return False, "No backup data is currently loaded."
 
     try:

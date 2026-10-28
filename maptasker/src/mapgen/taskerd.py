@@ -65,10 +65,6 @@ def get_the_xml_data(state: RunState) -> None:
                 raise MapTaskerError(message, 1) from e
             _rewrite_xml(file_to_parse)
 
-    if state.xml_tree is None:
-        message = "Bad XML file"
-        raise MapTaskerError(message, 1)
-
     root = state.xml_tree.getroot()
     if root is None:
         message = "Bad XML file"

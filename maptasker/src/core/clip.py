@@ -211,8 +211,22 @@ class ClipError(Exception):
     """Raise Exception if Clip class methods are misused"""
 
 
+def _is_int(value: object) -> bool:
+    """Whether the caller really passed a whole number -- the annotation says so, a script that does not check may not."""
+    return isinstance(value, int)
+
+
+def _is_bool(value: object) -> bool:
+    """Whether the caller really passed True or False."""
+    return isinstance(value, bool)
+
+
 class Clip:
     """A class to manage all aspects of a clip."""
+
+    # Made by get_frames and get_frame_color_maps, not before: an uncoloured clip never makes the second.
+    frames: list[list[list[str]]]
+    frame_color_maps: list[list[str]]
 
     def __init__(self, source_folder: str, play_speed: int, play_cycles: int, color: bool = False) -> None:
         """Initialize instance of Tile"""
@@ -222,19 +236,19 @@ class Clip:
         self.play_cycles = play_cycles
         self._color = color
 
-        if not isinstance(self.play_cycles, int):
+        if not _is_int(self.play_cycles):
             message = "play cycles must be an integer"
             raise ClipError(message)
         if (self.play_cycles < 1) or (self.play_cycles > 1000):
             message = "play cycles must be an integer from 1-1000"
             raise ClipError(message)
-        if not isinstance(play_speed, int):
+        if not _is_int(play_speed):
             message = "Speed must be an integer from 1-100"
             raise ClipError(message)
         if (play_speed < 1) or (play_speed > 100):
             message = "Speed must be an integer from 1-100"
             raise ClipError(message)
-        if not isinstance(self._color, bool):
+        if not _is_bool(self._color):
             message = 'colorless by default - pass "True" for color'
             raise ClipError(message)
 
@@ -253,7 +267,7 @@ class Clip:
         order."""
         self.frames = []
         for line in PIC:
-            frame = []
+            frame: list[list[str]] = []
             frame.extend(list(row) for row in line)
             self.frames.append(frame)
 

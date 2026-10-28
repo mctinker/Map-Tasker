@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 
-def java_constants_to_dict(url: str) -> dict:
+def java_constants_to_dict(url: str) -> dict[str, int]:
     """
     Fetches a Java source file from the given URL and extracts public static final int constants.
 
@@ -56,7 +56,7 @@ def java_constants_to_dict(url: str) -> dict:
         This code snippet fetches a Java source file (or similar text) from a given URL, extracts constant integer
         values from public static final int declarations using regex, and returns them as a dictionary.
     """
-    constants = {}
+    constants: dict[str, int] = {}
     pattern = re.compile(r"public\s+static\s+final\s+int\s+(\w+)\s*=\s*(-?\d+);")
 
     response = requests.get(url, timeout=10)
@@ -110,14 +110,14 @@ def format_string(s: str) -> str:
     return " ".join(word.capitalize() for word in s.split("_"))
 
 
-def format_columns(entries: list) -> str:
+def format_columns(entries: list[str]) -> str:
     """
     Formats a list of entries into aligned columns.
 
     :param entries: List of strings containing mismatched Tasker names.
     :return: A formatted string with aligned columns.
     """
-    formatted_entries = []
+    formatted_entries: list[tuple[str, str, str]] = []
 
     for entry in entries:
         parts = entry.split("   <<< ")
@@ -152,7 +152,7 @@ def validate_states_and_events(code_type: str, url: str, state: RunState | None 
     Raises:
         requests.exceptions.RequestException: If there is an issue with the HTTP request.
     """
-    missing_codes = []
+    missing_codes: list[str] = []
     run = PrimeItems if state is None else state
     # Get the data.
     if code_type == "s":
@@ -191,7 +191,7 @@ def validate_states_and_events(code_type: str, url: str, state: RunState | None 
         )
 
     # Make sure Tasker code 'names' are the same as our actionc code 'names'
-    mismatch_names = []
+    mismatch_names: list[str] = []
     for key, code in codes.items():
         code_name = format_string(key)
         modified_code = str(code) + code_type

@@ -40,11 +40,14 @@ from maptasker.src.core.sysconst import (
     logger,
 )
 
+# A settings table as TOML gives it back (or as the GUI hands it over): names to values of any kind.
+Settings = dict[str, Any]
+
 twenty_four_hours_ago = NOW_TIME - timedelta(hours=25)
 
 
 # A saved choice of AI service that MapTasker no longer supports
-def drop_unsupported_ai_selection(program_arguments: dict) -> bool:
+def drop_unsupported_ai_selection(program_arguments: Settings) -> bool:
     """Clear the saved AI service and model if they are ones MapTasker can no longer run.
 
     A settings file saved while one was selected would otherwise bring it back on the Analyze tab,
@@ -116,7 +119,7 @@ def write_atomically(target_file: str, write_settings: Callable[[BinaryIO], None
 
 
 # Settings file is corrupt.  Let user know and reset colors to use and program arguments
-def corrupted_file(program_arguments: dict, colors_to_use: dict) -> tuple[dict, dict]:
+def corrupted_file(program_arguments: Settings, colors_to_use: Settings) -> tuple[Settings, Settings]:
     """
     Checks for corrupted settings file and handles error
     Args:
@@ -142,12 +145,12 @@ def corrupted_file(program_arguments: dict, colors_to_use: dict) -> tuple[dict, 
 
 
 # Write out our runtime settings as a TOML file
-def _settings_to_save(program_arguments: ProgramArguments | dict, state: RunState) -> dict:
+def _settings_to_save(program_arguments: ProgramArguments | Settings, state: RunState) -> Settings:
     """Every setting the file holds, cleaned for it: no None, no "None" or translated prefix in another language.
 
     Cleans the dictionary it is given as it goes, which is what the caller's own copy has always had done to it.
     """
-    user_args = {}
+    user_args: Settings = {}
     project_translated = translate_string("Project:")
     profile_translated = translate_string("Profile:")
     task_translated = translate_string("Task:")
@@ -182,7 +185,7 @@ def _settings_to_save(program_arguments: ProgramArguments | dict, state: RunStat
 
 
 def save_arguments(
-    program_arguments: ProgramArguments | dict, colors_to_use: dict, new_file: str, state: RunState
+    program_arguments: ProgramArguments | Settings, colors_to_use: Settings, new_file: str, state: RunState
 ) -> None:
     """
     Save the program arguments, colors to use, and new file to a JSON file.
@@ -250,7 +253,7 @@ def save_arguments(
 
 
 # Read the TOML file and return the settings.
-def read_toml_file(new_file: str, state: RunState) -> tuple[dict, dict]:
+def read_toml_file(new_file: str, state: RunState) -> tuple[Settings, Settings]:
     """
     Reads a TOML file and returns the program arguments and colors to use.
 
@@ -270,8 +273,8 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[dict, dict]:
         - If the TOML file is corrupted or does not exist, the function calls the "corrupted_file" function.
 
     """
-    program_arguments: dict = {}
-    colors_to_use: dict = {}
+    program_arguments: Settings = {}
+    colors_to_use: Settings = {}
     with open(new_file, "rb") as f:
         # Setup old date if date last used is not in TROML settings file.  Catch all possible errors with TOML file.
         try:
@@ -324,11 +327,11 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[dict, dict]:
 
 # Read in the TOML runtime settings
 def read_arguments(
-    program_arguments: ProgramArguments | dict,
-    colors_to_use: dict,
+    program_arguments: ProgramArguments | Settings,
+    colors_to_use: Settings,
     new_file: str,
     state: RunState,
-) -> tuple[ProgramArguments | dict, dict]:
+) -> tuple[ProgramArguments | Settings, Settings]:
     """
     Reads the program arguments, colors to use, old file, and new file.
 
@@ -351,9 +354,7 @@ def read_arguments(
     # A run always starts out not doing any of the transient things, whatever a settings
     # file written by an older version (or edited by hand) claims.
     for argument, resting_value in TRANSIENT_ARGUMENTS.items():
-        if isinstance(program_arguments, (dict, ProgramArguments)) and (
-            argument not in program_arguments or program_arguments[argument] != resting_value
-        ):
+        if argument not in program_arguments or program_arguments[argument] != resting_value:
             logger.info(f"Ignoring saved '{argument}' and starting at {resting_value}.")
             program_arguments[argument] = resting_value
 

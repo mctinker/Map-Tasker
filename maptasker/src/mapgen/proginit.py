@@ -110,7 +110,7 @@ def open_and_get_backup_xml_file(state: RunState) -> None:
     if state.program_arguments.file:
         # The GUI keeps the open file itself here; a command line run keeps the path.
         given = state.program_arguments.file
-        filename = given if isinstance(given, str) else getattr(given, "name", "")
+        filename = given if _is_text(given) else getattr(given, "name", "")
 
         # We already have the file name...open it.
         try:
@@ -126,8 +126,13 @@ def open_and_get_backup_xml_file(state: RunState) -> None:
         prompt_for_backup_file(dir_path, state=state)
 
 
+def _is_text(value: object) -> bool:
+    """Whether `value` is a string: the GUI keeps the open file itself where a command line run keeps its path."""
+    return isinstance(value, str)
+
+
 # Build color dictionary
-def setup_colors(state: RunState) -> dict:
+def setup_colors(state: RunState) -> dict[str, str]:
     """
     Determine and set colors to use in the output
         Args:

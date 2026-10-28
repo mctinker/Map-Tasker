@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import math
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core.maputils import fix_hyperlink_name
 from maptasker.src.core.sysconst import (
@@ -45,7 +45,7 @@ ANCHOR_ID_PATTERN = re.compile(
 
 
 # Every directory anchor id found in the given output lines.
-def collect_anchor_ids(output_lines: list) -> set:
+def collect_anchor_ids(output_lines: list[Any]) -> set[str]:
     """
     Gather the ids of the directory's anchors in the given output lines.
         Args:
@@ -54,10 +54,10 @@ def collect_anchor_ids(output_lines: list) -> set:
         Returns:
             set: the anchor ids found in them
     """
-    anchor_ids = set()
+    anchor_ids: set[str] = set()
     for item in output_lines:
         # Legacy entries can still be [level, line] rather than a bare line (see format.format_line).
-        line = item[1] if isinstance(item, list) else item
+        line: str = cast("list[str]", item)[1] if isinstance(item, list) else item
         # Most lines carry no anchor at all, and this check is a good deal cheaper than
         # running the pattern over every one of them.
         if 'id="' in line:
@@ -66,7 +66,7 @@ def collect_anchor_ids(output_lines: list) -> set:
 
 
 # Anchor ids that the view limit's cut drops from the output file.
-def unreachable_anchors(output_lines: list, view_limit: int) -> set:
+def unreachable_anchors(output_lines: list[Any], view_limit: int) -> set[str]:
     """
     Determine which anchors the view limit keeps out of the output file.
 
@@ -92,7 +92,7 @@ def unreachable_anchors(output_lines: list, view_limit: int) -> set:
 
 
 # Build a single directory entry: a hyperlink, or plain text if it can't be reached.
-def directory_entry(href: str, anchor: str, display_name: str, dropped_anchors: set) -> str:
+def directory_entry(href: str, anchor: str, display_name: str, dropped_anchors: set[str]) -> str:
     """
     Build the directory's cell for one item.
 
@@ -112,7 +112,7 @@ def directory_entry(href: str, anchor: str, display_name: str, dropped_anchors: 
 
 
 # Search a list of lists for a given string.  Return True if found.
-def search_lists(search_string: str, list_of_lists: list) -> bool:
+def search_lists(search_string: str, list_of_lists: list[Any]) -> bool:
     """
     Search a list of lists for a given string.  Return True if found.
         Args:
@@ -161,7 +161,7 @@ def add_directory_item(key: str, name: str, config: RunConfig, state: RunState) 
 #######################################################################################
 # Given a list of hyperlinks,determine the optimum number of rows and columns
 #######################################################################################
-def calculate_grid_size(items: list, max_columns: int) -> tuple:
+def calculate_grid_size(items: list[Any], max_columns: int) -> tuple[int, int]:
     """
     Calculates the size of a grid based on the number of items in a list.
     The column width can be no larger than 6
@@ -193,7 +193,7 @@ def calculate_grid_size(items: list, max_columns: int) -> tuple:
 #######################################################################################
 # Given a list of hyperlinks, build a table and output the table
 #######################################################################################
-def output_table(hyperlinks: list, max_columns: int, state: RunState) -> None:
+def output_table(hyperlinks: list[Any], max_columns: int, state: RunState) -> None:
     """
     Generates a Python docstring for the `output_table` function.
 
@@ -225,7 +225,7 @@ def output_table(hyperlinks: list, max_columns: int, state: RunState) -> None:
 #######################################################################################
 # Given a number of rows and columns and data, format it as a table in html
 #######################################################################################
-def generate_html_table(data: list, rows: int, columns: int) -> str:
+def generate_html_table(data: list[Any], rows: int, columns: int) -> str:
     """
     Generates an HTML table from a given data dictionary.
 
@@ -280,7 +280,7 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
 #######################################################################################
 # Output directory for information at the bottom of the output
 #######################################################################################
-def do_trailing_matters(config: RunConfig, dropped_anchors: set, *, state: RunState) -> None:
+def do_trailing_matters(config: RunConfig, dropped_anchors: set[str], *, state: RunState) -> None:
     """
     Create a hyperlinks for key items that are at the bottom of the output
 
@@ -293,7 +293,7 @@ def do_trailing_matters(config: RunConfig, dropped_anchors: set, *, state: RunSt
     Returns:
         None
     """
-    trailing_matter = []
+    trailing_matter: list[str] = []
     state.output_lines.add_line_to_output(
         5,
         f"<br><br>{NORMAL_TAB}Trailing Information{period * 50}<br><br>",
@@ -400,7 +400,7 @@ def task_id(task_name: str, state: RunState) -> str:
 
 
 # Get the Task IDs that a Profile directly references: its Entry/Exit Tasks.
-def get_profile_task_ids(profile_name: str, state: RunState) -> set:
+def get_profile_task_ids(profile_name: str, state: RunState) -> set[str]:
     """
     Get the IDs of the Tasks a Profile directly references (its Entry and Exit Tasks)
         Args:
@@ -574,7 +574,7 @@ def check_item(name: str, item: str, config: RunConfig, state: RunState) -> bool
 #######################################################################################
 # Output table for specific Tasker element: Projects, Profiles, Tasks, Scenes
 #######################################################################################
-def do_tasker_element(name: str, config: RunConfig, dropped_anchors: set, *, state: RunState) -> None:
+def do_tasker_element(name: str, config: RunConfig, dropped_anchors: set[str], *, state: RunState) -> None:
     """
     Build an html table and output it for the given Tasker element: Project, Profile,
         Scene or Task.  DO this by traversing the entire xml trees.
@@ -597,7 +597,7 @@ def do_tasker_element(name: str, config: RunConfig, dropped_anchors: set, *, sta
     if state.directory_items[name]:
         # Go through each item and accumulate the names to be used for
         # the directory hyperlinks
-        directory_hyperlinks = []
+        directory_hyperlinks: list[tuple[str, str]] = []
 
         _check_item = check_item
         for item in state.directory_items[name]:
@@ -626,7 +626,7 @@ def do_tasker_element(name: str, config: RunConfig, dropped_anchors: set, *, sta
             # Sort by the item's name here rather than leaving it to the table, which
             # would otherwise sort the plain-text entries apart from the hyperlinks.
             directory_hyperlinks.sort()
-            directory_hyperlinks = [entry for _, entry in directory_hyperlinks]
+            directory_entries = [entry for _, entry in directory_hyperlinks]
             # Output the name title: Project, Profile, Task, Scene
             state.output_lines.add_line_to_output(
                 5,
@@ -635,13 +635,13 @@ def do_tasker_element(name: str, config: RunConfig, dropped_anchors: set, *, sta
             )
             # 6 columns for projects, 5 columns for tasks
             number_of_columns = 5 if name == "tasks" else 6
-            output_table(directory_hyperlinks, number_of_columns, state=state)
+            output_table(directory_entries, number_of_columns, state=state)
 
 
 #######################################################################################
 # Output directory by appending it to our output queue
 #######################################################################################
-def output_directory(config: RunConfig, dropped_anchors: set | None = None, *, state: RunState) -> None:
+def output_directory(config: RunConfig, dropped_anchors: set[str] | None = None, *, state: RunState) -> None:
     """
     Writes the directory to the output queue.
 

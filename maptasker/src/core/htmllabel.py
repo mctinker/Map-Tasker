@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 from maptasker.src.core.format import format_html
 from maptasker.src.core.htmlsafe import embed_html_document, html_document_start, legible_color
-from maptasker.src.core.htmltext import contains_html, parse_html_to_text_segments
+from maptasker.src.core.htmltext import Segment, Styles, contains_html, parse_html_to_text_segments
 from maptasker.src.core.sysconst import HOTLINK_STYLE
 
 if TYPE_CHECKING:
@@ -87,7 +87,7 @@ def close_left_open_tags(label_html: str) -> str:
     return "".join(f"</{name}>" for name in reversed(still_open))
 
 
-def _segment_css(lbl_style: dict) -> str:
+def _segment_css(lbl_style: Styles) -> str:
     """
     The inline CSS for the underline, italic, bold and table styles of one label segment.
 
@@ -109,7 +109,7 @@ def _segment_css(lbl_style: dict) -> str:
     return css_styles.replace(";;", ";")
 
 
-def _link_segment(lbl_text: str, lbl_style: dict) -> str:
+def _link_segment(lbl_text: str, lbl_style: Styles) -> str:
     """
     A label segment's text, wrapped in an anchor if the segment is a link.
 
@@ -163,7 +163,7 @@ class _LabelBuilder:
         self.previous_heading = 0
         self.previous_text = ""
 
-    def add(self, action_label: dict) -> None:
+    def add(self, action_label: Segment) -> None:
         """
         Add one parsed segment of the label to the html.
 
@@ -213,7 +213,7 @@ class _LabelBuilder:
         else:
             self.task_label = self.task_label + f"{'&nbsp;' * lbl_heading}" + lbl_text
 
-    def _add_colored(self, lbl_text: str, lbl_color: str, css_styles: str, lbl_heading: int, lbl_style: dict) -> None:
+    def _add_colored(self, lbl_text: str, lbl_color: str, css_styles: str, lbl_heading: int, lbl_style: Styles) -> None:
         """
         Add a segment that has a color: in a span of that color, or as it stands if it is markup.
 

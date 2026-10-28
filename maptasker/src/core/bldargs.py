@@ -12,6 +12,7 @@
 import json
 import os
 from collections import Counter, defaultdict
+from typing import Any
 
 import defusedxml.ElementTree as ET
 
@@ -41,7 +42,11 @@ DEFAULT_XML_FILE = "backup.xml"
 OVERLAY_FILENAME = os.path.join("..", "..", "assets", "json", "action_overlay.json")
 
 
-def get_backup_arguments(xml_file: str) -> dict:
+# The argument slots a backup uses, by action_codes key: {"2078e": {"0": "Bundle", "1": "Str"}} (arg id to element tag).
+Harvest = dict[str, dict[str, str]]
+
+
+def get_backup_arguments(xml_file: str) -> Harvest:
     """
     Collect the argument slots every Action/Event/State in a backup actually uses.
     Args:
@@ -56,7 +61,7 @@ def get_backup_arguments(xml_file: str) -> dict:
     # An arg slot can legitimately appear with different tags across occurrences (a
     # value written as <Str> in one action and <Int> in another), so count them and
     # let the winner be decided once everything has been seen.
-    tallies = defaultdict(lambda: defaultdict(Counter))
+    tallies: defaultdict[str, defaultdict[str, Counter[str]]] = defaultdict(lambda: defaultdict(Counter))
     for element in root.iter():
         suffix = OWNER_SUFFIX.get(element.tag)
         if suffix is None:
@@ -76,7 +81,7 @@ def get_backup_arguments(xml_file: str) -> dict:
     }
 
 
-def find_missing_arguments(harvested: dict) -> dict:
+def find_missing_arguments(harvested: Harvest) -> Harvest:
     """
     Work out which harvested argument slots the action code tables don't declare.
     Args:
@@ -84,7 +89,7 @@ def find_missing_arguments(harvested: dict) -> dict:
     Returns:
         dict: {action_codes key to update: {arg id: arg_type}}, sorted by arg id
     """
-    missing = defaultdict(dict)
+    missing: defaultdict[str, dict[str, str]] = defaultdict(dict)
     for key, slots in harvested.items():
         action_code = action_codes.get(key)
         if action_code is None:
@@ -107,7 +112,7 @@ def find_missing_arguments(harvested: dict) -> dict:
     return {key: dict(sorted(slots.items(), key=lambda item: int(item[0]))) for key, slots in missing.items() if slots}
 
 
-def harvested_argument(arg_id: str, arg_type: str) -> list:
+def harvested_argument(arg_id: str, arg_type: str) -> list[str | bool]:
     """
     Build the overlay argument record for one harvested argument.
     Args:
@@ -123,7 +128,7 @@ def harvested_argument(arg_id: str, arg_type: str) -> list:
     return [arg_id, False, "", arg_type, f", Arg {arg_id}="]
 
 
-def format_overlay(overlay: dict) -> str:
+def format_overlay(overlay: dict[str, Any]) -> str:
     """
     Serialize action_overlay.json with one action code per line.
     Args:
@@ -136,7 +141,7 @@ def format_overlay(overlay: dict) -> str:
     line and the file stays reviewable.
     """
 
-    def block(mapping: dict) -> str:
+    def block(mapping: dict[str, Any]) -> str:
         """One code per line, numeric codes in numeric order and named ones last."""
         keys = sorted(mapping, key=lambda k: (k[:-1].zfill(12), k) if k[:-1].isdigit() else ("~" + k, k))
         entries = ",\n".join(
@@ -150,7 +155,7 @@ def format_overlay(overlay: dict) -> str:
     )
 
 
-def insert_arguments(overlay_file: str, missing: dict) -> int:
+def insert_arguments(overlay_file: str, missing: Harvest) -> int:
     """
     Add the harvested arguments to action_overlay.json's 'extra' entries.
     Args:
@@ -165,21 +170,23 @@ def insert_arguments(overlay_file: str, missing: dict) -> int:
     code and leaves it alone rather than deciding on its own.
     """
     with open(overlay_file, encoding="utf-8") as file:
-        overlay = json.load(file)
+        overlay: dict[str, Any] = json.load(file)
 
-    added, published = 0, {}
+    added = 0
+    published: Harvest = {}
     for key, slots in missing.items():
-        entry = overlay["extra"].get(key)
+        entry: dict[str, Any] | None = overlay["extra"].get(key)
         if entry is None:
             published[key] = slots
             continue
         # An argument the entry already carries is not added again.  The slots were worked out
         # against the tables as loaded, and a second harvest in the same run (or against an
         # overlay edited since) would otherwise put the same argument in twice.
-        present = {arg[0] for arg in entry["args"]}
+        entry_args: list[list[Any]] = entry["args"]
+        present = {arg[0] for arg in entry_args}
         new_slots = {arg_id: arg_type for arg_id, arg_type in slots.items() if arg_id not in present}
-        entry["args"].extend(harvested_argument(arg_id, arg_type) for arg_id, arg_type in new_slots.items())
-        entry["args"].sort(key=lambda arg: int(arg[0]))
+        entry_args.extend(harvested_argument(arg_id, arg_type) for arg_id, arg_type in new_slots.items())
+        entry_args.sort(key=lambda arg: int(arg[0]))
         added += len(new_slots)
 
     for key, slots in published.items():

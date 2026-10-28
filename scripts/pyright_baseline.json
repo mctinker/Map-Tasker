@@ -441,7 +441,7 @@
     "reportAttributeAccessIssue": 3
   },
   "tests/test_taskactn.py": {
-    "reportArgumentType": 42
+    "reportArgumentType": 37
   },
   "tests/test_taskflow.py": {
     "reportArgumentType": 1,

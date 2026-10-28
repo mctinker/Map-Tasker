@@ -22,6 +22,8 @@ from maptasker.src.core.xmldata import parse_tasker_xml, rewrite_xml
 from maptasker.src.mapgen.taskerd import get_the_xml_data
 
 if TYPE_CHECKING:
+    from xml.etree.ElementTree import ElementTree
+
     from maptasker.src.core.primitem import RunState
 
 
@@ -34,10 +36,11 @@ def write_out_backup_file(file_contents: bytes | str, state: RunState) -> None:
         :return: Nothing
     """
     # Store the output in the current directory
-    my_output_dir = getcwd()
-    if my_output_dir is None:
+    try:
+        my_output_dir = getcwd()
+    except OSError as error:  # The working directory has been removed from under us.
         message = "MapTasker canceled.  An error occurred in getbakup.  Program canceled."
-        raise MapTaskerError(message, 2)
+        raise MapTaskerError(message, 2) from error
 
     # We must get just the file name and type since we will be using this to save it to our local path.
     # This is the file we will do all of our processing against...the local file fetched from the Android device.
@@ -127,7 +130,7 @@ def validate_xml(
     return_code: int,
     file_contents: bytes | str,
     state: RunState,
-) -> tuple:
+) -> tuple[str, ElementTree | None]:
     # Run loop since we may have to rerun validation if unicode error
     """Validates an XML file and returns an error message and the parsed XML tree.
     Parameters:
@@ -149,7 +152,8 @@ def validate_xml(
     process_file = True
     error_message = ""
     counter = 0
-    xml_tree = None
+    xml_tree: ElementTree | None = None
+    file_to_validate = ""
     _write_out_backup_file = write_out_backup_file
     _get_the_xml_data = get_the_xml_data
     _rewrite_xml = rewrite_xml
@@ -242,7 +246,7 @@ def validate_xml_file(ip_address: str, port: str, android_file: str, state: RunS
     if xml_tree is None:
         return 1, f"File {android_file} could not be read.\n\nTry again."
     xml_root = xml_tree.getroot()
-    if xml_root.tag != "TaskerData":
+    if xml_root is None or xml_root.tag != "TaskerData":
         return 0, f"File {android_file} is not valid Tasker XML.\n\nTry again."
 
     return 0, ""

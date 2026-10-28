@@ -48,7 +48,7 @@ import json
 import os
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -160,7 +160,7 @@ def read_app_element(element: Element) -> list[AppEntry]:
     fields = {field: _child_text(element, tag).split(",") for tag, field in _APP_ARG_TAGS}
     packages = [value.strip() for value in fields["pkg"]]
 
-    entries = []
+    entries: list[AppEntry] = []
     for index, package in enumerate(packages):
         if not package:
             continue
@@ -587,7 +587,21 @@ def cache_path() -> str:
     return os.path.join(os.getcwd(), APPS_CACHE_FILE)
 
 
-def read_cache() -> dict:
+# The cache file as read: JSON from disk, so nothing in it is taken on trust (see the isinstance checks below).
+Cache = dict[str, Any]
+
+
+def _as_dict(value: object) -> Cache:
+    """`value` if it is a JSON object, else an empty one: a damaged cache file is read as far as it makes sense."""
+    return cast("Cache", value) if isinstance(value, dict) else {}
+
+
+def _as_list(value: object) -> list[Any]:
+    """`value` if it is a JSON array, else an empty list."""
+    return cast("list[Any]", value) if isinstance(value, list) else []
+
+
+def read_cache() -> Cache:
     """The cache file, or an empty one.
 
     A missing or damaged file is not an error and is not reported: it means 'nothing has
@@ -601,10 +615,10 @@ def read_cache() -> dict:
     except (OSError, ValueError) as error:
         logger.debug(f"No usable {APPS_CACHE_FILE}: {error}")
         return {}
-    return cache if isinstance(cache, dict) else {}
+    return _as_dict(cache)
 
 
-def _write_cache(cache: dict) -> str:
+def _write_cache(cache: Cache) -> str:
     """Save the cache.  Returns "" or a message saying why it could not be saved -- the
     caller reports that as a footnote to a successful fetch rather than as a failure: the
     apps are in the inventory either way, they just will not be there next time.
@@ -639,18 +653,16 @@ def fetched_packages() -> dict[str, tuple[str, frozenset[str]]]:
     tablet.  See plugchk, which asks it of every plugin a configuration uses.
     """
     packages: dict[str, tuple[str, frozenset[str]]] = {}
-    devices = read_cache().get("devices", {})
-    for device, record in sorted(devices.items()) if isinstance(devices, dict) else []:
-        if not isinstance(record, dict):
+    devices = _as_dict(read_cache().get("devices", {}))
+    for device, raw_record in sorted(devices.items()):
+        if not isinstance(raw_record, dict):
             continue
-        apps = record.get("apps", [])
+        record = _as_dict(cast("object", raw_record))
+        # An app that is not an object has no "pkg" and is left out with the ones that name none.
+        apps = [_as_dict(app) for app in _as_list(record.get("apps", []))]
         packages[device] = (
             str(record.get("fetched", "")),
-            frozenset(
-                str(app.get("pkg", "")).strip()
-                for app in (apps if isinstance(apps, list) else [])
-                if isinstance(app, dict) and str(app.get("pkg", "")).strip()
-            ),
+            frozenset(str(app.get("pkg", "")).strip() for app in apps if str(app.get("pkg", "")).strip()),
         )
     return packages
 
@@ -700,19 +712,17 @@ def forget_device(device: str) -> str:
     return error
 
 
-def _adopt_cache(cache: dict) -> None:
+def _adopt_cache(cache: Cache) -> None:
     """Rebuild the fetched half of the inventory from a cache dict, and mark it changed."""
     known: dict[str, AppEntry] = {}
-    devices = cache.get("devices", {})
-    if isinstance(devices, dict):
-        for record in devices.values():
-            for app in record.get("apps", []) if isinstance(record, dict) else []:
-                package = str(app.get("pkg", "")).strip() if isinstance(app, dict) else ""
-                if package:
-                    _merge_app(
-                        known,
-                        AppEntry(pkg=package, label=str(app.get("label", "")), cls=str(app.get("cls", ""))),
-                    )
+    for record in _as_dict(cache.get("devices", {})).values():
+        for app in (_as_dict(app) for app in _as_list(_as_dict(record).get("apps", []))):
+            package = str(app.get("pkg", "")).strip()
+            if package:
+                _merge_app(
+                    known,
+                    AppEntry(pkg=package, label=str(app.get("label", "")), cls=str(app.get("cls", ""))),
+                )
 
     _state.device_apps = _sorted_apps(known.values())
     _state.cache_loaded = True

@@ -104,7 +104,7 @@ def record_at_row(row: int, target: Target, snippet: str, state: RunState) -> No
     state.diagram_object_placements.append((target.anchor, row, snippet))
 
 
-def flush_boxes(output_lines: list, state: RunState) -> None:
+def flush_boxes(output_lines: list[str], state: RunState) -> None:
     """Append a finished row of boxes, and fix every box noted into it at its line.
 
     print_3_lines by another name.  The row is taken before the append rather than after,
@@ -117,7 +117,7 @@ def flush_boxes(output_lines: list, state: RunState) -> None:
     state.diagram_pending_boxes.clear()
 
 
-def flush_tasks(output_lines: list, state: RunState) -> None:
+def flush_tasks(output_lines: list[str], state: RunState) -> None:
     """Append a finished run of Task lines, and fix every Task noted into it at its line."""
     base = len(state.netmap_output)
     print_all(output_lines, state=state)

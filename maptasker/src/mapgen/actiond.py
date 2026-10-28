@@ -18,9 +18,9 @@ if TYPE_CHECKING:
 # add return if in a list
 def get_boolean_or_condition(
     child: Element,
-    condition_list: list,
-    boolean_list: list,
-) -> tuple[list, list]:
+    condition_list: list[list[str]],
+    boolean_list: list[str],
+) -> tuple[list[list[str]], list[str]]:
     """
     Evaluates the condition/boolean and updates the condition_list and boolean_list.
 
@@ -63,7 +63,8 @@ def process_condition_list(
     if condition_list_str is None:
         return [], []
 
-    condition_list, boolean_list = [], []
+    condition_list: list[list[str]] = []
+    boolean_list: list[str] = []
     for child in condition_list_str:
         condition_list, boolean_list = get_boolean_or_condition(
             child,

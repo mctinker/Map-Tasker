@@ -79,7 +79,11 @@ def element_to_dict(element: Element) -> Any:  # noqa: ANN401
     return result
 
 
-def get_bundles(xml_file: str) -> dict:
+# The bundles of every Event, State and Action that owns one, keyed by its code plus an e/s/t suffix.
+Bundles = dict[str, dict[str, Any]]
+
+
+def get_bundles(xml_file: str) -> Bundles:
     """
     Read the backup xml and build a dictionary of every <Bundle> found.
     Args:
@@ -95,7 +99,7 @@ def get_bundles(xml_file: str) -> dict:
     # Map each element to its parent since ElementTree has no parent pointer.
     parent_of = {child: parent for parent in root.iter() for child in parent}
 
-    bundles = {}
+    bundles: Bundles = {}
     for bundle in root.iter("Bundle"):
         owner = parent_of.get(bundle)
         if owner is None:
@@ -120,7 +124,7 @@ def get_bundles(xml_file: str) -> dict:
     return bundles
 
 
-def load_existing_bundles(path: str) -> dict:
+def load_existing_bundles(path: str) -> Bundles:
     """
     Read back the bundles a previously written bundles file holds.
     Args:
@@ -138,7 +142,7 @@ def load_existing_bundles(path: str) -> dict:
         return {}
 
 
-def merge_bundles(existing: dict, harvested: dict) -> tuple[dict, list[str]]:
+def merge_bundles(existing: Bundles, harvested: Bundles) -> tuple[Bundles, list[str]]:
     """
     Combine the bundles already recorded with the ones just read out of a backup.
 
@@ -160,7 +164,7 @@ def merge_bundles(existing: dict, harvested: dict) -> tuple[dict, list[str]]:
         tuple[dict, list[str]]: the merged bundles, and one note per non-obvious decision
     """
     merged = dict(existing)
-    notes = []
+    notes: list[str] = []
     for key, payload in harvested.items():
         current = merged.get(key)
         if current is None:
@@ -174,7 +178,7 @@ def merge_bundles(existing: dict, harvested: dict) -> tuple[dict, list[str]]:
     return merged, notes
 
 
-def save_bundles(bundles: dict, output_file: str) -> None:
+def save_bundles(bundles: Bundles, output_file: str) -> None:
     """
     Write the bundle dictionary out as a json file.
 

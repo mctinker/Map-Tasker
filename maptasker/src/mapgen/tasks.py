@@ -92,7 +92,7 @@ def reformat_html(html_string: str) -> str:
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
 # Optimized
-def get_actions(current_task: Element, config: RunConfig, state: RunState) -> list:
+def get_actions(current_task: Element, config: RunConfig, state: RunState) -> list[str]:
     """
     Optimized extraction of actions from a task XML element.
 
@@ -100,7 +100,7 @@ def get_actions(current_task: Element, config: RunConfig, state: RunState) -> li
         current_task (Element): the Task's XML element.
         config (RunConfig): the run's settings (indent, pretty).
     """
-    tasklist = []
+    tasklist: list[str] = []
     indent_size = config.indent
     blanks = f"{'&nbsp;' * indent_size}"
 

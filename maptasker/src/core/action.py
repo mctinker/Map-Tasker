@@ -114,14 +114,14 @@ def evaluate_action_setting(*args: list[str | bool]) -> list[str]:
        appends empty string to results
     - Else appends third element to results
     - Returns the results list"""
-    results = []
+    results: list[str] = []
     for item in args:
         if item[0] and item[1] != "":
             results.append(f"{item[2]}{item[1]}")
         elif item[0] or item[1] != "1":
             results.append("")
         else:
-            results.append(item[2])
+            results.append(str(item[2]))
 
     return results
 
@@ -229,7 +229,7 @@ def get_label_disabled_condition(child: Element, state: RunState) -> str:
     # six times walked a large Task's actions six times over -- the single heaviest source
     # of xml lookups in the Map build, at better than a hundred thousand of them on an
     # ordinary configuration.  First one wins, which is the element find() would return.
-    elements = {}
+    elements: dict[str, Element] = {}
     for element in child:
         if element.tag in WANTED_ACTION_ELEMENTS and element.tag not in elements:
             elements[element.tag] = element
@@ -242,7 +242,7 @@ def get_label_disabled_condition(child: Element, state: RunState) -> str:
 
     # Get the label, if any
     if (label_element := elements.get("label")) is not None:
-        task_label = format_label(label_element.text, colors=state.colors_to_use)
+        task_label = format_label(label_element.text or "", colors=state.colors_to_use)
 
     # See if Action is disabled
     action_disabled = (
@@ -257,7 +257,7 @@ def get_label_disabled_condition(child: Element, state: RunState) -> str:
     )
     # Look for any conditions:  <ConditionList sr="if">
     if "ConditionList" in elements:  # If condition on Action?
-        task_conditions = get_conditions(child, the_action_code)
+        task_conditions = get_conditions(child, the_action_code or "")
 
     # Format conditions if any
     if task_conditions:
@@ -275,7 +275,7 @@ def get_label_disabled_condition(child: Element, state: RunState) -> str:
 
     # See if this is a remote timeout value
     if (timeout_element := elements.get("remoteTimeout")) is not None:
-        remote_timeout = ", Remote Timeout (Seconds): " + timeout_element.text + "\n"
+        remote_timeout = ", Remote Timeout (Seconds): " + (timeout_element.text or "") + "\n"
 
     # Return the lot
     return f"{task_conditions}{action_disabled}{task_label}{remote_execution}{remote_timeout}"
@@ -300,7 +300,7 @@ def get_conditions(child: Element, the_action_code: str) -> str:
     """
     condition_list = child.find("ConditionList")
     keyword = "<em>UNTIL</em>" if the_action_code == "35" else "<em>IF</em>"  # Wait Until?
-    conditions = []
+    conditions: list[str] = []
     _evaluate_condition = evaluate_condition
     for children in condition_list.findall("Condition") if condition_list is not None else []:
         # Evaluate the condition to add to output
@@ -339,7 +339,7 @@ def get_extra_stuff(
     if action_code_xml is None:
         return ""
 
-    action_code = action_code_xml.text if action_code_xml is not None and not isinstance(action_code_xml, int) else ""
+    action_code = action_code_xml.text
 
     program_arguments = state.program_arguments
     colors_to_use = state.colors_to_use

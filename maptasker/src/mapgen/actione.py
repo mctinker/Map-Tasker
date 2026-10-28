@@ -100,7 +100,7 @@ def get_action_code(
                 referral = action_codes[the_action_code_plus].redirect
 
                 # Create a temporary mirror dictionary entry using values of redirected code
-                temp_lookup_codes = {}
+                temp_lookup_codes: dict[str, ActionCode] = {}
                 temp_lookup_codes[the_action_code_plus] = ActionCode(
                     "",
                     action_codes[referral].args,
@@ -225,11 +225,11 @@ def make_action_pretty(task_code_line: str, indent_amt: str) -> tuple[str, int]:
 # Finalize the action line and append it to the list of actions.
 def finalize_action_details(
     task_code_line: str,
-    alist: list,
+    alist: list[str],
     indent: int,
     extra_blanks: int,
     state: RunState,
-) -> list:
+) -> list[str]:
     """
     Finalize the action line and append it to the list of actions.
 
@@ -281,13 +281,13 @@ def finalize_action_details(
 
 # Construct Task Action output line
 def build_action(
-    alist: list,
+    alist: list[str],
     task_code_line: str,
     code_element: Element | None,
     indent: int,
     indent_amt: str,
     state: RunState,
-) -> list:
+) -> list[str]:
     """
     Construct Task Action output line
         :param alist: list of actions (all <Actions> formatted for output

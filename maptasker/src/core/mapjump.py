@@ -33,7 +33,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field, replace
 from html import escape
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import quote, unquote
 
 from maptasker.src.core import assettext
@@ -398,7 +398,7 @@ def needs_taskernet(target: Target) -> bool:
     return target.part == TASKERNET_PART
 
 
-def scene_component_part(path: tuple, key: str = "") -> str:
+def scene_component_part(path: tuple[object, ...], key: str = "") -> str:
     """How one property of one Version 2 Scene component is spelled in an anchor.
 
     The Version 2 counterpart of scene_element_parts, and here for the same reason: the
@@ -428,9 +428,9 @@ def v2_strings(value: object) -> list[str]:
     if isinstance(value, str):
         return [value]
     if isinstance(value, dict):
-        return [text for item in value.values() for text in v2_strings(item)]
+        return [text for item in cast("dict[str, object]", value).values() for text in v2_strings(item)]
     if isinstance(value, list):
-        return [text for item in value for text in v2_strings(item)]
+        return [text for item in cast("list[object]", value) for text in v2_strings(item)]
     return []
 
 
@@ -570,7 +570,8 @@ def current_scope(state: RunState) -> Scope:
 
     roots = state.tasker_root_elements
     if label == "Project":
-        project = (roots.get("all_projects") or {}).get(name)
+        projects: dict[str, Any] = roots.get("all_projects") or {}
+        project = projects.get(name)
         if project is None:
             return Scope(label, name)
         element = project["xml"]
@@ -585,7 +586,8 @@ def current_scope(state: RunState) -> Scope:
 
     if label == "Profile":
         # Profiles are keyed by id in the tables and chosen by NAME in the pulldown.
-        for profile_id, profile in (roots.get("all_profiles") or {}).items():
+        profiles: dict[str, Any] = roots.get("all_profiles") or {}
+        for profile_id, profile in profiles.items():
             if profile.get("name") == name:
                 # mid0/mid1 are the entry and exit Tasks.  Read from the element rather
                 # than from any cached list, so a Task attached since the Map was drawn
@@ -599,7 +601,8 @@ def current_scope(state: RunState) -> Scope:
         return Scope(label, name)
 
     if label == "Task":
-        ids = {task_id for task_id, task in (roots.get("all_tasks") or {}).items() if task.get("name") == name}
+        tasks: dict[str, Any] = roots.get("all_tasks") or {}
+        ids = {task_id for task_id, task in tasks.items() if task.get("name") == name}
         return Scope(label, name, tasks=frozenset(ids))
 
     if label == "Scene":
@@ -631,7 +634,7 @@ class Row:
     # variable, the several Tasks sharing a name -- the line broken into (text, target)
     # pieces that join back into `text`.  Built by of_pieces below rather than by hand, so
     # the two can never disagree.
-    pieces: list[tuple[str, Target | None]] = field(default_factory=list)
+    pieces: list[tuple[str, Target | None]] = field(default_factory=list[tuple[str, Target | None]])
 
     @classmethod
     def of_pieces(cls, pieces: list[tuple[str, Target | None]]) -> Row:

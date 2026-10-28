@@ -35,14 +35,14 @@ if TYPE_CHECKING:
 
 
 # Given a list of positional items, return a string in the correct order based on position.
-def get_results_in_arg_order(evaluated_results: dict) -> str:
+def get_results_in_arg_order(evaluated_results: dict[str, Any]) -> str:
     """
     Get all of the evaluated results into a single list and return results as a string.
     :param evaluated_results: a dictionary containing evaluated results
     :return: a string containing the evaluated results in order
     """
     # Get all of the evaluated results into a single list
-    result_parts = []
+    result_parts: list[Any] = []
     for key, entry in evaluated_results.items():
         if key not in ("returning_something", "error"):
             # An argument that was present but never evaluated has no "value" (it is
@@ -70,7 +70,7 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
 
 # Search for and return all substrings in a string that begin with a percent sign and
 # have at least one capitalized letter in the substring.
-def find_capitalized_percent_substrings(string: str) -> list:
+def find_capitalized_percent_substrings(string: str) -> list[str]:
     """
     Searches for and returns all of the occurrences of substrings that begin with a
         percent sign and have at least one capitalized letter in the substring.

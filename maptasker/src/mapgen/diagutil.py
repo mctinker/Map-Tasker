@@ -79,7 +79,7 @@ def include_heading(header: str, output_lines: list) -> None:
 
 
 # Given a list of 3 text elements, print them.
-def print_3_lines(lines: list, state: RunState) -> None:
+def print_3_lines(lines: list[str], state: RunState) -> None:
     """
     Prints 3 lines from a list of items
     Args:
@@ -93,7 +93,7 @@ def print_3_lines(lines: list, state: RunState) -> None:
 
 
 # Given a list of text strings, print all of them.
-def print_all(lines: list, state: RunState) -> None:
+def print_all(lines: list[str], state: RunState) -> None:
     """
     Print all lines in a list
     Args:

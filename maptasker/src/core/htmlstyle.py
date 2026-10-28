@@ -58,6 +58,14 @@ NEWLINE_AFTER_BLOCK_TAG = re.compile(rf"(</?(?:{_BLOCK_TAGS})\b[^>]*>)[^\S\n]*\n
 NEWLINE_BEFORE_BLOCK_TAG = re.compile(rf"\s*\n[^\S\n]*(?=</?(?:{_BLOCK_TAGS})\b)", re.IGNORECASE)
 
 
+# (tag, classes, id) of one compound selector, or of one open element: None where the selector names no tag or id.
+Compound = tuple[str | None, frozenset[str], str | None]
+# A parsed selector: each compound paired with the combinator joining it to the one on its left (None for the leftmost).
+Selector = tuple[tuple[str | None, Compound], ...]
+# One rule of a stylesheet: (specificity, selector, declarations).
+Rule = tuple[tuple[int, int, int], Selector, str]
+
+
 def _matching_brace(css: str, opening: int) -> int:
     """
     The offset of the "}" closing the block that opens at "opening", counting nested blocks.
@@ -81,7 +89,7 @@ def _matching_brace(css: str, opening: int) -> int:
     return len(css)
 
 
-def parse_selector(text: str) -> tuple | None:
+def parse_selector(text: str) -> Selector | None:
     """
     Break a single selector into the compounds to match, or None if it isn't one we can.
 
@@ -94,8 +102,8 @@ def parse_selector(text: str) -> tuple | None:
         :return: a tuple of (combinator, (tag, classes, id)) pairs, or None
     """
     pieces = text.replace(">", " > ").split()
-    parts = []
-    combinator = None
+    parts: list[tuple[str | None, Compound]] = []
+    combinator: str | None = None
     for piece in pieces:
         if piece == ">":
             # A child combinator with nothing to its left is malformed (CSS nesting writes
@@ -117,7 +125,7 @@ def parse_selector(text: str) -> tuple | None:
     return tuple(parts) if parts else None
 
 
-def selector_specificity(selector: tuple) -> tuple[int, int, int]:
+def selector_specificity(selector: Selector) -> tuple[int, int, int]:
     """
     A selector's specificity as (ids, classes, tags), which sorts the way CSS ranks rules.
 
@@ -130,7 +138,7 @@ def selector_specificity(selector: tuple) -> tuple[int, int, int]:
     return (ids, classes, tags)
 
 
-def parse_stylesheet(css: str) -> list[tuple[tuple[int, int, int], tuple, str]]:
+def parse_stylesheet(css: str) -> list[Rule]:
     """
     Pull the usable rules out of a stylesheet, as (specificity, selector, declarations).
 
@@ -143,7 +151,7 @@ def parse_stylesheet(css: str) -> list[tuple[tuple[int, int, int], tuple, str]]:
         :return: one entry per selector of every rule we can evaluate, in source order
     """
     css = CSS_COMMENT.sub(" ", CSS_LINE_BREAK.sub("\n", css))
-    rules = []
+    rules: list[Rule] = []
     position = 0
     while (opening := css.find("{", position)) != -1:
         # A statement at-rule ("@import ...;", "@charset ...;") ends at its semicolon rather
@@ -163,7 +171,7 @@ def parse_stylesheet(css: str) -> list[tuple[tuple[int, int, int], tuple, str]]:
     return rules
 
 
-def _compound_matches(compound: tuple, element: tuple) -> bool:
+def _compound_matches(compound: Compound, element: Compound) -> bool:
     """
     Whether one compound selector describes one open element.
 
@@ -180,7 +188,7 @@ def _compound_matches(compound: tuple, element: tuple) -> bool:
     return class_names <= element_classes
 
 
-def selector_matches(selector: tuple, element_stack: list[tuple]) -> bool:
+def selector_matches(selector: Selector, element_stack: list[Compound]) -> bool:
     """
     Whether a selector matches the innermost open element, given everything it sits inside.
 

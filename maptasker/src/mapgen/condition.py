@@ -6,6 +6,7 @@
 #                                                                                      #
 
 import functools
+from typing import Any
 from xml.etree.ElementTree import Element
 
 import maptasker.src.mapgen.actione as action_evaluate
@@ -111,7 +112,10 @@ def condition_day(the_item: Element, the_output_condition: str) -> str:
         "December",
     ]
 
-    results = {"wday": [], "mday": [], "mnth": [], "cname": ""}
+    weekday_names: list[str] = []
+    month_days: list[str] = []
+    month_names: list[str] = []
+    condition_name = ""
 
     for child in the_item:
         # A day, or a month, that is empty or out of range is left out rather than ending the Map
@@ -120,21 +124,21 @@ def condition_day(the_item: Element, the_output_condition: str) -> str:
         number = int(text) if text.isdigit() else None
         if "wday" in child.tag:
             if number is not None and 1 <= number <= len(weekdays):
-                results["wday"].append(weekdays[number - 1])
+                weekday_names.append(weekdays[number - 1])
         elif "mday" in child.tag:
             if text:
-                results["mday"].append(text)
+                month_days.append(text)
         elif "mnth" in child.tag:
             if number is not None and number < len(months):
-                results["mnth"].append(months[number])
+                month_names.append(months[number])
         elif "cname" in child.tag:
-            results["cname"] = f" ,Name={child.text}"
+            condition_name = f" ,Name={child.text}"
 
     formatted_parts = [
-        f"Days of Week: {' '.join(results['wday'])}" if results["wday"] else "",
-        f"Days of Month: {' '.join(results['mday'])}" if results["mday"] else "",
-        f"Months: {' '.join(results['mnth'])}" if results["mnth"] else "",
-        results["cname"],
+        f"Days of Week: {' '.join(weekday_names)}" if weekday_names else "",
+        f"Days of Month: {' '.join(month_days)}" if month_days else "",
+        f"Months: {' '.join(month_names)}" if month_names else "",
+        condition_name,
     ]
 
     return the_output_condition + " ".join(filter(None, formatted_parts)) + " "
@@ -195,7 +199,7 @@ def condition_state(
     # 3. Directly find the ConditionList node
     condition_list_node = the_item.find("ConditionList")
     if condition_list_node is not None:
-        evaluated_results = {}
+        evaluated_results: dict[str, Any] = {}
         _extract_condition(evaluated_results, "0", "", the_item)
         condition_chunks.append(f", Condition(s): {evaluated_results['arg0']['value']}")
 
@@ -241,7 +245,7 @@ def condition_event(
     # Handle any conditions in the Event
     condition_list = the_item.find("ConditionList")
     if condition_list is not None:
-        evaluated_results = {}
+        evaluated_results: dict[str, Any] = {}
         extract_condition(evaluated_results, "0", "", the_item)
         event = f"{event}, Condition(s): {evaluated_results['arg0']['value']}"
 

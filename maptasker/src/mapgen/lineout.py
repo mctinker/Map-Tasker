@@ -28,7 +28,7 @@ are accumulated and ultimately used to generate the final HTML output file.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core.dirout import add_directory_item
 from maptasker.src.core.format import format_html
@@ -175,7 +175,7 @@ class LineOut:
     #  tab - CSS tab to use
     #  font - the m,onospace font to use
     #  element - the actual output line
-    def add_style(self, style_details: dict) -> str:
+    def add_style(self, style_details: dict[str, Any]) -> str:
         """
         Add appropriate HTML style tags based on parameters in dictionary passed in
             :param style_details: True if we are to output a list (<li>), False if not
