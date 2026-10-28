@@ -26,7 +26,7 @@ def _written(output: LineOut) -> str:
 
 def test_without_a_config_the_live_settings_are_read_as_they_change() -> None:
     """The GUI makes one LineOut at start-up and changes settings after: it has to see them."""
-    output = LineOut()
+    output = LineOut(state=PrimeItems)
     assert "Task ID" not in _written(output)
 
     PrimeItems.program_arguments.debug = True
@@ -35,14 +35,14 @@ def test_without_a_config_the_live_settings_are_read_as_they_change() -> None:
 
 def test_a_config_is_read_instead_of_the_global() -> None:
     """Debug is off in the global and on in the config, so the Task ID is kept."""
-    output = LineOut(current_config().with_changes(debug=True))
+    output = LineOut(current_config(state=PrimeItems).with_changes(debug=True), state=PrimeItems)
 
     assert "Task ID" in _written(output)
 
 
 def test_a_config_does_not_change_when_the_global_does() -> None:
     """A frozen config cannot move under the LineOut that holds it."""
-    output = LineOut(current_config())
+    output = LineOut(current_config(state=PrimeItems), state=PrimeItems)
     PrimeItems.program_arguments.debug = True
 
     assert "Task ID" not in _written(output)

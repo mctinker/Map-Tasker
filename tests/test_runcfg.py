@@ -219,7 +219,7 @@ def test_current_config_is_a_snapshot() -> None:
         PrimeItems.program_arguments.display_detail_level = 2
         PrimeItems.colors_to_use = {"task_color": "Yellow"}
 
-        config = current_config()
+        config = current_config(state=PrimeItems)
         PrimeItems.program_arguments.display_detail_level = 5
         PrimeItems.colors_to_use["task_color"] = "Green"
 
@@ -236,7 +236,7 @@ def test_overridden_config_restores_on_the_way_out() -> None:
         PrimeItems.program_arguments = initialize_runtime_arguments()
         PrimeItems.program_arguments.directory = True
 
-        with overridden_config(directory=False) as config:
+        with overridden_config(directory=False, state=PrimeItems) as config:
             assert config.directory is False
             assert PrimeItems.program_arguments.directory is False
 
@@ -253,7 +253,7 @@ def test_overridden_config_restores_when_the_block_raises() -> None:
         PrimeItems.program_arguments.twisty = True
 
         blew_up = ValueError("boom")
-        with pytest.raises(ValueError, match="boom"), overridden_config(twisty=False):
+        with pytest.raises(ValueError, match="boom"), overridden_config(twisty=False, state=PrimeItems):
             raise blew_up
 
         assert PrimeItems.program_arguments.twisty is True
@@ -269,7 +269,7 @@ def test_overridden_config_keeps_other_changes_made_inside_it() -> None:
         PrimeItems.program_arguments = initialize_runtime_arguments()
         PrimeItems.program_arguments.directory = True
 
-        with overridden_config(directory=False):
+        with overridden_config(directory=False, state=PrimeItems):
             PrimeItems.program_arguments.single_project_name = "Home"
 
         assert PrimeItems.program_arguments.directory is True
@@ -285,7 +285,7 @@ def test_overridden_config_puts_the_settings_back_exactly() -> None:
         PrimeItems.program_arguments = ProgramArguments(language="French", twisty=True)
         before = PrimeItems.program_arguments.copy()
 
-        with overridden_config(twisty=False):
+        with overridden_config(twisty=False, state=PrimeItems):
             assert PrimeItems.program_arguments.twisty is False
 
         assert PrimeItems.program_arguments == before
@@ -349,7 +349,7 @@ def test_display_caveats_follows_its_config(
         # translate_string and format_html still read the global; the caveat *selection*
         # under test does not, which is what these assertions are about.
         PrimeItems.program_arguments = initialize_runtime_arguments()
-        PrimeItems.output_lines = LineOut()
+        PrimeItems.output_lines = LineOut(state=PrimeItems)
 
         display_caveats(RunConfig(display_detail_level=detail_level, preferences=preferences), state=PrimeItems)
         written = "".join(PrimeItems.output_lines.output_lines)

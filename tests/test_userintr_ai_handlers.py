@@ -491,7 +491,7 @@ def build(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     monkeypatch.setattr(userintr_ai, "capture_gui_state", lambda gui, data, state: record.captured.append(data))
     monkeypatch.setattr(userintr_ai, "clear_error", lambda: record.cleared.append(True))
     monkeypatch.setattr(userintr_ai, "reset_attributes", lambda *names: None)
-    monkeypatch.setattr(userintr_ai, "current_config", lambda: "config")
+    monkeypatch.setattr(userintr_ai, "current_config", lambda *_args: "config")
     monkeypatch.setattr(userintr_ai, "output_the_front_matter", lambda config, state: record.front.append(config))
 
     def build_html(name: str, state: object) -> int:

@@ -105,7 +105,7 @@ def _runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     PrimeItems.error_code = 0
     PrimeItems.error_msg = ""
     PrimeItems.directory_items = {"current_item": "", "projects": [], "profiles": [], "tasks": [], "scenes": []}
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     PrimeItems.colors_to_use = set_color_mode("light")
     specs_file = Path(__file__).parent.parent / "maptasker" / "assets" / "json" / "arg_specs.json"
     specs = json.loads(specs_file.read_text(encoding="utf-8"))

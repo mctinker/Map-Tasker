@@ -115,7 +115,7 @@ def _runtime(tmp_path, monkeypatch):
     PrimeItems.directory_items = {"current_item": "", "projects": [], "profiles": [], "tasks": [], "scenes": []}
     # A real LineOut, the way guiutils/mapit build one once a map has been rendered.  The
     # "not yet built" state is None, and has its own test below.
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     _load_as_current(_write(tmp_path, "loaded.xml", _GOOD_XML))
 
 

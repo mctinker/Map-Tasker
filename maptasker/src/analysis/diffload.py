@@ -323,7 +323,7 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
             # it does not belong in the timeline history -- without this, every comparison
             # anyone ran would file the other file into the history of the one they are
             # working on.  Only this call can record: it is the load.
-            with timeline.suppressed():
+            with timeline.suppressed(state):
                 get_the_xml_data(state=state)
             parsed = _Parsed(0, state.tasker_root_elements, state.xml_root, scratch)
         except MapTaskerError as error:

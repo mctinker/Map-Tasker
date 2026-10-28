@@ -30,7 +30,7 @@ from maptasker.src.analysis import diffload, timecomp
 from maptasker.src.core import clock, timeline
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mtexcept import MapTaskerError
-from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
+from maptasker.src.core.primitem import PrimeItems, RunState, initial_tasker_root_elements
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapgen.lineout import LineOut
 
@@ -93,8 +93,7 @@ def _runtime(tmp_path, monkeypatch):
     PrimeItems.error_code = 0
     PrimeItems.error_msg = ""
     PrimeItems.directory_items = {"current_item": "", "projects": [], "profiles": [], "tasks": [], "scenes": []}
-    PrimeItems.output_lines = LineOut()
-    monkeypatch.setattr(timeline, "recording_suppressed", False)
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
 
 
 # ##################################################################################
@@ -202,18 +201,18 @@ def test_suppression_is_lifted_afterwards(tmp_path) -> None:
     _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML))
     diffload.load_for_comparison(_write(tmp_path, "other.xml", _LATER_XML), state=PrimeItems)
 
-    assert timeline.recording_suppressed is False
+    assert PrimeItems.history_suppressed is False
     _load_as_current(_write(tmp_path, "later.xml", _LATER_XML))
     assert len(timeline.snapshots()) == 2
 
 
 def test_suppression_restores_rather_than_clears() -> None:
     """Nested use cannot switch recording back on for the caller that switched it off."""
-    with timeline.suppressed():
-        with timeline.suppressed():
-            assert timeline.recording_suppressed is True
-        assert timeline.recording_suppressed is True
-    assert timeline.recording_suppressed is False
+    with timeline.suppressed(PrimeItems):
+        with timeline.suppressed(PrimeItems):
+            assert PrimeItems.history_suppressed is True
+        assert PrimeItems.history_suppressed is True
+    assert PrimeItems.history_suppressed is False
 
 
 # ##################################################################################
@@ -527,3 +526,16 @@ def test_every_period_cutoff_is_aware() -> None:
     for period in (timeline.TODAY, timeline.THIS_WEEK, timeline.THIS_MONTH):
         assert required(timeline.cutoff_for(period)).tzinfo is not None, period
     assert timeline.cutoff_for(timeline.ON_DATE, on_date=date(2026, 1, 5)) == datetime(2026, 1, 5).astimezone()
+
+
+def test_one_runs_suppression_does_not_stop_another_run_recording(tmp_path) -> None:
+    """The flag is the run's own: a comparison in one run leaves a second run's loads recorded."""
+    first, second = RunState(), RunState()
+    path = _write(tmp_path, "backup.xml", _LOADED_XML)
+
+    with timeline.suppressed(first):
+        assert timeline.record(path, state=first) is None
+        assert timeline.record(path, state=second) is not None
+
+    assert first.history_suppressed is False
+    assert second.history_suppressed is False

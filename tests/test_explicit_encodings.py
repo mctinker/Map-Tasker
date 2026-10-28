@@ -86,7 +86,7 @@ def test_the_debug_log_keeps_non_ascii_text_intact(tmp_path: Path) -> None:
         from maptasker.src.core.primitem import PrimeItems
         from maptasker.src.core.valcodes import debug_print
         PrimeItems.program_arguments.debug = True
-        debug_print({_NON_ASCII!r})
+        debug_print({_NON_ASCII!r}, PrimeItems)
         """,
         tmp_path,
     )

@@ -141,7 +141,7 @@ def test_an_unnamed_task_is_counted_on_the_state_it_is_read_from() -> None:
     state.tasker_root_elements["all_tasks"] = {"13": {"xml": None, "name": ""}}
     before = PrimeItems.task_count_unnamed
 
-    _, name = tasks.get_task_name("13", [], [], "Entry", current_config(), state=state)
+    _, name = tasks.get_task_name("13", [], [], "Entry", current_config(state=PrimeItems), state=state)
 
     assert name.startswith("Unnamed")
     assert state.task_count_unnamed == 1
@@ -151,7 +151,7 @@ def test_an_unnamed_task_is_counted_on_the_state_it_is_read_from() -> None:
 def test_a_directory_item_is_added_to_the_state_it_is_given() -> None:
     state = RunState()
 
-    dirout.add_directory_item("tasks", "Remind Me", current_config(), state=state)
+    dirout.add_directory_item("tasks", "Remind Me", current_config(state=PrimeItems), state=state)
 
     assert state.directory_items["tasks"] == [["Remind_Me", "Remind Me"]]
     assert PrimeItems.directory_items["tasks"] == []
@@ -181,7 +181,7 @@ def test_the_front_matter_is_written_into_the_state_it_is_given() -> None:
     state = _loaded_state()
     before = len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0
 
-    frontmtr.output_the_front_matter(current_config(), state=state)
+    frontmtr.output_the_front_matter(current_config(state=PrimeItems), state=state)
 
     assert "6.3.13" in state.heading
     assert any("backup.xml" in line for line in state.output_lines.output_lines)
@@ -190,7 +190,7 @@ def test_the_front_matter_is_written_into_the_state_it_is_given() -> None:
 
 def test_a_taskernet_description_is_written_into_the_state_it_is_given() -> None:
     state = _loaded_state()
-    config = current_config().with_changes(colors=set_color_mode("dark"))
+    config = current_config(state=PrimeItems).with_changes(colors=set_color_mode("dark"))
     root = ET.fromstring(
         "<Task><Share><d>Turns the lights on</d><g>lights</g></Share></Task>",
     )
@@ -216,7 +216,7 @@ def test_the_caveats_are_written_into_the_state_it_is_given() -> None:
     state = _loaded_state()
     before = len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0
 
-    caveats.display_caveats(current_config(), state=state)
+    caveats.display_caveats(current_config(state=PrimeItems), state=state)
 
     assert state.output_lines.output_lines
     assert (len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0) == before
@@ -227,7 +227,7 @@ def test_a_profiles_properties_are_written_into_the_state_it_is_given() -> None:
     profile = ET.fromstring('<Profile sr="prof5"><id>5</id><flags>12</flags><nme>Morning</nme></Profile>')
     before = len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0
 
-    prop.get_properties("Profile:", profile, config=current_config(), state=state)
+    prop.get_properties("Profile:", profile, config=current_config(state=PrimeItems), state=state)
 
     assert state.output_lines.output_lines
     assert (len(PrimeItems.output_lines.output_lines) if PrimeItems.output_lines else 0) == before
@@ -276,7 +276,7 @@ def _outline_state(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> RunStat
     Nothing of it is on the global: taskerd parses into the state it is handed.  (The history a
     load would record on disk is switched off; it is not what is being looked at.)
     """
-    monkeypatch.setattr(timeline, "record", lambda _path: None)
+    monkeypatch.setattr(timeline, "record", lambda _path, **_kwargs: None)
     backup = tmp_path / "backup.xml"
     backup.write_text(_OUTLINE_XML, encoding="utf-8")
     state = RunState()
@@ -295,7 +295,7 @@ def test_a_whole_outline_is_built_on_a_state_of_its_own(tmp_path: object, monkey
     """
     monkeypatch.chdir(tmp_path)
     state = _outline_state(tmp_path, monkeypatch)
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     on_the_global = len(PrimeItems.output_lines.output_lines)
     netmap_before, model_before = list(PrimeItems.netmap_output), dict(PrimeItems.diagram_model)
 
@@ -318,7 +318,7 @@ def test_a_whole_map_is_built_on_a_state_of_its_own(tmp_path: object, monkeypatc
     state = _outline_state(tmp_path, monkeypatch)
     state.headless = True  # Nobody is watching: do not open a browser.
     load_arg_specs(state=state)
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     monkeypatch.setattr(PrimeItems.program_arguments, "output_directory", str(tmp_path))
     on_the_global = len(PrimeItems.output_lines.output_lines)
     projects_before = PrimeItems.grand_totals["projects"]
@@ -352,7 +352,7 @@ def test_a_run_is_started_and_its_file_read_on_a_state_of_its_own(
     """The start of a run, as proginit does it: open the named backup, parse it, write the front
     matter -- all of it on the state that was handed in.
     """
-    monkeypatch.setattr(timeline, "record", lambda _path: None)
+    monkeypatch.setattr(timeline, "record", lambda _path, **_kwargs: None)
     monkeypatch.chdir(tmp_path)
     backup = tmp_path / "backup.xml"
     backup.write_text(_OUTLINE_XML, encoding="utf-8")
@@ -360,7 +360,9 @@ def test_a_run_is_started_and_its_file_read_on_a_state_of_its_own(
     state.colors_to_use = set_color_mode("dark")
     state.output_lines = LineOut(state=state)
     state.program_arguments.file = str(backup)
-    PrimeItems.output_lines = LineOut()  # The global's own, which the run on `state` has to leave alone.
+    PrimeItems.output_lines = LineOut(
+        state=PrimeItems
+    )  # The global's own, which the run on `state` has to leave alone.
     root_before, lines_before = PrimeItems.xml_root, len(PrimeItems.output_lines.output_lines)
 
     proginit.get_data_and_output_intro(True, state=state)

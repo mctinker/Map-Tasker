@@ -31,6 +31,7 @@ these modules -- see any of their docstrings for which calls those are and why.
 
 from __future__ import annotations
 
+import functools
 import re
 import time
 from collections import deque
@@ -146,9 +147,6 @@ def view_limit_options(current: str) -> list[str]:
 _NOTIFY_TIMEOUT = {"ms": NOTIFY_TIMEOUT_DEFAULT}
 
 
-_NOTIFY_WRAPPED = False
-
-
 # Every ui.notify since start-up (or the last Clear Log), oldest first, as (time, type, message).
 # Bounded so a long session cannot grow it without limit; the oldest entries fall off first.
 _NOTIFY_LOG_MAX = 500
@@ -164,6 +162,7 @@ def set_notification_timeout(milliseconds: int) -> None:
     _NOTIFY_TIMEOUT["ms"] = max(0, int(milliseconds))
 
 
+@functools.cache
 def install_notification_timeout() -> None:
     """Wrap ui.notify so every notification honours the user's chosen duration.
 
@@ -174,10 +173,6 @@ def install_notification_timeout() -> None:
     'ongoing' notification is indefinite by design; neither is touched, which is right --
     an ongoing notification that timed out would be a progress indicator that lied.
     """
-    global _NOTIFY_WRAPPED  # noqa: PLW0603
-    if _NOTIFY_WRAPPED:
-        return
-
     original = ui.notify
 
     def notify(message: object, **kwargs: object) -> None:
@@ -191,7 +186,6 @@ def install_notification_timeout() -> None:
         original(message, **cast("dict[str, Any]", kwargs))
 
     ui.notify = notify
-    _NOTIFY_WRAPPED = True
 
 
 def display_notification_log() -> None:

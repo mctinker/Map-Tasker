@@ -35,7 +35,7 @@ def _settings() -> None:
     """The settings and colors the formatting reads."""
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.colors_to_use = set_color_mode("dark")
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
 
 
 def _condition(lhs: str = "%a", op: str = "0", rhs: str = "5", ref: str = "c0") -> ET.Element:

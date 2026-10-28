@@ -312,7 +312,7 @@ def initialize_everything(state: RunState) -> tuple[list, list, list]:
 
     # We have to initialize output_lines here. Otherwise, we'll lose the output class
     # with the upcoming call to start_up.
-    state.output_lines = LineOut()
+    state.output_lines = LineOut(state=state)
 
     # Attach the handler to NiceGUI's event loop once that loop is running.  There is no loop yet
     # at this point -- ui.run() makes its own later -- and asyncio.get_event_loop() raises

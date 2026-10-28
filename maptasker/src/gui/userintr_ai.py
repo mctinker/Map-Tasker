@@ -75,7 +75,7 @@ async def build_analysis_lines(gui: MyGui) -> bool:
     clear_error()
 
     gui.state.output_lines.output_lines.clear()
-    output_the_front_matter(current_config(), state=gui.state)
+    output_the_front_matter(current_config(gui.state), state=gui.state)
     try:
         await run.io_bound(build_html, "", state=gui.state)
     except MapTaskerError as error:

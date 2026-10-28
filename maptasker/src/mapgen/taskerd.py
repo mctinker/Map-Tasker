@@ -90,7 +90,7 @@ def get_the_xml_data(state: RunState) -> None:
     # raises, so a history that cannot be written cannot cost the user the load.  The
     # comparison's own load comes through here too and must NOT be recorded; diffload
     # wraps its window in timeline.suppressed().
-    timeline.record(file_to_parse)
+    timeline.record(file_to_parse, state=state)
 
     build_tasker_tables(state=state)
     # The highest Task/Profile id as the file has it, before this session adds anything -- the

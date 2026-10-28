@@ -48,7 +48,7 @@ def _prime_items(tmp_path, monkeypatch) -> None:
         debug=False, directory=False, pretty=False, gui=False, display_detail_level=3
     )
     PrimeItems.colors_to_use = set_color_mode("dark")
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     PrimeItems.error_msg = ""
 
 

@@ -45,7 +45,7 @@ def _build_window() -> None:
     """The "/" page: the real window, kept where the test can reach it."""
     from maptasker.src.gui.userintr import MyGui
 
-    _built["gui"] = MyGui()
+    _built["gui"] = MyGui(PrimeItems)
 
 
 @contextlib.asynccontextmanager

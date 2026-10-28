@@ -34,7 +34,6 @@ import requests
 
 from maptasker.src.core import console
 from maptasker.src.core.actionc import action_codes
-from maptasker.src.core.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
@@ -70,20 +69,20 @@ def java_constants_to_dict(url: str) -> dict[str, int]:
     return constants
 
 
-def debug_print(message: str, state: RunState | None = None) -> None:
+def debug_print(message: str, state: RunState) -> None:
     """
     Prints a debug message if the debug mode is enabled.
 
     Args:
         message (str): The debug message to be printed.
-        state (RunState | None): the run whose debug setting decides, or None for PrimeItems.
+        state (RunState): the run whose debug setting decides.
 
     Returns:
         None
     """
     filename = "buildit.log"
 
-    if (PrimeItems if state is None else state).program_arguments.debug:
+    if state.program_arguments.debug:
         console.say(message)
         try:
             # 2. Open the file in write mode ('w')
@@ -136,7 +135,7 @@ def format_columns(entries: list[str]) -> str:
     )
 
 
-def validate_states_and_events(code_type: str, url: str, state: RunState | None = None) -> None:
+def validate_states_and_events(code_type: str, url: str, state: RunState) -> None:
     """
     Validates the state and event codes by fetching the Java source file from the given URL and converting the
     public static final int constants to a dictionary.
@@ -144,7 +143,7 @@ def validate_states_and_events(code_type: str, url: str, state: RunState | None 
     Args:
         code_type (str): The type of code to validate ('s' for states, 'e' for events).
         url (str): The URL of the Java source file containing the constants.
-        state (RunState | None): the run the codes are recorded on, or None for PrimeItems.
+        state (RunState): the run the codes are recorded on.
 
     Returns:
         None
@@ -153,7 +152,7 @@ def validate_states_and_events(code_type: str, url: str, state: RunState | None 
         requests.exceptions.RequestException: If there is an issue with the HTTP request.
     """
     missing_codes: list[str] = []
-    run = PrimeItems if state is None else state
+    run = state
     # Get the data.
     if code_type == "s":
         code_name = "State"

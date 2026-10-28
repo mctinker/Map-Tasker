@@ -34,7 +34,7 @@
 # configuration the user opened, it is one they pointed at for a moment, and recording it
 # would put a file nobody is working on into the history of the file they are.  Worse, it
 # would do so every time anyone ran a comparison.  suppressed() is what diffload wraps its
-# isolation window in to prevent that; see recording_suppressed below for why this is a
+# isolation window in to prevent that; see RunState.history_suppressed for why this is a
 # flag and not a "was it the loaded file" test.
 #
 # SIZE
@@ -65,6 +65,8 @@ from maptasker.src.core.sysconst import logger
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+    from maptasker.src.core.primitem import RunState
 
 # Where the history lives, in the current runtime directory -- the same place every other
 # thing this program writes for the user goes (the map, the health check, the comparison
@@ -103,13 +105,6 @@ _CHUNK = 1 << 20
 # was told to use.
 _history_override: dict[str, Path | None] = {"folder": None}
 
-# See suppressed().  A plain module flag rather than a parameter because the caller that
-# has to suppress it (diffload) and the caller that does the recording (taskerd, from
-# inside get_the_xml_data) do not speak to each other -- there is no argument to thread
-# from one to the other, which is the same reason sessundo's history is saved and restored
-# around that window rather than passed through it.
-recording_suppressed = False
-
 
 @dataclass(frozen=True)
 class Snapshot:
@@ -136,8 +131,11 @@ class Snapshot:
 
 
 @contextlib.contextmanager
-def suppressed() -> Generator[None]:
-    """Do not record loads that happen inside this block.
+def suppressed(state: RunState) -> Generator[None]:
+    """Do not record loads that this run makes inside this block.
+
+    The flag is the run's (state.history_suppressed), so a comparison in one run cannot stop another
+    run's loads from being recorded.
 
     For diffload's isolation window.  The file being compared against goes through
     taskerd.get_the_xml_data like any other load, and without this every comparison would
@@ -146,13 +144,12 @@ def suppressed() -> Generator[None]:
     Restores the previous value rather than clearing the flag, so a nested use -- which
     nothing does today -- could not switch recording back on for its outer caller.
     """
-    global recording_suppressed  # noqa: PLW0603
-    previous = recording_suppressed
-    recording_suppressed = True
+    previous = state.history_suppressed
+    state.history_suppressed = True
     try:
         yield
     finally:
-        recording_suppressed = previous
+        state.history_suppressed = previous
 
 
 def use_history_folder(folder: str | Path | None) -> None:
@@ -249,7 +246,7 @@ def _prune() -> None:
             logger.error(f"Timeline snapshot could not be pruned: {error}")
 
 
-def record(file_path: str, *, when: datetime | None = None) -> Snapshot | None:
+def record(file_path: str, *, when: datetime | None = None, state: RunState | None = None) -> Snapshot | None:
     """Add this configuration to the history, unless it is already the latest entry.
 
     Returns the Snapshot written, or None when nothing was written -- which is the
@@ -264,7 +261,7 @@ def record(file_path: str, *, when: datetime | None = None) -> Snapshot | None:
     different paths -- a backup and the timestamped copy "Save To Current File" made of
     it are the same configuration under two names.
     """
-    if recording_suppressed or not file_path:
+    if (state is not None and state.history_suppressed) or not file_path:
         return None
 
     digest = _digest_of(file_path)

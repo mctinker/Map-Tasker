@@ -33,7 +33,7 @@ from typing import TYPE_CHECKING, Any, cast
 from maptasker.src.core.dirout import add_directory_item
 from maptasker.src.core.format import format_html
 from maptasker.src.core.maputils import fix_hyperlink_name
-from maptasker.src.core.primitem import MAP_OUTPUT_ATTRIBUTES, PrimeItems, reset_attributes
+from maptasker.src.core.primitem import MAP_OUTPUT_ATTRIBUTES, reset_attributes
 from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.sysconst import PROPERTIES_TAG, UNNAMED_ITEM, FormatLine, debug_out, logger
 from maptasker.src.core.xmldata import remove_html_tags
@@ -64,7 +64,7 @@ _SPAN_TAG_RE = re.compile(r"<span\b[^>]*>|</span\s*>", re.IGNORECASE)
 class LineOut:
     """Class definition for our output lines"""
 
-    def __init__(self, config: RunConfig | None = None, state: RunState | None = None) -> None:
+    def __init__(self, config: RunConfig | None = None, *, state: RunState) -> None:
         """
         Initialize an object
         Args:
@@ -74,10 +74,9 @@ class LineOut:
                 which is what lets a scope that overrides one (overridden_config) be seen here.
                 Given one, only that is read: it cannot change under the object, and nothing
                 about the global has to be set up to use it.
-            state (RunState | None): the run state these lines belong to: its directory items,
+            state (RunState): the run state these lines belong to: its directory items,
                 its AI output, and the front matter and anchors written when the output is
-                started again.  Left out, PrimeItems -- which is what a LineOut that is
-                PrimeItems.output_lines is.
+                started again.
         Returns:
             None: Nothing is returned
         - Initialize an empty list to store output lines
@@ -88,8 +87,8 @@ class LineOut:
 
     @property
     def state(self) -> RunState:
-        """The run state these lines belong to: the one this was given, else PrimeItems."""
-        return PrimeItems if self._state is None else self._state
+        """The run state these lines belong to."""
+        return self._state
 
     @property
     def settings(self) -> ArgumentFields:

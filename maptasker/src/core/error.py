@@ -7,7 +7,6 @@ import logging
 from typing import TYPE_CHECKING
 
 from maptasker.src.core import console
-from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import ERROR_FILE, Colors, logger
 
 if TYPE_CHECKING:
@@ -15,7 +14,7 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 
-def record_error(error: MapTaskerError, state: RunState | None = None) -> int:
+def record_error(error: MapTaskerError, state: RunState) -> int:
     """Log an error that stopped a build, and leave it where the window will find it.
 
     The library modules do not report their errors; they raise MapTaskerError and leave it to
@@ -31,36 +30,35 @@ def record_error(error: MapTaskerError, state: RunState | None = None) -> int:
 
     Args:
         error: what the library raised.
-        state: the run state the error is recorded on, or None for PrimeItems.
+        state: the run state the error is recorded on.
 
     Returns:
         int: the error's code, which is what the loading functions hand back to their callers.
     """
-    target = PrimeItems if state is None else state
     code = error.exit_code
     if not 0 < code < 100:
         return code
     message = error.message or str(error)
 
     final_error_message = f"{Colors.Red}MapTasker error: {message}"
-    if (target.program_arguments and target.program_arguments.debug and not target.program_arguments.gui) or code == 5:
+    if (state.program_arguments and state.program_arguments.debug and not state.program_arguments.gui) or code == 5:
         console.error(final_error_message)
     else:
         logger.debug(final_error_message)
 
-    if target.program_arguments and target.program_arguments.gui:
+    if state.program_arguments and state.program_arguments.gui:
         # Written for userintr, to display on entry or on a rerun.
         with open(ERROR_FILE, "w", encoding="utf-8") as error_file:
             error_file.write(f"{message}\n")
             if error.show_code:
                 error_file.write(f"{code}\n")
-        target.error_code = code
-        target.error_msg = message
-        target.error_show_code = error.show_code
+        state.error_code = code
+        state.error_msg = message
+        state.error_show_code = error.show_code
     return code
 
 
-def report_error(error: MapTaskerError, state: RunState | None = None) -> int:
+def report_error(error: MapTaskerError, state: RunState) -> int:
     """The edge of a load or a build that has a window to go back to: record the error, or let it go on up.
 
     In the GUI a failed load is a message in the window and a window that is still there, so the error
@@ -70,7 +68,7 @@ def report_error(error: MapTaskerError, state: RunState | None = None) -> int:
 
     Args:
         error: what the library raised.
-        state: the run state the error is recorded on, or None for PrimeItems.
+        state: the run state the error is recorded on.
 
     Returns:
         int: the error's code, when it was recorded.
@@ -78,9 +76,8 @@ def report_error(error: MapTaskerError, state: RunState | None = None) -> int:
     Raises:
         MapTaskerError: the same error, when there is no window or it was not a failure.
     """
-    target = PrimeItems if state is None else state
     code = record_error(error, state)
-    if code == 0 or not (target.program_arguments and target.program_arguments.gui):
+    if code == 0 or not (state.program_arguments and state.program_arguments.gui):
         raise error
     return code
 

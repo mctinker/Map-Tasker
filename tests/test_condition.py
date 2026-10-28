@@ -17,7 +17,7 @@ def _element(text: str) -> ET.Element:
 @pytest.fixture(autouse=True)
 def _arg_specs() -> None:
     """A State or Event is worded from the argument-type table, which a run loads at start-up."""
-    load_arg_specs()
+    load_arg_specs(state=PrimeItems)
 
 
 # ##################################################################################

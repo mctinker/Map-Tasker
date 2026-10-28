@@ -53,7 +53,6 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core.initparg import ArgumentFields, ProgramArguments
-from maptasker.src.core.primitem import PrimeItems
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
@@ -203,7 +202,7 @@ class RunConfig(ArgumentFields):
         return dict(self.colors)
 
 
-def current_config(state: RunState | None = None) -> RunConfig:
+def current_config(state: RunState) -> RunConfig:
     """
     Snapshot the settings currently on a run state as a RunConfig.
 
@@ -211,17 +210,16 @@ def current_config(state: RunState | None = None) -> RunConfig:
     a copy, so later writes to the state's program_arguments do not reach back into it.
 
         Args:
-            state (RunState | None): the run state to read, or None for PrimeItems.
+            state (RunState): the run state to read.
 
         Returns:
             RunConfig: the run's settings as they stand right now.
     """
-    source = PrimeItems if state is None else state
-    return RunConfig.from_dicts(source.program_arguments, source.colors_to_use)
+    return RunConfig.from_dicts(state.program_arguments, state.colors_to_use)
 
 
 @contextlib.contextmanager
-def overridden_config(*, state: RunState | None = None, **overrides: object) -> Generator[RunConfig]:
+def overridden_config(*, state: RunState, **overrides: object) -> Generator[RunConfig]:
     """
     Run a block with some settings temporarily changed, then put them back.
 
@@ -237,8 +235,7 @@ def overridden_config(*, state: RunState | None = None, **overrides: object) -> 
     have thrown those away.
 
         Args:
-            state (RunState | None): the run state whose settings are overridden, or None for
-                PrimeItems.
+            state (RunState): the run state whose settings are overridden.
             **overrides: the settings to change for the duration of the block.
 
         Yields:
@@ -250,20 +247,19 @@ def overridden_config(*, state: RunState | None = None, **overrides: object) -> 
     """
     # Build the overridden config first: with_changes rejects an unknown setting name,
     # so a typo fails here rather than quietly adding a key nothing reads.
-    target = PrimeItems if state is None else state
-    overridden = current_config(target).with_changes(**overrides)
+    overridden = current_config(state).with_changes(**overrides)
     argument_names = [name for name in overrides if name != "colors"]
 
     # Remember what was there.
-    saved = {name: target.program_arguments[name] for name in argument_names}
-    saved_colors = target.colors_to_use
+    saved = {name: state.program_arguments[name] for name in argument_names}
+    saved_colors = state.colors_to_use
 
-    target.program_arguments.update({name: getattr(overridden, name) for name in argument_names})
+    state.program_arguments.update({name: getattr(overridden, name) for name in argument_names})
     if "colors" in overrides:
-        target.colors_to_use = overridden.as_colors()
+        state.colors_to_use = overridden.as_colors()
     try:
         yield overridden
     finally:
-        target.program_arguments.update(saved)
+        state.program_arguments.update(saved)
         if "colors" in overrides:
-            target.colors_to_use = saved_colors
+            state.colors_to_use = saved_colors

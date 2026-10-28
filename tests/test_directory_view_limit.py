@@ -32,7 +32,7 @@ def anchor(anchor_id: str) -> str:
 def output_lines() -> Iterator[LineOut]:
     """A fresh output queue for the directory to be written into, restored afterwards."""
     saved_lines, saved_items = PrimeItems.output_lines, PrimeItems.directory_items
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     PrimeItems.directory_items = {"current_item": "", "projects": [], "profiles": [], "tasks": [], "scenes": []}
     yield PrimeItems.output_lines
     PrimeItems.output_lines, PrimeItems.directory_items = saved_lines, saved_items

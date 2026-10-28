@@ -48,11 +48,11 @@ from maptasker.src.mapgen.lineout import LineOut
 @pytest.fixture(autouse=True)
 def _clean_globals() -> None:
     """A fresh set of the counters and tables a run accumulates into."""
-    load_arg_specs()
+    load_arg_specs(state=PrimeItems)
 
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.colors_to_use = set_color_mode("dark")
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     PrimeItems.found_named_items = initial_found_named_items()
     PrimeItems.grand_totals = initial_grand_totals()
     PrimeItems.directory_items = initial_directory_items()
@@ -195,7 +195,7 @@ def test_a_backup_with_projects_is_walked_from_the_projects() -> None:
         '<Profile sr="prof5"><id>5</id><mid0>10</mid0><nme>Morning</nme></Profile>'
         '<Task sr="task10"><id>10</id><nme>Alpha</nme></Task>',
     )
-    projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
+    projects.process_projects_and_their_profiles([], [], current_config(state=PrimeItems), PrimeItems)
     output = _output()
     assert "Home" in output
     assert "Morning" in output
@@ -209,7 +209,7 @@ def test_a_profile_export_is_walked_from_the_profiles() -> None:
         '<Profile sr="prof5"><id>5</id><mid0>10</mid0><nme>Morning</nme></Profile>'
         '<Task sr="task10"><id>10</id><nme>Alpha</nme></Task>',
     )
-    projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
+    projects.process_projects_and_their_profiles([], [], current_config(state=PrimeItems), PrimeItems)
     assert "Morning" in _output()
 
 
@@ -218,7 +218,7 @@ def test_a_task_export_is_walked_from_the_tasks() -> None:
     condition matters, because a Scene export also carries the Tasks its buttons fire.
     """
     _load('<Task sr="task10"><id>10</id><nme>Alpha</nme></Task><Task sr="task11"><id>11</id><nme>Beta</nme></Task>')
-    projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
+    projects.process_projects_and_their_profiles([], [], current_config(state=PrimeItems), PrimeItems)
     output = _output()
     assert "Alpha" in output
     assert "Beta" in output
@@ -230,7 +230,7 @@ def test_a_scene_export_is_walked_from_the_scenes() -> None:
     the screen they belong to.
     """
     _load('<Scene sr="scene0"><nme>Panel</nme></Scene><Task sr="task10"><id>10</id><nme>Alpha</nme></Task>')
-    projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
+    projects.process_projects_and_their_profiles([], [], current_config(state=PrimeItems), PrimeItems)
     assert "Panel" in _output()
     assert PrimeItems.grand_totals["scenes"] == 1
 
@@ -242,7 +242,7 @@ def test_an_unclaimed_scene_is_output_rather_than_reported_missing() -> None:
     is just unclaimed.
     """
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Orphan</nme></Scene>')
-    config = current_config().with_changes(single_scene_name="Orphan")
+    config = current_config(state=PrimeItems).with_changes(single_scene_name="Orphan")
 
     projects.output_orphan_single_scene(config, PrimeItems)
     assert PrimeItems.found_named_items["single_scene_found"] is True
@@ -254,7 +254,7 @@ def test_a_scene_already_found_is_not_output_twice() -> None:
     output would otherwise be listed a second time and counted twice.
     """
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Panel</nme></Scene>')
-    config = current_config().with_changes(single_scene_name="Panel")
+    config = current_config(state=PrimeItems).with_changes(single_scene_name="Panel")
     PrimeItems.found_named_items["single_scene_found"] = True
 
     projects.output_orphan_single_scene(config, PrimeItems)
@@ -266,7 +266,7 @@ def test_a_scene_name_that_is_not_in_the_backup_is_left_alone() -> None:
     found, and marking it found here would silently swallow the user's typo.
     """
     _load('<Project sr="proj0"><name>Home</name></Project><Scene sr="scene0"><nme>Panel</nme></Scene>')
-    config = current_config().with_changes(single_scene_name="Nonexistent")
+    config = current_config(state=PrimeItems).with_changes(single_scene_name="Nonexistent")
 
     projects.output_orphan_single_scene(config, PrimeItems)
     assert PrimeItems.found_named_items["single_scene_found"] is False
@@ -276,7 +276,7 @@ def test_a_scene_name_that_is_not_in_the_backup_is_left_alone() -> None:
 def test_the_orphan_path_does_nothing_on_an_ordinary_run() -> None:
     """No single Scene was asked for, so there is nothing to rescue."""
     _load('<Scene sr="scene0"><nme>Panel</nme></Scene>')
-    projects.output_orphan_single_scene(current_config(), PrimeItems)
+    projects.output_orphan_single_scene(current_config(state=PrimeItems), PrimeItems)
     assert PrimeItems.found_named_items["single_scene_found"] is False
 
 
@@ -291,7 +291,7 @@ def test_the_single_project_name_survives_the_walk() -> None:
         '<Task sr="task10"><id>10</id><nme>Alpha</nme></Task>',
     )
     PrimeItems.program_arguments.single_project_name = "Home"
-    projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
+    projects.process_projects_and_their_profiles([], [], current_config(state=PrimeItems), PrimeItems)
     assert PrimeItems.program_arguments.single_project_name == "Home"
 
 
@@ -305,7 +305,7 @@ def test_found_tasks_come_back_deduplicated() -> None:
         '<Profile sr="prof6"><id>6</id><mid0>10</mid0><nme>Two</nme></Profile>'
         '<Task sr="task10"><id>10</id><nme>Shared</nme></Task>',
     )
-    found = projects.process_projects_and_their_profiles([], [], current_config(), PrimeItems)
+    found = projects.process_projects_and_their_profiles([], [], current_config(state=PrimeItems), PrimeItems)
     assert sorted(found) == list(dict.fromkeys(found))
 
 
@@ -318,10 +318,12 @@ def test_the_heading_follows_the_config_it_is_given_and_not_the_global() -> None
     """
     PrimeItems.program_arguments.twisty = True
 
-    projects.task_not_in_profile_heading("Home", current_config().with_changes(twisty=False), PrimeItems)
+    projects.task_not_in_profile_heading(
+        "Home", current_config(state=PrimeItems).with_changes(twisty=False), PrimeItems
+    )
     plain = _output()
-    PrimeItems.output_lines = LineOut()
-    projects.task_not_in_profile_heading("Home", current_config(), PrimeItems)
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
+    projects.task_not_in_profile_heading("Home", current_config(state=PrimeItems), PrimeItems)
     twisty = _output()
 
     assert "are not in any Profile" in plain

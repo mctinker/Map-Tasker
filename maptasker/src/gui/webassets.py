@@ -9,6 +9,8 @@ carry and far cheaper than resending the canvas script over the websocket on eve
 
 from __future__ import annotations
 
+import functools
+
 from nicegui import app
 
 from maptasker.src.core import assettext
@@ -19,15 +21,11 @@ ASSETS_URL = "/maptasker_assets"
 STYLESHEET = "css/maptasker.css"
 CANVAS_SCRIPT = "js/scene_canvas.js"
 
-_mounted = False
 
-
+@functools.cache
 def mount() -> str:
     """Serve the assets directory, once per process, and return the URL it is served from."""
-    global _mounted  # noqa: PLW0603
-    if not _mounted:
-        app.add_static_files(ASSETS_URL, ASSETS_DIR)
-        _mounted = True
+    app.add_static_files(ASSETS_URL, ASSETS_DIR)
     return ASSETS_URL
 
 

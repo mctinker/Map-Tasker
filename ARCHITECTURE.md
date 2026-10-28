@@ -54,8 +54,13 @@ into functions (usually to avoid one) are a known list, and the largest loop of 
 A `RunState` (`core/primitem.py`) is one run: the arguments, the loaded tables, the output.  Code takes a `state`
 parameter and reads and writes only that, so it can be run against a `RunState` of its own, and two runs kept apart,
 without the global.  `PrimeItems` is the `RunState` a real run passes in.  `tests/test_global_state.py` lists the few
-functions still allowed to name `PrimeItems` -- entry points that default their state to it, and the process-wide
-session attributes -- and fails on any other, and on a listed one that has gone.
+functions still allowed to name `PrimeItems` -- the two entry points that have no state to be given (`mapit_all` and the
+command-line reports) and the process-wide session attributes -- and fails on any other, and on a listed one that has gone.
+Building a window (`MyGui`), the output lines (`LineOut`), reading the settings (`current_config`), loading the argument
+specs and recording an error all take their `state`; none falls back to the global.  What a run does to the configuration
+history (`timeline.suppressed`) is a flag on its own `RunState`, so one run's comparison cannot stop another's load from
+being recorded.  The module-level flags that remain are the process's own: the terminal's mute switch, the crash hook, and
+the one Scene being drawn.
 
 ## Errors
 

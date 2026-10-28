@@ -326,7 +326,7 @@ def _is_loaded_or_refused(data: bytes) -> None:
             debug=False, directory=False, pretty=False, gui=False, display_detail_level=3
         )
         PrimeItems.colors_to_use = set_color_mode("dark")
-        PrimeItems.output_lines = LineOut()
+        PrimeItems.output_lines = LineOut(state=PrimeItems)
         load_arg_specs(state=PrimeItems)
         PrimeItems.file_to_get = opened
         try:

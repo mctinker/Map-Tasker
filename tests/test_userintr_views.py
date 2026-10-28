@@ -55,7 +55,7 @@ def seen(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     monkeypatch.setattr(userintr, "_busy_banner", lambda message: record.banners.append(message) or "banner")
     monkeypatch.setattr(userintr, "_clear_busy_banner", lambda banner: record.banners.append(("cleared", banner)))
     monkeypatch.setattr(userintr, "clear_error", lambda: record.cleared.append(True))
-    monkeypatch.setattr(userintr, "current_config", lambda: "config")
+    monkeypatch.setattr(userintr, "current_config", lambda *_args: "config")
     monkeypatch.setattr(userintr, "output_the_front_matter", lambda config, state: record.front.append(config))
     monkeypatch.setattr(userintr, "output_path", lambda name, state: f"/out/{name}")
 

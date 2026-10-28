@@ -50,7 +50,7 @@ def _raised(message: str, code: int, **kwargs: bool) -> MapTaskerError:
 
 def _the_boxes_after_an_error(**kwargs: bool) -> list[str]:
     """Record an error, then show what the window shows for it on the next run."""
-    error.record_error(_raised("Module 'x' not found.", 12, **kwargs))
+    error.record_error(_raised("Module 'x' not found.", 12, **kwargs), state=PrimeItems)
     window = MyGui()
     guiutils.display_error_file_and_ai_response(window)
     return [message for message, _color in window.boxes]
@@ -71,20 +71,20 @@ def test_show_code_false_leaves_the_code_off_the_message() -> None:
 
 
 def test_show_code_false_leaves_the_code_out_of_the_saved_file() -> None:
-    error.record_error(_raised("Module 'x' not found.", 12, show_code=False))
+    error.record_error(_raised("Module 'x' not found.", 12, show_code=False), state=PrimeItems)
 
     assert Path(error.ERROR_FILE).read_text(encoding="utf-8") == "Module 'x' not found.\n"
 
 
 def test_the_saved_file_still_carries_the_code_by_default() -> None:
-    error.record_error(_raised("Something failed.", 12))
+    error.record_error(_raised("Something failed.", 12), state=PrimeItems)
 
     assert Path(error.ERROR_FILE).read_text(encoding="utf-8") == "Something failed.\n12\n"
 
 
 def test_the_code_is_still_recorded_for_the_caller() -> None:
     """Hiding the number from the user does not hide it from the program."""
-    error.record_error(_raised("Module 'x' not found.", 12, show_code=False))
+    error.record_error(_raised("Module 'x' not found.", 12, show_code=False), state=PrimeItems)
 
     assert PrimeItems.error_code == 12
     assert PrimeItems.error_msg == "Module 'x' not found."
@@ -99,7 +99,7 @@ def test_the_next_error_shows_its_code_again() -> None:
 
 
 def _boxes_for(message: str, code: int) -> list[str]:
-    error.record_error(_raised(message, code))
+    error.record_error(_raised(message, code), state=PrimeItems)
     window = MyGui()
     guiutils.display_error_file_and_ai_response(window)
     return [box for box, _color in window.boxes]
@@ -109,11 +109,11 @@ def _boxes_for(message: str, code: int) -> list[str]:
 # What recording does and does not do
 # ##################################################################################
 def test_recording_hands_back_the_code_and_raises_nothing() -> None:
-    assert error.record_error(_raised("It broke.", 7)) == 7
+    assert error.record_error(_raised("It broke.", 7), state=PrimeItems) == 7
 
 
 def test_a_deliberate_stop_is_not_an_error_and_records_nothing() -> None:
-    assert error.record_error(_raised("Goodbye.", 0)) == 0
+    assert error.record_error(_raised("Goodbye.", 0), state=PrimeItems) == 0
 
     assert PrimeItems.error_code == 0
     assert not Path(error.ERROR_FILE).exists()
@@ -122,7 +122,7 @@ def test_a_deliberate_stop_is_not_an_error_and_records_nothing() -> None:
 def test_with_no_window_nothing_is_written_for_one_to_find(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(PrimeItems.program_arguments, "gui", False, raising=False)
 
-    error.record_error(_raised("It broke.", 7))
+    error.record_error(_raised("It broke.", 7), state=PrimeItems)
 
     assert not Path(error.ERROR_FILE).exists()
     assert PrimeItems.error_code == 0
@@ -132,8 +132,8 @@ def test_a_missing_task_is_said_on_the_terminal_even_with_no_debug(monkeypatch: 
     said: list[str] = []
     monkeypatch.setattr(error.console, "error", said.append)
 
-    error.record_error(_raised('Task "x" not found!!', 5))
-    error.record_error(_raised("Something else.", 7))
+    error.record_error(_raised('Task "x" not found!!', 5), state=PrimeItems)
+    error.record_error(_raised("Something else.", 7), state=PrimeItems)
 
     assert len(said) == 1 and "not found" in said[0], "code 5 is the one the user asked about and must not be silent"
 
@@ -142,7 +142,7 @@ def test_a_missing_task_is_said_on_the_terminal_even_with_no_debug(monkeypatch: 
 # report_error: the edge of a load that has a window to go back to
 # ##################################################################################
 def test_with_a_window_the_edge_records_the_error_and_hands_back_its_code() -> None:
-    assert error.report_error(_raised("Not a backup.", 3)) == 3
+    assert error.report_error(_raised("Not a backup.", 3), state=PrimeItems) == 3
 
     assert PrimeItems.error_code == 3 and PrimeItems.error_msg == "Not a backup."
 
@@ -152,7 +152,7 @@ def test_with_no_window_the_edge_lets_the_error_go_on_up(monkeypatch: pytest.Mon
     failure = _raised("Not a backup.", 3)
 
     with pytest.raises(MapTaskerError) as raised:
-        error.report_error(failure)
+        error.report_error(failure, state=PrimeItems)
 
     assert raised.value is failure
 
@@ -160,6 +160,6 @@ def test_with_no_window_the_edge_lets_the_error_go_on_up(monkeypatch: pytest.Mon
 def test_a_deliberate_stop_is_never_swallowed_by_the_edge() -> None:
     """The window's own Exit is a stop, not a failure to be reported and carried on from."""
     with pytest.raises(MapTaskerError) as raised:
-        error.report_error(_raised("Goodbye.", 0))
+        error.report_error(_raised("Goodbye.", 0), state=PrimeItems)
 
     assert raised.value.exit_code == 0

@@ -59,7 +59,6 @@ from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.outdir import output_path
 from maptasker.src.core.primitem import (
     MAP_OUTPUT_ATTRIBUTES,
-    PrimeItems,
     RunState,
     clear_error,
     initial_found_named_items,
@@ -263,8 +262,8 @@ class MyGui:
 
     # Widgets the layout code in guiwins creates and keeps on the window.  Declared here so the
     # type checker knows they exist; each is assigned once, when the layout is built.
-    # The run state this window shows and edits.  PrimeItems -- the one the program runs on -- unless a
-    # window is given another (a test, say), and everything under the window reads it from here.
+    # The run state this window shows and edits: PrimeItems, the one the program runs on, for a real run, or
+    # another for a test.  Everything under the window reads it from here.
     state: RunState
     gui_header: ui.header
     save_settings_button: ui.button
@@ -482,12 +481,11 @@ class MyGui:
     underline: Any
     video_window: Any
 
-    def __init__(self: "MyGui", state: RunState | None = None) -> None:
+    def __init__(self: "MyGui", state: RunState) -> None:
         """Initialize the GUI and set up all necessary state and layout.
 
         Args:
-            state (RunState | None): the run state this window shows and edits, or None for
-                PrimeItems -- the one the program runs on.
+            state (RunState): the run state this window shows and edits.
         """
         # # Trace code
         # PrimeItems.program_arguments.debug = True  # Set this to True to enable tracing
@@ -508,7 +506,7 @@ class MyGui:
         # sys.setprofile(trace_calls)
 
         logger.info("Starting GUI")
-        self.state = PrimeItems if state is None else state
+        self.state = state
         self.initialization = True
         # The 'Output Folder' box, once the layout has built it -- see
         # guiwins_tabs.create_output_directory_section.
@@ -1813,7 +1811,7 @@ class MapTaskerEventHandlers:
 
             # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
             self.state.output_lines.output_lines.clear()
-            output_the_front_matter(current_config(), state=self.state)
+            output_the_front_matter(current_config(self.state), state=self.state)
 
             try:
                 # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely

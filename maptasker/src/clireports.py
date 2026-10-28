@@ -269,7 +269,9 @@ def _prepare(options: argparse.Namespace, state: RunState) -> None:
     )
     clear_single_items(state=state)
     state.colors_to_use = set_color_mode(state.program_arguments.appearance_mode)
-    _put_on_primeitems(output_lines=LineOut(), tasker_root_elements=initial_tasker_root_elements(), state=state)
+    _put_on_primeitems(
+        output_lines=LineOut(state=state), tasker_root_elements=initial_tasker_root_elements(), state=state
+    )
 
     if options.outdir:
         folder, problem = normalize_output_directory(options.outdir)
@@ -495,7 +497,7 @@ def _build_the_view(view: str, state: RunState) -> None:
     reset_attributes(*MAP_OUTPUT_ATTRIBUTES, state=state)
     state.found_named_items = initial_found_named_items()
     clear_error(state)
-    _put_on_primeitems(output_lines=LineOut(), state=state)
+    _put_on_primeitems(output_lines=LineOut(state=state), state=state)
 
     with console.muted():
         if view == mapexport.MAP:

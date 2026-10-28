@@ -282,7 +282,7 @@ def _build_a_map(tmp_path) -> tuple[float, int]:
     from maptasker.src.mapgen.frontmtr import output_the_front_matter
 
     PrimeItems.output_lines.output_lines.clear()
-    output_the_front_matter(current_config(), state=PrimeItems)
+    output_the_front_matter(current_config(state=PrimeItems), state=PrimeItems)
     build_html("", state=PrimeItems)
     written = tmp_path / "MapTasker.html"
     return (written.stat().st_mtime_ns, PrimeItems.map_output_line_count)
@@ -304,10 +304,10 @@ def _a_real_configuration(tmp_path, monkeypatch) -> Iterator[None]:
     # opening the finished Map in a web browser (see bildhtml.display_output).
     monkeypatch.setattr(PrimeItems, "mygui", object())
     PrimeItems.colors_to_use = set_color_mode("dark")
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     PrimeItems.tasker_root_elements = initial_tasker_root_elements()
     PrimeItems.file_to_get = open(_SYNTHETIC_BACKUP, encoding="utf-8")
-    load_arg_specs()
+    load_arg_specs(state=PrimeItems)
     get_data_and_output_intro(True, state=PrimeItems)
     yield
     mapcache.forget()

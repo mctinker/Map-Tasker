@@ -309,7 +309,7 @@ def _render(tmp_path: object, network: dict, config: RunConfig | None = None) ->
     here = os.getcwd()
     os.chdir(tmp_path)
     try:
-        diagram.network_map(network, config or current_config(), state=PrimeItems)
+        diagram.network_map(network, config or current_config(state=PrimeItems), state=PrimeItems)
         with open(DIAGRAM_FILE, encoding="utf-8") as written:
             return written.read().split("\n")
     finally:
@@ -350,7 +350,7 @@ def test_the_diagram_takes_its_profiles_per_line_from_the_config_it_is_given(tmp
     assert PrimeItems.program_arguments.profiles_per_line == 6
 
     side_by_side = _render(tmp_path, network)
-    stacked = _render(tmp_path, network, current_config().with_changes(profiles_per_line=1))
+    stacked = _render(tmp_path, network, current_config(state=PrimeItems).with_changes(profiles_per_line=1))
 
     assert len(_profile_rows(side_by_side)) == 1
     assert len(_profile_rows(stacked)) == 3

@@ -90,7 +90,7 @@ def test_a_quoted_angle_bracket_does_not_end_a_tag() -> None:
 @pytest.fixture
 def line_out() -> LineOut:
     """A LineOut to call the line builders on."""
-    return LineOut()
+    return LineOut(state=PrimeItems)
 
 
 def test_an_action_becomes_a_div_carrying_its_colour_and_indent(line_out: LineOut) -> None:

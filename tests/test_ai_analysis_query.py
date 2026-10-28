@@ -36,10 +36,10 @@ def _a_loaded_configuration(tmp_path, monkeypatch) -> Iterator[None]:
     # Anything other than None means "the GUI is up", which keeps the build from opening a browser.
     monkeypatch.setattr(PrimeItems, "mygui", object())
     PrimeItems.colors_to_use = set_color_mode("dark")
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     PrimeItems.tasker_root_elements = initial_tasker_root_elements()
     PrimeItems.file_to_get = open(_SYNTHETIC_BACKUP, encoding="utf-8")
-    load_arg_specs()
+    load_arg_specs(state=PrimeItems)
     get_data_and_output_intro(True, state=PrimeItems)
     yield
     mapcache.forget()

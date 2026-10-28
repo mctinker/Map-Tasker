@@ -174,7 +174,7 @@ def test_validation_reports_a_code_the_table_lacks(
     # debug_print appends to buildit.log in the working directory; keep it out of the repo.
     monkeypatch.setattr(valcodes, "debug_print", lambda message, state=None: print(message))
 
-    valcodes.validate_states_and_events("s", "https://example.invalid/StateCodes.java")
+    valcodes.validate_states_and_events("s", "https://example.invalid/StateCodes.java", state=PrimeItems)
 
     out = capsys.readouterr().out
     assert "999991" in out

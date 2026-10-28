@@ -247,6 +247,9 @@ class RunState:
         self.xml_root: Element = cast("Element", None)
         self.program_arguments: ProgramArguments = ProgramArguments()
         self.colors_to_use: dict[str, str] = {}
+        # True while a load must not be recorded in the configuration history (timeline.suppressed): the file
+        # diffload compares against is loaded by the same code as the one the user opened, and is not theirs.
+        self.history_suppressed = False
         # None until mapit_all builds the LineOut for a run, and typed as the LineOut it is for every
         # piece of code that renders the Map -- all of it runs after that.  The few that can run before
         # (diffload, bildhtml) test for None themselves.  Declared Optional, this was 150 false alarms.

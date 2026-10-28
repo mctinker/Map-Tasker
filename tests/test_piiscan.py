@@ -482,14 +482,14 @@ def test_the_map_writes_the_anchor_that_finding_points_at(shared_problems: list)
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.program_arguments.taskernet = True
     PrimeItems.colors_to_use = set_color_mode("dark")
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     PrimeItems.emitted_anchors = set()
 
     share(
         PrimeItems.tasker_root_elements["all_tasks"]["30"]["xml"],
         "tasktab",
         Target(TASK, "30"),
-        config=current_config(),
+        config=current_config(state=PrimeItems),
         state=PrimeItems,
     )
     output = "".join(PrimeItems.output_lines.output_lines)
@@ -575,14 +575,14 @@ def test_the_map_writes_the_properties_anchor_a_finding_points_at(property_probl
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.program_arguments.display_detail_level = mapjump.minimum_detail_level(finding.where)
     PrimeItems.colors_to_use = set_color_mode("dark")
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
     PrimeItems.emitted_anchors = set()
 
     get_properties(
         "Project:",
         PrimeItems.tasker_root_elements["all_projects"]["Server"]["xml"],
         finding.where,
-        config=current_config(),
+        config=current_config(state=PrimeItems),
         state=PrimeItems,
     )
     output = "".join(PrimeItems.output_lines.output_lines)

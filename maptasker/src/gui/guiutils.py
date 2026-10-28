@@ -727,7 +727,7 @@ def get_xml(debug: bool, appearance_mode: str, state: RunState) -> int:
         state.program_arguments.debug = debug
     state.program_arguments.gui = True
     state.colors_to_use = set_color_mode(appearance_mode)
-    state.output_lines = LineOut()
+    state.output_lines = LineOut(state=state)
 
     # The window is the edge: a backup that cannot be read is a message in it and a window that is
     # still there, so the error is recorded (see error.record_error) and its code handed back.

@@ -51,7 +51,7 @@ def _specs() -> None:
             break
     PrimeItems.tasker_arg_specs = specs
     PrimeItems.program_arguments = ProgramArguments(display_detail_level=3, pretty=False, debug=False)
-    PrimeItems.output_lines = LineOut()
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
 
 
 def test_app_icon_maps() -> None:

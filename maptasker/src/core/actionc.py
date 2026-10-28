@@ -49,7 +49,6 @@ import json
 import os
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
-from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import logger
 
 if TYPE_CHECKING:
@@ -187,7 +186,7 @@ def build_action_codes() -> dict[str, ActionCode]:
 action_codes: dict[str, ActionCode] = build_action_codes()
 
 
-def load_arg_specs(state: RunState | None = None) -> None:
+def load_arg_specs(state: RunState) -> None:
     """
     Load the argument-type and action-category tables an action is mapped through.
 
@@ -198,22 +197,21 @@ def load_arg_specs(state: RunState | None = None) -> None:
     taskerd, whose writes a comparison load has to be able to put back.
 
     Args:
-        state (RunState | None): the run state to load them onto, or None for PrimeItems.
+        state (RunState): the run state to load them onto.
     Returns:
         None
     """
-    target = PrimeItems if state is None else state
     # Get the map of all Tasker task action argument types.
     try:
         with open(os.path.join(_JSON_DIR, "arg_specs.json"), encoding="utf-8") as file:
-            target.tasker_arg_specs = json.load(file)
-            spec_number = len(target.tasker_arg_specs)
+            state.tasker_arg_specs = json.load(file)
+            spec_number = len(state.tasker_arg_specs)
             # Add extras for new action specs
-            target.tasker_arg_specs[str(spec_number)] = "ConditionList"
-            target.tasker_arg_specs[str(spec_number + 1)] = "Img"
-            for key, value in target.tasker_arg_specs.items():
+            state.tasker_arg_specs[str(spec_number)] = "ConditionList"
+            state.tasker_arg_specs[str(spec_number + 1)] = "Img"
+            for key, value in state.tasker_arg_specs.items():
                 if value == "String":
-                    target.tasker_arg_specs[key] = "Str"
+                    state.tasker_arg_specs[key] = "Str"
                     break
     except FileNotFoundError:
         logger.error("arg_specs missing!")
@@ -222,6 +220,6 @@ def load_arg_specs(state: RunState | None = None) -> None:
     try:
         with open(os.path.join(_JSON_DIR, "category_descriptions.json"), encoding="utf-8") as file:
             for description in json.load(file):
-                target.tasker_category_descriptions[description["code"]] = description["name"]
+                state.tasker_category_descriptions[description["code"]] = description["name"]
     except FileNotFoundError:
         logger.error("category_descriptions missing!")

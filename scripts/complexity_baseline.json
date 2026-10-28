@@ -58,7 +58,7 @@
     "PLR0912": 12
   },
   "maptasker/src/gui/userintr.py::MyGui.__init__": {
-    "LINES": 99
+    "LINES": 98
   },
   "maptasker/src/gui/userintr.py::MyGui.process_single_name_restore": {
     "LINES": 100
