@@ -181,7 +181,9 @@ class _DescriptionEditor:
                         .classes("w-28")
                     )
                     with self.hex_color:
-                        ui.tooltip(translate_string("Pick any color from the palette, or type a hex color such as #336699."))
+                        ui.tooltip(
+                            translate_string("Pick any color from the palette, or type a hex color such as #336699.")
+                        )
             self.heading = (
                 ui.select(list(tndesc.HEADINGS), value=tndesc.DEFAULT_HEADING).props("dense borderless").classes("w-20")
             )
