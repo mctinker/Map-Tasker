@@ -23,6 +23,8 @@ import pytest
 from maptasker.src.core import maputils
 from maptasker.src.gui import guiutils
 
+from tests.doubles import fake_window
+
 
 class FakeCompletedProcess(SimpleNamespace):
     """Enough of subprocess.CompletedProcess for update_maptasker."""
@@ -257,7 +259,7 @@ def test_change_log_is_read_back_the_way_it_was_written(
     changelog = tmp_path / "changelog.txt"
     changelog.write_text(f"## [14.0.5] {UNENCODABLE} FIX\n", encoding="utf-8")
     monkeypatch.setattr(guiutils, "CHANGELOG_FILE", str(changelog))
-    view = SimpleNamespace(message="")
+    view = fake_window(message="")
 
     guiutils.check_for_changelog(view)
 

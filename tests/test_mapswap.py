@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import os
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
 
 import pytest
 from maptasker.src.analysis import mapfind
@@ -36,6 +37,8 @@ from maptasker.src.mapops import (
     mapswap_rename,
     mapswap_sites,
 )
+
+from tests.doubles import required
 
 # Codes used below, named so the tests read as prose.
 FLASH = "548t"  # 16 arguments; Text=arg0, Title=arg3
@@ -1025,7 +1028,7 @@ def test_a_plugins_declaration_of_its_outputs_is_skipped_not_rewritten(variables
 
 
 @pytest.fixture
-def _no_selection() -> None:
+def _no_selection() -> Iterator[None]:
     """Clear the single-item selectors before and after each scope test.
 
     They live on PrimeItems.program_arguments, which is global and survives between
@@ -1233,7 +1236,11 @@ def test_a_scoped_substitution_changes_only_the_selected_object(variables, _no_s
     PrimeItems.program_arguments.single_task_name = ""
     whole = varxref.build_index(state=PrimeItems)
     remaining = whole.variables[("%Total", "")]
-    assert {reference.target.kind for reference in remaining.sets + remaining.reads} == {PROJECT, PROFILE, SCENE}
+    assert {required(reference.target).kind for reference in remaining.sets + remaining.reads} == {
+        PROJECT,
+        PROFILE,
+        SCENE,
+    }
 
 
 # ##################################################################################

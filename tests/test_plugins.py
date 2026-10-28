@@ -28,6 +28,8 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import taskedit_args
 from maptasker.src.mapgen import actargs, taskerd
 
+from tests.doubles import required
+
 if TYPE_CHECKING:
     import pathlib
 
@@ -53,7 +55,7 @@ def _action(package: str, fields: dict[str, str], blurb: str = "", code: str = "
 def _decoded(package: str, fields: dict[str, str], blurb: str = "") -> dict[str, str]:
     """{label: value} for one plugin action's settings, as plugset reads them."""
     action = _action(package, fields, blurb)
-    decoded = plugset.decode_settings(action.find("Bundle/Vals"), package, blurb)
+    decoded = plugset.decode_settings(required(action.find("Bundle/Vals")), package, blurb)
     assert decoded is not None
     return dict(decoded.lines)
 
@@ -249,7 +251,7 @@ def test_home_assistants_blurb_gives_way_to_its_settings() -> None:
 def test_any_other_plugin_is_left_to_the_generic_reading() -> None:
     """One "Name=value" line per field, exactly as before."""
     action = _action("com.example.other", {"parameters": _json({"a": 1})})
-    assert plugset.decode_settings(action.find("Bundle/Vals"), "com.example.other") is None
+    assert plugset.decode_settings(required(action.find("Bundle/Vals")), "com.example.other") is None
     value = actargs.get_bundle(action, {"returning_something": True}, "0", state=PrimeItems)["arg0"]["value"]
     assert 'parameters={"a": 1}' in value
 

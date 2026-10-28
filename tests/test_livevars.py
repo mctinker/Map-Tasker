@@ -12,12 +12,15 @@ from __future__ import annotations
 import base64
 import json
 import xml.etree.ElementTree as ET
+from typing import Any
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.gui import livevars
 from maptasker.src.mapgen import taskerd, varxref
+
+from tests.doubles import required
 
 # %Orphan is read and never set; %Dead is set and never read; %Both is set and read; %Kept is
 # declared in the Variables tab, so it is neither.
@@ -103,7 +106,7 @@ def test_a_value_that_is_not_base64_is_shown_as_received() -> None:
 
 def test_an_empty_global_is_present_and_empty() -> None:
     """A global holding nothing is on the phone; absent is a different answer."""
-    live = livevars.LiveValues("x:1", livevars.parse_globals(json.dumps([{"name": "Blank", "value": ""}])))
+    live = livevars.LiveValues("x:1", required(livevars.parse_globals(json.dumps([{"name": "Blank", "value": ""}]))))
     assert live.has("%Blank")
     assert live.value("%Blank") == ""
     assert not live.has("%Missing")
@@ -126,7 +129,7 @@ def test_a_good_read_returns_every_global(monkeypatch: pytest.MonkeyPatch) -> No
     """One unfiltered GET api/globals, with the device's key, and the address kept tidy."""
     seen = {}
 
-    def request(_ip: str, _port: str, _location: str, endpoint: str, query: str, key: str, **_kwargs: object) -> tuple:
+    def request(_ip: str, _port: str, _location: str, endpoint: str, query: str, key: str, **_kwargs: Any) -> tuple:
         seen.update(endpoint=endpoint, query=query, key=key)
         return 0, json.dumps([{"name": "Both", "value": _encoded("7")}]).encode()
 

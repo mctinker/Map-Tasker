@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from types import SimpleNamespace
 
 import pytest
+from maptasker.src.core.primitem import RunState
 from maptasker.src.mapgen import profiles
+
+from tests.doubles import fake_config, fake_state
 
 B = "&nbsp;"
 
@@ -59,14 +61,14 @@ def test_a_name_from_conditions_starts_with_a_star() -> None:
     assert profiles.set_name_to_condition("Time: from 9:00", "x").startswith("*")
 
 
-def _state() -> SimpleNamespace:
-    return SimpleNamespace(tasker_root_elements={"all_profiles": {"12": {"name": ""}}})
+def _state() -> RunState:
+    return fake_state(tasker_root_elements={"all_profiles": {"12": {"name": ""}}})
 
 
 def test_an_unnamed_profile_is_recorded_under_its_id() -> None:
     state = _state()
     profile = _element("<Profile sr='prof12'/>")
-    config = SimpleNamespace(directory=False, pretty=False)
+    config = fake_config(directory=False, pretty=False)
 
     html_name, name, conditions = profiles.conditions_to_name(
         profile, "Time: from 9:00", "x", "<b>x</b>", config, state
@@ -81,7 +83,7 @@ def test_an_unnamed_profile_is_recorded_under_its_id() -> None:
 def test_pretty_mode_breaks_the_conditions_at_their_commas() -> None:
     state = _state()
     profile = _element("<Profile sr='prof12'/>")
-    config = SimpleNamespace(directory=False, pretty=True)
+    config = fake_config(directory=False, pretty=True)
 
     _, _, conditions = profiles.conditions_to_name(profile, "Time: 9:00, State: Power", "x", "x", config, state)
 
@@ -92,7 +94,7 @@ def test_a_directory_entry_is_added_for_the_new_name(monkeypatch: pytest.MonkeyP
     added: list[tuple] = []
     monkeypatch.setattr(profiles, "add_directory_item", lambda *args, **kwargs: added.append(args))
     state = _state()
-    config = SimpleNamespace(directory=True, pretty=False)
+    config = fake_config(directory=True, pretty=False)
 
     _, name, _ = profiles.conditions_to_name(_element("<Profile sr='prof12'/>"), "Time: 9:00", "x", "x", config, state)
 

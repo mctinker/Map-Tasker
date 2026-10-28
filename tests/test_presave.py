@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from maptasker.src.core import presave
@@ -60,7 +61,7 @@ def test_a_copy_that_cannot_be_removed_does_not_stop_the_save(tmp_path: Path, mo
     original = tmp_path / "Home.prj.xml"
     original.write_text("<Project/>", encoding="utf-8")
 
-    def refuse(self: Path, *args: object, **kwargs: object) -> None:
+    def refuse(self: Path, *args: Any, **kwargs: Any) -> None:
         raise PermissionError("read-only")
 
     monkeypatch.setattr(Path, "unlink", refuse)
@@ -72,7 +73,7 @@ def test_a_folder_that_cannot_be_made_is_reported(tmp_path: Path, monkeypatch: p
     original = tmp_path / "Home.prj.xml"
     original.write_text("<Project/>", encoding="utf-8")
 
-    def refuse(self: Path, *args: object, **kwargs: object) -> None:
+    def refuse(self: Path, *args: Any, **kwargs: Any) -> None:
         raise PermissionError("read-only")
 
     monkeypatch.setattr(Path, "mkdir", refuse)
@@ -85,7 +86,7 @@ def test_a_file_that_cannot_be_copied_is_reported(tmp_path: Path, monkeypatch: p
     original = tmp_path / "Home.prj.xml"
     original.write_text("<Project/>", encoding="utf-8")
 
-    def refuse(*args: object, **kwargs: object) -> None:
+    def refuse(*args: Any, **kwargs: Any) -> None:
         raise OSError("disk full")
 
     monkeypatch.setattr(presave.shutil, "copy2", refuse)
@@ -139,7 +140,7 @@ def test_a_device_copy_that_cannot_be_written_is_reported(tmp_path: Path, monkey
 def test_a_device_copy_in_an_unwritable_folder_is_reported(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
 
-    def refuse(self: Path, *args: object, **kwargs: object) -> None:
+    def refuse(self: Path, *args: Any, **kwargs: Any) -> None:
         raise PermissionError("read-only")
 
     monkeypatch.setattr(Path, "mkdir", refuse)

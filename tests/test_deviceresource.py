@@ -16,7 +16,7 @@ import json
 import os
 import time
 import xml.etree.ElementTree as ET
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.analysis import resrefs
@@ -26,6 +26,8 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import deviceinv, deviceresource
 from maptasker.src.device.devicetask import PAYLOAD_JOINER
 from maptasker.src.mapgen import taskerd
+
+from tests.doubles import required
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -107,7 +109,7 @@ class _FakeDevice:
         self.uploads: list[tuple[str, str]] = []
         self.asked: list[str] = []
 
-    def get(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def get(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self.calls.append(("GET", url))
         if "/api/auth" in url:
             return _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}')
@@ -124,7 +126,7 @@ class _FakeDevice:
         results = "".join(f"{'true' if path in self.existing else 'false'}{PAYLOAD_JOINER}" for path in self.asked)
         return f"MAPTASKER-EXISTS 1\nRESULTS\n{results}\nMAPTASKER-END\n"
 
-    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+    def post(self, url: str, **kwargs: Any) -> _FakeResponse:
         self.calls.append(("POST", url))
         if "/api/import" in url:
             self.imported_xml = kwargs.get("data", b"").decode()  # type: ignore[union-attr]
@@ -135,12 +137,12 @@ class _FakeDevice:
             self.asked = content.decode().split(PAYLOAD_JOINER)
         return _FakeResponse(200, b"{}")
 
-    def delete(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def delete(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self.calls.append(("DELETE", url))
         return _FakeResponse(404)
 
 
-def _device(monkeypatch: pytest.MonkeyPatch, **kwargs: object) -> _FakeDevice:
+def _device(monkeypatch: pytest.MonkeyPatch, **kwargs: Any) -> _FakeDevice:
     fake = _FakeDevice(**kwargs)  # type: ignore[arg-type]
     monkeypatch.setattr(maputil2, "requests", fake)
     return fake
@@ -161,9 +163,13 @@ def test_the_helper_task_reads_splits_loops_tests_and_writes() -> None:
     # Read File, Variable Split, Variable Set, For, Variable Set, Test File, Variable Set, End For, then the file.
     assert codes == ["417", "590", "547", "39", "547", "342", "547", "40", "410", "410", "410", "410"]
     test_file = actions[5]
-    assert test_file.find("Int[@sr='arg0']").attrib["val"] == "5", "Test File's Exists is option 5 of its Type"
+    assert required(test_file.find("Int[@sr='arg0']")).attrib["val"] == "5", (
+        "Test File's Exists is option 5 of its Type"
+    )
     assert test_file.findtext("Str[@sr='arg1']") == "%mtres_path"
-    assert test_file.find("Int[@sr='arg4']").attrib["val"] == "1", "Use Global Namespace, as real backups have it"
+    assert required(test_file.find("Int[@sr='arg4']")).attrib["val"] == "1", (
+        "Use Global Namespace, as real backups have it"
+    )
     assert actions[3].findtext("Str[@sr='arg1']") == "%mtres_in()"
     assert actions[0].findtext("Str[@sr='arg0']") == "Tasker/maptasker_check_in.txt"
 
@@ -172,7 +178,7 @@ def test_the_helper_task_writes_a_file_whose_first_write_truncates() -> None:
     built = deviceresource.build_check_task(state=PrimeItems)
     writes = [action for action in built.task_element.findall("Action") if action.findtext("code") == "410"]
 
-    appends = [write.find("Int[@sr='arg2']").attrib["val"] for write in writes]
+    appends = [required(write.find("Int[@sr='arg2']")).attrib["val"] for write in writes]
     assert appends == ["0", "1", "1", "1"]
     assert [write.findtext("Str[@sr='arg1']") for write in writes][-1] == "MAPTASKER-END"
 

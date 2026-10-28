@@ -64,7 +64,7 @@ def _output_folder_is_the_working_directory(monkeypatch: pytest.MonkeyPatch) -> 
 
 
 @pytest.fixture(autouse=True)
-def _no_designer_outlives_its_test() -> None:
+def _no_designer_outlives_its_test() -> Iterator[None]:
     """Empty the table of live Scene canvases after every test.
 
     A designer unregisters itself when it is collected, but a test's NiceGUI client is kept by the user

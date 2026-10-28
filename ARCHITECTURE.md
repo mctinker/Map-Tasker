@@ -108,6 +108,11 @@ increase shows up in review with its reason.
 advisory is published on its own schedule and has nothing to do with the change being tested.  Dependabot
 (`.github/dependabot.yml`) opens a weekly pull request for the locked dependencies and the workflow actions.
 
+Tests are type-checked like the source (the typecheck ratchet above).  `tests/doubles.py` builds the stand-ins a test hands
+to code that wants a `RunState`, a `MyGui` or a `RunConfig` (`fake_state`, `fake_window`, `fake_config`) and narrows what a
+test knows to be there (`required` for a value that may be `None`, `expect` for one that is a result or an error message), so
+a type error in a test is a real one rather than a stand-in.
+
 Tests run in parallel, so none may depend on the one before it.  `tests/conftest.py` puts `PrimeItems` back to what it was
 after every test, and anything else a test changes -- the working directory, the environment, a module attribute -- is
 monkeypatched or kept in `tmp_path`.  A test that needs a loaded backup loads it itself, and the name of a parametrized

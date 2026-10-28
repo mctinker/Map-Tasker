@@ -7,6 +7,7 @@ Every other error keeps its code.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -17,7 +18,7 @@ from maptasker.src.gui import guiutils
 
 
 @pytest.fixture(autouse=True)
-def _gui_run_in_a_scratch_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def _gui_run_in_a_scratch_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """A GUI run whose error file lands in a temporary directory, with the error fields clean."""
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(PrimeItems.program_arguments, "gui", True, raising=False)

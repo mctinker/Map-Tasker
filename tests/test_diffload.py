@@ -24,6 +24,8 @@ from maptasker.src.core.sysconst import ERROR_FILE
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapgen.lineout import LineOut
 
+from tests.doubles import required
+
 _GOOD_XML = """<TaskerData sr="" dvi="1" tv="6.5.6">
   <Project sr="proj0" ve="2"><cdate>1</cdate><id>1</id><name>Loaded</name>
     <pids>10</pids><tids>20</tids></Project>
@@ -130,7 +132,7 @@ def test_the_other_file_is_actually_parsed(tmp_path) -> None:
     assert configuration.path == other
     assert list(configuration.tables["all_projects"]) == ["Other"]
     assert configuration.tables["all_tasks"]["21"]["name"] == "Winder"
-    assert configuration.root.findtext("Variable/n") == "%other"
+    assert required(configuration.root).findtext("Variable/n") == "%other"
 
 
 def test_the_loaded_configuration_is_untouched(tmp_path) -> None:
@@ -161,7 +163,7 @@ def test_a_derived_profile_name_lands_on_the_other_file_not_the_loaded_one(tmp_p
     configuration, message = diffload.load_for_comparison(other, state=PrimeItems)
 
     assert message == ""
-    assert configuration.tables["all_profiles"]["30"]["name"]
+    assert required(configuration).tables["all_profiles"]["30"]["name"]
     assert "30" not in PrimeItems.tasker_root_elements["all_profiles"]
     assert list(PrimeItems.tasker_root_elements["all_profiles"]) == ["10"]
 
@@ -276,7 +278,7 @@ def test_the_user_file_is_never_the_one_parsed(tmp_path, monkeypatch) -> None:
     real_get_the_xml_data = diffload.get_the_xml_data
 
     def spy(*, state: object) -> None:
-        parsed_paths.append(PrimeItems.file_to_get.name)
+        parsed_paths.append(required(PrimeItems.file_to_get).name)
         real_get_the_xml_data(state=state)
 
     monkeypatch.setattr(diffload, "get_the_xml_data", spy)
@@ -474,7 +476,7 @@ def test_the_two_sides_compare(tmp_path) -> None:
     other, message = diffload.load_for_comparison(_write(tmp_path, "other.xml", _OTHER_XML), state=PrimeItems)
     assert message == ""
 
-    report, counts = compare(other, diffload.current_configuration(state=PrimeItems))
+    report, counts = compare(required(other), diffload.current_configuration(state=PrimeItems))
 
     assert "[PROJECT-ADDED]  Project 'Loaded'" in report
     assert "[PROJECT-REMOVED]  Project 'Other'" in report

@@ -5,9 +5,13 @@ from __future__ import annotations
 import asyncio
 import datetime
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from maptasker.src.gui import guiutils
+from maptasker.src.gui.userintr import MyGui
+
+from tests.doubles import fake_state, fake_window
 
 
 # ##################################################################################
@@ -33,7 +37,7 @@ def test_a_published_version_is_newer_only_if_it_really_is(installed: str, publi
 
 
 def test_a_newer_version_on_pypi_is_reported_and_the_check_is_recorded(monkeypatch: pytest.MonkeyPatch) -> None:
-    state = SimpleNamespace(last_run=None)
+    state = fake_state(last_run=None)
     monkeypatch.setattr(guiutils, "get_pypi_version", lambda: "maptasker==99.0.0")
     monkeypatch.setattr(guiutils, "NOW_TIME", "now")
     assert guiutils.is_new_version(state) is True
@@ -41,7 +45,7 @@ def test_a_newer_version_on_pypi_is_reported_and_the_check_is_recorded(monkeypat
 
 
 def test_pypi_not_answering_means_no_new_version(monkeypatch: pytest.MonkeyPatch) -> None:
-    state = SimpleNamespace(last_run=None)
+    state = fake_state(last_run=None)
     monkeypatch.setattr(guiutils, "get_pypi_version", lambda: "")
     assert guiutils.is_new_version(state) is False
     assert state.last_run is None  # nothing was checked, so nothing is recorded
@@ -49,7 +53,7 @@ def test_pypi_not_answering_means_no_new_version(monkeypatch: pytest.MonkeyPatch
 
 def test_the_current_version_is_not_new(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(guiutils, "get_pypi_version", lambda: f"maptasker=={guiutils.VERSION}")
-    assert guiutils.is_new_version(SimpleNamespace(last_run=None)) is False
+    assert guiutils.is_new_version(fake_state(last_run=None)) is False
 
 
 class _Day:
@@ -124,14 +128,14 @@ def test_models_are_prefixed_with_their_provider_and_sorted() -> None:
 def test_switching_lists_keeps_the_chosen_model_selected() -> None:
     """The extended list marks an installed Ollama model, and a pulldown whose value is not among its
     options goes blank -- which looked as though switching lists had thrown the choice away."""
-    gui = SimpleNamespace(ai_model="phi4", ai_model_option=SimpleNamespace(value=None), is_updating=False)
+    gui = fake_window(ai_model="phi4", ai_model_option=SimpleNamespace(value=None), is_updating=False)
     guiutils.keep_selected_model(gui, ["Llama: tinyllama", "Llama: phi4 (installed)"])
     assert gui.ai_model_option.value == "Llama: phi4 (installed)"
     assert gui.is_updating is False  # set only while the value is being put back
 
 
 def test_a_chosen_model_not_in_the_new_list_leaves_the_pulldown_alone() -> None:
-    gui = SimpleNamespace(ai_model="phi4", ai_model_option=SimpleNamespace(value="before"), is_updating=False)
+    gui = fake_window(ai_model="phi4", ai_model_option=SimpleNamespace(value="before"), is_updating=False)
     guiutils.keep_selected_model(gui, ["Llama: tinyllama"])
     assert gui.ai_model_option.value == "before"
 
@@ -146,7 +150,7 @@ def test_the_flag_is_cleared_even_if_the_pulldown_refuses() -> None:
         def value(self, _new: str) -> None:
             raise RuntimeError("the page went away")
 
-    gui = SimpleNamespace(ai_model="phi4", ai_model_option=Refuses(), is_updating=False)
+    gui = fake_window(ai_model="phi4", ai_model_option=Refuses(), is_updating=False)
     with pytest.raises(RuntimeError):
         guiutils.keep_selected_model(gui, ["Llama: phi4"])
     assert gui.is_updating is False
@@ -155,7 +159,7 @@ def test_the_flag_is_cleared_even_if_the_pulldown_refuses() -> None:
 # ##################################################################################
 # Which key goes with which model
 # ##################################################################################
-def _gui(**overrides: object) -> SimpleNamespace:
+def _gui(**overrides: Any) -> MyGui:
     ai = {
         "openai_models": ["gpt-5"],
         "anthropic_models": ["claude-opus"],
@@ -171,7 +175,7 @@ def _gui(**overrides: object) -> SimpleNamespace:
         "ai_model_extended_list": False,
         "state": SimpleNamespace(ai=ai),
     }
-    return SimpleNamespace(**(values | overrides))
+    return fake_window(**(values | overrides))
 
 
 def test_a_model_with_no_name_is_not_a_configuration() -> None:

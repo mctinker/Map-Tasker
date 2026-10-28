@@ -9,18 +9,20 @@ from __future__ import annotations
 
 import asyncio
 import os
-from types import SimpleNamespace
+from collections.abc import Iterator
 
 import pytest
 from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 from maptasker.src.gui import mapai, userintr_ai
 from maptasker.src.mapgen import mapcache
 
+from tests.doubles import fake_window
+
 _SYNTHETIC_BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "synthetic_backup.xml")
 
 
 @pytest.fixture
-def _a_loaded_configuration(tmp_path, monkeypatch) -> None:
+def _a_loaded_configuration(tmp_path, monkeypatch) -> Iterator[None]:
     """The synthetic backup loaded, with a GUI up, in a directory of our own."""
     from maptasker.src.core.actionc import load_arg_specs
     from maptasker.src.core.colrmode import set_color_mode
@@ -55,7 +57,7 @@ def test_the_query_holds_the_selected_task(monkeypatch) -> None:
     PrimeItems.output_lines.output_lines.clear()  # As a Map view leaves it.
     assert mapai.cleanup_output(state=PrimeItems) == []
 
-    gui = SimpleNamespace(view_limit=10000, display_message_box=lambda *_args: None, state=PrimeItems)
+    gui = fake_window(view_limit=10000, display_message_box=lambda *_args: None, state=PrimeItems)
     assert asyncio.run(userintr_ai.build_analysis_lines(gui))
 
     query_lines = mapai.cleanup_output(state=PrimeItems)
@@ -71,7 +73,7 @@ def test_the_query_is_text_without_blank_lines(monkeypatch) -> None:
         "capture_gui_state",
         lambda _gui, _data, *, state, **_kw: PrimeItems.program_arguments.update({"single_task_name": "Remind Me"}),
     )
-    gui = SimpleNamespace(view_limit=10000, display_message_box=lambda *_args: None, state=PrimeItems)
+    gui = fake_window(view_limit=10000, display_message_box=lambda *_args: None, state=PrimeItems)
     assert asyncio.run(userintr_ai.build_analysis_lines(gui))
 
     for line in mapai.cleanup_output(state=PrimeItems):

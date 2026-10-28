@@ -23,6 +23,8 @@ from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK, text_repor
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen import taskerd
 
+from tests.doubles import required
+
 # Two Projects, so that a reference reaching across one Project's boundary into another
 # can be told from one that stays inside it.
 #
@@ -141,7 +143,7 @@ def test_perform_task_call_dangles() -> None:
     assert found[0].severity == impact.BREAKS
     # The jump goes to the ACTION, not merely to the Task holding it -- the location is
     # what the reader recognises, the action is where the fix is made.
-    assert found[0].target.action == 1
+    assert required(found[0].target).action == 1
 
 
 def test_scene_element_binding_dangles() -> None:
@@ -247,7 +249,7 @@ def test_project_scenes_are_left_in_no_project() -> None:
         found = _tagged(
             impact.analyze_delete(PROJECT, "Home", keep_contents=keep, state=PrimeItems), "SCENE-LEFT-ADRIFT"
         )
-        assert sorted(item.target.key for item in found) == ["Menu", "Solo"]
+        assert sorted(required(item.target).key for item in found) == ["Menu", "Solo"]
 
 
 # ##################################################################################

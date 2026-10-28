@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import os
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
@@ -212,7 +213,7 @@ def _load(xml_text: str) -> None:
 
 
 @pytest.fixture
-def loaded() -> None:
+def loaded() -> Iterator[None]:
     """The fixture configuration, in the tables the planner reads, with an empty undo history."""
     sessundo.clear(PrimeItems)
     _load(_FIXTURE_XML)

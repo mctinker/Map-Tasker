@@ -35,6 +35,7 @@ from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import required
 from tests.shared_fixtures import _built
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.usefixtures("fresh_session")]
@@ -205,7 +206,7 @@ async def test_reset_options_puts_the_controls_back_to_their_defaults(caplog: py
     """Reset rebuilds the window from defaulted settings, so every control shows its default again."""
     async with _open_window() as (user, gui):
         _click(user, _checkbox(user, "Bold"))
-        with user.client:
+        with required(user.client):
             gui.sidebar_detail_option.value = "0"
         assert gui.bold is True
         assert gui.display_detail_level == 0

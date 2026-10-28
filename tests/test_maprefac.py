@@ -24,6 +24,8 @@ from __future__ import annotations
 import json
 import os
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
+from typing import Any
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
@@ -35,6 +37,8 @@ from maptasker.src.gui.guiwins_nav import opening_view_in_a_new_window
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import maprefac, maprefac_duplicate, maprefac_extract, maprefac_model, maprefac_move
 from nicegui import binding
+
+from tests.doubles import required
 
 # Codes used below, named so the tests read as prose.
 VARIABLE_SET = "547"
@@ -218,7 +222,7 @@ def _load(xml_text: str) -> None:
 
 
 @pytest.fixture
-def loaded() -> None:
+def loaded() -> Iterator[None]:
     """The fixture configuration, in the tables maprefac reads, with an empty undo history."""
     sessundo.clear(PrimeItems)
     _load(_FIXTURE_XML)
@@ -360,7 +364,7 @@ def test_extract_writes_a_perform_task_tasker_would_recognise(loaded: None) -> N
     assert call.attrib["ve"] == "7"
     # Priority is inherited from the calling Task, which is what these actions were doing
     # a moment ago as part of it.
-    assert call.find("Int[@sr='arg1']/var").text == "%priority"
+    assert required(call.find("Int[@sr='arg1']/var")).text == "%priority"
     # Every argument present, in the order Tasker writes them (sorted as text, so arg10
     # sits between arg1 and arg2) -- see maprefac's own note on why that matters.
     assert [child.attrib["sr"] for child in call if child.tag != "code"] == [
@@ -488,7 +492,7 @@ def test_inline_carries_the_calls_condition_onto_every_copy(loaded: None) -> Non
 
     copied = actions_in_map_order(_task("20"))[5:]
     assert len(copied) == 2
-    assert all(action.find("ConditionList/Condition/lhs").text == "%count" for action in copied)
+    assert all(required(action.find("ConditionList/Condition/lhs")).text == "%count" for action in copied)
 
 
 def test_inline_carries_the_calls_disabled_state_onto_every_copy(loaded: None) -> None:
@@ -523,7 +527,7 @@ def test_inline_refuses_an_action_that_is_not_a_call(loaded: None) -> None:
 def test_inline_refuses_a_call_to_a_task_that_is_not_here(loaded: None) -> None:
     """Already broken before the refactor -- and saying so is more use than a generic refusal."""
     call = actions_in_map_order(_task("20"))[5]
-    call.find("Str[@sr='arg0']").text = "Nowhere"
+    required(call.find("Str[@sr='arg0']")).text = "Nowhere"
     plan = maprefac_extract.plan_inline("20", 6, state=PrimeItems)
     assert plan.is_blocked
     assert plan.blocks[0].reason == "NO-SUCH-TASK"
@@ -532,7 +536,7 @@ def test_inline_refuses_a_call_to_a_task_that_is_not_here(loaded: None) -> None:
 def test_inline_refuses_a_call_built_from_a_variable(loaded: None) -> None:
     """Which Task's actions to copy is decided on the device, not in the file."""
     call = actions_in_map_order(_task("20"))[5]
-    call.find("Str[@sr='arg0']").text = "%which"
+    required(call.find("Str[@sr='arg0']")).text = "%which"
     plan = maprefac_extract.plan_inline("20", 6, state=PrimeItems)
     assert plan.is_blocked
     assert plan.blocks[0].reason == "INDIRECT-NAME"
@@ -541,7 +545,7 @@ def test_inline_refuses_a_call_built_from_a_variable(loaded: None) -> None:
 def test_inline_refuses_a_task_calling_itself(loaded: None) -> None:
     """Copying a Task's actions into the middle of themselves, with the call still in the copy."""
     call = actions_in_map_order(_task("20"))[5]
-    call.find("Str[@sr='arg0']").text = "Morning"
+    required(call.find("Str[@sr='arg0']")).text = "Morning"
     plan = maprefac_extract.plan_inline("20", 6, state=PrimeItems)
     assert plan.is_blocked
     assert plan.blocks[0].reason == "SELF-CALL"
@@ -550,7 +554,7 @@ def test_inline_refuses_a_task_calling_itself(loaded: None) -> None:
 def test_inline_refuses_a_called_task_holding_a_goto(loaded: None) -> None:
     """Its Goto would still be valid after the shift and would land somewhere else."""
     call = actions_in_map_order(_task("20"))[5]
-    call.find("Str[@sr='arg0']").text = "Looper"
+    required(call.find("Str[@sr='arg0']")).text = "Looper"
     plan = maprefac_extract.plan_inline("20", 6, state=PrimeItems)
     assert plan.is_blocked
     assert plan.blocks[0].reason == "GOTO-IN-CALLED-TASK"
@@ -559,7 +563,7 @@ def test_inline_refuses_a_called_task_holding_a_goto(loaded: None) -> None:
 def test_inline_refuses_a_conditional_call_to_a_task_with_a_block(loaded: None) -> None:
     """A condition can be put on each action; it cannot be put on an If block."""
     call = actions_in_map_order(_task("20"))[5]
-    call.find("Str[@sr='arg0']").text = "Morning Copy"
+    required(call.find("Str[@sr='arg0']")).text = "Morning Copy"
     # A called Task that holds an If, plus a condition on the call itself.
     branching = maprefac_duplicate.plan_duplicate(TASK, "20", "Morning Copy", state=PrimeItems)
     assert maprefac.apply(branching, state=PrimeItems) == (True, [])
@@ -580,7 +584,7 @@ def test_inline_warns_that_parameters_stop_meaning_what_they_did(loaded: None) -
 
 def test_inline_warns_when_two_tasks_locals_become_one(loaded: None) -> None:
     """%total is Wake Steps'; give Morning one too and the two merge silently."""
-    actions_in_map_order(_task("20"))[1].find("Str[@sr='arg0']").text = "hello %total"
+    required(actions_in_map_order(_task("20"))[1].find("Str[@sr='arg0']")).text = "hello %total"
     plan = maprefac_extract.plan_inline("20", 6, state=PrimeItems)
     assert any("%total" in warning and "separate variables today" in warning for warning in plan.warnings)
 
@@ -678,7 +682,7 @@ def test_move_task_refuses_a_different_task_with_the_same_name(loaded: None) -> 
     plan = maprefac_move.plan_move(TASK, "22", "Away", state=PrimeItems)
     assert plan.is_blocked
     assert plan.blocks[0].reason == "NAME-TAKEN"
-    assert plan.blocks[0].where.key == "24"
+    assert required(plan.blocks[0].where).key == "24"
 
 
 def test_move_profile_refuses_a_different_profile_with_the_same_name(loaded: None) -> None:
@@ -736,7 +740,7 @@ def test_duplicate_task_makes_a_second_independent_task(loaded: None) -> None:
     assert _codes(new_id) == _codes("22")
     assert new_id in _members("Home", "tids")
     # Independent: editing the copy must not reach the original.
-    actions_in_map_order(_task(new_id))[0].find("Str[@sr='arg0']").text = "Changed"
+    required(actions_in_map_order(_task(new_id))[0].find("Str[@sr='arg0']")).text = "Changed"
     assert _string_arg(actions_in_map_order(_task("22"))[0], "0") == "Panel"
 
 
@@ -939,7 +943,7 @@ class _Box:
         self.value = value
 
 
-def _widgets(**values: object) -> dict:
+def _widgets(**values: Any) -> dict:
     """The widget dict guiwins_refactor builds, filled in with the given values."""
     keys = (
         "extract_task",
@@ -1225,7 +1229,7 @@ class _Checkbox:
 
 
 @pytest.fixture
-def bound() -> tuple[_Gui, _Checkbox]:
+def bound() -> Iterator[tuple[_Gui, _Checkbox]]:
     """A gui and a checkbox wired together exactly as build_the_gui wires them.
 
     The REAL nicegui.binding, not an imitation.  A stand-in cannot answer the question this

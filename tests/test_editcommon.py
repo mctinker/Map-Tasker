@@ -20,6 +20,7 @@ opened -- a blank IP reports the blank IP rather than the deletion.
 from __future__ import annotations
 
 import os
+from typing import Any
 
 import pytest
 from maptasker.src.core import editcommon, presave
@@ -151,7 +152,7 @@ def fake_device(monkeypatch: pytest.MonkeyPatch) -> dict:
     monkeypatch.setattr(maputil2, "http_upload_request", fake_upload)
     monkeypatch.setattr(maputil2, "read_back_uploaded_file", fake_read)
 
-    def counted(*_args: object, **_kwargs: object) -> str:
+    def counted(*_args: Any, **_kwargs: Any) -> str:
         state["renders"] += 1
         return "<TaskerData/>"
 
@@ -237,7 +238,7 @@ def test_a_render_that_raises_is_reported_by_the_kinds_that_can_raise(
     by the time the button is pressed.  That stays a (8, message), not a traceback.
     """
 
-    def deleted(*_args: object, **_kwargs: object) -> str:
+    def deleted(*_args: Any, **_kwargs: Any) -> str:
         message = "Project 'Home/Work' no longer exists."
         raise ValueError(message)
 

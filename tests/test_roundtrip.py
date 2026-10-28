@@ -43,6 +43,8 @@ from maptasker.src.edit import profedit, projedit, roundtrip, taskedit, taskedit
 from maptasker.src.gui import userintr_android
 from maptasker.src.mapgen import taskerd
 
+from tests.doubles import required
+
 # One Project owning one Profile, that Profile's Entry Task, a Scene the Project declares,
 # and the Task that Scene's button fires.  Small, but it is every relationship the four
 # renderers bundle by: <pids>, <mid0>, <scenes>, <tids> and a Scene element's <clickTask>.
@@ -188,7 +190,7 @@ def test_the_exempt_project_is_still_renumbered() -> None:
     exported = ET.fromstring(projedit.render_standalone_project_xml("Home", state=PrimeItems))
 
     assert _live("all_projects", "Home").get("sr") == "proj7"
-    assert exported.find("Project").get("sr") == "proj0"
+    assert required(exported.find("Project")).get("sr") == "proj0"
 
 
 # ==========================================
@@ -200,7 +202,7 @@ def test_a_carriage_return_in_a_name_is_caught() -> None:
     back in.  So this Task's name arrives on the device as something the user never typed,
     and every existing check in the save path -- the 200, the byte-for-byte readback --
     passes, because they all compare the already-wrong bytes against themselves."""
-    _live("all_tasks", "20").find("nme").text = "Open\rer"
+    required(_live("all_tasks", "20").find("nme")).text = "Open\rer"
 
     report = roundtrip.verify_task(_editable_task("20"), state=PrimeItems)
 
@@ -260,7 +262,7 @@ def test_meaningful_whitespace_inside_a_value_is_not_a_difference() -> None:
 
     assert report.ok, report.detail()
     assert _live("all_tasks", "20").findtext("nme") == "Opener "
-    assert "\t" in _live("all_tasks", "20").find("Action/Str").text
+    assert "\t" in required(_live("all_tasks", "20").find("Action/Str")).text
 
 
 def test_reindenting_the_export_is_not_a_difference() -> None:
@@ -318,7 +320,7 @@ def test_a_clean_report_counts_what_it_checked() -> None:
 def test_a_failing_report_leads_with_the_failure() -> None:
     """One line, in a notification, next to a save that has just been refused: it has to
     name the count of objects that changed, not the count that passed."""
-    _live("all_tasks", "20").find("nme").text = "Open\rer"
+    required(_live("all_tasks", "20").find("nme")).text = "Open\rer"
 
     assert roundtrip.verify_profile(_editable_profile("100"), state=PrimeItems).summary() == (
         "Verify FAILED: 1 object changed on the round trip."
@@ -358,7 +360,7 @@ def test_a_ticked_verify_that_fails_stops_the_save_before_the_device_is_touched(
     """The point of the feature.  False here returns out of the handler ahead of
     ping_android_device, so a failing document reaches neither the upload nor the
     reachability probe -- and the report dialog is what the user is left looking at."""
-    _live("all_tasks", "20").find("nme").text = "Open\rer"
+    required(_live("all_tasks", "20").find("nme")).text = "Open\rer"
 
     with (
         patch.object(userintr_android, "ui") as fake_ui,

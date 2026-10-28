@@ -21,6 +21,7 @@ from maptasker.src.core import timeline
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapops import trend
 
+from tests.doubles import required
 from tests.shared_fixtures import _load_local
 from tests.test_taskstep import _act, _i, _s, disabled, end_for, end_if, flash, for_, if_, set_
 
@@ -267,7 +268,7 @@ def test_metrics_from_an_older_release_are_measured_again(tmp_path: Path, monkey
 def test_metrics_that_cannot_be_read_are_measured_again_not_trusted(tmp_path: Path) -> None:
     snapshot = _snapshot(tmp_path, "backup.xml", config(Home={"A": (flash("a"),)}), _at(1))
     trend.measure_snapshot(snapshot, PrimeItems)
-    for kept in (timeline.history_folder() / trend.METRICS_FOLDER).glob("*.json"):
+    for kept in (required(timeline.history_folder()) / trend.METRICS_FOLDER).glob("*.json"):
         kept.write_text("{ not json", encoding="utf-8")
 
     metrics, problem = trend.measure_snapshot(snapshot, PrimeItems)

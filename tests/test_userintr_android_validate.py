@@ -9,6 +9,7 @@ The device and the page are faked -- run.io_bound just calls what it is given --
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from maptasker.src.gui import userintr_android
@@ -20,7 +21,7 @@ IP, PORT, FILE = "192.168.0.5", "1821", "/sdcard/backup.xml"
 def gui(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     """A stand-in window that records the messages shown, with run.io_bound calling straight through."""
 
-    async def io_bound(function: object, *arguments: object, **keywords: object) -> object:
+    async def io_bound(function: object, *arguments: Any, **keywords: Any) -> object:
         return function(*arguments, **keywords)
 
     monkeypatch.setattr(userintr_android, "run", SimpleNamespace(io_bound=io_bound))

@@ -15,11 +15,14 @@ from __future__ import annotations
 
 import os
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 from maptasker.src.mapgen import mapcache, taskerd
+
+from tests.doubles import required
 
 # One Project, one Profile, two Tasks and a Scene -- enough that a change can be made in
 # any of the four tables, plus a global variable and a Tasker setting, which are the parts
@@ -59,7 +62,7 @@ def _load(xml_text: str) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _loaded(tmp_path, monkeypatch) -> None:
+def _loaded(tmp_path, monkeypatch) -> Iterator[None]:
     """A loaded configuration, plain settings, and a Map file of our own to point at."""
     monkeypatch.chdir(tmp_path)
     _load(_XML)
@@ -154,7 +157,7 @@ def test_a_change_outside_the_four_tables_still_counts(tmp_path) -> None:
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
 
-    PrimeItems.xml_root.find("Variable/v").text = "not ready"
+    required(PrimeItems.xml_root.find("Variable/v")).text = "not ready"
 
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
@@ -286,7 +289,7 @@ def _build_a_map(tmp_path) -> tuple[float, int]:
 
 
 @pytest.fixture
-def _a_real_configuration(tmp_path, monkeypatch) -> None:
+def _a_real_configuration(tmp_path, monkeypatch) -> Iterator[None]:
     """A whole loaded configuration and a GUI to build a Map for, in a directory of our own."""
     from maptasker.src.core.actionc import load_arg_specs
     from maptasker.src.core.colrmode import set_color_mode

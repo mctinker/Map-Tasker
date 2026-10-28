@@ -8,7 +8,9 @@ before it touches the run state the two share.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Iterator
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -17,7 +19,7 @@ from maptasker.src.gui.userintr import MapTaskerEventHandlers
 from maptasker.src.gui.userintr_prebuild import PrebuildEventHandlers, _building
 
 
-def _state(**changes: object) -> SimpleNamespace:
+def _state(**changes: Any) -> SimpleNamespace:
     """A run state with a loaded configuration and nothing in the way."""
     state = SimpleNamespace(
         program_arguments=SimpleNamespace(ai_analyze=False, rerun=False),
@@ -46,7 +48,7 @@ class _Handlers(PrebuildEventHandlers):
 
 
 @pytest.fixture(autouse=True)
-def _nothing_building() -> None:
+def _nothing_building() -> Iterator[None]:
     """What the handlers agree on is the program's, so each test starts with nothing under way."""
     _building.task = _building.built_for = _building.seen = None
     _building.views = 0
@@ -56,7 +58,7 @@ def _nothing_building() -> None:
 
 
 @pytest.fixture
-def seen() -> SimpleNamespace:
+def seen() -> Iterator[SimpleNamespace]:
     """Everything the build touches, replaced and recorded.  `edits` is what the undo history reports."""
     record = SimpleNamespace(built=[], settled=[], forgotten=[], cleared=[], edits=[("one", 1)], build=None)
 
@@ -500,7 +502,7 @@ async def test_a_view_being_built_is_counted_for_exactly_as_long_as_it_takes() -
     handlers = _event_handlers()
     during: list[int] = []
 
-    async def show(*_args: object) -> None:
+    async def show(*_args: Any) -> None:
         during.append(_building.views)
 
     handlers._show_the_view = show  # type: ignore[method-assign]

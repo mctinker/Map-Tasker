@@ -44,6 +44,8 @@ from maptasker.src.core.sysconst import BASE_PROJECT_NAME
 from maptasker.src.edit import sceneedit, sceneedit_legacy, taskedit, taskedit_apply, taskedit_save
 from maptasker.src.gui import guiwins_sceneprops
 
+from tests.doubles import required
+
 # The backup the Scene tests load: hand-built, in tests/data, so they run anywhere -- CI included --
 # and hold nobody's configuration (see the comment at the top of the file).  The sweeps below also
 # measure whatever real backups are in XML/, which is where most of this mapping was first measured.
@@ -89,7 +91,7 @@ _SCENE_XML_NO_FILTER = """<Scene sr="Plain">
 
 def _properties(scene_xml: str) -> ET.Element:
     """The <PropertiesElement> of a Scene given as text."""
-    return ET.fromstring(scene_xml).find("PropertiesElement")
+    return required(ET.fromstring(scene_xml).find("PropertiesElement"))
 
 
 # ==========================================
@@ -106,8 +108,8 @@ def test_no_filter_at_all_reads_as_off():
 def test_a_filter_with_no_stop_event_reads_as_off():
     """6 of the 87 sample filters carry a <urlMatch> and no <stopEvent>."""
     properties = _properties(_SCENE_XML)
-    link_filter = properties.find("LinkClickFilter")
-    link_filter.remove(link_filter.find("stopEvent"))
+    link_filter = required(properties.find("LinkClickFilter"))
+    link_filter.remove(required(link_filter.find("stopEvent")))
     assert sceneedit_legacy.legacy_stop_event(properties) is False
 
 
@@ -115,7 +117,7 @@ def test_a_hand_written_false_reads_as_off():
     """Tasker never writes it, but a hand-edited file can -- and "false" must not read as
     on just because the element is present."""
     properties = _properties(_SCENE_XML)
-    properties.find("LinkClickFilter/stopEvent").text = "false"
+    required(properties.find("LinkClickFilter/stopEvent")).text = "false"
     assert sceneedit_legacy.legacy_stop_event(properties) is False
 
 
@@ -126,8 +128,7 @@ def test_ticking_it_on_a_scene_with_no_filter_builds_the_one_tasker_writes():
     properties = _properties(_SCENE_XML_NO_FILTER)
     sceneedit_legacy.legacy_set_stop_event(properties, enabled=True)
 
-    link_filter = properties.find("LinkClickFilter")
-    assert link_filter is not None
+    link_filter = required(properties.find("LinkClickFilter"))
     assert link_filter.attrib == {"sr": "filter0"}
     assert link_filter.findtext("stopEvent") == "true"
     # Last child, which is where all 87 samples keep it -- after the Str/Int/Img arguments.
@@ -153,8 +154,7 @@ def test_unticking_keeps_a_filter_that_still_says_which_keys():
     properties = _properties(_SCENE_XML)
     sceneedit_legacy.legacy_set_stop_event(properties, enabled=False)
 
-    link_filter = properties.find("LinkClickFilter")
-    assert link_filter is not None
+    link_filter = required(properties.find("LinkClickFilter"))
     assert link_filter.find("stopEvent") is None
     assert link_filter.findtext("urlMatch") == "back/home"
 
@@ -165,9 +165,9 @@ def test_an_already_empty_filter_is_left_where_it_is():
     has no business removing an element the user never touched.
     """
     properties = _properties(_SCENE_XML)
-    link_filter = properties.find("LinkClickFilter")
-    link_filter.remove(link_filter.find("stopEvent"))
-    link_filter.remove(link_filter.find("urlMatch"))
+    link_filter = required(properties.find("LinkClickFilter"))
+    link_filter.remove(required(link_filter.find("stopEvent")))
+    link_filter.remove(required(link_filter.find("urlMatch")))
     before = ET.tostring(properties)
 
     sceneedit_legacy.legacy_set_stop_event(properties, enabled=False)
@@ -185,12 +185,12 @@ def test_off_is_stored_as_absence_never_as_the_word_false():
 def test_stop_event_goes_ahead_of_the_url_match():
     """The order every sample filter is in."""
     properties = _properties(_SCENE_XML)
-    link_filter = properties.find("LinkClickFilter")
-    link_filter.remove(link_filter.find("stopEvent"))
+    link_filter = required(properties.find("LinkClickFilter"))
+    link_filter.remove(required(link_filter.find("stopEvent")))
 
     sceneedit_legacy.legacy_set_stop_event(properties, enabled=True)
 
-    assert [child.tag for child in properties.find("LinkClickFilter")] == ["stopEvent", "urlMatch"]
+    assert [child.tag for child in required(properties.find("LinkClickFilter"))] == ["stopEvent", "urlMatch"]
 
 
 def test_ticking_what_is_already_ticked_changes_nothing():
@@ -360,7 +360,7 @@ def test_editing_the_loaded_task_does_not_touch_the_live_one(loaded_tasks):
     """Same contract as load_task_for_edit -- a deep copy, so nothing lands until an
     explicit apply."""
     edited = taskedit.load_task_for_edit_by_id("268", state=PrimeItems)
-    edited.task_element.find("nme").text = "Something Else"
+    required(required(edited).task_element.find("nme")).text = "Something Else"
     assert PrimeItems.tasker_root_elements["all_tasks"]["268"]["xml"].findtext("nme") == "Key Handler"
 
 
@@ -373,21 +373,21 @@ def test_applying_action_edits_leaves_the_task_name_alone(loaded_tasks):
     not fail for want of one either, which is what apply_edits_to_task would do here.
     """
     edited = taskedit.load_task_for_edit_by_id("269", state=PrimeItems)
-    key = taskedit_apply.arg_key(edited.actions[0].act_number, "0")
+    key = taskedit_apply.arg_key(required(edited).actions[0].act_number, "0")
 
-    errors = taskedit_apply.apply_action_edits_to_task(edited, {key: "goodbye"}, PrimeItems)
+    errors = taskedit_apply.apply_action_edits_to_task(required(edited), {key: "goodbye"}, PrimeItems)
 
     assert errors == []
-    assert edited.task_element.find("nme") is None
-    assert edited.task_element.find("Action/Str[@sr='arg0']").text == "goodbye"
+    assert required(edited).task_element.find("nme") is None
+    assert required(required(edited).task_element.find("Action/Str[@sr='arg0']")).text == "goodbye"
 
 
 def test_applying_action_edits_writes_the_argument_and_the_label(loaded_tasks):
     edited = taskedit.load_task_for_edit_by_id("268", state=PrimeItems)
-    act_number = edited.actions[0].act_number
+    act_number = required(edited).actions[0].act_number
 
     errors = taskedit_apply.apply_action_edits_to_task(
-        edited,
+        required(edited),
         {
             taskedit_apply.arg_key(act_number, "0"): "goodbye",
             taskedit_apply.label_key(act_number): "say it",
@@ -396,11 +396,11 @@ def test_applying_action_edits_writes_the_argument_and_the_label(loaded_tasks):
     )
 
     assert errors == []
-    assert edited.task_element.find("Action/Str[@sr='arg0']").text == "goodbye"
-    assert taskedit_apply.get_action_label(edited.actions[0]) == "say it"
+    assert required(required(edited).task_element.find("Action/Str[@sr='arg0']")).text == "goodbye"
+    assert taskedit_apply.get_action_label(required(edited).actions[0]) == "say it"
     # Untouched by an action-only apply.
-    assert edited.task_element.findtext("nme") == "Key Handler"
-    assert edited.task_element.findtext("pri") == "50"
+    assert required(edited).task_element.findtext("nme") == "Key Handler"
+    assert required(edited).task_element.findtext("pri") == "50"
 
 
 # ==========================================
@@ -581,8 +581,8 @@ def test_the_bound_tasks_actions_are_listed_below_it(key_event_tab):
 
     headers = [e._props.get("label", "") for e in _descendants(container) if isinstance(e, ui.expansion)]
 
-    assert len(headers) == len(expected.actions)
-    for action, header in zip(expected.actions, headers, strict=True):
+    assert len(headers) == len(required(expected).actions)
+    for action, header in zip(required(expected).actions, headers, strict=True):
         assert header.strip().startswith(f"{action.act_number}: {action.action_name}")
 
 
@@ -628,13 +628,13 @@ def test_an_event_the_scene_type_rules_out_still_shows_what_is_bound(sample_back
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None))
-    properties.find(f"Int[@sr='arg{sceneedit_legacy.LEGACY_PROPERTY_TYPE_ARG}']").set(
+    required(properties.find(f"Int[@sr='arg{sceneedit_legacy.LEGACY_PROPERTY_TYPE_ARG}']")).set(
         "val",
         sceneedit_legacy.LEGACY_SCENE_TYPE_OVERLAY,
     )
     home_tap = sceneedit_legacy.LEGACY_SCENE_EVENTS[1]
     sceneedit_legacy.legacy_set_task_binding(
-        properties, home_tap.tag, properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG)
+        properties, home_tap.tag, required(properties.findtext(sceneedit_legacy.LEGACY_KEY_TASK_TAG))
     )
 
     container = _render(stub_gui, properties, guiwins_sceneprops._render_scene_event, home_tap, lambda: None)
@@ -735,7 +735,7 @@ def test_a_scene_that_is_not_an_activity_is_told_so_but_keeps_its_items(sample_b
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_ACTION_ITEM_TAG) is not None))
-    properties.find(f"Int[@sr='arg{sceneedit_legacy.LEGACY_PROPERTY_TYPE_ARG}']").set(
+    required(properties.find(f"Int[@sr='arg{sceneedit_legacy.LEGACY_PROPERTY_TYPE_ARG}']")).set(
         "val",
         sceneedit_legacy.LEGACY_SCENE_TYPE_DIALOG,
     )
@@ -767,9 +767,9 @@ def test_apply_to_task_puts_the_action_edits_into_the_loaded_configuration(monke
     window.state = PrimeItems
     handlers = userintr.MapTaskerEventHandlers(window)
     edited = taskedit.load_task_for_edit_by_id("268", state=PrimeItems)
-    key = taskedit_apply.arg_key(edited.actions[0].act_number, "0")
+    key = taskedit_apply.arg_key(required(edited).actions[0].act_number, "0")
 
-    handlers.editors.apply_scene_key_task_event(edited, {key: MagicMock(value="goodbye")})
+    handlers.editors.apply_scene_key_task_event(required(edited), {key: MagicMock(value="goodbye")})
 
     live = PrimeItems.tasker_root_elements["all_tasks"]["268"]["xml"]
     assert live.find("Action/Str[@sr='arg0']").text == "goodbye"
@@ -793,7 +793,9 @@ def test_a_rejected_value_is_reported_and_nothing_is_applied(monkeypatch, loaded
     window = MagicMock()
     window.state = PrimeItems
     handlers = userintr.MapTaskerEventHandlers(window)
-    handlers.editors.apply_scene_key_task_event(taskedit.load_task_for_edit_by_id("268", state=PrimeItems), {})
+    handlers.editors.apply_scene_key_task_event(
+        required(taskedit.load_task_for_edit_by_id("268", state=PrimeItems)), {}
+    )
 
     assert applied == []
     assert notified == [("Nope.", "negative")]
@@ -835,9 +837,9 @@ def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it
         for task_name in named[:5]:
             edited = taskedit.load_task_for_edit(task_name, state=PrimeItems)
             with Client(page("/")):
-                guiwins_taskedit.build_edit_task_dialog(gui, edited)
+                guiwins_taskedit.build_edit_task_dialog(gui, required(edited))
             headers = [e._props.get("label", "") for e in _descendants(opened[-1]) if isinstance(e, ui.expansion)]
-            assert len(headers) == len(edited.actions), task_name
+            assert len(headers) == len(required(edited).actions), task_name
     finally:
         PrimeItems.tasker_root_elements.clear()
         PrimeItems.tasker_root_elements.update(saved)
@@ -863,7 +865,7 @@ def test_setting_the_keys_filter_on_a_scene_with_no_filter_builds_one():
     properties = _properties(_SCENE_XML_NO_FILTER)
     sceneedit_legacy.legacy_set_key_filter(properties, "back/78/a")
 
-    link_filter = properties.find("LinkClickFilter")
+    link_filter = required(properties.find("LinkClickFilter"))
     assert link_filter.attrib == {"sr": "filter0"}
     assert link_filter.findtext("urlMatch") == "back/78/a"
     assert list(properties)[-1] is link_filter
@@ -895,7 +897,7 @@ def test_the_two_key_controls_are_written_in_taskers_order():
     sceneedit_legacy.legacy_set_key_filter(properties, "back")
     sceneedit_legacy.legacy_set_stop_event(properties, enabled=True)
 
-    assert [child.tag for child in properties.find("LinkClickFilter")] == ["stopEvent", "urlMatch"]
+    assert [child.tag for child in required(properties.find("LinkClickFilter"))] == ["stopEvent", "urlMatch"]
 
 
 def test_setting_the_keys_filter_to_what_it_already_is_leaves_every_sample_byte_identical():
@@ -917,7 +919,7 @@ def _typed(scene_type: str, **args) -> ET.Element:
     properties = _properties(_SCENE_XML_NO_FILTER)
     # _SCENE_XML_NO_FILTER already carries arg0; setting the one that is there is the point,
     # since legacy_scene_type reads the first match and a second would never be seen.
-    properties.find(f"Int[@sr='arg{sceneedit_legacy.LEGACY_PROPERTY_TYPE_ARG}']").set("val", scene_type)
+    required(properties.find(f"Int[@sr='arg{sceneedit_legacy.LEGACY_PROPERTY_TYPE_ARG}']")).set("val", scene_type)
     for arg_id, value in args.items():
         ET.SubElement(properties, "Str", {"sr": f"arg{arg_id}", "ve": "3"}).text = value
     return properties
@@ -972,7 +974,7 @@ def test_tab_tap_needs_an_activity_and_tab_labels():
         == "Available only when Tab Labels has been set in the UI tab."
     )
 
-    activity.find(f"Str[@sr='arg{sceneedit_legacy.LEGACY_TAB_LABELS_ARG}']").text = "Call Log,Truecaller"
+    required(activity.find(f"Str[@sr='arg{sceneedit_legacy.LEGACY_TAB_LABELS_ARG}']")).text = "Call Log,Truecaller"
     assert sceneedit_legacy.legacy_scene_event_availability(activity, _TAB_TAP) == ""
 
 
@@ -1071,8 +1073,8 @@ def test_adding_an_item_builds_one_tasker_would_recognise(sample_action_items):
     assert items[-1].action_name == "Flash"
     element = items[-1].element
     assert [child.tag for child in element][:2] == ["label", "Action"]
-    assert element.find("Action").get("sr") == "action"
-    assert element.find("Action").findtext("code") == "548"
+    assert required(element.find("Action")).get("sr") == "action"
+    assert required(element.find("Action")).findtext("code") == "548"
 
 
 def test_an_action_that_cannot_be_synthesized_is_refused_with_a_reason(sample_action_items):
@@ -1361,7 +1363,7 @@ def test_an_anonymous_binding_is_not_offered_a_picker(sample_backup, stub_gui):
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None))
-    properties.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG).text = "-1"
+    required(properties.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG)).text = "-1"
 
     container = _render(
         stub_gui,
@@ -1608,7 +1610,7 @@ def test_an_anonymous_binding_gets_no_editor_of_either_kind(sample_backup, stub_
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None))
-    properties.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG).text = "-1"
+    required(properties.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG)).text = "-1"
 
     container = _render(
         stub_gui,

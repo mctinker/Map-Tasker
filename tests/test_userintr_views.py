@@ -68,7 +68,7 @@ def seen(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     def outline(state: object) -> None:
         record.outlined.append(True)
 
-    async def io_bound(function: Any, *args: object, **kwargs: object) -> object:
+    async def io_bound(function: Any, *args: Any, **kwargs: Any) -> object:
         return function(*args, **kwargs)
 
     monkeypatch.setattr(userintr, "build_html", build_html)
@@ -99,7 +99,7 @@ async def test_the_name_picks_the_view(seen: SimpleNamespace, view: str, called:
         return lambda *a, **k: chosen.append(name)
 
     def asynchronous(name: str):
-        async def stand_in(*a: object, **k: object) -> None:
+        async def stand_in(*a: Any, **k: Any) -> None:
             chosen.append(name)
 
         return stand_in
@@ -413,7 +413,7 @@ class _Held:
     def __enter__(self) -> None:
         return None
 
-    def __exit__(self, *_exc: object) -> None:
+    def __exit__(self, *_exc: Any) -> None:
         return None
 
 

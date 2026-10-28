@@ -18,7 +18,9 @@ import pytest
 from maptasker.src.core import editcommon, objprops
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import projedit, sessundo
+from maptasker.src.edit.projedit import EditableProject
 
+from tests.doubles import expect, required
 from tests.test_mapswap import _load
 
 _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
@@ -195,16 +197,16 @@ def test_renaming_a_project_nobody_registered_does_nothing() -> None:
     edited = projedit.create_new_project("Fresh", state=PrimeItems)
     before = list(PrimeItems.tasker_root_elements["all_projects"])
 
-    projedit.rename_project_in_live_tree("Fresh", edited, state=PrimeItems)
+    projedit.rename_project_in_live_tree("Fresh", expect(edited, EditableProject), state=PrimeItems)
 
     assert list(PrimeItems.tasker_root_elements["all_projects"]) == before
 
 
 def test_registering_a_new_project_files_it_under_its_name() -> None:
     created = projedit.create_new_project("", state=PrimeItems)
-    assert projedit.apply_edits_to_project(created, "Fresh", state=PrimeItems) == []
+    assert projedit.apply_edits_to_project(expect(created, EditableProject), "Fresh", state=PrimeItems) == []
 
-    projedit.register_new_project(created, state=PrimeItems)
+    projedit.register_new_project(expect(created, EditableProject), state=PrimeItems)
 
     assert PrimeItems.tasker_root_elements["all_projects"]["Fresh"]["xml"] is created.project_element
     assert projedit.project_name_exists("Fresh", state=PrimeItems)
@@ -268,7 +270,7 @@ def test_a_project_is_enabled_unless_it_says_false() -> None:
 
     ET.SubElement(edited.project_element, "enbl").text = "false"
     assert projedit.is_project_enabled(edited) is False
-    edited.project_element.find("enbl").text = "true"
+    required(edited.project_element.find("enbl")).text = "true"
     assert projedit.is_project_enabled(edited) is True
 
 
@@ -310,7 +312,7 @@ def test_a_toggle_after_a_rename_acts_on_one_element_once() -> None:
 def test_a_project_not_registered_yet_is_toggled_on_its_copy_alone() -> None:
     created = projedit.create_new_project("Fresh", state=PrimeItems)
 
-    projedit.set_project_enabled(created, enabled=False, state=PrimeItems)
+    projedit.set_project_enabled(expect(created, EditableProject), enabled=False, state=PrimeItems)
 
     assert created.project_element.findtext("enbl") == "false"
     assert "Fresh" not in PrimeItems.tasker_root_elements["all_projects"]
@@ -343,7 +345,7 @@ def test_properties_on_a_project_nobody_registered_do_nothing() -> None:
     created = projedit.create_new_project("Fresh", state=PrimeItems)
     before = _xml(created.project_element)
 
-    projedit.apply_properties_to_live_tree(created, state=PrimeItems)
+    projedit.apply_properties_to_live_tree(expect(created, EditableProject), state=PrimeItems)
 
     assert objprops.KIND_PROJECT  # The kind the mirror is keyed on.
     assert created.project_element.findtext("name") == "Fresh"
@@ -402,7 +404,7 @@ def test_a_project_without_an_id_or_mdate_is_given_them_in_alphabetical_place() 
 
     assert _tags(element) == ["cdate", "id", "mdate", "name", "pids", "Img"]
     assert len(element.findtext("id")) == 36
-    assert element.findtext("mdate").isdigit()
+    assert required(element.findtext("mdate")).isdigit()
 
 
 def test_a_project_that_has_them_keeps_them() -> None:
@@ -461,7 +463,7 @@ def test_the_export_is_in_the_order_tasker_writes_it() -> None:
         ("Task", "Exit"),
         ("Task", "FromScene"),
     ]
-    assert root.find("Project").get("sr") == "proj0"
+    assert required(root.find("Project")).get("sr") == "proj0"
 
 
 def test_the_export_starts_at_the_root_and_ends_with_one_newline() -> None:
@@ -485,8 +487,8 @@ def test_a_dangling_id_or_scene_is_skipped_not_an_error() -> None:
     # the Project element itself is exported as it is, still naming them.
     assert len(root.findall("Profile")) == 2
     assert len(root.findall("Scene")) == 1
-    assert root.find("Project").findtext("scenes") == "Dash, Missing"
-    assert root.find("Project").findtext("pids") == "101,100,999"
+    assert required(root.find("Project")).findtext("scenes") == "Dash, Missing"
+    assert required(root.find("Project")).findtext("pids") == "101,100,999"
 
 
 def test_an_export_of_a_project_that_is_gone_says_so() -> None:
@@ -579,7 +581,7 @@ def test_deleting_the_contents_of_a_project_that_is_gone_does_nothing() -> None:
 
 
 def test_keeping_the_contents_moves_them_to_base_without_duplicates() -> None:
-    _live("Base").find("pids").text = "102,100"
+    required(_live("Base").find("pids")).text = "102,100"
 
     assert projedit.move_project_contents_to_base("Home", state=PrimeItems) == "Base"
 

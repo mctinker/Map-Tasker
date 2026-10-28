@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 import os
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
 
 import pytest
 from maptasker.src.analysis import healthck
@@ -35,6 +36,8 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sessundo
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import mapfix
+
+from tests.doubles import required
 
 # Codes used below, named so the tests read as prose.
 WAIT = "30"
@@ -205,7 +208,7 @@ def _load(xml_text: str) -> None:
 
 
 @pytest.fixture
-def loaded() -> None:
+def loaded() -> Iterator[None]:
     """The fixture configuration, in the tables mapfix reads, with an empty undo history."""
     sessundo.clear(PrimeItems)
     _load(_FIXTURE_XML)
@@ -417,7 +420,7 @@ def test_timeout_is_written_into_the_argument_proflint_read(loaded: None) -> Non
 
     assert (repaired, errors) == (1, [])
     action = actions_in_map_order(_task("21"))[0]
-    assert action.find("Int[@sr='arg1']").attrib["val"] == "45"
+    assert required(action.find("Int[@sr='arg1']")).attrib["val"] == "45"
     assert mapfix.NO_TIMEOUT not in _tags_reported()
 
 
@@ -433,7 +436,7 @@ def test_timeout_refuses_a_value_that_is_not_a_number(loaded: None) -> None:
     assert repaired == 0
     assert len(errors) == 1
     assert "soon" in errors[0]
-    assert actions_in_map_order(_task("21"))[0].find("Int[@sr='arg1']").attrib["val"] == "0"
+    assert required(actions_in_map_order(_task("21"))[0].find("Int[@sr='arg1']")).attrib["val"] == "0"
 
 
 def test_timeout_accepts_what_a_number_box_actually_hands_back(loaded: None) -> None:
@@ -448,7 +451,7 @@ def test_timeout_accepts_what_a_number_box_actually_hands_back(loaded: None) -> 
     repaired, errors = mapfix.apply(plan, state=PrimeItems)
 
     assert (repaired, errors) == (1, [])
-    assert actions_in_map_order(_task("21"))[0].find("Int[@sr='arg1']").attrib["val"] == "60"
+    assert required(actions_in_map_order(_task("21"))[0].find("Int[@sr='arg1']")).attrib["val"] == "60"
 
 
 def test_whole_seconds_takes_only_a_whole_number_above_zero() -> None:
@@ -578,7 +581,7 @@ def test_goto_offers_every_label_but_its_own(loaded: None) -> None:
     plan = mapfix.plan_fixes(state=PrimeItems)
     _, fix = _only(plan, mapfix.GOTO_MISSING_LABEL)
 
-    offered = [label for label, _shown in fix.choice.options]
+    offered = [label for label, _shown in required(fix.choice).options]
     assert offered == ["the top"]
     assert "the jump itself" not in offered
 
@@ -588,7 +591,7 @@ def test_goto_arrives_with_no_choice_made_and_cannot_be_applied_until_one_is(loa
     plan = mapfix.plan_fixes(state=PrimeItems)
     position, fix = _only(plan, mapfix.GOTO_MISSING_LABEL)
 
-    assert fix.choice.value == ""
+    assert required(fix.choice).value == ""
     assert not plan.is_ready(position)
 
     _tick_only(plan, [position])
@@ -611,7 +614,7 @@ def test_goto_points_at_the_chosen_label_and_clears_the_finding(loaded: None) ->
 
     assert (repaired, errors) == (1, [])
     goto = actions_in_map_order(_task("22"))[2]
-    assert goto.find("Str[@sr='arg2']").text == "the top"
+    assert required(goto.find("Str[@sr='arg2']")).text == "the top"
     # Task 'Nowhere' still carries the same finding -- it has no label to be pointed at --
     # so the claim is about this Task, not about the configuration.
     still_broken = [

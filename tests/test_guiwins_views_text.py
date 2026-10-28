@@ -13,7 +13,6 @@ from __future__ import annotations
 import inspect
 import random
 import re
-from types import SimpleNamespace
 
 import pytest
 from maptasker.src.gui import guiwins_mapstream, guiwins_textview, guiwins_views
@@ -37,6 +36,8 @@ from maptasker.src.gui.guiwins_mapstream import (
 )
 from maptasker.src.gui.guiwins_views import scope_badge_text, view_theme_colors
 from maptasker.src.mapgen import diagintr
+
+from tests.doubles import fake_state, fake_window
 
 
 def _optimized(html: str) -> str:
@@ -192,9 +193,9 @@ def test_text_is_escaped_for_html_with_the_ampersand_first() -> None:
 
 
 def test_connectors_are_inverted_from_by_id_to_by_line() -> None:
-    state = SimpleNamespace(diagram_connectors={7: [(3, 0, 5), (4, 0, 5)], 9: [(3, 6, 9)]})
+    state = fake_state(diagram_connectors={7: [(3, 0, 5), (4, 0, 5)], 9: [(3, 6, 9)]})
     assert diagram_connectors_by_line(state) == {3: [(0, 5, 7), (6, 9, 9)], 4: [(0, 5, 7)]}
-    assert diagram_connectors_by_line(SimpleNamespace()) == {}
+    assert diagram_connectors_by_line(fake_state()) == {}
 
 
 _NODE = {"col": 3, "len": 6, "anchor": "task_1", "index": 4, "kind": "task"}
@@ -374,13 +375,13 @@ def test_a_selection_that_has_changed_since_is_named_beside_the_old_one() -> Non
 
 
 def test_a_view_paints_itself_for_the_mode_the_window_is_in() -> None:
-    assert view_theme_colors(SimpleNamespace(dark_mode=False)) == ("#ffffff", "#000000")
-    assert view_theme_colors(SimpleNamespace(dark_mode=True)) == ("#1e293b", "#ffffff")
-    assert view_theme_colors(SimpleNamespace()) == ("#ffffff", "#000000"), "a switch never touched is light"
+    assert view_theme_colors(fake_window(dark_mode=False)) == ("#ffffff", "#000000")
+    assert view_theme_colors(fake_window(dark_mode=True)) == ("#1e293b", "#ffffff")
+    assert view_theme_colors(fake_window()) == ("#ffffff", "#000000"), "a switch never touched is light"
 
 
 def test_the_windows_own_background_wins_over_the_default() -> None:
-    window = SimpleNamespace(dark_mode=True, color_lookup={"background": "#123456"})
+    window = fake_window(dark_mode=True, color_lookup={"background": "#123456"})
     assert view_theme_colors(window) == ("#123456", "#ffffff")
 
 

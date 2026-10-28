@@ -11,7 +11,7 @@ that reopening it comes back to the last question asked.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.analysis import mapask, mapfind
@@ -20,6 +20,8 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.gui import guiwins_search
 from nicegui import ui
 
+from tests.doubles import required
+from tests.nicegui_harness import all_elements
 from tests.search_dialog import built, by_text, click, field, labels, links, open_dialog, press_find, select
 from tests.test_mapfind import _FIXTURE_XML, _load
 
@@ -247,7 +249,7 @@ async def test_dismissing_deletes_the_dialog_and_forgets_it() -> None:
     async with open_dialog() as user:
         view = built["view"]
         dialog = view.find_dialog
-        with user.client:
+        with required(user.client):
             view._dismiss_find_dialog()
         assert view.find_dialog is None
         assert dialog.is_deleted
@@ -266,7 +268,7 @@ async def test_ask_with_no_question_asks_for_one() -> None:
 
 @pytest.mark.asyncio
 async def test_ask_with_no_model_chosen_reports_why(monkeypatch: pytest.MonkeyPatch) -> None:
-    def refuse(*_args: object, **_kwargs: object) -> None:
+    def refuse(*_args: Any, **_kwargs: Any) -> None:
         raise mapask.AskError("Choose an AI model on the Analyze tab first.")
 
     monkeypatch.setattr(mapask, "model_settings", refuse)
@@ -297,7 +299,7 @@ async def test_a_translated_question_fills_the_boxes_and_runs_the_query(monkeypa
         await asyncio.sleep(0.1)
         assert field(user, "Text (name, label or argument)").value == "quietly"
         assert len(links(user)) == 1
-        notes = [e for e in user.client.elements.values() if isinstance(e, ui.label) and "Left out" in e.text]
+        notes = [e for e in all_elements(user) if isinstance(e, ui.label) and "Left out" in e.text]
         assert notes
         assert "a thing nobody uses" in notes[0].text
 

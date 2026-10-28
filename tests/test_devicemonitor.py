@@ -8,6 +8,8 @@ returns them; and that asking for a window clamps what it asks and passes the an
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from maptasker.src.analysis import livemon
 from maptasker.src.core import maputil2
@@ -90,7 +92,7 @@ def test_a_window_is_asked_for_with_its_look_count_and_a_timeout_that_covers_the
 ) -> None:
     asked: list[dict] = []
 
-    def fake_run(ip: str, port: str, name: str, **kwargs: object) -> TaskRunResult:
+    def fake_run(ip: str, port: str, name: str, **kwargs: Any) -> TaskRunResult:
         asked.append({"ip": ip, "port": port, "name": name, **kwargs})
         return TaskRunResult(ok=True, output="1000|~|A|~|P|~|9|#|", seconds=1.5)
 

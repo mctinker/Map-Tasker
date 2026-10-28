@@ -15,8 +15,10 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from collections.abc import Iterator
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import pytest
 from maptasker.src import clireports
@@ -24,6 +26,7 @@ from maptasker.src.core import timeline
 from maptasker.src.core.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.core.sysconst import ARGUMENTS_FILE, ERROR_FILE
 
+from tests.doubles import required
 from tests.test_healthck import _DEFECTIVE_XML
 
 _SYNTHETIC_BACKUP = Path(__file__).parent / "data" / "synthetic_backup.xml"
@@ -31,7 +34,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 @pytest.fixture(autouse=True)
-def _a_clean_run_in_a_scratch_folder(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def _a_clean_run_in_a_scratch_folder(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """A working directory of the test's own, and PrimeItems put back afterwards."""
     monkeypatch.chdir(tmp_path)
     yield
@@ -327,8 +330,10 @@ def test_the_periods_that_are_understood(period: str, days_back: object) -> None
     if days_back == "all":
         assert cutoff is None
     elif days_back == "date":
+        cutoff = required(cutoff)
         assert (cutoff.year, cutoff.month, cutoff.day, cutoff.hour) == (2026, 9, 1, 0)
     elif days_back is None:
+        cutoff = required(cutoff)
         assert cutoff.hour == cutoff.minute == 0
     else:
         assert abs((datetime.now().astimezone() - cutoff) - timedelta(days=days_back)) < timedelta(seconds=5)
@@ -457,7 +462,7 @@ def test_a_watch_is_stopped_cleanly_by_an_interrupt(tmp_path: Path, monkeypatch:
     folder = tmp_path / "backups"
     folder.mkdir()
 
-    def stop(*_args: object, **_kwargs: object) -> None:
+    def stop(*_args: Any, **_kwargs: Any) -> None:
         raise KeyboardInterrupt
 
     monkeypatch.setattr("maptasker.src.analysis.folderwatch.watch", stop)

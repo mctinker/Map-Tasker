@@ -10,6 +10,7 @@ from __future__ import annotations
 import subprocess
 import sys
 import types
+from typing import Any
 
 import pytest
 from maptasker.src.core import maputil3
@@ -19,7 +20,7 @@ from maptasker.src.core import maputil3
 def _no_installs_and_fresh_reports(monkeypatch: pytest.MonkeyPatch) -> None:
     """Fail the test if a process is started, and forget which packages were already reported."""
 
-    def _refuse(*args: object, **kwargs: object) -> None:
+    def _refuse(*args: Any, **kwargs: Any) -> None:
         pytest.fail(f"import_optional must never start a process: {args!r}")
 
     for name in ("run", "check_call", "check_output", "Popen", "call"):

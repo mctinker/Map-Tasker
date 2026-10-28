@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from maptasker.src.core import bldargs, console
@@ -316,7 +317,7 @@ def test_a_backup_that_does_not_parse_is_reported(tmp_path: Path, said: list[str
 def test_an_overlay_that_cannot_be_written_is_reported(
     tmp_path: Path, said: list[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    def refuse(*_: object) -> int:
+    def refuse(*_: Any) -> int:
         raise OSError("read-only")
 
     monkeypatch.setattr(bldargs, "insert_arguments", refuse)

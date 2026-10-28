@@ -26,6 +26,8 @@ from maptasker.src.core.mapjump import text_report
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen import taskerd
 
+from tests.doubles import required
+
 # ##################################################################################
 # The fixture, assembled from these pieces so the shape of each Task is readable.
 # ##################################################################################
@@ -154,7 +156,7 @@ def _flow(name: str) -> taskflow.Flow:
     """One Task of the fixture, analysed."""
     _load(_FLOW_XML)
     task_id = next(key for key, task in PrimeItems.tasker_root_elements["all_tasks"].items() if task["name"] == name)
-    return taskflow.analyze_task_flow(task_id, state=PrimeItems)
+    return required(taskflow.analyze_task_flow(task_id, state=PrimeItems))
 
 
 # ##################################################################################
@@ -361,7 +363,7 @@ def _load_one(task_xml: str) -> taskflow.Flow:
     """Analyse a configuration holding exactly one Task."""
     _load(f'<TaskerData sr="" dvi="1" tv="6.3.13">{task_xml}</TaskerData>')
     task_id = next(iter(PrimeItems.tasker_root_elements["all_tasks"]))
-    return taskflow.analyze_task_flow(task_id, state=PrimeItems)
+    return required(taskflow.analyze_task_flow(task_id, state=PrimeItems))
 
 
 # ##################################################################################

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections.abc import Iterator
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
@@ -28,7 +29,7 @@ from maptasker.src.runcli import process_extended_arguments
 
 
 @pytest.fixture
-def program_arguments() -> ProgramArguments:
+def program_arguments() -> Iterator[ProgramArguments]:
     """A fresh set of runtime arguments for the command line to be applied to."""
     saved = PrimeItems.program_arguments
     PrimeItems.program_arguments = initialize_runtime_arguments()

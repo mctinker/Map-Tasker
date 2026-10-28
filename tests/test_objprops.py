@@ -34,6 +34,8 @@ import xml.etree.ElementTree as ET
 import pytest
 from maptasker.src.core import objprops
 
+from tests.doubles import required
+
 # The variable fields guiwins_props._build_variable_panel actually creates widgets for.  Anything
 # outside this list reaches objprops only as "not supplied" and must survive untouched --
 # see test_a_field_with_no_widget_is_preserved.
@@ -317,8 +319,8 @@ def test_a_field_with_no_widget_is_preserved() -> None:
 
     assert objprops.apply_properties(props, values) == []
     variable = task.find("ProfileVariable")
-    assert variable.findtext("clearout") == "true"
-    assert variable.findtext("pvid") == "179"
+    assert required(variable).findtext("clearout") == "true"
+    assert required(variable).findtext("pvid") == "179"
 
 
 def test_the_owner_kind_is_always_corrected() -> None:
@@ -327,7 +329,7 @@ def test_the_owner_kind_is_always_corrected() -> None:
     a wrong one is worth fixing rather than preserving.
     """
     task = _task("Furnished")
-    task.find("ProfileVariable/pvit").text = "pj"
+    required(task.find("ProfileVariable/pvit")).text = "pj"
     props = objprops.load_properties(objprops.KIND_TASK, task)
 
     assert objprops.apply_properties(props, _dialog_values(props, GUI_VARIABLE_FIELDS)) == []
@@ -623,7 +625,7 @@ def test_each_flags_bit_reads_as_the_one_setting_it_holds() -> None:
         ("32", "run_exit_task_on_startup"),
     ):
         profile = _atest_profile()
-        profile.find("flags").text = flags
+        required(profile.find("flags")).text = flags
         _props, values = _profile_values(profile)
         changed = {key for key in _FLAGS_FIELDS if values[key] != _FLAGS_DEFAULTS[key]}
         assert changed == {expected}, f"<flags>{flags}</flags> should mean {expected} and nothing else"
@@ -651,7 +653,7 @@ def test_enforce_task_order_is_inverted_because_the_bit_says_ignore() -> None:
     sets one.
     """
     profile = _atest_profile()
-    profile.find("flags").text = "28"  # 12 + mask 16
+    required(profile.find("flags")).text = "28"  # 12 + mask 16
     props, values = _profile_values(profile)
     assert values["enforce_task_order"] == "false"
 
@@ -728,7 +730,7 @@ def test_restore_settings_switched_off_is_not_a_property_a_profile_has() -> None
     ET.SubElement(profile, "flags").text = "10"  # mask 2 + mask 8, Tasker's new-Profile value
     assert objprops.has_properties(objprops.KIND_PROFILE, profile) is False
 
-    profile.find("flags").text = "2"  # mask 8 cleared: the user has switched it on
+    required(profile.find("flags")).text = "2"  # mask 8 cleared: the user has switched it on
     assert objprops.has_properties(objprops.KIND_PROFILE, profile) is True
 
 
@@ -748,7 +750,7 @@ def test_the_flags_bits_no_field_owns_are_carried_through() -> None:
     read-modified-written rather than built from the fields this dialog shows.
     """
     profile = _atest_profile()
-    profile.find("flags").text = "42"  # masks 2, 8 and 32 -- mask 2 is the one with no field
+    required(profile.find("flags")).text = "42"  # masks 2, 8 and 32 -- mask 2 is the one with no field
 
     props, values = _profile_values(profile)
     assert values["run_exit_task_on_startup"] == "true"
@@ -768,7 +770,7 @@ def test_a_bit_from_a_newer_tasker_is_carried_through_too() -> None:
     define and ours to preserve.
     """
     profile = _atest_profile()
-    profile.find("flags").text = "76"  # mask 64 (unknown) + mask 8 + mask 4
+    required(profile.find("flags")).text = "76"  # mask 64 (unknown) + mask 8 + mask 4
 
     props, values = _profile_values(profile)
     values["delete_after_disable"] = "false"
@@ -781,7 +783,7 @@ def test_flags_is_removed_when_its_last_bit_is_cleared() -> None:
     value would be 0 has no <flags> at all (profedit.create_new_profile).
     """
     profile = _atest_profile()
-    profile.find("flags").text = "4"  # nothing set but Delete After Disable
+    required(profile.find("flags")).text = "4"  # nothing set but Delete After Disable
 
     props, values = _profile_values(profile)
     values["delete_after_disable"] = "false"
@@ -813,7 +815,7 @@ def test_an_unreadable_flags_value_is_left_alone() -> None:
     not something to replace with a number of our own.
     """
     profile = _atest_profile()
-    profile.find("flags").text = "not a number"
+    required(profile.find("flags")).text = "not a number"
 
     props, values = _profile_values(profile)
     assert objprops.apply_properties(props, values) == []
@@ -876,7 +878,7 @@ def test_a_flags_bit_on_its_own_counts_as_having_properties() -> None:
 
     assert objprops.has_properties(objprops.KIND_PROFILE, profile) is False
 
-    profile.find("flags").text = "11"  # + mask 1: Show In Notification switched off
+    required(profile.find("flags")).text = "11"  # + mask 1: Show In Notification switched off
     assert objprops.has_properties(objprops.KIND_PROFILE, profile) is True
 
 
@@ -905,9 +907,9 @@ def test_mirroring_replaces_the_targets_properties_wholesale() -> None:
     source = _task("Furnished")
     target = _task("Furnished")
     # Diverge the target the way an un-mirrored live element would be.
-    target.find("pc").text = "stale"
+    required(target.find("pc")).text = "stale"
     target.remove(target.find("ProfileVariable"))
-    target.find("stayawake").text = "true"
+    required(target.find("stayawake")).text = "true"
 
     props = objprops.load_properties(objprops.KIND_TASK, source)
     objprops.add_variable(props)
@@ -945,8 +947,8 @@ def test_mirroring_leaves_everything_that_is_not_a_property_alone() -> None:
     """
     source = _task("Furnished")
     target = _task("Furnished")
-    target.find("id").text = "999"
-    target.find("nme").text = "Live"
+    required(target.find("id")).text = "999"
+    required(target.find("nme")).text = "Live"
 
     objprops.mirror_properties(objprops.KIND_TASK, source, target)
     assert target.findtext("id") == "999"

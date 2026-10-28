@@ -14,8 +14,10 @@ window (version banner, color help, the GUI) are replaced with functions that re
 
 from __future__ import annotations
 
+import argparse
 import sys
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from maptasker.src import runcli
@@ -25,6 +27,8 @@ from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import TYPES_OF_COLORS
+
+from tests.doubles import fake_namespace
 
 
 class _Stop(Exception):
@@ -38,7 +42,7 @@ def state() -> RunState:
     return run
 
 
-def _args(**given: object) -> SimpleNamespace:
+def _args(**given: Any) -> argparse.Namespace:
     """A parsed command line with nothing asked for, plus whatever the test says was."""
     values: dict[str, object] = {
         "e": False,
@@ -73,7 +77,7 @@ def _args(**given: object) -> SimpleNamespace:
     }
     values.update({f"c{key}": None for key in TYPES_OF_COLORS})
     values.update(given)
-    return SimpleNamespace(**values)
+    return fake_namespace(**values)
 
 
 # ##################################################################################

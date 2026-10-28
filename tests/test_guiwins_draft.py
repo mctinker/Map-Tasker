@@ -12,19 +12,21 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
 import pytest
 from maptasker.src.analysis import mapask
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import taskedit
+from maptasker.src.edit.taskedit_model import EditableTask
 from maptasker.src.gui import guiwins_draft, guiwins_taskedit
 from maptasker.src.mapops import mapdraft
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import expect
 from tests.test_mapswap import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -46,7 +48,7 @@ def _setup(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(guiwins_draft.mapdraft, "draft_task", _draft_task)
 
 
-def _model_settings(*_: object, **__: object) -> mapask.ModelSettings:
+def _model_settings(*_: Any, **__: Any) -> mapask.ModelSettings:
     if _built["settings_error"]:
         raise mapask.AskError(_built["settings_error"])
     return _SETTINGS
@@ -81,7 +83,7 @@ def _page() -> None:
     _built["gui"] = gui
     task = taskedit.create_new_task("", "100", state=PrimeItems)
     _built["task"] = task
-    guiwins_taskedit.build_add_task_dialog(gui, task)
+    guiwins_taskedit.build_add_task_dialog(gui, expect(task, EditableTask))
 
 
 @contextlib.asynccontextmanager

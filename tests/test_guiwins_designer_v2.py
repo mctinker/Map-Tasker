@@ -16,7 +16,7 @@ import copy
 import gc
 import weakref
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.core import scenelayout
@@ -27,6 +27,8 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import fake_window, required
+from tests.nicegui_harness import all_elements
 from tests.test_mapfind import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -63,7 +65,7 @@ def _configuration(monkeypatch: pytest.MonkeyPatch) -> None:
     _built.update(layout=_layout(), designer=None, field_refs={})
     original = guiwins_designer_v2._V2Designer.__init__
 
-    def capture(self: guiwins_designer_v2._V2Designer, *args: object, **kwargs: object) -> None:
+    def capture(self: guiwins_designer_v2._V2Designer, *args: Any, **kwargs: Any) -> None:
         original(self, *args, **kwargs)
         _built["designer"] = self
 
@@ -96,7 +98,7 @@ def _click(user: User, element: ui.element) -> None:
 
 def _button(user: User, text: str) -> ui.button:
     """The toolbar or header button with this text; the one drawn last if a dialog has its own."""
-    found = [e for e in user.client.elements.values() if isinstance(e, ui.button) and e.text == text]
+    found = [e for e in all_elements(user) if isinstance(e, ui.button) and e.text == text]
     return max(found, key=lambda e: e.id)
 
 
@@ -106,7 +108,7 @@ def _press(user: User, text: str) -> None:
 
 def _rows(user: User) -> list[ui.label]:
     """The tree's rows, in the order they are drawn."""
-    found = [e for e in user.client.elements.values() if isinstance(e, ui.label) and "mt-v2-row" in e.classes]
+    found = [e for e in all_elements(user) if isinstance(e, ui.label) and "mt-v2-row" in e.classes]
     return sorted(found, key=lambda e: e.id)
 
 
@@ -148,8 +150,8 @@ async def test_a_designer_that_is_dropped_takes_its_canvas_entry_and_elements_wi
         designer = _built["designer"]
         root = designer.tree_root
         assert guiwins_canvas._ACTIVE_CANVASES[root] is designer.canvas_handlers
-        gone = [weakref.ref(designer), *(weakref.ref(e) for e in user.client.elements.values())]
-        user.client.delete()  # What the page going away does in the running app.
+        gone = [weakref.ref(designer), *(weakref.ref(e) for e in all_elements(user))]
+        required(user.client).delete()  # What the page going away does in the running app.
         del designer, user
     _built.clear()
     gc.collect()
@@ -163,7 +165,7 @@ async def test_opening_the_designer_again_does_not_grow_the_canvas_table() -> No
     for _ in range(3):
         async with _open() as user:
             assert len(guiwins_canvas._ACTIVE_CANVASES) == before + 1
-            user.client.delete()
+            required(user.client).delete()
             del user
         _built.update(designer=None, field_refs={})
         gc.collect()
@@ -174,7 +176,7 @@ async def test_opening_the_designer_again_does_not_grow_the_canvas_table() -> No
 async def test_a_layout_with_no_root_says_there_is_nothing_to_design() -> None:
     _built["layout"] = {"name": "Empty"}
     async with _open() as user:
-        texts = [e.text for e in user.client.elements.values() if isinstance(e, ui.label)]
+        texts = [e.text for e in all_elements(user) if isinstance(e, ui.label)]
         assert any("has no root component" in text for text in texts)
         assert _built["designer"] is None
 
@@ -184,7 +186,7 @@ async def test_the_header_counts_the_components_and_the_tree_has_a_row_for_each(
     async with _open() as user:
         count = len(_paths())
         assert count > 5
-        texts = [e.text for e in user.client.elements.values() if isinstance(e, ui.label)]
+        texts = [e.text for e in all_elements(user) if isinstance(e, ui.label)]
         assert f"Scene Components ({count})" in texts
         assert len(_rows(user)) == count
 
@@ -213,8 +215,8 @@ async def test_clicking_a_row_selects_it_highlights_it_and_enables_the_toolbar()
 async def test_the_inspector_is_headed_by_the_selected_components_label() -> None:
     async with _open() as user:
         await _select(user, CONTENT)
-        heading = sceneedit_v2tree.v2_node_label(_node(CONTENT))
-        assert heading in [e.text for e in user.client.elements.values() if isinstance(e, ui.label)]
+        heading = sceneedit_v2tree.v2_node_label(required(_node(CONTENT)))
+        assert heading in [e.text for e in all_elements(user) if isinstance(e, ui.label)]
 
 
 @pytest.mark.asyncio
@@ -250,7 +252,7 @@ async def test_down_then_up_walks_the_component_and_keeps_it_selected() -> None:
         await _select(user, HEADER)
         _press(user, "Down")
         assert _built["designer"].selection["path"] == _at(1)
-        assert _node(_at(1))["id"] == "header"
+        assert required(_node(_at(1)))["id"] == "header"
         _press(user, "Up")
         assert _built["designer"].selection["path"] == _at(0)
         assert _built["layout"] == original
@@ -345,7 +347,7 @@ async def test_undo_drops_a_selection_that_no_longer_exists_and_keeps_one_that_d
         _press(user, "Duplicate")
         _press(user, "Undo")
         assert _built["designer"].selection["path"] == _at(2)
-        assert _node(_at(2))["id"] == "button_row"
+        assert required(_node(_at(2)))["id"] == "button_row"
 
 
 # ##################################################################################
@@ -422,7 +424,7 @@ async def test_add_opens_the_sheet_and_says_where_the_element_will_go() -> None:
     async with _open() as user:
         await _select(user, CONTENT)
         _press(user, "Add")
-        texts = [e.text for e in user.client.elements.values() if isinstance(e, ui.label)]
+        texts = [e.text for e in all_elements(user) if isinstance(e, ui.label)]
         assert "Add Element" in texts
         assert any(text.startswith(("Adds inside", "Adds after")) for text in texts)
 
@@ -442,7 +444,7 @@ async def test_picking_a_chip_inserts_that_element_and_selects_it() -> None:
         _click(user, _button(user, entry.label))
         await asyncio.sleep(0.05)
         assert len(_paths()) == before + 1
-        assert _node(_built["designer"].selection["path"])["type"] == "Text"
+        assert required(_node(_built["designer"].selection["path"]))["type"] == "Text"
 
 
 @pytest.mark.asyncio
@@ -470,16 +472,14 @@ async def test_the_sheet_filters_as_you_type_and_says_when_nothing_matches() -> 
         await _select(user, CONTENT)
         _press(user, "Add")
         search = next(
-            e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.input) and e.props.get("placeholder") == "Search elements"
+            e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("placeholder") == "Search elements"
         )
-        before = len([e for e in user.client.elements.values() if isinstance(e, ui.button)])
+        before = len([e for e in all_elements(user) if isinstance(e, ui.button)])
         search.value = "text"
-        after = len([e for e in user.client.elements.values() if isinstance(e, ui.button)])
+        after = len([e for e in all_elements(user) if isinstance(e, ui.button)])
         assert after < before
         search.value = "zzzzzz"
-        texts = [e.text for e in user.client.elements.values() if isinstance(e, ui.label)]
+        texts = [e.text for e in all_elements(user) if isinstance(e, ui.label)]
         assert "No element matches that." in texts
 
 
@@ -488,7 +488,7 @@ async def test_the_sheet_filters_as_you_type_and_says_when_nothing_matches() -> 
 # ##################################################################################
 def _widget(user: User, kind: type, label: str) -> ui.element:
     """The inspector's widget of this kind labelled so, hidden (in a closed section) or not."""
-    found = [e for e in user.client.elements.values() if isinstance(e, kind) and e.props.get("label") == label]
+    found = [e for e in all_elements(user) if isinstance(e, kind) and e.props.get("label") == label]
     assert found, f"no {kind.__name__} labelled {label!r}"
     return max(found, key=lambda e: e.id)
 
@@ -496,15 +496,13 @@ def _widget(user: User, kind: type, label: str) -> ui.element:
 def _after(user: User, kind: type, label: str, anchor: ui.element) -> ui.element:
     """The first widget of this kind labelled so that was drawn after `anchor` -- its own, among many alike."""
     found = [
-        e
-        for e in user.client.elements.values()
-        if isinstance(e, kind) and e.props.get("label") == label and e.id > anchor.id
+        e for e in all_elements(user) if isinstance(e, kind) and e.props.get("label") == label and e.id > anchor.id
     ]
     return min(found, key=lambda e: e.id)
 
 
 def _texts(user: User) -> list[str]:
-    return [e.text for e in user.client.elements.values() if isinstance(e, ui.label)]
+    return [e.text for e in all_elements(user) if isinstance(e, ui.label)]
 
 
 @pytest.mark.asyncio
@@ -512,7 +510,7 @@ async def test_typing_into_a_property_writes_through_to_the_layout() -> None:
     async with _open() as user:
         await _select(user, TITLE)
         _widget(user, ui.input, "Tree label").value = "Heading"
-        assert _node(TITLE)["treeLabel"] == "Heading"
+        assert required(_node(TITLE))["treeLabel"] == "Heading"
 
 
 @pytest.mark.asyncio
@@ -520,7 +518,7 @@ async def test_a_components_tree_row_and_heading_follow_its_name_as_it_is_typed(
     async with _open() as user:
         await _select(user, TITLE)
         _widget(user, ui.input, "Text").value = "Welcome aboard"
-        assert _node(TITLE)["text"] == "Welcome aboard"
+        assert required(_node(TITLE))["text"] == "Welcome aboard"
         assert "Welcome aboard" in _row(user, TITLE).text
         assert "Text 'Welcome aboard'" in _texts(user), "the inspector's own heading follows too"
 
@@ -531,7 +529,7 @@ async def test_typing_into_a_property_that_names_nothing_leaves_the_tree_rows_al
         await _select(user, TITLE)
         before = _row(user, TITLE).text
         _widget(user, ui.input, "Text size").value = "30"
-        assert _node(TITLE)["textSize"] == "30"
+        assert required(_node(TITLE))["textSize"] == "30"
         assert _row(user, TITLE).text == before
 
 
@@ -542,7 +540,7 @@ async def test_a_choice_property_is_a_pulldown_that_writes_what_was_chosen() -> 
         picker = _widget(user, ui.select, "Alignment")
         choice = next(option for option in picker.options if option)
         picker.value = choice
-        assert _node(TITLE)["textAlign"] == choice
+        assert required(_node(TITLE))["textAlign"] == choice
 
 
 @pytest.mark.asyncio
@@ -551,11 +549,11 @@ async def test_a_colour_names_itself_in_its_swatch_and_a_bad_one_is_marked_but_k
         await _select(user, TITLE)
         colour = _widget(user, ui.color_input, "Colour")
         colour.value = "red"
-        assert _node(TITLE)["color"] == "red"
+        assert required(_node(TITLE))["color"] == "red"
         assert "error" not in colour.props
 
         colour.value = "not-a-colour"
-        assert _node(TITLE)["color"] == "not-a-colour", "stored anyway: the Scene is the user's"
+        assert required(_node(TITLE))["color"] == "not-a-colour", "stored anyway: the Scene is the user's"
         assert "error" in colour.props
 
 
@@ -567,7 +565,7 @@ async def test_a_state_property_writes_the_state_it_was_given() -> None:
         state = next(option for option in picker.options if option and option != sceneedit_v2.V2_DYNAMIC_STATE)
         picker.value = state
         field = sceneedit_v2state.v2_state_field("enabled")
-        assert sceneedit_v2state.v2_state_of(field, _node(TITLE).get("enabled", "")) == state
+        assert sceneedit_v2state.v2_state_of(required(field), required(_node(TITLE)).get("enabled", "")) == state
 
 
 @pytest.mark.asyncio
@@ -592,9 +590,7 @@ async def test_a_category_remembers_whether_it_was_open_and_counts_what_is_fille
         await _select(user, TITLE)
         designer = _built["designer"]
         content = next(
-            e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.expansion) and e.props.get("label") == "Content"
+            e for e in all_elements(user) if isinstance(e, ui.expansion) and e.props.get("label") == "Content"
         )
         assert designer.expanded["category:Content"] is True or designer.expanded["category:Content"] is False
         content.value = not content.value
@@ -605,9 +601,7 @@ async def test_a_category_remembers_whether_it_was_open_and_counts_what_is_fille
         # Selecting another component keeps the section as it was left.
         await _select(user, _at(1, 0))
         reopened = next(
-            e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.expansion) and e.props.get("label") == "Content"
+            e for e in all_elements(user) if isinstance(e, ui.expansion) and e.props.get("label") == "Content"
         )
         assert reopened.value == content.value
 
@@ -619,13 +613,13 @@ async def test_the_component_id_is_renamed_on_blur_and_kept_unique() -> None:
         field = _widget(user, ui.input, "Component id")
         field.value = "intro"
         _blur(field)
-        assert _node(BODY_TEXT)["id"] == "intro"
+        assert required(_node(BODY_TEXT))["id"] == "intro"
 
         await _select(user, BODY_TEXT)
         field = _widget(user, ui.input, "Component id")
         field.value = "title_text"  # taken
         _blur(field)
-        assert _node(BODY_TEXT)["id"] == "intro"
+        assert required(_node(BODY_TEXT))["id"] == "intro"
         assert field.value == "intro", "a refused id is put back in the box"
         assert _built["designer"].history, "only the accepted rename is on the undo stack"
         assert len(_built["designer"].history) == 1
@@ -655,22 +649,18 @@ def _blur(widget: ui.input) -> None:
 # Modifiers
 # ##################################################################################
 def _icon_buttons(user: User, icon: str) -> list[ui.button]:
-    found = [e for e in user.client.elements.values() if isinstance(e, ui.button) and e.props.get("icon") == icon]
+    found = [e for e in all_elements(user) if isinstance(e, ui.button) and e.props.get("icon") == icon]
     return sorted(found, key=lambda e: e.id)
 
 
 @pytest.mark.asyncio
 async def test_modifiers_are_listed_in_order_with_their_count_in_the_heading() -> None:
     async with _open() as user:
-        count = len(_node(())["modifiers"])
+        count = len(required(_node(()))["modifiers"])
         assert f"Modifiers ({count})" in [
-            e.props.get("label") for e in user.client.elements.values() if isinstance(e, ui.expansion)
+            e.props.get("label") for e in all_elements(user) if isinstance(e, ui.expansion)
         ]
-        assert [
-            e.text
-            for e in user.client.elements.values()
-            if isinstance(e, ui.label) and e.text in ("FillWidth", "Border")
-        ]
+        assert [e.text for e in all_elements(user) if isinstance(e, ui.label) and e.text in ("FillWidth", "Border")]
 
 
 @pytest.mark.asyncio
@@ -678,7 +668,7 @@ async def test_deleting_a_modifier_removes_it_and_undo_puts_it_back() -> None:
     async with _open() as user:
         original = copy.deepcopy(_built["layout"])
         _click(user, _icon_buttons(user, "close")[0])
-        assert len(_node(())["modifiers"]) == len(original["root"]["modifiers"]) - 1
+        assert len(required(_node(()))["modifiers"]) == len(original["root"]["modifiers"]) - 1
         _press(user, "Undo")
         assert _built["layout"] == original
 
@@ -686,11 +676,11 @@ async def test_deleting_a_modifier_removes_it_and_undo_puts_it_back() -> None:
 @pytest.mark.asyncio
 async def test_a_modifier_moves_down_and_back_up() -> None:
     async with _open() as user:
-        original = [m["type"] for m in _node(())["modifiers"]]
+        original = [m["type"] for m in required(_node(()))["modifiers"]]
         _click(user, _icon_buttons(user, "arrow_downward")[0])
-        assert [m["type"] for m in _node(())["modifiers"]] == list(reversed(original))
+        assert [m["type"] for m in required(_node(()))["modifiers"]] == list(reversed(original))
         _click(user, _icon_buttons(user, "arrow_upward")[1])
-        assert [m["type"] for m in _node(())["modifiers"]] == original
+        assert [m["type"] for m in required(_node(()))["modifiers"]] == original
 
 
 @pytest.mark.asyncio
@@ -698,14 +688,14 @@ async def test_the_open_state_of_the_modifiers_section_survives_the_rebuild_an_e
     async with _open() as user:
         modifiers = next(
             e
-            for e in user.client.elements.values()
+            for e in all_elements(user)
             if isinstance(e, ui.expansion) and str(e.props.get("label", "")).startswith("Modifiers")
         )
         modifiers.value = True
         _click(user, _icon_buttons(user, "close")[0])
         rebuilt = next(
             e
-            for e in user.client.elements.values()
+            for e in all_elements(user)
             if isinstance(e, ui.expansion) and str(e.props.get("label", "")).startswith("Modifiers")
         )
         assert rebuilt.value is True
@@ -714,17 +704,17 @@ async def test_the_open_state_of_the_modifiers_section_survives_the_rebuild_an_e
 @pytest.mark.asyncio
 async def test_adding_a_modifier_from_the_menu_appends_one_of_that_type() -> None:
     async with _open() as user:
-        count = len(_node(())["modifiers"])
+        count = len(required(_node(()))["modifiers"])
         _fire_click(_menu_entry(user, "FillHeight"))
-        assert len(_node(())["modifiers"]) == count + 1
-        assert _node(())["modifiers"][-1]["type"] == "FillHeight"
+        assert len(required(_node(()))["modifiers"]) == count + 1
+        assert required(_node(()))["modifiers"][-1]["type"] == "FillHeight"
 
 
 def _menu_entry(user: User, text: str) -> ui.menu_item:
     """The menu entry with this text -- kept in the item's one section -- in a menu that is not open."""
     found = [
         e
-        for e in user.client.elements.values()
+        for e in all_elements(user)
         if isinstance(e, ui.menu_item) and e.default_slot.children and e.default_slot.children[0].text == text
     ]
     assert found, f"no menu entry {text!r}"
@@ -761,13 +751,13 @@ async def test_a_component_with_a_handler_shows_its_event_and_its_actions() -> N
 async def test_an_actions_fields_write_through_and_its_order_can_be_changed() -> None:
     async with _open() as user:
         await _select(user, CLOSE_BUTTON)
-        handler = _node(CLOSE_BUTTON)["eventHandlers"]["handlers"][0]
+        handler = required(_node(CLOSE_BUTTON))["eventHandlers"]["handlers"][0]
         _click(user, _icon_buttons(user, "arrow_downward")[0])
-        handler = _node(CLOSE_BUTTON)["eventHandlers"]["handlers"][0]
+        handler = required(_node(CLOSE_BUTTON))["eventHandlers"]["handlers"][0]
         assert [a["type"] for a in handler["actions"]] == ["DismissLayout", "SetVariable"]
         # SetVariable is second now, so its Up is the second Up button the sheet draws.
         _click(user, _icon_buttons(user, "arrow_upward")[1])
-        handler = _node(CLOSE_BUTTON)["eventHandlers"]["handlers"][0]
+        handler = required(_node(CLOSE_BUTTON))["eventHandlers"]["handlers"][0]
         assert [a["type"] for a in handler["actions"]] == ["SetVariable", "DismissLayout"]
 
 
@@ -779,7 +769,7 @@ async def test_deleting_an_action_and_then_the_handler_leaves_undo_to_restore_bo
         closes = _icon_buttons(user, "close")
         # Hand-picked: the last close is the second action's, the one before it the first action's.
         _click(user, closes[-1])
-        assert len(_node(CLOSE_BUTTON)["eventHandlers"]["handlers"][0]["actions"]) == 1
+        assert len(required(_node(CLOSE_BUTTON))["eventHandlers"]["handlers"][0]["actions"]) == 1
         _press(user, "Undo")
         assert _built["layout"] == original
 
@@ -789,20 +779,20 @@ async def test_the_only_when_box_sets_the_handlers_condition() -> None:
     async with _open() as user:
         await _select(user, CLOSE_BUTTON)
         _widget(user, ui.input, "Only when").value = "%portrait"
-        assert _node(CLOSE_BUTTON)["eventHandlers"]["handlers"][0]["condition"] == "%portrait"
+        assert required(_node(CLOSE_BUTTON))["eventHandlers"]["handlers"][0]["condition"] == "%portrait"
 
 
 @pytest.mark.asyncio
 async def test_adding_a_handler_and_an_action_from_their_menus() -> None:
     async with _open() as user:
         await _select(user, CLOSE_BUTTON)
-        handlers = len(_node(CLOSE_BUTTON)["eventHandlers"]["handlers"])
+        handlers = len(required(_node(CLOSE_BUTTON))["eventHandlers"]["handlers"])
         _fire_click(_menu_entry(user, "hold"))
-        assert len(_node(CLOSE_BUTTON)["eventHandlers"]["handlers"]) == handlers + 1
+        assert len(required(_node(CLOSE_BUTTON))["eventHandlers"]["handlers"]) == handlers + 1
 
         # The last menu drawn is the new handler's own Add action, so that is where this lands.
         _fire_click(_menu_entry(user, "RunTask"))
-        actions = _node(CLOSE_BUTTON)["eventHandlers"]["handlers"][-1]["actions"]
+        actions = required(_node(CLOSE_BUTTON))["eventHandlers"]["handlers"][-1]["actions"]
         assert [action["type"] for action in actions] == ["RunTask"]
 
 
@@ -812,11 +802,11 @@ async def test_a_runtask_action_offers_the_loaded_tasks_by_name() -> None:
         await _select(user, CLOSE_BUTTON)
         _fire_click(_menu_entry(user, "RunTask"))
         picker = max(
-            (e for e in user.client.elements.values() if isinstance(e, ui.select) and "Fetcher" in e.options),
+            (e for e in all_elements(user) if isinstance(e, ui.select) and "Fetcher" in e.options),
             key=lambda e: e.id,
         )
         picker.value = "Fetcher"
-        action = _node(CLOSE_BUTTON)["eventHandlers"]["handlers"][0]["actions"][-1]
+        action = required(_node(CLOSE_BUTTON))["eventHandlers"]["handlers"][0]["actions"][-1]
         assert "Fetcher" in action.values()
 
 
@@ -838,7 +828,7 @@ def caret(monkeypatch: pytest.MonkeyPatch) -> list:
 
 
 def _dialog_buttons(user: User) -> list[ui.button]:
-    return sorted((e for e in user.client.elements.values() if isinstance(e, ui.button)), key=lambda e: e.id)
+    return sorted((e for e in all_elements(user) if isinstance(e, ui.button)), key=lambda e: e.id)
 
 
 @pytest.mark.asyncio
@@ -847,25 +837,25 @@ async def test_the_show_when_picker_inserts_a_variable_into_the_field_and_closes
         await _select(user, TITLE)
         field = _widget(user, ui.input, "Show when")
         field.value = "a b"
-        before = {e.id for e in user.client.elements.values()}
+        before = {e.id for e in all_elements(user)}
         # The append-slot button beside Show when opens the picker.
         opener = next(
             e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.button) and e.props.get("icon") == "playlist_add" and e.parent_slot.parent is field
+            for e in all_elements(user)
+            if isinstance(e, ui.button)
+            and e.props.get("icon") == "playlist_add"
+            and required(e.parent_slot).parent is field
         )
         _click(user, opener)
         choice = sceneedit_v2state.v2_show_when_choices(state=PrimeItems)[0][1][0]
         button = next(
-            e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.button) and e.id not in before and e.text == choice.label
+            e for e in all_elements(user) if isinstance(e, ui.button) and e.id not in before and e.text == choice.label
         )
         _click(user, button)
         await asyncio.sleep(0.1)
         assert field.value == sceneedit_v2state.v2_insert_show_when("a b", choice.value, None)[0]
-        assert _node(TITLE)["showWhen"] == field.value
-        dialog = next(e for e in user.client.elements.values() if isinstance(e, ui.dialog) and e.id > field.id)
+        assert required(_node(TITLE))["showWhen"] == field.value
+        dialog = next(e for e in all_elements(user) if isinstance(e, ui.dialog) and e.id > field.id)
         assert dialog.value is False, "closed on the pick so the result is visible"
         assert any("setSelectionRange" in code for code in caret), "the cursor is put back after the insert"
 
@@ -877,13 +867,15 @@ async def test_the_show_when_picker_filters_by_what_is_typed_and_says_when_a_cat
         field = _widget(user, ui.input, "Show when")
         opener = next(
             e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.button) and e.props.get("icon") == "playlist_add" and e.parent_slot.parent is field
+            for e in all_elements(user)
+            if isinstance(e, ui.button)
+            and e.props.get("icon") == "playlist_add"
+            and required(e.parent_slot).parent is field
         )
         _click(user, opener)
         search = next(
             e
-            for e in user.client.elements.values()
+            for e in all_elements(user)
             if isinstance(e, ui.input) and e.props.get("placeholder") == "Search variables"
         )
         search.value = "zzzz-no-such-variable"
@@ -897,8 +889,10 @@ async def test_a_numeric_or_text_variable_property_has_a_select_variable_button(
         field = _widget(user, ui.input, "Max lines")
         opener = next(
             e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.button) and e.props.get("icon") == "playlist_add" and e.parent_slot.parent is field
+            for e in all_elements(user)
+            if isinstance(e, ui.button)
+            and e.props.get("icon") == "playlist_add"
+            and required(e.parent_slot).parent is field
         )
         _click(user, opener)
         assert "Select a variable for Max lines" in _texts(user)
@@ -921,19 +915,17 @@ async def test_the_icon_picker_replaces_the_field_with_the_icon_chosen() -> None
         assert field.value == "icon:Close"
         opener = next(
             e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.button) and e.props.get("icon") == "apps" and e.parent_slot.parent is field
+            for e in all_elements(user)
+            if isinstance(e, ui.button) and e.props.get("icon") == "apps" and required(e.parent_slot).parent is field
         )
         _click(user, opener)
         assert "Pick an icon" in _texts(user)
-        tiles = [
-            e for e in user.client.elements.values() if isinstance(e, ui.button) and e.props.get("stack") is not None
-        ]
+        tiles = [e for e in all_elements(user) if isinstance(e, ui.button) and e.props.get("stack") is not None]
         assert 0 < len(tiles) <= guiwins_designer_v2._ICON_PREVIEW_LIMIT
         name = tiles[0].default_slot.children[1].text
         _click(user, tiles[0])
         assert field.value == sceneedit_v2tree.v2_icon_reference(name)
-        assert _node(CLOSE_BUTTON)["icon"] == field.value
+        assert required(_node(CLOSE_BUTTON))["icon"] == field.value
 
 
 @pytest.mark.asyncio
@@ -943,21 +935,17 @@ async def test_the_icon_picker_narrows_by_name_and_says_when_nothing_is_left() -
         field = _widget(user, ui.input, "Icon")
         opener = next(
             e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.button) and e.props.get("icon") == "apps" and e.parent_slot.parent is field
+            for e in all_elements(user)
+            if isinstance(e, ui.button) and e.props.get("icon") == "apps" and required(e.parent_slot).parent is field
         )
         _click(user, opener)
         search = next(
-            e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.input) and e.props.get("placeholder") == "Search icons"
+            e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("placeholder") == "Search icons"
         )
         search.value = "zzzz_no_such_icon"
         assert "Nothing here." in _texts(user)
         search.value = "close"
-        tiles = [
-            e for e in user.client.elements.values() if isinstance(e, ui.button) and e.props.get("stack") is not None
-        ]
+        tiles = [e for e in all_elements(user) if isinstance(e, ui.button) and e.props.get("stack") is not None]
         assert tiles
         assert all("close" in t.default_slot.children[1].text for t in tiles)
 
@@ -968,7 +956,7 @@ async def test_typing_an_icon_reference_is_kept_exactly_and_drives_the_glyph() -
         await _select(user, CLOSE_BUTTON)
         field = _widget(user, ui.input, "Icon")
         field.value = "symbol:cloud_upload;opsz:24"
-        assert _node(CLOSE_BUTTON)["icon"] == "symbol:cloud_upload;opsz:24"
+        assert required(_node(CLOSE_BUTTON))["icon"] == "symbol:cloud_upload;opsz:24"
 
 
 @pytest.mark.asyncio
@@ -979,7 +967,7 @@ async def test_the_material_colour_menu_sets_a_role_by_name() -> None:
         role = next(iter(guiwins_designer_v2.V2_MATERIAL_PALETTE))
         entries = [
             e
-            for e in user.client.elements.values()
+            for e in all_elements(user)
             if isinstance(e, ui.item)
             and colour in e.ancestors()
             and any(getattr(c, "text", None) == role for c in e.descendants())
@@ -987,7 +975,7 @@ async def test_the_material_colour_menu_sets_a_role_by_name() -> None:
         assert len(entries) == 1
         _fire_click(entries[0])
         assert colour.value == role
-        assert _node(TITLE)["color"] == role
+        assert required(_node(TITLE))["color"] == role
         assert "error" not in colour.props, "a role is a colour name"
 
 
@@ -1007,7 +995,7 @@ def _scene(layout: dict | None) -> SimpleNamespace:
 
 def _mount_page() -> None:
     guiwins_designer_v2.V2Designer().build_body(
-        SimpleNamespace(),
+        fake_window(),
         _built["scene"],
         _built["field_refs"],
         None,
@@ -1054,14 +1042,14 @@ def _dialog_page() -> None:
 async def test_a_scene_dialog_closed_for_good_leaves_nothing_of_its_designer_behind() -> None:
     """Open, close and re-open Edit Scene the way the running app does, and count what is left."""
     _built["scene"] = _scene(_layout())
-    gui = SimpleNamespace(scene_editor_session=None, textviews=[])
+    gui = fake_window(scene_editor_session=None, textviews=[])
     async with _open_dialog_page() as user:
-        elements, table = len(user.client.elements), len(guiwins_canvas._ACTIVE_CANVASES)
+        elements, table = len(required(user.client).elements), len(guiwins_canvas._ACTIVE_CANVASES)
         for opened in range(1, 4):
             field_refs: dict = {}
             with _built["column"], ui.dialog() as dialog, ui.card():
                 guiwins_designer_v2.V2Designer().build_body(
-                    SimpleNamespace(), _built["scene"], field_refs, dialog, PrimeItems
+                    fake_window(), _built["scene"], field_refs, dialog, PrimeItems
                 )
             dialog.on_value_change(
                 lambda e, d=dialog, f=field_refs: guiwins_sceneview._scene_dialog_closed(gui, d, f, e)
@@ -1074,7 +1062,7 @@ async def test_a_scene_dialog_closed_for_good_leaves_nothing_of_its_designer_beh
             _built["designer"] = None  # The fixture's own capture of it.
             gc.collect()
             # NiceGUI leaves one empty placeholder div where a dialog was declared; the designer's page is gone.
-            assert len(user.client.elements) == elements + opened
+            assert len(required(user.client).elements) == elements + opened
             assert len(guiwins_canvas._ACTIVE_CANVASES) == table
 
 

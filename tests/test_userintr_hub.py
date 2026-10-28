@@ -49,7 +49,7 @@ def seen(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
         def __enter__(self) -> None:
             record.new_window.append("in")
 
-        def __exit__(self, *_exc: object) -> None:
+        def __exit__(self, *_exc: Any) -> None:
             record.new_window.append("out")
 
     monkeypatch.setattr(userintr, "go_to_target", go_to_target)
@@ -292,7 +292,7 @@ async def test_the_monitors_diagram_is_built_for_what_has_fired_and_the_selectio
         def __enter__(self) -> None:
             return None
 
-        def __exit__(self, *_exc: object) -> None:
+        def __exit__(self, *_exc: Any) -> None:
             return None
 
     monkeypatch.setattr(userintr, "held_overrides", lambda overrides, state: _Held())
@@ -584,7 +584,7 @@ def test_a_failed_upgrade_with_no_output_does_not_print_an_empty_box(
 def test_a_browser_that_cannot_open_the_page_says_so(
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch, event: str
 ) -> None:
-    def refuse(*_a: object, **_k: object) -> None:
+    def refuse(*_a: Any, **_k: Any) -> None:
         raise userintr.webbrowser.Error("no browser")
 
     monkeypatch.setattr(userintr.webbrowser, "open", refuse)

@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import json
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from maptasker.src.analysis import mapask, mapfind
@@ -49,7 +50,7 @@ def ai(monkeypatch: pytest.MonkeyPatch) -> dict:
     return table
 
 
-def _reply(**fields: object) -> str:
+def _reply(**fields: Any) -> str:
     """A well-formed reply with every key present, the given ones filled in."""
     empty = dict.fromkeys(("action", "trigger", "app", "scene", "text", "project", "unexpressed"), "")
     return json.dumps(empty | fields)
@@ -154,7 +155,7 @@ def test_what_the_boxes_cannot_say_is_passed_on(index: mapfind.FindIndex) -> Non
 async def test_an_empty_question_is_not_sent(index: mapfind.FindIndex) -> None:
     """Nothing to translate is said without spending a call on it."""
 
-    async def model(*_: object) -> str:
+    async def model(*_: Any) -> str:
         message = "the model should not have been asked"
         raise AssertionError(message)
 
@@ -179,7 +180,7 @@ async def test_cancelling_the_question_cancels_the_request(
     started = asyncio.Event()
     outcome = {}
 
-    async def waiting(*_: object) -> str:
+    async def waiting(*_: Any) -> str:
         started.set()
         try:
             await asyncio.sleep(3600)
@@ -251,7 +252,7 @@ async def test_anthropic_is_sent_the_schema_as_its_system_prompt(monkeypatch: py
     sent = {}
 
     class Messages:
-        async def create(self, **kwargs: object) -> SimpleNamespace:
+        async def create(self, **kwargs: Any) -> SimpleNamespace:
             sent.update(kwargs)
             return SimpleNamespace(content=[SimpleNamespace(type="text", text='{"app": '), SimpleNamespace(text='""}')])
 
@@ -263,7 +264,7 @@ async def test_anthropic_is_sent_the_schema_as_its_system_prompt(monkeypatch: py
         async def __aenter__(self) -> AsyncAnthropic:
             return self
 
-        async def __aexit__(self, *_: object) -> None:
+        async def __aexit__(self, *_: Any) -> None:
             sent["closed"] = True
 
     monkeypatch.setattr(mapask, "_library", lambda *_: SimpleNamespace(AsyncAnthropic=AsyncAnthropic))
@@ -280,7 +281,7 @@ async def test_anthropic_is_sent_the_schema_as_its_system_prompt(monkeypatch: py
 async def test_a_failing_service_is_reported_not_raised(monkeypatch: pytest.MonkeyPatch) -> None:
     """Whatever a provider's library raises reaches the dialog as a sentence."""
 
-    async def broken(*_: object) -> str:
+    async def broken(*_: Any) -> str:
         message = "invalid x-api-key"
         raise RuntimeError(message)
 
@@ -293,7 +294,7 @@ def _fake_anthropic(monkeypatch: pytest.MonkeyPatch) -> dict:
     sent: dict = {}
 
     class Messages:
-        async def create(self, **kwargs: object) -> SimpleNamespace:
+        async def create(self, **kwargs: Any) -> SimpleNamespace:
             sent.update(kwargs)
             return SimpleNamespace(content=[SimpleNamespace(text="{}")])
 
@@ -304,7 +305,7 @@ def _fake_anthropic(monkeypatch: pytest.MonkeyPatch) -> dict:
         async def __aenter__(self) -> AsyncAnthropic:
             return self
 
-        async def __aexit__(self, *_: object) -> None:
+        async def __aexit__(self, *_: Any) -> None:
             return None
 
     monkeypatch.setattr(mapask, "_library", lambda *_: SimpleNamespace(AsyncAnthropic=AsyncAnthropic))
@@ -346,7 +347,7 @@ async def test_no_effort_is_sent_unless_asked_for(monkeypatch: pytest.MonkeyPatc
 
 @pytest.mark.asyncio
 async def test_an_answer_that_takes_too_long_is_given_up_on_and_said(monkeypatch: pytest.MonkeyPatch) -> None:
-    async def slow(*_: object) -> str:
+    async def slow(*_: Any) -> str:
         await asyncio.sleep(3600)
         return ""
 
@@ -364,7 +365,7 @@ async def test_a_reasoning_model_that_refuses_the_effort_is_asked_again_without_
     calls = []
 
     class Completions:
-        async def create(self, **kwargs: object) -> SimpleNamespace:
+        async def create(self, **kwargs: Any) -> SimpleNamespace:
             calls.append(kwargs)
             if "reasoning_effort" in kwargs:
                 message = "unsupported parameter"
@@ -378,7 +379,7 @@ async def test_a_reasoning_model_that_refuses_the_effort_is_asked_again_without_
         async def __aenter__(self) -> AsyncOpenAI:
             return self
 
-        async def __aexit__(self, *_: object) -> None:
+        async def __aexit__(self, *_: Any) -> None:
             return None
 
     monkeypatch.setattr(mapask, "_library", lambda *_: SimpleNamespace(AsyncOpenAI=AsyncOpenAI))
@@ -439,7 +440,7 @@ class _FakeOpenAIClient:
         self._reply = reply
         self.chat = SimpleNamespace(completions=SimpleNamespace(create=self._create))
 
-    async def _create(self, **kwargs: object) -> SimpleNamespace:
+    async def _create(self, **kwargs: Any) -> SimpleNamespace:
         self._sent.setdefault("calls", []).append(kwargs)
         if any(name in kwargs for name in self._refuse):
             message = "Unrecognized request argument"
@@ -449,11 +450,11 @@ class _FakeOpenAIClient:
     async def __aenter__(self) -> _FakeOpenAIClient:
         return self
 
-    async def __aexit__(self, *_: object) -> None:
+    async def __aexit__(self, *_: Any) -> None:
         self._sent["closed"] = self._sent.get("closed", 0) + 1
 
 
-def _fake_openai(monkeypatch: pytest.MonkeyPatch, **options: object) -> dict:
+def _fake_openai(monkeypatch: pytest.MonkeyPatch, **options: Any) -> dict:
     sent: dict = {}
 
     def async_openai(api_key: str) -> _FakeOpenAIClient:
@@ -524,7 +525,7 @@ class _FakeGeminiClient:
     """google.genai.Client: `aio.models.generate_content` answers `reply`, and `aio.aclose` is recorded."""
 
     def __init__(self, sent: dict, *, refuse: bool = False, reply: str = "{}") -> None:
-        async def generate_content(**kwargs: object) -> SimpleNamespace:
+        async def generate_content(**kwargs: Any) -> SimpleNamespace:
             sent.setdefault("calls", []).append(kwargs)
             if refuse and "thinking_config" in kwargs["config"]:
                 message = "thinking_level is not supported"
@@ -537,7 +538,7 @@ class _FakeGeminiClient:
         self.aio = SimpleNamespace(models=SimpleNamespace(generate_content=generate_content), aclose=aclose)
 
 
-def _fake_gemini(monkeypatch: pytest.MonkeyPatch, **options: object) -> dict:
+def _fake_gemini(monkeypatch: pytest.MonkeyPatch, **options: Any) -> dict:
     sent: dict = {}
 
     def client(api_key: str) -> _FakeGeminiClient:
@@ -599,7 +600,7 @@ async def test_a_gemini_whose_client_cannot_be_closed_is_still_answered(monkeypa
     sent = _fake_gemini(monkeypatch)
     original = _FakeGeminiClient.__init__
 
-    def without_aclose(self: _FakeGeminiClient, *args: object, **kwargs: object) -> None:
+    def without_aclose(self: _FakeGeminiClient, *args: Any, **kwargs: Any) -> None:
         original(self, *args, **kwargs)
         del self.aio.aclose
 

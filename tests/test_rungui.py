@@ -5,11 +5,14 @@ from __future__ import annotations
 import socket
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from maptasker.src import rungui
 from maptasker.src.core.mtexcept import MapTaskerError
-from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.primitem import PrimeItems, RunState
+
+from tests.doubles import fake_state
 
 
 # ##################################################################################
@@ -47,7 +50,7 @@ def test_when_every_port_is_taken_the_default_is_handed_back_to_report_the_clash
         def __enter__(self) -> Refusing:
             return self
 
-        def __exit__(self, *_args: object) -> None:
+        def __exit__(self, *_args: Any) -> None:
             return None
 
         def bind(self, _address: tuple) -> None:
@@ -86,8 +89,8 @@ def saving(monkeypatch: pytest.MonkeyPatch) -> dict:
     return record
 
 
-def _run() -> SimpleNamespace:
-    return SimpleNamespace(
+def _run() -> RunState:
+    return fake_state(
         colors_to_use={"c": "x"},
         ai={},
         program_arguments=SimpleNamespace(display_detail_level="3", indent="x", ai_apikey=""),
@@ -153,7 +156,7 @@ def test_the_server_is_started_on_the_loopback_only(monkeypatch: pytest.MonkeyPa
 
 
 def test_a_port_already_in_use_ends_the_run_with_a_clear_message(monkeypatch: pytest.MonkeyPatch) -> None:
-    def refuse(**_kwargs: object) -> None:
+    def refuse(**_kwargs: Any) -> None:
         raise OSError("[Errno 48] Address already in use")
 
     monkeypatch.setattr(rungui.ui, "run", refuse)
@@ -168,7 +171,7 @@ def test_a_port_already_in_use_ends_the_run_with_a_clear_message(monkeypatch: py
 def test_any_other_failure_to_start_is_only_logged(monkeypatch: pytest.MonkeyPatch) -> None:
     logged: list[str] = []
 
-    def refuse(**_kwargs: object) -> None:
+    def refuse(**_kwargs: Any) -> None:
         raise OSError("permission denied")
 
     monkeypatch.setattr(rungui.ui, "run", refuse)
@@ -180,7 +183,7 @@ def test_any_other_failure_to_start_is_only_logged(monkeypatch: pytest.MonkeyPat
 
 
 def test_ctrl_c_is_a_normal_way_to_stop(monkeypatch: pytest.MonkeyPatch) -> None:
-    def interrupt(**_kwargs: object) -> None:
+    def interrupt(**_kwargs: Any) -> None:
         raise KeyboardInterrupt
 
     monkeypatch.setattr(rungui.ui, "run", interrupt)
@@ -190,10 +193,10 @@ def test_ctrl_c_is_a_normal_way_to_stop(monkeypatch: pytest.MonkeyPatch) -> None
 # ##################################################################################
 # Watching what the browser is sent
 # ##################################################################################
-async def _emit_through_the_interceptor(monkeypatch: pytest.MonkeyPatch, state: SimpleNamespace) -> list[tuple]:
+async def _emit_through_the_interceptor(monkeypatch: pytest.MonkeyPatch, state: RunState) -> list[tuple]:
     sent: list[tuple] = []
 
-    async def original(event: str, data: object = None, room: object = None, **kwargs: object) -> None:
+    async def original(event: str, data: object = None, room: object = None, **kwargs: Any) -> None:
         sent.append((event, data, room))
 
     monkeypatch.setattr(rungui.core.sio, "emit", original)
@@ -205,7 +208,7 @@ async def _emit_through_the_interceptor(monkeypatch: pytest.MonkeyPatch, state: 
 def test_everything_still_reaches_the_browser(monkeypatch: pytest.MonkeyPatch) -> None:
     import asyncio
 
-    state = SimpleNamespace(mygui=None)
+    state = fake_state(mygui=None)
     sent = asyncio.run(_emit_through_the_interceptor(monkeypatch, state))
     assert sent == [("update", {"x": 1}, "r")]
 
@@ -216,7 +219,7 @@ def test_a_changed_window_has_its_state_captured_once(monkeypatch: pytest.Monkey
     captured: list[object] = []
     monkeypatch.setattr(rungui, "capture_gui_state", lambda gui, data, state: captured.append(data))
     gui = SimpleNamespace(event=True)
-    state = SimpleNamespace(mygui=gui)
+    state = fake_state(mygui=gui)
 
     async def twice() -> list[tuple]:
         sent = await _emit_through_the_interceptor(monkeypatch, state)

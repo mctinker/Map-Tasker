@@ -30,6 +30,8 @@ from maptasker.src.core.share import share
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapgen.lineout import LineOut
 
+from tests.doubles import required
+
 # One of everything, with its clean counterpart alongside it.
 #
 #   Task 20 'Leaky'     act0  HTTP Auth with a real Password and Username -> SECRET-CREDENTIAL
@@ -373,10 +375,10 @@ def test_coordinates_are_zeroed_rather_than_worded(loaded: ET.Element) -> None:
     piiscan.redact_tree(loaded)
     home = next(profile for profile in loaded.iter("Profile") if profile.findtext("nme") == "Home")
     condition = home.find("Loc")
-    assert condition.findtext("lat") == "0.0"
-    assert condition.findtext("long") == "0.0"
+    assert required(condition).findtext("lat") == "0.0"
+    assert required(condition).findtext("long") == "0.0"
     # The radius and the condition's own label are not a place and are left as they were.
-    assert condition.findtext("rad") == "30.0"
+    assert required(condition).findtext("rad") == "30.0"
 
 
 def test_an_untouched_export_is_untouched(loaded: ET.Element) -> None:

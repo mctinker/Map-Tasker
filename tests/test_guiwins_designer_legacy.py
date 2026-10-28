@@ -14,17 +14,20 @@ import asyncio
 import contextlib
 import copy
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import SCENE_TASK_TYPES
 from maptasker.src.edit import sceneedit, sceneedit_legacy
 from maptasker.src.gui import guiwins_designer_legacy, sceneview
+from maptasker.src.gui.userintr import MyGui
 from nicegui import core, events, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import fake_window, required
+from tests.nicegui_harness import all_elements
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:
@@ -64,15 +67,15 @@ def _configuration(monkeypatch: pytest.MonkeyPatch) -> None:
     _built.update(edited=sceneedit.load_scene_for_edit("Panel", state=PrimeItems), designer=None, field_refs={})
     original = guiwins_designer_legacy._LegacyDesigner.__init__
 
-    def capture(self: guiwins_designer_legacy._LegacyDesigner, *args: object, **kwargs: object) -> None:
+    def capture(self: guiwins_designer_legacy._LegacyDesigner, *args: Any, **kwargs: Any) -> None:
         original(self, *args, **kwargs)
         _built["designer"] = self
 
     monkeypatch.setattr(guiwins_designer_legacy._LegacyDesigner, "__init__", capture)
 
 
-def _gui() -> SimpleNamespace:
-    return SimpleNamespace(state=PrimeItems, event_handlers=SimpleNamespace())
+def _gui() -> MyGui:
+    return fake_window(state=PrimeItems, event_handlers=SimpleNamespace())
 
 
 def _page() -> None:
@@ -95,7 +98,7 @@ def _click(user: User, element: ui.element) -> None:
 
 
 def _button(user: User, text: str) -> ui.button:
-    found = [e for e in user.client.elements.values() if isinstance(e, ui.button) and e.text == text]
+    found = [e for e in all_elements(user) if isinstance(e, ui.button) and e.text == text]
     assert found, f"no button {text!r}"
     return max(found, key=lambda e: e.id)
 
@@ -105,7 +108,7 @@ def _press(user: User, text: str) -> None:
 
 
 def _texts(user: User) -> list[str]:
-    return [e.text for e in user.client.elements.values() if isinstance(e, ui.label)]
+    return [e.text for e in all_elements(user) if isinstance(e, ui.label)]
 
 
 def _scene() -> object:
@@ -131,7 +134,7 @@ def _geom(label: str, *, landscape: bool = False) -> tuple:
 def _rows(user: User) -> list[ui.label]:
     """The element list's rows, top of the stack first (the order they are drawn)."""
     names = {sceneedit_legacy.legacy_element_label(e) for e in sceneview.paint_order(_scene())}
-    found = [e for e in user.client.elements.values() if isinstance(e, ui.label) and e.text in names]
+    found = [e for e in all_elements(user) if isinstance(e, ui.label) and e.text in names]
     return sorted((e for e in found if "cursor-pointer" in e.classes), key=lambda e: e.id)
 
 
@@ -140,7 +143,7 @@ def _row(user: User, label: str) -> ui.label:
 
 
 def _number(user: User, label: str) -> ui.number:
-    found = [e for e in user.client.elements.values() if isinstance(e, ui.number) and e.props.get("label") == label]
+    found = [e for e in all_elements(user) if isinstance(e, ui.number) and e.props.get("label") == label]
     return max(found, key=lambda e: e.id)
 
 
@@ -236,7 +239,7 @@ async def test_a_selection_of_several_names_the_others_and_keeps_the_sheet_on_on
         assert "Also selected:" in _texts(user)
         also = next(
             e
-            for e in user.client.elements.values()
+            for e in all_elements(user)
             if isinstance(e, ui.label) and e.text == "Rect 'Back'" and "underline" in e.classes
         )
         _click(user, also)
@@ -322,7 +325,7 @@ async def test_delete_removes_the_selection_and_undo_brings_it_back() -> None:
         # The model hands back the element that closes the gap, and that is what ends up selected.
         (neighbour,) = _built["designer"].selection["srs"]
         assert (
-            sceneedit_legacy.legacy_element_label(sceneedit_legacy.legacy_element_at(_scene(), neighbour))
+            sceneedit_legacy.legacy_element_label(required(sceneedit_legacy.legacy_element_at(_scene(), neighbour)))
             != "Button 'Go'"
         )
         _press(user, "Undo")
@@ -432,7 +435,7 @@ async def test_the_arrow_keys_nudge_everything_selected_by_the_same_amount() -> 
 async def test_landscape_edits_the_other_half_of_the_geometry() -> None:
     async with _open() as user:
         await _select(user, "Button 'Go'")
-        switch = next(e for e in user.client.elements.values() if isinstance(e, ui.switch))
+        switch = next(e for e in all_elements(user) if isinstance(e, ui.switch))
         assert switch.enabled
         switch.value = True
         assert _built["designer"].orientation["landscape"] is True
@@ -448,21 +451,17 @@ async def test_a_scene_with_no_landscape_layout_cannot_be_switched_to_it() -> No
     _scene_element.find("widthLand").text = "-1"
     _scene_element.find("heightLand").text = "-1"
     async with _open() as user:
-        switch = next(e for e in user.client.elements.values() if isinstance(e, ui.switch))
+        switch = next(e for e in all_elements(user) if isinstance(e, ui.switch))
         assert not switch.enabled
 
 
 @pytest.mark.asyncio
 async def test_the_snap_grid_is_chosen_from_a_short_list_and_kept() -> None:
     async with _open() as user:
-        snap = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.select) and e.props.get("label") == "Snap"
-        )
+        snap = next(e for e in all_elements(user) if isinstance(e, ui.select) and e.props.get("label") == "Snap")
         snap.value = 10
         assert _built["designer"].snap["grid"] == 10
-        snap = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.select) and e.props.get("label") == "Snap"
-        )
+        snap = next(e for e in all_elements(user) if isinstance(e, ui.select) and e.props.get("label") == "Snap")
         assert snap.value == 10, "the rebuild keeps the choice"
 
 
@@ -514,16 +513,12 @@ async def test_the_add_sheet_filters_as_you_type_and_enter_picks_the_only_match(
     async with _open() as user:
         _press(user, "Add")
         search = next(
-            e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.input) and e.props.get("placeholder") == "Search elements"
+            e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("placeholder") == "Search elements"
         )
         search.value = "zzzzzz"
         assert "No element matches that." in _texts(user)
         search.value = "SceneElement"  # the XML tag still finds it
-        chips = [
-            e for e in user.client.elements.values() if isinstance(e, ui.button) and e.props.get("rounded") is not None
-        ]
+        chips = [e for e in all_elements(user) if isinstance(e, ui.button) and e.props.get("rounded") is not None]
         assert len(chips) == 1
         search.value = "oval"
         events_before = len(_order())
@@ -576,7 +571,7 @@ async def test_the_canvas_size_is_what_the_dialogs_fields_say_and_a_bad_one_fall
 
     async with _open() as user:
         bad = {"widthPort": SimpleNamespace(value="wide"), "heightPort": SimpleNamespace(value="500")}
-        with user.client:
+        with required(user.client):
             assert guiwins_designer_legacy._legacy_canvas_size(_built["edited"], bad, landscape=False) == (600, 800)
         assert user.notify.contains("is not a whole number")
 
@@ -586,7 +581,7 @@ async def test_the_canvas_size_is_what_the_dialogs_fields_say_and_a_bad_one_fall
 # ##################################################################################
 def _rename_button(user: User) -> ui.button:
     """The Rename beside the Name field: the first Rename drawn (the dialog's own comes later)."""
-    found = [e for e in user.client.elements.values() if isinstance(e, ui.button) and e.text == "Rename"]
+    found = [e for e in all_elements(user) if isinstance(e, ui.button) and e.text == "Rename"]
     return min(found, key=lambda e: e.id)
 
 
@@ -604,9 +599,7 @@ async def test_renaming_changes_the_element_and_is_one_undo_step() -> None:
     async with _open() as user:
         await _select(user, "Button 'Go'")
         _click(user, _rename_button(user))
-        name = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.input) and e.props.get("label") == "New name"
-        )
+        name = next(e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("label") == "New name")
         name.value = "Launch"
         _click(user, _button(user, "Rename"))
         await asyncio.sleep(0.05)
@@ -634,9 +627,7 @@ async def test_a_rename_that_tasks_depend_on_offers_to_bring_them_along_and_reco
         assert "Helper, Other" in texts
         assert any(text.startswith("Not updated") and "Loose" in text for text in texts)
         assert any(text.startswith("Never updated") and "Pattern" in text for text in texts)
-        name = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.input) and e.props.get("label") == "New name"
-        )
+        name = next(e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("label") == "New name")
         name.value = "Launch"
         _click(user, _button(user, "Rename"))
         await asyncio.sleep(0.05)
@@ -650,11 +641,9 @@ async def test_unticking_the_task_update_renames_without_recording_a_sweep(monke
     async with _open() as user:
         await _select(user, "Button 'Go'")
         _click(user, _rename_button(user))
-        box = next(e for e in user.client.elements.values() if isinstance(e, ui.checkbox))
+        box = next(e for e in all_elements(user) if isinstance(e, ui.checkbox))
         box.value = False
-        name = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.input) and e.props.get("label") == "New name"
-        )
+        name = next(e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("label") == "New name")
         name.value = "Launch"
         _click(user, _button(user, "Rename"))
         await asyncio.sleep(0.05)
@@ -667,9 +656,7 @@ async def test_a_name_the_model_refuses_is_reported_and_leaves_the_element_alone
     async with _open() as user:
         await _select(user, "Button 'Go'")
         _click(user, _rename_button(user))
-        name = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.input) and e.props.get("label") == "New name"
-        )
+        name = next(e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("label") == "New name")
         name.value = "Label"  # another element's name
         before = _order()
         _click(user, _button(user, "Rename"))
@@ -684,18 +671,14 @@ async def test_a_name_the_model_refuses_is_reported_and_leaves_the_element_alone
 def _task_expansion(user: User) -> ui.expansion:
     return next(
         e
-        for e in user.client.elements.values()
+        for e in all_elements(user)
         if isinstance(e, ui.expansion) and str(e.props.get("label", "")).startswith("Tasks")
     )
 
 
 def _task_selects(user: User) -> list[ui.select]:
     return sorted(
-        (
-            e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.select) and "Helper" in getattr(e, "options", {})
-        ),
+        (e for e in all_elements(user) if isinstance(e, ui.select) and "Helper" in getattr(e, "options", {})),
         key=lambda e: e.id,
     )
 
@@ -715,10 +698,10 @@ async def test_pointing_an_event_at_another_task_rewrites_the_binding_and_can_be
         await _select(user, "Button 'Go'")
         element = sceneedit_legacy.legacy_element_at(_scene(), _sr("Button 'Go'"))
         _task_selects(user)[0].value = "Other"
-        assert element.findtext("clickTask") == "22"
+        assert required(element).findtext("clickTask") == "22"
         assert _built["designer"].expanded["tasks"] is True
         _press(user, "Undo")
-        assert sceneedit_legacy.legacy_element_at(_scene(), _sr("Button 'Go'")).findtext("clickTask") == "21"
+        assert required(sceneedit_legacy.legacy_element_at(_scene(), _sr("Button 'Go'"))).findtext("clickTask") == "21"
 
 
 @pytest.mark.asyncio
@@ -726,11 +709,9 @@ async def test_the_close_button_stops_the_event_firing_anything() -> None:
     async with _open() as user:
         await _select(user, "Button 'Go'")
         element = sceneedit_legacy.legacy_element_at(_scene(), _sr("Button 'Go'"))
-        close = next(
-            e for e in user.client.elements.values() if isinstance(e, ui.button) and e.props.get("icon") == "close"
-        )
+        close = next(e for e in all_elements(user) if isinstance(e, ui.button) and e.props.get("icon") == "close")
         _click(user, close)
-        assert element.find("clickTask") is None
+        assert required(element).find("clickTask") is None
 
 
 @pytest.mark.asyncio
@@ -740,15 +721,11 @@ async def test_an_event_added_for_a_task_not_yet_chosen_writes_nothing_until_one
         designer = _built["designer"]
         element = sceneedit_legacy.legacy_element_at(_scene(), _sr("Button 'Go'"))
         designer.open_pending("longclickTask")
-        assert element.find("longclickTask") is None, "a half-made binding is not something Tasker writes"
+        assert required(element).find("longclickTask") is None, "a half-made binding is not something Tasker writes"
         assert "longclickTask" in designer.pending_events["tags"]
-        pick = next(
-            e
-            for e in user.client.elements.values()
-            if isinstance(e, ui.select) and e.props.get("label") == "Pick a Task"
-        )
+        pick = next(e for e in all_elements(user) if isinstance(e, ui.select) and e.props.get("label") == "Pick a Task")
         pick.value = "Other"
-        assert element.findtext("longclickTask") == "22"
+        assert required(element).findtext("longclickTask") == "22"
         assert "longclickTask" not in designer.pending_events["tags"]
 
 
@@ -771,7 +748,7 @@ async def test_the_add_event_menu_lists_only_the_events_not_yet_used() -> None:
         await _select(user, "Button 'Go'")
         entries = [
             e.default_slot.children[0].text
-            for e in user.client.elements.values()
+            for e in all_elements(user)
             if isinstance(e, ui.menu_item) and e.default_slot.children
         ]
         assert SCENE_TASK_TYPES["longclickTask"] in entries
@@ -782,7 +759,7 @@ async def test_the_add_event_menu_lists_only_the_events_not_yet_used() -> None:
 async def test_a_task_that_is_not_in_the_backup_is_refused() -> None:
     async with _open() as user:
         await _select(user, "Button 'Go'")
-        with user.client:
+        with required(user.client):
             _built["designer"].set_binding("clickTask", "No Such Task")
         assert user.notify.contains("No Task named 'No Such Task' in this backup.")
 
@@ -790,10 +767,10 @@ async def test_a_task_that_is_not_in_the_backup_is_refused() -> None:
 @pytest.mark.asyncio
 async def test_an_anonymous_task_is_shown_and_cannot_be_repointed() -> None:
     element = sceneedit_legacy.legacy_element_at(_scene(), _sr("Button 'Go'"))
-    element.find("clickTask").text = "-3"
+    required(required(element).find("clickTask")).text = "-3"
     async with _open() as user:
         await _select(user, "Button 'Go'")
-        readonly = [e for e in user.client.elements.values() if isinstance(e, ui.input) and "readonly" in e.props]
+        readonly = [e for e in all_elements(user) if isinstance(e, ui.input) and "readonly" in e.props]
         assert readonly
 
 
@@ -805,23 +782,23 @@ async def test_an_element_that_can_have_a_background_offers_one_to_add_and_to_re
     async with _open() as user:
         await _select(user, "Text 'Label'")
         element = sceneedit_legacy.legacy_element_at(_scene(), _sr("Text 'Label'"))
-        assert sceneedit_legacy.legacy_background(element) is None
+        assert sceneedit_legacy.legacy_background(required(element)) is None
         assert any(
             str(e.props.get("label", "")) == "Background (none)"
-            for e in user.client.elements.values()
+            for e in all_elements(user)
             if isinstance(e, ui.expansion)
         )
 
         _press(user, "Add a background")
-        assert sceneedit_legacy.legacy_background(element) is not None
+        assert sceneedit_legacy.legacy_background(required(element)) is not None
         assert _built["designer"].expanded["background"] is True
 
         _press(user, "Remove background")
-        assert sceneedit_legacy.legacy_background(element) is None
+        assert sceneedit_legacy.legacy_background(required(element)) is None
         _press(user, "Undo")
         # Undo restores the Scene from its snapshot, so the element is looked up afresh.
         restored = sceneedit_legacy.legacy_element_at(_scene(), _sr("Text 'Label'"))
-        assert sceneedit_legacy.legacy_background(restored) is not None
+        assert sceneedit_legacy.legacy_background(required(restored)) is not None
 
 
 @pytest.mark.asyncio
@@ -830,7 +807,7 @@ async def test_an_element_that_draws_its_own_fill_is_offered_no_background() -> 
         await _select(user, "Button 'Go'")
         assert not any(
             str(e.props.get("label", "")).startswith("Background")
-            for e in user.client.elements.values()
+            for e in all_elements(user)
             if isinstance(e, ui.expansion)
         )
 
@@ -840,7 +817,7 @@ async def test_the_scene_properties_panel_points_at_the_form_it_does_not_repeat(
     async with _open() as user:
         assert any(
             str(e.props.get("label", "")) == "Scene Properties (none)"
-            for e in user.client.elements.values()
+            for e in all_elements(user)
             if isinstance(e, ui.expansion)
         )
         assert any(text.startswith("This Scene has no properties element.") for text in _texts(user))
@@ -889,7 +866,7 @@ async def test_a_scene_dialog_mounts_the_size_fields_the_properties_button_and_t
         assert {key for key, _label in sceneedit.SCENE_DIMENSION_FIELDS} <= set(fields)
         assert fields["widthPort"].value == "600"
         assert "-1 means this orientation has no layout of its own." in _texts(user)
-        assert any(isinstance(e, ui.button) and e.text.endswith("Properties") for e in user.client.elements.values())
+        assert any(isinstance(e, ui.button) and e.text.endswith("Properties") for e in all_elements(user))
         assert "Scene Elements (3)" in _texts(user)
 
 
@@ -937,17 +914,10 @@ async def test_edit_item_layout_opens_a_designer_of_its_own_over_the_same_copy()
         await _select(user, "List 'Items'")
         _press(user, "Edit item layout")
         assert any(text.startswith("Item layout:") for text in _texts(user))
-        assert "Done" in {e.text for e in user.client.elements.values() if isinstance(e, ui.button)}
+        assert "Done" in {e.text for e in all_elements(user) if isinstance(e, ui.button)}
         # Two designers are mounted at once: the outer one and the row's.
         assert (
-            len(
-                [
-                    e
-                    for e in user.client.elements.values()
-                    if isinstance(e, ui.label) and e.text.startswith("Scene Elements")
-                ]
-            )
-            == 2
+            len([e for e in all_elements(user) if isinstance(e, ui.label) and e.text.startswith("Scene Elements")]) == 2
         )
 
 
@@ -958,17 +928,17 @@ async def test_the_item_layouts_size_is_written_through_when_valid_and_refused_w
         await _select(user, "List 'Items'")
         _press(user, "Edit item layout")
         holder = sceneedit_legacy.legacy_element_at(_scene(), _sr("List 'Items'"))
-        layout = sceneedit_legacy.legacy_item_layout(holder)
+        layout = sceneedit_legacy.legacy_item_layout(required(holder))
         fields = {
             e.props.get("label"): e
-            for e in user.client.elements.values()
+            for e in all_elements(user)
             if isinstance(e, ui.input) and e.props.get("label") in ("Width (portrait)", "Height (portrait)")
         }
         assert fields, "the row's own size boxes"
         width = fields["Width (portrait)"]
         width.value = "320"
         _blur(width)
-        assert layout.findtext("widthPort") == "320"
+        assert required(layout).findtext("widthPort") == "320"
 
         width.value = "wide"
         _blur(width)
@@ -988,9 +958,9 @@ def _blur(widget: ui.input) -> None:
 async def test_a_holder_without_a_row_layout_opens_nothing() -> None:
     async with _open() as user:
         element = sceneedit_legacy.legacy_element_at(_scene(), _sr("Button 'Go'"))
-        with user.client:
-            guiwins_designer_legacy._build_item_layout_dialog(_gui(), element, lambda: None)
-        assert not any(e.text == "Done" for e in user.client.elements.values() if isinstance(e, ui.button))
+        with required(user.client):
+            guiwins_designer_legacy._build_item_layout_dialog(_gui(), required(element), lambda: None)
+        assert not any(e.text == "Done" for e in all_elements(user) if isinstance(e, ui.button))
 
 
 @pytest.mark.asyncio

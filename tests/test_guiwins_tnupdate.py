@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import threading
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.core.primitem import PrimeItems
@@ -28,6 +28,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_notify import UserNotify
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import required
 from tests.test_tnupdate import _V2, LINK, _info, _live, _share
 
 pytestmark = pytest.mark.usefixtures("_runtime")
@@ -68,7 +69,7 @@ def _patient_user(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     original = User.should_see
 
-    async def should_see(self: User, *args: object, retries: int = 40, **kwargs: object) -> None:
+    async def should_see(self: User, *args: Any, retries: int = 40, **kwargs: Any) -> None:
         await original(self, *args, retries=retries, **kwargs)
 
     monkeypatch.setattr(User, "should_see", should_see)
@@ -352,7 +353,7 @@ async def test_apply_takes_the_preview_on_screen_and_turns_its_button_green() ->
 
 def _row_text(user: User, button: ui.button) -> str:
     """The text of the row a 'Take this' button sits in."""
-    row = button.parent_slot.parent
+    row = required(button.parent_slot).parent
     return " ".join(element.text for element in row.descendants() if isinstance(element, ui.label | ui.link))
 
 
@@ -408,7 +409,7 @@ async def test_a_review_that_fails_says_why_even_though_its_own_button_was_redra
     reached: list[str] = []
     recorder = UserNotify.__call__
 
-    def notify_as_nicegui_does(self: UserNotify, message: str, **kwargs: object) -> None:
+    def notify_as_nicegui_does(self: UserNotify, message: str, **kwargs: Any) -> None:
         # The first thing the real ui.notify does, and the line that raised: the client of the slot it runs in.
         reached.append(str(context.client.id))
         recorder(self, message, **kwargs)
@@ -516,7 +517,7 @@ async def test_check_now_says_it_is_asking_taskernet_and_takes_the_notice_down_w
     events: list[str] = []
 
     class Notice:
-        def __init__(self, message: str, **kwargs: object) -> None:
+        def __init__(self, message: str, **kwargs: Any) -> None:
             events.append(f"up: {message}")
             self.kwargs = kwargs
 
@@ -623,7 +624,7 @@ def _close_of_find_links(user: User) -> ui.button:
     """The Close button inside the Find Links dialog -- found by the dialog that holds Scan, not by its place in the page."""
     element: ui.element = _only(user, "Scan")
     while not isinstance(element, ui.dialog):
-        element = element.parent_slot.parent
+        element = required(element.parent_slot).parent
     (close,) = [b for b in element.descendants() if isinstance(b, ui.button) and b.text == "Close"]
     return close
 
@@ -659,7 +660,7 @@ async def test_closing_find_links_does_not_stop_the_scan_and_a_notification_says
 
         assert user.notify.contains("carries on in the background")
         assert _book().links == {}, "it has not finished"
-        assert guiwins_tnfind.current_job().running
+        assert required(guiwins_tnfind.current_job()).running
 
         release.set()
 
@@ -725,7 +726,7 @@ async def test_a_stopped_background_scan_says_so_in_its_notification(monkeypatch
         release.set()
 
         await _until(lambda: user.notify.contains("TaskerNet scan finished"))
-        assert guiwins_tnfind.current_job().result.stopped
+        assert required(required(guiwins_tnfind.current_job()).result).stopped
 
 
 @pytest.mark.asyncio

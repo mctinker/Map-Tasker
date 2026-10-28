@@ -8,11 +8,11 @@ the calling Task instead of below it.
 
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 import pytest
 from maptasker.src.mapgen import diagarrows, diagclean
 from maptasker.src.mapgen.diagcnst import task_delimeter
+
+from tests.doubles import fake_state
 
 PLAIN = "Freeze - Long Press Dialog"
 BRACKETED = "Freeze - 🔄 Disable State [Write/Refresh]"
@@ -81,7 +81,7 @@ def test_a_connector_is_followed_through_a_row_whose_blanks_were_taken_out_for_a
         "      \u2502",
         "  \u2570\u25ba\u2500\u2500\u256f",
     ]
-    state = SimpleNamespace()
+    state = fake_state()
 
     groups = diagarrows.compute_diagram_connector_groups(lines, [(4, 6, 0)], state=state)
 
@@ -101,7 +101,7 @@ def test_a_connector_is_not_joined_to_a_neighbour_that_only_looks_adjacent_in_th
         "  \u2570\u25ba\u2500\u2500\u256f",
     ]
 
-    groups = diagarrows.compute_diagram_connector_groups(lines, [(4, 6, 0)], state=SimpleNamespace())
+    groups = diagarrows.compute_diagram_connector_groups(lines, [(4, 6, 0)], state=fake_state())
 
     assert all(row != 2 for gid in groups for row, _, _ in groups[gid])
 

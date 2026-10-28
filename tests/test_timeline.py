@@ -23,6 +23,7 @@ from __future__ import annotations
 import gzip
 from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
+from typing import Any
 
 import pytest
 from maptasker.src.analysis import diffload, timecomp
@@ -32,6 +33,8 @@ from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapgen.lineout import LineOut
+
+from tests.doubles import required
 
 _LOADED_XML = """<TaskerData sr="" dvi="1" tv="6.5.6">
   <Project sr="proj0" ve="2"><cdate>1</cdate><id>1</id><name>Home</name>
@@ -238,9 +241,9 @@ def test_since_picks_the_newest_entry_no_later_than_the_cutoff() -> None:
         timeline.record(_named(text), when=now - timedelta(days=days))
 
     assert timeline.since(now - timedelta(days=30)) is None
-    assert timeline.since(now - timedelta(days=15)).source.startswith("Alpha")
-    assert timeline.since(now - timedelta(days=5)).source.startswith("Beta")
-    assert timeline.since(now).source.startswith("Gamma")
+    assert required(timeline.since(now - timedelta(days=15))).source.startswith("Alpha")
+    assert required(timeline.since(now - timedelta(days=5))).source.startswith("Beta")
+    assert required(timeline.since(now)).source.startswith("Gamma")
 
 
 def test_snapshots_are_ordered_by_their_stamp_not_their_mtime(tmp_path) -> None:
@@ -370,7 +373,7 @@ def test_a_corrupt_snapshot_is_reported_not_raised(tmp_path) -> None:
 def test_a_history_folder_that_cannot_be_made_does_not_break_the_load(tmp_path, monkeypatch) -> None:
     """A read-only working directory costs the user the history, not the file they opened."""
 
-    def refuse(*_args: object, **_kwargs: object) -> None:
+    def refuse(*_args: Any, **_kwargs: Any) -> None:
         raise OSError("read-only file system")
 
     monkeypatch.setattr(Path, "mkdir", refuse)
@@ -393,7 +396,7 @@ def test_a_failed_write_leaves_no_half_snapshot(tmp_path, monkeypatch) -> None:
     """
     real_open = gzip.open
 
-    def fail_after_creating(path: object, *args: object, **kwargs: object) -> object:
+    def fail_after_creating(path: object, *args: Any, **kwargs: Any) -> object:
         handle = real_open(path, *args, **kwargs)
         handle.close()
         message = "disk full"
@@ -488,7 +491,7 @@ def test_all_reaches_the_oldest_snapshot_without_complaining(tmp_path) -> None:
 
     assert result.problem == ""
     assert result.note == ""
-    assert result.older.source == "old.xml"
+    assert required(result.older).source == "old.xml"
     assert result.counts["ADDED"] >= 1
 
 
@@ -522,5 +525,5 @@ def test_a_time_in_another_timezone_is_stamped_in_local_time() -> None:
 def test_every_period_cutoff_is_aware() -> None:
     """A naive cutoff next to an aware snapshot time is the TypeError this all avoids."""
     for period in (timeline.TODAY, timeline.THIS_WEEK, timeline.THIS_MONTH):
-        assert timeline.cutoff_for(period).tzinfo is not None, period
+        assert required(timeline.cutoff_for(period)).tzinfo is not None, period
     assert timeline.cutoff_for(timeline.ON_DATE, on_date=date(2026, 1, 5)) == datetime(2026, 1, 5).astimezone()

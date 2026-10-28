@@ -24,7 +24,7 @@ from maptasker.src.gui import userintr_ai
 from maptasker.src.gui.userintr import MapTaskerEventHandlers
 
 
-def _window(**changes: object) -> MagicMock:
+def _window(**changes: Any) -> MagicMock:
     """A window that is not updating, with a model dropdown holding two prefixed options."""
     window = MagicMock()
     window.state = RunState()
@@ -198,7 +198,7 @@ class _Dialog:
     def __enter__(self) -> _Dialog:
         return self
 
-    def __exit__(self, *_exc: object) -> None:
+    def __exit__(self, *_exc: Any) -> None:
         return None
 
     def __await__(self):
@@ -278,7 +278,7 @@ async def test_with_no_prompt_yet_the_built_in_one_is_offered(
 # ##################################################################################
 # The Extended checkbox
 # ##################################################################################
-def _extended_window(**changes: object) -> MagicMock:
+def _extended_window(**changes: Any) -> MagicMock:
     window = _window(
         displaying_extended_list=False,
         aimodel_extend_checkbox=MagicMock(value=True),
@@ -340,7 +340,7 @@ async def test_nothing_is_fetched_during_start_up_or_when_the_list_is_already_sh
 # ##################################################################################
 # Analyze
 # ##################################################################################
-def _analyze_window(**changes: object) -> MagicMock:
+def _analyze_window(**changes: Any) -> MagicMock:
     window = _window(
         ai_model="gpt-5",
         ai_name="OpenAI",
@@ -500,7 +500,7 @@ def build(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
             raise record.raises
         return 0
 
-    async def io_bound(function: Any, *args: object, **kwargs: object) -> object:
+    async def io_bound(function: Any, *args: Any, **kwargs: Any) -> object:
         return function(*args, **kwargs)
 
     monkeypatch.setattr(userintr_ai, "build_html", build_html)

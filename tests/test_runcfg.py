@@ -23,6 +23,7 @@ from __future__ import annotations
 import copy
 import dataclasses
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
 
 import pytest
 from maptasker.src.core.dirout import check_profile, check_project, check_scene, check_task
@@ -32,6 +33,8 @@ from maptasker.src.core.primitem import PrimeItems, get_single_item_not_found, g
 from maptasker.src.core.runcfg import RunConfig, current_config, overridden_config
 from maptasker.src.mapgen.caveats import display_caveats
 from maptasker.src.mapgen.lineout import LineOut
+
+from tests.doubles import required
 
 # One Project owning one Profile, one Task and one Scene -- enough for the directory
 # filters, which decide by asking "is this the single item that was requested, or does it
@@ -43,7 +46,7 @@ _XML = """<TaskerData>
 
 
 @pytest.fixture
-def tasker_data() -> None:
+def tasker_data() -> Iterator[None]:
     """Load the fixture XML into PrimeItems' lookup tables, and put them back after.
 
     The lookup tables are the mutable accumulator half of PrimeItems, which has
@@ -52,7 +55,7 @@ def tasker_data() -> None:
     """
     saved = PrimeItems.tasker_root_elements
     root = ET.fromstring(_XML)
-    projects = {project.find("name").text: {"xml": project} for project in root.findall("Project")}
+    projects = {required(project.find("name")).text: {"xml": project} for project in root.findall("Project")}
     PrimeItems.tasker_root_elements = {
         "all_projects": projects,
         "all_profiles": {"10": {"name": "Morning"}, "11": {"name": "Evening"}},

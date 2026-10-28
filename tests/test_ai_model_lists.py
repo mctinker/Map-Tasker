@@ -17,16 +17,19 @@ import pytest
 from maptasker.src.core import aiutils
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.gui import userintr_ai
+from maptasker.src.gui.userintr import MyGui
+
+from tests.doubles import fake_window
 
 
-def _a_window(*, initialization: bool) -> tuple[SimpleNamespace, list[str]]:
+def _a_window(*, initialization: bool) -> tuple[MyGui, list[str]]:
     """Just enough of a window for the Extended checkbox, and a note of every fetch started."""
     started = []
 
     async def extended_models_event() -> None:
         started.append("fetch")
 
-    gui = SimpleNamespace(initialization=initialization, event_handlers=SimpleNamespace(ai=SimpleNamespace()))
+    gui = fake_window(initialization=initialization, event_handlers=SimpleNamespace(ai=SimpleNamespace()))
     gui.event_handlers.ai.extended_models_event = extended_models_event
     return gui, started
 

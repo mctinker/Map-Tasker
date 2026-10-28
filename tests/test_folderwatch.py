@@ -10,11 +10,14 @@ asked to look one time at a time.
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 from maptasker.src.analysis import folderwatch
 from maptasker.src.core import timeline
+
+from tests.doubles import required
 
 _SYNTHETIC_BACKUP = Path(__file__).parent / "data" / "synthetic_backup.xml"
 _NOW = 2_000_000_000.0  # The watcher's idea of the time, in seconds since the epoch.
@@ -22,7 +25,7 @@ _SETTLED = _NOW - 60  # A file last modified a minute ago: long finished being w
 
 
 @pytest.fixture(autouse=True)
-def _history_in_a_scratch_folder(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+def _history_in_a_scratch_folder(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     """Keep the history in the test's own folder, and put it back afterwards."""
     monkeypatch.chdir(tmp_path)
     history = tmp_path / "history"
@@ -79,7 +82,7 @@ def test_the_newest_backup_is_the_most_recently_modified_one(folder: Path) -> No
     _backup(folder, "a.xml", _NOW - 100)
     _backup(folder, "z.xml", _NOW - 300)
 
-    assert folderwatch.newest_backup(folder).name == "a.xml"
+    assert required(folderwatch.newest_backup(folder)).name == "a.xml"
 
 
 def test_an_empty_or_missing_folder_has_no_newest_backup(folder: Path, tmp_path: Path) -> None:

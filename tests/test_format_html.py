@@ -19,6 +19,8 @@ from maptasker.src.core import format as fmt
 from maptasker.src.core import htmllabel, htmlsafe, htmlstyle, htmltext, mapwriter
 from maptasker.src.core.sysconst import FormatLine
 
+from tests.doubles import required
+
 _COLORS = {"background_color": "white", "action_label_color": "Black", "taskernet_color": "Blue"}
 
 
@@ -419,7 +421,7 @@ def test_contrast_runs_from_one_to_twenty_one() -> None:
     assert htmlsafe.contrast_ratio("black", "white") == pytest.approx(21.0)
     assert htmlsafe.contrast_ratio("white", "white") == pytest.approx(1.0)
     assert htmlsafe.contrast_ratio("white", "black") == htmlsafe.contrast_ratio("black", "white")
-    assert 2.0 < htmlsafe.contrast_ratio("#9090aa", "white") < 3.5
+    assert 2.0 < required(htmlsafe.contrast_ratio("#9090aa", "white")) < 3.5
 
 
 @pytest.mark.parametrize(("color", "background"), [("bogus", "white"), ("black", "bogus"), ("", "white")])
@@ -470,11 +472,11 @@ def test_a_selector_is_compounds_joined_by_combinators() -> None:
 
 
 def test_specificity_counts_ids_then_classes_then_tags() -> None:
-    assert htmlstyle.selector_specificity(htmlstyle.parse_selector("#a > p.b.c")) == (1, 2, 1)
-    assert htmlstyle.selector_specificity(htmlstyle.parse_selector("div p")) == (0, 0, 2)
-    assert htmlstyle.selector_specificity(htmlstyle.parse_selector("*")) == (0, 0, 0)
-    assert htmlstyle.selector_specificity(htmlstyle.parse_selector("#a")) > htmlstyle.selector_specificity(
-        htmlstyle.parse_selector(".a.b.c")
+    assert htmlstyle.selector_specificity(required(htmlstyle.parse_selector("#a > p.b.c"))) == (1, 2, 1)
+    assert htmlstyle.selector_specificity(required(htmlstyle.parse_selector("div p"))) == (0, 0, 2)
+    assert htmlstyle.selector_specificity(required(htmlstyle.parse_selector("*"))) == (0, 0, 0)
+    assert htmlstyle.selector_specificity(required(htmlstyle.parse_selector("#a"))) > htmlstyle.selector_specificity(
+        required(htmlstyle.parse_selector(".a.b.c"))
     )
 
 
@@ -533,11 +535,11 @@ _STACK = [("html", frozenset(), None), ("div", frozenset({"card"}), "main"), ("p
     ],
 )
 def test_a_selector_is_matched_right_to_left_against_the_open_elements(selector: str, matches: bool) -> None:
-    assert htmlstyle.selector_matches(htmlstyle.parse_selector(selector), _STACK) is matches
+    assert htmlstyle.selector_matches(required(htmlstyle.parse_selector(selector)), _STACK) is matches
 
 
 def test_nothing_matches_with_no_element_open() -> None:
-    assert htmlstyle.selector_matches(htmlstyle.parse_selector("p"), []) is False
+    assert htmlstyle.selector_matches(required(htmlstyle.parse_selector("p")), []) is False
 
 
 # ##################################################################################

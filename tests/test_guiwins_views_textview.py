@@ -13,7 +13,7 @@ import asyncio
 import contextlib
 import re
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.core import mapjump
@@ -21,11 +21,14 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import DIAGRAM_FILE
 from maptasker.src.gui import guiwins_mapstream, guiwins_textview, guiwins_views
 from maptasker.src.gui.guiwins_textview import NiceGuiTextView
+from maptasker.src.gui.userintr import MyGui
 from maptasker.src.mapgen import diagintr, mapexport
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import fake_window, required
+from tests.nicegui_harness import all_elements
 from tests.test_mapfind import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -70,14 +73,14 @@ def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _built.clear()
     _built.update(view=None, gui=None, scripts=[], answer=True, rebuilt=[], profiles=[], cleared=[], tmp=tmp_path)
 
-    def run_javascript(code: str, *_a: object, **_k: object) -> _Response:
+    def run_javascript(code: str, *_a: Any, **_k: Any) -> _Response:
         _built["scripts"].append(code)
         return _Response(_built["answer"])
 
     monkeypatch.setattr(ui, "run_javascript", run_javascript)
 
 
-def _gui(**extra: object) -> SimpleNamespace:
+def _gui(**extra: Any) -> MyGui:
     async def view_event(view_type: str) -> None:
         _built["rebuilt"].append(view_type)
 
@@ -89,7 +92,7 @@ def _gui(**extra: object) -> SimpleNamespace:
         view_event=view_event,
         settings=SimpleNamespace(profiles_per_line_event=profiles_per_line_event),
     )
-    return SimpleNamespace(
+    return fake_window(
         state=PrimeItems,
         dark_mode=False,
         profiles_per_line=3,
@@ -99,7 +102,7 @@ def _gui(**extra: object) -> SimpleNamespace:
     )
 
 
-def _make(title: str, data: object, **kwargs: object) -> Callable[[], None]:
+def _make(title: str, data: object, **kwargs: Any) -> Callable[[], None]:
     def page() -> None:
         _built["gui"] = _gui()
         _built["view"] = NiceGuiTextView(_built["gui"], title, data, **kwargs)
@@ -121,7 +124,7 @@ async def _open(page: Callable[[], None], *, settled: bool = True) -> AsyncItera
 
 
 def _all(user: User, kind: type) -> list:
-    return sorted((e for e in user.client.elements.values() if isinstance(e, kind)), key=lambda e: e.id)
+    return sorted((e for e in all_elements(user) if isinstance(e, kind)), key=lambda e: e.id)
 
 
 def _button(user: User, text: str) -> ui.button:
@@ -607,13 +610,13 @@ async def test_top_goes_to_the_start_of_both_axes_and_bottom_asks_the_browser_to
 async def test_export_runs_off_the_event_loop_and_says_where_the_file_went(monkeypatch: pytest.MonkeyPatch) -> None:
     called = []
 
-    async def io_bound(function: Callable, *args: object, **kwargs: object) -> str:
+    async def io_bound(function: Callable, *args: Any, **kwargs: Any) -> str:
         called.append((function, args, kwargs))
         return "/out/Map.md"
 
     monkeypatch.setattr(guiwins_textview.run, "io_bound", io_bound)
     async with _open(_make("Map View", {})) as user:
-        with user.client:
+        with required(user.client):
             await _built["view"].export_event(mapexport.MAP, "md")
         assert called[0][1] == (mapexport.MAP, "md")
         assert user.notify.contains("Exported to /out/Map.md")
@@ -625,14 +628,14 @@ async def test_an_export_that_cannot_be_made_or_saved_is_reported_and_one_that_r
 ) -> None:
     outcome: dict = {"value": mapexport.ExportError("There is no Map to export.")}
 
-    async def io_bound(function: Callable, *args: object, **kwargs: object) -> object:
+    async def io_bound(function: Callable, *args: Any, **kwargs: Any) -> object:
         if isinstance(outcome["value"], Exception):
             raise outcome["value"]
         return outcome["value"]
 
     monkeypatch.setattr(guiwins_textview.run, "io_bound", io_bound)
     async with _open(_make("Map View", {})) as user:
-        with user.client:
+        with required(user.client):
             await _built["view"].export_event(mapexport.MAP, "pdf")
             assert user.notify.contains("There is no Map to export.")
             outcome["value"] = OSError("disk full")

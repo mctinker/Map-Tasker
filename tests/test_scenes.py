@@ -31,6 +31,8 @@ from maptasker.src.core.runcfg import current_config
 from maptasker.src.mapgen import proclist, scenes, taskerd, varxref
 from maptasker.src.mapgen.lineout import LineOut
 
+from tests.doubles import required
+
 _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
   <Project sr="proj0"><name>Home</name><scenes>Panel,Dialog</scenes></Project>
   <Project sr="proj1"><name>Bare</name></Project>
@@ -464,13 +466,13 @@ def test_a_scene_element_finding_lands_on_that_element() -> None:
         if suspect.subject == "%NotesNobodySets"
     )
     place = finding.places[0]
-    assert place.label.endswith("Scene 'Panel' element Text 'Notes'")
-    assert place.anchor == "mt-scene-Panel-etxt1"
+    assert required(place).label.endswith("Scene 'Panel' element Text 'Notes'")
+    assert required(place).anchor == "mt-scene-Panel-etxt1"
 
     # And it lands on the line that holds the variable, not merely somewhere in the Scene.
     output = _output()
-    assert f'<a id="{place.anchor}" class="mt-anchor"' in output
-    landed_on = output[output.index(f'<a id="{place.anchor}"') :][:400]
+    assert f'<a id="{required(place).anchor}" class="mt-anchor"' in output
+    landed_on = output[output.index(f'<a id="{required(place).anchor}"') :][:400]
     assert "%NotesNobodySets" in landed_on
 
 
@@ -564,12 +566,12 @@ def test_a_v2_component_finding_lands_on_the_property_that_holds_the_variable() 
         if suspect.subject == "%V2NobodySets"
     )
     place = finding.places[0]
-    assert place.label.endswith("Scene 'Panel' component Text '%V2NobodySets' text")
-    assert place.anchor == "mt-scene-Panel-echildren%2F0%23text"
+    assert required(place).label.endswith("Scene 'Panel' component Text '%V2NobodySets' text")
+    assert required(place).anchor == "mt-scene-Panel-echildren%2F0%23text"
 
     output = _output()
-    assert f'<a id="{place.anchor}" class="mt-anchor"' in output
-    landed_on = output[output.index(f'<a id="{place.anchor}"') :][:300]
+    assert f'<a id="{required(place).anchor}" class="mt-anchor"' in output
+    landed_on = output[output.index(f'<a id="{required(place).anchor}"') :][:300]
     assert "%V2NobodySets" in landed_on
 
 

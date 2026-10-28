@@ -11,20 +11,24 @@ from __future__ import annotations
 
 import contextlib
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
 import pytest
 from maptasker.src.core import scenelayout
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sceneedit, scenemodel
+from maptasker.src.edit.sceneedit import EditableScene
 from maptasker.src.gui import guiwins_sceneview, sceneview, sceneview_v2, sceneview_v2base
 from maptasker.src.gui.guiwins_sceneview import NiceGuiSceneView
 from maptasker.src.gui.guiwins_views import NiceGuiTreeView
+from maptasker.src.gui.userintr import MyGui
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import expect, fake_window, required
+from tests.nicegui_harness import all_elements
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:
@@ -59,12 +63,12 @@ def _configuration() -> None:
 
 def _edited() -> sceneedit.EditableScene:
     if _built["version"] == "v2":
-        return sceneedit.create_new_scene("Fresh", scenemodel.SCENE_VERSION_V2, state=PrimeItems)
-    return sceneedit.load_scene_for_edit(_built["scene"], state=PrimeItems)
+        return expect(sceneedit.create_new_scene("Fresh", scenemodel.SCENE_VERSION_V2, state=PrimeItems), EditableScene)
+    return required(sceneedit.load_scene_for_edit(_built["scene"], state=PrimeItems))
 
 
 def _page() -> None:
-    gui = SimpleNamespace(font="Courier New", dark_mode=False, state=PrimeItems)
+    gui = fake_window(font="Courier New", dark_mode=False, state=PrimeItems)
     gui.content_container = ui.column()
     _built["gui"] = gui
     with gui.content_container:
@@ -91,7 +95,7 @@ def _click(user: User, element: ui.element) -> None:
 
 
 def _all(user: User, kind: type) -> list:
-    return sorted((e for e in user.client.elements.values() if isinstance(e, kind)), key=lambda e: e.id)
+    return sorted((e for e in all_elements(user) if isinstance(e, kind)), key=lambda e: e.id)
 
 
 def _button(user: User, text: str) -> ui.button:
@@ -131,17 +135,23 @@ def _editor_for_legacy(calls: list) -> dict:
 # ##################################################################################
 # The Edit Scene dialog handing the screen to a preview
 # ##################################################################################
-def _window() -> SimpleNamespace:
-    return SimpleNamespace(scene_editor_session={"dialog": "D", "name": "Panel", "suspended": False})
+def _session(window: MyGui) -> dict[str, Any]:
+    """The scene editor session the window holds, which these tests have put there."""
+    assert window.scene_editor_session is not None
+    return window.scene_editor_session
+
+
+def _window() -> MyGui:
+    return fake_window(scene_editor_session={"dialog": "D", "name": "Panel", "suspended": False})
 
 
 def test_previewing_marks_the_session_suspended_but_only_for_the_dialog_that_stepped_aside() -> None:
     gui = _window()
     guiwins_sceneview.suspend_scene_editor_session(gui, "OTHER")
-    assert gui.scene_editor_session["suspended"] is False
+    assert _session(gui)["suspended"] is False
     guiwins_sceneview.suspend_scene_editor_session(gui, "D")
-    assert gui.scene_editor_session["suspended"] is True
-    guiwins_sceneview.suspend_scene_editor_session(SimpleNamespace(), "D")  # a window with no session: nothing to mark
+    assert _session(gui)["suspended"] is True
+    guiwins_sceneview.suspend_scene_editor_session(fake_window(), "D")  # a window with no session: nothing to mark
 
 
 def test_a_suspended_editor_is_handed_back_once_and_only_for_its_own_scene() -> None:
@@ -151,14 +161,14 @@ def test_a_suspended_editor_is_handed_back_once_and_only_for_its_own_scene() -> 
     assert guiwins_sceneview.suspended_scene_editor(gui, "Other") is None
     assert guiwins_sceneview.suspended_scene_editor(gui, "Panel") == "D"
     assert guiwins_sceneview.suspended_scene_editor(gui, "Panel") is None, "marked resumed, so not handed back twice"
-    assert guiwins_sceneview.suspended_scene_editor(SimpleNamespace(), "Panel") is None
+    assert guiwins_sceneview.suspended_scene_editor(fake_window(), "Panel") is None
 
 
 def test_going_back_to_the_editor_clears_the_mark() -> None:
     gui = _window()
     guiwins_sceneview.suspend_scene_editor_session(gui, "D")
     guiwins_sceneview._resume_scene_editor_session(gui, "D")
-    assert gui.scene_editor_session["suspended"] is False
+    assert _session(gui)["suspended"] is False
     guiwins_sceneview._resume_scene_editor_session(gui, "OTHER")  # someone else's dialog: left alone
 
 
@@ -223,8 +233,10 @@ async def test_the_caption_says_the_size_the_element_count_and_what_the_picture_
 @pytest.mark.asyncio
 async def test_a_preview_opened_from_nowhere_has_no_way_back() -> None:
     def page() -> None:
-        gui = SimpleNamespace(font="x", dark_mode=False, state=PrimeItems, content_container=ui.column())
-        _built["view"] = NiceGuiSceneView(gui, sceneedit.load_scene_for_edit("Panel", state=PrimeItems), {}, None)
+        gui = fake_window(font="x", dark_mode=False, state=PrimeItems, content_container=ui.column())
+        _built["view"] = NiceGuiSceneView(
+            gui, required(sceneedit.load_scene_for_edit("Panel", state=PrimeItems)), {}, None
+        )
         _built["gui"] = gui
 
     async with _open(page) as user:
@@ -288,7 +300,7 @@ async def test_the_toggles_and_the_picklists_change_the_options_and_redraw() -> 
 async def test_an_unreadable_density_falls_back_to_the_default() -> None:
     async with _open() as user:
         view = _built["view"]
-        with user.client:
+        with required(user.client):
             view._density_selected(SimpleNamespace(value="lots"))
         assert view.options.density == sceneview.DEFAULT_DENSITY
 
@@ -330,7 +342,7 @@ async def test_back_to_editor_reopens_the_dialog_and_asks_the_designer_to_rebuil
         _click(user, _button(user, "Back to Editor"))
         assert dialog.value is True
         assert ("rerender", None) in calls
-        assert gui.scene_editor_session["suspended"] is False
+        assert _session(gui)["suspended"] is False
 
 
 # ----- the picture as an editing surface ---------------------------------------------------------------------------
@@ -448,8 +460,8 @@ async def test_a_layout_that_cannot_be_read_says_so_instead_of_drawing_nothing()
     def page() -> None:
         _built["gui"] = SimpleNamespace(font="x", dark_mode=False, state=PrimeItems, content_container=ui.column())
         edited = sceneedit.create_new_scene("Broken", scenemodel.SCENE_VERSION_V2, state=PrimeItems)
-        edited.scene_element.find("lj").text = "garbage"
-        _built["view"] = NiceGuiSceneView(_built["gui"], edited, _built["field_refs"], None)
+        required(edited.scene_element.find("lj")).text = "garbage"
+        _built["view"] = NiceGuiSceneView(_built["gui"], expect(edited, EditableScene), _built["field_refs"], None)
 
     async with _open(page) as user:
         assert any("could not be read, so there is nothing to draw" in text for text in _texts(user))
@@ -492,7 +504,7 @@ async def test_without_a_live_layout_a_version_2_picture_is_read_only() -> None:
 # The Tree view
 # ##################################################################################
 def _tree_page() -> None:
-    gui = SimpleNamespace(font="Courier New", dark_mode=False, state=PrimeItems, content_container=ui.column())
+    gui = fake_window(font="Courier New", dark_mode=False, state=PrimeItems, content_container=ui.column())
     _built["gui"] = gui
     _built["view"] = NiceGuiTreeView(gui, "Tree of Home", _built["items"])
 
@@ -554,7 +566,7 @@ async def test_a_tree_view_with_nothing_in_it_still_draws() -> None:
 @pytest.mark.asyncio
 async def test_a_tree_view_standing_alone_draws_into_a_column_of_its_own() -> None:
     def page() -> None:
-        _built["view"] = NiceGuiTreeView(SimpleNamespace(font="x", dark_mode=False, state=PrimeItems), "Alone", ["a"])
+        _built["view"] = NiceGuiTreeView(fake_window(font="x", dark_mode=False, state=PrimeItems), "Alone", ["a"])
 
     async with _open(page) as user:
         assert "Alone" in _texts(user)

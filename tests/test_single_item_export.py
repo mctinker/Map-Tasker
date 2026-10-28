@@ -13,6 +13,7 @@ renamed at any point since Tasker wrote it.
 
 from __future__ import annotations
 
+from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -104,7 +105,8 @@ def test_export_of_a_type_the_load_has_none_of_selects_nothing() -> None:
 @pytest.mark.parametrize("file_path", ["", None])
 def test_no_file_selects_nothing(file_path: str | None) -> None:
     """Cancelled picker or an unset PrimeItems.file_to_get."""
-    assert single_item_export_selection(file_path, state=PrimeItems) == ("", "")
+    # None is the input under test, though the parameter is annotated as a str.
+    assert single_item_export_selection(cast("str", file_path), state=PrimeItems) == ("", "")
 
 
 def test_an_open_file_object_is_read_the_same_as_a_path(tmp_path) -> None:

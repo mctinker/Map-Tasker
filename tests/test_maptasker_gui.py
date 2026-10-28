@@ -1,3 +1,5 @@
+from tests.doubles import required
+
 """MapTasker GUI Event Handlers Unit Tests
 
 This module contains unit tests for the MapTasker GUI event handlers, focusing on
@@ -27,6 +29,7 @@ keeps that true regardless of what an earlier test did.
 import asyncio
 import contextlib
 from datetime import date, timedelta
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
@@ -1035,9 +1038,9 @@ async def test_the_chosen_period_is_what_gets_reported(event_handler, mock_gui_i
 
     # Off the event loop: expanding and re-parsing a snapshot is megabytes of work.
     io_bound.assert_awaited_once()
-    assert io_bound.await_args[0][0] is timecomp.changes_since
+    assert required(io_bound.await_args)[0][0] is timecomp.changes_since
     # A week back, not None and not today -- the cutoff actually reflects the choice.
-    cutoff = io_bound.await_args[0][1]
+    cutoff = required(io_bound.await_args)[0][1]
     assert 6 < (clock.now() - cutoff).days < 8
     # Its own file name, so "what changed since" does not land in the same pile as
     # "how do these two files differ".
@@ -1060,7 +1063,7 @@ async def test_every_period_the_picker_offers_reaches_the_report(event_handler, 
     for period in timeline.PERIOD_LABELS:
         with _patched_timeline(result) as (io_bound, _view, _notify):
             await event_handler.reports.report_changes_since(period, chosen_date)
-        cutoff = io_bound.await_args[0][1]
+        cutoff = required(io_bound.await_args)[0][1]
         if period == timeline.ALL:
             assert cutoff is None, "All must reach back as far as the history goes"
             continue
@@ -2795,7 +2798,7 @@ def _patch_object_save_path(monkeypatch, kind: str, exists=False, upload=(0, "/T
         lambda message, **kwargs: calls["notify"].append((message, kwargs.get("type"))),
     )
 
-    def record(*args: object, **_kw: object) -> tuple:
+    def record(*args: Any, **_kw: Any) -> tuple:
         calls["uploaded"].append(args)
         return upload
 

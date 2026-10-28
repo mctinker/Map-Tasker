@@ -13,6 +13,7 @@ import asyncio
 import json
 import logging
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 import requests
@@ -90,7 +91,7 @@ class _Failing:
     def __init__(self, error: Exception) -> None:
         self.error = error
 
-    def _fail(self, *_args: object, **_kwargs: object) -> None:
+    def _fail(self, *_args: Any, **_kwargs: Any) -> None:
         raise self.error
 
     get = post = delete = _fail
@@ -217,7 +218,7 @@ class _KeyDevice:
         self.issued = 0
         self.imported_with: list[str] = []
 
-    def get(self, url: str, **_kwargs: object) -> SimpleNamespace:
+    def get(self, url: str, **_kwargs: Any) -> SimpleNamespace:
         if "/api/auth" not in url:
             return SimpleNamespace(status_code=404, content=b"")
         if self.refuses_auth:
@@ -226,7 +227,7 @@ class _KeyDevice:
         body = {"key": f"KEY{self.issued}", "authorized": True}
         return SimpleNamespace(status_code=200, content=json.dumps(body).encode(), json=lambda: body)
 
-    def post(self, url: str, **kwargs: object) -> SimpleNamespace:
+    def post(self, url: str, **kwargs: Any) -> SimpleNamespace:
         key = (kwargs.get("headers") or {}).get("Authorization", "")
         self.imported_with.append(key)
         return SimpleNamespace(status_code=200 if key == self.accepts else 401, content=b"{}")
@@ -317,7 +318,7 @@ class _Direct:
     def __init__(self) -> None:
         self.sent: list[str] = []
 
-    def get(self, url: str, **_kwargs: object) -> SimpleNamespace:
+    def get(self, url: str, **_kwargs: Any) -> SimpleNamespace:
         self.sent.append(url)
         return SimpleNamespace(status_code=404, content=b"")
 
@@ -362,7 +363,7 @@ def test_a_key_request_that_times_out_is_made_once(monkeypatch: pytest.MonkeyPat
     """A second request would put a second prompt on the device and orphan the first one's answer."""
     calls: list[dict[str, object]] = []
 
-    def slow(_url: str, **kwargs: object) -> None:
+    def slow(_url: str, **kwargs: Any) -> None:
         calls.append(kwargs)
         raise requests.exceptions.Timeout("no")
 

@@ -16,6 +16,7 @@ import sys
 import types
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
 
 import pytest
 import requests
@@ -65,7 +66,7 @@ def test_a_port_with_an_address_is_tried_and_the_socket_result_is_the_answer(mon
     tried = []
 
     class FakeSocket:
-        def __init__(self, *_: object) -> None:
+        def __init__(self, *_: Any) -> None:
             self.closed = False
 
         def connect_ex(self, server: tuple[str, int]) -> int:
@@ -128,7 +129,7 @@ def test_a_pypi_answer_that_is_not_pypis_is_no_version(monkeypatch: pytest.Monke
 
 
 def test_pypi_not_answering_is_no_version(monkeypatch: pytest.MonkeyPatch) -> None:
-    def refuse(*_: object, **__: object) -> None:
+    def refuse(*_: Any, **__: Any) -> None:
         raise requests.ConnectionError("down")
 
     monkeypatch.setattr(maputils.requests, "get", refuse)
@@ -170,7 +171,7 @@ def test_a_reply_without_a_timezone_is_none(monkeypatch: pytest.MonkeyPatch, rep
 
 
 def test_a_service_that_is_down_is_no_timezone(monkeypatch: pytest.MonkeyPatch) -> None:
-    def refuse(*_: object, **__: object) -> None:
+    def refuse(*_: Any, **__: Any) -> None:
         raise requests.Timeout("slow")
 
     monkeypatch.setattr(maputils.requests, "get", refuse)

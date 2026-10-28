@@ -31,6 +31,8 @@ from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen import proginit
 
+from tests.doubles import required
+
 
 def test_build_all_is_off() -> None:
     """The development flag is False in the source that ships.
@@ -65,7 +67,7 @@ def test_the_deferred_imports_resolve() -> None:
     assert imports, "rebuild_action_tables should import its dependencies at call time"
 
     for node in imports:
-        module = importlib.import_module(node.module)
+        module = importlib.import_module(required(node.module))
         for alias in node.names:
             assert hasattr(module, alias.name), f"{node.module} has no {alias.name}"
             assert callable(getattr(module, alias.name)), f"{node.module}.{alias.name} is not callable"

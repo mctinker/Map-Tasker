@@ -14,6 +14,7 @@ import ast
 import re
 import shutil
 import subprocess
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -31,7 +32,7 @@ def _forget_loaded_files() -> None:
 
 
 @pytest.fixture
-def fake_assets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+def fake_assets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     """An assets folder of the test's own, with the loader's caches emptied on the way in and out."""
     monkeypatch.setattr(assettext, "ASSETS_DIR", tmp_path)
     _forget_loaded_files()

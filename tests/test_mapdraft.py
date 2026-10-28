@@ -17,7 +17,7 @@ import asyncio
 import json
 from dataclasses import replace
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.analysis import mapask
@@ -25,6 +25,8 @@ from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taskedit_model, taskedit_save
 from maptasker.src.mapops import mapcards, mapdraft
+
+from tests.doubles import required
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -59,7 +61,7 @@ def _detail_prompt(
     return prompts
 
 
-def _plan(*steps: object, name: str = "", unexpressed: str = "") -> str:
+def _plan(*steps: Any, name: str = "", unexpressed: str = "") -> str:
     """A well-formed first reply.  A step is an action key, an (action, purpose) pair, or a dict of its fields."""
     listed = []
     for step in steps:
@@ -741,7 +743,7 @@ async def test_the_second_question_is_not_asked_when_there_is_nothing_to_set(bac
 
 @pytest.mark.asyncio
 async def test_the_values_in_the_first_reply_are_checked_like_any_others(backup: None) -> None:
-    async def model(*_: object) -> str:
+    async def model(*_: Any) -> str:
         return _plan(
             {"action": WAIT, "args": {"1": "soon", "2": "7"}},
             {"action": FLASH, "args": {"0": "ok", "99": "x"}},
@@ -760,7 +762,7 @@ async def test_the_values_in_the_first_reply_are_checked_like_any_others(backup:
 async def test_a_note_names_the_step_as_it_is_numbered_in_the_draft(backup: None) -> None:
     """A step taken out, or one added to close a block, must not shift what a note says."""
 
-    async def model(*_: object) -> str:
+    async def model(*_: Any) -> str:
         return _plan("Teleport", ELSE, IF, {"action": FLASH, "args": {"1": "maybe"}})
 
     draft = await mapdraft.draft_task("flash", _SETTINGS, PrimeItems, ask=model)
@@ -773,7 +775,7 @@ async def test_a_note_names_the_step_as_it_is_numbered_in_the_draft(backup: None
 async def test_the_model_is_asked_not_to_deliberate_and_not_to_take_forever(backup: None) -> None:
     seen = []
 
-    async def model(settings: mapask.ModelSettings, *_: object) -> str:
+    async def model(settings: mapask.ModelSettings, *_: Any) -> str:
         seen.append(settings)
         return _plan(ARRAY_PROCESS) if len(seen) == 1 else _detail()
 
@@ -804,7 +806,7 @@ async def test_a_model_on_this_computer_gets_the_short_prompt_and_the_second_que
 
 @pytest.mark.asyncio
 async def test_a_plan_with_nothing_usable_in_it_is_an_empty_draft_not_an_error(backup: None) -> None:
-    async def model(*_: object) -> str:
+    async def model(*_: Any) -> str:
         return _plan("Teleport", unexpressed="nothing here does that")
 
     draft = await mapdraft.draft_task("teleport me", _SETTINGS, PrimeItems, ask=model)
@@ -816,7 +818,7 @@ async def test_a_plan_with_nothing_usable_in_it_is_an_empty_draft_not_an_error(b
 
 @pytest.mark.asyncio
 async def test_an_empty_description_is_not_sent(backup: None) -> None:
-    async def model(*_: object) -> str:
+    async def model(*_: Any) -> str:
         message = "the model should not have been asked"
         raise AssertionError(message)
 
@@ -828,7 +830,7 @@ async def test_an_empty_description_is_not_sent(backup: None) -> None:
 async def test_nothing_is_drafted_with_no_backup_loaded(backup: None, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(PrimeItems, "xml_root", None)
 
-    async def model(*_: object) -> str:
+    async def model(*_: Any) -> str:
         message = "the model should not have been asked"
         raise AssertionError(message)
 
@@ -856,7 +858,7 @@ async def test_cancelling_the_draft_cancels_the_request(backup: None) -> None:
     started = asyncio.Event()
     outcome = {}
 
-    async def waiting(*_: object) -> str:
+    async def waiting(*_: Any) -> str:
         started.set()
         try:
             await asyncio.sleep(3600)
@@ -880,7 +882,7 @@ async def test_the_requested_reply_shape_reaches_the_provider(monkeypatch: pytes
     sent = {}
 
     class Messages:
-        async def create(self, **kwargs: object) -> object:
+        async def create(self, **kwargs: Any) -> object:
             sent.update(kwargs)
             return type("Reply", (), {"content": [type("Block", (), {"text": "{}"})()]})()
 
@@ -891,7 +893,7 @@ async def test_the_requested_reply_shape_reaches_the_provider(monkeypatch: pytes
         async def __aenter__(self) -> AsyncAnthropic:
             return self
 
-        async def __aexit__(self, *_: object) -> None:
+        async def __aexit__(self, *_: Any) -> None:
             return None
 
     monkeypatch.setattr(mapask, "_library", lambda *_: type("Lib", (), {"AsyncAnthropic": AsyncAnthropic}))
@@ -932,15 +934,15 @@ def test_a_draft_is_built_the_way_a_hand_added_action_is(backup: None) -> None:
     flash = task.actions[0]
     assert taskedit_apply.get_action_label(flash) == "greet"
     # In the XML, where a save reads it from...
-    assert flash.action_element.find("Str[@sr='arg0']").text == "Hello %city"
-    assert flash.action_element.find("Int[@sr='arg1']").get("val") == "1"
+    assert required(flash.action_element.find("Str[@sr='arg0']")).text == "Hello %city"
+    assert required(flash.action_element.find("Int[@sr='arg1']")).get("val") == "1"
     # ...and in what the editor shows, which is what the user reviews.
     shown = {arg.arg_id: arg.current_value for arg in flash.args}
     assert (shown["0"], shown["1"]) == ("Hello %city", "1")
     wait = {arg.arg_id: arg.current_value for arg in task.actions[1].args}
     assert wait["1"] == "5"
     array = next(arg for arg in task.actions[2].args if arg.arg_id == "1")
-    assert array.dropdown_options[int(array.current_value)] == "Reverse"
+    assert required(array.dropdown_options)[int(array.current_value)] == "Reverse"
 
 
 def test_an_argument_the_draft_leaves_out_keeps_the_editors_default(backup: None) -> None:
@@ -1000,7 +1002,7 @@ def test_an_if_condition_is_written_where_the_editor_reads_it(backup: None) -> N
 
     shown = {arg.arg_id: arg.current_value for arg in task.actions[0].args}
     assert shown["if_lhs"] == "%WIFI"
-    assert task.actions[0].args[1].dropdown_options[int(shown["if_op"])] == "Is Set"
+    assert required(task.actions[0].args[1].dropdown_options)[int(shown["if_op"])] == "Is Set"
 
 
 def test_an_if_condition_that_fails_the_editors_check_is_left_empty_and_said(backup: None) -> None:

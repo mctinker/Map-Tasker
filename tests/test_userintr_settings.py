@@ -24,6 +24,8 @@ from maptasker.src.core.sysconst import NOTIFY_TIMEOUT_DEFAULT, VIEW_LIMIT_DEFAU
 from maptasker.src.gui import userintr_settings
 from maptasker.src.gui.userintr_settings import SettingsEventHandlers
 
+from tests.doubles import fake_window, required
+
 
 class _Handlers(SettingsEventHandlers):
     """The group on its own, over a stand-in for the hub that holds the window and the run."""
@@ -235,7 +237,7 @@ def test_a_font_change_made_by_the_program_is_ignored(handlers: _Handlers, gui: 
 
 def test_the_font_label_is_not_built_when_there_is_nowhere_to_put_it(handlers: _Handlers) -> None:
     """A window with no toolbar yet is not an error."""
-    bare = SimpleNamespace(font_out_label=None, gui_view_toolbar=None)
+    bare = fake_window(font_out_label=None, gui_view_toolbar=None)
     handlers._update_font_labels(bare, "Monaco")
     assert bare.font_out_label is None
 
@@ -282,7 +284,7 @@ def test_a_duration_chosen_by_its_label_becomes_milliseconds(
     said = handlers.notify_timeout_event(SimpleNamespace(value=label))
     assert gui.notify_timeout == milliseconds
     assert timeout_set == [milliseconds]
-    assert said.startswith("Notification Duration set to")
+    assert required(said).startswith("Notification Duration set to")
 
 
 def test_a_saved_duration_restores_in_milliseconds(

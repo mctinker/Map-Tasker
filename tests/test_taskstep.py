@@ -21,6 +21,7 @@ The Task is built from small action helpers, so each test reads as the Task it i
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from maptasker.src.analysis import taskstep
@@ -78,7 +79,7 @@ def add(name: str, value: str, wrap: int = 0) -> str:
     return _act("888", _s(0, name), _s(1, value), _i(2, wrap))
 
 
-def if_(lhs: str, op: int, rhs: str = "", **kwargs: object) -> str:
+def if_(lhs: str, op: int, rhs: str = "", **kwargs: Any) -> str:
     return _act("37", extra=_cond(lhs, op, rhs, **kwargs))
 
 
@@ -146,7 +147,7 @@ def _xml(**tasks: tuple[str, ...]) -> str:
     return f'<TaskerData sr="" dvi="1" tv="6.3.13">{body}</TaskerData>'
 
 
-def walk(tmp_path: Path, *actions: str, **options: object) -> taskstep.Trace:
+def walk(tmp_path: Path, *actions: str, **options: Any) -> taskstep.Trace:
     """Load a Task made of `actions`, called 'T', and dry-run it."""
     _load_local(tmp_path, _xml(T=actions))
     trace = taskstep.step_task("T", PrimeItems, taskstep.Options(**options))

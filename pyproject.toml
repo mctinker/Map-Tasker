@@ -453,9 +453,10 @@ ignore_names = [
 ]
 
 [tool.pyright]
-# tests/ and tools/ are checked too.  The errors tests carry are mostly stand-ins handed where the real
-# type goes (a SimpleNamespace for a RunState, a MagicMock for a window), which is deliberate, so they sit in
-# scripts/pyright_baseline.json like any other and only NEW ones fail.
+# tests/ and tools/ are checked too.  A stand-in handed where the real type goes is built with tests/doubles.py
+# (fake_state, fake_window, fake_config), and a value the test knows is there with required() and expect(), so an
+# error in a test means something.  What is left -- widget doubles, attributes a fake has and the real class does
+# not, a MagicMock for a window -- sits in scripts/pyright_baseline.json like any other and only NEW ones fail.
 include = ["maptasker/main.py", "maptasker/src", "scripts", "tests", "tools"]
 typeCheckingMode = "basic"
 # Strict mode, file by file.  Basic mode is what the baseline ratchets (see above); these files are

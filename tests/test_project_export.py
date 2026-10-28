@@ -27,6 +27,8 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import projedit
 from maptasker.src.mapgen import taskerd
 
+from tests.doubles import required
+
 # Home's Scene fires Tasks no <tids> and no Profile <mid0>/<mid1> mentions -- which is the
 # whole point of bundling them -- including one from a NESTED Scene and one anonymous inline
 # Task (negative id).
@@ -126,7 +128,7 @@ def loaded() -> None:
 
 def _exported(project_name: str) -> ET.Element:
     """The <Project> element of a standalone export."""
-    return _document(project_name).find("Project")
+    return required(_document(project_name).find("Project"))
 
 
 def _document(project_name: str) -> ET.Element:
@@ -230,7 +232,7 @@ def test_a_named_scene_that_is_missing_is_skipped_not_faked() -> None:
     document = _document("Home")
 
     assert len(document.findall("Scene")) == 1
-    assert document.find("Project").findtext("scenes") == "Dialog,Gone"
+    assert required(document.find("Project")).findtext("scenes") == "Dialog,Gone"
 
 
 def test_the_display_metric_leads_the_document() -> None:
@@ -314,7 +316,7 @@ def test_an_anonymous_inline_task_is_not_chased() -> None:
     mistaken for a missing Task."""
     from maptasker.src.edit.sceneedit import scene_task_ids
 
-    assert scene_task_ids(_document("Home").find("Scene")) == ["30", "31", "32"]
+    assert scene_task_ids(required(_document("Home").find("Scene"))) == ["30", "31", "32"]
 
 
 def test_a_task_already_coming_is_not_duplicated() -> None:

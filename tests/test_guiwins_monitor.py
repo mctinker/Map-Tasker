@@ -14,17 +14,19 @@ import contextlib
 import time
 from datetime import datetime
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.analysis import diffload, livemon
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import devicemonitor
 from maptasker.src.gui import guiwins_monitor
+from maptasker.src.gui.userintr import MyGui
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import fake_window
 from tests.test_livemon import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -87,8 +89,8 @@ async def _no_diagram(script: str, timeout: float = 5) -> dict[str, int]:
     return {"nodes": 0, "lit": 0}
 
 
-def _gui() -> SimpleNamespace:
-    return SimpleNamespace(state=PrimeItems, android_last_ipaddr="192.0.2.1", android_last_port="1821")
+def _gui() -> MyGui:
+    return fake_window(state=PrimeItems, android_last_ipaddr="192.0.2.1", android_last_port="1821")
 
 
 async def _open_diagram(projects: set[str]) -> None:
@@ -316,7 +318,7 @@ async def test_a_device_that_keeps_failing_ends_the_monitoring(monkeypatch: pyte
     monkeypatch.setattr(guiwins_monitor, "_RETRY_SECONDS", 0.01)
     calls: list[int] = []
 
-    def failing(*_a: object, **_k: object) -> devicemonitor.Window:
+    def failing(*_a: Any, **_k: Any) -> devicemonitor.Window:
         calls.append(1)
         return devicemonitor.Window(ok=False, error="Connection error")
 

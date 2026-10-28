@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 import requests
@@ -160,7 +161,7 @@ def test_a_source_file_that_vanished_is_reported_not_fatal(
 ) -> None:
     real_open = open
 
-    def refuse(path: object, *args: object, **kwargs: object) -> object:
+    def refuse(path: object, *args: Any, **kwargs: Any) -> object:
         if str(path).endswith("test_guiutil2.py"):
             raise OSError("gone")
         return real_open(path, *args, **kwargs)

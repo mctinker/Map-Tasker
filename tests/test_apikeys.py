@@ -15,6 +15,7 @@ import os
 import pickle
 import stat
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 import keyring.core
@@ -54,7 +55,7 @@ def key_file(tmp_path: Path) -> Path:
 
 
 @pytest.fixture(autouse=True)
-def store(tmp_path: Path, key_file: Path, monkeypatch: pytest.MonkeyPatch) -> MemoryKeyring:
+def store(tmp_path: Path, key_file: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[MemoryKeyring]:
     """An empty in-memory password store, a private fallback file and working directory, no keys read yet."""
     backend = MemoryKeyring()
     monkeypatch.setattr(keyring.core, "_keyring_backend", backend)

@@ -21,6 +21,8 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import required
+
 pytestmark = pytest.mark.usefixtures("_runtime")
 from tests.test_trend import _at, _snapshot, config, flash, perform
 
@@ -108,7 +110,7 @@ def test_a_sparkline_draws_a_line_through_the_values_and_marks_the_last() -> Non
     assert svg.count("<polyline") == 1
     assert svg.count("<circle") == 1
     assert 'stroke="#123456"' in svg
-    points = re.search(r'points="([^"]+)"', svg)[1].split()
+    points = required(re.search(r'points="([^"]+)"', svg))[1].split()
     assert len(points) == 4
     ys = [float(point.split(",")[1]) for point in points]
     assert ys[3] < ys[0], "a higher value is drawn higher up the picture, which is a smaller y"
@@ -117,7 +119,7 @@ def test_a_sparkline_draws_a_line_through_the_values_and_marks_the_last() -> Non
 def test_a_flat_series_is_a_flat_line_in_the_middle() -> None:
     svg = guiwins_trend.sparkline_svg([4, 4, 4])
 
-    ys = {point.split(",")[1] for point in re.search(r'points="([^"]+)"', svg)[1].split()}
+    ys = {point.split(",")[1] for point in required(re.search(r'points="([^"]+)"', svg))[1].split()}
     assert len(ys) == 1
 
 

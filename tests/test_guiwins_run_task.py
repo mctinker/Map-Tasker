@@ -35,7 +35,7 @@ def run(monkeypatch: pytest.MonkeyPatch) -> Any:
     )
     monkeypatch.setattr(guiwins_taskedit, "remember_android_address_fields", lambda *a: None)
 
-    async def io_bound(function: Any, *args: object, **kwargs: object) -> object:
+    async def io_bound(function: Any, *args: Any, **kwargs: Any) -> object:
         record.ran.append(args)
         return record.result
 

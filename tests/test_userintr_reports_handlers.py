@@ -223,7 +223,7 @@ def _live_dialog(monkeypatch: pytest.MonkeyPatch, handlers: MapTaskerEventHandle
     ui = userintr_reports.ui
     inputs: list[MagicMock] = []
 
-    def make_input(*_a: object, **_k: object) -> MagicMock:
+    def make_input(*_a: Any, **_k: Any) -> MagicMock:
         field = MagicMock()
         field.classes.return_value = field
         field.value = ["192.168.1.7", "1821"][len(inputs)]
@@ -258,7 +258,7 @@ async def test_reading_live_values_hands_what_the_phone_said_to_the_report(
     handlers = _handlers()
     dialog = _live_dialog(monkeypatch, handlers)
 
-    async def io_bound(function: Any, *args: object) -> object:
+    async def io_bound(function: Any, *args: Any) -> object:
         return (0, "ok", {"%X": "1"})
 
     monkeypatch.setattr(userintr_reports.run, "io_bound", io_bound)
@@ -278,7 +278,7 @@ async def test_a_phone_that_does_not_answer_builds_no_report(
     handlers = _handlers()
     dialog = _live_dialog(monkeypatch, handlers)
 
-    async def io_bound(function: Any, *args: object) -> object:
+    async def io_bound(function: Any, *args: Any) -> object:
         return answer
 
     monkeypatch.setattr(userintr_reports.run, "io_bound", io_bound)
@@ -534,7 +534,7 @@ def since(seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> SimpleNames
         lambda period, on_date=None: record.cutoffs.append((period, on_date)) or "cutoff",
     )
 
-    async def io_bound(function: Any, *args: object, **kwargs: object) -> object:
+    async def io_bound(function: Any, *args: Any, **kwargs: Any) -> object:
         return record.result
 
     monkeypatch.setattr(userintr_reports.run, "io_bound", io_bound)
@@ -607,12 +607,12 @@ async def test_a_timeline_that_could_not_be_written_says_so(seen: SimpleNamespac
 async def test_the_comparison_file_is_the_first_one_picked(
     monkeypatch: pytest.MonkeyPatch, picked: object, expected: str
 ) -> None:
-    async def picker(directory: str, **kwargs: object) -> object:
+    async def picker(directory: str, **kwargs: Any) -> object:
         assert kwargs == {"upper_limit": "~", "multiple": False}
         return picked
 
     class _Picker:
-        def __init__(self, directory: str, **kwargs: object) -> None:
+        def __init__(self, directory: str, **kwargs: Any) -> None:
             self._answer = picker(directory, **kwargs)
 
         def __await__(self):
@@ -637,7 +637,7 @@ class _AnswerableDialog:
     def __enter__(self) -> _AnswerableDialog:
         return self
 
-    def __exit__(self, *_exc: object) -> None:
+    def __exit__(self, *_exc: Any) -> None:
         return None
 
     def submit(self, value: object) -> None:
@@ -694,7 +694,7 @@ async def test_choosing_another_file_goes_on_to_the_picker(monkeypatch: pytest.M
     monkeypatch.setattr(userintr_reports, "local_xml_start_directory", lambda gui: "/start")
 
     class _Picker:
-        def __init__(self, directory: str, **kwargs: object) -> None:
+        def __init__(self, directory: str, **kwargs: Any) -> None:
             self.directory = directory
 
         def __await__(self):

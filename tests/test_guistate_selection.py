@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from maptasker.src.core.initparg import initialize_runtime_arguments
@@ -10,6 +10,9 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import ARGUMENT_NAMES
 from maptasker.src.gui import guistate
 from maptasker.src.gui.guistate import live_selection
+from maptasker.src.gui.userintr import MyGui
+
+from tests.doubles import fake_window
 
 SELECTION_NAMES = ("single_project_name", "single_profile_name", "single_task_name", "single_scene_name")
 
@@ -43,10 +46,10 @@ def test_nothing_selected(selection_arguments: dict) -> None:
     assert live_selection(state=PrimeItems) == ("", "")
 
 
-def _stale_window(**overrides: object) -> SimpleNamespace:
+def _stale_window(**overrides: Any) -> MyGui:
     """A MyGui stand-in holding every setting, as a window built earlier in the session would."""
     settings = {**dict.fromkeys(ARGUMENT_NAMES, ""), **initialize_runtime_arguments(), **overrides}
-    return SimpleNamespace(**settings, color_lookup={}, state=PrimeItems)
+    return fake_window(**settings, color_lookup={}, state=PrimeItems)
 
 
 @pytest.fixture

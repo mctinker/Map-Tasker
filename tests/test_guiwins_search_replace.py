@@ -20,11 +20,12 @@ from maptasker.src.gui import guiwins_search
 from maptasker.src.mapops import mapswap, mapswap_action
 from nicegui import ui
 
+from tests.nicegui_harness import all_elements
 from tests.search_dialog import built, by_text, click, field, labels, open_dialog
 from tests.test_mapswap import _FIXTURE_XML, _RENAME_XML, FLASH, NOTIFY, _action, _load
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import Iterator
     from pathlib import Path
 
     from nicegui.testing.user import User
@@ -33,7 +34,7 @@ FLASH_TEXT_LABEL = "Text"
 
 
 @pytest.fixture(autouse=True)
-def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[None]:
+def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """The swap fixture loaded, an empty undo history, and a working directory of its own."""
     monkeypatch.chdir(tmp_path)
     sessundo.clear(PrimeItems)
@@ -51,14 +52,14 @@ def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIter
 
 async def _replace_tab(user: User) -> None:
     """Go to the Replace tab, as a person would."""
-    (tab,) = (e for e in user.client.elements.values() if isinstance(e, ui.tab) and e.props.get("label") == "Replace")
+    (tab,) = (e for e in all_elements(user) if isinstance(e, ui.tab) and e.props.get("label") == "Replace")
     click(user, tab)
     await asyncio.sleep(0.05)
 
 
 def _button(user: User, text: str) -> ui.button:
     """The Replace tab's button with this text: hidden or not, and the last drawn (the Find tab has its own)."""
-    found = (e for e in user.client.elements.values() if isinstance(e, ui.button) and e.text == text)
+    found = (e for e in all_elements(user) if isinstance(e, ui.button) and e.text == text)
     return max(found, key=lambda e: e.id)
 
 
@@ -68,27 +69,28 @@ def _replace_select(user: User, label: str, *, condition: bool = False) -> ui.se
     The Find tab has "Narrow to Project" too, and the action and condition rows both have "...with this one";
     the action row is drawn first, so the condition row's is the last of them.
     """
-    found = [e for e in user.client.elements.values() if isinstance(e, ui.select) and e.props.get("label") == label]
+    found = [e for e in all_elements(user) if isinstance(e, ui.select) and e.props.get("label") == label]
     return max(found, key=lambda e: e.id) if condition else min(found, key=lambda e: e.id)
 
 
 def _shown(element: ui.element) -> bool:
     """Whether this element and everything it sits in is visible."""
-    while element is not None:
-        if not element.visible:
+    current: ui.element | None = element
+    while current is not None:
+        if not current.visible:
             return False
-        element = element.parent_slot.parent if element.parent_slot is not None else None
+        current = current.parent_slot.parent if current.parent_slot is not None else None
     return True
 
 
 def _toggle(user: User) -> ui.toggle:
-    (toggle,) = (e for e in user.client.elements.values() if isinstance(e, ui.toggle))
+    (toggle,) = (e for e in all_elements(user) if isinstance(e, ui.toggle))
     return toggle
 
 
 def _ticks(user: User) -> list[ui.checkbox]:
     return sorted(
-        (e for e in user.client.elements.values() if isinstance(e, ui.checkbox) and not e.text),
+        (e for e in all_elements(user) if isinstance(e, ui.checkbox) and not e.text),
         key=lambda e: e.id,
     )
 

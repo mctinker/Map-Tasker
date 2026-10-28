@@ -18,16 +18,20 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import profedit
+from maptasker.src.edit.profedit import EditableProfile
 from maptasker.src.gui import guiwins_profedit
+from maptasker.src.gui.userintr import MyGui
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import expect, fake_window, required
+from tests.nicegui_harness import all_elements
 from tests.test_mapswap import _load
 from tests.test_profedit import _XML
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Callable
+    from collections.abc import AsyncIterator, Callable, Iterator
 
     from nicegui.testing.user import User
 
@@ -48,14 +52,14 @@ class _Recorder:
         if name in self._GROUPS:
             return self
 
-        def record(*args: object) -> None:
+        def record(*args: Any) -> None:
             self._calls.append((name, *args))
 
         return record
 
 
 @pytest.fixture(autouse=True)
-def _configuration() -> AsyncIterator[None]:
+def _configuration() -> Iterator[None]:
     """The fixture backup loaded, and a fresh record of what the dialog reported."""
     _load(_XML)
     _built.clear()
@@ -63,21 +67,21 @@ def _configuration() -> AsyncIterator[None]:
     yield
 
 
-def _gui() -> SimpleNamespace:
+def _gui() -> MyGui:
     """The window as far as these dialogs use it: the run's state and the event handlers."""
-    return SimpleNamespace(state=PrimeItems, event_handlers=_Recorder(_built["calls"]))
+    return fake_window(state=PrimeItems, event_handlers=_Recorder(_built["calls"]))
 
 
 def _edit_page() -> None:
     edited = profedit.load_profile_for_edit(_built["profile"], state=PrimeItems)
     _built["edited"] = edited
-    guiwins_profedit.build_edit_profile_dialog(_gui(), edited)
+    guiwins_profedit.build_edit_profile_dialog(_gui(), required(edited))
 
 
 def _add_page() -> None:
     created = profedit.create_new_profile("", state=PrimeItems)
     _built["edited"] = created
-    guiwins_profedit.build_add_profile_dialog(_gui(), created, _built.get("project", ""))
+    guiwins_profedit.build_add_profile_dialog(_gui(), expect(created, EditableProfile), _built.get("project", ""))
 
 
 @contextlib.asynccontextmanager
@@ -125,7 +129,7 @@ def _pickers(user: User) -> list[ui.select]:
 
 def _select(user: User, label: str) -> ui.select:
     """The select with this label, shown or not -- user.find only sees what is on screen."""
-    (found,) = (e for e in user.client.elements.values() if isinstance(e, ui.select) and e.props.get("label") == label)
+    (found,) = (e for e in all_elements(user) if isinstance(e, ui.select) and e.props.get("label") == label)
     return found
 
 
@@ -167,7 +171,7 @@ async def test_each_edit_button_reports_its_event_with_this_profile() -> None:
 @pytest.mark.asyncio
 async def test_cancel_closes_the_edit_dialog_without_reporting_anything() -> None:
     async with _open(_edit_page, "Morning") as user:
-        dialog = next(iter(user.find(kind=ui.card).elements)).parent_slot.parent
+        dialog = required(next(iter(user.find(kind=ui.card).elements)).parent_slot).parent
         dialog.open()
         _press(user, "Cancel")
         assert dialog.value is False
@@ -384,7 +388,7 @@ def _android_page() -> None:
     gui = _gui()
     guiwins_profedit.build_save_profile_to_android_dialog(
         gui,
-        profedit.load_profile_for_edit("Morning", state=PrimeItems),
+        required(profedit.load_profile_for_edit("Morning", state=PrimeItems)),
         {"name": SimpleNamespace(value="Morning")},
         SimpleNamespace(),
     )
@@ -393,7 +397,7 @@ def _android_page() -> None:
 def _delete_page() -> None:
     edited = profedit.load_profile_for_edit("Morning", state=PrimeItems)
     _built["edited"] = edited
-    guiwins_profedit.build_delete_profile_dialog(_gui(), edited, SimpleNamespace(name="parent"))
+    guiwins_profedit.build_delete_profile_dialog(_gui(), required(edited), SimpleNamespace(name="parent"))
 
 
 @pytest.mark.asyncio

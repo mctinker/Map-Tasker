@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import asyncio
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from maptasker.src.core import mapjump
 from maptasker.src.gui import guiwins_nav
+from maptasker.src.gui.userintr import MyGui
+
+from tests.doubles import fake_window
 
 # ##################################################################################
 # What is still alive
@@ -53,8 +57,8 @@ def test_a_view_is_live_if_its_scroll_area_or_tree_is() -> None:
     assert guiwins_nav.view_is_live(None) is False
 
 
-def _window(*views: object) -> SimpleNamespace:
-    return SimpleNamespace(textviews=list(views), textview=False)
+def _window(*views: Any) -> MyGui:
+    return fake_window(textviews=list(views), textview=False)
 
 
 def test_views_that_died_are_pruned_when_asked_for() -> None:
@@ -65,7 +69,7 @@ def test_views_that_died_are_pruned_when_asked_for() -> None:
 
 
 def test_a_window_that_has_shown_no_views_has_none_live() -> None:
-    assert guiwins_nav.live_views(SimpleNamespace()) == []
+    assert guiwins_nav.live_views(fake_window()) == []
 
 
 def test_a_new_view_becomes_the_current_one_and_joins_the_rest() -> None:

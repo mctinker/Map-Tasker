@@ -12,12 +12,14 @@ nothing typed is lost.
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 from unittest.mock import AsyncMock, MagicMock
+from xml.etree.ElementTree import Element
 
 import pytest
 from maptasker.src.core import scenelayout
 from maptasker.src.core.mtexcept import MapTaskerError
+from maptasker.src.core.objprops import EditableProperties
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import (
     profedit,
@@ -31,13 +33,18 @@ from maptasker.src.edit import (
     taskedit_model,
     taskedit_save,
 )
+from maptasker.src.edit.profedit import EditableProfile
+from maptasker.src.edit.projedit import EditableProject
+from maptasker.src.edit.sceneedit import EditableScene
+from maptasker.src.edit.taskedit_model import EditableTask
 from maptasker.src.gui import userintr_editors, userintr_fields, userintr_finish
 from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 
+from tests.doubles import expect, required
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
     from pathlib import Path
 
 _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
@@ -102,7 +109,7 @@ class _Notices(list):
 
 
 @pytest.fixture(autouse=True)
-def _backup() -> None:
+def _backup() -> Iterator[None]:
     sessundo.clear(PrimeItems)
     _load(_XML)
     yield
@@ -184,7 +191,7 @@ def dialog() -> MagicMock:
     return MagicMock()
 
 
-def _live_task(name: str) -> object:
+def _live_task(name: str) -> Element:
     return PrimeItems.tasker_root_elements["all_tasks_by_name"][name]["xml"]
 
 
@@ -265,34 +272,34 @@ def test_an_unrecognised_field_in_the_edit_project_dialog_fails_the_save_and_nam
 def test_scene_sizes_are_validated_together_and_written_only_when_all_are_whole_numbers() -> None:
     edited = sceneedit.load_scene_for_edit("Panel", state=PrimeItems)
     good = {"widthPort": _Widget("640"), "heightPort": _Widget(" 480 "), "widthLand": _Widget("-1")}
-    assert userintr_fields.apply_scene_field_values(edited, good) == []
-    assert edited.scene_element.findtext("widthPort") == "640"
-    assert edited.scene_element.findtext("heightPort") == "480"
+    assert userintr_fields.apply_scene_field_values(required(edited), good) == []
+    assert required(edited).scene_element.findtext("widthPort") == "640"
+    assert required(edited).scene_element.findtext("heightPort") == "480"
 
     bad = {"widthPort": _Widget("wide"), "heightPort": _Widget("700"), "widthLand": _Widget("also bad")}
-    errors = userintr_fields.apply_scene_field_values(edited, bad)
+    errors = userintr_fields.apply_scene_field_values(required(edited), bad)
     assert len(errors) == 2
-    assert edited.scene_element.findtext("heightPort") == "480", "nothing is written when anything is refused"
+    assert required(edited).scene_element.findtext("heightPort") == "480", "nothing is written when anything is refused"
 
 
 def test_a_scene_dialog_with_no_size_fields_writes_nothing() -> None:
     edited = sceneedit.load_scene_for_edit("Panel", state=PrimeItems)
-    assert userintr_fields.apply_scene_field_values(edited, {}) == []
-    assert edited.scene_element.findtext("widthPort") == "600"
+    assert userintr_fields.apply_scene_field_values(required(edited), {}) == []
+    assert required(edited).scene_element.findtext("widthPort") == "600"
 
 
 def test_the_version_2_layout_the_designer_edited_is_written_back_under_the_scenes_current_name() -> None:
     edited = sceneedit.create_new_scene("Fresh", scenemodel.SCENE_VERSION_V2, state=PrimeItems)
     layout = scenelayout.decode_v2_layout(edited.scene_element)
-    layout["root"]["id"] = "renamed_root"
-    edited.scene_element.find("nme").text = "Renamed"
+    required(layout)["root"]["id"] = "renamed_root"
+    required(edited.scene_element.find("nme")).text = "Renamed"
 
-    userintr_fields._encode_v2_layout_if_edited(edited, {"v2_layout": layout})
+    userintr_fields._encode_v2_layout_if_edited(expect(edited, EditableScene), {"v2_layout": layout})
 
     written = scenelayout.decode_v2_layout(edited.scene_element)
-    assert written["root"]["id"] == "renamed_root"
-    assert written["name"] == "Renamed", "the layout's own name follows <nme>, whichever was applied first"
-    userintr_fields._encode_v2_layout_if_edited(edited, {})  # a Legacy Scene: nothing to do
+    assert required(written)["root"]["id"] == "renamed_root"
+    assert required(written)["name"] == "Renamed", "the layout's own name follows <nme>, whichever was applied first"
+    userintr_fields._encode_v2_layout_if_edited(expect(edited, EditableScene), {})  # a Legacy Scene: nothing to do
 
 
 # ##################################################################################
@@ -429,7 +436,7 @@ def test_a_saved_copy_replaces_the_loaded_file_and_the_pulldowns_are_rebuilt_fro
     assert PrimeItems.program_arguments.file == str(copy)
     assert gui.file == str(copy)
     assert shown == [str(copy)] and refreshed == [gui]
-    PrimeItems.file_to_get.close()
+    required(PrimeItems.file_to_get).close()
 
 
 def test_a_copy_that_cannot_be_opened_or_parsed_is_reported_and_leaves_the_window_alone(
@@ -449,7 +456,7 @@ def test_a_copy_that_cannot_be_opened_or_parsed_is_reported_and_leaves_the_windo
     monkeypatch.setattr(userintr_finish, "get_the_xml_data", refuse)
     ok, error = userintr_finish.reload_saved_copy_and_refresh(gui, str(present))
     assert (ok, "code 7" in error) == (False, True)
-    PrimeItems.file_to_get.close()
+    required(PrimeItems.file_to_get).close()
 
 
 @pytest.mark.asyncio
@@ -666,7 +673,7 @@ def test_ok_keeps_the_edit_in_the_loaded_configuration_and_closes_the_dialog(
     dialog.close.assert_called_once()
 
 
-def _live_task_by_id(task_id: str) -> object:
+def _live_task_by_id(task_id: str) -> Element:
     return PrimeItems.tasker_root_elements["all_tasks"][task_id]["xml"]
 
 
@@ -824,13 +831,15 @@ def test_a_task_kept_in_the_loaded_configuration_is_registered_if_new_and_writte
     calls: dict,
 ) -> None:
     existing = _edit_task()
-    existing.task_element.find("nme").text = "Edited"
+    required(existing.task_element.find("nme")).text = "Edited"
     handlers.editors.keep_task_in_loaded_config(existing, "Edited", is_new_task=False, on_created=None)
     assert _live_task_by_id("20").findtext("nme") == "Edited"
 
     created = taskedit.create_new_task("Brand New", "", state=PrimeItems)
     made = []
-    handlers.editors.keep_task_in_loaded_config(created, "Brand New", is_new_task=True, on_created=made.append)
+    handlers.editors.keep_task_in_loaded_config(
+        expect(created, EditableTask), "Brand New", is_new_task=True, on_created=made.append
+    )
     assert "Brand New" in PrimeItems.tasker_root_elements["all_tasks_by_name"]
     assert made == [created.task_id]
     assert len(calls["refresh_tasker_object_pulldowns"]) == 2
@@ -849,7 +858,7 @@ def test_stashing_snapshots_the_widgets_into_the_task_copy_without_touching_the_
     assert "changed text" not in ET_text(_live_task("Noisy"))
 
 
-def ET_text(element: object) -> str:
+def ET_text(element: Element) -> str:
     import xml.etree.ElementTree as ET
 
     return ET.tostring(element, encoding="unicode")
@@ -875,7 +884,7 @@ def test_keeping_a_scenes_event_tasks_applies_bound_copies_and_creates_the_ones_
     key = taskedit_apply.arg_key(bound.actions[0].act_number, bound.actions[0].args[0].arg_id)
 
     composed = taskedit.create_new_task("From Event", "", state=PrimeItems)
-    taskedit.add_action_to_task(composed, "548t", state=PrimeItems)
+    taskedit.add_action_to_task(expect(composed, EditableTask), "548t", state=PrimeItems)
     empty = taskedit.create_new_task("Left Empty", "", state=PrimeItems)
 
     bound_to = []
@@ -919,11 +928,13 @@ def test_cancelling_the_scene_properties_puts_the_properties_and_the_geometry_bo
     notices: _Notices,
 ) -> None:
     edited = sceneedit.load_scene_for_edit("Panel", state=PrimeItems)
-    properties = sceneedit_legacy_properties(edited)
+    properties = sceneedit_legacy_properties(required(edited))
     snapshot = sceneedit_legacy_snapshot(properties)
     geometry = {"widthPort": _Widget("999")}
 
-    handlers.editors.discard_scene_properties_event(edited.scene_element, snapshot, {"widthPort": "600"}, geometry)
+    handlers.editors.discard_scene_properties_event(
+        required(edited).scene_element, snapshot, {"widthPort": "600"}, geometry
+    )
 
     assert geometry["widthPort"].value == "600"
     assert notices.said("Scene properties changes discarded.")
@@ -934,21 +945,24 @@ def test_cancelling_when_nothing_was_changed_is_silent(
     notices: _Notices,
 ) -> None:
     edited = sceneedit.load_scene_for_edit("Panel", state=PrimeItems)
-    snapshot = sceneedit_legacy_snapshot(sceneedit_legacy_properties(edited))
+    snapshot = sceneedit_legacy_snapshot(sceneedit_legacy_properties(required(edited)))
     handlers.editors.discard_scene_properties_event(
-        edited.scene_element, snapshot, {"widthPort": "600"}, {"widthPort": _Widget("600")}
+        required(edited).scene_element, snapshot, {"widthPort": "600"}, {"widthPort": _Widget("600")}
     )
     assert list(notices) == []
 
 
-def sceneedit_legacy_properties(edited: sceneedit.EditableScene) -> object:
+def sceneedit_legacy_properties(edited: sceneedit.EditableScene) -> EditableProperties:
     from maptasker.src.edit import sceneedit_legacy
 
     sceneedit_legacy.legacy_add_scene_properties(edited.scene_element, state=PrimeItems)
     return sceneedit_legacy.legacy_scene_properties(edited.scene_element)
 
 
-def sceneedit_legacy_snapshot(properties: object) -> object:
+T = TypeVar("T")
+
+
+def sceneedit_legacy_snapshot(properties: T) -> T:
     import copy
 
     return copy.deepcopy(properties)
@@ -962,7 +976,7 @@ def test_creating_a_scene_events_task_registers_it_binds_it_and_says_so(
     created = taskedit.create_new_task("Event Task", "", state=PrimeItems)
     bound = []
     assert handlers.editors.create_scene_event_task_event(
-        created,
+        expect(created, EditableTask),
         {"name": _Widget("Event Task"), "priority": _Widget("")},
         bound.append,
     )
@@ -979,7 +993,7 @@ def test_creating_a_scene_events_task_with_a_taken_name_creates_nothing(
     created = taskedit.create_new_task("Opener", "", state=PrimeItems)
     bound = []
     assert not handlers.editors.create_scene_event_task_event(
-        created, {"name": _Widget("Opener"), "priority": _Widget("")}, bound.append
+        expect(created, EditableTask), {"name": _Widget("Opener"), "priority": _Widget("")}, bound.append
     )
     assert bound == []
     assert notices.said("already exists")
@@ -988,7 +1002,7 @@ def test_creating_a_scene_events_task_with_a_taken_name_creates_nothing(
 # ##################################################################################
 # The Project editor
 # ##################################################################################
-def _live_project(name: str) -> object:
+def _live_project(name: str) -> Element:
     return PrimeItems.tasker_root_elements["all_projects"][name]["xml"]
 
 
@@ -1045,7 +1059,7 @@ def test_a_new_project_is_registered_selected_and_the_dialog_closes(
     dialog: MagicMock,
 ) -> None:
     created = projedit.create_new_project("", state=PrimeItems)
-    handlers.editors.keep_new_project_event(created, {"name": _Widget("  Fresh  ")}, dialog)
+    handlers.editors.keep_new_project_event(expect(created, EditableProject), {"name": _Widget("  Fresh  ")}, dialog)
     assert "Fresh" in PrimeItems.tasker_root_elements["all_projects"]
     assert calls["refresh_tasker_object_pulldowns"] and calls["select_pulldown_option"][0][0][1] == "Fresh"
     assert notices.said("Project added.")
@@ -1061,7 +1075,7 @@ def test_a_new_project_with_a_taken_or_empty_name_is_refused_and_the_dialog_stay
     name: str,
 ) -> None:
     created = projedit.create_new_project("", state=PrimeItems)
-    handlers.editors.keep_new_project_event(created, {"name": _Widget(name)}, dialog)
+    handlers.editors.keep_new_project_event(expect(created, EditableProject), {"name": _Widget(name)}, dialog)
     assert notices.of_type("negative")
     dialog.close.assert_not_called()
     assert calls["refresh_tasker_object_pulldowns"] == []
@@ -1339,7 +1353,7 @@ def test_a_bad_property_value_is_reported_and_the_form_stays_up_without_running_
     from maptasker.src.core import objprops
 
     variable = objprops.add_variable(props)
-    variable.find("pvn").text = ""
+    required(variable.find("pvn")).text = ""
     fields["var0_pvn"] = _Widget("not a variable name")
     followed = []
     handlers.editors.keep_object_properties_event(props, fields, dialog, lambda: followed.append(True))
@@ -1403,7 +1417,7 @@ def test_project_properties_are_carried_through_to_the_loaded_project(handlers: 
 # ##################################################################################
 # The Scene editor
 # ##################################################################################
-def _live_scene(name: str = "Panel") -> object:
+def _live_scene(name: str = "Panel") -> Element:
     return PrimeItems.tasker_root_elements["all_scenes"][name]["xml"]
 
 
@@ -1494,10 +1508,10 @@ def test_a_new_scene_is_registered_attached_to_its_project_and_selected(
 ) -> None:
     created = sceneedit.create_new_scene("", scenemodel.SCENE_VERSION_LEGACY, state=PrimeItems)
     handlers.editors.keep_new_scene_event(
-        created, _scene_fields(name="Fresh Scene", widthPort="320", heightPort="480"), dialog
+        expect(created, EditableScene), _scene_fields(name="Fresh Scene", widthPort="320", heightPort="480"), dialog
     )
     assert "Fresh Scene" in PrimeItems.tasker_root_elements["all_scenes"]
-    assert "Fresh Scene" in _live_project("Home").findtext("scenes")
+    assert "Fresh Scene" in (_live_project("Home").findtext("scenes") or "")
     assert notices.said("Scene added.")
     dialog.close.assert_called_once()
 
@@ -1508,9 +1522,11 @@ def test_a_new_scene_with_a_taken_name_or_a_bad_size_is_refused(
     dialog: MagicMock,
 ) -> None:
     created = sceneedit.create_new_scene("", scenemodel.SCENE_VERSION_LEGACY, state=PrimeItems)
-    handlers.editors.keep_new_scene_event(created, _scene_fields(name="Panel"), dialog)
+    handlers.editors.keep_new_scene_event(expect(created, EditableScene), _scene_fields(name="Panel"), dialog)
     assert notices.said("A Scene named 'Panel' already exists")
-    handlers.editors.keep_new_scene_event(created, _scene_fields(name="Other", widthPort="wide"), dialog)
+    handlers.editors.keep_new_scene_event(
+        expect(created, EditableScene), _scene_fields(name="Other", widthPort="wide"), dialog
+    )
     assert notices.said("must be a whole number")
     assert "Other" not in PrimeItems.tasker_root_elements["all_scenes"]
     dialog.close.assert_not_called()
@@ -1760,7 +1776,7 @@ def test_deleting_a_scene_that_does_not_exist_closes_nothing(
 # ##################################################################################
 # The Profile editor
 # ##################################################################################
-def _live_profile(name: str) -> object:
+def _live_profile(name: str) -> Element:
     return PrimeItems.tasker_root_elements["all_profiles_by_name"][name]["xml"]
 
 
@@ -1790,10 +1806,10 @@ def _profile_fields(
 def _new_profile(*, with_task: bool = True, with_condition: bool = True) -> profedit.EditableProfile:
     created = profedit.create_new_profile("", state=PrimeItems)
     if with_task:
-        profedit.link_task_to_profile(created, "21", "Entry")
+        profedit.link_task_to_profile(expect(created, EditableProfile), "21", "Entry")
     if with_condition:
-        profedit.add_condition_to_profile(created, "Time")
-    return created
+        profedit.add_condition_to_profile(expect(created, EditableProfile), "Time")
+    return expect(created, EditableProfile)
 
 
 def test_edit_profile_needs_a_selected_profile_that_resolves(
@@ -1996,14 +2012,14 @@ def test_a_third_party_plugin_condition_warns_that_its_setup_is_done_in_tasker(
 
 def test_app_entries_are_added_and_removed_on_the_condition_with_that_index(handlers: MapTaskerEventHandlers) -> None:
     edited = profedit.create_new_profile("", state=PrimeItems)
-    profedit.add_condition_to_profile(edited, "App")
+    profedit.add_condition_to_profile(expect(edited, EditableProfile), "App")
     before = len(profedit.get_app_entries(edited.conditions[0]))
-    handlers.editors.add_app_entry_event(edited, 0)
+    handlers.editors.add_app_entry_event(expect(edited, EditableProfile), 0)
     assert len(profedit.get_app_entries(edited.conditions[0])) == before + 1
-    handlers.editors.remove_app_entry_event(edited, 0, 0)
+    handlers.editors.remove_app_entry_event(expect(edited, EditableProfile), 0, 0)
     assert len(profedit.get_app_entries(edited.conditions[0])) == before
-    handlers.editors.add_app_entry_event(edited, 9)  # no such condition: nothing happens
-    handlers.editors.remove_app_entry_event(edited, 9, 0)
+    handlers.editors.add_app_entry_event(expect(edited, EditableProfile), 9)  # no such condition: nothing happens
+    handlers.editors.remove_app_entry_event(expect(edited, EditableProfile), 9, 0)
 
 
 def test_ok_on_a_profile_keeps_it_links_a_picked_but_unlinked_task_and_closes(
@@ -2169,7 +2185,7 @@ def test_ok_on_a_new_profile_registers_it_attaches_it_selects_it_and_says_it_is_
     handlers.editors.keep_new_profile_event(edited, fields, dialog)
     assert "Fresh" in PrimeItems.tasker_root_elements["all_profiles_by_name"]
     new_id = PrimeItems.tasker_root_elements["all_profiles_by_name"]["Fresh"]["id"]
-    assert new_id in _live_project("Home").findtext("pids").split(",")
+    assert new_id in required(_live_project("Home").findtext("pids")).split(",")
     assert calls["select_pulldown_option"][0][0][1] == "Fresh"
     assert notices.said("Profile kept for this session only")
     dialog.close.assert_called_once()
@@ -2268,12 +2284,12 @@ def test_a_profile_kept_in_the_loaded_configuration_is_one_undo_step(
     calls: dict,
 ) -> None:
     created = _new_profile()
-    created.profile_element.find("nme").text = "Fresh"
+    required(created.profile_element.find("nme")).text = "Fresh"
     handlers.editors.keep_profile_in_loaded_config(created, "Fresh", is_new_profile=True, project_name="Home")
     assert "Fresh" in PrimeItems.tasker_root_elements["all_profiles_by_name"]
 
     existing = _edit_profile()
-    existing.profile_element.find("nme").text = "Edited"
+    required(existing.profile_element.find("nme")).text = "Edited"
     handlers.editors.keep_profile_in_loaded_config(existing, "Edited", is_new_profile=False, project_name="")
     assert "Edited" in PrimeItems.tasker_root_elements["all_profiles_by_name"]
     assert len(calls["refresh_tasker_object_pulldowns"]) == 2
@@ -2294,8 +2310,8 @@ def _new_task_fields(name: str = "Fresh Task", save_path: str = "", project: str
 def _new_task(actions: int = 1) -> taskedit_model.EditableTask:
     created = taskedit.create_new_task("", "100", state=PrimeItems)
     for _ in range(actions):
-        taskedit.add_action_to_task(created, "548t", state=PrimeItems)
-    return created
+        taskedit.add_action_to_task(expect(created, EditableTask), "548t", state=PrimeItems)
+    return expect(created, EditableTask)
 
 
 def test_add_task_needs_a_project_then_opens_the_dialog_for_it(
@@ -2447,7 +2463,7 @@ def test_ok_on_a_new_task_registers_attaches_selects_and_says_it_is_session_only
     assert "Fresh Task" in PrimeItems.tasker_root_elements["all_tasks_by_name"]
     task_id = PrimeItems.tasker_root_elements["all_tasks_by_name"]["Fresh Task"]["id"]
     assert created == [task_id]
-    assert task_id in _live_project("Home").findtext("tids").split(",")
+    assert task_id in required(_live_project("Home").findtext("tids")).split(",")
     assert calls["select_pulldown_option"][0][0][1] == "Fresh Task"
     assert notices.said("Task kept for this session only")
     dialog.close.assert_called_once()

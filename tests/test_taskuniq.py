@@ -8,6 +8,8 @@ here is which Tasks are handed to it and what is written around them.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.runcfg import current_config
@@ -100,7 +102,7 @@ def printed(monkeypatch: pytest.MonkeyPatch) -> list:
     return calls
 
 
-def _solo(state: RunState, project: str, **config_changes: object) -> tuple:
+def _solo(state: RunState, project: str, **config_changes: Any) -> tuple:
     config = current_config(state).with_changes(**config_changes)
     return taskuniq.process_solo_task_with_no_profile("7", [], 0, False, [], False, config, state=state)
 
@@ -153,7 +155,7 @@ def test_a_low_detail_level_counts_the_task_without_printing_it(
 # ##################################################################################
 # Walking every Task
 # ##################################################################################
-def _walk(state: RunState, found: list, **settings: object) -> None:
+def _walk(state: RunState, found: list, **settings: Any) -> None:
     """Walk with these settings.  They go on the state: the walk takes its own from there."""
     for name, value in {"display_detail_level": 3, **settings}.items():
         setattr(state.program_arguments, name, value)
@@ -165,7 +167,7 @@ def walked(monkeypatch: pytest.MonkeyPatch) -> list:
     """The ids of the Tasks the walk handed over; each one 'prints' and reports no match."""
     seen: list = []
 
-    def fake(task_id: str, _found: list, count: int, have_heading: bool, *_args: object, **_kwargs: object) -> tuple:
+    def fake(task_id: str, _found: list, count: int, have_heading: bool, *_args: Any, **_kwargs: Any) -> tuple:
         seen.append(task_id)
         return have_heading, False, count + 1
 

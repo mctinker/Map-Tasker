@@ -23,6 +23,7 @@ from maptasker.src.core import editcommon, scenelayout
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sceneedit, sceneedit_legacy, scenemodel, sessundo
 
+from tests.doubles import required
 from tests.test_mapswap import _load
 
 _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
@@ -215,9 +216,9 @@ def test_a_new_version_two_scene_has_no_canvas_and_a_layout_in_its_place() -> No
     assert _tags(element) == ["cdate", "edate", "heightLand", "heightPort", "lj", "nme", "widthLand", "widthPort"]
     assert [element.findtext(tag) for tag in ("widthPort", "heightPort", "widthLand", "heightLand")] == ["-1"] * 4
     layout = scenelayout.decode_v2_layout(element)
-    assert layout["name"] == "V"
-    assert layout["root"]["type"] == "Column"
-    assert layout["root"]["children"] == []
+    assert required(layout)["name"] == "V"
+    assert required(layout)["root"]["type"] == "Column"
+    assert required(layout)["root"]["children"] == []
 
 
 @pytest.mark.parametrize(
@@ -227,8 +228,8 @@ def test_a_new_version_two_scene_has_no_canvas_and_a_layout_in_its_place() -> No
 def test_each_version_two_template_makes_the_tree_it_names(template: str, root_type: str) -> None:
     layout = scenelayout.decode_v2_layout(_new("T", "Version 2", template=template).scene_element)
 
-    assert layout["root"]["type"] == root_type
-    assert layout["name"] == "T"
+    assert required(layout)["root"]["type"] == root_type
+    assert required(layout)["name"] == "T"
 
 
 def test_a_dialog_with_buttons_reports_which_button_was_pressed() -> None:
@@ -310,7 +311,7 @@ def test_a_rename_writes_the_name_everywhere_the_scene_keeps_it() -> None:
     element = edited.scene_element
     assert element.findtext("nme") == "Beta"
     assert element.get("sr") == "sceneBeta"
-    assert scenelayout.decode_v2_layout(element)["name"] == "Beta"
+    assert required(scenelayout.decode_v2_layout(element))["name"] == "Beta"
     assert edited.scene_name == "Beta"
     assert element.findtext("edate") != "1"
 
@@ -542,7 +543,7 @@ def test_the_export_is_the_screen_metric_the_scene_and_the_tasks_it_fires_once_e
         ("Task", "Clicked"),
         ("Task", "Held"),
     ]
-    assert root.find("Scene").get("sr") == "sceneDash"
+    assert required(root.find("Scene")).get("sr") == "sceneDash"
 
 
 def test_a_backup_with_no_screen_metric_exports_without_one(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -674,7 +675,7 @@ def test_a_version_two_session_lives_in_its_layout_dict_and_cancel_reverts_that(
     original = json.loads(json.dumps(layout))
 
     # The element is untouched: the session's work is in the dict until a save encodes it.
-    layout["root"]["children"].append({"type": "Text", "id": "added"})
+    required(layout)["root"]["children"].append({"type": "Text", "id": "added"})
     assert sceneedit.revert_session(edited, snapshot, layout) is True
 
     assert layout == original

@@ -17,7 +17,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import httpx
 import pytest
@@ -54,7 +54,7 @@ def _error_text(tmp_path: Path) -> str:
 def reported() -> Callable[..., list[tuple[str, int]]]:
     """Run something that reports a failure by raising it, and say what it reported: [(message, code)]."""
 
-    def run(call: Callable[..., object], *args: object, **kwargs: object) -> list[tuple[str, int]]:
+    def run(call: Callable[..., object], *args: Any, **kwargs: Any) -> list[tuple[str, int]]:
         try:
             call(*args, **kwargs)
         except MapTaskerError as error:
@@ -309,7 +309,7 @@ def test_a_known_failure_is_explained_and_an_unknown_one_is_passed_on(
 def test_openai_is_sent_the_role_and_the_query_and_the_stream_is_joined(state: RunState) -> None:
     sent = {}
 
-    def create(**kwargs: object) -> list:
+    def create(**kwargs: Any) -> list:
         sent.update(kwargs)
         return [
             SimpleNamespace(choices=[SimpleNamespace(delta=SimpleNamespace(content=text))])
@@ -341,7 +341,7 @@ def test_the_o1_models_take_their_role_as_a_user_message(state: RunState) -> Non
 def test_anthropic_gets_room_to_think_and_only_the_text_blocks_are_kept(state: RunState) -> None:
     sent = {}
 
-    def create(**kwargs: object) -> SimpleNamespace:
+    def create(**kwargs: Any) -> SimpleNamespace:
         sent.update(kwargs)
         return SimpleNamespace(
             content=[
@@ -361,7 +361,7 @@ def test_anthropic_gets_room_to_think_and_only_the_text_blocks_are_kept(state: R
     assert sent["messages"] == [{"role": "user", "content": "the query"}]
 
 
-def _anthropic_client(**reply: object) -> SimpleNamespace:
+def _anthropic_client(**reply: Any) -> SimpleNamespace:
     message = SimpleNamespace(content=[SimpleNamespace(type="text", text="Some analysis.")], **reply)
     return SimpleNamespace(messages=SimpleNamespace(create=lambda **kwargs: message))
 
@@ -416,7 +416,7 @@ def test_a_decline_with_no_category_still_says_so(state: RunState) -> None:
 def test_gemini_is_given_no_tools_to_call(state: RunState) -> None:
     sent = {}
 
-    def generate(**kwargs: object) -> SimpleNamespace:
+    def generate(**kwargs: Any) -> SimpleNamespace:
         sent.update(kwargs)
         return SimpleNamespace(text="Gemini says.")
 
@@ -502,7 +502,7 @@ def test_a_provider_s_failure_is_put_in_words(state: RunState, model: str, messa
 # ##################################################################################
 # Starting each provider.
 # ##################################################################################
-def _library(**members: object) -> SimpleNamespace:
+def _library(**members: Any) -> SimpleNamespace:
     return SimpleNamespace(**members)
 
 
@@ -720,7 +720,7 @@ def worker(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     """The provider functions and the thread pool, replaced: what was run is recorded."""
     calls = SimpleNamespace(ran=[], said=[])
 
-    async def io_bound(function: object, *args: object, **kwargs: object) -> None:
+    async def io_bound(function: object, *args: Any, **kwargs: Any) -> None:
         calls.ran.append((function, args, kwargs))
 
     monkeypatch.setattr(mapai.run, "io_bound", io_bound)
@@ -798,7 +798,7 @@ def test_no_prompt_means_the_default_one(state: RunState, worker: SimpleNamespac
 def test_the_popup_is_closed_and_analysis_marked_done_whatever_happens(
     state: RunState, worker: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    async def failing(*_: object, **__: object) -> None:
+    async def failing(*_: Any, **__: Any) -> None:
         raise RuntimeError("worker died")
 
     monkeypatch.setattr(mapai.run, "io_bound", failing)

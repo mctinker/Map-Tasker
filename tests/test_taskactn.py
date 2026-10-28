@@ -4,10 +4,15 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from types import SimpleNamespace
+from typing import Any, cast
 
 import pytest
+from maptasker.src.core.primitem import RunState
+from maptasker.src.core.runcfg import RunConfig
 from maptasker.src.core.sysconst import FormatLine
 from maptasker.src.mapgen import taskactn
+
+from tests.doubles import fake_config, fake_state
 
 B = "&nbsp;"
 
@@ -22,8 +27,8 @@ class _Output:
         self.lines.append((level, text, format_spec))
 
 
-def _state(tasks: dict | None = None) -> SimpleNamespace:
-    return SimpleNamespace(
+def _state(tasks: dict | None = None) -> RunState:
+    return fake_state(
         output_lines=_Output(),
         tasker_root_elements={"all_tasks": tasks or {}},
         task_count_unnamed=0,
@@ -33,7 +38,7 @@ def _state(tasks: dict | None = None) -> SimpleNamespace:
     )
 
 
-def _config(**overrides: object) -> SimpleNamespace:
+def _config(**overrides: Any) -> RunConfig:
     values = {
         "pretty": False,
         "twisty": False,
@@ -41,7 +46,7 @@ def _config(**overrides: object) -> SimpleNamespace:
         "taskernet": False,
         "task_action_warning_limit": 100,
     }
-    return SimpleNamespace(**(values | overrides))
+    return fake_config(**(values | overrides))
 
 
 # ##################################################################################
@@ -77,8 +82,13 @@ def test_the_disabled_marker_hangs_further_out() -> None:
 # ##################################################################################
 # Numbering and writing the Actions
 # ##################################################################################
-def _written(state: SimpleNamespace) -> list[str]:
-    return [text for _level, text, _spec in state.output_lines.lines]
+def _lines(state: RunState) -> list[tuple[int, str, Any]]:
+    """What the double collected: _state() gives the code under test an _Output where a LineOut would be."""
+    return cast("_Output", state.output_lines).lines
+
+
+def _written(state: RunState) -> list[str]:
+    return [text for _level, text, _spec in _lines(state)]
 
 
 def test_actions_are_numbered_from_where_the_count_starts() -> None:
@@ -98,7 +108,7 @@ def test_a_continued_line_is_written_without_a_number() -> None:
     taskactn.output_list_of_actions(1, ["Flash", "...more of it"], "Task", _config(), state=state)
     assert _written(state)[:2] == ["Action: 01</span> Flash", "Action: ...more of it"]
     # The span the Action's arguments leave open is closed by the end of the line, so both kinds say so.
-    formats = [spec[2] for _level, _text, spec in state.output_lines.lines[:2]]
+    formats = [spec[2] for _level, _text, spec in _lines(state)[:2]]
     assert formats == [FormatLine.add_end_span, FormatLine.add_end_span]
 
 
@@ -111,7 +121,7 @@ def test_a_three_digit_action_gives_up_a_blank_to_stay_in_line() -> None:
 def test_each_action_carries_an_anchor_when_the_task_is_known() -> None:
     state = _state()
     taskactn.output_list_of_actions(1, ["Flash"], "Task", _config(), task_id="12", state=state)
-    anchor = state.output_lines.lines[0][2][0]
+    anchor = _lines(state)[0][2][0]
     assert anchor
     assert "12" in anchor
 
@@ -127,7 +137,7 @@ def test_the_list_is_closed_unless_twisties_do_it() -> None:
     plain, twisty = _state(), _state()
     taskactn.output_list_of_actions(1, ["Flash"], "Task", _config(), state=plain)
     taskactn.output_list_of_actions(1, ["Flash"], "Task", _config(twisty=True), state=twisty)
-    assert len(plain.output_lines.lines) == len(twisty.output_lines.lines) + 1
+    assert len(_lines(plain)) == len(_lines(twisty)) + 1
 
 
 def test_a_known_task_at_the_lowest_detail_shows_only_its_first_action() -> None:
@@ -233,7 +243,7 @@ def test_a_scene_task_closes_the_list_it_was_nested_in(monkeypatch: pytest.Monke
     def closers(list_type: str, item: str, *, twisty: bool) -> int:
         state = _state(_tasks())
         taskactn.get_task_actions_and_output(None, list_type, item, [], _config(twisty=twisty), state)
-        return sum(1 for level, _text, _spec in state.output_lines.lines if level == 3)
+        return sum(1 for level, _text, _spec in _lines(state) if level == 3)
 
     by_name = f"Wake Up{B}Task ID: 11"
     assert closers("&#45;&#45;Task:", "11", twisty=False) == closers("Task:", by_name, twisty=False) + 1

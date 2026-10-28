@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 from types import SimpleNamespace
-from typing import cast
+from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -50,7 +50,7 @@ def _message_box(handlers: MapTaskerEventHandlers) -> MagicMock:
     return cast("MagicMock", handlers.gui.display_message_box)
 
 
-async def _press(handlers: MapTaskerEventHandlers, **options: object) -> SimpleNamespace:
+async def _press(handlers: MapTaskerEventHandlers, **options: Any) -> SimpleNamespace:
     """Press the button with everything outside the handler patched; return what was patched."""
     picker, start, reader, builder, ui = _patched(**options)  # type: ignore[arg-type]
     with picker as picked, start, reader as read, builder as built, ui:

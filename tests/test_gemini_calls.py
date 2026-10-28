@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from maptasker.src.analysis import mapask
@@ -25,7 +26,7 @@ def test_the_analysis_call_turns_automatic_function_calling_off(monkeypatch: pyt
     monkeypatch.setattr(PrimeItems.program_arguments, "ai_model", "gemini-test", raising=False)
     seen: dict = {}
 
-    def generate_content(**kwargs: object) -> SimpleNamespace:
+    def generate_content(**kwargs: Any) -> SimpleNamespace:
         seen.update(kwargs)
         return SimpleNamespace(text="an answer")
 
@@ -39,7 +40,7 @@ def test_the_analysis_call_turns_automatic_function_calling_off(monkeypatch: pyt
 def test_the_ask_call_turns_automatic_function_calling_off(monkeypatch: pytest.MonkeyPatch) -> None:
     seen: dict = {}
 
-    async def generate_content(**kwargs: object) -> SimpleNamespace:
+    async def generate_content(**kwargs: Any) -> SimpleNamespace:
         seen.update(kwargs)
         return SimpleNamespace(text="{}")
 

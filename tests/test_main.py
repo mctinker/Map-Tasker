@@ -16,13 +16,14 @@ from __future__ import annotations
 import importlib
 import os
 import sys
+from collections.abc import Iterator
 
 import pytest
 from maptasker import main as entry_point
 
 
 @pytest.fixture(autouse=True)
-def _restore_sys_path() -> None:
+def _restore_sys_path() -> Iterator[None]:
     """Put sys.path back exactly as it was, whatever a test did to it."""
     original = list(sys.path)
     yield

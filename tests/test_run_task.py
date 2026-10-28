@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import re
 import xml.etree.ElementTree as ET
+from typing import Any
 from urllib.parse import unquote
 
 import pytest
@@ -20,6 +21,7 @@ from maptasker.src.core import maputil2
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import devicehelpers, devicetask, deviceverify
 
+from tests.doubles import required
 from tests.test_deviceinv import _FIXTURE_XML, _load
 
 _DEVICE = ("192.168.0.210", "1821")
@@ -62,7 +64,7 @@ class _FakeDevice:
         except re.error:
             return False
 
-    def get(self, url: str, **_kwargs: object) -> _Response:
+    def get(self, url: str, **_kwargs: Any) -> _Response:
         if "/api/auth" in url:
             self.keys_issued += 1
             auth = {"key": f"KEY{self.keys_issued}", "authorized": True}
@@ -80,12 +82,12 @@ class _FakeDevice:
             return _Response(200, self._objects_payload().encode())
         return _Response(404)
 
-    def delete(self, _url: str, **_kwargs: object) -> _Response:
+    def delete(self, _url: str, **_kwargs: Any) -> _Response:
         return _Response(404)
 
-    def post(self, url: str, data: bytes = b"", timeout: float = 0, **_kwargs: object) -> _Response:
+    def post(self, url: str, data: bytes = b"", timeout: float = 0, **_kwargs: Any) -> _Response:
         if url.endswith("/api/import"):
-            name = ET.fromstring(data).findtext(".//nme")
+            name = required(ET.fromstring(data).findtext(".//nme"))
             self.imported.append(name)
             self.tasks[name] = ""
             return _Response(200, b"{}")
@@ -237,12 +239,12 @@ def test_the_helper_runs_the_named_task_the_way_the_handler_does() -> None:
 
     task = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
     perform = task.find("Action[code='130']")
-    assert perform.findtext("Str[@sr='arg0']") == "%mt_run_task"
-    assert perform.findtext("Int[@sr='arg1']/var") == "%priority"
-    assert perform.find("Int[@sr='arg1']").get("val") is None
-    assert perform.findtext("Str[@sr='arg4']") == "%mt_run_result"
-    assert perform.find("Int[@sr='arg6']").get("val") == "1"
-    assert perform.findtext("Str[@sr='arg7']") == "!%mt_run*"
+    assert required(perform).findtext("Str[@sr='arg0']") == "%mt_run_task"
+    assert required(perform).findtext("Int[@sr='arg1']/var") == "%priority"
+    assert required(required(perform).find("Int[@sr='arg1']")).get("val") is None
+    assert required(perform).findtext("Str[@sr='arg4']") == "%mt_run_result"
+    assert required(required(perform).find("Int[@sr='arg6']")).get("val") == "1"
+    assert required(perform).findtext("Str[@sr='arg7']") == "!%mt_run*"
     assert task.findtext("Action[code='126']/Str[@sr='arg0']") == "%mt_run_result"
 
 

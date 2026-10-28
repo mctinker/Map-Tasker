@@ -15,6 +15,7 @@ from __future__ import annotations
 import os
 import unicodedata
 import xml.etree.ElementTree as ET
+from typing import Any
 
 import pytest
 from maptasker.src.core import mapjump
@@ -25,6 +26,8 @@ from maptasker.src.core.runcfg import RunConfig, current_config
 from maptasker.src.core.sysconst import DIAGRAM_FILE
 from maptasker.src.gui import guiwins_diagram, guiwins_search, guiwins_views, userintr
 from maptasker.src.mapgen import diagarrows, diagintr, diagram, diagrecord, taskerd
+
+from tests.doubles import required
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 _OTHER_PROFILE = Target(kind=PROFILE, key="11", name="Wind Down")
@@ -247,7 +250,7 @@ class _Output:
 
     output_lines: list = []  # noqa: RUF012
 
-    def add_line_to_output(self, *_args: object, **_kwargs: object) -> None:
+    def add_line_to_output(self, *_args: Any, **_kwargs: Any) -> None:
         """Swallow the line -- this test is about the diagram file, not the Map."""
 
 
@@ -419,7 +422,7 @@ def test_an_action_is_taken_to_its_tasks_line(drawn: list[str]) -> None:
     task = Target(kind=TASK, key="21", name="Backup")
 
     assert diagram_placement(task.at_action(4), state=PrimeItems) == PrimeItems.diagram_anchors[task.anchor]
-    assert _span(drawn, diagram_placement(task.at_action(4), state=PrimeItems)) == "└─ Backup"
+    assert _span(drawn, required(diagram_placement(task.at_action(4), state=PrimeItems))) == "└─ Backup"
 
 
 # ##################################################################################

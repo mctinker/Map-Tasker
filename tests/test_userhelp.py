@@ -14,6 +14,8 @@ exactly what has no other symptom.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 import pytest
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.primitem import PrimeItems
@@ -38,7 +40,7 @@ TRANSLATED_HELP_PIECES = (
 
 
 @pytest.fixture
-def german() -> None:
+def german() -> Iterator[None]:
     """The GUI's language set to German, and put back afterwards.
 
     PrimeItems._ is global state: leaving a language behind here would translate whatever

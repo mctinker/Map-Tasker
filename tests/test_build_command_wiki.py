@@ -21,6 +21,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.doubles import required
+
 if TYPE_CHECKING:
     from types import ModuleType
 
@@ -68,9 +70,9 @@ def initialize_screen(self):
 def tool() -> ModuleType:
     sys.path.insert(0, str(_TOOL.parent))
     spec = importlib.util.spec_from_file_location("build_command_wiki_under_test", _TOOL)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
+    module = importlib.util.module_from_spec(required(spec))
+    sys.modules[required(spec).name] = module
+    required(required(spec).loader).exec_module(module)
     return module
 
 

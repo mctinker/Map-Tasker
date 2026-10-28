@@ -36,6 +36,7 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sessundo
 from maptasker.src.mapops import maprestore, tnupdate
 
+from tests.doubles import required
 from tests.shared_fixtures import _load_local
 
 pytestmark = pytest.mark.usefixtures("_runtime")
@@ -510,7 +511,7 @@ def _aligned_ids(
 ) -> tnupdate.Aligned:
     link = link or _link()
     scope = tnupdate.local_scope(link, PrimeItems)
-    return tnupdate.align_share(xml, link, scope, PrimeItems, earlier)
+    return tnupdate.align_share(xml, link, required(scope), PrimeItems, earlier)
 
 
 def test_each_object_takes_the_id_of_the_one_with_its_name_and_the_anonymous_task_follows_its_profile() -> None:

@@ -12,11 +12,15 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+from collections.abc import Iterator
 from types import SimpleNamespace
 
 import pytest
 from maptasker.src import mapit
+from maptasker.src.core.primitem import RunState
 from nicegui import app
+
+from tests.doubles import fake_state
 
 
 class _Client:
@@ -39,13 +43,13 @@ class _Monitor:
         self.abandoned += 1
 
 
-def _state(monitor: _Monitor | None) -> SimpleNamespace:
+def _state(monitor: _Monitor | None) -> RunState:
     dialog = SimpleNamespace(monitor=monitor) if monitor is not None else None
-    return SimpleNamespace(mygui=SimpleNamespace(monitor_dialog=dialog))
+    return fake_state(mygui=SimpleNamespace(monitor_dialog=dialog))
 
 
 @pytest.fixture(autouse=True)
-def _short_waits(monkeypatch: pytest.MonkeyPatch) -> None:
+def _short_waits(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     monkeypatch.setattr(mapit, "DISCONNECT_GRACE_SECONDS", 0.05)
     monkeypatch.setattr(mapit, "_reconnect_timeout", lambda: 0.05)
     mapit._waiting.clear()
@@ -146,7 +150,7 @@ async def test_a_client_that_is_already_deleted_is_left_alone() -> None:
 @pytest.mark.asyncio
 async def test_with_no_monitor_or_no_window_a_disconnect_is_just_a_wait() -> None:
     await mapit._on_client_disconnect(_Client(), _state(None))
-    await mapit._on_client_disconnect(_Client("x"), SimpleNamespace(mygui=None))
+    await mapit._on_client_disconnect(_Client("x"), fake_state(mygui=None))
 
 
 def test_the_wait_is_longer_than_nicegus_own_reconnect_timeout() -> None:
@@ -166,8 +170,8 @@ def test_the_timeout_is_the_one_ui_run_was_given_or_nicegus_default(monkeypatch:
 def test_the_handlers_are_registered_once_and_nicegui_can_call_them() -> None:
     before = (len(app._disconnect_handlers), len(app._connect_handlers))
 
-    mapit.install_disconnect_handling(SimpleNamespace(mygui=None))
-    mapit.install_disconnect_handling(SimpleNamespace(mygui=None))
+    mapit.install_disconnect_handling(fake_state(mygui=None))
+    mapit.install_disconnect_handling(fake_state(mygui=None))
 
     after = (len(app._disconnect_handlers), len(app._connect_handlers))
     assert after[0] - before[0] <= 1

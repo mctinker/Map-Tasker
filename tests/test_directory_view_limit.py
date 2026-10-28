@@ -14,6 +14,8 @@ order in the table.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 import pytest
 from maptasker.src.core.dirout import do_tasker_element, do_trailing_matters, unreachable_anchors
 from maptasker.src.core.primitem import PrimeItems
@@ -27,7 +29,7 @@ def anchor(anchor_id: str) -> str:
 
 
 @pytest.fixture
-def output_lines() -> LineOut:
+def output_lines() -> Iterator[LineOut]:
     """A fresh output queue for the directory to be written into, restored afterwards."""
     saved_lines, saved_items = PrimeItems.output_lines, PrimeItems.directory_items
     PrimeItems.output_lines = LineOut()

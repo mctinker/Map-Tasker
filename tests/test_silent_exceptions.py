@@ -9,12 +9,13 @@ expected case (still quietly handled) and the unexpected one (no longer hidden).
 from __future__ import annotations
 
 import logging
-from types import SimpleNamespace
 
 import pytest
 from maptasker.src.core.maputil2 import suppress_logged
 from maptasker.src.gui.guiutils import _set_single_item_name
 from maptasker.src.mapgen.actionr import get_results_in_arg_order
+
+from tests.doubles import fake_window
 
 
 # ---------------------------------------------------------------- suppress_logged
@@ -68,7 +69,7 @@ def test_a_malformed_value_is_no_longer_taken_for_a_missing_one() -> None:
 
 # ---------------------------------------------------------------- the single-item pulldowns
 def test_no_pulldown_yet_is_a_quiet_return(caplog: pytest.LogCaptureFixture) -> None:
-    window = SimpleNamespace(specific_name_msg="")  # a window whose widgets are not built
+    window = fake_window(specific_name_msg="")  # a window whose widgets are not built
     defaults = {"display_only": "Display only ", "project": "None", "profile": "None", "task": "None", "scene": "None"}
 
     with caplog.at_level(logging.DEBUG, logger="MapTasker"):
@@ -85,7 +86,7 @@ def test_an_error_inside_the_pulldown_is_no_longer_hidden() -> None:
             msg = "a real bug"
             raise AttributeError(msg)
 
-    window = SimpleNamespace(specific_name_msg="", specific_task_optionmenu=Broken())
+    window = fake_window(specific_name_msg="", specific_task_optionmenu=Broken())
     defaults = {"display_only": "Display only ", "project": "None", "profile": "None", "task": "None", "scene": "None"}
 
     with pytest.raises(AttributeError, match="a real bug"):

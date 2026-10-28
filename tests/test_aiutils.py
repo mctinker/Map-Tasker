@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from types import ModuleType, SimpleNamespace
+from typing import Any
 
 import pytest
 from maptasker.src.core import aiutils
+
+from tests.doubles import fake_state
 
 
 @pytest.fixture(autouse=True)
@@ -49,7 +52,7 @@ class _Ollama:
         return [{"status": "pulling"}, {"status": "pulling"}, {"status": "success"}, {}]
 
 
-def _provide(monkeypatch: pytest.MonkeyPatch, **packages: object) -> None:
+def _provide(monkeypatch: pytest.MonkeyPatch, **packages: Any) -> None:
     monkeypatch.setattr(aiutils, "import_optional", lambda name, _module: packages.get(name))
 
 
@@ -89,7 +92,7 @@ def test_a_server_that_cannot_be_launched_says_why(monkeypatch: pytest.MonkeyPat
     _provide(monkeypatch, ollama=_Ollama(answers=[ConnectionError("down")]))
     monkeypatch.setattr(aiutils.shutil, "which", lambda _name: "/usr/bin/ollama")
 
-    def refuse(*_args: object, **_kwargs: object) -> None:
+    def refuse(*_args: Any, **_kwargs: Any) -> None:
         raise OSError("exec format error")
 
     monkeypatch.setattr(aiutils.subprocess, "Popen", refuse)
@@ -276,12 +279,12 @@ def test_an_answer_of_the_wrong_shape_leaves_the_built_in_list(
 # The cloud providers
 # ##################################################################################
 def test_no_openai_key_means_the_built_in_list() -> None:
-    assert aiutils.get_openai_models(SimpleNamespace(ai={})) == aiutils.OPENAI_MODELS
+    assert aiutils.get_openai_models(fake_state(ai={})) == aiutils.OPENAI_MODELS
 
 
 def test_no_openai_package_means_the_built_in_list(monkeypatch: pytest.MonkeyPatch) -> None:
     _provide(monkeypatch)
-    assert aiutils.get_openai_models(SimpleNamespace(ai={"openai_key": "k"})) == aiutils.OPENAI_MODELS
+    assert aiutils.get_openai_models(fake_state(ai={"openai_key": "k"})) == aiutils.OPENAI_MODELS
 
 
 def _openai(models: list[str] | Exception) -> ModuleType:
@@ -307,7 +310,7 @@ def _openai(models: list[str] | Exception) -> ModuleType:
 def test_openai_models_are_filtered_to_the_ones_that_write_text(monkeypatch: pytest.MonkeyPatch) -> None:
     ids = ["gpt-5", "gpt-5-realtime", "whisper-1", "o3", "text-embedding-3", "gpt-4o-audio", "dall-e-3"]
     _provide(monkeypatch, openai=_openai(ids))
-    listed = aiutils.get_openai_models(SimpleNamespace(ai={"openai_key": "k"}))
+    listed = aiutils.get_openai_models(fake_state(ai={"openai_key": "k"}))
     assert listed == ["gpt-5", "o3"]
 
 
@@ -315,22 +318,22 @@ def test_an_openai_error_gives_the_built_in_list(
     monkeypatch: pytest.MonkeyPatch, _errors_are_connection_errors: list[str]
 ) -> None:
     _provide(monkeypatch, openai=_openai(RuntimeError("bad key")))
-    assert aiutils.get_openai_models(SimpleNamespace(ai={"openai_key": "k"})) == aiutils.OPENAI_MODELS
+    assert aiutils.get_openai_models(fake_state(ai={"openai_key": "k"})) == aiutils.OPENAI_MODELS
     assert any("bad key" in line for line in _errors_are_connection_errors)
 
 
 def test_an_empty_openai_answer_gives_the_built_in_list(monkeypatch: pytest.MonkeyPatch) -> None:
     _provide(monkeypatch, openai=_openai([]))
-    assert aiutils.get_openai_models(SimpleNamespace(ai={"openai_key": "k"})) == aiutils.OPENAI_MODELS
+    assert aiutils.get_openai_models(fake_state(ai={"openai_key": "k"})) == aiutils.OPENAI_MODELS
 
 
 def test_no_anthropic_key_means_the_built_in_list() -> None:
-    assert aiutils.get_anthropic_models(SimpleNamespace(ai={})) == sorted(aiutils.ANTHROPIC_EXTENDED_MODELS)
+    assert aiutils.get_anthropic_models(fake_state(ai={})) == sorted(aiutils.ANTHROPIC_EXTENDED_MODELS)
 
 
 def test_no_anthropic_package_means_the_built_in_list(monkeypatch: pytest.MonkeyPatch) -> None:
     _provide(monkeypatch)
-    assert aiutils.get_anthropic_models(SimpleNamespace(ai={"anthropic_key": "k"})) == sorted(
+    assert aiutils.get_anthropic_models(fake_state(ai={"anthropic_key": "k"})) == sorted(
         aiutils.ANTHROPIC_EXTENDED_MODELS
     )
 
@@ -357,12 +360,12 @@ def _anthropic(ids: list[str] | Exception) -> ModuleType:
 
 def test_anthropic_models_are_what_the_key_can_use(monkeypatch: pytest.MonkeyPatch) -> None:
     _provide(monkeypatch, anthropic=_anthropic(["claude-b", "claude-a", "claude-a", "other-model"]))
-    assert aiutils.get_anthropic_models(SimpleNamespace(ai={"anthropic_key": "k"})) == ["claude-a", "claude-b"]
+    assert aiutils.get_anthropic_models(fake_state(ai={"anthropic_key": "k"})) == ["claude-a", "claude-b"]
 
 
 def test_an_anthropic_answer_with_no_claude_model_gives_the_built_in_list(monkeypatch: pytest.MonkeyPatch) -> None:
     _provide(monkeypatch, anthropic=_anthropic(["other-model"]))
-    assert aiutils.get_anthropic_models(SimpleNamespace(ai={"anthropic_key": "k"})) == sorted(
+    assert aiutils.get_anthropic_models(fake_state(ai={"anthropic_key": "k"})) == sorted(
         aiutils.ANTHROPIC_EXTENDED_MODELS
     )
 
@@ -371,7 +374,7 @@ def test_an_anthropic_error_gives_the_built_in_list(
     monkeypatch: pytest.MonkeyPatch, _errors_are_connection_errors: list[str]
 ) -> None:
     _provide(monkeypatch, anthropic=_anthropic(RuntimeError("no network")))
-    assert aiutils.get_anthropic_models(SimpleNamespace(ai={"anthropic_key": "k"})) == sorted(
+    assert aiutils.get_anthropic_models(fake_state(ai={"anthropic_key": "k"})) == sorted(
         aiutils.ANTHROPIC_EXTENDED_MODELS
     )
     assert any("no network" in line for line in _errors_are_connection_errors)
@@ -411,28 +414,28 @@ def test_gemini_models_keep_only_the_ones_that_generate_text(monkeypatch: pytest
             )
         },
     )
-    assert aiutils.get_gemini_models(SimpleNamespace(ai={"gemini_key": "k"})) == ["gemini-2.5-pro"]
+    assert aiutils.get_gemini_models(fake_state(ai={"gemini_key": "k"})) == ["gemini-2.5-pro"]
 
 
 def test_no_gemini_key_means_the_built_in_list() -> None:
-    assert aiutils.get_gemini_models(SimpleNamespace(ai={"gemini_key": ""})) == aiutils.GEMINI_MODELS
+    assert aiutils.get_gemini_models(fake_state(ai={"gemini_key": ""})) == aiutils.GEMINI_MODELS
 
 
 def test_no_gemini_package_means_the_built_in_list(monkeypatch: pytest.MonkeyPatch) -> None:
     _provide(monkeypatch)
-    assert aiutils.get_gemini_models(SimpleNamespace(ai={"gemini_key": "k"})) == aiutils.GEMINI_MODELS
+    assert aiutils.get_gemini_models(fake_state(ai={"gemini_key": "k"})) == aiutils.GEMINI_MODELS
 
 
 def test_an_empty_gemini_answer_gives_the_built_in_list(monkeypatch: pytest.MonkeyPatch) -> None:
     _provide(monkeypatch, **{"google-genai": _genai(None)})
-    assert aiutils.get_gemini_models(SimpleNamespace(ai={"gemini_key": "k"})) == aiutils.GEMINI_MODELS
+    assert aiutils.get_gemini_models(fake_state(ai={"gemini_key": "k"})) == aiutils.GEMINI_MODELS
 
 
 def test_gemini_with_nothing_usable_says_so(
     monkeypatch: pytest.MonkeyPatch, _errors_are_connection_errors: list[str]
 ) -> None:
     _provide(monkeypatch, **{"google-genai": _genai([("imagen-4", ["generateContent"])])})
-    assert aiutils.get_gemini_models(SimpleNamespace(ai={"gemini_key": "k"})) == []
+    assert aiutils.get_gemini_models(fake_state(ai={"gemini_key": "k"})) == []
     assert any("No Gemini models found" in line for line in _errors_are_connection_errors)
 
 
@@ -441,13 +444,13 @@ def test_gemini_with_nothing_usable_says_so(
 # ##################################################################################
 def test_with_no_saved_keys_the_ai_settings_are_left_alone(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(aiutils, "load_api_keys", lambda: {"api_key": "", "openai_key": ""})
-    state = SimpleNamespace(ai={"api_key": "keep"})
+    state = fake_state(ai={"api_key": "keep"})
     assert aiutils.get_api_key(state) == "None"
     assert state.ai == {"api_key": "keep"}
 
 
 def test_saved_keys_are_copied_into_the_ai_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(aiutils, "load_api_keys", lambda: {"api_key": "secret", "openai_key": "other"})
-    state = SimpleNamespace(ai={})
+    state = fake_state(ai={})
     assert aiutils.get_api_key(state) == "secret"
     assert state.ai["openai_key"] == "other"

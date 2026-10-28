@@ -21,6 +21,7 @@ from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import readiness
 from nicegui import ui
 
+from tests.doubles import required
 from tests.test_gui_window import _button, _click, _open_window
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.usefixtures("fresh_session")]
@@ -62,7 +63,7 @@ async def _open_edit_project(user, gui) -> None:
     _load_configuration()
     edited = projedit.load_project_for_edit("Home", state=gui.state)
     with user.client:
-        guiwins_project.build_edit_project_dialog(gui, edited)
+        guiwins_project.build_edit_project_dialog(gui, required(edited))
 
 
 async def test_the_button_sits_with_the_redact_box_in_the_project_dialog() -> None:

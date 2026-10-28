@@ -25,7 +25,7 @@ from nicegui.testing.user_simulation import user_simulation
 from tests.test_mapfix import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Callable
+    from collections.abc import AsyncIterator, Callable, Iterator
     from pathlib import Path
 
     from nicegui.testing.user import User
@@ -34,7 +34,7 @@ _built: dict = {}
 
 
 @pytest.fixture(autouse=True)
-def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[None]:
+def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """The fixture configuration, an empty undo history, and a working directory of its own."""
     monkeypatch.chdir(tmp_path)
     sessundo.clear(PrimeItems)

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 import pytest
 from maptasker.src.mapgen import diagutil
 
-ENGLISH = SimpleNamespace(language="English")
+from tests.doubles import fake_config
+
+ENGLISH = fake_config(language="English")
 
 
 # ##################################################################################
@@ -260,12 +260,12 @@ def test_a_box_holding_cjk_text_is_widened_for_it() -> None:
 
 def test_the_no_profile_box_is_translated_for_other_languages(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(diagutil, "translate_string", lambda text: "Kein Profil")
-    lines, _ = diagutil.build_box("No Profile", ["", "", ""], SimpleNamespace(language="German"))
+    lines, _ = diagutil.build_box("No Profile", ["", "", ""], fake_config(language="German"))
     assert "Kein Profil" in lines[1]
 
 
 @pytest.mark.parametrize("language", ["English", "Arabic"])
 def test_the_no_profile_box_is_left_alone_in_english_and_arabic(monkeypatch: pytest.MonkeyPatch, language: str) -> None:
     monkeypatch.setattr(diagutil, "translate_string", lambda text: pytest.fail("not translated"))
-    lines, _ = diagutil.build_box("No Profile", ["", "", ""], SimpleNamespace(language=language))
+    lines, _ = diagutil.build_box("No Profile", ["", "", ""], fake_config(language=language))
     assert "No Profile" in lines[1]

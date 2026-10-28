@@ -7,6 +7,9 @@ from types import SimpleNamespace
 
 import pytest
 from maptasker.src.core import elemvals
+from maptasker.src.core.primitem import RunState
+
+from tests.doubles import fake_state
 
 
 def _element(inner: str = "") -> ET.Element:
@@ -63,9 +66,9 @@ def test_keep_device_awake_is_reported_when_present() -> None:
     assert elemvals.get_awake(_element()) == ""
 
 
-def _state(*, pretty: bool) -> object:
+def _state(*, pretty: bool) -> RunState:
     """The one part of a run these functions read."""
-    return SimpleNamespace(program_arguments=SimpleNamespace(pretty=pretty))
+    return fake_state(program_arguments=SimpleNamespace(pretty=pretty))
 
 
 def test_no_kid_app_says_nothing() -> None:

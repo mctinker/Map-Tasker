@@ -9,6 +9,7 @@ page of NiceGUI's in-process user simulation.
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from maptasker.src.analysis import impact
@@ -16,6 +17,8 @@ from maptasker.src.core.primitem import RunState
 from maptasker.src.gui import guiwins_impact
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
+
+from tests.doubles import fake_window
 
 _drawn: dict = {}
 
@@ -126,7 +129,7 @@ async def test_the_scan_is_asked_about_what_the_delete_will_do(monkeypatch: pyte
     """Kind and name pass straight through, and keep_contents reaches the analysis."""
     asked: dict = {}
 
-    def fake(kind: str, name: str, **kwargs: object) -> impact.Impact:
+    def fake(kind: str, name: str, **kwargs: Any) -> impact.Impact:
         asked.update(kind=kind, name=name, **kwargs)
         return impact.Impact("x")
 
@@ -152,7 +155,7 @@ def test_the_wiring_is_installed_by_polling_until_the_browser_has_the_panel(monk
         guiwins_impact.ui, "timer", lambda delay, callback, **kwargs: timers.append((delay, callback, kwargs))
     )
     monkeypatch.setattr(guiwins_impact.ui, "run_javascript", sent.append)
-    gui = SimpleNamespace()
+    gui = fake_window()
 
     guiwins_impact.wire_impact_clicks(gui, SimpleNamespace(id=42))
 

@@ -7,6 +7,8 @@ from types import SimpleNamespace
 
 from maptasker.src.core.share import share
 
+from tests.doubles import fake_state
+
 
 def _output(*lines: str) -> SimpleNamespace:
     """The Map's output so far, and the one method share() adds to it with."""
@@ -20,7 +22,7 @@ def _output(*lines: str) -> SimpleNamespace:
 def test_a_doubled_line_break_at_the_end_is_taken_out_by_position() -> None:
     """The clean-up removed it with list.remove(index), which looks for a VALUE equal to the index
     and so raised ValueError whenever there was a doubled break to remove."""
-    state = SimpleNamespace(output_lines=_output("heading", "<br>", "<br>"))
+    state = fake_state(output_lines=_output("heading", "<br>", "<br>"))
 
     share(ET.fromstring("<Task><Share/></Task>"), "tasktab", config=None, state=state)
 
@@ -30,7 +32,7 @@ def test_a_doubled_line_break_at_the_end_is_taken_out_by_position() -> None:
 
 
 def test_a_single_line_break_is_left_alone() -> None:
-    state = SimpleNamespace(output_lines=_output("heading", "<br>"))
+    state = fake_state(output_lines=_output("heading", "<br>"))
 
     share(ET.fromstring("<Task><Share/></Task>"), "tasktab", config=None, state=state)
 
@@ -38,7 +40,7 @@ def test_a_single_line_break_is_left_alone() -> None:
 
 
 def test_a_task_without_a_share_element_writes_nothing() -> None:
-    state = SimpleNamespace(output_lines=_output("heading"))
+    state = fake_state(output_lines=_output("heading"))
 
     share(ET.fromstring("<Task/>"), "tasktab", config=None, state=state)
 

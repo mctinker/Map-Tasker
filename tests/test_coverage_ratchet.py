@@ -12,10 +12,12 @@ import pathlib
 
 import pytest
 
+from tests.doubles import required
+
 _ROOT = pathlib.Path(__file__).resolve().parent.parent
 _SPEC = importlib.util.spec_from_file_location("coverage_ratchet", _ROOT / "scripts" / "coverage_ratchet.py")
-ratchet = importlib.util.module_from_spec(_SPEC)
-_SPEC.loader.exec_module(ratchet)
+ratchet = importlib.util.module_from_spec(required(_SPEC))
+required(required(_SPEC).loader).exec_module(ratchet)
 
 
 def _report(**files: tuple[int, int, int, int]) -> dict:

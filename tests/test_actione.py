@@ -6,15 +6,17 @@ import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 
 import pytest
-from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.primitem import PrimeItems, RunState
 from maptasker.src.mapgen import actione
+
+from tests.doubles import fake_state
 
 BLANK = "&nbsp;"
 NAME = '<span class="action_name_color">{}</span>'
 
 
-def _state(*, pretty: bool) -> object:
-    return SimpleNamespace(program_arguments=SimpleNamespace(pretty=pretty))
+def _state(*, pretty: bool) -> RunState:
+    return fake_state(program_arguments=SimpleNamespace(pretty=pretty))
 
 
 def _element(text: str) -> ET.Element:

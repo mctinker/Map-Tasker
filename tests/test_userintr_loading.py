@@ -11,6 +11,8 @@ from maptasker.src.core.sysconst import ALL_OBJECTS_MESSAGE
 from maptasker.src.gui import userintr_loading
 from maptasker.src.gui.userintr_loading import LoadingEventHandlers
 
+from tests.doubles import fake_window
+
 
 # ##################################################################################
 # Where the file picker opens
@@ -61,18 +63,18 @@ def _untranslated(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_a_selection_is_summarised_by_name() -> None:
-    said = userintr_loading._single_item_selection_message(SimpleNamespace(), "Task", "Wake Up")
+    said = userintr_loading._single_item_selection_message(fake_window(), "Task", "Wake Up")
     assert said == "Display only Task 'Wake Up'."
 
 
 def test_clearing_the_only_selection_says_everything_is_shown() -> None:
-    gui = SimpleNamespace(single_project_name="", single_profile_name="", single_task_name="", single_scene_name="")
+    gui = fake_window(single_project_name="", single_profile_name="", single_task_name="", single_scene_name="")
     assert userintr_loading._single_item_selection_message(gui, "Task", "None") == ALL_OBJECTS_MESSAGE
 
 
 def test_clearing_one_selection_while_another_is_still_set_reports_the_other() -> None:
     """The four are meant to be exclusive; if one somehow is not, the line must not claim everything is shown."""
-    gui = SimpleNamespace(single_project_name="Home", single_profile_name="", single_task_name="", single_scene_name="")
+    gui = fake_window(single_project_name="Home", single_profile_name="", single_task_name="", single_scene_name="")
     assert userintr_loading._single_item_selection_message(gui, "Task", "None") == "Display only Project 'Home'."
 
 

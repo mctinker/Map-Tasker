@@ -16,6 +16,8 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import all_elements
+
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
@@ -90,12 +92,12 @@ def select(user: User, label: str) -> ui.select:
 
     The Replace tab labels some of its pulldowns the same way, so this takes the first drawn: the Find tab's.
     """
-    found = (e for e in user.client.elements.values() if isinstance(e, ui.select) and e.props.get("label") == label)
+    found = (e for e in all_elements(user) if isinstance(e, ui.select) and e.props.get("label") == label)
     return min(found, key=lambda e: e.id)
 
 
 def field(user: User, label: str) -> ui.input:
-    found = (e for e in user.client.elements.values() if isinstance(e, ui.input) and e.props.get("label") == label)
+    found = (e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("label") == label)
     return min(found, key=lambda e: e.id)
 
 

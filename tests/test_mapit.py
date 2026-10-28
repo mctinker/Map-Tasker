@@ -10,7 +10,9 @@ from types import SimpleNamespace
 import pytest
 from maptasker.src import mapit
 from maptasker.src.core import console
-from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.primitem import PrimeItems, RunState
+
+from tests.doubles import fake_state
 
 
 def _crash() -> tuple[type, BaseException, object]:
@@ -124,8 +126,8 @@ def started(monkeypatch: pytest.MonkeyPatch) -> list[str]:
     return calls
 
 
-def _fresh_state() -> SimpleNamespace:
-    return SimpleNamespace(
+def _fresh_state() -> RunState:
+    return fake_state(
         slash="",
         colors_to_use={},
         file_to_get=None,
@@ -200,7 +202,7 @@ def test_a_crash_hook_is_installed_with_the_state_bound(monkeypatch: pytest.Monk
     monkeypatch.setattr(mapit.app, "on_startup", lambda _handler: None)
     monkeypatch.setattr(sys, "excepthook", sys.excepthook)
     monkeypatch.setattr(mapit, "crash_debug", False)
-    state = SimpleNamespace(colors_to_use=[], program_arguments=SimpleNamespace(debug=True), output_lines=None)
+    state = fake_state(colors_to_use=[], program_arguments=SimpleNamespace(debug=True), output_lines=None)
 
     assert mapit.initialize_everything(state) == ([], [], [])
 
@@ -215,9 +217,7 @@ def test_a_unit_test_run_starts_with_no_colours(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setattr(mapit.app, "on_startup", lambda _handler: None)
     monkeypatch.setattr(sys, "excepthook", sys.excepthook)
     monkeypatch.setattr(sys, "argv", ["maptasker", "-test=yes"])
-    state = SimpleNamespace(
-        colors_to_use=["leftover"], program_arguments=SimpleNamespace(debug=False), output_lines=None
-    )
+    state = fake_state(colors_to_use=["leftover"], program_arguments=SimpleNamespace(debug=False), output_lines=None)
 
     mapit.initialize_everything(state)
 

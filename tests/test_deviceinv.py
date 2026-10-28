@@ -27,6 +27,7 @@ import re
 import sys
 import time
 import xml.etree.ElementTree as ET
+from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
 import pytest
@@ -44,7 +45,10 @@ from maptasker.src.device import (
     deviceverify,
 )
 from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taskedit_args, taskedit_model, taskedit_save
+from maptasker.src.edit.taskedit_model import EditableTask
 from maptasker.src.mapgen import taskerd
+
+from tests.doubles import expect, required
 
 LAUNCH_APP = "20t"  # App=arg0
 KILL_APP = "18t"  # App=arg0
@@ -429,10 +433,10 @@ def test_a_synthesized_launch_app_writes_the_xml_tasker_writes(loaded: None) -> 
     worth doing rather than just letting the field be typed into.
     """
     edited_task = taskedit.create_new_task("Opener2", "3", state=PrimeItems)
-    taskedit.add_action_to_task(edited_task, LAUNCH_APP, state=PrimeItems)
+    taskedit.add_action_to_task(expect(edited_task, EditableTask), LAUNCH_APP, state=PrimeItems)
 
     errors = taskedit_apply.apply_edits_to_task(
-        edited_task,
+        expect(edited_task, EditableTask),
         "Opener2",
         "3",
         {taskedit_apply.arg_key(0, "0"): f"{WHATSAPP}, {MAPS}"},
@@ -441,18 +445,18 @@ def test_a_synthesized_launch_app_writes_the_xml_tasker_writes(loaded: None) -> 
     assert errors == []
 
     app_element = edited_task.task_element.find(".//App[@sr='arg0']")
-    assert app_element.findtext("appPkg") == f"{WHATSAPP}, {MAPS}"
-    assert app_element.findtext("appClass") == "com.whatsapp.Main, com.google.android.maps.MapsActivity"
-    assert app_element.findtext("label") == "WhatsApp, Maps"
+    assert required(app_element).findtext("appPkg") == f"{WHATSAPP}, {MAPS}"
+    assert required(app_element).findtext("appClass") == "com.whatsapp.Main, com.google.android.maps.MapsActivity"
+    assert required(app_element).findtext("label") == "WhatsApp, Maps"
 
 
 def test_a_synthesized_notify_writes_its_icon(loaded: None) -> None:
     """The Icon counterpart, and the one place the <Img> is built from nothing at all."""
     edited_task = taskedit.create_new_task("Noisy2", "3", state=PrimeItems)
-    taskedit.add_action_to_task(edited_task, NOTIFY, state=PrimeItems)
+    taskedit.add_action_to_task(expect(edited_task, EditableTask), NOTIFY, state=PrimeItems)
 
     errors = taskedit_apply.apply_edits_to_task(
-        edited_task,
+        expect(edited_task, EditableTask),
         "Noisy2",
         "3",
         {taskedit_apply.arg_key(0, "2"): f"spreadsheet@{CRYSTAL}"},
@@ -461,9 +465,9 @@ def test_a_synthesized_notify_writes_its_icon(loaded: None) -> None:
     assert errors == []
 
     img_element = edited_task.task_element.find(".//Img[@sr='arg2']")
-    assert img_element.attrib["ve"] == "2"
-    assert img_element.findtext("nme") == "spreadsheet"
-    assert img_element.findtext("pkg") == CRYSTAL
+    assert required(img_element).attrib["ve"] == "2"
+    assert required(img_element).findtext("nme") == "spreadsheet"
+    assert required(img_element).findtext("pkg") == CRYSTAL
 
 
 def test_an_existing_action_offers_its_app_as_a_picker(loaded: None) -> None:
@@ -471,7 +475,7 @@ def test_an_existing_action_offers_its_app_as_a_picker(loaded: None) -> None:
     as a field holding the packages it already names.
     """
     edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
-    launch_action = edited_task.actions[0]
+    launch_action = required(edited_task).actions[0]
     app_arg = launch_action.args[0]
 
     assert app_arg.widget_kind == "app_picker"
@@ -526,7 +530,7 @@ class _FakeRequests:
     def _record(self, verb: str, url: str) -> None:
         self.calls.append((verb, url))
 
-    def get(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def get(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self._record("GET", url)
         if "/api/auth" in url:
             return _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}')
@@ -539,14 +543,14 @@ class _FakeRequests:
             return _FakeResponse(200, self.payload.encode())
         return _FakeResponse(404)
 
-    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+    def post(self, url: str, **kwargs: Any) -> _FakeResponse:
         self._record("POST", url)
         if "/api/import" in url:
             self.imported_xml = kwargs.get("data", b"").decode()
             self.task_installed = True  # Tasker committed it, so the re-check now finds it.
         return _FakeResponse(200, b"{}")
 
-    def delete(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def delete(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self._record("DELETE", url)
         return _FakeResponse(404)  # Nothing there yet -- which http_delete_request calls success.
 
@@ -624,7 +628,7 @@ def test_the_helper_task_maptasker_installs_is_the_one_it_meant_to(device: _Fake
     # Packages and activities in bulk; labels are no longer one of them -- that is the
     # whole point of the loop.
     list_types = [
-        action.find("Int[@sr='arg0']").attrib["val"] for action in actions if action.findtext("code") == "815"
+        required(action.find("Int[@sr='arg0']")).attrib["val"] for action in actions if action.findtext("code") == "815"
     ]
     assert list_types == ["0", "2"]  # Package, Activity
 
@@ -632,13 +636,13 @@ def test_the_helper_task_maptasker_installs_is_the_one_it_meant_to(device: _Fake
     assert codes.count("40") == 1  # End For
     assert codes.count("344") == 1  # Test App
     test_app = next(action for action in actions if action.findtext("code") == "344")
-    assert test_app.find("Int[@sr='arg0']").attrib["val"] == "8"  # 'App Name'
+    assert required(test_app.find("Int[@sr='arg0']")).attrib["val"] == "8"  # 'App Name'
     assert test_app.findtext("Str[@sr='arg1']") == "%mtapp"  # the package being asked about
 
     writes = [action for action in actions if action.findtext("code") == "410"]
     assert len(writes) == 8
-    assert writes[0].find("Int[@sr='arg2']").attrib["val"] == "0"  # first write truncates
-    assert all(write.find("Int[@sr='arg2']").attrib["val"] == "1" for write in writes[1:])  # rest append
+    assert required(writes[0].find("Int[@sr='arg2']")).attrib["val"] == "0"  # first write truncates
+    assert all(required(write.find("Int[@sr='arg2']")).attrib["val"] == "1" for write in writes[1:])  # rest append
     assert writes[0].findtext("Str[@sr='arg1']") == "MAPTASKER-APPS 1"
     assert writes[-1].findtext("Str[@sr='arg1']") == "MAPTASKER-END"
 
@@ -1138,7 +1142,7 @@ class _FakeFileListRequests:
         self.task_installed = task_installed
         self.imported_xml = ""
 
-    def get(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def get(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self.calls.append(("GET", url))
         if "/api/auth" in url:
             return _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}')
@@ -1151,14 +1155,14 @@ class _FakeFileListRequests:
             return _FakeResponse(200, self.payload.encode())
         return _FakeResponse(404)
 
-    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+    def post(self, url: str, **kwargs: Any) -> _FakeResponse:
         self.calls.append(("POST", url))
         if "/api/import" in url:
             self.imported_xml = kwargs.get("data", b"").decode()
             self.task_installed = True
         return _FakeResponse(200, b"{}")
 
-    def delete(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def delete(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self.calls.append(("DELETE", url))
         return _FakeResponse(404)
 
@@ -1230,7 +1234,7 @@ def test_the_imported_task_lists_xml_under_the_tasker_directory(file_list_device
     assert list_files.findtext("Str[@sr='arg1']") == devicefiles.FILE_LIST_DIRECTORY
     assert list_files.findtext("Str[@sr='arg2']") == "Files"
     assert list_files.findtext("Str[@sr='arg3']") == "*xml"
-    assert list_files.find("Int[@sr='arg5']").get("val") == "1"  # Recurse
+    assert required(list_files.find("Int[@sr='arg5']")).get("val") == "1"  # Recurse
 
 
 def test_the_imported_task_writes_a_payload_this_can_read_back(
@@ -1250,7 +1254,7 @@ def test_the_imported_task_writes_a_payload_this_can_read_back(
         "%lfp_full_path",
         "MAPTASKER-END",
     ]
-    assert [write.find("Int[@sr='arg2']").get("val") for write in writes] == ["0", "1", "1", "1"]
+    assert [required(write.find("Int[@sr='arg2']")).get("val") for write in writes] == ["0", "1", "1", "1"]
 
 
 def test_a_device_that_never_writes_the_file_is_an_error(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1447,7 +1451,7 @@ class _FakeImportRequests:
         # so the fake has to be told which one it is standing in for.
         self.result_filename = "maptasker_import.txt"
 
-    def get(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def get(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self.calls.append(("GET", url))
         if "/api/auth" in url:
             return _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}')
@@ -1482,11 +1486,11 @@ class _FakeImportRequests:
             return _FakeResponse(200, self.payload.encode())
         return _FakeResponse(404)
 
-    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+    def post(self, url: str, **kwargs: Any) -> _FakeResponse:
         self.calls.append(("POST", url))
         if "/api/import" in url:
             self.imported_xml = kwargs.get("data", b"").decode()
-            self.installed_tasks.add(ET.fromstring(self.imported_xml).findtext(".//Task/nme"))
+            self.installed_tasks.add(required(ET.fromstring(self.imported_xml).findtext(".//Task/nme")))
         elif "/upload" in url:
             files = kwargs.get("files", {})
             self.uploaded_filename = next(iter(files))
@@ -1498,7 +1502,7 @@ class _FakeImportRequests:
             self.installed_profiles |= self.profiles_after
         return _FakeResponse(200, b"{}")
 
-    def delete(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def delete(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self.calls.append(("DELETE", url))
         return _FakeResponse(404)
 
@@ -1516,7 +1520,7 @@ def import_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
     return fake
 
 
-def _import(device: _FakeImportRequests, **kwargs: object) -> tuple[int, str]:
+def _import(device: _FakeImportRequests, **kwargs: Any) -> tuple[int, str]:
     """The call under test, with the risk acknowledged -- see import_profile_to_device."""
     return deviceimport.import_profile_to_device(
         _STAGED_PROFILE_XML, "Watched", "192.168.0.210", "1821", acknowledged_risk=True, **kwargs, state=PrimeItems
@@ -1590,7 +1594,7 @@ def test_a_staged_profile_still_settling_is_read_back_again(monkeypatch: pytest.
             super().__init__()
             self.stage_misses = 0
 
-        def get(self, url: str, **kwargs: object) -> _FakeResponse:
+        def get(self, url: str, **kwargs: Any) -> _FakeResponse:
             if self.uploaded and ".prf.xml" in url and self.stage_misses == 0:
                 self.stage_misses += 1
                 self.calls.append(("GET", url))
@@ -1620,7 +1624,7 @@ def test_a_staged_profile_that_never_lands_still_stops_the_import(monkeypatch: p
         """Answers every read of the staged file with something other than what was sent --
         a device still holding the previous version of that path looks exactly like this."""
 
-        def get(self, url: str, **kwargs: object) -> _FakeResponse:
+        def get(self, url: str, **kwargs: Any) -> _FakeResponse:
             if self.uploaded and ".prf.xml" in url:
                 self.calls.append(("GET", url))
                 return _FakeResponse(200, b"<TaskerData>something else</TaskerData>")
@@ -1655,12 +1659,12 @@ def test_the_import_task_hands_the_staged_xml_to_import_data(import_device: _Fak
     # %par1, not a path: one installed Task, told which file at run time -- see below.
     assert read_file.findtext("Str[@sr='arg0']") == "%par1"
     assert read_file.findtext("Str[@sr='arg1']") == "%mtimport_xml"
-    assert read_file.find("Int[@sr='arg2']").get("val") == "0"  # verbatim, not structured
+    assert required(read_file.find("Int[@sr='arg2']")).get("val") == "0"  # verbatim, not structured
 
     import_data = imported.find(".//Action[code='153']")
     assert import_data is not None
-    assert import_data.find("Int[@sr='arg0']").get("val") == "1"  # Configuration
-    assert import_data.find("Int[@sr='arg1']").get("val") == "0"  # Source, as api/import sends
+    assert required(import_data.find("Int[@sr='arg0']")).get("val") == "1"  # Configuration
+    assert required(import_data.find("Int[@sr='arg1']")).get("val") == "0"  # Source, as api/import sends
     assert import_data.findtext("Str[@sr='arg2']") == "%mtimport_xml"
 
 
@@ -1692,7 +1696,7 @@ def test_the_import_task_reports_only_after_it_has_imported(import_device: _Fake
     writes = imported.findall(".//Action[code='410']")
     assert [write.findtext("Str[@sr='arg1']") for write in writes][0] == "MAPTASKER-IMPORT 1"
     assert [write.findtext("Str[@sr='arg1']") for write in writes][-1] == "MAPTASKER-END"
-    assert [write.find("Int[@sr='arg2']").get("val") for write in writes] == ["0", "1", "1", "1"]
+    assert [required(write.find("Int[@sr='arg2']")).get("val") for write in writes] == ["0", "1", "1", "1"]
 
 
 def test_a_profile_tasker_already_has_is_refused(import_device: _FakeImportRequests) -> None:
@@ -1787,7 +1791,7 @@ def test_the_source_argument_can_be_changed_without_editing_the_builder(
     assert not isinstance(built, str), built
 
     imported = ET.fromstring(taskedit_save.render_standalone_task_xml(built, state=PrimeItems))
-    assert imported.find(".//Action[code='153']/Int[@sr='arg1']").get("val") == "1"
+    assert required(imported.find(".//Action[code='153']/Int[@sr='arg1']")).get("val") == "1"
 
 
 def test_a_different_experiment_installs_a_differently_named_task(import_device: _FakeImportRequests) -> None:
@@ -1805,7 +1809,7 @@ def test_a_different_experiment_installs_a_differently_named_task(import_device:
     # Installed anyway, because it is not the same Task.
     assert any(verb == "POST" and "/api/import" in url for verb, url in import_device.calls)
     imported = ET.fromstring(import_device.imported_xml)
-    assert imported.find(".//Action[code='153']/Int[@sr='arg0']").get("val") == "0"  # Task
+    assert required(imported.find(".//Action[code='153']/Int[@sr='arg0']")).get("val") == "0"  # Task
     assert imported.findtext(".//Task/nme") == f"{deviceimport.IMPORT_PROFILE_TASK_NAME} [Task/0]"
 
 
@@ -1846,7 +1850,7 @@ def open_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
     return fake
 
 
-def _open(device: _FakeImportRequests, **kwargs: object) -> tuple[int, str]:
+def _open(device: _FakeImportRequests, **kwargs: Any) -> tuple[int, str]:
     return deviceoffer.open_profile_on_device(
         _STAGED_PROFILE_XML, "Watched", "192.168.0.210", "1821", **kwargs, state=PrimeItems
     )
@@ -2103,12 +2107,12 @@ def test_the_intent_is_the_shape_real_backups_use(intent_device: _FakeImportRequ
     intent = imported.find(".//Action[code='877']")
     assert intent is not None
     assert intent.findtext("Str[@sr='arg0']") == "android.intent.action.VIEW"
-    assert intent.find("Int[@sr='arg1']").get("val") == "0"  # Cat: None
+    assert required(intent.find("Int[@sr='arg1']")).get("val") == "0"  # Cat: None
     assert intent.findtext("Str[@sr='arg2']") == "text/xml"
     assert intent.findtext("Str[@sr='arg3']") == "file://%par1"  # told which file at run time
     assert intent.findtext("Str[@sr='arg7']") == "net.dinglisch.android.taskerm"
     assert intent.findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
-    assert intent.find("Int[@sr='arg9']").get("val") == "1"  # Target: Activity
+    assert required(intent.find("Int[@sr='arg9']")).get("val") == "1"  # Target: Activity
 
 
 def test_choosing_a_route_changes_which_task_runs(intent_device: _FakeImportRequests) -> None:
@@ -2193,7 +2197,7 @@ def test_the_endpoint_reaches_the_request(monkeypatch: pytest.MonkeyPatch) -> No
     asked = []
 
     class _Recorder(_FakeImportRequests):
-        def get(self, url: str, **kwargs: object) -> _FakeResponse:
+        def get(self, url: str, **kwargs: Any) -> _FakeResponse:
             if "/api/" in url:
                 asked.append(url.split("1821", 1)[1].split("?", 1)[0])
             return super().get(url, **kwargs)
@@ -2245,7 +2249,7 @@ def test_the_intent_names_a_class_and_not_just_a_package(import_device: _FakeImp
         task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
         intent = task_xml.find(".//Action[code='877']")
         assert package == "net.dinglisch.android.taskerm"
-        assert intent.findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
+        assert required(intent).findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
 
 
 # ##################################################################################
@@ -2314,11 +2318,11 @@ def test_opening_tasker_hands_over_nothing(import_device: _FakeImportRequests) -
 
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
     intent = task_xml.find(".//Action[code='877']")
-    assert intent.findtext("Str[@sr='arg0']") == "android.intent.action.MAIN"
-    assert intent.findtext("Str[@sr='arg2']") == ""  # no mime type
-    assert intent.findtext("Str[@sr='arg3']") == ""  # no data
-    assert intent.findtext("Str[@sr='arg7']") == "net.dinglisch.android.taskerm"
-    assert intent.findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
+    assert required(intent).findtext("Str[@sr='arg0']") == "android.intent.action.MAIN"
+    assert required(intent).findtext("Str[@sr='arg2']") == ""  # no mime type
+    assert required(intent).findtext("Str[@sr='arg3']") == ""  # no data
+    assert required(intent).findtext("Str[@sr='arg7']") == "net.dinglisch.android.taskerm"
+    assert required(intent).findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
     assert "102" not in _codes(ET.tostring(built.task_element, encoding="unicode"))  # no 'Open File'
 
 
@@ -2400,7 +2404,7 @@ class _FakeUploadRequests:
         self.filename = ""
         self.served_back = served_back
 
-    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+    def post(self, url: str, **kwargs: Any) -> _FakeResponse:
         self.calls.append(("POST", url))
         files = kwargs.get("files", {})
         self.filename = next(iter(files))
@@ -2408,7 +2412,7 @@ class _FakeUploadRequests:
         self.location = kwargs.get("params", {}).get("location", "")
         return _FakeResponse(200, b"OK")
 
-    def get(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def get(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self.calls.append(("GET", url))
         content = self.uploaded if self.served_back is None else self.served_back
         return _FakeResponse(200, content)
@@ -2486,12 +2490,12 @@ class _FakeImportViaFileRequests(_FakeUploadRequests):
         super().__init__(served_back)
         self.imported: list[bytes] = []
 
-    def get(self, url: str, **kwargs: object) -> _FakeResponse:
+    def get(self, url: str, **kwargs: Any) -> _FakeResponse:
         if "/api/auth" in url:
             return _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}')
         return super().get(url, **kwargs)
 
-    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+    def post(self, url: str, **kwargs: Any) -> _FakeResponse:
         if "/api/import" in url:
             self.calls.append(("POST", url))
             self.imported.append(kwargs.get("data", b""))
@@ -2499,7 +2503,7 @@ class _FakeImportViaFileRequests(_FakeUploadRequests):
         return super().post(url, **kwargs)
 
 
-def _import_task(monkeypatch: pytest.MonkeyPatch, fake: _FakeImportViaFileRequests, **kwargs: object):
+def _import_task(monkeypatch: pytest.MonkeyPatch, fake: _FakeImportViaFileRequests, **kwargs: Any):
     from maptasker.src.core import maputil2
 
     monkeypatch.setattr(maputil2, "requests", fake)
@@ -2607,7 +2611,7 @@ def test_a_write_still_settling_is_waited_for_rather_than_failed(monkeypatch: py
     misses = [0]
     real_get = fake.get
 
-    def slow_to_appear(url: str, **kwargs: object) -> _FakeResponse:
+    def slow_to_appear(url: str, **kwargs: Any) -> _FakeResponse:
         if "/file/" in url and misses[0] < 2:
             misses[0] += 1
             return _FakeResponse(404)
@@ -2616,7 +2620,7 @@ def test_a_write_still_settling_is_waited_for_rather_than_failed(monkeypatch: py
     fake.get = slow_to_appear
     edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
     return_code, result = taskedit_save.save_task_to_android(
-        edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems
+        required(edited_task), "192.168.0.210", "1821", "Opener", state=PrimeItems
     )
 
     assert return_code == 0, result
@@ -2639,7 +2643,7 @@ def test_a_write_that_never_appears_is_still_a_failure(monkeypatch: pytest.Monke
 
     edited_task = taskedit.load_task_for_edit("Opener", state=PrimeItems)
     return_code, result = taskedit_save.save_task_to_android(
-        edited_task, "192.168.0.210", "1821", "Opener", state=PrimeItems
+        required(edited_task), "192.168.0.210", "1821", "Opener", state=PrimeItems
     )
 
     assert return_code != 0
@@ -2783,12 +2787,12 @@ def test_only_the_open_with_route_drops_the_mime_type(loaded: None) -> None:
     built = deviceoffer.OPEN_FILE_ROUTE.builder(state=PrimeItems)
     assert not isinstance(built, str), built
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
-    assert (task_xml.find(".//Action[code='102']").findtext("Str[@sr='arg1']") or "") == ""
+    assert (required(task_xml.find(".//Action[code='102']")).findtext("Str[@sr='arg1']") or "") == ""
 
     built = deviceoffer.SEND_INTENT_ROUTE.builder(state=PrimeItems)
     assert not isinstance(built, str), built
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
-    assert task_xml.find(".//Action[code='877']").findtext("Str[@sr='arg2']") == "text/xml"
+    assert required(task_xml.find(".//Action[code='877']")).findtext("Str[@sr='arg2']") == "text/xml"
 
 
 def test_no_two_routes_share_an_answer_file() -> None:
@@ -2919,7 +2923,7 @@ class _FakeTaskListRequests(_FakeImportRequests):
         super().__init__()
         self.names = names
 
-    def get(self, url: str, **kwargs: object) -> _FakeResponse:
+    def get(self, url: str, **kwargs: Any) -> _FakeResponse:
         if "/api/tasks" in url and "name=" not in url:
             self.calls.append(("GET", url))
             return _FakeResponse(200, json.dumps([{"name": n, "running": False} for n in self.names]).encode())
@@ -2954,7 +2958,7 @@ def test_a_device_that_cannot_be_asked_reports_rather_than_guesses(monkeypatch: 
     from maptasker.src.core import maputil2
 
     class _NoTaskList(_FakeTaskListRequests):
-        def get(self, url: str, **kwargs: object) -> _FakeResponse:
+        def get(self, url: str, **kwargs: Any) -> _FakeResponse:
             if "/api/tasks" in url and "name=" not in url:
                 self.calls.append(("GET", url))
                 return _FakeResponse(500, b"nope")
@@ -3090,7 +3094,7 @@ class _FakeTasker:
         self.backup_result: str | None = "MAPTASKER-BACKUP 1\nMAPTASKER-END\n"
         self.backup = _DEVICE_BACKUP
 
-    def get(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def get(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self.calls.append(("GET", url))
         asked = parse_qs(urlparse(url).query).get("name", [])
         if "/api/auth" in url:
@@ -3114,14 +3118,14 @@ class _FakeTasker:
             return _FakeResponse(200, self.backup.encode())
         return _FakeResponse(404)
 
-    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+    def post(self, url: str, **kwargs: Any) -> _FakeResponse:
         self.calls.append(("POST", url))
         if "/api/import" in url:
             self.imported_xml = kwargs.get("data", b"").decode()
-            self.installed.add(ET.fromstring(self.imported_xml).findtext(".//nme"))
+            self.installed.add(required(ET.fromstring(self.imported_xml).findtext(".//nme")))
         return _FakeResponse(200, b"{}")
 
-    def delete(self, url: str, **_kwargs: object) -> _FakeResponse:
+    def delete(self, url: str, **_kwargs: Any) -> _FakeResponse:
         self.calls.append(("DELETE", url))
         return _FakeResponse(404)
 
@@ -3175,12 +3179,12 @@ def test_the_object_list_helper_asks_test_tasker_for_every_kind(tasker_device: _
 
     imported = ET.fromstring(tasker_device.imported_xml)
     assert imported.findtext(".//nme") == devicetask.OBJECT_LIST_TASK_NAME
-    actions = sorted(imported.findall(".//Action"), key=lambda action: int(action.get("sr")[3:]))
+    actions = sorted(imported.findall(".//Action"), key=lambda action: int(required(action.get("sr"))[3:]))
     assert [action.findtext("code") for action in actions] == ["347", "592"] * 4 + ["410"] * 10
     expected = [("11", "%mtprojects"), ("5", "%mtprofiles"), ("6", "%mtscenes"), ("7", "%mttasks")]
     for index, (type_index, variable) in enumerate(expected):
         test_tasker, join = actions[2 * index], actions[2 * index + 1]
-        assert test_tasker.find("Int[@sr='arg0']").get("val") == type_index
+        assert required(test_tasker.find("Int[@sr='arg0']")).get("val") == type_index
         assert test_tasker.findtext("Str[@sr='arg2']") == variable
         assert join.findtext("Str[@sr='arg0']") == variable
         assert join.findtext("Str[@sr='arg1']") == "|~|"
@@ -3275,7 +3279,7 @@ def test_the_whole_task_list_is_given_time_to_arrive(monkeypatch: pytest.MonkeyP
 
     timeouts: list = []
 
-    def fake_http_request(*_args: object, **kwargs: object) -> tuple[int, bytes]:
+    def fake_http_request(*_args: Any, **kwargs: Any) -> tuple[int, bytes]:
         timeouts.append(kwargs.get("timeout"))
         return 0, b"[]"
 
@@ -3344,7 +3348,7 @@ _SENT_FOR_IDS = """<TaskerData sr="" dvi="1" tv="6.7.6">
 def _id_findings() -> list[devicecheck.IdFinding]:
     sent = devicecheck.parse_tasker_xml(_SENT_FOR_IDS)
     device = devicecheck.parse_tasker_xml(_DEVICE_BACKUP)
-    return devicecheck.compare_ids(sent, device)
+    return devicecheck.compare_ids(required(sent), required(device))
 
 
 def test_ids_that_disagree_with_the_device_are_found_in_export_order() -> None:
@@ -3410,7 +3414,7 @@ def test_the_backup_task_backs_up_without_user_variables(tasker_device: _FakeTas
     backup = imported.find(".//Action[code='322']")
     assert backup is not None
     assert backup.findtext("Str[@sr='arg0']") == "Tasker/maptasker_idcheck.xml"
-    assert backup.find("Int[@sr='arg2']").get("val") == "0"
+    assert required(backup.find("Int[@sr='arg2']")).get("val") == "0"
     writes = imported.findall(".//Action[code='410']")
     assert [write.findtext("Str[@sr='arg1']") for write in writes] == ["MAPTASKER-BACKUP 1", "MAPTASKER-END"]
 
@@ -3476,7 +3480,7 @@ class _FakeRegexTasker(_FakeTasker):
         except re.error:
             return []
 
-    def get(self, url: str, **kwargs: object) -> _FakeResponse:
+    def get(self, url: str, **kwargs: Any) -> _FakeResponse:
         if "/api/tasks" not in url:
             return super().get(url, **kwargs)
         self.calls.append(("GET", url))
@@ -3562,7 +3566,7 @@ def test_the_helper_project_carries_every_current_helper_under_its_own_id(loaded
     ids = [task.findtext("id") for task in tasks]
     assert len(set(ids)) == len(ids)
     assert all(task.get("sr") == f"task{task.findtext('id')}" for task in tasks)
-    assert sorted(project.findtext("tids").split(","), key=int) == sorted(ids, key=int)
+    assert sorted(required(project.findtext("tids")).split(","), key=int) == sorted(ids, key=int)
     existing = set(PrimeItems.tasker_root_elements["all_tasks"]) | set(PrimeItems.tasker_root_elements["all_profiles"])
     assert not existing & set(ids)
 
@@ -3591,8 +3595,8 @@ def test_the_helper_project_numbers_past_the_devices_backup(loaded: None) -> Non
     assert min(ids) == 4100 + taskedit.NEW_OBJECT_ID_HEADROOM + 1
     assert len(set(ids)) == len(ids)
     project = root.find("Project")
-    assert project.findtext("id") == "kept-project-uuid"
-    assert project.findtext("tids").split(",") == [str(task_id) for task_id in ids]
+    assert required(project).findtext("id") == "kept-project-uuid"
+    assert required(required(project).findtext("tids")).split(",") == [str(task_id) for task_id in ids]
 
 
 def test_an_unreadable_device_backup_builds_nothing(loaded: None) -> None:
@@ -3612,7 +3616,7 @@ class _FakeHelperProjectDevice(_FakeTasker):
         )
         self.uploaded: dict[str, bytes] = {}
 
-    def get(self, url: str, **kwargs: object) -> _FakeResponse:
+    def get(self, url: str, **kwargs: Any) -> _FakeResponse:
         if "/Tasker/configs/user/backup.xml" in url:
             self.calls.append(("GET", url))
             return _FakeResponse(200, self.auto_backup.encode())
@@ -3621,7 +3625,7 @@ class _FakeHelperProjectDevice(_FakeTasker):
             return _FakeResponse(200, self.uploaded["MapTasker.prj.xml"])
         return super().get(url, **kwargs)
 
-    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+    def post(self, url: str, **kwargs: Any) -> _FakeResponse:
         if "/upload" in url:
             self.calls.append(("POST", url))
             files = kwargs.get("files", {})

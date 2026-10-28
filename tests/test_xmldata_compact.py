@@ -10,6 +10,8 @@ import defusedxml.ElementTree as ET
 import pytest
 from maptasker.src.core.xmldata import parse_tasker_xml, separate_attributes
 
+from tests.doubles import required
+
 COMPACT = (
     b'<TaskerData sr=""dvi="1"tv="6.7.6-beta">'
     b'<Task sr="task7"><id>7</id><nme>Say "a"b="c"</nme>'
@@ -32,9 +34,9 @@ def test_parse_compact_backup(tmp_path) -> None:
     backup = tmp_path / "compact.xml"
     backup.write_bytes(COMPACT)
     root = parse_tasker_xml(str(backup)).getroot()
-    assert root.tag == "TaskerData"
-    assert root.attrib == {"sr": "", "dvi": "1", "tv": "6.7.6-beta"}
-    assert root.find("Task/Action/Int").attrib == {"sr": "arg1", "val": "0"}
+    assert required(root).tag == "TaskerData"
+    assert required(root).attrib == {"sr": "", "dvi": "1", "tv": "6.7.6-beta"}
+    assert required(required(root).find("Task/Action/Int")).attrib == {"sr": "arg1", "val": "0"}
     # The user's file is not rewritten.
     assert backup.read_bytes() == COMPACT
 

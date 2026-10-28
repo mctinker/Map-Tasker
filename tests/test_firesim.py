@@ -16,6 +16,8 @@ import pytest
 from maptasker.src.analysis import firesim
 from maptasker.src.core.primitem import PrimeItems
 
+from tests.doubles import required
+
 # Monday 28 September 2026.
 pytestmark = pytest.mark.usefixtures("_loaded")
 
@@ -42,7 +44,7 @@ def test_time_window_and_weekday() -> None:
     assert _states(firesim.Scenario(_MONDAY.replace(hour=18)))["Work Hours"] == firesim.INACTIVE
     sunday = _profile(firesim.Scenario(_MONDAY.replace(day=27)), "Work Hours")
     assert sunday.state == firesim.INACTIVE
-    assert sunday.ruled_out_by.label == "Day"
+    assert required(sunday.ruled_out_by).label == "Day"
 
 
 def test_time_window_wrapping_midnight() -> None:
@@ -59,7 +61,7 @@ def test_repeating_time_fires_only_on_its_ticks() -> None:
     assert on_tick.instant
     off_tick = _profile(firesim.Scenario(_MONDAY.replace(minute=10)), "Chime")
     assert off_tick.state == firesim.INACTIVE
-    assert "next at 10:30" in off_tick.ruled_out_by.reason
+    assert "next at 10:30" in required(off_tick.ruled_out_by).reason
 
 
 def test_time_from_a_variable_is_left_open() -> None:

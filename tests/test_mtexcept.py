@@ -17,6 +17,7 @@ from __future__ import annotations
 import logging
 import subprocess
 import sys
+from typing import Any
 
 import pytest
 from maptasker.src.core import console
@@ -96,7 +97,7 @@ def test_mapit_all_returns_the_code_it_was_stopped_with(monkeypatch: pytest.Monk
     """The translation back to a process exit status happens once, at the top, and nowhere else."""
     from maptasker.src import mapit
 
-    def stop(**_kw: object) -> None:
+    def stop(**_kw: Any) -> None:
         raise MapTaskerError("stopped", exit_code=code)
 
     monkeypatch.setattr(mapit, "initialize_everything", stop)
@@ -120,7 +121,7 @@ def test_a_real_bug_is_not_turned_into_an_exit_code(monkeypatch: pytest.MonkeyPa
     """
     from maptasker.src import mapit
 
-    def boom(**_kw: object) -> None:
+    def boom(**_kw: Any) -> None:
         raise ValueError("a genuine bug")
 
     monkeypatch.setattr(mapit, "initialize_everything", boom)
@@ -220,7 +221,7 @@ def test_muting_restores_the_previous_state_rather_than_unmuting() -> None:
 def _stopped_with(monkeypatch: pytest.MonkeyPatch, error: MapTaskerError) -> int:
     from maptasker.src import mapit
 
-    def stop(**_kw: object) -> None:
+    def stop(**_kw: Any) -> None:
         raise error
 
     monkeypatch.setattr(mapit, "initialize_everything", stop)

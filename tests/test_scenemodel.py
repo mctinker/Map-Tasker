@@ -25,6 +25,8 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import scenemodel
 from maptasker.src.mapgen import taskerd, varxref
 
+from tests.doubles import required
+
 _ARG_SPECS = Path(__file__).resolve().parent.parent / "maptasker" / "assets" / "json" / "arg_specs.json"
 
 _LEGACY = """
@@ -117,7 +119,7 @@ def _loaded(monkeypatch: pytest.MonkeyPatch) -> None:
     that overwrote it for good would break whichever of those ran next.
     """
     root = ET.fromstring(_BACKUP)
-    scenelayout.encode_v2_layout(root.find("Scene[@sr='sceneNew Panel']"), _V2_LAYOUT)
+    scenelayout.encode_v2_layout(required(root.find("Scene[@sr='sceneNew Panel']")), _V2_LAYOUT)
     specs = json.loads(_ARG_SPECS.read_text(encoding="utf-8"))
     specs[str(len(specs))] = "ConditionList"
     tables = {
@@ -206,7 +208,7 @@ def test_a_version_2_site_is_addressed_by_component_path_and_property() -> None:
 
 def test_a_version_2_scene_that_will_not_decode_yields_nothing() -> None:
     """Guessing at a corrupt layout would invent references."""
-    _scene("New Panel").find("lj").text = "not a layout"
+    required(_scene("New Panel").find("lj")).text = "not a layout"
     model = scenemodel.model_of(_scene("New Panel"))
     assert list(model.text_sites(_scene("New Panel"), _place("New Panel"))) == []
     assert list(model.task_bindings(_scene("New Panel"))) == []
@@ -330,7 +332,7 @@ def test_finishing_a_new_version_2_scene_puts_the_templates_layout_just_before_i
     tags = [child.tag for child in scene]
     assert tags.index(scenelayout.V2_LAYOUT_TAG) == tags.index("nme") - 1
     layout = scenelayout.decode_v2_layout(scene)
-    assert layout["name"] == "Fresh"
+    assert required(layout)["name"] == "Fresh"
     assert layout == scenelayout.v2_template_layout("Fresh", "Titled dialog")
     assert scenemodel.is_v2_scene(scene)
 
@@ -343,17 +345,17 @@ def test_renaming_keeps_a_version_2_layouts_own_copy_of_the_name_and_leaves_a_le
     scenemodel.model_of(v2).rename(v2, "Other")
 
     assert ET.tostring(legacy) == legacy_before
-    assert scenelayout.decode_v2_layout(v2)["name"] == "Other"
+    assert required(scenelayout.decode_v2_layout(v2))["name"] == "Other"
 
 
 def test_renaming_a_scene_whose_layout_will_not_decode_leaves_it_untouched() -> None:
     """A layout that cannot be read certainly should not be re-encoded over the original."""
     scene = _scene("New Panel")
-    scene.find(scenelayout.V2_LAYOUT_TAG).text = "not a layout"
+    required(scene.find(scenelayout.V2_LAYOUT_TAG)).text = "not a layout"
 
     scenemodel.V2.rename(scene, "Other")
 
-    assert scene.find(scenelayout.V2_LAYOUT_TAG).text == "not a layout"
+    assert required(scene.find(scenelayout.V2_LAYOUT_TAG)).text == "not a layout"
 
 
 def test_reverting_a_legacy_session_has_no_layout_to_revert() -> None:
@@ -364,8 +366,8 @@ def test_reverting_a_version_2_session_puts_the_working_tree_back_and_says_it_ha
     """The designer's work is in the decoded dict until a save, so that dict is what is put back."""
     snapshot = _scene("New Panel")
     working = scenelayout.decode_v2_layout(snapshot)
-    working["root"]["children"].clear()
-    working["extra"] = True
+    required(working)["root"]["children"].clear()
+    required(working)["extra"] = True
 
     changed = scenemodel.V2.revert_layout(snapshot, working)
 
@@ -405,7 +407,7 @@ def test_the_properties_the_map_anchors_are_the_ones_the_analysis_reads() -> Non
 
 def test_anchor_parts_are_keyed_by_the_identity_of_the_node_the_renderer_will_walk() -> None:
     layout = scenelayout.decode_v2_layout(_scene("New Panel"))
-    heading = layout["root"]["children"][0]
+    heading = required(layout)["root"]["children"][0]
 
     parts = scenemodel.V2.anchor_parts(layout)
 
@@ -421,18 +423,18 @@ def test_a_version_2_property_is_read_and_rewritten_through_its_address() -> Non
     assert scenemodel.V2.property_value(scene, site.path) == "Hello %Whom"
     # The rest of the layout is exactly as it was.
     layout = scenelayout.decode_v2_layout(scene)
-    assert layout["root"]["children"][1]["value"] == "%Form"
+    assert required(layout)["root"]["children"][1]["value"] == "%Form"
 
 
 def test_a_property_that_cannot_be_reached_reads_as_empty_and_is_not_rewritten() -> None:
     scene = _scene("New Panel")
-    before = scene.find(scenelayout.V2_LAYOUT_TAG).text
+    before = required(scene.find(scenelayout.V2_LAYOUT_TAG)).text
 
     assert scenemodel.V2.property_value(scene, ((9, 9), "text")) == ""
     assert scenemodel.V2.rewrite_property(scene, ((9, 9), "text"), str.upper) is False
     assert scenemodel.V2.rewrite_property(scene, ((), "no such key"), str.upper) is False
-    assert scene.find(scenelayout.V2_LAYOUT_TAG).text == before
+    assert required(scene.find(scenelayout.V2_LAYOUT_TAG)).text == before
 
-    scene.find(scenelayout.V2_LAYOUT_TAG).text = "junk"
+    required(scene.find(scenelayout.V2_LAYOUT_TAG)).text = "junk"
     assert scenemodel.V2.property_value(scene, ((), "text")) == ""
     assert scenemodel.V2.rewrite_property(scene, ((), "text"), str.upper) is False

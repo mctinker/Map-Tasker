@@ -11,8 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.analysis import resrefs
@@ -20,10 +19,12 @@ from maptasker.src.core import resstore
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import deviceresource
 from maptasker.src.gui import guiwins_resources
+from maptasker.src.gui.userintr import MyGui
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.doubles import fake_window
 from tests.test_resrefs import _FIXTURE_XML, PHONE, _answer, _load
 
 if TYPE_CHECKING:
@@ -51,9 +52,9 @@ def _configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _load(_FIXTURE_XML)
 
 
-def _gui() -> SimpleNamespace:
+def _gui() -> MyGui:
     """The little of MyGui the dialog uses: the run's state and an address to open with."""
-    return SimpleNamespace(state=PrimeItems, android_last_ipaddr="192.0.2.1", android_last_port="1821")
+    return fake_window(state=PrimeItems, android_last_ipaddr="192.0.2.1", android_last_port="1821")
 
 
 def _page() -> None:
@@ -88,7 +89,7 @@ def _shown(user: User) -> list[str]:
     return [element.text for element in user.find(kind=ui.label).elements]
 
 
-def _outcome(**changes: object) -> deviceresource.Outcome:
+def _outcome(**changes: Any) -> deviceresource.Outcome:
     outcome = deviceresource.Outcome(device=PHONE, asked=10, answered=10, missing=1)
     for name, value in changes.items():
         setattr(outcome, name, value)

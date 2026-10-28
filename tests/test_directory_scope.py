@@ -17,6 +17,7 @@ and the Map put it on the page.
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
 
 import pytest
 from maptasker.src.core.dirout import check_item
@@ -59,7 +60,7 @@ _DIRECTORY = {
 
 
 @pytest.fixture(autouse=True)
-def tasker_data() -> None:
+def tasker_data() -> Iterator[None]:
     """Load the fixture XML into PrimeItems' lookup tables, and put them back after."""
     saved_elements = PrimeItems.tasker_root_elements
     saved_arguments = PrimeItems.program_arguments

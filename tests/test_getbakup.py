@@ -6,7 +6,7 @@ what a device would, and every file is written to a temporary directory the test
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.core.mtexcept import MapTaskerError
@@ -35,7 +35,7 @@ def _device_answers(monkeypatch: pytest.MonkeyPatch, return_code: int, contents:
     """Make http_request answer (return_code, contents), and keep what it was asked."""
     asked: list = []
 
-    def fake(*args: object, **_kwargs: object) -> tuple:
+    def fake(*args: Any, **_kwargs: Any) -> tuple:
         asked.append(args)
         return return_code, contents
 
@@ -127,7 +127,7 @@ def test_improperly_formed_xml_is_reported_by_name(state: RunState) -> None:
 def test_a_file_that_cannot_be_read_is_an_error_not_a_crash(state: RunState, monkeypatch: pytest.MonkeyPatch) -> None:
     """An OSError while parsing becomes a message the window can show."""
 
-    def refuse(*_args: object, **_kwargs: object) -> None:
+    def refuse(*_args: Any, **_kwargs: Any) -> None:
         msg = "Permission denied"
         raise OSError(msg)
 
@@ -144,7 +144,7 @@ def test_an_encoding_the_file_will_not_decode_is_rewritten_then_given_up_on(
     """Two rewrites are tried; the third failure is reported, so a bad file cannot loop forever."""
     rewrites: list = []
 
-    def undecodable(*_args: object, **_kwargs: object) -> None:
+    def undecodable(*_args: Any, **_kwargs: Any) -> None:
         msg = "utf-8"
         raise UnicodeDecodeError(msg, b"\xff", 0, 1, "invalid start byte")
 
@@ -163,7 +163,7 @@ def test_a_file_that_decodes_after_a_rewrite_is_accepted(state: RunState, monkey
     calls = {"parsed": 0}
     sentinel = object()
 
-    def parse(*_args: object, **_kwargs: object) -> object:
+    def parse(*_args: Any, **_kwargs: Any) -> object:
         calls["parsed"] += 1
         if calls["parsed"] == 1:
             msg = "utf-8"

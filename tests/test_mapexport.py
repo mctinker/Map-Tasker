@@ -24,6 +24,8 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import DIAGRAM_FILE
 from maptasker.src.mapgen import mapexport, mappdf
 
+from tests.doubles import required
+
 # One Project, holding a Profile with a Task, a Task in no Profile, and a Scene -- with the
 # directory before it and the totals after, which belong to no Project.
 _MAP_HTML = """<span class="normtab"></span><!doctype html>
@@ -328,7 +330,7 @@ def test_diagram_pdf_is_as_wide_as_the_drawing(meta: dict, no_system_fonts: None
     """No line of a Diagram is broken, so the page widens to hold the longest one."""
     lines = [*_DIAGRAM_LINES, "─" * 400]
     objects = _objects(mapexport.diagram_pdf(lines, _DIAGRAM_MODEL, meta, state=PrimeItems))
-    width = float(re.search(rb"/MediaBox \[0 0 ([\d.]+)", _body_of_type(objects, b"/Page ")).group(1))
+    width = float(required(re.search(rb"/MediaBox \[0 0 ([\d.]+)", _body_of_type(objects, b"/Page "))).group(1))
     # 400 Courier columns at 7 points, 0.6 of the size each, and a half-inch margin a side.
     assert width == pytest.approx(400 * 7 * 0.6 + 72)
     content = _content(objects)
@@ -343,7 +345,7 @@ def test_diagram_pdf_is_as_wide_as_the_drawing(meta: dict, no_system_fonts: None
 def _objects(pdf: bytes) -> dict[int, bytes]:
     """Every object in `pdf`, found through its cross-reference table."""
     assert pdf.startswith(b"%PDF-1.7\n")
-    start = int(re.search(rb"startxref\n(\d+)\n%%EOF\n$", pdf).group(1))
+    start = int(required(re.search(rb"startxref\n(\d+)\n%%EOF\n$", pdf)).group(1))
     table = pdf[start:].split(b"\n")
     assert table[0] == b"xref"
     size = int(table[1].split()[1])
@@ -373,16 +375,16 @@ def _content(objects: dict[int, bytes], page: int = 0) -> bytes:
     kids = [
         int(number)
         for number in re.findall(
-            rb"(\d+) 0 R", re.search(rb"/Kids \[([^\]]*)\]", _body_of_type(objects, b"/Type /Pages")).group(1)
+            rb"(\d+) 0 R", required(re.search(rb"/Kids \[([^\]]*)\]", _body_of_type(objects, b"/Type /Pages"))).group(1)
         )
     ]
-    contents = int(re.search(rb"/Contents (\d+) 0 R", objects[kids[page]]).group(1))
+    contents = int(required(re.search(rb"/Contents (\d+) 0 R", objects[kids[page]])).group(1))
     return _stream(objects[contents])
 
 
 def _title(body: bytes) -> str:
     """A bookmark's title, out of its UTF-16 hex string."""
-    return bytes.fromhex(re.search(rb"/Title <FEFF([0-9A-F]*)>", body).group(1).decode()).decode("utf-16-be")
+    return bytes.fromhex(required(re.search(rb"/Title <FEFF([0-9A-F]*)>", body)).group(1).decode()).decode("utf-16-be")
 
 
 def test_long_lines_wrap_under_where_they_start() -> None:
@@ -403,11 +405,11 @@ def test_a_bookmark_leads_to_the_page_its_line_is_on() -> None:
     lines = [mappdf.Line(f"line {number}") for number in range(200)]
     objects = _objects(mappdf.render(lines, title="Pages", font=None, bookmarks=[mappdf.Bookmark("Here", 150)]))
     kids = re.findall(
-        rb"(\d+) 0 R", re.search(rb"/Kids \[([^\]]*)\]", _body_of_type(objects, b"/Type /Pages")).group(1)
+        rb"(\d+) 0 R", required(re.search(rb"/Kids \[([^\]]*)\]", _body_of_type(objects, b"/Type /Pages"))).group(1)
     )
     assert len(kids) == 3
     item = _body_of_type(objects, b"/Title")
-    assert re.search(rb"/Dest \[(\d+) 0 R", item).group(1) == kids[2]
+    assert required(re.search(rb"/Dest \[(\d+) 0 R", item)).group(1) == kids[2]
     assert _body_of_type(objects, b"/Type /Catalog").count(b"/Outlines") == 1
 
 
@@ -434,7 +436,7 @@ def test_an_embedded_font_draws_the_diagram_searchably() -> None:
     assert b"/FontFile2" in _body_of_type(objects, b"/Type /FontDescriptor")
     wall = f"{font.cmap[0x2551]:04X}".encode()
     assert wall in _content(objects)
-    to_unicode = int(re.search(rb"/ToUnicode (\d+) 0 R", _body_of_type(objects, b"/Subtype /Type0")).group(1))
+    to_unicode = int(required(re.search(rb"/ToUnicode (\d+) 0 R", _body_of_type(objects, b"/Subtype /Type0"))).group(1))
     assert b"<" + wall + b"> <2551>" in _stream(objects[to_unicode])
 
 

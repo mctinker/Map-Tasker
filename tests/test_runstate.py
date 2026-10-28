@@ -5,6 +5,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 from maptasker.src import clireports, runcli
@@ -47,6 +48,8 @@ from maptasker.src.mapgen import (
 )
 from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.mapops import mapfix, maprefac_duplicate
+
+from tests.doubles import required
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 
@@ -387,7 +390,7 @@ def _stub_the_device(monkeypatch: pytest.MonkeyPatch, return_code: int, contents
     """Answer the Android server's file request with a canned reply, and record what was asked."""
     asked: list[tuple] = []
 
-    def reply(*arguments: object) -> tuple[int, bytes]:
+    def reply(*arguments: Any) -> tuple[int, bytes]:
         asked.append(arguments)
         return return_code, contents
 
@@ -667,7 +670,7 @@ def test_there_is_no_code_to_lint_on_a_state_that_has_loaded_nothing() -> None:
 def _rename_home_project(state: RunState, new_name: str) -> None:
     """Edit the loaded configuration under an undo block, the way every edit panel's mutator does."""
     with sessundo.undoable(f"Rename Project to '{new_name}'", state=state):
-        state.xml_root.find("Project/name").text = new_name
+        required(state.xml_root.find("Project/name")).text = new_name
 
 
 def test_each_state_has_an_undo_history_of_its_own(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -687,12 +690,12 @@ def test_each_state_has_an_undo_history_of_its_own(tmp_path: Path, monkeypatch: 
 
     # Undoing on the other state has nothing to take back, and does not touch the first's edit.
     assert sessundo.undo(state=second)[0] is False
-    assert first.xml_root.find("Project/name").text == "Away"
+    assert required(first.xml_root.find("Project/name")).text == "Away"
 
     done, _label = sessundo.undo(state=first)
 
     assert done
-    assert first.xml_root.find("Project/name").text == "Home"
+    assert required(first.xml_root.find("Project/name")).text == "Home"
     assert sessundo.can_redo(first)
     assert not sessundo.can_redo(second)
 
@@ -723,7 +726,7 @@ def test_an_undo_block_open_on_one_state_does_not_nest_the_others(
 
     with sessundo.undoable("Outer", state=first):
         _rename_home_project(second, "Office")  # Not nested inside first's block.
-        first.xml_root.find("Project/name").text = "Away"
+        required(first.xml_root.find("Project/name")).text = "Away"
 
     assert [label for label, _when in sessundo.history(second)] == ["Rename Project to 'Office'"]
     assert [label for label, _when in sessundo.history(first)] == ["Outer"]

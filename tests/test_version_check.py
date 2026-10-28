@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -114,7 +115,7 @@ def test_a_check_that_raises_is_logged_not_lost(
 ) -> None:
     """A task nobody awaits would swallow the error; the done callback puts it in the log."""
 
-    def broken(**_kw: object) -> bool:
+    def broken(**_kw: Any) -> bool:
         raise ValueError("PyPI answered nonsense")
 
     monkeypatch.setattr(guiutils, "is_new_version", broken)
