@@ -241,6 +241,21 @@ def _quote(value: str) -> str:
     return value.replace('"', "%22")
 
 
+_FONT_OPEN = re.compile(r'<font color="[^"]*">$')
+
+
+def _recolor(text: str, start: int, end: int, opening: str) -> Edit | None:
+    """Change the color of a selection already inside a <font color> tag, instead of nesting another.
+
+    Only when the selection is exactly what the tag wraps, which is where a color tool leaves it.
+    """
+    found = _FONT_OPEN.search(text[:start])
+    if found is None or start == end or not text.startswith("</font>", end):
+        return None
+    first = found.start() + len(opening)
+    return Edit(f"{text[: found.start()]}{opening}{text[start:]}", first, first + end - start)
+
+
 def apply_tool(text: str, start: int, end: int, tool: Tool, *, address: str = "", color: str = "") -> Edit:
     """Put a tool's markup into `text` at the selection `start`..`end`.
 
@@ -258,6 +273,10 @@ def apply_tool(text: str, start: int, end: int, tool: Tool, *, address: str = ""
     if not tool.after:
         caret = end + len(before)
         return Edit(f"{text[:end]}{before}{text[end:]}", caret, caret)
+    if tool.key == "color":
+        recolored = _recolor(text, start, end, before)
+        if recolored is not None:
+            return recolored
     chosen = text[start:end] or tool.placeholder
     inserted = f"{before}{chosen}{tool.after}"
     first = start + len(before)

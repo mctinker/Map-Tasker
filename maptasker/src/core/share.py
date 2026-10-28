@@ -95,7 +95,7 @@ def description_html(text: str | None, colors: Mapping[str, str]) -> str:
     the very code that makes what the Map shows, and cannot drift from it.
     """
     return (
-        format_label(f"<h6>TaskerNet description: {text}", colors=colors)
+        format_label(f"<h6>TaskerNet description:<br>{text}", colors=colors)
         .replace("action_label_color", "taskernet_color")
         .replace(" ...with label:", "")
         .replace("\n", "<br>")

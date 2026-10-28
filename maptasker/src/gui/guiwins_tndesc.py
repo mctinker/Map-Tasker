@@ -35,6 +35,8 @@ INTRO = (
 _ISSUE_COLORS = {tndesc.WARNING: "text-orange-600", tndesc.INFO: "text-gray-500"}
 _ISSUE_ICONS = {tndesc.WARNING: "warning", tndesc.INFO: "info"}
 _HEX_COLOR = re.compile(r"^[0-9A-Fa-f]{6}$")
+# A hex color as the palette writes it.
+_HASH_HEX_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 # A selection is a start and an end.
 _SELECTION_PARTS = 2
 # flex-shrink:0 is load-bearing: the dialog's card is a flex column, and a child that scrolls is allowed to shrink
@@ -162,8 +164,24 @@ class _DescriptionEditor:
                 self._tool_button(tool)
                 if tool.key == "color":
                     self.color = (
-                        ui.select(list(tndesc.COLORS), value=tndesc.COLORS[0]).props("dense borderless").classes("w-24")
+                        ui.select(
+                            list(tndesc.COLORS),
+                            value=tndesc.COLORS[0],
+                            on_change=lambda _event=None, t=tool: self.use(t),
+                        )
+                        .props("dense borderless")
+                        .classes("w-24")
                     )
+                    self.hex_color = (
+                        ui.color_input(
+                            placeholder="#RRGGBB",
+                            on_change=lambda event, t=tool: self._use_hex(t, str(event.value or "")),
+                        )
+                        .props("dense borderless")
+                        .classes("w-28")
+                    )
+                    with self.hex_color:
+                        ui.tooltip(translate_string("Pick any color from the palette, or type a hex color such as #336699."))
             self.heading = (
                 ui.select(list(tndesc.HEADINGS), value=tndesc.DEFAULT_HEADING).props("dense borderless").classes("w-20")
             )
@@ -214,8 +232,13 @@ class _DescriptionEditor:
         )
 
     # ---------------------------------------------------------------- what the buttons do
-    async def use(self, tool: tndesc.Tool) -> None:
-        """Write one tool's tags into the box, around the selection."""
+    async def _use_hex(self, tool: tndesc.Tool, value: str) -> None:
+        """Color the selection with a hex color from the palette -- once it is a whole #RRGGBB, not while it is typed."""
+        if _HASH_HEX_COLOR.match(value):
+            await self.use(tool, color=value)
+
+    async def use(self, tool: tndesc.Tool, color: str | None = None) -> None:
+        """Write one tool's tags into the box, around the selection.  `color` overrides the named color chosen."""
         text = str(self.text.value or "")
         start, end = await selection_in(self.text)
         edit = tndesc.apply_tool(
@@ -224,7 +247,7 @@ class _DescriptionEditor:
             end,
             tool,
             address=str(self.address.value or ""),
-            color=str(self.color.value or ""),
+            color=color if color is not None else str(self.color.value or ""),
         )
         self.text.set_value(edit.text)
         select_in(self.text, edit.start, edit.end)

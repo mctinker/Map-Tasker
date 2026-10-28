@@ -199,6 +199,17 @@ def test_a_color_is_the_one_chosen() -> None:
     assert tndesc.apply_tool("hi", 0, 2, color, color="blue").text == '<font color="blue">hi</font>'
 
 
+def test_choosing_another_color_for_colored_text_changes_it_instead_of_nesting() -> None:
+    color = tool_for("color")
+    text = '<font color="red">hi</font>'
+
+    edit = tndesc.apply_tool(text, 18, 20, color, color="blue")
+
+    assert edit.text == '<font color="blue">hi</font>'
+    assert text[18:20] == "hi"
+    assert edit.text[edit.start : edit.end] == "hi"
+
+
 def test_a_heading_tool_is_any_of_the_six_and_falls_back_to_a_sensible_one() -> None:
     assert tndesc.apply_tool("t", 0, 1, tndesc.heading_tool("h2")).text == "<h2>t</h2>"
     assert tndesc.apply_tool("t", 0, 1, tndesc.heading_tool("nonsense")).text == "<h3>t</h3>"

@@ -11,6 +11,7 @@ is the one thing it does not have, so the selection a button is pressed over is 
 
 from __future__ import annotations
 
+import asyncio
 import xml.etree.ElementTree as ET
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
@@ -299,10 +300,30 @@ async def test_link_and_color_use_the_address_and_color_given(selection: dict) -
         assert _box(user).value == '<a href="https://example.com/docs">docs</a> and more'
 
         (colors,) = [s for s in found(user, ui.select) if "red" in list(s.options)]
-        colors.set_value("blue")
         selection["asked"] = (0, 0)
         await press(user, _tool(user, "color"))
+        assert str(_box(user).value).startswith('<font color="red">colored text</font>')
+        selection["asked"] = (len('<font color="red">'), len('<font color="red">colored text'))
+        colors.set_value("blue")
+        await asyncio.sleep(0.1)
         assert str(_box(user).value).startswith('<font color="blue">colored text</font>')
+
+
+@pytest.mark.asyncio
+async def test_a_hex_color_from_the_palette_colors_the_selection(selection: dict) -> None:
+    selection["asked"] = (0, 4)
+    element = _task()
+    tndesc.set_description(element, "text and more")
+
+    async with open_page(_open_editor(element)) as user:
+        (palette,) = found(user, ui.color_input)
+        palette.set_value("#33")
+        await asyncio.sleep(0.1)
+        assert _box(user).value == "text and more"
+
+        palette.set_value("#336699")
+        await asyncio.sleep(0.1)
+        assert _box(user).value == '<font color="#336699">text</font> and more'
 
 
 @pytest.mark.asyncio
