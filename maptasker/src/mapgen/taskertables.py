@@ -44,9 +44,10 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
         name_element = item.find(name_qualifier)
         name = name_element.text.strip() if name_element is not None and name_element.text else ""
 
-        # Get the Profile/Task identifier: id=number for Profiles and Tasks,
+        # Get the Profile/Task identifier: id=number for Profiles and Tasks.  An <id/> with nothing in it is no
+        # identifier at all, and is keyed by name as a missing one is.
         id_element = item.find("id")
-        item_id = id_element.text if get_id and id_element is not None else name
+        item_id = id_element.text if get_id and id_element is not None and id_element.text else name
 
         new_table[item_id] = {"xml": item, "name": name}
 

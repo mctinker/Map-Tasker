@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: Building the Map or the Diagram no longer stops with an error when a backup refers to something it does not contain, such as a Project listing a Task, Profile or Scene that is not in the file, or has an empty id or no Tasker version. The missing item is left out, and Health Check still reports it.
 - Fixed:
 
 

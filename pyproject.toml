@@ -118,6 +118,7 @@ test = [
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
     "pytest-xdist>=3.8",
+    "hypothesis>=6.140",
 ]
 # 'black' was removed: [tool.ruff.format] is the formatter for this project, and
 # running both against the same files makes them fight over the same lines.

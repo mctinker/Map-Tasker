@@ -66,7 +66,9 @@ def get_profile_tasks(
         if "mid" in tag:
             task_type = "Exit" if tag == "mid1" else "Entry"
             task_id = child.text
-            if not task_id:  # A <mid0/> that names no Task has nothing to look up.
+            # A <mid0/> that names no Task, or a Task that is not in the file (Health Check: BROKEN-TASK-REF), has
+            # nothing to look up.
+            if not task_id or task_id not in state.tasker_root_elements["all_tasks"]:
                 continue
 
             if task_id not in found_tasks_list:
@@ -91,6 +93,11 @@ def get_profile_tasks(
 
 
 # Get a specific Profile's name
+def _profile_id(profile: Element) -> str:
+    """The id the Profile is keyed on in the table: its <id>, or where a damaged backup has none, the number in sr="profNN"."""
+    return profile.findtext("id") or profile.get("sr", "")[4:]
+
+
 def get_profile_name(
     profile: Element, config: RunConfig, project_name: str = "", task_names: list[str] | None = None, *, state: RunState
 ) -> tuple[str, str]:
@@ -104,8 +111,8 @@ def get_profile_name(
         :return: Profile name with appropriate html and the profile name itself
     """
     # If we don't have the name, then set it to 'No Profile'
-    profile_id = profile.attrib["sr"][4:]
-    if not (the_profile_name := state.tasker_root_elements["all_profiles"][profile_id]["name"]):
+    profile_id = _profile_id(profile)
+    if not (the_profile_name := state.tasker_root_elements["all_profiles"].get(profile_id, {}).get("name")):
         the_profile_name = UNNAMED_ITEM
 
     # Make the Project name bold, italicize, underline and/or highlighted if requested
@@ -371,13 +378,14 @@ def conditions_to_name(
     )
     # Put this name back into the master profile dictionary in PrimeItems.
     # Add a unique identifier to the name: the profile id: profile_name.id
-    profile_id = profile.attrib["sr"][4:]
+    profile_id = _profile_id(profile)
     # Add the profile id and unnamed portion
     profile_name = f"{profile_name.rstrip()}.{profile_id} {UNNAMED_ITEM}"
 
     # Now cleanup the name in order to use it.
     new_profile_name = f"{profile_name.replace('<em>', '').replace('</em>', '').rstrip()}"
-    state.tasker_root_elements["all_profiles"][profile_id]["name"] = new_profile_name
+    if profile_id in state.tasker_root_elements["all_profiles"]:
+        state.tasker_root_elements["all_profiles"][profile_id]["name"] = new_profile_name
 
     # Handle directory hyperlink
     if config.directory:
@@ -749,6 +757,9 @@ def process_profiles(
     # Go through the Profiles found in the Project
     _do_profile = do_profile
     for item in profile_ids:
+        # A Profile the Project lists that is not in the file (Health Check: BROKEN-PROFILE-REF) is not output.
+        if item not in state.tasker_root_elements["all_profiles"]:
+            continue
         profile = state.tasker_root_elements["all_profiles"][item]["xml"]
         if profile is None:  # If Project has no profiles, skip
             return

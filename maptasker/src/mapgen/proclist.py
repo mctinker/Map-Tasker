@@ -202,7 +202,8 @@ def add_dictionary_and_twisty(
 
     if "&#45;&#45;Task:" in list_type:
         temp_item, temp_list = handle_task(list_type, the_item, blank, config, state=state)
-        if config.directory:
+        # A Task that is not in the file (Health Check: BROKEN-SCENE-TASK) has no name to list.
+        if config.directory and the_item in state.tasker_root_elements["all_tasks"]:
             task_name = state.tasker_root_elements["all_tasks"][the_item]["name"]
             add_directory_item("tasks", task_name, config=config, state=state)
     elif config.directory:
@@ -235,8 +236,10 @@ def handle_task(list_type: str, the_item: str, blank: str, config: RunConfig, st
     Returns:
         tuple[str, str]: The processed item and list type.
     """
-    task_name = state.tasker_root_elements["all_tasks"][the_item]["name"]
-    add_task_hyperlink(task_name, True, blank, state=state)
+    # A Task that is not in the file (Health Check: BROKEN-SCENE-TASK) has no name to link to.
+    if the_item in state.tasker_root_elements["all_tasks"]:
+        task_name = state.tasker_root_elements["all_tasks"][the_item]["name"]
+        add_task_hyperlink(task_name, True, blank, state=state)
     temp_item, temp_list = the_item, list_type
     list_type = debug_task_id(list_type, config)
     return temp_item, temp_list

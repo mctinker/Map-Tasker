@@ -170,11 +170,15 @@ def _find_task(the_item: str, list_type: str, state: RunState) -> tuple:
 
     # Get the Task name from the ID if it wasn't found above.
     if the_task is None and task_name == "x":
-        the_task = state.tasker_root_elements["all_tasks"][the_item]["xml"]
+        all_tasks = state.tasker_root_elements["all_tasks"]
+        # A Scene that fires a Task which is not in the file (Health Check: BROKEN-SCENE-TASK): there is none to find.
+        if the_item not in all_tasks:
+            return None, "", the_item
+        the_task = all_tasks[the_item]["xml"]
         if the_task is None and UNNAMED_ITEM in the_item:
             task_id = get_taskid_from_unnamed_task(the_item)
-            the_task = state.tasker_root_elements["all_tasks"][task_id]["xml"]
-        task_name = state.tasker_root_elements["all_tasks"][the_item]["name"]
+            the_task = all_tasks[task_id]["xml"] if task_id in all_tasks else None
+        task_name = all_tasks[the_item]["name"]
         task_id = the_item
 
     # It is a valid Task.  If unknown and it is an Entry or Exit (valid) task, add it to the count of unnamed Tasks.

@@ -213,6 +213,9 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list, state
 
     # Go through all Tasks in the Project
     for task in tasks_in_project:
+        # A Task the Project lists that is not in the file (Health Check: BROKEN-TID-REF) has nothing to show.
+        if task not in state.tasker_root_elements["all_tasks"]:
+            continue
         profile_task = f"task{task}"
         # Go through all Tasks in the Profiles for this Project
         if profile_task not in all_profiles_tasks:
@@ -387,6 +390,9 @@ def outline_profiles_tasks_scenes(
     _do_profile_tasks = do_profile_tasks
     _add_line_to_output = state.output_lines.add_line_to_output
     for item in profile_ids:
+        # A Profile the Project lists that is not in the file (Health Check: BROKEN-PROFILE-REF) has nothing to show.
+        if item not in state.tasker_root_elements["all_profiles"]:
+            continue
         # Get the Profile element
         profile = state.tasker_root_elements["all_profiles"][item]["xml"]
         # Get the Profile name

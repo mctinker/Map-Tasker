@@ -938,7 +938,9 @@ def process_project_scenes(
     # None when the Project has no <scenes> element, or an empty one.
     scene_names = project.findtext("scenes") or None
     if scene_names is not None:
-        scene_list = scene_names.split(",")
+        # A Scene the Project lists that is not in the file (Health Check: BROKEN-SCENE-REF) is not output.
+        all_scenes = state.tasker_root_elements["all_scenes"]
+        scene_list = [scene for scene in scene_names.split(",") if scene in all_scenes]
 
         # Only doing a single Scene?  Narrow this Project's list down to just that one.
         # We only get here for the Project that owns it (process_projects skips the
@@ -950,7 +952,7 @@ def process_project_scenes(
             state.found_named_items["single_scene_found"] = True
 
         # If we have at least one Scene, process it
-        if scene_list[0]:
+        if scene_list and scene_list[0]:
             # Count what we are actually going to output, which is not necessarily
             # everything the Project lists -- see the single-Scene filter above.
             state.scene_count = len(scene_list)

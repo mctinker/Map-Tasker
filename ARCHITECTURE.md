@@ -114,6 +114,13 @@ monkeypatched or kept in `tmp_path`.  A test that needs a loaded backup loads it
 case must be the same in every process (xdist fails if two workers collect different names).  Plain `pytest` still runs
 them serially, which is the way to debug one.
 
+`tests/test_fuzz_backup.py` fuzzes the parser with Hypothesis: it spoils a well-formed backup in the tree (elements dropped,
+attributes missing or junk, ids empty), in the encoding and in the bytes, and checks that loading raises nothing but
+`MapTaskerError` and that the Health Check, the Map and the Diagram each end in a documented exit code.  A backup that names
+something it does not hold is not an error -- the Map leaves the item out and Health Check reports it.  Each crash it has
+found is pinned in `REGRESSIONS`.  `MAPTASKER_FUZZ_SCALE=20` runs twenty times as many examples, and
+`MAPTASKER_FUZZ_BACKUP=<file>` adds a backup of your own as a base (with a fractional scale, as a real one is large).
+
 `./run-ci.sh` runs the same gates locally (`--quick` skips the slow ones; `--fix` formats first).  Keep it in step with
 `ci.yml`.
 

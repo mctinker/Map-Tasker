@@ -446,6 +446,9 @@ def do_tasks_with_no_profile(
 
     # Go through each Task ID and see if it is in found_tasks.
     for task in project_task_ids:
+        # A Task the Project lists that is not in the file (Health Check: BROKEN-TID-REF) has nothing to print.
+        if task not in state.tasker_root_elements["all_tasks"]:
+            continue
         if state.tasker_root_elements["all_tasks"][task]["name"] not in found_tasks:
             profile = "No Profile"
             print_tasks = False

@@ -298,6 +298,9 @@ def do_tasks_in_project(
     _output_task_list = output_task_list
     # Go through all Tasks in Project
     for the_id in task_ids:
+        # A Task the Project lists that is not in the file (Health Check: BROKEN-TID-REF) is not output.
+        if the_id not in state.tasker_root_elements["all_tasks"]:
+            continue
         # We have a Task in Project that has yet to be output?
         if the_id not in found_tasks and not is_single_task_or_profile_found(state=state):
             # Flag that we have Tasks that are not in any Profile, and bump the count.

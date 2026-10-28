@@ -84,7 +84,7 @@ def output_the_heading(config: RunConfig, state: RunState) -> None:
             "",
             (
                 f"<h2>MapTasker</h2><br>{tasker_mapping}"
-                f" {state.xml_root.attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;"
+                f" {state.xml_root.attrib.get('tv', '')}&nbsp;&nbsp;&nbsp;&nbsp;"
                 f"{MY_VERSION}{screen_size}&nbsp;&nbsp;&nbsp;&nbsp;{now_for_output}"
             ),
             True,
