@@ -10,7 +10,6 @@ All notable changes to this project will be documented in this file!
 - Added: __Save As Test__ added to Task Stepper to save the stepper results for use by Task Tests.
 - Added: __Outbound Inventory__ lists, Project by Project, every URL and host your actions contact and every SMS, call, shell command, root command and Intent they send, with the risky ones first: a root command, a request over plain http, an address built from a variable, or an action carrying a key or password. Keys found in an address are replaced in the report, so it is safer to share.
 - Added: __Add TaskerNet Description__ and __Edit TaskerNet Description__ buttons in the Add and Edit windows for Projects, Profiles and Tasks, to write the description people see before importing from TaskerNet. The window has buttons that write the HTML tags real TaskerNet descriptions use, a check for broken or unsafe HTML, and a preview of how the Map will show it.
-- Added: The TaskerNet Description window has a color palette beside the color names, so you can pick any color, or type a hex color such as #336699, for the selected text.
 - Added:
 
 ### Changed
@@ -28,8 +27,6 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed: Choosing a color in the TaskerNet Description window now colors the selected text right away, instead of doing nothing until the palette button was pressed. Choosing a different color for text that is already colored changes it rather than adding a second font tag.
-- Fixed: The "TaskerNet description:" heading in the Map and in the description preview now sits on its own line, with the description starting on the line below it.
 - Fixed:
 
 
