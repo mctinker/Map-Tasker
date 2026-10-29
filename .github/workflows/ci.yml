@@ -161,14 +161,14 @@ jobs:
         run: uv run --no-sync ruff format --check
 
   # How long the Map and the Diagram take to build (scripts/perf_check.py), against scripts/perf_baseline.json.
-  # Timed in units of a fixed piece of Python work, so a slower machine does not fail it -- but the
-  # baseline was recorded on a developer's Mac, and a hosted runner is a different processor.  Until a
-  # baseline recorded here proves steady (`python scripts/perf_check.py --update` on this job's output),
-  # it reports without failing the workflow; run-ci.sh makes it a gate on the machine that recorded it.
+  # Timed in units of a fixed piece of Python work, so a slower machine does not fail it.  The baseline was
+  # recorded on a developer's Mac and the hosted runner is a different (and 1.7x slower) processor; measured
+  # on two separate runners it came out within 10-15% of the baseline (Map +10%, Diagram -15%) and within 1%
+  # of itself, against the 25% the gate allows.  So this fails the workflow.  If a change is meant to make a
+  # build slower, or faster, `python scripts/perf_check.py --update` records the new numbers.
   performance:
     name: build speed
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v5
 
