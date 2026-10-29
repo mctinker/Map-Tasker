@@ -312,6 +312,8 @@ Einzelheiten finden Sie im Dokument [Caveats](https://github.com/mctinker/Map-Ta
 
 - [x] Fehlende-Ressourcen-Prüfer: überprüfen, ob die Dateien, Ordner, Bilder, Töne, Scenes und Apps, auf die Ihre Actions verweisen, noch existieren
 
+- [ ] Aufgaben-Einstellungen für Tasker speichern/festlegen
+
 - [x] Komplexitäts- und Trend-Dashboard: Verfolgen von Task-Länge, Verschachtelung, Aufruf-Kettentiefe und Befunden im Zeitverlauf
 
 - [ ] Export einer Dokumentationswebsite: ein verlinkter Satz von Markdown- oder HTML-Seiten, eine pro Project, Profile, Task und Scene, mit Aufrufdiagrammen

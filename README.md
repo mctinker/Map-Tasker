@@ -298,27 +298,29 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Task Tests - Store and compare Task stepper sessions before and after changes to the Task
 
-- [ ] Map remaining Tasker preferences
-
 - [x] Task Stepper: dry-run a Task action by action, showing which If, For and Goto branches run and what each variable holds
 
 - [x] Live Run Monitor: stream which Profiles and Tasks fire on the phone and light them up in the Diagram view
 
-- [ ] Three-way merge of two backups against a common ancestor, resolved conflict by conflict and undone in one step
-
 - [x] TaskerNet update tracker: tell you when the author of a share you use has published a newer version, with a diff of the changes
-
-- [ ] Personal snippet library: save reusable action sequences, Tasks and Profile templates and insert them with parameters
-
-- [ ] Plain-English explanations in the Map: an AI-written, cached and editable one-line summary of each Profile and Task
 
 - [x] Missing-resource checker: verify that the files, folders, images, sounds, Scenes and apps your actions reference still exist
 
 - [x] Complexity and trend dashboard: track Task length, nesting, call-chain depth and findings over time
 
-- [ ] Documentation site export: a linked set of Markdown or HTML pages, one per Project, Profile, Task and Scene, with call diagrams
-
 - [x] Variable rename and scope assistant: rename a variable, or make a global local, everywhere it is used, as one Undo
+
+- [x] TaskerNet descriptions add/edit.
+
+- [x] Outbound Inventory: identify all external references
+
+- [ ] Map remaining Tasker preferences
+
+- [ ] Personal snippet library: save reusable action sequences, Tasks and Profile templates and insert them with parameters
+
+- [ ] Plain-English explanations in the Map: an AI-written, cached and editable one-line summary of each Profile and Task
+
+- [ ] Documentation site export: a linked set of Markdown or HTML pages, one per Project, Profile, Task and Scene, with call diagrams
 
 ## Privacy Statement
 

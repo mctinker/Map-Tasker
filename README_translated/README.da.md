@@ -308,6 +308,8 @@ Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Personligt snippet-bibliotek: gem genanvendelige action-sekvenser, Tasks og Profile-skabeloner, og indsæt dem med parametre
 
+- [x] Tilføj/rediger beskrivelser for TaskerNet.
+
 - [ ] Forklaringer i almindeligt sprog i Map'en: en AI-skrevet, cachelagret og redigerbar en-linjes opsummering af hver Profile og Task
 
 - [x] Kontrol af manglende ressourcer: bekræft, at de filer, mapper, billeder, lyde, Scenes og apps, dine actions refererer til, stadig findes

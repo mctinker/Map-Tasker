@@ -308,6 +308,8 @@ Consulte el documento de [Advertencias (Caveats)](https://github.com/mctinker/Ma
 
 - [ ] Biblioteca personal de fragmentos: guarde secuencias de acciones, Tareas y plantillas de Perfiles reutilizables, e insértelas con parámetros
 
+- [x] Añadir/modificar descripciones en TaskerNet.
+
 - [ ] Explicaciones en lenguaje sencillo dentro del Mapa: un resumen de una línea, escrito por IA, en caché y editable, de cada Perfil y Tarea
 
 - [x] Comprobador de recursos faltantes: verifique que los archivos, carpetas, imágenes, sonidos, Escenas y aplicaciones a los que hacen referencia sus acciones aún existen

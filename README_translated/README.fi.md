@@ -308,6 +308,8 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 
 - [ ] Henkilökohtainen katkelmakirjasto (snippet library): tallenna uudelleenkäytettäviä action-sekvensseja, Taskeja ja Profile-malleja, ja lisää niitä parametrien kanssa
 
+- [x] TaskerNet-kuvaukset: lisäys/muokkaus.
+
 - [ ] Yksinkertaisella kielellä selitykset Map-näkymässä: AI:n kirjoittama, välimuistitettu ja muokattava yhden rivin yhteenveto joka Profilesta ja Taskista
 
 - [x] Puuttuvien resurssien tarkistin: varmista, että actions-toimintojesi viittaamat tiedostot, kansiot, kuvat, äänet, Scenet ja sovellukset ovat edelleen olemassa

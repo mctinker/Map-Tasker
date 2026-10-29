@@ -296,8 +296,6 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 
 - [x] Tests de tâches - Sauvegarder et comparer les sessions de tâches avant et après les modifications apportées à la tâche.
 
-- [ ] Cartographier les préférences Tasker restantes
-
 - [x] Task Stepper : exécuter une Task action par action en « mode simulation », en montrant quelles branches If, For et Goto s'exécutent et ce que contient chaque variable
 
 - [x] Live Run Monitor : diffuser en direct les Profiles et Tasks déclenchés sur le téléphone et les mettre en évidence dans la vue Diagram
@@ -310,7 +308,11 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 
 - [ ] Explications en langage simple dans la Map : un résumé en une ligne de chaque Profile et Task, rédigé par IA, mis en cache et modifiable
 
+- [x] Possibilité d'ajouter/modifier les descriptions des tâches dans TaskerNet.
+
 - [x] Vérificateur de ressources manquantes : vérifier que les fichiers, dossiers, images, sons, Scenes et applications référencés par vos actions existent toujours
+
+- [ ] Sauvegarder les préférences de Tasker
 
 - [x] Tableau de bord de complexité et de tendances : suivre dans le temps la longueur des Tasks, l'imbrication, la profondeur des chaînes d'appel et les constats
 

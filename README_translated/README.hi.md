@@ -296,13 +296,17 @@ Llama आधारित मॉडल [Ollama](https://ollama.com/) के म�
 
 - [x] कार्य परीक्षण - कार्य में किए गए परिवर्तनों से पहले और बाद में, कार्य चरणों के सत्रों को संग्रहीत और तुलना करें।
 
-- [ ] बाकी Tasker preferences को मैप करना
-
 - [x] Task Stepper: किसी Task को action-by-action "dry-run" करना, यह दिखाते हुए कि कौन-सी If, For और Goto branches चलती हैं और हर variable में क्या मान है
 
 - [x] Live Run Monitor: फ़ोन पर कौन-से Profiles और Tasks ट्रिगर हो रहे हैं इसे लाइव स्ट्रीम करना और उन्हें Diagram view में हाइलाइट करना
 
 - [ ] दो बैकअप का उनके किसी सामान्य पूर्वज (common ancestor) के सापेक्ष three-way merge, जिसे conflict-by-conflict हल किया जाए और एक ही चरण में undo किया जा सके
+
+- [x] लापता संसाधन जांचकर्ता: यह सत्यापित करें कि आपके द्वारा उपयोग किए जाने वाले फ़ाइलें, फ़ोल्डर, चित्र, ध्वनि, दृश्य और एप्लिकेशन अभी भी मौजूद हैं।
+
+- [x] जटिलता और रुझानों का डैशबोर्ड: समय के साथ कार्य की लंबाई, नेस्टिंग, कॉल-चेन की गहराई और निष्कर्षों को ट्रैक करें।
+
+- [x] चर का नाम बदलने और स्कोप सहायक: एक चर का नाम बदलें, या इसे जहां भी उपयोग किया गया है, वहां स्थानीय चर बनाएं, ताकि एक बार Undo करने पर सब कुछ सही हो जाए।
 
 - [x] TaskerNet update tracker: जब आपके उपयोग किए गए share के लेखक एक नया संस्करण प्रकाशित करें तो आपको बताना, उस बदलाव के diff के साथ
 
@@ -315,8 +319,6 @@ Llama आधारित मॉडल [Ollama](https://ollama.com/) के म�
 - [x] जटिलता और trend dashboard: समय के साथ Task की लंबाई, nesting, call-chain depth और findings को ट्रैक करना
 
 - [ ] Documentation site export: एक-दूसरे से लिंक किए गए Markdown या HTML पेजों का एक सेट, हर Project, Profile, Task और Scene के लिए एक, साथ में call diagrams
-
-- [x] Variable rename और scope assistant: किसी variable का नाम बदलें, या किसी global को local बनाएं, हर जगह जहाँ वह उपयोग होता है, और इसे एक ही Undo के रूप में करें
 
 ## गोपनीयता विवरण (Privacy Statement)
 
