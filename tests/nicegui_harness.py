@@ -44,9 +44,14 @@ async def open_page(build: Callable[[], None]) -> AsyncIterator[User]:
 
 
 def found(user: User, kind: type[T]) -> list[T]:
-    """Every visible element of this kind on the page -- an empty list when there is none."""
+    """Every visible element of this kind on the page, in the order they were built -- an empty list when none.
+
+    NiceGUI hands back a set, whose order differs from one run (and one platform, and one Python) to the next, so
+    a test that took the last of them was taking an arbitrary one.  An element's id counts up as the page is built.
+    """
     try:
-        return list(cast("Any", user).find(kind=kind).elements)
+        elements = cast("set[T]", cast("Any", user).find(kind=kind).elements)
+        return sorted(elements, key=lambda element: cast("ui.element", element).id)
     except AssertionError:
         return []
 

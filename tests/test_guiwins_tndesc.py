@@ -482,8 +482,7 @@ async def test_edit_project_carries_the_description_to_the_live_project_and_undo
     async with open_page(_edit_project()) as user:
         await click(user, ADD)
         _box(user).set_value("About Home")
-        # Edit Project has an Ok of its own behind the editor's; the editor's was built last.
-        await press(user, [b for b in found(user, ui.button) if b.text == "Ok"][-1])
+        await _ok(user)
 
     live = projedit.resolve_project_by_name("Home", state=PrimeItems)
     assert live is not None
