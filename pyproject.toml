@@ -41,12 +41,12 @@ dependencies = [
     'nicegui>=3.18.0',
     'packaging>=26.3',
     'pillow>=13.0.0',
-    "platformdirs>=4.13.5",
+    "platformdirs>=4.14.0",
     'requests>=2.34.2',
     'tomli_w>=1.2.0',
     # Windows has no system time-zone database, so zoneinfo (maputils' time-zone lookup) finds no
     # zone at all without this and silently falls back to UTC.  Linux and macOS ship their own.
-    "tzdata>=2026.5; sys_platform == 'win32'",
+    "tzdata>=2026.6; sys_platform == 'win32'",
 ]
 
 [project.optional-dependencies]
@@ -55,9 +55,9 @@ dependencies = [
 # and maputil3.AI_EXTRA_INSTALL_COMMAND is what the program tells the user to run.
 ai = [
     'anthropic>=2.3.0',
-    'google-genai>=2.33.0',
+    'google-genai>=2.34.0',
     'ollama>=0.6.3',
-    'openai>=3.37.0',
+    'openai>=3.41.0',
 ]
 
 [project.urls]
@@ -113,12 +113,12 @@ packages = ["maptasker"]
 
 [dependency-groups]
 test = [
-    "pytest>=9.1.1",
+    "pytest>=9.2.0",
     "pytest-mock>=3.17.0",
-    "pytest-asyncio>=1.4.0",
+    "pytest-asyncio>=1.4.1",
     "pytest-cov>=7.1.0",
     "pytest-xdist>=3.8",
-    "hypothesis>=6.140",
+    "hypothesis>=6.170.13",
 ]
 # 'black' was removed: [tool.ruff.format] is the formatter for this project, and
 # running both against the same files makes them fight over the same lines.
@@ -132,9 +132,9 @@ dev = [
     "pip>=26.2.2",
     "pip-autoremove>=0.10.0",
     "pyright[nodejs]>=1.1.414",
-    "pytest>=9.1.1",
+    "pytest>=9.2.0",
     "rich>=15.0.0",
-    "ruff>=0.17.2",
+    "ruff>=0.17.3",
     "vulture>=2.16",
 ]
 
