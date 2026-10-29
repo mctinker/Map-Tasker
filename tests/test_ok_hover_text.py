@@ -2,8 +2,8 @@
 
 Ok in these panels is the one button that is easy to misread: it does not save a file and it does not send anything to
 the phone, it puts the change into the backup that is open and closes the panel.  So each of the five says that, says
-what is different about its own panel, and says what happens when it cannot do it -- and the sixth panel, Edit
-Project, which has no Ok at all, is pinned so that nobody looks for one.
+what is different about its own panel, and says what happens when it cannot do it -- and the sixth, Edit
+Project, says its changes are already in the backup.
 
 Each panel is the real one, built over the fixture backup on a page of NiceGUI's in-process user simulation.
 """
@@ -186,10 +186,10 @@ async def test_add_task_ok_says_it_is_listed_under_the_selected_project() -> Non
 
 
 # ##################################################################################
-# Edit Project has no Ok
+# Edit Project
 # ##################################################################################
 @pytest.mark.asyncio
-async def test_edit_project_has_no_ok_button_to_explain() -> None:
+async def test_edit_project_ok_says_the_changes_are_already_in_the_backup() -> None:
     def page() -> None:
         edited = projedit.load_project_for_edit("Home", state=PrimeItems)
         assert edited is not None
@@ -197,6 +197,9 @@ async def test_edit_project_has_no_ok_button_to_explain() -> None:
 
     async with open_page(page) as user:
         labels = {b.text for b in found(user, ui.button)}
+        text = _ok(user)
 
-    assert "Ok" not in labels
-    assert {"Cancel", "Delete Project", "Rename", "Save To Current File"} <= labels
+    assert {"Ok", "Cancel", "Delete Project", "Rename", "Save To Current File"} <= labels
+    assert text.startswith("Closes this dialog, keeping the changes made in it.")
+    assert "applied to the loaded backup as you make them" in text
+    assert "Undo" in text

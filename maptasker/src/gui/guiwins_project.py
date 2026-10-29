@@ -224,9 +224,23 @@ def _build_edit_project_buttons(
     field_refs: dict[str, Any],
     dialog: ui.dialog,
 ) -> None:
-    """The Edit Project dialog's button row: Cancel, Delete, Rename, the two saves and Export."""
+    """The Edit Project dialog's button row: Cancel, Ok, Delete, Rename, the two saves and Export."""
     with ui.row().classes("w-full justify-end gap-2 mt-4"):
         ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+        edit_project_ok = ui.button(
+            translate_string("Ok"),
+            on_click=lambda: self.event_handlers.editors.keep_edited_project_event(field_refs, dialog),
+        ).props("outline")
+        with edit_project_ok:
+            ui.tooltip(
+                translate_string(
+                    "Closes this dialog, keeping the changes made in it.\n\n"
+                    "The Enabled switch, Properties, TaskerNet Description and Launcher Task are applied to the "
+                    "loaded backup as you make them, so there is nothing more to apply. They are kept for this "
+                    "session only: no file is written and nothing is sent to your Android device. Use 'Save To "
+                    "Current File' or 'Save To Android' to keep them. One press of Undo takes a change back.",
+                ),
+            ).style("white-space: pre-wrap")
         ui.button(
             translate_string("Delete Project"),
             on_click=lambda: self.event_handlers.editors.delete_project_event(edited_project, dialog),

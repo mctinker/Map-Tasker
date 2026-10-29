@@ -269,6 +269,30 @@ def test_an_unrecognised_field_in_the_edit_project_dialog_fails_the_save_and_nam
     assert "another, new_field" in errors[0]
 
 
+def test_ok_in_edit_project_keeps_the_changes_and_closes(
+    handlers: MapTaskerEventHandlers,
+    dialog: MagicMock,
+    notices: _Notices,
+) -> None:
+    fields = {key: _Widget() for key in userintr_fields.EDIT_PROJECT_INERT_FIELDS}
+
+    handlers.editors.keep_edited_project_event(fields, dialog)
+
+    assert notices.said("Changes kept.")
+    dialog.close.assert_called_once()
+
+
+def test_ok_in_edit_project_stays_open_on_a_field_nothing_applies(
+    handlers: MapTaskerEventHandlers,
+    dialog: MagicMock,
+    notices: _Notices,
+) -> None:
+    handlers.editors.keep_edited_project_event({"new_field": _Widget()}, dialog)
+
+    assert notices.of_type("negative")
+    dialog.close.assert_not_called()
+
+
 def test_scene_sizes_are_validated_together_and_written_only_when_all_are_whole_numbers() -> None:
     edited = sceneedit.load_scene_for_edit("Panel", state=PrimeItems)
     good = {"widthPort": _Widget("640"), "heightPort": _Widget(" 480 "), "widthLand": _Widget("-1")}

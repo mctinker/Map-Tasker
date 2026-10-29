@@ -735,6 +735,26 @@ class EditorEventHandlers(HandlerGroup):
         ui.notify(translate_string("Properties kept."), type="positive")
         dialog.close()
 
+    def keep_edited_project_event(
+        self,
+        field_refs: dict[str, Any],
+        dialog: ui.dialog,
+    ) -> None:
+        """Ok in the Edit Project dialog: confirm there is nothing left unapplied, then close.
+
+        Everything this dialog edits -- the Enabled switch, Properties, the TaskerNet description and
+        the Launcher Task -- is written to the loaded backup the moment it is changed, so there is
+        nothing for Ok to apply.  What it keeps is the guard the dialog's saves have (see
+        unapplied_project_edits): a field added later without its apply step fails here with a
+        message rather than being closed over.  The dialog stays open on any error.
+        """
+        if errors := unapplied_project_edits(field_refs):
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+        ui.notify(translate_string("Changes kept."), type="positive")
+        dialog.close()
+
     def apply_project_properties_event(self, edited_project: projedit.EditableProject) -> None:
         """Edit Project's on_applied: carry the properties just written onto the Project
         copy through to the live element, so its two by-name saves and "Save To Current

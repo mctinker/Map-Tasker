@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file!
 - Added: __Outbound Inventory__ lists, Project by Project, every URL and host your actions contact and every SMS, call, shell command, root command and Intent they send, with the risky ones first: a root command, a request over plain http, an address built from a variable, or an action carrying a key or password. Keys found in an address are replaced in the report, so it is safer to share.
 - Added: __Add TaskerNet Description__ and __Edit TaskerNet Description__ buttons in the Add and Edit windows for Projects, Profiles and Tasks, to write the description people see before importing from TaskerNet. The window has buttons that write the HTML tags real TaskerNet descriptions use, a check for broken or unsafe HTML, and a preview of how the Map will show it.
 - Added: __Launcher Task__ pulldown in the Edit Project window to choose which of the Project's named Tasks its launcher runs, or none. It takes effect as soon as you pick one and one Undo takes it back.
+- Added: The Edit Project window now has an __Ok__ button, like the other Add and Edit windows. Everything in that window is already applied as you change it, so Ok simply closes the window and confirms the changes are kept.
 - Added:
 
 ### Changed
