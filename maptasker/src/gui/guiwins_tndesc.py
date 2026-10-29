@@ -115,7 +115,9 @@ class _DescriptionEditor:
         self.text: ui.textarea
         self.address: ui.input
         self.color: ui.select
+        self.last_color = ""  # the color name the Color button uses: the last one chosen, else the first
         self.heading: ui.select
+        self.last_heading = tndesc.DEFAULT_HEADING  # the level the Heading button uses: the last one chosen
         self.issues: ui.column
         self.preview: ui.html
 
@@ -166,8 +168,8 @@ class _DescriptionEditor:
                     self.color = (
                         ui.select(
                             list(tndesc.COLORS),
-                            value=tndesc.COLORS[0],
-                            on_change=lambda _event=None, t=tool: self.use(t),
+                            label=translate_string("Color"),
+                            on_change=lambda event, t=tool: self._use_named_color(t, event.value),
                         )
                         .props("dense borderless")
                         .classes("w-24")
@@ -185,11 +187,17 @@ class _DescriptionEditor:
                             translate_string("Pick any color from the palette, or type a hex color such as #336699.")
                         )
             self.heading = (
-                ui.select(list(tndesc.HEADINGS), value=tndesc.DEFAULT_HEADING).props("dense borderless").classes("w-20")
+                ui.select(
+                    list(tndesc.HEADINGS),
+                    label=translate_string("Heading"),
+                    on_change=lambda event: self._use_heading(event.value),
+                )
+                .props("dense borderless")
+                .classes("w-24")
             )
             with ui.button(
                 icon="title",
-                on_click=lambda _event=None: self.use(tndesc.heading_tool(str(self.heading.value))),
+                on_click=lambda _event=None: self.use(tndesc.heading_tool(self.last_heading)),
             ).props("flat dense round"):
                 ui.tooltip(translate_string("Heading, at the level chosen beside it.  H1 is the largest."))
 
@@ -234,6 +242,26 @@ class _DescriptionEditor:
         )
 
     # ---------------------------------------------------------------- what the buttons do
+    async def _use_heading(self, value: object) -> None:
+        """Make the selection a heading of the level just chosen, then clear the choice (as for a color)."""
+        if not value:
+            return
+        self.last_heading = str(value)
+        self.heading.set_value(None)
+        await self.use(tndesc.heading_tool(self.last_heading))
+
+    async def _use_named_color(self, tool: tndesc.Tool, value: object) -> None:
+        """Color the selection with the color name just chosen, then clear the choice.
+
+        Cleared so that choosing the same name again is a change, and so is written again: a
+        select says nothing when it is given the value it already has.
+        """
+        if not value:
+            return
+        self.last_color = str(value)
+        self.color.set_value(None)
+        await self.use(tool, color=self.last_color)
+
     async def _use_hex(self, tool: tndesc.Tool, value: str) -> None:
         """Color the selection with a hex color from the palette -- once it is a whole #RRGGBB, not while it is typed."""
         if _HASH_HEX_COLOR.match(value):
@@ -249,7 +277,7 @@ class _DescriptionEditor:
             end,
             tool,
             address=str(self.address.value or ""),
-            color=color if color is not None else str(self.color.value or ""),
+            color=color if color is not None else self.last_color,
         )
         self.text.set_value(edit.text)
         select_in(self.text, edit.start, edit.end)

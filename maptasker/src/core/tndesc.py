@@ -296,6 +296,24 @@ def _recolor(text: str, start: int, end: int, opening: str) -> Edit | None:
     return Edit(f"{text[: found.start()]}{opening}{text[start:]}", first, first + end - start)
 
 
+_HEADING_OPEN = re.compile(r"<h[1-6]>$")
+_HEADING_CLOSE = re.compile(r"</h[1-6]>")
+
+
+def _reheading(text: str, start: int, end: int, tool: Tool) -> Edit | None:
+    """Change the level of a selection already inside a heading, instead of nesting another."""
+    opened = _HEADING_OPEN.search(text[:start])
+    closed = _HEADING_CLOSE.match(text, end)
+    if opened is None or closed is None or start == end:
+        return None
+    first = opened.start() + len(tool.before)
+    return Edit(
+        f"{text[: opened.start()]}{tool.before}{text[start:end]}{tool.after}{text[closed.end() :]}",
+        first,
+        first + end - start,
+    )
+
+
 def apply_tool(text: str, start: int, end: int, tool: Tool, *, address: str = "", color: str = "") -> Edit:
     """Put a tool's markup into `text` at the selection `start`..`end`.
 
@@ -317,6 +335,8 @@ def apply_tool(text: str, start: int, end: int, tool: Tool, *, address: str = ""
         recolored = _recolor(text, start, end, before)
         if recolored is not None:
             return recolored
+    if tool.key in HEADINGS and (reheaded := _reheading(text, start, end, tool)) is not None:
+        return reheaded
     chosen = text[start:end] or tool.placeholder
     inserted = f"{before}{chosen}{tool.after}"
     first = start + len(before)

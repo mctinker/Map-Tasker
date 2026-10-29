@@ -273,18 +273,34 @@ async def test_with_nothing_selected_the_placeholder_goes_in(selection: dict) ->
 
 
 @pytest.mark.asyncio
-async def test_the_heading_button_uses_the_level_chosen_beside_it(selection: dict) -> None:
+async def test_choosing_a_heading_level_makes_the_selection_that_heading(selection: dict) -> None:
     selection["asked"] = (0, 5)
     element = _task()
     tndesc.set_description(element, "Title and more")
 
     async with open_page(_open_editor(element)) as user:
         (levels,) = [s for s in found(user, ui.select) if "h1" in list(s.options)]
-        levels.set_value("h2")
+        levels.set_value("h3")
+        await asyncio.sleep(0.1)
+        assert _box(user).value == "<h3>Title</h3> and more"
+
+        selection["asked"] = (4, 9)
+        levels.set_value("h1")
+        await asyncio.sleep(0.1)
+        assert _box(user).value == "<h1>Title</h1> and more"
+
+
+@pytest.mark.asyncio
+async def test_the_heading_button_uses_the_level_last_chosen(selection: dict) -> None:
+    selection["asked"] = (0, 5)
+    element = _task()
+    tndesc.set_description(element, "Title and more")
+
+    async with open_page(_open_editor(element)) as user:
         (heading,) = [b for b in found(user, ui.button) if b.props.get("icon") == "title"]
         await press(user, heading)
 
-        assert _box(user).value == "<h2>Title</h2> and more"
+        assert _box(user).value == "<h3>Title</h3> and more"
 
 
 @pytest.mark.asyncio
@@ -307,6 +323,24 @@ async def test_link_and_color_use_the_address_and_color_given(selection: dict) -
         colors.set_value("blue")
         await asyncio.sleep(0.1)
         assert str(_box(user).value).startswith('<font color="blue">colored text</font>')
+
+
+@pytest.mark.asyncio
+async def test_choosing_red_first_still_writes_it_and_so_does_choosing_it_again(selection: dict) -> None:
+    selection["asked"] = (0, 4)
+    element = _task()
+    tndesc.set_description(element, "text and more")
+
+    async with open_page(_open_editor(element)) as user:
+        (colors,) = [s for s in found(user, ui.select) if "red" in list(s.options)]
+        colors.set_value("red")
+        await asyncio.sleep(0.1)
+        assert _box(user).value == '<font color="red">text</font> and more'
+
+        _box(user).set_value("text and more")
+        colors.set_value("red")
+        await asyncio.sleep(0.1)
+        assert _box(user).value == '<font color="red">text</font> and more'
 
 
 @pytest.mark.asyncio
