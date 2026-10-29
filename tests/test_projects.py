@@ -100,6 +100,12 @@ def test_a_project_without_a_launcher_task_says_nothing() -> None:
     _load('<Project sr="proj1"><name>Shared</name><Share><d>a description</d></Share></Project>')
     assert projects.get_launcher_task(_project("Shared"), "Shared") == ""
 
+    _load('<Project sr="proj2"><name>Cleared</name><Share><t></t></Share></Project>')
+    assert projects.get_launcher_task(_project("Cleared"), "Cleared") == ""
+
+    _load('<Project sr="proj3"><name>Blank</name><Share><t>  </t></Share></Project>')
+    assert projects.get_launcher_task(_project("Blank"), "Blank") == ""
+
 
 # ##################################################################################
 # Which Profiles a Project owns

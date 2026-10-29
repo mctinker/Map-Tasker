@@ -382,6 +382,16 @@ TNDESC_HELP_TEXT = (
     " categories and the other TaskerNet flags already on an object are never changed.  Nothing is sent to TaskerNet"
     " or your phone.  \n"
 )
+LAUNCHER_HELP_TEXT = (
+    "- Launcher Task: Edit Project has a Launcher Task pulldown that sets the one Task the Project's launcher runs --"
+    " the Task Tasker uses when the Project is started from its own icon.  It lists only the Tasks in that Project that"
+    " have a name, and (none) takes the launcher Task away.  It is applied to the loaded backup as soon as you pick"
+    " one, like Rename and the Enabled switch, so Cancel does not undo it and one press of Undo does.  Tasker keeps it"
+    " by the Task's name, so renaming that Task in Tasker or here does not carry the launcher with it.  A launcher Task"
+    " the Project already names that is not one of its Tasks is shown as such rather than replaced.  The Map shows it"
+    " on the Project's line as [Launcher Task: ...].  Add Project has no pulldown, because a new Project has no Tasks"
+    " yet.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -411,5 +421,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}"
     )

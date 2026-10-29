@@ -4,9 +4,9 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **93** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **94** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.1.0 source on 2026-10-27 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.1.0 source on 2026-10-29 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -54,6 +54,7 @@ _Generated from the MapTasker 15.1.0 source on 2026-10-27 by `build_command_wiki
 * [Indentation](#cmd-indentation)
 * [Just Display Everything](#cmd-just-display-everything)
 * [Language](#cmd-language)
+* [Launcher Task](#cmd-launcher-task)
 * [Live Run Monitor](#cmd-live-run-monitor)
 * [Map / Diagram / Tree View Toolbar](#cmd-map-diagram-tree-view-toolbar)
   * [Search](#cmd-search)
@@ -1358,6 +1359,26 @@ Add or edit the description anybody sees before importing a Project, Profile or 
 * Link and Image use the address typed below the box, and Add Line Breaks puts a <br/> on every line that does not already end a tag, since a line end in HTML is only a space.
 * As you type, the HTML is checked: an unclosed tag, a tag nothing else uses, a script, an event handler or a link that is not to a web page, an email address or a TaskerNet share (taskershare://), and an image stored inside the description rather than linked to, which Tasker's 'small images' does not allow.
 * Below it is a preview made by the code that draws the Map, so it shows what the Map will show; TaskerNet's own page is not drawn here and may differ.
+
+<a id="cmd-launcher-task"></a>
+### Launcher Task
+
+**Type:** Pulldown  
+**Where:** Edit Project Fields
+
+Edit Project has a Launcher Task pulldown that sets the one Task the Project's launcher runs -- the Task Tasker uses when the Project is started from its own icon.
+
+* It lists only the Tasks in that Project that have a name, and (none) takes the launcher Task away.
+* It is applied to the loaded backup as soon as you pick one, like Rename and the Enabled switch, so Cancel does not undo it and one press of Undo does.
+* Tasker keeps it by the Task's name, so renaming that Task in Tasker or here does not carry the launcher with it.
+* The Map shows it on the Project's line as [Launcher Task: ...].
+* Add Project has no pulldown, because a new Project has no Tasks yet.
+
+**Hover text:** The Task this Project's launcher runs -- the one Tasker uses when the Project is started from its own icon. Only this Project's Tasks that have a name are listed. Applied to the loaded backup as soon as you pick it, like Rename and the Enabled switch: Cancel does not undo it, and one press of Undo does. Pick (none) to take the launcher Task away.
+
+**Caveats:**
+
+* A launcher Task the Project already names that is not one of its Tasks is shown as such rather than replaced.
 
 ## Command-Line Arguments
 

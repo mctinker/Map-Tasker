@@ -787,6 +787,18 @@ class EditorEventHandlers(HandlerGroup):
         """
         projedit.apply_share_to_live_tree(edited_project, state=self.state)
 
+    def set_project_launcher_event(self, edited_project: projedit.EditableProject, name: str) -> None:
+        """Edit Project's Launcher Task pulldown: make `name` the Project's launcher Task, right now.
+
+        Immediate, as set_project_enabled_event is and for the same reason -- see
+        projedit.set_project_launcher.  An empty name is the (none) entry and removes it.
+        """
+        projedit.set_project_launcher(edited_project, name, state=self.state)
+        if name:
+            ui.notify(f"{translate_string('Launcher Task set to')} '{name}'.", type="positive")
+        else:
+            ui.notify(translate_string("Launcher Task removed."), type="positive")
+
     def cancel_object_properties_event(
         self,
         props: objprops.EditableProperties,

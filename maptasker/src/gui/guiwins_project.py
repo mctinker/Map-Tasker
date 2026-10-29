@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
-from maptasker.src.core import objprops
+from maptasker.src.core import objprops, tndesc
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.edit import projedit
 from maptasker.src.gui.guiwins import android_device_fields
@@ -92,6 +92,45 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
 EDIT_PROJECT_INERT_FIELDS: frozenset[str] = frozenset({"name", "project_save_path", PROJECT_REDACT_FIELD})
 
 
+def _build_launcher_task_select(self: MyGui, edited_project: projedit.EditableProject) -> ui.select:
+    """The Launcher Task pulldown: which of the Project's own named Tasks its launcher runs.
+
+    Applied the moment it is changed, as the Enabled switch and the Properties and TaskerNet Description
+    buttons are, and for their reason: both by-name saves render from the live tree.  So it is kept out
+    of field_refs, where unapplied_project_edits would fail a save on it.
+
+    What the Project already names is always on the list.  A launcher Task that is not one of this
+    Project's Tasks -- a Project exported without it, or a Task since renamed or moved -- is shown as
+    what it is rather than dropped, because replacing a name the user did not touch with the first one
+    in the list would be a change nobody asked for.
+    """
+    names = projedit.named_tasks_of(edited_project.project_element, self.state)
+    current = tndesc.launcher_task_of(edited_project.project_element)
+    options = {"": translate_string("(none)"), **{name: name for name in names}}
+    if current and current not in names:
+        not_here = translate_string("not one of this Project's Tasks")
+        options[current] = f"{current}  ({not_here})"
+    select = ui.select(
+        options,
+        value=current,
+        label=translate_string("Launcher Task"),
+        on_change=lambda event: self.event_handlers.editors.set_project_launcher_event(
+            edited_project,
+            str(event.value or ""),
+        ),
+    ).classes("w-full mt-2")
+    with select:
+        ui.tooltip(
+            translate_string(
+                "The Task this Project's launcher runs -- the one Tasker uses when the Project is started from its "
+                "own icon.  Only this Project's Tasks that have a name are listed.\n\n"
+                "Applied to the loaded backup as soon as you pick it, like Rename and the Enabled switch: Cancel "
+                "does not undo it, and one press of Undo does.  Pick (none) to take the launcher Task away.",
+            ),
+        ).style("white-space: pre-wrap")
+    return select
+
+
 def _build_edit_project_fields(
     self: MyGui,
     edited_project: projedit.EditableProject,
@@ -159,6 +198,8 @@ def _build_edit_project_fields(
         project_name,
         on_applied=lambda: self.event_handlers.editors.apply_project_share_event(edited_project),
     )
+
+    _build_launcher_task_select(self, edited_project)
 
     field_refs["project_save_path"] = ui.input(
         translate_string("Save as"),

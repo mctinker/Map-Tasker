@@ -1395,6 +1395,7 @@ HELP_PIECES = (
     "TASKTESTS_HELP_TEXT",
     "OUTBOUND_HELP_TEXT",
     "TNDESC_HELP_TEXT",
+    "LAUNCHER_HELP_TEXT",
 )
 
 # The longer help texts that go with one command: what the command is called in the Help

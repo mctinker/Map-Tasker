@@ -376,7 +376,11 @@ def apply_properties_to_live_tree(edited_project: EditableProject, state: RunSta
         touch_project_mdate(edited_project.project_element)
 
 
-def apply_share_to_live_tree(edited_project: EditableProject, state: RunState) -> None:
+def apply_share_to_live_tree(
+    edited_project: EditableProject,
+    state: RunState,
+    what: str = "TaskerNet description",
+) -> None:
     """Carry the TaskerNet description just written onto the Project copy through to the LIVE element.
 
     The TaskerNet description's counterpart of apply_properties_to_live_tree, and needed for
@@ -387,14 +391,44 @@ def apply_share_to_live_tree(edited_project: EditableProject, state: RunState) -
     Both are written; a no-op for a Project that is not registered yet, whose copy
     register_new_project stores as it stands.
 
+    `what` names the change in the Undo history: the <Share> holds a Project's launcher Task as well.
     <mdate> is stamped because this is a modification.
     """
     live_element = resolve_project_by_name(edited_project.project_name, state=state)
-    with sessundo.undoable(f"Edit Project '{edited_project.project_name}' TaskerNet description", state=state):
+    with sessundo.undoable(f"Edit Project '{edited_project.project_name}' {what}", state=state):
         if live_element is not None and live_element is not edited_project.project_element:
             tndesc.mirror_share(edited_project.project_element, live_element)
             touch_project_mdate(live_element)
         touch_project_mdate(edited_project.project_element)
+
+
+def named_tasks_of(project_element: Element, state: RunState) -> list[str]:
+    """The names of the Project's own Tasks that have one, each once, in alphabetical order.
+
+    Read from the Project's <tids> and, for each id, the Task's own <nme> -- not the name the lookup
+    tables give it, because a Task with no <nme> is listed there as "<something> (Unnamed)", and a
+    launcher Task is stored by name, which an unnamed Task does not have to be stored by.  A <tids>
+    entry that is not in the file is skipped: the Project is exported with a Task that is not there.
+    """
+    all_tasks = state.tasker_root_elements.get("all_tasks", {})
+    names: dict[str, str] = {}
+    for task_id in _project_child_ids(project_element, "tids"):
+        task = all_tasks.get(task_id.strip())
+        name = (task["xml"].findtext("nme") or "").strip() if task else ""
+        if name:
+            names.setdefault(name.casefold(), name)
+    return [names[key] for key in sorted(names)]
+
+
+def set_project_launcher(edited_project: EditableProject, name: str, state: RunState) -> None:
+    """Make `name` the Project's launcher Task, in the working copy and the live Project alike.
+
+    The Project counterpart of set_project_enabled, and immediate for the same reason: both of Edit
+    Project's saves render from the live tree by name, so there is no later moment at which they
+    could pick it up.  One Undo takes it back.  An empty name removes the launcher Task.
+    """
+    tndesc.set_launcher_task(edited_project.project_element, name)
+    apply_share_to_live_tree(edited_project, state=state, what="launcher Task")
 
 
 def rename_project_in_live_tree(old_name: str, edited_project: EditableProject, state: RunState) -> None:

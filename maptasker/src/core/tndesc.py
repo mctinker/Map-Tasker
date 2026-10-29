@@ -1,4 +1,4 @@
-"""tndesc: the TaskerNet description of a Project, Profile or Task -- reading it, writing it, and checking its HTML."""
+"""tndesc: the <Share> of a Project, Profile or Task -- its TaskerNet description, a Project's launcher Task, and the HTML a description can carry."""
 
 #! /usr/bin/env python3
 
@@ -9,13 +9,15 @@
 #                                                                                       #
 # WHAT THE ELEMENT LOOKS LIKE.  Every <Share> in the 2,396 descriptions of the sample   #
 # backups has the same children, in the same order: <b>, <d>, optionally <g>, <p>, <t>. #
-# <d> is the description, <g> the TaskerNet search categories, and b, p and t are       #
-# Tasker's own bookkeeping, which this module never changes on an existing <Share> and  #
-# writes as false/false/empty on a new one -- the most common shape of a share that has #
-# a description and no tags (793 of them).  <Share> itself sits after an object's       #
-# lowercase children and its <Kid>, and before <Img>, <ProfileVariable> and the actions, #
-# conditions and so on: Tasker's own order, kept so what is written looks like what is  #
-# exported.                                                                             #
+# <d> is the description, <g> the TaskerNet search categories, and <t> is a Project's   #
+# LAUNCHER TASK, by name: 812 Projects of the samples have one, no Profile or Task does, #
+# and MapTasker's Map already prints it as "[Launcher Task: ...]" (projects.get_launcher_ #
+# task).  <b> and <p> are Tasker's own bookkeeping, which this module never changes on an #
+# existing <Share> and writes as false/false on a new one -- the most common shape of a #
+# share that has a description and no tags (793 of them).  <Share> itself sits after an #
+# object's lowercase children and its <Kid>, and before <Img>, <ProfileVariable> and the #
+# actions, conditions and so on: Tasker's own order, kept so what is written looks like #
+# what is exported.                                                                     #
 #                                                                                       #
 # WHAT HTML A DESCRIPTION MAY CARRY.  Tasker's own page says only that "HTML formatting #
 # can be used, and even some small images".  It does not say which tags, so there is no #
@@ -49,10 +51,11 @@ if TYPE_CHECKING:
 SHARE_TAG = "Share"
 DESCRIPTION_TAG = "d"
 
-# What a <Share> that has just been given a description is made of: Tasker's own bookkeeping
+# What a <Share> that has just been given a description or a launcher Task is made of: Tasker's own
 # children, at the values most descriptions without search tags carry.
 _NEW_SHARE_CHILDREN = (("b", "false"), ("d", ""), ("p", "false"), ("t", ""))
 _BOOKKEEPING_TAGS = frozenset({"b", "d", "p", "t"})
+LAUNCHER_TAG = "t"
 
 # Written by a person at a keyboard, in any of three conventions.  What is stored is the text
 # as typed, with the line ends Tasker itself writes.
@@ -129,6 +132,43 @@ def set_description(element: Element, text: str) -> None:
         description = type(element)(DESCRIPTION_TAG)
         share.insert(next((i + 1 for i, child in enumerate(share) if child.tag == "b"), 0), description)
     description.text = text
+
+
+def launcher_task_of(project: Element) -> str:
+    """The name of the Task a Project launches, or "" when it has none.
+
+    The same element projects.get_launcher_task prints on the Project's line in the Map.
+    """
+    return (project.findtext(f"{SHARE_TAG}/{LAUNCHER_TAG}") or "").strip()
+
+
+def set_launcher_task(project: Element, name: str) -> None:
+    """Make `name` the Project's launcher Task -- the Task Tasker runs from the Project's home-screen shortcut.
+
+    Written to <Share><t> by the Task's NAME, as Tasker does (all 812 launcher Tasks in the sample
+    backups are names, none an id), so renaming a Task does not carry the launcher with it.  An
+    empty name takes the launcher away, and a <Share> left saying nothing at all goes with it, so
+    clearing puts the Project back exactly as it was.  The description, the search tags and Tasker's
+    own flags in the same <Share> are never touched.
+    """
+    name = name.strip()
+    share = project.find(SHARE_TAG)
+    if not name:
+        if share is None:
+            return
+        launcher = share.find(LAUNCHER_TAG)
+        if launcher is not None:
+            launcher.text = ""
+        if _is_bare(share):
+            project.remove(share)
+        return
+    if share is None:
+        share = _new_share(project)
+    launcher = share.find(LAUNCHER_TAG)
+    if launcher is None:
+        launcher = type(project)(LAUNCHER_TAG)
+        share.append(launcher)  # <t> is last among a <Share>'s children
+    launcher.text = name
 
 
 def mirror_share(source: Element, target: Element) -> None:

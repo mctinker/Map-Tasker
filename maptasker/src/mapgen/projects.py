@@ -219,7 +219,9 @@ def get_launcher_task(project: Element, _project_name: str) -> str:
     share_element = project.find("Share")
     if share_element is not None:
         launcher_task_element = share_element.find("t")
-        if launcher_task_element is not None and launcher_task_element.text is not None:
+        # Empty or blank is no launcher Task, as a missing <t> is: a Project whose launcher Task was
+        # taken away in this session has an empty <t> until the file is saved and read back.
+        if launcher_task_element is not None and (launcher_task_element.text or "").strip():
             launcher_task_info = format_html(
                 "launcher_task_color",
                 "",
