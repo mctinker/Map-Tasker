@@ -28,6 +28,7 @@ from nicegui import context, ui
 
 from maptasker.src.analysis import mapask, mapfind
 from maptasker.src.core import assettext, mapjump
+from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import suppress_logged, translate_string
 from maptasker.src.core.sysconst import logger
 from maptasker.src.gui.guiwins_nav import go_to_target
@@ -282,8 +283,7 @@ class TextViewSearch:
                     ):
                         # Active click hotlink index line label
                         ui.link(f"Line #{item['lineNumber']}", "#").on(
-                            "click",
-                            make_jump_callback(),
+                            "click", make_jump_callback(), js_handler=LINK_CLICK_JS
                         ).classes(
                             "text-blue-600 dark:text-blue-400 font-bold font-mono text-sm mr-4 shrink-0 decoration-dotted hover:underline",
                         )
@@ -1371,7 +1371,9 @@ class _ReplaceTab:
                 ).classes("text-xs font-bold text-red-500 mt-2")
                 for skip in plan.skips[:_REPLACE_SKIP_LIMIT]:
                     with ui.row().classes("w-full items-baseline gap-2 pl-2"):
-                        ui.link(skip.where.label, "#").on("click", self.jump_to(skip.where)).classes(
+                        ui.link(skip.where.label, "#").on(
+                            "click", self.jump_to(skip.where), js_handler=LINK_CLICK_JS
+                        ).classes(
                             "text-blue-600 dark:text-blue-400 font-mono text-xs shrink-0 "
                             "decoration-dotted hover:underline",
                         )
@@ -1405,7 +1407,9 @@ class _ReplaceTab:
                         value=position in plan.selected,
                         on_change=self.ticker(plan, position),
                     ).props("dense")
-                    ui.link(change.site.where.label, "#").on("click", self.jump_to(change.site.where)).classes(
+                    ui.link(change.site.where.label, "#").on(
+                        "click", self.jump_to(change.site.where), js_handler=LINK_CLICK_JS
+                    ).classes(
                         "text-blue-600 dark:text-blue-400 font-mono text-sm shrink-0 decoration-dotted hover:underline",
                     )
                 with ui.row().classes("w-full items-baseline pl-10 pb-1"):

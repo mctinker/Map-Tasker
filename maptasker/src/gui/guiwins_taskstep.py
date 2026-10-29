@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING
 from nicegui import ui
 
 from maptasker.src.analysis import taskcases, taskstep
+from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.gui.guiwins_taskcases import ask_to_save_test
 
@@ -357,7 +358,9 @@ class _Stepper:
         ):
             with ui.row().classes("items-baseline gap-2 no-wrap").style(f"padding-left:{step.depth * 18}px"):
                 if target is not None:
-                    ui.link(str(step.number), "#").on("click", self.make_jump(target.at_action(step.number))).classes(
+                    ui.link(str(step.number), "#").on(
+                        "click", self.make_jump(target.at_action(step.number)), js_handler=LINK_CLICK_JS
+                    ).classes(
                         "font-mono text-xs text-blue-600 dark:text-blue-400 w-8 shrink-0 text-right",
                     )
                 else:

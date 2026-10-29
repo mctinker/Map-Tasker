@@ -44,6 +44,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
+from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.mapops import mapfix
 
@@ -535,7 +536,9 @@ def _draw_skips(plan: mapfix.Plan, screen: _Screen) -> None:
     )
     for skip in plan.skips[:_SKIP_LIMIT]:
         with ui.column().classes("w-full gap-0 pl-2 pb-1"):
-            ui.link(f"[{skip.tag}]  {skip.where.label}", "#").on("click", screen.jump(skip.where)).classes(
+            ui.link(f"[{skip.tag}]  {skip.where.label}", "#").on(
+                "click", screen.jump(skip.where), js_handler=LINK_CLICK_JS
+            ).classes(
                 "text-blue-600 dark:text-blue-400 font-mono text-xs decoration-dotted hover:underline",
             )
             ui.label(skip.explanation).classes("text-xs text-gray-500")
@@ -564,7 +567,7 @@ def _draw_fix(plan: mapfix.Plan, position: int, fix: mapfix.Fix, screen: _Screen
             box = ui.checkbox(value=position in plan.selected, on_change=screen.tick(plan, position)).props("dense")
             if not plan.is_ready(position):
                 box.disable()
-            ui.link(fix.where.label, "#").on("click", screen.jump(fix.where)).classes(
+            ui.link(fix.where.label, "#").on("click", screen.jump(fix.where), js_handler=LINK_CLICK_JS).classes(
                 "text-blue-600 dark:text-blue-400 font-mono text-sm decoration-dotted hover:underline",
             )
 

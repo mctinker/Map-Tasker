@@ -44,7 +44,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
-from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK
+from maptasker.src.core.mapjump import LINK_CLICK_JS, PROFILE, PROJECT, SCENE, TASK
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.mapgen import varxref
 from maptasker.src.mapops import (
@@ -391,7 +391,7 @@ class _RefactorDialog:
         with self.preview_area, ui.column().classes("w-full gap-0 p-2"):
             for row in rows[:_PREVIEW_LINE_LIMIT]:
                 if row.target is not None:
-                    ui.link(row.text, "#").on("click", self.make_jump(row.target)).classes(
+                    ui.link(row.text, "#").on("click", self.make_jump(row.target), js_handler=LINK_CLICK_JS).classes(
                         "text-blue-600 dark:text-blue-400 font-mono text-xs whitespace-pre "
                         "decoration-dotted hover:underline",
                     )

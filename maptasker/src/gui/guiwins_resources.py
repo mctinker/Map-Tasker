@@ -28,6 +28,7 @@ from typing import TYPE_CHECKING
 from nicegui import run, ui
 
 from maptasker.src.analysis import resrefs
+from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.device import deviceresource
 from maptasker.src.gui.guiutils import (
@@ -185,7 +186,7 @@ class _ResourcesDialog:
         with self.report_area, ui.column().classes("w-full gap-0 p-2"):
             for row in rows[:_LINE_LIMIT]:
                 if row.target is not None:
-                    ui.link(row.text, "#").on("click", self.make_jump(row.target)).classes(
+                    ui.link(row.text, "#").on("click", self.make_jump(row.target), js_handler=LINK_CLICK_JS).classes(
                         "text-blue-600 dark:text-blue-400 font-mono text-xs whitespace-pre "
                         "decoration-dotted hover:underline",
                     )

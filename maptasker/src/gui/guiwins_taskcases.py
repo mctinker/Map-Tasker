@@ -29,6 +29,7 @@ from nicegui import ui
 
 from maptasker.src.analysis import taskcases, taskstep
 from maptasker.src.core import clock
+from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.outdir import output_path
 from maptasker.src.core.sysconst import TASK_TESTS_REPORT_FILE, logger
@@ -389,9 +390,9 @@ class _Tests:
         """'Task Name', as a link to it in the Map when the walk found it."""
         target = result.trace.target if result is not None and result.trace is not None else None
         if target is not None:
-            ui.link(f"{translate_string('Task')} '{case.task}'", "#").on("click", self.make_jump(target)).classes(
-                "text-xs font-mono text-blue-600 dark:text-blue-400 decoration-dotted hover:underline break-all"
-            )
+            ui.link(f"{translate_string('Task')} '{case.task}'", "#").on(
+                "click", self.make_jump(target), js_handler=LINK_CLICK_JS
+            ).classes("text-xs font-mono text-blue-600 dark:text-blue-400 decoration-dotted hover:underline break-all")
         else:
             ui.label(f"{translate_string('Task')} '{case.task}'").classes("text-xs font-mono text-gray-500 break-all")
 

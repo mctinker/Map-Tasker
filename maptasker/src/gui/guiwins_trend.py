@@ -28,6 +28,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
+from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.mapops import trend
 
@@ -371,7 +372,9 @@ class _Dashboard:
                     with ui.row().classes("items-baseline gap-2 no-wrap"):
                         ui.label(heading).classes("text-xs font-bold w-20 shrink-0").style(f"color:{colour}")
                         ui.link(mover.name, "#").on(
-                            "click", lambda _event, name=mover.name: self.scope.set_value(name)
+                            "click",
+                            lambda _event, name=mover.name: self.scope.set_value(name),
+                            js_handler=LINK_CLICK_JS,
                         ).classes(
                             "text-sm font-mono text-blue-600 dark:text-blue-400",
                         )

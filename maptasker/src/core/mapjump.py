@@ -804,6 +804,15 @@ def raise_map_window_js() -> str:
     return assettext.render(_RAISE_MAP_WINDOW_SCRIPT, MAP_PREFIX=json.dumps(f"{POPOUT_WINDOW_PREFIX}map"))
 
 
+# What a report row that is a link to "#" runs in the browser when it is clicked.  Such a link is how a row
+# says "click me" -- it carries no address of its own -- and the browser follows it anyway, to "#", which
+# pushes an entry onto the tab's history.  A tab with more than one entry is one a script is not allowed to
+# close (Chrome and Safari allow window.close() only on a tab the script opened or one with a single entry),
+# so Exit with "Close Tabs On Exit" left the main tab open after any such row had been clicked.  The default
+# is cancelled here and the click still goes to the server, as NiceGUI's own handler would send it.
+LINK_CLICK_JS = "(...args) => { args[0].preventDefault(); emit(...args); }"
+
+
 def find_result_click_js(guard_anchor: str = "") -> str:
     """The browser side of one Find result row's click: raise the Map, then emit the jump.
 
@@ -825,9 +834,10 @@ def find_result_click_js(guard_anchor: str = "") -> str:
     """
     raising = raise_map_window_js().strip()
     if not guard_anchor:
-        return f"(...args) => {{ {raising}; emit(...args); }}"
+        return f"(...args) => {{ args[0].preventDefault(); {raising}; emit(...args); }}"
     return (
         "(...args) => { "
+        "args[0].preventDefault(); "
         f"const anchor = {json.dumps(guard_anchor)}; "
         "if (!document.querySelector('[data-anchor=\"' + CSS.escape(anchor) + '\"]')) { "
         f"{raising}; "

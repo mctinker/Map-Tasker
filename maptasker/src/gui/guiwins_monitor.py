@@ -33,6 +33,7 @@ from typing import TYPE_CHECKING, cast
 from nicegui import Client, run, ui
 
 from maptasker.src.analysis import diffload, firesim, livemon
+from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.sysconst import logger
 from maptasker.src.device import devicemonitor
@@ -365,7 +366,9 @@ class _Monitor:
             for event in events:
                 classes = "font-mono text-xs break-all " + _KIND_CLASSES.get(event.kind, "")
                 if event.targets:
-                    ui.link(event.line(), "#").on("click", self.make_jump(event.targets[0])).classes(classes)
+                    ui.link(event.line(), "#").on(
+                        "click", self.make_jump(event.targets[0]), js_handler=LINK_CLICK_JS
+                    ).classes(classes)
                 else:
                     ui.label(event.line()).classes(classes + " italic")
 
@@ -379,7 +382,9 @@ class _Monitor:
                     ui.label(translate_string("None")).classes("text-xs text-gray-400 italic")
                 for name, targets in items:
                     if targets:
-                        ui.link(name, "#").on("click", self.make_jump(targets[0])).classes("text-xs break-all")
+                        ui.link(name, "#").on("click", self.make_jump(targets[0]), js_handler=LINK_CLICK_JS).classes(
+                            "text-xs break-all"
+                        )
                     else:
                         ui.label(f"{name} ({translate_string('not in this backup')})").classes(
                             "text-xs break-all italic text-gray-500",
@@ -436,7 +441,9 @@ class _Monitor:
             ):
                 for row in comparison.rows():
                     if row.target is not None:
-                        ui.link(row.text, "#").on("click", self.make_jump(row.target)).classes(
+                        ui.link(row.text, "#").on(
+                            "click", self.make_jump(row.target), js_handler=LINK_CLICK_JS
+                        ).classes(
                             "font-mono text-xs whitespace-pre text-blue-600 dark:text-blue-400",
                         )
                     else:

@@ -37,6 +37,7 @@ from nicegui import run, ui
 from maptasker.src.analysis import timecomp
 from maptasker.src.analysis.diffload import current_configuration
 from maptasker.src.core import timeline
+from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.mapops import maprefac, maprefac_model, maprestore
 
@@ -441,7 +442,9 @@ def draw_row(
             with ui.row().classes("items-baseline gap-2 min-w-0"):
                 ui.label(tag or candidate.tag).classes("font-mono text-xs font-bold text-orange-500 shrink-0")
                 if candidate.target is not None:
-                    ui.link(candidate.where, "#").on("click", make_jump(candidate.target)).classes(
+                    ui.link(candidate.where, "#").on(
+                        "click", make_jump(candidate.target), js_handler=LINK_CLICK_JS
+                    ).classes(
                         "text-blue-600 dark:text-blue-400 font-mono text-sm decoration-dotted hover:underline "
                         "break-all min-w-0",
                     )
@@ -471,7 +474,7 @@ def draw_preview(
     with area, ui.column().classes("w-full gap-0 p-2"):
         for row in maprefac.report_rows(plan):
             if row.target is not None:
-                ui.link(row.text, "#").on("click", make_jump(row.target)).classes(
+                ui.link(row.text, "#").on("click", make_jump(row.target), js_handler=LINK_CLICK_JS).classes(
                     "text-blue-600 dark:text-blue-400 font-mono text-xs whitespace-pre decoration-dotted hover:underline",
                 )
             else:

@@ -32,6 +32,7 @@ from typing import TYPE_CHECKING
 from nicegui import ui
 
 from maptasker.src.analysis import firesim
+from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import translate_string
 
 if TYPE_CHECKING:
@@ -221,7 +222,7 @@ def _summary_text(result: firesim.Simulation) -> str:
 
 def _link(target: Target, make_jump: Callable, classes: str = "") -> None:
     """A clickable name that goes to the object in the Map view."""
-    ui.link(target.label, "#").on("click", make_jump(target)).classes(
+    ui.link(target.label, "#").on("click", make_jump(target), js_handler=LINK_CLICK_JS).classes(
         f"text-blue-600 dark:text-blue-400 font-mono text-sm decoration-dotted hover:underline {classes}",
     )
 
