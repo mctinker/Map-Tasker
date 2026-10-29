@@ -218,6 +218,86 @@ def _build_edit_project_fields(
     pending_changes.watch(dialog, lambda: editor_state(edited_project.project_element, field_refs))
 
 
+def _build_project_ok_button(self: MyGui, field_refs: dict[str, Any], dialog: ui.dialog) -> None:
+    """The Ok button of the Edit Project dialog, with the tooltip that says what keeping the changes does."""
+    edit_project_ok = ui.button(
+        translate_string("Ok"),
+        on_click=lambda: self.event_handlers.editors.keep_edited_project_event(field_refs, dialog),
+    ).props("outline")
+    with edit_project_ok:
+        ui.tooltip(
+            translate_string(
+                "Closes this dialog, keeping the changes made in it.\n\n"
+                "The Enabled switch, Properties, TaskerNet Description and Launcher Task are applied to the "
+                "loaded backup as you make them, so there is nothing more to apply. They are kept for this "
+                "session only: no file is written and nothing is sent to your Android device. Use 'Save To "
+                "Current File' or 'Save To Android' to keep them. One press of Undo takes a change back.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
+def _build_project_save_buttons(
+    self: MyGui,
+    edited_project: projedit.EditableProject,
+    field_refs: dict[str, Any],
+    dialog: ui.dialog,
+) -> None:
+    """The Edit Project dialog's three ways to keep the Project: Save To Current File, Save To Android and Export."""
+    project_to_current_file = ui.button(
+        translate_string("Save To Current File"),
+        on_click=lambda: self.event_handlers.editors.save_project_to_current_file_event(
+            edited_project,
+            field_refs,
+            dialog,
+        ),
+    ).props("outline")
+    with project_to_current_file:
+        ui.tooltip(
+            translate_string(
+                "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- "
+                "including every edit made anywhere in this session.\n"
+                "It is written to a new, timestamped copy of the file currently loaded: "
+                "backup.xml becomes backup_20260728_143005.xml.\n"
+                "The file you loaded is never written to, so it is left exactly as it was.\n"
+                "The app then switches to the new copy, which becomes the current file for any further "
+                "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                "This writes to this computer only -- nothing is sent to your Android device.",
+            ),
+        ).style("white-space: pre-wrap")
+    project_to_android = ui.button(
+        translate_string("Save To Android"),
+        on_click=lambda: self.event_handlers.android.open_save_project_to_android_dialog_event(
+            edited_project,
+            field_refs,
+            dialog,
+        ),
+    ).props("outline")
+    with project_to_android:
+        ui.tooltip(
+            translate_string(
+                "This will write the Project, and everything in it -- every Profile and Task -- as a "
+                "standalone file onto your Android device, under /Tasker/projects -- it does not import "
+                "it into Tasker's live configuration.\n\n"
+                "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                "device, with the server running.\n\n"
+                "The Android device must be on the same network, and the IP Address and Port must "
+                "match its Tasker server settings.\n\n"
+                "Watch the Android device while this runs: Tasker asks you to authorize the "
+                "connection several times for one save, and a prompt left untapped fails it.",
+            ),
+        ).style("white-space: pre-wrap")
+    save_single_project = ui.button(
+        translate_string("Export Project"),
+        on_click=lambda: self.event_handlers.editors.save_project_event(edited_project, field_refs, dialog),
+    ).classes("bg-blue-600")
+    with save_single_project:
+        ui.tooltip(
+            translate_string(
+                "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file.",
+            ),
+        )
+
+
 def _build_edit_project_buttons(
     self: MyGui,
     edited_project: projedit.EditableProject,
@@ -227,20 +307,7 @@ def _build_edit_project_buttons(
     """The Edit Project dialog's button row: Cancel, Ok, Delete, Rename, the two saves and Export."""
     with ui.row().classes("w-full justify-end gap-2 mt-4"):
         ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
-        edit_project_ok = ui.button(
-            translate_string("Ok"),
-            on_click=lambda: self.event_handlers.editors.keep_edited_project_event(field_refs, dialog),
-        ).props("outline")
-        with edit_project_ok:
-            ui.tooltip(
-                translate_string(
-                    "Closes this dialog, keeping the changes made in it.\n\n"
-                    "The Enabled switch, Properties, TaskerNet Description and Launcher Task are applied to the "
-                    "loaded backup as you make them, so there is nothing more to apply. They are kept for this "
-                    "session only: no file is written and nothing is sent to your Android device. Use 'Save To "
-                    "Current File' or 'Save To Android' to keep them. One press of Undo takes a change back.",
-                ),
-            ).style("white-space: pre-wrap")
+        _build_project_ok_button(self, field_refs, dialog)
         ui.button(
             translate_string("Delete Project"),
             on_click=lambda: self.event_handlers.editors.delete_project_event(edited_project, dialog),
@@ -256,59 +323,7 @@ def _build_edit_project_buttons(
                     "The Project Name field above is read-only -- this is the only way to change it.",
                 ),
             )
-        project_to_current_file = ui.button(
-            translate_string("Save To Current File"),
-            on_click=lambda: self.event_handlers.editors.save_project_to_current_file_event(
-                edited_project,
-                field_refs,
-                dialog,
-            ),
-        ).props("outline")
-        with project_to_current_file:
-            ui.tooltip(
-                translate_string(
-                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- "
-                    "including every edit made anywhere in this session.\n"
-                    "It is written to a new, timestamped copy of the file currently loaded: "
-                    "backup.xml becomes backup_20260728_143005.xml.\n"
-                    "The file you loaded is never written to, so it is left exactly as it was.\n"
-                    "The app then switches to the new copy, which becomes the current file for any further "
-                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                    "This writes to this computer only -- nothing is sent to your Android device.",
-                ),
-            ).style("white-space: pre-wrap")
-        project_to_android = ui.button(
-            translate_string("Save To Android"),
-            on_click=lambda: self.event_handlers.android.open_save_project_to_android_dialog_event(
-                edited_project,
-                field_refs,
-                dialog,
-            ),
-        ).props("outline")
-        with project_to_android:
-            ui.tooltip(
-                translate_string(
-                    "This will write the Project, and everything in it -- every Profile and Task -- as a "
-                    "standalone file onto your Android device, under /Tasker/projects -- it does not import "
-                    "it into Tasker's live configuration.\n\n"
-                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
-                    "device, with the server running.\n\n"
-                    "The Android device must be on the same network, and the IP Address and Port must "
-                    "match its Tasker server settings.\n\n"
-                    "Watch the Android device while this runs: Tasker asks you to authorize the "
-                    "connection several times for one save, and a prompt left untapped fails it.",
-                ),
-            ).style("white-space: pre-wrap")
-        save_single_project = ui.button(
-            translate_string("Export Project"),
-            on_click=lambda: self.event_handlers.editors.save_project_event(edited_project, field_refs, dialog),
-        ).classes("bg-blue-600")
-        with save_single_project:
-            ui.tooltip(
-                translate_string(
-                    "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file.",
-                ),
-            )
+        _build_project_save_buttons(self, edited_project, field_refs, dialog)
 
 
 def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProject) -> None:
