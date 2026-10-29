@@ -28,7 +28,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Building the Map or the Diagram no longer stops with an error when a backup refers to something it does not contain, such as a Project listing a Task, Profile or Scene that is not in the file, or has an empty id or no Tasker version. The missing item is left out, and Health Check still reports it.
-- Fixed: __Exit__ with __Close Tabs On Exit__ ticked now closes the browser tab after you have clicked a link in a report window such as Missing Resources, Find or the Monitor. Those links made the browser add a step to the tab's history, and a browser will not let a program close such a tab.
+- Fixed: __Exit__ with __Close Tabs On Exit__ don't close the browser tab after you have clicked a link in a report window such as Missing Resources, Find or the Monitor. Those links made the browser add a step to the tab's history, and a browser will not let a program close such a tab.
 - Fixed:
 
 
