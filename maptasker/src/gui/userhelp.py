@@ -392,6 +392,22 @@ LAUNCHER_HELP_TEXT = (
     " on the Project's line as [Launcher Task: ...].  Add Project has no pulldown, because a new Project has no Tasks"
     " yet.  \n"
 )
+DESCRIBE_HELP_TEXT = (
+    "- Requirements and Draft with AI: Two buttons in the TaskerNet Description window help fill it in.  Insert Requirements"
+    " adds, at the end, a list headed 'What you need to use this' with the plugins, apps and special access (root,"
+    " ADB Wi-Fi, Write Secure Settings and so on) the Project, Profile or Task uses, the variables Tasker will ask the"
+    " importer about, and the oldest Tasker it is known to run on -- the same list Check Readiness shows, worked out from"
+    " the file.  Press it again after changing the Project and it replaces the list rather than adding a second.  Draft"
+    " with AI asks the AI model chosen on the Analyze tab to write the description itself.  What it is sent is shown, word"
+    " for word, under 'What will be sent' before you press it: the names of the Profiles, Tasks and Scenes, what starts"
+    " each Profile, the names of the actions in each Task (not If, Else or Goto), what the share needs on another phone,"
+    " and the description you have written so far.  It is never sent an action's settings -- no address, message, number,"
+    " key or variable value -- nor the requirements list, which is left as it is.  The draft replaces what is in the box,"
+    " where Undo Draft takes it back, and nothing is kept until you press Ok.  What comes back is rebuilt from a short"
+    " list of safe tags, so a script, link, image or style the model was talked into writing is taken out, and it is"
+    " said so.  A model on this computer sends nothing anywhere.  Read the draft: the model only has names to go on, and"
+    " the names are yours or the share's author's.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -421,5 +437,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}"
     )

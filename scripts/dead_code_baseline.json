@@ -211,9 +211,6 @@
   "maptasker/src/mapops/mapswap_model.py": {
     "unused variable 'BLOCKED_DETACHED'": 1
   },
-  "maptasker/src/mapops/readiness.py": {
-    "unused property 'needs_nothing'": 1
-  },
   "maptasker/src/mapops/tnfind.py": {
     "unused attribute 'catalogue_age_days'": 1,
     "unused variable 'catalogue_age_days'": 1

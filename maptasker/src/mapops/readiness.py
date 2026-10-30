@@ -45,6 +45,8 @@
 # MIT License   Refer to https://opensource.org/license/mit                             #
 from __future__ import annotations
 
+import copy
+import html
 import json
 import os
 import re
@@ -55,7 +57,7 @@ from typing import TYPE_CHECKING
 import defusedxml.ElementTree as DefusedET
 
 from maptasker.src.analysis.plugchk import item_name
-from maptasker.src.core import appinv
+from maptasker.src.core import appinv, tndesc
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.objprops import VARIABLE_TYPES
 from maptasker.src.core.plugset import plugin_package
@@ -258,6 +260,25 @@ class Readiness:
         out.append(LIMITATIONS)
         return "\n".join(out).rstrip() + "\n"
 
+    def as_html(self) -> str:
+        """The report as the block a TaskerNet description carries: headings and bullets, in HTML.
+
+        Written for somebody deciding whether to import, so a section with nothing in it is left out
+        rather than printed as "No plugins are used."  A report with nothing in it at all says that in
+        one line.  Everything is escaped -- a Task's name is whatever its author typed -- and the block
+        starts and ends with the markers tndesc finds it again by, so pressing the button a second time
+        replaces it.  It is made of the tags the description editor's own buttons write, so it checks clean.
+        """
+        parts = [tndesc.REQUIREMENTS_START]
+        shown = [section for section in self.sections() if section.lines]
+        if self.needs_nothing:
+            parts.append("<p>No plugin, app or special access was found in this file.</p>")
+        for section in shown:
+            items = "".join(_html_item(line) for line in section.lines)
+            parts.append(f"<p><b>{_esc(section.title)}</b></p>\n<ul>{items}\n</ul>")
+        parts.append(f"<p><small><i>{_esc(LIMITATIONS)}{tndesc.REQUIREMENTS_END}")
+        return "\n".join(parts)
+
 
 # What every report ends with, said once.  See the header on why a "ready" answer needs it.
 LIMITATIONS = (
@@ -265,6 +286,17 @@ LIMITATIONS = (
     "ordinary permissions such as location or SMS are left to Tasker to ask for on import, and a "
     "plugin's own account or license is not visible here."
 )
+
+
+def _esc(text: str) -> str:
+    """Text safe to put in a description: &, < and > escaped, and quotes left as they are."""
+    return html.escape(text, quote=False)
+
+
+def _html_item(line: Line) -> str:
+    """One entry of a section as a bullet: what it is, then who uses it and how to set it up."""
+    extra = "".join(f"<br/>{_esc(detail)}" for detail in (line.used_by, line.setup) if detail)
+    return f"\n<li>{_esc(line.text)}{extra}</li>"
 
 
 def _named(places: tuple[str, ...]) -> str:
@@ -521,3 +553,56 @@ def check_scene(scene_name: str, state: RunState) -> Readiness:
     """The same for a Scene export.  Raises ValueError if the Scene is not loaded."""
     rendered = sceneedit.render_standalone_scene_xml(scene_name, state=state)
     return check_tree(DefusedET.fromstring(rendered), f"Scene '{scene_name}'")
+
+
+def linked_task_ids(profile: Element) -> list[str]:
+    """The ids of the Tasks a Profile runs: <mid0> (entry), <mid1> (exit), and any later one."""
+    return [
+        (child.text or "").strip()
+        for child in profile
+        if re.fullmatch(r"mid\d+", child.tag) and (child.text or "").strip()
+    ]
+
+
+def _document_for(element: Element, state: RunState) -> Element:
+    """A <TaskerData> document holding just this Project, Profile or Task -- and a Profile's own Tasks.
+
+    What a standalone export of it would carry, built from the element handed over rather than from the
+    loaded tree, so a description opened over an Add dialog -- whose object is not registered yet -- or over
+    an edit that has not been kept still reads what is on screen.  A Profile is of little use without the
+    Tasks it runs, which is why an export bundles them, so they are bundled here (see
+    profedit.render_standalone_profile_xml).
+    """
+    version = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
+    root = type(element)("TaskerData", {"tv": version})
+    root.append(copy.deepcopy(element))
+    if element.tag == "Profile":
+        all_tasks = state.tasker_root_elements.get("all_tasks", {})
+        for task_id in linked_task_ids(element):
+            task = all_tasks.get(task_id)
+            if task is not None:
+                root.append(copy.deepcopy(task["xml"]))
+    return root
+
+
+def check_element(kind: str, element: Element, name: str, state: RunState) -> Readiness:
+    """What a Project, Profile or Task needs on the phone that receives it, from the element itself.
+
+    A Project that is loaded is checked as its export would be written -- its Scenes and the Tasks they
+    fire included, exactly what the Check Readiness button reports.  Anything else is read from `element`,
+    with a Profile's own Tasks beside it.  A Task is checked alone, as its export is: a Task it performs
+    is not bundled with it, so it is not counted.
+
+    Args:
+        kind: "Project", "Profile" or "Task".
+        element: the working copy the editor is open over.
+        name: the object's name, for the report's heading; "" for one that has none yet.
+        state: the run state, for the loaded Project and the Tasks a Profile runs.
+    """
+    scope = f"{kind} '{name}'" if name else kind
+    if kind == "Project" and name:
+        try:
+            return check_project(name, state)
+        except ValueError:
+            pass  # not loaded (a new Project), so read the copy
+    return check_tree(_document_for(element, state), scope)

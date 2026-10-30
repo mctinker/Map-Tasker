@@ -357,6 +357,44 @@ def add_line_breaks(text: str) -> str:
 
 
 # ##################################################################################
+# The requirements block.
+# ##################################################################################
+# The list of what a Project, Profile or Task needs on another phone (readiness.Readiness.as_html) is
+# written into a description between these two markers, which is what lets pressing the button again
+# REPLACE it rather than add a second one, and lets the AI draft rewrite the author's words without
+# touching it.  The heading is the start of the block and the closing of its last paragraph the end:
+# nothing is hidden in the markup, because nobody can be sure how TaskerNet treats a comment.
+REQUIREMENTS_HEADING = "What you need to use this"
+REQUIREMENTS_START = f"<h3>{REQUIREMENTS_HEADING}</h3>"
+REQUIREMENTS_END = "</i></small></p>"
+_REQUIREMENTS_BLOCK = re.compile(
+    rf"{re.escape(REQUIREMENTS_START)}.*?(?:{re.escape(REQUIREMENTS_END)}|\Z)",
+    re.DOTALL,
+)
+
+
+def split_requirements(text: str) -> tuple[str, str]:
+    """(everything but the requirements block, the block) -- the block being "" when there is none."""
+    match = _REQUIREMENTS_BLOCK.search(text)
+    if match is None:
+        return text, ""
+    return f"{text[: match.start()]}{text[match.end() :]}".strip(), match.group(0)
+
+
+def put_requirements(text: str, block: str) -> tuple[str, bool]:
+    """The description with `block` as its requirements block, and whether it replaced one.
+
+    A block already there is replaced where it stands, so what was written around it keeps its place.
+    Otherwise it goes on the end, set off from what is above it by a blank line.
+    """
+    match = _REQUIREMENTS_BLOCK.search(text)
+    if match is not None:
+        return f"{text[: match.start()]}{block}{text[match.end() :]}", True
+    separator = "\n\n" if text.strip() else ""
+    return f"{text.rstrip()}{separator}{block}", False
+
+
+# ##################################################################################
 # The check.
 # ##################################################################################
 WARNING = "WARNING"

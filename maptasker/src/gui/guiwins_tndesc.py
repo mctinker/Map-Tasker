@@ -15,7 +15,9 @@ from maptasker.src.core import tndesc
 from maptasker.src.core.maputil2 import suppress_logged, translate_string
 from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.share import description_html
+from maptasker.src.gui.guiwins_describe import DescribeRow
 from maptasker.src.gui.guiwins_editor import PendingChangesBanner, editor_state
+from maptasker.src.mapops import readiness
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -142,6 +144,7 @@ class _DescriptionEditor:
                 .classes("w-full")
             )
             self._build_helpers()
+            DescribeRow(self.gui, self.kind, self.element, self.name, self.text, self.dialog).build()
             self.issues = ui.column().classes("w-full gap-0")
             ui.label(translate_string("Preview, as the Map shows it")).classes("text-sm font-bold mt-2")
             background = _css_color(current_config(self.gui.state).colors.get("background_color", "white"))
@@ -218,6 +221,19 @@ class _DescriptionEditor:
                         "a web page.  This puts a <br/> on the end of every line that does not already end a tag.",
                     ),
                 ).style("white-space: pre-wrap")
+            with ui.button(
+                translate_string("Insert Requirements"),
+                icon="checklist",
+                on_click=self.insert_requirements,
+            ).props("outline dense no-caps"):
+                ui.tooltip(
+                    translate_string(
+                        "Adds, at the end, a list of what somebody needs on their phone to use this: the plugins, apps and "
+                        "special access it uses, the variables Tasker will ask about and the Tasker version -- worked out "
+                        "from what is in the file, the same list as Check Readiness.\n\n"
+                        "Press it again to bring the list up to date; it replaces the one already there.",
+                    ),
+                ).style("white-space: pre-wrap")
 
     def _build_buttons(self) -> None:
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
@@ -281,6 +297,17 @@ class _DescriptionEditor:
         )
         self.text.set_value(edit.text)
         select_in(self.text, edit.start, edit.end)
+
+    def insert_requirements(self) -> None:
+        """Put what this needs on another phone into the box, as a block that a second press replaces."""
+        report = readiness.check_element(self.kind, self.element, self.name, self.gui.state)
+        block = report.as_html()
+        text, replaced = tndesc.put_requirements(str(self.text.value or ""), block)
+        self.text.set_value(text)
+        ui.notify(
+            translate_string("Requirements brought up to date." if replaced else "Requirements added at the end."),
+            type="positive",
+        )
 
     def refresh(self) -> None:
         """Redo the checks and the preview for what is in the box."""

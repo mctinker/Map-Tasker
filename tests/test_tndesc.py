@@ -238,6 +238,56 @@ def test_line_breaks_are_added_once_and_only_where_a_line_does_not_already_end_a
 
 
 # ##################################################################################
+# The requirements block.
+# ##################################################################################
+_BLOCK = f"{tndesc.REQUIREMENTS_START}\n<p>x</p>\n<p><small><i>fine print{tndesc.REQUIREMENTS_END}"
+
+
+def test_a_block_goes_on_the_end_set_off_by_a_blank_line() -> None:
+    text, replaced = tndesc.put_requirements("What it does.", _BLOCK)
+
+    assert replaced is False
+    assert text == f"What it does.\n\n{_BLOCK}"
+
+
+def test_a_block_in_an_empty_description_is_all_there_is() -> None:
+    assert tndesc.put_requirements("", _BLOCK) == (_BLOCK, False)
+    assert tndesc.put_requirements("  \n ", _BLOCK)[0] == _BLOCK
+
+
+def test_a_second_block_replaces_the_first_where_it_stands() -> None:
+    first, _ = tndesc.put_requirements("Intro.", _BLOCK)
+    with_after = f"{first}\n\nA note written after it."
+    newer = f"{tndesc.REQUIREMENTS_START}\n<p>newer</p>\n<p><small><i>fine print{tndesc.REQUIREMENTS_END}"
+
+    text, replaced = tndesc.put_requirements(with_after, newer)
+
+    assert replaced is True
+    assert text.count(tndesc.REQUIREMENTS_START) == 1
+    assert "<p>newer</p>" in text
+    assert "<p>x</p>" not in text
+    assert text.startswith("Intro.") and text.endswith("A note written after it.")
+
+
+def test_a_block_with_no_end_is_replaced_to_the_end_of_the_text() -> None:
+    """A half-deleted block must not leave its start behind to be found again."""
+    text, replaced = tndesc.put_requirements(f"Intro.\n\n{tndesc.REQUIREMENTS_START}\n<p>half", _BLOCK)
+
+    assert replaced is True
+    assert text.count(tndesc.REQUIREMENTS_START) == 1
+
+
+def test_a_description_splits_into_what_the_author_wrote_and_the_block() -> None:
+    text = f"Intro.\n\n{_BLOCK}\n\nAfter."
+
+    prose, block = tndesc.split_requirements(text)
+
+    assert block == _BLOCK
+    assert "Intro." in prose and "After." in prose and tndesc.REQUIREMENTS_START not in prose
+    assert tndesc.split_requirements("Just words.") == ("Just words.", "")
+
+
+# ##################################################################################
 # The check.
 # ##################################################################################
 def messages(text: str) -> list[str]:

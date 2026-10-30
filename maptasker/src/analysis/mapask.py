@@ -35,7 +35,7 @@ import json
 import re
 from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.analysis import mapfind
 from maptasker.src.core.aiutils import get_api_key, prepare_ollama_model
@@ -294,7 +294,7 @@ def build_prompt(question: str, index: mapfind.FindIndex) -> tuple[str, str]:
 # ##################################################################################
 # The reply.
 # ##################################################################################
-def reply_object(reply: str, what: str = "search") -> dict:
+def reply_object(reply: str, what: str = "search") -> dict[str, Any]:
     """The JSON object in a reply, however much prose or fencing a model wraps it in.
 
     'what' is what the reply was meant to be, for the message when it is not.

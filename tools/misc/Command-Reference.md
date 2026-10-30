@@ -4,9 +4,9 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **94** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **95** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.1.0 source on 2026-10-29 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.1.1 source on 2026-10-30 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -77,6 +77,7 @@ _Generated from the MapTasker 15.1.0 source on 2026-10-29 by `build_command_wiki
 * [Project/Profile/Task/Scene Names](#cmd-project-profile-task-scene-names)
 * [Refactor > Variable](#cmd-refactor-variable)
 * [Report Issue](#cmd-report-issue)
+* [Requirements and Draft with AI](#cmd-requirements-and-draft-with-ai)
 * [Reset Options](#cmd-reset-options)
 * [Restore From History](#cmd-restore-from-history)
 * [Specific Name tab](#cmd-specific-name-tab)
@@ -1379,6 +1380,21 @@ Edit Project has a Launcher Task pulldown that sets the one Task the Project's l
 **Caveats:**
 
 * A launcher Task the Project already names that is not one of its Tasks is shown as such rather than replaced.
+
+<a id="cmd-requirements-and-draft-with-ai"></a>
+### Requirements and Draft with AI
+
+Two buttons in the TaskerNet Description window help fill it in.
+
+* Insert Requirements adds, at the end, a list headed 'What you need to use this' with the plugins, apps and special access (root, ADB Wi-Fi, Write Secure Settings and so on) the Project, Profile or Task uses, the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on -- the same list Check Readiness shows, worked out from the file.
+* Press it again after changing the Project and it replaces the list rather than adding a second.
+* Draft with AI asks the AI model chosen on the Analyze tab to write the description itself.
+* What it is sent is shown, word for word, under 'What will be sent' before you press it: the names of the Profiles, Tasks and Scenes, what starts each Profile, the names of the actions in each Task (not If, Else or Goto), what the share needs on another phone, and the description you have written so far.
+* It is never sent an action's settings -- no address, message, number, key or variable value -- nor the requirements list, which is left as it is.
+* The draft replaces what is in the box, where Undo Draft takes it back, and nothing is kept until you press Ok.
+* What comes back is rebuilt from a short list of safe tags, so a script, link, image or style the model was talked into writing is taken out, and it is said so.
+* A model on this computer sends nothing anywhere.
+* Read the draft: the model only has names to go on, and the names are yours or the share's author's.
 
 ## Command-Line Arguments
 
