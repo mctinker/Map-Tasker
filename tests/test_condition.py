@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import re
 import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core.actionc import load_arg_specs
 from maptasker.src.core.primitem import PrimeItems
-from maptasker.src.mapgen import condition
+from maptasker.src.mapgen import condition, profiles
 
 
 def _element(text: str) -> ET.Element:
@@ -120,6 +121,113 @@ def test_debug_shows_an_events_code(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(PrimeItems.program_arguments, "debug", True)
     said = condition.condition_event(_element("<Event><code>2087</code></Event>"), "", state=PrimeItems)
     assert said.endswith("(code:2087)")
+
+
+# ##################################################################################
+# A plugin State or Event, with "display prettier output" on
+# ##################################################################################
+# A trimmed AutoNotification "Intercept" State, in the shape Tasker writes it: the plugin's settings in a Bundle (its
+# blurb first), then the plugin's package, its activity and "Structure Output" as the last arguments.
+_PLUGIN_STATE = """<State sr="con0" ve="2"><code>40830242</code>
+<Bundle sr="arg0"><Vals sr="val">
+<AllFields>false</AllFields><App>System UI</App><BigTextNames>&lt;null&gt;</BigTextNames>
+<ExactApp>false</ExactApp><Title>Do not disturb turned on</Title>
+<com.twofortyfouram.locale.intent.extra.BLURB>Notification App: System UI
+Notification Title: Do not disturb turned on</com.twofortyfouram.locale.intent.extra.BLURB>
+<plugininstanceid>75b73d68</plugininstanceid>
+<plugintypeid>com.joaomgcd.autonotification.intent.IntentInterceptNotification</plugintypeid>
+</Vals></Bundle>
+<Str sr="arg1" ve="3">com.joaomgcd.autonotification</Str>
+<Str sr="arg2" ve="3">com.joaomgcd.autonotification.activity.ActivityConfigNotificationInterceptTasker</Str>
+<Int sr="arg3" val="1"/></State>"""
+
+
+@pytest.fixture
+def pretty(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(PrimeItems.program_arguments, "pretty", True)
+
+
+def _lines_of(said: str) -> list[str]:
+    """The text a State is worded as, one entry for each line the browser will show."""
+    return [line.strip() for line in said.split("<br>")]
+
+
+def _real_text_in(line: str) -> str:
+    return line.replace("&nbsp;", "").strip()
+
+
+@pytest.mark.usefixtures("pretty")
+def test_a_plugin_states_parameters_each_get_a_line_of_their_own() -> None:
+    said = condition.condition_state(_element(_PLUGIN_STATE), "", state=PrimeItems)
+    lines = [_real_text_in(line) for line in _lines_of(said)]
+
+    assert lines[0].endswith("Configuration Parameter(s):")
+    for parameter in (
+        "Notification App: System UI",
+        "AllFields=false",
+        "App=System UI",
+        "Title=Do not disturb turned on",
+    ):
+        assert parameter in lines, f"{parameter!r} should be a line of its own: {lines}"
+    # Not run together on one line, which is how an unbroken run of blanks looks to a browser.
+    assert not [line for line in lines if line.count("=") > 1 or line.count(": ") > 1], lines
+
+
+@pytest.mark.usefixtures("pretty")
+def test_a_plugin_states_parameters_are_indented_under_the_first_and_with_blanks_that_hold() -> None:
+    """The indentation is &nbsp;, which a browser keeps.  Plain spaces were collapsed, and the lines ran together."""
+    said = condition.condition_state(_element(_PLUGIN_STATE), "", state=PrimeItems)
+
+    for line in _lines_of(said)[1:]:
+        if _real_text_in(line):
+            assert line.startswith("&nbsp;"), f"{line!r} is not indented with blanks that hold"
+    assert not re.search(r" {3,}", said), "a run of plain spaces collapses in a browser"
+
+
+@pytest.mark.usefixtures("pretty")
+def test_a_plugin_states_name_does_not_run_into_the_word_after_it() -> None:
+    """The Profile line is aligned afterwards, and that strips every &nbsp; from the text after a line break."""
+    said = condition.condition_state(_element(_PLUGIN_STATE), "", state=PrimeItems)
+
+    assert "AutoNotification Intercept  Configuration Parameter(s):" in said
+    aligned = profiles.align_html_text(f'<span class="profile_condition_color"><br>(State: {said}')
+    assert "InterceptConfiguration" not in aligned
+    assert "Intercept Configuration Parameter(s):" in re.sub(r"\s+", " ", aligned.replace("&nbsp;", " "))
+
+
+@pytest.mark.usefixtures("pretty")
+def test_a_plugin_states_parameters_leave_no_blank_line_before_the_next_argument() -> None:
+    """The parameters end with a newline and the next argument begins with a comma: a blank line was left between."""
+    said = condition.condition_state(_element(_PLUGIN_STATE), "", state=PrimeItems)
+
+    assert not [line for line in _lines_of(said)[1:] if not _real_text_in(line)], _lines_of(said)
+
+
+# The same plugin's Event: its parameters are worded and laid out by the same code as a State's.
+_PLUGIN_EVENT = (
+    _PLUGIN_STATE.replace("<State", "<Event")
+    .replace("</State>", "</Event>")
+    .replace("<code>40830242</code>", "<code>1520257414</code>")
+)
+
+
+@pytest.mark.usefixtures("pretty")
+def test_a_plugin_events_name_does_not_run_into_the_word_after_it_either() -> None:
+    """It did: "AutoNotification InterceptConfiguration Parameter(s):" -- the Event had the same fault as the State."""
+    said = condition.condition_event(_element(_PLUGIN_EVENT), "", state=PrimeItems)
+
+    aligned = profiles.align_html_text(f'<span class="profile_condition_color"><br>(Event: {said}')
+    assert "InterceptConfiguration" not in aligned
+    assert "Intercept Configuration Parameter(s):" in re.sub(r"\s+", " ", aligned.replace("&nbsp;", " "))
+    assert [_real_text_in(line) for line in _lines_of(said)].count("AllFields=false") == 1
+
+
+def test_a_plugin_states_parameters_are_on_one_line_when_the_output_is_not_pretty() -> None:
+    """Unchanged: without "display prettier output" the parameters are a comma-separated list."""
+    said = condition.condition_state(_element(_PLUGIN_STATE), "", state=PrimeItems)
+
+    assert "<br>" not in said
+    assert "Notification App: System UI, Notification Title: Do not disturb turned on" in said
 
 
 # ##################################################################################

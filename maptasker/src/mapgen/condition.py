@@ -6,6 +6,7 @@
 #                                                                                      #
 
 import functools
+import re
 from typing import Any
 from xml.etree.ElementTree import Element
 
@@ -23,6 +24,23 @@ from maptasker.src.mapgen.tasks import reformat_html
 
 space = "&nbsp;"
 spaces = f"{space * 50}"
+# A line with nothing on it but the blanks that indent it, and the line break that follows.
+_BLANK_LINE = re.compile(r"\n(?:&nbsp;| )*(?=\n)")
+
+
+def _pretty_parameters(text: str) -> str:
+    """A State's or Event's name and plugin Configuration Parameter(s), with the parameters one to a line.
+
+    The two blanks between the name and "Configuration Parameter(s):" are made plain spaces first.  The Profile
+    line is aligned afterwards (profiles.align_html_text), and that removes every &nbsp; from the text after a
+    line break before it puts its own indentation back: left as &nbsp; they went with it, and the name ran into
+    the word after it ("InterceptConfiguration").  The indentation reformat_html adds is &nbsp; and stays, as
+    it is what the aligning replaces.
+    """
+    lines = reformat_html(text.replace("&nbsp;&nbsp;", "  "))
+    # A plugin's parameters end with a newline and the next argument ("Structure Output") begins with a comma, so
+    # a blank line is left between the two.  A blank line is never a parameter.
+    return _BLANK_LINE.sub("", lines)
 
 
 # Profile condition: Time
@@ -184,11 +202,10 @@ def condition_state(
         state_text = _get_action_code(code_node, the_item, False, "s", state=state)
 
         if is_pretty and "Configuration Parameter(s):" in state_text:
-            state_text = _reformat_html(state_text)
-
-        state_text = state_text.replace("&nbsp;&nbsp;", "  ")
-
-        state_text = state_text.replace("\n", spaces)
+            # One parameter per line, indented under the first, as an Event's are.
+            state_text = _pretty_parameters(state_text).replace("\n", "<br>")
+        else:
+            state_text = state_text.replace("&nbsp;&nbsp;", "  ").replace("\n", spaces)
         condition_chunks.append(f"State: {state_text}  ")
 
         if is_inverted:
@@ -237,7 +254,7 @@ def condition_event(
 
     # If pretty text, then reformat it.
     if "Configuration Parameter(s):" in event and state.program_arguments.pretty:
-        event = reformat_html(event)
+        event = _pretty_parameters(event)
 
     # Get the event priority
     event = f"{event}{get_priority(the_item, True)}"
