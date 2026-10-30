@@ -315,6 +315,7 @@ def a_scratch_run(data: bytes) -> Iterator[Path]:
 def _ends_in_a_documented_exit_code(argv: list[str], data: bytes) -> None:
     with a_scratch_run(data) as path:
         code = clireports.run([*argv, "-file", str(path)])
+        assert path.read_bytes() == data, "a report on a backup changed the backup"
     event(f"exit code {code}")
     assert code in DOCUMENTED_EXIT_CODES, f"the run ended with {code}, which the command line does not document"
 
@@ -335,6 +336,7 @@ def _is_loaded_or_refused(data: bytes) -> None:
             event("refused with MapTaskerError")
         else:
             event("loaded")
+        assert path.read_bytes() == data, "loading a backup changed the backup"
 
 
 @_fuzz(300)

@@ -137,44 +137,32 @@ def test_a_file_that_cannot_be_read_is_an_error_not_a_crash(state: RunState, mon
     assert "XML parsing error Permission denied" in error
 
 
-def test_an_encoding_the_file_will_not_decode_is_rewritten_then_given_up_on(
+def test_an_encoding_the_file_will_not_decode_is_reported_and_the_file_left_alone(
     state: RunState,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Two rewrites are tried; the third failure is reported, so a bad file cannot loop forever."""
-    rewrites: list = []
+    """A file in no encoding that can be read is a message the window shows -- tried once, and never rewritten."""
+    calls: list[str] = []
 
-    def undecodable(*_args: Any, **_kwargs: Any) -> None:
+    def undecodable(file_name: str) -> None:
+        calls.append(file_name)
         msg = "utf-8"
         raise UnicodeDecodeError(msg, b"\xff", 0, 1, "invalid start byte")
 
     monkeypatch.setattr(getbakup, "parse_tasker_xml", undecodable)
-    monkeypatch.setattr(getbakup, "rewrite_xml", rewrites.append)
 
     error, tree = _validate(state)
 
     assert tree is None
     assert f"Unicode error in {_ANDROID_FILE}" in error
-    assert rewrites == ["backup.xml"] * 3
+    assert calls == ["backup.xml"]
 
 
-def test_a_file_that_decodes_after_a_rewrite_is_accepted(state: RunState, monkeypatch: pytest.MonkeyPatch) -> None:
-    """The second try works once the file has been rewritten -- the reason for the loop."""
-    calls = {"parsed": 0}
-    sentinel = object()
+def test_a_file_that_never_arrived_is_not_validated(state: RunState, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A non-zero return code once looped for ever; it is now an empty answer, and the parser is not asked."""
+    monkeypatch.setattr(getbakup, "parse_tasker_xml", lambda *_args, **_kwargs: pytest.fail("parsed a missing file"))
 
-    def parse(*_args: Any, **_kwargs: Any) -> object:
-        calls["parsed"] += 1
-        if calls["parsed"] == 1:
-            msg = "utf-8"
-            raise UnicodeDecodeError(msg, b"\xff", 0, 1, "invalid start byte")
-        return sentinel
-
-    monkeypatch.setattr(getbakup, "parse_tasker_xml", parse)
-    monkeypatch.setattr(getbakup, "rewrite_xml", lambda _name: None)
-
-    assert _validate(state) == ("", sentinel)
-    assert calls["parsed"] == 2
+    assert getbakup.validate_xml("", _ANDROID_FILE, 1, "", state=state) == ("", None)
 
 
 # ##################################################################################

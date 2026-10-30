@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: A backup saved in another text encoding, such as Latin-1 or UTF-16, now opens instead of being refused, and opening a backup can no longer alter or delete the file.
 - Fixed: Upgrading to the latest version no longer prints a confusing "Ignoring NICEGUI_PORT" warning in the console when MapTasker restarts.
 - Fixed:
 

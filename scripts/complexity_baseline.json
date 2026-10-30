@@ -1,6 +1,6 @@
 {
   "maptasker/src/analysis/diffload.py::_parsed_in_isolation": {
-    "LINES": 100,
+    "LINES": 98,
     "PLR0915": 43
   },
   "maptasker/src/core/maputil2.py::render_full_backup_xml": {

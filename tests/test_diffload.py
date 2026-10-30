@@ -266,12 +266,10 @@ def test_an_exception_inside_the_window_still_restores(tmp_path) -> None:
 def test_the_user_file_is_never_the_one_parsed(tmp_path, monkeypatch) -> None:
     """A copy is parsed, never the file the user picked.
 
-    get_the_xml_data calls xmldata.rewrite_xml on a UnicodeDecodeError, and rewrite_xml
-    removes and renames the file it is given -- it replaces the file on disk.  A
-    comparison that rewrote one of the two backups it was asked to compare would destroy
-    the thing the user opened it to check.  Asserted by watching which path the parse is
-    handed, rather than by contriving an encoding error, so it holds for every path into
-    rewrite_xml rather than the one a fixture can reach.
+    Loading a backup does not write to it, so this is a second line of defence rather than the only one: a
+    comparison that changed one of the two backups it was asked to compare would destroy the thing the user
+    opened it to check.  Asserted by watching which path the parse is handed, so it holds for every path
+    into the loader rather than the one a fixture can reach.
     """
     other = _write(tmp_path, "other.xml", _OTHER_XML)
     parsed_paths = []

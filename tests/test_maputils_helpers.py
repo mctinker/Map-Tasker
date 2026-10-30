@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import os
 import sys
-import types
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -23,6 +22,7 @@ import requests
 from maptasker.src.core import clock, console, maputils
 from maptasker.src.core.primitem import PrimeItems
 
+from tests.doubles import fake_state
 from tests.test_mapswap import _FIXTURE_XML, _load
 
 
@@ -367,16 +367,34 @@ def test_a_rename_that_the_system_refuses_is_reported_not_raised(tmp_path: Path)
 
 def _restart_harness(monkeypatch: pytest.MonkeyPatch) -> dict:
     started: dict = {}
-    monkeypatch.setattr(maputils.subprocess, "Popen", lambda args: started.setdefault("args", args))
+    monkeypatch.setattr(
+        maputils.subprocess,
+        "Popen",
+        lambda args, env=None: (started.setdefault("args", args), started.setdefault("env", env)),
+    )
     monkeypatch.setattr(maputils.time, "sleep", lambda seconds: started.setdefault("slept", seconds))
     monkeypatch.setattr(maputils.console, "say", lambda text: started.setdefault("said", text))
     monkeypatch.setattr(sys, "argv", ["maptasker", "-debug", "-detail", "2"])
     return started
 
 
+def test_the_restarted_copy_does_not_inherit_the_servers_host_and_port(monkeypatch: pytest.MonkeyPatch) -> None:
+    """NiceGUI exports its host, port and protocol while it serves; the new copy would warn about each and ignore it."""
+    started = _restart_harness(monkeypatch)
+    for name in ("NICEGUI_HOST", "NICEGUI_PORT", "NICEGUI_PROTOCOL"):
+        monkeypatch.setenv(name, "x")
+    monkeypatch.setenv("MAPTASKER_KEEP_ME", "yes")
+
+    with pytest.raises(SystemExit):
+        maputils.restart_program_subprocess(fake_state(slash=os.sep))
+
+    assert not {"NICEGUI_HOST", "NICEGUI_PORT", "NICEGUI_PROTOCOL"} & set(started["env"])
+    assert started["env"]["MAPTASKER_KEEP_ME"] == "yes"
+
+
 def test_restarting_starts_a_new_copy_with_the_same_arguments_and_exits(monkeypatch: pytest.MonkeyPatch) -> None:
     started = _restart_harness(monkeypatch)
-    state = types.SimpleNamespace(slash=os.sep)
+    state = fake_state(slash=os.sep)
 
     with pytest.raises(SystemExit) as stopped:
         maputils.restart_program_subprocess(state)
@@ -403,7 +421,7 @@ async def test_restarting_from_inside_the_event_loop_stops_the_server_on_another
     real_thread = maputils.threading.Thread
     monkeypatch.setattr(maputils.threading, "Thread", lambda **kwargs: threads.append(kwargs) or real_thread(**kwargs))
 
-    maputils.restart_program_subprocess(types.SimpleNamespace(slash=os.sep))  # Must not raise SystemExit here.
+    maputils.restart_program_subprocess(fake_state(slash=os.sep))  # Must not raise SystemExit here.
 
     assert started["args"][0] == sys.executable
     assert threads and threads[0]["daemon"] is True

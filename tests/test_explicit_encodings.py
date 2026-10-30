@@ -48,21 +48,21 @@ def _run_checked(script: str, tmp_path: Path) -> subprocess.CompletedProcess[str
     )
 
 
-def test_appending_xml_keeps_non_ascii_names_intact(tmp_path: Path) -> None:
-    """append_files copies one XML file onto another: a Tasker name must come through unchanged."""
-    body = f"<Task>{_NON_ASCII}</Task>\n"
-    header = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
-    (tmp_path / "in.xml").write_text(body, encoding="utf-8")
-    (tmp_path / "out.xml").write_text(header, encoding="utf-8")
+def test_reading_a_backup_keeps_non_ascii_names_intact(tmp_path: Path) -> None:
+    """A Tasker name outside ASCII must come through the loader unchanged, whatever the platform's default encoding."""
+    (tmp_path / "in.xml").write_text(
+        f'<?xml version="1.0" encoding="UTF-8"?>\n<TaskerData><Task><nme>{_NON_ASCII}</nme></Task></TaskerData>\n',
+        encoding="utf-8",
+    )
     result = _run_checked(
-        """
-        from maptasker.src.core.xmldata import append_files
-        append_files("in.xml", "out.xml")
+        f"""
+        from maptasker.src.core.xmldata import parse_tasker_xml
+        name = parse_tasker_xml("in.xml").getroot().findtext("Task/nme")
+        assert name == {_NON_ASCII!r}, name
         """,
         tmp_path,
     )
     assert result.returncode == 0, result.stderr
-    assert (tmp_path / "out.xml").read_text(encoding="utf-8") == header + body
 
 
 def test_the_run_counter_and_first_run_marker_use_an_explicit_encoding(tmp_path: Path) -> None:

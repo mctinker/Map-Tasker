@@ -18,7 +18,7 @@ from maptasker.src.core.error import report_error
 from maptasker.src.core.maputil2 import http_request
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.sysconst import logger
-from maptasker.src.core.xmldata import parse_tasker_xml, rewrite_xml
+from maptasker.src.core.xmldata import parse_tasker_xml
 from maptasker.src.mapgen.taskerd import get_the_xml_data
 
 if TYPE_CHECKING:
@@ -131,7 +131,6 @@ def validate_xml(
     file_contents: bytes | str,
     state: RunState,
 ) -> tuple[str, ElementTree | None]:
-    # Run loop since we may have to rerun validation if unicode error
     """Validates an XML file and returns an error message and the parsed XML tree.
     Parameters:
         android_file (str): The path to the XML file to be validated.
@@ -142,65 +141,47 @@ def validate_xml(
         error_message (str): A message describing any errors encountered during validation.
         xml_tree (ElementTree): The parsed XML tree if validation was successful.
     Processing Logic:
-        - Runs a loop to allow for revalidation in case of a unicode error.
-        - Sets the process_file flag to False to exit the loop if validation is successful or an error is encountered.
+        - Gets the file (written out first when it came from a device) and parses it as the loader reads it.
         - If validation is successful, sets the xml_tree variable to the parsed XML tree.
-        - If an error is encountered, sets the error_message variable to a descriptive message and exits the loop.
-        - If a unicode error is encountered, rewrites the XML file and loops one more time.
-        - If any other error is encountered, sets the error_message variable to a descriptive message and exits the loop.
+        - If it is not well-formed, is in an encoding that cannot be read, or cannot be opened, sets the
+          error_message variable to say so.  The file is never written to.
         - Returns the error_message and xml_tree variables."""
-    process_file = True
     error_message = ""
-    counter = 0
     xml_tree: ElementTree | None = None
-    file_to_validate = ""
-    _write_out_backup_file = write_out_backup_file
-    _get_the_xml_data = get_the_xml_data
-    _rewrite_xml = rewrite_xml
 
-    # Loop until we get a valid XML file or invalid XML
-    while process_file:
-        # Validate the file
-        if return_code == 0:
-            # Process the XML file
-            state.program_arguments.android_file = android_file
+    # A non-zero code means the file never arrived: there is nothing to validate.
+    if return_code != 0:
+        return error_message, xml_tree
 
-            # If getting file from Android device, write out the backup file first.
-            if ip_address:
-                _write_out_backup_file(file_contents, state=state)
+    # Process the XML file
+    state.program_arguments.android_file = android_file
 
-            # We don't have the file yet.  Lets get it.
-            else:
-                try:
-                    _get_the_xml_data(state=state)
-                except MapTaskerError as error:
-                    # The window is waiting on this answer, so it is recorded and handed back as
-                    # a message rather than raised past it.
-                    report_error(error, state)
-                    return error.message, None
+    # If getting file from Android device, write out the backup file first.
+    if ip_address:
+        write_out_backup_file(file_contents, state=state)
 
-            # Run the XML file through the XML parser to validate it.
-            try:
-                filename_location = android_file.rfind(state.slash) + 1
-                file_to_validate = state.program_arguments.android_file[filename_location:]
-                xml_tree = parse_tasker_xml(file_to_validate, encoding=" iso8859_9")
-                process_file = False  # Get out of while/loop
-            except ET.ParseError:  # Parsing error
-                error_message = f"Improperly formatted XML in {android_file}. Try again."
-                process_file = False  # Get out of while/loop
-            except UnicodeDecodeError:  # Unicode error
-                _rewrite_xml(file_to_validate)
-                counter += 1
-                if counter > 2:
-                    error_message = f"Unicode error in {android_file}.  Try again."
-                    break
-                process_file = True  # Loop one more time.
-            except (OSError, LookupError) as e:
-                # What is left once ParseError and UnicodeDecodeError are taken above: the
-                # file not being readable, and the hard-coded parser encoding not being a
-                # codec this interpreter knows.
-                error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
-                process_file = False  # Get out of while/loop
+    # We don't have the file yet.  Lets get it.
+    else:
+        try:
+            get_the_xml_data(state=state)
+        except MapTaskerError as error:
+            # The window is waiting on this answer, so it is recorded and handed back as
+            # a message rather than raised past it.
+            report_error(error, state)
+            return error.message, None
+
+    # Run the XML file through the XML parser to validate it.  Read as the loader reads it, and never written.
+    try:
+        filename_location = android_file.rfind(state.slash) + 1
+        file_to_validate = state.program_arguments.android_file[filename_location:]
+        xml_tree = parse_tasker_xml(file_to_validate)
+    except ET.ParseError:  # Parsing error
+        error_message = f"Improperly formatted XML in {android_file}. Try again."
+    except UnicodeDecodeError:  # Not in any encoding that can be read
+        error_message = f"Unicode error in {android_file}.  Try again."
+    except OSError as e:
+        # What is left once ParseError and UnicodeDecodeError are taken above: the file not being readable.
+        error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
 
     return error_message, xml_tree
 

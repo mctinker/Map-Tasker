@@ -7,10 +7,9 @@
 #                                                                                      #
 from __future__ import annotations
 
+import codecs
 import io
-import os
 import re
-import shutil
 from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree
@@ -316,47 +315,6 @@ def remove_html_tags(text: str, replacement: str) -> str:
     return cleaned if cleaned.strip() else replacement
 
 
-# Append file1 to file2
-def append_files(file1_path: str, file2_path: str) -> None:
-    """Appends the contents of file1 to file2.
-    Parameters:
-        - file1_path (str): Path to file1.
-        - file2_path (str): Path to file2.
-    Returns:
-        - None: No return value.
-    Processing Logic:
-        - Open file1 in read mode.
-        - Open file2 in append mode.
-        - Copy contents of file1 to file2."""
-    with open(file1_path, encoding="utf-8") as file1, open(file2_path, "a", encoding="utf-8") as file2:
-        shutil.copyfileobj(file1, file2)
-
-
-# The XML file has incorrect encoding.  Let's read it in and rewrite it correctly.
-def rewrite_xml(file_to_parse: str) -> None:
-    """Rewrite XML file with UTF-8 encoding.
-    Parameters:
-        - file_to_parse (str): Name of the file to be parsed.
-    Returns:
-        - None: No return value.
-    Processing Logic:
-        - Create new file with UTF-8 encoding.
-        - Append, rename, and remove files.
-        - Remove temporary file."""
-    utf_xml = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
-
-    # Create the XML file with the encoding we want
-    with open(".maptasker_tmp.xml", "w", encoding="utf-8") as new_file:
-        new_file.write(utf_xml)
-        new_file.close()
-
-    # Append, rename and remove.
-    append_files(file_to_parse, ".maptasker_tmp.xml")
-    os.remove(file_to_parse)
-    os.rename(".maptasker_tmp.xml", file_to_parse)
-    os.remove(".maptasker_tmp.xml")
-
-
 # A start tag, and a closing quote that runs straight into the next attribute name.
 _START_TAG = re.compile(rb"<[A-Za-z_][^<>]*>")
 _ATTRIBUTE_GAP = re.compile(rb'"(?=[A-Za-z_][\w.:-]*=")')
@@ -373,21 +331,73 @@ def separate_attributes(xml_bytes: bytes) -> bytes:
     return _START_TAG.sub(lambda tag: _ATTRIBUTE_GAP.sub(b'" ', tag.group()), xml_bytes)
 
 
-def parse_tasker_xml(file_to_parse: str, encoding: str = "utf-8") -> ElementTree:
+# The byte-order marks, longest first: the UTF-32 little-endian mark begins with the UTF-16 one.
+_BYTE_ORDER_MARKS = (
+    (codecs.BOM_UTF32_LE, "utf-32"),
+    (codecs.BOM_UTF32_BE, "utf-32"),
+    (codecs.BOM_UTF8, "utf-8-sig"),
+    (codecs.BOM_UTF16_LE, "utf-16"),
+    (codecs.BOM_UTF16_BE, "utf-16"),
+)
+# UTF-16 with no mark still begins "<?" with a zero byte beside each character (XML 1.0, appendix F).
+_UNMARKED_UTF16 = ((b"<\x00?\x00", "utf-16-le"), (b"\x00<\x00?", "utf-16-be"))
+# The encoding an XML declaration names.  Looked for in the first bytes only, as a parser does.
+_DECLARED_ENCODING = re.compile(rb"""^\s*<\?xml[^>]*?\bencoding\s*=\s*["']([A-Za-z][A-Za-z0-9._-]*)["']""")
+
+
+def backup_as_utf8(data: bytes) -> bytes:
+    """A backup's bytes as UTF-8, whatever encoding the file is in.
+
+    The order is the one that cannot turn a good file into a wrong one.  A byte-order mark is
+    decisive.  Without one, bytes that are valid UTF-8 are UTF-8 -- which is what Tasker writes, and
+    which a file that merely *declares* something else (an editor that changed the label and not the
+    bytes) also is -- and so are plain ASCII ones, which read the same in every encoding.  Only bytes
+    that are not valid UTF-8 are read as the encoding the XML declaration names, and a file that names
+    none, or one this interpreter has no codec for, is refused rather than guessed at.
+
+    Raises:
+        UnicodeDecodeError: the bytes are not in the encoding they claim, or in none that can be found.
+    """
+    for mark, codec in _BYTE_ORDER_MARKS:
+        if data.startswith(mark):
+            return data.decode(codec).encode("utf-8")
+    for start, codec in _UNMARKED_UTF16:
+        if data.startswith(start):
+            return data.decode(codec).encode("utf-8")
+    try:
+        data.decode("utf-8")
+    except UnicodeDecodeError as not_utf8:
+        declared = _DECLARED_ENCODING.match(data[:512])
+        if declared is None:
+            raise
+        name = declared.group(1).decode("ascii")
+        try:
+            codecs.lookup(name)
+        except LookupError:
+            raise not_utf8 from None
+        return data.decode(name).encode("utf-8")
+    return data
+
+
+def parse_tasker_xml(file_to_parse: str) -> ElementTree:
     """Parse a Tasker backup file, tolerating attributes with no whitespace between them.
 
-    Raises ET.ParseError / UnicodeDecodeError exactly as ET.parse does when the file is
-    bad for any other reason.  The file on disk is not modified.
+    The file is read, never written: whatever its encoding (see backup_as_utf8), what is parsed is a
+    copy held in memory, and the file on disk is the same bytes afterwards.
+
+    Raises ET.ParseError / UnicodeDecodeError when the file is bad for any other reason.
     """
+    with open(file_to_parse, "rb") as xml_file:
+        data = backup_as_utf8(xml_file.read())
     try:
-        return defusedxml.ElementTree.parse(file_to_parse, parser=defusedxml.ElementTree.XMLParser(encoding=encoding))
+        return _parse_utf8(data)
     except defusedxml.ElementTree.ParseError:
-        with open(file_to_parse, "rb") as xml_file:
-            original = xml_file.read()
-        repaired = separate_attributes(original)
-        if repaired == original:
+        repaired = separate_attributes(data)
+        if repaired == data:
             raise
-        return defusedxml.ElementTree.parse(
-            io.BytesIO(repaired),
-            parser=defusedxml.ElementTree.XMLParser(encoding=encoding),
-        )
+        return _parse_utf8(repaired)
+
+
+def _parse_utf8(data: bytes) -> ElementTree:
+    """The tree for XML bytes already in UTF-8."""
+    return defusedxml.ElementTree.parse(io.BytesIO(data), parser=defusedxml.ElementTree.XMLParser(encoding="utf-8"))

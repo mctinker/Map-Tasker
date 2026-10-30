@@ -10,7 +10,7 @@ import defusedxml.ElementTree as ET
 from maptasker.src.core import timeline
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
-from maptasker.src.core.xmldata import parse_tasker_xml, rewrite_xml
+from maptasker.src.core.xmldata import parse_tasker_xml
 from maptasker.src.edit import sessundo
 from maptasker.src.mapgen.taskertables import build_tasker_tables, get_first_action, move_xml_to_table
 
@@ -33,7 +33,7 @@ def get_the_xml_data(state: RunState) -> None:
           when it is XML but not a Tasker backup.  The caller decides what a failed load means --
           a message in the window, or the end of a command-line run.
     Processing Logic:
-        - If encoding error, rewrites XML with proper encoding and tries again.
+        - Reads the file as the encoding it is in (never writing to it), and refuses one it cannot read.
         - Gets XML root.
         - Checks for valid Tasker backup file.
         - Moves all data into dictionaries.
@@ -43,27 +43,11 @@ def get_the_xml_data(state: RunState) -> None:
     if not isinstance(file_to_parse, str) or not file_to_parse:
         message = "There is no Tasker backup file to read."
         raise MapTaskerError(message, 1)
-    counter = 0
-
-    # # Count the lines to see if we should issue a status.
-    # with open(file_to_parse, "rb") as f:
-    #     count = sum(1 for _ in f)
-    # if count > 15000:
-    #     print("Parsing XML file...")
-
-    _rewrite_xml = rewrite_xml
-    # Validate the XML file by parsing it twice if necessary.
-    while True:
-        try:
-            state.xml_tree = parse_tasker_xml(file_to_parse)
-            break
-        # If error, rewrite thqat file with correct encoding.  Try this twice and then call it quits if still fails.
-        except (ET.ParseError, UnicodeDecodeError) as e:
-            counter += 1
-            if counter > 2 or isinstance(e, ET.ParseError):
-                message = f"Error in {file_to_parse}: {e}"
-                raise MapTaskerError(message, 1) from e
-            _rewrite_xml(file_to_parse)
+    try:
+        state.xml_tree = parse_tasker_xml(file_to_parse)
+    except (ET.ParseError, UnicodeDecodeError) as error:
+        message = f"Error in {file_to_parse}: {error}"
+        raise MapTaskerError(message, 1) from error
 
     root = state.xml_tree.getroot()
     if root is None:

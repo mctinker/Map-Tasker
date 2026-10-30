@@ -265,14 +265,13 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
     Yields a _Parsed.  Everything saved here is restored on the way out, including when
     the parse fails and including when it raises.
 
-    THE FILE IS COPIED FIRST, AND THE COPY IS WHAT GETS PARSED.  Not paranoia:
-    get_the_xml_data calls xmldata.rewrite_xml on a UnicodeDecodeError, and rewrite_xml
-    does os.remove(file_to_parse) followed by os.rename -- it replaces the file on disk.
-    A comparison that rewrote one of the two backups it was asked to compare would be
-    destroying the very thing the user opened it to check, and "Save to Current File"
-    never touches the original (caveats.md item 6) precisely so that pair stays
-    comparable.  Parsing a copy makes that impossible by construction rather than by
-    hoping the encoding is fine.
+    THE FILE IS COPIED FIRST, AND THE COPY IS WHAT GETS PARSED.  Loading a backup never writes to
+    it any more -- xmldata reads a file in whatever encoding it is in and parses a copy in memory --
+    so the copy is no longer what keeps the two backups comparable.  It is kept as a second line of
+    defence (a comparison that changed one of the two backups it was asked to compare would destroy the
+    thing the user opened it to check, and "Save to Current File" never touches the original, caveats.md
+    item 6, precisely so that pair stays comparable), and because the copy's name is what a log line or
+    an error message about this side shows.
 
     A file that will not parse makes get_the_xml_data raise MapTaskerError, and the except
     below turns it into the verdict this function hands back -- the code the error carries,
@@ -346,8 +345,7 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
         if opened is not None:
             opened.close()
         if scratch is not None:
-            # missing_ok: the parse may have replaced it (see rewrite_xml above), which
-            # is exactly what the copy is here to absorb.
+            # Best effort: a temporary file that cannot be removed is not worth failing a comparison for.
             with contextlib.suppress(OSError):
                 os.unlink(scratch)
 

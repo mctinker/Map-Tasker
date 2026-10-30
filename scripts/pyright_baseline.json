@@ -177,9 +177,6 @@
     "reportArgumentType": 3,
     "reportAttributeAccessIssue": 4
   },
-  "tests/test_maputils_helpers.py": {
-    "reportArgumentType": 2
-  },
   "tests/test_objprops.py": {
     "reportArgumentType": 2
   },
