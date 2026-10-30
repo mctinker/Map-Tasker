@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: Upgrading to the latest version no longer prints a confusing "Ignoring NICEGUI_PORT" warning in the console when MapTasker restarts.
+- Fixed:
+
 
 ### Known Issues
 

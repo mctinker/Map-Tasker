@@ -677,7 +677,11 @@ def restart_program_subprocess(state: RunState) -> None:
     # The rest are any original command-line arguments (excluding the script name itself)
     new_process_args = [sys.executable, script_path, *sys.argv[1:]]
 
-    subprocess.Popen(new_process_args)  # noqa: S603
+    # NiceGUI exports its host, port and protocol to the environment while it serves, and the
+    # new process would inherit them.  It starts while this one still holds the port, so it
+    # picks another, and NiceGUI warns that it is "Ignoring NICEGUI_PORT=8080".  Leave them out.
+    child_env = {k: v for k, v in os.environ.items() if k not in ("NICEGUI_HOST", "NICEGUI_PORT", "NICEGUI_PROTOCOL")}
+    subprocess.Popen(new_process_args, env=child_env)  # noqa: S603
     console.say("Restarting program.  Please stand by...")
     time.sleep(0.2)
 
