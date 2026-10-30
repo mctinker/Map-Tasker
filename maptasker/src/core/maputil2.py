@@ -571,6 +571,8 @@ def _request_android_auth_key(url: str) -> tuple[int, str, bool]:
         auth_object = response.json()
     except ValueError:
         auth_object = None
+    # Valid JSON that is not an object ("[]", "5", "null") is no answer either: there is nothing to .get from.
+    auth_object = cast("dict[str, Any]", auth_object) if isinstance(auth_object, dict) else None
 
     # "is False", not "not ...": only an explicit {"authorized": false} means the device
     # refused us.  A body that merely lacks the field (e.g. the "{}" of a 500) must fall
@@ -592,7 +594,8 @@ def _request_android_auth_key(url: str) -> tuple[int, str, bool]:
         return 8, f"Auth response from {url} was not valid JSON: {response.content!r}", False
 
     key = auth_object.get("key", "")
-    if not key:
+    # The key goes back to the device as a header value, so it has to be text: a number or a list is not a key.
+    if not key or not isinstance(key, str):
         return 8, "Auth response did not include an API key.", False
     return 0, key, False
 
@@ -1032,7 +1035,24 @@ def _element_match_key(element: ETW.Element, tag: str) -> str | None:
     # breaks.
     if tag == "Scene":
         return (element.findtext("nme", "") or "").strip() or None
-    return _element_id_key(element)
+    element_id = _element_id_key(element)
+    if element_id is None and tag == "Project":
+        # A Project with no <id> (a hand-edited or very old file) is still the Project of that name.  Without
+        # this it matches nothing, so each save keeps the tree's copy AND appends the table's: two Projects
+        # become four, then six.  The prefix keeps a name from ever being taken for an id.
+        name = (element.findtext("name", "") or "").strip()
+        return f"name:{name}" if name else None
+    return element_id
+
+
+def _not_already_kept(keyless: list[ETW.Element], rebuilt: list[ETW.Element], tag: str) -> list[ETW.Element]:
+    """The keyless table elements the rebuilt children do not already hold.
+
+    A keyless element in the tree is kept as it is, and its table entry is that same element: not an addition.
+    Appending it anyway wrote one more copy of it on every save.
+    """
+    kept = {ETW.tostring(child) for child in rebuilt if child.tag == tag and _element_match_key(child, tag) is None}
+    return [element for element in keyless if ETW.tostring(element) not in kept]
 
 
 def _reconcile_children(
@@ -1109,7 +1129,7 @@ def _reconcile_children(
         rebuilt.insert(insert_at, current_element)
         last_index_of_tag = insert_at
 
-    for current_element in keyless_additions:
+    for current_element in _not_already_kept(keyless_additions, rebuilt, tag):
         insert_at = last_index_of_tag + 1 if last_index_of_tag >= 0 else len(rebuilt)
         rebuilt.insert(insert_at, current_element)
         last_index_of_tag = insert_at

@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 from maptasker.src.core.actionc import action_codes
+from maptasker.src.core.editcommon import name_problem
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
 from maptasker.src.core.sysconst import BASE_PROJECT_NAME
 from maptasker.src.edit import sessundo
@@ -178,6 +179,8 @@ def create_new_task(
     """
     if state.xml_root is None:
         return "Load a Tasker backup file first (Add Task needs it to generate a unique Task ID)."
+    if problem := name_problem(name, "Task"):
+        return problem
 
     new_id = next_unique_task_or_profile_id(reserved_ids, state=state)
 
@@ -520,6 +523,8 @@ def apply_task_rename(edited_task: EditableTask, new_name: str, state: RunState)
     errors = []
     if not new_name:
         errors.append("Task name cannot be empty.")
+    elif problem := name_problem(new_name, "Task"):
+        errors.append(problem)
     elif new_name != current_name and task_name_exists(new_name, state=state):
         errors.append(f"A Task named '{new_name}' already exists in this backup. Choose a different name.")
 

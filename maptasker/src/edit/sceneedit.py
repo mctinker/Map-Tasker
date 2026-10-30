@@ -86,7 +86,7 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 from maptasker.src.core import editcommon, piiscan
-from maptasker.src.core.editcommon import restore_element, touch_project_mdate
+from maptasker.src.core.editcommon import name_problem, restore_element, touch_project_mdate
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
 from maptasker.src.core.presave import backup_local_file
 from maptasker.src.core.scenelayout import V2_DEFAULT_TEMPLATE
@@ -197,6 +197,8 @@ def create_new_scene(
     """
     if state.xml_root is None:
         return "Load a Tasker backup file first (Add Scene needs it to build the Scene)."
+    if problem := name_problem(name, "Scene"):
+        return problem
     if version not in SCENE_VERSIONS:
         return f"'{version}' is not a kind of Scene. Choose {' or '.join(SCENE_VERSIONS)}."
 
@@ -253,6 +255,8 @@ def apply_edits_to_scene(edited_scene: EditableScene, new_name: str, state: RunS
     new_name = new_name.strip()
     if not new_name:
         errors.append("Scene name cannot be empty.")
+    elif problem := name_problem(new_name, "Scene"):
+        errors.append(problem)
     elif "," in new_name:
         errors.append(
             "Scene name cannot contain a comma -- a Project lists its Scenes as one comma-separated name list.",

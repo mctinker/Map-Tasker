@@ -297,9 +297,19 @@ def fetch_info(ref: ShareRef) -> ShareInfo:
         published_ms=published,
         name=str(info.get("name") or ref.name),
         description=str(info.get("description") or ""),
-        views=int(stats.get("views") or 0),
-        downloads=int(stats.get("downloads") or 0),
+        views=_count(stats.get("views")),
+        downloads=_count(stats.get("downloads")),
     )
+
+
+def _count(value: object) -> int:
+    """A number TaskerNet reported (views, downloads) as a whole number: 0 for anything that is not one."""
+    if not isinstance(value, (int, float, str)):
+        return 0
+    try:
+        return int(value or 0)
+    except (ValueError, OverflowError):
+        return 0
 
 
 def fetch_xml(ref: ShareRef) -> str:

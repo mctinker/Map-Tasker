@@ -178,15 +178,22 @@ class SnapshotMetrics:
     def from_json(cls, text: str) -> SnapshotMetrics:
         """Metrics read back.  Raises ValueError, KeyError or TypeError for text that is not them."""
         raw = json.loads(text)
-        return cls(
-            digest=raw["digest"],
-            when=raw["when"],
-            source=raw["source"],
-            total=Measures(**raw["total"]),
-            projects={name: Measures(**values) for name, values in raw["projects"].items()},
-            version=raw["version"],
-            problems={name: [Problem(**values) for values in found] for name, found in raw.get("problems", {}).items()},
-        )
+        try:
+            return cls(
+                digest=raw["digest"],
+                when=raw["when"],
+                source=raw["source"],
+                total=Measures(**raw["total"]),
+                projects={name: Measures(**values) for name, values in raw["projects"].items()},
+                version=raw["version"],
+                problems={
+                    name: [Problem(**values) for values in found] for name, found in raw.get("problems", {}).items()
+                },
+            )
+        except AttributeError as error:
+            # A part of the right name but the wrong kind (a list where the projects go) has no .items() to call.
+            message = f"not the metrics of a snapshot: {error}"
+            raise TypeError(message) from error
 
 
 # ##################################################################################

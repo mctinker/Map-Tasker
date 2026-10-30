@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: With __Display prettier output__ on, a plugin State or Event on a Profile line (AutoNotification, for one) now shows each of its parameters on a line of its own, aligned under the first, instead of running them together in one long line, and its name no longer runs into the word after it.
 - Fixed: A backup saved in another text encoding, such as Latin-1 or UTF-16, now opens instead of being refused, and opening a backup can no longer alter or delete the file.
+- Fixed: Saving a backup whose Projects have no id no longer writes every Project (or id-less Task) out again on each save, and a Task, Profile, Project or Scene name containing a control character is now refused instead of producing a backup that cannot be reopened.
+- Fixed: A damaged settings file, history snapshot, Scene layout, or an unexpected answer from the phone, TaskerNet or an AI model now produces a message instead of an error.
 - Fixed: Upgrading to the latest version no longer prints a confusing "Ignoring NICEGUI_PORT" warning in the console when MapTasker restarts.
 - Fixed:
 

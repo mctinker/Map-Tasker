@@ -180,7 +180,7 @@ def load_catalogue(path: Path | None) -> Catalogue | None:
             for user, share_id, downloads in saved["shares"]
         ]
         return Catalogue(entries, str(saved.get("fetched", "")), bool(saved.get("complete")))
-    except (OSError, ValueError, KeyError, TypeError, IndexError) as error:
+    except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError) as error:
         logger.error(f"TaskerNet catalogue could not be read: {error}")
         return None
 
@@ -228,7 +228,8 @@ class Progress:
 def _entries_of(answer: dict) -> list[CatalogueEntry]:
     """The shares in one page of the listing.  One that does not read as a share is skipped, not fatal."""
     found = []
-    for share in answer.get("shares") or []:
+    shares = answer.get("shares")
+    for share in shares if isinstance(shares, list) else []:
         try:
             found.append(
                 CatalogueEntry(tnupdate.parse_link(str(share.get("url") or "")), int(share.get("downloads") or 0))

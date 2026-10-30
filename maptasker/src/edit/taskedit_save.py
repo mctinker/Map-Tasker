@@ -276,7 +276,8 @@ def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_k
     except (ValueError, TypeError):
         return False
 
-    return any(task.get("name") == task_name for task in tasks)
+    # Anything but a list of objects is not the list of Tasks it should be, and confirms nothing.
+    return isinstance(tasks, list) and any(isinstance(task, dict) and task.get("name") == task_name for task in tasks)
 
 
 def save_task_to_android_directory(

@@ -639,9 +639,10 @@ def fetched_devices() -> list[tuple[str, str, int]]:
     installed since, is the one failure mode a user has no way of diagnosing on their own,
     so the date is on screen rather than in the file.
     """
+    devices = _as_dict(read_cache().get("devices", {}))
     return [
-        (key, str(record.get("fetched", "")), len(record.get("apps", [])))
-        for key, record in sorted(read_cache().get("devices", {}).items())
+        (key, str(_as_dict(record).get("fetched", "")), len(_as_list(_as_dict(record).get("apps", []))))
+        for key, record in sorted(devices.items())
     ]
 
 

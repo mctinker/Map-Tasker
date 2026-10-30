@@ -27,6 +27,7 @@ import base64
 import gzip
 import io
 import json
+import zlib
 from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.editcommon import set_child_text
@@ -88,10 +89,11 @@ def decompress_gzip_json(b64_string: str) -> dict[str, Any] | str:
         # 3. Parse JSON
         return json.loads(decompressed_data.decode("utf-8"))
 
-    except (ValueError, OSError, EOFError) as e:
+    except (ValueError, OSError, EOFError, zlib.error) as e:
         # The whole of what this decode chain throws on bad input: binascii.Error and
         # json.JSONDecodeError and UnicodeDecodeError are all ValueError, gzip.BadGzipFile
-        # is an OSError, and a truncated member is EOFError.  A TypeError here would be a
+        # is an OSError, a truncated member is EOFError, and a damaged deflate stream is zlib.error (which is none of
+        # the others).  A TypeError here would be a
         # bug in the caller and no longer disappears into this string.
         return f"An error occurred: {e}"
 

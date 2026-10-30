@@ -39,6 +39,23 @@ if TYPE_CHECKING:
 _NO_BYTES = b""
 
 
+def name_problem(name: str, what: str) -> str | None:
+    """Why `name` cannot be the name of a Project, Profile, Task or Scene, or None if it can.
+
+    A name is written into the file as XML text, and XML 1.0 has no way to write a control character
+    (a file with one in it is not well-formed, so the next load refuses the whole backup), or a lone
+    surrogate or U+FFFE/U+FFFF.  A carriage return is writable, but every XML parser reads it back as a
+    newline, so the name that comes back is not the one that went out.
+    """
+    for character in name:
+        code = ord(character)
+        if character == "\r" or not (
+            code in {0x9, 0xA} or 0x20 <= code <= 0xD7FF or 0xE000 <= code <= 0xFFFD or 0x10000 <= code <= 0x10FFFF
+        ):
+            return f"{what} name cannot contain the character U+{code:04X}, which a Tasker backup cannot hold."
+    return None
+
+
 def restore_element(element: Element, snapshot: Element) -> None:
     """Put a snapshot of an element back, in place.
 

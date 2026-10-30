@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as DefusedET
+from defusedxml import DefusedXmlException
 
 from maptasker.src.core.maputil2 import (
     auth_key_for,
@@ -93,10 +94,10 @@ def names_in_export(xml: str | bytes) -> dict[str, list[str]]:
 
 
 def parse_tasker_xml(xml: str | bytes) -> Element | None:
-    """A TaskerData document's root, or None if it does not parse."""
+    """A TaskerData document's root, or None if it does not parse (or declares an entity, which defusedxml refuses)."""
     try:
         return DefusedET.fromstring(xml)
-    except DefusedET.ParseError:
+    except (DefusedET.ParseError, DefusedXmlException):
         return None
 
 

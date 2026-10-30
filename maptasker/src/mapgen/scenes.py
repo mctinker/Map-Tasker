@@ -244,11 +244,14 @@ def get_scene_elements(
     if element_type[0] == "lj":
         json_data = scenelayout.decompress_gzip_json(child.text or "")  # an empty <lj/> has no text
 
-        # A string is what decompress_gzip_json answers when it could not decode the layout.
-        if isinstance(json_data, str):
+        # A string is what decompress_gzip_json answers when it could not decode the layout, and a layout that decodes
+        # to anything but an object (JSON null, a number, a list) is not one either -- the rest of the Map walks a layout
+        # as the object it is.
+        if not isinstance(json_data, dict):
+            reason = json_data if isinstance(json_data, str) else "the layout is not a set of components"
             state.output_lines.add_line_to_output(
                 0,
-                f"{blank * (3 + indentation)}Scene V2 compressed JSON element could not be processed: {json_data}",
+                f"{blank * (3 + indentation)}Scene V2 compressed JSON element could not be processed: {reason}",
                 ["", "scene_color", FormatLine.add_end_span],
             )
         else:

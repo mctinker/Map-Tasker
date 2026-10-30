@@ -6,6 +6,7 @@ import re
 from typing import TYPE_CHECKING
 
 from maptasker.src.core import appinv
+from maptasker.src.core.editcommon import name_problem
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
 from maptasker.src.edit.taskedit_model import (
     IF_ACTION_CODE,
@@ -344,6 +345,8 @@ def apply_edits_to_task(
     name_value = name_value.strip()
     if not name_value:
         errors.append("Task name cannot be empty.")
+    elif problem := name_problem(name_value, "Task"):
+        errors.append(problem)
 
     priority_value = priority_value.strip()
     if priority_value and not priority_value.isdigit():

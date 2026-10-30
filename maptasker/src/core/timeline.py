@@ -54,6 +54,7 @@ import os
 import re
 import shutil
 import tempfile
+import zlib
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -317,8 +318,14 @@ def expanded(snapshot: Snapshot) -> Generator[str]:
     handle, temporary = tempfile.mkstemp(prefix="maptasker_timeline_", suffix=".xml")
     os.close(handle)
     try:
-        with gzip.open(snapshot.path, "rb") as compressed, Path(temporary).open("wb") as out:
-            shutil.copyfileobj(compressed, out, _CHUNK)
+        try:
+            with gzip.open(snapshot.path, "rb") as compressed, Path(temporary).open("wb") as out:
+                shutil.copyfileobj(compressed, out, _CHUNK)
+        except (EOFError, zlib.error) as error:
+            # A snapshot cut short, or damaged inside, is one that cannot be read, which is what a caller of this
+            # already treats an OSError as: gzip raises these two as exceptions of their own.
+            message = f"{snapshot.path.name} is damaged: {error}"
+            raise OSError(message) from error
         yield temporary
     finally:
         with contextlib.suppress(OSError):

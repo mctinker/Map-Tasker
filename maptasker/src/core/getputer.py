@@ -316,7 +316,7 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[Settings, Settings]:
                 state.last_run = twenty_four_hours_ago
 
             f.close()
-        except tomllib.TOMLDecodeError:  # no saved file
+        except (tomllib.TOMLDecodeError, UnicodeDecodeError):  # a file that is not TOML, or not text
             program_arguments, colors_to_use = corrupted_file(
                 program_arguments,
                 colors_to_use,

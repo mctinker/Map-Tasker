@@ -399,5 +399,14 @@ def parse_tasker_xml(file_to_parse: str) -> ElementTree:
 
 
 def _parse_utf8(data: bytes) -> ElementTree:
-    """The tree for XML bytes already in UTF-8."""
-    return defusedxml.ElementTree.parse(io.BytesIO(data), parser=defusedxml.ElementTree.XMLParser(encoding="utf-8"))
+    """The tree for XML bytes already in UTF-8.
+
+    defusedxml refuses a document that declares an entity (the shape of an entity-expansion or external-entity
+    attack, and nothing Tasker writes) with an exception of its own.  It is made a ParseError here, so that every
+    caller that already treats a file that will not parse as a message treats this one the same way.
+    """
+    try:
+        return defusedxml.ElementTree.parse(io.BytesIO(data), parser=defusedxml.ElementTree.XMLParser(encoding="utf-8"))
+    except defusedxml.DefusedXmlException as error:
+        message = "the file declares an XML entity, which MapTasker does not read"
+        raise defusedxml.ElementTree.ParseError(message) from error

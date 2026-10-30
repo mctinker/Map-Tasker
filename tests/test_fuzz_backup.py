@@ -40,7 +40,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from hypothesis import HealthCheck, event, given, settings
+from hypothesis import event, given
 from hypothesis import strategies as st
 from maptasker.src import clireports
 from maptasker.src.core import timeline
@@ -53,6 +53,7 @@ from maptasker.src.mapgen import taskerd
 from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.mapgen.mapexport import DIAGRAM, MAP
 
+from tests.fuzzing import Shown, byte_operations, fuzz, spoil_bytes
 from tests.shared_fixtures import _LOCAL_XML
 
 if TYPE_CHECKING:
@@ -64,20 +65,8 @@ _SYNTHETIC = (Path(__file__).parent / "data" / "synthetic_backup.xml").read_byte
 # found a way to end that nobody described.
 DOCUMENTED_EXIT_CODES = frozenset({0, 1, 2, 3, 6, 7, 10, 11})
 
-SCALE = float(os.environ.get("MAPTASKER_FUZZ_SCALE", "1"))
 _YOURS = os.environ.get("MAPTASKER_FUZZ_BACKUP")
 BASES = [_SYNTHETIC, _LOCAL_XML.encode("utf-8"), *([Path(_YOURS).read_bytes()] if _YOURS else [])]
-
-
-def _fuzz(examples: int) -> settings:
-    """The settings for one fuzz test: no deadline (a Diagram takes what it takes), nothing written to .hypothesis."""
-    return settings(
-        max_examples=max(1, int(examples * SCALE)),
-        deadline=None,
-        database=None,
-        print_blob=True,
-        suppress_health_check=[HealthCheck.function_scoped_fixture, HealthCheck.too_slow, HealthCheck.data_too_large],
-    )
 
 
 # ##################################################################################
@@ -235,39 +224,15 @@ DECLARED = st.sampled_from(
 ACTUAL = st.sampled_from(["utf-8"] * 24 + ["utf-8-sig", "utf-16", "utf-16-le", "latin-1", "cp1252", "utf-32"])
 
 
-@st.composite
-def byte_operations(draw: st.DrawFn) -> tuple[str, float, float, bytes]:
-    """One way to spoil the bytes: where (as a fraction of the file), how far, and what is written there."""
-    return (
-        draw(st.sampled_from(["truncate", "cut", "insert", "overwrite"])),
-        draw(st.integers(min_value=20, max_value=1000)) / 1000,
-        draw(st.integers(min_value=0, max_value=200)) / 1000,
-        draw(st.binary(max_size=8)),
-    )
-
-
-def spoil_bytes(data: bytes, operation: tuple[str, float, float, bytes]) -> bytes:
-    """Apply one byte operation: cut the file short, cut a slice out, or write junk in the middle."""
-    kind, where, how_far, junk = operation
-    start = int(len(data) * where)
-    end = min(len(data), start + max(1, int(len(data) * how_far)))
-    match kind:
-        case "truncate":
-            return data[:start]
-        case "cut":
-            return data[:start] + data[end:]
-        case "insert":
-            return data[:start] + junk + data[start:]
-        case _:
-            return data[:start] + junk + data[start + len(junk) :]
-
-
-class _Backup(bytes):
-    """A backup's bytes that print as their first few thousand, so a failure on a real 13 MB file reports in a screenful."""
-
-    def __repr__(self) -> str:
-        shown = bytes.__repr__(self[:3000])
-        return shown if len(self) <= 3000 else f"{shown} ... ({len(self)} bytes in all)"
+# What a stranger's file might open with, to make a parser expand or fetch something.  defusedxml refuses every one that
+# declares an entity; a bare DOCTYPE declares none and is read.
+HOSTILE_PROLOGUES = (
+    '<!DOCTYPE TaskerData [<!ENTITY x "y">]>',
+    '<!DOCTYPE TaskerData [<!ENTITY x SYSTEM "file:///etc/passwd">]>',
+    '<!DOCTYPE TaskerData [<!ENTITY % p SYSTEM "http://127.0.0.1:9/x.dtd"> %p;]>',
+    '<!DOCTYPE TaskerData [<!ENTITY a "aaaaaaaaaa"><!ENTITY b "&a;&a;&a;&a;&a;&a;&a;&a;"><!ENTITY c "&b;&b;&b;&b;">]>',
+    "<!DOCTYPE TaskerData>",
+)
 
 
 @st.composite
@@ -281,6 +246,9 @@ def backups(draw: st.DrawFn) -> bytes:
     declared = draw(DECLARED)
     if declared:
         text = f'<?xml version="1.0" encoding="{declared}"?>\n{text}'
+    # One file in sixteen opens with a prologue meant to make a parser do more than read.
+    if draw(st.integers(min_value=0, max_value=15)) == 0:
+        text = text.replace("<TaskerData", draw(st.sampled_from(HOSTILE_PROLOGUES)) + "<TaskerData", 1)
     # errors="replace": a character the encoding cannot hold is still a file somebody could have.
     data = text.encode(draw(ACTUAL), errors="replace")
     # Damage to the bytes, in a quarter of the files: it is refused at the first read more often than not, and the files
@@ -288,7 +256,7 @@ def backups(draw: st.DrawFn) -> bytes:
     if draw(st.integers(min_value=0, max_value=3)) == 0:
         for operation in draw(st.lists(byte_operations(), min_size=1, max_size=2)):
             data = spoil_bytes(data, operation)
-    return _Backup(data)
+    return Shown(data)
 
 
 # ##################################################################################
@@ -320,15 +288,19 @@ def _ends_in_a_documented_exit_code(argv: list[str], data: bytes) -> None:
     assert code in DOCUMENTED_EXIT_CODES, f"the run ended with {code}, which the command line does not document"
 
 
+def prime_a_run() -> None:
+    """What a load needs of the run, as test_taskerd sets it up -- and what a reader of anything else loaded needs too."""
+    PrimeItems.program_arguments = ProgramArguments(
+        debug=False, directory=False, pretty=False, gui=False, display_detail_level=3
+    )
+    PrimeItems.colors_to_use = set_color_mode("dark")
+    PrimeItems.output_lines = LineOut(state=PrimeItems)
+    load_arg_specs(state=PrimeItems)
+
+
 def _is_loaded_or_refused(data: bytes) -> None:
     with a_scratch_run(data) as path, path.open(encoding="utf-8", errors="replace") as opened:
-        # What a load needs of the run, as test_taskerd sets it up.
-        PrimeItems.program_arguments = ProgramArguments(
-            debug=False, directory=False, pretty=False, gui=False, display_detail_level=3
-        )
-        PrimeItems.colors_to_use = set_color_mode("dark")
-        PrimeItems.output_lines = LineOut(state=PrimeItems)
-        load_arg_specs(state=PrimeItems)
+        prime_a_run()
         PrimeItems.file_to_get = opened
         try:
             taskerd.get_the_xml_data(state=PrimeItems)
@@ -339,20 +311,20 @@ def _is_loaded_or_refused(data: bytes) -> None:
         assert path.read_bytes() == data, "loading a backup changed the backup"
 
 
-@_fuzz(300)
+@fuzz(300)
 @given(data=backups())
 def test_loading_a_spoiled_backup_raises_nothing_but_maptasker_error(data: bytes) -> None:
     _is_loaded_or_refused(data)
 
 
-@_fuzz(150)
+@fuzz(150)
 @given(data=backups())
 def test_the_health_check_of_a_spoiled_backup_ends_in_an_exit_code(data: bytes) -> None:
     _ends_in_a_documented_exit_code(["-healthcheck"], data)
 
 
 @pytest.mark.parametrize("view", [MAP, DIAGRAM])
-@_fuzz(200)
+@fuzz(200)
 @given(data=backups())
 def test_building_the_view_of_a_spoiled_backup_ends_in_an_exit_code(view: str, data: bytes) -> None:
     _ends_in_a_documented_exit_code(["-export", view], data)
@@ -459,3 +431,17 @@ def test_the_unspoiled_backup_is_not_refused(argv: list[str]) -> None:
     with a_scratch_run(_SYNTHETIC) as path:
         code = clireports.run([*argv, "-file", str(path)])
     assert code in {0, 10}
+
+
+@_VIEWS
+@pytest.mark.parametrize("prologue", HOSTILE_PROLOGUES)
+def test_a_file_that_declares_an_entity_is_refused_with_a_message(prologue: str, argv: list[str]) -> None:
+    """defusedxml's refusal used to escape as its own exception, past every handler that expected a ParseError."""
+    data = ET.tostring(ET.fromstring(_SYNTHETIC), encoding="unicode").replace(
+        "<TaskerData", prologue + "<TaskerData", 1
+    )
+    with a_scratch_run(data.encode()) as path:
+        code = clireports.run([*argv, "-file", str(path)])
+    declares = "ENTITY" in prologue
+    assert code in DOCUMENTED_EXIT_CODES
+    assert (code == 3) == declares, f"{prologue!r} ended with {code}"

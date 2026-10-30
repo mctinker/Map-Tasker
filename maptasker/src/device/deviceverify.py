@@ -74,7 +74,8 @@ def verify_names_on_android(
     if (entries := _entries(reported)) is None:
         return None
 
-    found = {entry.get("name") for entry in entries}
+    # A name that is not text (a list, an object) names no Task, and cannot be put in a set.
+    found = {entry["name"] for entry in entries if isinstance(entry.get("name"), str)}
     return {name for name in names if name in found}
 
 

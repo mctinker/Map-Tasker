@@ -49,8 +49,8 @@ if TYPE_CHECKING:
 
 from maptasker.src.core import appinv, caches, editcommon, objprops, piiscan
 from maptasker.src.core.actionc import action_codes
+from maptasker.src.core.editcommon import name_problem, touch_project_mdate
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
-from maptasker.src.core.editcommon import touch_project_mdate
 from maptasker.src.core.presave import backup_local_file
 from maptasker.src.edit import sessundo, taskedit, taskedit_addable, taskedit_apply, taskedit_args, taskedit_model
 
@@ -203,6 +203,8 @@ def create_new_profile(name: str, state: RunState) -> EditableProfile | str:
     """
     if state.xml_root is None:
         return "Load a Tasker backup file first (Add Profile needs it to generate a unique Profile ID)."
+    if problem := name_problem(name, "Profile"):
+        return problem
 
     new_id = taskedit.next_unique_task_or_profile_id(state=state)
 
@@ -655,6 +657,8 @@ def apply_edits_to_profile(
     name_value = name_value.strip()
     if not name_value:
         errors.append("Profile name cannot be empty.")
+    elif problem := name_problem(name_value, "Profile"):
+        errors.append(problem)
 
     # Validate every condition's pending values before mutating anything.
     pending: dict[int, tuple[str, object]] = {}
@@ -1433,6 +1437,8 @@ def apply_profile_rename(edited_profile: EditableProfile, new_name: str, state: 
     errors = []
     if not new_name:
         errors.append("Profile name cannot be empty.")
+    elif problem := name_problem(new_name, "Profile"):
+        errors.append(problem)
     elif new_name != current_name and profile_name_exists(new_name, state=state):
         errors.append(f"A Profile named '{new_name}' already exists in this backup. Choose a different name.")
 

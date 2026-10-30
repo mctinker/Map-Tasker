@@ -50,8 +50,8 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 from maptasker.src.core import editcommon, objprops, piiscan, tndesc
+from maptasker.src.core.editcommon import name_problem, touch_project_mdate
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
-from maptasker.src.core.editcommon import touch_project_mdate
 from maptasker.src.core.presave import backup_local_file
 from maptasker.src.core.sysconst import BASE_PROJECT_NAME
 from maptasker.src.edit import sessundo
@@ -146,6 +146,8 @@ def create_new_project(name: str, state: RunState) -> EditableProject | str:
     """
     if state.xml_root is None:
         return "Load a Tasker backup file first (Add Project needs it to generate a unique Project ID)."
+    if problem := name_problem(name, "Project"):
+        return problem
 
     existing_sr_ids = [
         int(match.group(1))
@@ -189,6 +191,8 @@ def apply_edits_to_project(edited_project: EditableProject, new_name: str, state
     new_name = new_name.strip()
     if not new_name:
         errors.append("Project name cannot be empty.")
+    elif problem := name_problem(new_name, "Project"):
+        errors.append(problem)
     elif new_name != edited_project.project_name and project_name_exists(new_name, state=state):
         errors.append(f"A Project named '{new_name}' already exists in this backup. Choose a different name.")
 
