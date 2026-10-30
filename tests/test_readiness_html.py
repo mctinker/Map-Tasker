@@ -13,7 +13,9 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from maptasker.src.core import tndesc
+from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.share import description_html
 from maptasker.src.edit import projedit
 from maptasker.src.mapops import readiness
 
@@ -46,6 +48,25 @@ def test_the_block_is_made_of_tags_the_editor_writes_and_checks_clean() -> None:
     assert "<b>Variables Tasker will ask about</b>" in block
 
     assert tndesc.check(block) == []
+
+
+def test_the_items_under_a_section_are_indented_and_what_is_under_an_item_further_still() -> None:
+    block = _html(_task("Click", _plugin_action("com.joaomgcd.autoinput")), _task("Quit", _action(375)))
+
+    assert "<p><b>Plugins</b></p>" in block, "a heading is flush left"
+    assert f"<li>{readiness.ITEM_INDENT}com.joaomgcd.autoinput" in block
+    assert f"<br/>{readiness.DETAIL_INDENT}Used by:" in block
+    assert len(readiness.DETAIL_INDENT) > len(readiness.ITEM_INDENT) > 0
+    assert "<li>com" not in block and "<li>Tasker" not in block, "no item is left flush with its heading"
+    assert "\n  <li>" in block and "\n<li>" not in block, "and the source is indented so it reads in the box"
+    assert tndesc.check(block) == []
+
+
+def test_the_indent_survives_the_map_s_own_rendering_of_the_description() -> None:
+    """The preview and the Map are drawn on a page that resets lists to flush-left; spaces are what is left."""
+    shown = description_html(_html(_task("Click", _plugin_action("com.joaomgcd.autoinput"))), set_color_mode("light"))
+
+    assert "\u00a0" * 4 + "com.joaomgcd.autoinput" in shown
 
 
 def test_a_section_with_nothing_in_it_is_left_out_not_printed_as_none() -> None:

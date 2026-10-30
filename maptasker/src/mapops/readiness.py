@@ -293,10 +293,20 @@ def _esc(text: str) -> str:
     return html.escape(text, quote=False)
 
 
+# How far in an item sits under its section heading, and how much further the lines under the item: written as
+# non-breaking spaces because nothing else survives.  A <ul> indents in a browser, but the Map and the editor's
+# preview are drawn on a page whose style sheet resets lists to flush-left with no bullets, and the same reset
+# takes the margin off a <blockquote>.  Where a browser does indent a list as well, the two simply add up.
+ITEM_INDENT = "&nbsp;" * 4
+DETAIL_INDENT = "&nbsp;" * 8
+
+
 def _html_item(line: Line) -> str:
-    """One entry of a section as a bullet: what it is, then who uses it and how to set it up."""
-    extra = "".join(f"<br/>{_esc(detail)}" for detail in (line.used_by, line.setup) if detail)
-    return f"\n<li>{_esc(line.text)}{extra}</li>"
+    """One entry of a section as a bullet: what it is, then who uses it and how to set it up, each further in."""
+    extra = "".join(f"<br/>{DETAIL_INDENT}{_esc(detail)}" for detail in (line.used_by, line.setup) if detail)
+    # The <li> is also indented in the source, so the structure reads in the editor's box; to a browser that is
+    # only white space between tags, and changes nothing about how it is drawn.
+    return f"\n  <li>{ITEM_INDENT}{_esc(line.text)}{extra}</li>"
 
 
 def _named(places: tuple[str, ...]) -> str:
