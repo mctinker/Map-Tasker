@@ -2,36 +2,15 @@
 
 All notable changes to this project will be documented in this file!
 
-## [15.1.0] 30-Oct-2026
+## [15.1.1] ??-Nov-2026  # FIX
 
 ### Added
 
-- Added: __Task Tests__ keeps a Task Stepper run as a named test -- the Task, the values it started with, and what it did -- and runs every saved test again after each edit, Fix Findings pass, refactor, restore, import or Undo. You are told only when a Task no longer does what it did, and in words: which variable changed, or which Flash or web request is different.
-- Added: __Save As Test__ added to Task Stepper to save the stepper results for use by Task Tests.
-- Added: __Outbound Inventory__ lists, Project by Project, every URL and host your actions contact and every SMS, call, shell command, root command and Intent they send, with the risky ones first: a root command, a request over plain http, an address built from a variable, or an action carrying a key or password. Keys found in an address are replaced in the report, so it is safer to share.
-- Added: __Add TaskerNet Description__ and __Edit TaskerNet Description__ buttons in the Add and Edit windows for Projects, Profiles and Tasks, to write the description people see before importing from TaskerNet. The window has buttons that write the HTML tags real TaskerNet descriptions use, a check for broken or unsafe HTML, and a preview of how the Map will show it.
-- Added: __Launcher Task__ pulldown in the Edit Project window to choose which of the Project's named Tasks its launcher runs, or none. It takes effect as soon as you pick one and one Undo takes it back.
-- Added: The Edit Project window now has an __Ok__ button, like the other Add and Edit windows. Everything in that window is already applied as you change it, so Ok simply closes the window and confirms the changes are kept.
-- Added:
-
 ### Changed
-
-- Changed: __Draft with AI__ now tells the AI model what the actions that best match your description do, along with their settings, so it picks the right action more often and usually needs only one request.
-- Changed: __Draft with AI__ now also shows the AI model a few worked examples of descriptions like yours, so it copies how actions fit together, such as closing an If or looping over a list.
-- Changed: __Draft with AI__ now sends a draft back to the AI model once, with what was wrong, when it used an action that does not exist or a value that is not allowed, and it mentions the Tasker variables your description is about. A new tick box lets you also share the names of your own Tasks and variables that the description mentions; it is off unless you tick it.
-- Changed: The networking libraries MapTasker depends on (aiohttp, urllib3 and certifi) are updated to releases that fix known security vulnerabilities.
-- Changed: The Ok button in the Add and Edit panels for Profiles and Tasks, and in Add Project, now has hover text saying that it puts the change into the open backup for this session only, that Undo takes it back, and that the panel stays open if it cannot be done.
-- Changed:
 
 ### Removed
 
-- Removed:
-
 ### Fixed
-
-- Fixed: Building the Map or the Diagram no longer stops with an error when a backup refers to something it does not contain, such as a Project listing a Task, Profile or Scene that is not in the file, or has an empty id or no Tasker version. The missing item is left out, and Health Check still reports it.
-- Fixed: __Exit__ with __Close Tabs On Exit__ don't close the browser tab after you have clicked a link in a report window such as Missing Resources, Find or the Monitor. Those links made the browser add a step to the tab's history, and a browser will not let a program close such a tab.
-- Fixed:
 
 
 ### Known Issues
@@ -46,6 +25,22 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
 
 ## Older History Logs
+
+## [15.1.0] 30-Oct-2026
+
+- Added: __Task Tests__ keeps a Task Stepper run as a named test -- the Task, the values it started with, and what it did -- and runs every saved test again after each edit, Fix Findings pass, refactor, restore, import or Undo. You are told only when a Task no longer does what it did, and in words: which variable changed, or which Flash or web request is different.
+- Added: __Save As Test__ added to Task Stepper to save the stepper results for use by Task Tests.
+- Added: __Outbound Inventory__ lists, Project by Project, every URL and host your actions contact and every SMS, call, shell command, root command and Intent they send, with the risky ones first: a root command, a request over plain http, an address built from a variable, or an action carrying a key or password. Keys found in an address are replaced in the report, so it is safer to share.
+- Added: __Add TaskerNet Description__ and __Edit TaskerNet Description__ buttons in the Add and Edit windows for Projects, Profiles and Tasks, to write the description people see before importing from TaskerNet. The window has buttons that write the HTML tags real TaskerNet descriptions use, a check for broken or unsafe HTML, and a preview of how the Map will show it.
+- Added: __Launcher Task__ pulldown in the Edit Project window to choose which of the Project's named Tasks its launcher runs, or none. It takes effect as soon as you pick one and one Undo takes it back.
+- Added: The Edit Project window now has an __Ok__ button, like the other Add and Edit windows. Everything in that window is already applied as you change it, so Ok simply closes the window and confirms the changes are kept.
+- Changed: __Draft with AI__ now tells the AI model what the actions that best match your description do, along with their settings, so it picks the right action more often and usually needs only one request.
+- Changed: __Draft with AI__ now also shows the AI model a few worked examples of descriptions like yours, so it copies how actions fit together, such as closing an If or looping over a list.
+- Changed: __Draft with AI__ now sends a draft back to the AI model once, with what was wrong, when it used an action that does not exist or a value that is not allowed, and it mentions the Tasker variables your description is about. A new tick box lets you also share the names of your own Tasks and variables that the description mentions; it is off unless you tick it.
+- Changed: The networking libraries MapTasker depends on (aiohttp, urllib3 and certifi) are updated to releases that fix known security vulnerabilities.
+- Changed: The Ok button in the Add and Edit panels for Profiles and Tasks, and in Add Project, now has hover text saying that it puts the change into the open backup for this session only, that Undo takes it back, and that the panel stays open if it cannot be done.
+- Fixed: Building the Map or the Diagram no longer stops with an error when a backup refers to something it does not contain, such as a Project listing a Task, Profile or Scene that is not in the file, or has an empty id or no Tasker version. The missing item is left out, and Health Check still reports it.
+- Fixed: __Exit__ with __Close Tabs On Exit__ don't close the browser tab after you have clicked a link in a report window such as Missing Resources, Find or the Monitor. Those links made the browser add a step to the tab's history, and a browser will not let a program close such a tab.
 
 ## [15.0.2] 25-Oct-2026
 
