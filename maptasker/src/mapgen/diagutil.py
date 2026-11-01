@@ -9,11 +9,15 @@
 from __future__ import annotations
 
 import re
+from bisect import bisect_left
 from typing import TYPE_CHECKING
 
 from maptasker.src.core.mapfonts import is_double_width
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.mapgen.diagcnst import (
+    CallConnector,
+    CallSite,
+    CallTable,
     angle,
     bar,
     blank,
@@ -32,6 +36,8 @@ from maptasker.src.mapgen.diagcnst import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from maptasker.src.core.primitem import RunState
     from maptasker.src.core.runcfg import RunConfig
 
@@ -59,7 +65,7 @@ def add_output_line(line: str, state: RunState) -> None:
 
 
 # Given an array of 3 string elements, format them with fillers for headings
-def include_heading(header: str, output_lines: list) -> None:
+def include_heading(header: str, output_lines: list[str]) -> None:
     """
     Adds a header to the output lines.
     Args:
@@ -158,6 +164,18 @@ _vertical_connectors = f"{bar}{up_arrow}{down_arrow}{right_arrow_corner_down}{ri
 _icon_modifiers = "\ufe0f\u20e3\U0001f3fb\U0001f3fc\U0001f3fd\U0001f3fe\U0001f3ff"
 
 
+# Where an icon can start.  An icon is a wide character, and every wide character is at or above U+1100
+# (the first Hangul Jamo); or it is a narrow symbol followed by the selector that asks for its picture, which
+# can be any character.  Everything else in a line -- text, blanks, connectors, the tree's guide lines -- is
+# stepped over by the search rather than looked at one character at a time, which is what made this the
+# hottest function in a large Diagram.
+#
+# U+2500 to U+25FC is left out of the first alternative: box drawing, block elements and geometric shapes are
+# what the connectors and the boxes are made of, so they are most of what a Diagram holds, and none of them is
+# wide (the first wide one after them is U+25FD).  tests/test_icon_spans.py checks that against every one.
+_ICON_CANDIDATE = re.compile("[\u1100-\u24ff\u25fd-\U0010ffff]|.(?=\ufe0f)", re.DOTALL)
+
+
 def icon_spans(text: str) -> list[tuple[int, int]]:
     """Find the icons in a line, each as the (start, end) of the characters that draw it.
 
@@ -171,9 +189,12 @@ def icon_spans(text: str) -> list[tuple[int, int]]:
     Returns:
         list[tuple[int, int]]: The start and the position just past the end of each icon, in order.
     """
-    spans = []
-    position = 0
-    while position < len(text):
+    spans: list[tuple[int, int]] = []
+    resume = 0
+    for candidate in _ICON_CANDIDATE.finditer(text):
+        position = candidate.start()
+        if position < resume:
+            continue  # inside the icon just found
         char = text[position]
         following = text[position + 1 : position + 2]
         if char not in _icon_modifiers and ((char.strip() and is_double_width(char)) or following == "\ufe0f"):
@@ -183,9 +204,7 @@ def icon_spans(text: str) -> list[tuple[int, int]]:
                 end += 2 if text[end] == "\u200d" else 1
             end = min(end, len(text))
             spans.append((position, end))
-            position = end
-        else:
-            position += 1
+            resume = end
     return spans
 
 
@@ -285,7 +304,7 @@ def remove_icon(text: str) -> str:
     if not extras:
         return text
 
-    pieces = []
+    pieces: list[str] = []
     previous = 0
     net_taken = 0
     for position, char in enumerate(text):
@@ -308,7 +327,7 @@ def remove_icon(text: str) -> str:
 
 
 # Given a name, enclose it in a text box
-def build_box(name: str, output_lines: list, config: RunConfig) -> tuple:
+def build_box(name: str, output_lines: list[str], config: RunConfig) -> tuple[list[str], int]:
     """
     Builds a box around the given name.
     Args:
@@ -353,7 +372,7 @@ def build_box(name: str, output_lines: list, config: RunConfig) -> tuple:
 
 # Trace backwards in the output, inserting a bar (|) through right arrows.
 def add_bar_above_lines(
-    output_lines: list,
+    output_lines: list[str],
     line_to_modify: int,
     called_task_position: int,
 ) -> None:
@@ -392,7 +411,7 @@ def add_bar_above_lines(
             break
 
 
-def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
+def replace_diff_char(strings: list[str], char: str, replacement_char: str) -> list[str]:
     # Looping backwards through the list of strings
     """
     Replace all occurrences of a character in a list of strings with the character from the next string in the list.
@@ -433,8 +452,8 @@ def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
 
 # Go through output and delete all occurances of hanging bars |
 def delete_hanging_bars(
-    output_lines: list,
-) -> list:
+    output_lines: list[str],
+) -> list[str]:
     """
     Go through output and delete all occurances of hanging bars |
 
@@ -462,7 +481,7 @@ def delete_hanging_bars(
     return output_lines
 
 
-def fix_duplicate_up_down_locations(call_table: dict) -> dict:
+def fix_duplicate_up_down_locations(call_table: CallTable) -> CallTable:
     # Get a list of duplicate up-down locations
     """
     Fixes duplicate up-down locations in the call table by adjusting connectors to avoid overlaps.
@@ -533,8 +552,50 @@ def fix_duplicate_up_down_locations(call_table: dict) -> dict:
     return call_table
 
 
+class TaskLineIndex:
+    """Which Diagram lines hold "└─ <name>", so a Task's own line is found without reading every line.
+
+    Finding a called Task's line was a search through all of the lines for each call -- a thousand calls
+    through ten thousand lines of two thousand characters each.  This holds, for every place a line has the
+    angle that starts a Task's name, the text that follows it, in order; the lines that hold "└─ <name>" are
+    then the ones whose text starts with <name>, which a bisection finds.
+
+    The text kept after each angle is cut short, so the index stays small.  A name no longer than that is
+    answered exactly; a longer one is not, and is searched for in the lines as it always was.
+    """
+
+    # How much of the text after an angle is kept.  The Task names in a Diagram are far shorter than this.
+    KEPT = 256
+
+    def __init__(self, lines: list[str]) -> None:
+        """Index `lines` as they are now; an index is not kept up to date if they change."""
+        self._lines = lines
+        entries: list[tuple[str, int]] = []
+        for number, line in enumerate(lines):
+            position = line.find(angle)
+            while position != -1:
+                start = position + len(angle)
+                entries.append((line[start : start + self.KEPT], number))
+                position = line.find(angle, position + 1)
+        entries.sort()
+        self._texts = [text for text, _ in entries]
+        self._numbers = [number for _, number in entries]
+
+    def lines_with(self, name: str) -> list[int]:
+        """The numbers of the lines that contain "└─ " followed by `name`, in order."""
+        if len(name) > self.KEPT:
+            wanted = f"{angle}{name}"
+            return [number for number, line in enumerate(self._lines) if wanted in line]
+        first = bisect_left(self._texts, name)
+        found: set[int] = set()
+        while first < len(self._texts) and self._texts[first].startswith(name):
+            found.add(self._numbers[first])
+            first += 1
+        return sorted(found)
+
+
 # Build a sorted list of all caller Tasks and their called Tasks.
-def build_call_table(output_lines: list, config: RunConfig) -> dict:
+def build_call_table(output_lines: list[str], config: RunConfig) -> CallTable:
     """
     Build a sorted list of all caller Tasks and their called Tasks.
         Args:
@@ -549,7 +610,9 @@ def build_call_table(output_lines: list, config: RunConfig) -> dict:
     - Return the call table sorted by location from inner to outer Tasks
     """
     # Go through all output lines looking for caller Tasks.
-    call_table = {}
+    call_table: CallTable = {}
+    task_lines = TaskLineIndex(output_lines)
+    project_name = ""
     project_text = translate_string("Project:") if config.language not in ("Arabic", "English") else "Project:"
     for caller_line_num, line in enumerate(output_lines):
         # Get the Project name if we have one
@@ -566,6 +629,7 @@ def build_call_table(output_lines: list, config: RunConfig) -> dict:
                 caller_line_num,
                 line,
                 project_name,
+                task_lines,
             )
 
     return call_table
@@ -573,7 +637,7 @@ def build_call_table(output_lines: list, config: RunConfig) -> dict:
 
 #     return up_down_location
 def ensure_unique_up_down_location(
-    call_table: dict,
+    call_table: CallTable,
     up_down_location: int,
     project_name: str,
 ) -> int:
@@ -595,31 +659,28 @@ def ensure_unique_up_down_location(
     Optimized version utilizing O(1) set lookups to eliminate nested loop bottlenecks.
     """
     # Step 1: Pre-calculate sets for O(1) lookups instead of repeatedly scanning call_table
-    global_locations = set()
-    project_locations = set()
+    global_locations: set[int] = set()
+    project_locations: set[int] = set()
 
     # A mapping to quickly find the project_name of any caller_task_name in O(1) time
-    task_project_map = {}
+    task_project_map: dict[str, str] = {}
 
     for details in call_table.values():
-        loc = details.get("up_down_location")
-        if loc is not None:
-            global_locations.add(loc)
-            if details.get("project_name") == project_name:
-                project_locations.add(loc)
+        loc = details["up_down_location"]
+        global_locations.add(loc)
+        if details["project_name"] == project_name:
+            project_locations.add(loc)
 
         # Cache task-to-project relationships
-        caller = details.get("caller_task_name")
-        p_name = details.get("project_name")
+        caller = details["caller_task_name"]
+        p_name = details["project_name"]
         if caller and p_name:
             task_project_map[caller] = p_name
 
     # Step 2: Gather unique caller tasks inside THIS project
     # (Matches the original logic's intent for project_keys_values)
     this_project_callers = {
-        details["caller_task_name"]
-        for details in call_table.values()
-        if details.get("project_name") == project_name and "caller_task_name" in details
+        details["caller_task_name"] for details in call_table.values() if details["project_name"] == project_name
     }
 
     # Step 3: Determine if we need a globally unique or project-unique location
@@ -675,10 +736,10 @@ def _call_geometry(caller_line_num: int, called_line_num: int) -> tuple[str, str
 
 
 def get_task_details_and_save(
-    output_lines: list,
-    call_table: dict,
-    connectors: dict,
-) -> dict:
+    output_lines: list[str],
+    call_table: CallTable,
+    connectors: CallSite,
+) -> CallTable:
     """
     Saves task call details and returns updated call table
     Args:
@@ -728,9 +789,8 @@ def get_task_details_and_save(
 
     # The key is insignificant, but must be unique.
     call_table_key = caller_task_position + called_task_position
-    if call_table is not None:
-        while call_table_key in call_table:
-            call_table_key += 1
+    while call_table_key in call_table:
+        call_table_key += 1
 
     # Ensure a unique up_down_location for the given project.
     up_down_location = ensure_unique_up_down_location(
@@ -763,10 +823,11 @@ def get_task_details_and_save(
 # Go through all caller and called Tasks and build the call table based on the
 # input line passed in.
 def _find_called_task_line(
-    output_lines: list,
+    output_lines: list[str],
     caller_line_num: int,
     called_task_name: str,
     called_task_index: int,
+    task_lines: TaskLineIndex | None = None,
 ) -> tuple[int, int, int] | None:
     """Find the "Called" Task's own line, and where on each line the connector arrows will meet the names.
 
@@ -775,6 +836,7 @@ def _find_called_task_line(
         caller_line_num: the line of the Task doing the calling.
         called_task_name: the name of the Task being called.
         called_task_index: which call to this Task from the caller this is (1 for the first).
+        task_lines: an index of `output_lines`, if there is one; without it every line is searched.
 
     Returns:
         (the called Task's line number, the caller-side position of the name, the called-side
@@ -783,50 +845,54 @@ def _find_called_task_line(
     #  Find the "Called" Task line for the caller Task.
     search_name = f"{angle}{called_task_name}"
 
-    # Make sure the called Task exists.
-    for called_line_num, check_line in enumerate(output_lines):
-        # See if the task name is in the line: "└─ {called_task_name}".
-        if search_name in check_line:
-            # Make certain that this is the exact string we want and not a substr match.
-            # If search_name as a substr of the task name we are looking for, then erroneously gets a match and we
-            # must continue the search!
-            str_pos = check_line.find(search_name)
+    # Make sure the called Task exists: a line with "└─ {called_task_name}" in it.
+    if task_lines is None:
+        candidates: Iterable[int] = (number for number, line in enumerate(output_lines) if search_name in line)
+    else:
+        candidates = task_lines.lines_with(called_task_name)
+    for called_line_num in candidates:
+        check_line = output_lines[called_line_num]
+        # Make certain that this is the exact string we want and not a substr match.
+        # If search_name as a substr of the task name we are looking for, then erroneously gets a match and we
+        # must continue the search!
+        str_pos = check_line.find(search_name)
 
-            # Find the "[" bracket and make sure it is the next valid character after the name.
-            modified_check_line = check_line.replace("(entry) ", "").replace(
-                "(exit) ",
-                "",
-            )
-            string_position = modified_check_line.find(f"{search_name} [", str_pos)
-            # Keep searching if this is not the valid caller Task name.
-            if string_position == -1:
-                continue
+        # Find the "[" bracket and make sure it is the next valid character after the name.
+        modified_check_line = check_line.replace("(entry) ", "").replace(
+            "(exit) ",
+            "",
+        )
+        string_position = modified_check_line.find(f"{search_name} [", str_pos)
+        # Keep searching if this is not the valid caller Task name.
+        if string_position == -1:
+            continue
 
-            # Find the position of the "[Calls -->" task name on the called line immediately after "└─ ".
-            caller_task_position = str_pos + (len(called_task_name) // 2)
-            # Find the position of the "Called by" task name on the caller by line
-            temp_line = output_lines[caller_line_num].replace(task_delimeter, "")
-            start_find_nth = temp_line.find("[Calls ──▶")
-            called_task_position = (
-                find_nth(
-                    temp_line,
-                    called_task_name,
-                    called_task_index,
-                    start_find_nth,
-                )
-                + len(called_task_name) // 2
+        # Find the position of the "[Calls -->" task name on the called line immediately after "└─ ".
+        caller_task_position = str_pos + (len(called_task_name) // 2)
+        # Find the position of the "Called by" task name on the caller by line
+        temp_line = output_lines[caller_line_num].replace(task_delimeter, "")
+        start_find_nth = temp_line.find("[Calls ──▶")
+        called_task_position = (
+            find_nth(
+                temp_line,
+                called_task_name,
+                called_task_index,
+                start_find_nth,
             )
-            return called_line_num, caller_task_position, called_task_position
+            + len(called_task_name) // 2
+        )
+        return called_line_num, caller_task_position, called_task_position
     return None
 
 
 def process_callers_and_called_tasks(
-    output_lines: list,
-    call_table: dict,
+    output_lines: list[str],
+    call_table: CallTable,
     caller_line_num: int,
     line: str,
     project_name: str,
-) -> dict:
+    task_lines: TaskLineIndex | None = None,
+) -> CallTable:
     """
     Processes caller and called tasks by parsing the diagram line from the output lines and saving the call details
     in the call table.
@@ -836,6 +902,7 @@ def process_callers_and_called_tasks(
         caller_line_num: Line number of caller task
         line: Line containing call information
         project_name: Name of project
+        task_lines: an index of output_lines, to find the called Task's line with
     Returns:
         call_table: Updated call table with caller and called task details
     Processes Logic:
@@ -857,10 +924,10 @@ def process_callers_and_called_tasks(
     # Get the called Task name.
     start_position = line.index(line_right_arrow) + 4
     called_task_names = line[start_position:].split(task_delimeter)
-    processed_tasks = []
+    processed_tasks: list[str] = []
 
     # Go through list of calls to Tasks from this caller Task (e.g. after ""[Calls ──▶").
-    called_names = []  # Keep track of called task names.
+    called_names: list[str] = []  # Keep track of called task names.
 
     for called_task_name in called_task_names:
         if not called_task_name or called_task_name in (", ", "]"):
@@ -870,12 +937,12 @@ def process_callers_and_called_tasks(
         called_task_index = 1 if called_task_name not in called_names else called_names.count(called_task_name) + 1
         called_names.append(called_task_name)
 
-        found = _find_called_task_line(output_lines, caller_line_num, called_task_name, called_task_index)
+        found = _find_called_task_line(output_lines, caller_line_num, called_task_name, called_task_index, task_lines)
 
         # If called Task found, then save everything (only do it once) in the call table.
         if found:
             called_line_num, caller_task_position, called_task_position = found
-            connectors = {
+            connectors: CallSite = {
                 "caller_task_name": caller_task_name,
                 "caller_line_num": caller_line_num,
                 "caller_task_position": caller_task_position,
@@ -913,7 +980,7 @@ def find_nth(haystack: str, needle: str, n: int, starting_position: int = 0) -> 
 from collections import defaultdict
 
 
-def find_duplicate_up_down_locations(call_table: dict) -> list:
+def find_duplicate_up_down_locations(call_table: CallTable) -> list[tuple[int, CallConnector]]:
     # Dictionary to collect items by their 'up_down_location' values
     """
     Finds items in the given data dictionary with duplicate 'up_down_location' values.
@@ -924,13 +991,11 @@ def find_duplicate_up_down_locations(call_table: dict) -> list:
     Returns:
         list: A list of tuples, where each tuple contains the key and value of an item with a duplicate 'up_down_location'.
     """
-    location_map = defaultdict(list)
+    location_map: defaultdict[int, list[tuple[int, CallConnector]]] = defaultdict(list)
 
     # Populate the location_map with items indexed by 'up_down_location'
     for key, value in call_table.items():
-        location = value.get("up_down_location")
-        if location is not None:
-            location_map[location].append((key, value))
+        location_map[value["up_down_location"]].append((key, value))
 
     # Extract and return only the items with duplicate 'up_down_location'
     return [item for items in location_map.values() if len(items) > 1 for item in items]

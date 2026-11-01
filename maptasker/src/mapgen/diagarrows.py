@@ -13,6 +13,8 @@ from maptasker.src.core.maputils import find_all_positions
 from maptasker.src.core.sysconst import logger
 from maptasker.src.mapgen.diagcnst import (
     CONNECTOR_DIRECTIONS,
+    ArrowPlacement,
+    CallConnector,
     bar,
     blank,
     left_arrow,
@@ -25,6 +27,8 @@ from maptasker.src.mapgen.diagcnst import (
 from maptasker.src.mapgen.diagutil import icon_spans
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from maptasker.src.core.primitem import RunState
     from maptasker.src.core.runcfg import RunConfig
 
@@ -82,7 +86,7 @@ def fill_line_with_arrows(
     return output
 
 
-def extract_with_subset(str1: str, str2: str) -> list:
+def extract_with_subset(str1: str, str2: str) -> list[str]:
     # Split both strings by commas
     """
     Extracts parts from str2 that are also in str1 (split by commas).
@@ -106,7 +110,7 @@ def extract_with_subset(str1: str, str2: str) -> list:
     subset_parts = [item[1:] if item.startswith(" ") else item for item in subset_parts]  # Remove leading spaces
 
     # Initialize an empty list for the result
-    result = []
+    result: list[str] = []
     i = 0
 
     # Iterate through the parts of str2
@@ -149,7 +153,7 @@ def bracket_list_end(text: str) -> int:
     return -1
 
 
-def get_index_setup(s: str, called_task_name: str) -> tuple[list, list] | None:
+def get_index_setup(s: str, called_task_name: str) -> tuple[list[str], list[int]] | None:
     """
     Parse the 'calls' string and return a tuple of substrings and positions
 
@@ -183,6 +187,7 @@ def get_index_setup(s: str, called_task_name: str) -> tuple[list, list] | None:
     # Figure out how we are going to parse the 'calls' string
     delimiter = task_delimeter if task_delimeter in s else comma
     # Deal with commas in the called task name
+    substrings: list[str]
     if delimiter == comma and comma in called_task_name:
         substrings = extract_with_subset(called_task_name, temp_line)
     else:
@@ -261,7 +266,7 @@ def get_index_by_middle_char_position(
     return -1
 
 
-def find_diagram_connector_seed_cell(lines: list, row: int, col: int) -> tuple | None:
+def find_diagram_connector_seed_cell(lines: Sequence[str], row: int, col: int) -> Cell | None:
     """
     Locate the actual connector character for a recorded (row, col) seed in the final text.
 
@@ -282,66 +287,84 @@ def find_diagram_connector_seed_cell(lines: list, row: int, col: int) -> tuple |
     return None
 
 
+# A place in the lines: (row, column).
+Cell = tuple[int, int]
+
 # How many blank cells of interruption a straight run can bridge over before giving up and
 # treating the run as genuinely ended.  Foreign connector characters are bridged without limit.
 _MAX_BRIDGE = 4
 
 
-def _reachable_neighbors(lines: list, r: int, c: int, max_bridge: int = _MAX_BRIDGE) -> list:
-    """The connector cells the one at (r, c) joins to, looking past what interrupts a straight run.
+# Which ways each connector character continues, as a set of bits (one for each of the four directions), and
+# each one's ways on as (row step, column step, the bit of the step that comes back), in the order its set of
+# directions is walked: the order the cells of a connector are found in is the order its ranges are reported
+# in, so it must not change.
+_BIT = {(-1, 0): 1, (1, 0): 2, (0, -1): 4, (0, 1): 8}
+_REACHES = {char: sum(_BIT[direction] for direction in directions) for char, directions in CONNECTOR_DIRECTIONS.items()}
+_STEPS = {
+    char: tuple((dr, dc, _BIT[(-dr, -dc)]) for dr, dc in directions)
+    for char, directions in CONNECTOR_DIRECTIONS.items()
+}
 
-    See compute_diagram_connector_groups() for why a run needs bridging at all.
+
+def _grow_connector(
+    lines: Sequence[str], seed_cell: Cell, visited: dict[Cell, int], group_id: int, max_bridge: int = _MAX_BRIDGE
+) -> list[Cell]:
+    """Every cell of the connector the seed lies on, found by flood fill; each is recorded in `visited` as `group_id`'s.
+
+    A cell joins the cells its character reaches toward (CONNECTOR_DIRECTIONS), looking past what interrupts a
+    straight run -- see compute_diagram_connector_groups() for why a run needs bridging at all.  From a cell, each
+    direction is followed until a cell that reaches back is found, which is the neighbor; or something a real,
+    unrelated line (box border, task text, ...) would never sit on top of; or more than `max_bridge` blanks.
+
+    Written as one loop rather than a function that finds a cell's neighbors, because it runs once for every cell of
+    every connector -- millions of times on a large Diagram.
     """
-    found = []
-    for dr, dc in CONNECTOR_DIRECTIONS[lines[r][c]]:
-        nr, nc = r + dr, c + dc
-        blanks = 0
-        while 0 <= nr < len(lines) and 0 <= nc < len(lines[nr]):
-            nchar = lines[nr][nc]
-            if nchar in CONNECTOR_DIRECTIONS and (-dr, -dc) in CONNECTOR_DIRECTIONS[nchar]:
-                found.append((nr, nc))
-                break
-            # Not a continuation -- keep looking past it only if it's something a real,
-            # unrelated line (box border, task text, ...) would never sit on top of.
-            if nchar == " ":
-                # Only blanks count against the limit.  A long run can cross a whole
-                # bundle of other connectors' bars standing shoulder to shoulder (dozens
-                # of them where a busy Task is called from many places); counting those
-                # too cut the run in two at the bundle, leaving the half that reaches
-                # the called Task a stub with no caller and nothing to jump to.
-                blanks += 1
-                if blanks > max_bridge:
-                    break
-            elif nchar not in CONNECTOR_DIRECTIONS:
-                break
-            nr, nc = nr + dr, nc + dc
-    return found
-
-
-def _grow_connector(lines: list, seed_cell: tuple[int, int], visited: set) -> list[tuple[int, int]]:
-    """Every cell of the connector the seed lies on, found by flood fill; the cells are added to `visited`."""
-    # Flood-fill this connector's connected cells, following only the directions each
-    # character actually continues the path in.
-    cells = []
+    cells: list[Cell] = []
     stack = [seed_cell]
-    visited.add(seed_cell)
+    visited[seed_cell] = group_id
+    row_count = len(lines)
+    reaches = _REACHES
+    steps_of = _STEPS
     while stack:
-        r, c = stack.pop()
-        cells.append((r, c))
-        for nr, nc in _reachable_neighbors(lines, r, c):
-            if (nr, nc) in visited:
-                continue
-            visited.add((nr, nc))
-            stack.append((nr, nc))
+        cell = stack.pop()
+        cells.append(cell)
+        r, c = cell
+        for dr, dc, comes_back in steps_of[lines[r][c]]:
+            nr, nc = r + dr, c + dc
+            blanks = 0
+            while 0 <= nr < row_count and 0 <= nc < len(lines[nr]):
+                nchar = lines[nr][nc]
+                ways = reaches.get(nchar)
+                if ways is not None:
+                    if ways & comes_back:
+                        neighbor = (nr, nc)
+                        if neighbor not in visited:
+                            visited[neighbor] = group_id
+                            stack.append(neighbor)
+                        break
+                    # A connector character that does not reach back is bridged without limit, however many
+                    # of them stand shoulder to shoulder: a bundle of other connectors' bars (dozens of them
+                    # where a busy Task is called from many places) must not cut the run in two, leaving the
+                    # half that reaches the called Task a stub with no caller and nothing to jump to.
+                elif nchar == " ":
+                    # Only blanks count against the limit.
+                    blanks += 1
+                    if blanks > max_bridge:
+                        break
+                else:
+                    break
+                nr += dr
+                nc += dc
     return cells
 
 
-def _cells_to_ranges(cells: list[tuple[int, int]]) -> list[tuple[int, int, int]]:
+def _cells_to_ranges(cells: list[Cell]) -> list[tuple[int, int, int]]:
     """A connector's cells compacted into per-row (line_num, col_start, col_end) ranges."""
-    by_row: dict = {}
+    by_row: dict[int, list[int]] = {}
     for r, c in cells:
         by_row.setdefault(r, []).append(c)
-    ranges = []
+    ranges: list[tuple[int, int, int]] = []
     for r, cols in by_row.items():
         cols.sort()
         start = prev = cols[0]
@@ -355,7 +378,7 @@ def _cells_to_ranges(cells: list[tuple[int, int]]) -> list[tuple[int, int, int]]
     return ranges
 
 
-def _display_geometry(lines: list) -> tuple[list, list, list]:
+def _display_geometry(lines: list[str]) -> tuple[list[str], list[Sequence[int]], list[Sequence[int]]]:
     """Lay the lines out by the screen columns their characters are drawn in.
 
     An icon, or a Chinese/Japanese/Korean character, is one character but two columns wide, and
@@ -369,14 +392,27 @@ def _display_geometry(lines: list) -> tuple[list, list, list]:
     Returns:
         tuple[list, list, list]: the lines with each wide character spread over the two cells it is
         drawn in, and for each line the character that each cell is, and the cell each character starts at.
+        A line with no icon in it is its own layout, and says so with a range rather than a list.
     """
-    display_lines, cell_to_char, char_to_cell = [], [], []
+    display_lines: list[str] = []
+    cell_to_char: list[Sequence[int]] = []
+    char_to_cell: list[Sequence[int]] = []
     for line in lines:
-        spans = dict(icon_spans(line))
-        cells, chars, starts = [], [], []
+        spans = icon_spans(line)
+        if not spans:
+            # Nearly every line: a character is a cell, and a cell is that character.
+            same = range(len(line))
+            display_lines.append(line)
+            cell_to_char.append(same)
+            char_to_cell.append(same)
+            continue
+        ends = dict(spans)
+        cells: list[str] = []
+        chars: list[int] = []
+        starts: list[int] = []
         position = 0
         while position < len(line):
-            end = spans.get(position)
+            end = ends.get(position)
             if end is None:
                 starts.append(len(cells))
                 cells.append(line[position])
@@ -394,7 +430,9 @@ def _display_geometry(lines: list) -> tuple[list, list, list]:
     return display_lines, cell_to_char, char_to_cell
 
 
-def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) -> dict:
+def compute_diagram_connector_groups(
+    lines: list[str], seeds: list[tuple[int, int, int]], state: RunState
+) -> dict[int, list[tuple[int, int, int]]]:
     """
     Identify every Diagram-view connector -- the lines, corners and arrows joining a "calls" Task
     to its "called by" Task -- directly from the final rendered text, growing each one out from a
@@ -443,10 +481,10 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
     run of characters.  A list rather than one index because two calls whose runs touch are
     one group -- geometry decides the groups, and the calls that fall in one all claim it.
     """
-    visited: set = set()
-    groups: dict = {}
-    group_of_cell: dict = {}
-    calls_by_group: dict = {}
+    # Which group each cell belongs to, for every cell grown into one.
+    visited: dict[Cell, int] = {}
+    groups: dict[int, list[Cell]] = {}
+    calls_by_group: dict[int, list[int]] = {}
     group_id = 0
 
     # Connectors are followed by the columns they are drawn in, and put back into character
@@ -454,24 +492,21 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
     cells_by_line, cell_to_char, char_to_cell = _display_geometry(lines)
 
     for row, col, call_index in seeds:
-        seed_cell = find_diagram_connector_seed_cell(lines, row, col)
-        if seed_cell is None:
+        found_cell = find_diagram_connector_seed_cell(lines, row, col)
+        if found_cell is None:
             continue
-        seed_cell = (row, char_to_cell[row][seed_cell[1]])
+        seed_cell = (row, char_to_cell[row][found_cell[1]])
         # A seed landing on a connector already grown from an earlier seed adds its call to
         # that group rather than being discarded: three seeds are dropped per call, and two
         # calls whose runs touch share the one group.
-        if seed_cell in visited:
-            existing = group_of_cell.get(seed_cell)
-            if existing is not None and call_index not in calls_by_group[existing]:
+        existing = visited.get(seed_cell)
+        if existing is not None:
+            if call_index not in calls_by_group[existing]:
                 calls_by_group[existing].append(call_index)
             continue
 
-        cells = _grow_connector(cells_by_line, seed_cell, visited)
-        groups[group_id] = cells
+        groups[group_id] = _grow_connector(cells_by_line, seed_cell, visited, group_id)
         calls_by_group[group_id] = [call_index]
-        for cell in cells:
-            group_of_cell[cell] = group_id
         group_id += 1
 
     # Compact each group's cells into per-row (line_num, col_start, col_end) ranges.
@@ -484,7 +519,9 @@ def compute_diagram_connector_groups(lines: list, seeds: list, state: RunState) 
 
 
 # Add up and down arrows to the connection points.
-def add_down_and_up_arrows(connectors: dict, output_lines: list, config: RunConfig, state: RunState) -> tuple[int, int]:
+def add_down_and_up_arrows(
+    connectors: ArrowPlacement, output_lines: list[str], config: RunConfig, state: RunState
+) -> tuple[int, int]:
     """
     Adds down and up arrows between caller and called tasks.
     Args:
@@ -609,7 +646,7 @@ def _line_with_arrow(line: str, up_down_location: int, use_arrow: str) -> str:
     return f"{front_line}{use_arrow}{back_line}"
 
 
-def _record_call_edge(connector: dict, state: RunState) -> int:
+def _record_call_edge(connector: CallConnector, state: RunState) -> int:
     """Record the call this connector is about to be drawn for, and return its index.
 
     Recorded before any of it is drawn: the two Task lines it joins are known here and nowhere
@@ -629,12 +666,12 @@ def _record_call_edge(connector: dict, state: RunState) -> int:
 
 def draw_arrows_to_called_task(
     up_down_location: int,
-    connector: dict,
-    output_lines: list,
-    called_task_lookup: dict,
+    connector: CallConnector,
+    output_lines: list[str],
+    called_task_lookup: dict[str, object],
     config: RunConfig,
     state: RunState,
-) -> dict:
+) -> dict[str, object]:
     """
     Draw arrows to called Task from Task doing the calling.
         Args:
@@ -677,7 +714,7 @@ def draw_arrows_to_called_task(
     call_index = _record_call_edge(connector, state)
 
     # Add up and down arrows to the connection points.
-    connectors = {
+    connectors: ArrowPlacement = {
         "caller_line_index": caller_line_index,
         "caller_line_num": caller_line_num,
         "caller_task_position": caller_task_position,
@@ -685,8 +722,8 @@ def draw_arrows_to_called_task(
         "called_line_num": called_line_num,
         "called_task_position": called_task_position,
         "up_down_location": up_down_location,
+        "call_index": call_index,
     }
-    connectors["call_index"] = call_index
     line_to_modify, line_to_modify1 = add_down_and_up_arrows(connectors, output_lines, config, state=state)
 
     # Fill called line with left arrows.  Figure out if we are top-down or bottom-up,

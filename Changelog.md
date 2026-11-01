@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
+- Changed: The Diagram now builds about twice as fast on large configurations; one 13 MB backup went from about 15 seconds to about 7.
+- Changed:
+
 ### Removed
 
 ### Fixed

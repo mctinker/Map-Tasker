@@ -6,6 +6,10 @@
 #                                                                                      #
 # Traverse our network map and print out everything in connected boxes.                #
 #                                                                                      #
+from __future__ import annotations
+
+from typing import TypedDict
+
 bar = "│"
 box_line = "═"
 blank = " "
@@ -53,3 +57,47 @@ CONNECTOR_DIRECTIONS = {
     left_arrow_corner_up: {_DOWN, _LEFT},
 }
 # CONNECTOR_CHARS = frozenset(CONNECTOR_DIRECTIONS)
+
+
+# ##################################################################################
+# The shapes the Diagram's modules pass between them
+# ##################################################################################
+class CallSite(TypedDict):
+    """A call as found in the lines: who calls whom, and where on each of their lines the connector meets the name."""
+
+    caller_task_name: str
+    caller_line_num: int
+    caller_task_position: int
+    called_task_name: str
+    called_line_num: int
+    called_task_position: int
+    project_name: str
+
+
+class CallConnector(CallSite):
+    """A call as the call table holds it: the site, and what it is drawn with and where."""
+
+    arrow: str
+    upper_corner_arrow: str
+    lower_corner_arrow: str
+    fill_arrow: str
+    start_line: int
+    line_count: int
+    up_down_location: int
+
+
+class ArrowPlacement(TypedDict):
+    """Where the up and down arrows of one connector go (see diagarrows.add_down_and_up_arrows)."""
+
+    caller_line_index: int
+    caller_line_num: int
+    caller_task_position: int
+    called_line_index: int
+    called_line_num: int
+    called_task_position: int
+    up_down_location: int
+    call_index: int
+
+
+# The call table: connectors by a key that only has to be unique.
+CallTable = dict[int, CallConnector]

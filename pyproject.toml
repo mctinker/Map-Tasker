@@ -471,11 +471,12 @@ typeCheckingMode = "basic"
 # elsewhere.  Counts are strict-mode errors in the modules still on the exempt list:
 #   core       0 modules     0   done.
 #   device     0 modules     0   done.
-#   mapgen    19 modules  1500   the Map builder, and the next to do: the cheapest are bildhtml, tasks, taskuniq,
+#   mapgen    16 modules   973   the Map builder, and the next to do: the cheapest are bildhtml, tasks, taskuniq,
 #                                globalvr, mapcache, mappdf and profiles (24-37 each).  The errors are bare
 #                                dict/list annotations and json.load results (type them, or cast at the one
-#                                place the data comes in), and the Diagram's helpers (diagutil, diagclean,
-#                                diagarrows, diagintr, diagprint) are the large ones.
+#                                place the data comes in).  The Diagram's helpers diagutil, diagclean and
+#                                diagarrows are done -- diagcnst holds the call table's types (CallSite,
+#                                CallConnector, CallTable) -- and diagintr, diagprint and diagram are left.
 #   edit      17 modules   810   the editors; same.
 #   analysis  13 modules   446   read-only questions of a configuration.
 #   mapops    18 modules   915   bulk operations.
@@ -602,8 +603,11 @@ strict = [
     "maptasker/src/mapgen/codelint.py",
     "maptasker/src/mapgen/colors.py",
     "maptasker/src/mapgen/condition.py",
+    "maptasker/src/mapgen/diagarrows.py",
+    "maptasker/src/mapgen/diagclean.py",
     "maptasker/src/mapgen/diagcnst.py",
     "maptasker/src/mapgen/diagrecord.py",
+    "maptasker/src/mapgen/diagutil.py",
     "maptasker/src/mapgen/frontmtr.py",
     "maptasker/src/mapgen/getbakup.py",
     "maptasker/src/mapgen/lineout.py",
@@ -614,8 +618,8 @@ strict = [
     "maptasker/src/mapgen/twisty.py",
     "maptasker/src/mapops/__init__.py",
     "maptasker/src/mapops/mapcards.py",
-    "maptasker/src/mapops/mapdescribe.py",
     "maptasker/src/mapops/mapcarry.py",
+    "maptasker/src/mapops/mapdescribe.py",
     "maptasker/src/mapops/maprefac_variable.py",
     "maptasker/src/mapops/mapswap.py",
     "maptasker/src/progargs.py",

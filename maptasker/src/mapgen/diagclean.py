@@ -7,13 +7,15 @@ from __future__ import annotations
 
 import gc
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core import console
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.sysconst import logger
 from maptasker.src.mapgen.diagarrows import bracket_list_end
 from maptasker.src.mapgen.diagcnst import (
+    CallConnector,
+    CallTable,
     angle,
     angle_elbow,
     bar,
@@ -29,7 +31,7 @@ from maptasker.src.mapgen.diagcnst import (
     task_delimeter,
 )
 from maptasker.src.mapgen.diagrecord import remap_object_seeds
-from maptasker.src.mapgen.diagutil import delete_hanging_bars, find_nth
+from maptasker.src.mapgen.diagutil import TaskLineIndex, delete_hanging_bars, find_nth
 
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
@@ -37,7 +39,7 @@ if TYPE_CHECKING:
 
 
 # Find and flag in the output those called Tasks that don't exist.
-def mark_tasks_not_found(output_lines: list) -> None:
+def mark_tasks_not_found(output_lines: list[str]) -> None:
     """
     Mark tasks not found in output lines
     Args:
@@ -48,6 +50,7 @@ def mark_tasks_not_found(output_lines: list) -> None:
     - Check if line contains "Task not found" string
     - If found, mark line number in a list for later processing
     """
+    task_lines = TaskLineIndex(output_lines)
     for caller_line_num, line in enumerate(output_lines):
         if line_right_arrow in line:
             # Get the called Task name.
@@ -55,7 +58,7 @@ def mark_tasks_not_found(output_lines: list) -> None:
             called_task_names = line[start_position:].split(", ")
 
             # Go through list of calls to Tasks from this caller Task.
-            track_task_name = []
+            track_task_name: list[str] = []
             # The line as it reads once earlier calls on it have been marked, which is what
             # the nth-occurrence search below has to count in.
             current_line = line
@@ -74,17 +77,8 @@ def mark_tasks_not_found(output_lines: list) -> None:
                     continue
 
                 #  Find the "Called" Task line for the caller Task.
-                search_name = f"{angle}{called_name_no_delimeter}"
-
                 # Make sure the called Task exists.
-                found_called_task = False
-                for check_line in output_lines:
-                    if search_name in check_line:
-                        found_called_task = True
-                        called_task_position = check_line.index(
-                            called_name_no_delimeter,
-                        )
-                        break
+                found_called_task = bool(task_lines.lines_with(called_name_no_delimeter))
 
                 # If Task doesn't exist, mark it as such.
                 not_found = " (Not Found!)"
@@ -108,14 +102,16 @@ def mark_tasks_not_found(output_lines: list) -> None:
                         + output_lines[caller_line_num][end_of_called_task_position:]
                     )
                     current_line = output_lines[caller_line_num]
+                    # The line has changed, and the index is of the lines as they were.
+                    task_lines = TaskLineIndex(output_lines)
 
 
-def mysizeof(my_dict: dict) -> int:
+def mysizeof(my_dict: CallTable) -> int:
     """
     Count the entries in a dictionary.
 
     Args:
-        my_dict (dict): The dictionary to count.
+        my_dict (CallTable): The dictionary to count.
 
     Returns:
         int: The number of entries.
@@ -126,14 +122,14 @@ def mysizeof(my_dict: dict) -> int:
     return total
 
 
-def furthest_connector_line(connector: dict) -> int:
+def furthest_connector_line(connector: CallConnector) -> int:
     """The last diagram line a connector touches -- it needs every line between its two ends."""
     return max(connector["caller_line_num"], connector["called_line_num"])
 
 
 def check_limit(
-    call_table: dict, output_lines: list, _progress_bar: dict, config: RunConfig, state: RunState
-) -> tuple[int | None, dict]:
+    call_table: CallTable, output_lines: list[str], _progress_bar: dict[str, Any], config: RunConfig, state: RunState
+) -> tuple[int | None, CallTable]:
     """
     Cut the diagram short at the view limit rather than refusing to draw it at all.
 
@@ -202,7 +198,7 @@ def check_limit(
     return cut_at, kept
 
 
-def cleanup_task_names(output_lines: list, num: int, line: str) -> list:
+def cleanup_task_names(output_lines: list[str], num: int, line: str) -> list[str]:
     """
     Handle special character around Task names.  Remove all quotes and add equivelent spaces after last '].
 
@@ -247,7 +243,7 @@ def cleanup_task_names(output_lines: list, num: int, line: str) -> list:
     return output_lines
 
 
-def cleanup_dangling_elbows(output_lines: list, num: int) -> list:
+def cleanup_dangling_elbows(output_lines: list[str], num: int) -> list[str]:
     """
     Check for dangling elbows and fix them.
 
@@ -274,7 +270,7 @@ def cleanup_dangling_elbows(output_lines: list, num: int) -> list:
 MISSING_BAR_PATTERN = re.compile(f"({re.escape(straight_line)}) (?={re.escape(straight_line)})")
 
 
-def cleanup_missing_straight_lines(output_lines: list, num: int, line: str) -> list:
+def cleanup_missing_straight_lines(output_lines: list[str], num: int, line: str) -> list[str]:
     """
     Add missing straight lines in which there is one or more blanks before "╯" or missing bars: "straight_line space straight_line".
     Replace the space with a straight line and replace all single-quotes with a blank.
@@ -308,7 +304,7 @@ def cleanup_missing_straight_lines(output_lines: list, num: int, line: str) -> l
     return output_lines
 
 
-def _adjust_position_for_arrow(output_lines: list, num: int, position: int) -> int:
+def _adjust_position_for_arrow(output_lines: list[str], num: int, position: int) -> int:
     """Adjust position if there's a right arrow corner down to the left."""
     if output_lines[num][position - 1] == right_arrow_corner_down:
         return position - 1
@@ -322,7 +318,7 @@ def _insert_bar_if_blank(new_line: str, position: int) -> str:
     return new_line
 
 
-def _process_elbows(output_lines: list, num: int, previous_line_num: int, position: int) -> int:
+def _process_elbows(output_lines: list[str], num: int, previous_line_num: int, position: int) -> int:
     """Handle cases where the current character is an elbow."""
     new_line = output_lines[previous_line_num]
     while output_lines[num][position] == angle_elbow:
@@ -345,7 +341,7 @@ def _process_elbows(output_lines: list, num: int, previous_line_num: int, positi
     return previous_line_num
 
 
-def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
+def cleanup_missing_bars(output_lines: list[str], num: int, position: int) -> list[str]:
     """
     Cleanup missing bars in the diagram.
 
@@ -386,9 +382,9 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
 
 # Go through the diagram looking for and fixing misc. screwed-up stuff.
 def cleanup_diagram(
-    output_lines: list,
-    progress: dict,
-) -> list:
+    output_lines: list[str],
+    progress: dict[str, Any],
+) -> list[str]:
     """
     Cleanup the diagram by adding missing straight lines and replacing spaces.
     """
@@ -422,7 +418,7 @@ def cleanup_diagram(
     return delete_hanging_bars(output_lines)
 
 
-def find_first_substring_position(string: str, substrings: list) -> tuple:
+def find_first_substring_position(string: str, substrings: list[str]) -> tuple[str | None, int]:
     """
     Finds the first occurrence of a substring in a string from a list of substrings.
 
@@ -441,7 +437,7 @@ def find_first_substring_position(string: str, substrings: list) -> tuple:
     return None, -1
 
 
-def add_blanks_above_called_tasks(output_lines: list, state: RunState) -> list:
+def add_blanks_above_called_tasks(output_lines: list[str], state: RunState) -> list[str]:
     # Go through and add blanks above called tasks, one for each caller.
     """
     Goes through the output lines and adds a blank line above each called task line
@@ -449,11 +445,11 @@ def add_blanks_above_called_tasks(output_lines: list, state: RunState) -> list:
     number of times each Task is called.  The new output lines are returned.
     """
     name_stoppers = ["(entry)", "(exit)", "[Called by ", "[Calls "]
-    new_output_lines = []
+    new_output_lines: list[str] = []
     # Where each line ends up once the blanks have been inserted above it.  Every object
     # recorded while the diagram was drawn is sitting on one of these lines, and this is the
     # first of the four steps that move it (see the note above flatten_with_quotes).
-    old_to_new = {}
+    old_to_new: dict[int, int] = {}
     for old_row, line in enumerate(output_lines):
         task_line = line.find(angle)
         if task_line != -1:

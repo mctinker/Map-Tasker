@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 from maptasker.src.mapgen import diagutil
+from maptasker.src.mapgen.diagcnst import CallConnector
 
 from tests.doubles import fake_config
 
@@ -13,41 +14,57 @@ ENGLISH = fake_config(language="English")
 # ##################################################################################
 # Connectors that share a column
 # ##################################################################################
-def _connector(caller: int, called: int, location: int) -> dict:
-    return {"caller_line_num": caller, "called_line_num": called, "up_down_location": location}
+def _connector(caller: int, called: int, location: int) -> CallConnector:
+    """A call-table entry with the three fields the overlap check reads, and the rest filled in with nothing."""
+    return {
+        "caller_task_name": "",
+        "caller_line_num": caller,
+        "caller_task_position": 0,
+        "called_task_name": "",
+        "called_line_num": called,
+        "called_task_position": 0,
+        "project_name": "",
+        "arrow": "",
+        "upper_corner_arrow": "",
+        "lower_corner_arrow": "",
+        "fill_arrow": "",
+        "start_line": 0,
+        "line_count": 0,
+        "up_down_location": location,
+    }
 
 
 def test_connectors_sharing_a_column_are_found_in_pairs() -> None:
-    table = {"a": _connector(1, 5, 4), "b": _connector(3, 8, 4), "c": _connector(1, 2, 6), "d": {}}
-    assert [key for key, _ in diagutil.find_duplicate_up_down_locations(table)] == ["a", "b"]
+    table = {1: _connector(1, 5, 4), 2: _connector(3, 8, 4), 3: _connector(1, 2, 6)}
+    assert [key for key, _ in diagutil.find_duplicate_up_down_locations(table)] == [1, 2]
 
 
 def test_no_shared_columns_means_none_found() -> None:
-    assert diagutil.find_duplicate_up_down_locations({"a": _connector(1, 5, 4), "b": _connector(1, 5, 6)}) == []
+    assert diagutil.find_duplicate_up_down_locations({1: _connector(1, 5, 4), 2: _connector(1, 5, 6)}) == []
 
 
 def test_overlapping_connectors_are_moved_apart() -> None:
     """Two lines drawn down the same column over the same rows would read as one."""
-    table = {"a": _connector(1, 5, 4), "b": _connector(3, 8, 4)}
+    table = {1: _connector(1, 5, 4), 2: _connector(3, 8, 4)}
     fixed = diagutil.fix_duplicate_up_down_locations(table)
-    assert fixed["a"]["up_down_location"] == 4
-    assert fixed["b"]["up_down_location"] == 6
+    assert fixed[1]["up_down_location"] == 4
+    assert fixed[2]["up_down_location"] == 6
 
 
 def test_connectors_that_do_not_overlap_may_share_a_column() -> None:
-    table = {"a": _connector(1, 3, 4), "b": _connector(10, 8, 4)}
+    table = {1: _connector(1, 3, 4), 2: _connector(10, 8, 4)}
     assert diagutil.fix_duplicate_up_down_locations(table) == table
 
 
 def test_a_connector_drawn_upward_is_measured_from_its_top() -> None:
     """Caller below called: the span runs from the called line down to the caller."""
-    table = {"a": _connector(9, 2, 4), "b": _connector(3, 4, 4)}
+    table = {1: _connector(9, 2, 4), 2: _connector(3, 4, 4)}
     fixed = diagutil.fix_duplicate_up_down_locations(table)
-    assert fixed["b"]["up_down_location"] == 6
+    assert fixed[2]["up_down_location"] == 6
 
 
 def test_three_connectors_end_up_in_three_columns() -> None:
-    table = {"a": _connector(1, 9, 4), "b": _connector(2, 8, 4), "c": _connector(3, 7, 4)}
+    table = {1: _connector(1, 9, 4), 2: _connector(2, 8, 4), 3: _connector(3, 7, 4)}
     fixed = diagutil.fix_duplicate_up_down_locations(table)
     assert len({entry["up_down_location"] for entry in fixed.values()}) == 3
 
