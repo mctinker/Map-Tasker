@@ -211,3 +211,112 @@ def test_an_export_whose_pulldown_is_not_on_screen_is_still_selected(
     gui.specific_scene_optionmenu = None
     handler.select_single_item_export("Panel.scn.xml")
     gui.event_handlers.loading.process_name_event.assert_called_once_with("Scene", "Panel")
+
+
+# ##################################################################################
+# Getting a file: from the local drive, and from the phone's list
+# ##################################################################################
+@pytest.fixture
+def window(monkeypatch: pytest.MonkeyPatch, handlers: tuple) -> SimpleNamespace:
+    """The handlers over a window that records what it is told, with notifications and the loaders recorded."""
+    handler, gui, calls = handlers
+    said: list[tuple[str, str]] = []
+    gui.display_message_box = lambda message, colour: said.append((message, colour))
+    gui.content_container = MagicMock()
+    gui.current_file = MagicMock()
+    gui.android_ipaddr, gui.android_port = "192.168.0.5", "1821"
+    notes: list[tuple[str, str]] = []
+    monkeypatch.setattr(userintr_loading, "ui", SimpleNamespace(notify=lambda m, type="": notes.append((m, type))))
+    monkeypatch.setattr(userintr_loading, "clear_tasker_data", lambda state: calls.setdefault("cleared", []).append(1))
+    monkeypatch.setattr(userintr_loading, "clear_single_item_view_names", lambda g: None)
+    monkeypatch.setattr(userintr_loading, "reset_single_item_pulldowns", lambda g, **_k: None)
+    monkeypatch.setattr(
+        userintr_loading, "remember_setting", lambda g, name, value: calls.setdefault("kept", []).append(value)
+    )
+    monkeypatch.setattr(userintr_loading, "clear_android_buttons", lambda g: calls.setdefault("buttons", []).append(1))
+    handler.hub.state = SimpleNamespace(
+        program_arguments=SimpleNamespace(file="x", android_file="x", android_ipaddr="x", android_port="x", gui=False),
+        backup_fetch_path="",
+        file_to_get="",
+    )
+    handler.select_single_item_export = lambda path: calls.setdefault("exported", []).append(path)
+    return SimpleNamespace(handler=handler, gui=gui, calls=calls, said=said, notes=notes)
+
+
+def _picker_returns(monkeypatch: pytest.MonkeyPatch, answer: object) -> None:
+    async def picker(*_a: object, **_k: object) -> object:
+        return answer
+
+    monkeypatch.setattr(userintr_loading, "LocalFilePicker", picker)
+    monkeypatch.setattr(userintr_loading, "local_xml_start_directory", lambda g: "~")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("answer", ["/home/me/backup.xml", ("/home/me/backup.xml",)])
+async def test_a_file_picked_on_this_computer_becomes_the_one_loaded(
+    monkeypatch: pytest.MonkeyPatch, window: SimpleNamespace, answer: object
+) -> None:
+    _picker_returns(monkeypatch, answer)
+
+    await window.handler.getxml_event()
+
+    assert window.handler.state.file_to_get == "/home/me/backup.xml"
+    assert window.calls["kept"] == [str(Path("/home/me/backup.xml").parent)], (
+        "its folder is where the picker opens next time"
+    )
+    assert window.calls["exported"] == ["/home/me/backup.xml"]
+    assert window.gui.android_ipaddr == window.gui.android_port == window.gui.android_file == ""
+    assert window.handler.state.program_arguments.android_ipaddr == "", "the phone is no longer the source"
+    assert window.notes == [("File path saved successfully!", "positive")]
+
+
+@pytest.mark.asyncio
+async def test_cancelling_the_picker_changes_nothing(monkeypatch: pytest.MonkeyPatch, window: SimpleNamespace) -> None:
+    _picker_returns(monkeypatch, None)
+
+    await window.handler.getxml_event()
+
+    assert window.notes == [("File selection canceled.", "warning")]
+    assert window.handler.state.file_to_get == ""
+    assert window.gui.android_ipaddr == "192.168.0.5"
+
+
+def test_a_file_picked_from_the_phones_list_is_validated_and_loaded(
+    monkeypatch: pytest.MonkeyPatch, window: SimpleNamespace
+) -> None:
+    window.handler.state.backup_fetch_path = "/work/backup.xml"
+    monkeypatch.setattr(userintr_loading, "validate_xml_file", lambda *_a, **_k: (0, ""))
+
+    window.handler.file_selected_event({"label": "/Tasker/backup.xml"})
+
+    assert window.gui.android_file == "/Tasker/backup.xml", "a picker that hands back its option has its label taken"
+    assert window.said[-1] == ("Backup file saved to /work/backup.xml", "Green")
+    assert window.calls["exported"] == ["/Tasker/backup.xml"]
+    assert window.handler.state.program_arguments.gui is True
+
+
+def test_a_file_from_the_phone_that_fails_validation_is_forgotten_and_reported(
+    monkeypatch: pytest.MonkeyPatch, window: SimpleNamespace
+) -> None:
+    monkeypatch.setattr(userintr_loading, "validate_xml_file", lambda *_a, **_k: (1, "not well-formed"))
+
+    window.handler.file_selected_event("/Tasker/bad.xml")
+
+    assert window.said[-1] == ("not well-formed", "Red")
+    assert window.gui.android_file == ""
+    assert "exported" not in window.calls, "nothing was loaded"
+
+
+def test_the_list_unnamed_items_box_refreshes_the_pulldowns_and_says_what_it_did(
+    monkeypatch: pytest.MonkeyPatch, window: SimpleNamespace
+) -> None:
+    window.gui.list_unnamed_items_checkbox = object()
+    window.gui.get_input_and_put_message = lambda _box, _label: True
+    refreshed: list[bool] = []
+    monkeypatch.setattr(userintr_loading, "list_tasker_objects", lambda g: refreshed.append(g.is_updating))
+
+    window.handler.list_unnamed_items_event()
+
+    assert refreshed == [True], "the pulldowns are rewritten while the window is told not to react to them"
+    assert window.gui.is_updating is False
+    assert window.said == [("'List Unnamed Items' checkbox selected.", "Green")]

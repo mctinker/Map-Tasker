@@ -196,5 +196,6 @@ def test_broken_xml_fails_the_check(state: RunState, monkeypatch: pytest.MonkeyP
 def test_xml_that_is_not_tasker_xml_is_called_out(state: RunState, monkeypatch: pytest.MonkeyPatch) -> None:
     """Well-formed but some other document -- the message says so and the caller shows it."""
     _device_answers(monkeypatch, 0, b"<html></html>")
-    _code, message = getbakup.validate_xml_file("192.168.0.210", "1821", _ANDROID_FILE, state=state)
+    code, message = getbakup.validate_xml_file("192.168.0.210", "1821", _ANDROID_FILE, state=state)
+    assert code == 1, "a file that is not a Tasker backup is a failure, so nothing loads it"
     assert "is not valid Tasker XML" in message

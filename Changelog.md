@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: A backup saved in another text encoding, such as Latin-1 or UTF-16, now opens instead of being refused, and opening a backup can no longer alter or delete the file.
 - Fixed: Saving a backup whose Projects have no id no longer writes every Project (or id-less Task) out again on each save, and a Task, Profile, Project or Scene name containing a control character is now refused instead of producing a backup that cannot be reopened.
 - Fixed: A damaged settings file, history snapshot, Scene layout, or an unexpected answer from the phone, TaskerNet or an AI model now produces a message instead of an error.
+- Fixed: Fetching a file from your Android device that is not a Tasker backup now tells you so instead of loading it as though it were one.
+- Fixed: When your Android device stops accepting the access key MapTasker is holding, checks that read from the device now ask for a fresh key and carry on, instead of reporting the device as failing.
 - Fixed: Upgrading to the latest version no longer prints a confusing "Ignoring NICEGUI_PORT" warning in the console when MapTasker restarts.
 - Fixed:
 

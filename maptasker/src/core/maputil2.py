@@ -429,7 +429,33 @@ def http_request(
         request the device answers by going through its whole configuration
         :return: return code, response: eitherr text string with error message or the
         contents of the backup file
+
+    A key that is the one held for this device and is refused (401) is replaced and the read made once more,
+    as request_with_auth_key does for a write.  A read cannot use that, having no return code for 'the key was
+    refused'; and a key the caller brought from elsewhere is not the held one's to swap.
     """
+    status, return_code, result = _get_once(
+        ip_address, ip_port, file_location, request_name, request_parm, auth_key, timeout
+    )
+    if status == 401 and auth_key and auth_key == held_auth_key(ip_address, ip_port):
+        refreshed_code, fresh_key = refresh_auth_key(ip_address, ip_port)
+        if refreshed_code == 0:
+            _, return_code, result = _get_once(
+                ip_address, ip_port, file_location, request_name, request_parm, fresh_key, timeout
+            )
+    return return_code, result
+
+
+def _get_once(
+    ip_address: str,
+    ip_port: str,
+    file_location: str,
+    request_name: str,
+    request_parm: str,
+    auth_key: str,
+    timeout: float,
+) -> tuple[int, int, bytes | str]:
+    """One GET to the device: (HTTP status or 0 if there was none, return code, content or message)."""
     # Something like: 192.168.0.210:1821/file/path/to/backup.xml?download=1
     url = _device_url(ip_address, ip_port, f"{request_name}{file_location}{request_parm}")
     response, error_message, _ = _device_call(
@@ -441,16 +467,16 @@ def http_request(
         timed_out="  Check that the Tasker 'HTTP Server Example' project is installed and running on the Android device.",
     )
     if response is None:
-        return 8, error_message
+        return 0, 8, error_message
 
     if response.status_code == 200:
         # Return the contents of the file.
-        return 0, response.content
+        return 200, 0, response.content
 
     if response.status_code == 404:
-        return 6, "File " + file_location + " not found."
+        return 404, 6, "File " + file_location + " not found."
 
-    return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
+    return response.status_code, 8, f"Request failed for url: {url} ...with status code {response.status_code}"
 
 
 # How long to keep asking for a file /upload has just written, before calling the write

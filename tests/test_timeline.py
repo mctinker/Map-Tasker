@@ -302,7 +302,7 @@ def test_the_older_side_is_named_by_when_it_was_not_by_its_temporary_file(tmp_pa
     assert "week_ago.xml (from the configuration history)" in result.report
     assert "maptasker_timeline_" not in result.report
     # xmldiff's header supplies the date itself, so the label must not repeat it.
-    assert result.report.count(when.strftime("%d-%b-%Y %H:%M:%S")) == 1
+    assert result.report.count(when.astimezone().strftime("%d-%b-%Y %H:%M:%S")) == 1
 
 
 def test_an_unchanged_configuration_reports_no_differences(tmp_path) -> None:

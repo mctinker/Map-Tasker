@@ -1,10 +1,10 @@
 {
-  "analysis": 93,
+  "analysis": 94,
   "core": 90,
-  "device": 84,
-  "edit": 87,
-  "entry": 85,
-  "gui": 86,
-  "mapgen": 85,
-  "mapops": 90
+  "device": 87,
+  "edit": 88,
+  "entry": 92,
+  "gui": 89,
+  "mapgen": 86,
+  "mapops": 91
 }

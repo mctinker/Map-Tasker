@@ -228,6 +228,6 @@ def validate_xml_file(ip_address: str, port: str, android_file: str, state: RunS
         return 1, f"File {android_file} could not be read.\n\nTry again."
     xml_root = xml_tree.getroot()
     if xml_root is None or xml_root.tag != "TaskerData":
-        return 0, f"File {android_file} is not valid Tasker XML.\n\nTry again."
+        return 1, f"File {android_file} is not valid Tasker XML.\n\nTry again."
 
     return 0, ""
