@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import threading
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import run, ui
 
@@ -267,7 +267,7 @@ class _Dashboard:
         options = {_WHOLE: translate_string("The whole configuration")}
         options.update({name: name for name in self.series.project_names()})
         keep = self.scope.value if self.scope.value in options else _WHOLE
-        self.scope.set_options(options, value=keep)
+        cast("Any", self.scope).set_options(options, value=keep)  # nicegui declares its options as a bare dict
 
     # ##############################################################################
     # Drawing.

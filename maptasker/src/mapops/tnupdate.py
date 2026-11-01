@@ -91,7 +91,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from itertools import count
 from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 from urllib.parse import parse_qs, quote, urlparse
 from xml.etree.ElementTree import Element, tostring
 
@@ -658,7 +658,7 @@ def _id_by_name(table: dict, name: str) -> str | None:
     return next((key for key, entry in table.items() if isinstance(entry, dict) and entry.get("name") == name), None)
 
 
-def scope_of(kind: str, name: str, tables: dict) -> dict | None:
+def scope_of(kind: str, name: str, tables: dict[str, Any]) -> dict[str, Any] | None:
     """The tables of what the configuration holds of one object -- see _scope_tables.  None if it is not there."""
     return _scope_tables(Link(kind, name, ""), tables)
 

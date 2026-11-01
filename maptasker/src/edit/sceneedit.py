@@ -78,7 +78,7 @@ import copy
 import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
@@ -138,7 +138,7 @@ class EditableScene:
 
     scene_name: str
     scene_element: Element
-    element_renames: list[tuple[str, str]] = field(default_factory=list)
+    element_renames: list[tuple[str, str]] = field(default_factory=list[tuple[str, str]])
 
 
 def resolve_scene_by_name(scene_name: str, state: RunState) -> Element | None:
@@ -195,7 +195,7 @@ def create_new_scene(
     matches what Tasker writes.  The Scene starts empty either way: adding
     elements/components is the part still to come (see this module's docstring).
     """
-    if state.xml_root is None:
+    if not state.backup_loaded:
         return "Load a Tasker backup file first (Add Scene needs it to build the Scene)."
     if problem := name_problem(name, "Scene"):
         return problem
@@ -250,7 +250,7 @@ def apply_edits_to_scene(edited_scene: EditableScene, new_name: str, state: RunS
     <lj> layout JSON -- and the Scene's model (scenemodel) keeps it in step.  Nothing
     else in this module has to know: for a Legacy Scene that call does nothing.
     """
-    errors = []
+    errors: list[str] = []
 
     new_name = new_name.strip()
     if not new_name:
@@ -557,7 +557,7 @@ def scene_task_ids(scene_element: Element) -> list[str]:
     so it bundles their Tasks too), because it is a fact about Scenes.  projedit imports it;
     nothing here imports projedit, so the direction is safe.
     """
-    found = []
+    found: list[str] = []
     for element in scene_element.iter():
         if element.tag not in SCENE_TASK_TYPES:
             continue
@@ -599,8 +599,8 @@ def render_standalone_scene_xml(scene_name: str, state: RunState, *, redact: boo
         msg = f"Scene '{scene_name}' no longer exists in this backup."
         raise ValueError(msg)
 
-    scene_copy = copy.deepcopy(scene_entry["xml"])
-    tv = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
+    scene_copy: Element = copy.deepcopy(scene_entry["xml"])
+    tv = state.xml_root.attrib.get("tv", "") if state.backup_loaded else ""
 
     # Match the parsed tree's actual Element class (see projedit's identical note).
     element_cls = type(scene_copy)
@@ -610,7 +610,7 @@ def render_standalone_scene_xml(scene_name: str, state: RunState, *, redact: boo
     # invented: the right value is the screen these elements were laid out on, which is the
     # device the backup came from.  A backup without one exports without one -- inventing a
     # screen size would have Tasker scale the Scene to a device that never existed.
-    source_metric = state.xml_root.find(_DISPLAY_METRIC_TAG) if state.xml_root is not None else None
+    source_metric = state.xml_root.find(_DISPLAY_METRIC_TAG) if state.backup_loaded else None
     if source_metric is not None:
         root.append(copy.deepcopy(source_metric))
 
@@ -691,7 +691,7 @@ def session_snapshot(edited_scene: EditableScene) -> Element:
 def revert_session(
     edited_scene: EditableScene,
     snapshot: Element,
-    layout: dict | None = None,
+    layout: dict[str, Any] | None = None,
 ) -> bool:
     """Undo everything an edit session did to the Scene, and say whether there was anything
     to undo.

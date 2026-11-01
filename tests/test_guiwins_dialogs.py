@@ -66,7 +66,7 @@ def health(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
         record.refreshed.append(gui)
         done()
 
-    monkeypatch.setattr(guiwins_dialogs, "_build_fetch_apps_dialog", fetch)
+    monkeypatch.setattr(guiwins_dialogs, "build_fetch_apps_dialog", fetch)
     return record
 
 

@@ -5,7 +5,7 @@ together for a Project, Profile, Task or Scene."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -108,7 +108,7 @@ def _build_variable_panel(
     props: objprops.EditableProperties,
     index: int,
     variable: Element,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     rerender: Callable[[], None],
 ) -> None:
     """One <ProfileVariable>, as an expansion titled by its name.
@@ -118,7 +118,9 @@ def _build_variable_panel(
     Prompt, then Exported Value with "Same as Value" beside it.
     """
     values = objprops.variable_values(variable)
-    key = lambda field: f"var{index}_{field}"
+
+    def key(field: str) -> str:
+        return f"var{index}_{field}"
 
     title = objprops.variable_display_name(variable) or translate_string("(new variable)")
     with ui.expansion(title, icon="data_object", value=not values["pvn"]).classes("w-full"):
@@ -205,7 +207,7 @@ def build_object_properties_dialog(
     edit in this app does).
     """
     props = objprops.load_properties(kind, element)
-    field_refs: dict = {}
+    field_refs: dict[str, Any] = {}
     values = objprops.scalar_values(props)
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[860px] w-full p-6"):

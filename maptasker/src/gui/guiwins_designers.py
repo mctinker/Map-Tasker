@@ -21,7 +21,7 @@
 #
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from maptasker.src.edit import sceneedit, scenemodel
 from maptasker.src.gui.guiwins_designer_legacy import LegacyDesigner
@@ -48,7 +48,7 @@ class SceneDesigner(Protocol):
         self,
         gui: MyGui,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog | None,
         state: RunState,
         /,

@@ -18,14 +18,14 @@ imports either of them at run time.
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.maputil2 import suppress_logged
 from maptasker.src.core.sysconst import ARGUMENT_NAMES, logger
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator
 
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
@@ -85,7 +85,7 @@ def reapply_selection(gui: MyGui, item_type: str, name: str) -> None:
 
 
 # Get the colors to use.
-def do_colors(user_input: MyGui, state: RunState) -> dict:
+def do_colors(user_input: MyGui, state: RunState) -> dict[str, str]:
     """Sets color mode and processes colors.
     Parameters:
         - user_input (dict): User input dictionary containing appearance mode and color lookup.
@@ -110,7 +110,7 @@ def do_colors(user_input: MyGui, state: RunState) -> dict:
     return colormap
 
 
-def get_first_text_entry(data: dict) -> str:
+def get_first_text_entry(data: dict[str, Any]) -> str:
     """
     Get the first data element, looking for the text command (i.e. checkbox label)
 
@@ -121,13 +121,13 @@ def get_first_text_entry(data: dict) -> str:
         str: The text value of the first entry if available, otherwise an empty string.
     """
     # 1. Determine if data is a dictionary
-    if isinstance(data, dict) and data:
+    if data:
         # 2. Get the first value in the dictionary
         first_value = next(iter(data.values()))
 
         # 3. Check if the first value is also a dict and contains 'text'
         if isinstance(first_value, dict) and "text" in first_value:
-            return first_value["text"]
+            return str(cast("dict[str, Any]", first_value)["text"])
 
     return ""
 
@@ -154,7 +154,7 @@ def get_first_text_entry(data: dict) -> str:
 
 
 @contextlib.contextmanager
-def held_overrides(overrides: dict | None, state: RunState) -> Iterator[None]:
+def held_overrides(overrides: dict[str, Any] | None, state: RunState) -> Generator[None]:
     """Put `overrides` into program_arguments and KEEP them there for the duration of a build.
 
     The caller still owns putting the original values back afterwards -- this only guarantees

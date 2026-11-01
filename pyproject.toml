@@ -477,23 +477,33 @@ typeCheckingMode = "basic"
 #                                place the data comes in).  The Diagram's helpers diagutil, diagclean and
 #                                diagarrows are done -- diagcnst holds the call table's types (CallSite,
 #                                CallConnector, CallTable) -- and diagintr, diagprint and diagram are left.
-#   edit      17 modules   810   the editors; same.
-#   analysis  13 modules   446   read-only questions of a configuration.
-#   mapops    18 modules   915   bulk operations.
-#   entry      4 modules    37   mapit, runcli, rungui, clireports: small, and most of it is what the
-#                                modules below them return, so it clears as they do.
-#   gui       45 modules  2633   last, and the largest: NiceGUI hands handlers untyped events and takes
-#                                untyped lambdas, so the errors are mostly at its boundary.  Cleaning
-#                                the 17 modules under 15 errors first gives the pattern for the rest.
+#   edit      12 modules   781   the editors; same.  taskedit and taskedit_apply (19-20) are the cheapest.
+#   analysis   7 modules   352   read-only questions of a configuration; xmldiff is half of it (181).
+#   mapops    14 modules   850   bulk operations.
+#   entry      0 modules     0   done.
+#   gui       20 modules  2304   last, and the largest: NiceGUI hands handlers untyped events and takes
+#                                untyped lambdas, so the errors are mostly at its boundary.  The patterns that
+#                                cleared the small ones: a handler's event is ValueChangeEventArguments[Any],
+#                                a dialog's field_refs is dict[str, Any], a registrar nicegui declares with
+#                                bare callbacks (app.on_*, a select's set_options) is called through
+#                                cast("Any", ...), and a helper two modules share is public, not _private.
+#                                A field(default_factory=list) needs list[X] -- and X importable at run time.
 # A module comes off the exempt list in the same change that makes it clean, never before: the ratchet
 # counts strict errors in the listed files as it counts basic ones, so a half-done module fails.
 strict = [
     "maptasker/src/__init__.py",
     "maptasker/src/analysis/__init__.py",
+    "maptasker/src/analysis/diffload.py",
+    "maptasker/src/analysis/folderwatch.py",
+    "maptasker/src/analysis/impact.py",
     "maptasker/src/analysis/livemon.py",
+    "maptasker/src/analysis/mapask.py",
     "maptasker/src/analysis/outbound.py",
+    "maptasker/src/analysis/plugchk.py",
     "maptasker/src/analysis/resrefs.py",
     "maptasker/src/analysis/taskcases.py",
+    "maptasker/src/analysis/timecomp.py",
+    "maptasker/src/clireports.py",
     "maptasker/src/core/__init__.py",
     "maptasker/src/core/action.py",
     "maptasker/src/core/actionc.py",
@@ -567,17 +577,47 @@ strict = [
     "maptasker/src/device/devicetask.py",
     "maptasker/src/device/deviceverify.py",
     "maptasker/src/edit/__init__.py",
+    "maptasker/src/edit/roundtrip.py",
+    "maptasker/src/edit/sceneedit.py",
     "maptasker/src/edit/sceneedit_v2.py",
+    "maptasker/src/edit/sceneedit_v2state.py",
+    "maptasker/src/edit/sessundo.py",
     "maptasker/src/edit/taskedit_model.py",
+    "maptasker/src/edit/taskedit_save.py",
     "maptasker/src/gui/__init__.py",
+    "maptasker/src/gui/getfile.py",
+    "maptasker/src/gui/guistate.py",
+    "maptasker/src/gui/guiutil2.py",
+    "maptasker/src/gui/guiwins.py",
     "maptasker/src/gui/guiwins2.py",
+    "maptasker/src/gui/guiwins_canvas.py",
     "maptasker/src/gui/guiwins_carry.py",
     "maptasker/src/gui/guiwins_describe.py",
+    "maptasker/src/gui/guiwins_designers.py",
+    "maptasker/src/gui/guiwins_dialogs.py",
+    "maptasker/src/gui/guiwins_draft.py",
+    "maptasker/src/gui/guiwins_drawers.py",
+    "maptasker/src/gui/guiwins_editor.py",
     "maptasker/src/gui/guiwins_impact.py",
+    "maptasker/src/gui/guiwins_legacyarg.py",
+    "maptasker/src/gui/guiwins_mapstream.py",
     "maptasker/src/gui/guiwins_monitor.py",
+    "maptasker/src/gui/guiwins_nav.py",
+    "maptasker/src/gui/guiwins_project.py",
+    "maptasker/src/gui/guiwins_props.py",
+    "maptasker/src/gui/guiwins_readiness.py",
     "maptasker/src/gui/guiwins_resources.py",
+    "maptasker/src/gui/guiwins_scene.py",
+    "maptasker/src/gui/guiwins_tabs.py",
     "maptasker/src/gui/guiwins_taskcases.py",
+    "maptasker/src/gui/guiwins_taskstep.py",
     "maptasker/src/gui/guiwins_tndesc.py",
+    "maptasker/src/gui/guiwins_tnfind.py",
+    "maptasker/src/gui/guiwins_trend.py",
+    "maptasker/src/gui/livevars.py",
+    "maptasker/src/gui/mapai.py",
+    "maptasker/src/gui/sceneview.py",
+    "maptasker/src/gui/sceneview_legacy.py",
     "maptasker/src/gui/sceneview_v2base.py",
     "maptasker/src/gui/userhelp.py",
     "maptasker/src/gui/userintr_ai.py",
@@ -616,13 +656,20 @@ strict = [
     "maptasker/src/mapgen/taskerd.py",
     "maptasker/src/mapgen/taskertables.py",
     "maptasker/src/mapgen/twisty.py",
+    "maptasker/src/mapit.py",
     "maptasker/src/mapops/__init__.py",
     "maptasker/src/mapops/mapcards.py",
     "maptasker/src/mapops/mapcarry.py",
     "maptasker/src/mapops/mapdescribe.py",
+    "maptasker/src/mapops/maprefac.py",
+    "maptasker/src/mapops/maprefac_duplicate.py",
+    "maptasker/src/mapops/maprefac_move.py",
     "maptasker/src/mapops/maprefac_variable.py",
     "maptasker/src/mapops/mapswap.py",
+    "maptasker/src/mapops/trend.py",
     "maptasker/src/progargs.py",
+    "maptasker/src/runcli.py",
+    "maptasker/src/rungui.py",
 ]
 # The oldest Python requires-python allows, so code that needs a newer one is an error.
 pythonVersion = "3.11"

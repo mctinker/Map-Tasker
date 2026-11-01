@@ -13,8 +13,9 @@
 import argparse
 import contextlib
 import sys
+from typing import Any, cast
 
-import darkdetect
+import darkdetect  # pyright: ignore[reportMissingTypeStubs]  (no stubs are published for it)
 
 from maptasker.src.core import console
 from maptasker.src.core.clip import clip_figure
@@ -51,7 +52,7 @@ def get_arg_if_in_list(args: argparse.Namespace, the_argument: str) -> int:
             tuple: boolean True if it is a list and the numeric value for the argument that was gotten
     """
     if the_value := getattr(args, the_argument):
-        return int(the_value[0]) if isinstance(the_value, list) else int(the_value)
+        return int(cast("list[str]", the_value)[0]) if isinstance(the_value, list) else int(the_value)
 
     return the_value
 
@@ -377,7 +378,8 @@ def restore_arguments(state: RunState) -> None:
     """
     Get arguments from saved file and restore them to the proper settings
     """
-    temp_arguments = temp_colors = {}
+    temp_arguments: ProgramArguments | dict[str, Any] = {}
+    temp_colors: dict[str, str] = {}
     # Get the arguments from our saved settings file.
     temp_arguments, temp_colors = save_restore_args(temp_arguments, temp_colors, to_save=False, state=state)
 
@@ -385,11 +387,14 @@ def restore_arguments(state: RunState) -> None:
     with contextlib.suppress(KeyError):
         # Map the prog_arg keys and values restored.  Settings this version does not know
         # (left by an older one, or the corrupt-file message) are skipped and logged.
-        state.program_arguments.restore(dict(temp_arguments))
+        state.program_arguments.restore(
+            temp_arguments if isinstance(temp_arguments, dict) else temp_arguments.as_dict()
+        )
         state.program_arguments.display_detail_level = int(state.program_arguments.display_detail_level)
 
         # Map the colormap keys and values restored
-        for key, value in temp_colors.items():
+        # A settings file written by hand or by an old version can hold an entry with no key.
+        for key, value in cast("dict[str | None, str]", temp_colors).items():
             if key is not None:
                 state.colors_to_use[key] = value
 

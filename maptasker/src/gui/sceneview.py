@@ -92,7 +92,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core import objprops
 from maptasker.src.core.maputil2 import translate_string
@@ -285,7 +285,7 @@ class V2Editing:
     components to outline and that paths are wanted on the DOM at all.
     """
 
-    selected: tuple[tuple, ...] = ()
+    selected: tuple[tuple[Any, ...], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -485,7 +485,7 @@ def element_is_hidden(element: Element) -> bool:
     return value.isdigit() and not (int(value) & (1 << objprops.SCENE_ELEMENT_VISIBLE_BIT))
 
 
-def paint_order(scene_element: Element) -> list:
+def paint_order(scene_element: Element) -> list[Element]:
     """The Scene's drawable elements, bottom one first.
 
     Sorted by the number in the sr attribute ("elements0", "elements1", ... "elements10")
@@ -523,7 +523,7 @@ def element_tasks(element: Element, state: RunState) -> list[tuple[str, str]]:
     element does still do something when tapped, and that is the point of showing this.
     """
     all_tasks = state.tasker_root_elements.get("all_tasks", {})
-    found = []
+    found: list[tuple[str, str]] = []
     for child in element:
         label = SCENE_TASK_TYPES.get(child.tag)
         if label is None:

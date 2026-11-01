@@ -33,7 +33,7 @@ if os.path.exists(TRACE_LOG_FILE):
 # ==========================================
 
 
-def sort_languages_with_priority(languages: list) -> list:
+def sort_languages_with_priority(languages: list[str]) -> list[str]:
     """
     Sorts a list of languages, ensuring primary languages (like English)
     appear at the top of the dropdown.
@@ -116,7 +116,7 @@ def my_trace_function(frame: FrameType, event: str, arg: object) -> Callable[...
     return my_trace_function
 
 
-def get_changelog_file(url: str, delimiter: str, n: int) -> list:
+def get_changelog_file(url: str, delimiter: str, n: int) -> list[str]:
     """
     Fetches a text file from a URL and returns a list of lines until the nth
     occurrence of a specified delimiter is encountered.
@@ -143,7 +143,7 @@ def get_changelog_file(url: str, delimiter: str, n: int) -> list:
         rutroh_error(f"Error fetching the URL: {e}")
         return []
 
-    lines = []
+    lines: list[str] = []
     delimiter_count = 0
 
     # Decode the content and split into lines

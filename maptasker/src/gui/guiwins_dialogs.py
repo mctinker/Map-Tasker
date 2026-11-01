@@ -16,7 +16,7 @@ from maptasker.src.core import appinv, clock, timeline
 from maptasker.src.core.mapjump import PROJECT
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.gui.guiwins_impact import build_impact_panel, wire_impact_clicks
-from maptasker.src.gui.guiwins_taskedit import _build_fetch_apps_dialog
+from maptasker.src.gui.guiwins_taskedit import build_fetch_apps_dialog
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine, Sequence
@@ -77,7 +77,7 @@ def _build_app_list_status_row(gui: MyGui) -> None:
 
     async def refresh_apps() -> None:
         """Fetch the app list from the device, then say what the plugins will be checked against."""
-        await _build_fetch_apps_dialog(gui, show_app_status)
+        await build_fetch_apps_dialog(gui, show_app_status)
 
     def show_app_status() -> None:
         app_status.set_text(_app_list_status())

@@ -171,7 +171,7 @@ def action_choices(task_id: str, state: RunState) -> list[tuple[int, str]]:
     entry = object_table("all_tasks", state=state).get(task_id)
     if entry is None:
         return []
-    choices = []
+    choices: list[tuple[int, str]] = []
     for number, action in enumerate(actions_of(entry["xml"]), start=1):
         label = (action.findtext("label") or "").strip().splitlines()
         suffix = f"  -- {label[0][:40]}" if label and label[0] else ""
@@ -190,7 +190,7 @@ def call_choices(task_id: str, state: RunState) -> list[tuple[int, str]]:
     entry = object_table("all_tasks", state=state).get(task_id)
     if entry is None:
         return []
-    choices = []
+    choices: list[tuple[int, str]] = []
     for number, action in enumerate(actions_of(entry["xml"]), start=1):
         if action_code(action) != taskedit_model.PERFORM_TASK_ACTION_CODE:
             continue
@@ -255,7 +255,7 @@ def _wrapped(text: str) -> list[str]:
     Done on the Row rather than left to the widget because the same text is written to a
     text file, where nothing is going to wrap it at all.
     """
-    words, lines, current = text.split(), [], ""
+    words, lines, current = text.split(), list[str](), ""
     for word in words:
         if current and len(current) + 1 + len(word) > _REPORT_WIDTH:
             lines.append(current)

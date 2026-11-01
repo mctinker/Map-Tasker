@@ -236,12 +236,12 @@ def _intercept_socket_emit(state: RunState) -> None:
     # Intercept all interactions with the UI to save MyGui to PrimeItems and shared_state
     # from nicegui import app, core, ui
     # 1. Save a reference to NiceGUI's core Socket.IO emitter function
-    _original_sio_emit = cast("Callable[..., Awaitable[None]]", core.sio.emit)
+    _original_sio_emit = cast("Callable[..., Awaitable[None]]", cast("Any", core.sio).emit)
 
     # 2. Define the interception proxy function
     async def intercepted_sio_emit(
         event: str,
-        data: dict | None = None,
+        data: dict[str, Any] | None = None,
         room: str | None = None,
         **kwargs: object,
     ) -> None:
@@ -274,7 +274,7 @@ def _run_server(state: RunState, assets_dir: str) -> None:
     """Start the NiceGUI server, which blocks until it is shut down, and report why it could not start."""
     # 5. Start the server (This will now properly block without running main() twice)
     try:
-        ui.run(
+        cast("Any", ui).run(
             reload=False,
             host="127.0.0.1",
             # storage_secret="maptasker_gui_storage",  # Only needed if using either app.storage.user or app.storage.browser
@@ -337,7 +337,7 @@ def _register_root_page(
             ui.notify(message, color="orange", position="bottom")
 
 
-def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]:
+def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict[str, Any]]:
     """Run the GUI until it is closed, save its settings, and end the run.
 
     Serves the one page the window lives on, intercepts what the server sends the browser so the
@@ -345,7 +345,7 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
     server was told to stop.
 
     Args:
-        use_gui (bool): whether to import and build the window (False only in tests).
+        use_gui (bool): True to run the window; there is nothing for this to do without it.
         state (RunState): the run the window works on.
 
     Raises:
@@ -358,13 +358,15 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
     # load when the GUI starts -- not when rungui is imported, which is at startup, before
     # process_cli replaces program_arguments.  diagram writes a default into program_arguments
     # as it is imported, and at startup that write would be thrown away.
-    if use_gui:
-        from maptasker.src.gui.userintr import MyGui  # noqa: PLC0415
+    if not use_gui:
+        message = "There is no window to run: process_gui was asked not to build one."
+        raise ValueError(message)
+    from maptasker.src.gui.userintr import MyGui  # noqa: PLC0415
 
     state.program_arguments.gui = True
 
     # 1. Create a dictionary to hold our UI instance so we can retrieve it after the server closes
-    shared_state = {}
+    shared_state: dict[str, MyGui] = {}
 
     # Create a lock to prevent the browser from building the app multiple times
     app_lock = {"is_built": False}
@@ -387,7 +389,7 @@ def process_gui(use_gui: bool, state: RunState) -> tuple[ProgramArguments, dict]
     # happen only after ui.run() returned, which it does for the Exit button -- but Ctrl-C in
     # the terminal (or a SIGTERM) makes ui.run() raise KeyboardInterrupt instead, and every
     # setting changed in the session was lost.  Shutdown handlers run in both cases.
-    app.on_shutdown(lambda: save_gui_settings(shared_state.get("user_input"), state=state))
+    cast("Any", app).on_shutdown(lambda: save_gui_settings(shared_state.get("user_input"), state=state))
 
     _run_server(state, assets_dir)
 

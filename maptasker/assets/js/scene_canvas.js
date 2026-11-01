@@ -14,7 +14,7 @@
 
     // Scale the canvas under `root` to fit its wrapper, and keep it fitting on resize.
     // `fixed` is a scale factor, or null for fit-to-width; `budget` is a height in pixels the
-    // canvas must also fit inside, or 0 for none.  See guiwins_canvas._emit_canvas_fit.
+    // canvas must also fit inside, or 0 for none.  See guiwins_canvas.emit_canvas_fit.
     const fit = (root, canvasWidth, canvasHeight, fixed, budget) => {
         const styleId = 'mt-scene-fit-' + root;
         let sheet = document.getElementById(styleId);
@@ -52,7 +52,7 @@
     };
 
     // Size the box behind a Version 2 layout to everything that layout occupies on screen.
-    // See guiwins_canvas._emit_v2_hull.
+    // See guiwins_canvas.emit_v2_hull.
     const hull = (root, canvasWidth, canvasHeight, pad, componentClass, hullClass) => {
         const compSel = '.' + componentClass;
         const wrap = document.querySelector('.' + root);
@@ -108,7 +108,7 @@
     };
 
     // Install the pointer and keyboard handlers that make a Legacy canvas draggable.
-    // See guiwins_canvas._emit_canvas_editing.
+    // See guiwins_canvas.emit_canvas_editing.
     const editing = (root, snap) => {
         const wrap = document.querySelector('.' + root);
         const canvas = wrap && wrap.querySelector('.mt-scene-canvas');
@@ -317,7 +317,7 @@
     };
 
     // Install the pointer handlers that let a run of Version 2 components be dragged into a
-    // new position among its siblings.  See guiwins_canvas._emit_v2_dragging.
+    // new position among its siblings.  See guiwins_canvas.emit_v2_dragging.
     const v2Drag = (root, container, nodeClass, plainSelect) => {
         const nodeSel = '.' + nodeClass;
         const host = document.querySelector(container);

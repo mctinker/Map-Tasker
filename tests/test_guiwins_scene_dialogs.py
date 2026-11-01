@@ -49,7 +49,7 @@ def stubs(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     monkeypatch.setattr(guiwins_scene, "designer_for", lambda element: _Designer())
     monkeypatch.setattr(guiwins_scene.scenemodel, "scene_version", lambda element: "Legacy")
     monkeypatch.setattr(
-        guiwins_scene, "_scene_dialog_closed", lambda window, dialog, field_refs, event: record.closed.append(event)
+        guiwins_scene, "scene_dialog_closed", lambda window, dialog, field_refs, event: record.closed.append(event)
     )
     monkeypatch.setattr(guiwins_scene, "build_impact_panel", lambda window, kind, name: ui.label(f"impact of {name}"))
     monkeypatch.setattr(guiwins_scene, "build_share_checks", lambda *a, **k: None)

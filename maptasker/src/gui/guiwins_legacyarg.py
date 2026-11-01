@@ -14,14 +14,14 @@
 #
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.edit import sceneedit_legacy, taskedit_model
 from maptasker.src.gui.guiwins_canvas import FIELD_COMMIT_DEBOUNCE_MS
-from maptasker.src.gui.guiwins_taskedit import _dropdown_current_label
+from maptasker.src.gui.guiwins_taskedit import dropdown_current_label
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 
 def _render_legacy_colour_arg(
-    arg: taskedit_model.EditableArg, commit: Callable[[ValueChangeEventArguments], None]
+    arg: taskedit_model.EditableArg, commit: Callable[[ValueChangeEventArguments[Any]], None]
 ) -> None:
     """A Legacy element's colour: the same picker the V2 designer's colours use, over a value
     written the other way round.
@@ -52,7 +52,7 @@ def _render_legacy_colour_arg(
     """
     settling = {"busy": False}
 
-    def commit_colour(event: ValueChangeEventArguments) -> None:
+    def commit_colour(event: ValueChangeEventArguments[Any]) -> None:
         if settling["busy"]:
             return
         stored = sceneedit_legacy.legacy_colour_from_css(str(event.value or ""))
@@ -77,7 +77,7 @@ def _render_legacy_colour_arg(
     field.picker.q_color.props('format-model="hexa"')
 
 
-def _render_legacy_arg(
+def render_legacy_arg(
     arg: taskedit_model.EditableArg,
     on_applied: Callable[[], None],
     on_rename: Callable[[], None] | None = None,
@@ -111,7 +111,7 @@ def _render_legacy_arg(
     """
     is_name = arg.arg_id == "0" and arg.backing_tag == "Str" and not name_editable
 
-    def commit(event: ValueChangeEventArguments) -> None:
+    def commit(event: ValueChangeEventArguments[Any]) -> None:
         value = event.value
         if arg.widget_kind == "checkbox":
             value = "1" if value else "0"
@@ -145,7 +145,7 @@ def _render_legacy_arg(
         elif arg.widget_kind == "dropdown":
             ui.select(
                 arg.dropdown_options or [],
-                value=_dropdown_current_label(arg),
+                value=dropdown_current_label(arg),
                 label=translate_string(arg.arg_name),
                 on_change=commit,
             ).props("dense").classes("flex-1")

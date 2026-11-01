@@ -124,7 +124,7 @@ class Measures:
     max_depth: int = 0
     deepest_task: str = ""
     call_depth: int = 0
-    call_chain: list[str] = field(default_factory=list)
+    call_chain: list[str] = field(default_factory=list[str])
     recursive: int = 0
     errors: int = 0
     warnings: int = 0
@@ -160,10 +160,10 @@ class SnapshotMetrics:
     when: str  # ISO 8601, local time with its offset
     source: str
     total: Measures = field(default_factory=Measures)
-    projects: dict[str, Measures] = field(default_factory=dict)
+    projects: dict[str, Measures] = field(default_factory=dict[str, Measures])
     version: int = METRICS_VERSION
     # Each Project's errors and warnings (not the information findings, which are not "problems").
-    problems: dict[str, list[Problem]] = field(default_factory=dict)
+    problems: dict[str, list[Problem]] = field(default_factory=dict[str, list[Problem]])
 
     @property
     def moment(self) -> datetime:
@@ -227,7 +227,7 @@ def _task_facts(state: RunState) -> dict[str, _TaskFacts]:
 
 def _calls_of(task_element: Element) -> list[str]:
     """The Tasks a Task performs by name.  A switched-off action is not a call, and a name with a variable in it is not followed."""
-    calls = []
+    calls: list[str] = []
     for action in actions_in_map_order(task_element):
         if (action.findtext("code") or "").strip() != _PERFORM_TASK or action.find("on") is not None:
             continue
@@ -456,8 +456,8 @@ class Progress:
 class Series:
     """The measured snapshots, oldest first, and why any were left out."""
 
-    points: list[SnapshotMetrics] = field(default_factory=list)
-    problems: list[str] = field(default_factory=list)
+    points: list[SnapshotMetrics] = field(default_factory=list[SnapshotMetrics])
+    problems: list[str] = field(default_factory=list[str])
     stopped: bool = False
 
     def project_names(self) -> list[str]:
@@ -613,7 +613,9 @@ class Mover:
     problems_after: int
     longest_before: int
     longest_after: int
-    new_problems: list[Problem] = field(default_factory=list)  # errors first; all of them, not just those shown
+    new_problems: list[Problem] = field(
+        default_factory=list[Problem]
+    )  # errors first; all of them, not just those shown
 
     @property
     def problem_delta(self) -> int:
@@ -632,7 +634,7 @@ def new_problems(before: SnapshotMetrics, after: SnapshotMetrics, project: str) 
     Matched by tag and object, a copy at a time: a Project that had two of one finding and now has three has one new.
     """
     unmatched = Counter(problem.key for problem in before.problems.get(project, []))
-    new = []
+    new: list[Problem] = []
     for problem in after.problems.get(project, []):
         if unmatched[problem.key] > 0:
             unmatched[problem.key] -= 1

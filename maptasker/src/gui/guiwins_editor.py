@@ -89,7 +89,7 @@ PROJECT_REDACT_FIELD = "project_redact_secrets"
 SCENE_REDACT_FIELD = "scene_redact_secrets"
 
 
-def build_redact_checkbox(field_refs: dict, key: str = REDACT_FIELD) -> None:
+def build_redact_checkbox(field_refs: dict[str, Any], key: str = REDACT_FIELD) -> None:
     """The "Redact secrets" tick-box that sits under an export's "Save as" path.
 
     One function, called by all four Edit dialogs, so the four exports cannot come to
@@ -212,7 +212,7 @@ class PendingChangesBanner:
 # 2b-pre. OBJECT PROPERTIES
 #
 # The Properties editor a Project, Profile, Task and Scene all reach from their own
-# Add/Edit dialog, through the one button _build_properties_button makes.  What the
+# Add/Edit dialog, through the one button build_properties_button makes.  What the
 # properties ARE lives in objprops.py; this is the form over it.
 #
 # One dialog rather than four because the three non-Scene kinds differ only in which
@@ -226,7 +226,7 @@ class PendingChangesBanner:
 # the rest.  objprops.py's module docstring is the long version; do not wire a new caller
 # up without reading it.
 # ==========================================
-def _build_properties_button(
+def build_properties_button(
     self: MyGui,
     kind: str,
     element: Element,

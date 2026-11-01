@@ -453,7 +453,7 @@ def remember_android_panel_option(gui: MyGui, name: str, value: object) -> None:
     save_restore_args(gui.state.program_arguments, gui.state.colors_to_use, to_save=True, state=gui.state)
 
 
-def android_device_fields(gui: MyGui) -> dict:
+def android_device_fields(gui: MyGui) -> dict[str, Any]:
     """Where the device is, and whether to check the XML before sending it there.
 
     The address and port default to the last ones entered, the same way the Get XML and
@@ -658,7 +658,7 @@ def build_save_to_android_dialog(
 def resolve_dark_mode(appearance_mode: str | None) -> bool:
     """Whether the saved appearance mode means "dark" -- "system" asks the OS, as colrmode does."""
     if appearance_mode == "system":
-        import darkdetect  # noqa: PLC0415  Only needed on this path, and it is a slow import
+        import darkdetect  # noqa: PLC0415  # pyright: ignore[reportMissingTypeStubs]  Only needed on this path, and it is a slow import
 
         return bool(darkdetect.isDark())
     return appearance_mode == "dark"
@@ -689,7 +689,7 @@ def apply_appearance_mode(self: MyGui, is_dark: bool) -> None:
     # them alone -- extract_settings() raises this flag for exactly this reason.
     if not getattr(self, "extract_in_progress", False):
         self.color_lookup = set_color_mode(self.appearance_mode)
-    bg = (self.color_lookup or {}).get("background", bg)
+    bg = cast("dict[str, str]", self.color_lookup or {}).get("background", bg)
 
     # --- 3. Push background color to the browser body ---
     ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")

@@ -22,7 +22,7 @@ from maptasker.src.edit import profedit
 from maptasker.src.gui.guiwins import android_device_fields
 from maptasker.src.gui.guiwins_editor import (
     PendingChangesBanner,
-    _build_properties_button,
+    build_properties_button,
     build_redact_checkbox,
     editor_state,
 )
@@ -159,7 +159,7 @@ class _ProfileEditorBody:
             # parent_dialog is passed in rather than found: this body is built inside its
             # caller's `with ui.dialog()` block, and the Properties editor needs to know which
             # dialog it is opening over.  See build_edit_profile_dialog/build_add_profile_dialog.
-            _build_properties_button(gui, objprops.KIND_PROFILE, edited_profile.profile_element, self.parent_dialog)
+            build_properties_button(gui, objprops.KIND_PROFILE, edited_profile.profile_element, self.parent_dialog)
             # The working copy again, and for the same reason: Add and Edit Profile save through it.
             build_taskernet_description_button(
                 gui,

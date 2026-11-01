@@ -122,11 +122,11 @@ def _order() -> list[str]:
 
 def _sr(label: str) -> str:
     return next(
-        e.get("sr") for e in sceneview.paint_order(_scene()) if sceneedit_legacy.legacy_element_label(e) == label
+        e.get("sr", "") for e in sceneview.paint_order(_scene()) if sceneedit_legacy.legacy_element_label(e) == label
     )
 
 
-def _geom(label: str, *, landscape: bool = False) -> tuple:
+def _geom(label: str, *, landscape: bool = False) -> tuple[int, int, int, int] | None:
     element = next(e for e in sceneview.paint_order(_scene()) if sceneedit_legacy.legacy_element_label(e) == label)
     return sceneview.element_geometry(element, landscape)
 
@@ -470,7 +470,7 @@ async def test_an_element_with_no_layout_in_this_orientation_says_so() -> None:
     element = next(
         e for e in sceneview.paint_order(_scene()) if sceneedit_legacy.legacy_element_label(e) == "Text 'Label'"
     )
-    element.find("geom").text = "50,200,300,60,-1,-1,-1,-1"
+    required(element.find("geom")).text = "50,200,300,60,-1,-1,-1,-1"
     async with _open() as user:
         _built["designer"].orientation["landscape"] = True
         await _select(user, "Text 'Label'")
@@ -558,10 +558,10 @@ async def test_the_canvas_size_is_what_the_dialogs_fields_say_and_a_bad_one_fall
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     fields = {"widthPort": SimpleNamespace(value="300"), "heightPort": SimpleNamespace(value="500")}
-    assert guiwins_designer_legacy._legacy_canvas_size(_built["edited"], fields, landscape=False) == (300, 500)
-    assert guiwins_designer_legacy._legacy_canvas_size(_built["edited"], {}, landscape=False) == (600, 800)
+    assert guiwins_designer_legacy.legacy_canvas_size(_built["edited"], fields, landscape=False) == (300, 500)
+    assert guiwins_designer_legacy.legacy_canvas_size(_built["edited"], {}, landscape=False) == (600, 800)
     assert (
-        guiwins_designer_legacy._legacy_canvas_size(
+        guiwins_designer_legacy.legacy_canvas_size(
             _built["edited"],
             {"widthPort": SimpleNamespace(value="0"), "heightPort": SimpleNamespace(value="9")},
             landscape=False,
@@ -572,7 +572,7 @@ async def test_the_canvas_size_is_what_the_dialogs_fields_say_and_a_bad_one_fall
     async with _open() as user:
         bad = {"widthPort": SimpleNamespace(value="wide"), "heightPort": SimpleNamespace(value="500")}
         with required(user.client):
-            assert guiwins_designer_legacy._legacy_canvas_size(_built["edited"], bad, landscape=False) == (600, 800)
+            assert guiwins_designer_legacy.legacy_canvas_size(_built["edited"], bad, landscape=False) == (600, 800)
         assert user.notify.contains("is not a whole number")
 
 
@@ -875,7 +875,7 @@ async def test_the_dialogs_size_fields_decide_how_big_the_designer_draws() -> No
     async with _open_mounted():
         _built["field_refs"]["widthPort"].value = "300"
         _built["field_refs"]["heightPort"].value = "400"
-        assert guiwins_designer_legacy._legacy_canvas_size(_built["edited"], _built["field_refs"], landscape=False) == (
+        assert guiwins_designer_legacy.legacy_canvas_size(_built["edited"], _built["field_refs"], landscape=False) == (
             300,
             400,
         )

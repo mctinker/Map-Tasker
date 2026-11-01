@@ -18,9 +18,6 @@
     "reportAssignmentType": 1,
     "reportAttributeAccessIssue": 1
   },
-  "tests/test_bldbndle.py": {
-    "reportOperatorIssue": 11
-  },
   "tests/test_build_all.py": {
     "reportAttributeAccessIssue": 1
   },
@@ -59,9 +56,6 @@
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 2
   },
-  "tests/test_directory_scope.py": {
-    "reportArgumentType": 2
-  },
   "tests/test_editcommon.py": {
     "reportArgumentType": 3,
     "reportAttributeAccessIssue": 11,
@@ -88,8 +82,7 @@
   },
   "tests/test_guiwins_designer_legacy.py": {
     "reportArgumentType": 17,
-    "reportAttributeAccessIssue": 7,
-    "reportReturnType": 1
+    "reportAttributeAccessIssue": 7
   },
   "tests/test_guiwins_designer_v2.py": {
     "reportArgumentType": 4,
@@ -164,7 +157,7 @@
     "reportArgumentType": 4
   },
   "tests/test_mapit_disconnect.py": {
-    "reportArgumentType": 10
+    "reportArgumentType": 1
   },
   "tests/test_maprefac.py": {
     "reportArgumentType": 1,
@@ -226,7 +219,6 @@
     "reportOperatorIssue": 1
   },
   "tests/test_runcfg.py": {
-    "reportArgumentType": 15,
     "reportAttributeAccessIssue": 1,
     "reportIndexIssue": 1
   },
@@ -235,8 +227,7 @@
     "reportReturnType": 1
   },
   "tests/test_runstate.py": {
-    "reportArgumentType": 7,
-    "reportOperatorIssue": 7
+    "reportArgumentType": 2
   },
   "tests/test_scene_properties.py": {
     "reportArgumentType": 2,

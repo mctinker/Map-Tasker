@@ -15,14 +15,15 @@ from __future__ import annotations
 import itertools
 import json
 import weakref
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import context, ui
 
 from maptasker.src.gui import sceneview_v2
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from nicegui.client import Client
 
 
 # ==========================================
@@ -40,7 +41,7 @@ CANVAS_PREVIEW_ROOT = "mt-preview"
 CANVAS_DESIGNER_ROOT = "mt-designer"
 # How much of the Scene dialog the designer's canvas may take.  It shares that dialog with a
 # size row, an element list, a property sheet and a button row, so the canvas is fitted to
-# this as well as to the width -- see _emit_canvas_fit's `budget`.  The Preview, which has a
+# this as well as to the width -- see emit_canvas_fit's `budget`.  The Preview, which has a
 # 70vh scroll area to itself, has no such limit.
 DESIGNER_CANVAS_HEIGHT = 300
 
@@ -55,7 +56,7 @@ def _call_canvas(name: str, *args: object) -> None:
     ui.run_javascript(f"mtCanvas.{name}({', '.join(json.dumps(arg) for arg in args)});")
 
 
-def _emit_canvas_fit(root: str, width: int, height: int, fixed: float | None = None, budget: int = 0) -> None:
+def emit_canvas_fit(root: str, width: int, height: int, fixed: float | None = None, budget: int = 0) -> None:
     """Scale the canvas under `root` to fit its wrapper, and keep it fitting on resize.
 
     `fixed` is a scale factor, or None for fit-to-width.  `budget` is a
@@ -84,7 +85,7 @@ def _emit_canvas_fit(root: str, width: int, height: int, fixed: float | None = N
     _call_canvas("fit", root, width, height, fixed, budget)
 
 
-def _emit_v2_hull(root: str, width: int, height: int) -> None:
+def emit_v2_hull(root: str, width: int, height: int) -> None:
     """Size the box behind a Version 2 layout to everything that layout occupies on screen.
 
     THE MEASURING HAS TO HAPPEN IN THE BROWSER, and for the same reason the fitting above
@@ -130,7 +131,7 @@ def _emit_v2_hull(root: str, width: int, height: int) -> None:
     )
 
 
-def _emit_canvas_editing(root: str, snap: int) -> None:
+def emit_canvas_editing(root: str, snap: int) -> None:
     """Install the pointer and keyboard handlers that make the canvas draggable.
 
     THE WHOLE DRAG HAPPENS IN THE BROWSER.  Only the finished geometry is sent back, once,
@@ -156,7 +157,7 @@ def _emit_canvas_editing(root: str, snap: int) -> None:
 
     Handlers are attached to the canvas element itself, which draw_scene rebuilds on every
     render, so they are disposed of with it and can never accumulate.  The one exception is
-    the resize listener in _emit_canvas_fit, which is on `window` and is removed by name.
+    the resize listener in emit_canvas_fit, which is on `window` and is removed by name.
 
     EVERY EVENT CARRIES ITS ROOT.  ui.on subscribes app-wide, and there can be more than one
     designer on the page -- editing a List's item layout opens a second one, on the nested
@@ -167,12 +168,12 @@ def _emit_canvas_editing(root: str, snap: int) -> None:
     _call_canvas("editing", root, max(1, snap))
 
 
-def _v2_selection_props(selection: dict) -> str:
+def v2_selection_props(selection: dict[str, Any]) -> str:
     """The selected run, as the two attributes the drag script reads off its host.
 
     Set as element props rather than written from JavaScript so that a surface which is not
     in the document right now -- a designer behind the Preview, whose dialog has detached its
-    contents -- still comes back with the run that is selected *now*.  See _emit_v2_dragging.
+    contents -- still comes back with the run that is selected *now*.  See emit_v2_dragging.
     """
     return (
         f'data-mt-v2-sel="{sceneview_v2.v2_encode_path(selection["path"])}" '
@@ -180,7 +181,7 @@ def _v2_selection_props(selection: dict) -> str:
     )
 
 
-def _emit_v2_dragging(
+def emit_v2_dragging(
     root: str,
     container: str,
     node_class: str,
@@ -209,7 +210,7 @@ def _emit_v2_dragging(
     and its first child -- which is where "into it" would go, an operation this does not do.
 
     Only the finished drop is sent back, once, on pointer-up -- the same bargain
-    _emit_canvas_editing makes, for the same two reasons: a round trip per pointermove would
+    emit_canvas_editing makes, for the same two reasons: a round trip per pointermove would
     be unusable, and it would put an undo entry on the stack per pixel travelled.  Selection
     is likewise reported only when the pointer did not move.
 
@@ -225,7 +226,7 @@ def _emit_v2_dragging(
     shift-click is always reported here, because extending a selection is this script's own.
 
     WHAT IS SELECTED IS NOT SET HERE.  It arrives on the host as data-mt-v2-sel/-count, put
-    there by whoever drew the surface (see _v2_selection_props), because a Quasar dialog
+    there by whoever drew the surface (see v2_selection_props), because a Quasar dialog
     detaches its contents from the document while it is hidden -- which is exactly what
     Preview does to the designer.  A script that wrote the selection itself would find no
     host at all for every render made behind the Preview, and the tree would come back
@@ -254,7 +255,7 @@ def _emit_v2_dragging(
 _ACTIVE_CANVASES: weakref.WeakValueDictionary[str, CanvasHandlers] = weakref.WeakValueDictionary()
 
 
-class CanvasHandlers(dict):
+class CanvasHandlers(dict[str, Callable[[dict[str, Any]], None]]):
     """One canvas's handler table, event name to handler.
 
     A subclass only because a plain dict cannot be weakly referenced, which is what lets
@@ -262,7 +263,7 @@ class CanvasHandlers(dict):
     """
 
 
-def register_canvas(root: str, handlers: dict[str, Callable]) -> CanvasHandlers:
+def register_canvas(root: str, handlers: dict[str, Callable[[dict[str, Any]], None]]) -> CanvasHandlers:
     """Make `handlers` the answer for `root` and return the table that holds them.
 
     The caller must keep the returned table for as long as the canvas should answer: the entry
@@ -294,13 +295,13 @@ FIELD_COMMIT_DEBOUNCE_MS = 350
 # was already done, and its designer's canvas then answered no clicks and no drags at all.
 #
 # Weak, so a client that has gone away is forgotten with it rather than being kept alive here.
-_CANVAS_EVENT_CLIENTS: weakref.WeakSet = weakref.WeakSet()
+_CANVAS_EVENT_CLIENTS: weakref.WeakSet[Client] = weakref.WeakSet()
 # Hands out a unique root class per designer, so two on one page cannot share a stylesheet
 # rule, a resize handler or a pointer target.
 _DESIGNER_SEQUENCE = itertools.count(1)
 
 
-def _register_canvas_events() -> None:
+def register_canvas_events() -> None:
     """Subscribe the three canvas events for this page, once.
 
     Called from guiwins_drawers.initialize_screen, while the layout is still being built -- not left to the
@@ -326,9 +327,10 @@ def _register_canvas_events() -> None:
         """
         if not isinstance(payload, dict):
             return
-        handlers = _ACTIVE_CANVASES.get(str(payload.get("root", "")))
+        event = cast("dict[str, Any]", payload)
+        handlers = _ACTIVE_CANVASES.get(str(event.get("root", "")))
         if handlers and name in handlers:
-            handlers[name](payload)
+            handlers[name](event)
 
     ui.on("mt_scene_select", lambda event: dispatch("select", event.args))
     ui.on("mt_scene_geometry", lambda event: dispatch("geometry", event.args))

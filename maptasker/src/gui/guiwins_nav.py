@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import contextlib
 import weakref
-from typing import TYPE_CHECKING, TypeGuard, cast
+from typing import TYPE_CHECKING, Any, TypeGuard, cast
 
 from nicegui import context, ui
 
@@ -30,8 +30,9 @@ from maptasker.src.core.sysconst import logger
 
 if TYPE_CHECKING:
     import asyncio
-    from collections.abc import Iterator
+    from collections.abc import Generator
 
+    from nicegui.client import Client
     from nicegui.events import GenericEventArguments
 
     from maptasker.src.gui.guiwins_textview import NiceGuiTextView
@@ -95,7 +96,8 @@ def register_view(master_gui: MyGui, view: object) -> None:
 
 def live_views(master_gui: MyGui) -> list[NiceGuiTextView]:
     """Every rendered view still safe to touch, oldest first, pruning any that died."""
-    views = [view for view in getattr(master_gui, "textviews", None) or [] if view_is_live(view)]
+    held = cast("list[NiceGuiTextView]", getattr(master_gui, "textviews", None) or [])
+    views = [view for view in held if view_is_live(view)]
     master_gui.textviews = views
     return views
 
@@ -109,7 +111,7 @@ def forget_views(master_gui: MyGui) -> None:
 # Pages whose report rows are already wired to the jump handler.  Same guard, and for the
 # same reason, as _CANVAS_EVENT_CLIENTS above: ui.on() subscribes for the page it is called
 # from, and a second subscription would run every jump twice.
-_FINDING_CLICK_CLIENTS: weakref.WeakSet = weakref.WeakSet()
+_FINDING_CLICK_CLIENTS: weakref.WeakSet[Client] = weakref.WeakSet()
 
 
 def _bring_to_front(view: NiceGuiTextView) -> None:
@@ -158,7 +160,9 @@ async def jump_map_view(master_gui: MyGui, target: mapjump.Target) -> bool:
         if getattr(view, "map_scope", "") != wanted:
             continue
         try:
-            landed = await view.scroll_area.client.run_javascript(mapjump.jump_js(target.anchor), timeout=5)
+            landed = cast(
+                "object", await view.scroll_area.client.run_javascript(mapjump.jump_js(target.anchor), timeout=5)
+            )
             if landed:
                 _bring_to_front(view)
         except (TimeoutError, RuntimeError, AttributeError):
@@ -168,7 +172,7 @@ async def jump_map_view(master_gui: MyGui, target: mapjump.Target) -> bool:
     return False
 
 
-def _report_view_failure(task: asyncio.Task) -> None:
+def report_view_failure(task: asyncio.Task[None]) -> None:
     """Log whatever a view's rendering task raised, instead of losing it.
 
     Cancellation is ordinary -- a view whose page went away mid-render -- and says nothing.
@@ -212,14 +216,17 @@ async def jump_diagram_view(master_gui: MyGui, target: mapjump.Target) -> bool:
         if not str(getattr(view, "title", "")).startswith("Diagram"):
             continue
         try:
-            landed = await view.scroll_area.client.run_javascript(
-                mapjump.diagram_jump_js(
-                    f"c{view.scroll_area.id}",
-                    patterns,
-                    placement,
-                    anchor,
+            landed = cast(
+                "object",
+                await view.scroll_area.client.run_javascript(
+                    mapjump.diagram_jump_js(
+                        f"c{view.scroll_area.id}",
+                        patterns,
+                        placement,
+                        anchor,
+                    ),
+                    timeout=5,
                 ),
-                timeout=5,
             )
             if landed:
                 _bring_to_front(view)
@@ -231,7 +238,7 @@ async def jump_diagram_view(master_gui: MyGui, target: mapjump.Target) -> bool:
 
 
 @contextlib.contextmanager
-def opening_view_in_a_new_window(gui: MyGui) -> Iterator[None]:
+def opening_view_in_a_new_window(gui: MyGui) -> Generator[None]:
     """Turn "Open View In New Window" on for the duration of one jump, then put it back.
 
     WHAT IT IS FOR.  A Map view IS a popout window, opened by userintr._open_popout_window
@@ -310,7 +317,7 @@ async def go_to_target(master_gui: MyGui, target: mapjump.Target, prefer_diagram
 def register_finding_clicks(master_gui: MyGui) -> None:
     """Subscribe this page's report-jump event, once, while the layout is still being built.
 
-    Called from initialize_screen for exactly the reason guiwins_canvas._register_canvas_events is, and it
+    Called from initialize_screen for exactly the reason guiwins_canvas.register_canvas_events is, and it
     is the whole reason clicking a finding did nothing at first: ui.on adds its listener to
     client.layout, and adding one to an element the browser already has makes NiceGUI
     re-render that element and everything under it.  Registering this from the report view's
@@ -328,7 +335,7 @@ def register_finding_clicks(master_gui: MyGui) -> None:
 
     async def jump(event: GenericEventArguments) -> None:
         """Take one clicked report row to where it points."""
-        target = mapjump.Target.from_token(str((event.args or {}).get("target", "")))
+        target = mapjump.Target.from_token(str(cast("dict[str, Any]", event.args or {}).get("target", "")))
         if target is not None:
             await go_to_target(master_gui, target)
 

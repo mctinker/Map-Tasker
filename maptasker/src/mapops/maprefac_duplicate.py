@@ -242,7 +242,7 @@ def _plan_duplicate_profile(profile_id: str, new_name: str, state: RunState) -> 
     owners = projects_listing("pids", profile_id, state=state)
     task_ids = profile_task_ids(profile_element)
     taken = set(object_table("all_tasks_by_name", state=state))
-    task_names = {}
+    task_names: dict[str, str] = {}
     for task_id in task_ids:
         original = object_table("all_tasks", state=state).get(task_id, {}).get("name", "") or task_id
         task_names[task_id] = unique_name(original, taken)
@@ -265,7 +265,7 @@ def _plan_duplicate_profile(profile_id: str, new_name: str, state: RunState) -> 
 
     def run() -> list[str]:
         reserved: set[str] = set()
-        copied_task_ids = {}
+        copied_task_ids: dict[str, str] = {}
         for task_id in task_ids:
             source = object_table("all_tasks", state=state).get(task_id)
             if source is None:
@@ -303,7 +303,7 @@ def _plan_duplicate_profile(profile_id: str, new_name: str, state: RunState) -> 
 
 def _duplicate_profile_warnings(new_name: str, task_ids: list[str], owners: list[str]) -> list[str]:
     """What a duplicated Profile does and does not carry with it."""
-    warnings = []
+    warnings: list[str] = []
     if not task_ids:
         warnings.append(
             f"Profile '{new_name}' has no Entry or Exit Task to copy, because the original has none.  A "
@@ -447,19 +447,22 @@ def _plan_project_copy(project_element: Element, state: RunState) -> _ProjectCop
     both be offered 'Setup (copy)', and the second registration would silently overwrite
     the first in all_tasks_by_name.
     """
-    task_names, taken_tasks = {}, set(object_table("all_tasks_by_name", state=state))
+    task_names: dict[str, str] = {}
+    taken_tasks = set(object_table("all_tasks_by_name", state=state))
     for task_id in members(project_element, "tids"):
         original = object_table("all_tasks", state=state).get(task_id, {}).get("name", "") or task_id
         task_names[task_id] = unique_name(original, taken_tasks)
         taken_tasks.add(task_names[task_id])
 
-    profile_names, taken_profiles = {}, set(object_table("all_profiles_by_name", state=state))
+    profile_names: dict[str, str] = {}
+    taken_profiles = set(object_table("all_profiles_by_name", state=state))
     for profile_id in members(project_element, "pids"):
         original = object_table("all_profiles", state=state).get(profile_id, {}).get("name", "") or profile_id
         profile_names[profile_id] = unique_name(original, taken_profiles)
         taken_profiles.add(profile_names[profile_id])
 
-    scene_names, taken_scenes = {}, set(object_table("all_scenes", state=state))
+    scene_names: dict[str, str] = {}
+    taken_scenes = set(object_table("all_scenes", state=state))
     for scene_name in members(project_element, "scenes"):
         scene_names[scene_name] = unique_name(scene_name, taken_scenes)
         taken_scenes.add(scene_names[scene_name])

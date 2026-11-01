@@ -31,10 +31,10 @@ from maptasker.src.gui.guiwins_mapstream import (
     split_for_streaming,
 )
 from maptasker.src.gui.guiwins_nav import (
-    _report_view_failure,
     enable_finding_clicks,
     register_finding_clicks,
     register_view,
+    report_view_failure,
 )
 from maptasker.src.gui.guiwins_search import SEARCH_JAVASCRIPT_TIMEOUT, TextViewSearch
 from maptasker.src.gui.guiwins_views import scope_badge_text
@@ -140,7 +140,7 @@ class NiceGuiTextView(TextViewSearch):
         # left half-built and the app says nothing, which is a long way to debug from.  Every
         # failure in here shows up as "the view did not finish", so it is worth a line in the
         # log saying which one it was.
-        self._task.add_done_callback(_report_view_failure)
+        self._task.add_done_callback(report_view_failure)
 
     def _show_loading(self) -> None:
         """Put a spinner and a progress line at the top of this view's scroll area.
@@ -904,7 +904,7 @@ class NiceGuiTextView(TextViewSearch):
             task = asyncio.create_task(self.master_gui.event_handlers.settings.profiles_per_line_event(new_value))
             self._background_tasks.add(task)
             task.add_done_callback(self._background_tasks.discard)
-            task.add_done_callback(_report_view_failure)
+            task.add_done_callback(report_view_failure)
 
     def reload_diagram(self) -> None:
         """Clears and re-streams the Diagram view's content in place after it has been

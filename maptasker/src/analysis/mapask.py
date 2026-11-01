@@ -35,7 +35,7 @@ import json
 import re
 from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.analysis import mapfind
 from maptasker.src.core.aiutils import get_api_key, prepare_ollama_model
@@ -184,7 +184,7 @@ class ModelSettings:
     model: str
     api_key: str = ""
     # The shape of the reply, for the models that can be held to one; None means REPLY_SCHEMA.
-    schema: dict | None = None
+    schema: dict[str, Any] | None = None
     max_tokens: int = MAX_REPLY_TOKENS
     # How hard a model that reasons before it answers is asked to: "low" for a question whose
     # answer needs no deliberation.  Applied only where the provider and model take it, and
@@ -312,12 +312,12 @@ def reply_object(reply: str, what: str = "search") -> dict[str, Any]:
     if not isinstance(parsed, dict):
         message = f"The AI model did not reply with a {what}.  Try rewording the question."
         raise AskError(message)
-    return parsed
+    return cast("dict[str, Any]", parsed)
 
 
 def values_of(raw: object) -> list[str]:
     """A box's reply as a list of non-empty strings: one for a value, more for a list of them."""
-    items = raw if isinstance(raw, list) else [raw]
+    items: list[object] = cast("list[object]", raw) if isinstance(raw, list) else [raw]
     return [str(item).strip() for item in items if item is not None and str(item).strip()]
 
 
@@ -438,7 +438,7 @@ async def _ask_openai(settings: ModelSettings, system: str, user: str) -> str:
 
 async def _ask_anthropic(settings: ModelSettings, system: str, user: str) -> str:
     extra = {}
-    output_config: dict = {}
+    output_config: dict[str, Any] = {}
     if settings.model.startswith(STRUCTURED_OUTPUT_MODELS):
         output_config["format"] = {"type": "json_schema", "schema": settings.schema or REPLY_SCHEMA}
     # Current Claude models think before they answer, which is most of the wait for a reply

@@ -1673,7 +1673,7 @@ class MapTaskerEventHandlers:
         self,
         view_type: str,
         goto: str = "",
-        overrides: dict | None = None,
+        overrides: dict[str, Any] | None = None,
     ) -> None:
         """Triggered when Map, Diagram, or Tree buttons are clicked.
 

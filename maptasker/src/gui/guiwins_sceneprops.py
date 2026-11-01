@@ -22,7 +22,7 @@ from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.edit import sceneedit, sceneedit_legacy, taskedit, taskedit_addable, taskedit_model
 from maptasker.src.gui import sceneview_legacy
 from maptasker.src.gui.guiwins_canvas import FIELD_COMMIT_DEBOUNCE_MS
-from maptasker.src.gui.guiwins_legacyarg import _render_legacy_arg
+from maptasker.src.gui.guiwins_legacyarg import render_legacy_arg
 from maptasker.src.gui.guiwins_taskedit import (
     _build_task_action_editor,
     _build_tasker_icon_picker_dialog,
@@ -55,7 +55,7 @@ if TYPE_CHECKING:
 # and guiwins_designer_v2, over the shared canvas in guiwins_canvas -- and so are the
 # element and Show When dialogs each of them opens.  What stays here is the envelope and
 # the Scene Properties form below, which renders Legacy argument fields through the Legacy
-# designer's own _render_legacy_arg (guiwins_legacyarg).
+# designer's own render_legacy_arg (guiwins_legacyarg).
 # ==========================================
 # Which <PropertiesElement> argument slots belong to which part of Tasker's own Scene
 # Properties screen.  Transcribed from action_overlay.json's "PropertiesElement", whose eight
@@ -147,10 +147,10 @@ def _build_scene_properties_dialog(
     is what objprops models; a Scene's are the eight arguments of a <PropertiesElement>,
     generated from action_codes the same way a Task action's arguments are.  The two have
     no field in common -- no comments, no variables, no shared tag -- so the only honest
-    thing to share is the button that opens them (see _build_properties_button's `opener`).
+    thing to share is the button that opens them (see build_properties_button's `opener`).
 
     Everything here writes through to the Scene copy as it is typed, which is what
-    _render_legacy_arg does everywhere else in the Legacy designer -- so OK IS NOT WHAT
+    render_legacy_arg does everywhere else in the Legacy designer -- so OK IS NOT WHAT
     MAKES THESE EDITS AND CANCEL CANNOT SIMPLY WALK AWAY FROM THEM.  Ok keeps what is
     already written and applies the one part that is held back: the Event tabs' Task copies
     (see _render_scene_event_task_actions).  Cancel puts the whole <PropertiesElement> back
@@ -268,7 +268,7 @@ class _ScenePropertiesDialog:
         """Rebuilt in full whenever Property Type changes, because that is what decides
         which fields exist at all.  Safe to do from a dropdown's own handler -- there is
         no caret to lose, and the Legacy designer's Task-binding selects already rebuild
-        themselves the same way; a text field could not (see _render_legacy_arg).
+        themselves the same way; a text field could not (see render_legacy_arg).
         """
         self.flush_event_task_edits()
         self.dialog_body.clear()
@@ -414,7 +414,7 @@ def _render_scene_ui_tab(
     this one, which is the same four numbers by another route.
     """
     if property_type is not None:
-        _render_legacy_arg(property_type, rerender, name_editable=True, state=state)
+        render_legacy_arg(property_type, rerender, name_editable=True, state=state)
 
     current_type = property_type.current_value if property_type is not None else ""
 
@@ -422,13 +422,13 @@ def _render_scene_ui_tab(
 
     for arg_id in _SCENE_ALWAYS_ARGS:
         if arg_id in args:
-            _render_legacy_arg(args[arg_id], lambda: None, name_editable=True, state=state)
+            render_legacy_arg(args[arg_id], lambda: None, name_editable=True, state=state)
 
     if current_type == _SCENE_TYPE_ACTIVITY:
         ui.label(translate_string("Action bar")).classes("text-sm font-bold mt-3")
         for arg_id in _SCENE_ACTIVITY_ARGS:
             if arg_id in args:
-                _render_legacy_arg(args[arg_id], lambda: None, name_editable=True, state=state)
+                render_legacy_arg(args[arg_id], lambda: None, name_editable=True, state=state)
                 # The two that are not just decoration: each of them turns an Event tab on.
                 if arg_id == sceneedit_legacy.LEGACY_ICON_ARG:
                     ui.label(
@@ -563,7 +563,7 @@ def _render_scene_action_item(
         else:
             ui.label(f"{translate_string('Action')}: {item.action_name}").classes("text-sm font-bold mt-2")
             for arg in item_args:
-                _render_legacy_arg(arg, lambda: None, name_editable=True, state=self.state)
+                render_legacy_arg(arg, lambda: None, name_editable=True, state=self.state)
 
 
 def _render_scene_actions_tab(

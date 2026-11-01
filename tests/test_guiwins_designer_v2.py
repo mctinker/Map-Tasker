@@ -1052,7 +1052,7 @@ async def test_a_scene_dialog_closed_for_good_leaves_nothing_of_its_designer_beh
                     fake_window(), _built["scene"], field_refs, dialog, PrimeItems
                 )
             dialog.on_value_change(
-                lambda e, d=dialog, f=field_refs: guiwins_sceneview._scene_dialog_closed(gui, d, f, e)
+                lambda e, d=dialog, f=field_refs: guiwins_sceneview.scene_dialog_closed(gui, d, f, e)
             )
             dialog.open()
             assert len(guiwins_canvas._ACTIVE_CANVASES) == table + 1

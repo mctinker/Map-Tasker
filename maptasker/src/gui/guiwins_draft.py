@@ -13,7 +13,7 @@ safe to ask for one and look.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -40,7 +40,7 @@ class DraftRow:
         self,
         gui: MyGui,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog,
         on_drafted: Callable[[int | None], None],
     ) -> None:
@@ -58,7 +58,7 @@ class DraftRow:
         self.field_refs = field_refs
         self.dialog = dialog
         self.on_drafted = on_drafted
-        self.pending: asyncio.Task | None = None
+        self.pending: asyncio.Task[mapdraft.Draft] | None = None
         self.description: ui.input
         self.button: ui.button
         self.stop: ui.button
@@ -227,7 +227,7 @@ class DraftRow:
 
     def _left_out(self, draft: mapdraft.Draft) -> list[str]:
         """What the model offered that could not be used, in the words the dialog says them in."""
-        notes = []
+        notes: list[str] = []
         if draft.unknown:
             notes.append(
                 f"{translate_string('Left out, as this editor cannot build it')}: {', '.join(draft.unknown)}",

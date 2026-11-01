@@ -27,6 +27,7 @@ import base64
 import binascii
 import json
 from dataclasses import dataclass, field
+from typing import cast
 
 from maptasker.src.core.maputil2 import LIST_READ_TIMEOUT_SECONDS, auth_key_for, http_request
 
@@ -40,7 +41,7 @@ class LiveValues:
     address: str  # "192.168.0.210:1821"
     # "%Name" -> its value, decoded.  A global holding nothing is present with "" -- present
     # and empty are different answers from absent, and the report says so.
-    values: dict[str, str] = field(default_factory=dict)
+    values: dict[str, str] = field(default_factory=dict[str, str])
 
     def has(self, name: str) -> bool:
         """Whether the device holds a global of exactly this name (case counts, as in Tasker)."""
@@ -82,11 +83,14 @@ def parse_globals(response: object) -> dict[str, str] | None:
     if not isinstance(reported, list):
         return None
 
-    values = {}
-    for entry in reported:
-        if not isinstance(entry, dict) or not entry.get("name"):
+    values: dict[str, str] = {}
+    for entry in cast("list[object]", reported):
+        if not isinstance(entry, dict):
             continue
-        values[f"%{str(entry['name']).lstrip('%')}"] = _decode_value(entry.get("value"))
+        fields = cast("dict[str, object]", entry)
+        if not fields.get("name"):
+            continue
+        values[f"%{str(fields['name']).lstrip('%')}"] = _decode_value(fields.get("value"))
     return values
 
 

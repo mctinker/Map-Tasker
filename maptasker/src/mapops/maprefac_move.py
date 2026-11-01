@@ -180,14 +180,14 @@ def _plan_move_task(task_id: str, to_project: str, state: RunState) -> Plan:
 
 def _move_task_warnings(task_id: str, task_name: str, owners: list[str], to_project: str, state: RunState) -> list[str]:
     """What a Task's move leaves behind that the user should know about."""
-    warnings = []
+    warnings: list[str] = []
     if not owners:
         warnings.append(
             f"Task '{task_name}' is not currently listed by any Project, so this files it under one for the "
             f"first time rather than moving it.",
         )
 
-    stranded = []
+    stranded: list[str] = []
     for profile_id, profile in object_table("all_profiles", state=state).items():
         if task_id not in profile_task_ids(profile["xml"]):
             continue

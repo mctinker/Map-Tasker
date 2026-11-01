@@ -32,10 +32,10 @@ from maptasker.src.edit import (
 from maptasker.src.gui import sceneview_v2, sceneview_v2base
 from maptasker.src.gui.guiwins_canvas import (
     _DESIGNER_SEQUENCE,
-    _emit_v2_dragging,
-    _register_canvas_events,
-    _v2_selection_props,
+    emit_v2_dragging,
     register_canvas,
+    register_canvas_events,
+    v2_selection_props,
 )
 
 if TYPE_CHECKING:
@@ -821,7 +821,7 @@ class _V2Designer:
         # The inspector's own heading for the selected component, held for the same reason.
         self.inspector_heading: dict = {"label": None}
 
-        _register_canvas_events()
+        register_canvas_events()
         # This designer's own reorder surface -- unique for the reason _ACTIVE_CANVASES gives:
         # ui.on subscribes app-wide, and the Preview is a second surface over this same layout.
         self.tree_root = f"mt-v2-tree-{next(_DESIGNER_SEQUENCE)}"
@@ -970,12 +970,12 @@ class _V2Designer:
                 f'data-path="{sceneview_v2.v2_encode_path(row.path)}" data-sibs="{siblings.get(row.path[:-1], 0)}"',
             )
             self.tree_rows[row.path] = (label, row.depth)
-        self.tree_pane.props(_v2_selection_props(self.selection))
-        _emit_v2_dragging(
+        self.tree_pane.props(v2_selection_props(self.selection))
+        emit_v2_dragging(
             self.tree_root,
             f".{self.tree_root}",
             "mt-v2-row",
-            # The rows select themselves through NiceGUI; see guiwins_canvas._emit_v2_dragging.
+            # The rows select themselves through NiceGUI; see guiwins_canvas.emit_v2_dragging.
             select_on_click=False,
         )
 

@@ -7,6 +7,7 @@ import string
 import sys
 from pathlib import Path
 from types import EllipsisType
+from typing import Any, cast
 
 from nicegui import events, ui
 
@@ -91,7 +92,8 @@ class LocalFilePicker(ui.dialog):
         paths.sort(key=lambda p: p.name.lower())
         paths.sort(key=lambda p: not p.is_dir())
 
-        self.grid.options["rowData"] = [
+        options = cast("dict[str, Any]", cast("Any", self.grid).options)
+        options["rowData"] = [
             {
                 "name": f"📁 <strong>{p.name}</strong>" if p.is_dir() else p.name,
                 "path": str(p),
@@ -101,7 +103,7 @@ class LocalFilePicker(ui.dialog):
         if (self.upper_limit is None and self.path != self.path.parent) or (
             self.upper_limit is not None and self.path != self.upper_limit
         ):
-            self.grid.options["rowData"].insert(
+            options["rowData"].insert(
                 0,
                 {
                     "name": "📁 <strong>..</strong>",
@@ -119,5 +121,5 @@ class LocalFilePicker(ui.dialog):
             self.submit([str(self.path)])
 
     async def _handle_ok(self) -> None:
-        rows = await self.grid.get_selected_rows()
+        rows = cast("list[dict[str, str]]", await cast("Any", self.grid).get_selected_rows())
         self.submit([r["path"] for r in rows])

@@ -166,7 +166,7 @@ async def test_not_listed_fetches_keeping_the_ticks_and_reopens_over_the_new_inv
         apps.fetched.append(gui)
         on_fetched()
 
-    monkeypatch.setattr(guiwins_taskedit, "_build_fetch_apps_dialog", fetch)
+    monkeypatch.setattr(guiwins_taskedit, "build_fetch_apps_dialog", fetch)
     page, made = _multi(apps, "com.whatsapp")
     async with open_page(page) as user:
         await click(user, "App not listed?")

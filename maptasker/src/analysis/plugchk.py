@@ -62,7 +62,7 @@ class Problem:
     where: str
     target: Target
     detail: list[tuple[str, Target | None]]
-    related: list[Target] = field(default_factory=list)
+    related: list[Target] = field(default_factory=list[Target])
 
 
 @dataclass
@@ -172,9 +172,9 @@ def lint_problems(state: RunState) -> list[Problem]:
     if not devices:
         return []
 
-    installed = frozenset().union(*(packages for _, packages in devices.values()))
+    installed = frozenset[str]().union(*(packages for _, packages in devices.values()))
     checked = _checked_against(devices)
-    problems = []
+    problems: list[Problem] = []
     for package, uses in sorted(plugin_uses(state=state).items()):
         if package in installed:
             continue

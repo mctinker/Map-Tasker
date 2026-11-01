@@ -59,7 +59,7 @@ _REPORT_WIDTH = 78
 # A Project's own <tids>/<pids>/<scenes> are not in here because they are not in the
 # reference index at all: healthck records ownership separately from use, deliberately --
 # see _index_projects.  What a delete does to those lists is reported by _what_goes below.
-_REWRITTEN_BY = {
+_REWRITTEN_BY: dict[str, frozenset[str]] = {
     TASK: frozenset({healthck.BY_PROFILE_LINK}),
     PROFILE: frozenset(),
     SCENE: frozenset(),
@@ -130,14 +130,14 @@ class Impact:
     """What deleting one object will do to the rest of the configuration."""
 
     subject: str  # "Project 'Home' > Task 'Wake Up' (id 118)"
-    consequences: list[Consequence] = field(default_factory=list)
+    consequences: list[Consequence] = field(default_factory=list[Consequence])
     # What the delete takes with it and what it leaves behind, in prose -- the sentences
     # the confirmation dialogs used to work out for themselves.
-    goes: list[str] = field(default_factory=list)
+    goes: list[str] = field(default_factory=list[str])
     # What this analysis could not be sure of.  Printed rather than left implied, for the
     # reason healthck._limitations gives: a report that invites someone to delete
     # something, without saying what it cannot see, is worse than no report.
-    caveats: list[str] = field(default_factory=list)
+    caveats: list[str] = field(default_factory=list[str])
 
     @property
     def counts(self) -> dict[str, int]:
@@ -156,7 +156,7 @@ class Impact:
         counts = self.counts
         if not self.consequences:
             return "Nothing else in this configuration points at it -- nothing will be left dangling."
-        parts = []
+        parts: list[str] = []
         if counts[BREAKS]:
             parts.append(f"{counts[BREAKS]} place(s) will be left pointing at something that is gone")
         if counts[CHANGES]:
@@ -493,7 +493,7 @@ def _what_goes(subject: Target, state: RunState, *, keep_contents: bool) -> list
 # ##################################################################################
 # Entry point and report.
 # ##################################################################################
-def _order(item: Consequence) -> tuple:
+def _order(item: Consequence) -> tuple[int, str, str, str, int, str]:
     """Where one consequence sorts: worst first, then grouped by tag, then by place.
 
     The place is taken from the Target rather than from the printed line, which is the
@@ -508,7 +508,8 @@ def _order(item: Consequence) -> tuple:
     # strands is read from somewhere, and several are routinely read from the SAME action,
     # so without this the list of them comes out in whatever order the scan happened to
     # meet the names in.  It sorts by variable name because the detail line opens with it.
-    return (_SEVERITY_ORDER.index(item.severity), item.tag, *place, item.detail)
+    project, name, action = place
+    return (_SEVERITY_ORDER.index(item.severity), item.tag, project, name, action, item.detail)
 
 
 def analyze_delete(kind: str, name: str, state: RunState, *, keep_contents: bool = True) -> Impact:

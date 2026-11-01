@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 import textwrap
+from pathlib import Path
 
 import pytest
 from maptasker.src.core import bldbndle, bundle
@@ -73,7 +74,7 @@ def test_an_unchanged_redefinition_is_silent() -> None:
     assert not notes
 
 
-def test_missing_or_unreadable_file_reads_as_empty(tmp_path: os.PathLike) -> None:
+def test_missing_or_unreadable_file_reads_as_empty(tmp_path: Path) -> None:
     """A first run has no bundles file, and a corrupt one must not take the build down."""
     assert load_existing_bundles(str(tmp_path / "nope.json")) == {}
     broken = tmp_path / "broken.json"
@@ -81,7 +82,7 @@ def test_missing_or_unreadable_file_reads_as_empty(tmp_path: os.PathLike) -> Non
     assert load_existing_bundles(str(broken)) == {}
 
 
-def test_save_and_load_round_trip(tmp_path: os.PathLike) -> None:
+def test_save_and_load_round_trip(tmp_path: Path) -> None:
     """What save_bundles writes is what load_existing_bundles reads back."""
     out = tmp_path / "bundles.json"
     original = {"2099e": FULL_2099, "111t": BARE_2099}
@@ -110,7 +111,7 @@ _XML = textwrap.dedent("""\
     """)
 
 
-def test_2099e_regression(tmp_path: os.PathLike) -> None:
+def test_2099e_regression(tmp_path: Path) -> None:
     """End to end: rebuilding from a backup whose 2099e is bare must not strip 2099e.
 
     This is the bug as it actually happened, driven through build_bundles rather than
@@ -137,7 +138,7 @@ def test_2099e_regression(tmp_path: os.PathLike) -> None:
     assert "888t" in rebuilt, "the backup's own new code was not added"
 
 
-def test_default_output_is_the_file_the_program_imports(tmp_path: os.PathLike, monkeypatch) -> None:
+def test_default_output_is_the_file_the_program_imports(tmp_path: Path, monkeypatch) -> None:
     """A rebuild lands in maptasker/assets/json/bundles.json, with no copy to make afterwards.
 
     It used to be written somewhere else and moved across by hand, which is how a
@@ -161,7 +162,7 @@ def test_default_output_is_the_file_the_program_imports(tmp_path: os.PathLike, m
     assert written["count"] > 2
 
 
-def test_the_file_is_one_entry_to_a_line_so_a_rebuild_diffs_small(tmp_path: os.PathLike) -> None:
+def test_the_file_is_one_entry_to_a_line_so_a_rebuild_diffs_small(tmp_path: Path) -> None:
     out = tmp_path / "bundles.json"
     save_bundles({"2099e": FULL_2099, "111t": BARE_2099}, str(out))
 
@@ -183,7 +184,7 @@ def test_the_shipped_table_reads_back_whole() -> None:
     assert list(table) == sorted(table, key=lambda key: (int(key[:-1]), key[-1]))
 
 
-def test_the_table_is_not_read_until_it_is_used(tmp_path: os.PathLike) -> None:
+def test_the_table_is_not_read_until_it_is_used(tmp_path: Path) -> None:
     path = tmp_path / "bundles.json"
     save_bundles({"2099e": FULL_2099}, str(path))
     lazy = bundle.LazyBundles(str(path))
@@ -193,7 +194,7 @@ def test_the_table_is_not_read_until_it_is_used(tmp_path: os.PathLike) -> None:
         lazy.get("2099e")
 
 
-def test_the_table_behaves_as_the_dict_it_replaced(tmp_path: os.PathLike) -> None:
+def test_the_table_behaves_as_the_dict_it_replaced(tmp_path: Path) -> None:
     path = tmp_path / "bundles.json"
     save_bundles({"2099e": FULL_2099, "111t": BARE_2099}, str(path))
     lazy = bundle.LazyBundles(str(path))
@@ -212,7 +213,7 @@ def test_the_table_behaves_as_the_dict_it_replaced(tmp_path: os.PathLike) -> Non
     assert len(lazy) == 1
 
 
-def test_a_table_that_is_not_json_is_an_error_not_an_empty_table(tmp_path: os.PathLike) -> None:
+def test_a_table_that_is_not_json_is_an_error_not_an_empty_table(tmp_path: Path) -> None:
     path = tmp_path / "bundles.json"
     path.write_text("not json", encoding="utf-8")
 

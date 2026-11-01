@@ -183,7 +183,7 @@ async def test_closing_the_dialog_repaints_only_the_previews_it_launched_and_sto
         repainted = []
         view.render = lambda: repainted.append(True)
 
-        guiwins_sceneview._scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=False))
+        guiwins_sceneview.scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=False))
 
         assert field_refs == {"other": 3}, "its handlers outlive the dialog and would take drags into a finished editor"
         assert repainted == [True]
@@ -197,11 +197,11 @@ async def test_opening_the_dialog_or_hiding_it_for_a_preview_repaints_nothing() 
         repainted = []
         view.render = lambda: repainted.append(True)
         field_refs = {"legacy_edit": {}}
-        guiwins_sceneview._scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=True))
+        guiwins_sceneview.scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=True))
         assert repainted == [] and "legacy_edit" in field_refs, "opening is not closing"
 
         gui.scene_editor_session = {"dialog": dialog, "name": "Panel", "suspended": True}
-        guiwins_sceneview._scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=False))
+        guiwins_sceneview.scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=False))
         assert repainted == [] and "legacy_edit" in field_refs, "a preview is holding it hidden: that is not the end"
 
 
@@ -311,7 +311,7 @@ async def test_a_percentage_zoom_is_passed_to_the_fit_and_an_unreadable_one_mean
 ) -> None:
     fits = []
     monkeypatch.setattr(
-        guiwins_sceneview, "_emit_canvas_fit", lambda root, width, height, fixed=None: fits.append(fixed)
+        guiwins_sceneview, "emit_canvas_fit", lambda root, width, height, fixed=None: fits.append(fixed)
     )
     async with _open():
         view = _built["view"]

@@ -1174,7 +1174,7 @@ class EditorEventHandlers(HandlerGroup):
             #
             # MARKED BEFORE THE CLOSE, NOT AFTER.  Closing fires the dialog's own value-change
             # handler synchronously, and that handler repaints any preview this dialog left on
-            # screen (guiwins_sceneview._scene_dialog_closed).  Marking afterwards would leave it looking
+            # screen (guiwins_sceneview.scene_dialog_closed).  Marking afterwards would leave it looking
             # at a session that still said "not suspended", so it would take a close *on its
             # way to building a new preview* for a close that had finished with one, and
             # repaint the outgoing view into a container about to be cleared.

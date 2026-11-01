@@ -171,7 +171,7 @@ async def test_cancel_with_nothing_forgotten_changes_nothing(fetch: Any) -> None
 async def test_the_public_entry_point_builds_the_same_dialog(fetch: Any) -> None:
     def page() -> None:
         # The entry point awaits nothing, so stepping the coroutine once builds the dialog inside this page's slot.
-        coroutine = guiwins_taskedit._build_fetch_apps_dialog(fetch.window, lambda: None, for_icons=True)
+        coroutine = guiwins_taskedit.build_fetch_apps_dialog(fetch.window, lambda: None, for_icons=True)
         with contextlib.suppress(StopIteration):
             coroutine.send(None)
 

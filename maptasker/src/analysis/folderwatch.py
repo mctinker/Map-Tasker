@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from defusedxml import DefusedXmlException
@@ -50,7 +51,6 @@ from maptasker.src.core.xmldata import parse_tasker_xml
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
 
 # How old a file has to be before it is taken to be finished being written.
 SETTLE_SECONDS = 5
@@ -131,7 +131,7 @@ class Watcher:
     folder: Path
     settle: float = SETTLE_SECONDS
     now: Callable[[], float] = time.time
-    _seen: dict[Path, tuple[int, int]] = field(default_factory=dict, init=False)
+    _seen: dict[Path, tuple[int, int]] = field(default_factory=dict[Path, tuple[int, int]], init=False)
     _looked: bool = field(default=False, init=False)
 
     def scan(self) -> list[Event]:
@@ -142,7 +142,7 @@ class Watcher:
         # Forget files that have gone, so that one put back later is looked at afresh.
         self._seen = {path: signature for path, signature in self._seen.items() if path in files}
 
-        waiting = []  # (path, signature, modification time), oldest first.
+        waiting: list[tuple[Path, tuple[int, int], float]] = []  # (path, signature, modification time), oldest first.
         for path in files:
             try:
                 status = path.stat()
@@ -166,7 +166,7 @@ class Watcher:
                 self._seen[path] = signature
             waiting = waiting[-1:]
 
-        events = []
+        events: list[Event] = []
         for path, signature, modified in waiting:
             self._seen[path] = signature
             if not is_complete_backup(path):

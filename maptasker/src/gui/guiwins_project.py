@@ -16,7 +16,7 @@ from maptasker.src.gui.guiwins import android_device_fields
 from maptasker.src.gui.guiwins_editor import (
     PROJECT_REDACT_FIELD,
     PendingChangesBanner,
-    _build_properties_button,
+    build_properties_button,
     editor_state,
 )
 from maptasker.src.gui.guiwins_readiness import build_share_checks
@@ -36,7 +36,7 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
     projedit.py's module docstring), so there is nothing to export until it's
     been created and has something attached (see build_edit_project_dialog).
     """
-    field_refs: dict = {}
+    field_refs: dict[str, Any] = {}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(translate_string("Add Project")).classes("text-xl font-bold text-blue-600")
@@ -47,7 +47,7 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
         # element to mirror onto, and register_new_project stores THIS element object
         # rather than a copy of it -- so properties set before the Project exists are
         # already on it once it does.
-        _build_properties_button(self, objprops.KIND_PROJECT, edited_project.project_element, dialog)
+        build_properties_button(self, objprops.KIND_PROJECT, edited_project.project_element, dialog)
 
         # No on_applied either, for the same reason: register_new_project stores this element, so a
         # description written onto it now is on the Project once it exists.
@@ -180,7 +180,7 @@ def _build_edit_project_fields(
     # cannot wait for a save the way Task's and Profile's do.  That immediacy is what
     # keeps it out of field_refs and therefore clear of _unapplied_project_edits: by
     # the time either by-name save runs, there is nothing left unapplied.
-    _build_properties_button(
+    build_properties_button(
         self,
         objprops.KIND_PROJECT,
         edited_project.project_element,
@@ -339,7 +339,7 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
     save here -- an already-registered Project has whatever Profiles/Tasks are attached
     to it, which is exactly why Add Project has no equivalent button (see its docstring).
     """
-    field_refs: dict = {}
+    field_refs: dict[str, Any] = {}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         _build_edit_project_fields(self, edited_project, field_refs, dialog)

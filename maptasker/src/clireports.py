@@ -48,7 +48,7 @@ import signal
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, NoReturn, cast
 
 from maptasker.src.analysis import diffload, folderwatch, healthck, timecomp, xmldiff
 from maptasker.src.core import clock, console, mapjump, timeline
@@ -80,8 +80,9 @@ from maptasker.src.mapgen.taskerd import get_the_xml_data
 from maptasker.src.mapops import trend
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator
 
+    from maptasker.src.analysis.xmldiff import Configuration
     from maptasker.src.core.primitem import RunState
 
 # ##################################################################################
@@ -307,7 +308,10 @@ def _apply_saved_settings(state: RunState) -> None:
             saved_arguments if isinstance(saved_arguments, dict) else saved_arguments.as_dict(),
         )
         state.program_arguments.display_detail_level = int(state.program_arguments.display_detail_level)
-        state.colors_to_use.update({key: value for key, value in saved_colors.items() if key is not None})
+        # An entry with no key (a settings file edited by hand, or an old one) is not a colour.
+        state.colors_to_use.update(
+            {key: value for key, value in cast("dict[str | None, str]", saved_colors).items() if key is not None}
+        )
 
 
 def _resolve_backup(text: str | None) -> Path:
@@ -401,7 +405,7 @@ def _compare(options: argparse.Namespace, state: RunState) -> int:
     if os.path.realpath(first) == os.path.realpath(second):
         raise _ReportError(EXIT_BAD_OPTION, "Both files are the same file.  Give two different backups to compare.")
 
-    sides = []
+    sides: list[Configuration] = []
     for path in (first, second):
         configuration, message = diffload.load_for_comparison(str(Path(path).expanduser()), state=state)
         if configuration is None:
@@ -524,7 +528,7 @@ def _export(options: argparse.Namespace, state: RunState) -> int:
 
 
 @contextlib.contextmanager
-def _stop_on_terminate() -> Iterator[None]:
+def _stop_on_terminate() -> Generator[None]:
     """Make SIGTERM stop a watch the way Ctrl-C does.
 
     SIGTERM is how a service manager (launchd, systemd, a container) asks a program to stop,

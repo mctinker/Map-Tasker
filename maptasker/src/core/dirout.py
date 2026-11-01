@@ -29,6 +29,8 @@ from maptasker.src.core.sysconst import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from maptasker.src.core.primitem import RunState
     from maptasker.src.core.runcfg import RunConfig
 
@@ -418,11 +420,11 @@ def get_profile_task_ids(profile_name: str, state: RunState) -> set[str]:
 
 
 # Doing Task hyperlink.  Make sure it is okay to do this Task hyperlink.
-def check_task(item: str, config: RunConfig, state: RunState) -> bool:
+def check_task(item: Sequence[str], config: RunConfig, state: RunState) -> bool:
     """
     Check to make sure this Task should be included in the output
         Args:
-            item (str): directory hyperlink item we are processing
+            item (Sequence[str]): directory hyperlink item we are processing: its link and its name
             config (RunConfig): the run's settings, for the single-item selection.
 
         Returns:
@@ -463,11 +465,11 @@ def check_task(item: str, config: RunConfig, state: RunState) -> bool:
 
 
 # Doing Profile hyperlink.  Make sure it is okay to do this Profile hyperlink.
-def check_profile(item: str, config: RunConfig, state: RunState) -> bool:
+def check_profile(item: Sequence[str], config: RunConfig, state: RunState) -> bool:
     """
     Check to make sure this Profile should be included in the output
         Args:
-            item (str): directory hyperlink item we are processing
+            item (Sequence[str]): directory hyperlink item we are processing: its link and its name
             config (RunConfig): the run's settings, for the single-item selection.
 
         Returns:
@@ -489,11 +491,11 @@ def check_profile(item: str, config: RunConfig, state: RunState) -> bool:
 
 
 # Doing Project hyperlinks.  Make sure it is okay to do this Project hyperlink.
-def check_project(item: str, config: RunConfig, state: RunState) -> bool:
+def check_project(item: Sequence[str], config: RunConfig, state: RunState) -> bool:
     """
     Check to make sure this Project should be included in the output
         Args:
-            item (str): directory hyperlink item we are processing
+            item (Sequence[str]): directory hyperlink item we are processing: its link and its name
             config (RunConfig): the run's settings, for the single-item selection.
 
         Returns:
@@ -516,11 +518,11 @@ def check_project(item: str, config: RunConfig, state: RunState) -> bool:
 
 
 # Doing Scene hyperlink.  Make sure it is okay to do this Scene hyperlink.
-def check_scene(item: str, config: RunConfig, state: RunState) -> bool:
+def check_scene(item: Sequence[str], config: RunConfig, state: RunState) -> bool:
     """
     Check to make sure this Scene should be included in the output
         Args:
-            item (str): directory hyperlink item we are processing
+            item (Sequence[str]): directory hyperlink item we are processing: its link and its name
             config (RunConfig): the run's settings, for the single-item selection.
 
         Returns:
@@ -549,13 +551,13 @@ def check_scene(item: str, config: RunConfig, state: RunState) -> bool:
 
 
 # Check to make sure this directory item should be included in the output.
-def check_item(name: str, item: str, config: RunConfig, state: RunState) -> bool:
+def check_item(name: str, item: Sequence[str], config: RunConfig, state: RunState) -> bool:
     """
     Check to make sure this item should be included in the output
         Args:
             name: element name: directory we are doing:
                     "projects", "profiles", "tasks", "scenes"
-            item (str): directory hyperlink item we are processing
+            item (Sequence[str]): directory hyperlink item we are processing: its link and its name
             config (RunConfig): the run's settings, for the single-item selection.
 
         Returns:

@@ -73,7 +73,7 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to serialize
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import defusedxml.ElementTree as ET
 
@@ -141,7 +141,7 @@ class RoundTripReport:
     checked: tuple[str, ...] = ()  # "Task 'Lights On'" for each object compared.
     exempt: tuple[str, ...] = ()  # Compared for check 1 only, and why (the Project).
     unchecked: tuple[str, ...] = ()  # In the document with nothing to compare against.
-    differences: dict[str, tuple[Difference, ...]] = field(default_factory=dict)
+    differences: dict[str, tuple[Difference, ...]] = field(default_factory=dict[str, tuple[Difference, ...]])
 
     @property
     def ok(self) -> bool:
@@ -220,7 +220,7 @@ def live_sources(state: RunState) -> dict[tuple[str, str], Element]:
     an undo (sessundo._restore) and mutated in place by every edit, so a cache would hand
     back elements from a tree nothing renders from any more.
     """
-    tables = state.tasker_root_elements or {}
+    tables: dict[str, Any] = state.tasker_root_elements or {}
     sources: dict[tuple[str, str], Element] = {}
 
     for table_name, tag in (
@@ -229,8 +229,9 @@ def live_sources(state: RunState) -> dict[tuple[str, str], Element]:
         ("all_tasks", "Task"),
         ("all_scenes", "Scene"),
     ):
-        for entry in (tables.get(table_name) or {}).values():
-            element = entry.get("xml") if isinstance(entry, dict) else None
+        entries: dict[str, Any] = tables.get(table_name) or {}
+        for entry in entries.values():
+            element = cast("dict[str, Element | None]", entry).get("xml") if isinstance(entry, dict) else None
             if element is None:
                 continue
             # Keyed off the element itself, not off the table key: an unnamed Profile is
@@ -240,7 +241,7 @@ def live_sources(state: RunState) -> dict[tuple[str, str], Element]:
             if identity is not None and identity[0] == tag:
                 sources[identity] = element
 
-    if state.xml_root is not None:
+    if state.backup_loaded:
         for tag in _SINGLETON_TAGS:
             found = state.xml_root.find(tag)
             if found is not None:
@@ -469,7 +470,7 @@ def verify_project(project_name: str, state: RunState) -> RoundTripReport:
     # key there would exempt an object that is not in the document and compare the exported
     # Project against a live element it was never meant to match.
     entry = (state.tasker_root_elements or {}).get("all_projects", {}).get(project_name)
-    element = entry.get("xml") if isinstance(entry, dict) else None
+    element = cast("dict[str, Element | None]", entry).get("xml") if isinstance(entry, dict) else None
     identity = _identify(element) if element is not None else ("Project", project_name)
     return verify_rendered(rendered, exempt=[identity] if identity else (), state=state)
 

@@ -103,7 +103,7 @@ class Plan:
     steps: list[Step] = field(default_factory=list)
     blocks: list[Block] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
-    elements: tuple = ()
+    elements: tuple[Element, ...] = ()
     run: Callable[[], list[str]] | None = None
 
     @property

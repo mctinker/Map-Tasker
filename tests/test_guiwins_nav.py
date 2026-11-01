@@ -236,7 +236,7 @@ def test_a_rendering_failure_is_logged_not_lost(monkeypatch: pytest.MonkeyPatch)
     async def run() -> None:
         task = asyncio.create_task(fail())
         await asyncio.wait([task])
-        guiwins_nav._report_view_failure(task)
+        guiwins_nav.report_view_failure(task)
 
     asyncio.run(run())
     assert logged
@@ -250,7 +250,7 @@ def test_a_cancelled_rendering_says_nothing(monkeypatch: pytest.MonkeyPatch) -> 
         task = asyncio.create_task(asyncio.sleep(10))
         task.cancel()
         await asyncio.wait([task])
-        guiwins_nav._report_view_failure(task)
+        guiwins_nav.report_view_failure(task)
 
     asyncio.run(run())
     assert logged == []

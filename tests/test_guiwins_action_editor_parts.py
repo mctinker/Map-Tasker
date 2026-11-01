@@ -105,7 +105,7 @@ def _arg(value: str, options: list[str] | None) -> taskedit_model.EditableArg:
 def test_a_dropdown_preselects_the_option_its_value_indexes_else_the_first(
     value: str, options: list[str] | None, expected: str
 ) -> None:
-    assert guiwins_taskedit._dropdown_current_label(_arg(value, options)) == expected
+    assert guiwins_taskedit.dropdown_current_label(_arg(value, options)) == expected
 
 
 # ##################################################################################

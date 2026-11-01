@@ -314,7 +314,7 @@ class FindIndex:
     objects: list[_Object] = field(default_factory=list)
     by_task_id: dict[str, _Object] = field(default_factory=dict)
     # {facet: {value: how many places carry it}} -- the pulldowns, and nothing else.
-    catalog: dict[str, Counter] = field(default_factory=lambda: defaultdict(Counter))
+    catalog: dict[str, Counter[str]] = field(default_factory=lambda: defaultdict(Counter[str]))
     projects: list[str] = field(default_factory=list)
     # What the pass could not resolve, so the report can qualify its own answers rather
     # than let a zero read as "there are none".

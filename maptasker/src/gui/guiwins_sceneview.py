@@ -6,7 +6,7 @@ repaint_scene_previews are that hand-off."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -16,14 +16,14 @@ from maptasker.src.edit import sceneedit, sceneedit_v2nodes, scenemodel
 from maptasker.src.gui import sceneview, sceneview_legacy, sceneview_v2, sceneview_v2base
 from maptasker.src.gui.guiwins_canvas import (
     CANVAS_PREVIEW_ROOT,
-    _emit_canvas_editing,
-    _emit_canvas_fit,
-    _emit_v2_dragging,
-    _emit_v2_hull,
-    _register_canvas_events,
+    emit_canvas_editing,
+    emit_canvas_fit,
+    emit_v2_dragging,
+    emit_v2_hull,
     register_canvas,
+    register_canvas_events,
 )
-from maptasker.src.gui.guiwins_designer_legacy import _legacy_canvas_size
+from maptasker.src.gui.guiwins_designer_legacy import legacy_canvas_size
 from maptasker.src.gui.guiwins_nav import live_views, register_view
 from maptasker.src.gui.guiwins_views import view_theme_colors
 
@@ -60,14 +60,16 @@ def repaint_scene_previews(gui: MyGui, dialog: ui.dialog) -> None:
     to building a *new* view over a cleared content_container, and repainting the outgoing
     one into a container about to be emptied is work at best and a draw into a detached
     element at worst.  See preview_scene_event, which marks the session suspended first so
-    that _scene_dialog_closed can tell the two apart.
+    that scene_dialog_closed can tell the two apart.
     """
     for view in live_views(gui):
         if isinstance(view, NiceGuiSceneView) and getattr(view, "dialog", None) is dialog:
             view.render()
 
 
-def _scene_dialog_closed(gui: MyGui, dialog: ui.dialog, field_refs: dict, event: ValueChangeEventArguments) -> None:
+def scene_dialog_closed(
+    gui: MyGui, dialog: ui.dialog, field_refs: dict[str, Any], event: ValueChangeEventArguments[Any]
+) -> None:
     """One place every way of closing a Scene dialog goes through.
 
     Hung on the dialog's own value rather than on its buttons because there are eight of
@@ -202,7 +204,7 @@ class NiceGuiSceneView:
         self.options = sceneview.PreviewOptions()
         self.zoom = "Fit"
         self.screen = sceneview_v2base.V2_DEFAULT_SCREEN
-        _register_canvas_events()
+        register_canvas_events()
         self.build_ui()
         self.render()
         register_view(master_gui, self)
@@ -500,7 +502,7 @@ class NiceGuiSceneView:
                     for name in ("select", "geometry", "nudge")
                 },
             )
-            _emit_canvas_editing(CANVAS_PREVIEW_ROOT, editing.snap)
+            emit_canvas_editing(CANVAS_PREVIEW_ROOT, editing.snap)
         self._draw_legacy_caption(scene_element, width, height)
 
     def _legacy_editing(self) -> sceneview.CanvasEditing | None:
@@ -572,7 +574,7 @@ class NiceGuiSceneView:
         # After the scale, never before: the hull is measured in screen pixels and divided
         # back by the factor _apply_scale leaves on the wrapper, and a hull measured before
         # that factor existed would be sized by whatever the last render happened to set.
-        _emit_v2_hull(CANVAS_PREVIEW_ROOT, width, height)
+        emit_v2_hull(CANVAS_PREVIEW_ROOT, width, height)
         if editing is not None:
             # Kept on the view: the registry only holds the table weakly.
             self._preview_handlers = register_canvas(
@@ -582,7 +584,7 @@ class NiceGuiSceneView:
                     "v2reorder": lambda payload: self._v2_from_canvas("v2reorder", payload),
                 },
             )
-            _emit_v2_dragging(
+            emit_v2_dragging(
                 CANVAS_PREVIEW_ROOT,
                 f".{CANVAS_PREVIEW_ROOT} .mt-scene-canvas",
                 "mt-v2-node",
@@ -638,7 +640,7 @@ class NiceGuiSceneView:
         """The canvas size to draw at -- the same answer the designer draws at, from the same
         function, so a Scene never previews at one size and edits at another.
         """
-        return _legacy_canvas_size(self.edited_scene, self.field_refs, self.options.landscape)
+        return legacy_canvas_size(self.edited_scene, self.field_refs, self.options.landscape)
 
     def _apply_scale(self, width: int, height: int) -> None:
         """Fit the true-size canvas into the space available.
@@ -654,7 +656,7 @@ class NiceGuiSceneView:
                 fixed = int(self.zoom.rstrip("%")) / 100
             except ValueError:
                 fixed = None
-        _emit_canvas_fit(CANVAS_PREVIEW_ROOT, width, height, fixed)
+        emit_canvas_fit(CANVAS_PREVIEW_ROOT, width, height, fixed)
 
     def _draw_legacy_caption(self, scene_element: Element, width: int, height: int) -> None:
         """Under the canvas: the Scene's own settings, the element count, and -- the part

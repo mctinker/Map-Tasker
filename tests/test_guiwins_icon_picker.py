@@ -133,7 +133,7 @@ async def test_icon_not_listed_fetches_for_icons_and_reopens(icons: Any, monkeyp
     async def fetch(gui: object, on_fetched: Callable[[], None], for_icons: bool = False) -> None:
         icons.fetched.append(for_icons)
 
-    monkeypatch.setattr(guiwins_taskedit, "_build_fetch_apps_dialog", fetch)
+    monkeypatch.setattr(guiwins_taskedit, "build_fetch_apps_dialog", fetch)
     page, _made = _picker(icons)
     async with open_page(page) as user:
         await click(user, "Icon not listed?")
@@ -224,7 +224,7 @@ async def test_the_fetch_button_opens_the_fetch_dialog_for_the_right_kind(
     async def fetch(gui: object, on_fetched: Callable[[], None], for_icons: bool = False) -> None:
         calls.append(for_icons)
 
-    monkeypatch.setattr(guiwins_taskedit, "_build_fetch_apps_dialog", fetch)
+    monkeypatch.setattr(guiwins_taskedit, "build_fetch_apps_dialog", fetch)
 
     def page() -> None:
         guiwins_taskedit._render_readonly_note(icons.window, taskedit_model.NO_ICONS_REASON, lambda: None)

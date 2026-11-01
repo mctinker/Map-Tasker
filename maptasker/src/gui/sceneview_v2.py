@@ -5,7 +5,7 @@ path and editing state the designer's canvas reads back live with them."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -75,7 +75,7 @@ _V2_PATHS: dict[int, tuple[tuple, int]] = {}
 # The two classes the hull is measured with: every component drawn carries the first, and the
 # box drawn behind them carries the second.  Stated here rather than in guiwins because this
 # is the module that puts them in the DOM; the script that reads them is
-# guiwins_canvas._emit_v2_hull, and the two change together.
+# guiwins_canvas.emit_v2_hull, and the two change together.
 V2_COMPONENT_CLASS = "mt-v2-comp"
 
 
@@ -94,14 +94,14 @@ V2_HULL_PADDING = 6
 _V2_EDITING: V2Editing | None = None
 
 
-def v2_encode_path(path: tuple) -> str:
+def v2_encode_path(path: tuple[Any, ...]) -> str:
     """A path as one DOM-safe string -- ("content", 0, "children", 2) as
     "content|0|children|2", the empty tuple as "".
 
     The browser needs to compare paths (is this component a sibling of that one? is it inside
     it?) and a string it can take a prefix of is the whole of what that takes: siblings share
     everything up to the last separator, and a descendant's path starts with its ancestor's
-    plus one.  See _emit_v2_dragging, which does exactly those two tests and nothing else.
+    plus one.  See emit_v2_dragging, which does exactly those two tests and nothing else.
     """
     return "|".join(str(part) for part in path)
 
@@ -195,7 +195,7 @@ def draw_v2_layout(
     if editing is not None:
         # The selected run, for the drag handlers to read off the canvas: where it starts and
         # how long it is.  The same two attributes the designer's tree pane carries, and put
-        # here for the same reason -- see guiwins_canvas._v2_selection_props.
+        # here for the same reason -- see guiwins_canvas.v2_selection_props.
         frame.props(
             f'data-mt-v2-sel="{v2_encode_path(editing.selected[0] if editing.selected else ())}" '
             f'data-mt-v2-count="{max(1, len(editing.selected))}"',
@@ -233,7 +233,7 @@ def _v2_hull() -> None:
     A V2 layout has no coordinates of its own -- it is flexbox, and where a component lands
     is decided by the browser laying its siblings out -- so unlike the Legacy canvas, where
     every element's box is in the XML, there is no extent to compute here.  This element is
-    therefore drawn empty and positioned by guiwins_canvas._emit_v2_hull once the layout has been
+    therefore drawn empty and positioned by guiwins_canvas.emit_v2_hull once the layout has been
     laid out, which is the only place the numbers exist.
 
     Hidden until it has been measured, so a render whose script has not run yet shows no box

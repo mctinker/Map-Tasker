@@ -33,7 +33,7 @@ import copy
 import os
 import shutil
 import tempfile
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from maptasker.src.analysis.xmldiff import Configuration
 from maptasker.src.core import clock, timeline
@@ -51,11 +51,12 @@ from maptasker.src.edit import sessundo
 from maptasker.src.mapgen.taskerd import get_the_xml_data
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator
     from datetime import datetime
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.mapgen.lineout import LineOut
 
 # The code a MapTaskerError from get_the_xml_data carries, and what to tell the user about each.  Its own
 # docstring documents these; a bare number in the GUI would tell nobody anything.
@@ -82,7 +83,7 @@ class _Parsed(NamedTuple):
     """
 
     return_code: int
-    tables: dict
+    tables: dict[str, Any]
     root: Element | None
     scratch: str
 
@@ -258,8 +259,14 @@ def _modified_time(file_path: str) -> datetime | None:
         return None
 
 
+def _lines_so_far(state: RunState) -> list[str] | None:
+    """The output built so far, copied, or None when no run has built any (the attribute is typed as the thing it will be)."""
+    running = cast("LineOut | None", state.output_lines)
+    return list(running.output_lines) if running is not None else None
+
+
 @contextlib.contextmanager
-def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
+def _parsed_in_isolation(file_path: str, state: RunState) -> Generator[_Parsed]:
     """Run get_the_xml_data against another file with PrimeItems as its scratch storage.
 
     Yields a _Parsed.  Everything saved here is restored on the way out, including when
@@ -300,7 +307,7 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Iterator[_Parsed]:
     saved_undo_history = sessundo.save_history(state)
     # The load can add to the running output, which belongs to the map being built for the file
     # the user actually has open.
-    saved_output = list(state.output_lines.output_lines) if state.output_lines is not None else None
+    saved_output = _lines_so_far(state)
 
     scratch = None
     opened = None

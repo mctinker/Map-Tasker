@@ -18,7 +18,7 @@ from maptasker.src.gui.guiwins_designers import designer_for
 from maptasker.src.gui.guiwins_editor import SCENE_REDACT_FIELD, PendingChangesBanner, editor_state
 from maptasker.src.gui.guiwins_impact import build_impact_panel
 from maptasker.src.gui.guiwins_readiness import build_share_checks
-from maptasker.src.gui.guiwins_sceneview import _scene_dialog_closed
+from maptasker.src.gui.guiwins_sceneview import scene_dialog_closed
 from maptasker.src.mapops import readiness
 
 if TYPE_CHECKING:
@@ -79,7 +79,7 @@ def _build_scene_editor_body(
             # closes -- see repaint_scene_previews.  Registered here, beside the button that
             # creates that picture, so the Add and Edit dialogs both get it from the one
             # place that knows a preview is possible at all.
-            dialog.on_value_change(lambda event: _scene_dialog_closed(_self, dialog, field_refs, event))
+            dialog.on_value_change(lambda event: scene_dialog_closed(_self, dialog, field_refs, event))
         with preview_button:
             # What the preview is drawing from differs by kind -- the size typed into the fields
             # below, or a screen the preview itself offers -- so each designer says which.
@@ -194,7 +194,7 @@ def build_add_scene_dialog(
     created a moment ago has nothing in it to export.  Create it, then use Edit
     Scene, which does (see build_edit_scene_dialog).
     """
-    field_refs: dict = {"target_project_name": target_project_name}
+    field_refs: dict[str, Any] = {"target_project_name": target_project_name}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[800px] w-full p-6"):
         ui.label(
@@ -381,7 +381,7 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
     a real operation across the whole backup, not a field edit.
     """
     scene_name = edited_scene.scene_name
-    field_refs: dict = {}
+    field_refs: dict[str, Any] = {}
     # The Scene as this session found it.  Taken before the body is built, so it is the
     # state Cancel returns to however much the designers go on to change.  See cancel().
     opened_as = sceneedit.session_snapshot(edited_scene)
@@ -395,7 +395,7 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
         sceneedit.revert_session for what is and is not being undone.
 
         Ordering matters both ways round it: the revert has to happen before the close,
-        because closing is what repaints the preview (_scene_dialog_closed), and the notice
+        because closing is what repaints the preview (scene_dialog_closed), and the notice
         has to come after, because a dialog closing over a notification hides it.
 
         Rename cannot have happened first -- it applies to the live backup and closes this

@@ -270,7 +270,7 @@ _OUTLINE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 </TaskerData>"""
 
 
-def _outline_state(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> RunState:
+def _outline_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> RunState:
     """A run state that has loaded the outline fixture from a file, the way a user's load does.
 
     Nothing of it is on the global: taskerd parses into the state it is handed.  (The history a
@@ -289,7 +289,7 @@ def _outline_state(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> RunStat
     return state
 
 
-def test_a_whole_outline_is_built_on_a_state_of_its_own(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_whole_outline_is_built_on_a_state_of_its_own(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The Outline and the Diagram built from it, start to finish, against a RunState that
     is not PrimeItems: its tables, its output, its call links -- and nothing on the global.
     """
@@ -310,7 +310,7 @@ def test_a_whole_outline_is_built_on_a_state_of_its_own(tmp_path: object, monkey
     assert PrimeItems.diagram_model == model_before
 
 
-def test_a_whole_map_is_built_on_a_state_of_its_own(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_whole_map_is_built_on_a_state_of_its_own(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The Map, from the Projects down to the file it is written to, against a RunState that is
     not PrimeItems.  Only the output folder is still read from the global (outdir.py).
     """
@@ -332,7 +332,7 @@ def test_a_whole_map_is_built_on_a_state_of_its_own(tmp_path: object, monkeypatc
     assert PrimeItems.grand_totals["projects"] == projects_before
 
 
-def test_a_backup_is_loaded_into_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_backup_is_loaded_into_the_state_it_is_given(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     tables_before = dict(PrimeItems.tasker_root_elements)
     root_before = PrimeItems.xml_root
 
@@ -346,7 +346,7 @@ def test_a_backup_is_loaded_into_the_state_it_is_given(tmp_path: object, monkeyp
 
 
 def test_a_run_is_started_and_its_file_read_on_a_state_of_its_own(
-    tmp_path: object,
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The start of a run, as proginit does it: open the named backup, parse it, write the front
@@ -401,7 +401,7 @@ def _stub_the_device(monkeypatch: pytest.MonkeyPatch, return_code: int, contents
 
 
 def test_a_backup_fetched_from_the_device_is_recorded_on_the_state_it_was_fetched_for(
-    tmp_path: object,
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.chdir(tmp_path)
@@ -475,7 +475,7 @@ def test_a_window_with_no_state_of_its_own_is_taken_to_be_on_the_global() -> Non
     assert guiutils.window_state(MyGui(RunState())) is not PrimeItems
 
 
-def test_a_task_is_deleted_from_the_state_it_is_asked_of(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_task_is_deleted_from_the_state_it_is_asked_of(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The editors work on whichever state they are handed: the loaded tables are its own."""
     state = _outline_state(tmp_path, monkeypatch)
     callee = state.tasker_root_elements["all_tasks_by_name"]["Callee"]["id"]
@@ -489,7 +489,7 @@ def test_a_task_is_deleted_from_the_state_it_is_asked_of(tmp_path: object, monke
     assert PrimeItems.tasker_root_elements["all_tasks"] == global_tasks
 
 
-def test_a_project_is_looked_up_in_the_state_it_is_asked_of(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_project_is_looked_up_in_the_state_it_is_asked_of(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     state = _outline_state(tmp_path, monkeypatch)
     monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
 
@@ -507,7 +507,7 @@ def test_the_ai_query_is_made_from_the_output_of_the_state_it_is_given() -> None
     assert any("Remind Me" in line for line in query)
 
 
-def test_a_health_check_runs_over_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_health_check_runs_over_the_state_it_is_given(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The analysis tools read a loaded configuration and nothing else, so nothing need be on the global."""
     state = _outline_state(tmp_path, monkeypatch)
     monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
@@ -521,7 +521,7 @@ def test_a_health_check_runs_over_the_state_it_is_given(tmp_path: object, monkey
 
 
 def test_the_variable_index_is_built_from_the_state_it_is_given(
-    tmp_path: object, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     state = _outline_state(tmp_path, monkeypatch)
 
@@ -529,7 +529,7 @@ def test_the_variable_index_is_built_from_the_state_it_is_given(
 
 
 def test_what_a_delete_would_do_is_worked_out_on_the_state_it_is_given(
-    tmp_path: object,
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     state = _outline_state(tmp_path, monkeypatch)
@@ -541,9 +541,7 @@ def test_what_a_delete_would_do_is_worked_out_on_the_state_it_is_given(
     assert "Task 'Caller'" in found.consequences[0].where
 
 
-def test_a_duplicate_is_planned_against_the_state_it_is_given(
-    tmp_path: object, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_a_duplicate_is_planned_against_the_state_it_is_given(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A refactor is worked out over the tables of the state it is asked of; nothing is changed yet."""
     state = _outline_state(tmp_path, monkeypatch)
     monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
@@ -556,7 +554,7 @@ def test_a_duplicate_is_planned_against_the_state_it_is_given(
     assert state.tasker_root_elements["all_tasks_by_name"] == tasks_before
 
 
-def test_a_repair_is_planned_against_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_repair_is_planned_against_the_state_it_is_given(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     state = _outline_state(tmp_path, monkeypatch)
 
     plan = mapfix.plan_fixes(state=state)
@@ -564,7 +562,7 @@ def test_a_repair_is_planned_against_the_state_it_is_given(tmp_path: object, mon
     assert plan is not None
 
 
-def test_a_command_line_report_is_made_on_a_state_of_its_own(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_command_line_report_is_made_on_a_state_of_its_own(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The whole of a report -- the load, the check, the exit code -- on a RunState that is not
     PrimeItems.  The entry point is the one place that names the global, and it was not asked to.
     """
@@ -585,7 +583,7 @@ def test_a_command_line_report_is_made_on_a_state_of_its_own(tmp_path: object, m
     assert PrimeItems.xml_root is root_before
 
 
-def test_the_find_index_is_built_from_the_state_it_is_given(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_the_find_index_is_built_from_the_state_it_is_given(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     state = _outline_state(tmp_path, monkeypatch)
     monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
 
@@ -596,9 +594,7 @@ def test_the_find_index_is_built_from_the_state_it_is_given(tmp_path: object, mo
     assert not nothing.objects
 
 
-def test_a_scenario_is_simulated_against_the_state_it_is_given(
-    tmp_path: object, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_a_scenario_is_simulated_against_the_state_it_is_given(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     state = _outline_state(tmp_path, monkeypatch)
     monkeypatch.setattr(PrimeItems, "tasker_root_elements", initial_tasker_root_elements())  # Nothing loaded.
 
@@ -609,7 +605,7 @@ def test_a_scenario_is_simulated_against_the_state_it_is_given(
 
 
 def test_a_cached_map_is_remembered_against_the_state_it_was_built_from(
-    tmp_path: object,
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The digests say what a Map was built from: two states holding different backups differ."""

@@ -27,13 +27,13 @@ from maptasker.src.gui.guiwins_canvas import (
     CANVAS_DESIGNER_ROOT,
     DESIGNER_CANVAS_HEIGHT,
     FIELD_COMMIT_DEBOUNCE_MS,
-    _emit_canvas_editing,
-    _emit_canvas_fit,
-    _register_canvas_events,
+    emit_canvas_editing,
+    emit_canvas_fit,
     register_canvas,
+    register_canvas_events,
 )
-from maptasker.src.gui.guiwins_editor import _build_properties_button
-from maptasker.src.gui.guiwins_legacyarg import _render_legacy_arg
+from maptasker.src.gui.guiwins_editor import build_properties_button
+from maptasker.src.gui.guiwins_legacyarg import render_legacy_arg
 from maptasker.src.gui.guiwins_sceneprops import _build_scene_properties_dialog, _scene_properties_summary
 
 if TYPE_CHECKING:
@@ -280,7 +280,7 @@ class _AddLegacyElementDialog:
             self.pick(hits[0])
 
 
-def _legacy_canvas_size(
+def legacy_canvas_size(
     edited_scene: sceneedit.EditableScene,
     field_refs: dict,
     landscape: bool,
@@ -401,7 +401,7 @@ class _LegacyDesigner:
         # there is somewhere to pick a Task; the child element appears when one is picked.
         self.pending_events: dict = {"sr": "", "tags": set()}
 
-        _register_canvas_events()
+        register_canvas_events()
         self.has_landscape = sceneview.has_landscape_layout(self.scene_element)
         # This designer's own canvas identity -- see _ACTIVE_CANVASES on why it cannot be shared.
         self.root_class = f"{CANVAS_DESIGNER_ROOT}-{next(_DESIGNER_SEQUENCE)}"
@@ -511,7 +511,7 @@ class _LegacyDesigner:
         full-canvas background Rect, and a new element created at the origin under one would
         be invisible -- indistinguishable, to the user, from the Add button not working.
         """
-        size = _legacy_canvas_size(self.edited_scene, self.field_refs, self.orientation["landscape"])
+        size = legacy_canvas_size(self.edited_scene, self.field_refs, self.orientation["landscape"])
         if size is None:
             ui.notify(translate_string("This Scene has no layout for this orientation."), type="warning")
             return
@@ -616,7 +616,7 @@ class _LegacyDesigner:
         """Apply a finished drag or resize.
 
         ONE SNAPSHOT PER GESTURE -- not per pixel, and not per element.  The browser sends
-        every moved box once, on pointer-up (see _emit_canvas_editing), and dragging six
+        every moved box once, on pointer-up (see emit_canvas_editing), and dragging six
         elements across the canvas is one thing the user did and one thing Undo should put
         back.  Everything is worked out before the snapshot is taken so that a payload naming
         nothing this Scene has leaves no empty entry on the stack.
@@ -672,7 +672,7 @@ class _LegacyDesigner:
         self.render()
 
     def render_canvas(self) -> None:
-        size = _legacy_canvas_size(self.edited_scene, self.field_refs, self.orientation["landscape"])
+        size = legacy_canvas_size(self.edited_scene, self.field_refs, self.orientation["landscape"])
         if size is None:
             which = "landscape" if self.orientation["landscape"] else "portrait"
             ui.label(
@@ -693,8 +693,8 @@ class _LegacyDesigner:
                 editing=sceneview.CanvasEditing(selected=self.selection["srs"], snap=self.snap["grid"]),
                 state=self.gui.state,
             )
-        _emit_canvas_fit(self.root_class, width, height, budget=DESIGNER_CANVAS_HEIGHT)
-        _emit_canvas_editing(self.root_class, self.snap["grid"])
+        emit_canvas_fit(self.root_class, width, height, budget=DESIGNER_CANVAS_HEIGHT)
+        emit_canvas_editing(self.root_class, self.snap["grid"])
 
     def render_list(self) -> None:
         elements = sceneview.paint_order(self.scene_element)
@@ -863,7 +863,7 @@ class _LegacyDesigner:
 
         ui.label(translate_string("Properties")).classes("text-xs uppercase text-gray-500 mt-2")
         for arg in args:
-            _render_legacy_arg(arg, self.repaint, on_rename=self.rename_selected, state=self.gui.state)
+            render_legacy_arg(arg, self.repaint, on_rename=self.rename_selected, state=self.gui.state)
         self.render_tasks(element)
         self.render_background(element)
         self.render_item_layout(element)
@@ -1058,7 +1058,7 @@ class _LegacyDesigner:
             # It is a RectElement, so it gets the Rect fields -- the same generated form the
             # inspector gives a real Rect, from the same table.
             for arg in sceneedit_legacy.legacy_element_args(background, state=self.gui.state):
-                _render_legacy_arg(arg, self.repaint, name_editable=True, state=self.gui.state)
+                render_legacy_arg(arg, self.repaint, name_editable=True, state=self.gui.state)
             ui.button(translate_string("Remove background"), icon="delete", on_click=self.remove_background).props(
                 "dense flat size=sm color=negative",
             )
@@ -1461,7 +1461,7 @@ class LegacyDesigner:
         # BEFORE rendering by name, so the working copy this writes to is what gets saved.  That
         # is the difference from Edit Project, whose by-name saves do not apply first and so
         # need the live-tree mirror.
-        _build_properties_button(
+        build_properties_button(
             gui,
             objprops.KIND_SCENE,
             scene_element,

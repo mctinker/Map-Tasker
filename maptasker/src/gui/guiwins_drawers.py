@@ -22,7 +22,7 @@ from maptasker.src.gui.guiwins import (
     install_notification_timeout,
     set_notification_timeout,
 )
-from maptasker.src.gui.guiwins_canvas import _register_canvas_events
+from maptasker.src.gui.guiwins_canvas import register_canvas_events
 from maptasker.src.gui.guiwins_nav import register_finding_clicks
 from maptasker.src.gui.guiwins_tabs import (
     create_analyze_tab_content,
@@ -119,8 +119,8 @@ def initialize_screen(self: MyGui) -> None:
     install_notification_timeout()
     set_notification_timeout(getattr(self, "notify_timeout", NOTIFY_TIMEOUT_DEFAULT))
     # While the layout is still being built, rather than when a Scene designer first opens --
-    # see guiwins_canvas._register_canvas_events for why the timing is the whole point.
-    _register_canvas_events()
+    # see guiwins_canvas.register_canvas_events for why the timing is the whole point.
+    register_canvas_events()
     # Same timing, same reason: a clicked Health Check finding emits an event this has to be
     # subscribed to before the browser has the layout (see register_finding_clicks).
     register_finding_clicks(self)

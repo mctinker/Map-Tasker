@@ -7,6 +7,7 @@ whole as plain escaped lines."""
 from __future__ import annotations
 
 import re
+from typing import Any
 
 # ==========================================
 # STREAMING THE MAP INTO THE TEXT VIEW
@@ -44,7 +45,7 @@ HTML_REPLACEMENT_MAP = {
 }
 
 
-def optimize_html(match: re.Match) -> str:
+def optimize_html(match: re.Match[str]) -> str:
     """
     What one match of HTML_OPTIMIZE_PATTERN becomes -- see the note above it.
 
@@ -376,7 +377,7 @@ class _StyleCollector:
         return False
 
 
-def fallback_map_html(the_data: dict) -> list[str]:
+def fallback_map_html(the_data: dict[Any, dict[str, list[Any]]]) -> list[str]:
     """The Map's output lines, as they are held in memory, as HTML: a <div> per line, a <span> per colour."""
     html_builder: list[str] = []
     styles = _StyleCollector(html_builder)

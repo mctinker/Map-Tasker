@@ -12,7 +12,7 @@ a module they both import at the top of their own files cannot import either of 
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -98,7 +98,7 @@ def build_readiness_button(check: Callable[[], readiness.Readiness]) -> ui.butto
 
 
 def build_share_checks(
-    field_refs: dict,
+    field_refs: dict[str, Any],
     redact_key: str,
     check: Callable[..., readiness.Readiness],
     name: str,

@@ -20,7 +20,7 @@
 #
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -30,7 +30,7 @@ from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.gui.guiwins_taskcases import ask_to_save_test
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Coroutine
 
     from maptasker.src.core.mapjump import Target
     from maptasker.src.core.primitem import RunState
@@ -78,7 +78,7 @@ _VALUE_WIDTH = 70
 
 
 def build_taskstep_dialog(
-    make_jump: Callable,
+    make_jump: Callable[[Target], Callable[[], Coroutine[Any, Any, None]]],
     state: RunState,
     task: str = "",
     case: taskcases.Case | None = None,
@@ -102,7 +102,7 @@ class _Stepper:
 
     def __init__(
         self,
-        make_jump: Callable,
+        make_jump: Callable[[Target], Callable[[], Coroutine[Any, Any, None]]],
         state: RunState,
         names: list[str],
         task: str,

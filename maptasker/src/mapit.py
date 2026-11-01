@@ -32,7 +32,7 @@ import asyncio
 import functools
 import platform
 import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import Client, app
 
@@ -221,8 +221,9 @@ def install_disconnect_handling(state: RunState) -> None:
     async def on_disconnect(client: Client) -> None:
         await _on_client_disconnect(client, state)
 
-    app.on_disconnect(on_disconnect)
-    app.on_connect(_on_client_connect)
+    # nicegui declares these registrars with untyped callbacks.
+    cast("Any", app).on_disconnect(on_disconnect)
+    cast("Any", app).on_connect(_on_client_connect)
 
 
 # Perform maptasker program initialization functions
@@ -294,7 +295,7 @@ def start_up(state: RunState) -> None:
 
 
 # Set up the major variables used within this program, and set up crash routine
-def initialize_everything(state: RunState) -> tuple[list, list, list]:
+def initialize_everything(state: RunState) -> tuple[list[str], list[str], list[str]]:
     """
     Set up all the variables and logic in case program craps out
         :return: empty list of primary items used throughout project
@@ -318,7 +319,7 @@ def initialize_everything(state: RunState) -> tuple[list, list, list]:
     # at this point -- ui.run() makes its own later -- and asyncio.get_event_loop() raises
     # "There is no current event loop" here under Python 3.14 instead of creating a spare one.
     if not app.is_started:
-        app.on_startup(_install_async_exception_handler)
+        cast("Any", app).on_startup(_install_async_exception_handler)
     install_disconnect_handling(state)
 
     # Get colors to use, runtime arguments etc...all of our primary items we need

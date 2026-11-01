@@ -83,7 +83,7 @@ def builders(monkeypatch: pytest.MonkeyPatch) -> dict[str, list]:
     )
     monkeypatch.setattr(
         guiwins_designer_legacy,
-        "_build_properties_button",
+        "build_properties_button",
         lambda *args, **kwargs: calls["properties"].append((args, kwargs)),
     )
     return calls

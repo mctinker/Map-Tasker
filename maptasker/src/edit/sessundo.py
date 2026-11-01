@@ -80,7 +80,7 @@ from maptasker.src.core.sysconst import logger
 from maptasker.src.mapgen.taskertables import build_tasker_tables
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator
     from datetime import datetime
 
     from maptasker.src.core.primitem import RunState, UndoHistory
@@ -148,7 +148,7 @@ def _render(state: RunState) -> str | None:
     with no history entry -- which is exactly the situation every edit was in before this
     module existed.
     """
-    if state.xml_root is None:
+    if not state.backup_loaded:
         return None
     try:
         return render_full_backup_xml(indent=False, state=state)
@@ -198,7 +198,7 @@ def _restore(payload: bytes, state: RunState) -> bool:
 
 
 @contextlib.contextmanager
-def undoable(label: str, state: RunState) -> Iterator[None]:
+def undoable(label: str, state: RunState) -> Generator[None]:
     """Wrap a change to the loaded configuration so the user can take it back.
 
     Put it around the mutation itself, in the module that performs it, rather than around

@@ -41,7 +41,7 @@ from maptasker.src.gui.guiutils import (
 from maptasker.src.gui.guiwins_draft import DraftRow
 from maptasker.src.gui.guiwins_editor import (
     PendingChangesBanner,
-    _build_properties_button,
+    build_properties_button,
     build_redact_checkbox,
     editor_state,
 )
@@ -96,7 +96,7 @@ def _action_indent_spaces(self: MyGui) -> int:
         return 4
 
 
-def _dropdown_current_label(arg: taskedit_model.EditableArg) -> str:
+def dropdown_current_label(arg: taskedit_model.EditableArg) -> str:
     """The option to preselect for a dropdown arg: current_value is the index
     into dropdown_options (If Operator, Int lookups -- every dropdown in this
     codebase).
@@ -192,7 +192,7 @@ def _picker_search_input(on_change: Callable[[str], None], placeholder: str) -> 
     return search_input
 
 
-async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], for_icons: bool = False) -> None:
+async def build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], for_icons: bool = False) -> None:
     """Ask an Android device for the full list of installed Applications.
 
     Offered from inside the Application pickers rather than from the sidebar, because
@@ -245,7 +245,7 @@ class _FetchAppsDialog:
         Args:
             gui: The application window, which holds the run's state and the remembered address.
             on_fetched: Called when the list of applications has changed, by a fetch or a forget.
-            for_icons: Whether the user came for icons rather than Applications; see _build_fetch_apps_dialog.
+            for_icons: Whether the user came for icons rather than Applications; see build_fetch_apps_dialog.
         """
         self.gui = gui
         self.on_fetched = on_fetched
@@ -753,7 +753,7 @@ class _AppPicker:
         # apps does not throw away what has been chosen so far.
         self.apply_selection()
         self.dialog.close()
-        await _build_fetch_apps_dialog(self.gui, lambda: _build_app_picker_dialog(self.field, self.gui))
+        await build_fetch_apps_dialog(self.gui, lambda: _build_app_picker_dialog(self.field, self.gui))
 
 
 def _build_app_picker_dialog(field: ui.input, gui: MyGui) -> None:
@@ -782,7 +782,7 @@ def _render_fetch_apps_button(on_click: Callable[[], object], for_icons: bool = 
     front of them looks complete until the one app they want turns out not to be in it.
 
     The icon wording asks the icon question, but the button does the same thing: see
-    _build_fetch_apps_dialog's for_icons.
+    build_fetch_apps_dialog's for_icons.
     """
     fetch_button = ui.button(
         translate_string("Icon not listed?" if for_icons else "App not listed?"),
@@ -858,7 +858,7 @@ def _build_app_entry_picker_dialog(on_pick: Callable[[appinv.AppEntry], None], g
 
         async def fetch_then_reopen() -> None:
             dialog.close()
-            await _build_fetch_apps_dialog(gui, lambda: _build_app_entry_picker_dialog(on_pick, gui))
+            await build_fetch_apps_dialog(gui, lambda: _build_app_entry_picker_dialog(on_pick, gui))
 
         with ui.row().classes("w-full justify-between items-center mt-3"):
             _render_fetch_apps_button(fetch_then_reopen)
@@ -965,7 +965,7 @@ def _build_tasker_icon_picker_dialog(field: ui.input, gui: MyGui) -> None:
             # Application picker does it: the list is read once, at the top of this
             # function, and a fetch is precisely the thing that makes that reading stale.
             dialog.close()
-            await _build_fetch_apps_dialog(gui, lambda: _build_tasker_icon_picker_dialog(field, gui), for_icons=True)
+            await build_fetch_apps_dialog(gui, lambda: _build_tasker_icon_picker_dialog(field, gui), for_icons=True)
 
         with ui.row().classes("w-full justify-between items-center gap-2 mt-3"):
             _render_fetch_apps_button(fetch_then_reopen, for_icons=True)
@@ -997,7 +997,7 @@ def _render_inventory_fetch(gui: MyGui, reason: str, on_fetched: Callable[[], No
     for_icons = reason == taskedit_model.NO_ICONS_REASON
 
     async def fetch() -> None:
-        await _build_fetch_apps_dialog(gui, on_fetched, for_icons=for_icons)
+        await build_fetch_apps_dialog(gui, on_fetched, for_icons=for_icons)
 
     _render_fetch_apps_button(fetch, for_icons=for_icons)
 
@@ -1480,7 +1480,7 @@ class _ActionList:
             options = arg.dropdown_options or []
             field_refs[key] = ui.select(
                 options,
-                value=_dropdown_current_label(arg),
+                value=dropdown_current_label(arg),
                 label=arg.arg_name,
             ).classes("flex-1")
         elif taskedit_args.is_perform_task_name_arg(action.code, arg):
@@ -1939,7 +1939,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit_model.EditableTask
             # render_standalone_task_xml deep-copies it), so a property written here
             # reaches the live tree, the export and the upload alike -- and Cancel here
             # still discards it.  See objprops.py's module docstring.
-            _build_properties_button(self, objprops.KIND_TASK, edited_task.task_element, dialog)
+            build_properties_button(self, objprops.KIND_TASK, edited_task.task_element, dialog)
             # Beside it, on the same working copy: see the note above.
             build_taskernet_description_button(self, objprops.KIND_TASK, edited_task.task_element, task_name)
 
@@ -2044,7 +2044,7 @@ def _render_new_task_name_row(
         # register_new_task stores THIS element object in all_tasks rather than a
         # copy of it, and every save path deep-copies it at write time, so properties
         # set before the Task exists are still on it once it does.
-        _build_properties_button(self, objprops.KIND_TASK, edited_task.task_element, dialog)
+        build_properties_button(self, objprops.KIND_TASK, edited_task.task_element, dialog)
         build_taskernet_description_button(self, objprops.KIND_TASK, edited_task.task_element)
 
 

@@ -118,15 +118,15 @@ def module_is_available(module_name: str) -> bool:
 
 # Clean up the output list since it has all the front matter and we only need
 # the object (Project/Profile/Task)
-def cleanup_output(state: RunState) -> list:
+def cleanup_output(state: RunState) -> list[str]:
     """
     A function that cleans up the output list in prepartion of the query.
 
     Returns:
-        list: The cleaned up output list.
+        list[str]: The cleaned up output list.
     """
     # Delete everything up to the Profile.
-    temp_output = []
+    temp_output: list[str] = []
     got_it = False
     for line in state.output_lines.output_lines:
         if "Profile:" in line or "Project:" in line or "Task:" in line:

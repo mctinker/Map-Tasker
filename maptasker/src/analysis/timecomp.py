@@ -62,7 +62,7 @@ class Comparison:
     """
 
     report: str = ""
-    counts: dict = field(default_factory=dict)
+    counts: dict[str, int] = field(default_factory=dict[str, int])
     older: timeline.Snapshot | None = None
     note: str = ""
     problem: str = ""

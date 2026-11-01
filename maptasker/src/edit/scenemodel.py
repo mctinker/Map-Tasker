@@ -42,7 +42,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from maptasker.src.core import scenelayout
 from maptasker.src.core.editcommon import argument_elements, string_arguments
@@ -160,7 +160,7 @@ class SceneModel(Protocol):
         """Bring the Tasks that address this Scene's elements by name along with renames made in the designer."""
         ...
 
-    def revert_layout(self, snapshot: Element, layout: dict | None) -> bool:
+    def revert_layout(self, snapshot: Element, layout: dict[str, Any] | None) -> bool:
         """Put a designer's working copy of the Scene's content back as the snapshot had it.
 
         Returns whether that working copy had been changed.  `layout` is None when there is no
@@ -188,7 +188,7 @@ class LegacyModel:
         """Rewrite the Task actions that address the renamed elements by name (18 action codes do)."""
         sceneedit_legacy.apply_element_renames_to_tasks(scene_name, renames, state=state)
 
-    def revert_layout(self, snapshot: Element, layout: dict | None) -> bool:
+    def revert_layout(self, snapshot: Element, layout: dict[str, Any] | None) -> bool:
         """Nothing: a Legacy designer edits the element itself, which the caller restores."""
         del snapshot, layout
         return False
@@ -285,7 +285,7 @@ class V2Model:
         """Keep the layout's own copy of the name in step with the <nme> -- see rename_v2_layout."""
         scenelayout.rename_v2_layout(scene_element, new_name)
 
-    def revert_layout(self, snapshot: Element, layout: dict | None) -> bool:
+    def revert_layout(self, snapshot: Element, layout: dict[str, Any] | None) -> bool:
         """Put the designer's decoded tree back as the snapshot's <lj> decodes.
 
         It has to be reverted as well as the element, and cannot be reverted FROM it without a

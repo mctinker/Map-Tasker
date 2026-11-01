@@ -6,7 +6,7 @@ button, image, slider, web, list...) and the selection, bounds and task-badge ov
 from __future__ import annotations
 
 import html
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from nicegui import ui
 
@@ -44,6 +44,7 @@ from maptasker.src.gui.sceneview import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
@@ -99,7 +100,7 @@ def draw_scene(
         # contains a space.
         canvas.props(f'tabindex="0" data-selected="{" ".join(editing.selected)}"').style("outline: none;")
     with canvas:
-        selected_boxes = []
+        selected_boxes: list[tuple[str, tuple[int, int, int, int]]] = []
         for element in paint_order(scene_element):
             _draw_element(element, options, editing=editing, state=state)
             sr = element.get("sr", "")
@@ -248,10 +249,11 @@ def _draw_element(
         )
     with frame:
         drawer = _DRAWERS.get(element.tag, _draw_unknown)
+        draw = cast("Callable[..., None]", drawer)  # the drawers differ in whether they take the state
         if drawer in _STATEFUL_DRAWERS:
-            drawer(element, args, width, height, options, depth, state=state)
+            draw(element, args, width, height, options, depth, state=state)
         else:
-            drawer(element, args, width, height, options, depth)
+            draw(element, args, width, height, options, depth)
         if options.show_bounds:
             _draw_bounds(element, width, height)
         if options.show_tasks:

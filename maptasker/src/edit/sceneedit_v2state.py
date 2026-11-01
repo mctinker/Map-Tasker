@@ -61,9 +61,7 @@ def _v2_global_choices(state: RunState) -> tuple[list[V2ShowWhenChoice], list[V2
 
     builtin_names = set(tasker_global_variables) | set(tasker_global_variable_names)
     stored_names = (
-        [variable.findtext("n") for variable in state.xml_root.findall("Variable")]
-        if state.xml_root is not None
-        else []
+        [variable.findtext("n") for variable in state.xml_root.findall("Variable")] if state.backup_loaded else []
     )
 
     user = [V2ShowWhenChoice(name, name) for name in dict.fromkeys(stored_names) if name and name not in builtin_names]

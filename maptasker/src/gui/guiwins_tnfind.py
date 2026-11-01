@@ -25,6 +25,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
 
@@ -35,8 +36,6 @@ from maptasker.src.core.sysconst import logger
 from maptasker.src.mapops import tnfind, tnupdate
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from nicegui import Client
 
     from maptasker.src.core.primitem import RunState
@@ -75,11 +74,11 @@ class _Job:
     client: Client
     progress: tnfind.Progress = field(default_factory=tnfind.Progress)
     stop: threading.Event = field(default_factory=threading.Event)
-    task: asyncio.Task | None = None
+    task: asyncio.Task[None] | None = None
     result: tnfind.ScanResult | None = None
     shown: bool = False
     refresh: Callable[[], None] | None = None
-    listeners: list[Callable[[], None]] = field(default_factory=list)
+    listeners: list[Callable[[], None]] = field(default_factory=list[Callable[[], None]])
 
     @property
     def running(self) -> bool:
@@ -91,7 +90,7 @@ class _Job:
 # starting one does not need a `global` statement; there is only ever the one key.
 _JOBS: dict[str, _Job] = {}
 # Running jobs' tasks, held so a task is not garbage-collected before it finishes.
-_TASKS: set[asyncio.Task] = set()
+_TASKS: set[asyncio.Task[None]] = set()
 
 
 def current_job() -> _Job | None:
@@ -156,7 +155,7 @@ def _announce(job: _Job) -> None:
         logger.info("The page that started the TaskerNet scan is gone; nobody was told it finished.")
 
 
-def _report_failure(task: asyncio.Task) -> None:
+def _report_failure(task: asyncio.Task[None]) -> None:
     """Log whatever the scan raised instead of losing it.  Cancellation is ordinary and says nothing."""
     if task.cancelled():
         return

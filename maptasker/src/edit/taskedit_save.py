@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import json
 import xml.etree.ElementTree as ETW
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from maptasker.src.core import editcommon, piiscan
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
@@ -72,7 +72,7 @@ def render_standalone_task_xml(edited_task: EditableTask, state: RunState, *, re
     writing a comment above the file saying what went -- what "Redact secrets" on the
     export button does.  Off by default, so nothing that already calls this changes.
     """
-    tv = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
+    tv = state.xml_root.attrib.get("tv", "") if state.backup_loaded else ""
     task_copy = copy.deepcopy(edited_task.task_element)
     # The parsed tree's Element class isn't necessarily xml.etree.ElementTree's own
     # C-accelerated Element (defusedxml's hardened XMLParser forces the pure-Python
@@ -277,7 +277,10 @@ def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_k
         return False
 
     # Anything but a list of objects is not the list of Tasks it should be, and confirms nothing.
-    return isinstance(tasks, list) and any(isinstance(task, dict) and task.get("name") == task_name for task in tasks)
+    return isinstance(tasks, list) and any(
+        isinstance(task, dict) and cast("dict[str, object]", task).get("name") == task_name
+        for task in cast("list[object]", tasks)
+    )
 
 
 def save_task_to_android_directory(

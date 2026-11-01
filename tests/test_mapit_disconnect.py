@@ -14,6 +14,7 @@ import asyncio
 import inspect
 from collections.abc import Iterator
 from types import SimpleNamespace
+from typing import TYPE_CHECKING, cast
 
 import pytest
 from maptasker.src import mapit
@@ -21,6 +22,9 @@ from maptasker.src.core.primitem import RunState
 from nicegui import app
 
 from tests.doubles import fake_state
+
+if TYPE_CHECKING:
+    from nicegui.client import Client
 
 
 class _Client:
@@ -59,6 +63,11 @@ def _short_waits(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     mapit._waiting.clear()
 
 
+def _typed(client: _Client) -> Client:
+    """The stand-in, as the client the handler is typed to take."""
+    return cast("Client", client)
+
+
 async def _settle() -> None:
     await asyncio.sleep(0.25)
 
@@ -68,7 +77,7 @@ async def test_a_tab_that_does_not_come_back_has_its_monitor_stopped() -> None:
     client = _Client()
     monitor = _Monitor(client)
 
-    await mapit._on_client_disconnect(client, _state(monitor))
+    await mapit._on_client_disconnect(_typed(client), _state(monitor))
 
     assert monitor.abandoned == 1
 
@@ -77,7 +86,7 @@ async def test_a_tab_that_does_not_come_back_has_its_monitor_stopped() -> None:
 async def test_a_tab_that_is_back_when_the_wait_ends_is_left_alone() -> None:
     client = _Client()
     monitor = _Monitor(client)
-    task = asyncio.create_task(mapit._on_client_disconnect(client, _state(monitor)))
+    task = asyncio.create_task(mapit._on_client_disconnect(_typed(client), _state(monitor)))
     await asyncio.sleep(0.01)
     client.has_socket_connection = True
     await task
@@ -89,11 +98,11 @@ async def test_a_tab_that_is_back_when_the_wait_ends_is_left_alone() -> None:
 async def test_a_tab_that_connects_again_cancels_the_wait() -> None:
     client = _Client()
     monitor = _Monitor(client)
-    task = asyncio.create_task(mapit._on_client_disconnect(client, _state(monitor)))
+    task = asyncio.create_task(mapit._on_client_disconnect(_typed(client), _state(monitor)))
     await asyncio.sleep(0.01)
     assert "c1" in mapit._waiting
 
-    mapit._on_client_connect(client)
+    mapit._on_client_connect(_typed(client))
     with pytest.raises(asyncio.CancelledError):
         await task
 
@@ -107,7 +116,7 @@ async def test_a_connection_that_flaps_leaves_one_wait_not_a_pile() -> None:
     monitor = _Monitor(client)
     tasks = []
     for _ in range(6):
-        tasks.append(asyncio.create_task(mapit._on_client_disconnect(client, _state(monitor))))
+        tasks.append(asyncio.create_task(mapit._on_client_disconnect(_typed(client), _state(monitor))))
         await asyncio.sleep(0.005)
 
     assert len(mapit._waiting) == 1
@@ -120,7 +129,9 @@ async def test_a_connection_that_flaps_leaves_one_wait_not_a_pile() -> None:
 @pytest.mark.asyncio
 async def test_each_tab_has_its_own_wait() -> None:
     first, second = _Client("a"), _Client("b")
-    tasks = [asyncio.create_task(mapit._on_client_disconnect(client, _state(None))) for client in (first, second)]
+    tasks = [
+        asyncio.create_task(mapit._on_client_disconnect(_typed(client), _state(None))) for client in (first, second)
+    ]
     await asyncio.sleep(0.01)
 
     assert set(mapit._waiting) == {"a", "b"}
@@ -132,7 +143,7 @@ async def test_another_tabs_monitor_is_not_stopped() -> None:
     gone, other = _Client("gone"), _Client("other", connected=True)
     monitor = _Monitor(other)
 
-    await mapit._on_client_disconnect(gone, _state(monitor))
+    await mapit._on_client_disconnect(_typed(gone), _state(monitor))
 
     assert monitor.abandoned == 0
 
@@ -142,15 +153,15 @@ async def test_a_client_that_is_already_deleted_is_left_alone() -> None:
     client = _Client(deleted=True)
     monitor = _Monitor(client)
 
-    await mapit._on_client_disconnect(client, _state(monitor))
+    await mapit._on_client_disconnect(_typed(client), _state(monitor))
 
     assert monitor.abandoned == 0
 
 
 @pytest.mark.asyncio
 async def test_with_no_monitor_or_no_window_a_disconnect_is_just_a_wait() -> None:
-    await mapit._on_client_disconnect(_Client(), _state(None))
-    await mapit._on_client_disconnect(_Client("x"), fake_state(mygui=None))
+    await mapit._on_client_disconnect(_typed(_Client()), _state(None))
+    await mapit._on_client_disconnect(_typed(_Client("x")), fake_state(mygui=None))
 
 
 def test_the_wait_is_longer_than_nicegus_own_reconnect_timeout() -> None:
@@ -207,7 +218,7 @@ async def test_a_real_nicegui_disconnect_reaches_the_handler_with_its_client(mon
             await asyncio.sleep(0.05)
 
             assert client.id in mapit._waiting
-            mapit._on_client_connect(client)
+            mapit._on_client_connect(_typed(client))
     finally:
         with contextlib.suppress(Exception):
             if core.app.is_started:
