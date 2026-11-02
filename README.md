@@ -235,13 +235,15 @@ A: Notepad may not handle spacing correctly for this file.
 
 It's recommended to use a different text editor like Notepad++, VS Code, or Typepad (and set it as your default for `.txt` files). Ensure 'text-wrap' is off and a monospace font is used.
 
-**Q: How do I retrieve the Tasker XML file directly from my Android device?**
+**Q: How do I get MapTasker to interact directly with my Android device?**
 
 A: Prerequisites:
 
 1- Browser and Android device on the same local network.
 
-2- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
+2- The following two sample Tasker projects on your target Android device, both of which must be installed with all Profiles enabled:
+  ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4)
+  ['Tasker HTTP API' Tasker Project](https://shorturl.at/7D8CQ)
 
 Further details are available in the "Notes" section of this README.
 
@@ -266,11 +268,12 @@ Details for some of the points mentioned in the "Troubleshooting and FAQ" sectio
 ### 2
 **Direct XML Retrieval from Android:**
 
-To retrieve the Tasker XML file directly:
+To retrieve the Tasker XML file directly, and interact directly with Tasker for other MapTasker features:
 
 - Ensure both desktop and Android devices are on the same local network and that Tasker is running.
-- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, with the server running. Remember to run the "Update GD HTTP Info" Task and (first time only) enter your Google Drive ID when prompted.
+- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) and ['Tasker HTTP API' Tasker Project](https://shorturl.at/7D8CQ) must both be installed and active on the Android device, with the server running. Remember to run the "Update GD HTTP Info" Task and (first time only) enter your Google Drive ID when prompted.
 - Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
+- Various other MapTasker features will first prompt you on your Android device for authorization to run the specific feature.
 
 ### 3
 **AI Support**
