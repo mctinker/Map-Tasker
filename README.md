@@ -54,7 +54,7 @@ This is an application in support of [Tasker](https://tasker.joaoapps.com/) that
 
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, and my phone was too small to navigate over my Projects, Profiles, Tasks, and Scenes.  So I wrote a Python program to provide a complete map of my entire configuration in my web browser based on my Tasker backup XML file that I saved to my local desktop drive.
 
-Over time, I refined the map by providing many additional options, including the ability to edit Tasker objects and provide in-depth analysis of the Tasker configuration.
+Over time, I refined the map by providing many additional options, including the ability to edit Tasker objects, provide in-depth analysis of the Tasker configuration, and interact directly with Tasker on the Androidm device.
 
 The Tasker backup or other Tasker exported XML can either be manually uploaded to your PC/Mac/Linux/cloud drive, or this program can retrieve it directly from your Android device (see [Note 2](#2)).
 
@@ -81,9 +81,15 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Enhanced search and structured 'Find/Replace'.
 - Add and Edit Projects, Profiles, Tasks, and Scenes (see [Note 6](#6))
 - List changes since a specific date.
-- Link a Project, Profile, Task or Scene to the TaskerNet share it came from, be told when its author publishes a newer version, and take their changes one at a time.
 - Analyze the health of the Tasker XML as well as the numerous variables throughout the configuration.
 - Compare an XML file against the loaded XML.
+- Check TaskerNet for updates to Projects, Profiles, and Tasks, and apply them if available.
+- Import a Tasker object from another XML file, along with all of it's dependencies.
+- Perform a trend analysis to see if your code is improving (or not).
+- Take an inventory of everything a Task uses outside of the Android device.
+- Determine 'what fires when', based on a specific condition (state or event).
+- Step through the logic of a Task, and compare one run against another.
+- Run a live monitor on the Android device to see which Profiles and Tasks fire.
 
 ## Program Dependencies
 
@@ -91,7 +97,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ### - Tasker full or partial XML file: backup.xml or other Tasker exported XML file
 
-&nbsp;&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
+&nbsp;&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device.  And you can interact directly with Tasker on the Android device  (see [Note 2](#2)).
 
 ### - Ai Analysis
 
@@ -102,15 +108,15 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 This program and all of it's perquisites will take about 230MBs of space.  It is recommended that you install it into a virtual environment (option 2).
 
-- Install MapTasker by entering one of the following commands into the Terminal/Command Prompt:
+1- Install MapTasker by entering one of the following commands into the Terminal/Command Prompt:
 
      ```python -m pip install maptasker -U```
                  ...OR...
      ```uv add maptasker```
 
-- To install it into a virtual environment, enter the following command into Terminal/command prompt:
+2- To install it into a virtual environment, enter the following command into Terminal/command prompt:
 
-  via pip...
+    via pip...
   - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment.
   - `python -m venv venv`
   - Activate the virtual environment...
@@ -120,7 +126,7 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 
   ...or...
   
-  via uv...
+    via uv...
   - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment.
   - `uv venv`
   - Activate the virtual environment...
@@ -243,7 +249,7 @@ A: Prerequisites:
 
 2- The following two sample Tasker projects on your target Android device, both of which must be installed with all Profiles enabled:
   ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4)
-  ['Tasker HTTP API' Tasker Project](https://shorturl.at/7D8CQ)
+  ['Tasker HTTP API' Tasker Project](https://shorturl.at/hlTj0)
 
 Further details are available in the "Notes" section of this README.
 
@@ -271,7 +277,7 @@ Details for some of the points mentioned in the "Troubleshooting and FAQ" sectio
 To retrieve the Tasker XML file directly, and interact directly with Tasker for other MapTasker features:
 
 - Ensure both desktop and Android devices are on the same local network and that Tasker is running.
-- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) and ['Tasker HTTP API' Tasker Project](https://shorturl.at/7D8CQ) must both be installed and active on the Android device, with the server running. Remember to run the "Update GD HTTP Info" Task and (first time only) enter your Google Drive ID when prompted.
+- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) and ['Tasker HTTP API' Tasker Project](https://shorturl.at/hlTj0) must both be installed and active on the Android device, with the server running. Remember to run the "Update GD HTTP Info" Task and (first time only) enter your Google Drive ID when prompted.
 - Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
 - Various other MapTasker features will first prompt you on your Android device for authorization to run the specific feature.
 

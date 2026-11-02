@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file!
 
 - Added: __Draft with AI__ in the TaskerNet Description window asks your chosen AI model to write the description from the names of what a Project, Profile or Task contains, and shows exactly what it will send first. It never sends an action's settings, such as an address, message, number, key or variable value, and Undo Draft puts back what you had.
 - Added: __Insert Requirements__ in the TaskerNet Description window adds a list of what a Project, Profile or Task needs on another phone: its plugins, apps, special access such as root or ADB Wi-Fi, the variables Tasker will ask about, and the Tasker version. Press it again after changing the Project and it replaces the list instead of adding a second one.
-- Added:
+- Added: [Tasker HTTP API](https://shorturl.at/hlTj0) Tasker Project is an additional prequisite for various, direct Tasker interactions. 
 
 ### Changed
 
