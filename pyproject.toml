@@ -426,10 +426,10 @@ exclude_also = [
 # scripts/typecheck_ratchet.py against scripts/pyright_baseline.json, so only new errors fail.
 [tool.vulture]
 # Dead code: functions, methods, classes, attributes and constants that nothing in maptasker/src
-# refers to.  Run it with `uv run vulture`.  scripts/dead_code_ratchet.py holds what it still finds
-# to scripts/dead_code_baseline.json, so only NEW dead code fails CI.  The names below are the ones
-# vulture reports wrongly: something calls them by a route it cannot follow.
-paths = ["maptasker/src"]
+# (or the entry point that calls it) refers to.  Run it with `uv run vulture`; scripts/dead_code_check.py
+# is what CI runs, and it fails on any finding.  The names below are the ones vulture reports wrongly or
+# that are kept on purpose, each with the reason beside it.
+paths = ["maptasker/src", "maptasker/main.py"]
 min_confidence = 60
 # NiceGUI calls a page function when the browser asks for its route.
 ignore_decorators = ["@ui.page*"]
@@ -450,6 +450,65 @@ ignore_names = [
     "mute",
     "unmute",
     "is_muted",
+    # Window widgets that are looked up by name, with getattr, from a table of strings: the Edit/Add
+    # buttons and their rows (guiutils.OBJECT_ACTION_BUTTONS), the panels the theme paints
+    # (guiwins._style_named_widgets), the Android section's widgets that clear_android_buttons deletes,
+    # and the two checkboxes the settings restore reaches through RESTORE_CHECKBOXES.
+    "add_profile_button",
+    "add_project_button",
+    "add_scene_button",
+    "add_task_button",
+    "edit_profile_button",
+    "edit_project_button",
+    "edit_scene_button",
+    "edit_task_button",
+    "run_task_button",
+    "profile_buttons_row",
+    "project_buttons_row",
+    "scene_buttons_row",
+    "task_buttons_row",
+    "gui_ai_panel",
+    "gui_color_panel",
+    "gui_debug_panel",
+    "gui_main_column",
+    "gui_tab_panels",
+    "gui_tasker_object_panel",
+    "label_or",
+    "list_files_query_button",
+    "filelist_label",
+    "filelist_option",
+    "set_xml_details_button",
+    "upgrade_button",
+    "debug_checkbox",
+    "runtime_checkbox",
+    # Held on the object only so that something refers to them: the search task would be collected
+    # part-way through (asyncio keeps a weak reference to a task), and the canvas registry holds its
+    # handler table weakly.
+    "_search",
+    "_preview_handlers",
+    # A field of the ArgumentCode tuple, whose shape is read by position and snapshotted by the tests.
+    "arg_required",
+    # The trend measures: read by name (getattr over a table of keys) for the dashboard, and the
+    # three that name a Task are saved in the timeline's metrics files, which Measures(**raw) reads back.
+    "long_tasks",
+    "longest_task_name",
+    "deepest_task",
+    "call_chain",
+    # Recipe data (assets/json/draft_recipes.json): a phrasing the recipe has not seen, which the tests
+    # ask the matcher to find it by.
+    "held_out",
+    # The documented ends of scales whose other members are used: the output detail levels 0-3 and
+    # FormatLine's true/false pair.
+    "DISPLAY_DETAIL_LEVEL_summary",
+    "DISPLAY_DETAIL_LEVEL_anon_tasks_only",
+    "dont_add_end_span",
+    # Tasker device operations that the GUI no longer calls (the "Open with..." hand-off replaced them)
+    # and that stay for a device that will not take the hand-off; the device tests exercise them.
+    "import_profile_to_device",
+    "IMPORT_TYPE_TASK",
+    "open_tasker_on_device",
+    "open_profile_on_device",
+    "open_project_on_device",
 ]
 
 [tool.pyright]

@@ -76,7 +76,11 @@ def _v2_global_choices(state: RunState) -> tuple[list[V2ShowWhenChoice], list[V2
 
 
 def v2_show_when_choices(state: RunState) -> list[tuple[str, list[V2ShowWhenChoice]]]:
-    """The whole Show When picker, as (category, choices) in V2_SHOW_WHEN_GROUPS order.
+    """The whole Show When picker, as (category, choices) in the order it lists them.
+
+    The three short categories lead so they are all on screen without scrolling -- and because a
+    condition is written left to right out of exactly these: a variable, a comparison, and whatever
+    joins it to the next one.  The two long lists of globals follow.
 
     A category with nothing in it is still returned, empty -- a backup with no variables of
     its own should say "User Globals: none" rather than silently offering two categories

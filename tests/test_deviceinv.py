@@ -3153,7 +3153,7 @@ def test_with_a_project_one_helper_run_answers_every_kind(tasker_device: _FakeTa
 
     assert check.unchecked == {}
     assert check.present == {"Project": ["Test"], "Profile": ["Morning"], "Task": ["Test1"], "Scene": []}
-    assert check.needs_prompt
+    assert any(check.present.values())
     gets = [urlparse(url) for verb, url in tasker_device.calls if verb == "GET"]
     assert not any(url.path in ("/api/profiles", "/api/scenes") for url in gets)
     # The whole Task list -- not the helper's is-it-installed check, which carries ?name=.
@@ -3296,7 +3296,7 @@ def test_nothing_named_asks_the_device_nothing(tasker_device: _FakeTasker) -> No
         "192.168.0.210", "1821", devicecheck.names_in_export("<TaskerData/>"), state=PrimeItems
     )
 
-    assert not check.needs_prompt
+    assert not any(check.present.values())
     assert tasker_device.calls == []
 
 

@@ -41,7 +41,6 @@ from maptasker.src.core.maputil2 import (
 from maptasker.src.core.maputils import (
     append_to_filename,
     get_current_local_time_auto_timezone,
-    make_hex_color,
     rename_file,
     update_maptasker,
 )
@@ -263,16 +262,10 @@ class MyGui:
     ai_apikey_and_model_lbl: ui.label
     aimodel_extend_checkbox: ui.checkbox
     analysis_button: ui.button
-    analysis_query_button: ui.button
-    android_button_row: ui.row
     android_container: ui.column
-    android_query_button: ui.button
-    change_prompt_button: ui.button
     close_tabs_on_exit_checkbox: ui.checkbox
-    coffee_button: ui.button
     color_change: ui.label
     color_objects_options: ui.select
-    color_picker_input: ui.color_input
     conditions_checkbox: ui.checkbox
     content_container: ui.column
     current_file: ui.label
@@ -281,8 +274,6 @@ class MyGui:
     dark_mode_switch: ui.switch
     debug_checkbox: ui.checkbox
     directory_checkbox: ui.checkbox
-    display_help_button: ui.button
-    display_names_label: ui.label
     dm_controller: ui.dark_mode
     edit_history_button: ui.button
     edit_profile_button: ui.button
@@ -290,13 +281,10 @@ class MyGui:
     edit_scene_button: ui.button
     edit_task_button: ui.button
     everything_checkbox: ui.checkbox
-    exit_button: ui.button
     filelist_label: ui.label
     filelist_option: ui.select
     fix_findings_button: ui.button
-    font_label: ui.label
     font_optionmenu: ui.select
-    get_android_help_button: ui.button
     get_backup_button: ui.button
     get_xml_button: ui.button
     gui_ai_panel: ui.tab_panel
@@ -310,19 +298,14 @@ class MyGui:
     gui_tasker_object_panel: ui.tab_panel
     gui_view_toolbar: ui.row
     health_check_button: ui.button
-    indent_label: ui.label
     indent_option: ui.select
     language_label: ui.label
     language_optionmenu: ui.select
     list_unnamed_items_checkbox: ui.checkbox
-    model_to_use_label: ui.label
-    notify_timeout_label: ui.label
     notify_timeout_optionmenu: ui.select
     open_view_in_new_window_checkbox: ui.checkbox
     prebuild_map_checkbox: ui.checkbox
     picker_dialog: ui.dialog
-    picker_engine: ui.color_picker
-    picker_title_label: ui.label
     preferences_checkbox: ui.checkbox
     pretty_checkbox: ui.checkbox
     profile_buttons_row: ui.row
@@ -334,7 +317,6 @@ class MyGui:
     runtime_checkbox: ui.checkbox
     scene_buttons_row: ui.row
     scroll_area: ui.scroll_area
-    show_apikeys_button: ui.button
     sidebar_detail_option: ui.select
     specific_name_msg_label: ui.label
     specific_profile_optionmenu: ui.select
@@ -356,10 +338,7 @@ class MyGui:
     upgrade_button: ui.button
     upgrade_container: ui.column
     variable_xref_button: ui.button
-    viewlimit_label: ui.label
     viewlimit_optionmenu: ui.select
-    viewlimit_query_button: ui.button
-    whats_new_button: ui.button
     bold_checkbox: ui.checkbox
     highlight_checkbox: ui.checkbox
     italicize_checkbox: ui.checkbox
@@ -383,12 +362,9 @@ class MyGui:
     doing_diagram: bool
     event: bool
     first_time: bool
-    font_table: dict
     guiview: bool
-    map_in_progress: bool
     open_view_in_new_window: bool
     prebuild_map: bool
-    reset_debug_at_end: bool
     scene_editor_session: dict | None
     textview: Any
     textviews: list
@@ -397,26 +373,19 @@ class MyGui:
     # set to a widget, a string or a flag; typed loosely for that reason rather than as the Optional that
     # every use would then have to test.
     _version_check: Any
-    ai_analysis: Any
-    ai_analysis_window: Any
     ai_analyze_button: Any
     ai_apikey: Any
     ai_apikey_window: Any
     ai_model: str
     ai_model_option: Any
     ai_name: str
-    ai_profile_label: Any
-    ai_project_label: Any
     ai_prompt: Any
-    ai_scene_label: Any
-    ai_task_label: Any
     appearance_mode: Any
     bold: Any
     color_lookup: Any
     conditions: Any
     dark_mode: Any
     debug: Any
-    diagramview_window: Any
     display_detail_level: Any
     displaying_extended_list: Any
     everything: Any
@@ -428,9 +397,6 @@ class MyGui:
     indent: Any
     is_map: Any
     italicize: Any
-    mapview_window: Any
-    miscview_window: Any
-    named_item: Any
     preferences: Any
     refactor_dialog: Any
     rerun: Any
@@ -443,10 +409,8 @@ class MyGui:
     single_task_name: Any
     tab_to_use: Any
     taskernet: Any
-    treeview_window: Any
     twisty: Any
     underline: Any
-    video_window: Any
 
     def __init__(self: "MyGui", state: RunState) -> None:
         """Initialize the GUI and set up all necessary state and layout.
@@ -585,11 +549,9 @@ class MyGui:
         self.display_detail_level = DEFAULT_DISPLAY_DETAIL_LEVEL
         self.conditions = self.preferences = self.taskernet = self.debug = self.everything = self.reset = (
             self.restore
-        ) = self.exit = self.bold = self.highlight = self.italicize = self.underline = self.outline = self.rerun = (
-            self.list_files
-        ) = self.runtime = self.save = self.twisty = self.directory = self.pretty = self.fetched_backup_from_android = (
-            False
-        )
+        ) = self.exit = self.bold = self.highlight = self.italicize = self.underline = self.rerun = self.list_files = (
+            self.runtime
+        ) = self.save = self.twisty = self.directory = self.pretty = self.fetched_backup_from_android = False
         self.single_project_name = ""
         self.single_profile_name = ""
         self.single_task_name = ""
@@ -604,7 +566,6 @@ class MyGui:
         self.android_last_ipaddr = ""
         self.android_last_port = ""
         self.color_lookup = {}  # Setup default dictionary as empty list
-        self.saved_background_color = "#3e1414"
         self.font = OUTPUT_FONT
         self.gui = True
         self.message = ""
@@ -967,7 +928,6 @@ class MyGui:
                 f"Either the name entered for the {element_name} is blank or the 'Cancel' button was clicked.\n",
                 "All Projects, Profiles, and Tasks will be displayed.\n",
             ]
-            self.named_item = False
 
         # 3. Optimized Mutual Exclusivity Check
         # Instead of nested elifs, we check the 'truthiness' count
@@ -1133,7 +1093,6 @@ class MyGui:
                     )
 
             # Save our background color for later reuse
-            self.saved_background_color = make_hex_color(self.color_lookup.get("background_color"))
 
     # Given a setting key and value, set the attribute for the key to the value and return the setting as a message.
     def restore_display(self, key: str, value: str) -> str:
@@ -1681,7 +1640,7 @@ class MapTaskerEventHandlers:
             help_text = translate_string(help_text)
 
         # Create the dialog container on the main thread
-        __package__dialog = create_popup_window(
+        create_popup_window(
             f"{translate_string(title)}",
             help_text,
             close_button=True,

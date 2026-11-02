@@ -573,7 +573,7 @@ def test_an_empty_argument_your_tasker_added_is_not_reported_as_the_authors_chan
 
     held = _review(_share())
 
-    assert held.identical, held.report
+    assert not any(held.counts.values()), held.report
     assert ("Task", "20", maprestore.REVERT) not in _offered(held)
 
 
@@ -713,7 +713,7 @@ def test_an_unnamed_profile_and_its_unnamed_task_are_matched_and_the_result_stil
     assert aligned.tasks == {"8": "32", "9": "31"}, "and its unnamed Task is found through it"
     assert 'sr="prof30"' in aligned.xml
     assert 'sr="task32"' in aligned.xml
-    assert held.identical, held.report
+    assert not any(held.counts.values()), held.report
 
 
 def test_two_unnamed_profiles_are_not_guessed_between(tmp_path: Path) -> None:
@@ -769,7 +769,7 @@ def test_without_an_accepted_version_everything_that_differs_is_offered_and_impo
 def test_a_share_that_matches_your_copy_differs_in_nothing_despite_every_id_being_different() -> None:
     held = _review(_share())
 
-    assert held.identical, held.report
+    assert not any(held.counts.values()), held.report
     assert not held.offer.candidates
 
 

@@ -95,7 +95,6 @@ def test_the_upgrade_controls_appear_only_for_a_newer_version(
 
     assert view.upgrade_container.clear.called is newer
     assert hasattr(view, "upgrade_button") is newer
-    assert hasattr(view, "whats_new_button") is newer
 
 
 def test_after_the_first_run_today_nothing_is_scheduled(view: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> None:

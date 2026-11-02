@@ -469,19 +469,6 @@ V2_SHOW_WHEN_LOGICAL_OPERATORS: tuple[V2ShowWhenChoice, ...] = (
 )
 
 
-# The picker's categories, in the order it lists them.  The three short ones lead so they are
-# all on screen without scrolling -- and because a condition is written left to right out of
-# exactly these: a variable, a comparison, and whatever joins it to the next one.  The two
-# long lists of globals follow.
-V2_SHOW_WHEN_GROUPS = (
-    "Environment",
-    "Operators",
-    "Logical Operators",
-    "User Globals",
-    "Built-in Globals",
-)
-
-
 _ARRANGEMENT = ("Start", "Center", "End", "SpaceBetween", "SpaceAround", "SpaceEvenly")
 
 

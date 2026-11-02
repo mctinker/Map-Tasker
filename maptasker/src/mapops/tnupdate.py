@@ -1044,11 +1044,6 @@ class Review:
     everything: list[maprestore.Candidate] = field(default_factory=list)
 
     @property
-    def identical(self) -> bool:
-        """Nothing offerable and nothing differs at all -- see AuthorChanges.nothing for the author's side."""
-        return not any(self.counts.values())
-
-    @property
     def from_when(self) -> str:
         """How the share is named in a preview: 'TaskerNet share published 07-Oct-2026 15:38'."""
         return f"TaskerNet share published {describe_date(self.info.published_ms)}"

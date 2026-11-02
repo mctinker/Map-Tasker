@@ -23,14 +23,12 @@ from maptasker.src.gui.guiwins_diagram import (
     wrap_diagram_line,
 )
 from maptasker.src.gui.guiwins_mapstream import (
-    HTML_OPTIMIZE_PATTERN,
     _escape_text_except_html,
     _is_css_line,
     _StyleCollector,
     compress_blank_lines,
     fallback_lines_html,
     fallback_map_html,
-    optimize_html,
     optimize_map_html,
     split_for_streaming,
 )
@@ -38,10 +36,11 @@ from maptasker.src.gui.guiwins_views import scope_badge_text, view_theme_colors
 from maptasker.src.mapgen import diagintr
 
 from tests.doubles import fake_state, fake_window
+from tests.map_html_reference import optimized
 
 
 def _optimized(html: str) -> str:
-    return HTML_OPTIMIZE_PATTERN.sub(optimize_html, html)
+    return optimized(html)
 
 
 # ##################################################################################

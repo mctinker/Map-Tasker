@@ -129,9 +129,10 @@ def test_restore_takes_what_it_knows_and_reports_the_rest() -> None:
     assert ignored == ["setting_from_an_old_version", "msg"]
 
 
-def test_from_dict_defaults_what_is_missing() -> None:
+def test_restoring_defaults_what_is_missing() -> None:
     """A settings file from before a setting existed gives it its default."""
-    arguments = ProgramArguments.from_dict({"font": "Menlo"})
+    arguments = ProgramArguments()
+    arguments.restore({"font": "Menlo"})
 
     assert arguments.font == "Menlo"
     assert arguments.view_limit == ProgramArguments().view_limit

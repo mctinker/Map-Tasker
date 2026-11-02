@@ -70,7 +70,6 @@ MAX_FACTS = 7000
 MAX_CURRENT = 3000
 # The longest description taken from a reply.  A page is not a description.
 MAX_REPLY = 6000
-MAX_TOKENS = 2000
 ASK_TIMEOUT = 120.0
 LOCAL_ASK_TIMEOUT = 600.0
 
@@ -383,7 +382,6 @@ async def draft_description(
     asked = dataclasses.replace(
         settings,
         schema=DESCRIPTION_SCHEMA,
-        max_tokens=MAX_TOKENS,
         effort="low",
         timeout=LOCAL_ASK_TIMEOUT if compact else ASK_TIMEOUT,
     )

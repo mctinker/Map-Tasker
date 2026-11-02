@@ -23,7 +23,7 @@ from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.maputil2 import suppress_logged, translate_string
-from maptasker.src.core.maputils import clear_tasker_data, make_hex_color
+from maptasker.src.core.maputils import clear_tasker_data
 from maptasker.src.core.outdir import normalize_output_directory, output_directory
 from maptasker.src.core.primitem import SINGLE_ITEM_LABELS
 from maptasker.src.core.sysconst import (
@@ -326,11 +326,6 @@ class SettingsEventHandlers(HandlerGroup):
         # No arguments mean no settings.
         else:  # Empty?
             the_view.display_message_box(translate_string("No settings file found."), "Orange")
-
-        # Save our background color for later reuse.  A settings file saved with no colors in it (an empty
-        # [colors_to_use]) leaves nothing to save, and the default background stays.
-        if background_color := the_view.color_lookup.get("background_color"):
-            the_view.saved_background_color = make_hex_color(background_color)
 
     # Process the 'Bold Names' checkbox
     def names_bold_event(self) -> None:
@@ -853,7 +848,6 @@ class SettingsEventHandlers(HandlerGroup):
             ]
 
             if color_selected_item == "Background":
-                the_view.saved_background_color = make_hex_color(color_value)
                 for scroll_area in scroll_areas:
                     scroll_area.style(f"background-color: {color_value} !important;")
                 if not scroll_areas:
@@ -925,8 +919,6 @@ class SettingsEventHandlers(HandlerGroup):
             - Destroys color change window."""
         the_view = self.gui
         self.state.colors_to_use = set_color_mode(the_view.appearance_mode)
-        # Save our background color for later reuse
-        the_view.saved_background_color = make_hex_color(self.state.colors_to_use.get("background_color", ""))
         the_view.color_lookup = {}
         the_view.display_message_box(
             translate_string("Tasker items set back to their default colors."),

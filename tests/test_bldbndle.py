@@ -206,11 +206,9 @@ def test_the_table_behaves_as_the_dict_it_replaced(tmp_path: Path) -> None:
     assert len(lazy) == 2
     assert [key for key, _ in lazy.items()] == ["111t", "2099e"]
 
-    # Read once, and again only when told the file has changed.
+    # Read once, and not again.
     save_bundles({"111t": BARE_2099}, str(path))
     assert len(lazy) == 2
-    lazy.reload()
-    assert len(lazy) == 1
 
 
 def test_a_table_that_is_not_json_is_an_error_not_an_empty_table(tmp_path: Path) -> None:

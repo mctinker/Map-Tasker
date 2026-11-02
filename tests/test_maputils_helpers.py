@@ -248,26 +248,6 @@ def test_a_suffix_goes_before_the_extension() -> None:
     assert maputils.append_to_filename(".hidden", "_x") == ".hidden_x"
 
 
-@pytest.mark.parametrize(
-    ("given", "expected"),
-    [
-        ("00ff20", "#00ff20"),
-        ("#33AAFF", "#33aaff"),
-        ("  #33aaff  ", "#33aaff"),
-        ("F00", "f00"),
-        ("#f00", "f00"),
-        ("green", "green"),
-        ("  Lavender ", "Lavender"),
-        ("12345", "12345"),
-        ("1234567", "1234567"),
-        ("ggg", "ggg"),
-        ("", ""),
-    ],
-)
-def test_a_six_digit_color_gets_its_hash_and_a_three_digit_one_loses_it(given: str, expected: str) -> None:
-    assert maputils.make_hex_color(given) == expected
-
-
 def test_a_dictionary_is_printed_with_its_nesting_as_tabs(monkeypatch: pytest.MonkeyPatch) -> None:
     shown = []
     monkeypatch.setattr(console, "debug", shown.append)

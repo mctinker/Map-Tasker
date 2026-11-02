@@ -91,9 +91,6 @@ MAX_OPTIONS = 100
 MAX_NAME = 80
 MAX_VALUE = 4000
 
-# The replies are small JSON objects, but a long Task's arguments are not tiny.
-PLAN_MAX_TOKENS = 4096
-DETAIL_MAX_TOKENS = 4096
 # How long to wait for one answer.  A model that reasons first can be slow, and one running on
 # this computer slower still; either way the user can stop sooner (see guiwins_draft).
 ASK_TIMEOUT = 120.0
@@ -1068,7 +1065,6 @@ async def draft_task(
     plan_settings = dataclasses.replace(
         settings,
         schema=PLAN_SCHEMA,
-        max_tokens=PLAN_MAX_TOKENS,
         effort="low",
         timeout=timeout,
     )
@@ -1100,7 +1096,6 @@ async def draft_task(
         detail_settings = dataclasses.replace(
             settings,
             schema=DETAIL_SCHEMA,
-            max_tokens=DETAIL_MAX_TOKENS,
             effort="low",
             timeout=timeout,
         )

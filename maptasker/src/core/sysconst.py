@@ -274,13 +274,10 @@ clean = re.compile("<.*?>")
 class Colors:
     """Define ANSI color codes for terminal output."""
 
-    White = "\033[0m"
     Yellow = "\033[33m"
     Red = "\033[31m"
-    Green = "\033[32m"
     Purple = "\033[35m"
     Blue = "\033[34m"
-    BOLD = "\033[1m"
 
 
 # Used for calls to addline (lineout.py).  Reference as FormatLine.add_end_span.value

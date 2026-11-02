@@ -125,7 +125,6 @@ class Change:
 # Why a site that matched is not being offered as a change.
 BLOCKED_UNADDABLE = "unaddable"  # taskedit cannot synthesize the target action
 BLOCKED_INDIRECT = "indirect"  # the name is computed at run time: '%(%which)'
-BLOCKED_DETACHED = "detached"  # element no longer in the tree (checked at apply time)
 BLOCKED_DUPLICATE = "duplicate"  # the Profile already holds a context of the target's kind
 
 

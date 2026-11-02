@@ -681,7 +681,6 @@ def apply_appearance_mode(self: MyGui, is_dark: bool) -> None:
     # so setting it here is what makes the choice outlive the session.
     self.appearance_mode = "dark" if is_dark else "light"
     self.dark_mode = is_dark
-    self.saved_background_color = bg
     # A settings restore carries its own colors and is mid-way through applying them, so leave
     # them alone -- extract_settings() raises this flag for exactly this reason.
     if not getattr(self, "extract_in_progress", False):
@@ -821,8 +820,6 @@ def _initialize_gui_settings(self: MyGui) -> None:
 
 def _initialize_ai_settings(self: MyGui) -> None:
     """Initializes AI-related variables."""
-    self.ai_analysis = None
-    self.ai_analysis_window = None
     self.ai_apikey = None
     self.ai_apikey_window = None
     self.ai_model = ""
@@ -845,14 +842,6 @@ def _initialize_android_settings(self: MyGui) -> None:
 def _initialize_display_settings(self: MyGui) -> None:
     """Initializes settings related to how data is displayed."""
     self.doing_diagram = False
-    self.diagramview_window = None
-    self.map_in_progress = False
-    self.mapview_window = None
-    self.miscview_window = None
-    self.treeview_window = None
-    self.video_window = None
-    self.outline = False
-    self.font_table = {}
 
 
 def _initialize_feature_flags(self: MyGui) -> None:
@@ -861,7 +850,6 @@ def _initialize_feature_flags(self: MyGui) -> None:
     self.first_time = True
     self.list_files = False
     self.list_unnamed_items = False
-    self.reset_debug_at_end = False
     self.restore = False
     self.runtime = False
     self.save = False
@@ -877,7 +865,6 @@ def _initialize_feature_flags(self: MyGui) -> None:
 def _initialize_data_structures(self: MyGui) -> None:
     """Initializes data structures used by the application."""
     self.conditions = None  # Consider if this should be initialized to a dict or list
-    self.named_item = None  # Consider if this should be initialized to a specific type
     self.single_profile_name = None
     self.single_project_name = None
     self.single_scene_name = None

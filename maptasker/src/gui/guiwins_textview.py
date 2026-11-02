@@ -368,9 +368,7 @@ class NiceGuiTextView(TextViewSearch):
             ui.button(translate_string("Bottom"), on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
             ui.button(translate_string("Toggle Wrap"), on_click=self.toggle_wrap).classes("bg-blue-600")
             if self.is_map:
-                self.map_message_label = ui.label(self.master_gui.state.view_limit_msg).classes(
-                    "text-orange-400 italic ml-4"
-                )
+                ui.label(self.master_gui.state.view_limit_msg).classes("text-orange-400 italic ml-4")
             if is_diagram:
                 ui.separator().props("vertical")
                 # Held on the view, not left anonymous, so "Reset Options" can move it:

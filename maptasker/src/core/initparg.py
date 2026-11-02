@@ -74,7 +74,6 @@ class ArgumentFields:
     italicize: bool = False  # Names italicized
     underline: bool = False  # Names underlined
     indent: int = 4  # Indentation for if/then/else nesting
-    icon_alignement: bool = True  # Align the Diagram view with icons
     profiles_per_line: int = DIAGRAM_PROFILES_PER_LINE  # Diagram Profiles per line
     language: str = "English"  # Language for the output and GUI
 
@@ -256,16 +255,6 @@ class ProgramArguments(ArgumentFields):
         if ignored:
             logger.info(f"Ignoring unknown saved setting(s): {', '.join(map(str, ignored))}")
         return ignored
-
-    @classmethod
-    def from_dict(cls, settings: Mapping[str, object]) -> ProgramArguments:
-        """
-        Build a ProgramArguments from a dictionary, defaulting what is missing and
-        ignoring what is unknown (see restore).
-        """
-        arguments = cls()
-        arguments.restore(settings)
-        return arguments
 
 
 # Fill in the name tables now that the fields exist.

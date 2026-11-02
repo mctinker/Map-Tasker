@@ -349,7 +349,7 @@ def _create_execution_section(self: MyGui) -> None:
             ),
         ).style("white-space: pre-wrap")
 
-    self.exit_button = ui.button(
+    ui.button(
         translate_string("Exit"),
         color="orange",
         on_click=lambda: get_rid_of_windows_and_exit(self),
@@ -932,8 +932,8 @@ def _create_main_body(self: MyGui) -> None:
         self.content_container = ui.column().classes("w-full max-w-full min-w-0 p-0 m-0 mt-6")
 
         with ui.dialog() as self.picker_dialog, ui.card().classes("p-4 items-center"):
-            self.picker_title_label = ui.label("").classes("font-bold text-sm mb-2")
-            self.picker_engine = ui.color_picker()
+            ui.label("").classes("font-bold text-sm mb-2")
+            ui.color_picker()
             ui.button(translate_string("Cancel"), on_click=self.picker_dialog.close).classes(
                 "mt-4 w-full bg-gray-500 text-white",
             )

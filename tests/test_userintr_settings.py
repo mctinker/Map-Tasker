@@ -517,7 +517,6 @@ def _restoring(monkeypatch: pytest.MonkeyPatch, settings: dict, colors: dict) ->
     monkeypatch.setattr(
         userintr_settings, "save_restore_args", lambda *_args, **_kwargs: (dict(settings), dict(colors))
     )
-    monkeypatch.setattr(userintr_settings, "make_hex_color", lambda color: color)
 
 
 def test_restoring_with_no_settings_file_says_so(
@@ -543,22 +542,6 @@ def test_restoring_settings_with_no_colours_says_colours_are_defaults(
     gui.extract_settings.assert_called_once_with({"bold": True})
     assert gui.restore is True
     assert ("Colors set to defaults.", "Green") in _said(gui)
-
-
-def test_a_settings_file_saved_with_no_colours_still_starts_the_window(
-    handlers: _Handlers,
-    gui: MagicMock,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """An empty [colors_to_use] used to end in make_hex_color(None), so the window never opened."""
-    _restoring(monkeypatch, {"bold": True}, {})
-    monkeypatch.undo()  # the real make_hex_color, which does not take None
-    monkeypatch.setattr(userintr_settings, "save_restore_args", lambda *_args, **_kwargs: ({"bold": True}, {}))
-    gui.saved_background_color = "#3e1414"
-
-    handlers.restore_settings_event()
-
-    assert gui.saved_background_color == "#3e1414"
 
 
 def test_a_settings_file_that_reports_an_error_resets_the_colours_and_stops(

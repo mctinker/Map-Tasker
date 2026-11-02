@@ -210,9 +210,9 @@ def gui_with_selection():
 # ==========================================
 def _optimized(raw_html: str) -> str:
     """The Map view's own pass over the file it reads, as process_data runs it."""
-    from maptasker.src.gui.guiwins_mapstream import HTML_OPTIMIZE_PATTERN, optimize_html
+    from tests.map_html_reference import optimized
 
-    return HTML_OPTIMIZE_PATTERN.sub(optimize_html, raw_html)
+    return optimized(raw_html)
 
 
 def test_html_optimize_pattern_substitution():

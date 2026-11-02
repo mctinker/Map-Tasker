@@ -281,10 +281,6 @@ def _render_analyze_tab(self: "MyGui", key_to_display: str, model_to_display: st
     with self.tab_analyze:
         # Clear the container frame so elements don't stack up iteratively
         self.tab_analyze.clear()
-        self.ai_project_label = None
-        self.ai_profile_label = None
-        self.ai_task_label = None
-        self.ai_scene_label = None
 
         # Display Model & Key tracking summaries
         # Use the raw model string or cleaned display model cleanly
@@ -309,16 +305,16 @@ def _render_analyze_tab(self: "MyGui", key_to_display: str, model_to_display: st
 
         # Display Targets selections
         translation_proj = translate_string("Project to Analyze:")
-        self.ai_project_label = ui.label(f"{translation_proj} {to_display['Project']}").classes("text-sm mt-1")
+        ui.label(f"{translation_proj} {to_display['Project']}").classes("text-sm mt-1")
 
         translation_prof = translate_string("Profile to Analyze:")
-        self.ai_profile_label = ui.label(f"{translation_prof} {to_display['Profile']}").classes("text-sm mt-1")
+        ui.label(f"{translation_prof} {to_display['Profile']}").classes("text-sm mt-1")
 
         translation_task = translate_string("Task to Analyze:")
-        self.ai_task_label = ui.label(f"{translation_task} {to_display['Task']}").classes("text-sm mt-1")
+        ui.label(f"{translation_task} {to_display['Task']}").classes("text-sm mt-1")
 
         translation_scene = translate_string("Scene to Analyze:")
-        self.ai_scene_label = ui.label(f"{translation_scene} {to_display['Scene']}").classes("text-sm mt-1")
+        ui.label(f"{translation_scene} {to_display['Scene']}").classes("text-sm mt-1")
 
         # Display Prompt configurations
         display_prompt = translate_string(self.ai_prompt)
@@ -1113,7 +1109,7 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
                 # right drawer.  Coffee does not change based on dark mode status.
                 with ui.row().classes("w-full items-center justify-center gap-2 mt-0 mb-2 flex-nowrap"):
                     ui.image(img_src).classes(f"{size_classes} object-contain shrink-0")
-                    self.coffee_button = ui.button(
+                    ui.button(
                         translate_string("Buy Me A Coffee"),
                         on_click=self.event_handlers.coffee_event,
                     ).classes("bg-blue-600 text-white font-bold")
@@ -1378,7 +1374,7 @@ async def _show_upgrade_if_newer(self: "MyGui") -> None:
         )
 
         # 'What's New' Button
-        self.whats_new_button = (
+        (
             ui.button(translate_string("What's New?"), on_click=self.event_handlers.whatsnew_event)
             .style("background-color: #246FB6; border-color: #79ff94; border-width: 1px; color: white;")
             .classes("w-full text-xs")

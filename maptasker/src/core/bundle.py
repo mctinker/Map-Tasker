@@ -69,10 +69,6 @@ class LazyBundles(Mapping[str, dict[str, Any]]):
             self._table = read_bundles(self._path)
         return self._table
 
-    def reload(self) -> None:
-        """Forget what was read, so that the next lookup reads the file again (after bldbndle rewrote it)."""
-        self._table = None
-
     def __getitem__(self, key: str) -> dict[str, Any]:
         """The recorded definition for an owning code, as the dict it always was."""
         return self.table[key]

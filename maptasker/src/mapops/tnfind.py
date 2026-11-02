@@ -410,7 +410,6 @@ class ScanResult:
     checked: int = 0
     catalogue_size: int = 0
     catalogue_complete: bool = False
-    catalogue_age_days: float = 0.0
     stopped: bool = False
     # Stop was pressed while the list of shares was being read; what had been read was compared all the same.
     listing_stopped: bool = False
@@ -474,7 +473,6 @@ def scan(
     catalogue = _catalogue(path, refresh=refresh, progress=progress, stop=stop)
     result.catalogue_size = len(catalogue.entries)
     result.catalogue_complete = catalogue.complete
-    result.catalogue_age_days = catalogue.age_days
     result.problem = catalogue.problem
     if not catalogue.entries:
         result.stopped = stop.is_set()

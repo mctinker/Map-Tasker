@@ -630,7 +630,7 @@ async def test_a_description_of_common_actions_is_drafted_in_one_question(backup
 
     assert len(asked) == 1
     settings, user = asked[0]
-    assert (settings.schema, settings.max_tokens) == (mapdraft.PLAN_SCHEMA, mapdraft.PLAN_MAX_TOKENS)
+    assert settings.schema == mapdraft.PLAN_SCHEMA
     assert "say hello when I get home" in user
     assert draft.name == "Hello"
     assert draft.steps == (

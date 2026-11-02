@@ -58,11 +58,6 @@ def clear_all() -> None:
         cache.clear()
 
 
-def registered_names() -> list[str]:
-    """The names of the registered caches, in the order they were declared."""
-    return [cache.name for cache in _REGISTRY]
-
-
 class Slot(Generic[T]):
     """One value a module keeps between calls, put back to its default by clear_all().
 

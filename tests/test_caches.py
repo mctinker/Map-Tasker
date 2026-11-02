@@ -69,7 +69,7 @@ def test_a_keyed_cache_builds_again_after_clear_even_for_the_same_key() -> None:
 # ##################################################################################
 def test_every_cache_the_package_declares_is_registered() -> None:
     """Declaring through caches is registering: nothing has to remember to."""
-    assert set(caches.registered_names()) >= EXPECTED
+    assert {cache.name for cache in caches._REGISTRY} >= EXPECTED
 
 
 @pytest.mark.parametrize(

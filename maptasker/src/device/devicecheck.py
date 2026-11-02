@@ -137,13 +137,6 @@ class TaskerCheck:
     present: dict[str, list[str]]
     unchecked: dict[str, str]
 
-    @property
-    def needs_prompt(self) -> bool:
-        """Anything already there, or anything that could not be checked.  The second prompts
-        for the reason an unreadable destination file does: 'might be there' is the user's call.
-        """
-        return any(self.present.values()) or bool(self.unchecked)
-
 
 def check_tasker_for_existing(
     ip_address: str, ip_port: str, sent: dict[str, list[str]], state: RunState

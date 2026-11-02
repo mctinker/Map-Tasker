@@ -1,6 +1,6 @@
 """guiwins_mapstream: getting the Map's html to the browser -- cleaned up, cut into chunks, or rebuilt as a fallback.
 
-optimize_map_html does what HTML_OPTIMIZE_PATTERN says to the Map file; split_for_streaming cuts it into socket-sized
+optimize_map_html cleans up the Map file; split_for_streaming cuts it into socket-sized
 chunks without leaving an element open across a cut; the fallback functions show a Map the browser could not take
 whole as plain escaped lines."""
 
@@ -12,8 +12,8 @@ from typing import Any
 # ==========================================
 # STREAMING THE MAP INTO THE TEXT VIEW
 # ==========================================
-# Pre-compile the regex pattern at the module level for maximum execution performance.
-# This scans the HTML string and hits all target replacements in a single pass O(N).
+# What optimize_map_html does to the Map file.  The same changes written as a single regular
+# expression are the reference the tests hold it to (tests/map_html_reference.py).
 #
 # Most of what it does is about newlines, because this view shows the Map as preformatted
 # text (see the wrap classes in build_ui) and a browser draws every newline in
@@ -31,13 +31,6 @@ from typing import Any
 # arrived with gap after gap of blank lines in it.  bildhtml now writes that file through
 # format.BlankLineLimiter, which keeps every gap to MAX_BLANK_LINES, so a second squeeze
 # here only fought the first.
-HTML_OPTIMIZE_PATTERN = re.compile(
-    r"(?P<formatting>(?<=>)[ \t]*[\r\n]+|[\r\n]+[ \t]*(?=<))"
-    r"|(?P<written>[\r\n]{2,})"
-    r"|(?P<heading><h2>MapTasker</h2>|<h2><span class=\"normtab\"></span>Directory</h2>)",
-)
-
-
 # Map the targeted string matches directly to their optimized counterparts.
 HTML_REPLACEMENT_MAP = {
     "<h2>MapTasker</h2>": '<a id="the_top"></a><h5>MapTasker</h5>',
@@ -45,21 +38,7 @@ HTML_REPLACEMENT_MAP = {
 }
 
 
-def optimize_html(match: re.Match[str]) -> str:
-    """
-    What one match of HTML_OPTIMIZE_PATTERN becomes -- see the note above it.
-
-        :param match: the matched formatting, written newlines, or heading
-        :return: what to put in its place
-    """
-    if match.lastgroup == "formatting":
-        return ""  # The file's own line endings, which this view would otherwise draw.
-    if match.lastgroup == "written":
-        return "\n"  # The author's own, and one line break is all they asked for.
-    return HTML_REPLACEMENT_MAP[match.group(0)]
-
-
-# The pieces HTML_OPTIMIZE_PATTERN is made of, taken one at a time -- see optimize_map_html.
+# The three pieces of that one regular expression, taken one at a time -- see optimize_map_html.
 TAG_THEN_NEWLINES = re.compile(r">[ \t]*[\r\n]+")
 
 
@@ -109,13 +88,13 @@ def _join_lines_next_to_tags(text: str) -> str:
 
 
 def optimize_map_html(text: str) -> str:
-    """Make the Map file ready for the browser: HTML_OPTIMIZE_PATTERN's changes, and shorter spaces.
+    """Make the Map file ready for the browser: the newline changes noted above, and shorter spaces.
 
-    The text this returns is the text HTML_OPTIMIZE_PATTERN.sub(optimize_html, text) returns,
+    The text this returns is the text tests/map_html_reference.py's one-pass version returns,
     with the indentation's "&nbsp;"s written as the character they stand for.  Two reasons for
     each change, and both are about how long a large Map takes to appear:
 
-      * The pattern is an alternation that starts with a look-behind, which leaves the regular
+      * That regular expression is an alternation that starts with a look-behind, which leaves the regular
         expression engine no character to search for, so it tried every position of twenty
         megabytes: over a second.  Cut into its three pieces, each with a character to look
         for, and with the newlines left to str.split, the same changes take about a tenth of it.

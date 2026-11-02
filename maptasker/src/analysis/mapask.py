@@ -88,11 +88,8 @@ UNEXPRESSED_KEY = "unexpressed"
 # accepted, because the check is against the whole catalog rather than against the prompt.
 MAX_CHOICES = 400
 
-# A reply is one small JSON object.  Generous, so a model that explains itself first is
-# not cut off before it gets to the object.
-MAX_REPLY_TOKENS = 1024
-# Claude's limit counts its thinking as well as the reply, and current Claude models think by
-# default -- so 1024 can be spent before the object is written.
+# A reply is one small JSON object.  Claude's limit counts its thinking as well as the reply, and
+# current Claude models think by default -- so a small limit can be spent before the object is written.
 ANTHROPIC_MAX_TOKENS = 16000
 
 # The reply's shape, which Claude models that support structured output are held to exactly.
@@ -175,9 +172,8 @@ class AskError(Exception):
 class ModelSettings:
     """Which model to ask, and with what key -- read off the Analyze tab when Ask is pressed.
 
-    'schema' and 'max_tokens' are for a question whose reply is not a Find query -- see
-    mapdraft, which asks twice with two different shapes of reply.  Left alone they are the
-    Find's own.
+    'schema' is for a question whose reply is not a Find query -- see mapdraft, which asks twice
+    with two different shapes of reply.  Left alone it is the Find's own.
     """
 
     provider: str
@@ -185,7 +181,6 @@ class ModelSettings:
     api_key: str = ""
     # The shape of the reply, for the models that can be held to one; None means REPLY_SCHEMA.
     schema: dict[str, Any] | None = None
-    max_tokens: int = MAX_REPLY_TOKENS
     # How hard a model that reasons before it answers is asked to: "low" for a question whose
     # answer needs no deliberation.  Applied only where the provider and model take it, and
     # dropped, with the request made again, if the service turns it down.  "" leaves it alone.

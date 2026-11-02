@@ -18,7 +18,6 @@ class APIKeyDialog:
 
     def __init__(self, master_gui: MyGui) -> None:
         """Initialize the NiceGUI dialog container."""
-        self.master = master_gui
         self.my_gui = master_gui
 
         # Create the inner NiceGUI dialog element.  persistent: it holds typed-in API keys,

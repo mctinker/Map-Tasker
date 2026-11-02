@@ -269,7 +269,7 @@ def create_colors_tab(self: MyGui) -> None:
             .props("dense")
         )
 
-        self.color_picker_input = (
+        (
             ui.color_input(
                 label=translate_string("Choose Hex Color"),
                 value="#3f99ff",
@@ -319,11 +319,11 @@ def create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
     with tab:
         # 1. Action Buttons Row
         with ui.row().classes("items-center gap-4 mb-4"):
-            self.show_apikeys_button = ui.button(
+            ui.button(
                 translate_string("Show/Edit API Key(s)"),
                 on_click=self.event_handlers.ai.ai_apikey_event,
             )
-            self.change_prompt_button = ui.button(
+            ui.button(
                 translate_string("Change Prompt"),
                 on_click=self.event_handlers.ai.ai_prompt_event,
             )
@@ -333,14 +333,14 @@ def create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
                 on_click=self.event_handlers.ai.ai_analyze_event,
             )
             update_analysis_button_color(self)
-            self.analysis_query_button = ui.button(
+            ui.button(
                 "?",
                 on_click=lambda: self.event_handlers.query_event("ai"),
             ).classes("bg-blue-600 text-white min-w-[40px]")
 
         # 2. Model Selection Row
         with ui.row().classes("items-center gap-4"):
-            self.model_to_use_label = ui.label(translate_string("Model to Use:")).classes("font-bold")
+            ui.label(translate_string("Model to Use:")).classes("font-bold")
 
             # Display the default model list
             display_model_pulldown(self)
@@ -376,7 +376,7 @@ def create_name_display_options_section(self: MyGui) -> None:
     handlers = self.event_handlers
 
     # 1. Create the Section Label with an inline native tooltip
-    self.display_names_label = (
+    (
         ui.label(translate_string("Project/Profile/Task/Scene Names:"))
         .classes("text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 leading-none")
         .tooltip(translate_string("Add highlighting to Project, Profile and Task names in the output."))
@@ -452,7 +452,7 @@ def create_task_action_limit_section(self: MyGui) -> None:
 
 def create_indentation_section(self: MyGui) -> None:
     """Creates the If/Then/Else indentation dropdown options in the NiceGUI sidebar."""
-    self.indent_label = ui.label(translate_string("If/Then/Else Indentation Amount:")).classes(
+    ui.label(translate_string("If/Then/Else Indentation Amount:")).classes(
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
 
@@ -498,7 +498,7 @@ def create_language_selection_section(self: MyGui) -> None:
 
 def create_view_limit_section(self: MyGui) -> None:
     """Creates the view limit dropdown in the sidebar drawer."""
-    self.viewlimit_label = ui.label(translate_string("View Limit:")).classes(
+    ui.label(translate_string("View Limit:")).classes(
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
 
@@ -526,7 +526,7 @@ def create_view_limit_section(self: MyGui) -> None:
         self.view_limit = int(temp_view_limit) if temp_view_limit != "Unlimited" else 9999999
 
         # Query help button
-        self.viewlimit_query_button = ui.button(
+        ui.button(
             "?",
             on_click=lambda: self.event_handlers.query_event("viewlimit"),
         ).classes("bg-blue-600 text-white min-w-[40px]")
@@ -540,7 +540,7 @@ def create_notification_duration_section(self: MyGui) -> None:
     thousandths of a second.  The stored value is still milliseconds, because that is what
     ui.notify wants and what the settings file has always held for numeric settings.
     """
-    self.notify_timeout_label = ui.label(translate_string("Notification Duration:")).classes(
+    ui.label(translate_string("Notification Duration:")).classes(
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
     with ui.row().classes("w-full items-center gap-2"):
@@ -673,7 +673,7 @@ def create_settings_buttons_section(self: MyGui) -> None:
 
 def create_font_section(self: MyGui) -> None:
     """Creates the font selection dropdown inside the content container."""
-    self.font_label = ui.label(translate_string("Font To Use In Output:")).classes(
+    ui.label(translate_string("Font To Use In Output:")).classes(
         "text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 m-0 p-0 leading-none",
     )
 
@@ -723,7 +723,7 @@ def create_file_and_message_buttons_section(self: MyGui) -> None:
         # opening the Android panel (get_xml_from_android_event in userintr_android.py) adds a panel
         # below them rather than replacing them, and clear_android_buttons() (guiutils.py) only
         # tears that panel down again.
-        with ui.row().classes("w-full flex-nowrap items-center justify-center gap-2 mt-0") as self.android_button_row:
+        with ui.row().classes("w-full flex-nowrap items-center justify-center gap-2 mt-0"):
             self.get_backup_button = (
                 ui.button(
                     translate_string("Get XML from Android Device"),
@@ -732,7 +732,7 @@ def create_file_and_message_buttons_section(self: MyGui) -> None:
                 .style("background-color: #246FB6; border-color: #6563ff; border-width: 2px; color: white;")
                 .classes("mt-0 ml-0 font-bold flex-grow text-xs")
             )
-            self.android_query_button = ui.button(
+            ui.button(
                 "?",
                 on_click=lambda: self.event_handlers.query_event("android"),
             ).classes("bg-blue-600 text-white min-w-[40px] shrink-0")
@@ -756,14 +756,14 @@ def create_help_options_section(self: MyGui) -> None:
 
     # 1. Specialized Help Buttons Row
     with ui.row().classes("w-full gap-2 mt-0 self_center justify-center"):
-        self.display_help_button = ui.button(
+        ui.button(
             translate_string("Display Help"),
             on_click=lambda: handlers.query_event("help"),
         ).classes(
             "bg-blue-600 text-white",
         )
 
-        self.get_android_help_button = ui.button(
+        ui.button(
             translate_string("Get Android Help"),
             on_click=lambda: handlers.query_event("android"),
         ).classes("bg-blue-600 text-white")
