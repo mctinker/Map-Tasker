@@ -248,10 +248,10 @@ A: Prerequisites:
 1- Browser and Android device on the same local network.
 
 2- The following two sample Tasker projects on your target Android device, both of which must be installed with all Profiles enabled:
-  ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4)
+  ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4)  
   ['Tasker HTTP API' Tasker Project](https://shorturl.at/hlTj0)
 
-Further details are available in the "Notes" section of this README.
+Further details are available in the [Note 2](#2) section of this README.
 
 **Q: Diagram connectors are misaligned for names in Chinese, Korean, or Japanese.**
 

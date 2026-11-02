@@ -632,6 +632,7 @@ strict = [
     "maptasker/src/device/deviceinv.py",
     "maptasker/src/device/devicemonitor.py",
     "maptasker/src/device/deviceoffer.py",
+    "maptasker/src/device/deviceserver.py",
     "maptasker/src/device/deviceresource.py",
     "maptasker/src/device/devicetask.py",
     "maptasker/src/device/deviceverify.py",

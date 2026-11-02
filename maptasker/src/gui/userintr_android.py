@@ -29,7 +29,7 @@ from maptasker.src.core.maputil2 import (
     translate_string,
 )
 from maptasker.src.core.maputils import clear_tasker_data
-from maptasker.src.device import devicehelpers, deviceoffer, devicetask, deviceverify
+from maptasker.src.device import devicehelpers, deviceoffer, deviceserver, devicetask, deviceverify
 from maptasker.src.edit import (
     profedit,
     projedit,
@@ -121,6 +121,7 @@ class AndroidEventHandlers(HandlerGroup):
             self._mount_connection_fields(android_ipaddr, android_port, android_file)
             self._mount_list_files_row()
             self._mount_helper_task_rows()
+            self._mount_install_server_row()
             self._mount_cancel_row()
             self._mount_set_details_button()
 
@@ -209,6 +210,29 @@ class AndroidEventHandlers(HandlerGroup):
                         "all of them at once.  MapTasker puts back any it needs the next time it is used.\n\n"
                         "Tasker refuses the whole Project if it already has any of these Tasks, so any "
                         "helper Tasks already on the device are listed first for you to delete manu.",
+                    ),
+                ).style("white-space: pre-wrap")
+
+    def _mount_install_server_row(self) -> None:
+        """The button that has Tasker open the 'Http Server Example' share on the device."""
+        gui = self.gui
+        with ui.row().classes("w-full items-center"):
+            install_button = (
+                ui.button(
+                    translate_string("Install 'Http Server Example' Project"),
+                    on_click=gui.event_handlers.android.install_server_event,
+                )
+                .props("flat dense color=primary")
+                .classes("flex-grow text-xs")
+            )
+            with install_button:
+                ui.tooltip(
+                    translate_string(
+                        "For a device that does not have the 'Http Server Example' Tasker project, which "
+                        "reading a backup and Save To Android depend on.\n\n"
+                        "Opens the project's TaskerNet page on the device.  Tap Import there, and again in "
+                        "Tasker if it asks.  This needs the 'Tasker HTTP API' project installed and running, "
+                        "since it is what MapTasker reaches the device through until the other is there.",
                     ),
                 ).style("white-space: pre-wrap")
 
@@ -307,6 +331,49 @@ class AndroidEventHandlers(HandlerGroup):
         self.gui.android_port = ip_port
 
         build_helper_tasks_dialog(stale, current, f"{ip_address}:{ip_port}")
+
+    async def install_server_event(self) -> None:
+        """Have Tasker open the 'Http Server Example' share on the device, and report when the project turns up.
+
+        For a device that lacks it.  Nothing here pings the device first, as the other Android
+        events do: that ping is a GET on the 'file' route, which is the project being installed,
+        so it would fail for exactly the device this is for.  deviceserver.install_server_example
+        goes through the Tasker HTTP API and says what is wrong if that is missing too.
+
+        Reads the connection details out of the Get XML panel's own fields, as
+        list_helper_tasks_event does.
+        """
+        ip_address = (self.gui.ip_entry.value or "") if hasattr(self.gui, "ip_entry") and self.gui.ip_entry else ""
+        ip_port = (self.gui.port_entry.value or "") if hasattr(self.gui, "port_entry") and self.gui.port_entry else ""
+        ip_address, ip_port = ip_address.strip(), ip_port.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
+        if not ip_address or not ip_port:
+            ui.notify("An Android IP address and port are needed.", type="negative")
+            return
+        notify_watch_android_device()
+
+        # A status line for a step only the user can take, so no timeout: the outcome below
+        # takes it down.  See _await_helper_project's identical note.
+        pending = ui.notification(
+            f"Asking Tasker on {ip_address}:{ip_port} to open the '{deviceserver.SERVER_PROJECT_NAME}' share.  "
+            "When it comes up on the device, tap Import.",
+            type="info",
+            timeout=None,
+            close_button=True,
+            multi_line=True,
+        )
+        outcome = await run.io_bound(deviceserver.install_server_example, ip_address, ip_port, state=self.state)
+        if not getattr(pending, "is_deleted", False):
+            with suppress_logged("Dismissing the pending notice"):
+                pending.dismiss()
+        if outcome is None:
+            return
+        return_code, message = outcome
+        if return_code == 0:
+            self.gui.android_ipaddr = ip_address
+            self.gui.android_port = ip_port
+        with suppress_logged("Notifying of the device's reply"):
+            ui.notify(message, type="positive" if return_code == 0 else "warning", multi_line=True)
 
     async def install_helper_project_event(self) -> None:
         """Put every current helper Task in /Tasker/projects as one Project named 'MapTasker',

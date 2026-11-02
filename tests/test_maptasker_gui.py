@@ -1283,7 +1283,7 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
         def dismiss(self) -> None:
             self.dismissed = True
 
-    monkeypatch.setattr(userintr.ui, "notification", _FakeNotification)
+    monkeypatch.setattr(userintr_android.ui, "notification", _FakeNotification)
     return calls
 
 
@@ -1982,7 +1982,6 @@ async def test_a_notification_the_user_already_closed_does_not_take_the_app_down
     profile_dialog_refs,
 ):
     """The import still gets reported, and nothing propagates out of the handler."""
-    from maptasker.src.gui import userintr
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, _SCENE_RESULTS)
@@ -1996,7 +1995,7 @@ async def test_a_notification_the_user_already_closed_does_not_take_the_app_down
         def dismiss(self) -> None:
             raise ValueError("I/O operation on closed file.")
 
-    monkeypatch.setattr(userintr.ui, "notification", _DeletedNotification)
+    monkeypatch.setattr(userintr_android.ui, "notification", _DeletedNotification)
 
     await _import_scene(event_handler, android_refs)
 
@@ -2993,6 +2992,53 @@ async def test_a_device_that_would_not_answer_opens_no_dialog(monkeypatch, event
 
     assert calls["dialog"] == []
     assert any("Connection error" in message for message, kind in calls["notify"] if kind == "negative")
+
+
+# ==========================================
+# Installing the 'Http Server Example' project on a device that lacks it
+# ==========================================
+@pytest.mark.asyncio
+async def test_installing_the_server_project_goes_to_the_device_without_pinging_it_first(monkeypatch, event_handler):
+    """The ping is a GET on the 'file' route, which is the project being installed: it would fail for this device."""
+    from maptasker.src.device import deviceserver
+
+    calls = _patch_helper_task_listing(monkeypatch, (0, "'Http Server Example' is already in Tasker."))
+    pinged: list = []
+    monkeypatch.setattr(userintr_android, "ping_android_device", lambda *_args: pinged.append(True))
+    monkeypatch.setattr(userintr_android, "notify_watch_android_device", lambda: None)
+    monkeypatch.setattr(userintr_android.ui, "notification", lambda *_args, **_kwargs: MagicMock())
+    _android_panel(event_handler)
+
+    await event_handler.android.install_server_event()
+
+    assert calls["io_bound"][0][0] is deviceserver.install_server_example
+    assert calls["io_bound"][0][1] == ("192.168.0.210", "1821")
+    assert pinged == []
+    assert calls["notify"] == [("'Http Server Example' is already in Tasker.", "positive")]
+    assert event_handler.gui.android_ipaddr == "192.168.0.210"
+
+
+@pytest.mark.asyncio
+async def test_a_server_project_that_did_not_arrive_is_reported_as_a_warning(monkeypatch, event_handler):
+    calls = _patch_helper_task_listing(monkeypatch, (8, "Tasker has not reported Project 'Http Server Example'."))
+    monkeypatch.setattr(userintr_android, "notify_watch_android_device", lambda: None)
+    monkeypatch.setattr(userintr_android.ui, "notification", lambda *_args, **_kwargs: MagicMock())
+    _android_panel(event_handler)
+
+    await event_handler.android.install_server_event()
+
+    assert calls["notify"] == [("Tasker has not reported Project 'Http Server Example'.", "warning")]
+
+
+@pytest.mark.asyncio
+async def test_installing_the_server_project_needs_an_address(monkeypatch, event_handler):
+    calls = _patch_helper_task_listing(monkeypatch, (0, ""))
+    _android_panel(event_handler, ip="", port="")
+
+    await event_handler.android.install_server_event()
+
+    assert calls["io_bound"] == []
+    assert calls["notify"] == [("An Android IP address and port are needed.", "negative")]
 
 
 # ==========================================

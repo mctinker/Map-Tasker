@@ -62,30 +62,36 @@ Taskers backup-fil eller andet Tasker-eksporteret XML kan enten uploades manuelt
 
 ## Funktioner
 
-- Vælg selv detaljeringsgraden for output, fra et kort overblik til et meget detaljeret niveau af din konfiguration.
-- Vis kun et enkelt Project, Profile eller Task.
-- Inkluder/udelad Profile- og Task-betingelser: States, Events osv.
-- Lad output blive strømmet direkte, eller gør det "flot" ved at justere alle felter.
-- Skift udseende: vælg 'lys' eller 'mørk' tilstand.
-- Output med din foretrukne monospace-skrifttype, og marker Project-, Profile- og Task-navne med kursiv, fed, markering og/eller understregning.
-- Ændr farverne, der er knyttet til forskellige aspekter af output, efter dit humør.
-- Inkluder TaskerNet-beskrivelser og/eller Tasker-indstillinger (preferences).
-- For komplekse konfigurationer kan du valgfrit inkludere en indholdsfortegnelse med hyperlinks til dine Projects, Profiles, Tasks og Scenes.
-- Vis et diagram over hele din Tasker-konfiguration samt en Task Flow.
-- Kommandolinje- eller grafisk brugergrænseflade.
-- Brug eksporteret XML, eller hent XML direkte fra din Android-enhed til konfigurationskortet.
-- Send Projects, Profiles, Tasks og Scenes tilbage til Tasker på din Android-enhed.
-- Gem og gendan kørselsindstillinger.
-- Identificer Tasks med for mange "actions", som potentielt bør opdeles i flere Tasks.
-- AI-analysemulighed til at analysere et bestemt Project, Profile, Task eller Scene ved brug af enten de serverbaserede ChatGPT/Claude/Gemini eller de lokalt baserede Llama-modeller (via Ollama).
-- Vis resultater direkte i den grafiske brugergrænseflade: (konfigurations-) Map-visning, Tree-visning og Diagram-visning.
-- Automatisk opdagelse af opdateringer og valgfri installation af nye versioner.
-- Forbedret søgning og struktureret 'Find/Replace'.
-- Tilføj og rediger Projects, Profiles, Tasks og Scenes (se [Note 6](#6)).
-- Vis en liste over ændringer siden en bestemt dato.
-- Knyt et Project, Profile, Task eller Scene til det TaskerNet-share, det kommer fra, bliv underrettet, når forfatteren udgiver en nyere version, og tag dennes ændringer én ad gangen.
-- Analyser sundhedstilstanden for Tasker-XML'en samt de mange variabler i hele konfigurationen.
-- Sammenlign en XML-fil med den indlæste XML.
+- Dit valg af detaljeringsgrad for outputtet, fra en overordnet oversigt til en meget detaljeret beskrivelse af din konfiguration.
+- Vis kun ét projekt, profil eller opgave.
+- Inkluder/ekskluder profil- og opgavebetingelser: Tilstande, begivenheder osv.
+- Enten kan du streame alt, eller også kan du formatere outputtet, så alle felterne er justeret.
+- Ændr udseendet: vælg 'lyst' eller 'mørkt' tema.
+- Udskriv resultatet med din foretrukne monospace-skrift, og fremhæv navne på "Project", "Profile" og "Task" ved at gøre dem kursive, fed, med fremhævning eller understregning.
+- Juster farverne, der er forbundet med forskellige aspekter af outputtet, så de passer til din stemning.
+- Inkluder beskrivelser og/eller præferencer for TaskerNet.
+- For komplekse konfigurationer, kan du valgfrit inkludere en ordbog med links til dine projekter, profiler, opgaver og scener.
+- Vis et diagram over din komplette Tasker-konfiguration samt en flow-diagram.
+- Kommandolinje eller grafisk brugergrænseflade.
+- Brug det eksporterede XML-format eller hent XML-filen direkte fra din Android-enhed til konfigurationsmapping.
+- Send projekter, profiler, opgaver og scener tilbage til Tasker på din Android-enhed.
+- Gem og gendan indstillinger under kørsel.
+- Identificer opgaver, der har for mange "handlinger", og som potentielt bør opdeles i flere opgaver.
+- Mulighed for at analysere et specifikt projekt, profil, opgave eller scene ved hjælp af enten ChatGPT/Claude/Gemini-modellerne (som kører på serveren) eller Llama-modellen (som kører lokalt, via Ollama).
+- Vis resultater direkte i grafiske brugergrænseflader: (Konfiguration) Kortvisning, trævisning og diagramvisning.
+- Automatisk opdagelse af opdateringer og mulighed for valgfri installation af nye versioner.
+- Forbedret søgning og struktureret "Find/Erstat"-funktion.
+- Tilføj og rediger projekter, profiler, opgaver og scener (se [Note 6](#6))
+- Vis ændringer i listen siden en bestemt dato.
+- Analyser Tasker XML's sundhed samt de mange variabler i konfigurationen.
+- Sammenlign en XML-fil med den indlæste XML-fil.
+- Tjek TaskerNet for opdateringer af projekter, profiler og opgaver, og anvend dem, hvis de er tilgængelige.
+- Importer et Tasker-objekt fra en anden XML-fil, sammen med alle dets afhængigheder.
+- Udfør en trendanalyse for at se, om din kode forbedres (eller ikke).
+- Lav en liste over alt, hvad en opgave bruger, der ikke er en del af Android-enheden.
+- Bestem 'hvilke funktioner der skal aktiveres', baseret på en bestemt betingelse (tilstand eller begivenhed).
+- Gå igennem logikken i en opgave, og sammenlign et udførelse med et andet.
+- Kør en live-overvågning på Android-enheden for at se, hvilke profiler og opgaver der aktiveres.
 
 ## Programafhængigheder
 
@@ -103,13 +109,13 @@ Taskers backup-fil eller andet Tasker-eksporteret XML kan enten uploades manuelt
 
 Dette program og alle dets forudsætninger vil kræve omkring 230 MB plads. Det anbefales at installere det i et virtuelt miljø (valgmulighed 2).
 
-- Installer MapTasker ved at indtaste en af følgende kommandoer i Terminal/Kommandoprompt:
+1- Installer MapTasker ved at indtaste en af følgende kommandoer i Terminalen/Command Prompt:
 
      ```python -m pip install maptasker -U```
                  ...ELLER...
      ```uv add maptasker```
 
-- For at installere det i et virtuelt miljø, indtast følgende kommando i Terminal/kommandoprompt:
+2- For at installere det i et virtuelt miljø, skal du indtaste følgende kommando i Terminal/kommandoprompt:
 
   via pip...
   - `cd xxx`, hvor 'xxx' er den mappe, du vil opsætte det virtuelle miljø i.
@@ -241,9 +247,11 @@ S: Forudsætninger:
 
 1- Browseren og Android-enheden skal være på samme lokale netværk.
 
-2- ['Http Server Example'-Tasker-projektet](https://shorturl.at/bwCD4) skal være installeret og aktivt på Android-enheden, med serveren kørende.
+2- De følgende to eksempler på Tasker-projekter på din mål-Android-enhed, som begge skal installeres med alle profiler aktiveret:
+  [Tasker-projekt: 'Eksempel på HTTP-server'] (https://shorturl.at/bwCD4)
+  [Tasker-projekt: 'Tasker HTTP API'] (https://shorturl.at/hlTj0)
 
-Yderligere detaljer findes i afsnittet "Noter" i denne README.
+Yderligere detaljer findes i afsnittet [Note 2](#2) i denne README-fil.
 
 **S: Diagramforbindelser er forkert justeret for navne på kinesisk, koreansk eller japansk.**
 
@@ -268,9 +276,10 @@ Detaljer om nogle af de punkter, der er nævnt i afsnittet "Fejlfinding og ofte 
 
 For at hente Tasker-XML-filen direkte:
 
-- Sørg for, at både skrivebordet og Android-enheden er på samme lokale netværk, og at Tasker kører.
-- ['Http Server Example'-Tasker-projektet](https://shorturl.at/bwCD4) skal være installeret og aktivt på Android-enheden, med serveren kørende. Husk at køre "Update GD HTTP Info"-Tasken og (kun første gang) indtaste dit Google Drive-ID, når du bliver bedt om det.
-- Når den er hentet, gemmes XML'en på dit skrivebord og behøver ikke konstant at blive hentet igen, medmindre den ændres.
+- Sørg for, at både desktop- og Android-enheder er på samme lokale netværk, og at Tasker er i gang.
+- Projekterne '['Http Server Example' Tasker Projekt](https://shorturl.at/bwCD4) og '['Tasker HTTP API' Tasker Projekt](https://shorturl.at/hlTj0) skal begge være installeret og aktive på Android-enheden, med serveren i gang. Husk at køre opgaven "Update GD HTTP Info" og (kun første gang) indtaste din Google Drive-ID, når du bliver bedt om det.
+- Når den er hentet, gemmes XML-filen på dit skrivebord, og den behøver ikke at hentes igen, medmindre den er blevet ændret.
+- Forskellige andre funktioner i MapTasker vil først bede dig om at give tilladelse på din Android-enhed for at aktivere den specifikke funktion.
 
 ### 3
 **AI-understøttelse**

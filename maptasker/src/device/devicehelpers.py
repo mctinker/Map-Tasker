@@ -22,6 +22,7 @@ from maptasker.src.device.deviceoffer import (
     build_launch_tasker_task,
     stage_xml,
 )
+from maptasker.src.device.deviceserver import OPEN_SHARE_TASK_NAME, build_open_share_task
 from maptasker.src.device.devicetask import (
     OBJECT_LIST_TASK_NAME,
     RUN_TASK_HELPER_NAME,
@@ -81,6 +82,7 @@ def current_helper_builders(state: RunState) -> dict[str, Callable[[], EditableT
                 OBJECT_LIST_TASK_NAME: build_object_list_task,
                 ID_CHECK_TASK_NAME: build_id_check_task,
                 LAUNCH_TASKER_TASK_NAME: build_launch_tasker_task,
+                OPEN_SHARE_TASK_NAME: build_open_share_task,
                 HELPER_TASK_NAME: build_helper_task,
                 RUN_TASK_HELPER_NAME: build_run_task_helper,
             }.items()

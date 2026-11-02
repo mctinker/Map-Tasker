@@ -919,7 +919,8 @@ _PROTECTED = re.compile(
 _MARKER = re.compile(r"XQ(\d+)QX")
 BADGES = re.compile(r"(?:\s*!?\[[^\]]*\]\([^)]*\)[\s,]*)+")
 BADGE_WORDS = 3
-_MARKUP_PREFIX = re.compile(r"^((?:\s*(?:#{1,6}\s+|>\s?|(?:[-*+]|\d+[.)])\s+))*\s*)(.*)$", re.DOTALL)
+# "2- text" is a numbered step too (README.md writes them that way); left in the text, a translator turns the dash into a dot.
+_MARKUP_PREFIX = re.compile(r"^((?:\s*(?:#{1,6}\s+|>\s?|(?:[-*+]|\d+[.)-])\s+))*\s*)(.*)$", re.DOTALL)
 
 Translator = Callable[[str, str], "str | None"]
 
