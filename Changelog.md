@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: The Diagram now builds about twice as fast on large configurations; one 13 MB backup went from about 15 seconds to about 7.
+- Changed: When your Android device answers an import with a 503 error, MapTasker now says that Tasker is reachable but not handling the request, and points you to the 'POST Import' Profile in the 'Tasker HTTP API' project and Tasker's Run Log. Before, you only saw the status code.
 - Changed:
 
 ### Removed
@@ -26,6 +27,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Fetching a file from your Android device that is not a Tasker backup now tells you so instead of loading it as though it were one.
 - Fixed: When your Android device stops accepting the access key MapTasker is holding, checks that read from the device now ask for a fresh key and carry on, instead of reporting the device as failing.
 - Fixed: Upgrading to the latest version no longer prints a confusing "Ignoring NICEGUI_PORT" warning in the console when MapTasker restarts.
+- Fixed: Long lines in the Missing Resources report, such as a problem message from the device, now wrap inside the window instead of running off its right edge where they could not be read.
 - Fixed:
 
 

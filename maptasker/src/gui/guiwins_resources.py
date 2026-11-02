@@ -183,15 +183,19 @@ class _ResourcesDialog:
         """Draw the report, every row that points at something a link into the Map."""
         self.report_area.clear()
         rows = self.report_lines()
+        # pre-wrap, not pre: a long line (a problem message, a deep path) wraps inside the panel; the scroll area
+        # has no sideways scroll, so a line that does not wrap is cut off where the panel ends.
         with self.report_area, ui.column().classes("w-full gap-0 p-2"):
             for row in rows[:_LINE_LIMIT]:
                 if row.target is not None:
                     ui.link(row.text, "#").on("click", self.make_jump(row.target), js_handler=LINK_CLICK_JS).classes(
-                        "text-blue-600 dark:text-blue-400 font-mono text-xs whitespace-pre "
+                        "text-blue-600 dark:text-blue-400 font-mono text-xs whitespace-pre-wrap break-words "
                         "decoration-dotted hover:underline",
                     )
                 else:
-                    ui.label(row.text).classes("font-mono text-xs whitespace-pre " + _row_classes(row.text))
+                    ui.label(row.text).classes(
+                        "font-mono text-xs whitespace-pre-wrap break-words max-w-full " + _row_classes(row.text)
+                    )
             if len(rows) > _LINE_LIMIT:
                 ui.label(
                     f"... {len(rows) - _LINE_LIMIT} more lines.  {translate_string('Save Report writes them all')}.",

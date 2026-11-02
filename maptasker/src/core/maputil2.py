@@ -254,7 +254,7 @@ def _warn_if_on_event_loop(url: str) -> None:
 # How long each kind of request to the Android device waits for an answer, in seconds.
 _READ_TIMEOUT_SECONDS = 5
 # Asking for a key puts an approval prompt on the device, and the request is not answered until
-# the user has dealt with it.  Thirty seconds is how long the HTTP Server Example's own 'GET Auth'
+# the user has dealt with it.  Thirty seconds is how long the Tasker HTTP API's own 'GET Auth'
 # Task is given to answer (see LIST_READ_TIMEOUT_SECONDS), so waiting any less gives up on a
 # request the device is still working on.
 _AUTH_TIMEOUT_SECONDS = 30
@@ -264,7 +264,7 @@ _DELETE_TIMEOUT_SECONDS = 10
 # name, which looks up every Task one by one.  Measured at 4.5 seconds for ~500 Tasks on an
 # idle phone, and past 5 whenever the phone is still busy with the request before it, so the
 # ordinary read timeout failed it on devices that were answering perfectly well.  Thirty is
-# the HTTP Server Example's own limit for answering a request.
+# the Tasker HTTP API's own limit for answering a request.
 LIST_READ_TIMEOUT_SECONDS = 30
 
 # What Tasker's HTTP Server Example lets through in a 'name=' filter.  Its handlers pick the
@@ -335,6 +335,26 @@ def _auth_headers(auth_key: str = "", content_type: str = "") -> dict[str, str] 
     if content_type:
         headers["Content-Type"] = content_type
     return headers or None
+
+
+# The two Tasker projects MapTasker talks to, and which one answers a route.  Every 'api/...' route (the key, the
+# import, running and listing Tasks, Profiles and Scenes, deleting a file) is a Profile in 'Tasker HTTP API'; the
+# plain ones ('file' to read a file, 'upload' to write one) are Profiles in 'HTTP Server Example'.  A failure
+# should send the user to the project that actually holds the route.
+_API_PROJECT = "Tasker HTTP API"
+_FILE_PROJECT = "HTTP Server Example"
+# The Profile that answers a route MapTasker POSTs to, for the messages that name it.
+_POST_PROFILES = {"api/import": "POST Import", "api/tasks": "POST Task"}
+
+
+def _project_for(route: str) -> str:
+    """The Tasker project whose Profile answers this route ('api/tasks', 'file', 'upload')."""
+    return _API_PROJECT if route.strip("/").startswith("api/") else _FILE_PROJECT
+
+
+def _not_running_hint(route: str) -> str:
+    """The end of a timeout message: which project to check on the device for this route."""
+    return f"  Check that the Tasker '{_project_for(route)}' project is installed and running on the Android device."
 
 
 def _device_call(
@@ -464,7 +484,7 @@ def _get_once(
         headers=_auth_headers(auth_key),
         timeout=timeout,
         unreachable="Unable to get XML from Android device.",
-        timed_out="  Check that the Tasker 'HTTP Server Example' project is installed and running on the Android device.",
+        timed_out=_not_running_hint(request_name),
     )
     if response is None:
         return 0, 8, error_message
@@ -585,7 +605,10 @@ def _request_android_auth_key(url: str) -> tuple[int, str, bool]:
         "get",
         url,
         timeout=_AUTH_TIMEOUT_SECONDS,
-        timed_out="  The device may be waiting for you to approve MapTasker's request on its screen.",
+        timed_out=(
+            "  The device may be waiting for you to approve MapTasker's request on its screen."
+            + _not_running_hint("api/auth")
+        ),
     )
     if response is None:
         return 8, error_message, retryable
@@ -765,10 +788,7 @@ def http_post_request(
         headers=_auth_headers(auth_key, content_type),
         timeout=timeout,
         unreachable="Unable to post XML to Android device.",
-        timed_out=(
-            "  Perhaps Tasker server is not active or the Project 'HTTP Server Example' has not been imported"
-            " into Tasker on the Android device!"
-        ),
+        timed_out=_not_running_hint(request_name),
     )
     if response is None:
         return 8, error_message
@@ -784,6 +804,19 @@ def http_post_request(
 
     if response.status_code == 404:
         return 6, "Directory " + file_location + " not found."
+
+    if response.status_code == 503:
+        # Tasker's server answered (it may just have issued the key), so the refusal is Tasker saying no Profile took
+        # the request: the Profile is an Event Profile in the project that holds the route (see _project_for).
+        profile = _POST_PROFILES.get(request_name.strip("/"))
+        profile_text = f"its '{profile}' Profile" if profile else f"the Profile that handles '{request_name}'"
+        return 8, (
+            f"The Android device answered {url} with 503 (Service Unavailable): its Tasker HTTP server is "
+            "reachable, but nothing on the device is handling this request.  In Tasker, make sure the "
+            f"'{_project_for(request_name)}' project is imported and {profile_text} is enabled, that Tasker "
+            "is running and not restricted by battery optimization, then try again.  Tasker's Run Log shows "
+            "what happens on the device when the request arrives."
+        )
 
     return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
 
@@ -826,6 +859,7 @@ def http_upload_request(
         params={"location": location},
         files={filename: (filename, file_content, "application/octet-stream")},
         timeout=_WRITE_TIMEOUT_SECONDS,
+        timed_out=_not_running_hint("upload"),
     )
     if response is None:
         return 8, error_message
@@ -866,6 +900,7 @@ def http_delete_request(
         url,
         headers=_auth_headers(auth_key),
         timeout=_DELETE_TIMEOUT_SECONDS,
+        timed_out=_not_running_hint("api/file"),
     )
     if response is None:
         return 8, error_message

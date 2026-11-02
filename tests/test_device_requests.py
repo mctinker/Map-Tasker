@@ -149,6 +149,40 @@ def test_each_endpoint_reads_its_statuses_its_own_way(
 
 
 @pytest.mark.parametrize(
+    ("request_kind", "project"),
+    [
+        ("get", "HTTP Server Example"),  # GET /file/...
+        ("post", "Tasker HTTP API"),  # POST /api/import
+        ("upload", "HTTP Server Example"),  # /upload
+        ("delete", "Tasker HTTP API"),  # DELETE /api/file/...
+    ],
+)
+def test_a_timeout_names_the_project_that_holds_the_route(
+    monkeypatch: pytest.MonkeyPatch, request_kind: str, project: str
+) -> None:
+    """The hint sends the user to the project whose Profile answers the route, not always the same one."""
+    monkeypatch.setattr(maputil2, "requests", _Failing(requests.exceptions.Timeout("no")))
+
+    message = _REQUESTS[request_kind]()[1]
+
+    assert f"'{project}' project" in message
+
+
+def test_a_503_from_an_import_says_what_to_check_on_the_device(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The bare status code told the user nothing; the message names the Profile that handles the route."""
+    answer = SimpleNamespace(status_code=503, content=b"")
+    reply = lambda *_args, **_kwargs: answer
+    monkeypatch.setattr(maputil2, "requests", SimpleNamespace(post=reply))
+
+    return_code, message = _REQUESTS["post"]()
+
+    assert return_code == 8
+    assert "http://192.168.0.210:1821/api/import" in message
+    assert "'POST Import' Profile is enabled" in message
+    assert "'Tasker HTTP API' project" in message
+
+
+@pytest.mark.parametrize(
     ("error", "retryable"),
     [
         (requests.exceptions.InvalidSchema("no"), False),
