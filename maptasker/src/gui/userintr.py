@@ -23,28 +23,18 @@ loop.
 """
 
 import contextlib
-import time
 import webbrowser
-from collections.abc import Callable, Coroutine
 from typing import TYPE_CHECKING, Any, cast
-from urllib.parse import urlencode
 
-from nicegui import context, run, ui
+from nicegui import ui
 
-from maptasker.src.analysis import livemon, taskcases
-from maptasker.src.analysis.taskflow import (
-    analyze_task_flow,
-    flowchart,
-    write_flowchart,
-)
-from maptasker.src.core import assettext, console, mapjump
+from maptasker.src.core import console
 from maptasker.src.core.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 from maptasker.src.core.elemvals import get_ids
 from maptasker.src.core.error import record_error
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.maputil2 import (
     log_startup_values,
-    suppress_logged,
     translate_string,
     write_full_backup_to_current_file,
 )
@@ -58,66 +48,47 @@ from maptasker.src.core.maputils import (
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.outdir import output_path
 from maptasker.src.core.primitem import (
-    MAP_OUTPUT_ATTRIBUTES,
+    SINGLE_ITEM_LABELS,
     RunState,
-    clear_error,
-    initial_found_named_items,
-    reset_attributes,
 )
-from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.sysconst import (
     ALL_OBJECTS_MESSAGE,
     ANALYSIS_FILE,
     CHANGELOG_URL,
-    DIAGRAM_FILE,
     DIAGRAM_PROFILES_PER_LINE,
     NOTIFY_TIMEOUT_DEFAULT,
-    POPOUT_WINDOW_PREFIX,
     TAB_NAMES,
     TYPES_OF_COLOR_NAMES,
     VIEW_LIMIT_DEFAULT,
     logger,
 )
 from maptasker.src.core.translator import T
-from maptasker.src.edit import sessundo
-from maptasker.src.gui.guistate import SELECTION_KEYS, capture_gui_state, held_overrides
+from maptasker.src.gui.guistate import capture_gui_state
 from maptasker.src.gui.guiutil2 import get_changelog_file
 from maptasker.src.gui.guiutils import (
-    SINGLE_ITEM_LABELS,
     build_profiles,
     check_for_changelog,
     check_new_version,
-    clear_android_buttons,
     clear_single_item_view_names,
     create_changelog,
     display_current_file,
     display_error_file_and_ai_response,
-    display_selected_object_labels,
     get_xml,
     is_no_selection,
     refresh_object_action_buttons,
     refresh_tasker_object_pulldowns,
     reload_gui,
     reset_single_item_pulldowns,
-    reset_single_item_selection,
     select_pulldown_option,
     update_analysis_button_color,
     valid_item,
 )
+from maptasker.src.gui.guiutils_android import clear_android_buttons
 from maptasker.src.gui.guiwins import create_popup_window, initialize_gui, restore_appearance_mode
 from maptasker.src.gui.guiwins_drawers import initialize_screen
-from maptasker.src.gui.guiwins_firesim import build_firesim_dialog
-from maptasker.src.gui.guiwins_fix import build_fix_dialog
-from maptasker.src.gui.guiwins_monitor import build_monitor_dialog
-from maptasker.src.gui.guiwins_nav import forget_views, go_to_target, live_views, opening_view_in_a_new_window
-from maptasker.src.gui.guiwins_refactor import build_refactor_dialog
-from maptasker.src.gui.guiwins_resources import build_resources_dialog
-from maptasker.src.gui.guiwins_restore import build_restore_dialog
-from maptasker.src.gui.guiwins_taskstep import build_taskstep_dialog
+from maptasker.src.gui.guiwins_nav import live_views
 from maptasker.src.gui.guiwins_textview import NiceGuiTextView
-from maptasker.src.gui.guiwins_tnupdate import build_tnupdate_dialog, check_links_at_startup
-from maptasker.src.gui.guiwins_trend import build_trend_dialog
-from maptasker.src.gui.guiwins_views import NiceGuiTreeView
+from maptasker.src.gui.guiwins_tnupdate import check_links_at_startup
 from maptasker.src.gui.userhelp import (
     AI_HELP_TEXT,
     APIKEY_HELP_TEXT,
@@ -137,9 +108,8 @@ from maptasker.src.gui.userintr_prebuild import PrebuildEventHandlers
 from maptasker.src.gui.userintr_reports import ReportEventHandlers
 from maptasker.src.gui.userintr_settings import SettingsEventHandlers
 from maptasker.src.gui.userintr_tasktests import TaskTestEventHandlers
-from maptasker.src.mapgen.bildhtml import build_html
-from maptasker.src.mapgen.frontmtr import output_the_front_matter
-from maptasker.src.mapgen.outline import outline_the_configuration
+from maptasker.src.gui.userintr_tools import ToolEventHandlers
+from maptasker.src.gui.userintr_views import ViewEventHandlers
 from maptasker.src.mapgen.taskerd import get_the_xml_data
 
 if TYPE_CHECKING:
@@ -188,7 +158,7 @@ RESTORE_KEYS_TO_IGNORE = frozenset(
         # guiwins.android_device_fields.
         "android_check_ids",
         "android_verify",
-        # Only read when an Android dialog opens -- see guiutils.android_address_defaults.
+        # Only read when an Android dialog opens -- see guiutils_android.android_address_defaults.
         "android_last_ipaddr",
         "android_last_port",
     },
@@ -303,7 +273,6 @@ class MyGui:
     color_change: ui.label
     color_objects_options: ui.select
     color_picker_input: ui.color_input
-    compare_files_button: ui.button
     conditions_checkbox: ui.checkbox
     content_container: ui.column
     current_file: ui.label
@@ -361,7 +330,6 @@ class MyGui:
     redo_edit_button: ui.button
     refactor_button: ui.button
     reset_button: ui.button
-    restore_history_button: ui.button
     run_task_button: ui.button
     runtime_checkbox: ui.checkbox
     scene_buttons_row: ui.row
@@ -382,7 +350,6 @@ class MyGui:
     task_buttons_row: ui.row
     task_flow_button: ui.button
     taskernet_checkbox: ui.checkbox
-    timeline_button: ui.button
     twisty_checkbox: ui.checkbox
     undo_edit_button: ui.button
     undo_next_label: ui.label
@@ -487,24 +454,6 @@ class MyGui:
         Args:
             state (RunState): the run state this window shows and edits.
         """
-        # # Trace code
-        # PrimeItems.program_arguments.debug = True  # Set this to True to enable tracing
-        # # Create the trace object (set trace=False to only get function names, not every line)
-        # def trace_calls(frame, event, arg):
-        #     if event == "call":
-        #         func_name = frame.f_code.co_name
-        #         file_name = frame.f_code.co_filename
-
-        #         # Filter out standard library calls
-        #         if "site-packages" not in file_name and "lib/python" not in file_name:
-        #             # 2. Write to the file instead of the terminal
-        #             logger.debug(f"CALL: {func_name}() in {file_name}\n")
-
-        #     return trace_calls
-
-        # # Enable the profiler
-        # sys.setprofile(trace_calls)
-
         logger.info("Starting GUI")
         self.state = state
         self.initialization = True
@@ -565,18 +514,6 @@ class MyGui:
         # See if we have any carryover error messages from the AI run.
         # Note: this must go after the settings restoration.
         display_error_file_and_ai_response(self)
-
-        # CHG: FOR DEVELOPMENT ONLY
-        # PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
-        # PrimeItems.program_arguments.single_project_name = self.single_project_name = PrimeItems.program_arguments[
-        #     "single_profile_name"
-        # ] = self.single_profile_name = PrimeItems.program_arguments.single_task_name = self.single_task_name = "None"
-        # PrimeItems.program_arguments.single_project_name = self.single_project_name = "Garden Watering"
-        # PrimeItems.program_arguments.guiview = True
-        # _ = get_xml(self.debug, self.appearance_mode)
-        # self.view_limit = 9999999
-        # list_tasker_objects(self)
-        # self.event_handlers.view_event("map")
 
         self.initialization = False
 
@@ -918,7 +855,7 @@ class MyGui:
         self.file = filename  # Set this so it is saved in settings.
 
     # Build a hierarchical list of all of the Tasker elements.
-    def build_the_tree(self) -> list:
+    def build_the_tree(self) -> list[dict[str, Any]]:
         """Builds the hierarchical list of all of the Tasker elements.
         Parameters:
             self (object): The object calling the function.
@@ -933,7 +870,7 @@ class MyGui:
             - Gets all of the Tasker elements.
         """
 
-        tree_data = []
+        tree_data: list[dict[str, Any]] = []
         root = self.state.tasker_root_elements
         # Start with Projects
         projects = root["all_projects"]
@@ -1337,58 +1274,8 @@ class MyGui:
             try:
                 # 1. Engage the lock to silence NiceGUI event triggers
                 self.is_updating = True
-
-                # The pulldowns' own populated option lists (see
-                # guiutils.get_tasker_objects/build_profiles) use different
-                # conventions per item type: Project/Profile options are
-                # prefixed ("Project: Base", "Profile: X" -- build_the_tree's
-                # own "Project:"/build_profiles' own "Profile: " head text),
-                # while Task and Scene options are the raw name with no prefix
-                # at all (get_tasker_objects builds those straight from
-                # all_tasks_by_name's / all_scenes' keys). "None" itself is
-                # always unprefixed. A pulldown's .value has to match one of its
-                # own .options verbatim or NiceGUI can't find anything to render
-                # as selected and falls back to showing just that pulldown's
-                # label ("Project"/"Profile"/"Task"/"Scene") -- which is exactly
-                # what setting bare name_entered (no prefix) for Project/Profile,
-                # or a "Task: "/"Profile: "-prefixed "None" for the others,
-                # used to produce here.
-                option_heads = {
-                    "Project": f"{translate_string('Project:')} ",
-                    "Profile": translate_string("Profile: "),
-                }
                 if my_name in SINGLE_ITEM_LABELS:
-                    setattr(self, f"single_{my_name.lower()}_name", name_entered)
-
-                    # Select it in its own pulldown.  Prefer whatever option the list
-                    # already holds for this name: the "<type>: " head above is only
-                    # right when the XML has Projects to walk -- an exported single
-                    # Profile/Task file has no Project, so get_tasker_objects' no-tree
-                    # branch lists Profile names bare, and a fabricated "Profile: X"
-                    # would match no option and leave the pulldown showing just its
-                    # "Profile" label.  Fall back to the prefixed name only when the
-                    # live tree has the item but the pulldown list hasn't been rebuilt
-                    # for it yet; display_object_pulldowns re-resolves the selection
-                    # (reapply_single_item_selections) once it has.
-                    optionmenu = getattr(self, f"specific_{my_name.lower()}_optionmenu")
-                    select_pulldown_option(optionmenu, name_entered)
-                    if is_no_selection(optionmenu.value) or optionmenu.value not in (optionmenu.options or []):
-                        display_value = f"{option_heads.get(my_name, '')}{name_entered}"
-                        if display_value not in optionmenu.options:
-                            optionmenu.options.append(display_value)
-                        optionmenu.value = display_value
-                    reset_single_item_pulldowns(self, except_for=my_name)
-
-                    # Update the Analyze tab's labels: the restored item shows its name,
-                    # the rest show "None".
-                    for label in SINGLE_ITEM_LABELS:
-                        ai_label = getattr(self, f"ai_{label.lower()}_label", None)
-                        if ai_label is None:
-                            continue
-                        if label == my_name:
-                            ai_label.text = f"{translate_string(f'{label} to Analyze:')} {name_entered}"
-                        else:
-                            ai_label.text = f"{label}: None"
+                    self._show_restored_name(my_name, name_entered)
             finally:
                 # 2. Always release the lock so user interaction still works
                 self.is_updating = False
@@ -1400,6 +1287,59 @@ class MyGui:
         # but only "Add Project" on screen.  Unconditional: a name that failed
         # check_name above leaves nothing selected, which is equally worth reflecting.
         refresh_object_action_buttons(self)
+
+    def _show_restored_name(self, my_name: str, name_entered: str) -> None:
+        """Select a restored name in its own pulldown, clear the others, and say so on the Analyze tab."""
+        # The pulldowns' own populated option lists (see
+        # guiutils.get_tasker_objects/build_profiles) use different
+        # conventions per item type: Project/Profile options are
+        # prefixed ("Project: Base", "Profile: X" -- build_the_tree's
+        # own "Project:"/build_profiles' own "Profile: " head text),
+        # while Task and Scene options are the raw name with no prefix
+        # at all (get_tasker_objects builds those straight from
+        # all_tasks_by_name's / all_scenes' keys). "None" itself is
+        # always unprefixed. A pulldown's .value has to match one of its
+        # own .options verbatim or NiceGUI can't find anything to render
+        # as selected and falls back to showing just that pulldown's
+        # label ("Project"/"Profile"/"Task"/"Scene") -- which is exactly
+        # what setting bare name_entered (no prefix) for Project/Profile,
+        # or a "Task: "/"Profile: "-prefixed "None" for the others,
+        # used to produce here.
+        option_heads = {
+            "Project": f"{translate_string('Project:')} ",
+            "Profile": translate_string("Profile: "),
+        }
+        setattr(self, f"single_{my_name.lower()}_name", name_entered)
+
+        # Select it in its own pulldown.  Prefer whatever option the list
+        # already holds for this name: the "<type>: " head above is only
+        # right when the XML has Projects to walk -- an exported single
+        # Profile/Task file has no Project, so get_tasker_objects' no-tree
+        # branch lists Profile names bare, and a fabricated "Profile: X"
+        # would match no option and leave the pulldown showing just its
+        # "Profile" label.  Fall back to the prefixed name only when the
+        # live tree has the item but the pulldown list hasn't been rebuilt
+        # for it yet; display_object_pulldowns re-resolves the selection
+        # (reapply_single_item_selections) once it has.
+        optionmenu = getattr(self, f"specific_{my_name.lower()}_optionmenu")
+        select_pulldown_option(optionmenu, name_entered)
+        if is_no_selection(optionmenu.value) or optionmenu.value not in (optionmenu.options or []):
+            display_value = f"{option_heads.get(my_name, '')}{name_entered}"
+            if display_value not in optionmenu.options:
+                optionmenu.options.append(display_value)
+            optionmenu.value = display_value
+        reset_single_item_pulldowns(self, except_for=my_name)
+
+        # Update the Analyze tab's labels: the restored item shows its name,
+        # the rest show "None".
+        for label in SINGLE_ITEM_LABELS:
+            ai_label = getattr(self, f"ai_{label.lower()}_label", None)
+            if ai_label is None:
+                continue
+            if label == my_name:
+                ai_label.text = f"{translate_string(f'{label} to Analyze:')} {name_entered}"
+            else:
+                ai_label.text = f"{label}: None"
 
     def tasklimit_set(self, limit: str | int) -> None:
         """
@@ -1506,143 +1446,16 @@ class MyGui:
         )
 
 
-def popout_window_name(path: str, new_window: bool = False) -> str:
-    """What the browser window holding this view is called.
-
-    Its own function, and not private, because two places have to agree on it: this, which
-    opens the window under the name, and the Diagram, which goes looking for the Map's
-    window by name so it can raise it when a clicked object is answered by the Map already
-    on screen (see diagintr).  A Diagram searching for a name nothing was opened under
-    would quietly never raise anything, which is the kind of disagreement that shows up as
-    a feature simply not working.
-
-    The query string is deliberately NOT part of the name.  The Map's path carries
-    "?goto=...&scope=..." (see view_event), and a name built from the whole path therefore
-    changed with every finding clicked and every Project shown -- so each one opened a
-    window of its own and only re-clicking the very same item reused anything, which is
-    exactly what "Open View In New Window" being off is supposed to prevent.  The name
-    identifies the VIEW; what that view is currently showing belongs in the URL alone.
-
-    With "Open View In New Window" on, a unique suffix is appended: a name nothing has
-    claimed yet behaves exactly like "_blank", which is what makes every request a fresh
-    window.  The stable part stays at the front so the name is still recognisably this
-    view's.
-    """
-    view_name = path.rsplit("/", 1)[-1].split("?", 1)[0]
-    stable_name = f"{POPOUT_WINDOW_PREFIX}{view_name}"
-    return f"{stable_name}_{time.time_ns()}" if new_window else stable_name
-
-
-# How the "still working" banner sits on the page: pinned to the top of the window,
-# centered, and above everything else, so it is in the same place whatever the user has
-# scrolled to and whichever tab of the settings they are on.
-BUSY_BANNER_STYLE = (
-    "position: fixed; top: 0.75rem; left: 50%; transform: translateX(-50%); z-index: 9999; "
-    "padding: 0.5rem 1rem; border-radius: 0.375rem; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); "
-    "background-color: #1f2937; color: #fb923c;"
-)
-
-
-def _busy_banner(message: str) -> ui.element | None:
-    """A spinner and a message that stay on screen for the whole of a long build.
-
-    ui.notify() puts up a toast that takes itself down again after a few seconds, which is
-    the wrong shape for work that runs longer than that: the view was announced, the toast
-    expired, and the rest of the wait looked like the button had simply done nothing.
-
-    Deliberately an ordinary element rather than ui.notification: a notification is owned
-    by Quasar's Notify plugin and is taken down by asking that plugin to do it, which this
-    app has no reliable way to make happen.  An element of our own comes down when we
-    delete it.
-
-    Returns None when there is no browser window to draw it in (a build started from
-    somewhere other than a click in the GUI), which _clear_busy_banner accepts.
-    """
-    try:
-        layout = context.client.layout
-    except RuntimeError:
-        # No client context -- nobody to tell.  The build itself is unaffected.
-        return None
-    with layout:
-        banner = ui.element("div").classes("flex items-center gap-3").style(BUSY_BANNER_STYLE)
-        with banner:
-            ui.spinner(size="1.5em", color="orange")
-            ui.label(message).classes("italic")
-    return banner
-
-
-def _clear_busy_banner(banner: ui.element | None) -> None:
-    """Take down a _busy_banner, whether or not its window is still there."""
-    if banner is not None:
-        with suppress_logged("Deleting the busy banner"):
-            banner.delete()
-
-
-def _open_popout_window(path: str, new_window: bool = False) -> None:
-    """Opens a Map/Diagram popout window and remembers it in the browser so 'Close Tabs On Exit'
-    (see get_rid_of_windows_and_exit in guiwins.py) can close it later -- window.open()'s return
-    value is otherwise discarded and there'd be no handle left to close it with.
-    The actual data display is done in rungui.py with a call to NiceGuiTextView() to display the data
-    in a new window.  This function just opens the new window and remembers it in the browser.
-
-    Each view gets a stable window name so a second Map/Diagram request re-navigates -- and
-    therefore reloads -- the tab that view already has open, rather than spawning another one.
-    That is what makes a regenerated view (say, after the font was changed) actually replace
-    what the user is looking at: with '_blank', the browser suppresses the new popup whenever
-    it decides this doesn't count as a user gesture -- and it often doesn't, since this runs
-    from a server-pushed script after the view has been built, not inline in the click -- which
-    would silently leave the previous, stale tab on screen as the only Map view in sight.
-
-    `new_window` (the "Open View In New Window" option) trades that reliability for being able
-    to compare views side by side: a name nothing has claimed yet behaves exactly like '_blank',
-    so every request is a fresh popup the browser is free to suppress. Each popout reads the
-    generated file once, on load, so the windows left open do keep showing what they were built
-    with rather than all changing together.
-    """
-    # See popout_window_name for what the name is and why it is shaped that way.
-    window_name = popout_window_name(path, new_window)
-    # What it does, and why the handle is kept in two places, is in mapjump.open_popout_js.
-    ui.run_javascript(mapjump.open_popout_js(path, window_name))
-
-
-# Which lookup table answers "is this single-item selection still a real item?", per
-# SINGLE_ITEM_LABELS.  The two *_by_name tables are the ones keyed the way the pulldowns
-# name things: all_profiles and all_tasks are keyed by id, so checking those would say no
-# to every Profile and Task there is.
-_SELECTION_TABLES = {
-    "Project": "all_projects",
-    "Profile": "all_profiles_by_name",
-    "Task": "all_tasks_by_name",
-    "Scene": "all_scenes",
-}
-
-
-def _single_selection_still_exists(gui: MyGui) -> bool:
-    """Whether the 'Specific Name' selection, if there is one, still names something.
-
-    An Undo can take away the very item that is selected -- undoing an Add removes it,
-    undoing a Rename puts a different name on it -- and a selection naming nothing is not
-    harmless: PrimeItems.program_arguments still carries it, so the next Map or Diagram
-    would be built filtered on an item that is not there and come back empty.
-    """
-    for label in SINGLE_ITEM_LABELS:
-        name = getattr(gui, f"single_{label.lower()}_name", "")
-        if is_no_selection(name):
-            continue
-        if name not in gui.state.tasker_root_elements.get(_SELECTION_TABLES[label], {}):
-            return False
-    return True
-
-
 class MapTaskerEventHandlers:
     """
     Handles all UI interactions (button clicks, dropdown changes, toggles).
     Decouples logic from the main UI drawing routines.
 
     The handlers of each feature are a group of their own, held here as an attribute -- hub.ai,
-    hub.android, hub.carry, hub.editors, hub.loading, hub.prebuild, hub.reports, hub.settings, hub.tasktests -- and
-    what is defined on this class is what two or more of them share: the Map, Diagram and Tree views,
-    saving the whole configuration, and the edit history.  Each group reaches this class as self.hub,
+    hub.android, hub.carry, hub.editors, hub.loading, hub.prebuild, hub.reports, hub.settings, hub.tasktests,
+    hub.tools (the tools menu's windows and the edit history) and hub.views (the Map, Diagram, Misc and Tree
+    views) -- and what is defined on this class is what two or more of them share: saving the whole
+    configuration and the handlers of the About and Help menu.  Each group reaches this class as self.hub,
     and another group as self.hub.<group>.
     """
 
@@ -1660,501 +1473,13 @@ class MapTaskerEventHandlers:
         self.reports = ReportEventHandlers(self)
         self.settings = SettingsEventHandlers(self)
         self.tasktests = TaskTestEventHandlers(self)
+        self.tools = ToolEventHandlers(self)
+        self.views = ViewEventHandlers(self)
 
     @property
     def state(self) -> RunState:
         """The run state the window shows and edits: its own, which the handler groups read."""
         return self.gui.state
-
-    # ==========================================
-    # 2. Display View: Map, Diagram, Misc or Tree
-    # ==========================================
-    async def view_event(
-        self,
-        view_type: str,
-        goto: str = "",
-        overrides: dict[str, Any] | None = None,
-    ) -> None:
-        """Triggered when Map, Diagram, or Tree buttons are clicked.
-
-        Uses run.io_bound to run blocking file generations in a background thread,
-        allowing thread-safe access to internal PrimeItems variables.
-
-        'goto' is a mapjump token the finished Map view scrolls to and highlights once it
-        has streamed in -- how a clicked report finding is delivered to a Map that had to
-        be built for it (see rebuild_map_for_jump).
-
-        'overrides' are settings this one build needs that the GUI does not currently hold
-        -- a detail level high enough to list the actions being jumped to, say.  Applied
-        AFTER capture_gui_state, since that overwrites program_arguments wholesale from the
-        GUI, and left to the caller to put back: the GUI's own widgets are untouched, so
-        nothing the user can see changes.
-
-        Applying them here is not on its own enough to make them STAY applied -- capture_gui_state
-        runs again, off NiceGUI's outbox loop, for messages this build itself sends.  A caller
-        passing overrides must hold them across this call with guistate.held_overrides.
-        """
-        # max_limit = 9999999
-        window_title = f"{view_type.capitalize()} View"
-
-        # A Map being built ahead of time (see userintr_prebuild) is using the run state this
-        # view is about to rewrite -- the output lines, the totals, the settings -- so this waits
-        # for it, before it touches any of them.  What it waits for is most of what pressing Map
-        # would have done, and the Map is there when it is over.
-        if self.prebuild.prebuild_running():
-            waiting = _busy_banner(
-                f"{translate_string('Building the')} {window_title}.  {translate_string('Please stand by ...')}",
-            )
-            try:
-                await self.prebuild.wait_for_prebuild()
-            finally:
-                _clear_busy_banner(waiting)
-
-        self.gui.event = True  # Set the event flag to True
-        logger.info(f"GUI: Switching to {window_title}")
-
-        self.get_ready_to_build(overrides)
-
-        # Counted so that nothing is built ahead of time while this is built for real.
-        with self.prebuild.view_in_progress():
-            await self._show_the_view(view_type, window_title, goto)
-
-    async def _show_the_view(self, view_type: str, window_title: str, goto: str) -> None:
-        """Build the view asked for and open it."""
-        # Map view
-        if view_type == "map":
-            await self._view_map(window_title, goto)
-
-        # Setup diagram view.
-        elif view_type in ("diagram", "misc"):
-            if view_type == "diagram":
-                await self._view_diagram()
-            else:
-                self._view_misc()
-
-        elif view_type == "tree":
-            self._view_tree()
-        else:
-            self._view_invalid()
-
-    def get_ready_to_build(self, overrides: dict[str, Any] | None) -> None:
-        """Put the run state in the condition every Map, Diagram and Tree build starts from.
-
-        What view_event does before it builds, and what a Map built ahead of time does too --
-        which is why it is one thing: the settings a build takes are part of what the Map is
-        remembered by (see mapcache), so a Map built ahead of time is only found by a press if the
-        two took them the same way.  See view_event for 'overrides'.
-        """
-        gui = self.gui
-        self.state.view_limit = gui.view_limit if hasattr(gui, "view_limit") else VIEW_LIMIT_DEFAULT
-
-        # Plug all of our settings back into PrimeItems.program_arguments
-        capture_gui_state(gui, {}, state=self.state)
-        if overrides:
-            self.state.program_arguments.update(overrides)
-
-        # Start this view generation with a clean slate: found_named_items only ever
-        # gets set to True (projects.py/profiles.py/tasks.py/scenes.py, once
-        # process_projects_and_their_profiles/its callees find the single Project/
-        # Profile/Task/Scene being searched for) -- it's never reset back afterward,
-        # since it's meant to stop searching further *within a single run*, not carry
-        # over between separate ones. Left stale from an earlier view, a second Map/
-        # Diagram/Tree for the same single item (e.g. right after editing it and
-        # clicking Ok) would look like it was "already found" and get skipped
-        # entirely, even though this run never actually found it yet.
-        # Built from primitem.SINGLE_ITEM_SELECTORS rather than written out here, so a
-        # newly added single item can't be left out of the reset.
-        self.state.found_named_items = initial_found_named_items()
-
-        # Same reasoning for the directory and the running totals -- both accumulate
-        # across a single run and are never emptied at the end of one:
-        #
-        #  - directory_items: add_directory_item only records a name it hasn't seen, and
-        #    sets directory_items["current_item"] (which is what makes lineout emit the
-        #    "<a id=...>" anchor the directory hyperlink jumps to) *only* on that first
-        #    sighting.  Left populated from an earlier view, every name looks
-        #    already-seen, so the second view's hyperlinks point at anchors that were
-        #    never written -- clicking a directory entry then goes nowhere.
-        #  - grand_totals: straight "+=" accumulation, so a second view reports doubled
-        #    Project/Profile/Task/Scene counts.
-        #
-        # Single Project/Profile/Task views happened to escape the directory half of
-        # this because they route through lineout.refresh_our_output, which rebuilds
-        # both dicts mid-run; a single Scene never calls it, which is how this surfaced.
-        #  - emitted_anchors: the same story as the directory.  Left populated from an
-        #    earlier view, every object looks already-anchored, so the second view carries
-        #    no mapjump anchors at all and a clicked finding has nothing to land on.
-        #  - task_action_warnings: the "too many actions" list, accumulated the same way.
-        reset_attributes(*MAP_OUTPUT_ATTRIBUTES)
-
-    async def _view_map(self, window_title: str, goto: str) -> None:
-        """Build the Map and open it in a window of its own."""
-        gui = self.gui
-        if self.state.xml_root is None:
-            gui.display_message_box(
-                translate_string("No XML data loaded! Please select a valid XML file first."),
-                "Orange",
-            )
-            return
-
-        # Say so before the work starts, and keep saying it right through it.  A large
-        # configuration takes real time to build below, and the one-second toast that
-        # used to announce it was gone for almost all of that wait -- leaving a window
-        # that looked like the button had done nothing.  This one carries a spinner and
-        # no timeout, and comes down in the "finally" below whichever way this ends.
-        building = _busy_banner(
-            f"{translate_string('Building the')} {window_title}.  {translate_string('Please stand by ...')}",
-        )
-        try:
-            # 1. Clear out stale error codes before starting execution paths
-            clear_error()
-
-            # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
-            self.state.output_lines.output_lines.clear()
-            output_the_front_matter(current_config(self.state), state=self.state)
-
-            try:
-                # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely
-                await run.io_bound(build_html, "", state=self.state)
-            except MapTaskerError as e:
-                # Intercept background termination codes gracefully.  This was
-                # "except SystemExit" and had to be: build_html and everything under it
-                # ended the process outright on any error.  They raise this now, which
-                # is an ordinary Exception, so a failed build is one failed build --
-                # the window stays up and says what happened, in the error's own words
-                # when it has any.
-                if e.exit_code == 6:
-                    gui.display_message_box(
-                        translate_string("Map view creation skipped: No valid XML source found or action canceled."),
-                        "Orange",
-                    )
-                elif e.message:
-                    gui.display_message_box(f"Map processing error: {e.message}", "Orange")
-                else:
-                    gui.display_message_box(f"Map processing halted with system code: {e.exit_code}", "Red")
-                return
-
-            # Check if an entry-point processing failure occurred during build_html
-            if getattr(self.state, "error_code", 0) > 0:
-                gui.display_message_box(f"Map processing error: {self.state.error_msg}", "Orange")
-                clear_error()
-                return
-
-            # Now process the data for display in the gui.  How big the Map is comes
-            # from the build rather than from output_lines, which holds nothing at all
-            # when the Map that was already on disk was shown again (see mapcache).
-            output_length = self.state.map_output_line_count
-
-            # Clear out our inline data to free up memory for the GUI display, since we no longer need it.
-            self.state.output_lines.output_lines.clear()
-
-            # Display the map in its own browser window/tab rather than the main window.
-            # A "goto" rides along on the URL rather than being pushed into the window
-            # afterwards: the popout is its own page with its own timing, and only it knows
-            # when the Map has finished streaming in and is therefore scrollable.
-            #
-            # "scope" says which Project this Map was built for -- always, not just for a
-            # jump -- so that a later clicked finding can tell whether the Map already on
-            # screen is one that can show what it points at, or whether it has to build its
-            # own.  Read here rather than remembered on PrimeItems because the popout is
-            # constructed after this call returns, by which time any overrides for this one
-            # build have been put back.
-            query = urlencode({"goto": goto, "scope": self.state.program_arguments.single_project_name or ""})
-            _open_popout_window(f"/popout/map?{query}", getattr(gui, "open_view_in_new_window", False))
-
-            # Check for hard stop limit and notify user if output was truncated
-            if output_length > gui.view_limit:
-                gui.display_message_box(
-                    f"Map view truncated {output_length} lines to {gui.view_limit} lines due to view limit.",
-                    "Orange",
-                )
-            gui.display_message_box(translate_string("Map View opened in a new browser window."), "Green")
-            map_path = output_path("MapTasker.html", state=self.state)
-            gui.display_message_box(f"{translate_string('Map saved to')} {map_path}", "Green")
-        finally:
-            _clear_busy_banner(building)
-
-    async def _view_diagram(self) -> None:
-        """Build the Diagram and open it in a window of its own."""
-        gui = self.gui
-        if self.state.tasker_root_elements["all_projects"] or self.state.tasker_root_elements["all_profiles"]:
-            gui.display_message_box(
-                translate_string("The 'Diagram' view is running in the background.  Please stand by..."),
-                "Green",
-            )
-
-            # Offload the configuration outliner to an IO-bound thread safely
-            try:
-                await run.io_bound(outline_the_configuration, state=self.state)
-            except MapTaskerError as error:
-                reason = error.message or f"system code: {error.exit_code}"
-                gui.display_message_box(f"Diagram processing error: {reason}", "Orange")
-                return
-
-            # Check if an entry-point processing failure occurred (e.g. check_limit() in
-            # diagram.py tripping the view_limit) during outline_the_configuration(). Unlike
-            # the "map" branch above, this used to go unchecked: on failure, network_map()
-            # (diagram.py) skips writing DIAGRAM_FILE and computing PrimeItems.diagram_connectors
-            # entirely, so the popout below would silently reopen whatever stale diagram (and
-            # stale/absent connector data) happened to already be on disk from an earlier,
-            # successful run -- which looks like a normal diagram but whose connectors no
-            # longer highlight anything when clicked, with no indication anything went wrong.
-            if getattr(self.state, "error_code", 0) > 0:
-                gui.display_message_box(f"Diagram processing error: {self.state.error_msg}", "Orange")
-                clear_error()
-                return
-
-            # Display the diagram in its own browser window/tab rather than the main window.
-            # What the app was showing when this Diagram was drawn, carried so the
-            # view can say so on its own toolbar -- and say when the selection has
-            # moved on since.  A Diagram is a snapshot: nothing rebuilds it when the
-            # user picks a different single object, so its hotlinks go on pointing at
-            # the objects of the selection it was built for, and there was no sign of
-            # that anywhere on screen.
-            built_for = urlencode({"built_for": mapjump.current_scope(state=self.state).phrase})
-            _open_popout_window(
-                f"/popout/diagram?{built_for}",
-                getattr(gui, "open_view_in_new_window", False),
-            )
-
-            # Cut short at the view limit?  Say so, as the "map" branch above does -- the
-            # diagram is still shown, up to the point the limit allowed.
-            if self.state.diagram_limit_msg:
-                gui.display_message_box(self.state.diagram_limit_msg, "Orange")
-            gui.display_message_box(translate_string("Diagram View opened in a new browser window."), "Green")
-            diagram_path = output_path(DIAGRAM_FILE, state=self.state)
-            gui.display_message_box(f"{translate_string('Diagram saved to')} {diagram_path}", "Green")
-        else:
-            gui.display_message_box(
-                translate_string("No XML data loaded! Please select a valid XML file first."),
-                "Orange",
-            )
-
-    def _view_misc(self) -> None:
-        """Open the Misc view, which finds its own content."""
-        gui = self.gui
-        gui.display_message_box(
-            translate_string("The 'Misc' view is running in the background.  Please stand by..."),
-            "LimeGreen",
-        )
-        gui.textview = NiceGuiTextView(
-            gui,
-            title="Misc View",
-            the_data=[],
-        )
-
-    def _view_tree(self) -> None:
-        """Show the Tree view, or say there is nothing to show it of."""
-        gui = self.gui
-        tree_data = gui.build_the_tree()
-        if tree_data:
-            gui.textview = NiceGuiTreeView(gui, "Tree View", items=tree_data)
-        else:
-            gui.display_message_box(translate_string("No Project(s) Found in XML!"), "Red")
-            return
-
-    def _view_invalid(self) -> None:
-        """Say that the view asked for is not one there is."""
-        gui = self.gui
-        ui.notify(
-            translate_string("No XML data loaded! Please Get XML from Android or Local drive first."),
-            type="warning",
-            position="top",
-        )
-        gui.display_message_box(
-            translate_string("Invalid view type specified. Use 'map', 'diagram', or 'tree'."),
-            "Red",
-        )
-
-    def clear_view_event(self) -> None:
-        """Clears the current view and resets the textview, closing any open Map/Diagram popout tabs."""
-        if hasattr(self.gui, "content_container") and self.gui.content_container:
-            self.gui.content_container.clear()
-
-        # Drop the references to the views that were just deleted along with those
-        # elements. Everything that reaches back into a rendered view guards on those
-        # references (handle_color_pick_event's live re-colouring, clear_event's
-        # un-highlighting), so leaving the dead objects here left them all working on
-        # elements that no longer exist. Back to the "no view rendered" state MyGui
-        # starts in (see guiwins.py). The popouts are closed just below, which is what
-        # invalidates the views rendered into them too.
-        forget_views(self.gui)
-
-        # Close every Map/Diagram popout this session opened -- including the ones a popout
-        # opened for itself, which is why this is mapjump.close_popouts_js and not a loop
-        # over this window's own list: a Map built for a jump from the Diagram belongs to
-        # the DIAGRAM's list (see _open_popout_window), and Clear used to close the Diagram
-        # and leave that Map behind.  The same call Exit makes, minus shutting anything down.
-        ui.run_javascript(mapjump.close_popouts_js())
-        ui.notify(translate_string("View cleared."), type="info", position="bottom")
-
-    async def rebuild_map_for_jump(self, target: mapjump.Target) -> None:
-        """Build a Map that holds this object, and open it scrolled to it.
-
-        What a clicked report finding falls back to when no Map on screen can show it --
-        because none is open, because the one that is shows a single Project, or because
-        its detail level leaves out the Tasks and actions the finding is about.
-
-        The build is deliberately the whole configuration at a detail level high enough for
-        this object: those are the two settings that decide whether the Map contains it at
-        all, and a click that says "take me there" is worth honouring rather than answering
-        with a second reason it cannot.  Nothing the user can see changes -- the overrides
-        go into program_arguments for this one build and are put straight back, while the
-        pulldowns and the detail selector keep whatever they held.  The next Map View press
-        is therefore exactly the Map they asked for, not the one this needed.
-
-        Not silently: the settings are not the user's, so the notification says which ones
-        this went past.
-        """
-        level = max(self.state.program_arguments.display_detail_level, mapjump.minimum_detail_level(target))
-        # Narrowed to the Project that owns what was clicked, rather than built whole.  A
-        # click asks to be shown one thing, and a Map of one Project is both the answer to
-        # that and a great deal quicker to build and to read than a Map of everything.
-        #
-        # Whole file only when there is no Project to narrow to: an orphan Profile, a Scene
-        # no Project lists, a Task filed under none -- exactly the objects the reachability
-        # findings are about -- and a variable, which the Map indexes per Project but the
-        # cross-reference does not attribute to one.
-        overrides: dict[str, object] = dict.fromkeys(SELECTION_KEYS, "")
-        overrides["display_detail_level"] = level
-        scope = mapjump.scope_for(target)
-        if scope:
-            overrides["single_project_name"] = scope
-        # A TaskerNet description is governed by its own option rather than by the detail
-        # level, so a finding about what somebody wrote in one needs that option on for the
-        # Map to hold the line at all -- the same argument as the detail level above.
-        if mapjump.needs_taskernet(target):
-            overrides["taskernet"] = True
-
-        # Say which settings this went past, and only those: the point of saying anything is
-        # that the Map on screen afterwards is not the one the user's own settings would have
-        # produced.  Worked out by comparing the overrides against what is actually set, so
-        # that a user already on this Project at this detail level is told nothing at all.
-        changed = {key for key, value in overrides.items() if self.state.program_arguments[key] != value}
-        reasons = []
-        if changed & set(SELECTION_KEYS):
-            reasons.append(f"{translate_string('Project')} '{scope}'" if scope else translate_string("whole file"))
-        if "display_detail_level" in changed:
-            reasons.append(f"{translate_string('detail level')} {level}")
-        if "taskernet" in changed:
-            reasons.append(translate_string("TaskerNet information"))
-        ui.notify(
-            f"{translate_string('Building the Map to show')} {target.label}"
-            + (f" ({', '.join(reasons)})" if reasons else "")
-            + " ...",
-            type="info",
-            position="top",
-        )
-
-        # Put back exactly what was there, key by key.
-        saved = {key: self.state.program_arguments[key] for key in overrides}
-        try:
-            # held_overrides, not just the update view_event does, because the build is not
-            # the only thing writing these: capture_gui_state re-copies the GUI's own
-            # single-item selection over program_arguments from NiceGUI's outbox loop, and
-            # one of this build's own notifications is enough to trigger it.  See its
-            # definition in guistate for what that cost.
-            with held_overrides(overrides, state=self.state):
-                await self.view_event("map", goto=target.token(), overrides=overrides)
-        finally:
-            self.state.program_arguments.update(saved)
-
-    def refactor_event(self) -> None:
-        """Open the Refactor dialog: the structural moves, with a preview.
-
-        Lives on the main window beside Edit/Add and the Undo group rather than on the Map
-        toolbar, because a refactor is an EDIT.  Three of its four operations -- inline,
-        move, duplicate -- name an object and act on it whole, and nothing about them
-        depends on what is currently drawn; hanging them off a view meant a Map had to be
-        built before any of them could be reached at all.
-
-        Rebuilt on every press rather than kept, for the reason maprefac gives about its
-        Plan: it closes over live elements, and holding one across a reopen is precisely the
-        stale-handle case maprefac.apply's attachment check exists to catch.
-        """
-        self._dismiss_refactor_dialog()
-
-        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
-            """One preview row's click: open what it names in a window of its own.
-
-            The new window is what keeps the dialog: from here the jump has no Map to
-            scroll, so go_to_target falls through to building one, and a build that reused
-            the tab would take this window -- and the preview in it -- with it.  See
-            guiwins_nav.opening_view_in_a_new_window for the whole of why.
-            """
-
-            async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
-
-            return go
-
-        async def refresh_after_apply() -> None:
-            """What to bring up to date once a refactor has been applied.
-
-            The pulldowns, and only the pulldowns.  A refactor adds and removes whole
-            objects, so an option list built before one offers names that no longer resolve
-            -- the same reason Undo and Redo refresh them (see _step_edit_history).  No view
-            is rebuilt: there may not be one, and if there is it is a separate window that
-            the user can refresh when they want to look at it.
-            """
-            refresh_tasker_object_pulldowns(self.gui)
-
-        dialog = build_refactor_dialog(
-            "", make_jump, refresh_after_apply, self.save_whole_configuration, state=self.state
-        )
-        if dialog is None:
-            return
-        self.gui.refactor_dialog = dialog
-        dialog.open()
-
-    def fix_findings_event(self) -> None:
-        """Open the Fix Findings dialog: the Health Check's findings, with a repair for each.
-
-        Lives beside the Health Check button rather than inside its report, because the
-        report is one escaped blob of text in a <pre> and a tick box is not something that
-        can be put into one.  Pressing it runs a scan of its own -- a much smaller one than
-        the check's, since mapfix leaves out every category it cannot repair -- so this does
-        not depend on a Health Check having been run first, and does not go stale when one
-        was run an hour ago.
-
-        Rebuilt on every press rather than kept, for the reason maprefac gives about its
-        Plan and refactor_event repeats: it closes over live elements, and holding one
-        across a reopen is precisely the stale-handle case mapfix.apply's attachment check
-        exists to catch.
-        """
-        self._dismiss_fix_dialog()
-
-        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
-            """One row's click: open what it names in a window of its own.
-
-            The new window is what keeps this dialog up -- see refactor_event's own copy of
-            this, and guiwins_nav.opening_view_in_a_new_window for the whole of why.  It matters
-            more here than there: the list holds ticks and decisions the user has been
-            making, and going to look at one of the Tasks must not cost them the lot.
-            """
-
-            async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
-
-            return go
-
-        async def refresh_after_apply() -> None:
-            """What to bring up to date once repairs have been made.
-
-            The pulldowns, and only the pulldowns.  A repair can delete a Task, so an option
-            list built before one offers names that no longer resolve -- the same reason Undo
-            and Redo refresh them.  No view is rebuilt: there may not be one, and if there is
-            it is a separate window the user can refresh when they want to look at it.
-            """
-            refresh_tasker_object_pulldowns(self.gui)
-
-        dialog = build_fix_dialog("", make_jump, refresh_after_apply, self.save_whole_configuration, state=self.state)
-        if dialog is None:
-            return
-        self.gui.fix_dialog = dialog
-        dialog.open()
 
     async def save_whole_configuration(self) -> bool:
         """The 'Save To Current File' of the Refactor, Fix Findings, Restore and TaskerNet Updates dialogs.
@@ -2215,388 +1540,9 @@ class MapTaskerEventHandlers:
         )
         return True
 
-    def restore_history_event(self) -> None:
-        """Open the Restore From History dialog: bring a deleted object back, or undo an edit.
-
-        Beside Changes Since because it is the other half of that report -- the report says
-        what was deleted or changed since a configuration in the history, and this is where
-        one of those rows can be put back.  One object at a time, never a merge; see
-        maprestore's header.
-
-        Rebuilt on every press, for fix_findings_event's reason: a preview closes over live
-        elements, and holding one across a reopen is the stale-handle case maprefac.apply's
-        attachment check exists to catch.
-        """
-        self._dismiss_restore_dialog()
-
-        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
-            """One row's click: open what it names in a window of its own, keeping this one up."""
-
-            async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
-
-            return go
-
-        async def refresh_after_apply() -> None:
-            """The pulldowns: a restore adds whole objects, so an option list built before one is short."""
-            refresh_tasker_object_pulldowns(self.gui)
-
-        dialog = build_restore_dialog(make_jump, refresh_after_apply, self.save_whole_configuration, state=self.state)
-        if dialog is None:
-            return
-        self.gui.restore_dialog = dialog
-        dialog.open()
-
-    def taskernet_updates_event(self) -> None:
-        """Open the TaskerNet Updates dialog: linked shares, what their authors changed, and taking it.
-
-        Beside Restore From History because it is that dialog's other source: both bring an
-        object in from a configuration that is not the one open, one at a time, previewed first.
-
-        Rebuilt on every press, for restore_history_event's reason: a preview closes over live
-        elements, and holding one across a reopen is the stale-handle case maprefac.apply's
-        attachment check exists to catch.
-        """
-        self._dismiss_tnupdate_dialog()
-
-        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
-            """One row's click: open what it names in a window of its own, keeping this one up."""
-
-            async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
-
-            return go
-
-        async def refresh_after_apply() -> None:
-            """The pulldowns: taking an update can add whole objects, so an option list built before one is short."""
-            refresh_tasker_object_pulldowns(self.gui)
-
-        dialog = build_tnupdate_dialog(make_jump, refresh_after_apply, self.save_whole_configuration, state=self.state)
-        if dialog is None:
-            return
-        self.gui.tnupdate_dialog = dialog
-        dialog.open()
-
-    def _dismiss_tnupdate_dialog(self) -> None:
-        """Take down the TaskerNet Updates dialog if one is still up -- see _dismiss_restore_dialog."""
-        dialog = getattr(self.gui, "tnupdate_dialog", None)
-        self.gui.tnupdate_dialog = None
-        if dialog is not None:
-            with suppress_logged("Deleting the TaskerNet Updates dialog"):
-                dialog.delete()
-
-    def fire_simulator_event(self) -> None:
-        """Open the What Fires When? dialog: pick a moment, see which Profiles it makes active.
-
-        Rebuilt on every press, for fix_findings_event's reason, and more simply here: the
-        Wi-Fi and app pickers are filled from the configuration loaded at the moment of the
-        press, and a dialog kept from an earlier file would offer that file's networks.
-        """
-        dialog = getattr(self.gui, "firesim_dialog", None)
-        self.gui.firesim_dialog = None
-        if dialog is not None:
-            with suppress_logged("Deleting the Fire Simulator dialog"):
-                dialog.delete()
-
-        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
-            """One row's click: open what it names in a window of its own, keeping this one up."""
-
-            async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
-
-            return go
-
-        dialog = build_firesim_dialog(make_jump, state=self.state, step_task=self.task_stepper_event)
-        if dialog is None:
-            return
-        self.gui.firesim_dialog = dialog
-        dialog.open()
-
-    async def bring_up_the_diagram_for_the_monitor(self, projects: set[str]) -> None:
-        """Build and open the Diagram the Live Run Monitor will light up: one that holds what has fired.
-
-        The Diagram button builds for whatever single Project, Profile or Task is selected in the main window, which
-        is the wrong Diagram to watch a phone with -- the objects that fire are mostly not the selected one.  So
-        this builds for the one Project everything seen so far belongs to, or for the whole configuration when
-        that is several (or nothing has been seen yet), and puts the selection back as it was: the overrides go into
-        program_arguments for this one build and are restored straight after, as rebuild_map_for_jump does.
-        """
-        scope = livemon.diagram_scope(projects)
-        overrides: dict[str, object] = dict.fromkeys(SELECTION_KEYS, "")
-        if scope:
-            overrides["single_project_name"] = scope
-        ui.notify(
-            f"{translate_string('Building the Diagram of')} "
-            f"{translate_string('Project') + ' ' + repr(scope) if scope else translate_string('the whole configuration')}"
-            " ...",
-            type="info",
-            position="top",
-        )
-        saved = {key: self.state.program_arguments[key] for key in overrides}
-        try:
-            with held_overrides(overrides, state=self.state):
-                await self.view_event("diagram", overrides=overrides)
-        finally:
-            self.state.program_arguments.update(saved)
-
-    async def live_monitor_event(self) -> None:
-        """Open the Live Run Monitor: which Profiles and Tasks fire on the phone, lit up in the Diagram as they do.
-
-        Rebuilt on every press, for fire_simulator_event's reason: it watches the configuration loaded at the moment
-        of the press.  An earlier one is stopped before it is taken down, so a monitor is never left asking the
-        phone with nothing on screen to stop it.
-        """
-        dialog = getattr(self.gui, "monitor_dialog", None)
-        monitor = getattr(dialog, "monitor", None)
-        self.gui.monitor_dialog = None
-        if monitor is not None:
-            await monitor.stop_monitoring()
-        if dialog is not None:
-            with suppress_logged("Deleting the Live Run Monitor dialog"):
-                dialog.delete()
-
-        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
-            """One row's click: open what it names in a window of its own, keeping this one up."""
-
-            async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
-
-            return go
-
-        dialog = build_monitor_dialog(self.gui, make_jump, self.bring_up_the_diagram_for_the_monitor)
-        if dialog is None:
-            return
-        self.gui.monitor_dialog = dialog
-        dialog.open()
-
-    def missing_resources_event(self) -> None:
-        """Open Missing Resources: do the files, folders, images, sounds, Scenes and apps the actions use still exist?
-
-        Rebuilt on every press, for fire_simulator_event's reason: it opens on what the configuration loaded at the
-        moment of the press refers to.
-        """
-        dialog = getattr(self.gui, "resources_dialog", None)
-        self.gui.resources_dialog = None
-        if dialog is not None:
-            with suppress_logged("Deleting the Missing Resources dialog"):
-                dialog.delete()
-
-        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
-            """One row's click: open what it names in a window of its own, keeping this one up."""
-
-            async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
-
-            return go
-
-        dialog = build_resources_dialog(self.gui, make_jump)
-        if dialog is None:
-            return
-        self.gui.resources_dialog = dialog
-        dialog.open()
-
-    def trend_dashboard_event(self) -> None:
-        """Open the Trend Dashboard: how the configuration's size, complexity and findings have moved over the history.
-
-        Rebuilt on every press, for fire_simulator_event's reason: the file it starts on is the one open now.
-        """
-        dialog = getattr(self.gui, "trend_dialog", None)
-        self.gui.trend_dialog = None
-        if dialog is not None:
-            with suppress_logged("Deleting the Trend Dashboard dialog"):
-                dialog.delete()
-        dialog = build_trend_dialog(self.state)
-        if dialog is None:
-            return
-        self.gui.trend_dialog = dialog
-        dialog.open()
-
-    def task_stepper_event(self, task: str = "", case: taskcases.Case | None = None) -> None:
-        """Open the Task Stepper: dry-run one Task with the variables it starts with.
-
-        `task` is the Task to start with, when it is opened from somewhere that knows which (a line of What
-        Fires When); `case` a saved test to open it on, with its values filled in (a row of Task Tests).  Rebuilt on every press, for fire_simulator_event's reason: the Task picker is filled
-        from the configuration loaded at the moment of the press.
-        """
-        dialog = getattr(self.gui, "taskstep_dialog", None)
-        self.gui.taskstep_dialog = None
-        if dialog is not None:
-            with suppress_logged("Deleting the Task Stepper dialog"):
-                dialog.delete()
-
-        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
-            """One line's click: open what it names in a window of its own, keeping this one up."""
-
-            async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
-
-            return go
-
-        dialog = build_taskstep_dialog(make_jump, self.state, task, case)
-        if dialog is None:
-            return
-        self.gui.taskstep_dialog = dialog
-        dialog.open()
-
-    def _dismiss_restore_dialog(self) -> None:
-        """Take down the Restore dialog if one is still up -- see _dismiss_fix_dialog."""
-        dialog = getattr(self.gui, "restore_dialog", None)
-        self.gui.restore_dialog = None
-        if dialog is not None:
-            with suppress_logged("Deleting the Restore dialog"):
-                dialog.delete()
-
-    def _dismiss_fix_dialog(self) -> None:
-        """Take down the Fix Findings dialog if one is still up.
-
-        Deleted rather than closed, for _dismiss_refactor_dialog's reason: a fresh dialog is
-        built per press, and a closed-but-undeleted one is a stack that grows with the page.
-        """
-        dialog = getattr(self.gui, "fix_dialog", None)
-        self.gui.fix_dialog = None
-        if dialog is not None:
-            with suppress_logged("Deleting the Fix Findings dialog"):
-                dialog.delete()
-
-    def _dismiss_refactor_dialog(self) -> None:
-        """Take down the Refactor dialog if one is still up.
-
-        Deleted rather than closed: a fresh dialog is built per press, so the one being
-        replaced has nothing left to hold, and a closed-but-undeleted dialog is a stack that
-        grows with the page.  A dialog whose page has gone away raises rather than
-        answering; that is one more dialog already gone, not an error to report.
-        """
-        dialog = getattr(self.gui, "refactor_dialog", None)
-        self.gui.refactor_dialog = None
-        if dialog is not None:
-            with suppress_logged("Deleting the Refactor dialog"):
-                dialog.delete()
-
-    def _step_edit_history(self, *, forwards: bool) -> None:
-        """Shared body of the Undo and Redo buttons -- the two differ only in which way
-        they walk the history and what they say afterwards.
-
-        Refreshing the pulldowns is not cosmetic: the restore replaced every lookup table,
-        so an option list built from the old ones would offer names that no longer resolve.
-        Whatever single Project/Profile/Task/Scene was selected is deliberately left alone;
-        if the step removed it, refresh_tasker_object_pulldowns drops it from the options
-        the same way a file load does.
-        """
-        succeeded, message = sessundo.redo(state=self.state) if forwards else sessundo.undo(state=self.state)
-        if not succeeded:
-            ui.notify(message, type="warning")
-            return
-
-        refresh_tasker_object_pulldowns(self.gui)
-        # Only when the step actually took the selected item away -- undoing an edit to
-        # some other Task must not clear the Project the user is looking at.
-        #
-        # display_selected_object_labels is the other half of that reset and not optional:
-        # reset_single_item_selection clears the names and the pulldowns, and this is what
-        # repaints the three places the old name is still written on screen -- the
-        # "Current <item> selection" line, the "Display only ..." caption under the
-        # pulldowns, and the Analyze tab's four targets.  The pair is always used together
-        # (see guiutils.list_tasker_objects, which loads a new file the same way).
-        if not _single_selection_still_exists(self.gui):
-            reset_single_item_selection(self.gui)
-            display_selected_object_labels(self.gui)
-        action = translate_string("Redid") if forwards else translate_string("Undid")
-        ui.notify(f"{action}: {message}", type="positive")
-
-    def undo_edit_event(self) -> None:
-        """Take back the last change made to the loaded configuration -- see sessundo."""
-        self._step_edit_history(forwards=False)
-
-    def redo_edit_event(self) -> None:
-        """Put back the last change Undo took away -- see sessundo."""
-        self._step_edit_history(forwards=True)
-
-    def draw_task_flowchart(self, gui: "MyGui") -> None:
-        """Draw the single selected Task as a flowchart in its own window, if one is chosen.
-
-        Silent about there being no chart when no single Task is selected -- said as a hint
-        rather than as a failure, since the report the user just asked for did run.
-
-        The chart is left on PrimeItems for the popped-out page to pick up: that page is
-        built from a URL and is handed nothing, which is the same reason the Diagram popout
-        re-reads its own generated file (see rungui.popout_view).
-        """
-        scope = mapjump.current_scope(state=self.state)
-        if scope.label != "Task":
-            ui.notify(
-                translate_string("Choose a single Task in 'Specific Name' to also see it drawn as a flowchart."),
-                type="info",
-                position="bottom",
-            )
-            return
-
-        # A Scope holds every Task id of that name, because a backup may legally hold two
-        # Tasks called the same thing (healthck reports that as DUPLICATE-NAME).  Charting
-        # them all in one window would read as one enormous Task, so the first is drawn and
-        # the user is told the choice was made.
-        task_ids = sorted(scope.tasks)
-        flow = analyze_task_flow(task_ids[0], state=self.state) if task_ids else None
-        if flow is None:
-            gui.display_message_box(
-                f"{translate_string('Could not find Task')} '{scope.name}'.",
-                "Orange",
-            )
-            return
-        if len(task_ids) > 1:
-            ui.notify(
-                f"{translate_string('More than one Task is named')} '{scope.name}'. "
-                f"{translate_string('Drawing the first.')}",
-                type="warning",
-            )
-
-        self.state.taskflow_rows = flowchart(flow, state=self.state)
-        chart_file = write_flowchart(self.state.taskflow_rows, self.state)
-        if chart_file:
-            gui.display_message_box(f"{translate_string('Flowchart saved as')} {chart_file}", "Green")
-
-        _open_popout_window("/popout/flow", getattr(gui, "open_view_in_new_window", False))
-        gui.display_message_box(translate_string("Task Flow View opened in a new browser window."), "Green")
-
     # ==========================================
     # 4. TEXT VIEW CONTROLS
     # ==========================================
-
-    def clear_event(self, _view_name: str = "mapview") -> None:
-        """Clears the search input and un-highlights all matches left by search_event."""
-        # Every open view, not just the newest: with "Open View In New Window" several
-        # Map/Diagram windows can be up at once, each with its own highlighted matches.
-        for textview in live_views(self.gui):
-            self._clear_one_view(textview)
-
-    def _clear_one_view(self, textview: NiceGuiTextView) -> None:
-        """Clears one rendered view's search box and un-highlights its matches."""
-        if hasattr(textview, "search_input"):
-            textview.search_input.set_value("")
-
-        # The results this view is holding on to are only replayable while their highlight
-        # spans are still in the page, and they are about to stop being.
-        if hasattr(textview, "invalidate_search_cache"):
-            textview.invalidate_search_cache()
-
-        if hasattr(textview, "scroll_area"):
-            # Mirrors the "clearPreviousHighlights" routine inside NiceGuiTextView.search_event:
-            # unwrap every '.search-highlight' span back into a plain text node, descending into
-            # Shadow DOM roots too since that's where the highlighted matches actually live.
-            ui.run_javascript(
-                assettext.render(
-                    "js/clear_search_highlights.js",
-                    SCROLL_AREA_ID=str(textview.scroll_area.id),
-                    HIGHLIGHT_CLASS=mapjump.HIGHLIGHT_CLASS,
-                )
-            )
-
-        ui.notify(translate_string("Cleared the search highlights."), type="info")
 
     # The Upgrade Version button has been pressed.
     def upgrade_event(self) -> None:

@@ -1021,6 +1021,13 @@ async def _corrected_plan(
     return drafted
 
 
+# 'share_names' lets the names of the user's own Tasks and global variables that the description
+# seems to mean into the question.  A model on this computer is always given them, as they go no
+# further; for any other it is the user's choice, and off unless they made it.
+#
+# A reply with something wrong in it -- an action that does not exist, a value that is not allowed,
+# a block left open, or no JSON at all -- is sent back once with what was wrong, and the corrected
+# one is used if it is better.  Nothing is asked a third time.
 async def draft_task(
     description: str,
     settings: ModelSettings,
@@ -1031,13 +1038,7 @@ async def draft_task(
 ) -> Draft:
     """Draft a Task from a description in plain words.
 
-    'share_names' lets the names of the user's own Tasks and global variables that the description
-    seems to mean into the question.  A model on this computer is always given them, as they go no
-    further; for any other it is the user's choice, and off unless they made it.
-
-    A reply with something wrong in it -- an action that does not exist, a value that is not allowed,
-    a block left open, or no JSON at all -- is sent back once with what was wrong, and the corrected
-    one is used if it is better.  Nothing is asked a third time.
+    (See the comment above this function for the rest.)
 
     A coroutine, so that the caller can run it as a task and cancel it, which cancels the
     request to the model with it -- see mapask.translate.  'ask' is the model call, a

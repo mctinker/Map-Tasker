@@ -67,7 +67,7 @@ class TaskTestEventHandlers(HandlerGroup):
             return go
 
         def open_in_stepper(case: taskcases.Case) -> None:
-            self.hub.task_stepper_event(case.task, case)
+            self.hub.tools.task_stepper_event(case.task, case)
 
         dialog, self.refresh_dialog = build_taskcases_dialog(make_jump, open_in_stepper, self.state)
         self.gui.tasktests_dialog = dialog

@@ -1162,6 +1162,40 @@ def _reconcile_children(
     return rebuilt
 
 
+# WHY THIS IS A RECONCILIATION AND NOT A SERIALIZE.
+#
+# An edit to a Project that already existed when the backup was loaded (e.g.
+# profedit.add_profile_to_project's <pids> update) lands directly on the live
+# tree -- taskerd.move_xml_to_table never deep-copies, so all_projects[name]
+# ["xml"] IS the tree's own element, same object -- and needs no reconciling.
+# A brand-new Project from Add Project is different: projedit.create_new_project
+# builds a standalone element that all_projects only learns about via
+# register_new_project, and it is never appended anywhere in PrimeItems.xml_root
+# -- so deep-copying the tree, on its own, would silently omit it entirely from
+# the saved file (confirmed: the Profile attached to it still saved correctly,
+# since Profile reconciliation already existed below, but the Project itself
+# vanished -- exactly the "new Project can't be found" symptom this fixes).
+# Profile and Task edits have the identical problem in the ordinary (not just
+# brand-new) case: taskedit.py/profedit.py's own module docstrings describe
+# deliberately never touching PrimeItems.xml_tree, always working on a deep
+# copy that only gets reconciled into the all_profiles/all_tasks lookup tables
+# afterward (see apply_edited_profile_to_live_tree/register_new_profile/
+# apply_edited_task_to_live_tree/register_new_task).
+#
+# This reconciles all four: starting from the original tree (preserving Settings,
+# Variables, and anything else this app doesn't track in a table of its own), it
+# splices in each all_projects/all_profiles/all_tasks/all_scenes entry's *current*
+# element in place of whatever the tree's own matching child holds, appends the ones
+# added via Add Project/Add Profile/Add Task/Add Scene that never existed in the
+# original file at all, and drops the tree's children that the tables no longer have
+# -- which is how a Delete reaches the file.  See the comment on that third case
+# below; it was missing, and a deleted item came back on the next load.
+# Project is matched by <name> rather than <id> -- unlike all_profiles/
+# all_tasks, all_projects is keyed by name, not id
+# (taskerd.move_xml_to_table(..., get_id=False, "name")), so matching it by
+# <id> the same way would never find an existing Project at all and duplicate
+# every one of them into the output on every single save.  Scene is matched by
+# <nme>, since a Scene has no <id> at all -- see _element_match_key.
 def render_full_backup_xml(state: RunState, *, indent: bool = True) -> str:
     """Render the entire in-memory Tasker backup -- every Project, Profile, Task,
     Scene and everything else the loaded file holds -- as one XML string, with every
@@ -1187,40 +1221,7 @@ def render_full_backup_xml(state: RunState, *, indent: bool = True) -> str:
     elements and NOTHING may modify it.  Adding a mutation below that runs for both would
     be editing the user's loaded configuration as a side effect of reading it.
 
-    WHY THIS IS A RECONCILIATION AND NOT A SERIALIZE.
-
-    An edit to a Project that already existed when the backup was loaded (e.g.
-    profedit.add_profile_to_project's <pids> update) lands directly on the live
-    tree -- taskerd.move_xml_to_table never deep-copies, so all_projects[name]
-    ["xml"] IS the tree's own element, same object -- and needs no reconciling.
-    A brand-new Project from Add Project is different: projedit.create_new_project
-    builds a standalone element that all_projects only learns about via
-    register_new_project, and it is never appended anywhere in PrimeItems.xml_root
-    -- so deep-copying the tree, on its own, would silently omit it entirely from
-    the saved file (confirmed: the Profile attached to it still saved correctly,
-    since Profile reconciliation already existed below, but the Project itself
-    vanished -- exactly the "new Project can't be found" symptom this fixes).
-    Profile and Task edits have the identical problem in the ordinary (not just
-    brand-new) case: taskedit.py/profedit.py's own module docstrings describe
-    deliberately never touching PrimeItems.xml_tree, always working on a deep
-    copy that only gets reconciled into the all_profiles/all_tasks lookup tables
-    afterward (see apply_edited_profile_to_live_tree/register_new_profile/
-    apply_edited_task_to_live_tree/register_new_task).
-
-    This reconciles all four: starting from the original tree (preserving Settings,
-    Variables, and anything else this app doesn't track in a table of its own), it
-    splices in each all_projects/all_profiles/all_tasks/all_scenes entry's *current*
-    element in place of whatever the tree's own matching child holds, appends the ones
-    added via Add Project/Add Profile/Add Task/Add Scene that never existed in the
-    original file at all, and drops the tree's children that the tables no longer have
-    -- which is how a Delete reaches the file.  See the comment on that third case
-    below; it was missing, and a deleted item came back on the next load.
-    Project is matched by <name> rather than <id> -- unlike all_profiles/
-    all_tasks, all_projects is keyed by name, not id
-    (taskerd.move_xml_to_table(..., get_id=False, "name")), so matching it by
-    <id> the same way would never find an existing Project at all and duplicate
-    every one of them into the output on every single save.  Scene is matched by
-    <nme>, since a Scene has no <id> at all -- see _element_match_key.
+    Why this is a reconciliation and not a serialize is set out in the comment above this function.
 
     The caller must have a backup loaded: PrimeItems.xml_root is the tree this
     starts from, and there is nothing to render without one.

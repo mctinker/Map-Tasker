@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import html
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core import caches, scenelayout
 from maptasker.src.core.actionc import action_codes
@@ -56,6 +56,74 @@ def get_geometry(scene_element: Element) -> tuple[str | None, str | None]:
     return (None if width is None else width.text), (None if height is None else height.text)
 
 
+def _escaped(text: object) -> str:
+    """A key or value as text for the Map, which is html.
+
+    A Scene's own layout holds whole documents -- a WebView component's content is a
+    page, <script> and all -- and written out as it stands it is a page inside the Map:
+    the browser runs it into the Map's own markup, and the view stops partway through.
+    """
+    return html.escape(str(text))
+
+
+def _mark(anchors: SceneAnchors | None, node: dict[str, Any], key: str) -> None:
+    """Anchor the line about to be written, when this dict is a component."""
+    if anchors is not None:
+        anchors.mark_property(node, key)
+
+
+def _process_json_object(
+    data: dict[str, Any], indentation: int, current_depth: int, anchors: SceneAnchors | None, *, state: RunState
+) -> None:
+    """Write one JSON object's properties, its `type` first, recursing into the values that are objects or lists."""
+    # A Scene V2 element is identified by its "type" key.  Output the type first and
+    # indent the element's remaining keys under it so that each element's attributes
+    # are visually grouped with the element they belong to.
+    items = list(data.items())
+    type_value = data.get("type")
+    if type_value is not None and not isinstance(type_value, (dict, list)):
+        _mark(anchors, data, "type")
+        state.output_lines.add_line_to_output(
+            0,
+            f"{' ' * ((3 + indentation) + (current_depth * 3))}type: {_escaped(type_value)}",
+            ["", "scene_color", FormatLine.add_end_span],
+        )
+        current_depth += 1
+        items = [(key, value) for key, value in items if key != "type"]
+
+    for key, value in items:
+        # Calculate dynamic indentation: base (3) + parent + (3 per depth level)
+        current_indent = (3 + indentation) + (current_depth * 3)
+        _mark(anchors, data, key)
+
+        if isinstance(value, dict):
+            # Print the key and indicate it's a nested object
+            state.output_lines.add_line_to_output(
+                0,
+                f"{' ' * current_indent}{_escaped(key)}:",
+                ["", "scene_color", FormatLine.add_end_span],
+            )
+            # Recursive call: increment depth
+            process_recursive_json(value, indentation, current_depth + 1, anchors, state=state)
+        elif isinstance(value, list):
+            # Print the key and indicate it's a list
+            state.output_lines.add_line_to_output(
+                0,
+                f"{' ' * current_indent}{_escaped(key)}:",
+                ["", "scene_color", FormatLine.add_end_span],
+            )
+            # Recursive call for each item in the list: increment depth
+            for item in value:
+                process_recursive_json(item, indentation, current_depth + 1, anchors, state=state)
+        else:
+            # Base case: standard key-value pair
+            state.output_lines.add_line_to_output(
+                0,
+                f"{' ' * current_indent}{_escaped(key)}: {_escaped(value)}",
+                ["", "scene_color", FormatLine.add_end_span],
+            )
+
+
 def process_recursive_json(
     data: object, indentation: int, current_depth: int = 0, anchors: SceneAnchors | None = None, *, state: RunState
 ) -> None:
@@ -69,69 +137,8 @@ def process_recursive_json(
     not in the index at all and gets no anchors, which leaves any finding about one
     pointing at the Scene as before.
     """
-    blank = " "  # Assuming blank is a space character
-
-    def escaped(text: object) -> str:
-        """A key or value as text for the Map, which is html.
-
-        A Scene's own layout holds whole documents -- a WebView component's content is a
-        page, <script> and all -- and written out as it stands it is a page inside the Map:
-        the browser runs it into the Map's own markup, and the view stops partway through.
-        """
-        return html.escape(str(text))
-
-    def mark(node: dict, key: str) -> None:
-        """Anchor the line about to be written, when this dict is a component."""
-        if anchors is not None:
-            anchors.mark_property(node, key)
-
     if isinstance(data, dict):
-        # A Scene V2 element is identified by its "type" key.  Output the type first and
-        # indent the element's remaining keys under it so that each element's attributes
-        # are visually grouped with the element they belong to.
-        items = list(data.items())
-        type_value = data.get("type")
-        if type_value is not None and not isinstance(type_value, (dict, list)):
-            mark(data, "type")
-            state.output_lines.add_line_to_output(
-                0,
-                f"{blank * ((3 + indentation) + (current_depth * 3))}type: {escaped(type_value)}",
-                ["", "scene_color", FormatLine.add_end_span],
-            )
-            current_depth += 1
-            items = [(key, value) for key, value in items if key != "type"]
-
-        for key, value in items:
-            # Calculate dynamic indentation: base (3) + parent + (3 per depth level)
-            current_indent = (3 + indentation) + (current_depth * 3)
-            mark(data, key)
-
-            if isinstance(value, dict):
-                # Print the key and indicate it's a nested object
-                state.output_lines.add_line_to_output(
-                    0,
-                    f"{blank * current_indent}{escaped(key)}:",
-                    ["", "scene_color", FormatLine.add_end_span],
-                )
-                # Recursive call: increment depth
-                process_recursive_json(value, indentation, current_depth + 1, anchors, state=state)
-            elif isinstance(value, list):
-                # Print the key and indicate it's a list
-                state.output_lines.add_line_to_output(
-                    0,
-                    f"{blank * current_indent}{escaped(key)}:",
-                    ["", "scene_color", FormatLine.add_end_span],
-                )
-                # Recursive call for each item in the list: increment depth
-                for item in value:
-                    process_recursive_json(item, indentation, current_depth + 1, anchors, state=state)
-            else:
-                # Base case: standard key-value pair
-                state.output_lines.add_line_to_output(
-                    0,
-                    f"{blank * current_indent}{escaped(key)}: {escaped(value)}",
-                    ["", "scene_color", FormatLine.add_end_span],
-                )
+        _process_json_object(data, indentation, current_depth, anchors, state=state)
     elif isinstance(data, list):
         # Optional: Handle lists if they appear in your Scene V2 JSON
         for i, item in enumerate(data):

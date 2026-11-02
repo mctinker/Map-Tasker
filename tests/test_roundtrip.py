@@ -40,7 +40,7 @@ import pytest
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import profedit, projedit, roundtrip, taskedit, taskedit_model, taskedit_save
-from maptasker.src.gui import userintr_android
+from maptasker.src.gui import userintr_android, userintr_android_support
 from maptasker.src.mapgen import taskerd
 
 from tests.doubles import required
@@ -341,15 +341,15 @@ def test_an_unticked_verify_does_not_even_render() -> None:
     never happens -- for a Project export that is every Profile, Scene and Task in it."""
     called = []
 
-    assert userintr_android._round_trip_verified(_panel(ticked=False), lambda: called.append(1))
+    assert userintr_android.round_trip_verified(_panel(ticked=False), lambda: called.append(1))
     assert called == []
 
 
 def test_a_ticked_verify_that_passes_lets_the_save_through_and_says_so() -> None:
     """A user who ticked this wants to be told it ran.  Without the message, a check that
     passed and a checkbox that did nothing look exactly alike."""
-    with patch.object(userintr_android, "ui") as fake_ui:
-        verified = userintr_android._round_trip_verified
+    with patch.object(userintr_android_support, "ui") as fake_ui:
+        verified = userintr_android.round_trip_verified
         allowed = verified(_panel(ticked=True), lambda: roundtrip.verify_project("Home", state=PrimeItems))
 
     assert allowed
@@ -363,10 +363,10 @@ def test_a_ticked_verify_that_fails_stops_the_save_before_the_device_is_touched(
     required(_live("all_tasks", "20").find("nme")).text = "Open\rer"
 
     with (
-        patch.object(userintr_android, "ui") as fake_ui,
-        patch.object(userintr_android, "build_round_trip_report_dialog") as fake_dialog,
+        patch.object(userintr_android_support, "ui") as fake_ui,
+        patch.object(userintr_android_support, "build_round_trip_report_dialog") as fake_dialog,
     ):
-        verified = userintr_android._round_trip_verified
+        verified = userintr_android.round_trip_verified
         allowed = verified(_panel(ticked=True), lambda: roundtrip.verify_task(_editable_task("20"), state=PrimeItems))
 
     assert not allowed
@@ -377,4 +377,4 @@ def test_a_ticked_verify_that_fails_stops_the_save_before_the_device_is_touched(
 def test_a_panel_without_the_checkbox_is_not_a_failure() -> None:
     """Belt and braces for a caller that has not been given the field yet -- an absent
     checkbox reads as unticked, not as a save to refuse."""
-    assert userintr_android._round_trip_verified({}, lambda: roundtrip.verify_project("Home", state=PrimeItems))
+    assert userintr_android.round_trip_verified({}, lambda: roundtrip.verify_project("Home", state=PrimeItems))

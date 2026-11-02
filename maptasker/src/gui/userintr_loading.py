@@ -22,12 +22,11 @@ from nicegui import ui
 
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.maputils import clear_tasker_data
+from maptasker.src.core.primitem import SINGLE_ITEM_LABELS
 from maptasker.src.core.sysconst import ALL_OBJECTS_MESSAGE
 from maptasker.src.gui.getfile import LocalFilePicker
 from maptasker.src.gui.guistate import remember_setting
 from maptasker.src.gui.guiutils import (
-    SINGLE_ITEM_LABELS,
-    clear_android_buttons,
     clear_single_item_names,
     clear_single_item_view_names,
     display_analyze_button,
@@ -39,6 +38,7 @@ from maptasker.src.gui.guiutils import (
     update_analysis_button_color,
     update_tasker_object_menus,
 )
+from maptasker.src.gui.guiutils_android import clear_android_buttons
 from maptasker.src.gui.guiwins_views import refresh_scope_badges
 from maptasker.src.gui.userintr_group import HandlerGroup
 from maptasker.src.mapgen.getbakup import validate_xml_file

@@ -27,13 +27,13 @@ from maptasker.src.gui.guiwins_editor import (
     editor_state,
 )
 from maptasker.src.gui.guiwins_impact import build_impact_panel
-from maptasker.src.gui.guiwins_taskedit import (
-    _after_condition_fetch,
-    _render_app_arg_field,
-    _render_app_entry_pick_button,
-    _render_icon_arg_field,
-    _render_plugin_configuration_warning,
-    _render_readonly_note,
+from maptasker.src.gui.guiwins_taskedit import _render_plugin_configuration_warning
+from maptasker.src.gui.guiwins_taskpickers import (
+    after_condition_fetch,
+    render_app_arg_field,
+    render_app_entry_pick_button,
+    render_icon_arg_field,
+    render_readonly_note,
 )
 from maptasker.src.gui.guiwins_tndesc import build_taskernet_description_button
 
@@ -352,9 +352,9 @@ class _ProfileEditorBody:
                 label=arg.arg_name,
             ).classes("flex-1")
         elif arg.widget_kind == "app_picker":
-            _render_app_arg_field(self.gui, arg, key, field_refs, self.text_initial(key, arg.current_value))
+            render_app_arg_field(self.gui, arg, key, field_refs, self.text_initial(key, arg.current_value))
         elif arg.widget_kind == "icon_picker":
-            _render_icon_arg_field(self.gui, arg, key, field_refs, self.text_initial(key, arg.current_value))
+            render_icon_arg_field(self.gui, arg, key, field_refs, self.text_initial(key, arg.current_value))
         elif arg.widget_kind in ("text", "raw_fallback"):
             field_refs[key] = ui.input(
                 arg.arg_name,
@@ -368,10 +368,10 @@ class _ProfileEditorBody:
     def _render_argument_note(self, condition: profedit.EditableCondition, arg: taskedit_model.EditableArg) -> None:
         """The note under an argument that explains why it can't be edited here, if it has one."""
         if arg.readonly_note:
-            _render_readonly_note(
+            render_readonly_note(
                 self.gui,
                 arg.readonly_note,
-                _after_condition_fetch(self.render_conditions, condition, state=self.gui.state),
+                after_condition_fetch(self.render_conditions, condition, state=self.gui.state),
             )
 
     def _render_time_condition(self, condition: profedit.EditableCondition) -> None:
@@ -536,7 +536,7 @@ class _ProfileEditorBody:
                 translate_string("Class (optional)"),
                 value=self.text_initial(cls_key, entry["cls"]),
             ).classes("flex-1")
-            _render_app_entry_pick_button(self.gui, field_refs, pkg_key, label_key, cls_key)
+            render_app_entry_pick_button(self.gui, field_refs, pkg_key, label_key, cls_key)
             ui.button(
                 translate_string("Remove"),
                 on_click=lambda _e=None, ci=condition.cond_index, ei=entry_index: (

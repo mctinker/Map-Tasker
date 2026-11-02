@@ -41,7 +41,7 @@ class _Handlers(PrebuildEventHandlers):
         hub = SimpleNamespace(
             state=state,
             gui=SimpleNamespace(prebuild_map=ticked),
-            get_ready_to_build=self.prepared.append,
+            views=SimpleNamespace(get_ready_to_build=self.prepared.append),
             prebuild=self,
         )
         super().__init__(hub)  # type: ignore[arg-type]
@@ -457,8 +457,8 @@ def _event_handlers() -> MapTaskerEventHandlers:
     window = MagicMock()
     window.state = _state()
     handlers = MapTaskerEventHandlers(window)
-    handlers.get_ready_to_build = MagicMock()  # type: ignore[method-assign]
-    handlers._show_the_view = AsyncMock()  # type: ignore[method-assign]
+    handlers.views.get_ready_to_build = MagicMock()  # type: ignore[method-assign]
+    handlers.views._show_the_view = AsyncMock()  # type: ignore[method-assign]
     return handlers
 
 
@@ -473,28 +473,28 @@ async def test_a_press_waits_for_the_build_before_it_touches_the_run_state() -> 
         order.append("the build finished")
 
     _building.task = asyncio.create_task(prebuilding())
-    handlers.get_ready_to_build.side_effect = lambda _overrides: order.append("the press prepared")  # type: ignore[attr-defined]
+    handlers.views.get_ready_to_build.side_effect = lambda _overrides: order.append("the press prepared")  # type: ignore[attr-defined]
 
-    with patch("maptasker.src.gui.userintr._busy_banner", return_value=None):
-        press = asyncio.create_task(handlers.view_event("map"))
+    with patch("maptasker.src.gui.userintr_views._busy_banner", return_value=None):
+        press = asyncio.create_task(handlers.views.view_event("map"))
         await asyncio.sleep(0.01)
         assert order == [], "the press went ahead while the build was under way"
         release.set()
         await press
 
     assert order == ["the build finished", "the press prepared"]
-    handlers._show_the_view.assert_awaited_once()  # type: ignore[attr-defined]
+    handlers.views._show_the_view.assert_awaited_once()  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
 async def test_a_press_with_no_build_under_way_does_not_wait_or_put_up_a_banner() -> None:
     handlers = _event_handlers()
 
-    with patch("maptasker.src.gui.userintr._busy_banner") as banner:
-        await asyncio.wait_for(handlers.view_event("map"), timeout=1)
+    with patch("maptasker.src.gui.userintr_views._busy_banner") as banner:
+        await asyncio.wait_for(handlers.views.view_event("map"), timeout=1)
 
     banner.assert_not_called()
-    handlers.get_ready_to_build.assert_called_once_with(None)  # type: ignore[attr-defined]
+    handlers.views.get_ready_to_build.assert_called_once_with(None)  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -505,9 +505,9 @@ async def test_a_view_being_built_is_counted_for_exactly_as_long_as_it_takes() -
     async def show(*_args: Any) -> None:
         during.append(_building.views)
 
-    handlers._show_the_view = show  # type: ignore[method-assign]
+    handlers.views._show_the_view = show  # type: ignore[method-assign]
 
-    await handlers.view_event("map")
+    await handlers.views.view_event("map")
 
     assert during == [1]
     assert _building.views == 0
@@ -516,10 +516,10 @@ async def test_a_view_being_built_is_counted_for_exactly_as_long_as_it_takes() -
 @pytest.mark.asyncio
 async def test_the_count_comes_down_when_the_view_fails() -> None:
     handlers = _event_handlers()
-    handlers._show_the_view = AsyncMock(side_effect=RuntimeError("no"))  # type: ignore[method-assign]
+    handlers.views._show_the_view = AsyncMock(side_effect=RuntimeError("no"))  # type: ignore[method-assign]
 
     with pytest.raises(RuntimeError):
-        await handlers.view_event("map")
+        await handlers.views.view_event("map")
 
     assert _building.views == 0
 
@@ -590,15 +590,15 @@ async def test_a_press_in_one_window_waits_for_a_build_started_by_another(seen: 
         order.append("the build finished")
         return function(*args, **kwargs)
 
-    handlers.get_ready_to_build.side_effect = lambda _overrides: order.append("the press prepared")  # type: ignore[attr-defined]
+    handlers.views.get_ready_to_build.side_effect = lambda _overrides: order.append("the press prepared")  # type: ignore[attr-defined]
     with (
         patch.object(userintr_prebuild.run, "io_bound", io_bound),
-        patch("maptasker.src.gui.userintr._busy_banner", return_value=None),
+        patch("maptasker.src.gui.userintr_views._busy_banner", return_value=None),
     ):
         other.prebuild_tick()
         other.prebuild_tick()
         await asyncio.sleep(0)
-        press = asyncio.create_task(handlers.view_event("map"))
+        press = asyncio.create_task(handlers.views.view_event("map"))
         await asyncio.sleep(0.01)
         assert "the press prepared" not in order
         release.set()

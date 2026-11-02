@@ -103,6 +103,13 @@ SINGLE_ITEM_SELECTORS = (
 )
 
 
+# The single-named-item labels, in the same order as SINGLE_ITEM_SELECTORS.
+# Everything the GUI needs per item derives from its label: the MyGui attribute holding
+# the current selection is "single_<label>_name", and its 'Specific Name' pulldown widget
+# is "specific_<label>_optionmenu".
+SINGLE_ITEM_LABELS = tuple(label for _, _, label in SINGLE_ITEM_SELECTORS)
+
+
 def initial_found_named_items() -> dict[str, bool]:
     """
     Build a fresh found_named_items dictionary, every flag False.
@@ -192,6 +199,45 @@ class UndoHistory:
     undo: list[Checkpoint] = field(default_factory=_no_checkpoints)
     redo: list[Checkpoint] = field(default_factory=_no_checkpoints)
     depth: int = 0
+
+
+# The languages the output can be translated into, by the name the settings use, and their codes.
+SUPPORTED_LANGUAGES: dict[str, str] = {
+    "English": "en",
+    "Spanish": "es",
+    "German": "de",
+    "Simplified Chinese": "zh_CN",
+    "Traditional Chinese": "zh_TW",
+    "Hindi": "hi",
+    "French": "fr",
+    "Portuguese": "pt",
+    "Japanese": "ja",
+    "Russian": "ru",
+    "Korean": "ko",
+    "Arabic": "ar",
+    "Bengali": "bn",
+    "Urdu": "ur",
+    "Indonesian": "in",
+    "Swahili": "sw",
+    "Marathi": "mr",
+    "Telugu": "te",
+    "Turkish": "tr",
+    "Tamil": "ta",
+    "Vietnamese": "vi",
+    "Italian": "it",
+    "Ukrainian": "uk",
+    "Polish": "pl",
+    "Dutch": "nl",
+    "Thai": "th",
+    "Gujarati": "gu",
+    "Persian": "fa",
+    "Swedish": "sv",
+    "Danish": "da",
+    "Finish": "fi",
+    "Norwegian": "no",
+    "Greek": "el",
+    "Czech": "cs",
+}
 
 
 class RunState:
@@ -397,42 +443,7 @@ class RunState:
         self.tasker_event_codes: dict[str, Any] = {}
         self.tasker_state_codes: dict[str, Any] = {}
         self.trace: bool = False
-        self.languages: dict[str, str] = {
-            "English": "en",
-            "Spanish": "es",
-            "German": "de",
-            "Simplified Chinese": "zh_CN",
-            "Traditional Chinese": "zh_TW",
-            "Hindi": "hi",
-            "French": "fr",
-            "Portuguese": "pt",
-            "Japanese": "ja",
-            "Russian": "ru",
-            "Korean": "ko",
-            "Arabic": "ar",
-            "Bengali": "bn",
-            "Urdu": "ur",
-            "Indonesian": "in",
-            "Swahili": "sw",
-            "Marathi": "mr",
-            "Telugu": "te",
-            "Turkish": "tr",
-            "Tamil": "ta",
-            "Vietnamese": "vi",
-            "Italian": "it",
-            "Ukrainian": "uk",
-            "Polish": "pl",
-            "Dutch": "nl",
-            "Thai": "th",
-            "Gujarati": "gu",
-            "Persian": "fa",
-            "Swedish": "sv",
-            "Danish": "da",
-            "Finish": "fi",
-            "Norwegian": "no",
-            "Greek": "el",
-            "Czech": "cs",
-        }
+        self.languages: dict[str, str] = dict(SUPPORTED_LANGUAGES)
         self.languages_translated: dict[str, str] = {}
         self.language_set: bool = False
         # appearance_translated: ClassVar[dict[str, str]] = {}

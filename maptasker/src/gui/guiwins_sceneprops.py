@@ -23,11 +23,8 @@ from maptasker.src.edit import sceneedit, sceneedit_legacy, taskedit, taskedit_a
 from maptasker.src.gui import sceneview_legacy
 from maptasker.src.gui.guiwins_canvas import FIELD_COMMIT_DEBOUNCE_MS
 from maptasker.src.gui.guiwins_legacyarg import render_legacy_arg
-from maptasker.src.gui.guiwins_taskedit import (
-    _build_task_action_editor,
-    _build_tasker_icon_picker_dialog,
-    _render_addability_reason,
-)
+from maptasker.src.gui.guiwins_taskedit import _build_task_action_editor
+from maptasker.src.gui.guiwins_taskpickers import build_tasker_icon_picker_dialog, render_addability_reason
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -544,7 +541,7 @@ def _render_scene_action_item(
             ui.button(
                 translate_string("Pick"),
                 icon="image",
-                on_click=lambda _e=None, field=icon_field: _build_tasker_icon_picker_dialog(field, self),
+                on_click=lambda _e=None, field=icon_field: build_tasker_icon_picker_dialog(field, self),
             ).props("flat dense size=sm")
 
         ui.input(
@@ -680,7 +677,7 @@ def _render_scene_action_item_picker(
                 else:
                     with ui.column().classes("w-full gap-0"):
                         ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
-                        _render_addability_reason(self, row["reason"], refresh_picker)
+                        render_addability_reason(self, row["reason"], refresh_picker)
 
     search_input.on_value_change(refresh_picker)
     category_select.on_value_change(refresh_picker)
@@ -743,6 +740,46 @@ def _render_scene_event_tab(
     render_event()
 
 
+def _render_bound_task_row(
+    properties: Element,
+    event: sceneedit_legacy.LegacySceneEvent,
+    rerender: Callable[[], None],
+    *,
+    anonymous: bool,
+    task_id: str,
+    task_name: str,
+) -> None:
+    """The read-only field naming the Task this event fires now, and the button that stops it firing anything."""
+    with ui.row().classes("w-full items-center gap-2 mt-2"):
+        ui.label(translate_string("Task")).classes("text-xs w-28 shrink-0")
+        if anonymous:
+            showing = translate_string("(anonymous Task, stored in the Scene)")
+        elif task_id:
+            showing = task_name
+        else:
+            showing = translate_string("Nothing -- this event fires no Task.")
+        current = ui.input(value=showing).props("readonly dense").classes("flex-1")
+        if anonymous:
+            with current:
+                ui.tooltip(
+                    translate_string(
+                        "Tasker keeps this Task inside the Scene and nowhere else, so it has no name "
+                        "and cannot be pointed somewhere else without losing it. It is carried "
+                        "through untouched.",
+                    ),
+                ).style("white-space: pre-wrap")
+        elif task_id:
+            ui.button(
+                icon="close",
+                on_click=lambda _e=None: (
+                    sceneedit_legacy.legacy_clear_task_binding(properties, event.tag),
+                    rerender(),
+                ),
+            ).props("dense flat size=sm color=negative").tooltip(
+                translate_string("Stop firing anything on this event."),
+            )
+
+
 def _render_scene_event(
     self: MyGui,
     properties: Element,
@@ -792,34 +829,7 @@ def _render_scene_event(
         sceneedit_legacy.legacy_set_task_binding(properties, event.tag, picked_id)
         rerender()
 
-    with ui.row().classes("w-full items-center gap-2 mt-2"):
-        ui.label(translate_string("Task")).classes("text-xs w-28 shrink-0")
-        if anonymous:
-            showing = translate_string("(anonymous Task, stored in the Scene)")
-        elif task_id:
-            showing = task_name
-        else:
-            showing = translate_string("Nothing -- this event fires no Task.")
-        current = ui.input(value=showing).props("readonly dense").classes("flex-1")
-        if anonymous:
-            with current:
-                ui.tooltip(
-                    translate_string(
-                        "Tasker keeps this Task inside the Scene and nowhere else, so it has no name "
-                        "and cannot be pointed somewhere else without losing it. It is carried "
-                        "through untouched.",
-                    ),
-                ).style("white-space: pre-wrap")
-        elif task_id:
-            ui.button(
-                icon="close",
-                on_click=lambda _e=None: (
-                    sceneedit_legacy.legacy_clear_task_binding(properties, event.tag),
-                    rerender(),
-                ),
-            ).props("dense flat size=sm color=negative").tooltip(
-                translate_string("Stop firing anything on this event."),
-            )
+    _render_bound_task_row(properties, event, rerender, anonymous=anonymous, task_id=task_id, task_name=task_name)
 
     if not anonymous:
         _render_task_picker(set_binding, state=self.state)
@@ -934,6 +944,17 @@ def _render_scene_key_filter(properties: Element) -> None:
         ).style("white-space: pre-wrap")
 
 
+# NOTHING TYPED IN HERE IS THROWN AWAY BY NAVIGATION.  The Task copy is held by the dialog
+# (task_state), not by this panel, so it survives the rebuild that every sub-tab switch,
+# binding change and Property Type change causes -- and the widgets' own values are moved
+# onto it by the flusher registered below, just before they are destroyed.  Both halves are
+# needed: the copy carries the actions, the widgets carry the argument values.
+#
+# WHICH TASK, when one is bound.  Whatever the event's tag points at, resolved BY ID
+# (taskedit.load_task_for_edit_by_id): the binding stores an id, and an unnamed Task's
+# displayed name is one taskerd invented from its first action, which is not a name to look
+# a Task up by.  The copy is keyed by tag AND id, so repointing the event at a different
+# Task starts a fresh copy instead of showing the old Task's actions under the new name.
 def _render_scene_event_task_actions(
     self: MyGui,
     properties: Element,
@@ -948,17 +969,7 @@ def _render_scene_event_task_actions(
     THERE IS ALWAYS AN EDITOR, whether or not a Task is bound yet.  An event with nothing
     bound gets a brand-new Task, composed in place -- see _render_scene_event_new_task.
 
-    NOTHING TYPED IN HERE IS THROWN AWAY BY NAVIGATION.  The Task copy is held by the dialog
-    (task_state), not by this panel, so it survives the rebuild that every sub-tab switch,
-    binding change and Property Type change causes -- and the widgets' own values are moved
-    onto it by the flusher registered below, just before they are destroyed.  Both halves are
-    needed: the copy carries the actions, the widgets carry the argument values.
-
-    WHICH TASK, when one is bound.  Whatever the event's tag points at, resolved BY ID
-    (taskedit.load_task_for_edit_by_id): the binding stores an id, and an unnamed Task's
-    displayed name is one taskerd invented from its first action, which is not a name to look
-    a Task up by.  The copy is keyed by tag AND id, so repointing the event at a different
-    Task starts a fresh copy instead of showing the old Task's actions under the new name.
+    (See the comment above this function for the rest.)
 
     An ANONYMOUS Task (a negative id, kept inside the Scene and nowhere else) gets no editor.
     It is not in the Task tables, so there is nothing to load, nothing to write back into, and

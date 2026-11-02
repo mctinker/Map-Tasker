@@ -43,6 +43,8 @@ from maptasker.src.gui.guiwins_tabs import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
 
@@ -295,7 +297,7 @@ def _create_right_drawer(self: MyGui) -> None:
             _create_analysis_buttons_section(self)
             _create_monitor_button(self)
 
-        ui.button(translate_string("Clear"), on_click=self.event_handlers.clear_view_event).classes(
+        ui.button(translate_string("Clear"), on_click=self.event_handlers.views.clear_view_event).classes(
             "bg-blue-500"
         ).style("margin-top:-6px")
 
@@ -415,7 +417,9 @@ def _create_execution_section(self: MyGui) -> None:
 def _create_view_buttons_section(self: MyGui) -> None:
     """The Map, Diagram and Tree buttons, side by side."""
     with ui.row().classes("w-full justify-center gap-2 gap-y-0 mt-0"):
-        v_map = ui.button(translate_string("Map"), on_click=lambda: self.event_handlers.view_event("map")).classes(
+        v_map = ui.button(
+            translate_string("Map"), on_click=lambda: self.event_handlers.views.view_event("map")
+        ).classes(
             "bg-blue-500",
         )
         with v_map:
@@ -426,7 +430,7 @@ def _create_view_buttons_section(self: MyGui) -> None:
             ).style("white-space: pre-wrap")
         v_diagram = ui.button(
             translate_string("Diagram"),
-            on_click=lambda: self.event_handlers.view_event("diagram"),
+            on_click=lambda: self.event_handlers.views.view_event("diagram"),
         ).classes(
             "bg-blue-500",
         )
@@ -438,7 +442,7 @@ def _create_view_buttons_section(self: MyGui) -> None:
             ).style("white-space: pre-wrap")
         v_tree = ui.button(
             translate_string("Tree"),
-            on_click=lambda: self.event_handlers.view_event("tree"),
+            on_click=lambda: self.event_handlers.views.view_event("tree"),
         ).classes(
             "bg-blue-500",
         )
@@ -493,7 +497,7 @@ def _create_health_check_row(self: MyGui) -> None:
             ui.button(
                 translate_string("Fix Findings"),
                 color="teal",
-                on_click=self.event_handlers.fix_findings_event,
+                on_click=self.event_handlers.tools.fix_findings_event,
                 icon="build",
             )
             .classes("flex-1 justify-center")
@@ -514,105 +518,87 @@ def _create_health_check_row(self: MyGui) -> None:
         ).style("white-space: pre-wrap")
 
 
-def _create_history_buttons_section(self: MyGui) -> None:
-    """The reports that compare the loaded configuration with another one: Compare Files, Changes Since and Restore From History."""
-    # Full width, because the drawer is w-80 and this label is too long to share a row, and
-    # coloured through "color" because Quasar's own bg-primary beats a Tailwind bg-* class.
-    self.compare_files_button = (
-        ui.button(
-            translate_string("Compare Files"),
-            color="teal",
-            on_click=self.event_handlers.reports.compare_files_event,
-            icon="difference",
-        )
+def _teal_report_button(label: str, on_click: Callable[[], object], icon: str, tooltip: str) -> ui.button:
+    """A full-width teal button for a report, with its explanation as a tooltip.
+
+    Full width, because the drawer is w-80 and these labels are too long to share a row, and coloured
+    through "color" because Quasar's own bg-primary beats a Tailwind bg-* class.  Both arguments that are
+    words arrive already translated, so each call site keeps its own literal for the catalogue to find.
+    """
+    button = (
+        ui.button(label, color="teal", on_click=on_click, icon=icon)
         .classes("w-full justify-center")
         .style("margin-top:-6px")
     )
-    with self.compare_files_button:
-        ui.tooltip(
-            translate_string(
-                "Compare another XML file against the loaded one: what was added, removed, "
-                "renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what "
-                "an edit changed, or what is different between two backups.\n\nIf the loaded "
-                "file came from 'Save to Current File', the file it was saved from is offered "
-                "directly.\n\nResults are displayed here and saved to a text file in the "
-                "Output Folder.",
-            ),
-        ).style("white-space: pre-wrap")
+    with button:
+        ui.tooltip(tooltip).style("white-space: pre-wrap")
+    return button
+
+
+def _create_history_buttons_section(self: MyGui) -> None:
+    """The reports that compare the loaded configuration with another one: Compare Files, Changes Since and Restore From History."""
+    _teal_report_button(
+        translate_string("Compare Files"),
+        self.event_handlers.reports.compare_files_event,
+        "difference",
+        translate_string(
+            "Compare another XML file against the loaded one: what was added, removed, "
+            "renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what "
+            "an edit changed, or what is different between two backups.\n\nIf the loaded "
+            "file came from 'Save to Current File', the file it was saved from is offered "
+            "directly.\n\nResults are displayed here and saved to a text file in the "
+            "Output Folder.",
+        ),
+    )
 
     # The comparison above needs two files and the user to know which two.  This one
     # needs neither: every configuration loaded is kept (see timeline.py), so the
     # older side is already on disk and picked by date.
-    self.timeline_button = (
-        ui.button(
-            translate_string("Changes Since..."),
-            color="teal",
-            on_click=self.event_handlers.reports.timeline_event,
-            icon="history",
-        )
-        .classes("w-full justify-center")
-        .style("margin-top:-6px")
+    _teal_report_button(
+        translate_string("Changes Since..."),
+        self.event_handlers.reports.timeline_event,
+        "history",
+        translate_string(
+            "What has changed in your configuration since a moment you choose: today, "
+            "this week, this month, everything kept, or a specific date.\n\nNo file to "
+            "pick -- every configuration you load is kept, compressed, in a "
+            "MapTasker_Timeline folder in the current directory, and the one from back "
+            "then is compared against what you have open now.\n\nResults are displayed "
+            "here and saved to a text file in the Output Folder.",
+        ),
     )
-    with self.timeline_button:
-        ui.tooltip(
-            translate_string(
-                "What has changed in your configuration since a moment you choose: today, "
-                "this week, this month, everything kept, or a specific date.\n\nNo file to "
-                "pick -- every configuration you load is kept, compressed, in a "
-                "MapTasker_Timeline folder in the current directory, and the one from back "
-                "then is compared against what you have open now.\n\nResults are displayed "
-                "here and saved to a text file in the Output Folder.",
-            ),
-        ).style("white-space: pre-wrap")
 
     # Directly under Changes Since, because it is that report's other half: the report says
     # what was deleted or changed since a configuration in the history, and this puts one
-    # of those objects back.  Same width and colouring as the buttons around it, for their
-    # reasons (see the Health Check button).
-    self.restore_history_button = (
-        ui.button(
-            translate_string("Restore From History"),
-            color="teal",
-            on_click=self.event_handlers.restore_history_event,
-            icon="restore",
-        )
-        .classes("w-full justify-center")
-        .style("margin-top:-6px")
+    # of those objects back.
+    _teal_report_button(
+        translate_string("Restore From History"),
+        self.event_handlers.tools.restore_history_event,
+        "restore",
+        translate_string(
+            "Bring back a Task, Profile or Scene that has been deleted, or put one back as it "
+            "was before it was edited -- from any configuration kept in the history that "
+            "'Changes Since...' reads.\n\nOne object at a time, never a merge: every restore "
+            "is shown before anything happens, says what it leaves for you to do (a Profile "
+            "to relink, say), and is one press of Undo afterwards.",
+        ),
     )
-    with self.restore_history_button:
-        ui.tooltip(
-            translate_string(
-                "Bring back a Task, Profile or Scene that has been deleted, or put one back as it "
-                "was before it was edited -- from any configuration kept in the history that "
-                "'Changes Since...' reads.\n\nOne object at a time, never a merge: every restore "
-                "is shown before anything happens, says what it leaves for you to do (a Profile "
-                "to relink, say), and is one press of Undo afterwards.",
-            ),
-        ).style("white-space: pre-wrap")
 
     # Under Restore From History because it is that dialog's other source: an object brought in
     # one at a time from a configuration that is not the one open -- here, the TaskerNet share
     # it came from rather than a file kept in the history.
-    taskernet_updates_button = (
-        ui.button(
-            translate_string("TaskerNet Updates"),
-            color="teal",
-            on_click=self.event_handlers.taskernet_updates_event,
-            icon="cloud_sync",
-        )
-        .classes("w-full justify-center")
-        .style("margin-top:-6px")
+    _teal_report_button(
+        translate_string("TaskerNet Updates"),
+        self.event_handlers.tools.taskernet_updates_event,
+        "cloud_sync",
+        translate_string(
+            "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find "
+            "out when its author publishes a newer version.\n\nShows what the author changed and "
+            "lets you take each change on its own, previewed first and one press of Undo "
+            "afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; "
+            "nothing from your configuration leaves this computer.",
+        ),
     )
-    with taskernet_updates_button:
-        ui.tooltip(
-            translate_string(
-                "Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find "
-                "out when its author publishes a newer version.\n\nShows what the author changed and "
-                "lets you take each change on its own, previewed first and one press of Undo "
-                "afterwards.\n\nOnly the address of each linked share is sent to taskernet.com; "
-                "nothing from your configuration leaves this computer.",
-            ),
-        ).style("white-space: pre-wrap")
     _create_import_button(self)
 
 
@@ -647,7 +633,7 @@ def _create_resources_button(self: MyGui) -> None:
         ui.button(
             translate_string("Missing Resources"),
             color="teal",
-            on_click=self.event_handlers.missing_resources_event,
+            on_click=self.event_handlers.tools.missing_resources_event,
             icon="find_in_page",
         )
         .classes("w-full justify-center")
@@ -669,7 +655,7 @@ def _create_monitor_button(self: MyGui) -> None:
         ui.button(
             translate_string("Live Run Monitor"),
             color="teal",
-            on_click=self.event_handlers.live_monitor_event,
+            on_click=self.event_handlers.tools.live_monitor_event,
             icon="monitor_heart",
         )
         .classes("w-full justify-center")
@@ -692,7 +678,7 @@ def _create_trend_button(self: MyGui) -> None:
         ui.button(
             translate_string("Trend Dashboard"),
             color="teal",
-            on_click=self.event_handlers.trend_dashboard_event,
+            on_click=self.event_handlers.tools.trend_dashboard_event,
             icon="trending_up",
         )
         .classes("w-full justify-center")
@@ -818,7 +804,7 @@ def _create_simulation_buttons(self: MyGui) -> None:
         ui.button(
             translate_string("What Fires When?"),
             color="teal",
-            on_click=self.event_handlers.fire_simulator_event,
+            on_click=self.event_handlers.tools.fire_simulator_event,
             icon="schedule",
         )
         .classes("w-full justify-center")
@@ -841,7 +827,7 @@ def _create_simulation_buttons(self: MyGui) -> None:
         ui.button(
             translate_string("Task Stepper"),
             color="teal",
-            on_click=self.event_handlers.task_stepper_event,
+            on_click=self.event_handlers.tools.task_stepper_event,
             icon="skip_next",
         )
         .classes("w-full justify-center")

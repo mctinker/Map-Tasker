@@ -16,7 +16,7 @@ from maptasker.src.core import appinv, clock, timeline
 from maptasker.src.core.mapjump import PROJECT
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.gui.guiwins_impact import build_impact_panel, wire_impact_clicks
-from maptasker.src.gui.guiwins_taskedit import build_fetch_apps_dialog
+from maptasker.src.gui.guiwins_taskpickers import build_fetch_apps_dialog
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine, Sequence
@@ -285,7 +285,7 @@ def build_overwrite_confirm_dialog(
     (see the save_* handlers in userintr and userintr_android).
 
     tasker_lines is what Tasker itself already has of the objects being sent (see
-    userintr_android._what_tasker_already_has), shown under the file's own line so a save that both
+    userintr_android.what_tasker_already_has), shown under the file's own line so a save that both
     replaces a file and re-sends objects Tasker has asks once rather than twice.
     file_absent=True is a prompt raised by those lines alone: there is no file to name and
     nothing here is overwritten, so it says neither and offers Continue, not Overwrite.

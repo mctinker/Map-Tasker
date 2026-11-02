@@ -241,7 +241,7 @@ async def jump_diagram_view(master_gui: MyGui, target: mapjump.Target) -> bool:
 def opening_view_in_a_new_window(gui: MyGui) -> Generator[None]:
     """Turn "Open View In New Window" on for the duration of one jump, then put it back.
 
-    WHAT IT IS FOR.  A Map view IS a popout window, opened by userintr._open_popout_window
+    WHAT IT IS FOR.  A Map view IS a popout window, opened by userintr_views._open_popout_window
     under a name popout_window_name keeps STABLE while that option is off.  A stable name is
     what makes window.open reuse a tab -- which is the whole point of the option, and the
     wrong behaviour for a jump launched from a dialog, because the tab it reuses is the tab
@@ -311,7 +311,7 @@ async def go_to_target(master_gui: MyGui, target: mapjump.Target, prefer_diagram
             position="top",
         )
         return
-    await handlers.rebuild_map_for_jump(target)
+    await handlers.views.rebuild_map_for_jump(target)
 
 
 def register_finding_clicks(master_gui: MyGui) -> None:

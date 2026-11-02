@@ -37,7 +37,7 @@ class View(guiwins_search.TextViewSearch):
             state=PrimeItems,
             ai_name="",
             ai_model="",
-            event_handlers=SimpleNamespace(view_event=view_event),
+            event_handlers=SimpleNamespace(views=SimpleNamespace(view_event=view_event)),
         )
         self.title = title
         self.scroll_area = ui.scroll_area()

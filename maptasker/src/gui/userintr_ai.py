@@ -23,6 +23,7 @@ from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import (
     MAP_OUTPUT_ATTRIBUTES,
+    SINGLE_ITEM_LABELS,
     clear_error,
     initial_found_named_items,
     reset_attributes,
@@ -31,16 +32,14 @@ from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.sysconst import logger
 from maptasker.src.gui.guistate import capture_gui_state, gui_settings
 from maptasker.src.gui.guiutils import (
-    SINGLE_ITEM_LABELS,
     display_analyze_button,
     display_error_file_and_ai_response,
     display_model_pulldown,
     display_selected_object_labels,
-    get_extended_ai_model_list,
     list_tasker_objects,
-    set_ai_key,
     update_analysis_button_color,
 )
+from maptasker.src.gui.guiutils_ai import get_extended_ai_model_list, set_ai_key
 from maptasker.src.gui.guiwins2 import APIKeyDialog
 from maptasker.src.gui.mapai import get_ai_object, map_ai, valid_api_key
 from maptasker.src.gui.userintr_group import HandlerGroup

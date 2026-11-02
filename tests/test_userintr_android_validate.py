@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
-from maptasker.src.gui import userintr_android
+from maptasker.src.gui import userintr_android, userintr_android_support
 
 IP, PORT, FILE = "192.168.0.5", "1821", "/sdcard/backup.xml"
 
@@ -24,7 +24,7 @@ def gui(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     async def io_bound(function: object, *arguments: Any, **keywords: Any) -> object:
         return function(*arguments, **keywords)
 
-    monkeypatch.setattr(userintr_android, "run", SimpleNamespace(io_bound=io_bound))
+    monkeypatch.setattr(userintr_android_support, "run", SimpleNamespace(io_bound=io_bound))
     shown: list[tuple[str, str]] = []
     return SimpleNamespace(
         shown=shown,
@@ -35,8 +35,8 @@ def gui(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
 
 
 def _device(monkeypatch: pytest.MonkeyPatch, *, fetch: object, validate: object) -> None:
-    monkeypatch.setattr(userintr_android, "http_request", lambda *_a, **_k: fetch)
-    monkeypatch.setattr(userintr_android, "validate_xml_file", lambda *_a, **_k: validate)
+    monkeypatch.setattr(userintr_android_support, "http_request", lambda *_a, **_k: fetch)
+    monkeypatch.setattr(userintr_android_support, "validate_xml_file", lambda *_a, **_k: validate)
 
 
 @pytest.mark.asyncio
@@ -105,8 +105,8 @@ async def test_no_file_or_an_explicit_list_request_offers_the_list_instead(
         asked.append(details)
         return (2, "", "", "")
 
-    monkeypatch.setattr(userintr_android, "_offer_file_list", offer)
-    monkeypatch.setattr(userintr_android, "_validate_chosen_file", pytest.fail)
+    monkeypatch.setattr(userintr_android_support, "_offer_file_list", offer)
+    monkeypatch.setattr(userintr_android_support, "_validate_chosen_file", pytest.fail)
 
     assert await userintr_android.validate_or_filelist_xml(gui, IP, PORT, file) == (2, "", "", "")
     assert asked == [(IP, PORT, file)]
@@ -116,9 +116,11 @@ async def test_no_file_or_an_explicit_list_request_offers_the_list_instead(
 async def test_a_listing_that_fails_shows_the_reason_and_returns_one(
     gui: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(userintr_android, "clear_android_buttons", lambda _gui: None)
-    monkeypatch.setattr(userintr_android, "ui", SimpleNamespace(notify=lambda *_a, **_k: None))
-    monkeypatch.setattr(userintr_android.devicefiles, "get_list_of_files", lambda *_a, **_k: (1, "device not found"))
+    monkeypatch.setattr(userintr_android_support, "clear_android_buttons", lambda _gui: None)
+    monkeypatch.setattr(userintr_android_support, "ui", SimpleNamespace(notify=lambda *_a, **_k: None))
+    monkeypatch.setattr(
+        userintr_android_support.devicefiles, "get_list_of_files", lambda *_a, **_k: (1, "device not found")
+    )
 
     result = await userintr_android.validate_or_filelist_xml(gui, IP, PORT, "")
 
@@ -131,10 +133,12 @@ async def test_a_listing_that_works_mounts_the_picker_and_suspends_the_fetch(
     gui: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     mounted: list[list] = []
-    monkeypatch.setattr(userintr_android, "clear_android_buttons", lambda _gui: None)
-    monkeypatch.setattr(userintr_android, "ui", SimpleNamespace(notify=lambda *_a, **_k: None))
-    monkeypatch.setattr(userintr_android.devicefiles, "get_list_of_files", lambda *_a, **_k: (0, ["a.xml", "b.xml"]))
-    monkeypatch.setattr(userintr_android, "_mount_file_picker", lambda _gui, files: mounted.append(files))
+    monkeypatch.setattr(userintr_android_support, "clear_android_buttons", lambda _gui: None)
+    monkeypatch.setattr(userintr_android_support, "ui", SimpleNamespace(notify=lambda *_a, **_k: None))
+    monkeypatch.setattr(
+        userintr_android_support.devicefiles, "get_list_of_files", lambda *_a, **_k: (0, ["a.xml", "b.xml"])
+    )
+    monkeypatch.setattr(userintr_android_support, "_mount_file_picker", lambda _gui, files: mounted.append(files))
 
     result = await userintr_android.validate_or_filelist_xml(gui, IP, PORT, "")
 

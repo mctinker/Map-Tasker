@@ -27,7 +27,7 @@ import time as clock
 from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -100,8 +100,52 @@ def _picked(value: object) -> str | None:
     return str(value).strip()
 
 
+def _build_inputs_row(state: RunState) -> _Inputs:
+    """The row of what to simulate: the date, the time, the Wi-Fi network, the app in front and the battery level."""
+    with ui.row().classes("w-full items-end gap-3 no-wrap"):
+        date = ui.input(translate_string("Date"), value=clock.strftime("%Y-%m-%d")).props("type=date dense")
+        time = ui.input(translate_string("Time"), value=clock.strftime("%H:%M")).props("type=time dense")
+        wifi = (
+            ui.select(
+                {
+                    _SKIP: translate_string("(not simulated)"),
+                    _NONE: translate_string("(not connected)"),
+                    **{name: name for name in firesim.wifi_networks(state=state)},
+                },
+                value=_SKIP,
+                label=translate_string("Wi-Fi network"),
+                with_input=True,
+                new_value_mode="add-unique",
+            )
+            .props("dense options-dense")
+            .classes("min-w-[190px]")
+        )
+        app = (
+            ui.select(
+                {
+                    _SKIP: translate_string("(not simulated)"),
+                    _NONE: translate_string("(no app in front)"),
+                    **firesim.condition_apps(state=state),
+                },
+                value=_SKIP,
+                label=translate_string("App in front"),
+                with_input=True,
+                new_value_mode="add-unique",
+            )
+            .props("dense options-dense")
+            .classes("min-w-[190px]")
+        )
+        battery = (
+            ui.number(translate_string("Battery %"), value=None, min=0, max=100, format="%d")
+            .props("dense clearable")
+            .classes("w-28")
+        )
+        battery.tooltip(translate_string("Leave empty to not simulate the battery level."))
+    return _Inputs(date, time, wifi, app, battery)
+
+
 def build_firesim_dialog(
-    make_jump: Callable,
+    make_jump: Callable[..., Any],
     state: RunState,
     step_task: Callable[[str], None] | None = None,
 ) -> ui.dialog | None:
@@ -123,47 +167,8 @@ def build_firesim_dialog(
         ui.label(translate_string("What Fires When?")).classes("text-lg font-bold text-blue-600")
         ui.label(translate_string(_BLURB)).classes("text-xs text-gray-500 italic mb-2 mt-1")
 
-        with ui.row().classes("w-full items-end gap-3 no-wrap"):
-            date = ui.input(translate_string("Date"), value=clock.strftime("%Y-%m-%d")).props("type=date dense")
-            time = ui.input(translate_string("Time"), value=clock.strftime("%H:%M")).props("type=time dense")
-            wifi = (
-                ui.select(
-                    {
-                        _SKIP: translate_string("(not simulated)"),
-                        _NONE: translate_string("(not connected)"),
-                        **{name: name for name in firesim.wifi_networks(state=state)},
-                    },
-                    value=_SKIP,
-                    label=translate_string("Wi-Fi network"),
-                    with_input=True,
-                    new_value_mode="add-unique",
-                )
-                .props("dense options-dense")
-                .classes("min-w-[190px]")
-            )
-            app = (
-                ui.select(
-                    {
-                        _SKIP: translate_string("(not simulated)"),
-                        _NONE: translate_string("(no app in front)"),
-                        **firesim.condition_apps(state=state),
-                    },
-                    value=_SKIP,
-                    label=translate_string("App in front"),
-                    with_input=True,
-                    new_value_mode="add-unique",
-                )
-                .props("dense options-dense")
-                .classes("min-w-[190px]")
-            )
-            battery = (
-                ui.number(translate_string("Battery %"), value=None, min=0, max=100, format="%d")
-                .props("dense clearable")
-                .classes("w-28")
-            )
-            battery.tooltip(translate_string("Leave empty to not simulate the battery level."))
-
-        inputs = _Inputs(date, time, wifi, app, battery)
+        inputs = _build_inputs_row(state)
+        date, time, wifi, app, battery = inputs.date, inputs.time, inputs.wifi, inputs.app, inputs.battery
         summary = ui.label("").classes("text-sm font-bold text-orange-500 mt-2")
         area = ui.scroll_area().classes("w-full h-[480px] border rounded dark:border-gray-700 mt-1")
 
@@ -220,7 +225,7 @@ def _summary_text(result: firesim.Simulation) -> str:
     return f"{', '.join(parts)}  --  {collisions}"
 
 
-def _link(target: Target, make_jump: Callable, classes: str = "") -> None:
+def _link(target: Target, make_jump: Callable[..., Any], classes: str = "") -> None:
     """A clickable name that goes to the object in the Map view."""
     ui.link(target.label, "#").on("click", make_jump(target), js_handler=LINK_CLICK_JS).classes(
         f"text-blue-600 dark:text-blue-400 font-mono text-sm decoration-dotted hover:underline {classes}",
@@ -232,79 +237,96 @@ def _heading(text: str, classes: str = "text-blue-600") -> None:
     ui.label(text).classes(f"text-sm font-bold mt-3 {classes}")
 
 
+def _draw_collisions(result: firesim.Simulation, make_jump: Callable[..., Any]) -> None:
+    """The collisions, if there are any, under a heading."""
+    if result.collisions:
+        _heading(translate_string("Collisions"), "text-red-600 dark:text-red-400")
+        for collision in result.collisions:
+            with ui.column().classes("w-full gap-0 pl-2 pb-1"):
+                with ui.row().classes("items-baseline gap-2"):
+                    ui.label(f"[{collision.kind}]").classes("font-mono text-xs font-bold text-orange-500")
+                    _link(collision.where, make_jump)
+                ui.label(collision.detail).classes(
+                    "text-xs " + ("text-gray-600 dark:text-gray-300" if collision.certain else "text-gray-500 italic"),
+                )
+
+
+def _draw_run_order(
+    result: firesim.Simulation, make_jump: Callable[..., Any], step_task: Callable[[str], None] | None
+) -> None:
+    """Each Profile's entry Task, highest priority first, with who started it."""
+    _heading(translate_string("Run order"))
+    ui.label(
+        translate_string(
+            "Each Profile's entry Task, highest priority first.  'tied' starts share a priority, and Tasker "
+            "does not fix the order among them.",
+        ),
+    ).classes("text-xs text-gray-500 pl-2")
+    if not result.queue:
+        ui.label(translate_string("No Profile that is, or may be, active starts a Task.")).classes(
+            "text-xs text-gray-500 italic pl-2",
+        )
+    for run in result.queue:
+        with ui.column().classes("w-full gap-0 pl-2 pb-1"):
+            with ui.row().classes("w-full items-baseline gap-2"):
+                ui.label(f"{run.position}.").classes("font-mono text-xs text-gray-400 w-6 shrink-0")
+                ui.label(f"{translate_string('priority')} {run.profile.priority}").classes(
+                    "font-mono text-xs text-gray-400 shrink-0",
+                )
+                _link(run.task, make_jump)
+                if step_task is not None and run.task.name:
+                    ui.button(
+                        translate_string("Step"),
+                        on_click=partial(step_task, run.task.name),
+                    ).props("flat dense size=sm").tooltip(translate_string("Walk this Task in the Task Stepper."))
+                if run.tied:
+                    ui.badge(translate_string("tied"), color="grey").props("outline")
+                if run.profile.state == firesim.POSSIBLE:
+                    ui.badge(translate_string("if the Profile is active"), color="amber").props("outline")
+            with ui.row().classes("w-full items-baseline gap-2 pl-8"):
+                ui.label(translate_string("started by")).classes("text-xs text-gray-400")
+                _link(run.profile.target, make_jump, _STATE_CLASSES[run.profile.state])
+
+
+def _draw_inactive(result: firesim.Simulation, make_jump: Callable[..., Any]) -> None:
+    """The Profiles that are not active, folded away, and why each is ruled out."""
+    if result.inactive:
+        with ui.expansion(f"{translate_string('Not active')} ({len(result.inactive)})").classes(
+            "w-full text-sm text-gray-500 mt-2",
+        ):
+            for profile in result.inactive[:_INACTIVE_LIMIT]:
+                reason = profile.ruled_out_by
+                with ui.row().classes("w-full items-baseline gap-2 pl-2"):
+                    _link(profile.target, make_jump)
+                    if reason is not None:
+                        ui.label(f"{reason.label}: {reason.reason}").classes("text-xs text-gray-500")
+            if len(result.inactive) > _INACTIVE_LIMIT:
+                ui.label(f"...{len(result.inactive) - _INACTIVE_LIMIT} {translate_string('more')}").classes(
+                    "text-xs text-gray-500 italic pl-2",
+                )
+
+
 def _draw(
     result: firesim.Simulation,
     area: ui.scroll_area,
-    make_jump: Callable,
+    make_jump: Callable[..., Any],
     step_task: Callable[[str], None] | None = None,
 ) -> None:
     """Collisions, then the run order, then the Profiles by state."""
     area.clear()
     with area, ui.column().classes("w-full gap-1 p-1"):
-        if result.collisions:
-            _heading(translate_string("Collisions"), "text-red-600 dark:text-red-400")
-            for collision in result.collisions:
-                with ui.column().classes("w-full gap-0 pl-2 pb-1"):
-                    with ui.row().classes("items-baseline gap-2"):
-                        ui.label(f"[{collision.kind}]").classes("font-mono text-xs font-bold text-orange-500")
-                        _link(collision.where, make_jump)
-                    ui.label(collision.detail).classes(
-                        "text-xs "
-                        + ("text-gray-600 dark:text-gray-300" if collision.certain else "text-gray-500 italic"),
-                    )
-
-        _heading(translate_string("Run order"))
-        ui.label(
-            translate_string(
-                "Each Profile's entry Task, highest priority first.  'tied' starts share a priority, and Tasker "
-                "does not fix the order among them.",
-            ),
-        ).classes("text-xs text-gray-500 pl-2")
-        if not result.queue:
-            ui.label(translate_string("No Profile that is, or may be, active starts a Task.")).classes(
-                "text-xs text-gray-500 italic pl-2",
-            )
-        for run in result.queue:
-            with ui.column().classes("w-full gap-0 pl-2 pb-1"):
-                with ui.row().classes("w-full items-baseline gap-2"):
-                    ui.label(f"{run.position}.").classes("font-mono text-xs text-gray-400 w-6 shrink-0")
-                    ui.label(f"{translate_string('priority')} {run.profile.priority}").classes(
-                        "font-mono text-xs text-gray-400 shrink-0",
-                    )
-                    _link(run.task, make_jump)
-                    if step_task is not None and run.task.name:
-                        ui.button(
-                            translate_string("Step"),
-                            on_click=partial(step_task, run.task.name),
-                        ).props("flat dense size=sm").tooltip(translate_string("Walk this Task in the Task Stepper."))
-                    if run.tied:
-                        ui.badge(translate_string("tied"), color="grey").props("outline")
-                    if run.profile.state == firesim.POSSIBLE:
-                        ui.badge(translate_string("if the Profile is active"), color="amber").props("outline")
-                with ui.row().classes("w-full items-baseline gap-2 pl-8"):
-                    ui.label(translate_string("started by")).classes("text-xs text-gray-400")
-                    _link(run.profile.target, make_jump, _STATE_CLASSES[run.profile.state])
+        _draw_collisions(result, make_jump)
+        _draw_run_order(result, make_jump, step_task)
 
         _draw_profiles("Active", result.active, make_jump, show=lambda profile: profile.verdicts)
         _draw_profiles("Possible -- waiting on", result.possible, make_jump, show=lambda profile: profile.waiting_on)
 
-        if result.inactive:
-            with ui.expansion(f"{translate_string('Not active')} ({len(result.inactive)})").classes(
-                "w-full text-sm text-gray-500 mt-2",
-            ):
-                for profile in result.inactive[:_INACTIVE_LIMIT]:
-                    reason = profile.ruled_out_by
-                    with ui.row().classes("w-full items-baseline gap-2 pl-2"):
-                        _link(profile.target, make_jump)
-                        if reason is not None:
-                            ui.label(f"{reason.label}: {reason.reason}").classes("text-xs text-gray-500")
-                if len(result.inactive) > _INACTIVE_LIMIT:
-                    ui.label(f"...{len(result.inactive) - _INACTIVE_LIMIT} {translate_string('more')}").classes(
-                        "text-xs text-gray-500 italic pl-2",
-                    )
+        _draw_inactive(result, make_jump)
 
 
-def _draw_profiles(title: str, profiles: list[firesim.ProfileResult], make_jump: Callable, show: Callable) -> None:
+def _draw_profiles(
+    title: str, profiles: list[firesim.ProfileResult], make_jump: Callable[..., Any], show: Callable[..., Any]
+) -> None:
     """One group of Profiles, each with the conditions worth reading about it."""
     _heading(f"{translate_string(title)} ({len(profiles)})", "text-blue-600")
     if not profiles:

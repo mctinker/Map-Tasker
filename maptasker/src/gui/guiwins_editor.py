@@ -89,6 +89,12 @@ PROJECT_REDACT_FIELD = "project_redact_secrets"
 SCENE_REDACT_FIELD = "scene_redact_secrets"
 
 
+def explain(element: ui.element, text: str) -> None:
+    """Give an element a tooltip that keeps the line breaks of its explanation."""
+    with element:
+        ui.tooltip(text).style("white-space: pre-wrap")
+
+
 def build_redact_checkbox(field_refs: dict[str, Any], key: str = REDACT_FIELD) -> None:
     """The "Redact secrets" tick-box that sits under an export's "Save as" path.
 

@@ -52,7 +52,7 @@ _ALLOWED: dict[tuple[str, str], str] = {
         "maptasker/src/gui/guiutil2.py",
         "my_trace_function",
     ): "SESSION: the trace switch for sys.settrace, which is per process",
-    ("maptasker/src/gui/guiutils.py", "window_state"): "SESSION: what a window with no state of its own falls back on",
+    ("maptasker/src/gui/guiutil2.py", "window_state"): "SESSION: what a window with no state of its own falls back on",
 }
 
 

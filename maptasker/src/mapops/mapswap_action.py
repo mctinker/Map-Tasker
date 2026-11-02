@@ -239,6 +239,46 @@ def source_choices(index: mapfind.FindIndex) -> list[tuple[str, str, int]]:
     return choices
 
 
+def _find_swap_sites(
+    plan: Plan,
+    index: mapfind.FindIndex,
+    project: str,
+    old_key: str,
+    new_key: str,
+    fidelity: str,
+    carry: dict[str, str],
+    state: RunState,
+) -> None:
+    """Add a Change to the plan for every action in the index (in `project`, if given) with `old_key`'s code."""
+    old_name = action_codes[old_key].name if old_key in action_codes else old_key
+    old_code = old_key[:-1]
+
+    for record in index.objects:
+        if record.kind != TASK:
+            continue
+        if project and record.project != project:
+            continue
+        for action in record.actions:
+            if action.code != old_code or action.element is None:
+                continue
+            site = Site(
+                kind=ACTION_ELEMENT,
+                element=action.element,
+                where=record.target.at_action(action.number),
+                detail=old_name,
+                new_key=new_key,
+                carry=carry,
+            )
+            plan.changes.append(
+                Change(
+                    site=site,
+                    before=_action_summary(action.element, old_key, state=state),
+                    after=_projected_summary(action.element, old_key, new_key, carry, state=state),
+                    note=_swap_note(action.element, fidelity, carry, old_key, state=state),
+                ),
+            )
+
+
 def plan_action_swap(old_key: str, new_key: str, project: str = "", *, state: RunState) -> Plan:
     """Every action in the file with `old_key`'s code, and what replacing it would do.
 
@@ -278,32 +318,7 @@ def plan_action_swap(old_key: str, new_key: str, project: str = "", *, state: Ru
         return plan
 
     index = mapfind.build_index(state=state)
-    old_code = old_key[:-1]
-
-    for record in index.objects:
-        if record.kind != TASK:
-            continue
-        if project and record.project != project:
-            continue
-        for action in record.actions:
-            if action.code != old_code or action.element is None:
-                continue
-            site = Site(
-                kind=ACTION_ELEMENT,
-                element=action.element,
-                where=record.target.at_action(action.number),
-                detail=old_name,
-                new_key=new_key,
-                carry=carry,
-            )
-            plan.changes.append(
-                Change(
-                    site=site,
-                    before=_action_summary(action.element, old_key, state=state),
-                    after=_projected_summary(action.element, old_key, new_key, carry, state=state),
-                    note=_swap_note(action.element, fidelity, carry, old_key, state=state),
-                ),
-            )
+    _find_swap_sites(plan, index, project, old_key, new_key, fidelity, carry, state)
 
     # EXACT and MAPPED start ticked; RESET is opt-in.  See the docstring above.
     if fidelity != RESET:
@@ -402,6 +417,10 @@ def _swap_note(
     return "Drops: " + ", ".join(dropped)
 
 
+# Step 6 is the half taskedit does not do, because Add Action never needs it, and it is
+# what the whole classify_action_addability discussion above comes down to in code.  It
+# runs after step 5 rather than as part of step 4 so that a carried picker is never
+# overwritten by an empty one.
 def swap_one_action(
     action_element: Element,
     new_key: str,
@@ -426,10 +445,7 @@ def swap_one_action(
       6. For every picker argument the target needs and step 5 did not fill, write the
          empty <App sr="argN"/> / <Img sr="argN"/> that Tasker writes for an unset picker.
 
-    Step 6 is the half taskedit does not do, because Add Action never needs it, and it is
-    what the whole classify_action_addability discussion above comes down to in code.  It
-    runs after step 5 rather than as part of step 4 so that a carried picker is never
-    overwritten by an empty one.
+    (See the comment above this function for the rest.)
 
     Steps 4-before-5 rather than skipping the defaults for carried arguments: an argument
     Tasker expects to be present is present with its default even when nothing was carried

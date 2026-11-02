@@ -102,9 +102,9 @@ class _State:
 
 
 def build_restore_dialog(
-    make_jump: Callable,
-    rebuild_after_apply: Callable[[], Coroutine],
-    save_configuration: Callable[[], Coroutine],
+    make_jump: Callable[..., Any],
+    rebuild_after_apply: Callable[[], Coroutine[Any, Any, None]],
+    save_configuration: Callable[[], Coroutine[Any, Any, Any]],
     state: RunState,
 ) -> ui.dialog | None:
     """Build and return the Restore From History dialog, or None if there is nothing to restore from.
@@ -140,9 +140,9 @@ class _RestoreDialog:
 
     def __init__(
         self,
-        make_jump: Callable,
-        rebuild_after_apply: Callable[[], Coroutine],
-        save_configuration: Callable[[], Coroutine],
+        make_jump: Callable[..., Any],
+        rebuild_after_apply: Callable[[], Coroutine[Any, Any, None]],
+        save_configuration: Callable[[], Coroutine[Any, Any, Any]],
         state: RunState,
         held: _State,
     ) -> None:
@@ -371,7 +371,7 @@ def _draw_list(
     summary: ui.label,
     offer: maprestore.Offer,
     applied: dict[tuple[str, str, str], maprestore.Candidate],
-    make_jump: Callable,
+    make_jump: Callable[..., Any],
     on_restore: Callable[[maprestore.Candidate], None],
 ) -> None:
     """The rows, each with its button, and a line for everything deliberately not offered.
@@ -416,7 +416,7 @@ def _draw_list(
 
 def draw_row(
     candidate: maprestore.Candidate,
-    make_jump: Callable,
+    make_jump: Callable[..., Any],
     on_restore: Callable[[maprestore.Candidate], None],
     *,
     applied: bool = False,

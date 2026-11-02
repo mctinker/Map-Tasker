@@ -24,7 +24,7 @@ from maptasker.src.core.mapjump import PROFILE, PROJECT, TASK, Target, diagram_p
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.runcfg import RunConfig, current_config
 from maptasker.src.core.sysconst import DIAGRAM_FILE
-from maptasker.src.gui import guiwins_diagram, guiwins_search, guiwins_views, userintr
+from maptasker.src.gui import guiwins_diagram, guiwins_search, guiwins_views, userintr_views
 from maptasker.src.mapgen import diagarrows, diagintr, diagram, diagrecord, taskerd
 
 from tests.doubles import required
@@ -816,13 +816,13 @@ def test_the_diagram_looks_for_the_name_the_map_window_is_opened_under() -> None
     """
     script = diagintr.interaction_js("c1", "c2", {"nodes": [], "regions": [], "edges": []})
 
-    reused = userintr.popout_window_name("/popout/map?goto=x&scope=y", new_window=False)
-    fresh = userintr.popout_window_name("/popout/map?goto=x&scope=y", new_window=True)
+    reused = userintr_views.popout_window_name("/popout/map?goto=x&scope=y", new_window=False)
+    fresh = userintr_views.popout_window_name("/popout/map?goto=x&scope=y", new_window=True)
 
     assert f'const MAP_WINDOW_PREFIX = "{reused}";' in script
     assert fresh.startswith(reused)
     # And not the Diagram's own window, which is the one already in front.
-    assert not userintr.popout_window_name("/popout/diagram").startswith(reused)
+    assert not userintr_views.popout_window_name("/popout/diagram").startswith(reused)
 
 
 def test_the_raise_asks_the_window_the_click_happened_in() -> None:
@@ -957,10 +957,9 @@ def test_both_ways_of_closing_the_views_use_the_one_sweep() -> None:
     them came to be missing the nesting the other needed too."""
     import inspect
 
-    from maptasker.src.gui import guiwins_tabs
-    from maptasker.src.gui import userintr as userintr_module
+    from maptasker.src.gui import guiwins_tabs, userintr_views
 
-    assert "close_popouts_js()" in inspect.getsource(userintr_module.MapTaskerEventHandlers.clear_view_event)
+    assert "close_popouts_js()" in inspect.getsource(userintr_views.ViewEventHandlers.clear_view_event)
     assert "close_popouts_js(close_this_window=True)" in inspect.getsource(
         guiwins_tabs.get_rid_of_windows_and_exit,
     )

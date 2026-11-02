@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from maptasker.src.core import appinv
 from maptasker.src.core.primitem import RunState
-from maptasker.src.gui import guiwins_taskedit
+from maptasker.src.gui import guiwins_taskpickers
 from nicegui import ui
 
 from tests.nicegui_harness import button, click, found, inputs, label_texts, open_page
@@ -38,24 +38,24 @@ def fetch(monkeypatch: pytest.MonkeyPatch) -> Any:
     )
     monkeypatch.setattr(appinv, "fetched_devices", lambda: list(record.devices))
     monkeypatch.setattr(appinv, "forget_device", lambda device: record.forgotten.append(device) or record.forget_error)
-    monkeypatch.setattr(guiwins_taskedit, "android_address_defaults", lambda gui: ("192.168.1.9", "1821"))
+    monkeypatch.setattr(guiwins_taskpickers, "android_address_defaults", lambda gui: ("192.168.1.9", "1821"))
     monkeypatch.setattr(
-        guiwins_taskedit, "remember_android_address", lambda gui, ip, port: record.remembered.append((ip, port))
+        guiwins_taskpickers, "remember_android_address", lambda gui, ip, port: record.remembered.append((ip, port))
     )
-    monkeypatch.setattr(guiwins_taskedit, "remember_android_address_fields", lambda *a: None)
+    monkeypatch.setattr(guiwins_taskpickers, "remember_android_address_fields", lambda *a: None)
 
     async def io_bound(function: Any, *args: Any, **kwargs: Any) -> object:
         record.fetched.append(args)
         return record.answer
 
-    monkeypatch.setattr(guiwins_taskedit.run, "io_bound", io_bound)
+    monkeypatch.setattr(guiwins_taskpickers.run, "io_bound", io_bound)
     record.window = SimpleNamespace(state=RunState(), android_ipaddr="", android_port="")
     return record
 
 
 def _dialog(record: Any, *, for_icons: bool = False) -> Callable[[], None]:
     def page() -> None:
-        guiwins_taskedit._FetchAppsDialog(record.window, lambda: record.changed.append(True), for_icons).build()
+        guiwins_taskpickers._FetchAppsDialog(record.window, lambda: record.changed.append(True), for_icons).build()
 
     return page
 
@@ -171,7 +171,7 @@ async def test_cancel_with_nothing_forgotten_changes_nothing(fetch: Any) -> None
 async def test_the_public_entry_point_builds_the_same_dialog(fetch: Any) -> None:
     def page() -> None:
         # The entry point awaits nothing, so stepping the coroutine once builds the dialog inside this page's slot.
-        coroutine = guiwins_taskedit.build_fetch_apps_dialog(fetch.window, lambda: None, for_icons=True)
+        coroutine = guiwins_taskpickers.build_fetch_apps_dialog(fetch.window, lambda: None, for_icons=True)
         with contextlib.suppress(StopIteration):
             coroutine.send(None)
 
@@ -190,4 +190,4 @@ async def test_the_public_entry_point_builds_the_same_dialog(fetch: Any) -> None
     ],
 )
 def test_a_tasks_return_value_is_laid_out_as_json_only_when_it_is_a_container(output: str, shown: str) -> None:
-    assert guiwins_taskedit._format_task_output(output) == shown
+    assert guiwins_taskpickers._format_task_output(output) == shown

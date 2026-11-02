@@ -31,7 +31,7 @@ from maptasker.src.analysis import resrefs
 from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.device import deviceresource
-from maptasker.src.gui.guiutils import (
+from maptasker.src.gui.guiutils_android import (
     android_address_defaults,
     remember_android_address,
     remember_android_address_fields,

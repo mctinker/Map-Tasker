@@ -15,7 +15,7 @@ from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.edit import sceneedit, sceneedit_legacy, scenemodel
 from maptasker.src.gui.guiwins import android_device_fields
 from maptasker.src.gui.guiwins_designers import designer_for
-from maptasker.src.gui.guiwins_editor import SCENE_REDACT_FIELD, PendingChangesBanner, editor_state
+from maptasker.src.gui.guiwins_editor import SCENE_REDACT_FIELD, PendingChangesBanner, editor_state, explain
 from maptasker.src.gui.guiwins_impact import build_impact_panel
 from maptasker.src.gui.guiwins_readiness import build_share_checks
 from maptasker.src.gui.guiwins_sceneview import scene_dialog_closed
@@ -268,6 +268,66 @@ def _build_edit_scene_fields(
     )
 
 
+def _build_scene_save_buttons(
+    self: MyGui, edited_scene: sceneedit.EditableScene, field_refs: dict[str, Any], dialog: ui.dialog
+) -> None:
+    """The Edit Scene dialog's three ways out to a file: Save To Current File, Save To Android and Export."""
+    scene_to_current_file = ui.button(
+        translate_string("Save To Current File"),
+        on_click=lambda: self.event_handlers.editors.save_scene_to_current_file_event(
+            edited_scene,
+            field_refs,
+            dialog,
+        ),
+    ).props("outline")
+    explain(
+        scene_to_current_file,
+        translate_string(
+            "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this "
+            "Scene -- including every edit made anywhere in this session.\n"
+            "It is written to a new, timestamped copy of the file currently loaded: "
+            "backup.xml becomes backup_20260728_143005.xml.\n"
+            "The file you loaded is never written to, so it is left exactly as it was.\n"
+            "The app then switches to the new copy, which becomes the current file for any further "
+            "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+            "This writes to this computer only -- nothing is sent to your Android device.",
+        ),
+    )
+    scene_to_android = ui.button(
+        translate_string("Save To Android"),
+        on_click=lambda: self.event_handlers.android.open_save_scene_to_android_dialog_event(
+            edited_scene,
+            field_refs,
+            dialog,
+        ),
+    ).props("outline")
+    explain(
+        scene_to_android,
+        translate_string(
+            "This will write the Scene as a standalone file onto your Android device, under "
+            "/Tasker/scenes -- it does not import it into Tasker's live configuration.\n\n"
+            "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+            "device, with the server running.\n\n"
+            "The Android device must be on the same network, and the IP Address and Port must "
+            "match its Tasker server settings.\n\n"
+            "Watch the Android device while this runs: Tasker asks you to authorize the "
+            "connection several times for one save, and a prompt left untapped fails it.",
+        ),
+    )
+    export_scene = ui.button(
+        translate_string("Export Scene"),
+        on_click=lambda: self.event_handlers.editors.save_scene_event(edited_scene, field_refs, dialog),
+    ).classes("bg-blue-600")
+    with export_scene:
+        ui.tooltip(
+            translate_string(
+                "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same "
+                "format Tasker's own Scene export produces.\n\n"
+                "Tasks the Scene's elements run are not included; they belong to their own Project.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
 def _build_edit_scene_buttons(
     self: MyGui,
     edited_scene: sceneedit.EditableScene,
@@ -278,15 +338,15 @@ def _build_edit_scene_buttons(
     """The Edit Scene dialog's button row: Cancel, Delete, Rename, Ok, the two saves and Export."""
     with ui.row().classes("w-full justify-end gap-2 mt-4"):
         cancel_button = ui.button(translate_string("Cancel"), on_click=cancel).props("outline")
-        with cancel_button:
-            ui.tooltip(
-                translate_string(
-                    "Closes without saving, and puts this Scene back exactly as it was when this "
-                    "dialog opened -- including anything moved or resized in the Preview.\n\n"
-                    "A Rename is the one thing this cannot take back: it is applied to the loaded "
-                    "backup as it is confirmed, and closes this dialog with it.",
-                ),
-            ).style("white-space: pre-wrap")
+        explain(
+            cancel_button,
+            translate_string(
+                "Closes without saving, and puts this Scene back exactly as it was when this "
+                "dialog opened -- including anything moved or resized in the Preview.\n\n"
+                "A Rename is the one thing this cannot take back: it is applied to the loaded "
+                "backup as it is confirmed, and closes this dialog with it.",
+            ),
+        )
         ui.button(
             translate_string("Delete Scene"),
             on_click=lambda: self.event_handlers.editors.delete_scene_event(edited_scene, dialog),
@@ -295,75 +355,22 @@ def _build_edit_scene_buttons(
             translate_string("Rename"),
             on_click=lambda: self.event_handlers.editors.rename_scene_event(edited_scene, dialog),
         ).classes("bg-blue-600")
-        with rename_scene_button:
-            ui.tooltip(
-                translate_string(
-                    "Prompts for a new name and applies it to the loaded backup, right now -- "
-                    "renaming the Scene everywhere, including in the Scene list of every Project "
-                    "that holds it.\n\n"
-                    "Tasks that show or hide this Scene by name are NOT updated; those still name "
-                    "the old Scene.\n\n"
-                    "The Scene Name field above is read-only -- this is the only way to change it.",
-                ),
-            ).style("white-space: pre-wrap")
+        explain(
+            rename_scene_button,
+            translate_string(
+                "Prompts for a new name and applies it to the loaded backup, right now -- "
+                "renaming the Scene everywhere, including in the Scene list of every Project "
+                "that holds it.\n\n"
+                "Tasks that show or hide this Scene by name are NOT updated; those still name "
+                "the old Scene.\n\n"
+                "The Scene Name field above is read-only -- this is the only way to change it.",
+            ),
+        )
         ui.button(
             translate_string("Ok"),
             on_click=lambda: self.event_handlers.editors.save_edited_scene_event(edited_scene, field_refs, dialog),
         ).props("outline")
-        scene_to_current_file = ui.button(
-            translate_string("Save To Current File"),
-            on_click=lambda: self.event_handlers.editors.save_scene_to_current_file_event(
-                edited_scene,
-                field_refs,
-                dialog,
-            ),
-        ).props("outline")
-        with scene_to_current_file:
-            ui.tooltip(
-                translate_string(
-                    "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this "
-                    "Scene -- including every edit made anywhere in this session.\n"
-                    "It is written to a new, timestamped copy of the file currently loaded: "
-                    "backup.xml becomes backup_20260728_143005.xml.\n"
-                    "The file you loaded is never written to, so it is left exactly as it was.\n"
-                    "The app then switches to the new copy, which becomes the current file for any further "
-                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                    "This writes to this computer only -- nothing is sent to your Android device.",
-                ),
-            ).style("white-space: pre-wrap")
-        scene_to_android = ui.button(
-            translate_string("Save To Android"),
-            on_click=lambda: self.event_handlers.android.open_save_scene_to_android_dialog_event(
-                edited_scene,
-                field_refs,
-                dialog,
-            ),
-        ).props("outline")
-        with scene_to_android:
-            ui.tooltip(
-                translate_string(
-                    "This will write the Scene as a standalone file onto your Android device, under "
-                    "/Tasker/scenes -- it does not import it into Tasker's live configuration.\n\n"
-                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
-                    "device, with the server running.\n\n"
-                    "The Android device must be on the same network, and the IP Address and Port must "
-                    "match its Tasker server settings.\n\n"
-                    "Watch the Android device while this runs: Tasker asks you to authorize the "
-                    "connection several times for one save, and a prompt left untapped fails it.",
-                ),
-            ).style("white-space: pre-wrap")
-        export_scene = ui.button(
-            translate_string("Export Scene"),
-            on_click=lambda: self.event_handlers.editors.save_scene_event(edited_scene, field_refs, dialog),
-        ).classes("bg-blue-600")
-        with export_scene:
-            ui.tooltip(
-                translate_string(
-                    "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same "
-                    "format Tasker's own Scene export produces.\n\n"
-                    "Tasks the Scene's elements run are not included; they belong to their own Project.",
-                ),
-            ).style("white-space: pre-wrap")
+        _build_scene_save_buttons(self, edited_scene, field_refs, dialog)
 
 
 def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) -> None:

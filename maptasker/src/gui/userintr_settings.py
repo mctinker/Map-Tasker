@@ -25,6 +25,7 @@ from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.maputil2 import suppress_logged, translate_string
 from maptasker.src.core.maputils import clear_tasker_data, make_hex_color
 from maptasker.src.core.outdir import normalize_output_directory, output_directory
+from maptasker.src.core.primitem import SINGLE_ITEM_LABELS
 from maptasker.src.core.sysconst import (
     ARGUMENT_NAMES,
     NOTIFY_TIMEOUT_DEFAULT,
@@ -34,7 +35,6 @@ from maptasker.src.core.sysconst import (
 )
 from maptasker.src.gui.guistate import gui_settings, remember_setting
 from maptasker.src.gui.guiutils import (
-    SINGLE_ITEM_LABELS,
     add_logo,
     check_new_version,
     display_current_file,
@@ -327,8 +327,10 @@ class SettingsEventHandlers(HandlerGroup):
         else:  # Empty?
             the_view.display_message_box(translate_string("No settings file found."), "Orange")
 
-        # Save our background color for later reuse
-        the_view.saved_background_color = make_hex_color(the_view.color_lookup.get("background_color"))
+        # Save our background color for later reuse.  A settings file saved with no colors in it (an empty
+        # [colors_to_use]) leaves nothing to save, and the default background stays.
+        if background_color := the_view.color_lookup.get("background_color"):
+            the_view.saved_background_color = make_hex_color(background_color)
 
     # Process the 'Bold Names' checkbox
     def names_bold_event(self) -> None:

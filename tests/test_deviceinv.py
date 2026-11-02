@@ -824,7 +824,7 @@ def test_a_payload_that_cannot_be_trusted_is_refused_with_a_reason(payload: str,
 # 'Launch App' is not addable, so its Application picker never opens, so the picker's own
 # 'App not listed?' button cannot be reached.  Fetching is the only way out of that, which
 # is why the refusal is a named constant the GUI can recognise (guiwins
-# ._render_addability_reason) rather than a sentence buried in a return.
+# .render_addability_reason) rather than a sentence buried in a return.
 _NO_APPS_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
   <Task sr="task30">
     <id>30</id>
@@ -900,7 +900,7 @@ def test_an_app_argument_with_nothing_to_offer_says_why(no_apps_device: _FakeReq
 # Same shape as the Applications one above, and the same way out.  An app's own icon is a
 # package plus a launcher activity, which is exactly what the Application fetch brings
 # back, so asking the device for applications is also asking it for icons -- and the GUI
-# offers that fetch wherever it shows NO_ICONS_REASON (guiwins_taskedit._render_inventory_fetch).
+# offers that fetch wherever it shows NO_ICONS_REASON (guiwins_taskpickers._render_inventory_fetch).
 # The other two icon kinds are not reachable this way and are not pretended to be.
 def test_the_icon_refusal_is_a_named_one_too(no_apps_device: _FakeRequests) -> None:
     """The fixture that harvests no Applications harvests no icons either, so Notify --

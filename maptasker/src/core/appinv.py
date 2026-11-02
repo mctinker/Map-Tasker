@@ -24,7 +24,7 @@ They are not unknowable, though.  Two sources fill the inventory, and they are m
 Without a fetch, the inventory is what you already automate, not everything installed.  An
 app referenced nowhere in the backup and never fetched will not be in the list -- so the
 pickers built on this never *replace* typing a value, they only save you from having to
-(see guiwins_taskedit's _render_app_arg_field, and _build_icon_field, which took the same
+(see guiwins_taskedit's render_app_arg_field, and _build_icon_field, which took the same
 stance for Scenes first).
 
 A fetch asks the device for Applications, and that is an icon fetch as well: Tasker names

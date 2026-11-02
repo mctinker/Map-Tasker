@@ -307,6 +307,25 @@ def build_synthesized_args(
 _SAFE_CATEGORIES = ("Int", "Str", "String", "Boolean")
 
 
+def _arg_problem(arg: ArgumentCode, action_key: str, state: RunState) -> str:
+    """Why this argument cannot be synthesized from scratch, or "" if it can."""
+    category = state.tasker_arg_specs.get(arg.arg_type, "")
+    if category in _SAFE_CATEGORIES:
+        return ""
+    if category == "Bundle" and (
+        arg.arg_name == OUTPUT_VARIABLES_ARG_NAME or get_bundle_definition(action_key) is not None
+    ):
+        return ""
+    if category == "App":
+        return "" if appinv.have_apps(state=state) else NO_APPS_REASON
+    if category in ICON_CATEGORIES:
+        return "" if appinv.have_icons(state=state) else NO_ICONS_REASON
+    return (
+        f"Requires a '{category or arg.arg_type}' value for "
+        f"'{arg.arg_name or 'plugin payload'}' that this tool can't generate yet."
+    )
+
+
 def classify_action_addability(action_key: str, state: RunState) -> tuple[bool, str]:
     """Whether a real numeric Task-action key (e.g. '104t') can be synthesized from
     scratch, and why not if not.
@@ -341,31 +360,8 @@ def classify_action_addability(action_key: str, state: RunState) -> tuple[bool, 
         return True, ""
 
     for arg in effective_args:
-        category = state.tasker_arg_specs.get(arg.arg_type, "")
-        if category in _SAFE_CATEGORIES:
-            continue
-        if category == "Bundle" and arg.arg_name == OUTPUT_VARIABLES_ARG_NAME:
-            continue
-        # A plugin payload we have a recorded definition for is generatable after all.
-        if category == "Bundle" and get_bundle_definition(action_key) is not None:
-            continue
-        # An Application or an icon is generatable while there is an inventory to pick one
-        # from -- see appinv.py, and _classify_arg_widget, which gates the field itself
-        # on the same answer.  This is what makes Launch App, Notify and the other 20
-        # entries listed in app_icon_fetch_design.md addable at all.
-        if category == "App" and appinv.have_apps(state=state):
-            continue
-        if category in ICON_CATEGORIES and appinv.have_icons(state=state):
-            continue
-        if category == "App":
-            return False, NO_APPS_REASON
-        if category in ICON_CATEGORIES:
-            return False, NO_ICONS_REASON
-        reason = (
-            f"Requires a '{category or arg.arg_type}' value for "
-            f"'{arg.arg_name or 'plugin payload'}' that this tool can't generate yet."
-        )
-        return False, reason
+        if reason := _arg_problem(arg, action_key, state):
+            return False, reason
 
     return True, ""
 

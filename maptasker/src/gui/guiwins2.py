@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from nicegui import ui
 
 from maptasker.src.core.maputil2 import translate_string
-from maptasker.src.gui.guiutils import window_state
+from maptasker.src.gui.guiutil2 import window_state
 
 if TYPE_CHECKING:
     from maptasker.src.gui.userintr import MyGui

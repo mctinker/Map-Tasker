@@ -224,7 +224,7 @@ def _bare_model(model: str) -> str:
 def resolve_provider(ai_name: str, ai_model: str, state: RunState) -> str:
     """Which provider serves the selected model, or "" if that cannot be told.
 
-    The name the pulldown recorded is taken first, as guiutils.is_ollama_model takes it:
+    The name the pulldown recorded is taken first, as guiutils_ai.is_ollama_model takes it:
     it is the one place the provider is stated rather than inferred.  Failing that, the
     provider whose model list holds the model.
     """

@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from maptasker.src.core.primitem import RunState
 from maptasker.src.device import devicetask
-from maptasker.src.gui import guiwins_taskedit
+from maptasker.src.gui import guiwins_taskpickers
 from nicegui import ui
 
 from tests.nicegui_harness import all_elements, button, click, found, inputs, label_texts, open_page
@@ -29,24 +29,24 @@ def run(monkeypatch: pytest.MonkeyPatch) -> Any:
     record = SimpleNamespace(
         remembered=[], ran=[], result=devicetask.TaskRunResult(ok=True, output="", error="", seconds=1.25), pending=None
     )
-    monkeypatch.setattr(guiwins_taskedit, "android_address_defaults", lambda gui: ("192.168.1.9", "1821"))
+    monkeypatch.setattr(guiwins_taskpickers, "android_address_defaults", lambda gui: ("192.168.1.9", "1821"))
     monkeypatch.setattr(
-        guiwins_taskedit, "remember_android_address", lambda gui, ip, port: record.remembered.append((ip, port))
+        guiwins_taskpickers, "remember_android_address", lambda gui, ip, port: record.remembered.append((ip, port))
     )
-    monkeypatch.setattr(guiwins_taskedit, "remember_android_address_fields", lambda *a: None)
+    monkeypatch.setattr(guiwins_taskpickers, "remember_android_address_fields", lambda *a: None)
 
     async def io_bound(function: Any, *args: Any, **kwargs: Any) -> object:
         record.ran.append(args)
         return record.result
 
-    monkeypatch.setattr(guiwins_taskedit.run, "io_bound", io_bound)
+    monkeypatch.setattr(guiwins_taskpickers.run, "io_bound", io_bound)
     record.window = SimpleNamespace(state=RunState())
     return record
 
 
 def _dialog(record: Any, name: str = "Wake Up") -> Callable[[], None]:
     def page() -> None:
-        guiwins_taskedit.build_run_task_on_android_dialog(record.window, name, record.pending)
+        guiwins_taskpickers.build_run_task_on_android_dialog(record.window, name, record.pending)
 
     return page
 

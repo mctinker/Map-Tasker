@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from maptasker.src.core import appinv
 from maptasker.src.core.primitem import RunState
-from maptasker.src.gui import guiwins_taskedit
+from maptasker.src.gui import guiwins_taskpickers
 from nicegui import ui
 
 from tests.nicegui_harness import all_elements, click, found, label_texts, open_page
@@ -61,7 +61,7 @@ def _multi(apps: Any, value: str) -> tuple[Callable[[], None], list[ui.input]]:
     def page() -> None:
         field = ui.input(value=value)
         made.append(field)
-        guiwins_taskedit._build_app_picker_dialog(field, apps.window)
+        guiwins_taskpickers._build_app_picker_dialog(field, apps.window)
 
     return page, made
 
@@ -119,11 +119,11 @@ async def test_the_search_narrows_the_list_by_label_or_package_and_says_when_not
 @pytest.mark.asyncio
 async def test_a_long_inventory_is_cut_and_the_count_is_said(apps: Any) -> None:
     apps.entries = [
-        appinv.AppEntry(f"pkg.app{n:04d}", f"App {n}") for n in range(guiwins_taskedit._PICKER_ROW_LIMIT + 25)
+        appinv.AppEntry(f"pkg.app{n:04d}", f"App {n}") for n in range(guiwins_taskpickers._PICKER_ROW_LIMIT + 25)
     ]
     page, _made = _multi(apps, "")
     async with open_page(page) as user:
-        assert len(_checks(user)) == guiwins_taskedit._PICKER_ROW_LIMIT
+        assert len(_checks(user)) == guiwins_taskpickers._PICKER_ROW_LIMIT
         assert any(text.startswith("More matches than can be shown") and "(225)" in text for text in label_texts(user))
 
 
@@ -166,7 +166,7 @@ async def test_not_listed_fetches_keeping_the_ticks_and_reopens_over_the_new_inv
         apps.fetched.append(gui)
         on_fetched()
 
-    monkeypatch.setattr(guiwins_taskedit, "build_fetch_apps_dialog", fetch)
+    monkeypatch.setattr(guiwins_taskpickers, "build_fetch_apps_dialog", fetch)
     page, made = _multi(apps, "com.whatsapp")
     async with open_page(page) as user:
         await click(user, "App not listed?")
@@ -180,7 +180,7 @@ async def test_not_listed_fetches_keeping_the_ticks_and_reopens_over_the_new_inv
 # ##################################################################################
 def _single(apps: Any, picked: list[appinv.AppEntry]) -> Callable[[], None]:
     def page() -> None:
-        guiwins_taskedit._build_app_entry_picker_dialog(picked.append, apps.window)
+        guiwins_taskpickers._build_app_entry_picker_dialog(picked.append, apps.window)
 
     return page
 
@@ -229,7 +229,7 @@ async def test_the_pick_button_fills_all_three_fields_from_the_chosen_applicatio
     def page() -> None:
         for key in ("pkg", "label", "cls"):
             refs[key] = ui.input(label=key)
-        guiwins_taskedit._render_app_entry_pick_button(apps.window, refs, "pkg", "label", "cls")
+        guiwins_taskpickers.render_app_entry_pick_button(apps.window, refs, "pkg", "label", "cls")
 
     async with open_page(page) as user:
         await click(user, "Pick")
@@ -246,7 +246,7 @@ async def test_with_no_inventory_there_is_no_pick_button(apps: Any) -> None:
     apps.entries = []
 
     def page() -> None:
-        guiwins_taskedit._render_app_entry_pick_button(apps.window, {}, "p", "l", "c")
+        guiwins_taskpickers.render_app_entry_pick_button(apps.window, {}, "p", "l", "c")
 
     async with open_page(page) as user:
         assert [e for e in all_elements(user) if isinstance(e, ui.button)] == []
@@ -258,7 +258,7 @@ async def test_the_not_listed_button_is_worded_for_what_the_user_is_looking_for(
     clicked: list[bool] = []
 
     def page() -> None:
-        guiwins_taskedit._render_fetch_apps_button(lambda: clicked.append(True), for_icons)
+        guiwins_taskpickers._render_fetch_apps_button(lambda: clicked.append(True), for_icons)
 
     async with open_page(page) as user:
         await click(user, label)

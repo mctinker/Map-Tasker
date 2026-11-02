@@ -33,6 +33,7 @@ import copy
 import os
 import shutil
 import tempfile
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from maptasker.src.analysis.xmldiff import Configuration
@@ -265,6 +266,52 @@ def _lines_so_far(state: RunState) -> list[str] | None:
     return list(running.output_lines) if running is not None else None
 
 
+@dataclass
+class _SavedSession:
+    """What an isolated load overwrites in the run, kept to be put back.
+
+    The loaded configuration (everything loading a backup sets, and the file and the error that go with it --
+    see primitem.LOADED_CONFIGURATION_ATTRIBUTES, which a test keeps in step with taskerd), the directory, the
+    arguments the load forces, the undo history (get_the_xml_data clears it, because a load normally means a
+    different configuration is open; this one does not -- see sessundo.save_history) and the output built so
+    far (the load can add to it, and it belongs to the map being built for the file the user has open).
+
+    The directory is put back by content into the SAME dict and the same lists inside it, rather than by
+    replacing it with the copy: anything already holding a reference to PrimeItems.directory_items (or to one
+    of its lists) would otherwise be left writing into an object nothing reads any more.
+    """
+
+    configuration: dict[str, Any]
+    directory: dict[str, Any]
+    directory_contents: dict[str, Any]
+    arguments: dict[str, Any]
+    undo_history: Any
+    output: list[str] | None
+
+    @classmethod
+    def of(cls, state: RunState) -> _SavedSession:
+        """Take what the load is about to overwrite."""
+        return cls(
+            configuration={name: getattr(state, name) for name in LOADED_CONFIGURATION_ATTRIBUTES},
+            directory=state.directory_items,
+            directory_contents=copy.deepcopy(state.directory_items),
+            arguments={key: state.program_arguments[key] for key in _FORCED_ARGUMENTS},
+            undo_history=sessundo.save_history(state),
+            output=_lines_so_far(state),
+        )
+
+    def put_back(self, state: RunState) -> None:
+        """Restore all of it, whatever the load did."""
+        for name, value in self.configuration.items():
+            setattr(state, name, value)
+        sessundo.restore_history(self.undo_history, state)
+        state.directory_items = self.directory
+        _restore_directory(self.directory, self.directory_contents)
+        state.program_arguments.update(self.arguments)
+        if self.output is not None:
+            state.output_lines.output_lines = self.output
+
+
 @contextlib.contextmanager
 def _parsed_in_isolation(file_path: str, state: RunState) -> Generator[_Parsed]:
     """Run get_the_xml_data against another file with PrimeItems as its scratch storage.
@@ -292,22 +339,7 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Generator[_Parsed]:
 
     Not re-entrant and not thread safe.  It does not need to be: one button, one click.
     """
-    # Everything loading a backup sets, and the file and the error that go with it -- see
-    # primitem.LOADED_CONFIGURATION_ATTRIBUTES, which a test keeps in step with taskerd.
-    saved = {name: getattr(state, name) for name in LOADED_CONFIGURATION_ATTRIBUTES}
-    # Restored by content into the SAME dict and the same lists inside it, rather than by
-    # replacing it with the copy: anything already holding a reference to
-    # PrimeItems.directory_items (or to one of its lists) would otherwise be left writing
-    # into an object nothing reads any more.
-    saved_directory = state.directory_items
-    saved_directory_contents = copy.deepcopy(state.directory_items)
-    saved_arguments = {key: state.program_arguments[key] for key in _FORCED_ARGUMENTS}
-    # get_the_xml_data clears the session's undo history, because a load normally means a
-    # different configuration is open now.  This load does not -- see sessundo.save_history.
-    saved_undo_history = sessundo.save_history(state)
-    # The load can add to the running output, which belongs to the map being built for the file
-    # the user actually has open.
-    saved_output = _lines_so_far(state)
+    saved = _SavedSession.of(state)
 
     scratch = None
     opened = None
@@ -356,14 +388,7 @@ def _parsed_in_isolation(file_path: str, state: RunState) -> Generator[_Parsed]:
             with contextlib.suppress(OSError):
                 os.unlink(scratch)
 
-        for name, value in saved.items():
-            setattr(state, name, value)
-        sessundo.restore_history(saved_undo_history, state)
-        state.directory_items = saved_directory
-        _restore_directory(saved_directory, saved_directory_contents)
-        state.program_arguments.update(saved_arguments)
-        if saved_output is not None:
-            state.output_lines.output_lines = saved_output
+        saved.put_back(state)
 
 
 def _restore_directory(directory: dict[str, Any], contents: dict[str, Any]) -> None:

@@ -520,6 +520,34 @@ def build_profile_line(
 
 
 # Process the Profile passed in.
+def _select_single_profile(item: Element, project_name: str, state: RunState) -> bool:
+    """For a run limited to one Profile: False if `item` is not that Profile; otherwise note that it was found
+    (and its Project), start the output afresh for it, and return True."""
+    # Make sure this item's name is in our list of profiles.
+    if not (profile_name := state.tasker_root_elements["all_profiles"][item]["name"]):
+        return False
+
+    if state.program_arguments.single_profile_name != profile_name:
+        return False
+
+    # Oh, Yeah! We found the Profile we were looking for!
+    # Identify items found.
+    state.found_named_items["single_profile_found"] = True
+    state.program_arguments.single_project_name = project_name
+    state.found_named_items["single_project_found"] = True
+
+    # Clear the output list to prepare for single Profile only
+    state.output_lines.refresh_our_output(
+        False,
+        project_name,
+        "",
+    )
+
+    # Start Profile list
+    state.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+    return True
+
+
 def do_profile(
     item: Element,
     project_name: str,
@@ -549,29 +577,8 @@ def do_profile(
         - Outputs the Tasks for the current Profile.
         - Returns True if a specific Task is being searched for, False otherwise."""
     # Are we searching for a specific Profile?
-    if state.program_arguments.single_profile_name:
-        # Make sure this item's name is in our list of profiles.
-        if not (profile_name := state.tasker_root_elements["all_profiles"][item]["name"]):
-            return False  # Not our Profile...go to next Profile ID
-
-        if state.program_arguments.single_profile_name != profile_name:
-            return False  # Not our Profile...go to next Profile ID
-
-        # Oh, Yeah! We found the Profile we were looking for!
-        # Identify items found.
-        state.found_named_items["single_profile_found"] = True
-        state.program_arguments.single_project_name = project_name
-        state.found_named_items["single_project_found"] = True
-
-        # Clear the output list to prepare for single Profile only
-        state.output_lines.refresh_our_output(
-            False,
-            project_name,
-            "",
-        )
-
-        # Start Profile list
-        state.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+    if state.program_arguments.single_profile_name and not _select_single_profile(item, project_name, state):
+        return False  # Not our Profile...go to next Profile ID
     # Get Task xml element and name
     task_output_lines = []  # Profile's Tasks will be filled in here
     list_of_tasks = get_profile_tasks(profile, list_of_found_tasks, task_output_lines, config, state=state)

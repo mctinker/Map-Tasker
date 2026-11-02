@@ -286,6 +286,35 @@ def _set_var_text(int_element: Element, value: str) -> None:
         var_element.text = value
 
 
+def _write_arg_value(arg: EditableArg, value: str, state: RunState) -> None:
+    """Put one argument's pending value onto the XML element behind it, by what kind of widget it is."""
+    element = arg.element
+    if element is None:
+        return
+    if arg.widget_kind == "checkbox":
+        element.set("val", "1" if value in ("1", "true", "True") else "0")
+    elif arg.widget_kind == "dropdown" and arg.backing_tag == "IfOp":
+        # An "If" action's Operator (see build_if_condition_args): unlike a
+        # lookup-backed Int dropdown, the element this writes to (<op>) holds
+        # Tasker's own op *code* as its text, not this dropdown's own option
+        # index as a val attribute.
+        element.text = IF_CONDITION_LABEL_TO_CODE.get(value, "0")
+    elif arg.widget_kind == "dropdown":
+        options = arg.dropdown_options or []
+        index = options.index(value) if value in options else 0
+        element.set("val", str(index))
+    elif arg.backing_tag == "App":
+        appinv.write_app_element(element, appinv.parse_app_value(value, state=state))
+    elif arg.backing_tag == "Img":
+        appinv.write_icon_element(element, appinv.parse_icon_value(value))
+    elif arg.backing_tag == "Int" and arg.is_var:
+        _set_var_text(element, value)
+    elif arg.backing_tag == "Int":
+        element.set("val", value)
+    elif arg.backing_tag == "Str":
+        element.text = value
+
+
 def apply_arg_values(
     args: list[EditableArg],
     key_for_arg: Callable[[EditableArg], str],
@@ -302,30 +331,7 @@ def apply_arg_values(
         key = key_for_arg(arg)
         if key not in arg_values:
             continue
-        value = arg_values[key]
-
-        if arg.widget_kind == "checkbox":
-            arg.element.set("val", "1" if value in ("1", "true", "True") else "0")
-        elif arg.widget_kind == "dropdown" and arg.backing_tag == "IfOp":
-            # An "If" action's Operator (see build_if_condition_args): unlike a
-            # lookup-backed Int dropdown, the element this writes to (<op>) holds
-            # Tasker's own op *code* as its text, not this dropdown's own option
-            # index as a val attribute.
-            arg.element.text = IF_CONDITION_LABEL_TO_CODE.get(value, "0")
-        elif arg.widget_kind == "dropdown":
-            options = arg.dropdown_options or []
-            index = options.index(value) if value in options else 0
-            arg.element.set("val", str(index))
-        elif arg.backing_tag == "App":
-            appinv.write_app_element(arg.element, appinv.parse_app_value(value, state=state))
-        elif arg.backing_tag == "Img":
-            appinv.write_icon_element(arg.element, appinv.parse_icon_value(value))
-        elif arg.backing_tag == "Int" and arg.is_var:
-            _set_var_text(arg.element, value)
-        elif arg.backing_tag == "Int":
-            arg.element.set("val", value)
-        elif arg.backing_tag == "Str":
-            arg.element.text = value
+        _write_arg_value(arg, arg_values[key], state)
 
 
 def apply_edits_to_task(

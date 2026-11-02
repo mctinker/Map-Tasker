@@ -190,11 +190,13 @@
     "unused variable 'whats_new_button'": 1
   },
   "maptasker/src/gui/userintr_android.py": {
-    "unused attribute 'filelist_label'": 1,
-    "unused attribute 'filelist_option'": 1,
     "unused attribute 'label_or'": 1,
     "unused attribute 'list_files_query_button'": 1,
     "unused attribute 'set_xml_details_button'": 1
+  },
+  "maptasker/src/gui/userintr_android_support.py": {
+    "unused attribute 'filelist_label'": 1,
+    "unused attribute 'filelist_option'": 1
   },
   "maptasker/src/gui/userintr_settings.py": {
     "unused attribute 'saved_background_color'": 3

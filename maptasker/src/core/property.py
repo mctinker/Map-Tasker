@@ -77,6 +77,46 @@ def get_display_text(element: Element | None) -> str:
 
 
 # Parse Property's variable and return its properties as a list of items
+# What Tasker's <pvt> code of a variable means.
+_VARIABLE_TYPES = {
+    "yn": "Yes or No",
+    "t": "Text",
+    "b": "True or False",
+    "f": "File",
+    "n": "Number",
+    "onoff": "On or Off",
+    "fs": "File (System)",
+    "fss": "Files (System)",
+    "i": "Image",
+    "is": "Images",
+    "d": "Directory",
+    "ds": "Directory (System)",
+    "ws": "WiFi SSID",
+    "wm": "WiFi MAC",
+    "bn": "Bluetooth device's name",
+    "bm": "Bluetooth device's MAC",
+    "c": "Contact",
+    "cn": "Contact Number",
+    "cg": "Contact or Contact Group",
+    "ti": "Time",
+    "da": "Date",
+    "a": "App",
+    "as": "Apps",
+    "la": "Launcher",
+    "cl": "Color",
+    "ln": "Language",
+    "ttsv": "Text to Speech voice",
+    "can": "Calendar",
+    "cae": "Calendar Entry",
+    "tz": "Time Zone",
+    "ta": "Task",
+    "prf": "Profile",
+    "prj": "Project",
+    "scn": "Scene",
+    "cac": "User Certificate",
+}
+
+
 def parse_variable(variable_header: Element) -> list[str]:
     """
     Parses the variable header of a property tag and returns the properties of the variable.
@@ -94,43 +134,6 @@ def parse_variable(variable_header: Element) -> list[str]:
             displays them
     """
     # Variable type definitions
-    variable_type_lookup = {
-        "yn": "Yes or No",
-        "t": "Text",
-        "b": "True or False",
-        "f": "File",
-        "n": "Number",
-        "onoff": "On or Off",
-        "fs": "File (System)",
-        "fss": "Files (System)",
-        "i": "Image",
-        "is": "Images",
-        "d": "Directory",
-        "ds": "Directory (System)",
-        "ws": "WiFi SSID",
-        "wm": "WiFi MAC",
-        "bn": "Bluetooth device's name",
-        "bm": "Bluetooth device's MAC",
-        "c": "Contact",
-        "cn": "Contact Number",
-        "cg": "Contact or Contact Group",
-        "ti": "Time",
-        "da": "Date",
-        "a": "App",
-        "as": "Apps",
-        "la": "Launcher",
-        "cl": "Color",
-        "ln": "Language",
-        "ttsv": "Text to Speech voice",
-        "can": "Calendar",
-        "cae": "Calendar Entry",
-        "tz": "Time Zone",
-        "ta": "Task",
-        "prf": "Profile",
-        "prj": "Project",
-        "scn": "Scene",
-        "cac": "User Certificate",
-    }
     # Extract values from XML once
     fields = {
         "clearout": variable_header.find("clearout"),
@@ -164,8 +167,8 @@ def parse_variable(variable_header: Element) -> list[str]:
 
     # Get the variable type
     variable_type_code = get_text(fields["pvt"])
-    variable_type = variable_type_lookup.get(variable_type_code, variable_type_code)
-    if variable_type_code not in variable_type_lookup:
+    variable_type = _VARIABLE_TYPES.get(variable_type_code, variable_type_code)
+    if variable_type_code not in _VARIABLE_TYPES:
         rutroh_error(f"Unknown variable type: {variable_type_code}")
     # Make sure the 'type' goes at the beginning.
     components.insert(0, f"Variable Type:{variable_type}" if variable_type else "")
@@ -255,26 +258,29 @@ VARIABLE_TAG = "ProfileVariable"
 
 # Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out.
+def _basic_properties(header: Element) -> list[str]:
+    """The comment, keep-awake and collision handling settings of an object, as "Label:value" items."""
+    properties: list[str] = []
+    # Get the item comment, if any.
+    comment_xml = header.find("pc")
+    if comment_xml is not None:
+        properties.append(f"Comment:{comment_xml.text}")
+    keep_alive = header.find("stayawake")
+    if keep_alive is not None:
+        properties.append(f"Keep Device Awake:{keep_alive.text}")
+    collision_handling = header.find("rty")
+    if collision_handling is not None:
+        properties.append(f"Collision Handling:{_collision_name(collision_handling.text)}")
+    return properties
+
+
 def _gather_properties(property_tag: str, header: Element) -> list[str]:
     """Every property of this object as "Label:value" items: its comment, keep-awake and collision
     handling settings, the repeat settings of a Profile, and the properties of each of its variables.
 
     They all belong to the same "...Properties..." block, and go out as a single output line.
     """
-    properties: list[str] = []
-
-    # Get the item comment, if any.  Don't process it if we already have it
-    comment_xml = header.find("pc")
-    if comment_xml is not None:
-        properties.append(f"Comment:{comment_xml.text}")
-
-    keep_alive = header.find("stayawake")
-    if keep_alive is not None:
-        properties.append(f"Keep Device Awake:{keep_alive.text}")
-
-    collision_handling = header.find("rty")
-    if collision_handling is not None:
-        properties.append(f"Collision Handling:{_collision_name(collision_handling.text)}")
+    properties = _basic_properties(header)
 
     # Look for variables in the head XML object (Project/Profile/Task).
     cooldown = ""

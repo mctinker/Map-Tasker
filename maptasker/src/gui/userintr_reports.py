@@ -38,7 +38,7 @@ from maptasker.src.core.sysconst import TIMELINE_FILE
 from maptasker.src.gui import livevars
 from maptasker.src.gui.getfile import LocalFilePicker
 from maptasker.src.gui.guistate import remember_setting
-from maptasker.src.gui.guiutils import (
+from maptasker.src.gui.guiutils_android import (
     android_address_defaults,
     remember_android_address,
     remember_android_address_fields,
@@ -338,7 +338,7 @@ class ReportEventHandlers(HandlerGroup):
             the_data=mapjump.html_report(rows),
         )
 
-        self.hub.draw_task_flowchart(gui)
+        self.hub.views.draw_task_flowchart(gui)
 
         if not counts[ERROR] and not counts[WARNING]:
             ui.notify(translate_string("Task Flow found no control-flow problems."), type="positive")

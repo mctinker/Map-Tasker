@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
-from maptasker.src.gui import guiutils
+from maptasker.src.gui import guiutils, guiutils_ai
 from maptasker.src.gui.userintr import MyGui
 
 from tests.doubles import fake_state, fake_window
@@ -122,21 +122,21 @@ def test_a_version_check_that_was_cancelled_says_nothing(monkeypatch: pytest.Mon
 # The model pulldown
 # ##################################################################################
 def test_models_are_prefixed_with_their_provider_and_sorted() -> None:
-    assert guiutils.prefix_and_sort(["b", "a"], "OpenAI") == ["OpenAI: a", "OpenAI: b"]
+    assert guiutils_ai.prefix_and_sort(["b", "a"], "OpenAI") == ["OpenAI: a", "OpenAI: b"]
 
 
 def test_switching_lists_keeps_the_chosen_model_selected() -> None:
     """The extended list marks an installed Ollama model, and a pulldown whose value is not among its
     options goes blank -- which looked as though switching lists had thrown the choice away."""
     gui = fake_window(ai_model="phi4", ai_model_option=SimpleNamespace(value=None), is_updating=False)
-    guiutils.keep_selected_model(gui, ["Llama: tinyllama", "Llama: phi4 (installed)"])
+    guiutils_ai.keep_selected_model(gui, ["Llama: tinyllama", "Llama: phi4 (installed)"])
     assert gui.ai_model_option.value == "Llama: phi4 (installed)"
     assert gui.is_updating is False  # set only while the value is being put back
 
 
 def test_a_chosen_model_not_in_the_new_list_leaves_the_pulldown_alone() -> None:
     gui = fake_window(ai_model="phi4", ai_model_option=SimpleNamespace(value="before"), is_updating=False)
-    guiutils.keep_selected_model(gui, ["Llama: tinyllama"])
+    guiutils_ai.keep_selected_model(gui, ["Llama: tinyllama"])
     assert gui.ai_model_option.value == "before"
 
 
@@ -152,7 +152,7 @@ def test_the_flag_is_cleared_even_if_the_pulldown_refuses() -> None:
 
     gui = fake_window(ai_model="phi4", ai_model_option=Refuses(), is_updating=False)
     with pytest.raises(RuntimeError):
-        guiutils.keep_selected_model(gui, ["Llama: phi4"])
+        guiutils_ai.keep_selected_model(gui, ["Llama: phi4"])
     assert gui.is_updating is False
 
 
@@ -183,30 +183,30 @@ def test_a_model_with_no_name_is_not_a_configuration() -> None:
 
 
 def test_a_cloud_model_with_its_key_is_valid(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(guiutils, "get_api_key", lambda state: "unused")
+    monkeypatch.setattr(guiutils_ai, "get_api_key", lambda state: "unused")
     gui = _gui(ai_model="gpt-5", ai_apikey="sk-openai")
     assert guiutils.is_valid_ai_config(gui) is True
     assert gui.ai_apikey == "sk-openai"
 
 
 def test_a_cloud_model_whose_provider_has_no_key_is_not(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(guiutils, "get_api_key", lambda state: "unused")
+    monkeypatch.setattr(guiutils_ai, "get_api_key", lambda state: "unused")
     assert guiutils.is_valid_ai_config(_gui(ai_model="gemini-pro", ai_apikey="x")) is False
 
 
 def test_a_local_model_needs_no_key(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(guiutils, "get_api_key", lambda state: "unused")
+    monkeypatch.setattr(guiutils_ai, "get_api_key", lambda state: "unused")
     assert guiutils.is_valid_ai_config(_gui(ai_model="phi4", ai_apikey="x")) is True
 
 
 def test_a_model_nobody_lists_is_not_valid(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(guiutils, "get_api_key", lambda state: "unused")
+    monkeypatch.setattr(guiutils_ai, "get_api_key", lambda state: "unused")
     assert guiutils.is_valid_ai_config(_gui(ai_model="mystery", ai_apikey="x")) is False
 
 
 def test_a_hidden_key_is_read_back_from_the_store(monkeypatch: pytest.MonkeyPatch) -> None:
     asked: list[object] = []
-    monkeypatch.setattr(guiutils, "get_api_key", lambda state: asked.append(state) or "sk-openai")
+    monkeypatch.setattr(guiutils_ai, "get_api_key", lambda state: asked.append(state) or "sk-openai")
     gui = _gui(ai_model="gpt-5", ai_apikey="Hidden")
     assert guiutils.is_valid_ai_config(gui) is True
     assert asked == [gui.state]
@@ -214,19 +214,19 @@ def test_a_hidden_key_is_read_back_from_the_store(monkeypatch: pytest.MonkeyPatc
 
 def test_the_key_for_a_cloud_model_is_found_by_the_models_provider() -> None:
     gui = _gui()
-    assert guiutils.set_ai_key(gui, "claude-opus") is True
+    assert guiutils_ai.set_ai_key(gui, "claude-opus") is True
     assert gui.ai_apikey == "sk-claude"
 
 
 def test_a_local_or_unknown_model_has_no_key_to_set() -> None:
     gui = _gui()
-    assert guiutils.set_ai_key(gui, "phi4") is False
-    assert guiutils.set_ai_key(gui, "mystery") is False
+    assert guiutils_ai.set_ai_key(gui, "phi4") is False
+    assert guiutils_ai.set_ai_key(gui, "mystery") is False
 
 
 def test_a_provider_with_no_saved_key_is_reported_as_having_none(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(guiutils, "get_api_key", lambda state: "")
-    assert guiutils.set_ai_key(_gui(), "gemini-pro") is False
+    monkeypatch.setattr(guiutils_ai, "get_api_key", lambda state: "")
+    assert guiutils_ai.set_ai_key(_gui(), "gemini-pro") is False
 
 
 def test_the_extended_list_reads_the_keys_in_before_giving_up(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -236,8 +236,8 @@ def test_the_extended_list_reads_the_keys_in_before_giving_up(monkeypatch: pytes
         state.ai["gemini_key"] = "now-here"
         return "now-here"
 
-    monkeypatch.setattr(guiutils, "get_api_key", load)
-    assert guiutils.set_ai_key(gui, "gemini-pro") is True
+    monkeypatch.setattr(guiutils_ai, "get_api_key", load)
+    assert guiutils_ai.set_ai_key(gui, "gemini-pro") is True
     assert gui.ai_apikey == "now-here"
 
 

@@ -28,6 +28,8 @@ from maptasker.src.device.deviceverify import verify_profile_on_android
 from maptasker.src.edit import taskedit, taskedit_apply
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from maptasker.src.core.primitem import RunState
     from maptasker.src.edit.taskedit_model import EditableAction, EditableTask
 
@@ -145,6 +147,32 @@ def _import_task_name(import_type: str, source_index: str) -> str:
     return f"{IMPORT_PROFILE_TASK_NAME} [{import_type}/{source_index}]"
 
 
+def _add_import_actions(
+    add: Callable[[str, dict[str, str]], EditableAction | str], import_type: str
+) -> EditableAction | str:
+    """The helper's actions, in order: read the staged file, import it, and write the answer file.
+
+    Returns the 'Import Data' action, whose Source argument the caller sets, or an error message.
+    """
+    read_action = add(_READ_FILE_ACTION, {"0": STAGE_PATH_PARAMETER, "1": _IMPORT_XML_VARIABLE, "2": "0"})
+    if isinstance(read_action, str):
+        return read_action
+
+    import_action = add(_IMPORT_DATA_ACTION, {"0": import_type, "2": _IMPORT_XML_VARIABLE})
+    if isinstance(import_action, str):
+        return import_action
+
+    payload_lines = (_IMPORT_PAYLOAD_HEADER, _IMPORT_PAYLOAD_STAGED, STAGE_PATH_PARAMETER, PAYLOAD_TERMINATOR)
+    for index, text in enumerate(payload_lines):
+        written = add(
+            WRITE_FILE_ACTION,
+            {"0": _IMPORT_RESULT_WRITE_PATH, "1": text, "2": "0" if index == 0 else "1", "3": "1"},
+        )
+        if isinstance(written, str):
+            return written
+    return import_action
+
+
 def build_import_profile_task(
     task_name: str = IMPORT_PROFILE_TASK_NAME,
     import_type: str = IMPORT_TYPE_CONFIGURATION,
@@ -202,25 +230,9 @@ def build_import_profile_task(
     # The file READ is %par1, handed over when the Task is run rather than baked in here, so
     # one installed Task serves every Profile and each one keeps its own name on the device
     # -- see run_task_on_android and staged_paths.
-    read_action = add(_READ_FILE_ACTION, {"0": STAGE_PATH_PARAMETER, "1": _IMPORT_XML_VARIABLE, "2": "0"})
-    if isinstance(read_action, str):
-        return read_action
-
-    import_action = add(_IMPORT_DATA_ACTION, {"0": import_type, "2": _IMPORT_XML_VARIABLE})
+    import_action = _add_import_actions(add, import_type)
     if isinstance(import_action, str):
         return import_action
-
-    # Only after the import, and only if it did not fail -- see this function's docstring.
-    # %par1 again, so the answer file records the file this run was actually about rather
-    # than a path that was true when the Task was installed.
-    payload_lines = (_IMPORT_PAYLOAD_HEADER, _IMPORT_PAYLOAD_STAGED, STAGE_PATH_PARAMETER, PAYLOAD_TERMINATOR)
-    for index, text in enumerate(payload_lines):
-        written = add(
-            WRITE_FILE_ACTION,
-            {"0": _IMPORT_RESULT_WRITE_PATH, "1": text, "2": "0" if index == 0 else "1", "3": "1"},
-        )
-        if isinstance(written, str):
-            return written
 
     errors = taskedit_apply.apply_edits_to_task(edited_task, task_name, "100", values, state)
     if errors:

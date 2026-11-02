@@ -33,7 +33,7 @@ _OTHER = (flash("hello"),)
 
 def _handlers() -> tuple[TaskTestEventHandlers, SimpleNamespace]:
     """The handlers over a hub that is only what they ask of it."""
-    hub = SimpleNamespace(gui=MagicMock(), state=PrimeItems, task_stepper_event=MagicMock())
+    hub = SimpleNamespace(gui=MagicMock(), state=PrimeItems, tools=SimpleNamespace(task_stepper_event=MagicMock()))
     hub.gui.tasktests_dialog = None
     return TaskTestEventHandlers(hub), hub  # type: ignore[arg-type]
 
@@ -227,7 +227,7 @@ def test_stepping_a_test_opens_the_stepper_on_it(checker: None, monkeypatch: pyt
 
     build.call_args.args[1](case)
 
-    hub.task_stepper_event.assert_called_once_with("Checker", case)
+    hub.tools.task_stepper_event.assert_called_once_with("Checker", case)
 
 
 # ##################################################################################

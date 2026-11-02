@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 import pytest
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems
-from maptasker.src.gui import guiutils
+from maptasker.src.gui import guiutils, guiutils_android
 from nicegui import run
 
 from tests.faketasker import FakeTasker
@@ -58,7 +58,7 @@ async def test_a_phone_that_answers_is_reachable_whether_or_not_it_has_the_folde
     phone: FakeTasker, window: SimpleNamespace
 ) -> None:
     """Either a 200 or a 404 says the server is there; the probe asks for /Tasker, which the fake does not hold."""
-    assert await guiutils.ping_android_device(_gui(window), phone.address, phone.port) is True
+    assert await guiutils_android.ping_android_device(_gui(window), phone.address, phone.port) is True
 
     assert window.said == []
     assert phone.seen("GET", "/file/Tasker")
@@ -72,7 +72,7 @@ async def test_a_phone_that_is_not_there_is_called_unreachable_in_red(
     port = phone.port
     phone.down()
 
-    assert await guiutils.ping_android_device(_gui(window), phone.address, port) is False
+    assert await guiutils_android.ping_android_device(_gui(window), phone.address, port) is False
 
     [(message, colour)] = window.said
     assert colour == "Red"
@@ -89,7 +89,7 @@ async def test_a_probe_cancelled_by_the_page_going_away_says_nothing(
 
     monkeypatch.setattr(run, "io_bound", cancelled)
 
-    assert await guiutils.ping_android_device(_gui(window), "127.0.0.1", "1") is False
+    assert await guiutils_android.ping_android_device(_gui(window), "127.0.0.1", "1") is False
     assert window.said == []
 
 
@@ -103,7 +103,7 @@ async def test_a_probe_that_breaks_is_reported_rather_than_raised(
 
     monkeypatch.setattr(run, "io_bound", broken)
 
-    assert await guiutils.ping_android_device(_gui(window), "127.0.0.1", "1") is False
+    assert await guiutils_android.ping_android_device(_gui(window), "127.0.0.1", "1") is False
     assert window.said == [("Ping execution failure: the thread pool is gone", "Red")]
 
 
@@ -126,7 +126,7 @@ def test_clearing_the_panel_deletes_each_widget_and_forgets_it() -> None:
     gui = SimpleNamespace(ip_entry=_Widget(), port_entry=_Widget(), filelist_option=_Widget(), first_time=True)
     ip = gui.ip_entry
 
-    guiutils.clear_android_buttons(gui)  # type: ignore[arg-type]
+    guiutils_android.clear_android_buttons(gui)  # type: ignore[arg-type]
 
     assert ip.deleted
     assert gui.ip_entry is None and gui.port_entry is None and gui.filelist_option is None
@@ -136,7 +136,7 @@ def test_a_widget_that_cannot_be_deleted_does_not_stop_the_others() -> None:
     other = _Widget()
     gui = SimpleNamespace(ip_entry=_Widget(fail=True), port_entry=other, first_time=True)
 
-    guiutils.clear_android_buttons(gui)  # type: ignore[arg-type]
+    guiutils_android.clear_android_buttons(gui)  # type: ignore[arg-type]
 
     assert other.deleted
 
@@ -145,7 +145,7 @@ def test_once_the_first_run_is_over_the_upgrade_button_is_cleared_too() -> None:
     upgrade = _Widget()
     gui = SimpleNamespace(upgrade_button=upgrade, first_time=False)
 
-    guiutils.clear_android_buttons(gui)  # type: ignore[arg-type]
+    guiutils_android.clear_android_buttons(gui)  # type: ignore[arg-type]
 
     assert upgrade.deleted and gui.upgrade_button is None
 

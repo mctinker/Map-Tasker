@@ -40,7 +40,7 @@
 #
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -129,9 +129,9 @@ _PREVIEW_LINE_LIMIT = 400
 
 def build_refactor_dialog(
     title: str,
-    make_jump: Callable,
-    rebuild_view: Callable[[], Coroutine],
-    save_configuration: Callable[[], Coroutine],
+    make_jump: Callable[..., Any],
+    rebuild_view: Callable[[], Coroutine[Any, Any, None]],
+    save_configuration: Callable[[], Coroutine[Any, Any, Any]],
     state: RunState,
 ) -> ui.dialog | None:
     """Build and return the Refactor dialog, or None if there is nothing loaded to refactor.
@@ -162,9 +162,9 @@ class _RefactorDialog:
     def __init__(
         self,
         title: str,
-        make_jump: Callable,
-        rebuild_view: Callable[[], Coroutine],
-        save_configuration: Callable[[], Coroutine],
+        make_jump: Callable[..., Any],
+        rebuild_view: Callable[[], Coroutine[Any, Any, None]],
+        save_configuration: Callable[[], Coroutine[Any, Any, Any]],
         state: RunState,
     ) -> None:
         """

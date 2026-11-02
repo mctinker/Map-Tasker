@@ -300,7 +300,7 @@ class NiceGuiTextView(TextViewSearch):
             if handlers is None:
                 ui.notify(translate_string("Press Diagram View to rebuild it."), type="info", position="top")
                 return
-            await handlers.view_event("diagram")
+            await handlers.views.view_event("diagram")
 
         self.scope_rebuild_button = (
             ui.button(translate_string("Rebuild"), on_click=rebuild).props("dense flat").classes("text-orange-500")
@@ -337,7 +337,7 @@ class NiceGuiTextView(TextViewSearch):
                         "The 'Clear' button will clear the search results.\n\n",
                     ),
                 ).style("white-space: pre-wrap")
-            ui.button(translate_string("Clear"), on_click=self.master_gui.event_handlers.clear_event).classes(
+            ui.button(translate_string("Clear"), on_click=self.master_gui.event_handlers.views.clear_event).classes(
                 "bg-blue-600",
             )
             # Structured search, alongside the text one rather than replacing it: the

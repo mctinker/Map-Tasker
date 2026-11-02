@@ -36,6 +36,7 @@ from maptasker.src.mapops.maprefac_model import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
@@ -348,6 +349,49 @@ def _extract_warnings(moving: list, kept: list, task_name: str, owners: list[str
 _CONDITION_LIST = "ConditionList"
 
 
+def _inline_runner(
+    task_element: Element,
+    call: Element,
+    called_actions: list[Element],
+    kept: list[Element],
+    action_number: int,
+    condition: Element | None,
+    label: Element | None,
+    disabled: bool,
+) -> Callable[[], list[str]]:
+    """The change itself, for a plan to run later: the called Task's actions copied in where the call was."""
+
+    def run() -> list[str]:
+        """Copy the called Task's actions in, carrying over what the call itself said."""
+        copies = [copy.deepcopy(action) for action in called_actions]
+
+        for index, action in enumerate(copies):
+            # The call's own condition and disabled flag are statements about WHETHER this
+            # runs, and inlining must not quietly turn them off.  Distributed over every
+            # copy, which is equivalent because the block above refused the two shapes where
+            # it would not be -- flow control among the copies, and a copy with a condition
+            # of its own.
+            if condition is not None:
+                action.append(copy.deepcopy(condition))
+            if disabled:
+                _set_child_text(action, "on", "false")
+            # The call's label describes the call, so it belongs on the action that now
+            # stands where the call did -- but only when that action has none of its own,
+            # which is what the warning covers.
+            if index == 0 and label is not None and action.find("label") is None:
+                action.append(copy.deepcopy(label))
+
+        task_element.remove(call)
+        for action in copies:
+            task_element.append(action)
+        # action_number is a displayed number; the split in `kept` is an index.
+        before = action_number - 1
+        renumber([*kept[:before], *copies, *kept[before:]])
+        return []
+
+    return run
+
+
 def plan_inline(task_id: str, action_number: int, state: RunState) -> Plan:
     """Replace one Perform Task with a copy of the actions of the Task it calls.
 
@@ -410,35 +454,7 @@ def plan_inline(task_id: str, action_number: int, state: RunState) -> Plan:
     )
     plan.warnings = _inline_warnings(call, called_name, called_actions, kept, state=state)
 
-    def run() -> list[str]:
-        """Copy the called Task's actions in, carrying over what the call itself said."""
-        copies = [copy.deepcopy(action) for action in called_actions]
-
-        for index, action in enumerate(copies):
-            # The call's own condition and disabled flag are statements about WHETHER this
-            # runs, and inlining must not quietly turn them off.  Distributed over every
-            # copy, which is equivalent because the block above refused the two shapes where
-            # it would not be -- flow control among the copies, and a copy with a condition
-            # of its own.
-            if condition is not None:
-                action.append(copy.deepcopy(condition))
-            if disabled:
-                _set_child_text(action, "on", "false")
-            # The call's label describes the call, so it belongs on the action that now
-            # stands where the call did -- but only when that action has none of its own,
-            # which is what the warning covers.
-            if index == 0 and label is not None and action.find("label") is None:
-                action.append(copy.deepcopy(label))
-
-        task_element.remove(call)
-        for action in copies:
-            task_element.append(action)
-        # action_number is a displayed number; the split in `kept` is an index.
-        before = action_number - 1
-        renumber([*kept[:before], *copies, *kept[before:]])
-        return []
-
-    plan.run = run
+    plan.run = _inline_runner(task_element, call, called_actions, kept, action_number, condition, label, disabled)
     return plan
 
 

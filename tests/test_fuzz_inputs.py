@@ -366,9 +366,9 @@ def test_confirming_a_saved_task_is_a_yes_or_a_no(monkeypatch: pytest.MonkeyPatc
 @fuzz(250)
 @given(text=st.one_of(json_documents({"a": [1, 2]}), st.text(max_size=60)))
 def test_a_tasks_return_value_is_shown_as_text(text: str) -> None:
-    from maptasker.src.gui import guiwins_taskedit
+    from maptasker.src.gui import guiwins_taskpickers
 
-    assert isinstance(guiwins_taskedit._format_task_output(text), str)
+    assert isinstance(guiwins_taskpickers._format_task_output(text), str)
 
 
 @fuzz(300)

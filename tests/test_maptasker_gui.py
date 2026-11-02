@@ -1,4 +1,5 @@
 from tests.doubles import required
+from tests.editor_modules import patch_editors
 
 """MapTasker GUI Event Handlers Unit Tests
 
@@ -38,28 +39,26 @@ from maptasker.src.analysis import timecomp
 from maptasker.src.core import clock, timeline
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapfonts import get_monospaced_fonts
-from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.primitem import SINGLE_ITEM_LABELS, PrimeItems
 from maptasker.src.core.sysconst import TIMELINE_FILE
 from maptasker.src.gui import (
+    guiutils_android,
     guiwins,
     guiwins_dialogs,
     userintr_android,
+    userintr_android_support,
     userintr_editors,
     userintr_fields,
     userintr_finish,
 )
-from maptasker.src.gui.guiutils import (
-    SINGLE_ITEM_LABELS,
-    clear_single_item_view_names,
-    is_no_selection,
-    reset_single_item_selection,
-)
+from maptasker.src.gui.guiutils import clear_single_item_view_names, is_no_selection, reset_single_item_selection
 from maptasker.src.gui.guiwins_drawers import document_language_html, set_document_language_js
 from maptasker.src.gui.guiwins_textview import NiceGuiTextView
 from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
+from nicegui import run
 
 # Taken before the autouse tasker_has_nothing fixture stubs it, for the tests of the check itself.
-_REAL_WHAT_TASKER_ALREADY_HAS = userintr_android._what_tasker_already_has
+_REAL_WHAT_TASKER_ALREADY_HAS = userintr_android.what_tasker_already_has
 
 # ==========================================
 # Fixtures & MOCKING SETUP
@@ -88,7 +87,7 @@ def reset_translation():
 
 @pytest.fixture(autouse=True)
 def tasker_has_nothing(monkeypatch):
-    """Every device write asks Tasker what it already has (userintr_android._what_tasker_already_has),
+    """Every device write asks Tasker what it already has (userintr_android.what_tasker_already_has),
     which is a real request.  Stubbed to 'nothing there' so each test sees only the prompt it is
     about; the tests of that check replace this with an answer of their own.
     """
@@ -96,18 +95,18 @@ def tasker_has_nothing(monkeypatch):
     async def nothing(_ip, _port, _render, _consequence, **_options) -> list[str]:
         return []
 
-    monkeypatch.setattr(userintr_android, "_what_tasker_already_has", nothing)
+    monkeypatch.setattr(userintr_android, "what_tasker_already_has", nothing)
 
 
 @pytest.fixture(autouse=True)
 def settings_file_untouched(monkeypatch):
     """Every Android dialog writes the address it was given to the settings file
-    (guiutils.remember_android_address), which is the real file in the working directory.
+    (guiutils_android.remember_android_address), which is the real file in the working directory.
     Stubbed out; the test of that write replaces this with a recorder of its own.
     """
-    from maptasker.src.gui import guiutils
-
-    monkeypatch.setattr(guiutils, "save_restore_args", lambda args, colors, to_save=False, **_kw: (args, colors))
+    monkeypatch.setattr(
+        guiutils_android, "save_restore_args", lambda args, colors, to_save=False, **_kw: (args, colors)
+    )
 
 
 @pytest.fixture
@@ -564,11 +563,11 @@ def test_twisty_versus_everything_mutual_exclusivity(event_handler, mock_gui_ins
 # 3. ASYNCHRONOUS IO-BOUND THREAD TESTS
 # ==========================================
 @pytest.mark.asyncio
-@patch("maptasker.src.gui.userintr._open_popout_window")
-@patch("maptasker.src.gui.userintr.output_the_front_matter")
-@patch("maptasker.src.gui.userintr.capture_gui_state")
-@patch("maptasker.src.gui.userintr.ui")
-@patch("maptasker.src.gui.userintr.run.io_bound", new_callable=AsyncMock)
+@patch("maptasker.src.gui.userintr_views._open_popout_window")
+@patch("maptasker.src.gui.userintr_views.output_the_front_matter")
+@patch("maptasker.src.gui.userintr_views.capture_gui_state")
+@patch("maptasker.src.gui.userintr_views.ui")
+@patch("nicegui.run.io_bound", new_callable=AsyncMock)
 async def test_view_event_map_execution_flow(
     mock_io_bound,
     _mock_ui,
@@ -584,7 +583,7 @@ async def test_view_event_map_execution_flow(
     thread and then opens a '/popout/map' page -- so the handoff and the popout are what
     identify the path, rather than a textview being assigned.
     """
-    from maptasker.src.gui.userintr import build_html
+    from maptasker.src.gui.userintr_views import build_html
 
     mock_gui_instance.view_limit = 5000
     PrimeItems.xml_root = MagicMock()  # Map refuses to run without loaded XML.
@@ -592,7 +591,7 @@ async def test_view_event_map_execution_flow(
     PrimeItems.output_lines.output_lines = []
     PrimeItems.error_code = 0
 
-    await event_handler.view_event("map")
+    await event_handler.views.view_event("map")
 
     # Verify background execution handoff of the blocking HTML build
     mock_io_bound.assert_awaited_once_with(build_html, "", state=PrimeItems)
@@ -607,13 +606,13 @@ async def test_view_event_map_execution_flow(
 
 
 @pytest.mark.asyncio
-@patch("maptasker.src.gui.userintr.ui")
-@patch("maptasker.src.gui.userintr.run.io_bound", new_callable=AsyncMock)
+@patch("maptasker.src.gui.userintr_views.ui")
+@patch("nicegui.run.io_bound", new_callable=AsyncMock)
 async def test_view_event_map_requires_loaded_xml(mock_io_bound, _mock_ui, event_handler, mock_gui_instance):
     """With no XML loaded the Map view must refuse rather than build against nothing."""
     PrimeItems.xml_root = None
 
-    await event_handler.view_event("map")
+    await event_handler.views.view_event("map")
 
     mock_io_bound.assert_not_awaited()
     mock_gui_instance.display_message_box.assert_called_once_with(
@@ -1227,7 +1226,7 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
     async def fake_ping(_self, _ip, _port) -> bool:
         return True
 
-    monkeypatch.setattr(userintr.run, "io_bound", fake_io_bound)
+    monkeypatch.setattr(run, "io_bound", fake_io_bound)
     monkeypatch.setattr(userintr_android, "ping_android_device", fake_ping)
     # One read of the path answers both questions -- see maputil2.read_android_file.  The
     # content it hands back is what becomes the safety copy, with no second GET.
@@ -2058,7 +2057,7 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
     monkeypatch.setattr(userintr_android.taskedit_apply, "apply_edits_to_task", lambda *_args: [])
     monkeypatch.setattr(userintr_android.taskedit, "task_name_exists", lambda _name, **_kw: False)
     monkeypatch.setattr(userintr_android, "task_arg_values", lambda _refs: {})
-    monkeypatch.setattr(userintr_editors, "refresh_tasker_object_pulldowns", lambda _gui: None)
+    patch_editors(monkeypatch, "refresh_tasker_object_pulldowns", lambda _gui: None)
     monkeypatch.setattr(userintr_fields, "refresh_tasker_object_pulldowns", lambda _gui: None)
     monkeypatch.setattr(userintr_finish, "refresh_tasker_object_pulldowns", lambda _gui: None)
     # Both halves of keep_task_in_loaded_config: which one runs depends on whether the Task
@@ -2225,11 +2224,9 @@ def test_the_save_to_android_panel_options_are_saved_settings() -> None:
 def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch) -> None:
     """Entering an address writes the settings file then and there, and survives a local file
     load clearing android_ipaddr -- the next dialog still opens on it."""
-    from maptasker.src.gui import guiutils
-
     written: list = []
     monkeypatch.setattr(
-        guiutils,
+        guiutils_android,
         "save_restore_args",
         lambda args, colors, to_save=False, **_kw: (written.append((dict(args), to_save)), (args, colors))[1],
     )
@@ -2238,21 +2235,21 @@ def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch) ->
     gui.state = PrimeItems
     gui.state = PrimeItems
 
-    guiutils.remember_android_address(gui, " 10.0.0.7 ", "1822")
-    guiutils.remember_android_address(gui, "10.0.0.7", "1822")  # unchanged: no second write
+    guiutils_android.remember_android_address(gui, " 10.0.0.7 ", "1822")
+    guiutils_android.remember_android_address(gui, "10.0.0.7", "1822")  # unchanged: no second write
 
     last_address = ("android_last_ipaddr", "android_last_port")
     assert [({name: args[name] for name in last_address}, to_save) for args, to_save in written] == [
         ({"android_last_ipaddr": "10.0.0.7", "android_last_port": "1822"}, True),
     ]
     gui.android_ipaddr = gui.android_port = ""  # what loading a local XML file does
-    assert guiutils.android_address_defaults(gui) == ("10.0.0.7", "1822")
+    assert guiutils_android.android_address_defaults(gui) == ("10.0.0.7", "1822")
 
     # Nothing entered yet anywhere: the defaults.
     fresh = MagicMock(android_ipaddr="", android_port="", android_last_ipaddr="", android_last_port="")
     fresh.state = PrimeItems
     monkeypatch.setattr(PrimeItems, "program_arguments", ProgramArguments())
-    assert guiutils.android_address_defaults(fresh) == ("192.168.0.210", "1821")
+    assert guiutils_android.android_address_defaults(fresh) == ("192.168.0.210", "1821")
 
 
 def test_the_last_android_address_is_a_saved_setting() -> None:
@@ -2285,7 +2282,7 @@ def test_no_save_to_android_path_calls_the_device_on_the_event_loop() -> None:
         "_save_file_to_device",
         "_upload_file_to_device",
         "_offer_into_tasker",
-        # What _offer_into_tasker hands the rest of an import to: the steps of _IntoTaskerRun.
+        # What _offer_into_tasker hands the rest of an import to: the steps of IntoTaskerRun.
         "run_offer",
         "_import_is_confirmable",
         "_offer_to_device",
@@ -2306,7 +2303,7 @@ def test_no_save_to_android_path_calls_the_device_on_the_event_loop() -> None:
         "import_is_confirmable",
         "await_import",
     }
-    tree = ast.parse(inspect.getsource(userintr_android))
+    tree = ast.parse(inspect.getsource(userintr_android) + "\n" + inspect.getsource(userintr_android_support))
     handlers = [node for node in ast.walk(tree) if isinstance(node, ast.AsyncFunctionDef) and node.name in paths]
     assert {node.name for node in handlers} == paths
 
@@ -2362,7 +2359,7 @@ def test_every_device_write_asks_tasker_what_it_already_has() -> None:
         and node.name in paths
         and any(
             isinstance(call.func, ast.Name)
-            and call.func.id == "_what_tasker_already_has"
+            and call.func.id == "what_tasker_already_has"
             # ...and passes the "Check IDs" box on, or ticking it would do nothing on that path.
             and any(keyword.arg == "check_ids" for keyword in call.keywords)
             for call in ast.walk(node)
@@ -2408,7 +2405,7 @@ async def test_the_check_ids_box_reaches_the_tasker_check(monkeypatch, event_han
         asked.append(options)
         return []
 
-    monkeypatch.setattr(userintr_android, "_what_tasker_already_has", record)
+    monkeypatch.setattr(userintr_android, "what_tasker_already_has", record)
     _field_refs, android_refs = task_dialog_refs
     android_refs["check_ids"] = MagicMock(value=True)
 
@@ -2424,13 +2421,13 @@ async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(monkeypa
     not a file, that has it."""
 
     calls = _patch_task_file_path(monkeypatch, exists=False)
-    lines = ["Tasker already has the Task 'Opener'.", userintr_android._FILE_WRITE_CONSEQUENCE]
+    lines = ["Tasker already has the Task 'Opener'.", userintr_android_support.FILE_WRITE_CONSEQUENCE]
 
     async def has_it(_ip, _port, _render, consequence, **_options) -> list[str]:
         calls["consequence"] = consequence
         return lines
 
-    monkeypatch.setattr(userintr_android, "_what_tasker_already_has", has_it)
+    monkeypatch.setattr(userintr_android, "what_tasker_already_has", has_it)
 
     await _save_task_file(event_handler, task_dialog_refs)
 
@@ -2438,14 +2435,14 @@ async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(monkeypa
     assert len(calls["overwrite"]) == 1
     _what, on_confirm, kwargs = calls["overwrite"][0]
     assert kwargs == {"unknown": False, "file_absent": True, "tasker_lines": lines}
-    assert calls["consequence"] == userintr_android._FILE_WRITE_CONSEQUENCE
+    assert calls["consequence"] == userintr_android_support.FILE_WRITE_CONSEQUENCE
 
     await on_confirm()  # the user presses Continue
     assert calls["uploaded"] == ["Opener"]
 
 
 def _inline_tasker_check(monkeypatch, check_for) -> list:
-    """Run _what_tasker_already_has's worker call inline, answering with check_for(sent)."""
+    """Run what_tasker_already_has's worker call inline, answering with check_for(sent)."""
     from maptasker.src.device import devicecheck
     from maptasker.src.gui import userintr
 
@@ -2454,10 +2451,10 @@ def _inline_tasker_check(monkeypatch, check_for) -> list:
     async def inline(func, *args, **kwargs):
         return func(*args, **kwargs)
 
-    monkeypatch.setattr(userintr.run, "io_bound", inline)
+    monkeypatch.setattr(run, "io_bound", inline)
     monkeypatch.setattr(userintr.ui, "notify", lambda message, **_kwargs: notes.append(message))
     monkeypatch.setattr(
-        userintr_android.devicecheck,
+        userintr_android_support.devicecheck,
         "check_tasker_for_existing",
         lambda _ip, _port, sent, **_kw: devicecheck.TaskerCheck(sent, *check_for(sent)),
     )
@@ -2512,7 +2509,7 @@ async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
     notes = _inline_tasker_check(monkeypatch, lambda _sent: pytest.fail("asked by name despite a backup"))
     clash = devicecheck.IdFinding("Task", "Test1plus", "1209", "Task", "Atest1Plus", "1209")
     monkeypatch.setattr(
-        userintr_android.devicecheck,
+        userintr_android_support.devicecheck,
         "check_against_device_backup",
         lambda _ip, _port, _xml, **_kw: (
             devicecheck.TaskerCheck({"Task": ["Test1"]}, {"Task": ["Test1"]}, {}),
@@ -2544,7 +2541,7 @@ async def test_a_backup_that_cannot_be_had_falls_back_to_asking_by_name(monkeypa
 
     _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": ["Test1"]}, {}))
     monkeypatch.setattr(
-        userintr_android.devicecheck,
+        userintr_android_support.devicecheck,
         "check_against_device_backup",
         lambda _ip, _port, _xml, **_kw: (None, [], "Tasker did not answer."),
     )
@@ -2722,7 +2719,7 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
     assert args[1] == "Opener"  # staged as Opener.tsk.xml, its own name
     assert kwargs["route"] is deviceoffer.OPEN_TASK_ROUTE
     # Any warning, not the first: every Save To Android / Import Into Tasker path now
-    # opens with the "watch your device" heads-up (guiutils.notify_watch_android_device).
+    # opens with the "watch your device" heads-up (guiutils_android.notify_watch_android_device).
     handed = [message for message, kind in calls["notify"] if kind == "warning"]
     assert handed, calls["notify"]
     assert any("Open with" in message for message in handed), handed
@@ -2944,7 +2941,7 @@ def _patch_helper_task_listing(monkeypatch, result) -> dict:
     async def fake_ping(_self, _ip, _port) -> bool:
         return True
 
-    monkeypatch.setattr(userintr.run, "io_bound", fake_io_bound)
+    monkeypatch.setattr(run, "io_bound", fake_io_bound)
     monkeypatch.setattr(userintr_android, "ping_android_device", fake_ping)
     monkeypatch.setattr(
         userintr_android,

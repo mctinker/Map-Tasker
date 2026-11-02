@@ -101,7 +101,7 @@ def reclassify_action_args(action: EditableAction, state: RunState) -> None:
     device makes that answer wrong, and nothing re-asks it -- so the field would go on
     being read-only, for a stated reason that had stopped being true, until the dialog was
     closed and reopened.  This re-asks it, so redrawing the row is enough (see
-    guiwins_taskedit._render_readonly_note).
+    guiwins_taskedit.render_readonly_note).
 
     Rebuilt from the same Action element, so nothing that has been edited in the XML is
     lost; what is discarded is the classification, which is the point.
@@ -370,7 +370,7 @@ def _classify_arg_widget(arg: ArgumentCode, state: RunState) -> tuple[str, str, 
         widget_kind = "text" if isinstance(arg.arg_eval, str) else "raw_fallback"
         return widget_kind, "Str", None
     # An Application or an icon is editable only while there is an inventory to offer:
-    # both fields are typed into as well as picked from (see guiwins_taskedit._render_app_arg_field),
+    # both fields are typed into as well as picked from (see guiwins_taskedit.render_app_arg_field),
     # but a picker with nothing in it is a field the user has no way to fill correctly, so
     # with an empty inventory these stay exactly as read-only as they were before
     # appinv.py existed.  See classify_action_addability, which gates on the same thing.

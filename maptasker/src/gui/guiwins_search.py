@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import context, ui
 
@@ -423,21 +423,7 @@ class _FindDialog:
             # that is what they are doing until they close it.
             self.docked = {"yes": False}
 
-            ui.label(
-                f"{translate_string('Find in')} {self.view.title}",
-            ).classes("text-lg font-bold text-blue-600")
-
-            # Both tabs read and write only what the app is displaying, so the dialog says
-            # which that is.  Stated up front rather than left to be inferred from a short
-            # answer: "no matches" and "no matches in this one Task" look identical, and
-            # the second is the one that sends somebody looking for a bug.
-            if not self.index.scope.is_everything:
-                ui.label(
-                    f"{translate_string('Limited to')} {self.index.scope.phrase} "
-                    f"-- {translate_string('clear the single-item selection to reach the whole configuration')}.",
-                ).classes(
-                    "text-xs text-orange-600 dark:text-orange-400 border-l-4 border-orange-400 pl-2 py-1 mb-1",
-                )
+            self._build_heading()
             # Find and Replace share this dialog, and share the index behind it.  Two
             # reasons beyond tidiness, both in find_event's own terms: the index is
             # rebuilt per open rather than cached (see find_event) and a separate Replace
@@ -492,6 +478,24 @@ class _FindDialog:
             if previous is not None:
                 self.fill(previous)
                 self.show(previous)
+
+    def _build_heading(self) -> None:
+        """The title, and a note when a single-item selection limits what can be found."""
+        ui.label(
+            f"{translate_string('Find in')} {self.view.title}",
+        ).classes("text-lg font-bold text-blue-600")
+
+        # Both tabs read and write only what the app is displaying, so the dialog says
+        # which that is.  Stated up front rather than left to be inferred from a short
+        # answer: "no matches" and "no matches in this one Task" look identical, and
+        # the second is the one that sends somebody looking for a bug.
+        if not self.index.scope.is_everything:
+            ui.label(
+                f"{translate_string('Limited to')} {self.index.scope.phrase} "
+                f"-- {translate_string('clear the single-item selection to reach the whole configuration')}.",
+            ).classes(
+                "text-xs text-orange-600 dark:text-orange-400 border-l-4 border-orange-400 pl-2 py-1 mb-1",
+            )
 
     def _build_find_tab(self) -> None:
         """The Find tab: the query fields, the results list, and the Find and Save buttons."""
@@ -1424,20 +1428,8 @@ class _ReplaceTab:
         plan = self.held["plan"]
         self.view.replace_ticks = plan.ticked_identities() if plan is not None else None
 
-    def build_preview(self, restore: collections.Counter | None = None) -> None:
-        """Build the plan for whatever the fields say, and show it.
-
-        `restore` re-applies the tick boxes from a previous preview of the same
-        question -- the way back from following one of its own rows.  Applied after the
-        plan is built and before it is drawn, so what appears on screen is what the
-        user left, defaults and all.
-
-        One branch per mode to BUILD the plan, and one tail for all four to show it:
-        what a preview is -- held, drawn, ticked, and the only thing the Replace button
-        can act on -- is the same whatever question produced it, and a mode with its own
-        copy of that tail is a mode that can drift out of step with the rule.
-        """
-        inputs = self.current_inputs()
+    def _plan_for(self, inputs: tuple[Any, ...]) -> mapswap_model.Plan | None:
+        """The plan for what the fields say -- one branch per mode -- or None, after saying what is missing."""
         kind = inputs[0]
 
         if kind == "action":
@@ -1447,7 +1439,7 @@ class _ReplaceTab:
                     translate_string("Choose an action to replace, and one to replace it with."),
                     type="warning",
                 )
-                return
+                return None
             plan = mapswap_action.plan_action_swap(source, target, project, state=self.state)
         elif kind == "argument":
             _, action, arg_id, new_value, match, project, substitute, add_missing = inputs
@@ -1456,7 +1448,7 @@ class _ReplaceTab:
                     translate_string("Choose an action, and which of its arguments to replace."),
                     type="warning",
                 )
-                return
+                return None
             plan = mapswap_argument.plan_argument_replace(
                 action, arg_id, new_value, match, project, substitute, add_missing, state=self.state
             )
@@ -1475,14 +1467,33 @@ class _ReplaceTab:
                     translate_string("Choose a Profile condition to replace, and one to replace it with."),
                     type="warning",
                 )
-                return
+                return None
             plan = mapswap_condition.plan_condition_replace(source, target, project, state=self.state)
         else:
             _, name, owner, new_name = inputs
             if not name or not new_name:
                 ui.notify(translate_string("Choose a variable, and type the new name."), type="warning")
-                return
+                return None
             plan = mapswap_rename.plan_variable_rename(self.variable_index(), name, owner, new_name, state=self.state)
+        return plan
+
+    def build_preview(self, restore: collections.Counter | None = None) -> None:
+        """Build the plan for whatever the fields say, and show it.
+
+        `restore` re-applies the tick boxes from a previous preview of the same
+        question -- the way back from following one of its own rows.  Applied after the
+        plan is built and before it is drawn, so what appears on screen is what the
+        user left, defaults and all.
+
+        One branch per mode to BUILD the plan, and one tail for all four to show it:
+        what a preview is -- held, drawn, ticked, and the only thing the Replace button
+        can act on -- is the same whatever question produced it, and a mode with its own
+        copy of that tail is a mode that can drift out of step with the rule.
+        """
+        inputs = self.current_inputs()
+        plan = self._plan_for(inputs)
+        if plan is None:
+            return
 
         if restore is not None:
             plan.restore_ticks(restore)
@@ -1532,7 +1543,7 @@ class _ReplaceTab:
         view_type = (self.view.title.split() or ["Map"])[0].lower()
         if view_type not in ("map", "diagram", "tree"):
             view_type = "map"
-        await handlers.view_event(view_type)
+        await handlers.views.view_event(view_type)
 
     async def do_replace(self) -> None:
         """The Replace button.  Only ever applies the plan on screen.

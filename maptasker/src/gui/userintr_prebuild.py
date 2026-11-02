@@ -195,7 +195,7 @@ class PrebuildEventHandlers(HandlerGroup):
         windows_before = diffload.isolation_windows()
         built = False
         with suppress_logged("Building the Map ahead of time"):
-            self.hub.get_ready_to_build(None)
+            self.hub.views.get_ready_to_build(None)
             selection = self._selection()
             state.output_lines.output_lines.clear()
             output_the_front_matter(current_config(state), state=state)
@@ -213,7 +213,7 @@ class PrebuildEventHandlers(HandlerGroup):
                 and diffload.isolation_windows() == windows_before
             ):
                 # The settings a press would take now, read the way a press reads them.
-                self.hub.get_ready_to_build(None)
+                self.hub.views.get_ready_to_build(None)
                 built = mapcache.settle(output_path("MapTasker.html", state=state), mapcache.digests(state=state))
         if not built:
             mapcache.forget()

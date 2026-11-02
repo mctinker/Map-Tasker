@@ -38,7 +38,7 @@ import asyncio
 import contextlib
 from dataclasses import dataclass, field
 from functools import partial
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from nicegui import context, run, ui
 
@@ -131,9 +131,9 @@ class _Held:
 
 
 def build_tnupdate_dialog(
-    make_jump: Callable,
-    rebuild_after_apply: Callable[[], Coroutine],
-    save_configuration: Callable[[], Coroutine],
+    make_jump: Callable[..., Any],
+    rebuild_after_apply: Callable[[], Coroutine[Any, Any, None]],
+    save_configuration: Callable[[], Coroutine[Any, Any, Any]],
     state: RunState,
 ) -> ui.dialog | None:
     """Build and return the TaskerNet Updates dialog, or None if there is no configuration to link to.
@@ -152,9 +152,9 @@ class _UpdatesDialog:
 
     def __init__(
         self,
-        make_jump: Callable,
-        rebuild_after_apply: Callable[[], Coroutine],
-        save_configuration: Callable[[], Coroutine],
+        make_jump: Callable[..., Any],
+        rebuild_after_apply: Callable[[], Coroutine[Any, Any, None]],
+        save_configuration: Callable[[], Coroutine[Any, Any, Any]],
         state: RunState,
         book: tnupdate.LinkBook,
     ) -> None:

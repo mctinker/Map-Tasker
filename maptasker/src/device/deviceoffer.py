@@ -739,6 +739,12 @@ def _install_and_hand_off(
     return _hand_offer_to_device(ip_address, ip_port, xml_bytes, object_name, route, auth_key)
 
 
+# Unlike import_profile_to_device this has no acknowledged_risk gate, and no duplicate
+# check either.  It puts nothing at stake but the one Profile or Project: Android is
+# handed a file, Tasker shows the user what it is about to import -- including, measured
+# on a real device, an offer to replace something it already has -- and the semantics from
+# there are Tasker's own documented ones.  Refusing a name Tasker already knows would only
+# put a worse prompt in front of a better one.
 def offer_to_tasker(
     xml_bytes: bytes,
     object_name: str,
@@ -772,12 +778,7 @@ def offer_to_tasker(
             Tasker explicitly.  Prefer the first -- see the section comment for the file://
             URI only the second can trip over.
 
-    Unlike import_profile_to_device this has no acknowledged_risk gate, and no duplicate
-    check either.  It puts nothing at stake but the one Profile or Project: Android is
-    handed a file, Tasker shows the user what it is about to import -- including, measured
-    on a real device, an offer to replace something it already has -- and the semantics from
-    there are Tasker's own documented ones.  Refusing a name Tasker already knows would only
-    put a worse prompt in front of a better one.
+    (See the comment above this function for the rest.)
 
     The exchange: get an API key, install the helper Task if it isn't there, clear the last
     answer, stage the XML, run the Task, confirm it ran, and then -- if asked, and if the

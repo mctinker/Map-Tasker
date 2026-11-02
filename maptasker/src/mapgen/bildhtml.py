@@ -215,6 +215,52 @@ def do_rerun(state: RunState) -> None:
     restart_program(state=state)
 
 
+def _write_view_limit_message(map_file: MapWriter, state: RunState) -> None:
+    """Close the Map's open tags with a note that the view limit stopped the output, and keep the note for the Map view."""
+    msg_text = f"{translate_string('MapTasker: view limit reached, stopping output to file:  output')}={len(state.output_lines.output_lines)}, {translate_string('hardstop view limit')}={state.view_limit}"
+    # print(msg_text)
+    # Breaking out mid-loop can leave something the last item opened still
+    # unclosed (a <span> deliberately left open by format_html(end_span=False)
+    # for a later item to close, or an in-progress <table>/<tr>/<td>/<details>
+    # from the "too many actions" twisty -- see this function's own <details>
+    # handling below). Left unclosed, the browser's own auto-close-at-EOF
+    # behavior can end up laying the message out inside an unconstrained table,
+    # which ignores the container's width regardless of word wrap. Closing tags
+    # with no matching open tag are simply ignored, so it's safe to always close
+    # all of them here before starting a fresh, guaranteed-clean block for the
+    # message -- wrapped so it always wraps/constrains to the container's width
+    # without hardcoding white-space, so it still respects the Toggle Wrap setting
+    # like every other line.
+    map_file.write(
+        "</span></td></tr></table></details>"
+        f'<div style="max-width: 100%; overflow-wrap: anywhere; word-break: break-word;">{msg_text}</div>'
+        "</body></html>",
+    )
+    logger.info(msg_text)
+    state.view_limit_msg = msg_text  # Read by the Map view's message field (see guiwins_textview.NiceGuiTextView).
+
+
+def _write_directory(map_file: MapWriter, config: RunConfig, state: RunState) -> None:
+    """Write the directory where the placeholder line stands (or nothing, when it is not asked for)."""
+    # Temporarily save our output lines
+    temp_lines_out = state.output_lines.output_lines
+    # Work out which of the directory's targets the view limit drops before
+    # swapping the output queue out: an entry whose target never makes it
+    # into the file is listed as plain text rather than as a hyperlink that
+    # would take the user nowhere.
+    dropped_anchors = unreachable_anchors(temp_lines_out, state.view_limit)
+    state.output_lines.output_lines = []  # Create a new output queue
+
+    # Do the directory output
+    if config.directory:
+        output_directory(config, dropped_anchors, state=state)
+    # Output the directory line
+    for output_line in state.output_lines.output_lines:
+        map_file.write(output_line)
+    # Restore our regular output
+    state.output_lines.output_lines = temp_lines_out
+
+
 # write_out_the_file: we have a list of output lines.  Write them out.
 def write_out_the_file(my_output_dir: str, my_file_name: str, state: RunState) -> None:
     """
@@ -236,57 +282,18 @@ def write_out_the_file(my_output_dir: str, my_file_name: str, state: RunState) -
         # the browser reads them.  Both rules, one pass over the html (see MapWriter).
         map_file = MapWriter(out_file)
         # Output the rest that is in our output queue
-        _output_directory = output_directory  # Localize for speed
         _format_line = format_line  # Localize for speed
         config = current_config(state)  # Settings for this write -- read once, outside the loop
         for num, item in enumerate(state.output_lines.output_lines):
             # This is a temporary workaround to the GUI terminating prematurely due to output size.
             if num > state.view_limit:
-                msg_text = f"{translate_string('MapTasker: view limit reached, stopping output to file:  output')}={len(state.output_lines.output_lines)}, {translate_string('hardstop view limit')}={state.view_limit}"
-                # print(msg_text)
-                # Breaking out mid-loop can leave something the last item opened still
-                # unclosed (a <span> deliberately left open by format_html(end_span=False)
-                # for a later item to close, or an in-progress <table>/<tr>/<td>/<details>
-                # from the "too many actions" twisty -- see this function's own <details>
-                # handling below). Left unclosed, the browser's own auto-close-at-EOF
-                # behavior can end up laying the message out inside an unconstrained table,
-                # which ignores the container's width regardless of word wrap. Closing tags
-                # with no matching open tag are simply ignored, so it's safe to always close
-                # all of them here before starting a fresh, guaranteed-clean block for the
-                # message -- wrapped so it always wraps/constrains to the container's width
-                # without hardcoding white-space, so it still respects the Toggle Wrap setting
-                # like every other line.
-                map_file.write(
-                    "</span></td></tr></table></details>"
-                    f'<div style="max-width: 100%; overflow-wrap: anywhere; word-break: break-word;">{msg_text}</div>'
-                    "</body></html>",
-                )
-                logger.info(msg_text)
-                state.view_limit_msg = (
-                    msg_text  # Read by the Map view's message field (see guiwins_textview.NiceGuiTextView).
-                )
+                _write_view_limit_message(map_file, state)
                 break  # Don't output more than the view limit
 
             # Check to see if this is where the directory is to go in the Output directory.
             # if so, output_directory will create it's own list of output lines.
             if "maptasker_directory" in item:
-                # Temporarily save our output lines
-                temp_lines_out = state.output_lines.output_lines
-                # Work out which of the directory's targets the view limit drops before
-                # swapping the output queue out: an entry whose target never makes it
-                # into the file is listed as plain text rather than as a hyperlink that
-                # would take the user nowhere.
-                dropped_anchors = unreachable_anchors(temp_lines_out, state.view_limit)
-                state.output_lines.output_lines = []  # Create a new output queue
-
-                # Do the directory output
-                if config.directory:
-                    _output_directory(config, dropped_anchors, state=state)
-                # Output the directory line
-                for output_line in state.output_lines.output_lines:
-                    map_file.write(output_line)
-                # Restore our regular output
-                state.output_lines.output_lines = temp_lines_out
+                _write_directory(map_file, config, state)
                 continue
 
             # Format the output line

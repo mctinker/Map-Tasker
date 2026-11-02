@@ -664,6 +664,34 @@ def _record_call_edge(connector: CallConnector, state: RunState) -> int:
     return call_index
 
 
+def _draw_connector_rows(
+    output_lines: list[str],
+    start_line: int,
+    line_count: int,
+    up_down_location: int,
+    arrow: str,
+    upper_corner_arrow: str,
+    lower_corner_arrow: str,
+) -> None:
+    """Put the connector's corner, arrows and bars on each line from `start_line` down `line_count` lines."""
+    # Now traverse the output list from the calling/called Task to the called/calling Task,
+    # inserting a up/down/corner arrow along the way.
+    for x in range(line_count + 1):
+        # Determine which arrow to use.
+        if x == 0:
+            use_arrow = upper_corner_arrow
+        elif x == line_count:
+            use_arrow = lower_corner_arrow
+        else:
+            use_arrow = arrow
+            # Just do the first and last up/down/right/left arrow.
+            if x != 1 and x != line_count - 1:
+                use_arrow = straight_line if arrow in (left_arrow, right_arrow) else bar
+
+        # Add initial/ending up/down arrow or bar/straight line.
+        output_lines[start_line + x] = _line_with_arrow(output_lines[start_line + x], up_down_location, use_arrow)
+
+
 def draw_arrows_to_called_task(
     up_down_location: int,
     connector: CallConnector,
@@ -743,21 +771,8 @@ def draw_arrows_to_called_task(
     # lines that are nothing but bar/space/backslash). See compute_diagram_connector_groups().
     state.diagram_connector_seeds.append((start_line, up_down_location, call_index))
 
-    # Now traverse the output list from the calling/called Task to the called/calling Task,
-    # inserting a up/down/corner arrow along the way.
-    for x in range(line_count + 1):
-        # Determine which arrow to use.
-        if x == 0:
-            use_arrow = upper_corner_arrow
-        elif x == line_count:
-            use_arrow = lower_corner_arrow
-        else:
-            use_arrow = arrow
-            # Just do the first and last up/down/right/left arrow.
-            if x != 1 and x != line_count - 1:
-                use_arrow = straight_line if arrow in (left_arrow, right_arrow) else bar
-
-        # Add initial/ending up/down arrow or bar/straight line.
-        output_lines[start_line + x] = _line_with_arrow(output_lines[start_line + x], up_down_location, use_arrow)
+    _draw_connector_rows(
+        output_lines, start_line, line_count, up_down_location, arrow, upper_corner_arrow, lower_corner_arrow
+    )
 
     return called_task_lookup

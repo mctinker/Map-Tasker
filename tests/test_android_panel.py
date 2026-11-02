@@ -17,7 +17,7 @@ from maptasker.src.core import maputil2
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import devicefiles, devicetask
-from maptasker.src.gui import guiutils, userintr_android, userintr_loading
+from maptasker.src.gui import guiutils_android, userintr_android, userintr_loading
 from nicegui import ui
 
 from tests.doubles import required
@@ -73,7 +73,9 @@ def phone(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeTasker]:
 def window(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, loaded: None) -> Window:
     """The window, in a working folder of its own (a fetched backup is written to the current directory)."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(guiutils, "save_restore_args", lambda args, colors, to_save=False, **_kw: (args, colors))
+    monkeypatch.setattr(
+        guiutils_android, "save_restore_args", lambda args, colors, to_save=False, **_kw: (args, colors)
+    )
     PrimeItems.program_arguments = ProgramArguments(task_action_warning_limit=100, language="English")
     PrimeItems.slash = "/"
     PrimeItems.backup_fetch_path = ""
@@ -147,11 +149,18 @@ async def test_listing_the_phones_files_offers_them_and_the_one_picked_is_fetche
     async with open_page(_panel(window)) as user:
         _fill(user, phone, "")
         await click(user, "List XML Files")
+        for _ in range(100):  # the listing is a real request on a worker thread: wait for the picker, not for a guess
+            if found(user, ui.select):
+                break
+            await asyncio.sleep(0.1)
         picker = found(user, ui.select)[0]
 
         assert picker.options == ["/Tasker/backup.xml", "/Tasker/other.xml"]
         picker.value = "/Tasker/backup.xml"
-        await __import__("asyncio").sleep(0.3)
+        for _ in range(100):
+            if Path("backup.xml").exists() and window.menus_refreshed:
+                break
+            await asyncio.sleep(0.1)
 
     assert Path("backup.xml").read_bytes() == _BACKUP
     assert window.android_file == "/Tasker/backup.xml"
@@ -332,7 +341,7 @@ def tasker_asked_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
     async def nothing(*_a: Any, **_k: Any) -> list[str]:
         return []
 
-    monkeypatch.setattr(userintr_android, "_what_tasker_already_has", nothing)
+    monkeypatch.setattr(userintr_android, "what_tasker_already_has", nothing)
 
 
 @pytest.fixture
@@ -456,7 +465,7 @@ def _file_save(phone: FakeTasker, saved: list[str], **overrides: Any):
         "before_address": (),
         "after_saved": lambda: saved.append("kept"),
     }
-    return userintr_android._FileSave(**{**spec, **overrides})
+    return userintr_android.FileSave(**{**spec, **overrides})
 
 
 def _refs(phone: FakeTasker) -> dict[str, Any]:
@@ -509,7 +518,7 @@ async def test_what_tasker_already_has_is_put_in_the_prompt_even_for_a_new_file(
     async def has(*_a: Any, **_k: Any) -> list[str]:
         return ["Tasker already has Task 'Opener'."]
 
-    monkeypatch.setattr(userintr_android, "_what_tasker_already_has", has)
+    monkeypatch.setattr(userintr_android, "what_tasker_already_has", has)
 
     async for _user in _in_a_page(
         window,
@@ -538,7 +547,7 @@ async def test_a_save_that_fails_on_the_phone_says_so_and_keeps_nothing(
 async def test_a_document_that_fails_the_verify_check_never_reaches_the_phone(
     phone: FakeTasker, window: Window, asked: list, tasker_asked_nothing: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(userintr_android, "_round_trip_verified", lambda _refs, _verify: False)
+    monkeypatch.setattr(userintr_android, "round_trip_verified", lambda _refs, _verify: False)
     saved: list[str] = []
 
     async for _user in _in_a_page(
@@ -680,7 +689,7 @@ async def test_a_task_tasker_already_has_is_said_in_the_prompt(
     phone: FakeTasker, window: Window, asked: list, kept_tasks: list, quick: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """The real check, not the stub: the names in the document sent are asked of the phone."""
-    monkeypatch.setattr(userintr_android, "_what_tasker_already_has", _REAL_WHAT_TASKER_ALREADY_HAS)
+    monkeypatch.setattr(userintr_android, "what_tasker_already_has", _REAL_WHAT_TASKER_ALREADY_HAS)
     phone.tasks.add("Opener")
 
     async for _user in _save_task(window, phone, _a_new_task()):
@@ -691,7 +700,7 @@ async def test_a_task_tasker_already_has_is_said_in_the_prompt(
     assert "/Tasker/tasks/Opener.tsk.xml" not in phone.files, "nothing is written until the user agrees"
 
 
-_REAL_WHAT_TASKER_ALREADY_HAS = userintr_android._what_tasker_already_has
+_REAL_WHAT_TASKER_ALREADY_HAS = userintr_android.what_tasker_already_has
 
 
 # ##################################################################################

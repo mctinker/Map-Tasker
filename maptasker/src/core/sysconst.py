@@ -78,7 +78,7 @@ APPS_CACHE_FILE = "MapTasker_Apps.json"
 # What every Map/Diagram popout window is named, plus the view it holds: "maptasker_map",
 # "maptasker_diagram", and with "Open View In New Window" on a unique suffix after that.
 # The name is how a second request finds the window a view already has open (see
-# userintr._open_popout_window) -- and how the Diagram finds the Map window to raise when a
+# userintr_views._open_popout_window) -- and how the Diagram finds the Map window to raise when a
 # click on an object is answered by the Map already on screen (see diagintr).  Written down
 # here because those two must agree: a Diagram looking for a name nothing was opened under
 # would quietly never raise anything.
@@ -159,7 +159,7 @@ ARGUMENT_NAMES = {
     "android_file": "Android Backup File location on Android device",
     "android_ipaddr": "Android IP Address",
     "android_port": "Android Port Number",
-    # The address last entered in any Android dialog -- see guiutils.remember_android_address.
+    # The address last entered in any Android dialog -- see guiutils_android.remember_android_address.
     "android_last_ipaddr": "Last Android IP Address Used",
     "android_last_port": "Last Android Port Number Used",
     # The Save To Android panels' two checkboxes -- see guiwins.android_device_fields.

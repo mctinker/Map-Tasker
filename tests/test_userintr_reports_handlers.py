@@ -316,7 +316,7 @@ def test_task_flow_saves_shows_and_draws_the_chosen_task(
     monkeypatch.setattr(userintr_reports, "write_task_flow_report", lambda rows, state: seen.saved_as)
     handlers = _handlers()
     drawn: list[object] = []
-    handlers.draw_task_flowchart = drawn.append  # type: ignore[method-assign]
+    handlers.views.draw_task_flowchart = drawn.append  # type: ignore[method-assign]
 
     handlers.reports.task_flow_event()
 
@@ -333,7 +333,7 @@ def test_a_task_flow_report_that_could_not_be_written_says_so(
     monkeypatch.setattr(userintr_reports, "run_task_flow_check", lambda state: ([], {"ERROR": 0, "WARNING": 0}))
     monkeypatch.setattr(userintr_reports, "write_task_flow_report", lambda rows, state: seen.saved_as)
     handlers = _handlers()
-    handlers.draw_task_flowchart = lambda gui: None  # type: ignore[method-assign]
+    handlers.views.draw_task_flowchart = lambda gui: None  # type: ignore[method-assign]
 
     handlers.reports.task_flow_event()
 

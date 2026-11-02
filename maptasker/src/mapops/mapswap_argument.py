@@ -210,6 +210,24 @@ def _scan_actions_for_replace(job: _ArgumentReplace, action_key: str, project: s
             job.consider(found.element, record.target.at_action(found.number))
 
 
+# `substitute` changes what `new_value` means:
+#
+# off (the default)  the argument is SET to it -- "make every Flash say 'Done'".
+# on                 only the matched text inside the value is replaced -- "wherever a
+# URL says http://old, say http://new" -- leaving the rest of each
+# value alone.  Needs `match`: there is otherwise nothing to look
+# for.
+#
+# `add_missing` writes the argument into the actions that do not carry one.  Tasker
+# leaves out an argument nobody has ever set, so "give every Flash a two-second Timeout"
+# is mostly a question about actions that have no Timeout element at all -- and without
+# this it answered "12 of them cannot be changed".  Off by default, because adding an
+# argument to a hundred actions is a bigger thing than editing the ones that have it, and
+# those rows carry a note saying which they are.
+#
+# It only applies to the plain case: a value filter cannot match a field that does not
+# exist, and there is nothing inside a missing value to substitute, so with either of
+# those set the switch says so rather than quietly doing nothing.
 def plan_argument_replace(
     action_key: str,
     arg_id: str,
@@ -228,24 +246,7 @@ def plan_argument_replace(
     how the Find tab already searches -- two halves of one dialog answering the same words
     differently would be a trap.
 
-    `substitute` changes what `new_value` means:
-
-      off (the default)  the argument is SET to it -- "make every Flash say 'Done'".
-      on                 only the matched text inside the value is replaced -- "wherever a
-                         URL says http://old, say http://new" -- leaving the rest of each
-                         value alone.  Needs `match`: there is otherwise nothing to look
-                         for.
-
-    `add_missing` writes the argument into the actions that do not carry one.  Tasker
-    leaves out an argument nobody has ever set, so "give every Flash a two-second Timeout"
-    is mostly a question about actions that have no Timeout element at all -- and without
-    this it answered "12 of them cannot be changed".  Off by default, because adding an
-    argument to a hundred actions is a bigger thing than editing the ones that have it, and
-    those rows carry a note saying which they are.
-
-    It only applies to the plain case: a value filter cannot match a field that does not
-    exist, and there is nothing inside a missing value to substitute, so with either of
-    those set the switch says so rather than quietly doing nothing.
+    (See the comment above this function for the rest.)
 
     Nothing is done here.  Every action found becomes a Change carrying the field's value
     before and after, ticked individually; every action that matched and cannot be changed

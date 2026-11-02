@@ -37,10 +37,11 @@ from maptasker.src.edit.profedit import EditableProfile
 from maptasker.src.edit.projedit import EditableProject
 from maptasker.src.edit.sceneedit import EditableScene
 from maptasker.src.edit.taskedit_model import EditableTask
-from maptasker.src.gui import userintr_editors, userintr_fields, userintr_finish
+from maptasker.src.gui import userintr_fields, userintr_finish
 from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 
 from tests.doubles import expect, required
+from tests.editor_modules import EDITOR_MODULES, editor_ui, patch_editors
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:
@@ -121,7 +122,7 @@ def notices(monkeypatch: pytest.MonkeyPatch) -> _Notices:
     """ui.notify replaced by a record: there is no browser to show it in."""
     heard = _Notices()
     monkeypatch.setattr(
-        userintr_editors.ui,
+        editor_ui,
         "notify",
         lambda message, *_a, type="info", **_k: heard.append((str(message), type)),
     )
@@ -161,7 +162,7 @@ def calls(monkeypatch: pytest.MonkeyPatch) -> dict[str, list]:
         "select_renamed_item",
         "reset_specific_name_selection",
     ):
-        for module in (userintr_editors, userintr_fields, userintr_finish):
+        for module in (*EDITOR_MODULES, userintr_fields, userintr_finish):
             if hasattr(module, name):  # the helpers moved out of userintr_editors call these too
                 monkeypatch.setattr(module, name, record(name))
     return seen
@@ -451,7 +452,7 @@ def test_a_saved_copy_replaces_the_loaded_file_and_the_pulldowns_are_rebuilt_fro
     shown, refreshed = [], []
     monkeypatch.setattr(userintr_finish, "get_the_xml_data", lambda state: 0)
     monkeypatch.setattr(userintr_finish, "display_current_file", lambda g, path: shown.append(path))
-    monkeypatch.setattr(userintr_editors, "refresh_tasker_object_pulldowns", lambda g: refreshed.append(g))
+    patch_editors(monkeypatch, "refresh_tasker_object_pulldowns", lambda g: refreshed.append(g))
     monkeypatch.setattr(userintr_fields, "refresh_tasker_object_pulldowns", lambda g: refreshed.append(g))
     monkeypatch.setattr(userintr_finish, "refresh_tasker_object_pulldowns", lambda g: refreshed.append(g))
 
@@ -488,7 +489,7 @@ async def test_the_in_progress_notice_is_a_spinner_that_lets_the_loop_send_it_fi
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     made = []
-    monkeypatch.setattr(userintr_editors.ui, "notification", lambda *a, **k: made.append((a, k)) or "notice")
+    monkeypatch.setattr(editor_ui, "notification", lambda *a, **k: made.append((a, k)) or "notice")
     assert await userintr_finish.show_save_in_progress_notice() == "notice"
     ((args, kwargs),) = made
     assert "in progress" in args[0]
@@ -499,10 +500,10 @@ def _stub_the_save(
     monkeypatch: pytest.MonkeyPatch, *, written: tuple = (True, "/tmp/copy.xml"), reloaded: tuple = (True, "")
 ) -> MagicMock:
     notice = MagicMock()
-    monkeypatch.setattr(userintr_editors, "show_save_in_progress_notice", AsyncMock(return_value=notice))
+    patch_editors(monkeypatch, "show_save_in_progress_notice", AsyncMock(return_value=notice))
     monkeypatch.setattr(userintr_finish, "show_save_in_progress_notice", AsyncMock(return_value=notice))
-    monkeypatch.setattr(userintr_editors, "write_full_backup_to_current_file", lambda state: written)
-    monkeypatch.setattr(userintr_editors, "reload_saved_copy_and_refresh", lambda g, path: reloaded)
+    patch_editors(monkeypatch, "write_full_backup_to_current_file", lambda state: written)
+    patch_editors(monkeypatch, "reload_saved_copy_and_refresh", lambda g, path: reloaded)
     monkeypatch.setattr(userintr_finish, "reload_saved_copy_and_refresh", lambda g, path: reloaded)
     return notice
 
@@ -844,7 +845,7 @@ async def test_a_current_file_save_with_an_invalid_field_does_not_write_anything
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     written = MagicMock()
-    monkeypatch.setattr(userintr_editors, "write_full_backup_to_current_file", written)
+    patch_editors(monkeypatch, "write_full_backup_to_current_file", written)
     await handlers.editors.save_edited_task_to_current_file_event(_edit_task(), _task_fields(name=""), dialog)
     written.assert_not_called()
     assert notices.of_type("negative")
@@ -1071,7 +1072,7 @@ def test_add_project_loads_the_file_the_window_has_open_when_nothing_is_parsed_y
     PrimeItems.file_to_get = None
     gui.file = "backup.xml"
     loaded = []
-    monkeypatch.setattr(userintr_editors, "get_xml", lambda *args, **kwargs: loaded.append(PrimeItems.file_to_get) or 0)
+    patch_editors(monkeypatch, "get_xml", lambda *args, **kwargs: loaded.append(PrimeItems.file_to_get) or 0)
     handlers.editors.open_add_project_dialog_event()
     assert loaded == ["backup.xml"]
 
@@ -1313,7 +1314,7 @@ async def test_project_save_to_current_file_stops_at_an_unapplied_field_a_bad_na
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     written = MagicMock(return_value=(False, "disk full"))
-    monkeypatch.setattr(userintr_editors, "write_full_backup_to_current_file", written)
+    patch_editors(monkeypatch, "write_full_backup_to_current_file", written)
 
     await handlers.editors.save_project_to_current_file_event(
         _edit_project(), _project_fields() | {"extra": _Widget()}, dialog
@@ -1321,7 +1322,7 @@ async def test_project_save_to_current_file_stops_at_an_unapplied_field_a_bad_na
     await handlers.editors.save_project_to_current_file_event(_edit_project(), _project_fields(name=""), dialog)
     written.assert_not_called()
 
-    monkeypatch.setattr(userintr_editors, "show_save_in_progress_notice", AsyncMock(return_value=MagicMock()))
+    patch_editors(monkeypatch, "show_save_in_progress_notice", AsyncMock(return_value=MagicMock()))
     monkeypatch.setattr(userintr_finish, "show_save_in_progress_notice", AsyncMock(return_value=MagicMock()))
     await handlers.editors.save_project_to_current_file_event(_edit_project(), _project_fields(), dialog)
     assert notices.said("Could not save to current file: disk full")
@@ -1563,7 +1564,7 @@ def test_edit_scene_needs_a_selected_scene_and_a_scene_that_resolves(
     calls: dict,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(userintr_editors, "suspended_scene_editor", lambda *_a: None)
+    patch_editors(monkeypatch, "suspended_scene_editor", lambda *_a: None)
     gui.specific_scene_optionmenu = None
     handlers.editors.open_edit_scene_dialog_event()
     assert notices.said("Select a single Scene first")
@@ -1585,7 +1586,7 @@ def test_edit_scene_brings_back_the_dialog_a_preview_is_holding_instead_of_start
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     held = MagicMock()
-    monkeypatch.setattr(userintr_editors, "suspended_scene_editor", lambda *_a: held)
+    patch_editors(monkeypatch, "suspended_scene_editor", lambda *_a: held)
     gui.single_scene_name = "Panel"
     gui.specific_scene_optionmenu = None
     handlers.editors.open_edit_scene_dialog_event()
@@ -1600,8 +1601,8 @@ def test_previewing_hides_the_dialog_marks_it_suspended_and_draws_the_scene(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     suspended, drawn = [], []
-    monkeypatch.setattr(userintr_editors, "suspend_scene_editor_session", lambda g, d: suspended.append((g, d)))
-    monkeypatch.setattr(userintr_editors, "NiceGuiSceneView", lambda *args: drawn.append(args) or "view")
+    patch_editors(monkeypatch, "suspend_scene_editor_session", lambda g, d: suspended.append((g, d)))
+    patch_editors(monkeypatch, "NiceGuiSceneView", lambda *args: drawn.append(args) or "view")
     edited = _edit_scene()
     fields = _scene_fields()
 
@@ -1617,7 +1618,7 @@ def test_previewing_without_a_dialog_just_draws(
     handlers: MapTaskerEventHandlers, gui: MagicMock, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     drawn = []
-    monkeypatch.setattr(userintr_editors, "NiceGuiSceneView", lambda *args: drawn.append(args) or "view")
+    patch_editors(monkeypatch, "NiceGuiSceneView", lambda *args: drawn.append(args) or "view")
     handlers.editors.preview_scene_event(_edit_scene(), _scene_fields())
     assert len(drawn) == 1
 
@@ -1748,7 +1749,7 @@ async def test_scene_save_to_current_file_stops_on_a_bad_size_a_failed_write_or_
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     written = MagicMock()
-    monkeypatch.setattr(userintr_editors, "write_full_backup_to_current_file", written)
+    patch_editors(monkeypatch, "write_full_backup_to_current_file", written)
     await handlers.editors.save_scene_to_current_file_event(_edit_scene(), _scene_fields(widthPort="wide"), dialog)
     written.assert_not_called()
 
@@ -2154,7 +2155,7 @@ async def test_profile_save_to_current_file_stops_on_a_bad_field_a_failed_write_
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     written = MagicMock()
-    monkeypatch.setattr(userintr_editors, "write_full_backup_to_current_file", written)
+    patch_editors(monkeypatch, "write_full_backup_to_current_file", written)
     edited = _edit_profile()
     fields = _profile_fields(name="", edited=edited)
     await handlers.editors.save_edited_profile_to_current_file_event(edited, fields, dialog)
@@ -2296,7 +2297,7 @@ async def test_a_new_profile_that_fails_validation_is_not_written_to_disk(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     written = MagicMock()
-    monkeypatch.setattr(userintr_editors, "write_full_backup_to_current_file", written)
+    patch_editors(monkeypatch, "write_full_backup_to_current_file", written)
     edited = _new_profile(with_task=False)
     fields = _profile_fields(name="Fresh", edited=edited)
     await handlers.editors.save_new_profile_to_current_file_event(edited, fields, dialog)
@@ -2579,6 +2580,6 @@ async def test_a_new_task_current_file_save_that_fails_keeps_the_registration_an
     dialog.close.assert_not_called()
 
     written = MagicMock()
-    monkeypatch.setattr(userintr_editors, "write_full_backup_to_current_file", written)
+    patch_editors(monkeypatch, "write_full_backup_to_current_file", written)
     await handlers.editors.save_new_task_to_current_file_event(_new_task(), _new_task_fields(name="Opener"), dialog)
     written.assert_not_called()

@@ -4,10 +4,10 @@ guiutil2: General utilities (NiceGUI Version).
 These are pure Python functions pulled out to avoid circular imports.
 """
 
+from __future__ import annotations
+
 import os
-from collections.abc import Callable
-from types import FrameType
-from typing import cast
+from typing import TYPE_CHECKING, Protocol, cast
 
 import requests
 
@@ -20,6 +20,13 @@ from maptasker.src.core.mapfonts import get_font_choices as get_font_selections
 # Define label fonts for headings (Replaced hardcoded pixel sizes with Tailwind text classes)
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import logger
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from types import FrameType
+
+    from maptasker.src.core.primitem import RunState
+    from maptasker.src.gui.userintr import MyGui
 
 # Define the output file for the trace log
 TRACE_LOG_FILE = "trace_log.txt"
@@ -175,3 +182,27 @@ def get_font_choices() -> dict[str, str]:
         logger.exception("Listing the system fonts failed")
         rutroh_error(f"Unable to retrieve the system fonts: {e}")
         return {"Courier New": "Courier New", "Courier": "Courier"}
+
+
+class WindowOwner(Protocol):
+    """Anything that holds the window and its run state: MapTaskerEventHandlers, or one of the
+    handler groups it is made of."""
+
+    @property
+    def gui(self) -> MyGui:
+        """The window."""
+        ...
+
+    @property
+    def state(self) -> RunState:
+        """The run state the window shows."""
+        ...
+
+
+def window_state(window: object) -> RunState:
+    """The run state a window shows and edits: its own, or PrimeItems for anything that has none.
+
+    Several of the functions below take their window as a plain `object` (they are bound onto it
+    as methods), so the state is asked for here, once, rather than at each use.
+    """
+    return cast("RunState", getattr(window, "state", PrimeItems))

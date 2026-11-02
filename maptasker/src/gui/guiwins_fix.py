@@ -40,7 +40,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -99,17 +99,17 @@ class _Screen:
 
     area: ui.scroll_area
     summary: ui.label
-    jump: Callable  # (Target) -> click handler
-    tick: Callable  # (plan, position) -> change handler
-    choose: Callable  # (plan, position, checkbox) -> change handler
+    jump: Callable[..., Any]  # (Target) -> click handler
+    tick: Callable[..., Any]  # (plan, position) -> change handler
+    choose: Callable[..., Any]  # (plan, position, checkbox) -> change handler
     lines: dict[int, ui.label] = field(default_factory=dict)
 
 
 def build_fix_dialog(
     title: str,
-    make_jump: Callable,
-    rebuild_after_apply: Callable[[], Coroutine],
-    save_configuration: Callable[[], Coroutine],
+    make_jump: Callable[..., Any],
+    rebuild_after_apply: Callable[[], Coroutine[Any, Any, None]],
+    save_configuration: Callable[[], Coroutine[Any, Any, Any]],
     state: RunState,
 ) -> ui.dialog | None:
     """Build and return the Fix Findings dialog, or None if there is nothing loaded to scan.
@@ -142,9 +142,9 @@ class _FixDialog:
     def __init__(
         self,
         title: str,
-        make_jump: Callable,
-        rebuild_after_apply: Callable[[], Coroutine],
-        save_configuration: Callable[[], Coroutine],
+        make_jump: Callable[..., Any],
+        rebuild_after_apply: Callable[[], Coroutine[Any, Any, None]],
+        save_configuration: Callable[[], Coroutine[Any, Any, Any]],
         state: RunState,
     ) -> None:
         """
@@ -325,7 +325,7 @@ class _FixDialog:
         # Ticks and decisions already made on an earlier list come back for the findings that are still there.
         self.scan(restore=self.held["plan"] is not None)
 
-    def ticker(self, plan: mapfix.Plan, position: int) -> Callable:
+    def ticker(self, plan: mapfix.Plan, position: int) -> Callable[..., Any]:
         """One row's tick box: put this repair in or out of what Apply makes.
 
         A factory rather than a lambda built in the loop, for the usual reason: a lambda
@@ -341,7 +341,7 @@ class _FixDialog:
 
         return ticked
 
-    def chooser(self, plan: mapfix.Plan, position: int, box: ui.checkbox) -> Callable:
+    def chooser(self, plan: mapfix.Plan, position: int, box: ui.checkbox) -> Callable[..., Any]:
         """One row's decision: remember it, and let the repair be ticked once it is made.
 
         The tick box starts disabled for a repair whose Choice has no default -- which

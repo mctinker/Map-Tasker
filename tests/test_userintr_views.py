@@ -18,8 +18,12 @@ import pytest
 from maptasker.src.core import mapjump
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
-from maptasker.src.gui import userintr, userintr_prebuild
+from maptasker.src.gui import userintr, userintr_prebuild, userintr_views
+from maptasker.src.gui.guistate import SELECTION_KEYS
 from maptasker.src.gui.userintr import MapTaskerEventHandlers
+from nicegui import run
+
+from tests.hub_modules import patch_hub
 
 
 def _handlers(**window: Any) -> MapTaskerEventHandlers:
@@ -50,14 +54,14 @@ def seen(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     ui = MagicMock()
     ui.notify = lambda message, **kw: record.notified.append((message, kw.get("type")))
     ui.run_javascript = record.js.append
-    monkeypatch.setattr(userintr, "ui", ui)
-    monkeypatch.setattr(userintr, "_open_popout_window", lambda path, new: record.popped.append((path, new)))
-    monkeypatch.setattr(userintr, "_busy_banner", lambda message: record.banners.append(message) or "banner")
-    monkeypatch.setattr(userintr, "_clear_busy_banner", lambda banner: record.banners.append(("cleared", banner)))
-    monkeypatch.setattr(userintr, "clear_error", lambda: record.cleared.append(True))
-    monkeypatch.setattr(userintr, "current_config", lambda *_args: "config")
-    monkeypatch.setattr(userintr, "output_the_front_matter", lambda config, state: record.front.append(config))
-    monkeypatch.setattr(userintr, "output_path", lambda name, state: f"/out/{name}")
+    patch_hub(monkeypatch, "ui", ui)
+    monkeypatch.setattr(userintr_views, "_open_popout_window", lambda path, new: record.popped.append((path, new)))
+    monkeypatch.setattr(userintr_views, "_busy_banner", lambda message: record.banners.append(message) or "banner")
+    monkeypatch.setattr(userintr_views, "_clear_busy_banner", lambda banner: record.banners.append(("cleared", banner)))
+    patch_hub(monkeypatch, "clear_error", lambda: record.cleared.append(True))
+    patch_hub(monkeypatch, "current_config", lambda *_args: "config")
+    patch_hub(monkeypatch, "output_the_front_matter", lambda config, state: record.front.append(config))
+    patch_hub(monkeypatch, "output_path", lambda name, state: f"/out/{name}")
 
     def build_html(name: str, state: object) -> int:
         record.built.append(name)
@@ -71,9 +75,9 @@ def seen(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     async def io_bound(function: Any, *args: Any, **kwargs: Any) -> object:
         return function(*args, **kwargs)
 
-    monkeypatch.setattr(userintr, "build_html", build_html)
-    monkeypatch.setattr(userintr, "outline_the_configuration", outline)
-    monkeypatch.setattr(userintr.run, "io_bound", io_bound)
+    patch_hub(monkeypatch, "build_html", build_html)
+    patch_hub(monkeypatch, "outline_the_configuration", outline)
+    monkeypatch.setattr(run, "io_bound", io_bound)
     return record
 
 
@@ -104,12 +108,12 @@ async def test_the_name_picks_the_view(seen: SimpleNamespace, view: str, called:
 
         return stand_in
 
-    handlers._view_map = asynchronous("_view_map")  # type: ignore[method-assign]
-    handlers._view_diagram = asynchronous("_view_diagram")  # type: ignore[method-assign]
+    handlers.views._view_map = asynchronous("_view_map")  # type: ignore[method-assign]
+    handlers.views._view_diagram = asynchronous("_view_diagram")  # type: ignore[method-assign]
     for name in ("_view_misc", "_view_tree", "_view_invalid"):
-        setattr(handlers, name, sync(name))
+        setattr(handlers.views, name, sync(name))
 
-    await handlers._show_the_view(view, "Title", "")
+    await handlers.views._show_the_view(view, "Title", "")
 
     assert chosen == [called]
 
@@ -122,12 +126,12 @@ def test_a_build_starts_from_the_windows_settings_with_the_overrides_on_top(
 ) -> None:
     captured: list[object] = []
     reset: list[tuple[str, ...]] = []
-    monkeypatch.setattr(userintr, "capture_gui_state", lambda gui, data, state: captured.append(data))
-    monkeypatch.setattr(userintr, "reset_attributes", lambda *names: reset.append(names))
+    patch_hub(monkeypatch, "capture_gui_state", lambda gui, data, state: captured.append(data))
+    patch_hub(monkeypatch, "reset_attributes", lambda *names: reset.append(names))
     handlers = _handlers(view_limit=2500)
     handlers.state.found_named_items = {"single_task_found": True}
 
-    handlers.get_ready_to_build({"display_detail_level": 4})
+    handlers.views.get_ready_to_build({"display_detail_level": 4})
 
     assert handlers.state.view_limit == 2500
     assert captured == [{}]
@@ -141,13 +145,13 @@ def test_a_build_starts_from_the_windows_settings_with_the_overrides_on_top(
 def test_a_window_with_no_view_limit_yet_builds_with_the_default(
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(userintr, "capture_gui_state", lambda *a, **k: None)
-    monkeypatch.setattr(userintr, "reset_attributes", lambda *names: None)
+    patch_hub(monkeypatch, "capture_gui_state", lambda *a, **k: None)
+    patch_hub(monkeypatch, "reset_attributes", lambda *names: None)
     gui = MagicMock(spec=["state"])
     gui.state = RunState()
     handlers = MapTaskerEventHandlers(gui)
 
-    handlers.get_ready_to_build(None)
+    handlers.views.get_ready_to_build(None)
 
     assert handlers.state.view_limit == userintr.VIEW_LIMIT_DEFAULT
 
@@ -159,7 +163,7 @@ def test_a_window_with_no_view_limit_yet_builds_with_the_default(
 async def test_with_nothing_loaded_the_map_asks_for_a_file(seen: SimpleNamespace) -> None:
     handlers = _handlers()
 
-    await handlers._view_map("Map View", "")
+    await handlers.views._view_map("Map View", "")
 
     assert _said(handlers) == [("No XML data loaded! Please select a valid XML file first.", "Orange")]
     assert seen.built == []
@@ -177,7 +181,7 @@ async def test_a_map_is_built_opened_with_its_jump_and_scope_and_the_banner_come
     _loaded(handlers)
     handlers.state.program_arguments.single_project_name = "Home"
 
-    await handlers._view_map("Map View", "T7")
+    await handlers.views._view_map("Map View", "T7")
 
     assert seen.built == [""] and seen.front == ["config"]
     assert seen.popped == [("/popout/map?goto=T7&scope=Home", False)]
@@ -192,7 +196,7 @@ async def test_a_map_longer_than_the_view_limit_says_it_was_truncated(seen: Simp
     handlers = _handlers(view_limit=3)
     _loaded(handlers, lines=50)
 
-    await handlers._view_map("Map View", "")
+    await handlers.views._view_map("Map View", "")
 
     assert ("Map view truncated 50 lines to 3 lines due to view limit.", "Orange") in _said(handlers)
 
@@ -217,7 +221,7 @@ async def test_a_build_that_halts_says_why_and_still_clears_the_banner(
     handlers = _handlers()
     _loaded(handlers)
 
-    await handlers._view_map("Map View", "")
+    await handlers.views._view_map("Map View", "")
 
     assert _said(handlers) == [(message, colour)]
     assert seen.popped == []
@@ -231,7 +235,7 @@ async def test_a_build_that_finishes_with_an_error_code_reports_it_and_clears_it
     handlers.state.error_code = 4
     handlers.state.error_msg = "bad action"
 
-    await handlers._view_map("Map View", "")
+    await handlers.views._view_map("Map View", "")
 
     assert _said(handlers) == [("Map processing error: bad action", "Orange")]
     assert seen.popped == []
@@ -246,7 +250,7 @@ async def test_with_nothing_loaded_the_diagram_asks_for_a_file(seen: SimpleNames
     handlers = _handlers()
     handlers.state.tasker_root_elements = {"all_projects": {}, "all_profiles": {}}
 
-    await handlers._view_diagram()
+    await handlers.views._view_diagram()
 
     assert _said(handlers) == [("No XML data loaded! Please select a valid XML file first.", "Orange")]
     assert seen.outlined == []
@@ -256,7 +260,7 @@ def _diagram_ready(handlers: MapTaskerEventHandlers, monkeypatch: pytest.MonkeyP
     handlers.state.tasker_root_elements = {"all_projects": {"1": {}}, "all_profiles": {}}
     handlers.state.error_code = 0
     handlers.state.diagram_limit_msg = ""
-    monkeypatch.setattr(userintr.mapjump, "current_scope", lambda state: SimpleNamespace(phrase="Task Wake Up"))
+    monkeypatch.setattr(mapjump, "current_scope", lambda state: SimpleNamespace(phrase="Task Wake Up"))
 
 
 @pytest.mark.asyncio
@@ -266,7 +270,7 @@ async def test_a_diagram_is_outlined_and_opened_with_what_it_was_built_for(
     handlers = _handlers()
     _diagram_ready(handlers, monkeypatch)
 
-    await handlers._view_diagram()
+    await handlers.views._view_diagram()
 
     assert seen.outlined == [True]
     assert seen.popped == [("/popout/diagram?built_for=Task+Wake+Up", False)]
@@ -281,7 +285,7 @@ async def test_a_diagram_cut_short_at_the_view_limit_says_so(
     _diagram_ready(handlers, monkeypatch)
     handlers.state.diagram_limit_msg = "Stopped at line 5000."
 
-    await handlers._view_diagram()
+    await handlers.views._view_diagram()
 
     assert ("Stopped at line 5000.", "Orange") in _said(handlers)
 
@@ -295,7 +299,7 @@ async def test_a_diagram_whose_outline_failed_does_not_reopen_the_stale_one(
     handlers.state.error_code = 2
     handlers.state.error_msg = "view limit"
 
-    await handlers._view_diagram()
+    await handlers.views._view_diagram()
 
     assert _said(handlers) == [
         ("The 'Diagram' view is running in the background.  Please stand by...", "Green"),
@@ -311,23 +315,21 @@ def test_misc_opens_a_text_view_that_finds_its_own_content(
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     made: list[tuple[str, list[object]]] = []
-    monkeypatch.setattr(
-        userintr, "NiceGuiTextView", lambda gui, title, the_data: made.append((title, the_data)) or "view"
-    )
+    patch_hub(monkeypatch, "NiceGuiTextView", lambda gui, title, the_data: made.append((title, the_data)) or "view")
     handlers = _handlers()
 
-    handlers._view_misc()
+    handlers.views._view_misc()
 
     assert made == [("Misc View", [])] and handlers.gui.textview == "view"
 
 
 def test_a_tree_of_projects_opens_a_tree_view(seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> None:
     made: list[object] = []
-    monkeypatch.setattr(userintr, "NiceGuiTreeView", lambda gui, title, items: made.append((title, items)) or "tree")
+    patch_hub(monkeypatch, "NiceGuiTreeView", lambda gui, title, items: made.append((title, items)) or "tree")
     handlers = _handlers()
     _gui(handlers).build_the_tree.return_value = [{"id": "Home"}]
 
-    handlers._view_tree()
+    handlers.views._view_tree()
 
     assert made == [("Tree View", [{"id": "Home"}])] and handlers.gui.textview == "tree"
 
@@ -336,7 +338,7 @@ def test_a_tree_with_no_projects_says_so(seen: SimpleNamespace) -> None:
     handlers = _handlers()
     _gui(handlers).build_the_tree.return_value = []
 
-    handlers._view_tree()
+    handlers.views._view_tree()
 
     assert _said(handlers) == [("No Project(s) Found in XML!", "Red")]
 
@@ -344,7 +346,7 @@ def test_a_tree_with_no_projects_says_so(seen: SimpleNamespace) -> None:
 def test_a_view_that_is_not_one_is_said_to_be_invalid(seen: SimpleNamespace) -> None:
     handlers = _handlers()
 
-    handlers._view_invalid()
+    handlers.views._view_invalid()
 
     assert _said(handlers) == [("Invalid view type specified. Use 'map', 'diagram', or 'tree'.", "Red")]
     assert seen.notified[0][1] == "warning"
@@ -357,11 +359,11 @@ def test_clear_empties_the_window_forgets_the_views_and_closes_the_popouts(
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     forgotten: list[object] = []
-    monkeypatch.setattr(userintr, "forget_views", forgotten.append)
-    monkeypatch.setattr(userintr.mapjump, "close_popouts_js", lambda: "close()")
+    patch_hub(monkeypatch, "forget_views", forgotten.append)
+    monkeypatch.setattr(mapjump, "close_popouts_js", lambda: "close()")
     handlers = _handlers()
 
-    handlers.clear_view_event()
+    handlers.views.clear_view_event()
 
     _gui(handlers).content_container.clear.assert_called_once()
     assert forgotten == [handlers.gui]
@@ -372,11 +374,11 @@ def test_clear_empties_the_window_forgets_the_views_and_closes_the_popouts(
 def test_clear_with_no_content_container_still_closes_the_popouts(
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(userintr, "forget_views", lambda gui: None)
-    monkeypatch.setattr(userintr.mapjump, "close_popouts_js", lambda: "close()")
+    patch_hub(monkeypatch, "forget_views", lambda gui: None)
+    monkeypatch.setattr(mapjump, "close_popouts_js", lambda: "close()")
     handlers = _handlers(content_container=None)
 
-    handlers.clear_view_event()
+    handlers.views.clear_view_event()
 
     assert seen.js == ["close()"]
 
@@ -390,16 +392,16 @@ async def test_a_press_prepares_marks_the_event_and_counts_the_view_while_it_is_
 ) -> None:
     handlers = _handlers()
     ready = MagicMock()
-    handlers.get_ready_to_build = ready  # type: ignore[method-assign]
+    handlers.views.get_ready_to_build = ready  # type: ignore[method-assign]
     during: list[int] = []
 
     async def show(view: str, title: str, goto: str) -> None:
         during.append(userintr_prebuild._building.views)
         assert (view, title, goto) == ("map", "Map View", "T9")
 
-    handlers._show_the_view = show  # type: ignore[method-assign]
+    handlers.views._show_the_view = show  # type: ignore[method-assign]
 
-    await handlers.view_event("map", goto="T9", overrides={"x": 1})
+    await handlers.views.view_event("map", goto="T9", overrides={"x": 1})
 
     assert handlers.gui.event is True
     ready.assert_called_once_with({"x": 1})
@@ -422,10 +424,10 @@ async def test_a_jump_builds_the_owning_projects_map_at_the_needed_level_and_put
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     target = mapjump.Target(kind=mapjump.TASK, key="7", name="Wake Up")
-    monkeypatch.setattr(userintr.mapjump, "minimum_detail_level", lambda t: 5)
-    monkeypatch.setattr(userintr.mapjump, "scope_for", lambda t: "Home")
-    monkeypatch.setattr(userintr.mapjump, "needs_taskernet", lambda t: True)
-    monkeypatch.setattr(userintr, "held_overrides", lambda overrides, state: _Held())
+    monkeypatch.setattr(mapjump, "minimum_detail_level", lambda t: 5)
+    monkeypatch.setattr(mapjump, "scope_for", lambda t: "Home")
+    monkeypatch.setattr(mapjump, "needs_taskernet", lambda t: True)
+    patch_hub(monkeypatch, "held_overrides", lambda overrides, state: _Held())
     handlers = _handlers()
     handlers.state.program_arguments.display_detail_level = 2
     handlers.state.program_arguments.single_project_name = "Mine"
@@ -436,9 +438,9 @@ async def test_a_jump_builds_the_owning_projects_map_at_the_needed_level_and_put
         seen_during.update(view=view, goto=goto, **(overrides or {}))
         handlers.state.program_arguments.update(overrides or {})
 
-    handlers.view_event = view_event  # type: ignore[method-assign]
+    handlers.views.view_event = view_event  # type: ignore[method-assign]
 
-    await handlers.rebuild_map_for_jump(target)
+    await handlers.views.rebuild_map_for_jump(target)
 
     assert seen_during["view"] == "map" and seen_during["goto"] == target.token()
     assert seen_during["display_detail_level"] == 5 and seen_during["single_project_name"] == "Home"
@@ -455,16 +457,16 @@ async def test_a_jump_for_an_object_in_no_project_builds_the_whole_file_and_says
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     target = mapjump.Target(kind=mapjump.PROFILE, key="3", name="Orphan")
-    monkeypatch.setattr(userintr.mapjump, "minimum_detail_level", lambda t: 3)
-    monkeypatch.setattr(userintr.mapjump, "scope_for", lambda t: "")
-    monkeypatch.setattr(userintr.mapjump, "needs_taskernet", lambda t: False)
-    monkeypatch.setattr(userintr, "held_overrides", lambda overrides, state: _Held())
+    monkeypatch.setattr(mapjump, "minimum_detail_level", lambda t: 3)
+    monkeypatch.setattr(mapjump, "scope_for", lambda t: "")
+    monkeypatch.setattr(mapjump, "needs_taskernet", lambda t: False)
+    patch_hub(monkeypatch, "held_overrides", lambda overrides, state: _Held())
     handlers = _handlers()
     handlers.state.program_arguments.display_detail_level = 3
     handlers.state.program_arguments.single_project_name = "Mine"
-    handlers.view_event = AsyncMock()  # type: ignore[method-assign]
+    handlers.views.view_event = AsyncMock()  # type: ignore[method-assign]
 
-    await handlers.rebuild_map_for_jump(target)
+    await handlers.views.rebuild_map_for_jump(target)
 
     message = seen.notified[0][0]
     assert "whole file" in message and "detail level" not in message, "the level was already enough"
@@ -475,19 +477,19 @@ async def test_a_jump_from_a_user_already_on_that_project_and_level_is_told_noth
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     target = mapjump.Target(kind=mapjump.TASK, key="7", name="Wake Up")
-    monkeypatch.setattr(userintr.mapjump, "minimum_detail_level", lambda t: 3)
-    monkeypatch.setattr(userintr.mapjump, "scope_for", lambda t: "Home")
-    monkeypatch.setattr(userintr.mapjump, "needs_taskernet", lambda t: False)
-    monkeypatch.setattr(userintr, "held_overrides", lambda overrides, state: _Held())
+    monkeypatch.setattr(mapjump, "minimum_detail_level", lambda t: 3)
+    monkeypatch.setattr(mapjump, "scope_for", lambda t: "Home")
+    monkeypatch.setattr(mapjump, "needs_taskernet", lambda t: False)
+    patch_hub(monkeypatch, "held_overrides", lambda overrides, state: _Held())
     handlers = _handlers()
     pa = handlers.state.program_arguments
     pa.display_detail_level, pa.single_project_name = 3, "Home"
-    for key in userintr.SELECTION_KEYS:
+    for key in SELECTION_KEYS:
         if key != "single_project_name":
             pa[key] = ""
-    handlers.view_event = AsyncMock()  # type: ignore[method-assign]
+    handlers.views.view_event = AsyncMock()  # type: ignore[method-assign]
 
-    await handlers.rebuild_map_for_jump(target)
+    await handlers.views.rebuild_map_for_jump(target)
 
     message = seen.notified[0][0]
     assert message.endswith("(id 7) ...") and "detail level" not in message and "Project 'Home'" not in message

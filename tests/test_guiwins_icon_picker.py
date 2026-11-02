@@ -16,7 +16,7 @@ import pytest
 from maptasker.src.core import appinv
 from maptasker.src.core.primitem import RunState
 from maptasker.src.edit import taskedit_model
-from maptasker.src.gui import guiwins_taskedit
+from maptasker.src.gui import guiwins_taskedit, guiwins_taskpickers
 from nicegui import ui
 
 from tests.nicegui_harness import click, found, label_texts, open_page
@@ -63,7 +63,7 @@ def icons(monkeypatch: pytest.MonkeyPatch) -> Any:
 def test_each_icon_is_drawn_by_its_own_glyph_a_lookalike_or_one_for_its_kind(
     icons: Any, icon: appinv.IconRef, glyph: str
 ) -> None:
-    assert guiwins_taskedit._tasker_icon_glyph(icon) == glyph
+    assert guiwins_taskpickers._tasker_icon_glyph(icon) == glyph
 
 
 # ##################################################################################
@@ -75,7 +75,7 @@ def _picker(icons: Any, value: str = "old") -> tuple[Callable[[], None], list[ui
     def page() -> None:
         field = ui.input(value=value)
         made.append(field)
-        guiwins_taskedit._build_tasker_icon_picker_dialog(field, icons.window)
+        guiwins_taskpickers.build_tasker_icon_picker_dialog(field, icons.window)
 
     return page, made
 
@@ -121,7 +121,7 @@ async def test_the_icon_search_matches_the_display_name_or_the_reference_and_say
 @pytest.mark.asyncio
 async def test_a_long_icon_list_is_cut_and_the_count_said(icons: Any) -> None:
     icons.entries = [
-        appinv.IconRef("builtin", f"mw_icon{n:04d}") for n in range(guiwins_taskedit._PICKER_ROW_LIMIT + 7)
+        appinv.IconRef("builtin", f"mw_icon{n:04d}") for n in range(guiwins_taskpickers._PICKER_ROW_LIMIT + 7)
     ]
     page, _made = _picker(icons)
     async with open_page(page) as user:
@@ -133,7 +133,7 @@ async def test_icon_not_listed_fetches_for_icons_and_reopens(icons: Any, monkeyp
     async def fetch(gui: object, on_fetched: Callable[[], None], for_icons: bool = False) -> None:
         icons.fetched.append(for_icons)
 
-    monkeypatch.setattr(guiwins_taskedit, "build_fetch_apps_dialog", fetch)
+    monkeypatch.setattr(guiwins_taskpickers, "build_fetch_apps_dialog", fetch)
     page, _made = _picker(icons)
     async with open_page(page) as user:
         await click(user, "Icon not listed?")
@@ -158,7 +158,7 @@ def _arg(name: str = "Icon", value: str = "mw_star") -> taskedit_model.EditableA
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("renderer", "opens"),
-    [("_render_app_arg_field", "Pick an Application"), ("_render_icon_arg_field", "Pick an icon")],
+    [("render_app_arg_field", "Pick an Application"), ("render_icon_arg_field", "Pick an icon")],
 )
 async def test_an_app_or_icon_field_holds_the_value_and_its_pick_button_opens_its_picker(
     icons: Any, monkeypatch: pytest.MonkeyPatch, renderer: str, opens: str
@@ -180,7 +180,7 @@ async def test_a_value_handed_in_overrides_the_arguments_own(icons: Any) -> None
     refs: dict[str, ui.input] = {}
 
     def page() -> None:
-        guiwins_taskedit._render_icon_arg_field(icons.window, _arg(), "k", refs, value="typed")
+        guiwins_taskpickers.render_icon_arg_field(icons.window, _arg(), "k", refs, value="typed")
 
     async with open_page(page):
         assert refs["k"].value == "typed"
@@ -198,7 +198,7 @@ async def test_the_two_empty_inventory_refusals_carry_a_fetch_button_worded_for_
     icons: Any, reason: str, button: str
 ) -> None:
     def page() -> None:
-        guiwins_taskedit._render_addability_reason(icons.window, reason, lambda: None)
+        guiwins_taskpickers.render_addability_reason(icons.window, reason, lambda: None)
 
     async with open_page(page) as user:
         assert reason in label_texts(user)
@@ -208,7 +208,7 @@ async def test_the_two_empty_inventory_refusals_carry_a_fetch_button_worded_for_
 @pytest.mark.asyncio
 async def test_any_other_refusal_is_only_a_statement_with_no_way_out(icons: Any) -> None:
     def page() -> None:
-        guiwins_taskedit._render_readonly_note(icons.window, "This argument is not editable.", lambda: None)
+        guiwins_taskpickers.render_readonly_note(icons.window, "This argument is not editable.", lambda: None)
 
     async with open_page(page) as user:
         assert "This argument is not editable." in label_texts(user)
@@ -224,10 +224,10 @@ async def test_the_fetch_button_opens_the_fetch_dialog_for_the_right_kind(
     async def fetch(gui: object, on_fetched: Callable[[], None], for_icons: bool = False) -> None:
         calls.append(for_icons)
 
-    monkeypatch.setattr(guiwins_taskedit, "build_fetch_apps_dialog", fetch)
+    monkeypatch.setattr(guiwins_taskpickers, "build_fetch_apps_dialog", fetch)
 
     def page() -> None:
-        guiwins_taskedit._render_readonly_note(icons.window, taskedit_model.NO_ICONS_REASON, lambda: None)
+        guiwins_taskpickers.render_readonly_note(icons.window, taskedit_model.NO_ICONS_REASON, lambda: None)
 
     async with open_page(page) as user:
         await click(user, "Icon not listed?")
@@ -241,7 +241,7 @@ def test_after_a_fetch_the_actions_arguments_are_asked_again_and_then_redrawn(mo
     )
     state = RunState()
 
-    guiwins_taskedit._after_inventory_fetch(lambda: order.append("redrawn"), MagicMock(), state)()
+    guiwins_taskpickers.after_inventory_fetch(lambda: order.append("redrawn"), MagicMock(), state)()
 
     assert order == ["reclassified", "redrawn"], "redrawing alone would leave the field grey with a stale reason"
 
@@ -249,9 +249,9 @@ def test_after_a_fetch_the_actions_arguments_are_asked_again_and_then_redrawn(mo
 def test_after_a_fetch_a_conditions_arguments_are_asked_again_and_then_redrawn(monkeypatch: pytest.MonkeyPatch) -> None:
     order: list[str] = []
     monkeypatch.setattr(
-        guiwins_taskedit.profedit, "reclassify_condition_args", lambda condition, state: order.append("reclassified")
+        guiwins_taskpickers.profedit, "reclassify_condition_args", lambda condition, state: order.append("reclassified")
     )
 
-    guiwins_taskedit._after_condition_fetch(lambda: order.append("redrawn"), MagicMock(), RunState())()
+    guiwins_taskpickers.after_condition_fetch(lambda: order.append("redrawn"), MagicMock(), RunState())()
 
     assert order == ["reclassified", "redrawn"]

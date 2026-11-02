@@ -233,37 +233,9 @@ def _add_paired_label_actions(add: Callable[[str, dict[str, str]], str]) -> str:
     )
 
 
-def build_helper_task(task_name: str = HELPER_TASK_NAME, *, state: RunState) -> EditableTask | str:
-    """Build the helper Task, out of taskedit's own Add-Task machinery.
+def _helper_steps(add: Callable[[str, dict[str, str]], str]) -> list[Callable[[], str]]:
+    """What the helper Task does, one callable per step, each adding its actions with `add` and answering "" or an error."""
 
-    Returns an EditableTask, or an error message string if it could not be built (the same
-    either/or taskedit.create_new_task itself uses).
-
-    Synthesized rather than shipped as a blob of XML on purpose.  Every action it needs --
-    'List Apps', 'Variable Join', 'Write File' -- is one taskedit already classifies as
-    addable, so this is the same code path an ordinary user's Add Task takes, and the Task
-    stays correct if an argument definition in actionc.py is ever corrected.  It also means
-    there is no second copy of Tasker's XML shape to keep in step with the first.
-    """
-
-    edited_task = taskedit.create_new_task(task_name, "100", state=state)
-    if isinstance(edited_task, str):
-        return edited_task
-
-    values: dict[str, str] = {}
-
-    def add(action_key: str, args: dict[str, str]) -> str:
-        action = taskedit.add_action_to_task(edited_task, action_key, state=state)
-        if isinstance(action, list):
-            return action[0] if action else f"'{action_key}' could not be added."
-        for arg_id, value in args.items():
-            values[taskedit_apply.arg_key(action.act_number, arg_id)] = value
-        return ""
-
-    # 'Store Result In' produces an array (%v1, %v2, ...); 'Variable Join' collapses it into
-    # the one variable a 'Write File' can write.  The two are kept apart here because the
-    # order matters when pairing: the loop iterates the packages ARRAY, so it has to run
-    # before that array is collapsed into a single string.
     def list_apps(list_type: str, variable: str) -> str:
         return add(_LIST_APPS_ACTION, {"0": list_type, "1": "", "2": variable})
 
@@ -305,6 +277,41 @@ def build_helper_task(task_name: str = HELPER_TASK_NAME, *, state: RunState) -> 
         )
         for index, text in enumerate(payload_lines)
     )
+    return steps
+
+
+def build_helper_task(task_name: str = HELPER_TASK_NAME, *, state: RunState) -> EditableTask | str:
+    """Build the helper Task, out of taskedit's own Add-Task machinery.
+
+    Returns an EditableTask, or an error message string if it could not be built (the same
+    either/or taskedit.create_new_task itself uses).
+
+    Synthesized rather than shipped as a blob of XML on purpose.  Every action it needs --
+    'List Apps', 'Variable Join', 'Write File' -- is one taskedit already classifies as
+    addable, so this is the same code path an ordinary user's Add Task takes, and the Task
+    stays correct if an argument definition in actionc.py is ever corrected.  It also means
+    there is no second copy of Tasker's XML shape to keep in step with the first.
+    """
+
+    edited_task = taskedit.create_new_task(task_name, "100", state=state)
+    if isinstance(edited_task, str):
+        return edited_task
+
+    values: dict[str, str] = {}
+
+    def add(action_key: str, args: dict[str, str]) -> str:
+        action = taskedit.add_action_to_task(edited_task, action_key, state=state)
+        if isinstance(action, list):
+            return action[0] if action else f"'{action_key}' could not be added."
+        for arg_id, value in args.items():
+            values[taskedit_apply.arg_key(action.act_number, arg_id)] = value
+        return ""
+
+    # 'Store Result In' produces an array (%v1, %v2, ...); 'Variable Join' collapses it into
+    # the one variable a 'Write File' can write.  The two are kept apart here because the
+    # order matters when pairing: the loop iterates the packages ARRAY, so it has to run
+    # before that array is collapsed into a single string.
+    steps = _helper_steps(add)
 
     for step in steps:
         error = step()
@@ -330,7 +337,7 @@ def fetch_apps_from_device(ip_address: str, ip_port: str, state: RunState) -> tu
 
     Blocking, deliberately: it sleeps between polls, and the file it is waiting for takes
     seconds to appear.  Callers on the GUI thread must hand it to run.io_bound, the way
-    guiutils.ping_android_device does with its own probe.
+    guiutils_android.ping_android_device does with its own probe.
     """
 
     ip_address = ip_address.strip()

@@ -49,10 +49,7 @@ from maptasker.src.core.sysconst import (
 )
 from maptasker.src.edit import roundtrip, sessundo, taskedit_model
 from maptasker.src.gui.guistate import remember_setting
-from maptasker.src.gui.guiutils import (
-    android_address_defaults,
-    remember_android_address_fields,
-)
+from maptasker.src.gui.guiutils_android import android_address_defaults, remember_android_address_fields
 
 # The dialog families split out of this file, which had grown past 14,500 lines.  Each is
 # imported for the handful of names this module still calls into: the Scene canvas the
@@ -352,7 +349,7 @@ def create_refactor_button(self: MyGui) -> None:
         translate_string("Refactor"),
         color="teal",
         icon="account_tree",
-        on_click=self.event_handlers.refactor_event,
+        on_click=self.event_handlers.tools.refactor_event,
     ).classes("w-full justify-center")
     with self.refactor_button:
         ui.tooltip(
@@ -382,12 +379,12 @@ def create_undo_section(self: MyGui) -> None:
         self.undo_edit_button = ui.button(
             translate_string("Undo"),
             icon="undo",
-            on_click=self.event_handlers.undo_edit_event,
+            on_click=self.event_handlers.tools.undo_edit_event,
         ).classes("bg-blue-500")
         self.redo_edit_button = ui.button(
             translate_string("Redo"),
             icon="redo",
-            on_click=self.event_handlers.redo_edit_event,
+            on_click=self.event_handlers.tools.redo_edit_event,
         ).classes("bg-blue-500")
     with self.undo_edit_button:
         ui.tooltip(
@@ -459,7 +456,7 @@ def android_device_fields(gui: MyGui) -> dict[str, Any]:
     The address and port default to the last ones entered, the same way the Get XML and
     Fetch Applications dialogs default, and are kept as soon as either field is left -- the
     panel can be backed out of without saving, and an address typed there should not be lost
-    (see guiutils.remember_android_address_fields).
+    (see guiutils_android.remember_android_address_fields).
 
     "Verify" and "Check IDs" are remembered differently: as they are ticked, and in the settings
     file as well, so they hold across sessions (see remember_android_panel_option).  They are

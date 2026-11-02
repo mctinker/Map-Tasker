@@ -16,10 +16,14 @@ from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from maptasker.src.core import mapjump
+from maptasker.src.analysis import livemon
+from maptasker.src.core import assettext, mapjump
 from maptasker.src.core.primitem import RunState
-from maptasker.src.gui import userintr
+from maptasker.src.edit import sessundo
+from maptasker.src.gui import userintr, userintr_tools, userintr_views
 from maptasker.src.gui.userintr import MapTaskerEventHandlers
+
+from tests.hub_modules import patch_hub
 
 
 def _handlers(**window: Any) -> MapTaskerEventHandlers:
@@ -40,7 +44,7 @@ def seen(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     record = SimpleNamespace(notified=[], jumped=[], refreshed=[], new_window=[])
     ui = MagicMock()
     ui.notify = lambda message, **kw: record.notified.append((message, kw.get("type")))
-    monkeypatch.setattr(userintr, "ui", ui)
+    patch_hub(monkeypatch, "ui", ui)
 
     async def go_to_target(gui: object, target: object) -> None:
         record.jumped.append(target)
@@ -52,9 +56,9 @@ def seen(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
         def __exit__(self, *_exc: Any) -> None:
             record.new_window.append("out")
 
-    monkeypatch.setattr(userintr, "go_to_target", go_to_target)
-    monkeypatch.setattr(userintr, "opening_view_in_a_new_window", lambda gui: _NewWindow())
-    monkeypatch.setattr(userintr, "refresh_tasker_object_pulldowns", lambda gui: record.refreshed.append(gui))
+    patch_hub(monkeypatch, "go_to_target", go_to_target)
+    patch_hub(monkeypatch, "opening_view_in_a_new_window", lambda gui: _NewWindow())
+    patch_hub(monkeypatch, "refresh_tasker_object_pulldowns", lambda gui: record.refreshed.append(gui))
     return record
 
 
@@ -86,10 +90,10 @@ def test_a_press_builds_a_fresh_dialog_remembers_it_and_opens_it(
 ) -> None:
     dialog = MagicMock()
     build = MagicMock(return_value=dialog)
-    monkeypatch.setattr(userintr, builder, build)
+    patch_hub(monkeypatch, builder, build)
     handlers = _handlers()
 
-    getattr(handlers, event)()
+    getattr(handlers.tools, event)()
 
     build.assert_called_once()
     assert getattr(handlers.gui, attribute) is dialog
@@ -107,10 +111,10 @@ def test_the_dialog_from_the_last_press_is_taken_down_first(
     refresh_at: int | None,
 ) -> None:
     old = MagicMock()
-    monkeypatch.setattr(userintr, builder, MagicMock(return_value=MagicMock()))
+    patch_hub(monkeypatch, builder, MagicMock(return_value=MagicMock()))
     handlers = _handlers(**{attribute: old})
 
-    getattr(handlers, event)()
+    getattr(handlers.tools, event)()
 
     old.delete.assert_called_once()
     assert getattr(handlers.gui, attribute) is not old
@@ -128,10 +132,10 @@ def test_a_dialog_whose_page_has_gone_is_one_more_dialog_already_gone(
 ) -> None:
     old = MagicMock()
     old.delete.side_effect = RuntimeError("the client has been deleted")
-    monkeypatch.setattr(userintr, builder, MagicMock(return_value=MagicMock()))
+    patch_hub(monkeypatch, builder, MagicMock(return_value=MagicMock()))
     handlers = _handlers(**{attribute: old})
 
-    getattr(handlers, event)()  # must not raise
+    getattr(handlers.tools, event)()  # must not raise
 
     assert getattr(handlers.gui, attribute) is not old
 
@@ -146,10 +150,10 @@ def test_a_builder_with_nothing_to_show_leaves_nothing_remembered(
     jump_at: int,
     refresh_at: int | None,
 ) -> None:
-    monkeypatch.setattr(userintr, builder, MagicMock(return_value=None))
+    patch_hub(monkeypatch, builder, MagicMock(return_value=None))
     handlers = _handlers()
 
-    getattr(handlers, event)()
+    getattr(handlers.tools, event)()
 
     assert getattr(handlers.gui, attribute) is None
 
@@ -166,8 +170,8 @@ async def test_a_row_click_opens_what_it_names_in_a_window_of_its_own_and_keeps_
     refresh_at: int | None,
 ) -> None:
     build = MagicMock(return_value=MagicMock())
-    monkeypatch.setattr(userintr, builder, build)
-    getattr(_handlers(), event)()
+    patch_hub(monkeypatch, builder, build)
+    getattr(_handlers().tools, event)()
     make_jump = build.call_args.args[jump_at]
     target = mapjump.Target(kind=mapjump.TASK, key="1", name="Wake Up")
 
@@ -189,9 +193,9 @@ async def test_applying_something_refreshes_the_pulldowns_and_nothing_else(
     refresh_at: int,
 ) -> None:
     build = MagicMock(return_value=MagicMock())
-    monkeypatch.setattr(userintr, builder, build)
+    patch_hub(monkeypatch, builder, build)
     handlers = _handlers()
-    getattr(handlers, event)()
+    getattr(handlers.tools, event)()
 
     await build.call_args.args[refresh_at]()
 
@@ -202,10 +206,10 @@ def test_the_edit_dialogs_are_handed_the_hubs_whole_file_save(
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     build = MagicMock(return_value=MagicMock())
-    monkeypatch.setattr(userintr, "build_restore_dialog", build)
+    patch_hub(monkeypatch, "build_restore_dialog", build)
     handlers = _handlers()
 
-    handlers.restore_history_event()
+    handlers.tools.restore_history_event()
 
     assert build.call_args.args[2] == handlers.save_whole_configuration
 
@@ -214,10 +218,10 @@ def test_the_task_stepper_opens_on_the_task_it_was_asked_about(
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     build = MagicMock(return_value=MagicMock())
-    monkeypatch.setattr(userintr, "build_taskstep_dialog", build)
+    patch_hub(monkeypatch, "build_taskstep_dialog", build)
     handlers = _handlers()
 
-    handlers.task_stepper_event("Wake Up")
+    handlers.tools.task_stepper_event("Wake Up")
 
     assert build.call_args.args[2] == "Wake Up"
 
@@ -227,11 +231,11 @@ def test_the_trend_dashboard_is_built_for_the_run_and_remembered(
 ) -> None:
     dialog = MagicMock()
     build = MagicMock(return_value=dialog)
-    monkeypatch.setattr(userintr, "build_trend_dialog", build)
+    patch_hub(monkeypatch, "build_trend_dialog", build)
     old = MagicMock()
     handlers = _handlers(trend_dialog=old)
 
-    handlers.trend_dashboard_event()
+    handlers.tools.trend_dashboard_event()
 
     build.assert_called_once_with(handlers.state)
     old.delete.assert_called_once()
@@ -250,25 +254,25 @@ async def test_the_live_monitor_stops_the_last_one_before_it_takes_it_down(
     old.delete.side_effect = lambda: order.append("deleted")
     dialog = MagicMock()
     build = MagicMock(return_value=dialog)
-    monkeypatch.setattr(userintr, "build_monitor_dialog", build)
+    patch_hub(monkeypatch, "build_monitor_dialog", build)
     handlers = _handlers(monitor_dialog=old)
 
-    await handlers.live_monitor_event()
+    await handlers.tools.live_monitor_event()
 
     assert order == ["stopped", "deleted"], "a monitor is never left asking the phone with nothing on screen to stop it"
     assert handlers.gui.monitor_dialog is dialog
     dialog.open.assert_called_once()
-    assert build.call_args.args[2] == handlers.bring_up_the_diagram_for_the_monitor
+    assert build.call_args.args[2] == handlers.tools.bring_up_the_diagram_for_the_monitor
 
 
 @pytest.mark.asyncio
 async def test_a_live_monitor_with_nothing_to_watch_remembers_nothing(
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(userintr, "build_monitor_dialog", MagicMock(return_value=None))
+    patch_hub(monkeypatch, "build_monitor_dialog", MagicMock(return_value=None))
     handlers = _handlers(monitor_dialog=None)
 
-    await handlers.live_monitor_event()
+    await handlers.tools.live_monitor_event()
 
     assert handlers.gui.monitor_dialog is None
 
@@ -285,8 +289,8 @@ async def test_the_monitors_diagram_is_built_for_what_has_fired_and_the_selectio
         built.append({"view": view_type, **(overrides or {})})
         handlers.state.program_arguments.single_project_name = "changed during the build"
 
-    handlers.view_event = view_event  # type: ignore[method-assign]
-    monkeypatch.setattr(userintr.livemon, "diagram_scope", lambda projects: "Home")
+    handlers.views.view_event = view_event  # type: ignore[method-assign]
+    monkeypatch.setattr(livemon, "diagram_scope", lambda projects: "Home")
 
     class _Held:
         def __enter__(self) -> None:
@@ -295,9 +299,9 @@ async def test_the_monitors_diagram_is_built_for_what_has_fired_and_the_selectio
         def __exit__(self, *_exc: Any) -> None:
             return None
 
-    monkeypatch.setattr(userintr, "held_overrides", lambda overrides, state: _Held())
+    patch_hub(monkeypatch, "held_overrides", lambda overrides, state: _Held())
 
-    await handlers.bring_up_the_diagram_for_the_monitor({"Home"})
+    await handlers.tools.bring_up_the_diagram_for_the_monitor({"Home"})
 
     assert built[0]["view"] == "diagram" and built[0]["single_project_name"] == "Home"
     assert handlers.state.program_arguments.single_project_name == "Mine"
@@ -309,14 +313,14 @@ async def test_with_several_projects_the_monitors_diagram_covers_the_whole_confi
     seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     handlers = _handlers()
-    handlers.view_event = AsyncMock()  # type: ignore[method-assign]
-    monkeypatch.setattr(userintr.livemon, "diagram_scope", lambda projects: "")
-    monkeypatch.setattr(userintr, "held_overrides", MagicMock())
+    handlers.views.view_event = AsyncMock()  # type: ignore[method-assign]
+    monkeypatch.setattr(livemon, "diagram_scope", lambda projects: "")
+    patch_hub(monkeypatch, "held_overrides", MagicMock())
 
-    await handlers.bring_up_the_diagram_for_the_monitor({"A", "B"})
+    await handlers.tools.bring_up_the_diagram_for_the_monitor({"A", "B"})
 
     assert "the whole configuration" in seen.notified[0][0]
-    awaited = cast("AsyncMock", handlers.view_event).await_args
+    awaited = cast("AsyncMock", handlers.views.view_event).await_args
     assert awaited is not None and awaited.kwargs["overrides"]["single_project_name"] == ""
 
 
@@ -330,9 +334,9 @@ def save(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     async def notice() -> MagicMock:
         return record.notice
 
-    monkeypatch.setattr(userintr, "show_save_in_progress_notice", notice)
-    monkeypatch.setattr(userintr, "write_full_backup_to_current_file", lambda state: record.written)
-    monkeypatch.setattr(userintr, "reload_saved_copy_and_refresh", lambda gui, path: record.loaded)
+    patch_hub(monkeypatch, "show_save_in_progress_notice", notice)
+    patch_hub(monkeypatch, "write_full_backup_to_current_file", lambda state: record.written)
+    patch_hub(monkeypatch, "reload_saved_copy_and_refresh", lambda gui, path: record.loaded)
     return record
 
 
@@ -378,7 +382,7 @@ async def test_the_spinner_comes_down_even_when_the_write_raises(
     def boom(state: object) -> tuple[bool, str]:
         raise OSError("no space")
 
-    monkeypatch.setattr(userintr, "write_full_backup_to_current_file", boom)
+    patch_hub(monkeypatch, "write_full_backup_to_current_file", boom)
 
     with pytest.raises(OSError, match="no space"):
         await _handlers().save_whole_configuration()
@@ -392,11 +396,11 @@ async def test_the_spinner_comes_down_even_when_the_write_raises(
 @pytest.fixture
 def history(seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     record = SimpleNamespace(result=(True, "Add Task 'A'"), calls=[], reset=[], labels=[], still_there=True)
-    monkeypatch.setattr(userintr.sessundo, "undo", lambda state: record.calls.append("undo") or record.result)
-    monkeypatch.setattr(userintr.sessundo, "redo", lambda state: record.calls.append("redo") or record.result)
-    monkeypatch.setattr(userintr, "_single_selection_still_exists", lambda gui: record.still_there)
-    monkeypatch.setattr(userintr, "reset_single_item_selection", lambda gui: record.reset.append(gui))
-    monkeypatch.setattr(userintr, "display_selected_object_labels", lambda gui: record.labels.append(gui))
+    monkeypatch.setattr(sessundo, "undo", lambda state: record.calls.append("undo") or record.result)
+    monkeypatch.setattr(sessundo, "redo", lambda state: record.calls.append("redo") or record.result)
+    monkeypatch.setattr(userintr_tools, "_single_selection_still_exists", lambda gui: record.still_there)
+    patch_hub(monkeypatch, "reset_single_item_selection", lambda gui: record.reset.append(gui))
+    patch_hub(monkeypatch, "display_selected_object_labels", lambda gui: record.labels.append(gui))
     return record
 
 
@@ -408,7 +412,7 @@ def test_undo_and_redo_walk_the_history_refresh_the_pulldowns_and_say_which(
 ) -> None:
     handlers = _handlers()
 
-    getattr(handlers, event)()
+    getattr(handlers.tools, event)()
 
     assert history.calls == [walked]
     assert seen.refreshed == [handlers.gui]
@@ -422,7 +426,7 @@ def test_a_step_that_took_the_selected_item_away_clears_the_selection_and_repain
     history.still_there = False
     handlers = _handlers()
 
-    handlers.undo_edit_event()
+    handlers.tools.undo_edit_event()
 
     assert history.reset == [handlers.gui] and history.labels == [handlers.gui]
 
@@ -430,7 +434,7 @@ def test_a_step_that_took_the_selected_item_away_clears_the_selection_and_repain
 def test_nothing_to_undo_is_a_warning_and_nothing_is_refreshed(seen: SimpleNamespace, history: SimpleNamespace) -> None:
     history.result = (False, "Nothing to undo.")
 
-    _handlers().undo_edit_event()
+    _handlers().tools.undo_edit_event()
 
     assert seen.notified == [("Nothing to undo.", "warning")]
     assert seen.refreshed == []
@@ -448,14 +452,14 @@ def flow(seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> SimpleNamesp
         popped=[],
         charted=[],
     )
-    monkeypatch.setattr(userintr.mapjump, "current_scope", lambda state: record.scope)
-    monkeypatch.setattr(
-        userintr, "analyze_task_flow", lambda task_id, state: record.charted.append(task_id) or record.analysis
+    monkeypatch.setattr(mapjump, "current_scope", lambda state: record.scope)
+    patch_hub(
+        monkeypatch, "analyze_task_flow", lambda task_id, state: record.charted.append(task_id) or record.analysis
     )
-    monkeypatch.setattr(userintr, "flowchart", lambda flow_, state: ["row"])
-    monkeypatch.setattr(userintr, "write_flowchart", lambda rows, state: record.chart_file)
+    patch_hub(monkeypatch, "flowchart", lambda flow_, state: ["row"])
+    patch_hub(monkeypatch, "write_flowchart", lambda rows, state: record.chart_file)
     monkeypatch.setattr(
-        userintr, "_open_popout_window", lambda path, new_window: record.popped.append((path, new_window))
+        userintr_views, "_open_popout_window", lambda path, new_window: record.popped.append((path, new_window))
     )
     return record
 
@@ -463,7 +467,7 @@ def flow(seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> SimpleNamesp
 def test_without_a_single_task_chosen_the_chart_is_only_a_hint(seen: SimpleNamespace, flow: SimpleNamespace) -> None:
     flow.scope = SimpleNamespace(label="Project", name="Home", tasks=set())
 
-    _handlers().draw_task_flowchart(MagicMock())
+    _handlers().views.draw_task_flowchart(MagicMock())
 
     assert seen.notified[0][1] == "info" and "Choose a single Task" in seen.notified[0][0]
     assert flow.popped == []
@@ -473,7 +477,7 @@ def test_a_task_that_cannot_be_found_is_said_not_charted(seen: SimpleNamespace, 
     flow.analysis = None
     gui = MagicMock()
 
-    _handlers().draw_task_flowchart(gui)
+    _handlers().views.draw_task_flowchart(gui)
 
     assert gui.display_message_box.call_args.args == ("Could not find Task 'Wake Up'.", "Orange")
     assert flow.popped == []
@@ -482,7 +486,7 @@ def test_a_task_that_cannot_be_found_is_said_not_charted(seen: SimpleNamespace, 
 def test_two_tasks_with_one_name_draw_the_first_and_say_so(seen: SimpleNamespace, flow: SimpleNamespace) -> None:
     gui = MagicMock(open_view_in_new_window=True)
 
-    _handlers().draw_task_flowchart(gui)
+    _handlers().views.draw_task_flowchart(gui)
 
     assert flow.charted == ["3"], "the lowest id of the two"
     assert any("More than one Task is named 'Wake Up'" in message for message, _ in seen.notified)
@@ -499,7 +503,7 @@ def test_a_chart_that_could_not_be_written_is_still_opened_from_the_run_state(
     flow.chart_file = ""
     gui = MagicMock(spec=["display_message_box"])
 
-    _handlers().draw_task_flowchart(gui)
+    _handlers().views.draw_task_flowchart(gui)
 
     assert flow.popped == [("/popout/flow", False)]
     assert [c.args[0] for c in gui.display_message_box.call_args_list] == [
@@ -513,14 +517,14 @@ def test_a_chart_that_could_not_be_written_is_still_opened_from_the_run_state(
 def test_clear_unhighlights_every_open_view(seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> None:
     ran: list[str] = []
     userintr.ui.run_javascript = ran.append
-    monkeypatch.setattr(userintr.assettext, "render", lambda name, **values: f"js:{values['SCROLL_AREA_ID']}")
+    monkeypatch.setattr(assettext, "render", lambda name, **values: f"js:{values['SCROLL_AREA_ID']}")
     full = SimpleNamespace(
         search_input=MagicMock(), invalidate_search_cache=MagicMock(), scroll_area=SimpleNamespace(id=5)
     )
     bare = SimpleNamespace()
-    monkeypatch.setattr(userintr, "live_views", lambda gui: [full, bare])
+    patch_hub(monkeypatch, "live_views", lambda gui: [full, bare])
 
-    _handlers().clear_event()
+    _handlers().views.clear_event()
 
     full.search_input.set_value.assert_called_once_with("")
     full.invalidate_search_cache.assert_called_once()
@@ -534,9 +538,9 @@ def test_clear_unhighlights_every_open_view(seen: SimpleNamespace, monkeypatch: 
 @pytest.fixture
 def upgrade(seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     record = SimpleNamespace(result=(True, ""), changelog=[], reloaded=[])
-    monkeypatch.setattr(userintr, "update_maptasker", lambda: record.result)
-    monkeypatch.setattr(userintr, "create_changelog", lambda: record.changelog.append(True))
-    monkeypatch.setattr(userintr, "reload_gui", lambda gui: record.reloaded.append(gui))
+    patch_hub(monkeypatch, "update_maptasker", lambda: record.result)
+    patch_hub(monkeypatch, "create_changelog", lambda: record.changelog.append(True))
+    patch_hub(monkeypatch, "reload_gui", lambda gui: record.reloaded.append(gui))
     return record
 
 
@@ -626,8 +630,8 @@ def test_the_coffee_button_opens_the_support_page(seen: SimpleNamespace, monkeyp
 @pytest.fixture
 def popups(seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, str]]:
     shown: list[tuple[str, str]] = []
-    monkeypatch.setattr(userintr, "create_popup_window", lambda title, text, **kw: shown.append((title, text)))
-    monkeypatch.setattr(userintr, "get_changelog_file", lambda url, marker, count: ["## 15.0.2", "- Fixed: something"])
+    patch_hub(monkeypatch, "create_popup_window", lambda title, text, **kw: shown.append((title, text)))
+    patch_hub(monkeypatch, "get_changelog_file", lambda url, marker, count: ["## 15.0.2", "- Fixed: something"])
     return shown
 
 
@@ -670,7 +674,7 @@ def test_whats_new_lists_the_latest_versions_and_says_how_many(popups: list[tupl
 def test_whats_new_with_no_changelog_says_it_could_not_be_read(
     popups: list[tuple[str, str]], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(userintr, "get_changelog_file", lambda url, marker, count: [])
+    patch_hub(monkeypatch, "get_changelog_file", lambda url, marker, count: [])
 
     _handlers().whatsnew_event()
 
