@@ -349,6 +349,21 @@ def _check(
     return outcome, apps
 
 
+def test_a_check_says_each_step_it_is_on_so_a_long_wait_is_not_silent(monkeypatch: pytest.MonkeyPatch) -> None:
+    said: list[str] = []
+    _device(monkeypatch, existing={"Tasker/there.txt"})
+    monkeypatch.setattr(deviceinv, "fetch_apps_from_device", _Apps({"com.here.app"}).fetch)
+    monkeypatch.setattr(deviceresource, "fetch_tasker_object_names", lambda *_a, **_k: (0, "", {"Scene": ["Panel"]}))
+
+    deviceresource.check_device(*ADDRESS, resrefs.collect(PrimeItems), state=PrimeItems, progress=said.append)
+
+    assert any(line.startswith("Step 1 of 3: ") and "access key" in line for line in said)
+    assert any(line.startswith("Step 1 of 3: ") and "Waiting for the device" in line for line in said)
+    assert any(line.startswith("Step 2 of 3: ") and "installed apps" in line for line in said)
+    assert any(line.startswith("Step 3 of 3: ") and "Scenes" in line for line in said)
+    assert said[-1] == "Saving the answers"
+
+
 def test_a_check_asks_about_files_apps_and_scenes_and_keeps_the_answers(monkeypatch: pytest.MonkeyPatch) -> None:
     outcome, apps = _check(
         monkeypatch,

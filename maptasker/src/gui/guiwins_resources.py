@@ -23,6 +23,7 @@
 #
 from __future__ import annotations
 
+import time
 from typing import TYPE_CHECKING
 
 from nicegui import run, ui
@@ -95,6 +96,11 @@ class _ResourcesDialog:
         self.refresh_apps: ui.checkbox
         self.summary: ui.label
         self.progress_row: ui.row
+        self.progress_label: ui.label
+        # What the checking thread last said it was doing, and when the check began.  The thread only assigns
+        # the text; the timer on the page reads it, so nothing here is touched from two threads at once.
+        self.progress_text = ""
+        self.started_at = 0.0
         self.report_area: ui.scroll_area
         self.check_button: ui.button
 
@@ -137,12 +143,24 @@ class _ResourcesDialog:
         self.progress_row.set_visibility(False)
         with self.progress_row:
             ui.spinner(size="sm")
-            ui.label(
-                translate_string(
-                    "Waiting on the Android device -- accept the authorization prompt there if one appears.  "
-                    "This can take a minute.",
-                ),
-            ).classes("text-sm text-amber-700 dark:text-amber-500")
+            with ui.column().classes("gap-0"):
+                self.progress_label = ui.label("").classes("text-sm font-bold text-amber-700 dark:text-amber-500")
+                ui.label(
+                    translate_string(
+                        "Waiting on the Android device -- accept the authorization prompt there if one appears.  "
+                        "This can take several minutes.",
+                    ),
+                ).classes("text-xs text-amber-700 dark:text-amber-500")
+        ui.timer(1.0, self.show_progress)
+
+    def show_progress(self) -> None:
+        """Redraw the progress line: what the check says it is doing, and how long it has been going."""
+        if not self.progress_row.visible:
+            return
+        elapsed = int(time.monotonic() - self.started_at)
+        clock_text = f"{elapsed // 60}:{elapsed % 60:02d}"
+        what = translate_string(self.progress_text) if self.progress_text else translate_string("Starting")
+        self.progress_label.set_text(f"{what}  ({clock_text})")
 
     def _build_buttons(self) -> None:
         """Check Device, Save Report and Close."""
@@ -201,6 +219,10 @@ class _ResourcesDialog:
                     f"... {len(rows) - _LINE_LIMIT} more lines.  {translate_string('Save Report writes them all')}.",
                 ).classes("font-mono text-xs text-orange-600 dark:text-orange-400")
 
+    def say_progress(self, message: str) -> None:
+        """Called by the checking thread as each part of the check starts."""
+        self.progress_text = message
+
     async def check_the_device(self) -> None:
         """Ask the device, then redraw from what it said."""
         ip_address = str(self.ip_field.value or "").strip()
@@ -214,7 +236,10 @@ class _ResourcesDialog:
 
         self.check_button.set_text(translate_string("Checking..."))
         self.check_button.set_enabled(False)
+        self.progress_text = ""
+        self.started_at = time.monotonic()
         self.progress_row.set_visibility(True)
+        self.show_progress()
         try:
             outcome = await run.io_bound(
                 deviceresource.check_device,
@@ -223,6 +248,7 @@ class _ResourcesDialog:
                 references,
                 refresh_apps=bool(self.refresh_apps.value),
                 state=self.state,
+                progress=self.say_progress,
             )
         finally:
             self.check_button.set_text(translate_string("Check Device"))

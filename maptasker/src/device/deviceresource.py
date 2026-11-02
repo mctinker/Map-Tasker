@@ -39,6 +39,7 @@
 from __future__ import annotations
 
 import functools
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -111,6 +112,14 @@ _UNKNOWN = "unknown"
 # A path takes a moment to test; a thousand take a few seconds.  The poll budget is generous so a busy phone is
 # waited for rather than blamed.
 _POLL_ATTEMPTS = 30
+
+
+# Told, in words, what the check is doing now.  It is called from the thread the check runs on.
+Progress = Callable[[str], None]
+
+
+def _no_progress(_message: str) -> None:
+    """What reports progress when nobody is listening."""
 
 
 def build_check_task(task_name: str = CHECK_TASK_NAME, *, state: RunState) -> EditableTask | str:
@@ -205,21 +214,26 @@ def check_paths_on_device(
     paths: list[str],
     *,
     state: RunState,
+    progress: Progress | None = None,
 ) -> tuple[int, dict[str, bool | None] | str]:
     """Ask the device which of these paths exist.  (0, {path: answer}) or (return_code, error_message).
 
     The exchange the Applications fetch runs, for a different Task: get an API key, install the Task if it is not
     there, upload the paths, clear the previous answer, run, wait, read, parse.  Nothing is cached -- the answer
-    is wanted now.  Each path is asked once, however many places use it.
+    is wanted now.  Each path is asked once, however many places use it.  `progress` is told, in words, which of
+    those the exchange has reached.
     """
     wanted = list(dict.fromkeys(paths))
     if not wanted:
         return 0, {}
 
+    say = progress or _no_progress
+    say("Getting an access key from the device (approve the request on the device if asked)")
     return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
         return return_code, auth_key
 
+    say("Making sure the helper Task is on the device")
     return_code, message = install_task_on_android(
         ip_address,
         ip_port,
@@ -233,6 +247,7 @@ def check_paths_on_device(
     auth_key = held_auth_key(ip_address, ip_port) or auth_key
 
     # Uploaded before the answer is cleared and the Task run: the Task reads this file the moment it starts.
+    say(f"Sending {len(wanted)} file and folder names to the device")
     return_code, message = http_upload_request(
         ip_address, ip_port, _UPLOAD_FOLDER, _UPLOAD_FILE, PAYLOAD_JOINER.join(wanted).encode("utf-8")
     )
@@ -245,6 +260,7 @@ def check_paths_on_device(
     if delete_code != 0:
         logger.info(f"Could not clear {_RESULT_READ_PATH} before checking: {delete_error}")
 
+    say("Telling the device to check them")
     return_code, message = request_with_auth_key(
         ip_address,
         ip_port,
@@ -253,6 +269,7 @@ def check_paths_on_device(
     if return_code != 0:
         return return_code, str(message)
 
+    say(f"Waiting for the device to look for {len(wanted)} files and folders")
     text, error = poll_for_result(ip_address, ip_port, _RESULT_READ_PATH, _POLL_ATTEMPTS, "path check")
     if error:
         return 8, error
@@ -282,12 +299,13 @@ def _ask_paths(
     outcome: Outcome,
     *,
     state: RunState,
+    progress: Progress,
 ) -> None:
     """Fold the device's answer about the paths into `known`, or its failure into the outcome."""
     paths = [value for kind, value in questions if kind == resrefs.ASK_PATH]
     if not paths:
         return
-    return_code, result = check_paths_on_device(ip_address, ip_port, paths, state=state)
+    return_code, result = check_paths_on_device(ip_address, ip_port, paths, state=state, progress=progress)
     if return_code != 0 or isinstance(result, str):
         outcome.errors.append(f"Files and folders: {result}")
         return
@@ -305,12 +323,14 @@ def _ask_apps(
     *,
     refresh: bool,
     state: RunState,
+    progress: Progress,
 ) -> None:
     """Answer the app questions from the device's installed packages, fetching them first if asked to."""
     wanted = [value for kind, value in questions if kind == resrefs.ASK_APP]
     if not wanted:
         return
     if refresh:
+        progress("Asking the device for its installed apps (this is the slowest part, often a minute or more)")
         return_code, message = deviceinv.fetch_apps_from_device(ip_address, ip_port, state=state)
         if return_code != 0:
             outcome.errors.append(f"Apps: {message}")
@@ -331,11 +351,13 @@ def _ask_scenes(
     outcome: Outcome,
     *,
     state: RunState,
+    progress: Progress,
 ) -> None:
     """Answer the Scene questions from the Scenes Tasker reports having."""
     wanted = [value for kind, value in questions if kind == resrefs.ASK_SCENE]
     if not wanted:
         return
+    progress("Asking Tasker for the Scenes it has")
     return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
     if return_code != 0:
         outcome.errors.append(f"Scenes: {message}")
@@ -352,13 +374,15 @@ def check_device(
     *,
     refresh_apps: bool = True,
     state: RunState,
+    progress: Progress | None = None,
 ) -> Outcome:
     """Ask the device about everything the configuration refers to, and keep what it says.
 
     Each kind of question is asked separately, and what is answered is kept even if another kind failed.
     Nothing is kept when nothing was answered, so a phone that could not be reached does not replace the last
     good answers with an empty set.  `refresh_apps` fetches the installed apps first; without it the list
-    fetched earlier is used, which is quicker and as old as that fetch.
+    fetched earlier is used, which is quicker and as old as that fetch.  `progress` is called with a sentence on
+    what is being done ("Step 2 of 3: ...") as each part starts; it runs on the checking thread.
     """
     ip_address, ip_port = ip_address.strip(), ip_port.strip()
     outcome = Outcome(device=device_address(ip_address, ip_port))
@@ -369,9 +393,30 @@ def check_device(
         return outcome
 
     known: dict[resstore.Question, bool] = {}
-    _ask_paths(ip_address, ip_port, questions, known, outcome, state=state)
-    _ask_apps(ip_address, ip_port, questions, known, outcome, refresh=refresh_apps, state=state)
-    _ask_scenes(ip_address, ip_port, questions, known, outcome, state=state)
+    say = progress or _no_progress
+    kinds_asked = {kind for kind, _ in questions}
+    steps = [kind for kind in (resrefs.ASK_PATH, resrefs.ASK_APP, resrefs.ASK_SCENE) if kind in kinds_asked]
+
+    def staged(kind: str) -> Progress:
+        """Progress for one kind of question, each message led by where that kind comes in the check."""
+        if kind not in steps:
+            return _no_progress
+        step = f"Step {steps.index(kind) + 1} of {len(steps)}"
+        return lambda message: say(f"{step}: {message}")
+
+    _ask_paths(ip_address, ip_port, questions, known, outcome, state=state, progress=staged(resrefs.ASK_PATH))
+    _ask_apps(
+        ip_address,
+        ip_port,
+        questions,
+        known,
+        outcome,
+        refresh=refresh_apps,
+        state=state,
+        progress=staged(resrefs.ASK_APP),
+    )
+    _ask_scenes(ip_address, ip_port, questions, known, outcome, state=state, progress=staged(resrefs.ASK_SCENE))
+    say("Saving the answers")
 
     outcome.answered = len(known)
     outcome.missing = sum(1 for present in known.values() if not present)

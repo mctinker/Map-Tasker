@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: The Diagram now builds about twice as fast on large configurations; one 13 MB backup went from about 15 seconds to about 7.
+- Changed: Checking the device for missing resources now shows which step it is on and how long it has been running, so a check that takes several minutes no longer looks frozen.
 - Changed: When your Android device answers an import with a 503 error, MapTasker now says that Tasker is reachable but not handling the request, and points you to the 'POST Import' Profile in the 'Tasker HTTP API' project and Tasker's Run Log. Before, you only saw the status code.
 - Changed:
 

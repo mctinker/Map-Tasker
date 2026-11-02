@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import threading
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -105,6 +106,19 @@ async def _until(condition: Callable[[], object]) -> None:
     raise AssertionError(msg)
 
 
+def _spinner_shown(user: User) -> bool:
+    """Whether the progress spinner is on the page (find raises when nothing matches)."""
+    try:
+        return bool(user.find(kind=ui.spinner).elements)
+    except AssertionError:
+        return False
+
+
+def _progress_text(user: User) -> str:
+    """Everything the labels on the page say."""
+    return " ".join(element.text for element in user.find(kind=ui.label).elements)
+
+
 @pytest.mark.asyncio
 async def test_it_opens_on_what_the_last_check_found() -> None:
     _answer(PHONE, data=False, music=True)
@@ -139,7 +153,9 @@ async def test_check_device_asks_what_the_fields_say_and_redraws_from_the_answer
 ) -> None:
     asked: list[tuple[str, str, bool]] = []
 
-    def fake_check(ip: str, port: str, references: resrefs.References, *, refresh_apps: bool, state: object) -> object:
+    def fake_check(
+        ip: str, port: str, references: resrefs.References, *, refresh_apps: bool, state: object, progress: object
+    ) -> object:
         asked.append((ip, port, refresh_apps))
         assert references.questions()
         _answer(PHONE, data=False)
@@ -173,12 +189,38 @@ async def test_a_device_that_did_not_answer_is_said_so_and_its_problems_are_list
 
 
 @pytest.mark.asyncio
+async def test_the_progress_line_says_what_the_check_is_doing_and_goes_when_it_is_done(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    release = threading.Event()
+    started = threading.Event()
+
+    def slow_check(*_args: object, progress: object, **_kwargs: object) -> object:
+        progress("Step 2 of 3: Asking the device for its installed apps")  # type: ignore[operator]
+        started.set()
+        release.wait(5)
+        return _outcome()
+
+    monkeypatch.setattr(deviceresource, "check_device", slow_check)
+    async with _open() as user:
+        UserInteraction(user, {_button(user, "Check Device")}, None).click()
+        await _until(started.is_set)
+        await _until(lambda: _spinner_shown(user))  # shown while the check runs
+        await _until(lambda: "Step 2 of 3" in _progress_text(user))
+
+        assert "(0:0" in _progress_text(user)  # the elapsed time, m:ss
+
+        release.set()
+        await _until(lambda: not _spinner_shown(user))
+
+
+@pytest.mark.asyncio
 async def test_the_refresh_checkbox_decides_whether_the_app_list_is_fetched(monkeypatch: pytest.MonkeyPatch) -> None:
     asked: list[bool] = []
     monkeypatch.setattr(
         deviceresource,
         "check_device",
-        lambda _ip, _port, _refs, *, refresh_apps, state: asked.append(refresh_apps) or _outcome(),
+        lambda _ip, _port, _refs, *, refresh_apps, state, progress: asked.append(refresh_apps) or _outcome(),
     )
     async with _open() as user:
         (box,) = user.find(kind=ui.checkbox).elements
