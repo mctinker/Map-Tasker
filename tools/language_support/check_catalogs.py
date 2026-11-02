@@ -2,7 +2,9 @@
 """Check that the translation catalogs and the translated READMEs hold what they should, and bring them up to date.
 
 Run it now and then -- after adding a translate_string() call, rewording a help screen, or just before a
-release.  With no options it only looks, changes nothing, and exits 1 if anything needs doing:
+release.  CI runs it too, through scripts/translation_ratchet.py: the drift that is left is listed in
+scripts/translation_baseline.json, and a new string without translations, or a README edit not carried into
+the translations, fails the build until this has put it right.  With no options it only looks, changes nothing, and exits 1 if anything needs doing:
 
     python tools/language_support/check_catalogs.py
 

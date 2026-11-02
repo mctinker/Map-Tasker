@@ -92,6 +92,8 @@ run_gate "typecheck ratchet" uv run --no-sync python scripts/typecheck_ratchet.p
 
 run_gate "dead code" uv run --no-sync python scripts/dead_code_check.py
 
+run_gate "translation ratchet" uv run --no-sync python scripts/translation_ratchet.py
+
 run_gate "import layers" uv run --no-sync lint-imports
 
 run_gate "ruff format --check" uv run --no-sync ruff format --check
