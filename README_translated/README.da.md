@@ -248,8 +248,8 @@ S: Forudsætninger:
 1- Browseren og Android-enheden skal være på samme lokale netværk.
 
 2- De følgende to eksempler på Tasker-projekter på din mål-Android-enhed, som begge skal installeres med alle profiler aktiveret:
-  [Tasker-projekt: 'Eksempel på HTTP-server'] (https://shorturl.at/bwCD4)
-  [Tasker-projekt: 'Tasker HTTP API'] (https://shorturl.at/hlTj0)
+  ['Eksempel på HTTP-server' Tasker-projekt](https://shorturl.at/bwCD4)
+  ['Tasker HTTP API' Tasker-projekt](https://shorturl.at/hlTj0)
 
 Yderligere detaljer findes i afsnittet [Note 2](#2) i denne README-fil.
 

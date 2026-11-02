@@ -276,10 +276,10 @@ Los detalles de algunos de los puntos mencionados en la sección "Solución de p
 
 Para obtener el archivo XML de Tasker directamente:
 
-- Asegúrese de que tanto los dispositivos de escritorio como los de Android estén conectados a la misma red local y de que la aplicación Tasker esté en funcionamiento.
-- Los proyectos "Ejemplo de servidor HTTP" y "API HTTP de Tasker" (https://shorturl.at/bwCD4 y https://shorturl.at/hlTj0) deben estar instalados y activos en el dispositivo Android, con el servidor en funcionamiento. Recuerde ejecutar la tarea "Actualizar información HTTP de GD" y, la primera vez, introducir su ID de Google Drive cuando se le solicite.
-- Una vez descargado, el archivo XML se guarda en el escritorio y no necesita ser descargado repetidamente, a menos que se haya modificado.
-- Otras funciones de MapTasker solicitarán primero permiso en su dispositivo Android para que funcione la función específica.
+- Asegúrese de que tanto los dispositivos de escritorio como los de Android estén conectados a la misma red local y de que Tasker esté en funcionamiento.
+- Los proyectos "Ejemplo de servidor HTTP" y "API HTTP de Tasker" (https://shorturl.at/bwCD4 y https://shorturl.at/hlTj0) deben estar instalados y activos en el dispositivo Android, con el servidor en funcionamiento. Recuerde ejecutar la tarea "Actualizar información HTTP de GD" y, al principio, ingresar su ID de Google Drive cuando se le solicite.
+- Una vez descargado, el archivo XML se guarda en su escritorio y no necesita ser descargado repetidamente, a menos que se haya modificado.
+- Otras características de MapTasker solicitarán primero su autorización en su dispositivo Android para que pueda utilizar la función específica.
 
 ### 3
 **Compatibilidad con IA**

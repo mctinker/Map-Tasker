@@ -194,7 +194,7 @@ MapTasker द्वारा जनरेट किए गए आउटपुट
 मुख्य फ़ाइलों और उनके उद्देश्य का संक्षिप्त अवलोकन:
 
 - `maptasker/`: Contains the core application code.
-  - `maptasker/src/`: The main Python source files for MapTasker's logic, in sub-packages by layer
+  - `maptasker/src/`: मैप टास्कर के लॉजिक के लिए मुख्य पाइथन स्रोत फाइलें, जो उप-पैकेजों में परतों के अनुसार व्यवस्थित हैं।
     (एक परत केवल नीचे की परतों से डेटा आयात कर सकती है; `lint-imports` इसे लागू करता है):
     - `gui/`: the NiceGUI windows, dialogs and their event handlers.
     - `device/`: what MapTasker does on the Android device, through Tasker's HTTP server.
