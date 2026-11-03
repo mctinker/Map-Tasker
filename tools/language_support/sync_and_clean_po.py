@@ -25,6 +25,10 @@ Usage:
     sync_and_clean_po.py --dry-run-prune      report stale help entries without deleting
     sync_and_clean_po.py --dry-run-urls       report altered URLs without repairing them
 
+Translating (stage 1) asks the local Ollama model first and GoogleTranslator (deep-translator) for anything Ollama cannot
+do -- not installed, not running, no model, too slow, an empty reply, a lost placeholder.  After AI_FAILURES_BEFORE_GIVING_UP
+failures in a row the rest of the run skips Ollama.  See ai_translate and translate_with_fallback.
+
 Note on ordering: stage 2 deletes stale help entries so that stage 1 can add correctly
 worded replacements, so running prune before sync gets both done in a single pass.  In the
 order above, a stale entry pruned in stage 2 is not replaced until the next run.
@@ -39,9 +43,9 @@ import socket
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 from maptasker.src.core.primitem import PrimeItems
-from ollama import chat
 
 # deep-translator issues its HTTP GET with no timeout, so a stalled connection to Google
 # blocks forever and no exception is ever raised.  Same guard translate_text_lines_to_po.py
@@ -76,6 +80,20 @@ TRANSLATE_FUNCS = {"translate_string", "_translate", "_"}
 # English it was given, and the reassembled string is what has to survive, not the
 # request.
 MAX_TRANSLATE_CHARS = 4000
+
+# The local model Ollama is asked to translate with.
+AI_MODEL = "translategemma"
+# How long one Ollama request may take before it counts as having failed.  Ollama's own client has no timeout, so a server that
+# has stalled, or a model that is still loading, would hold the run forever -- and a request that never fails never reaches the
+# GoogleTranslator fallback.  Generous, because a long help text on a local model really does take a while.
+AI_TIMEOUT_SECONDS = 180
+# After this many failures in a row of the kind that mean Ollama itself is not usable -- not installed, not running, the model
+# not pulled, a request timing out -- the rest of the run goes straight to GoogleTranslator.  Otherwise the same failure is waited
+# out again for every string in every one of the thirty-odd languages.  A reply that arrives but is unusable does not count:
+# the model is working, it just got that string wrong.
+AI_FAILURES_BEFORE_GIVING_UP = 3
+# What a translator must leave alone (the same pattern check_catalogs.py holds the catalogs to): {name}, %(name)s, %s, %d.
+PLACEHOLDER = re.compile(r"\{[A-Za-z_][A-Za-z_0-9]*\}|%\([A-Za-z_]+\)[sd]|%[sd](?![A-Za-z])")
 
 REQUEST_DELAY = 0.4
 MAX_ATTEMPTS = 4
@@ -213,8 +231,90 @@ def get_key_by_value(dictionary: dict, target_value: str) -> str | None:
     return None
 
 
+class AiHealth:
+    """Whether the local AI translator is worth asking, and why the last ask did not work.
+
+    Held in one place so that translate_with_fallback can say why it fell back, and so that a run against a machine with no
+    Ollama on it asks once or three times and then stops asking, rather than once per string.
+    """
+
+    def __init__(self) -> None:
+        self.reset()
+
+    def reset(self) -> None:
+        """Start again -- a new run, or a test."""
+        self.failures = 0  # in a row, of the kind that mean Ollama is not usable
+        self.given_up = False
+        self.last_reason = ""
+        self._client: Any = None
+
+    def client(self) -> Any:
+        """The Ollama client, made on first use -- None if the ollama package cannot be imported.
+
+        Imported here rather than at the top of the file, so a machine without it can still run the tool and fall back, instead
+        of failing before a single string is translated.
+        """
+        if self._client is None:
+            try:
+                import ollama
+            except ImportError as error:
+                self.unavailable(f"the ollama package cannot be imported ({error})")
+                return None
+            self._client = ollama.Client(timeout=AI_TIMEOUT_SECONDS)
+        return self._client
+
+    def unavailable(self, reason: str) -> None:
+        """Ollama itself could not be used for this string.  After enough in a row, stop asking it."""
+        self.last_reason = reason
+        self.failures += 1
+        if self.failures >= AI_FAILURES_BEFORE_GIVING_UP and not self.given_up:
+            self.given_up = True
+            print(
+                f"\n  [AI] Ollama has failed {self.failures} times in a row ({reason}) -- "
+                "using GoogleTranslator for the rest of this run.\n",
+            )
+
+    def unusable(self, reason: str) -> None:
+        """Ollama answered, but the answer cannot be used.  It is working, so this does not count towards giving up."""
+        self.last_reason = reason
+        self.failures = 0
+
+    def worked(self) -> None:
+        """Ollama gave a usable translation."""
+        self.last_reason = ""
+        self.failures = 0
+
+
+AI_HEALTH = AiHealth()
+
+
+def usable_translation(text: str, translated: str) -> str:
+    """Why `translated` cannot stand in for `text`, or "" when it can.
+
+    Only what is certain: nothing came back, or a placeholder was lost, added or changed.  The second is what check_catalogs.py
+    reports as drift, so a translation that has it is better asked of the other translator than written into a catalog.
+    """
+    if not translated.strip():
+        return "the reply was empty"
+    if sorted(PLACEHOLDER.findall(text)) != sorted(PLACEHOLDER.findall(translated)):
+        return "the reply lost or changed a placeholder"
+    return ""
+
+
 def ai_translate(target_lang: str, text: str) -> str | None:
-    """Translate text with the local Ollama chat model.  Returns None if it fails."""
+    """Translate text with the local Ollama chat model.  Returns None if it cannot, for the caller to fall back.
+
+    None for every way it can go wrong: the ollama package missing, the server not running, the model not installed, a request
+    that takes longer than AI_TIMEOUT_SECONDS, an empty reply, and a reply that has lost a placeholder.  Why is in
+    AI_HEALTH.last_reason.
+    """
+    if AI_HEALTH.given_up:
+        AI_HEALTH.last_reason = "Ollama has been given up on for this run"
+        return None
+    client = AI_HEALTH.client()
+    if client is None:
+        return None
+
     print("Using AI translator (Ollama) for translation:", text)
 
     # Try the target_lang directly, or try converting hyphen to underscore as fallback
@@ -229,24 +329,27 @@ def ai_translate(target_lang: str, text: str) -> str | None:
 {text}"""
 
     try:
-        response = chat(
-            model="translategemma",
-            messages=[{"role": "user", "content": msg}],
-        )
-
-        # Ollama's chat response stores content in response['message']['content'] or response.message.content
-        translated_text = None
-        if hasattr(response, "message") and hasattr(response.message, "content"):
-            translated_text = response.message.content.strip()
-        elif isinstance(response, dict):
-            translated_text = response.get("message", {}).get("content", "").strip()
-
-        print("      AI translation:", translated_text)
-        return translated_text if translated_text else None
-
+        response = client.chat(model=AI_MODEL, messages=[{"role": "user", "content": msg}])
     except Exception as e:
-        print(f"    [AI Error] Ollama chat failed: {e}")
+        print(f"    [AI Error] Ollama chat failed: {type(e).__name__}: {e}")
+        AI_HEALTH.unavailable(f"{type(e).__name__}: {e}")
         return None
+
+    # Ollama's chat response stores content in response['message']['content'] or response.message.content
+    translated_text = ""
+    if hasattr(response, "message") and hasattr(response.message, "content"):
+        translated_text = (response.message.content or "").strip()
+    elif isinstance(response, dict):
+        translated_text = (response.get("message", {}).get("content", "") or "").strip()
+
+    print("      AI translation:", translated_text)
+    problem = usable_translation(text, translated_text)
+    if problem:
+        print(f"    [AI Unusable] {problem}")
+        AI_HEALTH.unusable(problem)
+        return None
+    AI_HEALTH.worked()
+    return translated_text
 
 
 def google_translate_with_retry(translator: GoogleTranslator, text: str) -> str | None:
@@ -298,9 +401,11 @@ def translate_with_fallback(translator: GoogleTranslator | None, target_lang: st
     if translated is not None:
         return translated
 
+    why = AI_HEALTH.last_reason or "no reason given"
     if translator is None:
+        print(f"    [Failed] AI translation failed ({why}) and GoogleTranslator is not available for this language")
         return None
-    print("    [Fallback] AI translation failed -- trying GoogleTranslator")
+    print(f"    [Fallback] AI translation failed ({why}) -- trying GoogleTranslator")
     return google_translate_with_retry(translator, text)
 
 

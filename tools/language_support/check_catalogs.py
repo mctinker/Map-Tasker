@@ -43,8 +43,11 @@ is sync_and_clean_po.py's, and --fix runs it.
 WHAT --fix DOES, in order
 
   1. removes the second definition of any msgid, and makes any msgctxt entry plain;
-  2. adds each missing string.  Translated, by the local Ollama model and then Google (this needs the "ai"
-     extra and a network, and is slow: about a second a string a language).  With --no-translate it is added
+  2. adds each missing string.  Translated by the local Ollama model first and by Google (deep-translator) for
+     anything Ollama cannot do -- not installed, not running, no model, too slow, an empty reply or one that lost
+     a placeholder; after three such failures in a row the rest of the run goes straight to Google.  The "ai"
+     extra is optional, a network is not, and it is slow: about a second a string a language.  The same goes for
+     the README blocks below.  With --no-translate it is added
      with a blank translation instead, which gettext treats as "use the English", so nothing breaks and the
      catalogs agree; translate them later by running this again without --no-translate -- a blank translation
      is counted as missing;
@@ -453,7 +456,7 @@ _loaded_tools: dict[str, ModuleType] = {}  # sync_and_clean_po, once it has been
 
 
 def load_sync_tool(locale: Path) -> ModuleType:
-    """sync_and_clean_po.py, pointed at this tree.  It needs the "ai" extra and deep-translator, so only --fix loads it."""
+    """sync_and_clean_po.py, pointed at this tree.  It needs deep-translator (and, to try Ollama first, the "ai" extra), so only --fix loads it."""
     if "sync" not in _loaded_tools:
         path = Path(__file__).with_name("sync_and_clean_po.py")
         spec = importlib.util.spec_from_file_location("sync_and_clean_po", path)

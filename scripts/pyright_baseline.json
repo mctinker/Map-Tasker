@@ -297,9 +297,6 @@
   "tests/test_version_check.py": {
     "reportArgumentType": 3
   },
-  "tools/language_support/sync_and_clean_po.py": {
-    "reportOptionalMemberAccess": 1
-  },
   "tools/language_support/translate_po.py": {
     "reportReturnType": 1
   },

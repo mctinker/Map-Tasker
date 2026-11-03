@@ -66,6 +66,12 @@ as it is. Rewriting a file also tidies its blank lines, and machine translation 
 | 6 | `quotes` | Repairs msgstr lines with unescaped quotes |
 | 7 | `blanks` | Keeps only the first blank line of each catalog |
 
+Stage 1 asks a local Ollama model (`translategemma`) for each translation first and falls back to
+deep-translator's GoogleTranslator for any string Ollama cannot do: Ollama not installed, not running or without the
+model, a request that takes longer than three minutes, an empty reply, or a reply that lost a `{placeholder}` or `%s`.
+After three such failures in a row the rest of the run goes straight to GoogleTranslator. With no Ollama at all, every
+string is translated by GoogleTranslator.
+
 It writes by default and is safe to re-run. `--stages` takes a subset by number
 or name; `--dry-run-prune` and `--dry-run-urls` make those two stages report
 instead of edit. Recompile afterwards with `po_to_mo.sh`.
