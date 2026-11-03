@@ -62,36 +62,37 @@ Das Tasker-Backup oder eine andere von Tasker exportierte XML-Datei kann entwede
 
 ## Funktionen
 
-- Die Wahl des Detaillierungsgrades für die Ausgabe, von einer allgemeinen Übersicht bis hin zu einer sehr detaillierten Darstellung Ihrer Konfiguration.
-- Zeigen Sie nur ein einzelnes Projekt, ein Profil oder eine Aufgabe an.
+- Die Auswahl des gewünschten Detailgrads der Ausgabe, von einer allgemeinen Übersicht bis hin zu einer sehr detaillierten Darstellung Ihrer Konfiguration.
+- Zeigen Sie nur ein einzelnes Projekt, Profil oder Aufgabe an.
 - Einschließen/ausschließen von Profil- und Aufgabenbedingungen: Zustände, Ereignisse usw.
-- Entweder alles streamen oder die Ausgabe so gestalten, dass alle Felder ausgerichtet sind.
-- Ändern Sie das Aussehen: wählen Sie die Modi "hell" oder "dunkel".
-- Ausgabe mit Ihrer bevorzugten Schriftart mit fester Breite. Heben Sie die Namen der Projekte, Profile und Aufgaben durch Kursivschrift, Fettschrift, Hervorhebung und/oder Unterstreichung hervor.
-- Passen Sie die Farben an, die mit verschiedenen Aspekten der Ausgabe verknüpft sind, um Ihren aktuellen Stimmung zu entsprechen.
-- Fügen Sie Beschreibungen und/oder Präferenzen für TaskerNet hinzu.
+- Entweder alles streamen oder das Ergebnis so gestalten, dass alle Felder ausgerichtet sind.
+- Ändern Sie das Aussehen: wählen Sie die Modi „hell“ oder „dunkel“.
+- Ergebnisse mit Ihrer bevorzugten Schriftart mit fester Breite ausgeben. Betonen Sie die Namen von Projekt, Profil und Aufgabe, indem Sie sie kursiv, fett, hervorgehoben oder unterstrichen darstellen.
+- Passen Sie die Farben an, die verschiedenen Aspekte der Ausgabe zugeordnet sind, um Ihren Stimmung zu entsprechen.
+- Bitte fügen Sie Beschreibungen von TaskerNet hinzu und/oder Angaben zu den Präferenzen des Benutzers.
 - Für komplexe Konfigurationen können Sie optional ein Wörterbuch mit Verknüpfungen zu Ihren Projekten, Profilen, Aufgaben und Szenen hinzufügen.
-- Zeigen Sie ein Diagramm Ihrer gesamten Tasker-Konfiguration sowie einen Flussdiagramm an.
+- Zeigen Sie ein Diagramm Ihrer gesamten Tasker-Konfiguration sowie einen Aufgabenablauf an.
 - Befehlszeile oder grafische Benutzeroberfläche.
-- Verwenden Sie das exportierte XML-Format oder laden Sie das XML-Format direkt von Ihrem Android-Gerät für die Konfigurationszuordnung.
+- Verwenden Sie die exportierte XML-Datei oder laden Sie die XML-Datei direkt von Ihrem Android-Gerät für die Konfigurationszuordnung.
 - Senden Sie Projekte, Profile, Aufgaben und Szenen an Tasker auf Ihrem Android-Gerät zurück.
 - Einstellungen während der Laufzeit speichern und wiederherstellen.
-- Identifizieren Sie Aufgaben, die zu viele "Aktionen" enthalten und die möglicherweise in mehrere Aufgaben aufgeteilt werden sollten.
-- Option zur Analyse eines bestimmten Projekts, Profils, einer Aufgabe oder Szene mithilfe der serverbasierten Modelle ChatGPT/Claude/Gemini oder der lokal betriebenen Modelle Llama (über Ollama).
-- Ergebnisse direkt innerhalb der Benutzeroberfläche anzeigen: (Konfiguration) Kartenansicht, Baumansicht und Diagramm-Ansicht.
+- Identifizieren Sie Aufgaben, die zu viele "Aktionen" enthalten, und die potenziell in mehrere Aufgaben aufgeteilt werden sollten.
+- Die Option "AI-Analyse" ermöglicht die Analyse eines bestimmten Projekts, Profils, einer Aufgabe oder einer Szene mithilfe der entweder serverbasierten Modelle ChatGPT/Claude/Gemini oder der lokal installierten Modelle Llama (über Ollama).
+- Ergebnisse direkt innerhalb der GUI anzeigen: (Konfiguration) Kartenansicht, Baumansicht und Diagramm-Ansicht.
 - Automatische Erkennung von Updates und optionale Installation neuer Versionen.
 - Verbesserte Suchfunktion und strukturierte "Finden/Ersetzen"-Funktion.
 - Fügen Sie Projekte, Profile, Aufgaben und Szenen hinzu und bearbeiten Sie diese (siehe [Anmerkung 6](#6))
 - Auflistung der Änderungen seit einem bestimmten Datum.
 - Analysieren Sie den Zustand der Tasker-XML-Datei sowie die zahlreichen Variablen in der Konfiguration.
 - Vergleichen Sie eine XML-Datei mit der geladenen XML-Datei.
-- Überprüfen Sie TaskerNet auf Aktualisierungen für Projekte, Profile und Aufgaben und wenden Sie diese gegebenenfalls an.
+- Überprüfen Sie TaskerNet auf Aktualisierungen für Projekte, Profile und Aufgaben, und wenden Sie diese gegebenenfalls an.
 - Importieren Sie ein Tasker-Objekt aus einer anderen XML-Datei, zusammen mit allen zugehörigen Abhängigkeiten.
-- Führen Sie eine Trendanalyse durch, um festzustellen, ob Ihr Code tatsächlich verbessert wird (oder nicht).
-- Erstellen Sie eine Liste aller Ressourcen, die eine Aufgabe außerhalb des Android-Geräts verwendet.
-- Bestimmen Sie, welche Ereignisse oder Zustände einen bestimmten Auslöser verursachen.
+- Führen Sie eine Trendanalyse durch, um festzustellen, ob Ihr Code sich verbessert (oder verschlechtert).
+- Erstellen Sie eine Liste aller Ressourcen, die eine Aufgabe außerhalb des Android-Geräts benötigt.
+- Bestimmen Sie, welche Aktionen ausgelöst werden sollen, basierend auf einer bestimmten Bedingung (Zustand oder Ereignis).
 - Verfolgen Sie den Ablauf einer Aufgabe und vergleichen Sie einen Durchlauf mit einem anderen.
 - Richten Sie eine Live-Überwachung auf dem Android-Gerät ein, um zu sehen, welche Profile und Aufgaben ausgeführt werden.
+- Identifizieren Sie, was Ihren Akku stark beansprucht.
 
 ## Programmabhängigkeiten
 
@@ -277,9 +278,10 @@ Details zu einigen der im Abschnitt "Fehlerbehebung und FAQ" erwähnten Punkte s
 Um die Tasker-XML-Datei direkt abzurufen:
 
 - Stellen Sie sicher, dass sowohl Ihr Desktop- als auch Ihr Android-Gerät sich im selben lokalen Netzwerk befinden und dass Tasker ausgeführt wird.
-- Das [Tasker-Projekt „Http Server Example“](https://shorturl.at/bwCD4) und das [Tasker-Projekt „Tasker HTTP API“](https://shorturl.at/hlTj0) müssen beide auf dem Android-Gerät installiert und aktiv sein, und der Server muss laufen. Denken Sie daran, die Task „Update GD HTTP Info“ auszuführen und (nur beim ersten Mal) Ihre Google-Drive-ID einzugeben, wenn Sie dazu aufgefordert werden.
-- Sobald es abgerufen wurde, wird die XML-Datei auf Ihrem Desktop gespeichert und muss nicht ständig erneut geladen werden, es sei denn, sie wurde verändert.
-- Verschiedene weitere Funktionen von MapTasker werden zunächst auf Ihrem Android-Gerät eine Anfrage stellen, um die spezifische Funktion auszuführen.
+- Die Projekte „['Http Server Example' Tasker Projekt](https://shorturl.at/bwCD4)" und „['Tasker HTTP API' Tasker Projekt](https://shorturl.at/hlTj0)" müssen sowohl auf dem Android-Gerät installiert und aktiviert sowie der Server laufen. Denken Sie daran, die Aufgabe „Update GD HTTP Info" auszuführen und (nur beim ersten Mal) Ihre Google Drive-ID einzugeben, wenn Sie dazu aufgefordert werden.
+  - ACHTUNG: MapTasker bietet die Möglichkeit, das 'Http Server Example' für Sie zu installieren. Sie finden diese Option im Bereich 'XML VON DEM ANDROID-GERÄT ABHOLEN'. Aber Sie *müssen* sicherstellen, dass 'Tasker HTTP API' bereits installiert ist, damit dies funktioniert.
+- Sobald die XML-Datei heruntergeladen wurde, wird sie auf Ihrem Desktop gespeichert und muss nicht ständig erneut abgerufen werden, es sei denn, sie wurde verändert.
+- Verschiedene andere Funktionen von MapTasker werden zunächst auf Ihrem Android-Gerät darum bitten, die entsprechende Funktion auszuführen.
 
 ### 3
 **KI-Unterstützung**

@@ -63,35 +63,36 @@ Taskers backup-fil eller andet Tasker-eksporteret XML kan enten uploades manuelt
 ## Funktioner
 
 - Dit valg af detaljeringsgrad for outputtet, fra en overordnet oversigt til en meget detaljeret beskrivelse af din konfiguration.
-- Vis kun ét projekt, profil eller opgave.
-- Inkluder/ekskluder profil- og opgavebetingelser: Tilstande, begivenheder osv.
-- Enten kan du streame alt, eller også kan du formatere outputtet, så alle felterne er justeret.
+- Vis kun ét projekt, en profil eller en opgave.
+- Inkluder/ekskluder betingelser for profil og opgave: Tilstande, begivenheder osv.
+- Enten kan du streame alt, eller også kan du formatere outputtet, så alle felter er justeret.
 - Ændr udseendet: vælg 'lyst' eller 'mørkt' tema.
-- Udskriv resultatet med din foretrukne monospace-skrift, og fremhæv navne på "Project", "Profile" og "Task" ved at gøre dem kursive, fed, med fremhævning eller understregning.
-- Juster farverne, der er forbundet med forskellige aspekter af outputtet, så de passer til din stemning.
+- Udskriv resultatet med din foretrukne monospace-skrifttype, og fremhæv navnene på "Project", "Profile" og "Task" ved at gøre dem kursive, fed, med baggrundsfarve eller understregede.
+- Tilpas farverne, der er forbundet med de forskellige elementer i outputtet, så de passer til din stemning.
 - Inkluder beskrivelser og/eller præferencer for TaskerNet.
-- For komplekse konfigurationer, kan du valgfrit inkludere en ordbog med links til dine projekter, profiler, opgaver og scener.
-- Vis et diagram over din komplette Tasker-konfiguration samt en flow-diagram.
+- For komplekse konfigurationer, kan du valgfrit inkludere en ordbog med hurtiglinks til dine projekter, profiler, opgaver og scener.
+- Vis et diagram over hele din Tasker-konfiguration samt en flow-diagram.
 - Kommandolinje eller grafisk brugergrænseflade.
-- Brug det eksporterede XML-format eller hent XML-filen direkte fra din Android-enhed til konfigurationsmapping.
+- Brug den eksporterede XML-fil eller hent XML-filen direkte fra din Android-enhed til konfigurationen.
 - Send projekter, profiler, opgaver og scener tilbage til Tasker på din Android-enhed.
 - Gem og gendan indstillinger under kørsel.
 - Identificer opgaver, der har for mange "handlinger", og som potentielt bør opdeles i flere opgaver.
-- Mulighed for at analysere et specifikt projekt, profil, opgave eller scene ved hjælp af enten ChatGPT/Claude/Gemini-modellerne (som kører på serveren) eller Llama-modellen (som kører lokalt, via Ollama).
-- Vis resultater direkte i grafiske brugergrænseflader: (Konfiguration) Kortvisning, trævisning og diagramvisning.
+- Mulighed for at analysere et specifikt projekt, profil, opgave eller scene ved hjælp af enten serverbaserede modeller som ChatGPT/Claude/Gemini eller lokale modeller, der understøttes af Llama (via Ollama).
+- Vis resultater direkte i GUI'en: (Konfiguration) Kortvisning, trævisning og diagramvisning.
 - Automatisk opdagelse af opdateringer og mulighed for valgfri installation af nye versioner.
 - Forbedret søgning og struktureret "Find/Erstat"-funktion.
 - Tilføj og rediger projekter, profiler, opgaver og scener (se [Note 6](#6))
 - Vis ændringer i listen siden en bestemt dato.
-- Analyser Tasker XML's sundhed samt de mange variabler i konfigurationen.
+- Analyser Tasker XML's tilstand samt de mange variabler i konfigurationen.
 - Sammenlign en XML-fil med den indlæste XML-fil.
-- Tjek TaskerNet for opdateringer af projekter, profiler og opgaver, og anvend dem, hvis de er tilgængelige.
+- Tjek TaskerNet for opdateringer vedrørende projekter, profiler og opgaver, og anvend dem, hvis de er tilgængelige.
 - Importer et Tasker-objekt fra en anden XML-fil, sammen med alle dets afhængigheder.
 - Udfør en trendanalyse for at se, om din kode forbedres (eller ikke).
-- Lav en liste over alt, hvad en opgave bruger, der ikke er en del af Android-enheden.
-- Bestem 'hvilke funktioner der skal aktiveres', baseret på en bestemt betingelse (tilstand eller begivenhed).
+- Lav en liste over alt, hvad en Task bruger, der ikke er tilgængeligt på Android-enheden.
+- Bestem 'hvad der udløses', baseret på en specifik betingelse (tilstand eller begivenhed).
 - Gå igennem logikken i en opgave, og sammenlign et udførelse med et andet.
-- Kør en live-overvågning på Android-enheden for at se, hvilke profiler og opgaver der aktiveres.
+- Kør en live-overvågning på Android-enheden for at se, hvilke profiler og opgaver der er aktive.
+- Find ud af, hvad der dræner din batteri.
 
 ## Programafhængigheder
 
@@ -277,9 +278,10 @@ Detaljer om nogle af de punkter, der er nævnt i afsnittet "Fejlfinding og ofte 
 For at hente Tasker-XML-filen direkte:
 
 - Sørg for, at både desktop- og Android-enheder er på samme lokale netværk, og at Tasker er i gang.
-- Projekterne '['Http Server Example' Tasker Projekt](https://shorturl.at/bwCD4) og '['Tasker HTTP API' Tasker Projekt](https://shorturl.at/hlTj0) skal begge være installeret og aktive på Android-enheden, med serveren i gang. Husk at køre opgaven "Update GD HTTP Info" og (kun første gang) indtaste din Google Drive-ID, når du bliver bedt om det.
+- Projekterne '['Http Server Example' Tasker Projekt](https://shorturl.at/bwCD4) og '['Tasker HTTP API' Tasker Projekt](https://shorturl.at/hlTj0) skal begge være installeret og aktive på Android-enheden, med serveren i gang. Husk at køre "Update GD HTTP Info"-opgaven og (kun første gang) indtaste dit Google Drive-ID, når du bliver bedt om det.
+  - VIGTIGT: MapTasker har mulighed for at installere 'Http Server Example' for dig. Du finder denne mulighed under panelet 'HENT XML FRA ANDROID-ENHED'. Men du *skal* have 'Tasker HTTP API' installeret, før dette virker.
 - Når den er hentet, gemmes XML-filen på dit skrivebord, og den behøver ikke at hentes igen, medmindre den er blevet ændret.
-- Forskellige andre funktioner i MapTasker vil først bede dig om at give tilladelse på din Android-enhed for at aktivere den specifikke funktion.
+- Forskellige andre funktioner i MapTasker vil først bede dig om at give tilladelse på din Android-enhed for at kunne bruge den pågældende funktion.
 
 ### 3
 **AI-understøttelse**

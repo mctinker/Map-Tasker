@@ -62,36 +62,37 @@ Taskerin varmuuskopio tai muu Taskerin viety XML voidaan joko latata manuaalises
 
 ## Ominaisuudet
 
-- Valitsemasi tulostuksen yksityiskohtien taso, alkaen yleisestä yhteenvedosta aina erittäin yksityiskohtaiseen asetustasoon.
+- Valitsemasi tulostustasojen tarkkuus, aina yleiskuvaukseen asti erittäin yksityiskohtaiseen konfiguraatiotietojen esitykseen.
 - Näytä vain yksi projekti, profiili tai tehtävä.
 - Sisällytä/poista profiilin ja tehtävien ehdot: Tilat, tapahtumat jne.
-- Toista kaikki materiaali tai järjestä kaikki kentät siten, että lopputulos näyttää "siistiltä".
-- Muuta ulkonäköä: valitse 'valo' tai 'tumma' -tila.
-- Tulosta tulos suosikkisi monolinjafontilla ja korosta Projektin, Profiilin ja Tehtävän nimiä kursivoimalla, lihavoimalla, alleviivauksella tai alleviivauksella.
-- Muokkaa ulostulon eri osa-alueisiin liittyviä värejä, jotta ne vastaavat mielentilaasi.
-- Sisällytä TaskerNet-kuvaukset ja/tai Tasker-asetukset.
-- Monimutkaisille asetuksille, voit valinnaisesti lisätä sanaston, jossa on linkkejä projekteihisi, profiileihisi, tehtäviisi ja kohtauksiisi.
-- Näytä kaavio koko Tasker-asetuksistasi sekä tehtävien virta.
-- Komentorivi tai graafinen käyttöliittymä.
-- Käytä tuotettua XML-tiedostoa tai hanki XML-tiedosto suoraan Android-laitteeltasi konfiguraation määrittämiseen.
+- Toista kaikki materiaali tai muokkaa tulosteen ulkoasua niin, että kaikki kentät ovat linjassa.
+- Muuta ulkonäköä: valitse 'valo' tai 'tumma' -tilat.
+- Tulosta tulos suosikkikirjaimella, ja korosta Projektin, Profiilin ja Tehtävän nimiä lihavoimalla, kursivoimalla, alleviivauksella tai yhdistämällä useita menetelmiä.
+- Muuta ulostulon eri osa-alueisiin liittyviä värejä, jotta ne sopivat mielentilaasi.
+- Sisällytä TaskerNet-kuvaukset ja/tai Taskerin asetukset.
+- Monimutkaisille asetuksille, voit halutessasi sisällyttää sanaston, jossa on linkkejä projekteihisi, profiileihisi, tehtäviisi ja kohtauksiisi.
+- Esittele kaavio, jossa esitetään koko Tasker-asetuksesi sekä tehtävien kulku.
+- Komentoriväli tai graafinen käyttöliittymä.
+- Käytä tuotettua XML-tiedostoa tai hanki XML-tiedosto suoraan Android-laitteeltasi konfiguraation kartoitukseen.
 - Lähetä projekteja, profiileja, tehtäviä ja kohtauksia takaisin Tasker-sovellukseen Android-laitteellasi.
 - Tallenna ja palauta suoritusaikaiset asetukset.
-- Tunnista tehtävät, joissa on liian monta "vaihetta", ja jotka voisivat mahdollisesti jaettuna useiksi yksittäisiksi tehtäviksi.
-- "Ai-analyysi -toiminto mahdollistaa tietyn projektin, profiilin, tehtävän tai kohtauksen analysoinnin käyttämällä joko palvelimella toimivia ChatGPT/Claude/Gemini- tai paikallisesti toimivia Llama-malleja (käyttäen Ollamaa).
+- Tunnista tehtävät, joissa on liian monta "toimintoa", ja jotka voisivat mahdollisesti pilkata useiksi erillisiksi tehtäviksi.
+- "Ai-analyysivaihtoehto mahdollistaa tietyn projektin, profiilin, tehtävän tai kohtauksen analysoinnin käyttämällä joko palvelimella toimivaa ChatGPT/Claude/Gemini- tai paikallisella järjestelmällä toimivaa Llamaa (Ollamalla), tuettuja malleja."
 - Näytä tulokset suoraan käyttöliittymässä: (Konfiguraatio) Kartanäkymä, puunäkymä ja kaavionäkymä.
-- Automaattinen päivitysten havaitseminen ja valinnainen uusien versioiden asennus.
+- Automaattinen päivitysten havaitseminen ja valinnaisten uusien versioiden asennus.
 - Parannettu hakutoiminto ja rakenteellinen "Etsi/Korvaa" -toiminto.
 - Lisää ja muokkaa projekteja, profiileja, tehtäviä ja kohtauksia (katso [Huom. 6](#6))
-- Luettelon muutokset tietty päivämäärästä lähtien.
+- Muutokset luettelossa tiettyyn päivään mennessä.
 - Analysoi Tasker-XML:n terveyttä sekä useita muuttujia asetuksissa.
 - Vertaa XML-tiedostoa ladatun XML-tiedoston kanssa.
-- Tarkista TaskerNet-palvelusta päivitykset projekteille, profiileille ja tehtäville, ja ota ne käyttöön, jos mahdollista.
+- Tarkista TaskerNet-alusta uusimmat tiedot projekteista, profiileista ja tehtävistä, ja ota ne käyttöön, jos mahdollista.
 - Tuo Tasker-objekti toisesta XML-tiedostosta, sekä kaikki sen riippuvuudet.
 - Tee trendianalyysi nähdäksesi, paraneeko koodisi (tai ei).
 - Tee inventaario kaikista asioista, joita tehtävä käyttää Android-laitteen ulkopuolella.
-- Määritä, mikä toimii tietyn ehdon (tilanteen tai tapahtuman) perusteella.
-- Tutki tehtävän logiikkaa ja vertaa yhtä suoritusta toiseen.
-- Käytä Android-laitteessa reaaliaikaista valvontaa nähdäksesi, mitkä profiilit ja tehtävät ovat aktiivisina.
+- Määritä, mikä "laukeaa" tietyn ehdon (tilanteen tai tapahtuman) perusteella.
+- Tutki tehtävän logiikkaa ja vertaile yhtä suoritusta toiseen.
+- Käytä Android-laitteessa reaaliaikaista valvontaa nähdäksesi, mitkä profiilit ja tehtävät ovat aktiivisessa käytössä.
+- Selvitä, mitkä asiat kuluttavat akkusi eniten.
 
 ## Ohjelman riippuvuudet
 
@@ -277,9 +278,10 @@ Yksityiskohdat joistakin kohdista, jotka mainittiin "Vianmääritys ja usein kys
 Hakeaksesi Tasker-XML-tiedoston suoraan:
 
 - Varmista, että sekä tietokone- että Android-laitteet ovat samassa paikallisessa verkossa ja että Tasker-sovellus on käynnissä.
-- ['Http Server Example' Tasker-projektin](https://shorturl.at/bwCD4) ja ['Tasker HTTP API' Tasker-projektin](https://shorturl.at/hlTj0) on oltava molemmat asennettuina ja toiminnassa Android-laitteella, kun palvelin on käynnissä. Muista suorittaa "Update GD HTTP Info" -tehtävä ja (vain ensimmäisellä kerralla) syöttää Google Drive -tunnuksesi, kun sitä pyydetään.
-- Kun XML on ladattu, se tallennetaan työpöydälle, eikä sitä tarvitse ladata uudelleen, ellei sitä ole muutettu.
-- Muut MapTaskerin ominaisuudet pyytävät ensin sinulta Android-laitteellasi käyttöoikeuden kyseisen ominaisuuden käyttämiseen.
+- ['Http Server Example' - Tasker-projekti](https://shorturl.at/bwCD4) ja ['Tasker HTTP API' - Tasker-projekti](https://shorturl.at/hlTj0) on asuttava ja aktiivisia Android-laitteella, kun palvelin on käynnissä. Muista suorittaa "Update GD HTTP Info" -tehtävä ja (vain ensimmäisellä kerralla) syöttää Google Drive -tunnuksesi, kun sitä pyydetään.
+  - HUOMIO: MapTaskerissä on mahdollisuus asentaa "Http Server Example" -ohjelma automaattisesti. Löydät tämän vaihtoehdon "Hanki XML ANDROID-LAITTEESTA" -kohdasta. Mutta jotta tämä toimii, sinun on *tietty* että "Tasker HTTP API" on jo asennettu.
+- Kun tiedosto on ladattu, se tallennetaan työpöydälle, ja sitä ei tarvitse ladata uudelleen, ellei sitä ole muutettu.
+- Muut MapTaskerin ominaisuudet pyytävät ensin sinulta Android-laitteellasi käyttöoikeuden kyseiselle ominaisuudelle.
 
 ### 3
 **AI-tuki**
