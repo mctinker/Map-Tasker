@@ -555,6 +555,7 @@ strict = [
     "maptasker/src/analysis/diffload.py",
     "maptasker/src/analysis/folderwatch.py",
     "maptasker/src/analysis/impact.py",
+    "maptasker/src/analysis/batteryaudit.py",
     "maptasker/src/analysis/livemon.py",
     "maptasker/src/analysis/mapask.py",
     "maptasker/src/analysis/outbound.py",

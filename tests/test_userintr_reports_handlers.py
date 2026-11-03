@@ -390,6 +390,55 @@ def test_an_outbound_report_that_could_not_be_written_says_so(
 
 
 # ##################################################################################
+# Battery Audit
+# ##################################################################################
+def test_battery_with_nothing_loaded_asks_for_a_file(seen: SimpleNamespace) -> None:
+    handlers = _handlers(loaded=False)
+
+    handlers.reports.battery_event()
+
+    assert "No XML file has been loaded" in _said(handlers)[0][0]
+    assert seen.views == []
+
+
+@pytest.mark.parametrize(
+    ("counts", "told"),
+    [
+        ({"findings": 0, "heavy": 0}, ("Battery Audit found nothing that keeps the phone busy.", "positive")),
+        ({"findings": 5, "heavy": 0}, ("Click a finding to see it in the Map view.", "info")),
+        (
+            {"findings": 5, "heavy": 2},
+            ("Some Projects score Heavy or worse.  Click a finding to see it in the Map view.", "warning"),
+        ),
+    ],
+)
+def test_battery_saves_shows_and_says_how_it_went(
+    seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch, counts: dict[str, int], told: tuple
+) -> None:
+    monkeypatch.setattr(userintr_reports, "run_battery_audit", lambda state: ([SimpleNamespace()], counts))
+    monkeypatch.setattr(userintr_reports, "write_battery_report", lambda rows, state: seen.saved_as)
+    handlers = _handlers()
+
+    handlers.reports.battery_event()
+
+    assert _said(handlers) == [("Battery Audit saved as /out/report.txt", "Green")]
+    assert seen.views == [("Misc View", "<html 1 rows>")]
+    assert seen.notified == [told]
+
+
+def test_a_battery_report_that_could_not_be_written_says_so(
+    seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(userintr_reports, "run_battery_audit", lambda state: ([], {"findings": 0, "heavy": 0}))
+    monkeypatch.setattr(userintr_reports, "write_battery_report", lambda rows, state: "")
+    handlers = _handlers()
+
+    handlers.reports.battery_event()
+
+    assert _said(handlers) == [("Battery Audit report could not be saved.", "Red")]
+
+
+# ##################################################################################
 # Compare
 # ##################################################################################
 @pytest.fixture

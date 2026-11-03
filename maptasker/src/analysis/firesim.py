@@ -243,6 +243,21 @@ def tasker_matches(pattern: str, value: str) -> bool:
     return hit != negate
 
 
+def repeat_minutes(element: Element) -> int:
+    """How often a <Time> condition repeats, in minutes -- 0 when it does not, or when it is set by a variable.
+
+    <repval> is the count and <rep> the unit ("2" minutes, anything else hours).  Public because the Battery Audit asks
+    the same question of the same element, and two readings of "every 12 minutes" that could drift apart would have the
+    simulator and the audit disagree about one Profile.
+    """
+    if _text(element, "fromvar") or _text(element, "tovar"):
+        return 0
+    count = _number(element, "repval")
+    if count <= 0:
+        return 0
+    return count * (1 if _text(element, "rep") == _REPEAT_MINUTES else 60)
+
+
 # ##################################################################################
 # Judging one condition.
 # ##################################################################################
@@ -264,11 +279,7 @@ def _judge_time(element: Element, scenario: Scenario) -> tuple[Verdict, bool]:
     end = to_h * 60 + max(to_m, 0) if to_h != _UNSET else None
     now = scenario.when.hour * 60 + scenario.when.minute
 
-    interval = _number(element, "repval")
-    if interval > 0:
-        interval *= 1 if _text(element, "rep") == _REPEAT_MINUTES else 60
-    else:
-        interval = 0
+    interval = repeat_minutes(element)
     every = f"every {interval // 60} hour(s)" if interval and interval % 60 == 0 else f"every {interval} minute(s)"
 
     if start is None and end is None:

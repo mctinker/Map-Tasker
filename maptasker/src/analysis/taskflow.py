@@ -861,6 +861,16 @@ def analyze_task_flow(task_id: str, project_name: str = "", *, state: RunState) 
     return Flow(where, steps, structure.depth, structure.blocks, jumps, reachable, problems)
 
 
+def successors(flow: Flow) -> dict[int, set[int]]:
+    """{action index: the actions that can come next} for a Task already read -- the graph the unreachable check walks.
+
+    An action with no successor ends the Task: a Stop or a Return, or the last action.  Public for the modules that ask
+    where execution can go from here rather than whether it can get there (the Battery Audit asks whether a loop can be
+    left).  Built from the same blocks and jumps the Flow carries, so it cannot disagree with the report about them.
+    """
+    return _successors(flow.steps, flow.blocks, flow.jumps)
+
+
 def control_flow_problems(state: RunState) -> list[Problem]:
     """Every control-flow defect in the loaded configuration.
 

@@ -768,6 +768,7 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
         ).style("white-space: pre-wrap")
 
     _create_outbound_button(self)
+    _create_battery_button(self)
     _create_simulation_buttons(self)
 
 
@@ -792,6 +793,32 @@ def _create_outbound_button(self: MyGui) -> None:
                 "http, an address built from a variable, an action carrying a key or password.  Keys found in "
                 "an address are replaced in the report.\n\nResults are displayed here and saved to a text file "
                 "in the Output Folder.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
+def _create_battery_button(self: MyGui) -> None:
+    """Battery Audit, beside the other whole-configuration reports: what keeps the phone busy, and how much?"""
+    battery_button = (
+        ui.button(
+            translate_string("Battery Audit"),
+            color="teal",
+            on_click=self.event_handlers.reports.battery_event,
+            icon="battery_alert",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with battery_button:
+        ui.tooltip(
+            translate_string(
+                "Find what keeps the phone busy and score each Project for it: a Time condition that repeats "
+                "every few minutes (and how many wake-ups a day that is), a Task that loops on a short Wait or "
+                "none, Keep Device Awake -- above all on a Task that loops -- and a repeating Profile whose Task "
+                "goes online.\n\nA loop that finishes, or waits on a dialog, is not counted.  The score is a "
+                "judgement that ranks what to look at first, not a measurement of any battery; the weights are "
+                "printed in the report.\n\nResults are displayed here and saved to a text file in the Output "
+                "Folder.",
             ),
         ).style("white-space: pre-wrap")
 

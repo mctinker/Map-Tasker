@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file!
 ### Added
 
 - Added: __Draft with AI__ in the TaskerNet Description window asks your chosen AI model to write the description from the names of what a Project, Profile or Task contains, and shows exactly what it will send first. It never sends an action's settings, such as an address, message, number, key or variable value, and Undo Draft puts back what you had.
+- Added: __Battery Audit__ finds what keeps the phone busy -- a Time condition that repeats every few minutes, a Task that loops on a short Wait, Keep Device Awake, and a repeating Profile whose Task goes online -- and scores each Project, worst first. The score ranks what to look at first and is not a measurement of any battery.
 - Added: __Insert Requirements__ in the TaskerNet Description window adds a list of what a Project, Profile or Task needs on another phone: its plugins, apps, special access such as root or ADB Wi-Fi, the variables Tasker will ask about, and the Tasker version. Press it again after changing the Project and it replaces the list instead of adding a second one.
 - Added: [Tasker HTTP API](https://shorturl.at/hlTj0) Tasker Project is an additional prequisite for various, direct Tasker interactions. 
 - Added: __Install 'Http Server Example' Project__ in the Get XML From Android Device panel has Tasker open that project's TaskerNet page on your phone, so you can import it without hunting for the link. It needs only the 'Tasker HTTP API' project to be installed already.

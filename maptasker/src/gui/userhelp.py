@@ -408,6 +408,21 @@ DESCRIBE_HELP_TEXT = (
     " said so.  A model on this computer sends nothing anywhere.  Read the draft: the model only has names to go on, and"
     " the names are yours or the share's author's.  \n"
 )
+BATTERY_HELP_TEXT = (
+    "- Battery Audit: Finds what in the loaded configuration keeps the phone busy and scores each Project for it, worst"
+    " first.  It looks for a Time condition that repeats (and counts the wake-ups a day it allows from its own window), a"
+    " Task that loops on a short Wait or none, Keep Device Awake -- most of all on a Task that loops, the combination"
+    " Tasker's own text warns can very quickly drain the battery -- and a repeating Profile whose Task, or a Task it"
+    " performs, goes online.  A loop that something in it can end, such as a Stop or a condition on its Goto, is a job"
+    " that finishes and is only counted when a Wait shows it pacing itself, and then at half; a loop that waits on a"
+    " dialog, a menu, speech or Wait Until is paced by that and is not counted; a Wait or an action that is switched off"
+    " counts for nothing.  Only Profiles that are on, in Projects that are on, count; a Task is read whether or not"
+    " something that is on starts it.  A Project scores its worst finding plus a quarter of the rest, up to 100: Light"
+    " from 1, Moderate from 15, Heavy from 40, Severe from 70.  The score is a judgement that puts what to look at first"
+    " on top, not a measurement of any battery -- how much a wake-up costs depends on the phone, the radio and how long the"
+    " Task runs -- and the weights are printed in the report.  Click a finding to see it in the Map view.  Nothing is"
+    " changed and nothing is sent.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -437,5 +452,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}"
     )

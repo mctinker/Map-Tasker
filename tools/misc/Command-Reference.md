@@ -4,9 +4,9 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **95** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **96** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.1.1 source on 2026-10-30 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.1.1 source on 2026-11-03 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -25,6 +25,7 @@ _Generated from the MapTasker 15.1.1 source on 2026-10-30 by `build_command_wiki
 * [Application Settings: Restore](#cmd-application-settings-restore)
 * [Application Settings: Save](#cmd-application-settings-save)
 * [Assistance tab](#cmd-assistance-tab)
+* [Battery Audit](#cmd-battery-audit)
 * [Changes Since...](#cmd-changes-since)
 * [Clear](#cmd-clear)
 * [Close Tabs On Exit](#cmd-close-tabs-on-exit)
@@ -1378,6 +1379,27 @@ Edit Project has a Launcher Task pulldown that sets the one Task the Project's l
 **Hover text:** The Task this Project's launcher runs -- the one Tasker uses when the Project is started from its own icon. Only this Project's Tasks that have a name are listed. Applied to the loaded backup as soon as you pick it, like Rename and the Enabled switch: Cancel does not undo it, and one press of Undo does. Pick (none) to take the launcher Task away.
 
 **Caveats:**
+
+<a id="cmd-battery-audit"></a>
+### Battery Audit
+
+**Type:** Command  
+**Where:** Right Drawer
+
+Finds what in the loaded configuration keeps the phone busy and scores each Project for it, worst first.
+
+* It looks for a Time condition that repeats (and counts the wake-ups a day it allows from its own window), a Task that loops on a short Wait or none, Keep Device Awake -- most of all on a Task that loops, the combination Tasker's own text warns can very quickly drain the battery -- and a repeating Profile whose Task, or a Task it performs, goes online.
+* Only Profiles that are on, in Projects that are on, count; a Task is read whether or not something that is on starts it.
+* A Project scores its worst finding plus a quarter of the rest, up to 100: Light from 1, Moderate from 15, Heavy from 40, Severe from 70.
+* The score is a judgement that puts what to look at first on top, not a measurement of any battery -- how much a wake-up costs depends on the phone, the radio and how long the Task runs -- and the weights are printed in the report.
+* Click a finding to see it in the Map view.
+* Nothing is changed and nothing is sent.
+
+**Hover text:** Find what keeps the phone busy and score each Project for it: a Time condition that repeats every few minutes (and how many wake-ups a day that is), a Task that loops on a short Wait or none, Keep Device Awake -- above all on a Task that loops -- and a repeating Profile whose Task goes online. The score is a judgement that ranks what to look at first, not a measurement of any battery; the weights are printed in the report. Results are displayed here and saved to a text file in the Output Folder.
+
+**Caveats:**
+
+* A loop that something in it can end, such as a Stop or a condition on its Goto, is a job that finishes and is only counted when a Wait shows it pacing itself, and then at half; a loop that waits on a dialog, a menu, speech or Wait Until is paced by that and is not counted; a Wait or an action that is switched off counts for nothing.
 
 * A launcher Task the Project already names that is not one of its Tasks is shown as such rather than replaced.
 

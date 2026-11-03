@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, cast
 from nicegui import run, ui
 
 from maptasker.src.analysis import timecomp
+from maptasker.src.analysis.batteryaudit import run_battery_audit, write_battery_report
 from maptasker.src.analysis.diffload import (
     current_configuration,
     load_for_comparison,
@@ -390,6 +391,50 @@ class ReportEventHandlers(HandlerGroup):
         else:
             ui.notify(
                 translate_string("Click an action to see it in the Map view."),
+                type="info",
+                position="bottom",
+            )
+
+    def battery_event(self) -> None:
+        """Read the configuration for what keeps the phone busy, then display the audit and save it.
+
+        No panel first, for outbound_event's reason: the question is always the same, and the answer -- a score table, then
+        the findings of each Project that has any -- is short enough to read whole.
+        """
+        gui = self.gui
+        if not self.state.tasker_root_elements["all_tasks"]:
+            gui.display_message_box(
+                translate_string("No XML file has been loaded.  Get an XML file first."),
+                "Red",
+            )
+            return
+
+        rows, counts = run_battery_audit(state=self.state)
+        file_name = write_battery_report(rows, self.state)
+
+        if file_name:
+            gui.display_message_box(f"{translate_string('Battery Audit saved as')} {file_name}", "Green")
+        else:
+            gui.display_message_box(translate_string("Battery Audit report could not be saved."), "Red")
+
+        # The same rows, shown as HTML: see health_check_event for the escaping and the clickable lines.
+        self.gui.textview = NiceGuiTextView(
+            gui,
+            title="Misc View",
+            the_data=mapjump.html_report(rows),
+        )
+
+        if not counts["findings"]:
+            ui.notify(translate_string("Battery Audit found nothing that keeps the phone busy."), type="positive")
+        elif counts["heavy"]:
+            ui.notify(
+                translate_string("Some Projects score Heavy or worse.  Click a finding to see it in the Map view."),
+                type="warning",
+                position="bottom",
+            )
+        else:
+            ui.notify(
+                translate_string("Click a finding to see it in the Map view."),
                 type="info",
                 position="bottom",
             )

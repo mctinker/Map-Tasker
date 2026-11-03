@@ -66,6 +66,8 @@ TASKFLOW_FILE = "MapTasker_TaskFlow.txt"
 FLOWCHART_FILE = "MapTasker_Flowchart.txt"
 # The inventory of everything the configuration reaches outside itself with -- see outbound.py.
 OUTBOUND_FILE = "MapTasker_Outbound.txt"
+# What keeps the phone busy, Project by Project -- see batteryaudit.py.
+BATTERY_FILE = "MapTasker_Battery.txt"
 # Older versions pickled a second settings file here, apart from MapTasker_Settings.toml.  It
 # never held anything and is no longer written; getputer deletes a leftover one, unopened.
 LEGACY_SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
