@@ -14,7 +14,7 @@ import socket
 import sys
 import types
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import pytest
 
@@ -43,7 +43,8 @@ cc = _load()
 class FakeGoogle:
     """deep_translator.GoogleTranslator, marking what it translated and counting how often it was asked."""
 
-    asked: list[tuple[str, str]] = []  # noqa: RUF012 -- shared on purpose: the tool makes the instances
+    # Shared on purpose: the tool makes the instances, so the test has to read what they recorded from the class.
+    asked: ClassVar[list[tuple[str, str]]] = []
 
     def __init__(self, source: str = "en", target: str = "de") -> None:
         self.target = target
