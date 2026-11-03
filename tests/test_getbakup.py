@@ -62,6 +62,18 @@ def test_the_fetched_backup_is_written_under_its_own_name(state: RunState, tmp_p
     assert state.program_arguments.fetched_backup_from_android is True
 
 
+def test_the_fetched_backup_is_the_devices_bytes_whatever_the_platform(state: RunState, tmp_path: Path) -> None:
+    """Written as text it picked up the platform's newline translation: "\\r\\n" came out "\\r\\r\\n" on Windows."""
+    device_file = b'<?xml version="1.0"?>\r\n<TaskerData>\r\n</TaskerData>\r\n'
+    getbakup.write_out_backup_file(device_file, state=state)
+    assert (tmp_path / "backup.xml").read_bytes() == device_file
+
+
+def test_a_fetched_backup_that_arrives_as_text_keeps_its_line_endings_too(state: RunState, tmp_path: Path) -> None:
+    getbakup.write_out_backup_file("<TaskerData>\r\n</TaskerData>\r\n", state=state)
+    assert (tmp_path / "backup.xml").read_bytes() == b"<TaskerData>\r\n</TaskerData>\r\n"
+
+
 def test_a_backup_already_there_is_replaced_not_appended_to(state: RunState, tmp_path: Path) -> None:
     """Yesterday's backup must not survive in the middle of today's."""
     (tmp_path / "backup.xml").write_text("yesterday, and a good deal longer than today", encoding="utf-8")

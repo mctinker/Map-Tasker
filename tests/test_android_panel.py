@@ -22,7 +22,7 @@ from nicegui import ui
 
 from tests.doubles import required
 from tests.faketasker import FakeTasker
-from tests.nicegui_harness import click, found, open_page
+from tests.nicegui_harness import click, found, open_page, settled
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
@@ -175,6 +175,7 @@ async def test_a_phone_that_is_not_there_is_reported_and_nothing_is_fetched(phon
         phone.down()
 
         await click(user, "Click Here to Set XML Details")
+        await settled(lambda: window.messages)
 
     assert "unreachable" in window.messages[-1][0]
     assert window.messages[-1][1] == "Red"

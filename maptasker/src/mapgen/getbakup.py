@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os.path
 from os import getcwd
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as ET
@@ -49,9 +50,6 @@ def write_out_backup_file(file_contents: bytes | str, state: RunState) -> None:
     # Get the name of the file
     my_file_name = state.program_arguments.android_file[name_location:]
 
-    # Convert the binary code to string
-    output_lines = file_contents.decode("utf-8") if isinstance(file_contents, bytes) else file_contents
-
     # Set up the backup file full path
     the_backup_file = state.program_arguments.android_file
     put_message = f"Fetching backup file {my_file_name}: {the_backup_file}"
@@ -61,12 +59,13 @@ def write_out_backup_file(file_contents: bytes | str, state: RunState) -> None:
     if os.path.isfile(my_file_name):
         os.remove(my_file_name)
 
-    # Open output file
-    with open(my_file_name, "w", encoding="utf-8") as out_file:
-        # Write out each line
-        for item in output_lines:
-            item.rstrip()  # Get rid of trailing blanks
-            out_file.write(item)
+    # The file as the device has it, byte for byte.  Written as text it was decoded and written back through
+    # the platform's newline translation, which on Windows turns the file's own "\r\n" into "\r\r\n".
+    if isinstance(file_contents, bytes):
+        Path(my_file_name).write_bytes(file_contents)
+    else:
+        with open(my_file_name, "w", encoding="utf-8", newline="") as out_file:
+            out_file.write(file_contents)
 
     # Set flag to identify that backup file was fetched from Android device
     state.program_arguments.fetched_backup_from_android = True

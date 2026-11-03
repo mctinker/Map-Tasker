@@ -68,6 +68,13 @@ async def press(user: User, element: ui.button) -> None:
     await asyncio.sleep(0.1)
 
 
+async def settled(condition: Callable[[], object], seconds: float = 15.0) -> None:
+    """Wait until this is true, for as long as `seconds`: a refused connection takes Windows about two seconds."""
+    deadline = asyncio.get_running_loop().time() + seconds
+    while not condition() and asyncio.get_running_loop().time() < deadline:
+        await asyncio.sleep(0.1)
+
+
 async def click(user: User, text: str) -> None:
     """Press the button with this text."""
     await press(user, button(user, text))
