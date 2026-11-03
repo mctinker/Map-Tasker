@@ -213,6 +213,10 @@ def extract_string(
 
     if str_element is None or str_element.text is None:
         return ""  # No matching element found
+    if len(str_element):
+        # An element inside the string (a damaged file that left it unclosed) leaves only indentation as its
+        # text -- and indentation is whatever the file was last written with, so it is no value to show.
+        return ""
 
     # Extract text value with prefix
     prefix = argeval

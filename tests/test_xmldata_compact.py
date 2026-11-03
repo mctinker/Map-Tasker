@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import defusedxml.ElementTree as ET
 import pytest
+from maptasker.src.core import xmldata
 from maptasker.src.core.xmldata import parse_tasker_xml, separate_attributes
 
 from tests.doubles import required
@@ -47,3 +48,26 @@ def test_parse_still_rejects_broken_xml(tmp_path) -> None:
     backup.write_bytes(b'<TaskerData sr=""><Task></TaskerData>')
     with pytest.raises(ET.ParseError):
         parse_tasker_xml(str(backup))
+
+
+# ##################################################################################
+# A string argument with an element inside it
+# ##################################################################################
+def test_a_string_that_holds_an_element_has_no_text_of_its_own() -> None:
+    """A damaged file can leave a <Str> unclosed, so the next Task lands inside it.
+
+    What the element then holds as text is the indentation the file happens to have, and a configuration saved and
+    loaded again has different indentation -- so the action read differently the second time (the fuzz of the
+    round trip drew it: "Flash Text=Alarm checked" before the save, "... Position=<spaces>" after).
+    """
+    before = ET.fromstring('<Action><Str sr="arg13" ve="3"><Task sr="task107"/></Str></Action>')
+    after = ET.fromstring('<Action><Str sr="arg13" ve="3">\n\t\t\t\t<Task sr="task107"/>\n\t\t\t</Str></Action>')
+
+    assert xmldata.extract_string(before, "arg13", "Position=") == ""
+    assert xmldata.extract_string(after, "arg13", "Position=") == ""
+
+
+def test_a_string_of_only_spaces_is_still_a_value() -> None:
+    action = ET.fromstring('<Action><Str sr="arg0" ve="3">   </Str></Action>')
+
+    assert xmldata.extract_string(action, "arg0", "Text=") == "Text=   "

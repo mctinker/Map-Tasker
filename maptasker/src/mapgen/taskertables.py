@@ -46,9 +46,11 @@ def move_xml_to_table(all_xml: list[Element], get_id: bool, name_qualifier: str)
         name = name_element.text.strip() if name_element is not None and name_element.text else ""
 
         # Get the Profile/Task identifier: id=number for Profiles and Tasks.  An <id/> with nothing in it is no
-        # identifier at all, and is keyed by name as a missing one is.
+        # identifier at all, and is keyed by name as a missing one is.  So is one with only whitespace in it: a damaged
+        # file can put an element inside <id>, and the indentation left as its text changes with every save.
         id_element = item.find("id")
-        item_id = id_element.text if get_id and id_element is not None and id_element.text else name
+        id_text = id_element.text.strip() if get_id and id_element is not None and id_element.text else ""
+        item_id = id_text or name
 
         new_table[item_id] = {"xml": item, "name": name}
 

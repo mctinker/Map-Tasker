@@ -79,6 +79,22 @@ def test_profiles_and_tasks_are_keyed_by_id() -> None:
     assert tables["all_tasks"]["10"]["name"] == "Wake Up"
 
 
+def test_an_id_with_only_indentation_in_it_is_no_id_at_all() -> None:
+    """A damaged file can put an element inside <id>; what is left as its text is whatever indentation the file was
+    last written with, so a Profile was keyed by its name the first time and by the indentation after a save."""
+    first = _build('<Profile sr="prof1"><id><Project sr="proj0"/></id><nme>Dawn</nme></Profile>')
+    after_a_save = _build('<Profile sr="prof1"><id>\n\t\t\t<Project sr="proj0"/>\n\t\t</id><nme>Dawn</nme></Profile>')
+
+    assert set(first["all_profiles"]) == {"Dawn"}
+    assert set(after_a_save["all_profiles"]) == {"Dawn"}
+
+
+def test_an_id_with_spaces_around_it_is_keyed_without_them() -> None:
+    tables = _build('<Task sr="task10"><id> 10 </id><nme>Wake Up</nme></Task>')
+
+    assert set(tables["all_tasks"]) == {"10"}
+
+
 def test_projects_and_scenes_are_keyed_by_name() -> None:
     """Projects and Scenes carry no <id> -- they are referred to by name, and the two
     tables are keyed that way.  A Project's own name lives in <name>, a Scene's in <nme>.
