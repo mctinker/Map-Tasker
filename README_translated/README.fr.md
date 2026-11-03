@@ -278,7 +278,7 @@ Les détails de certains points mentionnés dans la section « Dépannage et FAQ
 Pour récupérer directement le fichier XML Tasker :
 
 - Assurez-vous que les appareils de bureau et Android sont connectés au même réseau local et que Tasker est en cours d'exécution.
-- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) and ['Tasker HTTP API' Tasker Project](https://shorturl.at/hlTj0) must both be installed and active on the Android device, with the server running. Remember to run the "Update GD HTTP Info" Task and (first time only) enter your Google Drive ID when prompted.
+- Les projets [« Http Server Example » Tasker Project](https://shorturl.at/bwCD4) et [« Tasker HTTP API » Tasker Project](https://shorturl.at/hlTj0) doivent tous deux être installés et actifs sur l'appareil Android, avec le serveur en cours d'exécution. N'oubliez pas d'exécuter la tâche « Update GD HTTP Info » et, lors de la première utilisation seulement, de saisir votre ID Google Drive lorsque cela vous est demandé.
   - AVIS : MapTasker vous offre la possibilité d'installer « Http Server Example » pour vous. Vous trouverez cette option dans le panneau « Obtenir les données XML à partir de l'appareil Android ». Cependant, vous *devez* avoir « Tasker HTTP API » préinstallé pour que cela fonctionne.
 - Une fois récupéré, le fichier XML est enregistré sur votre bureau et n'a pas besoin d'être récupéré à nouveau, sauf s'il est modifié.
 - D'autres fonctionnalités de MapTasker vous demanderont initialement, sur votre appareil Android, l'autorisation d'utiliser la fonctionnalité spécifique.

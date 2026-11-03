@@ -1,8 +1,7 @@
 {
   "READMEs: changed": {
-    "- Ensure both desktop and Android devices are on the same local networ": "ar es fr ja",
-    "- If you find a bug, please open an issue on the [GitHub Issues page](": "zh-CN",
-    "2- The following two sample Tasker projects on your target Android dev": "ar da fr ru"
+    "- Ensure both desktop and Android devices are on the same local networ": "ar es ja",
+    "- If you find a bug, please open an issue on the [GitHub Issues page](": "zh-CN"
   },
   "READMEs: still English": {
     "- `maptasker/`: Contains the core application code. - `maptasker/src/`": "hi"
