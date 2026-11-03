@@ -420,21 +420,12 @@ Repair the Health Check findings that have an obvious fix -- set a long-running 
 
 Compare another XML file against the loaded one to see what was added, removed, renamed and changed.
 
-**Hover text:** Compare another XML file against the loaded one: what was added, removed, renamed and changed. Use it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups. If the loaded file came from 'Save to Current File', the file it was saved from is offered directly. Results are displayed here and saved to a text file in the Output Folder.
-
 **Opens:** Choose Comparison File
 
 <a id="cmd-changes-since"></a>
 ### Changes Since...
 
-**Type:** Command  
-**Where:** Right Drawer
-
 Show what has changed in your configuration since a moment you choose -- today, this week, this month, everything kept, or a specific date. Every configuration you load is kept, compressed, in the 'MapTasker_Timeline' folder in the current directory, so there is no file to find.
-
-**Hover text:** What has changed in your configuration since a moment you choose: today, this week, this month, everything kept, or a specific date. No file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from back then is compared against what you have open now. Results are displayed here and saved to a text file in the Output Folder.
-
-**Opens:** Changes Since
 
 <a id="cmd-restore-from-history"></a>
 ### Restore From History
@@ -443,8 +434,6 @@ Show what has changed in your configuration since a moment you choose -- today, 
 **Where:** Right Drawer
 
 Bring back a Task, Profile or Scene that has been deleted, or put one back as it was before it was edited, from any configuration kept in that history. One object at a time: each restore is previewed before anything is done, says what it leaves for you to do (a Profile to relink, say), and is one press of Undo afterwards.
-
-**Hover text:** Bring back a Task, Profile or Scene that has been deleted, or put one back as it was before it was edited -- from any configuration kept in the history that 'Changes Since...' reads. One object at a time, never a merge: every restore is shown before anything happens, says what it leaves for you to do (a Profile to relink, say), and is one press of Undo afterwards.
 
 <a id="cmd-variable-xref"></a>
 ### Variable Xref
@@ -716,13 +705,9 @@ Give the object being edited a new name.
 
 * Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing.
 * Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it.
-* Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it. The Scene Name field above is read-only -- this is the only way to change it.
+* Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along.
 
 **Opens:** Rename, Rename Legacy Element
-
-**Caveats:**
-
-* Tasks that show or hide this Scene by name are NOT updated; those still name the old Scene.
 
 <a id="cmd-delete"></a>
 ##### Delete
@@ -730,7 +715,7 @@ Give the object being edited a new name.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Delete All; Item Layout; Render (and 2 more)
+**Where:** Delete All; Item Layout; Render (and 1 more)
 
 Remove the object being edited from the loaded XML.
 
@@ -1175,8 +1160,6 @@ Link a Project, Profile, Task or Scene to the TaskerNet share it came from (past
 * Stop ends the reading of TaskerNet's list early and compares yours with the part already read; Select All and Deselect All tick the whole list of possible matches.
 * Each linked share shows when it was last checked, and Check Now ignores the 6 hours and checks every one.
 
-**Hover text:** Link a Project, Profile, Task or Scene to the TaskerNet share it came from, and find out when its author publishes a newer version. Shows what the author changed and lets you take each change on its own, previewed first and one press of Undo afterwards. Only the address of each linked share is sent to taskernet.com; nothing from your configuration leaves this computer.
-
 **Caveats:**
 
 * Find Links searches TaskerNet's public shares for the ones your Projects, Profiles, Tasks and Scenes came from and links those whose content agrees with yours -- a name alone is not enough, as different authors reuse names; partial matches are listed for you to tick.
@@ -1380,6 +1363,23 @@ Edit Project has a Launcher Task pulldown that sets the one Task the Project's l
 
 **Caveats:**
 
+* A launcher Task the Project already names that is not one of its Tasks is shown as such rather than replaced.
+
+<a id="cmd-requirements-and-draft-with-ai"></a>
+### Requirements and Draft with AI
+
+Two buttons in the TaskerNet Description window help fill it in.
+
+* Insert Requirements adds, at the end, a list headed 'What you need to use this' with the plugins, apps and special access (root, ADB Wi-Fi, Write Secure Settings and so on) the Project, Profile or Task uses, the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on -- the same list Check Readiness shows, worked out from the file.
+* Press it again after changing the Project and it replaces the list rather than adding a second.
+* Draft with AI asks the AI model chosen on the Analyze tab to write the description itself.
+* What it is sent is shown, word for word, under 'What will be sent' before you press it: the names of the Profiles, Tasks and Scenes, what starts each Profile, the names of the actions in each Task (not If, Else or Goto), what the share needs on another phone, and the description you have written so far.
+* It is never sent an action's settings -- no address, message, number, key or variable value -- nor the requirements list, which is left as it is.
+* The draft replaces what is in the box, where Undo Draft takes it back, and nothing is kept until you press Ok.
+* What comes back is rebuilt from a short list of safe tags, so a script, link, image or style the model was talked into writing is taken out, and it is said so.
+* A model on this computer sends nothing anywhere.
+* Read the draft: the model only has names to go on, and the names are yours or the share's author's.
+
 <a id="cmd-battery-audit"></a>
 ### Battery Audit
 
@@ -1400,23 +1400,6 @@ Finds what in the loaded configuration keeps the phone busy and scores each Proj
 **Caveats:**
 
 * A loop that something in it can end, such as a Stop or a condition on its Goto, is a job that finishes and is only counted when a Wait shows it pacing itself, and then at half; a loop that waits on a dialog, a menu, speech or Wait Until is paced by that and is not counted; a Wait or an action that is switched off counts for nothing.
-
-* A launcher Task the Project already names that is not one of its Tasks is shown as such rather than replaced.
-
-<a id="cmd-requirements-and-draft-with-ai"></a>
-### Requirements and Draft with AI
-
-Two buttons in the TaskerNet Description window help fill it in.
-
-* Insert Requirements adds, at the end, a list headed 'What you need to use this' with the plugins, apps and special access (root, ADB Wi-Fi, Write Secure Settings and so on) the Project, Profile or Task uses, the variables Tasker will ask the importer about, and the oldest Tasker it is known to run on -- the same list Check Readiness shows, worked out from the file.
-* Press it again after changing the Project and it replaces the list rather than adding a second.
-* Draft with AI asks the AI model chosen on the Analyze tab to write the description itself.
-* What it is sent is shown, word for word, under 'What will be sent' before you press it: the names of the Profiles, Tasks and Scenes, what starts each Profile, the names of the actions in each Task (not If, Else or Goto), what the share needs on another phone, and the description you have written so far.
-* It is never sent an action's settings -- no address, message, number, key or variable value -- nor the requirements list, which is left as it is.
-* The draft replaces what is in the box, where Undo Draft takes it back, and nothing is kept until you press Ok.
-* What comes back is rebuilt from a short list of safe tags, so a script, link, image or style the model was talked into writing is taken out, and it is said so.
-* A model on this computer sends nothing anywhere.
-* Read the draft: the model only has names to go on, and the names are yours or the share's author's.
 
 ## Command-Line Arguments
 

@@ -90,6 +90,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Determine 'what fires when', based on a specific condition (state or event).
 - Step through the logic of a Task, and compare one run against another.
 - Run a live monitor on the Android device to see which Profiles and Tasks fire.
+- Identify what is hard on your battery.
 
 ## Program Dependencies
 
@@ -278,8 +279,10 @@ To retrieve the Tasker XML file directly, and interact directly with Tasker for 
 
 - Ensure both desktop and Android devices are on the same local network and that Tasker is running.
 - The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) and ['Tasker HTTP API' Tasker Project](https://shorturl.at/hlTj0) must both be installed and active on the Android device, with the server running. Remember to run the "Update GD HTTP Info" Task and (first time only) enter your Google Drive ID when prompted.
+  - NOTE: MapTasker has the option to install 'Http Server Example' for you.  You can find this option under the 'GET XML FROM ANDROID DEVICE' panel.  But you *must* have 'Tasker HTTP API' pre-installed for this to work.
 - Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
 - Various other MapTasker features will first prompt you on your Android device for authorization to run the specific feature.
+
 
 ### 3
 **AI Support**
