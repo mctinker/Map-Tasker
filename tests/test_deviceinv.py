@@ -1214,8 +1214,8 @@ def test_a_fetch_returns_the_paths_the_device_reported(file_list_device: _FakeFi
 
 
 def test_the_listing_task_is_not_imported_twice(file_list_device: _FakeFileListRequests) -> None:
-    """api/import ADDS a Task of the same name rather than replacing it, so a fetch that
-    imported unconditionally would leave a growing pile of identical Tasks behind."""
+    """api/import refuses a Task whose name Tasker has (a 400), so a fetch that imported
+    unconditionally would fail every time after the first."""
     file_list_device.task_installed = True
     devicefiles.fetch_file_list_from_device("192.168.0.210", "1821", state=PrimeItems)
 
@@ -1700,8 +1700,8 @@ def test_the_import_task_reports_only_after_it_has_imported(import_device: _Fake
 
 
 def test_a_profile_tasker_already_has_is_refused(import_device: _FakeImportRequests) -> None:
-    """api/import ADDS a Task whose name is taken rather than replacing it.  If a
-    Configuration import behaves the same, importing over an existing Profile leaves two --
+    """api/import refuses a Task whose name is taken rather than replacing it.  What a
+    Configuration import does with an existing Profile is not established -- it may leave two --
     so the name is checked before anything is uploaded or run."""
     import_device.installed_profiles = {"Watched"}
 
@@ -1725,8 +1725,8 @@ def test_allow_existing_gets_past_that(import_device: _FakeImportRequests) -> No
 
 
 def test_the_import_task_is_not_installed_twice(import_device: _FakeImportRequests) -> None:
-    """Same reason as every other helper: api/import adds rather than replaces, so a second
-    import would leave a second identical Task behind."""
+    """Same reason as every other helper: api/import refuses a name it has, so a second
+    import would be turned away."""
     import_device.installed_tasks.add(deviceimport.IMPORT_PROFILE_TASK_NAME)
 
     return_code, message = _import(import_device)
@@ -2855,7 +2855,7 @@ def test_the_helper_task_name_moved_with_what_the_task_opens() -> None:
 # Which of this program's helper Tasks on the device are dead
 #
 # Every helper is installed under a versioned name and never replaced -- Tasker's api/import
-# adds a Task whose name is taken rather than replacing it -- so each change to a helper's
+# refuses a Task whose name is taken rather than replacing it -- so each change to a helper's
 # body leaves the previous generation behind in the user's own Task list.  Nothing can delete
 # them from here (the server example has no route for it), so the whole feature is: name them
 # exactly, and be careful not to name a live one.
@@ -3517,7 +3517,7 @@ def test_a_saved_task_with_a_regex_name_is_confirmed_by_the_object_list(
     regex_tasker: _FakeRegexTasker, name: str
 ) -> None:
     """Reporting it missing would make Save To Android import it a second time -- and api/import
-    adds another Task of the same name rather than replacing the one already there."""
+    refuses a Task of a name Tasker has rather than replacing the one already there."""
     assert devicetask.confirm_task_on_android("192.168.0.210", "1821", name, "TESTKEY", state=PrimeItems)
     assert devicetask.OBJECT_LIST_TASK_NAME in regex_tasker.installed
 

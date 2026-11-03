@@ -243,7 +243,9 @@ def save_task_to_android_file(
     return return_code, result
 
 
-def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_key: str) -> bool:
+def verify_task_on_android(
+    ip_address: str, ip_port: str, task_name: str, auth_key: str, timeout: float | None = None
+) -> bool:
     """Confirms the Task actually landed in Tasker after a save_task_to_android
     import, via the Tasker HTTP API's GET /api/tasks?name=<task_name> (Response:
     task objects -- a JSON array of {"name": ..., "running": ...}, filtered to
@@ -253,6 +255,10 @@ def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_k
 
     Returns True if the GET succeeded and returned at least one Task named
     task_name, False otherwise.
+
+    timeout: how long to wait for the answer; None is the usual few seconds.  A caller that acts on a False
+    (install_task_on_android imports the Task when it is not there) has to give a slow phone time to answer, or
+    "did not answer in time" is taken for "is not there".
     """
     # A name the filter cannot carry (see maputil2.tasker_name_query) is looked for in the
     # whole list, which the device takes seconds to produce.
@@ -264,7 +270,7 @@ def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_k
         "api/tasks",
         query or "",
         auth_key,
-        **({} if query else {"timeout": LIST_READ_TIMEOUT_SECONDS}),
+        **({"timeout": timeout} if timeout else {} if query else {"timeout": LIST_READ_TIMEOUT_SECONDS}),
     )
     if return_code != 0:
         return False

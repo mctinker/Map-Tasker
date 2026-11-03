@@ -185,7 +185,7 @@ def build_helper_tasks_dialog(stale: list[str], current: list[str], device: str)
     'MapTasker Open Profile v2' is safe to remove.
 
     Why there are any: a helper's name carries a version because its BODY changes between
-    releases and Tasker's api/import adds rather than replaces (see
+    releases and Tasker's api/import refuses a name it has rather than replacing it (see
     devicetask.install_task_on_android), so the previous one is left behind, running fine and
     doing the wrong thing if it were ever used.  Nothing breaks while they sit there; they
     are clutter in a list the user owns.

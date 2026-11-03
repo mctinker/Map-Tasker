@@ -426,6 +426,18 @@ def spaced_attempts(attempts: int, interval_seconds: float) -> Iterator[int]:
         yield attempt
 
 
+def _status_failure(url: str, response: requests.Response) -> str:
+    """The message for a request the device answered with a status that means no.
+
+    What the device says in the body is added when it says anything -- Tasker's HTTP API answers an import it
+    would not take with a bare 400, and a body is the only place a reason could be.  Cut short: it is shown to
+    a person, and may be a page.
+    """
+    message = f"Request failed for url: {url} ...with status code {response.status_code}"
+    body = (getattr(response, "text", "") or "").strip()[:200]
+    return f"{message}.  The device said: {body}" if body else message
+
+
 # Issue HTTP Request to get something from the Android device.
 def http_request(
     ip_address: str,
@@ -496,7 +508,7 @@ def _get_once(
     if response.status_code == 404:
         return 404, 6, "File " + file_location + " not found."
 
-    return response.status_code, 8, f"Request failed for url: {url} ...with status code {response.status_code}"
+    return response.status_code, 8, _status_failure(url, response)
 
 
 # How long to keep asking for a file /upload has just written, before calling the write
@@ -637,7 +649,7 @@ def _request_android_auth_key(url: str) -> tuple[int, str, bool]:
         )
 
     if response.status_code != 200:
-        return 8, f"Request failed for url: {url} ...with status code {response.status_code}", True
+        return 8, _status_failure(url, response), True
 
     if auth_object is None:
         return 8, f"Auth response from {url} was not valid JSON: {response.content!r}", False
@@ -818,7 +830,7 @@ def http_post_request(
             "what happens on the device when the request arrives."
         )
 
-    return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
+    return 8, _status_failure(url, response)
 
 
 # Issue HTTP Request to write a raw file onto the Android device's storage (NOT into
@@ -865,7 +877,7 @@ def http_upload_request(
         return 8, error_message
 
     if response.status_code != 200:
-        return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
+        return 8, _status_failure(url, response)
 
     return 0, ""
 
@@ -909,7 +921,7 @@ def http_delete_request(
     if response.status_code in (200, 404):
         return 0, ""
 
-    return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
+    return 8, _status_failure(url, response)
 
 
 # Log the arguments

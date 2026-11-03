@@ -124,7 +124,12 @@ _SEND_INTENT_MIME_TYPE = "text/xml"
 # It cannot be confirmed from here -- Tasker's manifest is not in this repo and the only
 # proof is a device -- so if the chooser still comes up without Tasker in it, this is the
 # line that was wrong, and the file is in Tasker's own folder under its own name to be
-# imported by hand either way.
+# imported by hand either way.  tools/device_check.py open-with-profile and open-with-project are that proof: they
+# do the offer on a real phone and ask what came up.
+#
+# MEASURED 2026-11-03 for a PROJECT (open-with-project, a real phone): Android's "Open with" list came up, with Tasker
+# in it, so the no-mime-type reasoning held.  The Profile check could not be run that day: the helper Task's import was
+# refused with a 400 (see devicetask.install_task_on_android).
 _OPEN_WITH_MIME_TYPE = ""
 _OPEN_PAYLOAD_OFFERED = "OFFERED"
 # Firing an intent is immediate; this is a timeout on the device answering at all.
@@ -160,6 +165,11 @@ _OPEN_POLL_ATTEMPTS = 15
 # File' exists to avoid, since it can hand out a content:// URI from Tasker's own
 # FileProvider and this cannot.  Whether Tasker's 'Send Intent' converts it or passes it
 # straight through is not established here.
+#
+# MEASURED 2026-11-03 (tools/device_check.py send-intent-profile, a real phone): Tasker opened, on its default Project
+# ('Base'), and showed no import screen and no chooser.  The same as the Scene measured above: the intent reaches Tasker
+# and Tasker does nothing with the file.  So this route does not do what the 'Open File' route does, and is no fallback
+# for it.
 _VIEW_ACTION = "android.intent.action.VIEW"
 # Both dropdowns by the label apply_arg_values matches on -- see actiont.lookup_values
 # ["877"] and ["877a"], and the real backups above, which agree on both.

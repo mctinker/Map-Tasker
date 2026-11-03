@@ -11,6 +11,22 @@ These are held to the project's lint and format gates (`[tool.ruff]` covers
 `tools/` as well as `maptasker/` and `scripts/`), with a few relaxed rules for
 one-off scripts listed in `pyproject.toml`.
 
+## device_check.py
+
+Tries MapTasker's device features on a real phone and keeps the answers. Much of what the program does to an Android
+device was worked out from Tasker's files and never seen working (the code says "reasoned, not measured" where so);
+the fake phone in `tests/` proves the conversation and nothing about what Android does with it. This asks the phone,
+and asks you what you saw on its screen, and appends the run to `device_check_results.json` with the date.
+
+```
+python tools/device_check.py --ip 192.168.0.210 --list                          what each check settles
+python tools/device_check.py --ip 192.168.0.210                                  the automatic checks
+python tools/device_check.py --ip 192.168.0.210 --backup backup.xml              all of them
+python tools/device_check.py --ip 192.168.0.210 --only open-with-profile,share-link
+```
+
+Nothing is ever imported: back out of every screen it opens. Watch the phone for Tasker's authorization prompts.
+
 ## language_support/
 
 Everything that keeps `maptasker/locale/*/LC_MESSAGES/messages.po` in step with

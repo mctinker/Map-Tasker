@@ -103,7 +103,7 @@ def test_one_missing_profile_is_a_project_that_is_not_there(phone: FakeTasker) -
 
 
 def test_the_helper_task_is_not_installed_twice(phone: FakeTasker) -> None:
-    """api/import adds a second Task of the same name rather than replacing it, so a re-run must not import again."""
+    """api/import refuses a Task of a name Tasker has, so a re-run must not import again."""
     _user_taps_import(phone)
     phone.tasks.add(deviceserver.OPEN_SHARE_TASK_NAME)
 
@@ -151,3 +151,43 @@ def test_an_address_is_needed() -> None:
 
 def test_the_helper_is_counted_as_current_so_it_is_never_reported_as_dead(loaded: None) -> None:
     assert deviceserver.OPEN_SHARE_TASK_NAME in devicehelpers.current_helper_task_names(state=PrimeItems)
+
+
+def test_an_import_refused_because_the_task_is_already_there_counts_as_installed(
+    phone: FakeTasker, monkeypatch: pytest.MonkeyPatch, loaded: None
+) -> None:
+    """A slow phone answers the existence check too late, the import is tried, and Tasker refuses a Task it has (400).
+    Asked again with all the time there is, the Task is found: nothing went wrong."""
+    asked = iter([False, True])
+    monkeypatch.setattr(devicetask, "confirm_task_on_android", lambda *_args, **_kwargs: next(asked))
+    phone.import_answers = 400
+
+    code, message = devicetask.install_task_on_android(
+        phone.address,
+        phone.port,
+        "fake-api-key",
+        deviceserver.OPEN_SHARE_TASK_NAME,
+        lambda: deviceserver.build_open_share_task(state=PrimeItems),
+        state=PrimeItems,
+    )
+
+    assert (code, message) == (0, "")
+
+
+def test_an_import_refused_for_another_reason_is_still_an_error(
+    phone: FakeTasker, monkeypatch: pytest.MonkeyPatch, loaded: None
+) -> None:
+    monkeypatch.setattr(devicetask, "confirm_task_on_android", lambda *_args, **_kwargs: False)
+    phone.import_answers = 400
+
+    code, message = devicetask.install_task_on_android(
+        phone.address,
+        phone.port,
+        "fake-api-key",
+        deviceserver.OPEN_SHARE_TASK_NAME,
+        lambda: deviceserver.build_open_share_task(state=PrimeItems),
+        state=PrimeItems,
+    )
+
+    assert code != 0
+    assert "400" in message

@@ -80,10 +80,10 @@ if TYPE_CHECKING:
 #     shipped api/import Task sends and is what this sends; _IMPORT_SOURCE_INDEX is there so
 #     another value can be tried without editing the builder (see build_import_profile_task
 #     on why that one argument does not go through apply_edits_to_task).
-#   * Duplicates.  api/import ADDS a Task whose name is already taken rather than replacing
-#     it -- see install_task_on_android, which is built around that.  If Configuration
-#     behaves the same way, importing a Profile that is already on the device leaves two of
-#     them.  Refused up front unless allow_existing says otherwise.
+#   * Duplicates.  api/import REFUSES a Task whose name is already taken (a 400; it never
+#     replaces it) -- see install_task_on_android, which is built around that.  What
+#     Configuration does with a Profile that is already on the device is not established; it
+#     may leave two of them.  Refused up front unless allow_existing says otherwise.
 # v3 since 2026-08-30, when the staged file stopped being one fixed 'maptasker_import.prf.xml'
 # and started carrying the Profile's own name.  THE VERSION IN THE NAME IS LOAD-BEARING: what
 # this Task reads is part of its body, install_task_on_android installs only what is not
@@ -278,10 +278,10 @@ def _refuse_duplicate_profile(
     and a wrong one, since it would warn about a duplicate Tasker is about to offer to
     replace.
 
-    'Import Data' shows nothing and asks nothing.  Tasker's api/import ADDS a Task whose
-    name is taken rather than replacing it (see install_task_on_android) and there is no
-    reason yet to think a headless Profile import differs -- so on that route a duplicate
-    would appear silently, and both copies would be live at once.  Hence this survives, for
+    'Import Data' shows nothing and asks nothing.  Tasker's api/import refuses a Task whose
+    name is taken (see install_task_on_android), but what it does with a Profile is not
+    established -- so on that route a duplicate might appear silently, and both copies be
+    live at once.  Hence this survives, for
     the one route that has no screen to do the asking.
     """
     if allow_existing or not verify_profile_on_android(ip_address, ip_port, profile_name, auth_key):

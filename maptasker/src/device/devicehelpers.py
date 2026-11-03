@@ -44,9 +44,9 @@ if TYPE_CHECKING:
 # The helper Tasks this program leaves on the device
 # ==========================================
 #
-# Every helper is installed by name and never replaced: Tasker's api/import ADDS a Task whose
-# name is taken rather than replacing it, so install_task_on_android installs only what is
-# not already there.  That is what makes the version suffixes load-bearing -- a changed body
+# Every helper is installed by name and never replaced: Tasker's api/import REFUSES a Task whose
+# name is taken (a 400, measured 2026-11-03) rather than replacing it, so install_task_on_android
+# installs only what is not already there.  That is what makes the version suffixes load-bearing -- a changed body
 # needs a changed name or the old Task goes on running -- and it is also what leaves the
 # previous one behind forever.  A device that has been through several MapTasker releases
 # accumulates 'MapTasker Open Profile v1', 'v2', 'v3' beside the one in use.

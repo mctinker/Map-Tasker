@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 
 from maptasker.src.core.editcommon import sanitize_filename
 from maptasker.src.core.maputil2 import (
+    LIST_READ_TIMEOUT_SECONDS,
     auth_key_for,
     held_auth_key,
     http_delete_request,
@@ -410,20 +411,22 @@ def _run_task_through_helper(
     return failed(message)
 
 
-def confirm_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_key: str, state: RunState) -> bool:
+def confirm_task_on_android(
+    ip_address: str, ip_port: str, task_name: str, auth_key: str, state: RunState, timeout: float | None = None
+) -> bool:
     """Whether Tasker has a Task of this name -- taskedit_save.verify_task_on_android, for any name.
 
     That asks GET api/tasks, whose handler reads the name as a regular expression, so a name
     maputil2.tasker_name_matchable refuses ('$Taskaroo', '... [Task/0]') is never in its answer,
     filtered or not.  Those are checked with the object-list helper Task instead: seconds rather
     than a fraction of one, but the only way Tasker reports them.  Answering False for a Task that
-    is there is not harmless -- a caller that retries the import on False gets a second Task of the
-    same name, because api/import adds rather than replaces (see install_task_on_android).
+    is there is not harmless -- a caller that retries the import on False sends a Task Tasker already has,
+    which it refuses with a 400 because api/import never replaces (see install_task_on_android).
 
     Here rather than in taskedit, which deviceinv imports.  Blocking.
     """
     if tasker_name_matchable(task_name):
-        return taskedit_save.verify_task_on_android(ip_address, ip_port, task_name, auth_key)
+        return taskedit_save.verify_task_on_android(ip_address, ip_port, task_name, auth_key, timeout=timeout)
 
     return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
     if return_code != 0:
@@ -448,12 +451,18 @@ def install_task_on_android(
             EditableTask, or a string if it could not be built.
 
     Checked before importing rather than importing every time: Tasker's api/import does not
-    replace a Task of the same name, it adds another one, so a fetch that re-imported
-    unconditionally would leave a growing pile of identical Tasks in the user's
-    configuration.  That is also why every helper Task name carries a version.
+    replace a Task of the same name, it refuses it with a 400 (measured on a real phone,
+    2026-11-03: a repeat under a new id was refused, a new name under the same id was
+    taken), so a fetch that re-imported unconditionally would fail every time after the
+    first.  That is also why every helper Task name carries a version: a changed body under
+    an old name could never be installed.
     """
 
-    if confirm_task_on_android(ip_address, ip_port, task_name, auth_key, state=state):
+    # Given the longest a phone is allowed to take: a phone busy with an earlier request answers late, and a late
+    # answer taken for "not there" imports the Task again, which Tasker refuses with a 400 (measured, 2026-11-03).
+    if confirm_task_on_android(
+        ip_address, ip_port, task_name, auth_key, state=state, timeout=LIST_READ_TIMEOUT_SECONDS
+    ):
         return 0, ""
 
     built = builder()
@@ -468,6 +477,18 @@ def install_task_on_android(
         built, ip_address, ip_port, task_name, via_file=False, state=state
     )
     if return_code != 0:
+        # Tasker refuses an import of a Task it already has (a 400, measured 2026-11-03 by tools/device_check.py
+        # import-probe) -- which is what a slow phone gets for an existence check that timed out.  Ask once more,
+        # with all the time there is: if it is there, it is installed and nothing went wrong.
+        if confirm_task_on_android(
+            ip_address,
+            ip_port,
+            task_name,
+            held_auth_key(ip_address, ip_port) or auth_key,
+            state=state,
+            timeout=LIST_READ_TIMEOUT_SECONDS,
+        ):
+            return 0, ""
         return return_code, str(result)
 
     # api/import answering 200 is not evidence Tasker committed the Task -- the same
@@ -537,9 +558,12 @@ TASKS_ENDPOINT = "api/tasks"
 
 
 def new_helper_task(
-    task_name: str, state: RunState
+    task_name: str, state: RunState, reserved_ids: set[str] | None = None
 ) -> tuple[EditableTask, Callable[[str, dict[str, str]], str], dict[str, str]] | str:
     """An empty Task plus the `add` helper both offer builders use.
+
+    `reserved_ids` is for a caller that builds more than one Task before any is registered: each build takes the
+    next free id from the loaded configuration, so without it they all get the same one.
 
     Returns (edited_task, add, values) or an error message string.  Synthesized out of
     taskedit's own Add-Task machinery for the reasons build_helper_task gives -- every
@@ -547,7 +571,7 @@ def new_helper_task(
     ordinary user's Add Task takes.
     """
 
-    edited_task = taskedit.create_new_task(task_name, "100", state=state)
+    edited_task = taskedit.create_new_task(task_name, "100", reserved_ids, state=state)
     if isinstance(edited_task, str):
         return edited_task
 

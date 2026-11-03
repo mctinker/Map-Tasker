@@ -182,7 +182,7 @@ class AndroidEventHandlers(HandlerGroup):
                         "Lists the 'MapTasker ...' Tasks this program has installed on the Android "
                         "device, and says which are left over from an earlier version.\n\n"
                         "Each one is installed under a versioned name and never replaced -- Tasker's "
-                        "import adds a second Task rather than replacing the first -- so old ones stay "
+                        "import will not replace a Task of the same name -- so old ones stay "
                         "behind in your Task list.  They do no harm; they are clutter.\n\n"
                         "Delete the ones it names from Tasker's own Tasks tab.  Nothing here can do it "
                         "for you: Tasker's HTTP API has no way to delete a Task.",
@@ -294,8 +294,8 @@ class AndroidEventHandlers(HandlerGroup):
         """Report which of this program's own helper Tasks on the device are dead.
 
         Every helper is installed under a versioned name and never replaced -- Tasker's
-        api/import adds rather than replaces, so devicetask.install_task_on_android installs
-        only what is not already there -- which means each release leaves the previous
+        api/import refuses a Task whose name is taken rather than replacing it, so
+        devicetask.install_task_on_android installs only what is not already there -- which means each release leaves the previous
         generation behind in the user's own Task list.  Nothing breaks; it accumulates.
 
         A REPORT AND NOT A CLEANUP, because a cleanup is not available: the Tasker HTTP

@@ -43,8 +43,8 @@ if TYPE_CHECKING:
 # Every Save To Android and Import Into Tasker button asks the device whether a FILE is already
 # at the path it writes.  None of them used to ask Tasker whether it already has the OBJECTS in
 # that file -- and that is what decides what an import does with them: a Task sent through
-# api/import is added beside one of the same name rather than replacing it (see
-# install_task_on_android), and Tasker's import screen offers to replace a Profile it has.
+# api/import is refused when Tasker has a Task of the same name (a 400, measured 2026-11-03; it is never
+# replaced -- see install_task_on_android), and Tasker's import screen offers to replace a Profile it has.
 #
 # BY NAME, because a name is all Tasker's HTTP API reports.  api/tasks, api/profiles and
 # api/scenes answer objects with a "name" and no id, so an id the device has already given to a

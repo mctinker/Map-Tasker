@@ -98,7 +98,10 @@ async def what_tasker_already_has(
 
 
 # What a prompt says after naming what Tasker already has, by how the objects would get there.
-API_IMPORT_CONSEQUENCE = "Tasker's import adds another Task of the same name beside it rather than replacing it."
+API_IMPORT_CONSEQUENCE = (
+    "Tasker's import refuses a Task whose name it already has, and does not replace it: delete or rename the one on "
+    "the device first, or save a file instead."
+)
 FILE_WRITE_CONSEQUENCE = "This only writes the file -- nothing in Tasker changes until it is imported."
 IMPORT_SCREEN_CONSEQUENCE = "Tasker's import screen will ask whether to replace them."
 

@@ -40,9 +40,9 @@ if TYPE_CHECKING:
 # instead, the way an import of a Project is confirmed everywhere else: by whether the
 # Profiles the project owns have turned up in GET api/profiles.
 #
-# REASONED, NOT MEASURED: that Android hands a taskernet.com/shares link to Tasker (or to a
-# browser that offers it).  Nothing here can check it without a device, and if it does not land
-# the message names the link, so the user can open it on the phone by hand.
+# MEASURED 2026-11-03 (tools/device_check.py share-link, on a real phone): the link opens in the phone's browser, on
+# the TaskerNet page, and not in Tasker itself.  What the Import button there does was not tried.  If the link ever
+# does not land, the message names it, so the user can open it on the phone by hand.
 
 SERVER_PROJECT_NAME = "Http Server Example"
 # The project's TaskerNet share -- the page the README's short link leads to.
