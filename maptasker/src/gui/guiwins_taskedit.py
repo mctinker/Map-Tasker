@@ -829,7 +829,7 @@ def _render_task_save_buttons(
                 "This opens a choice of two: write the Task as a standalone file onto your Android "
                 "device under /Tasker/tasks, or import it straight into Tasker's live "
                 "configuration.\n\n"
-                "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and active on the Android "
                 "device, with the server running (see the README's Direct XML Retrieval notes), and "
                 "Tasker must be 6.2 or higher.\n\n"
                 "The Android device must be on the same network, and the IP Address and Port must "

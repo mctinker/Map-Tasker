@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 # previous one behind forever.  A device that has been through several MapTasker releases
 # accumulates 'MapTasker Open Profile v1', 'v2', 'v3' beside the one in use.
 #
-# NOTHING HERE DELETES THEM, because nothing can.  The Tasker HTTP Server Example has no
+# NOTHING HERE DELETES THEM, because nothing can.  The Tasker HTTP API project has no
 # route for it: its Task endpoints are GET /api/tasks (list) and POST /api/tasks (run), and
 # its only DELETE is /api/file/*, which removes a file from storage -- a helper Task is in
 # Tasker's configuration, not a file.  No Tasker action deletes a Tasker object either.  So

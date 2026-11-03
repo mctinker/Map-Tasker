@@ -376,7 +376,7 @@ def _build_offer_routes(
     THE STAGED FILE CARRIES THE OBJECT'S OWN NAME, and it did not used to.  It was one fixed
     'maptasker_import.<ext>' per kind, on the reasoning that the path had to be baked into
     the helper Task at install time because 'POST /api/tasks carries a name and nothing
-    else'.  That premise was wrong -- the body carries par1, and the HTTP Server Example's
+    else'.  That premise was wrong -- the body carries par1, and the Tasker HTTP API's
     own handler unpacks it into %par1 for the Task it runs (read off the sample backup; see
     run_task_on_android).  So one installed Task now serves every object, and the file in
     the folder is the file the user is looking for.
@@ -786,8 +786,8 @@ def offer_to_tasker(
     saying what happened and what the user still has to do) or (return_code, an error
     message).
 
-    Requires the Tasker HTTP Server Example project running on the device and Tasker 6.2 or
-    higher.  Blocking, deliberately; a caller on the GUI thread must use run.io_bound.
+    Requires the Tasker HTTP API and Http Server Example projects running on the device and
+    Tasker 6.2 or higher.  Blocking, deliberately; a caller on the GUI thread must use run.io_bound.
     """
 
     ip_address = ip_address.strip()

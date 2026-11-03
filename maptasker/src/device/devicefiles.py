@@ -193,8 +193,8 @@ def fetch_file_list_from_device(
     Returns (0, paths) or (return_code, error_message) -- the same two-shaped answer
     get_list_of_files has always handed its own callers.
 
-    Requires the Tasker HTTP Server Example project running on the device and Tasker 6.2
-    or higher.  It does NOT require the 'MapTasker List' Profile, which is the point.
+    Requires the Tasker HTTP API and Http Server Example projects running on the device and
+    Tasker 6.2 or higher.  It does NOT require the 'MapTasker List' Profile, which is the point.
 
     Blocking, deliberately: it sleeps between polls.  Callers on the GUI thread must hand
     it to run.io_bound, as userintr_android.validate_or_filelist_xml's own caller does.

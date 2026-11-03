@@ -54,7 +54,7 @@ This is an application in support of [Tasker](https://tasker.joaoapps.com/) that
 
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, and my phone was too small to navigate over my Projects, Profiles, Tasks, and Scenes.  So I wrote a Python program to provide a complete map of my entire configuration in my web browser based on my Tasker backup XML file that I saved to my local desktop drive.
 
-Over time, I refined the map by providing many additional options, including the ability to edit Tasker objects, provide in-depth analysis of the Tasker configuration, and interact directly with Tasker on the Androidm device.
+Over time, I refined the map by providing many additional options, including the ability to edit Tasker objects, provide in-depth analysis of the Tasker configuration, and interact directly with Tasker on the Android device.
 
 The Tasker backup or other Tasker exported XML can either be manually uploaded to your PC/Mac/Linux/cloud drive, or this program can retrieve it directly from your Android device (see [Note 2](#2)).
 
@@ -84,7 +84,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Analyze the health of the Tasker XML as well as the numerous variables throughout the configuration.
 - Compare an XML file against the loaded XML.
 - Check TaskerNet for updates to Projects, Profiles, and Tasks, and apply them if available.
-- Import a Tasker object from another XML file, along with all of it's dependencies.
+- Import a Tasker object from another XML file, along with all of its dependencies.
 - Perform a trend analysis to see if your code is improving (or not).
 - Take an inventory of everything a Task uses outside of the Android device.
 - Determine 'what fires when', based on a specific condition (state or event).
@@ -107,7 +107,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ## Installation
 
-This program and all of it's perquisites will take about 230MBs of space.  It is recommended that you install it into a virtual environment (option 2).
+This program and all of its prerequisites will take about 230MBs of space.  It is recommended that you install it into a virtual environment (option 2).
 
 1- Install MapTasker by entering one of the following commands into the Terminal/Command Prompt:
 

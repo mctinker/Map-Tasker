@@ -56,7 +56,7 @@ _BLURB = (
 _WHAT_HAPPENS = (
     "MapTasker installs a small helper Task on the device, gives it the list of paths, and reads back which "
     "exist.  It also fetches the device's application list and asks Tasker for its Scenes.  Tasker must be "
-    "running with the 'HTTP Server Example' project active -- the same requirement 'Save to Android' has."
+    "running with the 'HTTP Server Example' and 'Tasker HTTP API' projects active -- the same requirement 'Save to Android' has."
 )
 _WATCH_THE_PHONE = (
     "Watch your Android device: Tasker will ask you to authorize the connection, and the check cannot go on until "

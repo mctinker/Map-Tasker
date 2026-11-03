@@ -136,8 +136,9 @@ def run_task_on_android(
     unchanged so a rejected key can be told apart from everything else and replaced -- see
     maputil2.request_with_auth_key, which every run goes through.
 
-    par1 ARRIVES IN THE TASK AS %par1, and this is not a guess -- it is read off the HTTP
-    Server Example's own handler in this repo's sample backup (XML/backup.xml), the same way
+    par1 ARRIVES IN THE TASK AS %par1, and this is not a guess -- it is read off the 'POST Task'
+    handler (a Profile of the Tasker HTTP API project, then part of the Http Server Example) in this repo's
+    sample backup (XML/backup.xml), the same way
     the 'Import Data' route was derived.  Profile 'POST Task' (prof1079) runs task1077,
     whose act17 is:
 
@@ -187,7 +188,7 @@ def run_task_on_android(
     return 0, task_return_value(response)
 
 
-# What the HTTP Server Example's 'POST Task' handler answers when the Task it ran set no
+# What the Tasker HTTP API's 'POST Task' handler answers when the Task it ran set no
 # return value.  Its HTTP Response body is '%return' plus a newline (task1077 act28), and it
 # clears %return before the Perform Task (act20) -- so a Task that returns nothing leaves the
 # variable unset, and Tasker sends an unset variable's name as its text.
@@ -227,7 +228,7 @@ def build_run_task_helper(task_name: str = RUN_TASK_HELPER_NAME, *, state: RunSt
 
     Returns an EditableTask, or an error message string, like every other builder here.
 
-    Its 'Perform Task' is the HTTP Server Example's own (task1077 act22), copied: priority
+    Its 'Perform Task' is the Tasker HTTP API's own (task1077 act22), copied: priority
     %priority, a return value variable, and Local Variable Passthrough on -- which is how the
     Task it runs still gets %par1 and %par2.  A priority can only be written as a number
     through taskedit, so the %priority variable is put into the built action afterwards.

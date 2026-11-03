@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 # profedit.save_profile_to_android, whose docstring is explicit about it).  That is where
 # 'Save Profile To Android' has stopped.
 #
-# But /api/import is not a Tasker feature.  It is a Task in the HTTP Server Example
+# But /api/import is not a Tasker feature.  It is a Task in the Tasker HTTP API
 # project, and the step in it that does the importing is an ordinary action anyone can put
 # in a Task of their own.  Taken apart from this repo's own sample backup, the Profile
 # 'POST Import' (prof491) runs task473, whose act13 is:
@@ -388,8 +388,8 @@ def import_profile_to_device(
     the Profile exists.  Returns (0, a sentence saying what happened) or (return_code, an
     error message fit to show the user).
 
-    Requires the Tasker HTTP Server Example project running on the device and Tasker 6.2 or
-    higher -- 'Save to Android' already requires both.
+    Requires the Tasker HTTP API and Http Server Example projects running on the device and
+    Tasker 6.2 or higher -- 'Save to Android' already requires both.
 
     Blocking, deliberately, exactly as fetch_apps_from_device is: it sleeps between polls.
     A caller on the GUI thread must hand it to run.io_bound.

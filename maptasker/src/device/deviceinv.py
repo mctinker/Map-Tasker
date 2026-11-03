@@ -332,8 +332,8 @@ def fetch_apps_from_device(ip_address: str, ip_port: str, state: RunState) -> tu
     parse it, cache it.  Returns (0, a sentence saying what was fetched) or
     (return_code, an error message fit to show the user).
 
-    Requires the Tasker HTTP Server Example project running on the device and Tasker 6.2 or
-    higher -- the same requirements 'Save to Android' already has.
+    Requires the Tasker HTTP API and Http Server Example projects running on the device and
+    Tasker 6.2 or higher -- the same requirements 'Save to Android' already has.
 
     Blocking, deliberately: it sleeps between polls, and the file it is waiting for takes
     seconds to appear.  Callers on the GUI thread must hand it to run.io_bound, the way

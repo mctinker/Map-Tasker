@@ -638,7 +638,7 @@ def build_save_to_android_dialog(
                         "If Tasker does not report the Task after two attempts, that copy is handed to "
                         "Android's 'Open with...' chooser instead, so you can import it by picking "
                         "Tasker.\n\n"
-                        "The 'Http Server Example' Tasker Project must be installed and running, and "
+                        "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
                         "Tasker must be 6.2 or higher.\n\n"
                         "The device will ask you to authorize MapTasker the first time.",
                     ),

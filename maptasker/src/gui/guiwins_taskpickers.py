@@ -193,7 +193,7 @@ class _FetchAppsDialog:
             translate_string(
                 f"MapTasker will install a small Task named '{deviceinv.HELPER_TASK_NAME}' on the device, run "
                 "it to list every installed application, and read the answer back.  Tasker must be running, "
-                "with the 'HTTP Server Example' project active -- the same requirement 'Save to Android' has.",
+                "with the 'HTTP Server Example' and 'Tasker HTTP API' projects active -- the same requirement 'Save to Android' has.",
             ),
         ).classes("text-sm text-gray-500 italic")
         # The two things that make a working fetch look like a broken one.  Both are said
@@ -395,7 +395,7 @@ class _RunTaskOnAndroidDialog:
             translate_string(
                 "Runs the Task as Tasker on the Android device has it now, waits for it to finish, and "
                 "shows what it returned.  Edits not yet sent with 'Save To Android' are not part of the "
-                "run.  Tasker must be running, with the 'HTTP Server Example' project active.",
+                "run.  Tasker must be running, with the 'HTTP Server Example' and 'Tasker HTTP API' projects active.",
             ),
         ).classes("text-sm text-gray-500 italic")
         if not tasker_name_matchable(self.task_name):

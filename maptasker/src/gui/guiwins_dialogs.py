@@ -178,7 +178,7 @@ def build_helper_tasks_dialog(stale: list[str], current: list[str], device: str)
     """Shows which of this program's own helper Tasks are dead on the Android device.
 
     A LIST, NOT A BUTTON, and that is the whole design: nothing here can delete them.  The
-    Tasker HTTP Server Example has no route for deleting a Task -- its Task endpoints are GET
+    Tasker HTTP API project has no route for deleting a Task -- its Task endpoints are GET
     (list) and POST (run), and its only DELETE removes a file from storage, which a Task in
     Tasker's configuration is not.  So this does the part that can be done: names them
     exactly, so the user works down a list in Tasker instead of guessing which

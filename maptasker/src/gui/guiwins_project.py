@@ -278,7 +278,7 @@ def _build_project_save_buttons(
                 "This will write the Project, and everything in it -- every Profile and Task -- as a "
                 "standalone file onto your Android device, under /Tasker/projects -- it does not import "
                 "it into Tasker's live configuration.\n\n"
-                "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and active on the Android "
                 "device, with the server running.\n\n"
                 "The Android device must be on the same network, and the IP Address and Port must "
                 "match its Tasker server settings.\n\n"
@@ -416,7 +416,7 @@ def build_save_project_to_android_dialog(
                         "from there, so it stays behind under a name you can find -- import it by hand "
                         "from Tasker if the import screen does not come up.  You will be asked before it "
                         "replaces a file already at that path.\n\n"
-                        "The 'Http Server Example' Tasker Project must be installed and running, and "
+                        "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
                         "Tasker must be 6.2 or higher.\n\n"
                         "The device will ask you to authorize MapTasker the first time.",
                     ),

@@ -747,7 +747,7 @@ def _build_edit_profile_buttons(
                 translate_string(
                     "This will write the Profile as a standalone file onto your Android device, "
                     "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
-                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                    "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and active on the Android "
                     "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
                     "The Android device must be on the same network, and the IP Address and Port must "
                     "match its Tasker server settings.\n\n"
@@ -850,7 +850,7 @@ def build_save_profile_to_android_dialog(
                         "from there, so it stays behind under a name you can find -- import it by hand "
                         "from Tasker if the import screen does not come up.  You will be asked before it "
                         "replaces a file already at that path.\n\n"
-                        "The 'Http Server Example' Tasker Project must be installed and running, and "
+                        "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
                         "Tasker must be 6.2 or higher.\n\n"
                         "The device will ask you to authorize MapTasker the first time.",
                     ),
@@ -991,7 +991,7 @@ def _build_add_profile_buttons(
                 translate_string(
                     "This will write the Profile as a standalone file onto your Android device, "
                     "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
-                    "The 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android "
+                    "The 'Http Server Example' (http://spoo.me/http_svr_example) and 'Tasker HTTP API' (https://shorturl.at/hlTj0) Tasker Projects must both be installed and active on the Android "
                     "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
                     "The Android device must be on the same network, and the IP Address and Port must "
                     "match its Tasker server settings.\n\n"

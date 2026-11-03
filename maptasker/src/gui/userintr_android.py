@@ -299,7 +299,7 @@ class AndroidEventHandlers(HandlerGroup):
         generation behind in the user's own Task list.  Nothing breaks; it accumulates.
 
         A REPORT AND NOT A CLEANUP, because a cleanup is not available: the Tasker HTTP
-        Server Example has no route for deleting a Task (GET to list, POST to run, and a
+        API project has no route for deleting a Task (GET to list, POST to run, and a
         DELETE that only removes files from storage), and no Tasker action deletes a Tasker
         object.  Naming them exactly is the whole of what can be done from here, and it is
         most of the value -- the alternative is the user guessing which 'MapTasker ...' in a

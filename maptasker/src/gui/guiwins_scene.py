@@ -306,7 +306,7 @@ def _build_scene_save_buttons(
         translate_string(
             "This will write the Scene as a standalone file onto your Android device, under "
             "/Tasker/scenes -- it does not import it into Tasker's live configuration.\n\n"
-            "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+            "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and active on the Android "
             "device, with the server running.\n\n"
             "The Android device must be on the same network, and the IP Address and Port must "
             "match its Tasker server settings.\n\n"
@@ -536,7 +536,7 @@ def build_save_scene_to_android_dialog(
                         "Scene by name.  The file is on the device either way, and the message tells you "
                         "its name.\n\n"
                         "You will be asked before it replaces a file already at that path.\n\n"
-                        "The 'Http Server Example' Tasker Project must be installed and running, and "
+                        "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
                         "Tasker must be 6.2 or higher.\n\n"
                         "The device will ask you to authorize MapTasker the first time.",
                     ),
