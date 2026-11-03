@@ -26,6 +26,8 @@ python tools/device_check.py --ip 192.168.0.210 --only open-with-profile,share-l
 ```
 
 Nothing is ever imported: back out of every screen it opens. Watch the phone for Tasker's authorization prompts.
+`import-probe` is the one check that leaves something behind (Tasks named "MapTasker Device Check <date>", which only
+you can delete in Tasker), so it is not in the default set: it runs after `helper-round-trip` fails, to say why, or by name.
 
 ## language_support/
 

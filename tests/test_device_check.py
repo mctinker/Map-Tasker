@@ -227,3 +227,69 @@ def test_a_phone_that_takes_no_import_fails_the_probe(phone: FakeTasker) -> None
 
     assert outcome.status == dc.FAIL
     assert "first: Request failed" in outcome.detail
+
+
+def test_the_probe_is_not_in_the_default_set_and_the_rest_are(
+    phone: FakeTasker, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    arguments = ["--ip", phone.address, "--port", phone.port, "--results", str(tmp_path / "r.json")]
+    ran = set()
+    original = dc.run_one
+
+    def recording(device, check):
+        ran.add(check.id)
+        return original(device, check)
+
+    monkeypatch.setattr(dc, "run_one", recording)
+    dc.main(arguments)
+
+    assert "import-probe" not in ran
+    assert ran == {check.id for check in dc.CHECKS if not check.after_failure_of}
+
+
+def test_the_probe_runs_after_the_helper_round_trip_fails_and_not_otherwise(phone: FakeTasker) -> None:
+    phone.import_answers = 400
+    failing = dc.run_checks(_device(phone), [BY_ID["helper-round-trip"]])
+
+    assert [r["id"] for r in failing] == ["helper-round-trip", "import-probe"]
+    assert failing[0]["status"] == dc.FAIL
+
+
+def test_a_passing_helper_round_trip_runs_no_diagnostic(phone: FakeTasker) -> None:
+    objects = f"MAPTASKER-OBJECTS 1\nPROJECTS\nHome\nPROFILES\nDawn\nSCENES\n%mtscenes\nTASKS\nMorning\n{END}"
+    phone.writes(devicetask.OBJECT_LIST_TASK_NAME, "/Tasker/maptasker_objects.txt", objects, installed=False)
+
+    results = dc.run_checks(_device(phone), [BY_ID["helper-round-trip"]])
+
+    assert [r["id"] for r in results] == ["helper-round-trip"]
+
+
+def test_a_diagnostic_asked_for_by_name_is_not_run_twice(phone: FakeTasker) -> None:
+    phone.import_answers = 400
+
+    results = dc.run_checks(_device(phone), [BY_ID["helper-round-trip"], BY_ID["import-probe"]])
+
+    assert [r["id"] for r in results] == ["helper-round-trip", "import-probe"]
+
+
+def test_two_runs_of_the_probe_name_their_tasks_apart(phone: FakeTasker, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The first run's leftovers must not turn the second away."""
+    clock = iter(["20261103-130000", "20261103-130100"])
+
+    class _Stamped:
+        @staticmethod
+        def now():
+            class _Moment:
+                @staticmethod
+                def strftime(_format):
+                    return next(clock)
+
+            return _Moment()
+
+    monkeypatch.setattr(dc, "datetime", _Stamped)
+
+    first = BY_ID["import-probe"].run(_device(phone))
+    second = BY_ID["import-probe"].run(_device(phone))
+
+    assert first.status == second.status == dc.PASS
+    assert phone.tasks >= {f"{dc.CHECK_NAME} 20261103-130000", f"{dc.CHECK_NAME} 20261103-130100"}

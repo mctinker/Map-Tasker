@@ -22,6 +22,10 @@ Two kinds of check:
     and asks what you saw.  Nothing is ever imported: back out of every screen.  The checks that need a loaded
     configuration to build their helper Task (the asked ones) take --backup.
 
+One check is a diagnostic and is not in the default set: import-probe imports a trivial Task three ways to say what the
+phone refuses.  It runs by itself when helper-round-trip fails, to say why, and with --only import-probe.  It leaves
+Tasks named "MapTasker Device Check <date>" in your Task list, which only you can delete (Tasker's HTTP API cannot).
+
 Each run is appended to device_check_results.json (--results) as {when, device, checks: [{id, status, detail}]},
 and a summary table is printed.  Exit status 0 when nothing failed (a skipped check is not a failure), 1 if any did.
 """
@@ -83,6 +87,9 @@ class Check:
     settles: str  # the claim in the code this settles, in a sentence
     run: Callable[[Device], Outcome]
     needs_backup: bool = False
+    # A diagnostic, not part of the default set: run on its own with --only, or by itself right after the check it
+    # names has failed, to say why.
+    after_failure_of: str = ""
 
 
 # ##################################################################################
@@ -181,12 +188,14 @@ def _import_probe(device: Device) -> Outcome:
     from maptasker.src.device.devicetask import finish_helper_task, new_helper_task
     from maptasker.src.edit import taskedit_save
 
+    # Named for the minute, so a run is never turned away by an earlier run's leftovers.
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     first_id = ""
     results = []
     for label, name in (
-        ("first", CHECK_NAME),
-        ("same name, new id", CHECK_NAME),
-        ("new name, same id", f"{CHECK_NAME} 2"),
+        ("first", f"{CHECK_NAME} {stamp}"),
+        ("same name, new id", f"{CHECK_NAME} {stamp}"),
+        ("new name, same id", f"{CHECK_NAME} {stamp} b"),
     ):
         reserved = {first_id} if label == "same name, new id" else None
         built = new_helper_task(name, state=PrimeItems, reserved_ids=reserved)
@@ -328,6 +337,7 @@ CHECKS = (
         "api/import refuses a Task whose NAME Tasker has; a new name under an id it has is taken (measured 2026-11-03)",
         _import_probe,
         needs_backup=True,
+        after_failure_of="helper-round-trip",
     ),
     Check(
         "helper-round-trip",
@@ -339,7 +349,7 @@ CHECKS = (
     Check(
         "open-with-profile",
         "'Open with' reaches Tasker for a Profile",
-        "an implicit VIEW with no mime type matches Tasker's .prf.xml filter (reasoned, 2026-08-30)",
+        "an implicit VIEW with no mime type matches Tasker's .prf.xml filter (reasoned 2026-08-30; measured 2026-11-03: it does)",
         _open_with_profile,
         needs_backup=True,
     ),
@@ -353,14 +363,14 @@ CHECKS = (
     Check(
         "send-intent-profile",
         "An explicit intent reaches Tasker's import screen",
-        "a file:// URI in Send Intent is accepted by Tasker (not established)",
+        "a file:// URI in Send Intent is accepted by Tasker (measured 2026-11-03: Tasker opens and shows no import screen)",
         _send_intent_profile,
         needs_backup=True,
     ),
     Check(
         "share-link",
         "The Http Server Example's TaskerNet link opens",
-        "Android hands a taskernet.com/shares link to Tasker or a browser (reasoned)",
+        "Android hands a taskernet.com/shares link to Tasker or a browser (measured 2026-11-03: the browser)",
         _share_link,
         needs_backup=True,
     ),
@@ -388,19 +398,35 @@ def load_backup(path: Path) -> None:
         taskerd.get_the_xml_data(state=PrimeItems)
 
 
+def run_one(device: Device, check: Check) -> dict[str, str]:
+    """Run one check and say what it found."""
+    if check.needs_backup and not device.has_backup:
+        outcome = Outcome(SKIP, "needs --backup")
+    else:
+        try:
+            outcome = check.run(device)
+        except Exception as error:  # a check that breaks is a result, not the end of the run
+            outcome = Outcome(FAIL, f"{type(error).__name__}: {error}")
+    print(f"  {outcome.status.upper():5} {check.id:20} {outcome.detail}")
+    return {"id": check.id, "status": outcome.status, "detail": outcome.detail}
+
+
 def run_checks(device: Device, chosen: list[Check]) -> list[dict[str, str]]:
-    """Run these checks, in order, and return what each found."""
+    """Run these checks, in order, and return what each found.
+
+    A diagnostic that names one of them (after_failure_of) runs right after it, if it failed and the diagnostic was not
+    asked for already, so the run says why as well as that.
+    """
     results = []
     for check in chosen:
-        if check.needs_backup and not device.has_backup:
-            outcome = Outcome(SKIP, "needs --backup")
-        else:
-            try:
-                outcome = check.run(device)
-            except Exception as error:  # a check that breaks is a result, not the end of the run
-                outcome = Outcome(FAIL, f"{type(error).__name__}: {error}")
-        print(f"  {outcome.status.upper():5} {check.id:20} {outcome.detail}")
-        results.append({"id": check.id, "status": outcome.status, "detail": outcome.detail})
+        result = run_one(device, check)
+        results.append(result)
+        if result["status"] != FAIL:
+            continue
+        for diagnostic in CHECKS:
+            if diagnostic.after_failure_of == check.id and diagnostic not in chosen:
+                print(f"  ...{check.id} failed; trying {diagnostic.id} to find out why")
+                results.append(run_one(device, diagnostic))
     return results
 
 
@@ -426,14 +452,18 @@ def main(argv: list[str] | None = None) -> int:
 
     if options.list:
         for check in CHECKS:
+            notes = (
+                "[needs --backup]" if check.needs_backup else "",
+                f"[after {check.after_failure_of} fails, or --only]" if check.after_failure_of else "",
+            )
             print(
-                f"{check.id:20} {check.title}\n{'':20} settles: {check.settles}{' [needs --backup]' if check.needs_backup else ''}"
+                f"{check.id:20} {check.title}\n{'':20} settles: {check.settles} {' '.join(n for n in notes if n)}".rstrip()
             )
         return 0
     if not options.ip:
         parser.error("--ip is required")
 
-    wanted = set(options.only.split(",")) if options.only else {check.id for check in CHECKS}
+    wanted = set(options.only.split(",")) if options.only else {c.id for c in CHECKS if not c.after_failure_of}
     unknown = wanted - {check.id for check in CHECKS}
     if unknown:
         parser.error(f"no such check: {', '.join(sorted(unknown))}")
