@@ -84,6 +84,46 @@ def test_an_old_system_settings_pickle_is_never_loaded_and_is_deleted_on_save(
     assert not marker.exists()
 
 
+def test_a_settings_file_with_no_debug_setting_still_comes_back(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The missing key was read as a missing [program_arguments] table, and every setting in the file was dropped."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ARGUMENTS_FILE).write_text("[program_arguments]\nbold = true\nindent = 6\n", encoding="utf-8")
+
+    restored, _ = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
+
+    assert (restored["bold"], restored["indent"]) == (True, 6)
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("indent", "wide"),
+        ("bold", "yes"),
+        ("display_detail_level", "all"),
+        ("view_limit", 3.5),
+        ("language", 4),
+        ("indent", True),
+    ],
+)
+def test_a_saved_value_of_the_wrong_kind_is_dropped_and_the_rest_kept(name: str, value: object) -> None:
+    arguments = {"underline": True, name: value}
+
+    dropped = getputer.drop_values_of_the_wrong_kind(arguments)
+
+    assert dropped == [name]
+    assert arguments == {"underline": True}
+
+
+def test_a_whole_number_written_as_text_is_kept() -> None:
+    """Older versions saved display_detail_level as "5"."""
+    arguments = {"display_detail_level": "5", "indent": -1, "some_future_setting": object()}
+
+    assert getputer.drop_values_of_the_wrong_kind(arguments) == []
+    assert arguments["display_detail_level"] == "5"
+
+
 def test_a_language_saved_under_the_old_tamil_spelling_is_carried_over(program_arguments: ProgramArguments) -> None:
     """Tamil was listed as 'Tamali', and the language is saved by its name.  A settings file from
     before the fix has to come back as Tamil, not as a name nothing recognizes."""

@@ -70,9 +70,6 @@
   "tests/test_format_html.py": {
     "reportArgumentType": 1
   },
-  "tests/test_gui_window.py": {
-    "reportAttributeAccessIssue": 21
-  },
   "tests/test_guiutil2.py": {
     "reportArgumentType": 8,
     "reportCallIssue": 1

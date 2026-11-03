@@ -72,6 +72,44 @@ def drop_unsupported_ai_selection(program_arguments: Settings) -> bool:
     return True
 
 
+def drop_values_of_the_wrong_kind(program_arguments: Settings) -> list[str]:
+    """Take out of the [program_arguments] table just read any value that is not the kind its setting holds.
+
+    A hand-edited or damaged file ("indent = 'wide'", "bold = 'yes'") hands the window a value that its
+    controls and every later int() cannot use, and the window then fails to open.  Dropped, the setting
+    stays at the run's own value, and the rest of the file is restored as written.
+
+    A whole number may be written as text (an older version saved some of them that way), and is kept.
+
+    Args:
+        program_arguments (dict): the table, changed in place.
+
+    Returns:
+        list[str]: the names that were dropped.
+    """
+    defaults = initialize_runtime_arguments()
+    dropped: list[str] = []
+    for name in list(program_arguments):
+        if name not in defaults:
+            continue  # An unknown setting: restore() says so, and ignores it.
+        default, value = defaults[name], program_arguments[name]
+        if isinstance(default, bool):
+            fits = isinstance(value, bool)
+        elif isinstance(default, int):
+            fits = (isinstance(value, int) and not isinstance(value, bool)) or (
+                isinstance(value, str) and value.strip().lstrip("-").isdigit()
+            )
+        elif isinstance(default, str):
+            fits = isinstance(value, str)
+        else:
+            fits = True
+        if not fits:
+            logger.warning(f"Ignoring the saved setting {name} = {value!r}: it should be {type(default).__name__}.")
+            del program_arguments[name]
+            dropped.append(name)
+    return dropped
+
+
 # Write a settings file in one indivisible step
 def write_atomically(target_file: str, write_settings: Callable[[BinaryIO], None]) -> None:
     """Write a settings file via a temporary file, then swap it into place with os.replace().
@@ -299,8 +337,9 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[Settings, Settings]:
                 if program_arguments.get("ai_model") in RENAMED_AI_MODELS:
                     program_arguments["ai_model"] = RENAMED_AI_MODELS[program_arguments["ai_model"]]
                 drop_unsupported_ai_selection(program_arguments)
+                drop_values_of_the_wrong_kind(program_arguments)
                 # Start log. file if debug is on.
-                if program_arguments["debug"]:
+                if program_arguments.get("debug"):
                     log_startup_values(state=state)
             except KeyError:
                 # A settings file with no [program_arguments] table at all.  Saves are
