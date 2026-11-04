@@ -98,7 +98,7 @@ PLACEHOLDER = re.compile(r"\{[A-Za-z_][A-Za-z_0-9]*\}|%\([A-Za-z_]+\)[sd]|%[sd](
 REQUEST_DELAY = 0.4
 MAX_ATTEMPTS = 4
 BACKOFF_SECONDS = 3
-THROTTLE_BACKOFF_SECONDS = 30
+THROTTLE_BACKOFF_SECONDS = 15
 
 # How alike a catalog msgid must be to a current help text before it counts as that help
 # text's stale predecessor.  0.55 comfortably clears the most heavily rewritten one seen
