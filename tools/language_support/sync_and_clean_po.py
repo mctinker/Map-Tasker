@@ -29,6 +29,10 @@ Translating (stage 1) asks the local Ollama model first and GoogleTranslator (de
 do -- not installed, not running, no model, too slow, an empty reply, a lost placeholder.  After AI_FAILURES_BEFORE_GIVING_UP
 failures in a row the rest of the run skips Ollama.  See ai_translate and translate_with_fallback.
 
+The google-genai package is checked for at the start of a run.  When it is not installed it is installed for the run, and
+when the run ends -- however it ends -- it is uninstalled again together with whatever it pulled in that was not there
+before.  Anything that was already installed is left alone.  See temporary_package.
+
 Note on ordering: stage 2 deletes stale help entries so that stage 1 can add correctly
 worded replacements, so running prune before sync gets both done in a single pass.  In the
 order above, a stale entry pruned in stage 2 is not replaced until the next run.
@@ -37,11 +41,18 @@ order above, a stale entry pruned in stage 2 is not replaced until the next run.
 import argparse
 import ast
 import difflib
+import importlib
+import importlib.metadata
+import importlib.util
 import os
 import re
+import shutil
 import socket
+import subprocess
 import sys
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -992,6 +1003,95 @@ def stage_delete_blank_lines_in_po() -> int:
     return 0
 
 
+# ##################################################################################
+# A package installed for the length of the run
+# ##################################################################################
+GENAI_PACKAGE = "google-genai"
+GENAI_MODULE = "google.genai"
+# Installing pulls a dozen packages; a slow connection should not look like a hang forever.
+INSTALLER_TIMEOUT_SECONDS = 600
+
+
+def distribution_name(name: str) -> str:
+    """The name a package is known by however it was spelled: google_genai, Google.GenAI and google-genai are one."""
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def importable(module: str) -> bool:
+    """True when `import module` would find it, without importing it."""
+    importlib.invalidate_caches()
+    try:
+        return importlib.util.find_spec(module) is not None
+    except (ImportError, ValueError):
+        return False
+
+
+def installed_distributions() -> set[str]:
+    """The names of everything installed in this interpreter's environment, as it is now."""
+    importlib.invalidate_caches()
+    names = (distribution.metadata["Name"] for distribution in importlib.metadata.distributions())
+    return {distribution_name(name) for name in names if name}
+
+
+def installer_commands(verb: str, packages: list[str]) -> list[list[str]]:
+    """Each way of changing this interpreter's own environment, best first: uv when there is one, then pip."""
+    commands: list[list[str]] = []
+    if shutil.which("uv"):
+        commands.append(["uv", "pip", verb, "--python", sys.executable, *packages])
+    confirm = ["-y"] if verb == "uninstall" else []
+    commands.append([sys.executable, "-m", "pip", verb, *confirm, *packages])
+    return commands
+
+
+def run_installer(verb: str, packages: list[str]) -> bool:
+    """Install or uninstall the packages with the first installer that manages it; say why when none does."""
+    reasons: list[str] = []
+    for command in installer_commands(verb, packages):
+        try:
+            done = subprocess.run(
+                command, capture_output=True, text=True, timeout=INSTALLER_TIMEOUT_SECONDS, check=False
+            )
+        except (OSError, subprocess.TimeoutExpired) as error:
+            reasons.append(f"{' '.join(command[:3])}: {type(error).__name__}: {error}")
+            continue
+        if done.returncode == 0:
+            return True
+        reasons.append(f"{' '.join(command[:3])}: {(done.stderr or done.stdout).strip()[-300:]}")
+    print(f"  Could not {verb} {', '.join(packages)}:\n    " + "\n    ".join(reasons))
+    return False
+
+
+@contextmanager
+def temporary_package(package: str, module: str) -> Iterator[bool]:
+    """Have `package` installed inside the block, and leave the environment as it was found.
+
+    Yields whether `module` can be imported.  A package that is already installed is used and left in place.  One that
+    is not is installed, and afterwards it and every package that came with it -- the difference between what was
+    installed before and what is installed then -- are uninstalled, on a normal end, an error and Ctrl-C alike.
+    Nothing that was installed beforehand is ever uninstalled, even if the installer upgraded it.
+    """
+    if importable(module):
+        print(f"{package} is already installed; it will be left in place.")
+        yield True
+        return
+
+    before = installed_distributions()
+    print(f"{package} is not installed; installing it for this run (it is uninstalled again at the end)...")
+    try:
+        ready = run_installer("install", [package]) and importable(module)
+        if ready:
+            print(f"  {package} installed.")
+        yield ready
+    finally:
+        added = sorted(installed_distributions() - before)
+        if added:
+            print(f"\nUninstalling {package} and what it brought with it: {', '.join(added)}")
+            if run_installer("uninstall", added):
+                print("  Uninstalled.")
+            else:
+                print(f"  Remove them yourself with:  uv pip uninstall {' '.join(added)}")
+
+
 # ######################################################################################
 # Driver
 # ######################################################################################
@@ -1025,6 +1125,17 @@ def parse_stages(spec: str) -> list[int]:
     return sorted(wanted)
 
 
+def run_stages(stages: list[int], reporting_only: dict[int, bool]) -> int:
+    """Run the stages in the order given, and return the first failure's status (0 when every stage succeeded)."""
+    status = 0
+    for number in stages:
+        _, banner, run = STAGES[number]
+        print(f"\n{'=' * 78}\nStage {number}: {banner}\n{'=' * 78}")
+        result = run(apply=not reporting_only[number]) if number in reporting_only else run()
+        status = status or result
+    return status
+
+
 def main() -> int:
     """Run the requested stages, in order, over every catalog under LOCALE_PATH."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -1053,12 +1164,10 @@ def main() -> int:
     # The two stages that can report instead of write; everything else always writes.
     reporting_only = {2: args.dry_run_prune, 5: args.dry_run_urls}
 
-    status = 0
-    for number in args.stages:
-        _, banner, run = STAGES[number]
-        print(f"\n{'=' * 78}\nStage {number}: {banner}\n{'=' * 78}")
-        result = run(apply=not reporting_only[number]) if number in reporting_only else run()
-        status = status or result
+    with temporary_package(GENAI_PACKAGE, GENAI_MODULE) as genai_ready:
+        if not genai_ready:
+            print(f"Carrying on without {GENAI_PACKAGE}: nothing in the stages needs it.")
+        status = run_stages(args.stages, reporting_only)
 
     print("\nAll requested stages complete.")
     if 1 in args.stages:

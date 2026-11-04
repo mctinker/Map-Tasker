@@ -322,3 +322,190 @@ def test_a_string_with_leading_and_trailing_newlines_keeps_them_whichever_transl
     ollama_says(monkeypatch, ConnectionError("down"))
 
     assert tool.translate_preserving_edges(FakeGoogle(), "de", "\nSave\n") == "\n[G] Save\n"
+
+
+# ##################################################################################
+# google-genai: installed for the run when it is missing, and uninstalled again with what it brought
+# ##################################################################################
+class FakeEnvironment:
+    """The installed packages, and an installer that changes them -- in place of the real environment."""
+
+    def __init__(self, installed: set[str], *, brings: set[str], works: bool = True) -> None:
+        self.installed = set(installed)
+        self.brings = brings
+        self.works = works
+        self.calls: list[tuple[str, list[str]]] = []
+
+    def run_installer(self, verb: str, packages: list[str]) -> bool:
+        self.calls.append((verb, packages))
+        if not self.works:
+            return False
+        if verb == "install":
+            self.installed |= self.brings
+        else:
+            self.installed -= set(packages)
+        return True
+
+    def importable(self, _module: str) -> bool:
+        return "google-genai" in self.installed
+
+
+def use(monkeypatch: pytest.MonkeyPatch, environment: FakeEnvironment) -> None:
+    monkeypatch.setattr(tool, "run_installer", environment.run_installer)
+    monkeypatch.setattr(tool, "importable", environment.importable)
+    monkeypatch.setattr(tool, "installed_distributions", lambda: set(environment.installed))
+
+
+def test_a_package_that_is_already_installed_is_used_and_left_alone(monkeypatch: pytest.MonkeyPatch) -> None:
+    environment = FakeEnvironment({"google-genai", "httpx"}, brings=set())
+    use(monkeypatch, environment)
+
+    with tool.temporary_package("google-genai", "google.genai") as ready:
+        assert ready
+
+    assert environment.calls == []
+    assert "google-genai" in environment.installed
+
+
+def test_a_missing_package_is_installed_for_the_block_and_uninstalled_with_what_it_brought(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    environment = FakeEnvironment({"rich", "httpx"}, brings={"google-genai", "google-auth", "pyasn1"})
+    use(monkeypatch, environment)
+
+    with tool.temporary_package("google-genai", "google.genai") as ready:
+        assert ready
+        assert {"google-genai", "google-auth", "pyasn1"} <= environment.installed
+
+    assert environment.installed == {"rich", "httpx"}
+    assert environment.calls == [
+        ("install", ["google-genai"]),
+        ("uninstall", ["google-auth", "google-genai", "pyasn1"]),
+    ]
+
+
+def test_only_what_was_not_there_before_is_uninstalled(monkeypatch: pytest.MonkeyPatch) -> None:
+    """httpx is already installed, so installing google-genai does not add it and uninstalling must not remove it."""
+    environment = FakeEnvironment({"httpx"}, brings={"google-genai", "httpx", "tenacity"})
+    use(monkeypatch, environment)
+
+    with tool.temporary_package("google-genai", "google.genai"):
+        pass
+
+    assert "httpx" in environment.installed
+    assert environment.calls[-1] == ("uninstall", ["google-genai", "tenacity"])
+
+
+def test_the_package_is_uninstalled_when_the_block_fails_or_is_interrupted(monkeypatch: pytest.MonkeyPatch) -> None:
+    for error in (RuntimeError("stage failed"), KeyboardInterrupt()):
+        environment = FakeEnvironment({"rich"}, brings={"google-genai", "tenacity"})
+        use(monkeypatch, environment)
+
+        with pytest.raises(type(error)), tool.temporary_package("google-genai", "google.genai"):
+            raise error
+
+        assert environment.installed == {"rich"}
+
+
+def test_a_failed_install_is_reported_not_ready_and_nothing_is_uninstalled(monkeypatch: pytest.MonkeyPatch) -> None:
+    environment = FakeEnvironment({"rich"}, brings={"google-genai"}, works=False)
+    use(monkeypatch, environment)
+
+    with tool.temporary_package("google-genai", "google.genai") as ready:
+        assert not ready
+
+    assert environment.calls == [("install", ["google-genai"])]
+
+
+def test_a_failed_uninstall_says_how_to_do_it_by_hand(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    environment = FakeEnvironment({"rich"}, brings={"google-genai", "tenacity"})
+    use(monkeypatch, environment)
+    real_run = environment.run_installer
+    monkeypatch.setattr(tool, "run_installer", lambda verb, packages: real_run(verb, packages) and verb == "install")
+
+    with tool.temporary_package("google-genai", "google.genai"):
+        pass
+
+    assert "uv pip uninstall google-genai tenacity" in capsys.readouterr().out
+
+
+def test_names_are_compared_however_they_are_spelled() -> None:
+    assert tool.distribution_name("Google_GenAI") == tool.distribution_name("google-genai") == "google-genai"
+    assert tool.distribution_name("typing.extensions") == "typing-extensions"
+
+
+def test_uv_is_tried_first_and_pip_after_it(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(tool.shutil, "which", lambda _name: "/usr/local/bin/uv")
+
+    commands = tool.installer_commands("uninstall", ["a", "b"])
+
+    assert commands[0] == ["uv", "pip", "uninstall", "--python", sys.executable, "a", "b"]
+    assert commands[1] == [sys.executable, "-m", "pip", "uninstall", "-y", "a", "b"]
+
+
+def test_without_uv_pip_is_used(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(tool.shutil, "which", lambda _name: None)
+
+    assert tool.installer_commands("install", ["google-genai"]) == [
+        [sys.executable, "-m", "pip", "install", "google-genai"]
+    ]
+
+
+def test_the_next_installer_is_tried_when_the_first_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(tool.shutil, "which", lambda _name: "/usr/local/bin/uv")
+    tried: list[str] = []
+
+    def fake_run(command: list[str], **_kwargs: Any) -> Any:
+        tried.append(command[0])
+        return types.SimpleNamespace(returncode=2 if command[0] == "uv" else 0, stdout="", stderr="externally managed")
+
+    monkeypatch.setattr(tool.subprocess, "run", fake_run)
+
+    assert tool.run_installer("install", ["google-genai"])
+    assert tried == ["uv", sys.executable]
+
+
+def test_an_installer_that_cannot_be_run_is_a_failure_not_a_crash(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(tool.shutil, "which", lambda _name: None)
+
+    def fake_run(*_args: Any, **_kwargs: Any) -> Any:
+        raise OSError("no such file")
+
+    monkeypatch.setattr(tool.subprocess, "run", fake_run)
+
+    assert not tool.run_installer("install", ["google-genai"])
+    assert "Could not install google-genai" in capsys.readouterr().out
+
+
+def test_a_run_has_the_package_installed_while_the_stages_run_and_gone_after(monkeypatch: pytest.MonkeyPatch) -> None:
+    environment = FakeEnvironment({"rich"}, brings={"google-genai", "tenacity"})
+    use(monkeypatch, environment)
+    seen: list[bool] = []
+
+    def stage() -> int:
+        seen.append("google-genai" in environment.installed)
+        return 0
+
+    monkeypatch.setattr(tool, "STAGES", {1: ("sync", "Sync", stage)})
+    monkeypatch.setattr(sys, "argv", ["sync_and_clean_po.py", "--stages", "1"])
+
+    assert tool.main() == 0
+
+    assert seen == [True]
+    assert environment.installed == {"rich"}
+
+
+def test_a_run_goes_on_without_the_package_when_it_cannot_be_installed(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    environment = FakeEnvironment({"rich"}, brings={"google-genai"}, works=False)
+    use(monkeypatch, environment)
+    monkeypatch.setattr(tool, "STAGES", {1: ("sync", "Sync", lambda: 0)})
+    monkeypatch.setattr(sys, "argv", ["sync_and_clean_po.py", "--stages", "1"])
+
+    assert tool.main() == 0
+    assert "Carrying on without google-genai" in capsys.readouterr().out
