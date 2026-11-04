@@ -277,11 +277,11 @@ A：場合によっては、これらの action、event、または state には
 
 Tasker の XML ファイルを直接取得するには：
 
-- デスクトップとAndroidデバイスの両方が同じローカルネットワークに接続されていること、およびTaskerが実行されていることを確認してください。
-- ['Http Server Example' Tasker プロジェクト (https://shorturl.at/bwCD4) と ['Tasker HTTP API' Tasker プロジェクト (https://shorturl.at/hlTj0)'] は、Android デバイスの両方でインストールされ、アクティブな状態である必要があります。サーバーが起動していることを確認してください。「Update GD HTTP Info」タスクを実行し、（初回のみ）指示されたときにGoogle Drive IDを入力してください。
-  - 注: MapTaskerは、'Http Server Example'をインストールするオプションを提供しています。このオプションは、「アンドロイドデバイスからXMLを取得」というパネルの下にあります。ただし、この機能を使用するには、事前に'Tasker HTTP API'をインストールしておく必要があります。
-- 取得後、XMLファイルはデスクトップに保存され、変更がない限り、再度取得する必要はありません。
-- MapTaskerの他の機能も、まずAndroidデバイスで、特定の機能の使用許可を求めるプロンプトを表示します。
+- デスクトップとAndroidデバイスの両方が同じローカルネットワークに接続され、Taskerが実行されていることを確認してください。
+- ['Http Server Example' Tasker プロジェクト (https://shorturl.at/bwCD4) と ['Tasker HTTP API' Tasker プロジェクト (https://shorturl.at/hlTj0)] は、Android デバイスの両方にインストールされ、アクティブになっている必要があり、サーバーが起動している状態である必要があります。 「Update GD HTTP Info」タスクを実行し、（初回のみ）プロンプトが表示された際に、Google Drive の ID を入力することを忘れないでください。
+  - 注: MapTasker は、「Http Server Example」をインストールするオプションを提供しています。このオプションは、「ANDROID デバイスからの XML の取得」パネルの下にあります。ただし、「Tasker HTTP API」は事前にインストールされている必要があります。
+- 取得後、XMLファイルはデスクトップに保存され、変更がない限り、定期的に再度取得する必要はありません。
+- MapTasker の他の機能についても、まず Android デバイスで、特定の機能を使用するための承認を求められます。
 
 ### 3
 **AI サポート**

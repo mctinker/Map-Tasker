@@ -277,11 +277,11 @@ Los detalles de algunos de los puntos mencionados en la sección "Solución de p
 
 Para obtener el archivo XML de Tasker directamente:
 
-- Asegúrese de que tanto los dispositivos de escritorio como los de Android estén conectados a la misma red local y de que la aplicación Tasker esté en funcionamiento.
-- Los proyectos "Ejemplo de Servidor HTTP" y "API HTTP de Tasker" (https://shorturl.at/bwCD4 y https://shorturl.at/hlTj0) deben estar instalados y activos en el dispositivo Android, con el servidor en funcionamiento. Recuerde ejecutar la tarea "Actualizar información HTTP de GD" y, la primera vez, introducir su ID de Google Drive cuando se le solicite.
-  - NOTA: MapTasker ofrece la opción de instalar 'Ejemplo de Servidor HTTP' por usted. Puede encontrar esta opción en el panel 'OBTENER XML DEL DISPOSITIVO ANDROIDE'. Sin embargo, *debe* tener 'API HTTP de Tasker' preinstalada para que funcione.
-- Una vez descargado, el archivo XML se guarda en su escritorio y no necesita ser descargado de nuevo con frecuencia, a menos que se haya modificado.
-- Otras funciones de MapTasker solicitarán primero en su dispositivo Android la autorización para que la función específica se ejecute.
+- Asegúrese de que tanto los dispositivos de escritorio como los de Android estén conectados a la misma red local y de que Tasker esté en funcionamiento.
+- Los proyectos "Ejemplo de servidor HTTP" y "API HTTP de Tasker" (https://shorturl.at/bwCD4 y https://shorturl.at/hlTj0) deben estar instalados y activos en el dispositivo Android, con el servidor en funcionamiento. Recuerde ejecutar la tarea "Actualizar información HTTP de GD" y, la primera vez, ingresar su ID de Google Drive cuando se solicite.
+  - NOTA: MapTasker ofrece la opción de instalar 'Http Server Example' por usted. Puede encontrar esta opción en el panel 'OBTENER XML DEL DISPOSITIVO ANDROIDE'. Sin embargo, *es necesario* que 'Tasker HTTP API' ya esté instalado para que funcione.
+- Una vez descargado, el archivo XML se guarda en tu escritorio y no necesita ser descargado repetidamente a menos que se modifique.
+- Otras funciones de MapTasker solicitarán primero permiso en su dispositivo Android para que la función específica pueda funcionar.
 
 ### 3
 **Compatibilidad con IA**

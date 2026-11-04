@@ -8,10 +8,10 @@ This is an application in support of [Tasker](https://tasker.joaoapps.com/) that
 
 - Fine tune the display of the Tasker configuration (Map view)
 - Create a Diagram and Tree of the configuration (Diagram view, Tree view)
-- Import/Export XML directly from/to Android
+- Import/Export Tasker XML directly from/to Android
 - Analyze a Tasker object using Ai
 - Add and Edit Tasker objects (Projects, Profiles, Tasks, and Scenes)
-- Easily identify issues with the configuration
+- Easily identify issues with the Tasker configuration
 
 Sample output can be found [here.](https://github.com/mctinker/Map-Tasker/wiki)
 

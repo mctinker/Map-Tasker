@@ -213,7 +213,7 @@ MapTasker द्वारा जनरेट किए गए आउटपुट
 - `LICENSE`: इस परियोजना के लिए MIT लाइसेंस फ़ाइल।
 - `README.md`: This file.
 - `Changelog.md`: A log of changes made in each version.
-- `pyproject.toml`: Project metadata and build system configuration.
+- `pyproject.toml`: परियोजना का मेटाडेटा और बिल्ड सिस्टम कॉन्फ़िगरेशन।
 
 ## लाइसेंस (License)
 
