@@ -33,6 +33,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: When your Android device stops accepting the access key MapTasker is holding, checks that read from the device now ask for a fresh key and carry on, instead of reporting the device as failing.
 - Fixed: Upgrading to the latest version no longer prints a confusing "Ignoring NICEGUI_PORT" warning in the console when MapTasker restarts.
 - Fixed: Long lines in the Missing Resources report, such as a problem message from the device, now wrap inside the window instead of running off its right edge where they could not be read.
+- Fixed: Pressing Forget next to a device in the applications list now shows the message saying it was forgotten, or that it could not be saved. Before, the message was lost.
+- Fixed: When the device keeps failing during Live Run Monitor, the monitor now shows the error it stopped for. Before, it stopped without saying why.
 
 
 ### Known Issues

@@ -327,7 +327,9 @@ class _Monitor:
                 failures += 1
                 self.status.set_text(f"{translate_string('The device did not answer')}: {window.error}")
                 if failures >= _FAILURES_ALLOWED:
-                    ui.notify(window.error, type="negative", timeout=8000)
+                    # This loop is a background task, which has no slot of its own to notify from: use the dialog's.
+                    with self.dialog:
+                        ui.notify(window.error, type="negative", timeout=8000)
                     await self.stop_monitoring()
                     return
                 await asyncio.sleep(_RETRY_SECONDS)

@@ -22,10 +22,10 @@ from maptasker.src.edit import sessundo
 from maptasker.src.gui import guiwins_tnfind, guiwins_tnupdate
 from maptasker.src.gui.guiwins_tnfind import build_find_dialog
 from maptasker.src.mapops import tnfind, tnupdate
-from nicegui import context, core, ui
+from nicegui import core, ui
+from nicegui.outbox import Outbox
 from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
-from nicegui.testing.user_notify import UserNotify
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import required
@@ -407,14 +407,16 @@ async def test_a_review_that_fails_says_why_even_though_its_own_button_was_redra
     _seed()
     _built["xml"] = "this is not tasker xml"
     reached: list[str] = []
-    recorder = UserNotify.__call__
+    enqueue = Outbox.enqueue_message
 
-    def notify_as_nicegui_does(self: UserNotify, message: str, **kwargs: Any) -> None:
-        # The first thing the real ui.notify does, and the line that raised: the client of the slot it runs in.
-        reached.append(str(context.client.id))
-        recorder(self, message, **kwargs)
+    def enqueue_as_nicegui_does(self: Outbox, message_type: Any, data: Any, target_id: Any) -> None:
+        # What ui.notify does once it has the client of the slot it runs in -- the line that raised -- and
+        # which refuses a client that has gone.
+        if message_type == "notify":
+            reached.append(str(target_id))
+        enqueue(self, message_type, data, target_id)
 
-    monkeypatch.setattr(UserNotify, "__call__", notify_as_nicegui_does)
+    monkeypatch.setattr(Outbox, "enqueue_message", enqueue_as_nicegui_does)
     async with _open() as user:
         await user.should_see("Newer version published")
         _press(user, _only(user, "Review"))

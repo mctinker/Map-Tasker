@@ -231,11 +231,13 @@ class _FetchAppsDialog:
         """Drop one device's list of applications, and redraw the list of devices."""
         error = appinv.forget_device(device)
         self.forgot = True
-        self.show_devices()
+        # Tell the user before redrawing: this runs in the Forget button's click handler, and redrawing the list
+        # deletes that button -- and with it the place a notification is sent from.
         if error:
             ui.notify(f"{translate_string('Forgotten for now, but could not be saved:')} {error}", type="warning")
         else:
             ui.notify(f"{translate_string('Forgot the applications fetched from')} {device}", type="info")
+        self.show_devices()
 
     def show_devices(self) -> None:
         """Draw a row for each device already fetched from, with its Forget button."""
