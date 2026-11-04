@@ -9,10 +9,9 @@ answer and therefore the part that quietly drifts.
 Two things here are worth stating up front because they look like test-fixture trivia
 and are not:
 
-*  Element order matters.  get_profile_tasks walks the Profile's children in document
-   order and STOPS at <nme>, because Tasker writes <mid0>/<mid1> before the name.  A
-   fixture that puts <nme> first finds no Tasks at all -- which is exactly the bug that
-   ordering assumption would cause against a backup written by a future Tasker.
+*  Element order does not matter to get_profile_tasks.  Tasker writes <mid0>/<mid1> before
+   the name, but a backup written another way puts <nme> first and the Tasks after the
+   conditions; the walk used to stop at <nme> and lose every Task such a Profile fires.
 *  <mid0> is the Entry Task and <mid1> is the Exit Task.  Nothing in the names says so,
    and swapping them puts the wrong arrow on both lines.
 """
@@ -82,15 +81,23 @@ def test_entry_and_exit_tasks_are_told_apart() -> None:
     assert EXIT_ARROW in output_lines[1] and "Exit Task" in output_lines[1]
 
 
-def test_task_search_stops_at_the_profile_name() -> None:
-    """The walk stops at <nme>: everything after it is the Profile's own detail, not
-    more Tasks.  Asserted so that the stop condition is a decision and not an accident
-    -- a Profile whose Tasks come after its name would silently lose them.
+def test_tasks_are_found_whatever_order_the_profile_was_written_in() -> None:
+    """A backup that writes <nme> and the conditions ahead of <mid0>/<mid1> is as good as one
+    that follows Tasker's order.  Stopping at <nme> lost every Task such a Profile fires, so
+    the Map showed the Profiles with nothing under them -- and an unnamed Task, which has no
+    other place to be seen, vanished from the Map altogether.
     """
     profile = ET.fromstring(
-        '<Profile sr="prof9"><id>9</id><nme>Named First</nme><mid0>10</mid0></Profile>',
+        '<Profile sr="prof9"><id>9</id><nme>Named First</nme><Time sr="con0"><fh>8</fh><fm>0</fm></Time>'
+        "<mid1>11</mid1><mid0>10</mid0><flags>2</flags></Profile>",
     )
-    assert profiles.get_profile_tasks(profile, [], [], current_config(state=PrimeItems), state=PrimeItems) == []
+    output_lines: list[str] = []
+    found = profiles.get_profile_tasks(profile, [], output_lines, current_config(state=PrimeItems), state=PrimeItems)
+
+    assert len(found) == 2
+    # The Entry Task comes first even though <mid1> was written first.
+    assert ENTRY_ARROW in output_lines[0] and "Entry Task" in output_lines[0]
+    assert EXIT_ARROW in output_lines[1] and "Exit Task" in output_lines[1]
 
 
 def test_profile_task_count_skips_tasks_already_seen() -> None:

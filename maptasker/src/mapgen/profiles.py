@@ -53,40 +53,37 @@ def get_profile_tasks(
     :param config: the run's settings.  (single_profile_name is written here, so it is not read from it.)
     :return: List of tasks with their XML elements and names.
     """
-    keys_we_dont_want = {"cdate", "edate", "flags", "id", "limit"}
     list_of_tasks = []
     single_task_name = config.single_task_name
 
+    # Where <mid0>/<mid1> sit among the Profile's other elements is up to whoever wrote the backup: Tasker puts them
+    # ahead of <nme>, but a backup written another way puts <nme> first and the Tasks after the conditions.  So look
+    # at every element rather than stopping at the name, and put the Entry Task ahead of the Exit Task whatever order
+    # they were written in.
+    task_references = sorted((child for child in the_profile if "mid" in child.tag), key=lambda child: child.tag)
+
     _get_task_name = tasks.get_task_name
-    for child in the_profile:
-        tag = child.tag
-        if tag in keys_we_dont_want:
+    for child in task_references:
+        task_type = "Exit" if child.tag == "mid1" else "Entry"
+        task_id = child.text
+        # A <mid0/> that names no Task, or a Task that is not in the file (Health Check: BROKEN-TASK-REF), has
+        # nothing to look up.
+        if not task_id or task_id not in state.tasker_root_elements["all_tasks"]:
             continue
 
-        if "mid" in tag:
-            task_type = "Exit" if tag == "mid1" else "Entry"
-            task_id = child.text
-            # A <mid0/> that names no Task, or a Task that is not in the file (Health Check: BROKEN-TASK-REF), has
-            # nothing to look up.
-            if not task_id or task_id not in state.tasker_root_elements["all_tasks"]:
-                continue
+        if task_id not in found_tasks_list:
+            state.task_count_for_profile += 1
+        task_element, task_name = _get_task_name(
+            task_id, found_tasks_list, task_output_line, task_type, config, state=state
+        )
+        # Add the Task to our list of found Tasks, and use the Task output line as the name.
+        list_of_tasks.append({"xml": task_element, "name": task_output_line[-1]})
 
-            if task_id not in found_tasks_list:
-                state.task_count_for_profile += 1
-            task_element, task_name = _get_task_name(
-                task_id, found_tasks_list, task_output_line, task_type, config, state=state
-            )
-            # Add the Task to our list of found Tasks, and use the Task output line as the name.
-            list_of_tasks.append({"xml": task_element, "name": task_output_line[-1]})
-
-            if single_task_name and single_task_name == task_name:
-                state.found_named_items["single_task_found"] = True
-                profile_name = the_profile.find("nme")
-                if profile_name is not None:
-                    state.program_arguments.single_profile_name = profile_name.text or ""
-                break
-
-        elif tag == "nme":
+        if single_task_name and single_task_name == task_name:
+            state.found_named_items["single_task_found"] = True
+            profile_name = the_profile.find("nme")
+            if profile_name is not None:
+                state.program_arguments.single_profile_name = profile_name.text or ""
             break
 
     return list_of_tasks
