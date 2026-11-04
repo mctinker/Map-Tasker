@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import io
 
-from maptasker.src.core.mapwriter import MAX_BLANK_LINES, BlankLineLimiter
+from maptasker.src.core.mapwriter import BLANK_LINE_BEFORE, MAX_BLANK_LINES, BlankLineLimiter, MapWriter
 
 
 def written(*pieces: str, max_blank_lines: int = MAX_BLANK_LINES) -> str:
@@ -90,3 +90,66 @@ def test_the_limit_can_be_set_to_something_else() -> None:
 def test_nothing_is_written_for_nothing() -> None:
     """An empty write is not a gap, and reaches the file as nothing at all."""
     assert written("", "Task", "") == "Task"
+
+
+# ##################################################################################
+# A blank line before a Task, asked for with BLANK_LINE_BEFORE rather than <br>s
+# ##################################################################################
+def test_a_blank_line_asked_for_after_a_line_that_just_ended_adds_one_break() -> None:
+    assert written("Profile<br>", BLANK_LINE_BEFORE, "Task") == "Profile<br><br>Task"
+
+
+def test_a_blank_line_asked_for_in_the_middle_of_a_line_adds_two_breaks() -> None:
+    """One to end the line, and one for the blank line after it."""
+    assert written("Profile", BLANK_LINE_BEFORE, "Task") == "Profile<br><br>Task"
+
+
+def test_a_blank_line_asked_for_where_there_already_is_one_adds_nothing() -> None:
+    """The gap the Task already had is the gap it keeps, however big."""
+    assert written("Profile<br><br>", BLANK_LINE_BEFORE, "Task") == "Profile<br><br>Task"
+    assert written("Profile<br><br><br>", BLANK_LINE_BEFORE, "Task") == "Profile<br><br><br>Task"
+
+
+def test_a_blank_line_asked_for_twice_in_a_row_is_one_blank_line() -> None:
+    assert written("Profile<br>", BLANK_LINE_BEFORE, BLANK_LINE_BEFORE, "Task") == "Profile<br><br>Task"
+
+
+def test_a_blank_line_is_not_asked_for_at_the_very_start_of_the_file() -> None:
+    assert written(BLANK_LINE_BEFORE, "Task") == "Task"
+
+
+def test_the_blank_line_marker_never_reaches_the_file() -> None:
+    assert BLANK_LINE_BEFORE not in written("a", BLANK_LINE_BEFORE, "b<br>", BLANK_LINE_BEFORE, "c")
+
+
+def test_a_block_of_the_maps_that_is_an_inline_block_does_not_end_the_line_for_the_blank_line() -> None:
+    """Profile and action blocks are inline blocks: the <br> after one only ends its line, so one more is needed.
+
+    The break inside the block, before its end tag, is the block's own and is not counted outside it.
+    """
+    html = '<div class="proftab">Profile<br></div><br>'
+    assert written(html, BLANK_LINE_BEFORE, "Task") == html + "<br>Task"
+
+
+def test_a_plain_block_ends_its_own_line_for_the_blank_line() -> None:
+    assert written("<div>Profile</div>", BLANK_LINE_BEFORE, "Task") == "<div>Profile</div><br>Task"
+
+
+def test_a_blank_line_asked_for_after_a_heading_adds_nothing() -> None:
+    """A heading brings white space of its own."""
+    assert written("<h2>Project</h2>", BLANK_LINE_BEFORE, "Task") == "<h2>Project</h2>Task"
+
+
+def test_the_breaks_added_for_a_blank_line_count_towards_the_cap() -> None:
+    """The one added plus the three that followed would be four: the cap still holds at three."""
+    assert written("Profile<br>", BLANK_LINE_BEFORE, "<br><br><br>Task") == "Profile<br><br><br>Task"
+
+
+def test_the_map_writer_gives_a_blank_line_the_same_way(tmp_path) -> None:
+    path = tmp_path / "map.html"
+    with path.open("w", encoding="utf-8") as out_file:
+        writer = MapWriter(out_file)
+        writer.write("Profile<br>")
+        writer.write(BLANK_LINE_BEFORE)
+        writer.write("Task")
+    assert path.read_text(encoding="utf-8") == "Profile<br><br>Task"

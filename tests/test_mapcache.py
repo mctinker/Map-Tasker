@@ -415,3 +415,38 @@ def test_settling_keeps_the_settings_the_map_was_built_from(tmp_path) -> None:
     PrimeItems.program_arguments.font = "Arial"
 
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
+
+
+# ##################################################################################
+# A blank line above every Task, in the Map as the in-app view is given it.
+# ##################################################################################
+def _task_lines_with_nothing_above(text: str) -> list[str]:
+    """The "Task:" lines of a Map's html that sit directly under another line, as a browser draws it."""
+    import re
+
+    # Every <br> ends a line; so does the end of a block, but the Map's own blocks are inline blocks and do not.
+    lines = re.sub(r"<br\s*/?>|</h\d>|<hr>|</table>", "\n", text)
+    lines = re.sub(r"<[^>]+>", "", lines).replace("\xa0", " ").replace("&nbsp;", " ").split("\n")
+    return [
+        line.strip()
+        for number, line in enumerate(lines)
+        if line.strip().startswith("Task:") and number and lines[number - 1].strip()
+    ]
+
+
+@pytest.mark.usefixtures("_a_real_configuration")
+def test_every_task_has_a_blank_line_above_it(tmp_path) -> None:
+    """The whole Map, end to end: no Task is flush against the line above, and the writer's marker is gone.
+
+    This configuration's Tasks already had a gap above them, so what this holds is that the blank line asked for
+    before a Task leaves them as they were; test_task_blank_line has the request itself.
+    """
+    from maptasker.src.gui.guiwins_mapstream import optimize_map_html
+
+    _build_a_map(tmp_path)  # the first build of a session settles the configuration, so look at the second
+    _build_a_map(tmp_path)
+    page = (tmp_path / "MapTasker.html").read_text(encoding="utf-8")
+
+    assert page.count("Task:") >= 5, "the configuration has Tasks to look at"
+    assert "mt-blank-line" not in page, "the marker for a blank line reached the file"
+    assert _task_lines_with_nothing_above(optimize_map_html(page)) == []

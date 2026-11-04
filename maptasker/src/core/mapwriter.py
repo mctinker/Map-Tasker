@@ -49,6 +49,17 @@ def count_trailing_blanks(text_string: str, position: int) -> int:
 # The most blank lines the Map is allowed to draw in a row.
 MAX_BLANK_LINES = 2
 
+# The most that is ever asked of a gap, in line endings: the end of the line before, and one blank line.
+ONE_BLANK_LINE = 2
+
+# What the Map's generator writes into its output where a blank line is wanted ABOVE what comes next -- before each
+# Task's header -- without knowing what was written before it.  The writer is the one place that sees a gap whole, so it
+# is the one that can answer "is there a blank line here already?": it writes as many <br>s in its place as are missing
+# (none when there is one, or more, already) and never writes the marker itself.  A tag-shaped marker rather than a bare
+# "<br>" because a <br> added blind would pile a second blank line on every Task that already has one, and leave the
+# gaps the Map has already got to the limit anyway.
+BLANK_LINE_BEFORE = "<mt-blank-line>"
+
 
 # Tags that draw nothing of their own and do not end the line they are on.  A <br> on
 # either side of one of these is still part of the same gap.
@@ -113,6 +124,9 @@ class TagFacts(NamedTuple):
     closing: bool  # an end tag
     self_closing: bool  # written as <tag/>
     gap: int  # one of the GAP_ values above
+    inline_block: bool = (
+        False  # carries an indentation class, so the browser draws it as an inline block whatever its name
+    )
 
 
 @lru_cache(maxsize=4096)
@@ -145,6 +159,7 @@ def tag_facts(markup: str) -> TagFacts:
         closing=markup.startswith("</"),
         self_closing=markup.endswith("/>"),
         gap=gap,
+        inline_block=bool(HTML_INDENT_CLASS.search(markup)),
     )
 
 
@@ -177,6 +192,13 @@ class BlankLineLimiter:
         self.max_endings = max_blank_lines + 1
         # The file starts on a fresh line, so leading <br>s are blank lines from the first one.
         self.endings = 1
+        # What blank_line_for counts instead: the line breaks in a row since the last thing there was to see -- see
+        # note_block for what counts.  Kept apart from `endings`, which decides which <br>s to DROP and is calibrated to
+        # that job: correcting it for the one question of "is there a blank line here" would change the Map's spacing
+        # everywhere it limits a gap.
+        self.breaks = ONE_BLANK_LINE
+        # For each <div> still open: whether it was drawn as an inline block, so its end tag does not end the line.
+        self.open_divs: list[bool] = []
 
     def write(self, text: str) -> None:
         """
@@ -196,7 +218,10 @@ class BlankLineLimiter:
             position = tag.end()
 
             markup = tag.group(0)
-            if self.keep_tag(markup):
+            gap = self.blank_line_for(markup)
+            if gap is not None:
+                pieces.append(gap)
+            elif self.keep_tag(markup):
                 pieces.append(markup)
 
         trailing = text[position:]
@@ -215,6 +240,23 @@ class BlankLineLimiter:
         # non-breaking spaces alone still read as blank.
         if between and not NOTHING_TO_SEE.match(between):
             self.endings = 0
+            self.breaks = 0
+
+    def blank_line_for(self, markup: str) -> str | None:
+        """What to write in place of `markup` if it is the blank-line marker, else None.
+
+        As many <br>s as it takes to leave one blank line above whatever follows: none if the gap already holds one,
+        one if the previous line has only just ended, two if it has not ended at all.  Counted the way keep_tag counts
+        them, so the gap that results is the gap the limiter will go on to measure.
+            :param markup: a tag, as it stands in the output
+            :return: the <br>s to write, "" for none, or None when this is not the marker
+        """
+        if markup != BLANK_LINE_BEFORE:
+            return None
+        missing = max(0, ONE_BLANK_LINE - self.breaks)
+        self.breaks = max(self.breaks, ONE_BLANK_LINE)
+        self.endings = min(self.endings + missing, self.max_endings)
+        return "<br>" * missing
 
     def keep_tag(self, markup: str) -> bool:
         """
@@ -227,9 +269,39 @@ class BlankLineLimiter:
             if self.endings > self.max_endings:
                 self.endings = self.max_endings
                 return False  # One blank line too many -- leave this <br> out.
+            self.breaks += 1
         else:
             self.count_tag(markup)
+            self.note_block(markup)
         return True
+
+    def note_block(self, markup: str) -> None:
+        """Take account of a tag that is not a <br>, for blank_line_for's count of line breaks in a row.
+
+        What a browser does with each, as the Map's own style sheet draws it:
+          * an inline tag draws nothing and leaves the line as it was;
+          * the end of an inline-block <div> leaves its line open, however many line breaks ended the lines inside it --
+            the Map's action and Profile blocks are <div class="...actiontab"> and the like, which are inline blocks,
+            so the <br> after one is what ends its line, and a second is what makes the blank one;
+          * an inline block that opens (an indentation span or <div>) holds its line, so there is something on it;
+          * a block that is really one, such as <details> or a plain <div>, ends the line it is on;
+          * a heading, table, rule or image has white space of its own around it.
+        """
+        facts = tag_facts(markup)
+        if facts.name == "div":
+            if facts.closing:
+                inline = self.open_divs.pop() if self.open_divs else False
+                # A box that was drawn as an inline block is a thing on its line, whatever line breaks ended its own.
+                self.breaks = 0 if inline else max(self.breaks, 1)
+            else:
+                self.open_divs.append(facts.inline_block)
+                self.breaks = 0 if facts.inline_block else max(self.breaks, 1)
+        elif facts.gap in (GAP_OWN_LINE, GAP_SPACED_BLOCK):
+            self.breaks = ONE_BLANK_LINE
+        elif facts.gap == GAP_HOLDS_THE_LINE:
+            self.breaks = 0
+        elif facts.gap == GAP_PLAIN_BLOCK:
+            self.breaks = max(self.breaks, 1)
 
     def count_tag(self, markup: str) -> None:
         """
@@ -444,7 +516,10 @@ class MapWriter:
             position = tag.end()
 
             markup = tag.group(0)
-            if limiter.keep_tag(markup):
+            gap = limiter.blank_line_for(markup)
+            if gap is not None:
+                pieces.append(gap)
+            elif limiter.keep_tag(markup):
                 pieces.append(balancer.balanced(markup))
 
         trailing = text[position:]

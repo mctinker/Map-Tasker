@@ -17,6 +17,7 @@ from maptasker.src.core.elemvals import get_kid_app
 from maptasker.src.core.format import build_tooltip_span, format_html
 from maptasker.src.core.mapjump import SCENE, TASK, Target, anchor_html
 from maptasker.src.core.maputils import find_owning_project_for_scene, fix_hyperlink_name
+from maptasker.src.core.mapwriter import BLANK_LINE_BEFORE
 from maptasker.src.core.nameattr import add_name_attribute
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.property import get_properties
@@ -477,6 +478,13 @@ def format_item(
     output_line, color_to_use = format_task_or_scene(
         list_type, the_item, config, project_name, profile_name, state=state
     )
+
+    # A blank line above each Task, to set it apart from what came before -- the Task or the Profile above it.  Asked for
+    # here and answered by the writer, which is the one place that sees what is above: it adds the line break that is
+    # missing, and none where there is a blank line already.  Only a Task of its own: one fired from a Scene ("--Task:")
+    # sits in the Scene's own layout.
+    if list_type == "Task:":
+        state.output_lines.add_line_to_output(5, BLANK_LINE_BEFORE, FormatLine.dont_format_line)
 
     # If "--Task:" then this is a Task under a Scene.
     # Need to temporarily save the_item since add_line_to_output changes the_item
