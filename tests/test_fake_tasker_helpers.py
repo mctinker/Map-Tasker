@@ -396,39 +396,6 @@ def test_a_path_check_that_is_not_ours_is_not_believed(phone: FakeTasker) -> Non
 
 
 # ##################################################################################
-# Opening Tasker on the phone
-# ##################################################################################
-def test_tasker_is_opened_on_the_phone_by_its_helper(phone: FakeTasker) -> None:
-    phone.writes(
-        deviceoffer.LAUNCH_TASKER_TASK_NAME,
-        "/Tasker/maptasker_launch_tasker.txt",
-        f"MAPTASKER-LAUNCH-TASKER 1\n{END}",
-        installed=False,
-    )
-
-    assert deviceoffer.open_tasker_on_device(phone.address, phone.port, state=PrimeItems) == (0, "")
-    assert deviceoffer.LAUNCH_TASKER_TASK_NAME in phone.tasks
-
-
-def test_an_answer_that_is_not_a_launch_result_is_not_believed(phone: FakeTasker) -> None:
-    phone.writes(deviceoffer.LAUNCH_TASKER_TASK_NAME, "/Tasker/maptasker_launch_tasker.txt", f"other\n{END}")
-
-    code, message = deviceoffer.open_tasker_on_device(phone.address, phone.port, state=PrimeItems)
-
-    assert code == 8
-    assert "not a MapTasker launch result" in message
-
-
-def test_a_phone_that_cannot_open_tasker_says_what_it_did_not_write(phone: FakeTasker) -> None:
-    phone.on_task(deviceoffer.LAUNCH_TASKER_TASK_NAME, lambda _fake, _body: None)
-
-    code, message = deviceoffer.open_tasker_on_device(phone.address, phone.port, state=PrimeItems)
-
-    assert code == 8
-    assert "launch result" in message
-
-
-# ##################################################################################
 # A phone that cannot be asked at all
 # ##################################################################################
 @pytest.mark.parametrize(
@@ -438,10 +405,9 @@ def test_a_phone_that_cannot_open_tasker_says_what_it_did_not_write(phone: FakeT
         lambda p: devicecheck.fetch_device_backup(p.address, p.port, state=PrimeItems)[0],
         lambda p: deviceinv.fetch_apps_from_device(p.address, p.port, state=PrimeItems)[0],
         lambda p: deviceresource.check_paths_on_device(p.address, p.port, ["/a"], state=PrimeItems)[0],
-        lambda p: deviceoffer.open_tasker_on_device(p.address, p.port, state=PrimeItems)[0],
         lambda p: deviceverify.fetch_task_names_from_device(p.address, p.port)[0],
     ],
-    ids=["objects", "backup", "apps", "paths", "launch", "task names"],
+    ids=["objects", "backup", "apps", "paths", "task names"],
 )
 def test_a_phone_that_will_not_authorize_ends_every_helper_exchange_with_a_code(phone: FakeTasker, ask) -> None:
     phone.refuse_auth = 99

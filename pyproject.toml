@@ -506,13 +506,6 @@ ignore_names = [
     "DISPLAY_DETAIL_LEVEL_summary",
     "DISPLAY_DETAIL_LEVEL_anon_tasks_only",
     "dont_add_end_span",
-    # Tasker device operations that the GUI no longer calls (the "Open with..." hand-off replaced them)
-    # and that stay for a device that will not take the hand-off; the device tests exercise them.
-    "import_profile_to_device",
-    "IMPORT_TYPE_TASK",
-    "open_tasker_on_device",
-    "open_profile_on_device",
-    "open_project_on_device",
 ]
 
 [tool.pyright]
@@ -633,7 +626,6 @@ strict = [
     "maptasker/src/device/devicecheck.py",
     "maptasker/src/device/devicefiles.py",
     "maptasker/src/device/devicehelpers.py",
-    "maptasker/src/device/deviceimport.py",
     "maptasker/src/device/deviceinv.py",
     "maptasker/src/device/devicemonitor.py",
     "maptasker/src/device/deviceoffer.py",

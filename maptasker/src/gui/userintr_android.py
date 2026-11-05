@@ -1043,7 +1043,7 @@ class AndroidEventHandlers(HandlerGroup):
         The other button in this dialog (save_profile_to_android_event) writes a file to
         /Tasker/profiles that Tasker never reads.  This stages the same XML and has a helper
         Task hand it to Tasker, which brings up Tasker's ordinary import screen -- see
-        deviceoffer.open_profile_on_device.
+        deviceoffer.offer_to_tasker.
 
         (See the comment above this function for the rest.)
 

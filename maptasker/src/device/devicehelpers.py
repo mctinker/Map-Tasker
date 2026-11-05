@@ -13,15 +13,8 @@ from maptasker.src.core import maputil2
 from maptasker.src.core.sysconst import logger
 from maptasker.src.device.devicecheck import ID_CHECK_TASK_NAME, build_id_check_task, objects_in, parse_tasker_xml
 from maptasker.src.device.devicefiles import FILE_LIST_TASK_NAME, build_file_list_task
-from maptasker.src.device.deviceimport import IMPORT_PROFILE_TASK_NAME, build_import_profile_task
 from maptasker.src.device.deviceinv import HELPER_TASK_NAME, build_helper_task
-from maptasker.src.device.deviceoffer import (
-    ALL_OFFER_ROUTES,
-    LAUNCH_TASKER_TASK_NAME,
-    OPEN_PROJECT_ROUTE,
-    build_launch_tasker_task,
-    stage_xml,
-)
+from maptasker.src.device.deviceoffer import ALL_OFFER_ROUTES, OPEN_PROJECT_ROUTE, stage_xml
 from maptasker.src.device.deviceserver import OPEN_SHARE_TASK_NAME, build_open_share_task
 from maptasker.src.device.devicetask import (
     OBJECT_LIST_TASK_NAME,
@@ -77,11 +70,9 @@ def current_helper_builders(state: RunState) -> dict[str, Callable[[], EditableT
         {
             name: functools.partial(builder, state=state)
             for name, builder in {
-                IMPORT_PROFILE_TASK_NAME: build_import_profile_task,
                 FILE_LIST_TASK_NAME: build_file_list_task,
                 OBJECT_LIST_TASK_NAME: build_object_list_task,
                 ID_CHECK_TASK_NAME: build_id_check_task,
-                LAUNCH_TASKER_TASK_NAME: build_launch_tasker_task,
                 OPEN_SHARE_TASK_NAME: build_open_share_task,
                 HELPER_TASK_NAME: build_helper_task,
                 RUN_TASK_HELPER_NAME: build_run_task_helper,
@@ -108,14 +99,11 @@ def classify_helper_tasks(task_names: Iterable[str], state: RunState) -> tuple[l
     Anything not starting with HELPER_TASK_PREFIX is the user's own and is not this
     program's business to have an opinion about, so it appears in neither list.
 
-    The prototype's experiment variants ('MapTasker Import Profile v3 [Task/0]' -- see
-    _import_task_name) count as current when they carry the current version, since they are
-    that build's Task with one setting changed rather than an older build's.  Sorted, because
-    this is read by a person working down a list in Tasker.
+    Sorted, because this is read by a person working down a list in Tasker.
     """
     current = current_helper_task_names(state=state)
     ours = {name.strip() for name in task_names if name and name.strip().startswith(HELPER_TASK_PREFIX)}
-    live = {name for name in ours if name in current or any(name.startswith(f"{one} [") for one in current)}
+    live = ours & current
     return sorted(live), sorted(ours - live)
 
 

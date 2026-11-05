@@ -38,7 +38,6 @@ from maptasker.src.device import (
     devicecheck,
     devicefiles,
     devicehelpers,
-    deviceimport,
     deviceinv,
     deviceoffer,
     devicetask,
@@ -1398,18 +1397,10 @@ def test_a_listing_of_nothing_but_trash_is_an_error(listed_files) -> None:
 
 
 # ##################################################################################
-# Importing a Profile into Tasker's live configuration
+# A stand-in device for the helper-Task exchanges below
 #
-# The endpoint everything else here leans on, POST /api/import, takes a Task and nothing
-# else -- so a Profile is put in by running a helper Task built around Tasker's own
-# 'Import Data' action, which is the very action the shipped api/import Task uses (see
-# deviceinv's section comment).
-#
-# What these assert is the part that can be settled without a device: the shape of the Task
-# that gets installed, and the order and the refusals of the exchange around it.  What they
-# CANNOT settle is what Tasker does with a 'Configuration' import -- that needs a real
-# device with an expendable configuration, and it is why import_profile_to_device refuses
-# to do anything at all unless the caller says out loud that it accepts the answer.
+# POST /api/import takes a Task and nothing else, so every helper Task reaches the device that way, and what a
+# Task does there is answered by the file it writes.  This is a device that answers all of it.
 # ##################################################################################
 GOOD_IMPORT_PAYLOAD = """MAPTASKER-IMPORT 1
 STAGED
@@ -1428,12 +1419,11 @@ class _FakeImportRequests:
     def __init__(
         self,
         payload: str | None = GOOD_IMPORT_PAYLOAD,
-        task_installed: bool = False,
         profiles_after: set[str] | None = None,
     ) -> None:
         self.calls: list[tuple[str, str]] = []
         self.payload = payload
-        self.installed_tasks: set[str] = {deviceimport.IMPORT_PROFILE_TASK_NAME} if task_installed else set()
+        self.installed_tasks: set[str] = set()
         # Which Profiles Tasker reports once the helper has run.  An empty set is the case
         # worth having: the Task ran to completion and Tasker still reports nothing new.
         self.profiles_after = {"Watched"} if profiles_after is None else profiles_after
@@ -1457,7 +1447,7 @@ class _FakeImportRequests:
             return _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}')
         if "/api/tasks" in url:
             # Answers for the name actually asked about, not for a single hard-coded one:
-            # which Task is installed is the point of _import_task_name.
+            # which Task is installed is the point of the name in the query.
             wanted = unquote(url.split("name=", 1)[1]) if "name=" in url else ""
             listed = [{"name": wanted, "running": False}] if wanted in self.installed_tasks else []
             return _FakeResponse(200, json.dumps(listed).encode())
@@ -1520,307 +1510,6 @@ def import_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
     return fake
 
 
-def _import(device: _FakeImportRequests, **kwargs: Any) -> tuple[int, str]:
-    """The call under test, with the risk acknowledged -- see import_profile_to_device."""
-    return deviceimport.import_profile_to_device(
-        _STAGED_PROFILE_XML, "Watched", "192.168.0.210", "1821", acknowledged_risk=True, **kwargs, state=PrimeItems
-    )
-
-
-def test_an_import_that_is_not_acknowledged_never_touches_the_device(
-    import_device: _FakeImportRequests,
-) -> None:
-    """The gate is the point of the gate: a caller that has not said it accepts an import
-    whose effect on the rest of the configuration is unestablished gets nothing sent at
-    all -- not an auth prompt on the device, not a Task installed, nothing."""
-    return_code, message = deviceimport.import_profile_to_device(
-        _STAGED_PROFILE_XML, "Watched", "192.168.0.210", "1821", state=PrimeItems
-    )
-
-    assert return_code != 0
-    assert "acknowledged_risk" in message
-    assert import_device.calls == []
-
-
-def test_an_import_runs_the_whole_exchange_in_order(import_device: _FakeImportRequests) -> None:
-    """Key, is-the-Profile-already-there, is-the-Task-installed, install it, upload, read
-    the upload back, run, read the answer, ask Tasker for the Profile.
-
-    The two readings at the ends are what make this worth anything.  The first is a refusal
-    to duplicate; the last is the only confirmation available -- unlike a Task import there
-    is no second endpoint to fall back on, and a run request's own 200 says only that the
-    Task was started.
-    """
-    return_code, message = _import(import_device)
-    assert return_code == 0, message
-
-    verbs_and_paths = [(verb, url.split("1821", 1)[1]) for verb, url in import_device.calls]
-    assert verbs_and_paths[0] == ("GET", "/api/auth")
-    assert verbs_and_paths[1][0] == "GET" and "/api/profiles?name=" in verbs_and_paths[1][1]
-    assert ("POST", "/api/import") in verbs_and_paths  # the helper Task being installed
-
-    upload_at = verbs_and_paths.index(("POST", "/upload"))
-    run_at = verbs_and_paths.index(("POST", "/api/tasks"))
-    read_back_at = next(
-        i for i, (verb, path) in enumerate(verbs_and_paths) if verb == "GET" and "Watched.prf.xml" in path
-    )
-    answer_at = next(
-        i for i, (verb, path) in enumerate(verbs_and_paths) if verb == "GET" and "maptasker_import.txt" in path
-    )
-    # Read the upload back BEFORE running: /upload answers 200 whatever it wrote, so a
-    # half-written .prf.xml would otherwise be imported rather than reported.
-    assert upload_at < read_back_at < run_at < answer_at
-    assert verbs_and_paths[-1][0] == "GET" and "/api/profiles?name=" in verbs_and_paths[-1][1]
-
-    assert import_device.uploaded == _STAGED_PROFILE_XML
-    assert "Watched" in message
-
-
-def test_a_staged_profile_still_settling_is_read_back_again(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The upload and the read-back are two unrelated Tasker Tasks, so a read that arrives
-    too soon answers 404 about a file that is on the device a moment later.
-
-    This route used to make ONE un-retried GET and report a write that never landed --
-    failing an import over the timing rather than over anything wrong with it.  It goes
-    through maputil2.read_back_uploaded_file now, the way every other upload in this program
-    already did.
-    """
-    from maptasker.src.core import maputil2
-
-    class _SlowToSettle(_FakeImportRequests):
-        """Answers the first read of the staged file with a 404, then behaves."""
-
-        def __init__(self) -> None:
-            super().__init__()
-            self.stage_misses = 0
-
-        def get(self, url: str, **kwargs: Any) -> _FakeResponse:
-            if self.uploaded and ".prf.xml" in url and self.stage_misses == 0:
-                self.stage_misses += 1
-                self.calls.append(("GET", url))
-                return _FakeResponse(404)
-            return super().get(url, **kwargs)
-
-    fake = _SlowToSettle()
-    monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)  # the read-back settle
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
-    maputil2._auth_keys.clear()
-    _load(_FIXTURE_XML)
-
-    return_code, message = _import(fake)
-
-    assert return_code == 0, message
-    assert fake.stage_misses == 1  # the miss happened; the retry after it is what saved this
-
-
-def test_a_staged_profile_that_never_lands_still_stops_the_import(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Retrying is not believing: bytes that never match end as a failure, and nothing is
-    handed to 'Import Data' -- importing an in-memory render at that point would be importing
-    something other than the file this says it imports."""
-    from maptasker.src.core import maputil2
-
-    class _NeverLands(_FakeImportRequests):
-        """Answers every read of the staged file with something other than what was sent --
-        a device still holding the previous version of that path looks exactly like this."""
-
-        def get(self, url: str, **kwargs: Any) -> _FakeResponse:
-            if self.uploaded and ".prf.xml" in url:
-                self.calls.append(("GET", url))
-                return _FakeResponse(200, b"<TaskerData>something else</TaskerData>")
-            return super().get(url, **kwargs)
-
-    fake = _NeverLands()
-    monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
-    maputil2._auth_keys.clear()
-    _load(_FIXTURE_XML)
-
-    return_code, message = _import(fake)
-
-    assert return_code != 0
-    assert "could not confirm it landed correctly" in message
-    assert not any(verb == "POST" and "/api/tasks" in url for verb, url in fake.calls)
-
-
-def test_the_import_task_hands_the_staged_xml_to_import_data(import_device: _FakeImportRequests) -> None:
-    """What actually goes onto the user's device, asserted as XML.
-
-    'Read File' into a variable, then 'Import Data' (code 153) with Type=1 -- Configuration,
-    the option api/import does not use -- taking that same variable.  Type is the argument
-    the whole idea rests on: 0 there would import the Profile XML as a Task.
-    """
-    _import(import_device)
-
-    imported = ET.fromstring(import_device.imported_xml)
-    read_file = imported.find(".//Action[code='417']")
-    assert read_file is not None
-    # %par1, not a path: one installed Task, told which file at run time -- see below.
-    assert read_file.findtext("Str[@sr='arg0']") == "%par1"
-    assert read_file.findtext("Str[@sr='arg1']") == "%mtimport_xml"
-    assert required(read_file.find("Int[@sr='arg2']")).get("val") == "0"  # verbatim, not structured
-
-    import_data = imported.find(".//Action[code='153']")
-    assert import_data is not None
-    assert required(import_data.find("Int[@sr='arg0']")).get("val") == "1"  # Configuration
-    assert required(import_data.find("Int[@sr='arg1']")).get("val") == "0"  # Source, as api/import sends
-    assert import_data.findtext("Str[@sr='arg2']") == "%mtimport_xml"
-
-
-def test_the_import_run_names_the_file_it_is_about(import_device: _FakeImportRequests) -> None:
-    """The prototype stages under the Profile's own name too, and tells the helper which file
-    through par1 -- the same mechanism the offer routes use.  A fixed 'maptasker_import.prf.xml'
-    in the folder the user browses was the reported complaint; it was in both routes."""
-    return_code, message = _import(import_device)
-    assert return_code == 0, message
-
-    assert import_device.uploaded_filename == "Watched.prf.xml"
-    assert import_device.run_bodies[-1]["par1"] == "/storage/emulated/0/Tasker/profiles/Watched.prf.xml"
-
-
-def test_the_import_task_reports_only_after_it_has_imported(import_device: _FakeImportRequests) -> None:
-    """The order that makes the answer file mean something.
-
-    'Import Data' can fail (action_codes["153t"].canfail), and a failed action stops the
-    Task -- so every 'Write File' has to come after it.  Written the other way round the
-    terminator would land whether or not anything was imported, and the poll would report a
-    success that never happened.
-    """
-    _import(import_device)
-
-    codes = _codes(import_device.imported_xml)
-    assert codes.index("153") < codes.index("410")
-
-    imported = ET.fromstring(import_device.imported_xml)
-    writes = imported.findall(".//Action[code='410']")
-    assert [write.findtext("Str[@sr='arg1']") for write in writes][0] == "MAPTASKER-IMPORT 1"
-    assert [write.findtext("Str[@sr='arg1']") for write in writes][-1] == "MAPTASKER-END"
-    assert [required(write.find("Int[@sr='arg2']")).get("val") for write in writes] == ["0", "1", "1", "1"]
-
-
-def test_a_profile_tasker_already_has_is_refused(import_device: _FakeImportRequests) -> None:
-    """api/import refuses a Task whose name is taken rather than replacing it.  What a
-    Configuration import does with an existing Profile is not established -- it may leave two --
-    so the name is checked before anything is uploaded or run."""
-    import_device.installed_profiles = {"Watched"}
-
-    return_code, message = _import(import_device)
-
-    assert return_code == deviceimport.DUPLICATE_PROFILE_CODE
-    assert "already has a Profile" in message
-    assert not any("/upload" in url for _verb, url in import_device.calls)
-    assert not any(verb == "POST" and "/api/tasks" in url for verb, url in import_device.calls)
-
-
-def test_allow_existing_gets_past_that(import_device: _FakeImportRequests) -> None:
-    """The refusal is a default, not a policy -- once the device's behaviour is known, the
-    caller can say so."""
-    import_device.installed_profiles = {"Watched"}
-
-    return_code, message = _import(import_device, allow_existing=True)
-
-    assert return_code == 0, message
-    assert any("/upload" in url for _verb, url in import_device.calls)
-
-
-def test_the_import_task_is_not_installed_twice(import_device: _FakeImportRequests) -> None:
-    """Same reason as every other helper: api/import refuses a name it has, so a second
-    import would be turned away."""
-    import_device.installed_tasks.add(deviceimport.IMPORT_PROFILE_TASK_NAME)
-
-    return_code, message = _import(import_device)
-
-    assert return_code == 0, message
-    assert not any(verb == "POST" and "/api/import" in url for verb, url in import_device.calls)
-
-
-def test_a_task_that_writes_nothing_reads_as_a_refused_import(monkeypatch: pytest.MonkeyPatch) -> None:
-    """No answer file means 'Import Data' failed and stopped the Task.  Nothing was
-    imported, and that is the one thing the message has to say."""
-    from maptasker.src.core import maputil2
-
-    fake = _FakeImportRequests(payload=None)
-    monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
-    maputil2._auth_keys.clear()
-    _load(_FIXTURE_XML)
-
-    return_code, message = _import(fake)
-
-    assert return_code != 0
-    assert "Import Data" in message
-
-
-def test_an_import_tasker_does_not_confirm_is_not_a_success(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The helper got past 'Import Data' without failing and Tasker still reports no such
-    Profile.  Reporting that as success is the failure this whole exchange is built to
-    avoid -- the user would go looking for a Profile that is not there."""
-    from maptasker.src.core import maputil2
-
-    fake = _FakeImportRequests(profiles_after=set())
-    monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
-    maputil2._auth_keys.clear()
-    _load(_FIXTURE_XML)
-
-    return_code, message = _import(fake)
-
-    assert return_code != 0
-    assert "does not report a Profile" in message
-
-
-def test_an_unknown_import_type_is_refused_rather_than_defaulted(import_device: _FakeImportRequests) -> None:
-    """apply_arg_values resolves a dropdown by label and falls back to index 0 for anything
-    it does not recognize -- and index 0 of this dropdown is 'Task'.  Unchecked, a typo
-    would quietly import the Profile XML as a Task instead of saying so."""
-    built = deviceimport.build_import_profile_task(import_type="Config", state=PrimeItems)
-
-    assert isinstance(built, str)
-    assert "Task, Configuration" in built
-
-
-def test_the_source_argument_can_be_changed_without_editing_the_builder(
-    import_device: _FakeImportRequests,
-) -> None:
-    """lookup_values["153a"] is a one-entry placeholder, so this codebase does not know what
-    Source's options are called and apply_arg_values can only ever reach 0 through it.  0 is
-    what api/import sends and stays the default; a prototype should not make the question
-    unaskable."""
-    built = deviceimport.build_import_profile_task(source_index="1", state=PrimeItems)
-    assert not isinstance(built, str), built
-
-    imported = ET.fromstring(taskedit_save.render_standalone_task_xml(built, state=PrimeItems))
-    assert required(imported.find(".//Action[code='153']/Int[@sr='arg1']")).get("val") == "1"
-
-
-def test_a_different_experiment_installs_a_differently_named_task(import_device: _FakeImportRequests) -> None:
-    """Both settings are baked into the Task's actions at install time, and
-    _install_task_on_android skips a name that is already on the device.  Sharing one name
-    across settings would silently re-run the Task built with the previous ones -- the
-    prototype would report on an experiment nobody asked for."""
-    import_device.installed_tasks.add(deviceimport.IMPORT_PROFILE_TASK_NAME)  # the default-named one is there
-
-    return_code, message = _import(
-        import_device, settings=deviceimport.ImportSettings(import_type=deviceimport.IMPORT_TYPE_TASK)
-    )
-    assert return_code == 0, message
-
-    # Installed anyway, because it is not the same Task.
-    assert any(verb == "POST" and "/api/import" in url for verb, url in import_device.calls)
-    imported = ET.fromstring(import_device.imported_xml)
-    assert required(imported.find(".//Action[code='153']/Int[@sr='arg0']")).get("val") == "0"  # Task
-    assert imported.findtext(".//Task/nme") == f"{deviceimport.IMPORT_PROFILE_TASK_NAME} [Task/0]"
-
-
-def test_the_default_experiment_keeps_the_plain_name(import_device: _FakeImportRequests) -> None:
-    """The name a user actually sees in Tasker for the ordinary case."""
-    _import(import_device)
-
-    imported = ET.fromstring(import_device.imported_xml)
-    assert imported.findtext(".//Task/nme") == deviceimport.IMPORT_PROFILE_TASK_NAME
-
-
 # ##################################################################################
 # Offering a Profile to Tasker's own import screen
 #
@@ -1851,8 +1540,8 @@ def open_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
 
 
 def _open(device: _FakeImportRequests, **kwargs: Any) -> tuple[int, str]:
-    return deviceoffer.open_profile_on_device(
-        _STAGED_PROFILE_XML, "Watched", "192.168.0.210", "1821", **kwargs, state=PrimeItems
+    return deviceoffer.offer_to_tasker(
+        _STAGED_PROFILE_XML, "Watched", ["Watched"], "192.168.0.210", "1821", **kwargs, state=PrimeItems
     )
 
 
@@ -1909,11 +1598,9 @@ def test_the_staged_path_is_not_read_before_it_is_written(
     assert not (tmp_path / "MapTasker_Backups").exists()  # nothing copied down here either
 
 
-def test_offering_a_profile_needs_no_risk_acknowledged(open_device: _FakeImportRequests) -> None:
-    """The whole reason this route exists.  Android is handed a file and Tasker shows the
-    user what it is about to import, so nothing outside that one Profile is at stake and
-    there is no unanswered question to gate on -- unlike import_profile_to_device, which
-    refuses to send anything at all without one."""
+def test_offering_a_profile_asks_nothing_beyond_the_offer(open_device: _FakeImportRequests) -> None:
+    """Android is handed a file and Tasker shows the user what it is about to import, so nothing outside that one
+    Profile is at stake and the offer is sent as it stands."""
     return_code, message = _open(open_device)
 
     assert return_code == 0, message
@@ -1941,16 +1628,15 @@ def test_the_offered_task_opens_the_staged_file_with_no_mime_type(open_device: _
     assert "153" not in _codes(open_device.imported_xml)
 
 
-def test_the_two_routes_do_not_share_an_answer_file(open_device: _FakeImportRequests) -> None:
-    """Both write a MAPTASKER-* file ending in the same terminator.  Reading one as the
-    other would be a silent misparse, so they differ in header and in path."""
+def test_the_offer_route_has_an_answer_file_of_its_own(open_device: _FakeImportRequests) -> None:
+    """It writes a MAPTASKER-* file with its own header and path, so another helper's leftover answer is not read as
+    this route's."""
     _open(open_device)
 
     imported = ET.fromstring(open_device.imported_xml)
     writes = imported.findall(".//Action[code='410']")
     assert writes[0].findtext("Str[@sr='arg1']") == "MAPTASKER-OPEN-PROFILE 1"
     assert all(write.findtext("Str[@sr='arg0']") == "Tasker/maptasker_open_profile.txt" for write in writes)
-    assert deviceoffer.OPEN_FILE_ROUTE.read_path != deviceimport._IMPORT_RESULT_READ_PATH
 
 
 def test_an_unconfirmed_offer_is_not_reported_as_a_save(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2301,73 +1987,16 @@ def test_two_threads_suppressing_at_once_leave_the_streams_usable() -> None:
 
 
 # ##################################################################################
-# Opening Tasker, for the import only a person can finish
+# A Scene's route
 #
-# A Scene cannot be handed to Tasker by intent -- four ways tried, all measured failing (see
-# the section comment in deviceinv).  So the Scene goes over under its own name and Tasker is
-# merely brought to the front; the user finishes in 'Scenes > Import One Scene'.
+# A Scene cannot be handed to Tasker by an intent addressed to it -- four ways tried, all measured failing (see
+# the section comment in deviceinv).  It goes through Android's "Open with..." chooser instead.
 # ##################################################################################
-
-
-def test_opening_tasker_hands_over_nothing(import_device: _FakeImportRequests) -> None:
-    """ACTION_MAIN at an explicit component, and no data, no mime type: there is no file to
-    hand over any more, and a VIEW with no data is not a launch.  If this ever grows a data
-    argument again it has become the route that does not work."""
-    built = deviceoffer.build_launch_tasker_task(state=PrimeItems)
-    assert not isinstance(built, str), built
-
-    task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
-    intent = task_xml.find(".//Action[code='877']")
-    assert required(intent).findtext("Str[@sr='arg0']") == "android.intent.action.MAIN"
-    assert required(intent).findtext("Str[@sr='arg2']") == ""  # no mime type
-    assert required(intent).findtext("Str[@sr='arg3']") == ""  # no data
-    assert required(intent).findtext("Str[@sr='arg7']") == "net.dinglisch.android.taskerm"
-    assert required(intent).findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
-    assert "102" not in _codes(ET.tostring(built.task_element, encoding="unicode"))  # no 'Open File'
-
-
-def test_opening_tasker_runs_its_own_task_and_reads_its_own_answer(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Its own Task name and its own answer file, for the reason every other route has them:
-    reading another route's leftover answer as this one's would report a launch that never
-    happened."""
-    from maptasker.src.core import maputil2
-
-    fake = _FakeImportRequests(payload="MAPTASKER-LAUNCH-TASKER 1\nOFFERED\n/Tasker/scenes\nMAPTASKER-END\n")
-    fake.result_filename = "maptasker_launch_tasker.txt"
-    monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
-    maputil2._auth_keys.clear()
-    _load(_FIXTURE_XML)
-
-    return_code, message = deviceoffer.open_tasker_on_device("192.168.0.210", "1821", state=PrimeItems)
-
-    assert return_code == 0, message
-    assert ET.fromstring(fake.imported_xml).findtext(".//Task/nme") == deviceoffer.LAUNCH_TASKER_TASK_NAME
-    assert any("maptasker_launch_tasker.txt" in url for verb, url in fake.calls if verb == "GET")
-
-
-def test_another_routes_answer_is_not_read_as_a_launch(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The header is what catches it -- a device still holding an offer route's answer file
-    must not be read as Tasker having been opened."""
-    from maptasker.src.core import maputil2
-
-    fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD)  # the wrong route's answer
-    fake.result_filename = "maptasker_launch_tasker.txt"
-    monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
-    maputil2._auth_keys.clear()
-    _load(_FIXTURE_XML)
-
-    return_code, message = deviceoffer.open_tasker_on_device("192.168.0.210", "1821", state=PrimeItems)
-
-    assert return_code != 0
-    assert "not a MapTasker launch result" in message
 
 
 def test_a_scene_has_a_route_again_and_it_is_the_open_with_one() -> None:
     """A Scene had no route at all: both measured handoffs failed (a chooser of text/xml apps
-    without Tasker, and an explicit intent Tasker answers by importing nothing), so it was
-    uploaded and Tasker merely opened.
+    without Tasker, and an explicit intent Tasker answers by importing nothing).
 
     The "Open with..." is a third thing, not a repeat of either -- an implicit VIEW carrying
     no type, which is the only one of the three that lets an extension filter match.  It is
@@ -2376,8 +2005,6 @@ def test_a_scene_has_a_route_again_and_it_is_the_open_with_one() -> None:
     assert deviceoffer.OPEN_SCENE_ROUTE.stage_location == "Tasker/scenes"
     assert deviceoffer.OPEN_SCENE_ROUTE.extension == "scn.xml"
     assert deviceoffer.OPEN_SCENE_ROUTE.confirm_endpoint == devicetask.SCENES_ENDPOINT == "api/scenes"
-    # Still there, and still what a device that cannot be handed a Scene falls back to.
-    assert callable(deviceoffer.open_tasker_on_device)
 
 
 # ##################################################################################
@@ -2737,22 +2364,17 @@ def test_a_name_that_is_no_filename_still_stages_somewhere() -> None:
         assert read_path == projedit.android_project_path(name), name
 
 
-def test_the_import_data_route_stages_the_same_way() -> None:
-    """The Import Data prototype and the offer routes put a Profile in the same place under
-    the same name -- one file per Profile, not one per route."""
+def test_the_offer_routes_stage_a_profile_one_file_per_profile() -> None:
+    """The routes put a Profile in the same place under the same name -- one file per Profile, not one per route."""
     assert devicetask.PROFILE_STAGE_LOCATION == "Tasker/profiles"
     assert devicetask.staged_paths(
         devicetask.PROFILE_STAGE_LOCATION,
         "Morning",
-        deviceimport._PROFILE_EXTENSION,
+        "prf.xml",
         "profile",
     ) == deviceoffer.OPEN_FILE_ROUTE.staged_file_paths("Morning")
-    # What the Task reads is part of its body and _install_task_on_android skips a name
-    # already on the device, so changing it had to rename the Task -- see
-    # test_the_helper_task_name_moved_with_what_the_task_opens for the offer routes' own.
-    assert deviceimport.IMPORT_PROFILE_TASK_NAME.endswith(" v3")
-    # ...and MapTasker's bookkeeping still stays out of the user's Profile folder.
-    assert deviceimport._IMPORT_RESULT_READ_PATH.startswith("/Tasker/maptasker_")
+    # ...and MapTasker's bookkeeping stays out of the user's Profile folder.
+    assert deviceoffer.OPEN_FILE_ROUTE.read_path.startswith("/Tasker/maptasker_")
 
 
 def test_every_kind_has_an_open_with_route_into_its_own_folder() -> None:
@@ -2872,9 +2494,7 @@ def test_the_current_helper_names_come_from_the_routes_themselves() -> None:
     for route in deviceoffer.ALL_OFFER_ROUTES:
         assert route.task_name in current, route.task_name
     for standalone in (
-        deviceimport.IMPORT_PROFILE_TASK_NAME,
         devicefiles.FILE_LIST_TASK_NAME,
-        deviceoffer.LAUNCH_TASKER_TASK_NAME,
         deviceinv.HELPER_TASK_NAME,
     ):
         assert standalone in current
@@ -2900,20 +2520,19 @@ def test_only_this_programs_leftovers_are_called_stale() -> None:
     assert current == ["MapTasker Open Profile v4"]
 
 
-def test_an_experiment_variant_of_the_current_prototype_is_not_stale() -> None:
-    """_import_task_name spells the settings into the name ('... v3 [Task/0]').  That is this
-    build's Task with one argument changed, not an older build's, and telling someone to
-    delete the Task their experiment is running would lose the experiment."""
+def test_the_helpers_of_the_removed_prototypes_are_called_stale() -> None:
+    """A phone that still holds the Import Profile and Open Tasker helpers is told they can be deleted."""
     current, stale = devicehelpers.classify_helper_tasks(
-        [
-            f"{deviceimport.IMPORT_PROFILE_TASK_NAME} [Task/0]",
-            "MapTasker Import Profile v1 [Task/0]",
-        ],
+        ["MapTasker Import Profile v3", "MapTasker Import Profile v3 [Task/0]", "MapTasker Open Tasker v1"],
         state=PrimeItems,
     )
 
-    assert current == [f"{deviceimport.IMPORT_PROFILE_TASK_NAME} [Task/0]"]
-    assert stale == ["MapTasker Import Profile v1 [Task/0]"]
+    assert current == []
+    assert stale == [
+        "MapTasker Import Profile v3",
+        "MapTasker Import Profile v3 [Task/0]",
+        "MapTasker Open Tasker v1",
+    ]
 
 
 class _FakeTaskListRequests(_FakeImportRequests):

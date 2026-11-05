@@ -1,4 +1,4 @@
-"""deviceoffer: offering a Profile, Project, Scene or Task to Tasker's own import screen, and opening Tasker."""
+"""deviceoffer: offering a Profile, Project, Scene or Task to Tasker's own import screen."""
 
 from __future__ import annotations
 
@@ -42,8 +42,7 @@ if TYPE_CHECKING:
 # Offering a Profile or a Project to Tasker's own import screen
 # ==========================================
 #
-# The Import Data route above hands the XML to Tasker headlessly, and is unproven.  This one
-# hands the staged file to Android, which gives it to whatever registered for Tasker's file
+# The staged file is handed to Android, which gives it to whatever registered for Tasker's file
 # types -- Tasker's ordinary import screen, the one that comes up when a .prf.xml or a
 # .prj.xml is opened from a file manager.  The user taps Import.
 #
@@ -52,17 +51,14 @@ if TYPE_CHECKING:
 # second.  That last part is why nothing here refuses a duplicate -- Tasker asks better than
 # this could.
 #
-# WHY BOTH ROUTES EXIST
+# WHY THERE IS NO HEADLESS IMPORT
 #
-#   Import Data     headless -- but what 'Configuration' does to the REST of the
-#                   configuration is not established, and the bad answer is unrecoverable.
-#   Open File       one tap on the device -- but the semantics are Tasker's own documented
-#                   import.  Nothing else in the configuration is at stake, so there is no
-#                   acknowledged_risk gate on this one.
-#
-# So this is the one to reach for, and the one the GUI is built on -- see
-# userintr_android.import_profile_into_tasker_event and import_project_into_tasker_event.
-# SEND_INTENT_* stays as the fallback for a device where implicit resolution does not land
+# Handing the XML to Tasker's Import Data action would need no tap, but what its
+# 'Configuration' type does to the REST of the configuration was never established, and the
+# bad answer is unrecoverable.  An import screen that takes one tap on the device uses
+# Tasker's own documented import, with nothing else in the configuration at stake -- and that
+# is what the GUI is built on: see userintr_android.import_profile_into_tasker_event and
+# import_project_into_tasker_event.  SEND_INTENT_* stays as the fallback for a device where implicit resolution does not land
 # on Tasker, not as a second candidate still being chosen between.
 #
 # WHAT THE ANSWER FILE PROVES, WHICH IS LESS THAN THE OTHER ROUTE'S
@@ -449,7 +445,7 @@ OPEN_FILE_ROUTE, SEND_INTENT_ROUTE = _build_offer_routes(
     "Profile", "prf.xml", PROFILES_ENDPOINT, stage_location=PROFILE_STAGE_LOCATION
 )
 # A Project has no endpoint of its own, so it is confirmed through the Profiles it brings --
-# see open_project_on_device.
+# see offer_to_tasker's confirm_names.
 OPEN_PROJECT_ROUTE, SEND_INTENT_PROJECT_ROUTE = _build_offer_routes(
     "Project", "prj.xml", PROFILES_ENDPOINT, stage_location=_PROJECT_STAGE_LOCATION
 )
@@ -489,113 +485,6 @@ ALL_OFFER_ROUTES = (
     OPEN_TASK_ROUTE,
     SEND_INTENT_TASK_ROUTE,
 )
-
-
-# --- Bringing Tasker up, with nothing handed to it ---------------------------------------
-#
-# MEASURED, 2026-08-28: with a Scene staged in /Tasker/scenes and an explicit ACTION_VIEW at
-# Tasker's own activity, Tasker comes up, makes a visible attempt at an import, and imports
-# nothing.  The same file, picked by hand through Tasker's 'Scenes > Import One Scene',
-# imports correctly -- so the XML is right and it is the HANDOFF that Tasker will not
-# complete.  For a while that was read as ending the intent story for Scenes, and this was
-# what a Scene got instead: Tasker merely opened, the import left entirely to the user.
-#
-# It is no longer what the GUI does.  What those measurements did NOT try is an implicit VIEW
-# carrying no mime type at all -- Android's "Open with..." -- and a Scene goes through that
-# now like every other kind (see OPEN_SCENE_ROUTE and _OPEN_WITH_MIME_TYPE).  This is kept
-# because it still works and still might be wanted: it is the one thing that can be done for
-# a device where nothing can be handed over at all, and deleting a tested capability on the
-# strength of a reasoned improvement would be the wrong way round.
-#
-# ACTION_MAIN rather than ACTION_VIEW: there is no file to hand over any more, and a VIEW
-# with no data is not a launch.  MAIN at an explicit component is what launching an app IS.
-_MAIN_ACTION = "android.intent.action.MAIN"
-LAUNCH_TASKER_TASK_NAME = "MapTasker Open Tasker v1"
-_LAUNCH_WRITE_PATH = "Tasker/maptasker_launch_tasker.txt"
-_LAUNCH_READ_PATH = f"/{_LAUNCH_WRITE_PATH}"
-_LAUNCH_HEADER = "MAPTASKER-LAUNCH-TASKER 1"
-
-
-def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME, *, state: RunState) -> EditableTask | str:
-    """Build the Task that brings Tasker to the foreground.  Returns an EditableTask, or an
-    error message string, like every other builder here.
-
-    'Send Intent' again, so this needs no application inventory -- 'Launch App' takes an
-    App-category argument, and taskedit_addable.classify_action_addability refuses those while the
-    inventory is empty, which it is on a machine that has never fetched one.
-    """
-    built = new_helper_task(task_name, state=state)
-    if isinstance(built, str):
-        return built
-    edited_task, add, values = built
-
-    error = add(
-        _SEND_INTENT_ACTION,
-        {
-            "0": _MAIN_ACTION,
-            "1": _INTENT_CATEGORY_NONE,
-            "7": _TASKER_PACKAGE,
-            "8": _TASKER_MAIN_ACTIVITY,
-            "9": _INTENT_TARGET_ACTIVITY,
-        },
-    ) or _add_result_writes(add, _LAUNCH_WRITE_PATH, _LAUNCH_HEADER, f"/{_SCENE_LOCATION}")
-    if error:
-        return error
-    return finish_helper_task(edited_task, task_name, values, state)
-
-
-def open_tasker_on_device(ip_address: str, ip_port: str, state: RunState) -> tuple[int, str]:
-    """Bring Tasker to the foreground on the device.  (0, "") or (return_code, message).
-
-    NOT CALLED BY THE GUI any more -- see the section comment above.  Every import kind now
-    gets Android's "Open with..." chooser instead, which puts Tasker's import screen one tap
-    away rather than dropping the user into Tasker with nothing selected.  Kept for a device
-    that will not take a handoff at all.
-
-    The same exchange every helper Task goes through -- key, install if absent, clear the
-    last answer, run, wait for the answer file -- with nothing handed over and nothing to
-    confirm afterwards.  Whether Tasker is in front of the user is not a thing the HTTP API
-    can be asked; the answer file says only that the Task ran and the intent went out.
-
-    Blocking, like everything else here: a caller on the GUI thread must use run.io_bound.
-    """
-
-    ip_address = ip_address.strip()
-    ip_port = ip_port.strip()
-    return_code, auth_key = auth_key_for(ip_address, ip_port)
-    if return_code != 0:
-        return return_code, auth_key
-
-    return_code, message = install_task_on_android(
-        ip_address,
-        ip_port,
-        auth_key,
-        LAUNCH_TASKER_TASK_NAME,
-        functools.partial(build_launch_tasker_task, state=state),
-        state=state,
-    )
-    if return_code != 0:
-        return return_code, message
-    auth_key = held_auth_key(ip_address, ip_port) or auth_key
-
-    delete_code, delete_error = http_delete_request(ip_address, ip_port, _LAUNCH_READ_PATH, auth_key)
-    if delete_code != 0:
-        logger.info(f"Could not clear {_LAUNCH_READ_PATH} before opening Tasker: {delete_error}")
-
-    return_code, message = request_with_auth_key(
-        ip_address,
-        ip_port,
-        lambda auth_key: run_task_on_android(ip_address, ip_port, LAUNCH_TASKER_TASK_NAME, auth_key),
-    )
-    if return_code != 0:
-        return return_code, message
-
-    text, error = poll_for_result(ip_address, ip_port, _LAUNCH_READ_PATH, _OPEN_POLL_ATTEMPTS, "launch result")
-    if error:
-        return 8, error
-    if not text.splitlines() or text.splitlines()[0].strip() != _LAUNCH_HEADER:
-        return 8, "The file the Android device wrote is not a MapTasker launch result."
-    return 0, ""
 
 
 def stage_xml(
@@ -749,8 +638,7 @@ def _install_and_hand_off(
     return _hand_offer_to_device(ip_address, ip_port, xml_bytes, object_name, route, auth_key)
 
 
-# Unlike import_profile_to_device this has no acknowledged_risk gate, and no duplicate
-# check either.  It puts nothing at stake but the one Profile or Project: Android is
+# There is no duplicate check.  It puts nothing at stake but the one Profile or Project: Android is
 # handed a file, Tasker shows the user what it is about to import -- including, measured
 # on a real device, an offer to replace something it already has -- and the semantics from
 # there are Tasker's own documented ones.  Refusing a name Tasker already knows would only
@@ -842,53 +730,4 @@ def offer_to_tasker(
         auth_key,
         CONFIRM_POLL_ATTEMPTS,
         stage_task_path,
-    )
-
-
-def open_profile_on_device(
-    profile_xml: bytes,
-    profile_name: str,
-    ip_address: str,
-    ip_port: str,
-    wait_for_confirmation: bool = True,
-    route: OfferRoute = OPEN_FILE_ROUTE,
-    *,
-    state: RunState,
-) -> tuple[int, str]:
-    """Offer one Profile to Tasker's import screen.  See offer_to_tasker, which does the work.
-
-    A Profile confirms by its own name -- the list of one that offer_to_tasker's general
-    case collapses to.
-    """
-    return offer_to_tasker(
-        profile_xml,
-        profile_name,
-        [profile_name.strip()],
-        ip_address,
-        ip_port,
-        wait_for_confirmation,
-        route,
-        state=state,
-    )
-
-
-def open_project_on_device(
-    project_xml: bytes,
-    project_name: str,
-    profile_names: list[str],
-    ip_address: str,
-    ip_port: str,
-    wait_for_confirmation: bool = True,
-    route: OfferRoute = OPEN_PROJECT_ROUTE,
-    *,
-    state: RunState,
-) -> tuple[int, str]:
-    """Offer one Project -- and every Profile and Task it owns -- to Tasker's import screen.
-
-    profile_names is the Project's own Profiles, which the caller reads off the live tree
-    (projedit.project_profile_names).  They are what the import is confirmed by, because
-    there is no /api/projects to ask about the Project itself; see the section comment.
-    """
-    return offer_to_tasker(
-        project_xml, project_name, profile_names, ip_address, ip_port, wait_for_confirmation, route, state=state
     )

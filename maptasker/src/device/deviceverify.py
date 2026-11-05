@@ -79,33 +79,6 @@ def verify_names_on_android(
     return {name for name in names if name in found}
 
 
-def verify_profiles_on_android(
-    ip_address: str,
-    ip_port: str,
-    profile_names: list[str],
-    auth_key: str,
-) -> set[str] | None:
-    """Which of these Profile names Tasker reports.  The api/profiles form of
-    verify_names_on_android, kept because most callers only ever ask about Profiles.
-    """
-    return verify_names_on_android(ip_address, ip_port, PROFILES_ENDPOINT, profile_names, auth_key)
-
-
-def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, auth_key: str) -> bool:
-    """Whether Tasker reports a Profile of this name.
-
-    The single-name form of verify_profiles_on_android, and the Profile counterpart of
-    taskedit_save.verify_task_on_android.  It earns its keep for the same reason: a request's own
-    200 is not evidence that anything was committed.
-
-    Returns True only on a successful GET that lists the Profile; a request that failed is
-    False, i.e. 'not confirmed', never 'confirmed absent'.  Callers that need to tell those
-    two apart must use the plural form, which answers None for the second.
-    """
-    present = verify_profiles_on_android(ip_address, ip_port, [profile_name], auth_key)
-    return bool(present) and profile_name in present
-
-
 def import_is_confirmable(
     ip_address: str,
     ip_port: str,
@@ -126,7 +99,7 @@ def import_is_confirmable(
     An empty list is False, not True: a Project that owns no Profiles gives nothing to ask
     about, and 'no questions asked' must not read as 'confirmed'.
 
-    None is kept apart from False for the same reason it is in verify_profiles_on_android --
+    None is kept apart from False for the same reason it is in verify_names_on_android --
     though every caller so far treats them alike, since neither can be confirmed and
     guessing the other way is what turns an unconfirmable import into a reported success.
     """

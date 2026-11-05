@@ -10,7 +10,6 @@ its own modules, built on the same install-run-read exchange (devicetask):
     devicetask      install, run and read back a helper Task; the object list it is built on
     deviceverify    asking Tasker what it has, and waiting for an import to land
     devicefiles     the device's XML files, for the file picker
-    deviceimport    importing a Profile into Tasker's live configuration
     deviceoffer     offering a Profile, Project, Scene or Task to Tasker's import screen
     devicecheck     what Tasker already has of what is about to be sent, by name and by ID
     devicehelpers   the helper Tasks left on the device: current, stale, and all in one Project

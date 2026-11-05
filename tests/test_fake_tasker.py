@@ -163,9 +163,14 @@ def test_a_key_rejected_twice_is_reported(phone: FakeTasker) -> None:
 def test_profiles_are_confirmed_by_name(phone: FakeTasker) -> None:
     phone.profiles |= {"Morning", "Evening"}
 
-    assert deviceverify.verify_profiles_on_android(phone.address, phone.port, ["Morning", "Night"], KEY) == {"Morning"}
-    assert deviceverify.verify_profile_on_android(phone.address, phone.port, "Evening", KEY)
-    assert not deviceverify.verify_profile_on_android(phone.address, phone.port, "Night", KEY)
+    def found(names: list[str]) -> set[str] | None:
+        return deviceverify.verify_names_on_android(
+            phone.address, phone.port, deviceverify.PROFILES_ENDPOINT, names, KEY
+        )
+
+    assert found(["Morning", "Night"]) == {"Morning"}
+    assert found(["Evening"]) == {"Evening"}
+    assert found(["Night"]) == set()
 
 
 # ##################################################################################
@@ -300,8 +305,8 @@ def _open_profile(phone: FakeTasker, *, wait_for_confirmation: bool = True) -> t
     from maptasker.src.core.primitem import PrimeItems
     from maptasker.src.device import deviceoffer
 
-    return deviceoffer.open_profile_on_device(
-        _PROFILE, "Morning", phone.address, phone.port, wait_for_confirmation, state=PrimeItems
+    return deviceoffer.offer_to_tasker(
+        _PROFILE, "Morning", ["Morning"], phone.address, phone.port, wait_for_confirmation, state=PrimeItems
     )
 
 
@@ -384,7 +389,7 @@ def test_a_request_with_something_missing_is_refused_before_the_phone_is_asked(
     from maptasker.src.device import deviceoffer
 
     ip, port, xml, name = arguments
-    code, message = deviceoffer.open_profile_on_device(xml, name, ip, port, state=PrimeItems)
+    code, message = deviceoffer.offer_to_tasker(xml, name, [name.strip()], ip, port, state=PrimeItems)
 
     assert code == 8
     assert expected in message
@@ -397,7 +402,7 @@ def test_a_phone_that_cannot_be_reached_ends_the_offer_with_its_message(phone: F
     from maptasker.src.core.primitem import PrimeItems
     from maptasker.src.device import deviceoffer
 
-    code, message = deviceoffer.open_profile_on_device(_PROFILE, "Morning", phone.address, port, state=PrimeItems)
+    code, message = deviceoffer.offer_to_tasker(_PROFILE, "Morning", ["Morning"], phone.address, port, state=PrimeItems)
 
     assert code == 8
     assert "Connection error" in message

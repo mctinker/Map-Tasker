@@ -1,10 +1,10 @@
 """devicetask: putting one of MapTasker's helper Tasks on the Android device, running it, and reading back what it wrote.
 
-Every feature that works on the device (the Application inventory, the file list, importing or offering a Profile,
+Every feature that works on the device (the Application inventory, the file list, offering a Profile,
 checking what Tasker already has) does it the same way: build a small helper Task with taskedit's Add-Task machinery,
 install it if the device lacks it, run it through Tasker's HTTP server, and poll for the file it writes.  That
 common part is here; what each feature builds and what it does with the answer is in its own module (deviceinv,
-devicefiles, deviceimport, deviceoffer, devicecheck, deviceverify).  The helper Tasks it leaves on the device
+devicefiles, deviceoffer, devicecheck, deviceverify).  The helper Tasks it leaves on the device
 are versioned, and devicehelpers lists them.
 
 Anything here that talks to the device blocks until the device answers, so a caller on the GUI's event loop
