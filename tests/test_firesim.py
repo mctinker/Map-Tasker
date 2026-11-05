@@ -142,7 +142,7 @@ def test_profiles_on_different_triggers_that_disagree() -> None:
     assert len(settings) == 1
     assert settings[0].certain
     assert "Work Hours" in settings[0].where.label
-    assert "runs later, so the device is left On" in settings[0].detail
+    assert "runs later, so WiFi is left On" in settings[0].detail
 
     # Off the office network the pair is not active together, and there is nothing to report.
     quiet = firesim.simulate(firesim.Scenario(_MONDAY, wifi="Cafe", app="", battery=50), state=PrimeItems)

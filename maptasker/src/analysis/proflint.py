@@ -40,7 +40,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import combinations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.mapjump import (
@@ -54,6 +54,9 @@ if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
+
+# What a setting is named by: (action code, the arguments that say which).  Only ever compared and printed.
+Subject = tuple[Any, ...]
 
 # Two of healthck's three grading words, spelled out rather than imported (see the
 # header).  ERROR is deliberately not among them: nothing here is broken.  A Profile whose
@@ -329,6 +332,33 @@ def _trigger_signature(profile: dict) -> tuple[str, ...]:
     return tuple(sorted(_signature(element, _UNSIGNED_TAGS, top=True) for element in _conditions(profile)))
 
 
+def same_trigger(first: Element, second: Element) -> bool:
+    """Whether two Profiles watch exactly the same thing -- the pairs PROFILE-CONFLICT already reports.
+
+    Public so the check for Profiles that overlap without sharing a trigger can leave those pairs to it.
+    """
+    one, other = _trigger_signature({"xml": first}), _trigger_signature({"xml": second})
+    return bool(one) and one == other
+
+
+def opposed_conditions(first: Element, second: Element) -> str:
+    """The name of a condition one Profile holds and the other holds the NOT of, or "".
+
+    Tasker requires every one of a Profile's conditions to be true together, so two Profiles one of which watches
+    "Wifi Near" and the other "NOT Wifi Near" are never active at once.  The same test PROFILE-NEVER-FIRES applies
+    to one Profile holding both, applied across two.
+    """
+    held = {
+        _signature(element, _UNSIGNED_TAGS | {_INVERT_TAG}, top=True): _inverted(element)
+        for element in _conditions({"xml": first})
+    }
+    for element in _conditions({"xml": second}):
+        base = _signature(element, _UNSIGNED_TAGS | {_INVERT_TAG}, top=True)
+        if held.get(base, _inverted(element)) != _inverted(element):
+            return condition_label(element)
+    return ""
+
+
 # ##################################################################################
 # What a Task switches on and off.
 #
@@ -358,7 +388,7 @@ def switch_actions() -> dict[str, str]:
     return codes
 
 
-def _subject(action: Element, code: str, switch_arg: str) -> tuple:
+def _subject(action: Element, code: str, switch_arg: str) -> Subject:
     """What this action is switching, apart from on or off.
 
     Nearly every one of these actions switches a fixed thing -- WiFi switches Wi-Fi -- and
@@ -376,14 +406,30 @@ def _subject(action: Element, code: str, switch_arg: str) -> tuple:
     return (code, others)
 
 
-def subject_label(subject: tuple) -> str:
+def subject_label(subject: Subject) -> str:
     """The thing being switched, as a finding names it: WiFi, or Profile Status 'Night'."""
     code, others = subject
     named = ", ".join(f"'{item}'" for item in others if item and _VARIABLE_MARKER not in item)
     return f"{_action_name(code)} {named}" if named else _action_name(code)
 
 
-def settings_set(task_element: Element, switches: dict[str, str]) -> dict[tuple, str]:
+def switch_setting(action: Element, switches: dict[str, str]) -> tuple[Subject, str] | None:
+    """(what this action switches, the value it switches it to), or None when it is not one that does.
+
+    The one reading of a single switching action, which settings_set walks a Task with and effects.py reads each
+    step of a dry run with -- so the two cannot disagree about what "WiFi, On" is.  A value built from a variable is
+    None, for the reason settings_set gives.
+    """
+    code = (action.findtext("code") or "").strip()
+    if code not in switches:
+        return None
+    value = _argument(action, switches[code])
+    if value not in _SWITCH_VALUES:
+        return None
+    return _subject(action, code, switches[code]), _SWITCH_VALUES[value]
+
+
+def settings_set(task_element: Element, switches: dict[str, str]) -> dict[Subject, str]:
     """{what this Task switches: the value it switches it to}, for the settings it always sets.
 
     Only the actions that run every time this Task runs are counted -- not one inside an
@@ -396,7 +442,7 @@ def settings_set(task_element: Element, switches: dict[str, str]) -> dict[tuple,
     is decided on the device -- and a setting written twice in one Task keeps the last
     value, which is what the device ends up with.
     """
-    settings: dict[tuple, str] = {}
+    settings: dict[Subject, str] = {}
     depth = 0
     for action in actions_in_map_order(task_element):
         code = (action.findtext("code") or "").strip()
@@ -410,16 +456,15 @@ def settings_set(task_element: Element, switches: dict[str, str]) -> dict[tuple,
         # element); a per-action <ConditionList sr="if"> is Tasker's "run this only if".
         if depth or code not in switches or action.find("on") is not None or action.find("ConditionList") is not None:
             continue
-        value = _argument(action, switches[code])
-        if value in _SWITCH_VALUES:
-            settings[_subject(action, code, switches[code])] = _SWITCH_VALUES[value]
+        if (switched := switch_setting(action, switches)) is not None:
+            settings[switched[0]] = switched[1]
     return settings
 
 
 # ##################################################################################
 # Profiles: conflicting triggers, and triggers that can never be met.
 # ##################################################################################
-def setting_conflicts(first: dict[tuple, str], second: dict[tuple, str]) -> list[tuple[tuple, str, str]]:
+def setting_conflicts(first: dict[Subject, str], second: dict[Subject, str]) -> list[tuple[Subject, str, str]]:
     """Every setting these two Tasks leave in a different state, worst-named first."""
     return sorted(
         (subject, value, second[subject]) for subject, value in first.items() if second.get(subject, value) != value

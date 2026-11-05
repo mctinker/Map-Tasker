@@ -36,15 +36,16 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import date, datetime, time, timedelta
 from itertools import combinations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
-from maptasker.src.analysis import proflint
+from maptasker.src.analysis import effects, proflint
 from maptasker.src.core.mapjump import PROFILE, TASK, Target
 from maptasker.src.core.objprops import APP_MATCH_FOREGROUND_APP_BIT, flag_bits
 
 if TYPE_CHECKING:
-    from datetime import datetime
+    from collections.abc import Callable, Iterable
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
@@ -65,7 +66,7 @@ SETTING = "SETTING"
 SAME_TASK = "SAME-TASK"
 
 # The Profile children that are conditions -- proflint's list, and condition.py's.
-_CONDITION_TAGS = ("Time", "Day", "State", "Event", "App", "Loc")
+CONDITION_TAGS = ("Time", "Day", "State", "Event", "App", "Loc")
 
 # The State codes this module can judge from the inputs.  Everything else is UNKNOWN.
 _WIFI_CONNECTED = "160"
@@ -469,7 +470,7 @@ def _task_target(task_id: str, owners: dict[str, str], state: RunState) -> Targe
     return Target(TASK, task_id, task["name"], owners.get(f"tids:{task_id}", ""))
 
 
-def _priority(profile_xml: Element) -> int:
+def profile_priority(profile_xml: Element) -> int:
     """The priority this Profile's Tasks are started at."""
     value = _text(profile_xml, "pri")
     return int(value) if value.isdigit() else DEFAULT_PRIORITY
@@ -487,7 +488,7 @@ def evaluate_profile(
     element = profile["xml"]
     verdicts: list[Verdict] = []
     instant = False
-    for condition in (child for child in element if child.tag in _CONDITION_TAGS):
+    for condition in (child for child in element if child.tag in CONDITION_TAGS):
         verdict, is_instant = _judge(condition, scenario)
         verdicts.append(verdict)
         instant = instant or is_instant
@@ -501,7 +502,7 @@ def evaluate_profile(
         target=Target(PROFILE, profile_id, profile["name"], owners.get(f"pids:{profile_id}", "")),
         state=result_state,
         verdicts=verdicts,
-        priority=_priority(element),
+        priority=profile_priority(element),
         instant=instant,
         entry=_task_target(_text(element, "mid0"), owners, state=state),
         exit=_task_target(_text(element, "mid1"), owners, state=state),
@@ -541,15 +542,14 @@ def _both(first: ProfileResult, second: ProfileResult) -> str:
 
 
 def _setting_collisions(queue: list[Run], state: RunState) -> list[Collision]:
-    """Two Profiles active together whose entry Tasks set the same switch opposite ways.
+    """Two Profiles active together whose entry Tasks set the same thing differently.
 
     proflint's PROFILE-CONFLICT, asked of Profiles that are active at the same moment
-    instead of Profiles that share a trigger.  The device is left with whichever Task runs
+    instead of Profiles that share a trigger, and of what effects.py reads off a Task -- a switch, a volume or the
+    brightness, a global variable -- rather than the switches alone.  The device is left with whichever Task runs
     last -- which, between two starts of equal priority, is not fixed.
     """
-    switches = proflint.switch_actions()
-    tasks = state.tasker_root_elements["all_tasks"]
-    settings = {run.position: proflint.settings_set(tasks[run.task.key]["xml"], switches) for run in queue}
+    settings = {run.position: effects.entry_effects(run.task.key, state=state) for run in queue}
 
     collisions: list[Collision] = []
     for first, second in combinations(queue, 2):
@@ -557,7 +557,7 @@ def _setting_collisions(queue: list[Run], state: RunState) -> list[Collision]:
             continue  # one Task started twice is _same_task_collisions', and cannot disagree with itself
         for subject, mine, theirs in proflint.setting_conflicts(settings[first.position], settings[second.position]):
             if first.profile.priority != second.profile.priority:
-                outcome = f"{second.task.label} runs later, so the device is left {theirs}."
+                outcome = f"{second.task.label} runs later, so {effects.describe(subject)} is left {theirs}."
             else:
                 outcome = "They have the same priority, so which one the device is left with is not fixed."
             collisions.append(
@@ -565,7 +565,7 @@ def _setting_collisions(queue: list[Run], state: RunState) -> list[Collision]:
                     SETTING,
                     first.profile.target,
                     f"Is active together with {second.profile.target.label}, and their entry Tasks disagree:"
-                    f" {first.task.label} sets {proflint.subject_label(subject)} {mine}, {second.task.label}"
+                    f" {first.task.label} sets {effects.describe(subject)} {mine}, {second.task.label}"
                     f" sets it {theirs}.  {outcome}{_both(first.profile, second.profile)}",
                     first.profile.state == ACTIVE and second.profile.state == ACTIVE,
                 ),
@@ -603,6 +603,178 @@ def _same_task_collisions(queue: list[Run], state: RunState) -> list[Collision]:
             ),
         )
     return collisions
+
+
+# ##################################################################################
+# Whether two Profiles can be active at the same time, whatever the moment.
+# ##################################################################################
+@dataclass(frozen=True)
+class Together:
+    """Two Profiles that nothing in the file stops being active at once.
+
+    `shared` is whether they watch at least one kind of thing in common -- the time of day, the day, the Wi-Fi
+    network, the battery or the app in front -- and so overlap THERE, which is evidence.  When it is False their
+    triggers are independent (one watches the clock, the other the Wi-Fi), and nothing says they ever meet: only
+    that nothing says they cannot.  `example` is a moment at which both can be true, worded for a sentence, or "".
+    """
+
+    shared: bool
+    example: str
+
+
+# The inputs a scenario is built from, and the conditions each one decides.  Every condition reads exactly one of
+# them, which is what lets "is there a moment when both Profiles are possible" be answered one input at a time
+# rather than over every combination of all of them.
+_WITNESS_DAY = date(2028, 1, 1)  # a leap year, so 29 February is a date that can be tried
+_OTHER_NETWORK = "\u0000another network"
+_OTHER_APP = "\u0000another app"
+_PERCENTS = range(101)
+_T = TypeVar("_T")
+
+
+def _holds(conditions: list[Element], scenario: Scenario) -> bool:
+    """Whether none of these conditions is certainly false in the scenario."""
+    return all(_judge(element, scenario)[0].outcome != NO for element in conditions)
+
+
+def _at(day: date, minute: int) -> datetime:
+    """That minute of the day, on that date."""
+    return datetime.combine(day, time(minute // 60, minute % 60))
+
+
+def _minutes_to_try(conditions: list[Element]) -> list[int]:
+    """The minutes of the day worth trying for <Time> conditions: each edge of each window, and a step either side."""
+    minutes = {0, 12 * 60}
+    for element in conditions:
+        for hour, minute in (("fh", "fm"), ("th", "tm")):
+            if (hours := _number(element, hour)) != _UNSET:
+                edge = hours * 60 + max(_number(element, minute), 0)
+                minutes |= {edge, max(edge - 1, 0), min(edge + 1, _MINUTES_IN_DAY - 1)}
+    return sorted(minute for minute in minutes if 0 <= minute < _MINUTES_IN_DAY)
+
+
+def _networks_to_try(conditions: list[Element]) -> list[str]:
+    """The Wi-Fi networks worth trying: not connected, each one the conditions name, and one nobody names."""
+    names = {
+        name.strip()
+        for element in conditions
+        for name in _argument(element, "0").lstrip("!").split("/")
+        if name.strip() and not any(marker in name for marker in "*+%")
+    }
+    return ["", *sorted(names), _OTHER_NETWORK]
+
+
+def _apps_to_try(conditions: list[Element]) -> list[str]:
+    """The apps worth trying: none in front, each one the conditions name, and one nobody names."""
+    names = {
+        (child.text or "").strip()
+        for element in conditions
+        for child in element
+        if child.tag.startswith(("pkg", "label")) and (child.text or "").strip()
+    }
+    return ["", *sorted(names), _OTHER_APP]
+
+
+def _split(elements: list[Element]) -> dict[str, list[Element]]:
+    """The conditions that decide each input: the time of day, the date, the Wi-Fi, the battery, the app in front."""
+    kinds: dict[str, list[Element]] = {"time": [], "day": [], "wifi": [], "battery": [], "app": []}
+    for element in elements:
+        code = _text(element, "code")
+        if element.tag in ("Time", "Day", "App"):
+            kinds[element.tag.lower()].append(element)
+        elif element.tag == "State" and code == _WIFI_CONNECTED:
+            kinds["wifi"].append(element)
+        elif element.tag == "State" and code == _BATTERY_LEVEL:
+            kinds["battery"].append(element)
+    return kinds
+
+
+def fires_at_a_moment(profile_xml: Element) -> bool:
+    """Whether this Profile fires at an instant -- an Event, a single time, a repeat -- rather than staying active.
+
+    The same flag evaluate_profile reads off each condition, asked of the conditions alone.  An instant Profile runs
+    its Task and is done, so it is not "active together" with anything in the sense a state is.
+    """
+    probe = Scenario(_at(_WITNESS_DAY, 12 * 60))
+    return any(_judge(element, probe)[1] for element in profile_xml if element.tag in CONDITION_TAGS)
+
+
+def _find(
+    conditions: list[Element], candidates: Iterable[_T], make: Callable[[_T], Scenario]
+) -> tuple[bool, _T | None]:
+    """(whether there is a witness, the first candidate no condition rules out).
+
+    With no condition to satisfy there is nothing to rule anything out, so the answer is yes and no particular
+    value: the caller has nothing to say about an input neither Profile watches.
+    """
+    if not conditions:
+        return True, None
+    for candidate in candidates:
+        if _holds(conditions, make(candidate)):
+            return True, candidate
+    return False, None
+
+
+def _example(
+    both: dict[str, list[Element]], when: datetime, network: str | None, app: str | None, level: int | None
+) -> str:
+    """The moment the witnesses add up to, as the tail of a sentence: "at 22:30, on Monday 3 January, on 'Home'"."""
+    parts: list[str] = []
+    if both["time"]:
+        parts.append(f"at {_hhmm(when.hour * 60 + when.minute)}")
+    if both["day"]:
+        parts.append(f"on {_WEEKDAYS[when.isoweekday() % 7]} {when.day} {when.strftime('%B')}")
+    if network:
+        parts.append("on another Wi-Fi network" if network == _OTHER_NETWORK else f"on the Wi-Fi network '{network}'")
+    elif network == "":
+        parts.append("with Wi-Fi off")
+    if app and app != _OTHER_APP:
+        parts.append(f"with {app} in front")
+    if level is not None:
+        parts.append(f"with the battery at {level}%")
+    return ", ".join(parts)
+
+
+def active_together(first: Element, second: Element) -> Together | None:
+    """Whether these two Profiles can be active at the same time, or None when they provably cannot.
+
+    A scenario describes five independent inputs -- the time of day, the date, the Wi-Fi network, the app in front
+    and the battery level -- and every condition reads exactly one of them, so two Profiles can be active together
+    when EACH input has some value that makes none of their conditions certainly false.  Each is tried against the
+    values that could make a difference (the edges of a time window, the networks the conditions name, the 366
+    dates of a leap year) rather than against every combination, which is what keeps this cheap enough to ask of
+    every pair of Profiles in a large backup.
+
+    The same three answers as everywhere here: a condition that cannot be judged from the inputs -- an Event, a
+    location, another kind of State -- is never a reason to rule a pair out, because calling two Profiles that
+    may meet exclusive would hide a real clash, which is worse than naming one that never happens.  The one thing
+    outside the inputs that IS decided is a condition held by one Profile and its NOT by the other
+    (proflint.opposed_conditions).
+    """
+    if proflint.opposed_conditions(first, second):
+        return None
+
+    own = _split([child for child in first if child.tag in CONDITION_TAGS])
+    other = _split([child for child in second if child.tag in CONDITION_TAGS])
+    both = {kind: own[kind] + other[kind] for kind in own}
+
+    times, minute = _find(both["time"], _minutes_to_try(both["time"]), lambda m: Scenario(_at(_WITNESS_DAY, m)))
+    when = _at(_WITNESS_DAY, minute or 12 * 60)
+    days, found_day = _find(
+        both["day"],
+        (_WITNESS_DAY + timedelta(days=offset) for offset in range(366)),
+        lambda day: Scenario(_at(day, when.hour * 60 + when.minute)),
+    )
+    if found_day is not None:
+        when = _at(found_day, when.hour * 60 + when.minute)
+    wifi, network = _find(both["wifi"], _networks_to_try(both["wifi"]), lambda name: Scenario(when, wifi=name))
+    apps, app = _find(both["app"], _apps_to_try(both["app"]), lambda name: Scenario(when, app=name))
+    battery, level = _find(both["battery"], _PERCENTS, lambda percent: Scenario(when, battery=percent))
+    if not (times and days and wifi and apps and battery):
+        return None
+
+    shared = any(own[kind] and other[kind] for kind in own)
+    return Together(shared, _example(both, when, network if both["wifi"] else None, app, level))
 
 
 # ##################################################################################

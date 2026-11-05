@@ -20,7 +20,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from maptasker.src.analysis import errcheck, plugchk, proflint, resrefs, taskflow
+from maptasker.src.analysis import errcheck, plugchk, profconflict, proflint, resrefs, taskflow
 from maptasker.src.core import clock, piiscan
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.mapjump import (
@@ -179,6 +179,11 @@ CATEGORIES: tuple[Category, ...] = (
     Category("MISSING-COLLISION", GROUP_BEHAVIOUR, "A long-running Task left on the default collision handling."),
     Category("NO-TIMEOUT", GROUP_BEHAVIOUR, "An action that can block for ever."),
     Category(
+        profconflict.OVERLAP,
+        GROUP_BEHAVIOUR,
+        "Two Profiles that can be active together and leave a volume, the brightness, a switch or a variable set two ways.",
+    ),
+    Category(
         errcheck.IGNORED_ERROR,
         GROUP_BEHAVIOUR,
         "A web request, shell command, Perform Task or file write that carries on after a failure, with nothing reading %err.",
@@ -209,6 +214,7 @@ _PASS_TAGS = {
     "variables": frozenset(f"VAR-{tag}" for tag in (varxref.NEAR_DUPLICATE, varxref.NEVER_SET, varxref.NEVER_READ)),
     "behaviour": proflint.TAGS,
     "errors": errcheck.TAGS,
+    "overlap": profconflict.TAGS,
     "plugins": plugchk.TAGS,
     "resources": resrefs.TAGS,
     "secrets": piiscan.TAGS,
@@ -957,6 +963,19 @@ def _check_behaviour(index: ReferenceIndex, state: RunState) -> None:
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
+def _check_overlaps(index: ReferenceIndex, state: RunState) -> None:
+    """Fold the check for Profiles that can be active together and leave a setting two ways into this report.
+
+    Folded in for _check_behaviour's reason: a question about how the configuration will BEHAVE, answered from the
+    file alone.  proflint's PROFILE-CONFLICT covers Profiles that watch the very same trigger; this covers the ones
+    that watch different things and meet anyway -- the Home Profile and the Night Profile that both set the volume.
+
+    The severity and the tag both come from profconflict unchanged, as proflint's are.
+    """
+    for problem in profconflict.lint_problems(state=state):
+        index.add(problem.severity, problem.tag, problem.where, problem.detail, related=problem.related)
+
+
 def _check_errors(index: ReferenceIndex, state: RunState) -> None:
     """Fold the check for failures that are thrown away into this report.
 
@@ -1199,6 +1218,29 @@ def _device_check_notes(index: ReferenceIndex) -> list[str]:
     return notes
 
 
+def _overlaps_note(index: ReferenceIndex) -> list[str]:
+    """The closing note on what PROFILE-OVERLAP cannot know, when there is a finding of that kind to read it against."""
+    if not any(item.tag in profconflict.TAGS for item in index.findings):
+        return []
+    return [
+        "",
+        "NOTE ON OVERLAPPING PROFILES",
+        "-" * _REPORT_WIDTH,
+        "A finding tagged PROFILE-OVERLAP says nothing in the file stops two Profiles being",
+        "active at the same time, and that their entry Tasks leave a volume, the brightness,",
+        "a switch or a global variable set differently.  It does not say they ever are:",
+        "an Event, a location or any state this check cannot judge is never taken as a",
+        "reason to call two Profiles exclusive, so two that never meet in practice can be",
+        "listed.  A WARNING is a pair that watches something in common and overlaps there;",
+        "an INFO is a pair whose triggers are independent.  Profiles that fire at an instant",
+        "(an Event, a single time or a repeat) are left out, and so are Exit Tasks and",
+        "anything a Task sets only after a decision that depends on a variable the device",
+        "holds.  The Profile that wins is the one whose Task runs last: of two Profiles",
+        "that start together, the lower priority.",
+        "",
+    ]
+
+
 def _ignored_errors_note(index: ReferenceIndex) -> list[str]:
     """The closing note on what ERROR-IGNORED cannot know, when there is a finding of that kind to read it against."""
     if not any(item.tag in errcheck.TAGS for item in index.findings):
@@ -1260,6 +1302,7 @@ def _limitations(index: ReferenceIndex) -> list[str]:
             "",
         ]
 
+    notes += _overlaps_note(index)
     notes += _ignored_errors_note(index)
     notes += _device_check_notes(index)
 
@@ -1402,6 +1445,8 @@ def collect_findings(skip: Collection[str] = (), *, state: RunState) -> Referenc
         _check_variables(index, state=state)
     if not _PASS_TAGS["behaviour"] <= skip:
         _check_behaviour(index, state=state)
+    if not _PASS_TAGS["overlap"] <= skip:
+        _check_overlaps(index, state=state)
     if not _PASS_TAGS["errors"] <= skip:
         _check_errors(index, state=state)
     if not _PASS_TAGS["plugins"] <= skip:
