@@ -35,7 +35,7 @@ from maptasker.src.core.format import format_html
 from maptasker.src.core.maputils import fix_hyperlink_name
 from maptasker.src.core.primitem import MAP_OUTPUT_ATTRIBUTES, reset_attributes
 from maptasker.src.core.runcfg import current_config
-from maptasker.src.core.sysconst import PROPERTIES_TAG, UNNAMED_ITEM, FormatLine, debug_out, logger
+from maptasker.src.core.sysconst import HOTLINK_STYLE, PROPERTIES_TAG, UNNAMED_ITEM, FormatLine, debug_out, logger
 from maptasker.src.core.xmldata import remove_html_tags
 from maptasker.src.mapgen.frontmtr import output_the_front_matter
 
@@ -260,7 +260,9 @@ class LineOut:
         Otherwise, adds it after 5 blanks.
         """
         blank = "&nbsp;"
-        javacode = """<a href='#the_top'>Go to top</a><br>"""
+        # Styled like every other hot-link in the Map (see sysconst.HOTLINK_STYLE): inside the Map view the link
+        # would otherwise take the color of the text around it, with nothing to show it can be clicked.
+        javacode = f"""<a href='#the_top' style="{HOTLINK_STYLE}">Go to top</a><br>"""
         return f"{element}{blank * 20}{javacode}" if len(element) < 70 else f"{element}{blank * 5}{javacode}"
 
     # Given a text string to output, format it based on it's contents:

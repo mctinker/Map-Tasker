@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: Loading a backup and building the Map is about 20% faster on large configurations; one 13 MB backup went from about 3 seconds to about 2.3. A backup that declares an XML entity is still refused with a message.
+- Changed: The "Go to top" links in the Map are now blue and underlined, like the Map's other links, so they are easy to see as links.
 
 ### Removed
 

@@ -98,7 +98,7 @@ _COLORS = {
 # Elements that show a reader nothing: styling, scripts, the page title, and the "Go to top"
 # link every object carries.
 _INVISIBLE_ELEMENTS = re.compile(
-    r"<(style|script|title)\b.*?</\1\s*>|<a\s+href='#the_top'>.*?</a>",
+    r"<(style|script|title)\b.*?</\1\s*>|<a\s+href='#the_top'[^>]*>.*?</a>",
     re.IGNORECASE | re.DOTALL,
 )
 _TABLE = re.compile(r"<table\b.*?</table\s*>", re.IGNORECASE | re.DOTALL)

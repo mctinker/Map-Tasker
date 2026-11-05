@@ -153,6 +153,16 @@ def test_what_shows_nothing_is_left_out() -> None:
     assert "Profiles: a > b" not in text
 
 
+def test_a_styled_go_to_top_link_is_left_out_too() -> None:
+    """The link is written with the hot-link style now, and a Map written before that has none: both read as nothing."""
+    from maptasker.src.core.sysconst import HOTLINK_STYLE
+
+    styled = _MAP_HTML.replace("<a href='#the_top'>", f"<a href='#the_top' style=\"{HOTLINK_STYLE}\">")
+    assert styled != _MAP_HTML
+    text = "\n".join(line for block in mapexport.map_blocks(styled) for line in block.lines)
+    assert "Go to top" not in text
+
+
 def test_entries_nest_the_way_the_map_draws_them() -> None:
     """Profiles under their Project, Tasks under their Profile, actions under their Task."""
     roots = mapexport.map_tree(mapexport.map_blocks(_MAP_HTML))
