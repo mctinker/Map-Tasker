@@ -1287,8 +1287,8 @@ def render_full_backup_xml(state: RunState, *, indent: bool = True) -> str:
     # free to write all over.  For a checkpoint it is a bare root of the same class holding
     # the LIVE children -- no copying at all, and nothing below may modify it.  A bare root
     # rather than the loaded one because appending to that would reorder the user's own
-    # tree; its class is read off the tree because the parse is defusedxml's and its
-    # Element is not necessarily ETW's (the same reason projedit reads it off there).
+    # tree; its class is read off the tree because a tree restored by Undo is defusedxml's
+    # and its Element is not ETW's (the same reason projedit reads it off there).
     if indent:
         rendered_root = copy.deepcopy(root)
     else:

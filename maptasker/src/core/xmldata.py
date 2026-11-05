@@ -10,9 +10,8 @@ from __future__ import annotations
 import codecs
 import io
 import re
-from typing import TYPE_CHECKING
-
-import defusedxml.ElementTree
+import xml.etree.ElementTree as ET
+from typing import TYPE_CHECKING, cast
 
 from maptasker.src.core.action import drop_trailing_comma, process_xml_list
 from maptasker.src.core.maputil2 import translate_string
@@ -395,22 +394,31 @@ def parse_tasker_xml(file_to_parse: str) -> ElementTree:
         data = backup_as_utf8(xml_file.read())
     try:
         return _parse_utf8(data)
-    except defusedxml.ElementTree.ParseError:
+    except ET.ParseError:
         repaired = separate_attributes(data)
         if repaired == data:
             raise
         return _parse_utf8(repaired)
 
 
+# What an XML entity attack needs: a declaration of an entity (an internal one to expand into a flood of text, or one that
+# names an external file).  Nothing Tasker writes declares one -- it writes no DTD at all -- and XML spells the keyword
+# one way only, so looking for it in the bytes is enough.
+ENTITY_DECLARATION = b"<!ENTITY"
+
+
 def _parse_utf8(data: bytes) -> ElementTree:
     """The tree for XML bytes already in UTF-8.
 
-    defusedxml refuses a document that declares an entity (the shape of an entity-expansion or external-entity
-    attack, and nothing Tasker writes) with an exception of its own.  It is made a ParseError here, so that every
+    The parse is the standard library's own, in C, which is several times faster than defusedxml's -- its hardened
+    parser is the pure-Python one -- and builds a tree that is faster to search for as long as the Map is built from it.
+    What defusedxml was there for is refusing a document that declares an entity, the shape of an entity-expansion or
+    external-entity attack, and that is checked for here before the parse begins.  It is made a ParseError, so that every
     caller that already treats a file that will not parse as a message treats this one the same way.
     """
-    try:
-        return defusedxml.ElementTree.parse(io.BytesIO(data), parser=defusedxml.ElementTree.XMLParser(encoding="utf-8"))
-    except defusedxml.DefusedXmlException as error:
+    if ENTITY_DECLARATION in data:
         message = "the file declares an XML entity, which MapTasker does not read"
-        raise defusedxml.ElementTree.ParseError(message) from error
+        raise ET.ParseError(message)
+    # The rest of the program holds a tree as ElementTree[Element | None], the standard library's own default; a tree that
+    # was parsed from a file always has a root.
+    return cast("ElementTree", ET.parse(io.BytesIO(data), parser=ET.XMLParser(encoding="utf-8")))

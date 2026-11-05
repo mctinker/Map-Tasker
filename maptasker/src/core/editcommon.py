@@ -75,9 +75,9 @@ def set_child_text(parent: Element, tag: str, text: str) -> None:
     """Set (creating if need be) one child's text.
 
     Builds a new child with the parent's own class rather than ETW.SubElement: the tree
-    being edited is parsed by defusedxml, whose hardened XMLParser forces the pure-Python
-    Element implementation, and .append() enforces an exact type match -- so a
-    stdlib-class child would be refused.
+    being edited is the C implementation's when it was read from a file, and defusedxml's
+    pure-Python one when it was restored by Undo, and .append() enforces an exact type
+    match -- so a child of the other class would be refused.
     """
     child = parent.find(tag)
     if child is None:

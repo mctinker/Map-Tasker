@@ -321,6 +321,10 @@ max-complexity = 12
 # and times the steps of a command-line run by calling the setup that run is made of, which clireports keeps to itself
 # because nothing else is meant to start a run that way (SLF001).
 'scripts/perf_check.py' = ['S603', 'SLF001']
+# xmldata.py reads a Tasker backup with the standard library's own C parser, which is several times faster than
+# defusedxml's pure-Python one (S314).  What defusedxml was there to refuse -- a document that declares an entity -- is
+# refused before the parse begins (see ENTITY_DECLARATION).  Shares from strangers are still read with defusedxml.
+'maptasker/src/core/xmldata.py' = ['S314']
 
 # There is no per-file backlog any more.  Every rule is enforced in every file; a new
 # violation fails CI, and the fix belongs in the code rather than in a line added here.
