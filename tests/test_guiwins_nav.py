@@ -259,15 +259,24 @@ def test_a_cancelled_rendering_says_nothing(monkeypatch: pytest.MonkeyPatch) -> 
 # ##################################################################################
 # Finding a view's element in the page
 # ##################################################################################
+class _PageElement:
+    """A stand-in for a NiceGUI element: its number, and -- unless left out -- the id NiceGUI gives it in the page."""
+
+    def __init__(self, number: int, html_id: str | None = None) -> None:
+        self.id = number
+        if html_id is not None:
+            self.html_id = html_id
+
+
 def test_a_view_is_looked_up_by_the_id_nicegui_gave_it_not_one_made_up_from_its_number() -> None:
     """NiceGUI 3 names an element "c42" in the page and NiceGUI 4 names it "ng-42".  A script that
     builds "c42" itself finds nothing under 4 and quietly does nothing -- which is how Bottom and
     the Diagram's connectors stopped working for anyone installing the latest NiceGUI.
     """
-    assert mapjump.dom_id(SimpleNamespace(id=42, html_id="ng-42")) == "ng-42"
-    assert mapjump.dom_id(SimpleNamespace(id=42, html_id="c42")) == "c42"
+    assert mapjump.dom_id(_PageElement(42, "ng-42")) == "ng-42"
+    assert mapjump.dom_id(_PageElement(42, "c42")) == "c42"
     # A stand-in with no html_id still gets a usable name.
-    assert mapjump.dom_id(SimpleNamespace(id=42)) == "c42"
+    assert mapjump.dom_id(_PageElement(42)) == "c42"
 
 
 def test_the_page_scripts_look_up_the_id_they_are_given_whole() -> None:

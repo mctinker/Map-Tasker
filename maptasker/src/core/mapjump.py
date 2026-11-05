@@ -33,7 +33,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field, replace
 from html import escape
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 from urllib.parse import quote, unquote
 
 from maptasker.src.core import assettext
@@ -684,7 +684,13 @@ def html_report(rows: list[Row]) -> str:
     )
 
 
-def dom_id(element: Any) -> str:
+class _HasElementId(Protocol):
+    """What dom_id needs of a NiceGUI element: its number.  Named here so that this module need not import NiceGUI."""
+
+    id: int
+
+
+def dom_id(element: _HasElementId) -> str:
     """The id a NiceGUI element has in the page, which is what getElementById has to be given.
 
     NiceGUI names it, and has renamed it: "c42" up to version 3, "ng-42" from version 4.  So it
