@@ -481,75 +481,54 @@ def delete_hanging_bars(
     return output_lines
 
 
+def _rows_spanned(connector: CallConnector) -> tuple[int, int]:
+    """The first and last Diagram line a connector is drawn over, whichever way it runs."""
+    first, last = connector["caller_line_num"], connector["called_line_num"]
+    return (first, last) if first <= last else (last, first)
+
+
+def _runs_overlap(first: CallConnector, second: CallConnector) -> bool:
+    """Whether two connectors would be drawn over a common line, so a shared column would join them."""
+    first_top, first_bottom = _rows_spanned(first)
+    second_top, second_bottom = _rows_spanned(second)
+    return second_top <= first_bottom and first_top <= second_bottom
+
+
 def fix_duplicate_up_down_locations(call_table: CallTable) -> CallTable:
-    # Get a list of duplicate up-down locations
-    """
-    Fixes duplicate up-down locations in the call table by adjusting connectors to avoid overlaps.
+    """Move connectors apart that would be drawn down the same column over the same lines.
+
+    Two connectors in one column are fine so long as they cover different lines.  Where they cover
+    a common line they are drawn over one another and read as a single line, and the Diagram can no
+    longer tell a click on one from a click on the other.
+
+    The later connector of each overlapping pair, in the order of the call table, moves over two
+    columns.  That can land it on a third connector's column, so this goes on until none is left.
+    Only connectors in the same column are compared: a connector that merely overlaps another's
+    lines, from a column of its own, has nothing to be moved for.
 
     Args:
-        call_table (dict): A dictionary containing caller and called task connections with their line numbers
-                           and up_down_locations.
+        call_table (dict): the connectors, keyed by call, each with its up_down_location.
 
     Returns:
-        dict: The modified call table with unique up_down_locations for each connection.
-
-    Processing Logic:
-    - Identify duplicate up_down_locations in the call table.
-    - For each pair of duplicates, determine the top and bottom line numbers for both connectors.
-    - Check for overlap situations between the connectors, including complete, lower boundary, inner, or upper boundary overlaps.
-    - Adjust the up_down_location of the second connector if an overlap is detected.
-    - Recursively process the call table until all duplicates are resolved.
+        dict: the same table, with the up_down_location of the connectors that had to move changed.
     """
-    # Get a list of duplicate up-down locations
-    duplicates = find_duplicate_up_down_locations(call_table)
-    up_down_modified = False
+    while True:
+        by_column: dict[int, list[CallConnector]] = {}
+        for _key, connector in find_duplicate_up_down_locations(call_table):
+            by_column.setdefault(connector["up_down_location"], []).append(connector)
 
-    # Go through duplicates, two elements at a time: 1st = first up_down_location, 2nd = the duplicate up_down_location.
-    for i in range(0, len(duplicates), 2):
-        first_connector = duplicates[i]
-        second_connector = duplicates[i + 1] if i + 1 < len(duplicates) else None
-        if second_connector is None:
-            break
-
-        # Get the first connector's top and bottom line numbers.
-        if first_connector[1]["caller_line_num"] > first_connector[1]["called_line_num"]:
-            first_connector_top_line = first_connector[1]["called_line_num"]
-            first_connector_bottom_line = first_connector[1]["caller_line_num"]
-        else:
-            first_connector_top_line = first_connector[1]["caller_line_num"]
-            first_connector_bottom_line = first_connector[1]["called_line_num"]
-
-        # Get the second connector's top and bottom line numbers.
-        if second_connector[1]["caller_line_num"] > second_connector[1]["called_line_num"]:
-            second_connector_top_line = second_connector[1]["called_line_num"]
-            second_connector_bottom_line = second_connector[1]["caller_line_num"]
-        else:
-            second_connector_top_line = second_connector[1]["caller_line_num"]
-            second_connector_bottom_line = second_connector[1]["called_line_num"]
-
-        # Test for overlap situations: complete, lower boundary, inner or upper boundary overlap.
-        if (
-            (
-                second_connector_top_line <= first_connector_top_line
-                and second_connector_bottom_line >= first_connector_bottom_line
-            )
-            or (
-                second_connector_top_line >= first_connector_top_line
-                and second_connector_top_line <= first_connector_bottom_line
-            )
-            or (
-                second_connector_bottom_line <= first_connector_bottom_line
-                and second_connector_bottom_line >= first_connector_top_line
-            )
-        ):
-            second_connector[1]["up_down_location"] += 2
-            up_down_modified = True
-
-    # Recurse until they have all been processed.
-    if up_down_modified:
-        call_table = fix_duplicate_up_down_locations(call_table)
-
-    return call_table
+        moved = False
+        for sharing in by_column.values():
+            for position, later in enumerate(sharing[1:], start=1):
+                # An earlier one that has already moved on in this pass is no longer in this column.
+                if any(
+                    earlier["up_down_location"] == later["up_down_location"] and _runs_overlap(earlier, later)
+                    for earlier in sharing[:position]
+                ):
+                    later["up_down_location"] += 2
+                    moved = True
+        if not moved:
+            return call_table
 
 
 class TaskLineIndex:

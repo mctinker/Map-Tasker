@@ -286,3 +286,31 @@ def test_the_no_profile_box_is_left_alone_in_english_and_arabic(monkeypatch: pyt
     monkeypatch.setattr(diagutil, "translate_string", lambda text: pytest.fail("not translated"))
     lines, _ = diagutil.build_box("No Profile", ["", "", ""], fake_config(language=language))
     assert "No Profile" in lines[1]
+
+
+def test_a_third_connector_in_a_column_is_checked_against_the_first() -> None:
+    """The one in the middle is clear of both; the last runs over the first and must move."""
+    table = {1: _connector(1, 50, 4), 2: _connector(100, 110, 4), 3: _connector(20, 30, 4)}
+    fixed = diagutil.fix_duplicate_up_down_locations(table)
+    assert [fixed[key]["up_down_location"] for key in (1, 2, 3)] == [4, 4, 6]
+
+
+def test_each_column_is_checked_on_its_own_whatever_the_size_of_the_one_before() -> None:
+    """Three connectors share column 4 and two share column 8; the two in column 8 overlap."""
+    table = {
+        1: _connector(1, 2, 4),
+        2: _connector(10, 11, 4),
+        3: _connector(20, 21, 4),
+        4: _connector(100, 200, 8),
+        5: _connector(150, 250, 8),
+    }
+    fixed = diagutil.fix_duplicate_up_down_locations(table)
+    assert [fixed[key]["up_down_location"] for key in (1, 2, 3)] == [4, 4, 4]
+    assert [fixed[key]["up_down_location"] for key in (4, 5)] == [8, 10]
+
+
+def test_a_connector_moved_onto_another_ones_column_is_moved_again() -> None:
+    """Moving over two columns lands on the next connector's column, which it also overlaps."""
+    table = {1: _connector(1, 9, 4), 2: _connector(2, 8, 4), 3: _connector(3, 7, 6)}
+    fixed = diagutil.fix_duplicate_up_down_locations(table)
+    assert len({entry["up_down_location"] for entry in fixed.values()}) == 3

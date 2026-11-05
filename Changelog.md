@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: In the Diagram, two connectors that cover some of the same lines are no longer drawn down the same column, where they looked like one line. Clicking such a connector now highlights only that connector, and Jump to End goes to the Task it really ends at.
+- Fixed:
 
 ### Known Issues
 
