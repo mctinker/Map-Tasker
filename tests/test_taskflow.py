@@ -160,7 +160,8 @@ def _flow(name: str) -> taskflow.Flow:
 
 
 # ##################################################################################
-# Blocks that do not pair up -- every one of these is an ERROR.
+# Blocks that do not pair up.  A block left open at the end of its Task is a WARNING -- the Task ending closes it --
+# and the others, which have nothing to pair with, are ERRORs.
 # ##################################################################################
 def test_if_without_end_if(report: str) -> None:
     """An 'If' the Task never closes."""
@@ -172,6 +173,34 @@ def test_for_without_end_for(report: str) -> None:
     """A 'For' the Task never closes -- the loop half of the same check."""
     findings = _findings_for(report, "FLOW-FOR-WITHOUT-END-FOR")
     assert findings == ["[FLOW-FOR-WITHOUT-END-FOR]  Task 'Open For' (id 201) action 2"]
+
+
+def _heading_above(report_text: str, tag: str) -> str:
+    """The severity heading ("ERRORS ..." or "WARNINGS ...") a tag's first line is listed under."""
+    lines = report_text.splitlines()
+    position = next(number for number, line in enumerate(lines) if line.startswith(f"[{tag}]"))
+    return next(line for line in reversed(lines[:position]) if line.startswith(("ERRORS", "WARNINGS")))
+
+
+@pytest.mark.parametrize("tag", ["FLOW-IF-WITHOUT-END-IF", "FLOW-FOR-WITHOUT-END-FOR"])
+def test_a_block_left_open_is_a_warning(report: str, tag: str) -> None:
+    """The Task ending closes it, so it is probably not what was meant but is not an error."""
+    assert _heading_above(report, tag).startswith("WARNINGS")
+
+
+@pytest.mark.parametrize("tag", ["FLOW-IF-WITHOUT-END-IF", "FLOW-FOR-WITHOUT-END-FOR"])
+def test_a_block_left_open_is_a_warning_in_the_health_check_too(tag: str) -> None:
+    from maptasker.src.analysis.healthck import run_health_check
+
+    _load(_FLOW_XML)
+    rows, _ = run_health_check(state=PrimeItems)
+
+    assert _heading_above(text_report(rows), tag).startswith("WARNINGS")
+
+
+@pytest.mark.parametrize("tag", ["FLOW-END-IF-WITHOUT-IF", "FLOW-ELSE-WITHOUT-IF", "FLOW-GOTO-MISSING-LABEL"])
+def test_the_problems_that_have_nothing_to_pair_with_stay_errors(report: str, tag: str) -> None:
+    assert _heading_above(report, tag).startswith("ERRORS")
 
 
 def test_end_if_without_if(report: str) -> None:

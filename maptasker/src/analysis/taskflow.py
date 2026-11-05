@@ -58,9 +58,10 @@ if TYPE_CHECKING:
 
 # The same two words healthck grades by, spelled out again rather than imported: healthck
 # imports this module to fold these findings in, so importing it back would be a cycle.
-# There is no INFO here -- nothing this module can see is merely worth knowing about.  A
-# block that never closes and a Goto with nowhere to land are both defects; the split is
-# between "the device will do the wrong thing" and "the device will do nothing at all".
+# There is no INFO here -- nothing this module can see is merely worth knowing about.  The
+# split is between a defect the device cannot act on at all (an Else with no If, a Goto with
+# nowhere to land) and one it can carry on past: a block left open at the end of its Task is
+# closed by the Task ending, so that is a WARNING.
 ERROR = "ERROR"
 WARNING = "WARNING"
 
@@ -508,7 +509,7 @@ def _match_blocks(steps: list[Step], where: Target) -> _Structure:
 
     found.problems += [
         Problem(
-            ERROR,
+            WARNING,
             f"FLOW-{block.kind.upper()}-WITHOUT-END-{block.kind.upper()}",
             where.at_action(block.open + 1),
             f"'{block.kind}' opened here is never closed -- the Task ends with it still open.",
